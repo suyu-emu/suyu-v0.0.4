@@ -74,4 +74,33 @@ void Apply() {
     Service::HID::ReloadInputDevices();
 }
 
+template <typename T>
+void LogSetting(const std::string& name, const T& value) {
+    LOG_INFO(Config, "{}: {}", name, value);
+}
+
+void LogSettings() {
+    LOG_INFO(Config, "yuzu Configuration:");
+    LogSetting("System_UseDockedMode", Settings::values.use_docked_mode);
+    LogSetting("System_EnableNfc", Settings::values.enable_nfc);
+    LogSetting("System_RngSeed", Settings::values.rng_seed.value_or(0));
+    LogSetting("System_CurrentUser", Settings::values.current_user);
+    LogSetting("System_LanguageIndex", Settings::values.language_index);
+    LogSetting("Core_UseCpuJit", Settings::values.use_cpu_jit);
+    LogSetting("Core_UseMultiCore", Settings::values.use_multi_core);
+    LogSetting("Renderer_UseResolutionFactor", Settings::values.resolution_factor);
+    LogSetting("Renderer_UseFrameLimit", Settings::values.use_frame_limit);
+    LogSetting("Renderer_FrameLimit", Settings::values.frame_limit);
+    LogSetting("Renderer_UseAccurateGpuEmulation", Settings::values.use_accurate_gpu_emulation);
+    LogSetting("Audio_OutputEngine", Settings::values.sink_id);
+    LogSetting("Audio_EnableAudioStretching", Settings::values.enable_audio_stretching);
+    LogSetting("Audio_OutputDevice", Settings::values.audio_device_id);
+    LogSetting("DataStorage_UseVirtualSd", Settings::values.use_virtual_sd);
+    LogSetting("DataStorage_NandDir", Settings::values.nand_dir);
+    LogSetting("DataStorage_SdmcDir", Settings::values.sdmc_dir);
+    LogSetting("Debugging_UseGdbstub", Settings::values.use_gdbstub);
+    LogSetting("Debugging_GdbstubPort", Settings::values.gdbstub_port);
+    LogSetting("Debugging_ProgramArgs", Settings::values.program_args);
+}
+
 } // namespace Settings
