@@ -13,8 +13,10 @@ GPUVAddr MemoryManager::AllocateSpace(u64 size, u64 align) {
     ASSERT(gpu_addr);
 
     for (u64 offset = 0; offset < size; offset += PAGE_SIZE) {
-        ASSERT(PageSlot(*gpu_addr + offset) == static_cast<u64>(PageStatus::Unmapped));
-        PageSlot(*gpu_addr + offset) = static_cast<u64>(PageStatus::Allocated);
+        VAddr& slot = PageSlot(*gpu_addr + offset);
+
+        ASSERT(slot == static_cast<u64>(PageStatus::Unmapped));
+        slot = static_cast<u64>(PageStatus::Allocated);
     }
 
     return *gpu_addr;
@@ -22,8 +24,10 @@ GPUVAddr MemoryManager::AllocateSpace(u64 size, u64 align) {
 
 GPUVAddr MemoryManager::AllocateSpace(GPUVAddr gpu_addr, u64 size, u64 align) {
     for (u64 offset = 0; offset < size; offset += PAGE_SIZE) {
-        ASSERT(PageSlot(gpu_addr + offset) == static_cast<u64>(PageStatus::Unmapped));
-        PageSlot(gpu_addr + offset) = static_cast<u64>(PageStatus::Allocated);
+        VAddr& slot = PageSlot(gpu_addr + offset);
+
+        ASSERT(slot == static_cast<u64>(PageStatus::Unmapped));
+        slot = static_cast<u64>(PageStatus::Allocated);
     }
 
     return gpu_addr;
@@ -34,8 +38,10 @@ GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, u64 size) {
     ASSERT(gpu_addr);
 
     for (u64 offset = 0; offset < size; offset += PAGE_SIZE) {
-        ASSERT(PageSlot(*gpu_addr + offset) == static_cast<u64>(PageStatus::Unmapped));
-        PageSlot(*gpu_addr + offset) = cpu_addr + offset;
+        VAddr& slot = PageSlot(*gpu_addr + offset);
+
+        ASSERT(slot == static_cast<u64>(PageStatus::Unmapped));
+        slot = cpu_addr + offset;
     }
 
     MappedRegion region{cpu_addr, *gpu_addr, size};
@@ -48,8 +54,10 @@ GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, GPUVAddr gpu_addr, u64 size)
     ASSERT((gpu_addr & PAGE_MASK) == 0);
 
     for (u64 offset = 0; offset < size; offset += PAGE_SIZE) {
-        ASSERT(PageSlot(gpu_addr + offset) == static_cast<u64>(PageStatus::Allocated));
-        PageSlot(gpu_addr + offset) = cpu_addr + offset;
+        VAddr& slot = PageSlot(gpu_addr + offset);
+
+        ASSERT(slot == static_cast<u64>(PageStatus::Allocated));
+        slot = cpu_addr + offset;
     }
 
     MappedRegion region{cpu_addr, gpu_addr, size};
@@ -62,9 +70,11 @@ GPUVAddr MemoryManager::UnmapBuffer(GPUVAddr gpu_addr, u64 size) {
     ASSERT((gpu_addr & PAGE_MASK) == 0);
 
     for (u64 offset = 0; offset < size; offset += PAGE_SIZE) {
-        ASSERT(PageSlot(gpu_addr + offset) != static_cast<u64>(PageStatus::Allocated) &&
-               PageSlot(gpu_addr + offset) != static_cast<u64>(PageStatus::Unmapped));
-        PageSlot(gpu_addr + offset) = static_cast<u64>(PageStatus::Unmapped);
+        VAddr& slot = PageSlot(gpu_addr + offset);
+
+        ASSERT(slot != static_cast<u64>(PageStatus::Allocated) &&
+               slot != static_cast<u64>(PageStatus::Unmapped));
+        slot = static_cast<u64>(PageStatus::Unmapped);
     }
 
     // Delete the region mappings that are contained within the unmapped region
@@ -128,9 +138,7 @@ VAddr& MemoryManager::PageSlot(GPUVAddr gpu_addr) {
     auto& block = page_table[(gpu_addr >> (PAGE_BITS + PAGE_TABLE_BITS)) & PAGE_TABLE_MASK];
     if (!block) {
         block = std::make_unique<PageBlock>();
-        for (unsigned index = 0; index < PAGE_BLOCK_SIZE; index++) {
-            (*block)[index] = static_cast<u64>(PageStatus::Unmapped);
-        }
+        block->fill(static_cast<VAddr>(PageStatus::Unmapped));
     }
     return (*block)[(gpu_addr >> PAGE_BITS) & PAGE_BLOCK_MASK];
 }
