@@ -101,6 +101,8 @@ GMainWindow::GMainWindow() : config(new Config()), emu_thread(nullptr) {
 
     ConnectMenuEvents();
     ConnectWidgetEvents();
+    LOG_INFO(Frontend, "yuzu Version: {} | {}-{}", Common::g_build_name, Common::g_scm_branch,
+             Common::g_scm_desc);
 
     setWindowTitle(QString("yuzu %1| %2-%3")
                        .arg(Common::g_build_name, Common::g_scm_branch, Common::g_scm_desc));
