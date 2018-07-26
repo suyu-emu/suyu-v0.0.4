@@ -15,6 +15,7 @@
 #include "core/hle/kernel/shared_memory.h"
 #include "core/hle/service/hid/hid.h"
 #include "core/hle/service/hid/irs.h"
+#include "core/hle/service/hid/xcd.h"
 #include "core/hle/service/service.h"
 
 namespace Service::HID {
@@ -562,6 +563,7 @@ void InstallInterfaces(SM::ServiceManager& service_manager) {
     std::make_shared<Hid>()->InstallAsService(service_manager);
     std::make_shared<IRS>()->InstallAsService(service_manager);
     std::make_shared<IRS_SYS>()->InstallAsService(service_manager);
+    std::make_shared<XCD_SYS>()->InstallAsService(service_manager);
 }
 
 } // namespace Service::HID
