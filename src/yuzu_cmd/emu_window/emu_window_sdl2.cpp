@@ -164,6 +164,8 @@ EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen) {
     OnResize();
     OnMinimalClientAreaChangeRequest(GetActiveConfig().min_client_area_size);
     SDL_PumpEvents();
+    LOG_INFO(Frontend, "yuzu Version: {} | {}-{}", Common::g_build_name, Common::g_scm_branch,
+             Common::g_scm_desc);
 
     DoneCurrent();
 }
