@@ -23,6 +23,11 @@ enum class RenderTargetFormat : u32 {
     RGB10_A2_UNORM = 0xD1,
     RGBA8_UNORM = 0xD5,
     RGBA8_SRGB = 0xD6,
+    RG16_UNORM = 0xDA,
+    RG16_SNORM = 0xDB,
+    RG16_SINT = 0xDC,
+    RG16_UINT = 0xDD,
+    RG16_FLOAT = 0xDE,
     R11G11B10_FLOAT = 0xE0,
     R8_UNORM = 0xF3,
 };
