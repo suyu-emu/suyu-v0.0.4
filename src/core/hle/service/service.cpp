@@ -27,6 +27,7 @@
 #include "core/hle/service/fatal/fatal.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/friend/friend.h"
+#include "core/hle/service/grc/grc.h"
 #include "core/hle/service/hid/hid.h"
 #include "core/hle/service/ldn/ldn.h"
 #include "core/hle/service/ldr/ldr.h"
@@ -200,6 +201,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm) {
     Fatal::InstallInterfaces(*sm);
     FileSystem::InstallInterfaces(*sm);
     Friend::InstallInterfaces(*sm);
+    GRC::InstallInterfaces(*sm);
     HID::InstallInterfaces(*sm);
     LDN::InstallInterfaces(*sm);
     LDR::InstallInterfaces(*sm);
