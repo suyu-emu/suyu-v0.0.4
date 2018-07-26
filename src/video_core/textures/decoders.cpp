@@ -62,6 +62,7 @@ u32 BytesPerPixel(TextureFormat format) {
     case TextureFormat::A2B10G10R10:
     case TextureFormat::BF10GF11RF11:
     case TextureFormat::R32:
+    case TextureFormat::R16_G16:
         return 4;
     case TextureFormat::A1B5G5R5:
     case TextureFormat::B5G6R5:
@@ -127,6 +128,7 @@ std::vector<u8> UnswizzleTexture(VAddr address, TextureFormat format, u32 width,
     case TextureFormat::R32_G32:
     case TextureFormat::R32:
     case TextureFormat::R16:
+    case TextureFormat::R16_G16:
     case TextureFormat::BF10GF11RF11:
     case TextureFormat::ASTC_2D_4X4:
         CopySwizzledData(width, height, bytes_per_pixel, bytes_per_pixel, data,
@@ -187,6 +189,7 @@ std::vector<u8> DecodeTexture(const std::vector<u8>& texture_data, TextureFormat
     case TextureFormat::R32_G32:
     case TextureFormat::R32:
     case TextureFormat::R16:
+    case TextureFormat::R16_G16:
         // TODO(Subv): For the time being just forward the same data without any decoding.
         rgba_data = texture_data;
         break;

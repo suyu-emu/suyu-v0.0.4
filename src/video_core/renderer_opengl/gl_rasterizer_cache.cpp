@@ -104,15 +104,20 @@ static constexpr std::array<FormatTuple, SurfaceParams::MaxPixelFormat> tex_form
      true},                                                                                 // DXT45
     {GL_COMPRESSED_RED_RGTC1, GL_RED, GL_UNSIGNED_INT_8_8_8_8, ComponentType::UNorm, true}, // DXN1
     {GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, GL_RGB, GL_UNSIGNED_INT_8_8_8_8, ComponentType::UNorm,
-     true},                                                             // BC7U
-    {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, ComponentType::UNorm, false}, // ASTC_2D_4X4
-    {GL_RG8, GL_RG, GL_UNSIGNED_BYTE, ComponentType::UNorm, false},     // G8R8
-    {GL_RGBA8, GL_BGRA, GL_UNSIGNED_BYTE, ComponentType::UNorm, false}, // BGRA8
-    {GL_RGBA32F, GL_RGBA, GL_FLOAT, ComponentType::Float, false},       // RGBA32F
-    {GL_RG32F, GL_RG, GL_FLOAT, ComponentType::Float, false},           // RG32F
-    {GL_R32F, GL_RED, GL_FLOAT, ComponentType::Float, false},           // R32F
-    {GL_R16F, GL_RED, GL_HALF_FLOAT, ComponentType::Float, false},      // R16F
-    {GL_R16, GL_RED, GL_UNSIGNED_SHORT, ComponentType::UNorm, false},   // R16UNORM
+     true},                                                                    // BC7U
+    {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, ComponentType::UNorm, false},        // ASTC_2D_4X4
+    {GL_RG8, GL_RG, GL_UNSIGNED_BYTE, ComponentType::UNorm, false},            // G8R8
+    {GL_RGBA8, GL_BGRA, GL_UNSIGNED_BYTE, ComponentType::UNorm, false},        // BGRA8
+    {GL_RGBA32F, GL_RGBA, GL_FLOAT, ComponentType::Float, false},              // RGBA32F
+    {GL_RG32F, GL_RG, GL_FLOAT, ComponentType::Float, false},                  // RG32F
+    {GL_R32F, GL_RED, GL_FLOAT, ComponentType::Float, false},                  // R32F
+    {GL_R16F, GL_RED, GL_HALF_FLOAT, ComponentType::Float, false},             // R16F
+    {GL_R16, GL_RED, GL_UNSIGNED_SHORT, ComponentType::UNorm, false},          // R16UNORM
+    {GL_RG16, GL_RG, GL_UNSIGNED_SHORT, ComponentType::UNorm, false},          // RG16
+    {GL_RG16F, GL_RG, GL_HALF_FLOAT, ComponentType::Float, false},             // RG16F
+    {GL_RG16UI, GL_RG_INTEGER, GL_UNSIGNED_SHORT, ComponentType::UInt, false}, // RG16UI
+    {GL_RG16I, GL_RG_INTEGER, GL_SHORT, ComponentType::SInt, false},           // RG16I
+    {GL_RG16_SNORM, GL_RG, GL_SHORT, ComponentType::SNorm, false},             // RG16S
     {GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, ComponentType::UNorm, false}, // SRGBA8
 
     // DepthStencil formats
@@ -210,10 +215,12 @@ static constexpr std::array<void (*)(u32, u32, u32, u8*, Tegra::GPUVAddr),
         MortonCopy<true, PixelFormat::G8R8>,         MortonCopy<true, PixelFormat::BGRA8>,
         MortonCopy<true, PixelFormat::RGBA32F>,      MortonCopy<true, PixelFormat::RG32F>,
         MortonCopy<true, PixelFormat::R32F>,         MortonCopy<true, PixelFormat::R16F>,
-        MortonCopy<true, PixelFormat::R16UNORM>,     MortonCopy<true, PixelFormat::SRGBA8>,
-        MortonCopy<true, PixelFormat::Z24S8>,        MortonCopy<true, PixelFormat::S8Z24>,
-        MortonCopy<true, PixelFormat::Z32F>,         MortonCopy<true, PixelFormat::Z16>,
-        MortonCopy<true, PixelFormat::Z32FS8>,
+        MortonCopy<true, PixelFormat::R16UNORM>,     MortonCopy<true, PixelFormat::RG16>,
+        MortonCopy<true, PixelFormat::RG16F>,        MortonCopy<true, PixelFormat::RG16UI>,
+        MortonCopy<true, PixelFormat::RG16I>,        MortonCopy<true, PixelFormat::RG16S>,
+        MortonCopy<true, PixelFormat::SRGBA8>,       MortonCopy<true, PixelFormat::Z24S8>,
+        MortonCopy<true, PixelFormat::S8Z24>,        MortonCopy<true, PixelFormat::Z32F>,
+        MortonCopy<true, PixelFormat::Z16>,          MortonCopy<true, PixelFormat::Z32FS8>,
 };
 
 static constexpr std::array<void (*)(u32, u32, u32, u8*, Tegra::GPUVAddr),
@@ -241,6 +248,11 @@ static constexpr std::array<void (*)(u32, u32, u32, u8*, Tegra::GPUVAddr),
         MortonCopy<false, PixelFormat::R32F>,
         MortonCopy<false, PixelFormat::R16F>,
         MortonCopy<false, PixelFormat::R16UNORM>,
+        MortonCopy<false, PixelFormat::RG16>,
+        MortonCopy<false, PixelFormat::RG16F>,
+        MortonCopy<false, PixelFormat::RG16UI>,
+        MortonCopy<false, PixelFormat::RG16I>,
+        MortonCopy<false, PixelFormat::RG16S>,
         MortonCopy<false, PixelFormat::SRGBA8>,
         MortonCopy<false, PixelFormat::Z24S8>,
         MortonCopy<false, PixelFormat::S8Z24>,
