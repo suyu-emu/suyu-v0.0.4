@@ -172,6 +172,8 @@ add_library(core STATIC
     hle/service/nfp/nfp_user.h
     hle/service/nifm/nifm.cpp
     hle/service/nifm/nifm.h
+    hle/service/nim/nim.cpp
+    hle/service/nim/nim.h
     hle/service/ns/ns.cpp
     hle/service/ns/ns.h
     hle/service/ns/pl_u.cpp

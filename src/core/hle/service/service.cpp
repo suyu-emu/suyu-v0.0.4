@@ -34,6 +34,7 @@
 #include "core/hle/service/mm/mm_u.h"
 #include "core/hle/service/nfp/nfp.h"
 #include "core/hle/service/nifm/nifm.h"
+#include "core/hle/service/nim/nim.h"
 #include "core/hle/service/ns/ns.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/pctl/pctl.h"
@@ -206,6 +207,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm) {
     MM::InstallInterfaces(*sm);
     NFP::InstallInterfaces(*sm);
     NIFM::InstallInterfaces(*sm);
+    NIM::InstallInterfaces(*sm);
     NS::InstallInterfaces(*sm);
     Nvidia::InstallInterfaces(*sm);
     PCTL::InstallInterfaces(*sm);
