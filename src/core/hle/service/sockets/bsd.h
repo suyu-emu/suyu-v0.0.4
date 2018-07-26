@@ -26,4 +26,9 @@ private:
     u32 next_fd = 1;
 };
 
+class BSDCFG final : public ServiceFramework<BSDCFG> {
+public:
+    explicit BSDCFG();
+};
+
 } // namespace Service::Sockets

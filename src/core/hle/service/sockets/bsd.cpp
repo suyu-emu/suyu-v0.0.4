@@ -109,4 +109,26 @@ BSD::BSD(const char* name) : ServiceFramework(name) {
     RegisterHandlers(functions);
 }
 
+BSDCFG::BSDCFG() : ServiceFramework{"bsdcfg"} {
+    // clang-format off
+    static const FunctionInfo functions[] = {
+        {0, nullptr, "SetIfUp"},
+        {1, nullptr, "SetIfUpWithEvent"},
+        {2, nullptr, "CancelIf"},
+        {3, nullptr, "SetIfDown"},
+        {4, nullptr, "GetIfState"},
+        {5, nullptr, "DhcpRenew"},
+        {6, nullptr, "AddStaticArpEntry"},
+        {7, nullptr, "RemoveArpEntry"},
+        {8, nullptr, "LookupArpEntry"},
+        {9, nullptr, "LookupArpEntry2"},
+        {10, nullptr, "ClearArpEntries"},
+        {11, nullptr, "ClearArpEntries2"},
+        {12, nullptr, "PrintArpEntries"},
+    };
+    // clang-format on
+
+    RegisterHandlers(functions);
+}
+
 } // namespace Service::Sockets

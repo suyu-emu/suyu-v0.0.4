@@ -225,6 +225,8 @@ add_library(core STATIC
     hle/service/sm/sm.h
     hle/service/sockets/bsd.cpp
     hle/service/sockets/bsd.h
+    hle/service/sockets/ethc.cpp
+    hle/service/sockets/ethc.h
     hle/service/sockets/nsd.cpp
     hle/service/sockets/nsd.h
     hle/service/sockets/sfdnsres.cpp
