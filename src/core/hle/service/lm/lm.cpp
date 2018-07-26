@@ -4,10 +4,12 @@
 
 #include <sstream>
 #include <string>
+
 #include "common/logging/log.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/client_session.h"
 #include "core/hle/service/lm/lm.h"
+#include "core/hle/service/service.h"
+#include "core/memory.h"
 
 namespace Service::LM {
 
@@ -15,12 +17,11 @@ class Logger final : public ServiceFramework<Logger> {
 public:
     Logger() : ServiceFramework("Logger") {
         static const FunctionInfo functions[] = {
-            {0x00000000, &Logger::Log, "Log"},
+            {0x00000000, &Logger::Initialize, "Initialize"},
+            {0x00000001, nullptr, "SetDestination"},
         };
         RegisterHandlers(functions);
     }
-
-    ~Logger() = default;
 
 private:
     struct MessageHeader {
@@ -66,13 +67,13 @@ private:
     };
 
     /**
-     * LM::Log service function
+     * ILogger::Initialize service function
      *  Inputs:
      *      0: 0x00000000
      *  Outputs:
      *      0: ResultCode
      */
-    void Log(Kernel::HLERequestContext& ctx) {
+    void Initialize(Kernel::HLERequestContext& ctx) {
         // This function only succeeds - Get that out of the way
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
@@ -162,30 +163,33 @@ private:
     std::ostringstream log_stream;
 };
 
+class LM final : public ServiceFramework<LM> {
+public:
+    explicit LM() : ServiceFramework{"lm"} {
+        static const FunctionInfo functions[] = {
+            {0x00000000, &LM::OpenLogger, "OpenLogger"},
+        };
+        RegisterHandlers(functions);
+    }
+
+    /**
+     * LM::OpenLogger service function
+     *  Inputs:
+     *      0: 0x00000000
+     *  Outputs:
+     *      0: ResultCode
+     */
+    void OpenLogger(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<Logger>();
+
+        LOG_DEBUG(Service_LM, "called");
+    }
+};
+
 void InstallInterfaces(SM::ServiceManager& service_manager) {
     std::make_shared<LM>()->InstallAsService(service_manager);
-}
-
-/**
- * LM::Initialize service function
- *  Inputs:
- *      0: 0x00000000
- *  Outputs:
- *      0: ResultCode
- */
-void LM::Initialize(Kernel::HLERequestContext& ctx) {
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<Logger>();
-
-    LOG_DEBUG(Service_LM, "called");
-}
-
-LM::LM() : ServiceFramework("lm") {
-    static const FunctionInfo functions[] = {
-        {0x00000000, &LM::Initialize, "Initialize"},
-    };
-    RegisterHandlers(functions);
 }
 
 } // namespace Service::LM

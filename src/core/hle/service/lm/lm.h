@@ -4,20 +4,11 @@
 
 #pragma once
 
-#include <vector>
-#include "core/hle/kernel/kernel.h"
-#include "core/hle/service/service.h"
+namespace Service::SM {
+class ServiceManager;
+}
 
 namespace Service::LM {
-
-class LM final : public ServiceFramework<LM> {
-public:
-    LM();
-    ~LM() = default;
-
-private:
-    void Initialize(Kernel::HLERequestContext& ctx);
-};
 
 /// Registers all LM services with the specified service manager.
 void InstallInterfaces(SM::ServiceManager& service_manager);
