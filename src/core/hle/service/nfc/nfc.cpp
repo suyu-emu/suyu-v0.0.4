@@ -4,6 +4,9 @@
 
 #include <memory>
 
+#include "common/logging/log.h"
+#include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/service/nfc/nfc.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
@@ -30,11 +33,20 @@ public:
     explicit NFC_AM() : ServiceFramework{"nfc:am"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "CreateAmInterface"},
+            {0, &NFC_AM::CreateAmInterface, "CreateAmInterface"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
+    }
+
+private:
+    void CreateAmInterface(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<IAm>();
+
+        LOG_DEBUG(Service_NFC, "called");
     }
 };
 
@@ -69,11 +81,20 @@ public:
     explicit NFC_MF_U() : ServiceFramework{"nfc:mf:u"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "CreateUserInterface"},
+            {0, &NFC_MF_U::CreateUserInterface, "CreateUserInterface"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
+    }
+
+private:
+    void CreateUserInterface(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<MFIUser>();
+
+        LOG_DEBUG(Service_NFC, "called");
     }
 };
 
@@ -116,11 +137,20 @@ public:
     explicit NFC_U() : ServiceFramework{"nfc:u"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "CreateUserInterface"},
+            {0, &NFC_U::CreateUserInterface, "CreateUserInterface"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
+    }
+
+private:
+    void CreateUserInterface(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<IUser>();
+
+        LOG_DEBUG(Service_NFC, "called");
     }
 };
 
@@ -165,11 +195,20 @@ public:
     explicit NFC_SYS() : ServiceFramework{"nfc:sys"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "CreateSystemInterface"},
+            {0, &NFC_SYS::CreateSystemInterface, "CreateSystemInterface"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
+    }
+
+private:
+    void CreateSystemInterface(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<ISystem>();
+
+        LOG_DEBUG(Service_NFC, "called");
     }
 };
 
