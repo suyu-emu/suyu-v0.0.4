@@ -4,6 +4,9 @@
 
 #include <memory>
 
+#include "common/logging/log.h"
+#include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/service/lbl/lbl.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
@@ -41,14 +44,43 @@ public:
             {23, nullptr, "Unknown20"},
             {24, nullptr, "Unknown21"},
             {25, nullptr, "Unknown22"},
-            {26, nullptr, "EnableVrMode"},
-            {27, nullptr, "DisableVrMode"},
-            {28, nullptr, "GetVrMode"},
+            {26, &LBL::EnableVrMode, "EnableVrMode"},
+            {27, &LBL::DisableVrMode, "DisableVrMode"},
+            {28, &LBL::GetVrMode, "GetVrMode"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
     }
+
+private:
+    void EnableVrMode(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+
+        vr_mode_enabled = true;
+
+        LOG_DEBUG(Service_LBL, "called");
+    }
+
+    void DisableVrMode(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+
+        vr_mode_enabled = false;
+
+        LOG_DEBUG(Service_LBL, "called");
+    }
+
+    void GetVrMode(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(vr_mode_enabled);
+
+        LOG_DEBUG(Service_LBL, "called");
+    }
+
+    bool vr_mode_enabled = false;
 };
 
 void InstallInterfaces(SM::ServiceManager& sm) {
