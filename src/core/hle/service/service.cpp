@@ -35,6 +35,7 @@
 #include "core/hle/service/ldr/ldr.h"
 #include "core/hle/service/lm/lm.h"
 #include "core/hle/service/mm/mm_u.h"
+#include "core/hle/service/nfc/nfc.h"
 #include "core/hle/service/nfp/nfp.h"
 #include "core/hle/service/nifm/nifm.h"
 #include "core/hle/service/nim/nim.h"
@@ -211,6 +212,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm) {
     LDR::InstallInterfaces(*sm);
     LM::InstallInterfaces(*sm);
     MM::InstallInterfaces(*sm);
+    NFC::InstallInterfaces(*sm);
     NFP::InstallInterfaces(*sm);
     NIFM::InstallInterfaces(*sm);
     NIM::InstallInterfaces(*sm);
