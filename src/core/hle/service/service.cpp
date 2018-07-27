@@ -21,6 +21,7 @@
 #include "core/hle/service/apm/apm.h"
 #include "core/hle/service/audio/audio.h"
 #include "core/hle/service/bcat/bcat.h"
+#include "core/hle/service/btdrv/btdrv.h"
 #include "core/hle/service/erpt/erpt.h"
 #include "core/hle/service/es/es.h"
 #include "core/hle/service/eupld/eupld.h"
@@ -193,8 +194,9 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm) {
     AM::InstallInterfaces(*sm, nv_flinger);
     AOC::InstallInterfaces(*sm);
     APM::InstallInterfaces(*sm);
-    BCAT::InstallInterfaces(*sm);
     Audio::InstallInterfaces(*sm);
+    BCAT::InstallInterfaces(*sm);
+    BtDrv::InstallInterfaces(*sm);
     ERPT::InstallInterfaces(*sm);
     ES::InstallInterfaces(*sm);
     EUPLD::InstallInterfaces(*sm);
