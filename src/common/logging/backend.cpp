@@ -176,6 +176,7 @@ void FileBackend::Write(const Entry& entry) {
     SUB(Service, LDN)                                                                              \
     SUB(Service, LM)                                                                               \
     SUB(Service, MM)                                                                               \
+    SUB(Service, NFC)                                                                              \
     SUB(Service, NFP)                                                                              \
     SUB(Service, NIFM)                                                                             \
     SUB(Service, NS)                                                                               \

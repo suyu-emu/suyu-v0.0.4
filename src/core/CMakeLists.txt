@@ -172,6 +172,8 @@ add_library(core STATIC
     hle/service/lm/lm.h
     hle/service/mm/mm_u.cpp
     hle/service/mm/mm_u.h
+    hle/service/nfc/nfc.cpp
+    hle/service/nfc/nfc.h
     hle/service/nfp/nfp.cpp
     hle/service/nfp/nfp.h
     hle/service/nfp/nfp_user.cpp
