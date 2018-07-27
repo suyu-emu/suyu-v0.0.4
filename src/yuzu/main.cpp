@@ -207,8 +207,11 @@ void GMainWindow::InitializeRecentFileMenuActions() {
 void GMainWindow::InitializeHotkeys() {
     RegisterHotkey("Main Window", "Load File", QKeySequence::Open);
     RegisterHotkey("Main Window", "Start Emulation");
+    RegisterHotkey("Main Window", "Continue/Pause", QKeySequence(Qt::Key_F4));
     RegisterHotkey("Main Window", "Fullscreen", QKeySequence::FullScreen);
     RegisterHotkey("Main Window", "Exit Fullscreen", QKeySequence(Qt::Key_Escape),
+                   Qt::ApplicationShortcut);
+    RegisterHotkey("Main Window", "Toggle Speed Limit", QKeySequence("CTRL+Z"),
                    Qt::ApplicationShortcut);
     LoadHotkeys();
 
@@ -216,6 +219,15 @@ void GMainWindow::InitializeHotkeys() {
             &GMainWindow::OnMenuLoadFile);
     connect(GetHotkey("Main Window", "Start Emulation", this), &QShortcut::activated, this,
             &GMainWindow::OnStartGame);
+    connect(GetHotkey("Main Window", "Continue/Pause", this), &QShortcut::activated, this, [&] {
+        if (emulation_running) {
+            if (emu_thread->IsRunning()) {
+                OnPauseGame();
+            } else {
+                OnStartGame();
+            }
+        }
+    });
     connect(GetHotkey("Main Window", "Fullscreen", render_window), &QShortcut::activated,
             ui.action_Fullscreen, &QAction::trigger);
     connect(GetHotkey("Main Window", "Fullscreen", render_window), &QShortcut::activatedAmbiguously,
@@ -225,6 +237,10 @@ void GMainWindow::InitializeHotkeys() {
             ui.action_Fullscreen->setChecked(false);
             ToggleFullscreen();
         }
+    });
+    connect(GetHotkey("Main Window", "Toggle Speed Limit", this), &QShortcut::activated, this, [&] {
+        Settings::values.toggle_framelimit = !Settings::values.toggle_framelimit;
+        UpdateStatusBar();
     });
 }
 
