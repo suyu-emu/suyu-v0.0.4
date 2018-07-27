@@ -160,6 +160,10 @@ add_library(core STATIC
     hle/service/grc/grc.h
     hle/service/hid/hid.cpp
     hle/service/hid/hid.h
+    hle/service/hid/irs.cpp
+    hle/service/hid/irs.h
+    hle/service/hid/xcd.cpp
+    hle/service/hid/xcd.h
     hle/service/ldn/ldn.cpp
     hle/service/ldn/ldn.h
     hle/service/ldr/ldr.cpp

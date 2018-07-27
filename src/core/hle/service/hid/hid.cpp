@@ -14,6 +14,8 @@
 #include "core/hle/kernel/event.h"
 #include "core/hle/kernel/shared_memory.h"
 #include "core/hle/service/hid/hid.h"
+#include "core/hle/service/hid/irs.h"
+#include "core/hle/service/hid/xcd.h"
 #include "core/hle/service/service.h"
 
 namespace Service::HID {
@@ -555,10 +557,233 @@ private:
     }
 };
 
+class HidDbg final : public ServiceFramework<HidDbg> {
+public:
+    explicit HidDbg() : ServiceFramework{"hid:dbg"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "DeactivateDebugPad"},
+            {1, nullptr, "SetDebugPadAutoPilotState"},
+            {2, nullptr, "UnsetDebugPadAutoPilotState"},
+            {10, nullptr, "DeactivateTouchScreen"},
+            {11, nullptr, "SetTouchScreenAutoPilotState"},
+            {12, nullptr, "UnsetTouchScreenAutoPilotState"},
+            {20, nullptr, "DeactivateMouse"},
+            {21, nullptr, "SetMouseAutoPilotState"},
+            {22, nullptr, "UnsetMouseAutoPilotState"},
+            {30, nullptr, "DeactivateKeyboard"},
+            {31, nullptr, "SetKeyboardAutoPilotState"},
+            {32, nullptr, "UnsetKeyboardAutoPilotState"},
+            {50, nullptr, "DeactivateXpad"},
+            {51, nullptr, "SetXpadAutoPilotState"},
+            {52, nullptr, "UnsetXpadAutoPilotState"},
+            {60, nullptr, "DeactivateJoyXpad"},
+            {91, nullptr, "DeactivateGesture"},
+            {110, nullptr, "DeactivateHomeButton"},
+            {111, nullptr, "SetHomeButtonAutoPilotState"},
+            {112, nullptr, "UnsetHomeButtonAutoPilotState"},
+            {120, nullptr, "DeactivateSleepButton"},
+            {121, nullptr, "SetSleepButtonAutoPilotState"},
+            {122, nullptr, "UnsetSleepButtonAutoPilotState"},
+            {123, nullptr, "DeactivateInputDetector"},
+            {130, nullptr, "DeactivateCaptureButton"},
+            {131, nullptr, "SetCaptureButtonAutoPilotState"},
+            {132, nullptr, "UnsetCaptureButtonAutoPilotState"},
+            {133, nullptr, "SetShiftAccelerometerCalibrationValue"},
+            {134, nullptr, "GetShiftAccelerometerCalibrationValue"},
+            {135, nullptr, "SetShiftGyroscopeCalibrationValue"},
+            {136, nullptr, "GetShiftGyroscopeCalibrationValue"},
+            {140, nullptr, "DeactivateConsoleSixAxisSensor"},
+            {141, nullptr, "GetConsoleSixAxisSensorSamplingFrequency"},
+            {142, nullptr, "DeactivateSevenSixAxisSensor"},
+            {201, nullptr, "ActivateFirmwareUpdate"},
+            {202, nullptr, "DeactivateFirmwareUpdate"},
+            {203, nullptr, "StartFirmwareUpdate"},
+            {204, nullptr, "GetFirmwareUpdateStage"},
+            {205, nullptr, "GetFirmwareVersion"},
+            {206, nullptr, "GetDestinationFirmwareVersion"},
+            {207, nullptr, "DiscardFirmwareInfoCacheForRevert"},
+            {208, nullptr, "StartFirmwareUpdateForRevert"},
+            {209, nullptr, "GetAvailableFirmwareVersionForRevert"},
+            {210, nullptr, "IsFirmwareUpdatingDevice"},
+            {221, nullptr, "UpdateControllerColor"},
+            {222, nullptr, "ConnectUsbPadsAsync"},
+            {223, nullptr, "DisconnectUsbPadsAsync"},
+            {224, nullptr, "UpdateDesignInfo"},
+            {225, nullptr, "GetUniquePadDriverState"},
+            {226, nullptr, "GetSixAxisSensorDriverStates"},
+            {301, nullptr, "GetAbstractedPadHandles"},
+            {302, nullptr, "GetAbstractedPadState"},
+            {303, nullptr, "GetAbstractedPadsState"},
+            {321, nullptr, "SetAutoPilotVirtualPadState"},
+            {322, nullptr, "UnsetAutoPilotVirtualPadState"},
+            {323, nullptr, "UnsetAllAutoPilotVirtualPadState"},
+            {350, nullptr, "AddRegisteredDevice"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+class HidSys final : public ServiceFramework<HidSys> {
+public:
+    explicit HidSys() : ServiceFramework{"hid:sys"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {31, nullptr, "SendKeyboardLockKeyEvent"},
+            {101, nullptr, "AcquireHomeButtonEventHandle"},
+            {111, nullptr, "ActivateHomeButton"},
+            {121, nullptr, "AcquireSleepButtonEventHandle"},
+            {131, nullptr, "ActivateSleepButton"},
+            {141, nullptr, "AcquireCaptureButtonEventHandle"},
+            {151, nullptr, "ActivateCaptureButton"},
+            {210, nullptr, "AcquireNfcDeviceUpdateEventHandle"},
+            {211, nullptr, "GetNpadsWithNfc"},
+            {212, nullptr, "AcquireNfcActivateEventHandle"},
+            {213, nullptr, "ActivateNfc"},
+            {214, nullptr, "GetXcdHandleForNpadWithNfc"},
+            {215, nullptr, "IsNfcActivated"},
+            {230, nullptr, "AcquireIrSensorEventHandle"},
+            {231, nullptr, "ActivateIrSensor"},
+            {301, nullptr, "ActivateNpadSystem"},
+            {303, nullptr, "ApplyNpadSystemCommonPolicy"},
+            {304, nullptr, "EnableAssigningSingleOnSlSrPress"},
+            {305, nullptr, "DisableAssigningSingleOnSlSrPress"},
+            {306, nullptr, "GetLastActiveNpad"},
+            {307, nullptr, "GetNpadSystemExtStyle"},
+            {308, nullptr, "ApplyNpadSystemCommonPolicyFull"},
+            {309, nullptr, "GetNpadFullKeyGripColor"},
+            {311, nullptr, "SetNpadPlayerLedBlinkingDevice"},
+            {321, nullptr, "GetUniquePadsFromNpad"},
+            {322, nullptr, "GetIrSensorState"},
+            {323, nullptr, "GetXcdHandleForNpadWithIrSensor"},
+            {500, nullptr, "SetAppletResourceUserId"},
+            {501, nullptr, "RegisterAppletResourceUserId"},
+            {502, nullptr, "UnregisterAppletResourceUserId"},
+            {503, nullptr, "EnableAppletToGetInput"},
+            {504, nullptr, "SetAruidValidForVibration"},
+            {505, nullptr, "EnableAppletToGetSixAxisSensor"},
+            {510, nullptr, "SetVibrationMasterVolume"},
+            {511, nullptr, "GetVibrationMasterVolume"},
+            {512, nullptr, "BeginPermitVibrationSession"},
+            {513, nullptr, "EndPermitVibrationSession"},
+            {520, nullptr, "EnableHandheldHids"},
+            {521, nullptr, "DisableHandheldHids"},
+            {540, nullptr, "AcquirePlayReportControllerUsageUpdateEvent"},
+            {541, nullptr, "GetPlayReportControllerUsages"},
+            {542, nullptr, "AcquirePlayReportRegisteredDeviceUpdateEvent"},
+            {543, nullptr, "GetRegisteredDevicesOld"},
+            {544, nullptr, "AcquireConnectionTriggerTimeoutEvent"},
+            {545, nullptr, "SendConnectionTrigger"},
+            {546, nullptr, "AcquireDeviceRegisteredEventForControllerSupport"},
+            {547, nullptr, "GetAllowedBluetoothLinksCount"},
+            {548, nullptr, "GetRegisteredDevices"},
+            {700, nullptr, "ActivateUniquePad"},
+            {702, nullptr, "AcquireUniquePadConnectionEventHandle"},
+            {703, nullptr, "GetUniquePadIds"},
+            {751, nullptr, "AcquireJoyDetachOnBluetoothOffEventHandle"},
+            {800, nullptr, "ListSixAxisSensorHandles"},
+            {801, nullptr, "IsSixAxisSensorUserCalibrationSupported"},
+            {802, nullptr, "ResetSixAxisSensorCalibrationValues"},
+            {803, nullptr, "StartSixAxisSensorUserCalibration"},
+            {804, nullptr, "CancelSixAxisSensorUserCalibration"},
+            {805, nullptr, "GetUniquePadBluetoothAddress"},
+            {806, nullptr, "DisconnectUniquePad"},
+            {807, nullptr, "GetUniquePadType"},
+            {808, nullptr, "GetUniquePadInterface"},
+            {809, nullptr, "GetUniquePadSerialNumber"},
+            {810, nullptr, "GetUniquePadControllerNumber"},
+            {811, nullptr, "GetSixAxisSensorUserCalibrationStage"},
+            {821, nullptr, "StartAnalogStickManualCalibration"},
+            {822, nullptr, "RetryCurrentAnalogStickManualCalibrationStage"},
+            {823, nullptr, "CancelAnalogStickManualCalibration"},
+            {824, nullptr, "ResetAnalogStickManualCalibration"},
+            {825, nullptr, "GetAnalogStickState"},
+            {826, nullptr, "GetAnalogStickManualCalibrationStage"},
+            {827, nullptr, "IsAnalogStickButtonPressed"},
+            {828, nullptr, "IsAnalogStickInReleasePosition"},
+            {829, nullptr, "IsAnalogStickInCircumference"},
+            {850, nullptr, "IsUsbFullKeyControllerEnabled"},
+            {851, nullptr, "EnableUsbFullKeyController"},
+            {852, nullptr, "IsUsbConnected"},
+            {900, nullptr, "ActivateInputDetector"},
+            {901, nullptr, "NotifyInputDetector"},
+            {1000, nullptr, "InitializeFirmwareUpdate"},
+            {1001, nullptr, "GetFirmwareVersion"},
+            {1002, nullptr, "GetAvailableFirmwareVersion"},
+            {1003, nullptr, "IsFirmwareUpdateAvailable"},
+            {1004, nullptr, "CheckFirmwareUpdateRequired"},
+            {1005, nullptr, "StartFirmwareUpdate"},
+            {1006, nullptr, "AbortFirmwareUpdate"},
+            {1007, nullptr, "GetFirmwareUpdateState"},
+            {1008, nullptr, "ActivateAudioControl"},
+            {1009, nullptr, "AcquireAudioControlEventHandle"},
+            {1010, nullptr, "GetAudioControlStates"},
+            {1011, nullptr, "DeactivateAudioControl"},
+            {1050, nullptr, "IsSixAxisSensorAccurateUserCalibrationSupported"},
+            {1051, nullptr, "StartSixAxisSensorAccurateUserCalibration"},
+            {1052, nullptr, "CancelSixAxisSensorAccurateUserCalibration"},
+            {1053, nullptr, "GetSixAxisSensorAccurateUserCalibrationState"},
+            {1100, nullptr, "GetHidbusSystemServiceObject"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+class HidTmp final : public ServiceFramework<HidTmp> {
+public:
+    explicit HidTmp() : ServiceFramework{"hid:tmp"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "GetConsoleSixAxisSensorCalibrationValues"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+class HidBus final : public ServiceFramework<HidBus> {
+public:
+    explicit HidBus() : ServiceFramework{"hidbus"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {1, nullptr, "GetBusHandle"},
+            {2, nullptr, "IsExternalDeviceConnected"},
+            {3, nullptr, "Initialize"},
+            {4, nullptr, "Finalize"},
+            {5, nullptr, "EnableExternalDevice"},
+            {6, nullptr, "GetExternalDeviceId"},
+            {7, nullptr, "SendCommandAsync"},
+            {8, nullptr, "GetSendCommandAsynceResult"},
+            {9, nullptr, "SetEventForSendCommandAsycResult"},
+            {10, nullptr, "GetSharedMemoryHandle"},
+            {11, nullptr, "EnableJoyPollingReceiveMode"},
+            {12, nullptr, "DisableJoyPollingReceiveMode"},
+            {13, nullptr, "GetPollingData"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
 void ReloadInputDevices() {}
 
 void InstallInterfaces(SM::ServiceManager& service_manager) {
     std::make_shared<Hid>()->InstallAsService(service_manager);
+    std::make_shared<HidBus>()->InstallAsService(service_manager);
+    std::make_shared<HidDbg>()->InstallAsService(service_manager);
+    std::make_shared<HidSys>()->InstallAsService(service_manager);
+    std::make_shared<HidTmp>()->InstallAsService(service_manager);
+
+    std::make_shared<IRS>()->InstallAsService(service_manager);
+    std::make_shared<IRS_SYS>()->InstallAsService(service_manager);
+
+    std::make_shared<XCD_SYS>()->InstallAsService(service_manager);
 }
 
 } // namespace Service::HID
