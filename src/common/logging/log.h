@@ -62,6 +62,7 @@ enum class Class : ClassType {
     Service_HID,       ///< The HID (Human interface device) service
     Service_LDN,       ///< The LDN (Local domain network) service
     Service_LM,        ///< The LM (Logger) service
+    Service_Mii,       ///< The Mii service
     Service_MM,        ///< The MM (Multimedia) service
     Service_NFP,       ///< The NFP service
     Service_NIFM,      ///< The NIFM (Network interface) service
