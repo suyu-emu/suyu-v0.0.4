@@ -30,6 +30,7 @@
 #include "core/hle/service/friend/friend.h"
 #include "core/hle/service/grc/grc.h"
 #include "core/hle/service/hid/hid.h"
+#include "core/hle/service/lbl/lbl.h"
 #include "core/hle/service/ldn/ldn.h"
 #include "core/hle/service/ldr/ldr.h"
 #include "core/hle/service/lm/lm.h"
@@ -205,6 +206,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm) {
     Friend::InstallInterfaces(*sm);
     GRC::InstallInterfaces(*sm);
     HID::InstallInterfaces(*sm);
+    LBL::InstallInterfaces(*sm);
     LDN::InstallInterfaces(*sm);
     LDR::InstallInterfaces(*sm);
     LM::InstallInterfaces(*sm);

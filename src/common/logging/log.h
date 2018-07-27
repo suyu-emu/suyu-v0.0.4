@@ -60,6 +60,7 @@ enum class Class : ClassType {
     Service_Friend,    ///< The friend service
     Service_FS,        ///< The FS (Filesystem) service
     Service_HID,       ///< The HID (Human interface device) service
+    Service_LBL,       ///< The LBL (LCD backlight) service
     Service_LDN,       ///< The LDN (Local domain network) service
     Service_LM,        ///< The LM (Logger) service
     Service_MM,        ///< The MM (Multimedia) service
