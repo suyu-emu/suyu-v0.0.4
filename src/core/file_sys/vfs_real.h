@@ -41,7 +41,7 @@ private:
 
 // An implementation of VfsDirectory that represents a directory on the user's computer.
 struct RealVfsDirectory : public VfsDirectory {
-    RealVfsDirectory(const std::string& path, Mode perms);
+    RealVfsDirectory(const std::string& path, Mode perms = Mode::Read);
 
     std::vector<std::shared_ptr<VfsFile>> GetFiles() const override;
     std::vector<std::shared_ptr<VfsDirectory>> GetSubdirectories() const override;
@@ -54,6 +54,7 @@ struct RealVfsDirectory : public VfsDirectory {
     bool DeleteSubdirectory(std::string_view name) override;
     bool DeleteFile(std::string_view name) override;
     bool Rename(std::string_view name) override;
+    std::string GetFullPath() const override;
 
 protected:
     bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
