@@ -739,7 +739,7 @@ const std::string& GetUserPath(UserPath path, const std::string& new_path) {
 std::string GetHactoolConfigurationPath() {
 #ifdef _WIN32
     char path[MAX_PATH];
-    if (SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path) != S_OK)
+    if (SHGetFolderPathA(nullptr, CSIDL_PROFILE, nullptr, 0, path) != S_OK)
         return "";
     std::string local_path = Common::StringFromFixedZeroTerminatedBuffer(path, MAX_PATH);
     return local_path + "\\.switch";

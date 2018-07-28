@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "core/loader/loader.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/swap.h"
@@ -108,7 +109,7 @@ private:
 
     Crypto::Key128 GetKeyAreaKey(NCASectionCryptoType type);
 
-    VirtualFile Decrypt(NCASectionHeader header, VirtualFile in, size_t starting_offset);
+    VirtualFile Decrypt(NCASectionHeader header, VirtualFile in, u64 starting_offset);
 };
 
 } // namespace FileSys
