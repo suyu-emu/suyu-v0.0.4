@@ -113,6 +113,9 @@ struct VfsFile : NonCopyable {
 
     // Renames the file to name. Returns whether or not the operation was successsful.
     virtual bool Rename(std::string_view name) = 0;
+
+    // Returns the full path of this file as a string, recursively
+    virtual std::string GetFullPath() const;
 };
 
 // A class representing a directory in an abstract filesystem.
@@ -213,6 +216,17 @@ struct VfsDirectory : NonCopyable {
         return ReplaceFileWithSubdirectory(file_p, std::make_shared<Directory>(file_p));
     }
 
+    bool InterpretAsDirectory(const std::function<VirtualDir(VirtualFile)>& function,
+                              const std::string& file) {
+        auto file_p = GetFile(file);
+        if (file_p == nullptr)
+            return false;
+        return ReplaceFileWithSubdirectory(file_p, function(file_p));
+    }
+
+    // Returns the full path of this directory as a string, recursively
+    virtual std::string GetFullPath() const;
+
 protected:
     // Backend for InterpretAsDirectory.
     // Removes all references to file and adds a reference to dir in the directory's implementation.
@@ -230,4 +244,10 @@ struct ReadOnlyVfsDirectory : public VfsDirectory {
     bool DeleteFile(std::string_view name) override;
     bool Rename(std::string_view name) override;
 };
+
+// A method that copies the raw data between two different implementations of VirtualFile. If you
+// are using the same implementation, it is probably better to use the Copy method in the parent
+// directory of src/dest.
+bool VfsRawCopy(VirtualFile src, VirtualFile dest);
+
 } // namespace FileSys

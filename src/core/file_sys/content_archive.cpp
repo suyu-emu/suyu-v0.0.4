@@ -9,6 +9,7 @@
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/vfs_offset.h"
 #include "core/loader/loader.h"
+#include "romfs.h"
 
 namespace FileSys {
 
@@ -46,21 +47,9 @@ struct PFS0Superblock {
 };
 static_assert(sizeof(PFS0Superblock) == 0x200, "PFS0Superblock has incorrect size.");
 
-struct IVFCLevel {
-    u64_le offset;
-    u64_le size;
-    u32_le block_size;
-    u32_le reserved;
-};
-static_assert(sizeof(IVFCLevel) == 0x18, "IVFCLevel has incorrect size.");
-
 struct RomFSSuperblock {
     NCASectionHeaderBlock header_block;
-    u32_le magic;
-    u32_le magic_number;
-    INSERT_PADDING_BYTES(8);
-    std::array<IVFCLevel, 6> levels;
-    INSERT_PADDING_BYTES(64);
+    IVFCHeader ivfc;
 };
 static_assert(sizeof(RomFSSuperblock) == 0xE8, "RomFSSuperblock has incorrect size.");
 
@@ -92,8 +81,8 @@ NCA::NCA(VirtualFile file_) : file(std::move(file_)) {
 
             const size_t romfs_offset =
                 header.section_tables[i].media_offset * MEDIA_OFFSET_MULTIPLIER +
-                sb.levels[IVFC_MAX_LEVEL - 1].offset;
-            const size_t romfs_size = sb.levels[IVFC_MAX_LEVEL - 1].size;
+                sb.ivfc.levels[IVFC_MAX_LEVEL - 1].offset;
+            const size_t romfs_size = sb.ivfc.levels[IVFC_MAX_LEVEL - 1].size;
             files.emplace_back(std::make_shared<OffsetVfsFile>(file, romfs_size, romfs_offset));
             romfs = files.back();
         } else if (block.filesystem_type == NCASectionFilesystemType::PFS0) {

@@ -195,6 +195,12 @@ bool RealVfsDirectory::Rename(std::string_view name) {
     return FileUtil::Rename(path, new_name);
 }
 
+std::string RealVfsDirectory::GetFullPath() const {
+    auto out = path;
+    std::replace(out.begin(), out.end(), '\\', '/');
+    return out;
+}
+
 bool RealVfsDirectory::ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) {
     const auto iter = std::find(files.begin(), files.end(), file);
     if (iter == files.end())
