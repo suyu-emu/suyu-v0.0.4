@@ -12,9 +12,9 @@ ConfigureGameList::ConfigureGameList(QWidget* parent)
     : QWidget(parent), ui(new Ui::ConfigureGameList) {
     ui->setupUi(this);
 
-    static std::vector<std::pair<u32, std::string>> default_icon_sizes{
-        std::make_pair(0, "None"),        std::make_pair(24, "Small"),
-        std::make_pair(48, "Standard"),   std::make_pair(96, "Large"),
+    static const std::vector<std::pair<u32, std::string>> default_icon_sizes{
+        std::make_pair(0, "None"),        std::make_pair(32, "Small"),
+        std::make_pair(64, "Standard"),   std::make_pair(128, "Large"),
         std::make_pair(256, "Full Size"),
     };
 
@@ -25,7 +25,7 @@ ConfigureGameList::ConfigureGameList(QWidget* parent)
                                         size.first);
     }
 
-    static std::vector<std::string> row_text_names{
+    static const std::vector<std::string> row_text_names{
         "Filename",
         "Filetype",
         "Title ID",

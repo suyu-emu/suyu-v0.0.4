@@ -62,7 +62,7 @@ enum class Language : u8 {
     Chinese = 14,
 };
 
-static std::array<std::string, 15> LANGUAGE_NAMES = {
+static constexpr std::array<const char*, 15> LANGUAGE_NAMES = {
     "AmericanEnglish", "BritishEnglish", "Japanese",
     "French",          "German",         "LatinAmericanSpanish",
     "Spanish",         "Italian",        "Dutch",
