@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "audio_core/buffer.h"
+#include "audio_core/sink.h"
 #include "audio_core/stream.h"
 #include "common/common_types.h"
 
@@ -36,7 +37,6 @@ public:
 
 private:
     SinkPtr sink;
-    std::vector<StreamPtr> streams;
 };
 
 } // namespace AudioCore

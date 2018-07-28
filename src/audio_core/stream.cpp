@@ -7,6 +7,8 @@
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 
+#include "audio_core/sink.h"
+#include "audio_core/sink_details.h"
 #include "audio_core/stream.h"
 
 namespace AudioCore {
@@ -30,6 +32,11 @@ u32 Stream::GetNumChannels() const {
 u32 Stream::GetSampleSize() const {
     return GetNumChannels() * 2;
 }
+
+Stream::Stream(u32 sample_rate, Format format, ReleaseCallback&& release_callback,
+               SinkStream& sink_stream)
+    : sample_rate{sample_rate}, format{format}, release_callback{std::move(release_callback)},
+      sink_stream{sink_stream} {
 
     release_event = CoreTiming::RegisterEvent(
         "Stream::Release", [this](u64 userdata, int cycles_late) { ReleaseActiveBuffer(); });
@@ -67,6 +74,10 @@ void Stream::PlayNextBuffer() {
 
     active_buffer = queued_buffers.front();
     queued_buffers.pop();
+
+    sink_stream.EnqueueSamples(GetNumChannels(),
+                               reinterpret_cast<const s16*>(active_buffer->GetData().data()),
+                               active_buffer->GetData().size() / GetSampleSize());
 
     CoreTiming::ScheduleEventThreadsafe(GetBufferReleaseCycles(*active_buffer), release_event, {});
 }

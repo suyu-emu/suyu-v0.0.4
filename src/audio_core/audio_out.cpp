@@ -3,6 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "audio_core/audio_out.h"
+#include "audio_core/sink.h"
+#include "audio_core/sink_details.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
 
@@ -26,9 +28,14 @@ static Stream::Format ChannelsToStreamFormat(u32 num_channels) {
 
 StreamPtr AudioOut::OpenStream(u32 sample_rate, u32 num_channels,
                                Stream::ReleaseCallback&& release_callback) {
-    streams.push_back(std::make_shared<Stream>(sample_rate, ChannelsToStreamFormat(num_channels),
-                                               std::move(release_callback)));
-    return streams.back();
+    if (!sink) {
+        const SinkDetails& sink_details = GetSinkDetails("auto");
+        sink = sink_details.factory("");
+    }
+
+    return std::make_shared<Stream>(sample_rate, ChannelsToStreamFormat(num_channels),
+                                    std::move(release_callback),
+                                    sink->AcquireSinkStream(sample_rate, num_channels));
 }
 
 std::vector<u64> AudioOut::GetTagsAndReleaseBuffers(StreamPtr stream, size_t max_count) {

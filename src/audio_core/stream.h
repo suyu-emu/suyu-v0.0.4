@@ -10,6 +10,7 @@
 #include <queue>
 
 #include "audio_core/buffer.h"
+#include "audio_core/sink_stream.h"
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "core/core_timing.h"
@@ -31,7 +32,8 @@ public:
     /// Callback function type, used to change guest state on a buffer being released
     using ReleaseCallback = std::function<void()>;
 
-    Stream(int sample_rate, Format format, ReleaseCallback&& release_callback);
+    Stream(u32 sample_rate, Format format, ReleaseCallback&& release_callback,
+           SinkStream& sink_stream);
 
     /// Plays the audio stream
     void Play();
@@ -85,7 +87,7 @@ private:
     /// Gets the number of core cycles when the specified buffer will be released
     s64 GetBufferReleaseCycles(const Buffer& buffer) const;
 
-    int sample_rate;                        ///< Sample rate of the stream
+    u32 sample_rate;                        ///< Sample rate of the stream
     Format format;                          ///< Format of the stream
     ReleaseCallback release_callback;       ///< Buffer release callback for the stream
     State state{State::Stopped};            ///< Playback state of the stream
@@ -93,6 +95,7 @@ private:
     BufferPtr active_buffer;                ///< Actively playing buffer in the stream
     std::queue<BufferPtr> queued_buffers;   ///< Buffers queued to be played in the stream
     std::queue<BufferPtr> released_buffers; ///< Buffers recently released from the stream
+    SinkStream& sink_stream;                ///< Output sink for the stream
 };
 
 using StreamPtr = std::shared_ptr<Stream>;
