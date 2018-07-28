@@ -12,6 +12,15 @@ add_library(core STATIC
     core_timing.h
     core_timing_util.cpp
     core_timing_util.h
+    crypto/aes_util.h
+    crypto/encryption_layer.cpp
+    crypto/encryption_layer.h
+    crypto/key_manager.cpp
+    crypto/key_manager.h
+    crypto/ctr_encryption_layer.cpp
+    crypto/ctr_encryption_layer.h
+    file_sys/card_image.cpp
+    file_sys/card_image.h
     file_sys/content_archive.cpp
     file_sys/content_archive.h
     file_sys/control_metadata.cpp
@@ -317,6 +326,8 @@ add_library(core STATIC
     loader/nro.h
     loader/nso.cpp
     loader/nso.h
+    loader/xci.cpp
+    loader/xci.h
     memory.cpp
     memory.h
     memory_hook.cpp
