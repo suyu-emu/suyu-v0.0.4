@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <string.h>
 #include "common/assert.h"
 #include "core/crypto/ctr_encryption_layer.h"
 
