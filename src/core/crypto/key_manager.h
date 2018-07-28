@@ -6,6 +6,7 @@
 #include <array>
 #include <unordered_map>
 #include <vector>
+#include <fmt/format.h>
 #include "common/common_types.h"
 
 namespace Crypto {
