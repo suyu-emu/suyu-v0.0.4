@@ -65,6 +65,7 @@ enum class Class : ClassType {
     Service_LM,        ///< The LM (Logger) service
     Service_Mii,       ///< The Mii service
     Service_MM,        ///< The MM (Multimedia) service
+    Service_NCM,       ///< The NCM service
     Service_NFC,       ///< The NFC (Near-field communication) service
     Service_NFP,       ///< The NFP service
     Service_NIFM,      ///< The NIFM (Network interface) service
