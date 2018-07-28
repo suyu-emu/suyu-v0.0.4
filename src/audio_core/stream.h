@@ -16,8 +16,6 @@
 
 namespace AudioCore {
 
-using BufferPtr = std::shared_ptr<Buffer>;
-
 /**
  * Represents an audio stream, which is a sequence of queued buffers, to be outputed by AudioOut
  */
@@ -60,6 +58,17 @@ public:
         return queued_buffers.size();
     }
 
+    /// Gets the sample rate
+    u32 GetSampleRate() const {
+        return sample_rate;
+    }
+
+    /// Gets the number of channels
+    u32 GetNumChannels() const;
+
+    /// Gets the sample size in bytes
+    u32 GetSampleSize() const;
+
 private:
     /// Current state of the stream
     enum class State {
@@ -85,5 +94,7 @@ private:
     std::queue<BufferPtr> queued_buffers;   ///< Buffers queued to be played in the stream
     std::queue<BufferPtr> released_buffers; ///< Buffers recently released from the stream
 };
+
+using StreamPtr = std::shared_ptr<Stream>;
 
 } // namespace AudioCore

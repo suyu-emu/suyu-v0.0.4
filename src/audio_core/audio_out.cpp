@@ -9,7 +9,7 @@
 namespace AudioCore {
 
 /// Returns the stream format from the specified number of channels
-static Stream::Format ChannelsToStreamFormat(int num_channels) {
+static Stream::Format ChannelsToStreamFormat(u32 num_channels) {
     switch (num_channels) {
     case 1:
         return Stream::Format::Mono16;
@@ -24,7 +24,7 @@ static Stream::Format ChannelsToStreamFormat(int num_channels) {
     return {};
 }
 
-StreamPtr AudioOut::OpenStream(int sample_rate, int num_channels,
+StreamPtr AudioOut::OpenStream(u32 sample_rate, u32 num_channels,
                                Stream::ReleaseCallback&& release_callback) {
     streams.push_back(std::make_shared<Stream>(sample_rate, ChannelsToStreamFormat(num_channels),
                                                std::move(release_callback)));

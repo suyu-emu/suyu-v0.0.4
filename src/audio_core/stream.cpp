@@ -13,24 +13,24 @@ namespace AudioCore {
 
 constexpr size_t MaxAudioBufferCount{32};
 
-/// Returns the sample size for the specified audio stream format
-static size_t SampleSizeFromFormat(Stream::Format format) {
+u32 Stream::GetNumChannels() const {
     switch (format) {
-    case Stream::Format::Mono16:
+    case Format::Mono16:
+        return 1;
+    case Format::Stereo16:
         return 2;
-    case Stream::Format::Stereo16:
-        return 4;
-    case Stream::Format::Multi51Channel16:
-        return 12;
-    };
-
+    case Format::Multi51Channel16:
+        return 6;
+    }
     LOG_CRITICAL(Audio, "Unimplemented format={}", static_cast<u32>(format));
     UNREACHABLE();
     return {};
 }
 
-Stream::Stream(int sample_rate, Format format, ReleaseCallback&& release_callback)
-    : sample_rate{sample_rate}, format{format}, release_callback{std::move(release_callback)} {
+u32 Stream::GetSampleSize() const {
+    return GetNumChannels() * 2;
+}
+
     release_event = CoreTiming::RegisterEvent(
         "Stream::Release", [this](u64 userdata, int cycles_late) { ReleaseActiveBuffer(); });
 }
@@ -45,7 +45,7 @@ void Stream::Stop() {
 }
 
 s64 Stream::GetBufferReleaseCycles(const Buffer& buffer) const {
-    const size_t num_samples{buffer.GetData().size() / SampleSizeFromFormat(format)};
+    const size_t num_samples{buffer.GetData().size() / GetSampleSize()};
     return CoreTiming::usToCycles((static_cast<u64>(num_samples) * 1000000) / sample_rate);
 }
 
