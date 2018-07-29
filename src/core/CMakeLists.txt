@@ -277,6 +277,8 @@ add_library(core STATIC
     hle/service/vi/vi_s.h
     hle/service/vi/vi_u.cpp
     hle/service/vi/vi_u.h
+    hle/service/wlan/wlan.cpp
+    hle/service/wlan/wlan.h
     hw/hw.cpp
     hw/hw.h
     hw/lcd.cpp

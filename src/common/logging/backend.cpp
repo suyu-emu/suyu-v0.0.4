@@ -192,6 +192,7 @@ void FileBackend::Write(const Entry& entry) {
     SUB(Service, SSL)                                                                              \
     SUB(Service, Time)                                                                             \
     SUB(Service, VI)                                                                               \
+    SUB(Service, WLAN)                                                                             \
     CLS(HW)                                                                                        \
     SUB(HW, Memory)                                                                                \
     SUB(HW, LCD)                                                                                   \

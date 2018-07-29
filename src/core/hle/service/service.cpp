@@ -55,6 +55,7 @@
 #include "core/hle/service/ssl/ssl.h"
 #include "core/hle/service/time/time.h"
 #include "core/hle/service/vi/vi.h"
+#include "core/hle/service/wlan/wlan.h"
 
 using Kernel::ClientPort;
 using Kernel::ServerPort;
@@ -225,12 +226,13 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm) {
     PCTL::InstallInterfaces(*sm);
     PlayReport::InstallInterfaces(*sm);
     PM::InstallInterfaces(*sm);
+    Set::InstallInterfaces(*sm);
     Sockets::InstallInterfaces(*sm);
     SPL::InstallInterfaces(*sm);
     SSL::InstallInterfaces(*sm);
     Time::InstallInterfaces(*sm);
     VI::InstallInterfaces(*sm, nv_flinger);
-    Set::InstallInterfaces(*sm);
+    WLAN::InstallInterfaces(*sm);
 
     LOG_DEBUG(Service, "initialized OK");
 }
