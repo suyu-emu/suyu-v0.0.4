@@ -107,6 +107,8 @@ private:
 
     bool dev_mode;
     void LoadFromFile(std::string_view filename, bool is_title_keys);
+    void AttemptLoadKeyFile(std::string_view dir1, std::string_view dir2, std::string_view filename,
+                            bool title);
 
     static std::unordered_map<std::string, KeyIndex<S128KeyType>> s128_file_id;
     static std::unordered_map<std::string, KeyIndex<S256KeyType>> s256_file_id;

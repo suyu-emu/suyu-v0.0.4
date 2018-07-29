@@ -23,6 +23,7 @@ namespace FileUtil {
 enum class UserPath {
     CacheDir,
     ConfigDir,
+    KeysDir,
     LogDir,
     NANDDir,
     RootDir,

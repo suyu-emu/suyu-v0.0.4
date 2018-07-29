@@ -12,6 +12,7 @@
 #include "common/logging/log.h"
 #include "core/crypto/key_manager.h"
 #include "core/settings.h"
+#include "key_manager.h"
 
 namespace Core::Crypto {
 
@@ -50,18 +51,17 @@ std::array<u8, 32> operator""_array32(const char* str, size_t len) {
 
 KeyManager::KeyManager() {
     // Initialize keys
-    std::string keys_dir = FileUtil::GetHactoolConfigurationPath();
+    std::string hactool_keys_dir = FileUtil::GetHactoolConfigurationPath();
+    std::string yuzu_keys_dir = FileUtil::GetUserPath(FileUtil::UserPath::KeysDir);
     if (Settings::values.use_dev_keys) {
         dev_mode = true;
-        if (FileUtil::Exists(keys_dir + DIR_SEP + "dev.keys"))
-            LoadFromFile(keys_dir + DIR_SEP + "dev.keys", false);
+        AttemptLoadKeyFile(yuzu_keys_dir, hactool_keys_dir, "dev.keys", false);
     } else {
         dev_mode = false;
-        if (FileUtil::Exists(keys_dir + DIR_SEP + "prod.keys"))
-            LoadFromFile(keys_dir + DIR_SEP + "prod.keys", false);
+        AttemptLoadKeyFile(yuzu_keys_dir, hactool_keys_dir, "prod.keys", false);
     }
-    if (FileUtil::Exists(keys_dir + DIR_SEP + "title.keys"))
-        LoadFromFile(keys_dir + DIR_SEP + "title.keys", true);
+
+    AttemptLoadKeyFile(yuzu_keys_dir, hactool_keys_dir, "title.keys", true);
 }
 
 void KeyManager::LoadFromFile(std::string_view filename_, bool is_title_keys) {
@@ -102,6 +102,17 @@ void KeyManager::LoadFromFile(std::string_view filename_, bool is_title_keys) {
             }
         }
     }
+}
+
+void KeyManager::AttemptLoadKeyFile(std::string_view dir1_, std::string_view dir2_,
+                                    std::string_view filename_, bool title) {
+    std::string dir1(dir1_);
+    std::string dir2(dir2_);
+    std::string filename(filename_);
+    if (FileUtil::Exists(dir1 + DIR_SEP + filename))
+        LoadFromFile(dir1 + DIR_SEP + filename, title);
+    else if (FileUtil::Exists(dir2 + DIR_SEP + filename))
+        LoadFromFile(dir2 + DIR_SEP + filename, title);
 }
 
 bool KeyManager::HasKey(S128KeyType id, u64 field1, u64 field2) const {
