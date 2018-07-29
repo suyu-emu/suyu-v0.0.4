@@ -10,7 +10,8 @@ namespace Core::Crypto {
 
 // Basically non-functional class that implements all of the methods that are irrelevant to an
 // EncryptionLayer. Reduces duplicate code.
-struct EncryptionLayer : public FileSys::VfsFile {
+class EncryptionLayer : public FileSys::VfsFile {
+public:
     explicit EncryptionLayer(FileSys::VirtualFile base);
 
     size_t Read(u8* data, size_t length, size_t offset) const override = 0;

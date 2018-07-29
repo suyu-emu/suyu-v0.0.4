@@ -2,9 +2,11 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <array>
 #include <fstream>
 #include <locale>
 #include <sstream>
+#include <string_view>
 #include <mbedtls/sha256.h>
 #include "common/assert.h"
 #include "common/common_paths.h"
@@ -86,17 +88,18 @@ void KeyManager::LoadFromFile(std::string_view filename_, bool is_title_keys) {
 
         if (is_title_keys) {
             auto rights_id_raw = HexStringToArray<16>(out[0]);
-            u128 rights_id = *reinterpret_cast<std::array<u64, 2>*>(&rights_id_raw);
+            u128 rights_id{};
+            std::memcpy(rights_id.data(), rights_id_raw.data(), rights_id_raw.size());
             Key128 key = HexStringToArray<16>(out[1]);
             SetKey(S128KeyType::Titlekey, key, rights_id[1], rights_id[0]);
         } else {
             std::transform(out[0].begin(), out[0].end(), out[0].begin(), ::tolower);
             if (s128_file_id.find(out[0]) != s128_file_id.end()) {
-                const auto index = s128_file_id[out[0]];
+                const auto index = s128_file_id.at(out[0]);
                 Key128 key = HexStringToArray<16>(out[1]);
                 SetKey(index.type, key, index.field1, index.field2);
             } else if (s256_file_id.find(out[0]) != s256_file_id.end()) {
-                const auto index = s256_file_id[out[0]];
+                const auto index = s256_file_id.at(out[0]);
                 Key256 key = HexStringToArray<32>(out[1]);
                 SetKey(index.type, key, index.field1, index.field2);
             }
@@ -143,7 +146,7 @@ void KeyManager::SetKey(S256KeyType id, Key256 key, u64 field1, u64 field2) {
     s256_keys[{id, field1, field2}] = key;
 }
 
-std::unordered_map<std::string, KeyIndex<S128KeyType>> KeyManager::s128_file_id = {
+const std::unordered_map<std::string, KeyIndex<S128KeyType>> KeyManager::s128_file_id = {
     {"master_key_00", {S128KeyType::Master, 0, 0}},
     {"master_key_01", {S128KeyType::Master, 1, 0}},
     {"master_key_02", {S128KeyType::Master, 2, 0}},
@@ -187,7 +190,7 @@ std::unordered_map<std::string, KeyIndex<S128KeyType>> KeyManager::s128_file_id 
     {"key_area_key_system_04", {S128KeyType::KeyArea, 4, static_cast<u64>(KeyAreaKeyType::System)}},
 };
 
-std::unordered_map<std::string, KeyIndex<S256KeyType>> KeyManager::s256_file_id = {
+const std::unordered_map<std::string, KeyIndex<S256KeyType>> KeyManager::s256_file_id = {
     {"header_key", {S256KeyType::Header, 0, 0}},
     {"sd_card_save_key", {S256KeyType::SDSave, 0, 0}},
     {"sd_card_nca_key", {S256KeyType::SDNCA, 0, 0}},

@@ -76,7 +76,7 @@ bool IsValidNCA(const NCAHeader& header) {
     return header.magic == Common::MakeMagic('N', 'C', 'A', '3');
 }
 
-Core::Crypto::Key128 NCA::GetKeyAreaKey(NCASectionCryptoType type) {
+Core::Crypto::Key128 NCA::GetKeyAreaKey(NCASectionCryptoType type) const {
     u8 master_key_id = header.crypto_type;
     if (header.crypto_type_2 > master_key_id)
         master_key_id = header.crypto_type_2;
@@ -105,7 +105,7 @@ Core::Crypto::Key128 NCA::GetKeyAreaKey(NCASectionCryptoType type) {
     return out;
 }
 
-VirtualFile NCA::Decrypt(NCASectionHeader header, VirtualFile in, u64 starting_offset) {
+VirtualFile NCA::Decrypt(NCASectionHeader header, VirtualFile in, u64 starting_offset) const {
     if (!encrypted)
         return in;
 

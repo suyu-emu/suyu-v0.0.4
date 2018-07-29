@@ -17,6 +17,9 @@
 #include "core/loader/loader.h"
 
 namespace FileSys {
+
+union NCASectionHeader;
+
 enum class NCAContentType : u8 {
     Program = 0,
     Meta = 1,
@@ -61,8 +64,6 @@ struct NCAHeader {
 };
 static_assert(sizeof(NCAHeader) == 0x400, "NCAHeader has incorrect size.");
 
-union NCASectionHeader;
-
 inline bool IsDirectoryExeFS(const std::shared_ptr<VfsDirectory>& pfs) {
     // According to switchbrew, an exefs must only contain these two files:
     return pfs->GetFile("main") != nullptr && pfs->GetFile("main.npdm") != nullptr;
@@ -94,6 +95,9 @@ protected:
     bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
 
 private:
+    Core::Crypto::Key128 GetKeyAreaKey(NCASectionCryptoType type) const;
+    VirtualFile Decrypt(NCASectionHeader header, VirtualFile in, u64 starting_offset) const;
+
     std::vector<VirtualDir> dirs;
     std::vector<VirtualFile> files;
 
@@ -108,9 +112,6 @@ private:
     bool encrypted;
 
     Core::Crypto::KeyManager keys;
-    Core::Crypto::Key128 GetKeyAreaKey(NCASectionCryptoType type);
-
-    VirtualFile Decrypt(NCASectionHeader header, VirtualFile in, u64 starting_offset);
 };
 
 } // namespace FileSys

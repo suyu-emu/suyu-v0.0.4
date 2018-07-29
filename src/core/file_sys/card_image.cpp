@@ -93,8 +93,9 @@ VirtualDir XCI::GetLogoPartition() const {
 }
 
 std::shared_ptr<NCA> XCI::GetNCAByType(NCAContentType type) const {
-    auto iter = std::find_if(ncas.begin(), ncas.end(),
-                             [type](std::shared_ptr<NCA> nca) { return nca->GetType() == type; });
+    const auto iter =
+        std::find_if(ncas.begin(), ncas.end(),
+                     [type](const std::shared_ptr<NCA>& nca) { return nca->GetType() == type; });
     return iter == ncas.end() ? nullptr : *iter;
 }
 

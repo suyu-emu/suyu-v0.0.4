@@ -4,10 +4,15 @@
 
 #pragma once
 
+#include <memory>
+#include <type_traits>
+#include <vector>
 #include "common/assert.h"
 #include "core/file_sys/vfs.h"
 
 namespace Core::Crypto {
+
+struct CipherContext;
 
 enum class Mode {
     CTR = 11,
@@ -19,8 +24,6 @@ enum class Op {
     Encrypt,
     Decrypt,
 };
-
-struct CipherContext;
 
 template <typename Key, size_t KeySize = sizeof(Key)>
 class AESCipher {

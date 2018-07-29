@@ -2,7 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <string.h>
+#include <cstring>
 #include "common/assert.h"
 #include "core/crypto/ctr_encryption_layer.h"
 
@@ -33,11 +33,10 @@ size_t CTREncryptionLayer::Read(u8* data, size_t length, size_t offset) const {
     size_t read = 0x10 - sector_offset;
 
     if (length + sector_offset < 0x10) {
-        memcpy(data, block.data() + sector_offset, std::min<u64>(length, read));
+        std::memcpy(data, block.data() + sector_offset, std::min<u64>(length, read));
         return read;
     }
-
-    memcpy(data, block.data() + sector_offset, read);
+    std::memcpy(data, block.data() + sector_offset, read);
     return read + Read(data + read, length - read, offset + read);
 }
 

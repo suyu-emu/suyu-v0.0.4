@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include <memory>
+#include "common/common_types.h"
 #include "core/file_sys/card_image.h"
+#include "core/loader/loader.h"
 #include "core/loader/nca.h"
 
 namespace Loader {

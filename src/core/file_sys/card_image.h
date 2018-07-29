@@ -4,10 +4,13 @@
 
 #pragma once
 
+#include <array>
 #include <vector>
+#include "common/common_types.h"
 #include "common/swap.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/vfs.h"
+#include "core/loader/loader.h"
 
 namespace FileSys {
 

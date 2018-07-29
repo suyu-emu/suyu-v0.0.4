@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 #include <fmt/format.h>
@@ -50,7 +51,7 @@ struct KeyIndex {
 
     std::string DebugInfo() const {
         u8 key_size = 16;
-        if (std::is_same_v<KeyType, S256KeyType>)
+        if constexpr (std::is_same_v<KeyType, S256KeyType>)
             key_size = 32;
         return fmt::format("key_size={:02X}, key={:02X}, field1={:016X}, field2={:016X}", key_size,
                            static_cast<u8>(type), field1, field2);
@@ -110,7 +111,7 @@ private:
     void AttemptLoadKeyFile(std::string_view dir1, std::string_view dir2, std::string_view filename,
                             bool title);
 
-    static std::unordered_map<std::string, KeyIndex<S128KeyType>> s128_file_id;
-    static std::unordered_map<std::string, KeyIndex<S256KeyType>> s256_file_id;
+    const static std::unordered_map<std::string, KeyIndex<S128KeyType>> s128_file_id;
+    const static std::unordered_map<std::string, KeyIndex<S256KeyType>> s256_file_id;
 };
 } // namespace Core::Crypto
