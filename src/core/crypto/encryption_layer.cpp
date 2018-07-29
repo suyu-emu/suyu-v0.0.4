@@ -4,7 +4,7 @@
 
 #include "core/crypto/encryption_layer.h"
 
-namespace Crypto {
+namespace Core::Crypto {
 
 EncryptionLayer::EncryptionLayer(FileSys::VirtualFile base_) : base(std::move(base_)) {}
 
@@ -39,4 +39,4 @@ size_t EncryptionLayer::Write(const u8* data, size_t length, size_t offset) {
 bool EncryptionLayer::Rename(std::string_view name) {
     return base->Rename(name);
 }
-} // namespace Crypto
+} // namespace Core::Crypto

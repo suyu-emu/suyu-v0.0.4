@@ -13,7 +13,6 @@
 #include <QMessageBox>
 #include <QtGui>
 #include <QtWidgets>
-#include <core/crypto/key_manager.h>
 #include "common/common_paths.h"
 #include "common/logging/backend.h"
 #include "common/logging/filter.h"
@@ -24,6 +23,7 @@
 #include "common/scope_exit.h"
 #include "common/string_util.h"
 #include "core/core.h"
+#include "core/crypto/key_manager.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/loader/loader.h"
 #include "core/settings.h"
@@ -88,19 +88,6 @@ GMainWindow::GMainWindow() : config(new Config()), emu_thread(nullptr) {
     setAcceptDrops(true);
     ui.setupUi(this);
     statusBar()->hide();
-
-    // Initialize keys
-    std::string keys_dir = FileUtil::GetHactoolConfigurationPath();
-    if (Settings::values.use_dev_keys) {
-        Crypto::keys.SetValidationMode(true);
-        if (FileUtil::Exists(keys_dir + DIR_SEP + "dev.keys"))
-            Crypto::keys.LoadFromFile(keys_dir + DIR_SEP + "dev.keys", false);
-    } else {
-        if (FileUtil::Exists(keys_dir + DIR_SEP + "prod.keys"))
-            Crypto::keys.LoadFromFile(keys_dir + DIR_SEP + "prod.keys", false);
-    }
-    if (FileUtil::Exists(keys_dir + DIR_SEP + "title.keys"))
-        Crypto::keys.LoadFromFile(keys_dir + DIR_SEP + "title.keys", true);
 
     default_theme_paths = QIcon::themeSearchPaths();
     UpdateUITheme();

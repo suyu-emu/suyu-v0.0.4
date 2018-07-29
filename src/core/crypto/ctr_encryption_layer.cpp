@@ -6,7 +6,8 @@
 #include "common/assert.h"
 #include "core/crypto/ctr_encryption_layer.h"
 
-namespace Crypto {
+namespace Core::Crypto {
+
 CTREncryptionLayer::CTREncryptionLayer(FileSys::VirtualFile base_, Key128 key_, size_t base_offset)
     : EncryptionLayer(std::move(base_)), base_offset(base_offset), cipher(key_, Mode::CTR),
       iv(16, 0) {}
@@ -21,29 +22,28 @@ size_t CTREncryptionLayer::Read(u8* data, size_t length, size_t offset) const {
         std::vector<u8> raw = base->ReadBytes(length, offset);
         if (raw.size() != length)
             return Read(data, raw.size(), offset);
-        cipher.Transcode(raw.data(), length, data, Op::DECRYPT);
+        cipher.Transcode(raw.data(), length, data, Op::Decrypt);
         return length;
     }
 
     // offset does not fall on block boundary (0x10)
     std::vector<u8> block = base->ReadBytes(0x10, offset - sector_offset);
     UpdateIV(base_offset + offset - sector_offset);
-    cipher.Transcode(block.data(), block.size(), block.data(), Op::DECRYPT);
+    cipher.Transcode(block.data(), block.size(), block.data(), Op::Decrypt);
     size_t read = 0x10 - sector_offset;
 
     if (length + sector_offset < 0x10) {
-        memcpy_s(data, length, block.data() + sector_offset, std::min<u64>(length, read));
+        memcpy(data, block.data() + sector_offset, std::min<u64>(length, read));
         return read;
     }
 
-    memcpy_s(data, length, block.data() + sector_offset, read);
+    memcpy(data, block.data() + sector_offset, read);
     return read + Read(data + read, length - read, offset + read);
 }
 
-void CTREncryptionLayer::SetIV(std::vector<u8> iv_) {
-    const auto length = std::min<size_t>(iv_.size(), iv.size());
-    for (size_t i = 0; i < length; ++i)
-        iv[i] = iv_[i];
+void CTREncryptionLayer::SetIV(const std::vector<u8>& iv_) {
+    const auto length = std::min(iv_.size(), iv.size());
+    iv.assign(iv_.cbegin(), iv_.cbegin() + length);
 }
 
 void CTREncryptionLayer::UpdateIV(size_t offset) const {
@@ -54,4 +54,4 @@ void CTREncryptionLayer::UpdateIV(size_t offset) const {
     }
     cipher.SetIV(iv);
 }
-} // namespace Crypto
+} // namespace Core::Crypto

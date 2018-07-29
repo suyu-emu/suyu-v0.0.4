@@ -13,6 +13,7 @@ namespace Loader {
 class AppLoader_XCI final : public AppLoader {
 public:
     explicit AppLoader_XCI(FileSys::VirtualFile file);
+    ~AppLoader_XCI();
 
     /**
      * Returns the type of the file
@@ -29,8 +30,6 @@ public:
 
     ResultStatus ReadRomFS(FileSys::VirtualFile& dir) override;
     ResultStatus ReadProgramId(u64& out_program_id) override;
-
-    ~AppLoader_XCI();
 
 private:
     FileSys::ProgramMetadata metadata;

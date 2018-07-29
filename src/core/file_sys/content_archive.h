@@ -9,12 +9,12 @@
 #include <string>
 #include <vector>
 
-#include "core/loader/loader.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/partition_filesystem.h"
+#include "core/loader/loader.h"
 
 namespace FileSys {
 enum class NCAContentType : u8 {
@@ -107,7 +107,8 @@ private:
 
     bool encrypted;
 
-    Crypto::Key128 GetKeyAreaKey(NCASectionCryptoType type);
+    Core::Crypto::KeyManager keys;
+    Core::Crypto::Key128 GetKeyAreaKey(NCASectionCryptoType type);
 
     VirtualFile Decrypt(NCASectionHeader header, VirtualFile in, u64 starting_offset);
 };

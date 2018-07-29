@@ -28,14 +28,17 @@ AppLoader_XCI::AppLoader_XCI(FileSys::VirtualFile file)
       nca_loader(std::make_unique<AppLoader_NCA>(
           xci->GetNCAFileByType(FileSys::NCAContentType::Program))) {}
 
+AppLoader_XCI::~AppLoader_XCI() = default;
+
 FileType AppLoader_XCI::IdentifyType(const FileSys::VirtualFile& file) {
     FileSys::XCI xci(file);
 
     if (xci.GetStatus() == ResultStatus::Success &&
         xci.GetNCAByType(FileSys::NCAContentType::Program) != nullptr &&
         AppLoader_NCA::IdentifyType(xci.GetNCAFileByType(FileSys::NCAContentType::Program)) ==
-            FileType::NCA)
+            FileType::NCA) {
         return FileType::XCI;
+    }
 
     return FileType::Error;
 }
@@ -61,7 +64,5 @@ ResultStatus AppLoader_XCI::ReadRomFS(FileSys::VirtualFile& dir) {
 ResultStatus AppLoader_XCI::ReadProgramId(u64& out_program_id) {
     return nca_loader->ReadProgramId(out_program_id);
 }
-
-AppLoader_XCI::~AppLoader_XCI() = default;
 
 } // namespace Loader

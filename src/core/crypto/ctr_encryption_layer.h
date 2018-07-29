@@ -4,19 +4,20 @@
 
 #pragma once
 
-#include "aes_util.h"
-#include "encryption_layer.h"
-#include "key_manager.h"
+#include "core/crypto/aes_util.h"
+#include "core/crypto/encryption_layer.h"
+#include "core/crypto/key_manager.h"
 
-namespace Crypto {
+namespace Core::Crypto {
 
 // Sits on top of a VirtualFile and provides CTR-mode AES decription.
-struct CTREncryptionLayer : public EncryptionLayer {
+class CTREncryptionLayer : public EncryptionLayer {
+public:
     CTREncryptionLayer(FileSys::VirtualFile base, Key128 key, size_t base_offset);
 
     size_t Read(u8* data, size_t length, size_t offset) const override;
 
-    void SetIV(std::vector<u8> iv);
+    void SetIV(const std::vector<u8>& iv);
 
 private:
     size_t base_offset;
@@ -28,4 +29,4 @@ private:
     void UpdateIV(size_t offset) const;
 };
 
-} // namespace Crypto
+} // namespace Core::Crypto

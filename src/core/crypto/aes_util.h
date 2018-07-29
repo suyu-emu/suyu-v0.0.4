@@ -20,7 +20,7 @@ enum class Op {
     Decrypt,
 };
 
-struct mbedtls_cipher_context_t;
+struct CipherContext;
 
 template <typename Key, size_t KeySize = sizeof(Key)>
 class AESCipher {
@@ -44,15 +44,16 @@ public:
     template <typename Source, typename Dest>
     void XTSTranscode(const Source* src, size_t size, Dest* dest, size_t sector_id,
                       size_t sector_size, Op op) {
-        XTSTranscode(reinterpret_cast<const u8*>(src), size, reinterpret_cast<u8*>(dest), sector_id, sector_size, op);
+        XTSTranscode(reinterpret_cast<const u8*>(src), size, reinterpret_cast<u8*>(dest), sector_id,
+                     sector_size, op);
     }
 
-    void XTSTranscode(const u8* src, size_t size, u8* dest, size_t sector_id, size_t sector_size, Op op);
+    void XTSTranscode(const u8* src, size_t size, u8* dest, size_t sector_id, size_t sector_size,
+                      Op op);
 
 private:
-    std::unique_ptr<mbedtls_cipher_context_t> encryption_context;
-    std::unique_ptr<mbedtls_cipher_context_t> decryption_context;
+    std::unique_ptr<CipherContext> ctx;
 
     static std::vector<u8> CalculateNintendoTweak(size_t sector_id);
 };
-} // namespace Crypto
+} // namespace Core::Crypto

@@ -3,9 +3,10 @@
 // Refer to the license.txt file included.
 
 #pragma once
+
 #include "core/file_sys/vfs.h"
 
-namespace Crypto {
+namespace Core::Crypto {
 
 // Basically non-functional class that implements all of the methods that are irrelevant to an
 // EncryptionLayer. Reduces duplicate code.
@@ -27,4 +28,4 @@ protected:
     FileSys::VirtualFile base;
 };
 
-} // namespace Crypto
+} // namespace Core::Crypto

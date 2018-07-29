@@ -9,10 +9,9 @@
 #include "core/crypto/aes_util.h"
 #include "core/crypto/ctr_encryption_layer.h"
 #include "core/file_sys/content_archive.h"
+#include "core/file_sys/romfs.h"
 #include "core/file_sys/vfs_offset.h"
 #include "core/loader/loader.h"
-#include "mbedtls/cipher.h"
-#include "romfs.h"
 
 namespace FileSys {
 
@@ -77,7 +76,7 @@ bool IsValidNCA(const NCAHeader& header) {
     return header.magic == Common::MakeMagic('N', 'C', 'A', '3');
 }
 
-Crypto::Key128 NCA::GetKeyAreaKey(NCASectionCryptoType type) {
+Core::Crypto::Key128 NCA::GetKeyAreaKey(NCASectionCryptoType type) {
     u8 master_key_id = header.crypto_type;
     if (header.crypto_type_2 > master_key_id)
         master_key_id = header.crypto_type_2;
@@ -85,16 +84,12 @@ Crypto::Key128 NCA::GetKeyAreaKey(NCASectionCryptoType type) {
         --master_key_id;
 
     std::vector<u8> key_area(header.key_area.begin(), header.key_area.end());
-    if (!Crypto::keys.ValidateKey(Crypto::S128KeyType::KEY_AREA, master_key_id, header.key_index)) {
-        status = Loader::ResultStatus::ErrorEncrypted;
-        return {};
-    }
-    Crypto::AESCipher<Crypto::Key128> cipher(
-        Crypto::keys.GetKey(Crypto::S128KeyType::KEY_AREA, master_key_id, header.key_index),
-        Crypto::Mode::ECB);
-    cipher.Transcode(key_area.data(), key_area.size(), key_area.data(), Crypto::Op::DECRYPT);
+    Core::Crypto::AESCipher<Core::Crypto::Key128> cipher(
+        keys.GetKey(Core::Crypto::S128KeyType::KeyArea, master_key_id, header.key_index),
+        Core::Crypto::Mode::ECB);
+    cipher.Transcode(key_area.data(), key_area.size(), key_area.data(), Core::Crypto::Op::Decrypt);
 
-    Crypto::Key128 out;
+    Core::Crypto::Key128 out;
     if (type == NCASectionCryptoType::XTS)
         std::copy(key_area.begin(), key_area.begin() + 0x10, out.begin());
     else if (type == NCASectionCryptoType::CTR)
@@ -102,8 +97,8 @@ Crypto::Key128 NCA::GetKeyAreaKey(NCASectionCryptoType type) {
     else
         LOG_CRITICAL(Crypto, "Called GetKeyAreaKey on invalid NCASectionCryptoType type={:02X}",
                      static_cast<u8>(type));
-
-    u128 out_128 = *reinterpret_cast<u128*>(&out);
+    u128 out_128{};
+    memcpy(out_128.data(), out.data(), 16);
     LOG_DEBUG(Crypto, "called with crypto_rev={:02X}, kak_index={:02X}, key={:016X}{:016X}",
               master_key_id, header.key_index, out_128[1], out_128[0]);
 
@@ -121,9 +116,9 @@ VirtualFile NCA::Decrypt(NCASectionHeader header, VirtualFile in, u64 starting_o
     case NCASectionCryptoType::CTR:
         LOG_DEBUG(Crypto, "called with mode=CTR, starting_offset={:016X}", starting_offset);
         {
-            auto out = std::make_shared<Crypto::CTREncryptionLayer>(
+            auto out = std::make_shared<Core::Crypto::CTREncryptionLayer>(
                 std::move(in), GetKeyAreaKey(NCASectionCryptoType::CTR), starting_offset);
-            std::vector<u8> iv(16, 0);
+            std::vector<u8> iv(16);
             for (u8 i = 0; i < 8; ++i)
                 iv[i] = header.raw.section_ctr[0x8 - i - 1];
             out->SetIV(iv);
@@ -146,13 +141,10 @@ NCA::NCA(VirtualFile file_) : file(std::move(file_)) {
 
     if (!IsValidNCA(header)) {
         NCAHeader dec_header{};
-        if (!Crypto::keys.ValidateKey(Crypto::S256KeyType::HEADER)) {
-            status = Loader::ResultStatus::ErrorEncrypted;
-            return;
-        }
-        Crypto::AESCipher<Crypto::Key256> cipher(Crypto::keys.GetKey(Crypto::S256KeyType::HEADER),
-                                                 Crypto::Mode::XTS);
-        cipher.XTSTranscode(&header, sizeof(NCAHeader), &dec_header, 0, 0x200, Crypto::Op::DECRYPT);
+        Core::Crypto::AESCipher<Core::Crypto::Key256> cipher(
+            keys.GetKey(Core::Crypto::S256KeyType::Header), Core::Crypto::Mode::XTS);
+        cipher.XTSTranscode(&header, sizeof(NCAHeader), &dec_header, 0, 0x200,
+                            Core::Crypto::Op::Decrypt);
         if (IsValidNCA(dec_header)) {
             header = dec_header;
             encrypted = true;
@@ -171,14 +163,10 @@ NCA::NCA(VirtualFile file_) : file(std::move(file_)) {
 
     if (encrypted) {
         auto raw = file->ReadBytes(length_sections, SECTION_HEADER_OFFSET);
-        if (!Crypto::keys.ValidateKey(Crypto::S256KeyType::HEADER)) {
-            status = Loader::ResultStatus::ErrorEncrypted;
-            return;
-        }
-        Crypto::AESCipher<Crypto::Key256> cipher(Crypto::keys.GetKey(Crypto::S256KeyType::HEADER),
-                                                 Crypto::Mode::XTS);
+        Core::Crypto::AESCipher<Core::Crypto::Key256> cipher(
+            keys.GetKey(Core::Crypto::S256KeyType::Header), Core::Crypto::Mode::XTS);
         cipher.XTSTranscode(raw.data(), length_sections, sections.data(), 2, SECTION_HEADER_SIZE,
-                            Crypto::Op::DECRYPT);
+                            Core::Crypto::Op::Decrypt);
     } else {
         file->ReadBytes(sections.data(), length_sections, SECTION_HEADER_OFFSET);
     }

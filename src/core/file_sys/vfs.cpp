@@ -297,10 +297,9 @@ bool DeepEquals(const VirtualFile& file1, const VirtualFile& file2, size_t block
 
         if (f1_vs != f2_vs)
             return false;
-        for (size_t j = 0; j < f1_vs; ++j) {
-            if (f1_v[j] != f2_v[j])
-                return false;
-        }
+        auto iters = std::mismatch(f1_v.begin(), f1_v.end(), f2_v.begin(), f2_v.end());
+        if (iters.first != f1_v.end() && iters.second != f2_v.end())
+            return false;
     }
 
     return true;

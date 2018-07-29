@@ -30,8 +30,8 @@ XCI::XCI(VirtualFile file_) : file(std::move(file_)), partitions(0x4) {
         return;
     }
 
-    const static std::array<std::string, 0x4> partition_names = {"update", "normal", "secure",
-                                                                 "logo"};
+    static constexpr std::array<const char*, 0x4> partition_names = {"update", "normal", "secure",
+                                                                     "logo"};
 
     for (XCIPartition partition :
          {XCIPartition::Update, XCIPartition::Normal, XCIPartition::Secure, XCIPartition::Logo}) {
@@ -93,12 +93,9 @@ VirtualDir XCI::GetLogoPartition() const {
 }
 
 std::shared_ptr<NCA> XCI::GetNCAByType(NCAContentType type) const {
-    for (const auto& nca : ncas) {
-        if (nca->GetType() == type)
-            return nca;
-    }
-
-    return nullptr;
+    auto iter = std::find_if(ncas.begin(), ncas.end(),
+                             [type](std::shared_ptr<NCA> nca) { return nca->GetType() == type; });
+    return iter == ncas.end() ? nullptr : *iter;
 }
 
 VirtualFile XCI::GetNCAFileByType(NCAContentType type) const {
@@ -133,7 +130,7 @@ Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
         return Loader::ResultStatus::ErrorInvalidFormat;
     }
 
-    for (VirtualFile file : partitions[static_cast<size_t>(part)]->GetFiles()) {
+    for (const VirtualFile& file : partitions[static_cast<size_t>(part)]->GetFiles()) {
         if (file->GetExtension() != "nca")
             continue;
         auto nca = std::make_shared<NCA>(file);
