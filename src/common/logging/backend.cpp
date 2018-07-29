@@ -169,6 +169,7 @@ void FileBackend::Write(const Entry& entry) {
     SUB(Service, AOC)                                                                              \
     SUB(Service, APM)                                                                              \
     SUB(Service, BCAT)                                                                             \
+    SUB(Service, BTM)                                                                              \
     SUB(Service, Fatal)                                                                            \
     SUB(Service, Friend)                                                                           \
     SUB(Service, FS)                                                                               \

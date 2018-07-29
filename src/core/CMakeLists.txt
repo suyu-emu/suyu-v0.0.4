@@ -142,6 +142,8 @@ add_library(core STATIC
     hle/service/bcat/module.h
     hle/service/btdrv/btdrv.cpp
     hle/service/btdrv/btdrv.h
+    hle/service/btm/btm.cpp
+    hle/service/btm/btm.h
     hle/service/erpt/erpt.cpp
     hle/service/erpt/erpt.h
     hle/service/es/es.cpp

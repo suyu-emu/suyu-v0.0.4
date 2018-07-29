@@ -56,6 +56,7 @@ enum class Class : ClassType {
     Service_APM,       ///< The APM (Performance) service
     Service_Audio,     ///< The Audio (Audio control) service
     Service_BCAT,      ///< The BCAT service
+    Service_BTM,       ///< The BTM service
     Service_Fatal,     ///< The Fatal service
     Service_Friend,    ///< The friend service
     Service_FS,        ///< The FS (Filesystem) service
