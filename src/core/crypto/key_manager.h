@@ -111,7 +111,7 @@ private:
     void AttemptLoadKeyFile(std::string_view dir1, std::string_view dir2, std::string_view filename,
                             bool title);
 
-    const static std::unordered_map<std::string, KeyIndex<S128KeyType>> s128_file_id;
-    const static std::unordered_map<std::string, KeyIndex<S256KeyType>> s256_file_id;
+    static const std::unordered_map<std::string, KeyIndex<S128KeyType>> s128_file_id;
+    static const std::unordered_map<std::string, KeyIndex<S256KeyType>> s256_file_id;
 };
 } // namespace Core::Crypto
