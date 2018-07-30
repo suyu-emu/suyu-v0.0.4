@@ -326,7 +326,7 @@ public:
             {79, &Hid::SetGyroscopeZeroDriftMode, "SetGyroscopeZeroDriftMode"},
             {80, nullptr, "GetGyroscopeZeroDriftMode"},
             {81, nullptr, "ResetGyroscopeZeroDriftMode"},
-            {82, nullptr, "IsSixAxisSensorAtRest"},
+            {82, &Hid::IsSixAxisSensorAtRest, "IsSixAxisSensorAtRest"},
             {91, nullptr, "ActivateGesture"},
             {100, &Hid::SetSupportedNpadStyleSet, "SetSupportedNpadStyleSet"},
             {101, &Hid::GetSupportedNpadStyleSet, "GetSupportedNpadStyleSet"},
@@ -343,7 +343,7 @@ public:
              "SetNpadJoyAssignmentModeSingleByDefault"},
             {123, nullptr, "SetNpadJoyAssignmentModeSingleByDefault"},
             {124, &Hid::SetNpadJoyAssignmentModeDual, "SetNpadJoyAssignmentModeDual"},
-            {125, nullptr, "MergeSingleJoyAsDualJoy"},
+            {125, &Hid::MergeSingleJoyAsDualJoy, "MergeSingleJoyAsDualJoy"},
             {126, nullptr, "StartLrAssignmentMode"},
             {127, nullptr, "StopLrAssignmentMode"},
             {128, &Hid::SetNpadHandheldActivationMode, "SetNpadHandheldActivationMode"},
@@ -455,6 +455,14 @@ private:
         LOG_WARNING(Service_HID, "(STUBBED) called");
     }
 
+    void IsSixAxisSensorAtRest(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        // TODO (Hexagon12): Properly implement reading gyroscope values from controllers.
+        rb.Push(true);
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+    }
+
     void SetSupportedNpadStyleSet(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
@@ -525,6 +533,12 @@ private:
     }
 
     void SetNpadJoyAssignmentModeDual(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+    }
+
+    void MergeSingleJoyAsDualJoy(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_HID, "(STUBBED) called");
