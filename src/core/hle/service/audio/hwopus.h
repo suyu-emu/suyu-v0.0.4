@@ -14,6 +14,7 @@ public:
     ~HwOpus() = default;
 
 private:
+    void OpenOpusDecoder(Kernel::HLERequestContext& ctx);
     void GetWorkBufferSize(Kernel::HLERequestContext& ctx);
 };
 

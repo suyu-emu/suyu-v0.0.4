@@ -50,3 +50,7 @@ if (ARCHITECTURE_x86_64)
     target_include_directories(xbyak INTERFACE ./xbyak/xbyak)
     target_compile_definitions(xbyak INTERFACE XBYAK_NO_OP_NAMES)
 endif()
+
+# Opus
+add_subdirectory(opus)
+target_include_directories(opus INTERFACE ./opus/include)
