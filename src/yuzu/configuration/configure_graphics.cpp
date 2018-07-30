@@ -67,5 +67,4 @@ void ConfigureGraphics::applyConfiguration() {
         ToResolutionFactor(static_cast<Resolution>(ui->resolution_factor_combobox->currentIndex()));
     Settings::values.toggle_framelimit = ui->toggle_framelimit->isChecked();
     Settings::values.use_accurate_framebuffers = ui->use_accurate_framebuffers->isChecked();
-    Settings::Apply();
 }

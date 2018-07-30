@@ -44,5 +44,4 @@ void ConfigureGeneral::applyConfiguration() {
     Settings::values.use_cpu_jit = ui->use_cpu_jit->isChecked();
     Settings::values.use_multi_core = ui->use_multi_core->isChecked();
     Settings::values.use_docked_mode = ui->use_docked_mode->isChecked();
-    Settings::Apply();
 }

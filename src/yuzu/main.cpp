@@ -723,10 +723,12 @@ void GMainWindow::ToggleWindowMode() {
 
 void GMainWindow::OnConfigure() {
     ConfigureDialog configureDialog(this);
+    auto old_theme = UISettings::values.theme;
     auto result = configureDialog.exec();
     if (result == QDialog::Accepted) {
         configureDialog.applyConfiguration();
-        UpdateUITheme();
+        if (UISettings::values.theme != old_theme)
+            UpdateUITheme();
         config->Save();
     }
 }
