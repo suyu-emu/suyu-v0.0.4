@@ -8,7 +8,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-
+#include <boost/optional.hpp>
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/swap.h"
@@ -95,7 +95,7 @@ protected:
     bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
 
 private:
-    Core::Crypto::Key128 GetKeyAreaKey(NCASectionCryptoType type) const;
+    boost::optional<Core::Crypto::Key128> GetKeyAreaKey(NCASectionCryptoType type) const;
     VirtualFile Decrypt(NCASectionHeader header, VirtualFile in, u64 starting_offset) const;
 
     std::vector<VirtualDir> dirs;

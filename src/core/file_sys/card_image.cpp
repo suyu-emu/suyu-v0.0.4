@@ -45,6 +45,7 @@ XCI::XCI(VirtualFile file_) : file(std::move(file_)), partitions(0x4) {
         status = result;
         return;
     }
+
     result = AddNCAFromPartition(XCIPartition::Update);
     if (result != Loader::ResultStatus::Success) {
         status = result;

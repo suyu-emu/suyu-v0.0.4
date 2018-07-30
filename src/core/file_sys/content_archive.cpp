@@ -4,7 +4,7 @@
 
 #include <algorithm>
 #include <utility>
-
+#include <boost/optional.hpp>
 #include "common/logging/log.h"
 #include "core/crypto/aes_util.h"
 #include "core/crypto/ctr_encryption_layer.h"
@@ -76,12 +76,15 @@ bool IsValidNCA(const NCAHeader& header) {
     return header.magic == Common::MakeMagic('N', 'C', 'A', '3');
 }
 
-Core::Crypto::Key128 NCA::GetKeyAreaKey(NCASectionCryptoType type) const {
+boost::optional<Core::Crypto::Key128> NCA::GetKeyAreaKey(NCASectionCryptoType type) const {
     u8 master_key_id = header.crypto_type;
     if (header.crypto_type_2 > master_key_id)
         master_key_id = header.crypto_type_2;
     if (master_key_id > 0)
         --master_key_id;
+
+    if (!keys.HasKey(Core::Crypto::S128KeyType::KeyArea, master_key_id, header.key_index))
+        return boost::none;
 
     std::vector<u8> key_area(header.key_area.begin(), header.key_area.end());
     Core::Crypto::AESCipher<Core::Crypto::Key128> cipher(
@@ -116,13 +119,16 @@ VirtualFile NCA::Decrypt(NCASectionHeader header, VirtualFile in, u64 starting_o
     case NCASectionCryptoType::CTR:
         LOG_DEBUG(Crypto, "called with mode=CTR, starting_offset={:016X}", starting_offset);
         {
+            const auto key = GetKeyAreaKey(NCASectionCryptoType::CTR);
+            if (key == boost::none)
+                return nullptr;
             auto out = std::make_shared<Core::Crypto::CTREncryptionLayer>(
-                std::move(in), GetKeyAreaKey(NCASectionCryptoType::CTR), starting_offset);
+                std::move(in), key.value(), starting_offset);
             std::vector<u8> iv(16);
             for (u8 i = 0; i < 8; ++i)
                 iv[i] = header.raw.section_ctr[0x8 - i - 1];
             out->SetIV(iv);
-            return out;
+            return std::static_pointer_cast<VfsFile>(out);
         }
     case NCASectionCryptoType::XTS:
         // TODO(DarkLordZach): Implement XTSEncryptionLayer and title key encryption.
@@ -149,7 +155,10 @@ NCA::NCA(VirtualFile file_) : file(std::move(file_)) {
             header = dec_header;
             encrypted = true;
         } else {
-            status = Loader::ResultStatus::ErrorInvalidFormat;
+            if (!keys.HasKey(Core::Crypto::S256KeyType::Header))
+                status = Loader::ResultStatus::ErrorEncrypted;
+            else
+                status = Loader::ResultStatus::ErrorInvalidFormat;
             return;
         }
     }
@@ -179,23 +188,29 @@ NCA::NCA(VirtualFile file_) : file(std::move(file_)) {
                 header.section_tables[i].media_offset * MEDIA_OFFSET_MULTIPLIER +
                 section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].offset;
             const size_t romfs_size = section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].size;
-            files.emplace_back(
+            const auto dec =
                 Decrypt(section, std::make_shared<OffsetVfsFile>(file, romfs_size, romfs_offset),
-                        romfs_offset));
-            romfs = files.back();
+                        romfs_offset);
+            if (dec != nullptr) {
+                files.emplace_back();
+                romfs = files.back();
+            }
         } else if (section.raw.header.filesystem_type == NCASectionFilesystemType::PFS0) {
             u64 offset = (static_cast<u64>(header.section_tables[i].media_offset) *
                           MEDIA_OFFSET_MULTIPLIER) +
                          section.pfs0.pfs0_header_offset;
             u64 size = MEDIA_OFFSET_MULTIPLIER * (header.section_tables[i].media_end_offset -
                                                   header.section_tables[i].media_offset);
-            auto npfs = std::make_shared<PartitionFilesystem>(
-                Decrypt(section, std::make_shared<OffsetVfsFile>(file, size, offset), offset));
+            const auto dec =
+                Decrypt(section, std::make_shared<OffsetVfsFile>(file, size, offset), offset);
+            if (dec != nullptr) {
+                auto npfs = std::make_shared<PartitionFilesystem>(dec);
 
-            if (npfs->GetStatus() == Loader::ResultStatus::Success) {
-                dirs.emplace_back(npfs);
-                if (IsDirectoryExeFS(dirs.back()))
-                    exefs = dirs.back();
+                if (npfs->GetStatus() == Loader::ResultStatus::Success) {
+                    dirs.emplace_back(npfs);
+                    if (IsDirectoryExeFS(dirs.back()))
+                        exefs = dirs.back();
+                }
             }
         }
     }
