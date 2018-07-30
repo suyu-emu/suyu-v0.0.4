@@ -156,9 +156,9 @@ NCA::NCA(VirtualFile file_) : file(std::move(file_)) {
             encrypted = true;
         } else {
             if (!keys.HasKey(Core::Crypto::S256KeyType::Header))
-                status = Loader::ResultStatus::ErrorEncrypted;
+                status = Loader::ResultStatus::ErrorMissingKeys;
             else
-                status = Loader::ResultStatus::ErrorInvalidFormat;
+                status = Loader::ResultStatus::ErrorDecrypting;
             return;
         }
     }
@@ -194,6 +194,9 @@ NCA::NCA(VirtualFile file_) : file(std::move(file_)) {
             if (dec != nullptr) {
                 files.emplace_back();
                 romfs = files.back();
+            } else {
+                status = Loader::ResultStatus::ErrorMissingKeys;
+                return;
             }
         } else if (section.raw.header.filesystem_type == NCASectionFilesystemType::PFS0) {
             u64 offset = (static_cast<u64>(header.section_tables[i].media_offset) *
@@ -211,6 +214,9 @@ NCA::NCA(VirtualFile file_) : file(std::move(file_)) {
                     if (IsDirectoryExeFS(dirs.back()))
                         exefs = dirs.back();
                 }
+            } else {
+                status = Loader::ResultStatus::ErrorMissingKeys;
+                return;
             }
         }
     }

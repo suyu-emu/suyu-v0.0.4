@@ -102,6 +102,8 @@ public:
     void SetKey(S128KeyType id, Key128 key, u64 field1 = 0, u64 field2 = 0);
     void SetKey(S256KeyType id, Key256 key, u64 field1 = 0, u64 field2 = 0);
 
+    static bool KeyFileExists(bool title);
+
 private:
     std::unordered_map<KeyIndex<S128KeyType>, Key128> s128_keys;
     std::unordered_map<KeyIndex<S256KeyType>, Key256> s256_keys;

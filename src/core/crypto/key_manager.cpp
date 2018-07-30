@@ -53,8 +53,8 @@ std::array<u8, 32> operator""_array32(const char* str, size_t len) {
 
 KeyManager::KeyManager() {
     // Initialize keys
-    std::string hactool_keys_dir = FileUtil::GetHactoolConfigurationPath();
-    std::string yuzu_keys_dir = FileUtil::GetUserPath(FileUtil::UserPath::KeysDir);
+    const std::string hactool_keys_dir = FileUtil::GetHactoolConfigurationPath();
+    const std::string yuzu_keys_dir = FileUtil::GetUserPath(FileUtil::UserPath::KeysDir);
     if (Settings::values.use_dev_keys) {
         dev_mode = true;
         AttemptLoadKeyFile(yuzu_keys_dir, hactool_keys_dir, "dev.keys", false);
@@ -109,9 +109,9 @@ void KeyManager::LoadFromFile(std::string_view filename_, bool is_title_keys) {
 
 void KeyManager::AttemptLoadKeyFile(std::string_view dir1_, std::string_view dir2_,
                                     std::string_view filename_, bool title) {
-    std::string dir1(dir1_);
-    std::string dir2(dir2_);
-    std::string filename(filename_);
+    const std::string dir1(dir1_);
+    const std::string dir2(dir2_);
+    const std::string filename(filename_);
     if (FileUtil::Exists(dir1 + DIR_SEP + filename))
         LoadFromFile(dir1 + DIR_SEP + filename, title);
     else if (FileUtil::Exists(dir2 + DIR_SEP + filename))
@@ -144,6 +144,23 @@ void KeyManager::SetKey(S128KeyType id, Key128 key, u64 field1, u64 field2) {
 
 void KeyManager::SetKey(S256KeyType id, Key256 key, u64 field1, u64 field2) {
     s256_keys[{id, field1, field2}] = key;
+}
+
+bool KeyManager::KeyFileExists(bool title) {
+    const std::string hactool_keys_dir = FileUtil::GetHactoolConfigurationPath();
+    const std::string yuzu_keys_dir = FileUtil::GetUserPath(FileUtil::UserPath::KeysDir);
+    if (title) {
+        return FileUtil::Exists(hactool_keys_dir + DIR_SEP + "title.keys") ||
+               FileUtil::Exists(yuzu_keys_dir + DIR_SEP + "title.keys");
+    }
+
+    if (Settings::values.use_dev_keys) {
+        return FileUtil::Exists(hactool_keys_dir + DIR_SEP + "dev.keys") ||
+               FileUtil::Exists(yuzu_keys_dir + DIR_SEP + "dev.keys");
+    }
+
+    return FileUtil::Exists(hactool_keys_dir + DIR_SEP + "prod.keys") ||
+           FileUtil::Exists(yuzu_keys_dir + DIR_SEP + "prod.keys");
 }
 
 const std::unordered_map<std::string, KeyIndex<S128KeyType>> KeyManager::s128_file_id = {

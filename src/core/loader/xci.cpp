@@ -49,7 +49,7 @@ ResultStatus AppLoader_XCI::Load(Kernel::SharedPtr<Kernel::Process>& process) {
     }
 
     if (xci->GetNCAFileByType(FileSys::NCAContentType::Program) == nullptr) {
-        return ResultStatus::ErrorEncrypted;
+        return ResultStatus::ErrorDecrypting;
     }
 
     auto result = nca_loader->Load(process);

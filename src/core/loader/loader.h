@@ -73,7 +73,8 @@ enum class ResultStatus {
     ErrorNotUsed,
     ErrorAlreadyLoaded,
     ErrorMemoryAllocationFailed,
-    ErrorEncrypted,
+    ErrorMissingKeys,
+    ErrorDecrypting,
     ErrorUnsupportedArch,
 };
 

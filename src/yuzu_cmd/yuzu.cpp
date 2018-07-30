@@ -173,11 +173,15 @@ int main(int argc, char** argv) {
     case Core::System::ResultStatus::ErrorLoader:
         LOG_CRITICAL(Frontend, "Failed to load ROM!");
         return -1;
-    case Core::System::ResultStatus::ErrorLoader_ErrorEncrypted:
-        LOG_CRITICAL(Frontend, "The game that you are trying to load must be decrypted before "
-                               "being used with yuzu. \n\n For more information on dumping and "
-                               "decrypting games, please refer to: "
-                               "https://yuzu-emu.org/wiki/dumping-game-cartridges/");
+    case Core::System::ResultStatus::ErrorLoader_ErrorMissingKeys:
+        LOG_CRITICAL(Frontend, "The game you are trying to load is encrypted and the keys required "
+                               "could not be found. Please refer to <LINK> for help");
+        return -1;
+    case Core::System::ResultStatus::ErrorLoader_ErrorDecrypting:
+        LOG_CRITICAL(Frontend, "The game you are trying to load is encrypted and there was a "
+                               "general error while decrypting. This could mean that the keys are "
+                               "incorrect, game is invalid or game uses an unsupported method of "
+                               "crypto. Please refer to <LINK> to double-check your keys");
         return -1;
     case Core::System::ResultStatus::ErrorLoader_ErrorInvalidFormat:
         LOG_CRITICAL(Frontend, "Error while loading ROM: The ROM format is not supported.");
