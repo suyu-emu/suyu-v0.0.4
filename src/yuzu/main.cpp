@@ -957,7 +957,6 @@ int main(int argc, char* argv[]) {
     QCoreApplication::setOrganizationName("yuzu team");
     QCoreApplication::setApplicationName("yuzu");
 
-    QApplication::setAttribute(Qt::AA_X11InitThreads);
     QApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
     QApplication app(argc, argv);
 
