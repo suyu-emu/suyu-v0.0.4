@@ -97,7 +97,9 @@ u32 nvhost_ctrl_gpu::GetTPCMasks(const std::vector<u8>& input, std::vector<u8>& 
 u32 nvhost_ctrl_gpu::GetActiveSlotMask(const std::vector<u8>& input, std::vector<u8>& output) {
     LOG_DEBUG(Service_NVDRV, "called");
     IoctlActiveSlotMask params{};
-    std::memcpy(&params, input.data(), input.size());
+    if (input.size() > 0) {
+        std::memcpy(&params, input.data(), input.size());
+    }
     params.slot = 0x07;
     params.mask = 0x01;
     std::memcpy(output.data(), &params, output.size());
@@ -107,7 +109,9 @@ u32 nvhost_ctrl_gpu::GetActiveSlotMask(const std::vector<u8>& input, std::vector
 u32 nvhost_ctrl_gpu::ZCullGetCtxSize(const std::vector<u8>& input, std::vector<u8>& output) {
     LOG_DEBUG(Service_NVDRV, "called");
     IoctlZcullGetCtxSize params{};
-    std::memcpy(&params, input.data(), input.size());
+    if (input.size() > 0) {
+        std::memcpy(&params, input.data(), input.size());
+    }
     params.size = 0x1;
     std::memcpy(output.data(), &params, output.size());
     return 0;
@@ -116,7 +120,11 @@ u32 nvhost_ctrl_gpu::ZCullGetCtxSize(const std::vector<u8>& input, std::vector<u
 u32 nvhost_ctrl_gpu::ZCullGetInfo(const std::vector<u8>& input, std::vector<u8>& output) {
     LOG_DEBUG(Service_NVDRV, "called");
     IoctlNvgpuGpuZcullGetInfoArgs params{};
-    std::memcpy(&params, input.data(), input.size());
+
+    if (input.size() > 0) {
+        std::memcpy(&params, input.data(), input.size());
+    }
+
     params.width_align_pixels = 0x20;
     params.height_align_pixels = 0x20;
     params.pixel_squares_by_aliquots = 0x400;

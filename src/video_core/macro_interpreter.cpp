@@ -102,11 +102,11 @@ bool MacroInterpreter::Step(const std::vector<u32>& code, bool is_delay_slot) {
         if (taken) {
             // Ignore the delay slot if the branch has the annul bit.
             if (opcode.branch_annul) {
-                pc = base_address + (opcode.immediate << 2);
+                pc = base_address + opcode.GetBranchTarget();
                 return true;
             }
 
-            delayed_pc = base_address + (opcode.immediate << 2);
+            delayed_pc = base_address + opcode.GetBranchTarget();
             // Execute one more instruction due to the delay slot.
             return Step(code, true);
         }

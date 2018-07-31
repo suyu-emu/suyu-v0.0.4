@@ -132,9 +132,12 @@ u32 nvhost_gpu::SubmitGPFIFO(const std::vector<u8>& input, std::vector<u8>& outp
     LOG_WARNING(Service_NVDRV, "(STUBBED) called, gpfifo={:X}, num_entries={:X}, flags={:X}",
                 params.address, params.num_entries, params.flags);
 
-    auto entries = std::vector<IoctlGpfifoEntry>();
-    entries.resize(params.num_entries);
-    std::memcpy(&entries[0], &input.data()[sizeof(IoctlSubmitGpfifo)],
+    ASSERT_MSG(input.size() ==
+                   sizeof(IoctlSubmitGpfifo) + params.num_entries * sizeof(IoctlGpfifoEntry),
+               "Incorrect input size");
+
+    std::vector<IoctlGpfifoEntry> entries(params.num_entries);
+    std::memcpy(entries.data(), &input[sizeof(IoctlSubmitGpfifo)],
                 params.num_entries * sizeof(IoctlGpfifoEntry));
     for (auto entry : entries) {
         Tegra::GPUVAddr va_addr = entry.Address();
