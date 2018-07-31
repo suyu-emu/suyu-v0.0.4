@@ -188,11 +188,11 @@ NCA::NCA(VirtualFile file_) : file(std::move(file_)) {
                 header.section_tables[i].media_offset * MEDIA_OFFSET_MULTIPLIER +
                 section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].offset;
             const size_t romfs_size = section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].size;
-            const auto dec =
+            auto dec =
                 Decrypt(section, std::make_shared<OffsetVfsFile>(file, romfs_size, romfs_offset),
                         romfs_offset);
             if (dec != nullptr) {
-                files.emplace_back();
+                files.push_back(std::move(dec));
                 romfs = files.back();
             } else {
                 status = Loader::ResultStatus::ErrorMissingKeys;
@@ -204,13 +204,13 @@ NCA::NCA(VirtualFile file_) : file(std::move(file_)) {
                          section.pfs0.pfs0_header_offset;
             u64 size = MEDIA_OFFSET_MULTIPLIER * (header.section_tables[i].media_end_offset -
                                                   header.section_tables[i].media_offset);
-            const auto dec =
+            auto dec =
                 Decrypt(section, std::make_shared<OffsetVfsFile>(file, size, offset), offset);
             if (dec != nullptr) {
-                auto npfs = std::make_shared<PartitionFilesystem>(dec);
+                auto npfs = std::make_shared<PartitionFilesystem>(std::move(dec));
 
                 if (npfs->GetStatus() == Loader::ResultStatus::Success) {
-                    dirs.emplace_back(npfs);
+                    dirs.push_back(std::move(npfs));
                     if (IsDirectoryExeFS(dirs.back()))
                         exefs = dirs.back();
                 }
