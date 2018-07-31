@@ -139,14 +139,12 @@ void ARM_Dynarmic::Step() {
 }
 
 ARM_Dynarmic::ARM_Dynarmic(std::shared_ptr<ExclusiveMonitor> exclusive_monitor, size_t core_index)
-    : cb(std::make_unique<ARM_Dynarmic_Callbacks>(*this)),
-      jit(MakeJit()), exclusive_monitor{std::dynamic_pointer_cast<DynarmicExclusiveMonitor>(
-                          exclusive_monitor)},
-      core_index{core_index} {
-    ARM_Interface::ThreadContext ctx;
+    : cb(std::make_unique<ARM_Dynarmic_Callbacks>(*this)), core_index{core_index},
+      exclusive_monitor{std::dynamic_pointer_cast<DynarmicExclusiveMonitor>(exclusive_monitor)} {
+    ThreadContext ctx;
     inner_unicorn.SaveContext(ctx);
-    LoadContext(ctx);
     PageTableChanged();
+    LoadContext(ctx);
 }
 
 ARM_Dynarmic::~ARM_Dynarmic() = default;
@@ -205,7 +203,7 @@ u64 ARM_Dynarmic::GetTlsAddress() const {
     return cb->tpidrro_el0;
 }
 
-void ARM_Dynarmic::SetTlsAddress(u64 address) {
+void ARM_Dynarmic::SetTlsAddress(VAddr address) {
     cb->tpidrro_el0 = address;
 }
 
@@ -217,7 +215,7 @@ void ARM_Dynarmic::SetTPIDR_EL0(u64 value) {
     cb->tpidr_el0 = value;
 }
 
-void ARM_Dynarmic::SaveContext(ARM_Interface::ThreadContext& ctx) {
+void ARM_Dynarmic::SaveContext(ThreadContext& ctx) {
     ctx.cpu_registers = jit->GetRegisters();
     ctx.sp = jit->GetSP();
     ctx.pc = jit->GetPC();
@@ -226,7 +224,7 @@ void ARM_Dynarmic::SaveContext(ARM_Interface::ThreadContext& ctx) {
     ctx.fpscr = jit->GetFpcr();
 }
 
-void ARM_Dynarmic::LoadContext(const ARM_Interface::ThreadContext& ctx) {
+void ARM_Dynarmic::LoadContext(const ThreadContext& ctx) {
     jit->SetRegisters(ctx.cpu_registers);
     jit->SetSP(ctx.sp);
     jit->SetPC(ctx.pc);
