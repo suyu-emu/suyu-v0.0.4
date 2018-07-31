@@ -4,12 +4,11 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <vector>
-#include <boost/container/flat_map.hpp>
-#include <boost/container/flat_set.hpp>
+
 #include "common/common_types.h"
 #include "core/arm/arm_interface.h"
 #include "core/hle/kernel/kernel.h"

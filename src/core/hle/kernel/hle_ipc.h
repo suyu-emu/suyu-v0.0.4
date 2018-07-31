@@ -5,7 +5,6 @@
 #pragma once
 
 #include <array>
-#include <iterator>
 #include <memory>
 #include <string>
 #include <type_traits>

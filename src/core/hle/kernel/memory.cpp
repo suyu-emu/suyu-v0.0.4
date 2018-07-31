@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <cinttypes>
-#include <map>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -12,10 +11,9 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/hle/kernel/memory.h"
+#include "core/hle/kernel/process.h"
 #include "core/hle/kernel/vm_manager.h"
-#include "core/hle/result.h"
 #include "core/memory.h"
-#include "core/memory_setup.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

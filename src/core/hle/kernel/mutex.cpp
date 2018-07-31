@@ -3,8 +3,11 @@
 // Refer to the license.txt file included.
 
 #include <map>
+#include <utility>
 #include <vector>
+
 #include <boost/range/algorithm_ext/erase.hpp>
+
 #include "common/assert.h"
 #include "core/core.h"
 #include "core/hle/kernel/errors.h"
@@ -13,6 +16,7 @@
 #include "core/hle/kernel/mutex.h"
 #include "core/hle/kernel/object_address_table.h"
 #include "core/hle/kernel/thread.h"
+#include "core/hle/result.h"
 
 namespace Kernel {
 

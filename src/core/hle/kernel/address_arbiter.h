@@ -4,7 +4,9 @@
 
 #pragma once
 
-#include "core/hle/result.h"
+#include "common/common_types.h"
+
+union ResultCode;
 
 namespace Kernel {
 
