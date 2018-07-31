@@ -58,6 +58,7 @@ enum class Class : ClassType {
     Service_BCAT,      ///< The BCAT service
     Service_BTM,       ///< The BTM service
     Service_Fatal,     ///< The Fatal service
+    Service_FGM,       ///< The FGM service
     Service_Friend,    ///< The friend service
     Service_FS,        ///< The FS (Filesystem) service
     Service_HID,       ///< The HID (Human interface device) service
