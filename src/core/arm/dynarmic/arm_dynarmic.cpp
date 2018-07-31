@@ -203,7 +203,7 @@ u64 ARM_Dynarmic::GetTlsAddress() const {
     return cb->tpidrro_el0;
 }
 
-void ARM_Dynarmic::SetTlsAddress(u64 address) {
+void ARM_Dynarmic::SetTlsAddress(VAddr address) {
     cb->tpidrro_el0 = address;
 }
 
