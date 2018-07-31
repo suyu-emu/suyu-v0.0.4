@@ -139,14 +139,12 @@ void ARM_Dynarmic::Step() {
 }
 
 ARM_Dynarmic::ARM_Dynarmic(std::shared_ptr<ExclusiveMonitor> exclusive_monitor, size_t core_index)
-    : cb(std::make_unique<ARM_Dynarmic_Callbacks>(*this)),
-      jit(MakeJit()), exclusive_monitor{std::dynamic_pointer_cast<DynarmicExclusiveMonitor>(
-                          exclusive_monitor)},
-      core_index{core_index} {
+    : cb(std::make_unique<ARM_Dynarmic_Callbacks>(*this)), core_index{core_index},
+      exclusive_monitor{std::dynamic_pointer_cast<DynarmicExclusiveMonitor>(exclusive_monitor)} {
     ARM_Interface::ThreadContext ctx;
     inner_unicorn.SaveContext(ctx);
-    LoadContext(ctx);
     PageTableChanged();
+    LoadContext(ctx);
 }
 
 ARM_Dynarmic::~ARM_Dynarmic() = default;
