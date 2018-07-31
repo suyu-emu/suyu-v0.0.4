@@ -49,6 +49,8 @@ ResultStatus AppLoader_XCI::Load(Kernel::SharedPtr<Kernel::Process>& process) {
     }
 
     if (xci->GetNCAFileByType(FileSys::NCAContentType::Program) == nullptr) {
+        if (!Core::Crypto::KeyManager::KeyFileExists(false))
+            return ResultStatus::ErrorMissingKeys;
         return ResultStatus::ErrorDecrypting;
     }
 

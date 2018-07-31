@@ -456,7 +456,7 @@ bool GMainWindow::LoadROM(const QString& filename) {
                 this, tr("Error while loading ROM!"),
                 tr(("The game you are trying to load is encrypted and the required keys to load "
                     "the game could not be found in your configuration. " +
-                    file_text + " Please refer to <a href=''>How to Dump Keys</a> for help.")
+                    file_text + " Please refer to the yuzu wiki for help.")
                        .c_str()));
             break;
         }
@@ -465,8 +465,8 @@ bool GMainWindow::LoadROM(const QString& filename) {
                 this, tr("Error while loading ROM!"),
                 tr("There was a general error while decrypting the game. This means that the keys "
                    "necessary were found, but were either incorrect, the game itself was not a "
-                   "valid game or the game uses an unhandled cryptographic scheme. Please refer to "
-                   "<a href=''>How to Dump Keys</a> to double check that you have the correct "
+                   "valid game or the game uses an unhandled cryptographic scheme. Please double "
+                   "check that you have the correct "
                    "keys."));
             break;
         }

@@ -175,13 +175,13 @@ int main(int argc, char** argv) {
         return -1;
     case Core::System::ResultStatus::ErrorLoader_ErrorMissingKeys:
         LOG_CRITICAL(Frontend, "The game you are trying to load is encrypted and the keys required "
-                               "could not be found. Please refer to <LINK> for help");
+                               "could not be found. Please refer to the yuzu wiki for help");
         return -1;
     case Core::System::ResultStatus::ErrorLoader_ErrorDecrypting:
         LOG_CRITICAL(Frontend, "The game you are trying to load is encrypted and there was a "
                                "general error while decrypting. This could mean that the keys are "
                                "incorrect, game is invalid or game uses an unsupported method of "
-                               "crypto. Please refer to <LINK> to double-check your keys");
+                               "crypto. Please double-check your keys");
         return -1;
     case Core::System::ResultStatus::ErrorLoader_ErrorInvalidFormat:
         LOG_CRITICAL(Frontend, "Error while loading ROM: The ROM format is not supported.");
