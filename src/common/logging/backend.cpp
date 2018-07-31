@@ -185,6 +185,7 @@ void FileBackend::Write(const Entry& entry) {
     SUB(Service, NIFM)                                                                             \
     SUB(Service, NS)                                                                               \
     SUB(Service, NVDRV)                                                                            \
+    SUB(Service, PCIE)                                                                             \
     SUB(Service, PCTL)                                                                             \
     SUB(Service, PREPO)                                                                            \
     SUB(Service, SET)                                                                              \

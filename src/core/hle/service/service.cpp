@@ -44,6 +44,7 @@
 #include "core/hle/service/nim/nim.h"
 #include "core/hle/service/ns/ns.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
+#include "core/hle/service/pcie/pcie.h"
 #include "core/hle/service/pctl/pctl.h"
 #include "core/hle/service/pm/pm.h"
 #include "core/hle/service/prepo/prepo.h"
@@ -225,6 +226,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm) {
     NIM::InstallInterfaces(*sm);
     NS::InstallInterfaces(*sm);
     Nvidia::InstallInterfaces(*sm);
+    PCIe::InstallInterfaces(*sm);
     PCTL::InstallInterfaces(*sm);
     PlayReport::InstallInterfaces(*sm);
     PM::InstallInterfaces(*sm);

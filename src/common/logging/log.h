@@ -72,6 +72,7 @@ enum class Class : ClassType {
     Service_NIFM,      ///< The NIFM (Network interface) service
     Service_NS,        ///< The NS services
     Service_NVDRV,     ///< The NVDRV (Nvidia driver) service
+    Service_PCIE,      ///< The PCIe service
     Service_PCTL,      ///< The PCTL (Parental control) service
     Service_PREPO,     ///< The PREPO (Play report) service
     Service_SET,       ///< The SET (Settings) service
