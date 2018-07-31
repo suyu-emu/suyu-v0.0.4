@@ -54,3 +54,9 @@ endif()
 # Opus
 add_subdirectory(opus)
 target_include_directories(opus INTERFACE ./opus/include)
+
+# Cubeb
+if(ENABLE_CUBEB)
+    set(BUILD_TESTS OFF CACHE BOOL "")
+    add_subdirectory(cubeb)
+endif()

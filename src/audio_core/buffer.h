@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "common/common_types.h"
@@ -33,5 +34,7 @@ private:
     Tag tag;
     std::vector<u8> data;
 };
+
+using BufferPtr = std::shared_ptr<Buffer>;
 
 } // namespace AudioCore
