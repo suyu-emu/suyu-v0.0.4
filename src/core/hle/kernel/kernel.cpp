@@ -5,7 +5,6 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory.h"
-#include "core/hle/kernel/object_address_table.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/thread.h"
@@ -33,7 +32,6 @@ void Init(u32 system_mode) {
 void Shutdown() {
     // Free all kernel objects
     g_handle_table.Clear();
-    g_object_address_table.Clear();
 
     Kernel::ThreadingShutdown();
 
