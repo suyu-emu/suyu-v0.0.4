@@ -91,6 +91,10 @@ private:
         u32 GetBitfieldMask() const {
             return (1 << bf_size) - 1;
         }
+
+        s32 GetBranchTarget() const {
+            return static_cast<s32>(immediate * sizeof(u32));
+        }
     };
 
     union MethodAddress {
