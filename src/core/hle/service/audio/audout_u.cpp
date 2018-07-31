@@ -194,7 +194,7 @@ void AudOutU::OpenAudioOutImpl(Kernel::HLERequestContext& ctx) {
     // TODO(bunnei): Support more than one IAudioOut interface. When we add this, ListAudioOutsImpl
     // will likely need to be updated as well.
     ASSERT_MSG(!audio_out_interface, "Unimplemented");
-    audio_out_interface = std::make_shared<IAudioOut>(std::move(params), *audio_core);
+    audio_out_interface = std::make_shared<IAudioOut>(params, *audio_core);
 
     IPC::ResponseBuilder rb{ctx, 6, 0, 1};
     rb.Push(RESULT_SUCCESS);
