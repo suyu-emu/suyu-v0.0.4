@@ -13,11 +13,11 @@
 
 namespace Service::LM {
 
-class Logger final : public ServiceFramework<Logger> {
+class ILogger final : public ServiceFramework<ILogger> {
 public:
-    Logger() : ServiceFramework("Logger") {
+    ILogger() : ServiceFramework("ILogger") {
         static const FunctionInfo functions[] = {
-            {0x00000000, &Logger::Initialize, "Initialize"},
+            {0x00000000, &ILogger::Initialize, "Initialize"},
             {0x00000001, nullptr, "SetDestination"},
         };
         RegisterHandlers(functions);
@@ -182,7 +182,7 @@ public:
     void OpenLogger(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<Logger>();
+        rb.PushIpcInterface<ILogger>();
 
         LOG_DEBUG(Service_LM, "called");
     }
