@@ -2,8 +2,12 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <utility>
 
+#include "common/assert.h"
+#include "common/logging/log.h"
+#include "core/arm/arm_interface.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/hle/kernel/process.h"

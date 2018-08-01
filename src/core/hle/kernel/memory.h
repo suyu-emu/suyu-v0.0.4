@@ -5,12 +5,15 @@
 #pragma once
 
 #include <memory>
+#include <vector>
+
 #include "common/common_types.h"
-#include "core/hle/kernel/process.h"
 
 namespace Kernel {
 
 class VMManager;
+enum class MemoryRegion : u16;
+struct AddressMapping;
 
 struct MemoryRegionInfo {
     u64 base; // Not an address, but offset from start of FCRAM

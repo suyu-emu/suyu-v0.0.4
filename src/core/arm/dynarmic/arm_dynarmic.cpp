@@ -10,7 +10,7 @@
 #include "core/arm/dynarmic/arm_dynarmic.h"
 #include "core/core.h"
 #include "core/core_timing.h"
-#include "core/hle/kernel/memory.h"
+#include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc.h"
 #include "core/memory.h"
 

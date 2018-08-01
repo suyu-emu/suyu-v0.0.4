@@ -5,7 +5,10 @@
 #include <algorithm>
 #include <cinttypes>
 #include <iterator>
+#include <mutex>
+#include <vector>
 
+#include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
 #include "common/string_util.h"

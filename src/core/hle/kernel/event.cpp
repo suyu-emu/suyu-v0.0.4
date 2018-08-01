@@ -3,8 +3,6 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <map>
-#include <vector>
 #include "common/assert.h"
 #include "core/hle/kernel/event.h"
 #include "core/hle/kernel/kernel.h"

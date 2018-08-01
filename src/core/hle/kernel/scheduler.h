@@ -8,8 +8,9 @@
 #include <vector>
 #include "common/common_types.h"
 #include "common/thread_queue_list.h"
-#include "core/arm/arm_interface.h"
 #include "core/hle/kernel/thread.h"
+
+class ARM_Interface;
 
 namespace Kernel {
 

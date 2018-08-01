@@ -2,15 +2,17 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <vector>
+
 #include "common/assert.h"
-#include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "core/core.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/thread.h"
-#include "core/hle/lock.h"
+#include "core/hle/result.h"
 #include "core/memory.h"
 
 namespace Kernel {
