@@ -14,6 +14,8 @@
 #include "core/file_sys/vfs_offset.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/hle/service/filesystem/filesystem.h"
+#include "core/hle/service/filesystem/fsp_ldr.h"
+#include "core/hle/service/filesystem/fsp_pr.h"
 #include "core/hle/service/filesystem/fsp_srv.h"
 
 namespace Service::FileSystem {
@@ -298,6 +300,8 @@ void RegisterFileSystems() {
 
 void InstallInterfaces(SM::ServiceManager& service_manager) {
     RegisterFileSystems();
+    std::make_shared<FSP_LDR>()->InstallAsService(service_manager);
+    std::make_shared<FSP_PR>()->InstallAsService(service_manager);
     std::make_shared<FSP_SRV>()->InstallAsService(service_manager);
 }
 

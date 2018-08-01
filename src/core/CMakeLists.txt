@@ -172,6 +172,10 @@ add_library(core STATIC
     hle/service/fatal/fatal_u.h
     hle/service/filesystem/filesystem.cpp
     hle/service/filesystem/filesystem.h
+    hle/service/filesystem/fsp_ldr.cpp
+    hle/service/filesystem/fsp_ldr.h
+    hle/service/filesystem/fsp_pr.cpp
+    hle/service/filesystem/fsp_pr.h
     hle/service/filesystem/fsp_srv.cpp
     hle/service/filesystem/fsp_srv.h
     hle/service/fgm/fgm.cpp
