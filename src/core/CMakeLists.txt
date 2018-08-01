@@ -126,17 +126,27 @@ add_library(core STATIC
     hle/service/apm/apm.h
     hle/service/apm/interface.cpp
     hle/service/apm/interface.h
+    hle/service/audio/audctl.cpp
+    hle/service/audio/audctl.h
+    hle/service/audio/auddbg.cpp
+    hle/service/audio/auddbg.h
+    hle/service/audio/audin_a.cpp
+    hle/service/audio/audin_a.h
     hle/service/audio/audin_u.cpp
     hle/service/audio/audin_u.h
     hle/service/audio/audio.cpp
     hle/service/audio/audio.h
+    hle/service/audio/audout_a.cpp
+    hle/service/audio/audout_a.h
     hle/service/audio/audout_u.cpp
     hle/service/audio/audout_u.h
+    hle/service/audio/audrec_a.cpp
+    hle/service/audio/audrec_a.h
     hle/service/audio/audrec_u.cpp
     hle/service/audio/audrec_u.h
+    hle/service/audio/audren_a.cpp
+    hle/service/audio/audren_a.h
     hle/service/audio/audren_u.cpp
-    hle/service/audio/audren_u.cpp
-    hle/service/audio/audren_u.h
     hle/service/audio/audren_u.h
     hle/service/audio/codecctl.cpp
     hle/service/audio/codecctl.h
