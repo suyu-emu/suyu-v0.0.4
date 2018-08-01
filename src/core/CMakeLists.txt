@@ -154,6 +154,8 @@ add_library(core STATIC
     hle/service/bcat/bcat.h
     hle/service/bcat/module.cpp
     hle/service/bcat/module.h
+    hle/service/bpc/bpc.cpp
+    hle/service/bpc/bpc.h
     hle/service/btdrv/btdrv.cpp
     hle/service/btdrv/btdrv.h
     hle/service/btm/btm.cpp
@@ -247,6 +249,8 @@ add_library(core STATIC
     hle/service/pctl/module.h
     hle/service/pctl/pctl.cpp
     hle/service/pctl/pctl.h
+    hle/service/pcv/pcv.cpp
+    hle/service/pcv/pcv.h
     hle/service/pm/pm.cpp
     hle/service/pm/pm.h
     hle/service/prepo/prepo.cpp

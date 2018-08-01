@@ -56,6 +56,7 @@ enum class Class : ClassType {
     Service_APM,       ///< The APM (Performance) service
     Service_Audio,     ///< The Audio (Audio control) service
     Service_BCAT,      ///< The BCAT service
+    Service_BPC,       ///< The BPC service
     Service_BTM,       ///< The BTM service
     Service_Fatal,     ///< The Fatal service
     Service_FGM,       ///< The FGM service
@@ -75,6 +76,7 @@ enum class Class : ClassType {
     Service_NVDRV,     ///< The NVDRV (Nvidia driver) service
     Service_PCIE,      ///< The PCIe service
     Service_PCTL,      ///< The PCTL (Parental control) service
+    Service_PCV,       ///< The PCV (Parental control) service
     Service_PREPO,     ///< The PREPO (Play report) service
     Service_SET,       ///< The SET (Settings) service
     Service_SM,        ///< The SM (Service manager) service
