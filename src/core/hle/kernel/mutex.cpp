@@ -14,7 +14,6 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/mutex.h"
-#include "core/hle/kernel/object_address_table.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/result.h"
 
