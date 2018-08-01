@@ -23,6 +23,7 @@
 #include "core/hle/service/bcat/bcat.h"
 #include "core/hle/service/btdrv/btdrv.h"
 #include "core/hle/service/btm/btm.h"
+#include "core/hle/service/caps/caps.h"
 #include "core/hle/service/erpt/erpt.h"
 #include "core/hle/service/es/es.h"
 #include "core/hle/service/eupld/eupld.h"
@@ -206,6 +207,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm) {
     BCAT::InstallInterfaces(*sm);
     BtDrv::InstallInterfaces(*sm);
     BTM::InstallInterfaces(*sm);
+    Capture::InstallInterfaces(*sm);
     ERPT::InstallInterfaces(*sm);
     ES::InstallInterfaces(*sm);
     EUPLD::InstallInterfaces(*sm);
