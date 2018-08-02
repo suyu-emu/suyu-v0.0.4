@@ -58,6 +58,7 @@ enum class Class : ClassType {
     Service_BCAT,      ///< The BCAT service
     Service_BPC,       ///< The BPC service
     Service_BTM,       ///< The BTM service
+    Service_Capture,   ///< The capture service
     Service_Fatal,     ///< The Fatal service
     Service_FGM,       ///< The FGM service
     Service_Friend,    ///< The friend service
