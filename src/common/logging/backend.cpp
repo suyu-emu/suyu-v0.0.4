@@ -180,6 +180,7 @@ void FileBackend::Write(const Entry& entry) {
     SUB(Service, LBL)                                                                              \
     SUB(Service, LDN)                                                                              \
     SUB(Service, LM)                                                                               \
+    SUB(Service, Migration)                                                                        \
     SUB(Service, Mii)                                                                              \
     SUB(Service, MM)                                                                               \
     SUB(Service, NCM)                                                                              \
