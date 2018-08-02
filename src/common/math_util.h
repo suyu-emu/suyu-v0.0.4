@@ -19,12 +19,12 @@ inline bool IntervalsIntersect(unsigned start0, unsigned length0, unsigned start
 
 template <class T>
 struct Rectangle {
-    T left;
-    T top;
-    T right;
-    T bottom;
+    T left{};
+    T top{};
+    T right{};
+    T bottom{};
 
-    Rectangle() {}
+    Rectangle() = default;
 
     Rectangle(T left, T top, T right, T bottom)
         : left(left), top(top), right(right), bottom(bottom) {}
