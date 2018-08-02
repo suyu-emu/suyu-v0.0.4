@@ -39,11 +39,11 @@ std::shared_ptr<VfsDirectory> VectorVfsDirectory::GetParentDirectory() const {
 
 template <typename T>
 static bool FindAndRemoveVectorElement(std::vector<T>& vec, std::string_view name) {
-    auto iter =
+    const auto iter =
         std::find_if(vec.begin(), vec.end(), [name](const T& e) { return e->GetName() == name; });
     if (iter == vec.end())
         return false;
-    auto old_size = vec.size();
+
     vec.erase(iter);
     return true;
 }
