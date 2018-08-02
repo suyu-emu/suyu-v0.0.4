@@ -261,6 +261,8 @@ add_library(core STATIC
     hle/service/pm/pm.h
     hle/service/prepo/prepo.cpp
     hle/service/prepo/prepo.h
+    hle/service/psc/psc.cpp
+    hle/service/psc/psc.h
     hle/service/service.cpp
     hle/service/service.h
     hle/service/set/set.cpp

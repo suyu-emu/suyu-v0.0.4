@@ -192,6 +192,7 @@ void FileBackend::Write(const Entry& entry) {
     SUB(Service, PCTL)                                                                             \
     SUB(Service, PCV)                                                                              \
     SUB(Service, PREPO)                                                                            \
+    SUB(Service, PSC)                                                                              \
     SUB(Service, SET)                                                                              \
     SUB(Service, SM)                                                                               \
     SUB(Service, SPL)                                                                              \
