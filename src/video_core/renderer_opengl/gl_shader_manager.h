@@ -105,14 +105,14 @@ public:
     }
 
     ShaderEntries UseProgrammableVertexShader(const MaxwellVSConfig& config,
-                                              const ShaderSetup setup) {
+                                              const ShaderSetup& setup) {
         ShaderEntries result;
         std::tie(current.vs, result) = vertex_shaders.Get(config, setup);
         return result;
     }
 
     ShaderEntries UseProgrammableFragmentShader(const MaxwellFSConfig& config,
-                                                const ShaderSetup setup) {
+                                                const ShaderSetup& setup) {
         ShaderEntries result;
         std::tie(current.fs, result) = fragment_shaders.Get(config, setup);
         return result;
