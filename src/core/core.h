@@ -11,7 +11,7 @@
 #include "common/common_types.h"
 #include "core/arm/exclusive_monitor.h"
 #include "core/core_cpu.h"
-#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/object.h"
 #include "core/hle/kernel/scheduler.h"
 #include "core/loader/loader.h"
 #include "core/memory.h"

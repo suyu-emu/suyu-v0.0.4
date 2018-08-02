@@ -3,17 +3,21 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
+#include <sstream>
 #include <utility>
 
 #include <boost/range/algorithm_ext/erase.hpp>
+
 #include "common/assert.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
+#include "common/logging/log.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/event.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/hle_ipc.h"
-#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/server_session.h"
 #include "core/memory.h"

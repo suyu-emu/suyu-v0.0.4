@@ -37,7 +37,6 @@
 #include "core/core.h"
 #include "core/core_cpu.h"
 #include "core/gdbstub/gdbstub.h"
-#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/scheduler.h"
 #include "core/loader/loader.h"
 #include "core/memory.h"

@@ -4,9 +4,11 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <unordered_map>
-#include "core/hle/kernel/kernel.h"
+
+#include "core/hle/kernel/object.h"
 #include "core/hle/result.h"
 #include "core/hle/service/service.h"
 
@@ -18,6 +20,8 @@ class SessionRequestHandler;
 } // namespace Kernel
 
 namespace Service::SM {
+
+class Controller;
 
 /// Interface to "sm:" service
 class SM final : public ServiceFramework<SM> {
@@ -31,8 +35,6 @@ private:
 
     std::shared_ptr<ServiceManager> service_manager;
 };
-
-class Controller;
 
 constexpr ResultCode ERR_SERVICE_NOT_REGISTERED(-1);
 constexpr ResultCode ERR_MAX_CONNECTIONS_REACHED(-1);
