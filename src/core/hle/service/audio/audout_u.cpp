@@ -48,7 +48,7 @@ public:
         buffer_event = Kernel::Event::Create(Kernel::ResetType::Sticky, "IAudioOutBufferReleased");
 
         stream = audio_core.OpenStream(audio_params.sample_rate, audio_params.channel_count,
-                                       [=]() { buffer_event->Signal(); });
+                                       "IAudioOut", [=]() { buffer_event->Signal(); });
     }
 
 private:

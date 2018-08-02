@@ -37,12 +37,12 @@ u32 Stream::GetSampleSize() const {
 }
 
 Stream::Stream(u32 sample_rate, Format format, ReleaseCallback&& release_callback,
-               SinkStream& sink_stream)
+               SinkStream& sink_stream, std::string&& name_)
     : sample_rate{sample_rate}, format{format}, release_callback{std::move(release_callback)},
-      sink_stream{sink_stream} {
+      sink_stream{sink_stream}, name{std::move(name_)} {
 
     release_event = CoreTiming::RegisterEvent(
-        "Stream::Release", [this](u64 userdata, int cycles_late) { ReleaseActiveBuffer(); });
+        name, [this](u64 userdata, int cycles_late) { ReleaseActiveBuffer(); });
 }
 
 void Stream::Play() {
@@ -104,6 +104,7 @@ void Stream::PlayNextBuffer() {
 }
 
 void Stream::ReleaseActiveBuffer() {
+    ASSERT(active_buffer);
     released_buffers.push(std::move(active_buffer));
     release_callback();
     PlayNextBuffer();
