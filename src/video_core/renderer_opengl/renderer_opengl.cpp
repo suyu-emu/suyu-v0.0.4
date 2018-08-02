@@ -92,23 +92,23 @@ static std::array<GLfloat, 3 * 2> MakeOrthographicMatrix(const float width, cons
     return matrix;
 }
 
-ScopeAcquireGLContext::ScopeAcquireGLContext() {
+ScopeAcquireGLContext::ScopeAcquireGLContext(EmuWindow& emu_window_) : emu_window{emu_window_} {
     if (Settings::values.use_multi_core) {
-        VideoCore::g_emu_window->MakeCurrent();
+        emu_window.MakeCurrent();
     }
 }
 ScopeAcquireGLContext::~ScopeAcquireGLContext() {
     if (Settings::values.use_multi_core) {
-        VideoCore::g_emu_window->DoneCurrent();
+        emu_window.DoneCurrent();
     }
 }
 
-RendererOpenGL::RendererOpenGL() = default;
+RendererOpenGL::RendererOpenGL(EmuWindow& window) : RendererBase{window} {}
 RendererOpenGL::~RendererOpenGL() = default;
 
 /// Swap buffers (render frame)
 void RendererOpenGL::SwapBuffers(boost::optional<const Tegra::FramebufferConfig&> framebuffer) {
-    ScopeAcquireGLContext acquire_context;
+    ScopeAcquireGLContext acquire_context{render_window};
 
     Core::System::GetInstance().perf_stats.EndSystemFrame();
 
@@ -130,10 +130,10 @@ void RendererOpenGL::SwapBuffers(boost::optional<const Tegra::FramebufferConfig&
         // Load the framebuffer from memory, draw it to the screen, and swap buffers
         LoadFBToScreenInfo(*framebuffer, screen_info);
         DrawScreen();
-        render_window->SwapBuffers();
+        render_window.SwapBuffers();
     }
 
-    render_window->PollEvents();
+    render_window.PollEvents();
 
     Core::System::GetInstance().frame_limiter.DoFrameLimiting(CoreTiming::GetGlobalTimeUs());
     Core::System::GetInstance().perf_stats.BeginSystemFrame();
@@ -356,7 +356,7 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
  * Draws the emulated screens to the emulator window.
  */
 void RendererOpenGL::DrawScreen() {
-    const auto& layout = render_window->GetFramebufferLayout();
+    const auto& layout = render_window.GetFramebufferLayout();
     const auto& screen = layout.screen;
 
     glViewport(0, 0, layout.width, layout.height);
@@ -379,14 +379,6 @@ void RendererOpenGL::DrawScreen() {
 
 /// Updates the framerate
 void RendererOpenGL::UpdateFramerate() {}
-
-/**
- * Set the emulator window to use for renderer
- * @param window EmuWindow handle to emulator window to use for rendering
- */
-void RendererOpenGL::SetWindow(EmuWindow* window) {
-    render_window = window;
-}
 
 static const char* GetSource(GLenum source) {
 #define RET(s)                                                                                     \
@@ -445,7 +437,7 @@ static void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum 
 
 /// Initialize the renderer
 bool RendererOpenGL::Init() {
-    ScopeAcquireGLContext acquire_context;
+    ScopeAcquireGLContext acquire_context{render_window};
 
     if (GLAD_GL_KHR_debug) {
         glEnable(GL_DEBUG_OUTPUT);

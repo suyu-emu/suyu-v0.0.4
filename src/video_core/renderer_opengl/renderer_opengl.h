@@ -34,23 +34,20 @@ struct ScreenInfo {
 /// Helper class to acquire/release OpenGL context within a given scope
 class ScopeAcquireGLContext : NonCopyable {
 public:
-    ScopeAcquireGLContext();
+    explicit ScopeAcquireGLContext(EmuWindow& window);
     ~ScopeAcquireGLContext();
+
+private:
+    EmuWindow& emu_window;
 };
 
 class RendererOpenGL : public RendererBase {
 public:
-    RendererOpenGL();
+    explicit RendererOpenGL(EmuWindow& window);
     ~RendererOpenGL() override;
 
     /// Swap buffers (render frame)
     void SwapBuffers(boost::optional<const Tegra::FramebufferConfig&> framebuffer) override;
-
-    /**
-     * Set the emulator window to use for renderer
-     * @param window EmuWindow handle to emulator window to use for rendering
-     */
-    void SetWindow(EmuWindow* window) override;
 
     /// Initialize the renderer
     bool Init() override;
@@ -71,8 +68,6 @@ private:
     // Fills active OpenGL texture with the given RGBA color.
     void LoadColorToActiveGLTexture(u8 color_r, u8 color_g, u8 color_b, u8 color_a,
                                     const TextureInfo& texture);
-
-    EmuWindow* render_window; ///< Handle to render window
 
     OpenGLState state;
 
