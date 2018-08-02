@@ -13,7 +13,7 @@ namespace AudioCore {
 
 class SinkStreamImpl final : public SinkStream {
 public:
-    SinkStreamImpl(cubeb* ctx, cubeb_devid output_device) : ctx{ctx} {
+    SinkStreamImpl(cubeb* ctx, cubeb_devid output_device, const std::string& name) : ctx{ctx} {
         cubeb_stream_params params;
         params.rate = 48000;
         params.channels = GetNumChannels();
@@ -25,8 +25,8 @@ public:
             LOG_CRITICAL(Audio_Sink, "Error getting minimum latency");
         }
 
-        if (cubeb_stream_init(ctx, &stream_backend, "yuzu Audio Output", nullptr, nullptr,
-                              output_device, &params, std::max(512u, minimum_latency),
+        if (cubeb_stream_init(ctx, &stream_backend, name.c_str(), nullptr, nullptr, output_device,
+                              &params, std::max(512u, minimum_latency),
                               &SinkStreamImpl::DataCallback, &SinkStreamImpl::StateCallback,
                               this) != CUBEB_OK) {
             LOG_CRITICAL(Audio_Sink, "Error initializing cubeb stream");
@@ -129,8 +129,9 @@ CubebSink::~CubebSink() {
     cubeb_destroy(ctx);
 }
 
-SinkStream& CubebSink::AcquireSinkStream(u32 sample_rate, u32 num_channels) {
-    sink_streams.push_back(std::make_unique<SinkStreamImpl>(ctx, output_device));
+SinkStream& CubebSink::AcquireSinkStream(u32 sample_rate, u32 num_channels,
+                                         const std::string& name) {
+    sink_streams.push_back(std::make_unique<SinkStreamImpl>(ctx, output_device, name));
     return *sink_streams.back();
 }
 

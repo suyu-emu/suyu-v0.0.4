@@ -36,7 +36,7 @@ StreamPtr AudioOut::OpenStream(u32 sample_rate, u32 num_channels, std::string&& 
 
     return std::make_shared<Stream>(
         sample_rate, ChannelsToStreamFormat(num_channels), std::move(release_callback),
-        sink->AcquireSinkStream(sample_rate, num_channels), std::move(name));
+        sink->AcquireSinkStream(sample_rate, num_channels, name), std::move(name));
 }
 
 std::vector<Buffer::Tag> AudioOut::GetTagsAndReleaseBuffers(StreamPtr stream, size_t max_count) {

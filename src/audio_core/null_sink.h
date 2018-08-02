@@ -13,7 +13,8 @@ public:
     explicit NullSink(std::string){};
     ~NullSink() override = default;
 
-    SinkStream& AcquireSinkStream(u32 /*sample_rate*/, u32 /*num_channels*/) override {
+    SinkStream& AcquireSinkStream(u32 /*sample_rate*/, u32 /*num_channels*/,
+                                  const std::string& /*name*/) override {
         return null_sink_stream;
     }
 
