@@ -39,7 +39,7 @@ StreamPtr AudioOut::OpenStream(u32 sample_rate, u32 num_channels,
                                     sink->AcquireSinkStream(sample_rate, num_channels));
 }
 
-std::vector<u64> AudioOut::GetTagsAndReleaseBuffers(StreamPtr stream, size_t max_count) {
+std::vector<Buffer::Tag> AudioOut::GetTagsAndReleaseBuffers(StreamPtr stream, size_t max_count) {
     return stream->GetTagsAndReleaseBuffers(max_count);
 }
 
