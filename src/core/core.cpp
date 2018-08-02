@@ -15,7 +15,6 @@
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/controller.h"
 #include "core/hle/service/sm/sm.h"
-#include "core/hw/hw.h"
 #include "core/loader/loader.h"
 #include "core/memory_setup.h"
 #include "core/settings.h"
@@ -180,7 +179,6 @@ System::ResultStatus System::Init(EmuWindow* emu_window, u32 system_mode) {
     telemetry_session = std::make_unique<Core::TelemetrySession>();
     service_manager = std::make_shared<Service::SM::ServiceManager>();
 
-    HW::Init();
     Kernel::Init(system_mode);
     Service::Init(service_manager);
     GDBStub::Init();
@@ -224,7 +222,6 @@ void System::Shutdown() {
     GDBStub::Shutdown();
     Service::Shutdown();
     Kernel::Shutdown();
-    HW::Shutdown();
     service_manager.reset();
     telemetry_session.reset();
     gpu_core.reset();

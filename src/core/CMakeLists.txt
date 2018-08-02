@@ -309,10 +309,6 @@ add_library(core STATIC
     hle/service/vi/vi_u.h
     hle/service/wlan/wlan.cpp
     hle/service/wlan/wlan.h
-    hw/hw.cpp
-    hw/hw.h
-    hw/lcd.cpp
-    hw/lcd.h
     loader/deconstructed_rom_directory.cpp
     loader/deconstructed_rom_directory.h
     loader/elf.cpp
