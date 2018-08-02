@@ -21,6 +21,7 @@
 #include "core/hle/service/apm/apm.h"
 #include "core/hle/service/audio/audio.h"
 #include "core/hle/service/bcat/bcat.h"
+#include "core/hle/service/bpc/bpc.h"
 #include "core/hle/service/btdrv/btdrv.h"
 #include "core/hle/service/btm/btm.h"
 #include "core/hle/service/erpt/erpt.h"
@@ -47,6 +48,7 @@
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/pcie/pcie.h"
 #include "core/hle/service/pctl/pctl.h"
+#include "core/hle/service/pcv/pcv.h"
 #include "core/hle/service/pm/pm.h"
 #include "core/hle/service/prepo/prepo.h"
 #include "core/hle/service/service.h"
@@ -204,6 +206,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm) {
     APM::InstallInterfaces(*sm);
     Audio::InstallInterfaces(*sm);
     BCAT::InstallInterfaces(*sm);
+    BPC::InstallInterfaces(*sm);
     BtDrv::InstallInterfaces(*sm);
     BTM::InstallInterfaces(*sm);
     ERPT::InstallInterfaces(*sm);
@@ -230,6 +233,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm) {
     Nvidia::InstallInterfaces(*sm);
     PCIe::InstallInterfaces(*sm);
     PCTL::InstallInterfaces(*sm);
+    PCV::InstallInterfaces(*sm);
     PlayReport::InstallInterfaces(*sm);
     PM::InstallInterfaces(*sm);
     Set::InstallInterfaces(*sm);
