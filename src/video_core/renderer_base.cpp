@@ -7,6 +7,8 @@
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 
+namespace VideoCore {
+
 RendererBase::RendererBase(EmuWindow& window) : render_window{window} {}
 RendererBase::~RendererBase() = default;
 
@@ -21,3 +23,5 @@ void RendererBase::RefreshRasterizerSetting() {
         rasterizer = std::make_unique<RasterizerOpenGL>(render_window);
     }
 }
+
+} // namespace VideoCore

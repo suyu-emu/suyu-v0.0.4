@@ -150,15 +150,16 @@ u32 nvhost_as_gpu::UnmapBuffer(const std::vector<u8>& input, std::vector<u8>& ou
 
     LOG_DEBUG(Service_NVDRV, "called, offset=0x{:X}", params.offset);
 
-    auto& gpu = Core::System::GetInstance().GPU();
-
-    auto itr = buffer_mappings.find(params.offset);
-
+    const auto itr = buffer_mappings.find(params.offset);
     ASSERT_MSG(itr != buffer_mappings.end(), "Tried to unmap invalid mapping");
 
-    // Remove this memory region from the rasterizer cache.
-    VideoCore::g_renderer->Rasterizer()->FlushAndInvalidateRegion(params.offset, itr->second.size);
+    auto& system_instance = Core::System::GetInstance();
 
+    // Remove this memory region from the rasterizer cache.
+    system_instance.Renderer().Rasterizer()->FlushAndInvalidateRegion(params.offset,
+                                                                      itr->second.size);
+
+    auto& gpu = system_instance.GPU();
     params.offset = gpu.memory_manager->UnmapBuffer(params.offset, itr->second.size);
 
     buffer_mappings.erase(itr->second.offset);

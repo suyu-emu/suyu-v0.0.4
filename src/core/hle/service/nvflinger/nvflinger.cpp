@@ -127,9 +127,11 @@ void NVFlinger::Compose() {
         MicroProfileFlip();
 
         if (buffer == boost::none) {
+            auto& system_instance = Core::System::GetInstance();
+
             // There was no queued buffer to draw, render previous frame
-            Core::System::GetInstance().perf_stats.EndGameFrame();
-            VideoCore::g_renderer->SwapBuffers({});
+            system_instance.perf_stats.EndGameFrame();
+            system_instance.Renderer().SwapBuffers({});
             continue;
         }
 

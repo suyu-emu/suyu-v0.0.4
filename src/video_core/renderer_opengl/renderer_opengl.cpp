@@ -103,7 +103,7 @@ ScopeAcquireGLContext::~ScopeAcquireGLContext() {
     }
 }
 
-RendererOpenGL::RendererOpenGL(EmuWindow& window) : RendererBase{window} {}
+RendererOpenGL::RendererOpenGL(EmuWindow& window) : VideoCore::RendererBase{window} {}
 RendererOpenGL::~RendererOpenGL() = default;
 
 /// Swap buffers (render frame)

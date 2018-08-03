@@ -326,34 +326,36 @@ void RasterizerMarkRegionCached(Tegra::GPUVAddr gpu_addr, u64 size, bool cached)
 }
 
 void RasterizerFlushVirtualRegion(VAddr start, u64 size, FlushMode mode) {
+    auto& system_instance = Core::System::GetInstance();
+
     // Since pages are unmapped on shutdown after video core is shutdown, the renderer may be
     // null here
-    if (VideoCore::g_renderer == nullptr) {
+    if (!system_instance.IsPoweredOn()) {
         return;
     }
 
     VAddr end = start + size;
 
-    auto CheckRegion = [&](VAddr region_start, VAddr region_end) {
+    const auto CheckRegion = [&](VAddr region_start, VAddr region_end) {
         if (start >= region_end || end <= region_start) {
             // No overlap with region
             return;
         }
 
-        VAddr overlap_start = std::max(start, region_start);
-        VAddr overlap_end = std::min(end, region_end);
+        const VAddr overlap_start = std::max(start, region_start);
+        const VAddr overlap_end = std::min(end, region_end);
 
-        std::vector<Tegra::GPUVAddr> gpu_addresses =
-            Core::System::GetInstance().GPU().memory_manager->CpuToGpuAddress(overlap_start);
+        const std::vector<Tegra::GPUVAddr> gpu_addresses =
+            system_instance.GPU().memory_manager->CpuToGpuAddress(overlap_start);
 
         if (gpu_addresses.empty()) {
             return;
         }
 
-        u64 overlap_size = overlap_end - overlap_start;
+        const u64 overlap_size = overlap_end - overlap_start;
 
         for (const auto& gpu_address : gpu_addresses) {
-            auto* rasterizer = VideoCore::g_renderer->Rasterizer();
+            auto* rasterizer = system_instance.Renderer().Rasterizer();
             switch (mode) {
             case FlushMode::Flush:
                 rasterizer->FlushRegion(gpu_address, overlap_size);

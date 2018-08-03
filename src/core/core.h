@@ -27,6 +27,10 @@ namespace Service::SM {
 class ServiceManager;
 }
 
+namespace VideoCore {
+class RendererBase;
+}
+
 namespace Core {
 
 class System {
@@ -127,9 +131,24 @@ public:
     /// Gets a CPU interface to the CPU core with the specified index
     Cpu& CpuCore(size_t core_index);
 
-    /// Gets the GPU interface
+    /// Gets a mutable reference to the GPU interface
     Tegra::GPU& GPU() {
         return *gpu_core;
+    }
+
+    /// Gets an immutable reference to the GPU interface.
+    const Tegra::GPU& GPU() const {
+        return *gpu_core;
+    }
+
+    /// Gets a mutable reference to the renderer.
+    VideoCore::RendererBase& Renderer() {
+        return *renderer;
+    }
+
+    /// Gets an immutable reference to the renderer.
+    const VideoCore::RendererBase& Renderer() const {
+        return *renderer;
     }
 
     /// Gets the scheduler for the CPU core that is currently running
@@ -195,6 +214,7 @@ private:
 
     /// AppLoader used to load the current executing application
     std::unique_ptr<Loader::AppLoader> app_loader;
+    std::unique_ptr<VideoCore::RendererBase> renderer;
     std::unique_ptr<Tegra::GPU> gpu_core;
     std::shared_ptr<Tegra::DebugContext> debug_context;
     Kernel::SharedPtr<Kernel::Process> current_process;

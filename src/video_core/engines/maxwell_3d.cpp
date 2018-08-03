@@ -19,8 +19,8 @@ namespace Engines {
 /// First register id that is actually a Macro call.
 constexpr u32 MacroRegistersStart = 0xE00;
 
-Maxwell3D::Maxwell3D(MemoryManager& memory_manager)
-    : memory_manager(memory_manager), macro_interpreter(*this) {}
+Maxwell3D::Maxwell3D(VideoCore::RasterizerInterface& rasterizer, MemoryManager& memory_manager)
+    : memory_manager(memory_manager), rasterizer{rasterizer}, macro_interpreter(*this) {}
 
 void Maxwell3D::CallMacroMethod(u32 method, std::vector<u32> parameters) {
     auto macro_code = uploaded_macros.find(method);
@@ -130,7 +130,7 @@ void Maxwell3D::WriteReg(u32 method, u32 value, u32 remaining_params) {
         break;
     }
 
-    VideoCore::g_renderer->Rasterizer()->NotifyMaxwellRegisterChanged(method);
+    rasterizer.NotifyMaxwellRegisterChanged(method);
 
     if (debug_context) {
         debug_context->OnEvent(Tegra::DebugContext::Event::MaxwellCommandProcessed, nullptr);
@@ -218,7 +218,7 @@ void Maxwell3D::DrawArrays() {
     }
 
     const bool is_indexed{regs.index_array.count && !regs.vertex_buffer.count};
-    VideoCore::g_renderer->Rasterizer()->AccelerateDrawBatch(is_indexed);
+    rasterizer.AccelerateDrawBatch(is_indexed);
 
     // TODO(bunnei): Below, we reset vertex count so that we can use these registers to determine if
     // the game is trying to draw indexed or direct mode. This needs to be verified on HW still -
@@ -393,7 +393,7 @@ void Maxwell3D::ProcessClearBuffers() {
            regs.clear_buffers.R == regs.clear_buffers.B &&
            regs.clear_buffers.R == regs.clear_buffers.A);
 
-    VideoCore::g_renderer->Rasterizer()->Clear();
+    rasterizer.Clear();
 }
 
 } // namespace Engines
