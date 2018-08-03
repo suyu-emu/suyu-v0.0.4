@@ -23,11 +23,11 @@ public:
     void OnMaxwellBreakPointHit(Tegra::DebugContext::Event event, void* data) override;
     void OnMaxwellResume() override;
 
-private slots:
-    virtual void OnBreakPointHit(Tegra::DebugContext::Event event, void* data) = 0;
-    virtual void OnResumed() = 0;
-
 signals:
     void Resumed();
     void BreakPointHit(Tegra::DebugContext::Event event, void* data);
+
+private:
+    virtual void OnBreakPointHit(Tegra::DebugContext::Event event, void* data) = 0;
+    virtual void OnResumed() = 0;
 };
