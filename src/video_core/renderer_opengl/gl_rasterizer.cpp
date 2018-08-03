@@ -14,7 +14,6 @@
 #include "common/logging/log.h"
 #include "common/math_util.h"
 #include "common/microprofile.h"
-#include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
 #include "core/hle/kernel/process.h"
@@ -37,7 +36,7 @@ MICROPROFILE_DEFINE(OpenGL_Drawing, "OpenGL", "Drawing", MP_RGB(128, 128, 192));
 MICROPROFILE_DEFINE(OpenGL_Blits, "OpenGL", "Blits", MP_RGB(100, 100, 255));
 MICROPROFILE_DEFINE(OpenGL_CacheManagement, "OpenGL", "Cache Mgmt", MP_RGB(100, 255, 100));
 
-RasterizerOpenGL::RasterizerOpenGL() {
+RasterizerOpenGL::RasterizerOpenGL(EmuWindow& window) : emu_window{window} {
     // Create sampler objects
     for (size_t i = 0; i < texture_samplers.size(); ++i) {
         texture_samplers[i].Create();
@@ -395,7 +394,7 @@ void RasterizerOpenGL::Clear() {
     if (clear_mask == 0)
         return;
 
-    ScopeAcquireGLContext acquire_context;
+    ScopeAcquireGLContext acquire_context{emu_window};
 
     auto [dirty_color_surface, dirty_depth_surface] =
         ConfigureFramebuffers(use_color_fb, use_depth_fb);
@@ -425,7 +424,7 @@ void RasterizerOpenGL::DrawArrays() {
     MICROPROFILE_SCOPE(OpenGL_Drawing);
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
-    ScopeAcquireGLContext acquire_context;
+    ScopeAcquireGLContext acquire_context{emu_window};
 
     auto [dirty_color_surface, dirty_depth_surface] =
         ConfigureFramebuffers(true, regs.zeta.Address() != 0 && regs.zeta_enable != 0);

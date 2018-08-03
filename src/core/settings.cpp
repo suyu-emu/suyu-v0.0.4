@@ -5,9 +5,8 @@
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/service/hid/hid.h"
 #include "core/settings.h"
+#include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
-
-#include "core/frontend/emu_window.h"
 
 namespace Settings {
 
@@ -20,9 +19,8 @@ void Apply() {
 
     VideoCore::g_toggle_framelimit_enabled = values.toggle_framelimit;
 
-    if (VideoCore::g_emu_window) {
-        auto layout = VideoCore::g_emu_window->GetFramebufferLayout();
-        VideoCore::g_emu_window->UpdateCurrentFramebufferLayout(layout.width, layout.height);
+    if (VideoCore::g_renderer) {
+        VideoCore::g_renderer->UpdateCurrentFramebufferLayout();
     }
 
     Service::HID::ReloadInputDevices();

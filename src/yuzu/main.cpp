@@ -402,7 +402,7 @@ bool GMainWindow::LoadROM(const QString& filename) {
 
     system.SetGPUDebugContext(debug_context);
 
-    const Core::System::ResultStatus result{system.Load(render_window, filename.toStdString())};
+    const Core::System::ResultStatus result{system.Load(*render_window, filename.toStdString())};
 
     render_window->DoneCurrent();
 

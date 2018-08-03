@@ -13,16 +13,13 @@
 
 namespace VideoCore {
 
-EmuWindow* g_emu_window = nullptr;        ///< Frontend emulator window
 std::unique_ptr<RendererBase> g_renderer; ///< Renderer plugin
 
 std::atomic<bool> g_toggle_framelimit_enabled;
 
 /// Initialize the video core
-bool Init(EmuWindow* emu_window) {
-    g_emu_window = emu_window;
-    g_renderer = std::make_unique<RendererOpenGL>();
-    g_renderer->SetWindow(g_emu_window);
+bool Init(EmuWindow& emu_window) {
+    g_renderer = std::make_unique<RendererOpenGL>(emu_window);
     if (g_renderer->Init()) {
         LOG_DEBUG(Render, "initialized OK");
     } else {
