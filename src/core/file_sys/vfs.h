@@ -11,14 +11,74 @@
 #include <vector>
 #include "boost/optional.hpp"
 #include "common/common_types.h"
+#include "core/file_sys/mode.h"
 
 namespace FileSys {
+
+struct VfsFilesystem;
 struct VfsFile;
 struct VfsDirectory;
 
-// Convenience typedefs to use VfsDirectory and VfsFile
-using VirtualDir = std::shared_ptr<FileSys::VfsDirectory>;
-using VirtualFile = std::shared_ptr<FileSys::VfsFile>;
+// Convenience typedefs to use Vfs* interfaces
+using VirtualFilesystem = std::shared_ptr<VfsFilesystem>;
+using VirtualDir = std::shared_ptr<VfsDirectory>;
+using VirtualFile = std::shared_ptr<VfsFile>;
+
+// An enumeration representing what can be at the end of a path in a VfsFilesystem
+enum class VfsEntryType {
+    None,
+    File,
+    Directory,
+};
+
+// A class represnting an abstract filesystem. A default implementation given the root VirtualDir is
+// provided for convenience, but if the Vfs implementation has any additional state or
+// functionality, they will need to override.
+struct VfsFilesystem : NonCopyable {
+    VfsFilesystem(VirtualDir root);
+    virtual ~VfsFilesystem();
+
+    // Gets the friendly name for the filesystem.
+    virtual std::string GetName() const;
+
+    // Return whether or not the user has read permissions on this filesystem.
+    virtual bool IsReadable() const;
+    // Return whether or not the user has write permission on this filesystem.
+    virtual bool IsWritable() const;
+
+    // Determine if the entry at path is non-existant, a file, or a directory.
+    virtual VfsEntryType GetEntryType(std::string_view path) const;
+
+    // Opens the file with path relative to root. If it doesn't exist, returns nullptr.
+    virtual VirtualFile OpenFile(std::string_view path, Mode perms);
+    // Creates a new, empty file at path
+    virtual VirtualFile CreateFile(std::string_view path, Mode perms);
+    // Copies the file from old_path to new_path, returning the new file on success and nullptr on
+    // failure.
+    virtual VirtualFile CopyFile(std::string_view old_path, std::string_view new_path);
+    // Moves the file from old_path to new_path, returning the moved file on success and nullptr on
+    // failure.
+    virtual VirtualFile MoveFile(std::string_view old_path, std::string_view new_path);
+    // Deletes the file with path relative to root, returing true on success.
+    virtual bool DeleteFile(std::string_view path);
+
+    // Opens the directory with path relative to root. If it doesn't exist, returns nullptr.
+    virtual VirtualDir OpenDirectory(std::string_view path, Mode perms);
+    // Creates a new, empty directory at path
+    virtual VirtualDir CreateDirectory(std::string_view path, Mode perms);
+    // Copies the directory from old_path to new_path, returning the new directory on success and
+    // nullptr on failure.
+    virtual VirtualDir CopyDirectory(std::string_view old_path, std::string_view new_path);
+    // Moves the directory from old_path to new_path, returning the moved directory on success and
+    // nullptr on failure.
+    virtual VirtualDir MoveDirectory(std::string_view old_path, std::string_view new_path);
+    // Deletes the directory with path relative to root, returing true on success.
+    virtual bool DeleteDirectory(std::string_view path);
+
+protected:
+    // Root directory in default implementation.
+    VirtualDir root;
+};
 
 // A class representing a file in an abstract filesystem.
 struct VfsFile : NonCopyable {
