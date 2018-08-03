@@ -10,12 +10,12 @@ BreakPointObserverDock::BreakPointObserverDock(std::shared_ptr<Tegra::DebugConte
     : QDockWidget(title, parent), BreakPointObserver(debug_context) {
     qRegisterMetaType<Tegra::DebugContext::Event>("Tegra::DebugContext::Event");
 
-    connect(this, SIGNAL(Resumed()), this, SLOT(OnResumed()));
+    connect(this, &BreakPointObserverDock::Resumed, this, &BreakPointObserverDock::OnResumed);
 
     // NOTE: This signal is emitted from a non-GUI thread, but connect() takes
     //       care of delaying its handling to the GUI thread.
-    connect(this, SIGNAL(BreakPointHit(Tegra::DebugContext::Event, void*)), this,
-            SLOT(OnBreakPointHit(Tegra::DebugContext::Event, void*)), Qt::BlockingQueuedConnection);
+    connect(this, &BreakPointObserverDock::BreakPointHit, this,
+            &BreakPointObserverDock::OnBreakPointHit, Qt::BlockingQueuedConnection);
 }
 
 void BreakPointObserverDock::OnMaxwellBreakPointHit(Tegra::DebugContext::Event event, void* data) {

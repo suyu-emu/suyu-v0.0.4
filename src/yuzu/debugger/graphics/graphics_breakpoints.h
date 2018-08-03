@@ -26,18 +26,17 @@ public:
     void OnMaxwellBreakPointHit(Tegra::DebugContext::Event event, void* data) override;
     void OnMaxwellResume() override;
 
-public slots:
-    void OnBreakPointHit(Tegra::DebugContext::Event event, void* data);
-    void OnItemDoubleClicked(const QModelIndex&);
-    void OnResumeRequested();
-    void OnResumed();
-
 signals:
     void Resumed();
     void BreakPointHit(Tegra::DebugContext::Event event, void* data);
     void BreakPointsChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
 
 private:
+    void OnBreakPointHit(Tegra::DebugContext::Event event, void* data);
+    void OnItemDoubleClicked(const QModelIndex&);
+    void OnResumeRequested();
+    void OnResumed();
+
     QLabel* status_text;
     QPushButton* resume_button;
 
