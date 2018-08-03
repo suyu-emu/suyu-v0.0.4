@@ -139,7 +139,7 @@ class GameListWorker : public QObject, public QRunnable {
     Q_OBJECT
 
 public:
-    GameListWorker(QString dir_path, bool deep_scan)
+    GameListWorker(FileSys::VirtualFilesystem vfs, QString dir_path, bool deep_scan)
         : dir_path(std::move(dir_path)), deep_scan(deep_scan) {}
 
 public slots:
@@ -163,6 +163,7 @@ signals:
     void Finished(QStringList watch_list);
 
 private:
+    FileSys::VirtualFilesystem vfs;
     QStringList watch_list;
     QString dir_path;
     bool deep_scan;

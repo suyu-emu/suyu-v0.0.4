@@ -161,6 +161,9 @@ private:
     bool emulation_running = false;
     std::unique_ptr<EmuThread> emu_thread;
 
+    // FS
+    FileSys::VirtualFilesystem vfs;
+
     // Debugger panes
     ProfilerWidget* profilerWidget;
     MicroProfileDialog* microProfileDialog;

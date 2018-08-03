@@ -197,7 +197,8 @@ void GameList::onFilterCloseClicked() {
     main_window->filterBarSetChecked(false);
 }
 
-GameList::GameList(GMainWindow* parent) : QWidget{parent} {
+GameList::GameList(FileSys::VirtualFilesystem vfs, GMainWindow* parent)
+    : QWidget{parent}, vfs(std::move(vfs)) {
     watcher = new QFileSystemWatcher(this);
     connect(watcher, &QFileSystemWatcher::directoryChanged, this, &GameList::RefreshGameDirectory);
 
@@ -341,7 +342,7 @@ void GameList::PopulateAsync(const QString& dir_path, bool deep_scan) {
 
     emit ShouldCancelWorker();
 
-    GameListWorker* worker = new GameListWorker(dir_path, deep_scan);
+    GameListWorker* worker = new GameListWorker(vfs, dir_path, deep_scan);
 
     connect(worker, &GameListWorker::EntryReady, this, &GameList::AddEntry, Qt::QueuedConnection);
     connect(worker, &GameListWorker::Finished, this, &GameList::DonePopulating,
@@ -436,7 +437,7 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
         if (!is_dir &&
             (HasSupportedFileExtension(physical_name) || IsExtractedNCAMain(physical_name))) {
             std::unique_ptr<Loader::AppLoader> loader =
-                Loader::GetLoader(std::make_shared<FileSys::RealVfsFile>(physical_name));
+                Loader::GetLoader(vfs->OpenFile(physical_name, FileSys::Mode::Read));
             if (!loader || ((loader->GetFileType() == Loader::FileType::Unknown ||
                              loader->GetFileType() == Loader::FileType::Error) &&
                             !UISettings::values.show_unknown))

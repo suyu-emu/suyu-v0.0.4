@@ -17,6 +17,8 @@
 #include "core/memory.h"
 #include "core/perf_stats.h"
 #include "core/telemetry_session.h"
+#include "file_sys/vfs_real.h"
+#include "hle/service/filesystem/filesystem.h"
 #include "video_core/debug_utils/debug_utils.h"
 #include "video_core/gpu.h"
 
@@ -211,6 +213,14 @@ public:
         return debug_context;
     }
 
+    void SetFilesystem(FileSys::VirtualFilesystem vfs) {
+        virtual_filesystem = std::move(vfs);
+    }
+
+    FileSys::VirtualFilesystem GetFilesystem() const {
+        return virtual_filesystem;
+    }
+
 private:
     System();
 
@@ -225,6 +235,8 @@ private:
      */
     ResultStatus Init(EmuWindow& emu_window);
 
+    /// RealVfsFilesystem instance
+    FileSys::VirtualFilesystem virtual_filesystem;
     /// AppLoader used to load the current executing application
     std::unique_ptr<Loader::AppLoader> app_loader;
     std::unique_ptr<VideoCore::RendererBase> renderer;

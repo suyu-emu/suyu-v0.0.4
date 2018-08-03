@@ -281,15 +281,15 @@ ResultVal<FileSys::VirtualDir> OpenSDMC() {
     return sdmc_factory->Open();
 }
 
-void RegisterFileSystems() {
+void RegisterFileSystems(const FileSys::VirtualFilesystem& vfs) {
     romfs_factory = nullptr;
     save_data_factory = nullptr;
     sdmc_factory = nullptr;
 
-    auto nand_directory = std::make_shared<FileSys::RealVfsDirectory>(
-        FileUtil::GetUserPath(FileUtil::UserPath::NANDDir), FileSys::Mode::ReadWrite);
-    auto sd_directory = std::make_shared<FileSys::RealVfsDirectory>(
-        FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir), FileSys::Mode::ReadWrite);
+    auto nand_directory = vfs->OpenDirectory(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir),
+                                             FileSys::Mode::ReadWrite);
+    auto sd_directory = vfs->OpenDirectory(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir),
+                                           FileSys::Mode::ReadWrite);
 
     auto savedata = std::make_unique<FileSys::SaveDataFactory>(std::move(nand_directory));
     save_data_factory = std::move(savedata);
@@ -298,8 +298,8 @@ void RegisterFileSystems() {
     sdmc_factory = std::move(sdcard);
 }
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
-    RegisterFileSystems();
+void InstallInterfaces(SM::ServiceManager& service_manager, const FileSys::VirtualFilesystem& vfs) {
+    RegisterFileSystems(vfs);
     std::make_shared<FSP_LDR>()->InstallAsService(service_manager);
     std::make_shared<FSP_PR>()->InstallAsService(service_manager);
     std::make_shared<FSP_SRV>()->InstallAsService(service_manager);
