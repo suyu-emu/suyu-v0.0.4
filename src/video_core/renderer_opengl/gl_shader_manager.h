@@ -118,7 +118,7 @@ public:
         return result;
     }
 
-    GLuint GetCurrentProgramStage(Maxwell3D::Regs::ShaderStage stage) {
+    GLuint GetCurrentProgramStage(Maxwell3D::Regs::ShaderStage stage) const {
         switch (stage) {
         case Maxwell3D::Regs::ShaderStage::Vertex:
             return current.vs;
