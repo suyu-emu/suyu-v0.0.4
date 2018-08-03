@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <iterator>
 #include <utility>
-
+#include "common/assert.h"
 #include "common/common_paths.h"
 #include "common/logging/log.h"
 #include "core/file_sys/vfs_real.h"
@@ -29,6 +29,8 @@ static std::string ModeFlagsToString(Mode mode) {
             mode_str = "a";
         else if (mode & Mode::Write)
             mode_str = "w";
+        else
+            UNREACHABLE_MSG("Invalid file open mode: {:02X}", static_cast<u8>(mode));
     }
 
     mode_str += "b";
