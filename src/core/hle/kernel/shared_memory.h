@@ -111,9 +111,6 @@ public:
     SharedPtr<Process> owner_process;
     /// Address of shared memory block in the owner process if specified.
     VAddr base_address;
-    /// Physical address of the shared memory block in the linear heap if no address was specified
-    /// during creation.
-    PAddr linear_heap_phys_address;
     /// Backing memory for this shared memory block.
     std::shared_ptr<std::vector<u8>> backing_block;
     /// Offset into the backing block for this shared memory.

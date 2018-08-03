@@ -110,7 +110,7 @@ System::ResultStatus System::Load(EmuWindow& emu_window, const std::string& file
         }
     }
 
-    ResultStatus init_result{Init(emu_window, system_mode.first.get())};
+    ResultStatus init_result{Init(emu_window)};
     if (init_result != ResultStatus::Success) {
         LOG_CRITICAL(Core, "Failed to initialize system (Error {})!",
                      static_cast<int>(init_result));
@@ -161,7 +161,7 @@ Cpu& System::CpuCore(size_t core_index) {
     return *cpu_cores[core_index];
 }
 
-System::ResultStatus System::Init(EmuWindow& emu_window, u32 system_mode) {
+System::ResultStatus System::Init(EmuWindow& emu_window) {
     LOG_DEBUG(HW_Memory, "initialized OK");
 
     CoreTiming::Init();
@@ -178,7 +178,7 @@ System::ResultStatus System::Init(EmuWindow& emu_window, u32 system_mode) {
     telemetry_session = std::make_unique<Core::TelemetrySession>();
     service_manager = std::make_shared<Service::SM::ServiceManager>();
 
-    Kernel::Init(system_mode);
+    Kernel::Init();
     Service::Init(service_manager);
     GDBStub::Init();
 

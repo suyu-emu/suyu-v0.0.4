@@ -9,7 +9,7 @@
 namespace Kernel {
 
 /// Initialize the kernel with the specified system mode.
-void Init(u32 system_mode);
+void Init();
 
 /// Shutdown the kernel
 void Shutdown();

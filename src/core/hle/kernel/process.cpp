@@ -8,7 +8,6 @@
 #include "common/common_funcs.h"
 #include "common/logging/log.h"
 #include "core/hle/kernel/errors.h"
-#include "core/hle/kernel/memory.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/thread.h"
@@ -125,14 +124,6 @@ void Process::Run(VAddr entry_point, s32 main_thread_priority, u32 stack_size) {
                         std::make_shared<std::vector<u8>>(stack_size, 0), 0, stack_size,
                         MemoryState::Mapped)
         .Unwrap();
-    misc_memory_used += stack_size;
-    memory_region->used += stack_size;
-
-    // Map special address mappings
-    MapSharedPages(vm_manager);
-    for (const auto& mapping : address_mappings) {
-        HandleSpecialMapping(vm_manager, mapping);
-    }
 
     vm_manager.LogLayout();
     status = ProcessStatus::Running;
@@ -141,37 +132,19 @@ void Process::Run(VAddr entry_point, s32 main_thread_priority, u32 stack_size) {
 }
 
 void Process::LoadModule(SharedPtr<CodeSet> module_, VAddr base_addr) {
-    memory_region = GetMemoryRegion(flags.memory_region);
-
-    auto MapSegment = [&](CodeSet::Segment& segment, VMAPermission permissions,
-                          MemoryState memory_state) {
+    const auto MapSegment = [&](CodeSet::Segment& segment, VMAPermission permissions,
+                                MemoryState memory_state) {
         auto vma = vm_manager
                        .MapMemoryBlock(segment.addr + base_addr, module_->memory, segment.offset,
                                        segment.size, memory_state)
                        .Unwrap();
         vm_manager.Reprotect(vma, permissions);
-        misc_memory_used += segment.size;
-        memory_region->used += segment.size;
     };
 
     // Map CodeSet segments
     MapSegment(module_->code, VMAPermission::ReadExecute, MemoryState::CodeStatic);
     MapSegment(module_->rodata, VMAPermission::Read, MemoryState::CodeMutable);
     MapSegment(module_->data, VMAPermission::ReadWrite, MemoryState::CodeMutable);
-}
-
-VAddr Process::GetLinearHeapAreaAddress() const {
-    // Starting from system version 8.0.0 a new linear heap layout is supported to allow usage of
-    // the extra RAM in the n3DS.
-    return kernel_version < 0x22C ? Memory::LINEAR_HEAP_VADDR : Memory::NEW_LINEAR_HEAP_VADDR;
-}
-
-VAddr Process::GetLinearHeapBase() const {
-    return GetLinearHeapAreaAddress() + memory_region->base;
-}
-
-VAddr Process::GetLinearHeapLimit() const {
-    return GetLinearHeapBase() + memory_region->size;
 }
 
 ResultVal<VAddr> Process::HeapAllocate(VAddr target, u64 size, VMAPermission perms) {
@@ -206,7 +179,6 @@ ResultVal<VAddr> Process::HeapAllocate(VAddr target, u64 size, VMAPermission per
     vm_manager.Reprotect(vma, perms);
 
     heap_used = size;
-    memory_region->used += size;
 
     return MakeResult<VAddr>(heap_end - size);
 }
@@ -226,52 +198,6 @@ ResultCode Process::HeapFree(VAddr target, u32 size) {
         return result;
 
     heap_used -= size;
-    memory_region->used -= size;
-
-    return RESULT_SUCCESS;
-}
-
-ResultVal<VAddr> Process::LinearAllocate(VAddr target, u32 size, VMAPermission perms) {
-    UNIMPLEMENTED();
-    return {};
-}
-
-ResultCode Process::LinearFree(VAddr target, u32 size) {
-    auto& linheap_memory = memory_region->linear_heap_memory;
-
-    if (target < GetLinearHeapBase() || target + size > GetLinearHeapLimit() ||
-        target + size < target) {
-
-        return ERR_INVALID_ADDRESS;
-    }
-
-    if (size == 0) {
-        return RESULT_SUCCESS;
-    }
-
-    VAddr heap_end = GetLinearHeapBase() + (u32)linheap_memory->size();
-    if (target + size > heap_end) {
-        return ERR_INVALID_ADDRESS_STATE;
-    }
-
-    ResultCode result = vm_manager.UnmapRange(target, size);
-    if (result.IsError())
-        return result;
-
-    linear_heap_used -= size;
-    memory_region->used -= size;
-
-    if (target + size == heap_end) {
-        // End of linear heap has been freed, so check what's the last allocated block in it and
-        // reduce the size.
-        auto vma = vm_manager.FindVMA(target);
-        ASSERT(vma != vm_manager.vma_map.end());
-        ASSERT(vma->second.type == VMAType::Free);
-        VAddr new_end = vma->second.base;
-        if (new_end >= GetLinearHeapBase()) {
-            linheap_memory->resize(new_end - GetLinearHeapBase());
-        }
-    }
 
     return RESULT_SUCCESS;
 }

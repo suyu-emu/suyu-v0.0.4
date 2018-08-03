@@ -189,10 +189,9 @@ private:
      * Initialize the emulated system.
      * @param emu_window Reference to the host-system window used for video output and keyboard
      *                   input.
-     * @param system_mode The system mode.
      * @return ResultStatus code, indicating if the operation succeeded.
      */
-    ResultStatus Init(EmuWindow& emu_window, u32 system_mode);
+    ResultStatus Init(EmuWindow& emu_window);
 
     /// AppLoader used to load the current executing application
     std::unique_ptr<Loader::AppLoader> app_loader;
