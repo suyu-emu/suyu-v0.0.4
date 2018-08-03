@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <utility>
 #include "core/file_sys/vfs_vector.h"
 
 namespace FileSys {
@@ -31,16 +32,18 @@ bool VectorVfsDirectory::IsReadable() const {
 std::string VectorVfsDirectory::GetName() const {
     return name;
 }
+
 std::shared_ptr<VfsDirectory> VectorVfsDirectory::GetParentDirectory() const {
     return parent;
 }
 
 template <typename T>
 static bool FindAndRemoveVectorElement(std::vector<T>& vec, std::string_view name) {
-    auto iter = std::find_if(vec.begin(), vec.end(), [name](T e) { return e->GetName() == name; });
+    const auto iter =
+        std::find_if(vec.begin(), vec.end(), [name](const T& e) { return e->GetName() == name; });
     if (iter == vec.end())
         return false;
-    auto old_size = vec.size();
+
     vec.erase(iter);
     return true;
 }
@@ -77,7 +80,7 @@ void VectorVfsDirectory::AddDirectory(VirtualDir dir) {
 bool VectorVfsDirectory::ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) {
     if (!DeleteFile(file->GetName()))
         return false;
-    dirs.emplace_back(dir);
+    dirs.emplace_back(std::move(dir));
     return true;
 }
 } // namespace FileSys
