@@ -63,8 +63,6 @@ add_library(core STATIC
     hle/kernel/hle_ipc.h
     hle/kernel/kernel.cpp
     hle/kernel/kernel.h
-    hle/kernel/memory.cpp
-    hle/kernel/memory.h
     hle/kernel/mutex.cpp
     hle/kernel/mutex.h
     hle/kernel/object.cpp

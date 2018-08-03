@@ -53,7 +53,6 @@ union ProcessFlags {
 enum class ProcessStatus { Created, Running, Exited };
 
 class ResourceLimit;
-struct MemoryRegionInfo;
 
 struct CodeSet final : public Object {
     static SharedPtr<CodeSet> Create(std::string name);
@@ -163,12 +162,11 @@ public:
     // This makes deallocation and reallocation of holes fast and keeps process memory contiguous
     // in the emulator address space, allowing Memory::GetPointer to be reasonably safe.
     std::shared_ptr<std::vector<u8>> heap_memory;
+
     // The left/right bounds of the address space covered by heap_memory.
-    VAddr heap_start = 0, heap_end = 0;
-
-    u64 heap_used = 0, linear_heap_used = 0, misc_memory_used = 0;
-
-    MemoryRegionInfo* memory_region = nullptr;
+    VAddr heap_start = 0;
+    VAddr heap_end = 0;
+    u64 heap_used = 0;
 
     /// The Thread Local Storage area is allocated as processes create threads,
     /// each TLS area is 0x200 bytes, so one page (0x1000) is split up in 8 parts, and each part
@@ -179,15 +177,8 @@ public:
 
     std::string name;
 
-    VAddr GetLinearHeapAreaAddress() const;
-    VAddr GetLinearHeapBase() const;
-    VAddr GetLinearHeapLimit() const;
-
     ResultVal<VAddr> HeapAllocate(VAddr target, u64 size, VMAPermission perms);
     ResultCode HeapFree(VAddr target, u32 size);
-
-    ResultVal<VAddr> LinearAllocate(VAddr target, u32 size, VMAPermission perms);
-    ResultCode LinearFree(VAddr target, u32 size);
 
     ResultCode MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size);
 
