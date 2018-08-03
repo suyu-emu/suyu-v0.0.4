@@ -412,7 +412,6 @@ public:
         }
         declarations.AddNewLine();
 
-        unsigned const_buffer_layout = 0;
         for (const auto& entry : GetConstBuffersDeclarations()) {
             declarations.AddLine("layout(std140) uniform " + entry.GetName());
             declarations.AddLine('{');
@@ -420,7 +419,6 @@ public:
                                  "[MAX_CONSTBUFFER_ELEMENTS];");
             declarations.AddLine("};");
             declarations.AddNewLine();
-            ++const_buffer_layout;
         }
         declarations.AddNewLine();
 
