@@ -67,6 +67,7 @@ enum class Class : ClassType {
     Service_LBL,       ///< The LBL (LCD backlight) service
     Service_LDN,       ///< The LDN (Local domain network) service
     Service_LM,        ///< The LM (Logger) service
+    Service_Migration, ///< The migration service
     Service_Mii,       ///< The Mii service
     Service_MM,        ///< The MM (Multimedia) service
     Service_NCM,       ///< The NCM service

@@ -38,6 +38,7 @@
 #include "core/hle/service/ldn/ldn.h"
 #include "core/hle/service/ldr/ldr.h"
 #include "core/hle/service/lm/lm.h"
+#include "core/hle/service/mig/mig.h"
 #include "core/hle/service/mii/mii.h"
 #include "core/hle/service/mm/mm_u.h"
 #include "core/hle/service/ncm/ncm.h"
@@ -225,6 +226,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm) {
     LDN::InstallInterfaces(*sm);
     LDR::InstallInterfaces(*sm);
     LM::InstallInterfaces(*sm);
+    Migration::InstallInterfaces(*sm);
     Mii::InstallInterfaces(*sm);
     MM::InstallInterfaces(*sm);
     NCM::InstallInterfaces(*sm);
