@@ -12,7 +12,6 @@
 #include "core/arm/unicorn/arm_unicorn.h"
 #include "core/core_cpu.h"
 #include "core/core_timing.h"
-#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/settings.h"

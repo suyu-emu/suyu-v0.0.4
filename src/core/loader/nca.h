@@ -8,7 +8,7 @@
 #include "common/common_types.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/program_metadata.h"
-#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/object.h"
 #include "core/loader/loader.h"
 
 namespace Loader {

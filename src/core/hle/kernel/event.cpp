@@ -5,7 +5,7 @@
 #include <algorithm>
 #include "common/assert.h"
 #include "core/hle/kernel/event.h"
-#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/object.h"
 #include "core/hle/kernel/thread.h"
 
 namespace Kernel {

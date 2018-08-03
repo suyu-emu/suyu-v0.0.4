@@ -4,9 +4,8 @@
 
 #include <algorithm>
 
-#include "common/alignment.h"
-#include "common/scope_exit.h"
-#include "core/core_timing.h"
+#include "common/assert.h"
+#include "common/logging/log.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
 
 namespace Service {

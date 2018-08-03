@@ -5,15 +5,18 @@
 #pragma once
 
 #include <array>
+#include <cstring>
+#include <memory>
 #include <tuple>
 #include <type_traits>
 #include <utility>
+#include "common/assert.h"
+#include "common/common_types.h"
 #include "core/hle/ipc.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/client_session.h"
-#include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/hle_ipc.h"
-#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/object.h"
 #include "core/hle/kernel/server_port.h"
 
 namespace IPC {

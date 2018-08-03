@@ -16,7 +16,6 @@
 #include "core/hle/service/sm/controller.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/loader/loader.h"
-#include "core/memory_setup.h"
 #include "core/settings.h"
 #include "file_sys/vfs_real.h"
 #include "video_core/video_core.h"
