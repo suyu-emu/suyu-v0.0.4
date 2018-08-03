@@ -190,16 +190,16 @@ public:
     void LogLayout() const;
 
     /// Gets the total memory usage, used by svcGetInfo
-    u64 GetTotalMemoryUsage();
+    u64 GetTotalMemoryUsage() const;
 
     /// Gets the total heap usage, used by svcGetInfo
-    u64 GetTotalHeapUsage();
+    u64 GetTotalHeapUsage() const;
 
     /// Gets the total address space base address, used by svcGetInfo
-    VAddr GetAddressSpaceBaseAddr();
+    VAddr GetAddressSpaceBaseAddr() const;
 
     /// Gets the total address space address size, used by svcGetInfo
-    u64 GetAddressSpaceSize();
+    u64 GetAddressSpaceSize() const;
 
     /// Each VMManager has its own page table, which is set as the main one when the owning process
     /// is scheduled.
