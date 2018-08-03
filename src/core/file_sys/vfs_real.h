@@ -74,6 +74,13 @@ class RealVfsDirectory : public VfsDirectory {
     RealVfsDirectory(RealVfsFilesystem& base, const std::string& path, Mode perms = Mode::Read);
 
 public:
+    std::shared_ptr<VfsFile> GetFileRelative(std::string_view path) const override;
+    std::shared_ptr<VfsDirectory> GetDirectoryRelative(std::string_view path) const override;
+    std::shared_ptr<VfsFile> GetFile(std::string_view name) const override;
+    std::shared_ptr<VfsDirectory> GetSubdirectory(std::string_view name) const override;
+    std::shared_ptr<VfsFile> CreateFileRelative(std::string_view path) override;
+    std::shared_ptr<VfsDirectory> CreateDirectoryRelative(std::string_view path) override;
+    bool DeleteSubdirectoryRecursive(std::string_view name) override;
     std::vector<std::shared_ptr<VfsFile>> GetFiles() const override;
     std::vector<std::shared_ptr<VfsDirectory>> GetSubdirectories() const override;
     bool IsWritable() const override;
@@ -91,14 +98,15 @@ protected:
     bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
 
 private:
+    template <typename T, typename R>
+    std::vector<std::shared_ptr<R>> IterateEntries() const;
+
     RealVfsFilesystem& base;
     std::string path;
     std::string parent_path;
     std::vector<std::string> path_components;
     std::vector<std::string> parent_components;
     Mode perms;
-    std::vector<std::shared_ptr<VfsFile>> files;
-    std::vector<std::shared_ptr<VfsDirectory>> subdirectories;
 };
 
 } // namespace FileSys
