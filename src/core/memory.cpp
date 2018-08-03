@@ -355,16 +355,16 @@ void RasterizerFlushVirtualRegion(VAddr start, u64 size, FlushMode mode) {
         const u64 overlap_size = overlap_end - overlap_start;
 
         for (const auto& gpu_address : gpu_addresses) {
-            auto* rasterizer = system_instance.Renderer().Rasterizer();
+            auto& rasterizer = system_instance.Renderer().Rasterizer();
             switch (mode) {
             case FlushMode::Flush:
-                rasterizer->FlushRegion(gpu_address, overlap_size);
+                rasterizer.FlushRegion(gpu_address, overlap_size);
                 break;
             case FlushMode::Invalidate:
-                rasterizer->InvalidateRegion(gpu_address, overlap_size);
+                rasterizer.InvalidateRegion(gpu_address, overlap_size);
                 break;
             case FlushMode::FlushAndInvalidate:
-                rasterizer->FlushAndInvalidateRegion(gpu_address, overlap_size);
+                rasterizer.FlushAndInvalidateRegion(gpu_address, overlap_size);
                 break;
             }
         }

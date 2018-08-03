@@ -160,8 +160,8 @@ void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuf
     // only allows rows to have a memory alignement of 4.
     ASSERT(framebuffer.stride % 4 == 0);
 
-    if (!Rasterizer()->AccelerateDisplay(framebuffer, framebuffer_addr, framebuffer.stride,
-                                         screen_info)) {
+    if (!rasterizer->AccelerateDisplay(framebuffer, framebuffer_addr, framebuffer.stride,
+                                       screen_info)) {
         // Reset the screen info's display texture to its own permanent texture
         screen_info.display_texture = screen_info.texture.resource.handle;
 

@@ -187,7 +187,7 @@ System::ResultStatus System::Init(EmuWindow& emu_window) {
         return ResultStatus::ErrorVideoCore;
     }
 
-    gpu_core = std::make_unique<Tegra::GPU>(*renderer->Rasterizer());
+    gpu_core = std::make_unique<Tegra::GPU>(renderer->Rasterizer());
 
     // Create threads for CPU cores 1-3, and build thread_to_cpu map
     // CPU core 0 is run on the main thread

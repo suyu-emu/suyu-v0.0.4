@@ -46,8 +46,12 @@ public:
         return m_current_frame;
     }
 
-    RasterizerInterface* Rasterizer() const {
-        return rasterizer.get();
+    RasterizerInterface& Rasterizer() {
+        return *rasterizer;
+    }
+
+    const RasterizerInterface& Rasterizer() const {
+        return *rasterizer;
     }
 
     void RefreshRasterizerSetting();
