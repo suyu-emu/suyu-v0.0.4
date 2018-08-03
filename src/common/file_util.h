@@ -182,8 +182,9 @@ std::vector<T> SliceVector(const std::vector<T>& vector, size_t first, size_t la
     return std::vector<T>(vector.begin() + first, vector.begin() + first + last);
 }
 
-// Removes trailing slash, makes all '\\' into '/', and removes duplicate '/'.
-std::string SanitizePath(std::string_view path);
+// Removes trailing slash, makes all '\\' into '/', and removes duplicate '/'. Makes '/' into '\\'
+// if windows and with_platform_slashes is true.
+std::string SanitizePath(std::string_view path, bool with_platform_slashes = false);
 
 // simple wrapper for cstdlib file functions to
 // hopefully will make error checking easier
