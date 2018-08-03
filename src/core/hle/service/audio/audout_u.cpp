@@ -4,6 +4,8 @@
 
 #include <array>
 #include <vector>
+
+#include "audio_core/codec.h"
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
@@ -200,7 +202,7 @@ void AudOutU::OpenAudioOutImpl(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
     rb.Push<u32>(DefaultSampleRate);
     rb.Push<u32>(params.channel_count);
-    rb.Push<u32>(static_cast<u32>(PcmFormat::Int16));
+    rb.Push<u32>(static_cast<u32>(AudioCore::Codec::PcmFormat::Int16));
     rb.Push<u32>(static_cast<u32>(AudioState::Stopped));
     rb.PushIpcInterface<Audio::IAudioOut>(audio_out_interface);
 }
