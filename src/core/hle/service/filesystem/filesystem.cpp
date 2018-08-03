@@ -59,7 +59,7 @@ ResultCode VfsDirectoryServiceWrapper::CreateFile(const std::string& path_, u64 
 ResultCode VfsDirectoryServiceWrapper::DeleteFile(const std::string& path_) const {
     std::string path(FileUtil::SanitizePath(path_));
     auto dir = GetDirectoryRelativeWrapped(backing, FileUtil::GetParentPath(path));
-    if (path == "/" || path == "\\") {
+    if (path.empty()) {
         // TODO(DarkLordZach): Why do games call this and what should it do? Works as is but...
         return RESULT_SUCCESS;
     }
