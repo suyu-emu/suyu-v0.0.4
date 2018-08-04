@@ -99,22 +99,6 @@ void RemoveDebugHook(PageTable& page_table, VAddr base, u64 size, MemoryHookPoin
 }
 
 /**
- * This function should only be called for virtual addreses with attribute `PageType::Special`.
- */
-static std::set<MemoryHookPointer> GetSpecialHandlers(const PageTable& page_table, VAddr vaddr,
-                                                      u64 size) {
-    std::set<MemoryHookPointer> result;
-    auto interval = boost::icl::discrete_interval<VAddr>::closed(vaddr, vaddr + size - 1);
-    auto interval_list = page_table.special_regions.equal_range(interval);
-    for (auto it = interval_list.first; it != interval_list.second; ++it) {
-        for (const auto& region : it->second) {
-            result.insert(region.handler);
-        }
-    }
-    return result;
-}
-
-/**
  * Gets a pointer to the exact memory at the virtual address (i.e. not page aligned)
  * using a VMA from the current process
  */
