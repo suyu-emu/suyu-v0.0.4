@@ -66,8 +66,7 @@ KeyManager::KeyManager() {
     AttemptLoadKeyFile(yuzu_keys_dir, hactool_keys_dir, "title.keys", true);
 }
 
-void KeyManager::LoadFromFile(std::string_view filename_, bool is_title_keys) {
-    const auto filename = std::string(filename_);
+void KeyManager::LoadFromFile(const std::string& filename, bool is_title_keys) {
     std::ifstream file(filename);
     if (!file.is_open())
         return;
@@ -107,11 +106,8 @@ void KeyManager::LoadFromFile(std::string_view filename_, bool is_title_keys) {
     }
 }
 
-void KeyManager::AttemptLoadKeyFile(std::string_view dir1_, std::string_view dir2_,
-                                    std::string_view filename_, bool title) {
-    const std::string dir1(dir1_);
-    const std::string dir2(dir2_);
-    const std::string filename(filename_);
+void KeyManager::AttemptLoadKeyFile(const std::string& dir1, const std::string& dir2,
+                                    const std::string& filename, bool title) {
     if (FileUtil::Exists(dir1 + DIR_SEP + filename))
         LoadFromFile(dir1 + DIR_SEP + filename, title);
     else if (FileUtil::Exists(dir2 + DIR_SEP + filename))
