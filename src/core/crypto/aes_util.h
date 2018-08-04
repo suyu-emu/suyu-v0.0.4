@@ -56,7 +56,5 @@ public:
 
 private:
     std::unique_ptr<CipherContext> ctx;
-
-    static std::vector<u8> CalculateNintendoTweak(size_t sector_id);
 };
 } // namespace Core::Crypto

@@ -9,6 +9,16 @@
 #include "core/crypto/key_manager.h"
 
 namespace Core::Crypto {
+namespace {
+std::vector<u8> CalculateNintendoTweak(size_t sector_id) {
+    std::vector<u8> out(0x10);
+    for (size_t i = 0xF; i <= 0xF; --i) {
+        out[i] = sector_id & 0xFF;
+        sector_id >>= 8;
+    }
+    return out;
+}
+} // Anonymous namespace
 
 static_assert(static_cast<size_t>(Mode::CTR) == static_cast<size_t>(MBEDTLS_CIPHER_AES_128_CTR),
               "CTR has incorrect value.");
@@ -98,16 +108,6 @@ void AESCipher<Key, KeySize>::XTSTranscode(const u8* src, size_t size, u8* dest,
         SetIV(CalculateNintendoTweak(sector_id++));
         Transcode<u8, u8>(src + i, sector_size, dest + i, op);
     }
-}
-
-template <typename Key, size_t KeySize>
-std::vector<u8> AESCipher<Key, KeySize>::CalculateNintendoTweak(size_t sector_id) {
-    std::vector<u8> out(0x10);
-    for (size_t i = 0xF; i <= 0xF; --i) {
-        out[i] = sector_id & 0xFF;
-        sector_id >>= 8;
-    }
-    return out;
 }
 
 template class AESCipher<Key128>;
