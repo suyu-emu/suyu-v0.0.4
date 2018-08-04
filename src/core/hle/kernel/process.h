@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <bitset>
 #include <cstddef>
 #include <memory>
@@ -55,6 +56,12 @@ enum class ProcessStatus { Created, Running, Exited };
 class ResourceLimit;
 
 struct CodeSet final : public Object {
+    struct Segment {
+        size_t offset = 0;
+        VAddr addr = 0;
+        u32 size = 0;
+    };
+
     static SharedPtr<CodeSet> Create(std::string name);
 
     std::string GetTypeName() const override {
@@ -69,23 +76,37 @@ struct CodeSet final : public Object {
         return HANDLE_TYPE;
     }
 
-    /// Name of the process
-    std::string name;
+    Segment& CodeSegment() {
+        return segments[0];
+    }
+
+    const Segment& CodeSegment() const {
+        return segments[0];
+    }
+
+    Segment& RODataSegment() {
+        return segments[1];
+    }
+
+    const Segment& RODataSegment() const {
+        return segments[1];
+    }
+
+    Segment& DataSegment() {
+        return segments[2];
+    }
+
+    const Segment& DataSegment() const {
+        return segments[2];
+    }
 
     std::shared_ptr<std::vector<u8>> memory;
 
-    struct Segment {
-        size_t offset = 0;
-        VAddr addr = 0;
-        u32 size = 0;
-    };
-
-    Segment segments[3];
-    Segment& code = segments[0];
-    Segment& rodata = segments[1];
-    Segment& data = segments[2];
-
+    std::array<Segment, 3> segments;
     VAddr entrypoint;
+
+    /// Name of the process
+    std::string name;
 
 private:
     CodeSet();
