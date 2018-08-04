@@ -13,14 +13,16 @@ namespace Impl {
 static void SetShaderUniformBlockBinding(GLuint shader, const char* name,
                                          Maxwell3D::Regs::ShaderStage binding,
                                          size_t expected_size) {
-    GLuint ub_index = glGetUniformBlockIndex(shader, name);
-    if (ub_index != GL_INVALID_INDEX) {
-        GLint ub_size = 0;
-        glGetActiveUniformBlockiv(shader, ub_index, GL_UNIFORM_BLOCK_DATA_SIZE, &ub_size);
-        ASSERT_MSG(static_cast<size_t>(ub_size) == expected_size,
-                   "Uniform block size did not match! Got {}, expected {}", ub_size, expected_size);
-        glUniformBlockBinding(shader, ub_index, static_cast<GLuint>(binding));
+    const GLuint ub_index = glGetUniformBlockIndex(shader, name);
+    if (ub_index == GL_INVALID_INDEX) {
+        return;
     }
+
+    GLint ub_size = 0;
+    glGetActiveUniformBlockiv(shader, ub_index, GL_UNIFORM_BLOCK_DATA_SIZE, &ub_size);
+    ASSERT_MSG(static_cast<size_t>(ub_size) == expected_size,
+               "Uniform block size did not match! Got {}, expected {}", ub_size, expected_size);
+    glUniformBlockBinding(shader, ub_index, static_cast<GLuint>(binding));
 }
 
 void SetShaderUniformBlockBindings(GLuint shader) {
