@@ -19,6 +19,7 @@
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/aoc/aoc_u.h"
 #include "core/hle/service/apm/apm.h"
+#include "core/hle/service/arp/arp.h"
 #include "core/hle/service/audio/audio.h"
 #include "core/hle/service/bcat/bcat.h"
 #include "core/hle/service/bpc/bpc.h"
@@ -207,6 +208,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm) {
     AM::InstallInterfaces(*sm, nv_flinger);
     AOC::InstallInterfaces(*sm);
     APM::InstallInterfaces(*sm);
+    ARP::InstallInterfaces(*sm);
     Audio::InstallInterfaces(*sm);
     BCAT::InstallInterfaces(*sm);
     BPC::InstallInterfaces(*sm);

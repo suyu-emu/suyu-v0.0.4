@@ -54,6 +54,7 @@ enum class Class : ClassType {
     Service_AM,        ///< The AM (Applet manager) service
     Service_AOC,       ///< The AOC (AddOn Content) service
     Service_APM,       ///< The APM (Performance) service
+    Service_ARP,       ///< The ARP service
     Service_Audio,     ///< The Audio (Audio control) service
     Service_BCAT,      ///< The BCAT service
     Service_BPC,       ///< The BPC service
