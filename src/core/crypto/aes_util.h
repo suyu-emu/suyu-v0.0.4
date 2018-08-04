@@ -39,6 +39,8 @@ public:
 
     template <typename Source, typename Dest>
     void Transcode(const Source* src, size_t size, Dest* dest, Op op) const {
+        static_assert(std::is_trivially_copyable_v<Source> && std::is_trivially_copyable_v<Dest>,
+                      "Transcode source and destination types must be trivially copyable.");
         Transcode(reinterpret_cast<const u8*>(src), size, reinterpret_cast<u8*>(dest), op);
     }
 
@@ -47,6 +49,8 @@ public:
     template <typename Source, typename Dest>
     void XTSTranscode(const Source* src, size_t size, Dest* dest, size_t sector_id,
                       size_t sector_size, Op op) {
+        static_assert(std::is_trivially_copyable_v<Source> && std::is_trivially_copyable_v<Dest>,
+                      "XTSTranscode source and destination types must be trivially copyable.");
         XTSTranscode(reinterpret_cast<const u8*>(src), size, reinterpret_cast<u8*>(dest), sector_id,
                      sector_size, op);
     }
