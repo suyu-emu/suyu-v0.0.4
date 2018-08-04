@@ -38,11 +38,11 @@ public:
     void SetIV(std::vector<u8> iv);
 
     template <typename Source, typename Dest>
-    void Transcode(const Source* src, size_t size, Dest* dest, Op op) {
+    void Transcode(const Source* src, size_t size, Dest* dest, Op op) const {
         Transcode(reinterpret_cast<const u8*>(src), size, reinterpret_cast<u8*>(dest), op);
     }
 
-    void Transcode(const u8* src, size_t size, u8* dest, Op op);
+    void Transcode(const u8* src, size_t size, u8* dest, Op op) const;
 
     template <typename Source, typename Dest>
     void XTSTranscode(const Source* src, size_t size, Dest* dest, size_t sector_id,

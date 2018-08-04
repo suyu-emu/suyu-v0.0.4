@@ -58,27 +58,28 @@ void AESCipher<Key, KeySize>::SetIV(std::vector<u8> iv) {
 }
 
 template <typename Key, size_t KeySize>
-void AESCipher<Key, KeySize>::Transcode(const u8* src, size_t size, u8* dest, Op op) {
-    size_t written = 0;
-
-    const auto context = op == Op::Encrypt ? &ctx->encryption_context : &ctx->decryption_context;
+void AESCipher<Key, KeySize>::Transcode(const u8* src, size_t size, u8* dest, Op op) const {
+    auto* const context = op == Op::Encrypt ? &ctx->encryption_context : &ctx->decryption_context;
 
     mbedtls_cipher_reset(context);
 
+    size_t written = 0;
     if (mbedtls_cipher_get_cipher_mode(context) == MBEDTLS_MODE_XTS) {
         mbedtls_cipher_update(context, src, size, dest, &written);
-        if (written != size)
+        if (written != size) {
             LOG_WARNING(Crypto, "Not all data was decrypted requested={:016X}, actual={:016X}.",
                         size, written);
+        }
     } else {
         const auto block_size = mbedtls_cipher_get_block_size(context);
 
         for (size_t offset = 0; offset < size; offset += block_size) {
             auto length = std::min<size_t>(block_size, size - offset);
             mbedtls_cipher_update(context, src + offset, length, dest + offset, &written);
-            if (written != length)
+            if (written != length) {
                 LOG_WARNING(Crypto, "Not all data was decrypted requested={:016X}, actual={:016X}.",
                             length, written);
+            }
         }
     }
 
