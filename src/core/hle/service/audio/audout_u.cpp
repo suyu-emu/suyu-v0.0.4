@@ -113,10 +113,10 @@ private:
         std::memcpy(&audio_buffer, input_buffer.data(), sizeof(AudioBuffer));
         const u64 tag{rp.Pop<u64>()};
 
-        std::vector<u8> data(audio_buffer.buffer_size);
-        Memory::ReadBlock(audio_buffer.buffer, data.data(), data.size());
+        std::vector<s16> samples(audio_buffer.buffer_size / sizeof(s16));
+        Memory::ReadBlock(audio_buffer.buffer, samples.data(), audio_buffer.buffer_size);
 
-        if (!audio_core.QueueBuffer(stream, tag, std::move(data))) {
+        if (!audio_core.QueueBuffer(stream, tag, std::move(samples))) {
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ResultCode(ErrorModule::Audio, ErrCodes::BufferCountExceeded));
         }

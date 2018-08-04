@@ -34,7 +34,7 @@ public:
     void StopStream(StreamPtr stream);
 
     /// Queues a buffer into the specified audio stream, returns true on success
-    bool QueueBuffer(StreamPtr stream, Buffer::Tag tag, std::vector<u8>&& data);
+    bool QueueBuffer(StreamPtr stream, Buffer::Tag tag, std::vector<s16>&& data);
 
 private:
     SinkPtr sink;

@@ -61,25 +61,24 @@ public:
         cubeb_stream_destroy(stream_backend);
     }
 
-    void EnqueueSamples(u32 num_channels, const s16* samples, size_t sample_count) override {
+    void EnqueueSamples(u32 num_channels, const std::vector<s16>& samples) override {
         if (!ctx) {
             return;
         }
 
-        queue.reserve(queue.size() + sample_count * GetNumChannels());
+        queue.reserve(queue.size() + samples.size() * GetNumChannels());
 
         if (is_6_channel) {
             // Downsample 6 channels to 2
-            const size_t sample_count_copy_size = sample_count * num_channels * 2;
+            const size_t sample_count_copy_size = samples.size() * 2;
             queue.reserve(sample_count_copy_size);
-            for (size_t i = 0; i < sample_count * num_channels; i += num_channels) {
+            for (size_t i = 0; i < samples.size(); i += num_channels) {
                 queue.push_back(samples[i]);
                 queue.push_back(samples[i + 1]);
             }
         } else {
             // Copy as-is
-            std::copy(samples, samples + sample_count * GetNumChannels(),
-                      std::back_inserter(queue));
+            std::copy(samples.begin(), samples.end(), std::back_inserter(queue));
         }
     }
 

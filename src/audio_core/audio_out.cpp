@@ -51,7 +51,7 @@ void AudioOut::StopStream(StreamPtr stream) {
     stream->Stop();
 }
 
-bool AudioOut::QueueBuffer(StreamPtr stream, Buffer::Tag tag, std::vector<u8>&& data) {
+bool AudioOut::QueueBuffer(StreamPtr stream, Buffer::Tag tag, std::vector<s16>&& data) {
     return stream->QueueBuffer(std::make_shared<Buffer>(tag, std::move(data)));
 }
 

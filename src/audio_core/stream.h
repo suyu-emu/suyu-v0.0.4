@@ -69,9 +69,6 @@ public:
     /// Gets the number of channels
     u32 GetNumChannels() const;
 
-    /// Gets the sample size in bytes
-    u32 GetSampleSize() const;
-
 private:
     /// Current state of the stream
     enum class State {
