@@ -7,7 +7,7 @@
 #include <memory>
 #include <type_traits>
 #include <vector>
-#include "common/assert.h"
+#include "common/common_types.h"
 #include "core/file_sys/vfs.h"
 
 namespace Core::Crypto {

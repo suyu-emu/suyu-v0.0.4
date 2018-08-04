@@ -2,19 +2,16 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <array>
 #include <fstream>
 #include <locale>
 #include <sstream>
 #include <string_view>
-#include <mbedtls/sha256.h>
-#include "common/assert.h"
 #include "common/common_paths.h"
 #include "common/file_util.h"
-#include "common/logging/log.h"
 #include "core/crypto/key_manager.h"
 #include "core/settings.h"
-#include "key_manager.h"
 
 namespace Core::Crypto {
 
