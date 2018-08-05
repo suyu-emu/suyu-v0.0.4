@@ -41,40 +41,42 @@
 #include "core/loader/loader.h"
 #include "core/memory.h"
 
-const int GDB_BUFFER_SIZE = 10000;
+namespace GDBStub {
+namespace {
+constexpr int GDB_BUFFER_SIZE = 10000;
 
-const char GDB_STUB_START = '$';
-const char GDB_STUB_END = '#';
-const char GDB_STUB_ACK = '+';
-const char GDB_STUB_NACK = '-';
+constexpr char GDB_STUB_START = '$';
+constexpr char GDB_STUB_END = '#';
+constexpr char GDB_STUB_ACK = '+';
+constexpr char GDB_STUB_NACK = '-';
 
 #ifndef SIGTRAP
-const u32 SIGTRAP = 5;
+constexpr u32 SIGTRAP = 5;
 #endif
 
 #ifndef SIGTERM
-const u32 SIGTERM = 15;
+constexpr u32 SIGTERM = 15;
 #endif
 
 #ifndef MSG_WAITALL
-const u32 MSG_WAITALL = 8;
+constexpr u32 MSG_WAITALL = 8;
 #endif
 
-const u32 LR_REGISTER = 30;
-const u32 SP_REGISTER = 31;
-const u32 PC_REGISTER = 32;
-const u32 CPSR_REGISTER = 33;
-const u32 UC_ARM64_REG_Q0 = 34;
-const u32 FPSCR_REGISTER = 66;
+constexpr u32 LR_REGISTER = 30;
+constexpr u32 SP_REGISTER = 31;
+constexpr u32 PC_REGISTER = 32;
+constexpr u32 CPSR_REGISTER = 33;
+constexpr u32 UC_ARM64_REG_Q0 = 34;
+constexpr u32 FPSCR_REGISTER = 66;
 
 // TODO/WiP - Used while working on support for FPU
-const u32 TODO_DUMMY_REG_997 = 997;
-const u32 TODO_DUMMY_REG_998 = 998;
+constexpr u32 TODO_DUMMY_REG_997 = 997;
+constexpr u32 TODO_DUMMY_REG_998 = 998;
 
 // For sample XML files see the GDB source /gdb/features
 // GDB also wants the l character at the start
 // This XML defines what the registers are for this specific ARM device
-static const char* target_xml =
+constexpr char target_xml[] =
     R"(l<?xml version="1.0"?>
 <!DOCTYPE target SYSTEM "gdb-target.dtd">
 <target version="1.0">
@@ -140,30 +142,28 @@ static const char* target_xml =
 </target>
 )";
 
-namespace GDBStub {
+int gdbserver_socket = -1;
 
-static int gdbserver_socket = -1;
+u8 command_buffer[GDB_BUFFER_SIZE];
+u32 command_length;
 
-static u8 command_buffer[GDB_BUFFER_SIZE];
-static u32 command_length;
+u32 latest_signal = 0;
+bool memory_break = false;
 
-static u32 latest_signal = 0;
-static bool memory_break = false;
-
-static Kernel::Thread* current_thread = nullptr;
-static u32 current_core = 0;
+Kernel::Thread* current_thread = nullptr;
+u32 current_core = 0;
 
 // Binding to a port within the reserved ports range (0-1023) requires root permissions,
 // so default to a port outside of that range.
-static u16 gdbstub_port = 24689;
+u16 gdbstub_port = 24689;
 
-static bool halt_loop = true;
-static bool step_loop = false;
-static bool send_trap = false;
+bool halt_loop = true;
+bool step_loop = false;
+bool send_trap = false;
 
 // If set to false, the server will never be started and no
 // gdbstub-related functions will be executed.
-static std::atomic<bool> server_enabled(false);
+std::atomic<bool> server_enabled(false);
 
 #ifdef _WIN32
 WSADATA InitData;
@@ -175,9 +175,9 @@ struct Breakpoint {
     u64 len;
 };
 
-static std::map<u64, Breakpoint> breakpoints_execute;
-static std::map<u64, Breakpoint> breakpoints_read;
-static std::map<u64, Breakpoint> breakpoints_write;
+std::map<u64, Breakpoint> breakpoints_execute;
+std::map<u64, Breakpoint> breakpoints_read;
+std::map<u64, Breakpoint> breakpoints_write;
 
 struct Module {
     std::string name;
@@ -185,7 +185,8 @@ struct Module {
     VAddr end;
 };
 
-static std::vector<Module> modules;
+std::vector<Module> modules;
+} // Anonymous namespace
 
 void RegisterModule(std::string name, VAddr beg, VAddr end, bool add_elf_ext) {
     Module module;
