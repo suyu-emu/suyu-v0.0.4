@@ -171,7 +171,7 @@ WSADATA InitData;
 
 struct Breakpoint {
     bool active;
-    PAddr addr;
+    VAddr addr;
     u64 len;
 };
 
@@ -181,13 +181,13 @@ static std::map<u64, Breakpoint> breakpoints_write;
 
 struct Module {
     std::string name;
-    PAddr beg;
-    PAddr end;
+    VAddr beg;
+    VAddr end;
 };
 
 static std::vector<Module> modules;
 
-void RegisterModule(std::string name, PAddr beg, PAddr end, bool add_elf_ext) {
+void RegisterModule(std::string name, VAddr beg, VAddr end, bool add_elf_ext) {
     Module module;
     if (add_elf_ext) {
         Common::SplitPath(name, nullptr, &module.name, nullptr);
@@ -441,7 +441,7 @@ static std::map<u64, Breakpoint>& GetBreakpointList(BreakpointType type) {
  * @param type Type of breakpoint.
  * @param addr Address of breakpoint.
  */
-static void RemoveBreakpoint(BreakpointType type, PAddr addr) {
+static void RemoveBreakpoint(BreakpointType type, VAddr addr) {
     std::map<u64, Breakpoint>& p = GetBreakpointList(type);
 
     auto bp = p.find(static_cast<u64>(addr));
@@ -452,7 +452,7 @@ static void RemoveBreakpoint(BreakpointType type, PAddr addr) {
     }
 }
 
-BreakpointAddress GetNextBreakpointFromAddress(PAddr addr, BreakpointType type) {
+BreakpointAddress GetNextBreakpointFromAddress(VAddr addr, BreakpointType type) {
     std::map<u64, Breakpoint>& p = GetBreakpointList(type);
     auto next_breakpoint = p.lower_bound(static_cast<u64>(addr));
     BreakpointAddress breakpoint;
@@ -468,7 +468,7 @@ BreakpointAddress GetNextBreakpointFromAddress(PAddr addr, BreakpointType type) 
     return breakpoint;
 }
 
-bool CheckBreakpoint(PAddr addr, BreakpointType type) {
+bool CheckBreakpoint(VAddr addr, BreakpointType type) {
     if (!IsConnected()) {
         return false;
     }
@@ -975,7 +975,7 @@ static void Continue() {
  * @param addr Address of breakpoint.
  * @param len Length of breakpoint.
  */
-static bool CommitBreakpoint(BreakpointType type, PAddr addr, u64 len) {
+static bool CommitBreakpoint(BreakpointType type, VAddr addr, u64 len) {
     std::map<u64, Breakpoint>& p = GetBreakpointList(type);
 
     Breakpoint breakpoint;
@@ -1015,7 +1015,7 @@ static void AddBreakpoint() {
 
     auto start_offset = command_buffer + 3;
     auto addr_pos = std::find(start_offset, command_buffer + command_length, ',');
-    PAddr addr = HexToLong(start_offset, static_cast<u64>(addr_pos - start_offset));
+    VAddr addr = HexToLong(start_offset, static_cast<u64>(addr_pos - start_offset));
 
     start_offset = addr_pos + 1;
     u64 len =
@@ -1064,7 +1064,7 @@ static void RemoveBreakpoint() {
 
     auto start_offset = command_buffer + 3;
     auto addr_pos = std::find(start_offset, command_buffer + command_length, ',');
-    PAddr addr = HexToLong(start_offset, static_cast<u64>(addr_pos - start_offset));
+    VAddr addr = HexToLong(start_offset, static_cast<u64>(addr_pos - start_offset));
 
     if (type == BreakpointType::Access) {
         // Access is made up of Read and Write types, so add both breakpoints
