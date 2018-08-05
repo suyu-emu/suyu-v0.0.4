@@ -170,12 +170,13 @@ std::pair<u8*, GLintptr> RasterizerOpenGL::SetupVertexArrays(u8* array_ptr,
 
         glEnableVertexAttribArray(index);
         if (attrib.type == Tegra::Engines::Maxwell3D::Regs::VertexAttribute::Type::SignedInt ||
-            attrib.type == Tegra::Engines::Maxwell3D::Regs::VertexAttribute::Type::UnsignedInt)
+            attrib.type == Tegra::Engines::Maxwell3D::Regs::VertexAttribute::Type::UnsignedInt) {
             glVertexAttribIFormat(index, attrib.ComponentCount(), MaxwellToGL::VertexType(attrib),
                                   attrib.offset);
-        else
+        } else {
             glVertexAttribFormat(index, attrib.ComponentCount(), MaxwellToGL::VertexType(attrib),
                                  attrib.IsNormalized() ? GL_TRUE : GL_FALSE, attrib.offset);
+        }
         glVertexAttribBinding(index, attrib.buffer);
     }
 
