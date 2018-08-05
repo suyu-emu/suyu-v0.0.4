@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <string>
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
@@ -109,9 +110,9 @@ private:
     std::unordered_map<KeyIndex<S256KeyType>, Key256> s256_keys;
 
     bool dev_mode;
-    void LoadFromFile(std::string_view filename, bool is_title_keys);
-    void AttemptLoadKeyFile(std::string_view dir1, std::string_view dir2, std::string_view filename,
-                            bool title);
+    void LoadFromFile(const std::string& filename, bool is_title_keys);
+    void AttemptLoadKeyFile(const std::string& dir1, const std::string& dir2,
+                            const std::string& filename, bool title);
 
     static const std::unordered_map<std::string, KeyIndex<S128KeyType>> s128_file_id;
     static const std::unordered_map<std::string, KeyIndex<S256KeyType>> s256_file_id;

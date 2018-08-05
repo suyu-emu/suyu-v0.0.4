@@ -7,7 +7,7 @@
 #include <memory>
 #include <type_traits>
 #include <vector>
-#include "common/assert.h"
+#include "common/common_types.h"
 #include "core/file_sys/vfs.h"
 
 namespace Core::Crypto {
@@ -38,15 +38,19 @@ public:
     void SetIV(std::vector<u8> iv);
 
     template <typename Source, typename Dest>
-    void Transcode(const Source* src, size_t size, Dest* dest, Op op) {
+    void Transcode(const Source* src, size_t size, Dest* dest, Op op) const {
+        static_assert(std::is_trivially_copyable_v<Source> && std::is_trivially_copyable_v<Dest>,
+                      "Transcode source and destination types must be trivially copyable.");
         Transcode(reinterpret_cast<const u8*>(src), size, reinterpret_cast<u8*>(dest), op);
     }
 
-    void Transcode(const u8* src, size_t size, u8* dest, Op op);
+    void Transcode(const u8* src, size_t size, u8* dest, Op op) const;
 
     template <typename Source, typename Dest>
     void XTSTranscode(const Source* src, size_t size, Dest* dest, size_t sector_id,
                       size_t sector_size, Op op) {
+        static_assert(std::is_trivially_copyable_v<Source> && std::is_trivially_copyable_v<Dest>,
+                      "XTSTranscode source and destination types must be trivially copyable.");
         XTSTranscode(reinterpret_cast<const u8*>(src), size, reinterpret_cast<u8*>(dest), sector_id,
                      sector_size, op);
     }
@@ -56,7 +60,5 @@ public:
 
 private:
     std::unique_ptr<CipherContext> ctx;
-
-    static std::vector<u8> CalculateNintendoTweak(size_t sector_id);
 };
 } // namespace Core::Crypto
