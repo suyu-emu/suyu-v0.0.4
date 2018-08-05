@@ -2,8 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#pragma once
-
 #include "core/hle/service/audio/audren_a.h"
 
 namespace Service::Audio {
