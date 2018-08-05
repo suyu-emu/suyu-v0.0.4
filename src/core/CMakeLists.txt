@@ -134,6 +134,8 @@ add_library(core STATIC
     hle/service/apm/apm.h
     hle/service/apm/interface.cpp
     hle/service/apm/interface.h
+    hle/service/arp/arp.cpp
+    hle/service/arp/arp.h
     hle/service/audio/audctl.cpp
     hle/service/audio/audctl.h
     hle/service/audio/auddbg.cpp
