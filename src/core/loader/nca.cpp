@@ -22,7 +22,8 @@
 
 namespace Loader {
 
-AppLoader_NCA::AppLoader_NCA(FileSys::VirtualFile file) : AppLoader(std::move(file)) {}
+AppLoader_NCA::AppLoader_NCA(FileSys::VirtualFile file_)
+    : AppLoader(std::move(file_)), nca(std::make_unique<FileSys::NCA>(file)) {}
 
 FileType AppLoader_NCA::IdentifyType(const FileSys::VirtualFile& file) {
     FileSys::NCA nca(file);
@@ -39,8 +40,7 @@ ResultStatus AppLoader_NCA::Load(Kernel::SharedPtr<Kernel::Process>& process) {
         return ResultStatus::ErrorAlreadyLoaded;
     }
 
-    nca = std::make_unique<FileSys::NCA>(file);
-    ResultStatus result = nca->GetStatus();
+    const auto result = nca->GetStatus();
     if (result != ResultStatus::Success) {
         return result;
     }
@@ -48,44 +48,16 @@ ResultStatus AppLoader_NCA::Load(Kernel::SharedPtr<Kernel::Process>& process) {
     if (nca->GetType() != FileSys::NCAContentType::Program)
         return ResultStatus::ErrorInvalidFormat;
 
-    auto exefs = nca->GetExeFS();
+    const auto exefs = nca->GetExeFS();
 
     if (exefs == nullptr)
         return ResultStatus::ErrorInvalidFormat;
 
-    result = metadata.Load(exefs->GetFile("main.npdm"));
-    if (result != ResultStatus::Success) {
-        return result;
-    }
-    metadata.Print();
+    directory_loader = std::make_unique<AppLoader_DeconstructedRomDirectory>(exefs);
 
-    const FileSys::ProgramAddressSpaceType arch_bits{metadata.GetAddressSpaceType()};
-    if (arch_bits == FileSys::ProgramAddressSpaceType::Is32Bit) {
-        return ResultStatus::ErrorUnsupportedArch;
-    }
-
-    VAddr next_load_addr{Memory::PROCESS_IMAGE_VADDR};
-    for (const auto& module : {"rtld", "main", "subsdk0", "subsdk1", "subsdk2", "subsdk3",
-                               "subsdk4", "subsdk5", "subsdk6", "subsdk7", "sdk"}) {
-        const VAddr load_addr = next_load_addr;
-
-        next_load_addr = AppLoader_NSO::LoadModule(exefs->GetFile(module), load_addr);
-        if (next_load_addr) {
-            LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", module, load_addr);
-            // Register module with GDBStub
-            GDBStub::RegisterModule(module, load_addr, next_load_addr - 1, false);
-        } else {
-            next_load_addr = load_addr;
-        }
-    }
-
-    process->program_id = metadata.GetTitleID();
-    process->svc_access_mask.set();
-    process->address_mappings = default_address_mappings;
-    process->resource_limit =
-        Kernel::ResourceLimit::GetForCategory(Kernel::ResourceLimitCategory::APPLICATION);
-    process->Run(Memory::PROCESS_IMAGE_VADDR, metadata.GetMainThreadPriority(),
-                 metadata.GetMainThreadStackSize());
+    const auto load_result = directory_loader->Load(process);
+    if (load_result != ResultStatus::Success)
+        return load_result;
 
     if (nca->GetRomFS() != nullptr && nca->GetRomFS()->GetSize() > 0)
         Service::FileSystem::RegisterRomFS(std::make_unique<FileSys::RomFSFactory>(*this));
