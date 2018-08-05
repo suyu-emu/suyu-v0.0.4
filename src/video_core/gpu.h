@@ -11,6 +11,10 @@
 #include "core/hle/service/nvflinger/buffer_queue.h"
 #include "video_core/memory_manager.h"
 
+namespace VideoCore {
+class RasterizerInterface;
+}
+
 namespace Tegra {
 
 enum class RenderTargetFormat : u32 {
@@ -98,7 +102,7 @@ enum class EngineID {
 
 class GPU final {
 public:
-    GPU();
+    explicit GPU(VideoCore::RasterizerInterface& rasterizer);
     ~GPU();
 
     /// Processes a command list stored at the specified address in GPU memory.

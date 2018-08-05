@@ -18,6 +18,7 @@
 #include "core/loader/loader.h"
 #include "core/settings.h"
 #include "file_sys/vfs_real.h"
+#include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 
 namespace Core {
@@ -178,7 +179,6 @@ System::ResultStatus System::Init(EmuWindow& emu_window) {
         cpu_cores[index] = std::make_shared<Cpu>(cpu_exclusive_monitor, cpu_barrier, index);
     }
 
-    gpu_core = std::make_unique<Tegra::GPU>();
     telemetry_session = std::make_unique<Core::TelemetrySession>();
     service_manager = std::make_shared<Service::SM::ServiceManager>();
 
@@ -186,9 +186,12 @@ System::ResultStatus System::Init(EmuWindow& emu_window) {
     Service::Init(service_manager);
     GDBStub::Init();
 
-    if (!VideoCore::Init(emu_window)) {
+    renderer = VideoCore::CreateRenderer(emu_window);
+    if (!renderer->Init()) {
         return ResultStatus::ErrorVideoCore;
     }
+
+    gpu_core = std::make_unique<Tegra::GPU>(renderer->Rasterizer());
 
     // Create threads for CPU cores 1-3, and build thread_to_cpu map
     // CPU core 0 is run on the main thread
@@ -221,7 +224,7 @@ void System::Shutdown() {
                          perf_results.frametime * 1000.0);
 
     // Shutdown emulation session
-    VideoCore::Shutdown();
+    renderer.reset();
     GDBStub::Shutdown();
     Service::Shutdown();
     Kernel::Shutdown();

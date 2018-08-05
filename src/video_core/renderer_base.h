@@ -13,6 +13,8 @@
 
 class EmuWindow;
 
+namespace VideoCore {
+
 class RendererBase : NonCopyable {
 public:
     /// Used to reference a framebuffer
@@ -44,15 +46,21 @@ public:
         return m_current_frame;
     }
 
-    VideoCore::RasterizerInterface* Rasterizer() const {
-        return rasterizer.get();
+    RasterizerInterface& Rasterizer() {
+        return *rasterizer;
+    }
+
+    const RasterizerInterface& Rasterizer() const {
+        return *rasterizer;
     }
 
     void RefreshRasterizerSetting();
 
 protected:
     EmuWindow& render_window; ///< Reference to the render window handle.
-    std::unique_ptr<VideoCore::RasterizerInterface> rasterizer;
+    std::unique_ptr<RasterizerInterface> rasterizer;
     f32 m_current_fps = 0.0f; ///< Current framerate, should be set by the renderer
     int m_current_frame = 0;  ///< Current frame, should be set by the renderer
 };
+
+} // namespace VideoCore

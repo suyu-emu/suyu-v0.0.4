@@ -8,25 +8,23 @@
 #include <memory>
 
 class EmuWindow;
-class RendererBase;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Video Core namespace
 
 namespace VideoCore {
 
-enum class Renderer { Software, OpenGL };
+class RendererBase;
 
-extern std::unique_ptr<RendererBase> g_renderer; ///< Renderer plugin
+enum class Renderer { Software, OpenGL };
 
 // TODO: Wrap these in a user settings struct along with any other graphics settings (often set from
 // qt ui)
 extern std::atomic<bool> g_toggle_framelimit_enabled;
 
-/// Initialize the video core
-bool Init(EmuWindow& emu_window);
-
-/// Shutdown the video core
-void Shutdown();
+/**
+ * Creates a renderer instance.
+ *
+ * @note The returned renderer instance is simply allocated. Its Init()
+ *       function still needs to be called to fully complete its setup.
+ */
+std::unique_ptr<RendererBase> CreateRenderer(EmuWindow& emu_window);
 
 } // namespace VideoCore

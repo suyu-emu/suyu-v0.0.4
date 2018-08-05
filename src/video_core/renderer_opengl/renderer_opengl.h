@@ -41,7 +41,7 @@ private:
     EmuWindow& emu_window;
 };
 
-class RendererOpenGL : public RendererBase {
+class RendererOpenGL : public VideoCore::RendererBase {
 public:
     explicit RendererOpenGL(EmuWindow& window);
     ~RendererOpenGL() override;

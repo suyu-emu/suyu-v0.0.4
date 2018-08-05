@@ -477,7 +477,7 @@ bool GMainWindow::LoadROM(const QString& filename) {
 
         case Core::System::ResultStatus::ErrorVideoCore:
             QMessageBox::critical(
-                this, tr("An error occured in the video core."),
+                this, tr("An error occurred initializing the video core."),
                 tr("yuzu has encountered an error while running the video core, please see the "
                    "log for more details."
                    "For more information on accessing the log, please see the following page: "
@@ -491,7 +491,7 @@ bool GMainWindow::LoadROM(const QString& filename) {
         default:
             QMessageBox::critical(
                 this, tr("Error while loading ROM!"),
-                tr("An unknown error occured. Please see the log for more details."));
+                tr("An unknown error occurred. Please see the log for more details."));
             break;
         }
         return false;

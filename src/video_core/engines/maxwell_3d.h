@@ -17,6 +17,10 @@
 #include "video_core/memory_manager.h"
 #include "video_core/textures/texture.h"
 
+namespace VideoCore {
+class RasterizerInterface;
+}
+
 namespace Tegra::Engines {
 
 #define MAXWELL3D_REG_INDEX(field_name)                                                            \
@@ -24,7 +28,7 @@ namespace Tegra::Engines {
 
 class Maxwell3D final {
 public:
-    explicit Maxwell3D(MemoryManager& memory_manager);
+    explicit Maxwell3D(VideoCore::RasterizerInterface& rasterizer, MemoryManager& memory_manager);
     ~Maxwell3D() = default;
 
     /// Register structure of the Maxwell3D engine.
@@ -818,6 +822,8 @@ public:
     Texture::FullTextureInfo GetStageTexture(Regs::ShaderStage stage, size_t offset) const;
 
 private:
+    VideoCore::RasterizerInterface& rasterizer;
+
     std::unordered_map<u32, std::vector<u32>> uploaded_macros;
 
     /// Macro method that is currently being executed / being fed parameters.

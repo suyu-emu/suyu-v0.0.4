@@ -193,7 +193,7 @@ int main(int argc, char** argv) {
         LOG_CRITICAL(Frontend, "Failed to determine system mode!");
         return -1;
     case Core::System::ResultStatus::ErrorVideoCore:
-        LOG_CRITICAL(Frontend, "VideoCore not initialized");
+        LOG_CRITICAL(Frontend, "Failed to initialize VideoCore!");
         return -1;
     case Core::System::ResultStatus::Success:
         break; // Expected case
