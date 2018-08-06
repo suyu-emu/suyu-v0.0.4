@@ -140,10 +140,10 @@ void SetCurrentPageTable(PageTable* page_table);
 PageTable* GetCurrentPageTable();
 
 /// Determines if the given VAddr is valid for the specified process.
-bool IsValidVirtualAddress(const Kernel::Process& process, const VAddr vaddr);
-bool IsValidVirtualAddress(const VAddr addr);
+bool IsValidVirtualAddress(const Kernel::Process& process, VAddr vaddr);
+bool IsValidVirtualAddress(VAddr addr);
 /// Determines if the given VAddr is a kernel address
-bool IsKernelVirtualAddress(const VAddr addr);
+bool IsKernelVirtualAddress(VAddr addr);
 
 u8 Read8(VAddr addr);
 u16 Read16(VAddr addr);
@@ -155,13 +155,12 @@ void Write16(VAddr addr, u16 data);
 void Write32(VAddr addr, u32 data);
 void Write64(VAddr addr, u64 data);
 
-void ReadBlock(const Kernel::Process& process, const VAddr src_addr, void* dest_buffer,
-               size_t size);
-void ReadBlock(const VAddr src_addr, void* dest_buffer, size_t size);
-void WriteBlock(const Kernel::Process& process, const VAddr dest_addr, const void* src_buffer,
+void ReadBlock(const Kernel::Process& process, VAddr src_addr, void* dest_buffer, size_t size);
+void ReadBlock(VAddr src_addr, void* dest_buffer, size_t size);
+void WriteBlock(const Kernel::Process& process, VAddr dest_addr, const void* src_buffer,
                 size_t size);
-void WriteBlock(const VAddr dest_addr, const void* src_buffer, size_t size);
-void ZeroBlock(const VAddr dest_addr, const size_t size);
+void WriteBlock(VAddr dest_addr, const void* src_buffer, size_t size);
+void ZeroBlock(VAddr dest_addr, size_t size);
 void CopyBlock(VAddr dest_addr, VAddr src_addr, size_t size);
 
 u8* GetPointer(VAddr virtual_address);
