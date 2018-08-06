@@ -631,9 +631,15 @@ void GMainWindow::OnMenuLoadFile() {
 }
 
 void GMainWindow::OnMenuLoadFolder() {
-    QDir dir = QFileDialog::getExistingDirectory(this, tr("Open Extracted ROM Directory"));
+    const QString dir_path =
+        QFileDialog::getExistingDirectory(this, tr("Open Extracted ROM Directory"));
 
-    QStringList matching_main = dir.entryList(QStringList("main"), QDir::Files);
+    if (dir_path.isNull()) {
+        return;
+    }
+
+    const QDir dir{dir_path};
+    const QStringList matching_main = dir.entryList(QStringList("main"), QDir::Files);
     if (matching_main.size() == 1) {
         BootGame(dir.path() + DIR_SEP + matching_main[0]);
     } else {
