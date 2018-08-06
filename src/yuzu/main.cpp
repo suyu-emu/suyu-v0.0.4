@@ -595,12 +595,8 @@ void GMainWindow::UpdateRecentFiles() {
         actions_recent_files[j]->setVisible(false);
     }
 
-    // Grey out the recent files menu if the list is empty
-    if (num_recent_files == 0) {
-        ui.menu_recent_files->setEnabled(false);
-    } else {
-        ui.menu_recent_files->setEnabled(true);
-    }
+    // Enable the recent files menu if the list isn't empty
+    ui.menu_recent_files->setEnabled(num_recent_files != 0);
 }
 
 void GMainWindow::OnGameListLoadFile(QString game_path) {
