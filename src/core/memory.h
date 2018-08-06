@@ -160,7 +160,7 @@ void ReadBlock(VAddr src_addr, void* dest_buffer, size_t size);
 void WriteBlock(const Kernel::Process& process, VAddr dest_addr, const void* src_buffer,
                 size_t size);
 void WriteBlock(VAddr dest_addr, const void* src_buffer, size_t size);
-void ZeroBlock(VAddr dest_addr, size_t size);
+void ZeroBlock(const Kernel::Process& process, VAddr dest_addr, size_t size);
 void CopyBlock(VAddr dest_addr, VAddr src_addr, size_t size);
 
 u8* GetPointer(VAddr virtual_address);
