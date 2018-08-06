@@ -22,7 +22,7 @@ enum class BreakpointType {
 };
 
 struct BreakpointAddress {
-    PAddr address;
+    VAddr address;
     BreakpointType type;
 };
 
@@ -53,7 +53,7 @@ bool IsServerEnabled();
 bool IsConnected();
 
 /// Register module.
-void RegisterModule(std::string name, PAddr beg, PAddr end, bool add_elf_ext = true);
+void RegisterModule(std::string name, VAddr beg, VAddr end, bool add_elf_ext = true);
 
 /**
  * Signal to the gdbstub server that it should halt CPU execution.
@@ -74,7 +74,7 @@ void HandlePacket();
  * @param addr Address to search from.
  * @param type Type of breakpoint.
  */
-BreakpointAddress GetNextBreakpointFromAddress(PAddr addr, GDBStub::BreakpointType type);
+BreakpointAddress GetNextBreakpointFromAddress(VAddr addr, GDBStub::BreakpointType type);
 
 /**
  * Check if a breakpoint of the specified type exists at the given address.
@@ -82,7 +82,7 @@ BreakpointAddress GetNextBreakpointFromAddress(PAddr addr, GDBStub::BreakpointTy
  * @param addr Address of breakpoint.
  * @param type Type of breakpoint.
  */
-bool CheckBreakpoint(PAddr addr, GDBStub::BreakpointType type);
+bool CheckBreakpoint(VAddr addr, GDBStub::BreakpointType type);
 
 /// If set to true, the CPU will halt at the beginning of the next CPU loop.
 bool GetCpuHaltFlag();
