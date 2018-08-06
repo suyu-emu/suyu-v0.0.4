@@ -226,8 +226,8 @@ void Idle() {
     downcount = 0;
 }
 
-u64 GetGlobalTimeUs() {
-    return GetTicks() * 1000000 / BASE_CLOCK_RATE;
+std::chrono::microseconds GetGlobalTimeUs() {
+    return std::chrono::microseconds{GetTicks() * 1000000 / BASE_CLOCK_RATE};
 }
 
 int GetDowncount() {
