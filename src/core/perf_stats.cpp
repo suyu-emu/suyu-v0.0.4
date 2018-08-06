@@ -76,7 +76,7 @@ double PerfStats::GetLastFrameTimeScale() {
 void FrameLimiter::DoFrameLimiting(microseconds current_system_time_us) {
     // Max lag caused by slow frames. Can be adjusted to compensate for too many slow frames. Higher
     // values increase the time needed to recover and limit framerate again after spikes.
-    constexpr microseconds MAX_LAG_TIME_US = 25ms;
+    constexpr microseconds MAX_LAG_TIME_US = 25us;
 
     if (!Settings::values.toggle_framelimit) {
         return;
@@ -84,7 +84,7 @@ void FrameLimiter::DoFrameLimiting(microseconds current_system_time_us) {
 
     auto now = Clock::now();
 
-    frame_limiting_delta_err += microseconds(current_system_time_us - previous_system_time_us);
+    frame_limiting_delta_err += current_system_time_us - previous_system_time_us;
     frame_limiting_delta_err -= duration_cast<microseconds>(now - previous_walltime);
     frame_limiting_delta_err =
         std::clamp(frame_limiting_delta_err, -MAX_LAG_TIME_US, MAX_LAG_TIME_US);
