@@ -12,7 +12,7 @@ ConfigureDialog::ConfigureDialog(QWidget* parent) : QDialog(parent), ui(new Ui::
     this->setConfiguration();
 }
 
-ConfigureDialog::~ConfigureDialog() {}
+ConfigureDialog::~ConfigureDialog() = default;
 
 void ConfigureDialog::setConfiguration() {}
 
