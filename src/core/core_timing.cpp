@@ -141,7 +141,7 @@ void ScheduleEvent(s64 cycles_into_future, const EventType* event_type, u64 user
         ForceExceptionCheck(cycles_into_future);
 
     event_queue.emplace_back(Event{timeout, event_fifo_id++, userdata, event_type});
-    std::push_heap(event_queue.begin(), event_queue.end(), std::greater<Event>());
+    std::push_heap(event_queue.begin(), event_queue.end(), std::greater<>());
 }
 
 void ScheduleEventThreadsafe(s64 cycles_into_future, const EventType* event_type, u64 userdata) {
@@ -156,7 +156,7 @@ void UnscheduleEvent(const EventType* event_type, u64 userdata) {
     // Removing random items breaks the invariant so we have to re-establish it.
     if (itr != event_queue.end()) {
         event_queue.erase(itr, event_queue.end());
-        std::make_heap(event_queue.begin(), event_queue.end(), std::greater<Event>());
+        std::make_heap(event_queue.begin(), event_queue.end(), std::greater<>());
     }
 }
 
@@ -167,7 +167,7 @@ void RemoveEvent(const EventType* event_type) {
     // Removing random items breaks the invariant so we have to re-establish it.
     if (itr != event_queue.end()) {
         event_queue.erase(itr, event_queue.end());
-        std::make_heap(event_queue.begin(), event_queue.end(), std::greater<Event>());
+        std::make_heap(event_queue.begin(), event_queue.end(), std::greater<>());
     }
 }
 
@@ -190,7 +190,7 @@ void MoveEvents() {
     for (Event ev; ts_queue.Pop(ev);) {
         ev.fifo_order = event_fifo_id++;
         event_queue.emplace_back(std::move(ev));
-        std::push_heap(event_queue.begin(), event_queue.end(), std::greater<Event>());
+        std::push_heap(event_queue.begin(), event_queue.end(), std::greater<>());
     }
 }
 
@@ -205,7 +205,7 @@ void Advance() {
 
     while (!event_queue.empty() && event_queue.front().time <= global_timer) {
         Event evt = std::move(event_queue.front());
-        std::pop_heap(event_queue.begin(), event_queue.end(), std::greater<Event>());
+        std::pop_heap(event_queue.begin(), event_queue.end(), std::greater<>());
         event_queue.pop_back();
         evt.type->callback(evt.userdata, static_cast<int>(global_timer - evt.time));
     }
