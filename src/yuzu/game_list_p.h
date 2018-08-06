@@ -5,6 +5,7 @@
 #pragma once
 
 #include <atomic>
+#include <utility>
 #include <QImage>
 #include <QRunnable>
 #include <QStandardItem>
@@ -109,7 +110,7 @@ class GameListWorker : public QObject, public QRunnable {
 
 public:
     GameListWorker(QString dir_path, bool deep_scan)
-        : QObject(), QRunnable(), dir_path(dir_path), deep_scan(deep_scan) {}
+        : dir_path(std::move(dir_path)), deep_scan(deep_scan) {}
 
 public slots:
     /// Starts the processing of directory tree information.
