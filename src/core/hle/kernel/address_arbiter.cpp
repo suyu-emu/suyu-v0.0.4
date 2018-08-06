@@ -32,9 +32,8 @@ static ResultCode WaitForAddress(VAddr address, s64 timeout) {
 }
 
 // Gets the threads waiting on an address.
-static void GetThreadsWaitingOnAddress(std::vector<SharedPtr<Thread>>& waiting_threads,
-                                       VAddr address) {
-    auto RetrieveWaitingThreads =
+static std::vector<SharedPtr<Thread>> GetThreadsWaitingOnAddress(VAddr address) {
+    const auto RetrieveWaitingThreads =
         [](size_t core_index, std::vector<SharedPtr<Thread>>& waiting_threads, VAddr arb_addr) {
             const auto& scheduler = Core::System::GetInstance().Scheduler(core_index);
             auto& thread_list = scheduler->GetThreadList();
@@ -45,16 +44,20 @@ static void GetThreadsWaitingOnAddress(std::vector<SharedPtr<Thread>>& waiting_t
             }
         };
 
-    // Retrieve a list of all threads that are waiting for this address.
-    RetrieveWaitingThreads(0, waiting_threads, address);
-    RetrieveWaitingThreads(1, waiting_threads, address);
-    RetrieveWaitingThreads(2, waiting_threads, address);
-    RetrieveWaitingThreads(3, waiting_threads, address);
+    // Retrieve all threads that are waiting for this address.
+    std::vector<SharedPtr<Thread>> threads;
+    RetrieveWaitingThreads(0, threads, address);
+    RetrieveWaitingThreads(1, threads, address);
+    RetrieveWaitingThreads(2, threads, address);
+    RetrieveWaitingThreads(3, threads, address);
+
     // Sort them by priority, such that the highest priority ones come first.
-    std::sort(waiting_threads.begin(), waiting_threads.end(),
+    std::sort(threads.begin(), threads.end(),
               [](const SharedPtr<Thread>& lhs, const SharedPtr<Thread>& rhs) {
                   return lhs->current_priority < rhs->current_priority;
               });
+
+    return threads;
 }
 
 // Wake up num_to_wake (or all) threads in a vector.
@@ -76,9 +79,7 @@ static void WakeThreads(std::vector<SharedPtr<Thread>>& waiting_threads, s32 num
 
 // Signals an address being waited on.
 ResultCode SignalToAddress(VAddr address, s32 num_to_wake) {
-    // Get threads waiting on the address.
-    std::vector<SharedPtr<Thread>> waiting_threads;
-    GetThreadsWaitingOnAddress(waiting_threads, address);
+    std::vector<SharedPtr<Thread>> waiting_threads = GetThreadsWaitingOnAddress(address);
 
     WakeThreads(waiting_threads, num_to_wake);
     return RESULT_SUCCESS;
@@ -110,12 +111,11 @@ ResultCode ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr address, s32 valu
     }
 
     // Get threads waiting on the address.
-    std::vector<SharedPtr<Thread>> waiting_threads;
-    GetThreadsWaitingOnAddress(waiting_threads, address);
+    std::vector<SharedPtr<Thread>> waiting_threads = GetThreadsWaitingOnAddress(address);
 
     // Determine the modified value depending on the waiting count.
     s32 updated_value;
-    if (waiting_threads.size() == 0) {
+    if (waiting_threads.empty()) {
         updated_value = value - 1;
     } else if (num_to_wake <= 0 || waiting_threads.size() <= static_cast<u32>(num_to_wake)) {
         updated_value = value + 1;
