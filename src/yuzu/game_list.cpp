@@ -368,21 +368,23 @@ void GameList::LoadInterfaceLayout() {
 const QStringList GameList::supported_file_extensions = {"nso", "nro", "nca", "xci"};
 
 static bool HasSupportedFileExtension(const std::string& file_name) {
-    QFileInfo file = QFileInfo(file_name.c_str());
+    const QFileInfo file = QFileInfo(QString::fromStdString(file_name));
     return GameList::supported_file_extensions.contains(file.suffix(), Qt::CaseInsensitive);
 }
 
 static bool IsExtractedNCAMain(const std::string& file_name) {
-    return QFileInfo(file_name.c_str()).fileName() == "main";
+    return QFileInfo(QString::fromStdString(file_name)).fileName() == "main";
 }
 
 static QString FormatGameName(const std::string& physical_name) {
-    QFileInfo file_info(physical_name.c_str());
+    const QString physical_name_as_qstring = QString::fromStdString(physical_name);
+    const QFileInfo file_info(physical_name_as_qstring);
+
     if (IsExtractedNCAMain(physical_name)) {
         return file_info.dir().path();
-    } else {
-        return QString::fromStdString(physical_name);
     }
+
+    return physical_name_as_qstring;
 }
 
 void GameList::RefreshGameDirectory() {
