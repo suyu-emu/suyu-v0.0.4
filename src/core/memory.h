@@ -141,9 +141,9 @@ PageTable* GetCurrentPageTable();
 
 /// Determines if the given VAddr is valid for the specified process.
 bool IsValidVirtualAddress(const Kernel::Process& process, VAddr vaddr);
-bool IsValidVirtualAddress(VAddr addr);
+bool IsValidVirtualAddress(VAddr vaddr);
 /// Determines if the given VAddr is a kernel address
-bool IsKernelVirtualAddress(VAddr addr);
+bool IsKernelVirtualAddress(VAddr vaddr);
 
 u8 Read8(VAddr addr);
 u16 Read16(VAddr addr);
@@ -163,9 +163,9 @@ void WriteBlock(VAddr dest_addr, const void* src_buffer, size_t size);
 void ZeroBlock(const Kernel::Process& process, VAddr dest_addr, size_t size);
 void CopyBlock(VAddr dest_addr, VAddr src_addr, size_t size);
 
-u8* GetPointer(VAddr virtual_address);
+u8* GetPointer(VAddr vaddr);
 
-std::string ReadCString(VAddr virtual_address, std::size_t max_length);
+std::string ReadCString(VAddr vaddr, std::size_t max_length);
 
 enum class FlushMode {
     /// Write back modified surfaces to RAM
@@ -179,7 +179,7 @@ enum class FlushMode {
 /**
  * Mark each page touching the region as cached.
  */
-void RasterizerMarkRegionCached(Tegra::GPUVAddr start, u64 size, bool cached);
+void RasterizerMarkRegionCached(Tegra::GPUVAddr gpu_addr, u64 size, bool cached);
 
 /**
  * Flushes and invalidates any externally cached rasterizer resources touching the given virtual
