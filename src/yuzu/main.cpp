@@ -81,6 +81,8 @@ static void ShowCalloutMessage(const QString& message, CalloutFlag flag) {
 
 void GMainWindow::ShowCallouts() {}
 
+const int GMainWindow::max_recent_files_item;
+
 GMainWindow::GMainWindow() : config(new Config()), emu_thread(nullptr) {
 
     debug_context = Tegra::DebugContext::Construct();
@@ -579,11 +581,11 @@ void GMainWindow::StoreRecentFile(const QString& filename) {
 }
 
 void GMainWindow::UpdateRecentFiles() {
-    unsigned int num_recent_files =
-        std::min(UISettings::values.recent_files.size(), static_cast<int>(max_recent_files_item));
+    const int num_recent_files =
+        std::min(UISettings::values.recent_files.size(), max_recent_files_item);
 
-    for (unsigned int i = 0; i < num_recent_files; i++) {
-        QString text = QString("&%1. %2").arg(i + 1).arg(
+    for (int i = 0; i < num_recent_files; i++) {
+        const QString text = QString("&%1. %2").arg(i + 1).arg(
             QFileInfo(UISettings::values.recent_files[i]).fileName());
         actions_recent_files[i]->setText(text);
         actions_recent_files[i]->setData(UISettings::values.recent_files[i]);
