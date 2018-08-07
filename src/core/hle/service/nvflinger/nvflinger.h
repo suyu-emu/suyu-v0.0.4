@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <string_view>
 #include <boost/optional.hpp>
 #include "core/hle/kernel/event.h"
 
@@ -41,7 +42,7 @@ public:
     ~NVFlinger();
 
     /// Opens the specified display and returns the id.
-    u64 OpenDisplay(const std::string& name);
+    u64 OpenDisplay(std::string_view name);
 
     /// Creates a layer on the specified display and returns the layer id.
     u64 CreateLayer(u64 display_id);

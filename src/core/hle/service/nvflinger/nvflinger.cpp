@@ -43,7 +43,7 @@ NVFlinger::~NVFlinger() {
     CoreTiming::UnscheduleEvent(composition_event, 0);
 }
 
-u64 NVFlinger::OpenDisplay(const std::string& name) {
+u64 NVFlinger::OpenDisplay(std::string_view name) {
     LOG_WARNING(Service, "Opening display {}", name);
 
     // TODO(Subv): Currently we only support the Default display.
