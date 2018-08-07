@@ -175,7 +175,7 @@ Vec2<T> operator*(const V& f, const Vec2<T>& vec) {
     return Vec2<T>(f * vec.x, f * vec.y);
 }
 
-typedef Vec2<float> Vec2f;
+using Vec2f = Vec2<float>;
 
 template <>
 inline float Vec2<float>::Length() const {
@@ -387,7 +387,7 @@ inline float Vec3<float>::Normalize() {
     return length;
 }
 
-typedef Vec3<float> Vec3f;
+using Vec3f = Vec3<float>;
 
 template <typename T>
 class Vec4 {
@@ -583,7 +583,7 @@ Vec4<decltype(V{} * T{})> operator*(const V& f, const Vec4<T>& vec) {
     return MakeVec(f * vec.x, f * vec.y, f * vec.z, f * vec.w);
 }
 
-typedef Vec4<float> Vec4f;
+using Vec4f = Vec4<float>;
 
 template <typename T>
 static inline decltype(T{} * T{} + T{} * T{}) Dot(const Vec2<T>& a, const Vec2<T>& b) {
