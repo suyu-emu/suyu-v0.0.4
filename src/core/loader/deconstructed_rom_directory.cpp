@@ -41,7 +41,7 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
     if (dir == nullptr) {
         if (file == nullptr)
             return ResultStatus::ErrorInvalidFormat;
-        const FileSys::VirtualDir dir = file->GetContainingDirectory();
+        dir = file->GetContainingDirectory();
     }
 
     const FileSys::VirtualFile npdm = dir->GetFile("main.npdm");
