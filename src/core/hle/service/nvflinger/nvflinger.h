@@ -5,8 +5,11 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <string_view>
-#include <boost/optional.hpp>
+#include <vector>
+
+#include "common/common_types.h"
 #include "core/hle/kernel/event.h"
 
 namespace CoreTiming {

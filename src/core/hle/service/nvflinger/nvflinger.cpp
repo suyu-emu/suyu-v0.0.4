@@ -3,8 +3,11 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <boost/optional.hpp>
 
 #include "common/alignment.h"
+#include "common/assert.h"
+#include "common/logging/log.h"
 #include "common/microprofile.h"
 #include "common/scope_exit.h"
 #include "core/core.h"
