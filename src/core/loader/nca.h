@@ -10,6 +10,7 @@
 #include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/object.h"
 #include "core/loader/loader.h"
+#include "deconstructed_rom_directory.h"
 
 namespace Loader {
 
@@ -41,6 +42,7 @@ private:
     FileSys::ProgramMetadata metadata;
 
     std::unique_ptr<FileSys::NCA> nca;
+    std::unique_ptr<AppLoader_DeconstructedRomDirectory> directory_loader;
 };
 
 } // namespace Loader

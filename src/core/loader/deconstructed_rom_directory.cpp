@@ -20,6 +20,10 @@ namespace Loader {
 AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(FileSys::VirtualFile file)
     : AppLoader(std::move(file)) {}
 
+AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(
+    FileSys::VirtualDir directory)
+    : AppLoader(directory->GetFile("main")), dir(std::move(directory)) {}
+
 FileType AppLoader_DeconstructedRomDirectory::IdentifyType(const FileSys::VirtualFile& file) {
     if (FileSys::IsDirectoryExeFS(file->GetContainingDirectory())) {
         return FileType::DeconstructedRomDirectory;
@@ -34,7 +38,12 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
         return ResultStatus::ErrorAlreadyLoaded;
     }
 
-    const FileSys::VirtualDir dir = file->GetContainingDirectory();
+    if (dir == nullptr) {
+        if (file == nullptr)
+            return ResultStatus::ErrorInvalidFormat;
+        const FileSys::VirtualDir dir = file->GetContainingDirectory();
+    }
+
     const FileSys::VirtualFile npdm = dir->GetFile("main.npdm");
     if (npdm == nullptr)
         return ResultStatus::ErrorInvalidFormat;
