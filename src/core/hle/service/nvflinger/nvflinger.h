@@ -5,7 +5,11 @@
 #pragma once
 
 #include <memory>
-#include <boost/optional.hpp>
+#include <string>
+#include <string_view>
+#include <vector>
+
+#include "common/common_types.h"
 #include "core/hle/kernel/event.h"
 
 namespace CoreTiming {
@@ -41,7 +45,7 @@ public:
     ~NVFlinger();
 
     /// Opens the specified display and returns the id.
-    u64 OpenDisplay(const std::string& name);
+    u64 OpenDisplay(std::string_view name);
 
     /// Creates a layer on the specified display and returns the layer id.
     u64 CreateLayer(u64 display_id);
