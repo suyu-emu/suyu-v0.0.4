@@ -9,6 +9,7 @@
 #include <QKeyEvent>
 #include <QMenu>
 #include <QThreadPool>
+#include <boost/container/flat_map.hpp>
 #include "common/common_paths.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
@@ -458,9 +459,9 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
                 // Use from metadata pool.
                 if (nca_control_map.find(program_id) != nca_control_map.end()) {
                     const auto nca = nca_control_map[program_id];
-                    auto control_dir = nca->GetSection(0);
+                    const auto control_dir = nca->GetSubdirectories()[0];
 
-                    auto nacp_file = control_dir->GetFile("control.nacp");
+                    const auto nacp_file = control_dir->GetFile("control.nacp");
                     FileSys::NACP nacp(nacp_file);
                     name = nacp.GetApplicationName();
 

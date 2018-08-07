@@ -35,8 +35,6 @@ public:
     ResultStatus ReadRomFS(FileSys::VirtualFile& dir) override;
     ResultStatus ReadProgramId(u64& out_program_id) override;
 
-    ResultStatus ReadProgramId(u64& out_program_id) override;
-
     ~AppLoader_NCA();
 
 private:
