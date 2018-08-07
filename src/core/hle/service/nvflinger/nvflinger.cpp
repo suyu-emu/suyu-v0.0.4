@@ -31,7 +31,7 @@ NVFlinger::NVFlinger() {
 
     // Schedule the screen composition events
     composition_event =
-        CoreTiming::RegisterEvent("ScreenCompositioin", [this](u64 userdata, int cycles_late) {
+        CoreTiming::RegisterEvent("ScreenComposition", [this](u64 userdata, int cycles_late) {
             Compose();
             CoreTiming::ScheduleEvent(frame_ticks - cycles_late, composition_event);
         });
