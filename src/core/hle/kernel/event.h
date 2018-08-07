@@ -31,10 +31,9 @@ public:
         return HANDLE_TYPE;
     }
 
-    ResetType reset_type; ///< Current ResetType
-
-    bool signaled;    ///< Whether the event has already been signaled
-    std::string name; ///< Name of event (optional)
+    ResetType GetResetType() const {
+        return reset_type;
+    }
 
     bool ShouldWait(Thread* thread) const override;
     void Acquire(Thread* thread) override;
@@ -47,6 +46,11 @@ public:
 private:
     Event();
     ~Event() override;
+
+    ResetType reset_type; ///< Current ResetType
+
+    bool signaled;    ///< Whether the event has already been signaled
+    std::string name; ///< Name of event (optional)
 };
 
 } // namespace Kernel
