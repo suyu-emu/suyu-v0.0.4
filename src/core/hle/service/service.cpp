@@ -63,6 +63,7 @@
 #include "core/hle/service/spl/module.h"
 #include "core/hle/service/ssl/ssl.h"
 #include "core/hle/service/time/time.h"
+#include "core/hle/service/usb/usb.h"
 #include "core/hle/service/vi/vi.h"
 #include "core/hle/service/wlan/wlan.h"
 
@@ -249,6 +250,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm) {
     SPL::InstallInterfaces(*sm);
     SSL::InstallInterfaces(*sm);
     Time::InstallInterfaces(*sm);
+    USB::InstallInterfaces(*sm);
     VI::InstallInterfaces(*sm, nv_flinger);
     WLAN::InstallInterfaces(*sm);
 

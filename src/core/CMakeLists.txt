@@ -315,6 +315,8 @@ add_library(core STATIC
     hle/service/time/interface.h
     hle/service/time/time.cpp
     hle/service/time/time.h
+    hle/service/usb/usb.cpp
+    hle/service/usb/usb.h
     hle/service/vi/vi.cpp
     hle/service/vi/vi.h
     hle/service/vi/vi_m.cpp
