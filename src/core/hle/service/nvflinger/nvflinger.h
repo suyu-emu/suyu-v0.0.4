@@ -16,6 +16,10 @@ namespace CoreTiming {
 struct EventType;
 }
 
+namespace Service::Nvidia {
+class Module;
+}
+
 namespace Service::NVFlinger {
 
 class BufferQueue;
@@ -44,6 +48,9 @@ public:
     NVFlinger();
     ~NVFlinger();
 
+    /// Sets the NVDrv module instance to use to send buffers to the GPU.
+    void SetNVDrvInstance(std::shared_ptr<Nvidia::Module> instance);
+
     /// Opens the specified display and returns the id.
     u64 OpenDisplay(std::string_view name);
 
@@ -69,6 +76,8 @@ private:
 
     /// Returns the layer identified by the specified id in the desired display.
     Layer& GetLayer(u64 display_id, u64 layer_id);
+
+    std::shared_ptr<Nvidia::Module> nvdrv;
 
     std::vector<Display> displays;
     std::vector<std::shared_ptr<BufferQueue>> buffer_queues;
