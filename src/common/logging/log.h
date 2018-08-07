@@ -87,6 +87,7 @@ enum class Class : ClassType {
     Service_SPL,       ///< The SPL service
     Service_SSL,       ///< The SSL service
     Service_Time,      ///< The time service
+    Service_USB,       ///< The USB (Universal Serial Bus) service
     Service_VI,        ///< The VI (Video interface) service
     Service_WLAN,      ///< The WLAN (Wireless local area network) service
     HW,                ///< Low-level hardware emulation
