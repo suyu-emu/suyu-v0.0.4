@@ -258,18 +258,20 @@ void GameList::AddEntry(const QList<QStandardItem*>& entry_items) {
 
 void GameList::ValidateEntry(const QModelIndex& item) {
     // We don't care about the individual QStandardItem that was selected, but its row.
-    int row = item_model->itemFromIndex(item)->row();
-    QStandardItem* child_file = item_model->invisibleRootItem()->child(row, COLUMN_NAME);
-    QString file_path = child_file->data(GameListItemPath::FullPathRole).toString();
+    const int row = item_model->itemFromIndex(item)->row();
+    const QStandardItem* child_file = item_model->invisibleRootItem()->child(row, COLUMN_NAME);
+    const QString file_path = child_file->data(GameListItemPath::FullPathRole).toString();
 
     if (file_path.isEmpty())
         return;
-    std::string std_file_path(file_path.toStdString());
-    if (!FileUtil::Exists(std_file_path))
+
+    if (!QFileInfo::exists(file_path))
         return;
-    if (FileUtil::IsDirectory(std_file_path)) {
-        QDir dir(std_file_path.c_str());
-        QStringList matching_main = dir.entryList(QStringList("main"), QDir::Files);
+
+    const QFileInfo file_info{file_path};
+    if (file_info.isDir()) {
+        const QDir dir{file_path};
+        const QStringList matching_main = dir.entryList(QStringList("main"), QDir::Files);
         if (matching_main.size() == 1) {
             emit GameChosen(dir.path() + DIR_SEP + matching_main[0]);
         }
@@ -368,21 +370,23 @@ void GameList::LoadInterfaceLayout() {
 const QStringList GameList::supported_file_extensions = {"nso", "nro", "nca", "xci"};
 
 static bool HasSupportedFileExtension(const std::string& file_name) {
-    QFileInfo file = QFileInfo(file_name.c_str());
+    const QFileInfo file = QFileInfo(QString::fromStdString(file_name));
     return GameList::supported_file_extensions.contains(file.suffix(), Qt::CaseInsensitive);
 }
 
 static bool IsExtractedNCAMain(const std::string& file_name) {
-    return QFileInfo(file_name.c_str()).fileName() == "main";
+    return QFileInfo(QString::fromStdString(file_name)).fileName() == "main";
 }
 
 static QString FormatGameName(const std::string& physical_name) {
-    QFileInfo file_info(physical_name.c_str());
+    const QString physical_name_as_qstring = QString::fromStdString(physical_name);
+    const QFileInfo file_info(physical_name_as_qstring);
+
     if (IsExtractedNCAMain(physical_name)) {
         return file_info.dir().path();
-    } else {
-        return QString::fromStdString(physical_name);
     }
+
+    return physical_name_as_qstring;
 }
 
 void GameList::RefreshGameDirectory() {
