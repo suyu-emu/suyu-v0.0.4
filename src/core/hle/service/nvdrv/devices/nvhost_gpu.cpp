@@ -2,12 +2,14 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <cinttypes>
-#include <map>
+#include <cstring>
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/service/nvdrv/devices/nvhost_gpu.h"
+#include "core/memory.h"
+#include "video_core/gpu.h"
+#include "video_core/memory_manager.h"
 
 namespace Service::Nvidia::Devices {
 

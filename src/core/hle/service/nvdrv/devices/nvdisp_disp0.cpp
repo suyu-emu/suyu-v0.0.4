@@ -7,8 +7,8 @@
 #include "core/core.h"
 #include "core/hle/service/nvdrv/devices/nvdisp_disp0.h"
 #include "core/hle/service/nvdrv/devices/nvmap.h"
+#include "video_core/gpu.h"
 #include "video_core/renderer_base.h"
-#include "video_core/video_core.h"
 
 namespace Service::Nvidia::Devices {
 
