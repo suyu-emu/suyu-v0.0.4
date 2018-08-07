@@ -204,8 +204,9 @@ struct SurfaceParams {
 
     static PixelFormat PixelFormatFromRenderTargetFormat(Tegra::RenderTargetFormat format) {
         switch (format) {
+        // TODO (Hexagon12): Converting SRGBA to RGBA is a hack and doesn't completely correct the
+        // gamma.
         case Tegra::RenderTargetFormat::RGBA8_SRGB:
-            return PixelFormat::SRGBA8;
         case Tegra::RenderTargetFormat::RGBA8_UNORM:
             return PixelFormat::ABGR8;
         case Tegra::RenderTargetFormat::BGRA8_UNORM:
