@@ -29,10 +29,10 @@ enum class BufferMethods {
 };
 
 void GPU::WriteReg(u32 method, u32 subchannel, u32 value, u32 remaining_params) {
-    LOG_WARNING(HW_GPU,
-                "Processing method {:08X} on subchannel {} value "
-                "{:08X} remaining params {}",
-                method, subchannel, value, remaining_params);
+    LOG_TRACE(HW_GPU,
+              "Processing method {:08X} on subchannel {} value "
+              "{:08X} remaining params {}",
+              method, subchannel, value, remaining_params);
 
     if (method == static_cast<u32>(BufferMethods::BindObject)) {
         // Bind the current subchannel to the desired engine id.
