@@ -337,6 +337,7 @@ public:
              "AcquireNpadStyleSetUpdateEventHandle"},
             {107, nullptr, "DisconnectNpad"},
             {108, &Hid::GetPlayerLedPattern, "GetPlayerLedPattern"},
+            {109, nullptr, "ActivateNpadWithRevision"},
             {120, &Hid::SetNpadJoyHoldType, "SetNpadJoyHoldType"},
             {121, &Hid::GetNpadJoyHoldType, "GetNpadJoyHoldType"},
             {122, &Hid::SetNpadJoyAssignmentModeSingleByDefault,
