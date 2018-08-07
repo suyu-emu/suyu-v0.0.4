@@ -4,8 +4,6 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
-#include "core/hle/ipc_helpers.h"
-#include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvdrv/nvmemp.h"
 
 namespace Service::Nvidia {

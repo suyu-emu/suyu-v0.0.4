@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cstring>
+
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/hle/service/nvdrv/devices/nvhost_nvdec.h"

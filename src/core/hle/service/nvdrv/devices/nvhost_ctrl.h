@@ -5,8 +5,6 @@
 #pragma once
 
 #include <array>
-#include <cstdlib>
-#include <cstring>
 #include <vector>
 #include "common/common_types.h"
 #include "core/hle/service/nvdrv/devices/nvdevice.h"

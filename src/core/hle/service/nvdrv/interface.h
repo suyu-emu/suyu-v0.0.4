@@ -5,7 +5,6 @@
 #pragma once
 
 #include <memory>
-#include <string>
 #include "core/hle/kernel/event.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/service.h"
