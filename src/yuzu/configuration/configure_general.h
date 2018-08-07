@@ -7,6 +7,8 @@
 #include <memory>
 #include <QWidget>
 
+class HotkeyRegistry;
+
 namespace Ui {
 class ConfigureGeneral;
 }
@@ -18,11 +20,11 @@ public:
     explicit ConfigureGeneral(QWidget* parent = nullptr);
     ~ConfigureGeneral();
 
+    void PopulateHotkeyList(const HotkeyRegistry& registry);
     void applyConfiguration();
 
 private:
     void setConfiguration();
 
-private:
     std::unique_ptr<Ui::ConfigureGeneral> ui;
 };

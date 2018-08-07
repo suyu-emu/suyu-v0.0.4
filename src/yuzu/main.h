@@ -9,6 +9,7 @@
 #include <QTimer>
 #include "core/core.h"
 #include "ui_main.h"
+#include "yuzu/hotkeys.h"
 
 class Config;
 class EmuThread;
@@ -171,6 +172,8 @@ private:
 
     // stores default icon theme search paths for the platform
     QStringList default_theme_paths;
+
+    HotkeyRegistry hotkey_registry;
 
 protected:
     void dropEvent(QDropEvent* event) override;
