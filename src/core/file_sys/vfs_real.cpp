@@ -53,7 +53,7 @@ bool RealVfsFilesystem::IsWritable() const {
 }
 
 VfsEntryType RealVfsFilesystem::GetEntryType(std::string_view path_) const {
-    const auto path = FileUtil::SanitizePath(path_, true);
+    const auto path = FileUtil::SanitizePath(path_, FileUtil::DirectorySeparator::PlatformDefault);
     if (!FileUtil::Exists(path))
         return VfsEntryType::None;
     if (FileUtil::IsDirectory(path))
@@ -63,7 +63,7 @@ VfsEntryType RealVfsFilesystem::GetEntryType(std::string_view path_) const {
 }
 
 VirtualFile RealVfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
-    const auto path = FileUtil::SanitizePath(path_, true);
+    const auto path = FileUtil::SanitizePath(path_, FileUtil::DirectorySeparator::PlatformDefault);
     if (cache.find(path) != cache.end()) {
         auto weak = cache[path];
         if (!weak.expired()) {
@@ -82,15 +82,17 @@ VirtualFile RealVfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
 }
 
 VirtualFile RealVfsFilesystem::CreateFile(std::string_view path_, Mode perms) {
-    const auto path = FileUtil::SanitizePath(path_, true);
+    const auto path = FileUtil::SanitizePath(path_, FileUtil::DirectorySeparator::PlatformDefault);
     if (!FileUtil::Exists(path) && !FileUtil::CreateEmptyFile(path))
         return nullptr;
     return OpenFile(path, perms);
 }
 
 VirtualFile RealVfsFilesystem::CopyFile(std::string_view old_path_, std::string_view new_path_) {
-    const auto old_path = FileUtil::SanitizePath(old_path_, true);
-    const auto new_path = FileUtil::SanitizePath(new_path_, true);
+    const auto old_path =
+        FileUtil::SanitizePath(old_path_, FileUtil::DirectorySeparator::PlatformDefault);
+    const auto new_path =
+        FileUtil::SanitizePath(new_path_, FileUtil::DirectorySeparator::PlatformDefault);
 
     if (!FileUtil::Exists(old_path) || FileUtil::Exists(new_path) ||
         FileUtil::IsDirectory(old_path) || !FileUtil::Copy(old_path, new_path))
@@ -99,8 +101,10 @@ VirtualFile RealVfsFilesystem::CopyFile(std::string_view old_path_, std::string_
 }
 
 VirtualFile RealVfsFilesystem::MoveFile(std::string_view old_path_, std::string_view new_path_) {
-    const auto old_path = FileUtil::SanitizePath(old_path_, true);
-    const auto new_path = FileUtil::SanitizePath(new_path_, true);
+    const auto old_path =
+        FileUtil::SanitizePath(old_path_, FileUtil::DirectorySeparator::PlatformDefault);
+    const auto new_path =
+        FileUtil::SanitizePath(new_path_, FileUtil::DirectorySeparator::PlatformDefault);
 
     if (!FileUtil::Exists(old_path) || FileUtil::Exists(new_path) ||
         FileUtil::IsDirectory(old_path) || !FileUtil::Rename(old_path, new_path))
@@ -119,7 +123,7 @@ VirtualFile RealVfsFilesystem::MoveFile(std::string_view old_path_, std::string_
 }
 
 bool RealVfsFilesystem::DeleteFile(std::string_view path_) {
-    const auto path = FileUtil::SanitizePath(path_, true);
+    const auto path = FileUtil::SanitizePath(path_, FileUtil::DirectorySeparator::PlatformDefault);
     if (cache.find(path) != cache.end()) {
         if (!cache[path].expired())
             cache[path].lock()->Close();
@@ -129,13 +133,13 @@ bool RealVfsFilesystem::DeleteFile(std::string_view path_) {
 }
 
 VirtualDir RealVfsFilesystem::OpenDirectory(std::string_view path_, Mode perms) {
-    const auto path = FileUtil::SanitizePath(path_, true);
+    const auto path = FileUtil::SanitizePath(path_, FileUtil::DirectorySeparator::PlatformDefault);
     // Cannot use make_shared as RealVfsDirectory constructor is private
     return std::shared_ptr<RealVfsDirectory>(new RealVfsDirectory(*this, path, perms));
 }
 
 VirtualDir RealVfsFilesystem::CreateDirectory(std::string_view path_, Mode perms) {
-    const auto path = FileUtil::SanitizePath(path_, true);
+    const auto path = FileUtil::SanitizePath(path_, FileUtil::DirectorySeparator::PlatformDefault);
     if (!FileUtil::Exists(path) && !FileUtil::CreateDir(path))
         return nullptr;
     // Cannot use make_shared as RealVfsDirectory constructor is private
@@ -144,8 +148,10 @@ VirtualDir RealVfsFilesystem::CreateDirectory(std::string_view path_, Mode perms
 
 VirtualDir RealVfsFilesystem::CopyDirectory(std::string_view old_path_,
                                             std::string_view new_path_) {
-    const auto old_path = FileUtil::SanitizePath(old_path_, true);
-    const auto new_path = FileUtil::SanitizePath(new_path_, true);
+    const auto old_path =
+        FileUtil::SanitizePath(old_path_, FileUtil::DirectorySeparator::PlatformDefault);
+    const auto new_path =
+        FileUtil::SanitizePath(new_path_, FileUtil::DirectorySeparator::PlatformDefault);
     if (!FileUtil::Exists(old_path) || FileUtil::Exists(new_path) ||
         !FileUtil::IsDirectory(old_path))
         return nullptr;
@@ -155,8 +161,10 @@ VirtualDir RealVfsFilesystem::CopyDirectory(std::string_view old_path_,
 
 VirtualDir RealVfsFilesystem::MoveDirectory(std::string_view old_path_,
                                             std::string_view new_path_) {
-    const auto old_path = FileUtil::SanitizePath(old_path_, true);
-    const auto new_path = FileUtil::SanitizePath(new_path_, true);
+    const auto old_path =
+        FileUtil::SanitizePath(old_path_, FileUtil::DirectorySeparator::PlatformDefault);
+    const auto new_path =
+        FileUtil::SanitizePath(new_path_, FileUtil::DirectorySeparator::PlatformDefault);
     if (!FileUtil::Exists(old_path) || FileUtil::Exists(new_path) ||
         FileUtil::IsDirectory(old_path) || !FileUtil::Rename(old_path, new_path))
         return nullptr;
@@ -164,9 +172,11 @@ VirtualDir RealVfsFilesystem::MoveDirectory(std::string_view old_path_,
     for (auto& kv : cache) {
         // Path in cache starts with old_path
         if (kv.first.rfind(old_path, 0) == 0) {
-            const auto file_old_path = FileUtil::SanitizePath(kv.first, true);
+            const auto file_old_path =
+                FileUtil::SanitizePath(kv.first, FileUtil::DirectorySeparator::PlatformDefault);
             const auto file_new_path =
-                FileUtil::SanitizePath(new_path + DIR_SEP + kv.first.substr(old_path.size()), true);
+                FileUtil::SanitizePath(new_path + DIR_SEP + kv.first.substr(old_path.size()),
+                                       FileUtil::DirectorySeparator::PlatformDefault);
             auto cached = cache[file_old_path];
             if (!cached.expired()) {
                 auto file = cached.lock();
@@ -181,7 +191,7 @@ VirtualDir RealVfsFilesystem::MoveDirectory(std::string_view old_path_,
 }
 
 bool RealVfsFilesystem::DeleteDirectory(std::string_view path_) {
-    const auto path = FileUtil::SanitizePath(path_, true);
+    const auto path = FileUtil::SanitizePath(path_, FileUtil::DirectorySeparator::PlatformDefault);
     for (auto& kv : cache) {
         // Path in cache starts with old_path
         if (kv.first.rfind(path, 0) == 0) {

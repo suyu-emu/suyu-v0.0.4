@@ -140,7 +140,7 @@ class GameListWorker : public QObject, public QRunnable {
 
 public:
     GameListWorker(FileSys::VirtualFilesystem vfs, QString dir_path, bool deep_scan)
-        : dir_path(std::move(dir_path)), deep_scan(deep_scan) {}
+        : vfs(std::move(vfs)), dir_path(std::move(dir_path)), deep_scan(deep_scan) {}
 
 public slots:
     /// Starts the processing of directory tree information.
