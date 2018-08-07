@@ -162,15 +162,15 @@ void GameList::onTextChanged(const QString& newText) {
         }
         search_field->setFilterResult(rowCount, rowCount);
     } else {
-        QStandardItem* child_file;
-        QString file_path, file_name, file_title, file_programmid;
         int result_count = 0;
         for (int i = 0; i < rowCount; ++i) {
-            child_file = item_model->item(i, 0);
-            file_path = child_file->data(GameListItemPath::FullPathRole).toString().toLower();
-            file_name = file_path.mid(file_path.lastIndexOf("/") + 1);
-            file_title = child_file->data(GameListItemPath::TitleRole).toString().toLower();
-            file_programmid =
+            const QStandardItem* child_file = item_model->item(i, 0);
+            const QString file_path =
+                child_file->data(GameListItemPath::FullPathRole).toString().toLower();
+            QString file_name = file_path.mid(file_path.lastIndexOf('/') + 1);
+            const QString file_title =
+                child_file->data(GameListItemPath::TitleRole).toString().toLower();
+            const QString file_programmid =
                 child_file->data(GameListItemPath::ProgramIdRole).toString().toLower();
 
             // Only items which filename in combination with its title contains all words
