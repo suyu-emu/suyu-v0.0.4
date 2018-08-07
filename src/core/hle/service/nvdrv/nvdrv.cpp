@@ -54,7 +54,7 @@ u32 Module::Open(const std::string& device_name) {
     return fd;
 }
 
-u32 Module::Ioctl(u32 fd, u32_le command, const std::vector<u8>& input, std::vector<u8>& output) {
+u32 Module::Ioctl(u32 fd, u32 command, const std::vector<u8>& input, std::vector<u8>& output) {
     auto itr = open_files.find(fd);
     ASSERT_MSG(itr != open_files.end(), "Tried to talk to an invalid device");
 
