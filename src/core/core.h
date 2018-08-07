@@ -82,6 +82,17 @@ public:
      */
     ResultStatus SingleStep();
 
+    /**
+     * Invalidate the CPU instruction caches
+     * This function should only be used by GDB Stub to support breakpoints, memory updates and
+     * step/continue commands.
+     */
+    void InvalidateCpuInstructionCaches() {
+        for (auto& cpu : cpu_cores) {
+            cpu->ArmInterface().ClearInstructionCache();
+        }
+    }
+
     /// Shutdown the emulated system.
     void Shutdown();
 

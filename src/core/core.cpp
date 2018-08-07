@@ -62,7 +62,6 @@ System::ResultStatus System::RunLoop(bool tight_loop) {
         // execute. Otherwise, get out of the loop function.
         if (GDBStub::GetCpuHaltFlag()) {
             if (GDBStub::GetCpuStepFlag()) {
-                GDBStub::SetCpuStepFlag(false);
                 tight_loop = false;
             } else {
                 return ResultStatus::Success;
@@ -76,6 +75,10 @@ System::ResultStatus System::RunLoop(bool tight_loop) {
             // Cores 1-3 are run on other threads in this mode
             break;
         }
+    }
+
+    if (GDBStub::IsServerEnabled()) {
+        GDBStub::SetCpuStepFlag(false);
     }
 
     return status;

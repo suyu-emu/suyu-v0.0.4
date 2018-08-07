@@ -203,7 +203,7 @@ void ARM_Unicorn::ExecuteInstructions(int num_instructions) {
         }
         Kernel::Thread* thread = Kernel::GetCurrentThread();
         SaveContext(thread->context);
-        if (last_bkpt_hit || (num_instructions == 1)) {
+        if (last_bkpt_hit || GDBStub::GetCpuStepFlag()) {
             last_bkpt_hit = false;
             GDBStub::Break();
             GDBStub::SendTrap(thread, 5);
