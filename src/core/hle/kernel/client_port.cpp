@@ -14,8 +14,8 @@
 
 namespace Kernel {
 
-ClientPort::ClientPort() {}
-ClientPort::~ClientPort() {}
+ClientPort::ClientPort() = default;
+ClientPort::~ClientPort() = default;
 
 ResultVal<SharedPtr<ClientSession>> ClientPort::Connect() {
     // Note: Threads do not wait for the server endpoint to call
@@ -38,6 +38,14 @@ ResultVal<SharedPtr<ClientSession>> ClientPort::Connect() {
     server_port->WakeupAllWaitingThreads();
 
     return MakeResult(std::get<SharedPtr<ClientSession>>(sessions));
+}
+
+void ClientPort::ConnectionClosed() {
+    if (active_sessions == 0) {
+        return;
+    }
+
+    --active_sessions;
 }
 
 } // namespace Kernel
