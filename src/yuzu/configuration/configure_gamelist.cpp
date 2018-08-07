@@ -33,8 +33,10 @@ ConfigureGameList::ConfigureGameList(QWidget* parent)
     };
 
     for (size_t i = 0; i < row_text_names.size(); ++i) {
-        ui->row_1_text_combobox->addItem(QString::fromStdString(row_text_names[i]), i);
-        ui->row_2_text_combobox->addItem(QString::fromStdString(row_text_names[i]), i);
+        ui->row_1_text_combobox->addItem(QString::fromStdString(row_text_names[i]),
+                                         QVariant::fromValue(i));
+        ui->row_2_text_combobox->addItem(QString::fromStdString(row_text_names[i]),
+                                         QVariant::fromValue(i));
     }
 
     this->setConfiguration();
