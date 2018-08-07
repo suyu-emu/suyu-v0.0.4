@@ -36,7 +36,7 @@ add_subdirectory(lz4/contrib/cmake_unofficial)
 target_include_directories(lz4_static INTERFACE ./lz4/lib)
 
 # mbedtls
-add_subdirectory(mbedtls)
+add_subdirectory(mbedtls EXCLUDE_FROM_ALL)
 target_include_directories(mbedtls PUBLIC ./mbedtls/include)
 
 # MicroProfile
@@ -62,5 +62,5 @@ target_include_directories(opus INTERFACE ./opus/include)
 # Cubeb
 if(ENABLE_CUBEB)
     set(BUILD_TESTS OFF CACHE BOOL "")
-    add_subdirectory(cubeb)
+    add_subdirectory(cubeb EXCLUDE_FROM_ALL)
 endif()
