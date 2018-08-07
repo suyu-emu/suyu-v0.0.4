@@ -74,6 +74,31 @@ void APM::OpenSession(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<ISession>();
+
+    LOG_DEBUG(Service_APM, "called");
+}
+
+APM_Sys::APM_Sys() : ServiceFramework{"apm:sys"} {
+    // clang-format off
+    static const FunctionInfo functions[] = {
+        {0, nullptr, "RequestPerformanceMode"},
+        {1, &APM_Sys::GetPerformanceEvent, "GetPerformanceEvent"},
+        {2, nullptr, "GetThrottlingState"},
+        {3, nullptr, "GetLastThrottlingState"},
+        {4, nullptr, "ClearLastThrottlingState"},
+        {5, nullptr, "LoadAndApplySettings"},
+    };
+    // clang-format on
+
+    RegisterHandlers(functions);
+}
+
+void APM_Sys::GetPerformanceEvent(Kernel::HLERequestContext& ctx) {
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface<ISession>();
+
+    LOG_DEBUG(Service_APM, "called");
 }
 
 } // namespace Service::APM

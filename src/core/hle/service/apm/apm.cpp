@@ -13,6 +13,7 @@ void InstallInterfaces(SM::ServiceManager& service_manager) {
     auto module_ = std::make_shared<Module>();
     std::make_shared<APM>(module_, "apm")->InstallAsService(service_manager);
     std::make_shared<APM>(module_, "apm:p")->InstallAsService(service_manager);
+    std::make_shared<APM_Sys>()->InstallAsService(service_manager);
 }
 
 } // namespace Service::APM

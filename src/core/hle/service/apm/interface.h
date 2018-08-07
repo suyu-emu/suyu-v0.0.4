@@ -19,4 +19,12 @@ private:
     std::shared_ptr<Module> apm;
 };
 
+class APM_Sys final : public ServiceFramework<APM_Sys> {
+public:
+    explicit APM_Sys();
+
+private:
+    void GetPerformanceEvent(Kernel::HLERequestContext& ctx);
+};
+
 } // namespace Service::APM
