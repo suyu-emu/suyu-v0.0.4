@@ -80,8 +80,8 @@ public:
             {5, nullptr, "GetTimeZoneRuleVersion"},
             {100, &ITimeZoneService::ToCalendarTime, "ToCalendarTime"},
             {101, &ITimeZoneService::ToCalendarTimeWithMyRule, "ToCalendarTimeWithMyRule"},
-            {200, nullptr, "ToPosixTime"},
-            {201, nullptr, "ToPosixTimeWithMyRule"},
+            {201, nullptr, "ToPosixTime"},
+            {202, nullptr, "ToPosixTimeWithMyRule"},
         };
         RegisterHandlers(functions);
     }
