@@ -43,7 +43,7 @@ public:
     void filterBarSetChecked(bool state);
     void UpdateUITheme();
     GMainWindow();
-    ~GMainWindow();
+    ~GMainWindow() override;
 
 signals:
 

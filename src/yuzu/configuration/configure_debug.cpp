@@ -24,7 +24,7 @@ ConfigureDebug::ConfigureDebug(QWidget* parent) : QWidget(parent), ui(new Ui::Co
     });
 }
 
-ConfigureDebug::~ConfigureDebug() {}
+ConfigureDebug::~ConfigureDebug() = default;
 
 void ConfigureDebug::setConfiguration() {
     ui->toggle_gdbstub->setChecked(Settings::values.use_gdbstub);

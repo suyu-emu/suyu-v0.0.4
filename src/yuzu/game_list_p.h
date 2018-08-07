@@ -5,6 +5,7 @@
 #pragma once
 
 #include <atomic>
+#include <utility>
 #include <QImage>
 #include <QRunnable>
 #include <QStandardItem>
@@ -27,9 +28,8 @@ static QPixmap GetDefaultIcon(bool large) {
 class GameListItem : public QStandardItem {
 
 public:
-    GameListItem() : QStandardItem() {}
-    GameListItem(const QString& string) : QStandardItem(string) {}
-    virtual ~GameListItem() override {}
+    GameListItem() = default;
+    explicit GameListItem(const QString& string) : QStandardItem(string) {}
 };
 
 /**
@@ -45,9 +45,8 @@ public:
     static const int TitleRole = Qt::UserRole + 2;
     static const int ProgramIdRole = Qt::UserRole + 3;
 
-    GameListItemPath() : GameListItem() {}
-    GameListItemPath(const QString& game_path, const std::vector<u8>& smdh_data, u64 program_id)
-        : GameListItem() {
+    GameListItemPath() = default;
+    GameListItemPath(const QString& game_path, const std::vector<u8>& smdh_data, u64 program_id) {
         setData(game_path, FullPathRole);
         setData(qulonglong(program_id), ProgramIdRole);
     }
@@ -75,8 +74,8 @@ class GameListItemSize : public GameListItem {
 public:
     static const int SizeRole = Qt::UserRole + 1;
 
-    GameListItemSize() : GameListItem() {}
-    GameListItemSize(const qulonglong size_bytes) : GameListItem() {
+    GameListItemSize() = default;
+    explicit GameListItemSize(const qulonglong size_bytes) {
         setData(size_bytes, SizeRole);
     }
 
@@ -111,7 +110,7 @@ class GameListWorker : public QObject, public QRunnable {
 
 public:
     GameListWorker(QString dir_path, bool deep_scan)
-        : QObject(), QRunnable(), dir_path(dir_path), deep_scan(deep_scan) {}
+        : dir_path(std::move(dir_path)), deep_scan(deep_scan) {}
 
 public slots:
     /// Starts the processing of directory tree information.

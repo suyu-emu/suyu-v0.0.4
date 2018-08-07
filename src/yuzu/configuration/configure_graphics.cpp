@@ -14,7 +14,7 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
     this->setConfiguration();
 }
 
-ConfigureGraphics::~ConfigureGraphics() {}
+ConfigureGraphics::~ConfigureGraphics() = default;
 
 enum class Resolution : int {
     Auto,

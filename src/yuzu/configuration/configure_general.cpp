@@ -24,7 +24,7 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
     ui->use_docked_mode->setEnabled(!Core::System::GetInstance().IsPoweredOn());
 }
 
-ConfigureGeneral::~ConfigureGeneral() {}
+ConfigureGeneral::~ConfigureGeneral() = default;
 
 void ConfigureGeneral::setConfiguration() {
     ui->toggle_deepscan->setChecked(UISettings::values.gamedir_deepscan);
