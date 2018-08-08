@@ -15,6 +15,7 @@
 #include "common/string_util.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
+#include "core/file_sys/romfs.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/loader/loader.h"
 #include "game_list.h"
@@ -415,8 +416,8 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
         bool is_dir = FileUtil::IsDirectory(physical_name);
         QFileInfo file_info(physical_name.c_str());
         if (!is_dir && file_info.suffix().toStdString() == "nca") {
-            auto nca = std::make_shared<FileSys::NCA>(
-                std::make_shared<FileSys::RealVfsFile>(physical_name));
+            auto nca =
+                std::make_shared<FileSys::NCA>(vfs->OpenFile(physical_name, FileSys::Mode::Read));
             if (nca->GetType() == FileSys::NCAContentType::Control)
                 nca_control_map.insert_or_assign(nca->GetTitleId(), nca);
         }
@@ -460,7 +461,7 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
                 // Use from metadata pool.
                 if (nca_control_map.find(program_id) != nca_control_map.end()) {
                     const auto nca = nca_control_map[program_id];
-                    const auto control_dir = nca->GetSubdirectories()[0];
+                    const auto control_dir = FileSys::ExtractRomFS(nca->GetRomFS());
 
                     const auto nacp_file = control_dir->GetFile("control.nacp");
                     FileSys::NACP nacp(nacp_file);

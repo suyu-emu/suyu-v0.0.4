@@ -31,7 +31,7 @@ enum class VfsEntryType {
     Directory,
 };
 
-// A class represnting an abstract filesystem. A default implementation given the root VirtualDir is
+// A class representing an abstract filesystem. A default implementation given the root VirtualDir is
 // provided for convenience, but if the Vfs implementation has any additional state or
 // functionality, they will need to override.
 struct VfsFilesystem : NonCopyable {
