@@ -196,11 +196,7 @@ static void BuildEntryIndex(std::vector<FileSys::Entry>& entries, const std::vec
     entries.reserve(entries.size() + new_data.size());
 
     for (const auto& new_entry : new_data) {
-        auto& entry = entries.emplace_back();
-        entry.filename[0] = '\0';
-        std::strncat(entry.filename, new_entry->GetName().c_str(), FileSys::FILENAME_LENGTH - 1);
-        entry.type = type;
-        entry.file_size = new_entry->GetSize();
+        entries.emplace_back(new_entry->GetName(), type, new_entry->GetSize());
     }
 }
 
