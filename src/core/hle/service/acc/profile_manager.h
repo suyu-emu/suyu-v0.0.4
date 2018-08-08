@@ -21,7 +21,7 @@ struct UUID {
         uuid[1] = hi;
     };
     operator bool() const {
-        return uuid[0] != 0x0 && uuid[1] != 0x0;
+        return uuid[0] != 0x0 || uuid[1] != 0x0;
     }
 
     bool operator==(const UUID& rhs) {
@@ -76,9 +76,10 @@ static_assert(sizeof(ProfileBase) == 0x38, "ProfileBase is an invalid size");
 /// objects
 class ProfileManager {
 public:
-    ProfileManager() = default; // TODO(ogniK): Load from system save
+    ProfileManager(); // TODO(ogniK): Load from system save
     ResultCode AddUser(ProfileInfo user);
     ResultCode CreateNewUser(UUID uuid, std::array<u8, 0x20> username);
+    ResultCode CreateNewUser(UUID uuid, std::string username);
     size_t GetUserIndex(UUID uuid);
     size_t GetUserIndex(ProfileInfo user);
     bool GetProfileBase(size_t index, ProfileBase& profile);

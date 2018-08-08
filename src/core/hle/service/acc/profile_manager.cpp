@@ -1,9 +1,14 @@
+#include "core/settings.h"
 #include "profile_manager.h"
 
 namespace Service::Account {
 // TODO(ogniK): Get actual error codes
 constexpr ResultCode ERROR_TOO_MANY_USERS(ErrorModule::Account, -1);
 constexpr ResultCode ERROR_ARGUMENT_IS_NULL(ErrorModule::Account, 20);
+
+ProfileManager::ProfileManager() {
+    CreateNewUser(UUID{1, 0}, Settings::values.username);
+}
 
 size_t ProfileManager::AddToProfiles(const ProfileInfo& user) {
     if (user_count >= MAX_USERS) {
@@ -39,12 +44,21 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, std::array<u8, 0x20> usernam
     if (username[0] == 0x0)
         return ERROR_ARGUMENT_IS_NULL;
     ProfileInfo prof_inf;
-    prof_inf.user_uuid = uuid;
-    prof_inf.username = username;
+    prof_inf.user_uuid = std::move(uuid);
+    prof_inf.username = std::move(username);
     prof_inf.data = std::array<u8, MAX_DATA>();
     prof_inf.creation_time = 0x0;
     prof_inf.is_open = false;
     return AddUser(prof_inf);
+}
+
+ResultCode ProfileManager::CreateNewUser(UUID uuid, std::string username) {
+    std::array<u8, 0x20> username_output;
+    if (username.size() > username_output.size())
+        std::copy_n(username.begin(), username_output.size(), username_output.begin());
+    else
+        std::copy(username.begin(), username.end(), username_output.begin());
+    return CreateNewUser(uuid, std::move(username_output));
 }
 
 size_t ProfileManager::GetUserIndex(UUID uuid) {

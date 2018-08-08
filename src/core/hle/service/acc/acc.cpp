@@ -48,13 +48,6 @@ private:
         LOG_INFO(Service_ACC, "called user_id={}", user_id.Format());
         ProfileBase profile_base{};
         std::array<u8, MAX_DATA> data{};
-        /*if (Settings::values.username.size() > profile_base.username.size()) {
-            std::copy_n(Settings::values.username.begin(), profile_base.username.size(),
-                        profile_base.username.begin());
-        } else {
-            std::copy(Settings::values.username.begin(), Settings::values.username.end(),
-                      profile_base.username.begin());
-        }*/
         if (profile_manager.GetProfileBaseAndData(user_id, profile_base, data)) {
             ctx.WriteBuffer(data);
             IPC::ResponseBuilder rb{ctx, 16};
@@ -177,7 +170,9 @@ void Module::Interface::GetBaasAccountManagerForApplication(Kernel::HLERequestCo
 }
 
 Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
-    : ServiceFramework(name), module(std::move(module)) {}
+    : ServiceFramework(name), module(std::move(module)) {
+    profile_manager = std::make_unique<ProfileManager>();
+}
 
 void InstallInterfaces(SM::ServiceManager& service_manager) {
     auto module = std::make_shared<Module>();
