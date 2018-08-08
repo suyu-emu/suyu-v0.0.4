@@ -7,7 +7,9 @@ constexpr ResultCode ERROR_TOO_MANY_USERS(ErrorModule::Account, -1);
 constexpr ResultCode ERROR_ARGUMENT_IS_NULL(ErrorModule::Account, 20);
 
 ProfileManager::ProfileManager() {
-    CreateNewUser(UUID{1, 0}, Settings::values.username);
+    auto user_uuid = UUID{1, 0};
+    CreateNewUser(user_uuid, Settings::values.username);
+    OpenUser(user_uuid);
 }
 
 size_t ProfileManager::AddToProfiles(const ProfileInfo& user) {
