@@ -46,6 +46,10 @@ NVFlinger::~NVFlinger() {
     CoreTiming::UnscheduleEvent(composition_event, 0);
 }
 
+void NVFlinger::SetNVDrvInstance(std::shared_ptr<Nvidia::Module> instance) {
+    nvdrv = std::move(instance);
+}
+
 u64 NVFlinger::OpenDisplay(std::string_view name) {
     LOG_WARNING(Service, "Opening display {}", name);
 
@@ -141,9 +145,6 @@ void NVFlinger::Compose() {
         auto& igbp_buffer = buffer->igbp_buffer;
 
         // Now send the buffer to the GPU for drawing.
-        auto nvdrv = Nvidia::nvdrv.lock();
-        ASSERT(nvdrv);
-
         // TODO(Subv): Support more than just disp0. The display device selection is probably based
         // on which display we're drawing (Default, Internal, External, etc)
         auto nvdisp = nvdrv->GetDevice<Nvidia::Devices::nvdisp_disp0>("/dev/nvdisp_disp0");

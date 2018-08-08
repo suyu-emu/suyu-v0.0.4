@@ -10,6 +10,10 @@
 #include "common/common_types.h"
 #include "core/hle/service/service.h"
 
+namespace Service::NVFlinger {
+class NVFlinger;
+}
+
 namespace Service::Nvidia {
 
 namespace Devices {
@@ -56,8 +60,6 @@ private:
 };
 
 /// Registers all NVDRV services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& service_manager);
-
-extern std::weak_ptr<Module> nvdrv;
+void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger& nvflinger);
 
 } // namespace Service::Nvidia
