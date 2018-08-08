@@ -14,6 +14,7 @@ public:
     public:
         explicit Interface(std::shared_ptr<Module> module, const char* name);
 
+        void GetUserCount(Kernel::HLERequestContext& ctx);
         void GetUserExistence(Kernel::HLERequestContext& ctx);
         void ListAllUsers(Kernel::HLERequestContext& ctx);
         void ListOpenUsers(Kernel::HLERequestContext& ctx);

@@ -119,6 +119,13 @@ private:
     }
 };
 
+void Module::Interface::GetUserCount(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_ACC, "(STUBBED) called");
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push<u32>(1);
+}
+
 void Module::Interface::GetUserExistence(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_ACC, "(STUBBED) called");
     IPC::ResponseBuilder rb{ctx, 3};
