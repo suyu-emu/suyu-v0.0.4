@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <fstream>
 #include <functional>
+#include <limits>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -210,8 +211,9 @@ public:
         static_assert(std::is_trivially_copyable<T>(),
                       "Given array does not consist of trivially copyable objects");
 
-        if (!IsOpen())
-            return -1;
+        if (!IsOpen()) {
+            return std::numeric_limits<size_t>::max();
+        }
 
         return std::fread(data, sizeof(T), length, m_file);
     }
@@ -220,8 +222,10 @@ public:
     size_t WriteArray(const T* data, size_t length) {
         static_assert(std::is_trivially_copyable<T>(),
                       "Given array does not consist of trivially copyable objects");
-        if (!IsOpen())
-            return -1;
+        if (!IsOpen()) {
+            return std::numeric_limits<size_t>::max();
+        }
+
         return std::fwrite(data, sizeof(T), length, m_file);
     }
 
