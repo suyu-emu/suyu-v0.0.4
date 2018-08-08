@@ -43,10 +43,13 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, std::array<u8, 0x20> usernam
     prof_inf.username = username;
     prof_inf.data = std::array<u8, MAX_DATA>();
     prof_inf.creation_time = 0x0;
+    prof_inf.is_open = false;
     return AddUser(prof_inf);
 }
 
 size_t ProfileManager::GetUserIndex(UUID uuid) {
+    if (!uuid)
+        return -1;
     for (unsigned i = 0; i < user_count; i++)
         if (profiles[i].user_uuid == uuid)
             return i;
@@ -84,6 +87,63 @@ size_t ProfileManager::GetUserCount() {
 
 bool ProfileManager::UserExists(UUID uuid) {
     return (GetUserIndex(uuid) != -1);
+}
+
+void ProfileManager::OpenUser(UUID uuid) {
+    auto idx = GetUserIndex(uuid);
+    if (idx == -1)
+        return;
+    profiles[idx].is_open = true;
+    last_openned_user = uuid;
+}
+
+void ProfileManager::CloseUser(UUID uuid) {
+    auto idx = GetUserIndex(uuid);
+    if (idx == -1)
+        return;
+    profiles[idx].is_open = false;
+}
+
+std::array<UUID, MAX_USERS> ProfileManager::GetAllUsers() {
+    std::array<UUID, MAX_USERS> output;
+    for (unsigned i = 0; i < user_count; i++) {
+        output[i] = profiles[i].user_uuid;
+    }
+    return output;
+}
+
+std::array<UUID, MAX_USERS> ProfileManager::GetOpenUsers() {
+    std::array<UUID, MAX_USERS> output;
+    unsigned user_idx = 0;
+    for (unsigned i = 0; i < user_count; i++) {
+        if (profiles[i].is_open) {
+            output[i++] = profiles[i].user_uuid;
+        }
+    }
+    return output;
+}
+
+const UUID& ProfileManager::GetLastOpennedUser() {
+    return last_openned_user;
+}
+
+bool ProfileManager::GetProfileBaseAndData(size_t index, ProfileBase& profile,
+                                           std::array<u8, MAX_DATA>& data) {
+    if (GetProfileBase(index, profile)) {
+        std::memcpy(data.data(), profiles[index].data.data(), MAX_DATA);
+        return true;
+    }
+    return false;
+}
+bool ProfileManager::GetProfileBaseAndData(UUID uuid, ProfileBase& profile,
+                                           std::array<u8, MAX_DATA>& data) {
+    auto idx = GetUserIndex(uuid);
+    return GetProfileBaseAndData(idx, profile, data);
+}
+
+bool ProfileManager::GetProfileBaseAndData(ProfileInfo user, ProfileBase& profile,
+                                           std::array<u8, MAX_DATA>& data) {
+    return GetProfileBaseAndData(user.user_uuid, profile, data);
 }
 
 }; // namespace Service::Account

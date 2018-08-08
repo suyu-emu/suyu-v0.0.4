@@ -54,7 +54,8 @@ struct ProfileInfo {
     UUID user_uuid;
     std::array<u8, 0x20> username;
     u64 creation_time;
-    std::array<u8, MAX_DATA> data;
+    std::array<u8, MAX_DATA> data; // TODO(ognik): Work out what this is
+    bool is_open;
 };
 
 struct ProfileBase {
@@ -83,14 +84,24 @@ public:
     bool GetProfileBase(size_t index, ProfileBase& profile);
     bool GetProfileBase(UUID uuid, ProfileBase& profile);
     bool GetProfileBase(ProfileInfo user, ProfileBase& profile);
+    bool GetProfileBaseAndData(size_t index, ProfileBase& profile, std::array<u8, MAX_DATA>& data);
+    bool GetProfileBaseAndData(UUID uuid, ProfileBase& profile, std::array<u8, MAX_DATA>& data);
+    bool GetProfileBaseAndData(ProfileInfo user, ProfileBase& profile,
+                               std::array<u8, MAX_DATA>& data);
     size_t GetUserCount();
     bool UserExists(UUID uuid);
+    void OpenUser(UUID uuid);
+    void CloseUser(UUID uuid);
+    std::array<UUID, MAX_USERS> GetOpenUsers();
+    std::array<UUID, MAX_USERS> GetAllUsers();
+    const UUID& GetLastOpennedUser();
 
 private:
     std::array<ProfileInfo, MAX_USERS> profiles{};
     size_t user_count = 0;
     size_t AddToProfiles(const ProfileInfo& profile);
     bool RemoveProfileAtIdx(size_t index);
+    UUID last_openned_user{0, 0};
 };
 using ProfileManagerPtr = std::unique_ptr<ProfileManager>;
 
