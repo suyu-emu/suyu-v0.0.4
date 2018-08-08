@@ -104,8 +104,6 @@ add_library(core STATIC
     hle/lock.cpp
     hle/lock.h
     hle/result.h
-    hle/romfs.cpp
-    hle/romfs.h
     hle/service/acc/acc.cpp
     hle/service/acc/acc.h
     hle/service/acc/acc_aa.cpp
