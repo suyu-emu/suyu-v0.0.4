@@ -8,7 +8,7 @@ namespace Service::Account {
 
 ACC_SU::ACC_SU(std::shared_ptr<Module> module) : Module::Interface(std::move(module), "acc:su") {
     static const FunctionInfo functions[] = {
-        {0, nullptr, "GetUserCount"},
+        {0, &ACC_SU::GetUserCount, "GetUserCount"},
         {1, &ACC_SU::GetUserExistence, "GetUserExistence"},
         {2, &ACC_SU::ListAllUsers, "ListAllUsers"},
         {3, &ACC_SU::ListOpenUsers, "ListOpenUsers"},
