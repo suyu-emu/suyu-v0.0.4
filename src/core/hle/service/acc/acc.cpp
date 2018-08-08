@@ -3,7 +3,10 @@
 // Refer to the license.txt file included.
 
 #include <array>
+#include "common/common_types.h"
 #include "common/logging/log.h"
+#include "common/swap.h"
+#include "core/core_timing.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/service/acc/acc.h"
 #include "core/hle/service/acc/acc_aa.h"
@@ -13,7 +16,6 @@
 #include "core/settings.h"
 
 namespace Service::Account {
-
 // TODO: RE this structure
 struct UserData {
     INSERT_PADDING_WORDS(1);
@@ -33,11 +35,11 @@ struct ProfileBase {
 static_assert(sizeof(ProfileBase) == 0x38, "ProfileBase structure has incorrect size");
 
 // TODO(ogniK): Generate a real user id based on username, md5(username) maybe?
-static constexpr u128 DEFAULT_USER_ID{1ull, 0ull};
+static UUID DEFAULT_USER_ID{1ull, 0ull};
 
 class IProfile final : public ServiceFramework<IProfile> {
 public:
-    explicit IProfile(u128 user_id) : ServiceFramework("IProfile"), user_id(user_id) {
+    explicit IProfile(UUID user_id) : ServiceFramework("IProfile"), user_id(user_id) {
         static const FunctionInfo functions[] = {
             {0, &IProfile::Get, "Get"},
             {1, &IProfile::GetBase, "GetBase"},
@@ -51,7 +53,7 @@ private:
     void Get(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_ACC, "(STUBBED) called");
         ProfileBase profile_base{};
-        profile_base.user_id = user_id;
+        profile_base.user_id = user_id.uuid;
         if (Settings::values.username.size() > profile_base.username.size()) {
             std::copy_n(Settings::values.username.begin(), profile_base.username.size(),
                         profile_base.username.begin());
@@ -70,7 +72,7 @@ private:
 
         // TODO(Subv): Retrieve this information from somewhere.
         ProfileBase profile_base{};
-        profile_base.user_id = user_id;
+        profile_base.user_id = user_id.uuid;
         if (Settings::values.username.size() > profile_base.username.size()) {
             std::copy_n(Settings::values.username.begin(), profile_base.username.size(),
                         profile_base.username.begin());
@@ -83,7 +85,7 @@ private:
         rb.PushRaw(profile_base);
     }
 
-    u128 user_id; ///< The user id this profile refers to.
+    UUID user_id; ///< The user id this profile refers to.
 };
 
 class IManagerForApplication final : public ServiceFramework<IManagerForApplication> {
@@ -136,7 +138,7 @@ void Module::Interface::GetUserExistence(Kernel::HLERequestContext& ctx) {
 void Module::Interface::ListAllUsers(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_ACC, "(STUBBED) called");
     // TODO(Subv): There is only one user for now.
-    const std::vector<u128> user_ids = {DEFAULT_USER_ID};
+    const std::vector<UUID> user_ids = {DEFAULT_USER_ID};
     ctx.WriteBuffer(user_ids);
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
@@ -145,7 +147,7 @@ void Module::Interface::ListAllUsers(Kernel::HLERequestContext& ctx) {
 void Module::Interface::ListOpenUsers(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_ACC, "(STUBBED) called");
     // TODO(Subv): There is only one user for now.
-    const std::vector<u128> user_ids = {DEFAULT_USER_ID};
+    const std::vector<UUID> user_ids = {DEFAULT_USER_ID};
     ctx.WriteBuffer(user_ids);
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
@@ -153,11 +155,11 @@ void Module::Interface::ListOpenUsers(Kernel::HLERequestContext& ctx) {
 
 void Module::Interface::GetProfile(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    u128 user_id = rp.PopRaw<u128>();
+    UUID user_id = rp.PopRaw<UUID>();
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IProfile>(user_id);
-    LOG_DEBUG(Service_ACC, "called user_id=0x{:016X}{:016X}", user_id[1], user_id[0]);
+    LOG_DEBUG(Service_ACC, "called user_id={}", user_id.Format());
 }
 
 void Module::Interface::InitializeApplicationInfo(Kernel::HLERequestContext& ctx) {
