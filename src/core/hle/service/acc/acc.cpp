@@ -28,7 +28,7 @@ struct UserData {
 static_assert(sizeof(UserData) == 0x80, "UserData structure has incorrect size");
 
 struct ProfileBase {
-    u128 user_id;
+    UUID user_id;
     u64 timestamp;
     std::array<u8, 0x20> username;
 };
@@ -53,7 +53,7 @@ private:
     void Get(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_ACC, "(STUBBED) called");
         ProfileBase profile_base{};
-        profile_base.user_id = user_id.uuid;
+        profile_base.user_id = user_id;
         if (Settings::values.username.size() > profile_base.username.size()) {
             std::copy_n(Settings::values.username.begin(), profile_base.username.size(),
                         profile_base.username.begin());
@@ -72,7 +72,7 @@ private:
 
         // TODO(Subv): Retrieve this information from somewhere.
         ProfileBase profile_base{};
-        profile_base.user_id = user_id.uuid;
+        profile_base.user_id = user_id;
         if (Settings::values.username.size() > profile_base.username.size()) {
             std::copy_n(Settings::values.username.begin(), profile_base.username.size(),
                         profile_base.username.begin());
@@ -122,17 +122,20 @@ private:
 };
 
 void Module::Interface::GetUserCount(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_ACC, "(STUBBED) called");
+    LOG_INFO(Service_ACC, "called");
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
-    rb.Push<u32>(1);
+    rb.Push<u32>(static_cast<u32>(profile_manager->GetUserCount()));
 }
 
 void Module::Interface::GetUserExistence(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_ACC, "(STUBBED) called");
+    IPC::RequestParser rp{ctx};
+    UUID user_id = rp.PopRaw<UUID>();
+    LOG_INFO(Service_ACC, "called user_id={}", user_id.Format());
+
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
-    rb.Push(true); // TODO: Check when this is supposed to return true and when not
+    rb.Push(profile_manager->UserExists(user_id));
 }
 
 void Module::Interface::ListAllUsers(Kernel::HLERequestContext& ctx) {
