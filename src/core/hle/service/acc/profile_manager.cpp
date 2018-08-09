@@ -4,6 +4,7 @@
 namespace Service::Account {
 // TODO(ogniK): Get actual error codes
 constexpr ResultCode ERROR_TOO_MANY_USERS(ErrorModule::Account, -1);
+constexpr ResultCode ERROR_USER_ALREADY_EXISTS(ErrorModule::Account, -2);
 constexpr ResultCode ERROR_ARGUMENT_IS_NULL(ErrorModule::Account, 20);
 
 ProfileManager::ProfileManager() {
@@ -45,6 +46,9 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, std::array<u8, 0x20> usernam
         return ERROR_ARGUMENT_IS_NULL;
     if (username[0] == 0x0)
         return ERROR_ARGUMENT_IS_NULL;
+    for (unsigned i = 0; i < user_count; i++)
+        if (uuid == profiles[i].user_uuid)
+            return ERROR_USER_ALREADY_EXISTS;
     ProfileInfo prof_inf;
     prof_inf.user_uuid = std::move(uuid);
     prof_inf.username = std::move(username);
