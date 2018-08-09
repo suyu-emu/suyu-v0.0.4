@@ -35,32 +35,33 @@ struct SurfaceParams {
         DXT23 = 9,
         DXT45 = 10,
         DXN1 = 11, // This is also known as BC4
-        DXN2 = 12, // This is also known as BC5
-        BC7U = 13,
-        ASTC_2D_4X4 = 14,
-        G8R8 = 15,
-        BGRA8 = 16,
-        RGBA32F = 17,
-        RG32F = 18,
-        R32F = 19,
-        R16F = 20,
-        R16UNORM = 21,
-        RG16 = 22,
-        RG16F = 23,
-        RG16UI = 24,
-        RG16I = 25,
-        RG16S = 26,
-        RGB32F = 27,
-        SRGBA8 = 28,
+        DXN2UNORM = 12,
+        DXN2SNORM = 13,
+        BC7U = 14,
+        ASTC_2D_4X4 = 15,
+        G8R8 = 16,
+        BGRA8 = 17,
+        RGBA32F = 18,
+        RG32F = 19,
+        R32F = 20,
+        R16F = 21,
+        R16UNORM = 22,
+        RG16 = 23,
+        RG16F = 24,
+        RG16UI = 25,
+        RG16I = 26,
+        RG16S = 27,
+        RGB32F = 28,
+        SRGBA8 = 29,
 
         MaxColorFormat,
 
         // DepthStencil formats
-        Z24S8 = 29,
-        S8Z24 = 30,
-        Z32F = 31,
-        Z16 = 32,
-        Z32FS8 = 33,
+        Z24S8 = 30,
+        S8Z24 = 31,
+        Z32F = 32,
+        Z16 = 33,
+        Z32FS8 = 34,
 
         MaxDepthStencilFormat,
 
@@ -110,7 +111,8 @@ struct SurfaceParams {
             4, // DXT23
             4, // DXT45
             4, // DXN1
-            4, // DXN2
+            4, // DXN2UNORM
+            4, // DXN2SNORM
             4, // BC7U
             4, // ASTC_2D_4X4
             1, // G8R8
@@ -155,7 +157,8 @@ struct SurfaceParams {
             128, // DXT23
             128, // DXT45
             64,  // DXN1
-            128, // DXN2
+            128, // DXN2UNORM
+            128, // DXN2SNORM
             128, // BC7U
             32,  // ASTC_2D_4X4
             16,  // G8R8
@@ -309,7 +312,15 @@ struct SurfaceParams {
         case Tegra::Texture::TextureFormat::DXN1:
             return PixelFormat::DXN1;
         case Tegra::Texture::TextureFormat::DXN2:
-            return PixelFormat::DXN2;
+            switch (component_type) {
+            case Tegra::Texture::ComponentType::UNORM:
+                return PixelFormat::DXN2UNORM;
+            case Tegra::Texture::ComponentType::SNORM:
+                return PixelFormat::DXN2SNORM;
+            }
+            LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}",
+                         static_cast<u32>(component_type));
+            UNREACHABLE();
         case Tegra::Texture::TextureFormat::BC7U:
             return PixelFormat::BC7U;
         case Tegra::Texture::TextureFormat::ASTC_2D_4X4:
@@ -367,7 +378,8 @@ struct SurfaceParams {
             return Tegra::Texture::TextureFormat::DXT45;
         case PixelFormat::DXN1:
             return Tegra::Texture::TextureFormat::DXN1;
-        case PixelFormat::DXN2:
+        case PixelFormat::DXN2UNORM:
+        case PixelFormat::DXN2SNORM:
             return Tegra::Texture::TextureFormat::DXN2;
         case PixelFormat::BC7U:
             return Tegra::Texture::TextureFormat::BC7U;

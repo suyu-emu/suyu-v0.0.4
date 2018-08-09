@@ -109,7 +109,9 @@ static constexpr std::array<FormatTuple, SurfaceParams::MaxPixelFormat> tex_form
     {GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, ComponentType::UNorm,
      true},                                                                                 // DXT45
     {GL_COMPRESSED_RED_RGTC1, GL_RED, GL_UNSIGNED_INT_8_8_8_8, ComponentType::UNorm, true}, // DXN1
-    {GL_COMPRESSED_RG_RGTC2, GL_RG, GL_UNSIGNED_INT_8_8_8_8, ComponentType::UNorm, true},   // DXN2
+    {GL_COMPRESSED_RG_RGTC2, GL_RG, GL_UNSIGNED_INT_8_8_8_8, ComponentType::UNorm,
+     true},                                                                     // DXN2UNORM
+    {GL_COMPRESSED_SIGNED_RG_RGTC2, GL_RG, GL_INT, ComponentType::SNorm, true}, // DXN2SNORM
     {GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, GL_RGB, GL_UNSIGNED_INT_8_8_8_8, ComponentType::UNorm,
      true},                                                                    // BC7U
     {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, ComponentType::UNorm, false},        // ASTC_2D_4X4
@@ -219,17 +221,18 @@ static constexpr std::array<void (*)(u32, u32, u32, u8*, Tegra::GPUVAddr),
         MortonCopy<true, PixelFormat::R11FG11FB10F>, MortonCopy<true, PixelFormat::RGBA32UI>,
         MortonCopy<true, PixelFormat::DXT1>,         MortonCopy<true, PixelFormat::DXT23>,
         MortonCopy<true, PixelFormat::DXT45>,        MortonCopy<true, PixelFormat::DXN1>,
-        MortonCopy<true, PixelFormat::DXN2>,         MortonCopy<true, PixelFormat::BC7U>,
-        MortonCopy<true, PixelFormat::ASTC_2D_4X4>,  MortonCopy<true, PixelFormat::G8R8>,
-        MortonCopy<true, PixelFormat::BGRA8>,        MortonCopy<true, PixelFormat::RGBA32F>,
-        MortonCopy<true, PixelFormat::RG32F>,        MortonCopy<true, PixelFormat::R32F>,
-        MortonCopy<true, PixelFormat::R16F>,         MortonCopy<true, PixelFormat::R16UNORM>,
-        MortonCopy<true, PixelFormat::RG16>,         MortonCopy<true, PixelFormat::RG16F>,
-        MortonCopy<true, PixelFormat::RG16UI>,       MortonCopy<true, PixelFormat::RG16I>,
-        MortonCopy<true, PixelFormat::RG16S>,        MortonCopy<true, PixelFormat::RGB32F>,
-        MortonCopy<true, PixelFormat::SRGBA8>,       MortonCopy<true, PixelFormat::Z24S8>,
-        MortonCopy<true, PixelFormat::S8Z24>,        MortonCopy<true, PixelFormat::Z32F>,
-        MortonCopy<true, PixelFormat::Z16>,          MortonCopy<true, PixelFormat::Z32FS8>,
+        MortonCopy<true, PixelFormat::DXN2UNORM>,    MortonCopy<true, PixelFormat::DXN2SNORM>,
+        MortonCopy<true, PixelFormat::BC7U>,         MortonCopy<true, PixelFormat::ASTC_2D_4X4>,
+        MortonCopy<true, PixelFormat::G8R8>,         MortonCopy<true, PixelFormat::BGRA8>,
+        MortonCopy<true, PixelFormat::RGBA32F>,      MortonCopy<true, PixelFormat::RG32F>,
+        MortonCopy<true, PixelFormat::R32F>,         MortonCopy<true, PixelFormat::R16F>,
+        MortonCopy<true, PixelFormat::R16UNORM>,     MortonCopy<true, PixelFormat::RG16>,
+        MortonCopy<true, PixelFormat::RG16F>,        MortonCopy<true, PixelFormat::RG16UI>,
+        MortonCopy<true, PixelFormat::RG16I>,        MortonCopy<true, PixelFormat::RG16S>,
+        MortonCopy<true, PixelFormat::RGB32F>,       MortonCopy<true, PixelFormat::SRGBA8>,
+        MortonCopy<true, PixelFormat::Z24S8>,        MortonCopy<true, PixelFormat::S8Z24>,
+        MortonCopy<true, PixelFormat::Z32F>,         MortonCopy<true, PixelFormat::Z16>,
+        MortonCopy<true, PixelFormat::Z32FS8>,
 };
 
 static constexpr std::array<void (*)(u32, u32, u32, u8*, Tegra::GPUVAddr),
@@ -245,6 +248,8 @@ static constexpr std::array<void (*)(u32, u32, u32, u8*, Tegra::GPUVAddr),
         MortonCopy<false, PixelFormat::RGBA32UI>,
         // TODO(Subv): Swizzling DXT1/DXT23/DXT45/DXN1/DXN2/BC7U/ASTC_2D_4X4 formats is not
         // supported
+        nullptr,
+        nullptr,
         nullptr,
         nullptr,
         nullptr,
