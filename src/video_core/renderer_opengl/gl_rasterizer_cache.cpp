@@ -449,22 +449,24 @@ MICROPROFILE_DEFINE(OpenGL_SurfaceLoad, "OpenGL", "Surface Load", MP_RGB(128, 64
 void CachedSurface::LoadGLBuffer() {
     ASSERT(params.type != SurfaceType::Fill);
 
-    u8* const texture_src_data = Memory::GetPointer(params.GetCpuAddr());
+    const u8* const texture_src_data = Memory::GetPointer(params.GetCpuAddr());
 
     ASSERT(texture_src_data);
 
-    gl_buffer.resize(params.width * params.height * GetGLBytesPerPixel(params.pixel_format));
+    const u32 bytes_per_pixel = GetGLBytesPerPixel(params.pixel_format);
+    const u32 copy_size = params.width * params.height * bytes_per_pixel;
 
     MICROPROFILE_SCOPE(OpenGL_SurfaceLoad);
 
-    if (!params.is_tiled) {
-        const u32 bytes_per_pixel{params.GetFormatBpp() >> 3};
+    if (params.is_tiled) {
+        gl_buffer.resize(copy_size);
 
-        std::memcpy(gl_buffer.data(), texture_src_data,
-                    bytes_per_pixel * params.width * params.height);
-    } else {
         morton_to_gl_fns[static_cast<size_t>(params.pixel_format)](
             params.width, params.block_height, params.height, gl_buffer.data(), params.addr);
+    } else {
+        const u8* const texture_src_data_end = texture_src_data + copy_size;
+
+        gl_buffer.assign(texture_src_data, texture_src_data_end);
     }
 
     ConvertFormatAsNeeded_LoadGLBuffer(gl_buffer, params.pixel_format, params.width, params.height);
