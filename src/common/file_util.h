@@ -182,8 +182,12 @@ std::vector<T> SliceVector(const std::vector<T>& vector, size_t first, size_t la
     return std::vector<T>(vector.begin() + first, vector.begin() + first + last);
 }
 
-// Removes trailing slash, makes all '\\' into '/', and removes duplicate '/'.
-std::string SanitizePath(std::string_view path);
+enum class DirectorySeparator { ForwardSlash, BackwardSlash, PlatformDefault };
+
+// Removes trailing slash, makes all '\\' into '/', and removes duplicate '/'. Makes '/' into '\\'
+// depending if directory_separator is BackwardSlash or PlatformDefault and running on windows
+std::string SanitizePath(std::string_view path,
+                         DirectorySeparator directory_separator = DirectorySeparator::ForwardSlash);
 
 // simple wrapper for cstdlib file functions to
 // hopefully will make error checking easier

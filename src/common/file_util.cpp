@@ -884,11 +884,21 @@ std::string_view RemoveTrailingSlash(std::string_view path) {
     return path;
 }
 
-std::string SanitizePath(std::string_view path_) {
+std::string SanitizePath(std::string_view path_, DirectorySeparator directory_separator) {
     std::string path(path_);
-    std::replace(path.begin(), path.end(), '\\', '/');
+    char type1 = directory_separator == DirectorySeparator::BackwardSlash ? '/' : '\\';
+    char type2 = directory_separator == DirectorySeparator::BackwardSlash ? '\\' : '/';
+
+    if (directory_separator == DirectorySeparator::PlatformDefault) {
+#ifdef _WIN32
+        type1 = '/';
+        type2 = '\\';
+#endif
+    }
+
+    std::replace(path.begin(), path.end(), type1, type2);
     path.erase(std::unique(path.begin(), path.end(),
-                           [](char c1, char c2) { return c1 == '/' && c2 == '/'; }),
+                           [type2](char c1, char c2) { return c1 == type2 && c2 == type2; }),
                path.end());
     return std::string(RemoveTrailingSlash(path));
 }

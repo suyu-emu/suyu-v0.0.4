@@ -161,6 +161,7 @@ int main(int argc, char** argv) {
     }
 
     Core::System& system{Core::System::GetInstance()};
+    system.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
 
     SCOPE_EXIT({ system.Shutdown(); });
 

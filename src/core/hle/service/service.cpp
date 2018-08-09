@@ -198,7 +198,7 @@ void AddNamedPort(std::string name, SharedPtr<ClientPort> port) {
 }
 
 /// Initialize ServiceManager
-void Init(std::shared_ptr<SM::ServiceManager>& sm) {
+void Init(std::shared_ptr<SM::ServiceManager>& sm, const FileSys::VirtualFilesystem& rfs) {
     // NVFlinger needs to be accessed by several services like Vi and AppletOE so we instantiate it
     // here and pass it into the respective InstallInterfaces functions.
     auto nv_flinger = std::make_shared<NVFlinger::NVFlinger>();
@@ -221,7 +221,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm) {
     EUPLD::InstallInterfaces(*sm);
     Fatal::InstallInterfaces(*sm);
     FGM::InstallInterfaces(*sm);
-    FileSystem::InstallInterfaces(*sm);
+    FileSystem::InstallInterfaces(*sm, rfs);
     Friend::InstallInterfaces(*sm);
     GRC::InstallInterfaces(*sm);
     HID::InstallInterfaces(*sm);

@@ -59,7 +59,7 @@ public:
         QToolButton* button_filter_close = nullptr;
     };
 
-    explicit GameList(GMainWindow* parent = nullptr);
+    explicit GameList(FileSys::VirtualFilesystem vfs, GMainWindow* parent = nullptr);
     ~GameList() override;
 
     void clearFilter();
@@ -90,6 +90,7 @@ private:
     void PopupContextMenu(const QPoint& menu_location);
     void RefreshGameDirectory();
 
+    FileSys::VirtualFilesystem vfs;
     SearchField* search_field;
     GMainWindow* main_window = nullptr;
     QVBoxLayout* layout = nullptr;

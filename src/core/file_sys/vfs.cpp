@@ -4,11 +4,159 @@
 
 #include <algorithm>
 #include <numeric>
+#include <string>
+#include "common/common_paths.h"
 #include "common/file_util.h"
 #include "common/logging/backend.h"
 #include "core/file_sys/vfs.h"
 
 namespace FileSys {
+
+VfsFilesystem::VfsFilesystem(VirtualDir root_) : root(std::move(root_)) {}
+
+VfsFilesystem::~VfsFilesystem() = default;
+
+std::string VfsFilesystem::GetName() const {
+    return root->GetName();
+}
+
+bool VfsFilesystem::IsReadable() const {
+    return root->IsReadable();
+}
+
+bool VfsFilesystem::IsWritable() const {
+    return root->IsWritable();
+}
+
+VfsEntryType VfsFilesystem::GetEntryType(std::string_view path_) const {
+    const auto path = FileUtil::SanitizePath(path_);
+    if (root->GetFileRelative(path) != nullptr)
+        return VfsEntryType::File;
+    if (root->GetDirectoryRelative(path) != nullptr)
+        return VfsEntryType::Directory;
+
+    return VfsEntryType::None;
+}
+
+VirtualFile VfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
+    const auto path = FileUtil::SanitizePath(path_);
+    return root->GetFileRelative(path);
+}
+
+VirtualFile VfsFilesystem::CreateFile(std::string_view path_, Mode perms) {
+    const auto path = FileUtil::SanitizePath(path_);
+    return root->CreateFileRelative(path);
+}
+
+VirtualFile VfsFilesystem::CopyFile(std::string_view old_path_, std::string_view new_path_) {
+    const auto old_path = FileUtil::SanitizePath(old_path_);
+    const auto new_path = FileUtil::SanitizePath(new_path_);
+
+    // VfsDirectory impls are only required to implement copy across the current directory.
+    if (FileUtil::GetParentPath(old_path) == FileUtil::GetParentPath(new_path)) {
+        if (!root->Copy(FileUtil::GetFilename(old_path), FileUtil::GetFilename(new_path)))
+            return nullptr;
+        return OpenFile(new_path, Mode::ReadWrite);
+    }
+
+    // Do it using RawCopy. Non-default impls are encouraged to optimize this.
+    const auto old_file = OpenFile(old_path, Mode::Read);
+    if (old_file == nullptr)
+        return nullptr;
+    auto new_file = OpenFile(new_path, Mode::Read);
+    if (new_file != nullptr)
+        return nullptr;
+    new_file = CreateFile(new_path, Mode::Write);
+    if (new_file == nullptr)
+        return nullptr;
+    if (!VfsRawCopy(old_file, new_file))
+        return nullptr;
+    return new_file;
+}
+
+VirtualFile VfsFilesystem::MoveFile(std::string_view old_path_, std::string_view new_path_) {
+    const auto old_path = FileUtil::SanitizePath(old_path_);
+    const auto new_path = FileUtil::SanitizePath(new_path_);
+
+    // Again, non-default impls are highly encouraged to provide a more optimized version of this.
+    auto out = CopyFile(old_path_, new_path_);
+    if (out == nullptr)
+        return nullptr;
+    if (DeleteFile(old_path))
+        return out;
+    return nullptr;
+}
+
+bool VfsFilesystem::DeleteFile(std::string_view path_) {
+    const auto path = FileUtil::SanitizePath(path_);
+    auto parent = OpenDirectory(FileUtil::GetParentPath(path), Mode::Write);
+    if (parent == nullptr)
+        return false;
+    return parent->DeleteFile(FileUtil::GetFilename(path));
+}
+
+VirtualDir VfsFilesystem::OpenDirectory(std::string_view path_, Mode perms) {
+    const auto path = FileUtil::SanitizePath(path_);
+    return root->GetDirectoryRelative(path);
+}
+
+VirtualDir VfsFilesystem::CreateDirectory(std::string_view path_, Mode perms) {
+    const auto path = FileUtil::SanitizePath(path_);
+    return root->CreateDirectoryRelative(path);
+}
+
+VirtualDir VfsFilesystem::CopyDirectory(std::string_view old_path_, std::string_view new_path_) {
+    const auto old_path = FileUtil::SanitizePath(old_path_);
+    const auto new_path = FileUtil::SanitizePath(new_path_);
+
+    // Non-default impls are highly encouraged to provide a more optimized version of this.
+    auto old_dir = OpenDirectory(old_path, Mode::Read);
+    if (old_dir == nullptr)
+        return nullptr;
+    auto new_dir = OpenDirectory(new_path, Mode::Read);
+    if (new_dir != nullptr)
+        return nullptr;
+    new_dir = CreateDirectory(new_path, Mode::Write);
+    if (new_dir == nullptr)
+        return nullptr;
+
+    for (const auto& file : old_dir->GetFiles()) {
+        const auto x =
+            CopyFile(old_path + DIR_SEP + file->GetName(), new_path + DIR_SEP + file->GetName());
+        if (x == nullptr)
+            return nullptr;
+    }
+
+    for (const auto& dir : old_dir->GetSubdirectories()) {
+        const auto x =
+            CopyDirectory(old_path + DIR_SEP + dir->GetName(), new_path + DIR_SEP + dir->GetName());
+        if (x == nullptr)
+            return nullptr;
+    }
+
+    return new_dir;
+}
+
+VirtualDir VfsFilesystem::MoveDirectory(std::string_view old_path_, std::string_view new_path_) {
+    const auto old_path = FileUtil::SanitizePath(old_path_);
+    const auto new_path = FileUtil::SanitizePath(new_path_);
+
+    // Non-default impls are highly encouraged to provide a more optimized version of this.
+    auto out = CopyDirectory(old_path_, new_path_);
+    if (out == nullptr)
+        return nullptr;
+    if (DeleteDirectory(old_path))
+        return out;
+    return nullptr;
+}
+
+bool VfsFilesystem::DeleteDirectory(std::string_view path_) {
+    const auto path = FileUtil::SanitizePath(path_);
+    auto parent = OpenDirectory(FileUtil::GetParentPath(path), Mode::Write);
+    if (parent == nullptr)
+        return false;
+    return parent->DeleteSubdirectoryRecursive(FileUtil::GetFilename(path));
+}
 
 VfsFile::~VfsFile() = default;
 

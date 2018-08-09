@@ -43,10 +43,6 @@ FileType IdentifyFile(FileSys::VirtualFile file) {
     return FileType::Unknown;
 }
 
-FileType IdentifyFile(const std::string& file_name) {
-    return IdentifyFile(std::make_shared<FileSys::RealVfsFile>(file_name));
-}
-
 FileType GuessFromFilename(const std::string& name) {
     if (name == "main")
         return FileType::DeconstructedRomDirectory;

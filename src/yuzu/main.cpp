@@ -24,6 +24,7 @@
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/crypto/key_manager.h"
+#include "core/file_sys/vfs_real.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/loader/loader.h"
 #include "core/settings.h"
@@ -83,7 +84,9 @@ void GMainWindow::ShowCallouts() {}
 
 const int GMainWindow::max_recent_files_item;
 
-GMainWindow::GMainWindow() : config(new Config()), emu_thread(nullptr) {
+GMainWindow::GMainWindow()
+    : config(new Config()), emu_thread(nullptr),
+      vfs(std::make_shared<FileSys::RealVfsFilesystem>()) {
 
     debug_context = Tegra::DebugContext::Construct();
 
@@ -132,7 +135,7 @@ void GMainWindow::InitializeWidgets() {
     render_window = new GRenderWindow(this, emu_thread.get());
     render_window->hide();
 
-    game_list = new GameList(this);
+    game_list = new GameList(vfs, this);
     ui.horizontalLayout->addWidget(game_list);
 
     // Create status bar
@@ -406,6 +409,7 @@ bool GMainWindow::LoadROM(const QString& filename) {
     }
 
     Core::System& system{Core::System::GetInstance()};
+    system.SetFilesystem(vfs);
 
     system.SetGPUDebugContext(debug_context);
 
