@@ -36,7 +36,8 @@ MICROPROFILE_DEFINE(OpenGL_Drawing, "OpenGL", "Drawing", MP_RGB(128, 128, 192));
 MICROPROFILE_DEFINE(OpenGL_Blits, "OpenGL", "Blits", MP_RGB(100, 100, 255));
 MICROPROFILE_DEFINE(OpenGL_CacheManagement, "OpenGL", "Cache Mgmt", MP_RGB(100, 255, 100));
 
-RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window) : emu_window{window} {
+RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window)
+    : emu_window{window}, stream_buffer(GL_ARRAY_BUFFER, STREAM_BUFFER_SIZE) {
     // Create sampler objects
     for (size_t i = 0; i < texture_samplers.size(); ++i) {
         texture_samplers[i].Create();
@@ -57,9 +58,7 @@ RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window) : emu_wind
         const std::string_view extension{
             reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, i))};
 
-        if (extension == "GL_ARB_buffer_storage") {
-            has_ARB_buffer_storage = true;
-        } else if (extension == "GL_ARB_direct_state_access") {
+        if (extension == "GL_ARB_direct_state_access") {
             has_ARB_direct_state_access = true;
         } else if (extension == "GL_ARB_separate_shader_objects") {
             has_ARB_separate_shader_objects = true;
@@ -86,16 +85,14 @@ RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window) : emu_wind
 
     hw_vao.Create();
 
-    stream_buffer = OGLStreamBuffer::MakeBuffer(has_ARB_buffer_storage, GL_ARRAY_BUFFER);
-    stream_buffer->Create(STREAM_BUFFER_SIZE, STREAM_BUFFER_SIZE / 2);
-    state.draw.vertex_buffer = stream_buffer->GetHandle();
+    state.draw.vertex_buffer = stream_buffer.GetHandle();
 
     shader_program_manager = std::make_unique<GLShader::ProgramManager>();
     state.draw.shader_program = 0;
     state.draw.vertex_array = hw_vao.handle;
     state.Apply();
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, stream_buffer->GetHandle());
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, stream_buffer.GetHandle());
 
     for (unsigned index = 0; index < uniform_buffers.size(); ++index) {
         auto& buffer = uniform_buffers[index];
@@ -111,13 +108,7 @@ RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window) : emu_wind
     LOG_CRITICAL(Render_OpenGL, "Sync fixed function OpenGL state here!");
 }
 
-RasterizerOpenGL::~RasterizerOpenGL() {
-    if (stream_buffer != nullptr) {
-        state.draw.vertex_buffer = stream_buffer->GetHandle();
-        state.Apply();
-        stream_buffer->Release();
-    }
-}
+RasterizerOpenGL::~RasterizerOpenGL() {}
 
 std::pair<u8*, GLintptr> RasterizerOpenGL::SetupVertexArrays(u8* array_ptr,
                                                              GLintptr buffer_offset) {
@@ -126,7 +117,7 @@ std::pair<u8*, GLintptr> RasterizerOpenGL::SetupVertexArrays(u8* array_ptr,
     const auto& memory_manager = Core::System::GetInstance().GPU().memory_manager;
 
     state.draw.vertex_array = hw_vao.handle;
-    state.draw.vertex_buffer = stream_buffer->GetHandle();
+    state.draw.vertex_buffer = stream_buffer.GetHandle();
     state.Apply();
 
     // Upload all guest vertex arrays sequentially to our buffer
@@ -145,7 +136,7 @@ std::pair<u8*, GLintptr> RasterizerOpenGL::SetupVertexArrays(u8* array_ptr,
         Memory::ReadBlock(*memory_manager->GpuToCpuAddress(start), array_ptr, size);
 
         // Bind the vertex array to the buffer at the current offset.
-        glBindVertexBuffer(index, stream_buffer->GetHandle(), buffer_offset, vertex_array.stride);
+        glBindVertexBuffer(index, stream_buffer.GetHandle(), buffer_offset, vertex_array.stride);
 
         ASSERT_MSG(vertex_array.divisor == 0, "Vertex buffer divisor unimplemented");
 
@@ -205,7 +196,7 @@ void RasterizerOpenGL::SetupShaders(u8* buffer_ptr, GLintptr buffer_offset) {
     // Helper function for uploading uniform data
     const auto copy_buffer = [&](GLuint handle, GLintptr offset, GLsizeiptr size) {
         if (has_ARB_direct_state_access) {
-            glCopyNamedBufferSubData(stream_buffer->GetHandle(), handle, offset, 0, size);
+            glCopyNamedBufferSubData(stream_buffer.GetHandle(), handle, offset, 0, size);
         } else {
             glBindBuffer(GL_COPY_WRITE_BUFFER, handle);
             glCopyBufferSubData(GL_ARRAY_BUFFER, GL_COPY_WRITE_BUFFER, offset, 0, size);
@@ -456,7 +447,7 @@ void RasterizerOpenGL::DrawArrays() {
     const u64 index_buffer_size{regs.index_array.count * regs.index_array.FormatSizeInBytes()};
     const unsigned vertex_num{is_indexed ? regs.index_array.count : regs.vertex_buffer.count};
 
-    state.draw.vertex_buffer = stream_buffer->GetHandle();
+    state.draw.vertex_buffer = stream_buffer.GetHandle();
     state.Apply();
 
     size_t buffer_size = CalculateVertexArraysSize();
@@ -471,8 +462,8 @@ void RasterizerOpenGL::DrawArrays() {
 
     u8* buffer_ptr;
     GLintptr buffer_offset;
-    std::tie(buffer_ptr, buffer_offset) =
-        stream_buffer->Map(static_cast<GLsizeiptr>(buffer_size), 4);
+    std::tie(buffer_ptr, buffer_offset, std::ignore) =
+        stream_buffer.Map(static_cast<GLsizeiptr>(buffer_size), 4);
 
     u8* offseted_buffer;
     std::tie(offseted_buffer, buffer_offset) = SetupVertexArrays(buffer_ptr, buffer_offset);
@@ -500,7 +491,8 @@ void RasterizerOpenGL::DrawArrays() {
 
     SetupShaders(offseted_buffer, buffer_offset);
 
-    stream_buffer->Unmap();
+    // TODO: Don't use buffer_size here, use the updated buffer_offset.
+    stream_buffer.Unmap(buffer_size);
 
     shader_program_manager->ApplyTo(state);
     state.Apply();

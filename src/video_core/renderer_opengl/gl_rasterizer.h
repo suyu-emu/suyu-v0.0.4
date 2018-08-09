@@ -139,7 +139,6 @@ private:
     /// Syncs the blend state to match the guest state
     void SyncBlendState();
 
-    bool has_ARB_buffer_storage = false;
     bool has_ARB_direct_state_access = false;
     bool has_ARB_separate_shader_objects = false;
     bool has_ARB_vertex_attrib_binding = false;
@@ -160,7 +159,7 @@ private:
         ssbos;
 
     static constexpr size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;
-    std::unique_ptr<OGLStreamBuffer> stream_buffer;
+    OGLStreamBuffer stream_buffer;
     OGLBuffer uniform_buffer;
     OGLFramebuffer framebuffer;
 
