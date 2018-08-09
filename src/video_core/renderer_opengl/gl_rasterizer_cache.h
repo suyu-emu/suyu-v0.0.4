@@ -35,31 +35,32 @@ struct SurfaceParams {
         DXT23 = 9,
         DXT45 = 10,
         DXN1 = 11, // This is also known as BC4
-        BC7U = 12,
-        ASTC_2D_4X4 = 13,
-        G8R8 = 14,
-        BGRA8 = 15,
-        RGBA32F = 16,
-        RG32F = 17,
-        R32F = 18,
-        R16F = 19,
-        R16UNORM = 20,
-        RG16 = 21,
-        RG16F = 22,
-        RG16UI = 23,
-        RG16I = 24,
-        RG16S = 25,
-        RGB32F = 26,
-        SRGBA8 = 27,
+        DXN2 = 12, // This is also known as BC5
+        BC7U = 13,
+        ASTC_2D_4X4 = 14,
+        G8R8 = 15,
+        BGRA8 = 16,
+        RGBA32F = 17,
+        RG32F = 18,
+        R32F = 19,
+        R16F = 20,
+        R16UNORM = 21,
+        RG16 = 22,
+        RG16F = 23,
+        RG16UI = 24,
+        RG16I = 25,
+        RG16S = 26,
+        RGB32F = 27,
+        SRGBA8 = 28,
 
         MaxColorFormat,
 
         // DepthStencil formats
-        Z24S8 = 28,
-        S8Z24 = 29,
-        Z32F = 30,
-        Z16 = 31,
-        Z32FS8 = 32,
+        Z24S8 = 29,
+        S8Z24 = 30,
+        Z32F = 31,
+        Z16 = 32,
+        Z32FS8 = 33,
 
         MaxDepthStencilFormat,
 
@@ -109,6 +110,7 @@ struct SurfaceParams {
             4, // DXT23
             4, // DXT45
             4, // DXN1
+            4, // DXN2
             4, // BC7U
             4, // ASTC_2D_4X4
             1, // G8R8
@@ -153,6 +155,7 @@ struct SurfaceParams {
             128, // DXT23
             128, // DXT45
             64,  // DXN1
+            128, // DXN2
             128, // BC7U
             32,  // ASTC_2D_4X4
             16,  // G8R8
@@ -305,6 +308,8 @@ struct SurfaceParams {
             return PixelFormat::DXT45;
         case Tegra::Texture::TextureFormat::DXN1:
             return PixelFormat::DXN1;
+        case Tegra::Texture::TextureFormat::DXN2:
+            return PixelFormat::DXN2;
         case Tegra::Texture::TextureFormat::BC7U:
             return PixelFormat::BC7U;
         case Tegra::Texture::TextureFormat::ASTC_2D_4X4:
@@ -362,6 +367,8 @@ struct SurfaceParams {
             return Tegra::Texture::TextureFormat::DXT45;
         case PixelFormat::DXN1:
             return Tegra::Texture::TextureFormat::DXN1;
+        case PixelFormat::DXN2:
+            return Tegra::Texture::TextureFormat::DXN2;
         case PixelFormat::BC7U:
             return Tegra::Texture::TextureFormat::BC7U;
         case PixelFormat::ASTC_2D_4X4:

@@ -54,6 +54,7 @@ u32 BytesPerPixel(TextureFormat format) {
         return 8;
     case TextureFormat::DXT23:
     case TextureFormat::DXT45:
+    case TextureFormat::DXN2:
     case TextureFormat::BC7U:
         // In this case a 'pixel' actually refers to a 4x4 tile.
         return 16;
@@ -113,6 +114,7 @@ std::vector<u8> UnswizzleTexture(VAddr address, TextureFormat format, u32 width,
     case TextureFormat::DXT23:
     case TextureFormat::DXT45:
     case TextureFormat::DXN1:
+    case TextureFormat::DXN2:
     case TextureFormat::BC7U:
         // In the DXT and DXN formats, each 4x4 tile is swizzled instead of just individual pixel
         // values.
@@ -179,6 +181,7 @@ std::vector<u8> DecodeTexture(const std::vector<u8>& texture_data, TextureFormat
     case TextureFormat::DXT23:
     case TextureFormat::DXT45:
     case TextureFormat::DXN1:
+    case TextureFormat::DXN2:
     case TextureFormat::BC7U:
     case TextureFormat::ASTC_2D_4X4:
     case TextureFormat::A8R8G8B8:
