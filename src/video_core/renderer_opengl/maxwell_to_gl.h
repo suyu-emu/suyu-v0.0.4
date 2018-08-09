@@ -85,6 +85,8 @@ inline GLenum IndexFormat(Maxwell::IndexFormat index_format) {
 
 inline GLenum PrimitiveTopology(Maxwell::PrimitiveTopology topology) {
     switch (topology) {
+    case Maxwell::PrimitiveTopology::Points:
+        return GL_POINTS;
     case Maxwell::PrimitiveTopology::Triangles:
         return GL_TRIANGLES;
     case Maxwell::PrimitiveTopology::TriangleStrip:
