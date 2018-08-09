@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include <array>
 #include <cstddef>
+#include <iterator>
+#include <string_view>
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 
@@ -21,9 +22,14 @@ enum EntryType : u8 {
 
 // Structure of a directory entry, from
 // http://switchbrew.org/index.php?title=Filesystem_services#DirectoryEntry
-const size_t FILENAME_LENGTH = 0x300;
 struct Entry {
-    char filename[FILENAME_LENGTH];
+    Entry(std::string_view view, EntryType entry_type, u64 entry_size)
+        : type{entry_type}, file_size{entry_size} {
+        const size_t copy_size = view.copy(filename, std::size(filename) - 1);
+        filename[copy_size] = '\0';
+    }
+
+    char filename[0x300];
     INSERT_PADDING_BYTES(4);
     EntryType type;
     INSERT_PADDING_BYTES(3);
