@@ -16,7 +16,7 @@ BufferQueue::BufferQueue(u32 id, u64 layer_id) : id(id), layer_id(layer_id) {
         Kernel::Event::Create(Kernel::ResetType::Sticky, "BufferQueue NativeHandle");
 }
 
-void BufferQueue::SetPreallocatedBuffer(u32 slot, IGBPBuffer& igbp_buffer) {
+void BufferQueue::SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer) {
     Buffer buffer{};
     buffer.slot = slot;
     buffer.igbp_buffer = igbp_buffer;
