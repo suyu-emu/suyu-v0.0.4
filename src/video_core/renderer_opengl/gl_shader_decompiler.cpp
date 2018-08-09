@@ -507,6 +507,8 @@ private:
 
     /// Build the GLSL register list.
     void BuildRegisterList() {
+        regs.reserve(Register::NumRegisters);
+
         for (size_t index = 0; index < Register::NumRegisters; ++index) {
             regs.emplace_back(index, suffix);
         }
