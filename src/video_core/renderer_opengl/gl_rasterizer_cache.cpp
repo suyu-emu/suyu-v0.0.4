@@ -456,15 +456,15 @@ void CachedSurface::LoadGLBuffer() {
 
     MICROPROFILE_SCOPE(OpenGL_SurfaceLoad);
 
-    if (!params.is_tiled) {
-        const u8* const texture_src_data_end = texture_src_data + copy_size;
-
-        gl_buffer.assign(texture_src_data, texture_src_data_end);
-    } else {
+    if (params.is_tiled) {
         gl_buffer.resize(copy_size);
 
         morton_to_gl_fns[static_cast<size_t>(params.pixel_format)](
             params.width, params.block_height, params.height, gl_buffer.data(), params.addr);
+    } else {
+        const u8* const texture_src_data_end = texture_src_data + copy_size;
+
+        gl_buffer.assign(texture_src_data, texture_src_data_end);
     }
 
     ConvertFormatAsNeeded_LoadGLBuffer(gl_buffer, params.pixel_format, params.width, params.height);
