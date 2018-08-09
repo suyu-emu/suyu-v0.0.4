@@ -78,7 +78,7 @@ public:
     }
 
     template <typename U = T>
-    constexpr Vec2<std::enable_if_t<std::is_signed<U>::value, U>> operator-() const {
+    constexpr Vec2<std::enable_if_t<std::is_signed_v<U>, U>> operator-() const {
         return {-x, -y};
     }
     constexpr Vec2<decltype(T{} * T{})> operator*(const Vec2& other) const {
@@ -227,7 +227,7 @@ public:
     }
 
     template <typename U = T>
-    constexpr Vec3<std::enable_if_t<std::is_signed<U>::value, U>> operator-() const {
+    constexpr Vec3<std::enable_if_t<std::is_signed_v<U>, U>> operator-() const {
         return {-x, -y, -z};
     }
 
@@ -436,7 +436,7 @@ public:
     }
 
     template <typename U = T>
-    constexpr Vec4<std::enable_if_t<std::is_signed<U>::value, U>> operator-() const {
+    constexpr Vec4<std::enable_if_t<std::is_signed_v<U>, U>> operator-() const {
         return {-x, -y, -z, -w};
     }
 
