@@ -451,16 +451,18 @@ void CachedSurface::LoadGLBuffer() {
 
     ASSERT(texture_src_data);
 
-    gl_buffer.resize(params.width * params.height * GetGLBytesPerPixel(params.pixel_format));
+    const u32 bytes_per_pixel = GetGLBytesPerPixel(params.pixel_format);
+    const u32 copy_size = params.width * params.height * bytes_per_pixel;
 
     MICROPROFILE_SCOPE(OpenGL_SurfaceLoad);
 
     if (!params.is_tiled) {
-        const u32 bytes_per_pixel{params.GetFormatBpp() >> 3};
+        const u8* const texture_src_data_end = texture_src_data + copy_size;
 
-        std::memcpy(gl_buffer.data(), texture_src_data,
-                    bytes_per_pixel * params.width * params.height);
+        gl_buffer.assign(texture_src_data, texture_src_data_end);
     } else {
+        gl_buffer.resize(copy_size);
+
         morton_to_gl_fns[static_cast<size_t>(params.pixel_format)](
             params.width, params.block_height, params.height, gl_buffer.data(), params.addr);
     }
