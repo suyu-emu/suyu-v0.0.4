@@ -447,7 +447,7 @@ MICROPROFILE_DEFINE(OpenGL_SurfaceLoad, "OpenGL", "Surface Load", MP_RGB(128, 64
 void CachedSurface::LoadGLBuffer() {
     ASSERT(params.type != SurfaceType::Fill);
 
-    u8* const texture_src_data = Memory::GetPointer(params.GetCpuAddr());
+    const u8* const texture_src_data = Memory::GetPointer(params.GetCpuAddr());
 
     ASSERT(texture_src_data);
 
