@@ -82,6 +82,8 @@ static void ShowCalloutMessage(const QString& message, CalloutFlag flag) {
 
 void GMainWindow::ShowCallouts() {}
 
+const int GMainWindow::max_recent_files_item;
+
 GMainWindow::GMainWindow()
     : config(new Config()), emu_thread(nullptr),
       vfs(std::make_shared<FileSys::RealVfsFilesystem>()) {
