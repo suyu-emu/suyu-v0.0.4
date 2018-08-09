@@ -201,7 +201,7 @@ ResultCode HLERequestContext::PopulateFromIncomingCommandBuffer(u32_le* src_cmdb
     return RESULT_SUCCESS;
 }
 
-ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(Thread& thread) {
+ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(const Thread& thread) {
     std::array<u32, IPC::COMMAND_BUFFER_LENGTH> dst_cmdbuf;
     Memory::ReadBlock(*thread.owner_process, thread.GetTLSAddress(), dst_cmdbuf.data(),
                       dst_cmdbuf.size() * sizeof(u32));
