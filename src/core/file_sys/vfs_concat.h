@@ -12,14 +12,14 @@
 namespace FileSys {
 
 // Wrapper function to allow for more efficient handling of files.size() == 0, 1 cases.
-VirtualFile ConcatenateFiles(std::vector<VirtualFile> files, std::string_view name = "");
+VirtualFile ConcatenateFiles(std::vector<VirtualFile> files, std::string name = "");
 
 // Class that wraps multiple vfs files and concatenates them, making reads seamless. Currently
 // read-only.
 class ConcatenatedVfsFile : public VfsFile {
-    friend VirtualFile ConcatenateFiles(std::vector<VirtualFile> files, std::string_view name);
+    friend VirtualFile ConcatenateFiles(std::vector<VirtualFile> files, std::string name);
 
-    ConcatenatedVfsFile(std::vector<VirtualFile> files, std::string_view name);
+    ConcatenatedVfsFile(std::vector<VirtualFile> files, std::string name);
 
 public:
     std::string GetName() const override;

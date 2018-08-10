@@ -9,17 +9,17 @@
 
 namespace FileSys {
 
-VirtualFile ConcatenateFiles(std::vector<VirtualFile> files, std::string_view name) {
+VirtualFile ConcatenateFiles(std::vector<VirtualFile> files, std::string name) {
     if (files.empty())
         return nullptr;
     if (files.size() == 1)
         return files[0];
 
-    return std::shared_ptr<VfsFile>(new ConcatenatedVfsFile(std::move(files), name));
+    return std::shared_ptr<VfsFile>(new ConcatenatedVfsFile(std::move(files), std::move(name)));
 }
 
-ConcatenatedVfsFile::ConcatenatedVfsFile(std::vector<VirtualFile> files_, std::string_view name)
-    : name(name) {
+ConcatenatedVfsFile::ConcatenatedVfsFile(std::vector<VirtualFile> files_, std::string name)
+    : name(std::move(name)) {
     size_t next_offset = 0;
     for (const auto& file : files_) {
         files[next_offset] = file;

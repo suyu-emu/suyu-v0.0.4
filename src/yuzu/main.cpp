@@ -619,7 +619,7 @@ void GMainWindow::OnMenuLoadFolder() {
 }
 
 void GMainWindow::OnMenuInstallToNAND() {
-    const static QString file_filter =
+    const QString file_filter =
         tr("Installable Switch File (*.nca *.xci);;Nintendo Content Archive (*.nca);;NX Cartridge "
            "Image (*.xci)");
     QString filename = QFileDialog::getOpenFileName(this, tr("Install File"),
@@ -629,36 +629,36 @@ void GMainWindow::OnMenuInstallToNAND() {
             const auto xci = std::make_shared<FileSys::XCI>(
                 vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
             if (xci->GetStatus() != Loader::ResultStatus::Success) {
-                QMessageBox::critical(
+                QMessageBox::warning(
                     this, tr("Failed to Install XCI"),
                     tr("The XCI file you provided is invalid. Please double-check your encryption "
                        "keys and the file and try again."));
                 return;
             }
-            if (!Service::FileSystem::GetUserNANDContents()->InstallEntry(xci)) {
-                QMessageBox::critical(
-                    this, tr("Failed to Install XCI"),
-                    tr("There was an error while attempting to install the provided XCI file. It "
-                       "could have an incorrect format or be missing a metadata entry. Please "
-                       "double-check your file and try again."));
-            } else {
+            if (Service::FileSystem::GetUserNANDContents()->InstallEntry(xci)) {
                 QMessageBox::information(this, tr("Successfully Installed XCI"),
                                          tr("The file was successfully installed."));
                 game_list->PopulateAsync(UISettings::values.gamedir,
                                          UISettings::values.gamedir_deepscan);
+            } else {
+                QMessageBox::warning(
+                    this, tr("Failed to Install XCI"),
+                    tr("There was an error while attempting to install the provided XCI file. It "
+                       "could have an incorrect format or be missing a metadata entry. Please "
+                       "double-check your file and try again."));
             }
         } else {
             const auto nca = std::make_shared<FileSys::NCA>(
                 vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
             if (nca->GetStatus() != Loader::ResultStatus::Success) {
-                QMessageBox::critical(
+                QMessageBox::warning(
                     this, tr("Failed to Install NCA"),
                     tr("The NCA file you provided is invalid. Please double-check your encryption "
                        "keys and the file and try again."));
                 return;
             }
 
-            const static QStringList tt_options{"System Application",
+            static const QStringList tt_options{"System Application",
                                                 "System Archive",
                                                 "System Application Update",
                                                 "Firmware Package (Type A)",
@@ -676,26 +676,26 @@ void GMainWindow::OnMenuInstallToNAND() {
 
             auto index = tt_options.indexOf(item);
             if (!ok || index == -1) {
-                QMessageBox::critical(this, tr("Failed to Install NCA"),
-                                      tr("The title type you selected for the NCA is invalid."));
+                QMessageBox::warning(this, tr("Failed to Install NCA"),
+                                     tr("The title type you selected for the NCA is invalid."));
                 return;
             }
 
             if (index >= 5)
                 index += 0x80;
 
-            if (!Service::FileSystem::GetUserNANDContents()->InstallEntry(
+            if (Service::FileSystem::GetUserNANDContents()->InstallEntry(
                     nca, static_cast<FileSys::TitleType>(index))) {
-                QMessageBox::critical(this, tr("Failed to Install NCA"),
-                                      tr("There was an error while attempting to install the "
-                                         "provided NCA file. An error might have occured creating "
-                                         "the metadata file or parsing the NCA. Please "
-                                         "double-check your file and try again."));
-            } else {
                 QMessageBox::information(this, tr("Successfully Installed NCA"),
                                          tr("The file was successfully installed."));
                 game_list->PopulateAsync(UISettings::values.gamedir,
                                          UISettings::values.gamedir_deepscan);
+            } else {
+                QMessageBox::warning(this, tr("Failed to Install NCA"),
+                                     tr("There was an error while attempting to install the "
+                                        "provided NCA file. An error might have occured creating "
+                                        "the metadata file or parsing the NCA. Please "
+                                        "double-check your file and try again."));
             }
         }
     }

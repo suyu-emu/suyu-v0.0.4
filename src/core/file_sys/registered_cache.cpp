@@ -23,13 +23,13 @@ bool operator<(const RegisteredCacheEntry& lhs, const RegisteredCacheEntry& rhs)
 }
 
 static bool FollowsTwoDigitDirFormat(std::string_view name) {
-    const static std::regex two_digit_regex(
+    static const std::regex two_digit_regex(
         "000000[0123456789abcdefABCDEF][0123456789abcdefABCDEF]");
     return std::regex_match(name.begin(), name.end(), two_digit_regex);
 }
 
 static bool FollowsNcaIdFormat(std::string_view name) {
-    const static std::regex nca_id_regex("[0123456789abcdefABCDEF]+.nca");
+    static const std::regex nca_id_regex("[0123456789abcdefABCDEF]+.nca");
     return name.size() == 36 && std::regex_match(name.begin(), name.end(), nca_id_regex);
 }
 
@@ -56,7 +56,7 @@ static std::string GetCNMTName(TitleType type, u64 title_id) {
         "" ///< Currently unknown 'DeltaTitle'
     };
 
-    size_t index = static_cast<size_t>(type);
+    auto index = static_cast<size_t>(type);
     if (index >= 0x80)
         index -= 0x80;
     return fmt::format("{}_{:016x}.cnmt", TITLE_TYPE_NAMES[index], title_id);
@@ -90,15 +90,15 @@ VirtualFile RegisteredCache::OpenFileOrDirectoryConcat(const VirtualDir& dir,
         VirtualFile file = nullptr;
 
         const auto files = nca_dir->GetFiles();
-        if (files.size() == 1 && files[0]->GetName() == "00")
+        if (files.size() == 1 && files[0]->GetName() == "00") {
             file = files[0];
-        else {
+        } else {
             std::vector<VirtualFile> concat;
             for (u8 i = 0; i < 0x10; ++i) {
                 auto next = nca_dir->GetFile(fmt::format("{:02X}", i));
-                if (next != nullptr)
+                if (next != nullptr) {
                     concat.push_back(std::move(next));
-                else {
+                } else {
                     next = nca_dir->GetFile(fmt::format("{:02x}", i));
                     if (next != nullptr)
                         concat.push_back(std::move(next));
@@ -146,7 +146,8 @@ boost::optional<NcaID> RegisteredCache::GetNcaIDFromMetadata(u64 title_id,
     return boost::make_optional(iter->nca_id);
 }
 
-void RegisteredCache::AccumulateFiles(std::vector<NcaID>& ids) const {
+std::vector<NcaID> RegisteredCache::AccumulateFiles() const {
+    std::vector<NcaID> ids;
     for (const auto& d2_dir : dir->GetSubdirectories()) {
         if (FollowsNcaIdFormat(d2_dir->GetName())) {
             ids.push_back(HexStringToArray<0x10, true>(d2_dir->GetName().substr(0, 0x20)));
@@ -175,6 +176,7 @@ void RegisteredCache::AccumulateFiles(std::vector<NcaID>& ids) const {
         if (FollowsNcaIdFormat(d2_file->GetName()))
             ids.push_back(HexStringToArray<0x10, true>(d2_file->GetName().substr(0, 0x20)));
     }
+    return ids;
 }
 
 void RegisteredCache::ProcessFiles(const std::vector<NcaID>& ids) {
@@ -185,8 +187,9 @@ void RegisteredCache::ProcessFiles(const std::vector<NcaID>& ids) {
             continue;
         const auto nca = std::make_shared<NCA>(parser(file, id));
         if (nca->GetStatus() != Loader::ResultStatus::Success ||
-            nca->GetType() != NCAContentType::Meta)
+            nca->GetType() != NCAContentType::Meta) {
             continue;
+        }
 
         const auto section0 = nca->GetSubdirectories()[0];
 
@@ -218,8 +221,7 @@ void RegisteredCache::AccumulateYuzuMeta() {
 void RegisteredCache::Refresh() {
     if (dir == nullptr)
         return;
-    std::vector<NcaID> ids;
-    AccumulateFiles(ids);
+    const auto ids = AccumulateFiles();
     ProcessFiles(ids);
     AccumulateYuzuMeta();
 }

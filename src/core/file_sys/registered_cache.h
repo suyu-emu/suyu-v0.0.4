@@ -5,14 +5,17 @@
 #pragma once
 
 #include <array>
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 #include <boost/container/flat_map.hpp>
 #include "common/common_funcs.h"
+#include "common/common_types.h"
 #include "content_archive.h"
+#include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/vfs.h"
-#include "nca_metadata.h"
 
 namespace FileSys {
 class XCI;
@@ -49,9 +52,9 @@ public:
     // Parsing function defines the conversion from raw file to NCA. If there are other steps
     // besides creating the NCA from the file (e.g. NAX0 on SD Card), that should go in a custom
     // parsing function.
-    RegisteredCache(VirtualDir dir,
-                    RegisteredCacheParsingFunction parsing_function =
-                        [](const VirtualFile& file, const NcaID& id) { return file; });
+    explicit RegisteredCache(VirtualDir dir,
+                             RegisteredCacheParsingFunction parsing_function =
+                                 [](const VirtualFile& file, const NcaID& id) { return file; });
 
     void Refresh();
 
@@ -86,7 +89,7 @@ private:
     void IterateAllMetadata(std::vector<T>& out,
                             std::function<T(const CNMT&, const ContentRecord&)> proc,
                             std::function<bool(const CNMT&, const ContentRecord&)> filter) const;
-    void AccumulateFiles(std::vector<NcaID>& ids) const;
+    std::vector<NcaID> AccumulateFiles() const;
     void ProcessFiles(const std::vector<NcaID>& ids);
     void AccumulateYuzuMeta();
     boost::optional<NcaID> GetNcaIDFromMetadata(u64 title_id, ContentRecordType type) const;

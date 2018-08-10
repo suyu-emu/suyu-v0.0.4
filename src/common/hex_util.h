@@ -5,6 +5,8 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
+#include <string>
 #include <fmt/format.h>
 #include "common/common_types.h"
 

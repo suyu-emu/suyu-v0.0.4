@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cstring>
 #include "common/common_funcs.h"
 #include "common/swap.h"
 #include "content_archive.h"
@@ -67,9 +68,10 @@ const std::vector<MetaRecord>& CNMT::GetMetaRecords() const {
 bool CNMT::UnionRecords(const CNMT& other) {
     bool change = false;
     for (const auto& rec : other.content_records) {
-        const auto iter = std::find_if(
-            content_records.begin(), content_records.end(),
-            [rec](const ContentRecord& r) { return r.nca_id == rec.nca_id && r.type == rec.type; });
+        const auto iter = std::find_if(content_records.begin(), content_records.end(),
+                                       [&rec](const ContentRecord& r) {
+                                           return r.nca_id == rec.nca_id && r.type == rec.type;
+                                       });
         if (iter == content_records.end()) {
             content_records.emplace_back(rec);
             ++header->number_content_entries;
@@ -78,7 +80,7 @@ bool CNMT::UnionRecords(const CNMT& other) {
     }
     for (const auto& rec : other.meta_records) {
         const auto iter =
-            std::find_if(meta_records.begin(), meta_records.end(), [rec](const MetaRecord& r) {
+            std::find_if(meta_records.begin(), meta_records.end(), [&rec](const MetaRecord& r) {
                 return r.title_id == rec.title_id && r.title_version == rec.title_version &&
                        r.type == rec.type;
             });
