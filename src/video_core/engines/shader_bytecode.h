@@ -477,8 +477,7 @@ union Instruction {
     u64 value;
 };
 static_assert(sizeof(Instruction) == 0x8, "Incorrect structure size");
-static_assert(std::is_standard_layout<Instruction>::value,
-              "Structure does not have standard layout");
+static_assert(std::is_standard_layout_v<Instruction>, "Instruction is not standard layout");
 
 class OpCode {
 public:

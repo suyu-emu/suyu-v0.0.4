@@ -30,8 +30,7 @@ union CommandHeader {
 
     BitField<29, 3, SubmissionMode> mode;
 };
-static_assert(std::is_standard_layout<CommandHeader>::value == true,
-              "CommandHeader does not use standard layout");
+static_assert(std::is_standard_layout_v<CommandHeader>, "CommandHeader is not standard layout");
 static_assert(sizeof(CommandHeader) == sizeof(u32), "CommandHeader has incorrect size!");
 
 } // namespace Tegra
