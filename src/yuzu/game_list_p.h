@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <atomic>
 #include <utility>
 #include <QImage>
@@ -39,6 +40,7 @@ public:
  * If this class receives valid SMDH data, it will also display game icons and titles.
  */
 class GameListItemPath : public GameListItem {
+
 public:
     static const int FullPathRole = Qt::UserRole + 1;
     static const int TitleRole = Qt::UserRole + 2;
@@ -68,17 +70,16 @@ public:
             std::string filename;
             Common::SplitPath(data(FullPathRole).toString().toStdString(), nullptr, &filename,
                               nullptr);
-            QString title = data(TitleRole).toString();
 
-            std::vector<QString> row_data{
+            const std::array<QString, 4> row_data{{
                 QString::fromStdString(filename),
                 data(FileTypeRole).toString(),
                 QString::fromStdString(fmt::format("0x{:016X}", data(ProgramIdRole).toULongLong())),
                 data(TitleRole).toString(),
-            };
+            }};
 
-            auto row1 = row_data.at(UISettings::values.row_1_text_id);
-            auto row2 = row_data.at(UISettings::values.row_2_text_id);
+            const auto& row1 = row_data.at(UISettings::values.row_1_text_id);
+            const auto& row2 = row_data.at(UISettings::values.row_2_text_id);
 
             if (row1.isEmpty() || row1 == row2)
                 return row2;
@@ -86,9 +87,9 @@ public:
                 return row1;
 
             return row1 + "\n    " + row2;
-        } else {
-            return GameListItem::data(role);
         }
+
+        return GameListItem::data(role);
     }
 };
 
