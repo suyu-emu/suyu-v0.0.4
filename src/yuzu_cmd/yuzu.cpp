@@ -174,19 +174,6 @@ int main(int argc, char** argv) {
     case Core::System::ResultStatus::ErrorLoader:
         LOG_CRITICAL(Frontend, "Failed to load ROM!");
         return -1;
-    case Core::System::ResultStatus::ErrorLoader_ErrorMissingKeys:
-        LOG_CRITICAL(Frontend, "The game you are trying to load is encrypted and the keys required "
-                               "could not be found. Please refer to the yuzu wiki for help");
-        return -1;
-    case Core::System::ResultStatus::ErrorLoader_ErrorDecrypting:
-        LOG_CRITICAL(Frontend, "The game you are trying to load is encrypted and there was a "
-                               "general error while decrypting. This could mean that the keys are "
-                               "incorrect, game is invalid or game uses an unsupported method of "
-                               "crypto. Please double-check your keys");
-        return -1;
-    case Core::System::ResultStatus::ErrorLoader_ErrorInvalidFormat:
-        LOG_CRITICAL(Frontend, "Error while loading ROM: The ROM format is not supported.");
-        return -1;
     case Core::System::ResultStatus::ErrorNotInitialized:
         LOG_CRITICAL(Frontend, "CPUCore not initialized");
         return -1;
@@ -198,6 +185,17 @@ int main(int argc, char** argv) {
         return -1;
     case Core::System::ResultStatus::Success:
         break; // Expected case
+    default:
+        if (static_cast<u32>(load_result) >
+            static_cast<u32>(Core::System::ResultStatus::ErrorLoader)) {
+            const u16 loader_id = static_cast<u16>(Core::System::ResultStatus::ErrorLoader);
+            const u16 error_id = static_cast<u16>(load_result) - loader_id;
+            LOG_CRITICAL(Frontend,
+                         "While attempting to load the ROM requested, an error occured. Please "
+                         "refer to the yuzu wiki for more information or the yuzu discord for "
+                         "additional help.\n\nError Code: {:04X}-{:04X}\nError Description: {}",
+                         loader_id, error_id, Loader::GetMessageForResultStatus(error_id));
+        }
     }
 
     Core::Telemetry().AddField(Telemetry::FieldType::App, "Frontend", "SDL");

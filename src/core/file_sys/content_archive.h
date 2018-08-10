@@ -98,8 +98,8 @@ protected:
 private:
     u8 GetCryptoRevision() const;
     boost::optional<Core::Crypto::Key128> GetKeyAreaKey(NCASectionCryptoType type) const;
-    boost::optional<Core::Crypto::Key128> GetTitlekey() const;
-    VirtualFile Decrypt(NCASectionHeader header, VirtualFile in, u64 starting_offset) const;
+    boost::optional<Core::Crypto::Key128> GetTitlekey();
+    VirtualFile Decrypt(NCASectionHeader header, VirtualFile in, u64 starting_offset);
 
     std::vector<VirtualDir> dirs;
     std::vector<VirtualFile> files;
@@ -109,6 +109,7 @@ private:
     VirtualFile file;
 
     NCAHeader header{};
+    bool has_rights_id{};
 
     Loader::ResultStatus status{};
 

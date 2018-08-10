@@ -182,7 +182,7 @@ ResultStatus AppLoader_NRO::Load(Kernel::SharedPtr<Kernel::Process>& process) {
     static constexpr VAddr base_addr{Memory::PROCESS_IMAGE_VADDR};
 
     if (!LoadNro(file, base_addr)) {
-        return ResultStatus::ErrorInvalidFormat;
+        return ResultStatus::ErrorLoadingNRO;
     }
 
     process->svc_access_mask.set();
@@ -197,7 +197,7 @@ ResultStatus AppLoader_NRO::Load(Kernel::SharedPtr<Kernel::Process>& process) {
 
 ResultStatus AppLoader_NRO::ReadIcon(std::vector<u8>& buffer) {
     if (icon_data.empty()) {
-        return ResultStatus::ErrorNotUsed;
+        return ResultStatus::ErrorNoIcon;
     }
 
     buffer = icon_data;
@@ -206,7 +206,7 @@ ResultStatus AppLoader_NRO::ReadIcon(std::vector<u8>& buffer) {
 
 ResultStatus AppLoader_NRO::ReadProgramId(u64& out_program_id) {
     if (nacp == nullptr) {
-        return ResultStatus::ErrorNotUsed;
+        return ResultStatus::ErrorNoControl;
     }
 
     out_program_id = nacp->GetTitleId();
@@ -215,7 +215,7 @@ ResultStatus AppLoader_NRO::ReadProgramId(u64& out_program_id) {
 
 ResultStatus AppLoader_NRO::ReadRomFS(FileSys::VirtualFile& dir) {
     if (romfs == nullptr) {
-        return ResultStatus::ErrorNotUsed;
+        return ResultStatus::ErrorNoRomFS;
     }
 
     dir = romfs;
@@ -224,7 +224,7 @@ ResultStatus AppLoader_NRO::ReadRomFS(FileSys::VirtualFile& dir) {
 
 ResultStatus AppLoader_NRO::ReadTitle(std::string& title) {
     if (nacp == nullptr) {
-        return ResultStatus::ErrorNotUsed;
+        return ResultStatus::ErrorNoControl;
     }
 
     title = nacp->GetApplicationName();

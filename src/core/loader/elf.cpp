@@ -390,7 +390,7 @@ ResultStatus AppLoader_ELF::Load(Kernel::SharedPtr<Kernel::Process>& process) {
 
     std::vector<u8> buffer = file->ReadAllBytes();
     if (buffer.size() != file->GetSize())
-        return ResultStatus::Error;
+        return ResultStatus::ErrorIncorrectELFFileSize;
 
     ElfReader elf_reader(&buffer[0]);
     SharedPtr<CodeSet> codeset = elf_reader.LoadInto(Memory::PROCESS_IMAGE_VADDR);

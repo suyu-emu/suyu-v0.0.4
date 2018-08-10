@@ -83,13 +83,13 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
 
     if (dir == nullptr) {
         if (file == nullptr)
-            return ResultStatus::ErrorInvalidFormat;
+            return ResultStatus::ErrorNullFile;
         dir = file->GetContainingDirectory();
     }
 
     const FileSys::VirtualFile npdm = dir->GetFile("main.npdm");
     if (npdm == nullptr)
-        return ResultStatus::ErrorInvalidFormat;
+        return ResultStatus::ErrorMissingNPDM;
 
     ResultStatus result = metadata.Load(npdm);
     if (result != ResultStatus::Success) {
@@ -99,7 +99,7 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
 
     const FileSys::ProgramAddressSpaceType arch_bits{metadata.GetAddressSpaceType()};
     if (arch_bits == FileSys::ProgramAddressSpaceType::Is32Bit) {
-        return ResultStatus::ErrorUnsupportedArch;
+        return ResultStatus::Error32BitISA;
     }
 
     // Load NSO modules
@@ -143,28 +143,28 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
 
 ResultStatus AppLoader_DeconstructedRomDirectory::ReadRomFS(FileSys::VirtualFile& dir) {
     if (romfs == nullptr)
-        return ResultStatus::ErrorNotUsed;
+        return ResultStatus::ErrorNoRomFS;
     dir = romfs;
     return ResultStatus::Success;
 }
 
 ResultStatus AppLoader_DeconstructedRomDirectory::ReadIcon(std::vector<u8>& buffer) {
     if (icon_data.empty())
-        return ResultStatus::ErrorNotUsed;
+        return ResultStatus::ErrorNoIcon;
     buffer = icon_data;
     return ResultStatus::Success;
 }
 
 ResultStatus AppLoader_DeconstructedRomDirectory::ReadProgramId(u64& out_program_id) {
     if (name.empty())
-        return ResultStatus::ErrorNotUsed;
+        return ResultStatus::ErrorNoControl;
     out_program_id = title_id;
     return ResultStatus::Success;
 }
 
 ResultStatus AppLoader_DeconstructedRomDirectory::ReadTitle(std::string& title) {
     if (name.empty())
-        return ResultStatus::ErrorNotUsed;
+        return ResultStatus::ErrorNoControl;
     title = name;
     return ResultStatus::Success;
 }

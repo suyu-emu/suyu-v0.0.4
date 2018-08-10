@@ -86,6 +86,55 @@ std::string GetFileTypeString(FileType type) {
     return "unknown";
 }
 
+constexpr std::array<const char*, 36> RESULT_MESSAGES{
+    "The operation completed successfully.",
+    "The loader requested to load is already loaded.",
+    "The operation is not implemented.",
+    "The loader is not initialized properly.",
+    "The NPDM file has a bad header.",
+    "The NPDM has a bad ACID header.",
+    "The NPDM has a bad ACI header,",
+    "The NPDM file has a bad file access control.",
+    "The NPDM has a bad file access header.",
+    "The PFS/HFS partition has a bad header.",
+    "The PFS/HFS partition has incorrect size as determined by the header.",
+    "The NCA file has a bad header.",
+    "The general keyfile could not be found.",
+    "The NCA Header key could not be found.",
+    "The NCA Header key is incorrect or the header is invalid.",
+    "Support for NCA2-type NCAs is not implemented.",
+    "Support for NCA0-type NCAs is not implemented.",
+    "The titlekey for this Rights ID could not be found.",
+    "The titlekek for this crypto revision could not be found.",
+    "The Rights ID in the header is invalid.",
+    "The key area key for this application type and crypto revision could not be found.",
+    "The key area key is incorrect or the section header is invalid.",
+    "The titlekey and/or titlekek is incorrect or the section header is invalid.",
+    "The XCI file is missing a Program-type NCA.",
+    "The NCA file is not an application.",
+    "The ExeFS partition could not be found.",
+    "The XCI file has a bad header.",
+    "The XCI file is missing a partition.",
+    "The file could not be found or does not exist.",
+    "The game is missing a program metadata file (main.npdm).",
+    "The game uses the currently-unimplemented 32-bit architecture.",
+    "The RomFS could not be found.",
+    "The ELF file has incorrect size as determined by the header.",
+    "There was a general error loading the NRO into emulated memory.",
+    "There is no icon available.",
+    "There is no control data available.",
+};
+
+std::string GetMessageForResultStatus(ResultStatus status) {
+    return GetMessageForResultStatus(static_cast<size_t>(status));
+}
+
+std::string GetMessageForResultStatus(u16 status) {
+    if (status >= 36)
+        return "";
+    return RESULT_MESSAGES[status];
+}
+
 /**
  * Get a loader for a file with a specific type
  * @param file The file to load
