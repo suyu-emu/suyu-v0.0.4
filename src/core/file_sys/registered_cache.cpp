@@ -427,7 +427,7 @@ bool RegisteredCache::RawInstallYuzuMeta(const CNMT& cnmt) {
     }
     Refresh();
     return std::find_if(yuzu_meta.begin(), yuzu_meta.end(),
-                        [&cnmt](const std::pair<const u64, CNMT>& kv) {
+                        [&cnmt](const std::pair<u64, CNMT>& kv) {
                             return kv.second.GetType() == cnmt.GetType() &&
                                    kv.second.GetTitleID() == cnmt.GetTitleID();
                         }) != yuzu_meta.end();

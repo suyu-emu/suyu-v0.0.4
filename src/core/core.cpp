@@ -5,6 +5,7 @@
 #include <memory>
 #include <utility>
 #include "common/logging/log.h"
+#include "common/string_util.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/gdbstub/gdbstub.h"

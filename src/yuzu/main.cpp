@@ -24,6 +24,7 @@
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/crypto/key_manager.h"
+#include "core/file_sys/card_image.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/loader/loader.h"
@@ -114,6 +115,9 @@ GMainWindow::GMainWindow()
                        .arg(Common::g_build_name, Common::g_scm_branch, Common::g_scm_desc));
     show();
 
+    // Necessary to load titles from nand in gamelist.
+    Service::FileSystem::RegisterBIS(std::make_unique<FileSys::BISFactory>(vfs->OpenDirectory(
+        FileUtil::GetUserPath(FileUtil::UserPath::NANDDir), FileSys::Mode::ReadWrite)));
     game_list->PopulateAsync(UISettings::values.gamedir, UISettings::values.gamedir_deepscan);
 
     // Show one-time "callout" messages to the user
@@ -309,6 +313,8 @@ void GMainWindow::ConnectMenuEvents() {
     // File
     connect(ui.action_Load_File, &QAction::triggered, this, &GMainWindow::OnMenuLoadFile);
     connect(ui.action_Load_Folder, &QAction::triggered, this, &GMainWindow::OnMenuLoadFolder);
+    connect(ui.action_Install_File_NAND, &QAction::triggered, this,
+            &GMainWindow::OnMenuInstallToNAND);
     connect(ui.action_Select_Game_List_Root, &QAction::triggered, this,
             &GMainWindow::OnMenuSelectGameListRoot);
     connect(ui.action_Exit, &QAction::triggered, this, &QMainWindow::close);
@@ -609,6 +615,89 @@ void GMainWindow::OnMenuLoadFolder() {
     } else {
         QMessageBox::warning(this, tr("Invalid Directory Selected"),
                              tr("The directory you have selected does not contain a 'main' file."));
+    }
+}
+
+void GMainWindow::OnMenuInstallToNAND() {
+    const static QString file_filter =
+        tr("Installable Switch File (*.nca *.xci);;Nintendo Content Archive (*.nca);;NX Cartridge "
+           "Image (*.xci)");
+    QString filename = QFileDialog::getOpenFileName(this, tr("Install File"),
+                                                    UISettings::values.roms_path, file_filter);
+    if (!filename.isEmpty()) {
+        if (filename.endsWith("xci", Qt::CaseInsensitive)) {
+            const auto xci = std::make_shared<FileSys::XCI>(
+                vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
+            if (xci->GetStatus() != Loader::ResultStatus::Success) {
+                QMessageBox::critical(
+                    this, tr("Failed to Install XCI"),
+                    tr("The XCI file you provided is invalid. Please double-check your encryption "
+                       "keys and the file and try again."));
+                return;
+            }
+            if (!Service::FileSystem::GetUserNANDContents()->InstallEntry(xci)) {
+                QMessageBox::critical(
+                    this, tr("Failed to Install XCI"),
+                    tr("There was an error while attempting to install the provided XCI file. It "
+                       "could have an incorrect format or be missing a metadata entry. Please "
+                       "double-check your file and try again."));
+            } else {
+                QMessageBox::information(this, tr("Successfully Installed XCI"),
+                                         tr("The file was successfully installed."));
+                game_list->PopulateAsync(UISettings::values.gamedir,
+                                         UISettings::values.gamedir_deepscan);
+            }
+        } else {
+            const auto nca = std::make_shared<FileSys::NCA>(
+                vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
+            if (nca->GetStatus() != Loader::ResultStatus::Success) {
+                QMessageBox::critical(
+                    this, tr("Failed to Install NCA"),
+                    tr("The NCA file you provided is invalid. Please double-check your encryption "
+                       "keys and the file and try again."));
+                return;
+            }
+
+            const static QStringList tt_options{"System Application",
+                                                "System Archive",
+                                                "System Application Update",
+                                                "Firmware Package (Type A)",
+                                                "Firmware Package (Type B)",
+                                                "Game",
+                                                "Game Update",
+                                                "Game DLC",
+                                                "Delta Title"};
+            bool ok;
+            const auto item = QInputDialog::getItem(
+                this, tr("Select NCA Install Type..."),
+                tr("Please select the type of title you would like to install this NCA as:\n(In "
+                   "most instances, the default 'Game' is fine.)"),
+                tt_options, 5, false, &ok);
+
+            auto index = tt_options.indexOf(item);
+            if (!ok || index == -1) {
+                QMessageBox::critical(this, tr("Failed to Install NCA"),
+                                      tr("The title type you selected for the NCA is invalid."));
+                return;
+            }
+
+            if (index >= 5)
+                index += 0x80;
+
+            if (!Service::FileSystem::GetUserNANDContents()->InstallEntry(
+                    nca, static_cast<FileSys::TitleType>(index))) {
+                QMessageBox::critical(this, tr("Failed to Install NCA"),
+                                      tr("There was an error while attempting to install the "
+                                         "provided NCA file. An error might have occured creating "
+                                         "the metadata file or parsing the NCA. Please "
+                                         "double-check your file and try again."));
+            } else {
+                QMessageBox::information(this, tr("Successfully Installed NCA"),
+                                         tr("The file was successfully installed."));
+                game_list->PopulateAsync(UISettings::values.gamedir,
+                                         UISettings::values.gamedir_deepscan);
+            }
+        }
     }
 }
 
