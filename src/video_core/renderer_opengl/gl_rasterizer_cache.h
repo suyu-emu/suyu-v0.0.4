@@ -57,15 +57,16 @@ struct SurfaceParams {
         RG16S = 31,
         RGB32F = 32,
         SRGBA8 = 33,
+        RG8S = 34,
 
         MaxColorFormat,
 
         // DepthStencil formats
-        Z24S8 = 34,
-        S8Z24 = 35,
-        Z32F = 36,
-        Z16 = 37,
-        Z32FS8 = 38,
+        Z24S8 = 35,
+        S8Z24 = 36,
+        Z32F = 37,
+        Z16 = 38,
+        Z32FS8 = 39,
 
         MaxDepthStencilFormat,
 
@@ -137,6 +138,7 @@ struct SurfaceParams {
             1, // RG16S
             1, // RGB32F
             1, // SRGBA8
+            1, // RG8S
             1, // Z24S8
             1, // S8Z24
             1, // Z32F
@@ -187,6 +189,7 @@ struct SurfaceParams {
             32,  // RG16S
             96,  // RGB32F
             32,  // SRGBA8
+            16,  // RG8S
             32,  // Z24S8
             32,  // S8Z24
             32,  // Z32F
@@ -257,6 +260,8 @@ struct SurfaceParams {
             return PixelFormat::RG16;
         case Tegra::RenderTargetFormat::RG16_SNORM:
             return PixelFormat::RG16S;
+        case Tegra::RenderTargetFormat::RG8_SNORM:
+            return PixelFormat::RG8S;
         case Tegra::RenderTargetFormat::R16_FLOAT:
             return PixelFormat::R16F;
         case Tegra::RenderTargetFormat::R16_UNORM:
@@ -418,6 +423,7 @@ struct SurfaceParams {
         case Tegra::RenderTargetFormat::RGBA8_SNORM:
         case Tegra::RenderTargetFormat::RG16_SNORM:
         case Tegra::RenderTargetFormat::R16_SNORM:
+        case Tegra::RenderTargetFormat::RG8_SNORM:
             return ComponentType::SNorm;
         case Tegra::RenderTargetFormat::RGBA16_FLOAT:
         case Tegra::RenderTargetFormat::R11G11B10_FLOAT:
