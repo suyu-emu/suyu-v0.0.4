@@ -624,6 +624,32 @@ void GMainWindow::OnMenuInstallToNAND() {
            "Image (*.xci)");
     QString filename = QFileDialog::getOpenFileName(this, tr("Install File"),
                                                     UISettings::values.roms_path, file_filter);
+
+    const auto qt_raw_copy = [this](FileSys::VirtualFile src, FileSys::VirtualFile dest) {
+        if (src == nullptr || dest == nullptr)
+            return false;
+        if (!dest->Resize(src->GetSize()))
+            return false;
+
+        QProgressDialog progress(fmt::format("Installing file \"{}\"...", src->GetName()).c_str(),
+                                 "Cancel", 0, src->GetSize() / 0x1000, this);
+        progress.setWindowModality(Qt::WindowModal);
+
+        std::array<u8, 0x1000> buffer{};
+        for (size_t i = 0; i < src->GetSize(); i += 0x1000) {
+            if (progress.wasCanceled()) {
+                dest->Resize(0);
+                return false;
+            }
+
+            progress.setValue(i / 0x1000);
+            const auto read = src->Read(buffer.data(), buffer.size(), i);
+            dest->Write(buffer.data(), read, i);
+        }
+
+        return true;
+    };
+
     if (!filename.isEmpty()) {
         if (filename.endsWith("xci", Qt::CaseInsensitive)) {
             const auto xci = std::make_shared<FileSys::XCI>(
@@ -635,7 +661,7 @@ void GMainWindow::OnMenuInstallToNAND() {
                        "keys and the file and try again."));
                 return;
             }
-            if (Service::FileSystem::GetUserNANDContents()->InstallEntry(xci)) {
+            if (Service::FileSystem::GetUserNANDContents()->InstallEntry(xci, qt_raw_copy)) {
                 QMessageBox::information(this, tr("Successfully Installed XCI"),
                                          tr("The file was successfully installed."));
                 game_list->PopulateAsync(UISettings::values.gamedir,
@@ -685,7 +711,7 @@ void GMainWindow::OnMenuInstallToNAND() {
                 index += 0x7B;
 
             if (Service::FileSystem::GetUserNANDContents()->InstallEntry(
-                    nca, static_cast<FileSys::TitleType>(index))) {
+                    nca, static_cast<FileSys::TitleType>(index), qt_raw_copy)) {
                 QMessageBox::information(this, tr("Successfully Installed NCA"),
                                          tr("The file was successfully installed."));
                 game_list->PopulateAsync(UISettings::values.gamedir,
