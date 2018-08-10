@@ -99,7 +99,6 @@ std::pair<u8*, GLintptr> RasterizerOpenGL::SetupVertexArrays(u8* array_ptr,
                                                              GLintptr buffer_offset) {
     MICROPROFILE_SCOPE(OpenGL_VAO);
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
-    const auto& memory_manager = Core::System::GetInstance().GPU().memory_manager;
 
     state.draw.vertex_array = hw_vao.handle;
     state.draw.vertex_buffer = stream_buffer.GetHandle();
@@ -117,16 +116,15 @@ std::pair<u8*, GLintptr> RasterizerOpenGL::SetupVertexArrays(u8* array_ptr,
         ASSERT(end > start);
         u64 size = end - start + 1;
 
-        // Copy vertex array data
-        Memory::ReadBlock(*memory_manager->GpuToCpuAddress(start), array_ptr, size);
+        GLintptr vertex_buffer_offset;
+        std::tie(array_ptr, buffer_offset, vertex_buffer_offset) =
+            UploadMemory(array_ptr, buffer_offset, start, size);
 
         // Bind the vertex array to the buffer at the current offset.
-        glBindVertexBuffer(index, stream_buffer.GetHandle(), buffer_offset, vertex_array.stride);
+        glBindVertexBuffer(index, stream_buffer.GetHandle(), vertex_buffer_offset,
+                           vertex_array.stride);
 
         ASSERT_MSG(vertex_array.divisor == 0, "Vertex buffer divisor unimplemented");
-
-        array_ptr += size;
-        buffer_offset += size;
     }
 
     // Use the vertex array as-is, assumes that the data is formatted correctly for OpenGL.
@@ -407,6 +405,23 @@ std::pair<u8*, GLintptr> RasterizerOpenGL::AlignBuffer(u8* buffer_ptr, GLintptr 
     return {buffer_ptr + (offset_aligned - buffer_offset), offset_aligned};
 }
 
+std::tuple<u8*, GLintptr, GLintptr> RasterizerOpenGL::UploadMemory(u8* buffer_ptr,
+                                                                   GLintptr buffer_offset,
+                                                                   Tegra::GPUVAddr gpu_addr,
+                                                                   size_t size, size_t alignment) {
+    std::tie(buffer_ptr, buffer_offset) = AlignBuffer(buffer_ptr, buffer_offset, alignment);
+    GLintptr uploaded_offset = buffer_offset;
+
+    const auto& memory_manager = Core::System::GetInstance().GPU().memory_manager;
+    const boost::optional<VAddr> cpu_addr{memory_manager->GpuToCpuAddress(gpu_addr)};
+    Memory::ReadBlock(*cpu_addr, buffer_ptr, size);
+
+    buffer_ptr += size;
+    buffer_offset += size;
+
+    return {buffer_ptr, buffer_offset, uploaded_offset};
+}
+
 void RasterizerOpenGL::DrawArrays() {
     if (accelerate_draw == AccelDraw::Disabled)
         return;
@@ -456,22 +471,12 @@ void RasterizerOpenGL::DrawArrays() {
 
     std::tie(buffer_ptr, buffer_offset) = SetupVertexArrays(buffer_ptr, buffer_offset);
 
-    std::tie(buffer_ptr, buffer_offset) = AlignBuffer(buffer_ptr, buffer_offset, 4);
-
     // If indexed mode, copy the index buffer
     GLintptr index_buffer_offset = 0;
     if (is_indexed) {
-        const auto& memory_manager = Core::System::GetInstance().GPU().memory_manager;
-        const boost::optional<VAddr> index_data_addr{
-            memory_manager->GpuToCpuAddress(regs.index_array.StartAddress())};
-        Memory::ReadBlock(*index_data_addr, buffer_ptr, index_buffer_size);
-
-        index_buffer_offset = buffer_offset;
-        buffer_ptr += index_buffer_size;
-        buffer_offset += index_buffer_size;
+        std::tie(buffer_ptr, buffer_offset, index_buffer_offset) = UploadMemory(
+            buffer_ptr, buffer_offset, regs.index_array.StartAddress(), index_buffer_size);
     }
-
-    std::tie(buffer_ptr, buffer_offset) = AlignBuffer(buffer_ptr, buffer_offset, 4);
 
     std::tie(buffer_ptr, buffer_offset) = SetupShaders(buffer_ptr, buffer_offset);
 
@@ -639,8 +644,6 @@ std::tuple<u8*, GLintptr, u32> RasterizerOpenGL::SetupConstBuffers(
             continue;
         }
 
-        boost::optional<VAddr> addr = gpu.memory_manager->GpuToCpuAddress(buffer.address);
-
         size_t size = 0;
 
         if (used_buffer.IsIndirect()) {
@@ -662,15 +665,13 @@ std::tuple<u8*, GLintptr, u32> RasterizerOpenGL::SetupConstBuffers(
         size = Common::AlignUp(size, sizeof(GLvec4));
         ASSERT_MSG(size <= MaxConstbufferSize, "Constbuffer too big");
 
-        std::tie(buffer_ptr, buffer_offset) =
-            AlignBuffer(buffer_ptr, buffer_offset, static_cast<size_t>(uniform_buffer_alignment));
+        GLintptr const_buffer_offset;
+        std::tie(buffer_ptr, buffer_offset, const_buffer_offset) =
+            UploadMemory(buffer_ptr, buffer_offset, buffer.address, size,
+                         static_cast<size_t>(uniform_buffer_alignment));
 
         glBindBufferRange(GL_UNIFORM_BUFFER, current_bindpoint + bindpoint,
-                          stream_buffer.GetHandle(), buffer_offset, size);
-
-        Memory::ReadBlock(*addr, buffer_ptr, size);
-        buffer_ptr += size;
-        buffer_offset += size;
+                          stream_buffer.GetHandle(), const_buffer_offset, size);
 
         // Now configure the bindpoint of the buffer inside the shader
         const std::string buffer_name = used_buffer.GetName();

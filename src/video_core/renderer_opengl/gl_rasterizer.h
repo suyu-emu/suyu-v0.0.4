@@ -171,6 +171,10 @@ private:
 
     std::pair<u8*, GLintptr> AlignBuffer(u8* buffer_ptr, GLintptr buffer_offset, size_t alignment);
 
+    std::tuple<u8*, GLintptr, GLintptr> UploadMemory(u8* buffer_ptr, GLintptr buffer_offset,
+                                                     Tegra::GPUVAddr gpu_addr, size_t size,
+                                                     size_t alignment = 4);
+
     enum class AccelDraw { Disabled, Arrays, Indexed };
     AccelDraw accelerate_draw = AccelDraw::Disabled;
 };
