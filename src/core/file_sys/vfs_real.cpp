@@ -83,7 +83,10 @@ VirtualFile RealVfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
 
 VirtualFile RealVfsFilesystem::CreateFile(std::string_view path_, Mode perms) {
     const auto path = FileUtil::SanitizePath(path_, FileUtil::DirectorySeparator::PlatformDefault);
-    if (!FileUtil::Exists(path) && !FileUtil::CreateEmptyFile(path))
+    if (!FileUtil::Exists(path) &&
+        !FileUtil::CreateFullPath(
+            FileUtil::SanitizePath(path, FileUtil::DirectorySeparator::ForwardSlash)) &&
+        !FileUtil::CreateEmptyFile(path))
         return nullptr;
     return OpenFile(path, perms);
 }
@@ -306,14 +309,14 @@ RealVfsDirectory::RealVfsDirectory(RealVfsFilesystem& base_, const std::string& 
 
 std::shared_ptr<VfsFile> RealVfsDirectory::GetFileRelative(std::string_view path) const {
     const auto full_path = FileUtil::SanitizePath(this->path + DIR_SEP + std::string(path));
-    if (!FileUtil::Exists(full_path))
+    if (!FileUtil::Exists(full_path) || FileUtil::IsDirectory(full_path))
         return nullptr;
     return base.OpenFile(full_path, perms);
 }
 
 std::shared_ptr<VfsDirectory> RealVfsDirectory::GetDirectoryRelative(std::string_view path) const {
     const auto full_path = FileUtil::SanitizePath(this->path + DIR_SEP + std::string(path));
-    if (!FileUtil::Exists(full_path))
+    if (!FileUtil::Exists(full_path) || !FileUtil::IsDirectory(full_path))
         return nullptr;
     return base.OpenDirectory(full_path, perms);
 }
