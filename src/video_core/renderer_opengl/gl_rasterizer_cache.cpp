@@ -183,6 +183,21 @@ MathUtil::Rectangle<u32> SurfaceParams::GetRect() const {
     return {0, actual_height, width, 0};
 }
 
+/// Returns true if the specified PixelFormat is a BCn format, e.g. DXT or DXN
+static bool IsFormatBCn(PixelFormat format) {
+    switch (format) {
+    case PixelFormat::DXT1:
+    case PixelFormat::DXT23:
+    case PixelFormat::DXT45:
+    case PixelFormat::DXN1:
+    case PixelFormat::DXN2SNORM:
+    case PixelFormat::DXN2UNORM:
+    case PixelFormat::BC7U:
+        return true;
+    }
+    return false;
+}
+
 template <bool morton_to_gl, PixelFormat format>
 void MortonCopy(u32 stride, u32 block_height, u32 height, std::vector<u8>& gl_buffer,
                 Tegra::GPUVAddr addr) {
@@ -191,16 +206,12 @@ void MortonCopy(u32 stride, u32 block_height, u32 height, std::vector<u8>& gl_bu
     const auto& gpu = Core::System::GetInstance().GPU();
 
     if (morton_to_gl) {
-        std::vector<u8> data;
-        if (SurfaceParams::GetFormatType(format) == SurfaceType::ColorTexture) {
-            data = Tegra::Texture::UnswizzleTexture(
-                *gpu.memory_manager->GpuToCpuAddress(addr),
-                SurfaceParams::TextureFormatFromPixelFormat(format), stride, height, block_height);
-        } else {
-            data = Tegra::Texture::UnswizzleDepthTexture(
-                *gpu.memory_manager->GpuToCpuAddress(addr),
-                SurfaceParams::DepthFormatFromPixelFormat(format), stride, height, block_height);
-        }
+        // With the BCn formats (DXT and DXN), each 4x4 tile is swizzled instead of just individual
+        // pixel values.
+        const u32 tile_size{IsFormatBCn(format) ? 4U : 1U};
+        const std::vector<u8> data =
+            Tegra::Texture::UnswizzleTexture(*gpu.memory_manager->GpuToCpuAddress(addr), tile_size,
+                                             bytes_per_pixel, stride, height, block_height);
         const size_t size_to_copy{std::min(gl_buffer.size(), data.size())};
         gl_buffer.assign(data.begin(), data.begin() + size_to_copy);
     } else {
