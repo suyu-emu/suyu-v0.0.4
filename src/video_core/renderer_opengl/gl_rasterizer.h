@@ -162,12 +162,11 @@ private:
     OGLStreamBuffer stream_buffer;
     OGLBuffer uniform_buffer;
     OGLFramebuffer framebuffer;
+    GLint uniform_buffer_alignment;
 
     size_t CalculateVertexArraysSize() const;
 
     std::pair<u8*, GLintptr> SetupVertexArrays(u8* array_ptr, GLintptr buffer_offset);
-
-    std::array<OGLBuffer, Tegra::Engines::Maxwell3D::Regs::MaxShaderStage> uniform_buffers;
 
     std::pair<u8*, GLintptr> SetupShaders(u8* buffer_ptr, GLintptr buffer_offset);
 

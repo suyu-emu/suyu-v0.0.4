@@ -94,16 +94,9 @@ RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window)
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, stream_buffer.GetHandle());
 
-    for (unsigned index = 0; index < uniform_buffers.size(); ++index) {
-        auto& buffer = uniform_buffers[index];
-        buffer.Create();
-        glBindBuffer(GL_UNIFORM_BUFFER, buffer.handle);
-        glBufferData(GL_UNIFORM_BUFFER, sizeof(GLShader::MaxwellUniformData), nullptr,
-                     GL_STREAM_COPY);
-        glBindBufferBase(GL_UNIFORM_BUFFER, index, buffer.handle);
-    }
-
     glEnable(GL_BLEND);
+
+    glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uniform_buffer_alignment);
 
     LOG_CRITICAL(Render_OpenGL, "Sync fixed function OpenGL state here!");
 }
@@ -193,21 +186,11 @@ static GLShader::ProgramCode GetShaderProgramCode(Maxwell::ShaderProgram program
 }
 
 std::pair<u8*, GLintptr> RasterizerOpenGL::SetupShaders(u8* buffer_ptr, GLintptr buffer_offset) {
-    // Helper function for uploading uniform data
-    const auto copy_buffer = [&](GLuint handle, GLintptr offset, GLsizeiptr size) {
-        if (has_ARB_direct_state_access) {
-            glCopyNamedBufferSubData(stream_buffer.GetHandle(), handle, offset, 0, size);
-        } else {
-            glBindBuffer(GL_COPY_WRITE_BUFFER, handle);
-            glCopyBufferSubData(GL_ARRAY_BUFFER, GL_COPY_WRITE_BUFFER, offset, 0, size);
-        }
-    };
-
     auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
 
     // Next available bindpoints to use when uploading the const buffers and textures to the GLSL
     // shaders. The constbuffer bindpoint starts after the shader stage configuration bind points.
-    u32 current_constbuffer_bindpoint = static_cast<u32>(uniform_buffers.size());
+    u32 current_constbuffer_bindpoint = Tegra::Engines::Maxwell3D::Regs::MaxShaderStage;
     u32 current_texture_bindpoint = 0;
 
     for (size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
@@ -219,22 +202,21 @@ std::pair<u8*, GLintptr> RasterizerOpenGL::SetupShaders(u8* buffer_ptr, GLintptr
             continue;
         }
 
+        std::tie(buffer_ptr, buffer_offset) =
+            AlignBuffer(buffer_ptr, buffer_offset, static_cast<size_t>(uniform_buffer_alignment));
+
         const size_t stage{index == 0 ? 0 : index - 1}; // Stage indices are 0 - 5
 
         GLShader::MaxwellUniformData ubo{};
         ubo.SetFromRegs(gpu.state.shader_stages[stage]);
         std::memcpy(buffer_ptr, &ubo, sizeof(ubo));
 
-        // Flush the buffer so that the GPU can see the data we just wrote.
-        glFlushMappedBufferRange(GL_ARRAY_BUFFER, buffer_offset, sizeof(ubo));
+        // Bind the buffer
+        glBindBufferRange(GL_UNIFORM_BUFFER, stage, stream_buffer.GetHandle(), buffer_offset,
+                          sizeof(ubo));
 
-        // Upload uniform data as one UBO per stage
-        const GLintptr ubo_offset = buffer_offset;
-        copy_buffer(uniform_buffers[stage].handle, ubo_offset,
-                    sizeof(GLShader::MaxwellUniformData));
-
-        buffer_ptr += sizeof(GLShader::MaxwellUniformData);
-        buffer_offset += sizeof(GLShader::MaxwellUniformData);
+        buffer_ptr += sizeof(ubo);
+        buffer_offset += sizeof(ubo);
 
         GLShader::ShaderSetup setup{GetShaderProgramCode(program)};
         GLShader::ShaderEntries shader_resources;
@@ -467,8 +449,9 @@ void RasterizerOpenGL::DrawArrays() {
     }
 
     // Uniform space for the 5 shader stages
-    buffer_size = Common::AlignUp<size_t>(buffer_size, 4) +
-                  sizeof(GLShader::MaxwellUniformData) * Maxwell::MaxShaderStage;
+    buffer_size =
+        Common::AlignUp<size_t>(buffer_size, 4) +
+        (sizeof(GLShader::MaxwellUniformData) + uniform_buffer_alignment) * Maxwell::MaxShaderStage;
 
     u8* buffer_ptr;
     GLintptr buffer_offset;
