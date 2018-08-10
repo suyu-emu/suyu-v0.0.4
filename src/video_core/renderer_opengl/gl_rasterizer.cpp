@@ -332,8 +332,6 @@ std::pair<Surface, Surface> RasterizerOpenGL::ConfigureFramebuffers(bool using_c
     // TODO(bunnei): Implement this
     const bool has_stencil = false;
 
-    const MathUtil::Rectangle<s32> viewport_rect{regs.viewport_transform[0].GetRect()};
-
     const bool write_color_fb =
         state.color_mask.red_enabled == GL_TRUE || state.color_mask.green_enabled == GL_TRUE ||
         state.color_mask.blue_enabled == GL_TRUE || state.color_mask.alpha_enabled == GL_TRUE;
@@ -346,9 +344,10 @@ std::pair<Surface, Surface> RasterizerOpenGL::ConfigureFramebuffers(bool using_c
     Surface depth_surface;
     MathUtil::Rectangle<u32> surfaces_rect;
     std::tie(color_surface, depth_surface, surfaces_rect) =
-        res_cache.GetFramebufferSurfaces(using_color_fb, using_depth_fb, viewport_rect);
+        res_cache.GetFramebufferSurfaces(using_color_fb, using_depth_fb);
 
-    MathUtil::Rectangle<u32> draw_rect{
+    const MathUtil::Rectangle<s32> viewport_rect{regs.viewport_transform[0].GetRect()};
+    const MathUtil::Rectangle<u32> draw_rect{
         static_cast<u32>(std::clamp<s32>(static_cast<s32>(surfaces_rect.left) + viewport_rect.left,
                                          surfaces_rect.left, surfaces_rect.right)), // Left
         static_cast<u32>(std::clamp<s32>(static_cast<s32>(surfaces_rect.bottom) + viewport_rect.top,

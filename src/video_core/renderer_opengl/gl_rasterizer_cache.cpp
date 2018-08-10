@@ -609,8 +609,8 @@ Surface RasterizerCacheOpenGL::GetTextureSurface(const Tegra::Texture::FullTextu
     return GetSurface(SurfaceParams::CreateForTexture(config));
 }
 
-SurfaceSurfaceRect_Tuple RasterizerCacheOpenGL::GetFramebufferSurfaces(
-    bool using_color_fb, bool using_depth_fb, const MathUtil::Rectangle<s32>& viewport) {
+SurfaceSurfaceRect_Tuple RasterizerCacheOpenGL::GetFramebufferSurfaces(bool using_color_fb,
+                                                                       bool using_depth_fb) {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
     // TODO(bunnei): This is hard corded to use just the first render buffer
