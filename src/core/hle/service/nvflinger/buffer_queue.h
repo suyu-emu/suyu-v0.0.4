@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <boost/optional.hpp>
+#include "common/common_funcs.h"
 #include "common/math_util.h"
 #include "common/swap.h"
 #include "core/hle/kernel/event.h"

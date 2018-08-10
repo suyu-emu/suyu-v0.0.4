@@ -6,7 +6,6 @@
 
 #include <memory>
 #include <unordered_map>
-#include <vector>
 #include "common/common_types.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
 #include "video_core/memory_manager.h"
@@ -65,14 +64,7 @@ struct FramebufferConfig {
     /**
      * Returns the number of bytes per pixel.
      */
-    static u32 BytesPerPixel(PixelFormat format) {
-        switch (format) {
-        case PixelFormat::ABGR8:
-            return 4;
-        }
-
-        UNREACHABLE();
-    }
+    static u32 BytesPerPixel(PixelFormat format);
 
     VAddr address;
     u32 offset;

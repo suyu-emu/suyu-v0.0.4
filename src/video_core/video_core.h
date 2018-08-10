@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <atomic>
 #include <memory>
 
 class EmuWindow;
@@ -12,10 +11,6 @@ class EmuWindow;
 namespace VideoCore {
 
 class RendererBase;
-
-// TODO: Wrap these in a user settings struct along with any other graphics settings (often set from
-// qt ui)
-extern std::atomic<bool> g_toggle_framelimit_enabled;
 
 /**
  * Creates a renderer instance.

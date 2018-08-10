@@ -4,24 +4,35 @@
 
 #include <memory>
 #include "core/frontend/emu_window.h"
+#include "core/settings.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 
 namespace VideoCore {
 
-RendererBase::RendererBase(EmuWindow& window) : render_window{window} {}
+RendererBase::RendererBase(EmuWindow& window) : render_window{window} {
+    RefreshBaseSettings();
+}
+
 RendererBase::~RendererBase() = default;
 
-void RendererBase::UpdateCurrentFramebufferLayout() {
-    const Layout::FramebufferLayout& layout = render_window.GetFramebufferLayout();
+void RendererBase::RefreshBaseSettings() {
+    RefreshRasterizerSetting();
+    UpdateCurrentFramebufferLayout();
 
-    render_window.UpdateCurrentFramebufferLayout(layout.width, layout.height);
+    renderer_settings.use_framelimiter = Settings::values.toggle_framelimit;
 }
 
 void RendererBase::RefreshRasterizerSetting() {
     if (rasterizer == nullptr) {
         rasterizer = std::make_unique<RasterizerOpenGL>(render_window);
     }
+}
+
+void RendererBase::UpdateCurrentFramebufferLayout() {
+    const Layout::FramebufferLayout& layout = render_window.GetFramebufferLayout();
+
+    render_window.UpdateCurrentFramebufferLayout(layout.width, layout.height);
 }
 
 } // namespace VideoCore

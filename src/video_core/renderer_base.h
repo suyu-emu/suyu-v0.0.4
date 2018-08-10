@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include <atomic>
 #include <memory>
 #include <boost/optional.hpp>
-#include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/gpu.h"
 #include "video_core/rasterizer_interface.h"
@@ -14,6 +14,10 @@
 class EmuWindow;
 
 namespace VideoCore {
+
+struct RendererSettings {
+    std::atomic_bool use_framelimiter{false};
+};
 
 class RendererBase : NonCopyable {
 public:
@@ -28,9 +32,6 @@ public:
 
     /// Shutdown the renderer
     virtual void ShutDown() = 0;
-
-    /// Updates the framebuffer layout of the contained render window handle.
-    void UpdateCurrentFramebufferLayout();
 
     // Getter/setter functions:
     // ------------------------
@@ -51,13 +52,23 @@ public:
         return *rasterizer;
     }
 
-    void RefreshRasterizerSetting();
+    /// Refreshes the settings common to all renderers
+    void RefreshBaseSettings();
 
 protected:
+    /// Refreshes settings specific to the rasterizer.
+    void RefreshRasterizerSetting();
+
     EmuWindow& render_window; ///< Reference to the render window handle.
     std::unique_ptr<RasterizerInterface> rasterizer;
     f32 m_current_fps = 0.0f; ///< Current framerate, should be set by the renderer
     int m_current_frame = 0;  ///< Current frame, should be set by the renderer
+
+    RendererSettings renderer_settings;
+
+private:
+    /// Updates the framebuffer layout of the contained render window handle.
+    void UpdateCurrentFramebufferLayout();
 };
 
 } // namespace VideoCore
