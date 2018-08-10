@@ -169,7 +169,9 @@ private:
 
     std::array<OGLBuffer, Tegra::Engines::Maxwell3D::Regs::MaxShaderStage> uniform_buffers;
 
-    void SetupShaders(u8* buffer_ptr, GLintptr buffer_offset);
+    std::pair<u8*, GLintptr> SetupShaders(u8* buffer_ptr, GLintptr buffer_offset);
+
+    std::pair<u8*, GLintptr> AlignBuffer(u8* buffer_ptr, GLintptr buffer_offset, size_t alignment);
 
     enum class AccelDraw { Disabled, Arrays, Indexed };
     AccelDraw accelerate_draw = AccelDraw::Disabled;

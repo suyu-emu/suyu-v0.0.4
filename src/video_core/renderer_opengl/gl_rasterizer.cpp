@@ -192,7 +192,7 @@ static GLShader::ProgramCode GetShaderProgramCode(Maxwell::ShaderProgram program
     return program_code;
 }
 
-void RasterizerOpenGL::SetupShaders(u8* buffer_ptr, GLintptr buffer_offset) {
+std::pair<u8*, GLintptr> RasterizerOpenGL::SetupShaders(u8* buffer_ptr, GLintptr buffer_offset) {
     // Helper function for uploading uniform data
     const auto copy_buffer = [&](GLuint handle, GLintptr offset, GLsizeiptr size) {
         if (has_ARB_direct_state_access) {
@@ -290,6 +290,8 @@ void RasterizerOpenGL::SetupShaders(u8* buffer_ptr, GLintptr buffer_offset) {
     }
 
     shader_program_manager->UseTrivialGeometryShader();
+
+    return {buffer_ptr, buffer_offset};
 }
 
 size_t RasterizerOpenGL::CalculateVertexArraysSize() const {
@@ -423,6 +425,14 @@ void RasterizerOpenGL::Clear() {
     }
 }
 
+std::pair<u8*, GLintptr> RasterizerOpenGL::AlignBuffer(u8* buffer_ptr, GLintptr buffer_offset,
+                                                       size_t alignment) {
+    // Align the offset, not the mapped pointer
+    GLintptr offset_aligned =
+        static_cast<GLintptr>(Common::AlignUp(static_cast<size_t>(buffer_offset), alignment));
+    return {buffer_ptr + (offset_aligned - buffer_offset), offset_aligned};
+}
+
 void RasterizerOpenGL::DrawArrays() {
     if (accelerate_draw == AccelDraw::Disabled)
         return;
@@ -464,13 +474,11 @@ void RasterizerOpenGL::DrawArrays() {
     GLintptr buffer_offset;
     std::tie(buffer_ptr, buffer_offset, std::ignore) =
         stream_buffer.Map(static_cast<GLsizeiptr>(buffer_size), 4);
+    u8* buffer_ptr_base = buffer_ptr;
 
-    u8* offseted_buffer;
-    std::tie(offseted_buffer, buffer_offset) = SetupVertexArrays(buffer_ptr, buffer_offset);
+    std::tie(buffer_ptr, buffer_offset) = SetupVertexArrays(buffer_ptr, buffer_offset);
 
-    offseted_buffer =
-        reinterpret_cast<u8*>(Common::AlignUp(reinterpret_cast<size_t>(offseted_buffer), 4));
-    buffer_offset = Common::AlignUp<size_t>(buffer_offset, 4);
+    std::tie(buffer_ptr, buffer_offset) = AlignBuffer(buffer_ptr, buffer_offset, 4);
 
     // If indexed mode, copy the index buffer
     GLintptr index_buffer_offset = 0;
@@ -478,21 +486,18 @@ void RasterizerOpenGL::DrawArrays() {
         const auto& memory_manager = Core::System::GetInstance().GPU().memory_manager;
         const boost::optional<VAddr> index_data_addr{
             memory_manager->GpuToCpuAddress(regs.index_array.StartAddress())};
-        Memory::ReadBlock(*index_data_addr, offseted_buffer, index_buffer_size);
+        Memory::ReadBlock(*index_data_addr, buffer_ptr, index_buffer_size);
 
         index_buffer_offset = buffer_offset;
-        offseted_buffer += index_buffer_size;
+        buffer_ptr += index_buffer_size;
         buffer_offset += index_buffer_size;
     }
 
-    offseted_buffer =
-        reinterpret_cast<u8*>(Common::AlignUp(reinterpret_cast<size_t>(offseted_buffer), 4));
-    buffer_offset = Common::AlignUp<size_t>(buffer_offset, 4);
+    std::tie(buffer_ptr, buffer_offset) = AlignBuffer(buffer_ptr, buffer_offset, 4);
 
-    SetupShaders(offseted_buffer, buffer_offset);
+    std::tie(buffer_ptr, buffer_offset) = SetupShaders(buffer_ptr, buffer_offset);
 
-    // TODO: Don't use buffer_size here, use the updated buffer_offset.
-    stream_buffer.Unmap(buffer_size);
+    stream_buffer.Unmap(buffer_ptr - buffer_ptr_base);
 
     shader_program_manager->ApplyTo(state);
     state.Apply();
