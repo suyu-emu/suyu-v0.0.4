@@ -7,6 +7,7 @@
 #include <array>
 #include <cstddef>
 #include <memory>
+#include <tuple>
 #include <utility>
 #include <vector>
 #include <glad/glad.h>
@@ -100,9 +101,10 @@ private:
      * @param entries Vector describing the buffers that are actually used in the guest shader.
      * @returns The next available bindpoint for use in the next shader stage.
      */
-    u32 SetupConstBuffers(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage, GLuint program,
-                          u32 current_bindpoint,
-                          const std::vector<GLShader::ConstBufferEntry>& entries);
+    std::tuple<u8*, GLintptr, u32> SetupConstBuffers(
+        u8* buffer_ptr, GLintptr buffer_offset, Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
+        GLuint program, u32 current_bindpoint,
+        const std::vector<GLShader::ConstBufferEntry>& entries);
 
     /*
      * Configures the current textures to use for the draw command.
@@ -154,9 +156,6 @@ private:
     OGLVertexArray hw_vao;
 
     std::array<SamplerInfo, GLShader::NumTextureSamplers> texture_samplers;
-    std::array<std::array<OGLBuffer, Tegra::Engines::Maxwell3D::Regs::MaxConstBuffers>,
-               Tegra::Engines::Maxwell3D::Regs::MaxShaderStage>
-        ssbos;
 
     static constexpr size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;
     OGLStreamBuffer stream_buffer;

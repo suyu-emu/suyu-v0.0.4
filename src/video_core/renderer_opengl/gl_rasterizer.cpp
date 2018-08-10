@@ -44,14 +44,6 @@ RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window)
         state.texture_units[i].sampler = texture_samplers[i].sampler.handle;
     }
 
-    // Create SSBOs
-    for (size_t stage = 0; stage < ssbos.size(); ++stage) {
-        for (size_t buffer = 0; buffer < ssbos[stage].size(); ++buffer) {
-            ssbos[stage][buffer].Create();
-            state.draw.const_buffers[stage][buffer].ssbo = ssbos[stage][buffer].handle;
-        }
-    }
-
     GLint ext_num;
     glGetIntegerv(GL_NUM_EXTENSIONS, &ext_num);
     for (GLint i = 0; i < ext_num; i++) {
@@ -255,9 +247,9 @@ std::pair<u8*, GLintptr> RasterizerOpenGL::SetupShaders(u8* buffer_ptr, GLintptr
             static_cast<Maxwell::ShaderStage>(stage));
 
         // Configure the const buffers for this shader stage.
-        current_constbuffer_bindpoint =
-            SetupConstBuffers(static_cast<Maxwell::ShaderStage>(stage), gl_stage_program,
-                              current_constbuffer_bindpoint, shader_resources.const_buffer_entries);
+        std::tie(buffer_ptr, buffer_offset, current_constbuffer_bindpoint) = SetupConstBuffers(
+            buffer_ptr, buffer_offset, static_cast<Maxwell::ShaderStage>(stage), gl_stage_program,
+            current_constbuffer_bindpoint, shader_resources.const_buffer_entries);
 
         // Configure the textures for this shader stage.
         current_texture_bindpoint =
@@ -453,6 +445,9 @@ void RasterizerOpenGL::DrawArrays() {
         Common::AlignUp<size_t>(buffer_size, 4) +
         (sizeof(GLShader::MaxwellUniformData) + uniform_buffer_alignment) * Maxwell::MaxShaderStage;
 
+    // Add space for at least 18 constant buffers
+    buffer_size += Maxwell::MaxConstBuffers * (MaxConstbufferSize + uniform_buffer_alignment);
+
     u8* buffer_ptr;
     GLintptr buffer_offset;
     std::tie(buffer_ptr, buffer_offset, std::ignore) =
@@ -627,9 +622,9 @@ void RasterizerOpenGL::SamplerInfo::SyncWithConfig(const Tegra::Texture::TSCEntr
     }
 }
 
-u32 RasterizerOpenGL::SetupConstBuffers(Maxwell::ShaderStage stage, GLuint program,
-                                        u32 current_bindpoint,
-                                        const std::vector<GLShader::ConstBufferEntry>& entries) {
+std::tuple<u8*, GLintptr, u32> RasterizerOpenGL::SetupConstBuffers(
+    u8* buffer_ptr, GLintptr buffer_offset, Maxwell::ShaderStage stage, GLuint program,
+    u32 current_bindpoint, const std::vector<GLShader::ConstBufferEntry>& entries) {
     const auto& gpu = Core::System::GetInstance().GPU();
     const auto& maxwell3d = gpu.Maxwell3D();
 
@@ -678,12 +673,16 @@ u32 RasterizerOpenGL::SetupConstBuffers(Maxwell::ShaderStage stage, GLuint progr
         size = Common::AlignUp(size, sizeof(GLvec4));
         ASSERT_MSG(size <= MaxConstbufferSize, "Constbuffer too big");
 
-        std::vector<u8> data(size);
-        Memory::ReadBlock(*addr, data.data(), data.size());
+        std::tie(buffer_ptr, buffer_offset) =
+            AlignBuffer(buffer_ptr, buffer_offset, static_cast<size_t>(uniform_buffer_alignment));
 
-        glBindBuffer(GL_UNIFORM_BUFFER, buffer_draw_state.ssbo);
-        glBufferData(GL_UNIFORM_BUFFER, data.size(), data.data(), GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        buffer_draw_state.size = size;
+        buffer_draw_state.offset = buffer_offset;
+        buffer_draw_state.ssbo = stream_buffer.GetHandle();
+
+        Memory::ReadBlock(*addr, buffer_ptr, size);
+        buffer_ptr += size;
+        buffer_offset += size;
 
         // Now configure the bindpoint of the buffer inside the shader
         const std::string buffer_name = used_buffer.GetName();
@@ -696,7 +695,7 @@ u32 RasterizerOpenGL::SetupConstBuffers(Maxwell::ShaderStage stage, GLuint progr
 
     state.Apply();
 
-    return current_bindpoint + static_cast<u32>(entries.size());
+    return {buffer_ptr, buffer_offset, current_bindpoint + static_cast<u32>(entries.size())};
 }
 
 u32 RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, GLuint program, u32 current_unit,

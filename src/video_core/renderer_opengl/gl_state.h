@@ -123,6 +123,8 @@ public:
             bool enabled = false;
             GLuint bindpoint;
             GLuint ssbo;
+            GLsizeiptr size;
+            GLintptr offset;
         };
         std::array<std::array<ConstBufferConfig, Regs::MaxConstBuffers>, 5> const_buffers;
     } draw;
