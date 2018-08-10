@@ -129,14 +129,12 @@ VirtualFile RegisteredCache::GetFileAtID(NcaID id) const {
     return file;
 }
 
-boost::optional<NcaID> RegisteredCache::GetNcaIDFromMetadata(u64 title_id,
-                                                             ContentRecordType type) const {
-    if (type == ContentRecordType::Meta && meta_id.find(title_id) != meta_id.end())
-        return meta_id.at(title_id);
-    if (meta.find(title_id) == meta.end())
+static boost::optional<NcaID> CheckMapForContentRecord(
+    const boost::container::flat_map<u64, CNMT>& map, u64 title_id, ContentRecordType type) {
+    if (map.find(title_id) == map.end())
         return boost::none;
 
-    const auto& cnmt = meta.at(title_id);
+    const auto& cnmt = map.at(title_id);
 
     const auto iter = std::find_if(cnmt.GetContentRecords().begin(), cnmt.GetContentRecords().end(),
                                    [type](const ContentRecord& rec) { return rec.type == type; });
@@ -144,6 +142,17 @@ boost::optional<NcaID> RegisteredCache::GetNcaIDFromMetadata(u64 title_id,
         return boost::none;
 
     return boost::make_optional(iter->nca_id);
+}
+
+boost::optional<NcaID> RegisteredCache::GetNcaIDFromMetadata(u64 title_id,
+                                                             ContentRecordType type) const {
+    if (type == ContentRecordType::Meta && meta_id.find(title_id) != meta_id.end())
+        return meta_id.at(title_id);
+
+    const auto res1 = CheckMapForContentRecord(yuzu_meta, title_id, type);
+    if (res1 != boost::none)
+        return res1;
+    return CheckMapForContentRecord(meta, title_id, type);
 }
 
 std::vector<NcaID> RegisteredCache::AccumulateFiles() const {
@@ -398,7 +407,7 @@ bool RegisteredCache::RawInstallNCA(std::shared_ptr<NCA> nca, boost::optional<Nc
     std::string path = GetRelativePathFromNcaID(id, false, true);
 
     if (GetFileAtID(id) != nullptr) {
-        LOG_WARNING(Loader, "OW Attempt");
+        LOG_WARNING(Loader, "Attempting to overwrite existing NCA. Skipping...");
         return false;
     }
 
