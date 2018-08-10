@@ -39,7 +39,6 @@ public:
  * If this class receives valid SMDH data, it will also display game icons and titles.
  */
 class GameListItemPath : public GameListItem {
-
 public:
     static const int FullPathRole = Qt::UserRole + 1;
     static const int TitleRole = Qt::UserRole + 2;
@@ -48,8 +47,7 @@ public:
 
     GameListItemPath() = default;
     GameListItemPath(const QString& game_path, const std::vector<u8>& picture_data,
-                     const QString& game_name, const QString& game_type, u64 program_id)
-        : GameListItem() {
+                     const QString& game_name, const QString& game_type, u64 program_id) {
         setData(game_path, FullPathRole);
         setData(game_name, TitleRole);
         setData(qulonglong(program_id), ProgramIdRole);
