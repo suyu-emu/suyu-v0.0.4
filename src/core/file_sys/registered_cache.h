@@ -23,6 +23,7 @@ class CNMT;
 
 using NcaID = std::array<u8, 0x10>;
 using RegisteredCacheParsingFunction = std::function<VirtualFile(const VirtualFile&, const NcaID&)>;
+using VfsCopyFunction = std::function<bool(VirtualFile, VirtualFile)>;
 
 struct RegisteredCacheEntry {
     u64 title_id;
@@ -76,13 +77,14 @@ public:
 
     // Raw copies all the ncas from the xci to the csache. Does some quick checks to make sure there
     // is a meta NCA and all of them are accessible.
-    bool InstallEntry(std::shared_ptr<XCI> xci);
+    bool InstallEntry(std::shared_ptr<XCI> xci, const VfsCopyFunction& copy = &VfsRawCopy);
 
     // Due to the fact that we must use Meta-type NCAs to determine the existance of files, this
     // poses quite a challenge. Instead of creating a new meta NCA for this file, yuzu will create a
     // dir inside the NAND called 'yuzu_meta' and store the raw CNMT there.
     // TODO(DarkLordZach): Author real meta-type NCAs and install those.
-    bool InstallEntry(std::shared_ptr<NCA> nca, TitleType type);
+    bool InstallEntry(std::shared_ptr<NCA> nca, TitleType type,
+                      const VfsCopyFunction& copy = &VfsRawCopy);
 
 private:
     template <typename T>
@@ -95,7 +97,8 @@ private:
     boost::optional<NcaID> GetNcaIDFromMetadata(u64 title_id, ContentRecordType type) const;
     VirtualFile GetFileAtID(NcaID id) const;
     VirtualFile OpenFileOrDirectoryConcat(const VirtualDir& dir, std::string_view path) const;
-    bool RawInstallNCA(std::shared_ptr<NCA> nca, boost::optional<NcaID> override_id = boost::none);
+    bool RawInstallNCA(std::shared_ptr<NCA> nca, const VfsCopyFunction& copy,
+                       boost::optional<NcaID> override_id = boost::none);
     bool RawInstallYuzuMeta(const CNMT& cnmt);
 
     VirtualDir dir;

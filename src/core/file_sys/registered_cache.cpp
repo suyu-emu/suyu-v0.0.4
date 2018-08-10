@@ -335,7 +335,7 @@ static std::shared_ptr<NCA> GetNCAFromXCIForID(std::shared_ptr<XCI> xci, const N
     return iter == xci->GetNCAs().end() ? nullptr : *iter;
 }
 
-bool RegisteredCache::InstallEntry(std::shared_ptr<XCI> xci) {
+bool RegisteredCache::InstallEntry(std::shared_ptr<XCI> xci, const VfsCopyFunction& copy) {
     const auto& ncas = xci->GetNCAs();
     const auto& meta_iter = std::find_if(ncas.begin(), ncas.end(), [](std::shared_ptr<NCA> nca) {
         return nca->GetType() == NCAContentType::Meta;
@@ -350,7 +350,7 @@ bool RegisteredCache::InstallEntry(std::shared_ptr<XCI> xci) {
     // Install Metadata File
     const auto meta_id_raw = (*meta_iter)->GetName().substr(0, 32);
     const auto meta_id = HexStringToArray<16>(meta_id_raw);
-    if (!RawInstallNCA(*meta_iter, meta_id))
+    if (!RawInstallNCA(*meta_iter, copy, meta_id))
         return false;
 
     // Install all the other NCAs
@@ -359,7 +359,7 @@ bool RegisteredCache::InstallEntry(std::shared_ptr<XCI> xci) {
     const CNMT cnmt(cnmt_file);
     for (const auto& record : cnmt.GetContentRecords()) {
         const auto nca = GetNCAFromXCIForID(xci, record.nca_id);
-        if (nca == nullptr || !RawInstallNCA(nca, record.nca_id))
+        if (nca == nullptr || !RawInstallNCA(nca, copy, record.nca_id))
             return false;
     }
 
@@ -367,7 +367,8 @@ bool RegisteredCache::InstallEntry(std::shared_ptr<XCI> xci) {
     return true;
 }
 
-bool RegisteredCache::InstallEntry(std::shared_ptr<NCA> nca, TitleType type) {
+bool RegisteredCache::InstallEntry(std::shared_ptr<NCA> nca, TitleType type,
+                                   const VfsCopyFunction& copy) {
     CNMTHeader header{
         nca->GetTitleId(), ///< Title ID
         0,                 ///< Ignore/Default title version
@@ -384,10 +385,11 @@ bool RegisteredCache::InstallEntry(std::shared_ptr<NCA> nca, TitleType type) {
     mbedtls_sha256(data.data(), data.size(), c_rec.hash.data(), 0);
     memcpy(&c_rec.nca_id, &c_rec.hash, 16);
     const CNMT new_cnmt(header, opt_header, {c_rec}, {});
-    return RawInstallYuzuMeta(new_cnmt) && RawInstallNCA(nca, c_rec.nca_id);
+    return RawInstallYuzuMeta(new_cnmt) && RawInstallNCA(nca, copy, c_rec.nca_id);
 }
 
-bool RegisteredCache::RawInstallNCA(std::shared_ptr<NCA> nca, boost::optional<NcaID> override_id) {
+bool RegisteredCache::RawInstallNCA(std::shared_ptr<NCA> nca, const VfsCopyFunction& copy,
+                                    boost::optional<NcaID> override_id) {
     const auto in = nca->GetBaseFile();
     Core::Crypto::SHA256Hash hash{};
 
@@ -414,7 +416,7 @@ bool RegisteredCache::RawInstallNCA(std::shared_ptr<NCA> nca, boost::optional<Nc
     auto out = dir->CreateFileRelative(path);
     if (out == nullptr)
         return false;
-    return VfsRawCopy(in, out);
+    return copy(in, out);
 }
 
 bool RegisteredCache::RawInstallYuzuMeta(const CNMT& cnmt) {
