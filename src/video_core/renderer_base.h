@@ -17,9 +17,6 @@ namespace VideoCore {
 
 class RendererBase : NonCopyable {
 public:
-    /// Used to reference a framebuffer
-    enum kFramebuffer { kFramebuffer_VirtualXFB = 0, kFramebuffer_EFB, kFramebuffer_Texture };
-
     explicit RendererBase(EmuWindow& window);
     virtual ~RendererBase();
 
