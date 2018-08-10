@@ -383,8 +383,10 @@ void GraphicsSurfaceWidget::OnUpdate() {
     QImage decoded_image(surface_width, surface_height, QImage::Format_ARGB32);
     boost::optional<VAddr> address = gpu.memory_manager->GpuToCpuAddress(surface_address);
 
-    auto unswizzled_data =
-        Tegra::Texture::UnswizzleTexture(*address, surface_format, surface_width, surface_height);
+    // TODO(bunnei): Will not work with BCn formats that swizzle 4x4 tiles.
+    // Needs to be fixed if we plan to use this feature more, otherwise we may remove it.
+    auto unswizzled_data = Tegra::Texture::UnswizzleTexture(
+        *address, 1, Tegra::Texture::BytesPerPixel(surface_format), surface_width, surface_height);
 
     auto texture_data = Tegra::Texture::DecodeTexture(unswizzled_data, surface_format,
                                                       surface_width, surface_height);
