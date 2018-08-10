@@ -13,8 +13,6 @@ namespace VideoCore {
 
 class RendererBase;
 
-enum class Renderer { Software, OpenGL };
-
 // TODO: Wrap these in a user settings struct along with any other graphics settings (often set from
 // qt ui)
 extern std::atomic<bool> g_toggle_framelimit_enabled;
