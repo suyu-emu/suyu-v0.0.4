@@ -628,27 +628,16 @@ std::tuple<u8*, GLintptr, u32> RasterizerOpenGL::SetupConstBuffers(
     const auto& gpu = Core::System::GetInstance().GPU();
     const auto& maxwell3d = gpu.Maxwell3D();
 
-    // Reset all buffer draw state for this stage.
-    for (auto& buffer : state.draw.const_buffers[static_cast<size_t>(stage)]) {
-        buffer.bindpoint = 0;
-        buffer.enabled = false;
-    }
-
     // Upload only the enabled buffers from the 16 constbuffers of each shader stage
     const auto& shader_stage = maxwell3d.state.shader_stages[static_cast<size_t>(stage)];
 
     for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
         const auto& used_buffer = entries[bindpoint];
         const auto& buffer = shader_stage.const_buffers[used_buffer.GetIndex()];
-        auto& buffer_draw_state =
-            state.draw.const_buffers[static_cast<size_t>(stage)][used_buffer.GetIndex()];
 
         if (!buffer.enabled) {
             continue;
         }
-
-        buffer_draw_state.enabled = true;
-        buffer_draw_state.bindpoint = current_bindpoint + bindpoint;
 
         boost::optional<VAddr> addr = gpu.memory_manager->GpuToCpuAddress(buffer.address);
 
@@ -676,9 +665,8 @@ std::tuple<u8*, GLintptr, u32> RasterizerOpenGL::SetupConstBuffers(
         std::tie(buffer_ptr, buffer_offset) =
             AlignBuffer(buffer_ptr, buffer_offset, static_cast<size_t>(uniform_buffer_alignment));
 
-        buffer_draw_state.size = size;
-        buffer_draw_state.offset = buffer_offset;
-        buffer_draw_state.ssbo = stream_buffer.GetHandle();
+        glBindBufferRange(GL_UNIFORM_BUFFER, current_bindpoint + bindpoint,
+                          stream_buffer.GetHandle(), buffer_offset, size);
 
         Memory::ReadBlock(*addr, buffer_ptr, size);
         buffer_ptr += size;
@@ -689,7 +677,7 @@ std::tuple<u8*, GLintptr, u32> RasterizerOpenGL::SetupConstBuffers(
         const GLuint index =
             glGetProgramResourceIndex(program, GL_UNIFORM_BLOCK, buffer_name.c_str());
         if (index != GL_INVALID_INDEX) {
-            glUniformBlockBinding(program, index, buffer_draw_state.bindpoint);
+            glUniformBlockBinding(program, index, current_bindpoint + bindpoint);
         }
     }
 

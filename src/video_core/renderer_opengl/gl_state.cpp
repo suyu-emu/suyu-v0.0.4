@@ -203,24 +203,6 @@ void OpenGLState::Apply() const {
         }
     }
 
-    // Constbuffers
-    for (std::size_t stage = 0; stage < draw.const_buffers.size(); ++stage) {
-        for (std::size_t buffer_id = 0; buffer_id < draw.const_buffers[stage].size(); ++buffer_id) {
-            const auto& current = cur_state.draw.const_buffers[stage][buffer_id];
-            const auto& new_state = draw.const_buffers[stage][buffer_id];
-
-            if (std::tie(current.enabled, current.bindpoint, current.ssbo, current.size,
-                         current.offset) != std::tie(new_state.enabled, new_state.bindpoint,
-                                                     new_state.ssbo, new_state.size,
-                                                     new_state.offset)) {
-                if (new_state.enabled) {
-                    glBindBufferRange(GL_UNIFORM_BUFFER, new_state.bindpoint, new_state.ssbo,
-                                      new_state.offset, new_state.size);
-                }
-            }
-        }
-    }
-
     // Framebuffer
     if (draw.read_framebuffer != cur_state.draw.read_framebuffer) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, draw.read_framebuffer);
