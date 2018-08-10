@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <regex>
 #include <QApplication>
 #include <QDir>
 #include <QFileInfo>
@@ -403,6 +404,50 @@ void GameList::RefreshGameDirectory() {
 }
 
 void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsigned int recursion) {
+    const auto usernand = Service::FileSystem::GetUserNANDContents();
+    const auto installed_games = usernand->ListEntriesFilter(FileSys::TitleType::Application,
+                                                             FileSys::ContentRecordType::Program);
+
+    for (const auto& game : installed_games) {
+        const auto& file = usernand->GetEntryRaw(game);
+        std::unique_ptr<Loader::AppLoader> loader = Loader::GetLoader(file);
+        if (!loader)
+            continue;
+
+        std::vector<u8> icon;
+        std::string name;
+        u64 program_id;
+        loader->ReadProgramId(program_id);
+
+        const auto& control =
+            usernand->GetEntry(game.title_id, FileSys::ContentRecordType::Control);
+        if (control != nullptr) {
+            const auto control_dir = FileSys::ExtractRomFS(control->GetRomFS());
+
+            const auto nacp_file = control_dir->GetFile("control.nacp");
+            FileSys::NACP nacp(nacp_file);
+            name = nacp.GetApplicationName();
+
+            FileSys::VirtualFile icon_file = nullptr;
+            for (const auto& language : FileSys::LANGUAGE_NAMES) {
+                icon_file = control_dir->GetFile("icon_" + std::string(language) + ".dat");
+                if (icon_file != nullptr) {
+                    icon = icon_file->ReadAllBytes();
+                    break;
+                }
+            }
+        }
+        emit EntryReady({
+            new GameListItemPath(
+                FormatGameName(file->GetFullPath()), icon, QString::fromStdString(name),
+                QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType())),
+                program_id),
+            new GameListItem(
+                QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType()))),
+            new GameListItemSize(file->GetSize()),
+        });
+    }
+
     boost::container::flat_map<u64, std::shared_ptr<FileSys::NCA>> nca_control_map;
 
     const auto nca_control_callback =
