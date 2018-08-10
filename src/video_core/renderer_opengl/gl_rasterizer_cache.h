@@ -548,8 +548,7 @@ public:
     Surface GetTextureSurface(const Tegra::Texture::FullTextureInfo& config);
 
     /// Get the color and depth surfaces based on the framebuffer configuration
-    SurfaceSurfaceRect_Tuple GetFramebufferSurfaces(bool using_color_fb, bool using_depth_fb,
-                                                    const MathUtil::Rectangle<s32>& viewport);
+    SurfaceSurfaceRect_Tuple GetFramebufferSurfaces(bool using_color_fb, bool using_depth_fb);
 
     /// Flushes the surface to Switch memory
     void FlushSurface(const Surface& surface);
