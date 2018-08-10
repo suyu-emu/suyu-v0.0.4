@@ -682,7 +682,7 @@ void GMainWindow::OnMenuInstallToNAND() {
             }
 
             if (index >= 5)
-                index += 0x80;
+                index += 0x7B;
 
             if (Service::FileSystem::GetUserNANDContents()->InstallEntry(
                     nca, static_cast<FileSys::TitleType>(index))) {

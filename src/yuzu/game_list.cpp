@@ -403,6 +403,28 @@ void GameList::RefreshGameDirectory() {
     }
 }
 
+static void GetMetadataFromControlNCA(const std::shared_ptr<FileSys::NCA>& nca,
+                                      std::vector<u8>& icon, std::string& name) {
+    const auto control_dir = FileSys::ExtractRomFS(nca->GetRomFS());
+    if (control_dir == nullptr)
+        return;
+
+    const auto nacp_file = control_dir->GetFile("control.nacp");
+    if (nacp_file == nullptr)
+        return;
+    FileSys::NACP nacp(nacp_file);
+    name = nacp.GetApplicationName();
+
+    FileSys::VirtualFile icon_file = nullptr;
+    for (const auto& language : FileSys::LANGUAGE_NAMES) {
+        icon_file = control_dir->GetFile("icon_" + std::string(language) + ".dat");
+        if (icon_file != nullptr) {
+            icon = icon_file->ReadAllBytes();
+            break;
+        }
+    }
+}
+
 void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsigned int recursion) {
     const auto usernand = Service::FileSystem::GetUserNANDContents();
     const auto installed_games = usernand->ListEntriesFilter(FileSys::TitleType::Application,
@@ -421,22 +443,8 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
 
         const auto& control =
             usernand->GetEntry(game.title_id, FileSys::ContentRecordType::Control);
-        if (control != nullptr) {
-            const auto control_dir = FileSys::ExtractRomFS(control->GetRomFS());
-
-            const auto nacp_file = control_dir->GetFile("control.nacp");
-            FileSys::NACP nacp(nacp_file);
-            name = nacp.GetApplicationName();
-
-            FileSys::VirtualFile icon_file = nullptr;
-            for (const auto& language : FileSys::LANGUAGE_NAMES) {
-                icon_file = control_dir->GetFile("icon_" + std::string(language) + ".dat");
-                if (icon_file != nullptr) {
-                    icon = icon_file->ReadAllBytes();
-                    break;
-                }
-            }
-        }
+        if (control != nullptr)
+            GetMetadataFromControlNCA(control, icon, name);
         emit EntryReady({
             new GameListItemPath(
                 FormatGameName(file->GetFullPath()), icon, QString::fromStdString(name),
@@ -449,6 +457,15 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
     }
 
     boost::container::flat_map<u64, std::shared_ptr<FileSys::NCA>> nca_control_map;
+
+    const auto control_data = usernand->ListEntriesFilter(FileSys::TitleType::Application,
+                                                          FileSys::ContentRecordType::Control);
+
+    for (const auto& entry : control_data) {
+        const auto nca = usernand->GetEntry(entry);
+        if (nca != nullptr)
+            nca_control_map.insert_or_assign(entry.title_id, nca);
+    }
 
     const auto nca_control_callback =
         [this, &nca_control_map](u64* num_entries_out, const std::string& directory,
@@ -503,20 +520,7 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
                 // Use from metadata pool.
                 if (nca_control_map.find(program_id) != nca_control_map.end()) {
                     const auto nca = nca_control_map[program_id];
-                    const auto control_dir = FileSys::ExtractRomFS(nca->GetRomFS());
-
-                    const auto nacp_file = control_dir->GetFile("control.nacp");
-                    FileSys::NACP nacp(nacp_file);
-                    name = nacp.GetApplicationName();
-
-                    FileSys::VirtualFile icon_file = nullptr;
-                    for (const auto& language : FileSys::LANGUAGE_NAMES) {
-                        icon_file = control_dir->GetFile("icon_" + std::string(language) + ".dat");
-                        if (icon_file != nullptr) {
-                            icon = icon_file->ReadAllBytes();
-                            break;
-                        }
-                    }
+                    GetMetadataFromControlNCA(nca, icon, name);
                 }
             }
 
