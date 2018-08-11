@@ -197,17 +197,18 @@ void Module::Interface::GetBaasAccountManagerForApplication(Kernel::HLERequestCo
     LOG_DEBUG(Service_ACC, "called");
 }
 
-Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
-    : ServiceFramework(name), module(std::move(module)) {
-    profile_manager = std::make_unique<ProfileManager>();
-}
+Module::Interface::Interface(std::shared_ptr<Module> module,
+                             std::shared_ptr<ProfileManager> profile_manager, const char* name)
+    : ServiceFramework(name), module(std::move(module)),
+      profile_manager(std::make_shared<ProfileManager>(*profile_manager)) {}
 
 void InstallInterfaces(SM::ServiceManager& service_manager) {
     auto module = std::make_shared<Module>();
-    std::make_shared<ACC_AA>(module)->InstallAsService(service_manager);
-    std::make_shared<ACC_SU>(module)->InstallAsService(service_manager);
-    std::make_shared<ACC_U0>(module)->InstallAsService(service_manager);
-    std::make_shared<ACC_U1>(module)->InstallAsService(service_manager);
+    auto profile_manager = std::make_shared<ProfileManager>();
+    std::make_shared<ACC_AA>(module, profile_manager)->InstallAsService(service_manager);
+    std::make_shared<ACC_SU>(module, profile_manager)->InstallAsService(service_manager);
+    std::make_shared<ACC_U0>(module, profile_manager)->InstallAsService(service_manager);
+    std::make_shared<ACC_U1>(module, profile_manager)->InstallAsService(service_manager);
 }
 
 } // namespace Service::Account
