@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <random>
 #include "boost/optional.hpp"
 #include "common/common_types.h"
 #include "common/swap.h"
@@ -38,8 +39,12 @@ struct UUID {
 
     // TODO(ogniK): Properly generate uuids based on RFC-4122
     const UUID& Generate() {
-        uuid[0] = (static_cast<u64>(std::rand()) << 32) | std::rand();
-        uuid[1] = (static_cast<u64>(std::rand()) << 32) | std::rand();
+        std::random_device device;
+        std::mt19937 gen(device());
+        std::uniform_int_distribution<uint64_t> distribution(1,
+                                                             std::numeric_limits<uint64_t>::max());
+        uuid[0] = distribution(gen);
+        uuid[1] = distribution(gen);
         return *this;
     }
 
