@@ -141,20 +141,15 @@ void ProfileManager::CloseUser(UUID uuid) {
 
 std::array<UUID, MAX_USERS> ProfileManager::GetAllUsers() const {
     std::array<UUID, MAX_USERS> output;
-    for (unsigned i = 0; i < user_count; i++) {
-        output[i] = profiles[i].user_uuid;
-    }
+    std::transform(profiles.begin(), profiles.end(), output.begin(),
+                   [](const ProfileInfo& p) { return p.user_uuid; });
     return output;
 }
 
 std::array<UUID, MAX_USERS> ProfileManager::GetOpenUsers() const {
     std::array<UUID, MAX_USERS> output;
-    unsigned user_idx = 0;
-    for (unsigned i = 0; i < user_count; i++) {
-        if (profiles[i].is_open) {
-            output[i++] = profiles[i].user_uuid;
-        }
-    }
+    std::copy_if(profiles.begin(), profiles.end(), output.begin(),
+                 [](const ProfileInfo& p) { return p.is_open; });
     return output;
 }
 
