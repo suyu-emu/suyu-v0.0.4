@@ -15,7 +15,7 @@ ACC_SU::ACC_SU(std::shared_ptr<Module> module) : Module::Interface(std::move(mod
         {4, &ACC_SU::GetLastOpenedUser, "GetLastOpenedUser"},
         {5, &ACC_SU::GetProfile, "GetProfile"},
         {6, nullptr, "GetProfileDigest"},
-        {50, nullptr, "IsUserRegistrationRequestPermitted"},
+        {50, &ACC_SU::IsUserRegistrationRequestPermitted, "IsUserRegistrationRequestPermitted"},
         {51, nullptr, "TrySelectUserWithoutInteraction"},
         {60, nullptr, "ListOpenContextStoredUsers"},
         {100, nullptr, "GetUserRegistrationNotifier"},

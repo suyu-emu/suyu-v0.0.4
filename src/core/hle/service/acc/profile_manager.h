@@ -97,6 +97,8 @@ public:
     std::array<UUID, MAX_USERS> GetAllUsers();
     const UUID& GetLastOpennedUser();
 
+    bool CanSystemRegisterUser();
+
 private:
     std::array<ProfileInfo, MAX_USERS> profiles{};
     size_t user_count = 0;

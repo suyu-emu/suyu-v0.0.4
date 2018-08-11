@@ -166,4 +166,10 @@ bool ProfileManager::GetProfileBaseAndData(ProfileInfo user, ProfileBase& profil
     return GetProfileBaseAndData(user.user_uuid, profile, data);
 }
 
+bool ProfileManager::CanSystemRegisterUser() {
+    return false; // TODO(ogniK): Games shouldn't have
+                  // access to user registration, when we
+    // emulate qlaunch. Update this to dynamically change.
+}
+
 }; // namespace Service::Account

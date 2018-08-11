@@ -156,6 +156,13 @@ void Module::Interface::GetProfile(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_ACC, "called user_id={}", user_id.Format());
 }
 
+void Module::Interface::IsUserRegistrationRequestPermitted(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_ACC, "(STUBBED) called");
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push(profile_manager->CanSystemRegisterUser());
+}
+
 void Module::Interface::InitializeApplicationInfo(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_ACC, "(STUBBED) called");
     IPC::ResponseBuilder rb{ctx, 2};

@@ -23,6 +23,7 @@ public:
         void GetProfile(Kernel::HLERequestContext& ctx);
         void InitializeApplicationInfo(Kernel::HLERequestContext& ctx);
         void GetBaasAccountManagerForApplication(Kernel::HLERequestContext& ctx);
+        void IsUserRegistrationRequestPermitted(Kernel::HLERequestContext& ctx);
 
     private:
         std::unique_ptr<ProfileManager> profile_manager{};
