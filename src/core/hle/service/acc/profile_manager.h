@@ -24,7 +24,7 @@ struct UUID {
         uuid[1] = hi;
     };
     explicit operator bool() const {
-        return uuid[0] != INVALID_UUID[0] && uuid[1] != INVALID_UUID[1];
+        return uuid[0] != INVALID_UUID[0] || uuid[1] != INVALID_UUID[1];
     }
 
     bool operator==(const UUID& rhs) const {
