@@ -132,7 +132,7 @@ public:
     ResultCode PopulateFromIncomingCommandBuffer(u32_le* src_cmdbuf, Process& src_process,
                                                  HandleTable& src_table);
     /// Writes data from this context back to the requesting process/thread.
-    ResultCode WriteToOutgoingCommandBuffer(Thread& thread);
+    ResultCode WriteToOutgoingCommandBuffer(const Thread& thread);
 
     u32_le GetCommand() const {
         return command;

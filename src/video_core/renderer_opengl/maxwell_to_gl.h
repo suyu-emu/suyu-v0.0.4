@@ -27,9 +27,11 @@ inline GLenum VertexType(Maxwell::VertexAttribute attrib) {
     case Maxwell::VertexAttribute::Type::UnsignedNorm: {
 
         switch (attrib.size) {
+        case Maxwell::VertexAttribute::Size::Size_8_8:
         case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
             return GL_UNSIGNED_BYTE;
         case Maxwell::VertexAttribute::Size::Size_16_16:
+        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
             return GL_UNSIGNED_SHORT;
         case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
             return GL_UNSIGNED_INT_2_10_10_10_REV;
@@ -43,6 +45,9 @@ inline GLenum VertexType(Maxwell::VertexAttribute attrib) {
     case Maxwell::VertexAttribute::Type::SignedNorm: {
 
         switch (attrib.size) {
+        case Maxwell::VertexAttribute::Size::Size_32_32_32:
+            return GL_INT;
+        case Maxwell::VertexAttribute::Size::Size_8_8:
         case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
             return GL_BYTE;
         case Maxwell::VertexAttribute::Size::Size_16_16:
@@ -84,6 +89,8 @@ inline GLenum IndexFormat(Maxwell::IndexFormat index_format) {
 
 inline GLenum PrimitiveTopology(Maxwell::PrimitiveTopology topology) {
     switch (topology) {
+    case Maxwell::PrimitiveTopology::Points:
+        return GL_POINTS;
     case Maxwell::PrimitiveTopology::Triangles:
         return GL_TRIANGLES;
     case Maxwell::PrimitiveTopology::TriangleStrip:

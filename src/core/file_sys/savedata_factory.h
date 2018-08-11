@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include "common/common_types.h"
+#include "common/swap.h"
 #include "core/hle/result.h"
 
 namespace FileSys {

@@ -32,7 +32,7 @@ add_subdirectory(inih)
 
 # lz4
 set(LZ4_BUNDLED_MODE ON)
-add_subdirectory(lz4/contrib/cmake_unofficial)
+add_subdirectory(lz4/contrib/cmake_unofficial EXCLUDE_FROM_ALL)
 target_include_directories(lz4_static INTERFACE ./lz4/lib)
 
 # mbedtls

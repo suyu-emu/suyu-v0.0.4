@@ -109,6 +109,9 @@ static constexpr std::array<FormatTuple, SurfaceParams::MaxPixelFormat> tex_form
     {GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, ComponentType::UNorm,
      true},                                                                                 // DXT45
     {GL_COMPRESSED_RED_RGTC1, GL_RED, GL_UNSIGNED_INT_8_8_8_8, ComponentType::UNorm, true}, // DXN1
+    {GL_COMPRESSED_RG_RGTC2, GL_RG, GL_UNSIGNED_INT_8_8_8_8, ComponentType::UNorm,
+     true},                                                                     // DXN2UNORM
+    {GL_COMPRESSED_SIGNED_RG_RGTC2, GL_RG, GL_INT, ComponentType::SNorm, true}, // DXN2SNORM
     {GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, GL_RGB, GL_UNSIGNED_INT_8_8_8_8, ComponentType::UNorm,
      true},                                                                    // BC7U
     {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, ComponentType::UNorm, false},        // ASTC_2D_4X4
@@ -180,36 +183,49 @@ MathUtil::Rectangle<u32> SurfaceParams::GetRect() const {
     return {0, actual_height, width, 0};
 }
 
+/// Returns true if the specified PixelFormat is a BCn format, e.g. DXT or DXN
+static bool IsFormatBCn(PixelFormat format) {
+    switch (format) {
+    case PixelFormat::DXT1:
+    case PixelFormat::DXT23:
+    case PixelFormat::DXT45:
+    case PixelFormat::DXN1:
+    case PixelFormat::DXN2SNORM:
+    case PixelFormat::DXN2UNORM:
+    case PixelFormat::BC7U:
+        return true;
+    }
+    return false;
+}
+
 template <bool morton_to_gl, PixelFormat format>
-void MortonCopy(u32 stride, u32 block_height, u32 height, u8* gl_buffer, Tegra::GPUVAddr addr) {
+void MortonCopy(u32 stride, u32 block_height, u32 height, std::vector<u8>& gl_buffer,
+                Tegra::GPUVAddr addr) {
     constexpr u32 bytes_per_pixel = SurfaceParams::GetFormatBpp(format) / CHAR_BIT;
     constexpr u32 gl_bytes_per_pixel = CachedSurface::GetGLBytesPerPixel(format);
     const auto& gpu = Core::System::GetInstance().GPU();
 
     if (morton_to_gl) {
-        if (SurfaceParams::GetFormatType(format) == SurfaceType::ColorTexture) {
-            auto data = Tegra::Texture::UnswizzleTexture(
-                *gpu.memory_manager->GpuToCpuAddress(addr),
-                SurfaceParams::TextureFormatFromPixelFormat(format), stride, height, block_height);
-            std::memcpy(gl_buffer, data.data(), data.size());
-        } else {
-            auto data = Tegra::Texture::UnswizzleDepthTexture(
-                *gpu.memory_manager->GpuToCpuAddress(addr),
-                SurfaceParams::DepthFormatFromPixelFormat(format), stride, height, block_height);
-            std::memcpy(gl_buffer, data.data(), data.size());
-        }
+        // With the BCn formats (DXT and DXN), each 4x4 tile is swizzled instead of just individual
+        // pixel values.
+        const u32 tile_size{IsFormatBCn(format) ? 4U : 1U};
+        const std::vector<u8> data =
+            Tegra::Texture::UnswizzleTexture(*gpu.memory_manager->GpuToCpuAddress(addr), tile_size,
+                                             bytes_per_pixel, stride, height, block_height);
+        const size_t size_to_copy{std::min(gl_buffer.size(), data.size())};
+        gl_buffer.assign(data.begin(), data.begin() + size_to_copy);
     } else {
         // TODO(bunnei): Assumes the default rendering GOB size of 16 (128 lines). We should
         // check the configuration for this and perform more generic un/swizzle
         LOG_WARNING(Render_OpenGL, "need to use correct swizzle/GOB parameters!");
         VideoCore::MortonCopyPixels128(
             stride, height, bytes_per_pixel, gl_bytes_per_pixel,
-            Memory::GetPointer(*gpu.memory_manager->GpuToCpuAddress(addr)), gl_buffer,
+            Memory::GetPointer(*gpu.memory_manager->GpuToCpuAddress(addr)), gl_buffer.data(),
             morton_to_gl);
     }
 }
 
-static constexpr std::array<void (*)(u32, u32, u32, u8*, Tegra::GPUVAddr),
+static constexpr std::array<void (*)(u32, u32, u32, std::vector<u8>&, Tegra::GPUVAddr),
                             SurfaceParams::MaxPixelFormat>
     morton_to_gl_fns = {
         MortonCopy<true, PixelFormat::ABGR8>,        MortonCopy<true, PixelFormat::B5G6R5>,
@@ -218,6 +234,7 @@ static constexpr std::array<void (*)(u32, u32, u32, u8*, Tegra::GPUVAddr),
         MortonCopy<true, PixelFormat::R11FG11FB10F>, MortonCopy<true, PixelFormat::RGBA32UI>,
         MortonCopy<true, PixelFormat::DXT1>,         MortonCopy<true, PixelFormat::DXT23>,
         MortonCopy<true, PixelFormat::DXT45>,        MortonCopy<true, PixelFormat::DXN1>,
+        MortonCopy<true, PixelFormat::DXN2UNORM>,    MortonCopy<true, PixelFormat::DXN2SNORM>,
         MortonCopy<true, PixelFormat::BC7U>,         MortonCopy<true, PixelFormat::ASTC_2D_4X4>,
         MortonCopy<true, PixelFormat::G8R8>,         MortonCopy<true, PixelFormat::BGRA8>,
         MortonCopy<true, PixelFormat::RGBA32F>,      MortonCopy<true, PixelFormat::RG32F>,
@@ -231,7 +248,7 @@ static constexpr std::array<void (*)(u32, u32, u32, u8*, Tegra::GPUVAddr),
         MortonCopy<true, PixelFormat::Z32FS8>,
 };
 
-static constexpr std::array<void (*)(u32, u32, u32, u8*, Tegra::GPUVAddr),
+static constexpr std::array<void (*)(u32, u32, u32, std::vector<u8>&, Tegra::GPUVAddr),
                             SurfaceParams::MaxPixelFormat>
     gl_to_morton_fns = {
         MortonCopy<false, PixelFormat::ABGR8>,
@@ -242,7 +259,10 @@ static constexpr std::array<void (*)(u32, u32, u32, u8*, Tegra::GPUVAddr),
         MortonCopy<false, PixelFormat::RGBA16F>,
         MortonCopy<false, PixelFormat::R11FG11FB10F>,
         MortonCopy<false, PixelFormat::RGBA32UI>,
-        // TODO(Subv): Swizzling DXT1/DXT23/DXT45/DXN1/BC7U/ASTC_2D_4X4 formats is not supported
+        // TODO(Subv): Swizzling DXT1/DXT23/DXT45/DXN1/DXN2/BC7U/ASTC_2D_4X4 formats is not
+        // supported
+        nullptr,
+        nullptr,
         nullptr,
         nullptr,
         nullptr,
@@ -447,22 +467,24 @@ MICROPROFILE_DEFINE(OpenGL_SurfaceLoad, "OpenGL", "Surface Load", MP_RGB(128, 64
 void CachedSurface::LoadGLBuffer() {
     ASSERT(params.type != SurfaceType::Fill);
 
-    u8* const texture_src_data = Memory::GetPointer(params.GetCpuAddr());
+    const u8* const texture_src_data = Memory::GetPointer(params.GetCpuAddr());
 
     ASSERT(texture_src_data);
 
-    gl_buffer.resize(params.width * params.height * GetGLBytesPerPixel(params.pixel_format));
+    const u32 bytes_per_pixel = GetGLBytesPerPixel(params.pixel_format);
+    const u32 copy_size = params.width * params.height * bytes_per_pixel;
 
     MICROPROFILE_SCOPE(OpenGL_SurfaceLoad);
 
-    if (!params.is_tiled) {
-        const u32 bytes_per_pixel{params.GetFormatBpp() >> 3};
+    if (params.is_tiled) {
+        gl_buffer.resize(copy_size);
 
-        std::memcpy(gl_buffer.data(), texture_src_data,
-                    bytes_per_pixel * params.width * params.height);
-    } else {
         morton_to_gl_fns[static_cast<size_t>(params.pixel_format)](
-            params.width, params.block_height, params.height, gl_buffer.data(), params.addr);
+            params.width, params.block_height, params.height, gl_buffer, params.addr);
+    } else {
+        const u8* const texture_src_data_end = texture_src_data + copy_size;
+
+        gl_buffer.assign(texture_src_data, texture_src_data_end);
     }
 
     ConvertFormatAsNeeded_LoadGLBuffer(gl_buffer, params.pixel_format, params.width, params.height);
@@ -485,7 +507,7 @@ void CachedSurface::FlushGLBuffer() {
         std::memcpy(dst_buffer, gl_buffer.data(), params.size_in_bytes);
     } else {
         gl_to_morton_fns[static_cast<size_t>(params.pixel_format)](
-            params.width, params.block_height, params.height, gl_buffer.data(), params.addr);
+            params.width, params.block_height, params.height, gl_buffer, params.addr);
     }
 }
 
@@ -600,8 +622,8 @@ Surface RasterizerCacheOpenGL::GetTextureSurface(const Tegra::Texture::FullTextu
     return GetSurface(SurfaceParams::CreateForTexture(config));
 }
 
-SurfaceSurfaceRect_Tuple RasterizerCacheOpenGL::GetFramebufferSurfaces(
-    bool using_color_fb, bool using_depth_fb, const MathUtil::Rectangle<s32>& viewport) {
+SurfaceSurfaceRect_Tuple RasterizerCacheOpenGL::GetFramebufferSurfaces(bool using_color_fb,
+                                                                       bool using_depth_fb) {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
     // TODO(bunnei): This is hard corded to use just the first render buffer
@@ -757,9 +779,11 @@ void RasterizerCacheOpenGL::FlushRegion(Tegra::GPUVAddr /*addr*/, size_t /*size*
 }
 
 void RasterizerCacheOpenGL::InvalidateRegion(Tegra::GPUVAddr addr, size_t size) {
-    for (const auto& pair : surface_cache) {
-        const auto& surface{pair.second};
+    for (auto iter = surface_cache.cbegin(); iter != surface_cache.cend();) {
+        const auto& surface{iter->second};
         const auto& params{surface->GetSurfaceParams()};
+
+        ++iter;
 
         if (params.IsOverlappingRegion(addr, size)) {
             UnregisterSurface(surface);

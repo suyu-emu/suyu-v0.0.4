@@ -35,31 +35,33 @@ struct SurfaceParams {
         DXT23 = 9,
         DXT45 = 10,
         DXN1 = 11, // This is also known as BC4
-        BC7U = 12,
-        ASTC_2D_4X4 = 13,
-        G8R8 = 14,
-        BGRA8 = 15,
-        RGBA32F = 16,
-        RG32F = 17,
-        R32F = 18,
-        R16F = 19,
-        R16UNORM = 20,
-        RG16 = 21,
-        RG16F = 22,
-        RG16UI = 23,
-        RG16I = 24,
-        RG16S = 25,
-        RGB32F = 26,
-        SRGBA8 = 27,
+        DXN2UNORM = 12,
+        DXN2SNORM = 13,
+        BC7U = 14,
+        ASTC_2D_4X4 = 15,
+        G8R8 = 16,
+        BGRA8 = 17,
+        RGBA32F = 18,
+        RG32F = 19,
+        R32F = 20,
+        R16F = 21,
+        R16UNORM = 22,
+        RG16 = 23,
+        RG16F = 24,
+        RG16UI = 25,
+        RG16I = 26,
+        RG16S = 27,
+        RGB32F = 28,
+        SRGBA8 = 29,
 
         MaxColorFormat,
 
         // DepthStencil formats
-        Z24S8 = 28,
-        S8Z24 = 29,
-        Z32F = 30,
-        Z16 = 31,
-        Z32FS8 = 32,
+        Z24S8 = 30,
+        S8Z24 = 31,
+        Z32F = 32,
+        Z16 = 33,
+        Z32FS8 = 34,
 
         MaxDepthStencilFormat,
 
@@ -109,6 +111,8 @@ struct SurfaceParams {
             4, // DXT23
             4, // DXT45
             4, // DXN1
+            4, // DXN2UNORM
+            4, // DXN2SNORM
             4, // BC7U
             4, // ASTC_2D_4X4
             1, // G8R8
@@ -153,6 +157,8 @@ struct SurfaceParams {
             128, // DXT23
             128, // DXT45
             64,  // DXN1
+            128, // DXN2UNORM
+            128, // DXN2SNORM
             128, // BC7U
             32,  // ASTC_2D_4X4
             16,  // G8R8
@@ -221,6 +227,8 @@ struct SurfaceParams {
             return PixelFormat::RG32F;
         case Tegra::RenderTargetFormat::R11G11B10_FLOAT:
             return PixelFormat::R11FG11FB10F;
+        case Tegra::RenderTargetFormat::B5G6R5_UNORM:
+            return PixelFormat::B5G6R5;
         case Tegra::RenderTargetFormat::RGBA32_UINT:
             return PixelFormat::RGBA32UI;
         case Tegra::RenderTargetFormat::R8_UNORM:
@@ -303,6 +311,16 @@ struct SurfaceParams {
             return PixelFormat::DXT45;
         case Tegra::Texture::TextureFormat::DXN1:
             return PixelFormat::DXN1;
+        case Tegra::Texture::TextureFormat::DXN2:
+            switch (component_type) {
+            case Tegra::Texture::ComponentType::UNORM:
+                return PixelFormat::DXN2UNORM;
+            case Tegra::Texture::ComponentType::SNORM:
+                return PixelFormat::DXN2SNORM;
+            }
+            LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}",
+                         static_cast<u32>(component_type));
+            UNREACHABLE();
         case Tegra::Texture::TextureFormat::BC7U:
             return PixelFormat::BC7U;
         case Tegra::Texture::TextureFormat::ASTC_2D_4X4:
@@ -326,89 +344,6 @@ struct SurfaceParams {
         default:
             LOG_CRITICAL(HW_GPU, "Unimplemented format={}, component_type={}",
                          static_cast<u32>(format), static_cast<u32>(component_type));
-            UNREACHABLE();
-        }
-    }
-
-    static Tegra::Texture::TextureFormat TextureFormatFromPixelFormat(PixelFormat format) {
-        // TODO(Subv): Properly implement this
-        switch (format) {
-        case PixelFormat::ABGR8:
-        case PixelFormat::SRGBA8:
-            return Tegra::Texture::TextureFormat::A8R8G8B8;
-        case PixelFormat::B5G6R5:
-            return Tegra::Texture::TextureFormat::B5G6R5;
-        case PixelFormat::A2B10G10R10:
-            return Tegra::Texture::TextureFormat::A2B10G10R10;
-        case PixelFormat::A1B5G5R5:
-            return Tegra::Texture::TextureFormat::A1B5G5R5;
-        case PixelFormat::R8:
-            return Tegra::Texture::TextureFormat::R8;
-        case PixelFormat::G8R8:
-            return Tegra::Texture::TextureFormat::G8R8;
-        case PixelFormat::RGBA16F:
-            return Tegra::Texture::TextureFormat::R16_G16_B16_A16;
-        case PixelFormat::R11FG11FB10F:
-            return Tegra::Texture::TextureFormat::BF10GF11RF11;
-        case PixelFormat::RGBA32UI:
-            return Tegra::Texture::TextureFormat::R32_G32_B32_A32;
-        case PixelFormat::DXT1:
-            return Tegra::Texture::TextureFormat::DXT1;
-        case PixelFormat::DXT23:
-            return Tegra::Texture::TextureFormat::DXT23;
-        case PixelFormat::DXT45:
-            return Tegra::Texture::TextureFormat::DXT45;
-        case PixelFormat::DXN1:
-            return Tegra::Texture::TextureFormat::DXN1;
-        case PixelFormat::BC7U:
-            return Tegra::Texture::TextureFormat::BC7U;
-        case PixelFormat::ASTC_2D_4X4:
-            return Tegra::Texture::TextureFormat::ASTC_2D_4X4;
-        case PixelFormat::BGRA8:
-            // TODO(bunnei): This is fine for unswizzling (since we just need the right component
-            // sizes), but could be a bug if we used this function in different ways.
-            return Tegra::Texture::TextureFormat::A8R8G8B8;
-        case PixelFormat::RGBA32F:
-            return Tegra::Texture::TextureFormat::R32_G32_B32_A32;
-        case PixelFormat::RGB32F:
-            return Tegra::Texture::TextureFormat::R32_G32_B32;
-        case PixelFormat::RG32F:
-            return Tegra::Texture::TextureFormat::R32_G32;
-        case PixelFormat::R32F:
-            return Tegra::Texture::TextureFormat::R32;
-        case PixelFormat::R16F:
-        case PixelFormat::R16UNORM:
-            return Tegra::Texture::TextureFormat::R16;
-        case PixelFormat::Z32F:
-            return Tegra::Texture::TextureFormat::ZF32;
-        case PixelFormat::Z24S8:
-            return Tegra::Texture::TextureFormat::Z24S8;
-        case PixelFormat::RG16F:
-        case PixelFormat::RG16:
-        case PixelFormat::RG16UI:
-        case PixelFormat::RG16I:
-        case PixelFormat::RG16S:
-            return Tegra::Texture::TextureFormat::R16_G16;
-        default:
-            LOG_CRITICAL(HW_GPU, "Unimplemented format={}", static_cast<u32>(format));
-            UNREACHABLE();
-        }
-    }
-
-    static Tegra::DepthFormat DepthFormatFromPixelFormat(PixelFormat format) {
-        switch (format) {
-        case PixelFormat::S8Z24:
-            return Tegra::DepthFormat::S8_Z24_UNORM;
-        case PixelFormat::Z24S8:
-            return Tegra::DepthFormat::Z24_S8_UNORM;
-        case PixelFormat::Z32F:
-            return Tegra::DepthFormat::Z32_FLOAT;
-        case PixelFormat::Z16:
-            return Tegra::DepthFormat::Z16_UNORM;
-        case PixelFormat::Z32FS8:
-            return Tegra::DepthFormat::Z32_S8_X24_FLOAT;
-        default:
-            LOG_CRITICAL(HW_GPU, "Unimplemented format={}", static_cast<u32>(format));
             UNREACHABLE();
         }
     }
@@ -441,6 +376,7 @@ struct SurfaceParams {
         case Tegra::RenderTargetFormat::RGB10_A2_UNORM:
         case Tegra::RenderTargetFormat::R8_UNORM:
         case Tegra::RenderTargetFormat::RG16_UNORM:
+        case Tegra::RenderTargetFormat::B5G6R5_UNORM:
             return ComponentType::UNorm;
         case Tegra::RenderTargetFormat::RG16_SNORM:
             return ComponentType::SNorm;
@@ -612,8 +548,7 @@ public:
     Surface GetTextureSurface(const Tegra::Texture::FullTextureInfo& config);
 
     /// Get the color and depth surfaces based on the framebuffer configuration
-    SurfaceSurfaceRect_Tuple GetFramebufferSurfaces(bool using_color_fb, bool using_depth_fb,
-                                                    const MathUtil::Rectangle<s32>& viewport);
+    SurfaceSurfaceRect_Tuple GetFramebufferSurfaces(bool using_color_fb, bool using_depth_fb);
 
     /// Flushes the surface to Switch memory
     void FlushSurface(const Surface& surface);

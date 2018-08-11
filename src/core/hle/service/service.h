@@ -22,6 +22,10 @@ class ServerSession;
 class HLERequestContext;
 } // namespace Kernel
 
+namespace FileSys {
+struct VfsFilesystem;
+}
+
 namespace Service {
 
 namespace SM {
@@ -177,7 +181,8 @@ private:
 };
 
 /// Initialize ServiceManager
-void Init(std::shared_ptr<SM::ServiceManager>& sm);
+void Init(std::shared_ptr<SM::ServiceManager>& sm,
+          const std::shared_ptr<FileSys::VfsFilesystem>& vfs);
 
 /// Shutdown ServiceManager
 void Shutdown();

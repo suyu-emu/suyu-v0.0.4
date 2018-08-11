@@ -161,7 +161,7 @@ std::pair<u8*, GLintptr> RasterizerOpenGL::SetupVertexArrays(u8* array_ptr,
     // assume every shader uses them all.
     for (unsigned index = 0; index < 16; ++index) {
         auto& attrib = regs.vertex_attrib_format[index];
-        LOG_DEBUG(HW_GPU, "vertex attrib {}, count={}, size={}, type={}, offset={}, normalize={}",
+        LOG_TRACE(HW_GPU, "vertex attrib {}, count={}, size={}, type={}, offset={}, normalize={}",
                   index, attrib.ComponentCount(), attrib.SizeString(), attrib.TypeString(),
                   attrib.offset.Value(), attrib.IsNormalized());
 
@@ -324,10 +324,13 @@ std::pair<Surface, Surface> RasterizerOpenGL::ConfigureFramebuffers(bool using_c
                                                                     bool using_depth_fb) {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
+    if (regs.rt[0].format == Tegra::RenderTargetFormat::NONE) {
+        LOG_ERROR(HW_GPU, "RenderTargetFormat is not configured");
+        using_color_fb = false;
+    }
+
     // TODO(bunnei): Implement this
     const bool has_stencil = false;
-
-    const MathUtil::Rectangle<s32> viewport_rect{regs.viewport_transform[0].GetRect()};
 
     const bool write_color_fb =
         state.color_mask.red_enabled == GL_TRUE || state.color_mask.green_enabled == GL_TRUE ||
@@ -341,9 +344,10 @@ std::pair<Surface, Surface> RasterizerOpenGL::ConfigureFramebuffers(bool using_c
     Surface depth_surface;
     MathUtil::Rectangle<u32> surfaces_rect;
     std::tie(color_surface, depth_surface, surfaces_rect) =
-        res_cache.GetFramebufferSurfaces(using_color_fb, using_depth_fb, viewport_rect);
+        res_cache.GetFramebufferSurfaces(using_color_fb, using_depth_fb);
 
-    MathUtil::Rectangle<u32> draw_rect{
+    const MathUtil::Rectangle<s32> viewport_rect{regs.viewport_transform[0].GetRect()};
+    const MathUtil::Rectangle<u32> draw_rect{
         static_cast<u32>(std::clamp<s32>(static_cast<s32>(surfaces_rect.left) + viewport_rect.left,
                                          surfaces_rect.left, surfaces_rect.right)), // Left
         static_cast<u32>(std::clamp<s32>(static_cast<s32>(surfaces_rect.bottom) + viewport_rect.top,
@@ -659,7 +663,10 @@ u32 RasterizerOpenGL::SetupConstBuffers(Maxwell::ShaderStage stage, GLuint progr
         auto& buffer_draw_state =
             state.draw.const_buffers[static_cast<size_t>(stage)][used_buffer.GetIndex()];
 
-        ASSERT_MSG(buffer.enabled, "Attempted to upload disabled constbuffer");
+        if (!buffer.enabled) {
+            continue;
+        }
+
         buffer_draw_state.enabled = true;
         buffer_draw_state.bindpoint = current_bindpoint + bindpoint;
 
@@ -804,9 +811,7 @@ void RasterizerOpenGL::SyncClipCoef() {
 void RasterizerOpenGL::SyncCullMode() {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
-    // TODO(bunnei): Enable the below once more things work - until then, this may hide regressions
-    // state.cull.enabled = regs.cull.enabled != 0;
-    state.cull.enabled = false;
+    state.cull.enabled = regs.cull.enabled != 0;
 
     if (state.cull.enabled) {
         state.cull.front_face = MaxwellToGL::FrontFace(regs.cull.front_face);

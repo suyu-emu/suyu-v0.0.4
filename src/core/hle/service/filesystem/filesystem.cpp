@@ -59,7 +59,7 @@ ResultCode VfsDirectoryServiceWrapper::CreateFile(const std::string& path_, u64 
 ResultCode VfsDirectoryServiceWrapper::DeleteFile(const std::string& path_) const {
     std::string path(FileUtil::SanitizePath(path_));
     auto dir = GetDirectoryRelativeWrapped(backing, FileUtil::GetParentPath(path));
-    if (path == "/" || path == "\\") {
+    if (path.empty()) {
         // TODO(DarkLordZach): Why do games call this and what should it do? Works as is but...
         return RESULT_SUCCESS;
     }
@@ -281,15 +281,15 @@ ResultVal<FileSys::VirtualDir> OpenSDMC() {
     return sdmc_factory->Open();
 }
 
-void RegisterFileSystems() {
+void RegisterFileSystems(const FileSys::VirtualFilesystem& vfs) {
     romfs_factory = nullptr;
     save_data_factory = nullptr;
     sdmc_factory = nullptr;
 
-    auto nand_directory = std::make_shared<FileSys::RealVfsDirectory>(
-        FileUtil::GetUserPath(FileUtil::UserPath::NANDDir), FileSys::Mode::ReadWrite);
-    auto sd_directory = std::make_shared<FileSys::RealVfsDirectory>(
-        FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir), FileSys::Mode::ReadWrite);
+    auto nand_directory = vfs->OpenDirectory(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir),
+                                             FileSys::Mode::ReadWrite);
+    auto sd_directory = vfs->OpenDirectory(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir),
+                                           FileSys::Mode::ReadWrite);
 
     auto savedata = std::make_unique<FileSys::SaveDataFactory>(std::move(nand_directory));
     save_data_factory = std::move(savedata);
@@ -298,8 +298,8 @@ void RegisterFileSystems() {
     sdmc_factory = std::move(sdcard);
 }
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
-    RegisterFileSystems();
+void InstallInterfaces(SM::ServiceManager& service_manager, const FileSys::VirtualFilesystem& vfs) {
+    RegisterFileSystems(vfs);
     std::make_shared<FSP_LDR>()->InstallAsService(service_manager);
     std::make_shared<FSP_PR>()->InstallAsService(service_manager);
     std::make_shared<FSP_SRV>()->InstallAsService(service_manager);

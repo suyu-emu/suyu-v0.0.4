@@ -89,7 +89,7 @@ System::ResultStatus System::SingleStep() {
 }
 
 System::ResultStatus System::Load(EmuWindow& emu_window, const std::string& filepath) {
-    app_loader = Loader::GetLoader(std::make_shared<FileSys::RealVfsFile>(filepath));
+    app_loader = Loader::GetLoader(virtual_filesystem->OpenFile(filepath, FileSys::Mode::Read));
 
     if (!app_loader) {
         LOG_CRITICAL(Core, "Failed to obtain loader for {}!", filepath);
@@ -174,6 +174,10 @@ System::ResultStatus System::Init(EmuWindow& emu_window) {
 
     CoreTiming::Init();
 
+    // Create a default fs if one doesn't already exist.
+    if (virtual_filesystem == nullptr)
+        virtual_filesystem = std::make_shared<FileSys::RealVfsFilesystem>();
+
     current_process = Kernel::Process::Create("main");
 
     cpu_barrier = std::make_shared<CpuBarrier>();
@@ -186,7 +190,7 @@ System::ResultStatus System::Init(EmuWindow& emu_window) {
     service_manager = std::make_shared<Service::SM::ServiceManager>();
 
     Kernel::Init();
-    Service::Init(service_manager);
+    Service::Init(service_manager, virtual_filesystem);
     GDBStub::Init();
 
     renderer = VideoCore::CreateRenderer(emu_window);

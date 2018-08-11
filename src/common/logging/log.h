@@ -58,15 +58,21 @@ enum class Class : ClassType {
     Service_Audio,     ///< The Audio (Audio control) service
     Service_BCAT,      ///< The BCAT service
     Service_BPC,       ///< The BPC service
+    Service_BTDRV,     ///< The Bluetooth driver service
     Service_BTM,       ///< The BTM service
     Service_Capture,   ///< The capture service
+    Service_ERPT,      ///< The error reporting service
+    Service_ETicket,   ///< The ETicket service
+    Service_EUPLD,     ///< The error upload service
     Service_Fatal,     ///< The Fatal service
     Service_FGM,       ///< The FGM service
     Service_Friend,    ///< The friend service
     Service_FS,        ///< The FS (Filesystem) service
+    Service_GRC,       ///< The game recording service
     Service_HID,       ///< The HID (Human interface device) service
     Service_LBL,       ///< The LBL (LCD backlight) service
     Service_LDN,       ///< The LDN (Local domain network) service
+    Service_LDR,       ///< The loader service
     Service_LM,        ///< The LM (Logger) service
     Service_Migration, ///< The migration service
     Service_Mii,       ///< The Mii service
@@ -75,11 +81,13 @@ enum class Class : ClassType {
     Service_NFC,       ///< The NFC (Near-field communication) service
     Service_NFP,       ///< The NFP service
     Service_NIFM,      ///< The NIFM (Network interface) service
+    Service_NIM,       ///< The NIM service
     Service_NS,        ///< The NS services
     Service_NVDRV,     ///< The NVDRV (Nvidia driver) service
     Service_PCIE,      ///< The PCIe service
     Service_PCTL,      ///< The PCTL (Parental control) service
     Service_PCV,       ///< The PCV service
+    Service_PM,        ///< The PM service
     Service_PREPO,     ///< The PREPO (Play report) service
     Service_PSC,       ///< The PSC service
     Service_SET,       ///< The SET (Settings) service

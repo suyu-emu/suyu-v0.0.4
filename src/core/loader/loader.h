@@ -43,14 +43,6 @@ enum class FileType {
 FileType IdentifyFile(FileSys::VirtualFile file);
 
 /**
- * Identifies the type of a bootable file based on the magic value in its header.
- * @param file_name path to file
- * @return FileType of file. Note: this will return FileType::Unknown if it is unable to determine
- * a filetype, and will never return FileType::Error.
- */
-FileType IdentifyFile(const std::string& file_name);
-
-/**
  * Guess the type of a bootable file from its name
  * @param name String name of bootable file
  * @return FileType of file. Note: this will return FileType::Unknown if it is unable to determine
@@ -61,7 +53,7 @@ FileType GuessFromFilename(const std::string& name);
 /**
  * Convert a FileType into a string which can be displayed to the user.
  */
-const char* GetFileTypeString(FileType type);
+std::string GetFileTypeString(FileType type);
 
 /// Return type for functions in Loader namespace
 enum class ResultStatus {

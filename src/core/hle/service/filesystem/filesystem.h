@@ -36,7 +36,7 @@ ResultVal<FileSys::VirtualDir> OpenSDMC();
 // ResultVal<std::unique_ptr<FileSys::FileSystemBackend>> OpenBIS();
 
 /// Registers all Filesystem services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& service_manager);
+void InstallInterfaces(SM::ServiceManager& service_manager, const FileSys::VirtualFilesystem& vfs);
 
 // A class that wraps a VfsDirectory with methods that return ResultVal and ResultCode instead of
 // pointers and booleans. This makes using a VfsDirectory with switch services much easier and

@@ -182,8 +182,12 @@ std::vector<T> SliceVector(const std::vector<T>& vector, size_t first, size_t la
     return std::vector<T>(vector.begin() + first, vector.begin() + first + last);
 }
 
-// Removes trailing slash, makes all '\\' into '/', and removes duplicate '/'.
-std::string SanitizePath(std::string_view path);
+enum class DirectorySeparator { ForwardSlash, BackwardSlash, PlatformDefault };
+
+// Removes trailing slash, makes all '\\' into '/', and removes duplicate '/'. Makes '/' into '\\'
+// depending if directory_separator is BackwardSlash or PlatformDefault and running on windows
+std::string SanitizePath(std::string_view path,
+                         DirectorySeparator directory_separator = DirectorySeparator::ForwardSlash);
 
 // simple wrapper for cstdlib file functions to
 // hopefully will make error checking easier
@@ -208,7 +212,7 @@ public:
 
     template <typename T>
     size_t ReadArray(T* data, size_t length) const {
-        static_assert(std::is_trivially_copyable<T>(),
+        static_assert(std::is_trivially_copyable_v<T>,
                       "Given array does not consist of trivially copyable objects");
 
         if (!IsOpen()) {
@@ -220,7 +224,7 @@ public:
 
     template <typename T>
     size_t WriteArray(const T* data, size_t length) {
-        static_assert(std::is_trivially_copyable<T>(),
+        static_assert(std::is_trivially_copyable_v<T>,
                       "Given array does not consist of trivially copyable objects");
         if (!IsOpen()) {
             return std::numeric_limits<size_t>::max();
@@ -231,19 +235,19 @@ public:
 
     template <typename T>
     size_t ReadBytes(T* data, size_t length) const {
-        static_assert(std::is_trivially_copyable<T>(), "T must be trivially copyable");
+        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
         return ReadArray(reinterpret_cast<char*>(data), length);
     }
 
     template <typename T>
     size_t WriteBytes(const T* data, size_t length) {
-        static_assert(std::is_trivially_copyable<T>(), "T must be trivially copyable");
+        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
         return WriteArray(reinterpret_cast<const char*>(data), length);
     }
 
     template <typename T>
     size_t WriteObject(const T& object) {
-        static_assert(!std::is_pointer<T>::value, "Given object is a pointer");
+        static_assert(!std::is_pointer_v<T>, "WriteObject arguments must not be a pointer");
         return WriteArray(&object, 1);
     }
 
