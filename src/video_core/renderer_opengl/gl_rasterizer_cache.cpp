@@ -122,6 +122,9 @@ static constexpr std::array<FormatTuple, SurfaceParams::MaxPixelFormat> tex_form
     {GL_R32F, GL_RED, GL_FLOAT, ComponentType::Float, false},                  // R32F
     {GL_R16F, GL_RED, GL_HALF_FLOAT, ComponentType::Float, false},             // R16F
     {GL_R16, GL_RED, GL_UNSIGNED_SHORT, ComponentType::UNorm, false},          // R16UNORM
+    {GL_R16_SNORM, GL_RED, GL_SHORT, ComponentType::SNorm, false},             // R16S
+    {GL_R16UI, GL_RED_INTEGER, GL_UNSIGNED_SHORT, ComponentType::UInt, false}, // R16UI
+    {GL_R16I, GL_RED_INTEGER, GL_SHORT, ComponentType::SInt, false},           // R16I
     {GL_RG16, GL_RG, GL_UNSIGNED_SHORT, ComponentType::UNorm, false},          // RG16
     {GL_RG16F, GL_RG, GL_HALF_FLOAT, ComponentType::Float, false},             // RG16F
     {GL_RG16UI, GL_RG_INTEGER, GL_UNSIGNED_SHORT, ComponentType::UInt, false}, // RG16UI
@@ -239,13 +242,14 @@ static constexpr std::array<void (*)(u32, u32, u32, std::vector<u8>&, Tegra::GPU
         MortonCopy<true, PixelFormat::G8R8>,         MortonCopy<true, PixelFormat::BGRA8>,
         MortonCopy<true, PixelFormat::RGBA32F>,      MortonCopy<true, PixelFormat::RG32F>,
         MortonCopy<true, PixelFormat::R32F>,         MortonCopy<true, PixelFormat::R16F>,
-        MortonCopy<true, PixelFormat::R16UNORM>,     MortonCopy<true, PixelFormat::RG16>,
-        MortonCopy<true, PixelFormat::RG16F>,        MortonCopy<true, PixelFormat::RG16UI>,
-        MortonCopy<true, PixelFormat::RG16I>,        MortonCopy<true, PixelFormat::RG16S>,
-        MortonCopy<true, PixelFormat::RGB32F>,       MortonCopy<true, PixelFormat::SRGBA8>,
-        MortonCopy<true, PixelFormat::Z24S8>,        MortonCopy<true, PixelFormat::S8Z24>,
-        MortonCopy<true, PixelFormat::Z32F>,         MortonCopy<true, PixelFormat::Z16>,
-        MortonCopy<true, PixelFormat::Z32FS8>,
+        MortonCopy<true, PixelFormat::R16UNORM>,     MortonCopy<true, PixelFormat::R16S>,
+        MortonCopy<true, PixelFormat::R16UI>,        MortonCopy<true, PixelFormat::R16I>,
+        MortonCopy<true, PixelFormat::RG16>,         MortonCopy<true, PixelFormat::RG16F>,
+        MortonCopy<true, PixelFormat::RG16UI>,       MortonCopy<true, PixelFormat::RG16I>,
+        MortonCopy<true, PixelFormat::RG16S>,        MortonCopy<true, PixelFormat::RGB32F>,
+        MortonCopy<true, PixelFormat::SRGBA8>,       MortonCopy<true, PixelFormat::Z24S8>,
+        MortonCopy<true, PixelFormat::S8Z24>,        MortonCopy<true, PixelFormat::Z32F>,
+        MortonCopy<true, PixelFormat::Z16>,          MortonCopy<true, PixelFormat::Z32FS8>,
 };
 
 static constexpr std::array<void (*)(u32, u32, u32, std::vector<u8>&, Tegra::GPUVAddr),
@@ -276,6 +280,9 @@ static constexpr std::array<void (*)(u32, u32, u32, std::vector<u8>&, Tegra::GPU
         MortonCopy<false, PixelFormat::R32F>,
         MortonCopy<false, PixelFormat::R16F>,
         MortonCopy<false, PixelFormat::R16UNORM>,
+        MortonCopy<false, PixelFormat::R16S>,
+        MortonCopy<false, PixelFormat::R16UI>,
+        MortonCopy<false, PixelFormat::R16I>,
         MortonCopy<false, PixelFormat::RG16>,
         MortonCopy<false, PixelFormat::RG16F>,
         MortonCopy<false, PixelFormat::RG16UI>,

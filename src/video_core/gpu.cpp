@@ -34,18 +34,50 @@ u32 RenderTargetBytesPerPixel(RenderTargetFormat format) {
 
     switch (format) {
     case RenderTargetFormat::RGBA32_FLOAT:
+    case RenderTargetFormat::RGBA32_UINT:
         return 16;
     case RenderTargetFormat::RGBA16_FLOAT:
     case RenderTargetFormat::RG32_FLOAT:
         return 8;
     case RenderTargetFormat::RGBA8_UNORM:
+    case RenderTargetFormat::RGBA8_SRGB:
     case RenderTargetFormat::RGB10_A2_UNORM:
     case RenderTargetFormat::BGRA8_UNORM:
+    case RenderTargetFormat::RG16_UNORM:
+    case RenderTargetFormat::RG16_SNORM:
+    case RenderTargetFormat::RG16_UINT:
+    case RenderTargetFormat::RG16_SINT:
+    case RenderTargetFormat::RG16_FLOAT:
     case RenderTargetFormat::R32_FLOAT:
     case RenderTargetFormat::R11G11B10_FLOAT:
         return 4;
+    case RenderTargetFormat::R16_UNORM:
+    case RenderTargetFormat::R16_SNORM:
+    case RenderTargetFormat::R16_UINT:
+    case RenderTargetFormat::R16_SINT:
+    case RenderTargetFormat::R16_FLOAT:
+        return 2;
+    case RenderTargetFormat::R8_UNORM:
+        return 1;
     default:
         UNIMPLEMENTED_MSG("Unimplemented render target format {}", static_cast<u32>(format));
+    }
+}
+
+u32 DepthFormatBytesPerPixel(DepthFormat format) {
+    switch (format) {
+    case DepthFormat::Z32_S8_X24_FLOAT:
+        return 8;
+    case DepthFormat::Z32_FLOAT:
+    case DepthFormat::S8_Z24_UNORM:
+    case DepthFormat::Z24_X8_UNORM:
+    case DepthFormat::Z24_S8_UNORM:
+    case DepthFormat::Z24_C8_UNORM:
+        return 4;
+    case DepthFormat::Z16_UNORM:
+        return 2;
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented Depth format {}", static_cast<u32>(format));
     }
 }
 
