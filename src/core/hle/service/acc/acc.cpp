@@ -54,6 +54,8 @@ private:
             rb.Push(RESULT_SUCCESS);
             rb.PushRaw(profile_base);
         } else {
+            LOG_ERROR(Service_ACC, "Failed to get profile base and data for user={}",
+                      user_id.Format());
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ResultCode(-1)); // TODO(ogniK): Get actual error code
         }
@@ -67,6 +69,7 @@ private:
             rb.Push(RESULT_SUCCESS);
             rb.PushRaw(profile_base);
         } else {
+            LOG_ERROR(Service_ACC, "Failed to get profile base for user={}", user_id.Format());
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ResultCode(-1)); // TODO(ogniK): Get actual error code
         }
@@ -93,7 +96,7 @@ private:
         rb.Push<u32>(jpeg_size);
     }
 
-    ProfileManager& profile_manager;
+    const ProfileManager& profile_manager;
     UUID user_id; ///< The user id this profile refers to.
 };
 
@@ -202,7 +205,7 @@ void Module::Interface::GetBaasAccountManagerForApplication(Kernel::HLERequestCo
 Module::Interface::Interface(std::shared_ptr<Module> module,
                              std::shared_ptr<ProfileManager> profile_manager, const char* name)
     : ServiceFramework(name), module(std::move(module)),
-      profile_manager(std::make_shared<ProfileManager>(*profile_manager)) {}
+      profile_manager(std::move(profile_manager)) {}
 
 void InstallInterfaces(SM::ServiceManager& service_manager) {
     auto module = std::make_shared<Module>();

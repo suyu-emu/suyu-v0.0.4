@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <boost/optional.hpp>
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/settings.h"
 
@@ -12,20 +13,21 @@ constexpr ResultCode ERROR_USER_ALREADY_EXISTS(ErrorModule::Account, -2);
 constexpr ResultCode ERROR_ARGUMENT_IS_NULL(ErrorModule::Account, 20);
 
 ProfileManager::ProfileManager() {
+    // TODO(ogniK): Create the default user we have for now until loading/saving users is added
     auto user_uuid = UUID{1, 0};
     CreateNewUser(user_uuid, Settings::values.username);
     OpenUser(user_uuid);
 }
 
-size_t ProfileManager::AddToProfiles(const ProfileInfo& user) {
+boost::optional<size_t> ProfileManager::AddToProfiles(const ProfileInfo& user) {
     if (user_count >= MAX_USERS) {
-        return std::numeric_limits<size_t>::max();
+        return boost::none;
     }
     profiles[user_count] = std::move(user);
     return user_count++;
 }
 
-bool ProfileManager::RemoveProfileAtIdx(size_t index) {
+bool ProfileManager::RemoveProfileAtIndex(size_t index) {
     if (index >= MAX_USERS || index >= user_count) {
         return false;
     }
@@ -38,7 +40,7 @@ bool ProfileManager::RemoveProfileAtIdx(size_t index) {
 }
 
 ResultCode ProfileManager::AddUser(ProfileInfo user) {
-    if (AddToProfiles(user) == std::numeric_limits<size_t>::max()) {
+    if (AddToProfiles(user) == boost::none) {
         return ERROR_TOO_MANY_USERS;
     }
     return RESULT_SUCCESS;
@@ -58,13 +60,13 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, std::array<u8, 0x20>& userna
                     [&uuid](const ProfileInfo& profile) { return uuid == profile.user_uuid; })) {
         return ERROR_USER_ALREADY_EXISTS;
     }
-    ProfileInfo prof_inf;
-    prof_inf.user_uuid = std::move(uuid);
-    prof_inf.username = std::move(username);
-    prof_inf.data = std::array<u8, MAX_DATA>();
-    prof_inf.creation_time = 0x0;
-    prof_inf.is_open = false;
-    return AddUser(prof_inf);
+    ProfileInfo profile;
+    profile.user_uuid = std::move(uuid);
+    profile.username = std::move(username);
+    profile.data = {};
+    profile.creation_time = 0x0;
+    profile.is_open = false;
+    return AddUser(profile);
 }
 
 ResultCode ProfileManager::CreateNewUser(UUID uuid, const std::string& username) {
@@ -77,28 +79,27 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, const std::string& username)
     return CreateNewUser(uuid, username_output);
 }
 
-size_t ProfileManager::GetUserIndex(const UUID& uuid) const {
+boost::optional<size_t> ProfileManager::GetUserIndex(const UUID& uuid) const {
     if (!uuid) {
-        return std::numeric_limits<size_t>::max();
+        return boost::none;
     }
     auto iter = std::find_if(profiles.begin(), profiles.end(),
                              [&uuid](const ProfileInfo& p) { return p.user_uuid == uuid; });
     if (iter == profiles.end()) {
-        return std::numeric_limits<size_t>::max();
+        return boost::none;
     }
     return static_cast<size_t>(std::distance(profiles.begin(), iter));
 }
 
-size_t ProfileManager::GetUserIndex(ProfileInfo user) const {
+boost::optional<size_t> ProfileManager::GetUserIndex(ProfileInfo user) const {
     return GetUserIndex(user.user_uuid);
 }
 
-bool ProfileManager::GetProfileBase(size_t index, ProfileBase& profile) const {
-    if (index >= MAX_USERS) {
-        profile.Invalidate();
+bool ProfileManager::GetProfileBase(boost::optional<size_t> index, ProfileBase& profile) const {
+    if (index == boost::none || index >= MAX_USERS) {
         return false;
     }
-    const auto& prof_info = profiles[index];
+    const auto& prof_info = profiles[index.get()];
     profile.user_uuid = prof_info.user_uuid;
     profile.username = prof_info.username;
     profile.timestamp = prof_info.creation_time;
@@ -124,24 +125,24 @@ size_t ProfileManager::GetOpenUserCount() const {
 }
 
 bool ProfileManager::UserExists(UUID uuid) const {
-    return (GetUserIndex(uuid) != std::numeric_limits<size_t>::max());
+    return (GetUserIndex(uuid) != boost::none);
 }
 
 void ProfileManager::OpenUser(UUID uuid) {
     auto idx = GetUserIndex(uuid);
-    if (idx == std::numeric_limits<size_t>::max()) {
+    if (idx == boost::none) {
         return;
     }
-    profiles[idx].is_open = true;
+    profiles[idx.get()].is_open = true;
     last_opened_user = uuid;
 }
 
 void ProfileManager::CloseUser(UUID uuid) {
     auto idx = GetUserIndex(uuid);
-    if (idx == std::numeric_limits<size_t>::max()) {
+    if (idx == boost::none) {
         return;
     }
-    profiles[idx].is_open = false;
+    profiles[idx.get()].is_open = false;
 }
 
 std::array<UUID, MAX_USERS> ProfileManager::GetAllUsers() const {
@@ -166,22 +167,23 @@ UUID ProfileManager::GetLastOpenedUser() const {
     return last_opened_user;
 }
 
-bool ProfileManager::GetProfileBaseAndData(size_t index, ProfileBase& profile,
-                                           std::array<u8, MAX_DATA>& data) {
+bool ProfileManager::GetProfileBaseAndData(boost::optional<size_t> index, ProfileBase& profile,
+                                           std::array<u8, MAX_DATA>& data) const {
     if (GetProfileBase(index, profile)) {
-        std::memcpy(data.data(), profiles[index].data.data(), MAX_DATA);
+        std::memcpy(data.data(), profiles[index.get()].data.data(), MAX_DATA);
         return true;
     }
     return false;
 }
+
 bool ProfileManager::GetProfileBaseAndData(UUID uuid, ProfileBase& profile,
-                                           std::array<u8, MAX_DATA>& data) {
+                                           std::array<u8, MAX_DATA>& data) const {
     auto idx = GetUserIndex(uuid);
     return GetProfileBaseAndData(idx, profile, data);
 }
 
 bool ProfileManager::GetProfileBaseAndData(ProfileInfo user, ProfileBase& profile,
-                                           std::array<u8, MAX_DATA>& data) {
+                                           std::array<u8, MAX_DATA>& data) const {
     return GetProfileBaseAndData(user.user_uuid, profile, data);
 }
 

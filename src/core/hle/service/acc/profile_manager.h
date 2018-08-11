@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include "boost/optional.hpp"
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "core/hle/result.h"
@@ -82,15 +83,17 @@ public:
     ResultCode AddUser(ProfileInfo user);
     ResultCode CreateNewUser(UUID uuid, std::array<u8, 0x20>& username);
     ResultCode CreateNewUser(UUID uuid, const std::string& username);
-    size_t GetUserIndex(const UUID& uuid) const;
-    size_t GetUserIndex(ProfileInfo user) const;
-    bool GetProfileBase(size_t index, ProfileBase& profile) const;
+    boost::optional<size_t> GetUserIndex(const UUID& uuid) const;
+    boost::optional<size_t> GetUserIndex(ProfileInfo user) const;
+    bool GetProfileBase(boost::optional<size_t> index, ProfileBase& profile) const;
     bool GetProfileBase(UUID uuid, ProfileBase& profile) const;
     bool GetProfileBase(ProfileInfo user, ProfileBase& profile) const;
-    bool GetProfileBaseAndData(size_t index, ProfileBase& profile, std::array<u8, MAX_DATA>& data);
-    bool GetProfileBaseAndData(UUID uuid, ProfileBase& profile, std::array<u8, MAX_DATA>& data);
+    bool GetProfileBaseAndData(boost::optional<size_t> index, ProfileBase& profile,
+                               std::array<u8, MAX_DATA>& data) const;
+    bool GetProfileBaseAndData(UUID uuid, ProfileBase& profile,
+                               std::array<u8, MAX_DATA>& data) const;
     bool GetProfileBaseAndData(ProfileInfo user, ProfileBase& profile,
-                               std::array<u8, MAX_DATA>& data);
+                               std::array<u8, MAX_DATA>& data) const;
     size_t GetUserCount() const;
     size_t GetOpenUserCount() const;
     bool UserExists(UUID uuid) const;
@@ -105,10 +108,9 @@ public:
 private:
     std::array<ProfileInfo, MAX_USERS> profiles{};
     size_t user_count = 0;
-    size_t AddToProfiles(const ProfileInfo& profile);
-    bool RemoveProfileAtIdx(size_t index);
+    boost::optional<size_t> AddToProfiles(const ProfileInfo& profile);
+    bool RemoveProfileAtIndex(size_t index);
     UUID last_opened_user{0, 0};
 };
-using ProfileManagerPtr = std::unique_ptr<ProfileManager>;
 
 }; // namespace Service::Account
