@@ -165,7 +165,7 @@ void Module::Interface::GetLastOpenedUser(Kernel::HLERequestContext& ctx) {
     LOG_INFO(Service_ACC, "called");
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(RESULT_SUCCESS);
-    rb.PushRaw<UUID>(profile_manager->GetLastOpennedUser());
+    rb.PushRaw<UUID>(profile_manager->GetLastOpenedUser());
 }
 
 void Module::Interface::GetProfile(Kernel::HLERequestContext& ctx) {

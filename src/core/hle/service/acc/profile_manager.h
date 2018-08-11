@@ -1,4 +1,9 @@
+// Copyright 2018 yuzu emulator team
+// Licensed under GPLv2 or any later version
+// Refer to the license.txt file included.
+
 #pragma once
+
 #include <array>
 #include "common/common_types.h"
 #include "common/swap.h"
@@ -12,24 +17,21 @@ struct UUID {
     // UUIDs which are 0 are considered invalid!
     u128 uuid{0, 0};
     UUID() = default;
-    explicit UUID(const u128& id) {
-        uuid[0] = id[0];
-        uuid[1] = id[1];
-    };
-    explicit UUID(const u64& lo, const u64& hi) {
+    explicit UUID(const u128& id) : uuid{id} {}
+    explicit UUID(const u64 lo, const u64 hi) {
         uuid[0] = lo;
         uuid[1] = hi;
     };
-    operator bool() const {
+    explicit operator bool() const {
         return uuid[0] != 0x0 || uuid[1] != 0x0;
     }
 
-    bool operator==(const UUID& rhs) {
-        return uuid[0] == rhs.uuid[0] && uuid[1] == rhs.uuid[1];
+    bool operator==(const UUID& rhs) const {
+        return std::tie(uuid[0], uuid[1]) == std::tie(rhs.uuid[0], rhs.uuid[1]);
     }
 
-    bool operator!=(const UUID& rhs) {
-        return uuid[0] != rhs.uuid[0] || uuid[1] != rhs.uuid[1];
+    bool operator!=(const UUID& rhs) const {
+        return !operator==(rhs);
     }
 
     // TODO(ogniK): Properly generate uuids based on RFC-4122
@@ -42,7 +44,7 @@ struct UUID {
         uuid[0] = 0;
         uuid[1] = 0;
     }
-    std::string Format() {
+    std::string Format() const {
         return fmt::format("0x{:016X}{:016X}", uuid[1], uuid[0]);
     }
 };
@@ -78,33 +80,33 @@ class ProfileManager {
 public:
     ProfileManager(); // TODO(ogniK): Load from system save
     ResultCode AddUser(ProfileInfo user);
-    ResultCode CreateNewUser(UUID uuid, std::array<u8, 0x20> username);
+    ResultCode CreateNewUser(UUID uuid, std::array<u8, 0x20>& username);
     ResultCode CreateNewUser(UUID uuid, std::string username);
-    size_t GetUserIndex(UUID uuid);
-    size_t GetUserIndex(ProfileInfo user);
-    bool GetProfileBase(size_t index, ProfileBase& profile);
-    bool GetProfileBase(UUID uuid, ProfileBase& profile);
-    bool GetProfileBase(ProfileInfo user, ProfileBase& profile);
+    size_t GetUserIndex(const UUID& uuid) const;
+    size_t GetUserIndex(ProfileInfo user) const;
+    bool GetProfileBase(size_t index, ProfileBase& profile) const;
+    bool GetProfileBase(UUID uuid, ProfileBase& profile) const;
+    bool GetProfileBase(ProfileInfo user, ProfileBase& profile) const;
     bool GetProfileBaseAndData(size_t index, ProfileBase& profile, std::array<u8, MAX_DATA>& data);
     bool GetProfileBaseAndData(UUID uuid, ProfileBase& profile, std::array<u8, MAX_DATA>& data);
     bool GetProfileBaseAndData(ProfileInfo user, ProfileBase& profile,
                                std::array<u8, MAX_DATA>& data);
-    size_t GetUserCount();
-    bool UserExists(UUID uuid);
+    size_t GetUserCount() const;
+    bool UserExists(UUID uuid) const;
     void OpenUser(UUID uuid);
     void CloseUser(UUID uuid);
-    std::array<UUID, MAX_USERS> GetOpenUsers();
-    std::array<UUID, MAX_USERS> GetAllUsers();
-    const UUID& GetLastOpennedUser();
+    std::array<UUID, MAX_USERS> GetOpenUsers() const;
+    std::array<UUID, MAX_USERS> GetAllUsers() const;
+    UUID GetLastOpenedUser() const;
 
-    bool CanSystemRegisterUser();
+    bool CanSystemRegisterUser() const;
 
 private:
     std::array<ProfileInfo, MAX_USERS> profiles{};
     size_t user_count = 0;
     size_t AddToProfiles(const ProfileInfo& profile);
     bool RemoveProfileAtIdx(size_t index);
-    UUID last_openned_user{0, 0};
+    UUID last_opened_user{0, 0};
 };
 using ProfileManagerPtr = std::unique_ptr<ProfileManager>;
 

@@ -1,3 +1,7 @@
+// Copyright 2018 yuzu emulator team
+// Licensed under GPLv2 or any later version
+// Refer to the license.txt file included.
+
 #include "core/settings.h"
 #include "profile_manager.h"
 
@@ -15,14 +19,14 @@ ProfileManager::ProfileManager() {
 
 size_t ProfileManager::AddToProfiles(const ProfileInfo& user) {
     if (user_count >= MAX_USERS) {
-        return -1;
+        return std::numeric_limits<size_t>::max();
     }
     profiles[user_count] = std::move(user);
     return user_count++;
 }
 
 bool ProfileManager::RemoveProfileAtIdx(size_t index) {
-    if (index >= MAX_USERS || index < 0 || index >= user_count)
+    if (index >= MAX_USERS || index >= user_count)
         return false;
     profiles[index] = ProfileInfo{};
     if (index < user_count - 1)
@@ -33,13 +37,13 @@ bool ProfileManager::RemoveProfileAtIdx(size_t index) {
 }
 
 ResultCode ProfileManager::AddUser(ProfileInfo user) {
-    if (AddToProfiles(user) == -1) {
+    if (AddToProfiles(user) == std::numeric_limits<size_t>::max()) {
         return ERROR_TOO_MANY_USERS;
     }
     return RESULT_SUCCESS;
 }
 
-ResultCode ProfileManager::CreateNewUser(UUID uuid, std::array<u8, 0x20> username) {
+ResultCode ProfileManager::CreateNewUser(UUID uuid, std::array<u8, 0x20>& username) {
     if (user_count == MAX_USERS)
         return ERROR_TOO_MANY_USERS;
     if (!uuid)
@@ -64,67 +68,67 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, std::string username) {
         std::copy_n(username.begin(), username_output.size(), username_output.begin());
     else
         std::copy(username.begin(), username.end(), username_output.begin());
-    return CreateNewUser(uuid, std::move(username_output));
+    return CreateNewUser(uuid, username_output);
 }
 
-size_t ProfileManager::GetUserIndex(UUID uuid) {
+size_t ProfileManager::GetUserIndex(const UUID& uuid) const {
     if (!uuid)
-        return -1;
+        return std::numeric_limits<size_t>::max();
     for (unsigned i = 0; i < user_count; i++)
         if (profiles[i].user_uuid == uuid)
             return i;
-    return -1;
+    return std::numeric_limits<size_t>::max();
 }
 
-size_t ProfileManager::GetUserIndex(ProfileInfo user) {
+size_t ProfileManager::GetUserIndex(ProfileInfo user) const {
     return GetUserIndex(user.user_uuid);
 }
 
-bool ProfileManager::GetProfileBase(size_t index, ProfileBase& profile) {
+bool ProfileManager::GetProfileBase(size_t index, ProfileBase& profile) const {
     if (index >= MAX_USERS) {
         profile.Invalidate();
         return false;
     }
-    auto prof_info = profiles[index];
+    const auto& prof_info = profiles[index];
     profile.user_uuid = prof_info.user_uuid;
     profile.username = prof_info.username;
     profile.timestamp = prof_info.creation_time;
     return true;
 }
 
-bool ProfileManager::GetProfileBase(UUID uuid, ProfileBase& profile) {
+bool ProfileManager::GetProfileBase(UUID uuid, ProfileBase& profile) const {
     auto idx = GetUserIndex(uuid);
     return GetProfileBase(idx, profile);
 }
 
-bool ProfileManager::GetProfileBase(ProfileInfo user, ProfileBase& profile) {
+bool ProfileManager::GetProfileBase(ProfileInfo user, ProfileBase& profile) const {
     return GetProfileBase(user.user_uuid, profile);
 }
 
-size_t ProfileManager::GetUserCount() {
+size_t ProfileManager::GetUserCount() const {
     return user_count;
 }
 
-bool ProfileManager::UserExists(UUID uuid) {
-    return (GetUserIndex(uuid) != -1);
+bool ProfileManager::UserExists(UUID uuid) const {
+    return (GetUserIndex(uuid) != std::numeric_limits<size_t>::max());
 }
 
 void ProfileManager::OpenUser(UUID uuid) {
     auto idx = GetUserIndex(uuid);
-    if (idx == -1)
+    if (idx == std::numeric_limits<size_t>::max())
         return;
     profiles[idx].is_open = true;
-    last_openned_user = uuid;
+    last_opened_user = uuid;
 }
 
 void ProfileManager::CloseUser(UUID uuid) {
     auto idx = GetUserIndex(uuid);
-    if (idx == -1)
+    if (idx == std::numeric_limits<size_t>::max())
         return;
     profiles[idx].is_open = false;
 }
 
-std::array<UUID, MAX_USERS> ProfileManager::GetAllUsers() {
+std::array<UUID, MAX_USERS> ProfileManager::GetAllUsers() const {
     std::array<UUID, MAX_USERS> output;
     for (unsigned i = 0; i < user_count; i++) {
         output[i] = profiles[i].user_uuid;
@@ -132,7 +136,7 @@ std::array<UUID, MAX_USERS> ProfileManager::GetAllUsers() {
     return output;
 }
 
-std::array<UUID, MAX_USERS> ProfileManager::GetOpenUsers() {
+std::array<UUID, MAX_USERS> ProfileManager::GetOpenUsers() const {
     std::array<UUID, MAX_USERS> output;
     unsigned user_idx = 0;
     for (unsigned i = 0; i < user_count; i++) {
@@ -143,8 +147,8 @@ std::array<UUID, MAX_USERS> ProfileManager::GetOpenUsers() {
     return output;
 }
 
-const UUID& ProfileManager::GetLastOpennedUser() {
-    return last_openned_user;
+UUID ProfileManager::GetLastOpenedUser() const {
+    return last_opened_user;
 }
 
 bool ProfileManager::GetProfileBaseAndData(size_t index, ProfileBase& profile,
@@ -166,7 +170,7 @@ bool ProfileManager::GetProfileBaseAndData(ProfileInfo user, ProfileBase& profil
     return GetProfileBaseAndData(user.user_uuid, profile, data);
 }
 
-bool ProfileManager::CanSystemRegisterUser() {
+bool ProfileManager::CanSystemRegisterUser() const {
     return false; // TODO(ogniK): Games shouldn't have
                   // access to user registration, when we
     // emulate qlaunch. Update this to dynamically change.
