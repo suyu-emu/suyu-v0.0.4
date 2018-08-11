@@ -141,6 +141,15 @@ private:
                     ExitMethod jmp = Scan(target, end, labels);
                     return exit_method = ParallelExit(no_jmp, jmp);
                 }
+                case OpCode::Id::SSY: {
+                    // The SSY instruction uses a similar encoding as the BRA instruction.
+                    ASSERT_MSG(instr.bra.constant_buffer == 0,
+                               "Constant buffer SSY is not supported");
+                    u32 target = offset + instr.bra.GetBranchTarget();
+                    labels.insert(target);
+                    // Continue scanning for an exit method.
+                    break;
+                }
                 }
             }
         }
@@ -1668,16 +1677,25 @@ private:
                 break;
             }
             case OpCode::Id::SSY: {
-                // The SSY opcode tells the GPU where to re-converge divergent execution paths, we
-                // can ignore this when generating GLSL code.
+                // The SSY opcode tells the GPU where to re-converge divergent execution paths, it
+                // sets the target of the jump that the SYNC instruction will make. The SSY opcode
+                // has a similar structure to the BRA opcode.
+                ASSERT_MSG(instr.bra.constant_buffer == 0, "Constant buffer SSY is not supported");
+
+                u32 target = offset + instr.bra.GetBranchTarget();
+                shader.AddLine("ssy_target = " + std::to_string(target) + "u;");
                 break;
             }
-            case OpCode::Id::SYNC:
+            case OpCode::Id::SYNC: {
+                // The SYNC opcode jumps to the address previously set by the SSY opcode
                 ASSERT(instr.flow.cond == Tegra::Shader::FlowCondition::Always);
+                shader.AddLine("{ jmp_to = ssy_target; break; }");
+                break;
+            }
             case OpCode::Id::DEPBAR: {
-                // TODO(Subv): Find out if we actually have to care about these instructions or if
+                // TODO(Subv): Find out if we actually have to care about this instruction or if
                 // the GLSL compiler takes care of that for us.
-                LOG_WARNING(HW_GPU, "DEPBAR/SYNC instruction is stubbed");
+                LOG_WARNING(HW_GPU, "DEPBAR instruction is stubbed");
                 break;
             }
             default: {
@@ -1742,6 +1760,7 @@ private:
             } else {
                 labels.insert(subroutine.begin);
                 shader.AddLine("uint jmp_to = " + std::to_string(subroutine.begin) + "u;");
+                shader.AddLine("uint ssy_target = 0u;");
                 shader.AddLine("while (true) {");
                 ++shader.scope;
 
@@ -1757,7 +1776,7 @@ private:
                     u32 compile_end = CompileRange(label, next_label);
                     if (compile_end > next_label && compile_end != PROGRAM_END) {
                         // This happens only when there is a label inside a IF/LOOP block
-                        shader.AddLine("{ jmp_to = " + std::to_string(compile_end) + "u; break; }");
+                        shader.AddLine(" jmp_to = " + std::to_string(compile_end) + "u; break; }");
                         labels.emplace(compile_end);
                     }
 
