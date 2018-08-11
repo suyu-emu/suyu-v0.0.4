@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "common/assert.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/maxwell_compute.h"
@@ -10,6 +11,15 @@
 #include "video_core/rasterizer_interface.h"
 
 namespace Tegra {
+
+u32 FramebufferConfig::BytesPerPixel(PixelFormat format) {
+    switch (format) {
+    case PixelFormat::ABGR8:
+        return 4;
+    }
+
+    UNREACHABLE();
+}
 
 GPU::GPU(VideoCore::RasterizerInterface& rasterizer) {
     memory_manager = std::make_unique<MemoryManager>();
