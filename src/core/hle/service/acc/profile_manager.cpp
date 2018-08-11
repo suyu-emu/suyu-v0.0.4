@@ -2,8 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "core/hle/service/acc/profile_manager.h"
 #include "core/settings.h"
-#include "profile_manager.h"
 
 namespace Service::Account {
 // TODO(ogniK): Get actual error codes
@@ -28,10 +28,9 @@ size_t ProfileManager::AddToProfiles(const ProfileInfo& user) {
 bool ProfileManager::RemoveProfileAtIdx(size_t index) {
     if (index >= MAX_USERS || index >= user_count)
         return false;
-    profiles[index] = ProfileInfo{};
     if (index < user_count - 1)
-        for (size_t i = index; i < user_count - 1; i++)
-            profiles[i] = profiles[i + 1]; // Shift upper profiles down
+        std::rotate(profiles.begin() + index, profiles.begin() + index + 1, profiles.end());
+    profiles.back() = {};
     user_count--;
     return true;
 }
@@ -50,9 +49,10 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, std::array<u8, 0x20>& userna
         return ERROR_ARGUMENT_IS_NULL;
     if (username[0] == 0x0)
         return ERROR_ARGUMENT_IS_NULL;
-    for (unsigned i = 0; i < user_count; i++)
-        if (uuid == profiles[i].user_uuid)
-            return ERROR_USER_ALREADY_EXISTS;
+    if (std::any_of(profiles.begin(), profiles.end(),
+                    [&uuid](const ProfileInfo& profile) { return uuid == profile.user_uuid; })) {
+        return ERROR_USER_ALREADY_EXISTS;
+    }
     ProfileInfo prof_inf;
     prof_inf.user_uuid = std::move(uuid);
     prof_inf.username = std::move(username);
@@ -62,7 +62,7 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, std::array<u8, 0x20>& userna
     return AddUser(prof_inf);
 }
 
-ResultCode ProfileManager::CreateNewUser(UUID uuid, std::string username) {
+ResultCode ProfileManager::CreateNewUser(UUID uuid, const std::string& username) {
     std::array<u8, 0x20> username_output;
     if (username.size() > username_output.size())
         std::copy_n(username.begin(), username_output.size(), username_output.begin());
@@ -74,10 +74,13 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, std::string username) {
 size_t ProfileManager::GetUserIndex(const UUID& uuid) const {
     if (!uuid)
         return std::numeric_limits<size_t>::max();
-    for (unsigned i = 0; i < user_count; i++)
-        if (profiles[i].user_uuid == uuid)
-            return i;
-    return std::numeric_limits<size_t>::max();
+
+    auto iter = std::find_if(profiles.begin(), profiles.end(),
+                             [&uuid](const ProfileInfo& p) { return p.user_uuid == uuid; });
+    if (iter == profiles.end()) {
+        return std::numeric_limits<size_t>::max();
+    }
+    return static_cast<size_t>(std::distance(profiles.begin(), iter));
 }
 
 size_t ProfileManager::GetUserIndex(ProfileInfo user) const {

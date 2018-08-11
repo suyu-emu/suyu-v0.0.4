@@ -12,10 +12,11 @@
 namespace Service::Account {
 constexpr size_t MAX_USERS = 8;
 constexpr size_t MAX_DATA = 128;
+static const u128 INVALID_UUID = {0, 0};
 
 struct UUID {
     // UUIDs which are 0 are considered invalid!
-    u128 uuid{0, 0};
+    u128 uuid = INVALID_UUID;
     UUID() = default;
     explicit UUID(const u128& id) : uuid{id} {}
     explicit UUID(const u64 lo, const u64 hi) {
@@ -23,7 +24,7 @@ struct UUID {
         uuid[1] = hi;
     };
     explicit operator bool() const {
-        return uuid[0] != 0x0 || uuid[1] != 0x0;
+        return uuid[0] != INVALID_UUID[0] && uuid[1] != INVALID_UUID[1];
     }
 
     bool operator==(const UUID& rhs) const {
@@ -41,8 +42,7 @@ struct UUID {
         return *this;
     }
     void Invalidate() {
-        uuid[0] = 0;
-        uuid[1] = 0;
+        uuid = INVALID_UUID;
     }
     std::string Format() const {
         return fmt::format("0x{:016X}{:016X}", uuid[1], uuid[0]);
@@ -81,7 +81,7 @@ public:
     ProfileManager(); // TODO(ogniK): Load from system save
     ResultCode AddUser(ProfileInfo user);
     ResultCode CreateNewUser(UUID uuid, std::array<u8, 0x20>& username);
-    ResultCode CreateNewUser(UUID uuid, std::string username);
+    ResultCode CreateNewUser(UUID uuid, const std::string& username);
     size_t GetUserIndex(const UUID& uuid) const;
     size_t GetUserIndex(ProfileInfo user) const;
     bool GetProfileBase(size_t index, ProfileBase& profile) const;

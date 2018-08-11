@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/service.h"
-#include "profile_manager.h"
 
 namespace Service::Account {
 
