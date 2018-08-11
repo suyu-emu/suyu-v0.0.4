@@ -65,7 +65,7 @@ struct ProfileBase {
     u64_le timestamp;
     std::array<u8, 0x20> username;
 
-    const void Invalidate() {
+    void Invalidate() {
         user_uuid.Invalidate();
         timestamp = 0;
         username.fill(0);
