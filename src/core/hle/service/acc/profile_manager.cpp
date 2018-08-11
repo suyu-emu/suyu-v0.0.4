@@ -26,10 +26,12 @@ size_t ProfileManager::AddToProfiles(const ProfileInfo& user) {
 }
 
 bool ProfileManager::RemoveProfileAtIdx(size_t index) {
-    if (index >= MAX_USERS || index >= user_count)
+    if (index >= MAX_USERS || index >= user_count) {
         return false;
-    if (index < user_count - 1)
+    }
+    if (index < user_count - 1) {
         std::rotate(profiles.begin() + index, profiles.begin() + index + 1, profiles.end());
+    }
     profiles.back() = {};
     user_count--;
     return true;
@@ -43,12 +45,15 @@ ResultCode ProfileManager::AddUser(ProfileInfo user) {
 }
 
 ResultCode ProfileManager::CreateNewUser(UUID uuid, std::array<u8, 0x20>& username) {
-    if (user_count == MAX_USERS)
+    if (user_count == MAX_USERS) {
         return ERROR_TOO_MANY_USERS;
-    if (!uuid)
+    }
+    if (!uuid) {
         return ERROR_ARGUMENT_IS_NULL;
-    if (username[0] == 0x0)
+    }
+    if (username[0] == 0x0) {
         return ERROR_ARGUMENT_IS_NULL;
+    }
     if (std::any_of(profiles.begin(), profiles.end(),
                     [&uuid](const ProfileInfo& profile) { return uuid == profile.user_uuid; })) {
         return ERROR_USER_ALREADY_EXISTS;
@@ -64,17 +69,18 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, std::array<u8, 0x20>& userna
 
 ResultCode ProfileManager::CreateNewUser(UUID uuid, const std::string& username) {
     std::array<u8, 0x20> username_output;
-    if (username.size() > username_output.size())
+    if (username.size() > username_output.size()) {
         std::copy_n(username.begin(), username_output.size(), username_output.begin());
-    else
+    } else {
         std::copy(username.begin(), username.end(), username_output.begin());
+    }
     return CreateNewUser(uuid, username_output);
 }
 
 size_t ProfileManager::GetUserIndex(const UUID& uuid) const {
-    if (!uuid)
+    if (!uuid) {
         return std::numeric_limits<size_t>::max();
-
+    }
     auto iter = std::find_if(profiles.begin(), profiles.end(),
                              [&uuid](const ProfileInfo& p) { return p.user_uuid == uuid; });
     if (iter == profiles.end()) {
@@ -118,16 +124,18 @@ bool ProfileManager::UserExists(UUID uuid) const {
 
 void ProfileManager::OpenUser(UUID uuid) {
     auto idx = GetUserIndex(uuid);
-    if (idx == std::numeric_limits<size_t>::max())
+    if (idx == std::numeric_limits<size_t>::max()) {
         return;
+    }
     profiles[idx].is_open = true;
     last_opened_user = uuid;
 }
 
 void ProfileManager::CloseUser(UUID uuid) {
     auto idx = GetUserIndex(uuid);
-    if (idx == std::numeric_limits<size_t>::max())
+    if (idx == std::numeric_limits<size_t>::max()) {
         return;
+    }
     profiles[idx].is_open = false;
 }
 
