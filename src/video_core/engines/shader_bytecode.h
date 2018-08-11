@@ -598,6 +598,13 @@ public:
         Unknown,
     };
 
+    /// Returns whether an opcode has an execution predicate field or not (ie, whether it can be
+    /// conditionally executed).
+    static bool IsPredicatedInstruction(Id opcode) {
+        // TODO(Subv): Add the rest of unpredicated instructions.
+        return opcode != Id::SSY;
+    }
+
     class Matcher {
     public:
         Matcher(const char* const name, u16 mask, u16 expected, OpCode::Id id, OpCode::Type type)

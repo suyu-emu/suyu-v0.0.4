@@ -837,7 +837,11 @@ private:
         ASSERT_MSG(instr.pred.full_pred != Pred::NeverExecute,
                    "NeverExecute predicate not implemented");
 
-        if (instr.pred.pred_index != static_cast<u64>(Pred::UnusedIndex)) {
+        // Some instructions (like SSY) don't have a predicate field, they are always
+        // unconditionally executed.
+        bool can_be_predicated = OpCode::IsPredicatedInstruction(opcode->GetId());
+
+        if (can_be_predicated && instr.pred.pred_index != static_cast<u64>(Pred::UnusedIndex)) {
             shader.AddLine("if (" +
                            GetPredicateCondition(instr.pred.pred_index, instr.negate_pred != 0) +
                            ')');
@@ -1709,7 +1713,7 @@ private:
         }
 
         // Close the predicate condition scope.
-        if (instr.pred.pred_index != static_cast<u64>(Pred::UnusedIndex)) {
+        if (can_be_predicated && instr.pred.pred_index != static_cast<u64>(Pred::UnusedIndex)) {
             --shader.scope;
             shader.AddLine('}');
         }
