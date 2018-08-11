@@ -66,10 +66,13 @@ ResultStatus AppLoader_XCI::Load(Kernel::SharedPtr<Kernel::Process>& process) {
         return ResultStatus::ErrorAlreadyLoaded;
     }
 
+    if (xci->GetStatus() != ResultStatus::Success)
+        return xci->GetStatus();
+
     if (xci->GetNCAFileByType(FileSys::NCAContentType::Program) == nullptr) {
         if (!Core::Crypto::KeyManager::KeyFileExists(false))
-            return ResultStatus::ErrorMissingKeys;
-        return ResultStatus::ErrorDecrypting;
+            return ResultStatus::ErrorMissingProductionKeyFile;
+        return ResultStatus::ErrorXCIMissingProgramNCA;
     }
 
     auto result = nca_loader->Load(process);
@@ -91,14 +94,14 @@ ResultStatus AppLoader_XCI::ReadProgramId(u64& out_program_id) {
 
 ResultStatus AppLoader_XCI::ReadIcon(std::vector<u8>& buffer) {
     if (icon_file == nullptr)
-        return ResultStatus::ErrorInvalidFormat;
+        return ResultStatus::ErrorNoControl;
     buffer = icon_file->ReadAllBytes();
     return ResultStatus::Success;
 }
 
 ResultStatus AppLoader_XCI::ReadTitle(std::string& title) {
     if (nacp_file == nullptr)
-        return ResultStatus::ErrorInvalidFormat;
+        return ResultStatus::ErrorNoControl;
     title = nacp_file->GetApplicationName();
     return ResultStatus::Success;
 }

@@ -24,19 +24,19 @@ bool PartitionFilesystem::Header::HasValidMagicValue() const {
 PartitionFilesystem::PartitionFilesystem(std::shared_ptr<VfsFile> file) {
     // At least be as large as the header
     if (file->GetSize() < sizeof(Header)) {
-        status = Loader::ResultStatus::Error;
+        status = Loader::ResultStatus::ErrorBadPFSHeader;
         return;
     }
 
     // For cartridges, HFSs can get very large, so we need to calculate the size up to
     // the actual content itself instead of just blindly reading in the entire file.
     if (sizeof(Header) != file->ReadObject(&pfs_header)) {
-        status = Loader::ResultStatus::Error;
+        status = Loader::ResultStatus::ErrorBadPFSHeader;
         return;
     }
 
     if (!pfs_header.HasValidMagicValue()) {
-        status = Loader::ResultStatus::ErrorInvalidFormat;
+        status = Loader::ResultStatus::ErrorBadPFSHeader;
         return;
     }
 
@@ -51,7 +51,7 @@ PartitionFilesystem::PartitionFilesystem(std::shared_ptr<VfsFile> file) {
     const size_t total_size = file_data.size();
 
     if (total_size != metadata_size) {
-        status = Loader::ResultStatus::Error;
+        status = Loader::ResultStatus::ErrorIncorrectPFSFileSize;
         return;
     }
 

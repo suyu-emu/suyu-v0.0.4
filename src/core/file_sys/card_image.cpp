@@ -12,14 +12,16 @@
 
 namespace FileSys {
 
+constexpr std::array<const char*, 0x4> partition_names = {"update", "normal", "secure", "logo"};
+
 XCI::XCI(VirtualFile file_) : file(std::move(file_)), partitions(0x4) {
     if (file->ReadObject(&header) != sizeof(GamecardHeader)) {
-        status = Loader::ResultStatus::ErrorInvalidFormat;
+        status = Loader::ResultStatus::ErrorBadXCIHeader;
         return;
     }
 
     if (header.magic != Common::MakeMagic('H', 'E', 'A', 'D')) {
-        status = Loader::ResultStatus::ErrorInvalidFormat;
+        status = Loader::ResultStatus::ErrorBadXCIHeader;
         return;
     }
 
@@ -30,9 +32,6 @@ XCI::XCI(VirtualFile file_) : file(std::move(file_)), partitions(0x4) {
         status = main_hfs.GetStatus();
         return;
     }
-
-    static constexpr std::array<const char*, 0x4> partition_names = {"update", "normal", "secure",
-                                                                     "logo"};
 
     for (XCIPartition partition :
          {XCIPartition::Update, XCIPartition::Normal, XCIPartition::Secure, XCIPartition::Logo}) {
@@ -130,15 +129,21 @@ bool XCI::ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) {
 
 Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
     if (partitions[static_cast<size_t>(part)] == nullptr) {
-        return Loader::ResultStatus::ErrorInvalidFormat;
+        return Loader::ResultStatus::ErrorXCIMissingPartition;
     }
 
     for (const VirtualFile& file : partitions[static_cast<size_t>(part)]->GetFiles()) {
         if (file->GetExtension() != "nca")
             continue;
         auto nca = std::make_shared<NCA>(file);
-        if (nca->GetStatus() == Loader::ResultStatus::Success)
+        if (nca->GetStatus() == Loader::ResultStatus::Success) {
             ncas.push_back(std::move(nca));
+        } else {
+            const u16 error_id = static_cast<u16>(nca->GetStatus());
+            LOG_CRITICAL(Loader, "Could not load NCA {}/{}, failed with error code {:04X} ({})",
+                         partition_names[static_cast<size_t>(part)], nca->GetName(), error_id,
+                         Loader::GetMessageForResultStatus(nca->GetStatus()));
+        }
     }
 
     return Loader::ResultStatus::Success;

@@ -113,17 +113,27 @@ boost::optional<Core::Crypto::Key128> NCA::GetKeyAreaKey(NCASectionCryptoType ty
     return out;
 }
 
-boost::optional<Core::Crypto::Key128> NCA::GetTitlekey() const {
+boost::optional<Core::Crypto::Key128> NCA::GetTitlekey() {
     const auto master_key_id = GetCryptoRevision();
 
     u128 rights_id{};
     memcpy(rights_id.data(), header.rights_id.data(), 16);
-    if (rights_id == u128{})
+    if (rights_id == u128{}) {
+        status = Loader::ResultStatus::ErrorInvalidRightsID;
         return boost::none;
+    }
 
     auto titlekey = keys.GetKey(Core::Crypto::S128KeyType::Titlekey, rights_id[1], rights_id[0]);
-    if (titlekey == Core::Crypto::Key128{})
+    if (titlekey == Core::Crypto::Key128{}) {
+        status = Loader::ResultStatus::ErrorMissingTitlekey;
         return boost::none;
+    }
+
+    if (!keys.HasKey(Core::Crypto::S128KeyType::Titlekek, master_key_id)) {
+        status = Loader::ResultStatus::ErrorMissingTitlekek;
+        return boost::none;
+    }
+
     Core::Crypto::AESCipher<Core::Crypto::Key128> cipher(
         keys.GetKey(Core::Crypto::S128KeyType::Titlekek, master_key_id), Core::Crypto::Mode::ECB);
     cipher.Transcode(titlekey.data(), titlekey.size(), titlekey.data(), Core::Crypto::Op::Decrypt);
@@ -131,7 +141,7 @@ boost::optional<Core::Crypto::Key128> NCA::GetTitlekey() const {
     return titlekey;
 }
 
-VirtualFile NCA::Decrypt(NCASectionHeader s_header, VirtualFile in, u64 starting_offset) const {
+VirtualFile NCA::Decrypt(NCASectionHeader s_header, VirtualFile in, u64 starting_offset) {
     if (!encrypted)
         return in;
 
@@ -143,15 +153,22 @@ VirtualFile NCA::Decrypt(NCASectionHeader s_header, VirtualFile in, u64 starting
         LOG_DEBUG(Crypto, "called with mode=CTR, starting_offset={:016X}", starting_offset);
         {
             boost::optional<Core::Crypto::Key128> key = boost::none;
-            if (std::find_if_not(header.rights_id.begin(), header.rights_id.end(),
-                                 [](char c) { return c == 0; }) == header.rights_id.end()) {
-                key = GetKeyAreaKey(NCASectionCryptoType::CTR);
-            } else {
+            if (has_rights_id) {
+                status = Loader::ResultStatus::Success;
                 key = GetTitlekey();
+                if (key == boost::none) {
+                    if (status == Loader::ResultStatus::Success)
+                        status = Loader::ResultStatus::ErrorMissingTitlekey;
+                    return nullptr;
+                }
+            } else {
+                key = GetKeyAreaKey(NCASectionCryptoType::CTR);
+                if (key == boost::none) {
+                    status = Loader::ResultStatus::ErrorMissingKeyAreaKey;
+                    return nullptr;
+                }
             }
 
-            if (key == boost::none)
-                return nullptr;
             auto out = std::make_shared<Core::Crypto::CTREncryptionLayer>(
                 std::move(in), key.value(), starting_offset);
             std::vector<u8> iv(16);
@@ -170,16 +187,31 @@ VirtualFile NCA::Decrypt(NCASectionHeader s_header, VirtualFile in, u64 starting
 }
 
 NCA::NCA(VirtualFile file_) : file(std::move(file_)) {
+    status = Loader::ResultStatus::Success;
+
     if (file == nullptr) {
-        status = Loader::ResultStatus::ErrorInvalidFormat;
+        status = Loader::ResultStatus::ErrorNullFile;
         return;
     }
-    if (sizeof(NCAHeader) != file->ReadObject(&header))
+
+    if (sizeof(NCAHeader) != file->ReadObject(&header)) {
         LOG_ERROR(Loader, "File reader errored out during header read.");
+        status = Loader::ResultStatus::ErrorBadNCAHeader;
+        return;
+    }
 
     encrypted = false;
 
     if (!IsValidNCA(header)) {
+        if (header.magic == Common::MakeMagic('N', 'C', 'A', '2')) {
+            status = Loader::ResultStatus::ErrorNCA2;
+            return;
+        }
+        if (header.magic == Common::MakeMagic('N', 'C', 'A', '0')) {
+            status = Loader::ResultStatus::ErrorNCA0;
+            return;
+        }
+
         NCAHeader dec_header{};
         Core::Crypto::AESCipher<Core::Crypto::Key256> cipher(
             keys.GetKey(Core::Crypto::S256KeyType::Header), Core::Crypto::Mode::XTS);
@@ -189,13 +221,25 @@ NCA::NCA(VirtualFile file_) : file(std::move(file_)) {
             header = dec_header;
             encrypted = true;
         } else {
+            if (dec_header.magic == Common::MakeMagic('N', 'C', 'A', '2')) {
+                status = Loader::ResultStatus::ErrorNCA2;
+                return;
+            }
+            if (dec_header.magic == Common::MakeMagic('N', 'C', 'A', '0')) {
+                status = Loader::ResultStatus::ErrorNCA0;
+                return;
+            }
+
             if (!keys.HasKey(Core::Crypto::S256KeyType::Header))
-                status = Loader::ResultStatus::ErrorMissingKeys;
+                status = Loader::ResultStatus::ErrorMissingHeaderKey;
             else
-                status = Loader::ResultStatus::ErrorDecrypting;
+                status = Loader::ResultStatus::ErrorIncorrectHeaderKey;
             return;
         }
     }
+
+    has_rights_id = std::find_if_not(header.rights_id.begin(), header.rights_id.end(),
+                                     [](char c) { return c == '\0'; }) != header.rights_id.end();
 
     const std::ptrdiff_t number_sections =
         std::count_if(std::begin(header.section_tables), std::end(header.section_tables),
@@ -229,7 +273,12 @@ NCA::NCA(VirtualFile file_) : file(std::move(file_)) {
                 files.push_back(std::move(dec));
                 romfs = files.back();
             } else {
-                status = Loader::ResultStatus::ErrorMissingKeys;
+                if (status != Loader::ResultStatus::Success)
+                    return;
+                if (has_rights_id)
+                    status = Loader::ResultStatus::ErrorIncorrectTitlekeyOrTitlekek;
+                else
+                    status = Loader::ResultStatus::ErrorIncorrectKeyAreaKey;
                 return;
             }
         } else if (section.raw.header.filesystem_type == NCASectionFilesystemType::PFS0) {
@@ -249,7 +298,12 @@ NCA::NCA(VirtualFile file_) : file(std::move(file_)) {
                         exefs = dirs.back();
                 }
             } else {
-                status = Loader::ResultStatus::ErrorMissingKeys;
+                if (status != Loader::ResultStatus::Success)
+                    return;
+                if (has_rights_id)
+                    status = Loader::ResultStatus::ErrorIncorrectTitlekeyOrTitlekek;
+                else
+                    status = Loader::ResultStatus::ErrorIncorrectKeyAreaKey;
                 return;
             }
         }

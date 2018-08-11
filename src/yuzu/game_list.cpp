@@ -453,10 +453,7 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
             std::string name = " ";
             const auto res3 = loader->ReadTitle(name);
 
-            if ((res1 == Loader::ResultStatus::ErrorNotUsed ||
-                 res1 == Loader::ResultStatus::ErrorNotImplemented) &&
-                (res3 == Loader::ResultStatus::ErrorNotUsed ||
-                 res3 == Loader::ResultStatus::ErrorNotImplemented) &&
+            if (res1 != Loader::ResultStatus::Success && res3 != Loader::ResultStatus::Success &&
                 res2 == Loader::ResultStatus::Success) {
                 // Use from metadata pool.
                 if (nca_control_map.find(program_id) != nca_control_map.end()) {

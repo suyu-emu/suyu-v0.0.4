@@ -424,67 +424,11 @@ bool GMainWindow::LoadROM(const QString& filename) {
             QMessageBox::critical(this, tr("Error while loading ROM!"),
                                   tr("The ROM format is not supported."));
             break;
-        case Core::System::ResultStatus::ErrorUnsupportedArch:
-            LOG_CRITICAL(Frontend, "Unsupported architecture detected!", filename.toStdString());
-            QMessageBox::critical(this, tr("Error while loading ROM!"),
-                                  tr("The ROM uses currently unusable 32-bit architecture"));
-            break;
         case Core::System::ResultStatus::ErrorSystemMode:
             LOG_CRITICAL(Frontend, "Failed to load ROM!");
             QMessageBox::critical(this, tr("Error while loading ROM!"),
                                   tr("Could not determine the system mode."));
             break;
-
-        case Core::System::ResultStatus::ErrorLoader_ErrorMissingKeys: {
-            const auto reg_found = Core::Crypto::KeyManager::KeyFileExists(false);
-            const auto title_found = Core::Crypto::KeyManager::KeyFileExists(true);
-
-            std::string file_text;
-
-            if (!reg_found && !title_found) {
-                file_text = "A proper key file (prod.keys, dev.keys, or title.keys) could not be "
-                            "found. You will need to dump your keys from your switch to continue.";
-            } else if (reg_found && title_found) {
-                file_text =
-                    "Both key files were found in your config directory, but the correct key could"
-                    "not be found. You may be missing a titlekey or general key, depending on "
-                    "the game.";
-            } else if (reg_found) {
-                file_text =
-                    "The regular keys file (prod.keys/dev.keys) was found in your config, but the "
-                    "titlekeys file (title.keys) was not. You are either missing the correct "
-                    "titlekey or missing a general key required to decrypt the game.";
-            } else {
-                file_text = "The title keys file (title.keys) was found in your config, but "
-                            "the regular keys file (prod.keys/dev.keys) was not. Unfortunately, "
-                            "having the titlekey is not enough, you need additional general keys "
-                            "to properly decrypt the game. You should double-check to make sure "
-                            "your keys are correct.";
-            }
-
-            QMessageBox::critical(
-                this, tr("Error while loading ROM!"),
-                tr(("The game you are trying to load is encrypted and the required keys to load "
-                    "the game could not be found in your configuration. " +
-                    file_text + " Please refer to the yuzu wiki for help.")
-                       .c_str()));
-            break;
-        }
-        case Core::System::ResultStatus::ErrorLoader_ErrorDecrypting: {
-            QMessageBox::critical(
-                this, tr("Error while loading ROM!"),
-                tr("There was a general error while decrypting the game. This means that the keys "
-                   "necessary were found, but were either incorrect, the game itself was not a "
-                   "valid game or the game uses an unhandled cryptographic scheme. Please double "
-                   "check that you have the correct "
-                   "keys."));
-            break;
-        }
-        case Core::System::ResultStatus::ErrorLoader_ErrorInvalidFormat:
-            QMessageBox::critical(this, tr("Error while loading ROM!"),
-                                  tr("The ROM format is not supported."));
-            break;
-
         case Core::System::ResultStatus::ErrorVideoCore:
             QMessageBox::critical(
                 this, tr("An error occurred initializing the video core."),
@@ -499,9 +443,23 @@ bool GMainWindow::LoadROM(const QString& filename) {
             break;
 
         default:
-            QMessageBox::critical(
-                this, tr("Error while loading ROM!"),
-                tr("An unknown error occurred. Please see the log for more details."));
+            if (static_cast<u32>(result) >
+                static_cast<u32>(Core::System::ResultStatus::ErrorLoader)) {
+                LOG_CRITICAL(Frontend, "Failed to load ROM!");
+                const u16 loader_id = static_cast<u16>(Core::System::ResultStatus::ErrorLoader);
+                const u16 error_id = static_cast<u16>(result) - loader_id;
+                QMessageBox::critical(
+                    this, tr("Error while loading ROM!"),
+                    QString::fromStdString(fmt::format(
+                        "While attempting to load the ROM requested, an error occured. Please "
+                        "refer to the yuzu wiki for more information or the yuzu discord for "
+                        "additional help.\n\nError Code: {:04X}-{:04X}\nError Description: {}",
+                        loader_id, error_id, Loader::GetMessageForResultStatus(error_id))));
+            } else {
+                QMessageBox::critical(
+                    this, tr("Error while loading ROM!"),
+                    tr("An unknown error occurred. Please see the log for more details."));
+            }
             break;
         }
         return false;
