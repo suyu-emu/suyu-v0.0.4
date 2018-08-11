@@ -96,7 +96,6 @@ public:
     std::vector<u8> Serialize() const;
 
 private:
-    VirtualFile file;
     std::unique_ptr<CNMTHeader> header;
     std::unique_ptr<OptionalHeader> opt_header;
     std::vector<ContentRecord> content_records;

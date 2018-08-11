@@ -10,7 +10,7 @@
 
 namespace FileSys {
 
-CNMT::CNMT(VirtualFile file_) : file(std::move(file_)), header(std::make_unique<CNMTHeader>()) {
+CNMT::CNMT(VirtualFile file) : header(std::make_unique<CNMTHeader>()) {
     if (file->ReadObject(header.get()) != sizeof(CNMTHeader))
         return;
 
@@ -41,7 +41,7 @@ CNMT::CNMT(VirtualFile file_) : file(std::move(file_)), header(std::make_unique<
 
 CNMT::CNMT(CNMTHeader header, OptionalHeader opt_header, std::vector<ContentRecord> content_records,
            std::vector<MetaRecord> meta_records)
-    : file(nullptr), header(std::make_unique<CNMTHeader>(std::move(header))),
+    : header(std::make_unique<CNMTHeader>(std::move(header))),
       opt_header(std::make_unique<OptionalHeader>(std::move(opt_header))),
       content_records(std::move(content_records)), meta_records(std::move(meta_records)) {}
 
