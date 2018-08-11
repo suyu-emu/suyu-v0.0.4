@@ -42,6 +42,8 @@ struct UUID {
         uuid[1] = (static_cast<u64>(std::rand()) << 32) | std::rand();
         return *this;
     }
+
+    // Set the UUID to {0,0} to be considered an invalid user
     void Invalidate() {
         uuid = INVALID_UUID;
     }
@@ -66,6 +68,7 @@ struct ProfileBase {
     u64_le timestamp;
     std::array<u8, 0x20> username;
 
+    // Zero out all the fields to make the profile slot considered "Empty"
     void Invalidate() {
         user_uuid.Invalidate();
         timestamp = 0;
