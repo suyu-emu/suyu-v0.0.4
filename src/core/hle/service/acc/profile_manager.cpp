@@ -118,6 +118,11 @@ size_t ProfileManager::GetUserCount() const {
     return user_count;
 }
 
+size_t ProfileManager::GetOpenUserCount() const {
+    return std::count_if(profiles.begin(), profiles.end(),
+                         [](const ProfileInfo& p) { return p.is_open; });
+}
+
 bool ProfileManager::UserExists(UUID uuid) const {
     return (GetUserIndex(uuid) != std::numeric_limits<size_t>::max());
 }
@@ -148,8 +153,12 @@ std::array<UUID, MAX_USERS> ProfileManager::GetAllUsers() const {
 
 std::array<UUID, MAX_USERS> ProfileManager::GetOpenUsers() const {
     std::array<UUID, MAX_USERS> output;
-    std::copy_if(profiles.begin(), profiles.end(), output.begin(),
-                 [](const ProfileInfo& p) { return p.is_open; });
+    std::transform(profiles.begin(), profiles.end(), output.begin(), [](const ProfileInfo& p) {
+        if (p.is_open)
+            return p.user_uuid;
+        return UUID{};
+    });
+    std::stable_partition(output.begin(), output.end(), [](const UUID& uuid) { return uuid; });
     return output;
 }
 

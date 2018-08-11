@@ -158,8 +158,9 @@ void Module::Interface::ListAllUsers(Kernel::HLERequestContext& ctx) {
 void Module::Interface::ListOpenUsers(Kernel::HLERequestContext& ctx) {
     LOG_INFO(Service_ACC, "called");
     ctx.WriteBuffer(profile_manager->GetOpenUsers());
-    IPC::ResponseBuilder rb{ctx, 2};
+    IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
+    rb.Push<u32>(static_cast<u32>(profile_manager->GetOpenUserCount()));
 }
 
 void Module::Interface::GetLastOpenedUser(Kernel::HLERequestContext& ctx) {

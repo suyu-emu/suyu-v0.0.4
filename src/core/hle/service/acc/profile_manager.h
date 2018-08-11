@@ -92,6 +92,7 @@ public:
     bool GetProfileBaseAndData(ProfileInfo user, ProfileBase& profile,
                                std::array<u8, MAX_DATA>& data);
     size_t GetUserCount() const;
+    size_t GetOpenUserCount() const;
     bool UserExists(UUID uuid) const;
     void OpenUser(UUID uuid);
     void CloseUser(UUID uuid);
