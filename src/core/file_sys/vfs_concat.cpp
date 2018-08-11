@@ -68,6 +68,7 @@ size_t ConcatenatedVfsFile::Read(u8* data, size_t length, size_t offset) const {
         }
     }
 
+    // Check if the entry should be the last one. The loop above will make it end().
     if (entry == files.end() && offset < files.rbegin()->first + files.rbegin()->second->GetSize())
         --entry;
 

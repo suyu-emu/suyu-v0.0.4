@@ -83,10 +83,12 @@ VirtualFile RealVfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
 
 VirtualFile RealVfsFilesystem::CreateFile(std::string_view path_, Mode perms) {
     const auto path = FileUtil::SanitizePath(path_, FileUtil::DirectorySeparator::PlatformDefault);
-    if (!FileUtil::Exists(path) &&
-        !FileUtil::CreateFullPath(
-            FileUtil::SanitizePath(path, FileUtil::DirectorySeparator::ForwardSlash)) &&
-        !FileUtil::CreateEmptyFile(path))
+    if (!FileUtil::Exists(path))
+        return nullptr;
+    if (!FileUtil::CreateFullPath(
+            FileUtil::SanitizePath(path, FileUtil::DirectorySeparator::ForwardSlash)))
+        return nullptr;
+    if (!FileUtil::CreateEmptyFile(path))
         return nullptr;
     return OpenFile(path, perms);
 }
@@ -143,7 +145,12 @@ VirtualDir RealVfsFilesystem::OpenDirectory(std::string_view path_, Mode perms) 
 
 VirtualDir RealVfsFilesystem::CreateDirectory(std::string_view path_, Mode perms) {
     const auto path = FileUtil::SanitizePath(path_, FileUtil::DirectorySeparator::PlatformDefault);
-    if (!FileUtil::Exists(path) && !FileUtil::CreateDir(path))
+    if (!FileUtil::Exists(path))
+        return nullptr;
+    if (!FileUtil::CreateFullPath(
+            FileUtil::SanitizePath(path, FileUtil::DirectorySeparator::ForwardSlash)))
+        return nullptr;
+    if (!FileUtil::CreateDir(path))
         return nullptr;
     // Cannot use make_shared as RealVfsDirectory constructor is private
     return std::shared_ptr<RealVfsDirectory>(new RealVfsDirectory(*this, path, perms));

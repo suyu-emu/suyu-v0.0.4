@@ -29,6 +29,9 @@ enum class TitleType : u8 {
     DeltaTitle = 0x83,
 };
 
+bool operator>=(TitleType lhs, TitleType rhs);
+bool operator<=(TitleType lhs, TitleType rhs);
+
 enum class ContentRecordType : u8 {
     Meta = 0,
     Program = 1,
@@ -96,8 +99,8 @@ public:
     std::vector<u8> Serialize() const;
 
 private:
-    std::unique_ptr<CNMTHeader> header;
-    std::unique_ptr<OptionalHeader> opt_header;
+    CNMTHeader header;
+    OptionalHeader opt_header;
     std::vector<ContentRecord> content_records;
     std::vector<MetaRecord> meta_records;
 

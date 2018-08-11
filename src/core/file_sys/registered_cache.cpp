@@ -23,13 +23,14 @@ bool operator<(const RegisteredCacheEntry& lhs, const RegisteredCacheEntry& rhs)
 }
 
 static bool FollowsTwoDigitDirFormat(std::string_view name) {
-    static const std::regex two_digit_regex(
-        "000000[0123456789abcdefABCDEF][0123456789abcdefABCDEF]");
+    static const std::regex two_digit_regex("000000[0-9A-F]{2}", std::regex_constants::ECMAScript |
+                                                                     std::regex_constants::icase);
     return std::regex_match(name.begin(), name.end(), two_digit_regex);
 }
 
 static bool FollowsNcaIdFormat(std::string_view name) {
-    static const std::regex nca_id_regex("[0123456789abcdefABCDEF]+.nca");
+    static const std::regex nca_id_regex("[0-9A-F]{32}.nca", std::regex_constants::ECMAScript |
+                                                                 std::regex_constants::icase);
     return name.size() == 36 && std::regex_match(name.begin(), name.end(), nca_id_regex);
 }
 
@@ -57,8 +58,9 @@ static std::string GetCNMTName(TitleType type, u64 title_id) {
     };
 
     auto index = static_cast<size_t>(type);
-    if (index >= 0x80)
-        index -= 0x80;
+    // If the index is after the jump in TitleType, subtract it out.
+    if (index >= static_cast<size_t>(TitleType::Application))
+        index -= static_cast<size_t>(TitleType::Application);
     return fmt::format("{}_{:016x}.cnmt", TITLE_TYPE_NAMES[index], title_id);
 }
 
@@ -120,9 +122,15 @@ VirtualFile RegisteredCache::OpenFileOrDirectoryConcat(const VirtualDir& dir,
 
 VirtualFile RegisteredCache::GetFileAtID(NcaID id) const {
     VirtualFile file;
+    // Try all four modes of file storage:
+    // (bit 1 = uppercase/lower, bit 0 = within a two-digit dir)
+    // 00: /000000**/{:032X}.nca
+    // 01: /{:032X}.nca
+    // 10: /000000**/{:032x}.nca
+    // 11: /{:032x}.nca
     for (u8 i = 0; i < 4; ++i) {
-        file = OpenFileOrDirectoryConcat(
-            dir, GetRelativePathFromNcaID(id, (i & 0b10) == 0, (i & 0b01) == 0));
+        const auto path = GetRelativePathFromNcaID(id, (i & 0b10) == 0, (i & 0b01) == 0);
+        file = OpenFileOrDirectoryConcat(dir, path);
         if (file != nullptr)
             return file;
     }
@@ -420,6 +428,7 @@ bool RegisteredCache::RawInstallNCA(std::shared_ptr<NCA> nca, const VfsCopyFunct
 }
 
 bool RegisteredCache::RawInstallYuzuMeta(const CNMT& cnmt) {
+    // Reasoning behind this method can be found in the comment for InstallEntry, NCA overload.
     const auto dir = this->dir->CreateDirectoryRelative("yuzu_meta");
     const auto filename = GetCNMTName(cnmt.GetType(), cnmt.GetTitleID());
     if (dir->GetFile(filename) == nullptr) {
