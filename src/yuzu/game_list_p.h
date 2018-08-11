@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <atomic>
 #include <utility>
 #include <QImage>
@@ -39,7 +40,6 @@ public:
  * If this class receives valid SMDH data, it will also display game icons and titles.
  */
 class GameListItemPath : public GameListItem {
-
 public:
     static const int FullPathRole = Qt::UserRole + 1;
     static const int TitleRole = Qt::UserRole + 2;
@@ -48,18 +48,18 @@ public:
 
     GameListItemPath() = default;
     GameListItemPath(const QString& game_path, const std::vector<u8>& picture_data,
-                     const QString& game_name, const QString& game_type, u64 program_id)
-        : GameListItem() {
+                     const QString& game_name, const QString& game_type, u64 program_id) {
         setData(game_path, FullPathRole);
         setData(game_name, TitleRole);
         setData(qulonglong(program_id), ProgramIdRole);
         setData(game_type, FileTypeRole);
 
-        QPixmap picture;
-        u32 size = UISettings::values.icon_size;
-        if (!picture.loadFromData(picture_data.data(), picture_data.size()))
-            picture = GetDefaultIcon(size);
+        const u32 size = UISettings::values.icon_size;
 
+        QPixmap picture;
+        if (!picture.loadFromData(picture_data.data(), static_cast<u32>(picture_data.size()))) {
+            picture = GetDefaultIcon(size);
+        }
         picture = picture.scaled(size, size);
 
         setData(picture, Qt::DecorationRole);
@@ -70,17 +70,16 @@ public:
             std::string filename;
             Common::SplitPath(data(FullPathRole).toString().toStdString(), nullptr, &filename,
                               nullptr);
-            QString title = data(TitleRole).toString();
 
-            std::vector<QString> row_data{
+            const std::array<QString, 4> row_data{{
                 QString::fromStdString(filename),
                 data(FileTypeRole).toString(),
                 QString::fromStdString(fmt::format("0x{:016X}", data(ProgramIdRole).toULongLong())),
                 data(TitleRole).toString(),
-            };
+            }};
 
-            auto row1 = row_data.at(UISettings::values.row_1_text_id);
-            auto row2 = row_data.at(UISettings::values.row_2_text_id);
+            const auto& row1 = row_data.at(UISettings::values.row_1_text_id);
+            const auto& row2 = row_data.at(UISettings::values.row_2_text_id);
 
             if (row1.isEmpty() || row1 == row2)
                 return row2;
@@ -88,9 +87,9 @@ public:
                 return row1;
 
             return row1 + "\n    " + row2;
-        } else {
-            return GameListItem::data(role);
         }
+
+        return GameListItem::data(role);
     }
 };
 
