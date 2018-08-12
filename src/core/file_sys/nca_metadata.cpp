@@ -103,7 +103,10 @@ bool CNMT::UnionRecords(const CNMT& other) {
 std::vector<u8> CNMT::Serialize() const {
     const bool has_opt_header =
         header.type >= TitleType::Application && header.type <= TitleType::AOC;
-    std::vector<u8> out(sizeof(CNMTHeader) + (has_opt_header ? sizeof(OptionalHeader) : 0));
+    const auto dead_zone = header.table_offset + sizeof(CNMTHeader);
+    std::vector<u8> out(
+        std::max(sizeof(CNMTHeader) + (has_opt_header ? sizeof(OptionalHeader) : 0), dead_zone) +
+        content_records.size() * sizeof(ContentRecord) + meta_records.size() * sizeof(MetaRecord));
     memcpy(out.data(), &header, sizeof(CNMTHeader));
 
     // Optional Header
@@ -113,17 +116,11 @@ std::vector<u8> CNMT::Serialize() const {
 
     auto offset = header.table_offset;
 
-    const auto dead_zone = offset + sizeof(CNMTHeader) - out.size();
-    if (dead_zone > 0)
-        out.resize(offset + sizeof(CNMTHeader));
-
-    out.resize(out.size() + content_records.size() * sizeof(ContentRecord));
     for (const auto& rec : content_records) {
         memcpy(out.data() + offset + sizeof(CNMTHeader), &rec, sizeof(ContentRecord));
         offset += sizeof(ContentRecord);
     }
 
-    out.resize(out.size() + content_records.size() * sizeof(MetaRecord));
     for (const auto& rec : meta_records) {
         memcpy(out.data() + offset + sizeof(CNMTHeader), &rec, sizeof(MetaRecord));
         offset += sizeof(MetaRecord);

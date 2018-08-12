@@ -29,8 +29,8 @@ static bool FollowsTwoDigitDirFormat(std::string_view name) {
 }
 
 static bool FollowsNcaIdFormat(std::string_view name) {
-    static const std::regex nca_id_regex("[0-9A-F]{32}.nca", std::regex_constants::ECMAScript |
-                                                                 std::regex_constants::icase);
+    static const std::regex nca_id_regex("[0-9A-F]{32}\\.nca", std::regex_constants::ECMAScript |
+                                                                   std::regex_constants::icase);
     return name.size() == 36 && std::regex_match(name.begin(), name.end(), nca_id_regex);
 }
 
@@ -59,8 +59,10 @@ static std::string GetCNMTName(TitleType type, u64 title_id) {
 
     auto index = static_cast<size_t>(type);
     // If the index is after the jump in TitleType, subtract it out.
-    if (index >= static_cast<size_t>(TitleType::Application))
-        index -= 0x7B;
+    if (index >= static_cast<size_t>(TitleType::Application)) {
+        index -= static_cast<size_t>(TitleType::Application) -
+                 static_cast<size_t>(TitleType::FirmwarePackageB);
+    }
     return fmt::format("{}_{:016x}.cnmt", TITLE_TYPE_NAMES[index], title_id);
 }
 
@@ -96,7 +98,8 @@ VirtualFile RegisteredCache::OpenFileOrDirectoryConcat(const VirtualDir& dir,
             file = files[0];
         } else {
             std::vector<VirtualFile> concat;
-            for (u8 i = 0; i < 0x10; ++i) {
+            // Since the files are a two-digit hex number, max is FF.
+            for (size_t i = 0; i < 0x100; ++i) {
                 auto next = nca_dir->GetFile(fmt::format("{:02X}", i));
                 if (next != nullptr) {
                     concat.push_back(std::move(next));
