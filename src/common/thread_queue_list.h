@@ -26,9 +26,9 @@ struct ThreadQueueList {
     }
 
     // Only for debugging, returns priority level.
-    Priority contains(const T& uid) {
+    Priority contains(const T& uid) const {
         for (Priority i = 0; i < NUM_QUEUES; ++i) {
-            Queue& cur = queues[i];
+            const Queue& cur = queues[i];
             if (std::find(cur.data.cbegin(), cur.data.cend(), uid) != cur.data.cend()) {
                 return i;
             }
@@ -37,8 +37,8 @@ struct ThreadQueueList {
         return -1;
     }
 
-    T get_first() {
-        Queue* cur = first;
+    T get_first() const {
+        const Queue* cur = first;
         while (cur != nullptr) {
             if (!cur->data.empty()) {
                 return cur->data.front();
