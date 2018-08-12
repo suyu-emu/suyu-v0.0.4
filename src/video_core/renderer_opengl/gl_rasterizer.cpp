@@ -124,7 +124,7 @@ std::pair<u8*, GLintptr> RasterizerOpenGL::SetupVertexArrays(u8* array_ptr,
         glBindVertexBuffer(index, stream_buffer.GetHandle(), vertex_buffer_offset,
                            vertex_array.stride);
 
-        ASSERT_MSG(vertex_array.divisor == 0, "Vertex buffer divisor unimplemented");
+        ASSERT_MSG(vertex_array.divisor == 0, "Instanced vertex arrays are not supported");
     }
 
     // Use the vertex array as-is, assumes that the data is formatted correctly for OpenGL.
