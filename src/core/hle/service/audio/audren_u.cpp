@@ -169,7 +169,8 @@ AudRenU::AudRenU() : ServiceFramework("audren:u") {
         {1, &AudRenU::GetAudioRendererWorkBufferSize, "GetAudioRendererWorkBufferSize"},
         {2, &AudRenU::GetAudioDevice, "GetAudioDevice"},
         {3, nullptr, "OpenAudioRendererAuto"},
-        {4, nullptr, "GetAudioDeviceServiceWithRevisionInfo"},
+        {4, &AudRenU::GetAudioDeviceServiceWithRevisionInfo,
+         "GetAudioDeviceServiceWithRevisionInfo"},
     };
     RegisterHandlers(functions);
 }
@@ -251,6 +252,16 @@ void AudRenU::GetAudioDevice(Kernel::HLERequestContext& ctx) {
     rb.PushIpcInterface<Audio::IAudioDevice>();
 
     LOG_DEBUG(Service_Audio, "called");
+}
+
+void AudRenU::GetAudioDeviceServiceWithRevisionInfo(Kernel::HLERequestContext& ctx) {
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface<Audio::IAudioDevice>();
+
+    LOG_WARNING(Service_Audio, "(STUBBED) called"); // TODO(ogniK): Figure out what is different
+                                                    // based on the current revision
 }
 
 bool AudRenU::IsFeatureSupported(AudioFeatures feature, u32_le revision) const {

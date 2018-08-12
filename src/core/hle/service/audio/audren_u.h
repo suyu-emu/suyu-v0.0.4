@@ -22,6 +22,7 @@ private:
     void OpenAudioRenderer(Kernel::HLERequestContext& ctx);
     void GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx);
     void GetAudioDevice(Kernel::HLERequestContext& ctx);
+    void GetAudioDeviceServiceWithRevisionInfo(Kernel::HLERequestContext& ctx);
 
     enum class AudioFeatures : u32 {
         Splitter,
