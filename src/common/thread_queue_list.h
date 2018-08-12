@@ -16,7 +16,7 @@ struct ThreadQueueList {
     //               (dynamically resizable) circular buffers to remove their overhead when
     //               inserting and popping.
 
-    typedef unsigned int Priority;
+    using Priority = unsigned int;
 
     // Number of priority levels. (Valid levels are [0..NUM_QUEUES).)
     static const Priority NUM_QUEUES = N;
