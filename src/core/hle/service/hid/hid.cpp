@@ -291,6 +291,7 @@ private:
 class Hid final : public ServiceFramework<Hid> {
 public:
     Hid() : ServiceFramework("hid") {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, &Hid::CreateAppletResource, "CreateAppletResource"},
             {1, &Hid::ActivateDebugPad, "ActivateDebugPad"},
@@ -333,15 +334,13 @@ public:
             {102, &Hid::SetSupportedNpadIdType, "SetSupportedNpadIdType"},
             {103, &Hid::ActivateNpad, "ActivateNpad"},
             {104, nullptr, "DeactivateNpad"},
-            {106, &Hid::AcquireNpadStyleSetUpdateEventHandle,
-             "AcquireNpadStyleSetUpdateEventHandle"},
-            {107, nullptr, "DisconnectNpad"},
+            {106, &Hid::AcquireNpadStyleSetUpdateEventHandle, "AcquireNpadStyleSetUpdateEventHandle"},
+            {107, &Hid::DisconnectNpad, "DisconnectNpad"},
             {108, &Hid::GetPlayerLedPattern, "GetPlayerLedPattern"},
             {109, nullptr, "ActivateNpadWithRevision"},
             {120, &Hid::SetNpadJoyHoldType, "SetNpadJoyHoldType"},
             {121, &Hid::GetNpadJoyHoldType, "GetNpadJoyHoldType"},
-            {122, &Hid::SetNpadJoyAssignmentModeSingleByDefault,
-             "SetNpadJoyAssignmentModeSingleByDefault"},
+            {122, &Hid::SetNpadJoyAssignmentModeSingleByDefault, "SetNpadJoyAssignmentModeSingleByDefault"},
             {123, nullptr, "SetNpadJoyAssignmentModeSingleByDefault"},
             {124, &Hid::SetNpadJoyAssignmentModeDual, "SetNpadJoyAssignmentModeDual"},
             {125, &Hid::MergeSingleJoyAsDualJoy, "MergeSingleJoyAsDualJoy"},
@@ -398,6 +397,8 @@ public:
             {1000, nullptr, "SetNpadCommunicationMode"},
             {1001, nullptr, "GetNpadCommunicationMode"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
 
         event = Kernel::Event::Create(Kernel::ResetType::OneShot, "hid:EventHandle");
@@ -493,6 +494,12 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(event);
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+    }
+
+    void DisconnectNpad(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_HID, "(STUBBED) called");
     }
 
