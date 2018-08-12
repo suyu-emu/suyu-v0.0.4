@@ -18,7 +18,6 @@
 #include "core/tracer/recorder.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
 #include "video_core/utils.h"
-#include "video_core/video_core.h"
 
 static const char vertex_shader[] = R"(
 #version 150 core
@@ -92,7 +91,8 @@ static std::array<GLfloat, 3 * 2> MakeOrthographicMatrix(const float width, cons
     return matrix;
 }
 
-ScopeAcquireGLContext::ScopeAcquireGLContext(EmuWindow& emu_window_) : emu_window{emu_window_} {
+ScopeAcquireGLContext::ScopeAcquireGLContext(Core::Frontend::EmuWindow& emu_window_)
+    : emu_window{emu_window_} {
     if (Settings::values.use_multi_core) {
         emu_window.MakeCurrent();
     }
@@ -103,7 +103,9 @@ ScopeAcquireGLContext::~ScopeAcquireGLContext() {
     }
 }
 
-RendererOpenGL::RendererOpenGL(EmuWindow& window) : VideoCore::RendererBase{window} {}
+RendererOpenGL::RendererOpenGL(Core::Frontend::EmuWindow& window)
+    : VideoCore::RendererBase{window} {}
+
 RendererOpenGL::~RendererOpenGL() = default;
 
 /// Swap buffers (render frame)

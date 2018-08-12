@@ -88,7 +88,7 @@ System::ResultStatus System::SingleStep() {
     return RunLoop(false);
 }
 
-System::ResultStatus System::Load(EmuWindow& emu_window, const std::string& filepath) {
+System::ResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::string& filepath) {
     app_loader = Loader::GetLoader(virtual_filesystem->OpenFile(filepath, FileSys::Mode::Read));
 
     if (!app_loader) {
@@ -151,7 +151,7 @@ Cpu& System::CpuCore(size_t core_index) {
     return *cpu_cores[core_index];
 }
 
-System::ResultStatus System::Init(EmuWindow& emu_window) {
+System::ResultStatus System::Init(Frontend::EmuWindow& emu_window) {
     LOG_DEBUG(HW_Memory, "initialized OK");
 
     CoreTiming::Init();

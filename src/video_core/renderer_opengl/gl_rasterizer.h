@@ -21,12 +21,15 @@
 #include "video_core/renderer_opengl/gl_state.h"
 #include "video_core/renderer_opengl/gl_stream_buffer.h"
 
-class EmuWindow;
 struct ScreenInfo;
+
+namespace Core::Frontend {
+class EmuWindow;
+}
 
 class RasterizerOpenGL : public VideoCore::RasterizerInterface {
 public:
-    explicit RasterizerOpenGL(EmuWindow& renderer);
+    explicit RasterizerOpenGL(Core::Frontend::EmuWindow& renderer);
     ~RasterizerOpenGL() override;
 
     void DrawArrays() override;
@@ -145,7 +148,7 @@ private:
 
     RasterizerCacheOpenGL res_cache;
 
-    EmuWindow& emu_window;
+    Core::Frontend::EmuWindow& emu_window;
 
     std::unique_ptr<GLShader::ProgramManager> shader_program_manager;
     OGLVertexArray sw_vao;
