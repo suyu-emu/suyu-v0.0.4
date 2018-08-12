@@ -27,7 +27,7 @@ AudioRenderer::AudioRenderer(AudioRendererParameter params,
 }
 
 u32 AudioRenderer::GetSampleRate() const {
-    return STREAM_SAMPLE_RATE;
+    return worker_params.sample_rate;
 }
 
 u32 AudioRenderer::GetSampleCount() const {

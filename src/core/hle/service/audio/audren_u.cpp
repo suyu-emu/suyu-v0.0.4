@@ -48,10 +48,8 @@ private:
     void GetAudioRendererSampleRate(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u32>(
-            renderer->GetSampleRate()); // Switch uses the worker_params value, but we always
-                                        // have a fixed sample rate so return that instead
-        LOG_WARNING(Service_Audio, "(STUBBED) called");
+        rb.Push<u32>(renderer->GetSampleRate());
+        LOG_DEBUG(Service_Audio, "called");
     }
 
     void GetAudioRendererSampleCount(Kernel::HLERequestContext& ctx) {
