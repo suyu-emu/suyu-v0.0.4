@@ -107,11 +107,11 @@ VirtualFile XCI::GetNCAFileByType(NCAContentType type) const {
     return nullptr;
 }
 
-std::vector<std::shared_ptr<VfsFile>> XCI::GetFiles() const {
+std::vector<VirtualFile> XCI::GetFiles() const {
     return {};
 }
 
-std::vector<std::shared_ptr<VfsDirectory>> XCI::GetSubdirectories() const {
+std::vector<VirtualDir> XCI::GetSubdirectories() const {
     return {};
 }
 
@@ -119,7 +119,7 @@ std::string XCI::GetName() const {
     return file->GetName();
 }
 
-std::shared_ptr<VfsDirectory> XCI::GetParentDirectory() const {
+VirtualDir XCI::GetParentDirectory() const {
     return file->GetContainingDirectory();
 }
 
