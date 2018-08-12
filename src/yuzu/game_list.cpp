@@ -405,6 +405,7 @@ void GameList::RefreshGameDirectory() {
 
 static void GetMetadataFromControlNCA(const std::shared_ptr<FileSys::NCA>& nca,
                                       std::vector<u8>& icon, std::string& name) {
+
     const auto control_dir = FileSys::ExtractRomFS(nca->GetRomFS());
     if (control_dir == nullptr)
         return;
@@ -425,7 +426,7 @@ static void GetMetadataFromControlNCA(const std::shared_ptr<FileSys::NCA>& nca,
     }
 }
 
-void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsigned int recursion) {
+void GameListWorker::AddInstalledTitlesToGameList() {
     const auto usernand = Service::FileSystem::GetUserNANDContents();
     const auto installed_games = usernand->ListEntriesFilter(FileSys::TitleType::Application,
                                                              FileSys::ContentRecordType::Program);
@@ -456,8 +457,6 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
         });
     }
 
-    boost::container::flat_map<u64, std::shared_ptr<FileSys::NCA>> nca_control_map;
-
     const auto control_data = usernand->ListEntriesFilter(FileSys::TitleType::Application,
                                                           FileSys::ContentRecordType::Control);
 
@@ -466,10 +465,11 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
         if (nca != nullptr)
             nca_control_map.insert_or_assign(entry.title_id, nca);
     }
+}
 
-    const auto nca_control_callback =
-        [this, &nca_control_map](u64* num_entries_out, const std::string& directory,
-                                 const std::string& virtual_name) -> bool {
+void GameListWorker::FillControlMap(const std::string& dir_path) {
+    const auto nca_control_callback = [this](u64* num_entries_out, const std::string& directory,
+                                             const std::string& virtual_name) -> bool {
         std::string physical_name = directory + DIR_SEP + virtual_name;
 
         if (stop_processing)
@@ -487,10 +487,11 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
     };
 
     FileUtil::ForeachDirectoryEntry(nullptr, dir_path, nca_control_callback);
+}
 
-    const auto callback = [this, recursion,
-                           &nca_control_map](u64* num_entries_out, const std::string& directory,
-                                             const std::string& virtual_name) -> bool {
+void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsigned int recursion) {
+    const auto callback = [this, recursion](u64* num_entries_out, const std::string& directory,
+                                            const std::string& virtual_name) -> bool {
         std::string physical_name = directory + DIR_SEP + virtual_name;
 
         if (stop_processing)
@@ -547,7 +548,10 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
 void GameListWorker::run() {
     stop_processing = false;
     watch_list.append(dir_path);
+    FillControlMap(dir_path.toStdString());
+    AddInstalledTitlesToGameList();
     AddFstEntriesToGameList(dir_path.toStdString(), deep_scan ? 256 : 0);
+    nca_control_map.clear();
     emit Finished(watch_list);
 }
 
