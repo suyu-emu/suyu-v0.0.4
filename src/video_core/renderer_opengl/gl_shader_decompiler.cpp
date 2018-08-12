@@ -356,13 +356,13 @@ public:
      * @param reg The register to use as the source value.
      */
     void SetOutputAttributeToRegister(Attribute::Index attribute, u64 elem, const Register& reg) {
-        std::string dest = GetOutputAttribute(attribute) + GetSwizzle(elem);
+        std::string dest = GetOutputAttribute(attribute);
         std::string src = GetRegisterAsFloat(reg);
 
         if (!dest.empty()) {
             // Can happen with unknown/unimplemented output attributes, in which case we ignore the
             // instruction for now.
-            shader.AddLine(dest + " = " + src + ';');
+            shader.AddLine(dest + GetSwizzle(elem) + " = " + src + ';');
         }
     }
 
