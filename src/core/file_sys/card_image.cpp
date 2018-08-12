@@ -112,7 +112,7 @@ std::vector<std::shared_ptr<VfsFile>> XCI::GetFiles() const {
 }
 
 std::vector<std::shared_ptr<VfsDirectory>> XCI::GetSubdirectories() const {
-    return std::vector<std::shared_ptr<VfsDirectory>>();
+    return {};
 }
 
 std::string XCI::GetName() const {
