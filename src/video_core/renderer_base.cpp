@@ -10,7 +10,7 @@
 
 namespace VideoCore {
 
-RendererBase::RendererBase(EmuWindow& window) : render_window{window} {
+RendererBase::RendererBase(Core::Frontend::EmuWindow& window) : render_window{window} {
     RefreshBaseSettings();
 }
 

@@ -12,7 +12,9 @@
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_state.h"
 
+namespace Core::Frontend {
 class EmuWindow;
+}
 
 /// Structure used for storing information about the textures for the Switch screen
 struct TextureInfo {
@@ -34,16 +36,16 @@ struct ScreenInfo {
 /// Helper class to acquire/release OpenGL context within a given scope
 class ScopeAcquireGLContext : NonCopyable {
 public:
-    explicit ScopeAcquireGLContext(EmuWindow& window);
+    explicit ScopeAcquireGLContext(Core::Frontend::EmuWindow& window);
     ~ScopeAcquireGLContext();
 
 private:
-    EmuWindow& emu_window;
+    Core::Frontend::EmuWindow& emu_window;
 };
 
 class RendererOpenGL : public VideoCore::RendererBase {
 public:
-    explicit RendererOpenGL(EmuWindow& window);
+    explicit RendererOpenGL(Core::Frontend::EmuWindow& window);
     ~RendererOpenGL() override;
 
     /// Swap buffers (render frame)

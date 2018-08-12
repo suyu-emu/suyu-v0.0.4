@@ -11,7 +11,9 @@
 #include "video_core/gpu.h"
 #include "video_core/rasterizer_interface.h"
 
+namespace Core::Frontend {
 class EmuWindow;
+}
 
 namespace VideoCore {
 
@@ -21,7 +23,7 @@ struct RendererSettings {
 
 class RendererBase : NonCopyable {
 public:
-    explicit RendererBase(EmuWindow& window);
+    explicit RendererBase(Core::Frontend::EmuWindow& window);
     virtual ~RendererBase();
 
     /// Swap buffers (render frame)
@@ -59,7 +61,7 @@ protected:
     /// Refreshes settings specific to the rasterizer.
     void RefreshRasterizerSetting();
 
-    EmuWindow& render_window; ///< Reference to the render window handle.
+    Core::Frontend::EmuWindow& render_window; ///< Reference to the render window handle.
     std::unique_ptr<RasterizerInterface> rasterizer;
     f32 m_current_fps = 0.0f; ///< Current framerate, should be set by the renderer
     int m_current_frame = 0;  ///< Current frame, should be set by the renderer

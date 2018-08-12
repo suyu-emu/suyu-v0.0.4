@@ -6,7 +6,9 @@
 
 #include <memory>
 
+namespace Core::Frontend {
 class EmuWindow;
+}
 
 namespace VideoCore {
 
@@ -18,6 +20,6 @@ class RendererBase;
  * @note The returned renderer instance is simply allocated. Its Init()
  *       function still needs to be called to fully complete its setup.
  */
-std::unique_ptr<RendererBase> CreateRenderer(EmuWindow& emu_window);
+std::unique_ptr<RendererBase> CreateRenderer(Core::Frontend::EmuWindow& emu_window);
 
 } // namespace VideoCore

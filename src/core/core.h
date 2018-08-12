@@ -22,8 +22,11 @@
 #include "video_core/debug_utils/debug_utils.h"
 #include "video_core/gpu.h"
 
-class EmuWindow;
 class ARM_Interface;
+
+namespace Core::Frontend {
+class EmuWindow;
+}
 
 namespace Service::SM {
 class ServiceManager;
@@ -99,7 +102,7 @@ public:
      * @param filepath String path to the executable application to load on the host file system.
      * @returns ResultStatus code, indicating if the operation succeeded.
      */
-    ResultStatus Load(EmuWindow& emu_window, const std::string& filepath);
+    ResultStatus Load(Frontend::EmuWindow& emu_window, const std::string& filepath);
 
     /**
      * Indicates if the emulated system is powered on (all subsystems initialized and able to run an
@@ -227,7 +230,7 @@ private:
      *                   input.
      * @return ResultStatus code, indicating if the operation succeeded.
      */
-    ResultStatus Init(EmuWindow& emu_window);
+    ResultStatus Init(Frontend::EmuWindow& emu_window);
 
     /// RealVfsFilesystem instance
     FileSys::VirtualFilesystem virtual_filesystem;
