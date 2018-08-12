@@ -23,7 +23,7 @@ class HLERequestContext;
 } // namespace Kernel
 
 namespace FileSys {
-struct VfsFilesystem;
+class VfsFilesystem;
 }
 
 namespace Service {

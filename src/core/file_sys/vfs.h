@@ -15,9 +15,9 @@
 
 namespace FileSys {
 
-struct VfsFilesystem;
-struct VfsFile;
-struct VfsDirectory;
+class VfsDirectory;
+class VfsFile;
+class VfsFilesystem;
 
 // Convenience typedefs to use Vfs* interfaces
 using VirtualFilesystem = std::shared_ptr<VfsFilesystem>;
@@ -34,7 +34,8 @@ enum class VfsEntryType {
 // A class representing an abstract filesystem. A default implementation given the root VirtualDir
 // is provided for convenience, but if the Vfs implementation has any additional state or
 // functionality, they will need to override.
-struct VfsFilesystem : NonCopyable {
+class VfsFilesystem : NonCopyable {
+public:
     VfsFilesystem(VirtualDir root);
     virtual ~VfsFilesystem();
 
@@ -81,7 +82,8 @@ protected:
 };
 
 // A class representing a file in an abstract filesystem.
-struct VfsFile : NonCopyable {
+class VfsFile : NonCopyable {
+public:
     virtual ~VfsFile();
 
     // Retrieves the file name.
@@ -179,7 +181,8 @@ struct VfsFile : NonCopyable {
 };
 
 // A class representing a directory in an abstract filesystem.
-struct VfsDirectory : NonCopyable {
+class VfsDirectory : NonCopyable {
+public:
     virtual ~VfsDirectory();
 
     // Retrives the file located at path as if the current directory was root. Returns nullptr if
@@ -295,7 +298,8 @@ protected:
 
 // A convenience partial-implementation of VfsDirectory that stubs out methods that should only work
 // if writable. This is to avoid redundant empty methods everywhere.
-struct ReadOnlyVfsDirectory : public VfsDirectory {
+class ReadOnlyVfsDirectory : public VfsDirectory {
+public:
     bool IsWritable() const override;
     bool IsReadable() const override;
     std::shared_ptr<VfsDirectory> CreateSubdirectory(std::string_view name) override;
