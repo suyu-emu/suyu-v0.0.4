@@ -216,7 +216,7 @@ void RasterizerOpenGL::SetupShaders(u8* buffer_ptr, GLintptr buffer_offset) {
 
     // Next available bindpoints to use when uploading the const buffers and textures to the GLSL
     // shaders. The constbuffer bindpoint starts after the shader stage configuration bind points.
-    u32 current_constbuffer_bindpoint = uniform_buffers.size();
+    u32 current_constbuffer_bindpoint = static_cast<u32>(uniform_buffers.size());
     u32 current_texture_bindpoint = 0;
 
     for (size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
