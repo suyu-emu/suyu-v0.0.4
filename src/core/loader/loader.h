@@ -56,7 +56,7 @@ FileType GuessFromFilename(const std::string& name);
 std::string GetFileTypeString(FileType type);
 
 /// Return type for functions in Loader namespace
-enum class ResultStatus {
+enum class ResultStatus : u16 {
     Success,
     ErrorAlreadyLoaded,
     ErrorNotImplemented,
