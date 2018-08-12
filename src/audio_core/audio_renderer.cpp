@@ -227,7 +227,7 @@ void AudioRenderer::QueueMixedBuffer(Buffer::Tag tag) {
                 break;
             }
 
-            samples_remaining -= samples.size();
+            samples_remaining -= samples.size() / stream->GetNumChannels();
 
             for (const auto& sample : samples) {
                 const s32 buffer_sample{buffer[offset]};
