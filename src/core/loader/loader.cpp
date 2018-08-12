@@ -126,7 +126,7 @@ constexpr std::array<const char*, 36> RESULT_MESSAGES{
 };
 
 std::string GetMessageForResultStatus(ResultStatus status) {
-    return GetMessageForResultStatus(static_cast<size_t>(status));
+    return GetMessageForResultStatus(static_cast<u16>(status));
 }
 
 std::string GetMessageForResultStatus(u16 status) {
