@@ -156,42 +156,61 @@ inline GLenum BlendEquation(Maxwell::Blend::Equation equation) {
 inline GLenum BlendFunc(Maxwell::Blend::Factor factor) {
     switch (factor) {
     case Maxwell::Blend::Factor::Zero:
+    case Maxwell::Blend::Factor::ZeroGL:
         return GL_ZERO;
     case Maxwell::Blend::Factor::One:
+    case Maxwell::Blend::Factor::OneGL:
         return GL_ONE;
     case Maxwell::Blend::Factor::SourceColor:
+    case Maxwell::Blend::Factor::SourceColorGL:
         return GL_SRC_COLOR;
     case Maxwell::Blend::Factor::OneMinusSourceColor:
+    case Maxwell::Blend::Factor::OneMinusSourceColorGL:
         return GL_ONE_MINUS_SRC_COLOR;
     case Maxwell::Blend::Factor::SourceAlpha:
+    case Maxwell::Blend::Factor::SourceAlphaGL:
         return GL_SRC_ALPHA;
     case Maxwell::Blend::Factor::OneMinusSourceAlpha:
+    case Maxwell::Blend::Factor::OneMinusSourceAlphaGL:
         return GL_ONE_MINUS_SRC_ALPHA;
     case Maxwell::Blend::Factor::DestAlpha:
+    case Maxwell::Blend::Factor::DestAlphaGL:
         return GL_DST_ALPHA;
     case Maxwell::Blend::Factor::OneMinusDestAlpha:
+    case Maxwell::Blend::Factor::OneMinusDestAlphaGL:
         return GL_ONE_MINUS_DST_ALPHA;
     case Maxwell::Blend::Factor::DestColor:
+    case Maxwell::Blend::Factor::DestColorGL:
         return GL_DST_COLOR;
     case Maxwell::Blend::Factor::OneMinusDestColor:
+    case Maxwell::Blend::Factor::OneMinusDestColorGL:
         return GL_ONE_MINUS_DST_COLOR;
     case Maxwell::Blend::Factor::SourceAlphaSaturate:
+    case Maxwell::Blend::Factor::SourceAlphaSaturateGL:
         return GL_SRC_ALPHA_SATURATE;
     case Maxwell::Blend::Factor::Source1Color:
+    case Maxwell::Blend::Factor::Source1ColorGL:
         return GL_SRC1_COLOR;
     case Maxwell::Blend::Factor::OneMinusSource1Color:
+    case Maxwell::Blend::Factor::OneMinusSource1ColorGL:
         return GL_ONE_MINUS_SRC1_COLOR;
     case Maxwell::Blend::Factor::Source1Alpha:
+    case Maxwell::Blend::Factor::Source1AlphaGL:
         return GL_SRC1_ALPHA;
     case Maxwell::Blend::Factor::OneMinusSource1Alpha:
+    case Maxwell::Blend::Factor::OneMinusSource1AlphaGL:
         return GL_ONE_MINUS_SRC1_ALPHA;
     case Maxwell::Blend::Factor::ConstantColor:
+    case Maxwell::Blend::Factor::ConstantColorGL:
         return GL_CONSTANT_COLOR;
     case Maxwell::Blend::Factor::OneMinusConstantColor:
+    case Maxwell::Blend::Factor::OneMinusConstantColorGL:
         return GL_ONE_MINUS_CONSTANT_COLOR;
     case Maxwell::Blend::Factor::ConstantAlpha:
+    case Maxwell::Blend::Factor::ConstantAlphaGL:
         return GL_CONSTANT_ALPHA;
     case Maxwell::Blend::Factor::OneMinusConstantAlpha:
+    case Maxwell::Blend::Factor::OneMinusConstantAlphaGL:
         return GL_ONE_MINUS_CONSTANT_ALPHA;
     }
     LOG_CRITICAL(Render_OpenGL, "Unimplemented blend factor={}", static_cast<u32>(factor));

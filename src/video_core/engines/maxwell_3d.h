@@ -357,6 +357,27 @@ public:
                 OneMinusConstantColor = 0x62,
                 ConstantAlpha = 0x63,
                 OneMinusConstantAlpha = 0x64,
+
+                // These values are used by Nouveau and some games.
+                ZeroGL = 0x4000,
+                OneGL = 0x4001,
+                SourceColorGL = 0x4300,
+                OneMinusSourceColorGL = 0x4301,
+                SourceAlphaGL = 0x4302,
+                OneMinusSourceAlphaGL = 0x4303,
+                DestAlphaGL = 0x4304,
+                OneMinusDestAlphaGL = 0x4305,
+                DestColorGL = 0x4306,
+                OneMinusDestColorGL = 0x4307,
+                SourceAlphaSaturateGL = 0x4308,
+                ConstantColorGL = 0xc001,
+                OneMinusConstantColorGL = 0xc002,
+                ConstantAlphaGL = 0xc003,
+                OneMinusConstantAlphaGL = 0xc004,
+                Source1ColorGL = 0xc900,
+                OneMinusSource1ColorGL = 0xc901,
+                Source1AlphaGL = 0xc902,
+                OneMinusSource1AlphaGL = 0xc903,
             };
 
             u32 separate_alpha;
