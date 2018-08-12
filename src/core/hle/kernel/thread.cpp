@@ -155,8 +155,10 @@ void Thread::WakeAfterDelay(s64 nanoseconds) {
     if (nanoseconds == -1)
         return;
 
-    CoreTiming::ScheduleEvent(CoreTiming::nsToCycles(nanoseconds), ThreadWakeupEventType,
-                              callback_handle);
+    // This function might be called from any thread so we have to be cautious and use the
+    // thread-safe version of ScheduleEvent.
+    CoreTiming::ScheduleEventThreadsafe(CoreTiming::nsToCycles(nanoseconds), ThreadWakeupEventType,
+                                        callback_handle);
 }
 
 void Thread::CancelWakeupTimer() {
