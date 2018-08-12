@@ -13,7 +13,7 @@
 #include "core/file_sys/vfs.h"
 
 namespace Loader {
-enum class ResultStatus;
+enum class ResultStatus : u16;
 }
 
 namespace FileSys {

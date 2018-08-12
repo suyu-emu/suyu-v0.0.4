@@ -13,7 +13,7 @@
 #include "partition_filesystem.h"
 
 namespace Loader {
-enum class ResultStatus;
+enum class ResultStatus : u16;
 }
 
 namespace FileSys {
