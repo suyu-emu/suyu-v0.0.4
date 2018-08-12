@@ -24,7 +24,8 @@ public:
             {10400, nullptr, "GetBlockedUserListIds"},
             {10500, nullptr, "GetProfileList"},
             {10600, nullptr, "DeclareOpenOnlinePlaySession"},
-            {10601, nullptr, "DeclareCloseOnlinePlaySession"},
+            {10601, &IFriendService::DeclareCloseOnlinePlaySession,
+             "DeclareCloseOnlinePlaySession"},
             {10610, nullptr, "UpdateUserPresence"},
             {10700, nullptr, "GetPlayHistoryRegistrationKey"},
             {10701, nullptr, "GetPlayHistoryRegistrationKeyWithNetworkServiceAccountId"},
@@ -89,6 +90,14 @@ public:
         };
 
         RegisterHandlers(functions);
+    }
+
+private:
+    void DeclareCloseOnlinePlaySession(Kernel::HLERequestContext& ctx) {
+        // Stub used by Splatoon 2
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
     }
 };
 
