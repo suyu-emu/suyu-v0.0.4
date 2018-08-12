@@ -79,7 +79,7 @@ private:
     std::shared_ptr<CpuBarrier> cpu_barrier;
     std::shared_ptr<Kernel::Scheduler> scheduler;
 
-    bool reschedule_pending{};
+    std::atomic<bool> reschedule_pending = false;
     size_t core_index;
 };
 
