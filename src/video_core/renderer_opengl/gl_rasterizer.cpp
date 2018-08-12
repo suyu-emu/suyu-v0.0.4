@@ -161,11 +161,16 @@ std::pair<u8*, GLintptr> RasterizerOpenGL::SetupVertexArrays(u8* array_ptr,
     // assume every shader uses them all.
     for (unsigned index = 0; index < 16; ++index) {
         auto& attrib = regs.vertex_attrib_format[index];
+
+        // Ignore invalid attributes.
+        if (!attrib.IsValid())
+            continue;
+
+        auto& buffer = regs.vertex_array[attrib.buffer];
         LOG_TRACE(HW_GPU, "vertex attrib {}, count={}, size={}, type={}, offset={}, normalize={}",
                   index, attrib.ComponentCount(), attrib.SizeString(), attrib.TypeString(),
                   attrib.offset.Value(), attrib.IsNormalized());
 
-        auto& buffer = regs.vertex_array[attrib.buffer];
         ASSERT(buffer.IsEnabled());
 
         glEnableVertexAttribArray(index);

@@ -93,6 +93,7 @@ public:
 
         struct VertexAttribute {
             enum class Size : u32 {
+                Invalid = 0x0,
                 Size_32_32_32_32 = 0x01,
                 Size_32_32_32 = 0x02,
                 Size_16_16_16_16 = 0x03,
@@ -256,6 +257,10 @@ public:
 
             bool IsNormalized() const {
                 return (type == Type::SignedNorm) || (type == Type::UnsignedNorm);
+            }
+
+            bool IsValid() const {
+                return size != Size::Invalid;
             }
         };
 
