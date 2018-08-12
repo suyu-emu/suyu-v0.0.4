@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "audio_core/algorithm/interpolate.h"
 #include "audio_core/audio_renderer.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
@@ -198,6 +199,8 @@ void AudioRenderer::VoiceState::RefreshBuffer() {
         UNREACHABLE();
         break;
     }
+
+    samples = Interpolate(interp_state, std::move(samples), Info().sample_rate, STREAM_SAMPLE_RATE);
 
     is_refresh_pending = false;
 }
