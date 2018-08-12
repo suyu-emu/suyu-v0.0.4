@@ -29,44 +29,45 @@ struct SurfaceParams {
         A2B10G10R10 = 3,
         A1B5G5R5 = 4,
         R8 = 5,
-        RGBA16F = 6,
-        R11FG11FB10F = 7,
-        RGBA32UI = 8,
-        DXT1 = 9,
-        DXT23 = 10,
-        DXT45 = 11,
-        DXN1 = 12, // This is also known as BC4
-        DXN2UNORM = 13,
-        DXN2SNORM = 14,
-        BC7U = 15,
-        ASTC_2D_4X4 = 16,
-        G8R8 = 17,
-        BGRA8 = 18,
-        RGBA32F = 19,
-        RG32F = 20,
-        R32F = 21,
-        R16F = 22,
-        R16UNORM = 23,
-        R16S = 24,
-        R16UI = 25,
-        R16I = 26,
-        RG16 = 27,
-        RG16F = 28,
-        RG16UI = 29,
-        RG16I = 30,
-        RG16S = 31,
-        RGB32F = 32,
-        SRGBA8 = 33,
-        RG8S = 34,
+        R8UI = 6,
+        RGBA16F = 7,
+        R11FG11FB10F = 8,
+        RGBA32UI = 9,
+        DXT1 = 10,
+        DXT23 = 11,
+        DXT45 = 12,
+        DXN1 = 13, // This is also known as BC4
+        DXN2UNORM = 14,
+        DXN2SNORM = 15,
+        BC7U = 16,
+        ASTC_2D_4X4 = 17,
+        G8R8 = 18,
+        BGRA8 = 19,
+        RGBA32F = 20,
+        RG32F = 21,
+        R32F = 22,
+        R16F = 23,
+        R16UNORM = 24,
+        R16S = 25,
+        R16UI = 26,
+        R16I = 27,
+        RG16 = 28,
+        RG16F = 29,
+        RG16UI = 30,
+        RG16I = 31,
+        RG16S = 32,
+        RGB32F = 33,
+        SRGBA8 = 34,
+        RG8S = 35,
 
         MaxColorFormat,
 
         // DepthStencil formats
-        Z24S8 = 35,
-        S8Z24 = 36,
-        Z32F = 37,
-        Z16 = 38,
-        Z32FS8 = 39,
+        Z24S8 = 36,
+        S8Z24 = 37,
+        Z32F = 38,
+        Z16 = 39,
+        Z32FS8 = 40,
 
         MaxDepthStencilFormat,
 
@@ -110,6 +111,7 @@ struct SurfaceParams {
             1, // A2B10G10R10
             1, // A1B5G5R5
             1, // R8
+            1, // R8UI
             1, // RGBA16F
             1, // R11FG11FB10F
             1, // RGBA32UI
@@ -161,6 +163,7 @@ struct SurfaceParams {
             32,  // A2B10G10R10
             16,  // A1B5G5R5
             8,   // R8
+            8,   // R8UI
             64,  // RGBA16F
             32,  // R11FG11FB10F
             128, // RGBA32UI
@@ -250,6 +253,8 @@ struct SurfaceParams {
             return PixelFormat::RGBA32UI;
         case Tegra::RenderTargetFormat::R8_UNORM:
             return PixelFormat::R8;
+        case Tegra::RenderTargetFormat::R8_UINT:
+            return PixelFormat::R8UI;
         case Tegra::RenderTargetFormat::RG16_FLOAT:
             return PixelFormat::RG16F;
         case Tegra::RenderTargetFormat::RG16_UINT:
@@ -301,7 +306,15 @@ struct SurfaceParams {
         case Tegra::Texture::TextureFormat::A1B5G5R5:
             return PixelFormat::A1B5G5R5;
         case Tegra::Texture::TextureFormat::R8:
-            return PixelFormat::R8;
+            switch (component_type) {
+            case Tegra::Texture::ComponentType::UNORM:
+                return PixelFormat::R8;
+            case Tegra::Texture::ComponentType::UINT:
+                return PixelFormat::R8UI;
+            }
+            LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}",
+                         static_cast<u32>(component_type));
+            UNREACHABLE();
         case Tegra::Texture::TextureFormat::G8R8:
             return PixelFormat::G8R8;
         case Tegra::Texture::TextureFormat::R16_G16_B16_A16:
@@ -435,6 +448,7 @@ struct SurfaceParams {
             return ComponentType::Float;
         case Tegra::RenderTargetFormat::RGBA32_UINT:
         case Tegra::RenderTargetFormat::RG16_UINT:
+        case Tegra::RenderTargetFormat::R8_UINT:
         case Tegra::RenderTargetFormat::R16_UINT:
             return ComponentType::UInt;
         case Tegra::RenderTargetFormat::RG16_SINT:
