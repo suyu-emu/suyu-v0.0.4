@@ -71,6 +71,14 @@ ResultCode ServerSession::HandleDomainSyncRequest(Kernel::HLERequestContext& con
         const u32 object_id{context.GetDomainMessageHeader()->object_id};
         switch (domain_message_header->command) {
         case IPC::DomainMessageHeader::CommandType::SendMessage:
+            if (object_id > domain_request_handlers.size()) {
+                LOG_CRITICAL(IPC,
+                             "object_id {} is too big! This probably means a recent service call "
+                             "to {} needed to return a new interface!",
+                             object_id, name);
+                UNREACHABLE();
+                return RESULT_SUCCESS; // Ignore error if asserts are off
+            }
             return domain_request_handlers[object_id - 1]->HandleSyncRequest(context);
 
         case IPC::DomainMessageHeader::CommandType::CloseVirtualHandle: {
