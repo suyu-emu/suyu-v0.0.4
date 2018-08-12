@@ -20,9 +20,9 @@ public:
     explicit IAudioRenderer(AudioCore::AudioRendererParameter audren_params)
         : ServiceFramework("IAudioRenderer") {
         static const FunctionInfo functions[] = {
-            {0, nullptr, "GetAudioRendererSampleRate"},
-            {1, nullptr, "GetAudioRendererSampleCount"},
-            {2, nullptr, "GetAudioRendererMixBufferCount"},
+            {0, &IAudioRenderer::GetAudioRendererSampleRate, "GetAudioRendererSampleRate"},
+            {1, &IAudioRenderer::GetAudioRendererSampleCount, "GetAudioRendererSampleCount"},
+            {2, &IAudioRenderer::GetAudioRendererMixBufferCount, "GetAudioRendererMixBufferCount"},
             {3, nullptr, "GetAudioRendererState"},
             {4, &IAudioRenderer::RequestUpdateAudioRenderer, "RequestUpdateAudioRenderer"},
             {5, &IAudioRenderer::StartAudioRenderer, "StartAudioRenderer"},
@@ -43,6 +43,27 @@ public:
 private:
     void UpdateAudioCallback() {
         system_event->Signal();
+    }
+
+    void GetAudioRendererSampleRate(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(renderer->GetSampleRate());
+        LOG_DEBUG(Service_Audio, "called");
+    }
+
+    void GetAudioRendererSampleCount(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(renderer->GetSampleCount());
+        LOG_DEBUG(Service_Audio, "called");
+    }
+
+    void GetAudioRendererMixBufferCount(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(renderer->GetMixBufferCount());
+        LOG_DEBUG(Service_Audio, "called");
     }
 
     void RequestUpdateAudioRenderer(Kernel::HLERequestContext& ctx) {
@@ -189,7 +210,7 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     auto params = rp.PopRaw<AudioCore::AudioRendererParameter>();
 
-    u64 buffer_sz = Common::AlignUp(4 * params.unknown_8, 0x40);
+    u64 buffer_sz = Common::AlignUp(4 * params.mix_buffer_count, 0x40);
     buffer_sz += params.unknown_c * 1024;
     buffer_sz += 0x940 * (params.unknown_c + 1);
     buffer_sz += 0x3F0 * params.voice_count;
@@ -197,7 +218,7 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
     buffer_sz += Common::AlignUp(8 * params.voice_count, 0x10);
     buffer_sz +=
         Common::AlignUp((0x3C0 * (params.sink_count + params.unknown_c) + 4 * params.sample_count) *
-                            (params.unknown_8 + 6),
+                            (params.mix_buffer_count + 6),
                         0x40);
 
     if (IsFeatureSupported(AudioFeatures::Splitter, params.revision)) {

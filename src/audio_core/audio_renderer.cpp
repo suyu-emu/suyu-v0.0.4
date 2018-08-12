@@ -26,6 +26,18 @@ AudioRenderer::AudioRenderer(AudioRendererParameter params,
     QueueMixedBuffer(2);
 }
 
+u32 AudioRenderer::GetSampleRate() const {
+    return worker_params.sample_rate;
+}
+
+u32 AudioRenderer::GetSampleCount() const {
+    return worker_params.sample_count;
+}
+
+u32 AudioRenderer::GetMixBufferCount() const {
+    return worker_params.mix_buffer_count;
+}
+
 std::vector<u8> AudioRenderer::UpdateAudioRenderer(const std::vector<u8>& input_params) {
     // Copy UpdateDataHeader struct
     UpdateDataHeader config{};
