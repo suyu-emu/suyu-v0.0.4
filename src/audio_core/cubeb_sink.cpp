@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <mutex>
 
 #include "audio_core/cubeb_sink.h"
 #include "audio_core/stream.h"
@@ -66,6 +67,8 @@ public:
             return;
         }
 
+        std::lock_guard lock{queue_mutex};
+
         queue.reserve(queue.size() + samples.size() * GetNumChannels());
 
         if (is_6_channel) {
@@ -94,6 +97,7 @@ private:
     u32 num_channels{};
     bool is_6_channel{};
 
+    std::mutex queue_mutex;
     std::vector<s16> queue;
 
     static long DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
@@ -152,6 +156,8 @@ long SinkStreamImpl::DataCallback(cubeb_stream* stream, void* user_data, const v
     if (!impl) {
         return {};
     }
+
+    std::lock_guard lock{impl->queue_mutex};
 
     const size_t frames_to_write{
         std::min(impl->queue.size() / impl->GetNumChannels(), static_cast<size_t>(num_frames))};
