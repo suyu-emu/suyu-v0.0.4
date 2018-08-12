@@ -1,5 +1,5 @@
-# CMake 3.6 required for FindBoost to define IMPORTED libs properly on unknown Boost versions
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.7)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
 include(DownloadExternals)
@@ -187,7 +187,7 @@ find_package(Threads REQUIRED)
 if (ENABLE_SDL2)
     if (YUZU_USE_BUNDLED_SDL2)
         # Detect toolchain and platform
-        if (MSVC14 AND ARCHITECTURE_x86_64)
+        if ((MSVC_VERSION GREATER_EQUAL 1910 AND MSVC_VERSION LESS 1920) AND ARCHITECTURE_x86_64)
             set(SDL2_VER "SDL2-2.0.5")
         else()
             message(FATAL_ERROR "No bundled SDL2 binaries for your toolchain. Disable YUZU_USE_BUNDLED_SDL2 and provide your own.")
@@ -220,7 +220,7 @@ if (YUZU_USE_BUNDLED_UNICORN)
     if (MSVC)
         message(STATUS "unicorn not found, falling back to bundled")
         # Detect toolchain and platform
-        if (MSVC14 AND ARCHITECTURE_x86_64)
+        if ((MSVC_VERSION GREATER_EQUAL 1910 AND MSVC_VERSION LESS 1920) AND ARCHITECTURE_x86_64)
             set(UNICORN_VER "unicorn-yuzu")
         else()
             message(FATAL_ERROR "No bundled Unicorn binaries for your toolchain. Disable YUZU_USE_BUNDLED_UNICORN and provide your own.")
@@ -279,7 +279,7 @@ endif()
 
 if (ENABLE_QT)
     if (YUZU_USE_BUNDLED_QT)
-        if (MSVC14 AND ARCHITECTURE_x86_64)
+        if ((MSVC_VERSION GREATER_EQUAL 1910 AND MSVC_VERSION LESS 1920) AND ARCHITECTURE_x86_64)
             set(QT_VER qt-5.10.0-msvc2015_64)
         else()
             message(FATAL_ERROR "No bundled Qt binaries for your toolchain. Disable YUZU_USE_BUNDLED_QT and provide your own.")
@@ -303,7 +303,7 @@ endif()
 # ======================================
 
 IF (APPLE)
-    FIND_LIBRARY(COCOA_LIBRARY Cocoa)           # Umbrella framework for everything GUI-related
+    find_library(COCOA_LIBRARY Cocoa)           # Umbrella framework for everything GUI-related
     set(PLATFORM_LIBRARIES ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
 
     if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
