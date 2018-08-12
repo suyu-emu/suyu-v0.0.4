@@ -36,7 +36,7 @@ enum class VfsEntryType {
 // functionality, they will need to override.
 class VfsFilesystem : NonCopyable {
 public:
-    VfsFilesystem(VirtualDir root);
+    explicit VfsFilesystem(VirtualDir root);
     virtual ~VfsFilesystem();
 
     // Gets the friendly name for the filesystem.
