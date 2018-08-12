@@ -335,7 +335,7 @@ public:
             {104, nullptr, "DeactivateNpad"},
             {106, &Hid::AcquireNpadStyleSetUpdateEventHandle,
              "AcquireNpadStyleSetUpdateEventHandle"},
-            {107, nullptr, "DisconnectNpad"},
+            {107, &Hid::DisconnectNpad, "DisconnectNpad"},
             {108, &Hid::GetPlayerLedPattern, "GetPlayerLedPattern"},
             {109, nullptr, "ActivateNpadWithRevision"},
             {120, &Hid::SetNpadJoyHoldType, "SetNpadJoyHoldType"},
@@ -493,6 +493,12 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(event);
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+    }
+
+    void DisconnectNpad(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_HID, "(STUBBED) called");
     }
 
