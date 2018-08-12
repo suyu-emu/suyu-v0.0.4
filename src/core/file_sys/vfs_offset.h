@@ -15,7 +15,8 @@ namespace FileSys {
 // Similar to seeking to an offset.
 // If the file is writable, operations that would write past the end of the offset file will expand
 // the size of this wrapper.
-struct OffsetVfsFile : public VfsFile {
+class OffsetVfsFile : public VfsFile {
+public:
     OffsetVfsFile(std::shared_ptr<VfsFile> file, size_t size, size_t offset = 0,
                   std::string new_name = "", VirtualDir new_parent = nullptr);
 

@@ -10,7 +10,8 @@ namespace FileSys {
 
 // An implementation of VfsDirectory that maintains two vectors for subdirectories and files.
 // Vector data is supplied upon construction.
-struct VectorVfsDirectory : public VfsDirectory {
+class VectorVfsDirectory : public VfsDirectory {
+public:
     explicit VectorVfsDirectory(std::vector<VirtualFile> files = {},
                                 std::vector<VirtualDir> dirs = {}, VirtualDir parent = nullptr,
                                 std::string name = "");
