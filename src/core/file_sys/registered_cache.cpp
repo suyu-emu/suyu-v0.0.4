@@ -60,7 +60,7 @@ static std::string GetCNMTName(TitleType type, u64 title_id) {
     auto index = static_cast<size_t>(type);
     // If the index is after the jump in TitleType, subtract it out.
     if (index >= static_cast<size_t>(TitleType::Application))
-        index -= static_cast<size_t>(TitleType::Application);
+        index -= 0x7B;
     return fmt::format("{}_{:016x}.cnmt", TITLE_TYPE_NAMES[index], title_id);
 }
 
@@ -343,7 +343,8 @@ static std::shared_ptr<NCA> GetNCAFromXCIForID(std::shared_ptr<XCI> xci, const N
     return iter == xci->GetNCAs().end() ? nullptr : *iter;
 }
 
-bool RegisteredCache::InstallEntry(std::shared_ptr<XCI> xci, const VfsCopyFunction& copy) {
+InstallResult RegisteredCache::InstallEntry(std::shared_ptr<XCI> xci, bool overwrite_if_exists,
+                                            const VfsCopyFunction& copy) {
     const auto& ncas = xci->GetNCAs();
     const auto& meta_iter = std::find_if(ncas.begin(), ncas.end(), [](std::shared_ptr<NCA> nca) {
         return nca->GetType() == NCAContentType::Meta;
@@ -352,14 +353,16 @@ bool RegisteredCache::InstallEntry(std::shared_ptr<XCI> xci, const VfsCopyFuncti
     if (meta_iter == ncas.end()) {
         LOG_ERROR(Loader, "The XCI you are attempting to install does not have a metadata NCA and "
                           "is therefore malformed. Double check your encryption keys.");
-        return false;
+        return InstallResult::ErrorMetaFailed;
     }
 
     // Install Metadata File
     const auto meta_id_raw = (*meta_iter)->GetName().substr(0, 32);
     const auto meta_id = HexStringToArray<16>(meta_id_raw);
-    if (!RawInstallNCA(*meta_iter, copy, meta_id))
-        return false;
+
+    const auto res = RawInstallNCA(*meta_iter, copy, overwrite_if_exists, meta_id);
+    if (res != InstallResult::Success)
+        return res;
 
     // Install all the other NCAs
     const auto section0 = (*meta_iter)->GetSubdirectories()[0];
@@ -367,16 +370,19 @@ bool RegisteredCache::InstallEntry(std::shared_ptr<XCI> xci, const VfsCopyFuncti
     const CNMT cnmt(cnmt_file);
     for (const auto& record : cnmt.GetContentRecords()) {
         const auto nca = GetNCAFromXCIForID(xci, record.nca_id);
-        if (nca == nullptr || !RawInstallNCA(nca, copy, record.nca_id))
-            return false;
+        if (nca == nullptr)
+            return InstallResult::ErrorCopyFailed;
+        const auto res2 = RawInstallNCA(nca, copy, overwrite_if_exists, record.nca_id);
+        if (res2 != InstallResult::Success)
+            return res2;
     }
 
     Refresh();
-    return true;
+    return InstallResult::Success;
 }
 
-bool RegisteredCache::InstallEntry(std::shared_ptr<NCA> nca, TitleType type,
-                                   const VfsCopyFunction& copy) {
+InstallResult RegisteredCache::InstallEntry(std::shared_ptr<NCA> nca, TitleType type,
+                                            bool overwrite_if_exists, const VfsCopyFunction& copy) {
     CNMTHeader header{
         nca->GetTitleId(), ///< Title ID
         0,                 ///< Ignore/Default title version
@@ -393,11 +399,14 @@ bool RegisteredCache::InstallEntry(std::shared_ptr<NCA> nca, TitleType type,
     mbedtls_sha256(data.data(), data.size(), c_rec.hash.data(), 0);
     memcpy(&c_rec.nca_id, &c_rec.hash, 16);
     const CNMT new_cnmt(header, opt_header, {c_rec}, {});
-    return RawInstallYuzuMeta(new_cnmt) && RawInstallNCA(nca, copy, c_rec.nca_id);
+    if (!RawInstallYuzuMeta(new_cnmt))
+        return InstallResult::ErrorMetaFailed;
+    return RawInstallNCA(nca, copy, overwrite_if_exists, c_rec.nca_id);
 }
 
-bool RegisteredCache::RawInstallNCA(std::shared_ptr<NCA> nca, const VfsCopyFunction& copy,
-                                    boost::optional<NcaID> override_id) {
+InstallResult RegisteredCache::RawInstallNCA(std::shared_ptr<NCA> nca, const VfsCopyFunction& copy,
+                                             bool overwrite_if_exists,
+                                             boost::optional<NcaID> override_id) {
     const auto in = nca->GetBaseFile();
     Core::Crypto::SHA256Hash hash{};
 
@@ -416,15 +425,22 @@ bool RegisteredCache::RawInstallNCA(std::shared_ptr<NCA> nca, const VfsCopyFunct
 
     std::string path = GetRelativePathFromNcaID(id, false, true);
 
-    if (GetFileAtID(id) != nullptr) {
+    if (GetFileAtID(id) != nullptr && !overwrite_if_exists) {
         LOG_WARNING(Loader, "Attempting to overwrite existing NCA. Skipping...");
-        return false;
+        return InstallResult::ErrorAlreadyExists;
+    }
+
+    if (GetFileAtID(id) != nullptr) {
+        LOG_WARNING(Loader, "Overwriting existing NCA...");
+        VirtualDir c_dir;
+        { c_dir = dir->GetFileRelative(path)->GetContainingDirectory(); }
+        c_dir->DeleteFile(FileUtil::GetFilename(path));
     }
 
     auto out = dir->CreateFileRelative(path);
     if (out == nullptr)
-        return false;
-    return copy(in, out);
+        return InstallResult::ErrorCopyFailed;
+    return copy(in, out) ? InstallResult::Success : InstallResult::ErrorCopyFailed;
 }
 
 bool RegisteredCache::RawInstallYuzuMeta(const CNMT& cnmt) {

@@ -650,37 +650,59 @@ void GMainWindow::OnMenuInstallToNAND() {
         return true;
     };
 
+    const auto success = [this]() {
+        QMessageBox::information(this, tr("Successfully Installed"),
+                                 tr("The file was successfully installed."));
+        game_list->PopulateAsync(UISettings::values.gamedir, UISettings::values.gamedir_deepscan);
+    };
+
+    const auto failed = [this]() {
+        QMessageBox::warning(
+            this, tr("Failed to Install"),
+            tr("There was an error while attempting to install the provided file. It "
+               "could have an incorrect format or be missing metadata. Please "
+               "double-check your file and try again."));
+    };
+
+    const auto overwrite = [this]() {
+        return QMessageBox::question(this, "Failed to Install",
+                                     "The file you are attempting to install already exists "
+                                     "in the cache. Would you like to overwrite it?") ==
+               QMessageBox::Yes;
+    };
+
     if (!filename.isEmpty()) {
         if (filename.endsWith("xci", Qt::CaseInsensitive)) {
             const auto xci = std::make_shared<FileSys::XCI>(
                 vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
             if (xci->GetStatus() != Loader::ResultStatus::Success) {
-                QMessageBox::warning(
-                    this, tr("Failed to Install XCI"),
-                    tr("The XCI file you provided is invalid. Please double-check your encryption "
-                       "keys and the file and try again."));
+                failed();
                 return;
             }
-            if (Service::FileSystem::GetUserNANDContents()->InstallEntry(xci, qt_raw_copy)) {
-                QMessageBox::information(this, tr("Successfully Installed XCI"),
-                                         tr("The file was successfully installed."));
-                game_list->PopulateAsync(UISettings::values.gamedir,
-                                         UISettings::values.gamedir_deepscan);
+            const auto res =
+                Service::FileSystem::GetUserNANDContents()->InstallEntry(xci, false, qt_raw_copy);
+            if (res == FileSys::InstallResult::Success) {
+                success();
             } else {
-                QMessageBox::warning(
-                    this, tr("Failed to Install XCI"),
-                    tr("There was an error while attempting to install the provided XCI file. It "
-                       "could have an incorrect format or be missing a metadata entry. Please "
-                       "double-check your file and try again."));
+                if (res == FileSys::InstallResult::ErrorAlreadyExists) {
+                    if (overwrite()) {
+                        const auto res2 = Service::FileSystem::GetUserNANDContents()->InstallEntry(
+                            xci, true, qt_raw_copy);
+                        if (res2 == FileSys::InstallResult::Success) {
+                            success();
+                        } else {
+                            failed();
+                        }
+                    }
+                } else {
+                    failed();
+                }
             }
         } else {
             const auto nca = std::make_shared<FileSys::NCA>(
                 vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
             if (nca->GetStatus() != Loader::ResultStatus::Success) {
-                QMessageBox::warning(
-                    this, tr("Failed to Install NCA"),
-                    tr("The NCA file you provided is invalid. Please double-check your encryption "
-                       "keys and the file and try again."));
+                failed();
                 return;
             }
 
@@ -702,7 +724,7 @@ void GMainWindow::OnMenuInstallToNAND() {
 
             auto index = tt_options.indexOf(item);
             if (!ok || index == -1) {
-                QMessageBox::warning(this, tr("Failed to Install NCA"),
+                QMessageBox::warning(this, tr("Failed to Install"),
                                      tr("The title type you selected for the NCA is invalid."));
                 return;
             }
@@ -710,18 +732,24 @@ void GMainWindow::OnMenuInstallToNAND() {
             if (index >= 5)
                 index += 0x7B;
 
-            if (Service::FileSystem::GetUserNANDContents()->InstallEntry(
-                    nca, static_cast<FileSys::TitleType>(index), qt_raw_copy)) {
-                QMessageBox::information(this, tr("Successfully Installed NCA"),
-                                         tr("The file was successfully installed."));
-                game_list->PopulateAsync(UISettings::values.gamedir,
-                                         UISettings::values.gamedir_deepscan);
+            const auto res = Service::FileSystem::GetUserNANDContents()->InstallEntry(
+                nca, static_cast<FileSys::TitleType>(index), false, qt_raw_copy);
+            if (res == FileSys::InstallResult::Success) {
+                success();
             } else {
-                QMessageBox::warning(this, tr("Failed to Install NCA"),
-                                     tr("There was an error while attempting to install the "
-                                        "provided NCA file. An error might have occured creating "
-                                        "the metadata file or parsing the NCA. Please "
-                                        "double-check your file and try again."));
+                if (res == FileSys::InstallResult::ErrorAlreadyExists) {
+                    if (overwrite()) {
+                        const auto res2 = Service::FileSystem::GetUserNANDContents()->InstallEntry(
+                            nca, static_cast<FileSys::TitleType>(index), true, qt_raw_copy);
+                        if (res2 == FileSys::InstallResult::Success) {
+                            success();
+                        } else {
+                            failed();
+                        }
+                    }
+                } else {
+                    failed();
+                }
             }
         }
     }

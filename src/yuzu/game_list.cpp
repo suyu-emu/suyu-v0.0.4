@@ -405,7 +405,6 @@ void GameList::RefreshGameDirectory() {
 
 static void GetMetadataFromControlNCA(const std::shared_ptr<FileSys::NCA>& nca,
                                       std::vector<u8>& icon, std::string& name) {
-
     const auto control_dir = FileSys::ExtractRomFS(nca->GetRomFS());
     if (control_dir == nullptr)
         return;
