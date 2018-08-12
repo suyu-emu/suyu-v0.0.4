@@ -14,6 +14,7 @@
 #include "core/core_timing.h"
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
+#include "core/hle/lock.h"
 #include "core/settings.h"
 
 namespace Core {
@@ -125,6 +126,8 @@ void Cpu::Reschedule() {
     }
 
     reschedule_pending = false;
+    // Lock the global kernel mutex when we manipulate the HLE state
+    std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
     scheduler->Reschedule();
 }
 
