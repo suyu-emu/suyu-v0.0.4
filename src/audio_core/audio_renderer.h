@@ -26,7 +26,7 @@ enum class PlayState : u8 {
 struct AudioRendererParameter {
     u32_le sample_rate;
     u32_le sample_count;
-    u32_le unknown_8;
+    u32_le mix_buffer_count;
     u32_le unknown_c;
     u32_le voice_count;
     u32_le sink_count;
@@ -160,6 +160,9 @@ public:
     std::vector<u8> UpdateAudioRenderer(const std::vector<u8>& input_params);
     void QueueMixedBuffer(Buffer::Tag tag);
     void ReleaseAndQueueBuffers();
+    u32 GetSampleRate() const;
+    u32 GetSampleCount() const;
+    u32 GetMixBufferCount() const;
 
 private:
     class VoiceState {
