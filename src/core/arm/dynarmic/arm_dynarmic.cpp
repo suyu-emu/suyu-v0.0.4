@@ -86,7 +86,16 @@ public:
     }
 
     void AddTicks(u64 ticks) override {
-        CoreTiming::AddTicks(ticks - num_interpreted_instructions);
+        // Divide the number of ticks by the amount of CPU cores. TODO(Subv): This yields only a
+        // rough approximation of the amount of executed ticks in the system, it may be thrown off
+        // if not all cores are doing a similar amount of work. Instead of doing this, we should
+        // device a way so that timing is consistent across all cores without increasing the ticks 4
+        // times.
+        u64 amortized_ticks = (ticks - num_interpreted_instructions) / Core::NUM_CPU_CORES;
+        // Always execute at least one tick.
+        amortized_ticks = std::max<u64>(amortized_ticks, 1);
+
+        CoreTiming::AddTicks(amortized_ticks);
         num_interpreted_instructions = 0;
     }
     u64 GetTicksRemaining() override {

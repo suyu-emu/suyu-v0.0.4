@@ -90,6 +90,7 @@ void Cpu::RunLoop(bool tight_loop) {
         LOG_TRACE(Core, "Core-{} idling", core_index);
 
         if (IsMainCore()) {
+            // TODO(Subv): Only let CoreTiming idle if all 4 cores are idling.
             CoreTiming::Idle();
             CoreTiming::Advance();
         }
