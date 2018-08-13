@@ -71,13 +71,13 @@ public:
     std::shared_ptr<NCA> GetNCAByType(NCAContentType type) const;
     VirtualFile GetNCAFileByType(NCAContentType type) const;
 
-    std::vector<std::shared_ptr<VfsFile>> GetFiles() const override;
+    std::vector<VirtualFile> GetFiles() const override;
 
-    std::vector<std::shared_ptr<VfsDirectory>> GetSubdirectories() const override;
+    std::vector<VirtualDir> GetSubdirectories() const override;
 
     std::string GetName() const override;
 
-    std::shared_ptr<VfsDirectory> GetParentDirectory() const override;
+    VirtualDir GetParentDirectory() const override;
 
 protected:
     bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
