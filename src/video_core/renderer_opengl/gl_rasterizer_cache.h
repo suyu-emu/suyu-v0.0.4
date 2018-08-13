@@ -61,15 +61,17 @@ struct SurfaceParams {
         SRGBA8 = 35,
         RG8U = 36,
         RG8S = 37,
+        RG32UI = 38,
+        R32UI = 39,
 
         MaxColorFormat,
 
         // DepthStencil formats
-        Z24S8 = 38,
-        S8Z24 = 39,
-        Z32F = 40,
-        Z16 = 41,
-        Z32FS8 = 42,
+        Z24S8 = 40,
+        S8Z24 = 41,
+        Z32F = 42,
+        Z16 = 43,
+        Z32FS8 = 44,
 
         MaxDepthStencilFormat,
 
@@ -145,6 +147,8 @@ struct SurfaceParams {
             1, // SRGBA8
             1, // RG8U
             1, // RG8S
+            1, // RG32UI
+            1, // R32UI
             1, // Z24S8
             1, // S8Z24
             1, // Z32F
@@ -199,6 +203,8 @@ struct SurfaceParams {
             32,  // SRGBA8
             16,  // RG8U
             16,  // RG8S
+            64,  // RG32UI
+            32,  // R32UI
             32,  // Z24S8
             32,  // S8Z24
             32,  // Z32F
@@ -289,6 +295,10 @@ struct SurfaceParams {
             return PixelFormat::R16I;
         case Tegra::RenderTargetFormat::R32_FLOAT:
             return PixelFormat::R32F;
+        case Tegra::RenderTargetFormat::R32_UINT:
+            return PixelFormat::R32UI;
+        case Tegra::RenderTargetFormat::RG32_UINT:
+            return PixelFormat::RG32UI;
         default:
             LOG_CRITICAL(HW_GPU, "Unimplemented format={}", static_cast<u32>(format));
             UNREACHABLE();
@@ -342,7 +352,15 @@ struct SurfaceParams {
                          static_cast<u32>(component_type));
             UNREACHABLE();
         case Tegra::Texture::TextureFormat::R32_G32:
-            return PixelFormat::RG32F;
+            switch (component_type) {
+            case Tegra::Texture::ComponentType::FLOAT:
+                return PixelFormat::RG32F;
+            case Tegra::Texture::ComponentType::UINT:
+                return PixelFormat::RG32UI;
+            }
+            LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}",
+                         static_cast<u32>(component_type));
+            UNREACHABLE();
         case Tegra::Texture::TextureFormat::R32_G32_B32:
             return PixelFormat::RGB32F;
         case Tegra::Texture::TextureFormat::R16:
@@ -362,7 +380,15 @@ struct SurfaceParams {
                          static_cast<u32>(component_type));
             UNREACHABLE();
         case Tegra::Texture::TextureFormat::R32:
-            return PixelFormat::R32F;
+            switch (component_type) {
+            case Tegra::Texture::ComponentType::FLOAT:
+                return PixelFormat::R32F;
+            case Tegra::Texture::ComponentType::UINT:
+                return PixelFormat::R32UI;
+            }
+            LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}",
+                         static_cast<u32>(component_type));
+            UNREACHABLE();
         case Tegra::Texture::TextureFormat::ZF32:
             return PixelFormat::Z32F;
         case Tegra::Texture::TextureFormat::Z24S8:
@@ -462,6 +488,8 @@ struct SurfaceParams {
         case Tegra::RenderTargetFormat::RG16_UINT:
         case Tegra::RenderTargetFormat::R8_UINT:
         case Tegra::RenderTargetFormat::R16_UINT:
+        case Tegra::RenderTargetFormat::RG32_UINT:
+        case Tegra::RenderTargetFormat::R32_UINT:
             return ComponentType::UInt;
         case Tegra::RenderTargetFormat::RG16_SINT:
         case Tegra::RenderTargetFormat::R16_SINT:
