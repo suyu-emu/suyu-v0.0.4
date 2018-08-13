@@ -21,7 +21,7 @@ public:
     ~Scheduler();
 
     /// Returns whether there are any threads that are ready to run.
-    bool HaveReadyThreads();
+    bool HaveReadyThreads() const;
 
     /// Reschedules to the next available thread (call after current thread is suspended)
     void Reschedule();
