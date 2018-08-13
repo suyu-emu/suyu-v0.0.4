@@ -14,12 +14,12 @@ public:
     explicit MM_U() : ServiceFramework{"mm:u"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "InitializeOld"},
-            {1, nullptr, "FinalizeOld"},
-            {2, nullptr, "SetAndWaitOld"},
-            {3, nullptr, "GetOld"},
+            {0, &MM_U::Initialize, "InitializeOld"},
+            {1, &MM_U::Finalize, "FinalizeOld"},
+            {2, &MM_U::SetAndWait, "SetAndWaitOld"},
+            {3, &MM_U::Get, "GetOld"},
             {4, &MM_U::Initialize, "Initialize"},
-            {5, nullptr, "Finalize"},
+            {5, &MM_U::Finalize, "Finalize"},
             {6, &MM_U::SetAndWait, "SetAndWait"},
             {7, &MM_U::Get, "Get"},
         };
@@ -30,6 +30,12 @@ public:
 
 private:
     void Initialize(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_MM, "(STUBBED) called");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void Finalize(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_MM, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
