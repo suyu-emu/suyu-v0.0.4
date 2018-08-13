@@ -706,8 +706,7 @@ static ResultCode SignalProcessWideKey(VAddr condition_variable_addr, s32 target
             Handle owner_handle = static_cast<Handle>(mutex_val & Mutex::MutexOwnerMask);
             auto owner = g_handle_table.Get<Thread>(owner_handle);
             ASSERT(owner);
-            ASSERT(thread->status != ThreadStatus::Running);
-            thread->status = ThreadStatus::WaitMutex;
+            ASSERT(thread->status == ThreadStatus::WaitMutex);
             thread->wakeup_callback = nullptr;
 
             owner->AddMutexWaiter(thread);

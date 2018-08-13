@@ -419,12 +419,33 @@ VAddr Thread::GetCommandBufferAddress() const {
 }
 
 void Thread::AddMutexWaiter(SharedPtr<Thread> thread) {
+    if (thread->lock_owner == this) {
+        // If the thread is already waiting for this thread to release the mutex, ensure that the
+        // waiters list is consistent and return without doing anything.
+        auto itr = std::find(wait_mutex_threads.begin(), wait_mutex_threads.end(), thread);
+        ASSERT(itr != wait_mutex_threads.end());
+        return;
+    }
+
+    // A thread can't wait on two different mutexes at the same time.
+    ASSERT(thread->lock_owner == nullptr);
+
+    // Ensure that the thread is not already in the list of mutex waiters
+    auto itr = std::find(wait_mutex_threads.begin(), wait_mutex_threads.end(), thread);
+    ASSERT(itr == wait_mutex_threads.end());
+
     thread->lock_owner = this;
     wait_mutex_threads.emplace_back(std::move(thread));
     UpdatePriority();
 }
 
 void Thread::RemoveMutexWaiter(SharedPtr<Thread> thread) {
+    ASSERT(thread->lock_owner == this);
+
+    // Ensure that the thread is in the list of mutex waiters
+    auto itr = std::find(wait_mutex_threads.begin(), wait_mutex_threads.end(), thread);
+    ASSERT(itr != wait_mutex_threads.end());
+
     boost::remove_erase(wait_mutex_threads, thread);
     thread->lock_owner = nullptr;
     UpdatePriority();
