@@ -74,15 +74,15 @@ VirtualFile VfsFilesystem::CopyFile(std::string_view old_path_, std::string_view
     return new_file;
 }
 
-VirtualFile VfsFilesystem::MoveFile(std::string_view old_path_, std::string_view new_path_) {
-    const auto old_path = FileUtil::SanitizePath(old_path_);
-    const auto new_path = FileUtil::SanitizePath(new_path_);
+VirtualFile VfsFilesystem::MoveFile(std::string_view old_path, std::string_view new_path) {
+    const auto sanitized_old_path = FileUtil::SanitizePath(old_path);
+    const auto sanitized_new_path = FileUtil::SanitizePath(new_path);
 
     // Again, non-default impls are highly encouraged to provide a more optimized version of this.
-    auto out = CopyFile(old_path_, new_path_);
+    auto out = CopyFile(sanitized_old_path, sanitized_new_path);
     if (out == nullptr)
         return nullptr;
-    if (DeleteFile(old_path))
+    if (DeleteFile(sanitized_old_path))
         return out;
     return nullptr;
 }
@@ -137,15 +137,15 @@ VirtualDir VfsFilesystem::CopyDirectory(std::string_view old_path_, std::string_
     return new_dir;
 }
 
-VirtualDir VfsFilesystem::MoveDirectory(std::string_view old_path_, std::string_view new_path_) {
-    const auto old_path = FileUtil::SanitizePath(old_path_);
-    const auto new_path = FileUtil::SanitizePath(new_path_);
+VirtualDir VfsFilesystem::MoveDirectory(std::string_view old_path, std::string_view new_path) {
+    const auto sanitized_old_path = FileUtil::SanitizePath(old_path);
+    const auto sanitized_new_path = FileUtil::SanitizePath(new_path);
 
     // Non-default impls are highly encouraged to provide a more optimized version of this.
-    auto out = CopyDirectory(old_path_, new_path_);
+    auto out = CopyDirectory(sanitized_old_path, sanitized_new_path);
     if (out == nullptr)
         return nullptr;
-    if (DeleteDirectory(old_path))
+    if (DeleteDirectory(sanitized_old_path))
         return out;
     return nullptr;
 }
