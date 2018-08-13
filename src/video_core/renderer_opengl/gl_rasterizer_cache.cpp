@@ -101,6 +101,7 @@ static constexpr std::array<FormatTuple, SurfaceParams::MaxPixelFormat> tex_form
     {GL_R8, GL_RED, GL_UNSIGNED_BYTE, ComponentType::UNorm, false},                    // R8
     {GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, ComponentType::UInt, false},           // R8UI
     {GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT, ComponentType::Float, false},                 // RGBA16F
+    {GL_RGBA16UI, GL_RGBA, GL_UNSIGNED_SHORT, ComponentType::UInt, false},             // RGBA16UI
     {GL_R11F_G11F_B10F, GL_RGB, GL_UNSIGNED_INT_10F_11F_11F_REV, ComponentType::Float,
      false},                                                                     // R11FG11FB10F
     {GL_RGBA32UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT, ComponentType::UInt, false}, // RGBA32UI
@@ -244,6 +245,7 @@ static constexpr std::array<void (*)(u32, u32, u32, std::vector<u8>&, Tegra::GPU
         MortonCopy<true, PixelFormat::R8>,
         MortonCopy<true, PixelFormat::R8UI>,
         MortonCopy<true, PixelFormat::RGBA16F>,
+        MortonCopy<true, PixelFormat::RGBA16UI>,
         MortonCopy<true, PixelFormat::R11FG11FB10F>,
         MortonCopy<true, PixelFormat::RGBA32UI>,
         MortonCopy<true, PixelFormat::DXT1>,
@@ -293,6 +295,7 @@ static constexpr std::array<void (*)(u32, u32, u32, std::vector<u8>&, Tegra::GPU
         MortonCopy<false, PixelFormat::R8>,
         MortonCopy<false, PixelFormat::R8UI>,
         MortonCopy<false, PixelFormat::RGBA16F>,
+        MortonCopy<false, PixelFormat::RGBA16UI>,
         MortonCopy<false, PixelFormat::R11FG11FB10F>,
         MortonCopy<false, PixelFormat::RGBA32UI>,
         // TODO(Subv): Swizzling DXT1/DXT23/DXT45/DXN1/DXN2/BC7U/ASTC_2D_4X4 formats is not
