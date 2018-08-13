@@ -137,6 +137,8 @@ static constexpr std::array<FormatTuple, SurfaceParams::MaxPixelFormat> tex_form
     {GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, ComponentType::UNorm, false}, // SRGBA8
     {GL_RG8, GL_RG, GL_UNSIGNED_BYTE, ComponentType::UNorm, false},                       // RG8U
     {GL_RG8, GL_RG, GL_BYTE, ComponentType::SNorm, false},                                // RG8S
+    {GL_RG32UI, GL_RG_INTEGER, GL_UNSIGNED_INT, ComponentType::UInt, false},              // RG32UI
+    {GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, ComponentType::UInt, false},              // R32UI
 
     // DepthStencil formats
     {GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, ComponentType::UNorm,
@@ -275,6 +277,8 @@ static constexpr std::array<void (*)(u32, u32, u32, std::vector<u8>&, Tegra::GPU
         MortonCopy<true, PixelFormat::SRGBA8>,
         MortonCopy<true, PixelFormat::RG8U>,
         MortonCopy<true, PixelFormat::RG8S>,
+        MortonCopy<true, PixelFormat::RG32UI>,
+        MortonCopy<true, PixelFormat::R32UI>,
         MortonCopy<true, PixelFormat::Z24S8>,
         MortonCopy<true, PixelFormat::S8Z24>,
         MortonCopy<true, PixelFormat::Z32F>,
@@ -327,6 +331,8 @@ static constexpr std::array<void (*)(u32, u32, u32, std::vector<u8>&, Tegra::GPU
         MortonCopy<false, PixelFormat::SRGBA8>,
         MortonCopy<false, PixelFormat::RG8U>,
         MortonCopy<false, PixelFormat::RG8S>,
+        MortonCopy<false, PixelFormat::RG32UI>,
+        MortonCopy<false, PixelFormat::R32UI>,
         MortonCopy<false, PixelFormat::Z24S8>,
         MortonCopy<false, PixelFormat::S8Z24>,
         MortonCopy<false, PixelFormat::Z32F>,
