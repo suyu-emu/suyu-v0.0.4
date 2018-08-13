@@ -243,9 +243,7 @@ void ARM_Dynarmic::LoadContext(const ThreadContext& ctx) {
 }
 
 void ARM_Dynarmic::PrepareReschedule() {
-    if (jit->IsExecuting()) {
-        jit->HaltExecution();
-    }
+    jit->HaltExecution();
 }
 
 void ARM_Dynarmic::ClearInstructionCache() {
