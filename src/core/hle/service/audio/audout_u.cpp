@@ -28,7 +28,7 @@ constexpr int DefaultSampleRate{48000};
 class IAudioOut final : public ServiceFramework<IAudioOut> {
 public:
     IAudioOut(AudoutParams audio_params, AudioCore::AudioOut& audio_core)
-        : ServiceFramework("IAudioOut"), audio_params(audio_params), audio_core(audio_core) {
+        : ServiceFramework("IAudioOut"), audio_core(audio_core), audio_params(audio_params) {
 
         static const FunctionInfo functions[] = {
             {0, &IAudioOut::GetAudioOutState, "GetAudioOutState"},
