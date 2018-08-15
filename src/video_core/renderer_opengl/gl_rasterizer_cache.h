@@ -372,7 +372,15 @@ struct SurfaceParams {
                          static_cast<u32>(component_type));
             UNREACHABLE();
         case Tegra::Texture::TextureFormat::R16_G16_B16_A16:
-            return PixelFormat::RGBA16F;
+            switch (component_type) {
+            case Tegra::Texture::ComponentType::UNORM:
+                return PixelFormat::RGBA16U;
+            case Tegra::Texture::ComponentType::FLOAT:
+                return PixelFormat::RGBA16F;
+            }
+            LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}",
+                         static_cast<u32>(component_type));
+            UNREACHABLE();
         case Tegra::Texture::TextureFormat::BF10GF11RF11:
             switch (component_type) {
             case Tegra::Texture::ComponentType::FLOAT:
