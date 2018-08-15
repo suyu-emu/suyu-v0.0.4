@@ -396,6 +396,8 @@ struct SurfaceParams {
             UNREACHABLE();
         case Tegra::Texture::TextureFormat::ZF32:
             return PixelFormat::Z32F;
+        case Tegra::Texture::TextureFormat::Z16:
+            return PixelFormat::Z16;
         case Tegra::Texture::TextureFormat::Z24S8:
             return PixelFormat::Z24S8;
         case Tegra::Texture::TextureFormat::DXT1:
