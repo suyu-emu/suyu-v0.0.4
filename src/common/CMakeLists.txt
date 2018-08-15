@@ -29,8 +29,6 @@ add_library(common STATIC
     assert.h
     bit_field.h
     bit_set.h
-    break_points.cpp
-    break_points.h
     cityhash.cpp
     cityhash.h
     color.h
