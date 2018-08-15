@@ -1298,9 +1298,17 @@ private:
                 regs.SetRegisterToFloat(instr.gpr0, 0, op_a, 1, 1, instr.alu.saturate_d);
                 break;
             }
-            case OpCode::Id::F2I_R: {
+            case OpCode::Id::F2I_R:
+            case OpCode::Id::F2I_C: {
                 ASSERT_MSG(instr.conversion.src_size == Register::Size::Word, "Unimplemented");
-                std::string op_a = regs.GetRegisterAsFloat(instr.gpr20);
+                std::string op_a{};
+
+                if (instr.is_b_gpr) {
+                    op_a = regs.GetRegisterAsFloat(instr.gpr20);
+                } else {
+                    op_a = regs.GetUniform(instr.cbuf34.index, instr.cbuf34.offset,
+                                           GLSLRegister::Type::Float);
+                }
 
                 if (instr.conversion.abs_a) {
                     op_a = "abs(" + op_a + ')';
