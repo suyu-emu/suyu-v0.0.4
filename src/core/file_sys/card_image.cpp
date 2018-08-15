@@ -4,11 +4,14 @@
 
 #include <array>
 #include <string>
-#include <core/loader/loader.h>
+
+#include <fmt/ostream.h>
+
 #include "common/logging/log.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/partition_filesystem.h"
 #include "core/file_sys/vfs_offset.h"
+#include "core/loader/loader.h"
 
 namespace FileSys {
 
@@ -142,7 +145,7 @@ Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
             const u16 error_id = static_cast<u16>(nca->GetStatus());
             LOG_CRITICAL(Loader, "Could not load NCA {}/{}, failed with error code {:04X} ({})",
                          partition_names[static_cast<size_t>(part)], nca->GetName(), error_id,
-                         Loader::GetMessageForResultStatus(nca->GetStatus()));
+                         nca->GetStatus());
         }
     }
 

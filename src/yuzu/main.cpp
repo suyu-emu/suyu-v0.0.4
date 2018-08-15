@@ -6,7 +6,10 @@
 #include <clocale>
 #include <memory>
 #include <thread>
+
+#include <fmt/ostream.h>
 #include <glad/glad.h>
+
 #define QT_NO_OPENGL
 #include <QDesktopWidget>
 #include <QFileDialog>
@@ -454,7 +457,7 @@ bool GMainWindow::LoadROM(const QString& filename) {
                         "While attempting to load the ROM requested, an error occured. Please "
                         "refer to the yuzu wiki for more information or the yuzu discord for "
                         "additional help.\n\nError Code: {:04X}-{:04X}\nError Description: {}",
-                        loader_id, error_id, Loader::GetMessageForResultStatus(error_id))));
+                        loader_id, error_id, static_cast<Loader::ResultStatus>(error_id))));
             } else {
                 QMessageBox::critical(
                     this, tr("Error while loading ROM!"),
