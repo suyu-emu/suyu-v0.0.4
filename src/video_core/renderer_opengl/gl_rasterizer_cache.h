@@ -25,10 +25,10 @@ struct SurfaceParams {
     enum class PixelFormat {
         ABGR8U = 0,
         ABGR8S = 1,
-        B5G6R5 = 2,
-        A2B10G10R10 = 3,
-        A1B5G5R5 = 4,
-        R8 = 5,
+        B5G6R5U = 2,
+        A2B10G10R10U = 3,
+        A1B5G5R5U = 4,
+        R8U = 5,
         R8UI = 6,
         RGBA16F = 7,
         RGBA16U = 8,
@@ -50,7 +50,7 @@ struct SurfaceParams {
         RG32F = 24,
         R32F = 25,
         R16F = 26,
-        R16UNORM = 27,
+        R16U = 27,
         R16S = 28,
         R16UI = 29,
         R16I = 30,
@@ -113,10 +113,10 @@ struct SurfaceParams {
         constexpr std::array<u32, MaxPixelFormat> compression_factor_table = {{
             1, // ABGR8U
             1, // ABGR8S
-            1, // B5G6R5
-            1, // A2B10G10R10
-            1, // A1B5G5R5
-            1, // R8
+            1, // B5G6R5U
+            1, // A2B10G10R10U
+            1, // A1B5G5R5U
+            1, // R8U
             1, // R8UI
             1, // RGBA16F
             1, // RGBA16U
@@ -138,7 +138,7 @@ struct SurfaceParams {
             1, // RG32F
             1, // R32F
             1, // R16F
-            1, // R16UNORM
+            1, // R16U
             1, // R16S
             1, // R16UI
             1, // R16I
@@ -171,10 +171,10 @@ struct SurfaceParams {
         constexpr std::array<u32, MaxPixelFormat> bpp_table = {{
             32,  // ABGR8U
             32,  // ABGR8S
-            16,  // B5G6R5
-            32,  // A2B10G10R10
-            16,  // A1B5G5R5
-            8,   // R8
+            16,  // B5G6R5U
+            32,  // A2B10G10R10U
+            16,  // A1B5G5R5U
+            8,   // R8U
             8,   // R8UI
             64,  // RGBA16F
             64,  // RGBA16U
@@ -196,7 +196,7 @@ struct SurfaceParams {
             64,  // RG32F
             32,  // R32F
             16,  // R16F
-            16,  // R16UNORM
+            16,  // R16U
             16,  // R16S
             16,  // R16UI
             16,  // R16I
@@ -256,7 +256,7 @@ struct SurfaceParams {
         case Tegra::RenderTargetFormat::BGRA8_UNORM:
             return PixelFormat::BGRA8;
         case Tegra::RenderTargetFormat::RGB10_A2_UNORM:
-            return PixelFormat::A2B10G10R10;
+            return PixelFormat::A2B10G10R10U;
         case Tegra::RenderTargetFormat::RGBA16_FLOAT:
             return PixelFormat::RGBA16F;
         case Tegra::RenderTargetFormat::RGBA16_UNORM:
@@ -270,11 +270,11 @@ struct SurfaceParams {
         case Tegra::RenderTargetFormat::R11G11B10_FLOAT:
             return PixelFormat::R11FG11FB10F;
         case Tegra::RenderTargetFormat::B5G6R5_UNORM:
-            return PixelFormat::B5G6R5;
+            return PixelFormat::B5G6R5U;
         case Tegra::RenderTargetFormat::RGBA32_UINT:
             return PixelFormat::RGBA32UI;
         case Tegra::RenderTargetFormat::R8_UNORM:
-            return PixelFormat::R8;
+            return PixelFormat::R8U;
         case Tegra::RenderTargetFormat::R8_UINT:
             return PixelFormat::R8UI;
         case Tegra::RenderTargetFormat::RG16_FLOAT:
@@ -294,7 +294,7 @@ struct SurfaceParams {
         case Tegra::RenderTargetFormat::R16_FLOAT:
             return PixelFormat::R16F;
         case Tegra::RenderTargetFormat::R16_UNORM:
-            return PixelFormat::R16UNORM;
+            return PixelFormat::R16U;
         case Tegra::RenderTargetFormat::R16_SNORM:
             return PixelFormat::R16S;
         case Tegra::RenderTargetFormat::R16_UINT:
@@ -328,15 +328,33 @@ struct SurfaceParams {
                          static_cast<u32>(component_type));
             UNREACHABLE();
         case Tegra::Texture::TextureFormat::B5G6R5:
-            return PixelFormat::B5G6R5;
+            switch (component_type) {
+            case Tegra::Texture::ComponentType::UNORM:
+                return PixelFormat::B5G6R5U;
+            }
+            LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}",
+                         static_cast<u32>(component_type));
+            UNREACHABLE();
         case Tegra::Texture::TextureFormat::A2B10G10R10:
-            return PixelFormat::A2B10G10R10;
+            switch (component_type) {
+            case Tegra::Texture::ComponentType::UNORM:
+                return PixelFormat::A2B10G10R10U;
+            }
+            LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}",
+                         static_cast<u32>(component_type));
+            UNREACHABLE();
         case Tegra::Texture::TextureFormat::A1B5G5R5:
-            return PixelFormat::A1B5G5R5;
+            switch (component_type) {
+            case Tegra::Texture::ComponentType::UNORM:
+                return PixelFormat::A1B5G5R5U;
+            }
+            LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}",
+                         static_cast<u32>(component_type));
+            UNREACHABLE();
         case Tegra::Texture::TextureFormat::R8:
             switch (component_type) {
             case Tegra::Texture::ComponentType::UNORM:
-                return PixelFormat::R8;
+                return PixelFormat::R8U;
             case Tegra::Texture::ComponentType::UINT:
                 return PixelFormat::R8UI;
             }
@@ -356,7 +374,13 @@ struct SurfaceParams {
         case Tegra::Texture::TextureFormat::R16_G16_B16_A16:
             return PixelFormat::RGBA16F;
         case Tegra::Texture::TextureFormat::BF10GF11RF11:
-            return PixelFormat::R11FG11FB10F;
+            switch (component_type) {
+            case Tegra::Texture::ComponentType::FLOAT:
+                return PixelFormat::R11FG11FB10F;
+            }
+            LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}",
+                         static_cast<u32>(component_type));
+            UNREACHABLE();
         case Tegra::Texture::TextureFormat::R32_G32_B32_A32:
             switch (component_type) {
             case Tegra::Texture::ComponentType::FLOAT:
@@ -378,13 +402,19 @@ struct SurfaceParams {
                          static_cast<u32>(component_type));
             UNREACHABLE();
         case Tegra::Texture::TextureFormat::R32_G32_B32:
-            return PixelFormat::RGB32F;
+            switch (component_type) {
+            case Tegra::Texture::ComponentType::FLOAT:
+                return PixelFormat::RGB32F;
+            }
+            LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}",
+                         static_cast<u32>(component_type));
+            UNREACHABLE();
         case Tegra::Texture::TextureFormat::R16:
             switch (component_type) {
             case Tegra::Texture::ComponentType::FLOAT:
                 return PixelFormat::R16F;
             case Tegra::Texture::ComponentType::UNORM:
-                return PixelFormat::R16UNORM;
+                return PixelFormat::R16U;
             case Tegra::Texture::ComponentType::SNORM:
                 return PixelFormat::R16S;
             case Tegra::Texture::ComponentType::UINT:
