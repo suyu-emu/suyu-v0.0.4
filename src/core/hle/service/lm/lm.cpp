@@ -92,7 +92,11 @@ private:
 
         // Parse out log metadata
         u32 line{};
-        std::string message, filename, function;
+        std::string module;
+        std::string message;
+        std::string filename;
+        std::string function;
+        std::string thread;
         while (addr < end_addr) {
             const Field field{static_cast<Field>(Memory::Read8(addr++))};
             const size_t length{Memory::Read8(addr++)};
@@ -102,6 +106,8 @@ private:
             }
 
             switch (field) {
+            case Field::Skip:
+                break;
             case Field::Message:
                 message = Memory::ReadCString(addr, length);
                 break;
@@ -113,6 +119,12 @@ private:
                 break;
             case Field::Function:
                 function = Memory::ReadCString(addr, length);
+                break;
+            case Field::Module:
+                module = Memory::ReadCString(addr, length);
+                break;
+            case Field::Thread:
+                thread = Memory::ReadCString(addr, length);
                 break;
             }
 
@@ -128,11 +140,17 @@ private:
         if (!filename.empty()) {
             log_stream << filename << ':';
         }
+        if (!module.empty()) {
+            log_stream << module << ':';
+        }
         if (!function.empty()) {
             log_stream << function << ':';
         }
         if (line) {
             log_stream << std::to_string(line) << ':';
+        }
+        if (!thread.empty()) {
+            log_stream << thread << ':';
         }
         if (log_stream.str().length() > 0 && log_stream.str().back() == ':') {
             log_stream << ' ';
@@ -142,7 +160,7 @@ private:
         if (header.IsTailLog()) {
             switch (header.severity) {
             case MessageHeader::Severity::Trace:
-                LOG_TRACE(Debug_Emulated, "{}", log_stream.str());
+                LOG_DEBUG(Debug_Emulated, "{}", log_stream.str());
                 break;
             case MessageHeader::Severity::Info:
                 LOG_INFO(Debug_Emulated, "{}", log_stream.str());
