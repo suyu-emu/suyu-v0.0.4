@@ -152,7 +152,6 @@ ResultStatus AppLoader_NSO::Load(Kernel::SharedPtr<Kernel::Process>& process) {
     LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", file->GetName(), Memory::PROCESS_IMAGE_VADDR);
 
     process->svc_access_mask.set();
-    process->address_mappings = default_address_mappings;
     process->resource_limit =
         Kernel::ResourceLimit::GetForCategory(Kernel::ResourceLimitCategory::APPLICATION);
     process->Run(Memory::PROCESS_IMAGE_VADDR, THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE);

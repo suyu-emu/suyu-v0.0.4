@@ -118,7 +118,6 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
 
     process->program_id = metadata.GetTitleID();
     process->svc_access_mask.set();
-    process->address_mappings = default_address_mappings;
     process->resource_limit =
         Kernel::ResourceLimit::GetForCategory(Kernel::ResourceLimitCategory::APPLICATION);
     process->Run(Memory::PROCESS_IMAGE_VADDR, metadata.GetMainThreadPriority(),
