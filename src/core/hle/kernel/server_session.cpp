@@ -152,7 +152,7 @@ ResultCode ServerSession::HandleSyncRequest(SharedPtr<Thread> thread) {
     // Handle scenario when ConvertToDomain command was issued, as we must do the conversion at the
     // end of the command such that only commands following this one are handled as domains
     if (convert_to_domain) {
-        ASSERT_MSG(domain_request_handlers.empty(), "already a domain");
+        ASSERT_MSG(IsSession(), "ServerSession is already a domain instance.");
         domain_request_handlers = {hle_handler};
         convert_to_domain = false;
     }

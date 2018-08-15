@@ -97,7 +97,12 @@ public:
 
     /// Returns true if the session has been converted to a domain, otherwise False
     bool IsDomain() const {
-        return !domain_request_handlers.empty();
+        return !IsSession();
+    }
+
+    /// Returns true if this session has not been converted to a domain, otherwise false.
+    bool IsSession() const {
+        return domain_request_handlers.empty();
     }
 
     /// Converts the session to a domain at the end of the current command

@@ -10,7 +10,7 @@
 namespace Service::SM {
 
 void Controller::ConvertSessionToDomain(Kernel::HLERequestContext& ctx) {
-    ASSERT_MSG(!ctx.Session()->IsDomain(), "session is alread a domain");
+    ASSERT_MSG(ctx.Session()->IsSession(), "Session is already a domain");
     ctx.Session()->ConvertToDomain();
 
     IPC::ResponseBuilder rb{ctx, 3};
