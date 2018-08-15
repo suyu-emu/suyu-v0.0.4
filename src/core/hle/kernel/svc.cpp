@@ -250,8 +250,11 @@ static ResultCode ArbitrateUnlock(VAddr mutex_addr) {
 }
 
 /// Break program execution
-static void Break(u64 unk_0, u64 unk_1, u64 unk_2) {
-    LOG_CRITICAL(Debug_Emulated, "Emulated program broke execution!");
+static void Break(u64 reason, u64 info1, u64 info2) {
+    LOG_CRITICAL(
+        Debug_Emulated,
+        "Emulated program broke execution! reason=0x{:016X}, info1=0x{:016X}, info2=0x{:016X}",
+        reason, info1, info2);
     ASSERT(false);
 }
 
