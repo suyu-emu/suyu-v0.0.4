@@ -1250,6 +1250,10 @@ private:
                     op_a = "abs(" + op_a + ')';
                 }
 
+                if (instr.conversion.negate_a) {
+                    op_a = "-(" + op_a + ')';
+                }
+
                 regs.SetRegisterToInteger(instr.gpr0, instr.conversion.is_output_signed, 0, op_a, 1,
                                           1, instr.alu.saturate_d, 0, instr.conversion.dest_size);
                 break;
@@ -1289,6 +1293,14 @@ private:
                 ASSERT_MSG(instr.conversion.src_size == Register::Size::Word, "Unimplemented");
                 std::string op_a = regs.GetRegisterAsFloat(instr.gpr20);
 
+                if (instr.conversion.abs_a) {
+                    op_a = "abs(" + op_a + ')';
+                }
+
+                if (instr.conversion.negate_a) {
+                    op_a = "-(" + op_a + ')';
+                }
+
                 switch (instr.conversion.f2f.rounding) {
                 case Tegra::Shader::F2fRoundingOp::None:
                     break;
@@ -1309,10 +1321,6 @@ private:
                                  static_cast<u32>(instr.conversion.f2f.rounding.Value()));
                     UNREACHABLE();
                     break;
-                }
-
-                if (instr.conversion.abs_a) {
-                    op_a = "abs(" + op_a + ')';
                 }
 
                 regs.SetRegisterToFloat(instr.gpr0, 0, op_a, 1, 1, instr.alu.saturate_d);
