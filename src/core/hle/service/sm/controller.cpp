@@ -41,7 +41,7 @@ void Controller::DuplicateSessionEx(Kernel::HLERequestContext& ctx) {
 void Controller::QueryPointerBufferSize(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
-    rb.Push<u32>(0x500);
+    rb.Push<u16>(0x500);
 
     LOG_WARNING(Service, "(STUBBED) called");
 }
