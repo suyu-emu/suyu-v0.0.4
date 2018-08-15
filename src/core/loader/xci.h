@@ -6,11 +6,17 @@
 
 #include <memory>
 #include "common/common_types.h"
-#include "core/file_sys/card_image.h"
+#include "core/file_sys/vfs.h"
 #include "core/loader/loader.h"
-#include "core/loader/nca.h"
+
+namespace FileSys {
+class NACP;
+class XCI;
+} // namespace FileSys
 
 namespace Loader {
+
+class AppLoader_NCA;
 
 /// Loads an XCI file
 class AppLoader_XCI final : public AppLoader {
@@ -37,8 +43,6 @@ public:
     ResultStatus ReadTitle(std::string& title) override;
 
 private:
-    FileSys::ProgramMetadata metadata;
-
     std::unique_ptr<FileSys::XCI> xci;
     std::unique_ptr<AppLoader_NCA> nca_loader;
 

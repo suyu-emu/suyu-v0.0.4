@@ -4,22 +4,14 @@
 
 #include <vector>
 
-#include "common/file_util.h"
-#include "common/logging/log.h"
-#include "common/string_util.h"
-#include "common/swap.h"
-#include "core/core.h"
+#include "common/common_types.h"
+#include "core/file_sys/card_image.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
-#include "core/file_sys/program_metadata.h"
 #include "core/file_sys/romfs.h"
-#include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/resource_limit.h"
-#include "core/hle/service/filesystem/filesystem.h"
-#include "core/loader/nso.h"
+#include "core/loader/nca.h"
 #include "core/loader/xci.h"
-#include "core/memory.h"
 
 namespace Loader {
 
