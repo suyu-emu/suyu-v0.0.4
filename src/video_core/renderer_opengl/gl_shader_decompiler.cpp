@@ -367,20 +367,23 @@ public:
     }
 
     /// Generates code representing a uniform (C buffer) register, interpreted as the input type.
-    std::string GetUniform(u64 index, u64 offset, GLSLRegister::Type type) {
+    std::string GetUniform(u64 index, u64 offset, GLSLRegister::Type type,
+                           Register::Size size = Register::Size::Word) {
         declr_const_buffers[index].MarkAsUsed(index, offset, stage);
         std::string value = 'c' + std::to_string(index) + '[' + std::to_string(offset / 4) + "][" +
                             std::to_string(offset % 4) + ']';
 
         if (type == GLSLRegister::Type::Float) {
-            return value;
+            // Do nothing, default
         } else if (type == GLSLRegister::Type::Integer) {
-            return "floatBitsToInt(" + value + ')';
+            value = "floatBitsToInt(" + value + ')';
         } else if (type == GLSLRegister::Type::UnsignedInteger) {
-            return "floatBitsToUint(" + value + ')';
+            value = "floatBitsToUint(" + value + ')';
         } else {
             UNREACHABLE();
         }
+
+        return ConvertIntegerSize(value, size);
     }
 
     std::string GetUniformIndirect(u64 cbuf_index, s64 offset, const std::string& index_str,
@@ -1251,11 +1254,24 @@ private:
                                           1, instr.alu.saturate_d, 0, instr.conversion.dest_size);
                 break;
             }
-            case OpCode::Id::I2F_R: {
+            case OpCode::Id::I2F_R:
+            case OpCode::Id::I2F_C: {
                 ASSERT_MSG(instr.conversion.dest_size == Register::Size::Word, "Unimplemented");
                 ASSERT_MSG(!instr.conversion.selector, "Unimplemented");
-                std::string op_a = regs.GetRegisterAsInteger(
-                    instr.gpr20, 0, instr.conversion.is_input_signed, instr.conversion.src_size);
+
+                std::string op_a{};
+
+                if (instr.is_b_gpr) {
+                    op_a =
+                        regs.GetRegisterAsInteger(instr.gpr20, 0, instr.conversion.is_input_signed,
+                                                  instr.conversion.src_size);
+                } else {
+                    op_a = regs.GetUniform(instr.cbuf34.index, instr.cbuf34.offset,
+                                           instr.conversion.is_input_signed
+                                               ? GLSLRegister::Type::Integer
+                                               : GLSLRegister::Type::UnsignedInteger,
+                                           instr.conversion.src_size);
+                }
 
                 if (instr.conversion.abs_a) {
                     op_a = "abs(" + op_a + ')';
