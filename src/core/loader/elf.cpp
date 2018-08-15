@@ -398,7 +398,6 @@ ResultStatus AppLoader_ELF::Load(Kernel::SharedPtr<Kernel::Process>& process) {
 
     process->LoadModule(codeset, codeset->entrypoint);
     process->svc_access_mask.set();
-    process->address_mappings = default_address_mappings;
 
     // Attach the default resource limit (APPLICATION) to the process
     process->resource_limit =

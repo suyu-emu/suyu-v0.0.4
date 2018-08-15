@@ -186,7 +186,6 @@ ResultStatus AppLoader_NRO::Load(Kernel::SharedPtr<Kernel::Process>& process) {
     }
 
     process->svc_access_mask.set();
-    process->address_mappings = default_address_mappings;
     process->resource_limit =
         Kernel::ResourceLimit::GetForCategory(Kernel::ResourceLimitCategory::APPLICATION);
     process->Run(base_addr, THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE);
