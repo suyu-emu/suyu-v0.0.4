@@ -7,6 +7,8 @@
 #include <string>
 #include <thread>
 
+#include <fmt/ostream.h>
+
 #include "common/common_paths.h"
 #include "common/logging/backend.h"
 #include "common/logging/filter.h"
@@ -194,7 +196,7 @@ int main(int argc, char** argv) {
                          "While attempting to load the ROM requested, an error occured. Please "
                          "refer to the yuzu wiki for more information or the yuzu discord for "
                          "additional help.\n\nError Code: {:04X}-{:04X}\nError Description: {}",
-                         loader_id, error_id, Loader::GetMessageForResultStatus(error_id));
+                         loader_id, error_id, static_cast<Loader::ResultStatus>(error_id));
         }
     }
 

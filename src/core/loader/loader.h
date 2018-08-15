@@ -5,6 +5,7 @@
 #pragma once
 
 #include <algorithm>
+#include <iosfwd>
 #include <memory>
 #include <string>
 #include <utility>
@@ -94,8 +95,7 @@ enum class ResultStatus : u16 {
     ErrorNoControl,
 };
 
-std::string GetMessageForResultStatus(ResultStatus status);
-std::string GetMessageForResultStatus(u16 status);
+std::ostream& operator<<(std::ostream& os, ResultStatus status);
 
 /// Interface for loading an application
 class AppLoader : NonCopyable {

@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <memory>
+#include <ostream>
 #include <string>
 #include "common/logging/log.h"
 #include "common/string_util.h"
@@ -119,14 +120,9 @@ constexpr std::array<const char*, 36> RESULT_MESSAGES{
     "There is no control data available.",
 };
 
-std::string GetMessageForResultStatus(ResultStatus status) {
-    return GetMessageForResultStatus(static_cast<u16>(status));
-}
-
-std::string GetMessageForResultStatus(u16 status) {
-    if (status >= 36)
-        return "";
-    return RESULT_MESSAGES[status];
+std::ostream& operator<<(std::ostream& os, ResultStatus status) {
+    os << RESULT_MESSAGES.at(static_cast<size_t>(status));
+    return os;
 }
 
 /**
