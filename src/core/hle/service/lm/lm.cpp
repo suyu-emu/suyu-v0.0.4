@@ -160,7 +160,7 @@ private:
         if (header.IsTailLog()) {
             switch (header.severity) {
             case MessageHeader::Severity::Trace:
-                LOG_TRACE(Debug_Emulated, "{}", log_stream.str());
+                LOG_DEBUG(Debug_Emulated, "{}", log_stream.str());
                 break;
             case MessageHeader::Severity::Info:
                 LOG_INFO(Debug_Emulated, "{}", log_stream.str());
