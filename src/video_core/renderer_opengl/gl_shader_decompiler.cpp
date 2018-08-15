@@ -1306,6 +1306,10 @@ private:
                     op_a = "abs(" + op_a + ')';
                 }
 
+                if (instr.conversion.negate_a) {
+                    op_a = "-(" + op_a + ')';
+                }
+
                 switch (instr.conversion.f2i.rounding) {
                 case Tegra::Shader::F2iRoundingOp::None:
                     break;
