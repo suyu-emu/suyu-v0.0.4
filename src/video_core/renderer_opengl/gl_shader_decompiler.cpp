@@ -1261,6 +1261,10 @@ private:
                     op_a = "abs(" + op_a + ')';
                 }
 
+                if (instr.conversion.negate_a) {
+                    op_a = "-(" + op_a + ')';
+                }
+
                 regs.SetRegisterToFloat(instr.gpr0, 0, op_a, 1, 1);
                 break;
             }
