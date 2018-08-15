@@ -4,20 +4,24 @@
 
 #pragma once
 
-#include <string>
 #include "common/common_types.h"
-#include "core/file_sys/content_archive.h"
-#include "core/file_sys/program_metadata.h"
+#include "core/file_sys/vfs.h"
 #include "core/hle/kernel/object.h"
 #include "core/loader/loader.h"
-#include "deconstructed_rom_directory.h"
+
+namespace FileSys {
+class NCA;
+}
 
 namespace Loader {
+
+class AppLoader_DeconstructedRomDirectory;
 
 /// Loads an NCA file
 class AppLoader_NCA final : public AppLoader {
 public:
     explicit AppLoader_NCA(FileSys::VirtualFile file);
+    ~AppLoader_NCA() override;
 
     /**
      * Returns the type of the file
@@ -35,12 +39,7 @@ public:
     ResultStatus ReadRomFS(FileSys::VirtualFile& dir) override;
     ResultStatus ReadProgramId(u64& out_program_id) override;
 
-    ~AppLoader_NCA();
-
 private:
-    FileSys::ProgramMetadata metadata;
-
-    FileSys::NCAHeader header;
     std::unique_ptr<FileSys::NCA> nca;
     std::unique_ptr<AppLoader_DeconstructedRomDirectory> directory_loader;
 };
