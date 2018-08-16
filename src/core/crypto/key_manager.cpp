@@ -52,20 +52,20 @@ void KeyManager::LoadFromFile(const std::string& filename, bool is_title_keys) {
         out[1].erase(std::remove(out[1].begin(), out[1].end(), ' '), out[1].end());
 
         if (is_title_keys) {
-            auto rights_id_raw = HexStringToArray<16>(out[0]);
+            auto rights_id_raw = Common::HexStringToArray<16>(out[0]);
             u128 rights_id{};
             std::memcpy(rights_id.data(), rights_id_raw.data(), rights_id_raw.size());
-            Key128 key = HexStringToArray<16>(out[1]);
+            Key128 key = Common::HexStringToArray<16>(out[1]);
             SetKey(S128KeyType::Titlekey, key, rights_id[1], rights_id[0]);
         } else {
             std::transform(out[0].begin(), out[0].end(), out[0].begin(), ::tolower);
             if (s128_file_id.find(out[0]) != s128_file_id.end()) {
                 const auto index = s128_file_id.at(out[0]);
-                Key128 key = HexStringToArray<16>(out[1]);
+                Key128 key = Common::HexStringToArray<16>(out[1]);
                 SetKey(index.type, key, index.field1, index.field2);
             } else if (s256_file_id.find(out[0]) != s256_file_id.end()) {
                 const auto index = s256_file_id.at(out[0]);
-                Key256 key = HexStringToArray<32>(out[1]);
+                Key256 key = Common::HexStringToArray<32>(out[1]);
                 SetKey(index.type, key, index.field1, index.field2);
             }
         }

@@ -4,6 +4,8 @@
 
 #include "common/hex_util.h"
 
+namespace Common {
+
 u8 ToHexNibble(char c1) {
     if (c1 >= 65 && c1 <= 70)
         return c1 - 55;
@@ -25,3 +27,5 @@ std::array<u8, 32> operator""_array32(const char* str, size_t len) {
         throw std::logic_error("Not of correct size.");
     return HexStringToArray<32>(str);
 }
+
+} // namespace Common
