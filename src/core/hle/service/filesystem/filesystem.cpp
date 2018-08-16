@@ -305,17 +305,38 @@ ResultVal<FileSys::VirtualDir> OpenSDMC() {
 }
 
 std::shared_ptr<FileSys::RegisteredCache> GetSystemNANDContents() {
+    LOG_TRACE(Service_FS, "Opening System NAND Contents");
+
+    if (bis_factory == nullptr)
+        return nullptr;
+
     return bis_factory->GetSystemNANDContents();
 }
 
 std::shared_ptr<FileSys::RegisteredCache> GetUserNANDContents() {
+    LOG_TRACE(Service_FS, "Opening User NAND Contents");
+
+    if (bis_factory == nullptr)
+        return nullptr;
+
     return bis_factory->GetUserNANDContents();
 }
 
-void RegisterFileSystems(const FileSys::VirtualFilesystem& vfs) {
-    romfs_factory = nullptr;
-    save_data_factory = nullptr;
-    sdmc_factory = nullptr;
+std::shared_ptr<FileSys::RegisteredCache> GetSDMCContents() {
+    LOG_TRACE(Service_FS, "Opening SDMC Contents");
+
+    if (sdmc_factory == nullptr)
+        return nullptr;
+
+    return sdmc_factory->GetSDMCContents();
+}
+
+void CreateFactories(const FileSys::VirtualFilesystem& vfs, bool overwrite) {
+    if (overwrite) {
+        bis_factory = nullptr;
+        save_data_factory = nullptr;
+        sdmc_factory = nullptr;
+    }
 
     auto nand_directory = vfs->OpenDirectory(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir),
                                              FileSys::Mode::ReadWrite);
