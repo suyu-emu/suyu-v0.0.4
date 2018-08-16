@@ -23,9 +23,8 @@ static_assert(sizeof(Key128) == 16, "Key128 must be 128 bytes big.");
 static_assert(sizeof(Key256) == 32, "Key128 must be 128 bytes big.");
 
 enum class S256KeyType : u64 {
-    Header, //
-    SDSave, //
-    SDNCA,  //
+    Header,      //
+    SDKeySource, // f1=SDKeyType
 };
 
 enum class S128KeyType : u64 {
@@ -37,12 +36,24 @@ enum class S128KeyType : u64 {
     KeyArea,       // f1=crypto revision f2=type {app, ocean, system}
     SDSeed,        //
     Titlekey,      // f1=rights id LSB f2=rights id MSB
+    Source,        // f1=source type, f2= sub id
 };
 
 enum class KeyAreaKeyType : u8 {
     Application,
     Ocean,
     System,
+};
+
+enum class SourceKeyType : u8 {
+    SDKEK,
+    AESKEKGeneration,
+    AESKeyGeneration,
+};
+
+enum class SDKeyType : u8 {
+    Save,
+    NCA,
 };
 
 template <typename KeyType>
@@ -83,6 +94,10 @@ public:
 
     static bool KeyFileExists(bool title);
 
+    // Call before using the sd seed to attempt to derive it if it dosen't exist. Needs system save
+    // 8*43 and the private file to exist.
+    void DeriveSDSeedLazy();
+
 private:
     boost::container::flat_map<KeyIndex<S128KeyType>, Key128> s128_keys;
     boost::container::flat_map<KeyIndex<S256KeyType>, Key256> s256_keys;
@@ -95,4 +110,9 @@ private:
     static const boost::container::flat_map<std::string, KeyIndex<S128KeyType>> s128_file_id;
     static const boost::container::flat_map<std::string, KeyIndex<S256KeyType>> s256_file_id;
 };
+
+Key128 GenerateKeyEncryptionKey(Key128 source, Key128 master, Key128 kek_seed, Key128 key_seed);
+boost::optional<Key128> DeriveSDSeed();
+Loader::ResultStatus DeriveSDKeys(std::array<Key256, 2>& sd_keys, const KeyManager& keys);
+
 } // namespace Core::Crypto
