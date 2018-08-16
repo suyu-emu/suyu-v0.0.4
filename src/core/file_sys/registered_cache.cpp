@@ -262,6 +262,18 @@ bool RegisteredCache::HasEntry(RegisteredCacheEntry entry) const {
     return GetEntryRaw(entry) != nullptr;
 }
 
+VirtualFile RegisteredCache::GetEntryUnparsed(u64 title_id, ContentRecordType type) const {
+    const auto id = GetNcaIDFromMetadata(title_id, type);
+    if (id == boost::none)
+        return nullptr;
+
+    return GetFileAtID(id.get());
+}
+
+VirtualFile RegisteredCache::GetEntryUnparsed(RegisteredCacheEntry entry) const {
+    return GetEntryUnparsed(entry.title_id, entry.type);
+}
+
 VirtualFile RegisteredCache::GetEntryRaw(u64 title_id, ContentRecordType type) const {
     const auto id = GetNcaIDFromMetadata(title_id, type);
     if (id == boost::none)
