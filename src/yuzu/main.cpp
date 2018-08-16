@@ -637,8 +637,9 @@ void GMainWindow::OnMenuInstallToNAND() {
         std::array<u8, 0x1000> buffer{};
         const int progress_maximum = static_cast<int>(src->GetSize() / buffer.size());
 
-        QProgressDialog progress(fmt::format("Installing file \"{}\"...", src->GetName()).c_str(),
-                                 "Cancel", 0, progress_maximum, this);
+        QProgressDialog progress(
+            tr("Installing file \"%1\"...").arg(QString::fromStdString(src->GetName())),
+            tr("Cancel"), 0, progress_maximum, this);
         progress.setWindowModality(Qt::WindowModal);
 
         for (size_t i = 0; i < src->GetSize(); i += buffer.size()) {
@@ -672,9 +673,9 @@ void GMainWindow::OnMenuInstallToNAND() {
     };
 
     const auto overwrite = [this]() {
-        return QMessageBox::question(this, "Failed to Install",
-                                     "The file you are attempting to install already exists "
-                                     "in the cache. Would you like to overwrite it?") ==
+        return QMessageBox::question(this, tr("Failed to Install"),
+                                     tr("The file you are attempting to install already exists "
+                                        "in the cache. Would you like to overwrite it?")) ==
                QMessageBox::Yes;
     };
 
@@ -713,15 +714,15 @@ void GMainWindow::OnMenuInstallToNAND() {
                 return;
             }
 
-            static const QStringList tt_options{"System Application",
-                                                "System Archive",
-                                                "System Application Update",
-                                                "Firmware Package (Type A)",
-                                                "Firmware Package (Type B)",
-                                                "Game",
-                                                "Game Update",
-                                                "Game DLC",
-                                                "Delta Title"};
+            const QStringList tt_options{tr("System Application"),
+                                         tr("System Archive"),
+                                         tr("System Application Update"),
+                                         tr("Firmware Package (Type A)"),
+                                         tr("Firmware Package (Type B)"),
+                                         tr("Game"),
+                                         tr("Game Update"),
+                                         tr("Game DLC"),
+                                         tr("Delta Title")};
             bool ok;
             const auto item = QInputDialog::getItem(
                 this, tr("Select NCA Install Type..."),
