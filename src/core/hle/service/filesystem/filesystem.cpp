@@ -345,16 +345,15 @@ void CreateFactories(const FileSys::VirtualFilesystem& vfs, bool overwrite) {
 
     if (bis_factory == nullptr)
         bis_factory = std::make_unique<FileSys::BISFactory>(nand_directory);
-
-    auto savedata = std::make_unique<FileSys::SaveDataFactory>(std::move(nand_directory));
-    save_data_factory = std::move(savedata);
-
-    auto sdcard = std::make_unique<FileSys::SDMCFactory>(std::move(sd_directory));
-    sdmc_factory = std::move(sdcard);
+    if (save_data_factory == nullptr)
+        save_data_factory = std::make_unique<FileSys::SaveDataFactory>(std::move(nand_directory));
+    if (sdmc_factory == nullptr)
+        sdmc_factory = std::make_unique<FileSys::SDMCFactory>(std::move(sd_directory));
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager, const FileSys::VirtualFilesystem& vfs) {
-    RegisterFileSystems(vfs);
+    romfs_factory = nullptr;
+    CreateFactories(vfs, false);
     std::make_shared<FSP_LDR>()->InstallAsService(service_manager);
     std::make_shared<FSP_PR>()->InstallAsService(service_manager);
     std::make_shared<FSP_SRV>()->InstallAsService(service_manager);
