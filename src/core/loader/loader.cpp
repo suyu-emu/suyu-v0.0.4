@@ -87,7 +87,7 @@ std::string GetFileTypeString(FileType type) {
     return "unknown";
 }
 
-constexpr std::array<const char*, 36> RESULT_MESSAGES{
+constexpr std::array<const char*, 49> RESULT_MESSAGES{
     "The operation completed successfully.",
     "The loader requested to load is already loaded.",
     "The operation is not implemented.",
@@ -124,6 +124,19 @@ constexpr std::array<const char*, 36> RESULT_MESSAGES{
     "There was a general error loading the NRO into emulated memory.",
     "There is no icon available.",
     "There is no control data available.",
+    "The NAX file has a bad header.",
+    "The NAX file has incorrect size as determined by the header.",
+    "The HMAC to generated the NAX decryption keys failed.",
+    "The HMAC to validate the NAX decryption keys failed.",
+    "The NAX key derivation failed.",
+    "The NAX file cannot be interpreted as an NCA file.",
+    "The NAX file has an incorrect path.",
+    "The SD seed could not be found or derived.",
+    "The SD KEK Source could not be found.",
+    "The AES KEK Generation Source could not be found.",
+    "The AES Key Generation Source could not be found.",
+    "The SD Save Key Source could not be found.",
+    "The SD NCA Key Source could not be found.",
 };
 
 std::ostream& operator<<(std::ostream& os, ResultStatus status) {
