@@ -634,18 +634,22 @@ void GMainWindow::OnMenuInstallToNAND() {
         if (!dest->Resize(src->GetSize()))
             return false;
 
+        std::array<u8, 0x1000> buffer{};
+        const int progress_maximum = static_cast<int>(src->GetSize() / buffer.size());
+
         QProgressDialog progress(fmt::format("Installing file \"{}\"...", src->GetName()).c_str(),
-                                 "Cancel", 0, src->GetSize() / 0x1000, this);
+                                 "Cancel", 0, progress_maximum, this);
         progress.setWindowModality(Qt::WindowModal);
 
-        std::array<u8, 0x1000> buffer{};
-        for (size_t i = 0; i < src->GetSize(); i += 0x1000) {
+        for (size_t i = 0; i < src->GetSize(); i += buffer.size()) {
             if (progress.wasCanceled()) {
                 dest->Resize(0);
                 return false;
             }
 
-            progress.setValue(i / 0x1000);
+            const int progress_value = static_cast<int>(i / buffer.size());
+            progress.setValue(progress_value);
+
             const auto read = src->Read(buffer.data(), buffer.size(), i);
             dest->Write(buffer.data(), read, i);
         }
