@@ -125,7 +125,8 @@ bool KeyManager::KeyFileExists(bool title) {
            FileUtil::Exists(yuzu_keys_dir + DIR_SEP + "prod.keys");
 }
 
-const std::unordered_map<std::string, KeyIndex<S128KeyType>> KeyManager::s128_file_id = {
+void KeyManager::DeriveSDSeedLazy() {
+const boost::container::flat_map<std::string, KeyIndex<S128KeyType>> KeyManager::s128_file_id = {
     {"master_key_00", {S128KeyType::Master, 0, 0}},
     {"master_key_01", {S128KeyType::Master, 1, 0}},
     {"master_key_02", {S128KeyType::Master, 2, 0}},
@@ -169,7 +170,7 @@ const std::unordered_map<std::string, KeyIndex<S128KeyType>> KeyManager::s128_fi
     {"key_area_key_system_04", {S128KeyType::KeyArea, 4, static_cast<u64>(KeyAreaKeyType::System)}},
 };
 
-const std::unordered_map<std::string, KeyIndex<S256KeyType>> KeyManager::s256_file_id = {
+const boost::container::flat_map<std::string, KeyIndex<S256KeyType>> KeyManager::s256_file_id = {
     {"header_key", {S256KeyType::Header, 0, 0}},
     {"sd_card_save_key", {S256KeyType::SDSave, 0, 0}},
     {"sd_card_nca_key", {S256KeyType::SDNCA, 0, 0}},

@@ -7,10 +7,11 @@
 #include <array>
 #include <string>
 #include <type_traits>
-#include <unordered_map>
 #include <vector>
+#include <boost/container/flat_map.hpp>
 #include <fmt/format.h>
 #include "common/common_types.h"
+#include "core/loader/loader.h"
 
 namespace Core::Crypto {
 
@@ -59,33 +60,13 @@ struct KeyIndex {
     }
 };
 
-// The following two (== and hash) are so KeyIndex can be a key in unordered_map
-
+// boost flat_map requires operator< for O(log(n)) lookups.
 template <typename KeyType>
-bool operator==(const KeyIndex<KeyType>& lhs, const KeyIndex<KeyType>& rhs) {
-    return std::tie(lhs.type, lhs.field1, lhs.field2) == std::tie(rhs.type, rhs.field1, rhs.field2);
+bool operator<(const KeyIndex<KeyType>& lhs, const KeyIndex<KeyType>& rhs) {
+    return (static_cast<size_t>(lhs.type) < static_cast<size_t>(rhs.type)) ||
+           (lhs.type == rhs.type && lhs.field1 < rhs.field1) ||
+           (lhs.type == rhs.type && lhs.field1 == rhs.field1 && lhs.field2 < rhs.field2);
 }
-
-template <typename KeyType>
-bool operator!=(const KeyIndex<KeyType>& lhs, const KeyIndex<KeyType>& rhs) {
-    return !operator==(lhs, rhs);
-}
-
-} // namespace Core::Crypto
-
-namespace std {
-template <typename KeyType>
-struct hash<Core::Crypto::KeyIndex<KeyType>> {
-    size_t operator()(const Core::Crypto::KeyIndex<KeyType>& k) const {
-        using std::hash;
-
-        return ((hash<u64>()(static_cast<u64>(k.type)) ^ (hash<u64>()(k.field1) << 1)) >> 1) ^
-               (hash<u64>()(k.field2) << 1);
-    }
-};
-} // namespace std
-
-namespace Core::Crypto {
 
 class KeyManager {
 public:
@@ -103,15 +84,15 @@ public:
     static bool KeyFileExists(bool title);
 
 private:
-    std::unordered_map<KeyIndex<S128KeyType>, Key128> s128_keys;
-    std::unordered_map<KeyIndex<S256KeyType>, Key256> s256_keys;
+    boost::container::flat_map<KeyIndex<S128KeyType>, Key128> s128_keys;
+    boost::container::flat_map<KeyIndex<S256KeyType>, Key256> s256_keys;
 
     bool dev_mode;
     void LoadFromFile(const std::string& filename, bool is_title_keys);
     void AttemptLoadKeyFile(const std::string& dir1, const std::string& dir2,
                             const std::string& filename, bool title);
 
-    static const std::unordered_map<std::string, KeyIndex<S128KeyType>> s128_file_id;
-    static const std::unordered_map<std::string, KeyIndex<S256KeyType>> s256_file_id;
+    static const boost::container::flat_map<std::string, KeyIndex<S128KeyType>> s128_file_id;
+    static const boost::container::flat_map<std::string, KeyIndex<S256KeyType>> s256_file_id;
 };
 } // namespace Core::Crypto
