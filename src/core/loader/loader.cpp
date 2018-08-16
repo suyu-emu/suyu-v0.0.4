@@ -11,6 +11,7 @@
 #include "core/hle/kernel/process.h"
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/elf.h"
+#include "core/loader/nax.h"
 #include "core/loader/nca.h"
 #include "core/loader/nro.h"
 #include "core/loader/nso.h"
@@ -32,6 +33,7 @@ FileType IdentifyFile(FileSys::VirtualFile file) {
     CHECK_TYPE(NRO)
     CHECK_TYPE(NCA)
     CHECK_TYPE(XCI)
+    CHECK_TYPE(NAX)
 
 #undef CHECK_TYPE
 
@@ -73,6 +75,8 @@ std::string GetFileTypeString(FileType type) {
         return "NCA";
     case FileType::XCI:
         return "XCI";
+    case FileType::NAX:
+        return "NAX";
     case FileType::DeconstructedRomDirectory:
         return "Directory";
     case FileType::Error:
@@ -150,12 +154,17 @@ static std::unique_ptr<AppLoader> GetFileLoader(FileSys::VirtualFile file, FileT
     case FileType::NRO:
         return std::make_unique<AppLoader_NRO>(std::move(file));
 
-    // NX NCA file format.
+    // NX NCA (Nintendo Content Archive) file format.
     case FileType::NCA:
         return std::make_unique<AppLoader_NCA>(std::move(file));
 
+    // NX XCI (nX Card Image) file format.
     case FileType::XCI:
         return std::make_unique<AppLoader_XCI>(std::move(file));
+
+    // NX NAX (NintendoAesXts) file format.
+    case FileType::NAX:
+        return std::make_unique<AppLoader_NAX>(std::move(file));
 
     // NX deconstructed ROM directory.
     case FileType::DeconstructedRomDirectory:
@@ -170,7 +179,8 @@ std::unique_ptr<AppLoader> GetLoader(FileSys::VirtualFile file) {
     FileType type = IdentifyFile(file);
     FileType filename_type = GuessFromFilename(file->GetName());
 
-    if (type != filename_type) {
+    // Special case: 00 is either a NCA or NAX.
+    if (type != filename_type && !(file->GetName() == "00" && type == FileType::NAX)) {
         LOG_WARNING(Loader, "File {} has a different type than its extension.", file->GetName());
         if (FileType::Unknown == type)
             type = filename_type;
