@@ -10,6 +10,8 @@
 #include <fmt/format.h>
 #include "common/common_types.h"
 
+namespace Common {
+
 u8 ToHexNibble(char c1);
 
 template <size_t Size, bool le = false>
@@ -35,3 +37,5 @@ std::string HexArrayToString(std::array<u8, Size> array, bool upper = true) {
 
 std::array<u8, 0x10> operator"" _array16(const char* str, size_t len);
 std::array<u8, 0x20> operator"" _array32(const char* str, size_t len);
+
+} // namespace Common

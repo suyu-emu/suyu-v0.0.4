@@ -37,11 +37,12 @@ static bool FollowsNcaIdFormat(std::string_view name) {
 static std::string GetRelativePathFromNcaID(const std::array<u8, 16>& nca_id, bool second_hex_upper,
                                             bool within_two_digit) {
     if (!within_two_digit)
-        return fmt::format("/{}.nca", HexArrayToString(nca_id, second_hex_upper));
+        return fmt::format("/{}.nca", Common::HexArrayToString(nca_id, second_hex_upper));
 
     Core::Crypto::SHA256Hash hash{};
     mbedtls_sha256(nca_id.data(), nca_id.size(), hash.data(), 0);
-    return fmt::format("/000000{:02X}/{}.nca", hash[0], HexArrayToString(nca_id, second_hex_upper));
+    return fmt::format("/000000{:02X}/{}.nca", hash[0],
+                       Common::HexArrayToString(nca_id, second_hex_upper));
 }
 
 static std::string GetCNMTName(TitleType type, u64 title_id) {
@@ -170,7 +171,7 @@ std::vector<NcaID> RegisteredCache::AccumulateFiles() const {
     std::vector<NcaID> ids;
     for (const auto& d2_dir : dir->GetSubdirectories()) {
         if (FollowsNcaIdFormat(d2_dir->GetName())) {
-            ids.push_back(HexStringToArray<0x10, true>(d2_dir->GetName().substr(0, 0x20)));
+            ids.push_back(Common::HexStringToArray<0x10, true>(d2_dir->GetName().substr(0, 0x20)));
             continue;
         }
 
@@ -181,20 +182,21 @@ std::vector<NcaID> RegisteredCache::AccumulateFiles() const {
             if (!FollowsNcaIdFormat(nca_dir->GetName()))
                 continue;
 
-            ids.push_back(HexStringToArray<0x10, true>(nca_dir->GetName().substr(0, 0x20)));
+            ids.push_back(Common::HexStringToArray<0x10, true>(nca_dir->GetName().substr(0, 0x20)));
         }
 
         for (const auto& nca_file : d2_dir->GetFiles()) {
             if (!FollowsNcaIdFormat(nca_file->GetName()))
                 continue;
 
-            ids.push_back(HexStringToArray<0x10, true>(nca_file->GetName().substr(0, 0x20)));
+            ids.push_back(
+                Common::HexStringToArray<0x10, true>(nca_file->GetName().substr(0, 0x20)));
         }
     }
 
     for (const auto& d2_file : dir->GetFiles()) {
         if (FollowsNcaIdFormat(d2_file->GetName()))
-            ids.push_back(HexStringToArray<0x10, true>(d2_file->GetName().substr(0, 0x20)));
+            ids.push_back(Common::HexStringToArray<0x10, true>(d2_file->GetName().substr(0, 0x20)));
     }
     return ids;
 }
@@ -339,7 +341,7 @@ std::vector<RegisteredCacheEntry> RegisteredCache::ListEntriesFilter(
 }
 
 static std::shared_ptr<NCA> GetNCAFromXCIForID(std::shared_ptr<XCI> xci, const NcaID& id) {
-    const auto filename = fmt::format("{}.nca", HexArrayToString(id, false));
+    const auto filename = fmt::format("{}.nca", Common::HexArrayToString(id, false));
     const auto iter =
         std::find_if(xci->GetNCAs().begin(), xci->GetNCAs().end(),
                      [&filename](std::shared_ptr<NCA> nca) { return nca->GetName() == filename; });
@@ -361,7 +363,7 @@ InstallResult RegisteredCache::InstallEntry(std::shared_ptr<XCI> xci, bool overw
 
     // Install Metadata File
     const auto meta_id_raw = (*meta_iter)->GetName().substr(0, 32);
-    const auto meta_id = HexStringToArray<16>(meta_id_raw);
+    const auto meta_id = Common::HexStringToArray<16>(meta_id_raw);
 
     const auto res = RawInstallNCA(*meta_iter, copy, overwrite_if_exists, meta_id);
     if (res != InstallResult::Success)
