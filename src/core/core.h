@@ -40,6 +40,12 @@ namespace Core {
 
 class System {
 public:
+    System(const System&) = delete;
+    System& operator=(const System&) = delete;
+
+    System(System&&) = delete;
+    System& operator=(System&&) = delete;
+
     ~System();
 
     /**
