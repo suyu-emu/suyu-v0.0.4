@@ -307,7 +307,7 @@ ICommonStateGetter::ICommonStateGetter() : ServiceFramework("ICommonStateGetter"
         {55, nullptr, "IsInControllerFirmwareUpdateSection"},
         {60, nullptr, "GetDefaultDisplayResolution"},
         {61, &ICommonStateGetter::GetDefaultDisplayResolutionChangeEvent,
-            "GetDefaultDisplayResolutionChangeEvent"},
+         "GetDefaultDisplayResolutionChangeEvent"},
         {62, nullptr, "GetHdcpAuthenticationState"},
         {63, nullptr, "GetHdcpAuthenticationStateChangeEvent"},
     };
