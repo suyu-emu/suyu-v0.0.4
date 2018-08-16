@@ -110,6 +110,7 @@ private:
     void GetEventHandle(Kernel::HLERequestContext& ctx);
     void ReceiveMessage(Kernel::HLERequestContext& ctx);
     void GetCurrentFocusState(Kernel::HLERequestContext& ctx);
+    void GetDefaultDisplayResolutionChangeEvent(Kernel::HLERequestContext& ctx);
     void GetOperationMode(Kernel::HLERequestContext& ctx);
     void GetPerformanceMode(Kernel::HLERequestContext& ctx);
 

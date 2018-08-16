@@ -306,7 +306,8 @@ ICommonStateGetter::ICommonStateGetter() : ServiceFramework("ICommonStateGetter"
         {52, nullptr, "SwitchLcdBacklight"},
         {55, nullptr, "IsInControllerFirmwareUpdateSection"},
         {60, nullptr, "GetDefaultDisplayResolution"},
-        {61, nullptr, "GetDefaultDisplayResolutionChangeEvent"},
+        {61, &ICommonStateGetter::GetDefaultDisplayResolutionChangeEvent,
+            "GetDefaultDisplayResolutionChangeEvent"},
         {62, nullptr, "GetHdcpAuthenticationState"},
         {63, nullptr, "GetHdcpAuthenticationStateChangeEvent"},
     };
@@ -337,6 +338,16 @@ void ICommonStateGetter::GetCurrentFocusState(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.Push(static_cast<u8>(FocusState::InFocus));
+
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+}
+
+void ICommonStateGetter::GetDefaultDisplayResolutionChangeEvent(Kernel::HLERequestContext& ctx) {
+    event->Signal();
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushCopyObjects(event);
 
     LOG_WARNING(Service_AM, "(STUBBED) called");
 }
