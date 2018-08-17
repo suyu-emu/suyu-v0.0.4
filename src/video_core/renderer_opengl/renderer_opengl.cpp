@@ -425,7 +425,7 @@ static void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum 
 
     switch (severity) {
     case GL_DEBUG_SEVERITY_HIGH:
-        LOG_ERROR(Render_OpenGL, format, str_source, str_type, id, message);
+        LOG_CRITICAL(Render_OpenGL, format, str_source, str_type, id, message);
         break;
     case GL_DEBUG_SEVERITY_MEDIUM:
         LOG_WARNING(Render_OpenGL, format, str_source, str_type, id, message);
