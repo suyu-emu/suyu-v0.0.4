@@ -628,24 +628,33 @@ void GMainWindow::OnMenuInstallToNAND() {
     QString filename = QFileDialog::getOpenFileName(this, tr("Install File"),
                                                     UISettings::values.roms_path, file_filter);
 
+    if (filename.isEmpty()) {
+        return;
+    }
+
     const auto qt_raw_copy = [this](FileSys::VirtualFile src, FileSys::VirtualFile dest) {
         if (src == nullptr || dest == nullptr)
             return false;
         if (!dest->Resize(src->GetSize()))
             return false;
 
-        QProgressDialog progress(fmt::format("Installing file \"{}\"...", src->GetName()).c_str(),
-                                 "Cancel", 0, src->GetSize() / 0x1000, this);
+        std::array<u8, 0x1000> buffer{};
+        const int progress_maximum = static_cast<int>(src->GetSize() / buffer.size());
+
+        QProgressDialog progress(
+            tr("Installing file \"%1\"...").arg(QString::fromStdString(src->GetName())),
+            tr("Cancel"), 0, progress_maximum, this);
         progress.setWindowModality(Qt::WindowModal);
 
-        std::array<u8, 0x1000> buffer{};
-        for (size_t i = 0; i < src->GetSize(); i += 0x1000) {
+        for (size_t i = 0; i < src->GetSize(); i += buffer.size()) {
             if (progress.wasCanceled()) {
                 dest->Resize(0);
                 return false;
             }
 
-            progress.setValue(i / 0x1000);
+            const int progress_value = static_cast<int>(i / buffer.size());
+            progress.setValue(progress_value);
+
             const auto read = src->Read(buffer.data(), buffer.size(), i);
             dest->Write(buffer.data(), read, i);
         }
@@ -668,92 +677,88 @@ void GMainWindow::OnMenuInstallToNAND() {
     };
 
     const auto overwrite = [this]() {
-        return QMessageBox::question(this, "Failed to Install",
-                                     "The file you are attempting to install already exists "
-                                     "in the cache. Would you like to overwrite it?") ==
+        return QMessageBox::question(this, tr("Failed to Install"),
+                                     tr("The file you are attempting to install already exists "
+                                        "in the cache. Would you like to overwrite it?")) ==
                QMessageBox::Yes;
     };
 
-    if (!filename.isEmpty()) {
-        if (filename.endsWith("xci", Qt::CaseInsensitive)) {
-            const auto xci = std::make_shared<FileSys::XCI>(
-                vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
-            if (xci->GetStatus() != Loader::ResultStatus::Success) {
-                failed();
-                return;
-            }
-            const auto res =
-                Service::FileSystem::GetUserNANDContents()->InstallEntry(xci, false, qt_raw_copy);
-            if (res == FileSys::InstallResult::Success) {
-                success();
-            } else {
-                if (res == FileSys::InstallResult::ErrorAlreadyExists) {
-                    if (overwrite()) {
-                        const auto res2 = Service::FileSystem::GetUserNANDContents()->InstallEntry(
-                            xci, true, qt_raw_copy);
-                        if (res2 == FileSys::InstallResult::Success) {
-                            success();
-                        } else {
-                            failed();
-                        }
+    if (filename.endsWith("xci", Qt::CaseInsensitive)) {
+        const auto xci = std::make_shared<FileSys::XCI>(
+            vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
+        if (xci->GetStatus() != Loader::ResultStatus::Success) {
+            failed();
+            return;
+        }
+        const auto res =
+            Service::FileSystem::GetUserNANDContents()->InstallEntry(xci, false, qt_raw_copy);
+        if (res == FileSys::InstallResult::Success) {
+            success();
+        } else {
+            if (res == FileSys::InstallResult::ErrorAlreadyExists) {
+                if (overwrite()) {
+                    const auto res2 = Service::FileSystem::GetUserNANDContents()->InstallEntry(
+                        xci, true, qt_raw_copy);
+                    if (res2 == FileSys::InstallResult::Success) {
+                        success();
+                    } else {
+                        failed();
                     }
+                }
+            } else {
+                failed();
+            }
+        }
+    } else {
+        const auto nca = std::make_shared<FileSys::NCA>(
+            vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
+        if (nca->GetStatus() != Loader::ResultStatus::Success) {
+            failed();
+            return;
+        }
+
+        const QStringList tt_options{tr("System Application"),
+                                     tr("System Archive"),
+                                     tr("System Application Update"),
+                                     tr("Firmware Package (Type A)"),
+                                     tr("Firmware Package (Type B)"),
+                                     tr("Game"),
+                                     tr("Game Update"),
+                                     tr("Game DLC"),
+                                     tr("Delta Title")};
+        bool ok;
+        const auto item = QInputDialog::getItem(
+            this, tr("Select NCA Install Type..."),
+            tr("Please select the type of title you would like to install this NCA as:\n(In "
+               "most instances, the default 'Game' is fine.)"),
+            tt_options, 5, false, &ok);
+
+        auto index = tt_options.indexOf(item);
+        if (!ok || index == -1) {
+            QMessageBox::warning(this, tr("Failed to Install"),
+                                 tr("The title type you selected for the NCA is invalid."));
+            return;
+        }
+
+        if (index >= 5)
+            index += 0x7B;
+
+        const auto res = Service::FileSystem::GetUserNANDContents()->InstallEntry(
+            nca, static_cast<FileSys::TitleType>(index), false, qt_raw_copy);
+        if (res == FileSys::InstallResult::Success) {
+            success();
+        } else if (res == FileSys::InstallResult::ErrorAlreadyExists) {
+            if (overwrite()) {
+                const auto res2 = Service::FileSystem::GetUserNANDContents()->InstallEntry(
+                    nca, static_cast<FileSys::TitleType>(index), true, qt_raw_copy);
+                if (res2 == FileSys::InstallResult::Success) {
+                    success();
                 } else {
                     failed();
                 }
             }
         } else {
-            const auto nca = std::make_shared<FileSys::NCA>(
-                vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
-            if (nca->GetStatus() != Loader::ResultStatus::Success) {
-                failed();
-                return;
-            }
-
-            static const QStringList tt_options{"System Application",
-                                                "System Archive",
-                                                "System Application Update",
-                                                "Firmware Package (Type A)",
-                                                "Firmware Package (Type B)",
-                                                "Game",
-                                                "Game Update",
-                                                "Game DLC",
-                                                "Delta Title"};
-            bool ok;
-            const auto item = QInputDialog::getItem(
-                this, tr("Select NCA Install Type..."),
-                tr("Please select the type of title you would like to install this NCA as:\n(In "
-                   "most instances, the default 'Game' is fine.)"),
-                tt_options, 5, false, &ok);
-
-            auto index = tt_options.indexOf(item);
-            if (!ok || index == -1) {
-                QMessageBox::warning(this, tr("Failed to Install"),
-                                     tr("The title type you selected for the NCA is invalid."));
-                return;
-            }
-
-            if (index >= 5)
-                index += 0x7B;
-
-            const auto res = Service::FileSystem::GetUserNANDContents()->InstallEntry(
-                nca, static_cast<FileSys::TitleType>(index), false, qt_raw_copy);
-            if (res == FileSys::InstallResult::Success) {
-                success();
-            } else {
-                if (res == FileSys::InstallResult::ErrorAlreadyExists) {
-                    if (overwrite()) {
-                        const auto res2 = Service::FileSystem::GetUserNANDContents()->InstallEntry(
-                            nca, static_cast<FileSys::TitleType>(index), true, qt_raw_copy);
-                        if (res2 == FileSys::InstallResult::Success) {
-                            success();
-                        } else {
-                            failed();
-                        }
-                    }
-                } else {
-                    failed();
-                }
-            }
+            failed();
         }
     }
 }
