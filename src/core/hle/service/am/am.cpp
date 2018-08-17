@@ -145,8 +145,8 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
         {51, nullptr, "ApproveToDisplay"},
         {60, nullptr, "OverrideAutoSleepTimeAndDimmingTime"},
         {61, nullptr, "SetMediaPlaybackState"},
-        {62, nullptr, "SetIdleTimeDetectionExtension"},
-        {63, nullptr, "GetIdleTimeDetectionExtension"},
+        {62, &ISelfController::SetIdleTimeDetectionExtension, "SetIdleTimeDetectionExtension"},
+        {63, &ISelfController::GetIdleTimeDetectionExtension, "GetIdleTimeDetectionExtension"},
         {64, nullptr, "SetInputDetectionSourceSet"},
         {65, nullptr, "ReportUserIsActive"},
         {66, nullptr, "GetCurrentIlluminance"},
@@ -277,6 +277,23 @@ void ISelfController::CreateManagedDisplayLayer(Kernel::HLERequestContext& ctx) 
 void ISelfController::SetHandlesRequestToDisplay(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
+
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+}
+
+void ISelfController::SetIdleTimeDetectionExtension(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    idle_time_detection_extension = rp.Pop<u32>();
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+}
+
+void ISelfController::GetIdleTimeDetectionExtension(Kernel::HLERequestContext& ctx) {
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push<u32>(idle_time_detection_extension);
 
     LOG_WARNING(Service_AM, "(STUBBED) called");
 }

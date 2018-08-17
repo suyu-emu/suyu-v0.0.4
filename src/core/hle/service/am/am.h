@@ -87,9 +87,12 @@ private:
     void CreateManagedDisplayLayer(Kernel::HLERequestContext& ctx);
     void SetScreenShotPermission(Kernel::HLERequestContext& ctx);
     void SetHandlesRequestToDisplay(Kernel::HLERequestContext& ctx);
+    void SetIdleTimeDetectionExtension(Kernel::HLERequestContext& ctx);
+    void GetIdleTimeDetectionExtension(Kernel::HLERequestContext& ctx);
 
     std::shared_ptr<NVFlinger::NVFlinger> nvflinger;
     Kernel::SharedPtr<Kernel::Event> launchable_event;
+    u32 idle_time_detection_extension = 0;
 };
 
 class ICommonStateGetter final : public ServiceFramework<ICommonStateGetter> {
