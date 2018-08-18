@@ -87,7 +87,7 @@ ProgramResult GenerateFragmentShader(const ShaderSetup& setup, const MaxwellFSCo
             .get_value_or({});
     out += R"(
 in vec4 position;
-out vec4 color;
+layout(location = 0) out vec4 color[8];
 
 layout (std140) uniform fs_config {
     vec4 viewport_flip;
