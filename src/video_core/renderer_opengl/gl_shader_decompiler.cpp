@@ -703,10 +703,11 @@ private:
                                        const std::string& op_a, const std::string& op_b) const {
         using Tegra::Shader::PredCondition;
         static const std::unordered_map<PredCondition, const char*> PredicateComparisonStrings = {
-            {PredCondition::LessThan, "<"},        {PredCondition::Equal, "=="},
-            {PredCondition::LessEqual, "<="},      {PredCondition::GreaterThan, ">"},
-            {PredCondition::NotEqual, "!="},       {PredCondition::GreaterEqual, ">="},
-            {PredCondition::LessThanWithNan, "<"}, {PredCondition::NotEqualWithNan, "!="},
+            {PredCondition::LessThan, "<"},           {PredCondition::Equal, "=="},
+            {PredCondition::LessEqual, "<="},         {PredCondition::GreaterThan, ">"},
+            {PredCondition::NotEqual, "!="},          {PredCondition::GreaterEqual, ">="},
+            {PredCondition::LessThanWithNan, "<"},    {PredCondition::NotEqualWithNan, "!="},
+            {PredCondition::GreaterThanWithNan, ">"},
         };
 
         const auto& comparison{PredicateComparisonStrings.find(condition)};
@@ -715,7 +716,8 @@ private:
 
         std::string predicate{'(' + op_a + ") " + comparison->second + " (" + op_b + ')'};
         if (condition == PredCondition::LessThanWithNan ||
-            condition == PredCondition::NotEqualWithNan) {
+            condition == PredCondition::NotEqualWithNan ||
+            condition == PredCondition::GreaterThanWithNan) {
             predicate += " || isnan(" + op_a + ") || isnan(" + op_b + ')';
         }
 
