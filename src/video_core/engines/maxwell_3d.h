@@ -679,7 +679,19 @@ public:
 
                 INSERT_PADDING_WORDS(0x7);
 
-                INSERT_PADDING_WORDS(0x46);
+                INSERT_PADDING_WORDS(0x20);
+
+                struct {
+                    u32 is_instanced[NumVertexArrays];
+
+                    /// Returns whether the vertex array specified by index is supposed to be
+                    /// accessed per instance or not.
+                    bool IsInstancingEnabled(u32 index) const {
+                        return is_instanced[index];
+                    }
+                } instanced_arrays;
+
+                INSERT_PADDING_WORDS(0x6);
 
                 Cull cull;
 
@@ -928,6 +940,7 @@ ASSERT_REG_POSITION(point_coord_replace, 0x581);
 ASSERT_REG_POSITION(code_address, 0x582);
 ASSERT_REG_POSITION(draw, 0x585);
 ASSERT_REG_POSITION(index_array, 0x5F2);
+ASSERT_REG_POSITION(instanced_arrays, 0x620);
 ASSERT_REG_POSITION(cull, 0x646);
 ASSERT_REG_POSITION(clear_buffers, 0x674);
 ASSERT_REG_POSITION(query, 0x6C0);

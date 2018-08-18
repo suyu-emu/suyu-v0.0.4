@@ -98,7 +98,8 @@ RasterizerOpenGL::~RasterizerOpenGL() {}
 std::pair<u8*, GLintptr> RasterizerOpenGL::SetupVertexArrays(u8* array_ptr,
                                                              GLintptr buffer_offset) {
     MICROPROFILE_SCOPE(OpenGL_VAO);
-    const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
+    const auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
+    const auto& regs = gpu.regs;
 
     state.draw.vertex_array = hw_vao.handle;
     state.draw.vertex_buffer = stream_buffer.GetHandle();
@@ -110,8 +111,12 @@ std::pair<u8*, GLintptr> RasterizerOpenGL::SetupVertexArrays(u8* array_ptr,
         if (!vertex_array.IsEnabled())
             continue;
 
-        const Tegra::GPUVAddr start = vertex_array.StartAddress();
+        Tegra::GPUVAddr start = vertex_array.StartAddress();
         const Tegra::GPUVAddr end = regs.vertex_array_limit[index].LimitAddress();
+
+        if (regs.instanced_arrays.IsInstancingEnabled(index) && vertex_array.divisor != 0) {
+            start += vertex_array.stride * (gpu.state.current_instance / vertex_array.divisor);
+        }
 
         ASSERT(end > start);
         u64 size = end - start + 1;
@@ -124,7 +129,15 @@ std::pair<u8*, GLintptr> RasterizerOpenGL::SetupVertexArrays(u8* array_ptr,
         glBindVertexBuffer(index, stream_buffer.GetHandle(), vertex_buffer_offset,
                            vertex_array.stride);
 
-        ASSERT_MSG(vertex_array.divisor == 0, "Instanced vertex arrays are not supported");
+        if (regs.instanced_arrays.IsInstancingEnabled(index) && vertex_array.divisor != 0) {
+            // Tell OpenGL that this is an instanced vertex buffer to prevent accessing different
+            // indexes on each vertex. We do the instance indexing manually by incrementing the
+            // start address of the vertex buffer.
+            glVertexBindingDivisor(index, 1);
+        } else {
+            // Disable the vertex buffer instancing.
+            glVertexBindingDivisor(index, 0);
+        }
     }
 
     // Use the vertex array as-is, assumes that the data is formatted correctly for OpenGL.
