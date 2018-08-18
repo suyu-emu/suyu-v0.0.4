@@ -214,6 +214,11 @@ enum class FlowCondition : u64 {
     Fcsm_Tr = 0x1C, // TODO(bunnei): What is this used for?
 };
 
+enum class PredicateResultMode : u64 {
+    None = 0x0,
+    NotZero = 0x3,
+};
+
 union Instruction {
     Instruction& operator=(const Instruction& instr) {
         value = instr.value;
@@ -254,7 +259,7 @@ union Instruction {
             BitField<39, 1, u64> invert_a;
             BitField<40, 1, u64> invert_b;
             BitField<41, 2, LogicOperation> operation;
-            BitField<44, 2, u64> unk44;
+            BitField<44, 2, PredicateResultMode> pred_result_mode;
             BitField<48, 3, Pred> pred48;
         } lop;
 

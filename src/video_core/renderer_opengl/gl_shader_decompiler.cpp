@@ -756,26 +756,49 @@ private:
     }
 
     void WriteLogicOperation(Register dest, LogicOperation logic_op, const std::string& op_a,
-                             const std::string& op_b) {
+                             const std::string& op_b,
+                             Tegra::Shader::PredicateResultMode predicate_mode,
+                             Tegra::Shader::Pred predicate) {
+        std::string result{};
         switch (logic_op) {
         case LogicOperation::And: {
-            regs.SetRegisterToInteger(dest, true, 0, '(' + op_a + " & " + op_b + ')', 1, 1);
+            result = '(' + op_a + " & " + op_b + ')';
             break;
         }
         case LogicOperation::Or: {
-            regs.SetRegisterToInteger(dest, true, 0, '(' + op_a + " | " + op_b + ')', 1, 1);
+            result = '(' + op_a + " | " + op_b + ')';
             break;
         }
         case LogicOperation::Xor: {
-            regs.SetRegisterToInteger(dest, true, 0, '(' + op_a + " ^ " + op_b + ')', 1, 1);
+            result = '(' + op_a + " ^ " + op_b + ')';
             break;
         }
         case LogicOperation::PassB: {
-            regs.SetRegisterToInteger(dest, true, 0, op_b, 1, 1);
+            result = op_b;
             break;
         }
         default:
             LOG_CRITICAL(HW_GPU, "Unimplemented logic operation: {}", static_cast<u32>(logic_op));
+            UNREACHABLE();
+        }
+
+        if (dest != Tegra::Shader::Register::ZeroIndex) {
+            regs.SetRegisterToInteger(dest, true, 0, result, 1, 1);
+        }
+
+        using Tegra::Shader::PredicateResultMode;
+        // Write the predicate value depending on the predicate mode.
+        switch (predicate_mode) {
+        case PredicateResultMode::None:
+            // Do nothing.
+            return;
+        case PredicateResultMode::NotZero:
+            // Set the predicate to true if the result is not zero.
+            SetPredicate(static_cast<u64>(predicate), '(' + result + ") != 0");
+            break;
+        default:
+            LOG_CRITICAL(HW_GPU, "Unimplemented predicate result mode: {}",
+                         static_cast<u32>(predicate_mode));
             UNREACHABLE();
         }
     }
@@ -1099,7 +1122,9 @@ private:
                 if (instr.alu.lop32i.invert_b)
                     op_b = "~(" + op_b + ')';
 
-                WriteLogicOperation(instr.gpr0, instr.alu.lop32i.operation, op_a, op_b);
+                WriteLogicOperation(instr.gpr0, instr.alu.lop32i.operation, op_a, op_b,
+                                    Tegra::Shader::PredicateResultMode::None,
+                                    Tegra::Shader::Pred::UnusedIndex);
                 break;
             }
             default: {
@@ -1165,16 +1190,14 @@ private:
             case OpCode::Id::LOP_C:
             case OpCode::Id::LOP_R:
             case OpCode::Id::LOP_IMM: {
-                ASSERT_MSG(!instr.alu.lop.unk44, "Unimplemented");
-                ASSERT_MSG(instr.alu.lop.pred48 == Pred::UnusedIndex, "Unimplemented");
-
                 if (instr.alu.lop.invert_a)
                     op_a = "~(" + op_a + ')';
 
                 if (instr.alu.lop.invert_b)
                     op_b = "~(" + op_b + ')';
 
-                WriteLogicOperation(instr.gpr0, instr.alu.lop.operation, op_a, op_b);
+                WriteLogicOperation(instr.gpr0, instr.alu.lop.operation, op_a, op_b,
+                                    instr.alu.lop.pred_result_mode, instr.alu.lop.pred48);
                 break;
             }
             case OpCode::Id::IMNMX_C:
