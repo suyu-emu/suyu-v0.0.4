@@ -79,6 +79,9 @@ union Attribute {
         // shader, and a tuple of (TessCoord.x, TessCoord.y, TessCoord.z, ~) when inside a Tess Eval
         // shader.
         TessCoordInstanceIDVertexID = 47,
+        // This attribute contains a tuple of (Unk, Unk, Unk, gl_FrontFacing) when inside a fragment
+        // shader. It is unknown what the other values contain.
+        FrontFacing = 63,
     };
 
     union {
