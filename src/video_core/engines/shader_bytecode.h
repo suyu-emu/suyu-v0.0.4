@@ -12,6 +12,7 @@
 
 #include <boost/optional.hpp>
 
+#include "common/assert.h"
 #include "common/bit_field.h"
 #include "common/common_types.h"
 
@@ -446,16 +447,20 @@ union Instruction {
         }
 
         bool IsComponentEnabled(size_t component) const {
-            static constexpr std::array<std::array<u32, 8>, 4> mask_lut{
-                {{},
-                 {0x1, 0x2, 0x4, 0x8, 0x3},
-                 {0x1, 0x2, 0x4, 0x8, 0x3, 0x9, 0xa, 0xc},
-                 {0x7, 0xb, 0xd, 0xe, 0xf}}};
+            static constexpr std::array<std::array<u32, 8>, 4> mask_lut{{
+                {},
+                {0x1, 0x2, 0x4, 0x8, 0x3, 0x9, 0xa, 0xc},
+                {0x1, 0x2, 0x4, 0x8, 0x3, 0x9, 0xa, 0xc},
+                {0x7, 0xb, 0xd, 0xe, 0xf},
+            }};
 
             size_t index{gpr0.Value() != Register::ZeroIndex ? 1U : 0U};
             index |= gpr28.Value() != Register::ZeroIndex ? 2 : 0;
 
-            return ((1ull << component) & mask_lut[index][component_mask_selector]) != 0;
+            u32 mask = mask_lut[index][component_mask_selector];
+            // A mask of 0 means this instruction uses an unimplemented mask.
+            ASSERT(mask != 0);
+            return ((1ull << component) & mask) != 0;
         }
     } texs;
 
