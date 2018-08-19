@@ -521,6 +521,8 @@ public:
         LD_A,
         LD_C,
         ST_A,
+        LDG, // Load from global memory
+        STG, // Store in global memory
         TEX,
         TEXQ, // Texture Query
         TEXS, // Texture Fetch with scalar/non-vec4 source/destinations
@@ -732,6 +734,8 @@ private:
             INST("1110111111011---", Id::LD_A, Type::Memory, "LD_A"),
             INST("1110111110010---", Id::LD_C, Type::Memory, "LD_C"),
             INST("1110111111110---", Id::ST_A, Type::Memory, "ST_A"),
+            INST("1110111011010---", Id::LDG, Type::Memory, "LDG"),
+            INST("1110111011011---", Id::STG, Type::Memory, "STG"),
             INST("110000----111---", Id::TEX, Type::Memory, "TEX"),
             INST("1101111101001---", Id::TEXQ, Type::Memory, "TEXQ"),
             INST("1101100---------", Id::TEXS, Type::Memory, "TEXS"),
