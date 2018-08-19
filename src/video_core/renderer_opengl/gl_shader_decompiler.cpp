@@ -839,29 +839,29 @@ private:
         ++shader.scope;
         shader.AddLine(coord);
 
-        // TEXS has two destination registers. RG goes into gpr0+0 and gpr0+1, and BA
-        // goes into gpr28+0 and gpr28+1
-        size_t texs_offset{};
+        // TEXS has two destination registers and a swizzle. The first two elements in the swizzle
+        // go into gpr0+0 and gpr0+1, and the rest goes into gpr28+0 and gpr28+1
 
-        size_t src_elem{};
-        for (const auto& dest : {instr.gpr0.Value(), instr.gpr28.Value()}) {
-            size_t dest_elem{};
-            for (unsigned elem = 0; elem < 2; ++elem) {
-                if (!instr.texs.IsComponentEnabled(src_elem++)) {
-                    // Skip disabled components
-                    continue;
-                }
-                regs.SetRegisterToFloat(dest, elem + texs_offset, texture, 1, 4, false,
-                                        dest_elem++);
+        size_t written_components = 0;
+        for (u32 component = 0; component < 4; ++component) {
+            if (!instr.texs.IsComponentEnabled(component)) {
+                continue;
             }
 
-            if (!instr.texs.HasTwoDestinations()) {
-                // Skip the second destination
-                break;
+            if (written_components < 2) {
+                // Write the first two swizzle components to gpr0 and gpr0+1
+                regs.SetRegisterToFloat(instr.gpr0, component, texture, 1, 4, false,
+                                        written_components % 2);
+            } else {
+                ASSERT(instr.texs.HasTwoDestinations());
+                // Write the rest of the swizzle components to gpr28 and gpr28+1
+                regs.SetRegisterToFloat(instr.gpr28, component, texture, 1, 4, false,
+                                        written_components % 2);
             }
 
-            texs_offset += 2;
+            ++written_components;
         }
+
         --shader.scope;
         shader.AddLine('}');
     }
