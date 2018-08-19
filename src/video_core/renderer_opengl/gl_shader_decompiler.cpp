@@ -1293,8 +1293,6 @@ private:
             break;
         }
         case OpCode::Type::Conversion: {
-            ASSERT_MSG(!instr.conversion.negate_a, "Unimplemented");
-
             switch (opcode->GetId()) {
             case OpCode::Id::I2I_R: {
                 ASSERT_MSG(!instr.conversion.selector, "Unimplemented");
