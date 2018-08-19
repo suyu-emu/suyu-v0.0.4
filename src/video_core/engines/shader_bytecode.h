@@ -222,6 +222,13 @@ enum class PredicateResultMode : u64 {
     NotZero = 0x3,
 };
 
+enum class TextureType : u64 {
+    Texture1D = 0,
+    Texture2D = 1,
+    Texture3D = 2,
+    TextureCube = 3,
+};
+
 union Instruction {
     Instruction& operator=(const Instruction& instr) {
         value = instr.value;
@@ -429,6 +436,8 @@ union Instruction {
     } conversion;
 
     union {
+        BitField<28, 1, u64> array;
+        BitField<29, 2, TextureType> texture_type;
         BitField<31, 4, u64> component_mask;
 
         bool IsComponentEnabled(size_t component) const {
@@ -437,9 +446,39 @@ union Instruction {
     } tex;
 
     union {
-        BitField<50, 3, u64> component_mask_selector;
+        BitField<28, 1, u64> array;
+        BitField<29, 2, TextureType> texture_type;
+        BitField<56, 2, u64> component;
+    } tld4;
+
+    union {
+        BitField<52, 2, u64> component;
+    } tld4s;
+
+    union {
         BitField<0, 8, Register> gpr0;
         BitField<28, 8, Register> gpr28;
+        BitField<50, 3, u64> component_mask_selector;
+        BitField<53, 4, u64> texture_info;
+
+        TextureType GetTextureType() const {
+            // The TEXS instruction has a weird encoding for the texture type.
+            if (texture_info == 0)
+                return TextureType::Texture1D;
+            if (texture_info >= 1 && texture_info <= 9)
+                return TextureType::Texture2D;
+            if (texture_info >= 10 && texture_info <= 11)
+                return TextureType::Texture3D;
+            if (texture_info >= 12 && texture_info <= 13)
+                return TextureType::TextureCube;
+
+            UNIMPLEMENTED();
+        }
+
+        bool IsArrayTexture() const {
+            // TEXS only supports Texture2D arrays.
+            return texture_info >= 7 && texture_info <= 9;
+        }
 
         bool HasTwoDestinations() const {
             return gpr28.Value() != Register::ZeroIndex;
@@ -458,6 +497,31 @@ union Instruction {
             return ((1ull << component) & mask_lut[index][component_mask_selector]) != 0;
         }
     } texs;
+
+    union {
+        BitField<53, 4, u64> texture_info;
+
+        TextureType GetTextureType() const {
+            // The TLDS instruction has a weird encoding for the texture type.
+            if (texture_info >= 0 && texture_info <= 1) {
+                return TextureType::Texture1D;
+            }
+            if (texture_info == 2 || texture_info == 8 || texture_info == 12 ||
+                texture_info >= 4 && texture_info <= 6) {
+                return TextureType::Texture2D;
+            }
+            if (texture_info == 7) {
+                return TextureType::Texture3D;
+            }
+
+            UNIMPLEMENTED();
+        }
+
+        bool IsArrayTexture() const {
+            // TEXS only supports Texture2D arrays.
+            return texture_info == 8;
+        }
+    } tlds;
 
     union {
         BitField<20, 24, u64> target;
