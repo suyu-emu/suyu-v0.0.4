@@ -63,6 +63,7 @@ public:
     explicit RegisteredCache(VirtualDir dir,
                              RegisteredCacheParsingFunction parsing_function =
                                  [](const VirtualFile& file, const NcaID& id) { return file; });
+    ~RegisteredCache();
 
     void Refresh();
 

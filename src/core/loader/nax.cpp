@@ -6,8 +6,10 @@
 #include "core/core.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/romfs.h"
+#include "core/file_sys/xts_archive.h"
 #include "core/hle/kernel/process.h"
 #include "core/loader/nax.h"
+#include "core/loader/nca.h"
 
 namespace Loader {
 

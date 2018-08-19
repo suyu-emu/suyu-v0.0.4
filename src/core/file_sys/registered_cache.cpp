@@ -254,6 +254,8 @@ RegisteredCache::RegisteredCache(VirtualDir dir_, RegisteredCacheParsingFunction
     Refresh();
 }
 
+RegisteredCache::~RegisteredCache() = default;
+
 bool RegisteredCache::HasEntry(u64 title_id, ContentRecordType type) const {
     return GetEntryRaw(title_id, type) != nullptr;
 }

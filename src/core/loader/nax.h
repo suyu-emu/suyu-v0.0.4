@@ -6,18 +6,23 @@
 
 #include <memory>
 #include "common/common_types.h"
-#include "core/file_sys/card_image.h"
-#include "core/file_sys/xts_archive.h"
 #include "core/loader/loader.h"
-#include "core/loader/nca.h"
+
+namespace FileSys {
+
+class NAX;
+
+} // namespace FileSys
 
 namespace Loader {
+
+class AppLoader_NCA;
 
 /// Loads a NAX file
 class AppLoader_NAX final : public AppLoader {
 public:
     explicit AppLoader_NAX(FileSys::VirtualFile file);
-    ~AppLoader_NAX();
+    ~AppLoader_NAX() override;
 
     /**
      * Returns the type of the file

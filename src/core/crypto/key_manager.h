@@ -74,9 +74,7 @@ struct KeyIndex {
 // boost flat_map requires operator< for O(log(n)) lookups.
 template <typename KeyType>
 bool operator<(const KeyIndex<KeyType>& lhs, const KeyIndex<KeyType>& rhs) {
-    return (static_cast<size_t>(lhs.type) < static_cast<size_t>(rhs.type)) ||
-           (lhs.type == rhs.type && lhs.field1 < rhs.field1) ||
-           (lhs.type == rhs.type && lhs.field1 == rhs.field1 && lhs.field2 < rhs.field2);
+    return std::tie(lhs.type, lhs.field1, lhs.field2) < std::tie(rhs.type, rhs.field1, rhs.field2);
 }
 
 class KeyManager {
@@ -107,7 +105,7 @@ private:
     void AttemptLoadKeyFile(const std::string& dir1, const std::string& dir2,
                             const std::string& filename, bool title);
     template <size_t Size>
-    void WriteKeyToFile(bool title_key, std::string_view keyname, std::array<u8, Size> key);
+    void WriteKeyToFile(bool title_key, std::string_view keyname, const std::array<u8, Size>& key);
 
     static const boost::container::flat_map<std::string, KeyIndex<S128KeyType>> s128_file_id;
     static const boost::container::flat_map<std::string, KeyIndex<S256KeyType>> s256_file_id;
