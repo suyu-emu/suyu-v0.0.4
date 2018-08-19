@@ -377,6 +377,8 @@ bool GMainWindow::SupportsRequiredGLExtensions() {
         unsupported_ext.append("ARB_vertex_attrib_binding");
     if (!GLAD_GL_ARB_vertex_type_10f_11f_11f_rev)
         unsupported_ext.append("ARB_vertex_type_10f_11f_11f_rev");
+    if (!GLAD_GL_ARB_texture_mirror_clamp_to_edge)
+        unsupported_ext.append("ARB_texture_mirror_clamp_to_edge");
 
     // Extensions required to support some texture formats.
     if (!GLAD_GL_EXT_texture_compression_s3tc)
