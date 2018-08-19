@@ -19,6 +19,8 @@
 
 namespace FileSys {
 
+constexpr u64 NAX_HEADER_PADDING_SIZE = 0x4000;
+
 template <typename SourceData, typename SourceKey, typename Destination>
 static bool CalculateHMAC256(Destination* out, const SourceKey* key, size_t key_length,
                              const SourceData* data, size_t data_length) {
@@ -67,14 +69,14 @@ NAX::NAX(VirtualFile file_, std::array<u8, 0x10> nca_id)
                                Common::HexArrayToString(nca_id, false)));
 }
 
-Loader::ResultStatus NAX::Parse(std::string path) {
+Loader::ResultStatus NAX::Parse(std::string_view path) {
     if (file->ReadObject(header.get()) != sizeof(NAXHeader))
         return Loader::ResultStatus::ErrorBadNAXHeader;
 
     if (header->magic != Common::MakeMagic('N', 'A', 'X', '0'))
         return Loader::ResultStatus::ErrorBadNAXHeader;
 
-    if (file->GetSize() < 0x4000 + header->file_size)
+    if (file->GetSize() < NAX_HEADER_PADDING_SIZE + header->file_size)
         return Loader::ResultStatus::ErrorIncorrectNAXFileSize;
 
     keys.DeriveSDSeedLazy();
@@ -87,14 +89,14 @@ Loader::ResultStatus NAX::Parse(std::string path) {
     const auto enc_keys = header->key_area;
 
     size_t i = 0;
-    for (; i < 2; ++i) {
+    for (; i < sd_keys.size(); ++i) {
         std::array<Core::Crypto::Key128, 2> nax_keys{};
-        if (!CalculateHMAC256(nax_keys.data(), sd_keys[i].data(), 0x10, path.c_str(),
+        if (!CalculateHMAC256(nax_keys.data(), sd_keys[i].data(), 0x10, std::string(path).c_str(),
                               path.size())) {
             return Loader::ResultStatus::ErrorNAXKeyHMACFailed;
         }
 
-        for (size_t j = 0; j < 2; ++j) {
+        for (size_t j = 0; j < nax_keys.size(); ++j) {
             Core::Crypto::AESCipher<Core::Crypto::Key128> cipher(nax_keys[j],
                                                                  Core::Crypto::Mode::ECB);
             cipher.Transcode(enc_keys[j].data(), 0x10, header->key_area[j].data(),
@@ -117,28 +119,29 @@ Loader::ResultStatus NAX::Parse(std::string path) {
     type = static_cast<NAXContentType>(i);
 
     Core::Crypto::Key256 final_key{};
-    memcpy(final_key.data(), &header->key_area, 0x20);
-    const auto enc_file = std::make_shared<OffsetVfsFile>(file, header->file_size, 0x4000);
+    std::memcpy(final_key.data(), &header->key_area, final_key.size());
+    const auto enc_file =
+        std::make_shared<OffsetVfsFile>(file, header->file_size, NAX_HEADER_PADDING_SIZE);
     dec_file = std::make_shared<Core::Crypto::XTSEncryptionLayer>(enc_file, final_key);
 
     return Loader::ResultStatus::Success;
 }
 
-Loader::ResultStatus NAX::GetStatus() {
+Loader::ResultStatus NAX::GetStatus() const {
     return status;
 }
 
-VirtualFile NAX::GetDecrypted() {
+VirtualFile NAX::GetDecrypted() const {
     return dec_file;
 }
 
-std::shared_ptr<NCA> NAX::AsNCA() {
+std::shared_ptr<NCA> NAX::AsNCA() const {
     if (type == NAXContentType::NCA)
         return std::make_shared<NCA>(GetDecrypted());
     return nullptr;
 }
 
-NAXContentType NAX::GetContentType() {
+NAXContentType NAX::GetContentType() const {
     return type;
 }
 

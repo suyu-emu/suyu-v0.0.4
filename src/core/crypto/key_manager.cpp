@@ -102,7 +102,7 @@ Loader::ResultStatus DeriveSDKeys(std::array<Key256, 2>& sd_keys, const KeyManag
 
     AESCipher<Key128> cipher(sd_kek, Mode::ECB);
     for (size_t i = 0; i < 2; ++i) {
-        for (size_t j = 0; j < 0x20; ++j)
+        for (size_t j = 0; j < sd_key_sources[i].size(); ++j)
             sd_key_sources[i][j] ^= sd_seed[j & 0xF];
         cipher.Transcode(sd_key_sources[i].data(), sd_key_sources[i].size(), sd_keys[i].data(),
                          Op::Decrypt);

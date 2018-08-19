@@ -33,13 +33,13 @@ public:
     explicit NAX(VirtualFile file);
     explicit NAX(VirtualFile file, std::array<u8, 0x10> nca_id);
 
-    Loader::ResultStatus GetStatus();
+    Loader::ResultStatus GetStatus() const;
 
-    VirtualFile GetDecrypted();
+    VirtualFile GetDecrypted() const;
 
-    std::shared_ptr<NCA> AsNCA();
+    std::shared_ptr<NCA> AsNCA() const;
 
-    NAXContentType GetContentType();
+    NAXContentType GetContentType() const;
 
     std::vector<std::shared_ptr<VfsFile>> GetFiles() const override;
 
@@ -53,7 +53,7 @@ protected:
     bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
 
 private:
-    Loader::ResultStatus Parse(std::string path);
+    Loader::ResultStatus Parse(std::string_view path);
 
     std::unique_ptr<NAXHeader> header;
 
