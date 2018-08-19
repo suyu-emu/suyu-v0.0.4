@@ -524,9 +524,11 @@ public:
         LDG, // Load from global memory
         STG, // Store in global memory
         TEX,
-        TEXQ, // Texture Query
-        TEXS, // Texture Fetch with scalar/non-vec4 source/destinations
-        TLDS, // Texture Load with scalar/non-vec4 source/destinations
+        TEXQ,  // Texture Query
+        TEXS,  // Texture Fetch with scalar/non-vec4 source/destinations
+        TLDS,  // Texture Load with scalar/non-vec4 source/destinations
+        TLD4,  // Texture Load 4
+        TLD4S, // Texture Load 4 with scalar / non - vec4 source / destinations
         EXIT,
         IPA,
         FFMA_IMM, // Fused Multiply and Add
@@ -740,6 +742,8 @@ private:
             INST("1101111101001---", Id::TEXQ, Type::Memory, "TEXQ"),
             INST("1101100---------", Id::TEXS, Type::Memory, "TEXS"),
             INST("1101101---------", Id::TLDS, Type::Memory, "TLDS"),
+            INST("110010----111---", Id::TLD4, Type::Memory, "TLD4"),
+            INST("1101111100------", Id::TLD4S, Type::Memory, "TLD4S"),
             INST("111000110000----", Id::EXIT, Type::Trivial, "EXIT"),
             INST("11100000--------", Id::IPA, Type::Trivial, "IPA"),
             INST("0011001-1-------", Id::FFMA_IMM, Type::Ffma, "FFMA_IMM"),
