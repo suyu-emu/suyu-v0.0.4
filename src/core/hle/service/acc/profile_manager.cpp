@@ -207,7 +207,7 @@ UUID ProfileManager::GetLastOpenedUser() const {
 bool ProfileManager::GetProfileBaseAndData(boost::optional<size_t> index, ProfileBase& profile,
                                            ProfileData& data) const {
     if (GetProfileBase(index, profile)) {
-        std::memcpy(data.data(), profiles[index.get()].data.data(), MAX_DATA);
+        data = profiles[index.get()].data;
         return true;
     }
     return false;
