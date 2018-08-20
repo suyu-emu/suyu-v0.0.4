@@ -438,7 +438,7 @@ void GameListWorker::AddInstalledTitlesToGameList() {
 
         std::vector<u8> icon;
         std::string name;
-        u64 program_id;
+        u64 program_id = 0;
         loader->ReadProgramId(program_id);
 
         const auto& control =
@@ -509,7 +509,7 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
             std::vector<u8> icon;
             const auto res1 = loader->ReadIcon(icon);
 
-            u64 program_id;
+            u64 program_id = 0;
             const auto res2 = loader->ReadProgramId(program_id);
 
             std::string name = " ";
