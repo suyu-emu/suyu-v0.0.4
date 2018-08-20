@@ -13,7 +13,7 @@
 #include "core/hle/service/acc/acc_su.h"
 #include "core/hle/service/acc/acc_u0.h"
 #include "core/hle/service/acc/acc_u1.h"
-#include "core/settings.h"
+#include "core/hle/service/acc/profile_manager.h"
 
 namespace Service::Account {
 // TODO: RE this structure
@@ -201,6 +201,8 @@ Module::Interface::Interface(std::shared_ptr<Module> module,
                              std::shared_ptr<ProfileManager> profile_manager, const char* name)
     : ServiceFramework(name), module(std::move(module)),
       profile_manager(std::move(profile_manager)) {}
+
+Module::Interface::~Interface() = default;
 
 void InstallInterfaces(SM::ServiceManager& service_manager) {
     auto module = std::make_shared<Module>();
