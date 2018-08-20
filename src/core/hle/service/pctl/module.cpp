@@ -14,7 +14,8 @@ public:
     IParentalControlService() : ServiceFramework("IParentalControlService") {
         static const FunctionInfo functions[] = {
             {1, &IParentalControlService::Initialize, "Initialize"},
-            {1001, nullptr, "CheckFreeCommunicationPermission"},
+            {1001, &IParentalControlService::CheckFreeCommunicationPermission,
+             "CheckFreeCommunicationPermission"},
             {1002, nullptr, "ConfirmLaunchApplicationPermission"},
             {1003, nullptr, "ConfirmResumeApplicationPermission"},
             {1004, nullptr, "ConfirmSnsPostPermission"},
@@ -114,6 +115,12 @@ private:
     void Initialize(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_PCTL, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 2, 0, 0};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void CheckFreeCommunicationPermission(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_PCTL, "(STUBBED) called");
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 };
