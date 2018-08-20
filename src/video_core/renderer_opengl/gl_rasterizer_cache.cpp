@@ -94,6 +94,7 @@ struct FormatTuple {
 static constexpr std::array<FormatTuple, SurfaceParams::MaxPixelFormat> tex_format_tuples = {{
     {GL_RGBA8, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, ComponentType::UNorm, false}, // ABGR8U
     {GL_RGBA8, GL_RGBA, GL_BYTE, ComponentType::SNorm, false},                     // ABGR8S
+    {GL_RGBA8UI, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, ComponentType::UInt, false},   // ABGR8UI
     {GL_RGB, GL_RGB, GL_UNSIGNED_SHORT_5_6_5_REV, ComponentType::UNorm, false},    // B5G6R5U
     {GL_RGB10_A2, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV, ComponentType::UNorm,
      false}, // A2B10G10R10U
@@ -245,6 +246,7 @@ static constexpr std::array<void (*)(u32, u32, u32, std::vector<u8>&, Tegra::GPU
         // clang-format off
         MortonCopy<true, PixelFormat::ABGR8U>,
         MortonCopy<true, PixelFormat::ABGR8S>,
+        MortonCopy<true, PixelFormat::ABGR8UI>,
         MortonCopy<true, PixelFormat::B5G6R5U>,
         MortonCopy<true, PixelFormat::A2B10G10R10U>,
         MortonCopy<true, PixelFormat::A1B5G5R5U>,
@@ -299,6 +301,7 @@ static constexpr std::array<void (*)(u32, u32, u32, std::vector<u8>&, Tegra::GPU
         // clang-format off
         MortonCopy<false, PixelFormat::ABGR8U>,
         MortonCopy<false, PixelFormat::ABGR8S>,
+        MortonCopy<false, PixelFormat::ABGR8UI>,
         MortonCopy<false, PixelFormat::B5G6R5U>,
         MortonCopy<false, PixelFormat::A2B10G10R10U>,
         MortonCopy<false, PixelFormat::A1B5G5R5U>,

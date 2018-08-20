@@ -25,59 +25,60 @@ struct SurfaceParams {
     enum class PixelFormat {
         ABGR8U = 0,
         ABGR8S = 1,
-        B5G6R5U = 2,
-        A2B10G10R10U = 3,
-        A1B5G5R5U = 4,
-        R8U = 5,
-        R8UI = 6,
-        RGBA16F = 7,
-        RGBA16U = 8,
-        RGBA16UI = 9,
-        R11FG11FB10F = 10,
-        RGBA32UI = 11,
-        DXT1 = 12,
-        DXT23 = 13,
-        DXT45 = 14,
-        DXN1 = 15, // This is also known as BC4
-        DXN2UNORM = 16,
-        DXN2SNORM = 17,
-        BC7U = 18,
-        ASTC_2D_4X4 = 19,
-        G8R8U = 20,
-        G8R8S = 21,
-        BGRA8 = 22,
-        RGBA32F = 23,
-        RG32F = 24,
-        R32F = 25,
-        R16F = 26,
-        R16U = 27,
-        R16S = 28,
-        R16UI = 29,
-        R16I = 30,
-        RG16 = 31,
-        RG16F = 32,
-        RG16UI = 33,
-        RG16I = 34,
-        RG16S = 35,
-        RGB32F = 36,
-        SRGBA8 = 37,
-        RG8U = 38,
-        RG8S = 39,
-        RG32UI = 40,
-        R32UI = 41,
+        ABGR8UI = 2,
+        B5G6R5U = 3,
+        A2B10G10R10U = 4,
+        A1B5G5R5U = 5,
+        R8U = 6,
+        R8UI = 7,
+        RGBA16F = 8,
+        RGBA16U = 9,
+        RGBA16UI = 10,
+        R11FG11FB10F = 11,
+        RGBA32UI = 12,
+        DXT1 = 13,
+        DXT23 = 14,
+        DXT45 = 15,
+        DXN1 = 16, // This is also known as BC4
+        DXN2UNORM = 17,
+        DXN2SNORM = 18,
+        BC7U = 19,
+        ASTC_2D_4X4 = 20,
+        G8R8U = 21,
+        G8R8S = 22,
+        BGRA8 = 23,
+        RGBA32F = 24,
+        RG32F = 25,
+        R32F = 26,
+        R16F = 27,
+        R16U = 28,
+        R16S = 29,
+        R16UI = 30,
+        R16I = 31,
+        RG16 = 32,
+        RG16F = 33,
+        RG16UI = 34,
+        RG16I = 35,
+        RG16S = 36,
+        RGB32F = 37,
+        SRGBA8 = 38,
+        RG8U = 39,
+        RG8S = 40,
+        RG32UI = 41,
+        R32UI = 42,
 
         MaxColorFormat,
 
         // Depth formats
-        Z32F = 42,
-        Z16 = 43,
+        Z32F = 43,
+        Z16 = 44,
 
         MaxDepthFormat,
 
         // DepthStencil formats
-        Z24S8 = 44,
-        S8Z24 = 45,
-        Z32FS8 = 46,
+        Z24S8 = 45,
+        S8Z24 = 46,
+        Z32FS8 = 47,
 
         MaxDepthStencilFormat,
 
@@ -117,6 +118,7 @@ struct SurfaceParams {
         constexpr std::array<u32, MaxPixelFormat> compression_factor_table = {{
             1, // ABGR8U
             1, // ABGR8S
+            1, // ABGR8UI
             1, // B5G6R5U
             1, // A2B10G10R10U
             1, // A1B5G5R5U
@@ -175,6 +177,7 @@ struct SurfaceParams {
         constexpr std::array<u32, MaxPixelFormat> bpp_table = {{
             32,  // ABGR8U
             32,  // ABGR8S
+            32,  // ABGR8UI
             16,  // B5G6R5U
             32,  // A2B10G10R10U
             16,  // A1B5G5R5U
@@ -257,6 +260,8 @@ struct SurfaceParams {
             return PixelFormat::ABGR8U;
         case Tegra::RenderTargetFormat::RGBA8_SNORM:
             return PixelFormat::ABGR8S;
+        case Tegra::RenderTargetFormat::RGBA8_UINT:
+            return PixelFormat::ABGR8UI;
         case Tegra::RenderTargetFormat::BGRA8_UNORM:
             return PixelFormat::BGRA8;
         case Tegra::RenderTargetFormat::RGB10_A2_UNORM:
@@ -327,6 +332,8 @@ struct SurfaceParams {
                 return PixelFormat::ABGR8U;
             case Tegra::Texture::ComponentType::SNORM:
                 return PixelFormat::ABGR8S;
+            case Tegra::Texture::ComponentType::UINT:
+                return PixelFormat::ABGR8UI;
             }
             LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}",
                          static_cast<u32>(component_type));
@@ -551,6 +558,7 @@ struct SurfaceParams {
         case Tegra::RenderTargetFormat::R16_UINT:
         case Tegra::RenderTargetFormat::RG32_UINT:
         case Tegra::RenderTargetFormat::R32_UINT:
+        case Tegra::RenderTargetFormat::RGBA8_UINT:
             return ComponentType::UInt;
         case Tegra::RenderTargetFormat::RG16_SINT:
         case Tegra::RenderTargetFormat::R16_SINT:
