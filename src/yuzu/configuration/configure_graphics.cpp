@@ -12,6 +12,10 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
 
     ui->setupUi(this);
     this->setConfiguration();
+
+    ui->frame_limit->setEnabled(Settings::values.use_frame_limit);
+    connect(ui->toggle_frame_limit, &QCheckBox::stateChanged, ui->frame_limit,
+            &QSpinBox::setEnabled);
 }
 
 ConfigureGraphics::~ConfigureGraphics() = default;
@@ -58,13 +62,15 @@ Resolution FromResolutionFactor(float factor) {
 void ConfigureGraphics::setConfiguration() {
     ui->resolution_factor_combobox->setCurrentIndex(
         static_cast<int>(FromResolutionFactor(Settings::values.resolution_factor)));
-    ui->toggle_framelimit->setChecked(Settings::values.toggle_framelimit);
+    ui->toggle_frame_limit->setChecked(Settings::values.use_frame_limit);
+    ui->frame_limit->setValue(Settings::values.frame_limit);
     ui->use_accurate_framebuffers->setChecked(Settings::values.use_accurate_framebuffers);
 }
 
 void ConfigureGraphics::applyConfiguration() {
     Settings::values.resolution_factor =
         ToResolutionFactor(static_cast<Resolution>(ui->resolution_factor_combobox->currentIndex()));
-    Settings::values.toggle_framelimit = ui->toggle_framelimit->isChecked();
+    Settings::values.use_frame_limit = ui->toggle_frame_limit->isChecked();
+    Settings::values.frame_limit = ui->frame_limit->value();
     Settings::values.use_accurate_framebuffers = ui->use_accurate_framebuffers->isChecked();
 }
