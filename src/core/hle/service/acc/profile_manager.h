@@ -21,16 +21,14 @@ struct UUID {
     u128 uuid = INVALID_UUID;
     UUID() = default;
     explicit UUID(const u128& id) : uuid{id} {}
-    explicit UUID(const u64 lo, const u64 hi) {
-        uuid[0] = lo;
-        uuid[1] = hi;
-    };
+    explicit UUID(const u64 lo, const u64 hi) : uuid{{lo, hi}} {}
+
     explicit operator bool() const {
-        return uuid[0] != INVALID_UUID[0] || uuid[1] != INVALID_UUID[1];
+        return uuid != INVALID_UUID;
     }
 
     bool operator==(const UUID& rhs) const {
-        return std::tie(uuid[0], uuid[1]) == std::tie(rhs.uuid[0], rhs.uuid[1]);
+        return uuid == rhs.uuid;
     }
 
     bool operator!=(const UUID& rhs) const {
