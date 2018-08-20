@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <random>
 #include <boost/optional.hpp>
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/settings.h"
@@ -11,6 +12,15 @@ namespace Service::Account {
 constexpr ResultCode ERROR_TOO_MANY_USERS(ErrorModule::Account, -1);
 constexpr ResultCode ERROR_USER_ALREADY_EXISTS(ErrorModule::Account, -2);
 constexpr ResultCode ERROR_ARGUMENT_IS_NULL(ErrorModule::Account, 20);
+
+const UUID& UUID::Generate() {
+    std::random_device device;
+    std::mt19937 gen(device());
+    std::uniform_int_distribution<u64> distribution(1, std::numeric_limits<u64>::max());
+    uuid[0] = distribution(gen);
+    uuid[1] = distribution(gen);
+    return *this;
+}
 
 ProfileManager::ProfileManager() {
     // TODO(ogniK): Create the default user we have for now until loading/saving users is added
