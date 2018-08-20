@@ -111,7 +111,7 @@ private:
     size_t user_count = 0;
     boost::optional<size_t> AddToProfiles(const ProfileInfo& profile);
     bool RemoveProfileAtIndex(size_t index);
-    UUID last_opened_user{0, 0};
+    UUID last_opened_user{INVALID_UUID};
 };
 
 }; // namespace Service::Account
