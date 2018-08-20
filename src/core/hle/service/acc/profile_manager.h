@@ -14,7 +14,7 @@
 namespace Service::Account {
 constexpr size_t MAX_USERS = 8;
 constexpr size_t MAX_DATA = 128;
-static const u128 INVALID_UUID = {0, 0};
+constexpr u128 INVALID_UUID{{0, 0}};
 
 struct UUID {
     // UUIDs which are 0 are considered invalid!
