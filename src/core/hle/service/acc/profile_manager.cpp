@@ -62,7 +62,7 @@ ResultCode ProfileManager::AddUser(ProfileInfo user) {
 
 /// Create a new user on the system. If the uuid of the user already exists, the user is not
 /// created.
-ResultCode ProfileManager::CreateNewUser(UUID uuid, std::array<u8, 0x20>& username) {
+ResultCode ProfileManager::CreateNewUser(UUID uuid, const std::array<u8, 0x20>& username) {
     if (user_count == MAX_USERS) {
         return ERROR_TOO_MANY_USERS;
     }

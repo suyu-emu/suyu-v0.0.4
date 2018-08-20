@@ -79,7 +79,7 @@ class ProfileManager {
 public:
     ProfileManager(); // TODO(ogniK): Load from system save
     ResultCode AddUser(ProfileInfo user);
-    ResultCode CreateNewUser(UUID uuid, std::array<u8, 0x20>& username);
+    ResultCode CreateNewUser(UUID uuid, const std::array<u8, 0x20>& username);
     ResultCode CreateNewUser(UUID uuid, const std::string& username);
     boost::optional<size_t> GetUserIndex(const UUID& uuid) const;
     boost::optional<size_t> GetUserIndex(ProfileInfo user) const;
