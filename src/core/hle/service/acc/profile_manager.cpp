@@ -25,7 +25,7 @@ boost::optional<size_t> ProfileManager::AddToProfiles(const ProfileInfo& user) {
     if (user_count >= MAX_USERS) {
         return boost::none;
     }
-    profiles[user_count] = std::move(user);
+    profiles[user_count] = user;
     return user_count++;
 }
 
@@ -67,7 +67,7 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, std::array<u8, 0x20>& userna
         return ERROR_USER_ALREADY_EXISTS;
     }
     ProfileInfo profile;
-    profile.user_uuid = std::move(uuid);
+    profile.user_uuid = uuid;
     profile.username = username;
     profile.data = {};
     profile.creation_time = 0x0;
