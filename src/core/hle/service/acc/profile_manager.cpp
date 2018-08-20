@@ -53,7 +53,7 @@ bool ProfileManager::RemoveProfileAtIndex(size_t index) {
 }
 
 /// Helper function to register a user to the system
-ResultCode ProfileManager::AddUser(ProfileInfo user) {
+ResultCode ProfileManager::AddUser(const ProfileInfo& user) {
     if (AddToProfiles(user) == boost::none) {
         return ERROR_TOO_MANY_USERS;
     }
@@ -112,7 +112,7 @@ boost::optional<size_t> ProfileManager::GetUserIndex(const UUID& uuid) const {
 }
 
 /// Returns a users profile index based on their profile
-boost::optional<size_t> ProfileManager::GetUserIndex(ProfileInfo user) const {
+boost::optional<size_t> ProfileManager::GetUserIndex(const ProfileInfo& user) const {
     return GetUserIndex(user.user_uuid);
 }
 
@@ -135,7 +135,7 @@ bool ProfileManager::GetProfileBase(UUID uuid, ProfileBase& profile) const {
 }
 
 /// Returns the data structure used by the switch when GetProfileBase is called on acc:*
-bool ProfileManager::GetProfileBase(ProfileInfo user, ProfileBase& profile) const {
+bool ProfileManager::GetProfileBase(const ProfileInfo& user, ProfileBase& profile) const {
     return GetProfileBase(user.user_uuid, profile);
 }
 
@@ -221,7 +221,7 @@ bool ProfileManager::GetProfileBaseAndData(UUID uuid, ProfileBase& profile,
 }
 
 /// Return the users profile base and the unknown arbitary data.
-bool ProfileManager::GetProfileBaseAndData(ProfileInfo user, ProfileBase& profile,
+bool ProfileManager::GetProfileBaseAndData(const ProfileInfo& user, ProfileBase& profile,
                                            std::array<u8, MAX_DATA>& data) const {
     return GetProfileBaseAndData(user.user_uuid, profile, data);
 }

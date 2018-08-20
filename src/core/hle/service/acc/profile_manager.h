@@ -78,19 +78,19 @@ static_assert(sizeof(ProfileBase) == 0x38, "ProfileBase is an invalid size");
 class ProfileManager {
 public:
     ProfileManager(); // TODO(ogniK): Load from system save
-    ResultCode AddUser(ProfileInfo user);
+    ResultCode AddUser(const ProfileInfo& user);
     ResultCode CreateNewUser(UUID uuid, const std::array<u8, 0x20>& username);
     ResultCode CreateNewUser(UUID uuid, const std::string& username);
     boost::optional<size_t> GetUserIndex(const UUID& uuid) const;
-    boost::optional<size_t> GetUserIndex(ProfileInfo user) const;
+    boost::optional<size_t> GetUserIndex(const ProfileInfo& user) const;
     bool GetProfileBase(boost::optional<size_t> index, ProfileBase& profile) const;
     bool GetProfileBase(UUID uuid, ProfileBase& profile) const;
-    bool GetProfileBase(ProfileInfo user, ProfileBase& profile) const;
+    bool GetProfileBase(const ProfileInfo& user, ProfileBase& profile) const;
     bool GetProfileBaseAndData(boost::optional<size_t> index, ProfileBase& profile,
                                std::array<u8, MAX_DATA>& data) const;
     bool GetProfileBaseAndData(UUID uuid, ProfileBase& profile,
                                std::array<u8, MAX_DATA>& data) const;
-    bool GetProfileBaseAndData(ProfileInfo user, ProfileBase& profile,
+    bool GetProfileBaseAndData(const ProfileInfo& user, ProfileBase& profile,
                                std::array<u8, MAX_DATA>& data) const;
     size_t GetUserCount() const;
     size_t GetOpenUserCount() const;
