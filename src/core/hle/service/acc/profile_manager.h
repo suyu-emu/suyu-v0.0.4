@@ -48,20 +48,24 @@ struct UUID {
 };
 static_assert(sizeof(UUID) == 16, "UUID is an invalid size!");
 
+using ProfileUsername = std::array<u8, 0x20>;
+using ProfileData = std::array<u8, MAX_DATA>;
+using UserIDArray = std::array<UUID, MAX_USERS>;
+
 /// This holds general information about a users profile. This is where we store all the information
 /// based on a specific user
 struct ProfileInfo {
     UUID user_uuid;
-    std::array<u8, 0x20> username;
+    ProfileUsername username;
     u64 creation_time;
-    std::array<u8, MAX_DATA> data; // TODO(ognik): Work out what this is
+    ProfileData data; // TODO(ognik): Work out what this is
     bool is_open;
 };
 
 struct ProfileBase {
     UUID user_uuid;
     u64_le timestamp;
-    std::array<u8, 0x20> username;
+    ProfileUsername username;
 
     // Zero out all the fields to make the profile slot considered "Empty"
     void Invalidate() {
@@ -79,7 +83,7 @@ class ProfileManager {
 public:
     ProfileManager(); // TODO(ogniK): Load from system save
     ResultCode AddUser(const ProfileInfo& user);
-    ResultCode CreateNewUser(UUID uuid, const std::array<u8, 0x20>& username);
+    ResultCode CreateNewUser(UUID uuid, const ProfileUsername& username);
     ResultCode CreateNewUser(UUID uuid, const std::string& username);
     boost::optional<size_t> GetUserIndex(const UUID& uuid) const;
     boost::optional<size_t> GetUserIndex(const ProfileInfo& user) const;
@@ -87,18 +91,17 @@ public:
     bool GetProfileBase(UUID uuid, ProfileBase& profile) const;
     bool GetProfileBase(const ProfileInfo& user, ProfileBase& profile) const;
     bool GetProfileBaseAndData(boost::optional<size_t> index, ProfileBase& profile,
-                               std::array<u8, MAX_DATA>& data) const;
-    bool GetProfileBaseAndData(UUID uuid, ProfileBase& profile,
-                               std::array<u8, MAX_DATA>& data) const;
+                               ProfileData& data) const;
+    bool GetProfileBaseAndData(UUID uuid, ProfileBase& profile, ProfileData& data) const;
     bool GetProfileBaseAndData(const ProfileInfo& user, ProfileBase& profile,
-                               std::array<u8, MAX_DATA>& data) const;
+                               ProfileData& data) const;
     size_t GetUserCount() const;
     size_t GetOpenUserCount() const;
     bool UserExists(UUID uuid) const;
     void OpenUser(UUID uuid);
     void CloseUser(UUID uuid);
-    std::array<UUID, MAX_USERS> GetOpenUsers() const;
-    std::array<UUID, MAX_USERS> GetAllUsers() const;
+    UserIDArray GetOpenUsers() const;
+    UserIDArray GetAllUsers() const;
     UUID GetLastOpenedUser() const;
 
     bool CanSystemRegisterUser() const;

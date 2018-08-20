@@ -62,7 +62,7 @@ ResultCode ProfileManager::AddUser(const ProfileInfo& user) {
 
 /// Create a new user on the system. If the uuid of the user already exists, the user is not
 /// created.
-ResultCode ProfileManager::CreateNewUser(UUID uuid, const std::array<u8, 0x20>& username) {
+ResultCode ProfileManager::CreateNewUser(UUID uuid, const ProfileUsername& username) {
     if (user_count == MAX_USERS) {
         return ERROR_TOO_MANY_USERS;
     }
@@ -89,7 +89,7 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, const std::array<u8, 0x20>& 
 /// specifically by allowing an std::string for the username. This is required specifically since
 /// we're loading a string straight from the config
 ResultCode ProfileManager::CreateNewUser(UUID uuid, const std::string& username) {
-    std::array<u8, 0x20> username_output;
+    ProfileUsername username_output;
     if (username.size() > username_output.size()) {
         std::copy_n(username.begin(), username_output.size(), username_output.begin());
     } else {
@@ -178,8 +178,8 @@ void ProfileManager::CloseUser(UUID uuid) {
 }
 
 /// Gets all valid user ids on the system
-std::array<UUID, MAX_USERS> ProfileManager::GetAllUsers() const {
-    std::array<UUID, MAX_USERS> output;
+UserIDArray ProfileManager::GetAllUsers() const {
+    UserIDArray output;
     std::transform(profiles.begin(), profiles.end(), output.begin(),
                    [](const ProfileInfo& p) { return p.user_uuid; });
     return output;
@@ -187,8 +187,8 @@ std::array<UUID, MAX_USERS> ProfileManager::GetAllUsers() const {
 
 /// Get all the open users on the system and zero out the rest of the data. This is specifically
 /// needed for GetOpenUsers and we need to ensure the rest of the output buffer is zero'd out
-std::array<UUID, MAX_USERS> ProfileManager::GetOpenUsers() const {
-    std::array<UUID, MAX_USERS> output;
+UserIDArray ProfileManager::GetOpenUsers() const {
+    UserIDArray output;
     std::transform(profiles.begin(), profiles.end(), output.begin(), [](const ProfileInfo& p) {
         if (p.is_open)
             return p.user_uuid;
@@ -205,7 +205,7 @@ UUID ProfileManager::GetLastOpenedUser() const {
 
 /// Return the users profile base and the unknown arbitary data.
 bool ProfileManager::GetProfileBaseAndData(boost::optional<size_t> index, ProfileBase& profile,
-                                           std::array<u8, MAX_DATA>& data) const {
+                                           ProfileData& data) const {
     if (GetProfileBase(index, profile)) {
         std::memcpy(data.data(), profiles[index.get()].data.data(), MAX_DATA);
         return true;
@@ -215,14 +215,14 @@ bool ProfileManager::GetProfileBaseAndData(boost::optional<size_t> index, Profil
 
 /// Return the users profile base and the unknown arbitary data.
 bool ProfileManager::GetProfileBaseAndData(UUID uuid, ProfileBase& profile,
-                                           std::array<u8, MAX_DATA>& data) const {
+                                           ProfileData& data) const {
     auto idx = GetUserIndex(uuid);
     return GetProfileBaseAndData(idx, profile, data);
 }
 
 /// Return the users profile base and the unknown arbitary data.
 bool ProfileManager::GetProfileBaseAndData(const ProfileInfo& user, ProfileBase& profile,
-                                           std::array<u8, MAX_DATA>& data) const {
+                                           ProfileData& data) const {
     return GetProfileBaseAndData(user.user_uuid, profile, data);
 }
 
