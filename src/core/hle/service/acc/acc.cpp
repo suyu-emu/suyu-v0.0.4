@@ -30,7 +30,7 @@ static_assert(sizeof(UserData) == 0x80, "UserData structure has incorrect size")
 class IProfile final : public ServiceFramework<IProfile> {
 public:
     explicit IProfile(UUID user_id, ProfileManager& profile_manager)
-        : ServiceFramework("IProfile"), user_id(user_id), profile_manager(profile_manager) {
+        : ServiceFramework("IProfile"), profile_manager(profile_manager), user_id(user_id) {
         static const FunctionInfo functions[] = {
             {0, &IProfile::Get, "Get"},
             {1, &IProfile::GetBase, "GetBase"},
