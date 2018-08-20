@@ -58,9 +58,6 @@ public:
     void RefreshBaseSettings();
 
 protected:
-    /// Refreshes settings specific to the rasterizer.
-    void RefreshRasterizerSetting();
-
     Core::Frontend::EmuWindow& render_window; ///< Reference to the render window handle.
     std::unique_ptr<RasterizerInterface> rasterizer;
     f32 m_current_fps = 0.0f; ///< Current framerate, should be set by the renderer

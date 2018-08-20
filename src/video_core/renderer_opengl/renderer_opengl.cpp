@@ -16,6 +16,7 @@
 #include "core/memory.h"
 #include "core/settings.h"
 #include "core/tracer/recorder.h"
+#include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
 #include "video_core/utils.h"
 
@@ -142,7 +143,6 @@ void RendererOpenGL::SwapBuffers(boost::optional<const Tegra::FramebufferConfig&
 
     // Restore the rasterizer state
     prev_state.Apply();
-    RefreshRasterizerSetting();
 }
 
 /**
@@ -274,6 +274,14 @@ void RendererOpenGL::InitOpenGLObjects() {
 
     // Clear screen to black
     LoadColorToActiveGLTexture(0, 0, 0, 0, screen_info.texture);
+}
+
+void RendererOpenGL::CreateRasterizer() {
+    if (rasterizer) {
+        return;
+    }
+
+    rasterizer = std::make_unique<RasterizerOpenGL>(render_window);
 }
 
 void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
@@ -463,8 +471,7 @@ bool RendererOpenGL::Init() {
     }
 
     InitOpenGLObjects();
-
-    RefreshRasterizerSetting();
+    CreateRasterizer();
 
     return true;
 }

@@ -2,7 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <memory>
 #include "core/frontend/emu_window.h"
 #include "core/settings.h"
 #include "video_core/renderer_base.h"
@@ -17,16 +16,9 @@ RendererBase::RendererBase(Core::Frontend::EmuWindow& window) : render_window{wi
 RendererBase::~RendererBase() = default;
 
 void RendererBase::RefreshBaseSettings() {
-    RefreshRasterizerSetting();
     UpdateCurrentFramebufferLayout();
 
     renderer_settings.use_framelimiter = Settings::values.toggle_framelimit;
-}
-
-void RendererBase::RefreshRasterizerSetting() {
-    if (rasterizer == nullptr) {
-        rasterizer = std::make_unique<RasterizerOpenGL>(render_window);
-    }
 }
 
 void RendererBase::UpdateCurrentFramebufferLayout() {

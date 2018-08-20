@@ -59,6 +59,8 @@ public:
 
 private:
     void InitOpenGLObjects();
+    void CreateRasterizer();
+
     void ConfigureFramebufferTexture(TextureInfo& texture,
                                      const Tegra::FramebufferConfig& framebuffer);
     void DrawScreen();
