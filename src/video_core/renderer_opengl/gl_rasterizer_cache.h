@@ -722,7 +722,8 @@ public:
     Surface GetTextureSurface(const Tegra::Texture::FullTextureInfo& config);
 
     /// Get the color and depth surfaces based on the framebuffer configuration
-    SurfaceSurfaceRect_Tuple GetFramebufferSurfaces(bool using_color_fb, bool using_depth_fb);
+    SurfaceSurfaceRect_Tuple GetFramebufferSurfaces(bool using_color_fb, bool using_depth_fb,
+                                                    bool preserve_contents);
 
     /// Flushes the surface to Switch memory
     void FlushSurface(const Surface& surface);
@@ -738,7 +739,7 @@ public:
 
 private:
     void LoadSurface(const Surface& surface);
-    Surface GetSurface(const SurfaceParams& params);
+    Surface GetSurface(const SurfaceParams& params, bool preserve_contents = true);
 
     /// Recreates a surface with new parameters
     Surface RecreateSurface(const Surface& surface, const SurfaceParams& new_params);

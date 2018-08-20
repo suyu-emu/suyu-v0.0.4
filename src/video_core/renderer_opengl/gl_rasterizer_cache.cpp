@@ -686,7 +686,8 @@ Surface RasterizerCacheOpenGL::GetTextureSurface(const Tegra::Texture::FullTextu
 }
 
 SurfaceSurfaceRect_Tuple RasterizerCacheOpenGL::GetFramebufferSurfaces(bool using_color_fb,
-                                                                       bool using_depth_fb) {
+                                                                       bool using_depth_fb,
+                                                                       bool preserve_contents) {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
     // TODO(bunnei): This is hard corded to use just the first render buffer
@@ -708,7 +709,7 @@ SurfaceSurfaceRect_Tuple RasterizerCacheOpenGL::GetFramebufferSurfaces(bool usin
     MathUtil::Rectangle<u32> color_rect{};
     Surface color_surface;
     if (using_color_fb) {
-        color_surface = GetSurface(color_params);
+        color_surface = GetSurface(color_params, preserve_contents);
         if (color_surface) {
             color_rect = color_surface->GetSurfaceParams().GetRect();
         }
@@ -717,7 +718,7 @@ SurfaceSurfaceRect_Tuple RasterizerCacheOpenGL::GetFramebufferSurfaces(bool usin
     MathUtil::Rectangle<u32> depth_rect{};
     Surface depth_surface;
     if (using_depth_fb) {
-        depth_surface = GetSurface(depth_params);
+        depth_surface = GetSurface(depth_params, preserve_contents);
         if (depth_surface) {
             depth_rect = depth_surface->GetSurfaceParams().GetRect();
         }
@@ -752,7 +753,7 @@ void RasterizerCacheOpenGL::FlushSurface(const Surface& surface) {
     surface->FlushGLBuffer();
 }
 
-Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params) {
+Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params, bool preserve_contents) {
     if (params.addr == 0 || params.height * params.width == 0) {
         return {};
     }
@@ -774,9 +775,13 @@ Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params) {
         } else if (surface->GetSurfaceParams().IsCompatibleSurface(params)) {
             // Use the cached surface as-is
             return surface;
-        } else {
-            // If surface parameters changed, recreate the surface from the old one
+        } else if (preserve_contents) {
+            // If surface parameters changed and we care about keeping the previous data, recreate
+            // the surface from the old one
             return RecreateSurface(surface, params);
+        } else {
+            // Delete the old surface before creating a new one to prevent collisions.
+            UnregisterSurface(surface);
         }
     }
 
