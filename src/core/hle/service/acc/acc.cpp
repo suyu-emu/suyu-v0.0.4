@@ -27,9 +27,6 @@ struct UserData {
 };
 static_assert(sizeof(UserData) == 0x80, "UserData structure has incorrect size");
 
-// TODO(ogniK): Generate a real user id based on username, md5(username) maybe?
-static UUID DEFAULT_USER_ID{1ull, 0ull};
-
 class IProfile final : public ServiceFramework<IProfile> {
 public:
     explicit IProfile(UUID user_id, ProfileManager& profile_manager)
