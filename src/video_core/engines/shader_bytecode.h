@@ -223,6 +223,13 @@ enum class PredicateResultMode : u64 {
     NotZero = 0x3,
 };
 
+enum class TextureType : u64 {
+    Texture1D = 0,
+    Texture2D = 1,
+    Texture3D = 2,
+    TextureCube = 3,
+};
+
 union Instruction {
     Instruction& operator=(const Instruction& instr) {
         value = instr.value;
@@ -434,6 +441,8 @@ union Instruction {
     } conversion;
 
     union {
+        BitField<28, 1, u64> array;
+        BitField<29, 2, TextureType> texture_type;
         BitField<31, 4, u64> component_mask;
 
         bool IsComponentEnabled(size_t component) const {
@@ -442,9 +451,39 @@ union Instruction {
     } tex;
 
     union {
-        BitField<50, 3, u64> component_mask_selector;
+        BitField<28, 1, u64> array;
+        BitField<29, 2, TextureType> texture_type;
+        BitField<56, 2, u64> component;
+    } tld4;
+
+    union {
+        BitField<52, 2, u64> component;
+    } tld4s;
+
+    union {
         BitField<0, 8, Register> gpr0;
         BitField<28, 8, Register> gpr28;
+        BitField<50, 3, u64> component_mask_selector;
+        BitField<53, 4, u64> texture_info;
+
+        TextureType GetTextureType() const {
+            // The TEXS instruction has a weird encoding for the texture type.
+            if (texture_info == 0)
+                return TextureType::Texture1D;
+            if (texture_info >= 1 && texture_info <= 9)
+                return TextureType::Texture2D;
+            if (texture_info >= 10 && texture_info <= 11)
+                return TextureType::Texture3D;
+            if (texture_info >= 12 && texture_info <= 13)
+                return TextureType::TextureCube;
+
+            UNIMPLEMENTED();
+        }
+
+        bool IsArrayTexture() const {
+            // TEXS only supports Texture2D arrays.
+            return texture_info >= 7 && texture_info <= 9;
+        }
 
         bool HasTwoDestinations() const {
             return gpr28.Value() != Register::ZeroIndex;
@@ -467,6 +506,31 @@ union Instruction {
             return ((1ull << component) & mask) != 0;
         }
     } texs;
+
+    union {
+        BitField<53, 4, u64> texture_info;
+
+        TextureType GetTextureType() const {
+            // The TLDS instruction has a weird encoding for the texture type.
+            if (texture_info >= 0 && texture_info <= 1) {
+                return TextureType::Texture1D;
+            }
+            if (texture_info == 2 || texture_info == 8 || texture_info == 12 ||
+                texture_info >= 4 && texture_info <= 6) {
+                return TextureType::Texture2D;
+            }
+            if (texture_info == 7) {
+                return TextureType::Texture3D;
+            }
+
+            UNIMPLEMENTED();
+        }
+
+        bool IsArrayTexture() const {
+            // TEXS only supports Texture2D arrays.
+            return texture_info == 8;
+        }
+    } tlds;
 
     union {
         BitField<20, 24, u64> target;
@@ -533,9 +597,11 @@ public:
         LDG, // Load from global memory
         STG, // Store in global memory
         TEX,
-        TEXQ, // Texture Query
-        TEXS, // Texture Fetch with scalar/non-vec4 source/destinations
-        TLDS, // Texture Load with scalar/non-vec4 source/destinations
+        TEXQ,  // Texture Query
+        TEXS,  // Texture Fetch with scalar/non-vec4 source/destinations
+        TLDS,  // Texture Load with scalar/non-vec4 source/destinations
+        TLD4,  // Texture Load 4
+        TLD4S, // Texture Load 4 with scalar / non - vec4 source / destinations
         EXIT,
         IPA,
         FFMA_IMM, // Fused Multiply and Add
@@ -749,6 +815,8 @@ private:
             INST("1101111101001---", Id::TEXQ, Type::Memory, "TEXQ"),
             INST("1101100---------", Id::TEXS, Type::Memory, "TEXS"),
             INST("1101101---------", Id::TLDS, Type::Memory, "TLDS"),
+            INST("110010----111---", Id::TLD4, Type::Memory, "TLD4"),
+            INST("1101111100------", Id::TLD4S, Type::Memory, "TLD4S"),
             INST("111000110000----", Id::EXIT, Type::Trivial, "EXIT"),
             INST("11100000--------", Id::IPA, Type::Trivial, "IPA"),
             INST("0011001-1-------", Id::FFMA_IMM, Type::Ffma, "FFMA_IMM"),
