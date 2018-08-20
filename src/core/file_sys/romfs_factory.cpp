@@ -52,7 +52,7 @@ ResultVal<VirtualFile> RomFSFactory::Open(u64 title_id, StorageId storage, Conte
         return MakeResult<VirtualFile>(romfs);
     }
     default:
-        UNIMPLEMENTED_MSG("Unimplmented storage_id={:02X}", static_cast<u8>(storage));
+        UNIMPLEMENTED_MSG("Unimplemented storage_id={:02X}", static_cast<u8>(storage));
     }
 }
 

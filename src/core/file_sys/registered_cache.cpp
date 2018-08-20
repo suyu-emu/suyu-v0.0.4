@@ -77,7 +77,7 @@ static ContentRecordType GetCRTypeFromNCAType(NCAContentType type) {
     case NCAContentType::Control:
         return ContentRecordType::Control;
     case NCAContentType::Data:
-    case static_cast<NCAContentType>(0x05): ///< Seems to be used on some system archives
+    case NCAContentType::Data_Unknown5:
         return ContentRecordType::Data;
     case NCAContentType::Manual:
         // TODO(DarkLordZach): Peek at NCA contents to differentiate Manual and Legal.
