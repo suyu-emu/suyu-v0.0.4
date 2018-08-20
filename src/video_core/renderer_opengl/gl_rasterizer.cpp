@@ -36,8 +36,8 @@ MICROPROFILE_DEFINE(OpenGL_Drawing, "OpenGL", "Drawing", MP_RGB(128, 128, 192));
 MICROPROFILE_DEFINE(OpenGL_Blits, "OpenGL", "Blits", MP_RGB(100, 100, 255));
 MICROPROFILE_DEFINE(OpenGL_CacheManagement, "OpenGL", "Cache Mgmt", MP_RGB(100, 255, 100));
 
-RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window)
-    : emu_window{window}, stream_buffer(GL_ARRAY_BUFFER, STREAM_BUFFER_SIZE) {
+RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window, ScreenInfo& info)
+    : emu_window{window}, screen_info{info}, stream_buffer(GL_ARRAY_BUFFER, STREAM_BUFFER_SIZE) {
     // Create sampler objects
     for (size_t i = 0; i < texture_samplers.size(); ++i) {
         texture_samplers[i].Create();
@@ -574,8 +574,7 @@ bool RasterizerOpenGL::AccelerateFill(const void* config) {
 }
 
 bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
-                                         VAddr framebuffer_addr, u32 pixel_stride,
-                                         ScreenInfo& screen_info) {
+                                         VAddr framebuffer_addr, u32 pixel_stride) {
     if (!framebuffer_addr) {
         return {};
     }
