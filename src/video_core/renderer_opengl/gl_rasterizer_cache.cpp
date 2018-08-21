@@ -686,7 +686,8 @@ Surface RasterizerCacheOpenGL::GetTextureSurface(const Tegra::Texture::FullTextu
 }
 
 SurfaceSurfaceRect_Tuple RasterizerCacheOpenGL::GetFramebufferSurfaces(bool using_color_fb,
-                                                                       bool using_depth_fb) {
+                                                                       bool using_depth_fb,
+                                                                       bool preserve_contents) {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
     // TODO(bunnei): This is hard corded to use just the first render buffer
@@ -708,7 +709,7 @@ SurfaceSurfaceRect_Tuple RasterizerCacheOpenGL::GetFramebufferSurfaces(bool usin
     MathUtil::Rectangle<u32> color_rect{};
     Surface color_surface;
     if (using_color_fb) {
-        color_surface = GetSurface(color_params);
+        color_surface = GetSurface(color_params, preserve_contents);
         if (color_surface) {
             color_rect = color_surface->GetSurfaceParams().GetRect();
         }
@@ -717,7 +718,7 @@ SurfaceSurfaceRect_Tuple RasterizerCacheOpenGL::GetFramebufferSurfaces(bool usin
     MathUtil::Rectangle<u32> depth_rect{};
     Surface depth_surface;
     if (using_depth_fb) {
-        depth_surface = GetSurface(depth_params);
+        depth_surface = GetSurface(depth_params, preserve_contents);
         if (depth_surface) {
             depth_rect = depth_surface->GetSurfaceParams().GetRect();
         }
@@ -752,7 +753,7 @@ void RasterizerCacheOpenGL::FlushSurface(const Surface& surface) {
     surface->FlushGLBuffer();
 }
 
-Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params) {
+Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params, bool preserve_contents) {
     if (params.addr == 0 || params.height * params.width == 0) {
         return {};
     }
@@ -774,9 +775,13 @@ Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params) {
         } else if (surface->GetSurfaceParams().IsCompatibleSurface(params)) {
             // Use the cached surface as-is
             return surface;
-        } else {
-            // If surface parameters changed, recreate the surface from the old one
+        } else if (preserve_contents) {
+            // If surface parameters changed and we care about keeping the previous data, recreate
+            // the surface from the old one
             return RecreateSurface(surface, params);
+        } else {
+            // Delete the old surface before creating a new one to prevent collisions.
+            UnregisterSurface(surface);
         }
     }
 
@@ -793,12 +798,58 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& surface,
     // Verify surface is compatible for blitting
     const auto& params{surface->GetSurfaceParams()};
     ASSERT(params.type == new_params.type);
+    ASSERT_MSG(params.GetCompressionFactor(params.pixel_format) == 1,
+               "Compressed texture reinterpretation is not supported");
 
     // Create a new surface with the new parameters, and blit the previous surface to it
     Surface new_surface{std::make_shared<CachedSurface>(new_params)};
-    BlitTextures(surface->Texture().handle, params.GetRect(), new_surface->Texture().handle,
-                 new_surface->GetSurfaceParams().GetRect(), params.type, read_framebuffer.handle,
-                 draw_framebuffer.handle);
+
+    auto source_format = GetFormatTuple(params.pixel_format, params.component_type);
+    auto dest_format = GetFormatTuple(new_params.pixel_format, new_params.component_type);
+
+    size_t buffer_size = std::max(params.SizeInBytes(), new_params.SizeInBytes());
+
+    // Use a Pixel Buffer Object to download the previous texture and then upload it to the new one
+    // using the new format.
+    OGLBuffer pbo;
+    pbo.Create();
+
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo.handle);
+    glBufferData(GL_PIXEL_PACK_BUFFER, buffer_size, nullptr, GL_STREAM_DRAW_ARB);
+    glGetTextureImage(surface->Texture().handle, 0, source_format.format, source_format.type,
+                      params.SizeInBytes(), nullptr);
+
+    // If the new texture is bigger than the previous one, we need to fill in the rest with data
+    // from the CPU.
+    if (params.SizeInBytes() < new_params.SizeInBytes()) {
+        // Upload the rest of the memory.
+        if (new_params.is_tiled) {
+            // TODO(Subv): We might have to de-tile the subtexture and re-tile it with the rest of
+            // the data in this case. Games like Super Mario Odyssey seem to hit this case when
+            // drawing, it re-uses the memory of a previous texture as a bigger framebuffer but it
+            // doesn't clear it beforehand, the texture is already full of zeros.
+            LOG_CRITICAL(HW_GPU, "Trying to upload extra texture data from the CPU during "
+                                 "reinterpretation but the texture is tiled.");
+        }
+        size_t remaining_size = new_params.SizeInBytes() - params.SizeInBytes();
+        auto address = Core::System::GetInstance().GPU().memory_manager->GpuToCpuAddress(
+            new_params.addr + params.SizeInBytes());
+        std::vector<u8> data(remaining_size);
+        Memory::ReadBlock(*address, data.data(), data.size());
+        glBufferSubData(GL_PIXEL_PACK_BUFFER, params.SizeInBytes(), remaining_size, data.data());
+    }
+
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+    const auto& dest_rect{new_params.GetRect()};
+
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo.handle);
+    glTextureSubImage2D(
+        new_surface->Texture().handle, 0, 0, 0, static_cast<GLsizei>(dest_rect.GetWidth()),
+        static_cast<GLsizei>(dest_rect.GetHeight()), dest_format.format, dest_format.type, nullptr);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+    pbo.Release();
 
     // Update cache accordingly
     UnregisterSurface(surface);

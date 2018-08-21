@@ -304,7 +304,8 @@ bool RasterizerOpenGL::AccelerateDrawBatch(bool is_indexed) {
 }
 
 std::pair<Surface, Surface> RasterizerOpenGL::ConfigureFramebuffers(bool using_color_fb,
-                                                                    bool using_depth_fb) {
+                                                                    bool using_depth_fb,
+                                                                    bool preserve_contents) {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
     if (regs.rt[0].format == Tegra::RenderTargetFormat::NONE) {
@@ -327,7 +328,7 @@ std::pair<Surface, Surface> RasterizerOpenGL::ConfigureFramebuffers(bool using_c
     Surface depth_surface;
     MathUtil::Rectangle<u32> surfaces_rect;
     std::tie(color_surface, depth_surface, surfaces_rect) =
-        res_cache.GetFramebufferSurfaces(using_color_fb, using_depth_fb);
+        res_cache.GetFramebufferSurfaces(using_color_fb, using_depth_fb, preserve_contents);
 
     const MathUtil::Rectangle<s32> viewport_rect{regs.viewport_transform[0].GetRect()};
     const MathUtil::Rectangle<u32> draw_rect{
@@ -390,7 +391,7 @@ void RasterizerOpenGL::Clear() {
     ScopeAcquireGLContext acquire_context{emu_window};
 
     auto [dirty_color_surface, dirty_depth_surface] =
-        ConfigureFramebuffers(use_color_fb, use_depth_fb);
+        ConfigureFramebuffers(use_color_fb, use_depth_fb, false);
 
     // TODO(Subv): Support clearing only partial colors.
     glClearColor(regs.clear_color[0], regs.clear_color[1], regs.clear_color[2],
@@ -445,7 +446,7 @@ void RasterizerOpenGL::DrawArrays() {
     ScopeAcquireGLContext acquire_context{emu_window};
 
     auto [dirty_color_surface, dirty_depth_surface] =
-        ConfigureFramebuffers(true, regs.zeta.Address() != 0 && regs.zeta_enable != 0);
+        ConfigureFramebuffers(true, regs.zeta.Address() != 0 && regs.zeta_enable != 0, true);
 
     SyncDepthTestState();
     SyncBlendState();
