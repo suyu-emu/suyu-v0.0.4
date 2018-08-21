@@ -215,6 +215,14 @@ void GMainWindow::InitializeRecentFileMenuActions() {
 
         ui.menu_recent_files->addAction(actions_recent_files[i]);
     }
+    ui.menu_recent_files->addSeparator();
+    QAction* action_clear_recent_files = new QAction(this);
+    action_clear_recent_files->setText(tr("Clear Recent Files"));
+    connect(action_clear_recent_files, &QAction::triggered, this, [this] {
+        UISettings::values.recent_files.clear();
+        UpdateRecentFiles();
+    });
+    ui.menu_recent_files->addAction(action_clear_recent_files);
 
     UpdateRecentFiles();
 }
@@ -477,6 +485,8 @@ bool GMainWindow::LoadROM(const QString& filename) {
         }
         return false;
     }
+    game_path = filename;
+
     Core::Telemetry().AddField(Telemetry::FieldType::App, "Frontend", "Qt");
     return true;
 }
@@ -547,6 +557,8 @@ void GMainWindow::ShutdownGame() {
     emu_frametime_label->setVisible(false);
 
     emulation_running = false;
+
+    game_path.clear();
 }
 
 void GMainWindow::StoreRecentFile(const QString& filename) {
