@@ -10,6 +10,8 @@
 #include "common/logging/log.h"
 #include "video_core/engines/maxwell_3d.h"
 
+namespace OpenGL {
+
 using GLvec2 = std::array<GLfloat, 2>;
 using GLvec3 = std::array<GLfloat, 3>;
 using GLvec4 = std::array<GLfloat, 4>;
@@ -360,3 +362,4 @@ inline GLenum LogicOp(Maxwell::LogicOperation operation) {
 }
 
 } // namespace MaxwellToGL
+} // namespace OpenGL

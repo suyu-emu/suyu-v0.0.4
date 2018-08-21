@@ -7,7 +7,7 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 
-namespace GLShader {
+namespace OpenGL::GLShader {
 
 namespace Impl {
 static void SetShaderUniformBlockBinding(GLuint shader, const char* name,
@@ -49,4 +49,4 @@ void MaxwellUniformData::SetFromRegs(const Maxwell3D::State::ShaderStageInfo& sh
     instance_id[0] = state.current_instance;
 }
 
-} // namespace GLShader
+} // namespace OpenGL::GLShader

@@ -10,7 +10,7 @@
 namespace VideoCore {
 
 std::unique_ptr<RendererBase> CreateRenderer(Core::Frontend::EmuWindow& emu_window) {
-    return std::make_unique<RendererOpenGL>(emu_window);
+    return std::make_unique<OpenGL::RendererOpenGL>(emu_window);
 }
 
 } // namespace VideoCore

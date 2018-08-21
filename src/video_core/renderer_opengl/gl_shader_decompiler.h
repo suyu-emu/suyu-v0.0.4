@@ -12,7 +12,7 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
 
-namespace GLShader::Decompiler {
+namespace OpenGL::GLShader::Decompiler {
 
 using Tegra::Engines::Maxwell3D;
 
@@ -22,4 +22,4 @@ boost::optional<ProgramResult> DecompileProgram(const ProgramCode& program_code,
                                                 Maxwell3D::Regs::ShaderStage stage,
                                                 const std::string& suffix);
 
-} // namespace GLShader::Decompiler
+} // namespace OpenGL::GLShader::Decompiler

@@ -7,6 +7,8 @@
 #include "common/logging/log.h"
 #include "video_core/renderer_opengl/gl_state.h"
 
+namespace OpenGL {
+
 OpenGLState OpenGLState::cur_state;
 
 OpenGLState::OpenGLState() {
@@ -338,3 +340,5 @@ OpenGLState& OpenGLState::ResetFramebuffer(GLuint handle) {
     }
     return *this;
 }
+
+} // namespace OpenGL

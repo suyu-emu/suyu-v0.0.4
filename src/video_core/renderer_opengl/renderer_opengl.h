@@ -16,6 +16,8 @@ namespace Core::Frontend {
 class EmuWindow;
 }
 
+namespace OpenGL {
+
 /// Structure used for storing information about the textures for the Switch screen
 struct TextureInfo {
     OGLTexture resource;
@@ -98,3 +100,5 @@ private:
     Tegra::FramebufferConfig::TransformFlags framebuffer_transform_flags;
     MathUtil::Rectangle<int> framebuffer_crop_rect;
 };
+
+} // namespace OpenGL

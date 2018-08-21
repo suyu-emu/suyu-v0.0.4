@@ -9,6 +9,8 @@
 #include "video_core/renderer_opengl/gl_state.h"
 #include "video_core/renderer_opengl/gl_stream_buffer.h"
 
+namespace OpenGL {
+
 OGLStreamBuffer::OGLStreamBuffer(GLenum target, GLsizeiptr size, bool prefer_coherent)
     : gl_target(target), buffer_size(size) {
     gl_buffer.Create();
@@ -97,3 +99,5 @@ void OGLStreamBuffer::Unmap(GLsizeiptr size) {
 
     buffer_pos += size;
 }
+
+} // namespace OpenGL

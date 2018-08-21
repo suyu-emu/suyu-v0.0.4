@@ -8,7 +8,7 @@
 #include "common/logging/log.h"
 #include "video_core/renderer_opengl/gl_shader_util.h"
 
-namespace GLShader {
+namespace OpenGL::GLShader {
 
 GLuint LoadShader(const char* source, GLenum type) {
     const char* debug_type;
@@ -47,4 +47,4 @@ GLuint LoadShader(const char* source, GLenum type) {
     return shader_id;
 }
 
-} // namespace GLShader
+} // namespace OpenGL::GLShader

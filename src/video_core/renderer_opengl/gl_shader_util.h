@@ -10,7 +10,7 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 
-namespace GLShader {
+namespace OpenGL::GLShader {
 
 /**
  * Utility function to log the source code of a list of shaders.
@@ -89,4 +89,4 @@ GLuint LoadProgram(bool separable_program, T... shaders) {
     return program_id;
 }
 
-} // namespace GLShader
+} // namespace OpenGL::GLShader

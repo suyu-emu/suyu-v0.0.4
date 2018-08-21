@@ -10,6 +10,8 @@
 #include "video_core/renderer_opengl/gl_shader_util.h"
 #include "video_core/renderer_opengl/gl_state.h"
 
+namespace OpenGL {
+
 class OGLTexture : private NonCopyable {
 public:
     OGLTexture() = default;
@@ -331,3 +333,5 @@ public:
 
     GLuint handle = 0;
 };
+
+} // namespace OpenGL

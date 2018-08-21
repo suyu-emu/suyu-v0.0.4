@@ -25,6 +25,8 @@
 #include "video_core/renderer_opengl/renderer_opengl.h"
 #include "video_core/video_core.h"
 
+namespace OpenGL {
+
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 using PixelFormat = SurfaceParams::PixelFormat;
 using SurfaceType = SurfaceParams::SurfaceType;
@@ -874,3 +876,5 @@ void RasterizerOpenGL::SyncLogicOpState() {
 
     state.logic_op.operation = MaxwellToGL::LogicOp(regs.logic_op.operation);
 }
+
+} // namespace OpenGL

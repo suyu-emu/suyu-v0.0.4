@@ -19,6 +19,8 @@
 #include "video_core/textures/decoders.h"
 #include "video_core/utils.h"
 
+namespace OpenGL {
+
 using SurfaceType = SurfaceParams::SurfaceType;
 using PixelFormat = SurfaceParams::PixelFormat;
 using ComponentType = SurfaceParams::ComponentType;
@@ -967,3 +969,5 @@ void RasterizerCacheOpenGL::UpdatePagesCachedCount(Tegra::GPUVAddr addr, u64 siz
     if (delta < 0)
         cached_pages.add({pages_interval, delta});
 }
+
+} // namespace OpenGL

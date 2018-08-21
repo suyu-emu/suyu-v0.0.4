@@ -20,6 +20,8 @@
 #include "video_core/renderer_opengl/renderer_opengl.h"
 #include "video_core/utils.h"
 
+namespace OpenGL {
+
 static const char vertex_shader[] = R"(
 #version 150 core
 
@@ -476,3 +478,5 @@ bool RendererOpenGL::Init() {
 
 /// Shutdown the renderer
 void RendererOpenGL::ShutDown() {}
+
+} // namespace OpenGL
