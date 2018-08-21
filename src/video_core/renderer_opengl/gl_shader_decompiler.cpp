@@ -1514,7 +1514,7 @@ private:
                 switch (instr.tex.texture_type) {
                 case Tegra::Shader::TextureType::Texture2D: {
                     std::string x = regs.GetRegisterAsFloat(instr.gpr8);
-                    std::string y = regs.GetRegisterAsFloat(instr.gpr20);
+                    std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
                     coord = "vec2 coords = vec2(" + x + ", " + y + ");";
                     break;
                 }
