@@ -30,6 +30,7 @@
 #include "core/file_sys/bis_factory.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/registered_cache.h"
+#include "core/file_sys/savedata_factory.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/loader/loader.h"
@@ -303,8 +304,7 @@ void GMainWindow::RestoreUIState() {
 
 void GMainWindow::ConnectWidgetEvents() {
     connect(game_list, &GameList::GameChosen, this, &GMainWindow::OnGameListLoadFile);
-    connect(game_list, &GameList::OpenSaveFolderRequested, this,
-            &GMainWindow::OnGameListOpenSaveFolder);
+    connect(game_list, &GameList::OpenFolderRequested, this, &GMainWindow::OnGameListOpenFolder);
 
     connect(this, &GMainWindow::EmulationStarting, render_window,
             &GRenderWindow::OnEmulationStarting);
@@ -584,8 +584,37 @@ void GMainWindow::OnGameListLoadFile(QString game_path) {
     BootGame(game_path);
 }
 
-void GMainWindow::OnGameListOpenSaveFolder(u64 program_id) {
-    UNIMPLEMENTED();
+void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target) {
+    std::string path;
+    std::string open_target;
+    switch (target) {
+    case GameListOpenTarget::SaveData: {
+        open_target = "Save Data";
+        const std::string nand_dir = FileUtil::GetUserPath(FileUtil::UserPath::NANDDir);
+        ASSERT(program_id != 0);
+        // TODO(tech4me): Update this to work with arbitrary user profile
+        // Refer to core/hle/service/acc/profile_manager.cpp ProfileManager constructor
+        constexpr u128 user_id = {1, 0};
+        path = nand_dir + FileSys::SaveDataFactory::GetFullPath(FileSys::SaveDataSpaceId::NandUser,
+                                                                FileSys::SaveDataType::SaveData,
+                                                                program_id, user_id, 0);
+        break;
+    }
+    default:
+        UNIMPLEMENTED();
+    }
+
+    const QString qpath = QString::fromStdString(path);
+
+    const QDir dir(qpath);
+    if (!dir.exists()) {
+        QMessageBox::warning(this,
+                             tr("Error Opening %1 Folder").arg(QString::fromStdString(open_target)),
+                             tr("Folder does not exist!"));
+        return;
+    }
+    LOG_INFO(Frontend, "Opening {} path for program_id={:016x}", open_target, program_id);
+    QDesktopServices::openUrl(QUrl::fromLocalFile(qpath));
 }
 
 void GMainWindow::OnMenuLoadFile() {

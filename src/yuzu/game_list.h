@@ -21,6 +21,8 @@
 
 class GameListWorker;
 
+enum class GameListOpenTarget { SaveData };
+
 class GameList : public QWidget {
     Q_OBJECT
 
@@ -76,7 +78,7 @@ public:
 signals:
     void GameChosen(QString game_path);
     void ShouldCancelWorker();
-    void OpenSaveFolderRequested(u64 program_id);
+    void OpenFolderRequested(u64 program_id, GameListOpenTarget target);
 
 private slots:
     void onTextChanged(const QString& newText);
@@ -99,3 +101,5 @@ private:
     GameListWorker* current_worker = nullptr;
     QFileSystemWatcher* watcher = nullptr;
 };
+
+Q_DECLARE_METATYPE(GameListOpenTarget);

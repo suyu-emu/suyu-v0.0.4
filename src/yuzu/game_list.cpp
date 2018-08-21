@@ -327,7 +327,7 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
     QAction* open_save_location = context_menu.addAction(tr("Open Save Data Location"));
     open_save_location->setEnabled(program_id != 0);
     connect(open_save_location, &QAction::triggered,
-            [&]() { emit OpenSaveFolderRequested(program_id); });
+            [&]() { emit OpenFolderRequested(program_id, GameListOpenTarget::SaveData); });
     context_menu.exec(tree_view->viewport()->mapToGlobal(menu_location));
 }
 
