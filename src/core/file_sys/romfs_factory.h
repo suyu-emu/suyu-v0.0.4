@@ -6,10 +6,16 @@
 
 #include <memory>
 #include "common/common_types.h"
+#include "core/file_sys/vfs.h"
 #include "core/hle/result.h"
-#include "core/loader/loader.h"
+
+namespace Loader {
+class AppLoader;
+} // namespace Loader
 
 namespace FileSys {
+
+enum class ContentRecordType : u8;
 
 enum class StorageId : u8 {
     None = 0,

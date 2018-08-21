@@ -7,6 +7,7 @@
 #include <cstring>
 #include <memory>
 #include <vector>
+#include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "core/file_sys/vfs.h"

@@ -6,15 +6,17 @@
 #include <memory>
 #include "common/common_types.h"
 #include "common/logging/log.h"
-#include "core/core.h"
+#include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/romfs_factory.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/service/filesystem/filesystem.h"
+#include "core/loader/loader.h"
 
 namespace FileSys {
 
 RomFSFactory::RomFSFactory(Loader::AppLoader& app_loader) {
     // Load the RomFS from the app
-    if (Loader::ResultStatus::Success != app_loader.ReadRomFS(file)) {
+    if (app_loader.ReadRomFS(file) != Loader::ResultStatus::Success) {
         LOG_ERROR(Service_FS, "Unable to read RomFS!");
     }
 }
