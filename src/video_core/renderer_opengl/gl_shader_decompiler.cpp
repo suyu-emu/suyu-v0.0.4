@@ -1578,6 +1578,13 @@ private:
                     }
                     break;
                 }
+                case Tegra::Shader::TextureType::Texture3D: {
+                    std::string x = regs.GetRegisterAsFloat(instr.gpr8);
+                    std::string y = regs.GetRegisterAsFloat(instr.gpr20);
+                    std::string z = regs.GetRegisterAsFloat(instr.gpr20.Value() + 1);
+                    coord = "vec3 coords = vec3(" + x + ", " + y + ", " + z + ");";
+                    break;
+                }
                 case Tegra::Shader::TextureType::TextureCube: {
                     std::string x = regs.GetRegisterAsFloat(instr.gpr8);
                     std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
