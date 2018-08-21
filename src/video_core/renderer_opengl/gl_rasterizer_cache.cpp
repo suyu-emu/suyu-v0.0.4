@@ -799,7 +799,6 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& surface,
                                                const SurfaceParams& new_params) {
     // Verify surface is compatible for blitting
     const auto& params{surface->GetSurfaceParams()};
-    ASSERT(params.type == new_params.type);
 
     // Create a new surface with the new parameters, and blit the previous surface to it
     Surface new_surface{std::make_shared<CachedSurface>(new_params)};
