@@ -223,6 +223,7 @@ void GMainWindow::InitializeHotkeys() {
     hotkey_registry.RegisterHotkey("Main Window", "Load File", QKeySequence::Open);
     hotkey_registry.RegisterHotkey("Main Window", "Start Emulation");
     hotkey_registry.RegisterHotkey("Main Window", "Continue/Pause", QKeySequence(Qt::Key_F4));
+    hotkey_registry.RegisterHotkey("Main Window", "Restart", QKeySequence(Qt::Key_F5));
     hotkey_registry.RegisterHotkey("Main Window", "Fullscreen", QKeySequence::FullScreen);
     hotkey_registry.RegisterHotkey("Main Window", "Exit Fullscreen", QKeySequence(Qt::Key_Escape),
                                    Qt::ApplicationShortcut);
@@ -243,6 +244,12 @@ void GMainWindow::InitializeHotkeys() {
                         OnStartGame();
                     }
                 }
+            });
+    connect(hotkey_registry.GetHotkey("Main Window", "Restart", this), &QShortcut::activated, this,
+            [this] {
+                if (!Core::System::GetInstance().IsPoweredOn())
+                    return;
+                BootGame(QString(game_path));
             });
     connect(hotkey_registry.GetHotkey("Main Window", "Fullscreen", render_window),
             &QShortcut::activated, ui.action_Fullscreen, &QAction::trigger);
@@ -328,6 +335,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Start, &QAction::triggered, this, &GMainWindow::OnStartGame);
     connect(ui.action_Pause, &QAction::triggered, this, &GMainWindow::OnPauseGame);
     connect(ui.action_Stop, &QAction::triggered, this, &GMainWindow::OnStopGame);
+    connect(ui.action_Restart, &QAction::triggered, this, [this] { BootGame(QString(game_path)); });
     connect(ui.action_Configure, &QAction::triggered, this, &GMainWindow::OnConfigure);
 
     // View
@@ -535,6 +543,7 @@ void GMainWindow::ShutdownGame() {
     ui.action_Start->setText(tr("Start"));
     ui.action_Pause->setEnabled(false);
     ui.action_Stop->setEnabled(false);
+    ui.action_Restart->setEnabled(false);
     render_window->hide();
     game_list->show();
     game_list->setFilterFocus();
@@ -811,6 +820,7 @@ void GMainWindow::OnPauseGame() {
     ui.action_Start->setEnabled(true);
     ui.action_Pause->setEnabled(false);
     ui.action_Stop->setEnabled(true);
+    ui.action_Restart->setEnabled(true);
 }
 
 void GMainWindow::OnStopGame() {
