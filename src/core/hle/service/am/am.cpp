@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <array>
 #include <cinttypes>
 #include <stack>
 #include "core/core.h"
@@ -625,16 +626,16 @@ IApplicationFunctions::IApplicationFunctions() : ServiceFramework("IApplicationF
 }
 
 void IApplicationFunctions::PopLaunchParameter(Kernel::HLERequestContext& ctx) {
-    constexpr u8 data[0x88] = {
+    constexpr std::array<u8, 0x88> data{{
         0xca, 0x97, 0x94, 0xc7, // Magic
         1,    0,    0,    0,    // IsAccountSelected (bool)
         1,    0,    0,    0,    // User Id (word 0)
         0,    0,    0,    0,    // User Id (word 1)
         0,    0,    0,    0,    // User Id (word 2)
         0,    0,    0,    0     // User Id (word 3)
-    };
+    }};
 
-    std::vector<u8> buffer(data, data + sizeof(data));
+    std::vector<u8> buffer(data.begin(), data.end());
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
