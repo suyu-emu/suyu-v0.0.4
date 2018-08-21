@@ -15,6 +15,7 @@
 #include "common/string_util.h"
 #include "core/file_sys/directory.h"
 #include "core/file_sys/errors.h"
+#include "core/file_sys/mode.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/savedata_factory.h"
 #include "core/file_sys/vfs.h"

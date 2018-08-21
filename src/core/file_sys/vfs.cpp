@@ -8,6 +8,7 @@
 #include "common/common_paths.h"
 #include "common/file_util.h"
 #include "common/logging/backend.h"
+#include "core/file_sys/mode.h"
 #include "core/file_sys/vfs.h"
 
 namespace FileSys {

@@ -9,15 +9,16 @@
 #include <string_view>
 #include <type_traits>
 #include <vector>
-#include "boost/optional.hpp"
+#include <boost/optional.hpp>
 #include "common/common_types.h"
-#include "core/file_sys/mode.h"
 
 namespace FileSys {
 
 class VfsDirectory;
 class VfsFile;
 class VfsFilesystem;
+
+enum class Mode : u32;
 
 // Convenience typedefs to use Vfs* interfaces
 using VirtualFilesystem = std::shared_ptr<VfsFilesystem>;
