@@ -918,7 +918,6 @@ private:
         FragmentHeader header;
         std::memcpy(&header, program_code.data(), PROGRAM_HEADER_SIZE);
 
-        ASSERT_MSG(header.writes_depth == 0, "Depth write is unimplemented");
         ASSERT_MSG(header.writes_samplemask == 0, "Samplemask write is unimplemented");
 
         // Write the color outputs using the data in the shader registers, disabled
@@ -934,6 +933,12 @@ private:
                     ++current_reg;
                 }
             }
+        }
+
+        if (header.writes_depth) {
+            // The depth output is always 2 registers after the last color output, and current_reg
+            // already contains one past the last color register.
+            shader.AddLine("gl_FragDepth = " + regs.GetRegisterAsFloat(current_reg + 1) + ';');
         }
     }
 
