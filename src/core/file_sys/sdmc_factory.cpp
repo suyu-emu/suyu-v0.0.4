@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include <memory>
-#include "core/core.h"
 #include "core/file_sys/sdmc_factory.h"
 
 namespace FileSys {
