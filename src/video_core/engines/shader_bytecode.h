@@ -477,7 +477,9 @@ union Instruction {
             if (texture_info >= 12 && texture_info <= 13)
                 return TextureType::TextureCube;
 
-            UNIMPLEMENTED();
+            LOG_CRITICAL(HW_GPU, "Unhandled texture_info: {}",
+                         static_cast<u32>(texture_info.Value()));
+            UNREACHABLE();
         }
 
         bool IsArrayTexture() const {
@@ -523,7 +525,9 @@ union Instruction {
                 return TextureType::Texture3D;
             }
 
-            UNIMPLEMENTED();
+            LOG_CRITICAL(HW_GPU, "Unhandled texture_info: {}",
+                         static_cast<u32>(texture_info.Value()));
+            UNREACHABLE();
         }
 
         bool IsArrayTexture() const {

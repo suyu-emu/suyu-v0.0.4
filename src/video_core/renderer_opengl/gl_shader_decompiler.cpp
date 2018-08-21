@@ -1568,6 +1568,14 @@ private:
                     coord = "vec3 coords = vec3(" + x + ", " + y + ", " + z + ");";
                     break;
                 }
+                case Tegra::Shader::TextureType::TextureCube: {
+                    std::string x = regs.GetRegisterAsFloat(instr.gpr8);
+                    std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
+                    std::string z = regs.GetRegisterAsFloat(instr.gpr8.Value() + 2);
+                    ASSERT(instr.gpr20.Value() == Register::ZeroIndex);
+                    coord = "vec3 coords = vec3(" + x + ", " + y + ", " + z + ");";
+                    break;
+                }
                 default:
                     LOG_CRITICAL(HW_GPU, "Unhandled texture type {}",
                                  static_cast<u32>(instr.tex.texture_type.Value()));
@@ -1611,6 +1619,13 @@ private:
                         std::string y = regs.GetRegisterAsFloat(instr.gpr20);
                         coord = "vec2 coords = vec2(" + x + ", " + y + ");";
                     }
+                    break;
+                }
+                case Tegra::Shader::TextureType::Texture3D: {
+                    std::string x = regs.GetRegisterAsFloat(instr.gpr8);
+                    std::string y = regs.GetRegisterAsFloat(instr.gpr20);
+                    std::string z = regs.GetRegisterAsFloat(instr.gpr20.Value() + 1);
+                    coord = "vec3 coords = vec3(" + x + ", " + y + ", " + z + ");";
                     break;
                 }
                 case Tegra::Shader::TextureType::TextureCube: {
