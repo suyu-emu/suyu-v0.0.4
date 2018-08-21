@@ -46,7 +46,7 @@ void Filter::Process(std::vector<s16>& signal) {
             out[0][ch] = b0 * in[0][ch] + b1 * in[1][ch] + b2 * in[2][ch] - a1 * out[1][ch] -
                          a2 * out[2][ch];
 
-            signal[i * 2 + ch] = std::clamp(out[0][ch], -32768.0, 32767.0);
+            signal[i * 2 + ch] = static_cast<s16>(std::clamp(out[0][ch], -32768.0, 32767.0));
         }
     }
 }
