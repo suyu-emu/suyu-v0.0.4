@@ -432,7 +432,7 @@ static void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum 
         break;
     case GL_DEBUG_SEVERITY_NOTIFICATION:
     case GL_DEBUG_SEVERITY_LOW:
-        LOG_TRACE(Render_OpenGL, format, str_source, str_type, id, message);
+        LOG_DEBUG(Render_OpenGL, format, str_source, str_type, id, message);
         break;
     }
 }
