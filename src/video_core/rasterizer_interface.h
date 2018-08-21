@@ -8,8 +8,6 @@
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
 
-struct ScreenInfo;
-
 namespace VideoCore {
 
 class RasterizerInterface {
@@ -55,7 +53,7 @@ public:
 
     /// Attempt to use a faster method to display the framebuffer to screen
     virtual bool AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr,
-                                   u32 pixel_stride, ScreenInfo& screen_info) {
+                                   u32 pixel_stride) {
         return false;
     }
 

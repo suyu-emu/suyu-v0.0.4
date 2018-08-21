@@ -30,7 +30,7 @@ class EmuWindow;
 
 class RasterizerOpenGL : public VideoCore::RasterizerInterface {
 public:
-    explicit RasterizerOpenGL(Core::Frontend::EmuWindow& renderer);
+    explicit RasterizerOpenGL(Core::Frontend::EmuWindow& renderer, ScreenInfo& info);
     ~RasterizerOpenGL() override;
 
     void DrawArrays() override;
@@ -43,8 +43,8 @@ public:
     bool AccelerateDisplayTransfer(const void* config) override;
     bool AccelerateTextureCopy(const void* config) override;
     bool AccelerateFill(const void* config) override;
-    bool AccelerateDisplay(const Tegra::FramebufferConfig& framebuffer, VAddr framebuffer_addr,
-                           u32 pixel_stride, ScreenInfo& screen_info) override;
+    bool AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr,
+                           u32 pixel_stride) override;
     bool AccelerateDrawBatch(bool is_indexed) override;
 
     /// OpenGL shader generated for a given Maxwell register state
@@ -151,6 +151,8 @@ private:
     RasterizerCacheOpenGL res_cache;
 
     Core::Frontend::EmuWindow& emu_window;
+
+    ScreenInfo& screen_info;
 
     std::unique_ptr<GLShader::ProgramManager> shader_program_manager;
     OGLVertexArray sw_vao;
