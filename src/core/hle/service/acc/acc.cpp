@@ -13,7 +13,7 @@
 #include "core/hle/service/acc/acc_su.h"
 #include "core/hle/service/acc/acc_u0.h"
 #include "core/hle/service/acc/acc_u1.h"
-#include "core/settings.h"
+#include "core/hle/service/acc/profile_manager.h"
 
 namespace Service::Account {
 // TODO: RE this structure
@@ -27,13 +27,10 @@ struct UserData {
 };
 static_assert(sizeof(UserData) == 0x80, "UserData structure has incorrect size");
 
-// TODO(ogniK): Generate a real user id based on username, md5(username) maybe?
-static UUID DEFAULT_USER_ID{1ull, 0ull};
-
 class IProfile final : public ServiceFramework<IProfile> {
 public:
     explicit IProfile(UUID user_id, ProfileManager& profile_manager)
-        : ServiceFramework("IProfile"), user_id(user_id), profile_manager(profile_manager) {
+        : ServiceFramework("IProfile"), profile_manager(profile_manager), user_id(user_id) {
         static const FunctionInfo functions[] = {
             {0, &IProfile::Get, "Get"},
             {1, &IProfile::GetBase, "GetBase"},
@@ -79,8 +76,8 @@ private:
         LOG_WARNING(Service_ACC, "(STUBBED) called");
         // smallest jpeg https://github.com/mathiasbynens/small/blob/master/jpeg.jpg
         // TODO(mailwl): load actual profile image from disk, width 256px, max size 0x20000
-        const u32 jpeg_size = 107;
-        static const std::array<u8, jpeg_size> jpeg{
+        constexpr u32 jpeg_size = 107;
+        static constexpr std::array<u8, jpeg_size> jpeg{
             0xff, 0xd8, 0xff, 0xdb, 0x00, 0x43, 0x00, 0x03, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03,
             0x02, 0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x04, 0x06, 0x04, 0x04, 0x04, 0x04, 0x04,
             0x08, 0x06, 0x06, 0x05, 0x06, 0x09, 0x08, 0x0a, 0x0a, 0x09, 0x08, 0x09, 0x09, 0x0a,
@@ -90,7 +87,7 @@ private:
             0xff, 0xcc, 0x00, 0x06, 0x00, 0x10, 0x10, 0x05, 0xff, 0xda, 0x00, 0x08, 0x01, 0x01,
             0x00, 0x00, 0x3f, 0x00, 0xd2, 0xcf, 0x20, 0xff, 0xd9,
         };
-        ctx.WriteBuffer(jpeg.data(), jpeg_size);
+        ctx.WriteBuffer(jpeg);
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(jpeg_size);
@@ -204,6 +201,8 @@ Module::Interface::Interface(std::shared_ptr<Module> module,
                              std::shared_ptr<ProfileManager> profile_manager, const char* name)
     : ServiceFramework(name), module(std::move(module)),
       profile_manager(std::move(profile_manager)) {}
+
+Module::Interface::~Interface() = default;
 
 void InstallInterfaces(SM::ServiceManager& service_manager) {
     auto module = std::make_shared<Module>();

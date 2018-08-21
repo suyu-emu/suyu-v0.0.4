@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <random>
 #include <boost/optional.hpp>
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/settings.h"
@@ -11,6 +12,15 @@ namespace Service::Account {
 constexpr ResultCode ERROR_TOO_MANY_USERS(ErrorModule::Account, -1);
 constexpr ResultCode ERROR_USER_ALREADY_EXISTS(ErrorModule::Account, -2);
 constexpr ResultCode ERROR_ARGUMENT_IS_NULL(ErrorModule::Account, 20);
+
+const UUID& UUID::Generate() {
+    std::random_device device;
+    std::mt19937 gen(device());
+    std::uniform_int_distribution<u64> distribution(1, std::numeric_limits<u64>::max());
+    uuid[0] = distribution(gen);
+    uuid[1] = distribution(gen);
+    return *this;
+}
 
 ProfileManager::ProfileManager() {
     // TODO(ogniK): Create the default user we have for now until loading/saving users is added
@@ -25,7 +35,7 @@ boost::optional<size_t> ProfileManager::AddToProfiles(const ProfileInfo& user) {
     if (user_count >= MAX_USERS) {
         return boost::none;
     }
-    profiles[user_count] = std::move(user);
+    profiles[user_count] = user;
     return user_count++;
 }
 
@@ -43,7 +53,7 @@ bool ProfileManager::RemoveProfileAtIndex(size_t index) {
 }
 
 /// Helper function to register a user to the system
-ResultCode ProfileManager::AddUser(ProfileInfo user) {
+ResultCode ProfileManager::AddUser(const ProfileInfo& user) {
     if (AddToProfiles(user) == boost::none) {
         return ERROR_TOO_MANY_USERS;
     }
@@ -52,7 +62,7 @@ ResultCode ProfileManager::AddUser(ProfileInfo user) {
 
 /// Create a new user on the system. If the uuid of the user already exists, the user is not
 /// created.
-ResultCode ProfileManager::CreateNewUser(UUID uuid, std::array<u8, 0x20>& username) {
+ResultCode ProfileManager::CreateNewUser(UUID uuid, const ProfileUsername& username) {
     if (user_count == MAX_USERS) {
         return ERROR_TOO_MANY_USERS;
     }
@@ -67,7 +77,7 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, std::array<u8, 0x20>& userna
         return ERROR_USER_ALREADY_EXISTS;
     }
     ProfileInfo profile;
-    profile.user_uuid = std::move(uuid);
+    profile.user_uuid = uuid;
     profile.username = username;
     profile.data = {};
     profile.creation_time = 0x0;
@@ -79,7 +89,7 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, std::array<u8, 0x20>& userna
 /// specifically by allowing an std::string for the username. This is required specifically since
 /// we're loading a string straight from the config
 ResultCode ProfileManager::CreateNewUser(UUID uuid, const std::string& username) {
-    std::array<u8, 0x20> username_output;
+    ProfileUsername username_output;
     if (username.size() > username_output.size()) {
         std::copy_n(username.begin(), username_output.size(), username_output.begin());
     } else {
@@ -102,7 +112,7 @@ boost::optional<size_t> ProfileManager::GetUserIndex(const UUID& uuid) const {
 }
 
 /// Returns a users profile index based on their profile
-boost::optional<size_t> ProfileManager::GetUserIndex(ProfileInfo user) const {
+boost::optional<size_t> ProfileManager::GetUserIndex(const ProfileInfo& user) const {
     return GetUserIndex(user.user_uuid);
 }
 
@@ -125,7 +135,7 @@ bool ProfileManager::GetProfileBase(UUID uuid, ProfileBase& profile) const {
 }
 
 /// Returns the data structure used by the switch when GetProfileBase is called on acc:*
-bool ProfileManager::GetProfileBase(ProfileInfo user, ProfileBase& profile) const {
+bool ProfileManager::GetProfileBase(const ProfileInfo& user, ProfileBase& profile) const {
     return GetProfileBase(user.user_uuid, profile);
 }
 
@@ -168,8 +178,8 @@ void ProfileManager::CloseUser(UUID uuid) {
 }
 
 /// Gets all valid user ids on the system
-std::array<UUID, MAX_USERS> ProfileManager::GetAllUsers() const {
-    std::array<UUID, MAX_USERS> output;
+UserIDArray ProfileManager::GetAllUsers() const {
+    UserIDArray output;
     std::transform(profiles.begin(), profiles.end(), output.begin(),
                    [](const ProfileInfo& p) { return p.user_uuid; });
     return output;
@@ -177,8 +187,8 @@ std::array<UUID, MAX_USERS> ProfileManager::GetAllUsers() const {
 
 /// Get all the open users on the system and zero out the rest of the data. This is specifically
 /// needed for GetOpenUsers and we need to ensure the rest of the output buffer is zero'd out
-std::array<UUID, MAX_USERS> ProfileManager::GetOpenUsers() const {
-    std::array<UUID, MAX_USERS> output;
+UserIDArray ProfileManager::GetOpenUsers() const {
+    UserIDArray output;
     std::transform(profiles.begin(), profiles.end(), output.begin(), [](const ProfileInfo& p) {
         if (p.is_open)
             return p.user_uuid;
@@ -195,9 +205,9 @@ UUID ProfileManager::GetLastOpenedUser() const {
 
 /// Return the users profile base and the unknown arbitary data.
 bool ProfileManager::GetProfileBaseAndData(boost::optional<size_t> index, ProfileBase& profile,
-                                           std::array<u8, MAX_DATA>& data) const {
+                                           ProfileData& data) const {
     if (GetProfileBase(index, profile)) {
-        std::memcpy(data.data(), profiles[index.get()].data.data(), MAX_DATA);
+        data = profiles[index.get()].data;
         return true;
     }
     return false;
@@ -205,14 +215,14 @@ bool ProfileManager::GetProfileBaseAndData(boost::optional<size_t> index, Profil
 
 /// Return the users profile base and the unknown arbitary data.
 bool ProfileManager::GetProfileBaseAndData(UUID uuid, ProfileBase& profile,
-                                           std::array<u8, MAX_DATA>& data) const {
+                                           ProfileData& data) const {
     auto idx = GetUserIndex(uuid);
     return GetProfileBaseAndData(idx, profile, data);
 }
 
 /// Return the users profile base and the unknown arbitary data.
-bool ProfileManager::GetProfileBaseAndData(ProfileInfo user, ProfileBase& profile,
-                                           std::array<u8, MAX_DATA>& data) const {
+bool ProfileManager::GetProfileBaseAndData(const ProfileInfo& user, ProfileBase& profile,
+                                           ProfileData& data) const {
     return GetProfileBaseAndData(user.user_uuid, profile, data);
 }
 

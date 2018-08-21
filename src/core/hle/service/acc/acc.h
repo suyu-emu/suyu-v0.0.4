@@ -4,10 +4,11 @@
 
 #pragma once
 
-#include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/service.h"
 
 namespace Service::Account {
+
+class ProfileManager;
 
 class Module final {
 public:
@@ -15,6 +16,7 @@ public:
     public:
         explicit Interface(std::shared_ptr<Module> module,
                            std::shared_ptr<ProfileManager> profile_manager, const char* name);
+        ~Interface() override;
 
         void GetUserCount(Kernel::HLERequestContext& ctx);
         void GetUserExistence(Kernel::HLERequestContext& ctx);
