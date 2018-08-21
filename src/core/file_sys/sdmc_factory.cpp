@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <memory>
+#include "core/file_sys/registered_cache.h"
 #include "core/file_sys/sdmc_factory.h"
 #include "core/file_sys/xts_archive.h"
 
