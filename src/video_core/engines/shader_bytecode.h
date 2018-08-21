@@ -518,7 +518,7 @@ union Instruction {
                 return TextureType::Texture1D;
             }
             if (texture_info == 2 || texture_info == 8 || texture_info == 12 ||
-                texture_info >= 4 && texture_info <= 6) {
+                (texture_info >= 4 && texture_info <= 6)) {
                 return TextureType::Texture2D;
             }
             if (texture_info == 7) {
