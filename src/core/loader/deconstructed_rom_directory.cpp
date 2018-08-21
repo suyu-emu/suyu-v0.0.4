@@ -8,6 +8,7 @@
 #include "common/logging/log.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
+#include "core/file_sys/romfs_factory.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"

@@ -16,6 +16,7 @@
 #include "common/string_util.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
+#include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/loader/loader.h"

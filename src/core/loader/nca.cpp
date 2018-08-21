@@ -7,6 +7,7 @@
 #include "common/file_util.h"
 #include "common/logging/log.h"
 #include "core/file_sys/content_archive.h"
+#include "core/file_sys/romfs_factory.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/deconstructed_rom_directory.h"

@@ -6,12 +6,15 @@
 
 #include <array>
 #include <atomic>
+#include <map>
+#include <memory>
 #include <utility>
 #include <QImage>
 #include <QRunnable>
 #include <QStandardItem>
 #include <QString>
 #include "common/string_util.h"
+#include "core/file_sys/content_archive.h"
 #include "ui_settings.h"
 #include "yuzu/util/util.h"
 
