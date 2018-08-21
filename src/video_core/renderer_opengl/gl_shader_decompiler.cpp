@@ -1514,7 +1514,7 @@ private:
                 switch (instr.tex.texture_type) {
                 case Tegra::Shader::TextureType::Texture2D: {
                     std::string x = regs.GetRegisterAsFloat(instr.gpr8);
-                    std::string y = regs.GetRegisterAsFloat(instr.gpr20);
+                    std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
                     coord = "vec2 coords = vec2(" + x + ", " + y + ");";
                     break;
                 }
@@ -1526,7 +1526,9 @@ private:
                     break;
                 }
                 default:
-                    UNIMPLEMENTED();
+                    LOG_CRITICAL(HW_GPU, "Unhandled texture type {}",
+                                 static_cast<u32>(instr.tex.texture_type.Value()));
+                    UNREACHABLE();
                 }
 
                 const std::string sampler =
@@ -1576,7 +1578,9 @@ private:
                     break;
                 }
                 default:
-                    UNIMPLEMENTED();
+                    LOG_CRITICAL(HW_GPU, "Unhandled texture type {}",
+                                 static_cast<u32>(instr.texs.GetTextureType()));
+                    UNREACHABLE();
                 }
                 const std::string sampler = GetSampler(instr.sampler, instr.texs.GetTextureType(),
                                                        instr.texs.IsArrayTexture());
@@ -1593,7 +1597,8 @@ private:
                 switch (instr.tlds.GetTextureType()) {
                 case Tegra::Shader::TextureType::Texture2D: {
                     if (instr.tlds.IsArrayTexture()) {
-                        UNIMPLEMENTED();
+                        LOG_CRITICAL(HW_GPU, "Unhandled 2d array texture");
+                        UNREACHABLE();
                     } else {
                         std::string x = regs.GetRegisterAsInteger(instr.gpr8);
                         std::string y = regs.GetRegisterAsInteger(instr.gpr20);
@@ -1602,7 +1607,9 @@ private:
                     break;
                 }
                 default:
-                    UNIMPLEMENTED();
+                    LOG_CRITICAL(HW_GPU, "Unhandled texture type {}",
+                                 static_cast<u32>(instr.tlds.GetTextureType()));
+                    UNREACHABLE();
                 }
                 const std::string sampler = GetSampler(instr.sampler, instr.tlds.GetTextureType(),
                                                        instr.tlds.IsArrayTexture());
@@ -1623,7 +1630,9 @@ private:
                     break;
                 }
                 default:
-                    UNIMPLEMENTED();
+                    LOG_CRITICAL(HW_GPU, "Unhandled texture type {}",
+                                 static_cast<u32>(instr.tld4.texture_type.Value()));
+                    UNREACHABLE();
                 }
 
                 const std::string sampler =
