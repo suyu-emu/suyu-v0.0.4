@@ -161,6 +161,8 @@ private:
     // Whether emulation is currently running in yuzu.
     bool emulation_running = false;
     std::unique_ptr<EmuThread> emu_thread;
+    // The path to the game currently running
+    QString game_path;
 
     // FS
     FileSys::VirtualFilesystem vfs;
