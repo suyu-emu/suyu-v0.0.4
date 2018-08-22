@@ -851,10 +851,11 @@ private:
 
     void WriteLop3Instruction(Register dest, const std::string& op_a, const std::string& op_b,
                               const std::string& op_c, const std::string& imm_lut) {
-        if (dest == Tegra::Shader::Register::ZeroIndex)
+        if (dest == Tegra::Shader::Register::ZeroIndex) {
             return;
+        }
 
-        static constexpr std::array<const char*, 32> ix = {
+        static constexpr std::array<const char*, 32> shift_amounts = {
             "0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",  "10",
             "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21",
             "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"};
@@ -862,12 +863,12 @@ private:
         std::string result;
         result += '(';
 
-        for (u32 i = 0; i < 32; ++i) {
+        for (size_t i = 0; i < shift_amounts.size(); ++i) {
             if (i)
                 result += '|';
-            result += "(((" + imm_lut + " >> (((" + op_c + " >> " + ix[i] + ") & 1) | ((" + op_b +
-                      " >> " + ix[i] + ") & 1) << 1 | ((" + op_a + " >> " + ix[i] +
-                      ") & 1) << 2)) & 1) << " + ix[i] + ")";
+            result += "(((" + imm_lut + " >> (((" + op_c + " >> " + shift_amounts[i] +
+                      ") & 1) | ((" + op_b + " >> " + shift_amounts[i] + ") & 1) << 1 | ((" + op_a +
+                      " >> " + shift_amounts[i] + ") & 1) << 2)) & 1) << " + shift_amounts[i] + ")";
         }
 
         result += ')';
