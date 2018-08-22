@@ -9,14 +9,14 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <boost/functional/hash.hpp>
 #include "common/common_types.h"
 #include "common/hash.h"
 
 namespace GLShader {
 
 constexpr size_t MAX_PROGRAM_CODE_LENGTH{0x1000};
-
-using ProgramCode = std::array<u64, MAX_PROGRAM_CODE_LENGTH>;
+using ProgramCode = std::vector<u64>;
 
 class ConstBufferEntry {
     using Maxwell = Tegra::Engines::Maxwell3D::Regs;
@@ -115,8 +115,8 @@ struct ShaderEntries {
 using ProgramResult = std::pair<std::string, ShaderEntries>;
 
 struct ShaderSetup {
-    ShaderSetup(const ProgramCode& program_code) {
-        program.code = program_code;
+    ShaderSetup(ProgramCode program_code) {
+        program.code = std::move(program_code);
     }
 
     struct {
@@ -135,8 +135,8 @@ struct ShaderSetup {
     }
 
     /// Used in scenarios where we have a dual vertex shaders
-    void SetProgramB(const ProgramCode& program_b) {
-        program.code_b = program_b;
+    void SetProgramB(ProgramCode program_b) {
+        program.code_b = std::move(program_b);
         has_program_b = true;
     }
 
@@ -146,13 +146,18 @@ struct ShaderSetup {
 
 private:
     u64 GetNewHash() const {
+        size_t hash = 0;
+
+        const u64 hash_a = Common::ComputeHash64(program.code.data(), program.code.size());
+        boost::hash_combine(hash, hash_a);
+
         if (has_program_b) {
             // Compute hash over dual shader programs
-            return Common::ComputeHash64(&program, sizeof(program));
-        } else {
-            // Compute hash over a single shader program
-            return Common::ComputeHash64(&program.code, program.code.size());
+            const u64 hash_b = Common::ComputeHash64(program.code_b.data(), program.code_b.size());
+            boost::hash_combine(hash, hash_b);
         }
+
+        return hash;
     }
 
     u64 program_code_hash{};
