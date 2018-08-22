@@ -787,10 +787,20 @@ Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params, bool pres
         }
     }
 
+    // Try to get a previously reserved surface
+    surface = TryGetReservedSurface(params);
+
     // No surface found - create a new one
-    surface = std::make_shared<CachedSurface>(params);
-    RegisterSurface(surface);
-    LoadSurface(surface);
+    if (!surface) {
+        surface = std::make_shared<CachedSurface>(params);
+        ReserveSurface(surface);
+        RegisterSurface(surface);
+    }
+
+    // Only load surface from memory if we care about the contents
+    if (preserve_contents) {
+        LoadSurface(surface);
+    }
 
     return surface;
 }
@@ -938,6 +948,21 @@ void RasterizerCacheOpenGL::UnregisterSurface(const Surface& surface) {
 
     UpdatePagesCachedCount(params.addr, params.size_in_bytes, -1);
     surface_cache.erase(search);
+}
+
+void RasterizerCacheOpenGL::ReserveSurface(const Surface& surface) {
+    const auto& surface_reserve_key{SurfaceReserveKey::Create(surface->GetSurfaceParams())};
+    surface_reserve[surface_reserve_key] = surface;
+}
+
+Surface RasterizerCacheOpenGL::TryGetReservedSurface(const SurfaceParams& params) {
+    const auto& surface_reserve_key{SurfaceReserveKey::Create(params)};
+    auto search{surface_reserve.find(surface_reserve_key)};
+    if (search != surface_reserve.end()) {
+        RegisterSurface(search->second);
+        return search->second;
+    }
+    return {};
 }
 
 template <typename Map, typename Interval>
