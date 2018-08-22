@@ -851,22 +851,28 @@ private:
 
     void WriteLop3Instruction(Register dest, const std::string& op_a, const std::string& op_b,
                               const std::string& op_c, const std::string& imm_lut) {
+        if (dest == Tegra::Shader::Register::ZeroIndex)
+            return;
+
+        static constexpr std::array<const char*, 32> ix = {
+            "0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",  "10",
+            "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21",
+            "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"};
+
         std::string result;
         result += '(';
 
         for (u32 i = 0; i < 32; ++i) {
-            std::string ix = std::to_string(i);
             if (i)
                 result += '|';
-            result += "(((" + imm_lut + ">>(((" + op_c + ">>" + ix + ")&1)|((" + op_b + ">>" + ix +
-                      ")&1)<<1|((" + op_a + ">>" + ix + ")&1)<<2))&1)<<" + ix + ")";
+            result += "(((" + imm_lut + " >> (((" + op_c + " >> " + ix[i] + ") & 1) | ((" + op_b +
+                      " >> " + ix[i] + ") & 1) << 1 | ((" + op_a + " >> " + ix[i] +
+                      ") & 1) << 2)) & 1) << " + ix[i] + ")";
         }
 
         result += ')';
 
-        if (dest != Tegra::Shader::Register::ZeroIndex) {
-            regs.SetRegisterToInteger(dest, true, 0, result, 1, 1);
-        }
+        regs.SetRegisterToInteger(dest, true, 0, result, 1, 1);
     }
 
     void WriteTexsInstruction(const Instruction& instr, const std::string& coord,
