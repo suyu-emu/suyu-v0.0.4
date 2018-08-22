@@ -100,13 +100,20 @@ Loader::ResultStatus DeriveSDKeys(std::array<Key256, 2>& sd_keys, const KeyManag
         keys.GetKey(S256KeyType::SDKeySource, static_cast<u64>(SDKeyType::NCA)),
     };
 
-    AESCipher<Key128> cipher(sd_kek, Mode::ECB);
-    for (size_t i = 0; i < 2; ++i) {
-        for (size_t j = 0; j < sd_key_sources[i].size(); ++j)
-            sd_key_sources[i][j] ^= sd_seed[j & 0xF];
-        cipher.Transcode(sd_key_sources[i].data(), sd_key_sources[i].size(), sd_keys[i].data(),
-                         Op::Decrypt);
+    // Combine sources and seed
+    for (auto& source : sd_key_sources) {
+        for (size_t i = 0; i < source.size(); ++i)
+            source[i] ^= sd_seed[i & 0xF];
     }
+
+    AESCipher<Key128> cipher(sd_kek, Mode::ECB);
+    // The transform manipulates sd_keys as part of the Transcode, so the return/output is
+    // unnecessary. This does not alter sd_keys_sources.
+    std::transform(sd_key_sources.begin(), sd_key_sources.end(), sd_keys.begin(),
+                   sd_key_sources.begin(), [&cipher](const Key256& source, Key256& out) {
+                       cipher.Transcode(source.data(), source.size(), out.data(), Op::Decrypt);
+                       return source; ///< Return unaltered source to satisfy output requirement.
+                   });
 
     return Loader::ResultStatus::Success;
 }
