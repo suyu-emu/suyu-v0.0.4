@@ -316,16 +316,14 @@ std::pair<Surface, Surface> RasterizerOpenGL::ConfigureFramebuffers(bool using_c
         using_color_fb = false;
     }
 
-    // TODO(bunnei): Implement this
-    const bool has_stencil = false;
-
+    const bool has_stencil = regs.stencil_enable;
     const bool write_color_fb =
         state.color_mask.red_enabled == GL_TRUE || state.color_mask.green_enabled == GL_TRUE ||
         state.color_mask.blue_enabled == GL_TRUE || state.color_mask.alpha_enabled == GL_TRUE;
 
     const bool write_depth_fb =
         (state.depth.test_enabled && state.depth.write_mask == GL_TRUE) ||
-        (has_stencil && state.stencil.test_enabled && state.stencil.write_mask != 0);
+        (has_stencil && (state.stencil.front.write_mask || state.stencil.back.write_mask));
 
     Surface color_surface;
     Surface depth_surface;
@@ -481,6 +479,7 @@ void RasterizerOpenGL::DrawArrays() {
         ConfigureFramebuffers(true, regs.zeta.Address() != 0 && regs.zeta_enable != 0, true);
 
     SyncDepthTestState();
+    SyncStencilTestState();
     SyncBlendState();
     SyncLogicOpState();
     SyncCullMode();
@@ -869,6 +868,34 @@ void RasterizerOpenGL::SyncDepthTestState() {
         return;
 
     state.depth.test_func = MaxwellToGL::ComparisonOp(regs.depth_test_func);
+}
+
+void RasterizerOpenGL::SyncStencilTestState() {
+    const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
+    state.stencil.test_enabled = regs.stencil_enable != 0;
+
+    if (!regs.stencil_enable) {
+        return;
+    }
+
+    // TODO(bunnei): Verify behavior when this is not set
+    ASSERT(regs.stencil_two_side_enable);
+
+    state.stencil.front.test_func = MaxwellToGL::ComparisonOp(regs.stencil_front_func_func);
+    state.stencil.front.test_ref = regs.stencil_front_func_ref;
+    state.stencil.front.test_mask = regs.stencil_front_func_mask;
+    state.stencil.front.action_stencil_fail = MaxwellToGL::StencilOp(regs.stencil_front_op_fail);
+    state.stencil.front.action_depth_fail = MaxwellToGL::StencilOp(regs.stencil_front_op_zfail);
+    state.stencil.front.action_depth_pass = MaxwellToGL::StencilOp(regs.stencil_front_op_zpass);
+    state.stencil.front.write_mask = regs.stencil_front_mask;
+
+    state.stencil.back.test_func = MaxwellToGL::ComparisonOp(regs.stencil_back_func_func);
+    state.stencil.back.test_ref = regs.stencil_back_func_ref;
+    state.stencil.back.test_mask = regs.stencil_back_func_mask;
+    state.stencil.back.action_stencil_fail = MaxwellToGL::StencilOp(regs.stencil_back_op_fail);
+    state.stencil.back.action_depth_fail = MaxwellToGL::StencilOp(regs.stencil_back_op_zfail);
+    state.stencil.back.action_depth_pass = MaxwellToGL::StencilOp(regs.stencil_back_op_zpass);
+    state.stencil.back.write_mask = regs.stencil_back_mask;
 }
 
 void RasterizerOpenGL::SyncBlendState() {
