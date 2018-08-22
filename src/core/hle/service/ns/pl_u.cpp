@@ -5,6 +5,7 @@
 #include "common/common_paths.h"
 #include "common/file_util.h"
 #include "core/core.h"
+#include "core/file_sys/bis_factory.h"
 #include "core/file_sys/romfs.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/service/filesystem/filesystem.h"
