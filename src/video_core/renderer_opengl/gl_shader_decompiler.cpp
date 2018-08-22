@@ -864,8 +864,6 @@ private:
 
         result += ')';
 
-        LOG_DEBUG(HW_GPU, "LOP3 Shader code: {}", result);
-
         if (dest != Tegra::Shader::Register::ZeroIndex) {
             regs.SetRegisterToInteger(dest, true, 0, result, 1, 1);
         }
