@@ -83,7 +83,8 @@ void Config::ReadValues() {
 
     qt_config->beginGroup("Renderer");
     Settings::values.resolution_factor = qt_config->value("resolution_factor", 1.0).toFloat();
-    Settings::values.toggle_framelimit = qt_config->value("toggle_framelimit", true).toBool();
+    Settings::values.use_frame_limit = qt_config->value("use_frame_limit", true).toBool();
+    Settings::values.frame_limit = qt_config->value("frame_limit", 100).toInt();
     Settings::values.use_accurate_framebuffers =
         qt_config->value("use_accurate_framebuffers", false).toBool();
 
@@ -203,7 +204,8 @@ void Config::SaveValues() {
 
     qt_config->beginGroup("Renderer");
     qt_config->setValue("resolution_factor", (double)Settings::values.resolution_factor);
-    qt_config->setValue("toggle_framelimit", Settings::values.toggle_framelimit);
+    qt_config->setValue("use_frame_limit", Settings::values.use_frame_limit);
+    qt_config->setValue("frame_limit", Settings::values.frame_limit);
     qt_config->setValue("use_accurate_framebuffers", Settings::values.use_accurate_framebuffers);
 
     // Cast to double because Qt's written float values are not human-readable

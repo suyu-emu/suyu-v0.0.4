@@ -96,8 +96,9 @@ void Config::ReadValues() {
     // Renderer
     Settings::values.resolution_factor =
         (float)sdl2_config->GetReal("Renderer", "resolution_factor", 1.0);
-    Settings::values.toggle_framelimit =
-        sdl2_config->GetBoolean("Renderer", "toggle_framelimit", true);
+    Settings::values.use_frame_limit = sdl2_config->GetBoolean("Renderer", "use_frame_limit", true);
+    Settings::values.frame_limit =
+        static_cast<u16>(sdl2_config->GetInteger("Renderer", "frame_limit", 100));
     Settings::values.use_accurate_framebuffers =
         sdl2_config->GetBoolean("Renderer", "use_accurate_framebuffers", false);
 

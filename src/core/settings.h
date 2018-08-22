@@ -130,7 +130,8 @@ struct Values {
 
     // Renderer
     float resolution_factor;
-    bool toggle_framelimit;
+    bool use_frame_limit;
+    u16 frame_limit;
     bool use_accurate_framebuffers;
 
     float bg_red;

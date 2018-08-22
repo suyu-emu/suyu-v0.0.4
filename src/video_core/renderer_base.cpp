@@ -18,7 +18,7 @@ RendererBase::~RendererBase() = default;
 void RendererBase::RefreshBaseSettings() {
     UpdateCurrentFramebufferLayout();
 
-    renderer_settings.use_framelimiter = Settings::values.toggle_framelimit;
+    renderer_settings.use_framelimiter = Settings::values.use_frame_limit;
 }
 
 void RendererBase::UpdateCurrentFramebufferLayout() {
