@@ -14,6 +14,7 @@
 #include "common/logging/log.h"
 #include "common/math_util.h"
 #include "common/microprofile.h"
+#include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
 #include "core/hle/kernel/process.h"
@@ -364,41 +365,70 @@ std::pair<Surface, Surface> RasterizerOpenGL::ConfigureFramebuffers(bool using_c
 }
 
 void RasterizerOpenGL::Clear() {
-    const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
+    const auto prev_state{state};
+    SCOPE_EXIT({ prev_state.Apply(); });
 
+    const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
     bool use_color_fb = false;
     bool use_depth_fb = false;
 
-    GLbitfield clear_mask = 0;
-    if (regs.clear_buffers.R && regs.clear_buffers.G && regs.clear_buffers.B &&
+    OpenGLState clear_state;
+    clear_state.draw.draw_framebuffer = state.draw.draw_framebuffer;
+    clear_state.color_mask.red_enabled = regs.clear_buffers.R ? GL_TRUE : GL_FALSE;
+    clear_state.color_mask.green_enabled = regs.clear_buffers.G ? GL_TRUE : GL_FALSE;
+    clear_state.color_mask.blue_enabled = regs.clear_buffers.B ? GL_TRUE : GL_FALSE;
+    clear_state.color_mask.alpha_enabled = regs.clear_buffers.A ? GL_TRUE : GL_FALSE;
+
+    GLbitfield clear_mask{};
+    if (regs.clear_buffers.R || regs.clear_buffers.G || regs.clear_buffers.B ||
         regs.clear_buffers.A) {
-        clear_mask |= GL_COLOR_BUFFER_BIT;
-        use_color_fb = true;
+        if (regs.clear_buffers.RT == 0) {
+            // We only support clearing the first color attachment for now
+            clear_mask |= GL_COLOR_BUFFER_BIT;
+            use_color_fb = true;
+        } else {
+            // TODO(subv): Add support for the other color attachments
+            LOG_CRITICAL(HW_GPU, "Clear unimplemented for RT {}", regs.clear_buffers.RT);
+        }
     }
     if (regs.clear_buffers.Z) {
+        ASSERT_MSG(regs.zeta_enable != 0, "Tried to clear Z but buffer is not enabled!");
+        use_depth_fb = true;
         clear_mask |= GL_DEPTH_BUFFER_BIT;
-        use_depth_fb = regs.zeta_enable != 0;
 
         // Always enable the depth write when clearing the depth buffer. The depth write mask is
         // ignored when clearing the buffer in the Switch, but OpenGL obeys it so we set it to true.
-        state.depth.test_enabled = true;
-        state.depth.write_mask = GL_TRUE;
-        state.depth.test_func = GL_ALWAYS;
-        state.Apply();
+        clear_state.depth.test_enabled = true;
+        clear_state.depth.test_func = GL_ALWAYS;
+    }
+    if (regs.clear_buffers.S) {
+        ASSERT_MSG(regs.zeta_enable != 0, "Tried to clear stencil but buffer is not enabled!");
+        use_depth_fb = true;
+        clear_mask |= GL_STENCIL_BUFFER_BIT;
+        clear_state.stencil.test_enabled = true;
     }
 
-    if (clear_mask == 0)
+    if (!use_color_fb && !use_depth_fb) {
+        // No color surface nor depth/stencil surface are enabled
         return;
+    }
+
+    if (clear_mask == 0) {
+        // No clear mask is enabled
+        return;
+    }
 
     ScopeAcquireGLContext acquire_context{emu_window};
 
     auto [dirty_color_surface, dirty_depth_surface] =
         ConfigureFramebuffers(use_color_fb, use_depth_fb, false);
 
-    // TODO(Subv): Support clearing only partial colors.
+    clear_state.Apply();
+
     glClearColor(regs.clear_color[0], regs.clear_color[1], regs.clear_color[2],
                  regs.clear_color[3]);
     glClearDepth(regs.clear_depth);
+    glClearStencil(regs.clear_stencil);
 
     glClear(clear_mask);
 
