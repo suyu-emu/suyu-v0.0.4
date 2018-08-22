@@ -21,6 +21,7 @@ class GRenderWindow;
 class MicroProfileDialog;
 class ProfilerWidget;
 class WaitTreeWidget;
+enum class GameListOpenTarget;
 
 namespace Tegra {
 class DebugContext;
@@ -122,7 +123,7 @@ private slots:
     void OnStopGame();
     /// Called whenever a user selects a game in the game list widget.
     void OnGameListLoadFile(QString game_path);
-    void OnGameListOpenSaveFolder(u64 program_id);
+    void OnGameListOpenFolder(u64 program_id, GameListOpenTarget target);
     void OnMenuLoadFile();
     void OnMenuLoadFolder();
     void OnMenuInstallToNAND();

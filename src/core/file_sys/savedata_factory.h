@@ -49,11 +49,11 @@ public:
 
     ResultVal<VirtualDir> Open(SaveDataSpaceId space, SaveDataDescriptor meta);
 
+    static std::string GetFullPath(SaveDataSpaceId space, SaveDataType type, u64 title_id,
+                                   u128 user_id, u64 save_id);
+
 private:
     VirtualDir dir;
-
-    std::string GetFullPath(SaveDataSpaceId space, SaveDataType type, u64 title_id, u128 user_id,
-                            u64 save_id) const;
 };
 
 } // namespace FileSys
