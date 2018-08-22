@@ -780,7 +780,10 @@ Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params, bool pres
         } else if (preserve_contents) {
             // If surface parameters changed and we care about keeping the previous data, recreate
             // the surface from the old one
-            return RecreateSurface(surface, params);
+            UnregisterSurface(surface);
+            Surface new_surface{RecreateSurface(surface, params)};
+            RegisterSurface(new_surface);
+            return new_surface;
         } else {
             // Delete the old surface before creating a new one to prevent collisions.
             UnregisterSurface(surface);
@@ -812,6 +815,14 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& surface,
 
     // Create a new surface with the new parameters, and blit the previous surface to it
     Surface new_surface{std::make_shared<CachedSurface>(new_params)};
+
+    // If format is unchanged, we can do a faster blit without reinterpreting pixel data
+    if (params.pixel_format == new_params.pixel_format) {
+        BlitTextures(surface->Texture().handle, params.GetRect(), new_surface->Texture().handle,
+                     new_surface->GetSurfaceParams().GetRect(), params.type,
+                     read_framebuffer.handle, draw_framebuffer.handle);
+        return new_surface;
+    }
 
     auto source_format = GetFormatTuple(params.pixel_format, params.component_type);
     auto dest_format = GetFormatTuple(new_params.pixel_format, new_params.component_type);
@@ -871,10 +882,6 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& surface,
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
     pbo.Release();
-
-    // Update cache accordingly
-    UnregisterSurface(surface);
-    RegisterSurface(new_surface);
 
     return new_surface;
 }
