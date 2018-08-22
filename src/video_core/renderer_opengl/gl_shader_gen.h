@@ -115,7 +115,7 @@ struct ShaderEntries {
 using ProgramResult = std::pair<std::string, ShaderEntries>;
 
 struct ShaderSetup {
-    ShaderSetup(ProgramCode program_code) {
+    explicit ShaderSetup(ProgramCode program_code) {
         program.code = std::move(program_code);
     }
 
