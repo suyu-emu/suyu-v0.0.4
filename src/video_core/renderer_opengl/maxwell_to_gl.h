@@ -107,6 +107,8 @@ inline GLenum PrimitiveTopology(Maxwell::PrimitiveTopology topology) {
     switch (topology) {
     case Maxwell::PrimitiveTopology::Points:
         return GL_POINTS;
+    case Maxwell::PrimitiveTopology::Lines:
+        return GL_LINES;
     case Maxwell::PrimitiveTopology::LineStrip:
         return GL_LINE_STRIP;
     case Maxwell::PrimitiveTopology::Triangles:
