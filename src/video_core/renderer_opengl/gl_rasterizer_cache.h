@@ -16,6 +16,8 @@
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/textures/texture.h"
 
+namespace OpenGL {
+
 class CachedSurface;
 using Surface = std::shared_ptr<CachedSurface>;
 using SurfaceSurfaceRect_Tuple = std::tuple<Surface, Surface, MathUtil::Rectangle<u32>>;
@@ -759,3 +761,5 @@ private:
     OGLFramebuffer read_framebuffer;
     OGLFramebuffer draw_framebuffer;
 };
+
+} // namespace OpenGL

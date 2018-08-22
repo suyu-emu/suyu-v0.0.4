@@ -12,7 +12,7 @@
 #include "common/common_types.h"
 #include "common/hash.h"
 
-namespace GLShader {
+namespace OpenGL::GLShader {
 
 constexpr size_t MAX_PROGRAM_CODE_LENGTH{0x1000};
 
@@ -191,20 +191,20 @@ ProgramResult GenerateVertexShader(const ShaderSetup& setup, const MaxwellVSConf
  */
 ProgramResult GenerateFragmentShader(const ShaderSetup& setup, const MaxwellFSConfig& config);
 
-} // namespace GLShader
+} // namespace OpenGL::GLShader
 
 namespace std {
 
 template <>
-struct hash<GLShader::MaxwellVSConfig> {
-    size_t operator()(const GLShader::MaxwellVSConfig& k) const {
+struct hash<OpenGL::GLShader::MaxwellVSConfig> {
+    size_t operator()(const OpenGL::GLShader::MaxwellVSConfig& k) const {
         return k.Hash();
     }
 };
 
 template <>
-struct hash<GLShader::MaxwellFSConfig> {
-    size_t operator()(const GLShader::MaxwellFSConfig& k) const {
+struct hash<OpenGL::GLShader::MaxwellFSConfig> {
+    size_t operator()(const OpenGL::GLShader::MaxwellFSConfig& k) const {
         return k.Hash();
     }
 };

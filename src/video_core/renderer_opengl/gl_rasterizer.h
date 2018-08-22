@@ -22,11 +22,13 @@
 #include "video_core/renderer_opengl/gl_state.h"
 #include "video_core/renderer_opengl/gl_stream_buffer.h"
 
-struct ScreenInfo;
-
 namespace Core::Frontend {
 class EmuWindow;
 }
+
+namespace OpenGL {
+
+struct ScreenInfo;
 
 class RasterizerOpenGL : public VideoCore::RasterizerInterface {
 public:
@@ -184,3 +186,5 @@ private:
     enum class AccelDraw { Disabled, Arrays, Indexed };
     AccelDraw accelerate_draw = AccelDraw::Disabled;
 };
+
+} // namespace OpenGL

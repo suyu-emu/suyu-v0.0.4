@@ -12,7 +12,7 @@
 #include "video_core/renderer_opengl/gl_shader_gen.h"
 #include "video_core/renderer_opengl/maxwell_to_gl.h"
 
-namespace GLShader {
+namespace OpenGL::GLShader {
 
 /// Number of OpenGL texture samplers that can be used in the fragment shader
 static constexpr size_t NumTextureSamplers = 32;
@@ -171,4 +171,4 @@ private:
     OGLPipeline pipeline;
 };
 
-} // namespace GLShader
+} // namespace OpenGL::GLShader

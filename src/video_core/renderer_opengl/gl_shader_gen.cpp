@@ -7,7 +7,7 @@
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
 
-namespace GLShader {
+namespace OpenGL::GLShader {
 
 using Tegra::Engines::Maxwell3D;
 
@@ -103,4 +103,4 @@ void main() {
     return {out, program.second};
 }
 
-} // namespace GLShader
+} // namespace OpenGL::GLShader

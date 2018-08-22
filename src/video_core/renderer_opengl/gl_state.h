@@ -9,6 +9,8 @@
 
 #include "video_core/engines/maxwell_3d.h"
 
+namespace OpenGL {
+
 using Regs = Tegra::Engines::Maxwell3D::Regs;
 
 namespace TextureUnits {
@@ -163,3 +165,5 @@ public:
 private:
     static OpenGLState cur_state;
 };
+
+} // namespace OpenGL
