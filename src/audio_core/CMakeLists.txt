@@ -24,6 +24,7 @@ add_library(audio_core STATIC
 create_target_directory_groups(audio_core)
 
 target_link_libraries(audio_core PUBLIC common core)
+target_link_libraries(audio_core PRIVATE SoundTouch)
 
 if(ENABLE_CUBEB)
     target_link_libraries(audio_core PRIVATE cubeb)
