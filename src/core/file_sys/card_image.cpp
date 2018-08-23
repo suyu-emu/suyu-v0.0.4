@@ -149,6 +149,9 @@ Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
         if (file->GetExtension() != "nca")
             continue;
         auto nca = std::make_shared<NCA>(file);
+        // TODO(DarkLordZach): Add proper Rev1+ Support
+        if (nca->IsUpdate())
+            continue;
         if (nca->GetType() == NCAContentType::Program) {
             program_nca_status = nca->GetStatus();
         }
