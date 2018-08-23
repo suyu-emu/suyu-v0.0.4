@@ -84,7 +84,8 @@ void DecryptSharedFont(const std::vector<u32>& input, std::vector<u8>& output, s
     offset += transformed_font.size() * sizeof(u32);
 }
 
-void EncryptSharedFont(const std::vector<u8>& input, std::vector<u8>& output, size_t& offset) {
+static void EncryptSharedFont(const std::vector<u8>& input, std::vector<u8>& output,
+                              size_t& offset) {
     ASSERT_MSG(offset + input.size() + 8 < SHARED_FONT_MEM_SIZE, "Shared fonts exceeds 17mb!");
     const u32 KEY = EXPECTED_MAGIC ^ EXPECTED_RESULT;
     std::memcpy(output.data() + offset, &EXPECTED_RESULT, sizeof(u32)); // Magic header
@@ -185,10 +186,10 @@ PL_U::PL_U() : ServiceFramework("pl:u") {
         }
 
         bool using_ttf = false;
-        for (auto FontTTF : SHARED_FONTS_TTF) {
-            if (FileUtil::Exists(user_path + FontTTF)) {
+        for (const char* font_ttf : SHARED_FONTS_TTF) {
+            if (FileUtil::Exists(user_path + font_ttf)) {
                 using_ttf = true;
-                FileUtil::IOFile file(user_path + FontTTF, "rb");
+                FileUtil::IOFile file(user_path + font_ttf, "rb");
                 if (file.IsOpen()) {
                     std::vector<u8> ttf_bytes(file.GetSize());
                     file.ReadBytes<u8>(ttf_bytes.data(), ttf_bytes.size());
@@ -199,10 +200,10 @@ PL_U::PL_U() : ServiceFramework("pl:u") {
                     EncryptSharedFont(ttf_bytes, *shared_font, offset);
                     SHARED_FONT_REGIONS.push_back(region);
                 } else {
-                    LOG_WARNING(Service_NS, "Unable to load font: {}", FontTTF);
+                    LOG_WARNING(Service_NS, "Unable to load font: {}", font_ttf);
                 }
             } else if (using_ttf) {
-                LOG_WARNING(Service_NS, "Unable to find font: {}", FontTTF);
+                LOG_WARNING(Service_NS, "Unable to find font: {}", font_ttf);
             }
         }
         if (using_ttf)
