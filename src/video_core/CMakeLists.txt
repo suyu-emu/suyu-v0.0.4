@@ -18,6 +18,7 @@ add_library(video_core STATIC
     macro_interpreter.h
     memory_manager.cpp
     memory_manager.h
+    rasterizer_cache.h
     rasterizer_interface.h
     renderer_base.cpp
     renderer_base.h
