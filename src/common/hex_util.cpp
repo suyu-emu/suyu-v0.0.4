@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "common/hex_util.h"
+#include "common/logging/log.h"
 
 namespace Common {
 
@@ -13,18 +14,29 @@ u8 ToHexNibble(char c1) {
         return c1 - 87;
     if (c1 >= 48 && c1 <= 57)
         return c1 - 48;
-    throw std::logic_error("Invalid hex digit");
+    LOG_ERROR(Common, "Invalid hex digit: 0x{:02X}", c1);
+    return 0;
 }
 
 std::array<u8, 16> operator""_array16(const char* str, size_t len) {
-    if (len != 32)
-        throw std::logic_error("Not of correct size.");
+    if (len != 32) {
+        LOG_ERROR(Common,
+                  "Attempting to parse string to array that is not of correct size (expected=32, "
+                  "actual={}).",
+                  len);
+        return {};
+    }
     return HexStringToArray<16>(str);
 }
 
 std::array<u8, 32> operator""_array32(const char* str, size_t len) {
-    if (len != 64)
-        throw std::logic_error("Not of correct size.");
+    if (len != 64) {
+        LOG_ERROR(Common,
+                  "Attempting to parse string to array that is not of correct size (expected=64, "
+                  "actual={}).",
+                  len);
+        return {};
+    }
     return HexStringToArray<32>(str);
 }
 
