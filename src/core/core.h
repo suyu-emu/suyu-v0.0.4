@@ -187,6 +187,13 @@ public:
         return current_process;
     }
 
+    /// Gets the name of the current game
+    Loader::ResultStatus GetGameName(std::string& out) const {
+        if (app_loader == nullptr)
+            return Loader::ResultStatus::ErrorNotInitialized;
+        return app_loader->ReadTitle(out);
+    }
+
     PerfStats perf_stats;
     FrameLimiter frame_limiter;
 
