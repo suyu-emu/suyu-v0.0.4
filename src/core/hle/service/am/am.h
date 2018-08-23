@@ -116,6 +116,7 @@ private:
     void GetDefaultDisplayResolutionChangeEvent(Kernel::HLERequestContext& ctx);
     void GetOperationMode(Kernel::HLERequestContext& ctx);
     void GetPerformanceMode(Kernel::HLERequestContext& ctx);
+    void GetBootMode(Kernel::HLERequestContext& ctx);
 
     Kernel::SharedPtr<Kernel::Event> event;
 };

@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "core/hle/ipc_helpers.h"
+#include "core/hle/service/pm/pm.h"
 #include "core/hle/service/service.h"
 
 namespace Service::PM {
@@ -10,10 +12,19 @@ class BootMode final : public ServiceFramework<BootMode> {
 public:
     explicit BootMode() : ServiceFramework{"pm:bm"} {
         static const FunctionInfo functions[] = {
-            {0, nullptr, "GetBootMode"},
+            {0, &BootMode::GetBootMode, "GetBootMode"},
             {1, nullptr, "SetMaintenanceBoot"},
         };
         RegisterHandlers(functions);
+    }
+
+private:
+    void GetBootMode(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(static_cast<u32>(SystemBootMode::Normal)); // Normal boot mode
+
+        LOG_DEBUG(Service_PM, "called");
     }
 };
 

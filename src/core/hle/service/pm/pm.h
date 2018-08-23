@@ -9,7 +9,7 @@ class ServiceManager;
 }
 
 namespace Service::PM {
-
+enum class SystemBootMode : u32 { Normal = 0, Maintenance = 1 };
 /// Registers all PM services with the specified service manager.
 void InstallInterfaces(SM::ServiceManager& service_manager);
 
