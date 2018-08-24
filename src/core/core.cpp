@@ -135,8 +135,7 @@ System::ResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::st
         LOG_CRITICAL(Core, "Failed to determine system mode (Error {})!",
                      static_cast<int>(system_mode.second));
 
-        if (system_mode.second != Loader::ResultStatus::Success)
-            return ResultStatus::ErrorSystemMode;
+        return ResultStatus::ErrorSystemMode;
     }
 
     ResultStatus init_result{Init(emu_window)};
@@ -148,14 +147,12 @@ System::ResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::st
     }
 
     const Loader::ResultStatus load_result{app_loader->Load(current_process)};
-    if (Loader::ResultStatus::Success != load_result) {
+    if (load_result != Loader::ResultStatus::Success) {
         LOG_CRITICAL(Core, "Failed to load ROM (Error {})!", static_cast<int>(load_result));
         System::Shutdown();
 
-        if (load_result != Loader::ResultStatus::Success) {
-            return static_cast<ResultStatus>(static_cast<u32>(ResultStatus::ErrorLoader) +
-                                             static_cast<u32>(load_result));
-        }
+        return static_cast<ResultStatus>(static_cast<u32>(ResultStatus::ErrorLoader) +
+                                         static_cast<u32>(load_result));
     }
     status = ResultStatus::Success;
     return status;
