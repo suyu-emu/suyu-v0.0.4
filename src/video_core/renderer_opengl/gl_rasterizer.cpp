@@ -929,7 +929,8 @@ void RasterizerOpenGL::SyncLogicOpState() {
     if (!state.logic_op.enabled)
         return;
 
-    ASSERT_MSG(regs.blend.enable == 0, "Blending and logic op can't be enabled at the same time.");
+    ASSERT_MSG(regs.blend.enable[0] == 0,
+               "Blending and logic op can't be enabled at the same time.");
 
     state.logic_op.operation = MaxwellToGL::LogicOp(regs.logic_op.operation);
 }
