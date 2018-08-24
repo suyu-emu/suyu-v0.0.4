@@ -4,8 +4,10 @@
 
 #pragma once
 
+#include <array>
+#include "common/bit_field.h"
+#include "common/common_types.h"
 #include "core/hle/service/service.h"
-#include "core/settings.h"
 
 namespace Service::HID {
 

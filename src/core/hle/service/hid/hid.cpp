@@ -17,6 +17,7 @@
 #include "core/hle/service/hid/irs.h"
 #include "core/hle/service/hid/xcd.h"
 #include "core/hle/service/service.h"
+#include "core/settings.h"
 
 namespace Service::HID {
 
