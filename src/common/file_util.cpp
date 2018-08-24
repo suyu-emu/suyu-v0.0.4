@@ -764,7 +764,7 @@ size_t ReadFileToString(bool text_file, const char* filename, std::string& str) 
     IOFile file(filename, text_file ? "r" : "rb");
 
     if (!file.IsOpen())
-        return false;
+        return 0;
 
     str.resize(static_cast<u32>(file.GetSize()));
     return file.ReadArray(&str[0], str.size());
