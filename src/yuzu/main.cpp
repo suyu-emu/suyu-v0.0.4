@@ -556,6 +556,15 @@ void GMainWindow::BootGame(const QString& filename) {
     }
     status_bar_update_timer.start(2000);
 
+    std::string title_name;
+    const auto res = Core::System::GetInstance().GetGameName(title_name);
+    if (res != Loader::ResultStatus::Success)
+        title_name = FileUtil::GetFilename(filename.toStdString());
+
+    setWindowTitle(QString("yuzu %1| %4 | %2-%3")
+                       .arg(Common::g_build_name, Common::g_scm_branch, Common::g_scm_desc,
+                            QString::fromStdString(title_name)));
+
     render_window->show();
     render_window->setFocus();
 
@@ -587,6 +596,8 @@ void GMainWindow::ShutdownGame() {
     render_window->hide();
     game_list->show();
     game_list->setFilterFocus();
+    setWindowTitle(QString("yuzu %1| %2-%3")
+                       .arg(Common::g_build_name, Common::g_scm_branch, Common::g_scm_desc));
 
     // Disable status bar updates
     status_bar_update_timer.stop();
