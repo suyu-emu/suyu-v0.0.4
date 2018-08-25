@@ -12,7 +12,6 @@ namespace ErrCodes {
 enum {
     // TODO(Subv): Remove these 3DS OS error codes.
     SessionClosedByRemote = 26,
-    PortNameTooLong = 30,
     NoPendingSessions = 35,
     InvalidBufferDescriptor = 48,
     MaxConnectionsReached = 52,
@@ -39,7 +38,7 @@ enum {
 // TODO(bunnei): Replace these with correct errors for Switch OS
 constexpr ResultCode ERR_HANDLE_TABLE_FULL(ErrorModule::Kernel, ErrCodes::HandleTableFull);
 constexpr ResultCode ERR_SESSION_CLOSED_BY_REMOTE(-1);
-constexpr ResultCode ERR_PORT_NAME_TOO_LONG(-1);
+constexpr ResultCode ERR_PORT_NAME_TOO_LONG(ErrorModule::Kernel, ErrCodes::TooLarge);
 constexpr ResultCode ERR_MAX_CONNECTIONS_REACHED(-1);
 constexpr ResultCode ERR_INVALID_ENUM_VALUE(ErrorModule::Kernel, ErrCodes::InvalidEnumValue);
 constexpr ResultCode ERR_INVALID_ENUM_VALUE_FND(-1);
