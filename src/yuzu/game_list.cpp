@@ -621,9 +621,7 @@ void GameListWorker::run() {
     stop_processing = false;
     watch_list.append(dir_path);
     FillControlMap(dir_path.toStdString());
-    AddInstalledTitlesToGameList(Service::FileSystem::GetUserNANDContents());
-    AddInstalledTitlesToGameList(Service::FileSystem::GetSystemNANDContents());
-    AddInstalledTitlesToGameList(Service::FileSystem::GetSDMCContents());
+    AddInstalledTitlesToGameList();
     AddFstEntriesToGameList(dir_path.toStdString(), deep_scan ? 256 : 0);
     nca_control_map.clear();
     emit Finished(watch_list);
