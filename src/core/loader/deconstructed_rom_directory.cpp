@@ -61,7 +61,6 @@ AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(FileSys
 
     if (nacp_file != nullptr) {
         FileSys::NACP nacp(nacp_file);
-        title_id = nacp.GetTitleId();
         name = nacp.GetApplicationName();
     }
 }
@@ -120,6 +119,7 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
     }
 
     auto& kernel = Core::System::GetInstance().Kernel();
+    title_id = metadata.GetTitleID();
     process->program_id = metadata.GetTitleID();
     process->svc_access_mask.set();
     process->resource_limit =
@@ -159,8 +159,6 @@ ResultStatus AppLoader_DeconstructedRomDirectory::ReadIcon(std::vector<u8>& buff
 }
 
 ResultStatus AppLoader_DeconstructedRomDirectory::ReadProgramId(u64& out_program_id) {
-    if (name.empty())
-        return ResultStatus::ErrorNoControl;
     out_program_id = title_id;
     return ResultStatus::Success;
 }
