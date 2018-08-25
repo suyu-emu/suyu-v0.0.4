@@ -9,6 +9,7 @@
 #include "core/core.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
+#include "core/file_sys/patch_manager.h"
 #include "core/file_sys/romfs_factory.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/kernel.h"
@@ -21,8 +22,9 @@
 
 namespace Loader {
 
-AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(FileSys::VirtualFile file_)
-    : AppLoader(std::move(file_)) {
+AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(FileSys::VirtualFile file_,
+                                                                         bool override_update)
+    : AppLoader(std::move(file_)), override_update(override_update) {
     const auto dir = file->GetContainingDirectory();
 
     // Icon
@@ -66,8 +68,9 @@ AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(FileSys
 }
 
 AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(
-    FileSys::VirtualDir directory)
-    : AppLoader(directory->GetFile("main")), dir(std::move(directory)) {}
+    FileSys::VirtualDir directory, bool override_update)
+    : AppLoader(directory->GetFile("main")), dir(std::move(directory)),
+      override_update(override_update) {}
 
 FileType AppLoader_DeconstructedRomDirectory::IdentifyType(const FileSys::VirtualFile& file) {
     if (FileSys::IsDirectoryExeFS(file->GetContainingDirectory())) {
@@ -89,13 +92,29 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
         dir = file->GetContainingDirectory();
     }
 
-    const FileSys::VirtualFile npdm = dir->GetFile("main.npdm");
+    // Read meta to determine title ID
+    FileSys::VirtualFile npdm = dir->GetFile("main.npdm");
     if (npdm == nullptr)
         return ResultStatus::ErrorMissingNPDM;
 
     ResultStatus result = metadata.Load(npdm);
     if (result != ResultStatus::Success) {
         return result;
+    }
+
+    if (override_update) {
+        const FileSys::PatchManager patch_manager(metadata.GetTitleID());
+        dir = patch_manager.PatchExeFS(dir);
+    }
+
+    // Reread in case PatchExeFS affected the main.npdm
+    npdm = dir->GetFile("main.npdm");
+    if (npdm == nullptr)
+        return ResultStatus::ErrorMissingNPDM;
+
+    ResultStatus result2 = metadata.Load(npdm);
+    if (result2 != ResultStatus::Success) {
+        return result2;
     }
     metadata.Print();
 
