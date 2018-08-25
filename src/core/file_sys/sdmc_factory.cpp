@@ -16,6 +16,8 @@ SDMCFactory::SDMCFactory(VirtualDir dir_)
                                     return std::make_shared<NAX>(file, id)->GetDecrypted();
                                 })) {}
 
+SDMCFactory::~SDMCFactory() = default;
+
 ResultVal<VirtualDir> SDMCFactory::Open() {
     return MakeResult<VirtualDir>(dir);
 }

@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "common/logging/log.h"
-#include "core/core.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/xts_archive.h"

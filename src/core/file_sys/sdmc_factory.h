@@ -16,6 +16,7 @@ class RegisteredCache;
 class SDMCFactory {
 public:
     explicit SDMCFactory(VirtualDir dir);
+    ~SDMCFactory();
 
     ResultVal<VirtualDir> Open();
     std::shared_ptr<RegisteredCache> GetSDMCContents() const;

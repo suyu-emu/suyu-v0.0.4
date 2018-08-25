@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <vector>
 #include "core/crypto/aes_util.h"
 #include "core/crypto/encryption_layer.h"
 #include "core/crypto/key_manager.h"
