@@ -15,13 +15,13 @@ enum {
     SessionClosedByRemote = 26,
     PortNameTooLong = 30,
     NoPendingSessions = 35,
-    WrongPermission = 46,
     InvalidBufferDescriptor = 48,
     MaxConnectionsReached = 52,
 
     // Confirmed Switch OS error codes
     InvalidAddress = 102,
     InvalidMemoryState = 106,
+    InvalidMemoryPermissions = 108,
     InvalidProcessorId = 113,
     InvalidHandle = 114,
     InvalidCombination = 116,
@@ -40,7 +40,6 @@ enum {
 constexpr ResultCode ERR_OUT_OF_HANDLES(-1);
 constexpr ResultCode ERR_SESSION_CLOSED_BY_REMOTE(-1);
 constexpr ResultCode ERR_PORT_NAME_TOO_LONG(-1);
-constexpr ResultCode ERR_WRONG_PERMISSION(-1);
 constexpr ResultCode ERR_MAX_CONNECTIONS_REACHED(-1);
 constexpr ResultCode ERR_INVALID_ENUM_VALUE(ErrorModule::Kernel, ErrCodes::InvalidEnumValue);
 constexpr ResultCode ERR_INVALID_ENUM_VALUE_FND(-1);
@@ -50,6 +49,8 @@ constexpr ResultCode ERR_INVALID_COMBINATION_KERNEL(ErrorModule::Kernel,
 constexpr ResultCode ERR_OUT_OF_MEMORY(-1);
 constexpr ResultCode ERR_INVALID_ADDRESS(ErrorModule::Kernel, ErrCodes::InvalidAddress);
 constexpr ResultCode ERR_INVALID_ADDRESS_STATE(ErrorModule::Kernel, ErrCodes::InvalidMemoryState);
+constexpr ResultCode ERR_INVALID_MEMORY_PERMISSIONS(ErrorModule::Kernel,
+                                                    ErrCodes::InvalidMemoryPermissions);
 constexpr ResultCode ERR_INVALID_HANDLE(ErrorModule::Kernel, ErrCodes::InvalidHandle);
 constexpr ResultCode ERR_INVALID_STATE(ErrorModule::Kernel, ErrCodes::InvalidState);
 constexpr ResultCode ERR_INVALID_POINTER(-1);

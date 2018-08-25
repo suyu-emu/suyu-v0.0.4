@@ -101,7 +101,7 @@ ResultCode SharedMemory::Map(Process* target_process, VAddr address, MemoryPermi
         static_cast<u32>(this->permissions) & ~static_cast<u32>(other_permissions)) {
         LOG_ERROR(Kernel, "cannot map id={}, address=0x{:X} name={}, permissions don't match",
                   GetObjectId(), address, name);
-        return ERR_WRONG_PERMISSION;
+        return ERR_INVALID_MEMORY_PERMISSIONS;
     }
 
     VAddr target_address = address;
