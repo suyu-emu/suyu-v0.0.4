@@ -232,4 +232,9 @@ ResultStatus AppLoader_NRO::ReadTitle(std::string& title) {
     title = nacp->GetApplicationName();
     return ResultStatus::Success;
 }
+
+bool AppLoader_NRO::IsRomFSUpdatable() {
+    return false;
+}
+
 } // namespace Loader
