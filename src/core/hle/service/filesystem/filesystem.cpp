@@ -254,7 +254,7 @@ ResultCode RegisterSDMC(std::unique_ptr<FileSys::SDMCFactory>&& factory) {
 ResultCode RegisterBIS(std::unique_ptr<FileSys::BISFactory>&& factory) {
     ASSERT_MSG(bis_factory == nullptr, "Tried to register a second BIS");
     bis_factory = std::move(factory);
-    LOG_DEBUG(Service_FS, "Registred BIS");
+    LOG_DEBUG(Service_FS, "Registered BIS");
     return RESULT_SUCCESS;
 }
 
