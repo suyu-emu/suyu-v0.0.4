@@ -49,6 +49,8 @@ add_library(core STATIC
     file_sys/savedata_factory.h
     file_sys/sdmc_factory.cpp
     file_sys/sdmc_factory.h
+    file_sys/submission_package.cpp
+    file_sys/submission_package.h
     file_sys/vfs.cpp
     file_sys/vfs.h
     file_sys/vfs_concat.cpp
@@ -359,6 +361,8 @@ add_library(core STATIC
     loader/nro.h
     loader/nso.cpp
     loader/nso.h
+    loader/nsp.cpp
+    loader/nsp.h
     loader/xci.cpp
     loader/xci.h
     memory.cpp

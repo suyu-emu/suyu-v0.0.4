@@ -746,7 +746,8 @@ void GMainWindow::OnMenuLoadFolder() {
 
 void GMainWindow::OnMenuInstallToNAND() {
     const QString file_filter =
-        tr("Installable Switch File (*.nca *.xci);;Nintendo Content Archive (*.nca);;NX Cartridge "
+        tr("Installable Switch File (*.nca *.nsp *.xci);;Nintendo Content Archive "
+           "(*.nca);;Nintendo Submissions Package (*.nsp);;NX Cartridge "
            "Image (*.xci)");
     QString filename = QFileDialog::getOpenFileName(this, tr("Install File"),
                                                     UISettings::values.roms_path, file_filter);
