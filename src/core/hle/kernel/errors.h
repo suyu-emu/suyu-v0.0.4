@@ -14,9 +14,9 @@ enum {
     SessionClosedByRemote = 26,
     NoPendingSessions = 35,
     InvalidBufferDescriptor = 48,
-    MaxConnectionsReached = 52,
 
     // Confirmed Switch OS error codes
+    MaxConnectionsReached = 7,
     InvalidAddress = 102,
     HandleTableFull = 105,
     InvalidMemoryState = 106,
@@ -29,6 +29,7 @@ enum {
     TooLarge = 119,
     InvalidEnumValue = 120,
     InvalidState = 125,
+    ResourceLimitExceeded = 132,
 };
 }
 
@@ -39,7 +40,8 @@ enum {
 constexpr ResultCode ERR_HANDLE_TABLE_FULL(ErrorModule::Kernel, ErrCodes::HandleTableFull);
 constexpr ResultCode ERR_SESSION_CLOSED_BY_REMOTE(-1);
 constexpr ResultCode ERR_PORT_NAME_TOO_LONG(ErrorModule::Kernel, ErrCodes::TooLarge);
-constexpr ResultCode ERR_MAX_CONNECTIONS_REACHED(-1);
+constexpr ResultCode ERR_MAX_CONNECTIONS_REACHED(ErrorModule::Kernel,
+                                                 ErrCodes::MaxConnectionsReached);
 constexpr ResultCode ERR_INVALID_ENUM_VALUE(ErrorModule::Kernel, ErrCodes::InvalidEnumValue);
 constexpr ResultCode ERR_INVALID_ENUM_VALUE_FND(-1);
 constexpr ResultCode ERR_INVALID_COMBINATION(-1);
