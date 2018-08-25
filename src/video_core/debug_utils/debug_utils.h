@@ -4,19 +4,11 @@
 
 #pragma once
 
-#include <algorithm>
 #include <array>
 #include <condition_variable>
-#include <iterator>
 #include <list>
-#include <map>
 #include <memory>
 #include <mutex>
-#include <string>
-#include <utility>
-#include <vector>
-#include "common/common_types.h"
-#include "common/vector_math.h"
 
 namespace Tegra {
 
