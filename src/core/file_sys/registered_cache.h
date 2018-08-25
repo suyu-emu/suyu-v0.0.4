@@ -89,9 +89,11 @@ public:
         boost::optional<ContentRecordType> record_type = boost::none,
         boost::optional<u64> title_id = boost::none) const;
 
-    // Raw copies all the ncas from the xci to the csache. Does some quick checks to make sure there
-    // is a meta NCA and all of them are accessible.
+    // Raw copies all the ncas from the xci/nsp to the csache. Does some quick checks to make sure
+    // there is a meta NCA and all of them are accessible.
     InstallResult InstallEntry(std::shared_ptr<XCI> xci, bool overwrite_if_exists = false,
+                               const VfsCopyFunction& copy = &VfsRawCopy);
+    InstallResult InstallEntry(std::shared_ptr<NSP> nsp, bool overwrite_if_exists = false,
                                const VfsCopyFunction& copy = &VfsRawCopy);
 
     // Due to the fact that we must use Meta-type NCAs to determine the existance of files, this

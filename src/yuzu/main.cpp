@@ -806,22 +806,34 @@ void GMainWindow::OnMenuInstallToNAND() {
                QMessageBox::Yes;
     };
 
-    if (filename.endsWith("xci", Qt::CaseInsensitive)) {
-        const auto xci = std::make_shared<FileSys::XCI>(
-            vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
-        if (xci->GetStatus() != Loader::ResultStatus::Success) {
+    if (filename.endsWith("xci", Qt::CaseInsensitive) ||
+        filename.endsWith("nsp", Qt::CaseInsensitive)) {
+
+        std::shared_ptr<FileSys::NSP> nsp;
+        if (filename.endsWith("nsp", Qt::CaseInsensitive)) {
+            nsp = std::make_shared<FileSys::NSP>(
+                vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
+            if (!nsp->IsExtractedType())
+                failed();
+        } else {
+            const auto xci = std::make_shared<FileSys::XCI>(
+                vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
+            nsp = xci->GetSecurePartitionNSP();
+        }
+
+        if (nsp->GetStatus() != Loader::ResultStatus::Success) {
             failed();
             return;
         }
         const auto res =
-            Service::FileSystem::GetUserNANDContents()->InstallEntry(xci, false, qt_raw_copy);
+            Service::FileSystem::GetUserNANDContents()->InstallEntry(nsp, false, qt_raw_copy);
         if (res == FileSys::InstallResult::Success) {
             success();
         } else {
             if (res == FileSys::InstallResult::ErrorAlreadyExists) {
                 if (overwrite()) {
                     const auto res2 = Service::FileSystem::GetUserNANDContents()->InstallEntry(
-                        xci, true, qt_raw_copy);
+                        nsp, true, qt_raw_copy);
                     if (res2 == FileSys::InstallResult::Success) {
                         success();
                     } else {
