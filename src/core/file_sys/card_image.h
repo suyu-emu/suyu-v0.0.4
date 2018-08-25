@@ -10,6 +10,8 @@
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "core/file_sys/vfs.h"
+#include "core/loader/loader.h"
+#include "submission_package.h"
 
 namespace Loader {
 enum class ResultStatus : u16;
@@ -71,11 +73,14 @@ public:
     u8 GetFormatVersion() const;
 
     VirtualDir GetPartition(XCIPartition partition) const;
+    std::shared_ptr<NSP> GetSecurePartitionNSP() const;
     VirtualDir GetSecurePartition() const;
     VirtualDir GetNormalPartition() const;
     VirtualDir GetUpdatePartition() const;
     VirtualDir GetLogoPartition() const;
 
+    std::shared_ptr<NCA> GetProgramNCA() const;
+    VirtualFile GetProgramNCAFile() const;
     const std::vector<std::shared_ptr<NCA>>& GetNCAs() const;
     std::shared_ptr<NCA> GetNCAByType(NCAContentType type) const;
     VirtualFile GetNCAFileByType(NCAContentType type) const;
@@ -101,6 +106,8 @@ private:
     Loader::ResultStatus program_nca_status;
 
     std::vector<VirtualDir> partitions;
+    std::shared_ptr<NSP> secure_partition;
+    std::shared_ptr<NCA> program;
     std::vector<std::shared_ptr<NCA>> ncas;
 };
 } // namespace FileSys
