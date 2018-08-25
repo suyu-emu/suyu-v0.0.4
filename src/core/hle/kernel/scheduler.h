@@ -11,13 +11,15 @@
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/thread.h"
 
+namespace Core {
 class ARM_Interface;
+}
 
 namespace Kernel {
 
 class Scheduler final {
 public:
-    explicit Scheduler(ARM_Interface* cpu_core);
+    explicit Scheduler(Core::ARM_Interface* cpu_core);
     ~Scheduler();
 
     /// Returns whether there are any threads that are ready to run.
@@ -70,7 +72,7 @@ private:
 
     SharedPtr<Thread> current_thread = nullptr;
 
-    ARM_Interface* cpu_core;
+    Core::ARM_Interface* cpu_core;
 
     static std::mutex scheduler_mutex;
 };

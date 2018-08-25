@@ -17,7 +17,7 @@ namespace Kernel {
 
 std::mutex Scheduler::scheduler_mutex;
 
-Scheduler::Scheduler(ARM_Interface* cpu_core) : cpu_core(cpu_core) {}
+Scheduler::Scheduler(Core::ARM_Interface* cpu_core) : cpu_core(cpu_core) {}
 
 Scheduler::~Scheduler() {
     for (auto& thread : thread_list) {

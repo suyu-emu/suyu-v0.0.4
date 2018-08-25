@@ -12,13 +12,13 @@
 #include "common/common_types.h"
 #include "core/arm/exclusive_monitor.h"
 
-class ARM_Interface;
-
 namespace Kernel {
 class Scheduler;
 }
 
 namespace Core {
+
+class ARM_Interface;
 
 constexpr unsigned NUM_CPU_CORES{4};
 

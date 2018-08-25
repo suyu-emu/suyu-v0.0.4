@@ -283,9 +283,9 @@ static std::tuple<std::size_t, std::size_t, bool> GetFreeThreadLocalSlot(
  * @param entry_point Address of entry point for execution
  * @param arg User argument for thread
  */
-static void ResetThreadContext(ARM_Interface::ThreadContext& context, VAddr stack_top,
+static void ResetThreadContext(Core::ARM_Interface::ThreadContext& context, VAddr stack_top,
                                VAddr entry_point, u64 arg) {
-    memset(&context, 0, sizeof(ARM_Interface::ThreadContext));
+    memset(&context, 0, sizeof(Core::ARM_Interface::ThreadContext));
 
     context.cpu_registers[0] = arg;
     context.pc = entry_point;
