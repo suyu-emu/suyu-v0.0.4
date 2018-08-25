@@ -141,8 +141,8 @@ public:
     }
 
     // TODO: Evaluate if access to these members should be hidden behind a public interface.
-    std::array<BreakPoint, (int)Event::NumEvents> breakpoints;
-    Event active_breakpoint;
+    std::array<BreakPoint, static_cast<int>(Event::NumEvents)> breakpoints;
+    Event active_breakpoint{};
     bool at_breakpoint = false;
 
 private:
