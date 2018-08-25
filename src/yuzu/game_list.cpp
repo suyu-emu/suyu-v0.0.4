@@ -21,6 +21,7 @@
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/nca_metadata.h"
+#include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/vfs_real.h"
@@ -232,6 +233,7 @@ GameList::GameList(FileSys::VirtualFilesystem vfs, GMainWindow* parent)
     item_model->insertColumns(0, COLUMN_COUNT);
     item_model->setHeaderData(COLUMN_NAME, Qt::Horizontal, "Name");
     item_model->setHeaderData(COLUMN_COMPATIBILITY, Qt::Horizontal, "Compatibility");
+    item_model->setHeaderData(COLUMN_ADD_ONS, Qt::Horizontal, "Add-ons");
     item_model->setHeaderData(COLUMN_FILE_TYPE, Qt::Horizontal, "File type");
     item_model->setHeaderData(COLUMN_SIZE, Qt::Horizontal, "Size");
 
@@ -454,6 +456,26 @@ static QString FormatGameName(const std::string& physical_name) {
     return physical_name_as_qstring;
 }
 
+static QString FormatPatchNameVersions(u64 title_id, bool updatable = true) {
+    const FileSys::PatchManager patch_manager(title_id);
+    QString out;
+    for (const auto& kv : patch_manager.GetPatchVersionNames()) {
+        if (!updatable && kv.first == FileSys::PatchType::Update)
+            continue;
+
+        if (kv.second == 0) {
+            out.append(fmt::format("{}\n", FileSys::FormatPatchTypeName(kv.first)).c_str());
+        } else {
+            out.append(fmt::format("{} ({})\n", FileSys::FormatPatchTypeName(kv.first),
+                                   FileSys::FormatTitleVersion(kv.second))
+                           .c_str());
+        }
+    }
+
+    out.chop(1);
+    return out;
+}
+
 void GameList::RefreshGameDirectory() {
     if (!UISettings::values.gamedir.isEmpty() && current_worker != nullptr) {
         LOG_INFO(Frontend, "Change detected in the games directory. Reloading game list.");
@@ -515,6 +537,7 @@ void GameListWorker::AddInstalledTitlesToGameList(std::shared_ptr<FileSys::Regis
                 FormatGameName(file->GetFullPath()), icon, QString::fromStdString(name),
                 QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType())),
                 program_id),
+            new GameListItem(FormatPatchNameVersions(program_id)),
             new GameListItem(
                 QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType()))),
             new GameListItemSize(file->GetSize()),
@@ -596,12 +619,15 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
             if (it != compatibility_list.end())
                 compatibility = it->second.first;
 
+            FileSys::PatchManager patch{program_id};
+
             emit EntryReady({
                 new GameListItemPath(
                     FormatGameName(physical_name), icon, QString::fromStdString(name),
                     QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType())),
                     program_id),
                 new GameListItemCompat(compatibility),
+                new GameListItem(FormatPatchNameVersions(program_id, loader->IsRomFSUpdatable())),
                 new GameListItem(
                     QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType()))),
                 new GameListItemSize(FileUtil::GetSize(physical_name)),
