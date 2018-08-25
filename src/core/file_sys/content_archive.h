@@ -79,7 +79,7 @@ bool IsValidNCA(const NCAHeader& header);
 // After construction, use GetStatus to determine if the file is valid and ready to be used.
 class NCA : public ReadOnlyVfsDirectory {
 public:
-    explicit NCA(VirtualFile file);
+    explicit NCA(VirtualFile file, VirtualFile bktr_base_romfs = nullptr);
     Loader::ResultStatus GetStatus() const;
 
     std::vector<std::shared_ptr<VfsFile>> GetFiles() const override;
@@ -89,13 +89,12 @@ public:
 
     NCAContentType GetType() const;
     u64 GetTitleId() const;
+    bool IsUpdate() const;
 
     VirtualFile GetRomFS() const;
     VirtualDir GetExeFS() const;
 
     VirtualFile GetBaseFile() const;
-
-    bool IsUpdate() const;
 
 protected:
     bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
@@ -112,14 +111,15 @@ private:
     VirtualFile romfs = nullptr;
     VirtualDir exefs = nullptr;
     VirtualFile file;
+    VirtualFile bktr_base_romfs;
 
     NCAHeader header{};
     bool has_rights_id{};
-    bool is_update{};
 
     Loader::ResultStatus status{};
 
     bool encrypted;
+    bool is_update;
 
     Core::Crypto::KeyManager keys;
 };
