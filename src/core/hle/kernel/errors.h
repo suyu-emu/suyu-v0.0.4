@@ -45,7 +45,8 @@ constexpr ResultCode ERR_MAX_CONNECTIONS_REACHED(-1);
 constexpr ResultCode ERR_INVALID_ENUM_VALUE(ErrorModule::Kernel, ErrCodes::InvalidEnumValue);
 constexpr ResultCode ERR_INVALID_ENUM_VALUE_FND(-1);
 constexpr ResultCode ERR_INVALID_COMBINATION(-1);
-constexpr ResultCode ERR_INVALID_COMBINATION_KERNEL(-1);
+constexpr ResultCode ERR_INVALID_COMBINATION_KERNEL(ErrorModule::Kernel,
+                                                    ErrCodes::InvalidCombination);
 constexpr ResultCode ERR_OUT_OF_MEMORY(-1);
 constexpr ResultCode ERR_INVALID_ADDRESS(ErrorModule::Kernel, ErrCodes::InvalidAddress);
 constexpr ResultCode ERR_INVALID_ADDRESS_STATE(ErrorModule::Kernel, ErrCodes::InvalidMemoryState);
