@@ -11,7 +11,6 @@ namespace Kernel {
 namespace ErrCodes {
 enum {
     // TODO(Subv): Remove these 3DS OS error codes.
-    OutOfHandles = 19,
     SessionClosedByRemote = 26,
     PortNameTooLong = 30,
     NoPendingSessions = 35,
@@ -20,6 +19,7 @@ enum {
 
     // Confirmed Switch OS error codes
     InvalidAddress = 102,
+    HandleTableFull = 105,
     InvalidMemoryState = 106,
     InvalidMemoryPermissions = 108,
     InvalidProcessorId = 113,
@@ -37,7 +37,7 @@ enum {
 // double check that the code matches before re-using the constant.
 
 // TODO(bunnei): Replace these with correct errors for Switch OS
-constexpr ResultCode ERR_OUT_OF_HANDLES(-1);
+constexpr ResultCode ERR_HANDLE_TABLE_FULL(ErrorModule::Kernel, ErrCodes::HandleTableFull);
 constexpr ResultCode ERR_SESSION_CLOSED_BY_REMOTE(-1);
 constexpr ResultCode ERR_PORT_NAME_TOO_LONG(-1);
 constexpr ResultCode ERR_MAX_CONNECTIONS_REACHED(-1);
