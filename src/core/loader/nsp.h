@@ -22,7 +22,7 @@ class AppLoader_NCA;
 class AppLoader_NSP final : public AppLoader {
 public:
     explicit AppLoader_NSP(FileSys::VirtualFile file);
-    ~AppLoader_NSP();
+    ~AppLoader_NSP() override;
 
     /**
      * Returns the type of the file

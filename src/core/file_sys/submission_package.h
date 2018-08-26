@@ -10,6 +10,7 @@
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "core/file_sys/content_archive.h"
+#include "core/file_sys/romfs_factory.h"
 #include "core/file_sys/vfs.h"
 #include "core/loader/loader.h"
 #include "romfs_factory.h"
@@ -19,6 +20,7 @@ namespace FileSys {
 class NSP : public ReadOnlyVfsDirectory {
 public:
     explicit NSP(VirtualFile file);
+    ~NSP();
 
     Loader::ResultStatus GetStatus() const;
     Loader::ResultStatus GetProgramStatus(u64 title_id) const;

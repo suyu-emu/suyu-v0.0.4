@@ -11,7 +11,6 @@
 #include "common/swap.h"
 #include "core/file_sys/vfs.h"
 #include "core/loader/loader.h"
-#include "submission_package.h"
 
 namespace Loader {
 enum class ResultStatus : u16;
@@ -21,6 +20,7 @@ namespace FileSys {
 
 class NCA;
 enum class NCAContentType : u8;
+class NSP;
 
 enum class GamecardSize : u8 {
     S_1GB = 0xFA,

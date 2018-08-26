@@ -237,7 +237,7 @@ void KeyManager::SetKey(S128KeyType id, Key128 key, u64 field1, u64 field2) {
         Key128 rights_id;
         std::memcpy(rights_id.data(), &field2, sizeof(u64));
         std::memcpy(rights_id.data() + sizeof(u64), &field1, sizeof(u64));
-        WriteKeyToFile(true, fmt::format("{}", Common::HexArrayToString(rights_id)), key);
+        WriteKeyToFile(true, Common::HexArrayToString(rights_id), key);
     }
     const auto iter2 = std::find_if(
         s128_file_id.begin(), s128_file_id.end(),

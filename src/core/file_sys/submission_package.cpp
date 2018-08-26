@@ -72,21 +72,21 @@ NSP::NSP(VirtualFile file_)
 
                 ncas_title[ContentRecordType::Meta] = nca;
                 for (const auto& rec : cnmt.GetContentRecords()) {
-                    const auto next_file = pfs->GetFile(
-                        fmt::format("{}.nca", Common::HexArrayToString(rec.nca_id, false)));
+                    const auto id_string = Common::HexArrayToString(rec.nca_id, false);
+                    const auto next_file = pfs->GetFile(fmt::format("{}.nca", id_string));
                     if (next_file == nullptr) {
                         LOG_WARNING(Service_FS,
                                     "NCA with ID {}.nca is listed in content metadata, but cannot "
                                     "be found in PFS. NSP appears to be corrupted.",
-                                    Common::HexArrayToString(rec.nca_id, false));
+                                    id_string);
                         continue;
                     }
 
-                    const auto next_nca = std::make_shared<NCA>(next_file);
+                    auto next_nca = std::make_shared<NCA>(next_file);
                     if (next_nca->GetType() == NCAContentType::Program)
                         program_status[cnmt.GetTitleID()] = next_nca->GetStatus();
                     if (next_nca->GetStatus() == Loader::ResultStatus::Success)
-                        ncas_title[rec.type] = next_nca;
+                        ncas_title[rec.type] = std::move(next_nca);
                 }
 
                 break;
@@ -95,14 +95,17 @@ NSP::NSP(VirtualFile file_)
     }
 }
 
+NSP::~NSP() = default;
+
 Loader::ResultStatus NSP::GetStatus() const {
     return status;
 }
 
 Loader::ResultStatus NSP::GetProgramStatus(u64 title_id) const {
-    if (program_status.find(title_id) != program_status.end())
-        return program_status.at(title_id);
-    return Loader::ResultStatus::ErrorNSPMissingProgramNCA;
+    const auto iter = program_status.find(title_id);
+    if (iter == program_status.end())
+        return Loader::ResultStatus::ErrorNSPMissingProgramNCA;
+    return iter->second;
 }
 
 u64 NSP::GetFirstTitleID() const {
@@ -112,16 +115,19 @@ u64 NSP::GetFirstTitleID() const {
 }
 
 u64 NSP::GetProgramTitleID() const {
-    auto out = GetFirstTitleID();
-    for (const auto other_tid : GetTitleIDs()) {
-        if ((out & 0x800) != 0)
-            out = other_tid;
-    }
-    return out;
+    const auto out = GetFirstTitleID();
+    if ((out & 0x800) == 0)
+        return out;
+
+    const auto ids = GetTitleIDs();
+    const auto iter =
+        std::find_if(ids.begin(), ids.end(), [](u64 tid) { return (tid & 0x800) == 0; });
+    return iter == ids.end() ? out : *iter;
 }
 
 std::vector<u64> NSP::GetTitleIDs() const {
     std::vector<u64> out;
+    out.reserve(ncas.size());
     for (const auto& kv : ncas)
         out.push_back(kv.first);
     return out;
@@ -156,7 +162,7 @@ std::multimap<u64, std::shared_ptr<NCA>> NSP::GetNCAsByTitleID() const {
     std::multimap<u64, std::shared_ptr<NCA>> out;
     for (const auto& map : ncas) {
         for (const auto& inner_map : map.second)
-            out.insert({map.first, inner_map.second});
+            out.emplace(map.first, inner_map.second);
     }
     return out;
 }
@@ -168,13 +174,16 @@ std::map<u64, std::map<ContentRecordType, std::shared_ptr<NCA>>> NSP::GetNCAs() 
 std::shared_ptr<NCA> NSP::GetNCA(u64 title_id, ContentRecordType type) const {
     if (extracted)
         LOG_WARNING(Service_FS, "called on an NSP that is of type extracted.");
-    if (ncas.find(title_id) != ncas.end()) {
-        const auto& inner_map = ncas.at(title_id);
-        if (inner_map.find(type) != inner_map.end())
-            return inner_map.at(type);
-    }
 
-    return nullptr;
+    const auto title_id_iter = ncas.find(title_id);
+    if (title_id_iter == ncas.end())
+        return nullptr;
+
+    const auto type_iter = title_id_iter->second.find(type);
+    if (type_iter == title_id_iter->second.end())
+        return nullptr;
+
+    return type_iter->second;
 }
 
 VirtualFile NSP::GetNCAFile(u64 title_id, ContentRecordType type) const {
@@ -197,9 +206,9 @@ std::vector<Core::Crypto::Key128> NSP::GetTitlekey() const {
             continue;
         }
 
-        Core::Crypto::Key128 key{};
-        ticket_file->Read(key.data(), key.size(), Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET);
-        out.push_back(key);
+        out.emplace_back();
+        ticket_file->Read(out.back().data(), out.back().size(),
+                          Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET);
     }
     return out;
 }
