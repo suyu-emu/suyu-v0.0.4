@@ -189,7 +189,7 @@ ResultStatus AppLoader_DeconstructedRomDirectory::ReadTitle(std::string& title) 
     return ResultStatus::Success;
 }
 
-bool AppLoader_DeconstructedRomDirectory::IsRomFSUpdatable() {
+bool AppLoader_DeconstructedRomDirectory::IsRomFSUpdatable() const {
     return false;
 }
 

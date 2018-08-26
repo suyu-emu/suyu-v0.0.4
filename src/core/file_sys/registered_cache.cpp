@@ -281,10 +281,14 @@ VirtualFile RegisteredCache::GetEntryUnparsed(RegisteredCacheEntry entry) const 
 }
 
 boost::optional<u32> RegisteredCache::GetEntryVersion(u64 title_id) const {
-    if (meta.find(title_id) != meta.end())
-        return meta.at(title_id).GetTitleVersion();
-    if (yuzu_meta.find(title_id) != yuzu_meta.end())
-        return yuzu_meta.at(title_id).GetTitleVersion();
+    const auto meta_iter = meta.find(title_id);
+    if (meta_iter != meta.end())
+        return meta_iter->second.GetTitleVersion();
+
+    const auto yuzu_meta_iter = yuzu_meta.find(title_id);
+    if (yuzu_meta_iter != yuzu_meta.end())
+        return yuzu_meta_iter->second.GetTitleVersion();
+
     return boost::none;
 }
 
@@ -516,12 +520,9 @@ void RegisteredCacheUnion::Refresh() {
 }
 
 bool RegisteredCacheUnion::HasEntry(u64 title_id, ContentRecordType type) const {
-    for (const auto& c : caches) {
-        if (c->HasEntry(title_id, type))
-            return true;
-    }
-
-    return false;
+    return std::any_of(caches.begin(), caches.end(), [title_id, type](const auto& cache) {
+        return cache->HasEntry(title_id, type);
+    });
 }
 
 bool RegisteredCacheUnion::HasEntry(RegisteredCacheEntry entry) const {

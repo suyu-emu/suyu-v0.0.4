@@ -871,8 +871,8 @@ void GMainWindow::OnMenuInstallToNAND() {
         const auto id = nca->GetStatus();
 
         // Game updates necessary are missing base RomFS
-        if (nca->GetStatus() != Loader::ResultStatus::Success &&
-            nca->GetStatus() != Loader::ResultStatus::ErrorMissingBKTRBaseRomFS) {
+        if (id != Loader::ResultStatus::Success &&
+            id != Loader::ResultStatus::ErrorMissingBKTRBaseRomFS) {
             failed();
             return;
         }

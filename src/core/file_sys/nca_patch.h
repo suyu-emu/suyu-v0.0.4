@@ -4,9 +4,11 @@
 
 #pragma once
 
+#include <array>
+#include <vector>
+#include <common/common_funcs.h>
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/romfs.h"
-#include "core/loader/loader.h"
 
 namespace FileSys {
 
@@ -91,6 +93,7 @@ public:
          std::vector<RelocationBucket> relocation_buckets, SubsectionBlock subsection,
          std::vector<SubsectionBucket> subsection_buckets, bool is_encrypted,
          Core::Crypto::Key128 key, u64 base_offset, u64 ivfc_offset, std::array<u8, 8> section_ctr);
+    ~BKTR() override;
 
     size_t Read(u8* data, size_t length, size_t offset) const override;
 

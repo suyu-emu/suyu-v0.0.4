@@ -5,12 +5,19 @@
 #pragma once
 
 #include <map>
+#include <string>
 #include "common/common_types.h"
 #include "core/file_sys/vfs.h"
 
 namespace FileSys {
 
-std::string FormatTitleVersion(u32 version, bool full = false);
+enum class TitleVersionFormat : u8 {
+    ThreeElements, ///< vX.Y.Z
+    FourElements,  ///< vX.Y.Z.W
+};
+
+std::string FormatTitleVersion(u32 version,
+                               TitleVersionFormat format = TitleVersionFormat::ThreeElements);
 
 enum class PatchType {
     Update,

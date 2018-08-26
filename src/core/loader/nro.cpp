@@ -233,7 +233,7 @@ ResultStatus AppLoader_NRO::ReadTitle(std::string& title) {
     return ResultStatus::Success;
 }
 
-bool AppLoader_NRO::IsRomFSUpdatable() {
+bool AppLoader_NRO::IsRomFSUpdatable() const {
     return false;
 }
 

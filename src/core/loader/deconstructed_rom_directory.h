@@ -44,7 +44,7 @@ public:
     ResultStatus ReadIcon(std::vector<u8>& buffer) override;
     ResultStatus ReadProgramId(u64& out_program_id) override;
     ResultStatus ReadTitle(std::string& title) override;
-    bool IsRomFSUpdatable() override;
+    bool IsRomFSUpdatable() const override;
 
 private:
     FileSys::ProgramMetadata metadata;

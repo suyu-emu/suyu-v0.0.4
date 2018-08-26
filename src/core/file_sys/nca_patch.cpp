@@ -17,7 +17,7 @@ BKTR::BKTR(VirtualFile base_romfs_, VirtualFile bktr_romfs_, RelocationBlock rel
       relocation(relocation_), relocation_buckets(std::move(relocation_buckets_)),
       subsection(subsection_), subsection_buckets(std::move(subsection_buckets_)),
       encrypted(is_encrypted_), key(key_), base_offset(base_offset_), ivfc_offset(ivfc_offset_),
-      section_ctr(std::move(section_ctr_)) {
+      section_ctr(section_ctr_) {
     for (size_t i = 0; i < relocation.number_buckets - 1; ++i) {
         relocation_buckets[i].entries.push_back({relocation.base_offsets[i + 1], 0, 0});
     }
@@ -31,6 +31,8 @@ BKTR::BKTR(VirtualFile base_romfs_, VirtualFile bktr_romfs_, RelocationBlock rel
     relocation_buckets.back().entries.push_back({relocation.size, 0, 0});
 }
 
+BKTR::~BKTR() = default;
+
 size_t BKTR::Read(u8* data, size_t length, size_t offset) const {
     // Read out of bounds.
     if (offset >= relocation.size)
@@ -41,68 +43,66 @@ size_t BKTR::Read(u8* data, size_t length, size_t offset) const {
 
     const auto next_relocation = GetNextRelocationEntry(offset);
 
-    if (offset + length <= next_relocation.address_patch) {
-        if (bktr_read) {
-            if (!encrypted) {
-                return bktr_romfs->Read(data, length, section_offset);
-            }
-
-            const auto subsection = GetSubsectionEntry(section_offset);
-            Core::Crypto::AESCipher<Core::Crypto::Key128> cipher(key, Core::Crypto::Mode::CTR);
-
-            // Calculate AES IV
-            std::vector<u8> iv(16);
-            auto subsection_ctr = subsection.ctr;
-            auto offset_iv = section_offset + base_offset;
-            for (u8 i = 0; i < 8; ++i)
-                iv[i] = section_ctr[0x8 - i - 1];
-            offset_iv >>= 4;
-            for (size_t i = 0; i < 8; ++i) {
-                iv[0xF - i] = static_cast<u8>(offset_iv & 0xFF);
-                offset_iv >>= 8;
-            }
-            for (size_t i = 0; i < 4; ++i) {
-                iv[0x7 - i] = static_cast<u8>(subsection_ctr & 0xFF);
-                subsection_ctr >>= 8;
-            }
-            cipher.SetIV(iv);
-
-            const auto next_subsection = GetNextSubsectionEntry(section_offset);
-
-            if (section_offset + length <= next_subsection.address_patch) {
-                const auto block_offset = section_offset & 0xF;
-                if (block_offset != 0) {
-                    auto block = bktr_romfs->ReadBytes(0x10, section_offset & ~0xF);
-                    cipher.Transcode(block.data(), block.size(), block.data(),
-                                     Core::Crypto::Op::Decrypt);
-                    if (length + block_offset < 0x10) {
-                        std::memcpy(data, block.data() + block_offset,
-                                    std::min(length, block.size()));
-                        return std::min(length, block.size());
-                    }
-
-                    const auto read = 0x10 - block_offset;
-                    std::memcpy(data, block.data() + block_offset, read);
-                    return read + Read(data + read, length - read, offset + read);
-                }
-
-                const auto raw_read = bktr_romfs->Read(data, length, section_offset);
-                cipher.Transcode(data, raw_read, data, Core::Crypto::Op::Decrypt);
-                return raw_read;
-            } else {
-                const u64 partition = next_subsection.address_patch - section_offset;
-                return Read(data, partition, offset) +
-                       Read(data + partition, length - partition, offset + partition);
-            }
-        } else {
-            ASSERT(section_offset > ivfc_offset, "Offset calculation negative.");
-            return base_romfs->Read(data, length, section_offset);
-        }
-    } else {
+    if (offset + length >= next_relocation.address_patch) {
         const u64 partition = next_relocation.address_patch - offset;
         return Read(data, partition, offset) +
                Read(data + partition, length - partition, offset + partition);
     }
+
+    if (!bktr_read) {
+        ASSERT_MSG(section_offset > ivfc_offset, "Offset calculation negative.");
+        return base_romfs->Read(data, length, section_offset);
+    }
+
+    if (!encrypted) {
+        return bktr_romfs->Read(data, length, section_offset);
+    }
+
+    const auto subsection = GetSubsectionEntry(section_offset);
+    Core::Crypto::AESCipher<Core::Crypto::Key128> cipher(key, Core::Crypto::Mode::CTR);
+
+    // Calculate AES IV
+    std::vector<u8> iv(16);
+    auto subsection_ctr = subsection.ctr;
+    auto offset_iv = section_offset + base_offset;
+    for (size_t i = 0; i < section_ctr.size(); ++i)
+        iv[i] = section_ctr[0x8 - i - 1];
+    offset_iv >>= 4;
+    for (size_t i = 0; i < sizeof(u64); ++i) {
+        iv[0xF - i] = static_cast<u8>(offset_iv & 0xFF);
+        offset_iv >>= 8;
+    }
+    for (size_t i = 0; i < sizeof(u32); ++i) {
+        iv[0x7 - i] = static_cast<u8>(subsection_ctr & 0xFF);
+        subsection_ctr >>= 8;
+    }
+    cipher.SetIV(iv);
+
+    const auto next_subsection = GetNextSubsectionEntry(section_offset);
+
+    if (section_offset + length > next_subsection.address_patch) {
+        const u64 partition = next_subsection.address_patch - section_offset;
+        return Read(data, partition, offset) +
+               Read(data + partition, length - partition, offset + partition);
+    }
+
+    const auto block_offset = section_offset & 0xF;
+    if (block_offset != 0) {
+        auto block = bktr_romfs->ReadBytes(0x10, section_offset & ~0xF);
+        cipher.Transcode(block.data(), block.size(), block.data(), Core::Crypto::Op::Decrypt);
+        if (length + block_offset < 0x10) {
+            std::memcpy(data, block.data() + block_offset, std::min(length, block.size()));
+            return std::min(length, block.size());
+        }
+
+        const auto read = 0x10 - block_offset;
+        std::memcpy(data, block.data() + block_offset, read);
+        return read + Read(data + read, length - read, offset + read);
+    }
+
+    const auto raw_read = bktr_romfs->Read(data, length, section_offset);
+    cipher.Transcode(data, raw_read, data, Core::Crypto::Op::Decrypt);
+    return raw_read;
 }
 
 template <bool Subsection, typename BlockType, typename BucketType>
@@ -116,11 +116,9 @@ std::pair<size_t, size_t> BKTR::SearchBucketEntry(u64 offset, BlockType block,
         ASSERT_MSG(offset <= block.size, "Offset is out of bounds in BKTR relocation block.");
     }
 
-    size_t bucket_id = 0;
-    for (size_t i = 1; i < block.number_buckets; ++i) {
-        if (block.base_offsets[i] <= offset)
-            ++bucket_id;
-    }
+    size_t bucket_id = std::count_if(block.base_offsets.begin() + 1,
+                                     block.base_offsets.begin() + block.number_buckets,
+                                     [&offset](u64 base_offset) { return base_offset < offset; });
 
     const auto bucket = buckets[bucket_id];
 

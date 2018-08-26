@@ -43,7 +43,7 @@ struct RegisteredCacheEntry {
     std::string DebugInfo() const;
 };
 
-constexpr inline u64 GetUpdateTitleID(u64 base_title_id) {
+constexpr u64 GetUpdateTitleID(u64 base_title_id) {
     return base_title_id | 0x800;
 }
 

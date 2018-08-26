@@ -210,7 +210,7 @@ public:
      * the base game it should be set to false.
      * @return bool whether or not updatable.
      */
-    virtual bool IsRomFSUpdatable() {
+    virtual bool IsRomFSUpdatable() const {
         return true;
     }
 
