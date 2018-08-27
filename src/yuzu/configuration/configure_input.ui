@@ -472,7 +472,7 @@ Capture:</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="0">
+        <item row="0" column="0">
          <layout class="QVBoxLayout" name="buttonRStickLeftVerticalLayout">
           <item>
            <widget class="QLabel" name="labelRStickLeft">
@@ -490,7 +490,7 @@ Capture:</string>
           </item>
          </layout>
         </item>
-        <item row="0" column="0">
+        <item row="1" column="0">
          <layout class="QVBoxLayout" name="buttonRStickUpVerticalLayout">
           <item>
            <widget class="QLabel" name="labelRStickUp">
