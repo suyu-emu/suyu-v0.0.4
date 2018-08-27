@@ -341,7 +341,6 @@ std::shared_ptr<VfsFile> RealVfsDirectory::CreateFileRelative(std::string_view p
 
 std::shared_ptr<VfsDirectory> RealVfsDirectory::CreateDirectoryRelative(std::string_view path) {
     const auto full_path = FileUtil::SanitizePath(this->path + DIR_SEP + std::string(path));
-    auto parent = std::string(FileUtil::GetParentPath(full_path));
     return base.CreateDirectory(full_path, perms);
 }
 
