@@ -4,4 +4,8 @@
 
 #include "core/arm/exclusive_monitor.h"
 
+namespace Core {
+
 ExclusiveMonitor::~ExclusiveMonitor() = default;
+
+} // namespace Core

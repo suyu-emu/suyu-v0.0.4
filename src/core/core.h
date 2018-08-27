@@ -23,8 +23,6 @@
 #include "video_core/debug_utils/debug_utils.h"
 #include "video_core/gpu.h"
 
-class ARM_Interface;
-
 namespace Core::Frontend {
 class EmuWindow;
 }
@@ -38,6 +36,8 @@ class RendererBase;
 }
 
 namespace Core {
+
+class ARM_Interface;
 
 class System {
 public:

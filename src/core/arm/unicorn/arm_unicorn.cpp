@@ -11,6 +11,8 @@
 #include "core/core_timing.h"
 #include "core/hle/kernel/svc.h"
 
+namespace Core {
+
 // Load Unicorn DLL once on Windows using RAII
 #ifdef _MSC_VER
 #include <unicorn_dynload.h>
@@ -211,7 +213,7 @@ void ARM_Unicorn::ExecuteInstructions(int num_instructions) {
     }
 }
 
-void ARM_Unicorn::SaveContext(ARM_Interface::ThreadContext& ctx) {
+void ARM_Unicorn::SaveContext(ThreadContext& ctx) {
     int uregs[32];
     void* tregs[32];
 
@@ -238,7 +240,7 @@ void ARM_Unicorn::SaveContext(ARM_Interface::ThreadContext& ctx) {
     CHECKED(uc_reg_read_batch(uc, uregs, tregs, 32));
 }
 
-void ARM_Unicorn::LoadContext(const ARM_Interface::ThreadContext& ctx) {
+void ARM_Unicorn::LoadContext(const ThreadContext& ctx) {
     int uregs[32];
     void* tregs[32];
 
@@ -277,3 +279,5 @@ void ARM_Unicorn::RecordBreak(GDBStub::BreakpointAddress bkpt) {
     last_bkpt = bkpt;
     last_bkpt_hit = true;
 }
+
+} // namespace Core

@@ -14,6 +14,8 @@
 #include "core/hle/kernel/svc.h"
 #include "core/memory.h"
 
+namespace Core {
+
 using Vector = Dynarmic::A64::Vector;
 
 class ARM_Dynarmic_Callbacks : public Dynarmic::A64::UserCallbacks {
@@ -300,3 +302,5 @@ bool DynarmicExclusiveMonitor::ExclusiveWrite128(size_t core_index, VAddr vaddr,
         Memory::Write64(vaddr, value[1]);
     });
 }
+
+} // namespace Core

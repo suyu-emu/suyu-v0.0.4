@@ -204,7 +204,7 @@ public:
         return status == ThreadStatus::WaitSynchAll;
     }
 
-    ARM_Interface::ThreadContext context;
+    Core::ARM_Interface::ThreadContext context;
 
     u32 thread_id;
 

@@ -12,6 +12,8 @@
 #include "core/arm/exclusive_monitor.h"
 #include "core/arm/unicorn/arm_unicorn.h"
 
+namespace Core {
+
 class ARM_Dynarmic_Callbacks;
 class DynarmicExclusiveMonitor;
 
@@ -81,3 +83,5 @@ private:
     friend class ARM_Dynarmic;
     Dynarmic::A64::ExclusiveMonitor monitor;
 };
+
+} // namespace Core

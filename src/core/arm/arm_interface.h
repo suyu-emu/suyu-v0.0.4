@@ -8,6 +8,8 @@
 #include "common/common_types.h"
 #include "core/hle/kernel/vm_manager.h"
 
+namespace Core {
+
 /// Generic ARM11 CPU interface
 class ARM_Interface : NonCopyable {
 public:
@@ -122,3 +124,5 @@ public:
     /// Prepare core for thread reschedule (if needed to correctly handle state)
     virtual void PrepareReschedule() = 0;
 };
+
+} // namespace Core

@@ -6,6 +6,8 @@
 
 #include "common/common_types.h"
 
+namespace Core {
+
 class ExclusiveMonitor {
 public:
     virtual ~ExclusiveMonitor();
@@ -19,3 +21,5 @@ public:
     virtual bool ExclusiveWrite64(size_t core_index, VAddr vaddr, u64 value) = 0;
     virtual bool ExclusiveWrite128(size_t core_index, VAddr vaddr, u128 value) = 0;
 };
+
+} // namespace Core

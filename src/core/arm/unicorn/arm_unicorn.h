@@ -9,6 +9,8 @@
 #include "core/arm/arm_interface.h"
 #include "core/gdbstub/gdbstub.h"
 
+namespace Core {
+
 class ARM_Unicorn final : public ARM_Interface {
 public:
     ARM_Unicorn();
@@ -46,3 +48,5 @@ private:
     GDBStub::BreakpointAddress last_bkpt{};
     bool last_bkpt_hit;
 };
+
+} // namespace Core
