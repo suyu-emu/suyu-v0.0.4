@@ -11,17 +11,16 @@ namespace Kernel {
 namespace ErrCodes {
 enum {
     // TODO(Subv): Remove these 3DS OS error codes.
-    OutOfHandles = 19,
     SessionClosedByRemote = 26,
-    PortNameTooLong = 30,
     NoPendingSessions = 35,
-    WrongPermission = 46,
     InvalidBufferDescriptor = 48,
-    MaxConnectionsReached = 52,
 
     // Confirmed Switch OS error codes
+    MaxConnectionsReached = 7,
     InvalidAddress = 102,
+    HandleTableFull = 105,
     InvalidMemoryState = 106,
+    InvalidMemoryPermissions = 108,
     InvalidProcessorId = 113,
     InvalidHandle = 114,
     InvalidCombination = 116,
@@ -30,6 +29,7 @@ enum {
     TooLarge = 119,
     InvalidEnumValue = 120,
     InvalidState = 125,
+    ResourceLimitExceeded = 132,
 };
 }
 
@@ -37,18 +37,21 @@ enum {
 // double check that the code matches before re-using the constant.
 
 // TODO(bunnei): Replace these with correct errors for Switch OS
-constexpr ResultCode ERR_OUT_OF_HANDLES(-1);
+constexpr ResultCode ERR_HANDLE_TABLE_FULL(ErrorModule::Kernel, ErrCodes::HandleTableFull);
 constexpr ResultCode ERR_SESSION_CLOSED_BY_REMOTE(-1);
-constexpr ResultCode ERR_PORT_NAME_TOO_LONG(-1);
-constexpr ResultCode ERR_WRONG_PERMISSION(-1);
-constexpr ResultCode ERR_MAX_CONNECTIONS_REACHED(-1);
+constexpr ResultCode ERR_PORT_NAME_TOO_LONG(ErrorModule::Kernel, ErrCodes::TooLarge);
+constexpr ResultCode ERR_MAX_CONNECTIONS_REACHED(ErrorModule::Kernel,
+                                                 ErrCodes::MaxConnectionsReached);
 constexpr ResultCode ERR_INVALID_ENUM_VALUE(ErrorModule::Kernel, ErrCodes::InvalidEnumValue);
 constexpr ResultCode ERR_INVALID_ENUM_VALUE_FND(-1);
 constexpr ResultCode ERR_INVALID_COMBINATION(-1);
-constexpr ResultCode ERR_INVALID_COMBINATION_KERNEL(-1);
+constexpr ResultCode ERR_INVALID_COMBINATION_KERNEL(ErrorModule::Kernel,
+                                                    ErrCodes::InvalidCombination);
 constexpr ResultCode ERR_OUT_OF_MEMORY(-1);
 constexpr ResultCode ERR_INVALID_ADDRESS(ErrorModule::Kernel, ErrCodes::InvalidAddress);
 constexpr ResultCode ERR_INVALID_ADDRESS_STATE(ErrorModule::Kernel, ErrCodes::InvalidMemoryState);
+constexpr ResultCode ERR_INVALID_MEMORY_PERMISSIONS(ErrorModule::Kernel,
+                                                    ErrCodes::InvalidMemoryPermissions);
 constexpr ResultCode ERR_INVALID_HANDLE(ErrorModule::Kernel, ErrCodes::InvalidHandle);
 constexpr ResultCode ERR_INVALID_STATE(ErrorModule::Kernel, ErrCodes::InvalidState);
 constexpr ResultCode ERR_INVALID_POINTER(-1);
