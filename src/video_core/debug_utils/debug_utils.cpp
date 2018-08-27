@@ -2,23 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <algorithm>
-#include <condition_variable>
-#include <cstdint>
-#include <cstring>
-#include <fstream>
-#include <map>
 #include <mutex>
-#include <string>
 
-#include "common/assert.h"
-#include "common/bit_field.h"
-#include "common/color.h"
-#include "common/common_types.h"
-#include "common/file_util.h"
-#include "common/logging/log.h"
-#include "common/math_util.h"
-#include "common/vector_math.h"
 #include "video_core/debug_utils/debug_utils.h"
 
 namespace Tegra {

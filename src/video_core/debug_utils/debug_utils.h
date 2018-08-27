@@ -4,19 +4,11 @@
 
 #pragma once
 
-#include <algorithm>
 #include <array>
 #include <condition_variable>
-#include <iterator>
 #include <list>
-#include <map>
 #include <memory>
 #include <mutex>
-#include <string>
-#include <utility>
-#include <vector>
-#include "common/common_types.h"
-#include "common/vector_math.h"
 
 namespace Tegra {
 
@@ -46,7 +38,7 @@ public:
     class BreakPointObserver {
     public:
         /// Constructs the object such that it observes events of the given DebugContext.
-        BreakPointObserver(std::shared_ptr<DebugContext> debug_context)
+        explicit BreakPointObserver(std::shared_ptr<DebugContext> debug_context)
             : context_weak(debug_context) {
             std::unique_lock<std::mutex> lock(debug_context->breakpoint_mutex);
             debug_context->breakpoint_observers.push_back(this);
@@ -141,8 +133,8 @@ public:
     }
 
     // TODO: Evaluate if access to these members should be hidden behind a public interface.
-    std::array<BreakPoint, (int)Event::NumEvents> breakpoints;
-    Event active_breakpoint;
+    std::array<BreakPoint, static_cast<int>(Event::NumEvents)> breakpoints;
+    Event active_breakpoint{};
     bool at_breakpoint = false;
 
 private:

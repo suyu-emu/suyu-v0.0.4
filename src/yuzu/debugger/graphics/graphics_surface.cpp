@@ -11,12 +11,13 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSpinBox>
+#include "common/vector_math.h"
 #include "core/core.h"
+#include "core/memory.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/gpu.h"
 #include "video_core/textures/decoders.h"
 #include "video_core/textures/texture.h"
-#include "video_core/utils.h"
 #include "yuzu/debugger/graphics/graphics_surface.h"
 #include "yuzu/util/spinbox.h"
 
