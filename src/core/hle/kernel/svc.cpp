@@ -319,8 +319,7 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
         *result = Core::CurrentProcess()->is_virtual_address_memory_enabled;
         break;
     case GetInfoType::TitleId:
-        LOG_WARNING(Kernel_SVC, "(STUBBED) Attempted to query titleid, returned 0");
-        *result = 0;
+        *result = Core::CurrentProcess()->program_id;
         break;
     case GetInfoType::PrivilegedProcessId:
         LOG_WARNING(Kernel_SVC,
