@@ -424,8 +424,8 @@ std::tuple<u8*, GLintptr, GLintptr> RasterizerOpenGL::UploadMemory(u8* buffer_pt
     std::tie(buffer_ptr, buffer_offset) = AlignBuffer(buffer_ptr, buffer_offset, alignment);
     GLintptr uploaded_offset = buffer_offset;
 
-    const auto& memory_manager = Core::System::GetInstance().GPU().memory_manager;
-    const boost::optional<VAddr> cpu_addr{memory_manager->GpuToCpuAddress(gpu_addr)};
+    auto& memory_manager = Core::System::GetInstance().GPU().MemoryManager();
+    const boost::optional<VAddr> cpu_addr{memory_manager.GpuToCpuAddress(gpu_addr)};
     Memory::ReadBlock(*cpu_addr, buffer_ptr, size);
 
     buffer_ptr += size;

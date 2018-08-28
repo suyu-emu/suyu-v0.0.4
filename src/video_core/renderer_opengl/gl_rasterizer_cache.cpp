@@ -168,8 +168,8 @@ static const FormatTuple& GetFormatTuple(PixelFormat pixel_format, ComponentType
 }
 
 VAddr SurfaceParams::GetCpuAddr() const {
-    const auto& gpu = Core::System::GetInstance().GPU();
-    return *gpu.memory_manager->GpuToCpuAddress(addr);
+    auto& gpu = Core::System::GetInstance().GPU();
+    return *gpu.MemoryManager().GpuToCpuAddress(addr);
 }
 
 static bool IsPixelFormatASTC(PixelFormat format) {
@@ -220,14 +220,14 @@ void MortonCopy(u32 stride, u32 block_height, u32 height, std::vector<u8>& gl_bu
                 Tegra::GPUVAddr addr) {
     constexpr u32 bytes_per_pixel = SurfaceParams::GetFormatBpp(format) / CHAR_BIT;
     constexpr u32 gl_bytes_per_pixel = CachedSurface::GetGLBytesPerPixel(format);
-    const auto& gpu = Core::System::GetInstance().GPU();
+    auto& gpu = Core::System::GetInstance().GPU();
 
     if (morton_to_gl) {
         // With the BCn formats (DXT and DXN), each 4x4 tile is swizzled instead of just individual
         // pixel values.
         const u32 tile_size{IsFormatBCn(format) ? 4U : 1U};
         const std::vector<u8> data =
-            Tegra::Texture::UnswizzleTexture(*gpu.memory_manager->GpuToCpuAddress(addr), tile_size,
+            Tegra::Texture::UnswizzleTexture(*gpu.MemoryManager().GpuToCpuAddress(addr), tile_size,
                                              bytes_per_pixel, stride, height, block_height);
         const size_t size_to_copy{std::min(gl_buffer.size(), data.size())};
         gl_buffer.assign(data.begin(), data.begin() + size_to_copy);
@@ -237,7 +237,7 @@ void MortonCopy(u32 stride, u32 block_height, u32 height, std::vector<u8>& gl_bu
         LOG_WARNING(Render_OpenGL, "need to use correct swizzle/GOB parameters!");
         VideoCore::MortonCopyPixels128(
             stride, height, bytes_per_pixel, gl_bytes_per_pixel,
-            Memory::GetPointer(*gpu.memory_manager->GpuToCpuAddress(addr)), gl_buffer.data(),
+            Memory::GetPointer(*gpu.MemoryManager().GpuToCpuAddress(addr)), gl_buffer.data(),
             morton_to_gl);
     }
 }
@@ -754,9 +754,9 @@ Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params, bool pres
         return {};
     }
 
-    const auto& gpu = Core::System::GetInstance().GPU();
+    auto& gpu = Core::System::GetInstance().GPU();
     // Don't try to create any entries in the cache if the address of the texture is invalid.
-    if (gpu.memory_manager->GpuToCpuAddress(params.addr) == boost::none)
+    if (gpu.MemoryManager().GpuToCpuAddress(params.addr) == boost::none)
         return {};
 
     // Look up surface in the cache based on address
@@ -848,7 +848,7 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& surface,
                                  "reinterpretation but the texture is tiled.");
         }
         size_t remaining_size = new_params.SizeInBytes() - params.SizeInBytes();
-        auto address = Core::System::GetInstance().GPU().memory_manager->GpuToCpuAddress(
+        auto address = Core::System::GetInstance().GPU().MemoryManager().GpuToCpuAddress(
             new_params.addr + params.SizeInBytes());
         std::vector<u8> data(remaining_size);
         Memory::ReadBlock(*address, data.data(), data.size());
