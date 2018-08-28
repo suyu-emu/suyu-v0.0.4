@@ -74,6 +74,7 @@
     <addaction name="action_Start"/>
     <addaction name="action_Pause"/>
     <addaction name="action_Stop"/>
+    <addaction name="action_Restart"/>
     <addaction name="separator"/>
     <addaction name="action_Configure"/>
    </widget>
