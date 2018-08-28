@@ -211,7 +211,6 @@ std::pair<u8*, GLintptr> RasterizerOpenGL::SetupShaders(u8* buffer_ptr, GLintptr
         buffer_ptr += sizeof(ubo);
         buffer_offset += sizeof(ubo);
 
-        const Tegra::GPUVAddr addr{gpu.regs.code_address.CodeAddress() + shader_config.offset};
         Shader shader{shader_cache.GetStageProgram(program)};
 
         switch (program) {
@@ -459,7 +458,6 @@ void RasterizerOpenGL::DrawArrays() {
     // Draw the vertex batch
     const bool is_indexed = accelerate_draw == AccelDraw::Indexed;
     const u64 index_buffer_size{regs.index_array.count * regs.index_array.FormatSizeInBytes()};
-    const unsigned vertex_num{is_indexed ? regs.index_array.count : regs.vertex_buffer.count};
 
     state.draw.vertex_buffer = stream_buffer.GetHandle();
     state.Apply();
