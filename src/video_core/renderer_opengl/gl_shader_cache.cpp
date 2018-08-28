@@ -14,9 +14,8 @@ namespace OpenGL {
 /// Gets the address for the specified shader stage program
 static Tegra::GPUVAddr GetShaderAddress(Maxwell::ShaderProgram program) {
     auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
-
-    GLShader::ProgramCode program_code(GLShader::MAX_PROGRAM_CODE_LENGTH);
     auto& shader_config = gpu.regs.shader_config[static_cast<size_t>(program)];
+
     return gpu.regs.code_address.CodeAddress() + shader_config.offset;
 }
 
