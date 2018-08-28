@@ -227,7 +227,7 @@ public:
         }
     }
 
-    ResultVal(ResultVal&& o) : result_code(o.result_code) {
+    ResultVal(ResultVal&& o) noexcept : result_code(o.result_code) {
         if (!o.empty()) {
             new (&object) T(std::move(o.object));
         }
