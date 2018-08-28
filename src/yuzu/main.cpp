@@ -893,6 +893,7 @@ void GMainWindow::OnStartGame() {
 
     ui.action_Pause->setEnabled(true);
     ui.action_Stop->setEnabled(true);
+    ui.action_Restart->setEnabled(true);
 }
 
 void GMainWindow::OnPauseGame() {
@@ -901,7 +902,6 @@ void GMainWindow::OnPauseGame() {
     ui.action_Start->setEnabled(true);
     ui.action_Pause->setEnabled(false);
     ui.action_Stop->setEnabled(true);
-    ui.action_Restart->setEnabled(true);
 }
 
 void GMainWindow::OnStopGame() {
