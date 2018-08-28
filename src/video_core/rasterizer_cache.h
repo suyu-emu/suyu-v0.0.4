@@ -17,7 +17,7 @@ template <class T>
 class RasterizerCache : NonCopyable {
 public:
     /// Mark the specified region as being invalidated
-    void InvalidateRegion(Tegra::GPUVAddr region_addr, size_t region_size) {
+    void InvalidateRegion(VAddr region_addr, size_t region_size) {
         for (auto iter = cached_objects.cbegin(); iter != cached_objects.cend();) {
             const auto& object{iter->second};
 
@@ -33,7 +33,7 @@ public:
 
 protected:
     /// Tries to get an object from the cache with the specified address
-    T TryGet(Tegra::GPUVAddr addr) const {
+    T TryGet(VAddr addr) const {
         const auto& search{cached_objects.find(addr)};
         if (search != cached_objects.end()) {
             return search->second;
@@ -43,7 +43,7 @@ protected:
     }
 
     /// Gets a reference to the cache
-    const std::unordered_map<Tegra::GPUVAddr, T>& GetCache() const {
+    const std::unordered_map<VAddr, T>& GetCache() const {
         return cached_objects;
     }
 
@@ -74,5 +74,5 @@ protected:
     }
 
 private:
-    std::unordered_map<Tegra::GPUVAddr, T> cached_objects;
+    std::unordered_map<VAddr, T> cached_objects;
 };

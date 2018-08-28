@@ -279,10 +279,9 @@ static constexpr auto RangeFromInterval(Map& map, const Interval& interval) {
     return boost::make_iterator_range(map.equal_range(interval));
 }
 
-void RasterizerOpenGL::UpdatePagesCachedCount(Tegra::GPUVAddr addr, u64 size, int delta) {
-    const u64 page_start{addr >> Tegra::MemoryManager::PAGE_BITS};
-    const u64 page_end{(addr + size + Tegra::MemoryManager::PAGE_SIZE - 1) >>
-                       Tegra::MemoryManager::PAGE_BITS};
+void RasterizerOpenGL::UpdatePagesCachedCount(VAddr addr, u64 size, int delta) {
+    const u64 page_start{addr >> Memory::PAGE_BITS};
+    const u64 page_end{(addr + size + Memory::PAGE_SIZE - 1) >> Memory::PAGE_BITS};
 
     // Interval maps will erase segments if count reaches 0, so if delta is negative we have to
     // subtract after iterating
@@ -294,10 +293,8 @@ void RasterizerOpenGL::UpdatePagesCachedCount(Tegra::GPUVAddr addr, u64 size, in
         const auto interval = pair.first & pages_interval;
         const int count = pair.second;
 
-        const Tegra::GPUVAddr interval_start_addr = boost::icl::first(interval)
-                                                    << Tegra::MemoryManager::PAGE_BITS;
-        const Tegra::GPUVAddr interval_end_addr = boost::icl::last_next(interval)
-                                                  << Tegra::MemoryManager::PAGE_BITS;
+        const VAddr interval_start_addr = boost::icl::first(interval) << Memory::PAGE_BITS;
+        const VAddr interval_end_addr = boost::icl::last_next(interval) << Memory::PAGE_BITS;
         const u64 interval_size = interval_end_addr - interval_start_addr;
 
         if (delta > 0 && count == delta)
@@ -578,17 +575,17 @@ void RasterizerOpenGL::FlushAll() {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
 }
 
-void RasterizerOpenGL::FlushRegion(Tegra::GPUVAddr addr, u64 size) {
+void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
 }
 
-void RasterizerOpenGL::InvalidateRegion(Tegra::GPUVAddr addr, u64 size) {
+void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
     res_cache.InvalidateRegion(addr, size);
     shader_cache.InvalidateRegion(addr, size);
 }
 
-void RasterizerOpenGL::FlushAndInvalidateRegion(Tegra::GPUVAddr addr, u64 size) {
+void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
     InvalidateRegion(addr, size);
 }
