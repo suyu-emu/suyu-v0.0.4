@@ -56,9 +56,9 @@ u32 nvhost_as_gpu::AllocateSpace(const std::vector<u8>& input, std::vector<u8>& 
     auto& gpu = Core::System::GetInstance().GPU();
     const u64 size{static_cast<u64>(params.pages) * static_cast<u64>(params.page_size)};
     if (params.flags & 1) {
-        params.offset = gpu.memory_manager->AllocateSpace(params.offset, size, 1);
+        params.offset = gpu.MemoryManager().AllocateSpace(params.offset, size, 1);
     } else {
-        params.offset = gpu.memory_manager->AllocateSpace(size, params.align);
+        params.offset = gpu.MemoryManager().AllocateSpace(size, params.align);
     }
 
     std::memcpy(output.data(), &params, output.size());
@@ -88,7 +88,7 @@ u32 nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& output) 
         u64 size = static_cast<u64>(entry.pages) << 0x10;
         ASSERT(size <= object->size);
 
-        Tegra::GPUVAddr returned = gpu.memory_manager->MapBufferEx(object->addr, offset, size);
+        Tegra::GPUVAddr returned = gpu.MemoryManager().MapBufferEx(object->addr, offset, size);
         ASSERT(returned == offset);
     }
     std::memcpy(output.data(), entries.data(), output.size());
@@ -125,9 +125,9 @@ u32 nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8>& ou
     auto& gpu = Core::System::GetInstance().GPU();
 
     if (params.flags & 1) {
-        params.offset = gpu.memory_manager->MapBufferEx(object->addr, params.offset, object->size);
+        params.offset = gpu.MemoryManager().MapBufferEx(object->addr, params.offset, object->size);
     } else {
-        params.offset = gpu.memory_manager->MapBufferEx(object->addr, object->size);
+        params.offset = gpu.MemoryManager().MapBufferEx(object->addr, object->size);
     }
 
     // Create a new mapping entry for this operation.
@@ -161,7 +161,7 @@ u32 nvhost_as_gpu::UnmapBuffer(const std::vector<u8>& input, std::vector<u8>& ou
                                                                      itr->second.size);
 
     auto& gpu = system_instance.GPU();
-    params.offset = gpu.memory_manager->UnmapBuffer(params.offset, itr->second.size);
+    params.offset = gpu.MemoryManager().UnmapBuffer(params.offset, itr->second.size);
 
     buffer_mappings.erase(itr->second.offset);
 

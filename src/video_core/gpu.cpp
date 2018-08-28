@@ -22,7 +22,7 @@ u32 FramebufferConfig::BytesPerPixel(PixelFormat format) {
 }
 
 GPU::GPU(VideoCore::RasterizerInterface& rasterizer) {
-    memory_manager = std::make_unique<MemoryManager>();
+    memory_manager = std::make_unique<Tegra::MemoryManager>();
     maxwell_3d = std::make_unique<Engines::Maxwell3D>(rasterizer, *memory_manager);
     fermi_2d = std::make_unique<Engines::Fermi2D>(*memory_manager);
     maxwell_compute = std::make_unique<Engines::MaxwellCompute>();
@@ -31,12 +31,20 @@ GPU::GPU(VideoCore::RasterizerInterface& rasterizer) {
 
 GPU::~GPU() = default;
 
+Engines::Maxwell3D& GPU::Maxwell3D() {
+    return *maxwell_3d;
+}
+
 const Engines::Maxwell3D& GPU::Maxwell3D() const {
     return *maxwell_3d;
 }
 
-Engines::Maxwell3D& GPU::Maxwell3D() {
-    return *maxwell_3d;
+MemoryManager& GPU::MemoryManager() {
+    return *memory_manager;
+}
+
+const MemoryManager& GPU::MemoryManager() const {
+    return *memory_manager;
 }
 
 u32 RenderTargetBytesPerPixel(RenderTargetFormat format) {

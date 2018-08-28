@@ -117,17 +117,23 @@ public:
     /// Processes a command list stored at the specified address in GPU memory.
     void ProcessCommandList(GPUVAddr address, u32 size);
 
-    /// Returns a const reference to the Maxwell3D GPU engine.
-    const Engines::Maxwell3D& Maxwell3D() const;
-
     /// Returns a reference to the Maxwell3D GPU engine.
     Engines::Maxwell3D& Maxwell3D();
 
-    std::unique_ptr<MemoryManager> memory_manager;
+    /// Returns a const reference to the Maxwell3D GPU engine.
+    const Engines::Maxwell3D& Maxwell3D() const;
+
+    /// Returns a reference to the GPU memory manager.
+    Tegra::MemoryManager& MemoryManager();
+
+    /// Returns a const reference to the GPU memory manager.
+    const Tegra::MemoryManager& MemoryManager() const;
 
 private:
     /// Writes a single register in the engine bound to the specified subchannel
     void WriteReg(u32 method, u32 subchannel, u32 value, u32 remaining_params);
+
+    std::unique_ptr<Tegra::MemoryManager> memory_manager;
 
     /// Mapping of command subchannels to their bound engine ids.
     std::unordered_map<u32, EngineID> bound_engines;
