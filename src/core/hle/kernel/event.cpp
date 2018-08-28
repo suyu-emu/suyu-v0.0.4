@@ -10,11 +10,11 @@
 
 namespace Kernel {
 
-Event::Event() {}
-Event::~Event() {}
+Event::Event(KernelCore& kernel) : WaitObject{kernel} {}
+Event::~Event() = default;
 
-SharedPtr<Event> Event::Create(ResetType reset_type, std::string name) {
-    SharedPtr<Event> evt(new Event);
+SharedPtr<Event> Event::Create(KernelCore& kernel, ResetType reset_type, std::string name) {
+    SharedPtr<Event> evt(new Event(kernel));
 
     evt->signaled = false;
     evt->reset_type = reset_type;

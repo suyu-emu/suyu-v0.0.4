@@ -11,6 +11,7 @@ union ResultCode;
 
 namespace Kernel {
 
+class HandleTable;
 class Thread;
 
 class Mutex final {
@@ -21,8 +22,8 @@ public:
     static constexpr u32 MutexOwnerMask = 0xBFFFFFFF;
 
     /// Attempts to acquire a mutex at the specified address.
-    static ResultCode TryAcquire(VAddr address, Handle holding_thread_handle,
-                                 Handle requesting_thread_handle);
+    static ResultCode TryAcquire(HandleTable& handle_table, VAddr address,
+                                 Handle holding_thread_handle, Handle requesting_thread_handle);
 
     /// Releases the mutex at the specified address.
     static ResultCode Release(VAddr address);

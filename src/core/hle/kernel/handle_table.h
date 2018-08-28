@@ -121,6 +121,4 @@ private:
     u16 next_free_slot;
 };
 
-extern HandleTable g_handle_table;
-
 } // namespace Kernel

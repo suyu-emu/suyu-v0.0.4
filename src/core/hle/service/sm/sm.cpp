@@ -4,6 +4,7 @@
 
 #include <tuple>
 #include "common/assert.h"
+#include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/client_session.h"
@@ -47,9 +48,11 @@ ResultVal<Kernel::SharedPtr<Kernel::ServerPort>> ServiceManager::RegisterService
     if (registered_services.find(name) != registered_services.end())
         return ERR_ALREADY_REGISTERED;
 
+    auto& kernel = Core::System::GetInstance().Kernel();
     Kernel::SharedPtr<Kernel::ServerPort> server_port;
     Kernel::SharedPtr<Kernel::ClientPort> client_port;
-    std::tie(server_port, client_port) = Kernel::ServerPort::CreatePortPair(max_sessions, name);
+    std::tie(server_port, client_port) =
+        Kernel::ServerPort::CreatePortPair(kernel, max_sessions, name);
 
     registered_services.emplace(std::move(name), std::move(client_port));
     return MakeResult<Kernel::SharedPtr<Kernel::ServerPort>>(std::move(server_port));

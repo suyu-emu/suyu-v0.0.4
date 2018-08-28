@@ -20,7 +20,7 @@
 
 namespace Kernel {
 
-ServerSession::ServerSession() = default;
+ServerSession::ServerSession(KernelCore& kernel) : WaitObject{kernel} {}
 ServerSession::~ServerSession() {
     // This destructor will be called automatically when the last ServerSession handle is closed by
     // the emulated application.
@@ -35,8 +35,8 @@ ServerSession::~ServerSession() {
     parent->server = nullptr;
 }
 
-ResultVal<SharedPtr<ServerSession>> ServerSession::Create(std::string name) {
-    SharedPtr<ServerSession> server_session(new ServerSession);
+ResultVal<SharedPtr<ServerSession>> ServerSession::Create(KernelCore& kernel, std::string name) {
+    SharedPtr<ServerSession> server_session(new ServerSession(kernel));
 
     server_session->name = std::move(name);
     server_session->parent = nullptr;
@@ -105,10 +105,10 @@ ResultCode ServerSession::HandleSyncRequest(SharedPtr<Thread> thread) {
     // from its ClientSession, so wake up any threads that may be waiting on a svcReplyAndReceive or
     // similar.
 
+    auto& handle_table = Core::System::GetInstance().Kernel().HandleTable();
     Kernel::HLERequestContext context(this);
     u32* cmd_buf = (u32*)Memory::GetPointer(thread->GetTLSAddress());
-    context.PopulateFromIncomingCommandBuffer(cmd_buf, *Core::CurrentProcess(),
-                                              Kernel::g_handle_table);
+    context.PopulateFromIncomingCommandBuffer(cmd_buf, *Core::CurrentProcess(), handle_table);
 
     ResultCode result = RESULT_SUCCESS;
     // If the session has been converted to a domain, handle the domain request
@@ -160,10 +160,11 @@ ResultCode ServerSession::HandleSyncRequest(SharedPtr<Thread> thread) {
     return result;
 }
 
-ServerSession::SessionPair ServerSession::CreateSessionPair(const std::string& name,
+ServerSession::SessionPair ServerSession::CreateSessionPair(KernelCore& kernel,
+                                                            const std::string& name,
                                                             SharedPtr<ClientPort> port) {
-    auto server_session = ServerSession::Create(name + "_Server").Unwrap();
-    SharedPtr<ClientSession> client_session(new ClientSession);
+    auto server_session = ServerSession::Create(kernel, name + "_Server").Unwrap();
+    SharedPtr<ClientSession> client_session(new ClientSession(kernel));
     client_session->name = name + "_Client";
 
     std::shared_ptr<Session> parent(new Session);

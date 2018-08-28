@@ -56,6 +56,7 @@ enum class ThreadWakeupReason {
 
 namespace Kernel {
 
+class KernelCore;
 class Process;
 class Scheduler;
 
@@ -63,6 +64,7 @@ class Thread final : public WaitObject {
 public:
     /**
      * Creates and returns a new thread. The new thread is immediately scheduled
+     * @param kernel The kernel instance this thread will be created under.
      * @param name The friendly name desired for the thread
      * @param entry_point The address at which the thread should start execution
      * @param priority The thread's priority
@@ -72,8 +74,9 @@ public:
      * @param owner_process The parent process for the thread
      * @return A shared pointer to the newly created thread
      */
-    static ResultVal<SharedPtr<Thread>> Create(std::string name, VAddr entry_point, u32 priority,
-                                               u64 arg, s32 processor_id, VAddr stack_top,
+    static ResultVal<SharedPtr<Thread>> Create(KernelCore& kernel, std::string name,
+                                               VAddr entry_point, u32 priority, u64 arg,
+                                               s32 processor_id, VAddr stack_top,
                                                SharedPtr<Process> owner_process);
 
     std::string GetName() const override {
@@ -263,7 +266,7 @@ public:
     u64 affinity_mask{0x1};
 
 private:
-    Thread();
+    explicit Thread(KernelCore& kernel);
     ~Thread() override;
 
     std::shared_ptr<std::vector<u8>> tls_memory = std::make_shared<std::vector<u8>>();
@@ -271,12 +274,13 @@ private:
 
 /**
  * Sets up the primary application thread
+ * @param kernel The kernel instance to create the main thread under.
  * @param entry_point The address at which the thread should start execution
  * @param priority The priority to give the main thread
  * @param owner_process The parent process for the main thread
  * @return A shared pointer to the main thread
  */
-SharedPtr<Thread> SetupMainThread(VAddr entry_point, u32 priority,
+SharedPtr<Thread> SetupMainThread(KernelCore& kernel, VAddr entry_point, u32 priority,
                                   SharedPtr<Process> owner_process);
 
 /**
@@ -293,15 +297,5 @@ void WaitCurrentThread_Sleep();
  * Stops the current thread and removes it from the thread_list
  */
 void ExitCurrentThread();
-
-/**
- * Initialize threading
- */
-void ThreadingInit();
-
-/**
- * Shutdown threading
- */
-void ThreadingShutdown();
 
 } // namespace Kernel

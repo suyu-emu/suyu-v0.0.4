@@ -15,13 +15,14 @@
 
 namespace Kernel {
 
-class ClientSession;
 class ClientPort;
+class ClientSession;
+class HLERequestContext;
+class KernelCore;
 class ServerSession;
 class Session;
 class SessionRequestHandler;
 class Thread;
-class HLERequestContext;
 
 /**
  * Kernel object representing the server endpoint of an IPC session. Sessions are the basic CTR-OS
@@ -50,11 +51,12 @@ public:
 
     /**
      * Creates a pair of ServerSession and an associated ClientSession.
+     * @param kernel      The kernal instance to create the session pair under.
      * @param name        Optional name of the ports.
      * @param client_port Optional The ClientPort that spawned this session.
      * @return The created session tuple
      */
-    static SessionPair CreateSessionPair(const std::string& name = "Unknown",
+    static SessionPair CreateSessionPair(KernelCore& kernel, const std::string& name = "Unknown",
                                          SharedPtr<ClientPort> client_port = nullptr);
 
     /**
@@ -111,16 +113,18 @@ public:
     }
 
 private:
-    ServerSession();
+    explicit ServerSession(KernelCore& kernel);
     ~ServerSession() override;
 
     /**
      * Creates a server session. The server session can have an optional HLE handler,
      * which will be invoked to handle the IPC requests that this session receives.
+     * @param kernel The kernel instance to create this server session under.
      * @param name Optional name of the server session.
      * @return The created server session
      */
-    static ResultVal<SharedPtr<ServerSession>> Create(std::string name = "Unknown");
+    static ResultVal<SharedPtr<ServerSession>> Create(KernelCore& kernel,
+                                                      std::string name = "Unknown");
 
     /// Handles a SyncRequest to a domain, forwarding the request to the proper object or closing an
     /// object handle.

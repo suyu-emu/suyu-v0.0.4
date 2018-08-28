@@ -12,6 +12,9 @@
 
 namespace Kernel {
 
+WaitObject::WaitObject(KernelCore& kernel) : Object{kernel} {}
+WaitObject::~WaitObject() = default;
+
 void WaitObject::AddWaitingThread(SharedPtr<Thread> thread) {
     auto itr = std::find(waiting_threads.begin(), waiting_threads.end(), thread);
     if (itr == waiting_threads.end())

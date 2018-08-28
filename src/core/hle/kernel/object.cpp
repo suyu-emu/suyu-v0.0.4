@@ -3,10 +3,12 @@
 // Refer to the license.txt file included.
 
 #include "common/assert.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 
 namespace Kernel {
 
+Object::Object(KernelCore& kernel) : kernel{kernel}, object_id{kernel.CreateNewObjectID()} {}
 Object::~Object() = default;
 
 bool Object::IsWaitable() const {

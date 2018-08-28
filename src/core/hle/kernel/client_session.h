@@ -12,8 +12,9 @@
 
 namespace Kernel {
 
-class ServerSession;
+class KernelCore;
 class Session;
+class ServerSession;
 class Thread;
 
 class ClientSession final : public Object {
@@ -41,7 +42,7 @@ public:
     std::shared_ptr<Session> parent;
 
 private:
-    ClientSession();
+    explicit ClientSession(KernelCore& kernel);
     ~ClientSession() override;
 };
 

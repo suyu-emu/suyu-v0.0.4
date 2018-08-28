@@ -87,13 +87,15 @@ static ResultCode ConnectToNamedPort(Handle* out_handle, VAddr port_name_address
     CASCADE_RESULT(client_session, client_port->Connect());
 
     // Return the client session
-    CASCADE_RESULT(*out_handle, g_handle_table.Create(client_session));
+    auto& kernel = Core::System::GetInstance().Kernel();
+    CASCADE_RESULT(*out_handle, kernel.HandleTable().Create(client_session));
     return RESULT_SUCCESS;
 }
 
 /// Makes a blocking IPC call to an OS service.
 static ResultCode SendSyncRequest(Handle handle) {
-    SharedPtr<ClientSession> session = g_handle_table.Get<ClientSession>(handle);
+    auto& kernel = Core::System::GetInstance().Kernel();
+    SharedPtr<ClientSession> session = kernel.HandleTable().Get<ClientSession>(handle);
     if (!session) {
         LOG_ERROR(Kernel_SVC, "called with invalid handle=0x{:08X}", handle);
         return ERR_INVALID_HANDLE;
@@ -112,7 +114,8 @@ static ResultCode SendSyncRequest(Handle handle) {
 static ResultCode GetThreadId(u32* thread_id, Handle thread_handle) {
     LOG_TRACE(Kernel_SVC, "called thread=0x{:08X}", thread_handle);
 
-    const SharedPtr<Thread> thread = g_handle_table.Get<Thread>(thread_handle);
+    auto& kernel = Core::System::GetInstance().Kernel();
+    const SharedPtr<Thread> thread = kernel.HandleTable().Get<Thread>(thread_handle);
     if (!thread) {
         return ERR_INVALID_HANDLE;
     }
@@ -125,7 +128,8 @@ static ResultCode GetThreadId(u32* thread_id, Handle thread_handle) {
 static ResultCode GetProcessId(u32* process_id, Handle process_handle) {
     LOG_TRACE(Kernel_SVC, "called process=0x{:08X}", process_handle);
 
-    const SharedPtr<Process> process = g_handle_table.Get<Process>(process_handle);
+    auto& kernel = Core::System::GetInstance().Kernel();
+    const SharedPtr<Process> process = kernel.HandleTable().Get<Process>(process_handle);
     if (!process) {
         return ERR_INVALID_HANDLE;
     }
@@ -168,10 +172,11 @@ static ResultCode WaitSynchronization(Handle* index, VAddr handles_address, u64 
 
     using ObjectPtr = SharedPtr<WaitObject>;
     std::vector<ObjectPtr> objects(handle_count);
+    auto& kernel = Core::System::GetInstance().Kernel();
 
     for (u64 i = 0; i < handle_count; ++i) {
         const Handle handle = Memory::Read32(handles_address + i * sizeof(Handle));
-        const auto object = g_handle_table.Get<WaitObject>(handle);
+        const auto object = kernel.HandleTable().Get<WaitObject>(handle);
 
         if (object == nullptr) {
             return ERR_INVALID_HANDLE;
@@ -219,7 +224,8 @@ static ResultCode WaitSynchronization(Handle* index, VAddr handles_address, u64 
 static ResultCode CancelSynchronization(Handle thread_handle) {
     LOG_TRACE(Kernel_SVC, "called thread=0x{:X}", thread_handle);
 
-    const SharedPtr<Thread> thread = g_handle_table.Get<Thread>(thread_handle);
+    auto& kernel = Core::System::GetInstance().Kernel();
+    const SharedPtr<Thread> thread = kernel.HandleTable().Get<Thread>(thread_handle);
     if (!thread) {
         return ERR_INVALID_HANDLE;
     }
@@ -239,7 +245,9 @@ static ResultCode ArbitrateLock(Handle holding_thread_handle, VAddr mutex_addr,
               "requesting_current_thread_handle=0x{:08X}",
               holding_thread_handle, mutex_addr, requesting_thread_handle);
 
-    return Mutex::TryAcquire(mutex_addr, holding_thread_handle, requesting_thread_handle);
+    auto& handle_table = Core::System::GetInstance().Kernel().HandleTable();
+    return Mutex::TryAcquire(handle_table, mutex_addr, holding_thread_handle,
+                             requesting_thread_handle);
 }
 
 /// Unlock a mutex
@@ -352,7 +360,8 @@ static ResultCode GetThreadContext(Handle handle, VAddr addr) {
 
 /// Gets the priority for the specified thread
 static ResultCode GetThreadPriority(u32* priority, Handle handle) {
-    const SharedPtr<Thread> thread = g_handle_table.Get<Thread>(handle);
+    auto& kernel = Core::System::GetInstance().Kernel();
+    const SharedPtr<Thread> thread = kernel.HandleTable().Get<Thread>(handle);
     if (!thread)
         return ERR_INVALID_HANDLE;
 
@@ -366,7 +375,8 @@ static ResultCode SetThreadPriority(Handle handle, u32 priority) {
         return ERR_OUT_OF_RANGE;
     }
 
-    SharedPtr<Thread> thread = g_handle_table.Get<Thread>(handle);
+    auto& kernel = Core::System::GetInstance().Kernel();
+    SharedPtr<Thread> thread = kernel.HandleTable().Get<Thread>(handle);
     if (!thread)
         return ERR_INVALID_HANDLE;
 
@@ -395,7 +405,8 @@ static ResultCode MapSharedMemory(Handle shared_memory_handle, VAddr addr, u64 s
               "called, shared_memory_handle=0x{:X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
               shared_memory_handle, addr, size, permissions);
 
-    SharedPtr<SharedMemory> shared_memory = g_handle_table.Get<SharedMemory>(shared_memory_handle);
+    auto& kernel = Core::System::GetInstance().Kernel();
+    auto shared_memory = kernel.HandleTable().Get<SharedMemory>(shared_memory_handle);
     if (!shared_memory) {
         return ERR_INVALID_HANDLE;
     }
@@ -423,7 +434,8 @@ static ResultCode UnmapSharedMemory(Handle shared_memory_handle, VAddr addr, u64
     LOG_WARNING(Kernel_SVC, "called, shared_memory_handle=0x{:08X}, addr=0x{:X}, size=0x{:X}",
                 shared_memory_handle, addr, size);
 
-    SharedPtr<SharedMemory> shared_memory = g_handle_table.Get<SharedMemory>(shared_memory_handle);
+    auto& kernel = Core::System::GetInstance().Kernel();
+    auto shared_memory = kernel.HandleTable().Get<SharedMemory>(shared_memory_handle);
 
     return shared_memory->Unmap(Core::CurrentProcess().get(), addr);
 }
@@ -431,7 +443,9 @@ static ResultCode UnmapSharedMemory(Handle shared_memory_handle, VAddr addr, u64
 /// Query process memory
 static ResultCode QueryProcessMemory(MemoryInfo* memory_info, PageInfo* /*page_info*/,
                                      Handle process_handle, u64 addr) {
-    SharedPtr<Process> process = g_handle_table.Get<Process>(process_handle);
+
+    auto& kernel = Core::System::GetInstance().Kernel();
+    SharedPtr<Process> process = kernel.HandleTable().Get<Process>(process_handle);
     if (!process) {
         return ERR_INVALID_HANDLE;
     }
@@ -528,10 +542,11 @@ static ResultCode CreateThread(Handle* out_handle, VAddr entry_point, u64 arg, V
         break;
     }
 
+    auto& kernel = Core::System::GetInstance().Kernel();
     CASCADE_RESULT(SharedPtr<Thread> thread,
-                   Thread::Create(name, entry_point, priority, arg, processor_id, stack_top,
+                   Thread::Create(kernel, name, entry_point, priority, arg, processor_id, stack_top,
                                   Core::CurrentProcess()));
-    CASCADE_RESULT(thread->guest_handle, g_handle_table.Create(thread));
+    CASCADE_RESULT(thread->guest_handle, kernel.HandleTable().Create(thread));
     *out_handle = thread->guest_handle;
 
     Core::System::GetInstance().CpuCore(thread->processor_id).PrepareReschedule();
@@ -548,7 +563,8 @@ static ResultCode CreateThread(Handle* out_handle, VAddr entry_point, u64 arg, V
 static ResultCode StartThread(Handle thread_handle) {
     LOG_TRACE(Kernel_SVC, "called thread=0x{:08X}", thread_handle);
 
-    const SharedPtr<Thread> thread = g_handle_table.Get<Thread>(thread_handle);
+    auto& kernel = Core::System::GetInstance().Kernel();
+    const SharedPtr<Thread> thread = kernel.HandleTable().Get<Thread>(thread_handle);
     if (!thread) {
         return ERR_INVALID_HANDLE;
     }
@@ -595,7 +611,8 @@ static ResultCode WaitProcessWideKeyAtomic(VAddr mutex_addr, VAddr condition_var
         "called mutex_addr={:X}, condition_variable_addr={:X}, thread_handle=0x{:08X}, timeout={}",
         mutex_addr, condition_variable_addr, thread_handle, nano_seconds);
 
-    SharedPtr<Thread> thread = g_handle_table.Get<Thread>(thread_handle);
+    auto& kernel = Core::System::GetInstance().Kernel();
+    SharedPtr<Thread> thread = kernel.HandleTable().Get<Thread>(thread_handle);
     ASSERT(thread);
 
     CASCADE_CODE(Mutex::Release(mutex_addr));
@@ -704,8 +721,9 @@ static ResultCode SignalProcessWideKey(VAddr condition_variable_addr, s32 target
                                                mutex_val | Mutex::MutexHasWaitersFlag));
 
             // The mutex is already owned by some other thread, make this thread wait on it.
+            auto& kernel = Core::System::GetInstance().Kernel();
             Handle owner_handle = static_cast<Handle>(mutex_val & Mutex::MutexOwnerMask);
-            auto owner = g_handle_table.Get<Thread>(owner_handle);
+            auto owner = kernel.HandleTable().Get<Thread>(owner_handle);
             ASSERT(owner);
             ASSERT(thread->status == ThreadStatus::WaitMutex);
             thread->wakeup_callback = nullptr;
@@ -783,14 +801,20 @@ static u64 GetSystemTick() {
 /// Close a handle
 static ResultCode CloseHandle(Handle handle) {
     LOG_TRACE(Kernel_SVC, "Closing handle 0x{:08X}", handle);
-    return g_handle_table.Close(handle);
+
+    auto& kernel = Core::System::GetInstance().Kernel();
+    return kernel.HandleTable().Close(handle);
 }
 
 /// Reset an event
 static ResultCode ResetSignal(Handle handle) {
     LOG_WARNING(Kernel_SVC, "(STUBBED) called handle 0x{:08X}", handle);
-    auto event = g_handle_table.Get<Event>(handle);
+
+    auto& kernel = Core::System::GetInstance().Kernel();
+    auto event = kernel.HandleTable().Get<Event>(handle);
+
     ASSERT(event != nullptr);
+
     event->Clear();
     return RESULT_SUCCESS;
 }
@@ -806,7 +830,8 @@ static ResultCode CreateTransferMemory(Handle* handle, VAddr addr, u64 size, u32
 static ResultCode GetThreadCoreMask(Handle thread_handle, u32* core, u64* mask) {
     LOG_TRACE(Kernel_SVC, "called, handle=0x{:08X}", thread_handle);
 
-    const SharedPtr<Thread> thread = g_handle_table.Get<Thread>(thread_handle);
+    auto& kernel = Core::System::GetInstance().Kernel();
+    const SharedPtr<Thread> thread = kernel.HandleTable().Get<Thread>(thread_handle);
     if (!thread) {
         return ERR_INVALID_HANDLE;
     }
@@ -821,7 +846,8 @@ static ResultCode SetThreadCoreMask(Handle thread_handle, u32 core, u64 mask) {
     LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, mask=0x{:16X}, core=0x{:X}", thread_handle,
               mask, core);
 
-    const SharedPtr<Thread> thread = g_handle_table.Get<Thread>(thread_handle);
+    auto& kernel = Core::System::GetInstance().Kernel();
+    const SharedPtr<Thread> thread = kernel.HandleTable().Get<Thread>(thread_handle);
     if (!thread) {
         return ERR_INVALID_HANDLE;
     }
@@ -861,19 +887,23 @@ static ResultCode CreateSharedMemory(Handle* handle, u64 size, u32 local_permiss
                                      u32 remote_permissions) {
     LOG_TRACE(Kernel_SVC, "called, size=0x{:X}, localPerms=0x{:08X}, remotePerms=0x{:08X}", size,
               local_permissions, remote_permissions);
-    auto sharedMemHandle =
-        SharedMemory::Create(g_handle_table.Get<Process>(KernelHandle::CurrentProcess), size,
+
+    auto& kernel = Core::System::GetInstance().Kernel();
+    auto& handle_table = kernel.HandleTable();
+    auto shared_mem_handle =
+        SharedMemory::Create(kernel, handle_table.Get<Process>(KernelHandle::CurrentProcess), size,
                              static_cast<MemoryPermission>(local_permissions),
                              static_cast<MemoryPermission>(remote_permissions));
 
-    CASCADE_RESULT(*handle, g_handle_table.Create(sharedMemHandle));
+    CASCADE_RESULT(*handle, handle_table.Create(shared_mem_handle));
     return RESULT_SUCCESS;
 }
 
 static ResultCode ClearEvent(Handle handle) {
     LOG_TRACE(Kernel_SVC, "called, event=0x{:08X}", handle);
 
-    SharedPtr<Event> evt = g_handle_table.Get<Event>(handle);
+    auto& kernel = Core::System::GetInstance().Kernel();
+    SharedPtr<Event> evt = kernel.HandleTable().Get<Event>(handle);
     if (evt == nullptr)
         return ERR_INVALID_HANDLE;
     evt->Clear();

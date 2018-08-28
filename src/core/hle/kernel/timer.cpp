@@ -2,36 +2,31 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <cinttypes>
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/timer.h"
 
 namespace Kernel {
 
-/// The event type of the generic timer callback event
-static CoreTiming::EventType* timer_callback_event_type = nullptr;
-// TODO(yuriks): This can be removed if Timer objects are explicitly pooled in the future, allowing
-//               us to simply use a pool index or similar.
-static Kernel::HandleTable timer_callback_handle_table;
+Timer::Timer(KernelCore& kernel) : WaitObject{kernel} {}
+Timer::~Timer() = default;
 
-Timer::Timer() {}
-Timer::~Timer() {}
-
-SharedPtr<Timer> Timer::Create(ResetType reset_type, std::string name) {
-    SharedPtr<Timer> timer(new Timer);
+SharedPtr<Timer> Timer::Create(KernelCore& kernel, ResetType reset_type, std::string name) {
+    SharedPtr<Timer> timer(new Timer(kernel));
 
     timer->reset_type = reset_type;
     timer->signaled = false;
     timer->name = std::move(name);
     timer->initial_delay = 0;
     timer->interval_delay = 0;
-    timer->callback_handle = timer_callback_handle_table.Create(timer).Unwrap();
+    timer->callback_handle = kernel.CreateTimerCallbackHandle(timer).Unwrap();
 
     return timer;
 }
@@ -58,13 +53,13 @@ void Timer::Set(s64 initial, s64 interval) {
         // Immediately invoke the callback
         Signal(0);
     } else {
-        CoreTiming::ScheduleEvent(CoreTiming::nsToCycles(initial), timer_callback_event_type,
+        CoreTiming::ScheduleEvent(CoreTiming::nsToCycles(initial), kernel.TimerCallbackEventType(),
                                   callback_handle);
     }
 }
 
 void Timer::Cancel() {
-    CoreTiming::UnscheduleEvent(timer_callback_event_type, callback_handle);
+    CoreTiming::UnscheduleEvent(kernel.TimerCallbackEventType(), callback_handle);
 }
 
 void Timer::Clear() {
@@ -89,28 +84,8 @@ void Timer::Signal(int cycles_late) {
     if (interval_delay != 0) {
         // Reschedule the timer with the interval delay
         CoreTiming::ScheduleEvent(CoreTiming::nsToCycles(interval_delay) - cycles_late,
-                                  timer_callback_event_type, callback_handle);
+                                  kernel.TimerCallbackEventType(), callback_handle);
     }
 }
-
-/// The timer callback event, called when a timer is fired
-static void TimerCallback(u64 timer_handle, int cycles_late) {
-    SharedPtr<Timer> timer =
-        timer_callback_handle_table.Get<Timer>(static_cast<Handle>(timer_handle));
-
-    if (timer == nullptr) {
-        LOG_CRITICAL(Kernel, "Callback fired for invalid timer {:016X}", timer_handle);
-        return;
-    }
-
-    timer->Signal(cycles_late);
-}
-
-void TimersInit() {
-    timer_callback_handle_table.Clear();
-    timer_callback_event_type = CoreTiming::RegisterEvent("TimerCallback", TimerCallback);
-}
-
-void TimersShutdown() {}
 
 } // namespace Kernel

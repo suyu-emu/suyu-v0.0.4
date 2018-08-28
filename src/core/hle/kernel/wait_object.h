@@ -11,11 +11,15 @@
 
 namespace Kernel {
 
+class KernelCore;
 class Thread;
 
 /// Class that represents a Kernel object that a thread can be waiting on
 class WaitObject : public Object {
 public:
+    explicit WaitObject(KernelCore& kernel);
+    ~WaitObject() override;
+
     /**
      * Check if the specified thread should wait until the object is available
      * @param thread The thread about which we're deciding.

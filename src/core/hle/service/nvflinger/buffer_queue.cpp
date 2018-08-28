@@ -6,14 +6,16 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
 
 namespace Service {
 namespace NVFlinger {
 
 BufferQueue::BufferQueue(u32 id, u64 layer_id) : id(id), layer_id(layer_id) {
+    auto& kernel = Core::System::GetInstance().Kernel();
     buffer_wait_event =
-        Kernel::Event::Create(Kernel::ResetType::Sticky, "BufferQueue NativeHandle");
+        Kernel::Event::Create(kernel, Kernel::ResetType::Sticky, "BufferQueue NativeHandle");
 }
 
 void BufferQueue::SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer) {

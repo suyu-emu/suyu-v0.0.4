@@ -19,6 +19,8 @@
 
 namespace Kernel {
 
+class KernelCore;
+
 struct AddressMapping {
     // Address and size must be page-aligned
     VAddr address;
@@ -62,7 +64,7 @@ struct CodeSet final : public Object {
         u32 size = 0;
     };
 
-    static SharedPtr<CodeSet> Create(std::string name);
+    static SharedPtr<CodeSet> Create(KernelCore& kernel, std::string name);
 
     std::string GetTypeName() const override {
         return "CodeSet";
@@ -109,13 +111,13 @@ struct CodeSet final : public Object {
     std::string name;
 
 private:
-    CodeSet();
+    explicit CodeSet(KernelCore& kernel);
     ~CodeSet() override;
 };
 
 class Process final : public Object {
 public:
-    static SharedPtr<Process> Create(std::string&& name);
+    static SharedPtr<Process> Create(KernelCore& kernel, std::string&& name);
 
     std::string GetTypeName() const override {
         return "Process";
@@ -128,8 +130,6 @@ public:
     HandleType GetHandleType() const override {
         return HANDLE_TYPE;
     }
-
-    static u32 next_process_id;
 
     /// Title ID corresponding to the process
     u64 program_id;
@@ -157,8 +157,8 @@ public:
     /// Current status of the process
     ProcessStatus status;
 
-    /// The id of this process
-    u32 process_id = next_process_id++;
+    /// The ID of this process
+    u32 process_id = 0;
 
     /**
      * Parses a list of kernel capability descriptors (as found in the ExHeader) and applies them
@@ -206,13 +206,8 @@ public:
     ResultCode UnmapMemory(VAddr dst_addr, VAddr src_addr, u64 size);
 
 private:
-    Process();
+    explicit Process(KernelCore& kernel);
     ~Process() override;
 };
-
-void ClearProcessList();
-
-/// Retrieves a process from the current list of processes.
-SharedPtr<Process> GetProcessById(u32 process_id);
 
 } // namespace Kernel

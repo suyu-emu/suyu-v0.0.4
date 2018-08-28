@@ -15,6 +15,8 @@
 
 namespace Kernel {
 
+class KernelCore;
+
 /// Permissions for mapped shared memory blocks
 enum class MemoryPermission : u32 {
     None = 0,
@@ -32,6 +34,7 @@ class SharedMemory final : public Object {
 public:
     /**
      * Creates a shared memory object.
+     * @param kernel The kernel instance to create a shared memory instance under.
      * @param owner_process Process that created this shared memory object.
      * @param size Size of the memory block. Must be page-aligned.
      * @param permissions Permission restrictions applied to the process which created the block.
@@ -42,14 +45,15 @@ public:
      * linear heap.
      * @param name Optional object name, used for debugging purposes.
      */
-    static SharedPtr<SharedMemory> Create(SharedPtr<Process> owner_process, u64 size,
-                                          MemoryPermission permissions,
+    static SharedPtr<SharedMemory> Create(KernelCore& kernel, SharedPtr<Process> owner_process,
+                                          u64 size, MemoryPermission permissions,
                                           MemoryPermission other_permissions, VAddr address = 0,
                                           MemoryRegion region = MemoryRegion::BASE,
                                           std::string name = "Unknown");
 
     /**
      * Creates a shared memory object from a block of memory managed by an HLE applet.
+     * @param kernel The kernel instance to create a shared memory instance under.
      * @param heap_block Heap block of the HLE applet.
      * @param offset The offset into the heap block that the SharedMemory will map.
      * @param size Size of the memory block. Must be page-aligned.
@@ -58,7 +62,8 @@ public:
      * block.
      * @param name Optional object name, used for debugging purposes.
      */
-    static SharedPtr<SharedMemory> CreateForApplet(std::shared_ptr<std::vector<u8>> heap_block,
+    static SharedPtr<SharedMemory> CreateForApplet(KernelCore& kernel,
+                                                   std::shared_ptr<std::vector<u8>> heap_block,
                                                    u32 offset, u32 size,
                                                    MemoryPermission permissions,
                                                    MemoryPermission other_permissions,
@@ -125,7 +130,7 @@ public:
     std::string name;
 
 private:
-    SharedMemory();
+    explicit SharedMemory(KernelCore& kernel);
     ~SharedMemory() override;
 };
 

@@ -35,8 +35,9 @@ public:
         };
         RegisterHandlers(functions);
 
+        auto& kernel = Core::System::GetInstance().Kernel();
         system_event =
-            Kernel::Event::Create(Kernel::ResetType::Sticky, "IAudioRenderer:SystemEvent");
+            Kernel::Event::Create(kernel, Kernel::ResetType::Sticky, "IAudioRenderer:SystemEvent");
         renderer = std::make_unique<AudioCore::AudioRenderer>(audren_params, system_event);
     }
 
@@ -121,8 +122,9 @@ public:
         };
         RegisterHandlers(functions);
 
-        buffer_event =
-            Kernel::Event::Create(Kernel::ResetType::OneShot, "IAudioOutBufferReleasedEvent");
+        auto& kernel = Core::System::GetInstance().Kernel();
+        buffer_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
+                                             "IAudioOutBufferReleasedEvent");
     }
 
 private:
