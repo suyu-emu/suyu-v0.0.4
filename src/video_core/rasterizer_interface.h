@@ -60,5 +60,8 @@ public:
     virtual bool AccelerateDrawBatch(bool is_indexed) {
         return false;
     }
+
+    /// Increase/decrease the number of object in pages touching the specified region
+    virtual void UpdatePagesCachedCount(Tegra::GPUVAddr addr, u64 size, int delta) {}
 };
 } // namespace VideoCore

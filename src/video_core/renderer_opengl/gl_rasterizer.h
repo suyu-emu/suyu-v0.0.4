@@ -10,7 +10,11 @@
 #include <tuple>
 #include <utility>
 #include <vector>
+
+#include <boost/icl/interval_map.hpp>
+#include <boost/range/iterator_range.hpp>
 #include <glad/glad.h>
+
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/memory_manager.h"
@@ -49,6 +53,7 @@ public:
     bool AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr,
                            u32 pixel_stride) override;
     bool AccelerateDrawBatch(bool is_indexed) override;
+    void UpdatePagesCachedCount(Tegra::GPUVAddr addr, u64 size, int delta) override;
 
     /// OpenGL shader generated for a given Maxwell register state
     struct MaxwellShader {
@@ -187,6 +192,9 @@ private:
 
     enum class AccelDraw { Disabled, Arrays, Indexed };
     AccelDraw accelerate_draw = AccelDraw::Disabled;
+
+    using CachedPageMap = boost::icl::interval_map<u64, int>;
+    CachedPageMap cached_pages;
 };
 
 } // namespace OpenGL
