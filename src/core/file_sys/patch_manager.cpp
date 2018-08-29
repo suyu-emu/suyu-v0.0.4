@@ -34,6 +34,8 @@ std::string FormatPatchTypeName(PatchType type) {
 PatchManager::PatchManager(u64 title_id) : title_id(title_id) {}
 
 VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
+    LOG_INFO(Loader, "Patching ExeFS for title_id={:016X}", title_id);
+
     if (exefs == nullptr)
         return exefs;
 
@@ -45,6 +47,8 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
     if (update != nullptr) {
         if (update->GetStatus() == Loader::ResultStatus::ErrorMissingBKTRBaseRomFS &&
             update->GetExeFS() != nullptr) {
+            LOG_INFO(Loader, "    ExeFS: Update ({}) applied successfully",
+                     FormatTitleVersion(installed->GetEntryVersion(update_tid).get_value_or(0)));
             exefs = update->GetExeFS();
         }
     }
@@ -52,7 +56,11 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
     return exefs;
 }
 
-VirtualFile PatchManager::PatchRomFS(VirtualFile romfs) const {
+VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset,
+                                     ContentRecordType type) const {
+    LOG_INFO(Loader, "Patching RomFS for title_id={:016X}, type={:02X}", title_id,
+             static_cast<u8>(type));
+
     if (romfs == nullptr)
         return romfs;
 
@@ -60,11 +68,15 @@ VirtualFile PatchManager::PatchRomFS(VirtualFile romfs) const {
 
     // Game Updates
     const auto update_tid = GetUpdateTitleID(title_id);
-    const auto update = installed->GetEntryRaw(update_tid, ContentRecordType::Program);
+    const auto update = installed->GetEntryRaw(update_tid, type);
     if (update != nullptr) {
-        const auto nca = std::make_shared<NCA>(update, romfs);
-        if (nca->GetStatus() == Loader::ResultStatus::Success && nca->GetRomFS() != nullptr)
-            romfs = nca->GetRomFS();
+        const auto new_nca = std::make_shared<NCA>(update, romfs, ivfc_offset);
+        if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
+            new_nca->GetRomFS() != nullptr) {
+            LOG_INFO(Loader, "    RomFS: Update ({}) applied successfully",
+                     FormatTitleVersion(installed->GetEntryVersion(update_tid).get_value_or(0)));
+            romfs = new_nca->GetRomFS();
+        }
     }
 
     return romfs;

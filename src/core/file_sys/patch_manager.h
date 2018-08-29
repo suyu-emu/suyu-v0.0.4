@@ -8,8 +8,12 @@
 #include <string>
 #include "common/common_types.h"
 #include "core/file_sys/vfs.h"
+#include "nca_metadata.h"
+#include "romfs_factory.h"
 
 namespace FileSys {
+
+class NCA;
 
 enum class TitleVersionFormat : u8 {
     ThreeElements, ///< vX.Y.Z
@@ -36,7 +40,8 @@ public:
 
     // Currently tracked RomFS patches:
     // - Game Updates
-    VirtualFile PatchRomFS(VirtualFile romfs) const;
+    VirtualFile PatchRomFS(VirtualFile base, u64 ivfc_offset,
+                           ContentRecordType type = ContentRecordType::Program) const;
 
     // Returns a vector of pairs between patch names and patch versions.
     // i.e. Update v80 will return {Update, 80}

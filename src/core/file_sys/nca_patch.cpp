@@ -43,7 +43,7 @@ size_t BKTR::Read(u8* data, size_t length, size_t offset) const {
 
     const auto next_relocation = GetNextRelocationEntry(offset);
 
-    if (offset + length >= next_relocation.address_patch) {
+    if (offset + length > next_relocation.address_patch) {
         const u64 partition = next_relocation.address_patch - offset;
         return Read(data, partition, offset) +
                Read(data + partition, length - partition, offset + partition);
