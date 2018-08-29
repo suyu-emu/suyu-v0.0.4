@@ -456,8 +456,9 @@ static QString FormatGameName(const std::string& physical_name) {
     return physical_name_as_qstring;
 }
 
-static QString FormatPatchNameVersions(u64 title_id, bool updatable = true) {
-    const FileSys::PatchManager patch_manager(title_id);
+static QString FormatPatchNameVersions(const FileSys::PatchManager& patch_manager,
+                                       std::string update_version_override = "",
+                                       bool updatable = true) {
     QString out;
     for (const auto& kv : patch_manager.GetPatchVersionNames()) {
         if (!updatable && kv.first == FileSys::PatchType::Update)
@@ -466,9 +467,13 @@ static QString FormatPatchNameVersions(u64 title_id, bool updatable = true) {
         if (kv.second == 0) {
             out.append(fmt::format("{}\n", FileSys::FormatPatchTypeName(kv.first)).c_str());
         } else {
-            out.append(fmt::format("{} ({})\n", FileSys::FormatPatchTypeName(kv.first),
-                                   FileSys::FormatTitleVersion(kv.second))
-                           .c_str());
+            auto version_data = FileSys::FormatTitleVersion(kv.second);
+            if (kv.first == FileSys::PatchType::Update && !update_version_override.empty())
+                version_data = update_version_override;
+
+            out.append(
+                fmt::format("{} ({})\n", FileSys::FormatPatchTypeName(kv.first), version_data)
+                    .c_str());
         }
     }
 
@@ -484,9 +489,16 @@ void GameList::RefreshGameDirectory() {
     }
 }
 
-static void GetMetadataFromControlNCA(const std::shared_ptr<FileSys::NCA>& nca,
-                                      std::vector<u8>& icon, std::string& name) {
-    const auto control_dir = FileSys::ExtractRomFS(nca->GetRomFS());
+static void GetMetadataFromControlNCA(const FileSys::PatchManager& patch_manager,
+                                      const std::shared_ptr<FileSys::NCA>& nca,
+                                      std::vector<u8>& icon, std::string& name,
+                                      std::string& version) {
+    const auto romfs = patch_manager.PatchRomFS(nca->GetRomFS(), nca->GetBaseIVFCOffset(),
+                                                FileSys::ContentRecordType::Control);
+    if (romfs == nullptr)
+        return;
+
+    const auto control_dir = FileSys::ExtractRomFS(romfs);
     if (control_dir == nullptr)
         return;
 
@@ -495,6 +507,7 @@ static void GetMetadataFromControlNCA(const std::shared_ptr<FileSys::NCA>& nca,
         return;
     FileSys::NACP nacp(nacp_file);
     name = nacp.GetApplicationName();
+    version = nacp.GetVersionString();
 
     FileSys::VirtualFile icon_file = nullptr;
     for (const auto& language : FileSys::LANGUAGE_NAMES) {
@@ -526,18 +539,20 @@ void GameListWorker::AddInstalledTitlesToGameList(std::shared_ptr<FileSys::Regis
 
         std::vector<u8> icon;
         std::string name;
+        std::string version = "";
         u64 program_id = 0;
         loader->ReadProgramId(program_id);
 
+        const FileSys::PatchManager patch{program_id};
         const auto& control = cache->GetEntry(game.title_id, FileSys::ContentRecordType::Control);
         if (control != nullptr)
-            GetMetadataFromControlNCA(control, icon, name);
+            GetMetadataFromControlNCA(patch, control, icon, name, version);
         emit EntryReady({
             new GameListItemPath(
                 FormatGameName(file->GetFullPath()), icon, QString::fromStdString(name),
                 QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType())),
                 program_id),
-            new GameListItem(FormatPatchNameVersions(program_id)),
+            new GameListItem(FormatPatchNameVersions(patch, version)),
             new GameListItem(
                 QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType()))),
             new GameListItemSize(file->GetSize()),
@@ -603,12 +618,16 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
             std::string name = " ";
             const auto res3 = loader->ReadTitle(name);
 
+            const FileSys::PatchManager patch{program_id};
+
+            std::string version = "";
+
             if (res1 != Loader::ResultStatus::Success && res3 != Loader::ResultStatus::Success &&
                 res2 == Loader::ResultStatus::Success) {
                 // Use from metadata pool.
                 if (nca_control_map.find(program_id) != nca_control_map.end()) {
                     const auto nca = nca_control_map[program_id];
-                    GetMetadataFromControlNCA(nca, icon, name);
+                    GetMetadataFromControlNCA(patch, nca, icon, name, version);
                 }
             }
 
@@ -619,8 +638,6 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
             if (it != compatibility_list.end())
                 compatibility = it->second.first;
 
-            FileSys::PatchManager patch{program_id};
-
             emit EntryReady({
                 new GameListItemPath(
                     FormatGameName(physical_name), icon, QString::fromStdString(name),
@@ -628,6 +645,8 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
                     program_id),
                 new GameListItemCompat(compatibility),
                 new GameListItem(FormatPatchNameVersions(program_id, loader->IsRomFSUpdatable())),
+                new GameListItem(
+                    FormatPatchNameVersions(patch, version, loader->IsRomFSUpdatable())),
                 new GameListItem(
                     QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType()))),
                 new GameListItemSize(FileUtil::GetSize(physical_name)),
