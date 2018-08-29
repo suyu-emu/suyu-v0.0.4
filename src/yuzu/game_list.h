@@ -29,6 +29,7 @@ class GameList : public QWidget {
 public:
     enum {
         COLUMN_NAME,
+        COLUMN_COMPATIBILITY,
         COLUMN_FILE_TYPE,
         COLUMN_SIZE,
         COLUMN_COUNT, // Number of columns
@@ -68,6 +69,7 @@ public:
     void setFilterFocus();
     void setFilterVisible(bool visibility);
 
+    void LoadCompatibilityList();
     void PopulateAsync(const QString& dir_path, bool deep_scan);
 
     void SaveInterfaceLayout();
@@ -79,6 +81,9 @@ signals:
     void GameChosen(QString game_path);
     void ShouldCancelWorker();
     void OpenFolderRequested(u64 program_id, GameListOpenTarget target);
+    void NavigateToGamedbEntryRequested(
+        u64 program_id,
+        std::unordered_map<std::string, std::pair<QString, QString>>& compatibility_list);
 
 private slots:
     void onTextChanged(const QString& newText);
@@ -100,6 +105,7 @@ private:
     QStandardItemModel* item_model = nullptr;
     GameListWorker* current_worker = nullptr;
     QFileSystemWatcher* watcher = nullptr;
+    std::unordered_map<std::string, std::pair<QString, QString>> compatibility_list;
 };
 
 Q_DECLARE_METATYPE(GameListOpenTarget);

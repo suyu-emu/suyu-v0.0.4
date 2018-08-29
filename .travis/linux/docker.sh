@@ -10,7 +10,7 @@ ln -sf /usr/bin/ccache /usr/lib/ccache/cc
 ln -sf /usr/bin/ccache /usr/lib/ccache/c++
 mkdir build && cd build
 ccache --show-stats > ccache_before
-cmake .. -DYUZU_BUILD_UNICORN=ON -DCMAKE_BUILD_TYPE=Release -G Ninja
+cmake .. -DYUZU_BUILD_UNICORN=ON -DCMAKE_BUILD_TYPE=Release -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON -G Ninja
 ninja
 ccache --show-stats > ccache_after
 diff -U100 ccache_before ccache_after || true

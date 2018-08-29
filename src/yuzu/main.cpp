@@ -16,6 +16,7 @@
 #include <QMessageBox>
 #include <QtGui>
 #include <QtWidgets>
+#include <fmt/format.h>
 #include "common/common_paths.h"
 #include "common/logging/backend.h"
 #include "common/logging/filter.h"
@@ -35,6 +36,7 @@
 #include "core/gdbstub/gdbstub.h"
 #include "core/loader/loader.h"
 #include "core/settings.h"
+#include "game_list_p.h"
 #include "video_core/debug_utils/debug_utils.h"
 #include "yuzu/about_dialog.h"
 #include "yuzu/bootmanager.h"
@@ -134,6 +136,7 @@ GMainWindow::GMainWindow()
 
     // Necessary to load titles from nand in gamelist.
     Service::FileSystem::CreateFactories(vfs);
+    game_list->LoadCompatibilityList();
     game_list->PopulateAsync(UISettings::values.gamedir, UISettings::values.gamedir_deepscan);
 
     // Show one-time "callout" messages to the user
@@ -349,6 +352,8 @@ void GMainWindow::RestoreUIState() {
 void GMainWindow::ConnectWidgetEvents() {
     connect(game_list, &GameList::GameChosen, this, &GMainWindow::OnGameListLoadFile);
     connect(game_list, &GameList::OpenFolderRequested, this, &GMainWindow::OnGameListOpenFolder);
+    connect(game_list, &GameList::NavigateToGamedbEntryRequested, this,
+            &GMainWindow::OnGameListNavigateToGamedbEntry);
 
     connect(this, &GMainWindow::EmulationStarting, render_window,
             &GRenderWindow::OnEmulationStarting);
@@ -676,6 +681,20 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
     }
     LOG_INFO(Frontend, "Opening {} path for program_id={:016x}", open_target, program_id);
     QDesktopServices::openUrl(QUrl::fromLocalFile(qpath));
+}
+
+void GMainWindow::OnGameListNavigateToGamedbEntry(
+    u64 program_id,
+    std::unordered_map<std::string, std::pair<QString, QString>>& compatibility_list) {
+
+    auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
+
+    QString directory;
+
+    if (it != compatibility_list.end())
+        directory = it->second.second;
+
+    QDesktopServices::openUrl(QUrl("https://yuzu-emu.org/game/" + directory));
 }
 
 void GMainWindow::OnMenuLoadFile() {
