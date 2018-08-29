@@ -79,7 +79,8 @@ bool IsValidNCA(const NCAHeader& header);
 // After construction, use GetStatus to determine if the file is valid and ready to be used.
 class NCA : public ReadOnlyVfsDirectory {
 public:
-    explicit NCA(VirtualFile file, VirtualFile bktr_base_romfs = nullptr);
+    explicit NCA(VirtualFile file, VirtualFile bktr_base_romfs = nullptr,
+                 u64 bktr_base_ivfc_offset = 0);
     Loader::ResultStatus GetStatus() const;
 
     std::vector<std::shared_ptr<VfsFile>> GetFiles() const override;
@@ -95,6 +96,9 @@ public:
     VirtualDir GetExeFS() const;
 
     VirtualFile GetBaseFile() const;
+
+    // Returns the base ivfc offset used in BKTR patching.
+    u64 GetBaseIVFCOffset() const;
 
 protected:
     bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
@@ -112,6 +116,7 @@ private:
     VirtualDir exefs = nullptr;
     VirtualFile file;
     VirtualFile bktr_base_romfs;
+    u64 ivfc_offset;
 
     NCAHeader header{};
     bool has_rights_id{};

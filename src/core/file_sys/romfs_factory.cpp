@@ -24,14 +24,15 @@ RomFSFactory::RomFSFactory(Loader::AppLoader& app_loader) {
     }
 
     updatable = app_loader.IsRomFSUpdatable();
+    ivfc_offset = app_loader.ReadRomFSIVFCOffset();
 }
 
 ResultVal<VirtualFile> RomFSFactory::OpenCurrentProcess() {
     if (!updatable)
         return MakeResult<VirtualFile>(file);
 
-    const PatchManager patch_manager(Core::CurrentProcess()->process_id);
-    return MakeResult<VirtualFile>(patch_manager.PatchRomFS(file));
+    const PatchManager patch_manager(Core::CurrentProcess()->program_id);
+    return MakeResult<VirtualFile>(patch_manager.PatchRomFS(file, ivfc_offset));
 }
 
 ResultVal<VirtualFile> RomFSFactory::Open(u64 title_id, StorageId storage, ContentRecordType type) {

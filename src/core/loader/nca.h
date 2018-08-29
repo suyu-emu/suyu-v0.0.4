@@ -37,6 +37,7 @@ public:
     ResultStatus Load(Kernel::SharedPtr<Kernel::Process>& process) override;
 
     ResultStatus ReadRomFS(FileSys::VirtualFile& dir) override;
+    u64 ReadRomFSIVFCOffset() const override;
     ResultStatus ReadProgramId(u64& out_program_id) override;
 
 private:

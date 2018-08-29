@@ -51,7 +51,7 @@ size_t BKTR::Read(u8* data, size_t length, size_t offset) const {
 
     if (!bktr_read) {
         ASSERT_MSG(section_offset > ivfc_offset, "Offset calculation negative.");
-        return base_romfs->Read(data, length, section_offset);
+        return base_romfs->Read(data, length, section_offset - ivfc_offset);
     }
 
     if (!encrypted) {

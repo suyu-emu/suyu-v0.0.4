@@ -71,6 +71,12 @@ ResultStatus AppLoader_NCA::ReadRomFS(FileSys::VirtualFile& dir) {
     return ResultStatus::Success;
 }
 
+u64 AppLoader_NCA::ReadRomFSIVFCOffset() const {
+    if (nca == nullptr)
+        return 0;
+    return nca->GetBaseIVFCOffset();
+}
+
 ResultStatus AppLoader_NCA::ReadProgramId(u64& out_program_id) {
     if (nca == nullptr || nca->GetStatus() != ResultStatus::Success)
         return ResultStatus::ErrorNotInitialized;

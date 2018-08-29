@@ -215,7 +215,7 @@ VirtualFile NCA::Decrypt(NCASectionHeader s_header, VirtualFile in, u64 starting
     }
 }
 
-NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_)
+NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_, u64 bktr_base_ivfc_offset)
     : file(std::move(file_)),
       bktr_base_romfs(bktr_base_romfs_ ? std::move(bktr_base_romfs_) : nullptr) {
     status = Loader::ResultStatus::Success;
@@ -292,6 +292,7 @@ NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_)
     is_update = std::find_if(sections.begin(), sections.end(), [](const NCASectionHeader& header) {
                     return header.raw.header.crypto_type == NCASectionCryptoType::BKTR;
                 }) != sections.end();
+    ivfc_offset = 0;
 
     for (std::ptrdiff_t i = 0; i < number_sections; ++i) {
         auto section = sections[i];
@@ -299,8 +300,8 @@ NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_)
         if (section.raw.header.filesystem_type == NCASectionFilesystemType::ROMFS) {
             const size_t base_offset =
                 header.section_tables[i].media_offset * MEDIA_OFFSET_MULTIPLIER;
-            const size_t romfs_offset =
-                base_offset + section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].offset;
+            ivfc_offset = section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].offset;
+            const size_t romfs_offset = base_offset + ivfc_offset;
             const size_t romfs_size = section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].size;
             auto raw = std::make_shared<OffsetVfsFile>(file, romfs_size, romfs_offset);
             auto dec = Decrypt(section, raw, romfs_offset);
@@ -414,7 +415,7 @@ NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_)
                     bktr_base_romfs, std::make_shared<OffsetVfsFile>(file, romfs_size, base_offset),
                     relocation_block, relocation_buckets, subsection_block, subsection_buckets,
                     encrypted, encrypted ? key.get() : Core::Crypto::Key128{}, base_offset,
-                    romfs_offset - base_offset, section.raw.section_ctr);
+                    bktr_base_ivfc_offset, section.raw.section_ctr);
 
                 // BKTR applies to entire IVFC, so make an offset version to level 6
 
@@ -509,6 +510,10 @@ VirtualDir NCA::GetExeFS() const {
 
 VirtualFile NCA::GetBaseFile() const {
     return file;
+}
+
+u64 NCA::GetBaseIVFCOffset() const {
+    return ivfc_offset;
 }
 
 bool NCA::ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) {

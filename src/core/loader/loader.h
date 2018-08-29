@@ -215,6 +215,15 @@ public:
     }
 
     /**
+     * Gets the difference between the start of the IVFC header and the start of level 6 (RomFS)
+     * data. Needed for bktr patching.
+     * @return IVFC offset for romfs.
+     */
+    virtual u64 ReadRomFSIVFCOffset() const {
+        return 0;
+    }
+
+    /**
      * Get the title of the application
      * @param title Reference to store the application title into
      * @return ResultStatus result of function
