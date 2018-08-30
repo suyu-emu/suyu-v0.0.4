@@ -94,11 +94,7 @@ public:
      * This function should only be used by GDB Stub to support breakpoints, memory updates and
      * step/continue commands.
      */
-    void InvalidateCpuInstructionCaches() {
-        for (auto& cpu : cpu_cores) {
-            cpu->ArmInterface().ClearInstructionCache();
-        }
-    }
+    void InvalidateCpuInstructionCaches();
 
     /// Shutdown the emulated system.
     void Shutdown();
@@ -117,17 +113,13 @@ public:
      * application).
      * @returns True if the emulated system is powered on, otherwise false.
      */
-    bool IsPoweredOn() const {
-        return cpu_barrier && cpu_barrier->IsAlive();
-    }
+    bool IsPoweredOn() const;
 
     /**
      * Returns a reference to the telemetry session for this emulation session.
      * @returns Reference to the telemetry session.
      */
-    Core::TelemetrySession& TelemetrySession() const {
-        return *telemetry_session;
-    }
+    Core::TelemetrySession& TelemetrySession() const;
 
     /// Prepare the core emulation for a reschedule
     void PrepareReschedule();
@@ -136,14 +128,13 @@ public:
     PerfStats::Results GetAndResetPerfStats();
 
     /// Gets an ARM interface to the CPU core that is currently running
-    ARM_Interface& CurrentArmInterface() {
-        return CurrentCpuCore().ArmInterface();
-    }
+    ARM_Interface& CurrentArmInterface();
 
     /// Gets the index of the currently running CPU core
-    size_t CurrentCoreIndex() {
-        return CurrentCpuCore().CoreIndex();
-    }
+    size_t CurrentCoreIndex();
+
+    /// Gets the scheduler for the CPU core that is currently running
+    Kernel::Scheduler& CurrentScheduler();
 
     /// Gets an ARM interface to the CPU core with the specified index
     ARM_Interface& ArmInterface(size_t core_index);
@@ -151,43 +142,26 @@ public:
     /// Gets a CPU interface to the CPU core with the specified index
     Cpu& CpuCore(size_t core_index);
 
+    /// Gets the exclusive monitor
+    ExclusiveMonitor& Monitor();
+
     /// Gets a mutable reference to the GPU interface
-    Tegra::GPU& GPU() {
-        return *gpu_core;
-    }
+    Tegra::GPU& GPU();
 
     /// Gets an immutable reference to the GPU interface.
-    const Tegra::GPU& GPU() const {
-        return *gpu_core;
-    }
+    const Tegra::GPU& GPU() const;
 
     /// Gets a mutable reference to the renderer.
-    VideoCore::RendererBase& Renderer() {
-        return *renderer;
-    }
+    VideoCore::RendererBase& Renderer();
 
     /// Gets an immutable reference to the renderer.
-    const VideoCore::RendererBase& Renderer() const {
-        return *renderer;
-    }
-
-    /// Gets the scheduler for the CPU core that is currently running
-    Kernel::Scheduler& CurrentScheduler() {
-        return *CurrentCpuCore().Scheduler();
-    }
-
-    /// Gets the exclusive monitor
-    ExclusiveMonitor& Monitor() {
-        return *cpu_exclusive_monitor;
-    }
+    const VideoCore::RendererBase& Renderer() const;
 
     /// Gets the scheduler for the CPU core with the specified index
     const std::shared_ptr<Kernel::Scheduler>& Scheduler(size_t core_index);
 
     /// Gets the current process
-    Kernel::SharedPtr<Kernel::Process>& CurrentProcess() {
-        return current_process;
-    }
+    Kernel::SharedPtr<Kernel::Process>& CurrentProcess();
 
     /// Provides a reference to the kernel instance.
     Kernel::KernelCore& Kernel();
@@ -195,49 +169,37 @@ public:
     /// Provides a constant reference to the kernel instance.
     const Kernel::KernelCore& Kernel() const;
 
+    /// Provides a reference to the internal PerfStats instance.
+    Core::PerfStats& GetPerfStats();
+
+    /// Provides a constant reference to the internal PerfStats instance.
+    const Core::PerfStats& GetPerfStats() const;
+
+    /// Provides a reference to the frame limiter;
+    Core::FrameLimiter& FrameLimiter();
+
+    /// Provides a constant referent to the frame limiter
+    const Core::FrameLimiter& FrameLimiter() const;
+
     /// Gets the name of the current game
-    Loader::ResultStatus GetGameName(std::string& out) const {
-        if (app_loader == nullptr)
-            return Loader::ResultStatus::ErrorNotInitialized;
-        return app_loader->ReadTitle(out);
-    }
+    Loader::ResultStatus GetGameName(std::string& out) const;
 
-    PerfStats perf_stats;
-    FrameLimiter frame_limiter;
+    void SetStatus(ResultStatus new_status, const char* details);
 
-    void SetStatus(ResultStatus new_status, const char* details = nullptr) {
-        status = new_status;
-        if (details) {
-            status_details = details;
-        }
-    }
+    const std::string& GetStatusDetails() const;
 
-    const std::string& GetStatusDetails() const {
-        return status_details;
-    }
-
-    Loader::AppLoader& GetAppLoader() const {
-        return *app_loader;
-    }
+    Loader::AppLoader& GetAppLoader() const;
 
     Service::SM::ServiceManager& ServiceManager();
     const Service::SM::ServiceManager& ServiceManager() const;
 
-    void SetGPUDebugContext(std::shared_ptr<Tegra::DebugContext> context) {
-        debug_context = std::move(context);
-    }
+    void SetGPUDebugContext(std::shared_ptr<Tegra::DebugContext> context);
 
-    std::shared_ptr<Tegra::DebugContext> GetGPUDebugContext() const {
-        return debug_context;
-    }
+    std::shared_ptr<Tegra::DebugContext> GetGPUDebugContext() const;
 
-    void SetFilesystem(FileSys::VirtualFilesystem vfs) {
-        virtual_filesystem = std::move(vfs);
-    }
+    void SetFilesystem(FileSys::VirtualFilesystem vfs);
 
-    FileSys::VirtualFilesystem GetFilesystem() const {
-        return virtual_filesystem;
-    }
+    FileSys::VirtualFilesystem GetFilesystem() const;
 
 private:
     System();
@@ -253,34 +215,10 @@ private:
      */
     ResultStatus Init(Frontend::EmuWindow& emu_window);
 
-    Kernel::KernelCore kernel;
-    /// RealVfsFilesystem instance
-    FileSys::VirtualFilesystem virtual_filesystem;
-    /// AppLoader used to load the current executing application
-    std::unique_ptr<Loader::AppLoader> app_loader;
-    std::unique_ptr<VideoCore::RendererBase> renderer;
-    std::unique_ptr<Tegra::GPU> gpu_core;
-    std::shared_ptr<Tegra::DebugContext> debug_context;
-    Kernel::SharedPtr<Kernel::Process> current_process;
-    std::shared_ptr<ExclusiveMonitor> cpu_exclusive_monitor;
-    std::shared_ptr<CpuBarrier> cpu_barrier;
-    std::array<std::shared_ptr<Cpu>, NUM_CPU_CORES> cpu_cores;
-    std::array<std::unique_ptr<std::thread>, NUM_CPU_CORES - 1> cpu_core_threads;
-    size_t active_core{}; ///< Active core, only used in single thread mode
-
-    /// Service manager
-    std::shared_ptr<Service::SM::ServiceManager> service_manager;
-
-    /// Telemetry session for this emulation session
-    std::unique_ptr<Core::TelemetrySession> telemetry_session;
+    struct Impl;
+    std::unique_ptr<Impl> impl;
 
     static System s_instance;
-
-    ResultStatus status = ResultStatus::Success;
-    std::string status_details = "";
-
-    /// Map of guest threads to CPU cores
-    std::map<std::thread::id, std::shared_ptr<Cpu>> thread_to_cpu;
 };
 
 inline ARM_Interface& CurrentArmInterface() {

@@ -17,6 +17,7 @@
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
 #include "core/hle/service/nvflinger/nvflinger.h"
+#include "core/perf_stats.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 
@@ -137,7 +138,7 @@ void NVFlinger::Compose() {
             auto& system_instance = Core::System::GetInstance();
 
             // There was no queued buffer to draw, render previous frame
-            system_instance.perf_stats.EndGameFrame();
+            system_instance.GetPerfStats().EndGameFrame();
             system_instance.Renderer().SwapBuffers({});
             continue;
         }
