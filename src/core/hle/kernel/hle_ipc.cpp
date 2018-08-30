@@ -13,6 +13,7 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/event.h"
 #include "core/hle/kernel/handle_table.h"
@@ -51,7 +52,9 @@ SharedPtr<Event> HLERequestContext::SleepClientThread(SharedPtr<Thread> thread,
 
     if (!event) {
         // Create event if not provided
-        event = Kernel::Event::Create(Kernel::ResetType::OneShot, "HLE Pause Event: " + reason);
+        auto& kernel = Core::System::GetInstance().Kernel();
+        event =
+            Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "HLE Pause Event: " + reason);
     }
 
     event->Clear();
@@ -90,12 +93,14 @@ void HLERequestContext::ParseCommandBuffer(u32_le* src_cmdbuf, bool incoming) {
             rp.Skip(2, false);
         }
         if (incoming) {
+            auto& handle_table = Core::System::GetInstance().Kernel().HandleTable();
+
             // Populate the object lists with the data in the IPC request.
             for (u32 handle = 0; handle < handle_descriptor_header->num_handles_to_copy; ++handle) {
-                copy_objects.push_back(Kernel::g_handle_table.GetGeneric(rp.Pop<Handle>()));
+                copy_objects.push_back(handle_table.GetGeneric(rp.Pop<Handle>()));
             }
             for (u32 handle = 0; handle < handle_descriptor_header->num_handles_to_move; ++handle) {
-                move_objects.push_back(Kernel::g_handle_table.GetGeneric(rp.Pop<Handle>()));
+                move_objects.push_back(handle_table.GetGeneric(rp.Pop<Handle>()));
             }
         } else {
             // For responses we just ignore the handles, they're empty and will be populated when
@@ -230,17 +235,19 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(const Thread& thread)
         ASSERT(copy_objects.size() == handle_descriptor_header->num_handles_to_copy);
         ASSERT(move_objects.size() == handle_descriptor_header->num_handles_to_move);
 
+        auto& handle_table = Core::System::GetInstance().Kernel().HandleTable();
+
         // We don't make a distinction between copy and move handles when translating since HLE
         // services don't deal with handles directly. However, the guest applications might check
         // for specific values in each of these descriptors.
         for (auto& object : copy_objects) {
             ASSERT(object != nullptr);
-            dst_cmdbuf[current_offset++] = Kernel::g_handle_table.Create(object).Unwrap();
+            dst_cmdbuf[current_offset++] = handle_table.Create(object).Unwrap();
         }
 
         for (auto& object : move_objects) {
             ASSERT(object != nullptr);
-            dst_cmdbuf[current_offset++] = Kernel::g_handle_table.Create(object).Unwrap();
+            dst_cmdbuf[current_offset++] = handle_table.Create(object).Unwrap();
         }
     }
 

@@ -12,6 +12,7 @@
 #include <utility>
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "core/core.h"
 #include "core/hle/ipc.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/client_session.h"
@@ -135,7 +136,9 @@ public:
         if (context->Session()->IsDomain()) {
             context->AddDomainObject(std::move(iface));
         } else {
-            auto sessions = Kernel::ServerSession::CreateSessionPair(iface->GetServiceName());
+            auto& kernel = Core::System::GetInstance().Kernel();
+            auto sessions =
+                Kernel::ServerSession::CreateSessionPair(kernel, iface->GetServiceName());
             auto server = std::get<Kernel::SharedPtr<Kernel::ServerSession>>(sessions);
             auto client = std::get<Kernel::SharedPtr<Kernel::ClientSession>>(sessions);
             iface->ClientConnected(server);

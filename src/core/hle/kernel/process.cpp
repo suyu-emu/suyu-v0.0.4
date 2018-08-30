@@ -8,6 +8,7 @@
 #include "common/common_funcs.h"
 #include "common/logging/log.h"
 #include "core/hle/kernel/errors.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/thread.h"
@@ -16,30 +17,26 @@
 
 namespace Kernel {
 
-// Lists all processes that exist in the current session.
-static std::vector<SharedPtr<Process>> process_list;
-
-SharedPtr<CodeSet> CodeSet::Create(std::string name) {
-    SharedPtr<CodeSet> codeset(new CodeSet);
+SharedPtr<CodeSet> CodeSet::Create(KernelCore& kernel, std::string name) {
+    SharedPtr<CodeSet> codeset(new CodeSet(kernel));
     codeset->name = std::move(name);
     return codeset;
 }
 
-CodeSet::CodeSet() {}
-CodeSet::~CodeSet() {}
+CodeSet::CodeSet(KernelCore& kernel) : Object{kernel} {}
+CodeSet::~CodeSet() = default;
 
-u32 Process::next_process_id;
-
-SharedPtr<Process> Process::Create(std::string&& name) {
-    SharedPtr<Process> process(new Process);
+SharedPtr<Process> Process::Create(KernelCore& kernel, std::string&& name) {
+    SharedPtr<Process> process(new Process(kernel));
 
     process->name = std::move(name);
     process->flags.raw = 0;
     process->flags.memory_region.Assign(MemoryRegion::APPLICATION);
     process->status = ProcessStatus::Created;
     process->program_id = 0;
+    process->process_id = kernel.CreateNewProcessID();
 
-    process_list.push_back(process);
+    kernel.AppendNewProcess(process);
     return process;
 }
 
@@ -128,7 +125,7 @@ void Process::Run(VAddr entry_point, s32 main_thread_priority, u32 stack_size) {
     vm_manager.LogLayout();
     status = ProcessStatus::Running;
 
-    Kernel::SetupMainThread(entry_point, main_thread_priority, this);
+    Kernel::SetupMainThread(kernel, entry_point, main_thread_priority, this);
 }
 
 void Process::LoadModule(SharedPtr<CodeSet> module_, VAddr base_addr) {
@@ -231,22 +228,7 @@ ResultCode Process::UnmapMemory(VAddr dst_addr, VAddr /*src_addr*/, u64 size) {
     return vm_manager.UnmapRange(dst_addr, size);
 }
 
-Kernel::Process::Process() {}
+Kernel::Process::Process(KernelCore& kernel) : Object{kernel} {}
 Kernel::Process::~Process() {}
-
-void ClearProcessList() {
-    process_list.clear();
-}
-
-SharedPtr<Process> GetProcessById(u32 process_id) {
-    auto itr = std::find_if(
-        process_list.begin(), process_list.end(),
-        [&](const SharedPtr<Process>& process) { return process->process_id == process_id; });
-
-    if (itr == process_list.end())
-        return nullptr;
-
-    return *itr;
-}
 
 } // namespace Kernel

@@ -13,8 +13,6 @@
 
 namespace Kernel {
 
-HandleTable g_handle_table;
-
 HandleTable::HandleTable() {
     next_generation = 1;
     Clear();

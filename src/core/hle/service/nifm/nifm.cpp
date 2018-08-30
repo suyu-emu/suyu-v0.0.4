@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/event.h"
 #include "core/hle/service/nifm/nifm.h"
@@ -54,8 +55,9 @@ public:
         };
         RegisterHandlers(functions);
 
-        event1 = Kernel::Event::Create(Kernel::ResetType::OneShot, "IRequest:Event1");
-        event2 = Kernel::Event::Create(Kernel::ResetType::OneShot, "IRequest:Event2");
+        auto& kernel = Core::System::GetInstance().Kernel();
+        event1 = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "IRequest:Event1");
+        event2 = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "IRequest:Event2");
     }
 
 private:

@@ -4,6 +4,7 @@
 
 #include <cinttypes>
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/event.h"
 #include "core/hle/service/nvdrv/interface.h"
@@ -107,7 +108,8 @@ NVDRV::NVDRV(std::shared_ptr<Module> nvdrv, const char* name)
     };
     RegisterHandlers(functions);
 
-    query_event = Kernel::Event::Create(Kernel::ResetType::OneShot, "NVDRV::query_event");
+    auto& kernel = Core::System::GetInstance().Kernel();
+    query_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "NVDRV::query_event");
 }
 
 } // namespace Service::Nvidia

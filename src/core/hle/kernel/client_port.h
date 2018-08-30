@@ -11,8 +11,9 @@
 
 namespace Kernel {
 
-class ServerPort;
 class ClientSession;
+class KernelCore;
+class ServerPort;
 
 class ClientPort final : public Object {
 public:
@@ -44,7 +45,7 @@ public:
     void ConnectionClosed();
 
 private:
-    ClientPort();
+    explicit ClientPort(KernelCore& kernel);
     ~ClientPort() override;
 
     SharedPtr<ServerPort> server_port; ///< ServerPort associated with this client port.

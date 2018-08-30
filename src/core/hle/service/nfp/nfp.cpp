@@ -46,11 +46,13 @@ public:
         };
         RegisterHandlers(functions);
 
-        activate_event = Kernel::Event::Create(Kernel::ResetType::OneShot, "IUser:ActivateEvent");
+        auto& kernel = Core::System::GetInstance().Kernel();
+        activate_event =
+            Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "IUser:ActivateEvent");
         deactivate_event =
-            Kernel::Event::Create(Kernel::ResetType::OneShot, "IUser:DeactivateEvent");
-        availability_change_event =
-            Kernel::Event::Create(Kernel::ResetType::OneShot, "IUser:AvailabilityChangeEvent");
+            Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "IUser:DeactivateEvent");
+        availability_change_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
+                                                          "IUser:AvailabilityChangeEvent");
     }
 
 private:

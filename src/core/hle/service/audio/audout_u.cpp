@@ -47,7 +47,9 @@ public:
         RegisterHandlers(functions);
 
         // This is the event handle used to check if the audio buffer was released
-        buffer_event = Kernel::Event::Create(Kernel::ResetType::Sticky, "IAudioOutBufferReleased");
+        auto& kernel = Core::System::GetInstance().Kernel();
+        buffer_event =
+            Kernel::Event::Create(kernel, Kernel::ResetType::Sticky, "IAudioOutBufferReleased");
 
         stream = audio_core.OpenStream(audio_params.sample_rate, audio_params.channel_count,
                                        "IAudioOut", [=]() { buffer_event->Signal(); });

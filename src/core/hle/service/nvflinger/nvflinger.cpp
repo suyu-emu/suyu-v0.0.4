@@ -161,7 +161,8 @@ void NVFlinger::Compose() {
 Layer::Layer(u64 id, std::shared_ptr<BufferQueue> queue) : id(id), buffer_queue(std::move(queue)) {}
 
 Display::Display(u64 id, std::string name) : id(id), name(std::move(name)) {
-    vsync_event = Kernel::Event::Create(Kernel::ResetType::Pulse, "Display VSync Event");
+    auto& kernel = Core::System::GetInstance().Kernel();
+    vsync_event = Kernel::Event::Create(kernel, Kernel::ResetType::Pulse, "Display VSync Event");
 }
 
 } // namespace Service::NVFlinger

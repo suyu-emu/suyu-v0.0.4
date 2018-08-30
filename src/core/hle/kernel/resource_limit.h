@@ -9,6 +9,8 @@
 
 namespace Kernel {
 
+class KernelCore;
+
 enum class ResourceLimitCategory : u8 {
     APPLICATION = 0,
     SYS_APPLET = 1,
@@ -34,14 +36,7 @@ public:
     /**
      * Creates a resource limit object.
      */
-    static SharedPtr<ResourceLimit> Create(std::string name = "Unknown");
-
-    /**
-     * Retrieves the resource limit associated with the specified resource limit category.
-     * @param category The resource limit category
-     * @returns The resource limit associated with the category
-     */
-    static SharedPtr<ResourceLimit> GetForCategory(ResourceLimitCategory category);
+    static SharedPtr<ResourceLimit> Create(KernelCore& kernel, std::string name = "Unknown");
 
     std::string GetTypeName() const override {
         return "ResourceLimit";
@@ -113,14 +108,8 @@ public:
     s32 current_cpu_time = 0;
 
 private:
-    ResourceLimit();
+    explicit ResourceLimit(KernelCore& kernel);
     ~ResourceLimit() override;
 };
-
-/// Initializes the resource limits
-void ResourceLimitsInit();
-
-// Destroys the resource limits
-void ResourceLimitsShutdown();
 
 } // namespace Kernel

@@ -10,14 +10,18 @@
 
 namespace Kernel {
 
+class KernelCore;
+
 class Event final : public WaitObject {
 public:
     /**
      * Creates an event
+     * @param kernel The kernel instance to create this event under.
      * @param reset_type ResetType describing how to create event
      * @param name Optional name of event
      */
-    static SharedPtr<Event> Create(ResetType reset_type, std::string name = "Unknown");
+    static SharedPtr<Event> Create(KernelCore& kernel, ResetType reset_type,
+                                   std::string name = "Unknown");
 
     std::string GetTypeName() const override {
         return "Event";
@@ -44,7 +48,7 @@ public:
     void Clear();
 
 private:
-    Event();
+    explicit Event(KernelCore& kernel);
     ~Event() override;
 
     ResetType reset_type; ///< Current ResetType

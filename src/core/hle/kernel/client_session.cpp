@@ -11,7 +11,7 @@
 
 namespace Kernel {
 
-ClientSession::ClientSession() = default;
+ClientSession::ClientSession(KernelCore& kernel) : Object{kernel} {}
 ClientSession::~ClientSession() {
     // This destructor will be called automatically when the last ClientSession handle is closed by
     // the emulated application.

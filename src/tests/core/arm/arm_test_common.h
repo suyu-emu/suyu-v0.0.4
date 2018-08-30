@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "common/common_types.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/memory_hook.h"
 
 namespace Memory {
@@ -86,6 +87,7 @@ private:
     std::shared_ptr<TestMemory> test_memory;
     std::vector<WriteRecord> write_records;
     Memory::PageTable* page_table = nullptr;
+    Kernel::KernelCore kernel;
 };
 
 } // namespace ArmTests

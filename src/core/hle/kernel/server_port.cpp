@@ -13,8 +13,8 @@
 
 namespace Kernel {
 
-ServerPort::ServerPort() {}
-ServerPort::~ServerPort() {}
+ServerPort::ServerPort(KernelCore& kernel) : WaitObject{kernel} {}
+ServerPort::~ServerPort() = default;
 
 ResultVal<SharedPtr<ServerSession>> ServerPort::Accept() {
     if (pending_sessions.empty()) {
@@ -36,10 +36,10 @@ void ServerPort::Acquire(Thread* thread) {
 }
 
 std::tuple<SharedPtr<ServerPort>, SharedPtr<ClientPort>> ServerPort::CreatePortPair(
-    u32 max_sessions, std::string name) {
+    KernelCore& kernel, u32 max_sessions, std::string name) {
 
-    SharedPtr<ServerPort> server_port(new ServerPort);
-    SharedPtr<ClientPort> client_port(new ClientPort);
+    SharedPtr<ServerPort> server_port(new ServerPort(kernel));
+    SharedPtr<ClientPort> client_port(new ClientPort(kernel));
 
     server_port->name = name + "_Server";
     client_port->name = name + "_Client";

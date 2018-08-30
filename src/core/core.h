@@ -12,6 +12,7 @@
 #include "common/common_types.h"
 #include "core/arm/exclusive_monitor.h"
 #include "core/core_cpu.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/scheduler.h"
 #include "core/loader/loader.h"
@@ -188,6 +189,12 @@ public:
         return current_process;
     }
 
+    /// Provides a reference to the kernel instance.
+    Kernel::KernelCore& Kernel();
+
+    /// Provides a constant reference to the kernel instance.
+    const Kernel::KernelCore& Kernel() const;
+
     /// Gets the name of the current game
     Loader::ResultStatus GetGameName(std::string& out) const {
         if (app_loader == nullptr)
@@ -246,6 +253,7 @@ private:
      */
     ResultStatus Init(Frontend::EmuWindow& emu_window);
 
+    Kernel::KernelCore kernel;
     /// RealVfsFilesystem instance
     FileSys::VirtualFilesystem virtual_filesystem;
     /// AppLoader used to load the current executing application

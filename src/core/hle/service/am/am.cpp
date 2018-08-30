@@ -160,8 +160,9 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
     };
     RegisterHandlers(functions);
 
+    auto& kernel = Core::System::GetInstance().Kernel();
     launchable_event =
-        Kernel::Event::Create(Kernel::ResetType::Sticky, "ISelfController:LaunchableEvent");
+        Kernel::Event::Create(kernel, Kernel::ResetType::Sticky, "ISelfController:LaunchableEvent");
 }
 
 void ISelfController::SetFocusHandlingMode(Kernel::HLERequestContext& ctx) {
@@ -332,7 +333,8 @@ ICommonStateGetter::ICommonStateGetter() : ServiceFramework("ICommonStateGetter"
     };
     RegisterHandlers(functions);
 
-    event = Kernel::Event::Create(Kernel::ResetType::OneShot, "ICommonStateGetter:Event");
+    auto& kernel = Core::System::GetInstance().Kernel();
+    event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "ICommonStateGetter:Event");
 }
 
 void ICommonStateGetter::GetBootMode(Kernel::HLERequestContext& ctx) {
@@ -505,7 +507,8 @@ public:
         };
         RegisterHandlers(functions);
 
-        state_changed_event = Kernel::Event::Create(Kernel::ResetType::OneShot,
+        auto& kernel = Core::System::GetInstance().Kernel();
+        state_changed_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
                                                     "ILibraryAppletAccessor:StateChangedEvent");
     }
 

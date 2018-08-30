@@ -58,15 +58,15 @@ static void TransferMutexOwnership(VAddr mutex_addr, SharedPtr<Thread> current_t
     }
 }
 
-ResultCode Mutex::TryAcquire(VAddr address, Handle holding_thread_handle,
+ResultCode Mutex::TryAcquire(HandleTable& handle_table, VAddr address, Handle holding_thread_handle,
                              Handle requesting_thread_handle) {
     // The mutex address must be 4-byte aligned
     if ((address % sizeof(u32)) != 0) {
         return ResultCode(ErrorModule::Kernel, ErrCodes::InvalidAddress);
     }
 
-    SharedPtr<Thread> holding_thread = g_handle_table.Get<Thread>(holding_thread_handle);
-    SharedPtr<Thread> requesting_thread = g_handle_table.Get<Thread>(requesting_thread_handle);
+    SharedPtr<Thread> holding_thread = handle_table.Get<Thread>(holding_thread_handle);
+    SharedPtr<Thread> requesting_thread = handle_table.Get<Thread>(requesting_thread_handle);
 
     // TODO(Subv): It is currently unknown if it is possible to lock a mutex in behalf of another
     // thread.

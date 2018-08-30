@@ -77,9 +77,11 @@ QString WaitTreeText::GetText() const {
 }
 
 WaitTreeMutexInfo::WaitTreeMutexInfo(VAddr mutex_address) : mutex_address(mutex_address) {
+    auto& handle_table = Core::System::GetInstance().Kernel().HandleTable();
+
     mutex_value = Memory::Read32(mutex_address);
     owner_handle = static_cast<Kernel::Handle>(mutex_value & Kernel::Mutex::MutexOwnerMask);
-    owner = Kernel::g_handle_table.Get<Kernel::Thread>(owner_handle);
+    owner = handle_table.Get<Kernel::Thread>(owner_handle);
 }
 
 QString WaitTreeMutexInfo::GetText() const {

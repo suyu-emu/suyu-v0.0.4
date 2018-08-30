@@ -6,6 +6,7 @@
 #include "common/common_funcs.h"
 #include "common/file_util.h"
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/romfs_factory.h"
@@ -117,10 +118,11 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
         }
     }
 
+    auto& kernel = Core::System::GetInstance().Kernel();
     process->program_id = metadata.GetTitleID();
     process->svc_access_mask.set();
     process->resource_limit =
-        Kernel::ResourceLimit::GetForCategory(Kernel::ResourceLimitCategory::APPLICATION);
+        kernel.ResourceLimitForCategory(Kernel::ResourceLimitCategory::APPLICATION);
     process->Run(Memory::PROCESS_IMAGE_VADDR, metadata.GetMainThreadPriority(),
                  metadata.GetMainThreadStackSize());
 

@@ -100,7 +100,8 @@ VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base) {
         return {};
 
     // Build program image
-    Kernel::SharedPtr<Kernel::CodeSet> codeset = Kernel::CodeSet::Create("");
+    auto& kernel = Core::System::GetInstance().Kernel();
+    Kernel::SharedPtr<Kernel::CodeSet> codeset = Kernel::CodeSet::Create(kernel, "");
     std::vector<u8> program_image;
     for (std::size_t i = 0; i < nso_header.segments.size(); ++i) {
         const std::vector<u8> compressed_data =
@@ -151,9 +152,10 @@ ResultStatus AppLoader_NSO::Load(Kernel::SharedPtr<Kernel::Process>& process) {
     LoadModule(file, Memory::PROCESS_IMAGE_VADDR);
     LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", file->GetName(), Memory::PROCESS_IMAGE_VADDR);
 
+    auto& kernel = Core::System::GetInstance().Kernel();
     process->svc_access_mask.set();
     process->resource_limit =
-        Kernel::ResourceLimit::GetForCategory(Kernel::ResourceLimitCategory::APPLICATION);
+        kernel.ResourceLimitForCategory(Kernel::ResourceLimitCategory::APPLICATION);
     process->Run(Memory::PROCESS_IMAGE_VADDR, THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE);
 
     is_loaded = true;

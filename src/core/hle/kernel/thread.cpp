@@ -20,6 +20,7 @@
 #include "core/core_timing_util.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/thread.h"
@@ -29,9 +30,6 @@
 
 namespace Kernel {
 
-/// Event type for the thread wake up event
-static CoreTiming::EventType* ThreadWakeupEventType = nullptr;
-
 bool Thread::ShouldWait(Thread* thread) const {
     return status != ThreadStatus::Dead;
 }
@@ -40,32 +38,17 @@ void Thread::Acquire(Thread* thread) {
     ASSERT_MSG(!ShouldWait(thread), "object unavailable!");
 }
 
-// TODO(yuriks): This can be removed if Thread objects are explicitly pooled in the future, allowing
-//               us to simply use a pool index or similar.
-static Kernel::HandleTable wakeup_callback_handle_table;
-
-// The first available thread id at startup
-static u32 next_thread_id;
-
-/**
- * Creates a new thread ID
- * @return The new thread ID
- */
-inline static u32 const NewThreadId() {
-    return next_thread_id++;
-}
-
-Thread::Thread() {}
-Thread::~Thread() {}
+Thread::Thread(KernelCore& kernel) : WaitObject{kernel} {}
+Thread::~Thread() = default;
 
 void Thread::Stop() {
     // Cancel any outstanding wakeup events for this thread
-    CoreTiming::UnscheduleEvent(ThreadWakeupEventType, callback_handle);
-    wakeup_callback_handle_table.Close(callback_handle);
+    CoreTiming::UnscheduleEvent(kernel.ThreadWakeupCallbackEventType(), callback_handle);
+    kernel.ThreadWakeupCallbackHandleTable().Close(callback_handle);
     callback_handle = 0;
 
     // Clean up thread from ready queue
-    // This is only needed when the thread is termintated forcefully (SVC TerminateProcess)
+    // This is only needed when the thread is terminated forcefully (SVC TerminateProcess)
     if (status == ThreadStatus::Ready) {
         scheduler->UnscheduleThread(this, current_priority);
     }
@@ -98,63 +81,6 @@ void ExitCurrentThread() {
     Core::System::GetInstance().CurrentScheduler().RemoveThread(thread);
 }
 
-/**
- * Callback that will wake up the thread it was scheduled for
- * @param thread_handle The handle of the thread that's been awoken
- * @param cycles_late The number of CPU cycles that have passed since the desired wakeup time
- */
-static void ThreadWakeupCallback(u64 thread_handle, int cycles_late) {
-    const auto proper_handle = static_cast<Handle>(thread_handle);
-
-    // Lock the global kernel mutex when we enter the kernel HLE.
-    std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
-
-    SharedPtr<Thread> thread = wakeup_callback_handle_table.Get<Thread>(proper_handle);
-    if (thread == nullptr) {
-        LOG_CRITICAL(Kernel, "Callback fired for invalid thread {:08X}", proper_handle);
-        return;
-    }
-
-    bool resume = true;
-
-    if (thread->status == ThreadStatus::WaitSynchAny ||
-        thread->status == ThreadStatus::WaitSynchAll ||
-        thread->status == ThreadStatus::WaitHLEEvent) {
-        // Remove the thread from each of its waiting objects' waitlists
-        for (auto& object : thread->wait_objects)
-            object->RemoveWaitingThread(thread.get());
-        thread->wait_objects.clear();
-
-        // Invoke the wakeup callback before clearing the wait objects
-        if (thread->wakeup_callback)
-            resume = thread->wakeup_callback(ThreadWakeupReason::Timeout, thread, nullptr, 0);
-    }
-
-    if (thread->mutex_wait_address != 0 || thread->condvar_wait_address != 0 ||
-        thread->wait_handle) {
-        ASSERT(thread->status == ThreadStatus::WaitMutex);
-        thread->mutex_wait_address = 0;
-        thread->condvar_wait_address = 0;
-        thread->wait_handle = 0;
-
-        auto lock_owner = thread->lock_owner;
-        // Threads waking up by timeout from WaitProcessWideKey do not perform priority inheritance
-        // and don't have a lock owner unless SignalProcessWideKey was called first and the thread
-        // wasn't awakened due to the mutex already being acquired.
-        if (lock_owner) {
-            lock_owner->RemoveMutexWaiter(thread);
-        }
-    }
-
-    if (thread->arb_wait_address != 0) {
-        ASSERT(thread->status == ThreadStatus::WaitArb);
-        thread->arb_wait_address = 0;
-    }
-
-    if (resume)
-        thread->ResumeFromWait();
-}
-
 void Thread::WakeAfterDelay(s64 nanoseconds) {
     // Don't schedule a wakeup if the thread wants to wait forever
     if (nanoseconds == -1)
@@ -162,12 +88,12 @@ void Thread::WakeAfterDelay(s64 nanoseconds) {
 
     // This function might be called from any thread so we have to be cautious and use the
     // thread-safe version of ScheduleEvent.
-    CoreTiming::ScheduleEventThreadsafe(CoreTiming::nsToCycles(nanoseconds), ThreadWakeupEventType,
-                                        callback_handle);
+    CoreTiming::ScheduleEventThreadsafe(CoreTiming::nsToCycles(nanoseconds),
+                                        kernel.ThreadWakeupCallbackEventType(), callback_handle);
 }
 
 void Thread::CancelWakeupTimer() {
-    CoreTiming::UnscheduleEventThreadsafe(ThreadWakeupEventType, callback_handle);
+    CoreTiming::UnscheduleEventThreadsafe(kernel.ThreadWakeupCallbackEventType(), callback_handle);
 }
 
 static boost::optional<s32> GetNextProcessorId(u64 mask) {
@@ -294,9 +220,9 @@ static void ResetThreadContext(Core::ARM_Interface::ThreadContext& context, VAdd
     context.fpscr = 0;
 }
 
-ResultVal<SharedPtr<Thread>> Thread::Create(std::string name, VAddr entry_point, u32 priority,
-                                            u64 arg, s32 processor_id, VAddr stack_top,
-                                            SharedPtr<Process> owner_process) {
+ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name, VAddr entry_point,
+                                            u32 priority, u64 arg, s32 processor_id,
+                                            VAddr stack_top, SharedPtr<Process> owner_process) {
     // Check if priority is in ranged. Lowest priority -> highest priority id.
     if (priority > THREADPRIO_LOWEST) {
         LOG_ERROR(Kernel_SVC, "Invalid thread priority: {}", priority);
@@ -316,9 +242,9 @@ ResultVal<SharedPtr<Thread>> Thread::Create(std::string name, VAddr entry_point,
         return ResultCode(-1);
     }
 
-    SharedPtr<Thread> thread(new Thread);
+    SharedPtr<Thread> thread(new Thread(kernel));
 
-    thread->thread_id = NewThreadId();
+    thread->thread_id = kernel.CreateNewThreadID();
     thread->status = ThreadStatus::Dormant;
     thread->entry_point = entry_point;
     thread->stack_top = stack_top;
@@ -333,7 +259,7 @@ ResultVal<SharedPtr<Thread>> Thread::Create(std::string name, VAddr entry_point,
     thread->condvar_wait_address = 0;
     thread->wait_handle = 0;
     thread->name = std::move(name);
-    thread->callback_handle = wakeup_callback_handle_table.Create(thread).Unwrap();
+    thread->callback_handle = kernel.ThreadWakeupCallbackHandleTable().Create(thread).Unwrap();
     thread->owner_process = owner_process;
     thread->scheduler = Core::System::GetInstance().Scheduler(processor_id);
     thread->scheduler->AddThread(thread, priority);
@@ -383,19 +309,19 @@ void Thread::BoostPriority(u32 priority) {
     current_priority = priority;
 }
 
-SharedPtr<Thread> SetupMainThread(VAddr entry_point, u32 priority,
+SharedPtr<Thread> SetupMainThread(KernelCore& kernel, VAddr entry_point, u32 priority,
                                   SharedPtr<Process> owner_process) {
     // Setup page table so we can write to memory
     SetCurrentPageTable(&Core::CurrentProcess()->vm_manager.page_table);
 
     // Initialize new "main" thread
-    auto thread_res = Thread::Create("main", entry_point, priority, 0, THREADPROCESSORID_0,
+    auto thread_res = Thread::Create(kernel, "main", entry_point, priority, 0, THREADPROCESSORID_0,
                                      Memory::STACK_AREA_VADDR_END, std::move(owner_process));
 
     SharedPtr<Thread> thread = std::move(thread_res).Unwrap();
 
     // Register 1 must be a handle to the main thread
-    thread->guest_handle = Kernel::g_handle_table.Create(thread).Unwrap();
+    thread->guest_handle = kernel.HandleTable().Create(thread).Unwrap();
 
     thread->context.cpu_registers[1] = thread->guest_handle;
 
@@ -526,15 +452,6 @@ void Thread::ChangeCore(u32 core, u64 mask) {
  */
 Thread* GetCurrentThread() {
     return Core::System::GetInstance().CurrentScheduler().GetCurrentThread();
-}
-
-void ThreadingInit() {
-    ThreadWakeupEventType = CoreTiming::RegisterEvent("ThreadWakeupCallback", ThreadWakeupCallback);
-    next_thread_id = 1;
-}
-
-void ThreadingShutdown() {
-    Kernel::ClearProcessList();
 }
 
 } // namespace Kernel

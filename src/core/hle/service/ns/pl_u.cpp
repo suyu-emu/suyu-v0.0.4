@@ -266,8 +266,9 @@ void PL_U::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx) {
         SHARED_FONT_MEM_VADDR, shared_font, 0, SHARED_FONT_MEM_SIZE, Kernel::MemoryState::Shared);
 
     // Create shared font memory object
+    auto& kernel = Core::System::GetInstance().Kernel();
     shared_font_mem = Kernel::SharedMemory::Create(
-        Core::CurrentProcess(), SHARED_FONT_MEM_SIZE, Kernel::MemoryPermission::ReadWrite,
+        kernel, Core::CurrentProcess(), SHARED_FONT_MEM_SIZE, Kernel::MemoryPermission::ReadWrite,
         Kernel::MemoryPermission::Read, SHARED_FONT_MEM_VADDR, Kernel::MemoryRegion::BASE,
         "PL_U:shared_font_mem");
 
