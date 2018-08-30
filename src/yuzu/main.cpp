@@ -488,6 +488,16 @@ bool GMainWindow::LoadROM(const QString& filename) {
 
     const Core::System::ResultStatus result{system.Load(*render_window, filename.toStdString())};
 
+    if (system.GetAppLoader().GetFileType() == Loader::FileType::DeconstructedRomDirectory) {
+        QMessageBox::warning(
+            this, tr("Warning Outdated Game Format"),
+            tr("You are using the deconstructed ROM directory format for this game, which is an "
+               "outdated format that has been superseded by others such as NCA, NAX, XCI, or "
+               "NSP.<br><br>For an explanation of the various Switch formats yuzu supports, <a "
+               "href='https://yuzu-emu.org/wiki/overview-of-switch-game-formats'>check out our "
+               "wiki</a>."));
+    }
+
     render_window->DoneCurrent();
 
     if (result != Core::System::ResultStatus::Success) {
