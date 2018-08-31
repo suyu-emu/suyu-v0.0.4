@@ -167,13 +167,3 @@ artifacts:
   - path: $(BUILD_UPDATE)
     name: update
 
-deploy:
-  provider: GitHub
-  release: $(appveyor_repo_tag_name)
-  auth_token:
-    secure: QqePPnXbkzmXct5c8hZ2X5AbsthbI6cS1Sr+VBzcD8oUOIjfWJJKXVAQGUbQAbb0
-  artifact: update,build
-  draft: false
-  prerelease: false
-  on:
-    appveyor_repo_tag: true
