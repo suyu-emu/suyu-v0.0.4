@@ -780,15 +780,9 @@ Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params, bool pres
         }
     }
 
-    // Try to get a previously reserved surface
-    surface = TryGetReservedSurface(params);
-
-    // No surface found - create a new one
-    if (!surface) {
-        surface = std::make_shared<CachedSurface>(params);
-        ReserveSurface(surface);
-        Register(surface);
-    }
+    // No cached surface found - get a new one
+    surface = GetUncachedSurface(params);
+    Register(surface);
 
     // Only load surface from memory if we care about the contents
     if (preserve_contents) {
@@ -798,13 +792,23 @@ Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params, bool pres
     return surface;
 }
 
+Surface RasterizerCacheOpenGL::GetUncachedSurface(const SurfaceParams& params) {
+    Surface surface{TryGetReservedSurface(params)};
+    if (!surface) {
+        // No reserved surface available, create a new one and reserve it
+        surface = std::make_shared<CachedSurface>(params);
+        ReserveSurface(surface);
+    }
+    return surface;
+}
+
 Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& surface,
                                                const SurfaceParams& new_params) {
     // Verify surface is compatible for blitting
     const auto& params{surface->GetSurfaceParams()};
 
-    // Create a new surface with the new parameters, and blit the previous surface to it
-    Surface new_surface{std::make_shared<CachedSurface>(new_params)};
+    // Get a new surface with the new parameters, and blit the previous surface to it
+    Surface new_surface{GetUncachedSurface(new_params)};
 
     // If format is unchanged, we can do a faster blit without reinterpreting pixel data
     if (params.pixel_format == new_params.pixel_format) {
@@ -887,7 +891,6 @@ Surface RasterizerCacheOpenGL::TryGetReservedSurface(const SurfaceParams& params
     const auto& surface_reserve_key{SurfaceReserveKey::Create(params)};
     auto search{surface_reserve.find(surface_reserve_key)};
     if (search != surface_reserve.end()) {
-        Register(search->second);
         return search->second;
     }
     return {};

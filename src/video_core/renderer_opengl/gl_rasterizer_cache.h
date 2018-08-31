@@ -650,18 +650,6 @@ struct SurfaceParams {
                                               Tegra::GPUVAddr zeta_address,
                                               Tegra::DepthFormat format);
 
-    bool operator==(const SurfaceParams& other) const {
-        return std::tie(addr, is_tiled, block_height, pixel_format, component_type, type, width,
-                        height, unaligned_height, size_in_bytes) ==
-               std::tie(other.addr, other.is_tiled, other.block_height, other.pixel_format,
-                        other.component_type, other.type, other.width, other.height,
-                        other.unaligned_height, other.size_in_bytes);
-    }
-
-    bool operator!=(const SurfaceParams& other) const {
-        return !operator==(other);
-    }
-
     /// Checks if surfaces are compatible for caching
     bool IsCompatibleSurface(const SurfaceParams& other) const {
         return std::tie(pixel_format, type, cache_width, cache_height) ==
@@ -766,6 +754,9 @@ public:
 private:
     void LoadSurface(const Surface& surface);
     Surface GetSurface(const SurfaceParams& params, bool preserve_contents = true);
+
+    /// Gets an uncached surface, creating it if need be
+    Surface GetUncachedSurface(const SurfaceParams& params);
 
     /// Recreates a surface with new parameters
     Surface RecreateSurface(const Surface& surface, const SurfaceParams& new_params);
