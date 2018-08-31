@@ -20,6 +20,7 @@ matrix:
       install: "./.travis/linux/deps.sh"
       script: "./.travis/linux/build.sh"
       after_success: "./.travis/linux/upload.sh"
+      cache: ccache
     - os: osx
       env: NAME="macos build"
       sudo: false
@@ -27,6 +28,7 @@ matrix:
       install: "./.travis/macos/deps.sh"
       script: "./.travis/macos/build.sh"
       after_success: "./.travis/macos/upload.sh"
+      cache: ccache
 
 deploy:
   provider: releases
@@ -42,7 +44,3 @@ notifications:
   webhooks:
     urls:
       - https://api.yuzu-emu.org/code/travis/notify
-
-cache:
-  directories:
-    - $HOME/.ccache
