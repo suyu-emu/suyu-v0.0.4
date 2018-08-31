@@ -432,16 +432,6 @@ void RasterizerOpenGL::Clear() {
     glClearStencil(regs.clear_stencil);
 
     glClear(clear_mask);
-
-    // Mark framebuffer surfaces as dirty
-    if (Settings::values.use_accurate_framebuffers) {
-        if (dirty_color_surface != nullptr) {
-            res_cache.FlushSurface(dirty_color_surface);
-        }
-        if (dirty_depth_surface != nullptr) {
-            res_cache.FlushSurface(dirty_depth_surface);
-        }
-    }
 }
 
 std::pair<u8*, GLintptr> RasterizerOpenGL::AlignBuffer(u8* buffer_ptr, GLintptr buffer_offset,
@@ -557,16 +547,6 @@ void RasterizerOpenGL::DrawArrays() {
         texture_unit.Unbind();
     }
     state.Apply();
-
-    // Mark framebuffer surfaces as dirty
-    if (Settings::values.use_accurate_framebuffers) {
-        if (dirty_color_surface != nullptr) {
-            res_cache.FlushSurface(dirty_color_surface);
-        }
-        if (dirty_depth_surface != nullptr) {
-            res_cache.FlushSurface(dirty_depth_surface);
-        }
-    }
 }
 
 void RasterizerOpenGL::NotifyMaxwellRegisterChanged(u32 method) {}

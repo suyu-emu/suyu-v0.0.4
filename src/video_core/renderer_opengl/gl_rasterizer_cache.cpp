@@ -760,11 +760,7 @@ Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params, bool pres
     // Look up surface in the cache based on address
     Surface surface{TryGet(params.addr)};
     if (surface) {
-        if (Settings::values.use_accurate_framebuffers) {
-            // If use_accurate_framebuffers is enabled, always load from memory
-            FlushSurface(surface);
-            Unregister(surface);
-        } else if (surface->GetSurfaceParams().IsCompatibleSurface(params)) {
+        if (surface->GetSurfaceParams().IsCompatibleSurface(params)) {
             // Use the cached surface as-is
             return surface;
         } else if (preserve_contents) {
@@ -818,62 +814,67 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& surface,
         return new_surface;
     }
 
-    auto source_format = GetFormatTuple(params.pixel_format, params.component_type);
-    auto dest_format = GetFormatTuple(new_params.pixel_format, new_params.component_type);
+    // When using accurate framebuffers, always copy old data to new surface, regardless of format
+    if (Settings::values.use_accurate_framebuffers) {
+        auto source_format = GetFormatTuple(params.pixel_format, params.component_type);
+        auto dest_format = GetFormatTuple(new_params.pixel_format, new_params.component_type);
 
-    size_t buffer_size = std::max(params.SizeInBytes(), new_params.SizeInBytes());
+        size_t buffer_size = std::max(params.SizeInBytes(), new_params.SizeInBytes());
 
-    // Use a Pixel Buffer Object to download the previous texture and then upload it to the new one
-    // using the new format.
-    OGLBuffer pbo;
-    pbo.Create();
+        // Use a Pixel Buffer Object to download the previous texture and then upload it to the new
+        // one using the new format.
+        OGLBuffer pbo;
+        pbo.Create();
 
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo.handle);
-    glBufferData(GL_PIXEL_PACK_BUFFER, buffer_size, nullptr, GL_STREAM_DRAW_ARB);
-    if (source_format.compressed) {
-        glGetCompressedTextureImage(surface->Texture().handle, 0,
-                                    static_cast<GLsizei>(params.SizeInBytes()), nullptr);
-    } else {
-        glGetTextureImage(surface->Texture().handle, 0, source_format.format, source_format.type,
-                          static_cast<GLsizei>(params.SizeInBytes()), nullptr);
-    }
-    // If the new texture is bigger than the previous one, we need to fill in the rest with data
-    // from the CPU.
-    if (params.SizeInBytes() < new_params.SizeInBytes()) {
-        // Upload the rest of the memory.
-        if (new_params.is_tiled) {
-            // TODO(Subv): We might have to de-tile the subtexture and re-tile it with the rest of
-            // the data in this case. Games like Super Mario Odyssey seem to hit this case when
-            // drawing, it re-uses the memory of a previous texture as a bigger framebuffer but it
-            // doesn't clear it beforehand, the texture is already full of zeros.
-            LOG_CRITICAL(HW_GPU, "Trying to upload extra texture data from the CPU during "
-                                 "reinterpretation but the texture is tiled.");
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo.handle);
+        glBufferData(GL_PIXEL_PACK_BUFFER, buffer_size, nullptr, GL_STREAM_DRAW_ARB);
+        if (source_format.compressed) {
+            glGetCompressedTextureImage(surface->Texture().handle, 0,
+                                        static_cast<GLsizei>(params.SizeInBytes()), nullptr);
+        } else {
+            glGetTextureImage(surface->Texture().handle, 0, source_format.format,
+                              source_format.type, static_cast<GLsizei>(params.SizeInBytes()),
+                              nullptr);
         }
-        size_t remaining_size = new_params.SizeInBytes() - params.SizeInBytes();
-        std::vector<u8> data(remaining_size);
-        Memory::ReadBlock(new_params.addr + params.SizeInBytes(), data.data(), data.size());
-        glBufferSubData(GL_PIXEL_PACK_BUFFER, params.SizeInBytes(), remaining_size, data.data());
+        // If the new texture is bigger than the previous one, we need to fill in the rest with data
+        // from the CPU.
+        if (params.SizeInBytes() < new_params.SizeInBytes()) {
+            // Upload the rest of the memory.
+            if (new_params.is_tiled) {
+                // TODO(Subv): We might have to de-tile the subtexture and re-tile it with the rest
+                // of the data in this case. Games like Super Mario Odyssey seem to hit this case
+                // when drawing, it re-uses the memory of a previous texture as a bigger framebuffer
+                // but it doesn't clear it beforehand, the texture is already full of zeros.
+                LOG_CRITICAL(HW_GPU, "Trying to upload extra texture data from the CPU during "
+                                     "reinterpretation but the texture is tiled.");
+            }
+            size_t remaining_size = new_params.SizeInBytes() - params.SizeInBytes();
+            std::vector<u8> data(remaining_size);
+            Memory::ReadBlock(new_params.addr + params.SizeInBytes(), data.data(), data.size());
+            glBufferSubData(GL_PIXEL_PACK_BUFFER, params.SizeInBytes(), remaining_size,
+                            data.data());
+        }
+
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+        const auto& dest_rect{new_params.GetRect()};
+
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo.handle);
+        if (dest_format.compressed) {
+            glCompressedTexSubImage2D(
+                GL_TEXTURE_2D, 0, 0, 0, static_cast<GLsizei>(dest_rect.GetWidth()),
+                static_cast<GLsizei>(dest_rect.GetHeight()), dest_format.format,
+                static_cast<GLsizei>(new_params.SizeInBytes()), nullptr);
+        } else {
+            glTextureSubImage2D(new_surface->Texture().handle, 0, 0, 0,
+                                static_cast<GLsizei>(dest_rect.GetWidth()),
+                                static_cast<GLsizei>(dest_rect.GetHeight()), dest_format.format,
+                                dest_format.type, nullptr);
+        }
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+        pbo.Release();
     }
-
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-
-    const auto& dest_rect{new_params.GetRect()};
-
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo.handle);
-    if (dest_format.compressed) {
-        glCompressedTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                                  static_cast<GLsizei>(dest_rect.GetWidth()),
-                                  static_cast<GLsizei>(dest_rect.GetHeight()), dest_format.format,
-                                  static_cast<GLsizei>(new_params.SizeInBytes()), nullptr);
-    } else {
-        glTextureSubImage2D(new_surface->Texture().handle, 0, 0, 0,
-                            static_cast<GLsizei>(dest_rect.GetWidth()),
-                            static_cast<GLsizei>(dest_rect.GetHeight()), dest_format.format,
-                            dest_format.type, nullptr);
-    }
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-
-    pbo.Release();
 
     return new_surface;
 }
