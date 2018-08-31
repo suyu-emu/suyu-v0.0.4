@@ -147,6 +147,7 @@ enum class PredCondition : u64 {
     LessThanWithNan = 9,
     GreaterThanWithNan = 12,
     NotEqualWithNan = 13,
+    GreaterEqualWithNan = 14,
     // TODO(Subv): Other condition types
 };
 
