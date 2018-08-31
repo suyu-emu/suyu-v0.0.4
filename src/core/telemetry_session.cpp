@@ -7,6 +7,7 @@
 #include "common/file_util.h"
 
 #include "core/core.h"
+#include "core/loader/loader.h"
 #include "core/settings.h"
 #include "core/telemetry_session.h"
 

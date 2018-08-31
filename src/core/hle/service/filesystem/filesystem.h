@@ -7,6 +7,7 @@
 #include <memory>
 #include "common/common_types.h"
 #include "core/file_sys/directory.h"
+#include "core/file_sys/vfs.h"
 #include "core/hle/result.h"
 
 namespace FileSys {

@@ -7,11 +7,10 @@
 #include <set>
 
 #include <boost/icl/interval_map.hpp>
+#include <boost/range/iterator_range_core.hpp>
 
 #include "common/common_types.h"
 #include "core/core.h"
-#include "core/memory.h"
-#include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_base.h"
 
