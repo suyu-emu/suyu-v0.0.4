@@ -399,8 +399,12 @@ union Instruction {
     } flow;
 
     union {
+        BitField<47, 1, u64> cc;
         BitField<48, 1, u64> negate_b;
         BitField<49, 1, u64> negate_c;
+        BitField<50, 1, u64> saturate;
+        BitField<51, 2, u64> tab5980_1;
+        BitField<53, 2, u64> tab5980_0;
     } ffma;
 
     union {

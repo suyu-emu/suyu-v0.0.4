@@ -1436,6 +1436,13 @@ private:
             std::string op_b = instr.ffma.negate_b ? "-" : "";
             std::string op_c = instr.ffma.negate_c ? "-" : "";
 
+            ASSERT_MSG(instr.ffma.saturate == 0, "FFMA Saturate not implemented");
+            ASSERT_MSG(instr.ffma.cc == 0, "FFMA cc not implemented");
+            ASSERT_MSG(instr.ffma.tab5980_0 == 0, "FFMA tab5980_0({}) not implemented",
+                       instr.ffma.tab5980_0.Value());
+            ASSERT_MSG(instr.ffma.tab5980_1 == 0, "FFMA tab5980_1({}) not implemented",
+                       instr.ffma.tab5980_1.Value());
+
             switch (opcode->GetId()) {
             case OpCode::Id::FFMA_CR: {
                 op_b += regs.GetUniform(instr.cbuf34.index, instr.cbuf34.offset,
