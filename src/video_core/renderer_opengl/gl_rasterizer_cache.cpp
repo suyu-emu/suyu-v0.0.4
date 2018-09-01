@@ -363,8 +363,8 @@ static void AllocateSurfaceTexture(GLuint texture, const FormatTuple& format_tup
     OpenGLState cur_state = OpenGLState::GetCurState();
 
     // Keep track of previous texture bindings
-    GLuint old_tex = cur_state.texture_units[0].texture_2d;
-    cur_state.texture_units[0].texture_2d = texture;
+    GLuint old_tex = cur_state.texture_units[0].texture;
+    cur_state.texture_units[0].texture = texture;
     cur_state.Apply();
     glActiveTexture(GL_TEXTURE0);
 
@@ -380,7 +380,7 @@ static void AllocateSurfaceTexture(GLuint texture, const FormatTuple& format_tup
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     // Restore previous texture bindings
-    cur_state.texture_units[0].texture_2d = old_tex;
+    cur_state.texture_units[0].texture = old_tex;
     cur_state.Apply();
 }
 
@@ -600,8 +600,8 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
     GLuint target_tex = texture.handle;
     OpenGLState cur_state = OpenGLState::GetCurState();
 
-    GLuint old_tex = cur_state.texture_units[0].texture_2d;
-    cur_state.texture_units[0].texture_2d = target_tex;
+    GLuint old_tex = cur_state.texture_units[0].texture;
+    cur_state.texture_units[0].texture = target_tex;
     cur_state.Apply();
 
     // Ensure no bad interactions with GL_UNPACK_ALIGNMENT
@@ -622,7 +622,7 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
 
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
-    cur_state.texture_units[0].texture_2d = old_tex;
+    cur_state.texture_units[0].texture = old_tex;
     cur_state.Apply();
 }
 
