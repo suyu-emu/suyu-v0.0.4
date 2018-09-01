@@ -1038,6 +1038,16 @@ private:
             case OpCode::Id::FMUL_R:
             case OpCode::Id::FMUL_IMM: {
                 // FMUL does not have 'abs' bits and only the second operand has a 'neg' bit.
+                ASSERT_MSG(instr.fmul.tab5cb8_2 == 0, "FMUL tab5cb8_2({}) is not implemented",
+                           instr.fmul.tab5cb8_2.Value());
+                ASSERT_MSG(instr.fmul.tab5c68_1 == 0, "FMUL tab5cb8_1({}) is not implemented",
+                           instr.fmul.tab5c68_1.Value());
+                ASSERT_MSG(instr.fmul.tab5c68_0 == 1, "FMUL tab5cb8_0({}) is not implemented",
+                           instr.fmul.tab5c68_0
+                               .Value()); // SMO typical sends 1 here which seems to be the default
+                ASSERT_MSG(instr.fmul.cc == 0, "FMUL cc is not implemented");
+                ASSERT_MSG(instr.fmul.saturate == 0, "FMUL saturate is not implemented");
+
                 op_b = GetOperandAbsNeg(op_b, false, instr.fmul.negate_b);
                 regs.SetRegisterToFloat(instr.gpr0, 0, op_a + " * " + op_b, 1, 1,
                                         instr.alu.saturate_d);
