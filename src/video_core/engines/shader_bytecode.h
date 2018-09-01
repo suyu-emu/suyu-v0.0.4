@@ -337,7 +337,6 @@ union Instruction {
         BitField<44, 2, u64> tab5c68_0;
         BitField<47, 1, u64> cc;
         BitField<48, 1, u64> negate_b;
-        BitField<50, 1, u64> saturate;
     } fmul;
 
     union {

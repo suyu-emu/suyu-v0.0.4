@@ -1046,7 +1046,6 @@ private:
                            instr.fmul.tab5c68_0
                                .Value()); // SMO typical sends 1 here which seems to be the default
                 ASSERT_MSG(instr.fmul.cc == 0, "FMUL cc is not implemented");
-                ASSERT_MSG(instr.fmul.saturate == 0, "FMUL saturate is not implemented");
 
                 op_b = GetOperandAbsNeg(op_b, false, instr.fmul.negate_b);
                 regs.SetRegisterToFloat(instr.gpr0, 0, op_a + " * " + op_b, 1, 1,
