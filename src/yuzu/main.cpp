@@ -372,6 +372,10 @@ void GMainWindow::ConnectMenuEvents() {
             &GMainWindow::OnMenuInstallToNAND);
     connect(ui.action_Select_Game_List_Root, &QAction::triggered, this,
             &GMainWindow::OnMenuSelectGameListRoot);
+    connect(ui.action_Select_NAND_Directory, &QAction::triggered, this,
+            [this] { OnMenuSelectEmulatedDirectory(false); });
+    connect(ui.action_Select_SDMC_Directory, &QAction::triggered, this,
+            [this] { OnMenuSelectEmulatedDirectory(true); });
     connect(ui.action_Exit, &QAction::triggered, this, &QMainWindow::close);
 
     // Emulation
@@ -884,6 +888,16 @@ void GMainWindow::OnMenuSelectGameListRoot() {
     if (!dir_path.isEmpty()) {
         UISettings::values.gamedir = dir_path;
         game_list->PopulateAsync(dir_path, UISettings::values.gamedir_deepscan);
+    }
+}
+
+void GMainWindow::OnMenuSelectEmulatedDirectory(bool is_sdmc) {
+    QString dir_path = QFileDialog::getExistingDirectory(this, tr("Select Directory"));
+    if (!dir_path.isEmpty()) {
+        FileUtil::GetUserPath(is_sdmc ? FileUtil::UserPath::SDMCDir : FileUtil::UserPath::NANDDir,
+                              dir_path.toStdString());
+        Service::FileSystem::CreateFactories(vfs);
+        game_list->PopulateAsync(UISettings::values.gamedir, UISettings::values.gamedir_deepscan);
     }
 }
 
