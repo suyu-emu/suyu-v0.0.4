@@ -455,7 +455,7 @@ FSP_SRV::FSP_SRV() : ServiceFramework("fsp-srv") {
         {34, nullptr, "GetCacheStorageSize"},
         {51, &FSP_SRV::MountSaveData, "MountSaveData"},
         {52, nullptr, "OpenSaveDataFileSystemBySystemSaveDataId"},
-        {53, nullptr, "OpenReadOnlySaveDataFileSystem"},
+        {53, &FSP_SRV::OpenReadOnlySaveDataFileSystem, "OpenReadOnlySaveDataFileSystem"},
         {57, nullptr, "ReadSaveDataFileSystemExtraDataBySaveDataSpaceId"},
         {58, nullptr, "ReadSaveDataFileSystemExtraData"},
         {59, nullptr, "WriteSaveDataFileSystemExtraData"},
@@ -582,6 +582,11 @@ void FSP_SRV::MountSaveData(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IFileSystem>(std::move(filesystem));
+}
+
+void FSP_SRV::OpenReadOnlySaveDataFileSystem(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_FS, "(STUBBED) called, delegating to 51 OpenSaveDataFilesystem");
+    MountSaveData(ctx);
 }
 
 void FSP_SRV::GetGlobalAccessLogMode(Kernel::HLERequestContext& ctx) {
