@@ -7,6 +7,7 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/file_sys/savedata_factory.h"
+#include "core/file_sys/vfs.h"
 #include "core/hle/kernel/process.h"
 
 namespace FileSys {

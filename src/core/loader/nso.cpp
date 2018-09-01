@@ -11,6 +11,7 @@
 #include "common/swap.h"
 #include "core/core.h"
 #include "core/gdbstub/gdbstub.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
 #include "core/loader/nso.h"

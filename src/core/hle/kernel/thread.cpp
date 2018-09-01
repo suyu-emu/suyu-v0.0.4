@@ -16,6 +16,7 @@
 #include "common/thread_queue_list.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
+#include "core/core_cpu.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/hle/kernel/errors.h"
@@ -23,8 +24,8 @@
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
-#include "core/hle/lock.h"
 #include "core/hle/result.h"
 #include "core/memory.h"
 

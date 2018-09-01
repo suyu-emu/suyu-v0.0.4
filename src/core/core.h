@@ -4,41 +4,55 @@
 
 #pragma once
 
-#include <array>
-#include <map>
+#include <cstddef>
 #include <memory>
 #include <string>
-#include <thread>
+
 #include "common/common_types.h"
-#include "core/arm/exclusive_monitor.h"
-#include "core/core_cpu.h"
-#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/scheduler.h"
-#include "core/loader/loader.h"
-#include "core/memory.h"
-#include "core/perf_stats.h"
-#include "core/telemetry_session.h"
-#include "file_sys/vfs_real.h"
-#include "hle/service/filesystem/filesystem.h"
-#include "video_core/debug_utils/debug_utils.h"
-#include "video_core/gpu.h"
 
 namespace Core::Frontend {
 class EmuWindow;
-}
+} // namespace Core::Frontend
+
+namespace FileSys {
+class VfsFilesystem;
+} // namespace FileSys
+
+namespace Kernel {
+class KernelCore;
+class Process;
+class Scheduler;
+} // namespace Kernel
+
+namespace Loader {
+class AppLoader;
+enum class ResultStatus : u16;
+} // namespace Loader
 
 namespace Service::SM {
 class ServiceManager;
-}
+} // namespace Service::SM
+
+namespace Tegra {
+class DebugContext;
+class GPU;
+} // namespace Tegra
 
 namespace VideoCore {
 class RendererBase;
-}
+} // namespace VideoCore
 
 namespace Core {
 
 class ARM_Interface;
+class Cpu;
+class ExclusiveMonitor;
+class FrameLimiter;
+class PerfStats;
+class TelemetrySession;
+
+struct PerfStatsResults;
 
 class System {
 public:
@@ -125,7 +139,7 @@ public:
     void PrepareReschedule();
 
     /// Gets and resets core performance statistics
-    PerfStats::Results GetAndResetPerfStats();
+    PerfStatsResults GetAndResetPerfStats();
 
     /// Gets an ARM interface to the CPU core that is currently running
     ARM_Interface& CurrentArmInterface();
@@ -197,9 +211,9 @@ public:
 
     std::shared_ptr<Tegra::DebugContext> GetGPUDebugContext() const;
 
-    void SetFilesystem(FileSys::VirtualFilesystem vfs);
+    void SetFilesystem(std::shared_ptr<FileSys::VfsFilesystem> vfs);
 
-    FileSys::VirtualFilesystem GetFilesystem() const;
+    std::shared_ptr<FileSys::VfsFilesystem> GetFilesystem() const;
 
 private:
     System();

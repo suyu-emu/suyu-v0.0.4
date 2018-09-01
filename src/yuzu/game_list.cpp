@@ -23,10 +23,12 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/vfs_real.h"
+#include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
-#include "game_list.h"
-#include "game_list_p.h"
-#include "ui_settings.h"
+#include "yuzu/game_list.h"
+#include "yuzu/game_list_p.h"
+#include "yuzu/main.h"
+#include "yuzu/ui_settings.h"
 
 GameList::SearchField::KeyReleaseEater::KeyReleaseEater(GameList* gamelist) : gamelist{gamelist} {}
 
@@ -480,6 +482,14 @@ static void GetMetadataFromControlNCA(const std::shared_ptr<FileSys::NCA>& nca,
         }
     }
 }
+
+GameListWorker::GameListWorker(
+    FileSys::VirtualFilesystem vfs, QString dir_path, bool deep_scan,
+    const std::unordered_map<std::string, std::pair<QString, QString>>& compatibility_list)
+    : vfs(std::move(vfs)), dir_path(std::move(dir_path)), deep_scan(deep_scan),
+      compatibility_list(compatibility_list) {}
+
+GameListWorker::~GameListWorker() = default;
 
 void GameListWorker::AddInstalledTitlesToGameList(std::shared_ptr<FileSys::RegisteredCache> cache) {
     const auto installed_games = cache->ListEntriesFilter(FileSys::TitleType::Application,

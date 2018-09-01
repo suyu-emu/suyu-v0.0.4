@@ -13,6 +13,7 @@
 #include "core/hle/kernel/client_session.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/server_session.h"
 #include "core/hle/kernel/session.h"
@@ -104,11 +105,10 @@ ResultCode ServerSession::HandleSyncRequest(SharedPtr<Thread> thread) {
     // The ServerSession received a sync request, this means that there's new data available
     // from its ClientSession, so wake up any threads that may be waiting on a svcReplyAndReceive or
     // similar.
-
-    auto& handle_table = Core::System::GetInstance().Kernel().HandleTable();
     Kernel::HLERequestContext context(this);
     u32* cmd_buf = (u32*)Memory::GetPointer(thread->GetTLSAddress());
-    context.PopulateFromIncomingCommandBuffer(cmd_buf, *Core::CurrentProcess(), handle_table);
+    context.PopulateFromIncomingCommandBuffer(cmd_buf, *Core::CurrentProcess(),
+                                              kernel.HandleTable());
 
     ResultCode result = RESULT_SUCCESS;
     // If the session has been converted to a domain, handle the domain request

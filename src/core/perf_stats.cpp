@@ -40,7 +40,7 @@ void PerfStats::EndGameFrame() {
     game_frames += 1;
 }
 
-PerfStats::Results PerfStats::GetAndResetStats(microseconds current_system_time_us) {
+PerfStatsResults PerfStats::GetAndResetStats(microseconds current_system_time_us) {
     std::lock_guard<std::mutex> lock(object_mutex);
 
     const auto now = Clock::now();
@@ -49,7 +49,7 @@ PerfStats::Results PerfStats::GetAndResetStats(microseconds current_system_time_
 
     const auto system_us_per_second = (current_system_time_us - reset_point_system_us) / interval;
 
-    Results results{};
+    PerfStatsResults results{};
     results.system_fps = static_cast<double>(system_frames) / interval;
     results.game_fps = static_cast<double>(game_frames) / interval;
     results.frametime = duration_cast<DoubleSecs>(accumulated_frametime).count() /

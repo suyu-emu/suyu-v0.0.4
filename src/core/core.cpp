@@ -2,24 +2,35 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <array>
+#include <map>
 #include <memory>
+#include <thread>
 #include <utility>
+
 #include "common/logging/log.h"
 #include "common/string_util.h"
+#include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
+#include "core/core_cpu.h"
 #include "core/core_timing.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/controller.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/loader/loader.h"
+#include "core/perf_stats.h"
 #include "core/settings.h"
+#include "core/telemetry_session.h"
 #include "file_sys/vfs_concat.h"
 #include "file_sys/vfs_real.h"
+#include "video_core/debug_utils/debug_utils.h"
+#include "video_core/gpu.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 
@@ -258,7 +269,7 @@ struct System::Impl {
         }
     }
 
-    PerfStats::Results GetAndResetPerfStats() {
+    PerfStatsResults GetAndResetPerfStats() {
         return perf_stats.GetAndResetStats(CoreTiming::GetGlobalTimeUs());
     }
 
@@ -326,7 +337,7 @@ void System::PrepareReschedule() {
     CurrentCpuCore().PrepareReschedule();
 }
 
-PerfStats::Results System::GetAndResetPerfStats() {
+PerfStatsResults System::GetAndResetPerfStats() {
     return impl->GetAndResetPerfStats();
 }
 
@@ -433,11 +444,11 @@ std::shared_ptr<Tegra::DebugContext> System::GetGPUDebugContext() const {
     return impl->debug_context;
 }
 
-void System::SetFilesystem(FileSys::VirtualFilesystem vfs) {
+void System::SetFilesystem(std::shared_ptr<FileSys::VfsFilesystem> vfs) {
     impl->virtual_filesystem = std::move(vfs);
 }
 
-FileSys::VirtualFilesystem System::GetFilesystem() const {
+std::shared_ptr<FileSys::VfsFilesystem> System::GetFilesystem() const {
     return impl->virtual_filesystem;
 }
 

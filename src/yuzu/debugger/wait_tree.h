@@ -4,11 +4,15 @@
 
 #pragma once
 
+#include <cstddef>
+#include <memory>
+#include <vector>
+
 #include <QAbstractItemModel>
 #include <QDockWidget>
 #include <QTreeView>
 #include <boost/container/flat_set.hpp>
-#include "core/core.h"
+#include "common/common_types.h"
 #include "core/hle/kernel/object.h"
 
 class EmuThread;
@@ -25,6 +29,7 @@ class WaitTreeThread;
 class WaitTreeItem : public QObject {
     Q_OBJECT
 public:
+    WaitTreeItem();
     ~WaitTreeItem() override;
 
     virtual bool IsExpandable() const;
@@ -49,6 +54,8 @@ class WaitTreeText : public WaitTreeItem {
     Q_OBJECT
 public:
     explicit WaitTreeText(const QString& text);
+    ~WaitTreeText() override;
+
     QString GetText() const override;
 
 private:
@@ -58,6 +65,9 @@ private:
 class WaitTreeExpandableItem : public WaitTreeItem {
     Q_OBJECT
 public:
+    WaitTreeExpandableItem();
+    ~WaitTreeExpandableItem() override;
+
     bool IsExpandable() const override;
 };
 
@@ -65,6 +75,8 @@ class WaitTreeMutexInfo : public WaitTreeExpandableItem {
     Q_OBJECT
 public:
     explicit WaitTreeMutexInfo(VAddr mutex_address);
+    ~WaitTreeMutexInfo() override;
+
     QString GetText() const override;
     std::vector<std::unique_ptr<WaitTreeItem>> GetChildren() const override;
 
@@ -79,6 +91,8 @@ class WaitTreeCallstack : public WaitTreeExpandableItem {
     Q_OBJECT
 public:
     explicit WaitTreeCallstack(const Kernel::Thread& thread);
+    ~WaitTreeCallstack() override;
+
     QString GetText() const override;
     std::vector<std::unique_ptr<WaitTreeItem>> GetChildren() const override;
 
@@ -90,6 +104,8 @@ class WaitTreeWaitObject : public WaitTreeExpandableItem {
     Q_OBJECT
 public:
     explicit WaitTreeWaitObject(const Kernel::WaitObject& object);
+    ~WaitTreeWaitObject() override;
+
     static std::unique_ptr<WaitTreeWaitObject> make(const Kernel::WaitObject& object);
     QString GetText() const override;
     std::vector<std::unique_ptr<WaitTreeItem>> GetChildren() const override;
@@ -105,6 +121,8 @@ class WaitTreeObjectList : public WaitTreeExpandableItem {
 public:
     WaitTreeObjectList(const std::vector<Kernel::SharedPtr<Kernel::WaitObject>>& list,
                        bool wait_all);
+    ~WaitTreeObjectList() override;
+
     QString GetText() const override;
     std::vector<std::unique_ptr<WaitTreeItem>> GetChildren() const override;
 
@@ -117,6 +135,8 @@ class WaitTreeThread : public WaitTreeWaitObject {
     Q_OBJECT
 public:
     explicit WaitTreeThread(const Kernel::Thread& thread);
+    ~WaitTreeThread() override;
+
     QString GetText() const override;
     QColor GetColor() const override;
     std::vector<std::unique_ptr<WaitTreeItem>> GetChildren() const override;
@@ -126,6 +146,8 @@ class WaitTreeEvent : public WaitTreeWaitObject {
     Q_OBJECT
 public:
     explicit WaitTreeEvent(const Kernel::Event& object);
+    ~WaitTreeEvent() override;
+
     std::vector<std::unique_ptr<WaitTreeItem>> GetChildren() const override;
 };
 
@@ -133,6 +155,8 @@ class WaitTreeTimer : public WaitTreeWaitObject {
     Q_OBJECT
 public:
     explicit WaitTreeTimer(const Kernel::Timer& object);
+    ~WaitTreeTimer() override;
+
     std::vector<std::unique_ptr<WaitTreeItem>> GetChildren() const override;
 };
 
@@ -140,6 +164,8 @@ class WaitTreeThreadList : public WaitTreeExpandableItem {
     Q_OBJECT
 public:
     explicit WaitTreeThreadList(const std::vector<Kernel::SharedPtr<Kernel::Thread>>& list);
+    ~WaitTreeThreadList() override;
+
     QString GetText() const override;
     std::vector<std::unique_ptr<WaitTreeItem>> GetChildren() const override;
 
@@ -152,6 +178,7 @@ class WaitTreeModel : public QAbstractItemModel {
 
 public:
     explicit WaitTreeModel(QObject* parent = nullptr);
+    ~WaitTreeModel() override;
 
     QVariant data(const QModelIndex& index, int role) const override;
     QModelIndex index(int row, int column, const QModelIndex& parent) const override;
@@ -171,6 +198,7 @@ class WaitTreeWidget : public QDockWidget {
 
 public:
     explicit WaitTreeWidget(QWidget* parent = nullptr);
+    ~WaitTreeWidget() override;
 
 public slots:
     void OnDebugModeEntered();

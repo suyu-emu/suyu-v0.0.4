@@ -10,6 +10,7 @@
 #include "common/file_util.h"
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
 #include "core/loader/elf.h"

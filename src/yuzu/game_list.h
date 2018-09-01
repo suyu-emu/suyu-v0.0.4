@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include <QFileSystemWatcher>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -17,9 +19,13 @@
 #include <QTreeView>
 #include <QVBoxLayout>
 #include <QWidget>
-#include "main.h"
 
 class GameListWorker;
+class GMainWindow;
+
+namespace FileSys {
+class VfsFilesystem;
+}
 
 enum class GameListOpenTarget { SaveData };
 
@@ -62,7 +68,7 @@ public:
         QToolButton* button_filter_close = nullptr;
     };
 
-    explicit GameList(FileSys::VirtualFilesystem vfs, GMainWindow* parent = nullptr);
+    explicit GameList(std::shared_ptr<FileSys::VfsFilesystem> vfs, GMainWindow* parent = nullptr);
     ~GameList() override;
 
     void clearFilter();
@@ -97,7 +103,7 @@ private:
     void PopupContextMenu(const QPoint& menu_location);
     void RefreshGameDirectory();
 
-    FileSys::VirtualFilesystem vfs;
+    std::shared_ptr<FileSys::VfsFilesystem> vfs;
     SearchField* search_field;
     GMainWindow* main_window = nullptr;
     QVBoxLayout* layout = nullptr;

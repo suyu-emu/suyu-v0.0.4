@@ -10,6 +10,17 @@
 
 namespace Core {
 
+struct PerfStatsResults {
+    /// System FPS (LCD VBlanks) in Hz
+    double system_fps;
+    /// Game FPS (GSP frame submissions) in Hz
+    double game_fps;
+    /// Walltime per system frame, in seconds, excluding any waits
+    double frametime;
+    /// Ratio of walltime / emulated time elapsed
+    double emulation_speed;
+};
+
 /**
  * Class to manage and query performance/timing statistics. All public functions of this class are
  * thread-safe unless stated otherwise.
@@ -18,22 +29,11 @@ class PerfStats {
 public:
     using Clock = std::chrono::high_resolution_clock;
 
-    struct Results {
-        /// System FPS (LCD VBlanks) in Hz
-        double system_fps;
-        /// Game FPS (GSP frame submissions) in Hz
-        double game_fps;
-        /// Walltime per system frame, in seconds, excluding any waits
-        double frametime;
-        /// Ratio of walltime / emulated time elapsed
-        double emulation_speed;
-    };
-
     void BeginSystemFrame();
     void EndSystemFrame();
     void EndGameFrame();
 
-    Results GetAndResetStats(std::chrono::microseconds current_system_time_us);
+    PerfStatsResults GetAndResetStats(std::chrono::microseconds current_system_time_us);
 
     /**
      * Gets the ratio between walltime and the emulated time of the previous system frame. This is

@@ -18,9 +18,14 @@
 #include <QString>
 #include "common/logging/log.h"
 #include "common/string_util.h"
-#include "core/file_sys/content_archive.h"
-#include "ui_settings.h"
+#include "yuzu/ui_settings.h"
 #include "yuzu/util/util.h"
+
+namespace FileSys {
+class NCA;
+class RegisteredCache;
+class VfsFilesystem;
+} // namespace FileSys
 
 /**
  * Gets the default icon (for games without valid SMDH)
@@ -196,10 +201,9 @@ class GameListWorker : public QObject, public QRunnable {
 
 public:
     GameListWorker(
-        FileSys::VirtualFilesystem vfs, QString dir_path, bool deep_scan,
-        const std::unordered_map<std::string, std::pair<QString, QString>>& compatibility_list)
-        : vfs(std::move(vfs)), dir_path(std::move(dir_path)), deep_scan(deep_scan),
-          compatibility_list(compatibility_list) {}
+        std::shared_ptr<FileSys::VfsFilesystem> vfs, QString dir_path, bool deep_scan,
+        const std::unordered_map<std::string, std::pair<QString, QString>>& compatibility_list);
+    ~GameListWorker() override;
 
 public slots:
     /// Starts the processing of directory tree information.
@@ -222,7 +226,7 @@ signals:
     void Finished(QStringList watch_list);
 
 private:
-    FileSys::VirtualFilesystem vfs;
+    std::shared_ptr<FileSys::VfsFilesystem> vfs;
     std::map<u64, std::shared_ptr<FileSys::NCA>> nca_control_map;
     QStringList watch_list;
     QString dir_path;

@@ -9,11 +9,14 @@
 #include "core/core.h"
 #include "core/hle/kernel/event.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/mutex.h"
+#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/timer.h"
 #include "core/hle/kernel/wait_object.h"
 
+WaitTreeItem::WaitTreeItem() = default;
 WaitTreeItem::~WaitTreeItem() = default;
 
 QColor WaitTreeItem::GetColor() const {
@@ -71,6 +74,7 @@ std::vector<std::unique_ptr<WaitTreeThread>> WaitTreeItem::MakeThreadItemList() 
 }
 
 WaitTreeText::WaitTreeText(const QString& t) : text(t) {}
+WaitTreeText::~WaitTreeText() = default;
 
 QString WaitTreeText::GetText() const {
     return text;
@@ -83,6 +87,8 @@ WaitTreeMutexInfo::WaitTreeMutexInfo(VAddr mutex_address) : mutex_address(mutex_
     owner_handle = static_cast<Kernel::Handle>(mutex_value & Kernel::Mutex::MutexOwnerMask);
     owner = handle_table.Get<Kernel::Thread>(owner_handle);
 }
+
+WaitTreeMutexInfo::~WaitTreeMutexInfo() = default;
 
 QString WaitTreeMutexInfo::GetText() const {
     return tr("waiting for mutex 0x%1").arg(mutex_address, 16, 16, QLatin1Char('0'));
@@ -102,6 +108,7 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeMutexInfo::GetChildren() cons
 }
 
 WaitTreeCallstack::WaitTreeCallstack(const Kernel::Thread& thread) : thread(thread) {}
+WaitTreeCallstack::~WaitTreeCallstack() = default;
 
 QString WaitTreeCallstack::GetText() const {
     return tr("Call stack");
@@ -126,6 +133,10 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeCallstack::GetChildren() cons
 }
 
 WaitTreeWaitObject::WaitTreeWaitObject(const Kernel::WaitObject& o) : object(o) {}
+WaitTreeWaitObject::~WaitTreeWaitObject() = default;
+
+WaitTreeExpandableItem::WaitTreeExpandableItem() = default;
+WaitTreeExpandableItem::~WaitTreeExpandableItem() = default;
 
 bool WaitTreeExpandableItem::IsExpandable() const {
     return true;
@@ -180,6 +191,8 @@ WaitTreeObjectList::WaitTreeObjectList(
     const std::vector<Kernel::SharedPtr<Kernel::WaitObject>>& list, bool w_all)
     : object_list(list), wait_all(w_all) {}
 
+WaitTreeObjectList::~WaitTreeObjectList() = default;
+
 QString WaitTreeObjectList::GetText() const {
     if (wait_all)
         return tr("waiting for all objects");
@@ -194,6 +207,7 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeObjectList::GetChildren() con
 }
 
 WaitTreeThread::WaitTreeThread(const Kernel::Thread& thread) : WaitTreeWaitObject(thread) {}
+WaitTreeThread::~WaitTreeThread() = default;
 
 QString WaitTreeThread::GetText() const {
     const auto& thread = static_cast<const Kernel::Thread&>(object);
@@ -312,6 +326,7 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
 }
 
 WaitTreeEvent::WaitTreeEvent(const Kernel::Event& object) : WaitTreeWaitObject(object) {}
+WaitTreeEvent::~WaitTreeEvent() = default;
 
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeEvent::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list(WaitTreeWaitObject::GetChildren());
@@ -323,6 +338,7 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeEvent::GetChildren() const {
 }
 
 WaitTreeTimer::WaitTreeTimer(const Kernel::Timer& object) : WaitTreeWaitObject(object) {}
+WaitTreeTimer::~WaitTreeTimer() = default;
 
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeTimer::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list(WaitTreeWaitObject::GetChildren());
@@ -340,6 +356,7 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeTimer::GetChildren() const {
 
 WaitTreeThreadList::WaitTreeThreadList(const std::vector<Kernel::SharedPtr<Kernel::Thread>>& list)
     : thread_list(list) {}
+WaitTreeThreadList::~WaitTreeThreadList() = default;
 
 QString WaitTreeThreadList::GetText() const {
     return tr("waited by thread");
@@ -353,6 +370,7 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThreadList::GetChildren() con
 }
 
 WaitTreeModel::WaitTreeModel(QObject* parent) : QAbstractItemModel(parent) {}
+WaitTreeModel::~WaitTreeModel() = default;
 
 QModelIndex WaitTreeModel::index(int row, int column, const QModelIndex& parent) const {
     if (!hasIndex(row, column, parent))
@@ -420,6 +438,8 @@ WaitTreeWidget::WaitTreeWidget(QWidget* parent) : QDockWidget(tr("Wait Tree"), p
     setWidget(view);
     setEnabled(false);
 }
+
+WaitTreeWidget::~WaitTreeWidget() = default;
 
 void WaitTreeWidget::OnDebugModeEntered() {
     if (!Core::System::GetInstance().IsPoweredOn())
