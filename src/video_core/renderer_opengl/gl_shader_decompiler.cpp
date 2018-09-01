@@ -1436,7 +1436,6 @@ private:
             std::string op_b = instr.ffma.negate_b ? "-" : "";
             std::string op_c = instr.ffma.negate_c ? "-" : "";
 
-            ASSERT_MSG(instr.ffma.saturate == 0, "FFMA Saturate not implemented");
             ASSERT_MSG(instr.ffma.cc == 0, "FFMA cc not implemented");
             ASSERT_MSG(instr.ffma.tab5980_0 == 1, "FFMA tab5980_0({}) not implemented",
                        instr.ffma.tab5980_0.Value()); // Seems to be 1 by default based on SMO
