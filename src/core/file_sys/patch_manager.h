@@ -45,7 +45,7 @@ public:
 
     // Returns a vector of pairs between patch names and patch versions.
     // i.e. Update v80 will return {Update, 80}
-    std::map<PatchType, u32> GetPatchVersionNames() const;
+    std::map<PatchType, std::string> GetPatchVersionNames() const;
 
 private:
     u64 title_id;

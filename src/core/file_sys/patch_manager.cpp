@@ -82,15 +82,31 @@ VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset,
     return romfs;
 }
 
-std::map<PatchType, u32> PatchManager::GetPatchVersionNames() const {
-    std::map<PatchType, u32> out;
+std::map<PatchType, std::string> PatchManager::GetPatchVersionNames() const {
+    std::map<PatchType, std::string> out;
     const auto installed = Service::FileSystem::GetUnionContents();
 
     const auto update_tid = GetUpdateTitleID(title_id);
-    const auto update_version = installed->GetEntryVersion(update_tid);
-    if (update_version != boost::none &&
-        installed->HasEntry(update_tid, ContentRecordType::Program)) {
-        out[PatchType::Update] = update_version.get();
+    const auto update_control = installed->GetEntry(title_id, ContentRecordType::Control);
+    if (update_control != nullptr) {
+        do {
+            const auto romfs =
+                PatchRomFS(update_control->GetRomFS(), update_control->GetBaseIVFCOffset(),
+                           FileSys::ContentRecordType::Control);
+            if (romfs == nullptr)
+                break;
+
+            const auto control_dir = FileSys::ExtractRomFS(romfs);
+            if (control_dir == nullptr)
+                break;
+
+            const auto nacp_file = control_dir->GetFile("control.nacp");
+            if (nacp_file == nullptr)
+                break;
+
+            FileSys::NACP nacp(nacp_file);
+            out[PatchType::Update] = nacp.GetVersionString();
+        } while (false);
     }
 
     return out;
