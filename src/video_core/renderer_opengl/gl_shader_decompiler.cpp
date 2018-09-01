@@ -2110,8 +2110,12 @@ private:
             case OpCode::Id::IPA: {
                 const auto& attribute = instr.attribute.fmt28;
                 const auto& reg = instr.gpr0;
-                switch (instr.ipa.mode) {
-                case Tegra::Shader::IpaMode::Pass:
+                ASSERT_MSG(instr.ipa.sample_mode == Tegra::Shader::IpaSampleMode::Default,
+                           "Unhandled IPA sample mode: {}",
+                           static_cast<u32>(instr.ipa.sample_mode.Value()));
+                ASSERT_MSG(instr.ipa.saturate == 0, "IPA saturate not implemented");
+                switch (instr.ipa.interp_mode) {
+                case Tegra::Shader::IpaInterpMode::Linear:
                     if (stage == Maxwell3D::Regs::ShaderStage::Fragment &&
                         attribute.index == Attribute::Index::Position) {
                         switch (attribute.element) {
@@ -2132,12 +2136,12 @@ private:
                         regs.SetRegisterToInputAttibute(reg, attribute.element, attribute.index);
                     }
                     break;
-                case Tegra::Shader::IpaMode::None:
+                case Tegra::Shader::IpaInterpMode::Perspective:
                     regs.SetRegisterToInputAttibute(reg, attribute.element, attribute.index);
                     break;
                 default:
                     LOG_CRITICAL(HW_GPU, "Unhandled IPA mode: {}",
-                                 static_cast<u32>(instr.ipa.mode.Value()));
+                                 static_cast<u32>(instr.ipa.interp_mode.Value()));
                     UNREACHABLE();
                     regs.SetRegisterToInputAttibute(reg, attribute.element, attribute.index);
                 }

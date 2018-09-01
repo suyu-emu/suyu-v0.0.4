@@ -243,7 +243,8 @@ enum class TextureType : u64 {
     TextureCube = 3,
 };
 
-enum class IpaMode : u64 { Pass = 0, None = 1, Constant = 2, Sc = 3 };
+enum class IpaInterpMode : u64 { Linear = 0, Perspective = 1, Flat = 2, Sc = 3 };
+enum class IpaSampleMode : u64 { Default = 0, Centroid = 1, Offset = 2 };
 
 union Instruction {
     Instruction& operator=(const Instruction& instr) {
@@ -328,7 +329,9 @@ union Instruction {
     } alu;
 
     union {
-        BitField<54, 3, IpaMode> mode;
+        BitField<51, 1, u64> saturate;
+        BitField<52, 2, IpaSampleMode> sample_mode;
+        BitField<54, 2, IpaInterpMode> interp_mode;
     } ipa;
 
     union {
