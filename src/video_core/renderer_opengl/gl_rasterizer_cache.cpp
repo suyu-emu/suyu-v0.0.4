@@ -55,6 +55,7 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.size_in_bytes = params.SizeInBytes();
     params.cache_width = Common::AlignUp(params.width, 16);
     params.cache_height = Common::AlignUp(params.height, 16);
+    params.target = SurfaceTargetFromTextureType(config.tic.texture_type);
     return params;
 }
 
@@ -73,6 +74,7 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.size_in_bytes = params.SizeInBytes();
     params.cache_width = Common::AlignUp(params.width, 16);
     params.cache_height = Common::AlignUp(params.height, 16);
+    params.target = SurfaceTarget::Texture2D;
     return params;
 }
 
@@ -93,6 +95,7 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.size_in_bytes = params.SizeInBytes();
     params.cache_width = Common::AlignUp(params.width, 16);
     params.cache_height = Common::AlignUp(params.height, 16);
+    params.target = SurfaceTarget::Texture2D;
     return params;
 }
 
@@ -165,6 +168,26 @@ static constexpr std::array<FormatTuple, SurfaceParams::MaxPixelFormat> tex_form
     {GL_DEPTH32F_STENCIL8, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV,
      ComponentType::Float, false}, // Z32FS8
 }};
+
+static GLenum SurfaceTargetToGL(SurfaceParams::SurfaceTarget target) {
+    switch (target) {
+    case SurfaceParams::SurfaceTarget::Texture1D:
+        return GL_TEXTURE_1D;
+    case SurfaceParams::SurfaceTarget::Texture2D:
+        return GL_TEXTURE_2D;
+    case SurfaceParams::SurfaceTarget::Texture3D:
+        return GL_TEXTURE_3D;
+    case SurfaceParams::SurfaceTarget::Texture1DArray:
+        return GL_TEXTURE_1D_ARRAY;
+    case SurfaceParams::SurfaceTarget::Texture2DArray:
+        return GL_TEXTURE_2D_ARRAY;
+    case SurfaceParams::SurfaceTarget::TextureCubemap:
+        return GL_TEXTURE_CUBE_MAP;
+    }
+    LOG_CRITICAL(Render_OpenGL, "Unimplemented texture target={}", static_cast<u32>(target));
+    UNREACHABLE();
+    return {};
+}
 
 static const FormatTuple& GetFormatTuple(PixelFormat pixel_format, ComponentType component_type) {
     ASSERT(static_cast<size_t>(pixel_format) < tex_format_tuples.size());
@@ -357,33 +380,6 @@ static constexpr std::array<void (*)(u32, u32, u32, std::vector<u8>&, VAddr),
         // clang-format on
 };
 
-// Allocate an uninitialized texture of appropriate size and format for the surface
-static void AllocateSurfaceTexture(GLuint texture, const FormatTuple& format_tuple, u32 width,
-                                   u32 height) {
-    OpenGLState cur_state = OpenGLState::GetCurState();
-
-    // Keep track of previous texture bindings
-    GLuint old_tex = cur_state.texture_units[0].texture;
-    cur_state.texture_units[0].texture = texture;
-    cur_state.Apply();
-    glActiveTexture(GL_TEXTURE0);
-
-    if (!format_tuple.compressed) {
-        // Only pre-create the texture for non-compressed textures.
-        glTexImage2D(GL_TEXTURE_2D, 0, format_tuple.internal_format, width, height, 0,
-                     format_tuple.format, format_tuple.type, nullptr);
-    }
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    // Restore previous texture bindings
-    cur_state.texture_units[0].texture = old_tex;
-    cur_state.Apply();
-}
-
 static bool BlitTextures(GLuint src_tex, const MathUtil::Rectangle<u32>& src_rect, GLuint dst_tex,
                          const MathUtil::Rectangle<u32>& dst_rect, SurfaceType type,
                          GLuint read_fb_handle, GLuint draw_fb_handle) {
@@ -438,12 +434,34 @@ static bool BlitTextures(GLuint src_tex, const MathUtil::Rectangle<u32>& src_rec
     return true;
 }
 
-CachedSurface::CachedSurface(const SurfaceParams& params) : params(params) {
+CachedSurface::CachedSurface(const SurfaceParams& params)
+    : params(params), gl_target(SurfaceTargetToGL(params.target)) {
     texture.Create();
     const auto& rect{params.GetRect()};
-    AllocateSurfaceTexture(texture.handle,
-                           GetFormatTuple(params.pixel_format, params.component_type),
-                           rect.GetWidth(), rect.GetHeight());
+
+    OpenGLState cur_state = OpenGLState::GetCurState();
+
+    // Keep track of previous texture bindings
+    GLuint old_tex = cur_state.texture_units[0].texture;
+    cur_state.texture_units[0].texture = texture.handle;
+    cur_state.Apply();
+    glActiveTexture(GL_TEXTURE0);
+
+    const auto& format_tuple = GetFormatTuple(params.pixel_format, params.component_type);
+    if (!format_tuple.compressed) {
+        // Only pre-create the texture for non-compressed textures.
+        glTexImage2D(GL_TEXTURE_2D, 0, format_tuple.internal_format, rect.GetWidth(),
+                     rect.GetHeight(), 0, format_tuple.format, format_tuple.type, nullptr);
+    }
+
+    glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_MAX_LEVEL, 0);
+    glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // Restore previous texture bindings
+    cur_state.texture_units[0].texture = old_tex;
+    cur_state.Apply();
 }
 
 static void ConvertS8Z24ToZ24S8(std::vector<u8>& data, u32 width, u32 height) {

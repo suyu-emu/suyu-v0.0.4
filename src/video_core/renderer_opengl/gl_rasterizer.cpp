@@ -700,6 +700,7 @@ u32 RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, Shader& shader, 
         Surface surface = res_cache.GetTextureSurface(texture);
         if (surface != nullptr) {
             state.texture_units[current_bindpoint].texture = surface->Texture().handle;
+            state.texture_units[current_bindpoint].target = surface->Target();
             state.texture_units[current_bindpoint].swizzle.r =
                 MaxwellToGL::SwizzleSource(texture.tic.x_source);
             state.texture_units[current_bindpoint].swizzle.g =
