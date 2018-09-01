@@ -26,6 +26,17 @@
 
 namespace Service::FileSystem {
 
+enum class FileSystemType : u8 {
+    Invalid0 = 0,
+    Invalid1 = 1,
+    Logo = 2,
+    ContentControl = 3,
+    ContentManual = 4,
+    ContentMeta = 5,
+    ContentData = 6,
+    ApplicationPackage = 7,
+};
+
 class IStorage final : public ServiceFramework<IStorage> {
 public:
     explicit IStorage(FileSys::VirtualFile backend_)
@@ -420,7 +431,7 @@ FSP_SRV::FSP_SRV() : ServiceFramework("fsp-srv") {
         {0, nullptr, "MountContent"},
         {1, &FSP_SRV::Initialize, "Initialize"},
         {2, nullptr, "OpenDataFileSystemByCurrentProcess"},
-        {7, nullptr, "OpenFileSystemWithPatch"},
+        {7, &FSP_SRV::OpenFileSystemWithPatch, "OpenFileSystemWithPatch"},
         {8, nullptr, "OpenFileSystemWithId"},
         {9, nullptr, "OpenDataFileSystemByApplicationId"},
         {11, nullptr, "OpenBisFileSystem"},
@@ -514,6 +525,16 @@ void FSP_SRV::Initialize(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
+}
+
+void FSP_SRV::OpenFileSystemWithPatch(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    const auto type = rp.PopRaw<FileSystemType>();
+    const auto title_id = rp.PopRaw<u64>();
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 0};
+    rb.Push(ResultCode(-1));
 }
 
 void FSP_SRV::MountSdCard(Kernel::HLERequestContext& ctx) {
