@@ -626,55 +626,6 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
     cur_state.Apply();
 }
 
-MICROPROFILE_DEFINE(OpenGL_TextureDL, "OpenGL", "Texture Download", MP_RGB(128, 192, 64));
-void CachedSurface::DownloadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle) {
-    if (params.type == SurfaceType::Fill)
-        return;
-
-    MICROPROFILE_SCOPE(OpenGL_TextureDL);
-
-    gl_buffer.resize(params.width * params.height * GetGLBytesPerPixel(params.pixel_format));
-
-    OpenGLState state = OpenGLState::GetCurState();
-    OpenGLState prev_state = state;
-    SCOPE_EXIT({ prev_state.Apply(); });
-
-    const FormatTuple& tuple = GetFormatTuple(params.pixel_format, params.component_type);
-
-    // Ensure no bad interactions with GL_PACK_ALIGNMENT
-    ASSERT(params.width * GetGLBytesPerPixel(params.pixel_format) % 4 == 0);
-    glPixelStorei(GL_PACK_ROW_LENGTH, static_cast<GLint>(params.width));
-
-    const auto& rect{params.GetRect()};
-    size_t buffer_offset =
-        (rect.bottom * params.width + rect.left) * GetGLBytesPerPixel(params.pixel_format);
-
-    state.UnbindTexture(texture.handle);
-    state.draw.read_framebuffer = read_fb_handle;
-    state.Apply();
-
-    if (params.type == SurfaceType::ColorTexture) {
-        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                               texture.handle, 0);
-        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0,
-                               0);
-    } else if (params.type == SurfaceType::Depth) {
-        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
-        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
-                               texture.handle, 0);
-        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
-    } else {
-        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
-        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D,
-                               texture.handle, 0);
-    }
-    glReadPixels(static_cast<GLint>(rect.left), static_cast<GLint>(rect.bottom),
-                 static_cast<GLsizei>(rect.GetWidth()), static_cast<GLsizei>(rect.GetHeight()),
-                 tuple.format, tuple.type, &gl_buffer[buffer_offset]);
-
-    glPixelStorei(GL_PACK_ROW_LENGTH, 0);
-}
-
 RasterizerCacheOpenGL::RasterizerCacheOpenGL() {
     read_framebuffer.Create();
     draw_framebuffer.Create();
@@ -748,7 +699,6 @@ void RasterizerCacheOpenGL::LoadSurface(const Surface& surface) {
 }
 
 void RasterizerCacheOpenGL::FlushSurface(const Surface& surface) {
-    surface->DownloadGLTexture(read_framebuffer.handle, draw_framebuffer.handle);
     surface->FlushGLBuffer();
 }
 

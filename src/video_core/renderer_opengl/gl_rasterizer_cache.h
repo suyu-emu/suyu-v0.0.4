@@ -726,7 +726,6 @@ public:
 
     // Upload/Download data in gl_buffer in/to this surface's texture
     void UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle);
-    void DownloadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle);
 
 private:
     OGLTexture texture;
