@@ -6,8 +6,11 @@
 
 #include <memory>
 #include <unordered_map>
+
 #include <QMainWindow>
 #include <QTimer>
+
+#include "common/common_types.h"
 #include "core/core.h"
 #include "ui_main.h"
 #include "yuzu/hotkeys.h"

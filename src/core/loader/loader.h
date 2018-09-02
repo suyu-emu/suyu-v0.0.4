@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <algorithm>
 #include <iosfwd>
 #include <memory>
 #include <string>
@@ -12,7 +11,6 @@
 #include <vector>
 #include <boost/optional.hpp>
 #include "common/common_types.h"
-#include "common/file_util.h"
 #include "core/file_sys/vfs.h"
 #include "core/hle/kernel/object.h"
 
@@ -114,8 +112,8 @@ std::ostream& operator<<(std::ostream& os, ResultStatus status);
 /// Interface for loading an application
 class AppLoader : NonCopyable {
 public:
-    explicit AppLoader(FileSys::VirtualFile file) : file(std::move(file)) {}
-    virtual ~AppLoader() {}
+    explicit AppLoader(FileSys::VirtualFile file);
+    virtual ~AppLoader();
 
     /**
      * Returns the type of this file

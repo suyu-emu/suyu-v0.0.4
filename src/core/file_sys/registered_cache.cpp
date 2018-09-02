@@ -5,9 +5,9 @@
 #include <regex>
 #include <mbedtls/sha256.h>
 #include "common/assert.h"
+#include "common/file_util.h"
 #include "common/hex_util.h"
 #include "common/logging/log.h"
-#include "core/crypto/encryption_layer.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/registered_cache.h"

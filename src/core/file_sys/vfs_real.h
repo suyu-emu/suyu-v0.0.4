@@ -6,15 +6,19 @@
 
 #include <string_view>
 #include <boost/container/flat_map.hpp>
-#include "common/file_util.h"
 #include "core/file_sys/mode.h"
 #include "core/file_sys/vfs.h"
+
+namespace FileUtil {
+class IOFile;
+}
 
 namespace FileSys {
 
 class RealVfsFilesystem : public VfsFilesystem {
 public:
     RealVfsFilesystem();
+    ~RealVfsFilesystem() override;
 
     std::string GetName() const override;
     bool IsReadable() const override;
@@ -40,10 +44,9 @@ class RealVfsFile : public VfsFile {
     friend class RealVfsDirectory;
     friend class RealVfsFilesystem;
 
-    RealVfsFile(RealVfsFilesystem& base, std::shared_ptr<FileUtil::IOFile> backing,
-                const std::string& path, Mode perms = Mode::Read);
-
 public:
+    ~RealVfsFile() override;
+
     std::string GetName() const override;
     size_t GetSize() const override;
     bool Resize(size_t new_size) override;
@@ -55,6 +58,9 @@ public:
     bool Rename(std::string_view name) override;
 
 private:
+    RealVfsFile(RealVfsFilesystem& base, std::shared_ptr<FileUtil::IOFile> backing,
+                const std::string& path, Mode perms = Mode::Read);
+
     bool Close();
 
     RealVfsFilesystem& base;
@@ -70,9 +76,9 @@ private:
 class RealVfsDirectory : public VfsDirectory {
     friend class RealVfsFilesystem;
 
-    RealVfsDirectory(RealVfsFilesystem& base, const std::string& path, Mode perms = Mode::Read);
-
 public:
+    ~RealVfsDirectory() override;
+
     std::shared_ptr<VfsFile> GetFileRelative(std::string_view path) const override;
     std::shared_ptr<VfsDirectory> GetDirectoryRelative(std::string_view path) const override;
     std::shared_ptr<VfsFile> GetFile(std::string_view name) const override;
@@ -97,6 +103,8 @@ protected:
     bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
 
 private:
+    RealVfsDirectory(RealVfsFilesystem& base, const std::string& path, Mode perms = Mode::Read);
+
     template <typename T, typename R>
     std::vector<std::shared_ptr<R>> IterateEntries() const;
 

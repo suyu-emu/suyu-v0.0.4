@@ -4,18 +4,23 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <map>
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <utility>
+
 #include <QCoreApplication>
 #include <QImage>
 #include <QObject>
 #include <QRunnable>
 #include <QStandardItem>
 #include <QString>
+
+#include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
 #include "yuzu/ui_settings.h"
