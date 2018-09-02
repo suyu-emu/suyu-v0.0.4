@@ -441,7 +441,7 @@ public:
         declarations.AddNewLine();
 
         // Append the sampler2D array for the used textures.
-        size_t num_samplers = GetSamplers().size();
+        const size_t num_samplers = used_samplers.size();
         if (num_samplers > 0) {
             declarations.AddLine("uniform sampler2D " + SamplerEntry::GetArrayName(stage) + '[' +
                                  std::to_string(num_samplers) + "];");
