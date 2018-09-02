@@ -13,6 +13,7 @@
 
 #include "core/core.h"
 #include "core/core_timing.h"
+#include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
@@ -124,6 +125,8 @@ struct KernelCore::Impl {
 
         timer_callback_handle_table.Clear();
         timer_callback_event_type = nullptr;
+
+        named_ports.clear();
     }
 
     void InitializeResourceLimits(KernelCore& kernel) {
@@ -217,6 +220,10 @@ struct KernelCore::Impl {
     // TODO(yuriks): This can be removed if Thread objects are explicitly pooled in the future,
     // allowing us to simply use a pool index or similar.
     Kernel::HandleTable thread_wakeup_callback_handle_table;
+
+    /// Map of named ports managed by the kernel, which can be retrieved using
+    /// the ConnectToPort SVC.
+    NamedPortTable named_ports;
 };
 
 KernelCore::KernelCore() : impl{std::make_unique<Impl>()} {}
@@ -255,6 +262,23 @@ SharedPtr<Timer> KernelCore::RetrieveTimerFromCallbackHandleTable(Handle handle)
 
 void KernelCore::AppendNewProcess(SharedPtr<Process> process) {
     impl->process_list.push_back(std::move(process));
+}
+
+void KernelCore::AddNamedPort(std::string name, SharedPtr<ClientPort> port) {
+    impl->named_ports.emplace(std::move(name), std::move(port));
+}
+
+KernelCore::NamedPortTable::iterator KernelCore::FindNamedPort(const std::string& name) {
+    return impl->named_ports.find(name);
+}
+
+KernelCore::NamedPortTable::const_iterator KernelCore::FindNamedPort(
+    const std::string& name) const {
+    return impl->named_ports.find(name);
+}
+
+bool KernelCore::IsValidNamedPort(NamedPortTable::const_iterator port) const {
+    return port != impl->named_ports.cend();
 }
 
 u32 KernelCore::CreateNewObjectID() {
