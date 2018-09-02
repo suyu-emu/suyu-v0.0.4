@@ -419,7 +419,7 @@ void GMainWindow::OnDisplayTitleBars(bool show) {
     }
 }
 
-bool GMainWindow::SupportsRequiredGLExtensions() {
+QStringList GMainWindow::GetUnsupportedGLExtensions() {
     QStringList unsupported_ext;
 
     if (!GLAD_GL_ARB_program_interface_query)
@@ -446,7 +446,7 @@ bool GMainWindow::SupportsRequiredGLExtensions() {
     for (const QString& ext : unsupported_ext)
         LOG_CRITICAL(Frontend, "Unsupported GL extension: {}", ext.toStdString());
 
-    return unsupported_ext.empty();
+    return unsupported_ext;
 }
 
 bool GMainWindow::LoadROM(const QString& filename) {
@@ -464,11 +464,13 @@ bool GMainWindow::LoadROM(const QString& filename) {
         return false;
     }
 
-    if (!SupportsRequiredGLExtensions()) {
-        QMessageBox::critical(
-            this, tr("Error while initializing OpenGL Core!"),
-            tr("Your GPU may not support one or more required OpenGL extensions. Please "
-               "ensure you have the latest graphics driver. See the log for more details."));
+    QStringList unsupported_gl_extensions = GetUnsupportedGLExtensions();
+    if (!unsupported_gl_extensions.empty()) {
+        QMessageBox::critical(this, tr("Error while initializing OpenGL Core!"),
+                              tr("Your GPU may not support one or more required OpenGL"
+                                 "extensions. Please ensure you have the latest graphics "
+                                 "driver.<br><br>Unsupported extensions:<br>") +
+                                  unsupported_gl_extensions.join("<br>"));
         return false;
     }
 
