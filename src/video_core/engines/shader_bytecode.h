@@ -332,6 +332,10 @@ union Instruction {
     } ipa;
 
     union {
+        BitField<39, 2, u64> tab5cb8_2;
+        BitField<41, 3, u64> tab5c68_1;
+        BitField<44, 2, u64> tab5c68_0;
+        BitField<47, 1, u64> cc;
         BitField<48, 1, u64> negate_b;
     } fmul;
 
