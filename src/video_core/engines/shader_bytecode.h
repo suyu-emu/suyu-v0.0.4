@@ -519,6 +519,7 @@ union Instruction {
     union {
         BitField<0, 8, Register> gpr0;
         BitField<28, 8, Register> gpr28;
+        BitField<49, 1, u64> nodep;
         BitField<50, 3, u64> component_mask_selector;
         BitField<53, 4, u64> texture_info;
 

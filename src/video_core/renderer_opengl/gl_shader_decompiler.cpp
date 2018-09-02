@@ -887,6 +887,8 @@ private:
         // TEXS has two destination registers and a swizzle. The first two elements in the swizzle
         // go into gpr0+0 and gpr0+1, and the rest goes into gpr28+0 and gpr28+1
 
+        ASSERT_MSG(instr.texs.nodep == 0, "TEXS nodep not implemented");
+
         size_t written_components = 0;
         for (u32 component = 0; component < 4; ++component) {
             if (!instr.texs.IsComponentEnabled(component)) {
