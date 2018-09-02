@@ -162,10 +162,6 @@ artifacts:
   - path: $(BUILD_ZIP)
     name: build
     type: zip
-  - path: $(BUILD_SYMBOLS)
-    name: debugsymbols
-  - path: $(BUILD_UPDATE)
-    name: update
 
 deploy:
   provider: GitHub
