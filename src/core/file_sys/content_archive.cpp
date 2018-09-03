@@ -444,6 +444,12 @@ NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_, u64 bktr_base_ivfc_off
                     dirs.push_back(std::move(npfs));
                     if (IsDirectoryExeFS(dirs.back()))
                         exefs = dirs.back();
+                } else {
+                    if (has_rights_id)
+                        status = Loader::ResultStatus::ErrorIncorrectTitlekeyOrTitlekek;
+                    else
+                        status = Loader::ResultStatus::ErrorIncorrectKeyAreaKey;
+                    return;
                 }
             } else {
                 if (status != Loader::ResultStatus::Success)
@@ -491,8 +497,6 @@ NCAContentType NCA::GetType() const {
 u64 NCA::GetTitleId() const {
     if (is_update || status == Loader::ResultStatus::ErrorMissingBKTRBaseRomFS)
         return header.title_id | 0x800;
-    if (status != Loader::ResultStatus::Success)
-        return {};
     return header.title_id;
 }
 

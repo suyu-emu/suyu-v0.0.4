@@ -52,11 +52,11 @@ XCI::XCI(VirtualFile file_) : file(std::move(file_)), partitions(0x4) {
     const auto secure_ncas = secure_partition->GetNCAsCollapsed();
     std::copy(secure_ncas.begin(), secure_ncas.end(), std::back_inserter(ncas));
 
-    program_nca_status = Loader::ResultStatus::ErrorXCIMissingProgramNCA;
     program =
         secure_partition->GetNCA(secure_partition->GetProgramTitleID(), ContentRecordType::Program);
-    if (program != nullptr)
-        program_nca_status = program->GetStatus();
+    program_nca_status = secure_partition->GetProgramStatus(secure_partition->GetProgramTitleID());
+    if (program_nca_status == Loader::ResultStatus::ErrorNSPMissingProgramNCA)
+        program_nca_status = Loader::ResultStatus::ErrorXCIMissingProgramNCA;
 
     auto result = AddNCAFromPartition(XCIPartition::Update);
     if (result != Loader::ResultStatus::Success) {
