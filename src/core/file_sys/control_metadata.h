@@ -9,6 +9,7 @@
 #include <string>
 #include "common/common_funcs.h"
 #include "common/common_types.h"
+#include "common/swap.h"
 #include "core/file_sys/vfs.h"
 
 namespace FileSys {
@@ -61,6 +62,8 @@ enum class Language : u8 {
     Korean = 12,
     Taiwanese = 13,
     Chinese = 14,
+
+    Default = 255,
 };
 
 static constexpr std::array<const char*, 15> LANGUAGE_NAMES = {
@@ -75,9 +78,9 @@ static constexpr std::array<const char*, 15> LANGUAGE_NAMES = {
 class NACP {
 public:
     explicit NACP(VirtualFile file);
-    const LanguageEntry& GetLanguageEntry(Language language = Language::AmericanEnglish) const;
-    std::string GetApplicationName(Language language = Language::AmericanEnglish) const;
-    std::string GetDeveloperName(Language language = Language::AmericanEnglish) const;
+    const LanguageEntry& GetLanguageEntry(Language language = Language::Default) const;
+    std::string GetApplicationName(Language language = Language::Default) const;
+    std::string GetDeveloperName(Language language = Language::Default) const;
     u64 GetTitleId() const;
     std::string GetVersionString() const;
 

@@ -21,7 +21,17 @@ NACP::NACP(VirtualFile file) : raw(std::make_unique<RawNACP>()) {
 }
 
 const LanguageEntry& NACP::GetLanguageEntry(Language language) const {
-    return raw->language_entries.at(static_cast<u8>(language));
+    if (language != Language::Default) {
+        return raw->language_entries.at(static_cast<u8>(language));
+    } else {
+        for (const auto& language_entry : raw->language_entries) {
+            if (!language_entry.GetApplicationName().empty())
+                return language_entry;
+        }
+
+        // Fallback to English
+        return GetLanguageEntry(Language::AmericanEnglish);
+    }
 }
 
 std::string NACP::GetApplicationName(Language language) const {
