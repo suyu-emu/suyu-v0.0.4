@@ -12,6 +12,7 @@
 
 #define QT_NO_OPENGL
 #include <QDesktopWidget>
+#include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QtGui>
@@ -373,9 +374,9 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Select_Game_List_Root, &QAction::triggered, this,
             &GMainWindow::OnMenuSelectGameListRoot);
     connect(ui.action_Select_NAND_Directory, &QAction::triggered, this,
-            [this] { OnMenuSelectEmulatedDirectory(false); });
+            [this] { OnMenuSelectEmulatedDirectory(EmulatedDirectoryTarget::NAND); });
     connect(ui.action_Select_SDMC_Directory, &QAction::triggered, this,
-            [this] { OnMenuSelectEmulatedDirectory(true); });
+            [this] { OnMenuSelectEmulatedDirectory(EmulatedDirectoryTarget::SDMC); });
     connect(ui.action_Exit, &QAction::triggered, this, &QMainWindow::close);
 
     // Emulation
@@ -891,10 +892,22 @@ void GMainWindow::OnMenuSelectGameListRoot() {
     }
 }
 
-void GMainWindow::OnMenuSelectEmulatedDirectory(bool is_sdmc) {
+void GMainWindow::OnMenuSelectEmulatedDirectory(EmulatedDirectoryTarget target) {
+    const auto res = QMessageBox::information(
+        this, tr("Changing Emulated Directory"),
+        tr("You are about to change the emulated %1 directory of the system. Please note "
+           "that this does not also move the contents of the previous directory to the "
+           "new one and you will have to do that yourself.")
+            .arg(target == EmulatedDirectoryTarget::SDMC ? tr("SD card") : tr("NAND")),
+        QMessageBox::StandardButtons{QMessageBox::Ok, QMessageBox::Cancel});
+
+    if (res == QMessageBox::Cancel)
+        return;
+
     QString dir_path = QFileDialog::getExistingDirectory(this, tr("Select Directory"));
     if (!dir_path.isEmpty()) {
-        FileUtil::GetUserPath(is_sdmc ? FileUtil::UserPath::SDMCDir : FileUtil::UserPath::NANDDir,
+        FileUtil::GetUserPath(target == EmulatedDirectoryTarget::SDMC ? FileUtil::UserPath::SDMCDir
+                                                                      : FileUtil::UserPath::NANDDir,
                               dir_path.toStdString());
         Service::FileSystem::CreateFactories(vfs);
         game_list->PopulateAsync(UISettings::values.gamedir, UISettings::values.gamedir_deepscan);
