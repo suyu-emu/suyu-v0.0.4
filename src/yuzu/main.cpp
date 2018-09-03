@@ -592,8 +592,16 @@ void GMainWindow::BootGame(const QString& filename) {
 
     std::string title_name;
     const auto res = Core::System::GetInstance().GetGameName(title_name);
-    if (res != Loader::ResultStatus::Success)
-        title_name = FileUtil::GetFilename(filename.toStdString());
+    if (res != Loader::ResultStatus::Success) {
+        const u64 program_id = Core::System::GetInstance().CurrentProcess()->program_id;
+
+        const auto [nacp, icon_file] = FileSys::PatchManager(program_id).GetControlMetadata();
+        if (nacp != nullptr)
+            title_name = nacp->GetApplicationName();
+
+        if (title_name.empty())
+            title_name = FileUtil::GetFilename(filename.toStdString());
+    }
 
     setWindowTitle(QString("yuzu %1| %4 | %2-%3")
                        .arg(Common::g_build_name, Common::g_scm_branch, Common::g_scm_desc,

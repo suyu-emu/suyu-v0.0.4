@@ -486,29 +486,11 @@ void GameList::RefreshGameDirectory() {
 static void GetMetadataFromControlNCA(const FileSys::PatchManager& patch_manager,
                                       const std::shared_ptr<FileSys::NCA>& nca,
                                       std::vector<u8>& icon, std::string& name) {
-    const auto romfs = patch_manager.PatchRomFS(nca->GetRomFS(), nca->GetBaseIVFCOffset(),
-                                                FileSys::ContentRecordType::Control);
-    if (romfs == nullptr)
-        return;
-
-    const auto control_dir = FileSys::ExtractRomFS(romfs);
-    if (control_dir == nullptr)
-        return;
-
-    const auto nacp_file = control_dir->GetFile("control.nacp");
-    if (nacp_file == nullptr)
-        return;
-    FileSys::NACP nacp(nacp_file);
-    name = nacp.GetApplicationName();
-
-    FileSys::VirtualFile icon_file = nullptr;
-    for (const auto& language : FileSys::LANGUAGE_NAMES) {
-        icon_file = control_dir->GetFile("icon_" + std::string(language) + ".dat");
-        if (icon_file != nullptr) {
-            icon = icon_file->ReadAllBytes();
-            break;
-        }
-    }
+    auto [nacp, icon_file] = patch_manager.ParseControlNCA(nca);
+    if (icon_file != nullptr)
+        icon = icon_file->ReadAllBytes();
+    if (nacp != nullptr)
+        name = nacp->GetApplicationName();
 }
 
 GameListWorker::GameListWorker(

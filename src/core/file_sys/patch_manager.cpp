@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/service/filesystem/filesystem.h"
@@ -87,29 +88,63 @@ std::map<PatchType, std::string> PatchManager::GetPatchVersionNames() const {
     const auto installed = Service::FileSystem::GetUnionContents();
 
     const auto update_tid = GetUpdateTitleID(title_id);
-    const auto update_control = installed->GetEntry(title_id, ContentRecordType::Control);
-    if (update_control != nullptr) {
-        do {
-            const auto romfs =
-                PatchRomFS(update_control->GetRomFS(), update_control->GetBaseIVFCOffset(),
-                           FileSys::ContentRecordType::Control);
-            if (romfs == nullptr)
-                break;
+    PatchManager update{update_tid};
+    auto [nacp, discard_icon_file] = update.GetControlMetadata();
 
-            const auto control_dir = FileSys::ExtractRomFS(romfs);
-            if (control_dir == nullptr)
-                break;
-
-            const auto nacp_file = control_dir->GetFile("control.nacp");
-            if (nacp_file == nullptr)
-                break;
-
-            FileSys::NACP nacp(nacp_file);
-            out[PatchType::Update] = nacp.GetVersionString();
-        } while (false);
+    if (nacp != nullptr) {
+        out[PatchType::Update] = nacp->GetVersionString();
+    } else {
+        if (installed->HasEntry(update_tid, ContentRecordType::Program)) {
+            const auto meta_ver = installed->GetEntryVersion(update_tid);
+            if (meta_ver == boost::none || meta_ver.get() == 0) {
+                out[PatchType::Update] = "";
+            } else {
+                out[PatchType::Update] =
+                    FormatTitleVersion(meta_ver.get(), TitleVersionFormat::ThreeElements);
+            }
+        }
     }
 
     return out;
 }
 
+std::pair<std::shared_ptr<NACP>, VirtualFile> PatchManager::GetControlMetadata() const {
+    const auto& installed{Service::FileSystem::GetUnionContents()};
+
+    const auto base_control_nca = installed->GetEntry(title_id, ContentRecordType::Control);
+    if (base_control_nca == nullptr)
+        return {};
+
+    return ParseControlNCA(base_control_nca);
+}
+
+std::pair<std::shared_ptr<NACP>, VirtualFile> PatchManager::ParseControlNCA(
+    const std::shared_ptr<NCA>& nca) const {
+    const auto base_romfs = nca->GetRomFS();
+    if (base_romfs == nullptr)
+        return {};
+
+    const auto romfs = PatchRomFS(base_romfs, nca->GetBaseIVFCOffset(), ContentRecordType::Control);
+    if (romfs == nullptr)
+        return {};
+
+    const auto extracted = ExtractRomFS(romfs);
+    if (extracted == nullptr)
+        return {};
+
+    auto nacp_file = extracted->GetFile("control.nacp");
+    if (nacp_file == nullptr)
+        nacp_file = extracted->GetFile("Control.nacp");
+
+    const auto nacp = nacp_file == nullptr ? nullptr : std::make_shared<NACP>(nacp_file);
+
+    VirtualFile icon_file;
+    for (const auto& language : FileSys::LANGUAGE_NAMES) {
+        icon_file = extracted->GetFile("icon_" + std::string(language) + ".dat");
+        if (icon_file != nullptr)
+            break;
+    }
+
+    return {nacp, icon_file};
+}
 } // namespace FileSys
