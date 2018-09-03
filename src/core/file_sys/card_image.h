@@ -79,6 +79,8 @@ public:
     VirtualDir GetUpdatePartition() const;
     VirtualDir GetLogoPartition() const;
 
+    u64 GetProgramTitleID() const;
+
     std::shared_ptr<NCA> GetProgramNCA() const;
     VirtualFile GetProgramNCAFile() const;
     const std::vector<std::shared_ptr<NCA>>& GetNCAs() const;

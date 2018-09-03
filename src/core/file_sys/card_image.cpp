@@ -115,6 +115,10 @@ VirtualDir XCI::GetLogoPartition() const {
     return GetPartition(XCIPartition::Logo);
 }
 
+u64 XCI::GetProgramTitleID() const {
+    return secure_partition->GetProgramTitleID();
+}
+
 std::shared_ptr<NCA> XCI::GetProgramNCA() const {
     return program;
 }
