@@ -7,6 +7,8 @@
 #include "common/file_util.h"
 
 #include "core/core.h"
+#include "core/file_sys/control_metadata.h"
+#include "core/file_sys/patch_manager.h"
 #include "core/loader/loader.h"
 #include "core/settings.h"
 #include "core/telemetry_session.h"
@@ -88,11 +90,27 @@ TelemetrySession::TelemetrySession() {
                             std::chrono::system_clock::now().time_since_epoch())
                             .count()};
     AddField(Telemetry::FieldType::Session, "Init_Time", init_time);
-    std::string program_name;
-    const Loader::ResultStatus res{System::GetInstance().GetAppLoader().ReadTitle(program_name)};
+
+    u64 program_id{};
+    const Loader::ResultStatus res{System::GetInstance().GetAppLoader().ReadProgramId(program_id)};
     if (res == Loader::ResultStatus::Success) {
-        AddField(Telemetry::FieldType::Session, "ProgramName", program_name);
+        AddField(Telemetry::FieldType::Session, "ProgramId", program_id);
+
+        std::string name;
+        System::GetInstance().GetAppLoader().ReadTitle(name);
+
+        if (name.empty()) {
+            auto [nacp, icon_file] = FileSys::PatchManager(program_id).GetControlMetadata();
+            if (nacp != nullptr)
+                name = nacp->GetApplicationName();
+        }
+
+        if (!name.empty())
+            AddField(Telemetry::FieldType::Session, "ProgramName", name);
     }
+
+    AddField(Telemetry::FieldType::Session, "ProgramFormat",
+             static_cast<u8>(System::GetInstance().GetAppLoader().GetFileType()));
 
     // Log application information
     Telemetry::AppendBuildInfo(field_collection);

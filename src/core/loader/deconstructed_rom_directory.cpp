@@ -27,6 +27,14 @@ AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(FileSys
     : AppLoader(std::move(file_)), override_update(override_update) {
     const auto dir = file->GetContainingDirectory();
 
+    // Title ID
+    const auto npdm = dir->GetFile("main.npdm");
+    if (npdm != nullptr) {
+        const auto res = metadata.Load(npdm);
+        if (res == ResultStatus::Success)
+            title_id = metadata.GetTitleID();
+    }
+
     // Icon
     FileSys::VirtualFile icon_file = nullptr;
     for (const auto& language : FileSys::LANGUAGE_NAMES) {
@@ -138,7 +146,6 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
     }
 
     auto& kernel = Core::System::GetInstance().Kernel();
-    title_id = metadata.GetTitleID();
     process->program_id = metadata.GetTitleID();
     process->svc_access_mask.set();
     process->resource_limit =
