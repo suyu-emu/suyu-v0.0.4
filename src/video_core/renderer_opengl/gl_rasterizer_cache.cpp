@@ -532,23 +532,6 @@ static void ConvertFormatAsNeeded_LoadGLBuffer(std::vector<u8>& data, PixelForma
     }
 }
 
-/**
- * Helper function to perform software conversion (as needed) when flushing a buffer to Switch
- * memory. This is for Maxwell pixel formats that cannot be represented as-is in OpenGL or with
- * typical desktop GPUs.
- */
-static void ConvertFormatAsNeeded_FlushGLBuffer(std::vector<u8>& /*data*/, PixelFormat pixel_format,
-                                                u32 /*width*/, u32 /*height*/) {
-    switch (pixel_format) {
-    case PixelFormat::ASTC_2D_4X4:
-    case PixelFormat::S8Z24:
-        LOG_CRITICAL(Render_OpenGL, "Unimplemented pixel_format={}",
-                     static_cast<u32>(pixel_format));
-        UNREACHABLE();
-        break;
-    }
-}
-
 MICROPROFILE_DEFINE(OpenGL_SurfaceLoad, "OpenGL", "Surface Load", MP_RGB(128, 64, 192));
 void CachedSurface::LoadGLBuffer() {
     ASSERT(params.type != SurfaceType::Fill);
@@ -578,23 +561,7 @@ void CachedSurface::LoadGLBuffer() {
 
 MICROPROFILE_DEFINE(OpenGL_SurfaceFlush, "OpenGL", "Surface Flush", MP_RGB(128, 192, 64));
 void CachedSurface::FlushGLBuffer() {
-    u8* const dst_buffer = Memory::GetPointer(params.addr);
-
-    ASSERT(dst_buffer);
-    ASSERT(gl_buffer.size() ==
-           params.width * params.height * GetGLBytesPerPixel(params.pixel_format));
-
-    MICROPROFILE_SCOPE(OpenGL_SurfaceFlush);
-
-    ConvertFormatAsNeeded_FlushGLBuffer(gl_buffer, params.pixel_format, params.width,
-                                        params.height);
-
-    if (!params.is_tiled) {
-        std::memcpy(dst_buffer, gl_buffer.data(), params.size_in_bytes);
-    } else {
-        gl_to_morton_fns[static_cast<size_t>(params.pixel_format)](
-            params.width, params.block_height, params.height, gl_buffer, params.addr);
-    }
+    ASSERT_MSG(false, "Unimplemented");
 }
 
 MICROPROFILE_DEFINE(OpenGL_TextureUL, "OpenGL", "Texture Upload", MP_RGB(128, 64, 192));
