@@ -12,10 +12,12 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/swap.h"
-#include "control_metadata.h"
 #include "core/crypto/key_manager.h"
-#include "core/file_sys/partition_filesystem.h"
-#include "core/loader/loader.h"
+#include "core/file_sys/vfs.h"
+
+namespace Loader {
+enum class ResultStatus : u16;
+}
 
 namespace FileSys {
 

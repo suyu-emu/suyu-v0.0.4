@@ -8,12 +8,15 @@
 #include <locale>
 #include <sstream>
 #include <string_view>
+#include <tuple>
+#include <vector>
 #include "common/common_paths.h"
 #include "common/file_util.h"
 #include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "core/crypto/aes_util.h"
 #include "core/crypto/key_manager.h"
+#include "core/loader/loader.h"
 #include "core/settings.h"
 
 namespace Core::Crypto {

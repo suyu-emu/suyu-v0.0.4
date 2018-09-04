@@ -5,10 +5,12 @@
 #pragma once
 
 #include <memory>
-#include "core/loader/loader.h"
-#include "registered_cache.h"
+
+#include "core/file_sys/vfs.h"
 
 namespace FileSys {
+
+class RegisteredCache;
 
 /// File system interface to the Built-In Storage
 /// This is currently missing accessors to BIS partitions, but seemed like a good place for the NAND
@@ -16,6 +18,7 @@ namespace FileSys {
 class BISFactory {
 public:
     explicit BISFactory(VirtualDir nand_root);
+    ~BISFactory();
 
     std::shared_ptr<RegisteredCache> GetSystemNANDContents() const;
     std::shared_ptr<RegisteredCache> GetUserNANDContents() const;

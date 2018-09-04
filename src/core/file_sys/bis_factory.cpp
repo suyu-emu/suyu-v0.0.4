@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "core/file_sys/bis_factory.h"
+#include "core/file_sys/registered_cache.h"
 
 namespace FileSys {
 
@@ -12,6 +13,8 @@ BISFactory::BISFactory(VirtualDir nand_root_)
           GetOrCreateDirectoryRelative(nand_root, "/system/Contents/registered"))),
       usrnand_cache(std::make_shared<RegisteredCache>(
           GetOrCreateDirectoryRelative(nand_root, "/user/Contents/registered"))) {}
+
+BISFactory::~BISFactory() = default;
 
 std::shared_ptr<RegisteredCache> BISFactory::GetSystemNANDContents() const {
     return sysnand_cache;
