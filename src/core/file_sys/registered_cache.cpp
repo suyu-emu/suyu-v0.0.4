@@ -13,6 +13,7 @@
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/registered_cache.h"
+#include "core/file_sys/submission_package.h"
 #include "core/file_sys/vfs_concat.h"
 #include "core/loader/loader.h"
 
@@ -358,17 +359,21 @@ std::vector<RegisteredCacheEntry> RegisteredCache::ListEntriesFilter(
     return out;
 }
 
-static std::shared_ptr<NCA> GetNCAFromXCIForID(std::shared_ptr<XCI> xci, const NcaID& id) {
-    const auto filename = fmt::format("{}.nca", Common::HexArrayToString(id, false));
-    const auto iter =
-        std::find_if(xci->GetNCAs().begin(), xci->GetNCAs().end(),
-                     [&filename](std::shared_ptr<NCA> nca) { return nca->GetName() == filename; });
-    return iter == xci->GetNCAs().end() ? nullptr : *iter;
+static std::shared_ptr<NCA> GetNCAFromNSPForID(std::shared_ptr<NSP> nsp, const NcaID& id) {
+    const auto file = nsp->GetFile(fmt::format("{}.nca", Common::HexArrayToString(id, false)));
+    if (file == nullptr)
+        return nullptr;
+    return std::make_shared<NCA>(file);
 }
 
 InstallResult RegisteredCache::InstallEntry(std::shared_ptr<XCI> xci, bool overwrite_if_exists,
                                             const VfsCopyFunction& copy) {
-    const auto& ncas = xci->GetNCAs();
+    return InstallEntry(xci->GetSecurePartitionNSP(), overwrite_if_exists, copy);
+}
+
+InstallResult RegisteredCache::InstallEntry(std::shared_ptr<NSP> nsp, bool overwrite_if_exists,
+                                            const VfsCopyFunction& copy) {
+    const auto& ncas = nsp->GetNCAsCollapsed();
     const auto& meta_iter = std::find_if(ncas.begin(), ncas.end(), [](std::shared_ptr<NCA> nca) {
         return nca->GetType() == NCAContentType::Meta;
     });
@@ -392,7 +397,7 @@ InstallResult RegisteredCache::InstallEntry(std::shared_ptr<XCI> xci, bool overw
     const auto cnmt_file = section0->GetFiles()[0];
     const CNMT cnmt(cnmt_file);
     for (const auto& record : cnmt.GetContentRecords()) {
-        const auto nca = GetNCAFromXCIForID(xci, record.nca_id);
+        const auto nca = GetNCAFromNSPForID(nsp, record.nca_id);
         if (nca == nullptr)
             return InstallResult::ErrorCopyFailed;
         const auto res2 = RawInstallNCA(nca, copy, overwrite_if_exists, record.nca_id);

@@ -29,6 +29,7 @@ enum class FileType {
     NSO,
     NRO,
     NCA,
+    NSP,
     XCI,
     NAX,
     DeconstructedRomDirectory,
@@ -105,6 +106,7 @@ enum class ResultStatus : u16 {
     ErrorMissingAESKeyGenerationSource,
     ErrorMissingSDSaveKeySource,
     ErrorMissingSDNCAKeySource,
+    ErrorNSPMissingProgramNCA,
 };
 
 std::ostream& operator<<(std::ostream& os, ResultStatus status);
