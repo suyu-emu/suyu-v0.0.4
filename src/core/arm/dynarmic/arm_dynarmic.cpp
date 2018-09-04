@@ -7,6 +7,7 @@
 #include <dynarmic/A64/a64.h>
 #include <dynarmic/A64/config.h>
 #include "common/logging/log.h"
+#include "common/microprofile.h"
 #include "core/arm/dynarmic/arm_dynarmic.h"
 #include "core/core.h"
 #include "core/core_cpu.h"
@@ -143,7 +144,10 @@ std::unique_ptr<Dynarmic::A64::Jit> ARM_Dynarmic::MakeJit() const {
     return std::make_unique<Dynarmic::A64::Jit>(config);
 }
 
+MICROPROFILE_DEFINE(ARM_Jit_Dynarmic, "ARM JIT", "Dynarmic", MP_RGB(255, 64, 64));
+
 void ARM_Dynarmic::Run() {
+    MICROPROFILE_SCOPE(ARM_Jit_Dynarmic);
     ASSERT(Memory::GetCurrentPageTable() == current_page_table);
 
     jit->Run();

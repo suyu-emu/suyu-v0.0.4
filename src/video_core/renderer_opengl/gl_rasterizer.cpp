@@ -33,10 +33,13 @@ using PixelFormat = SurfaceParams::PixelFormat;
 using SurfaceType = SurfaceParams::SurfaceType;
 
 MICROPROFILE_DEFINE(OpenGL_VAO, "OpenGL", "Vertex Array Setup", MP_RGB(128, 128, 192));
-MICROPROFILE_DEFINE(OpenGL_VS, "OpenGL", "Vertex Shader Setup", MP_RGB(128, 128, 192));
-MICROPROFILE_DEFINE(OpenGL_FS, "OpenGL", "Fragment Shader Setup", MP_RGB(128, 128, 192));
+MICROPROFILE_DEFINE(OpenGL_Shader, "OpenGL", "Shader Setup", MP_RGB(128, 128, 192));
+MICROPROFILE_DEFINE(OpenGL_UBO, "OpenGL", "Const Buffer Setup", MP_RGB(128, 128, 192));
+MICROPROFILE_DEFINE(OpenGL_Index, "OpenGL", "Index Buffer Setup", MP_RGB(128, 128, 192));
+MICROPROFILE_DEFINE(OpenGL_Texture, "OpenGL", "Texture Setup", MP_RGB(128, 128, 192));
+MICROPROFILE_DEFINE(OpenGL_Framebuffer, "OpenGL", "Framebuffer Setup", MP_RGB(128, 128, 192));
 MICROPROFILE_DEFINE(OpenGL_Drawing, "OpenGL", "Drawing", MP_RGB(128, 128, 192));
-MICROPROFILE_DEFINE(OpenGL_Blits, "OpenGL", "Blits", MP_RGB(100, 100, 255));
+MICROPROFILE_DEFINE(OpenGL_Blits, "OpenGL", "Blits", MP_RGB(128, 128, 192));
 MICROPROFILE_DEFINE(OpenGL_CacheManagement, "OpenGL", "Cache Mgmt", MP_RGB(100, 255, 100));
 
 RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window, ScreenInfo& info)
@@ -179,6 +182,7 @@ std::pair<u8*, GLintptr> RasterizerOpenGL::SetupVertexArrays(u8* array_ptr,
 }
 
 std::pair<u8*, GLintptr> RasterizerOpenGL::SetupShaders(u8* buffer_ptr, GLintptr buffer_offset) {
+    MICROPROFILE_SCOPE(OpenGL_Shader);
     auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
 
     // Next available bindpoints to use when uploading the const buffers and textures to the GLSL
@@ -312,6 +316,7 @@ void RasterizerOpenGL::UpdatePagesCachedCount(VAddr addr, u64 size, int delta) {
 std::pair<Surface, Surface> RasterizerOpenGL::ConfigureFramebuffers(bool using_color_fb,
                                                                     bool using_depth_fb,
                                                                     bool preserve_contents) {
+    MICROPROFILE_SCOPE(OpenGL_Framebuffer);
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
     if (regs.rt[0].format == Tegra::RenderTargetFormat::NONE) {
@@ -512,6 +517,7 @@ void RasterizerOpenGL::DrawArrays() {
     // If indexed mode, copy the index buffer
     GLintptr index_buffer_offset = 0;
     if (is_indexed) {
+        MICROPROFILE_SCOPE(OpenGL_Index);
         std::tie(buffer_ptr, buffer_offset, index_buffer_offset) = UploadMemory(
             buffer_ptr, buffer_offset, regs.index_array.StartAddress(), index_buffer_size);
     }
@@ -657,6 +663,7 @@ std::tuple<u8*, GLintptr, u32> RasterizerOpenGL::SetupConstBuffers(u8* buffer_pt
                                                                    Maxwell::ShaderStage stage,
                                                                    Shader& shader,
                                                                    u32 current_bindpoint) {
+    MICROPROFILE_SCOPE(OpenGL_UBO);
     const auto& gpu = Core::System::GetInstance().GPU();
     const auto& maxwell3d = gpu.Maxwell3D();
     const auto& shader_stage = maxwell3d.state.shader_stages[static_cast<size_t>(stage)];
@@ -712,6 +719,7 @@ std::tuple<u8*, GLintptr, u32> RasterizerOpenGL::SetupConstBuffers(u8* buffer_pt
 }
 
 u32 RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, Shader& shader, u32 current_unit) {
+    MICROPROFILE_SCOPE(OpenGL_Texture);
     const auto& gpu = Core::System::GetInstance().GPU();
     const auto& maxwell3d = gpu.Maxwell3D();
     const auto& entries = shader->GetShaderEntries().texture_samplers;

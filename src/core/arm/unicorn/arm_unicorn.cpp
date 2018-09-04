@@ -193,10 +193,10 @@ void ARM_Unicorn::Step() {
     ExecuteInstructions(1);
 }
 
-MICROPROFILE_DEFINE(ARM_Jit, "ARM JIT", "ARM JIT", MP_RGB(255, 64, 64));
+MICROPROFILE_DEFINE(ARM_Jit_Unicorn, "ARM JIT", "Unicorn", MP_RGB(255, 64, 64));
 
 void ARM_Unicorn::ExecuteInstructions(int num_instructions) {
-    MICROPROFILE_SCOPE(ARM_Jit);
+    MICROPROFILE_SCOPE(ARM_Jit_Unicorn);
     CHECKED(uc_emu_start(uc, GetPC(), 1ULL << 63, 0, num_instructions));
     CoreTiming::AddTicks(num_instructions);
     if (GDBStub::IsServerEnabled()) {
