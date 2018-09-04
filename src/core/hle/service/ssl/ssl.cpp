@@ -3,6 +3,9 @@
 // Refer to the license.txt file included.
 
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/service/service.h"
+#include "core/hle/service/sm/sm.h"
 #include "core/hle/service/ssl/ssl.h"
 
 namespace Service::SSL {
@@ -81,36 +84,43 @@ private:
     }
 };
 
-void SSL::CreateContext(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_SSL, "(STUBBED) called");
+class SSL final : public ServiceFramework<SSL> {
+public:
+    explicit SSL() : ServiceFramework{"ssl"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &SSL::CreateContext, "CreateContext"},
+            {1, nullptr, "GetContextCount"},
+            {2, nullptr, "GetCertificates"},
+            {3, nullptr, "GetCertificateBufSize"},
+            {4, nullptr, "DebugIoctl"},
+            {5, &SSL::SetInterfaceVersion, "SetInterfaceVersion"},
+            {6, nullptr, "FlushSessionCache"},
+        };
+        // clang-format on
 
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<ISslContext>();
-}
+        RegisterHandlers(functions);
+    }
 
-SSL::SSL() : ServiceFramework("ssl") {
-    static const FunctionInfo functions[] = {
-        {0, &SSL::CreateContext, "CreateContext"},
-        {1, nullptr, "GetContextCount"},
-        {2, nullptr, "GetCertificates"},
-        {3, nullptr, "GetCertificateBufSize"},
-        {4, nullptr, "DebugIoctl"},
-        {5, &SSL::SetInterfaceVersion, "SetInterfaceVersion"},
-        {6, nullptr, "FlushSessionCache"},
-    };
-    RegisterHandlers(functions);
-}
+private:
+    void CreateContext(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_SSL, "(STUBBED) called");
 
-void SSL::SetInterfaceVersion(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_SSL, "(STUBBED) called");
-    IPC::RequestParser rp{ctx};
-    u32 unk1 = rp.Pop<u32>(); // Probably minor/major?
-    u32 unk2 = rp.Pop<u32>(); // TODO(ogniK): Figure out what this does
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<ISslContext>();
+    }
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
-}
+    void SetInterfaceVersion(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_SSL, "(STUBBED) called");
+        IPC::RequestParser rp{ctx};
+        u32 unk1 = rp.Pop<u32>(); // Probably minor/major?
+        u32 unk2 = rp.Pop<u32>(); // TODO(ogniK): Figure out what this does
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+};
 
 void InstallInterfaces(SM::ServiceManager& service_manager) {
     std::make_shared<SSL>()->InstallAsService(service_manager);
