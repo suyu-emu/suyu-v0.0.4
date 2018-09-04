@@ -12,14 +12,14 @@ namespace Log {
 /// Specifies the severity or level of detail of the log message.
 enum class Level : u8 {
     Trace,    ///< Extremely detailed and repetitive debugging information that is likely to
-              ///  pollute logs.
+              ///< pollute logs.
     Debug,    ///< Less detailed debugging information.
     Info,     ///< Status information from important points during execution.
     Warning,  ///< Minor or potential problems found during execution of a task.
     Error,    ///< Major problems found during execution of a task that prevent it from being
-              ///  completed.
-    Critical, ///< Major problems during execution that threathen the stability of the entire
-              ///  application.
+              ///< completed.
+    Critical, ///< Major problems during execution that threaten the stability of the entire
+              ///< application.
 
     Count ///< Total number of logging levels
 };
@@ -49,7 +49,7 @@ enum class Class : ClassType {
     Kernel,            ///< The HLE implementation of the CTR kernel
     Kernel_SVC,        ///< Kernel system calls
     Service,           ///< HLE implementation of system services. Each major service
-                       ///  should have its own subclass.
+                       ///< should have its own subclass.
     Service_ACC,       ///< The ACC (Accounts) service
     Service_AM,        ///< The AM (Applet manager) service
     Service_AOC,       ///< The AOC (AddOn Content) service
