@@ -68,19 +68,22 @@ static ResultCode UnmapMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
 
 /// Connect to an OS service given the port name, returns the handle to the port to out
 static ResultCode ConnectToNamedPort(Handle* out_handle, VAddr port_name_address) {
-    if (!Memory::IsValidVirtualAddress(port_name_address))
+    if (!Memory::IsValidVirtualAddress(port_name_address)) {
         return ERR_NOT_FOUND;
+    }
 
     static constexpr std::size_t PortNameMaxLength = 11;
     // Read 1 char beyond the max allowed port name to detect names that are too long.
     std::string port_name = Memory::ReadCString(port_name_address, PortNameMaxLength + 1);
-    if (port_name.size() > PortNameMaxLength)
+    if (port_name.size() > PortNameMaxLength) {
         return ERR_PORT_NAME_TOO_LONG;
+    }
 
     LOG_TRACE(Kernel_SVC, "called port_name={}", port_name);
 
-    auto it = Service::g_kernel_named_ports.find(port_name);
-    if (it == Service::g_kernel_named_ports.end()) {
+    auto& kernel = Core::System::GetInstance().Kernel();
+    auto it = kernel.FindNamedPort(port_name);
+    if (!kernel.IsValidNamedPort(it)) {
         LOG_WARNING(Kernel_SVC, "tried to connect to unknown port: {}", port_name);
         return ERR_NOT_FOUND;
     }
@@ -91,7 +94,6 @@ static ResultCode ConnectToNamedPort(Handle* out_handle, VAddr port_name_address
     CASCADE_RESULT(client_session, client_port->Connect());
 
     // Return the client session
-    auto& kernel = Core::System::GetInstance().Kernel();
     CASCADE_RESULT(*out_handle, kernel.HandleTable().Create(client_session));
     return RESULT_SUCCESS;
 }

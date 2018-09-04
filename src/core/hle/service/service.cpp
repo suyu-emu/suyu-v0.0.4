@@ -12,6 +12,7 @@
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/server_port.h"
 #include "core/hle/kernel/thread.h"
@@ -114,7 +115,7 @@ void ServiceFrameworkBase::InstallAsNamedPort() {
     std::tie(server_port, client_port) =
         ServerPort::CreatePortPair(kernel, max_sessions, service_name);
     server_port->SetHleHandler(shared_from_this());
-    AddNamedPort(service_name, std::move(client_port));
+    kernel.AddNamedPort(service_name, std::move(client_port));
 }
 
 Kernel::SharedPtr<Kernel::ClientPort> ServiceFrameworkBase::CreatePort() {
@@ -197,11 +198,6 @@ ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::HLERequestContext& co
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module interface
 
-// TODO(yuriks): Move to kernel
-void AddNamedPort(std::string name, SharedPtr<ClientPort> port) {
-    g_kernel_named_ports.emplace(std::move(name), std::move(port));
-}
-
 /// Initialize ServiceManager
 void Init(std::shared_ptr<SM::ServiceManager>& sm, const FileSys::VirtualFilesystem& rfs) {
     // NVFlinger needs to be accessed by several services like Vi and AppletOE so we instantiate it
@@ -264,7 +260,6 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm, const FileSys::VirtualFilesys
 
 /// Shutdown ServiceManager
 void Shutdown() {
-    g_kernel_named_ports.clear();
     LOG_DEBUG(Service, "shutdown OK");
 }
 } // namespace Service

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+#include <unordered_map>
 #include "core/hle/kernel/object.h"
 
 template <typename T>
@@ -15,6 +17,7 @@ struct EventType;
 
 namespace Kernel {
 
+class ClientPort;
 class HandleTable;
 class Process;
 class ResourceLimit;
@@ -25,6 +28,9 @@ enum class ResourceLimitCategory : u8;
 
 /// Represents a single instance of the kernel.
 class KernelCore {
+private:
+    using NamedPortTable = std::unordered_map<std::string, SharedPtr<ClientPort>>;
+
 public:
     KernelCore();
     ~KernelCore();
@@ -58,6 +64,18 @@ public:
 
     /// Adds the given shared pointer to an internal list of active processes.
     void AppendNewProcess(SharedPtr<Process> process);
+
+    /// Adds a port to the named port table
+    void AddNamedPort(std::string name, SharedPtr<ClientPort> port);
+
+    /// Finds a port within the named port table with the given name.
+    NamedPortTable::iterator FindNamedPort(const std::string& name);
+
+    /// Finds a port within the named port table with the given name.
+    NamedPortTable::const_iterator FindNamedPort(const std::string& name) const;
+
+    /// Determines whether or not the given port is a valid named port.
+    bool IsValidNamedPort(NamedPortTable::const_iterator port) const;
 
 private:
     friend class Object;
