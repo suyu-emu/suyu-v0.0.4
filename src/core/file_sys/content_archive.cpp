@@ -425,9 +425,6 @@ NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_, u64 bktr_base_ivfc_off
             } else {
                 files.push_back(std::move(dec));
                 romfs = files.back();
-                const u64 raw_size =
-                    MEDIA_OFFSET_MULTIPLIER * (header.section_tables[i].media_end_offset -
-                                               header.section_tables[i].media_offset);
             }
         } else if (section.raw.header.filesystem_type == NCASectionFilesystemType::PFS0) {
             u64 offset = (static_cast<u64>(header.section_tables[i].media_offset) *

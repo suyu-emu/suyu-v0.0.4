@@ -50,7 +50,7 @@ size_t BKTR::Read(u8* data, size_t length, size_t offset) const {
     }
 
     if (!bktr_read) {
-        ASSERT_MSG(section_offset > ivfc_offset, "Offset calculation negative.");
+        ASSERT_MSG(section_offset >= ivfc_offset, "Offset calculation negative.");
         return base_romfs->Read(data, length, section_offset - ivfc_offset);
     }
 
@@ -118,7 +118,7 @@ std::pair<size_t, size_t> BKTR::SearchBucketEntry(u64 offset, BlockType block,
 
     size_t bucket_id = std::count_if(block.base_offsets.begin() + 1,
                                      block.base_offsets.begin() + block.number_buckets,
-                                     [&offset](u64 base_offset) { return base_offset < offset; });
+                                     [&offset](u64 base_offset) { return base_offset <= offset; });
 
     const auto bucket = buckets[bucket_id];
 

@@ -10,6 +10,7 @@
 #include "core/file_sys/bis_factory.h"
 #include "core/file_sys/errors.h"
 #include "core/file_sys/mode.h"
+#include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs_factory.h"
 #include "core/file_sys/savedata_factory.h"
 #include "core/file_sys/sdmc_factory.h"
@@ -19,7 +20,6 @@
 #include "core/hle/service/filesystem/fsp_ldr.h"
 #include "core/hle/service/filesystem/fsp_pr.h"
 #include "core/hle/service/filesystem/fsp_srv.h"
-#include "filesystem.h"
 
 namespace Service::FileSystem {
 

@@ -8,7 +8,6 @@
 #include <string>
 #include "common/common_types.h"
 #include "core/file_sys/nca_metadata.h"
-#include "core/file_sys/romfs_factory.h"
 #include "core/file_sys/vfs.h"
 
 namespace FileSys {
