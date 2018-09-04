@@ -6,13 +6,14 @@
 
 #include <array>
 #include <string>
-#include <string_view>
-#include <type_traits>
-#include <vector>
 #include <boost/container/flat_map.hpp>
+#include <boost/optional.hpp>
 #include <fmt/format.h>
 #include "common/common_types.h"
-#include "core/loader/loader.h"
+
+namespace Loader {
+enum class ResultStatus : u16;
+}
 
 namespace Core::Crypto {
 

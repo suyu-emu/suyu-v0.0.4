@@ -30,6 +30,7 @@
 #include "core/core.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
+#include "core/file_sys/content_archive.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/savedata_factory.h"
 #include "core/file_sys/vfs_real.h"

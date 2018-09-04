@@ -11,15 +11,18 @@
 #include <string>
 #include <vector>
 #include <boost/container/flat_map.hpp>
-#include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "content_archive.h"
-#include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/vfs.h"
 
 namespace FileSys {
-class XCI;
 class CNMT;
+class NCA;
+class XCI;
+
+enum class ContentRecordType : u8;
+enum class TitleType : u8;
+
+struct ContentRecord;
 
 using NcaID = std::array<u8, 0x10>;
 using RegisteredCacheParsingFunction = std::function<VirtualFile(const VirtualFile&, const NcaID&)>;

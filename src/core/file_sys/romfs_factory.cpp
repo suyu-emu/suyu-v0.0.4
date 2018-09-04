@@ -2,14 +2,13 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <algorithm>
 #include <memory>
+#include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
-#include "core/file_sys/nca_metadata.h"
+#include "core/file_sys/content_archive.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs_factory.h"
-#include "core/hle/kernel/process.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
 

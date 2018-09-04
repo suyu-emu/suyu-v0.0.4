@@ -3,10 +3,9 @@
 // Refer to the license.txt file included.
 
 #include <cstring>
-#include "common/common_funcs.h"
+#include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/swap.h"
-#include "content_archive.h"
 #include "core/file_sys/nca_metadata.h"
 
 namespace FileSys {

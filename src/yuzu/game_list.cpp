@@ -13,7 +13,6 @@
 #include <QKeyEvent>
 #include <QMenu>
 #include <QThreadPool>
-#include <boost/container/flat_map.hpp>
 #include <fmt/format.h>
 #include "common/common_paths.h"
 #include "common/common_types.h"
@@ -21,6 +20,7 @@
 #include "common/logging/log.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
+#include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/vfs_real.h"

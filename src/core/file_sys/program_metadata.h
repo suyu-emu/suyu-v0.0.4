@@ -5,12 +5,10 @@
 #pragma once
 
 #include <array>
-#include <string>
-#include <vector>
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "common/swap.h"
-#include "partition_filesystem.h"
+#include "core/file_sys/vfs.h"
 
 namespace Loader {
 enum class ResultStatus : u16;

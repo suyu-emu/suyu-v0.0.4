@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <cstring>
 #include <memory>
 #include <vector>
 #include "common/common_funcs.h"

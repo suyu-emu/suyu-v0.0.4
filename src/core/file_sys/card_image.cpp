@@ -9,6 +9,7 @@
 
 #include "common/logging/log.h"
 #include "core/file_sys/card_image.h"
+#include "core/file_sys/content_archive.h"
 #include "core/file_sys/partition_filesystem.h"
 #include "core/file_sys/vfs_offset.h"
 #include "core/loader/loader.h"
@@ -73,6 +74,8 @@ XCI::XCI(VirtualFile file_) : file(std::move(file_)), partitions(0x4) {
 
     status = Loader::ResultStatus::Success;
 }
+
+XCI::~XCI() = default;
 
 Loader::ResultStatus XCI::GetStatus() const {
     return status;

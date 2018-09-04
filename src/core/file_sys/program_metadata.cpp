@@ -2,7 +2,10 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "common/file_util.h"
+#include <cstddef>
+#include <cstring>
+#include <vector>
+
 #include "common/logging/log.h"
 #include "core/file_sys/program_metadata.h"
 #include "core/loader/loader.h"
