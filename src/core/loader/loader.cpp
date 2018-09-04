@@ -5,9 +5,9 @@
 #include <memory>
 #include <ostream>
 #include <string>
+#include "common/file_util.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
-#include "core/file_sys/vfs_real.h"
 #include "core/hle/kernel/process.h"
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/elf.h"
@@ -143,6 +143,9 @@ std::ostream& operator<<(std::ostream& os, ResultStatus status) {
     os << RESULT_MESSAGES.at(static_cast<size_t>(status));
     return os;
 }
+
+AppLoader::AppLoader(FileSys::VirtualFile file) : file(std::move(file)) {}
+AppLoader::~AppLoader() = default;
 
 /**
  * Get a loader for a file with a specific type

@@ -8,6 +8,7 @@
 #include <utility>
 #include "common/assert.h"
 #include "common/common_paths.h"
+#include "common/file_util.h"
 #include "common/logging/log.h"
 #include "core/file_sys/vfs_real.h"
 
@@ -39,6 +40,7 @@ static std::string ModeFlagsToString(Mode mode) {
 }
 
 RealVfsFilesystem::RealVfsFilesystem() : VfsFilesystem(nullptr) {}
+RealVfsFilesystem::~RealVfsFilesystem() = default;
 
 std::string RealVfsFilesystem::GetName() const {
     return "Real";
@@ -219,6 +221,8 @@ RealVfsFile::RealVfsFile(RealVfsFilesystem& base_, std::shared_ptr<FileUtil::IOF
       parent_components(FileUtil::SliceVector(path_components, 0, path_components.size() - 1)),
       perms(perms_) {}
 
+RealVfsFile::~RealVfsFile() = default;
+
 std::string RealVfsFile::GetName() const {
     return path_components.back();
 }
@@ -311,6 +315,8 @@ RealVfsDirectory::RealVfsDirectory(RealVfsFilesystem& base_, const std::string& 
     if (!FileUtil::Exists(path) && perms & Mode::WriteAppend)
         FileUtil::CreateDir(path);
 }
+
+RealVfsDirectory::~RealVfsDirectory() = default;
 
 std::shared_ptr<VfsFile> RealVfsDirectory::GetFileRelative(std::string_view path) const {
     const auto full_path = FileUtil::SanitizePath(this->path + DIR_SEP + std::string(path));

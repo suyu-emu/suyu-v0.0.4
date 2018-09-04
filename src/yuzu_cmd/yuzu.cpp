@@ -10,6 +10,7 @@
 #include <fmt/ostream.h>
 
 #include "common/common_paths.h"
+#include "common/file_util.h"
 #include "common/logging/backend.h"
 #include "common/logging/filter.h"
 #include "common/logging/log.h"

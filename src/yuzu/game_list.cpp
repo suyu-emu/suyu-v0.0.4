@@ -16,8 +16,9 @@
 #include <boost/container/flat_map.hpp>
 #include <fmt/format.h>
 #include "common/common_paths.h"
+#include "common/common_types.h"
+#include "common/file_util.h"
 #include "common/logging/log.h"
-#include "common/string_util.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/registered_cache.h"

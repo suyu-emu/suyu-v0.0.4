@@ -20,6 +20,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include "common/common_types.h"
+
 class GameListWorker;
 class GMainWindow;
 
