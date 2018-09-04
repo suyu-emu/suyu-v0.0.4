@@ -114,6 +114,12 @@ void Config::ReadValues() {
     // Data Storage
     Settings::values.use_virtual_sd =
         sdl2_config->GetBoolean("Data Storage", "use_virtual_sd", true);
+    FileUtil::GetUserPath(FileUtil::UserPath::NANDDir,
+                          sdl2_config->Get("Data Storage", "nand_directory",
+                                           FileUtil::GetUserPath(FileUtil::UserPath::NANDDir)));
+    FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir,
+                          sdl2_config->Get("Data Storage", "nand_directory",
+                                           FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir)));
 
     // System
     Settings::values.use_docked_mode = sdl2_config->GetBoolean("System", "use_docked_mode", false);

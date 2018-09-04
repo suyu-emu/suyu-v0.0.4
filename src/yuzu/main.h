@@ -35,6 +35,11 @@ namespace Tegra {
 class DebugContext;
 }
 
+enum class EmulatedDirectoryTarget {
+    NAND,
+    SDMC,
+};
+
 class GMainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -140,6 +145,8 @@ private slots:
     void OnMenuInstallToNAND();
     /// Called whenever a user selects the "File->Select Game List Root" menu item
     void OnMenuSelectGameListRoot();
+    /// Called whenever a user select the "File->Select -- Directory" where -- is NAND or SD Card
+    void OnMenuSelectEmulatedDirectory(EmulatedDirectoryTarget target);
     void OnMenuRecentFile();
     void OnConfigure();
     void OnAbout();
