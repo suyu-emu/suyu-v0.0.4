@@ -8,7 +8,7 @@
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
-#include "core/file_sys/registered_cache.h"
+#include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/submission_package.h"
 #include "core/hle/kernel/process.h"

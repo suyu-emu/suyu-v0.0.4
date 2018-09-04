@@ -13,9 +13,10 @@
 #include "core/file_sys/romfs_factory.h"
 #include "core/file_sys/vfs.h"
 #include "core/loader/loader.h"
-#include "romfs_factory.h"
 
 namespace FileSys {
+
+class PartitionFilesystem;
 
 class NSP : public ReadOnlyVfsDirectory {
 public:

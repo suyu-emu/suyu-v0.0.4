@@ -10,7 +10,6 @@
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "core/file_sys/vfs.h"
-#include "core/loader/loader.h"
 
 namespace Loader {
 enum class ResultStatus : u16;

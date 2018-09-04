@@ -17,6 +17,7 @@
 namespace FileSys {
 class CNMT;
 class NCA;
+class NSP;
 class XCI;
 
 enum class ContentRecordType : u8;
