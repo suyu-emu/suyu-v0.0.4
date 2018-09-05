@@ -690,7 +690,7 @@ SurfaceSurfaceRect_Tuple RasterizerCacheOpenGL::GetFramebufferSurfaces(bool usin
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
     // TODO(bunnei): This is hard corded to use just the first render buffer
-    LOG_WARNING(Render_OpenGL, "hard-coded for render target 0!");
+    LOG_TRACE(Render_OpenGL, "hard-coded for render target 0!");
 
     // get color and depth surfaces
     SurfaceParams color_params{};
