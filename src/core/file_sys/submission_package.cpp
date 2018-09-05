@@ -19,8 +19,8 @@
 
 namespace FileSys {
 NSP::NSP(VirtualFile file_)
-    : file(std::move(file_)),
-      pfs(std::make_shared<PartitionFilesystem>(file)), status{Loader::ResultStatus::Success} {
+    : file(std::move(file_)), status{Loader::ResultStatus::Success},
+      pfs(std::make_shared<PartitionFilesystem>(file)) {
     if (pfs->GetStatus() != Loader::ResultStatus::Success) {
         status = pfs->GetStatus();
         return;
