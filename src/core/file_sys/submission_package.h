@@ -4,19 +4,22 @@
 
 #pragma once
 
-#include <array>
 #include <map>
+#include <memory>
 #include <vector>
 #include "common/common_types.h"
-#include "common/swap.h"
-#include "core/file_sys/content_archive.h"
-#include "core/file_sys/romfs_factory.h"
 #include "core/file_sys/vfs.h"
-#include "core/loader/loader.h"
+
+namespace Loader {
+enum class ResultStatus : u16;
+}
 
 namespace FileSys {
 
+class NCA;
 class PartitionFilesystem;
+
+enum class ContentRecordType : u8;
 
 class NSP : public ReadOnlyVfsDirectory {
 public:
