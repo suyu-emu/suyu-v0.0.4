@@ -51,6 +51,7 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.type = GetFormatType(params.pixel_format);
     params.width = Common::AlignUp(config.tic.Width(), GetCompressionFactor(params.pixel_format));
     params.height = Common::AlignUp(config.tic.Height(), GetCompressionFactor(params.pixel_format));
+    params.depth = config.tic.Depth();
     params.unaligned_height = config.tic.Height();
     params.size_in_bytes = params.SizeInBytes();
     params.cache_width = Common::AlignUp(params.width, 16);
@@ -70,6 +71,7 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.type = GetFormatType(params.pixel_format);
     params.width = config.width;
     params.height = config.height;
+    params.depth = 1;
     params.unaligned_height = config.height;
     params.size_in_bytes = params.SizeInBytes();
     params.cache_width = Common::AlignUp(params.width, 16);
@@ -88,9 +90,9 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.pixel_format = PixelFormatFromDepthFormat(format);
     params.component_type = ComponentTypeFromDepthFormat(format);
     params.type = GetFormatType(params.pixel_format);
-    params.size_in_bytes = params.SizeInBytes();
     params.width = zeta_width;
     params.height = zeta_height;
+    params.depth = 1;
     params.unaligned_height = zeta_height;
     params.size_in_bytes = params.SizeInBytes();
     params.cache_width = Common::AlignUp(params.width, 16);

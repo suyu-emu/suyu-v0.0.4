@@ -662,7 +662,7 @@ struct SurfaceParams {
         ASSERT(width % compression_factor == 0);
         ASSERT(height % compression_factor == 0);
         return (width / compression_factor) * (height / compression_factor) *
-               GetFormatBpp(pixel_format) / CHAR_BIT;
+               GetFormatBpp(pixel_format) * depth / CHAR_BIT;
     }
 
     /// Creates SurfaceParams from a texture configuration
@@ -691,6 +691,7 @@ struct SurfaceParams {
     SurfaceType type;
     u32 width;
     u32 height;
+    u32 depth;
     u32 unaligned_height;
     size_t size_in_bytes;
     SurfaceTarget target;
