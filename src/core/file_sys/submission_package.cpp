@@ -2,9 +2,15 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <cstring>
+#include <string_view>
+
 #include <fmt/ostream.h>
-#include "common/assert.h"
+
 #include "common/hex_util.h"
+#include "common/logging/log.h"
+#include "core/crypto/key_manager.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/partition_filesystem.h"
@@ -13,8 +19,8 @@
 
 namespace FileSys {
 NSP::NSP(VirtualFile file_)
-    : file(std::move(file_)),
-      pfs(std::make_shared<PartitionFilesystem>(file)), status{Loader::ResultStatus::Success} {
+    : file(std::move(file_)), status{Loader::ResultStatus::Success},
+      pfs(std::make_shared<PartitionFilesystem>(file)) {
     if (pfs->GetStatus() != Loader::ResultStatus::Success) {
         status = pfs->GetStatus();
         return;
