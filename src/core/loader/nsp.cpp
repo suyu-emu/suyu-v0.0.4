@@ -9,6 +9,8 @@
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/nca_metadata.h"
+#include "core/file_sys/patch_manager.h"
+#include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/submission_package.h"
 #include "core/hle/kernel/process.h"
@@ -28,24 +30,12 @@ AppLoader_NSP::AppLoader_NSP(FileSys::VirtualFile file)
         return;
 
     const auto control_nca =
-        nsp->GetNCA(nsp->GetFirstTitleID(), FileSys::ContentRecordType::Control);
+        nsp->GetNCA(nsp->GetProgramTitleID(), FileSys::ContentRecordType::Control);
     if (control_nca == nullptr || control_nca->GetStatus() != ResultStatus::Success)
         return;
 
-    const auto romfs = FileSys::ExtractRomFS(control_nca->GetRomFS());
-    if (romfs == nullptr)
-        return;
-
-    for (const auto& language : FileSys::LANGUAGE_NAMES) {
-        icon_file = romfs->GetFile("icon_" + std::string(language) + ".dat");
-        if (icon_file != nullptr)
-            break;
-    }
-
-    const auto nacp_raw = romfs->GetFile("control.nacp");
-    if (nacp_raw == nullptr)
-        return;
-    nacp_file = std::make_shared<FileSys::NACP>(nacp_raw);
+    std::tie(nacp_file, icon_file) =
+        FileSys::PatchManager(nsp->GetProgramTitleID()).ParseControlNCA(control_nca);
 }
 
 AppLoader_NSP::~AppLoader_NSP() = default;

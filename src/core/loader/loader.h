@@ -107,6 +107,14 @@ enum class ResultStatus : u16 {
     ErrorMissingSDSaveKeySource,
     ErrorMissingSDNCAKeySource,
     ErrorNSPMissingProgramNCA,
+    ErrorBadBKTRHeader,
+    ErrorBKTRSubsectionNotAfterRelocation,
+    ErrorBKTRSubsectionNotAtEnd,
+    ErrorBadRelocationBlock,
+    ErrorBadSubsectionBlock,
+    ErrorBadRelocationBuckets,
+    ErrorBadSubsectionBuckets,
+    ErrorMissingBKTRBaseRomFS,
 };
 
 std::ostream& operator<<(std::ostream& os, ResultStatus status);
@@ -197,13 +205,22 @@ public:
     }
 
     /**
-     * Get the update RomFS of the application
-     * Since the RomFS can be huge, we return a file reference instead of copying to a buffer
-     * @param file The file containing the RomFS
-     * @return ResultStatus result of function
+     * Get whether or not updates can be applied to the RomFS.
+     * By default, this is true, however for formats where it cannot be guaranteed that the RomFS is
+     * the base game it should be set to false.
+     * @return bool whether or not updatable.
      */
-    virtual ResultStatus ReadUpdateRomFS(FileSys::VirtualFile& file) {
-        return ResultStatus::ErrorNotImplemented;
+    virtual bool IsRomFSUpdatable() const {
+        return true;
+    }
+
+    /**
+     * Gets the difference between the start of the IVFC header and the start of level 6 (RomFS)
+     * data. Needed for bktr patching.
+     * @return IVFC offset for romfs.
+     */
+    virtual u64 ReadRomFSIVFCOffset() const {
+        return 0;
     }
 
     /**

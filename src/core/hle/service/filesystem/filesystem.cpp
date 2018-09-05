@@ -10,6 +10,7 @@
 #include "core/file_sys/bis_factory.h"
 #include "core/file_sys/errors.h"
 #include "core/file_sys/mode.h"
+#include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs_factory.h"
 #include "core/file_sys/savedata_factory.h"
 #include "core/file_sys/sdmc_factory.h"
@@ -305,6 +306,12 @@ ResultVal<FileSys::VirtualDir> OpenSDMC() {
     }
 
     return sdmc_factory->Open();
+}
+
+std::shared_ptr<FileSys::RegisteredCacheUnion> GetUnionContents() {
+    return std::make_shared<FileSys::RegisteredCacheUnion>(
+        std::vector<std::shared_ptr<FileSys::RegisteredCache>>{
+            GetSystemNANDContents(), GetUserNANDContents(), GetSDMCContents()});
 }
 
 std::shared_ptr<FileSys::RegisteredCache> GetSystemNANDContents() {

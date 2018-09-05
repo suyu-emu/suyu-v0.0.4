@@ -32,6 +32,8 @@
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/content_archive.h"
+#include "core/file_sys/control_metadata.h"
+#include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/savedata_factory.h"
 #include "core/file_sys/submission_package.h"
@@ -592,8 +594,16 @@ void GMainWindow::BootGame(const QString& filename) {
 
     std::string title_name;
     const auto res = Core::System::GetInstance().GetGameName(title_name);
-    if (res != Loader::ResultStatus::Success)
-        title_name = FileUtil::GetFilename(filename.toStdString());
+    if (res != Loader::ResultStatus::Success) {
+        const u64 program_id = Core::System::GetInstance().CurrentProcess()->program_id;
+
+        const auto [nacp, icon_file] = FileSys::PatchManager(program_id).GetControlMetadata();
+        if (nacp != nullptr)
+            title_name = nacp->GetApplicationName();
+
+        if (title_name.empty())
+            title_name = FileUtil::GetFilename(filename.toStdString());
+    }
 
     setWindowTitle(QString("yuzu %1| %4 | %2-%3")
                        .arg(Common::g_build_name, Common::g_scm_branch, Common::g_scm_desc,
@@ -868,7 +878,11 @@ void GMainWindow::OnMenuInstallToNAND() {
     } else {
         const auto nca = std::make_shared<FileSys::NCA>(
             vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
-        if (nca->GetStatus() != Loader::ResultStatus::Success) {
+        const auto id = nca->GetStatus();
+
+        // Game updates necessary are missing base RomFS
+        if (id != Loader::ResultStatus::Success &&
+            id != Loader::ResultStatus::ErrorMissingBKTRBaseRomFS) {
             failed();
             return;
         }

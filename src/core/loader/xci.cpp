@@ -8,7 +8,9 @@
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
+#include "core/file_sys/patch_manager.h"
 #include "core/file_sys/romfs.h"
+#include "core/file_sys/submission_package.h"
 #include "core/hle/kernel/process.h"
 #include "core/loader/nca.h"
 #include "core/loader/xci.h"
@@ -20,21 +22,13 @@ AppLoader_XCI::AppLoader_XCI(FileSys::VirtualFile file)
       nca_loader(std::make_unique<AppLoader_NCA>(xci->GetProgramNCAFile())) {
     if (xci->GetStatus() != ResultStatus::Success)
         return;
+
     const auto control_nca = xci->GetNCAByType(FileSys::NCAContentType::Control);
     if (control_nca == nullptr || control_nca->GetStatus() != ResultStatus::Success)
         return;
-    const auto romfs = FileSys::ExtractRomFS(control_nca->GetRomFS());
-    if (romfs == nullptr)
-        return;
-    for (const auto& language : FileSys::LANGUAGE_NAMES) {
-        icon_file = romfs->GetFile("icon_" + std::string(language) + ".dat");
-        if (icon_file != nullptr)
-            break;
-    }
-    const auto nacp_raw = romfs->GetFile("control.nacp");
-    if (nacp_raw == nullptr)
-        return;
-    nacp_file = std::make_shared<FileSys::NACP>(nacp_raw);
+
+    std::tie(nacp_file, icon_file) =
+        FileSys::PatchManager(xci->GetProgramTitleID()).ParseControlNCA(control_nca);
 }
 
 AppLoader_XCI::~AppLoader_XCI() = default;
