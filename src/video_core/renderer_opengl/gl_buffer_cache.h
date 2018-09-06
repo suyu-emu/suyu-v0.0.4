@@ -31,7 +31,7 @@ struct CachedBufferEntry final {
 
 class OGLBufferCache final : public RasterizerCache<std::shared_ptr<CachedBufferEntry>> {
 public:
-    OGLBufferCache(size_t size);
+    explicit OGLBufferCache(size_t size);
 
     GLintptr UploadMemory(Tegra::GPUVAddr gpu_addr, size_t size, size_t alignment = 4,
                           bool cache = true);
