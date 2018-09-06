@@ -69,57 +69,64 @@ void GPU::WriteReg(u32 method, u32 subchannel, u32 value, u32 remaining_params) 
     }
 }
 
-void GPU::ProcessCommandList(GPUVAddr address, u32 size) {
-    const boost::optional<VAddr> head_address = memory_manager->GpuToCpuAddress(address);
-    VAddr current_addr = *head_address;
-    while (current_addr < *head_address + size * sizeof(CommandHeader)) {
-        const CommandHeader header = {Memory::Read32(current_addr)};
-        current_addr += sizeof(u32);
+MICROPROFILE_DEFINE(ProcessCommandLists, "GPU", "Execute command buffer", MP_RGB(128, 128, 192));
 
-        switch (header.mode.Value()) {
-        case SubmissionMode::IncreasingOld:
-        case SubmissionMode::Increasing: {
-            // Increase the method value with each argument.
-            for (unsigned i = 0; i < header.arg_count; ++i) {
-                WriteReg(header.method + i, header.subchannel, Memory::Read32(current_addr),
-                         header.arg_count - i - 1);
-                current_addr += sizeof(u32);
-            }
-            break;
-        }
-        case SubmissionMode::NonIncreasingOld:
-        case SubmissionMode::NonIncreasing: {
-            // Use the same method value for all arguments.
-            for (unsigned i = 0; i < header.arg_count; ++i) {
-                WriteReg(header.method, header.subchannel, Memory::Read32(current_addr),
-                         header.arg_count - i - 1);
-                current_addr += sizeof(u32);
-            }
-            break;
-        }
-        case SubmissionMode::IncreaseOnce: {
-            ASSERT(header.arg_count.Value() >= 1);
-
-            // Use the original method for the first argument and then the next method for all other
-            // arguments.
-            WriteReg(header.method, header.subchannel, Memory::Read32(current_addr),
-                     header.arg_count - 1);
+void GPU::ProcessCommandLists(const std::vector<CommandListHeader>& commands) {
+    MICROPROFILE_SCOPE(ProcessCommandLists);
+    for (auto entry : commands) {
+        Tegra::GPUVAddr address = entry.Address();
+        u32 size = entry.sz;
+        const boost::optional<VAddr> head_address = memory_manager->GpuToCpuAddress(address);
+        VAddr current_addr = *head_address;
+        while (current_addr < *head_address + size * sizeof(CommandHeader)) {
+            const CommandHeader header = {Memory::Read32(current_addr)};
             current_addr += sizeof(u32);
 
-            for (unsigned i = 1; i < header.arg_count; ++i) {
-                WriteReg(header.method + 1, header.subchannel, Memory::Read32(current_addr),
-                         header.arg_count - i - 1);
-                current_addr += sizeof(u32);
+            switch (header.mode.Value()) {
+            case SubmissionMode::IncreasingOld:
+            case SubmissionMode::Increasing: {
+                // Increase the method value with each argument.
+                for (unsigned i = 0; i < header.arg_count; ++i) {
+                    WriteReg(header.method + i, header.subchannel, Memory::Read32(current_addr),
+                             header.arg_count - i - 1);
+                    current_addr += sizeof(u32);
+                }
+                break;
             }
-            break;
-        }
-        case SubmissionMode::Inline: {
-            // The register value is stored in the bits 16-28 as an immediate
-            WriteReg(header.method, header.subchannel, header.inline_data, 0);
-            break;
-        }
-        default:
-            UNIMPLEMENTED();
+            case SubmissionMode::NonIncreasingOld:
+            case SubmissionMode::NonIncreasing: {
+                // Use the same method value for all arguments.
+                for (unsigned i = 0; i < header.arg_count; ++i) {
+                    WriteReg(header.method, header.subchannel, Memory::Read32(current_addr),
+                             header.arg_count - i - 1);
+                    current_addr += sizeof(u32);
+                }
+                break;
+            }
+            case SubmissionMode::IncreaseOnce: {
+                ASSERT(header.arg_count.Value() >= 1);
+
+                // Use the original method for the first argument and then the next method for all
+                // other arguments.
+                WriteReg(header.method, header.subchannel, Memory::Read32(current_addr),
+                         header.arg_count - 1);
+                current_addr += sizeof(u32);
+
+                for (unsigned i = 1; i < header.arg_count; ++i) {
+                    WriteReg(header.method + 1, header.subchannel, Memory::Read32(current_addr),
+                             header.arg_count - i - 1);
+                    current_addr += sizeof(u32);
+                }
+                break;
+            }
+            case SubmissionMode::Inline: {
+                // The register value is stored in the bits 16-28 as an immediate
+                WriteReg(header.method, header.subchannel, header.inline_data, 0);
+                break;
+            }
+            default:
+                UNIMPLEMENTED();
+            }
         }
     }
 }
