@@ -49,9 +49,9 @@ protected:
 private:
     OGLStreamBuffer stream_buffer;
 
-    u8* buffer_ptr;
-    GLintptr buffer_offset;
-    GLintptr buffer_offset_base;
+    u8* buffer_ptr = nullptr;
+    GLintptr buffer_offset = 0;
+    GLintptr buffer_offset_base = 0;
 };
 
 } // namespace OpenGL
