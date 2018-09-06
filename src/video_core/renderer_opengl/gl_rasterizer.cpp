@@ -237,6 +237,8 @@ void RasterizerOpenGL::SetupShaders() {
         }
     }
 
+    state.Apply();
+
     shader_program_manager->UseTrivialGeometryShader();
 }
 
@@ -666,8 +668,6 @@ u32 RasterizerOpenGL::SetupConstBuffers(Maxwell::ShaderStage stage, Shader& shad
                               current_bindpoint + bindpoint);
     }
 
-    state.Apply();
-
     return current_bindpoint + static_cast<u32>(entries.size());
 }
 
@@ -713,8 +713,6 @@ u32 RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, Shader& shader, 
             state.texture_units[current_bindpoint].texture_2d = 0;
         }
     }
-
-    state.Apply();
 
     return current_unit + static_cast<u32>(entries.size());
 }
