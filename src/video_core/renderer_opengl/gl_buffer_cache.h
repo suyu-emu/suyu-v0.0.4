@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include <cstddef>
 #include <memory>
-#include <unordered_map>
 
 #include "common/common_types.h"
 #include "video_core/rasterizer_cache.h"
@@ -31,7 +31,7 @@ struct CachedBufferEntry final {
 
 class OGLBufferCache final : public RasterizerCache<std::shared_ptr<CachedBufferEntry>> {
 public:
-    OGLBufferCache(size_t size);
+    explicit OGLBufferCache(size_t size);
 
     GLintptr UploadMemory(Tegra::GPUVAddr gpu_addr, size_t size, size_t alignment = 4,
                           bool cache = true);
@@ -41,7 +41,7 @@ public:
     void Map(size_t max_size);
     void Unmap();
 
-    GLuint GetHandle();
+    GLuint GetHandle() const;
 
 protected:
     void AlignBuffer(size_t alignment);
@@ -49,9 +49,9 @@ protected:
 private:
     OGLStreamBuffer stream_buffer;
 
-    u8* buffer_ptr;
-    GLintptr buffer_offset;
-    GLintptr buffer_offset_base;
+    u8* buffer_ptr = nullptr;
+    GLintptr buffer_offset = 0;
+    GLintptr buffer_offset_base = 0;
 };
 
 } // namespace OpenGL

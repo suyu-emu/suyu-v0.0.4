@@ -2,8 +2,10 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cstring>
+#include <memory>
+
 #include "common/alignment.h"
-#include "common/assert.h"
 #include "core/core.h"
 #include "core/memory.h"
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
@@ -75,7 +77,7 @@ void OGLBufferCache::Unmap() {
     stream_buffer.Unmap(buffer_offset - buffer_offset_base);
 }
 
-GLuint OGLBufferCache::GetHandle() {
+GLuint OGLBufferCache::GetHandle() const {
     return stream_buffer.GetHandle();
 }
 
