@@ -2197,11 +2197,15 @@ private:
             case OpCode::Id::IPA: {
                 const auto& attribute = instr.attribute.fmt28;
                 const auto& reg = instr.gpr0;
-                ASSERT_MSG(instr.ipa.saturate == 0, "IPA saturate not implemented");
+
                 Tegra::Shader::IpaMode input_mode{instr.ipa.interp_mode.Value(),
                                                   instr.ipa.sample_mode.Value()};
                 regs.SetRegisterToInputAttibute(reg, attribute.element, attribute.index,
                                                 input_mode);
+
+                if (instr.ipa.saturate) {
+                    regs.SetRegisterToFloat(reg, 0, regs.GetRegisterAsFloat(reg), 1, 1, true);
+                }
                 break;
             }
             case OpCode::Id::SSY: {
