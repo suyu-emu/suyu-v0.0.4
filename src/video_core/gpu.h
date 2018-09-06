@@ -132,9 +132,6 @@ public:
     const Tegra::MemoryManager& MemoryManager() const;
 
 private:
-    /// Writes a single register in the engine bound to the specified subchannel
-    void WriteReg(u32 method, u32 subchannel, u32 value, u32 remaining_params);
-
     std::unique_ptr<Tegra::MemoryManager> memory_manager;
 
     /// Mapping of command subchannels to their bound engine ids.
