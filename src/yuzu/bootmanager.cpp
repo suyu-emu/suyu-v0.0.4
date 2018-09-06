@@ -256,6 +256,7 @@ void GRenderWindow::InitRenderTarget() {
     QGLFormat fmt;
     fmt.setVersion(3, 3);
     fmt.setProfile(QGLFormat::CoreProfile);
+    fmt.setSwapInterval(false);
 
     // Requests a forward-compatible context, which is required to get a 3.2+ context on OS X
     fmt.setOption(QGL::NoDeprecatedFunctions);
