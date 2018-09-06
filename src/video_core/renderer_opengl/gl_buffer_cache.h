@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include <cstddef>
 #include <memory>
-#include <unordered_map>
 
 #include "common/common_types.h"
 #include "video_core/rasterizer_cache.h"
