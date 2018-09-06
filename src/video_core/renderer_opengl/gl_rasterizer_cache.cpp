@@ -245,7 +245,8 @@ static bool IsFormatBCn(PixelFormat format) {
 }
 
 template <bool morton_to_gl, PixelFormat format>
-void MortonCopy(u32 stride, u32 block_height, u32 height, std::vector<u8>& gl_buffer, VAddr addr) {
+void MortonCopy(u32 stride, u32 block_height, u32 height, u8* gl_buffer, size_t gl_buffer_size,
+                VAddr addr) {
     constexpr u32 bytes_per_pixel = SurfaceParams::GetFormatBpp(format) / CHAR_BIT;
     constexpr u32 gl_bytes_per_pixel = CachedSurface::GetGLBytesPerPixel(format);
 
@@ -255,18 +256,18 @@ void MortonCopy(u32 stride, u32 block_height, u32 height, std::vector<u8>& gl_bu
         const u32 tile_size{IsFormatBCn(format) ? 4U : 1U};
         const std::vector<u8> data = Tegra::Texture::UnswizzleTexture(
             addr, tile_size, bytes_per_pixel, stride, height, block_height);
-        const size_t size_to_copy{std::min(gl_buffer.size(), data.size())};
-        gl_buffer.assign(data.begin(), data.begin() + size_to_copy);
+        const size_t size_to_copy{std::min(gl_buffer_size, data.size())};
+        memcpy(gl_buffer, data.data(), size_to_copy);
     } else {
         // TODO(bunnei): Assumes the default rendering GOB size of 16 (128 lines). We should
         // check the configuration for this and perform more generic un/swizzle
         LOG_WARNING(Render_OpenGL, "need to use correct swizzle/GOB parameters!");
         VideoCore::MortonCopyPixels128(stride, height, bytes_per_pixel, gl_bytes_per_pixel,
-                                       Memory::GetPointer(addr), gl_buffer.data(), morton_to_gl);
+                                       Memory::GetPointer(addr), gl_buffer, morton_to_gl);
     }
 }
 
-static constexpr std::array<void (*)(u32, u32, u32, std::vector<u8>&, VAddr),
+static constexpr std::array<void (*)(u32, u32, u32, u8*, size_t, VAddr),
                             SurfaceParams::MaxPixelFormat>
     morton_to_gl_fns = {
         // clang-format off
@@ -323,7 +324,7 @@ static constexpr std::array<void (*)(u32, u32, u32, std::vector<u8>&, VAddr),
         // clang-format on
 };
 
-static constexpr std::array<void (*)(u32, u32, u32, std::vector<u8>&, VAddr),
+static constexpr std::array<void (*)(u32, u32, u32, u8*, size_t, VAddr),
                             SurfaceParams::MaxPixelFormat>
     gl_to_morton_fns = {
         // clang-format off
@@ -441,29 +442,51 @@ CachedSurface::CachedSurface(const SurfaceParams& params)
     texture.Create();
     const auto& rect{params.GetRect()};
 
-    OpenGLState cur_state = OpenGLState::GetCurState();
-
     // Keep track of previous texture bindings
-    GLuint old_tex = cur_state.texture_units[0].texture;
+    OpenGLState cur_state = OpenGLState::GetCurState();
+    const auto& old_tex = cur_state.texture_units[0];
+    SCOPE_EXIT({
+        cur_state.texture_units[0] = old_tex;
+        cur_state.Apply();
+    });
+
     cur_state.texture_units[0].texture = texture.handle;
+    cur_state.texture_units[0].target = SurfaceTargetToGL(params.target);
     cur_state.Apply();
     glActiveTexture(GL_TEXTURE0);
 
     const auto& format_tuple = GetFormatTuple(params.pixel_format, params.component_type);
     if (!format_tuple.compressed) {
         // Only pre-create the texture for non-compressed textures.
-        glTexImage2D(GL_TEXTURE_2D, 0, format_tuple.internal_format, rect.GetWidth(),
-                     rect.GetHeight(), 0, format_tuple.format, format_tuple.type, nullptr);
+        switch (params.target) {
+        case SurfaceParams::SurfaceTarget::Texture1D:
+            glTexImage1D(SurfaceTargetToGL(params.target), 0, format_tuple.internal_format,
+                         rect.GetWidth(), 0, format_tuple.format, format_tuple.type, nullptr);
+            break;
+        case SurfaceParams::SurfaceTarget::Texture2D:
+            glTexImage2D(SurfaceTargetToGL(params.target), 0, format_tuple.internal_format,
+                         rect.GetWidth(), rect.GetHeight(), 0, format_tuple.format,
+                         format_tuple.type, nullptr);
+            break;
+        case SurfaceParams::SurfaceTarget::Texture3D:
+        case SurfaceParams::SurfaceTarget::Texture2DArray:
+            glTexImage3D(SurfaceTargetToGL(params.target), 0, format_tuple.internal_format,
+                         rect.GetWidth(), rect.GetHeight(), params.depth, 0, format_tuple.format,
+                         format_tuple.type, nullptr);
+            break;
+        default:
+            LOG_CRITICAL(Render_OpenGL, "Unimplemented surface target={}",
+                         static_cast<u32>(params.target));
+            UNREACHABLE();
+            glTexImage2D(GL_TEXTURE_2D, 0, format_tuple.internal_format, rect.GetWidth(),
+                         rect.GetHeight(), 0, format_tuple.format, format_tuple.type, nullptr);
+        }
     }
 
     glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_MAX_LEVEL, 0);
     glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    // Restore previous texture bindings
-    cur_state.texture_units[0].texture = old_tex;
-    cur_state.Apply();
 }
 
 static void ConvertS8Z24ToZ24S8(std::vector<u8>& data, u32 width, u32 height) {
@@ -548,13 +571,24 @@ void CachedSurface::LoadGLBuffer() {
     MICROPROFILE_SCOPE(OpenGL_SurfaceLoad);
 
     if (params.is_tiled) {
-        gl_buffer.resize(copy_size);
+        // TODO(bunnei): This only unswizzles and copies a 2D texture - we do not yet know how to do
+        // this for 3D textures, etc.
+        switch (params.target) {
+        case SurfaceParams::SurfaceTarget::Texture2D:
+            // Pass impl. to the fallback code below
+            break;
+        default:
+            LOG_CRITICAL(HW_GPU, "Unimplemented tiled load for target={}",
+                         static_cast<u32>(params.target));
+            UNREACHABLE();
+        }
 
+        gl_buffer.resize(params.depth * copy_size);
         morton_to_gl_fns[static_cast<size_t>(params.pixel_format)](
-            params.width, params.block_height, params.height, gl_buffer, params.addr);
+            params.width, params.block_height, params.height, gl_buffer.data(), copy_size,
+            params.addr);
     } else {
-        const u8* const texture_src_data_end = texture_src_data + copy_size;
-
+        const u8* const texture_src_data_end{texture_src_data + (params.depth * copy_size)};
         gl_buffer.assign(texture_src_data, texture_src_data_end);
     }
 
@@ -574,7 +608,7 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
     MICROPROFILE_SCOPE(OpenGL_TextureUL);
 
     ASSERT(gl_buffer.size() ==
-           params.width * params.height * GetGLBytesPerPixel(params.pixel_format));
+           params.width * params.height * GetGLBytesPerPixel(params.pixel_format) * params.depth);
 
     const auto& rect{params.GetRect()};
 
@@ -587,8 +621,13 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
     GLuint target_tex = texture.handle;
     OpenGLState cur_state = OpenGLState::GetCurState();
 
-    GLuint old_tex = cur_state.texture_units[0].texture;
+    const auto& old_tex = cur_state.texture_units[0];
+    SCOPE_EXIT({
+        cur_state.texture_units[0] = old_tex;
+        cur_state.Apply();
+    });
     cur_state.texture_units[0].texture = target_tex;
+    cur_state.texture_units[0].target = SurfaceTargetToGL(params.target);
     cur_state.Apply();
 
     // Ensure no bad interactions with GL_UNPACK_ALIGNMENT
@@ -597,20 +636,62 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
 
     glActiveTexture(GL_TEXTURE0);
     if (tuple.compressed) {
-        glCompressedTexImage2D(
-            GL_TEXTURE_2D, 0, tuple.internal_format, static_cast<GLsizei>(params.width),
-            static_cast<GLsizei>(params.height), 0, static_cast<GLsizei>(params.size_in_bytes),
-            &gl_buffer[buffer_offset]);
+        switch (params.target) {
+        case SurfaceParams::SurfaceTarget::Texture2D:
+            glCompressedTexImage2D(
+                SurfaceTargetToGL(params.target), 0, tuple.internal_format,
+                static_cast<GLsizei>(params.width), static_cast<GLsizei>(params.height), 0,
+                static_cast<GLsizei>(params.size_in_bytes), &gl_buffer[buffer_offset]);
+            break;
+        case SurfaceParams::SurfaceTarget::Texture3D:
+        case SurfaceParams::SurfaceTarget::Texture2DArray:
+            glCompressedTexImage3D(
+                SurfaceTargetToGL(params.target), 0, tuple.internal_format,
+                static_cast<GLsizei>(params.width), static_cast<GLsizei>(params.height),
+                static_cast<GLsizei>(params.depth), 0, static_cast<GLsizei>(params.size_in_bytes),
+                &gl_buffer[buffer_offset]);
+            break;
+        default:
+            LOG_CRITICAL(Render_OpenGL, "Unimplemented surface target={}",
+                         static_cast<u32>(params.target));
+            UNREACHABLE();
+            glCompressedTexImage2D(
+                GL_TEXTURE_2D, 0, tuple.internal_format, static_cast<GLsizei>(params.width),
+                static_cast<GLsizei>(params.height), 0, static_cast<GLsizei>(params.size_in_bytes),
+                &gl_buffer[buffer_offset]);
+        }
     } else {
-        glTexSubImage2D(GL_TEXTURE_2D, 0, x0, y0, static_cast<GLsizei>(rect.GetWidth()),
-                        static_cast<GLsizei>(rect.GetHeight()), tuple.format, tuple.type,
-                        &gl_buffer[buffer_offset]);
+
+        switch (params.target) {
+        case SurfaceParams::SurfaceTarget::Texture1D:
+            glTexSubImage1D(SurfaceTargetToGL(params.target), 0, x0,
+                            static_cast<GLsizei>(rect.GetWidth()), tuple.format, tuple.type,
+                            &gl_buffer[buffer_offset]);
+            break;
+        case SurfaceParams::SurfaceTarget::Texture2D:
+            glTexSubImage2D(SurfaceTargetToGL(params.target), 0, x0, y0,
+                            static_cast<GLsizei>(rect.GetWidth()),
+                            static_cast<GLsizei>(rect.GetHeight()), tuple.format, tuple.type,
+                            &gl_buffer[buffer_offset]);
+            break;
+        case SurfaceParams::SurfaceTarget::Texture3D:
+        case SurfaceParams::SurfaceTarget::Texture2DArray:
+            glTexSubImage3D(SurfaceTargetToGL(params.target), 0, x0, y0, 0,
+                            static_cast<GLsizei>(rect.GetWidth()),
+                            static_cast<GLsizei>(rect.GetHeight()), params.depth, tuple.format,
+                            tuple.type, &gl_buffer[buffer_offset]);
+            break;
+        default:
+            LOG_CRITICAL(Render_OpenGL, "Unimplemented surface target={}",
+                         static_cast<u32>(params.target));
+            UNREACHABLE();
+            glTexSubImage2D(GL_TEXTURE_2D, 0, x0, y0, static_cast<GLsizei>(rect.GetWidth()),
+                            static_cast<GLsizei>(rect.GetHeight()), tuple.format, tuple.type,
+                            &gl_buffer[buffer_offset]);
+        }
     }
 
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-
-    cur_state.texture_units[0].texture = old_tex;
-    cur_state.Apply();
 }
 
 RasterizerCacheOpenGL::RasterizerCacheOpenGL() {
