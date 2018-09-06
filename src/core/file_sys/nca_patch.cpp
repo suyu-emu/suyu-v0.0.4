@@ -2,6 +2,10 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <cstddef>
+#include <cstring>
+
 #include "common/assert.h"
 #include "core/crypto/aes_util.h"
 #include "core/file_sys/nca_patch.h"
