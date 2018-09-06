@@ -41,7 +41,7 @@ public:
     void Map(size_t max_size);
     void Unmap();
 
-    GLuint GetHandle();
+    GLuint GetHandle() const;
 
 protected:
     void AlignBuffer(size_t alignment);

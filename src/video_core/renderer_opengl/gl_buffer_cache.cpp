@@ -77,7 +77,7 @@ void OGLBufferCache::Unmap() {
     stream_buffer.Unmap(buffer_offset - buffer_offset_base);
 }
 
-GLuint OGLBufferCache::GetHandle() {
+GLuint OGLBufferCache::GetHandle() const {
     return stream_buffer.GetHandle();
 }
 
