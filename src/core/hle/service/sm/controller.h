@@ -11,7 +11,7 @@ namespace Service::SM {
 class Controller final : public ServiceFramework<Controller> {
 public:
     Controller();
-    ~Controller() = default;
+    ~Controller() override;
 
 private:
     void ConvertSessionToDomain(Kernel::HLERequestContext& ctx);

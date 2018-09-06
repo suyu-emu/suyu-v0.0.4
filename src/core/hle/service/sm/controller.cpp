@@ -57,4 +57,6 @@ Controller::Controller() : ServiceFramework("IpcController") {
     RegisterHandlers(functions);
 }
 
+Controller::~Controller() = default;
+
 } // namespace Service::SM

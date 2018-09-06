@@ -15,6 +15,7 @@
 
 namespace Service::SM {
 
+ServiceManager::ServiceManager() = default;
 ServiceManager::~ServiceManager() = default;
 
 void ServiceManager::InvokeControlRequest(Kernel::HLERequestContext& context) {
