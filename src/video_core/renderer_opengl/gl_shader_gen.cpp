@@ -42,6 +42,7 @@ layout (std140) uniform vs_config {
 };
 
 void main() {
+    position = vec4(0.0, 0.0, 0.0, 0.0);
     exec_vertex();
 )";
 
