@@ -17,9 +17,9 @@ BKTR::BKTR(VirtualFile base_romfs_, VirtualFile bktr_romfs_, RelocationBlock rel
            std::vector<SubsectionBucket> subsection_buckets_, bool is_encrypted_,
            Core::Crypto::Key128 key_, u64 base_offset_, u64 ivfc_offset_,
            std::array<u8, 8> section_ctr_)
-    : base_romfs(std::move(base_romfs_)), bktr_romfs(std::move(bktr_romfs_)),
-      relocation(relocation_), relocation_buckets(std::move(relocation_buckets_)),
+    : relocation(relocation_), relocation_buckets(std::move(relocation_buckets_)),
       subsection(subsection_), subsection_buckets(std::move(subsection_buckets_)),
+      base_romfs(std::move(base_romfs_)), bktr_romfs(std::move(bktr_romfs_)),
       encrypted(is_encrypted_), key(key_), base_offset(base_offset_), ivfc_offset(ivfc_offset_),
       section_ctr(section_ctr_) {
     for (size_t i = 0; i < relocation.number_buckets - 1; ++i) {
