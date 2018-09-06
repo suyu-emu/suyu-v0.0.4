@@ -46,6 +46,7 @@ class ServiceManager {
 public:
     static void InstallInterfaces(std::shared_ptr<ServiceManager> self);
 
+    ServiceManager();
     ~ServiceManager();
 
     ResultVal<Kernel::SharedPtr<Kernel::ServerPort>> RegisterService(std::string name,
