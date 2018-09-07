@@ -136,7 +136,7 @@ struct System::Impl {
         if (virtual_filesystem == nullptr)
             virtual_filesystem = std::make_shared<FileSys::RealVfsFilesystem>();
 
-        current_process = Kernel::Process::Create(kernel, "main");
+        kernel.MakeCurrentProcess(Kernel::Process::Create(kernel, "main"));
 
         cpu_barrier = std::make_shared<CpuBarrier>();
         cpu_exclusive_monitor = Cpu::MakeExclusiveMonitor(cpu_cores.size());
@@ -202,7 +202,7 @@ struct System::Impl {
             return init_result;
         }
 
-        const Loader::ResultStatus load_result{app_loader->Load(current_process)};
+        const Loader::ResultStatus load_result{app_loader->Load(kernel.CurrentProcess())};
         if (load_result != Loader::ResultStatus::Success) {
             LOG_CRITICAL(Core, "Failed to load ROM (Error {})!", static_cast<int>(load_result));
             Shutdown();
@@ -281,7 +281,6 @@ struct System::Impl {
     std::unique_ptr<VideoCore::RendererBase> renderer;
     std::unique_ptr<Tegra::GPU> gpu_core;
     std::shared_ptr<Tegra::DebugContext> debug_context;
-    Kernel::SharedPtr<Kernel::Process> current_process;
     std::shared_ptr<ExclusiveMonitor> cpu_exclusive_monitor;
     std::shared_ptr<CpuBarrier> cpu_barrier;
     std::array<std::shared_ptr<Cpu>, NUM_CPU_CORES> cpu_cores;
@@ -363,7 +362,11 @@ const std::shared_ptr<Kernel::Scheduler>& System::Scheduler(size_t core_index) {
 }
 
 Kernel::SharedPtr<Kernel::Process>& System::CurrentProcess() {
-    return impl->current_process;
+    return impl->kernel.CurrentProcess();
+}
+
+const Kernel::SharedPtr<Kernel::Process>& System::CurrentProcess() const {
+    return impl->kernel.CurrentProcess();
 }
 
 ARM_Interface& System::ArmInterface(size_t core_index) {
