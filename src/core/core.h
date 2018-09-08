@@ -174,8 +174,11 @@ public:
     /// Gets the scheduler for the CPU core with the specified index
     const std::shared_ptr<Kernel::Scheduler>& Scheduler(size_t core_index);
 
-    /// Gets the current process
+    /// Provides a reference to the current process
     Kernel::SharedPtr<Kernel::Process>& CurrentProcess();
+
+    /// Provides a constant reference to the current process.
+    const Kernel::SharedPtr<Kernel::Process>& CurrentProcess() const;
 
     /// Provides a reference to the kernel instance.
     Kernel::KernelCore& Kernel();

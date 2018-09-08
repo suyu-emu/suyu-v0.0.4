@@ -116,6 +116,7 @@ struct KernelCore::Impl {
         next_thread_id = 1;
 
         process_list.clear();
+        current_process.reset();
 
         handle_table.Clear();
         resource_limits.fill(nullptr);
@@ -206,6 +207,7 @@ struct KernelCore::Impl {
 
     // Lists all processes that exist in the current session.
     std::vector<SharedPtr<Process>> process_list;
+    SharedPtr<Process> current_process;
 
     Kernel::HandleTable handle_table;
     std::array<SharedPtr<ResourceLimit>, 4> resource_limits;
@@ -262,6 +264,18 @@ SharedPtr<Timer> KernelCore::RetrieveTimerFromCallbackHandleTable(Handle handle)
 
 void KernelCore::AppendNewProcess(SharedPtr<Process> process) {
     impl->process_list.push_back(std::move(process));
+}
+
+void KernelCore::MakeCurrentProcess(SharedPtr<Process> process) {
+    impl->current_process = std::move(process);
+}
+
+SharedPtr<Process>& KernelCore::CurrentProcess() {
+    return impl->current_process;
+}
+
+const SharedPtr<Process>& KernelCore::CurrentProcess() const {
+    return impl->current_process;
 }
 
 void KernelCore::AddNamedPort(std::string name, SharedPtr<ClientPort> port) {

@@ -65,6 +65,15 @@ public:
     /// Adds the given shared pointer to an internal list of active processes.
     void AppendNewProcess(SharedPtr<Process> process);
 
+    /// Makes the given process the new current process.
+    void MakeCurrentProcess(SharedPtr<Process> process);
+
+    /// Retrieves a reference to the current process.
+    SharedPtr<Process>& CurrentProcess();
+
+    /// Retrieves a const reference to the current process.
+    const SharedPtr<Process>& CurrentProcess() const;
+
     /// Adds a port to the named port table
     void AddNamedPort(std::string name, SharedPtr<ClientPort> port);
 
