@@ -2,7 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <atomic>
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/core_timing.h"
@@ -78,7 +77,7 @@ private:
         SharedMemory mem{};
         std::memcpy(&mem, shared_mem->GetPointer(), sizeof(SharedMemory));
 
-        if (is_device_reload_pending.exchange(false))
+        if (Settings::values.is_device_reload_pending.exchange(false))
             LoadInputDevices();
 
         // Set up controllers as neon red+blue Joy-Con attached to console
@@ -267,7 +266,6 @@ private:
     CoreTiming::EventType* pad_update_event;
 
     // Stored input state info
-    std::atomic<bool> is_device_reload_pending{true};
     std::array<std::unique_ptr<Input::ButtonDevice>, Settings::NativeButton::NUM_BUTTONS_HID>
         buttons;
     std::array<std::unique_ptr<Input::AnalogDevice>, Settings::NativeAnalog::NUM_STICKS_HID> sticks;
@@ -797,7 +795,9 @@ public:
     }
 };
 
-void ReloadInputDevices() {}
+void ReloadInputDevices() {
+    Settings::values.is_device_reload_pending.store(true);
+}
 
 void InstallInterfaces(SM::ServiceManager& service_manager) {
     std::make_shared<Hid>()->InstallAsService(service_manager);
