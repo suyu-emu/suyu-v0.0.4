@@ -17,6 +17,8 @@ add_library(audio_core STATIC
     sink_stream.h
     stream.cpp
     stream.h
+    time_stretch.cpp
+    time_stretch.h
 
     $<$<BOOL:${ENABLE_CUBEB}>:cubeb_sink.cpp cubeb_sink.h>
 )
