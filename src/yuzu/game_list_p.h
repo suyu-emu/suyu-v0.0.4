@@ -6,9 +6,7 @@
 
 #include <algorithm>
 #include <array>
-#include <atomic>
 #include <map>
-#include <memory>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -16,7 +14,6 @@
 #include <QCoreApplication>
 #include <QImage>
 #include <QObject>
-#include <QRunnable>
 #include <QStandardItem>
 #include <QString>
 
@@ -25,12 +22,6 @@
 #include "common/string_util.h"
 #include "yuzu/ui_settings.h"
 #include "yuzu/util/util.h"
-
-namespace FileSys {
-class NCA;
-class RegisteredCache;
-class VfsFilesystem;
-} // namespace FileSys
 
 /**
  * Gets the default icon (for games without valid SMDH)
@@ -41,17 +32,6 @@ static QPixmap GetDefaultIcon(u32 size) {
     QPixmap icon(size, size);
     icon.fill(Qt::transparent);
     return icon;
-}
-
-static auto FindMatchingCompatibilityEntry(
-    const std::unordered_map<std::string, std::pair<QString, QString>>& compatibility_list,
-    u64 program_id) {
-    return std::find_if(
-        compatibility_list.begin(), compatibility_list.end(),
-        [program_id](const std::pair<std::string, std::pair<QString, QString>>& element) {
-            std::string pid = fmt::format("{:016X}", program_id);
-            return element.first == pid;
-        });
 }
 
 class GameListItem : public QStandardItem {
@@ -197,49 +177,13 @@ public:
     }
 };
 
-/**
- * Asynchronous worker object for populating the game list.
- * Communicates with other threads through Qt's signal/slot system.
- */
-class GameListWorker : public QObject, public QRunnable {
-    Q_OBJECT
-
-public:
-    GameListWorker(
-        std::shared_ptr<FileSys::VfsFilesystem> vfs, QString dir_path, bool deep_scan,
-        const std::unordered_map<std::string, std::pair<QString, QString>>& compatibility_list);
-    ~GameListWorker() override;
-
-public slots:
-    /// Starts the processing of directory tree information.
-    void run() override;
-    /// Tells the worker that it should no longer continue processing. Thread-safe.
-    void Cancel();
-
-signals:
-    /**
-     * The `EntryReady` signal is emitted once an entry has been prepared and is ready
-     * to be added to the game list.
-     * @param entry_items a list with `QStandardItem`s that make up the columns of the new entry.
-     */
-    void EntryReady(QList<QStandardItem*> entry_items);
-
-    /**
-     * After the worker has traversed the game directory looking for entries, this signal is emmited
-     * with a list of folders that should be watched for changes as well.
-     */
-    void Finished(QStringList watch_list);
-
-private:
-    std::shared_ptr<FileSys::VfsFilesystem> vfs;
-    std::map<u64, std::shared_ptr<FileSys::NCA>> nca_control_map;
-    QStringList watch_list;
-    QString dir_path;
-    bool deep_scan;
-    const std::unordered_map<std::string, std::pair<QString, QString>>& compatibility_list;
-    std::atomic_bool stop_processing;
-
-    void AddInstalledTitlesToGameList();
-    void FillControlMap(const std::string& dir_path);
-    void AddFstEntriesToGameList(const std::string& dir_path, unsigned int recursion = 0);
-};
+inline auto FindMatchingCompatibilityEntry(
+    const std::unordered_map<std::string, std::pair<QString, QString>>& compatibility_list,
+    u64 program_id) {
+    return std::find_if(
+        compatibility_list.begin(), compatibility_list.end(),
+        [program_id](const std::pair<std::string, std::pair<QString, QString>>& element) {
+            std::string pid = fmt::format("{:016X}", program_id);
+            return element.first == pid;
+        });
+}
