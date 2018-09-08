@@ -152,13 +152,13 @@ void RasterizerOpenGL::SetupVertexArrays() {
         const Tegra::GPUVAddr end = regs.vertex_array_limit[index].LimitAddress();
 
         if (regs.instanced_arrays.IsInstancingEnabled(index) && vertex_array.divisor != 0) {
-            start += vertex_array.stride * (gpu.state.current_instance / vertex_array.divisor);
+            start += static_cast<Tegra::GPUVAddr>(vertex_array.stride) *
+                     (gpu.state.current_instance / vertex_array.divisor);
         }
 
         ASSERT(end > start);
-        u64 size = end - start + 1;
-
-        GLintptr vertex_buffer_offset = buffer_cache.UploadMemory(start, size);
+        const u64 size = end - start + 1;
+        const GLintptr vertex_buffer_offset = buffer_cache.UploadMemory(start, size);
 
         // Bind the vertex array to the buffer at the current offset.
         glBindVertexBuffer(index, buffer_cache.GetHandle(), vertex_buffer_offset,
@@ -178,7 +178,7 @@ void RasterizerOpenGL::SetupVertexArrays() {
 
 void RasterizerOpenGL::SetupShaders() {
     MICROPROFILE_SCOPE(OpenGL_Shader);
-    auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
+    const auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
 
     // Next available bindpoints to use when uploading the const buffers and textures to the GLSL
     // shaders. The constbuffer bindpoint starts after the shader stage configuration bind points.
@@ -186,7 +186,7 @@ void RasterizerOpenGL::SetupShaders() {
     u32 current_texture_bindpoint = 0;
 
     for (size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
-        auto& shader_config = gpu.regs.shader_config[index];
+        const auto& shader_config = gpu.regs.shader_config[index];
         const Maxwell::ShaderProgram program{static_cast<Maxwell::ShaderProgram>(index)};
 
         // Skip stages that are not enabled
@@ -198,7 +198,7 @@ void RasterizerOpenGL::SetupShaders() {
 
         GLShader::MaxwellUniformData ubo{};
         ubo.SetFromRegs(gpu.state.shader_stages[stage]);
-        GLintptr offset = buffer_cache.UploadHostMemory(
+        const GLintptr offset = buffer_cache.UploadHostMemory(
             &ubo, sizeof(ubo), static_cast<size_t>(uniform_buffer_alignment));
 
         // Bind the buffer
@@ -436,7 +436,7 @@ void RasterizerOpenGL::DrawArrays() {
 
     ScopeAcquireGLContext acquire_context{emu_window};
 
-    auto [dirty_color_surface, dirty_depth_surface] =
+    const auto [dirty_color_surface, dirty_depth_surface] =
         ConfigureFramebuffers(true, regs.zeta.Address() != 0 && regs.zeta_enable != 0, true);
 
     SyncDepthTestState();
@@ -450,7 +450,8 @@ void RasterizerOpenGL::DrawArrays() {
 
     // Draw the vertex batch
     const bool is_indexed = accelerate_draw == AccelDraw::Indexed;
-    const u64 index_buffer_size{regs.index_array.count * regs.index_array.FormatSizeInBytes()};
+    const u64 index_buffer_size{static_cast<u64>(regs.index_array.count) *
+                                static_cast<u64>(regs.index_array.FormatSizeInBytes())};
 
     state.draw.vertex_buffer = buffer_cache.GetHandle();
     state.Apply();
@@ -493,7 +494,8 @@ void RasterizerOpenGL::DrawArrays() {
         const GLint base_vertex{static_cast<GLint>(regs.vb_element_base)};
 
         // Adjust the index buffer offset so it points to the first desired index.
-        index_buffer_offset += regs.index_array.first * regs.index_array.FormatSizeInBytes();
+        index_buffer_offset += static_cast<GLintptr>(regs.index_array.first) *
+                               static_cast<GLintptr>(regs.index_array.FormatSizeInBytes());
 
         glDrawElementsBaseVertex(primitive_mode, regs.index_array.count,
                                  MaxwellToGL::IndexFormat(regs.index_array.format),
@@ -588,7 +590,7 @@ void RasterizerOpenGL::SamplerInfo::Create() {
 }
 
 void RasterizerOpenGL::SamplerInfo::SyncWithConfig(const Tegra::Texture::TSCEntry& config) {
-    GLuint s = sampler.handle;
+    const GLuint s = sampler.handle;
 
     if (mag_filter != config.mag_filter) {
         mag_filter = config.mag_filter;
@@ -682,7 +684,7 @@ u32 RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, Shader& shader, 
 
     for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
         const auto& entry = entries[bindpoint];
-        u32 current_bindpoint = current_unit + bindpoint;
+        const u32 current_bindpoint = current_unit + bindpoint;
 
         // Bind the uniform to the sampler.
 
