@@ -89,6 +89,10 @@ public:
         return num_channels;
     }
 
+    u32 GetNumChannelsInQueue() const {
+        return num_channels == 1 ? 1 : 2;
+    }
+
 private:
     std::vector<std::string> device_list;
 
@@ -98,6 +102,7 @@ private:
     bool is_6_channel{};
 
     Common::RingBuffer<s16, 0x10000> queue;
+    std::array<s16, 2> last_frame;
 
     static long DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
                              void* output_buffer, long num_frames);
@@ -156,13 +161,18 @@ long CubebSinkStream::DataCallback(cubeb_stream* stream, void* user_data, const 
         return {};
     }
 
-    const size_t max_samples_to_write = impl->GetNumChannels() * num_frames;
+    const size_t num_channels = impl->GetNumChannelsInQueue();
+    const size_t max_samples_to_write = num_channels * num_frames;
     const size_t samples_written = impl->queue.Pop(buffer, max_samples_to_write);
 
-    if (samples_written < max_samples_to_write) {
-        // Fill the rest of the frames with silence
-        std::memset(buffer + samples_written * sizeof(s16), 0,
-                    (max_samples_to_write - samples_written) * sizeof(s16));
+    if (samples_written >= num_channels) {
+        std::memcpy(&impl->last_frame[0], buffer + (samples_written - num_channels) * sizeof(s16),
+                    num_channels * sizeof(s16));
+    }
+
+    // Fill the rest of the frames with last_frame
+    for (size_t i = samples_written; i < max_samples_to_write; i += num_channels) {
+        std::memcpy(buffer + i * sizeof(s16), &impl->last_frame[0], num_channels * sizeof(s16));
     }
 
     return num_frames;
