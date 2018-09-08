@@ -67,6 +67,13 @@ private:
     u64 value{};
 };
 
+enum class AttributeSize : u64 {
+    Word = 0,
+    DoubleWord = 1,
+    TripleWord = 2,
+    QuadWord = 3,
+};
+
 union Attribute {
     Attribute() = default;
 
@@ -87,9 +94,10 @@ union Attribute {
     };
 
     union {
+        BitField<20, 10, u64> immediate;
         BitField<22, 2, u64> element;
         BitField<24, 6, Index> index;
-        BitField<47, 3, u64> size;
+        BitField<47, 3, AttributeSize> size;
     } fmt20;
 
     union {

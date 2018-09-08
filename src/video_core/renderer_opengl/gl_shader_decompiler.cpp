@@ -1772,13 +1772,34 @@ private:
         case OpCode::Type::Memory: {
             switch (opcode->GetId()) {
             case OpCode::Id::LD_A: {
-                ASSERT_MSG(instr.attribute.fmt20.size == 0, "untested");
                 // Note: Shouldn't this be interp mode flat? As in no interpolation made.
+                ASSERT_MSG(instr.gpr8.Value() == Register::ZeroIndex,
+                           "Indirect attribute loads are not supported");
+                ASSERT_MSG((instr.attribute.fmt20.immediate.Value() % sizeof(u32)) == 0,
+                           "Unaligned attribute loads are not supported");
 
                 Tegra::Shader::IpaMode input_mode{Tegra::Shader::IpaInterpMode::Perspective,
                                                   Tegra::Shader::IpaSampleMode::Default};
-                regs.SetRegisterToInputAttibute(instr.gpr0, instr.attribute.fmt20.element,
-                                                instr.attribute.fmt20.index, input_mode);
+
+                u32 next_element = instr.attribute.fmt20.element;
+                u32 next_index = static_cast<u32>(instr.attribute.fmt20.index.Value());
+
+                const auto LoadNextElement = [&](u32 reg_offset) {
+                    regs.SetRegisterToInputAttibute(instr.gpr0.Value() + reg_offset, next_element,
+                                                    static_cast<Attribute::Index>(next_index),
+                                                    input_mode);
+
+                    // Load the next attribute element into the following register. If the element
+                    // to load goes beyond the vec4 size, load the first element of the next
+                    // attribute.
+                    next_element = (next_element + 1) % 4;
+                    next_index = next_index + (next_element == 0 ? 1 : 0);
+                };
+
+                const u32 num_words = static_cast<u32>(instr.attribute.fmt20.size.Value()) + 1;
+                for (u32 reg_offset = 0; reg_offset < num_words; ++reg_offset) {
+                    LoadNextElement(reg_offset);
+                }
                 break;
             }
             case OpCode::Id::LD_C: {
@@ -1820,9 +1841,31 @@ private:
                 break;
             }
             case OpCode::Id::ST_A: {
-                ASSERT_MSG(instr.attribute.fmt20.size == 0, "untested");
-                regs.SetOutputAttributeToRegister(instr.attribute.fmt20.index,
-                                                  instr.attribute.fmt20.element, instr.gpr0);
+                ASSERT_MSG(instr.gpr8.Value() == Register::ZeroIndex,
+                           "Indirect attribute loads are not supported");
+                ASSERT_MSG((instr.attribute.fmt20.immediate.Value() % sizeof(u32)) == 0,
+                           "Unaligned attribute loads are not supported");
+
+                u32 next_element = instr.attribute.fmt20.element;
+                u32 next_index = static_cast<u32>(instr.attribute.fmt20.index.Value());
+
+                const auto StoreNextElement = [&](u32 reg_offset) {
+                    regs.SetOutputAttributeToRegister(static_cast<Attribute::Index>(next_index),
+                                                      next_element,
+                                                      instr.gpr0.Value() + reg_offset);
+
+                    // Load the next attribute element into the following register. If the element
+                    // to load goes beyond the vec4 size, load the first element of the next
+                    // attribute.
+                    next_element = (next_element + 1) % 4;
+                    next_index = next_index + (next_element == 0 ? 1 : 0);
+                };
+
+                const u32 num_words = static_cast<u32>(instr.attribute.fmt20.size.Value()) + 1;
+                for (u32 reg_offset = 0; reg_offset < num_words; ++reg_offset) {
+                    StoreNextElement(reg_offset);
+                }
+
                 break;
             }
             case OpCode::Id::TEX: {
