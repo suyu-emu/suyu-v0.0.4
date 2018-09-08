@@ -17,10 +17,10 @@ AudioRenderer::AudioRenderer(AudioRendererParameter params,
                              Kernel::SharedPtr<Kernel::Event> buffer_event)
     : worker_params{params}, buffer_event{buffer_event}, voices(params.voice_count) {
 
-    audio_core = std::make_unique<AudioCore::AudioOut>();
-    stream = audio_core->OpenStream(STREAM_SAMPLE_RATE, STREAM_NUM_CHANNELS, "AudioRenderer",
-                                    [=]() { buffer_event->Signal(); });
-    audio_core->StartStream(stream);
+    audio_out = std::make_unique<AudioCore::AudioOut>();
+    stream = audio_out->OpenStream(STREAM_SAMPLE_RATE, STREAM_NUM_CHANNELS, "AudioRenderer",
+                                   [=]() { buffer_event->Signal(); });
+    audio_out->StartStream(stream);
 
     QueueMixedBuffer(0);
     QueueMixedBuffer(1);
@@ -236,11 +236,11 @@ void AudioRenderer::QueueMixedBuffer(Buffer::Tag tag) {
             }
         }
     }
-    audio_core->QueueBuffer(stream, tag, std::move(buffer));
+    audio_out->QueueBuffer(stream, tag, std::move(buffer));
 }
 
 void AudioRenderer::ReleaseAndQueueBuffers() {
-    const auto released_buffers{audio_core->GetTagsAndReleaseBuffers(stream, 2)};
+    const auto released_buffers{audio_out->GetTagsAndReleaseBuffers(stream, 2)};
     for (const auto& tag : released_buffers) {
         QueueMixedBuffer(tag);
     }

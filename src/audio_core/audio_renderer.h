@@ -204,7 +204,7 @@ private:
     AudioRendererParameter worker_params;
     Kernel::SharedPtr<Kernel::Event> buffer_event;
     std::vector<VoiceState> voices;
-    std::unique_ptr<AudioCore::AudioOut> audio_core;
+    std::unique_ptr<AudioCore::AudioOut> audio_out;
     AudioCore::StreamPtr stream;
 };
 
