@@ -807,6 +807,10 @@ private:
 
     OGLFramebuffer read_framebuffer;
     OGLFramebuffer draw_framebuffer;
+
+    /// Use a Pixel Buffer Object to download the previous texture and then upload it to the new one
+    /// using the new format.
+    OGLBuffer copy_pbo;
 };
 
 } // namespace OpenGL

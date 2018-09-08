@@ -7,6 +7,7 @@
 
 #include "common/alignment.h"
 #include "common/assert.h"
+#include "common/logging/log.h"
 #include "common/microprofile.h"
 #include "common/scope_exit.h"
 #include "core/core.h"
@@ -54,8 +55,8 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.depth = config.tic.Depth();
     params.unaligned_height = config.tic.Height();
     params.size_in_bytes = params.SizeInBytes();
-    params.cache_width = Common::AlignUp(params.width, 16);
-    params.cache_height = Common::AlignUp(params.height, 16);
+    params.cache_width = Common::AlignUp(params.width, 8);
+    params.cache_height = Common::AlignUp(params.height, 8);
     params.target = SurfaceTargetFromTextureType(config.tic.texture_type);
     return params;
 }
@@ -74,8 +75,8 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.depth = 1;
     params.unaligned_height = config.height;
     params.size_in_bytes = params.SizeInBytes();
-    params.cache_width = Common::AlignUp(params.width, 16);
-    params.cache_height = Common::AlignUp(params.height, 16);
+    params.cache_width = Common::AlignUp(params.width, 8);
+    params.cache_height = Common::AlignUp(params.height, 8);
     params.target = SurfaceTarget::Texture2D;
     return params;
 }
@@ -95,8 +96,8 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.depth = 1;
     params.unaligned_height = zeta_height;
     params.size_in_bytes = params.SizeInBytes();
-    params.cache_width = Common::AlignUp(params.width, 16);
-    params.cache_height = Common::AlignUp(params.height, 16);
+    params.cache_width = Common::AlignUp(params.width, 8);
+    params.cache_height = Common::AlignUp(params.height, 8);
     params.target = SurfaceTarget::Texture2D;
     return params;
 }
@@ -697,6 +698,7 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
 RasterizerCacheOpenGL::RasterizerCacheOpenGL() {
     read_framebuffer.Create();
     draw_framebuffer.Create();
+    copy_pbo.Create();
 }
 
 Surface RasterizerCacheOpenGL::GetTextureSurface(const Tegra::Texture::FullTextureInfo& config) {
@@ -827,8 +829,8 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& surface,
     // If format is unchanged, we can do a faster blit without reinterpreting pixel data
     if (params.pixel_format == new_params.pixel_format) {
         BlitTextures(surface->Texture().handle, params.GetRect(), new_surface->Texture().handle,
-                     new_surface->GetSurfaceParams().GetRect(), params.type,
-                     read_framebuffer.handle, draw_framebuffer.handle);
+                     params.GetRect(), params.type, read_framebuffer.handle,
+                     draw_framebuffer.handle);
         return new_surface;
     }
 
@@ -839,12 +841,7 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& surface,
 
         size_t buffer_size = std::max(params.SizeInBytes(), new_params.SizeInBytes());
 
-        // Use a Pixel Buffer Object to download the previous texture and then upload it to the new
-        // one using the new format.
-        OGLBuffer pbo;
-        pbo.Create();
-
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo.handle);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, copy_pbo.handle);
         glBufferData(GL_PIXEL_PACK_BUFFER, buffer_size, nullptr, GL_STREAM_DRAW_ARB);
         if (source_format.compressed) {
             glGetCompressedTextureImage(surface->Texture().handle, 0,
@@ -863,8 +860,8 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& surface,
                 // of the data in this case. Games like Super Mario Odyssey seem to hit this case
                 // when drawing, it re-uses the memory of a previous texture as a bigger framebuffer
                 // but it doesn't clear it beforehand, the texture is already full of zeros.
-                LOG_CRITICAL(HW_GPU, "Trying to upload extra texture data from the CPU during "
-                                     "reinterpretation but the texture is tiled.");
+                LOG_DEBUG(HW_GPU, "Trying to upload extra texture data from the CPU during "
+                                  "reinterpretation but the texture is tiled.");
             }
             size_t remaining_size = new_params.SizeInBytes() - params.SizeInBytes();
             std::vector<u8> data(remaining_size);
@@ -877,21 +874,38 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& surface,
 
         const auto& dest_rect{new_params.GetRect()};
 
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo.handle);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, copy_pbo.handle);
         if (dest_format.compressed) {
-            glCompressedTexSubImage2D(
-                GL_TEXTURE_2D, 0, 0, 0, static_cast<GLsizei>(dest_rect.GetWidth()),
-                static_cast<GLsizei>(dest_rect.GetHeight()), dest_format.format,
-                static_cast<GLsizei>(new_params.SizeInBytes()), nullptr);
+            LOG_CRITICAL(HW_GPU, "Compressed copy is unimplemented!");
+            UNREACHABLE();
         } else {
-            glTextureSubImage2D(new_surface->Texture().handle, 0, 0, 0,
-                                static_cast<GLsizei>(dest_rect.GetWidth()),
-                                static_cast<GLsizei>(dest_rect.GetHeight()), dest_format.format,
-                                dest_format.type, nullptr);
+            switch (new_params.target) {
+            case SurfaceParams::SurfaceTarget::Texture1D:
+                glTextureSubImage1D(new_surface->Texture().handle, 0, 0,
+                                    static_cast<GLsizei>(dest_rect.GetWidth()), dest_format.format,
+                                    dest_format.type, nullptr);
+                break;
+            case SurfaceParams::SurfaceTarget::Texture2D:
+                glTextureSubImage2D(new_surface->Texture().handle, 0, 0, 0,
+                                    static_cast<GLsizei>(dest_rect.GetWidth()),
+                                    static_cast<GLsizei>(dest_rect.GetHeight()), dest_format.format,
+                                    dest_format.type, nullptr);
+                break;
+            case SurfaceParams::SurfaceTarget::Texture3D:
+            case SurfaceParams::SurfaceTarget::Texture2DArray:
+                glTextureSubImage3D(new_surface->Texture().handle, 0, 0, 0, 0,
+                                    static_cast<GLsizei>(dest_rect.GetWidth()),
+                                    static_cast<GLsizei>(dest_rect.GetHeight()),
+                                    static_cast<GLsizei>(new_params.depth), dest_format.format,
+                                    dest_format.type, nullptr);
+                break;
+            default:
+                LOG_CRITICAL(Render_OpenGL, "Unimplemented surface target={}",
+                             static_cast<u32>(params.target));
+                UNREACHABLE();
+            }
         }
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-
-        pbo.Release();
     }
 
     return new_surface;
