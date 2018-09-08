@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <QColorDialog>
 #include "core/core.h"
 #include "core/settings.h"
 #include "ui_configure_graphics.h"
@@ -16,6 +17,14 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
     ui->frame_limit->setEnabled(Settings::values.use_frame_limit);
     connect(ui->toggle_frame_limit, &QCheckBox::stateChanged, ui->frame_limit,
             &QSpinBox::setEnabled);
+    connect(ui->bg_button, &QPushButton::clicked, this, [this] {
+        const QColor new_bg_color = QColorDialog::getColor(bg_color);
+        if (!new_bg_color.isValid())
+            return;
+        bg_color = new_bg_color;
+        ui->bg_button->setStyleSheet(
+            QString("QPushButton { background-color: %1 }").arg(bg_color.name()));
+    });
 }
 
 ConfigureGraphics::~ConfigureGraphics() = default;
@@ -65,6 +74,10 @@ void ConfigureGraphics::setConfiguration() {
     ui->toggle_frame_limit->setChecked(Settings::values.use_frame_limit);
     ui->frame_limit->setValue(Settings::values.frame_limit);
     ui->use_accurate_framebuffers->setChecked(Settings::values.use_accurate_framebuffers);
+    bg_color = QColor::fromRgbF(Settings::values.bg_red, Settings::values.bg_green,
+                                Settings::values.bg_blue);
+    ui->bg_button->setStyleSheet(
+        QString("QPushButton { background-color: %1 }").arg(bg_color.name()));
 }
 
 void ConfigureGraphics::applyConfiguration() {
@@ -73,4 +86,7 @@ void ConfigureGraphics::applyConfiguration() {
     Settings::values.use_frame_limit = ui->toggle_frame_limit->isChecked();
     Settings::values.frame_limit = ui->frame_limit->value();
     Settings::values.use_accurate_framebuffers = ui->use_accurate_framebuffers->isChecked();
+    Settings::values.bg_red = static_cast<float>(bg_color.redF());
+    Settings::values.bg_green = static_cast<float>(bg_color.greenF());
+    Settings::values.bg_blue = static_cast<float>(bg_color.blueF());
 }

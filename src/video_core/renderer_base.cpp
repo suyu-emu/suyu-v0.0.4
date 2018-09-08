@@ -19,6 +19,7 @@ void RendererBase::RefreshBaseSettings() {
     UpdateCurrentFramebufferLayout();
 
     renderer_settings.use_framelimiter = Settings::values.use_frame_limit;
+    renderer_settings.set_background_color = true;
 }
 
 void RendererBase::UpdateCurrentFramebufferLayout() {

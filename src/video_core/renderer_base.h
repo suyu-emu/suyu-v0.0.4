@@ -19,6 +19,7 @@ namespace VideoCore {
 
 struct RendererSettings {
     std::atomic_bool use_framelimiter{false};
+    std::atomic_bool set_background_color{false};
 };
 
 class RendererBase : NonCopyable {
