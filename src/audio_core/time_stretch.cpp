@@ -28,8 +28,8 @@ size_t TimeStretcher::Process(const s16* in, size_t num_in, s16* out, size_t num
     // We were given actual_samples number of samples, and num_samples were requested from us.
     double current_ratio = static_cast<double>(num_in) / static_cast<double>(num_out);
 
-    const double max_latency = 0.3; // seconds
-    const double max_backlog = m_sample_rate * max_latency / 1000.0 / m_stretch_ratio;
+    const double max_latency = 1.0; // seconds
+    const double max_backlog = m_sample_rate * max_latency;
     const double backlog_fullness = m_sound_touch.numSamples() / max_backlog;
     if (backlog_fullness > 5.0) {
         // Too many samples in backlog: Don't push anymore on
@@ -49,13 +49,13 @@ size_t TimeStretcher::Process(const s16* in, size_t num_in, s16* out, size_t num
     const double lpf_gain = 1.0 - std::exp(-time_delta / lpf_time_scale);
     m_stretch_ratio += lpf_gain * (current_ratio - m_stretch_ratio);
 
-    // Place a lower limit of 10% speed.  When a game boots up, there will be
+    // Place a lower limit of 5% speed.  When a game boots up, there will be
     // many silence samples.  These do not need to be timestretched.
-    m_stretch_ratio = std::max(m_stretch_ratio, 0.1);
+    m_stretch_ratio = std::max(m_stretch_ratio, 0.05);
     m_sound_touch.setTempo(m_stretch_ratio);
 
-    LOG_DEBUG(Audio, "Audio Stretching: samples:{}/{} ratio:{} backlog:{} gain: {}", num_in, num_out,
-              m_stretch_ratio, backlog_fullness, lpf_gain);
+    LOG_DEBUG(Audio, "{:5}/{:5} ratio:{:0.6f} backlog:{:0.6f}", num_in, num_out, m_stretch_ratio,
+              backlog_fullness);
 
     m_sound_touch.putSamples(in, num_in);
     return m_sound_touch.receiveSamples(out, num_out);

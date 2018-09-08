@@ -6,8 +6,10 @@
 #include <cstring>
 #include "audio_core/cubeb_sink.h"
 #include "audio_core/stream.h"
+#include "audio_core/time_stretch.h"
 #include "common/logging/log.h"
 #include "common/ring_buffer.h"
+#include "core/settings.h"
 
 namespace AudioCore {
 
@@ -15,14 +17,8 @@ class CubebSinkStream final : public SinkStream {
 public:
     CubebSinkStream(cubeb* ctx, u32 sample_rate, u32 num_channels_, cubeb_devid output_device,
                     const std::string& name)
-        : ctx{ctx}, num_channels{num_channels_} {
-
-        if (num_channels == 6) {
-            // 6-channel audio does not seem to work with cubeb + SDL, so we downsample this to 2
-            // channel for now
-            is_6_channel = true;
-            num_channels = 2;
-        }
+        : ctx{ctx}, is_6_channel{num_channels_ == 6}, num_channels{std::min(num_channels_, 2u)},
+          time_stretch{sample_rate, num_channels} {
 
         cubeb_stream_params params{};
         params.rate = sample_rate;
@@ -89,10 +85,6 @@ public:
         return num_channels;
     }
 
-    u32 GetNumChannelsInQueue() const {
-        return num_channels == 1 ? 1 : 2;
-    }
-
 private:
     std::vector<std::string> device_list;
 
@@ -103,6 +95,7 @@ private:
 
     Common::RingBuffer<s16, 0x10000> queue;
     std::array<s16, 2> last_frame;
+    TimeStretcher time_stretch;
 
     static long DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
                              void* output_buffer, long num_frames);
@@ -153,7 +146,7 @@ SinkStream& CubebSink::AcquireSinkStream(u32 sample_rate, u32 num_channels,
 }
 
 long CubebSinkStream::DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
-                                  void* output_buffer, long num_frames) {
+                                   void* output_buffer, long num_frames) {
     CubebSinkStream* impl = static_cast<CubebSinkStream*>(user_data);
     u8* buffer = reinterpret_cast<u8*>(output_buffer);
 
@@ -161,9 +154,19 @@ long CubebSinkStream::DataCallback(cubeb_stream* stream, void* user_data, const 
         return {};
     }
 
-    const size_t num_channels = impl->GetNumChannelsInQueue();
-    const size_t max_samples_to_write = num_channels * num_frames;
-    const size_t samples_written = impl->queue.Pop(buffer, max_samples_to_write);
+    const size_t num_channels = impl->GetNumChannels();
+    const size_t samples_to_write = num_channels * num_frames;
+    size_t samples_written;
+
+    if (Settings::values.enable_audio_stretching) {
+        const std::vector<s16> in{impl->queue.Pop()};
+        const size_t num_in{in.size() / num_channels};
+        s16* const out{reinterpret_cast<s16*>(buffer)};
+        const size_t out_frames = impl->time_stretch.Process(in.data(), num_in, out, num_frames);
+        samples_written = out_frames * num_channels;
+    } else {
+        samples_written = impl->queue.Pop(buffer, samples_to_write);
+    }
 
     if (samples_written >= num_channels) {
         std::memcpy(&impl->last_frame[0], buffer + (samples_written - num_channels) * sizeof(s16),
@@ -171,7 +174,7 @@ long CubebSinkStream::DataCallback(cubeb_stream* stream, void* user_data, const 
     }
 
     // Fill the rest of the frames with last_frame
-    for (size_t i = samples_written; i < max_samples_to_write; i += num_channels) {
+    for (size_t i = samples_written; i < samples_to_write; i += num_channels) {
         std::memcpy(buffer + i * sizeof(s16), &impl->last_frame[0], num_channels * sizeof(s16));
     }
 
