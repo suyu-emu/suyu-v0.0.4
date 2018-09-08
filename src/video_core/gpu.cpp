@@ -4,6 +4,7 @@
 
 #include "common/assert.h"
 #include "video_core/engines/fermi_2d.h"
+#include "video_core/engines/kepler_memory.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/maxwell_compute.h"
 #include "video_core/engines/maxwell_dma.h"
@@ -27,6 +28,7 @@ GPU::GPU(VideoCore::RasterizerInterface& rasterizer) {
     fermi_2d = std::make_unique<Engines::Fermi2D>(*memory_manager);
     maxwell_compute = std::make_unique<Engines::MaxwellCompute>();
     maxwell_dma = std::make_unique<Engines::MaxwellDMA>(*memory_manager);
+    kepler_memory = std::make_unique<Engines::KeplerMemory>(*memory_manager);
 }
 
 GPU::~GPU() = default;

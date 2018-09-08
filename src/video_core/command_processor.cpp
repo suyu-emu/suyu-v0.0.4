@@ -14,6 +14,7 @@
 #include "core/tracer/recorder.h"
 #include "video_core/command_processor.h"
 #include "video_core/engines/fermi_2d.h"
+#include "video_core/engines/kepler_memory.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/maxwell_compute.h"
 #include "video_core/engines/maxwell_dma.h"
@@ -68,6 +69,9 @@ void GPU::ProcessCommandLists(const std::vector<CommandListHeader>& commands) {
             break;
         case EngineID::MAXWELL_DMA_COPY_A:
             maxwell_dma->WriteReg(method, value);
+            break;
+        case EngineID::KEPLER_INLINE_TO_MEMORY_B:
+            kepler_memory->WriteReg(method, value);
             break;
         default:
             UNIMPLEMENTED_MSG("Unimplemented engine");
