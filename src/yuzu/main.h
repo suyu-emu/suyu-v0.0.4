@@ -13,6 +13,7 @@
 #include "common/common_types.h"
 #include "core/core.h"
 #include "ui_main.h"
+#include "yuzu/compatibility_list.h"
 #include "yuzu/hotkeys.h"
 
 class Config;
@@ -137,9 +138,7 @@ private slots:
     /// Called whenever a user selects a game in the game list widget.
     void OnGameListLoadFile(QString game_path);
     void OnGameListOpenFolder(u64 program_id, GameListOpenTarget target);
-    void OnGameListNavigateToGamedbEntry(
-        u64 program_id,
-        std::unordered_map<std::string, std::pair<QString, QString>>& compatibility_list);
+    void OnGameListNavigateToGamedbEntry(u64 program_id, CompatibilityList& compatibility_list);
     void OnMenuLoadFile();
     void OnMenuLoadFolder();
     void OnMenuInstallToNAND();

@@ -9,6 +9,8 @@ add_executable(yuzu
     about_dialog.h
     bootmanager.cpp
     bootmanager.h
+    compatibility_list.cpp
+    compatibility_list.h
     configuration/config.cpp
     configuration/config.h
     configuration/configure_audio.cpp

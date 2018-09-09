@@ -20,6 +20,7 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
+#include "yuzu/compatibility_list.h"
 #include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
 #include "yuzu/game_list_worker.h"
@@ -75,9 +76,8 @@ QString FormatPatchNameVersions(const FileSys::PatchManager& patch_manager, bool
 }
 } // Anonymous namespace
 
-GameListWorker::GameListWorker(
-    FileSys::VirtualFilesystem vfs, QString dir_path, bool deep_scan,
-    const std::unordered_map<std::string, std::pair<QString, QString>>& compatibility_list)
+GameListWorker::GameListWorker(FileSys::VirtualFilesystem vfs, QString dir_path, bool deep_scan,
+                               const CompatibilityList& compatibility_list)
     : vfs(std::move(vfs)), dir_path(std::move(dir_path)), deep_scan(deep_scan),
       compatibility_list(compatibility_list) {}
 

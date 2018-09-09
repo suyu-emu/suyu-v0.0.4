@@ -176,14 +176,3 @@ public:
         return data(SizeRole).toULongLong() < other.data(SizeRole).toULongLong();
     }
 };
-
-inline auto FindMatchingCompatibilityEntry(
-    const std::unordered_map<std::string, std::pair<QString, QString>>& compatibility_list,
-    u64 program_id) {
-    return std::find_if(
-        compatibility_list.begin(), compatibility_list.end(),
-        [program_id](const std::pair<std::string, std::pair<QString, QString>>& element) {
-            std::string pid = fmt::format("{:016X}", program_id);
-            return element.first == pid;
-        });
-}

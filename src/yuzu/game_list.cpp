@@ -19,6 +19,7 @@
 #include "common/file_util.h"
 #include "common/logging/log.h"
 #include "core/file_sys/patch_manager.h"
+#include "yuzu/compatibility_list.h"
 #include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
 #include "yuzu/game_list_worker.h"
