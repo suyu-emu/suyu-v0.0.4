@@ -8,6 +8,7 @@
 // single reader, single writer queue
 
 #include <atomic>
+#include <condition_variable>
 #include <cstddef>
 #include <mutex>
 #include <utility>
@@ -39,12 +40,13 @@ public:
     template <typename Arg>
     void Push(Arg&& t) {
         // create the element, add it to the queue
-        write_ptr->current = std::forward<Arg>(t);
+        write_ptr->current = std::move(t);
         // set the next pointer to a new element ptr
         // then advance the write pointer
         ElementPtr* new_ptr = new ElementPtr();
         write_ptr->next.store(new_ptr, std::memory_order_release);
         write_ptr = new_ptr;
+        cv.notify_one();
 
         ++size;
     }
@@ -67,11 +69,20 @@ public:
         --size;
 
         ElementPtr* tmpptr = read_ptr;
+
         read_ptr = tmpptr->next.load(std::memory_order_acquire);
         t = std::move(tmpptr->current);
         tmpptr->next.store(nullptr);
         delete tmpptr;
         return true;
+    }
+
+    bool PopWait(T& t) {
+        if (Empty()) {
+            std::unique_lock<std::mutex> lock(cv_mutex);
+            cv.wait(lock, [this]() { return !Empty(); });
+        }
+        return Pop(t);
     }
 
     // not thread-safe
@@ -101,6 +112,8 @@ private:
     ElementPtr* write_ptr;
     ElementPtr* read_ptr;
     std::atomic_size_t size{0};
+    std::mutex cv_mutex;
+    std::condition_variable cv;
 };
 
 // a simple thread-safe,
@@ -133,6 +146,10 @@ public:
 
     bool Pop(T& t) {
         return spsc_queue.Pop(t);
+    }
+
+    bool PopWait(T& t) {
+        return spsc_queue.PopWait(t);
     }
 
     // not thread-safe
