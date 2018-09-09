@@ -29,7 +29,7 @@ OGLStreamBuffer::OGLStreamBuffer(GLenum target, GLsizeiptr size, bool prefer_coh
     if (GLAD_GL_ARB_buffer_storage) {
         persistent = true;
         coherent = prefer_coherent;
-        GLbitfield flags =
+        const GLbitfield flags =
             GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | (coherent ? GL_MAP_COHERENT_BIT : 0);
         glBufferStorage(gl_target, allocate_size, nullptr, flags);
         mapped_ptr = static_cast<u8*>(glMapBufferRange(

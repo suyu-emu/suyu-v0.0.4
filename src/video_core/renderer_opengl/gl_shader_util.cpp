@@ -25,7 +25,7 @@ GLuint LoadShader(const char* source, GLenum type) {
     default:
         UNREACHABLE();
     }
-    GLuint shader_id = glCreateShader(type);
+    const GLuint shader_id = glCreateShader(type);
     glShaderSource(shader_id, 1, &source, nullptr);
     LOG_DEBUG(Render_OpenGL, "Compiling {} shader...", debug_type);
     glCompileShader(shader_id);
