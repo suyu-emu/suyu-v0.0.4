@@ -533,7 +533,11 @@ public:
                 u32 stencil_back_mask;
                 u32 stencil_back_func_mask;
 
-                INSERT_PADDING_WORDS(0x20);
+                INSERT_PADDING_WORDS(0x13);
+
+                u32 rt_separate_frag_data;
+
+                INSERT_PADDING_WORDS(0xC);
 
                 struct {
                     u32 address_high;
@@ -557,7 +561,22 @@ public:
                 struct {
                     union {
                         BitField<0, 4, u32> count;
+                        BitField<4, 3, u32> map_0;
+                        BitField<7, 3, u32> map_1;
+                        BitField<10, 3, u32> map_2;
+                        BitField<13, 3, u32> map_3;
+                        BitField<16, 3, u32> map_4;
+                        BitField<19, 3, u32> map_5;
+                        BitField<22, 3, u32> map_6;
+                        BitField<25, 3, u32> map_7;
                     };
+
+                    u32 GetMap(size_t index) const {
+                        const std::array<u32, NumRenderTargets> maps{map_0, map_1, map_2, map_3,
+                                                                     map_4, map_5, map_6, map_7};
+                        ASSERT(index < maps.size());
+                        return maps[index];
+                    }
                 } rt_control;
 
                 INSERT_PADDING_WORDS(0x2);
@@ -968,6 +987,7 @@ ASSERT_REG_POSITION(clear_stencil, 0x368);
 ASSERT_REG_POSITION(stencil_back_func_ref, 0x3D5);
 ASSERT_REG_POSITION(stencil_back_mask, 0x3D6);
 ASSERT_REG_POSITION(stencil_back_func_mask, 0x3D7);
+ASSERT_REG_POSITION(rt_separate_frag_data, 0x3EB);
 ASSERT_REG_POSITION(zeta, 0x3F8);
 ASSERT_REG_POSITION(vertex_attrib_format, 0x458);
 ASSERT_REG_POSITION(rt_control, 0x487);
