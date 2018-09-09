@@ -41,7 +41,6 @@ void MaxwellDMA::HandleCopy() {
 
     // TODO(Subv): Perform more research and implement all features of this engine.
     ASSERT(regs.exec.enable_swizzle == 0);
-    ASSERT(regs.exec.enable_2d == 1);
     ASSERT(regs.exec.query_mode == Regs::QueryMode::None);
     ASSERT(regs.exec.query_intr == Regs::QueryIntr::None);
     ASSERT(regs.exec.copy_mode == Regs::CopyMode::Unk2);
@@ -51,10 +50,19 @@ void MaxwellDMA::HandleCopy() {
     ASSERT(regs.dst_params.pos_y == 0);
 
     if (regs.exec.is_dst_linear == regs.exec.is_src_linear) {
-        Memory::CopyBlock(dest_cpu, source_cpu, regs.x_count * regs.y_count);
+        size_t copy_size = regs.x_count;
+
+        // When the enable_2d bit is disabled, the copy is performed as if we were copying a 1D
+        // buffer of length `x_count`, otherwise we copy a 2D buffer of size (x_count, y_count).
+        if (regs.exec.enable_2d) {
+            copy_size = copy_size * regs.y_count;
+        }
+
+        Memory::CopyBlock(dest_cpu, source_cpu, copy_size);
         return;
     }
 
+    ASSERT(regs.exec.enable_2d == 1);
     u8* src_buffer = Memory::GetPointer(source_cpu);
     u8* dst_buffer = Memory::GetPointer(dest_cpu);
 
