@@ -727,7 +727,7 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
 }
 
 void GMainWindow::OnGameListNavigateToGamedbEntry(u64 program_id,
-                                                  CompatibilityList& compatibility_list) {
+                                                  const CompatibilityList& compatibility_list) {
     const auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
 
     QString directory;

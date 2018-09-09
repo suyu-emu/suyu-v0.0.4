@@ -89,7 +89,8 @@ signals:
     void GameChosen(QString game_path);
     void ShouldCancelWorker();
     void OpenFolderRequested(u64 program_id, GameListOpenTarget target);
-    void NavigateToGamedbEntryRequested(u64 program_id, CompatibilityList& compatibility_list);
+    void NavigateToGamedbEntryRequested(u64 program_id,
+                                        const CompatibilityList& compatibility_list);
 
 private slots:
     void onTextChanged(const QString& newText);
