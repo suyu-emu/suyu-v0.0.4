@@ -505,7 +505,7 @@ static void ConvertS8Z24ToZ24S8(std::vector<u8>& data, u32 width, u32 height) {
 
     S8Z24 input_pixel{};
     Z24S8 output_pixel{};
-    const auto bpp{CachedSurface::GetGLBytesPerPixel(PixelFormat::S8Z24)};
+    constexpr auto bpp{CachedSurface::GetGLBytesPerPixel(PixelFormat::S8Z24)};
     for (size_t y = 0; y < height; ++y) {
         for (size_t x = 0; x < width; ++x) {
             const size_t offset{bpp * (y * width + x)};
@@ -518,7 +518,7 @@ static void ConvertS8Z24ToZ24S8(std::vector<u8>& data, u32 width, u32 height) {
 }
 
 static void ConvertG8R8ToR8G8(std::vector<u8>& data, u32 width, u32 height) {
-    const auto bpp{CachedSurface::GetGLBytesPerPixel(PixelFormat::G8R8U)};
+    constexpr auto bpp{CachedSurface::GetGLBytesPerPixel(PixelFormat::G8R8U)};
     for (size_t y = 0; y < height; ++y) {
         for (size_t x = 0; x < width; ++x) {
             const size_t offset{bpp * (y * width + x)};
@@ -584,12 +584,13 @@ void CachedSurface::LoadGLBuffer() {
             UNREACHABLE();
         }
 
-        gl_buffer.resize(params.depth * copy_size);
+        gl_buffer.resize(static_cast<size_t>(params.depth) * copy_size);
         morton_to_gl_fns[static_cast<size_t>(params.pixel_format)](
             params.width, params.block_height, params.height, gl_buffer.data(), copy_size,
             params.addr);
     } else {
-        const u8* const texture_src_data_end{texture_src_data + (params.depth * copy_size)};
+        const u8* const texture_src_data_end{texture_src_data +
+                                             (static_cast<size_t>(params.depth) * copy_size)};
         gl_buffer.assign(texture_src_data, texture_src_data_end);
     }
 
@@ -608,18 +609,20 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
 
     MICROPROFILE_SCOPE(OpenGL_TextureUL);
 
-    ASSERT(gl_buffer.size() ==
-           params.width * params.height * GetGLBytesPerPixel(params.pixel_format) * params.depth);
+    ASSERT(gl_buffer.size() == static_cast<size_t>(params.width) * params.height *
+                                   GetGLBytesPerPixel(params.pixel_format) * params.depth);
 
     const auto& rect{params.GetRect()};
 
     // Load data from memory to the surface
-    GLint x0 = static_cast<GLint>(rect.left);
-    GLint y0 = static_cast<GLint>(rect.bottom);
-    size_t buffer_offset = (y0 * params.width + x0) * GetGLBytesPerPixel(params.pixel_format);
+    const GLint x0 = static_cast<GLint>(rect.left);
+    const GLint y0 = static_cast<GLint>(rect.bottom);
+    const size_t buffer_offset =
+        static_cast<size_t>(static_cast<size_t>(y0) * params.width + static_cast<size_t>(x0)) *
+        GetGLBytesPerPixel(params.pixel_format);
 
     const FormatTuple& tuple = GetFormatTuple(params.pixel_format, params.component_type);
-    GLuint target_tex = texture.handle;
+    const GLuint target_tex = texture.handle;
     OpenGLState cur_state = OpenGLState::GetCurState();
 
     const auto& old_tex = cur_state.texture_units[0];

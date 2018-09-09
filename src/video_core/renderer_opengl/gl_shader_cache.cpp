@@ -13,8 +13,8 @@ namespace OpenGL {
 
 /// Gets the address for the specified shader stage program
 static VAddr GetShaderAddress(Maxwell::ShaderProgram program) {
-    auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
-    auto& shader_config = gpu.regs.shader_config[static_cast<size_t>(program)];
+    const auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
+    const auto& shader_config = gpu.regs.shader_config[static_cast<size_t>(program)];
     return *gpu.memory_manager.GpuToCpuAddress(gpu.regs.code_address.CodeAddress() +
                                                shader_config.offset);
 }
@@ -86,7 +86,7 @@ CachedShader::CachedShader(VAddr addr, Maxwell::ShaderProgram program_type)
 }
 
 GLuint CachedShader::GetProgramResourceIndex(const GLShader::ConstBufferEntry& buffer) {
-    auto search{resource_cache.find(buffer.GetHash())};
+    const auto search{resource_cache.find(buffer.GetHash())};
     if (search == resource_cache.end()) {
         const GLuint index{
             glGetProgramResourceIndex(program.handle, GL_UNIFORM_BLOCK, buffer.GetName().c_str())};
@@ -98,7 +98,7 @@ GLuint CachedShader::GetProgramResourceIndex(const GLShader::ConstBufferEntry& b
 }
 
 GLint CachedShader::GetUniformLocation(const GLShader::SamplerEntry& sampler) {
-    auto search{uniform_cache.find(sampler.GetHash())};
+    const auto search{uniform_cache.find(sampler.GetHash())};
     if (search == uniform_cache.end()) {
         const GLint index{glGetUniformLocation(program.handle, sampler.GetName().c_str())};
         uniform_cache[sampler.GetHash()] = index;

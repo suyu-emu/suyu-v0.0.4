@@ -113,7 +113,7 @@ private:
 
     /// Scans a range of code for labels and determines the exit method.
     ExitMethod Scan(u32 begin, u32 end, std::set<u32>& labels) {
-        auto [iter, inserted] =
+        const auto [iter, inserted] =
             exit_method_map.emplace(std::make_pair(begin, end), ExitMethod::Undetermined);
         ExitMethod& exit_method = iter->second;
         if (!inserted)
@@ -131,22 +131,22 @@ private:
                     if (instr.pred.pred_index == static_cast<u64>(Pred::UnusedIndex)) {
                         return exit_method = ExitMethod::AlwaysEnd;
                     } else {
-                        ExitMethod not_met = Scan(offset + 1, end, labels);
+                        const ExitMethod not_met = Scan(offset + 1, end, labels);
                         return exit_method = ParallelExit(ExitMethod::AlwaysEnd, not_met);
                     }
                 }
                 case OpCode::Id::BRA: {
-                    u32 target = offset + instr.bra.GetBranchTarget();
+                    const u32 target = offset + instr.bra.GetBranchTarget();
                     labels.insert(target);
-                    ExitMethod no_jmp = Scan(offset + 1, end, labels);
-                    ExitMethod jmp = Scan(target, end, labels);
+                    const ExitMethod no_jmp = Scan(offset + 1, end, labels);
+                    const ExitMethod jmp = Scan(target, end, labels);
                     return exit_method = ParallelExit(no_jmp, jmp);
                 }
                 case OpCode::Id::SSY: {
                     // The SSY instruction uses a similar encoding as the BRA instruction.
                     ASSERT_MSG(instr.bra.constant_buffer == 0,
                                "Constant buffer SSY is not supported");
-                    u32 target = offset + instr.bra.GetBranchTarget();
+                    const u32 target = offset + instr.bra.GetBranchTarget();
                     labels.insert(target);
                     // Continue scanning for an exit method.
                     break;
@@ -346,8 +346,8 @@ public:
      */
     void SetRegisterToInputAttibute(const Register& reg, u64 elem, Attribute::Index attribute,
                                     const Tegra::Shader::IpaMode& input_mode) {
-        std::string dest = GetRegisterAsFloat(reg);
-        std::string src = GetInputAttribute(attribute, input_mode) + GetSwizzle(elem);
+        const std::string dest = GetRegisterAsFloat(reg);
+        const std::string src = GetInputAttribute(attribute, input_mode) + GetSwizzle(elem);
         shader.AddLine(dest + " = " + src + ';');
     }
 
@@ -359,8 +359,8 @@ public:
      * @param reg The register to use as the source value.
      */
     void SetOutputAttributeToRegister(Attribute::Index attribute, u64 elem, const Register& reg) {
-        std::string dest = GetOutputAttribute(attribute);
-        std::string src = GetRegisterAsFloat(reg);
+        const std::string dest = GetOutputAttribute(attribute);
+        const std::string src = GetRegisterAsFloat(reg);
 
         if (!dest.empty()) {
             // Can happen with unknown/unimplemented output attributes, in which case we ignore the
@@ -393,9 +393,9 @@ public:
                                    GLSLRegister::Type type) {
         declr_const_buffers[cbuf_index].MarkAsUsedIndirect(cbuf_index, stage);
 
-        std::string final_offset = fmt::format("({} + {})", index_str, offset / 4);
-        std::string value = 'c' + std::to_string(cbuf_index) + '[' + final_offset + " / 4][" +
-                            final_offset + " % 4]";
+        const std::string final_offset = fmt::format("({} + {})", index_str, offset / 4);
+        const std::string value = 'c' + std::to_string(cbuf_index) + '[' + final_offset + " / 4][" +
+                                  final_offset + " % 4]";
 
         if (type == GLSLRegister::Type::Float) {
             return value;
@@ -468,10 +468,10 @@ public:
     /// necessary.
     std::string AccessSampler(const Sampler& sampler, Tegra::Shader::TextureType type,
                               bool is_array) {
-        size_t offset = static_cast<size_t>(sampler.index.Value());
+        const size_t offset = static_cast<size_t>(sampler.index.Value());
 
         // If this sampler has already been used, return the existing mapping.
-        auto itr =
+        const auto itr =
             std::find_if(used_samplers.begin(), used_samplers.end(),
                          [&](const SamplerEntry& entry) { return entry.GetOffset() == offset; });
 
@@ -481,8 +481,8 @@ public:
         }
 
         // Otherwise create a new mapping for this sampler
-        size_t next_index = used_samplers.size();
-        SamplerEntry entry{stage, offset, next_index, type, is_array};
+        const size_t next_index = used_samplers.size();
+        const SamplerEntry entry{stage, offset, next_index, type, is_array};
         used_samplers.emplace_back(entry);
         return entry.GetName();
     }
@@ -699,7 +699,7 @@ private:
         };
 
         bool IsColorComponentOutputEnabled(u32 render_target, u32 component) const {
-            u32 bit = render_target * 4 + component;
+            const u32 bit = render_target * 4 + component;
             return enabled_color_outputs & (1 << bit);
         }
     };
@@ -707,7 +707,7 @@ private:
 
     /// Gets the Subroutine object corresponding to the specified address.
     const Subroutine& GetSubroutine(u32 begin, u32 end) const {
-        auto iter = subroutines.find(Subroutine{begin, end, suffix});
+        const auto iter = subroutines.find(Subroutine{begin, end, suffix});
         ASSERT(iter != subroutines.end());
         return *iter;
     }
@@ -752,7 +752,7 @@ private:
         // Can't assign to the constant predicate.
         ASSERT(pred != static_cast<u64>(Pred::UnusedIndex));
 
-        std::string variable = 'p' + std::to_string(pred) + '_' + suffix;
+        const std::string variable = 'p' + std::to_string(pred) + '_' + suffix;
         shader.AddLine(variable + " = " + value + ';');
         declr_predicates.insert(std::move(variable));
     }
@@ -1033,7 +1033,11 @@ private:
         if (header.writes_depth) {
             // The depth output is always 2 registers after the last color output, and current_reg
             // already contains one past the last color register.
-            shader.AddLine("gl_FragDepth = " + regs.GetRegisterAsFloat(current_reg + 1) + ';');
+
+            shader.AddLine(
+                "gl_FragDepth = " +
+                regs.GetRegisterAsFloat(static_cast<Tegra::Shader::Register>(current_reg) + 1) +
+                ';');
         }
     }
 
@@ -1435,7 +1439,7 @@ private:
                 if (instr.alu_integer.negate_b)
                     op_b = "-(" + op_b + ')';
 
-                std::string shift = std::to_string(instr.alu_integer.shift_amount.Value());
+                const std::string shift = std::to_string(instr.alu_integer.shift_amount.Value());
 
                 regs.SetRegisterToInteger(instr.gpr0, true, 0,
                                           "((" + op_a + " << " + shift + ") + " + op_b + ')', 1, 1);
@@ -1453,7 +1457,7 @@ private:
             case OpCode::Id::SEL_C:
             case OpCode::Id::SEL_R:
             case OpCode::Id::SEL_IMM: {
-                std::string condition =
+                const std::string condition =
                     GetPredicateCondition(instr.sel.pred, instr.sel.neg_pred != 0);
                 regs.SetRegisterToInteger(instr.gpr0, true, 0,
                                           '(' + condition + ") ? " + op_a + " : " + op_b, 1, 1);
@@ -1475,8 +1479,9 @@ private:
             case OpCode::Id::LOP3_C:
             case OpCode::Id::LOP3_R:
             case OpCode::Id::LOP3_IMM: {
-                std::string op_c = regs.GetRegisterAsInteger(instr.gpr39);
+                const std::string op_c = regs.GetRegisterAsInteger(instr.gpr39);
                 std::string lut;
+
                 if (opcode->GetId() == OpCode::Id::LOP3_R) {
                     lut = '(' + std::to_string(instr.alu.lop3.GetImmLut28()) + ')';
                 } else {
@@ -1491,9 +1496,9 @@ private:
             case OpCode::Id::IMNMX_IMM: {
                 ASSERT_MSG(instr.imnmx.exchange == Tegra::Shader::IMinMaxExchange::None,
                            "Unimplemented");
-                std::string condition =
+                const std::string condition =
                     GetPredicateCondition(instr.imnmx.pred, instr.imnmx.negate_pred != 0);
-                std::string parameters = op_a + ',' + op_b;
+                const std::string parameters = op_a + ',' + op_b;
                 regs.SetRegisterToInteger(instr.gpr0, instr.imnmx.is_signed, 0,
                                           '(' + condition + ") ? min(" + parameters + ") : max(" +
                                               parameters + ')',
@@ -1510,7 +1515,7 @@ private:
             break;
         }
         case OpCode::Type::Ffma: {
-            std::string op_a = regs.GetRegisterAsFloat(instr.gpr8);
+            const std::string op_a = regs.GetRegisterAsFloat(instr.gpr8);
             std::string op_b = instr.ffma.negate_b ? "-" : "";
             std::string op_c = instr.ffma.negate_c ? "-" : "";
 
@@ -1720,7 +1725,7 @@ private:
                 shader.AddLine("uint index = (" + regs.GetRegisterAsInteger(instr.gpr8, 0, false) +
                                " / 4) & (MAX_CONSTBUFFER_ELEMENTS - 1);");
 
-                std::string op_a =
+                const std::string op_a =
                     regs.GetUniformIndirect(instr.cbuf36.index, instr.cbuf36.offset + 0, "index",
                                             GLSLRegister::Type::Float);
 
@@ -1730,7 +1735,7 @@ private:
                     break;
 
                 case Tegra::Shader::UniformType::Double: {
-                    std::string op_b =
+                    const std::string op_b =
                         regs.GetUniformIndirect(instr.cbuf36.index, instr.cbuf36.offset + 4,
                                                 "index", GLSLRegister::Type::Float);
                     regs.SetRegisterToFloat(instr.gpr0, 0, op_a, 1, 1);
@@ -1760,13 +1765,13 @@ private:
 
                 switch (texture_type) {
                 case Tegra::Shader::TextureType::Texture1D: {
-                    std::string x = regs.GetRegisterAsFloat(instr.gpr8);
+                    const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
                     coord = "float coords = " + x + ';';
                     break;
                 }
                 case Tegra::Shader::TextureType::Texture2D: {
-                    std::string x = regs.GetRegisterAsFloat(instr.gpr8);
-                    std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
+                    const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
+                    const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
                     coord = "vec2 coords = vec2(" + x + ", " + y + ");";
                     break;
                 }
@@ -1776,8 +1781,8 @@ private:
                     UNREACHABLE();
 
                     // Fallback to interpreting as a 2D texture for now
-                    std::string x = regs.GetRegisterAsFloat(instr.gpr8);
-                    std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
+                    const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
+                    const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
                     coord = "vec2 coords = vec2(" + x + ", " + y + ");";
                     texture_type = Tegra::Shader::TextureType::Texture2D;
                 }
@@ -1811,13 +1816,13 @@ private:
                 switch (texture_type) {
                 case Tegra::Shader::TextureType::Texture2D: {
                     if (is_array) {
-                        std::string index = regs.GetRegisterAsInteger(instr.gpr8);
-                        std::string x = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
-                        std::string y = regs.GetRegisterAsFloat(instr.gpr20);
+                        const std::string index = regs.GetRegisterAsInteger(instr.gpr8);
+                        const std::string x = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
+                        const std::string y = regs.GetRegisterAsFloat(instr.gpr20);
                         coord = "vec3 coords = vec3(" + x + ", " + y + ", " + index + ");";
                     } else {
-                        std::string x = regs.GetRegisterAsFloat(instr.gpr8);
-                        std::string y = regs.GetRegisterAsFloat(instr.gpr20);
+                        const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
+                        const std::string y = regs.GetRegisterAsFloat(instr.gpr20);
                         coord = "vec2 coords = vec2(" + x + ", " + y + ");";
                     }
                     break;
@@ -1828,8 +1833,8 @@ private:
                     UNREACHABLE();
 
                     // Fallback to interpreting as a 2D texture for now
-                    std::string x = regs.GetRegisterAsFloat(instr.gpr8);
-                    std::string y = regs.GetRegisterAsFloat(instr.gpr20);
+                    const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
+                    const std::string y = regs.GetRegisterAsFloat(instr.gpr20);
                     coord = "vec2 coords = vec2(" + x + ", " + y + ");";
                     texture_type = Tegra::Shader::TextureType::Texture2D;
                     is_array = false;
@@ -1850,8 +1855,8 @@ private:
                         LOG_CRITICAL(HW_GPU, "Unhandled 2d array texture");
                         UNREACHABLE();
                     } else {
-                        std::string x = regs.GetRegisterAsInteger(instr.gpr8);
-                        std::string y = regs.GetRegisterAsInteger(instr.gpr20);
+                        const std::string x = regs.GetRegisterAsInteger(instr.gpr8);
+                        const std::string y = regs.GetRegisterAsInteger(instr.gpr20);
                         coord = "ivec2 coords = ivec2(" + x + ", " + y + ");";
                     }
                     break;
@@ -1874,8 +1879,8 @@ private:
 
                 switch (instr.tld4.texture_type) {
                 case Tegra::Shader::TextureType::Texture2D: {
-                    std::string x = regs.GetRegisterAsFloat(instr.gpr8);
-                    std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
+                    const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
+                    const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
                     coord = "vec2 coords = vec2(" + x + ", " + y + ");";
                     break;
                 }
@@ -1959,12 +1964,12 @@ private:
             // We can't use the constant predicate as destination.
             ASSERT(instr.fsetp.pred3 != static_cast<u64>(Pred::UnusedIndex));
 
-            std::string second_pred =
+            const std::string second_pred =
                 GetPredicateCondition(instr.fsetp.pred39, instr.fsetp.neg_pred != 0);
 
-            std::string combiner = GetPredicateCombiner(instr.fsetp.op);
+            const std::string combiner = GetPredicateCombiner(instr.fsetp.op);
 
-            std::string predicate = GetPredicateComparison(instr.fsetp.cond, op_a, op_b);
+            const std::string predicate = GetPredicateComparison(instr.fsetp.cond, op_a, op_b);
             // Set the primary predicate to the result of Predicate OP SecondPredicate
             SetPredicate(instr.fsetp.pred3,
                          '(' + predicate + ") " + combiner + " (" + second_pred + ')');
@@ -1978,7 +1983,8 @@ private:
             break;
         }
         case OpCode::Type::IntegerSetPredicate: {
-            std::string op_a = regs.GetRegisterAsInteger(instr.gpr8, 0, instr.isetp.is_signed);
+            const std::string op_a =
+                regs.GetRegisterAsInteger(instr.gpr8, 0, instr.isetp.is_signed);
             std::string op_b;
 
             if (instr.is_b_imm) {
@@ -1995,12 +2001,12 @@ private:
             // We can't use the constant predicate as destination.
             ASSERT(instr.isetp.pred3 != static_cast<u64>(Pred::UnusedIndex));
 
-            std::string second_pred =
+            const std::string second_pred =
                 GetPredicateCondition(instr.isetp.pred39, instr.isetp.neg_pred != 0);
 
-            std::string combiner = GetPredicateCombiner(instr.isetp.op);
+            const std::string combiner = GetPredicateCombiner(instr.isetp.op);
 
-            std::string predicate = GetPredicateComparison(instr.isetp.cond, op_a, op_b);
+            const std::string predicate = GetPredicateComparison(instr.isetp.cond, op_a, op_b);
             // Set the primary predicate to the result of Predicate OP SecondPredicate
             SetPredicate(instr.isetp.pred3,
                          '(' + predicate + ") " + combiner + " (" + second_pred + ')');
@@ -2014,20 +2020,20 @@ private:
             break;
         }
         case OpCode::Type::PredicateSetPredicate: {
-            std::string op_a =
+            const std::string op_a =
                 GetPredicateCondition(instr.psetp.pred12, instr.psetp.neg_pred12 != 0);
-            std::string op_b =
+            const std::string op_b =
                 GetPredicateCondition(instr.psetp.pred29, instr.psetp.neg_pred29 != 0);
 
             // We can't use the constant predicate as destination.
             ASSERT(instr.psetp.pred3 != static_cast<u64>(Pred::UnusedIndex));
 
-            std::string second_pred =
+            const std::string second_pred =
                 GetPredicateCondition(instr.psetp.pred39, instr.psetp.neg_pred39 != 0);
 
-            std::string combiner = GetPredicateCombiner(instr.psetp.op);
+            const std::string combiner = GetPredicateCombiner(instr.psetp.op);
 
-            std::string predicate =
+            const std::string predicate =
                 '(' + op_a + ") " + GetPredicateCombiner(instr.psetp.cond) + " (" + op_b + ')';
 
             // Set the primary predicate to the result of Predicate OP SecondPredicate
@@ -2053,7 +2059,7 @@ private:
             std::string op_b = instr.fset.neg_b ? "-" : "";
 
             if (instr.is_b_imm) {
-                std::string imm = GetImmediate19(instr);
+                const std::string imm = GetImmediate19(instr);
                 if (instr.fset.neg_imm)
                     op_b += "(-" + imm + ')';
                 else
@@ -2073,13 +2079,14 @@ private:
 
             // The fset instruction sets a register to 1.0 or -1 (depending on the bf bit) if the
             // condition is true, and to 0 otherwise.
-            std::string second_pred =
+            const std::string second_pred =
                 GetPredicateCondition(instr.fset.pred39, instr.fset.neg_pred != 0);
 
-            std::string combiner = GetPredicateCombiner(instr.fset.op);
+            const std::string combiner = GetPredicateCombiner(instr.fset.op);
 
-            std::string predicate = "((" + GetPredicateComparison(instr.fset.cond, op_a, op_b) +
-                                    ") " + combiner + " (" + second_pred + "))";
+            const std::string predicate = "((" +
+                                          GetPredicateComparison(instr.fset.cond, op_a, op_b) +
+                                          ") " + combiner + " (" + second_pred + "))";
 
             if (instr.fset.bf) {
                 regs.SetRegisterToFloat(instr.gpr0, 0, predicate + " ? 1.0 : 0.0", 1, 1);
@@ -2090,7 +2097,7 @@ private:
             break;
         }
         case OpCode::Type::IntegerSet: {
-            std::string op_a = regs.GetRegisterAsInteger(instr.gpr8, 0, instr.iset.is_signed);
+            const std::string op_a = regs.GetRegisterAsInteger(instr.gpr8, 0, instr.iset.is_signed);
 
             std::string op_b;
 
@@ -2107,13 +2114,14 @@ private:
 
             // The iset instruction sets a register to 1.0 or -1 (depending on the bf bit) if the
             // condition is true, and to 0 otherwise.
-            std::string second_pred =
+            const std::string second_pred =
                 GetPredicateCondition(instr.iset.pred39, instr.iset.neg_pred != 0);
 
-            std::string combiner = GetPredicateCombiner(instr.iset.op);
+            const std::string combiner = GetPredicateCombiner(instr.iset.op);
 
-            std::string predicate = "((" + GetPredicateComparison(instr.iset.cond, op_a, op_b) +
-                                    ") " + combiner + " (" + second_pred + "))";
+            const std::string predicate = "((" +
+                                          GetPredicateComparison(instr.iset.cond, op_a, op_b) +
+                                          ") " + combiner + " (" + second_pred + "))";
 
             if (instr.iset.bf) {
                 regs.SetRegisterToFloat(instr.gpr0, 0, predicate + " ? 1.0 : 0.0", 1, 1);
@@ -2263,7 +2271,7 @@ private:
             case OpCode::Id::BRA: {
                 ASSERT_MSG(instr.bra.constant_buffer == 0,
                            "BRA with constant buffers are not implemented");
-                u32 target = offset + instr.bra.GetBranchTarget();
+                const u32 target = offset + instr.bra.GetBranchTarget();
                 shader.AddLine("{ jmp_to = " + std::to_string(target) + "u; break; }");
                 break;
             }
@@ -2287,7 +2295,7 @@ private:
                 // has a similar structure to the BRA opcode.
                 ASSERT_MSG(instr.bra.constant_buffer == 0, "Constant buffer SSY is not supported");
 
-                u32 target = offset + instr.bra.GetBranchTarget();
+                const u32 target = offset + instr.bra.GetBranchTarget();
                 EmitPushToSSYStack(target);
                 break;
             }
@@ -2381,10 +2389,10 @@ private:
                     shader.AddLine("case " + std::to_string(label) + "u: {");
                     ++shader.scope;
 
-                    auto next_it = labels.lower_bound(label + 1);
-                    u32 next_label = next_it == labels.end() ? subroutine.end : *next_it;
+                    const auto next_it = labels.lower_bound(label + 1);
+                    const u32 next_label = next_it == labels.end() ? subroutine.end : *next_it;
 
-                    u32 compile_end = CompileRange(label, next_label);
+                    const u32 compile_end = CompileRange(label, next_label);
                     if (compile_end > next_label && compile_end != PROGRAM_END) {
                         // This happens only when there is a label inside a IF/LOOP block
                         shader.AddLine(" jmp_to = " + std::to_string(compile_end) + "u; break; }");
@@ -2447,7 +2455,8 @@ boost::optional<ProgramResult> DecompileProgram(const ProgramCode& program_code,
                                                 Maxwell3D::Regs::ShaderStage stage,
                                                 const std::string& suffix) {
     try {
-        auto subroutines = ControlFlowAnalyzer(program_code, main_offset, suffix).GetSubroutines();
+        const auto subroutines =
+            ControlFlowAnalyzer(program_code, main_offset, suffix).GetSubroutines();
         GLSLGenerator generator(subroutines, program_code, main_offset, stage, suffix);
         return ProgramResult{generator.GetShaderCode(), generator.GetEntries()};
     } catch (const DecompileFail& exception) {
