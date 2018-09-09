@@ -240,6 +240,41 @@ enum class FlowCondition : u64 {
     Fcsm_Tr = 0x1C, // TODO(bunnei): What is this used for?
 };
 
+enum class ControlCode : u64 {
+    F = 0,
+    LT = 1,
+    EQ = 2,
+    LE = 3,
+    GT = 4,
+    NE = 5,
+    GE = 6,
+    Num = 7,
+    Nan = 8,
+    LTU = 9,
+    EQU = 10,
+    LEU = 11,
+    GTU = 12,
+    NEU = 13,
+    GEU = 14,
+    //
+    OFF = 16,
+    LO = 17,
+    SFF = 18,
+    LS = 19,
+    HI = 20,
+    SFT = 21,
+    HS = 22,
+    OFT = 23,
+    CSM_TA = 24,
+    CSM_TR = 25,
+    CSM_MX = 26,
+    FCSM_TA = 27,
+    FCSM_TR = 28,
+    FCSM_MX = 29,
+    RLE = 30,
+    RGT = 31,
+};
+
 enum class PredicateResultMode : u64 {
     None = 0x0,
     NotZero = 0x3,
@@ -735,6 +770,7 @@ union Instruction {
         BitField<36, 5, u64> index;
     } cbuf36;
 
+    BitField<47, 1, u64> generates_cc;
     BitField<61, 1, u64> is_b_imm;
     BitField<60, 1, u64> is_b_gpr;
     BitField<59, 1, u64> is_c_gpr;

@@ -351,6 +351,15 @@ public:
         shader.AddLine(dest + " = " + src + ';');
     }
 
+    std::string GetControlCode(const Tegra::Shader::ControlCode cc) {
+        u32 code = static_cast<u32>(cc);
+        return "controlCode_" + std::to_string(code);
+    }
+
+    void SetControlCode(const Tegra::Shader::ControlCode cc, const std::string& value) {
+        shader.AddLine(GetControlCode(cc) + " = " + value + ';');
+    }
+
     /**
      * Writes code that does a output attribute assignment to register operation. Output attributes
      * are stored as floats, so this may require conversion.
@@ -411,6 +420,12 @@ public:
         for (const auto& reg : regs) {
             declarations.AddLine(GLSLRegister::GetTypeString() + ' ' + reg.GetPrefixString() +
                                  std::to_string(reg.GetIndex()) + '_' + suffix + " = 0;");
+        }
+        declarations.AddNewLine();
+
+        for (u32 cc = 0; cc < 32; cc++) {
+            Tegra::Shader::ControlCode code = static_cast<Tegra::Shader::ControlCode>(cc);
+            declarations.AddLine("bool " + GetControlCode(code) + " = false;");
         }
         declarations.AddNewLine();
 
