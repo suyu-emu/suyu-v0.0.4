@@ -17,8 +17,8 @@ class CubebSinkStream final : public SinkStream {
 public:
     CubebSinkStream(cubeb* ctx, u32 sample_rate, u32 num_channels_, cubeb_devid output_device,
                     const std::string& name)
-        : ctx{ctx}, is_6_channel{num_channels_ == 6}, num_channels{std::min(num_channels_, 2u)},
-          time_stretch{sample_rate, num_channels} {
+        : ctx{ctx}, num_channels{std::min(num_channels_, 2u)}, time_stretch{sample_rate,
+                                                                            num_channels} {
 
         cubeb_stream_params params{};
         params.rate = sample_rate;
@@ -57,15 +57,15 @@ public:
         cubeb_stream_destroy(stream_backend);
     }
 
-    void EnqueueSamples(u32 num_channels, const std::vector<s16>& samples) override {
-        if (is_6_channel) {
+    void EnqueueSamples(u32 source_num_channels, const std::vector<s16>& samples) override {
+        if (source_num_channels > num_channels) {
             // Downsample 6 channels to 2
-            const size_t sample_count_copy_size = samples.size() * 2;
             std::vector<s16> buf;
-            buf.reserve(sample_count_copy_size);
-            for (size_t i = 0; i < samples.size(); i += num_channels) {
-                buf.push_back(samples[i]);
-                buf.push_back(samples[i + 1]);
+            buf.reserve(samples.size() * num_channels / source_num_channels);
+            for (size_t i = 0; i < samples.size(); i += source_num_channels) {
+                for (size_t ch = 0; ch < num_channels; ch++) {
+                    buf.push_back(samples[i + ch]);
+                }
             }
             queue.Push(buf);
             return;
@@ -91,7 +91,6 @@ private:
     cubeb* ctx{};
     cubeb_stream* stream_backend{};
     u32 num_channels{};
-    bool is_6_channel{};
 
     Common::RingBuffer<s16, 0x10000> queue;
     std::array<s16, 2> last_frame;
