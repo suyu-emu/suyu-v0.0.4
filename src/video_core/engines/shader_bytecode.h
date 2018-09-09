@@ -1141,7 +1141,7 @@ private:
             INST("0011011-0101----", Id::ISET_IMM, Type::IntegerSet, "ISET_IMM"),
             INST("0101000010001---", Id::PSET, Type::PredicateSetRegister, "PSET"),
             INST("0101000010010---", Id::PSETP, Type::PredicateSetPredicate, "PSETP"),
-            INST("010100001010----", Id::PSETP, Type::PredicateSetPredicate, "CSETP"),
+            INST("010100001010----", Id::CSETP, Type::PredicateSetPredicate, "CSETP"),
             INST("0011011-00------", Id::XMAD_IMM, Type::Xmad, "XMAD_IMM"),
             INST("0100111---------", Id::XMAD_CR, Type::Xmad, "XMAD_CR"),
             INST("010100010-------", Id::XMAD_RC, Type::Xmad, "XMAD_RC"),

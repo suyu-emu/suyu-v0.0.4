@@ -351,12 +351,12 @@ public:
         shader.AddLine(dest + " = " + src + ';');
     }
 
-    std::string GetControlCode(const Tegra::Shader::ControlCode cc) {
-        u32 code = static_cast<u32>(cc);
-        return "controlCode_" + std::to_string(code);
+    std::string GetControlCode(const Tegra::Shader::ControlCode cc) const {
+        const u32 code = static_cast<u32>(cc);
+        return "controlCode_" + std::to_string(code) + suffix;
     }
 
-    void SetControlCode(const Tegra::Shader::ControlCode cc, const std::string& value) {
+    void SetControlCode(const Tegra::Shader::ControlCode cc, const std::string& value) const {
         shader.AddLine(GetControlCode(cc) + " = " + value + ';');
     }
 
@@ -424,7 +424,7 @@ public:
         declarations.AddNewLine();
 
         for (u32 cc = 0; cc < 32; cc++) {
-            Tegra::Shader::ControlCode code = static_cast<Tegra::Shader::ControlCode>(cc);
+            const Tegra::Shader::ControlCode code = static_cast<Tegra::Shader::ControlCode>(cc);
             declarations.AddLine("bool " + GetControlCode(code) + " = false;");
         }
         declarations.AddNewLine();
@@ -1656,6 +1656,10 @@ private:
 
                 regs.SetRegisterToInteger(instr.gpr0, instr.conversion.is_output_signed, 0, op_a, 1,
                                           1, instr.alu.saturate_d, 0, instr.conversion.dest_size);
+                if (instr.generates_cc.Value() != 0) {
+                    const std::string neucondition = "( " + op_a + " != 0 )";
+                    regs.SetControlCode(Tegra::Shader::ControlCode::NEU, neucondition);
+                }
                 break;
             }
             case OpCode::Id::I2F_R:
@@ -2277,13 +2281,13 @@ private:
                 // We can't use the constant predicate as destination.
                 ASSERT(instr.psetp.pred3 != static_cast<u64>(Pred::UnusedIndex));
 
-            const std::string second_pred =
-                GetPredicateCondition(instr.psetp.pred39, instr.psetp.neg_pred39 != 0);
+                const std::string second_pred =
+                    GetPredicateCondition(instr.psetp.pred39, instr.psetp.neg_pred39 != 0);
 
-            const std::string combiner = GetPredicateCombiner(instr.psetp.op);
+                const std::string combiner = GetPredicateCombiner(instr.psetp.op);
 
-            const std::string predicate =
-                '(' + op_a + ") " + GetPredicateCombiner(instr.psetp.cond) + " (" + op_b + ')';
+                const std::string predicate =
+                    '(' + op_a + ") " + GetPredicateCombiner(instr.psetp.cond) + " (" + op_b + ')';
 
                 // Set the primary predicate to the result of Predicate OP SecondPredicate
                 SetPredicate(instr.psetp.pred3,
@@ -2298,10 +2302,10 @@ private:
                 break;
             }
             case OpCode::Id::CSETP: {
-                std::string pred =
+                const std::string pred =
                     GetPredicateCondition(instr.csetp.pred39, instr.csetp.neg_pred39 != 0);
-                std::string combiner = GetPredicateCombiner(instr.csetp.op);
-                std::string controlCode = regs.GetControlCode(instr.csetp.cc);
+                const std::string combiner = GetPredicateCombiner(instr.csetp.op);
+                const std::string controlCode = regs.GetControlCode(instr.csetp.cc);
                 if (instr.csetp.pred3 != static_cast<u64>(Pred::UnusedIndex)) {
                     SetPredicate(instr.csetp.pred3,
                                  '(' + controlCode + ") " + combiner + " (" + pred + ')');
