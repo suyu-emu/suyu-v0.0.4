@@ -16,6 +16,7 @@
 #include <QString>
 
 #include "common/common_types.h"
+#include "yuzu/compatibility_list.h"
 
 class QStandardItem;
 
@@ -32,9 +33,8 @@ class GameListWorker : public QObject, public QRunnable {
     Q_OBJECT
 
 public:
-    GameListWorker(
-        std::shared_ptr<FileSys::VfsFilesystem> vfs, QString dir_path, bool deep_scan,
-        const std::unordered_map<std::string, std::pair<QString, QString>>& compatibility_list);
+    GameListWorker(std::shared_ptr<FileSys::VfsFilesystem> vfs, QString dir_path, bool deep_scan,
+                   const CompatibilityList& compatibility_list);
     ~GameListWorker() override;
 
     /// Starts the processing of directory tree information.
@@ -67,6 +67,6 @@ private:
     QStringList watch_list;
     QString dir_path;
     bool deep_scan;
-    const std::unordered_map<std::string, std::pair<QString, QString>>& compatibility_list;
+    const CompatibilityList& compatibility_list;
     std::atomic_bool stop_processing;
 };
