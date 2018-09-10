@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <string>
 #include "common/common_types.h"
 
@@ -120,6 +121,7 @@ struct Values {
     std::array<std::string, NativeAnalog::NumAnalogs> analogs;
     std::string motion_device;
     std::string touch_device;
+    std::atomic_bool is_device_reload_pending{true};
 
     // Core
     bool use_cpu_jit;
