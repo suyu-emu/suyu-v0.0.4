@@ -74,8 +74,6 @@ using Kernel::SharedPtr;
 
 namespace Service {
 
-std::unordered_map<std::string, SharedPtr<ClientPort>> g_kernel_named_ports;
-
 /**
  * Creates a function string for logging, complete with the name (or header code, depending
  * on what's passed in) the port name, and all the cmd_buff arguments.
