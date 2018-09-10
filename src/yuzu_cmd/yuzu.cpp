@@ -82,6 +82,9 @@ int main(int argc, char** argv) {
     int option_index = 0;
     bool use_gdbstub = Settings::values.use_gdbstub;
     u32 gdb_port = static_cast<u32>(Settings::values.gdbstub_port);
+
+    InitializeLogging();
+
     char* endarg;
 #ifdef _WIN32
     int argc_w;
@@ -143,8 +146,6 @@ int main(int argc, char** argv) {
 #ifdef _WIN32
     LocalFree(argv_w);
 #endif
-
-    InitializeLogging();
 
     MicroProfileOnThreadCreate("EmuThread");
     SCOPE_EXIT({ MicroProfileShutdown(); });
