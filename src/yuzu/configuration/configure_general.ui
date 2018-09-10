@@ -58,13 +58,6 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QCheckBox" name="use_multi_core">
-            <property name="text">
-             <string>Enable multi-core</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </item>
        </layout>

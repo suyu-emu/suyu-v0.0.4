@@ -20,7 +20,6 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
     this->setConfiguration();
 
     ui->use_cpu_jit->setEnabled(!Core::System::GetInstance().IsPoweredOn());
-    ui->use_multi_core->setEnabled(!Core::System::GetInstance().IsPoweredOn());
     ui->use_docked_mode->setEnabled(!Core::System::GetInstance().IsPoweredOn());
 }
 
@@ -31,7 +30,6 @@ void ConfigureGeneral::setConfiguration() {
     ui->toggle_check_exit->setChecked(UISettings::values.confirm_before_closing);
     ui->theme_combobox->setCurrentIndex(ui->theme_combobox->findData(UISettings::values.theme));
     ui->use_cpu_jit->setChecked(Settings::values.use_cpu_jit);
-    ui->use_multi_core->setChecked(Settings::values.use_multi_core);
     ui->use_docked_mode->setChecked(Settings::values.use_docked_mode);
 }
 
@@ -46,6 +44,5 @@ void ConfigureGeneral::applyConfiguration() {
         ui->theme_combobox->itemData(ui->theme_combobox->currentIndex()).toString();
 
     Settings::values.use_cpu_jit = ui->use_cpu_jit->isChecked();
-    Settings::values.use_multi_core = ui->use_multi_core->isChecked();
     Settings::values.use_docked_mode = ui->use_docked_mode->isChecked();
 }
