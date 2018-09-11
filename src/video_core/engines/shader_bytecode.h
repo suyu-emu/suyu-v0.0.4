@@ -424,6 +424,45 @@ union Instruction {
     } bfe;
 
     union {
+        BitField<48, 3, u64> pred48;
+
+        union {
+            BitField<20, 20, u64> entry_a;
+            BitField<39, 5, u64> entry_b;
+            BitField<45, 1, u64> neg;
+            BitField<46, 1, u64> uses_cc;
+        } imm;
+
+        union {
+            BitField<20, 14, u64> cb_index;
+            BitField<34, 5, u64> cb_offset;
+            BitField<56, 1, u64> neg;
+            BitField<57, 1, u64> uses_cc;
+        } hi;
+
+        union {
+            BitField<20, 14, u64> cb_index;
+            BitField<34, 5, u64> cb_offset;
+            BitField<39, 5, u64> entry_a;
+            BitField<45, 1, u64> neg;
+            BitField<46, 1, u64> uses_cc;
+        } rz;
+
+        union {
+            BitField<39, 5, u64> entry_a;
+            BitField<45, 1, u64> neg;
+            BitField<46, 1, u64> uses_cc;
+        } r1;
+
+        union {
+            BitField<28, 8, u64> entry_a;
+            BitField<37, 1, u64> neg;
+            BitField<38, 1, u64> uses_cc;
+        } r2;
+
+    } lea;
+
+    union {
         BitField<0, 5, FlowCondition> cond;
     } flow;
 
@@ -476,6 +515,18 @@ union Instruction {
         BitField<42, 1, u64> neg_pred39;
         BitField<45, 2, PredOperation> op;
     } psetp;
+
+    union {
+        BitField<12, 3, u64> pred12;
+        BitField<15, 1, u64> neg_pred12;
+        BitField<24, 2, PredOperation> cond;
+        BitField<29, 3, u64> pred29;
+        BitField<32, 1, u64> neg_pred29;
+        BitField<39, 3, u64> pred39;
+        BitField<42, 1, u64> neg_pred39;
+        BitField<44, 1, u64> bf;
+        BitField<45, 2, PredOperation> op;
+    } pset;
 
     union {
         BitField<39, 3, u64> pred39;
@@ -726,6 +777,11 @@ public:
         ISCADD_C, // Scale and Add
         ISCADD_R,
         ISCADD_IMM,
+        LEA_R1,
+        LEA_R2,
+        LEA_RZ,
+        LEA_IMM,
+        LEA_HI,
         POPC_C,
         POPC_R,
         POPC_IMM,
@@ -784,6 +840,7 @@ public:
         ISET_C,
         ISET_IMM,
         PSETP,
+        PSET,
         XMAD_IMM,
         XMAD_CR,
         XMAD_RC,
@@ -807,6 +864,7 @@ public:
         IntegerSet,
         IntegerSetPredicate,
         PredicateSetPredicate,
+        PredicateSetRegister,
         Conversion,
         Xmad,
         Unknown,
@@ -958,6 +1016,11 @@ private:
             INST("0100110010100---", Id::SEL_C, Type::ArithmeticInteger, "SEL_C"),
             INST("0101110010100---", Id::SEL_R, Type::ArithmeticInteger, "SEL_R"),
             INST("0011100-10100---", Id::SEL_IMM, Type::ArithmeticInteger, "SEL_IMM"),
+            INST("0101101111011---", Id::LEA_R2, Type::ArithmeticInteger, "LEA_R2"),
+            INST("0101101111010---", Id::LEA_R1, Type::ArithmeticInteger, "LEA_R1"),
+            INST("001101101101----", Id::LEA_IMM, Type::ArithmeticInteger, "LEA_IMM"),
+            INST("010010111101----", Id::LEA_RZ, Type::ArithmeticInteger, "LEA_RZ"),
+            INST("00011000--------", Id::LEA_HI, Type::ArithmeticInteger, "LEA_HI"),
             INST("0101000010000---", Id::MUFU, Type::Arithmetic, "MUFU"),
             INST("0100110010010---", Id::RRO_C, Type::Arithmetic, "RRO_C"),
             INST("0101110010010---", Id::RRO_R, Type::Arithmetic, "RRO_R"),
@@ -1012,6 +1075,7 @@ private:
             INST("010110110101----", Id::ISET_R, Type::IntegerSet, "ISET_R"),
             INST("010010110101----", Id::ISET_C, Type::IntegerSet, "ISET_C"),
             INST("0011011-0101----", Id::ISET_IMM, Type::IntegerSet, "ISET_IMM"),
+            INST("0101000010001---", Id::PSET, Type::PredicateSetRegister, "PSET"),
             INST("0101000010010---", Id::PSETP, Type::PredicateSetPredicate, "PSETP"),
             INST("0011011-00------", Id::XMAD_IMM, Type::Xmad, "XMAD_IMM"),
             INST("0100111---------", Id::XMAD_CR, Type::Xmad, "XMAD_CR"),
