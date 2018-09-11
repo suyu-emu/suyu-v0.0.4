@@ -5,8 +5,8 @@
 #pragma once
 
 #include "common/bit_field.h"
-#include "common/common_types.h"
 #include "common/common_funcs.h"
+#include "common/common_types.h"
 
 namespace Tegra::Shader {
 
@@ -72,7 +72,7 @@ struct Header {
             INSERT_PADDING_BYTES(2);  // OmapSystemValuesC
             INSERT_PADDING_BYTES(5);  // OmapFixedFncTexture[10]
             INSERT_PADDING_BYTES(1);  // OmapReserved
-        } ps;
+        } vtg;
 
         struct {
             INSERT_PADDING_BYTES(3);  // ImapSystemValuesA
@@ -82,14 +82,20 @@ struct Header {
             INSERT_PADDING_BYTES(2);  // ImapSystemValuesC
             INSERT_PADDING_BYTES(10); // ImapFixedFncTexture[10]
             INSERT_PADDING_BYTES(2);  // ImapReserved
-            INSERT_PADDING_BYTES(4);  // OmapTarget[8]
-            union {
-                BitField<0, 1, u32> omap_sample_mask;
-                BitField<1, 1, u32> omap_depth;
-                BitField<2, 30, u32> omap_reserved;
+            struct {
+                u32 target;
+                union {
+                    BitField<0, 1, u32> sample_mask;
+                    BitField<1, 1, u32> depth;
+                    BitField<2, 30, u32> reserved;
+                };
             } omap;
-        } vtg;
-    } sph;
+            bool IsColorComponentOutputEnabled(u32 render_target, u32 component) const {
+                const u32 bit = render_target * 4 + component;
+                return omap.target & (1 << bit);
+            }
+        } ps;
+    };
 };
 
 static_assert(sizeof(Header) == 0x50, "Incorrect structure size");
