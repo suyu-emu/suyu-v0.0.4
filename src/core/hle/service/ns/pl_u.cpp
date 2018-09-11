@@ -2,12 +2,12 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <FontChineseSimplified.ttf.h>
-#include <FontChineseTraditional.ttf.h>
-#include <FontExtendedChineseSimplified.ttf.h>
-#include <FontKorean.ttf.h>
-#include <FontNintendoExtended.ttf.h>
-#include <FontStandard.ttf.h>
+#include <FontChineseSimplified.h>
+#include <FontChineseTraditional.h>
+#include <FontExtendedChineseSimplified.h>
+#include <FontKorean.h>
+#include <FontNintendoExtended.h>
+#include <FontStandard.h>
 
 #include "common/common_paths.h"
 #include "common/file_util.h"
