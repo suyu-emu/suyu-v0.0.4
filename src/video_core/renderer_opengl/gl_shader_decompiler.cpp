@@ -1023,7 +1023,7 @@ private:
             // TODO(Subv): Figure out how dual-source blending is configured in the Switch.
             for (u32 component = 0; component < 4; ++component) {
                 if (header.IsColorComponentOutputEnabled(render_target, component)) {
-                    shader.AddLine(fmt::format("color[{}][{}] = {};", render_target, component,
+                    shader.AddLine(fmt::format("FragColor{}[{}] = {};", render_target, component,
                                                regs.GetRegisterAsFloat(current_reg)));
                     ++current_reg;
                 }

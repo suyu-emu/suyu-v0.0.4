@@ -88,7 +88,14 @@ ProgramResult GenerateFragmentShader(const ShaderSetup& setup) {
             .get_value_or({});
     out += R"(
 in vec4 position;
-layout(location = 0) out vec4 color[8];
+layout(location = 0) out vec4 FragColor0;
+layout(location = 1) out vec4 FragColor1;
+layout(location = 2) out vec4 FragColor2;
+layout(location = 3) out vec4 FragColor3;
+layout(location = 4) out vec4 FragColor4;
+layout(location = 5) out vec4 FragColor5;
+layout(location = 6) out vec4 FragColor6;
+layout(location = 7) out vec4 FragColor7;
 
 layout (std140) uniform fs_config {
     vec4 viewport_flip;
