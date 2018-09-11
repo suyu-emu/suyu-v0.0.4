@@ -45,6 +45,8 @@ Module::Module() {
     devices["/dev/nvhost-vic"] = std::make_shared<Devices::nvhost_vic>();
 }
 
+Module::~Module() = default;
+
 u32 Module::Open(const std::string& device_name) {
     ASSERT_MSG(devices.find(device_name) != devices.end(), "Trying to open unknown device {}",
                device_name);

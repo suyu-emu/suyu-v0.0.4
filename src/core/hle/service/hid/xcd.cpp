@@ -34,4 +34,6 @@ XCD_SYS::XCD_SYS() : ServiceFramework{"xcd:sys"} {
     RegisterHandlers(functions);
 }
 
+XCD_SYS::~XCD_SYS() = default;
+
 } // namespace Service::HID

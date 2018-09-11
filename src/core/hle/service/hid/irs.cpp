@@ -33,6 +33,8 @@ IRS::IRS() : ServiceFramework{"irs"} {
     RegisterHandlers(functions);
 }
 
+IRS::~IRS() = default;
+
 IRS_SYS::IRS_SYS() : ServiceFramework{"irs:sys"} {
     // clang-format off
     static const FunctionInfo functions[] = {
@@ -45,5 +47,7 @@ IRS_SYS::IRS_SYS() : ServiceFramework{"irs:sys"} {
 
     RegisterHandlers(functions);
 }
+
+IRS_SYS::~IRS_SYS() = default;
 
 } // namespace Service::HID

@@ -11,6 +11,7 @@ namespace Service::AM {
 class IdleSys final : public ServiceFramework<IdleSys> {
 public:
     explicit IdleSys();
+    ~IdleSys() override;
 };
 
 } // namespace Service::AM

@@ -26,7 +26,7 @@ class BufferQueue;
 
 struct Layer {
     Layer(u64 id, std::shared_ptr<BufferQueue> queue);
-    ~Layer() = default;
+    ~Layer();
 
     u64 id;
     std::shared_ptr<BufferQueue> buffer_queue;
@@ -34,7 +34,7 @@ struct Layer {
 
 struct Display {
     Display(u64 id, std::string name);
-    ~Display() = default;
+    ~Display();
 
     u64 id;
     std::string name;

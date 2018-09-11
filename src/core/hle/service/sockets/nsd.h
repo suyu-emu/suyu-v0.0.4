@@ -12,7 +12,7 @@ namespace Service::Sockets {
 class NSD final : public ServiceFramework<NSD> {
 public:
     explicit NSD(const char* name);
-    ~NSD() = default;
+    ~NSD() override;
 };
 
 } // namespace Service::Sockets

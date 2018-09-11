@@ -109,6 +109,8 @@ BSD::BSD(const char* name) : ServiceFramework(name) {
     RegisterHandlers(functions);
 }
 
+BSD::~BSD() = default;
+
 BSDCFG::BSDCFG() : ServiceFramework{"bsdcfg"} {
     // clang-format off
     static const FunctionInfo functions[] = {
@@ -130,5 +132,7 @@ BSDCFG::BSDCFG() : ServiceFramework{"bsdcfg"} {
 
     RegisterHandlers(functions);
 }
+
+BSDCFG::~BSDCFG() = default;
 
 } // namespace Service::Sockets

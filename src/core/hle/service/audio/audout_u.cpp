@@ -218,4 +218,6 @@ AudOutU::AudOutU() : ServiceFramework("audout:u") {
     audio_core = std::make_unique<AudioCore::AudioOut>();
 }
 
+AudOutU::~AudOutU() = default;
+
 } // namespace Service::Audio

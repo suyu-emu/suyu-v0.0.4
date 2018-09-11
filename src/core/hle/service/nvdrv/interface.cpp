@@ -112,4 +112,6 @@ NVDRV::NVDRV(std::shared_ptr<Module> nvdrv, const char* name)
     query_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "NVDRV::query_event");
 }
 
+NVDRV::~NVDRV() = default;
+
 } // namespace Service::Nvidia

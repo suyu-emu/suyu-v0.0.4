@@ -13,4 +13,6 @@ CSRNG::CSRNG(std::shared_ptr<Module> module) : Module::Interface(std::move(modul
     RegisterHandlers(functions);
 }
 
+CSRNG::~CSRNG() = default;
+
 } // namespace Service::SPL

@@ -42,6 +42,7 @@ enum SystemLanguage {
 class IWindowController final : public ServiceFramework<IWindowController> {
 public:
     IWindowController();
+    ~IWindowController() override;
 
 private:
     void GetAppletResourceUserId(Kernel::HLERequestContext& ctx);
@@ -51,6 +52,7 @@ private:
 class IAudioController final : public ServiceFramework<IAudioController> {
 public:
     IAudioController();
+    ~IAudioController() override;
 
 private:
     void SetExpectedMasterVolume(Kernel::HLERequestContext& ctx);
@@ -63,16 +65,19 @@ private:
 class IDisplayController final : public ServiceFramework<IDisplayController> {
 public:
     IDisplayController();
+    ~IDisplayController() override;
 };
 
 class IDebugFunctions final : public ServiceFramework<IDebugFunctions> {
 public:
     IDebugFunctions();
+    ~IDebugFunctions() override;
 };
 
 class ISelfController final : public ServiceFramework<ISelfController> {
 public:
     explicit ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger);
+    ~ISelfController() override;
 
 private:
     void SetFocusHandlingMode(Kernel::HLERequestContext& ctx);
@@ -98,6 +103,7 @@ private:
 class ICommonStateGetter final : public ServiceFramework<ICommonStateGetter> {
 public:
     ICommonStateGetter();
+    ~ICommonStateGetter() override;
 
 private:
     enum class FocusState : u8 {
@@ -124,6 +130,7 @@ private:
 class ILibraryAppletCreator final : public ServiceFramework<ILibraryAppletCreator> {
 public:
     ILibraryAppletCreator();
+    ~ILibraryAppletCreator() override;
 
 private:
     void CreateLibraryApplet(Kernel::HLERequestContext& ctx);
@@ -133,6 +140,7 @@ private:
 class IApplicationFunctions final : public ServiceFramework<IApplicationFunctions> {
 public:
     IApplicationFunctions();
+    ~IApplicationFunctions() override;
 
 private:
     void PopLaunchParameter(Kernel::HLERequestContext& ctx);
@@ -150,6 +158,7 @@ private:
 class IHomeMenuFunctions final : public ServiceFramework<IHomeMenuFunctions> {
 public:
     IHomeMenuFunctions();
+    ~IHomeMenuFunctions() override;
 
 private:
     void RequestToGetForeground(Kernel::HLERequestContext& ctx);
@@ -158,16 +167,19 @@ private:
 class IGlobalStateController final : public ServiceFramework<IGlobalStateController> {
 public:
     IGlobalStateController();
+    ~IGlobalStateController() override;
 };
 
 class IApplicationCreator final : public ServiceFramework<IApplicationCreator> {
 public:
     IApplicationCreator();
+    ~IApplicationCreator() override;
 };
 
 class IProcessWindingController final : public ServiceFramework<IProcessWindingController> {
 public:
     IProcessWindingController();
+    ~IProcessWindingController() override;
 };
 
 /// Registers all AM services with the specified service manager.

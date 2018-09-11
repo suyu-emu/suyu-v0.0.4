@@ -30,7 +30,7 @@ class IAudioOut;
 class AudOutU final : public ServiceFramework<AudOutU> {
 public:
     AudOutU();
-    ~AudOutU() = default;
+    ~AudOutU() override;
 
 private:
     std::shared_ptr<IAudioOut> audio_out_interface;

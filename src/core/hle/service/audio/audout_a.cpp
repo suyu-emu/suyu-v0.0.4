@@ -21,4 +21,6 @@ AudOutA::AudOutA() : ServiceFramework{"audout:a"} {
     RegisterHandlers(functions);
 }
 
+AudOutA::~AudOutA() = default;
+
 } // namespace Service::Audio

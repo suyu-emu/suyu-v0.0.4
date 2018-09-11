@@ -28,4 +28,6 @@ CodecCtl::CodecCtl() : ServiceFramework("codecctl") {
     RegisterHandlers(functions);
 }
 
+CodecCtl::~CodecCtl() = default;
+
 } // namespace Service::Audio

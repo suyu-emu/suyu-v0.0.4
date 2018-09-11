@@ -11,6 +11,7 @@ namespace Service::HID {
 class XCD_SYS final : public ServiceFramework<XCD_SYS> {
 public:
     explicit XCD_SYS();
+    ~XCD_SYS() override;
 };
 
 } // namespace Service::HID

@@ -70,6 +70,8 @@ APM::APM(std::shared_ptr<Module> apm, const char* name)
     RegisterHandlers(functions);
 }
 
+APM::~APM() = default;
+
 void APM::OpenSession(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
@@ -92,6 +94,8 @@ APM_Sys::APM_Sys() : ServiceFramework{"apm:sys"} {
 
     RegisterHandlers(functions);
 }
+
+APM_Sys::~APM_Sys() = default;
 
 void APM_Sys::GetPerformanceEvent(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};

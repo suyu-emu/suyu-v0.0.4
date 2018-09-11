@@ -13,6 +13,9 @@
 
 namespace Service::Nvidia::Devices {
 
+nvdisp_disp0::nvdisp_disp0(std::shared_ptr<nvmap> nvmap_dev) : nvmap_dev(std::move(nvmap_dev)) {}
+nvdisp_disp0 ::~nvdisp_disp0() = default;
+
 u32 nvdisp_disp0::ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl");
     return 0;

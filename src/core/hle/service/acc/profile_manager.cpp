@@ -29,6 +29,8 @@ ProfileManager::ProfileManager() {
     OpenUser(user_uuid);
 }
 
+ProfileManager::~ProfileManager() = default;
+
 /// After a users creation it needs to be "registered" to the system. AddToProfiles handles the
 /// internal management of the users profiles
 boost::optional<size_t> ProfileManager::AddToProfiles(const ProfileInfo& user) {

@@ -11,6 +11,7 @@ namespace Service::PCTL {
 class PCTL final : public Module::Interface {
 public:
     explicit PCTL(std::shared_ptr<Module> module, const char* name);
+    ~PCTL() override;
 };
 
 } // namespace Service::PCTL

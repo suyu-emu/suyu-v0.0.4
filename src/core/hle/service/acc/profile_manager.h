@@ -82,6 +82,8 @@ static_assert(sizeof(ProfileBase) == 0x38, "ProfileBase is an invalid size");
 class ProfileManager {
 public:
     ProfileManager(); // TODO(ogniK): Load from system save
+    ~ProfileManager();
+
     ResultCode AddUser(const ProfileInfo& user);
     ResultCode CreateNewUser(UUID uuid, const ProfileUsername& username);
     ResultCode CreateNewUser(UUID uuid, const std::string& username);

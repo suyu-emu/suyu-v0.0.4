@@ -11,6 +11,7 @@ namespace Service::AM {
 class SPSM final : public ServiceFramework<SPSM> {
 public:
     explicit SPSM();
+    ~SPSM() override;
 };
 
 } // namespace Service::AM

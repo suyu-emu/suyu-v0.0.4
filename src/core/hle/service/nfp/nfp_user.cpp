@@ -14,4 +14,6 @@ NFP_User::NFP_User(std::shared_ptr<Module> module)
     RegisterHandlers(functions);
 }
 
+NFP_User::~NFP_User() = default;
+
 } // namespace Service::NFP

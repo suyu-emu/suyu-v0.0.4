@@ -42,6 +42,8 @@ void Module::Interface::CreateBcatService(Kernel::HLERequestContext& ctx) {
 Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
     : ServiceFramework(name), module(std::move(module)) {}
 
+Module::Interface::~Interface() = default;
+
 void InstallInterfaces(SM::ServiceManager& service_manager) {
     auto module = std::make_shared<Module>();
     std::make_shared<BCAT>(module, "bcat:a")->InstallAsService(service_manager);

@@ -20,4 +20,6 @@ SET_FD::SET_FD() : ServiceFramework("set:fd") {
     RegisterHandlers(functions);
 }
 
+SET_FD::~SET_FD() = default;
+
 } // namespace Service::Set

@@ -58,6 +58,7 @@ public:
     class Interface : public ServiceFramework<Interface> {
     public:
         explicit Interface(std::shared_ptr<Module> time, const char* name);
+        ~Interface() override;
 
         void GetStandardUserSystemClock(Kernel::HLERequestContext& ctx);
         void GetStandardNetworkSystemClock(Kernel::HLERequestContext& ctx);

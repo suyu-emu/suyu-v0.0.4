@@ -13,8 +13,8 @@ namespace Service::Nvidia::Devices {
 
 class nvhost_ctrl_gpu final : public nvdevice {
 public:
-    nvhost_ctrl_gpu() = default;
-    ~nvhost_ctrl_gpu() override = default;
+    nvhost_ctrl_gpu();
+    ~nvhost_ctrl_gpu() override;
 
     u32 ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) override;
 

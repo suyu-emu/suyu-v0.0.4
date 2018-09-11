@@ -11,7 +11,7 @@ namespace Service::AOC {
 class AOC_U final : public ServiceFramework<AOC_U> {
 public:
     AOC_U();
-    ~AOC_U() = default;
+    ~AOC_U() override;
 
 private:
     void CountAddOnContent(Kernel::HLERequestContext& ctx);

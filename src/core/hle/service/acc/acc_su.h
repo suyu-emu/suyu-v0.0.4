@@ -13,6 +13,7 @@ class ACC_SU final : public Module::Interface {
 public:
     explicit ACC_SU(std::shared_ptr<Module> module,
                     std::shared_ptr<ProfileManager> profile_manager);
+    ~ACC_SU() override;
 };
 
 } // namespace Account

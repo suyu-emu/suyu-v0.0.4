@@ -13,8 +13,8 @@ namespace Service::Nvidia::Devices {
 
 class nvhost_nvdec final : public nvdevice {
 public:
-    nvhost_nvdec() = default;
-    ~nvhost_nvdec() override = default;
+    nvhost_nvdec();
+    ~nvhost_nvdec() override;
 
     u32 ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) override;
 

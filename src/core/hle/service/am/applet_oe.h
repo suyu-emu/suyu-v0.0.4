@@ -18,7 +18,7 @@ namespace AM {
 class AppletOE final : public ServiceFramework<AppletOE> {
 public:
     explicit AppletOE(std::shared_ptr<NVFlinger::NVFlinger> nvflinger);
-    ~AppletOE() = default;
+    ~AppletOE() override;
 
 private:
     void OpenApplicationProxy(Kernel::HLERequestContext& ctx);

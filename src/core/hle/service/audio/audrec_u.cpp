@@ -36,4 +36,6 @@ AudRecU::AudRecU() : ServiceFramework("audrec:u") {
     RegisterHandlers(functions);
 }
 
+AudRecU::~AudRecU() = default;
+
 } // namespace Service::Audio

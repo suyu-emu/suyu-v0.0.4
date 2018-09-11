@@ -14,6 +14,9 @@
 
 namespace Service::Nvidia::Devices {
 
+nvhost_gpu::nvhost_gpu(std::shared_ptr<nvmap> nvmap_dev) : nvmap_dev(std::move(nvmap_dev)) {}
+nvhost_gpu::~nvhost_gpu() = default;
+
 u32 nvhost_gpu::ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) {
     LOG_DEBUG(Service_NVDRV, "called, command=0x{:08X}, input_size=0x{:X}, output_size=0x{:X}",
               command.raw, input.size(), output.size());

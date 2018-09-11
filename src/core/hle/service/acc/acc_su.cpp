@@ -51,4 +51,6 @@ ACC_SU::ACC_SU(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
     RegisterHandlers(functions);
 }
 
+ACC_SU::~ACC_SU() = default;
+
 } // namespace Service::Account

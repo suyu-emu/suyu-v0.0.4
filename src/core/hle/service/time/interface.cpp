@@ -29,4 +29,6 @@ Time::Time(std::shared_ptr<Module> time, const char* name)
     RegisterHandlers(functions);
 }
 
+Time::~Time() = default;
+
 } // namespace Service::Time

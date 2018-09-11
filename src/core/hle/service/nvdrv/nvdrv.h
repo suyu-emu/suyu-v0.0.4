@@ -30,7 +30,7 @@ static_assert(sizeof(IoctlFence) == 8, "IoctlFence has wrong size");
 class Module final {
 public:
     Module();
-    ~Module() = default;
+    ~Module();
 
     /// Returns a pointer to one of the available devices, identified by its name.
     template <typename T>

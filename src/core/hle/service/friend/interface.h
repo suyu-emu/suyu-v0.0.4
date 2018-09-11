@@ -11,6 +11,7 @@ namespace Service::Friend {
 class Friend final : public Module::Interface {
 public:
     explicit Friend(std::shared_ptr<Module> module, const char* name);
+    ~Friend() override;
 };
 
 } // namespace Service::Friend

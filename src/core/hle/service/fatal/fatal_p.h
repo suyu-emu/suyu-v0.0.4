@@ -11,6 +11,7 @@ namespace Service::Fatal {
 class Fatal_P final : public Module::Interface {
 public:
     explicit Fatal_P(std::shared_ptr<Module> module);
+    ~Fatal_P() override;
 };
 
 } // namespace Service::Fatal

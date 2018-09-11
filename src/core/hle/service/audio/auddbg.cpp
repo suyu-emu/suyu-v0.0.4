@@ -17,4 +17,6 @@ AudDbg::AudDbg(const char* name) : ServiceFramework{name} {
     RegisterHandlers(functions);
 }
 
+AudDbg::~AudDbg() = default;
+
 } // namespace Service::Audio

@@ -42,4 +42,6 @@ SPL::SPL(std::shared_ptr<Module> module) : Module::Interface(std::move(module), 
     RegisterHandlers(functions);
 }
 
+SPL::~SPL() = default;
+
 } // namespace Service::SPL

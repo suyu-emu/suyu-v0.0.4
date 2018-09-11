@@ -210,6 +210,8 @@ void Module::Interface::GetStandardLocalSystemClock(Kernel::HLERequestContext& c
 Module::Interface::Interface(std::shared_ptr<Module> time, const char* name)
     : ServiceFramework(name), time(std::move(time)) {}
 
+Module::Interface::~Interface() = default;
+
 void InstallInterfaces(SM::ServiceManager& service_manager) {
     auto time = std::make_shared<Module>();
     std::make_shared<Time>(time, "time:a")->InstallAsService(service_manager);

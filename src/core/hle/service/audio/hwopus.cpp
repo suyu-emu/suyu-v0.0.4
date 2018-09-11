@@ -151,4 +151,6 @@ HwOpus::HwOpus() : ServiceFramework("hwopus") {
     RegisterHandlers(functions);
 }
 
+HwOpus::~HwOpus() = default;
+
 } // namespace Service::Audio

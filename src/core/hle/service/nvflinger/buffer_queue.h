@@ -46,7 +46,7 @@ public:
     };
 
     BufferQueue(u32 id, u64 layer_id);
-    ~BufferQueue() = default;
+    ~BufferQueue();
 
     enum class BufferTransformFlags : u32 {
         /// No transform flags are set

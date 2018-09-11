@@ -40,6 +40,8 @@ static FileSys::VirtualDir GetDirectoryRelativeWrapped(FileSys::VirtualDir base,
 VfsDirectoryServiceWrapper::VfsDirectoryServiceWrapper(FileSys::VirtualDir backing_)
     : backing(std::move(backing_)) {}
 
+VfsDirectoryServiceWrapper::~VfsDirectoryServiceWrapper() = default;
+
 std::string VfsDirectoryServiceWrapper::GetName() const {
     return backing->GetName();
 }

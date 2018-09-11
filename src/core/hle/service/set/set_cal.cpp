@@ -44,4 +44,6 @@ SET_CAL::SET_CAL() : ServiceFramework("set:cal") {
     RegisterHandlers(functions);
 }
 
+SET_CAL::~SET_CAL() = default;
+
 } // namespace Service::Set

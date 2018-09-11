@@ -11,6 +11,7 @@ namespace Service::Time {
 class Time final : public Module::Interface {
 public:
     explicit Time(std::shared_ptr<Module> time, const char* name);
+    ~Time() override;
 };
 
 } // namespace Service::Time

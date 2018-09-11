@@ -11,6 +11,7 @@ namespace Service::Audio {
 class AudInA final : public ServiceFramework<AudInA> {
 public:
     explicit AudInA();
+    ~AudInA() override;
 };
 
 } // namespace Service::Audio

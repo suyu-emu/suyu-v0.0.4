@@ -13,6 +13,7 @@ public:
     class Interface : public ServiceFramework<Interface> {
     public:
         explicit Interface(std::shared_ptr<Module> module, const char* name);
+        ~Interface() override;
 
         void CreateBcatService(Kernel::HLERequestContext& ctx);
 

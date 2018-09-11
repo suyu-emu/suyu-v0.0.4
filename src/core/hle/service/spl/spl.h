@@ -11,6 +11,7 @@ namespace Service::SPL {
 class SPL final : public Module::Interface {
 public:
     explicit SPL(std::shared_ptr<Module> module);
+    ~SPL() override;
 };
 
 } // namespace Service::SPL

@@ -18,4 +18,6 @@ ACC_AA::ACC_AA(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
     RegisterHandlers(functions);
 }
 
+ACC_AA::~ACC_AA() = default;
+
 } // namespace Service::Account

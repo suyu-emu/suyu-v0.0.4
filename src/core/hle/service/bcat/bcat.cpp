@@ -13,4 +13,6 @@ BCAT::BCAT(std::shared_ptr<Module> module, const char* name)
     };
     RegisterHandlers(functions);
 }
+
+BCAT::~BCAT() = default;
 } // namespace Service::BCAT

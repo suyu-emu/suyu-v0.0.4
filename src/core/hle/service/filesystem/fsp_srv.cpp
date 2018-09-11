@@ -520,6 +520,8 @@ FSP_SRV::FSP_SRV() : ServiceFramework("fsp-srv") {
     RegisterHandlers(functions);
 }
 
+FSP_SRV::~FSP_SRV() = default;
+
 void FSP_SRV::Initialize(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_FS, "(STUBBED) called");
 

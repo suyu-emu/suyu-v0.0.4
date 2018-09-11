@@ -11,6 +11,7 @@ namespace Service::AM {
 class OMM final : public ServiceFramework<OMM> {
 public:
     explicit OMM();
+    ~OMM() override;
 };
 
 } // namespace Service::AM

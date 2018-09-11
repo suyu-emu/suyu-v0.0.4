@@ -39,4 +39,6 @@ OMM::OMM() : ServiceFramework{"omm"} {
     RegisterHandlers(functions);
 }
 
+OMM::~OMM() = default;
+
 } // namespace Service::AM

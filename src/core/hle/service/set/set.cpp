@@ -112,4 +112,6 @@ SET::SET() : ServiceFramework("set") {
     RegisterHandlers(functions);
 }
 
+SET::~SET() = default;
+
 } // namespace Service::Set

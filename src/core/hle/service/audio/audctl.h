@@ -11,6 +11,7 @@ namespace Service::Audio {
 class AudCtl final : public ServiceFramework<AudCtl> {
 public:
     explicit AudCtl();
+    ~AudCtl() override;
 };
 
 } // namespace Service::Audio

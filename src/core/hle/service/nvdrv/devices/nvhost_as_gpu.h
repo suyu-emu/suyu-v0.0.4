@@ -6,7 +6,6 @@
 
 #include <memory>
 #include <unordered_map>
-#include <utility>
 #include <vector>
 #include "common/common_types.h"
 #include "common/swap.h"
@@ -18,8 +17,8 @@ class nvmap;
 
 class nvhost_as_gpu final : public nvdevice {
 public:
-    explicit nvhost_as_gpu(std::shared_ptr<nvmap> nvmap_dev) : nvmap_dev(std::move(nvmap_dev)) {}
-    ~nvhost_as_gpu() override = default;
+    explicit nvhost_as_gpu(std::shared_ptr<nvmap> nvmap_dev);
+    ~nvhost_as_gpu() override;
 
     u32 ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) override;
 

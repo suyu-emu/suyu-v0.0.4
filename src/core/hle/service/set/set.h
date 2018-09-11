@@ -33,7 +33,7 @@ LanguageCode GetLanguageCodeFromIndex(size_t idx);
 class SET final : public ServiceFramework<SET> {
 public:
     explicit SET();
-    ~SET() = default;
+    ~SET() override;
 
 private:
     void GetLanguageCode(Kernel::HLERequestContext& ctx);

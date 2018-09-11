@@ -16,6 +16,8 @@ NVMEMP::NVMEMP() : ServiceFramework("nvmemp") {
     RegisterHandlers(functions);
 }
 
+NVMEMP::~NVMEMP() = default;
+
 void NVMEMP::Cmd0(Kernel::HLERequestContext& ctx) {
     UNIMPLEMENTED();
 }

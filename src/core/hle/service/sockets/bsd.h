@@ -12,7 +12,7 @@ namespace Service::Sockets {
 class BSD final : public ServiceFramework<BSD> {
 public:
     explicit BSD(const char* name);
-    ~BSD() = default;
+    ~BSD() override;
 
 private:
     void RegisterClient(Kernel::HLERequestContext& ctx);
@@ -29,6 +29,7 @@ private:
 class BSDCFG final : public ServiceFramework<BSDCFG> {
 public:
     explicit BSDCFG();
+    ~BSDCFG() override;
 };
 
 } // namespace Service::Sockets

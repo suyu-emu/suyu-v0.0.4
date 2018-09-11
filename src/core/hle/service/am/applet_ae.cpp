@@ -222,4 +222,6 @@ AppletAE::AppletAE(std::shared_ptr<NVFlinger::NVFlinger> nvflinger)
     RegisterHandlers(functions);
 }
 
+AppletAE::~AppletAE() = default;
+
 } // namespace Service::AM

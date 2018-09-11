@@ -11,7 +11,7 @@ namespace Service::Audio {
 class HwOpus final : public ServiceFramework<HwOpus> {
 public:
     explicit HwOpus();
-    ~HwOpus() = default;
+    ~HwOpus() override;
 
 private:
     void OpenOpusDecoder(Kernel::HLERequestContext& ctx);

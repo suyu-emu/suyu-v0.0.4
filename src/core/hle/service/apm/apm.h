@@ -15,8 +15,8 @@ enum class PerformanceMode : u8 {
 
 class Module final {
 public:
-    Module() = default;
-    ~Module() = default;
+    Module();
+    ~Module();
 };
 
 /// Registers all AM services with the specified service manager.

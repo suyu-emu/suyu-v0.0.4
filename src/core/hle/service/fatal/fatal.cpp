@@ -13,6 +13,8 @@ namespace Service::Fatal {
 Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
     : ServiceFramework(name), module(std::move(module)) {}
 
+Module::Interface::~Interface() = default;
+
 void Module::Interface::ThrowFatalWithPolicy(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx);
     u32 error_code = rp.Pop<u32>();

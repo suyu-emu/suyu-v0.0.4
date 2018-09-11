@@ -9,6 +9,9 @@
 
 namespace Service::APM {
 
+Module::Module() = default;
+Module::~Module() = default;
+
 void InstallInterfaces(SM::ServiceManager& service_manager) {
     auto module_ = std::make_shared<Module>();
     std::make_shared<APM>(module_, "apm")->InstallAsService(service_manager);

@@ -11,6 +11,9 @@
 
 namespace Service::Nvidia::Devices {
 
+nvhost_ctrl::nvhost_ctrl() = default;
+nvhost_ctrl::~nvhost_ctrl() = default;
+
 u32 nvhost_ctrl::ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) {
     LOG_DEBUG(Service_NVDRV, "called, command=0x{:08X}, input_size=0x{:X}, output_size=0x{:X}",
               command.raw, input.size(), output.size());

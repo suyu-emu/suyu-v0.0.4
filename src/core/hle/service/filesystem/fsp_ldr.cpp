@@ -19,4 +19,6 @@ FSP_LDR::FSP_LDR() : ServiceFramework{"fsp:ldr"} {
     RegisterHandlers(functions);
 }
 
+FSP_LDR::~FSP_LDR() = default;
+
 } // namespace Service::FileSystem

@@ -12,7 +12,7 @@ namespace Service::Sockets {
 class SFDNSRES final : public ServiceFramework<SFDNSRES> {
 public:
     explicit SFDNSRES();
-    ~SFDNSRES() = default;
+    ~SFDNSRES() override;
 
 private:
     void GetAddrInfo(Kernel::HLERequestContext& ctx);

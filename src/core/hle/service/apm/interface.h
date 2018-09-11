@@ -11,7 +11,7 @@ namespace Service::APM {
 class APM final : public ServiceFramework<APM> {
 public:
     explicit APM(std::shared_ptr<Module> apm, const char* name);
-    ~APM() = default;
+    ~APM() override;
 
 private:
     void OpenSession(Kernel::HLERequestContext& ctx);
@@ -22,6 +22,7 @@ private:
 class APM_Sys final : public ServiceFramework<APM_Sys> {
 public:
     explicit APM_Sys();
+    ~APM_Sys() override;
 
 private:
     void GetPerformanceEvent(Kernel::HLERequestContext& ctx);

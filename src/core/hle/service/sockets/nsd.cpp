@@ -29,4 +29,6 @@ NSD::NSD(const char* name) : ServiceFramework(name) {
     RegisterHandlers(functions);
 }
 
+NSD::~NSD() = default;
+
 } // namespace Service::Sockets

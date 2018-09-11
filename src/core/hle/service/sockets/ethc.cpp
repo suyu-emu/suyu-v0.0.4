@@ -21,6 +21,8 @@ ETHC_C::ETHC_C() : ServiceFramework{"ethc:c"} {
     RegisterHandlers(functions);
 }
 
+ETHC_C::~ETHC_C() = default;
+
 ETHC_I::ETHC_I() : ServiceFramework{"ethc:i"} {
     // clang-format off
     static const FunctionInfo functions[] = {
@@ -34,5 +36,7 @@ ETHC_I::ETHC_I() : ServiceFramework{"ethc:i"} {
 
     RegisterHandlers(functions);
 }
+
+ETHC_I::~ETHC_I() = default;
 
 } // namespace Service::Sockets

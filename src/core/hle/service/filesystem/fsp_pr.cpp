@@ -20,4 +20,6 @@ FSP_PR::FSP_PR() : ServiceFramework{"fsp:pr"} {
     RegisterHandlers(functions);
 }
 
+FSP_PR::~FSP_PR() = default;
+
 } // namespace Service::FileSystem

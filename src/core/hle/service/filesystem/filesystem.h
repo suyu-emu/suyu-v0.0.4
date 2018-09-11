@@ -64,6 +64,7 @@ void InstallInterfaces(SM::ServiceManager& service_manager, const FileSys::Virtu
 class VfsDirectoryServiceWrapper {
 public:
     explicit VfsDirectoryServiceWrapper(FileSys::VirtualDir backing);
+    ~VfsDirectoryServiceWrapper();
 
     /**
      * Get a descriptive name for the archive (e.g. "RomFS", "SaveData", etc.)

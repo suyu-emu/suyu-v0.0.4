@@ -19,4 +19,6 @@ AudInA::AudInA() : ServiceFramework{"audin:a"} {
     RegisterHandlers(functions);
 }
 
+AudInA::~AudInA() = default;
+
 } // namespace Service::Audio
