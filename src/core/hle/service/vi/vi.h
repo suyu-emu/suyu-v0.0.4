@@ -26,6 +26,7 @@ public:
     public:
         explicit Interface(std::shared_ptr<Module> module, const char* name,
                            std::shared_ptr<NVFlinger::NVFlinger> nv_flinger);
+        ~Interface() override;
 
         void GetDisplayService(Kernel::HLERequestContext& ctx);
 

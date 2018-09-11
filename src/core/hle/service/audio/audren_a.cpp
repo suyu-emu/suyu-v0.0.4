@@ -23,4 +23,6 @@ AudRenA::AudRenA() : ServiceFramework{"audren:a"} {
     RegisterHandlers(functions);
 }
 
+AudRenA::~AudRenA() = default;
+
 } // namespace Service::Audio

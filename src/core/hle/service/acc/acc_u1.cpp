@@ -38,4 +38,6 @@ ACC_U1::ACC_U1(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
     RegisterHandlers(functions);
 }
 
+ACC_U1::~ACC_U1() = default;
+
 } // namespace Service::Account

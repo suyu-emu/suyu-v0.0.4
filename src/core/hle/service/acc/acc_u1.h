@@ -12,6 +12,7 @@ class ACC_U1 final : public Module::Interface {
 public:
     explicit ACC_U1(std::shared_ptr<Module> module,
                     std::shared_ptr<ProfileManager> profile_manager);
+    ~ACC_U1() override;
 };
 
 } // namespace Service::Account

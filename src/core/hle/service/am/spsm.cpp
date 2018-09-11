@@ -27,4 +27,6 @@ SPSM::SPSM() : ServiceFramework{"spsm"} {
     RegisterHandlers(functions);
 }
 
+SPSM::~SPSM() = default;
+
 } // namespace Service::AM

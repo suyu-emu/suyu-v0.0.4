@@ -17,4 +17,6 @@ AudRecA::AudRecA() : ServiceFramework{"audrec:a"} {
     RegisterHandlers(functions);
 }
 
+AudRecA::~AudRecA() = default;
+
 } // namespace Service::Audio

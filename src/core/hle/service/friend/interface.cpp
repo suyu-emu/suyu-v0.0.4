@@ -16,4 +16,6 @@ Friend::Friend(std::shared_ptr<Module> module, const char* name)
     RegisterHandlers(functions);
 }
 
+Friend::~Friend() = default;
+
 } // namespace Service::Friend

@@ -41,4 +41,6 @@ AudInU::AudInU() : ServiceFramework("audin:u") {
     RegisterHandlers(functions);
 }
 
+AudInU::~AudInU() = default;
+
 } // namespace Service::Audio

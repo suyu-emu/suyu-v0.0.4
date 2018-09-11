@@ -42,4 +42,6 @@ AudCtl::AudCtl() : ServiceFramework{"audctl"} {
     RegisterHandlers(functions);
 }
 
+AudCtl::~AudCtl() = default;
+
 } // namespace Service::Audio

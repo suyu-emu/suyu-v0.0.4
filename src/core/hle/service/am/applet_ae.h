@@ -18,7 +18,7 @@ namespace AM {
 class AppletAE final : public ServiceFramework<AppletAE> {
 public:
     explicit AppletAE(std::shared_ptr<NVFlinger::NVFlinger> nvflinger);
-    ~AppletAE() = default;
+    ~AppletAE() override;
 
 private:
     void OpenSystemAppletProxy(Kernel::HLERequestContext& ctx);

@@ -13,7 +13,7 @@ namespace Service::NS {
 class PL_U final : public ServiceFramework<PL_U> {
 public:
     PL_U();
-    ~PL_U() = default;
+    ~PL_U() override;
 
 private:
     void RequestLoad(Kernel::HLERequestContext& ctx);

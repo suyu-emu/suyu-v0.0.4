@@ -16,6 +16,8 @@ namespace Service::SPL {
 Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
     : ServiceFramework(name), module(std::move(module)) {}
 
+Module::Interface::~Interface() = default;
+
 void Module::Interface::GetRandomBytes(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 

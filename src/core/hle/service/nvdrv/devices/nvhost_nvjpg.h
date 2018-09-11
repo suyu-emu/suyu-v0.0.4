@@ -13,8 +13,8 @@ namespace Service::Nvidia::Devices {
 
 class nvhost_nvjpg final : public nvdevice {
 public:
-    nvhost_nvjpg() = default;
-    ~nvhost_nvjpg() override = default;
+    nvhost_nvjpg();
+    ~nvhost_nvjpg() override;
 
     u32 ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) override;
 

@@ -3,6 +3,8 @@
 // Refer to the license.txt file included.
 
 #include <cstring>
+#include <utility>
+
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
@@ -13,6 +15,9 @@
 #include "video_core/renderer_base.h"
 
 namespace Service::Nvidia::Devices {
+
+nvhost_as_gpu::nvhost_as_gpu(std::shared_ptr<nvmap> nvmap_dev) : nvmap_dev(std::move(nvmap_dev)) {}
+nvhost_as_gpu::~nvhost_as_gpu() = default;
 
 u32 nvhost_as_gpu::ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) {
     LOG_DEBUG(Service_NVDRV, "called, command=0x{:08X}, input_size=0x{:X}, output_size=0x{:X}",

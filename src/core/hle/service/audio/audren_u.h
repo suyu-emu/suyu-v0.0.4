@@ -16,7 +16,7 @@ namespace Service::Audio {
 class AudRenU final : public ServiceFramework<AudRenU> {
 public:
     explicit AudRenU();
-    ~AudRenU() = default;
+    ~AudRenU() override;
 
 private:
     void OpenAudioRenderer(Kernel::HLERequestContext& ctx);

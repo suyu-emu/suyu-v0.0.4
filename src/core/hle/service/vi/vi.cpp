@@ -984,6 +984,8 @@ Module::Interface::Interface(std::shared_ptr<Module> module, const char* name,
                              std::shared_ptr<NVFlinger::NVFlinger> nv_flinger)
     : ServiceFramework(name), module(std::move(module)), nv_flinger(std::move(nv_flinger)) {}
 
+Module::Interface::~Interface() = default;
+
 void Module::Interface::GetDisplayService(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_VI, "(STUBBED) called");
 

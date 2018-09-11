@@ -12,6 +12,7 @@ class ACC_AA final : public Module::Interface {
 public:
     explicit ACC_AA(std::shared_ptr<Module> module,
                     std::shared_ptr<ProfileManager> profile_manager);
+    ~ACC_AA() override;
 };
 
 } // namespace Service::Account

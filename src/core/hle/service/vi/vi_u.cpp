@@ -14,4 +14,6 @@ VI_U::VI_U(std::shared_ptr<Module> module, std::shared_ptr<NVFlinger::NVFlinger>
     RegisterHandlers(functions);
 }
 
+VI_U::~VI_U() = default;
+
 } // namespace Service::VI

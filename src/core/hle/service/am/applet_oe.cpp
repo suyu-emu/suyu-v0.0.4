@@ -103,4 +103,6 @@ AppletOE::AppletOE(std::shared_ptr<NVFlinger::NVFlinger> nvflinger)
     RegisterHandlers(functions);
 }
 
+AppletOE::~AppletOE() = default;
+
 } // namespace Service::AM

@@ -247,6 +247,8 @@ PL_U::PL_U() : ServiceFramework("pl:u") {
     }
 }
 
+PL_U::~PL_U() = default;
+
 void PL_U::RequestLoad(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const u32 shared_font_type{rp.Pop<u32>()};

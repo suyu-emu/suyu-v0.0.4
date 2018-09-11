@@ -15,4 +15,6 @@ Fatal_U::Fatal_U(std::shared_ptr<Module> module) : Module::Interface(std::move(m
     RegisterHandlers(functions);
 }
 
+Fatal_U::~Fatal_U() = default;
+
 } // namespace Service::Fatal

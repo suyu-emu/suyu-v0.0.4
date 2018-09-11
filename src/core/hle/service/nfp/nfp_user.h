@@ -11,6 +11,7 @@ namespace Service::NFP {
 class NFP_User final : public Module::Interface {
 public:
     explicit NFP_User(std::shared_ptr<Module> module);
+    ~NFP_User() override;
 };
 
 } // namespace Service::NFP

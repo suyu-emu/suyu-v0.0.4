@@ -9,6 +9,9 @@
 
 namespace Service::Nvidia::Devices {
 
+nvhost_ctrl_gpu::nvhost_ctrl_gpu() = default;
+nvhost_ctrl_gpu::~nvhost_ctrl_gpu() = default;
+
 u32 nvhost_ctrl_gpu::ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) {
     LOG_DEBUG(Service_NVDRV, "called, command=0x{:08X}, input_size=0x{:X}, output_size=0x{:X}",
               command.raw, input.size(), output.size());

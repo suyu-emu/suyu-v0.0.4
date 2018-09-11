@@ -14,6 +14,8 @@ namespace Service::NFP {
 Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
     : ServiceFramework(name), module(std::move(module)) {}
 
+Module::Interface::~Interface() = default;
+
 class IUser final : public ServiceFramework<IUser> {
 public:
     IUser() : ServiceFramework("IUser") {

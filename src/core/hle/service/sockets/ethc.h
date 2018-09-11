@@ -11,11 +11,13 @@ namespace Service::Sockets {
 class ETHC_C final : public ServiceFramework<ETHC_C> {
 public:
     explicit ETHC_C();
+    ~ETHC_C() override;
 };
 
 class ETHC_I final : public ServiceFramework<ETHC_I> {
 public:
     explicit ETHC_I();
+    ~ETHC_I() override;
 };
 
 } // namespace Service::Sockets

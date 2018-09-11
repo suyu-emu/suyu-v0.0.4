@@ -11,6 +11,7 @@ namespace Service::FileSystem {
 class FSP_LDR final : public ServiceFramework<FSP_LDR> {
 public:
     explicit FSP_LDR();
+    ~FSP_LDR() override;
 };
 
 } // namespace Service::FileSystem

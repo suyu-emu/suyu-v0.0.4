@@ -17,8 +17,8 @@ class nvmap;
 
 class nvdisp_disp0 final : public nvdevice {
 public:
-    explicit nvdisp_disp0(std::shared_ptr<nvmap> nvmap_dev) : nvmap_dev(std::move(nvmap_dev)) {}
-    ~nvdisp_disp0() = default;
+    explicit nvdisp_disp0(std::shared_ptr<nvmap> nvmap_dev);
+    ~nvdisp_disp0();
 
     u32 ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) override;
 

@@ -23,6 +23,8 @@ AOC_U::AOC_U() : ServiceFramework("aoc:u") {
     RegisterHandlers(functions);
 }
 
+AOC_U::~AOC_U() = default;
+
 void AOC_U::CountAddOnContent(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);

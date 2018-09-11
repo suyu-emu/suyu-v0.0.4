@@ -21,4 +21,6 @@ IdleSys::IdleSys() : ServiceFramework{"idle:sys"} {
     RegisterHandlers(functions);
 }
 
+IdleSys::~IdleSys() = default;
+
 } // namespace Service::AM

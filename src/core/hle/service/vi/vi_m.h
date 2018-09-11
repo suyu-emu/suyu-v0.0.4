@@ -11,6 +11,7 @@ namespace Service::VI {
 class VI_M final : public Module::Interface {
 public:
     explicit VI_M(std::shared_ptr<Module> module, std::shared_ptr<NVFlinger::NVFlinger> nv_flinger);
+    ~VI_M() override;
 };
 
 } // namespace Service::VI

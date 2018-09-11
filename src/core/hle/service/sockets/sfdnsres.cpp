@@ -34,4 +34,6 @@ SFDNSRES::SFDNSRES() : ServiceFramework("sfdnsres") {
     RegisterHandlers(functions);
 }
 
+SFDNSRES::~SFDNSRES() = default;
+
 } // namespace Service::Sockets

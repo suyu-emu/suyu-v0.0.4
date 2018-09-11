@@ -16,7 +16,7 @@ namespace Service::FileSystem {
 class FSP_SRV final : public ServiceFramework<FSP_SRV> {
 public:
     explicit FSP_SRV();
-    ~FSP_SRV() = default;
+    ~FSP_SRV() override;
 
 private:
     void Initialize(Kernel::HLERequestContext& ctx);

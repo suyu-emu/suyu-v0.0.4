@@ -11,6 +11,7 @@ namespace Service::FileSystem {
 class FSP_PR final : public ServiceFramework<FSP_PR> {
 public:
     explicit FSP_PR();
+    ~FSP_PR() override;
 };
 
 } // namespace Service::FileSystem

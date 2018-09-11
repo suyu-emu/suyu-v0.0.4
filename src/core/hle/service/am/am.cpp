@@ -35,6 +35,8 @@ IWindowController::IWindowController() : ServiceFramework("IWindowController") {
     RegisterHandlers(functions);
 }
 
+IWindowController::~IWindowController() = default;
+
 void IWindowController::GetAppletResourceUserId(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
     IPC::ResponseBuilder rb{ctx, 4};
@@ -60,6 +62,8 @@ IAudioController::IAudioController() : ServiceFramework("IAudioController") {
     };
     RegisterHandlers(functions);
 }
+
+IAudioController::~IAudioController() = default;
 
 void IAudioController::SetExpectedMasterVolume(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
@@ -116,7 +120,10 @@ IDisplayController::IDisplayController() : ServiceFramework("IDisplayController"
     RegisterHandlers(functions);
 }
 
+IDisplayController::~IDisplayController() = default;
+
 IDebugFunctions::IDebugFunctions() : ServiceFramework("IDebugFunctions") {}
+IDebugFunctions::~IDebugFunctions() = default;
 
 ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger)
     : ServiceFramework("ISelfController"), nvflinger(std::move(nvflinger)) {
@@ -164,6 +171,8 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
     launchable_event =
         Kernel::Event::Create(kernel, Kernel::ResetType::Sticky, "ISelfController:LaunchableEvent");
 }
+
+ISelfController::~ISelfController() = default;
 
 void ISelfController::SetFocusHandlingMode(Kernel::HLERequestContext& ctx) {
     // Takes 3 input u8s with each field located immediately after the previous u8, these are
@@ -336,6 +345,8 @@ ICommonStateGetter::ICommonStateGetter() : ServiceFramework("ICommonStateGetter"
     auto& kernel = Core::System::GetInstance().Kernel();
     event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "ICommonStateGetter:Event");
 }
+
+ICommonStateGetter::~ICommonStateGetter() = default;
 
 void ICommonStateGetter::GetBootMode(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 3};
@@ -573,6 +584,8 @@ ILibraryAppletCreator::ILibraryAppletCreator() : ServiceFramework("ILibraryApple
     RegisterHandlers(functions);
 }
 
+ILibraryAppletCreator::~ILibraryAppletCreator() = default;
+
 void ILibraryAppletCreator::CreateLibraryApplet(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
@@ -637,6 +650,8 @@ IApplicationFunctions::IApplicationFunctions() : ServiceFramework("IApplicationF
     };
     RegisterHandlers(functions);
 }
+
+IApplicationFunctions::~IApplicationFunctions() = default;
 
 void IApplicationFunctions::PopLaunchParameter(Kernel::HLERequestContext& ctx) {
     constexpr std::array<u8, 0x88> data{{
@@ -760,6 +775,8 @@ IHomeMenuFunctions::IHomeMenuFunctions() : ServiceFramework("IHomeMenuFunctions"
     RegisterHandlers(functions);
 }
 
+IHomeMenuFunctions::~IHomeMenuFunctions() = default;
+
 void IHomeMenuFunctions::RequestToGetForeground(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
@@ -783,6 +800,8 @@ IGlobalStateController::IGlobalStateController() : ServiceFramework("IGlobalStat
     RegisterHandlers(functions);
 }
 
+IGlobalStateController::~IGlobalStateController() = default;
+
 IApplicationCreator::IApplicationCreator() : ServiceFramework("IApplicationCreator") {
     static const FunctionInfo functions[] = {
         {0, nullptr, "CreateApplication"},
@@ -792,6 +811,8 @@ IApplicationCreator::IApplicationCreator() : ServiceFramework("IApplicationCreat
     };
     RegisterHandlers(functions);
 }
+
+IApplicationCreator::~IApplicationCreator() = default;
 
 IProcessWindingController::IProcessWindingController()
     : ServiceFramework("IProcessWindingController") {
@@ -807,4 +828,6 @@ IProcessWindingController::IProcessWindingController()
     };
     RegisterHandlers(functions);
 }
+
+IProcessWindingController::~IProcessWindingController() = default;
 } // namespace Service::AM

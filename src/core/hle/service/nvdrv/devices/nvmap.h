@@ -16,8 +16,8 @@ namespace Service::Nvidia::Devices {
 
 class nvmap final : public nvdevice {
 public:
-    nvmap() = default;
-    ~nvmap() override = default;
+    nvmap();
+    ~nvmap() override;
 
     /// Returns the allocated address of an nvmap object given its handle.
     VAddr GetObjectAddress(u32 handle) const;

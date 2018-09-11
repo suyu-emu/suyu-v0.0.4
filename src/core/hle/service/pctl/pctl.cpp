@@ -14,4 +14,6 @@ PCTL::PCTL(std::shared_ptr<Module> module, const char* name)
     };
     RegisterHandlers(functions);
 }
+
+PCTL::~PCTL() = default;
 } // namespace Service::PCTL

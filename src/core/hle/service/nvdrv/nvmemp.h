@@ -11,7 +11,7 @@ namespace Service::Nvidia {
 class NVMEMP final : public ServiceFramework<NVMEMP> {
 public:
     NVMEMP();
-    ~NVMEMP() = default;
+    ~NVMEMP();
 
 private:
     void Cmd0(Kernel::HLERequestContext& ctx);

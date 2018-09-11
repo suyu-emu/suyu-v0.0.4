@@ -198,6 +198,8 @@ AudRenU::AudRenU() : ServiceFramework("audren:u") {
     RegisterHandlers(functions);
 }
 
+AudRenU::~AudRenU() = default;
+
 void AudRenU::OpenAudioRenderer(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     auto params = rp.PopRaw<AudioCore::AudioRendererParameter>();

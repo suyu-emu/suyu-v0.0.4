@@ -11,6 +11,9 @@
 
 namespace Service::Nvidia::Devices {
 
+nvmap::nvmap() = default;
+nvmap::~nvmap() = default;
+
 VAddr nvmap::GetObjectAddress(u32 handle) const {
     auto object = GetObject(handle);
     ASSERT(object);
