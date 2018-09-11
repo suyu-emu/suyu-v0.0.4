@@ -12,6 +12,7 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/engines/shader_bytecode.h"
+#include "video_core/engines/shader_header.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 
@@ -26,7 +27,7 @@ using Tegra::Shader::Sampler;
 using Tegra::Shader::SubOp;
 
 constexpr u32 PROGRAM_END = MAX_PROGRAM_CODE_LENGTH;
-constexpr u32 PROGRAM_HEADER_SIZE = 0x50;
+constexpr u32 PROGRAM_HEADER_SIZE = sizeof(Tegra::Shader::Header);
 
 class DecompileFail : public std::runtime_error {
 public:
@@ -674,7 +675,7 @@ public:
                   u32 main_offset, Maxwell3D::Regs::ShaderStage stage, const std::string& suffix)
         : subroutines(subroutines), program_code(program_code), main_offset(main_offset),
           stage(stage), suffix(suffix) {
-
+        std::memcpy(&header, program_code.data(), sizeof(Tegra::Shader::Header));
         Generate(suffix);
     }
 
@@ -2502,6 +2503,7 @@ private:
 private:
     const std::set<Subroutine>& subroutines;
     const ProgramCode& program_code;
+    Tegra::Shader::Header header;
     const u32 main_offset;
     Maxwell3D::Regs::ShaderStage stage;
     const std::string& suffix;
