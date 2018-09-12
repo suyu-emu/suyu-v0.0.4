@@ -954,8 +954,6 @@ private:
         // TEXS has two destination registers and a swizzle. The first two elements in the swizzle
         // go into gpr0+0 and gpr0+1, and the rest goes into gpr28+0 and gpr28+1
 
-        ASSERT_MSG(instr.texs.nodep == 0, "TEXS nodep not implemented");
-
         std::size_t written_components = 0;
         for (u32 component = 0; component < 4; ++component) {
             if (!instr.texs.IsComponentEnabled(component)) {
@@ -1871,6 +1869,13 @@ private:
                 Tegra::Shader::TextureType texture_type{instr.tex.texture_type};
                 std::string coord;
 
+                ASSERT_MSG(!instr.tex.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
+                           "NODEP is not implemented");
+                ASSERT_MSG(!instr.tex.UsesMiscMode(Tegra::Shader::TextureMiscMode::AOFFI),
+                           "AOFFI is not implemented");
+                ASSERT_MSG(!instr.tex.UsesMiscMode(Tegra::Shader::TextureMiscMode::DC),
+                           "DC is not implemented");
+
                 switch (texture_type) {
                 case Tegra::Shader::TextureType::Texture1D: {
                     const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
@@ -1953,6 +1958,11 @@ private:
                 Tegra::Shader::TextureType texture_type{instr.texs.GetTextureType()};
                 bool is_array{instr.texs.IsArrayTexture()};
 
+                ASSERT_MSG(!instr.texs.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
+                           "NODEP is not implemented");
+                ASSERT_MSG(!instr.texs.UsesMiscMode(Tegra::Shader::TextureMiscMode::DC),
+                           "DC is not implemented");
+
                 switch (texture_type) {
                 case Tegra::Shader::TextureType::Texture2D: {
                     if (is_array) {
@@ -1989,6 +1999,13 @@ private:
                 ASSERT(instr.tlds.IsArrayTexture() == false);
                 std::string coord;
 
+                ASSERT_MSG(!instr.tlds.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
+                           "NODEP is not implemented");
+                ASSERT_MSG(!instr.tlds.UsesMiscMode(Tegra::Shader::TextureMiscMode::AOFFI),
+                           "AOFFI is not implemented");
+                ASSERT_MSG(!instr.tlds.UsesMiscMode(Tegra::Shader::TextureMiscMode::MZ),
+                           "MZ is not implemented");
+
                 switch (instr.tlds.GetTextureType()) {
                 case Tegra::Shader::TextureType::Texture2D: {
                     if (instr.tlds.IsArrayTexture()) {
@@ -2016,6 +2033,17 @@ private:
                 ASSERT(instr.tld4.texture_type == Tegra::Shader::TextureType::Texture2D);
                 ASSERT(instr.tld4.array == 0);
                 std::string coord;
+
+                ASSERT_MSG(!instr.tld4.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
+                           "NODEP is not implemented");
+                ASSERT_MSG(!instr.tld4.UsesMiscMode(Tegra::Shader::TextureMiscMode::AOFFI),
+                           "AOFFI is not implemented");
+                ASSERT_MSG(!instr.tld4.UsesMiscMode(Tegra::Shader::TextureMiscMode::DC),
+                           "DC is not implemented");
+                ASSERT_MSG(!instr.tld4.UsesMiscMode(Tegra::Shader::TextureMiscMode::NDV),
+                           "NDV is not implemented");
+                ASSERT_MSG(!instr.tld4.UsesMiscMode(Tegra::Shader::TextureMiscMode::PTP),
+                           "PTP is not implemented");
 
                 switch (instr.tld4.texture_type) {
                 case Tegra::Shader::TextureType::Texture2D: {
@@ -2054,6 +2082,13 @@ private:
                 break;
             }
             case OpCode::Id::TLD4S: {
+                ASSERT_MSG(!instr.tld4s.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
+                           "NODEP is not implemented");
+                ASSERT_MSG(!instr.tld4s.UsesMiscMode(Tegra::Shader::TextureMiscMode::AOFFI),
+                           "AOFFI is not implemented");
+                ASSERT_MSG(!instr.tld4s.UsesMiscMode(Tegra::Shader::TextureMiscMode::DC),
+                           "DC is not implemented");
+
                 const std::string op_a = regs.GetRegisterAsFloat(instr.gpr8);
                 const std::string op_b = regs.GetRegisterAsFloat(instr.gpr20);
                 // TODO(Subv): Figure out how the sampler type is encoded in the TLD4S instruction.
@@ -2066,6 +2101,9 @@ private:
                 break;
             }
             case OpCode::Id::TXQ: {
+                ASSERT_MSG(!instr.txq.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
+                           "NODEP is not implemented");
+
                 // TODO: the new commits on the texture refactor, change the way samplers work.
                 // Sadly, not all texture instructions specify the type of texture their sampler
                 // uses. This must be fixed at a later instance.
@@ -2086,6 +2124,11 @@ private:
                 break;
             }
             case OpCode::Id::TMML: {
+                ASSERT_MSG(!instr.tmml.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
+                           "NODEP is not implemented");
+                ASSERT_MSG(!instr.tmml.UsesMiscMode(Tegra::Shader::TextureMiscMode::NDV),
+                           "NDV is not implemented");
+
                 const std::string op_a = regs.GetRegisterAsFloat(instr.gpr8);
                 const std::string op_b = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
                 const bool is_array = instr.tmml.array != 0;
