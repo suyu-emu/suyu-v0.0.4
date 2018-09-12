@@ -273,7 +273,11 @@ static void Break(u64 reason, u64 info1, u64 info2) {
 }
 
 /// Used to output a message on a debug hardware unit - does nothing on a retail unit
-static void OutputDebugString(VAddr address, s32 len) {
+static void OutputDebugString(VAddr address, u64 len) {
+    if (len == 0) {
+        return;
+    }
+
     std::string str(len, '\0');
     Memory::ReadBlock(address, str.data(), str.size());
     LOG_DEBUG(Debug_Emulated, "{}", str);
