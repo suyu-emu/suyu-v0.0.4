@@ -23,6 +23,11 @@ public:
 private:
     void setConfiguration();
 
-private:
+    void changeEvent(QEvent*) override;
+    void RetranslateUI();
+
+    void InitializeIconSizeComboBox();
+    void InitializeRowComboBoxes();
+
     std::unique_ptr<Ui::ConfigureGameList> ui;
 };
