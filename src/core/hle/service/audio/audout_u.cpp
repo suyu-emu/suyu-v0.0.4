@@ -3,15 +3,20 @@
 // Refer to the license.txt file included.
 
 #include <array>
+#include <cstring>
 #include <vector>
 
+#include "audio_core/audio_out.h"
 #include "audio_core/codec.h"
+#include "common/common_funcs.h"
 #include "common/logging/log.h"
+#include "common/swap.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/event.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/service/audio/audout_u.h"
+#include "core/memory.h"
 
 namespace Service::Audio {
 
@@ -24,6 +29,18 @@ enum {
 
 constexpr std::array<char, 10> DefaultDevice{{"DeviceOut"}};
 constexpr int DefaultSampleRate{48000};
+
+struct AudoutParams {
+    s32_le sample_rate;
+    u16_le channel_count;
+    INSERT_PADDING_BYTES(2);
+};
+static_assert(sizeof(AudoutParams) == 0x8, "AudoutParams is an invalid size");
+
+enum class AudioState : u32 {
+    Started,
+    Stopped,
+};
 
 class IAudioOut final : public ServiceFramework<IAudioOut> {
 public:

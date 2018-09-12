@@ -4,7 +4,9 @@
 
 #pragma once
 
-#include "core/hle/service/service.h"
+namespace Service::SM {
+class ServiceManager;
+}
 
 namespace Service::Audio {
 

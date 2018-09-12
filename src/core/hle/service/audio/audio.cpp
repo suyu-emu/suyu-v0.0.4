@@ -15,6 +15,7 @@
 #include "core/hle/service/audio/audren_u.h"
 #include "core/hle/service/audio/codecctl.h"
 #include "core/hle/service/audio/hwopus.h"
+#include "core/hle/service/service.h"
 
 namespace Service::Audio {
 
