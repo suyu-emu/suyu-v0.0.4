@@ -369,6 +369,12 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
  * Draws the emulated screens to the emulator window.
  */
 void RendererOpenGL::DrawScreen() {
+    if (renderer_settings.set_background_color) {
+        // Update background color before drawing
+        glClearColor(Settings::values.bg_red, Settings::values.bg_green, Settings::values.bg_blue,
+                     0.0f);
+    }
+
     const auto& layout = render_window.GetFramebufferLayout();
     const auto& screen = layout.screen;
 
