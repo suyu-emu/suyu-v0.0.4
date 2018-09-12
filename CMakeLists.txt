@@ -431,6 +431,9 @@ enable_testing()
 add_subdirectory(externals)
 add_subdirectory(src)
 
+# Set yuzu project as default StartUp Project in Visual Studio
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT yuzu)
+
 
 # Installation instructions
 # =========================
