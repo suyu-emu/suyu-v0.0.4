@@ -477,30 +477,27 @@ CachedSurface::CachedSurface(const SurfaceParams& params)
         // Only pre-create the texture for non-compressed textures.
         switch (params.target) {
         case SurfaceParams::SurfaceTarget::Texture1D:
-            glTexImage1D(SurfaceTargetToGL(params.target), 0, format_tuple.internal_format,
-                         rect.GetWidth(), 0, format_tuple.format, format_tuple.type, nullptr);
+            glTexStorage1D(SurfaceTargetToGL(params.target), 1, format_tuple.internal_format,
+                           rect.GetWidth());
             break;
         case SurfaceParams::SurfaceTarget::Texture2D:
-            glTexImage2D(SurfaceTargetToGL(params.target), 0, format_tuple.internal_format,
-                         rect.GetWidth(), rect.GetHeight(), 0, format_tuple.format,
-                         format_tuple.type, nullptr);
+            glTexStorage2D(SurfaceTargetToGL(params.target), 1, format_tuple.internal_format,
+                           rect.GetWidth(), rect.GetHeight());
             break;
         case SurfaceParams::SurfaceTarget::Texture3D:
         case SurfaceParams::SurfaceTarget::Texture2DArray:
-            glTexImage3D(SurfaceTargetToGL(params.target), 0, format_tuple.internal_format,
-                         rect.GetWidth(), rect.GetHeight(), params.depth, 0, format_tuple.format,
-                         format_tuple.type, nullptr);
+            glTexStorage3D(SurfaceTargetToGL(params.target), 1, format_tuple.internal_format,
+                           rect.GetWidth(), rect.GetHeight(), params.depth);
             break;
         default:
             LOG_CRITICAL(Render_OpenGL, "Unimplemented surface target={}",
                          static_cast<u32>(params.target));
             UNREACHABLE();
-            glTexImage2D(GL_TEXTURE_2D, 0, format_tuple.internal_format, rect.GetWidth(),
-                         rect.GetHeight(), 0, format_tuple.format, format_tuple.type, nullptr);
+            glTexStorage2D(GL_TEXTURE_2D, 1, format_tuple.internal_format, rect.GetWidth(),
+                           rect.GetHeight());
         }
     }
 
-    glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_MAX_LEVEL, 0);
     glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
