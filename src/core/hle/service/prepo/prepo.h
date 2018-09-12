@@ -4,21 +4,11 @@
 
 #pragma once
 
-#include <memory>
-#include <string>
-#include "core/hle/kernel/event.h"
-#include "core/hle/service/service.h"
+namespace Service::SM {
+class ServiceManager;
+}
 
 namespace Service::PlayReport {
-
-class PlayReport final : public ServiceFramework<PlayReport> {
-public:
-    explicit PlayReport(const char* name);
-    ~PlayReport() = default;
-
-private:
-    void SaveReportWithUser(Kernel::HLERequestContext& ctx);
-};
 
 void InstallInterfaces(SM::ServiceManager& service_manager);
 
