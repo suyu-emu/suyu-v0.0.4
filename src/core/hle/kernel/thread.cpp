@@ -227,12 +227,12 @@ ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name
     // Check if priority is in ranged. Lowest priority -> highest priority id.
     if (priority > THREADPRIO_LOWEST) {
         LOG_ERROR(Kernel_SVC, "Invalid thread priority: {}", priority);
-        return ERR_OUT_OF_RANGE;
+        return ERR_INVALID_THREAD_PRIORITY;
     }
 
     if (processor_id > THREADPROCESSORID_MAX) {
         LOG_ERROR(Kernel_SVC, "Invalid processor id: {}", processor_id);
-        return ERR_OUT_OF_RANGE_KERNEL;
+        return ERR_INVALID_PROCESSOR_ID;
     }
 
     // TODO(yuriks): Other checks, returning 0xD9001BEA

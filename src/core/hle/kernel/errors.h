@@ -21,6 +21,7 @@ enum {
     HandleTableFull = 105,
     InvalidMemoryState = 106,
     InvalidMemoryPermissions = 108,
+    InvalidThreadPriority = 112,
     InvalidProcessorId = 113,
     InvalidHandle = 114,
     InvalidCombination = 116,
@@ -36,7 +37,7 @@ enum {
 // WARNING: The kernel is quite inconsistent in it's usage of errors code. Make sure to always
 // double check that the code matches before re-using the constant.
 
-// TODO(bunnei): Replace these with correct errors for Switch OS
+// TODO(bunnei): Replace -1 with correct errors for Switch OS
 constexpr ResultCode ERR_HANDLE_TABLE_FULL(ErrorModule::Kernel, ErrCodes::HandleTableFull);
 constexpr ResultCode ERR_SESSION_CLOSED_BY_REMOTE(-1);
 constexpr ResultCode ERR_PORT_NAME_TOO_LONG(ErrorModule::Kernel, ErrCodes::TooLarge);
@@ -53,15 +54,16 @@ constexpr ResultCode ERR_INVALID_ADDRESS_STATE(ErrorModule::Kernel, ErrCodes::In
 constexpr ResultCode ERR_INVALID_MEMORY_PERMISSIONS(ErrorModule::Kernel,
                                                     ErrCodes::InvalidMemoryPermissions);
 constexpr ResultCode ERR_INVALID_HANDLE(ErrorModule::Kernel, ErrCodes::InvalidHandle);
+constexpr ResultCode ERR_INVALID_PROCESSOR_ID(ErrorModule::Kernel, ErrCodes::InvalidProcessorId);
 constexpr ResultCode ERR_INVALID_STATE(ErrorModule::Kernel, ErrCodes::InvalidState);
+constexpr ResultCode ERR_INVALID_THREAD_PRIORITY(ErrorModule::Kernel,
+                                                 ErrCodes::InvalidThreadPriority);
 constexpr ResultCode ERR_INVALID_POINTER(-1);
 constexpr ResultCode ERR_INVALID_OBJECT_ADDR(-1);
 constexpr ResultCode ERR_NOT_AUTHORIZED(-1);
 /// Alternate code returned instead of ERR_INVALID_HANDLE in some code paths.
 constexpr ResultCode ERR_INVALID_HANDLE_OS(-1);
 constexpr ResultCode ERR_NOT_FOUND(-1);
-constexpr ResultCode ERR_OUT_OF_RANGE(-1);
-constexpr ResultCode ERR_OUT_OF_RANGE_KERNEL(-1);
 constexpr ResultCode RESULT_TIMEOUT(ErrorModule::Kernel, ErrCodes::Timeout);
 /// Returned when Accept() is called on a port with no sessions to be accepted.
 constexpr ResultCode ERR_NO_PENDING_SESSIONS(-1);

@@ -382,7 +382,7 @@ static ResultCode GetThreadPriority(u32* priority, Handle handle) {
 /// Sets the priority for the specified thread
 static ResultCode SetThreadPriority(Handle handle, u32 priority) {
     if (priority > THREADPRIO_LOWEST) {
-        return ERR_OUT_OF_RANGE;
+        return ERR_INVALID_THREAD_PRIORITY;
     }
 
     auto& kernel = Core::System::GetInstance().Kernel();
@@ -527,7 +527,7 @@ static ResultCode CreateThread(Handle* out_handle, VAddr entry_point, u64 arg, V
     std::string name = fmt::format("unknown-{:X}", entry_point);
 
     if (priority > THREADPRIO_LOWEST) {
-        return ERR_OUT_OF_RANGE;
+        return ERR_INVALID_THREAD_PRIORITY;
     }
 
     SharedPtr<ResourceLimit>& resource_limit = Core::CurrentProcess()->resource_limit;
@@ -548,8 +548,8 @@ static ResultCode CreateThread(Handle* out_handle, VAddr entry_point, u64 arg, V
     case THREADPROCESSORID_3:
         break;
     default:
-        ASSERT_MSG(false, "Unsupported thread processor ID: {}", processor_id);
-        break;
+        LOG_ERROR(Kernel_SVC, "Invalid thread processor ID: {}", processor_id);
+        return ERR_INVALID_PROCESSOR_ID;
     }
 
     auto& kernel = Core::System::GetInstance().Kernel();
