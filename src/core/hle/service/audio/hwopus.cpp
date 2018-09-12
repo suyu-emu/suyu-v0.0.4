@@ -3,7 +3,12 @@
 // Refer to the license.txt file included.
 
 #include <cstring>
+#include <memory>
+#include <vector>
+
 #include <opus.h>
+
+#include "common/common_funcs.h"
 #include "common/logging/log.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/hle_ipc.h"

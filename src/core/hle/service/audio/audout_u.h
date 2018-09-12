@@ -4,26 +4,17 @@
 
 #pragma once
 
-#include "audio_core/audio_out.h"
 #include "core/hle/service/service.h"
+
+namespace AudioCore {
+class AudioOut;
+}
 
 namespace Kernel {
 class HLERequestContext;
 }
 
 namespace Service::Audio {
-
-struct AudoutParams {
-    s32_le sample_rate;
-    u16_le channel_count;
-    INSERT_PADDING_BYTES(2);
-};
-static_assert(sizeof(AudoutParams) == 0x8, "AudoutParams is an invalid size");
-
-enum class AudioState : u32 {
-    Started,
-    Stopped,
-};
 
 class IAudioOut;
 

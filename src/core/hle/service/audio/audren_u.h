@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "audio_core/audio_renderer.h"
 #include "core/hle/service/service.h"
 
 namespace Kernel {
