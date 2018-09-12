@@ -253,14 +253,16 @@ PL_U::PL_U() : ServiceFramework("pl:u"), impl{std::make_unique<Impl>()} {
             LOG_WARNING(Service_NS,
                         "Shared Font file missing. Loading open source replacement from memory");
 
+            // clang-format off
             const std::vector<std::vector<u8>> open_source_shared_fonts_ttf = {
                 {std::begin(FontChineseSimplified), std::end(FontChineseSimplified)},
                 {std::begin(FontChineseTraditional), std::end(FontChineseTraditional)},
-                {std::begin(FontExtendedChineseSimplified),
-                 std::end(FontExtendedChineseSimplified)},
+                {std::begin(FontExtendedChineseSimplified), std::end(FontExtendedChineseSimplified)},
+                {std::begin(FontKorean), std::end(FontKorean)},
                 {std::begin(FontNintendoExtended), std::end(FontNintendoExtended)},
                 {std::begin(FontStandard), std::end(FontStandard)},
             };
+            // clang-format on
 
             for (const std::vector<u8>& font_ttf : open_source_shared_fonts_ttf) {
                 const FontRegion region{static_cast<u32>(offset + 8),
