@@ -2,11 +2,14 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "core/core.h"
+#include <array>
+#include <utility>
+
+#include "common/common_types.h"
 #include "core/settings.h"
 #include "ui_configure_gamelist.h"
-#include "ui_settings.h"
 #include "yuzu/configuration/configure_gamelist.h"
+#include "yuzu/ui_settings.h"
 
 ConfigureGameList::ConfigureGameList(QWidget* parent)
     : QWidget(parent), ui(new Ui::ConfigureGameList) {
@@ -39,11 +42,11 @@ void ConfigureGameList::setConfiguration() {
 }
 
 void ConfigureGameList::InitializeIconSizeComboBox() {
-    static const std::vector<std::pair<u32, std::string>> default_icon_sizes{
+    static const std::array<std::pair<u32, std::string>, 5> default_icon_sizes{{
         std::make_pair(0, "None"),        std::make_pair(32, "Small"),
         std::make_pair(64, "Standard"),   std::make_pair(128, "Large"),
         std::make_pair(256, "Full Size"),
-    };
+    }};
 
     for (const auto& size : default_icon_sizes) {
         ui->icon_size_combobox->addItem(QString::fromStdString(size.second + " (" +
@@ -54,12 +57,12 @@ void ConfigureGameList::InitializeIconSizeComboBox() {
 }
 
 void ConfigureGameList::InitializeRowComboBoxes() {
-    static const std::vector<std::string> row_text_names{
+    static const std::array<std::string, 4> row_text_names{{
         "Filename",
         "Filetype",
         "Title ID",
         "Title Name",
-    };
+    }};
 
     for (size_t i = 0; i < row_text_names.size(); ++i) {
         ui->row_1_text_combobox->addItem(QString::fromStdString(row_text_names[i]),
