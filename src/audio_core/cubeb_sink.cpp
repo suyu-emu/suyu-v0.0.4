@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <atomic>
 #include <cstring>
 #include "audio_core/cubeb_sink.h"
 #include "audio_core/stream.h"
@@ -81,6 +82,10 @@ public:
         return queue.Size() / num_channels;
     }
 
+    void Flush() override {
+        should_flush = true;
+    }
+
     u32 GetNumChannels() const {
         return num_channels;
     }
@@ -94,6 +99,7 @@ private:
 
     Common::RingBuffer<s16, 0x10000> queue;
     std::array<s16, 2> last_frame;
+    std::atomic<bool> should_flush{};
     TimeStretcher time_stretch;
 
     static long DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
@@ -163,6 +169,11 @@ long CubebSinkStream::DataCallback(cubeb_stream* stream, void* user_data, const 
         s16* const out{reinterpret_cast<s16*>(buffer)};
         const size_t out_frames = impl->time_stretch.Process(in.data(), num_in, out, num_frames);
         samples_written = out_frames * num_channels;
+
+        if (impl->should_flush) {
+            impl->time_stretch.Flush();
+            impl->should_flush = false;
+        }
     } else {
         samples_written = impl->queue.Pop(buffer, samples_to_write);
     }

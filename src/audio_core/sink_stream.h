@@ -27,6 +27,8 @@ public:
     virtual void EnqueueSamples(u32 num_channels, const std::vector<s16>& samples) = 0;
 
     virtual std::size_t SamplesInQueue(u32 num_channels) const = 0;
+
+    virtual void Flush() = 0;
 };
 
 using SinkStreamPtr = std::unique_ptr<SinkStream>;

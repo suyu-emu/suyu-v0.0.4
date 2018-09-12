@@ -22,6 +22,10 @@ void TimeStretcher::Clear() {
     m_sound_touch.clear();
 }
 
+void TimeStretcher::Flush() {
+    m_sound_touch.flush();
+}
+
 size_t TimeStretcher::Process(const s16* in, size_t num_in, s16* out, size_t num_out) {
     const double time_delta = static_cast<double>(num_out) / m_sample_rate; // seconds
 

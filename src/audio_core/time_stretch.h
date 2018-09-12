@@ -24,6 +24,8 @@ public:
 
     void Clear();
 
+    void Flush();
+
 private:
     u32 m_sample_rate;
     u32 m_channel_count;

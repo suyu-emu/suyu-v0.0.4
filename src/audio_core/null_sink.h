@@ -25,6 +25,8 @@ private:
         size_t SamplesInQueue(u32 /*num_channels*/) const override {
             return 0;
         }
+
+        void Flush() override {}
     } null_sink_stream;
 };
 
