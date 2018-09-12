@@ -5,7 +5,6 @@
 #pragma once
 
 #include <memory>
-#include "core/hle/kernel/shared_memory.h"
 #include "core/hle/service/service.h"
 
 namespace Service::NS {
@@ -23,11 +22,8 @@ private:
     void GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx);
     void GetSharedFontInOrderOfPriority(Kernel::HLERequestContext& ctx);
 
-    /// Handle to shared memory region designated for a shared font
-    Kernel::SharedPtr<Kernel::SharedMemory> shared_font_mem;
-
-    /// Backing memory for the shared font data
-    std::shared_ptr<std::vector<u8>> shared_font;
+    struct Impl;
+    std::unique_ptr<Impl> impl;
 };
 
 } // namespace Service::NS
