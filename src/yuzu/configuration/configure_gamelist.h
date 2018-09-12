@@ -23,6 +23,9 @@ public:
 private:
     void setConfiguration();
 
+    void changeEvent(QEvent*) override;
+    void RetranslateUI();
+
     void InitializeIconSizeComboBox();
     void InitializeRowComboBoxes();
 
