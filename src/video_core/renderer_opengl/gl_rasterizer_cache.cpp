@@ -53,8 +53,6 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.width = Common::AlignUp(config.tic.Width(), GetCompressionFactor(params.pixel_format));
     params.height = Common::AlignUp(config.tic.Height(), GetCompressionFactor(params.pixel_format));
     params.unaligned_height = config.tic.Height();
-    params.cache_width = Common::AlignUp(params.width, 8);
-    params.cache_height = Common::AlignUp(params.height, 8);
     params.target = SurfaceTargetFromTextureType(config.tic.texture_type);
 
     switch (params.target) {
@@ -89,8 +87,6 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.width = config.width;
     params.height = config.height;
     params.unaligned_height = config.height;
-    params.cache_width = Common::AlignUp(params.width, 8);
-    params.cache_height = Common::AlignUp(params.height, 8);
     params.target = SurfaceTarget::Texture2D;
     params.depth = 1;
     params.size_in_bytes = params.SizeInBytes();
@@ -110,8 +106,6 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.width = zeta_width;
     params.height = zeta_height;
     params.unaligned_height = zeta_height;
-    params.cache_width = Common::AlignUp(params.width, 8);
-    params.cache_height = Common::AlignUp(params.height, 8);
     params.target = SurfaceTarget::Texture2D;
     params.depth = 1;
     params.size_in_bytes = params.SizeInBytes();
