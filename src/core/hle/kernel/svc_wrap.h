@@ -222,9 +222,9 @@ void SvcWrap() {
     func((s64)PARAM(0));
 }
 
-template <void func(u64, s32 len)>
+template <void func(u64, u64 len)>
 void SvcWrap() {
-    func(PARAM(0), (s32)(PARAM(1) & 0xFFFFFFFF));
+    func(PARAM(0), PARAM(1));
 }
 
 template <void func(u64, u64, u64)>
