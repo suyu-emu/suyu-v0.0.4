@@ -23,6 +23,8 @@ public:
 private:
     void setConfiguration();
 
-private:
+    void InitializeIconSizeComboBox();
+    void InitializeRowComboBoxes();
+
     std::unique_ptr<Ui::ConfigureGameList> ui;
 };

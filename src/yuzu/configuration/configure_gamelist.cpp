@@ -12,6 +12,33 @@ ConfigureGameList::ConfigureGameList(QWidget* parent)
     : QWidget(parent), ui(new Ui::ConfigureGameList) {
     ui->setupUi(this);
 
+    InitializeIconSizeComboBox();
+    InitializeRowComboBoxes();
+
+    this->setConfiguration();
+}
+
+ConfigureGameList::~ConfigureGameList() = default;
+
+void ConfigureGameList::applyConfiguration() {
+    UISettings::values.show_unknown = ui->show_unknown->isChecked();
+    UISettings::values.icon_size = ui->icon_size_combobox->currentData().toUInt();
+    UISettings::values.row_1_text_id = ui->row_1_text_combobox->currentData().toUInt();
+    UISettings::values.row_2_text_id = ui->row_2_text_combobox->currentData().toUInt();
+    Settings::Apply();
+}
+
+void ConfigureGameList::setConfiguration() {
+    ui->show_unknown->setChecked(UISettings::values.show_unknown);
+    ui->icon_size_combobox->setCurrentIndex(
+        ui->icon_size_combobox->findData(UISettings::values.icon_size));
+    ui->row_1_text_combobox->setCurrentIndex(
+        ui->row_1_text_combobox->findData(UISettings::values.row_1_text_id));
+    ui->row_2_text_combobox->setCurrentIndex(
+        ui->row_2_text_combobox->findData(UISettings::values.row_2_text_id));
+}
+
+void ConfigureGameList::InitializeIconSizeComboBox() {
     static const std::vector<std::pair<u32, std::string>> default_icon_sizes{
         std::make_pair(0, "None"),        std::make_pair(32, "Small"),
         std::make_pair(64, "Standard"),   std::make_pair(128, "Large"),
@@ -24,7 +51,9 @@ ConfigureGameList::ConfigureGameList(QWidget* parent)
                                                                std::to_string(size.first) + ")"),
                                         size.first);
     }
+}
 
+void ConfigureGameList::InitializeRowComboBoxes() {
     static const std::vector<std::string> row_text_names{
         "Filename",
         "Filetype",
@@ -38,26 +67,4 @@ ConfigureGameList::ConfigureGameList(QWidget* parent)
         ui->row_2_text_combobox->addItem(QString::fromStdString(row_text_names[i]),
                                          QVariant::fromValue(i));
     }
-
-    this->setConfiguration();
-}
-
-ConfigureGameList::~ConfigureGameList() {}
-
-void ConfigureGameList::setConfiguration() {
-    ui->show_unknown->setChecked(UISettings::values.show_unknown);
-    ui->icon_size_combobox->setCurrentIndex(
-        ui->icon_size_combobox->findData(UISettings::values.icon_size));
-    ui->row_1_text_combobox->setCurrentIndex(
-        ui->row_1_text_combobox->findData(UISettings::values.row_1_text_id));
-    ui->row_2_text_combobox->setCurrentIndex(
-        ui->row_2_text_combobox->findData(UISettings::values.row_2_text_id));
-}
-
-void ConfigureGameList::applyConfiguration() {
-    UISettings::values.show_unknown = ui->show_unknown->isChecked();
-    UISettings::values.icon_size = ui->icon_size_combobox->currentData().toUInt();
-    UISettings::values.row_1_text_id = ui->row_1_text_combobox->currentData().toUInt();
-    UISettings::values.row_2_text_id = ui->row_2_text_combobox->currentData().toUInt();
-    Settings::Apply();
 }
