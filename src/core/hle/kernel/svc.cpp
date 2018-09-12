@@ -544,8 +544,8 @@ static ResultCode CreateThread(Handle* out_handle, VAddr entry_point, u64 arg, V
     case THREADPROCESSORID_3:
         break;
     default:
-        ASSERT_MSG(false, "Unsupported thread processor ID: {}", processor_id);
-        break;
+        LOG_ERROR(Kernel_SVC, "Invalid thread processor ID: {}", processor_id);
+        return ERR_INVALID_PROCESSOR_ID;
     }
 
     auto& kernel = Core::System::GetInstance().Kernel();
