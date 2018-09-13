@@ -17,6 +17,7 @@ enum {
 
     // Confirmed Switch OS error codes
     MaxConnectionsReached = 7,
+    InvalidSize = 101,
     InvalidAddress = 102,
     HandleTableFull = 105,
     InvalidMemoryState = 106,
@@ -55,6 +56,7 @@ constexpr ResultCode ERR_INVALID_MEMORY_PERMISSIONS(ErrorModule::Kernel,
                                                     ErrCodes::InvalidMemoryPermissions);
 constexpr ResultCode ERR_INVALID_HANDLE(ErrorModule::Kernel, ErrCodes::InvalidHandle);
 constexpr ResultCode ERR_INVALID_PROCESSOR_ID(ErrorModule::Kernel, ErrCodes::InvalidProcessorId);
+constexpr ResultCode ERR_INVALID_SIZE(ErrorModule::Kernel, ErrCodes::InvalidSize);
 constexpr ResultCode ERR_INVALID_STATE(ErrorModule::Kernel, ErrCodes::InvalidState);
 constexpr ResultCode ERR_INVALID_THREAD_PRIORITY(ErrorModule::Kernel,
                                                  ErrCodes::InvalidThreadPriority);

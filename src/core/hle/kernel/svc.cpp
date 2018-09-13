@@ -39,6 +39,12 @@ namespace Kernel {
 /// Set the process heap to a given Size. It can both extend and shrink the heap.
 static ResultCode SetHeapSize(VAddr* heap_addr, u64 heap_size) {
     LOG_TRACE(Kernel_SVC, "called, heap_size=0x{:X}", heap_size);
+
+    // Size must be a multiple of 0x200000 (2MB) and be equal to or less than 4GB.
+    if ((heap_size & 0xFFFFFFFE001FFFFF) != 0) {
+        return ERR_INVALID_SIZE;
+    }
+
     auto& process = *Core::CurrentProcess();
     CASCADE_RESULT(*heap_addr,
                    process.HeapAllocate(Memory::HEAP_VADDR, heap_size, VMAPermission::ReadWrite));
