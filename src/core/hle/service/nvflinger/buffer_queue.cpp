@@ -9,8 +9,7 @@
 #include "core/core.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
 
-namespace Service {
-namespace NVFlinger {
+namespace Service::NVFlinger {
 
 BufferQueue::BufferQueue(u32 id, u64 layer_id) : id(id), layer_id(layer_id) {
     auto& kernel = Core::System::GetInstance().Kernel();
@@ -104,5 +103,4 @@ u32 BufferQueue::Query(QueryType type) {
     return 0;
 }
 
-} // namespace NVFlinger
-} // namespace Service
+} // namespace Service::NVFlinger

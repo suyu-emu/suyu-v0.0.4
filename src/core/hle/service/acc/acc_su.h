@@ -6,8 +6,7 @@
 
 #include "core/hle/service/acc/acc.h"
 
-namespace Service {
-namespace Account {
+namespace Service::Account {
 
 class ACC_SU final : public Module::Interface {
 public:
@@ -16,5 +15,4 @@ public:
     ~ACC_SU() override;
 };
 
-} // namespace Account
-} // namespace Service
+} // namespace Service::Account
