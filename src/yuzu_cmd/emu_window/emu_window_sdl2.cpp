@@ -96,6 +96,8 @@ bool EmuWindow_SDL2::SupportsRequiredGLExtensions() {
         unsupported_ext.push_back("ARB_base_instance");
     if (!GLAD_GL_ARB_texture_storage)
         unsupported_ext.push_back("ARB_texture_storage");
+    if (!GLAD_GL_ARB_multi_bind)
+        unsupported_ext.push_back("ARB_multi_bind");
 
     // Extensions required to support some texture formats.
     if (!GLAD_GL_EXT_texture_compression_s3tc)
