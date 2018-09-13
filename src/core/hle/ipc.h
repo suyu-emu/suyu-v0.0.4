@@ -153,7 +153,7 @@ struct DataPayloadHeader {
     u32_le magic;
     INSERT_PADDING_WORDS(1);
 };
-static_assert(sizeof(DataPayloadHeader) == 8, "DataPayloadRequest size is incorrect");
+static_assert(sizeof(DataPayloadHeader) == 8, "DataPayloadHeader size is incorrect");
 
 struct DomainMessageHeader {
     enum class CommandType : u32_le {
