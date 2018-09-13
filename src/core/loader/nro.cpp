@@ -191,7 +191,7 @@ ResultStatus AppLoader_NRO::Load(Kernel::SharedPtr<Kernel::Process>& process) {
     process->svc_access_mask.set();
     process->resource_limit =
         kernel.ResourceLimitForCategory(Kernel::ResourceLimitCategory::APPLICATION);
-    process->Run(base_addr, THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE);
+    process->Run(base_addr, Kernel::THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE);
 
     is_loaded = true;
     return ResultStatus::Success;
