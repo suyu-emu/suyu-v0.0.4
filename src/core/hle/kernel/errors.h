@@ -29,6 +29,7 @@ enum {
     SynchronizationCanceled = 118,
     TooLarge = 119,
     InvalidEnumValue = 120,
+    NoSuchEntry = 121,
     InvalidState = 125,
     ResourceLimitExceeded = 132,
 };
@@ -63,7 +64,7 @@ constexpr ResultCode ERR_INVALID_OBJECT_ADDR(-1);
 constexpr ResultCode ERR_NOT_AUTHORIZED(-1);
 /// Alternate code returned instead of ERR_INVALID_HANDLE in some code paths.
 constexpr ResultCode ERR_INVALID_HANDLE_OS(-1);
-constexpr ResultCode ERR_NOT_FOUND(-1);
+constexpr ResultCode ERR_NOT_FOUND(ErrorModule::Kernel, ErrCodes::NoSuchEntry);
 constexpr ResultCode RESULT_TIMEOUT(ErrorModule::Kernel, ErrCodes::Timeout);
 /// Returned when Accept() is called on a port with no sessions to be accepted.
 constexpr ResultCode ERR_NO_PENDING_SESSIONS(-1);
