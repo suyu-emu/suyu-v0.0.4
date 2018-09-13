@@ -514,7 +514,7 @@ private:
                 ctx.SleepClientThread(
                     Kernel::GetCurrentThread(), "IHOSBinderDriver::DequeueBuffer", -1,
                     [=](Kernel::SharedPtr<Kernel::Thread> thread, Kernel::HLERequestContext& ctx,
-                        ThreadWakeupReason reason) {
+                        Kernel::ThreadWakeupReason reason) {
                         // Repeat TransactParcel DequeueBuffer when a buffer is available
                         auto buffer_queue = nv_flinger->GetBufferQueue(id);
                         boost::optional<u32> slot = buffer_queue->DequeueBuffer(width, height);

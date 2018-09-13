@@ -15,6 +15,12 @@
 #include "core/hle/kernel/wait_object.h"
 #include "core/hle/result.h"
 
+namespace Kernel {
+
+class KernelCore;
+class Process;
+class Scheduler;
+
 enum ThreadPriority : u32 {
     THREADPRIO_HIGHEST = 0,       ///< Highest thread priority
     THREADPRIO_USERLAND_MAX = 24, ///< Highest thread priority for userland apps
@@ -53,12 +59,6 @@ enum class ThreadWakeupReason {
     Signal, // The thread was woken up by WakeupAllWaitingThreads due to an object signal.
     Timeout // The thread was woken up due to a wait timeout.
 };
-
-namespace Kernel {
-
-class KernelCore;
-class Process;
-class Scheduler;
 
 class Thread final : public WaitObject {
 public:
