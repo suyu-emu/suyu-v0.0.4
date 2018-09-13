@@ -35,6 +35,11 @@
 #include "core/hle/service/service.h"
 
 namespace Kernel {
+namespace {
+constexpr bool Is4KBAligned(VAddr address) {
+    return (address & 0xFFF) == 0;
+}
+} // Anonymous namespace
 
 /// Set the process heap to a given Size. It can both extend and shrink the heap.
 static ResultCode SetHeapSize(VAddr* heap_addr, u64 heap_size) {
@@ -62,6 +67,15 @@ static ResultCode SetMemoryAttribute(VAddr addr, u64 size, u32 state0, u32 state
 static ResultCode MapMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
     LOG_TRACE(Kernel_SVC, "called, dst_addr=0x{:X}, src_addr=0x{:X}, size=0x{:X}", dst_addr,
               src_addr, size);
+
+    if (!Is4KBAligned(dst_addr) || !Is4KBAligned(src_addr)) {
+        return ERR_INVALID_ADDRESS;
+    }
+
+    if (size == 0 || !Is4KBAligned(size)) {
+        return ERR_INVALID_SIZE;
+    }
+
     return Core::CurrentProcess()->MirrorMemory(dst_addr, src_addr, size);
 }
 
@@ -69,6 +83,15 @@ static ResultCode MapMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
 static ResultCode UnmapMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
     LOG_TRACE(Kernel_SVC, "called, dst_addr=0x{:X}, src_addr=0x{:X}, size=0x{:X}", dst_addr,
               src_addr, size);
+
+    if (!Is4KBAligned(dst_addr) || !Is4KBAligned(src_addr)) {
+        return ERR_INVALID_ADDRESS;
+    }
+
+    if (size == 0 || !Is4KBAligned(size)) {
+        return ERR_INVALID_SIZE;
+    }
+
     return Core::CurrentProcess()->UnmapMemory(dst_addr, src_addr, size);
 }
 
