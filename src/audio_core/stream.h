@@ -11,12 +11,15 @@
 #include <queue>
 
 #include "audio_core/buffer.h"
-#include "audio_core/sink_stream.h"
-#include "common/assert.h"
 #include "common/common_types.h"
-#include "core/core_timing.h"
+
+namespace CoreTiming {
+struct EventType;
+}
 
 namespace AudioCore {
+
+class SinkStream;
 
 /**
  * Represents an audio stream, which is a sequence of queued buffers, to be outputed by AudioOut
