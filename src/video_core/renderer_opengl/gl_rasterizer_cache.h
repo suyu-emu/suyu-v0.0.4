@@ -127,6 +127,8 @@ struct SurfaceParams {
         case Tegra::Texture::TextureType::Texture2D:
         case Tegra::Texture::TextureType::Texture2DNoMipmap:
             return SurfaceTarget::Texture2D;
+        case Tegra::Texture::TextureType::TextureCubemap:
+            return SurfaceTarget::TextureCubemap;
         case Tegra::Texture::TextureType::Texture1DArray:
             return SurfaceTarget::Texture1DArray;
         case Tegra::Texture::TextureType::Texture2DArray:
