@@ -718,8 +718,9 @@ struct SurfaceParams {
 
     /// Checks if surfaces are compatible for caching
     bool IsCompatibleSurface(const SurfaceParams& other) const {
-        return std::tie(pixel_format, type, width, height) ==
-               std::tie(other.pixel_format, other.type, other.width, other.height);
+        return std::tie(pixel_format, type, width, height, target, depth) ==
+               std::tie(other.pixel_format, other.type, other.width, other.height, other.target,
+                        other.depth);
     }
 
     VAddr addr;
