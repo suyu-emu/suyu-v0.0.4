@@ -444,34 +444,42 @@ static ResultCode MapSharedMemory(Handle shared_memory_handle, VAddr addr, u64 s
               "called, shared_memory_handle=0x{:X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
               shared_memory_handle, addr, size, permissions);
 
+    if (!Is4KBAligned(addr)) {
+        return ERR_INVALID_ADDRESS;
+    }
+
+    if (size == 0 || !Is4KBAligned(size)) {
+        return ERR_INVALID_SIZE;
+    }
+
+    const auto permissions_type = static_cast<MemoryPermission>(permissions);
+    if (permissions_type != MemoryPermission::Read &&
+        permissions_type != MemoryPermission::ReadWrite) {
+        LOG_ERROR(Kernel_SVC, "Invalid permissions=0x{:08X}", permissions);
+        return ERR_INVALID_MEMORY_PERMISSIONS;
+    }
+
     auto& kernel = Core::System::GetInstance().Kernel();
     auto shared_memory = kernel.HandleTable().Get<SharedMemory>(shared_memory_handle);
     if (!shared_memory) {
         return ERR_INVALID_HANDLE;
     }
 
-    MemoryPermission permissions_type = static_cast<MemoryPermission>(permissions);
-    switch (permissions_type) {
-    case MemoryPermission::Read:
-    case MemoryPermission::Write:
-    case MemoryPermission::ReadWrite:
-    case MemoryPermission::Execute:
-    case MemoryPermission::ReadExecute:
-    case MemoryPermission::WriteExecute:
-    case MemoryPermission::ReadWriteExecute:
-    case MemoryPermission::DontCare:
-        return shared_memory->Map(Core::CurrentProcess().get(), addr, permissions_type,
-                                  MemoryPermission::DontCare);
-    default:
-        LOG_ERROR(Kernel_SVC, "unknown permissions=0x{:08X}", permissions);
-    }
-
-    return RESULT_SUCCESS;
+    return shared_memory->Map(Core::CurrentProcess().get(), addr, permissions_type,
+                              MemoryPermission::DontCare);
 }
 
 static ResultCode UnmapSharedMemory(Handle shared_memory_handle, VAddr addr, u64 size) {
     LOG_WARNING(Kernel_SVC, "called, shared_memory_handle=0x{:08X}, addr=0x{:X}, size=0x{:X}",
                 shared_memory_handle, addr, size);
+
+    if (!Is4KBAligned(addr)) {
+        return ERR_INVALID_ADDRESS;
+    }
+
+    if (size == 0 || !Is4KBAligned(size)) {
+        return ERR_INVALID_SIZE;
+    }
 
     auto& kernel = Core::System::GetInstance().Kernel();
     auto shared_memory = kernel.HandleTable().Get<SharedMemory>(shared_memory_handle);
