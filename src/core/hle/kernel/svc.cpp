@@ -935,12 +935,28 @@ static ResultCode CreateSharedMemory(Handle* handle, u64 size, u32 local_permiss
     LOG_TRACE(Kernel_SVC, "called, size=0x{:X}, localPerms=0x{:08X}, remotePerms=0x{:08X}", size,
               local_permissions, remote_permissions);
 
+    // Size must be a multiple of 4KB and be less than or equal to
+    // approx. 8 GB (actually (1GB - 512B) * 8)
+    if (size == 0 || (size & 0xFFFFFFFE00000FFF) != 0) {
+        return ERR_INVALID_SIZE;
+    }
+
+    const auto local_perms = static_cast<MemoryPermission>(local_permissions);
+    if (local_perms != MemoryPermission::Read && local_perms != MemoryPermission::ReadWrite) {
+        return ERR_INVALID_MEMORY_PERMISSIONS;
+    }
+
+    const auto remote_perms = static_cast<MemoryPermission>(remote_permissions);
+    if (remote_perms != MemoryPermission::Read && remote_perms != MemoryPermission::ReadWrite &&
+        remote_perms != MemoryPermission::DontCare) {
+        return ERR_INVALID_MEMORY_PERMISSIONS;
+    }
+
     auto& kernel = Core::System::GetInstance().Kernel();
     auto& handle_table = kernel.HandleTable();
     auto shared_mem_handle =
         SharedMemory::Create(kernel, handle_table.Get<Process>(KernelHandle::CurrentProcess), size,
-                             static_cast<MemoryPermission>(local_permissions),
-                             static_cast<MemoryPermission>(remote_permissions));
+                             local_perms, remote_perms);
 
     CASCADE_RESULT(*handle, handle_table.Create(shared_mem_handle));
     return RESULT_SUCCESS;
