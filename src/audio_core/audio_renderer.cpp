@@ -3,15 +3,53 @@
 // Refer to the license.txt file included.
 
 #include "audio_core/algorithm/interpolate.h"
+#include "audio_core/audio_out.h"
 #include "audio_core/audio_renderer.h"
+#include "audio_core/codec.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "core/hle/kernel/event.h"
 #include "core/memory.h"
 
 namespace AudioCore {
 
 constexpr u32 STREAM_SAMPLE_RATE{48000};
 constexpr u32 STREAM_NUM_CHANNELS{2};
+
+class AudioRenderer::VoiceState {
+public:
+    bool IsPlaying() const {
+        return is_in_use && info.play_state == PlayState::Started;
+    }
+
+    const VoiceOutStatus& GetOutStatus() const {
+        return out_status;
+    }
+
+    const VoiceInfo& GetInfo() const {
+        return info;
+    }
+
+    VoiceInfo& Info() {
+        return info;
+    }
+
+    void SetWaveIndex(std::size_t index);
+    std::vector<s16> DequeueSamples(std::size_t sample_count);
+    void UpdateState();
+    void RefreshBuffer();
+
+private:
+    bool is_in_use{};
+    bool is_refresh_pending{};
+    std::size_t wave_index{};
+    std::size_t offset{};
+    Codec::ADPCMState adpcm_state{};
+    InterpolationState interp_state{};
+    std::vector<s16> samples;
+    VoiceOutStatus out_status{};
+    VoiceInfo info{};
+};
 
 AudioRenderer::AudioRenderer(AudioRendererParameter params,
                              Kernel::SharedPtr<Kernel::Event> buffer_event)
@@ -26,6 +64,8 @@ AudioRenderer::AudioRenderer(AudioRendererParameter params,
     QueueMixedBuffer(1);
     QueueMixedBuffer(2);
 }
+
+AudioRenderer::~AudioRenderer() = default;
 
 u32 AudioRenderer::GetSampleRate() const {
     return worker_params.sample_rate;
