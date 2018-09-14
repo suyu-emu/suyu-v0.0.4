@@ -679,6 +679,14 @@ void CachedSurface::LoadGLBuffer() {
         case SurfaceParams::SurfaceTarget::Texture2D:
             // Pass impl. to the fallback code below
             break;
+        case SurfaceParams::SurfaceTarget::Texture2DArray:
+            for (std::size_t index = 0; index < params.depth; ++index) {
+                const std::size_t offset{index * copy_size};
+                morton_to_gl_fns[static_cast<std::size_t>(params.pixel_format)](
+                    params.width, params.block_height, params.height, gl_buffer.data() + offset,
+                    copy_size, params.addr + offset);
+            }
+            break;
         default:
             LOG_CRITICAL(HW_GPU, "Unimplemented tiled load for target={}",
                          static_cast<u32>(params.target));
