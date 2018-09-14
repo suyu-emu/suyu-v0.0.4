@@ -71,7 +71,8 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
         break;
     }
 
-    params.size_in_bytes = params.SizeInBytes();
+    params.size_in_bytes_total = params.SizeInBytesTotal();
+    params.size_in_bytes_2d = params.SizeInBytes2D();
     return params;
 }
 
@@ -89,7 +90,8 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.unaligned_height = config.height;
     params.target = SurfaceTarget::Texture2D;
     params.depth = 1;
-    params.size_in_bytes = params.SizeInBytes();
+    params.size_in_bytes_total = params.SizeInBytesTotal();
+    params.size_in_bytes_2d = params.SizeInBytes2D();
     return params;
 }
 
@@ -108,7 +110,8 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.unaligned_height = zeta_height;
     params.target = SurfaceTarget::Texture2D;
     params.depth = 1;
-    params.size_in_bytes = params.SizeInBytes();
+    params.size_in_bytes_total = params.SizeInBytesTotal();
+    params.size_in_bytes_2d = params.SizeInBytes2D();
     return params;
 }
 
@@ -585,10 +588,13 @@ void CachedSurface::LoadGLBuffer() {
 
     const u32 bytes_per_pixel = GetGLBytesPerPixel(params.pixel_format);
     const u32 copy_size = params.width * params.height * bytes_per_pixel;
+    const std::size_t total_size = copy_size * params.depth;
 
     MICROPROFILE_SCOPE(OpenGL_SurfaceLoad);
 
     if (params.is_tiled) {
+        gl_buffer.resize(total_size);
+
         // TODO(bunnei): This only unswizzles and copies a 2D texture - we do not yet know how to do
         // this for 3D textures, etc.
         switch (params.target) {
@@ -601,13 +607,11 @@ void CachedSurface::LoadGLBuffer() {
             UNREACHABLE();
         }
 
-        gl_buffer.resize(static_cast<std::size_t>(params.depth) * copy_size);
         morton_to_gl_fns[static_cast<std::size_t>(params.pixel_format)](
             params.width, params.block_height, params.height, gl_buffer.data(), copy_size,
             params.addr);
     } else {
-        const u8* const texture_src_data_end{texture_src_data +
-                                             (static_cast<std::size_t>(params.depth) * copy_size)};
+        const u8* const texture_src_data_end{texture_src_data + total_size};
         gl_buffer.assign(texture_src_data, texture_src_data_end);
     }
 
@@ -663,15 +667,15 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
             glCompressedTexImage2D(
                 SurfaceTargetToGL(params.target), 0, tuple.internal_format,
                 static_cast<GLsizei>(params.width), static_cast<GLsizei>(params.height), 0,
-                static_cast<GLsizei>(params.size_in_bytes), &gl_buffer[buffer_offset]);
+                static_cast<GLsizei>(params.size_in_bytes_2d), &gl_buffer[buffer_offset]);
             break;
         case SurfaceParams::SurfaceTarget::Texture3D:
         case SurfaceParams::SurfaceTarget::Texture2DArray:
             glCompressedTexImage3D(
                 SurfaceTargetToGL(params.target), 0, tuple.internal_format,
                 static_cast<GLsizei>(params.width), static_cast<GLsizei>(params.height),
-                static_cast<GLsizei>(params.depth), 0, static_cast<GLsizei>(params.size_in_bytes),
-                &gl_buffer[buffer_offset]);
+                static_cast<GLsizei>(params.depth), 0,
+                static_cast<GLsizei>(params.size_in_bytes_total), &gl_buffer[buffer_offset]);
             break;
         default:
             LOG_CRITICAL(Render_OpenGL, "Unimplemented surface target={}",
@@ -679,8 +683,8 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
             UNREACHABLE();
             glCompressedTexImage2D(
                 GL_TEXTURE_2D, 0, tuple.internal_format, static_cast<GLsizei>(params.width),
-                static_cast<GLsizei>(params.height), 0, static_cast<GLsizei>(params.size_in_bytes),
-                &gl_buffer[buffer_offset]);
+                static_cast<GLsizei>(params.height), 0,
+                static_cast<GLsizei>(params.size_in_bytes_2d), &gl_buffer[buffer_offset]);
         }
     } else {
 
@@ -811,15 +815,15 @@ Surface RasterizerCacheOpenGL::GetUncachedSurface(const SurfaceParams& params) {
     return surface;
 }
 
-Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& surface,
+Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& old_surface,
                                                const SurfaceParams& new_params) {
     // Verify surface is compatible for blitting
-    const auto& params{surface->GetSurfaceParams()};
+    const auto& old_params{old_surface->GetSurfaceParams()};
 
     // Get a new surface with the new parameters, and blit the previous surface to it
     Surface new_surface{GetUncachedSurface(new_params)};
 
-    if (params.pixel_format == new_params.pixel_format ||
+    if (old_params.pixel_format == new_params.pixel_format ||
         !Settings::values.use_accurate_framebuffers) {
         // If the format is the same, just do a framebuffer blit. This is significantly faster than
         // using PBOs. The is also likely less accurate, as textures will be converted rather than
@@ -833,24 +837,26 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& surface,
         // where pixels are reinterpreted as a new format (without conversion). This code path uses
         // OpenGL PBOs and is quite slow.
 
-        auto source_format = GetFormatTuple(params.pixel_format, params.component_type);
+        auto source_format = GetFormatTuple(old_params.pixel_format, old_params.component_type);
         auto dest_format = GetFormatTuple(new_params.pixel_format, new_params.component_type);
 
-        std::size_t buffer_size = std::max(params.SizeInBytes(), new_params.SizeInBytes());
+        std::size_t buffer_size =
+            std::max(old_params.size_in_bytes_total, new_params.size_in_bytes_total);
 
         glBindBuffer(GL_PIXEL_PACK_BUFFER, copy_pbo.handle);
         glBufferData(GL_PIXEL_PACK_BUFFER, buffer_size, nullptr, GL_STREAM_DRAW_ARB);
         if (source_format.compressed) {
-            glGetCompressedTextureImage(surface->Texture().handle, 0,
-                                        static_cast<GLsizei>(params.SizeInBytes()), nullptr);
+            glGetCompressedTextureImage(old_surface->Texture().handle, 0,
+                                        static_cast<GLsizei>(old_params.size_in_bytes_total),
+                                        nullptr);
         } else {
-            glGetTextureImage(surface->Texture().handle, 0, source_format.format,
-                              source_format.type, static_cast<GLsizei>(params.SizeInBytes()),
-                              nullptr);
+            glGetTextureImage(old_surface->Texture().handle, 0, source_format.format,
+                              source_format.type,
+                              static_cast<GLsizei>(old_params.size_in_bytes_total), nullptr);
         }
         // If the new texture is bigger than the previous one, we need to fill in the rest with data
         // from the CPU.
-        if (params.SizeInBytes() < new_params.SizeInBytes()) {
+        if (old_params.size_in_bytes_total < new_params.size_in_bytes_total) {
             // Upload the rest of the memory.
             if (new_params.is_tiled) {
                 // TODO(Subv): We might have to de-tile the subtexture and re-tile it with the rest
@@ -860,10 +866,12 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& surface,
                 LOG_DEBUG(HW_GPU, "Trying to upload extra texture data from the CPU during "
                                   "reinterpretation but the texture is tiled.");
             }
-            std::size_t remaining_size = new_params.SizeInBytes() - params.SizeInBytes();
+            std::size_t remaining_size =
+                new_params.size_in_bytes_total - old_params.size_in_bytes_total;
             std::vector<u8> data(remaining_size);
-            Memory::ReadBlock(new_params.addr + params.SizeInBytes(), data.data(), data.size());
-            glBufferSubData(GL_PIXEL_PACK_BUFFER, params.SizeInBytes(), remaining_size,
+            Memory::ReadBlock(new_params.addr + old_params.size_in_bytes_total, data.data(),
+                              data.size());
+            glBufferSubData(GL_PIXEL_PACK_BUFFER, old_params.size_in_bytes_total, remaining_size,
                             data.data());
         }
 
@@ -898,7 +906,7 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& surface,
                 break;
             default:
                 LOG_CRITICAL(Render_OpenGL, "Unimplemented surface target={}",
-                             static_cast<u32>(params.target));
+                             static_cast<u32>(new_params.target));
                 UNREACHABLE();
             }
         }

@@ -689,13 +689,18 @@ struct SurfaceParams {
     /// Returns the rectangle corresponding to this surface
     MathUtil::Rectangle<u32> GetRect() const;
 
-    /// Returns the size of this surface in bytes, adjusted for compression
-    std::size_t SizeInBytes() const {
+    /// Returns the size of this surface as a 2D texture in bytes, adjusted for compression
+    std::size_t SizeInBytes2D() const {
         const u32 compression_factor{GetCompressionFactor(pixel_format)};
         ASSERT(width % compression_factor == 0);
         ASSERT(height % compression_factor == 0);
         return (width / compression_factor) * (height / compression_factor) *
-               GetFormatBpp(pixel_format) * depth / CHAR_BIT;
+               GetFormatBpp(pixel_format) / CHAR_BIT;
+    }
+
+    /// Returns the total size of this surface in bytes, adjusted for compression
+    std::size_t SizeInBytesTotal() const {
+        return SizeInBytes2D() * depth;
     }
 
     /// Creates SurfaceParams from a texture configuration
@@ -725,7 +730,8 @@ struct SurfaceParams {
     u32 height;
     u32 depth;
     u32 unaligned_height;
-    std::size_t size_in_bytes;
+    std::size_t size_in_bytes_total;
+    std::size_t size_in_bytes_2d;
     SurfaceTarget target;
 };
 
@@ -759,7 +765,7 @@ public:
     }
 
     std::size_t GetSizeInBytes() const {
-        return params.size_in_bytes;
+        return params.size_in_bytes_total;
     }
 
     const OGLTexture& Texture() const {
@@ -822,7 +828,7 @@ private:
     Surface GetUncachedSurface(const SurfaceParams& params);
 
     /// Recreates a surface with new parameters
-    Surface RecreateSurface(const Surface& surface, const SurfaceParams& new_params);
+    Surface RecreateSurface(const Surface& old_surface, const SurfaceParams& new_params);
 
     /// Reserves a unique surface that can be reused later
     void ReserveSurface(const Surface& surface);
