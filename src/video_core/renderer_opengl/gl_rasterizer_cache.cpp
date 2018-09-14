@@ -414,9 +414,12 @@ static constexpr std::array<void (*)(u32, u32, u32, u8*, std::size_t, VAddr),
         // clang-format on
 };
 
-static bool BlitTextures(GLuint src_tex, const MathUtil::Rectangle<u32>& src_rect, GLuint dst_tex,
-                         const MathUtil::Rectangle<u32>& dst_rect, SurfaceType type,
-                         GLuint read_fb_handle, GLuint draw_fb_handle) {
+static bool BlitSurface(const Surface& src_surface, const Surface& dst_surface,
+                        GLuint read_fb_handle, GLuint draw_fb_handle, std::size_t face = 0) {
+
+    const auto& src_params{src_surface->GetSurfaceParams()};
+    const auto& dst_params{dst_surface->GetSurfaceParams()};
+
     OpenGLState prev_state{OpenGLState::GetCurState()};
     SCOPE_EXIT({ prev_state.Apply(); });
 
@@ -427,42 +430,106 @@ static bool BlitTextures(GLuint src_tex, const MathUtil::Rectangle<u32>& src_rec
 
     u32 buffers{};
 
-    if (type == SurfaceType::ColorTexture) {
-        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, src_tex,
-                               0);
-        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0,
-                               0);
+    if (src_params.type == SurfaceType::ColorTexture) {
+        switch (src_params.target) {
+        case SurfaceParams::SurfaceTarget::Texture2D:
+            glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                                   src_surface->Texture().handle, 0);
+            glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D,
+                                   0, 0);
+            break;
+        case SurfaceParams::SurfaceTarget::TextureCubemap:
+            glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                   static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face),
+                                   src_surface->Texture().handle, 0);
+            glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+                                   static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face), 0,
+                                   0);
+            break;
+        case SurfaceParams::SurfaceTarget::Texture2DArray:
+            glFramebufferTextureLayer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                      src_surface->Texture().handle, 0, 0);
+            glFramebufferTextureLayer(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, 0, 0, 0);
+            break;
+        case SurfaceParams::SurfaceTarget::Texture3D:
+            glFramebufferTexture3D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                   SurfaceTargetToGL(src_params.target),
+                                   src_surface->Texture().handle, 0, 0);
+            glFramebufferTexture3D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+                                   SurfaceTargetToGL(src_params.target), 0, 0, 0);
+            break;
+        default:
+            glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                                   src_surface->Texture().handle, 0);
+            glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D,
+                                   0, 0);
+            break;
+        }
 
-        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dst_tex,
-                               0);
-        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0,
-                               0);
+        switch (dst_params.target) {
+        case SurfaceParams::SurfaceTarget::Texture2D:
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                                   dst_surface->Texture().handle, 0);
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D,
+                                   0, 0);
+            break;
+        case SurfaceParams::SurfaceTarget::TextureCubemap:
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                   static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face),
+                                   dst_surface->Texture().handle, 0);
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+                                   static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face), 0,
+                                   0);
+            break;
+        case SurfaceParams::SurfaceTarget::Texture2DArray:
+            glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                      dst_surface->Texture().handle, 0, 0);
+            glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, 0, 0, 0);
+            break;
+
+        case SurfaceParams::SurfaceTarget::Texture3D:
+            glFramebufferTexture3D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                   SurfaceTargetToGL(dst_params.target),
+                                   dst_surface->Texture().handle, 0, 0);
+            glFramebufferTexture3D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+                                   SurfaceTargetToGL(dst_params.target), 0, 0, 0);
+            break;
+        default:
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                                   dst_surface->Texture().handle, 0);
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D,
+                                   0, 0);
+            break;
+        }
 
         buffers = GL_COLOR_BUFFER_BIT;
-    } else if (type == SurfaceType::Depth) {
+    } else if (src_params.type == SurfaceType::Depth) {
         glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
-        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, src_tex, 0);
+        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
+                               src_surface->Texture().handle, 0);
         glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
 
         glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
-        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, dst_tex, 0);
+        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
+                               dst_surface->Texture().handle, 0);
         glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
 
         buffers = GL_DEPTH_BUFFER_BIT;
-    } else if (type == SurfaceType::DepthStencil) {
+    } else if (src_params.type == SurfaceType::DepthStencil) {
         glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
         glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D,
-                               src_tex, 0);
+                               src_surface->Texture().handle, 0);
 
         glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
         glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D,
-                               dst_tex, 0);
+                               dst_surface->Texture().handle, 0);
 
         buffers = GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
     }
 
-    glBlitFramebuffer(src_rect.left, src_rect.bottom, src_rect.right, src_rect.top, dst_rect.left,
-                      dst_rect.bottom, dst_rect.right, dst_rect.top, buffers,
+    const auto& rect{src_params.GetRect()};
+    glBlitFramebuffer(rect.left, rect.bottom, rect.right, rect.top, rect.left, rect.bottom,
+                      rect.right, rect.top, buffers,
                       buffers == GL_COLOR_BUFFER_BIT ? GL_LINEAR : GL_NEAREST);
 
     return true;
@@ -841,9 +908,7 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& old_surface,
         // using PBOs. The is also likely less accurate, as textures will be converted rather than
         // reinterpreted.
 
-        BlitTextures(surface->Texture().handle, params.GetRect(), new_surface->Texture().handle,
-                     params.GetRect(), params.type, read_framebuffer.handle,
-                     draw_framebuffer.handle);
+        BlitSurface(old_surface, new_surface, read_framebuffer.handle, draw_framebuffer.handle);
     } else {
         // When use_accurate_framebuffers setting is enabled, perform a more accurate surface copy,
         // where pixels are reinterpreted as a new format (without conversion). This code path uses
