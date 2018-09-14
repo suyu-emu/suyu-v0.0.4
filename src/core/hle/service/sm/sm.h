@@ -36,12 +36,6 @@ private:
     std::shared_ptr<ServiceManager> service_manager;
 };
 
-constexpr ResultCode ERR_SERVICE_NOT_REGISTERED(-1);
-constexpr ResultCode ERR_MAX_CONNECTIONS_REACHED(-1);
-constexpr ResultCode ERR_INVALID_NAME_SIZE(-1);
-constexpr ResultCode ERR_NAME_CONTAINS_NUL(-1);
-constexpr ResultCode ERR_ALREADY_REGISTERED(-1);
-
 class ServiceManager {
 public:
     static void InstallInterfaces(std::shared_ptr<ServiceManager> self);

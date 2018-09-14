@@ -15,6 +15,10 @@
 
 namespace Service::SM {
 
+constexpr ResultCode ERR_ALREADY_REGISTERED(ErrorModule::SM, 4);
+constexpr ResultCode ERR_INVALID_NAME(ErrorModule::SM, 6);
+constexpr ResultCode ERR_SERVICE_NOT_REGISTERED(ErrorModule::SM, 7);
+
 ServiceManager::ServiceManager() = default;
 ServiceManager::~ServiceManager() = default;
 
@@ -24,10 +28,10 @@ void ServiceManager::InvokeControlRequest(Kernel::HLERequestContext& context) {
 
 static ResultCode ValidateServiceName(const std::string& name) {
     if (name.size() <= 0 || name.size() > 8) {
-        return ERR_INVALID_NAME_SIZE;
+        return ERR_INVALID_NAME;
     }
     if (name.find('\0') != std::string::npos) {
-        return ERR_NAME_CONTAINS_NUL;
+        return ERR_INVALID_NAME;
     }
     return RESULT_SUCCESS;
 }
