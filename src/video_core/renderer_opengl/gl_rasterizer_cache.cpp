@@ -41,7 +41,7 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
 }
 
 /*static*/ SurfaceParams SurfaceParams::CreateForTexture(
-    const Tegra::Texture::FullTextureInfo& config) {
+    const Tegra::Texture::FullTextureInfo& config, const GLShader::SamplerEntry& entry) {
     SurfaceParams params{};
     params.addr = TryGetCpuAddr(config.tic.Address());
     params.is_tiled = config.tic.IsTiled();
@@ -61,8 +61,19 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
         params.depth = 1;
         break;
     case SurfaceTarget::Texture3D:
+        params.depth = config.tic.Depth();
+        break;
     case SurfaceTarget::Texture2DArray:
         params.depth = config.tic.Depth();
+        if (!entry.IsArray()) {
+            // TODO(bunnei): We have seen games re-use a Texture2D as Texture2DArray with depth of
+            // one, but sample the texture in the shader as if it were not an array texture. This
+            // probably is valid on hardware, but we still need to write a test to confirm this. In
+            // emulation, the workaround here is to continue to treat this as a Texture2D. An
+            // example game that does this is Super Mario Odyssey (in Cloud Kingdom).
+            ASSERT(params.depth == 1);
+            params.target = SurfaceTarget::Texture2D;
+        }
         break;
     default:
         LOG_CRITICAL(HW_GPU, "Unknown depth for target={}", static_cast<u32>(params.target));
@@ -726,8 +737,9 @@ RasterizerCacheOpenGL::RasterizerCacheOpenGL() {
     copy_pbo.Create();
 }
 
-Surface RasterizerCacheOpenGL::GetTextureSurface(const Tegra::Texture::FullTextureInfo& config) {
-    return GetSurface(SurfaceParams::CreateForTexture(config));
+Surface RasterizerCacheOpenGL::GetTextureSurface(const Tegra::Texture::FullTextureInfo& config,
+                                                 const GLShader::SamplerEntry& entry) {
+    return GetSurface(SurfaceParams::CreateForTexture(config, entry));
 }
 
 Surface RasterizerCacheOpenGL::GetDepthBufferSurface(bool preserve_contents) {
