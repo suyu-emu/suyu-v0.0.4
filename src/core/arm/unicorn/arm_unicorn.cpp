@@ -90,12 +90,12 @@ ARM_Unicorn::~ARM_Unicorn() {
     CHECKED(uc_close(uc));
 }
 
-void ARM_Unicorn::MapBackingMemory(VAddr address, size_t size, u8* memory,
+void ARM_Unicorn::MapBackingMemory(VAddr address, std::size_t size, u8* memory,
                                    Kernel::VMAPermission perms) {
     CHECKED(uc_mem_map_ptr(uc, address, size, static_cast<u32>(perms), memory));
 }
 
-void ARM_Unicorn::UnmapMemory(VAddr address, size_t size) {
+void ARM_Unicorn::UnmapMemory(VAddr address, std::size_t size) {
     CHECKED(uc_mem_unmap(uc, address, size));
 }
 

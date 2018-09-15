@@ -32,14 +32,14 @@ public:
     virtual boost::optional<u32> Read32(VAddr addr) = 0;
     virtual boost::optional<u64> Read64(VAddr addr) = 0;
 
-    virtual bool ReadBlock(VAddr src_addr, void* dest_buffer, size_t size) = 0;
+    virtual bool ReadBlock(VAddr src_addr, void* dest_buffer, std::size_t size) = 0;
 
     virtual bool Write8(VAddr addr, u8 data) = 0;
     virtual bool Write16(VAddr addr, u16 data) = 0;
     virtual bool Write32(VAddr addr, u32 data) = 0;
     virtual bool Write64(VAddr addr, u64 data) = 0;
 
-    virtual bool WriteBlock(VAddr dest_addr, const void* src_buffer, size_t size) = 0;
+    virtual bool WriteBlock(VAddr dest_addr, const void* src_buffer, std::size_t size) = 0;
 };
 
 using MemoryHookPointer = std::shared_ptr<MemoryHook>;

@@ -99,7 +99,7 @@ private:
         std::string thread;
         while (addr < end_addr) {
             const Field field{static_cast<Field>(Memory::Read8(addr++))};
-            const size_t length{Memory::Read8(addr++)};
+            const std::size_t length{Memory::Read8(addr++)};
 
             if (static_cast<Field>(Memory::Read8(addr)) == Field::Skip) {
                 ++addr;

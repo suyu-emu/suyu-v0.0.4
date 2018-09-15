@@ -42,7 +42,8 @@ QVariant BreakPointModel::data(const QModelIndex& index, int role) const {
                  tr("Finished primitive batch")},
             };
 
-            DEBUG_ASSERT(map.size() == static_cast<size_t>(Tegra::DebugContext::Event::NumEvents));
+            DEBUG_ASSERT(map.size() ==
+                         static_cast<std::size_t>(Tegra::DebugContext::Event::NumEvents));
             return (map.find(event) != map.end()) ? map.at(event) : QString();
         }
 

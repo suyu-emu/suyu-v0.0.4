@@ -341,8 +341,8 @@ void GraphicsSurfaceWidget::OnUpdate() {
         // directly...
 
         const auto& registers = gpu.Maxwell3D().regs;
-        const auto& rt = registers.rt[static_cast<size_t>(surface_source) -
-                                      static_cast<size_t>(Source::RenderTarget0)];
+        const auto& rt = registers.rt[static_cast<std::size_t>(surface_source) -
+                                      static_cast<std::size_t>(Source::RenderTarget0)];
 
         surface_address = rt.Address();
         surface_width = rt.width;

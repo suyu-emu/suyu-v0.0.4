@@ -25,7 +25,7 @@ enum EntryType : u8 {
 struct Entry {
     Entry(std::string_view view, EntryType entry_type, u64 entry_size)
         : type{entry_type}, file_size{entry_size} {
-        const size_t copy_size = view.copy(filename, std::size(filename) - 1);
+        const std::size_t copy_size = view.copy(filename, std::size(filename) - 1);
         filename[copy_size] = '\0';
     }
 

@@ -143,8 +143,9 @@ const std::string& GetExeDirectory();
 std::string AppDataRoamingDirectory();
 #endif
 
-size_t WriteStringToFile(bool text_file, const std::string& str, const char* filename);
-size_t ReadFileToString(bool text_file, const char* filename, std::string& str);
+std::size_t WriteStringToFile(bool text_file, const std::string& str, const char* filename);
+
+std::size_t ReadFileToString(bool text_file, const char* filename, std::string& str);
 
 /**
  * Splits the filename into 8.3 format
@@ -177,10 +178,10 @@ std::string_view RemoveTrailingSlash(std::string_view path);
 
 // Creates a new vector containing indices [first, last) from the original.
 template <typename T>
-std::vector<T> SliceVector(const std::vector<T>& vector, size_t first, size_t last) {
+std::vector<T> SliceVector(const std::vector<T>& vector, std::size_t first, std::size_t last) {
     if (first >= last)
         return {};
-    last = std::min<size_t>(last, vector.size());
+    last = std::min<std::size_t>(last, vector.size());
     return std::vector<T>(vector.begin() + first, vector.begin() + first + last);
 }
 
@@ -213,47 +214,47 @@ public:
     bool Close();
 
     template <typename T>
-    size_t ReadArray(T* data, size_t length) const {
+    std::size_t ReadArray(T* data, std::size_t length) const {
         static_assert(std::is_trivially_copyable_v<T>,
                       "Given array does not consist of trivially copyable objects");
 
         if (!IsOpen()) {
-            return std::numeric_limits<size_t>::max();
+            return std::numeric_limits<std::size_t>::max();
         }
 
         return std::fread(data, sizeof(T), length, m_file);
     }
 
     template <typename T>
-    size_t WriteArray(const T* data, size_t length) {
+    std::size_t WriteArray(const T* data, std::size_t length) {
         static_assert(std::is_trivially_copyable_v<T>,
                       "Given array does not consist of trivially copyable objects");
         if (!IsOpen()) {
-            return std::numeric_limits<size_t>::max();
+            return std::numeric_limits<std::size_t>::max();
         }
 
         return std::fwrite(data, sizeof(T), length, m_file);
     }
 
     template <typename T>
-    size_t ReadBytes(T* data, size_t length) const {
+    std::size_t ReadBytes(T* data, std::size_t length) const {
         static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
         return ReadArray(reinterpret_cast<char*>(data), length);
     }
 
     template <typename T>
-    size_t WriteBytes(const T* data, size_t length) {
+    std::size_t WriteBytes(const T* data, std::size_t length) {
         static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
         return WriteArray(reinterpret_cast<const char*>(data), length);
     }
 
     template <typename T>
-    size_t WriteObject(const T& object) {
+    std::size_t WriteObject(const T& object) {
         static_assert(!std::is_pointer_v<T>, "WriteObject arguments must not be a pointer");
         return WriteArray(&object, 1);
     }
 
-    size_t WriteString(const std::string& str) {
+    std::size_t WriteString(const std::string& str) {
         return WriteArray(str.c_str(), str.length());
     }
 

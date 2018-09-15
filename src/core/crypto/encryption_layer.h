@@ -15,15 +15,15 @@ class EncryptionLayer : public FileSys::VfsFile {
 public:
     explicit EncryptionLayer(FileSys::VirtualFile base);
 
-    size_t Read(u8* data, size_t length, size_t offset) const override = 0;
+    std::size_t Read(u8* data, std::size_t length, std::size_t offset) const override = 0;
 
     std::string GetName() const override;
-    size_t GetSize() const override;
-    bool Resize(size_t new_size) override;
+    std::size_t GetSize() const override;
+    bool Resize(std::size_t new_size) override;
     std::shared_ptr<FileSys::VfsDirectory> GetContainingDirectory() const override;
     bool IsWritable() const override;
     bool IsReadable() const override;
-    size_t Write(const u8* data, size_t length, size_t offset) override;
+    std::size_t Write(const u8* data, std::size_t length, std::size_t offset) override;
     bool Rename(std::string_view name) override;
 
 protected:

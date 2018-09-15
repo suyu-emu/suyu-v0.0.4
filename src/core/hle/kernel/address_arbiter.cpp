@@ -35,16 +35,17 @@ static ResultCode WaitForAddress(VAddr address, s64 timeout) {
 
 // Gets the threads waiting on an address.
 static std::vector<SharedPtr<Thread>> GetThreadsWaitingOnAddress(VAddr address) {
-    const auto RetrieveWaitingThreads =
-        [](size_t core_index, std::vector<SharedPtr<Thread>>& waiting_threads, VAddr arb_addr) {
-            const auto& scheduler = Core::System::GetInstance().Scheduler(core_index);
-            auto& thread_list = scheduler->GetThreadList();
+    const auto RetrieveWaitingThreads = [](std::size_t core_index,
+                                           std::vector<SharedPtr<Thread>>& waiting_threads,
+                                           VAddr arb_addr) {
+        const auto& scheduler = Core::System::GetInstance().Scheduler(core_index);
+        auto& thread_list = scheduler->GetThreadList();
 
-            for (auto& thread : thread_list) {
-                if (thread->arb_wait_address == arb_addr)
-                    waiting_threads.push_back(thread);
-            }
-        };
+        for (auto& thread : thread_list) {
+            if (thread->arb_wait_address == arb_addr)
+                waiting_threads.push_back(thread);
+        }
+    };
 
     // Retrieve all threads that are waiting for this address.
     std::vector<SharedPtr<Thread>> threads;
@@ -66,12 +67,12 @@ static std::vector<SharedPtr<Thread>> GetThreadsWaitingOnAddress(VAddr address) 
 static void WakeThreads(std::vector<SharedPtr<Thread>>& waiting_threads, s32 num_to_wake) {
     // Only process up to 'target' threads, unless 'target' is <= 0, in which case process
     // them all.
-    size_t last = waiting_threads.size();
+    std::size_t last = waiting_threads.size();
     if (num_to_wake > 0)
         last = num_to_wake;
 
     // Signal the waiting threads.
-    for (size_t i = 0; i < last; i++) {
+    for (std::size_t i = 0; i < last; i++) {
         ASSERT(waiting_threads[i]->status == ThreadStatus::WaitArb);
         waiting_threads[i]->SetWaitSynchronizationResult(RESULT_SUCCESS);
         waiting_threads[i]->arb_wait_address = 0;

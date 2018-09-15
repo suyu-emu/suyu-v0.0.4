@@ -22,11 +22,11 @@ namespace Memory {
  * Page size used by the ARM architecture. This is the smallest granularity with which memory can
  * be mapped.
  */
-constexpr size_t PAGE_BITS = 12;
+constexpr std::size_t PAGE_BITS = 12;
 constexpr u64 PAGE_SIZE = 1 << PAGE_BITS;
 constexpr u64 PAGE_MASK = PAGE_SIZE - 1;
-constexpr size_t ADDRESS_SPACE_BITS = 36;
-constexpr size_t PAGE_TABLE_NUM_ENTRIES = 1ULL << (ADDRESS_SPACE_BITS - PAGE_BITS);
+constexpr std::size_t ADDRESS_SPACE_BITS = 36;
+constexpr std::size_t PAGE_TABLE_NUM_ENTRIES = 1ULL << (ADDRESS_SPACE_BITS - PAGE_BITS);
 
 enum class PageType : u8 {
     /// Page is unmapped and should cause an access error.
@@ -154,13 +154,13 @@ void Write16(VAddr addr, u16 data);
 void Write32(VAddr addr, u32 data);
 void Write64(VAddr addr, u64 data);
 
-void ReadBlock(const Kernel::Process& process, VAddr src_addr, void* dest_buffer, size_t size);
-void ReadBlock(VAddr src_addr, void* dest_buffer, size_t size);
+void ReadBlock(const Kernel::Process& process, VAddr src_addr, void* dest_buffer, std::size_t size);
+void ReadBlock(VAddr src_addr, void* dest_buffer, std::size_t size);
 void WriteBlock(const Kernel::Process& process, VAddr dest_addr, const void* src_buffer,
-                size_t size);
-void WriteBlock(VAddr dest_addr, const void* src_buffer, size_t size);
-void ZeroBlock(const Kernel::Process& process, VAddr dest_addr, size_t size);
-void CopyBlock(VAddr dest_addr, VAddr src_addr, size_t size);
+                std::size_t size);
+void WriteBlock(VAddr dest_addr, const void* src_buffer, std::size_t size);
+void ZeroBlock(const Kernel::Process& process, VAddr dest_addr, std::size_t size);
+void CopyBlock(VAddr dest_addr, VAddr src_addr, std::size_t size);
 
 u8* GetPointer(VAddr vaddr);
 

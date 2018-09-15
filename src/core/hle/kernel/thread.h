@@ -254,7 +254,7 @@ public:
     Handle callback_handle;
 
     using WakeupCallback = bool(ThreadWakeupReason reason, SharedPtr<Thread> thread,
-                                SharedPtr<WaitObject> object, size_t index);
+                                SharedPtr<WaitObject> object, std::size_t index);
     // Callback that will be invoked when the thread is resumed from a waiting state. If the thread
     // was waiting via WaitSynchronizationN then the object will be the last object that became
     // available. In case of a timeout, the object will be nullptr.

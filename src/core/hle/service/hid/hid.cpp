@@ -89,7 +89,7 @@ private:
         controller_header.left_color_body = JOYCON_BODY_NEON_BLUE;
         controller_header.left_color_buttons = JOYCON_BUTTONS_NEON_BLUE;
 
-        for (size_t controller = 0; controller < mem.controllers.size(); controller++) {
+        for (std::size_t controller = 0; controller < mem.controllers.size(); controller++) {
             for (auto& layout : mem.controllers[controller].layouts) {
                 layout.header.num_entries = HID_NUM_ENTRIES;
                 layout.header.max_entry_index = HID_NUM_ENTRIES - 1;

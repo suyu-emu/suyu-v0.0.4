@@ -23,7 +23,7 @@
 
 namespace Service::NVFlinger {
 
-constexpr size_t SCREEN_REFRESH_RATE = 60;
+constexpr std::size_t SCREEN_REFRESH_RATE = 60;
 constexpr u64 frame_ticks = static_cast<u64>(CoreTiming::BASE_CLOCK_RATE / SCREEN_REFRESH_RATE);
 
 NVFlinger::NVFlinger() {

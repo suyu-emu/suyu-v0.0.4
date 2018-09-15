@@ -81,7 +81,7 @@ struct VirtualMemoryArea {
     /// Memory block backing this VMA.
     std::shared_ptr<std::vector<u8>> backing_block = nullptr;
     /// Offset into the backing_memory the mapping starts from.
-    size_t offset = 0;
+    std::size_t offset = 0;
 
     // Settings for type = BackingMemory
     /// Pointer backing this VMA. It will not be destroyed or freed when the VMA is removed.
@@ -147,7 +147,7 @@ public:
      * @param state MemoryState tag to attach to the VMA.
      */
     ResultVal<VMAHandle> MapMemoryBlock(VAddr target, std::shared_ptr<std::vector<u8>> block,
-                                        size_t offset, u64 size, MemoryState state);
+                                        std::size_t offset, u64 size, MemoryState state);
 
     /**
      * Maps an unmanaged host memory pointer at a given address.

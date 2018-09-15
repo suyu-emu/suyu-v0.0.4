@@ -81,7 +81,7 @@ void WaitObject::WakeupWaitingThread(SharedPtr<Thread> thread) {
         }
     }
 
-    size_t index = thread->GetWaitObjectIndex(this);
+    std::size_t index = thread->GetWaitObjectIndex(this);
 
     for (auto& object : thread->wait_objects)
         object->RemoveWaitingThread(thread.get());

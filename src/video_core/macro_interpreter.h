@@ -152,7 +152,7 @@ private:
     boost::optional<u32>
         delayed_pc; ///< Program counter to execute at after the delay slot is executed.
 
-    static constexpr size_t NumMacroRegisters = 8;
+    static constexpr std::size_t NumMacroRegisters = 8;
 
     /// General purpose macro registers.
     std::array<u32, NumMacroRegisters> registers = {};

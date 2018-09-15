@@ -38,7 +38,7 @@ static_assert(sizeof(DisplayInfo) == 0x60, "DisplayInfo has wrong size");
 class Parcel {
 public:
     // This default size was chosen arbitrarily.
-    static constexpr size_t DefaultBufferSize = 0x40;
+    static constexpr std::size_t DefaultBufferSize = 0x40;
     Parcel() : buffer(DefaultBufferSize) {}
     explicit Parcel(std::vector<u8> data) : buffer(std::move(data)) {}
     virtual ~Parcel() = default;
@@ -66,7 +66,7 @@ public:
         return val;
     }
 
-    std::vector<u8> ReadBlock(size_t length) {
+    std::vector<u8> ReadBlock(std::size_t length) {
         ASSERT(read_index + length <= buffer.size());
         const u8* const begin = buffer.data() + read_index;
         const u8* const end = begin + length;
@@ -156,8 +156,8 @@ private:
     static_assert(sizeof(Header) == 16, "ParcelHeader has wrong size");
 
     std::vector<u8> buffer;
-    size_t read_index = 0;
-    size_t write_index = 0;
+    std::size_t read_index = 0;
+    std::size_t write_index = 0;
 };
 
 class NativeWindow : public Parcel {

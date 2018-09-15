@@ -14,7 +14,7 @@
 namespace AudioCore {
 
 /// The Lanczos kernel
-static double Lanczos(size_t a, double x) {
+static double Lanczos(std::size_t a, double x) {
     if (x == 0.0)
         return 1.0;
     const double px = M_PI * x;
@@ -37,15 +37,15 @@ std::vector<s16> Interpolate(InterpolationState& state, std::vector<s16> input, 
     }
     state.nyquist.Process(input);
 
-    constexpr size_t taps = InterpolationState::lanczos_taps;
-    const size_t num_frames = input.size() / 2;
+    constexpr std::size_t taps = InterpolationState::lanczos_taps;
+    const std::size_t num_frames = input.size() / 2;
 
     std::vector<s16> output;
-    output.reserve(static_cast<size_t>(input.size() / ratio + 4));
+    output.reserve(static_cast<std::size_t>(input.size() / ratio + 4));
 
     double& pos = state.position;
     auto& h = state.history;
-    for (size_t i = 0; i < num_frames; ++i) {
+    for (std::size_t i = 0; i < num_frames; ++i) {
         std::rotate(h.begin(), h.end() - 1, h.end());
         h[0][0] = input[i * 2 + 0];
         h[0][1] = input[i * 2 + 1];
@@ -53,7 +53,7 @@ std::vector<s16> Interpolate(InterpolationState& state, std::vector<s16> input, 
         while (pos <= 1.0) {
             double l = 0.0;
             double r = 0.0;
-            for (size_t j = 0; j < h.size(); j++) {
+            for (std::size_t j = 0; j < h.size(); j++) {
                 l += Lanczos(taps, pos + j - taps + 1) * h[j][0];
                 r += Lanczos(taps, pos + j - taps + 1) * h[j][1];
             }

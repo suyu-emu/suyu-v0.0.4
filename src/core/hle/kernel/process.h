@@ -59,7 +59,7 @@ class ResourceLimit;
 
 struct CodeSet final : public Object {
     struct Segment {
-        size_t offset = 0;
+        std::size_t offset = 0;
         VAddr addr = 0;
         u32 size = 0;
     };
@@ -164,7 +164,7 @@ public:
      * Parses a list of kernel capability descriptors (as found in the ExHeader) and applies them
      * to this process.
      */
-    void ParseKernelCaps(const u32* kernel_caps, size_t len);
+    void ParseKernelCaps(const u32* kernel_caps, std::size_t len);
 
     /**
      * Applies address space changes and launches the process main thread.

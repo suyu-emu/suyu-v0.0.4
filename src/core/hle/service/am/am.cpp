@@ -456,7 +456,7 @@ private:
         IPC::RequestParser rp{ctx};
 
         const u64 offset{rp.Pop<u64>()};
-        const size_t size{ctx.GetWriteBufferSize()};
+        const std::size_t size{ctx.GetWriteBufferSize()};
 
         ASSERT(offset + size <= buffer.size());
 

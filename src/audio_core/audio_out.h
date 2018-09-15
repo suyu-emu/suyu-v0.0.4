@@ -25,7 +25,7 @@ public:
                          Stream::ReleaseCallback&& release_callback);
 
     /// Returns a vector of recently released buffers specified by tag for the specified stream
-    std::vector<Buffer::Tag> GetTagsAndReleaseBuffers(StreamPtr stream, size_t max_count);
+    std::vector<Buffer::Tag> GetTagsAndReleaseBuffers(StreamPtr stream, std::size_t max_count);
 
     /// Starts an audio stream for playback
     void StartStream(StreamPtr stream);

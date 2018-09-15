@@ -49,7 +49,7 @@ struct FileEntry {
 static_assert(sizeof(FileEntry) == 0x20, "FileEntry has incorrect size.");
 
 template <typename Entry>
-static std::pair<Entry, std::string> GetEntry(const VirtualFile& file, size_t offset) {
+static std::pair<Entry, std::string> GetEntry(const VirtualFile& file, std::size_t offset) {
     Entry entry{};
     if (file->ReadObject(&entry, offset) != sizeof(Entry))
         return {};
@@ -59,8 +59,8 @@ static std::pair<Entry, std::string> GetEntry(const VirtualFile& file, size_t of
     return {entry, string};
 }
 
-void ProcessFile(VirtualFile file, size_t file_offset, size_t data_offset, u32 this_file_offset,
-                 std::shared_ptr<VectorVfsDirectory> parent) {
+void ProcessFile(VirtualFile file, std::size_t file_offset, std::size_t data_offset,
+                 u32 this_file_offset, std::shared_ptr<VectorVfsDirectory> parent) {
     while (true) {
         auto entry = GetEntry<FileEntry>(file, file_offset + this_file_offset);
 
@@ -74,8 +74,9 @@ void ProcessFile(VirtualFile file, size_t file_offset, size_t data_offset, u32 t
     }
 }
 
-void ProcessDirectory(VirtualFile file, size_t dir_offset, size_t file_offset, size_t data_offset,
-                      u32 this_dir_offset, std::shared_ptr<VectorVfsDirectory> parent) {
+void ProcessDirectory(VirtualFile file, std::size_t dir_offset, std::size_t file_offset,
+                      std::size_t data_offset, u32 this_dir_offset,
+                      std::shared_ptr<VectorVfsDirectory> parent) {
     while (true) {
         auto entry = GetEntry<DirectoryEntry>(file, dir_offset + this_dir_offset);
         auto current = std::make_shared<VectorVfsDirectory>(

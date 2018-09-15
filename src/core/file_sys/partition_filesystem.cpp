@@ -42,21 +42,21 @@ PartitionFilesystem::PartitionFilesystem(std::shared_ptr<VfsFile> file) {
 
     is_hfs = pfs_header.magic == Common::MakeMagic('H', 'F', 'S', '0');
 
-    size_t entry_size = is_hfs ? sizeof(HFSEntry) : sizeof(PFSEntry);
-    size_t metadata_size =
+    std::size_t entry_size = is_hfs ? sizeof(HFSEntry) : sizeof(PFSEntry);
+    std::size_t metadata_size =
         sizeof(Header) + (pfs_header.num_entries * entry_size) + pfs_header.strtab_size;
 
     // Actually read in now...
     std::vector<u8> file_data = file->ReadBytes(metadata_size);
-    const size_t total_size = file_data.size();
+    const std::size_t total_size = file_data.size();
 
     if (total_size != metadata_size) {
         status = Loader::ResultStatus::ErrorIncorrectPFSFileSize;
         return;
     }
 
-    size_t entries_offset = sizeof(Header);
-    size_t strtab_offset = entries_offset + (pfs_header.num_entries * entry_size);
+    std::size_t entries_offset = sizeof(Header);
+    std::size_t strtab_offset = entries_offset + (pfs_header.num_entries * entry_size);
     content_offset = strtab_offset + pfs_header.strtab_size;
     for (u16 i = 0; i < pfs_header.num_entries; i++) {
         FSEntry entry;

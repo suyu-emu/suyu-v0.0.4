@@ -19,12 +19,12 @@ class DynarmicExclusiveMonitor;
 
 class ARM_Dynarmic final : public ARM_Interface {
 public:
-    ARM_Dynarmic(std::shared_ptr<ExclusiveMonitor> exclusive_monitor, size_t core_index);
+    ARM_Dynarmic(std::shared_ptr<ExclusiveMonitor> exclusive_monitor, std::size_t core_index);
     ~ARM_Dynarmic();
 
-    void MapBackingMemory(VAddr address, size_t size, u8* memory,
+    void MapBackingMemory(VAddr address, std::size_t size, u8* memory,
                           Kernel::VMAPermission perms) override;
-    void UnmapMemory(u64 address, size_t size) override;
+    void UnmapMemory(u64 address, std::size_t size) override;
     void SetPC(u64 pc) override;
     u64 GetPC() const override;
     u64 GetReg(int index) const override;
@@ -59,7 +59,7 @@ private:
     std::unique_ptr<Dynarmic::A64::Jit> jit;
     ARM_Unicorn inner_unicorn;
 
-    size_t core_index;
+    std::size_t core_index;
     std::shared_ptr<DynarmicExclusiveMonitor> exclusive_monitor;
 
     Memory::PageTable* current_page_table = nullptr;
@@ -67,17 +67,17 @@ private:
 
 class DynarmicExclusiveMonitor final : public ExclusiveMonitor {
 public:
-    explicit DynarmicExclusiveMonitor(size_t core_count);
+    explicit DynarmicExclusiveMonitor(std::size_t core_count);
     ~DynarmicExclusiveMonitor();
 
-    void SetExclusive(size_t core_index, VAddr addr) override;
+    void SetExclusive(std::size_t core_index, VAddr addr) override;
     void ClearExclusive() override;
 
-    bool ExclusiveWrite8(size_t core_index, VAddr vaddr, u8 value) override;
-    bool ExclusiveWrite16(size_t core_index, VAddr vaddr, u16 value) override;
-    bool ExclusiveWrite32(size_t core_index, VAddr vaddr, u32 value) override;
-    bool ExclusiveWrite64(size_t core_index, VAddr vaddr, u64 value) override;
-    bool ExclusiveWrite128(size_t core_index, VAddr vaddr, u128 value) override;
+    bool ExclusiveWrite8(std::size_t core_index, VAddr vaddr, u8 value) override;
+    bool ExclusiveWrite16(std::size_t core_index, VAddr vaddr, u16 value) override;
+    bool ExclusiveWrite32(std::size_t core_index, VAddr vaddr, u32 value) override;
+    bool ExclusiveWrite64(std::size_t core_index, VAddr vaddr, u64 value) override;
+    bool ExclusiveWrite128(std::size_t core_index, VAddr vaddr, u128 value) override;
 
 private:
     friend class ARM_Dynarmic;

@@ -146,7 +146,7 @@ static ResultCode GetProcessId(u32* process_id, Handle process_handle) {
 
 /// Default thread wakeup callback for WaitSynchronization
 static bool DefaultThreadWakeupCallback(ThreadWakeupReason reason, SharedPtr<Thread> thread,
-                                        SharedPtr<WaitObject> object, size_t index) {
+                                        SharedPtr<WaitObject> object, std::size_t index) {
     ASSERT(thread->status == ThreadStatus::WaitSynchAny);
 
     if (reason == ThreadWakeupReason::Timeout) {
@@ -647,16 +647,17 @@ static ResultCode SignalProcessWideKey(VAddr condition_variable_addr, s32 target
     LOG_TRACE(Kernel_SVC, "called, condition_variable_addr=0x{:X}, target=0x{:08X}",
               condition_variable_addr, target);
 
-    auto RetrieveWaitingThreads =
-        [](size_t core_index, std::vector<SharedPtr<Thread>>& waiting_threads, VAddr condvar_addr) {
-            const auto& scheduler = Core::System::GetInstance().Scheduler(core_index);
-            auto& thread_list = scheduler->GetThreadList();
+    auto RetrieveWaitingThreads = [](std::size_t core_index,
+                                     std::vector<SharedPtr<Thread>>& waiting_threads,
+                                     VAddr condvar_addr) {
+        const auto& scheduler = Core::System::GetInstance().Scheduler(core_index);
+        auto& thread_list = scheduler->GetThreadList();
 
-            for (auto& thread : thread_list) {
-                if (thread->condvar_wait_address == condvar_addr)
-                    waiting_threads.push_back(thread);
-            }
-        };
+        for (auto& thread : thread_list) {
+            if (thread->condvar_wait_address == condvar_addr)
+                waiting_threads.push_back(thread);
+        }
+    };
 
     // Retrieve a list of all threads that are waiting for this condition variable.
     std::vector<SharedPtr<Thread>> waiting_threads;
@@ -672,7 +673,7 @@ static ResultCode SignalProcessWideKey(VAddr condition_variable_addr, s32 target
 
     // Only process up to 'target' threads, unless 'target' is -1, in which case process
     // them all.
-    size_t last = waiting_threads.size();
+    std::size_t last = waiting_threads.size();
     if (target != -1)
         last = target;
 
@@ -680,12 +681,12 @@ static ResultCode SignalProcessWideKey(VAddr condition_variable_addr, s32 target
     if (last > waiting_threads.size())
         return RESULT_SUCCESS;
 
-    for (size_t index = 0; index < last; ++index) {
+    for (std::size_t index = 0; index < last; ++index) {
         auto& thread = waiting_threads[index];
 
         ASSERT(thread->condvar_wait_address == condition_variable_addr);
 
-        size_t current_core = Core::System::GetInstance().CurrentCoreIndex();
+        std::size_t current_core = Core::System::GetInstance().CurrentCoreIndex();
 
         auto& monitor = Core::System::GetInstance().Monitor();
 

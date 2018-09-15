@@ -10,9 +10,9 @@
 
 namespace Core::Crypto {
 namespace {
-std::vector<u8> CalculateNintendoTweak(size_t sector_id) {
+std::vector<u8> CalculateNintendoTweak(std::size_t sector_id) {
     std::vector<u8> out(0x10);
-    for (size_t i = 0xF; i <= 0xF; --i) {
+    for (std::size_t i = 0xF; i <= 0xF; --i) {
         out[i] = sector_id & 0xFF;
         sector_id >>= 8;
     }
@@ -20,11 +20,14 @@ std::vector<u8> CalculateNintendoTweak(size_t sector_id) {
 }
 } // Anonymous namespace
 
-static_assert(static_cast<size_t>(Mode::CTR) == static_cast<size_t>(MBEDTLS_CIPHER_AES_128_CTR),
+static_assert(static_cast<std::size_t>(Mode::CTR) ==
+                  static_cast<std::size_t>(MBEDTLS_CIPHER_AES_128_CTR),
               "CTR has incorrect value.");
-static_assert(static_cast<size_t>(Mode::ECB) == static_cast<size_t>(MBEDTLS_CIPHER_AES_128_ECB),
+static_assert(static_cast<std::size_t>(Mode::ECB) ==
+                  static_cast<std::size_t>(MBEDTLS_CIPHER_AES_128_ECB),
               "ECB has incorrect value.");
-static_assert(static_cast<size_t>(Mode::XTS) == static_cast<size_t>(MBEDTLS_CIPHER_AES_128_XTS),
+static_assert(static_cast<std::size_t>(Mode::XTS) ==
+                  static_cast<std::size_t>(MBEDTLS_CIPHER_AES_128_XTS),
               "XTS has incorrect value.");
 
 // Structure to hide mbedtls types from header file
@@ -33,7 +36,7 @@ struct CipherContext {
     mbedtls_cipher_context_t decryption_context;
 };
 
-template <typename Key, size_t KeySize>
+template <typename Key, std::size_t KeySize>
 Crypto::AESCipher<Key, KeySize>::AESCipher(Key key, Mode mode)
     : ctx(std::make_unique<CipherContext>()) {
     mbedtls_cipher_init(&ctx->encryption_context);
@@ -54,26 +57,26 @@ Crypto::AESCipher<Key, KeySize>::AESCipher(Key key, Mode mode)
     //"Failed to set key on mbedtls ciphers.");
 }
 
-template <typename Key, size_t KeySize>
+template <typename Key, std::size_t KeySize>
 AESCipher<Key, KeySize>::~AESCipher() {
     mbedtls_cipher_free(&ctx->encryption_context);
     mbedtls_cipher_free(&ctx->decryption_context);
 }
 
-template <typename Key, size_t KeySize>
+template <typename Key, std::size_t KeySize>
 void AESCipher<Key, KeySize>::SetIV(std::vector<u8> iv) {
     ASSERT_MSG((mbedtls_cipher_set_iv(&ctx->encryption_context, iv.data(), iv.size()) ||
                 mbedtls_cipher_set_iv(&ctx->decryption_context, iv.data(), iv.size())) == 0,
                "Failed to set IV on mbedtls ciphers.");
 }
 
-template <typename Key, size_t KeySize>
-void AESCipher<Key, KeySize>::Transcode(const u8* src, size_t size, u8* dest, Op op) const {
+template <typename Key, std::size_t KeySize>
+void AESCipher<Key, KeySize>::Transcode(const u8* src, std::size_t size, u8* dest, Op op) const {
     auto* const context = op == Op::Encrypt ? &ctx->encryption_context : &ctx->decryption_context;
 
     mbedtls_cipher_reset(context);
 
-    size_t written = 0;
+    std::size_t written = 0;
     if (mbedtls_cipher_get_cipher_mode(context) == MBEDTLS_MODE_XTS) {
         mbedtls_cipher_update(context, src, size, dest, &written);
         if (written != size) {
@@ -90,8 +93,8 @@ void AESCipher<Key, KeySize>::Transcode(const u8* src, size_t size, u8* dest, Op
             return;
         }
 
-        for (size_t offset = 0; offset < size; offset += block_size) {
-            auto length = std::min<size_t>(block_size, size - offset);
+        for (std::size_t offset = 0; offset < size; offset += block_size) {
+            auto length = std::min<std::size_t>(block_size, size - offset);
             mbedtls_cipher_update(context, src + offset, length, dest + offset, &written);
             if (written != length) {
                 if (length < block_size) {
@@ -110,12 +113,12 @@ void AESCipher<Key, KeySize>::Transcode(const u8* src, size_t size, u8* dest, Op
     mbedtls_cipher_finish(context, nullptr, nullptr);
 }
 
-template <typename Key, size_t KeySize>
-void AESCipher<Key, KeySize>::XTSTranscode(const u8* src, size_t size, u8* dest, size_t sector_id,
-                                           size_t sector_size, Op op) {
+template <typename Key, std::size_t KeySize>
+void AESCipher<Key, KeySize>::XTSTranscode(const u8* src, std::size_t size, u8* dest,
+                                           std::size_t sector_id, std::size_t sector_size, Op op) {
     ASSERT_MSG(size % sector_size == 0, "XTS decryption size must be a multiple of sector size.");
 
-    for (size_t i = 0; i < size; i += sector_size) {
+    for (std::size_t i = 0; i < size; i += sector_size) {
         SetIV(CalculateNintendoTweak(sector_id++));
         Transcode<u8, u8>(src + i, sector_size, dest + i, op);
     }

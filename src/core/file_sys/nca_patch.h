@@ -98,13 +98,13 @@ public:
          Core::Crypto::Key128 key, u64 base_offset, u64 ivfc_offset, std::array<u8, 8> section_ctr);
     ~BKTR() override;
 
-    size_t Read(u8* data, size_t length, size_t offset) const override;
+    std::size_t Read(u8* data, std::size_t length, std::size_t offset) const override;
 
     std::string GetName() const override;
 
-    size_t GetSize() const override;
+    std::size_t GetSize() const override;
 
-    bool Resize(size_t new_size) override;
+    bool Resize(std::size_t new_size) override;
 
     std::shared_ptr<VfsDirectory> GetContainingDirectory() const override;
 
@@ -112,14 +112,14 @@ public:
 
     bool IsReadable() const override;
 
-    size_t Write(const u8* data, size_t length, size_t offset) override;
+    std::size_t Write(const u8* data, std::size_t length, std::size_t offset) override;
 
     bool Rename(std::string_view name) override;
 
 private:
     template <bool Subsection, typename BlockType, typename BucketType>
-    std::pair<size_t, size_t> SearchBucketEntry(u64 offset, BlockType block,
-                                                BucketType buckets) const;
+    std::pair<std::size_t, std::size_t> SearchBucketEntry(u64 offset, BlockType block,
+                                                          BucketType buckets) const;
 
     RelocationEntry GetRelocationEntry(u64 offset) const;
     RelocationEntry GetNextRelocationEntry(u64 offset) const;

@@ -92,9 +92,9 @@ public:
     // Retrieves the extension of the file name.
     virtual std::string GetExtension() const;
     // Retrieves the size of the file.
-    virtual size_t GetSize() const = 0;
+    virtual std::size_t GetSize() const = 0;
     // Resizes the file to new_size. Returns whether or not the operation was successful.
-    virtual bool Resize(size_t new_size) = 0;
+    virtual bool Resize(std::size_t new_size) = 0;
     // Gets a pointer to the directory containing this file, returning nullptr if there is none.
     virtual std::shared_ptr<VfsDirectory> GetContainingDirectory() const = 0;
 
@@ -105,15 +105,15 @@ public:
 
     // The primary method of reading from the file. Reads length bytes into data starting at offset
     // into file. Returns number of bytes successfully read.
-    virtual size_t Read(u8* data, size_t length, size_t offset = 0) const = 0;
+    virtual std::size_t Read(u8* data, std::size_t length, std::size_t offset = 0) const = 0;
     // The primary method of writing to the file. Writes length bytes from data starting at offset
     // into file. Returns number of bytes successfully written.
-    virtual size_t Write(const u8* data, size_t length, size_t offset = 0) = 0;
+    virtual std::size_t Write(const u8* data, std::size_t length, std::size_t offset = 0) = 0;
 
     // Reads exactly one byte at the offset provided, returning boost::none on error.
-    virtual boost::optional<u8> ReadByte(size_t offset = 0) const;
+    virtual boost::optional<u8> ReadByte(std::size_t offset = 0) const;
     // Reads size bytes starting at offset in file into a vector.
-    virtual std::vector<u8> ReadBytes(size_t size, size_t offset = 0) const;
+    virtual std::vector<u8> ReadBytes(std::size_t size, std::size_t offset = 0) const;
     // Reads all the bytes from the file into a vector. Equivalent to 'file->Read(file->GetSize(),
     // 0)'
     virtual std::vector<u8> ReadAllBytes() const;
@@ -121,7 +121,7 @@ public:
     // Reads an array of type T, size number_elements starting at offset.
     // Returns the number of bytes (sizeof(T)*number_elements) read successfully.
     template <typename T>
-    size_t ReadArray(T* data, size_t number_elements, size_t offset = 0) const {
+    std::size_t ReadArray(T* data, std::size_t number_elements, std::size_t offset = 0) const {
         static_assert(std::is_trivially_copyable_v<T>, "Data type must be trivially copyable.");
 
         return Read(reinterpret_cast<u8*>(data), number_elements * sizeof(T), offset);
@@ -130,7 +130,7 @@ public:
     // Reads size bytes into the memory starting at data starting at offset into the file.
     // Returns the number of bytes read successfully.
     template <typename T>
-    size_t ReadBytes(T* data, size_t size, size_t offset = 0) const {
+    std::size_t ReadBytes(T* data, std::size_t size, std::size_t offset = 0) const {
         static_assert(std::is_trivially_copyable_v<T>, "Data type must be trivially copyable.");
         return Read(reinterpret_cast<u8*>(data), size, offset);
     }
@@ -138,22 +138,22 @@ public:
     // Reads one object of type T starting at offset in file.
     // Returns the number of bytes read successfully (sizeof(T)).
     template <typename T>
-    size_t ReadObject(T* data, size_t offset = 0) const {
+    std::size_t ReadObject(T* data, std::size_t offset = 0) const {
         static_assert(std::is_trivially_copyable_v<T>, "Data type must be trivially copyable.");
         return Read(reinterpret_cast<u8*>(data), sizeof(T), offset);
     }
 
     // Writes exactly one byte to offset in file and retuns whether or not the byte was written
     // successfully.
-    virtual bool WriteByte(u8 data, size_t offset = 0);
+    virtual bool WriteByte(u8 data, std::size_t offset = 0);
     // Writes a vector of bytes to offset in file and returns the number of bytes successfully
     // written.
-    virtual size_t WriteBytes(const std::vector<u8>& data, size_t offset = 0);
+    virtual std::size_t WriteBytes(const std::vector<u8>& data, std::size_t offset = 0);
 
     // Writes an array of type T, size number_elements to offset in file.
     // Returns the number of bytes (sizeof(T)*number_elements) written successfully.
     template <typename T>
-    size_t WriteArray(const T* data, size_t number_elements, size_t offset = 0) {
+    std::size_t WriteArray(const T* data, std::size_t number_elements, std::size_t offset = 0) {
         static_assert(std::is_trivially_copyable_v<T>, "Data type must be trivially copyable.");
         return Write(data, number_elements * sizeof(T), offset);
     }
@@ -161,7 +161,7 @@ public:
     // Writes size bytes starting at memory location data to offset in file.
     // Returns the number of bytes written successfully.
     template <typename T>
-    size_t WriteBytes(const T* data, size_t size, size_t offset = 0) {
+    std::size_t WriteBytes(const T* data, std::size_t size, std::size_t offset = 0) {
         static_assert(std::is_trivially_copyable_v<T>, "Data type must be trivially copyable.");
         return Write(reinterpret_cast<const u8*>(data), size, offset);
     }
@@ -169,7 +169,7 @@ public:
     // Writes one object of type T to offset in file.
     // Returns the number of bytes written successfully (sizeof(T)).
     template <typename T>
-    size_t WriteObject(const T& data, size_t offset = 0) {
+    std::size_t WriteObject(const T& data, std::size_t offset = 0) {
         static_assert(std::is_trivially_copyable_v<T>, "Data type must be trivially copyable.");
         return Write(&data, sizeof(T), offset);
     }
@@ -221,7 +221,7 @@ public:
     // Returns the name of the directory.
     virtual std::string GetName() const = 0;
     // Returns the total size of all files and subdirectories in this directory.
-    virtual size_t GetSize() const;
+    virtual std::size_t GetSize() const;
     // Returns the parent directory of this directory. Returns nullptr if this directory is root or
     // has no parent.
     virtual std::shared_ptr<VfsDirectory> GetParentDirectory() const = 0;
@@ -311,7 +311,7 @@ public:
 };
 
 // Compare the two files, byte-for-byte, in increments specificed by block_size
-bool DeepEquals(const VirtualFile& file1, const VirtualFile& file2, size_t block_size = 0x200);
+bool DeepEquals(const VirtualFile& file1, const VirtualFile& file2, std::size_t block_size = 0x200);
 
 // A method that copies the raw data between two different implementations of VirtualFile. If you
 // are using the same implementation, it is probably better to use the Copy method in the parent

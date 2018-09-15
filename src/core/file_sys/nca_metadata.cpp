@@ -11,11 +11,11 @@
 namespace FileSys {
 
 bool operator>=(TitleType lhs, TitleType rhs) {
-    return static_cast<size_t>(lhs) >= static_cast<size_t>(rhs);
+    return static_cast<std::size_t>(lhs) >= static_cast<std::size_t>(rhs);
 }
 
 bool operator<=(TitleType lhs, TitleType rhs) {
-    return static_cast<size_t>(lhs) <= static_cast<size_t>(rhs);
+    return static_cast<std::size_t>(lhs) <= static_cast<std::size_t>(rhs);
 }
 
 CNMT::CNMT(VirtualFile file) {

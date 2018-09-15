@@ -32,21 +32,21 @@ constexpr std::array<LanguageCode, 17> available_language_codes = {{
     LanguageCode::ZH_HANT,
 }};
 
-constexpr size_t pre4_0_0_max_entries = 0xF;
-constexpr size_t post4_0_0_max_entries = 0x40;
+constexpr std::size_t pre4_0_0_max_entries = 0xF;
+constexpr std::size_t post4_0_0_max_entries = 0x40;
 
-LanguageCode GetLanguageCodeFromIndex(size_t index) {
+LanguageCode GetLanguageCodeFromIndex(std::size_t index) {
     return available_language_codes.at(index);
 }
 
-template <size_t size>
+template <std::size_t size>
 static std::array<LanguageCode, size> MakeLanguageCodeSubset() {
     std::array<LanguageCode, size> arr;
     std::copy_n(available_language_codes.begin(), size, arr.begin());
     return arr;
 }
 
-static void PushResponseLanguageCode(Kernel::HLERequestContext& ctx, size_t max_size) {
+static void PushResponseLanguageCode(Kernel::HLERequestContext& ctx, std::size_t max_size) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     if (available_language_codes.size() > max_size)

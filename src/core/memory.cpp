@@ -370,16 +370,16 @@ u64 Read64(const VAddr addr) {
 }
 
 void ReadBlock(const Kernel::Process& process, const VAddr src_addr, void* dest_buffer,
-               const size_t size) {
+               const std::size_t size) {
     auto& page_table = process.vm_manager.page_table;
 
-    size_t remaining_size = size;
-    size_t page_index = src_addr >> PAGE_BITS;
-    size_t page_offset = src_addr & PAGE_MASK;
+    std::size_t remaining_size = size;
+    std::size_t page_index = src_addr >> PAGE_BITS;
+    std::size_t page_offset = src_addr & PAGE_MASK;
 
     while (remaining_size > 0) {
-        const size_t copy_amount =
-            std::min(static_cast<size_t>(PAGE_SIZE) - page_offset, remaining_size);
+        const std::size_t copy_amount =
+            std::min(static_cast<std::size_t>(PAGE_SIZE) - page_offset, remaining_size);
         const VAddr current_vaddr = static_cast<VAddr>((page_index << PAGE_BITS) + page_offset);
 
         switch (page_table.attributes[page_index]) {
@@ -414,7 +414,7 @@ void ReadBlock(const Kernel::Process& process, const VAddr src_addr, void* dest_
     }
 }
 
-void ReadBlock(const VAddr src_addr, void* dest_buffer, const size_t size) {
+void ReadBlock(const VAddr src_addr, void* dest_buffer, const std::size_t size) {
     ReadBlock(*Core::CurrentProcess(), src_addr, dest_buffer, size);
 }
 
@@ -435,15 +435,15 @@ void Write64(const VAddr addr, const u64 data) {
 }
 
 void WriteBlock(const Kernel::Process& process, const VAddr dest_addr, const void* src_buffer,
-                const size_t size) {
+                const std::size_t size) {
     auto& page_table = process.vm_manager.page_table;
-    size_t remaining_size = size;
-    size_t page_index = dest_addr >> PAGE_BITS;
-    size_t page_offset = dest_addr & PAGE_MASK;
+    std::size_t remaining_size = size;
+    std::size_t page_index = dest_addr >> PAGE_BITS;
+    std::size_t page_offset = dest_addr & PAGE_MASK;
 
     while (remaining_size > 0) {
-        const size_t copy_amount =
-            std::min(static_cast<size_t>(PAGE_SIZE) - page_offset, remaining_size);
+        const std::size_t copy_amount =
+            std::min(static_cast<std::size_t>(PAGE_SIZE) - page_offset, remaining_size);
         const VAddr current_vaddr = static_cast<VAddr>((page_index << PAGE_BITS) + page_offset);
 
         switch (page_table.attributes[page_index]) {
@@ -477,19 +477,19 @@ void WriteBlock(const Kernel::Process& process, const VAddr dest_addr, const voi
     }
 }
 
-void WriteBlock(const VAddr dest_addr, const void* src_buffer, const size_t size) {
+void WriteBlock(const VAddr dest_addr, const void* src_buffer, const std::size_t size) {
     WriteBlock(*Core::CurrentProcess(), dest_addr, src_buffer, size);
 }
 
-void ZeroBlock(const Kernel::Process& process, const VAddr dest_addr, const size_t size) {
+void ZeroBlock(const Kernel::Process& process, const VAddr dest_addr, const std::size_t size) {
     auto& page_table = process.vm_manager.page_table;
-    size_t remaining_size = size;
-    size_t page_index = dest_addr >> PAGE_BITS;
-    size_t page_offset = dest_addr & PAGE_MASK;
+    std::size_t remaining_size = size;
+    std::size_t page_index = dest_addr >> PAGE_BITS;
+    std::size_t page_offset = dest_addr & PAGE_MASK;
 
     while (remaining_size > 0) {
-        const size_t copy_amount =
-            std::min(static_cast<size_t>(PAGE_SIZE) - page_offset, remaining_size);
+        const std::size_t copy_amount =
+            std::min(static_cast<std::size_t>(PAGE_SIZE) - page_offset, remaining_size);
         const VAddr current_vaddr = static_cast<VAddr>((page_index << PAGE_BITS) + page_offset);
 
         switch (page_table.attributes[page_index]) {
@@ -522,15 +522,16 @@ void ZeroBlock(const Kernel::Process& process, const VAddr dest_addr, const size
     }
 }
 
-void CopyBlock(const Kernel::Process& process, VAddr dest_addr, VAddr src_addr, const size_t size) {
+void CopyBlock(const Kernel::Process& process, VAddr dest_addr, VAddr src_addr,
+               const std::size_t size) {
     auto& page_table = process.vm_manager.page_table;
-    size_t remaining_size = size;
-    size_t page_index = src_addr >> PAGE_BITS;
-    size_t page_offset = src_addr & PAGE_MASK;
+    std::size_t remaining_size = size;
+    std::size_t page_index = src_addr >> PAGE_BITS;
+    std::size_t page_offset = src_addr & PAGE_MASK;
 
     while (remaining_size > 0) {
-        const size_t copy_amount =
-            std::min(static_cast<size_t>(PAGE_SIZE) - page_offset, remaining_size);
+        const std::size_t copy_amount =
+            std::min(static_cast<std::size_t>(PAGE_SIZE) - page_offset, remaining_size);
         const VAddr current_vaddr = static_cast<VAddr>((page_index << PAGE_BITS) + page_offset);
 
         switch (page_table.attributes[page_index]) {
@@ -565,7 +566,7 @@ void CopyBlock(const Kernel::Process& process, VAddr dest_addr, VAddr src_addr, 
     }
 }
 
-void CopyBlock(VAddr dest_addr, VAddr src_addr, size_t size) {
+void CopyBlock(VAddr dest_addr, VAddr src_addr, std::size_t size) {
     CopyBlock(*Core::CurrentProcess(), dest_addr, src_addr, size);
 }
 

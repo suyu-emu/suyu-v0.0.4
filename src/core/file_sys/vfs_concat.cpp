@@ -20,7 +20,7 @@ VirtualFile ConcatenateFiles(std::vector<VirtualFile> files, std::string name) {
 
 ConcatenatedVfsFile::ConcatenatedVfsFile(std::vector<VirtualFile> files_, std::string name)
     : name(std::move(name)) {
-    size_t next_offset = 0;
+    std::size_t next_offset = 0;
     for (const auto& file : files_) {
         files[next_offset] = file;
         next_offset += file->GetSize();
@@ -35,13 +35,13 @@ std::string ConcatenatedVfsFile::GetName() const {
     return files.begin()->second->GetName();
 }
 
-size_t ConcatenatedVfsFile::GetSize() const {
+std::size_t ConcatenatedVfsFile::GetSize() const {
     if (files.empty())
         return 0;
     return files.rbegin()->first + files.rbegin()->second->GetSize();
 }
 
-bool ConcatenatedVfsFile::Resize(size_t new_size) {
+bool ConcatenatedVfsFile::Resize(std::size_t new_size) {
     return false;
 }
 
@@ -59,7 +59,7 @@ bool ConcatenatedVfsFile::IsReadable() const {
     return true;
 }
 
-size_t ConcatenatedVfsFile::Read(u8* data, size_t length, size_t offset) const {
+std::size_t ConcatenatedVfsFile::Read(u8* data, std::size_t length, std::size_t offset) const {
     auto entry = files.end();
     for (auto iter = files.begin(); iter != files.end(); ++iter) {
         if (iter->first > offset) {
@@ -84,7 +84,7 @@ size_t ConcatenatedVfsFile::Read(u8* data, size_t length, size_t offset) const {
     return entry->second->Read(data, length, offset - entry->first);
 }
 
-size_t ConcatenatedVfsFile::Write(const u8* data, size_t length, size_t offset) {
+std::size_t ConcatenatedVfsFile::Write(const u8* data, std::size_t length, std::size_t offset) {
     return 0;
 }
 

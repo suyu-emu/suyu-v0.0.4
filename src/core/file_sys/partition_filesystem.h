@@ -79,7 +79,7 @@ private:
 
     Header pfs_header{};
     bool is_hfs = false;
-    size_t content_offset = 0;
+    std::size_t content_offset = 0;
 
     std::vector<VirtualFile> pfs_files;
     std::vector<VirtualDir> pfs_dirs;

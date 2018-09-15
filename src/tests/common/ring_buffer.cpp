@@ -17,9 +17,9 @@ TEST_CASE("RingBuffer: Basic Tests", "[common]") {
     RingBuffer<char, 4, 1> buf;
 
     // Pushing values into a ring buffer with space should succeed.
-    for (size_t i = 0; i < 4; i++) {
+    for (std::size_t i = 0; i < 4; i++) {
         const char elem = static_cast<char>(i);
-        const size_t count = buf.Push(&elem, 1);
+        const std::size_t count = buf.Push(&elem, 1);
         REQUIRE(count == 1);
     }
 
@@ -28,7 +28,7 @@ TEST_CASE("RingBuffer: Basic Tests", "[common]") {
     // Pushing values into a full ring buffer should fail.
     {
         const char elem = static_cast<char>(42);
-        const size_t count = buf.Push(&elem, 1);
+        const std::size_t count = buf.Push(&elem, 1);
         REQUIRE(count == 0);
     }
 
@@ -57,7 +57,7 @@ TEST_CASE("RingBuffer: Basic Tests", "[common]") {
     {
         std::vector<char> to_push(6);
         std::iota(to_push.begin(), to_push.end(), 88);
-        const size_t count = buf.Push(to_push);
+        const std::size_t count = buf.Push(to_push);
         REQUIRE(count == 3);
     }
 
@@ -79,9 +79,9 @@ TEST_CASE("RingBuffer: Basic Tests", "[common]") {
 TEST_CASE("RingBuffer: Threaded Test", "[common]") {
     RingBuffer<char, 4, 2> buf;
     const char seed = 42;
-    const size_t count = 1000000;
-    size_t full = 0;
-    size_t empty = 0;
+    const std::size_t count = 1000000;
+    std::size_t full = 0;
+    std::size_t empty = 0;
 
     const auto next_value = [](std::array<char, 2>& value) {
         value[0] += 1;
@@ -90,9 +90,9 @@ TEST_CASE("RingBuffer: Threaded Test", "[common]") {
 
     std::thread producer{[&] {
         std::array<char, 2> value = {seed, seed};
-        size_t i = 0;
+        std::size_t i = 0;
         while (i < count) {
-            if (const size_t c = buf.Push(&value[0], 1); c > 0) {
+            if (const std::size_t c = buf.Push(&value[0], 1); c > 0) {
                 REQUIRE(c == 1);
                 i++;
                 next_value(value);
@@ -105,7 +105,7 @@ TEST_CASE("RingBuffer: Threaded Test", "[common]") {
 
     std::thread consumer{[&] {
         std::array<char, 2> value = {seed, seed};
-        size_t i = 0;
+        std::size_t i = 0;
         while (i < count) {
             if (const std::vector<char> v = buf.Pop(1); v.size() > 0) {
                 REQUIRE(v.size() == 2);
