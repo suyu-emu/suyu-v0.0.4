@@ -102,6 +102,7 @@ class Fermi2D;
 class Maxwell3D;
 class MaxwellCompute;
 class MaxwellDMA;
+class KeplerMemory;
 } // namespace Engines
 
 enum class EngineID {
@@ -146,6 +147,8 @@ private:
     std::unique_ptr<Engines::MaxwellCompute> maxwell_compute;
     /// DMA engine
     std::unique_ptr<Engines::MaxwellDMA> maxwell_dma;
+    /// Inline memory engine
+    std::unique_ptr<Engines::KeplerMemory> kepler_memory;
 };
 
 } // namespace Tegra

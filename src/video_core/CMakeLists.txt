@@ -5,6 +5,8 @@ add_library(video_core STATIC
     debug_utils/debug_utils.h
     engines/fermi_2d.cpp
     engines/fermi_2d.h
+    engines/kepler_memory.cpp
+    engines/kepler_memory.h
     engines/maxwell_3d.cpp
     engines/maxwell_3d.h
     engines/maxwell_compute.cpp
