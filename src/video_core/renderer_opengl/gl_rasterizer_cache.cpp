@@ -167,6 +167,7 @@ static constexpr std::array<FormatTuple, SurfaceParams::MaxPixelFormat> tex_form
     {GL_RG8, GL_RG, GL_BYTE, ComponentType::SNorm, false},                                // RG8S
     {GL_RG32UI, GL_RG_INTEGER, GL_UNSIGNED_INT, ComponentType::UInt, false},              // RG32UI
     {GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, ComponentType::UInt, false},              // R32UI
+    {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, ComponentType::UNorm, false}, // ASTC_2D_8X8
 
     // Depth formats
     {GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, ComponentType::Float, false}, // Z32F
@@ -213,6 +214,7 @@ static const FormatTuple& GetFormatTuple(PixelFormat pixel_format, ComponentType
 static bool IsPixelFormatASTC(PixelFormat format) {
     switch (format) {
     case PixelFormat::ASTC_2D_4X4:
+    case PixelFormat::ASTC_2D_8X8:
         return true;
     default:
         return false;
@@ -223,6 +225,8 @@ static std::pair<u32, u32> GetASTCBlockSize(PixelFormat format) {
     switch (format) {
     case PixelFormat::ASTC_2D_4X4:
         return {4, 4};
+    case PixelFormat::ASTC_2D_8X8:
+        return {8, 8};
     default:
         LOG_CRITICAL(HW_GPU, "Unhandled format: {}", static_cast<u32>(format));
         UNREACHABLE();
@@ -327,6 +331,7 @@ static constexpr std::array<void (*)(u32, u32, u32, u8*, size_t, VAddr),
         MortonCopy<true, PixelFormat::RG8S>,
         MortonCopy<true, PixelFormat::RG32UI>,
         MortonCopy<true, PixelFormat::R32UI>,
+        MortonCopy<true, PixelFormat::ASTC_2D_8X8>,
         MortonCopy<true, PixelFormat::Z32F>,
         MortonCopy<true, PixelFormat::Z16>,
         MortonCopy<true, PixelFormat::Z24S8>,
@@ -386,6 +391,7 @@ static constexpr std::array<void (*)(u32, u32, u32, u8*, size_t, VAddr),
         MortonCopy<false, PixelFormat::RG8S>,
         MortonCopy<false, PixelFormat::RG32UI>,
         MortonCopy<false, PixelFormat::R32UI>,
+        nullptr,
         MortonCopy<false, PixelFormat::Z32F>,
         MortonCopy<false, PixelFormat::Z16>,
         MortonCopy<false, PixelFormat::Z24S8>,
@@ -544,7 +550,8 @@ static void ConvertG8R8ToR8G8(std::vector<u8>& data, u32 width, u32 height) {
 static void ConvertFormatAsNeeded_LoadGLBuffer(std::vector<u8>& data, PixelFormat pixel_format,
                                                u32 width, u32 height) {
     switch (pixel_format) {
-    case PixelFormat::ASTC_2D_4X4: {
+    case PixelFormat::ASTC_2D_4X4:
+    case PixelFormat::ASTC_2D_8X8: {
         // Convert ASTC pixel formats to RGBA8, as most desktop GPUs do not support ASTC.
         u32 block_width{};
         u32 block_height{};
