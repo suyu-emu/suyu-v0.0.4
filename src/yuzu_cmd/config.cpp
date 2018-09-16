@@ -138,6 +138,14 @@ void Config::ReadValues() {
     Settings::values.use_gdbstub = sdl2_config->GetBoolean("Debugging", "use_gdbstub", false);
     Settings::values.gdbstub_port =
         static_cast<u16>(sdl2_config->GetInteger("Debugging", "gdbstub_port", 24689));
+
+    // Web Service
+    Settings::values.enable_telemetry =
+        sdl2_config->GetBoolean("WebService", "enable_telemetry", true);
+    Settings::values.web_api_url =
+        sdl2_config->Get("WebService", "web_api_url", "https://api.yuzu-emu.org");
+    Settings::values.yuzu_username = sdl2_config->Get("WebService", "yuzu_username", "");
+    Settings::values.yuzu_token = sdl2_config->Get("WebService", "yuzu_token", "");
 }
 
 void Config::Reload() {

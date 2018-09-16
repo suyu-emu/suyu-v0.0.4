@@ -41,6 +41,10 @@ enum class EmulatedDirectoryTarget {
     SDMC,
 };
 
+namespace DiscordRPC {
+class DiscordInterface;
+}
+
 class GMainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -60,6 +64,8 @@ public:
     void UpdateUITheme();
     GMainWindow();
     ~GMainWindow() override;
+
+    std::unique_ptr<DiscordRPC::DiscordInterface> discord_rpc;
 
 signals:
 
@@ -99,7 +105,8 @@ private:
     void BootGame(const QString& filename);
     void ShutdownGame();
 
-    void ShowCallouts();
+    void ShowTelemetryCallout();
+    void SetDiscordEnabled(bool state);
 
     /**
      * Stores the filename in the recently loaded files list.
@@ -135,6 +142,7 @@ private slots:
     void OnStartGame();
     void OnPauseGame();
     void OnStopGame();
+    void OnMenuReportCompatibility();
     /// Called whenever a user selects a game in the game list widget.
     void OnGameListLoadFile(QString game_path);
     void OnGameListOpenFolder(u64 program_id, GameListOpenTarget target);

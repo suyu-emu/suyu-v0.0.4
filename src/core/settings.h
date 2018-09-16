@@ -155,6 +155,12 @@ struct Values {
     // Debugging
     bool use_gdbstub;
     u16 gdbstub_port;
+
+    // WebService
+    bool enable_telemetry;
+    std::string web_api_url;
+    std::string yuzu_username;
+    std::string yuzu_token;
 } extern values;
 
 void Apply();

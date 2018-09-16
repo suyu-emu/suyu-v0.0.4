@@ -15,9 +15,13 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 binaries" ON
 option(ENABLE_QT "Enable the Qt frontend" ON)
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" ON "ENABLE_QT;MSVC" OFF)
 
+option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
+
 option(YUZU_USE_BUNDLED_UNICORN "Build/Download bundled Unicorn" ON)
 
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
+
+option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF)
 
 if(NOT EXISTS ${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit)
     message(STATUS "Copying pre-commit hook")
@@ -319,6 +323,13 @@ if (ENABLE_QT)
     endif()
 
     find_package(Qt5 REQUIRED COMPONENTS Widgets OpenGL ${QT_PREFIX_HINT})
+endif()
+
+if (ENABLE_WEB_SERVICE)
+    add_definitions(-DENABLE_WEB_SERVICE)
+endif()
+if (YUZU_ENABLE_COMPATIBILITY_REPORTING)
+    add_definitions(-DYUZU_ENABLE_COMPATIBILITY_REPORTING)
 endif()
 
 # Platform-specific library requirements

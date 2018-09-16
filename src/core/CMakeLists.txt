@@ -394,6 +394,9 @@ create_target_directory_groups(core)
 
 target_link_libraries(core PUBLIC common PRIVATE audio_core video_core)
 target_link_libraries(core PUBLIC Boost::boost PRIVATE fmt lz4_static mbedtls opus unicorn open_source_archives)
+if (ENABLE_WEB_SERVICE)
+    target_link_libraries(core PUBLIC json-headers web_service)
+endif()
 
 if (ARCHITECTURE_x86_64)
     target_sources(core PRIVATE

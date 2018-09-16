@@ -136,8 +136,18 @@ void Config::ReadValues() {
     Settings::values.gdbstub_port = qt_config->value("gdbstub_port", 24689).toInt();
     qt_config->endGroup();
 
+    qt_config->beginGroup("WebService");
+    Settings::values.enable_telemetry = qt_config->value("enable_telemetry", true).toBool();
+    Settings::values.web_api_url =
+        qt_config->value("web_api_url", "https://api.yuzu-emu.org").toString().toStdString();
+    Settings::values.yuzu_username = qt_config->value("yuzu_username").toString().toStdString();
+    Settings::values.yuzu_token = qt_config->value("yuzu_token").toString().toStdString();
+    qt_config->endGroup();
+
     qt_config->beginGroup("UI");
     UISettings::values.theme = qt_config->value("theme", UISettings::themes[0].second).toString();
+    UISettings::values.enable_discord_presence =
+        qt_config->value("enable_discord_presence", true).toBool();
 
     qt_config->beginGroup("UIGameList");
     UISettings::values.show_unknown = qt_config->value("show_unknown", true).toBool();
@@ -261,8 +271,16 @@ void Config::SaveValues() {
     qt_config->setValue("gdbstub_port", Settings::values.gdbstub_port);
     qt_config->endGroup();
 
+    qt_config->beginGroup("WebService");
+    qt_config->setValue("enable_telemetry", Settings::values.enable_telemetry);
+    qt_config->setValue("web_api_url", QString::fromStdString(Settings::values.web_api_url));
+    qt_config->setValue("yuzu_username", QString::fromStdString(Settings::values.yuzu_username));
+    qt_config->setValue("yuzu_token", QString::fromStdString(Settings::values.yuzu_token));
+    qt_config->endGroup();
+
     qt_config->beginGroup("UI");
     qt_config->setValue("theme", UISettings::values.theme);
+    qt_config->setValue("enable_discord_presence", UISettings::values.enable_discord_presence);
 
     qt_config->beginGroup("UIGameList");
     qt_config->setValue("show_unknown", UISettings::values.show_unknown);
