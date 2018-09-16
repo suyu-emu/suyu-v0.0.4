@@ -34,3 +34,9 @@
 [submodule "soundtouch"]
 	path = externals/soundtouch
 	url = https://github.com/citra-emu/ext-soundtouch.git
+[submodule "libressl"]
+    path = externals/libressl
+    url = https://github.com/citra-emu/ext-libressl-portable.git
+[submodule "discord-rpc"]
+    path = externals/discord-rpc
+    url = https://github.com/discordapp/discord-rpc.git
