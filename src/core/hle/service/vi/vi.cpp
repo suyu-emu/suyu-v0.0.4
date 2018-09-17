@@ -4,25 +4,28 @@
 
 #include <algorithm>
 #include <array>
+#include <cstring>
 #include <memory>
 #include <type_traits>
 #include <utility>
 #include <boost/optional.hpp>
 #include "common/alignment.h"
+#include "common/assert.h"
+#include "common/common_funcs.h"
+#include "common/logging/log.h"
 #include "common/math_util.h"
-#include "common/scope_exit.h"
+#include "common/swap.h"
 #include "core/core_timing.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/event.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
+#include "core/hle/service/nvflinger/nvflinger.h"
 #include "core/hle/service/vi/vi.h"
 #include "core/hle/service/vi/vi_m.h"
 #include "core/hle/service/vi/vi_s.h"
 #include "core/hle/service/vi/vi_u.h"
 #include "core/settings.h"
-#include "video_core/renderer_base.h"
-#include "video_core/video_core.h"
 
 namespace Service::VI {
 
