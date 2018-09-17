@@ -28,11 +28,12 @@ static u64 GenerateTelemetryId() {
     mbedtls_entropy_context entropy;
     mbedtls_entropy_init(&entropy);
     mbedtls_ctr_drbg_context ctr_drbg;
-    const char* personalization = "yuzu Telemetry ID";
+    std::string personalization = "yuzu Telemetry ID";
 
     mbedtls_ctr_drbg_init(&ctr_drbg);
-    mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
-                          (const unsigned char*)personalization, strlen(personalization));
+    ASSERT(mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
+                                 reinterpret_cast<const unsigned char*>(personalization.c_str()),
+                                 personalization.size()) == 0)
     ASSERT(mbedtls_ctr_drbg_random(&ctr_drbg, reinterpret_cast<unsigned char*>(&telemetry_id),
                                    sizeof(u64)) == 0);
 
@@ -88,7 +89,7 @@ u64 RegenerateTelemetryId() {
     return new_telemetry_id;
 }
 
-bool VerifyLogin(std::string username, std::string token) {
+bool VerifyLogin(const std::string& username, const std::string& token) {
 #ifdef ENABLE_WEB_SERVICE
     return WebService::VerifyLogin(Settings::values.web_api_url, username, token);
 #else
@@ -120,7 +121,7 @@ TelemetrySession::TelemetrySession() {
     u64 program_id{};
     const Loader::ResultStatus res{System::GetInstance().GetAppLoader().ReadProgramId(program_id)};
     if (res == Loader::ResultStatus::Success) {
-        std::string formatted_program_id{fmt::format("{:016X}", program_id)};
+        const std::string formatted_program_id{fmt::format("{:016X}", program_id)};
         AddField(Telemetry::FieldType::Session, "ProgramId", formatted_program_id);
 
         std::string name;
