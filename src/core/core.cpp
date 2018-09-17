@@ -140,7 +140,7 @@ struct System::Impl {
 
         cpu_barrier = std::make_shared<CpuBarrier>();
         cpu_exclusive_monitor = Cpu::MakeExclusiveMonitor(cpu_cores.size());
-        for (size_t index = 0; index < cpu_cores.size(); ++index) {
+        for (std::size_t index = 0; index < cpu_cores.size(); ++index) {
             cpu_cores[index] = std::make_shared<Cpu>(cpu_exclusive_monitor, cpu_barrier, index);
         }
 
@@ -161,7 +161,7 @@ struct System::Impl {
         // CPU core 0 is run on the main thread
         thread_to_cpu[std::this_thread::get_id()] = cpu_cores[0];
         if (Settings::values.use_multi_core) {
-            for (size_t index = 0; index < cpu_core_threads.size(); ++index) {
+            for (std::size_t index = 0; index < cpu_core_threads.size(); ++index) {
                 cpu_core_threads[index] =
                     std::make_unique<std::thread>(RunCpuCore, cpu_cores[index + 1]);
                 thread_to_cpu[cpu_core_threads[index]->get_id()] = cpu_cores[index + 1];
@@ -285,7 +285,7 @@ struct System::Impl {
     std::shared_ptr<CpuBarrier> cpu_barrier;
     std::array<std::shared_ptr<Cpu>, NUM_CPU_CORES> cpu_cores;
     std::array<std::unique_ptr<std::thread>, NUM_CPU_CORES - 1> cpu_core_threads;
-    size_t active_core{}; ///< Active core, only used in single thread mode
+    std::size_t active_core{}; ///< Active core, only used in single thread mode
 
     /// Service manager
     std::shared_ptr<Service::SM::ServiceManager> service_manager;
@@ -348,7 +348,7 @@ ARM_Interface& System::CurrentArmInterface() {
     return CurrentCpuCore().ArmInterface();
 }
 
-size_t System::CurrentCoreIndex() {
+std::size_t System::CurrentCoreIndex() {
     return CurrentCpuCore().CoreIndex();
 }
 
@@ -356,7 +356,7 @@ Kernel::Scheduler& System::CurrentScheduler() {
     return *CurrentCpuCore().Scheduler();
 }
 
-const std::shared_ptr<Kernel::Scheduler>& System::Scheduler(size_t core_index) {
+const std::shared_ptr<Kernel::Scheduler>& System::Scheduler(std::size_t core_index) {
     ASSERT(core_index < NUM_CPU_CORES);
     return impl->cpu_cores[core_index]->Scheduler();
 }
@@ -369,12 +369,12 @@ const Kernel::SharedPtr<Kernel::Process>& System::CurrentProcess() const {
     return impl->kernel.CurrentProcess();
 }
 
-ARM_Interface& System::ArmInterface(size_t core_index) {
+ARM_Interface& System::ArmInterface(std::size_t core_index) {
     ASSERT(core_index < NUM_CPU_CORES);
     return impl->cpu_cores[core_index]->ArmInterface();
 }
 
-Cpu& System::CpuCore(size_t core_index) {
+Cpu& System::CpuCore(std::size_t core_index) {
     ASSERT(core_index < NUM_CPU_CORES);
     return *impl->cpu_cores[core_index];
 }

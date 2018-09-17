@@ -42,7 +42,7 @@ private:
 class Cpu {
 public:
     Cpu(std::shared_ptr<ExclusiveMonitor> exclusive_monitor,
-        std::shared_ptr<CpuBarrier> cpu_barrier, size_t core_index);
+        std::shared_ptr<CpuBarrier> cpu_barrier, std::size_t core_index);
 
     void RunLoop(bool tight_loop = true);
 
@@ -66,11 +66,11 @@ public:
         return core_index == 0;
     }
 
-    size_t CoreIndex() const {
+    std::size_t CoreIndex() const {
         return core_index;
     }
 
-    static std::shared_ptr<ExclusiveMonitor> MakeExclusiveMonitor(size_t num_cores);
+    static std::shared_ptr<ExclusiveMonitor> MakeExclusiveMonitor(std::size_t num_cores);
 
 private:
     void Reschedule();
@@ -80,7 +80,7 @@ private:
     std::shared_ptr<Kernel::Scheduler> scheduler;
 
     std::atomic<bool> reschedule_pending = false;
-    size_t core_index;
+    std::size_t core_index;
 };
 
 } // namespace Core

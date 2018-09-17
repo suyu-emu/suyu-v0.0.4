@@ -19,7 +19,7 @@ std::string ToLower(std::string str);
 /// Make a string uppercase
 std::string ToUpper(std::string str);
 
-std::string ArrayToString(const u8* data, size_t size, int line_len = 20, bool spaces = true);
+std::string ArrayToString(const u8* data, std::size_t size, int line_len = 20, bool spaces = true);
 
 std::string StringFromBuffer(const std::vector<u8>& data);
 
@@ -118,7 +118,7 @@ bool ComparePartialString(InIt begin, InIt end, const char* other) {
  * Creates a std::string from a fixed-size NUL-terminated char buffer. If the buffer isn't
  * NUL-terminated then the string ends at max_len characters.
  */
-std::string StringFromFixedZeroTerminatedBuffer(const char* buffer, size_t max_len);
+std::string StringFromFixedZeroTerminatedBuffer(const char* buffer, std::size_t max_len);
 
 /**
  * Attempts to trim an arbitrary prefix from `path`, leaving only the part starting at `root`. It's

@@ -23,7 +23,7 @@ public:
     void WriteReg(u32 method, u32 value);
 
     struct Regs {
-        static constexpr size_t NUM_REGS = 0x1D6;
+        static constexpr std::size_t NUM_REGS = 0x1D6;
 
         struct Parameters {
             union {

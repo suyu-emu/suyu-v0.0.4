@@ -28,7 +28,7 @@ public:
     }
 
     /// Gets the size of the shader in guest memory, required for cache management
-    size_t GetSizeInBytes() const {
+    std::size_t GetSizeInBytes() const {
         return GLShader::MAX_PROGRAM_CODE_LENGTH * sizeof(u64);
     }
 

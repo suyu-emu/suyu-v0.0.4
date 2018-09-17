@@ -275,7 +275,7 @@ ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name
         available_slot = 0; // Use the first slot in the new page
 
         // Allocate some memory from the end of the linear heap for this region.
-        const size_t offset = thread->tls_memory->size();
+        const std::size_t offset = thread->tls_memory->size();
         thread->tls_memory->insert(thread->tls_memory->end(), Memory::PAGE_SIZE, 0);
 
         auto& vm_manager = owner_process->vm_manager;

@@ -30,7 +30,7 @@ public:
     void Process(std::vector<s16>& signal);
 
 private:
-    static constexpr size_t channel_count = 2;
+    static constexpr std::size_t channel_count = 2;
 
     /// Coefficients are in normalized form (a0 = 1.0).
     double a1, a2, b0, b1, b2;
@@ -46,7 +46,7 @@ public:
     /// Creates a cascading low-pass filter.
     /// @param cutoff Determines the cutoff frequency. A value from 0.0 to 1.0.
     /// @param cascade_size Number of biquads in cascade.
-    static CascadingFilter LowPass(double cutoff, size_t cascade_size);
+    static CascadingFilter LowPass(double cutoff, std::size_t cascade_size);
 
     /// Passthrough.
     CascadingFilter();

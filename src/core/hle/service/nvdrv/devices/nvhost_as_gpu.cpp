@@ -71,7 +71,7 @@ u32 nvhost_as_gpu::AllocateSpace(const std::vector<u8>& input, std::vector<u8>& 
 }
 
 u32 nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& output) {
-    size_t num_entries = input.size() / sizeof(IoctlRemapEntry);
+    std::size_t num_entries = input.size() / sizeof(IoctlRemapEntry);
 
     LOG_WARNING(Service_NVDRV, "(STUBBED) called, num_entries=0x{:X}", num_entries);
 

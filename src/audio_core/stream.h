@@ -49,7 +49,7 @@ public:
     bool ContainsBuffer(Buffer::Tag tag) const;
 
     /// Returns a vector of recently released buffers specified by tag
-    std::vector<Buffer::Tag> GetTagsAndReleaseBuffers(size_t max_count);
+    std::vector<Buffer::Tag> GetTagsAndReleaseBuffers(std::size_t max_count);
 
     /// Returns true if the stream is currently playing
     bool IsPlaying() const {
@@ -57,7 +57,7 @@ public:
     }
 
     /// Returns the number of queued buffers
-    size_t GetQueueSize() const {
+    std::size_t GetQueueSize() const {
         return queued_buffers.size();
     }
 

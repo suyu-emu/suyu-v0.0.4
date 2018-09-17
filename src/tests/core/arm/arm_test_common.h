@@ -19,8 +19,8 @@ struct PageTable;
 namespace ArmTests {
 
 struct WriteRecord {
-    WriteRecord(size_t size, VAddr addr, u64 data) : size(size), addr(addr), data(data) {}
-    size_t size;
+    WriteRecord(std::size_t size, VAddr addr, u64 data) : size(size), addr(addr), data(data) {}
+    std::size_t size;
     VAddr addr;
     u64 data;
     bool operator==(const WriteRecord& o) const {
@@ -71,14 +71,14 @@ private:
         boost::optional<u32> Read32(VAddr addr) override;
         boost::optional<u64> Read64(VAddr addr) override;
 
-        bool ReadBlock(VAddr src_addr, void* dest_buffer, size_t size) override;
+        bool ReadBlock(VAddr src_addr, void* dest_buffer, std::size_t size) override;
 
         bool Write8(VAddr addr, u8 data) override;
         bool Write16(VAddr addr, u16 data) override;
         bool Write32(VAddr addr, u32 data) override;
         bool Write64(VAddr addr, u64 data) override;
 
-        bool WriteBlock(VAddr dest_addr, const void* src_buffer, size_t size) override;
+        bool WriteBlock(VAddr dest_addr, const void* src_buffer, std::size_t size) override;
 
         std::unordered_map<VAddr, u8> data;
     };

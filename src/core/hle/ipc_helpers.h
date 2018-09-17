@@ -152,8 +152,8 @@ public:
     }
 
     void ValidateHeader() {
-        const size_t num_domain_objects = context->NumDomainObjects();
-        const size_t num_move_objects = context->NumMoveObjects();
+        const std::size_t num_domain_objects = context->NumDomainObjects();
+        const std::size_t num_move_objects = context->NumMoveObjects();
         ASSERT_MSG(!num_domain_objects || !num_move_objects,
                    "cannot move normal handles and domain objects");
         ASSERT_MSG((index - datapayload_index) == normal_params_size,
@@ -329,10 +329,10 @@ public:
     T PopRaw();
 
     template <typename T>
-    Kernel::SharedPtr<T> GetMoveObject(size_t index);
+    Kernel::SharedPtr<T> GetMoveObject(std::size_t index);
 
     template <typename T>
-    Kernel::SharedPtr<T> GetCopyObject(size_t index);
+    Kernel::SharedPtr<T> GetCopyObject(std::size_t index);
 
     template <class T>
     std::shared_ptr<T> PopIpcInterface() {
@@ -406,12 +406,12 @@ void RequestParser::Pop(First& first_value, Other&... other_values) {
 }
 
 template <typename T>
-Kernel::SharedPtr<T> RequestParser::GetMoveObject(size_t index) {
+Kernel::SharedPtr<T> RequestParser::GetMoveObject(std::size_t index) {
     return context->GetMoveObject<T>(index);
 }
 
 template <typename T>
-Kernel::SharedPtr<T> RequestParser::GetCopyObject(size_t index) {
+Kernel::SharedPtr<T> RequestParser::GetCopyObject(std::size_t index) {
     return context->GetCopyObject<T>(index);
 }
 

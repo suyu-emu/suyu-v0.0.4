@@ -13,7 +13,7 @@
 namespace FileSys {
 
 Loader::ResultStatus ProgramMetadata::Load(VirtualFile file) {
-    size_t total_size = static_cast<size_t>(file->GetSize());
+    std::size_t total_size = static_cast<std::size_t>(file->GetSize());
     if (total_size < sizeof(Header))
         return Loader::ResultStatus::ErrorBadNPDMHeader;
 

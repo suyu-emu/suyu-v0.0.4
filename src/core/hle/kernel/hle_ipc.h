@@ -170,7 +170,7 @@ public:
     std::vector<u8> ReadBuffer(int buffer_index = 0) const;
 
     /// Helper function to write a buffer using the appropriate buffer descriptor
-    size_t WriteBuffer(const void* buffer, size_t size, int buffer_index = 0) const;
+    std::size_t WriteBuffer(const void* buffer, std::size_t size, int buffer_index = 0) const;
 
     /* Helper function to write a buffer using the appropriate buffer descriptor
      *
@@ -182,7 +182,7 @@ public:
      */
     template <typename ContiguousContainer,
               typename = std::enable_if_t<!std::is_pointer_v<ContiguousContainer>>>
-    size_t WriteBuffer(const ContiguousContainer& container, int buffer_index = 0) const {
+    std::size_t WriteBuffer(const ContiguousContainer& container, int buffer_index = 0) const {
         using ContiguousType = typename ContiguousContainer::value_type;
 
         static_assert(std::is_trivially_copyable_v<ContiguousType>,
@@ -193,19 +193,19 @@ public:
     }
 
     /// Helper function to get the size of the input buffer
-    size_t GetReadBufferSize(int buffer_index = 0) const;
+    std::size_t GetReadBufferSize(int buffer_index = 0) const;
 
     /// Helper function to get the size of the output buffer
-    size_t GetWriteBufferSize(int buffer_index = 0) const;
+    std::size_t GetWriteBufferSize(int buffer_index = 0) const;
 
     template <typename T>
-    SharedPtr<T> GetCopyObject(size_t index) {
+    SharedPtr<T> GetCopyObject(std::size_t index) {
         ASSERT(index < copy_objects.size());
         return DynamicObjectCast<T>(copy_objects[index]);
     }
 
     template <typename T>
-    SharedPtr<T> GetMoveObject(size_t index) {
+    SharedPtr<T> GetMoveObject(std::size_t index) {
         ASSERT(index < move_objects.size());
         return DynamicObjectCast<T>(move_objects[index]);
     }
@@ -223,7 +223,7 @@ public:
     }
 
     template <typename T>
-    std::shared_ptr<T> GetDomainRequestHandler(size_t index) const {
+    std::shared_ptr<T> GetDomainRequestHandler(std::size_t index) const {
         return std::static_pointer_cast<T>(domain_request_handlers[index]);
     }
 
@@ -240,15 +240,15 @@ public:
         domain_objects.clear();
     }
 
-    size_t NumMoveObjects() const {
+    std::size_t NumMoveObjects() const {
         return move_objects.size();
     }
 
-    size_t NumCopyObjects() const {
+    std::size_t NumCopyObjects() const {
         return copy_objects.size();
     }
 
-    size_t NumDomainObjects() const {
+    std::size_t NumDomainObjects() const {
         return domain_objects.size();
     }
 

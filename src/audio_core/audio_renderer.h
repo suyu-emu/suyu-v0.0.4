@@ -184,16 +184,16 @@ private:
             return info;
         }
 
-        void SetWaveIndex(size_t index);
-        std::vector<s16> DequeueSamples(size_t sample_count);
+        void SetWaveIndex(std::size_t index);
+        std::vector<s16> DequeueSamples(std::size_t sample_count);
         void UpdateState();
         void RefreshBuffer();
 
     private:
         bool is_in_use{};
         bool is_refresh_pending{};
-        size_t wave_index{};
-        size_t offset{};
+        std::size_t wave_index{};
+        std::size_t offset{};
         Codec::ADPCMState adpcm_state{};
         InterpolationState interp_state{};
         std::vector<s16> samples;

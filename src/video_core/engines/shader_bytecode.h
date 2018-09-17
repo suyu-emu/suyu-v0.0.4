@@ -20,10 +20,10 @@ namespace Tegra::Shader {
 
 struct Register {
     /// Number of registers
-    static constexpr size_t NumRegisters = 256;
+    static constexpr std::size_t NumRegisters = 256;
 
     /// Register 255 is special cased to always be 0
-    static constexpr size_t ZeroIndex = 255;
+    static constexpr std::size_t ZeroIndex = 255;
 
     enum class Size : u64 {
         Byte = 0,
@@ -592,7 +592,7 @@ union Instruction {
         BitField<31, 4, u64> component_mask;
         BitField<55, 3, TextureProcessMode> process_mode;
 
-        bool IsComponentEnabled(size_t component) const {
+        bool IsComponentEnabled(std::size_t component) const {
             return ((1ull << component) & component_mask) != 0;
         }
     } tex;
@@ -607,7 +607,7 @@ union Instruction {
         BitField<29, 2, TextureType> texture_type;
         BitField<31, 4, u64> component_mask;
 
-        bool IsComponentEnabled(size_t component) const {
+        bool IsComponentEnabled(std::size_t component) const {
             return ((1ull << component) & component_mask) != 0;
         }
     } tmml;
@@ -654,7 +654,7 @@ union Instruction {
             return gpr28.Value() != Register::ZeroIndex;
         }
 
-        bool IsComponentEnabled(size_t component) const {
+        bool IsComponentEnabled(std::size_t component) const {
             static constexpr std::array<std::array<u32, 8>, 4> mask_lut{{
                 {},
                 {0x1, 0x2, 0x4, 0x8, 0x3, 0x9, 0xa, 0xc},
@@ -662,7 +662,7 @@ union Instruction {
                 {0x7, 0xb, 0xd, 0xe, 0xf},
             }};
 
-            size_t index{gpr0.Value() != Register::ZeroIndex ? 1U : 0U};
+            std::size_t index{gpr0.Value() != Register::ZeroIndex ? 1U : 0U};
             index |= gpr28.Value() != Register::ZeroIndex ? 2 : 0;
 
             u32 mask = mask_lut[index][component_mask_selector];
@@ -947,7 +947,7 @@ public:
 private:
     struct Detail {
     private:
-        static constexpr size_t opcode_bitsize = 16;
+        static constexpr std::size_t opcode_bitsize = 16;
 
         /**
          * Generates the mask and the expected value after masking from a given bitstring.
@@ -956,8 +956,8 @@ private:
          */
         static auto GetMaskAndExpect(const char* const bitstring) {
             u16 mask = 0, expect = 0;
-            for (size_t i = 0; i < opcode_bitsize; i++) {
-                const size_t bit_position = opcode_bitsize - i - 1;
+            for (std::size_t i = 0; i < opcode_bitsize; i++) {
+                const std::size_t bit_position = opcode_bitsize - i - 1;
                 switch (bitstring[i]) {
                 case '0':
                     mask |= 1 << bit_position;

@@ -17,7 +17,7 @@
 
 namespace AudioCore {
 
-constexpr size_t MaxAudioBufferCount{32};
+constexpr std::size_t MaxAudioBufferCount{32};
 
 u32 Stream::GetNumChannels() const {
     switch (format) {
@@ -52,7 +52,7 @@ void Stream::Stop() {
 }
 
 s64 Stream::GetBufferReleaseCycles(const Buffer& buffer) const {
-    const size_t num_samples{buffer.GetSamples().size() / GetNumChannels()};
+    const std::size_t num_samples{buffer.GetSamples().size() / GetNumChannels()};
     return CoreTiming::usToCycles((static_cast<u64>(num_samples) * 1000000) / sample_rate);
 }
 
@@ -122,9 +122,9 @@ bool Stream::ContainsBuffer(Buffer::Tag tag) const {
     return {};
 }
 
-std::vector<Buffer::Tag> Stream::GetTagsAndReleaseBuffers(size_t max_count) {
+std::vector<Buffer::Tag> Stream::GetTagsAndReleaseBuffers(std::size_t max_count) {
     std::vector<Buffer::Tag> tags;
-    for (size_t count = 0; count < max_count && !released_buffers.empty(); ++count) {
+    for (std::size_t count = 0; count < max_count && !released_buffers.empty(); ++count) {
         tags.push_back(released_buffers.front()->GetTag());
         released_buffers.pop();
     }

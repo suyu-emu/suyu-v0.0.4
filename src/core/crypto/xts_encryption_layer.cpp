@@ -14,7 +14,7 @@ constexpr u64 XTS_SECTOR_SIZE = 0x4000;
 XTSEncryptionLayer::XTSEncryptionLayer(FileSys::VirtualFile base_, Key256 key_)
     : EncryptionLayer(std::move(base_)), cipher(key_, Mode::XTS) {}
 
-size_t XTSEncryptionLayer::Read(u8* data, size_t length, size_t offset) const {
+std::size_t XTSEncryptionLayer::Read(u8* data, std::size_t length, std::size_t offset) const {
     if (length == 0)
         return 0;
 
@@ -46,7 +46,7 @@ size_t XTSEncryptionLayer::Read(u8* data, size_t length, size_t offset) const {
         block.resize(XTS_SECTOR_SIZE);
     cipher.XTSTranscode(block.data(), block.size(), block.data(),
                         (offset - sector_offset) / XTS_SECTOR_SIZE, XTS_SECTOR_SIZE, Op::Decrypt);
-    const size_t read = XTS_SECTOR_SIZE - sector_offset;
+    const std::size_t read = XTS_SECTOR_SIZE - sector_offset;
 
     if (length + sector_offset < XTS_SECTOR_SIZE) {
         std::memcpy(data, block.data() + sector_offset, std::min<u64>(length, read));

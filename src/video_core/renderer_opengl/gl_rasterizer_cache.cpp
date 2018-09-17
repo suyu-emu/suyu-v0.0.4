@@ -75,7 +75,7 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     return params;
 }
 
-/*static*/ SurfaceParams SurfaceParams::CreateForFramebuffer(size_t index) {
+/*static*/ SurfaceParams SurfaceParams::CreateForFramebuffer(std::size_t index) {
     const auto& config{Core::System::GetInstance().GPU().Maxwell3D().regs.rt[index]};
     SurfaceParams params{};
     params.addr = TryGetCpuAddr(config.Address());
@@ -204,7 +204,7 @@ static GLenum SurfaceTargetToGL(SurfaceParams::SurfaceTarget target) {
 }
 
 static const FormatTuple& GetFormatTuple(PixelFormat pixel_format, ComponentType component_type) {
-    ASSERT(static_cast<size_t>(pixel_format) < tex_format_tuples.size());
+    ASSERT(static_cast<std::size_t>(pixel_format) < tex_format_tuples.size());
     auto& format = tex_format_tuples[static_cast<unsigned int>(pixel_format)];
     ASSERT(component_type == format.component_type);
 
@@ -260,7 +260,7 @@ static bool IsFormatBCn(PixelFormat format) {
 }
 
 template <bool morton_to_gl, PixelFormat format>
-void MortonCopy(u32 stride, u32 block_height, u32 height, u8* gl_buffer, size_t gl_buffer_size,
+void MortonCopy(u32 stride, u32 block_height, u32 height, u8* gl_buffer, std::size_t gl_buffer_size,
                 VAddr addr) {
     constexpr u32 bytes_per_pixel = SurfaceParams::GetFormatBpp(format) / CHAR_BIT;
     constexpr u32 gl_bytes_per_pixel = CachedSurface::GetGLBytesPerPixel(format);
@@ -271,7 +271,7 @@ void MortonCopy(u32 stride, u32 block_height, u32 height, u8* gl_buffer, size_t 
         const u32 tile_size{IsFormatBCn(format) ? 4U : 1U};
         const std::vector<u8> data = Tegra::Texture::UnswizzleTexture(
             addr, tile_size, bytes_per_pixel, stride, height, block_height);
-        const size_t size_to_copy{std::min(gl_buffer_size, data.size())};
+        const std::size_t size_to_copy{std::min(gl_buffer_size, data.size())};
         memcpy(gl_buffer, data.data(), size_to_copy);
     } else {
         // TODO(bunnei): Assumes the default rendering GOB size of 16 (128 lines). We should
@@ -282,7 +282,7 @@ void MortonCopy(u32 stride, u32 block_height, u32 height, u8* gl_buffer, size_t 
     }
 }
 
-static constexpr std::array<void (*)(u32, u32, u32, u8*, size_t, VAddr),
+static constexpr std::array<void (*)(u32, u32, u32, u8*, std::size_t, VAddr),
                             SurfaceParams::MaxPixelFormat>
     morton_to_gl_fns = {
         // clang-format off
@@ -340,7 +340,7 @@ static constexpr std::array<void (*)(u32, u32, u32, u8*, size_t, VAddr),
         // clang-format on
 };
 
-static constexpr std::array<void (*)(u32, u32, u32, u8*, size_t, VAddr),
+static constexpr std::array<void (*)(u32, u32, u32, u8*, std::size_t, VAddr),
                             SurfaceParams::MaxPixelFormat>
     gl_to_morton_fns = {
         // clang-format off
@@ -519,9 +519,9 @@ static void ConvertS8Z24ToZ24S8(std::vector<u8>& data, u32 width, u32 height) {
     S8Z24 input_pixel{};
     Z24S8 output_pixel{};
     constexpr auto bpp{CachedSurface::GetGLBytesPerPixel(PixelFormat::S8Z24)};
-    for (size_t y = 0; y < height; ++y) {
-        for (size_t x = 0; x < width; ++x) {
-            const size_t offset{bpp * (y * width + x)};
+    for (std::size_t y = 0; y < height; ++y) {
+        for (std::size_t x = 0; x < width; ++x) {
+            const std::size_t offset{bpp * (y * width + x)};
             std::memcpy(&input_pixel, &data[offset], sizeof(S8Z24));
             output_pixel.s8.Assign(input_pixel.s8);
             output_pixel.z24.Assign(input_pixel.z24);
@@ -532,9 +532,9 @@ static void ConvertS8Z24ToZ24S8(std::vector<u8>& data, u32 width, u32 height) {
 
 static void ConvertG8R8ToR8G8(std::vector<u8>& data, u32 width, u32 height) {
     constexpr auto bpp{CachedSurface::GetGLBytesPerPixel(PixelFormat::G8R8U)};
-    for (size_t y = 0; y < height; ++y) {
-        for (size_t x = 0; x < width; ++x) {
-            const size_t offset{bpp * (y * width + x)};
+    for (std::size_t y = 0; y < height; ++y) {
+        for (std::size_t x = 0; x < width; ++x) {
+            const std::size_t offset{bpp * (y * width + x)};
             const u8 temp{data[offset]};
             data[offset] = data[offset + 1];
             data[offset + 1] = temp;
@@ -598,13 +598,13 @@ void CachedSurface::LoadGLBuffer() {
             UNREACHABLE();
         }
 
-        gl_buffer.resize(static_cast<size_t>(params.depth) * copy_size);
-        morton_to_gl_fns[static_cast<size_t>(params.pixel_format)](
+        gl_buffer.resize(static_cast<std::size_t>(params.depth) * copy_size);
+        morton_to_gl_fns[static_cast<std::size_t>(params.pixel_format)](
             params.width, params.block_height, params.height, gl_buffer.data(), copy_size,
             params.addr);
     } else {
         const u8* const texture_src_data_end{texture_src_data +
-                                             (static_cast<size_t>(params.depth) * copy_size)};
+                                             (static_cast<std::size_t>(params.depth) * copy_size)};
         gl_buffer.assign(texture_src_data, texture_src_data_end);
     }
 
@@ -623,7 +623,7 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
 
     MICROPROFILE_SCOPE(OpenGL_TextureUL);
 
-    ASSERT(gl_buffer.size() == static_cast<size_t>(params.width) * params.height *
+    ASSERT(gl_buffer.size() == static_cast<std::size_t>(params.width) * params.height *
                                    GetGLBytesPerPixel(params.pixel_format) * params.depth);
 
     const auto& rect{params.GetRect()};
@@ -631,8 +631,9 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
     // Load data from memory to the surface
     const GLint x0 = static_cast<GLint>(rect.left);
     const GLint y0 = static_cast<GLint>(rect.bottom);
-    const size_t buffer_offset =
-        static_cast<size_t>(static_cast<size_t>(y0) * params.width + static_cast<size_t>(x0)) *
+    const std::size_t buffer_offset =
+        static_cast<std::size_t>(static_cast<std::size_t>(y0) * params.width +
+                                 static_cast<std::size_t>(x0)) *
         GetGLBytesPerPixel(params.pixel_format);
 
     const FormatTuple& tuple = GetFormatTuple(params.pixel_format, params.component_type);
@@ -734,7 +735,7 @@ Surface RasterizerCacheOpenGL::GetDepthBufferSurface(bool preserve_contents) {
     return GetSurface(depth_params, preserve_contents);
 }
 
-Surface RasterizerCacheOpenGL::GetColorBufferSurface(size_t index, bool preserve_contents) {
+Surface RasterizerCacheOpenGL::GetColorBufferSurface(std::size_t index, bool preserve_contents) {
     const auto& regs{Core::System::GetInstance().GPU().Maxwell3D().regs};
 
     ASSERT(index < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets);
@@ -832,7 +833,7 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& surface,
         auto source_format = GetFormatTuple(params.pixel_format, params.component_type);
         auto dest_format = GetFormatTuple(new_params.pixel_format, new_params.component_type);
 
-        size_t buffer_size = std::max(params.SizeInBytes(), new_params.SizeInBytes());
+        std::size_t buffer_size = std::max(params.SizeInBytes(), new_params.SizeInBytes());
 
         glBindBuffer(GL_PIXEL_PACK_BUFFER, copy_pbo.handle);
         glBufferData(GL_PIXEL_PACK_BUFFER, buffer_size, nullptr, GL_STREAM_DRAW_ARB);
@@ -856,7 +857,7 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& surface,
                 LOG_DEBUG(HW_GPU, "Trying to upload extra texture data from the CPU during "
                                   "reinterpretation but the texture is tiled.");
             }
-            size_t remaining_size = new_params.SizeInBytes() - params.SizeInBytes();
+            std::size_t remaining_size = new_params.SizeInBytes() - params.SizeInBytes();
             std::vector<u8> data(remaining_size);
             Memory::ReadBlock(new_params.addr + params.SizeInBytes(), data.data(), data.size());
             glBufferSubData(GL_PIXEL_PACK_BUFFER, params.SizeInBytes(), remaining_size,

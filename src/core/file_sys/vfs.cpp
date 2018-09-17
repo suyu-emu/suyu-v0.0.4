@@ -167,18 +167,18 @@ std::string VfsFile::GetExtension() const {
 
 VfsDirectory::~VfsDirectory() = default;
 
-boost::optional<u8> VfsFile::ReadByte(size_t offset) const {
+boost::optional<u8> VfsFile::ReadByte(std::size_t offset) const {
     u8 out{};
-    size_t size = Read(&out, 1, offset);
+    std::size_t size = Read(&out, 1, offset);
     if (size == 1)
         return out;
 
     return boost::none;
 }
 
-std::vector<u8> VfsFile::ReadBytes(size_t size, size_t offset) const {
+std::vector<u8> VfsFile::ReadBytes(std::size_t size, std::size_t offset) const {
     std::vector<u8> out(size);
-    size_t read_size = Read(out.data(), size, offset);
+    std::size_t read_size = Read(out.data(), size, offset);
     out.resize(read_size);
     return out;
 }
@@ -187,11 +187,11 @@ std::vector<u8> VfsFile::ReadAllBytes() const {
     return ReadBytes(GetSize());
 }
 
-bool VfsFile::WriteByte(u8 data, size_t offset) {
+bool VfsFile::WriteByte(u8 data, std::size_t offset) {
     return Write(&data, 1, offset) == 1;
 }
 
-size_t VfsFile::WriteBytes(const std::vector<u8>& data, size_t offset) {
+std::size_t VfsFile::WriteBytes(const std::vector<u8>& data, std::size_t offset) {
     return Write(data.data(), data.size(), offset);
 }
 
@@ -215,7 +215,7 @@ std::shared_ptr<VfsFile> VfsDirectory::GetFileRelative(std::string_view path) co
     }
 
     auto dir = GetSubdirectory(vec[0]);
-    for (size_t component = 1; component < vec.size() - 1; ++component) {
+    for (std::size_t component = 1; component < vec.size() - 1; ++component) {
         if (dir == nullptr) {
             return nullptr;
         }
@@ -249,7 +249,7 @@ std::shared_ptr<VfsDirectory> VfsDirectory::GetDirectoryRelative(std::string_vie
     }
 
     auto dir = GetSubdirectory(vec[0]);
-    for (size_t component = 1; component < vec.size(); ++component) {
+    for (std::size_t component = 1; component < vec.size(); ++component) {
         if (dir == nullptr) {
             return nullptr;
         }
@@ -286,7 +286,7 @@ bool VfsDirectory::IsRoot() const {
     return GetParentDirectory() == nullptr;
 }
 
-size_t VfsDirectory::GetSize() const {
+std::size_t VfsDirectory::GetSize() const {
     const auto& files = GetFiles();
     const auto sum_sizes = [](const auto& range) {
         return std::accumulate(range.begin(), range.end(), 0ULL,
@@ -434,13 +434,13 @@ bool ReadOnlyVfsDirectory::Rename(std::string_view name) {
     return false;
 }
 
-bool DeepEquals(const VirtualFile& file1, const VirtualFile& file2, size_t block_size) {
+bool DeepEquals(const VirtualFile& file1, const VirtualFile& file2, std::size_t block_size) {
     if (file1->GetSize() != file2->GetSize())
         return false;
 
     std::vector<u8> f1_v(block_size);
     std::vector<u8> f2_v(block_size);
-    for (size_t i = 0; i < file1->GetSize(); i += block_size) {
+    for (std::size_t i = 0; i < file1->GetSize(); i += block_size) {
         auto f1_vs = file1->Read(f1_v.data(), block_size, i);
         auto f2_vs = file2->Read(f2_v.data(), block_size, i);
 

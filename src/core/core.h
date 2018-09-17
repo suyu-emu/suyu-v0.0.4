@@ -145,16 +145,16 @@ public:
     ARM_Interface& CurrentArmInterface();
 
     /// Gets the index of the currently running CPU core
-    size_t CurrentCoreIndex();
+    std::size_t CurrentCoreIndex();
 
     /// Gets the scheduler for the CPU core that is currently running
     Kernel::Scheduler& CurrentScheduler();
 
     /// Gets an ARM interface to the CPU core with the specified index
-    ARM_Interface& ArmInterface(size_t core_index);
+    ARM_Interface& ArmInterface(std::size_t core_index);
 
     /// Gets a CPU interface to the CPU core with the specified index
-    Cpu& CpuCore(size_t core_index);
+    Cpu& CpuCore(std::size_t core_index);
 
     /// Gets the exclusive monitor
     ExclusiveMonitor& Monitor();
@@ -172,7 +172,7 @@ public:
     const VideoCore::RendererBase& Renderer() const;
 
     /// Gets the scheduler for the CPU core with the specified index
-    const std::shared_ptr<Kernel::Scheduler>& Scheduler(size_t core_index);
+    const std::shared_ptr<Kernel::Scheduler>& Scheduler(std::size_t core_index);
 
     /// Provides a reference to the current process
     Kernel::SharedPtr<Kernel::Process>& CurrentProcess();

@@ -117,7 +117,7 @@ QString WaitTreeCallstack::GetText() const {
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeCallstack::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list;
 
-    constexpr size_t BaseRegister = 29;
+    constexpr std::size_t BaseRegister = 29;
     u64 base_pointer = thread.context.cpu_registers[BaseRegister];
 
     while (base_pointer != 0) {

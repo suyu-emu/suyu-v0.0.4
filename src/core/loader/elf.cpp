@@ -300,7 +300,7 @@ SharedPtr<CodeSet> ElfReader::LoadInto(u32 vaddr) {
     }
 
     std::vector<u8> program_image(total_image_size);
-    size_t current_image_position = 0;
+    std::size_t current_image_position = 0;
 
     auto& kernel = Core::System::GetInstance().Kernel();
     SharedPtr<CodeSet> codeset = CodeSet::Create(kernel, "");

@@ -34,17 +34,17 @@ public:
     /// Register structure of the Maxwell3D engine.
     /// TODO(Subv): This structure will need to be made bigger as more registers are discovered.
     struct Regs {
-        static constexpr size_t NUM_REGS = 0xE00;
+        static constexpr std::size_t NUM_REGS = 0xE00;
 
-        static constexpr size_t NumRenderTargets = 8;
-        static constexpr size_t NumViewports = 16;
-        static constexpr size_t NumCBData = 16;
-        static constexpr size_t NumVertexArrays = 32;
-        static constexpr size_t NumVertexAttributes = 32;
-        static constexpr size_t MaxShaderProgram = 6;
-        static constexpr size_t MaxShaderStage = 5;
+        static constexpr std::size_t NumRenderTargets = 8;
+        static constexpr std::size_t NumViewports = 16;
+        static constexpr std::size_t NumCBData = 16;
+        static constexpr std::size_t NumVertexArrays = 32;
+        static constexpr std::size_t NumVertexAttributes = 32;
+        static constexpr std::size_t MaxShaderProgram = 6;
+        static constexpr std::size_t MaxShaderStage = 5;
         // Maximum number of const buffers per shader stage.
-        static constexpr size_t MaxConstBuffers = 18;
+        static constexpr std::size_t MaxConstBuffers = 18;
 
         enum class QueryMode : u32 {
             Write = 0,
@@ -443,9 +443,9 @@ public:
             }
         };
 
-        bool IsShaderConfigEnabled(size_t index) const {
+        bool IsShaderConfigEnabled(std::size_t index) const {
             // The VertexB is always enabled.
-            if (index == static_cast<size_t>(Regs::ShaderProgram::VertexB)) {
+            if (index == static_cast<std::size_t>(Regs::ShaderProgram::VertexB)) {
                 return true;
             }
             return shader_config[index].enable != 0;
@@ -571,7 +571,7 @@ public:
                         BitField<25, 3, u32> map_7;
                     };
 
-                    u32 GetMap(size_t index) const {
+                    u32 GetMap(std::size_t index) const {
                         const std::array<u32, NumRenderTargets> maps{map_0, map_1, map_2, map_3,
                                                                      map_4, map_5, map_6, map_7};
                         ASSERT(index < maps.size());
@@ -925,7 +925,7 @@ public:
     std::vector<Texture::FullTextureInfo> GetStageTextures(Regs::ShaderStage stage) const;
 
     /// Returns the texture information for a specific texture in a specific shader stage.
-    Texture::FullTextureInfo GetStageTexture(Regs::ShaderStage stage, size_t offset) const;
+    Texture::FullTextureInfo GetStageTexture(Regs::ShaderStage stage, std::size_t offset) const;
 
 private:
     VideoCore::RasterizerInterface& rasterizer;

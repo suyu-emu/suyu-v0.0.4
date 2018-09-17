@@ -13,7 +13,7 @@
 
 namespace OpenGL::GLShader {
 
-constexpr size_t MAX_PROGRAM_CODE_LENGTH{0x1000};
+constexpr std::size_t MAX_PROGRAM_CODE_LENGTH{0x1000};
 using ProgramCode = std::vector<u64>;
 
 class ConstBufferEntry {
@@ -51,7 +51,7 @@ public:
     }
 
     std::string GetName() const {
-        return BufferBaseNames[static_cast<size_t>(stage)] + std::to_string(index);
+        return BufferBaseNames[static_cast<std::size_t>(stage)] + std::to_string(index);
     }
 
     u32 GetHash() const {
@@ -74,15 +74,15 @@ class SamplerEntry {
     using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
 public:
-    SamplerEntry(Maxwell::ShaderStage stage, size_t offset, size_t index,
+    SamplerEntry(Maxwell::ShaderStage stage, std::size_t offset, std::size_t index,
                  Tegra::Shader::TextureType type, bool is_array)
         : offset(offset), stage(stage), sampler_index(index), type(type), is_array(is_array) {}
 
-    size_t GetOffset() const {
+    std::size_t GetOffset() const {
         return offset;
     }
 
-    size_t GetIndex() const {
+    std::size_t GetIndex() const {
         return sampler_index;
     }
 
@@ -91,7 +91,7 @@ public:
     }
 
     std::string GetName() const {
-        return std::string(TextureSamplerNames[static_cast<size_t>(stage)]) + '_' +
+        return std::string(TextureSamplerNames[static_cast<std::size_t>(stage)]) + '_' +
                std::to_string(sampler_index);
     }
 
@@ -133,7 +133,7 @@ public:
     }
 
     static std::string GetArrayName(Maxwell::ShaderStage stage) {
-        return TextureSamplerNames[static_cast<size_t>(stage)];
+        return TextureSamplerNames[static_cast<std::size_t>(stage)];
     }
 
 private:
@@ -143,9 +143,9 @@ private:
 
     /// Offset in TSC memory from which to read the sampler object, as specified by the sampling
     /// instruction.
-    size_t offset;
+    std::size_t offset;
     Maxwell::ShaderStage stage;      ///< Shader stage where this sampler was used.
-    size_t sampler_index;            ///< Value used to index into the generated GLSL sampler array.
+    std::size_t sampler_index;       ///< Value used to index into the generated GLSL sampler array.
     Tegra::Shader::TextureType type; ///< The type used to sample this texture (Texture2D, etc)
     bool is_array; ///< Whether the texture is being sampled as an array texture or not.
 };

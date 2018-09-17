@@ -108,7 +108,7 @@ private:
     void LoadFromFile(const std::string& filename, bool is_title_keys);
     void AttemptLoadKeyFile(const std::string& dir1, const std::string& dir2,
                             const std::string& filename, bool title);
-    template <size_t Size>
+    template <std::size_t Size>
     void WriteKeyToFile(bool title_key, std::string_view keyname, const std::array<u8, Size>& key);
 
     static const boost::container::flat_map<std::string, KeyIndex<S128KeyType>> s128_file_id;

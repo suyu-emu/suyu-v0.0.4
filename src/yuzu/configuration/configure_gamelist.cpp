@@ -89,7 +89,7 @@ void ConfigureGameList::InitializeIconSizeComboBox() {
 }
 
 void ConfigureGameList::InitializeRowComboBoxes() {
-    for (size_t i = 0; i < row_text_names.size(); ++i) {
+    for (std::size_t i = 0; i < row_text_names.size(); ++i) {
         ui->row_1_text_combobox->addItem(row_text_names[i], QVariant::fromValue(i));
         ui->row_2_text_combobox->addItem(row_text_names[i], QVariant::fromValue(i));
     }

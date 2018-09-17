@@ -25,8 +25,8 @@ namespace FileSys {
 constexpr u64 NAX_HEADER_PADDING_SIZE = 0x4000;
 
 template <typename SourceData, typename SourceKey, typename Destination>
-static bool CalculateHMAC256(Destination* out, const SourceKey* key, size_t key_length,
-                             const SourceData* data, size_t data_length) {
+static bool CalculateHMAC256(Destination* out, const SourceKey* key, std::size_t key_length,
+                             const SourceData* data, std::size_t data_length) {
     mbedtls_md_context_t context;
     mbedtls_md_init(&context);
 
@@ -91,7 +91,7 @@ Loader::ResultStatus NAX::Parse(std::string_view path) {
 
     const auto enc_keys = header->key_area;
 
-    size_t i = 0;
+    std::size_t i = 0;
     for (; i < sd_keys.size(); ++i) {
         std::array<Core::Crypto::Key128, 2> nax_keys{};
         if (!CalculateHMAC256(nax_keys.data(), sd_keys[i].data(), 0x10, std::string(path).c_str(),
@@ -99,7 +99,7 @@ Loader::ResultStatus NAX::Parse(std::string_view path) {
             return Loader::ResultStatus::ErrorNAXKeyHMACFailed;
         }
 
-        for (size_t j = 0; j < nax_keys.size(); ++j) {
+        for (std::size_t j = 0; j < nax_keys.size(); ++j) {
             Core::Crypto::AESCipher<Core::Crypto::Key128> cipher(nax_keys[j],
                                                                  Core::Crypto::Mode::ECB);
             cipher.Transcode(enc_keys[j].data(), 0x10, header->key_area[j].data(),

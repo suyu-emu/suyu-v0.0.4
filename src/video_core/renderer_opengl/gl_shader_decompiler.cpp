@@ -189,7 +189,7 @@ public:
 
 private:
     void AppendIndentation() {
-        shader_source.append(static_cast<size_t>(scope) * 4, ' ');
+        shader_source.append(static_cast<std::size_t>(scope) * 4, ' ');
     }
 
     std::string shader_source;
@@ -208,7 +208,7 @@ public:
         UnsignedInteger,
     };
 
-    GLSLRegister(size_t index, const std::string& suffix) : index{index}, suffix{suffix} {}
+    GLSLRegister(std::size_t index, const std::string& suffix) : index{index}, suffix{suffix} {}
 
     /// Gets the GLSL type string for a register
     static std::string GetTypeString() {
@@ -226,12 +226,12 @@ public:
     }
 
     /// Returns the index of the register
-    size_t GetIndex() const {
+    std::size_t GetIndex() const {
         return index;
     }
 
 private:
-    const size_t index;
+    const std::size_t index;
     const std::string& suffix;
 };
 
@@ -468,7 +468,7 @@ public:
     /// necessary.
     std::string AccessSampler(const Sampler& sampler, Tegra::Shader::TextureType type,
                               bool is_array) {
-        const size_t offset = static_cast<size_t>(sampler.index.Value());
+        const std::size_t offset = static_cast<std::size_t>(sampler.index.Value());
 
         // If this sampler has already been used, return the existing mapping.
         const auto itr =
@@ -481,7 +481,7 @@ public:
         }
 
         // Otherwise create a new mapping for this sampler
-        const size_t next_index = used_samplers.size();
+        const std::size_t next_index = used_samplers.size();
         const SamplerEntry entry{stage, offset, next_index, type, is_array};
         used_samplers.emplace_back(entry);
         return entry.GetName();
@@ -531,7 +531,7 @@ private:
     void BuildRegisterList() {
         regs.reserve(Register::NumRegisters);
 
-        for (size_t index = 0; index < Register::NumRegisters; ++index) {
+        for (std::size_t index = 0; index < Register::NumRegisters; ++index) {
             regs.emplace_back(index, suffix);
         }
     }
@@ -862,7 +862,7 @@ private:
      */
     bool IsSchedInstruction(u32 offset) const {
         // sched instructions appear once every 4 instructions.
-        static constexpr size_t SchedPeriod = 4;
+        static constexpr std::size_t SchedPeriod = 4;
         u32 absolute_offset = offset - main_offset;
 
         return (absolute_offset % SchedPeriod) == 0;
@@ -930,7 +930,7 @@ private:
         std::string result;
         result += '(';
 
-        for (size_t i = 0; i < shift_amounts.size(); ++i) {
+        for (std::size_t i = 0; i < shift_amounts.size(); ++i) {
             if (i)
                 result += '|';
             result += "(((" + imm_lut + " >> (((" + op_c + " >> " + shift_amounts[i] +
@@ -956,7 +956,7 @@ private:
 
         ASSERT_MSG(instr.texs.nodep == 0, "TEXS nodep not implemented");
 
-        size_t written_components = 0;
+        std::size_t written_components = 0;
         for (u32 component = 0; component < 4; ++component) {
             if (!instr.texs.IsComponentEnabled(component)) {
                 continue;
@@ -1937,8 +1937,8 @@ private:
                     UNREACHABLE();
                 }
                 }
-                size_t dest_elem{};
-                for (size_t elem = 0; elem < 4; ++elem) {
+                std::size_t dest_elem{};
+                for (std::size_t elem = 0; elem < 4; ++elem) {
                     if (!instr.tex.IsComponentEnabled(elem)) {
                         // Skip disabled components
                         continue;
@@ -2042,8 +2042,8 @@ private:
                 const std::string texture = "textureGather(" + sampler + ", coords, " +
                                             std::to_string(instr.tld4.component) + ')';
 
-                size_t dest_elem{};
-                for (size_t elem = 0; elem < 4; ++elem) {
+                std::size_t dest_elem{};
+                for (std::size_t elem = 0; elem < 4; ++elem) {
                     if (!instr.tex.IsComponentEnabled(elem)) {
                         // Skip disabled components
                         continue;

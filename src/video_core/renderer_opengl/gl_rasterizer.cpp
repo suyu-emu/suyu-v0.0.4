@@ -46,7 +46,7 @@ MICROPROFILE_DEFINE(OpenGL_CacheManagement, "OpenGL", "Cache Mgmt", MP_RGB(100, 
 RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window, ScreenInfo& info)
     : emu_window{window}, screen_info{info}, buffer_cache(STREAM_BUFFER_SIZE) {
     // Create sampler objects
-    for (size_t i = 0; i < texture_samplers.size(); ++i) {
+    for (std::size_t i = 0; i < texture_samplers.size(); ++i) {
         texture_samplers[i].Create();
         state.texture_units[i].sampler = texture_samplers[i].sampler.handle;
     }
@@ -181,7 +181,7 @@ void RasterizerOpenGL::SetupShaders() {
     u32 current_constbuffer_bindpoint = Tegra::Engines::Maxwell3D::Regs::MaxShaderStage;
     u32 current_texture_bindpoint = 0;
 
-    for (size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
+    for (std::size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
         const auto& shader_config = gpu.regs.shader_config[index];
         const Maxwell::ShaderProgram program{static_cast<Maxwell::ShaderProgram>(index)};
 
@@ -190,12 +190,12 @@ void RasterizerOpenGL::SetupShaders() {
             continue;
         }
 
-        const size_t stage{index == 0 ? 0 : index - 1}; // Stage indices are 0 - 5
+        const std::size_t stage{index == 0 ? 0 : index - 1}; // Stage indices are 0 - 5
 
         GLShader::MaxwellUniformData ubo{};
         ubo.SetFromRegs(gpu.state.shader_stages[stage]);
         const GLintptr offset = buffer_cache.UploadHostMemory(
-            &ubo, sizeof(ubo), static_cast<size_t>(uniform_buffer_alignment));
+            &ubo, sizeof(ubo), static_cast<std::size_t>(uniform_buffer_alignment));
 
         // Bind the buffer
         glBindBufferRange(GL_UNIFORM_BUFFER, stage, buffer_cache.GetHandle(), offset, sizeof(ubo));
@@ -238,10 +238,10 @@ void RasterizerOpenGL::SetupShaders() {
     shader_program_manager->UseTrivialGeometryShader();
 }
 
-size_t RasterizerOpenGL::CalculateVertexArraysSize() const {
+std::size_t RasterizerOpenGL::CalculateVertexArraysSize() const {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
-    size_t size = 0;
+    std::size_t size = 0;
     for (u32 index = 0; index < Maxwell::NumVertexArrays; ++index) {
         if (!regs.vertex_array[index].IsEnabled())
             continue;
@@ -299,7 +299,7 @@ void RasterizerOpenGL::UpdatePagesCachedCount(VAddr addr, u64 size, int delta) {
 
 void RasterizerOpenGL::ConfigureFramebuffers(bool using_color_fb, bool using_depth_fb,
                                              bool preserve_contents,
-                                             boost::optional<size_t> single_color_target) {
+                                             boost::optional<std::size_t> single_color_target) {
     MICROPROFILE_SCOPE(OpenGL_Framebuffer);
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
@@ -330,7 +330,7 @@ void RasterizerOpenGL::ConfigureFramebuffers(bool using_color_fb, bool using_dep
         } else {
             // Multiple color attachments are enabled
             std::array<GLenum, Maxwell::NumRenderTargets> buffers;
-            for (size_t index = 0; index < Maxwell::NumRenderTargets; ++index) {
+            for (std::size_t index = 0; index < Maxwell::NumRenderTargets; ++index) {
                 Surface color_surface = res_cache.GetColorBufferSurface(index, preserve_contents);
                 buffers[index] = GL_COLOR_ATTACHMENT0 + regs.rt_control.GetMap(index);
                 glFramebufferTexture2D(
@@ -342,7 +342,7 @@ void RasterizerOpenGL::ConfigureFramebuffers(bool using_color_fb, bool using_dep
         }
     } else {
         // No color attachments are enabled - zero out all of them
-        for (size_t index = 0; index < Maxwell::NumRenderTargets; ++index) {
+        for (std::size_t index = 0; index < Maxwell::NumRenderTargets; ++index) {
             glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER,
                                    GL_COLOR_ATTACHMENT0 + static_cast<GLenum>(index), GL_TEXTURE_2D,
                                    0, 0);
@@ -462,15 +462,15 @@ void RasterizerOpenGL::DrawArrays() {
     state.draw.vertex_buffer = buffer_cache.GetHandle();
     state.Apply();
 
-    size_t buffer_size = CalculateVertexArraysSize();
+    std::size_t buffer_size = CalculateVertexArraysSize();
 
     if (is_indexed) {
-        buffer_size = Common::AlignUp<size_t>(buffer_size, 4) + index_buffer_size;
+        buffer_size = Common::AlignUp<std::size_t>(buffer_size, 4) + index_buffer_size;
     }
 
     // Uniform space for the 5 shader stages
     buffer_size =
-        Common::AlignUp<size_t>(buffer_size, 4) +
+        Common::AlignUp<std::size_t>(buffer_size, 4) +
         (sizeof(GLShader::MaxwellUniformData) + uniform_buffer_alignment) * Maxwell::MaxShaderStage;
 
     // Add space for at least 18 constant buffers
@@ -644,7 +644,7 @@ u32 RasterizerOpenGL::SetupConstBuffers(Maxwell::ShaderStage stage, Shader& shad
     MICROPROFILE_SCOPE(OpenGL_UBO);
     const auto& gpu = Core::System::GetInstance().GPU();
     const auto& maxwell3d = gpu.Maxwell3D();
-    const auto& shader_stage = maxwell3d.state.shader_stages[static_cast<size_t>(stage)];
+    const auto& shader_stage = maxwell3d.state.shader_stages[static_cast<std::size_t>(stage)];
     const auto& entries = shader->GetShaderEntries().const_buffer_entries;
 
     constexpr u64 max_binds = Tegra::Engines::Maxwell3D::Regs::MaxConstBuffers;
@@ -667,7 +667,7 @@ u32 RasterizerOpenGL::SetupConstBuffers(Maxwell::ShaderStage stage, Shader& shad
             continue;
         }
 
-        size_t size = 0;
+        std::size_t size = 0;
 
         if (used_buffer.IsIndirect()) {
             // Buffer is accessed indirectly, so upload the entire thing
@@ -689,7 +689,7 @@ u32 RasterizerOpenGL::SetupConstBuffers(Maxwell::ShaderStage stage, Shader& shad
         ASSERT_MSG(size <= MaxConstbufferSize, "Constbuffer too big");
 
         GLintptr const_buffer_offset = buffer_cache.UploadMemory(
-            buffer.address, size, static_cast<size_t>(uniform_buffer_alignment));
+            buffer.address, size, static_cast<std::size_t>(uniform_buffer_alignment));
 
         // Now configure the bindpoint of the buffer inside the shader
         glUniformBlockBinding(shader->GetProgramHandle(),

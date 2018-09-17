@@ -38,7 +38,7 @@ using ADPCM_Coeff = std::array<s16, 16>;
  * @param state ADPCM state, this is updated with new state
  * @return Decoded stereo signed PCM16 data, sample_count in length
  */
-std::vector<s16> DecodeADPCM(const u8* const data, size_t size, const ADPCM_Coeff& coeff,
+std::vector<s16> DecodeADPCM(const u8* const data, std::size_t size, const ADPCM_Coeff& coeff,
                              ADPCMState& state);
 
 }; // namespace AudioCore::Codec

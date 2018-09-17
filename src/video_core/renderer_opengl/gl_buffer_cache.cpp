@@ -12,10 +12,10 @@
 
 namespace OpenGL {
 
-OGLBufferCache::OGLBufferCache(size_t size) : stream_buffer(GL_ARRAY_BUFFER, size) {}
+OGLBufferCache::OGLBufferCache(std::size_t size) : stream_buffer(GL_ARRAY_BUFFER, size) {}
 
-GLintptr OGLBufferCache::UploadMemory(Tegra::GPUVAddr gpu_addr, size_t size, size_t alignment,
-                                      bool cache) {
+GLintptr OGLBufferCache::UploadMemory(Tegra::GPUVAddr gpu_addr, std::size_t size,
+                                      std::size_t alignment, bool cache) {
     auto& memory_manager = Core::System::GetInstance().GPU().MemoryManager();
     const boost::optional<VAddr> cpu_addr{memory_manager.GpuToCpuAddress(gpu_addr)};
 
@@ -53,7 +53,8 @@ GLintptr OGLBufferCache::UploadMemory(Tegra::GPUVAddr gpu_addr, size_t size, siz
     return uploaded_offset;
 }
 
-GLintptr OGLBufferCache::UploadHostMemory(const void* raw_pointer, size_t size, size_t alignment) {
+GLintptr OGLBufferCache::UploadHostMemory(const void* raw_pointer, std::size_t size,
+                                          std::size_t alignment) {
     AlignBuffer(alignment);
     std::memcpy(buffer_ptr, raw_pointer, size);
     GLintptr uploaded_offset = buffer_offset;
@@ -63,7 +64,7 @@ GLintptr OGLBufferCache::UploadHostMemory(const void* raw_pointer, size_t size, 
     return uploaded_offset;
 }
 
-void OGLBufferCache::Map(size_t max_size) {
+void OGLBufferCache::Map(std::size_t max_size) {
     bool invalidate;
     std::tie(buffer_ptr, buffer_offset_base, invalidate) =
         stream_buffer.Map(static_cast<GLsizeiptr>(max_size), 4);
@@ -81,10 +82,10 @@ GLuint OGLBufferCache::GetHandle() const {
     return stream_buffer.GetHandle();
 }
 
-void OGLBufferCache::AlignBuffer(size_t alignment) {
+void OGLBufferCache::AlignBuffer(std::size_t alignment) {
     // Align the offset, not the mapped pointer
     GLintptr offset_aligned =
-        static_cast<GLintptr>(Common::AlignUp(static_cast<size_t>(buffer_offset), alignment));
+        static_cast<GLintptr>(Common::AlignUp(static_cast<std::size_t>(buffer_offset), alignment));
     buffer_ptr += offset_aligned - buffer_offset;
     buffer_offset = offset_aligned;
 }

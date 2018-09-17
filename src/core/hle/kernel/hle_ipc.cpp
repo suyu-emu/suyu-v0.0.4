@@ -42,9 +42,9 @@ SharedPtr<Event> HLERequestContext::SleepClientThread(SharedPtr<Thread> thread,
                                                       Kernel::SharedPtr<Kernel::Event> event) {
 
     // Put the client thread to sleep until the wait event is signaled or the timeout expires.
-    thread->wakeup_callback =
-        [context = *this, callback](ThreadWakeupReason reason, SharedPtr<Thread> thread,
-                                    SharedPtr<WaitObject> object, size_t index) mutable -> bool {
+    thread->wakeup_callback = [context = *this, callback](
+                                  ThreadWakeupReason reason, SharedPtr<Thread> thread,
+                                  SharedPtr<WaitObject> object, std::size_t index) mutable -> bool {
         ASSERT(thread->status == ThreadStatus::WaitHLEEvent);
         callback(thread, context, reason);
         context.WriteToOutgoingCommandBuffer(*thread);
@@ -199,8 +199,8 @@ ResultCode HLERequestContext::PopulateFromIncomingCommandBuffer(u32_le* src_cmdb
     }
 
     // The data_size already includes the payload header, the padding and the domain header.
-    size_t size = data_payload_offset + command_header->data_size -
-                  sizeof(IPC::DataPayloadHeader) / sizeof(u32) - 4;
+    std::size_t size = data_payload_offset + command_header->data_size -
+                       sizeof(IPC::DataPayloadHeader) / sizeof(u32) - 4;
     if (domain_message_header)
         size -= sizeof(IPC::DomainMessageHeader) / sizeof(u32);
     std::copy_n(src_cmdbuf, size, cmd_buf.begin());
@@ -217,8 +217,8 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(const Thread& thread)
     ParseCommandBuffer(cmd_buf.data(), false);
 
     // The data_size already includes the payload header, the padding and the domain header.
-    size_t size = data_payload_offset + command_header->data_size -
-                  sizeof(IPC::DataPayloadHeader) / sizeof(u32) - 4;
+    std::size_t size = data_payload_offset + command_header->data_size -
+                       sizeof(IPC::DataPayloadHeader) / sizeof(u32) - 4;
     if (domain_message_header)
         size -= sizeof(IPC::DomainMessageHeader) / sizeof(u32);
 
@@ -229,7 +229,7 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(const Thread& thread)
                    "Handle descriptor bit set but no handles to translate");
         // We write the translated handles at a specific offset in the command buffer, this space
         // was already reserved when writing the header.
-        size_t current_offset =
+        std::size_t current_offset =
             (sizeof(IPC::CommandHeader) + sizeof(IPC::HandleDescriptorHeader)) / sizeof(u32);
         ASSERT_MSG(!handle_descriptor_header->send_current_pid, "Sending PID is not implemented");
 
@@ -258,7 +258,7 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(const Thread& thread)
         ASSERT(domain_message_header->num_objects == domain_objects.size());
         // Write the domain objects to the command buffer, these go after the raw untranslated data.
         // TODO(Subv): This completely ignores C buffers.
-        size_t domain_offset = size - domain_message_header->num_objects;
+        std::size_t domain_offset = size - domain_message_header->num_objects;
         auto& request_handlers = server_session->domain_request_handlers;
 
         for (auto& object : domain_objects) {
@@ -291,14 +291,15 @@ std::vector<u8> HLERequestContext::ReadBuffer(int buffer_index) const {
     return buffer;
 }
 
-size_t HLERequestContext::WriteBuffer(const void* buffer, size_t size, int buffer_index) const {
+std::size_t HLERequestContext::WriteBuffer(const void* buffer, std::size_t size,
+                                           int buffer_index) const {
     if (size == 0) {
         LOG_WARNING(Core, "skip empty buffer write");
         return 0;
     }
 
     const bool is_buffer_b{BufferDescriptorB().size() && BufferDescriptorB()[buffer_index].Size()};
-    const size_t buffer_size{GetWriteBufferSize(buffer_index)};
+    const std::size_t buffer_size{GetWriteBufferSize(buffer_index)};
     if (size > buffer_size) {
         LOG_CRITICAL(Core, "size ({:016X}) is greater than buffer_size ({:016X})", size,
                      buffer_size);
@@ -314,13 +315,13 @@ size_t HLERequestContext::WriteBuffer(const void* buffer, size_t size, int buffe
     return size;
 }
 
-size_t HLERequestContext::GetReadBufferSize(int buffer_index) const {
+std::size_t HLERequestContext::GetReadBufferSize(int buffer_index) const {
     const bool is_buffer_a{BufferDescriptorA().size() && BufferDescriptorA()[buffer_index].Size()};
     return is_buffer_a ? BufferDescriptorA()[buffer_index].Size()
                        : BufferDescriptorX()[buffer_index].Size();
 }
 
-size_t HLERequestContext::GetWriteBufferSize(int buffer_index) const {
+std::size_t HLERequestContext::GetWriteBufferSize(int buffer_index) const {
     const bool is_buffer_b{BufferDescriptorB().size() && BufferDescriptorB()[buffer_index].Size()};
     return is_buffer_b ? BufferDescriptorB()[buffer_index].Size()
                        : BufferDescriptorC()[buffer_index].Size();

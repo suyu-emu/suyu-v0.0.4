@@ -52,8 +52,8 @@ std::vector<u8> AudioRenderer::UpdateAudioRenderer(const std::vector<u8>& input_
                 memory_pool_count * sizeof(MemoryPoolInfo));
 
     // Copy VoiceInfo structs
-    size_t offset{sizeof(UpdateDataHeader) + config.behavior_size + config.memory_pools_size +
-                  config.voice_resource_size};
+    std::size_t offset{sizeof(UpdateDataHeader) + config.behavior_size + config.memory_pools_size +
+                       config.voice_resource_size};
     for (auto& voice : voices) {
         std::memcpy(&voice.Info(), input_params.data() + offset, sizeof(VoiceInfo));
         offset += sizeof(VoiceInfo);
@@ -72,7 +72,7 @@ std::vector<u8> AudioRenderer::UpdateAudioRenderer(const std::vector<u8>& input_
 
     // Update memory pool state
     std::vector<MemoryPoolEntry> memory_pool(memory_pool_count);
-    for (size_t index = 0; index < memory_pool.size(); ++index) {
+    for (std::size_t index = 0; index < memory_pool.size(); ++index) {
         if (mem_pool_info[index].pool_state == MemoryPoolStates::RequestAttach) {
             memory_pool[index].state = MemoryPoolStates::Attached;
         } else if (mem_pool_info[index].pool_state == MemoryPoolStates::RequestDetach) {
@@ -93,7 +93,7 @@ std::vector<u8> AudioRenderer::UpdateAudioRenderer(const std::vector<u8>& input_
                 response_data.memory_pools_size);
 
     // Copy output voice status
-    size_t voice_out_status_offset{sizeof(UpdateDataHeader) + response_data.memory_pools_size};
+    std::size_t voice_out_status_offset{sizeof(UpdateDataHeader) + response_data.memory_pools_size};
     for (const auto& voice : voices) {
         std::memcpy(output_params.data() + voice_out_status_offset, &voice.GetOutStatus(),
                     sizeof(VoiceOutStatus));
@@ -103,12 +103,12 @@ std::vector<u8> AudioRenderer::UpdateAudioRenderer(const std::vector<u8>& input_
     return output_params;
 }
 
-void AudioRenderer::VoiceState::SetWaveIndex(size_t index) {
+void AudioRenderer::VoiceState::SetWaveIndex(std::size_t index) {
     wave_index = index & 3;
     is_refresh_pending = true;
 }
 
-std::vector<s16> AudioRenderer::VoiceState::DequeueSamples(size_t sample_count) {
+std::vector<s16> AudioRenderer::VoiceState::DequeueSamples(std::size_t sample_count) {
     if (!IsPlaying()) {
         return {};
     }
@@ -117,9 +117,9 @@ std::vector<s16> AudioRenderer::VoiceState::DequeueSamples(size_t sample_count) 
         RefreshBuffer();
     }
 
-    const size_t max_size{samples.size() - offset};
-    const size_t dequeue_offset{offset};
-    size_t size{sample_count * STREAM_NUM_CHANNELS};
+    const std::size_t max_size{samples.size() - offset};
+    const std::size_t dequeue_offset{offset};
+    std::size_t size{sample_count * STREAM_NUM_CHANNELS};
     if (size > max_size) {
         size = max_size;
     }
@@ -184,7 +184,7 @@ void AudioRenderer::VoiceState::RefreshBuffer() {
     case 1:
         // 1 channel is upsampled to 2 channel
         samples.resize(new_samples.size() * 2);
-        for (size_t index = 0; index < new_samples.size(); ++index) {
+        for (std::size_t index = 0; index < new_samples.size(); ++index) {
             samples[index * 2] = new_samples[index];
             samples[index * 2 + 1] = new_samples[index];
         }
@@ -210,7 +210,7 @@ static constexpr s16 ClampToS16(s32 value) {
 }
 
 void AudioRenderer::QueueMixedBuffer(Buffer::Tag tag) {
-    constexpr size_t BUFFER_SIZE{512};
+    constexpr std::size_t BUFFER_SIZE{512};
     std::vector<s16> buffer(BUFFER_SIZE * stream->GetNumChannels());
 
     for (auto& voice : voices) {
@@ -218,7 +218,7 @@ void AudioRenderer::QueueMixedBuffer(Buffer::Tag tag) {
             continue;
         }
 
-        size_t offset{};
+        std::size_t offset{};
         s64 samples_remaining{BUFFER_SIZE};
         while (samples_remaining > 0) {
             const std::vector<s16> samples{voice.DequeueSamples(samples_remaining)};

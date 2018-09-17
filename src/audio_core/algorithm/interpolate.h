@@ -12,8 +12,8 @@
 namespace AudioCore {
 
 struct InterpolationState {
-    static constexpr size_t lanczos_taps = 4;
-    static constexpr size_t history_size = lanczos_taps * 2 - 1;
+    static constexpr std::size_t lanczos_taps = 4;
+    static constexpr std::size_t history_size = lanczos_taps * 2 - 1;
 
     double current_ratio = 0.0;
     CascadingFilter nyquist;

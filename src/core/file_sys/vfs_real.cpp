@@ -227,11 +227,11 @@ std::string RealVfsFile::GetName() const {
     return path_components.back();
 }
 
-size_t RealVfsFile::GetSize() const {
+std::size_t RealVfsFile::GetSize() const {
     return backing->GetSize();
 }
 
-bool RealVfsFile::Resize(size_t new_size) {
+bool RealVfsFile::Resize(std::size_t new_size) {
     return backing->Resize(new_size);
 }
 
@@ -247,13 +247,13 @@ bool RealVfsFile::IsReadable() const {
     return (perms & Mode::ReadWrite) != 0;
 }
 
-size_t RealVfsFile::Read(u8* data, size_t length, size_t offset) const {
+std::size_t RealVfsFile::Read(u8* data, std::size_t length, std::size_t offset) const {
     if (!backing->Seek(offset, SEEK_SET))
         return 0;
     return backing->ReadBytes(data, length);
 }
 
-size_t RealVfsFile::Write(const u8* data, size_t length, size_t offset) {
+std::size_t RealVfsFile::Write(const u8* data, std::size_t length, std::size_t offset) {
     if (!backing->Seek(offset, SEEK_SET))
         return 0;
     return backing->WriteBytes(data, length);

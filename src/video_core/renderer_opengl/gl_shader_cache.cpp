@@ -14,7 +14,7 @@ namespace OpenGL {
 /// Gets the address for the specified shader stage program
 static VAddr GetShaderAddress(Maxwell::ShaderProgram program) {
     const auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
-    const auto& shader_config = gpu.regs.shader_config[static_cast<size_t>(program)];
+    const auto& shader_config = gpu.regs.shader_config[static_cast<std::size_t>(program)];
     return *gpu.memory_manager.GpuToCpuAddress(gpu.regs.code_address.CodeAddress() +
                                                shader_config.offset);
 }
@@ -28,7 +28,7 @@ static GLShader::ProgramCode GetShaderCode(VAddr addr) {
 
 /// Helper function to set shader uniform block bindings for a single shader stage
 static void SetShaderUniformBlockBinding(GLuint shader, const char* name,
-                                         Maxwell::ShaderStage binding, size_t expected_size) {
+                                         Maxwell::ShaderStage binding, std::size_t expected_size) {
     const GLuint ub_index = glGetUniformBlockIndex(shader, name);
     if (ub_index == GL_INVALID_INDEX) {
         return;
@@ -36,7 +36,7 @@ static void SetShaderUniformBlockBinding(GLuint shader, const char* name,
 
     GLint ub_size = 0;
     glGetActiveUniformBlockiv(shader, ub_index, GL_UNIFORM_BLOCK_DATA_SIZE, &ub_size);
-    ASSERT_MSG(static_cast<size_t>(ub_size) == expected_size,
+    ASSERT_MSG(static_cast<std::size_t>(ub_size) == expected_size,
                "Uniform block size did not match! Got {}, expected {}", ub_size, expected_size);
     glUniformBlockBinding(shader, ub_index, static_cast<GLuint>(binding));
 }

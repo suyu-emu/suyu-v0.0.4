@@ -26,7 +26,7 @@ public:
     void WriteReg(u32 method, u32 value);
 
     struct Regs {
-        static constexpr size_t NUM_REGS = 0x258;
+        static constexpr std::size_t NUM_REGS = 0x258;
 
         struct Surface {
             RenderTargetFormat format;

@@ -804,7 +804,7 @@ void GMainWindow::OnMenuInstallToNAND() {
             tr("Cancel"), 0, progress_maximum, this);
         progress.setWindowModality(Qt::WindowModal);
 
-        for (size_t i = 0; i < src->GetSize(); i += buffer.size()) {
+        for (std::size_t i = 0; i < src->GetSize(); i += buffer.size()) {
             if (progress.wasCanceled()) {
                 dest->Resize(0);
                 return false;

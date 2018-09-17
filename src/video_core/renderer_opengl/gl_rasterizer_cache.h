@@ -91,7 +91,7 @@ struct SurfaceParams {
         Invalid = 255,
     };
 
-    static constexpr size_t MaxPixelFormat = static_cast<size_t>(PixelFormat::Max);
+    static constexpr std::size_t MaxPixelFormat = static_cast<std::size_t>(PixelFormat::Max);
 
     enum class ComponentType {
         Invalid = 0,
@@ -201,8 +201,8 @@ struct SurfaceParams {
             1, // Z32FS8
         }};
 
-        ASSERT(static_cast<size_t>(format) < compression_factor_table.size());
-        return compression_factor_table[static_cast<size_t>(format)];
+        ASSERT(static_cast<std::size_t>(format) < compression_factor_table.size());
+        return compression_factor_table[static_cast<std::size_t>(format)];
     }
 
     static constexpr u32 GetFormatBpp(PixelFormat format) {
@@ -263,8 +263,8 @@ struct SurfaceParams {
             64,  // Z32FS8
         }};
 
-        ASSERT(static_cast<size_t>(format) < bpp_table.size());
-        return bpp_table[static_cast<size_t>(format)];
+        ASSERT(static_cast<std::size_t>(format) < bpp_table.size());
+        return bpp_table[static_cast<std::size_t>(format)];
     }
 
     u32 GetFormatBpp() const {
@@ -644,16 +644,18 @@ struct SurfaceParams {
     }
 
     static SurfaceType GetFormatType(PixelFormat pixel_format) {
-        if (static_cast<size_t>(pixel_format) < static_cast<size_t>(PixelFormat::MaxColorFormat)) {
+        if (static_cast<std::size_t>(pixel_format) <
+            static_cast<std::size_t>(PixelFormat::MaxColorFormat)) {
             return SurfaceType::ColorTexture;
         }
 
-        if (static_cast<size_t>(pixel_format) < static_cast<size_t>(PixelFormat::MaxDepthFormat)) {
+        if (static_cast<std::size_t>(pixel_format) <
+            static_cast<std::size_t>(PixelFormat::MaxDepthFormat)) {
             return SurfaceType::Depth;
         }
 
-        if (static_cast<size_t>(pixel_format) <
-            static_cast<size_t>(PixelFormat::MaxDepthStencilFormat)) {
+        if (static_cast<std::size_t>(pixel_format) <
+            static_cast<std::size_t>(PixelFormat::MaxDepthStencilFormat)) {
             return SurfaceType::DepthStencil;
         }
 
@@ -667,7 +669,7 @@ struct SurfaceParams {
     MathUtil::Rectangle<u32> GetRect() const;
 
     /// Returns the size of this surface in bytes, adjusted for compression
-    size_t SizeInBytes() const {
+    std::size_t SizeInBytes() const {
         const u32 compression_factor{GetCompressionFactor(pixel_format)};
         ASSERT(width % compression_factor == 0);
         ASSERT(height % compression_factor == 0);
@@ -679,7 +681,7 @@ struct SurfaceParams {
     static SurfaceParams CreateForTexture(const Tegra::Texture::FullTextureInfo& config);
 
     /// Creates SurfaceParams from a framebuffer configuration
-    static SurfaceParams CreateForFramebuffer(size_t index);
+    static SurfaceParams CreateForFramebuffer(std::size_t index);
 
     /// Creates SurfaceParams for a depth buffer configuration
     static SurfaceParams CreateForDepthBuffer(u32 zeta_width, u32 zeta_height,
@@ -702,7 +704,7 @@ struct SurfaceParams {
     u32 height;
     u32 depth;
     u32 unaligned_height;
-    size_t size_in_bytes;
+    std::size_t size_in_bytes;
     SurfaceTarget target;
 };
 
@@ -719,7 +721,7 @@ struct SurfaceReserveKey : Common::HashableStruct<OpenGL::SurfaceParams> {
 namespace std {
 template <>
 struct hash<SurfaceReserveKey> {
-    size_t operator()(const SurfaceReserveKey& k) const {
+    std::size_t operator()(const SurfaceReserveKey& k) const {
         return k.Hash();
     }
 };
@@ -735,7 +737,7 @@ public:
         return params.addr;
     }
 
-    size_t GetSizeInBytes() const {
+    std::size_t GetSizeInBytes() const {
         return params.size_in_bytes;
     }
 
@@ -783,7 +785,7 @@ public:
     Surface GetDepthBufferSurface(bool preserve_contents);
 
     /// Get the color surface based on the framebuffer configuration and the specified render target
-    Surface GetColorBufferSurface(size_t index, bool preserve_contents);
+    Surface GetColorBufferSurface(std::size_t index, bool preserve_contents);
 
     /// Flushes the surface to Switch memory
     void FlushSurface(const Surface& surface);

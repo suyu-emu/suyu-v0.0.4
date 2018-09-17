@@ -155,7 +155,7 @@ constexpr std::array<const char*, 58> RESULT_MESSAGES{
 };
 
 std::ostream& operator<<(std::ostream& os, ResultStatus status) {
-    os << RESULT_MESSAGES.at(static_cast<size_t>(status));
+    os << RESULT_MESSAGES.at(static_cast<std::size_t>(status));
     return os;
 }
 

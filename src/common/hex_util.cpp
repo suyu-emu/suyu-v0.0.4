@@ -18,7 +18,7 @@ u8 ToHexNibble(char c1) {
     return 0;
 }
 
-std::array<u8, 16> operator""_array16(const char* str, size_t len) {
+std::array<u8, 16> operator""_array16(const char* str, std::size_t len) {
     if (len != 32) {
         LOG_ERROR(Common,
                   "Attempting to parse string to array that is not of correct size (expected=32, "
@@ -29,7 +29,7 @@ std::array<u8, 16> operator""_array16(const char* str, size_t len) {
     return HexStringToArray<16>(str);
 }
 
-std::array<u8, 32> operator""_array32(const char* str, size_t len) {
+std::array<u8, 32> operator""_array32(const char* str, std::size_t len) {
     if (len != 64) {
         LOG_ERROR(Common,
                   "Attempting to parse string to array that is not of correct size (expected=64, "
