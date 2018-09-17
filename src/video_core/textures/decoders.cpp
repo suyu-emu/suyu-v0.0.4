@@ -63,6 +63,7 @@ u32 BytesPerPixel(TextureFormat format) {
     case TextureFormat::R32_G32_B32:
         return 12;
     case TextureFormat::ASTC_2D_4X4:
+    case TextureFormat::ASTC_2D_8X8:
     case TextureFormat::A8R8G8B8:
     case TextureFormat::A2B10G10R10:
     case TextureFormat::BF10GF11RF11:
@@ -111,6 +112,7 @@ std::vector<u8> DecodeTexture(const std::vector<u8>& texture_data, TextureFormat
     case TextureFormat::BC6H_UF16:
     case TextureFormat::BC6H_SF16:
     case TextureFormat::ASTC_2D_4X4:
+    case TextureFormat::ASTC_2D_8X8:
     case TextureFormat::A8R8G8B8:
     case TextureFormat::A2B10G10R10:
     case TextureFormat::A1B5G5R5:
