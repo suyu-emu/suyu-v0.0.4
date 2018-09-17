@@ -1779,8 +1779,8 @@ private:
                 Tegra::Shader::IpaMode input_mode{Tegra::Shader::IpaInterpMode::Perspective,
                                                   Tegra::Shader::IpaSampleMode::Default};
 
-                u32 next_element = instr.attribute.fmt20.element;
-                u32 next_index = static_cast<u32>(instr.attribute.fmt20.index.Value());
+                u64 next_element = instr.attribute.fmt20.element;
+                u64 next_index = static_cast<u64>(instr.attribute.fmt20.index.Value());
 
                 const auto LoadNextElement = [&](u32 reg_offset) {
                     regs.SetRegisterToInputAttibute(instr.gpr0.Value() + reg_offset, next_element,
@@ -1844,8 +1844,8 @@ private:
                 ASSERT_MSG((instr.attribute.fmt20.immediate.Value() % sizeof(u32)) == 0,
                            "Unaligned attribute loads are not supported");
 
-                u32 next_element = instr.attribute.fmt20.element;
-                u32 next_index = static_cast<u32>(instr.attribute.fmt20.index.Value());
+                u64 next_element = instr.attribute.fmt20.element;
+                u64 next_index = static_cast<u64>(instr.attribute.fmt20.index.Value());
 
                 const auto StoreNextElement = [&](u32 reg_offset) {
                     regs.SetOutputAttributeToRegister(static_cast<Attribute::Index>(next_index),
