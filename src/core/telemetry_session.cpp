@@ -33,7 +33,7 @@ static u64 GenerateTelemetryId() {
     mbedtls_ctr_drbg_init(&ctr_drbg);
     ASSERT(mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
                                  reinterpret_cast<const unsigned char*>(personalization.c_str()),
-                                 personalization.size()) == 0)
+                                 personalization.size()) == 0);
     ASSERT(mbedtls_ctr_drbg_random(&ctr_drbg, reinterpret_cast<unsigned char*>(&telemetry_id),
                                    sizeof(u64)) == 0);
 
