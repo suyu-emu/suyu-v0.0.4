@@ -12,6 +12,7 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/engines/shader_bytecode.h"
+#include "video_core/engines/shader_header.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 
@@ -26,7 +27,7 @@ using Tegra::Shader::Sampler;
 using Tegra::Shader::SubOp;
 
 constexpr u32 PROGRAM_END = MAX_PROGRAM_CODE_LENGTH;
-constexpr u32 PROGRAM_HEADER_SIZE = 0x50;
+constexpr u32 PROGRAM_HEADER_SIZE = sizeof(Tegra::Shader::Header);
 
 class DecompileFail : public std::runtime_error {
 public:
@@ -674,7 +675,7 @@ public:
                   u32 main_offset, Maxwell3D::Regs::ShaderStage stage, const std::string& suffix)
         : subroutines(subroutines), program_code(program_code), main_offset(main_offset),
           stage(stage), suffix(suffix) {
-
+        std::memcpy(&header, program_code.data(), sizeof(Tegra::Shader::Header));
         Generate(suffix);
     }
 
@@ -688,23 +689,6 @@ public:
     }
 
 private:
-    // Shader program header for a Fragment Shader.
-    struct FragmentHeader {
-        INSERT_PADDING_WORDS(5);
-        INSERT_PADDING_WORDS(13);
-        u32 enabled_color_outputs;
-        union {
-            BitField<0, 1, u32> writes_samplemask;
-            BitField<1, 1, u32> writes_depth;
-        };
-
-        bool IsColorComponentOutputEnabled(u32 render_target, u32 component) const {
-            const u32 bit = render_target * 4 + component;
-            return enabled_color_outputs & (1 << bit);
-        }
-    };
-    static_assert(sizeof(FragmentHeader) == PROGRAM_HEADER_SIZE, "FragmentHeader size is wrong");
-
     /// Gets the Subroutine object corresponding to the specified address.
     const Subroutine& GetSubroutine(u32 begin, u32 end) const {
         const auto iter = subroutines.find(Subroutine{begin, end, suffix});
@@ -1010,10 +994,8 @@ private:
     /// Writes the output values from a fragment shader to the corresponding GLSL output variables.
     void EmitFragmentOutputsWrite() {
         ASSERT(stage == Maxwell3D::Regs::ShaderStage::Fragment);
-        FragmentHeader header;
-        std::memcpy(&header, program_code.data(), PROGRAM_HEADER_SIZE);
 
-        ASSERT_MSG(header.writes_samplemask == 0, "Samplemask write is unimplemented");
+        ASSERT_MSG(header.ps.omap.sample_mask == 0, "Samplemask write is unimplemented");
 
         // Write the color outputs using the data in the shader registers, disabled
         // rendertargets/components are skipped in the register assignment.
@@ -1022,7 +1004,7 @@ private:
              ++render_target) {
             // TODO(Subv): Figure out how dual-source blending is configured in the Switch.
             for (u32 component = 0; component < 4; ++component) {
-                if (header.IsColorComponentOutputEnabled(render_target, component)) {
+                if (header.ps.IsColorComponentOutputEnabled(render_target, component)) {
                     shader.AddLine(fmt::format("FragColor{}[{}] = {};", render_target, component,
                                                regs.GetRegisterAsFloat(current_reg)));
                     ++current_reg;
@@ -1030,7 +1012,7 @@ private:
             }
         }
 
-        if (header.writes_depth) {
+        if (header.ps.omap.depth) {
             // The depth output is always 2 registers after the last color output, and current_reg
             // already contains one past the last color register.
 
@@ -2666,6 +2648,7 @@ private:
 private:
     const std::set<Subroutine>& subroutines;
     const ProgramCode& program_code;
+    Tegra::Shader::Header header;
     const u32 main_offset;
     Maxwell3D::Regs::ShaderStage stage;
     const std::string& suffix;
