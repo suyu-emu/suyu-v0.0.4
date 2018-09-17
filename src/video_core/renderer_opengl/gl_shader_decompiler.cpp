@@ -1510,8 +1510,6 @@ private:
             case OpCode::Id::LEA_IMM:
             case OpCode::Id::LEA_RZ:
             case OpCode::Id::LEA_HI: {
-                std::string op_a;
-                std::string op_b;
                 std::string op_c;
 
                 switch (opcode->GetId()) {
