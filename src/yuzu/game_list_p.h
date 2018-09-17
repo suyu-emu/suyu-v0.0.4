@@ -106,7 +106,7 @@ class GameListItemCompat : public GameListItem {
 public:
     static const int CompatNumberRole = Qt::UserRole + 1;
     GameListItemCompat() = default;
-    explicit GameListItemCompat(const QString& compatiblity) {
+    explicit GameListItemCompat(const QString& compatibility) {
         struct CompatStatus {
             QString color;
             const char* text;
@@ -123,13 +123,13 @@ public:
         {"99", {"#000000", QT_TR_NOOP("Not Tested"), QT_TR_NOOP("The game has not yet been tested.")}}};
         // clang-format on
 
-        auto iterator = status_data.find(compatiblity);
+        auto iterator = status_data.find(compatibility);
         if (iterator == status_data.end()) {
-            LOG_WARNING(Frontend, "Invalid compatibility number {}", compatiblity.toStdString());
+            LOG_WARNING(Frontend, "Invalid compatibility number {}", compatibility.toStdString());
             return;
         }
-        CompatStatus status = iterator->second;
-        setData(compatiblity, CompatNumberRole);
+        const CompatStatus& status = iterator->second;
+        setData(compatibility, CompatNumberRole);
         setText(QObject::tr(status.text));
         setToolTip(QObject::tr(status.tooltip));
         setData(CreateCirclePixmapFromColor(status.color), Qt::DecorationRole);
