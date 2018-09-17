@@ -235,6 +235,14 @@ private:
     const std::string& suffix;
 };
 
+enum class InternalFlag : u64 {
+    ZeroFlag = 0,
+    CarryFlag = 1,
+    OverflowFlag = 2,
+    NaNFlag = 3,
+    Amount
+};
+
 /**
  * Used to manage shader registers that are emulated with GLSL. This class keeps track of the state
  * of all registers (e.g. whether they are currently being used as Floats or Integers), and
@@ -328,13 +336,19 @@ public:
     void SetRegisterToInteger(const Register& reg, bool is_signed, u64 elem,
                               const std::string& value, u64 dest_num_components,
                               u64 value_num_components, bool is_saturated = false,
-                              u64 dest_elem = 0, Register::Size size = Register::Size::Word) {
+                              u64 dest_elem = 0, Register::Size size = Register::Size::Word,
+                              bool sets_cc = false) {
         ASSERT_MSG(!is_saturated, "Unimplemented");
 
         const std::string func{is_signed ? "intBitsToFloat" : "uintBitsToFloat"};
 
         SetRegister(reg, elem, func + '(' + ConvertIntegerSize(value, size) + ')',
                     dest_num_components, value_num_components, dest_elem);
+
+        if (sets_cc) {
+            const std::string zero_condition = "( " + ConvertIntegerSize(value, size) + " == 0 )";
+            SetInternalFlag(InternalFlag::ZeroFlag, zero_condition);
+        }
     }
 
     /**
@@ -352,12 +366,23 @@ public:
     }
 
     std::string GetControlCode(const Tegra::Shader::ControlCode cc) const {
-        const u32 code = static_cast<u32>(cc);
-        return "controlCode_" + std::to_string(code) + suffix;
+        switch (cc) {
+        case Tegra::Shader::ControlCode::NEU:
+            return "!(" + GetInternalFlag(InternalFlag::ZeroFlag) + ')';
+        default:
+            LOG_CRITICAL(HW_GPU, "Unimplemented Control Code {}", static_cast<u32>(cc));
+            UNREACHABLE();
+            return "false";
+        }
     }
 
-    void SetControlCode(const Tegra::Shader::ControlCode cc, const std::string& value) const {
-        shader.AddLine(GetControlCode(cc) + " = " + value + ';');
+    std::string GetInternalFlag(const InternalFlag ii) const {
+        const u32 code = static_cast<u32>(ii);
+        return "internalFlag_" + std::to_string(code) + suffix;
+    }
+
+    void SetInternalFlag(const InternalFlag ii, const std::string& value) const {
+        shader.AddLine(GetInternalFlag(ii) + " = " + value + ';');
     }
 
     /**
@@ -423,9 +448,9 @@ public:
         }
         declarations.AddNewLine();
 
-        for (u32 cc = 0; cc < 32; cc++) {
-            const Tegra::Shader::ControlCode code = static_cast<Tegra::Shader::ControlCode>(cc);
-            declarations.AddLine("bool " + GetControlCode(code) + " = false;");
+        for (u32 ii = 0; ii < static_cast<u64>(InternalFlag::Amount); ii++) {
+            const InternalFlag code = static_cast<InternalFlag>(ii);
+            declarations.AddLine("bool " + GetInternalFlag(code) + " = false;");
         }
         declarations.AddNewLine();
 
@@ -1655,11 +1680,8 @@ private:
                 }
 
                 regs.SetRegisterToInteger(instr.gpr0, instr.conversion.is_output_signed, 0, op_a, 1,
-                                          1, instr.alu.saturate_d, 0, instr.conversion.dest_size);
-                if (instr.generates_cc.Value() != 0) {
-                    const std::string neucondition = "( " + op_a + " != 0 )";
-                    regs.SetControlCode(Tegra::Shader::ControlCode::NEU, neucondition);
-                }
+                                          1, instr.alu.saturate_d, 0, instr.conversion.dest_size,
+                                          instr.generates_cc.Value() != 0);
                 break;
             }
             case OpCode::Id::I2F_R:
