@@ -128,7 +128,7 @@ public:
             LOG_WARNING(Frontend, "Invalid compatibility number {}", compatiblity.toStdString());
             return;
         }
-        CompatStatus status = iterator->second;
+        const CompatStatus& status = iterator->second;
         setData(compatiblity, CompatNumberRole);
         setText(QObject::tr(status.text));
         setToolTip(QObject::tr(status.tooltip));
