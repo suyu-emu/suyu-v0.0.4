@@ -62,8 +62,8 @@ std::size_t TimeStretcher::Process(const s16* in, std::size_t num_in, s16* out,
     LOG_DEBUG(Audio, "{:5}/{:5} ratio:{:0.6f} backlog:{:0.6f}", num_in, num_out, m_stretch_ratio,
               backlog_fullness);
 
-    m_sound_touch.putSamples(in, num_in);
-    return m_sound_touch.receiveSamples(out, num_out);
+    m_sound_touch.putSamples(in, static_cast<u32>(num_in));
+    return m_sound_touch.receiveSamples(out, static_cast<u32>(num_out));
 }
 
 } // namespace AudioCore
