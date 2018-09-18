@@ -29,14 +29,12 @@ public:
     u64 GetPC() const override;
     u64 GetReg(int index) const override;
     void SetReg(int index, u64 value) override;
-    u128 GetExtReg(int index) const override;
-    void SetExtReg(int index, u128 value) override;
-    u32 GetVFPReg(int index) const override;
-    void SetVFPReg(int index, u32 value) override;
-    u32 GetCPSR() const override;
+    u128 GetVectorReg(int index) const override;
+    void SetVectorReg(int index, u128 value) override;
+    u32 GetPSTATE() const override;
+    void SetPSTATE(u32 pstate) override;
     void Run() override;
     void Step() override;
-    void SetCPSR(u32 cpsr) override;
     VAddr GetTlsAddress() const override;
     void SetTlsAddress(VAddr address) override;
     void SetTPIDR_EL0(u64 value) override;

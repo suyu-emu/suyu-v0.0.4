@@ -194,29 +194,20 @@ void ARM_Dynarmic::SetReg(int index, u64 value) {
     jit->SetRegister(index, value);
 }
 
-u128 ARM_Dynarmic::GetExtReg(int index) const {
+u128 ARM_Dynarmic::GetVectorReg(int index) const {
     return jit->GetVector(index);
 }
 
-void ARM_Dynarmic::SetExtReg(int index, u128 value) {
+void ARM_Dynarmic::SetVectorReg(int index, u128 value) {
     jit->SetVector(index, value);
 }
 
-u32 ARM_Dynarmic::GetVFPReg(int /*index*/) const {
-    UNIMPLEMENTED();
-    return {};
-}
-
-void ARM_Dynarmic::SetVFPReg(int /*index*/, u32 /*value*/) {
-    UNIMPLEMENTED();
-}
-
-u32 ARM_Dynarmic::GetCPSR() const {
+u32 ARM_Dynarmic::GetPSTATE() const {
     return jit->GetPstate();
 }
 
-void ARM_Dynarmic::SetCPSR(u32 cpsr) {
-    jit->SetPstate(cpsr);
+void ARM_Dynarmic::SetPSTATE(u32 pstate) {
+    jit->SetPstate(pstate);
 }
 
 u64 ARM_Dynarmic::GetTlsAddress() const {
@@ -239,18 +230,18 @@ void ARM_Dynarmic::SaveContext(ThreadContext& ctx) {
     ctx.cpu_registers = jit->GetRegisters();
     ctx.sp = jit->GetSP();
     ctx.pc = jit->GetPC();
-    ctx.cpsr = jit->GetPstate();
-    ctx.fpu_registers = jit->GetVectors();
-    ctx.fpscr = jit->GetFpcr();
+    ctx.pstate = jit->GetPstate();
+    ctx.vector_registers = jit->GetVectors();
+    ctx.fpcr = jit->GetFpcr();
 }
 
 void ARM_Dynarmic::LoadContext(const ThreadContext& ctx) {
     jit->SetRegisters(ctx.cpu_registers);
     jit->SetSP(ctx.sp);
     jit->SetPC(ctx.pc);
-    jit->SetPstate(static_cast<u32>(ctx.cpsr));
-    jit->SetVectors(ctx.fpu_registers);
-    jit->SetFpcr(static_cast<u32>(ctx.fpscr));
+    jit->SetPstate(static_cast<u32>(ctx.pstate));
+    jit->SetVectors(ctx.vector_registers);
+    jit->SetFpcr(static_cast<u32>(ctx.fpcr));
 }
 
 void ARM_Dynarmic::PrepareReschedule() {
