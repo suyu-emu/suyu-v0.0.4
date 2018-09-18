@@ -20,6 +20,7 @@
 #include "core/hle/service/nvflinger/nvflinger.h"
 #include "core/hle/service/pm/pm.h"
 #include "core/hle/service/set/set.h"
+#include "core/hle/service/vi/vi.h"
 #include "core/settings.h"
 
 namespace Service::AM {
@@ -334,7 +335,7 @@ ICommonStateGetter::ICommonStateGetter() : ServiceFramework("ICommonStateGetter"
         {51, nullptr, "SetVrModeEnabled"},
         {52, nullptr, "SwitchLcdBacklight"},
         {55, nullptr, "IsInControllerFirmwareUpdateSection"},
-        {60, nullptr, "GetDefaultDisplayResolution"},
+        {60, &ICommonStateGetter::GetDefaultDisplayResolution, "GetDefaultDisplayResolution"},
         {61, &ICommonStateGetter::GetDefaultDisplayResolutionChangeEvent,
          "GetDefaultDisplayResolutionChangeEvent"},
         {62, nullptr, "GetHdcpAuthenticationState"},
@@ -391,6 +392,21 @@ void ICommonStateGetter::GetDefaultDisplayResolutionChangeEvent(Kernel::HLEReque
     rb.PushCopyObjects(event);
 
     LOG_WARNING(Service_AM, "(STUBBED) called");
+}
+
+void ICommonStateGetter::GetDefaultDisplayResolution(Kernel::HLERequestContext& ctx) {
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(RESULT_SUCCESS);
+
+    if (Settings::values.use_docked_mode) {
+        rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedWidth));
+        rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedHeight));
+    } else {
+        rb.Push(static_cast<u32>(Service::VI::DisplayResolution::UndockedWidth));
+        rb.Push(static_cast<u32>(Service::VI::DisplayResolution::UndockedHeight));
+    }
+
+    LOG_DEBUG(Service_AM, "called");
 }
 
 void ICommonStateGetter::GetOperationMode(Kernel::HLERequestContext& ctx) {
