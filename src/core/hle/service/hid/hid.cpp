@@ -329,7 +329,7 @@ public:
             {80, nullptr, "GetGyroscopeZeroDriftMode"},
             {81, nullptr, "ResetGyroscopeZeroDriftMode"},
             {82, &Hid::IsSixAxisSensorAtRest, "IsSixAxisSensorAtRest"},
-            {91, nullptr, "ActivateGesture"},
+            {91, &Hid::ActivateGesture, "ActivateGesture"},
             {100, &Hid::SetSupportedNpadStyleSet, "SetSupportedNpadStyleSet"},
             {101, &Hid::GetSupportedNpadStyleSet, "GetSupportedNpadStyleSet"},
             {102, &Hid::SetSupportedNpadIdType, "SetSupportedNpadIdType"},
@@ -593,6 +593,12 @@ private:
     }
 
     void StopSixAxisSensor(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+    }
+
+    void ActivateGesture(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_HID, "(STUBBED) called");
