@@ -25,7 +25,7 @@ const UUID& UUID::Generate() {
 ProfileManager::ProfileManager() {
     // TODO(ogniK): Create the default user we have for now until loading/saving users is added
     auto user_uuid = UUID{1, 0};
-    CreateNewUser(user_uuid, Settings::values.username);
+    ASSERT(CreateNewUser(user_uuid, Settings::values.username).IsSuccess());
     OpenUser(user_uuid);
 }
 
@@ -91,7 +91,8 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, const ProfileUsername& usern
 /// specifically by allowing an std::string for the username. This is required specifically since
 /// we're loading a string straight from the config
 ResultCode ProfileManager::CreateNewUser(UUID uuid, const std::string& username) {
-    ProfileUsername username_output;
+    ProfileUsername username_output{};
+
     if (username.size() > username_output.size()) {
         std::copy_n(username.begin(), username_output.size(), username_output.begin());
     } else {
