@@ -313,7 +313,7 @@ public:
             {64, nullptr, "DeactivateJoySixAxisSensor"},
             {65, nullptr, "GetJoySixAxisSensorLifoHandle"},
             {66, &Hid::StartSixAxisSensor, "StartSixAxisSensor"},
-            {67, nullptr, "StopSixAxisSensor"},
+            {67, &Hid::StopSixAxisSensor, "StopSixAxisSensor"},
             {68, nullptr, "IsSixAxisSensorFusionEnabled"},
             {69, nullptr, "EnableSixAxisSensorFusion"},
             {70, nullptr, "SetSixAxisSensorFusionParameters"},
@@ -587,6 +587,12 @@ private:
     }
 
     void StartConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+    }
+
+    void StopSixAxisSensor(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_HID, "(STUBBED) called");
