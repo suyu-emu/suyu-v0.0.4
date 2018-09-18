@@ -34,7 +34,7 @@ public:
         static const FunctionInfo functions[] = {
             {0, &IProfile::Get, "Get"},
             {1, &IProfile::GetBase, "GetBase"},
-            {10, nullptr, "GetImageSize"},
+            {10, &IProfile::GetImageSize, "GetImageSize"},
             {11, &IProfile::LoadImage, "LoadImage"},
         };
         RegisterHandlers(functions);
@@ -88,6 +88,14 @@ private:
             0x00, 0x00, 0x3f, 0x00, 0xd2, 0xcf, 0x20, 0xff, 0xd9,
         };
         ctx.WriteBuffer(jpeg);
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(jpeg_size);
+    }
+
+    void GetImageSize(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
+        constexpr u32 jpeg_size = 107;
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(jpeg_size);
