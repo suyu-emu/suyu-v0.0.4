@@ -62,7 +62,7 @@ ResultCode Mutex::TryAcquire(HandleTable& handle_table, VAddr address, Handle ho
                              Handle requesting_thread_handle) {
     // The mutex address must be 4-byte aligned
     if ((address % sizeof(u32)) != 0) {
-        return ResultCode(ErrorModule::Kernel, ErrCodes::InvalidAddress);
+        return ERR_INVALID_ADDRESS;
     }
 
     SharedPtr<Thread> holding_thread = handle_table.Get<Thread>(holding_thread_handle);
@@ -100,7 +100,7 @@ ResultCode Mutex::TryAcquire(HandleTable& handle_table, VAddr address, Handle ho
 ResultCode Mutex::Release(VAddr address) {
     // The mutex address must be 4-byte aligned
     if ((address % sizeof(u32)) != 0) {
-        return ResultCode(ErrorModule::Kernel, ErrCodes::InvalidAddress);
+        return ERR_INVALID_ADDRESS;
     }
 
     auto [thread, num_waiters] = GetHighestPriorityMutexWaitingThread(GetCurrentThread(), address);

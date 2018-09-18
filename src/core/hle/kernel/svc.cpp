@@ -280,6 +280,10 @@ static ResultCode ArbitrateLock(Handle holding_thread_handle, VAddr mutex_addr,
               "requesting_current_thread_handle=0x{:08X}",
               holding_thread_handle, mutex_addr, requesting_thread_handle);
 
+    if (Memory::IsKernelVirtualAddress(mutex_addr)) {
+        return ERR_INVALID_ADDRESS_STATE;
+    }
+
     auto& handle_table = Core::System::GetInstance().Kernel().HandleTable();
     return Mutex::TryAcquire(handle_table, mutex_addr, holding_thread_handle,
                              requesting_thread_handle);
@@ -288,6 +292,10 @@ static ResultCode ArbitrateLock(Handle holding_thread_handle, VAddr mutex_addr,
 /// Unlock a mutex
 static ResultCode ArbitrateUnlock(VAddr mutex_addr) {
     LOG_TRACE(Kernel_SVC, "called mutex_addr=0x{:X}", mutex_addr);
+
+    if (Memory::IsKernelVirtualAddress(mutex_addr)) {
+        return ERR_INVALID_ADDRESS_STATE;
+    }
 
     return Mutex::Release(mutex_addr);
 }
