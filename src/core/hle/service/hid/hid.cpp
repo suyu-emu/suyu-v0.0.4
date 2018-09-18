@@ -364,8 +364,8 @@ public:
             {208, nullptr, "GetActualVibrationGcErmCommand"},
             {209, nullptr, "BeginPermitVibrationSession"},
             {210, nullptr, "EndPermitVibrationSession"},
-            {300, nullptr, "ActivateConsoleSixAxisSensor"},
-            {301, nullptr, "StartConsoleSixAxisSensor"},
+            {300, &Hid::ActivateConsoleSixAxisSensor, "ActivateConsoleSixAxisSensor"},
+            {301, &Hid::StartConsoleSixAxisSensor, "StartConsoleSixAxisSensor"},
             {302, nullptr, "StopConsoleSixAxisSensor"},
             {303, nullptr, "ActivateSevenSixAxisSensor"},
             {304, nullptr, "StartSevenSixAxisSensor"},
@@ -575,6 +575,18 @@ private:
     }
 
     void SendVibrationValues(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+    }
+
+    void ActivateConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+    }
+
+    void StartConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_HID, "(STUBBED) called");
