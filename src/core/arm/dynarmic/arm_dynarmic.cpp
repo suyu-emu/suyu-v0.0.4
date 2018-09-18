@@ -304,8 +304,8 @@ bool DynarmicExclusiveMonitor::ExclusiveWrite64(std::size_t core_index, VAddr va
 
 bool DynarmicExclusiveMonitor::ExclusiveWrite128(std::size_t core_index, VAddr vaddr, u128 value) {
     return monitor.DoExclusiveOperation(core_index, vaddr, 16, [&] {
-        Memory::Write64(vaddr, value[0]);
-        Memory::Write64(vaddr, value[1]);
+        Memory::Write64(vaddr + 0, value[0]);
+        Memory::Write64(vaddr + 8, value[1]);
     });
 }
 
