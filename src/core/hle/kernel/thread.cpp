@@ -217,8 +217,8 @@ static void ResetThreadContext(Core::ARM_Interface::ThreadContext& context, VAdd
     context.cpu_registers[0] = arg;
     context.pc = entry_point;
     context.sp = stack_top;
-    context.cpsr = 0;
-    context.fpscr = 0;
+    context.pstate = 0;
+    context.fpcr = 0;
 }
 
 ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name, VAddr entry_point,

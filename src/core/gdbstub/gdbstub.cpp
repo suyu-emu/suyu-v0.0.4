@@ -65,9 +65,9 @@ constexpr u32 MSG_WAITALL = 8;
 constexpr u32 LR_REGISTER = 30;
 constexpr u32 SP_REGISTER = 31;
 constexpr u32 PC_REGISTER = 32;
-constexpr u32 CPSR_REGISTER = 33;
+constexpr u32 PSTATE_REGISTER = 33;
 constexpr u32 UC_ARM64_REG_Q0 = 34;
-constexpr u32 FPSCR_REGISTER = 66;
+constexpr u32 FPCR_REGISTER = 66;
 
 // TODO/WiP - Used while working on support for FPU
 constexpr u32 TODO_DUMMY_REG_997 = 997;
@@ -116,7 +116,7 @@ constexpr char target_xml[] =
 
     <reg name="pc" bitsize="64" type="code_ptr"/>
 
-    <flags id="cpsr_flags" size="4">
+    <flags id="pstate_flags" size="4">
       <field name="SP" start="0" end="0"/>
       <field name="" start="1" end="1"/>
       <field name="EL" start="2" end="3"/>
@@ -135,7 +135,7 @@ constexpr char target_xml[] =
       <field name="Z" start="30" end="30"/>
       <field name="N" start="31" end="31"/>
     </flags>
-    <reg name="cpsr" bitsize="32" type="cpsr_flags"/>
+    <reg name="pstate" bitsize="32" type="pstate_flags"/>
   </feature>
   <feature name="org.gnu.gdb.aarch64.fpu">
   </feature>
@@ -227,10 +227,10 @@ static u64 RegRead(std::size_t id, Kernel::Thread* thread = nullptr) {
         return thread->context.sp;
     } else if (id == PC_REGISTER) {
         return thread->context.pc;
-    } else if (id == CPSR_REGISTER) {
-        return thread->context.cpsr;
-    } else if (id > CPSR_REGISTER && id < FPSCR_REGISTER) {
-        return thread->context.fpu_registers[id - UC_ARM64_REG_Q0][0];
+    } else if (id == PSTATE_REGISTER) {
+        return thread->context.pstate;
+    } else if (id > PSTATE_REGISTER && id < FPCR_REGISTER) {
+        return thread->context.vector_registers[id - UC_ARM64_REG_Q0][0];
     } else {
         return 0;
     }
@@ -247,10 +247,10 @@ static void RegWrite(std::size_t id, u64 val, Kernel::Thread* thread = nullptr) 
         thread->context.sp = val;
     } else if (id == PC_REGISTER) {
         thread->context.pc = val;
-    } else if (id == CPSR_REGISTER) {
-        thread->context.cpsr = val;
-    } else if (id > CPSR_REGISTER && id < FPSCR_REGISTER) {
-        thread->context.fpu_registers[id - (CPSR_REGISTER + 1)][0] = val;
+    } else if (id == PSTATE_REGISTER) {
+        thread->context.pstate = val;
+    } else if (id > PSTATE_REGISTER && id < FPCR_REGISTER) {
+        thread->context.vector_registers[id - (PSTATE_REGISTER + 1)][0] = val;
     }
 }
 
@@ -781,11 +781,11 @@ static void ReadRegister() {
         LongToGdbHex(reply, RegRead(id, current_thread));
     } else if (id == PC_REGISTER) {
         LongToGdbHex(reply, RegRead(id, current_thread));
-    } else if (id == CPSR_REGISTER) {
-        IntToGdbHex(reply, (u32)RegRead(id, current_thread));
-    } else if (id >= UC_ARM64_REG_Q0 && id < FPSCR_REGISTER) {
+    } else if (id == PSTATE_REGISTER) {
+        IntToGdbHex(reply, static_cast<u32>(RegRead(id, current_thread)));
+    } else if (id >= UC_ARM64_REG_Q0 && id < FPCR_REGISTER) {
         LongToGdbHex(reply, RegRead(id, current_thread));
-    } else if (id == FPSCR_REGISTER) {
+    } else if (id == FPCR_REGISTER) {
         LongToGdbHex(reply, RegRead(TODO_DUMMY_REG_998, current_thread));
     } else {
         LongToGdbHex(reply, RegRead(TODO_DUMMY_REG_997, current_thread));
@@ -811,7 +811,7 @@ static void ReadRegisters() {
 
     bufptr += 16;
 
-    IntToGdbHex(bufptr, (u32)RegRead(CPSR_REGISTER, current_thread));
+    IntToGdbHex(bufptr, static_cast<u32>(RegRead(PSTATE_REGISTER, current_thread)));
 
     bufptr += 8;
 
@@ -843,11 +843,11 @@ static void WriteRegister() {
         RegWrite(id, GdbHexToLong(buffer_ptr), current_thread);
     } else if (id == PC_REGISTER) {
         RegWrite(id, GdbHexToLong(buffer_ptr), current_thread);
-    } else if (id == CPSR_REGISTER) {
+    } else if (id == PSTATE_REGISTER) {
         RegWrite(id, GdbHexToInt(buffer_ptr), current_thread);
-    } else if (id >= UC_ARM64_REG_Q0 && id < FPSCR_REGISTER) {
+    } else if (id >= UC_ARM64_REG_Q0 && id < FPCR_REGISTER) {
         RegWrite(id, GdbHexToLong(buffer_ptr), current_thread);
-    } else if (id == FPSCR_REGISTER) {
+    } else if (id == FPCR_REGISTER) {
         RegWrite(TODO_DUMMY_REG_998, GdbHexToLong(buffer_ptr), current_thread);
     } else {
         RegWrite(TODO_DUMMY_REG_997, GdbHexToLong(buffer_ptr), current_thread);
@@ -866,16 +866,16 @@ static void WriteRegisters() {
     if (command_buffer[0] != 'G')
         return SendReply("E01");
 
-    for (u32 i = 0, reg = 0; reg <= FPSCR_REGISTER; i++, reg++) {
+    for (u32 i = 0, reg = 0; reg <= FPCR_REGISTER; i++, reg++) {
         if (reg <= SP_REGISTER) {
             RegWrite(reg, GdbHexToLong(buffer_ptr + i * 16), current_thread);
         } else if (reg == PC_REGISTER) {
             RegWrite(PC_REGISTER, GdbHexToLong(buffer_ptr + i * 16), current_thread);
-        } else if (reg == CPSR_REGISTER) {
-            RegWrite(CPSR_REGISTER, GdbHexToInt(buffer_ptr + i * 16), current_thread);
-        } else if (reg >= UC_ARM64_REG_Q0 && reg < FPSCR_REGISTER) {
+        } else if (reg == PSTATE_REGISTER) {
+            RegWrite(PSTATE_REGISTER, GdbHexToInt(buffer_ptr + i * 16), current_thread);
+        } else if (reg >= UC_ARM64_REG_Q0 && reg < FPCR_REGISTER) {
             RegWrite(reg, GdbHexToLong(buffer_ptr + i * 16), current_thread);
-        } else if (reg == FPSCR_REGISTER) {
+        } else if (reg == FPCR_REGISTER) {
             RegWrite(TODO_DUMMY_REG_998, GdbHexToLong(buffer_ptr + i * 16), current_thread);
         } else {
             UNIMPLEMENTED();
