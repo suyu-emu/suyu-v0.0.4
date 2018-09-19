@@ -54,7 +54,7 @@ boost::optional<Key128> DeriveSDSeed() {
         return boost::none;
 
     std::array<u8, 0x10> buffer{};
-    size_t offset = 0;
+    std::size_t offset = 0;
     for (; offset + 0x10 < save_43.GetSize(); ++offset) {
         save_43.Seek(offset, SEEK_SET);
         save_43.ReadBytes(buffer.data(), buffer.size());
@@ -105,7 +105,7 @@ Loader::ResultStatus DeriveSDKeys(std::array<Key256, 2>& sd_keys, const KeyManag
 
     // Combine sources and seed
     for (auto& source : sd_key_sources) {
-        for (size_t i = 0; i < source.size(); ++i)
+        for (std::size_t i = 0; i < source.size(); ++i)
             source[i] ^= sd_seed[i & 0xF];
     }
 
@@ -207,7 +207,7 @@ Key256 KeyManager::GetKey(S256KeyType id, u64 field1, u64 field2) const {
     return s256_keys.at({id, field1, field2});
 }
 
-template <size_t Size>
+template <std::size_t Size>
 void KeyManager::WriteKeyToFile(bool title_key, std::string_view keyname,
                                 const std::array<u8, Size>& key) {
     const std::string yuzu_keys_dir = FileUtil::GetUserPath(FileUtil::UserPath::KeysDir);

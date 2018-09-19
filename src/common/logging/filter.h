@@ -49,6 +49,6 @@ public:
     bool IsDebug() const;
 
 private:
-    std::array<Level, static_cast<size_t>(Class::Count)> class_levels;
+    std::array<Level, static_cast<std::size_t>(Class::Count)> class_levels;
 };
 } // namespace Log

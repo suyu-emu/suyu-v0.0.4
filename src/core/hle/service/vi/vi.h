@@ -4,11 +4,10 @@
 
 #pragma once
 
-#include "core/hle/service/nvflinger/nvflinger.h"
 #include "core/hle/service/service.h"
 
-namespace CoreTiming {
-struct EventType;
+namespace Service::NVFlinger {
+class NVFlinger;
 }
 
 namespace Service::VI {

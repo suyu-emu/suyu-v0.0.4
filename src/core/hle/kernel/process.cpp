@@ -40,8 +40,8 @@ SharedPtr<Process> Process::Create(KernelCore& kernel, std::string&& name) {
     return process;
 }
 
-void Process::ParseKernelCaps(const u32* kernel_caps, size_t len) {
-    for (size_t i = 0; i < len; ++i) {
+void Process::ParseKernelCaps(const u32* kernel_caps, std::size_t len) {
+    for (std::size_t i = 0; i < len; ++i) {
         u32 descriptor = kernel_caps[i];
         u32 type = descriptor >> 20;
 
@@ -211,7 +211,7 @@ ResultCode Process::MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
                "Shared memory exceeds bounds of mapped block");
 
     const std::shared_ptr<std::vector<u8>>& backing_block = vma->second.backing_block;
-    size_t backing_block_offset = vma->second.offset + vma_offset;
+    std::size_t backing_block_offset = vma->second.offset + vma_offset;
 
     CASCADE_RESULT(auto new_vma,
                    vm_manager.MapMemoryBlock(dst_addr, backing_block, backing_block_offset, size,

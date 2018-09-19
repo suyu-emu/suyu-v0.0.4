@@ -20,10 +20,10 @@ namespace Tegra::Shader {
 
 struct Register {
     /// Number of registers
-    static constexpr size_t NumRegisters = 256;
+    static constexpr std::size_t NumRegisters = 256;
 
     /// Register 255 is special cased to always be 0
-    static constexpr size_t ZeroIndex = 255;
+    static constexpr std::size_t ZeroIndex = 255;
 
     enum class Size : u64 {
         Byte = 0,
@@ -240,6 +240,41 @@ enum class FlowCondition : u64 {
     Fcsm_Tr = 0x1C, // TODO(bunnei): What is this used for?
 };
 
+enum class ControlCode : u64 {
+    F = 0,
+    LT = 1,
+    EQ = 2,
+    LE = 3,
+    GT = 4,
+    NE = 5,
+    GE = 6,
+    Num = 7,
+    Nan = 8,
+    LTU = 9,
+    EQU = 10,
+    LEU = 11,
+    GTU = 12,
+    NEU = 13,
+    GEU = 14,
+    //
+    OFF = 16,
+    LO = 17,
+    SFF = 18,
+    LS = 19,
+    HI = 20,
+    SFT = 21,
+    HS = 22,
+    OFT = 23,
+    CSM_TA = 24,
+    CSM_TR = 25,
+    CSM_MX = 26,
+    FCSM_TA = 27,
+    FCSM_TR = 28,
+    FCSM_MX = 29,
+    RLE = 30,
+    RGT = 31,
+};
+
 enum class PredicateResultMode : u64 {
     None = 0x0,
     NotZero = 0x3,
@@ -269,6 +304,15 @@ enum class TextureProcessMode : u64 {
     LL = 3,  // Load LOD (LevelOfDetail)
     LBA = 6, // Load Bias. The A is unknown, does not appear to differ with LB
     LLA = 7  // Load LOD. The A is unknown, does not appear to differ with LL
+};
+
+enum class TextureMiscMode : u64 {
+    DC,
+    AOFFI, // Uses Offset
+    NDV,
+    NODEP,
+    MZ,
+    PTP,
 };
 
 enum class IpaInterpMode : u64 { Linear = 0, Perspective = 1, Flat = 2, Sc = 3 };
@@ -546,6 +590,15 @@ union Instruction {
     } pset;
 
     union {
+        BitField<0, 3, u64> pred0;
+        BitField<3, 3, u64> pred3;
+        BitField<8, 5, ControlCode> cc; // flag in cc
+        BitField<39, 3, u64> pred39;
+        BitField<42, 1, u64> neg_pred39;
+        BitField<45, 4, PredOperation> op; // op with pred39
+    } csetp;
+
+    union {
         BitField<39, 3, u64> pred39;
         BitField<42, 1, u64> neg_pred;
         BitField<43, 1, u64> neg_a;
@@ -590,42 +643,127 @@ union Instruction {
         BitField<28, 1, u64> array;
         BitField<29, 2, TextureType> texture_type;
         BitField<31, 4, u64> component_mask;
+        BitField<49, 1, u64> nodep_flag;
+        BitField<50, 1, u64> dc_flag;
+        BitField<54, 1, u64> aoffi_flag;
         BitField<55, 3, TextureProcessMode> process_mode;
 
-        bool IsComponentEnabled(size_t component) const {
+        bool IsComponentEnabled(std::size_t component) const {
             return ((1ull << component) & component_mask) != 0;
+        }
+
+        TextureProcessMode GetTextureProcessMode() const {
+            return process_mode;
+        }
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::DC:
+                return dc_flag != 0;
+            case TextureMiscMode::NODEP:
+                return nodep_flag != 0;
+            case TextureMiscMode::AOFFI:
+                return aoffi_flag != 0;
+            default:
+                break;
+            }
+            return false;
         }
     } tex;
 
     union {
         BitField<22, 6, TextureQueryType> query_type;
         BitField<31, 4, u64> component_mask;
+        BitField<49, 1, u64> nodep_flag;
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::NODEP:
+                return nodep_flag != 0;
+            default:
+                break;
+            }
+            return false;
+        }
     } txq;
 
     union {
         BitField<28, 1, u64> array;
         BitField<29, 2, TextureType> texture_type;
         BitField<31, 4, u64> component_mask;
+        BitField<35, 1, u64> ndv_flag;
+        BitField<49, 1, u64> nodep_flag;
 
-        bool IsComponentEnabled(size_t component) const {
+        bool IsComponentEnabled(std::size_t component) const {
             return ((1ull << component) & component_mask) != 0;
+        }
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::NDV:
+                return (ndv_flag != 0);
+            case TextureMiscMode::NODEP:
+                return (nodep_flag != 0);
+            default:
+                break;
+            }
+            return false;
         }
     } tmml;
 
     union {
         BitField<28, 1, u64> array;
         BitField<29, 2, TextureType> texture_type;
+        BitField<35, 1, u64> ndv_flag;
+        BitField<49, 1, u64> nodep_flag;
+        BitField<50, 1, u64> dc_flag;
+        BitField<54, 2, u64> info;
         BitField<56, 2, u64> component;
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::NDV:
+                return ndv_flag != 0;
+            case TextureMiscMode::NODEP:
+                return nodep_flag != 0;
+            case TextureMiscMode::DC:
+                return dc_flag != 0;
+            case TextureMiscMode::AOFFI:
+                return info == 1;
+            case TextureMiscMode::PTP:
+                return info == 2;
+            default:
+                break;
+            }
+            return false;
+        }
     } tld4;
 
     union {
+        BitField<49, 1, u64> nodep_flag;
+        BitField<50, 1, u64> dc_flag;
+        BitField<51, 1, u64> aoffi_flag;
         BitField<52, 2, u64> component;
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::DC:
+                return dc_flag != 0;
+            case TextureMiscMode::NODEP:
+                return nodep_flag != 0;
+            case TextureMiscMode::AOFFI:
+                return aoffi_flag != 0;
+            default:
+                break;
+            }
+            return false;
+        }
     } tld4s;
 
     union {
         BitField<0, 8, Register> gpr0;
         BitField<28, 8, Register> gpr28;
-        BitField<49, 1, u64> nodep;
+        BitField<49, 1, u64> nodep_flag;
         BitField<50, 3, u64> component_mask_selector;
         BitField<53, 4, u64> texture_info;
 
@@ -645,6 +783,37 @@ union Instruction {
             UNREACHABLE();
         }
 
+        TextureProcessMode GetTextureProcessMode() const {
+            switch (texture_info) {
+            case 0:
+            case 2:
+            case 6:
+            case 8:
+            case 9:
+            case 11:
+                return TextureProcessMode::LZ;
+            case 3:
+            case 5:
+            case 13:
+                return TextureProcessMode::LL;
+            default:
+                break;
+            }
+            return TextureProcessMode::None;
+        }
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::DC:
+                return (texture_info >= 4 && texture_info <= 6) || texture_info == 9;
+            case TextureMiscMode::NODEP:
+                return nodep_flag != 0;
+            default:
+                break;
+            }
+            return false;
+        }
+
         bool IsArrayTexture() const {
             // TEXS only supports Texture2D arrays.
             return texture_info >= 7 && texture_info <= 9;
@@ -654,7 +823,7 @@ union Instruction {
             return gpr28.Value() != Register::ZeroIndex;
         }
 
-        bool IsComponentEnabled(size_t component) const {
+        bool IsComponentEnabled(std::size_t component) const {
             static constexpr std::array<std::array<u32, 8>, 4> mask_lut{{
                 {},
                 {0x1, 0x2, 0x4, 0x8, 0x3, 0x9, 0xa, 0xc},
@@ -662,7 +831,7 @@ union Instruction {
                 {0x7, 0xb, 0xd, 0xe, 0xf},
             }};
 
-            size_t index{gpr0.Value() != Register::ZeroIndex ? 1U : 0U};
+            std::size_t index{gpr0.Value() != Register::ZeroIndex ? 1U : 0U};
             index |= gpr28.Value() != Register::ZeroIndex ? 2 : 0;
 
             u32 mask = mask_lut[index][component_mask_selector];
@@ -673,6 +842,7 @@ union Instruction {
     } texs;
 
     union {
+        BitField<49, 1, u64> nodep_flag;
         BitField<53, 4, u64> texture_info;
 
         TextureType GetTextureType() const {
@@ -691,6 +861,26 @@ union Instruction {
             LOG_CRITICAL(HW_GPU, "Unhandled texture_info: {}",
                          static_cast<u32>(texture_info.Value()));
             UNREACHABLE();
+        }
+
+        TextureProcessMode GetTextureProcessMode() const {
+            if (texture_info == 1 || texture_info == 5 || texture_info == 12)
+                return TextureProcessMode::LL;
+            return TextureProcessMode::LZ;
+        }
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::AOFFI:
+                return texture_info == 12 || texture_info == 4;
+            case TextureMiscMode::MZ:
+                return texture_info == 5;
+            case TextureMiscMode::NODEP:
+                return nodep_flag != 0;
+            default:
+                break;
+            }
+            return false;
         }
 
         bool IsArrayTexture() const {
@@ -735,6 +925,7 @@ union Instruction {
         BitField<36, 5, u64> index;
     } cbuf36;
 
+    BitField<47, 1, u64> generates_cc;
     BitField<61, 1, u64> is_b_imm;
     BitField<60, 1, u64> is_b_gpr;
     BitField<59, 1, u64> is_c_gpr;
@@ -859,6 +1050,7 @@ public:
         ISET_IMM,
         PSETP,
         PSET,
+        CSETP,
         XMAD_IMM,
         XMAD_CR,
         XMAD_RC,
@@ -947,7 +1139,7 @@ public:
 private:
     struct Detail {
     private:
-        static constexpr size_t opcode_bitsize = 16;
+        static constexpr std::size_t opcode_bitsize = 16;
 
         /**
          * Generates the mask and the expected value after masking from a given bitstring.
@@ -956,8 +1148,8 @@ private:
          */
         static auto GetMaskAndExpect(const char* const bitstring) {
             u16 mask = 0, expect = 0;
-            for (size_t i = 0; i < opcode_bitsize; i++) {
-                const size_t bit_position = opcode_bitsize - i - 1;
+            for (std::size_t i = 0; i < opcode_bitsize; i++) {
+                const std::size_t bit_position = opcode_bitsize - i - 1;
                 switch (bitstring[i]) {
                 case '0':
                     mask |= 1 << bit_position;
@@ -1095,6 +1287,7 @@ private:
             INST("0011011-0101----", Id::ISET_IMM, Type::IntegerSet, "ISET_IMM"),
             INST("0101000010001---", Id::PSET, Type::PredicateSetRegister, "PSET"),
             INST("0101000010010---", Id::PSETP, Type::PredicateSetPredicate, "PSETP"),
+            INST("010100001010----", Id::CSETP, Type::PredicateSetPredicate, "CSETP"),
             INST("0011011-00------", Id::XMAD_IMM, Type::Xmad, "XMAD_IMM"),
             INST("0100111---------", Id::XMAD_CR, Type::Xmad, "XMAD_CR"),
             INST("010100010-------", Id::XMAD_RC, Type::Xmad, "XMAD_RC"),

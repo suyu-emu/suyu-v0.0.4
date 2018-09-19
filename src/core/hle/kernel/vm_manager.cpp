@@ -86,7 +86,7 @@ VMManager::VMAHandle VMManager::FindVMA(VAddr target) const {
 
 ResultVal<VMManager::VMAHandle> VMManager::MapMemoryBlock(VAddr target,
                                                           std::shared_ptr<std::vector<u8>> block,
-                                                          size_t offset, u64 size,
+                                                          std::size_t offset, u64 size,
                                                           MemoryState state) {
     ASSERT(block != nullptr);
     ASSERT(offset + size <= block->size());

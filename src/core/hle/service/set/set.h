@@ -28,7 +28,7 @@ enum class LanguageCode : u64 {
     ZH_HANS = 0x00736E61482D687A,
     ZH_HANT = 0x00746E61482D687A,
 };
-LanguageCode GetLanguageCodeFromIndex(size_t idx);
+LanguageCode GetLanguageCodeFromIndex(std::size_t idx);
 
 class SET final : public ServiceFramework<SET> {
 public:

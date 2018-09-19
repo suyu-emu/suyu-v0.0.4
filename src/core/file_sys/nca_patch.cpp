@@ -22,11 +22,11 @@ BKTR::BKTR(VirtualFile base_romfs_, VirtualFile bktr_romfs_, RelocationBlock rel
       base_romfs(std::move(base_romfs_)), bktr_romfs(std::move(bktr_romfs_)),
       encrypted(is_encrypted_), key(key_), base_offset(base_offset_), ivfc_offset(ivfc_offset_),
       section_ctr(section_ctr_) {
-    for (size_t i = 0; i < relocation.number_buckets - 1; ++i) {
+    for (std::size_t i = 0; i < relocation.number_buckets - 1; ++i) {
         relocation_buckets[i].entries.push_back({relocation.base_offsets[i + 1], 0, 0});
     }
 
-    for (size_t i = 0; i < subsection.number_buckets - 1; ++i) {
+    for (std::size_t i = 0; i < subsection.number_buckets - 1; ++i) {
         subsection_buckets[i].entries.push_back({subsection_buckets[i + 1].entries[0].address_patch,
                                                  {0},
                                                  subsection_buckets[i + 1].entries[0].ctr});
@@ -37,7 +37,7 @@ BKTR::BKTR(VirtualFile base_romfs_, VirtualFile bktr_romfs_, RelocationBlock rel
 
 BKTR::~BKTR() = default;
 
-size_t BKTR::Read(u8* data, size_t length, size_t offset) const {
+std::size_t BKTR::Read(u8* data, std::size_t length, std::size_t offset) const {
     // Read out of bounds.
     if (offset >= relocation.size)
         return 0;
@@ -69,14 +69,14 @@ size_t BKTR::Read(u8* data, size_t length, size_t offset) const {
     std::vector<u8> iv(16);
     auto subsection_ctr = subsection.ctr;
     auto offset_iv = section_offset + base_offset;
-    for (size_t i = 0; i < section_ctr.size(); ++i)
+    for (std::size_t i = 0; i < section_ctr.size(); ++i)
         iv[i] = section_ctr[0x8 - i - 1];
     offset_iv >>= 4;
-    for (size_t i = 0; i < sizeof(u64); ++i) {
+    for (std::size_t i = 0; i < sizeof(u64); ++i) {
         iv[0xF - i] = static_cast<u8>(offset_iv & 0xFF);
         offset_iv >>= 8;
     }
-    for (size_t i = 0; i < sizeof(u32); ++i) {
+    for (std::size_t i = 0; i < sizeof(u32); ++i) {
         iv[0x7 - i] = static_cast<u8>(subsection_ctr & 0xFF);
         subsection_ctr >>= 8;
     }
@@ -110,8 +110,8 @@ size_t BKTR::Read(u8* data, size_t length, size_t offset) const {
 }
 
 template <bool Subsection, typename BlockType, typename BucketType>
-std::pair<size_t, size_t> BKTR::SearchBucketEntry(u64 offset, BlockType block,
-                                                  BucketType buckets) const {
+std::pair<std::size_t, std::size_t> BKTR::SearchBucketEntry(u64 offset, BlockType block,
+                                                            BucketType buckets) const {
     if constexpr (Subsection) {
         const auto last_bucket = buckets[block.number_buckets - 1];
         if (offset >= last_bucket.entries[last_bucket.number_entries].address_patch)
@@ -120,18 +120,18 @@ std::pair<size_t, size_t> BKTR::SearchBucketEntry(u64 offset, BlockType block,
         ASSERT_MSG(offset <= block.size, "Offset is out of bounds in BKTR relocation block.");
     }
 
-    size_t bucket_id = std::count_if(block.base_offsets.begin() + 1,
-                                     block.base_offsets.begin() + block.number_buckets,
-                                     [&offset](u64 base_offset) { return base_offset <= offset; });
+    std::size_t bucket_id = std::count_if(
+        block.base_offsets.begin() + 1, block.base_offsets.begin() + block.number_buckets,
+        [&offset](u64 base_offset) { return base_offset <= offset; });
 
     const auto bucket = buckets[bucket_id];
 
     if (bucket.number_entries == 1)
         return {bucket_id, 0};
 
-    size_t low = 0;
-    size_t mid = 0;
-    size_t high = bucket.number_entries - 1;
+    std::size_t low = 0;
+    std::size_t mid = 0;
+    std::size_t high = bucket.number_entries - 1;
     while (low <= high) {
         mid = (low + high) / 2;
         if (bucket.entries[mid].address_patch > offset) {
@@ -179,11 +179,11 @@ std::string BKTR::GetName() const {
     return base_romfs->GetName();
 }
 
-size_t BKTR::GetSize() const {
+std::size_t BKTR::GetSize() const {
     return relocation.size;
 }
 
-bool BKTR::Resize(size_t new_size) {
+bool BKTR::Resize(std::size_t new_size) {
     return false;
 }
 
@@ -199,7 +199,7 @@ bool BKTR::IsReadable() const {
     return true;
 }
 
-size_t BKTR::Write(const u8* data, size_t length, size_t offset) {
+std::size_t BKTR::Write(const u8* data, std::size_t length, std::size_t offset) {
     return 0;
 }
 

@@ -26,7 +26,8 @@ void TimeStretcher::Flush() {
     m_sound_touch.flush();
 }
 
-size_t TimeStretcher::Process(const s16* in, size_t num_in, s16* out, size_t num_out) {
+std::size_t TimeStretcher::Process(const s16* in, std::size_t num_in, s16* out,
+                                   std::size_t num_out) {
     const double time_delta = static_cast<double>(num_out) / m_sample_rate; // seconds
 
     // We were given actual_samples number of samples, and num_samples were requested from us.
@@ -61,8 +62,8 @@ size_t TimeStretcher::Process(const s16* in, size_t num_in, s16* out, size_t num
     LOG_DEBUG(Audio, "{:5}/{:5} ratio:{:0.6f} backlog:{:0.6f}", num_in, num_out, m_stretch_ratio,
               backlog_fullness);
 
-    m_sound_touch.putSamples(in, num_in);
-    return m_sound_touch.receiveSamples(out, num_out);
+    m_sound_touch.putSamples(in, static_cast<u32>(num_in));
+    return m_sound_touch.receiveSamples(out, static_cast<u32>(num_out));
 }
 
 } // namespace AudioCore

@@ -4,25 +4,28 @@
 
 #include <algorithm>
 #include <array>
+#include <cstring>
 #include <memory>
 #include <type_traits>
 #include <utility>
 #include <boost/optional.hpp>
 #include "common/alignment.h"
+#include "common/assert.h"
+#include "common/common_funcs.h"
+#include "common/logging/log.h"
 #include "common/math_util.h"
-#include "common/scope_exit.h"
+#include "common/swap.h"
 #include "core/core_timing.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/event.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
+#include "core/hle/service/nvflinger/nvflinger.h"
 #include "core/hle/service/vi/vi.h"
 #include "core/hle/service/vi/vi_m.h"
 #include "core/hle/service/vi/vi_s.h"
 #include "core/hle/service/vi/vi_u.h"
 #include "core/settings.h"
-#include "video_core/renderer_base.h"
-#include "video_core/video_core.h"
 
 namespace Service::VI {
 
@@ -38,7 +41,7 @@ static_assert(sizeof(DisplayInfo) == 0x60, "DisplayInfo has wrong size");
 class Parcel {
 public:
     // This default size was chosen arbitrarily.
-    static constexpr size_t DefaultBufferSize = 0x40;
+    static constexpr std::size_t DefaultBufferSize = 0x40;
     Parcel() : buffer(DefaultBufferSize) {}
     explicit Parcel(std::vector<u8> data) : buffer(std::move(data)) {}
     virtual ~Parcel() = default;
@@ -66,7 +69,7 @@ public:
         return val;
     }
 
-    std::vector<u8> ReadBlock(size_t length) {
+    std::vector<u8> ReadBlock(std::size_t length) {
         ASSERT(read_index + length <= buffer.size());
         const u8* const begin = buffer.data() + read_index;
         const u8* const end = begin + length;
@@ -156,8 +159,8 @@ private:
     static_assert(sizeof(Header) == 16, "ParcelHeader has wrong size");
 
     std::vector<u8> buffer;
-    size_t read_index = 0;
-    size_t write_index = 0;
+    std::size_t read_index = 0;
+    std::size_t write_index = 0;
 };
 
 class NativeWindow : public Parcel {

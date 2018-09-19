@@ -17,33 +17,33 @@ namespace FileSys {
 // the size of this wrapper.
 class OffsetVfsFile : public VfsFile {
 public:
-    OffsetVfsFile(std::shared_ptr<VfsFile> file, size_t size, size_t offset = 0,
+    OffsetVfsFile(std::shared_ptr<VfsFile> file, std::size_t size, std::size_t offset = 0,
                   std::string new_name = "", VirtualDir new_parent = nullptr);
 
     std::string GetName() const override;
-    size_t GetSize() const override;
-    bool Resize(size_t new_size) override;
+    std::size_t GetSize() const override;
+    bool Resize(std::size_t new_size) override;
     std::shared_ptr<VfsDirectory> GetContainingDirectory() const override;
     bool IsWritable() const override;
     bool IsReadable() const override;
-    size_t Read(u8* data, size_t length, size_t offset) const override;
-    size_t Write(const u8* data, size_t length, size_t offset) override;
-    boost::optional<u8> ReadByte(size_t offset) const override;
-    std::vector<u8> ReadBytes(size_t size, size_t offset) const override;
+    std::size_t Read(u8* data, std::size_t length, std::size_t offset) const override;
+    std::size_t Write(const u8* data, std::size_t length, std::size_t offset) override;
+    boost::optional<u8> ReadByte(std::size_t offset) const override;
+    std::vector<u8> ReadBytes(std::size_t size, std::size_t offset) const override;
     std::vector<u8> ReadAllBytes() const override;
-    bool WriteByte(u8 data, size_t offset) override;
-    size_t WriteBytes(const std::vector<u8>& data, size_t offset) override;
+    bool WriteByte(u8 data, std::size_t offset) override;
+    std::size_t WriteBytes(const std::vector<u8>& data, std::size_t offset) override;
 
     bool Rename(std::string_view name) override;
 
-    size_t GetOffset() const;
+    std::size_t GetOffset() const;
 
 private:
-    size_t TrimToFit(size_t r_size, size_t r_offset) const;
+    std::size_t TrimToFit(std::size_t r_size, std::size_t r_offset) const;
 
     std::shared_ptr<VfsFile> file;
-    size_t offset;
-    size_t size;
+    std::size_t offset;
+    std::size_t size;
     std::string name;
     VirtualDir parent;
 };

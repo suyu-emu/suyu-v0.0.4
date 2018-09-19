@@ -50,7 +50,7 @@ void MaxwellDMA::HandleCopy() {
     ASSERT(regs.dst_params.pos_y == 0);
 
     if (regs.exec.is_dst_linear == regs.exec.is_src_linear) {
-        size_t copy_size = regs.x_count;
+        std::size_t copy_size = regs.x_count;
 
         // When the enable_2d bit is disabled, the copy is performed as if we were copying a 1D
         // buffer of length `x_count`, otherwise we copy a 2D buffer of size (x_count, y_count).

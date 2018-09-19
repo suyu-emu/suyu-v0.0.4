@@ -12,8 +12,8 @@
 #include "core/hle/result.h"
 
 namespace Service::Account {
-constexpr size_t MAX_USERS = 8;
-constexpr size_t MAX_DATA = 128;
+constexpr std::size_t MAX_USERS = 8;
+constexpr std::size_t MAX_DATA = 128;
 constexpr u128 INVALID_UUID{{0, 0}};
 
 struct UUID {
@@ -87,18 +87,18 @@ public:
     ResultCode AddUser(const ProfileInfo& user);
     ResultCode CreateNewUser(UUID uuid, const ProfileUsername& username);
     ResultCode CreateNewUser(UUID uuid, const std::string& username);
-    boost::optional<size_t> GetUserIndex(const UUID& uuid) const;
-    boost::optional<size_t> GetUserIndex(const ProfileInfo& user) const;
-    bool GetProfileBase(boost::optional<size_t> index, ProfileBase& profile) const;
+    boost::optional<std::size_t> GetUserIndex(const UUID& uuid) const;
+    boost::optional<std::size_t> GetUserIndex(const ProfileInfo& user) const;
+    bool GetProfileBase(boost::optional<std::size_t> index, ProfileBase& profile) const;
     bool GetProfileBase(UUID uuid, ProfileBase& profile) const;
     bool GetProfileBase(const ProfileInfo& user, ProfileBase& profile) const;
-    bool GetProfileBaseAndData(boost::optional<size_t> index, ProfileBase& profile,
+    bool GetProfileBaseAndData(boost::optional<std::size_t> index, ProfileBase& profile,
                                ProfileData& data) const;
     bool GetProfileBaseAndData(UUID uuid, ProfileBase& profile, ProfileData& data) const;
     bool GetProfileBaseAndData(const ProfileInfo& user, ProfileBase& profile,
                                ProfileData& data) const;
-    size_t GetUserCount() const;
-    size_t GetOpenUserCount() const;
+    std::size_t GetUserCount() const;
+    std::size_t GetOpenUserCount() const;
     bool UserExists(UUID uuid) const;
     void OpenUser(UUID uuid);
     void CloseUser(UUID uuid);
@@ -110,9 +110,9 @@ public:
 
 private:
     std::array<ProfileInfo, MAX_USERS> profiles{};
-    size_t user_count = 0;
-    boost::optional<size_t> AddToProfiles(const ProfileInfo& profile);
-    bool RemoveProfileAtIndex(size_t index);
+    std::size_t user_count = 0;
+    boost::optional<std::size_t> AddToProfiles(const ProfileInfo& profile);
+    bool RemoveProfileAtIndex(std::size_t index);
     UUID last_opened_user{INVALID_UUID};
 };
 

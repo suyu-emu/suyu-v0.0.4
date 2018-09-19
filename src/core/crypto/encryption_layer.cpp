@@ -12,11 +12,11 @@ std::string EncryptionLayer::GetName() const {
     return base->GetName();
 }
 
-size_t EncryptionLayer::GetSize() const {
+std::size_t EncryptionLayer::GetSize() const {
     return base->GetSize();
 }
 
-bool EncryptionLayer::Resize(size_t new_size) {
+bool EncryptionLayer::Resize(std::size_t new_size) {
     return false;
 }
 
@@ -32,7 +32,7 @@ bool EncryptionLayer::IsReadable() const {
     return true;
 }
 
-size_t EncryptionLayer::Write(const u8* data, size_t length, size_t offset) {
+std::size_t EncryptionLayer::Write(const u8* data, std::size_t length, std::size_t offset) {
     return 0;
 }
 

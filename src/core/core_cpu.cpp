@@ -9,6 +9,7 @@
 #ifdef ARCHITECTURE_x86_64
 #include "core/arm/dynarmic/arm_dynarmic.h"
 #endif
+#include "core/arm/exclusive_monitor.h"
 #include "core/arm/unicorn/arm_unicorn.h"
 #include "core/core_cpu.h"
 #include "core/core_timing.h"
@@ -49,7 +50,7 @@ bool CpuBarrier::Rendezvous() {
 }
 
 Cpu::Cpu(std::shared_ptr<ExclusiveMonitor> exclusive_monitor,
-         std::shared_ptr<CpuBarrier> cpu_barrier, size_t core_index)
+         std::shared_ptr<CpuBarrier> cpu_barrier, std::size_t core_index)
     : cpu_barrier{std::move(cpu_barrier)}, core_index{core_index} {
 
     if (Settings::values.use_cpu_jit) {
@@ -66,7 +67,9 @@ Cpu::Cpu(std::shared_ptr<ExclusiveMonitor> exclusive_monitor,
     scheduler = std::make_shared<Kernel::Scheduler>(arm_interface.get());
 }
 
-std::shared_ptr<ExclusiveMonitor> Cpu::MakeExclusiveMonitor(size_t num_cores) {
+Cpu::~Cpu() = default;
+
+std::shared_ptr<ExclusiveMonitor> Cpu::MakeExclusiveMonitor(std::size_t num_cores) {
     if (Settings::values.use_cpu_jit) {
 #ifdef ARCHITECTURE_x86_64
         return std::make_shared<DynarmicExclusiveMonitor>(num_cores);

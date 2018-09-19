@@ -176,7 +176,7 @@ use_docked_mode =
 
 # Sets the account username, max length is 32 characters
 # yuzu (default)
-username =
+username = yuzu
 
 # Sets the systems language index
 # 0: Japanese, 1: English (default), 2: French, 3: German, 4: Italian, 5: Spanish, 6: Chinese,

@@ -41,13 +41,14 @@ XCI::XCI(VirtualFile file_) : file(std::move(file_)), partitions(0x4) {
 
     for (XCIPartition partition :
          {XCIPartition::Update, XCIPartition::Normal, XCIPartition::Secure, XCIPartition::Logo}) {
-        auto raw = main_hfs.GetFile(partition_names[static_cast<size_t>(partition)]);
+        auto raw = main_hfs.GetFile(partition_names[static_cast<std::size_t>(partition)]);
         if (raw != nullptr)
-            partitions[static_cast<size_t>(partition)] = std::make_shared<PartitionFilesystem>(raw);
+            partitions[static_cast<std::size_t>(partition)] =
+                std::make_shared<PartitionFilesystem>(raw);
     }
 
     secure_partition = std::make_shared<NSP>(
-        main_hfs.GetFile(partition_names[static_cast<size_t>(XCIPartition::Secure)]));
+        main_hfs.GetFile(partition_names[static_cast<std::size_t>(XCIPartition::Secure)]));
 
     const auto secure_ncas = secure_partition->GetNCAsCollapsed();
     std::copy(secure_ncas.begin(), secure_ncas.end(), std::back_inserter(ncas));
@@ -92,7 +93,7 @@ Loader::ResultStatus XCI::GetProgramNCAStatus() const {
 }
 
 VirtualDir XCI::GetPartition(XCIPartition partition) const {
-    return partitions[static_cast<size_t>(partition)];
+    return partitions[static_cast<std::size_t>(partition)];
 }
 
 std::shared_ptr<NSP> XCI::GetSecurePartitionNSP() const {
@@ -168,11 +169,11 @@ bool XCI::ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) {
 }
 
 Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
-    if (partitions[static_cast<size_t>(part)] == nullptr) {
+    if (partitions[static_cast<std::size_t>(part)] == nullptr) {
         return Loader::ResultStatus::ErrorXCIMissingPartition;
     }
 
-    for (const VirtualFile& file : partitions[static_cast<size_t>(part)]->GetFiles()) {
+    for (const VirtualFile& file : partitions[static_cast<std::size_t>(part)]->GetFiles()) {
         if (file->GetExtension() != "nca")
             continue;
         auto nca = std::make_shared<NCA>(file);
@@ -187,7 +188,7 @@ Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
         } else {
             const u16 error_id = static_cast<u16>(nca->GetStatus());
             LOG_CRITICAL(Loader, "Could not load NCA {}/{}, failed with error code {:04X} ({})",
-                         partition_names[static_cast<size_t>(part)], nca->GetName(), error_id,
+                         partition_names[static_cast<std::size_t>(part)], nca->GetName(), error_id,
                          nca->GetStatus());
         }
     }

@@ -61,7 +61,7 @@ private:
 
     bool Decoder_DecodeInterleaved(u32& consumed, u32& sample_count, const std::vector<u8>& input,
                                    std::vector<opus_int16>& output) {
-        size_t raw_output_sz = output.size() * sizeof(opus_int16);
+        std::size_t raw_output_sz = output.size() * sizeof(opus_int16);
         if (sizeof(OpusHeader) > input.size())
             return false;
         OpusHeader hdr{};
@@ -96,7 +96,7 @@ private:
     u32 channel_count;
 };
 
-static size_t WorkerBufferSize(u32 channel_count) {
+static std::size_t WorkerBufferSize(u32 channel_count) {
     ASSERT_MSG(channel_count == 1 || channel_count == 2, "Invalid channel count");
     return opus_decoder_get_size(static_cast<int>(channel_count));
 }
@@ -129,7 +129,7 @@ void HwOpus::OpenOpusDecoder(Kernel::HLERequestContext& ctx) {
                "Invalid sample rate");
     ASSERT_MSG(channel_count == 1 || channel_count == 2, "Invalid channel count");
 
-    size_t worker_sz = WorkerBufferSize(channel_count);
+    std::size_t worker_sz = WorkerBufferSize(channel_count);
     ASSERT_MSG(buffer_sz < worker_sz, "Worker buffer too large");
     std::unique_ptr<OpusDecoder, OpusDeleter> decoder{
         static_cast<OpusDecoder*>(operator new(worker_sz))};

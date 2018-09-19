@@ -21,7 +21,7 @@ constexpr u64 SINGLE_BYTE_MODULUS = 0x100;
 std::string FormatTitleVersion(u32 version, TitleVersionFormat format) {
     std::array<u8, sizeof(u32)> bytes{};
     bytes[0] = version % SINGLE_BYTE_MODULUS;
-    for (size_t i = 1; i < bytes.size(); ++i) {
+    for (std::size_t i = 1; i < bytes.size(); ++i) {
         version /= SINGLE_BYTE_MODULUS;
         bytes[i] = version % SINGLE_BYTE_MODULUS;
     }
@@ -36,7 +36,7 @@ constexpr std::array<const char*, 1> PATCH_TYPE_NAMES{
 };
 
 std::string FormatPatchTypeName(PatchType type) {
-    return PATCH_TYPE_NAMES.at(static_cast<size_t>(type));
+    return PATCH_TYPE_NAMES.at(static_cast<std::size_t>(type));
 }
 
 PatchManager::PatchManager(u64 title_id) : title_id(title_id) {}

@@ -73,7 +73,7 @@ public:
     };
 
     /// Maximum supported size that a constbuffer can have in bytes.
-    static constexpr size_t MaxConstbufferSize = 0x10000;
+    static constexpr std::size_t MaxConstbufferSize = 0x10000;
     static_assert(MaxConstbufferSize % sizeof(GLvec4) == 0,
                   "The maximum size of a constbuffer must be a multiple of the size of GLvec4");
 
@@ -106,7 +106,7 @@ private:
      */
     void ConfigureFramebuffers(bool use_color_fb = true, bool using_depth_fb = true,
                                bool preserve_contents = true,
-                               boost::optional<size_t> single_color_target = {});
+                               boost::optional<std::size_t> single_color_target = {});
 
     /*
      * Configures the current constbuffers to use for the draw command.
@@ -180,12 +180,12 @@ private:
 
     std::array<SamplerInfo, GLShader::NumTextureSamplers> texture_samplers;
 
-    static constexpr size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;
+    static constexpr std::size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;
     OGLBufferCache buffer_cache;
     OGLFramebuffer framebuffer;
     GLint uniform_buffer_alignment;
 
-    size_t CalculateVertexArraysSize() const;
+    std::size_t CalculateVertexArraysSize() const;
 
     void SetupVertexArrays();
 

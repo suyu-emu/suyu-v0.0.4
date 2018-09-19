@@ -65,9 +65,9 @@ constexpr u32 MSG_WAITALL = 8;
 constexpr u32 LR_REGISTER = 30;
 constexpr u32 SP_REGISTER = 31;
 constexpr u32 PC_REGISTER = 32;
-constexpr u32 CPSR_REGISTER = 33;
+constexpr u32 PSTATE_REGISTER = 33;
 constexpr u32 UC_ARM64_REG_Q0 = 34;
-constexpr u32 FPSCR_REGISTER = 66;
+constexpr u32 FPCR_REGISTER = 66;
 
 // TODO/WiP - Used while working on support for FPU
 constexpr u32 TODO_DUMMY_REG_997 = 997;
@@ -116,7 +116,7 @@ constexpr char target_xml[] =
 
     <reg name="pc" bitsize="64" type="code_ptr"/>
 
-    <flags id="cpsr_flags" size="4">
+    <flags id="pstate_flags" size="4">
       <field name="SP" start="0" end="0"/>
       <field name="" start="1" end="1"/>
       <field name="EL" start="2" end="3"/>
@@ -135,7 +135,7 @@ constexpr char target_xml[] =
       <field name="Z" start="30" end="30"/>
       <field name="N" start="31" end="31"/>
     </flags>
-    <reg name="cpsr" bitsize="32" type="cpsr_flags"/>
+    <reg name="pstate" bitsize="32" type="pstate_flags"/>
   </feature>
   <feature name="org.gnu.gdb.aarch64.fpu">
   </feature>
@@ -227,10 +227,10 @@ static u64 RegRead(std::size_t id, Kernel::Thread* thread = nullptr) {
         return thread->context.sp;
     } else if (id == PC_REGISTER) {
         return thread->context.pc;
-    } else if (id == CPSR_REGISTER) {
-        return thread->context.cpsr;
-    } else if (id > CPSR_REGISTER && id < FPSCR_REGISTER) {
-        return thread->context.fpu_registers[id - UC_ARM64_REG_Q0][0];
+    } else if (id == PSTATE_REGISTER) {
+        return thread->context.pstate;
+    } else if (id > PSTATE_REGISTER && id < FPCR_REGISTER) {
+        return thread->context.vector_registers[id - UC_ARM64_REG_Q0][0];
     } else {
         return 0;
     }
@@ -247,10 +247,10 @@ static void RegWrite(std::size_t id, u64 val, Kernel::Thread* thread = nullptr) 
         thread->context.sp = val;
     } else if (id == PC_REGISTER) {
         thread->context.pc = val;
-    } else if (id == CPSR_REGISTER) {
-        thread->context.cpsr = val;
-    } else if (id > CPSR_REGISTER && id < FPSCR_REGISTER) {
-        thread->context.fpu_registers[id - (CPSR_REGISTER + 1)][0] = val;
+    } else if (id == PSTATE_REGISTER) {
+        thread->context.pstate = val;
+    } else if (id > PSTATE_REGISTER && id < FPCR_REGISTER) {
+        thread->context.vector_registers[id - (PSTATE_REGISTER + 1)][0] = val;
     }
 }
 
@@ -292,7 +292,7 @@ static u8 NibbleToHex(u8 n) {
  * @param src Pointer to array of output hex string characters.
  * @param len Length of src array.
  */
-static u32 HexToInt(const u8* src, size_t len) {
+static u32 HexToInt(const u8* src, std::size_t len) {
     u32 output = 0;
     while (len-- > 0) {
         output = (output << 4) | HexCharToValue(src[0]);
@@ -307,7 +307,7 @@ static u32 HexToInt(const u8* src, size_t len) {
  * @param src Pointer to array of output hex string characters.
  * @param len Length of src array.
  */
-static u64 HexToLong(const u8* src, size_t len) {
+static u64 HexToLong(const u8* src, std::size_t len) {
     u64 output = 0;
     while (len-- > 0) {
         output = (output << 4) | HexCharToValue(src[0]);
@@ -323,7 +323,7 @@ static u64 HexToLong(const u8* src, size_t len) {
  * @param src Pointer to array of u8 bytes.
  * @param len Length of src array.
  */
-static void MemToGdbHex(u8* dest, const u8* src, size_t len) {
+static void MemToGdbHex(u8* dest, const u8* src, std::size_t len) {
     while (len-- > 0) {
         u8 tmp = *src++;
         *dest++ = NibbleToHex(tmp >> 4);
@@ -338,7 +338,7 @@ static void MemToGdbHex(u8* dest, const u8* src, size_t len) {
  * @param src Pointer to array of output hex string characters.
  * @param len Length of src array.
  */
-static void GdbHexToMem(u8* dest, const u8* src, size_t len) {
+static void GdbHexToMem(u8* dest, const u8* src, std::size_t len) {
     while (len-- > 0) {
         *dest++ = (HexCharToValue(src[0]) << 4) | HexCharToValue(src[1]);
         src += 2;
@@ -406,7 +406,7 @@ static u64 GdbHexToLong(const u8* src) {
 /// Read a byte from the gdb client.
 static u8 ReadByte() {
     u8 c;
-    size_t received_size = recv(gdbserver_socket, reinterpret_cast<char*>(&c), 1, MSG_WAITALL);
+    std::size_t received_size = recv(gdbserver_socket, reinterpret_cast<char*>(&c), 1, MSG_WAITALL);
     if (received_size != 1) {
         LOG_ERROR(Debug_GDBStub, "recv failed: {}", received_size);
         Shutdown();
@@ -416,7 +416,7 @@ static u8 ReadByte() {
 }
 
 /// Calculate the checksum of the current command buffer.
-static u8 CalculateChecksum(const u8* buffer, size_t length) {
+static u8 CalculateChecksum(const u8* buffer, std::size_t length) {
     return static_cast<u8>(std::accumulate(buffer, buffer + length, 0, std::plus<u8>()));
 }
 
@@ -518,7 +518,7 @@ bool CheckBreakpoint(VAddr addr, BreakpointType type) {
  * @param packet Packet to be sent to client.
  */
 static void SendPacket(const char packet) {
-    size_t sent_size = send(gdbserver_socket, &packet, 1, 0);
+    std::size_t sent_size = send(gdbserver_socket, &packet, 1, 0);
     if (sent_size != 1) {
         LOG_ERROR(Debug_GDBStub, "send failed");
     }
@@ -781,11 +781,11 @@ static void ReadRegister() {
         LongToGdbHex(reply, RegRead(id, current_thread));
     } else if (id == PC_REGISTER) {
         LongToGdbHex(reply, RegRead(id, current_thread));
-    } else if (id == CPSR_REGISTER) {
-        IntToGdbHex(reply, (u32)RegRead(id, current_thread));
-    } else if (id >= UC_ARM64_REG_Q0 && id < FPSCR_REGISTER) {
+    } else if (id == PSTATE_REGISTER) {
+        IntToGdbHex(reply, static_cast<u32>(RegRead(id, current_thread)));
+    } else if (id >= UC_ARM64_REG_Q0 && id < FPCR_REGISTER) {
         LongToGdbHex(reply, RegRead(id, current_thread));
-    } else if (id == FPSCR_REGISTER) {
+    } else if (id == FPCR_REGISTER) {
         LongToGdbHex(reply, RegRead(TODO_DUMMY_REG_998, current_thread));
     } else {
         LongToGdbHex(reply, RegRead(TODO_DUMMY_REG_997, current_thread));
@@ -811,7 +811,7 @@ static void ReadRegisters() {
 
     bufptr += 16;
 
-    IntToGdbHex(bufptr, (u32)RegRead(CPSR_REGISTER, current_thread));
+    IntToGdbHex(bufptr, static_cast<u32>(RegRead(PSTATE_REGISTER, current_thread)));
 
     bufptr += 8;
 
@@ -843,11 +843,11 @@ static void WriteRegister() {
         RegWrite(id, GdbHexToLong(buffer_ptr), current_thread);
     } else if (id == PC_REGISTER) {
         RegWrite(id, GdbHexToLong(buffer_ptr), current_thread);
-    } else if (id == CPSR_REGISTER) {
+    } else if (id == PSTATE_REGISTER) {
         RegWrite(id, GdbHexToInt(buffer_ptr), current_thread);
-    } else if (id >= UC_ARM64_REG_Q0 && id < FPSCR_REGISTER) {
+    } else if (id >= UC_ARM64_REG_Q0 && id < FPCR_REGISTER) {
         RegWrite(id, GdbHexToLong(buffer_ptr), current_thread);
-    } else if (id == FPSCR_REGISTER) {
+    } else if (id == FPCR_REGISTER) {
         RegWrite(TODO_DUMMY_REG_998, GdbHexToLong(buffer_ptr), current_thread);
     } else {
         RegWrite(TODO_DUMMY_REG_997, GdbHexToLong(buffer_ptr), current_thread);
@@ -866,16 +866,16 @@ static void WriteRegisters() {
     if (command_buffer[0] != 'G')
         return SendReply("E01");
 
-    for (u32 i = 0, reg = 0; reg <= FPSCR_REGISTER; i++, reg++) {
+    for (u32 i = 0, reg = 0; reg <= FPCR_REGISTER; i++, reg++) {
         if (reg <= SP_REGISTER) {
             RegWrite(reg, GdbHexToLong(buffer_ptr + i * 16), current_thread);
         } else if (reg == PC_REGISTER) {
             RegWrite(PC_REGISTER, GdbHexToLong(buffer_ptr + i * 16), current_thread);
-        } else if (reg == CPSR_REGISTER) {
-            RegWrite(CPSR_REGISTER, GdbHexToInt(buffer_ptr + i * 16), current_thread);
-        } else if (reg >= UC_ARM64_REG_Q0 && reg < FPSCR_REGISTER) {
+        } else if (reg == PSTATE_REGISTER) {
+            RegWrite(PSTATE_REGISTER, GdbHexToInt(buffer_ptr + i * 16), current_thread);
+        } else if (reg >= UC_ARM64_REG_Q0 && reg < FPCR_REGISTER) {
             RegWrite(reg, GdbHexToLong(buffer_ptr + i * 16), current_thread);
-        } else if (reg == FPSCR_REGISTER) {
+        } else if (reg == FPCR_REGISTER) {
             RegWrite(TODO_DUMMY_REG_998, GdbHexToLong(buffer_ptr + i * 16), current_thread);
         } else {
             UNIMPLEMENTED();

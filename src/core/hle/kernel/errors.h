@@ -17,6 +17,7 @@ enum {
 
     // Confirmed Switch OS error codes
     MaxConnectionsReached = 7,
+    InvalidSize = 101,
     InvalidAddress = 102,
     HandleTableFull = 105,
     InvalidMemoryState = 106,
@@ -29,6 +30,7 @@ enum {
     SynchronizationCanceled = 118,
     TooLarge = 119,
     InvalidEnumValue = 120,
+    NoSuchEntry = 121,
     InvalidState = 125,
     ResourceLimitExceeded = 132,
 };
@@ -55,6 +57,7 @@ constexpr ResultCode ERR_INVALID_MEMORY_PERMISSIONS(ErrorModule::Kernel,
                                                     ErrCodes::InvalidMemoryPermissions);
 constexpr ResultCode ERR_INVALID_HANDLE(ErrorModule::Kernel, ErrCodes::InvalidHandle);
 constexpr ResultCode ERR_INVALID_PROCESSOR_ID(ErrorModule::Kernel, ErrCodes::InvalidProcessorId);
+constexpr ResultCode ERR_INVALID_SIZE(ErrorModule::Kernel, ErrCodes::InvalidSize);
 constexpr ResultCode ERR_INVALID_STATE(ErrorModule::Kernel, ErrCodes::InvalidState);
 constexpr ResultCode ERR_INVALID_THREAD_PRIORITY(ErrorModule::Kernel,
                                                  ErrCodes::InvalidThreadPriority);
@@ -63,7 +66,7 @@ constexpr ResultCode ERR_INVALID_OBJECT_ADDR(-1);
 constexpr ResultCode ERR_NOT_AUTHORIZED(-1);
 /// Alternate code returned instead of ERR_INVALID_HANDLE in some code paths.
 constexpr ResultCode ERR_INVALID_HANDLE_OS(-1);
-constexpr ResultCode ERR_NOT_FOUND(-1);
+constexpr ResultCode ERR_NOT_FOUND(ErrorModule::Kernel, ErrCodes::NoSuchEntry);
 constexpr ResultCode RESULT_TIMEOUT(ErrorModule::Kernel, ErrCodes::Timeout);
 /// Returned when Accept() is called on a port with no sessions to be accepted.
 constexpr ResultCode ERR_NO_PENDING_SESSIONS(-1);

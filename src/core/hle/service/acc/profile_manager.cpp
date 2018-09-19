@@ -25,7 +25,7 @@ const UUID& UUID::Generate() {
 ProfileManager::ProfileManager() {
     // TODO(ogniK): Create the default user we have for now until loading/saving users is added
     auto user_uuid = UUID{1, 0};
-    CreateNewUser(user_uuid, Settings::values.username);
+    ASSERT(CreateNewUser(user_uuid, Settings::values.username).IsSuccess());
     OpenUser(user_uuid);
 }
 
@@ -33,7 +33,7 @@ ProfileManager::~ProfileManager() = default;
 
 /// After a users creation it needs to be "registered" to the system. AddToProfiles handles the
 /// internal management of the users profiles
-boost::optional<size_t> ProfileManager::AddToProfiles(const ProfileInfo& user) {
+boost::optional<std::size_t> ProfileManager::AddToProfiles(const ProfileInfo& user) {
     if (user_count >= MAX_USERS) {
         return boost::none;
     }
@@ -42,7 +42,7 @@ boost::optional<size_t> ProfileManager::AddToProfiles(const ProfileInfo& user) {
 }
 
 /// Deletes a specific profile based on it's profile index
-bool ProfileManager::RemoveProfileAtIndex(size_t index) {
+bool ProfileManager::RemoveProfileAtIndex(std::size_t index) {
     if (index >= MAX_USERS || index >= user_count) {
         return false;
     }
@@ -91,7 +91,8 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, const ProfileUsername& usern
 /// specifically by allowing an std::string for the username. This is required specifically since
 /// we're loading a string straight from the config
 ResultCode ProfileManager::CreateNewUser(UUID uuid, const std::string& username) {
-    ProfileUsername username_output;
+    ProfileUsername username_output{};
+
     if (username.size() > username_output.size()) {
         std::copy_n(username.begin(), username_output.size(), username_output.begin());
     } else {
@@ -101,7 +102,7 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, const std::string& username)
 }
 
 /// Returns a users profile index based on their user id.
-boost::optional<size_t> ProfileManager::GetUserIndex(const UUID& uuid) const {
+boost::optional<std::size_t> ProfileManager::GetUserIndex(const UUID& uuid) const {
     if (!uuid) {
         return boost::none;
     }
@@ -110,16 +111,17 @@ boost::optional<size_t> ProfileManager::GetUserIndex(const UUID& uuid) const {
     if (iter == profiles.end()) {
         return boost::none;
     }
-    return static_cast<size_t>(std::distance(profiles.begin(), iter));
+    return static_cast<std::size_t>(std::distance(profiles.begin(), iter));
 }
 
 /// Returns a users profile index based on their profile
-boost::optional<size_t> ProfileManager::GetUserIndex(const ProfileInfo& user) const {
+boost::optional<std::size_t> ProfileManager::GetUserIndex(const ProfileInfo& user) const {
     return GetUserIndex(user.user_uuid);
 }
 
 /// Returns the data structure used by the switch when GetProfileBase is called on acc:*
-bool ProfileManager::GetProfileBase(boost::optional<size_t> index, ProfileBase& profile) const {
+bool ProfileManager::GetProfileBase(boost::optional<std::size_t> index,
+                                    ProfileBase& profile) const {
     if (index == boost::none || index >= MAX_USERS) {
         return false;
     }
@@ -143,14 +145,16 @@ bool ProfileManager::GetProfileBase(const ProfileInfo& user, ProfileBase& profil
 
 /// Returns the current user count on the system. We keep a variable which tracks the count so we
 /// don't have to loop the internal profile array every call.
-size_t ProfileManager::GetUserCount() const {
+
+std::size_t ProfileManager::GetUserCount() const {
     return user_count;
 }
 
 /// Lists the current "opened" users on the system. Users are typically not open until they sign
 /// into something or pick a profile. As of right now users should all be open until qlaunch is
 /// booting
-size_t ProfileManager::GetOpenUserCount() const {
+
+std::size_t ProfileManager::GetOpenUserCount() const {
     return std::count_if(profiles.begin(), profiles.end(),
                          [](const ProfileInfo& p) { return p.is_open; });
 }
@@ -206,7 +210,7 @@ UUID ProfileManager::GetLastOpenedUser() const {
 }
 
 /// Return the users profile base and the unknown arbitary data.
-bool ProfileManager::GetProfileBaseAndData(boost::optional<size_t> index, ProfileBase& profile,
+bool ProfileManager::GetProfileBaseAndData(boost::optional<std::size_t> index, ProfileBase& profile,
                                            ProfileData& data) const {
     if (GetProfileBase(index, profile)) {
         data = profiles[index.get()].data;

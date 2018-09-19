@@ -62,11 +62,11 @@ static std::string GetCNMTName(TitleType type, u64 title_id) {
         "" ///< Currently unknown 'DeltaTitle'
     };
 
-    auto index = static_cast<size_t>(type);
+    auto index = static_cast<std::size_t>(type);
     // If the index is after the jump in TitleType, subtract it out.
-    if (index >= static_cast<size_t>(TitleType::Application)) {
-        index -= static_cast<size_t>(TitleType::Application) -
-                 static_cast<size_t>(TitleType::FirmwarePackageB);
+    if (index >= static_cast<std::size_t>(TitleType::Application)) {
+        index -= static_cast<std::size_t>(TitleType::Application) -
+                 static_cast<std::size_t>(TitleType::FirmwarePackageB);
     }
     return fmt::format("{}_{:016x}.cnmt", TITLE_TYPE_NAMES[index], title_id);
 }
@@ -105,7 +105,7 @@ VirtualFile RegisteredCache::OpenFileOrDirectoryConcat(const VirtualDir& dir,
         } else {
             std::vector<VirtualFile> concat;
             // Since the files are a two-digit hex number, max is FF.
-            for (size_t i = 0; i < 0x100; ++i) {
+            for (std::size_t i = 0; i < 0x100; ++i) {
                 auto next = nca_dir->GetFile(fmt::format("{:02X}", i));
                 if (next != nullptr) {
                     concat.push_back(std::move(next));

@@ -63,8 +63,8 @@ public:
             // Downsample 6 channels to 2
             std::vector<s16> buf;
             buf.reserve(samples.size() * num_channels / source_num_channels);
-            for (size_t i = 0; i < samples.size(); i += source_num_channels) {
-                for (size_t ch = 0; ch < num_channels; ch++) {
+            for (std::size_t i = 0; i < samples.size(); i += source_num_channels) {
+                for (std::size_t ch = 0; ch < num_channels; ch++) {
                     buf.push_back(samples[i + ch]);
                 }
             }
@@ -75,7 +75,7 @@ public:
         queue.Push(samples);
     }
 
-    size_t SamplesInQueue(u32 num_channels) const override {
+    std::size_t SamplesInQueue(u32 num_channels) const override {
         if (!ctx)
             return 0;
 
@@ -119,10 +119,10 @@ CubebSink::CubebSink(std::string target_device_name) {
             LOG_WARNING(Audio_Sink, "Audio output device enumeration not supported");
         } else {
             const auto collection_end{collection.device + collection.count};
-            const auto device{std::find_if(collection.device, collection_end,
-                                           [&](const cubeb_device_info& device) {
-                                               return target_device_name == device.friendly_name;
-                                           })};
+            const auto device{
+                std::find_if(collection.device, collection_end, [&](const cubeb_device_info& info) {
+                    return target_device_name == info.friendly_name;
+                })};
             if (device != collection_end) {
                 output_device = device->devid;
             }
@@ -159,15 +159,16 @@ long CubebSinkStream::DataCallback(cubeb_stream* stream, void* user_data, const 
         return {};
     }
 
-    const size_t num_channels = impl->GetNumChannels();
-    const size_t samples_to_write = num_channels * num_frames;
-    size_t samples_written;
+    const std::size_t num_channels = impl->GetNumChannels();
+    const std::size_t samples_to_write = num_channels * num_frames;
+    std::size_t samples_written;
 
     if (Settings::values.enable_audio_stretching) {
         const std::vector<s16> in{impl->queue.Pop()};
-        const size_t num_in{in.size() / num_channels};
+        const std::size_t num_in{in.size() / num_channels};
         s16* const out{reinterpret_cast<s16*>(buffer)};
-        const size_t out_frames = impl->time_stretch.Process(in.data(), num_in, out, num_frames);
+        const std::size_t out_frames =
+            impl->time_stretch.Process(in.data(), num_in, out, num_frames);
         samples_written = out_frames * num_channels;
 
         if (impl->should_flush) {
@@ -184,7 +185,7 @@ long CubebSinkStream::DataCallback(cubeb_stream* stream, void* user_data, const 
     }
 
     // Fill the rest of the frames with last_frame
-    for (size_t i = samples_written; i < samples_to_write; i += num_channels) {
+    for (std::size_t i = samples_written; i < samples_to_write; i += num_channels) {
         std::memcpy(buffer + i * sizeof(s16), &impl->last_frame[0], num_channels * sizeof(s16));
     }
 
@@ -197,7 +198,7 @@ std::vector<std::string> ListCubebSinkDevices() {
     std::vector<std::string> device_list;
     cubeb* ctx;
 
-    if (cubeb_init(&ctx, "Citra Device Enumerator", nullptr) != CUBEB_OK) {
+    if (cubeb_init(&ctx, "yuzu Device Enumerator", nullptr) != CUBEB_OK) {
         LOG_CRITICAL(Audio_Sink, "cubeb_init failed");
         return {};
     }
@@ -206,7 +207,7 @@ std::vector<std::string> ListCubebSinkDevices() {
     if (cubeb_enumerate_devices(ctx, CUBEB_DEVICE_TYPE_OUTPUT, &collection) != CUBEB_OK) {
         LOG_WARNING(Audio_Sink, "Audio output device enumeration not supported");
     } else {
-        for (size_t i = 0; i < collection.count; i++) {
+        for (std::size_t i = 0; i < collection.count; i++) {
             const cubeb_device_info& device = collection.device[i];
             if (device.friendly_name) {
                 device_list.emplace_back(device.friendly_name);

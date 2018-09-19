@@ -35,10 +35,21 @@
 #include "core/hle/service/service.h"
 
 namespace Kernel {
+namespace {
+constexpr bool Is4KBAligned(VAddr address) {
+    return (address & 0xFFF) == 0;
+}
+} // Anonymous namespace
 
 /// Set the process heap to a given Size. It can both extend and shrink the heap.
 static ResultCode SetHeapSize(VAddr* heap_addr, u64 heap_size) {
     LOG_TRACE(Kernel_SVC, "called, heap_size=0x{:X}", heap_size);
+
+    // Size must be a multiple of 0x200000 (2MB) and be equal to or less than 4GB.
+    if ((heap_size & 0xFFFFFFFE001FFFFF) != 0) {
+        return ERR_INVALID_SIZE;
+    }
+
     auto& process = *Core::CurrentProcess();
     CASCADE_RESULT(*heap_addr,
                    process.HeapAllocate(Memory::HEAP_VADDR, heap_size, VMAPermission::ReadWrite));
@@ -56,6 +67,15 @@ static ResultCode SetMemoryAttribute(VAddr addr, u64 size, u32 state0, u32 state
 static ResultCode MapMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
     LOG_TRACE(Kernel_SVC, "called, dst_addr=0x{:X}, src_addr=0x{:X}, size=0x{:X}", dst_addr,
               src_addr, size);
+
+    if (!Is4KBAligned(dst_addr) || !Is4KBAligned(src_addr)) {
+        return ERR_INVALID_ADDRESS;
+    }
+
+    if (size == 0 || !Is4KBAligned(size)) {
+        return ERR_INVALID_SIZE;
+    }
+
     return Core::CurrentProcess()->MirrorMemory(dst_addr, src_addr, size);
 }
 
@@ -63,6 +83,15 @@ static ResultCode MapMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
 static ResultCode UnmapMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
     LOG_TRACE(Kernel_SVC, "called, dst_addr=0x{:X}, src_addr=0x{:X}, size=0x{:X}", dst_addr,
               src_addr, size);
+
+    if (!Is4KBAligned(dst_addr) || !Is4KBAligned(src_addr)) {
+        return ERR_INVALID_ADDRESS;
+    }
+
+    if (size == 0 || !Is4KBAligned(size)) {
+        return ERR_INVALID_SIZE;
+    }
+
     return Core::CurrentProcess()->UnmapMemory(dst_addr, src_addr, size);
 }
 
@@ -146,7 +175,7 @@ static ResultCode GetProcessId(u32* process_id, Handle process_handle) {
 
 /// Default thread wakeup callback for WaitSynchronization
 static bool DefaultThreadWakeupCallback(ThreadWakeupReason reason, SharedPtr<Thread> thread,
-                                        SharedPtr<WaitObject> object, size_t index) {
+                                        SharedPtr<WaitObject> object, std::size_t index) {
     ASSERT(thread->status == ThreadStatus::WaitSynchAny);
 
     if (reason == ThreadWakeupReason::Timeout) {
@@ -251,6 +280,10 @@ static ResultCode ArbitrateLock(Handle holding_thread_handle, VAddr mutex_addr,
               "requesting_current_thread_handle=0x{:08X}",
               holding_thread_handle, mutex_addr, requesting_thread_handle);
 
+    if (Memory::IsKernelVirtualAddress(mutex_addr)) {
+        return ERR_INVALID_ADDRESS_STATE;
+    }
+
     auto& handle_table = Core::System::GetInstance().Kernel().HandleTable();
     return Mutex::TryAcquire(handle_table, mutex_addr, holding_thread_handle,
                              requesting_thread_handle);
@@ -259,6 +292,10 @@ static ResultCode ArbitrateLock(Handle holding_thread_handle, VAddr mutex_addr,
 /// Unlock a mutex
 static ResultCode ArbitrateUnlock(VAddr mutex_addr) {
     LOG_TRACE(Kernel_SVC, "called mutex_addr=0x{:X}", mutex_addr);
+
+    if (Memory::IsKernelVirtualAddress(mutex_addr)) {
+        return ERR_INVALID_ADDRESS_STATE;
+    }
 
     return Mutex::Release(mutex_addr);
 }
@@ -415,34 +452,42 @@ static ResultCode MapSharedMemory(Handle shared_memory_handle, VAddr addr, u64 s
               "called, shared_memory_handle=0x{:X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
               shared_memory_handle, addr, size, permissions);
 
+    if (!Is4KBAligned(addr)) {
+        return ERR_INVALID_ADDRESS;
+    }
+
+    if (size == 0 || !Is4KBAligned(size)) {
+        return ERR_INVALID_SIZE;
+    }
+
+    const auto permissions_type = static_cast<MemoryPermission>(permissions);
+    if (permissions_type != MemoryPermission::Read &&
+        permissions_type != MemoryPermission::ReadWrite) {
+        LOG_ERROR(Kernel_SVC, "Invalid permissions=0x{:08X}", permissions);
+        return ERR_INVALID_MEMORY_PERMISSIONS;
+    }
+
     auto& kernel = Core::System::GetInstance().Kernel();
     auto shared_memory = kernel.HandleTable().Get<SharedMemory>(shared_memory_handle);
     if (!shared_memory) {
         return ERR_INVALID_HANDLE;
     }
 
-    MemoryPermission permissions_type = static_cast<MemoryPermission>(permissions);
-    switch (permissions_type) {
-    case MemoryPermission::Read:
-    case MemoryPermission::Write:
-    case MemoryPermission::ReadWrite:
-    case MemoryPermission::Execute:
-    case MemoryPermission::ReadExecute:
-    case MemoryPermission::WriteExecute:
-    case MemoryPermission::ReadWriteExecute:
-    case MemoryPermission::DontCare:
-        return shared_memory->Map(Core::CurrentProcess().get(), addr, permissions_type,
-                                  MemoryPermission::DontCare);
-    default:
-        LOG_ERROR(Kernel_SVC, "unknown permissions=0x{:08X}", permissions);
-    }
-
-    return RESULT_SUCCESS;
+    return shared_memory->Map(Core::CurrentProcess().get(), addr, permissions_type,
+                              MemoryPermission::DontCare);
 }
 
 static ResultCode UnmapSharedMemory(Handle shared_memory_handle, VAddr addr, u64 size) {
     LOG_WARNING(Kernel_SVC, "called, shared_memory_handle=0x{:08X}, addr=0x{:X}, size=0x{:X}",
                 shared_memory_handle, addr, size);
+
+    if (!Is4KBAligned(addr)) {
+        return ERR_INVALID_ADDRESS;
+    }
+
+    if (size == 0 || !Is4KBAligned(size)) {
+        return ERR_INVALID_SIZE;
+    }
 
     auto& kernel = Core::System::GetInstance().Kernel();
     auto shared_memory = kernel.HandleTable().Get<SharedMemory>(shared_memory_handle);
@@ -524,7 +569,7 @@ static void ExitProcess() {
 /// Creates a new thread
 static ResultCode CreateThread(Handle* out_handle, VAddr entry_point, u64 arg, VAddr stack_top,
                                u32 priority, s32 processor_id) {
-    std::string name = fmt::format("unknown-{:X}", entry_point);
+    std::string name = fmt::format("thread-{:X}", entry_point);
 
     if (priority > THREADPRIO_LOWEST) {
         return ERR_INVALID_THREAD_PRIORITY;
@@ -647,16 +692,17 @@ static ResultCode SignalProcessWideKey(VAddr condition_variable_addr, s32 target
     LOG_TRACE(Kernel_SVC, "called, condition_variable_addr=0x{:X}, target=0x{:08X}",
               condition_variable_addr, target);
 
-    auto RetrieveWaitingThreads =
-        [](size_t core_index, std::vector<SharedPtr<Thread>>& waiting_threads, VAddr condvar_addr) {
-            const auto& scheduler = Core::System::GetInstance().Scheduler(core_index);
-            auto& thread_list = scheduler->GetThreadList();
+    auto RetrieveWaitingThreads = [](std::size_t core_index,
+                                     std::vector<SharedPtr<Thread>>& waiting_threads,
+                                     VAddr condvar_addr) {
+        const auto& scheduler = Core::System::GetInstance().Scheduler(core_index);
+        auto& thread_list = scheduler->GetThreadList();
 
-            for (auto& thread : thread_list) {
-                if (thread->condvar_wait_address == condvar_addr)
-                    waiting_threads.push_back(thread);
-            }
-        };
+        for (auto& thread : thread_list) {
+            if (thread->condvar_wait_address == condvar_addr)
+                waiting_threads.push_back(thread);
+        }
+    };
 
     // Retrieve a list of all threads that are waiting for this condition variable.
     std::vector<SharedPtr<Thread>> waiting_threads;
@@ -672,7 +718,7 @@ static ResultCode SignalProcessWideKey(VAddr condition_variable_addr, s32 target
 
     // Only process up to 'target' threads, unless 'target' is -1, in which case process
     // them all.
-    size_t last = waiting_threads.size();
+    std::size_t last = waiting_threads.size();
     if (target != -1)
         last = target;
 
@@ -680,12 +726,12 @@ static ResultCode SignalProcessWideKey(VAddr condition_variable_addr, s32 target
     if (last > waiting_threads.size())
         return RESULT_SUCCESS;
 
-    for (size_t index = 0; index < last; ++index) {
+    for (std::size_t index = 0; index < last; ++index) {
         auto& thread = waiting_threads[index];
 
         ASSERT(thread->condvar_wait_address == condition_variable_addr);
 
-        size_t current_core = Core::System::GetInstance().CurrentCoreIndex();
+        std::size_t current_core = Core::System::GetInstance().CurrentCoreIndex();
 
         auto& monitor = Core::System::GetInstance().Monitor();
 
@@ -898,12 +944,28 @@ static ResultCode CreateSharedMemory(Handle* handle, u64 size, u32 local_permiss
     LOG_TRACE(Kernel_SVC, "called, size=0x{:X}, localPerms=0x{:08X}, remotePerms=0x{:08X}", size,
               local_permissions, remote_permissions);
 
+    // Size must be a multiple of 4KB and be less than or equal to
+    // approx. 8 GB (actually (1GB - 512B) * 8)
+    if (size == 0 || (size & 0xFFFFFFFE00000FFF) != 0) {
+        return ERR_INVALID_SIZE;
+    }
+
+    const auto local_perms = static_cast<MemoryPermission>(local_permissions);
+    if (local_perms != MemoryPermission::Read && local_perms != MemoryPermission::ReadWrite) {
+        return ERR_INVALID_MEMORY_PERMISSIONS;
+    }
+
+    const auto remote_perms = static_cast<MemoryPermission>(remote_permissions);
+    if (remote_perms != MemoryPermission::Read && remote_perms != MemoryPermission::ReadWrite &&
+        remote_perms != MemoryPermission::DontCare) {
+        return ERR_INVALID_MEMORY_PERMISSIONS;
+    }
+
     auto& kernel = Core::System::GetInstance().Kernel();
     auto& handle_table = kernel.HandleTable();
     auto shared_mem_handle =
         SharedMemory::Create(kernel, handle_table.Get<Process>(KernelHandle::CurrentProcess), size,
-                             static_cast<MemoryPermission>(local_permissions),
-                             static_cast<MemoryPermission>(remote_permissions));
+                             local_perms, remote_perms);
 
     CASCADE_RESULT(*handle, handle_table.Create(shared_mem_handle));
     return RESULT_SUCCESS;

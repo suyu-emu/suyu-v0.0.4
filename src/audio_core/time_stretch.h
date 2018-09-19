@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <array>
 #include <cstddef>
 #include <SoundTouch.h>
 #include "common/common_types.h"
@@ -20,7 +19,7 @@ public:
     /// @param out      Output sample buffer
     /// @param num_out  Desired number of output frames in `out`
     /// @returns Actual number of frames written to `out`
-    size_t Process(const s16* in, size_t num_in, s16* out, size_t num_out);
+    std::size_t Process(const s16* in, std::size_t num_in, s16* out, std::size_t num_out);
 
     void Clear();
 

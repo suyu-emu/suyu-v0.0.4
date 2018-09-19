@@ -10,7 +10,7 @@
 
 namespace Core {
 
-/// Generic ARM11 CPU interface
+/// Generic ARMv8 CPU interface
 class ARM_Interface : NonCopyable {
 public:
     virtual ~ARM_Interface() {}
@@ -19,9 +19,9 @@ public:
         std::array<u64, 31> cpu_registers;
         u64 sp;
         u64 pc;
-        u64 cpsr;
-        std::array<u128, 32> fpu_registers;
-        u64 fpscr;
+        u64 pstate;
+        std::array<u128, 32> vector_registers;
+        u64 fpcr;
     };
 
     /// Runs the CPU until an event happens
@@ -31,11 +31,11 @@ public:
     virtual void Step() = 0;
 
     /// Maps a backing memory region for the CPU
-    virtual void MapBackingMemory(VAddr address, size_t size, u8* memory,
+    virtual void MapBackingMemory(VAddr address, std::size_t size, u8* memory,
                                   Kernel::VMAPermission perms) = 0;
 
     /// Unmaps a region of memory that was previously mapped using MapBackingMemory
-    virtual void UnmapMemory(VAddr address, size_t size) = 0;
+    virtual void UnmapMemory(VAddr address, std::size_t size) = 0;
 
     /// Clear all instruction cache
     virtual void ClearInstructionCache() = 0;
@@ -69,42 +69,50 @@ public:
      */
     virtual void SetReg(int index, u64 value) = 0;
 
-    virtual u128 GetExtReg(int index) const = 0;
-
-    virtual void SetExtReg(int index, u128 value) = 0;
+    /**
+     * Gets the value of a specified vector register.
+     *
+     * @param index The index of the vector register.
+     * @return the value within the vector register.
+     */
+    virtual u128 GetVectorReg(int index) const = 0;
 
     /**
-     * Gets the value of a VFP register
-     * @param index Register index (0-31)
-     * @return Returns the value in the register
+     * Sets a given value into a vector register.
+     *
+     * @param index The index of the vector register.
+     * @param value The new value to place in the register.
      */
-    virtual u32 GetVFPReg(int index) const = 0;
+    virtual void SetVectorReg(int index, u128 value) = 0;
 
     /**
-     * Sets a VFP register to the given value
-     * @param index Register index (0-31)
-     * @param value Value to set register to
+     * Get the current PSTATE register
+     * @return Returns the value of the PSTATE register
      */
-    virtual void SetVFPReg(int index, u32 value) = 0;
+    virtual u32 GetPSTATE() const = 0;
 
     /**
-     * Get the current CPSR register
-     * @return Returns the value of the CPSR register
+     * Set the current PSTATE register
+     * @param pstate Value to set PSTATE to
      */
-    virtual u32 GetCPSR() const = 0;
-
-    /**
-     * Set the current CPSR register
-     * @param cpsr Value to set CPSR to
-     */
-    virtual void SetCPSR(u32 cpsr) = 0;
+    virtual void SetPSTATE(u32 pstate) = 0;
 
     virtual VAddr GetTlsAddress() const = 0;
 
     virtual void SetTlsAddress(VAddr address) = 0;
 
+    /**
+     * Gets the value within the TPIDR_EL0 (read/write software thread ID) register.
+     *
+     * @return the value within the register.
+     */
     virtual u64 GetTPIDR_EL0() const = 0;
 
+    /**
+     * Sets a new value within the TPIDR_EL0 (read/write software thread ID) register.
+     *
+     * @param value The new value to place in the register.
+     */
     virtual void SetTPIDR_EL0(u64 value) = 0;
 
     /**
@@ -119,6 +127,7 @@ public:
      */
     virtual void LoadContext(const ThreadContext& ctx) = 0;
 
+    /// Clears the exclusive monitor's state.
     virtual void ClearExclusiveState() = 0;
 
     /// Prepare core for thread reschedule (if needed to correctly handle state)

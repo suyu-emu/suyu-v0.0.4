@@ -78,7 +78,7 @@ enum class LoadState : u32 {
 };
 
 static void DecryptSharedFont(const std::vector<u32>& input, std::vector<u8>& output,
-                              size_t& offset) {
+                              std::size_t& offset) {
     ASSERT_MSG(offset + (input.size() * sizeof(u32)) < SHARED_FONT_MEM_SIZE,
                "Shared fonts exceeds 17mb!");
     ASSERT_MSG(input[0] == EXPECTED_MAGIC, "Failed to derive key, unexpected magic number");
@@ -95,7 +95,7 @@ static void DecryptSharedFont(const std::vector<u32>& input, std::vector<u8>& ou
 }
 
 static void EncryptSharedFont(const std::vector<u8>& input, std::vector<u8>& output,
-                              size_t& offset) {
+                              std::size_t& offset) {
     ASSERT_MSG(offset + input.size() + 8 < SHARED_FONT_MEM_SIZE, "Shared fonts exceeds 17mb!");
     const u32 KEY = EXPECTED_MAGIC ^ EXPECTED_RESULT;
     std::memcpy(output.data() + offset, &EXPECTED_RESULT, sizeof(u32)); // Magic header
@@ -113,7 +113,7 @@ static u32 GetU32Swapped(const u8* data) {
 }
 
 struct PL_U::Impl {
-    const FontRegion& GetSharedFontRegion(size_t index) const {
+    const FontRegion& GetSharedFontRegion(std::size_t index) const {
         if (index >= shared_font_regions.size() || shared_font_regions.empty()) {
             // No font fallback
             return EMPTY_REGION;
@@ -126,7 +126,7 @@ struct PL_U::Impl {
         // based on the shared memory dump
         unsigned cur_offset = 0;
 
-        for (size_t i = 0; i < SHARED_FONTS.size(); i++) {
+        for (std::size_t i = 0; i < SHARED_FONTS.size(); i++) {
             // Out of shared fonts/invalid font
             if (GetU32Swapped(input.data() + cur_offset) != EXPECTED_RESULT) {
                 break;
@@ -162,7 +162,7 @@ PL_U::PL_U() : ServiceFramework("pl:u"), impl{std::make_unique<Impl>()} {
     RegisterHandlers(functions);
     // Attempt to load shared font data from disk
     const auto nand = FileSystem::GetSystemNANDContents();
-    size_t offset = 0;
+    std::size_t offset = 0;
     // Rebuild shared fonts from data ncas
     if (nand->HasEntry(static_cast<u64>(FontArchives::Standard),
                        FileSys::ContentRecordType::Data)) {
@@ -344,7 +344,7 @@ void PL_U::GetSharedFontInOrderOfPriority(Kernel::HLERequestContext& ctx) {
     std::vector<u32> font_sizes;
 
     // TODO(ogniK): Have actual priority order
-    for (size_t i = 0; i < impl->shared_font_regions.size(); i++) {
+    for (std::size_t i = 0; i < impl->shared_font_regions.size(); i++) {
         font_codes.push_back(static_cast<u32>(i));
         auto region = impl->GetSharedFontRegion(i);
         font_offsets.push_back(region.offset);

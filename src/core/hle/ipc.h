@@ -12,7 +12,7 @@
 namespace IPC {
 
 /// Size of the command buffer area, in 32-bit words.
-constexpr size_t COMMAND_BUFFER_LENGTH = 0x100 / sizeof(u32);
+constexpr std::size_t COMMAND_BUFFER_LENGTH = 0x100 / sizeof(u32);
 
 // These errors are commonly returned by invalid IPC translations, so alias them here for
 // convenience.

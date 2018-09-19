@@ -21,7 +21,7 @@ Module::Interface::~Interface() = default;
 void Module::Interface::GetRandomBytes(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
-    size_t size = ctx.GetWriteBufferSize();
+    std::size_t size = ctx.GetWriteBufferSize();
 
     std::vector<u8> data(size);
     std::generate(data.begin(), data.end(), std::rand);

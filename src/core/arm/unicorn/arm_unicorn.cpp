@@ -90,12 +90,12 @@ ARM_Unicorn::~ARM_Unicorn() {
     CHECKED(uc_close(uc));
 }
 
-void ARM_Unicorn::MapBackingMemory(VAddr address, size_t size, u8* memory,
+void ARM_Unicorn::MapBackingMemory(VAddr address, std::size_t size, u8* memory,
                                    Kernel::VMAPermission perms) {
     CHECKED(uc_mem_map_ptr(uc, address, size, static_cast<u32>(perms), memory));
 }
 
-void ARM_Unicorn::UnmapMemory(VAddr address, size_t size) {
+void ARM_Unicorn::UnmapMemory(VAddr address, std::size_t size) {
     CHECKED(uc_mem_unmap(uc, address, size));
 }
 
@@ -131,33 +131,24 @@ void ARM_Unicorn::SetReg(int regn, u64 val) {
     CHECKED(uc_reg_write(uc, treg, &val));
 }
 
-u128 ARM_Unicorn::GetExtReg(int /*index*/) const {
+u128 ARM_Unicorn::GetVectorReg(int /*index*/) const {
     UNIMPLEMENTED();
     static constexpr u128 res{};
     return res;
 }
 
-void ARM_Unicorn::SetExtReg(int /*index*/, u128 /*value*/) {
+void ARM_Unicorn::SetVectorReg(int /*index*/, u128 /*value*/) {
     UNIMPLEMENTED();
 }
 
-u32 ARM_Unicorn::GetVFPReg(int /*index*/) const {
-    UNIMPLEMENTED();
-    return {};
-}
-
-void ARM_Unicorn::SetVFPReg(int /*index*/, u32 /*value*/) {
-    UNIMPLEMENTED();
-}
-
-u32 ARM_Unicorn::GetCPSR() const {
+u32 ARM_Unicorn::GetPSTATE() const {
     u64 nzcv{};
     CHECKED(uc_reg_read(uc, UC_ARM64_REG_NZCV, &nzcv));
     return static_cast<u32>(nzcv);
 }
 
-void ARM_Unicorn::SetCPSR(u32 cpsr) {
-    u64 nzcv = cpsr;
+void ARM_Unicorn::SetPSTATE(u32 pstate) {
+    u64 nzcv = pstate;
     CHECKED(uc_reg_write(uc, UC_ARM64_REG_NZCV, &nzcv));
 }
 
@@ -219,7 +210,7 @@ void ARM_Unicorn::SaveContext(ThreadContext& ctx) {
 
     CHECKED(uc_reg_read(uc, UC_ARM64_REG_SP, &ctx.sp));
     CHECKED(uc_reg_read(uc, UC_ARM64_REG_PC, &ctx.pc));
-    CHECKED(uc_reg_read(uc, UC_ARM64_REG_NZCV, &ctx.cpsr));
+    CHECKED(uc_reg_read(uc, UC_ARM64_REG_NZCV, &ctx.pstate));
 
     for (auto i = 0; i < 29; ++i) {
         uregs[i] = UC_ARM64_REG_X0 + i;
@@ -234,7 +225,7 @@ void ARM_Unicorn::SaveContext(ThreadContext& ctx) {
 
     for (int i = 0; i < 32; ++i) {
         uregs[i] = UC_ARM64_REG_Q0 + i;
-        tregs[i] = &ctx.fpu_registers[i];
+        tregs[i] = &ctx.vector_registers[i];
     }
 
     CHECKED(uc_reg_read_batch(uc, uregs, tregs, 32));
@@ -246,7 +237,7 @@ void ARM_Unicorn::LoadContext(const ThreadContext& ctx) {
 
     CHECKED(uc_reg_write(uc, UC_ARM64_REG_SP, &ctx.sp));
     CHECKED(uc_reg_write(uc, UC_ARM64_REG_PC, &ctx.pc));
-    CHECKED(uc_reg_write(uc, UC_ARM64_REG_NZCV, &ctx.cpsr));
+    CHECKED(uc_reg_write(uc, UC_ARM64_REG_NZCV, &ctx.pstate));
 
     for (int i = 0; i < 29; ++i) {
         uregs[i] = UC_ARM64_REG_X0 + i;
@@ -261,7 +252,7 @@ void ARM_Unicorn::LoadContext(const ThreadContext& ctx) {
 
     for (auto i = 0; i < 32; ++i) {
         uregs[i] = UC_ARM64_REG_Q0 + i;
-        tregs[i] = (void*)&ctx.fpu_registers[i];
+        tregs[i] = (void*)&ctx.vector_registers[i];
     }
 
     CHECKED(uc_reg_write_batch(uc, uregs, tregs, 32));

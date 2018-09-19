@@ -217,8 +217,8 @@ static void ResetThreadContext(Core::ARM_Interface::ThreadContext& context, VAdd
     context.cpu_registers[0] = arg;
     context.pc = entry_point;
     context.sp = stack_top;
-    context.cpsr = 0;
-    context.fpscr = 0;
+    context.pstate = 0;
+    context.fpcr = 0;
 }
 
 ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name, VAddr entry_point,
@@ -275,7 +275,7 @@ ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name
         available_slot = 0; // Use the first slot in the new page
 
         // Allocate some memory from the end of the linear heap for this region.
-        const size_t offset = thread->tls_memory->size();
+        const std::size_t offset = thread->tls_memory->size();
         thread->tls_memory->insert(thread->tls_memory->end(), Memory::PAGE_SIZE, 0);
 
         auto& vm_manager = owner_process->vm_manager;

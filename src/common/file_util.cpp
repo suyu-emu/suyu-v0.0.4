@@ -76,7 +76,7 @@ namespace FileUtil {
 // Modifies argument.
 static void StripTailDirSlashes(std::string& fname) {
     if (fname.length() > 1) {
-        size_t i = fname.length();
+        std::size_t i = fname.length();
         while (i > 0 && fname[i - 1] == DIR_SEP_CHR)
             --i;
         fname.resize(i);
@@ -201,7 +201,7 @@ bool CreateFullPath(const std::string& fullPath) {
         return true;
     }
 
-    size_t position = 0;
+    std::size_t position = 0;
     while (true) {
         // Find next sub path
         position = fullPath.find(DIR_SEP_CHR, position);
@@ -299,7 +299,7 @@ bool Copy(const std::string& srcFilename, const std::string& destFilename) {
     std::array<char, 1024> buffer;
     while (!feof(input.get())) {
         // read input
-        size_t rnum = fread(buffer.data(), sizeof(char), buffer.size(), input.get());
+        std::size_t rnum = fread(buffer.data(), sizeof(char), buffer.size(), input.get());
         if (rnum != buffer.size()) {
             if (ferror(input.get()) != 0) {
                 LOG_ERROR(Common_Filesystem, "failed reading from source, {} --> {}: {}",
@@ -309,7 +309,7 @@ bool Copy(const std::string& srcFilename, const std::string& destFilename) {
         }
 
         // write output
-        size_t wnum = fwrite(buffer.data(), sizeof(char), rnum, output.get());
+        std::size_t wnum = fwrite(buffer.data(), sizeof(char), rnum, output.get());
         if (wnum != rnum) {
             LOG_ERROR(Common_Filesystem, "failed writing to output, {} --> {}: {}", srcFilename,
                       destFilename, GetLastErrorMsg());
@@ -756,11 +756,11 @@ std::string GetNANDRegistrationDir(bool system) {
     return GetUserPath(UserPath::NANDDir) + "user/Contents/registered/";
 }
 
-size_t WriteStringToFile(bool text_file, const std::string& str, const char* filename) {
+std::size_t WriteStringToFile(bool text_file, const std::string& str, const char* filename) {
     return FileUtil::IOFile(filename, text_file ? "w" : "wb").WriteBytes(str.data(), str.size());
 }
 
-size_t ReadFileToString(bool text_file, const char* filename, std::string& str) {
+std::size_t ReadFileToString(bool text_file, const char* filename, std::string& str) {
     IOFile file(filename, text_file ? "r" : "rb");
 
     if (!file.IsOpen())
@@ -829,7 +829,7 @@ std::vector<std::string> SplitPathComponents(std::string_view filename) {
 std::string_view GetParentPath(std::string_view path) {
     const auto name_bck_index = path.rfind('\\');
     const auto name_fwd_index = path.rfind('/');
-    size_t name_index;
+    std::size_t name_index;
 
     if (name_bck_index == std::string_view::npos || name_fwd_index == std::string_view::npos) {
         name_index = std::min(name_bck_index, name_fwd_index);
@@ -868,7 +868,7 @@ std::string_view GetFilename(std::string_view path) {
 }
 
 std::string_view GetExtensionFromFilename(std::string_view name) {
-    const size_t index = name.rfind('.');
+    const std::size_t index = name.rfind('.');
 
     if (index == std::string_view::npos) {
         return {};

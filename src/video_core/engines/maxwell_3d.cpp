@@ -248,8 +248,8 @@ void Maxwell3D::DrawArrays() {
 
 void Maxwell3D::ProcessCBBind(Regs::ShaderStage stage) {
     // Bind the buffer currently in CB_ADDRESS to the specified index in the desired shader stage.
-    auto& shader = state.shader_stages[static_cast<size_t>(stage)];
-    auto& bind_data = regs.cb_bind[static_cast<size_t>(stage)];
+    auto& shader = state.shader_stages[static_cast<std::size_t>(stage)];
+    auto& bind_data = regs.cb_bind[static_cast<std::size_t>(stage)];
 
     auto& buffer = shader.const_buffers[bind_data.index];
 
@@ -316,14 +316,14 @@ Texture::TSCEntry Maxwell3D::GetTSCEntry(u32 tsc_index) const {
 std::vector<Texture::FullTextureInfo> Maxwell3D::GetStageTextures(Regs::ShaderStage stage) const {
     std::vector<Texture::FullTextureInfo> textures;
 
-    auto& fragment_shader = state.shader_stages[static_cast<size_t>(stage)];
+    auto& fragment_shader = state.shader_stages[static_cast<std::size_t>(stage)];
     auto& tex_info_buffer = fragment_shader.const_buffers[regs.tex_cb_index];
     ASSERT(tex_info_buffer.enabled && tex_info_buffer.address != 0);
 
     GPUVAddr tex_info_buffer_end = tex_info_buffer.address + tex_info_buffer.size;
 
     // Offset into the texture constbuffer where the texture info begins.
-    static constexpr size_t TextureInfoOffset = 0x20;
+    static constexpr std::size_t TextureInfoOffset = 0x20;
 
     for (GPUVAddr current_texture = tex_info_buffer.address + TextureInfoOffset;
          current_texture < tex_info_buffer_end; current_texture += sizeof(Texture::TextureHandle)) {
@@ -360,8 +360,9 @@ std::vector<Texture::FullTextureInfo> Maxwell3D::GetStageTextures(Regs::ShaderSt
     return textures;
 }
 
-Texture::FullTextureInfo Maxwell3D::GetStageTexture(Regs::ShaderStage stage, size_t offset) const {
-    auto& shader = state.shader_stages[static_cast<size_t>(stage)];
+Texture::FullTextureInfo Maxwell3D::GetStageTexture(Regs::ShaderStage stage,
+                                                    std::size_t offset) const {
+    auto& shader = state.shader_stages[static_cast<std::size_t>(stage)];
     auto& tex_info_buffer = shader.const_buffers[regs.tex_cb_index];
     ASSERT(tex_info_buffer.enabled && tex_info_buffer.address != 0);
 

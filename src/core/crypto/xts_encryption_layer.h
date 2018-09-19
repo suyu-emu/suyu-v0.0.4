@@ -15,7 +15,7 @@ class XTSEncryptionLayer : public EncryptionLayer {
 public:
     XTSEncryptionLayer(FileSys::VirtualFile base, Key256 key);
 
-    size_t Read(u8* data, size_t length, size_t offset) const override;
+    std::size_t Read(u8* data, std::size_t length, std::size_t offset) const override;
 
 private:
     // Must be mutable as operations modify cipher contexts.

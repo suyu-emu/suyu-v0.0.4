@@ -9,7 +9,7 @@
 
 namespace FileSys {
 
-OffsetVfsFile::OffsetVfsFile(std::shared_ptr<VfsFile> file_, size_t size_, size_t offset_,
+OffsetVfsFile::OffsetVfsFile(std::shared_ptr<VfsFile> file_, std::size_t size_, std::size_t offset_,
                              std::string name_, VirtualDir parent_)
     : file(file_), offset(offset_), size(size_), name(std::move(name_)),
       parent(parent_ == nullptr ? file->GetContainingDirectory() : std::move(parent_)) {}
@@ -18,11 +18,11 @@ std::string OffsetVfsFile::GetName() const {
     return name.empty() ? file->GetName() : name;
 }
 
-size_t OffsetVfsFile::GetSize() const {
+std::size_t OffsetVfsFile::GetSize() const {
     return size;
 }
 
-bool OffsetVfsFile::Resize(size_t new_size) {
+bool OffsetVfsFile::Resize(std::size_t new_size) {
     if (offset + new_size < file->GetSize()) {
         size = new_size;
     } else {
@@ -47,22 +47,22 @@ bool OffsetVfsFile::IsReadable() const {
     return file->IsReadable();
 }
 
-size_t OffsetVfsFile::Read(u8* data, size_t length, size_t r_offset) const {
+std::size_t OffsetVfsFile::Read(u8* data, std::size_t length, std::size_t r_offset) const {
     return file->Read(data, TrimToFit(length, r_offset), offset + r_offset);
 }
 
-size_t OffsetVfsFile::Write(const u8* data, size_t length, size_t r_offset) {
+std::size_t OffsetVfsFile::Write(const u8* data, std::size_t length, std::size_t r_offset) {
     return file->Write(data, TrimToFit(length, r_offset), offset + r_offset);
 }
 
-boost::optional<u8> OffsetVfsFile::ReadByte(size_t r_offset) const {
+boost::optional<u8> OffsetVfsFile::ReadByte(std::size_t r_offset) const {
     if (r_offset < size)
         return file->ReadByte(offset + r_offset);
 
     return boost::none;
 }
 
-std::vector<u8> OffsetVfsFile::ReadBytes(size_t r_size, size_t r_offset) const {
+std::vector<u8> OffsetVfsFile::ReadBytes(std::size_t r_size, std::size_t r_offset) const {
     return file->ReadBytes(TrimToFit(r_size, r_offset), offset + r_offset);
 }
 
@@ -70,14 +70,14 @@ std::vector<u8> OffsetVfsFile::ReadAllBytes() const {
     return file->ReadBytes(size, offset);
 }
 
-bool OffsetVfsFile::WriteByte(u8 data, size_t r_offset) {
+bool OffsetVfsFile::WriteByte(u8 data, std::size_t r_offset) {
     if (r_offset < size)
         return file->WriteByte(data, offset + r_offset);
 
     return false;
 }
 
-size_t OffsetVfsFile::WriteBytes(const std::vector<u8>& data, size_t r_offset) {
+std::size_t OffsetVfsFile::WriteBytes(const std::vector<u8>& data, std::size_t r_offset) {
     return file->Write(data.data(), TrimToFit(data.size(), r_offset), offset + r_offset);
 }
 
@@ -85,12 +85,12 @@ bool OffsetVfsFile::Rename(std::string_view name) {
     return file->Rename(name);
 }
 
-size_t OffsetVfsFile::GetOffset() const {
+std::size_t OffsetVfsFile::GetOffset() const {
     return offset;
 }
 
-size_t OffsetVfsFile::TrimToFit(size_t r_size, size_t r_offset) const {
-    return std::clamp(r_size, size_t{0}, size - r_offset);
+std::size_t OffsetVfsFile::TrimToFit(std::size_t r_size, std::size_t r_offset) const {
+    return std::clamp(r_size, std::size_t{0}, size - r_offset);
 }
 
 } // namespace FileSys

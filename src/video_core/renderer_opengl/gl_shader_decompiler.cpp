@@ -12,6 +12,7 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/engines/shader_bytecode.h"
+#include "video_core/engines/shader_header.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 
@@ -26,7 +27,7 @@ using Tegra::Shader::Sampler;
 using Tegra::Shader::SubOp;
 
 constexpr u32 PROGRAM_END = MAX_PROGRAM_CODE_LENGTH;
-constexpr u32 PROGRAM_HEADER_SIZE = 0x50;
+constexpr u32 PROGRAM_HEADER_SIZE = sizeof(Tegra::Shader::Header);
 
 class DecompileFail : public std::runtime_error {
 public:
@@ -189,7 +190,7 @@ public:
 
 private:
     void AppendIndentation() {
-        shader_source.append(static_cast<size_t>(scope) * 4, ' ');
+        shader_source.append(static_cast<std::size_t>(scope) * 4, ' ');
     }
 
     std::string shader_source;
@@ -208,7 +209,7 @@ public:
         UnsignedInteger,
     };
 
-    GLSLRegister(size_t index, const std::string& suffix) : index{index}, suffix{suffix} {}
+    GLSLRegister(std::size_t index, const std::string& suffix) : index{index}, suffix{suffix} {}
 
     /// Gets the GLSL type string for a register
     static std::string GetTypeString() {
@@ -226,13 +227,21 @@ public:
     }
 
     /// Returns the index of the register
-    size_t GetIndex() const {
+    std::size_t GetIndex() const {
         return index;
     }
 
 private:
-    const size_t index;
+    const std::size_t index;
     const std::string& suffix;
+};
+
+enum class InternalFlag : u64 {
+    ZeroFlag = 0,
+    CarryFlag = 1,
+    OverflowFlag = 2,
+    NaNFlag = 3,
+    Amount
 };
 
 /**
@@ -328,13 +337,19 @@ public:
     void SetRegisterToInteger(const Register& reg, bool is_signed, u64 elem,
                               const std::string& value, u64 dest_num_components,
                               u64 value_num_components, bool is_saturated = false,
-                              u64 dest_elem = 0, Register::Size size = Register::Size::Word) {
+                              u64 dest_elem = 0, Register::Size size = Register::Size::Word,
+                              bool sets_cc = false) {
         ASSERT_MSG(!is_saturated, "Unimplemented");
 
         const std::string func{is_signed ? "intBitsToFloat" : "uintBitsToFloat"};
 
         SetRegister(reg, elem, func + '(' + ConvertIntegerSize(value, size) + ')',
                     dest_num_components, value_num_components, dest_elem);
+
+        if (sets_cc) {
+            const std::string zero_condition = "( " + ConvertIntegerSize(value, size) + " == 0 )";
+            SetInternalFlag(InternalFlag::ZeroFlag, zero_condition);
+        }
     }
 
     /**
@@ -349,6 +364,26 @@ public:
         const std::string dest = GetRegisterAsFloat(reg);
         const std::string src = GetInputAttribute(attribute, input_mode) + GetSwizzle(elem);
         shader.AddLine(dest + " = " + src + ';');
+    }
+
+    std::string GetControlCode(const Tegra::Shader::ControlCode cc) const {
+        switch (cc) {
+        case Tegra::Shader::ControlCode::NEU:
+            return "!(" + GetInternalFlag(InternalFlag::ZeroFlag) + ')';
+        default:
+            LOG_CRITICAL(HW_GPU, "Unimplemented Control Code {}", static_cast<u32>(cc));
+            UNREACHABLE();
+            return "false";
+        }
+    }
+
+    std::string GetInternalFlag(const InternalFlag ii) const {
+        const u32 code = static_cast<u32>(ii);
+        return "internalFlag_" + std::to_string(code) + suffix;
+    }
+
+    void SetInternalFlag(const InternalFlag ii, const std::string& value) const {
+        shader.AddLine(GetInternalFlag(ii) + " = " + value + ';');
     }
 
     /**
@@ -414,6 +449,12 @@ public:
         }
         declarations.AddNewLine();
 
+        for (u32 ii = 0; ii < static_cast<u64>(InternalFlag::Amount); ii++) {
+            const InternalFlag code = static_cast<InternalFlag>(ii);
+            declarations.AddLine("bool " + GetInternalFlag(code) + " = false;");
+        }
+        declarations.AddNewLine();
+
         for (const auto element : declr_input_attribute) {
             // TODO(bunnei): Use proper number of elements for these
             u32 idx =
@@ -468,7 +509,7 @@ public:
     /// necessary.
     std::string AccessSampler(const Sampler& sampler, Tegra::Shader::TextureType type,
                               bool is_array) {
-        const size_t offset = static_cast<size_t>(sampler.index.Value());
+        const std::size_t offset = static_cast<std::size_t>(sampler.index.Value());
 
         // If this sampler has already been used, return the existing mapping.
         const auto itr =
@@ -481,7 +522,7 @@ public:
         }
 
         // Otherwise create a new mapping for this sampler
-        const size_t next_index = used_samplers.size();
+        const std::size_t next_index = used_samplers.size();
         const SamplerEntry entry{stage, offset, next_index, type, is_array};
         used_samplers.emplace_back(entry);
         return entry.GetName();
@@ -531,7 +572,7 @@ private:
     void BuildRegisterList() {
         regs.reserve(Register::NumRegisters);
 
-        for (size_t index = 0; index < Register::NumRegisters; ++index) {
+        for (std::size_t index = 0; index < Register::NumRegisters; ++index) {
             regs.emplace_back(index, suffix);
         }
     }
@@ -674,7 +715,7 @@ public:
                   u32 main_offset, Maxwell3D::Regs::ShaderStage stage, const std::string& suffix)
         : subroutines(subroutines), program_code(program_code), main_offset(main_offset),
           stage(stage), suffix(suffix) {
-
+        std::memcpy(&header, program_code.data(), sizeof(Tegra::Shader::Header));
         Generate(suffix);
     }
 
@@ -688,23 +729,6 @@ public:
     }
 
 private:
-    // Shader program header for a Fragment Shader.
-    struct FragmentHeader {
-        INSERT_PADDING_WORDS(5);
-        INSERT_PADDING_WORDS(13);
-        u32 enabled_color_outputs;
-        union {
-            BitField<0, 1, u32> writes_samplemask;
-            BitField<1, 1, u32> writes_depth;
-        };
-
-        bool IsColorComponentOutputEnabled(u32 render_target, u32 component) const {
-            const u32 bit = render_target * 4 + component;
-            return enabled_color_outputs & (1 << bit);
-        }
-    };
-    static_assert(sizeof(FragmentHeader) == PROGRAM_HEADER_SIZE, "FragmentHeader size is wrong");
-
     /// Gets the Subroutine object corresponding to the specified address.
     const Subroutine& GetSubroutine(u32 begin, u32 end) const {
         const auto iter = subroutines.find(Subroutine{begin, end, suffix});
@@ -862,7 +886,7 @@ private:
      */
     bool IsSchedInstruction(u32 offset) const {
         // sched instructions appear once every 4 instructions.
-        static constexpr size_t SchedPeriod = 4;
+        static constexpr std::size_t SchedPeriod = 4;
         u32 absolute_offset = offset - main_offset;
 
         return (absolute_offset % SchedPeriod) == 0;
@@ -930,7 +954,7 @@ private:
         std::string result;
         result += '(';
 
-        for (size_t i = 0; i < shift_amounts.size(); ++i) {
+        for (std::size_t i = 0; i < shift_amounts.size(); ++i) {
             if (i)
                 result += '|';
             result += "(((" + imm_lut + " >> (((" + op_c + " >> " + shift_amounts[i] +
@@ -954,9 +978,7 @@ private:
         // TEXS has two destination registers and a swizzle. The first two elements in the swizzle
         // go into gpr0+0 and gpr0+1, and the rest goes into gpr28+0 and gpr28+1
 
-        ASSERT_MSG(instr.texs.nodep == 0, "TEXS nodep not implemented");
-
-        size_t written_components = 0;
+        std::size_t written_components = 0;
         for (u32 component = 0; component < 4; ++component) {
             if (!instr.texs.IsComponentEnabled(component)) {
                 continue;
@@ -1010,10 +1032,8 @@ private:
     /// Writes the output values from a fragment shader to the corresponding GLSL output variables.
     void EmitFragmentOutputsWrite() {
         ASSERT(stage == Maxwell3D::Regs::ShaderStage::Fragment);
-        FragmentHeader header;
-        std::memcpy(&header, program_code.data(), PROGRAM_HEADER_SIZE);
 
-        ASSERT_MSG(header.writes_samplemask == 0, "Samplemask write is unimplemented");
+        ASSERT_MSG(header.ps.omap.sample_mask == 0, "Samplemask write is unimplemented");
 
         // Write the color outputs using the data in the shader registers, disabled
         // rendertargets/components are skipped in the register assignment.
@@ -1022,7 +1042,7 @@ private:
              ++render_target) {
             // TODO(Subv): Figure out how dual-source blending is configured in the Switch.
             for (u32 component = 0; component < 4; ++component) {
-                if (header.IsColorComponentOutputEnabled(render_target, component)) {
+                if (header.ps.IsColorComponentOutputEnabled(render_target, component)) {
                     shader.AddLine(fmt::format("FragColor{}[{}] = {};", render_target, component,
                                                regs.GetRegisterAsFloat(current_reg)));
                     ++current_reg;
@@ -1030,7 +1050,7 @@ private:
             }
         }
 
-        if (header.writes_depth) {
+        if (header.ps.omap.depth) {
             // The depth output is always 2 registers after the last color output, and current_reg
             // already contains one past the last color register.
 
@@ -1510,8 +1530,6 @@ private:
             case OpCode::Id::LEA_IMM:
             case OpCode::Id::LEA_RZ:
             case OpCode::Id::LEA_HI: {
-                std::string op_a;
-                std::string op_b;
                 std::string op_c;
 
                 switch (opcode->GetId()) {
@@ -1642,7 +1660,8 @@ private:
                 }
 
                 regs.SetRegisterToInteger(instr.gpr0, instr.conversion.is_output_signed, 0, op_a, 1,
-                                          1, instr.alu.saturate_d, 0, instr.conversion.dest_size);
+                                          1, instr.alu.saturate_d, 0, instr.conversion.dest_size,
+                                          instr.generates_cc.Value() != 0);
                 break;
             }
             case OpCode::Id::I2F_R:
@@ -1781,8 +1800,8 @@ private:
                 Tegra::Shader::IpaMode input_mode{Tegra::Shader::IpaInterpMode::Perspective,
                                                   Tegra::Shader::IpaSampleMode::Default};
 
-                u32 next_element = instr.attribute.fmt20.element;
-                u32 next_index = static_cast<u32>(instr.attribute.fmt20.index.Value());
+                u64 next_element = instr.attribute.fmt20.element;
+                u64 next_index = static_cast<u64>(instr.attribute.fmt20.index.Value());
 
                 const auto LoadNextElement = [&](u32 reg_offset) {
                     regs.SetRegisterToInputAttibute(instr.gpr0.Value() + reg_offset, next_element,
@@ -1846,8 +1865,8 @@ private:
                 ASSERT_MSG((instr.attribute.fmt20.immediate.Value() % sizeof(u32)) == 0,
                            "Unaligned attribute loads are not supported");
 
-                u32 next_element = instr.attribute.fmt20.element;
-                u32 next_index = static_cast<u32>(instr.attribute.fmt20.index.Value());
+                u64 next_element = instr.attribute.fmt20.element;
+                u64 next_index = static_cast<u64>(instr.attribute.fmt20.index.Value());
 
                 const auto StoreNextElement = [&](u32 reg_offset) {
                     regs.SetOutputAttributeToRegister(static_cast<Attribute::Index>(next_index),
@@ -1872,6 +1891,13 @@ private:
                 ASSERT_MSG(instr.tex.array == 0, "TEX arrays unimplemented");
                 Tegra::Shader::TextureType texture_type{instr.tex.texture_type};
                 std::string coord;
+
+                ASSERT_MSG(!instr.tex.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
+                           "NODEP is not implemented");
+                ASSERT_MSG(!instr.tex.UsesMiscMode(Tegra::Shader::TextureMiscMode::AOFFI),
+                           "AOFFI is not implemented");
+                ASSERT_MSG(!instr.tex.UsesMiscMode(Tegra::Shader::TextureMiscMode::DC),
+                           "DC is not implemented");
 
                 switch (texture_type) {
                 case Tegra::Shader::TextureType::Texture1D: {
@@ -1937,8 +1963,8 @@ private:
                     UNREACHABLE();
                 }
                 }
-                size_t dest_elem{};
-                for (size_t elem = 0; elem < 4; ++elem) {
+                std::size_t dest_elem{};
+                for (std::size_t elem = 0; elem < 4; ++elem) {
                     if (!instr.tex.IsComponentEnabled(elem)) {
                         // Skip disabled components
                         continue;
@@ -1954,6 +1980,11 @@ private:
                 std::string coord;
                 Tegra::Shader::TextureType texture_type{instr.texs.GetTextureType()};
                 bool is_array{instr.texs.IsArrayTexture()};
+
+                ASSERT_MSG(!instr.texs.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
+                           "NODEP is not implemented");
+                ASSERT_MSG(!instr.texs.UsesMiscMode(Tegra::Shader::TextureMiscMode::DC),
+                           "DC is not implemented");
 
                 switch (texture_type) {
                 case Tegra::Shader::TextureType::Texture2D: {
@@ -1990,6 +2021,13 @@ private:
                 std::string coord;
                 const Tegra::Shader::TextureType texture_type{instr.tlds.GetTextureType()};
                 const bool is_array{instr.tlds.IsArrayTexture()};
+ 
+                ASSERT_MSG(!instr.tlds.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
+                           "NODEP is not implemented");
+                ASSERT_MSG(!instr.tlds.UsesMiscMode(Tegra::Shader::TextureMiscMode::AOFFI),
+                           "AOFFI is not implemented");
+                ASSERT_MSG(!instr.tlds.UsesMiscMode(Tegra::Shader::TextureMiscMode::MZ),
+                           "MZ is not implemented");
 
                 switch (texture_type) {
                 case Tegra::Shader::TextureType::Texture1D: {
@@ -2024,6 +2062,17 @@ private:
                 ASSERT(instr.tld4.array == 0);
                 std::string coord;
 
+                ASSERT_MSG(!instr.tld4.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
+                           "NODEP is not implemented");
+                ASSERT_MSG(!instr.tld4.UsesMiscMode(Tegra::Shader::TextureMiscMode::AOFFI),
+                           "AOFFI is not implemented");
+                ASSERT_MSG(!instr.tld4.UsesMiscMode(Tegra::Shader::TextureMiscMode::DC),
+                           "DC is not implemented");
+                ASSERT_MSG(!instr.tld4.UsesMiscMode(Tegra::Shader::TextureMiscMode::NDV),
+                           "NDV is not implemented");
+                ASSERT_MSG(!instr.tld4.UsesMiscMode(Tegra::Shader::TextureMiscMode::PTP),
+                           "PTP is not implemented");
+
                 switch (instr.tld4.texture_type) {
                 case Tegra::Shader::TextureType::Texture2D: {
                     const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
@@ -2047,8 +2096,8 @@ private:
                 const std::string texture = "textureGather(" + sampler + ", coords, " +
                                             std::to_string(instr.tld4.component) + ')';
 
-                size_t dest_elem{};
-                for (size_t elem = 0; elem < 4; ++elem) {
+                std::size_t dest_elem{};
+                for (std::size_t elem = 0; elem < 4; ++elem) {
                     if (!instr.tex.IsComponentEnabled(elem)) {
                         // Skip disabled components
                         continue;
@@ -2061,6 +2110,13 @@ private:
                 break;
             }
             case OpCode::Id::TLD4S: {
+                ASSERT_MSG(!instr.tld4s.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
+                           "NODEP is not implemented");
+                ASSERT_MSG(!instr.tld4s.UsesMiscMode(Tegra::Shader::TextureMiscMode::AOFFI),
+                           "AOFFI is not implemented");
+                ASSERT_MSG(!instr.tld4s.UsesMiscMode(Tegra::Shader::TextureMiscMode::DC),
+                           "DC is not implemented");
+
                 const std::string op_a = regs.GetRegisterAsFloat(instr.gpr8);
                 const std::string op_b = regs.GetRegisterAsFloat(instr.gpr20);
                 // TODO(Subv): Figure out how the sampler type is encoded in the TLD4S instruction.
@@ -2073,6 +2129,9 @@ private:
                 break;
             }
             case OpCode::Id::TXQ: {
+                ASSERT_MSG(!instr.txq.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
+                           "NODEP is not implemented");
+
                 // TODO: the new commits on the texture refactor, change the way samplers work.
                 // Sadly, not all texture instructions specify the type of texture their sampler
                 // uses. This must be fixed at a later instance.
@@ -2093,6 +2152,11 @@ private:
                 break;
             }
             case OpCode::Id::TMML: {
+                ASSERT_MSG(!instr.tmml.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
+                           "NODEP is not implemented");
+                ASSERT_MSG(!instr.tmml.UsesMiscMode(Tegra::Shader::TextureMiscMode::NDV),
+                           "NDV is not implemented");
+
                 const std::string op_a = regs.GetRegisterAsFloat(instr.gpr8);
                 const std::string op_b = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
                 const bool is_array = instr.tmml.array != 0;
@@ -2259,31 +2323,55 @@ private:
             break;
         }
         case OpCode::Type::PredicateSetPredicate: {
-            const std::string op_a =
-                GetPredicateCondition(instr.psetp.pred12, instr.psetp.neg_pred12 != 0);
-            const std::string op_b =
-                GetPredicateCondition(instr.psetp.pred29, instr.psetp.neg_pred29 != 0);
+            switch (opcode->GetId()) {
+            case OpCode::Id::PSETP: {
+                const std::string op_a =
+                    GetPredicateCondition(instr.psetp.pred12, instr.psetp.neg_pred12 != 0);
+                const std::string op_b =
+                    GetPredicateCondition(instr.psetp.pred29, instr.psetp.neg_pred29 != 0);
 
-            // We can't use the constant predicate as destination.
-            ASSERT(instr.psetp.pred3 != static_cast<u64>(Pred::UnusedIndex));
+                // We can't use the constant predicate as destination.
+                ASSERT(instr.psetp.pred3 != static_cast<u64>(Pred::UnusedIndex));
 
-            const std::string second_pred =
-                GetPredicateCondition(instr.psetp.pred39, instr.psetp.neg_pred39 != 0);
+                const std::string second_pred =
+                    GetPredicateCondition(instr.psetp.pred39, instr.psetp.neg_pred39 != 0);
 
-            const std::string combiner = GetPredicateCombiner(instr.psetp.op);
+                const std::string combiner = GetPredicateCombiner(instr.psetp.op);
 
-            const std::string predicate =
-                '(' + op_a + ") " + GetPredicateCombiner(instr.psetp.cond) + " (" + op_b + ')';
+                const std::string predicate =
+                    '(' + op_a + ") " + GetPredicateCombiner(instr.psetp.cond) + " (" + op_b + ')';
 
-            // Set the primary predicate to the result of Predicate OP SecondPredicate
-            SetPredicate(instr.psetp.pred3,
-                         '(' + predicate + ") " + combiner + " (" + second_pred + ')');
+                // Set the primary predicate to the result of Predicate OP SecondPredicate
+                SetPredicate(instr.psetp.pred3,
+                             '(' + predicate + ") " + combiner + " (" + second_pred + ')');
 
-            if (instr.psetp.pred0 != static_cast<u64>(Pred::UnusedIndex)) {
-                // Set the secondary predicate to the result of !Predicate OP SecondPredicate,
-                // if enabled
-                SetPredicate(instr.psetp.pred0,
-                             "!(" + predicate + ") " + combiner + " (" + second_pred + ')');
+                if (instr.psetp.pred0 != static_cast<u64>(Pred::UnusedIndex)) {
+                    // Set the secondary predicate to the result of !Predicate OP SecondPredicate,
+                    // if enabled
+                    SetPredicate(instr.psetp.pred0,
+                                 "!(" + predicate + ") " + combiner + " (" + second_pred + ')');
+                }
+                break;
+            }
+            case OpCode::Id::CSETP: {
+                const std::string pred =
+                    GetPredicateCondition(instr.csetp.pred39, instr.csetp.neg_pred39 != 0);
+                const std::string combiner = GetPredicateCombiner(instr.csetp.op);
+                const std::string controlCode = regs.GetControlCode(instr.csetp.cc);
+                if (instr.csetp.pred3 != static_cast<u64>(Pred::UnusedIndex)) {
+                    SetPredicate(instr.csetp.pred3,
+                                 '(' + controlCode + ") " + combiner + " (" + pred + ')');
+                }
+                if (instr.csetp.pred0 != static_cast<u64>(Pred::UnusedIndex)) {
+                    SetPredicate(instr.csetp.pred0,
+                                 "!(" + controlCode + ") " + combiner + " (" + pred + ')');
+                }
+                break;
+            }
+            default: {
+                LOG_CRITICAL(HW_GPU, "Unhandled predicate instruction: {}", opcode->GetName());
+                UNREACHABLE();
+            }
             }
             break;
         }
@@ -2673,6 +2761,7 @@ private:
 private:
     const std::set<Subroutine>& subroutines;
     const ProgramCode& program_code;
+    Tegra::Shader::Header header;
     const u32 main_offset;
     Maxwell3D::Regs::ShaderStage stage;
     const std::string& suffix;

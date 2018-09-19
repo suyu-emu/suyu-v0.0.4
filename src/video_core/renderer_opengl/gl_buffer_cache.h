@@ -19,32 +19,32 @@ struct CachedBufferEntry final {
         return addr;
     }
 
-    size_t GetSizeInBytes() const {
+    std::size_t GetSizeInBytes() const {
         return size;
     }
 
     VAddr addr;
-    size_t size;
+    std::size_t size;
     GLintptr offset;
-    size_t alignment;
+    std::size_t alignment;
 };
 
 class OGLBufferCache final : public RasterizerCache<std::shared_ptr<CachedBufferEntry>> {
 public:
-    explicit OGLBufferCache(size_t size);
+    explicit OGLBufferCache(std::size_t size);
 
-    GLintptr UploadMemory(Tegra::GPUVAddr gpu_addr, size_t size, size_t alignment = 4,
+    GLintptr UploadMemory(Tegra::GPUVAddr gpu_addr, std::size_t size, std::size_t alignment = 4,
                           bool cache = true);
 
-    GLintptr UploadHostMemory(const void* raw_pointer, size_t size, size_t alignment = 4);
+    GLintptr UploadHostMemory(const void* raw_pointer, std::size_t size, std::size_t alignment = 4);
 
-    void Map(size_t max_size);
+    void Map(std::size_t max_size);
     void Unmap();
 
     GLuint GetHandle() const;
 
 protected:
-    void AlignBuffer(size_t alignment);
+    void AlignBuffer(std::size_t alignment);
 
 private:
     OGLStreamBuffer stream_buffer;

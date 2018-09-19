@@ -298,11 +298,11 @@ NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_, u64 bktr_base_ivfc_off
         auto section = sections[i];
 
         if (section.raw.header.filesystem_type == NCASectionFilesystemType::ROMFS) {
-            const size_t base_offset =
+            const std::size_t base_offset =
                 header.section_tables[i].media_offset * MEDIA_OFFSET_MULTIPLIER;
             ivfc_offset = section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].offset;
-            const size_t romfs_offset = base_offset + ivfc_offset;
-            const size_t romfs_size = section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].size;
+            const std::size_t romfs_offset = base_offset + ivfc_offset;
+            const std::size_t romfs_size = section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].size;
             auto raw = std::make_shared<OffsetVfsFile>(file, romfs_size, romfs_offset);
             auto dec = Decrypt(section, raw, romfs_offset);
 
