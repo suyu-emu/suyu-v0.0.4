@@ -205,7 +205,7 @@ enable_telemetry =
 # URL for Web API
 web_api_url = https://api.yuzu-emu.org
 # Username and token for yuzu Web Service
-# See https://services.citra-emu.org/ for more info
+# See https://profile.yuzu-emu.org/ for more info
 yuzu_username =
 yuzu_token =
 )";

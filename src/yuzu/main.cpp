@@ -116,7 +116,7 @@ void GMainWindow::ShowTelemetryCallout() {
 
     UISettings::values.callout_flags |= static_cast<uint32_t>(CalloutFlag::Telemetry);
     const QString telemetry_message =
-        tr("<a href='https://citra-emu.org/entry/telemetry-and-why-thats-a-good-thing/'>Anonymous "
+        tr("<a href='https://yuzu-emu.org/entry/telemetry-and-why-thats-a-good-thing/'>Anonymous "
            "data is collected</a> to help improve yuzu. "
            "<br/><br/>Would you like to share your usage data with us?");
     if (QMessageBox::question(this, tr("Telemetry"), telemetry_message) != QMessageBox::Yes) {

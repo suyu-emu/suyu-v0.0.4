@@ -31,18 +31,18 @@ void ConfigureWeb::setConfiguration() {
     ui->web_credentials_disclaimer->setWordWrap(true);
     ui->telemetry_learn_more->setOpenExternalLinks(true);
     ui->telemetry_learn_more->setText(tr("<a "
-                                         "href='https://citra-emu.org/entry/"
+                                         "href='https://yuzu-emu.org/entry/"
                                          "telemetry-and-why-thats-a-good-thing/'><span "
                                          "style=\"text-decoration: underline; "
                                          "color:#039be5;\">Learn more</span></a>"));
 
     ui->web_signup_link->setOpenExternalLinks(true);
     ui->web_signup_link->setText(
-        tr("<a href='https://services.citra-emu.org/'><span style=\"text-decoration: underline; "
+        tr("<a href='https://profile.yuzu-emu.org/'><span style=\"text-decoration: underline; "
            "color:#039be5;\">Sign up</span></a>"));
     ui->web_token_info_link->setOpenExternalLinks(true);
     ui->web_token_info_link->setText(
-        tr("<a href='https://citra-emu.org/wiki/citra-web-service/'><span style=\"text-decoration: "
+        tr("<a href='https://yuzu-emu.org/wiki/yuzu-web-service/'><span style=\"text-decoration: "
            "underline; color:#039be5;\">What is my token?</span></a>"));
 
     ui->toggle_telemetry->setChecked(Settings::values.enable_telemetry);

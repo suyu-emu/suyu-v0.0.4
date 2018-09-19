@@ -6,9 +6,9 @@
 
 #include <array>
 #include <string>
+#include <json.hpp>
 #include "common/telemetry.h"
 #include "common/web_result.h"
-#include "web_service/json.h"
 
 namespace WebService {
 
