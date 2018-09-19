@@ -21,12 +21,16 @@ AppLoader_NAX::~AppLoader_NAX() = default;
 FileType AppLoader_NAX::IdentifyType(const FileSys::VirtualFile& file) {
     FileSys::NAX nax(file);
 
-    if (nax.GetStatus() == ResultStatus::Success && nax.AsNCA() != nullptr &&
-        nax.AsNCA()->GetStatus() == ResultStatus::Success) {
-        return FileType::NAX;
+    if (nax.GetStatus() != ResultStatus::Success) {
+        return FileType::Error;
     }
 
-    return FileType::Error;
+    const auto nca = nax.AsNCA();
+    if (nca == nullptr || nca->GetStatus() != ResultStatus::Success) {
+        return FileType::Error;
+    }
+
+    return FileType::NAX;
 }
 
 ResultStatus AppLoader_NAX::Load(Kernel::SharedPtr<Kernel::Process>& process) {
