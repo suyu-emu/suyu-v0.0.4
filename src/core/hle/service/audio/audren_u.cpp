@@ -137,7 +137,7 @@ private:
         constexpr std::array<char, 15> audio_interface{{"AudioInterface"}};
         ctx.WriteBuffer(audio_interface);
 
-        IPC::ResponseBuilder rb = rp.MakeBuilder(3, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(1);
     }
@@ -151,7 +151,7 @@ private:
         auto file_buffer = ctx.ReadBuffer();
         auto end = std::find(file_buffer.begin(), file_buffer.end(), '\0');
 
-        IPC::ResponseBuilder rb = rp.MakeBuilder(2, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 
@@ -162,7 +162,7 @@ private:
         constexpr std::array<char, 12> audio_interface{{"AudioDevice"}};
         ctx.WriteBuffer(audio_interface);
 
-        IPC::ResponseBuilder rb = rp.MakeBuilder(3, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(1);
     }
