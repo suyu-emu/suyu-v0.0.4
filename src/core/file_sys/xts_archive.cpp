@@ -30,9 +30,6 @@ static bool CalculateHMAC256(Destination* out, const SourceKey* key, std::size_t
     mbedtls_md_context_t context;
     mbedtls_md_init(&context);
 
-    const auto key_f = reinterpret_cast<const u8*>(key);
-    const std::vector<u8> key_v(key_f, key_f + key_length);
-
     if (mbedtls_md_setup(&context, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), 1) ||
         mbedtls_md_hmac_starts(&context, reinterpret_cast<const u8*>(key), key_length) ||
         mbedtls_md_hmac_update(&context, reinterpret_cast<const u8*>(data), data_length) ||
