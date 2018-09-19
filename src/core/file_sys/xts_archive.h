@@ -60,7 +60,7 @@ private:
 
     VirtualFile file;
     Loader::ResultStatus status;
-    NAXContentType type;
+    NAXContentType type{};
 
     VirtualFile dec_file;
 
