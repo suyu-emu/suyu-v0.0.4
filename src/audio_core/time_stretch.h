@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <array>
 #include <cstddef>
 #include <SoundTouch.h>
 #include "common/common_types.h"

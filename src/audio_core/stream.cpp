@@ -7,6 +7,7 @@
 
 #include "audio_core/sink.h"
 #include "audio_core/sink_details.h"
+#include "audio_core/sink_stream.h"
 #include "audio_core/stream.h"
 #include "common/assert.h"
 #include "common/logging/log.h"

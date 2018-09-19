@@ -8,15 +8,19 @@
 #include <memory>
 #include <vector>
 
-#include "audio_core/algorithm/interpolate.h"
-#include "audio_core/audio_out.h"
-#include "audio_core/codec.h"
 #include "audio_core/stream.h"
+#include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/swap.h"
-#include "core/hle/kernel/event.h"
+#include "core/hle/kernel/object.h"
+
+namespace Kernel {
+class Event;
+}
 
 namespace AudioCore {
+
+class AudioOut;
 
 enum class PlayState : u8 {
     Started = 0,
@@ -158,6 +162,8 @@ static_assert(sizeof(UpdateDataHeader) == 0x40, "UpdateDataHeader has wrong size
 class AudioRenderer {
 public:
     AudioRenderer(AudioRendererParameter params, Kernel::SharedPtr<Kernel::Event> buffer_event);
+    ~AudioRenderer();
+
     std::vector<u8> UpdateAudioRenderer(const std::vector<u8>& input_params);
     void QueueMixedBuffer(Buffer::Tag tag);
     void ReleaseAndQueueBuffers();
@@ -166,45 +172,12 @@ public:
     u32 GetMixBufferCount() const;
 
 private:
-    class VoiceState {
-    public:
-        bool IsPlaying() const {
-            return is_in_use && info.play_state == PlayState::Started;
-        }
-
-        const VoiceOutStatus& GetOutStatus() const {
-            return out_status;
-        }
-
-        const VoiceInfo& GetInfo() const {
-            return info;
-        }
-
-        VoiceInfo& Info() {
-            return info;
-        }
-
-        void SetWaveIndex(std::size_t index);
-        std::vector<s16> DequeueSamples(std::size_t sample_count);
-        void UpdateState();
-        void RefreshBuffer();
-
-    private:
-        bool is_in_use{};
-        bool is_refresh_pending{};
-        std::size_t wave_index{};
-        std::size_t offset{};
-        Codec::ADPCMState adpcm_state{};
-        InterpolationState interp_state{};
-        std::vector<s16> samples;
-        VoiceOutStatus out_status{};
-        VoiceInfo info{};
-    };
+    class VoiceState;
 
     AudioRendererParameter worker_params;
     Kernel::SharedPtr<Kernel::Event> buffer_event;
     std::vector<VoiceState> voices;
-    std::unique_ptr<AudioCore::AudioOut> audio_out;
+    std::unique_ptr<AudioOut> audio_out;
     AudioCore::StreamPtr stream;
 };
 
