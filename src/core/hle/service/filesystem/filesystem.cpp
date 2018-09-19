@@ -197,7 +197,7 @@ ResultVal<FileSys::VirtualDir> VfsDirectoryServiceWrapper::OpenDirectory(const s
     auto dir = GetDirectoryRelativeWrapped(backing, path);
     if (dir == nullptr) {
         // TODO(DarkLordZach): Find a better error code for this
-        return ResultCode(-1);
+        return FileSys::ERROR_PATH_NOT_FOUND;
     }
     return MakeResult(dir);
 }

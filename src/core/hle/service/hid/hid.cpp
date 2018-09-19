@@ -338,7 +338,7 @@ public:
             {106, &Hid::AcquireNpadStyleSetUpdateEventHandle, "AcquireNpadStyleSetUpdateEventHandle"},
             {107, &Hid::DisconnectNpad, "DisconnectNpad"},
             {108, &Hid::GetPlayerLedPattern, "GetPlayerLedPattern"},
-            {109, nullptr, "ActivateNpadWithRevision"},
+            {109, &Hid::ActivateNpadWithRevision, "ActivateNpadWithRevision"},
             {120, &Hid::SetNpadJoyHoldType, "SetNpadJoyHoldType"},
             {121, &Hid::GetNpadJoyHoldType, "GetNpadJoyHoldType"},
             {122, &Hid::SetNpadJoyAssignmentModeSingleByDefault, "SetNpadJoyAssignmentModeSingleByDefault"},
@@ -599,6 +599,12 @@ private:
     }
 
     void ActivateGesture(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+    }
+
+    void ActivateNpadWithRevision(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_HID, "(STUBBED) called");

@@ -130,11 +130,10 @@ private:
 
     void GetAccountId(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_ACC, "(STUBBED) called");
-        // TODO(Subv): Find out what this actually does and implement it. Stub it as an error for
-        // now since we do not implement NNID. Returning a bogus id here will cause games to send
-        // invalid IPC requests after ListOpenUsers is called.
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultCode(-1));
+        // Should return a nintendo account ID
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushRaw<u64>(1);
     }
 };
 
