@@ -1935,7 +1935,7 @@ private:
                 shader.AddLine(coord);
                 std::string texture;
 
-                switch (instr.tex.process_mode) {
+                switch (instr.tex.GetTextureProcessMode()) {
                 case Tegra::Shader::TextureProcessMode::None: {
                     texture = "texture(" + sampler + ", coords)";
                     break;
@@ -1959,7 +1959,7 @@ private:
                 default: {
                     texture = "texture(" + sampler + ", coords)";
                     LOG_CRITICAL(HW_GPU, "Unhandled texture process mode {}",
-                                 static_cast<u32>(instr.tex.process_mode.Value()));
+                                 static_cast<u32>(instr.tex.GetTextureProcessMode()));
                     UNREACHABLE();
                 }
                 }
@@ -2021,7 +2021,28 @@ private:
                     is_array = false;
                 }
                 const std::string sampler = GetSampler(instr.sampler, texture_type, is_array);
-                const std::string texture = "texture(" + sampler + ", coords)";
+                std::string texture;
+                const std::string op_c = regs.GetRegisterAsFloat(instr.gpr20.Value() + 1);
+                switch (instr.texs.GetTextureProcessMode()) {
+                case Tegra::Shader::TextureProcessMode::None: {
+                    texture = "texture(" + sampler + ", coords)";
+                    break;
+                }
+                case Tegra::Shader::TextureProcessMode::LZ: {
+                    texture = "textureLod(" + sampler + ", coords, 0.0)";
+                    break;
+                }
+                case Tegra::Shader::TextureProcessMode::LL: {
+                    texture = "textureLod(" + sampler + ", coords, " + op_c + ')';
+                    break;
+                }
+                default: {
+                    texture = "texture(" + sampler + ", coords)";
+                    LOG_CRITICAL(HW_GPU, "Unhandled texture process mode {}",
+                                 static_cast<u32>(instr.texs.GetTextureProcessMode()));
+                    UNREACHABLE();
+                }
+                }
                 WriteTexsInstruction(instr, coord, texture);
                 break;
             }
@@ -2062,9 +2083,25 @@ private:
                                  static_cast<u32>(texture_type));
                     UNREACHABLE();
                 }
-
                 const std::string sampler = GetSampler(instr.sampler, texture_type, is_array);
-                const std::string texture = "texelFetch(" + sampler + ", coords, 0)";
+                std::string texture = "texelFetch(" + sampler + ", coords, 0)";
+                const std::string op_c = regs.GetRegisterAsInteger(instr.gpr20.Value() + 1);
+                switch (instr.tlds.GetTextureProcessMode()) {
+                case Tegra::Shader::TextureProcessMode::LZ: {
+                    texture = "texelFetch(" + sampler + ", coords, 0)";
+                    break;
+                }
+                case Tegra::Shader::TextureProcessMode::LL: {
+                    texture = "texelFetch(" + sampler + ", coords, " + op_c + ')';
+                    break;
+                }
+                default: {
+                    texture = "texelFetch(" + sampler + ", coords, 0)";
+                    LOG_CRITICAL(HW_GPU, "Unhandled texture process mode {}",
+                                 static_cast<u32>(instr.tlds.GetTextureProcessMode()));
+                    UNREACHABLE();
+                }
+                }
                 WriteTexsInstruction(instr, coord, texture);
                 break;
             }
