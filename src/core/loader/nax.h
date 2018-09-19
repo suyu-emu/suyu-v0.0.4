@@ -31,9 +31,7 @@ public:
      */
     static FileType IdentifyType(const FileSys::VirtualFile& file);
 
-    FileType GetFileType() override {
-        return IdentifyType(file);
-    }
+    FileType GetFileType() override;
 
     ResultStatus Load(Kernel::SharedPtr<Kernel::Process>& process) override;
 

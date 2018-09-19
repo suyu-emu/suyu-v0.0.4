@@ -11,16 +11,8 @@
 #include "core/loader/nca.h"
 
 namespace Loader {
-
-AppLoader_NAX::AppLoader_NAX(FileSys::VirtualFile file)
-    : AppLoader(file), nax(std::make_unique<FileSys::NAX>(file)),
-      nca_loader(std::make_unique<AppLoader_NCA>(nax->GetDecrypted())) {}
-
-AppLoader_NAX::~AppLoader_NAX() = default;
-
-FileType AppLoader_NAX::IdentifyType(const FileSys::VirtualFile& file) {
-    FileSys::NAX nax(file);
-
+namespace {
+FileType IdentifyTypeImpl(const FileSys::NAX& nax) {
     if (nax.GetStatus() != ResultStatus::Success) {
         return FileType::Error;
     }
@@ -31,6 +23,22 @@ FileType AppLoader_NAX::IdentifyType(const FileSys::VirtualFile& file) {
     }
 
     return FileType::NAX;
+}
+} // Anonymous namespace
+
+AppLoader_NAX::AppLoader_NAX(FileSys::VirtualFile file)
+    : AppLoader(file), nax(std::make_unique<FileSys::NAX>(file)),
+      nca_loader(std::make_unique<AppLoader_NCA>(nax->GetDecrypted())) {}
+
+AppLoader_NAX::~AppLoader_NAX() = default;
+
+FileType AppLoader_NAX::IdentifyType(const FileSys::VirtualFile& file) {
+    const FileSys::NAX nax(file);
+    return IdentifyTypeImpl(nax);
+}
+
+FileType AppLoader_NAX::GetFileType() {
+    return IdentifyTypeImpl(*nax);
 }
 
 ResultStatus AppLoader_NAX::Load(Kernel::SharedPtr<Kernel::Process>& process) {
