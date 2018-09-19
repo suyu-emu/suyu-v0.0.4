@@ -313,7 +313,7 @@ public:
             {64, nullptr, "DeactivateJoySixAxisSensor"},
             {65, nullptr, "GetJoySixAxisSensorLifoHandle"},
             {66, &Hid::StartSixAxisSensor, "StartSixAxisSensor"},
-            {67, nullptr, "StopSixAxisSensor"},
+            {67, &Hid::StopSixAxisSensor, "StopSixAxisSensor"},
             {68, nullptr, "IsSixAxisSensorFusionEnabled"},
             {69, nullptr, "EnableSixAxisSensorFusion"},
             {70, nullptr, "SetSixAxisSensorFusionParameters"},
@@ -329,7 +329,7 @@ public:
             {80, nullptr, "GetGyroscopeZeroDriftMode"},
             {81, nullptr, "ResetGyroscopeZeroDriftMode"},
             {82, &Hid::IsSixAxisSensorAtRest, "IsSixAxisSensorAtRest"},
-            {91, nullptr, "ActivateGesture"},
+            {91, &Hid::ActivateGesture, "ActivateGesture"},
             {100, &Hid::SetSupportedNpadStyleSet, "SetSupportedNpadStyleSet"},
             {101, &Hid::GetSupportedNpadStyleSet, "GetSupportedNpadStyleSet"},
             {102, &Hid::SetSupportedNpadIdType, "SetSupportedNpadIdType"},
@@ -364,8 +364,8 @@ public:
             {208, nullptr, "GetActualVibrationGcErmCommand"},
             {209, nullptr, "BeginPermitVibrationSession"},
             {210, nullptr, "EndPermitVibrationSession"},
-            {300, nullptr, "ActivateConsoleSixAxisSensor"},
-            {301, nullptr, "StartConsoleSixAxisSensor"},
+            {300, &Hid::ActivateConsoleSixAxisSensor, "ActivateConsoleSixAxisSensor"},
+            {301, &Hid::StartConsoleSixAxisSensor, "StartConsoleSixAxisSensor"},
             {302, nullptr, "StopConsoleSixAxisSensor"},
             {303, nullptr, "ActivateSevenSixAxisSensor"},
             {304, nullptr, "StartSevenSixAxisSensor"},
@@ -575,6 +575,30 @@ private:
     }
 
     void SendVibrationValues(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+    }
+
+    void ActivateConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+    }
+
+    void StartConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+    }
+
+    void StopSixAxisSensor(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+    }
+
+    void ActivateGesture(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_HID, "(STUBBED) called");
