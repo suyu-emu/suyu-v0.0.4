@@ -9,6 +9,7 @@
 #ifdef ARCHITECTURE_x86_64
 #include "core/arm/dynarmic/arm_dynarmic.h"
 #endif
+#include "core/arm/exclusive_monitor.h"
 #include "core/arm/unicorn/arm_unicorn.h"
 #include "core/core_cpu.h"
 #include "core/core_timing.h"
@@ -65,6 +66,8 @@ Cpu::Cpu(std::shared_ptr<ExclusiveMonitor> exclusive_monitor,
 
     scheduler = std::make_shared<Kernel::Scheduler>(arm_interface.get());
 }
+
+Cpu::~Cpu() = default;
 
 std::shared_ptr<ExclusiveMonitor> Cpu::MakeExclusiveMonitor(std::size_t num_cores) {
     if (Settings::values.use_cpu_jit) {
