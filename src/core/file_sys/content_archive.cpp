@@ -463,6 +463,8 @@ NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_, u64 bktr_base_ivfc_off
     status = Loader::ResultStatus::Success;
 }
 
+NCA::~NCA() = default;
+
 Loader::ResultStatus NCA::GetStatus() const {
     return status;
 }

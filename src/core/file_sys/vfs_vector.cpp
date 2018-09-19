@@ -13,6 +13,8 @@ VectorVfsDirectory::VectorVfsDirectory(std::vector<VirtualFile> files_,
     : files(std::move(files_)), dirs(std::move(dirs_)), parent(std::move(parent_)),
       name(std::move(name_)) {}
 
+VectorVfsDirectory::~VectorVfsDirectory() = default;
+
 std::vector<std::shared_ptr<VfsFile>> VectorVfsDirectory::GetFiles() const {
     return files;
 }

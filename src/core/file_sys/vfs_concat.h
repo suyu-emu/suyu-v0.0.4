@@ -22,6 +22,8 @@ class ConcatenatedVfsFile : public VfsFile {
     ConcatenatedVfsFile(std::vector<VirtualFile> files, std::string name);
 
 public:
+    ~ConcatenatedVfsFile() override;
+
     std::string GetName() const override;
     std::size_t GetSize() const override;
     bool Resize(std::size_t new_size) override;

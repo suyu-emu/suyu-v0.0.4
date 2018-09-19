@@ -27,6 +27,8 @@ ConcatenatedVfsFile::ConcatenatedVfsFile(std::vector<VirtualFile> files_, std::s
     }
 }
 
+ConcatenatedVfsFile::~ConcatenatedVfsFile() = default;
+
 std::string ConcatenatedVfsFile::GetName() const {
     if (files.empty())
         return "";

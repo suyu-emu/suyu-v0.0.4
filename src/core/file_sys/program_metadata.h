@@ -36,6 +36,9 @@ enum class ProgramFilePermission : u64 {
  */
 class ProgramMetadata {
 public:
+    ProgramMetadata();
+    ~ProgramMetadata();
+
     Loader::ResultStatus Load(VirtualFile file);
 
     bool Is64BitProgram() const;

@@ -51,6 +51,8 @@ CNMT::CNMT(CNMTHeader header, OptionalHeader opt_header, std::vector<ContentReco
     : header(std::move(header)), opt_header(std::move(opt_header)),
       content_records(std::move(content_records)), meta_records(std::move(meta_records)) {}
 
+CNMT::~CNMT() = default;
+
 u64 CNMT::GetTitleID() const {
     return header.title_id;
 }

@@ -14,6 +14,8 @@ OffsetVfsFile::OffsetVfsFile(std::shared_ptr<VfsFile> file_, std::size_t size_, 
     : file(file_), offset(offset_), size(size_), name(std::move(name_)),
       parent(parent_ == nullptr ? file->GetContainingDirectory() : std::move(parent_)) {}
 
+OffsetVfsFile::~OffsetVfsFile() = default;
+
 std::string OffsetVfsFile::GetName() const {
     return name.empty() ? file->GetName() : name;
 }

@@ -19,6 +19,7 @@ class OffsetVfsFile : public VfsFile {
 public:
     OffsetVfsFile(std::shared_ptr<VfsFile> file, std::size_t size, std::size_t offset = 0,
                   std::string new_name = "", VirtualDir new_parent = nullptr);
+    ~OffsetVfsFile() override;
 
     std::string GetName() const override;
     std::size_t GetSize() const override;

@@ -33,6 +33,7 @@ class NAX : public ReadOnlyVfsDirectory {
 public:
     explicit NAX(VirtualFile file);
     explicit NAX(VirtualFile file, std::array<u8, 0x10> nca_id);
+    ~NAX() override;
 
     Loader::ResultStatus GetStatus() const;
 

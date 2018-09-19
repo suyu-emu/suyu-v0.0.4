@@ -25,6 +25,8 @@ namespace FileSys {
 class PartitionFilesystem : public ReadOnlyVfsDirectory {
 public:
     explicit PartitionFilesystem(std::shared_ptr<VfsFile> file);
+    ~PartitionFilesystem() override;
+
     Loader::ResultStatus GetStatus() const;
 
     std::vector<std::shared_ptr<VfsFile>> GetFiles() const override;

@@ -48,6 +48,7 @@ static_assert(sizeof(SaveDataDescriptor) == 0x40, "SaveDataDescriptor has incorr
 class SaveDataFactory {
 public:
     explicit SaveDataFactory(VirtualDir dir);
+    ~SaveDataFactory();
 
     ResultVal<VirtualDir> Open(SaveDataSpaceId space, SaveDataDescriptor meta);
 

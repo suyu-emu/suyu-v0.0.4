@@ -20,6 +20,8 @@ NACP::NACP(VirtualFile file) : raw(std::make_unique<RawNACP>()) {
     file->ReadObject(raw.get());
 }
 
+NACP::~NACP() = default;
+
 const LanguageEntry& NACP::GetLanguageEntry(Language language) const {
     if (language != Language::Default) {
         return raw->language_entries.at(static_cast<u8>(language));

@@ -41,6 +41,8 @@ std::string FormatPatchTypeName(PatchType type) {
 
 PatchManager::PatchManager(u64 title_id) : title_id(title_id) {}
 
+PatchManager::~PatchManager() = default;
+
 VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
     LOG_INFO(Loader, "Patching ExeFS for title_id={:016X}", title_id);
 

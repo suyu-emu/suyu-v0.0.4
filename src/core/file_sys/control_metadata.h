@@ -78,6 +78,8 @@ static constexpr std::array<const char*, 15> LANGUAGE_NAMES = {
 class NACP {
 public:
     explicit NACP(VirtualFile file);
+    ~NACP();
+
     const LanguageEntry& GetLanguageEntry(Language language = Language::Default) const;
     std::string GetApplicationName(Language language = Language::Default) const;
     std::string GetDeveloperName(Language language = Language::Default) const;

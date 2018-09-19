@@ -30,6 +30,7 @@ enum class StorageId : u8 {
 class RomFSFactory {
 public:
     explicit RomFSFactory(Loader::AppLoader& app_loader);
+    ~RomFSFactory();
 
     ResultVal<VirtualFile> OpenCurrentProcess();
     ResultVal<VirtualFile> Open(u64 title_id, StorageId storage, ContentRecordType type);
