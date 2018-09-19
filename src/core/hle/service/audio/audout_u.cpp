@@ -190,7 +190,7 @@ void AudOutU::ListAudioOutsImpl(Kernel::HLERequestContext& ctx) {
 
     ctx.WriteBuffer(DefaultDevice);
 
-    IPC::ResponseBuilder rb = rp.MakeBuilder(3, 0, 0);
+    IPC::ResponseBuilder rb{ctx, 3};
 
     rb.Push(RESULT_SUCCESS);
     rb.Push<u32>(1); // Amount of audio devices

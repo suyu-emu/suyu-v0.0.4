@@ -71,7 +71,7 @@ private:
         LOG_WARNING(Service_SSL, "(STUBBED) called");
         IPC::RequestParser rp{ctx};
 
-        IPC::ResponseBuilder rb = rp.MakeBuilder(2, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 

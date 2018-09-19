@@ -462,7 +462,7 @@ private:
 
         std::memcpy(&buffer[offset], data.data(), data.size());
 
-        IPC::ResponseBuilder rb{rp.MakeBuilder(2, 0, 0)};
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
 
         LOG_DEBUG(Service_AM, "called, offset={}", offset);
@@ -478,7 +478,7 @@ private:
 
         ctx.WriteBuffer(buffer.data() + offset, size);
 
-        IPC::ResponseBuilder rb{rp.MakeBuilder(2, 0, 0)};
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
 
         LOG_DEBUG(Service_AM, "called, offset={}", offset);
@@ -568,7 +568,7 @@ private:
         IPC::RequestParser rp{ctx};
         storage_stack.push(rp.PopIpcInterface<AM::IStorage>());
 
-        IPC::ResponseBuilder rb{rp.MakeBuilder(2, 0, 0)};
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
 
         LOG_DEBUG(Service_AM, "called");
@@ -616,7 +616,7 @@ void ILibraryAppletCreator::CreateStorage(Kernel::HLERequestContext& ctx) {
     const u64 size{rp.Pop<u64>()};
     std::vector<u8> buffer(size);
 
-    IPC::ResponseBuilder rb{rp.MakeBuilder(2, 0, 1)};
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<AM::IStorage>(std::move(buffer));
 

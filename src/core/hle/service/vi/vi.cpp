@@ -650,7 +650,7 @@ private:
         u64 layer_id = rp.Pop<u64>();
         u64 z_value = rp.Pop<u64>();
 
-        IPC::ResponseBuilder rb = rp.MakeBuilder(2, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 
@@ -658,7 +658,7 @@ private:
         IPC::RequestParser rp{ctx};
         u64 layer_id = rp.Pop<u64>();
         bool visibility = rp.Pop<bool>();
-        IPC::ResponseBuilder rb = rp.MakeBuilder(2, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_VI, "(STUBBED) called, layer_id=0x{:08X}, visibility={}", layer_id,
                     visibility);
@@ -747,7 +747,7 @@ private:
         IPC::RequestParser rp{ctx};
         u64 display = rp.Pop<u64>();
 
-        IPC::ResponseBuilder rb = rp.MakeBuilder(2, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 
@@ -761,7 +761,7 @@ private:
 
         u64 layer_id = nv_flinger->CreateLayer(display);
 
-        IPC::ResponseBuilder rb = rp.MakeBuilder(4, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
         rb.Push(layer_id);
     }
@@ -772,7 +772,7 @@ private:
         u32 stack = rp.Pop<u32>();
         u64 layer_id = rp.Pop<u64>();
 
-        IPC::ResponseBuilder rb = rp.MakeBuilder(2, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 
@@ -780,7 +780,7 @@ private:
         IPC::RequestParser rp{ctx};
         u64 layer_id = rp.Pop<u64>();
         bool visibility = rp.Pop<bool>();
-        IPC::ResponseBuilder rb = rp.MakeBuilder(2, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_VI, "(STUBBED) called, layer_id=0x{:X}, visibility={}", layer_id,
                     visibility);
@@ -837,7 +837,7 @@ private:
 
         ASSERT_MSG(name == "Default", "Non-default displays aren't supported yet");
 
-        IPC::ResponseBuilder rb = rp.MakeBuilder(4, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u64>(nv_flinger->OpenDisplay(name));
     }
@@ -847,7 +847,7 @@ private:
         IPC::RequestParser rp{ctx};
         u64 display_id = rp.Pop<u64>();
 
-        IPC::ResponseBuilder rb = rp.MakeBuilder(2, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 
@@ -856,7 +856,7 @@ private:
         IPC::RequestParser rp{ctx};
         u64 display_id = rp.Pop<u64>();
 
-        IPC::ResponseBuilder rb = rp.MakeBuilder(6, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 6};
         rb.Push(RESULT_SUCCESS);
 
         if (Settings::values.use_docked_mode) {
@@ -874,7 +874,7 @@ private:
         u32 scaling_mode = rp.Pop<u32>();
         u64 unknown = rp.Pop<u64>();
 
-        IPC::ResponseBuilder rb = rp.MakeBuilder(2, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 
@@ -882,7 +882,7 @@ private:
         IPC::RequestParser rp{ctx};
         DisplayInfo display_info;
         ctx.WriteBuffer(&display_info, sizeof(DisplayInfo));
-        IPC::ResponseBuilder rb = rp.MakeBuilder(4, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u64>(1);
         LOG_WARNING(Service_VI, "(STUBBED) called");
@@ -903,7 +903,7 @@ private:
         u32 buffer_queue_id = nv_flinger->GetBufferQueueId(display_id, layer_id);
 
         NativeWindow native_window{buffer_queue_id};
-        IPC::ResponseBuilder rb = rp.MakeBuilder(4, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u64>(ctx.WriteBuffer(native_window.Serialize()));
     }
@@ -922,7 +922,7 @@ private:
         u32 buffer_queue_id = nv_flinger->GetBufferQueueId(display_id, layer_id);
 
         NativeWindow native_window{buffer_queue_id};
-        IPC::ResponseBuilder rb = rp.MakeBuilder(6, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 6};
         rb.Push(RESULT_SUCCESS);
         rb.Push(layer_id);
         rb.Push<u64>(ctx.WriteBuffer(native_window.Serialize()));
@@ -934,7 +934,7 @@ private:
         IPC::RequestParser rp{ctx};
         u64 layer_id = rp.Pop<u64>();
 
-        IPC::ResponseBuilder rb = rp.MakeBuilder(2, 0, 0);
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 
@@ -945,7 +945,7 @@ private:
 
         auto vsync_event = nv_flinger->GetVsyncEvent(display_id);
 
-        IPC::ResponseBuilder rb = rp.MakeBuilder(2, 1, 0);
+        IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(vsync_event);
     }
