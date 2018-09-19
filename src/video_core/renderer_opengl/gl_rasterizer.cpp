@@ -484,8 +484,13 @@ void RasterizerOpenGL::DrawArrays() {
     GLintptr index_buffer_offset = 0;
     if (is_indexed) {
         MICROPROFILE_SCOPE(OpenGL_Index);
-        index_buffer_offset =
-            buffer_cache.UploadMemory(regs.index_array.StartAddress(), index_buffer_size);
+
+        // Adjust the index buffer offset so it points to the first desired index.
+        auto index_start = regs.index_array.StartAddress();
+        index_start += static_cast<size_t>(regs.index_array.first) *
+                       static_cast<size_t>(regs.index_array.FormatSizeInBytes());
+
+        index_buffer_offset = buffer_cache.UploadMemory(index_start, index_buffer_size);
     }
 
     SetupShaders();
@@ -498,10 +503,6 @@ void RasterizerOpenGL::DrawArrays() {
     const GLenum primitive_mode{MaxwellToGL::PrimitiveTopology(regs.draw.topology)};
     if (is_indexed) {
         const GLint base_vertex{static_cast<GLint>(regs.vb_element_base)};
-
-        // Adjust the index buffer offset so it points to the first desired index.
-        index_buffer_offset += static_cast<GLintptr>(regs.index_array.first) *
-                               static_cast<GLintptr>(regs.index_array.FormatSizeInBytes());
 
         if (gpu.state.current_instance > 0) {
             glDrawElementsInstancedBaseVertexBaseInstance(
