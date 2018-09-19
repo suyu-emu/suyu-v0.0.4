@@ -138,9 +138,9 @@ VirtualFile NAX::GetDecrypted() const {
     return dec_file;
 }
 
-std::shared_ptr<NCA> NAX::AsNCA() const {
+std::unique_ptr<NCA> NAX::AsNCA() const {
     if (type == NAXContentType::NCA)
-        return std::make_shared<NCA>(GetDecrypted());
+        return std::make_unique<NCA>(GetDecrypted());
     return nullptr;
 }
 
