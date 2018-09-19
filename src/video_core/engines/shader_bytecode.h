@@ -271,6 +271,15 @@ enum class TextureProcessMode : u64 {
     LLA = 7  // Load LOD. The A is unknown, does not appear to differ with LL
 };
 
+enum class TextureMiscMode : u64 {
+    DC,
+    AOFFI, // Uses Offset
+    NDV,
+    NODEP,
+    MZ,
+    PTP,
+};
+
 enum class IpaInterpMode : u64 { Linear = 0, Perspective = 1, Flat = 2, Sc = 3 };
 enum class IpaSampleMode : u64 { Default = 0, Centroid = 1, Offset = 2 };
 
@@ -590,42 +599,127 @@ union Instruction {
         BitField<28, 1, u64> array;
         BitField<29, 2, TextureType> texture_type;
         BitField<31, 4, u64> component_mask;
+        BitField<49, 1, u64> nodep_flag;
+        BitField<50, 1, u64> dc_flag;
+        BitField<54, 1, u64> aoffi_flag;
         BitField<55, 3, TextureProcessMode> process_mode;
 
         bool IsComponentEnabled(std::size_t component) const {
             return ((1ull << component) & component_mask) != 0;
+        }
+
+        TextureProcessMode GetTextureProcessMode() const {
+            return process_mode;
+        }
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::DC:
+                return dc_flag != 0;
+            case TextureMiscMode::NODEP:
+                return nodep_flag != 0;
+            case TextureMiscMode::AOFFI:
+                return aoffi_flag != 0;
+            default:
+                break;
+            }
+            return false;
         }
     } tex;
 
     union {
         BitField<22, 6, TextureQueryType> query_type;
         BitField<31, 4, u64> component_mask;
+        BitField<49, 1, u64> nodep_flag;
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::NODEP:
+                return nodep_flag != 0;
+            default:
+                break;
+            }
+            return false;
+        }
     } txq;
 
     union {
         BitField<28, 1, u64> array;
         BitField<29, 2, TextureType> texture_type;
         BitField<31, 4, u64> component_mask;
+        BitField<35, 1, u64> ndv_flag;
+        BitField<49, 1, u64> nodep_flag;
 
         bool IsComponentEnabled(std::size_t component) const {
             return ((1ull << component) & component_mask) != 0;
+        }
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::NDV:
+                return (ndv_flag != 0);
+            case TextureMiscMode::NODEP:
+                return (nodep_flag != 0);
+            default:
+                break;
+            }
+            return false;
         }
     } tmml;
 
     union {
         BitField<28, 1, u64> array;
         BitField<29, 2, TextureType> texture_type;
+        BitField<35, 1, u64> ndv_flag;
+        BitField<49, 1, u64> nodep_flag;
+        BitField<50, 1, u64> dc_flag;
+        BitField<54, 2, u64> info;
         BitField<56, 2, u64> component;
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::NDV:
+                return ndv_flag != 0;
+            case TextureMiscMode::NODEP:
+                return nodep_flag != 0;
+            case TextureMiscMode::DC:
+                return dc_flag != 0;
+            case TextureMiscMode::AOFFI:
+                return info == 1;
+            case TextureMiscMode::PTP:
+                return info == 2;
+            default:
+                break;
+            }
+            return false;
+        }
     } tld4;
 
     union {
+        BitField<49, 1, u64> nodep_flag;
+        BitField<50, 1, u64> dc_flag;
+        BitField<51, 1, u64> aoffi_flag;
         BitField<52, 2, u64> component;
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::DC:
+                return dc_flag != 0;
+            case TextureMiscMode::NODEP:
+                return nodep_flag != 0;
+            case TextureMiscMode::AOFFI:
+                return aoffi_flag != 0;
+            default:
+                break;
+            }
+            return false;
+        }
     } tld4s;
 
     union {
         BitField<0, 8, Register> gpr0;
         BitField<28, 8, Register> gpr28;
-        BitField<49, 1, u64> nodep;
+        BitField<49, 1, u64> nodep_flag;
         BitField<50, 3, u64> component_mask_selector;
         BitField<53, 4, u64> texture_info;
 
@@ -643,6 +737,37 @@ union Instruction {
             LOG_CRITICAL(HW_GPU, "Unhandled texture_info: {}",
                          static_cast<u32>(texture_info.Value()));
             UNREACHABLE();
+        }
+
+        TextureProcessMode GetTextureProcessMode() const {
+            switch (texture_info) {
+            case 0:
+            case 2:
+            case 6:
+            case 8:
+            case 9:
+            case 11:
+                return TextureProcessMode::LZ;
+            case 3:
+            case 5:
+            case 13:
+                return TextureProcessMode::LL;
+            default:
+                break;
+            }
+            return TextureProcessMode::None;
+        }
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::DC:
+                return (texture_info >= 4 && texture_info <= 6) || texture_info == 9;
+            case TextureMiscMode::NODEP:
+                return nodep_flag != 0;
+            default:
+                break;
+            }
+            return false;
         }
 
         bool IsArrayTexture() const {
@@ -673,6 +798,7 @@ union Instruction {
     } texs;
 
     union {
+        BitField<49, 1, u64> nodep_flag;
         BitField<53, 4, u64> texture_info;
 
         TextureType GetTextureType() const {
@@ -691,6 +817,26 @@ union Instruction {
             LOG_CRITICAL(HW_GPU, "Unhandled texture_info: {}",
                          static_cast<u32>(texture_info.Value()));
             UNREACHABLE();
+        }
+
+        TextureProcessMode GetTextureProcessMode() const {
+            if (texture_info == 1 || texture_info == 5 || texture_info == 12)
+                return TextureProcessMode::LL;
+            return TextureProcessMode::LZ;
+        }
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::AOFFI:
+                return texture_info == 12 || texture_info == 4;
+            case TextureMiscMode::MZ:
+                return texture_info == 5;
+            case TextureMiscMode::NODEP:
+                return nodep_flag != 0;
+            default:
+                break;
+            }
+            return false;
         }
 
         bool IsArrayTexture() const {
