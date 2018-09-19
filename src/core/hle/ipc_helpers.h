@@ -290,13 +290,6 @@ public:
         Skip(CommandIdSize, false);
     }
 
-    ResponseBuilder MakeBuilder(u32 normal_params_size, u32 num_handles_to_copy,
-                                u32 num_handles_to_move,
-                                ResponseBuilder::Flags flags = ResponseBuilder::Flags::None) const {
-        return ResponseBuilder{*context, normal_params_size, num_handles_to_copy,
-                               num_handles_to_move, flags};
-    }
-
     template <typename T>
     T Pop();
 
