@@ -5,12 +5,15 @@
 #pragma once
 
 #include <array>
+#include <map>
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "core/file_sys/vfs.h"
 
 namespace FileSys {
+
+struct RomFSHeader;
 
 struct IVFCLevel {
     u64_le offset;
@@ -31,6 +34,10 @@ static_assert(sizeof(IVFCHeader) == 0xE0, "IVFCHeader has incorrect size.");
 
 // Converts a RomFS binary blob to VFS Filesystem
 // Returns nullptr on failure
-VirtualDir ExtractRomFS(VirtualFile file);
+VirtualDir ExtractRomFS(VirtualFile file, bool traverse_into_data = true);
+
+// Converts a VFS filesystem into a RomFS binary
+// Returns nullptr on failure
+VirtualFile CreateRomFS(VirtualDir dir);
 
 } // namespace FileSys

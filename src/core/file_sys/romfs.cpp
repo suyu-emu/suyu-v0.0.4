@@ -4,8 +4,10 @@
 
 #include "common/common_types.h"
 #include "common/swap.h"
+#include "core/file_sys/fsmitm_romfsbuild.hpp"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/vfs.h"
+#include "core/file_sys/vfs_concat.h"
 #include "core/file_sys/vfs_offset.h"
 #include "core/file_sys/vfs_vector.h"
 
@@ -98,7 +100,7 @@ void ProcessDirectory(VirtualFile file, std::size_t dir_offset, std::size_t file
     }
 }
 
-VirtualDir ExtractRomFS(VirtualFile file) {
+VirtualDir ExtractRomFS(VirtualFile file, bool traverse_into_data) {
     RomFSHeader header{};
     if (file->ReadObject(&header) != sizeof(RomFSHeader))
         return nullptr;
@@ -117,9 +119,21 @@ VirtualDir ExtractRomFS(VirtualFile file) {
 
     VirtualDir out = std::move(root);
 
-    while (out->GetSubdirectory("") != nullptr)
-        out = out->GetSubdirectory("");
+    while (out->GetSubdirectories().size() == 1 && out->GetFiles().size() == 0) {
+        if (out->GetSubdirectories().front()->GetName() == "data" && !traverse_into_data)
+            break;
+        out = out->GetSubdirectories().front();
+    }
 
     return out;
 }
+
+VirtualFile CreateRomFS(VirtualDir dir) {
+    if (dir == nullptr)
+        return nullptr;
+
+    RomFSBuildContext ctx{dir};
+    return ConcatenateFiles<0>(ctx.Build(), dir->GetName());
+}
+
 } // namespace FileSys
