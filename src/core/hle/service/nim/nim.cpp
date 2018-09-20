@@ -2,6 +2,10 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <chrono>
+#include <ctime>
+#include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/event.h"
 #include "core/hle/service/nim/nim.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
@@ -100,18 +104,110 @@ public:
     }
 };
 
+class IEnsureNetworkClockAvailabilityService final
+    : public ServiceFramework<IEnsureNetworkClockAvailabilityService> {
+public:
+    IEnsureNetworkClockAvailabilityService()
+        : ServiceFramework("IEnsureNetworkClockAvailabilityService") {
+        static const FunctionInfo functions[] = {
+            {0, &IEnsureNetworkClockAvailabilityService::StartTask, "StartTask"},
+            {1, &IEnsureNetworkClockAvailabilityService::GetFinishNotificationEvent,
+             "GetFinishNotificationEvent"},
+            {2, &IEnsureNetworkClockAvailabilityService::GetResult, "GetResult"},
+            {3, &IEnsureNetworkClockAvailabilityService::Cancel, "Cancel"},
+            {4, &IEnsureNetworkClockAvailabilityService::IsProcessing, "IsProcessing"},
+            {5, &IEnsureNetworkClockAvailabilityService::GetServerTime, "GetServerTime"},
+        };
+        RegisterHandlers(functions);
+
+        auto& kernel = Core::System::GetInstance().Kernel();
+        finished_event =
+            Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
+                                  "IEnsureNetworkClockAvailabilityService:FinishEvent");
+    }
+
+private:
+    Kernel::SharedPtr<Kernel::Event> finished_event;
+
+    void StartTask(Kernel::HLERequestContext& ctx) {
+        // No need to connect to the internet, just finish the task straight away.
+        finished_event->Signal();
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_DEBUG(Service_NIM, "called");
+    }
+
+    void GetFinishNotificationEvent(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushCopyObjects(finished_event);
+        LOG_DEBUG(Service_NIM, "called");
+    }
+
+    void GetResult(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_DEBUG(Service_NIM, "called");
+    }
+
+    void Cancel(Kernel::HLERequestContext& ctx) {
+        finished_event->Clear();
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_DEBUG(Service_NIM, "called");
+    }
+
+    void IsProcessing(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushRaw<u32>(0); // We instantly process the request
+        LOG_DEBUG(Service_NIM, "called");
+    }
+
+    void GetServerTime(Kernel::HLERequestContext& ctx) {
+        const s64 server_time{std::chrono::duration_cast<std::chrono::seconds>(
+                                  std::chrono::system_clock::now().time_since_epoch())
+                                  .count()};
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushRaw<s64>(server_time);
+        LOG_DEBUG(Service_NIM, "called");
+    }
+};
+
 class NTC final : public ServiceFramework<NTC> {
 public:
     explicit NTC() : ServiceFramework{"ntc"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "OpenEnsureNetworkClockAvailabilityService"},
-            {100, nullptr, "SuspendAutonomicTimeCorrection"},
-            {101, nullptr, "ResumeAutonomicTimeCorrection"},
+            {0, &NTC::OpenEnsureNetworkClockAvailabilityService, "OpenEnsureNetworkClockAvailabilityService"},
+            {100, &NTC::SuspendAutonomicTimeCorrection, "SuspendAutonomicTimeCorrection"},
+            {101, &NTC::ResumeAutonomicTimeCorrection, "ResumeAutonomicTimeCorrection"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
+    }
+
+private:
+    void OpenEnsureNetworkClockAvailabilityService(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<IEnsureNetworkClockAvailabilityService>();
+        LOG_DEBUG(Service_NIM, "called");
+    }
+
+    // TODO(ogniK): Do we need these?
+    void SuspendAutonomicTimeCorrection(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_WARNING(Service_NIM, "(STUBBED) called");
+    }
+
+    void ResumeAutonomicTimeCorrection(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_WARNING(Service_NIM, "(STUBBED) called");
     }
 };
 
