@@ -995,7 +995,7 @@ static bool CommitBreakpoint(BreakpointType type, VAddr addr, u64 len) {
     breakpoint.addr = addr;
     breakpoint.len = len;
     Memory::ReadBlock(addr, breakpoint.inst.data(), breakpoint.inst.size());
-    static constexpr std::array<u8, 4> btrap{{0xd4, 0x20, 0x7d, 0x0}};
+    static constexpr std::array<u8, 4> btrap{{0x00, 0x7d, 0x20, 0xd4}};
     Memory::WriteBlock(addr, btrap.data(), btrap.size());
     Core::System::GetInstance().InvalidateCpuInstructionCaches();
     p.insert({addr, breakpoint});
