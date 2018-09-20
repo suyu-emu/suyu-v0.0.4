@@ -8,6 +8,14 @@
 
 namespace FileSys {
 
+const std::array<const char*, 15> LANGUAGE_NAMES = {
+    "AmericanEnglish", "BritishEnglish", "Japanese",
+    "French",          "German",         "LatinAmericanSpanish",
+    "Spanish",         "Italian",        "Dutch",
+    "CanadianFrench",  "Portugese",      "Russian",
+    "Korean",          "Taiwanese",      "Chinese",
+};
+
 std::string LanguageEntry::GetApplicationName() const {
     return Common::StringFromFixedZeroTerminatedBuffer(application_name.data(), 0x200);
 }
@@ -23,15 +31,15 @@ NACP::NACP(VirtualFile file) : raw(std::make_unique<RawNACP>()) {
 const LanguageEntry& NACP::GetLanguageEntry(Language language) const {
     if (language != Language::Default) {
         return raw->language_entries.at(static_cast<u8>(language));
-    } else {
-        for (const auto& language_entry : raw->language_entries) {
-            if (!language_entry.GetApplicationName().empty())
-                return language_entry;
-        }
-
-        // Fallback to English
-        return GetLanguageEntry(Language::AmericanEnglish);
     }
+
+    for (const auto& language_entry : raw->language_entries) {
+        if (!language_entry.GetApplicationName().empty())
+            return language_entry;
+    }
+
+    // Fallback to English
+    return GetLanguageEntry(Language::AmericanEnglish);
 }
 
 std::string NACP::GetApplicationName(Language language) const {
