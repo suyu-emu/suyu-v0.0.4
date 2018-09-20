@@ -11,6 +11,20 @@
 #include "core/loader/nca.h"
 
 namespace Loader {
+namespace {
+FileType IdentifyTypeImpl(const FileSys::NAX& nax) {
+    if (nax.GetStatus() != ResultStatus::Success) {
+        return FileType::Error;
+    }
+
+    const auto nca = nax.AsNCA();
+    if (nca == nullptr || nca->GetStatus() != ResultStatus::Success) {
+        return FileType::Error;
+    }
+
+    return FileType::NAX;
+}
+} // Anonymous namespace
 
 AppLoader_NAX::AppLoader_NAX(FileSys::VirtualFile file)
     : AppLoader(file), nax(std::make_unique<FileSys::NAX>(file)),
@@ -19,14 +33,12 @@ AppLoader_NAX::AppLoader_NAX(FileSys::VirtualFile file)
 AppLoader_NAX::~AppLoader_NAX() = default;
 
 FileType AppLoader_NAX::IdentifyType(const FileSys::VirtualFile& file) {
-    FileSys::NAX nax(file);
+    const FileSys::NAX nax(file);
+    return IdentifyTypeImpl(nax);
+}
 
-    if (nax.GetStatus() == ResultStatus::Success && nax.AsNCA() != nullptr &&
-        nax.AsNCA()->GetStatus() == ResultStatus::Success) {
-        return FileType::NAX;
-    }
-
-    return FileType::Error;
+FileType AppLoader_NAX::GetFileType() {
+    return IdentifyTypeImpl(*nax);
 }
 
 ResultStatus AppLoader_NAX::Load(Kernel::SharedPtr<Kernel::Process>& process) {

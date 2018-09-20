@@ -38,7 +38,7 @@ public:
 
     VirtualFile GetDecrypted() const;
 
-    std::shared_ptr<NCA> AsNCA() const;
+    std::unique_ptr<NCA> AsNCA() const;
 
     NAXContentType GetContentType() const;
 
@@ -60,7 +60,7 @@ private:
 
     VirtualFile file;
     Loader::ResultStatus status;
-    NAXContentType type;
+    NAXContentType type{};
 
     VirtualFile dec_file;
 

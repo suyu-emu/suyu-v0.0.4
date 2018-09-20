@@ -30,9 +30,6 @@ static bool CalculateHMAC256(Destination* out, const SourceKey* key, std::size_t
     mbedtls_md_context_t context;
     mbedtls_md_init(&context);
 
-    const auto key_f = reinterpret_cast<const u8*>(key);
-    const std::vector<u8> key_v(key_f, key_f + key_length);
-
     if (mbedtls_md_setup(&context, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), 1) ||
         mbedtls_md_hmac_starts(&context, reinterpret_cast<const u8*>(key), key_length) ||
         mbedtls_md_hmac_update(&context, reinterpret_cast<const u8*>(data), data_length) ||
@@ -45,7 +42,7 @@ static bool CalculateHMAC256(Destination* out, const SourceKey* key, std::size_t
     return true;
 }
 
-NAX::NAX(VirtualFile file_) : file(std::move(file_)), header(std::make_unique<NAXHeader>()) {
+NAX::NAX(VirtualFile file_) : header(std::make_unique<NAXHeader>()), file(std::move(file_)) {
     std::string path = FileUtil::SanitizePath(file->GetFullPath());
     static const std::regex nax_path_regex("/registered/(000000[0-9A-F]{2})/([0-9A-F]{32})\\.nca",
                                            std::regex_constants::ECMAScript |
@@ -65,7 +62,7 @@ NAX::NAX(VirtualFile file_) : file(std::move(file_)), header(std::make_unique<NA
 }
 
 NAX::NAX(VirtualFile file_, std::array<u8, 0x10> nca_id)
-    : file(std::move(file_)), header(std::make_unique<NAXHeader>()) {
+    : header(std::make_unique<NAXHeader>()), file(std::move(file_)) {
     Core::Crypto::SHA256Hash hash{};
     mbedtls_sha256(nca_id.data(), nca_id.size(), hash.data(), 0);
     status = Parse(fmt::format("/registered/000000{:02X}/{}.nca", hash[0],
@@ -138,9 +135,9 @@ VirtualFile NAX::GetDecrypted() const {
     return dec_file;
 }
 
-std::shared_ptr<NCA> NAX::AsNCA() const {
+std::unique_ptr<NCA> NAX::AsNCA() const {
     if (type == NAXContentType::NCA)
-        return std::make_shared<NCA>(GetDecrypted());
+        return std::make_unique<NCA>(GetDecrypted());
     return nullptr;
 }
 
