@@ -12,6 +12,10 @@
 #include "core/arm/exclusive_monitor.h"
 #include "core/arm/unicorn/arm_unicorn.h"
 
+namespace Memory {
+struct PageTable;
+}
+
 namespace Core {
 
 class ARM_Dynarmic_Callbacks;

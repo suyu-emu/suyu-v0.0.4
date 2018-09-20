@@ -16,6 +16,7 @@
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/result.h"
+#include "core/memory.h"
 
 namespace Kernel {
 
