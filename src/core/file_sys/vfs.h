@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -264,6 +265,10 @@ public:
     // Returns whether or not the file with name src was successfully copied to a new file with name
     // dest.
     virtual bool Copy(std::string_view src, std::string_view dest);
+
+    // Gets all of the entries directly in the directory (files and dirs), returning a map between
+    // item name -> type.
+    virtual std::map<std::string, VfsEntryType> GetEntries() const;
 
     // Interprets the file with name file instead as a directory of type directory.
     // The directory must have a constructor that takes a single argument of type

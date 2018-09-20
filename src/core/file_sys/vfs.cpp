@@ -399,6 +399,15 @@ bool VfsDirectory::Copy(std::string_view src, std::string_view dest) {
     return f2->WriteBytes(f1->ReadAllBytes()) == f1->GetSize();
 }
 
+std::map<std::string, VfsEntryType> VfsDirectory::GetEntries() const {
+    std::map<std::string, VfsEntryType> out;
+    for (const auto& dir : GetSubdirectories())
+        out.emplace(dir->GetName(), VfsEntryType::Directory);
+    for (const auto& file : GetFiles())
+        out.emplace(file->GetName(), VfsEntryType::File);
+    return out;
+}
+
 std::string VfsDirectory::GetFullPath() const {
     if (IsRoot())
         return GetName();
