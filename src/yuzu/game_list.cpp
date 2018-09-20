@@ -89,15 +89,7 @@ bool GameList::SearchField::KeyReleaseEater::eventFilter(QObject* obj, QEvent* e
 }
 
 void GameList::SearchField::setFilterResult(int visible, int total) {
-    QString result_of_text = tr("of");
-    QString result_text;
-    if (total == 1) {
-        result_text = tr("result");
-    } else {
-        result_text = tr("results");
-    }
-    label_filter_result->setText(
-        QString("%1 %2 %3 %4").arg(visible).arg(result_of_text).arg(total).arg(result_text));
+    label_filter_result->setText(tr("%1 of %n result(s)", "", total).arg(visible));
 }
 
 void GameList::SearchField::clear() {
