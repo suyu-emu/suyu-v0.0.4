@@ -82,6 +82,7 @@ public:
             return;
         case Dynarmic::A64::Exception::Breakpoint:
             if (GDBStub::IsServerEnabled()) {
+                parent.jit->HaltExecution();
                 parent.SetPC(pc);
                 Kernel::Thread* thread = Kernel::GetCurrentThread();
                 parent.SaveContext(thread->context);
