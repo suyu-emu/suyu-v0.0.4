@@ -480,7 +480,7 @@ InstallResult RegisteredCache::RawInstallNCA(std::shared_ptr<NCA> nca, const Vfs
     auto out = dir->CreateFileRelative(path);
     if (out == nullptr)
         return InstallResult::ErrorCopyFailed;
-    return copy(in, out) ? InstallResult::Success : InstallResult::ErrorCopyFailed;
+    return copy(in, out, 0x400000) ? InstallResult::Success : InstallResult::ErrorCopyFailed;
 }
 
 bool RegisteredCache::RawInstallYuzuMeta(const CNMT& cnmt) {
