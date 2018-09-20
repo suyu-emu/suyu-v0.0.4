@@ -145,7 +145,6 @@ private:
     }
 
     void GetResult(Kernel::HLERequestContext& ctx) {
-        finished_event->Clear();
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_DEBUG(Service_NIM, "called");
