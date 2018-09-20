@@ -5,9 +5,21 @@
 #include <algorithm>
 #include <utility>
 
+#include "common/assert.h"
 #include "core/file_sys/vfs_concat.h"
 
 namespace FileSys {
+
+bool VerifyConcatenationMap(std::map<u64, VirtualFile> map) {
+    for (auto iter = map.begin(); iter != --map.end();) {
+        const auto old = iter++;
+        if (old->first + old->second->GetSize() != iter->first) {
+            return false;
+        }
+    }
+
+    return map.begin()->first == 0;
+}
 
 VirtualFile ConcatenateFiles(std::vector<VirtualFile> files, std::string name) {
     if (files.empty())
@@ -27,7 +39,10 @@ ConcatenatedVfsFile::ConcatenatedVfsFile(std::vector<VirtualFile> files_, std::s
     }
 }
 
-ConcatenatedVfsFile::~ConcatenatedVfsFile() = default;
+ConcatenatedVfsFile::ConcatenatedVfsFile(std::map<u64, VirtualFile> files_, std::string name)
+    : files(std::move(files_)), name(std::move(name)) {
+    ASSERT(VerifyConcatenationMap(files));
+}
 
 std::string ConcatenatedVfsFile::GetName() const {
     if (files.empty())
@@ -62,28 +77,25 @@ bool ConcatenatedVfsFile::IsReadable() const {
 }
 
 std::size_t ConcatenatedVfsFile::Read(u8* data, std::size_t length, std::size_t offset) const {
-    auto entry = files.end();
+    std::pair<u64, VirtualFile> entry = *files.rbegin();
     for (auto iter = files.begin(); iter != files.end(); ++iter) {
         if (iter->first > offset) {
-            entry = --iter;
+            entry = *--iter;
             break;
         }
     }
 
-    // Check if the entry should be the last one. The loop above will make it end().
-    if (entry == files.end() && offset < files.rbegin()->first + files.rbegin()->second->GetSize())
-        --entry;
-
-    if (entry == files.end())
+    if (entry.first + entry.second->GetSize() <= offset)
         return 0;
 
-    const auto remaining = entry->second->GetSize() + offset - entry->first;
-    if (length > remaining) {
-        return entry->second->Read(data, remaining, offset - entry->first) +
-               Read(data + remaining, length - remaining, offset + remaining);
+    const auto read_in =
+        std::min(entry.first + entry.second->GetSize() - offset, entry.second->GetSize());
+    if (length > read_in) {
+        return entry.second->Read(data, read_in, offset - entry.first) +
+               Read(data + read_in, length - read_in, offset + read_in);
     }
 
-    return entry->second->Read(data, length, offset - entry->first);
+    return entry.second->Read(data, std::min(read_in, length), offset - entry.first);
 }
 
 std::size_t ConcatenatedVfsFile::Write(const u8* data, std::size_t length, std::size_t offset) {
@@ -93,4 +105,5 @@ std::size_t ConcatenatedVfsFile::Write(const u8* data, std::size_t length, std::
 bool ConcatenatedVfsFile::Rename(std::string_view name) {
     return false;
 }
+
 } // namespace FileSys
