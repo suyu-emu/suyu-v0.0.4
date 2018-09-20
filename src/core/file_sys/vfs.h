@@ -316,12 +316,14 @@ public:
 };
 
 // Compare the two files, byte-for-byte, in increments specificed by block_size
-bool DeepEquals(const VirtualFile& file1, const VirtualFile& file2, std::size_t block_size = 0x200);
+bool DeepEquals(const VirtualFile& file1, const VirtualFile& file2, size_t block_size = 0x1000);
 
 // A method that copies the raw data between two different implementations of VirtualFile. If you
 // are using the same implementation, it is probably better to use the Copy method in the parent
 // directory of src/dest.
-bool VfsRawCopy(VirtualFile src, VirtualFile dest);
+bool VfsRawCopy(const VirtualFile& src, const VirtualFile& dest, size_t block_size = 0x1000);
+
+bool VfsRawCopyD(const VirtualDir& src, const VirtualDir& dest, size_t block_size = 0x1000);
 
 // Checks if the directory at path relative to rel exists. If it does, returns that. If it does not
 // it attempts to create it and returns the new dir or nullptr on failure.
