@@ -12,6 +12,7 @@
 #include "core/core.h"
 #include "core/core_cpu.h"
 #include "core/core_timing.h"
+#include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc.h"
 #include "core/memory.h"
@@ -79,6 +80,17 @@ public:
         case Dynarmic::A64::Exception::SendEventLocal:
         case Dynarmic::A64::Exception::Yield:
             return;
+        case Dynarmic::A64::Exception::Breakpoint:
+            if (GDBStub::IsServerEnabled()) {
+                parent.jit->HaltExecution();
+                parent.SetPC(pc);
+                Kernel::Thread* thread = Kernel::GetCurrentThread();
+                parent.SaveContext(thread->context);
+                GDBStub::Break();
+                GDBStub::SendTrap(thread, 5);
+                return;
+            }
+            [[fallthrough]];
         default:
             ASSERT_MSG(false, "ExceptionRaised(exception = {}, pc = {:X})",
                        static_cast<std::size_t>(exception), pc);
