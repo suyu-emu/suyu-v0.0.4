@@ -31,7 +31,7 @@ public:
             {1, &IRequest::GetResult, "GetResult"},
             {2, &IRequest::GetSystemEventReadableHandles, "GetSystemEventReadableHandles"},
             {3, &IRequest::Cancel, "Cancel"},
-            {4, nullptr, "Submit"},
+            {4, &IRequest::Submit, "Submit"},
             {5, nullptr, "SetRequirement"},
             {6, nullptr, "SetRequirementPreset"},
             {8, nullptr, "SetPriority"},
@@ -61,6 +61,13 @@ public:
     }
 
 private:
+    void Submit(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_NIFM, "(STUBBED) called");
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(3);
+    }
+
     void GetRequestState(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 3};
