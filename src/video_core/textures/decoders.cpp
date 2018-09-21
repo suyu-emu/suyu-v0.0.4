@@ -13,53 +13,20 @@
 namespace Tegra::Texture {
 
 /**
+ * This table represents the internal swizzle of a gob,
+ * in format 16 bytes x 2 sector packing.
  * Calculates the offset of an (x, y) position within a swizzled texture.
  * Taken from the Tegra X1 Technical Reference Manual. pages 1187-1188
  */
-static u32 GetSwizzleOffset(u32 x, u32 y, u32 bytes_per_pixel, u32 gob_address) {
-    // Round up to the next gob
-    x *= bytes_per_pixel;
-    u32 address = gob_address + ((x % 64) / 32) * 256 + ((y % 8) / 2) * 64 + ((x % 32) / 16) * 32 +
-                  (y % 2) * 16 + (x % 16);
-
-    return address;
-}
-
-void CopySwizzledData(u32 width, u32 height, u32 bytes_per_pixel, u32 out_bytes_per_pixel,
-                      u8* swizzled_data, u8* unswizzled_data, bool unswizzle, u32 block_height) {
-    std::array<u8*, 2> data_ptrs;
-    const u32 stride = width * bytes_per_pixel;
-    const u32 gobs_in_x = 64;
-    const u32 gobs_in_y = 8;
-    const u32 gobs_size = gobs_in_x * gobs_in_y;
-    const u32 image_width_in_gobs{(stride + gobs_in_x - 1) / gobs_in_x};
-    for (unsigned y = 0; y < height; ++y) {
-        const u32 gob_y_address =
-            (y / (gobs_in_y * block_height)) * gobs_size * block_height * image_width_in_gobs +
-            (y % (gobs_in_y * block_height) / gobs_in_y) * gobs_size;
-        for (unsigned x = 0; x < width; ++x) {
-            const u32 gob_address =
-                gob_y_address + (x * bytes_per_pixel / gobs_in_x) * gobs_size * block_height;
-            const u32 swizzle_offset = GetSwizzleOffset(x, y, bytes_per_pixel, gob_address);
-            const u32 pixel_index = (x + y * width) * out_bytes_per_pixel;
-
-            data_ptrs[unswizzle] = swizzled_data + swizzle_offset;
-            data_ptrs[!unswizzle] = unswizzled_data + pixel_index;
-
-            std::memcpy(data_ptrs[0], data_ptrs[1], bytes_per_pixel);
-        }
-    }
-}
-
-// This table represents the internal swizzle of a gob.
-template <std::size_t N, std::size_t M>
+template <std::size_t N, std::size_t M, u32 Align>
 struct alignas(64) SwizzleTable {
+    static_assert(M * Align == 64, "Swizzle Table does not align to GOB");
     constexpr SwizzleTable() {
         for (u32 y = 0; y < N; ++y) {
             for (u32 x = 0; x < M; ++x) {
-                const u32 x2 = x * 16;
+                const u32 x2 = x * Align;
                 values[y][x] = static_cast<u16>(((x2 % 64) / 32) * 256 + ((y % 8) / 2) * 64 +
-                                                ((x2 % 32) / 16) * 32 + (y % 2) * 16);
+                                                ((x2 % 32) / 16) * 32 + (y % 2) * 16 + (x2 % 16));
             }
         }
     }
@@ -69,10 +36,39 @@ struct alignas(64) SwizzleTable {
     std::array<std::array<u16, M>, N> values{};
 };
 
-constexpr auto swizzle_table = SwizzleTable<8, 4>();
+constexpr auto legacy_swizzle_table = SwizzleTable<8, 64, 1>();
+constexpr auto fast_swizzle_table = SwizzleTable<8, 4, 16>();
 
-void FastSwizzleData(u32 width, u32 height, u32 bytes_per_pixel, u32 out_bytes_per_pixel, u8* swizzled_data,
-                     u8* unswizzled_data, bool unswizzle, u32 block_height) {
+void CopySwizzledData(u32 width, u32 height, u32 bytes_per_pixel, u32 out_bytes_per_pixel,
+                      u8* swizzled_data, u8* unswizzled_data, bool unswizzle, u32 block_height) {
+    std::array<u8*, 2> data_ptrs;
+    const std::size_t stride = width * bytes_per_pixel;
+    const std::size_t gobs_in_x = 64;
+    const std::size_t gobs_in_y = 8;
+    const std::size_t gobs_size = gobs_in_x * gobs_in_y;
+    const std::size_t image_width_in_gobs{(stride + gobs_in_x - 1) / gobs_in_x};
+    for (std::size_t y = 0; y < height; ++y) {
+        const std::size_t gob_y_address =
+            (y / (gobs_in_y * block_height)) * gobs_size * block_height * image_width_in_gobs +
+            (y % (gobs_in_y * block_height) / gobs_in_y) * gobs_size;
+        const auto& table = legacy_swizzle_table[y % gobs_in_y];
+        for (std::size_t x = 0; x < width; ++x) {
+            const std::size_t gob_address =
+                gob_y_address + (x * bytes_per_pixel / gobs_in_x) * gobs_size * block_height;
+            const std::size_t x2 = x * bytes_per_pixel;
+            const std::size_t swizzle_offset = gob_address + table[x2 % gobs_in_x];
+            const std::size_t pixel_index = (x + y * width) * out_bytes_per_pixel;
+
+            data_ptrs[unswizzle] = swizzled_data + swizzle_offset;
+            data_ptrs[!unswizzle] = unswizzled_data + pixel_index;
+
+            std::memcpy(data_ptrs[0], data_ptrs[1], bytes_per_pixel);
+        }
+    }
+}
+
+void FastSwizzleData(u32 width, u32 height, u32 bytes_per_pixel, u32 out_bytes_per_pixel,
+                     u8* swizzled_data, u8* unswizzled_data, bool unswizzle, u32 block_height) {
     std::array<u8*, 2> data_ptrs;
     const std::size_t stride{width * bytes_per_pixel};
     const std::size_t gobs_in_x = 64;
@@ -85,13 +81,13 @@ void FastSwizzleData(u32 width, u32 height, u32 bytes_per_pixel, u32 out_bytes_p
             (y / (gobs_in_y * block_height)) * gobs_size * block_height * image_width_in_gobs +
             (y % (gobs_in_y * block_height) / gobs_in_y) * gobs_size;
         const std::size_t pixel_base{y * width * out_bytes_per_pixel};
-        const auto& table = swizzle_table[y % gobs_in_y];
+        const auto& table = fast_swizzle_table[y % gobs_in_y];
         for (std::size_t xb = 0; xb < stride; xb += copy_size) {
             const std::size_t truncated_copy = std::min(copy_size, stride - xb);
             const std::size_t gob_address{initial_gob +
                                           (xb / gobs_in_x) * gobs_size * block_height};
             const std::size_t swizzle_offset{gob_address + table[(xb / 16) % 4]};
-            const std::size_t out_x = xb*out_bytes_per_pixel / bytes_per_pixel;
+            const std::size_t out_x = xb * out_bytes_per_pixel / bytes_per_pixel;
             const std::size_t pixel_index{out_x + pixel_base};
             data_ptrs[unswizzle] = swizzled_data + swizzle_offset;
             data_ptrs[!unswizzle] = unswizzled_data + pixel_index;
