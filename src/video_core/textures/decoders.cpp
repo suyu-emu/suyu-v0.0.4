@@ -46,6 +46,7 @@ void CopySwizzledData(u32 width, u32 height, u32 bytes_per_pixel, u32 out_bytes_
     }
 }
 
+//This table represents the internal swizzle of a gob.
 template <std::size_t N, std::size_t M>
 struct alignas(64) SwizzleTable {
     constexpr SwizzleTable() {
@@ -69,21 +70,25 @@ void FastSwizzleData(u32 width, u32 height, u32 bytes_per_pixel, u8* swizzled_da
                      u8* unswizzled_data, bool unswizzle, u32 block_height) {
     std::array<u8*, 2> data_ptrs;
     const std::size_t stride{width * bytes_per_pixel};
-    const std::size_t image_width_in_gobs{(stride + 63) / 64};
+    const std::size_t gobs_in_x = 64;
+    const std::size_t gobs_in_y = 8;
+    const std::size_t gobs_size = gobs_in_x*gobs_in_y;
+    const std::size_t image_width_in_gobs{(stride + gobs_in_x - 1) / gobs_in_x};
     const std::size_t copy_size{16};
     for (std::size_t y = 0; y < height; ++y) {
         const std::size_t initial_gob =
-            (y / (8 * block_height)) * 512 * block_height * image_width_in_gobs +
-            (y % (8 * block_height) / 8) * 512;
+            (y / (gobs_in_y * block_height)) * gobs_size * block_height * image_width_in_gobs +
+            (y % (gobs_in_y * block_height) / gobs_in_y) * gobs_size;
         const std::size_t pixel_base{y * width * bytes_per_pixel};
-        const auto& table = swizzle_table[y % 8];
+        const auto& table = swizzle_table[y % gobs_in_y];
         for (std::size_t xb = 0; xb < stride; xb += copy_size) {
-            const std::size_t gob_address{initial_gob + (xb / 64) * 512 * block_height};
+            const std::size_t truncated_copy = std::min(copy_size, stride - xb);
+            const std::size_t gob_address{initial_gob + (xb / gobs_in_x) * gobs_size * block_height};
             const std::size_t swizzle_offset{gob_address + table[(xb / 16) % 4]};
             const std::size_t pixel_index{xb + pixel_base};
             data_ptrs[unswizzle] = swizzled_data + swizzle_offset;
             data_ptrs[!unswizzle] = unswizzled_data + pixel_index;
-            std::memcpy(data_ptrs[0], data_ptrs[1], copy_size);
+            std::memcpy(data_ptrs[0], data_ptrs[1], truncated_copy);
         }
     }
 }
@@ -134,7 +139,7 @@ u32 BytesPerPixel(TextureFormat format) {
 std::vector<u8> UnswizzleTexture(VAddr address, u32 tile_size, u32 bytes_per_pixel, u32 width,
                                  u32 height, u32 block_height) {
     std::vector<u8> unswizzled_data(width * height * bytes_per_pixel);
-    if (bytes_per_pixel % 3 != 0 && (width * bytes_per_pixel) % 16 == 0) {
+    if (bytes_per_pixel % 3 != 0) {
         FastSwizzleData(width / tile_size, height / tile_size, bytes_per_pixel,
                         Memory::GetPointer(address), unswizzled_data.data(), true, block_height);
     } else {
