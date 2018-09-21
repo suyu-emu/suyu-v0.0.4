@@ -87,6 +87,7 @@ public:
     explicit CNMT(VirtualFile file);
     CNMT(CNMTHeader header, OptionalHeader opt_header, std::vector<ContentRecord> content_records,
          std::vector<MetaRecord> meta_records);
+    ~CNMT();
 
     u64 GetTitleID() const;
     u32 GetTitleVersion() const;

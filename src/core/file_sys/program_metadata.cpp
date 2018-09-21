@@ -12,6 +12,10 @@
 
 namespace FileSys {
 
+ProgramMetadata::ProgramMetadata() = default;
+
+ProgramMetadata::~ProgramMetadata() = default;
+
 Loader::ResultStatus ProgramMetadata::Load(VirtualFile file) {
     std::size_t total_size = static_cast<std::size_t>(file->GetSize());
     if (total_size < sizeof(Header))

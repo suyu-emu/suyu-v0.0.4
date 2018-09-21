@@ -28,6 +28,8 @@ RomFSFactory::RomFSFactory(Loader::AppLoader& app_loader) {
     ivfc_offset = app_loader.ReadRomFSIVFCOffset();
 }
 
+RomFSFactory::~RomFSFactory() = default;
+
 ResultVal<VirtualFile> RomFSFactory::OpenCurrentProcess() {
     if (!updatable)
         return MakeResult<VirtualFile>(file);

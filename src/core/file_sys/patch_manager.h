@@ -34,6 +34,7 @@ std::string FormatPatchTypeName(PatchType type);
 class PatchManager {
 public:
     explicit PatchManager(u64 title_id);
+    ~PatchManager();
 
     // Currently tracked ExeFS patches:
     // - Game Updates

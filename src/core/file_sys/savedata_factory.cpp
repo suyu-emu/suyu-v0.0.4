@@ -20,6 +20,8 @@ std::string SaveDataDescriptor::DebugInfo() const {
 
 SaveDataFactory::SaveDataFactory(VirtualDir save_directory) : dir(std::move(save_directory)) {}
 
+SaveDataFactory::~SaveDataFactory() = default;
+
 ResultVal<VirtualDir> SaveDataFactory::Open(SaveDataSpaceId space, SaveDataDescriptor meta) {
     if (meta.type == SaveDataType::SystemSaveData || meta.type == SaveDataType::SaveData) {
         if (meta.zero_1 != 0) {

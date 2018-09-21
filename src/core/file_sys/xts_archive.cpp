@@ -69,6 +69,8 @@ NAX::NAX(VirtualFile file_, std::array<u8, 0x10> nca_id)
                                Common::HexArrayToString(nca_id, false)));
 }
 
+NAX::~NAX() = default;
+
 Loader::ResultStatus NAX::Parse(std::string_view path) {
     if (file->ReadObject(header.get()) != sizeof(NAXHeader))
         return Loader::ResultStatus::ErrorBadNAXHeader;

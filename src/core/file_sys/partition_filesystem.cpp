@@ -72,6 +72,8 @@ PartitionFilesystem::PartitionFilesystem(std::shared_ptr<VfsFile> file) {
     status = Loader::ResultStatus::Success;
 }
 
+PartitionFilesystem::~PartitionFilesystem() = default;
+
 Loader::ResultStatus PartitionFilesystem::GetStatus() const {
     return status;
 }
