@@ -65,7 +65,7 @@ private:
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u32>(3);
+        rb.Push<u32>(0);
     }
 
     void GetResult(Kernel::HLERequestContext& ctx) {
