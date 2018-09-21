@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 
+#include "common/alignment.h"
 #include "common/common_types.h"
 #include "common/hash.h"
 #include "common/math_util.h"
@@ -706,6 +707,29 @@ struct SurfaceParams {
         return SizeInBytes2D() * depth;
     }
 
+    /**
+     * Returns the size in bytes of the 2D surface with mipmaps. Each mipmap level proceeds the
+     * previous with half the width and half the height. Once the size of the next mip reaches 0, we
+     * are done.
+     */
+    std::size_t SizeInBytes2DWithMipmap() const {
+        std::size_t size_in_bytes{};
+        auto mip_params{*this};
+        for (std::size_t level = 0; level < max_mip_level; level++) {
+            size_in_bytes += mip_params.SizeInBytes2D();
+
+            mip_params.width /= 2;
+            mip_params.height /= 2;
+
+            if (!mip_params.width || !mip_params.height) {
+                break;
+            }
+        }
+
+        // TODO(bunnei): This alignup is unverified, but necessary in games tested (e.g. in SMO)
+        return Common::AlignUp(size_in_bytes, 0x1000);
+    }
+
     /// Creates SurfaceParams from a texture configuration
     static SurfaceParams CreateForTexture(const Tegra::Texture::FullTextureInfo& config,
                                           const GLShader::SamplerEntry& entry);
@@ -738,6 +762,15 @@ struct SurfaceParams {
     std::size_t size_in_bytes_total;
     std::size_t size_in_bytes_2d;
     SurfaceTarget target;
+    u32 max_mip_level;
+
+    // Render target specific parameters, not used in caching
+    struct {
+        u32 index;
+        u32 array_mode;
+        u32 layer_stride;
+        u32 base_layer;
+    } rt;
 };
 
 }; // namespace OpenGL
@@ -747,6 +780,7 @@ struct SurfaceReserveKey : Common::HashableStruct<OpenGL::SurfaceParams> {
     static SurfaceReserveKey Create(const OpenGL::SurfaceParams& params) {
         SurfaceReserveKey res;
         res.state = params;
+        res.state.rt = {}; // Ignore rt config in caching
         return res;
     }
 };
