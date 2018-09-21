@@ -71,7 +71,7 @@ struct alignas(64) SwizzleTable {
 
 constexpr auto swizzle_table = SwizzleTable<8, 4>();
 
-void FastSwizzleData(u32 width, u32 height, u32 bytes_per_pixel, u8* swizzled_data,
+void FastSwizzleData(u32 width, u32 height, u32 bytes_per_pixel, u32 out_bytes_per_pixel, u8* swizzled_data,
                      u8* unswizzled_data, bool unswizzle, u32 block_height) {
     std::array<u8*, 2> data_ptrs;
     const std::size_t stride{width * bytes_per_pixel};
@@ -84,14 +84,15 @@ void FastSwizzleData(u32 width, u32 height, u32 bytes_per_pixel, u8* swizzled_da
         const std::size_t initial_gob =
             (y / (gobs_in_y * block_height)) * gobs_size * block_height * image_width_in_gobs +
             (y % (gobs_in_y * block_height) / gobs_in_y) * gobs_size;
-        const std::size_t pixel_base{y * width * bytes_per_pixel};
+        const std::size_t pixel_base{y * width * out_bytes_per_pixel};
         const auto& table = swizzle_table[y % gobs_in_y];
         for (std::size_t xb = 0; xb < stride; xb += copy_size) {
             const std::size_t truncated_copy = std::min(copy_size, stride - xb);
             const std::size_t gob_address{initial_gob +
                                           (xb / gobs_in_x) * gobs_size * block_height};
             const std::size_t swizzle_offset{gob_address + table[(xb / 16) % 4]};
-            const std::size_t pixel_index{xb + pixel_base};
+            const std::size_t out_x = xb*out_bytes_per_pixel / bytes_per_pixel;
+            const std::size_t pixel_index{out_x + pixel_base};
             data_ptrs[unswizzle] = swizzled_data + swizzle_offset;
             data_ptrs[!unswizzle] = unswizzled_data + pixel_index;
             std::memcpy(data_ptrs[0], data_ptrs[1], truncated_copy);
@@ -146,7 +147,7 @@ std::vector<u8> UnswizzleTexture(VAddr address, u32 tile_size, u32 bytes_per_pix
                                  u32 height, u32 block_height) {
     std::vector<u8> unswizzled_data(width * height * bytes_per_pixel);
     if (bytes_per_pixel % 3 != 0) {
-        FastSwizzleData(width / tile_size, height / tile_size, bytes_per_pixel,
+        FastSwizzleData(width / tile_size, height / tile_size, bytes_per_pixel, bytes_per_pixel,
                         Memory::GetPointer(address), unswizzled_data.data(), true, block_height);
     } else {
         CopySwizzledData(width / tile_size, height / tile_size, bytes_per_pixel, bytes_per_pixel,
