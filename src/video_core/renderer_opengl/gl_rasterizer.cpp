@@ -383,7 +383,7 @@ void RasterizerOpenGL::Clear() {
     bool use_stencil{};
 
     OpenGLState clear_state;
-    clear_state.draw.draw_framebuffer = state.draw.draw_framebuffer;
+    clear_state.draw.draw_framebuffer = framebuffer.handle;
     clear_state.color_mask.red_enabled = regs.clear_buffers.R ? GL_TRUE : GL_FALSE;
     clear_state.color_mask.green_enabled = regs.clear_buffers.G ? GL_TRUE : GL_FALSE;
     clear_state.color_mask.blue_enabled = regs.clear_buffers.B ? GL_TRUE : GL_FALSE;
