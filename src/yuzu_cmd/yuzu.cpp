@@ -20,8 +20,10 @@
 #include "common/string_util.h"
 #include "common/telemetry.h"
 #include "core/core.h"
+#include "core/crypto/key_manager.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/gdbstub/gdbstub.h"
+#include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
 #include "core/settings.h"
 #include "core/telemetry_session.h"
@@ -29,7 +31,6 @@
 #include "yuzu_cmd/emu_window/emu_window_sdl2.h"
 
 #include <getopt.h>
-#include "core/crypto/key_manager.h"
 #ifndef _MSC_VER
 #include <unistd.h>
 #endif
@@ -169,6 +170,7 @@ int main(int argc, char** argv) {
 
     Core::System& system{Core::System::GetInstance()};
     system.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
+    Service::FileSystem::CreateFactories(system.GetFilesystem());
 
     SCOPE_EXIT({ system.Shutdown(); });
 
