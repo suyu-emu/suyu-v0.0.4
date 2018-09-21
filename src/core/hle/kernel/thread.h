@@ -62,6 +62,9 @@ enum class ThreadWakeupReason {
 
 class Thread final : public WaitObject {
 public:
+    using TLSMemory = std::vector<u8>;
+    using TLSMemoryPtr = std::shared_ptr<TLSMemory>;
+
     /**
      * Creates and returns a new thread. The new thread is immediately scheduled
      * @param kernel The kernel instance this thread will be created under.
@@ -132,6 +135,14 @@ public:
      */
     u32 GetThreadId() const {
         return thread_id;
+    }
+
+    TLSMemoryPtr& GetTLSMemory() {
+        return tls_memory;
+    }
+
+    const TLSMemoryPtr& GetTLSMemory() const {
+        return tls_memory;
     }
 
     /**
@@ -269,7 +280,7 @@ private:
     explicit Thread(KernelCore& kernel);
     ~Thread() override;
 
-    std::shared_ptr<std::vector<u8>> tls_memory = std::make_shared<std::vector<u8>>();
+    TLSMemoryPtr tls_memory = std::make_shared<TLSMemory>();
 };
 
 /**

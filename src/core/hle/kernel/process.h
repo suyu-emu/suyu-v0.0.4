@@ -176,7 +176,24 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Memory Management
 
+    // Marks the next available region as used and returns the address of the slot.
+    VAddr MarkNextAvailableTLSSlotAsUsed(Thread& thread);
+
+    // Frees a used TLS slot identified by the given address
+    void FreeTLSSlot(VAddr tls_address);
+
+    ResultVal<VAddr> HeapAllocate(VAddr target, u64 size, VMAPermission perms);
+    ResultCode HeapFree(VAddr target, u32 size);
+
+    ResultCode MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size);
+
+    ResultCode UnmapMemory(VAddr dst_addr, VAddr src_addr, u64 size);
+
     VMManager vm_manager;
+
+private:
+    explicit Process(KernelCore& kernel);
+    ~Process() override;
 
     // Memory used to back the allocations in the regular heap. A single vector is used to cover
     // the entire virtual address space extents that bound the allocations, including any holes.
@@ -197,17 +214,6 @@ public:
     std::vector<std::bitset<8>> tls_slots;
 
     std::string name;
-
-    ResultVal<VAddr> HeapAllocate(VAddr target, u64 size, VMAPermission perms);
-    ResultCode HeapFree(VAddr target, u32 size);
-
-    ResultCode MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size);
-
-    ResultCode UnmapMemory(VAddr dst_addr, VAddr src_addr, u64 size);
-
-private:
-    explicit Process(KernelCore& kernel);
-    ~Process() override;
 };
 
 } // namespace Kernel
