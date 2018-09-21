@@ -85,7 +85,6 @@ static void FastSwizzleData(u32 width, u32 height, u32 bytes_per_pixel, u32 out_
         const std::size_t pixel_base{y * width * out_bytes_per_pixel};
         const auto& table = fast_swizzle_table[y % gobs_in_y];
         for (std::size_t xb = 0; xb < stride; xb += copy_size) {
-            const std::size_t truncated_copy = std::min(copy_size, stride - xb);
             const std::size_t gob_address{initial_gob +
                                           (xb / gobs_in_x) * gobs_size * block_height};
             const std::size_t swizzle_offset{gob_address + table[(xb / 16) % 4]};
@@ -93,14 +92,14 @@ static void FastSwizzleData(u32 width, u32 height, u32 bytes_per_pixel, u32 out_
             const std::size_t pixel_index{out_x + pixel_base};
             data_ptrs[unswizzle] = swizzled_data + swizzle_offset;
             data_ptrs[!unswizzle] = unswizzled_data + pixel_index;
-            std::memcpy(data_ptrs[0], data_ptrs[1], truncated_copy);
+            std::memcpy(data_ptrs[0], data_ptrs[1], copy_size);
         }
     }
 }
 
 void CopySwizzledData(u32 width, u32 height, u32 bytes_per_pixel, u32 out_bytes_per_pixel,
                       u8* swizzled_data, u8* unswizzled_data, bool unswizzle, u32 block_height) {
-    if (bytes_per_pixel % 3 != 0) {
+    if (bytes_per_pixel % 3 != 0 && (width * bytes_per_pixel) % 16 == 0) {
         FastSwizzleData(width, height, bytes_per_pixel, out_bytes_per_pixel, swizzled_data,
                         unswizzled_data, unswizzle, block_height);
     } else {
