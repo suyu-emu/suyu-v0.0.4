@@ -125,7 +125,7 @@ void Process::Run(VAddr entry_point, s32 main_thread_priority, u32 stack_size) {
     vm_manager.LogLayout();
     status = ProcessStatus::Running;
 
-    Kernel::SetupMainThread(kernel, entry_point, main_thread_priority, this);
+    Kernel::SetupMainThread(kernel, entry_point, main_thread_priority, *this);
 }
 
 void Process::LoadModule(SharedPtr<CodeSet> module_, VAddr base_addr) {

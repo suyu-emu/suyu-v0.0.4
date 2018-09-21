@@ -281,7 +281,7 @@ private:
  * @return A shared pointer to the main thread
  */
 SharedPtr<Thread> SetupMainThread(KernelCore& kernel, VAddr entry_point, u32 priority,
-                                  SharedPtr<Process> owner_process);
+                                  Process& owner_process);
 
 /**
  * Gets the current thread
