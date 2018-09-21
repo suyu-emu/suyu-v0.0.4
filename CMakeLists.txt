@@ -269,10 +269,18 @@ if (YUZU_USE_BUNDLED_UNICORN)
 
         find_package(PythonInterp 2.7 REQUIRED)
 
-        add_custom_command(OUTPUT ${LIBUNICORN_LIBRARY}
-            COMMAND ${CMAKE_COMMAND} -E env UNICORN_ARCHS="aarch64" PYTHON="${PYTHON_EXECUTABLE}" /bin/sh make.sh macos-universal-no
-            WORKING_DIRECTORY ${UNICORN_PREFIX}
-        )
+        if (MINGW)
+            add_custom_command(OUTPUT ${LIBUNICORN_LIBRARY}
+                COMMAND ${CMAKE_COMMAND} -E env UNICORN_ARCHS="aarch64" PYTHON="${PYTHON_EXECUTABLE}" /bin/sh make.sh cross-win64
+                WORKING_DIRECTORY ${UNICORN_PREFIX}
+            )
+        else()
+            add_custom_command(OUTPUT ${LIBUNICORN_LIBRARY}
+                COMMAND ${CMAKE_COMMAND} -E env UNICORN_ARCHS="aarch64" PYTHON="${PYTHON_EXECUTABLE}" /bin/sh make.sh macos-universal-no
+                WORKING_DIRECTORY ${UNICORN_PREFIX}
+            )
+        endif()
+
         # ALL makes this custom target build every time
         # but it won't actually build if LIBUNICORN_LIBRARY is up to date
         add_custom_target(unicorn-build ALL
@@ -286,6 +294,7 @@ endif()
 
 if (UNICORN_FOUND)
     add_library(unicorn INTERFACE)
+    add_dependencies(unicorn unicorn-build)
     target_link_libraries(unicorn INTERFACE "${LIBUNICORN_LIBRARY}")
     target_include_directories(unicorn INTERFACE "${LIBUNICORN_INCLUDE_DIR}")
 else()

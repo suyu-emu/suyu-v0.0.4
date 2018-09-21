@@ -9,7 +9,9 @@ export PATH="/usr/local/opt/ccache/libexec:$PATH"
 
 mkdir build && cd build
 cmake --version
-cmake .. -DYUZU_BUILD_UNICORN=ON -DCMAKE_BUILD_TYPE=Release -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON
+cmake .. -DYUZU_USE_BUNDLED_UNICORN=ON -DCMAKE_BUILD_TYPE=Release -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON
 make -j4
+
+ccache -s
 
 ctest -VV -C Release

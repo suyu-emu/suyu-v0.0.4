@@ -6,7 +6,9 @@ apt-get install --no-install-recommends -y build-essential git libqt5opengl5-dev
 cd /yuzu
 
 mkdir build && cd build
-cmake .. -DYUZU_BUILD_UNICORN=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/lib/ccache/gcc -DCMAKE_CXX_COMPILER=/usr/lib/ccache/g++ -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON -G Ninja
+cmake .. -DYUZU_USE_BUNDLED_UNICORN=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/lib/ccache/gcc -DCMAKE_CXX_COMPILER=/usr/lib/ccache/g++ -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON -G Ninja
 ninja
+
+ccache -s
 
 ctest -VV -C Release
