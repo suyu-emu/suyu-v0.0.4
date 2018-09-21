@@ -314,8 +314,18 @@ enum class TextureMiscMode : u64 {
     PTP,
 };
 
-enum class IpaInterpMode : u64 { Linear = 0, Perspective = 1, Flat = 2, Sc = 3 };
-enum class IpaSampleMode : u64 { Default = 0, Centroid = 1, Offset = 2 };
+enum class IpaInterpMode : u64 {
+    Linear = 0,
+    Perspective = 1,
+    Flat = 2,
+    Sc = 3,
+};
+
+enum class IpaSampleMode : u64 {
+    Default = 0,
+    Centroid = 1,
+    Offset = 2,
+};
 
 struct IpaMode {
     IpaInterpMode interpolation_mode;
