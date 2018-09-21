@@ -9,6 +9,7 @@
 #include <atomic>
 #include <cstddef>
 #include <cstring>
+#include <new>
 #include <type_traits>
 #include <vector>
 #include "common/common_types.h"
@@ -29,7 +30,7 @@ class RingBuffer {
     static_assert(capacity < std::numeric_limits<std::size_t>::max() / 2 / granularity);
     static_assert((capacity & (capacity - 1)) == 0, "capacity must be a power of two");
     // Ensure lock-free.
-    static_assert(std::atomic<std::size_t>::is_always_lock_free);
+    static_assert(std::atomic_size_t::is_always_lock_free);
 
 public:
     /// Pushes slots into the ring buffer
@@ -102,8 +103,15 @@ public:
 private:
     // It is important to align the below variables for performance reasons:
     // Having them on the same cache-line would result in false-sharing between them.
-    alignas(128) std::atomic<std::size_t> m_read_index{0};
-    alignas(128) std::atomic<std::size_t> m_write_index{0};
+    // TODO: Remove this ifdef whenever clang and GCC support
+    //       std::hardware_destructive_interference_size.
+#if defined(_MSC_VER) && _MSC_VER >= 1911
+    alignas(std::hardware_destructive_interference_size) std::atomic_size_t m_read_index{0};
+    alignas(std::hardware_destructive_interference_size) std::atomic_size_t m_write_index{0};
+#else
+    alignas(128) std::atomic_size_t m_read_index{0};
+    alignas(128) std::atomic_size_t m_write_index{0};
+#endif
 
     std::array<T, granularity * capacity> m_data;
 };
