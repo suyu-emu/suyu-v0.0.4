@@ -6,7 +6,10 @@
 
 #include <array>
 #include "common/common_types.h"
-#include "core/hle/kernel/vm_manager.h"
+
+namespace Kernel {
+enum class VMAPermission : u8;
+}
 
 namespace Core {
 

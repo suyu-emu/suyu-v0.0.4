@@ -15,6 +15,7 @@
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc.h"
+#include "core/hle/kernel/vm_manager.h"
 #include "core/memory.h"
 
 namespace Core {
