@@ -131,6 +131,16 @@ public:
         return HANDLE_TYPE;
     }
 
+    /// Gets the current status of the process
+    ProcessStatus GetStatus() const {
+        return status;
+    }
+
+    /// Gets the unique ID that identifies this particular process.
+    u32 GetProcessID() const {
+        return process_id;
+    }
+
     /// Title ID corresponding to the process
     u64 program_id;
 
@@ -154,11 +164,6 @@ public:
     u32 allowed_processor_mask = THREADPROCESSORID_DEFAULT_MASK;
     u32 allowed_thread_priority_mask = 0xFFFFFFFF;
     u32 is_virtual_address_memory_enabled = 0;
-    /// Current status of the process
-    ProcessStatus status;
-
-    /// The ID of this process
-    u32 process_id = 0;
 
     /**
      * Parses a list of kernel capability descriptors (as found in the ExHeader) and applies them
@@ -170,6 +175,12 @@ public:
      * Applies address space changes and launches the process main thread.
      */
     void Run(VAddr entry_point, s32 main_thread_priority, u32 stack_size);
+
+    /**
+     * Prepares a process for termination by stopping all of its threads
+     * and clearing any other resources.
+     */
+    void PrepareForTermination();
 
     void LoadModule(SharedPtr<CodeSet> module_, VAddr base_addr);
 
@@ -194,6 +205,12 @@ public:
 private:
     explicit Process(KernelCore& kernel);
     ~Process() override;
+
+    /// Current status of the process
+    ProcessStatus status;
+
+    /// The ID of this process
+    u32 process_id = 0;
 
     // Memory used to back the allocations in the regular heap. A single vector is used to cover
     // the entire virtual address space extents that bound the allocations, including any holes.

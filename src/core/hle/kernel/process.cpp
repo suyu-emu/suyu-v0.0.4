@@ -7,10 +7,12 @@
 #include "common/assert.h"
 #include "common/common_funcs.h"
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
+#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/memory.h"
@@ -126,6 +128,33 @@ void Process::Run(VAddr entry_point, s32 main_thread_priority, u32 stack_size) {
     status = ProcessStatus::Running;
 
     Kernel::SetupMainThread(kernel, entry_point, main_thread_priority, *this);
+}
+
+void Process::PrepareForTermination() {
+    status = ProcessStatus::Exited;
+
+    const auto stop_threads = [this](const std::vector<SharedPtr<Thread>>& thread_list) {
+        for (auto& thread : thread_list) {
+            if (thread->owner_process != this)
+                continue;
+
+            if (thread == GetCurrentThread())
+                continue;
+
+            // TODO(Subv): When are the other running/ready threads terminated?
+            ASSERT_MSG(thread->status == ThreadStatus::WaitSynchAny ||
+                           thread->status == ThreadStatus::WaitSynchAll,
+                       "Exiting processes with non-waiting threads is currently unimplemented");
+
+            thread->Stop();
+        }
+    };
+
+    auto& system = Core::System::GetInstance();
+    stop_threads(system.Scheduler(0)->GetThreadList());
+    stop_threads(system.Scheduler(1)->GetThreadList());
+    stop_threads(system.Scheduler(2)->GetThreadList());
+    stop_threads(system.Scheduler(3)->GetThreadList());
 }
 
 /**
