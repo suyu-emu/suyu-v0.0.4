@@ -311,13 +311,13 @@ void Thread::BoostPriority(u32 priority) {
 }
 
 SharedPtr<Thread> SetupMainThread(KernelCore& kernel, VAddr entry_point, u32 priority,
-                                  SharedPtr<Process> owner_process) {
+                                  Process& owner_process) {
     // Setup page table so we can write to memory
-    SetCurrentPageTable(&Core::CurrentProcess()->vm_manager.page_table);
+    SetCurrentPageTable(&owner_process.vm_manager.page_table);
 
     // Initialize new "main" thread
     auto thread_res = Thread::Create(kernel, "main", entry_point, priority, 0, THREADPROCESSORID_0,
-                                     Memory::STACK_AREA_VADDR_END, std::move(owner_process));
+                                     Memory::STACK_AREA_VADDR_END, &owner_process);
 
     SharedPtr<Thread> thread = std::move(thread_res).Unwrap();
 
