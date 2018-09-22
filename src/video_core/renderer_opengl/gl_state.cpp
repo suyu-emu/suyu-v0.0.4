@@ -4,6 +4,7 @@
 
 #include <iterator>
 #include <glad/glad.h>
+#include "common/assert.h"
 #include "common/logging/log.h"
 #include "video_core/renderer_opengl/gl_state.h"
 
