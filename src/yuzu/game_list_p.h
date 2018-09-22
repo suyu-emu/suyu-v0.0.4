@@ -68,7 +68,7 @@ public:
         if (!picture.loadFromData(picture_data.data(), static_cast<u32>(picture_data.size()))) {
             picture = GetDefaultIcon(size);
         }
-        picture = picture.scaled(size, size);
+        picture = picture.scaled(size, size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 
         setData(picture, Qt::DecorationRole);
     }
