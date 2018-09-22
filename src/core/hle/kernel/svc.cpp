@@ -169,7 +169,7 @@ static ResultCode GetProcessId(u32* process_id, Handle process_handle) {
         return ERR_INVALID_HANDLE;
     }
 
-    *process_id = process->process_id;
+    *process_id = process->GetProcessID();
     return RESULT_SUCCESS;
 }
 
@@ -530,35 +530,13 @@ static ResultCode QueryMemory(MemoryInfo* memory_info, PageInfo* page_info, VAdd
 
 /// Exits the current process
 static void ExitProcess() {
-    LOG_INFO(Kernel_SVC, "Process {} exiting", Core::CurrentProcess()->process_id);
+    auto& current_process = Core::CurrentProcess();
 
-    ASSERT_MSG(Core::CurrentProcess()->status == ProcessStatus::Running,
+    LOG_INFO(Kernel_SVC, "Process {} exiting", current_process->GetProcessID());
+    ASSERT_MSG(current_process->GetStatus() == ProcessStatus::Running,
                "Process has already exited");
 
-    Core::CurrentProcess()->status = ProcessStatus::Exited;
-
-    auto stop_threads = [](const std::vector<SharedPtr<Thread>>& thread_list) {
-        for (auto& thread : thread_list) {
-            if (thread->owner_process != Core::CurrentProcess())
-                continue;
-
-            if (thread == GetCurrentThread())
-                continue;
-
-            // TODO(Subv): When are the other running/ready threads terminated?
-            ASSERT_MSG(thread->status == ThreadStatus::WaitSynchAny ||
-                           thread->status == ThreadStatus::WaitSynchAll,
-                       "Exiting processes with non-waiting threads is currently unimplemented");
-
-            thread->Stop();
-        }
-    };
-
-    auto& system = Core::System::GetInstance();
-    stop_threads(system.Scheduler(0)->GetThreadList());
-    stop_threads(system.Scheduler(1)->GetThreadList());
-    stop_threads(system.Scheduler(2)->GetThreadList());
-    stop_threads(system.Scheduler(3)->GetThreadList());
+    current_process->PrepareForTermination();
 
     // Kill the current thread
     GetCurrentThread()->Stop();
