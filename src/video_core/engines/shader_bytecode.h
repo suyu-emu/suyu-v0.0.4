@@ -5,9 +5,8 @@
 #pragma once
 
 #include <bitset>
-#include <cstring>
-#include <map>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include <boost/optional.hpp>
@@ -315,17 +314,29 @@ enum class TextureMiscMode : u64 {
     PTP,
 };
 
-enum class IpaInterpMode : u64 { Linear = 0, Perspective = 1, Flat = 2, Sc = 3 };
-enum class IpaSampleMode : u64 { Default = 0, Centroid = 1, Offset = 2 };
+enum class IpaInterpMode : u64 {
+    Linear = 0,
+    Perspective = 1,
+    Flat = 2,
+    Sc = 3,
+};
+
+enum class IpaSampleMode : u64 {
+    Default = 0,
+    Centroid = 1,
+    Offset = 2,
+};
 
 struct IpaMode {
     IpaInterpMode interpolation_mode;
     IpaSampleMode sampling_mode;
-    inline bool operator==(const IpaMode& a) {
-        return (a.interpolation_mode == interpolation_mode) && (a.sampling_mode == sampling_mode);
+
+    bool operator==(const IpaMode& a) const {
+        return std::tie(interpolation_mode, sampling_mode) ==
+               std::tie(a.interpolation_mode, a.sampling_mode);
     }
-    inline bool operator!=(const IpaMode& a) {
-        return !((*this) == a);
+    bool operator!=(const IpaMode& a) const {
+        return !operator==(a);
     }
 };
 
