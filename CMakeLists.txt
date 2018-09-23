@@ -440,8 +440,12 @@ enable_testing()
 add_subdirectory(externals)
 add_subdirectory(src)
 
-# Set yuzu project as default StartUp Project in Visual Studio
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT yuzu)
+# Set yuzu project or yuzu-cmd project as default StartUp Project in Visual Studio depending on whether QT is enabled or not
+if(ENABLE_QT)
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT yuzu)
+else()
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT yuzu-cmd)
+endif()
 
 
 # Installation instructions
