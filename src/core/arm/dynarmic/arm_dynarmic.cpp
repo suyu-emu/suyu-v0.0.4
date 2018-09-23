@@ -174,7 +174,7 @@ ARM_Dynarmic::ARM_Dynarmic(std::shared_ptr<ExclusiveMonitor> exclusive_monitor,
                            std::size_t core_index)
     : cb(std::make_unique<ARM_Dynarmic_Callbacks>(*this)), core_index{core_index},
       exclusive_monitor{std::dynamic_pointer_cast<DynarmicExclusiveMonitor>(exclusive_monitor)} {
-    ThreadContext ctx;
+    ThreadContext ctx{};
     inner_unicorn.SaveContext(ctx);
     PageTableChanged();
     LoadContext(ctx);
