@@ -79,6 +79,10 @@ u32 AudioRenderer::GetMixBufferCount() const {
     return worker_params.mix_buffer_count;
 }
 
+u32 AudioRenderer::GetState() const {
+    return stream->GetState();
+}
+
 std::vector<u8> AudioRenderer::UpdateAudioRenderer(const std::vector<u8>& input_params) {
     // Copy UpdateDataHeader struct
     UpdateDataHeader config{};
