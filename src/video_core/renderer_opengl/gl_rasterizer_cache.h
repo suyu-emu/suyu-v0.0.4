@@ -137,6 +137,27 @@ struct SurfaceParams {
         }
     }
 
+    static std::string SurfaceTargetName(SurfaceTarget target) {
+        switch (target) {
+        case SurfaceTarget::Texture1D:
+            return "Texture1D";
+        case SurfaceTarget::Texture2D:
+            return "Texture2D";
+        case SurfaceTarget::Texture3D:
+            return "Texture3D";
+        case SurfaceTarget::Texture1DArray:
+            return "Texture1DArray";
+        case SurfaceTarget::Texture2DArray:
+            return "Texture2DArray";
+        case SurfaceTarget::TextureCubemap:
+            return "TextureCubemap";
+        default:
+            LOG_CRITICAL(HW_GPU, "Unimplemented surface_target={}", static_cast<u32>(target));
+            UNREACHABLE();
+            return fmt::format("TextureUnknown({})", static_cast<u32>(target));
+        }
+    }
+
     /**
      * Gets the compression factor for the specified PixelFormat. This applies to just the
      * "compressed width" and "compressed height", not the overall compression factor of a
