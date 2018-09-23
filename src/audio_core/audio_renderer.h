@@ -170,6 +170,7 @@ public:
     u32 GetSampleRate() const;
     u32 GetSampleCount() const;
     u32 GetMixBufferCount() const;
+    u32 GetState() const;
 
 private:
     class VoiceState;

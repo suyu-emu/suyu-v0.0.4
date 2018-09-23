@@ -25,7 +25,7 @@ public:
             {0, &IAudioRenderer::GetAudioRendererSampleRate, "GetAudioRendererSampleRate"},
             {1, &IAudioRenderer::GetAudioRendererSampleCount, "GetAudioRendererSampleCount"},
             {2, &IAudioRenderer::GetAudioRendererMixBufferCount, "GetAudioRendererMixBufferCount"},
-            {3, nullptr, "GetAudioRendererState"},
+            {3, &IAudioRenderer::GetAudioRendererState, "GetAudioRendererState"},
             {4, &IAudioRenderer::RequestUpdateAudioRenderer, "RequestUpdateAudioRenderer"},
             {5, &IAudioRenderer::StartAudioRenderer, "StartAudioRenderer"},
             {6, &IAudioRenderer::StopAudioRenderer, "StopAudioRenderer"},
@@ -59,6 +59,13 @@ private:
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(renderer->GetSampleCount());
+        LOG_DEBUG(Service_Audio, "called");
+    }
+
+    void GetAudioRendererState(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(renderer->GetState());
         LOG_DEBUG(Service_Audio, "called");
     }
 

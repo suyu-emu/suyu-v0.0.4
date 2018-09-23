@@ -72,6 +72,9 @@ public:
     /// Gets the number of channels
     u32 GetNumChannels() const;
 
+    /// Get the state
+    u32 GetState() const;
+
 private:
     /// Current state of the stream
     enum class State {
