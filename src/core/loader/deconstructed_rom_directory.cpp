@@ -14,7 +14,6 @@
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/resource_limit.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/nso.h"
@@ -127,9 +126,12 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
     metadata.Print();
 
     const FileSys::ProgramAddressSpaceType arch_bits{metadata.GetAddressSpaceType()};
-    if (arch_bits == FileSys::ProgramAddressSpaceType::Is32Bit) {
+    if (arch_bits == FileSys::ProgramAddressSpaceType::Is32Bit ||
+        arch_bits == FileSys::ProgramAddressSpaceType::Is32BitNoMap) {
         return ResultStatus::Error32BitISA;
     }
+
+    process->LoadFromMetadata(metadata);
 
     // Load NSO modules
     VAddr next_load_addr{Memory::PROCESS_IMAGE_VADDR};
@@ -145,11 +147,6 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
         }
     }
 
-    auto& kernel = Core::System::GetInstance().Kernel();
-    process->program_id = metadata.GetTitleID();
-    process->svc_access_mask.set();
-    process->resource_limit =
-        kernel.ResourceLimitForCategory(Kernel::ResourceLimitCategory::APPLICATION);
     process->Run(Memory::PROCESS_IMAGE_VADDR, metadata.GetMainThreadPriority(),
                  metadata.GetMainThreadStackSize());
 

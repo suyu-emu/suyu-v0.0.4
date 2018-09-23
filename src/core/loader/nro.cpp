@@ -16,7 +16,6 @@
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/resource_limit.h"
 #include "core/loader/nro.h"
 #include "core/memory.h"
 
@@ -187,10 +186,6 @@ ResultStatus AppLoader_NRO::Load(Kernel::SharedPtr<Kernel::Process>& process) {
         return ResultStatus::ErrorLoadingNRO;
     }
 
-    auto& kernel = Core::System::GetInstance().Kernel();
-    process->svc_access_mask.set();
-    process->resource_limit =
-        kernel.ResourceLimitForCategory(Kernel::ResourceLimitCategory::APPLICATION);
     process->Run(base_addr, Kernel::THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE);
 
     is_loaded = true;

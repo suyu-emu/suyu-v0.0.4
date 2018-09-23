@@ -83,10 +83,12 @@ void ProgramMetadata::Print() const {
 
     auto address_space = "Unknown";
     switch (npdm_header.address_space_type) {
-    case ProgramAddressSpaceType::Is64Bit:
+    case ProgramAddressSpaceType::Is36Bit:
+    case ProgramAddressSpaceType::Is39Bit:
         address_space = "64-bit";
         break;
     case ProgramAddressSpaceType::Is32Bit:
+    case ProgramAddressSpaceType::Is32BitNoMap:
         address_space = "32-bit";
         break;
     }

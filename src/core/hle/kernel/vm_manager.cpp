@@ -9,6 +9,7 @@
 #include "common/logging/log.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
+#include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/memory.h"
@@ -54,24 +55,23 @@ bool VirtualMemoryArea::CanBeMergedWith(const VirtualMemoryArea& next) const {
 }
 
 VMManager::VMManager() {
-    Reset();
+    // Default to assuming a 39-bit address space. This way we have a sane
+    // starting point with executables that don't provide metadata.
+    Reset(FileSys::ProgramAddressSpaceType::Is39Bit);
 }
 
 VMManager::~VMManager() {
-    Reset();
+    Reset(FileSys::ProgramAddressSpaceType::Is39Bit);
 }
 
-void VMManager::Reset() {
-    vma_map.clear();
+void VMManager::Reset(FileSys::ProgramAddressSpaceType type) {
+    Clear();
+    InitializeMemoryRegionRanges(type);
 
     // Initialize the map with a single free region covering the entire managed space.
     VirtualMemoryArea initial_vma;
     initial_vma.size = MAX_ADDRESS;
     vma_map.emplace(initial_vma.base, initial_vma);
-
-    page_table.pointers.fill(nullptr);
-    page_table.special_regions.clear();
-    page_table.attributes.fill(Memory::PageType::Unmapped);
 
     UpdatePageTableForVMA(initial_vma);
 }
@@ -382,6 +382,84 @@ void VMManager::UpdatePageTableForVMA(const VirtualMemoryArea& vma) {
     }
 }
 
+void VMManager::InitializeMemoryRegionRanges(FileSys::ProgramAddressSpaceType type) {
+    u64 map_region_size = 0;
+    u64 heap_region_size = 0;
+    u64 new_map_region_size = 0;
+    u64 tls_io_region_size = 0;
+
+    switch (type) {
+    case FileSys::ProgramAddressSpaceType::Is32Bit:
+        address_space_width = 32;
+        code_region_base = 0x200000;
+        code_region_end = code_region_base + 0x3FE00000;
+        map_region_size = 0x40000000;
+        heap_region_size = 0x40000000;
+        break;
+    case FileSys::ProgramAddressSpaceType::Is36Bit:
+        address_space_width = 36;
+        code_region_base = 0x8000000;
+        code_region_end = code_region_base + 0x78000000;
+        map_region_size = 0x180000000;
+        heap_region_size = 0x180000000;
+        break;
+    case FileSys::ProgramAddressSpaceType::Is32BitNoMap:
+        address_space_width = 32;
+        code_region_base = 0x200000;
+        code_region_end = code_region_base + 0x3FE00000;
+        map_region_size = 0;
+        heap_region_size = 0x80000000;
+        break;
+    case FileSys::ProgramAddressSpaceType::Is39Bit:
+        address_space_width = 39;
+        code_region_base = 0x8000000;
+        code_region_end = code_region_base + 0x80000000;
+        map_region_size = 0x1000000000;
+        heap_region_size = 0x180000000;
+        new_map_region_size = 0x80000000;
+        tls_io_region_size = 0x1000000000;
+        break;
+    default:
+        UNREACHABLE_MSG("Invalid address space type specified: {}", static_cast<u32>(type));
+        return;
+    }
+
+    address_space_base = 0;
+    address_space_end = 1ULL << address_space_width;
+
+    map_region_base = code_region_end;
+    map_region_end = map_region_base + map_region_size;
+
+    heap_region_base = map_region_end;
+    heap_region_end = heap_region_base + heap_region_size;
+
+    new_map_region_base = heap_region_end;
+    new_map_region_end = new_map_region_base + new_map_region_size;
+
+    tls_io_region_base = new_map_region_end;
+    tls_io_region_end = tls_io_region_base + tls_io_region_size;
+
+    if (new_map_region_size == 0) {
+        new_map_region_base = address_space_base;
+        new_map_region_end = address_space_end;
+    }
+}
+
+void VMManager::Clear() {
+    ClearVMAMap();
+    ClearPageTable();
+}
+
+void VMManager::ClearVMAMap() {
+    vma_map.clear();
+}
+
+void VMManager::ClearPageTable() {
+    page_table.pointers.fill(nullptr);
+    page_table.special_regions.clear();
+    page_table.attributes.fill(Memory::PageType::Unmapped);
+}
+
 u64 VMManager::GetTotalMemoryUsage() const {
     LOG_WARNING(Kernel, "(STUBBED) called");
     return 0xF8000000;
@@ -400,6 +478,66 @@ VAddr VMManager::GetAddressSpaceBaseAddr() const {
 u64 VMManager::GetAddressSpaceSize() const {
     LOG_WARNING(Kernel, "(STUBBED) called");
     return MAX_ADDRESS;
+}
+
+VAddr VMManager::GetCodeRegionBaseAddress() const {
+    return code_region_base;
+}
+
+VAddr VMManager::GetCodeRegionEndAddress() const {
+    return code_region_end;
+}
+
+u64 VMManager::GetCodeRegionSize() const {
+    return code_region_end - code_region_base;
+}
+
+VAddr VMManager::GetHeapRegionBaseAddress() const {
+    return heap_region_base;
+}
+
+VAddr VMManager::GetHeapRegionEndAddress() const {
+    return heap_region_end;
+}
+
+u64 VMManager::GetHeapRegionSize() const {
+    return heap_region_end - heap_region_base;
+}
+
+VAddr VMManager::GetMapRegionBaseAddress() const {
+    return map_region_base;
+}
+
+VAddr VMManager::GetMapRegionEndAddress() const {
+    return map_region_end;
+}
+
+u64 VMManager::GetMapRegionSize() const {
+    return map_region_end - map_region_base;
+}
+
+VAddr VMManager::GetNewMapRegionBaseAddress() const {
+    return new_map_region_base;
+}
+
+VAddr VMManager::GetNewMapRegionEndAddress() const {
+    return new_map_region_end;
+}
+
+u64 VMManager::GetNewMapRegionSize() const {
+    return new_map_region_end - new_map_region_base;
+}
+
+VAddr VMManager::GetTLSIORegionBaseAddress() const {
+    return tls_io_region_base;
+}
+
+VAddr VMManager::GetTLSIORegionEndAddress() const {
+    return tls_io_region_end;
+}
+
+u64 VMManager::GetTLSIORegionSize() const {
+    return tls_io_region_end - tls_io_region_base;
 }
 
 } // namespace Kernel

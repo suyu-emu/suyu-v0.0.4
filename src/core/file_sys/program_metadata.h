@@ -17,8 +17,10 @@ enum class ResultStatus : u16;
 namespace FileSys {
 
 enum class ProgramAddressSpaceType : u8 {
-    Is64Bit = 1,
-    Is32Bit = 2,
+    Is32Bit = 0,
+    Is36Bit = 1,
+    Is32BitNoMap = 2,
+    Is39Bit = 3,
 };
 
 enum class ProgramFilePermission : u64 {

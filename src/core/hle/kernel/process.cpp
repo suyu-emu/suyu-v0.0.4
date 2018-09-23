@@ -8,6 +8,7 @@
 #include "common/common_funcs.h"
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
@@ -34,12 +35,19 @@ SharedPtr<Process> Process::Create(KernelCore& kernel, std::string&& name) {
     process->name = std::move(name);
     process->flags.raw = 0;
     process->flags.memory_region.Assign(MemoryRegion::APPLICATION);
+    process->resource_limit = kernel.ResourceLimitForCategory(ResourceLimitCategory::APPLICATION);
     process->status = ProcessStatus::Created;
     process->program_id = 0;
     process->process_id = kernel.CreateNewProcessID();
+    process->svc_access_mask.set();
 
     kernel.AppendNewProcess(process);
     return process;
+}
+
+void Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata) {
+    program_id = metadata.GetTitleID();
+    vm_manager.Reset(metadata.GetAddressSpaceType());
 }
 
 void Process::ParseKernelCaps(const u32* kernel_caps, std::size_t len) {

@@ -12,7 +12,6 @@
 #include "core/core.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/resource_limit.h"
 #include "core/loader/elf.h"
 #include "core/memory.h"
 
@@ -400,13 +399,6 @@ ResultStatus AppLoader_ELF::Load(Kernel::SharedPtr<Kernel::Process>& process) {
     codeset->name = file->GetName();
 
     process->LoadModule(codeset, codeset->entrypoint);
-    process->svc_access_mask.set();
-
-    // Attach the default resource limit (APPLICATION) to the process
-    auto& kernel = Core::System::GetInstance().Kernel();
-    process->resource_limit =
-        kernel.ResourceLimitForCategory(Kernel::ResourceLimitCategory::APPLICATION);
-
     process->Run(codeset->entrypoint, 48, Memory::DEFAULT_STACK_SIZE);
 
     is_loaded = true;
