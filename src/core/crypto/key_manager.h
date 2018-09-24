@@ -158,6 +158,8 @@ public:
     void DeriveBase();
     void DeriveETicket(PartitionDataManager data);
 
+    void PopulateFromPartitionData(PartitionDataManager data);
+
 private:
     std::map<KeyIndex<S128KeyType>, Key128> s128_keys;
     std::map<KeyIndex<S256KeyType>, Key256> s256_keys;

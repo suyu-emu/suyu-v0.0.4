@@ -870,6 +870,92 @@ void KeyManager::SetKeyWrapped(S256KeyType id, Key256 key, u64 field1, u64 field
     SetKey(id, key, field1, field2);
 }
 
+void KeyManager::PopulateFromPartitionData(PartitionDataManager data) {
+    if (!BaseDeriveNecessary())
+        return;
+
+    if (!data.HasBoot0())
+        return;
+
+    for (size_t i = 0; i < 0x20; ++i) {
+        if (encrypted_keyblobs[i] != std::array<u8, 0xB0>{})
+            continue;
+        encrypted_keyblobs[i] = data.GetEncryptedKeyblob(i);
+        WriteKeyToFile<0xB0>(KeyCategory::Console, fmt::format("encrypted_keyblob_{:02X}", i),
+                             encrypted_keyblobs[i]);
+    }
+
+    SetKeyWrapped(S128KeyType::Source, data.GetPackage2KeySource(),
+                  static_cast<u64>(SourceKeyType::Package2));
+    SetKeyWrapped(S128KeyType::Source, data.GetAESKekGenerationSource(),
+                  static_cast<u64>(SourceKeyType::AESKekGeneration));
+    SetKeyWrapped(S128KeyType::Source, data.GetTitlekekSource(),
+                  static_cast<u64>(SourceKeyType::Titlekek));
+    SetKeyWrapped(S128KeyType::Source, data.GetMasterKeySource(),
+                  static_cast<u64>(SourceKeyType::Master));
+    SetKeyWrapped(S128KeyType::Source, data.GetKeyblobMACKeySource(),
+                  static_cast<u64>(SourceKeyType::KeyblobMAC));
+
+    for (size_t i = 0; i < PartitionDataManager::MAX_KEYBLOB_SOURCE_HASH; ++i) {
+        SetKeyWrapped(S128KeyType::Source, data.GetKeyblobKeySource(i),
+                      static_cast<u64>(SourceKeyType::Keyblob), i);
+    }
+
+    if (data.HasFuses())
+        SetKeyWrapped(S128KeyType::SecureBoot, data.GetSecureBootKey());
+
+    DeriveBase();
+
+    Key128 latest_master{};
+    for (s8 i = 0x1F; i > 0; --i) {
+        if (GetKey(S128KeyType::Master, i) != Key128{}) {
+            latest_master = GetKey(S128KeyType::Master, i);
+            break;
+        }
+    }
+
+    const auto masters = data.GetTZMasterKeys(latest_master);
+    for (size_t i = 0; i < 0x20; ++i) {
+        if (masters[i] != Key128{} && !HasKey(S128KeyType::Master, i))
+            SetKey(S128KeyType::Master, masters[i], i);
+    }
+
+    DeriveBase();
+
+    if (!data.HasPackage2())
+        return;
+
+    std::array<Key128, 0x20> package2_keys{};
+    for (size_t i = 0; i < 0x20; ++i) {
+        if (HasKey(S128KeyType::Package2, i))
+            package2_keys[i] = GetKey(S128KeyType::Package2, i);
+    }
+    data.DecryptPackage2(package2_keys, Package2Type::NormalMain);
+
+    SetKeyWrapped(S128KeyType::Source, data.GetKeyAreaKeyApplicationSource(),
+                  static_cast<u64>(SourceKeyType::KeyAreaKey),
+                  static_cast<u64>(KeyAreaKeyType::Application));
+    SetKeyWrapped(S128KeyType::Source, data.GetKeyAreaKeyOceanSource(),
+                  static_cast<u64>(SourceKeyType::KeyAreaKey),
+                  static_cast<u64>(KeyAreaKeyType::Ocean));
+    SetKeyWrapped(S128KeyType::Source, data.GetKeyAreaKeySystemSource(),
+                  static_cast<u64>(SourceKeyType::KeyAreaKey),
+                  static_cast<u64>(KeyAreaKeyType::System));
+    SetKeyWrapped(S128KeyType::Source, data.GetSDKekSource(),
+                  static_cast<u64>(SourceKeyType::SDKek));
+    SetKeyWrapped(S256KeyType::SDKeySource, data.GetSDSaveKeySource(),
+                  static_cast<u64>(SDKeyType::Save));
+    SetKeyWrapped(S256KeyType::SDKeySource, data.GetSDNCAKeySource(),
+                  static_cast<u64>(SDKeyType::NCA));
+    SetKeyWrapped(S128KeyType::Source, data.GetHeaderKekSource(),
+                  static_cast<u64>(SourceKeyType::HeaderKek));
+    SetKeyWrapped(S256KeyType::HeaderSource, data.GetHeaderKeySource());
+    SetKeyWrapped(S128KeyType::Source, data.GetAESKeyGenerationSource(),
+                  static_cast<u64>(SourceKeyType::AESKeyGeneration));
+
+    DeriveBase();
+}
+
 const boost::container::flat_map<std::string, KeyIndex<S128KeyType>> KeyManager::s128_file_id = {
     {"eticket_rsa_kek", {S128KeyType::ETicketRSAKek, 0, 0}},
     {"eticket_rsa_kek_source",
