@@ -183,6 +183,7 @@ void FileBackend::Write(const Entry& entry) {
     SUB(Service, FS)                                                                               \
     SUB(Service, GRC)                                                                              \
     SUB(Service, HID)                                                                              \
+    SUB(Service, IRS)                                                                              \
     SUB(Service, LBL)                                                                              \
     SUB(Service, LDN)                                                                              \
     SUB(Service, LDR)                                                                              \

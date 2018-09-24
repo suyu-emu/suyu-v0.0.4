@@ -70,6 +70,7 @@ enum class Class : ClassType {
     Service_FS,        ///< The FS (Filesystem) service
     Service_GRC,       ///< The game recording service
     Service_HID,       ///< The HID (Human interface device) service
+    Service_IRS,       ///< The IRS service
     Service_LBL,       ///< The LBL (LCD backlight) service
     Service_LDN,       ///< The LDN (Local domain network) service
     Service_LDR,       ///< The loader service
