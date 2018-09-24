@@ -474,14 +474,16 @@ u64 VMManager::GetTotalHeapUsage() const {
     return 0x0;
 }
 
-VAddr VMManager::GetAddressSpaceBaseAddr() const {
-    LOG_WARNING(Kernel, "(STUBBED) called");
-    return 0x8000000;
+VAddr VMManager::GetAddressSpaceBaseAddress() const {
+    return address_space_base;
+}
+
+VAddr VMManager::GetAddressSpaceEndAddress() const {
+    return address_space_end;
 }
 
 u64 VMManager::GetAddressSpaceSize() const {
-    LOG_WARNING(Kernel, "(STUBBED) called");
-    return MAX_ADDRESS;
+    return address_space_end - address_space_base;
 }
 
 u64 VMManager::GetAddressSpaceWidth() const {

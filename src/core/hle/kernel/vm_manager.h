@@ -115,12 +115,6 @@ struct VirtualMemoryArea {
 class VMManager final {
 public:
     /**
-     * The maximum amount of address space managed by the kernel.
-     * @todo This was selected arbitrarily, and should be verified for Switch OS.
-     */
-    static constexpr VAddr MAX_ADDRESS{0x1000000000ULL};
-
-    /**
      * A map covering the entirety of the managed address space, keyed by the `base` field of each
      * VMA. It must always be modified by splitting or merging VMAs, so that the invariant
      * `elem.base + elem.size == next.base` is preserved, and mergeable regions must always be
@@ -199,10 +193,13 @@ public:
     /// Gets the total heap usage, used by svcGetInfo
     u64 GetTotalHeapUsage() const;
 
-    /// Gets the address space base address, used by svcGetInfo
-    VAddr GetAddressSpaceBaseAddr() const;
+    /// Gets the address space base address
+    VAddr GetAddressSpaceBaseAddress() const;
 
-    /// Gets the total address space address size, used by svcGetInfo
+    /// Gets the address space end address
+    VAddr GetAddressSpaceEndAddress() const;
+
+    /// Gets the total address space address size in bytes
     u64 GetAddressSpaceSize() const;
 
     /// Gets the address space width in bits.
