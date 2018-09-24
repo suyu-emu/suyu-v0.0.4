@@ -26,6 +26,12 @@ using SHA256Hash = std::array<u8, 0x20>;
 static_assert(sizeof(Key128) == 16, "Key128 must be 128 bytes big.");
 static_assert(sizeof(Key256) == 32, "Key128 must be 128 bytes big.");
 
+enum class KeyCategory : u8 {
+    Standard,
+    Title,
+    Console,
+};
+
 enum class S256KeyType : u64 {
     Header,      //
     SDKeySource, // f1=SDKeyType
