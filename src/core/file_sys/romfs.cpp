@@ -4,7 +4,7 @@
 
 #include "common/common_types.h"
 #include "common/swap.h"
-#include "core/file_sys/fsmitm_romfsbuild.hpp"
+#include "core/file_sys/fsmitm_romfsbuild.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_concat.h"
@@ -100,7 +100,7 @@ void ProcessDirectory(VirtualFile file, std::size_t dir_offset, std::size_t file
     }
 }
 
-VirtualDir ExtractRomFS(VirtualFile file, bool traverse_into_data) {
+VirtualDir ExtractRomFS(VirtualFile file, RomFSExtractionType type) {
     RomFSHeader header{};
     if (file->ReadObject(&header) != sizeof(RomFSHeader))
         return nullptr;
@@ -119,8 +119,9 @@ VirtualDir ExtractRomFS(VirtualFile file, bool traverse_into_data) {
 
     VirtualDir out = std::move(root);
 
-    while (out->GetSubdirectories().size() == 1 && out->GetFiles().size() == 0) {
-        if (out->GetSubdirectories().front()->GetName() == "data" && !traverse_into_data)
+    while (out->GetSubdirectories().size() == 1 && out->GetFiles().empty()) {
+        if (out->GetSubdirectories().front()->GetName() == "data" &&
+            type == RomFSExtractionType::Truncated)
             break;
         out = out->GetSubdirectories().front();
     }

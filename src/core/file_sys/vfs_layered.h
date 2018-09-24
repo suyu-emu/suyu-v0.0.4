@@ -21,6 +21,8 @@ class LayeredVfsDirectory : public VfsDirectory {
     LayeredVfsDirectory(std::vector<VirtualDir> dirs, std::string name);
 
 public:
+    ~LayeredVfsDirectory() override;
+
     std::shared_ptr<VfsFile> GetFileRelative(std::string_view path) const override;
     std::shared_ptr<VfsDirectory> GetDirectoryRelative(std::string_view path) const override;
     std::shared_ptr<VfsFile> GetFile(std::string_view name) const override;

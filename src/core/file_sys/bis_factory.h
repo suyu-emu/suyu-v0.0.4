@@ -17,7 +17,7 @@ class RegisteredCache;
 /// registered caches.
 class BISFactory {
 public:
-    BISFactory(VirtualDir nand_root, VirtualDir load_root);
+    explicit BISFactory(VirtualDir nand_root, VirtualDir load_root);
     ~BISFactory();
 
     std::shared_ptr<RegisteredCache> GetSystemNANDContents() const;

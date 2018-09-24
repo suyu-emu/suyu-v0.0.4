@@ -399,8 +399,8 @@ bool VfsDirectory::Copy(std::string_view src, std::string_view dest) {
     return f2->WriteBytes(f1->ReadAllBytes()) == f1->GetSize();
 }
 
-std::map<std::string, VfsEntryType> VfsDirectory::GetEntries() const {
-    std::map<std::string, VfsEntryType> out;
+std::map<std::string, VfsEntryType, std::less<>> VfsDirectory::GetEntries() const {
+    std::map<std::string, VfsEntryType, std::less<>> out;
     for (const auto& dir : GetSubdirectories())
         out.emplace(dir->GetName(), VfsEntryType::Directory);
     for (const auto& file : GetFiles())

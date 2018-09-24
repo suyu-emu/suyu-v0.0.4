@@ -33,7 +33,7 @@ add_library(core STATIC
     file_sys/directory.h
     file_sys/errors.h
     file_sys/fsmitm_romfsbuild.cpp
-    file_sys/fsmitm_romfsbuild.hpp
+    file_sys/fsmitm_romfsbuild.h
     file_sys/mode.h
     file_sys/nca_metadata.cpp
     file_sys/nca_metadata.h

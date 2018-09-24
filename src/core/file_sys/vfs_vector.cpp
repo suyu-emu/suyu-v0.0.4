@@ -3,12 +3,15 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstring>
 #include <utility>
 #include "core/file_sys/vfs_vector.h"
 
 namespace FileSys {
 VectorVfsFile::VectorVfsFile(std::vector<u8> initial_data, std::string name, VirtualDir parent)
     : data(std::move(initial_data)), name(std::move(name)), parent(std::move(parent)) {}
+
+VectorVfsFile::~VectorVfsFile() = default;
 
 std::string VectorVfsFile::GetName() const {
     return name;
@@ -20,7 +23,7 @@ size_t VectorVfsFile::GetSize() const {
 
 bool VectorVfsFile::Resize(size_t new_size) {
     data.resize(new_size);
-    return data.size() == new_size;
+    return true;
 }
 
 std::shared_ptr<VfsDirectory> VectorVfsFile::GetContainingDirectory() const {
@@ -55,7 +58,7 @@ bool VectorVfsFile::Rename(std::string_view name_) {
 }
 
 void VectorVfsFile::Assign(std::vector<u8> new_data) {
-    data = new_data;
+    data = std::move(new_data);
 }
 
 VectorVfsDirectory::VectorVfsDirectory(std::vector<VirtualFile> files_,

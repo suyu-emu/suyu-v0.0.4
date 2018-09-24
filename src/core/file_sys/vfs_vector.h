@@ -13,6 +13,7 @@ class VectorVfsFile : public VfsFile {
 public:
     explicit VectorVfsFile(std::vector<u8> initial_data = {}, std::string name = "",
                            VirtualDir parent = nullptr);
+    ~VectorVfsFile() override;
 
     std::string GetName() const override;
     size_t GetSize() const override;

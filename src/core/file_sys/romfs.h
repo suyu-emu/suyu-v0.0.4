@@ -32,9 +32,15 @@ struct IVFCHeader {
 };
 static_assert(sizeof(IVFCHeader) == 0xE0, "IVFCHeader has incorrect size.");
 
+enum class RomFSExtractionType {
+    Full,      // Includes data directory
+    Truncated, // Traverses into data directory
+};
+
 // Converts a RomFS binary blob to VFS Filesystem
 // Returns nullptr on failure
-VirtualDir ExtractRomFS(VirtualFile file, bool traverse_into_data = true);
+VirtualDir ExtractRomFS(VirtualFile file,
+                        RomFSExtractionType type = RomFSExtractionType::Truncated);
 
 // Converts a VFS filesystem into a RomFS binary
 // Returns nullptr on failure

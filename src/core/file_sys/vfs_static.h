@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <memory>
 #include <string_view>
 
@@ -15,7 +16,7 @@ template <u8 value>
 class StaticVfsFile : public VfsFile {
 public:
     explicit StaticVfsFile(size_t size = 0, std::string name = "", VirtualDir parent = nullptr)
-        : size(size), name(name), parent(parent) {}
+        : size(size), name(std::move(name)), parent(std::move(parent)) {}
 
     std::string GetName() const override {
         return name;

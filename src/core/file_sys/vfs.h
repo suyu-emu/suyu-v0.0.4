@@ -268,7 +268,7 @@ public:
 
     // Gets all of the entries directly in the directory (files and dirs), returning a map between
     // item name -> type.
-    virtual std::map<std::string, VfsEntryType> GetEntries() const;
+    virtual std::map<std::string, VfsEntryType, std::less<>> GetEntries() const;
 
     // Interprets the file with name file instead as a directory of type directory.
     // The directory must have a constructor that takes a single argument of type
@@ -323,6 +323,9 @@ bool DeepEquals(const VirtualFile& file1, const VirtualFile& file2, size_t block
 // directory of src/dest.
 bool VfsRawCopy(const VirtualFile& src, const VirtualFile& dest, size_t block_size = 0x1000);
 
+// A method that performs a similar function to VfsRawCopy above, but instead copies entire
+// directories. It suffers the same performance penalties as above and an implementation-specific
+// Copy should always be preferred.
 bool VfsRawCopyD(const VirtualDir& src, const VirtualDir& dest, size_t block_size = 0x1000);
 
 // Checks if the directory at path relative to rel exists. If it does, returns that. If it does not

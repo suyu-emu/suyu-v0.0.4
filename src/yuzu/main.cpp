@@ -784,7 +784,7 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
             ? FileSys::PatchManager(program_id).PatchRomFS(file, loader->ReadRomFSIVFCOffset())
             : file;
 
-    const auto extracted = FileSys::ExtractRomFS(romfs, false);
+    const auto extracted = FileSys::ExtractRomFS(romfs, FileSys::RomFSExtractionType::Full);
     if (extracted == nullptr) {
         failed();
         return;

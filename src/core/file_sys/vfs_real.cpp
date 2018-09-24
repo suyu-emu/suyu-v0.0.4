@@ -413,11 +413,11 @@ std::string RealVfsDirectory::GetFullPath() const {
     return out;
 }
 
-std::map<std::string, VfsEntryType> RealVfsDirectory::GetEntries() const {
+std::map<std::string, VfsEntryType, std::less<>> RealVfsDirectory::GetEntries() const {
     if (perms == Mode::Append)
         return {};
 
-    std::map<std::string, VfsEntryType> out;
+    std::map<std::string, VfsEntryType, std::less<>> out;
     FileUtil::ForeachDirectoryEntry(
         nullptr, path,
         [&out](u64* entries_out, const std::string& directory, const std::string& filename) {

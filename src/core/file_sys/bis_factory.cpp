@@ -2,9 +2,9 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <fmt/format.h>
 #include "core/file_sys/bis_factory.h"
 #include "core/file_sys/registered_cache.h"
-#include "fmt/format.h"
 
 namespace FileSys {
 

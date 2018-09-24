@@ -10,8 +10,9 @@
 
 namespace FileSys {
 
-bool VerifyConcatenationMap(std::map<u64, VirtualFile> map) {
-    for (auto iter = map.begin(); iter != --map.end();) {
+static bool VerifyConcatenationMapContinuity(const std::map<u64, VirtualFile>& map) {
+    const auto last_valid = --map.end();
+    for (auto iter = map.begin(); iter != last_valid;) {
         const auto old = iter++;
         if (old->first + old->second->GetSize() != iter->first) {
             return false;
@@ -41,8 +42,10 @@ ConcatenatedVfsFile::ConcatenatedVfsFile(std::vector<VirtualFile> files_, std::s
 
 ConcatenatedVfsFile::ConcatenatedVfsFile(std::map<u64, VirtualFile> files_, std::string name)
     : files(std::move(files_)), name(std::move(name)) {
-    ASSERT(VerifyConcatenationMap(files));
+    ASSERT(VerifyConcatenationMapContinuity(files));
 }
+
+ConcatenatedVfsFile::~ConcatenatedVfsFile() = default;
 
 std::string ConcatenatedVfsFile::GetName() const {
     if (files.empty())
@@ -77,25 +80,25 @@ bool ConcatenatedVfsFile::IsReadable() const {
 }
 
 std::size_t ConcatenatedVfsFile::Read(u8* data, std::size_t length, std::size_t offset) const {
-    std::pair<u64, VirtualFile> entry = *files.rbegin();
+    auto entry = --files.end();
     for (auto iter = files.begin(); iter != files.end(); ++iter) {
         if (iter->first > offset) {
-            entry = *--iter;
+            entry = --iter;
             break;
         }
     }
 
-    if (entry.first + entry.second->GetSize() <= offset)
+    if (entry->first + entry->second->GetSize() <= offset)
         return 0;
 
     const auto read_in =
-        std::min(entry.first + entry.second->GetSize() - offset, entry.second->GetSize());
+        std::min<u64>(entry->first + entry->second->GetSize() - offset, entry->second->GetSize());
     if (length > read_in) {
-        return entry.second->Read(data, read_in, offset - entry.first) +
+        return entry->second->Read(data, read_in, offset - entry->first) +
                Read(data + read_in, length - read_in, offset + read_in);
     }
 
-    return entry.second->Read(data, std::min(read_in, length), offset - entry.first);
+    return entry->second->Read(data, std::min<u64>(read_in, length), offset - entry->first);
 }
 
 std::size_t ConcatenatedVfsFile::Write(const u8* data, std::size_t length, std::size_t offset) {
