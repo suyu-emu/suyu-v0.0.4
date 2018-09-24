@@ -254,7 +254,30 @@ void KeyManager::SetKey(S128KeyType id, Key128 key, u64 field1, u64 field2) {
                    std::tie(id, field1, field2);
         });
     if (iter2 != s128_file_id.end())
-        WriteKeyToFile(false, iter2->first, key);
+        WriteKeyToFile(category, iter2->first, key);
+
+    // Variable cases
+    if (id == S128KeyType::KeyArea) {
+        const static std::array<const char*, 3> kak_names = {"key_area_key_application_{:02X}",
+                                                             "key_area_key_ocean_{:02X}",
+                                                             "key_area_key_system_{:02X}"};
+        WriteKeyToFile(category, fmt::format(kak_names.at(field2), field1), key);
+    } else if (id == S128KeyType::Master) {
+        WriteKeyToFile(category, fmt::format("master_key_{:02X}", field1), key);
+    } else if (id == S128KeyType::Package1) {
+        WriteKeyToFile(category, fmt::format("package1_key_{:02X}", field1), key);
+    } else if (id == S128KeyType::Package2) {
+        WriteKeyToFile(category, fmt::format("package2_key_{:02X}", field1), key);
+    } else if (id == S128KeyType::Titlekek) {
+        WriteKeyToFile(category, fmt::format("titlekek_{:02X}", field1), key);
+    } else if (id == S128KeyType::Keyblob) {
+        WriteKeyToFile(category, fmt::format("keyblob_key_{:02X}", field1), key);
+    } else if (id == S128KeyType::KeyblobMAC) {
+        WriteKeyToFile(category, fmt::format("keyblob_mac_key_{:02X}", field1), key);
+    } else if (id == S128KeyType::Source && field1 == static_cast<u64>(SourceKeyType::Keyblob)) {
+        WriteKeyToFile(category, fmt::format("keyblob_key_source_{:02X}", field2), key);
+    }
+
     s128_keys[{id, field1, field2}] = key;
 }
 
@@ -299,58 +322,55 @@ void KeyManager::DeriveSDSeedLazy() {
 }
 
 const boost::container::flat_map<std::string, KeyIndex<S128KeyType>> KeyManager::s128_file_id = {
-    {"master_key_00", {S128KeyType::Master, 0, 0}},
-    {"master_key_01", {S128KeyType::Master, 1, 0}},
-    {"master_key_02", {S128KeyType::Master, 2, 0}},
-    {"master_key_03", {S128KeyType::Master, 3, 0}},
-    {"master_key_04", {S128KeyType::Master, 4, 0}},
-    {"package1_key_00", {S128KeyType::Package1, 0, 0}},
-    {"package1_key_01", {S128KeyType::Package1, 1, 0}},
-    {"package1_key_02", {S128KeyType::Package1, 2, 0}},
-    {"package1_key_03", {S128KeyType::Package1, 3, 0}},
-    {"package1_key_04", {S128KeyType::Package1, 4, 0}},
-    {"package2_key_00", {S128KeyType::Package2, 0, 0}},
-    {"package2_key_01", {S128KeyType::Package2, 1, 0}},
-    {"package2_key_02", {S128KeyType::Package2, 2, 0}},
-    {"package2_key_03", {S128KeyType::Package2, 3, 0}},
-    {"package2_key_04", {S128KeyType::Package2, 4, 0}},
-    {"titlekek_00", {S128KeyType::Titlekek, 0, 0}},
-    {"titlekek_01", {S128KeyType::Titlekek, 1, 0}},
-    {"titlekek_02", {S128KeyType::Titlekek, 2, 0}},
-    {"titlekek_03", {S128KeyType::Titlekek, 3, 0}},
-    {"titlekek_04", {S128KeyType::Titlekek, 4, 0}},
     {"eticket_rsa_kek", {S128KeyType::ETicketRSAKek, 0, 0}},
-    {"key_area_key_application_00",
-     {S128KeyType::KeyArea, 0, static_cast<u64>(KeyAreaKeyType::Application)}},
-    {"key_area_key_application_01",
-     {S128KeyType::KeyArea, 1, static_cast<u64>(KeyAreaKeyType::Application)}},
-    {"key_area_key_application_02",
-     {S128KeyType::KeyArea, 2, static_cast<u64>(KeyAreaKeyType::Application)}},
-    {"key_area_key_application_03",
-     {S128KeyType::KeyArea, 3, static_cast<u64>(KeyAreaKeyType::Application)}},
-    {"key_area_key_application_04",
-     {S128KeyType::KeyArea, 4, static_cast<u64>(KeyAreaKeyType::Application)}},
-    {"key_area_key_ocean_00", {S128KeyType::KeyArea, 0, static_cast<u64>(KeyAreaKeyType::Ocean)}},
-    {"key_area_key_ocean_01", {S128KeyType::KeyArea, 1, static_cast<u64>(KeyAreaKeyType::Ocean)}},
-    {"key_area_key_ocean_02", {S128KeyType::KeyArea, 2, static_cast<u64>(KeyAreaKeyType::Ocean)}},
-    {"key_area_key_ocean_03", {S128KeyType::KeyArea, 3, static_cast<u64>(KeyAreaKeyType::Ocean)}},
-    {"key_area_key_ocean_04", {S128KeyType::KeyArea, 4, static_cast<u64>(KeyAreaKeyType::Ocean)}},
-    {"key_area_key_system_00", {S128KeyType::KeyArea, 0, static_cast<u64>(KeyAreaKeyType::System)}},
-    {"key_area_key_system_01", {S128KeyType::KeyArea, 1, static_cast<u64>(KeyAreaKeyType::System)}},
-    {"key_area_key_system_02", {S128KeyType::KeyArea, 2, static_cast<u64>(KeyAreaKeyType::System)}},
-    {"key_area_key_system_03", {S128KeyType::KeyArea, 3, static_cast<u64>(KeyAreaKeyType::System)}},
-    {"key_area_key_system_04", {S128KeyType::KeyArea, 4, static_cast<u64>(KeyAreaKeyType::System)}},
-    {"sd_card_kek_source", {S128KeyType::Source, static_cast<u64>(SourceKeyType::SDKEK), 0}},
+    {"eticket_rsa_kek_source",
+     {S128KeyType::Source, static_cast<u64>(SourceKeyType::ETicketKek), 0}},
+    {"eticket_rsa_kekek_source",
+     {S128KeyType::Source, static_cast<u64>(SourceKeyType::ETicketKekek), 0}},
+    {"rsa_kek_mask_0", {S128KeyType::RSAKek, static_cast<u64>(RSAKekType::Mask0), 0}},
+    {"rsa_kek_seed_3", {S128KeyType::RSAKek, static_cast<u64>(RSAKekType::Seed3), 0}},
+    {"rsa_oaep_kek_generation_source",
+     {S128KeyType::Source, static_cast<u64>(SourceKeyType::RSAOaepKekGeneration), 0}},
+    {"sd_card_kek_source", {S128KeyType::Source, static_cast<u64>(SourceKeyType::SDKek), 0}},
     {"aes_kek_generation_source",
-     {S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKEKGeneration), 0}},
+     {S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKekGeneration), 0}},
     {"aes_key_generation_source",
      {S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKeyGeneration), 0}},
+    {"package2_key_source", {S128KeyType::Source, static_cast<u64>(SourceKeyType::Package2), 0}},
+    {"master_key_source", {S128KeyType::Source, static_cast<u64>(SourceKeyType::Master), 0}},
+    {"header_kek_source", {S128KeyType::Source, static_cast<u64>(SourceKeyType::HeaderKek), 0}},
+    {"key_area_key_application_source",
+     {S128KeyType::Source, static_cast<u64>(SourceKeyType::KeyAreaKey),
+      static_cast<u64>(KeyAreaKeyType::Application)}},
+    {"key_area_key_ocean_source",
+     {S128KeyType::Source, static_cast<u64>(SourceKeyType::KeyAreaKey),
+      static_cast<u64>(KeyAreaKeyType::Ocean)}},
+    {"key_area_key_system_source",
+     {S128KeyType::Source, static_cast<u64>(SourceKeyType::KeyAreaKey),
+      static_cast<u64>(KeyAreaKeyType::System)}},
+    {"titlekek_source", {S128KeyType::Source, static_cast<u64>(SourceKeyType::Titlekek), 0}},
+    {"keyblob_mac_key_source", {S128KeyType::Source, static_cast<u64>(SourceKeyType::KeyblobMAC)}},
+    {"tsec_key", {S128KeyType::TSEC, 0, 0}},
+    {"secure_boot_key", {S128KeyType::SecureBoot, 0, 0}},
     {"sd_seed", {S128KeyType::SDSeed, 0, 0}},
+    {"bis_key_0_crypt", {S128KeyType::BIS, 0, static_cast<u64>(BISKeyType::Crypto)}},
+    {"bis_key_0_tweak", {S128KeyType::BIS, 0, static_cast<u64>(BISKeyType::Tweak)}},
+    {"bis_key_1_crypt", {S128KeyType::BIS, 1, static_cast<u64>(BISKeyType::Crypto)}},
+    {"bis_key_1_tweak", {S128KeyType::BIS, 1, static_cast<u64>(BISKeyType::Tweak)}},
+    {"bis_key_2_crypt", {S128KeyType::BIS, 2, static_cast<u64>(BISKeyType::Crypto)}},
+    {"bis_key_2_tweak", {S128KeyType::BIS, 2, static_cast<u64>(BISKeyType::Tweak)}},
+    {"bis_key_3_crypt", {S128KeyType::BIS, 3, static_cast<u64>(BISKeyType::Crypto)}},
+    {"bis_key_3_tweak", {S128KeyType::BIS, 3, static_cast<u64>(BISKeyType::Tweak)}},
+    {"header_kek", {S128KeyType::HeaderKek, 0, 0}},
+    {"sd_card_kek", {S128KeyType::SDKek, 0, 0}},
 };
 
 const boost::container::flat_map<std::string, KeyIndex<S256KeyType>> KeyManager::s256_file_id = {
     {"header_key", {S256KeyType::Header, 0, 0}},
     {"sd_card_save_key_source", {S256KeyType::SDKeySource, static_cast<u64>(SDKeyType::Save), 0}},
     {"sd_card_nca_key_source", {S256KeyType::SDKeySource, static_cast<u64>(SDKeyType::NCA), 0}},
+    {"header_key_source", {S256KeyType::HeaderSource, 0, 0}},
+    {"sd_card_save_key", {S256KeyType::SDKey, static_cast<u64>(SDKeyType::Save), 0}},
+    {"sd_card_nca_key", {S256KeyType::SDKey, static_cast<u64>(SDKeyType::NCA), 0}},
 };
 } // namespace Core::Crypto
