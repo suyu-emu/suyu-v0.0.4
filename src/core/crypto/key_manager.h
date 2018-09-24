@@ -138,9 +138,12 @@ public:
     // 8*43 and the private file to exist.
     void DeriveSDSeedLazy();
 
+    bool BaseDeriveNecessary();
+    void DeriveBase();
 private:
-    boost::container::flat_map<KeyIndex<S128KeyType>, Key128> s128_keys;
-    boost::container::flat_map<KeyIndex<S256KeyType>, Key256> s256_keys;
+    std::map<KeyIndex<S128KeyType>, Key128> s128_keys;
+    std::map<KeyIndex<S256KeyType>, Key256> s256_keys;
+
     std::array<std::array<u8, 0xB0>, 0x20> encrypted_keyblobs{};
     std::array<std::array<u8, 0x90>, 0x20> keyblobs{};
 
@@ -148,8 +151,12 @@ private:
     void LoadFromFile(const std::string& filename, bool is_title_keys);
     void AttemptLoadKeyFile(const std::string& dir1, const std::string& dir2,
                             const std::string& filename, bool title);
-    template <std::size_t Size>
-    void WriteKeyToFile(bool title_key, std::string_view keyname, const std::array<u8, Size>& key);
+    template <size_t Size>
+    void WriteKeyToFile(KeyCategory category, std::string_view keyname,
+                        const std::array<u8, Size>& key);
+
+    void SetKeyWrapped(S128KeyType id, Key128 key, u64 field1 = 0, u64 field2 = 0);
+    void SetKeyWrapped(S256KeyType id, Key256 key, u64 field1 = 0, u64 field2 = 0);
 
     static const boost::container::flat_map<std::string, KeyIndex<S128KeyType>> s128_file_id;
     static const boost::container::flat_map<std::string, KeyIndex<S256KeyType>> s256_file_id;

@@ -262,6 +262,28 @@ void KeyManager::AttemptLoadKeyFile(const std::string& dir1, const std::string& 
         LoadFromFile(dir2 + DIR_SEP + filename, title);
 }
 
+bool KeyManager::BaseDeriveNecessary() {
+    const auto check_key_existence = [this](auto key_type, u64 index1 = 0, u64 index2 = 0) {
+        return !HasKey(key_type, index1, index2);
+    };
+
+    if (check_key_existence(S256KeyType::Header))
+        return true;
+
+    for (size_t i = 0; i < CURRENT_CRYPTO_REVISION; ++i) {
+        if (check_key_existence(S128KeyType::Master, i) ||
+            check_key_existence(S128KeyType::KeyArea, i,
+                                static_cast<u64>(KeyAreaKeyType::Application)) ||
+            check_key_existence(S128KeyType::KeyArea, i, static_cast<u64>(KeyAreaKeyType::Ocean)) ||
+            check_key_existence(S128KeyType::KeyArea, i,
+                                static_cast<u64>(KeyAreaKeyType::System)) ||
+            check_key_existence(S128KeyType::Titlekek, i))
+            return true;
+    }
+
+    return false;
+}
+
 bool KeyManager::HasKey(S128KeyType id, u64 field1, u64 field2) const {
     return s128_keys.find({id, field1, field2}) != s128_keys.end();
 }
@@ -410,6 +432,193 @@ void KeyManager::DeriveSDSeedLazy() {
     const auto res = DeriveSDSeed();
     if (res != boost::none)
         SetKey(S128KeyType::SDSeed, res.get());
+}
+
+static Key128 CalculateCMAC(const u8* source, size_t size, Key128 key) {
+    Key128 out{};
+
+    mbedtls_cipher_cmac(mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_128_ECB), key.data(), 0x80,
+                        source, size, out.data());
+    return out;
+}
+
+void KeyManager::DeriveBase() {
+    if (!BaseDeriveNecessary())
+        return;
+
+    if (!HasKey(S128KeyType::SecureBoot) || !HasKey(S128KeyType::TSEC))
+        return;
+
+    const auto has_bis = [this](u64 id) {
+        return HasKey(S128KeyType::BIS, id, static_cast<u64>(BISKeyType::Crypto)) &&
+               HasKey(S128KeyType::BIS, id, static_cast<u64>(BISKeyType::Tweak));
+    };
+
+    const auto copy_bis = [this](u64 id_from, u64 id_to) {
+        SetKey(S128KeyType::BIS,
+               GetKey(S128KeyType::BIS, id_from, static_cast<u64>(BISKeyType::Crypto)), id_to,
+               static_cast<u64>(BISKeyType::Crypto));
+
+        SetKey(S128KeyType::BIS,
+               GetKey(S128KeyType::BIS, id_from, static_cast<u64>(BISKeyType::Tweak)), id_to,
+               static_cast<u64>(BISKeyType::Tweak));
+    };
+
+    if (has_bis(2) && !has_bis(3))
+        copy_bis(2, 3);
+    else if (has_bis(3) && !has_bis(2))
+        copy_bis(3, 2);
+
+    std::bitset<32> revisions{};
+    revisions.set();
+    for (size_t i = 0; i < 32; ++i) {
+        if (!HasKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::Keyblob), i) ||
+            encrypted_keyblobs[i] == std::array<u8, 0xB0>{})
+            revisions.reset(i);
+    }
+
+    if (!revisions.any())
+        return;
+
+    const auto sbk = GetKey(S128KeyType::SecureBoot);
+    const auto tsec = GetKey(S128KeyType::TSEC);
+    const auto master_source = GetKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::Master));
+    const auto kek_generation_source =
+        GetKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKekGeneration));
+    const auto key_generation_source =
+        GetKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKeyGeneration));
+
+    for (size_t i = 0; i < 32; ++i) {
+        if (!revisions[i])
+            continue;
+
+        // Derive keyblob key
+        const auto key = DeriveKeyblobKey(
+            sbk, tsec, GetKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::Keyblob), i));
+
+        SetKey(S128KeyType::Keyblob, key, i);
+
+        // Derive keyblob MAC key
+        if (!HasKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::KeyblobMAC)))
+            continue;
+
+        const auto mac_source =
+            GetKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::KeyblobMAC));
+
+        AESCipher<Key128> mac_cipher(key, Mode::ECB);
+        Key128 mac_key{};
+        mac_cipher.Transcode(mac_source.data(), mac_key.size(), mac_key.data(), Op::Decrypt);
+
+        SetKey(S128KeyType::KeyblobMAC, mac_key, i);
+
+        Key128 cmac = CalculateCMAC(encrypted_keyblobs[i].data() + 0x10, 0xA0, mac_key);
+        if (std::memcmp(cmac.data(), encrypted_keyblobs[i].data(), cmac.size()) != 0)
+            continue;
+
+        // Decrypt keyblob
+        bool has_keyblob = keyblobs[i] != std::array<u8, 0x90>{};
+
+        AESCipher<Key128> cipher(key, Mode::CTR);
+        cipher.SetIV(std::vector<u8>(encrypted_keyblobs[i].data() + 0x10,
+                                     encrypted_keyblobs[i].data() + 0x20));
+        cipher.Transcode(encrypted_keyblobs[i].data() + 0x20, keyblobs[i].size(),
+                         keyblobs[i].data(), Op::Decrypt);
+
+        if (!has_keyblob) {
+            WriteKeyToFile<0x90>(KeyCategory::Console, fmt::format("keyblob_{:02X}", i),
+                                 keyblobs[i]);
+        }
+
+        Key128 package1{};
+        std::memcpy(package1.data(), keyblobs[i].data() + 0x80, sizeof(Key128));
+        SetKey(S128KeyType::Package1, package1, i);
+
+        // Derive master key
+        if (HasKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::Master))) {
+            Key128 master_root{};
+            std::memcpy(master_root.data(), keyblobs[i].data(), sizeof(Key128));
+
+            AESCipher<Key128> master_cipher(master_root, Mode::ECB);
+
+            Key128 master{};
+            master_cipher.Transcode(master_source.data(), master_source.size(), master.data(),
+                                    Op::Decrypt);
+            SetKey(S128KeyType::Master, master, i);
+        }
+    }
+
+    revisions.set();
+    for (size_t i = 0; i < 32; ++i) {
+        if (!HasKey(S128KeyType::Master, i))
+            revisions.reset(i);
+    }
+
+    if (!revisions.any())
+        return;
+
+    for (size_t i = 0; i < 32; ++i) {
+        if (!revisions[i])
+            continue;
+
+        // Derive general purpose keys
+        if (HasKey(S128KeyType::Master, i)) {
+            for (auto kak_type :
+                 {KeyAreaKeyType::Application, KeyAreaKeyType::Ocean, KeyAreaKeyType::System}) {
+                if (HasKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::KeyAreaKey),
+                           static_cast<u64>(kak_type))) {
+                    const auto source =
+                        GetKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::KeyAreaKey),
+                               static_cast<u64>(kak_type));
+                    const auto kek =
+                        GenerateKeyEncryptionKey(source, GetKey(S128KeyType::Master, i),
+                                                 kek_generation_source, key_generation_source);
+                    SetKey(S128KeyType::KeyArea, kek, i, static_cast<u64>(kak_type));
+                }
+            }
+
+            AESCipher<Key128> master_cipher(GetKey(S128KeyType::Master, i), Mode::ECB);
+            for (auto key_type : {SourceKeyType::Titlekek, SourceKeyType::Package2}) {
+                if (HasKey(S128KeyType::Source, static_cast<u64>(key_type))) {
+                    Key128 key{};
+                    master_cipher.Transcode(
+                        GetKey(S128KeyType::Source, static_cast<u64>(key_type)).data(), key.size(),
+                        key.data(), Op::Decrypt);
+                    SetKey(key_type == SourceKeyType::Titlekek ? S128KeyType::Titlekek
+                                                               : S128KeyType::Package2,
+                           key, i);
+                }
+            }
+        }
+    }
+
+    if (HasKey(S128KeyType::Master, 0) &&
+        HasKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKeyGeneration)) &&
+        HasKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKekGeneration)) &&
+        HasKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::HeaderKek)) &&
+        HasKey(S256KeyType::HeaderSource)) {
+        const auto header_kek = GenerateKeyEncryptionKey(
+            GetKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::HeaderKek)),
+            GetKey(S128KeyType::Master, 0),
+            GetKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKekGeneration)),
+            GetKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKeyGeneration)));
+        SetKey(S128KeyType::HeaderKek, header_kek);
+
+        AESCipher<Key128> header_cipher(header_kek, Mode::ECB);
+        Key256 out = GetKey(S256KeyType::HeaderSource);
+        header_cipher.Transcode(out.data(), out.size(), out.data(), Op::Decrypt);
+        SetKey(S256KeyType::Header, out);
+    }
+}
+void KeyManager::SetKeyWrapped(S128KeyType id, Key128 key, u64 field1, u64 field2) {
+    if (key == Key128{})
+        return;
+    SetKey(id, key, field1, field2);
+}
+
+void KeyManager::SetKeyWrapped(S256KeyType id, Key256 key, u64 field1, u64 field2) {
+    if (key == Key256{})
+        return;
+    SetKey(id, key, field1, field2);
 }
 
 const boost::container::flat_map<std::string, KeyIndex<S128KeyType>> KeyManager::s128_file_id = {
