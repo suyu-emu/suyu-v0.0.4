@@ -103,6 +103,7 @@ public:
     }
 
 private:
+    u32 ssl_version{};
     void CreateContext(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_SSL, "(STUBBED) called");
 
@@ -112,10 +113,9 @@ private:
     }
 
     void SetInterfaceVersion(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_SSL, "(STUBBED) called");
+        LOG_DEBUG(Service_SSL, "called");
         IPC::RequestParser rp{ctx};
-        u32 unk1 = rp.Pop<u32>(); // Probably minor/major?
-        u32 unk2 = rp.Pop<u32>(); // TODO(ogniK): Figure out what this does
+        ssl_version = rp.Pop<u32>();
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
