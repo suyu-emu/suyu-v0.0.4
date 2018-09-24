@@ -167,6 +167,7 @@ private slots:
     void HideFullscreen();
     void ToggleWindowMode();
     void OnCoreError(Core::System::ResultStatus, std::string);
+    void OnReinitializeKeys(bool callouts);
 
 private:
     void UpdateStatusBar();
