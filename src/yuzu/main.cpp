@@ -31,6 +31,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QtConcurrent/QtConcurrent>
 #include <QtGui>
 #include <QtWidgets>
 #include <fmt/format.h>
@@ -170,6 +171,57 @@ GMainWindow::GMainWindow()
     setWindowTitle(QString("yuzu %1| %2-%3")
                        .arg(Common::g_build_fullname, Common::g_scm_branch, Common::g_scm_desc));
     show();
+
+    // Gen keys if necessary
+    Core::Crypto::KeyManager keys{};
+    if (keys.BaseDeriveNecessary()) {
+        Core::Crypto::PartitionDataManager pdm{vfs->OpenDirectory(
+            FileUtil::GetUserPath(FileUtil::UserPath::SysDataDir), FileSys::Mode::Read)};
+
+        const auto function = [this, &keys, &pdm]() {
+            keys.PopulateFromPartitionData(pdm);
+            Service::FileSystem::CreateFactories(vfs);
+            keys.DeriveETicket(pdm);
+        };
+
+        std::vector<std::string> errors;
+
+        if (!pdm.HasFuses())
+            errors.push_back("Missing fuses - Cannot derive SBK");
+        if (!pdm.HasBoot0())
+            errors.push_back("Missing BOOT0 - Cannot derive master keys");
+        if (!pdm.HasPackage2())
+            errors.push_back("Missing BCPKG2-1-Normal-Main - Cannot derive general keys");
+        if (!pdm.HasProdInfo())
+            errors.push_back("Missing PRODINFO - Cannot derive title keys");
+
+        if (!errors.empty()) {
+            std::string error_str;
+            for (const auto& error : errors)
+                error_str += " - " + error + "\n";
+
+            QMessageBox::warning(
+                this, tr("Warning Missing Derivation Components"),
+                tr("The following are missing from your configuration that may hinder key "
+                   "derivation. It will be attempted but may not complete.\n\n") +
+                    QString::fromStdString(error_str));
+        }
+
+        QProgressDialog prog;
+        prog.setRange(0, 0);
+        prog.setLabelText(tr("Deriving keys...\nThis may take up to a minute depending \non your "
+                             "system's performance."));
+        prog.setWindowTitle(tr("Deriving Keys"));
+
+        prog.show();
+
+        auto future = QtConcurrent::run(function);
+        while (!future.isFinished()) {
+            QCoreApplication::processEvents();
+        }
+
+        prog.close();
+    }
 
     // Necessary to load titles from nand in gamelist.
     Service::FileSystem::CreateFactories(vfs);
