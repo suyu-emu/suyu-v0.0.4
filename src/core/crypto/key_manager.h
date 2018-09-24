@@ -33,8 +33,10 @@ enum class KeyCategory : u8 {
 };
 
 enum class S256KeyType : u64 {
-    Header,      //
-    SDKeySource, // f1=SDKeyType
+    SDKey,        // f1=SDKeyType
+    Header,       //
+    SDKeySource,  // f1=SDKeyType
+    HeaderSource, //
 };
 
 enum class S128KeyType : u64 {
@@ -47,6 +49,14 @@ enum class S128KeyType : u64 {
     SDSeed,        //
     Titlekey,      // f1=rights id LSB f2=rights id MSB
     Source,        // f1=source type, f2= sub id
+    Keyblob,       // f1=crypto revision
+    KeyblobMAC,    // f1=crypto revision
+    TSEC,          //
+    SecureBoot,    //
+    BIS,           // f1=partition (0-3), f2=type {crypt, tweak}
+    HeaderKek,     //
+    SDKek,         //
+    RSAKek,        //
 };
 
 enum class KeyAreaKeyType : u8 {
@@ -59,11 +69,31 @@ enum class SourceKeyType : u8 {
     SDKek,                //
     AESKekGeneration,     //
     AESKeyGeneration,     //
+    RSAOaepKekGeneration, //
+    Master,               //
+    Keyblob,              // f2=crypto revision
+    KeyAreaKey,           // f2=KeyAreaKeyType
+    Titlekek,             //
+    Package2,             //
+    HeaderKek,            //
+    KeyblobMAC,           //
+    ETicketKek,           //
+    ETicketKekek,         //
 };
 
 enum class SDKeyType : u8 {
     Save,
     NCA,
+};
+
+enum class BISKeyType : u8 {
+    Crypto,
+    Tweak,
+};
+
+enum class RSAKekType : u8 {
+    Mask0,
+    Seed3,
 };
 
 template <typename KeyType>
