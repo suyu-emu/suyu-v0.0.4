@@ -50,9 +50,9 @@ enum class KeyAreaKeyType : u8 {
 };
 
 enum class SourceKeyType : u8 {
-    SDKEK,
-    AESKEKGeneration,
-    AESKeyGeneration,
+    SDKek,                //
+    AESKekGeneration,     //
+    AESKeyGeneration,     //
 };
 
 enum class SDKeyType : u8 {

@@ -71,23 +71,24 @@ boost::optional<Key128> DeriveSDSeed() {
     return seed;
 }
 
-Loader::ResultStatus DeriveSDKeys(std::array<Key256, 2>& sd_keys, const KeyManager& keys) {
-    if (!keys.HasKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::SDKEK)))
+Loader::ResultStatus DeriveSDKeys(std::array<Key256, 2>& sd_keys, KeyManager& keys) {
+    if (!keys.HasKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::SDKek)))
         return Loader::ResultStatus::ErrorMissingSDKEKSource;
-    if (!keys.HasKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKEKGeneration)))
+    if (!keys.HasKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKekGeneration)))
         return Loader::ResultStatus::ErrorMissingAESKEKGenerationSource;
     if (!keys.HasKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKeyGeneration)))
         return Loader::ResultStatus::ErrorMissingAESKeyGenerationSource;
 
     const auto sd_kek_source =
-        keys.GetKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::SDKEK));
+        keys.GetKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::SDKek));
     const auto aes_kek_gen =
-        keys.GetKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKEKGeneration));
+        keys.GetKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKekGeneration));
     const auto aes_key_gen =
         keys.GetKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKeyGeneration));
     const auto master_00 = keys.GetKey(S128KeyType::Master);
     const auto sd_kek =
         GenerateKeyEncryptionKey(sd_kek_source, master_00, aes_kek_gen, aes_key_gen);
+    keys.SetKey(S128KeyType::SDKek, sd_kek);
 
     if (!keys.HasKey(S128KeyType::SDSeed))
         return Loader::ResultStatus::ErrorMissingSDSeed;
