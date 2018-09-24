@@ -70,6 +70,7 @@ add_library(core STATIC
     file_sys/vfs_real.cpp
     file_sys/vfs_real.h
     file_sys/vfs_static.h
+    file_sys/vfs_types.h
     file_sys/vfs_vector.cpp
     file_sys/vfs_vector.h
     file_sys/xts_archive.cpp

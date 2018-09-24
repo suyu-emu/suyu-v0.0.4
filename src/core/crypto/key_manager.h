@@ -5,11 +5,18 @@
 #pragma once
 
 #include <array>
+#include <map>
 #include <string>
 #include <boost/container/flat_map.hpp>
 #include <boost/optional.hpp>
 #include <fmt/format.h>
 #include "common/common_types.h"
+#include "core/file_sys/vfs_types.h"
+#include "partition_data_manager.h"
+
+namespace FileUtil {
+class IOFile;
+}
 
 namespace Loader {
 enum class ResultStatus : u16;
@@ -22,9 +29,18 @@ constexpr u64 TICKET_FILE_TITLEKEY_OFFSET = 0x180;
 using Key128 = std::array<u8, 0x10>;
 using Key256 = std::array<u8, 0x20>;
 using SHA256Hash = std::array<u8, 0x20>;
+using TicketRaw = std::array<u8, 0x400>;
 
 static_assert(sizeof(Key128) == 16, "Key128 must be 128 bytes big.");
-static_assert(sizeof(Key256) == 32, "Key128 must be 128 bytes big.");
+static_assert(sizeof(Key256) == 32, "Key256 must be 256 bytes big.");
+
+template <size_t bit_size, size_t byte_size = (bit_size >> 3)>
+struct RSAKeyPair {
+    std::array<u8, byte_size> encryption_key;
+    std::array<u8, byte_size> decryption_key;
+    std::array<u8, byte_size> modulus;
+    std::array<u8, 4> exponent;
+};
 
 enum class KeyCategory : u8 {
     Standard,
@@ -140,6 +156,8 @@ public:
 
     bool BaseDeriveNecessary();
     void DeriveBase();
+    void DeriveETicket(PartitionDataManager data);
+
 private:
     std::map<KeyIndex<S128KeyType>, Key128> s128_keys;
     std::map<KeyIndex<S256KeyType>, Key256> s256_keys;
@@ -166,6 +184,13 @@ Key128 GenerateKeyEncryptionKey(Key128 source, Key128 master, Key128 kek_seed, K
 Key128 DeriveKeyblobKey(Key128 sbk, Key128 tsec, Key128 source);
 
 boost::optional<Key128> DeriveSDSeed();
-Loader::ResultStatus DeriveSDKeys(std::array<Key256, 2>& sd_keys, const KeyManager& keys);
+Loader::ResultStatus DeriveSDKeys(std::array<Key256, 2>& sd_keys, KeyManager& keys);
+
+std::vector<TicketRaw> GetTicketblob(const FileUtil::IOFile& ticket_save);
+
+// Returns a pair of {rights_id, titlekey}. Fails if the ticket has no certificate authority (offset
+// 0x140-0x144 is zero)
+boost::optional<std::pair<Key128, Key128>> ParseTicket(
+    const TicketRaw& ticket, const RSAKeyPair<2048>& eticket_extended_key);
 
 } // namespace Core::Crypto

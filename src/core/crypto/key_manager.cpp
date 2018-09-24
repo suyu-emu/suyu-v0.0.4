@@ -4,24 +4,43 @@
 
 #include <algorithm>
 #include <array>
+#include <bitset>
 #include <fstream>
 #include <locale>
+#include <map>
 #include <sstream>
 #include <string_view>
 #include <tuple>
 #include <vector>
+#include <mbedtls/bignum.h>
+#include <mbedtls/cipher.h>
+#include <mbedtls/cmac.h>
+#include <mbedtls/sha256.h>
+#include "common/common_funcs.h"
 #include "common/common_paths.h"
 #include "common/file_util.h"
 #include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "core/crypto/aes_util.h"
 #include "core/crypto/key_manager.h"
+#include "core/file_sys/content_archive.h"
+#include "core/file_sys/nca_metadata.h"
+#include "core/file_sys/partition_filesystem.h"
+#include "core/file_sys/registered_cache.h"
+#include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
 #include "core/settings.h"
 
 namespace Core::Crypto {
 
 constexpr u64 CURRENT_CRYPTO_REVISION = 0x5;
+
+using namespace Common;
+
+const static std::array<SHA256Hash, 4> eticket_source_hashes{
+    "B71DB271DC338DF380AA2C4335EF8873B1AFD408E80B3582D8719FC81C5E511C"_array32, // eticket_rsa_kek_source
+    "E8965A187D30E57869F562D04383C996DE487BBA5761363D2D4D32391866A85C"_array32, // eticket_rsa_kekek_source
+};
 
 Key128 GenerateKeyEncryptionKey(Key128 source, Key128 master, Key128 kek_seed, Key128 key_seed) {
     Key128 out{};
@@ -129,7 +148,129 @@ Loader::ResultStatus DeriveSDKeys(std::array<Key256, 2>& sd_keys, KeyManager& ke
                        return source; ///< Return unaltered source to satisfy output requirement.
                    });
 
+    keys.SetKey(S256KeyType::SDKey, sd_keys[0], static_cast<u64>(SDKeyType::Save));
+    keys.SetKey(S256KeyType::SDKey, sd_keys[1], static_cast<u64>(SDKeyType::NCA));
+
     return Loader::ResultStatus::Success;
+}
+
+std::vector<TicketRaw> GetTicketblob(const FileUtil::IOFile& ticket_save) {
+    if (!ticket_save.IsOpen())
+        return {};
+
+    std::vector<u8> buffer(ticket_save.GetSize());
+    ticket_save.ReadBytes(buffer.data(), buffer.size());
+
+    std::vector<TicketRaw> out;
+    u32 magic{};
+    for (std::size_t offset = 0; offset + 0x4 < buffer.size(); ++offset) {
+        if (buffer[offset] == 0x4 && buffer[offset + 1] == 0x0 && buffer[offset + 2] == 0x1 &&
+            buffer[offset + 3] == 0x0) {
+            TicketRaw next{};
+            std::memcpy(&next, buffer.data() + offset, sizeof(TicketRaw));
+            offset += next.size();
+            out.push_back(next);
+        }
+    }
+
+    return out;
+}
+
+template <size_t size>
+static std::array<u8, size> operator^(const std::array<u8, size>& lhs,
+                                      const std::array<u8, size>& rhs) {
+    std::array<u8, size> out{};
+    for (size_t i = 0; i < size; ++i)
+        out[i] = lhs[i] ^ rhs[i];
+    return out;
+}
+
+template <size_t target_size, size_t in_size>
+static std::array<u8, target_size> MGF1(const std::array<u8, in_size>& seed) {
+    std::array<u8, in_size + 4> seed_exp{};
+    std::memcpy(seed_exp.data(), seed.data(), in_size);
+
+    std::vector<u8> out;
+    size_t i = 0;
+    while (out.size() < target_size) {
+        out.resize(out.size() + 0x20, 0);
+        seed_exp[in_size + 3] = i;
+        mbedtls_sha256(seed_exp.data(), seed_exp.size(), out.data() + out.size() - 0x20, 0);
+        ++i;
+    }
+
+    std::array<u8, target_size> target{};
+    std::memcpy(target.data(), out.data(), target_size);
+    return target;
+}
+
+boost::optional<std::pair<Key128, Key128>> ParseTicket(const TicketRaw& ticket,
+                                                       const RSAKeyPair<2048>& key) {
+    u32 cert_authority;
+    std::memcpy(&cert_authority, ticket.data() + 0x140, sizeof(cert_authority));
+    if (cert_authority == 0)
+        return boost::none;
+    if (cert_authority != Common::MakeMagic('R', 'o', 'o', 't'))
+        LOG_INFO(Crypto,
+                 "Attempting to parse ticket with non-standard certificate authority {:08X}.",
+                 cert_authority);
+
+    Key128 rights_id{};
+    std::memcpy(rights_id.data(), ticket.data() + 0x2A0, sizeof(Key128));
+
+    Key128 key_temp{};
+
+    if (!std::any_of(ticket.begin() + 0x190, ticket.begin() + 0x280, [](u8 b) { return b != 0; })) {
+        std::memcpy(key_temp.data(), ticket.data() + 0x180, key_temp.size());
+        return std::pair<Key128, Key128>{rights_id, key_temp};
+    }
+
+    mbedtls_mpi D; // RSA Private Exponent
+    mbedtls_mpi N; // RSA Modulus
+    mbedtls_mpi S; // Input
+    mbedtls_mpi M; // Output
+
+    mbedtls_mpi_init(&D);
+    mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&S);
+    mbedtls_mpi_init(&M);
+
+    mbedtls_mpi_read_binary(&D, key.decryption_key.data(), key.decryption_key.size());
+    mbedtls_mpi_read_binary(&N, key.modulus.data(), key.modulus.size());
+    mbedtls_mpi_read_binary(&S, ticket.data() + 0x180, 0x100);
+
+    mbedtls_mpi_exp_mod(&M, &S, &D, &N, nullptr);
+
+    std::array<u8, 0x100> rsa_step{};
+    mbedtls_mpi_write_binary(&M, rsa_step.data(), rsa_step.size());
+
+    u8 m_0 = rsa_step[0];
+    std::array<u8, 0x20> m_1{};
+    std::memcpy(m_1.data(), rsa_step.data() + 0x01, m_1.size());
+    std::array<u8, 0xDF> m_2{};
+    std::memcpy(m_2.data(), rsa_step.data() + 0x21, m_2.size());
+
+    if (m_0 != 0)
+        return boost::none;
+
+    m_1 = m_1 ^ MGF1<0x20>(m_2);
+    m_2 = m_2 ^ MGF1<0xDF>(m_1);
+
+    u64 offset = 0;
+    for (size_t i = 0x20; i < m_2.size() - 0x10; ++i) {
+        if (m_2[i] == 0x1) {
+            offset = i + 1;
+            break;
+        } else if (m_2[i] != 0x0) {
+            return boost::none;
+        }
+    }
+
+    ASSERT(offset > 0);
+
+    std::memcpy(key_temp.data(), m_2.data() + offset, key_temp.size());
+
+    return std::pair<Key128, Key128>{rights_id, key_temp};
 }
 
 KeyManager::KeyManager() {
@@ -609,6 +750,114 @@ void KeyManager::DeriveBase() {
         SetKey(S256KeyType::Header, out);
     }
 }
+
+void KeyManager::DeriveETicket(PartitionDataManager data) {
+    // ETicket keys
+    const auto es = Service::FileSystem::GetUnionContents()->GetEntry(
+        0x0100000000000033, FileSys::ContentRecordType::Program);
+
+    if (es == nullptr)
+        return;
+
+    const auto exefs = es->GetExeFS();
+    if (exefs == nullptr)
+        return;
+
+    const auto main = exefs->GetFile("main");
+    if (main == nullptr)
+        return;
+
+    const auto bytes = main->ReadAllBytes();
+
+    using namespace Common;
+    const auto eticket_kek = FindKeyFromHex(bytes, eticket_source_hashes[0]);
+    const auto eticket_kekek = FindKeyFromHex(bytes, eticket_source_hashes[1]);
+
+    const auto seed3 = data.GetRSAKekSeed3();
+    const auto mask0 = data.GetRSAKekMask0();
+
+    if (eticket_kek != Key128{})
+        SetKey(S128KeyType::Source, eticket_kek, static_cast<size_t>(SourceKeyType::ETicketKek));
+    if (eticket_kekek != Key128{})
+        SetKey(S128KeyType::Source, eticket_kekek,
+               static_cast<size_t>(SourceKeyType::ETicketKekek));
+    if (seed3 != Key128{})
+        SetKey(S128KeyType::RSAKek, seed3, static_cast<size_t>(RSAKekType::Seed3));
+    if (mask0 != Key128{})
+        SetKey(S128KeyType::RSAKek, mask0, static_cast<size_t>(RSAKekType::Mask0));
+
+    if (eticket_kek == Key128{} || eticket_kekek == Key128{} || seed3 == Key128{} ||
+        mask0 == Key128{})
+        return;
+
+    Key128 rsa_oaep_kek{};
+    for (size_t i = 0; i < rsa_oaep_kek.size(); ++i)
+        rsa_oaep_kek[i] = seed3[i] ^ mask0[i];
+
+    if (rsa_oaep_kek == Key128{})
+        return;
+
+    SetKey(S128KeyType::Source, rsa_oaep_kek,
+           static_cast<u64>(SourceKeyType::RSAOaepKekGeneration));
+
+    Key128 temp_kek{};
+    Key128 temp_kekek{};
+    Key128 eticket_final{};
+
+    // Derive ETicket RSA Kek
+    AESCipher<Key128> es_master(GetKey(S128KeyType::Master), Mode::ECB);
+    es_master.Transcode(rsa_oaep_kek.data(), rsa_oaep_kek.size(), temp_kek.data(), Op::Decrypt);
+    AESCipher<Key128> es_kekek(temp_kek, Mode::ECB);
+    es_kekek.Transcode(eticket_kekek.data(), eticket_kekek.size(), temp_kekek.data(), Op::Decrypt);
+    AESCipher<Key128> es_kek(temp_kekek, Mode::ECB);
+    es_kek.Transcode(eticket_kek.data(), eticket_kek.size(), eticket_final.data(), Op::Decrypt);
+
+    if (eticket_final == Key128{})
+        return;
+
+    SetKey(S128KeyType::ETicketRSAKek, eticket_final);
+
+    // Titlekeys
+    data.DecryptProdInfo(GetKey(S128KeyType::BIS),
+                         GetKey(S128KeyType::BIS, 0, static_cast<u64>(BISKeyType::Tweak)));
+
+    const auto eticket_extended_kek = data.GetETicketExtendedKek();
+
+    std::vector<u8> extended_iv(0x10);
+    std::memcpy(extended_iv.data(), eticket_extended_kek.data(), extended_iv.size());
+    std::array<u8, 0x230> extended_dec{};
+    AESCipher<Key128> rsa_1(eticket_final, Mode::CTR);
+    rsa_1.SetIV(extended_iv);
+    rsa_1.Transcode(eticket_extended_kek.data() + 0x10, eticket_extended_kek.size() - 0x10,
+                    extended_dec.data(), Op::Decrypt);
+
+    RSAKeyPair<2048> rsa_key{};
+    std::memcpy(rsa_key.decryption_key.data(), extended_dec.data(), rsa_key.decryption_key.size());
+    std::memcpy(rsa_key.modulus.data(), extended_dec.data() + 0x100, rsa_key.modulus.size());
+    std::memcpy(rsa_key.exponent.data(), extended_dec.data() + 0x200, rsa_key.exponent.size());
+
+    const FileUtil::IOFile save1(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
+                                     "/system/save/80000000000000e1",
+                                 "rb+");
+    const FileUtil::IOFile save2(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
+                                     "/system/save/80000000000000e2",
+                                 "rb+");
+
+    auto res = GetTicketblob(save1);
+    const auto res2 = GetTicketblob(save2);
+    std::copy(res2.begin(), res2.end(), std::back_inserter(res));
+
+    for (const auto& raw : res) {
+        const auto pair = ParseTicket(raw, rsa_key);
+        if (pair == boost::none)
+            continue;
+        auto [rid, key] = pair.value();
+        u128 rights_id{};
+        std::memcpy(rights_id.data(), rid.data(), rid.size());
+        SetKey(S128KeyType::Titlekey, key, rights_id[1], rights_id[0]);
+    }
+}
+
 void KeyManager::SetKeyWrapped(S128KeyType id, Key128 key, u64 field1, u64 field2) {
     if (key == Key128{})
         return;
