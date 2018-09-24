@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <array>
 #include <cstring>
 #include <utility>
 
@@ -41,6 +40,21 @@ PageTable* GetCurrentPageTable() {
     return current_page_table;
 }
 
+PageTable::PageTable() = default;
+
+PageTable::PageTable(std::size_t address_space_width_in_bits) {
+    Resize(address_space_width_in_bits);
+}
+
+PageTable::~PageTable() = default;
+
+void PageTable::Resize(std::size_t address_space_width_in_bits) {
+    const std::size_t num_page_table_entries = 1ULL << (address_space_width_in_bits - PAGE_BITS);
+
+    pointers.resize(num_page_table_entries);
+    attributes.resize(num_page_table_entries);
+}
+
 static void MapPages(PageTable& page_table, VAddr base, u64 size, u8* memory, PageType type) {
     LOG_DEBUG(HW_Memory, "Mapping {} onto {:016X}-{:016X}", fmt::ptr(memory), base * PAGE_SIZE,
               (base + size) * PAGE_SIZE);
@@ -50,7 +64,7 @@ static void MapPages(PageTable& page_table, VAddr base, u64 size, u8* memory, Pa
 
     VAddr end = base + size;
     while (base != end) {
-        ASSERT_MSG(base < PAGE_TABLE_NUM_ENTRIES, "out of range mapping at {:016X}", base);
+        ASSERT_MSG(base < page_table.pointers.size(), "out of range mapping at {:016X}", base);
 
         page_table.attributes[base] = type;
         page_table.pointers[base] = memory;

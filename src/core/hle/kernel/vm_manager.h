@@ -205,6 +205,9 @@ public:
     /// Gets the total address space address size, used by svcGetInfo
     u64 GetAddressSpaceSize() const;
 
+    /// Gets the address space width in bits.
+    u64 GetAddressSpaceWidth() const;
+
     /// Gets the base address of the code region.
     VAddr GetCodeRegionBaseAddress() const;
 

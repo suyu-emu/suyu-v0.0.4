@@ -66,18 +66,21 @@ VMManager::~VMManager() {
 
 void VMManager::Reset(FileSys::ProgramAddressSpaceType type) {
     Clear();
+
     InitializeMemoryRegionRanges(type);
+
+    page_table.Resize(address_space_width);
 
     // Initialize the map with a single free region covering the entire managed space.
     VirtualMemoryArea initial_vma;
-    initial_vma.size = MAX_ADDRESS;
+    initial_vma.size = address_space_end;
     vma_map.emplace(initial_vma.base, initial_vma);
 
     UpdatePageTableForVMA(initial_vma);
 }
 
 VMManager::VMAHandle VMManager::FindVMA(VAddr target) const {
-    if (target >= MAX_ADDRESS) {
+    if (target >= address_space_end) {
         return vma_map.end();
     } else {
         return std::prev(vma_map.upper_bound(target));
@@ -291,7 +294,7 @@ ResultVal<VMManager::VMAIter> VMManager::CarveVMARange(VAddr target, u64 size) {
 
     const VAddr target_end = target + size;
     ASSERT(target_end >= target);
-    ASSERT(target_end <= MAX_ADDRESS);
+    ASSERT(target_end <= address_space_end);
     ASSERT(size > 0);
 
     VMAIter begin_vma = StripIterConstness(FindVMA(target));
@@ -455,9 +458,10 @@ void VMManager::ClearVMAMap() {
 }
 
 void VMManager::ClearPageTable() {
-    page_table.pointers.fill(nullptr);
+    std::fill(page_table.pointers.begin(), page_table.pointers.end(), nullptr);
     page_table.special_regions.clear();
-    page_table.attributes.fill(Memory::PageType::Unmapped);
+    std::fill(page_table.attributes.begin(), page_table.attributes.end(),
+              Memory::PageType::Unmapped);
 }
 
 u64 VMManager::GetTotalMemoryUsage() const {
@@ -478,6 +482,10 @@ VAddr VMManager::GetAddressSpaceBaseAddr() const {
 u64 VMManager::GetAddressSpaceSize() const {
     LOG_WARNING(Kernel, "(STUBBED) called");
     return MAX_ADDRESS;
+}
+
+u64 VMManager::GetAddressSpaceWidth() const {
+    return address_space_width;
 }
 
 VAddr VMManager::GetCodeRegionBaseAddress() const {

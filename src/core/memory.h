@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <array>
 #include <cstddef>
 #include <string>
 #include <tuple>
+#include <vector>
 #include <boost/icl/interval_map.hpp>
 #include "common/common_types.h"
 #include "core/memory_hook.h"
@@ -23,10 +23,8 @@ namespace Memory {
  * be mapped.
  */
 constexpr std::size_t PAGE_BITS = 12;
-constexpr u64 PAGE_SIZE = 1 << PAGE_BITS;
+constexpr u64 PAGE_SIZE = 1ULL << PAGE_BITS;
 constexpr u64 PAGE_MASK = PAGE_SIZE - 1;
-constexpr std::size_t ADDRESS_SPACE_BITS = 36;
-constexpr std::size_t PAGE_TABLE_NUM_ENTRIES = 1ULL << (ADDRESS_SPACE_BITS - PAGE_BITS);
 
 enum class PageType : u8 {
     /// Page is unmapped and should cause an access error.
@@ -62,23 +60,35 @@ struct SpecialRegion {
  * mimics the way a real CPU page table works.
  */
 struct PageTable {
-    /**
-     * Array of memory pointers backing each page. An entry can only be non-null if the
-     * corresponding entry in the `attributes` array is of type `Memory`.
-     */
-    std::array<u8*, PAGE_TABLE_NUM_ENTRIES> pointers;
+    explicit PageTable();
+    explicit PageTable(std::size_t address_space_width_in_bits);
+    ~PageTable();
 
     /**
-     * Contains MMIO handlers that back memory regions whose entries in the `attribute` array is of
-     * type `Special`.
+     * Resizes the page table to be able to accomodate enough pages within
+     * a given address space.
+     *
+     * @param address_space_width_in_bits The address size width in bits.
+     */
+    void Resize(std::size_t address_space_width_in_bits);
+
+    /**
+     * Vector of memory pointers backing each page. An entry can only be non-null if the
+     * corresponding entry in the `attributes` vector is of type `Memory`.
+     */
+    std::vector<u8*> pointers;
+
+    /**
+     * Contains MMIO handlers that back memory regions whose entries in the `attribute` vector is
+     * of type `Special`.
      */
     boost::icl::interval_map<VAddr, std::set<SpecialRegion>> special_regions;
 
     /**
-     * Array of fine grained page attributes. If it is set to any value other than `Memory`, then
+     * Vector of fine grained page attributes. If it is set to any value other than `Memory`, then
      * the corresponding entry in `pointers` MUST be set to null.
      */
-    std::array<PageType, PAGE_TABLE_NUM_ENTRIES> attributes;
+    std::vector<PageType> attributes;
 };
 
 /// Virtual user-space memory regions
