@@ -127,6 +127,8 @@ public:
     Key128 GetKey(S128KeyType id, u64 field1 = 0, u64 field2 = 0) const;
     Key256 GetKey(S256KeyType id, u64 field1 = 0, u64 field2 = 0) const;
 
+    Key256 GetBISKey(u8 partition_id) const;
+
     void SetKey(S128KeyType id, Key128 key, u64 field1 = 0, u64 field2 = 0);
     void SetKey(S256KeyType id, Key256 key, u64 field1 = 0, u64 field2 = 0);
 
