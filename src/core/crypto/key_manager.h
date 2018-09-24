@@ -109,6 +109,8 @@ public:
 private:
     boost::container::flat_map<KeyIndex<S128KeyType>, Key128> s128_keys;
     boost::container::flat_map<KeyIndex<S256KeyType>, Key256> s256_keys;
+    std::array<std::array<u8, 0xB0>, 0x20> encrypted_keyblobs{};
+    std::array<std::array<u8, 0x90>, 0x20> keyblobs{};
 
     bool dev_mode;
     void LoadFromFile(const std::string& filename, bool is_title_keys);
@@ -122,6 +124,8 @@ private:
 };
 
 Key128 GenerateKeyEncryptionKey(Key128 source, Key128 master, Key128 kek_seed, Key128 key_seed);
+Key128 DeriveKeyblobKey(Key128 sbk, Key128 tsec, Key128 source);
+
 boost::optional<Key128> DeriveSDSeed();
 Loader::ResultStatus DeriveSDKeys(std::array<Key256, 2>& sd_keys, const KeyManager& keys);
 

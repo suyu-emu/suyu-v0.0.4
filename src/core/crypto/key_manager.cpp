@@ -21,6 +21,8 @@
 
 namespace Core::Crypto {
 
+constexpr u64 CURRENT_CRYPTO_REVISION = 0x5;
+
 Key128 GenerateKeyEncryptionKey(Key128 source, Key128 master, Key128 kek_seed, Key128 key_seed) {
     Key128 out{};
 
@@ -35,6 +37,14 @@ Key128 GenerateKeyEncryptionKey(Key128 source, Key128 master, Key128 kek_seed, K
     }
 
     return out;
+}
+
+Key128 DeriveKeyblobKey(Key128 sbk, Key128 tsec, Key128 source) {
+    AESCipher<Key128> sbk_cipher(sbk, Mode::ECB);
+    AESCipher<Key128> tsec_cipher(tsec, Mode::ECB);
+    tsec_cipher.Transcode(source.data(), source.size(), source.data(), Op::Decrypt);
+    sbk_cipher.Transcode(source.data(), source.size(), source.data(), Op::Decrypt);
+    return source;
 }
 
 boost::optional<Key128> DeriveSDSeed() {
