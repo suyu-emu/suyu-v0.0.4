@@ -65,7 +65,7 @@ private:
     void GetAudioRendererState(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u32>(renderer->GetState());
+        rb.Push<u32>(static_cast<u32>(renderer->GetStreamState()));
         LOG_DEBUG(Service_Audio, "called");
     }
 
