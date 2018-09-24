@@ -15,6 +15,7 @@ public:
         explicit Interface(std::shared_ptr<Module> module, const char* name);
         ~Interface() override;
 
+        void ThrowFatal(Kernel::HLERequestContext& ctx);
         void ThrowFatalWithPolicy(Kernel::HLERequestContext& ctx);
         void ThrowFatalWithCpuContext(Kernel::HLERequestContext& ctx);
 
