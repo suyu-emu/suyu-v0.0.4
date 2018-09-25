@@ -19,7 +19,7 @@ namespace Kernel {
 
 class Scheduler final {
 public:
-    explicit Scheduler(Core::ARM_Interface* cpu_core);
+    explicit Scheduler(Core::ARM_Interface& cpu_core);
     ~Scheduler();
 
     /// Returns whether there are any threads that are ready to run.
@@ -72,7 +72,7 @@ private:
 
     SharedPtr<Thread> current_thread = nullptr;
 
-    Core::ARM_Interface* cpu_core;
+    Core::ARM_Interface& cpu_core;
 
     static std::mutex scheduler_mutex;
 };

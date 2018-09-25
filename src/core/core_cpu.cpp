@@ -64,7 +64,7 @@ Cpu::Cpu(std::shared_ptr<ExclusiveMonitor> exclusive_monitor,
         arm_interface = std::make_shared<ARM_Unicorn>();
     }
 
-    scheduler = std::make_shared<Kernel::Scheduler>(arm_interface.get());
+    scheduler = std::make_shared<Kernel::Scheduler>(*arm_interface);
 }
 
 Cpu::~Cpu() = default;
