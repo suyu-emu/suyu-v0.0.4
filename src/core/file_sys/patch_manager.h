@@ -46,7 +46,8 @@ public:
     // - Game Updates
     // - LayeredFS
     VirtualFile PatchRomFS(VirtualFile base, u64 ivfc_offset,
-                           ContentRecordType type = ContentRecordType::Program) const;
+                           ContentRecordType type = ContentRecordType::Program,
+                           VirtualFile update_raw = nullptr) const;
 
     // Returns a vector of pairs between patch names and patch versions.
     // i.e. Update 3.2.2 will return {"Update", "3.2.2"}

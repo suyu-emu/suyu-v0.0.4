@@ -37,6 +37,7 @@ public:
 
 private:
     VirtualFile file;
+    VirtualFile update_raw;
     bool updatable;
     u64 ivfc_offset;
 };

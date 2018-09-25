@@ -24,6 +24,7 @@ RomFSFactory::RomFSFactory(Loader::AppLoader& app_loader) {
         LOG_ERROR(Service_FS, "Unable to read RomFS!");
     }
 
+    app_loader.ReadUpdateRaw(update_raw);
     updatable = app_loader.IsRomFSUpdatable();
     ivfc_offset = app_loader.ReadRomFSIVFCOffset();
 }
@@ -35,7 +36,8 @@ ResultVal<VirtualFile> RomFSFactory::OpenCurrentProcess() {
         return MakeResult<VirtualFile>(file);
 
     const PatchManager patch_manager(Core::CurrentProcess()->GetTitleID());
-    return MakeResult<VirtualFile>(patch_manager.PatchRomFS(file, ivfc_offset));
+    return MakeResult<VirtualFile>(
+        patch_manager.PatchRomFS(file, ivfc_offset, ContentRecordType::Program, update_raw));
 }
 
 ResultVal<VirtualFile> RomFSFactory::Open(u64 title_id, StorageId storage, ContentRecordType type) {

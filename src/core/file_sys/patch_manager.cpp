@@ -184,8 +184,8 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
     romfs = std::move(packed);
 }
 
-VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset,
-                                     ContentRecordType type) const {
+VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset, ContentRecordType type,
+                                     VirtualFile update_raw) const {
     LOG_INFO(Loader, "Patching RomFS for title_id={:016X}, type={:02X}", title_id,
              static_cast<u8>(type));
 
@@ -203,6 +203,13 @@ VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset,
             new_nca->GetRomFS() != nullptr) {
             LOG_INFO(Loader, "    RomFS: Update ({}) applied successfully",
                      FormatTitleVersion(installed->GetEntryVersion(update_tid).get_value_or(0)));
+            romfs = new_nca->GetRomFS();
+        }
+    } else if (update_raw != nullptr) {
+        const auto new_nca = std::make_shared<NCA>(update, romfs, ivfc_offset);
+        if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
+            new_nca->GetRomFS() != nullptr) {
+            LOG_INFO(Loader, "    RomFS: Update (XCI) applied successfully");
             romfs = new_nca->GetRomFS();
         }
     }
@@ -224,7 +231,7 @@ static bool IsDirValidAndNonEmpty(const VirtualDir& dir) {
     return dir != nullptr && (!dir->GetFiles().empty() || !dir->GetSubdirectories().empty());
 }
 
-std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNames() const {
+std::map<PatchType, std::string> PatchManager::GetPatchVersionNames(VirtualFile update_raw) const {
     std::map<std::string, std::string, std::less<>> out;
     const auto installed = Service::FileSystem::GetUnionContents();
 
@@ -245,6 +252,8 @@ std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNam
                     "Update",
                     FormatTitleVersion(meta_ver.get(), TitleVersionFormat::ThreeElements));
             }
+        } else if (update_raw != nullptr) {
+            out[PatchType::Update] = "XCI";
         }
     }
 
