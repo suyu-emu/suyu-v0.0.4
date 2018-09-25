@@ -104,6 +104,24 @@ u64 AppLoader_NSP::ReadRomFSIVFCOffset() const {
     return secondary_loader->ReadRomFSIVFCOffset();
 }
 
+ResultStatus AppLoader_NSP::ReadUpdateRaw(FileSys::VirtualFile& file) {
+    if (nsp->IsExtractedType())
+        return ResultStatus::ErrorNoPackedUpdate;
+
+    const auto read =
+        nsp->GetNCAFile(FileSys::GetUpdateTitleID(title_id), FileSys::ContentRecordType::Program);
+
+    if (read == nullptr)
+        return ResultStatus::ErrorNoPackedUpdate;
+    const auto nca_test = std::make_shared<FileSys::NCA>(read);
+
+    if (nca_test->GetStatus() != ResultStatus::ErrorMissingBKTRBaseRomFS)
+        return nca_test->GetStatus();
+
+    file = read;
+    return ResultStatus::Success;
+}
+
 ResultStatus AppLoader_NSP::ReadProgramId(u64& out_program_id) {
     if (title_id == 0)
         return ResultStatus::ErrorNotInitialized;

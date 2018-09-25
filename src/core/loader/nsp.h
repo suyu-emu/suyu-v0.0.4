@@ -39,6 +39,7 @@ public:
 
     ResultStatus ReadRomFS(FileSys::VirtualFile& file) override;
     u64 ReadRomFSIVFCOffset() const override;
+    ResultStatus ReadUpdateRaw(FileSys::VirtualFile& file) override;
     ResultStatus ReadProgramId(u64& out_program_id) override;
     ResultStatus ReadIcon(std::vector<u8>& buffer) override;
     ResultStatus ReadTitle(std::string& title) override;

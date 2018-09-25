@@ -9,6 +9,9 @@
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
+#include "core/file_sys/registered_cache.h"
+#include "core/file_sys/romfs.h"
+#include "core/file_sys/submission_package.h"
 #include "core/hle/kernel/process.h"
 #include "core/loader/nca.h"
 #include "core/loader/xci.h"
@@ -75,6 +78,27 @@ ResultStatus AppLoader_XCI::ReadRomFS(FileSys::VirtualFile& file) {
 u64 AppLoader_XCI::ReadRomFSIVFCOffset() const {
     return nca_loader->ReadRomFSIVFCOffset();
 }
+
+ResultStatus AppLoader_XCI::ReadUpdateRaw(FileSys::VirtualFile& file) {
+    u64 program_id{};
+    nca_loader->ReadProgramId(program_id);
+    if (program_id == 0)
+        return ResultStatus::ErrorXCIMissingProgramNCA;
+
+    const auto read = xci->GetSecurePartitionNSP()->GetNCAFile(
+        FileSys::GetUpdateTitleID(program_id), FileSys::ContentRecordType::Program);
+
+    if (read == nullptr)
+        return ResultStatus::ErrorNoPackedUpdate;
+    const auto nca_test = std::make_shared<FileSys::NCA>(read);
+
+    if (nca_test->GetStatus() != ResultStatus::ErrorMissingBKTRBaseRomFS)
+        return nca_test->GetStatus();
+
+    file = read;
+    return ResultStatus::Success;
+}
+
 ResultStatus AppLoader_XCI::ReadProgramId(u64& out_program_id) {
     return nca_loader->ReadProgramId(out_program_id);
 }

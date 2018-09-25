@@ -114,6 +114,7 @@ enum class ResultStatus : u16 {
     ErrorBadRelocationBuckets,
     ErrorBadSubsectionBuckets,
     ErrorMissingBKTRBaseRomFS,
+    ErrorNoPackedUpdate,
 };
 
 std::ostream& operator<<(std::ostream& os, ResultStatus status);
@@ -196,10 +197,19 @@ public:
     /**
      * Get the RomFS of the application
      * Since the RomFS can be huge, we return a file reference instead of copying to a buffer
-     * @param dir The directory containing the RomFS
+     * @param file The directory containing the RomFS
      * @return ResultStatus result of function
      */
-    virtual ResultStatus ReadRomFS(FileSys::VirtualFile& dir) {
+    virtual ResultStatus ReadRomFS(FileSys::VirtualFile& file) {
+        return ResultStatus::ErrorNotImplemented;
+    }
+
+    /**
+     * Get the raw update of the application, should it come packed with one
+     * @param file The raw update NCA file (Program-type
+     * @return ResultStatus result of function
+     */
+    virtual ResultStatus ReadUpdateRaw(FileSys::VirtualFile& file) {
         return ResultStatus::ErrorNotImplemented;
     }
 
