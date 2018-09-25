@@ -9,7 +9,7 @@
 
 namespace FileSys {
 VectorVfsFile::VectorVfsFile(std::vector<u8> initial_data, std::string name, VirtualDir parent)
-    : data(std::move(initial_data)), name(std::move(name)), parent(std::move(parent)) {}
+    : data(std::move(initial_data)), parent(std::move(parent)), name(std::move(name)) {}
 
 VectorVfsFile::~VectorVfsFile() = default;
 
