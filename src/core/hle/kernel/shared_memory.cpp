@@ -8,6 +8,7 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/kernel/errors.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/shared_memory.h"
 #include "core/memory.h"
 
@@ -71,7 +72,8 @@ SharedPtr<SharedMemory> SharedMemory::CreateForApplet(
     shared_memory->other_permissions = other_permissions;
     shared_memory->backing_block = std::move(heap_block);
     shared_memory->backing_block_offset = offset;
-    shared_memory->base_address = Memory::HEAP_VADDR + offset;
+    shared_memory->base_address =
+        kernel.CurrentProcess()->vm_manager.GetHeapRegionBaseAddress() + offset;
 
     return shared_memory;
 }

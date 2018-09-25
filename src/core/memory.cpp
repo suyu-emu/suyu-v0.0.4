@@ -14,11 +14,11 @@
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/vm_manager.h"
 #include "core/hle/lock.h"
 #include "core/memory.h"
 #include "core/memory_setup.h"
 #include "video_core/renderer_base.h"
-#include "video_core/video_core.h"
 
 namespace Memory {
 
@@ -337,7 +337,7 @@ void RasterizerFlushVirtualRegion(VAddr start, u64 size, FlushMode mode) {
         return;
     }
 
-    VAddr end = start + size;
+    const VAddr end = start + size;
 
     const auto CheckRegion = [&](VAddr region_start, VAddr region_end) {
         if (start >= region_end || end <= region_start) {
@@ -347,7 +347,7 @@ void RasterizerFlushVirtualRegion(VAddr start, u64 size, FlushMode mode) {
 
         const VAddr overlap_start = std::max(start, region_start);
         const VAddr overlap_end = std::min(end, region_end);
-        const u64 overlap_size = overlap_end - overlap_start;
+        const VAddr overlap_size = overlap_end - overlap_start;
 
         auto& rasterizer = system_instance.Renderer().Rasterizer();
         switch (mode) {
@@ -363,8 +363,10 @@ void RasterizerFlushVirtualRegion(VAddr start, u64 size, FlushMode mode) {
         }
     };
 
-    CheckRegion(PROCESS_IMAGE_VADDR, PROCESS_IMAGE_VADDR_END);
-    CheckRegion(HEAP_VADDR, HEAP_VADDR_END);
+    const auto& vm_manager = Core::CurrentProcess()->vm_manager;
+
+    CheckRegion(vm_manager.GetCodeRegionBaseAddress(), vm_manager.GetCodeRegionEndAddress());
+    CheckRegion(vm_manager.GetHeapRegionBaseAddress(), vm_manager.GetHeapRegionEndAddress());
 }
 
 u8 Read8(const VAddr addr) {

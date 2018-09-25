@@ -12,6 +12,7 @@
 #include "core/core.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/vm_manager.h"
 #include "core/loader/elf.h"
 #include "core/memory.h"
 
@@ -188,7 +189,7 @@ private:
 
     u32* sectionAddrs;
     bool relocate;
-    u32 entryPoint;
+    VAddr entryPoint;
 
 public:
     explicit ElfReader(void* ptr);
@@ -204,13 +205,13 @@ public:
     ElfMachine GetMachine() const {
         return (ElfMachine)(header->e_machine);
     }
-    u32 GetEntryPoint() const {
+    VAddr GetEntryPoint() const {
         return entryPoint;
     }
     u32 GetFlags() const {
         return (u32)(header->e_flags);
     }
-    SharedPtr<CodeSet> LoadInto(u32 vaddr);
+    SharedPtr<CodeSet> LoadInto(VAddr vaddr);
 
     int GetNumSegments() const {
         return (int)(header->e_phnum);
@@ -273,7 +274,7 @@ const char* ElfReader::GetSectionName(int section) const {
     return nullptr;
 }
 
-SharedPtr<CodeSet> ElfReader::LoadInto(u32 vaddr) {
+SharedPtr<CodeSet> ElfReader::LoadInto(VAddr vaddr) {
     LOG_DEBUG(Loader, "String section: {}", header->e_shstrndx);
 
     // Should we relocate?
@@ -288,11 +289,11 @@ SharedPtr<CodeSet> ElfReader::LoadInto(u32 vaddr) {
     LOG_DEBUG(Loader, "{} segments:", header->e_phnum);
 
     // First pass : Get the bits into RAM
-    u32 base_addr = relocate ? vaddr : 0;
+    const VAddr base_addr = relocate ? vaddr : 0;
 
-    u32 total_image_size = 0;
+    u64 total_image_size = 0;
     for (unsigned int i = 0; i < header->e_phnum; ++i) {
-        Elf32_Phdr* p = &segments[i];
+        const Elf32_Phdr* p = &segments[i];
         if (p->p_type == PT_LOAD) {
             total_image_size += (p->p_memsz + 0xFFF) & ~0xFFF;
         }
@@ -305,7 +306,7 @@ SharedPtr<CodeSet> ElfReader::LoadInto(u32 vaddr) {
     SharedPtr<CodeSet> codeset = CodeSet::Create(kernel, "");
 
     for (unsigned int i = 0; i < header->e_phnum; ++i) {
-        Elf32_Phdr* p = &segments[i];
+        const Elf32_Phdr* p = &segments[i];
         LOG_DEBUG(Loader, "Type: {} Vaddr: {:08X} Filesz: {:08X} Memsz: {:08X} ", p->p_type,
                   p->p_vaddr, p->p_filesz, p->p_memsz);
 
@@ -332,8 +333,8 @@ SharedPtr<CodeSet> ElfReader::LoadInto(u32 vaddr) {
                 continue;
             }
 
-            u32 segment_addr = base_addr + p->p_vaddr;
-            u32 aligned_size = (p->p_memsz + 0xFFF) & ~0xFFF;
+            const VAddr segment_addr = base_addr + p->p_vaddr;
+            const u32 aligned_size = (p->p_memsz + 0xFFF) & ~0xFFF;
 
             codeset_segment->offset = current_image_position;
             codeset_segment->addr = segment_addr;
@@ -394,8 +395,9 @@ ResultStatus AppLoader_ELF::Load(Kernel::SharedPtr<Kernel::Process>& process) {
     if (buffer.size() != file->GetSize())
         return ResultStatus::ErrorIncorrectELFFileSize;
 
+    const VAddr base_address = process->vm_manager.GetCodeRegionBaseAddress();
     ElfReader elf_reader(&buffer[0]);
-    SharedPtr<CodeSet> codeset = elf_reader.LoadInto(Memory::PROCESS_IMAGE_VADDR);
+    SharedPtr<CodeSet> codeset = elf_reader.LoadInto(base_address);
     codeset->name = file->GetName();
 
     process->LoadModule(codeset, codeset->entrypoint);

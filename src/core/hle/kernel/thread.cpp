@@ -262,8 +262,9 @@ SharedPtr<Thread> SetupMainThread(KernelCore& kernel, VAddr entry_point, u32 pri
     SetCurrentPageTable(&owner_process.vm_manager.page_table);
 
     // Initialize new "main" thread
+    const VAddr stack_top = owner_process.vm_manager.GetTLSIORegionEndAddress();
     auto thread_res = Thread::Create(kernel, "main", entry_point, priority, 0, THREADPROCESSORID_0,
-                                     Memory::STACK_AREA_VADDR_END, &owner_process);
+                                     stack_top, &owner_process);
 
     SharedPtr<Thread> thread = std::move(thread_res).Unwrap();
 

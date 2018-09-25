@@ -17,7 +17,6 @@
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/nso.h"
-#include "core/memory.h"
 
 namespace Loader {
 
@@ -134,7 +133,8 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
     process->LoadFromMetadata(metadata);
 
     // Load NSO modules
-    VAddr next_load_addr{Memory::PROCESS_IMAGE_VADDR};
+    const VAddr base_address = process->vm_manager.GetCodeRegionBaseAddress();
+    VAddr next_load_addr = base_address;
     for (const auto& module : {"rtld", "main", "subsdk0", "subsdk1", "subsdk2", "subsdk3",
                                "subsdk4", "subsdk5", "subsdk6", "subsdk7", "sdk"}) {
         const FileSys::VirtualFile module_file = dir->GetFile(module);
@@ -147,8 +147,7 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
         }
     }
 
-    process->Run(Memory::PROCESS_IMAGE_VADDR, metadata.GetMainThreadPriority(),
-                 metadata.GetMainThreadStackSize());
+    process->Run(base_address, metadata.GetMainThreadPriority(), metadata.GetMainThreadStackSize());
 
     // Find the RomFS by searching for a ".romfs" file in this directory
     const auto& files = dir->GetFiles();

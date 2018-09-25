@@ -93,11 +93,6 @@ struct PageTable {
 
 /// Virtual user-space memory regions
 enum : VAddr {
-    /// Where the application text, data and bss reside.
-    PROCESS_IMAGE_VADDR = 0x08000000,
-    PROCESS_IMAGE_MAX_SIZE = 0x08000000,
-    PROCESS_IMAGE_VADDR_END = PROCESS_IMAGE_VADDR + PROCESS_IMAGE_MAX_SIZE,
-
     /// Read-only page containing kernel and system configuration values.
     CONFIG_MEMORY_VADDR = 0x1FF80000,
     CONFIG_MEMORY_SIZE = 0x00001000,
@@ -108,35 +103,11 @@ enum : VAddr {
     SHARED_PAGE_SIZE = 0x00001000,
     SHARED_PAGE_VADDR_END = SHARED_PAGE_VADDR + SHARED_PAGE_SIZE,
 
-    /// Area where TLS (Thread-Local Storage) buffers are allocated.
-    TLS_AREA_VADDR = 0x40000000,
+    /// TLS (Thread-Local Storage) related.
     TLS_ENTRY_SIZE = 0x200,
-    TLS_AREA_SIZE = 0x10000000,
-    TLS_AREA_VADDR_END = TLS_AREA_VADDR + TLS_AREA_SIZE,
 
     /// Application stack
-    STACK_AREA_VADDR = TLS_AREA_VADDR_END,
-    STACK_AREA_SIZE = 0x10000000,
-    STACK_AREA_VADDR_END = STACK_AREA_VADDR + STACK_AREA_SIZE,
     DEFAULT_STACK_SIZE = 0x100000,
-
-    /// Application heap
-    /// Size is confirmed to be a static value on fw 3.0.0
-    HEAP_VADDR = 0x108000000,
-    HEAP_SIZE = 0x180000000,
-    HEAP_VADDR_END = HEAP_VADDR + HEAP_SIZE,
-
-    /// New map region
-    /// Size is confirmed to be a static value on fw 3.0.0
-    NEW_MAP_REGION_VADDR = HEAP_VADDR_END,
-    NEW_MAP_REGION_SIZE = 0x80000000,
-    NEW_MAP_REGION_VADDR_END = NEW_MAP_REGION_VADDR + NEW_MAP_REGION_SIZE,
-
-    /// Map region
-    /// Size is confirmed to be a static value on fw 3.0.0
-    MAP_REGION_VADDR = NEW_MAP_REGION_VADDR_END,
-    MAP_REGION_SIZE = 0x1000000000,
-    MAP_REGION_VADDR_END = MAP_REGION_VADDR + MAP_REGION_SIZE,
 
     /// Kernel Virtual Address Range
     KERNEL_REGION_VADDR = 0xFFFFFF8000000000,

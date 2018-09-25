@@ -51,8 +51,9 @@ static ResultCode SetHeapSize(VAddr* heap_addr, u64 heap_size) {
     }
 
     auto& process = *Core::CurrentProcess();
+    const VAddr heap_base = process.vm_manager.GetHeapRegionBaseAddress();
     CASCADE_RESULT(*heap_addr,
-                   process.HeapAllocate(Memory::HEAP_VADDR, heap_size, VMAPermission::ReadWrite));
+                   process.HeapAllocate(heap_base, heap_size, VMAPermission::ReadWrite));
     return RESULT_SUCCESS;
 }
 

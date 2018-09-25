@@ -16,6 +16,7 @@
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/vm_manager.h"
 #include "core/loader/nro.h"
 #include "core/memory.h"
 
@@ -180,13 +181,13 @@ ResultStatus AppLoader_NRO::Load(Kernel::SharedPtr<Kernel::Process>& process) {
     }
 
     // Load NRO
-    static constexpr VAddr base_addr{Memory::PROCESS_IMAGE_VADDR};
+    const VAddr base_address = process->vm_manager.GetCodeRegionBaseAddress();
 
-    if (!LoadNro(file, base_addr)) {
+    if (!LoadNro(file, base_address)) {
         return ResultStatus::ErrorLoadingNRO;
     }
 
-    process->Run(base_addr, Kernel::THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE);
+    process->Run(base_address, Kernel::THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE);
 
     is_loaded = true;
     return ResultStatus::Success;
