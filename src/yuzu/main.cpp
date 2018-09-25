@@ -763,7 +763,7 @@ static std::size_t CalculateRomFSEntrySize(const FileSys::VirtualDir& dir, bool 
         out += 1 + CalculateRomFSEntrySize(subdir, full);
     }
 
-    return out + full ? dir->GetFiles().size() : 0;
+    return out + (full ? dir->GetFiles().size() : 0);
 }
 
 static bool RomFSRawCopy(QProgressDialog& dialog, const FileSys::VirtualDir& src,
