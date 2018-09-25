@@ -355,7 +355,7 @@ std::map<u64, VirtualFile> RomFSBuildContext::Build() {
 
     std::vector<u8> metadata(file_hash_table_size + file_table_size + dir_hash_table_size +
                              dir_table_size);
-    auto index = 0;
+    std::size_t index = 0;
     std::memcpy(metadata.data(), dir_hash_table.data(), dir_hash_table.size() * sizeof(u32));
     index += dir_hash_table.size() * sizeof(u32);
     std::memcpy(metadata.data() + index, dir_table.data(), dir_table.size());
