@@ -96,8 +96,12 @@ ResultStatus AppLoader_NSP::Load(Kernel::Process& process) {
     return ResultStatus::Success;
 }
 
-ResultStatus AppLoader_NSP::ReadRomFS(FileSys::VirtualFile& dir) {
-    return secondary_loader->ReadRomFS(dir);
+ResultStatus AppLoader_NSP::ReadRomFS(FileSys::VirtualFile& file) {
+    return secondary_loader->ReadRomFS(file);
+}
+
+u64 AppLoader_NSP::ReadRomFSIVFCOffset() const {
+    return secondary_loader->ReadRomFSIVFCOffset();
 }
 
 ResultStatus AppLoader_NSP::ReadProgramId(u64& out_program_id) {

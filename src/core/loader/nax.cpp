@@ -72,6 +72,10 @@ ResultStatus AppLoader_NAX::ReadRomFS(FileSys::VirtualFile& dir) {
     return nca_loader->ReadRomFS(dir);
 }
 
+u64 AppLoader_NAX::ReadRomFSIVFCOffset() const {
+    return nca_loader->ReadRomFSIVFCOffset();
+}
+
 ResultStatus AppLoader_NAX::ReadProgramId(u64& out_program_id) {
     return nca_loader->ReadProgramId(out_program_id);
 }

@@ -37,7 +37,8 @@ public:
 
     ResultStatus Load(Kernel::Process& process) override;
 
-    ResultStatus ReadRomFS(FileSys::VirtualFile& dir) override;
+    ResultStatus ReadRomFS(FileSys::VirtualFile& file) override;
+    u64 ReadRomFSIVFCOffset() const override;
     ResultStatus ReadProgramId(u64& out_program_id) override;
     ResultStatus ReadIcon(std::vector<u8>& buffer) override;
     ResultStatus ReadTitle(std::string& title) override;

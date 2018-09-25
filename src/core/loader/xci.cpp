@@ -68,10 +68,13 @@ ResultStatus AppLoader_XCI::Load(Kernel::Process& process) {
     return ResultStatus::Success;
 }
 
-ResultStatus AppLoader_XCI::ReadRomFS(FileSys::VirtualFile& dir) {
-    return nca_loader->ReadRomFS(dir);
+ResultStatus AppLoader_XCI::ReadRomFS(FileSys::VirtualFile& file) {
+    return nca_loader->ReadRomFS(file);
 }
 
+u64 AppLoader_XCI::ReadRomFSIVFCOffset() const {
+    return nca_loader->ReadRomFSIVFCOffset();
+}
 ResultStatus AppLoader_XCI::ReadProgramId(u64& out_program_id) {
     return nca_loader->ReadProgramId(out_program_id);
 }
