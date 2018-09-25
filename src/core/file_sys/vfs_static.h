@@ -12,11 +12,11 @@
 
 namespace FileSys {
 
-template <u8 value>
 class StaticVfsFile : public VfsFile {
 public:
-    explicit StaticVfsFile(size_t size = 0, std::string name = "", VirtualDir parent = nullptr)
-        : size(size), name(std::move(name)), parent(std::move(parent)) {}
+    explicit StaticVfsFile(u8 value, size_t size = 0, std::string name = "",
+                           VirtualDir parent = nullptr)
+        : value{value}, size{size}, name{std::move(name)}, parent{std::move(parent)} {}
 
     std::string GetName() const override {
         return name;
@@ -70,6 +70,7 @@ public:
     }
 
 private:
+    u8 value;
     size_t size;
     std::string name;
     VirtualDir parent;
