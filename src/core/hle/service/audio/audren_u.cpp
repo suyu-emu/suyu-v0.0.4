@@ -10,6 +10,7 @@
 #include "common/alignment.h"
 #include "common/common_funcs.h"
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/event.h"
 #include "core/hle/kernel/hle_ipc.h"
