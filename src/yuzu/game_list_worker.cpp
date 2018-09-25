@@ -69,7 +69,14 @@ QString FormatPatchNameVersions(const FileSys::PatchManager& patch_manager,
         if (kv.second.empty()) {
             out.append(fmt::format("{}\n", kv.first).c_str());
         } else {
-            out.append(fmt::format("{} ({})\n", kv.first, kv.second).c_str());
+            auto ver = kv.second;
+
+            // Display container name for packed updates
+            if (ver == "PACKED" && kv.first == FileSys::PatchType::Update)
+                ver = Loader::GetFileTypeString(loader.GetFileType());
+
+            out.append(
+                fmt::format("{} ({})\n", FileSys::FormatPatchTypeName(kv.first), ver).c_str());
         }
     }
 

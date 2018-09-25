@@ -209,7 +209,7 @@ VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset, Content
         const auto new_nca = std::make_shared<NCA>(update, romfs, ivfc_offset);
         if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
             new_nca->GetRomFS() != nullptr) {
-            LOG_INFO(Loader, "    RomFS: Update (XCI) applied successfully");
+            LOG_INFO(Loader, "    RomFS: Update (PACKED) applied successfully");
             romfs = new_nca->GetRomFS();
         }
     }
@@ -253,7 +253,7 @@ std::map<PatchType, std::string> PatchManager::GetPatchVersionNames(VirtualFile 
                     FormatTitleVersion(meta_ver.get(), TitleVersionFormat::ThreeElements));
             }
         } else if (update_raw != nullptr) {
-            out[PatchType::Update] = "XCI";
+            out[PatchType::Update] = "PACKED";
         }
     }
 
