@@ -461,7 +461,11 @@ public:
                     u32 entry;
                 } macros;
 
-                INSERT_PADDING_WORDS(0x1B8);
+                INSERT_PADDING_WORDS(0x189);
+
+                u32 tfb_enabled;
+
+                INSERT_PADDING_WORDS(0x2E);
 
                 RenderTargetConfig rt[NumRenderTargets];
 
@@ -594,7 +598,9 @@ public:
 
                 u32 depth_write_enabled;
 
-                INSERT_PADDING_WORDS(0x7);
+                u32 alpha_test_enabled;
+
+                INSERT_PADDING_WORDS(0x6);
 
                 u32 d3d_cull_mode;
 
@@ -977,6 +983,7 @@ private:
                   "Field " #field_name " has invalid position")
 
 ASSERT_REG_POSITION(macros, 0x45);
+ASSERT_REG_POSITION(tfb_enabled, 0x1D1);
 ASSERT_REG_POSITION(rt, 0x200);
 ASSERT_REG_POSITION(viewport_transform[0], 0x280);
 ASSERT_REG_POSITION(viewport, 0x300);
@@ -996,6 +1003,7 @@ ASSERT_REG_POSITION(zeta_height, 0x48b);
 ASSERT_REG_POSITION(depth_test_enable, 0x4B3);
 ASSERT_REG_POSITION(independent_blend_enable, 0x4B9);
 ASSERT_REG_POSITION(depth_write_enabled, 0x4BA);
+ASSERT_REG_POSITION(alpha_test_enabled, 0x4BB);
 ASSERT_REG_POSITION(d3d_cull_mode, 0x4C2);
 ASSERT_REG_POSITION(depth_test_func, 0x4C3);
 ASSERT_REG_POSITION(blend, 0x4CF);

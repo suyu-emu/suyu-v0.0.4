@@ -450,6 +450,8 @@ void RasterizerOpenGL::DrawArrays() {
     SyncBlendState();
     SyncLogicOpState();
     SyncCullMode();
+    SyncAlphaTest();
+    SyncTransformFeedback();
 
     // TODO(bunnei): Sync framebuffer_scale uniform here
     // TODO(bunnei): Sync scissorbox uniform(s) here
@@ -881,6 +883,26 @@ void RasterizerOpenGL::SyncLogicOpState() {
                "Blending and logic op can't be enabled at the same time.");
 
     state.logic_op.operation = MaxwellToGL::LogicOp(regs.logic_op.operation);
+}
+
+void RasterizerOpenGL::SyncAlphaTest() {
+    const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
+
+    // TODO(Rodrigo): Alpha testing is a legacy OpenGL feature, but it can be
+    // implemented with a test+discard in fragment shaders.
+    if (regs.alpha_test_enabled != 0) {
+        LOG_CRITICAL(Render_OpenGL, "Alpha testing is not implemented");
+        UNREACHABLE();
+    }
+}
+
+void RasterizerOpenGL::SyncTransformFeedback() {
+    const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
+
+    if (regs.tfb_enabled != 0) {
+        LOG_CRITICAL(Render_OpenGL, "Transform feedbacks are not implemented");
+        UNREACHABLE();
+    }
 }
 
 } // namespace OpenGL
