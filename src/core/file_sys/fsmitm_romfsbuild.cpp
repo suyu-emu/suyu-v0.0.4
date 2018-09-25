@@ -233,12 +233,6 @@ std::map<u64, VirtualFile> RomFSBuildContext::Build() {
     std::vector<u8> dir_table(dir_table_size);
     std::vector<u8> file_table(file_table_size);
 
-    // Clear out hash tables.
-    for (u32 i = 0; i < dir_hash_table_entry_count; i++)
-        dir_hash_table[i] = ROMFS_ENTRY_EMPTY;
-    for (u32 i = 0; i < file_hash_table_entry_count; i++)
-        file_hash_table[i] = ROMFS_ENTRY_EMPTY;
-
     std::shared_ptr<RomFSBuildFileContext> cur_file;
 
     // Determine file offsets.
