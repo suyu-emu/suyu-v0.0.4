@@ -125,7 +125,7 @@ VirtualFile RegisteredCache::OpenFileOrDirectoryConcat(const VirtualDir& dir,
             if (concat.empty())
                 return nullptr;
 
-            file = FileSys::ConcatenateFiles(concat, concat.front()->GetName());
+            file = ConcatenatedVfsFile::MakeConcatenatedFile(concat, concat.front()->GetName());
         }
 
         return file;

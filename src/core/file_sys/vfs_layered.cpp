@@ -8,7 +8,13 @@
 
 namespace FileSys {
 
-VirtualDir LayerDirectories(std::vector<VirtualDir> dirs, std::string name) {
+LayeredVfsDirectory::LayeredVfsDirectory(std::vector<VirtualDir> dirs, std::string name)
+    : dirs(std::move(dirs)), name(std::move(name)) {}
+
+LayeredVfsDirectory::~LayeredVfsDirectory() = default;
+
+VirtualDir LayeredVfsDirectory::MakeLayeredDirectory(std::vector<VirtualDir> dirs,
+                                                     std::string name) {
     if (dirs.empty())
         return nullptr;
     if (dirs.size() == 1)
@@ -16,11 +22,6 @@ VirtualDir LayerDirectories(std::vector<VirtualDir> dirs, std::string name) {
 
     return std::shared_ptr<VfsDirectory>(new LayeredVfsDirectory(std::move(dirs), std::move(name)));
 }
-
-LayeredVfsDirectory::LayeredVfsDirectory(std::vector<VirtualDir> dirs, std::string name)
-    : dirs(std::move(dirs)), name(std::move(name)) {}
-
-LayeredVfsDirectory::~LayeredVfsDirectory() = default;
 
 std::shared_ptr<VfsFile> LayeredVfsDirectory::GetFileRelative(std::string_view path) const {
     for (const auto& layer : dirs) {
@@ -41,7 +42,7 @@ std::shared_ptr<VfsDirectory> LayeredVfsDirectory::GetDirectoryRelative(
             out.push_back(std::move(dir));
     }
 
-    return LayerDirectories(std::move(out));
+    return MakeLayeredDirectory(std::move(out));
 }
 
 std::shared_ptr<VfsFile> LayeredVfsDirectory::GetFile(std::string_view name) const {

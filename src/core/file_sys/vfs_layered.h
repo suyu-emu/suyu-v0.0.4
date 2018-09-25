@@ -9,19 +9,17 @@
 
 namespace FileSys {
 
-// Wrapper function to allow for more efficient handling of dirs.size() == 0, 1 cases.
-VirtualDir LayerDirectories(std::vector<VirtualDir> dirs, std::string name = "");
-
 // Class that stacks multiple VfsDirectories on top of each other, attempting to read from the first
 // one and falling back to the one after. The highest priority directory (overwrites all others)
 // should be element 0 in the dirs vector.
 class LayeredVfsDirectory : public VfsDirectory {
-    friend VirtualDir LayerDirectories(std::vector<VirtualDir> dirs, std::string name);
-
     LayeredVfsDirectory(std::vector<VirtualDir> dirs, std::string name);
 
 public:
     ~LayeredVfsDirectory() override;
+
+    /// Wrapper function to allow for more efficient handling of dirs.size() == 0, 1 cases.
+    static VirtualDir MakeLayeredDirectory(std::vector<VirtualDir> dirs, std::string name = "");
 
     std::shared_ptr<VfsFile> GetFileRelative(std::string_view path) const override;
     std::shared_ptr<VfsDirectory> GetDirectoryRelative(std::string_view path) const override;

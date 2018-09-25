@@ -39,6 +39,41 @@ ConcatenatedVfsFile::ConcatenatedVfsFile(std::map<u64, VirtualFile> files_, std:
 
 ConcatenatedVfsFile::~ConcatenatedVfsFile() = default;
 
+VirtualFile ConcatenatedVfsFile::MakeConcatenatedFile(std::vector<VirtualFile> files,
+                                                      std::string name) {
+    if (files.empty())
+        return nullptr;
+    if (files.size() == 1)
+        return files[0];
+
+    return std::shared_ptr<VfsFile>(new ConcatenatedVfsFile(std::move(files), std::move(name)));
+}
+
+VirtualFile ConcatenatedVfsFile::MakeConcatenatedFile(u8 filler_byte,
+                                                      std::map<u64, VirtualFile> files,
+                                                      std::string name) {
+    if (files.empty())
+        return nullptr;
+    if (files.size() == 1)
+        return files.begin()->second;
+
+    const auto last_valid = --files.end();
+    for (auto iter = files.begin(); iter != last_valid;) {
+        const auto old = iter++;
+        if (old->first + old->second->GetSize() != iter->first) {
+            files.emplace(old->first + old->second->GetSize(),
+                          std::make_shared<StaticVfsFile>(filler_byte, iter->first - old->first -
+                                                                           old->second->GetSize()));
+        }
+    }
+
+    // Ensure the map starts at offset 0 (start of file), otherwise pad to fill.
+    if (files.begin()->first != 0)
+        files.emplace(0, std::make_shared<StaticVfsFile>(filler_byte, files.begin()->first));
+
+    return std::shared_ptr<VfsFile>(new ConcatenatedVfsFile(std::move(files), std::move(name)));
+}
+
 std::string ConcatenatedVfsFile::GetName() const {
     if (files.empty())
         return "";
@@ -99,38 +134,6 @@ std::size_t ConcatenatedVfsFile::Write(const u8* data, std::size_t length, std::
 
 bool ConcatenatedVfsFile::Rename(std::string_view name) {
     return false;
-}
-
-VirtualFile ConcatenateFiles(std::vector<VirtualFile> files, std::string name) {
-    if (files.empty())
-        return nullptr;
-    if (files.size() == 1)
-        return files[0];
-
-    return std::shared_ptr<VfsFile>(new ConcatenatedVfsFile(std::move(files), std::move(name)));
-}
-
-VirtualFile ConcatenateFiles(u8 filler_byte, std::map<u64, VirtualFile> files, std::string name) {
-    if (files.empty())
-        return nullptr;
-    if (files.size() == 1)
-        return files.begin()->second;
-
-    const auto last_valid = --files.end();
-    for (auto iter = files.begin(); iter != last_valid;) {
-        const auto old = iter++;
-        if (old->first + old->second->GetSize() != iter->first) {
-            files.emplace(old->first + old->second->GetSize(),
-                          std::make_shared<StaticVfsFile>(filler_byte, iter->first - old->first -
-                                                                           old->second->GetSize()));
-        }
-    }
-
-    // Ensure the map starts at offset 0 (start of file), otherwise pad to fill.
-    if (files.begin()->first != 0)
-        files.emplace(0, std::make_shared<StaticVfsFile>(filler_byte, files.begin()->first));
-
-    return std::shared_ptr<VfsFile>(new ConcatenatedVfsFile(std::move(files), std::move(name)));
 }
 
 } // namespace FileSys

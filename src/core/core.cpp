@@ -64,7 +64,7 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
         if (concat.empty())
             return nullptr;
 
-        return FileSys::ConcatenateFiles(concat, dir->GetName());
+        return FileSys::ConcatenatedVfsFile::MakeConcatenatedFile(concat, dir->GetName());
     }
 
     return vfs->OpenFile(path, FileSys::Mode::Read);

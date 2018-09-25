@@ -14,15 +14,19 @@ namespace FileSys {
 // Class that wraps multiple vfs files and concatenates them, making reads seamless. Currently
 // read-only.
 class ConcatenatedVfsFile : public VfsFile {
-    friend VirtualFile ConcatenateFiles(std::vector<VirtualFile> files, std::string name);
-    friend VirtualFile ConcatenateFiles(u8 filler_byte, std::map<u64, VirtualFile> files,
-                                        std::string name);
-
     ConcatenatedVfsFile(std::vector<VirtualFile> files, std::string name);
     ConcatenatedVfsFile(std::map<u64, VirtualFile> files, std::string name);
 
 public:
     ~ConcatenatedVfsFile() override;
+
+    /// Wrapper function to allow for more efficient handling of files.size() == 0, 1 cases.
+    static VirtualFile MakeConcatenatedFile(std::vector<VirtualFile> files, std::string name);
+
+    /// Convenience function that turns a map of offsets to files into a concatenated file, filling
+    /// gaps with a given filler byte.
+    static VirtualFile MakeConcatenatedFile(u8 filler_byte, std::map<u64, VirtualFile> files,
+                                            std::string name);
 
     std::string GetName() const override;
     std::size_t GetSize() const override;
@@ -39,12 +43,5 @@ private:
     std::map<u64, VirtualFile> files;
     std::string name;
 };
-
-// Wrapper function to allow for more efficient handling of files.size() == 0, 1 cases.
-VirtualFile ConcatenateFiles(std::vector<VirtualFile> files, std::string name);
-
-// Convenience function that turns a map of offsets to files into a concatenated file, filling gaps
-// with a given filler byte.
-VirtualFile ConcatenateFiles(u8 filler_byte, std::map<u64, VirtualFile> files, std::string name);
 
 } // namespace FileSys

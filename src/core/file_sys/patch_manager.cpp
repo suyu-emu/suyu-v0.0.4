@@ -90,10 +90,9 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
 
             layers.push_back(std::move(extracted));
 
-            const auto layered = LayerDirectories(layers);
-
+            auto layered = LayeredVfsDirectory::MakeLayeredDirectory(std::move(layers));
             if (layered != nullptr) {
-                auto packed = CreateRomFS(layered);
+                auto packed = CreateRomFS(std::move(layered));
 
                 if (packed != nullptr) {
                     LOG_INFO(Loader, "    RomFS: LayeredFS patches applied successfully");
