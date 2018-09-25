@@ -73,7 +73,7 @@ static_assert(sizeof(RomFSFileEntry) == 0x20, "RomFSFileEntry has incorrect size
 struct RomFSBuildFileContext;
 
 struct RomFSBuildDirectoryContext {
-    std::string path = "";
+    std::string path;
     u32 cur_path_ofs = 0;
     u32 path_len = 0;
     u32 entry_offset = 0;
@@ -84,7 +84,7 @@ struct RomFSBuildDirectoryContext {
 };
 
 struct RomFSBuildFileContext {
-    std::string path = "";
+    std::string path;
     u32 cur_path_ofs = 0;
     u32 path_len = 0;
     u32 entry_offset = 0;
@@ -92,9 +92,7 @@ struct RomFSBuildFileContext {
     u64 size = 0;
     std::shared_ptr<RomFSBuildDirectoryContext> parent;
     std::shared_ptr<RomFSBuildFileContext> sibling;
-    VirtualFile source = nullptr;
-
-    RomFSBuildFileContext() : path(""), cur_path_ofs(0), path_len(0) {}
+    VirtualFile source;
 };
 
 static u32 romfs_calc_path_hash(u32 parent, std::string path, u32 start, std::size_t path_len) {
