@@ -16,13 +16,13 @@ public:
     ~VectorVfsFile() override;
 
     std::string GetName() const override;
-    size_t GetSize() const override;
-    bool Resize(size_t new_size) override;
+    std::size_t GetSize() const override;
+    bool Resize(std::size_t new_size) override;
     std::shared_ptr<VfsDirectory> GetContainingDirectory() const override;
     bool IsWritable() const override;
     bool IsReadable() const override;
-    size_t Read(u8* data, size_t length, size_t offset) const override;
-    size_t Write(const u8* data, size_t length, size_t offset) override;
+    std::size_t Read(u8* data, std::size_t length, std::size_t offset) const override;
+    std::size_t Write(const u8* data, std::size_t length, std::size_t offset) override;
     bool Rename(std::string_view name) override;
 
     virtual void Assign(std::vector<u8> new_data);

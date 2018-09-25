@@ -38,13 +38,13 @@ bool VectorVfsFile::IsReadable() const {
     return true;
 }
 
-size_t VectorVfsFile::Read(u8* data_, size_t length, size_t offset) const {
+std::size_t VectorVfsFile::Read(u8* data_, std::size_t length, std::size_t offset) const {
     const auto read = std::min(length, data.size() - offset);
     std::memcpy(data_, data.data() + offset, read);
     return read;
 }
 
-size_t VectorVfsFile::Write(const u8* data_, size_t length, size_t offset) {
+std::size_t VectorVfsFile::Write(const u8* data_, std::size_t length, std::size_t offset) {
     if (offset + length > data.size())
         data.resize(offset + length);
     const auto write = std::min(length, data.size() - offset);

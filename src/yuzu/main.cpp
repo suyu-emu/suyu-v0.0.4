@@ -760,7 +760,7 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
     const auto path = fmt::format("{}{:016X}/romfs",
                                   FileUtil::GetUserPath(FileUtil::UserPath::DumpDir), program_id);
 
-    auto failed = [this, &path]() {
+    const auto failed = [this, &path] {
         QMessageBox::warning(this, tr("RomFS Extraction Failed!"),
                              tr("There was an error copying the RomFS files or the user "
                                 "cancelled the operation."));
@@ -809,9 +809,9 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
 
     const auto full = res == "Full";
 
-    const static std::function<size_t(const FileSys::VirtualDir&, bool)> calculate_entry_size =
+    static const std::function<std::size_t(const FileSys::VirtualDir&, bool)> calculate_entry_size =
         [](const FileSys::VirtualDir& dir, bool full) {
-            size_t out = 0;
+            std::size_t out = 0;
             for (const auto& subdir : dir->GetSubdirectories())
                 out += 1 + calculate_entry_size(subdir, full);
             return out + full ? dir->GetFiles().size() : 0;
@@ -822,10 +822,10 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
     progress.setWindowModality(Qt::WindowModal);
     progress.setMinimumDuration(100);
 
-    const static std::function<bool(QProgressDialog&, const FileSys::VirtualDir&,
-                                    const FileSys::VirtualDir&, size_t, bool)>
+    static const std::function<bool(QProgressDialog&, const FileSys::VirtualDir&,
+                                    const FileSys::VirtualDir&, std::size_t, bool)>
         qt_raw_copy = [](QProgressDialog& dialog, const FileSys::VirtualDir& src,
-                         const FileSys::VirtualDir& dest, size_t block_size, bool full) {
+                         const FileSys::VirtualDir& dest, std::size_t block_size, bool full) {
             if (src == nullptr || dest == nullptr || !src->IsReadable() || !dest->IsWritable())
                 return false;
             if (dialog.wasCanceled())
@@ -931,7 +931,7 @@ void GMainWindow::OnMenuInstallToNAND() {
     }
 
     const auto qt_raw_copy = [this](const FileSys::VirtualFile& src,
-                                    const FileSys::VirtualFile& dest, size_t block_size) {
+                                    const FileSys::VirtualFile& dest, std::size_t block_size) {
         if (src == nullptr || dest == nullptr)
             return false;
         if (!dest->Resize(src->GetSize()))

@@ -97,7 +97,7 @@ struct RomFSBuildFileContext {
     RomFSBuildFileContext() : path(""), cur_path_ofs(0), path_len(0) {}
 };
 
-static u32 romfs_calc_path_hash(u32 parent, std::string path, u32 start, size_t path_len) {
+static u32 romfs_calc_path_hash(u32 parent, std::string path, u32 start, std::size_t path_len) {
     u32 hash = parent ^ 123456789;
     for (u32 i = 0; i < path_len; i++) {
         hash = (hash >> 5) | (hash << 27);
