@@ -105,13 +105,16 @@ static u32 romfs_calc_path_hash(u32 parent, std::string path, u32 start, std::si
     return hash;
 }
 
-static u32 romfs_get_hash_table_count(u32 num_entries) {
+static u64 romfs_get_hash_table_count(u64 num_entries) {
     if (num_entries < 3) {
         return 3;
-    } else if (num_entries < 19) {
+    }
+
+    if (num_entries < 19) {
         return num_entries | 1;
     }
-    u32 count = num_entries;
+
+    u64 count = num_entries;
     while (count % 2 == 0 || count % 3 == 0 || count % 5 == 0 || count % 7 == 0 ||
            count % 11 == 0 || count % 13 == 0 || count % 17 == 0) {
         count++;
@@ -137,7 +140,7 @@ void RomFSBuildContext::VisitDirectory(VirtualDir root_romfs,
             const auto child = std::make_shared<RomFSBuildDirectoryContext>();
             // Set child's path.
             child->cur_path_ofs = parent->path_len + 1;
-            child->path_len = child->cur_path_ofs + kv.first.size();
+            child->path_len = child->cur_path_ofs + static_cast<u32>(kv.first.size());
             child->path = parent->path + "/" + kv.first;
 
             // Sanity check on path_len
@@ -150,7 +153,7 @@ void RomFSBuildContext::VisitDirectory(VirtualDir root_romfs,
             const auto child = std::make_shared<RomFSBuildFileContext>();
             // Set child's path.
             child->cur_path_ofs = parent->path_len + 1;
-            child->path_len = child->cur_path_ofs + kv.first.size();
+            child->path_len = child->cur_path_ofs + static_cast<u32>(kv.first.size());
             child->path = parent->path + "/" + kv.first;
 
             // Sanity check on path_len
@@ -217,8 +220,8 @@ RomFSBuildContext::RomFSBuildContext(VirtualDir base_) : base(std::move(base_)) 
 RomFSBuildContext::~RomFSBuildContext() = default;
 
 std::map<u64, VirtualFile> RomFSBuildContext::Build() {
-    const auto dir_hash_table_entry_count = romfs_get_hash_table_count(num_dirs);
-    const auto file_hash_table_entry_count = romfs_get_hash_table_count(num_files);
+    const u64 dir_hash_table_entry_count = romfs_get_hash_table_count(num_dirs);
+    const u64 file_hash_table_entry_count = romfs_get_hash_table_count(num_files);
     dir_hash_table_size = 4 * dir_hash_table_entry_count;
     file_hash_table_size = 4 * file_hash_table_entry_count;
 
