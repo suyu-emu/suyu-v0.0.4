@@ -756,11 +756,51 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
     QDesktopServices::openUrl(QUrl::fromLocalFile(qpath));
 }
 
+static std::size_t CalculateRomFSEntrySize(const FileSys::VirtualDir& dir, bool full) {
+    std::size_t out = 0;
+
+    for (const auto& subdir : dir->GetSubdirectories()) {
+        out += 1 + CalculateRomFSEntrySize(subdir, full);
+    }
+
+    return out + (full ? dir->GetFiles().size() : 0);
+}
+
+static bool RomFSRawCopy(QProgressDialog& dialog, const FileSys::VirtualDir& src,
+                         const FileSys::VirtualDir& dest, std::size_t block_size, bool full) {
+    if (src == nullptr || dest == nullptr || !src->IsReadable() || !dest->IsWritable())
+        return false;
+    if (dialog.wasCanceled())
+        return false;
+
+    if (full) {
+        for (const auto& file : src->GetFiles()) {
+            const auto out = VfsDirectoryCreateFileWrapper(dest, file->GetName());
+            if (!FileSys::VfsRawCopy(file, out, block_size))
+                return false;
+            dialog.setValue(dialog.value() + 1);
+            if (dialog.wasCanceled())
+                return false;
+        }
+    }
+
+    for (const auto& dir : src->GetSubdirectories()) {
+        const auto out = dest->CreateSubdirectory(dir->GetName());
+        if (!RomFSRawCopy(dialog, dir, out, block_size, full))
+            return false;
+        dialog.setValue(dialog.value() + 1);
+        if (dialog.wasCanceled())
+            return false;
+    }
+
+    return true;
+}
+
 void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_path) {
     const auto path = fmt::format("{}{:016X}/romfs",
                                   FileUtil::GetUserPath(FileUtil::UserPath::DumpDir), program_id);
 
-    auto failed = [this, &path]() {
+    const auto failed = [this, &path] {
         QMessageBox::warning(this, tr("RomFS Extraction Failed!"),
                              tr("There was an error copying the RomFS files or the user "
                                 "cancelled the operation."));
@@ -808,53 +848,13 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
         failed();
 
     const auto full = res == "Full";
-
-    const static std::function<size_t(const FileSys::VirtualDir&, bool)> calculate_entry_size =
-        [](const FileSys::VirtualDir& dir, bool full) {
-            size_t out = 0;
-            for (const auto& subdir : dir->GetSubdirectories())
-                out += 1 + calculate_entry_size(subdir, full);
-            return out + full ? dir->GetFiles().size() : 0;
-        };
-    const auto entry_size = calculate_entry_size(extracted, full);
+    const auto entry_size = CalculateRomFSEntrySize(extracted, full);
 
     QProgressDialog progress(tr("Extracting RomFS..."), tr("Cancel"), 0, entry_size, this);
     progress.setWindowModality(Qt::WindowModal);
     progress.setMinimumDuration(100);
 
-    const static std::function<bool(QProgressDialog&, const FileSys::VirtualDir&,
-                                    const FileSys::VirtualDir&, size_t, bool)>
-        qt_raw_copy = [](QProgressDialog& dialog, const FileSys::VirtualDir& src,
-                         const FileSys::VirtualDir& dest, size_t block_size, bool full) {
-            if (src == nullptr || dest == nullptr || !src->IsReadable() || !dest->IsWritable())
-                return false;
-            if (dialog.wasCanceled())
-                return false;
-
-            if (full) {
-                for (const auto& file : src->GetFiles()) {
-                    const auto out = VfsDirectoryCreateFileWrapper(dest, file->GetName());
-                    if (!FileSys::VfsRawCopy(file, out, block_size))
-                        return false;
-                    dialog.setValue(dialog.value() + 1);
-                    if (dialog.wasCanceled())
-                        return false;
-                }
-            }
-
-            for (const auto& dir : src->GetSubdirectories()) {
-                const auto out = dest->CreateSubdirectory(dir->GetName());
-                if (!qt_raw_copy(dialog, dir, out, block_size, full))
-                    return false;
-                dialog.setValue(dialog.value() + 1);
-                if (dialog.wasCanceled())
-                    return false;
-            }
-
-            return true;
-        };
-
-    if (qt_raw_copy(progress, extracted, out, 0x400000, full)) {
+    if (RomFSRawCopy(progress, extracted, out, 0x400000, full)) {
         progress.close();
         QMessageBox::information(this, tr("RomFS Extraction Succeeded!"),
                                  tr("The operation completed successfully."));
@@ -931,7 +931,7 @@ void GMainWindow::OnMenuInstallToNAND() {
     }
 
     const auto qt_raw_copy = [this](const FileSys::VirtualFile& src,
-                                    const FileSys::VirtualFile& dest, size_t block_size) {
+                                    const FileSys::VirtualFile& dest, std::size_t block_size) {
         if (src == nullptr || dest == nullptr)
             return false;
         if (!dest->Resize(src->GetSize()))

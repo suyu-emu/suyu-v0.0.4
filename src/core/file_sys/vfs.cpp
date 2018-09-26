@@ -463,14 +463,14 @@ bool DeepEquals(const VirtualFile& file1, const VirtualFile& file2, std::size_t 
     return true;
 }
 
-bool VfsRawCopy(const VirtualFile& src, const VirtualFile& dest, size_t block_size) {
+bool VfsRawCopy(const VirtualFile& src, const VirtualFile& dest, std::size_t block_size) {
     if (src == nullptr || dest == nullptr || !src->IsReadable() || !dest->IsWritable())
         return false;
     if (!dest->Resize(src->GetSize()))
         return false;
 
     std::vector<u8> temp(std::min(block_size, src->GetSize()));
-    for (size_t i = 0; i < src->GetSize(); i += block_size) {
+    for (std::size_t i = 0; i < src->GetSize(); i += block_size) {
         const auto read = std::min(block_size, src->GetSize() - i);
         const auto block = src->Read(temp.data(), read, i);
 
@@ -481,7 +481,7 @@ bool VfsRawCopy(const VirtualFile& src, const VirtualFile& dest, size_t block_si
     return true;
 }
 
-bool VfsRawCopyD(const VirtualDir& src, const VirtualDir& dest, size_t block_size) {
+bool VfsRawCopyD(const VirtualDir& src, const VirtualDir& dest, std::size_t block_size) {
     if (src == nullptr || dest == nullptr || !src->IsReadable() || !dest->IsWritable())
         return false;
 

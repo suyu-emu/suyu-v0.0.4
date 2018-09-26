@@ -70,38 +70,40 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
 
 static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType type) {
     const auto load_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
-    if (type == ContentRecordType::Program && load_dir != nullptr && load_dir->GetSize() > 0) {
-        auto extracted = ExtractRomFS(romfs);
-
-        if (extracted != nullptr) {
-            auto patch_dirs = load_dir->GetSubdirectories();
-            std::sort(patch_dirs.begin(), patch_dirs.end(),
-                      [](const VirtualDir& l, const VirtualDir& r) {
-                          return l->GetName() < r->GetName();
-                      });
-
-            std::vector<VirtualDir> layers;
-            layers.reserve(patch_dirs.size() + 1);
-            for (const auto& subdir : patch_dirs) {
-                auto romfs_dir = subdir->GetSubdirectory("romfs");
-                if (romfs_dir != nullptr)
-                    layers.push_back(std::move(romfs_dir));
-            }
-
-            layers.push_back(std::move(extracted));
-
-            const auto layered = LayerDirectories(layers);
-
-            if (layered != nullptr) {
-                auto packed = CreateRomFS(layered);
-
-                if (packed != nullptr) {
-                    LOG_INFO(Loader, "    RomFS: LayeredFS patches applied successfully");
-                    romfs = std::move(packed);
-                }
-            }
-        }
+    if (type != ContentRecordType::Program || load_dir == nullptr || load_dir->GetSize() <= 0) {
+        return;
     }
+
+    auto extracted = ExtractRomFS(romfs);
+    if (extracted == nullptr) {
+        return;
+    }
+
+    auto patch_dirs = load_dir->GetSubdirectories();
+    std::sort(patch_dirs.begin(), patch_dirs.end(),
+              [](const VirtualDir& l, const VirtualDir& r) { return l->GetName() < r->GetName(); });
+
+    std::vector<VirtualDir> layers;
+    layers.reserve(patch_dirs.size() + 1);
+    for (const auto& subdir : patch_dirs) {
+        auto romfs_dir = subdir->GetSubdirectory("romfs");
+        if (romfs_dir != nullptr)
+            layers.push_back(std::move(romfs_dir));
+    }
+    layers.push_back(std::move(extracted));
+
+    auto layered = LayeredVfsDirectory::MakeLayeredDirectory(std::move(layers));
+    if (layered == nullptr) {
+        return;
+    }
+
+    auto packed = CreateRomFS(std::move(layered));
+    if (packed == nullptr) {
+        return;
+    }
+
+    LOG_INFO(Loader, "    RomFS: LayeredFS patches applied successfully");
+    romfs = std::move(packed);
 }
 
 VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset,

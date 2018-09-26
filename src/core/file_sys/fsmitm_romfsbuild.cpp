@@ -73,7 +73,7 @@ static_assert(sizeof(RomFSFileEntry) == 0x20, "RomFSFileEntry has incorrect size
 struct RomFSBuildFileContext;
 
 struct RomFSBuildDirectoryContext {
-    std::string path = "";
+    std::string path;
     u32 cur_path_ofs = 0;
     u32 path_len = 0;
     u32 entry_offset = 0;
@@ -84,7 +84,7 @@ struct RomFSBuildDirectoryContext {
 };
 
 struct RomFSBuildFileContext {
-    std::string path = "";
+    std::string path;
     u32 cur_path_ofs = 0;
     u32 path_len = 0;
     u32 entry_offset = 0;
@@ -92,12 +92,10 @@ struct RomFSBuildFileContext {
     u64 size = 0;
     std::shared_ptr<RomFSBuildDirectoryContext> parent;
     std::shared_ptr<RomFSBuildFileContext> sibling;
-    VirtualFile source = nullptr;
-
-    RomFSBuildFileContext() : path(""), cur_path_ofs(0), path_len(0) {}
+    VirtualFile source;
 };
 
-static u32 romfs_calc_path_hash(u32 parent, std::string path, u32 start, size_t path_len) {
+static u32 romfs_calc_path_hash(u32 parent, std::string path, u32 start, std::size_t path_len) {
     u32 hash = parent ^ 123456789;
     for (u32 i = 0; i < path_len; i++) {
         hash = (hash >> 5) | (hash << 27);
@@ -107,13 +105,16 @@ static u32 romfs_calc_path_hash(u32 parent, std::string path, u32 start, size_t 
     return hash;
 }
 
-static u32 romfs_get_hash_table_count(u32 num_entries) {
+static u64 romfs_get_hash_table_count(u64 num_entries) {
     if (num_entries < 3) {
         return 3;
-    } else if (num_entries < 19) {
+    }
+
+    if (num_entries < 19) {
         return num_entries | 1;
     }
-    u32 count = num_entries;
+
+    u64 count = num_entries;
     while (count % 2 == 0 || count % 3 == 0 || count % 5 == 0 || count % 7 == 0 ||
            count % 11 == 0 || count % 13 == 0 || count % 17 == 0) {
         count++;
@@ -139,7 +140,7 @@ void RomFSBuildContext::VisitDirectory(VirtualDir root_romfs,
             const auto child = std::make_shared<RomFSBuildDirectoryContext>();
             // Set child's path.
             child->cur_path_ofs = parent->path_len + 1;
-            child->path_len = child->cur_path_ofs + kv.first.size();
+            child->path_len = child->cur_path_ofs + static_cast<u32>(kv.first.size());
             child->path = parent->path + "/" + kv.first;
 
             // Sanity check on path_len
@@ -152,7 +153,7 @@ void RomFSBuildContext::VisitDirectory(VirtualDir root_romfs,
             const auto child = std::make_shared<RomFSBuildFileContext>();
             // Set child's path.
             child->cur_path_ofs = parent->path_len + 1;
-            child->path_len = child->cur_path_ofs + kv.first.size();
+            child->path_len = child->cur_path_ofs + static_cast<u32>(kv.first.size());
             child->path = parent->path + "/" + kv.first;
 
             // Sanity check on path_len
@@ -219,8 +220,8 @@ RomFSBuildContext::RomFSBuildContext(VirtualDir base_) : base(std::move(base_)) 
 RomFSBuildContext::~RomFSBuildContext() = default;
 
 std::map<u64, VirtualFile> RomFSBuildContext::Build() {
-    const auto dir_hash_table_entry_count = romfs_get_hash_table_count(num_dirs);
-    const auto file_hash_table_entry_count = romfs_get_hash_table_count(num_files);
+    const u64 dir_hash_table_entry_count = romfs_get_hash_table_count(num_dirs);
+    const u64 file_hash_table_entry_count = romfs_get_hash_table_count(num_files);
     dir_hash_table_size = 4 * dir_hash_table_entry_count;
     file_hash_table_size = 4 * file_hash_table_entry_count;
 
@@ -232,12 +233,6 @@ std::map<u64, VirtualFile> RomFSBuildContext::Build() {
 
     std::vector<u8> dir_table(dir_table_size);
     std::vector<u8> file_table(file_table_size);
-
-    // Clear out hash tables.
-    for (u32 i = 0; i < dir_hash_table_entry_count; i++)
-        dir_hash_table[i] = ROMFS_ENTRY_EMPTY;
-    for (u32 i = 0; i < file_hash_table_entry_count; i++)
-        file_hash_table[i] = ROMFS_ENTRY_EMPTY;
 
     std::shared_ptr<RomFSBuildFileContext> cur_file;
 
@@ -355,7 +350,7 @@ std::map<u64, VirtualFile> RomFSBuildContext::Build() {
 
     std::vector<u8> metadata(file_hash_table_size + file_table_size + dir_hash_table_size +
                              dir_table_size);
-    auto index = 0;
+    std::size_t index = 0;
     std::memcpy(metadata.data(), dir_hash_table.data(), dir_hash_table.size() * sizeof(u32));
     index += dir_hash_table.size() * sizeof(u32);
     std::memcpy(metadata.data() + index, dir_table.data(), dir_table.size());

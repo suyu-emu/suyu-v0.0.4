@@ -134,7 +134,7 @@ VirtualFile CreateRomFS(VirtualDir dir) {
         return nullptr;
 
     RomFSBuildContext ctx{dir};
-    return ConcatenateFiles<0>(ctx.Build(), dir->GetName());
+    return ConcatenatedVfsFile::MakeConcatenatedFile(0, ctx.Build(), dir->GetName());
 }
 
 } // namespace FileSys
