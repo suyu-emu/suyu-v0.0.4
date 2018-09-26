@@ -158,6 +158,12 @@ private:
     /// Syncs the LogicOp state to match the guest state
     void SyncLogicOpState();
 
+    /// Syncs the alpha test state to match the guest state
+    void SyncAlphaTest();
+
+    /// Syncs the transform feedback state to match the guest state
+    void SyncTransformFeedback();
+
     bool has_ARB_direct_state_access = false;
     bool has_ARB_multi_bind = false;
     bool has_ARB_separate_shader_objects = false;
