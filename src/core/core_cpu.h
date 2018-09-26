@@ -76,7 +76,7 @@ public:
 private:
     void Reschedule();
 
-    std::shared_ptr<ARM_Interface> arm_interface;
+    std::unique_ptr<ARM_Interface> arm_interface;
     std::shared_ptr<CpuBarrier> cpu_barrier;
     std::shared_ptr<Kernel::Scheduler> scheduler;
 

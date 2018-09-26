@@ -55,16 +55,16 @@ Cpu::Cpu(std::shared_ptr<ExclusiveMonitor> exclusive_monitor,
 
     if (Settings::values.use_cpu_jit) {
 #ifdef ARCHITECTURE_x86_64
-        arm_interface = std::make_shared<ARM_Dynarmic>(exclusive_monitor, core_index);
+        arm_interface = std::make_unique<ARM_Dynarmic>(exclusive_monitor, core_index);
 #else
-        arm_interface = std::make_shared<ARM_Unicorn>();
+        arm_interface = std::make_unique<ARM_Unicorn>();
         LOG_WARNING(Core, "CPU JIT requested, but Dynarmic not available");
 #endif
     } else {
-        arm_interface = std::make_shared<ARM_Unicorn>();
+        arm_interface = std::make_unique<ARM_Unicorn>();
     }
 
-    scheduler = std::make_shared<Kernel::Scheduler>(arm_interface.get());
+    scheduler = std::make_shared<Kernel::Scheduler>(*arm_interface);
 }
 
 Cpu::~Cpu() = default;
