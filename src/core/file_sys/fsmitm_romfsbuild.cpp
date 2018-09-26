@@ -345,7 +345,7 @@ std::map<u64, VirtualFile> RomFSBuildContext::Build() {
 
     std::vector<u8> header_data(sizeof(RomFSHeader));
     std::memcpy(header_data.data(), &header, header_data.size());
-    out.emplace(0, std::make_shared<VectorVfsFile>(header_data));
+    out.emplace(0, std::make_shared<VectorVfsFile>(std::move(header_data)));
 
     std::vector<u8> metadata(file_hash_table_size + file_table_size + dir_hash_table_size +
                              dir_table_size);
@@ -358,7 +358,7 @@ std::map<u64, VirtualFile> RomFSBuildContext::Build() {
                 file_hash_table.size() * sizeof(u32));
     index += file_hash_table.size() * sizeof(u32);
     std::memcpy(metadata.data() + index, file_table.data(), file_table.size());
-    out.emplace(header.dir_hash_table_ofs, std::make_shared<VectorVfsFile>(metadata));
+    out.emplace(header.dir_hash_table_ofs, std::make_shared<VectorVfsFile>(std::move(metadata)));
 
     return out;
 }
