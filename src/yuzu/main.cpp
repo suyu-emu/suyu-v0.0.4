@@ -1055,11 +1055,21 @@ void GMainWindow::OnMenuInstallToNAND() {
             return;
         }
 
-        if (index >= 5)
-            index += 0x7B;
+        // If index is equal to or past Game, add the jump in TitleType.
+        if (index >= 5) {
+            index += static_cast<size_t>(FileSys::TitleType::Application) -
+                     static_cast<size_t>(FileSys::TitleType::FirmwarePackageB);
+        }
 
-        const auto res = Service::FileSystem::GetUserNANDContents()->InstallEntry(
-            nca, static_cast<FileSys::TitleType>(index), false, qt_raw_copy);
+        FileSys::InstallResult res;
+        if (index >= static_cast<size_t>(FileSys::TitleType::Application)) {
+            res = Service::FileSystem::GetUserNANDContents()->InstallEntry(
+                nca, static_cast<FileSys::TitleType>(index), false, qt_raw_copy);
+        } else {
+            res = Service::FileSystem::GetSystemNANDContents()->InstallEntry(
+                nca, static_cast<FileSys::TitleType>(index), false, qt_raw_copy);
+        }
+
         if (res == FileSys::InstallResult::Success) {
             success();
         } else if (res == FileSys::InstallResult::ErrorAlreadyExists) {
