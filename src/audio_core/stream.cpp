@@ -53,8 +53,8 @@ void Stream::Stop() {
     ASSERT_MSG(false, "Unimplemented");
 }
 
-u32 Stream::GetState() const {
-    return static_cast<u32>(state);
+Stream::State Stream::GetState() const {
+    return state;
 }
 
 s64 Stream::GetBufferReleaseCycles(const Buffer& buffer) const {

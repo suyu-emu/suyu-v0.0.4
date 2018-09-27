@@ -79,7 +79,7 @@ u32 AudioRenderer::GetMixBufferCount() const {
     return worker_params.mix_buffer_count;
 }
 
-u32 AudioRenderer::GetState() const {
+Stream::State AudioRenderer::GetStreamState() const {
     return stream->GetState();
 }
 

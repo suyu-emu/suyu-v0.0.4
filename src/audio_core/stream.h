@@ -33,6 +33,12 @@ public:
         Multi51Channel16,
     };
 
+    /// Current state of the stream
+    enum class State {
+        Stopped,
+        Playing,
+    };
+
     /// Callback function type, used to change guest state on a buffer being released
     using ReleaseCallback = std::function<void()>;
 
@@ -73,15 +79,9 @@ public:
     u32 GetNumChannels() const;
 
     /// Get the state
-    u32 GetState() const;
+    State GetState() const;
 
 private:
-    /// Current state of the stream
-    enum class State {
-        Stopped,
-        Playing,
-    };
-
     /// Plays the next queued buffer in the audio stream, starting playback if necessary
     void PlayNextBuffer();
 
