@@ -30,7 +30,7 @@ AOC_U::AOC_U() : ServiceFramework("aoc:u") {
         {2, &AOC_U::CountAddOnContent, "CountAddOnContent"},
         {3, &AOC_U::ListAddOnContent, "ListAddOnContent"},
         {4, nullptr, "GetAddOnContentBaseIdByApplicationId"},
-        {5, nullptr, "GetAddOnContentBaseId"},
+        {5, &AOC_U::GetAddOnContentBaseId, "GetAddOnContentBaseId"},
         {6, nullptr, "PrepareAddOnContentByApplicationId"},
         {7, &AOC_U::PrepareAddOnContent, "PrepareAddOnContent"},
         {8, nullptr, "GetAddOnContentListChangedEvent"},
@@ -95,10 +95,11 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
 }
 
+void AOC_U::GetAddOnContentBaseId(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
-    rb.Push<u64>(0);
-    LOG_WARNING(Service_AOC, "(STUBBED) called");
+    rb.Push(Core::System::GetInstance().CurrentProcess()->program_id | DLC_BASE_TO_AOC_ID_MASK);
+}
 
 void AOC_U::PrepareAddOnContent(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};

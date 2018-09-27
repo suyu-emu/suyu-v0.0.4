@@ -33,7 +33,7 @@ std::string FormatTitleVersion(u32 version, TitleVersionFormat format) {
     return fmt::format("v{}.{}.{}", bytes[3], bytes[2], bytes[1]);
 }
 
-constexpr std::array<const char*, 2> PATCH_TYPE_NAMES{
+constexpr std::array<const char*, 3> PATCH_TYPE_NAMES{
     "Update",
     "LayeredFS",
     "DLC",
@@ -141,7 +141,7 @@ std::map<PatchType, std::string> PatchManager::GetPatchVersionNames() const {
     std::map<PatchType, std::string> out;
     const auto installed = Service::FileSystem::GetUnionContents();
 
-    // Update
+    // Game Updates
     const auto update_tid = GetUpdateTitleID(title_id);
     PatchManager update{update_tid};
     auto [nacp, discard_icon_file] = update.GetControlMetadata();
@@ -160,6 +160,7 @@ std::map<PatchType, std::string> PatchManager::GetPatchVersionNames() const {
         }
     }
 
+    // LayeredFS
     const auto lfs_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
     if (lfs_dir != nullptr && lfs_dir->GetSize() > 0)
         out.insert_or_assign(PatchType::LayeredFS, "");
