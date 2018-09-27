@@ -22,6 +22,7 @@
 #include "yuzu/compatibility_list.h"
 
 class GameListWorker;
+class GameListSearchField;
 class GMainWindow;
 
 namespace FileSys {
@@ -44,33 +45,6 @@ public:
         COLUMN_FILE_TYPE,
         COLUMN_SIZE,
         COLUMN_COUNT, // Number of columns
-    };
-
-    class SearchField : public QWidget {
-    public:
-        void setFilterResult(int visible, int total);
-        void clear();
-        void setFocus();
-        explicit SearchField(GameList* parent = nullptr);
-
-    private:
-        class KeyReleaseEater : public QObject {
-        public:
-            explicit KeyReleaseEater(GameList* gamelist);
-
-        private:
-            GameList* gamelist = nullptr;
-            QString edit_filter_text_old;
-
-        protected:
-            bool eventFilter(QObject* obj, QEvent* event) override;
-        };
-        QHBoxLayout* layout_filter = nullptr;
-        QTreeView* tree_view = nullptr;
-        QLabel* label_filter = nullptr;
-        QLineEdit* edit_filter = nullptr;
-        QLabel* label_filter_result = nullptr;
-        QToolButton* button_filter_close = nullptr;
     };
 
     explicit GameList(std::shared_ptr<FileSys::VfsFilesystem> vfs, GMainWindow* parent = nullptr);
@@ -110,7 +84,7 @@ private:
     void RefreshGameDirectory();
 
     std::shared_ptr<FileSys::VfsFilesystem> vfs;
-    SearchField* search_field;
+    GameListSearchField* search_field;
     GMainWindow* main_window = nullptr;
     QVBoxLayout* layout = nullptr;
     QTreeView* tree_view = nullptr;
@@ -118,6 +92,8 @@ private:
     GameListWorker* current_worker = nullptr;
     QFileSystemWatcher* watcher = nullptr;
     CompatibilityList compatibility_list;
+
+    friend class GameListSearchField;
 };
 
 Q_DECLARE_METATYPE(GameListOpenTarget);
