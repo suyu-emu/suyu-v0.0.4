@@ -641,7 +641,11 @@ public:
 
                 u32 vb_element_base;
 
-                INSERT_PADDING_WORDS(0x40);
+                INSERT_PADDING_WORDS(0x38);
+
+                float point_size;
+
+                INSERT_PADDING_WORDS(0x7);
 
                 u32 zeta_enable;
 
@@ -1017,6 +1021,7 @@ ASSERT_REG_POSITION(stencil_front_func_mask, 0x4E6);
 ASSERT_REG_POSITION(stencil_front_mask, 0x4E7);
 ASSERT_REG_POSITION(screen_y_control, 0x4EB);
 ASSERT_REG_POSITION(vb_element_base, 0x50D);
+ASSERT_REG_POSITION(point_size, 0x546);
 ASSERT_REG_POSITION(zeta_enable, 0x54E);
 ASSERT_REG_POSITION(tsc, 0x557);
 ASSERT_REG_POSITION(tic, 0x55D);

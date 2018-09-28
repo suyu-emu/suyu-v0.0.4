@@ -141,6 +141,10 @@ public:
         GLsizei height;
     } viewport;
 
+    struct {
+        float size; // GL_POINT_SIZE
+    } point;
+
     std::array<bool, 2> clip_distance; // GL_CLIP_DISTANCE
 
     OpenGLState();

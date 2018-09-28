@@ -164,6 +164,9 @@ private:
     /// Syncs the transform feedback state to match the guest state
     void SyncTransformFeedback();
 
+    /// Syncs the point state to match the guest state
+    void SyncPointState();
+
     bool has_ARB_direct_state_access = false;
     bool has_ARB_multi_bind = false;
     bool has_ARB_separate_shader_objects = false;
