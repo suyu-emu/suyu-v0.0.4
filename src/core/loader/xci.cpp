@@ -9,8 +9,6 @@
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
-#include "core/file_sys/romfs.h"
-#include "core/file_sys/submission_package.h"
 #include "core/hle/kernel/process.h"
 #include "core/loader/nca.h"
 #include "core/loader/xci.h"
@@ -46,7 +44,7 @@ FileType AppLoader_XCI::IdentifyType(const FileSys::VirtualFile& file) {
     return FileType::Error;
 }
 
-ResultStatus AppLoader_XCI::Load(Kernel::SharedPtr<Kernel::Process>& process) {
+ResultStatus AppLoader_XCI::Load(Kernel::Process& process) {
     if (is_loaded) {
         return ResultStatus::ErrorAlreadyLoaded;
     }

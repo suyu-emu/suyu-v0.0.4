@@ -30,7 +30,7 @@ FileType AppLoader_NCA::IdentifyType(const FileSys::VirtualFile& file) {
     return FileType::Error;
 }
 
-ResultStatus AppLoader_NCA::Load(Kernel::SharedPtr<Kernel::Process>& process) {
+ResultStatus AppLoader_NCA::Load(Kernel::Process& process) {
     if (is_loaded) {
         return ResultStatus::ErrorAlreadyLoaded;
     }

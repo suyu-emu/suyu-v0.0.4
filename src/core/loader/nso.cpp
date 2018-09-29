@@ -153,17 +153,17 @@ VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base) {
     return load_base + image_size;
 }
 
-ResultStatus AppLoader_NSO::Load(Kernel::SharedPtr<Kernel::Process>& process) {
+ResultStatus AppLoader_NSO::Load(Kernel::Process& process) {
     if (is_loaded) {
         return ResultStatus::ErrorAlreadyLoaded;
     }
 
     // Load module
-    const VAddr base_address = process->vm_manager.GetCodeRegionBaseAddress();
+    const VAddr base_address = process.vm_manager.GetCodeRegionBaseAddress();
     LoadModule(file, base_address);
     LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", file->GetName(), base_address);
 
-    process->Run(base_address, Kernel::THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE);
+    process.Run(base_address, Kernel::THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE);
 
     is_loaded = true;
     return ResultStatus::Success;

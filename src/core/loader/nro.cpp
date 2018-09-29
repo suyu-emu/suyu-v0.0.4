@@ -175,19 +175,19 @@ bool AppLoader_NRO::LoadNro(FileSys::VirtualFile file, VAddr load_base) {
     return true;
 }
 
-ResultStatus AppLoader_NRO::Load(Kernel::SharedPtr<Kernel::Process>& process) {
+ResultStatus AppLoader_NRO::Load(Kernel::Process& process) {
     if (is_loaded) {
         return ResultStatus::ErrorAlreadyLoaded;
     }
 
     // Load NRO
-    const VAddr base_address = process->vm_manager.GetCodeRegionBaseAddress();
+    const VAddr base_address = process.vm_manager.GetCodeRegionBaseAddress();
 
     if (!LoadNro(file, base_address)) {
         return ResultStatus::ErrorLoadingNRO;
     }
 
-    process->Run(base_address, Kernel::THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE);
+    process.Run(base_address, Kernel::THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE);
 
     is_loaded = true;
     return ResultStatus::Success;

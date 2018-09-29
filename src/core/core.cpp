@@ -202,7 +202,7 @@ struct System::Impl {
             return init_result;
         }
 
-        const Loader::ResultStatus load_result{app_loader->Load(kernel.CurrentProcess())};
+        const Loader::ResultStatus load_result{app_loader->Load(*kernel.CurrentProcess())};
         if (load_result != Loader::ResultStatus::Success) {
             LOG_CRITICAL(Core, "Failed to load ROM (Error {})!", static_cast<int>(load_result));
             Shutdown();

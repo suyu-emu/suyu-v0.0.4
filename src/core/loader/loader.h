@@ -12,7 +12,6 @@
 #include <boost/optional.hpp>
 #include "common/common_types.h"
 #include "core/file_sys/vfs.h"
-#include "core/hle/kernel/object.h"
 
 namespace Kernel {
 struct AddressMapping;
@@ -136,7 +135,7 @@ public:
      * @param process The newly created process.
      * @return The status result of the operation.
      */
-    virtual ResultStatus Load(Kernel::SharedPtr<Kernel::Process>& process) = 0;
+    virtual ResultStatus Load(Kernel::Process& process) = 0;
 
     /**
      * Loads the system mode that this application needs.
