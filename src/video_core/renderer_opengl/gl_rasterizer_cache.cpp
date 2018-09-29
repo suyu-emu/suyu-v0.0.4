@@ -1061,6 +1061,14 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& old_surface,
         const u32 byte_stride{old_params.rt.layer_stride *
                               (SurfaceParams::GetFormatBpp(old_params.pixel_format) / CHAR_BIT)};
 
+        if (old_params.rt.array_mode != 1) {
+            // TODO(bunnei): This is used by Breath of the Wild, I'm not sure how to implement this
+            // yet (array rendering used as a cubemap texture).
+            LOG_CRITICAL(HW_GPU, "Unhandled rendertarget array_mode {}", old_params.rt.array_mode);
+            UNREACHABLE();
+            return new_surface;
+        }
+
         // This seems to be used for render-to-cubemap texture
         const std::size_t size_with_mipmaps{new_params.SizeInBytes2DWithMipmap()};
         ASSERT_MSG(size_with_mipmaps == byte_stride, "Unexpected");
