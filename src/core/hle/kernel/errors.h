@@ -31,6 +31,7 @@ enum {
     TooLarge = 119,
     InvalidEnumValue = 120,
     NoSuchEntry = 121,
+    AlreadyRegistered = 122,
     InvalidState = 125,
     ResourceLimitExceeded = 132,
 };
@@ -58,6 +59,7 @@ constexpr ResultCode ERR_INVALID_MEMORY_PERMISSIONS(ErrorModule::Kernel,
 constexpr ResultCode ERR_INVALID_HANDLE(ErrorModule::Kernel, ErrCodes::InvalidHandle);
 constexpr ResultCode ERR_INVALID_PROCESSOR_ID(ErrorModule::Kernel, ErrCodes::InvalidProcessorId);
 constexpr ResultCode ERR_INVALID_SIZE(ErrorModule::Kernel, ErrCodes::InvalidSize);
+constexpr ResultCode ERR_ALREADY_REGISTERED(ErrorModule::Kernel, ErrCodes::AlreadyRegistered);
 constexpr ResultCode ERR_INVALID_STATE(ErrorModule::Kernel, ErrCodes::InvalidState);
 constexpr ResultCode ERR_INVALID_THREAD_PRIORITY(ErrorModule::Kernel,
                                                  ErrCodes::InvalidThreadPriority);

@@ -415,8 +415,36 @@ static ResultCode SetThreadActivity(Handle handle, u32 unknown) {
 }
 
 /// Gets the thread context
-static ResultCode GetThreadContext(Handle handle, VAddr addr) {
-    LOG_WARNING(Kernel_SVC, "(STUBBED) called, handle=0x{:08X}, addr=0x{:X}", handle, addr);
+static ResultCode GetThreadContext(VAddr thread_context, Handle handle) {
+    LOG_DEBUG(Kernel_SVC, "called, context=0x{:08X}, thread=0x{:X}", thread_context, handle);
+
+    auto& kernel = Core::System::GetInstance().Kernel();
+    const SharedPtr<Thread> thread = kernel.HandleTable().Get<Thread>(handle);
+    if (!thread) {
+        return ERR_INVALID_HANDLE;
+    }
+
+    const auto current_process = Core::CurrentProcess();
+    if (thread->owner_process != current_process) {
+        return ERR_INVALID_HANDLE;
+    }
+
+    if (thread == GetCurrentThread()) {
+        return ERR_ALREADY_REGISTERED;
+    }
+
+    Core::ARM_Interface::ThreadContext ctx = thread->context;
+    // Mask away mode bits, interrupt bits, IL bit, and other reserved bits.
+    ctx.pstate &= 0xFF0FFE20;
+
+    // If 64-bit, we can just write the context registers directly and we're good.
+    // However, if 32-bit, we have to ensure some registers are zeroed out.
+    if (!current_process->Is64BitProcess()) {
+        std::fill(ctx.cpu_registers.begin() + 15, ctx.cpu_registers.end(), 0);
+        std::fill(ctx.vector_registers.begin() + 16, ctx.vector_registers.end(), u128{});
+    }
+
+    Memory::WriteBlock(thread_context, &ctx, sizeof(ctx));
     return RESULT_SUCCESS;
 }
 
