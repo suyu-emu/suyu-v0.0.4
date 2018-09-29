@@ -189,6 +189,11 @@ public:
         return is_virtual_address_memory_enabled;
     }
 
+    /// Whether this process is an AArch64 or AArch32 process.
+    bool Is64BitProcess() const {
+        return is_64bit_process;
+    }
+
     /**
      * Loads process-specifics configuration info with metadata provided
      * by an executable.
@@ -286,6 +291,11 @@ private:
     /// page as a bitmask.
     /// This vector will grow as more pages are allocated for new threads.
     std::vector<std::bitset<8>> tls_slots;
+
+    /// Whether or not this process is AArch64, or AArch32.
+    /// By default, we currently assume this is true, unless otherwise
+    /// specified by metadata provided to the process during loading.
+    bool is_64bit_process = true;
 
     std::string name;
 };
