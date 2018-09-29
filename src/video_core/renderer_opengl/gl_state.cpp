@@ -79,6 +79,8 @@ OpenGLState::OpenGLState() {
     viewport.height = 0;
 
     clip_distance = {};
+
+    point.size = 1;
 }
 
 void OpenGLState::Apply() const {
@@ -299,6 +301,11 @@ void OpenGLState::Apply() const {
                 glDisable(GL_CLIP_DISTANCE0 + static_cast<GLenum>(i));
             }
         }
+    }
+
+    // Point
+    if (point.size != cur_state.point.size) {
+        glPointSize(point.size);
     }
 
     cur_state = *this;

@@ -452,6 +452,7 @@ void RasterizerOpenGL::DrawArrays() {
     SyncCullMode();
     SyncAlphaTest();
     SyncTransformFeedback();
+    SyncPointState();
 
     // TODO(bunnei): Sync framebuffer_scale uniform here
     // TODO(bunnei): Sync scissorbox uniform(s) here
@@ -903,6 +904,12 @@ void RasterizerOpenGL::SyncTransformFeedback() {
         LOG_CRITICAL(Render_OpenGL, "Transform feedbacks are not implemented");
         UNREACHABLE();
     }
+}
+
+void RasterizerOpenGL::SyncPointState() {
+    const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
+
+    state.point.size = regs.point_size;
 }
 
 } // namespace OpenGL
