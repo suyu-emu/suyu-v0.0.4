@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <array>
 #include <cstddef>
 #include <string>
 #include <tuple>
+#include <vector>
 #include <boost/icl/interval_map.hpp>
 #include "common/common_types.h"
 #include "core/memory_hook.h"
@@ -23,10 +23,8 @@ namespace Memory {
  * be mapped.
  */
 constexpr std::size_t PAGE_BITS = 12;
-constexpr u64 PAGE_SIZE = 1 << PAGE_BITS;
+constexpr u64 PAGE_SIZE = 1ULL << PAGE_BITS;
 constexpr u64 PAGE_MASK = PAGE_SIZE - 1;
-constexpr std::size_t ADDRESS_SPACE_BITS = 36;
-constexpr std::size_t PAGE_TABLE_NUM_ENTRIES = 1ULL << (ADDRESS_SPACE_BITS - PAGE_BITS);
 
 enum class PageType : u8 {
     /// Page is unmapped and should cause an access error.
@@ -62,32 +60,39 @@ struct SpecialRegion {
  * mimics the way a real CPU page table works.
  */
 struct PageTable {
-    /**
-     * Array of memory pointers backing each page. An entry can only be non-null if the
-     * corresponding entry in the `attributes` array is of type `Memory`.
-     */
-    std::array<u8*, PAGE_TABLE_NUM_ENTRIES> pointers;
+    explicit PageTable();
+    explicit PageTable(std::size_t address_space_width_in_bits);
+    ~PageTable();
 
     /**
-     * Contains MMIO handlers that back memory regions whose entries in the `attribute` array is of
-     * type `Special`.
+     * Resizes the page table to be able to accomodate enough pages within
+     * a given address space.
+     *
+     * @param address_space_width_in_bits The address size width in bits.
+     */
+    void Resize(std::size_t address_space_width_in_bits);
+
+    /**
+     * Vector of memory pointers backing each page. An entry can only be non-null if the
+     * corresponding entry in the `attributes` vector is of type `Memory`.
+     */
+    std::vector<u8*> pointers;
+
+    /**
+     * Contains MMIO handlers that back memory regions whose entries in the `attribute` vector is
+     * of type `Special`.
      */
     boost::icl::interval_map<VAddr, std::set<SpecialRegion>> special_regions;
 
     /**
-     * Array of fine grained page attributes. If it is set to any value other than `Memory`, then
+     * Vector of fine grained page attributes. If it is set to any value other than `Memory`, then
      * the corresponding entry in `pointers` MUST be set to null.
      */
-    std::array<PageType, PAGE_TABLE_NUM_ENTRIES> attributes;
+    std::vector<PageType> attributes;
 };
 
 /// Virtual user-space memory regions
 enum : VAddr {
-    /// Where the application text, data and bss reside.
-    PROCESS_IMAGE_VADDR = 0x08000000,
-    PROCESS_IMAGE_MAX_SIZE = 0x08000000,
-    PROCESS_IMAGE_VADDR_END = PROCESS_IMAGE_VADDR + PROCESS_IMAGE_MAX_SIZE,
-
     /// Read-only page containing kernel and system configuration values.
     CONFIG_MEMORY_VADDR = 0x1FF80000,
     CONFIG_MEMORY_SIZE = 0x00001000,
@@ -98,35 +103,11 @@ enum : VAddr {
     SHARED_PAGE_SIZE = 0x00001000,
     SHARED_PAGE_VADDR_END = SHARED_PAGE_VADDR + SHARED_PAGE_SIZE,
 
-    /// Area where TLS (Thread-Local Storage) buffers are allocated.
-    TLS_AREA_VADDR = 0x40000000,
+    /// TLS (Thread-Local Storage) related.
     TLS_ENTRY_SIZE = 0x200,
-    TLS_AREA_SIZE = 0x10000000,
-    TLS_AREA_VADDR_END = TLS_AREA_VADDR + TLS_AREA_SIZE,
 
     /// Application stack
-    STACK_AREA_VADDR = TLS_AREA_VADDR_END,
-    STACK_AREA_SIZE = 0x10000000,
-    STACK_AREA_VADDR_END = STACK_AREA_VADDR + STACK_AREA_SIZE,
     DEFAULT_STACK_SIZE = 0x100000,
-
-    /// Application heap
-    /// Size is confirmed to be a static value on fw 3.0.0
-    HEAP_VADDR = 0x108000000,
-    HEAP_SIZE = 0x180000000,
-    HEAP_VADDR_END = HEAP_VADDR + HEAP_SIZE,
-
-    /// New map region
-    /// Size is confirmed to be a static value on fw 3.0.0
-    NEW_MAP_REGION_VADDR = HEAP_VADDR_END,
-    NEW_MAP_REGION_SIZE = 0x80000000,
-    NEW_MAP_REGION_VADDR_END = NEW_MAP_REGION_VADDR + NEW_MAP_REGION_SIZE,
-
-    /// Map region
-    /// Size is confirmed to be a static value on fw 3.0.0
-    MAP_REGION_VADDR = NEW_MAP_REGION_VADDR_END,
-    MAP_REGION_SIZE = 0x1000000000,
-    MAP_REGION_VADDR_END = MAP_REGION_VADDR + MAP_REGION_SIZE,
 
     /// Kernel Virtual Address Range
     KERNEL_REGION_VADDR = 0xFFFFFF8000000000,

@@ -51,8 +51,9 @@ static ResultCode SetHeapSize(VAddr* heap_addr, u64 heap_size) {
     }
 
     auto& process = *Core::CurrentProcess();
+    const VAddr heap_base = process.vm_manager.GetHeapRegionBaseAddress();
     CASCADE_RESULT(*heap_addr,
-                   process.HeapAllocate(Memory::HEAP_VADDR, heap_size, VMAPermission::ReadWrite));
+                   process.HeapAllocate(heap_base, heap_size, VMAPermission::ReadWrite));
     return RESULT_SUCCESS;
 }
 
@@ -325,26 +326,27 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
     LOG_TRACE(Kernel_SVC, "called info_id=0x{:X}, info_sub_id=0x{:X}, handle=0x{:08X}", info_id,
               info_sub_id, handle);
 
-    const auto& vm_manager = Core::CurrentProcess()->vm_manager;
+    const auto& current_process = Core::CurrentProcess();
+    const auto& vm_manager = current_process->vm_manager;
 
     switch (static_cast<GetInfoType>(info_id)) {
     case GetInfoType::AllowedCpuIdBitmask:
-        *result = Core::CurrentProcess()->allowed_processor_mask;
+        *result = current_process->allowed_processor_mask;
         break;
     case GetInfoType::AllowedThreadPrioBitmask:
-        *result = Core::CurrentProcess()->allowed_thread_priority_mask;
+        *result = current_process->allowed_thread_priority_mask;
         break;
     case GetInfoType::MapRegionBaseAddr:
-        *result = Memory::MAP_REGION_VADDR;
+        *result = vm_manager.GetMapRegionBaseAddress();
         break;
     case GetInfoType::MapRegionSize:
-        *result = Memory::MAP_REGION_SIZE;
+        *result = vm_manager.GetMapRegionSize();
         break;
     case GetInfoType::HeapRegionBaseAddr:
-        *result = Memory::HEAP_VADDR;
+        *result = vm_manager.GetHeapRegionBaseAddress();
         break;
     case GetInfoType::HeapRegionSize:
-        *result = Memory::HEAP_SIZE;
+        *result = vm_manager.GetHeapRegionSize();
         break;
     case GetInfoType::TotalMemoryUsage:
         *result = vm_manager.GetTotalMemoryUsage();
@@ -359,22 +361,35 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
         *result = 0;
         break;
     case GetInfoType::AddressSpaceBaseAddr:
-        *result = vm_manager.GetAddressSpaceBaseAddr();
+        *result = vm_manager.GetCodeRegionBaseAddress();
         break;
-    case GetInfoType::AddressSpaceSize:
-        *result = vm_manager.GetAddressSpaceSize();
+    case GetInfoType::AddressSpaceSize: {
+        const u64 width = vm_manager.GetAddressSpaceWidth();
+
+        switch (width) {
+        case 32:
+            *result = 0xFFE00000;
+            break;
+        case 36:
+            *result = 0xFF8000000;
+            break;
+        case 39:
+            *result = 0x7FF8000000;
+            break;
+        }
         break;
+    }
     case GetInfoType::NewMapRegionBaseAddr:
-        *result = Memory::NEW_MAP_REGION_VADDR;
+        *result = vm_manager.GetNewMapRegionBaseAddress();
         break;
     case GetInfoType::NewMapRegionSize:
-        *result = Memory::NEW_MAP_REGION_SIZE;
+        *result = vm_manager.GetNewMapRegionSize();
         break;
     case GetInfoType::IsVirtualAddressMemoryEnabled:
-        *result = Core::CurrentProcess()->is_virtual_address_memory_enabled;
+        *result = current_process->is_virtual_address_memory_enabled;
         break;
     case GetInfoType::TitleId:
-        *result = Core::CurrentProcess()->program_id;
+        *result = current_process->program_id;
         break;
     case GetInfoType::PrivilegedProcessId:
         LOG_WARNING(Kernel_SVC,

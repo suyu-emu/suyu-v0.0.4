@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "core/core.h"
 #include "core/hle/kernel/process.h"
 #include "core/memory.h"
@@ -16,9 +18,10 @@ TestEnvironment::TestEnvironment(bool mutable_memory_)
     Core::CurrentProcess() = Kernel::Process::Create(kernel, "");
     page_table = &Core::CurrentProcess()->vm_manager.page_table;
 
-    page_table->pointers.fill(nullptr);
+    std::fill(page_table->pointers.begin(), page_table->pointers.end(), nullptr);
     page_table->special_regions.clear();
-    page_table->attributes.fill(Memory::PageType::Unmapped);
+    std::fill(page_table->attributes.begin(), page_table->attributes.end(),
+              Memory::PageType::Unmapped);
 
     Memory::MapIoRegion(*page_table, 0x00000000, 0x80000000, test_memory);
     Memory::MapIoRegion(*page_table, 0x80000000, 0x80000000, test_memory);

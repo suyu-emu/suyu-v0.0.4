@@ -129,7 +129,8 @@ public:
 };
 
 std::unique_ptr<Dynarmic::A64::Jit> ARM_Dynarmic::MakeJit() const {
-    auto** const page_table = Core::CurrentProcess()->vm_manager.page_table.pointers.data();
+    auto& current_process = Core::CurrentProcess();
+    auto** const page_table = current_process->vm_manager.page_table.pointers.data();
 
     Dynarmic::A64::UserConfig config;
 
@@ -138,7 +139,7 @@ std::unique_ptr<Dynarmic::A64::Jit> ARM_Dynarmic::MakeJit() const {
 
     // Memory
     config.page_table = reinterpret_cast<void**>(page_table);
-    config.page_table_address_space_bits = Memory::ADDRESS_SPACE_BITS;
+    config.page_table_address_space_bits = current_process->vm_manager.GetAddressSpaceWidth();
     config.silently_mirror_page_table = false;
 
     // Multi-process state

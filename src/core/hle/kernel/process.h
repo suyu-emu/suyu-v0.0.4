@@ -17,6 +17,10 @@
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/vm_manager.h"
 
+namespace FileSys {
+class ProgramMetadata;
+}
+
 namespace Kernel {
 
 class KernelCore;
@@ -140,6 +144,14 @@ public:
     u32 GetProcessID() const {
         return process_id;
     }
+
+    /**
+     * Loads process-specifics configuration info with metadata provided
+     * by an executable.
+     *
+     * @param metadata The provided metadata to load process specific info.
+     */
+    void LoadFromMetadata(const FileSys::ProgramMetadata& metadata);
 
     /// Title ID corresponding to the process
     u64 program_id;

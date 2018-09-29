@@ -8,6 +8,7 @@
 #include "common/common_funcs.h"
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
@@ -34,12 +35,19 @@ SharedPtr<Process> Process::Create(KernelCore& kernel, std::string&& name) {
     process->name = std::move(name);
     process->flags.raw = 0;
     process->flags.memory_region.Assign(MemoryRegion::APPLICATION);
+    process->resource_limit = kernel.ResourceLimitForCategory(ResourceLimitCategory::APPLICATION);
     process->status = ProcessStatus::Created;
     process->program_id = 0;
     process->process_id = kernel.CreateNewProcessID();
+    process->svc_access_mask.set();
 
     kernel.AppendNewProcess(process);
     return process;
+}
+
+void Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata) {
+    program_id = metadata.GetTitleID();
+    vm_manager.Reset(metadata.GetAddressSpaceType());
 }
 
 void Process::ParseKernelCaps(const u32* kernel_caps, std::size_t len) {
@@ -119,7 +127,7 @@ void Process::Run(VAddr entry_point, s32 main_thread_priority, u32 stack_size) {
     // TODO(bunnei): This is heap area that should be allocated by the kernel and not mapped as part
     // of the user address space.
     vm_manager
-        .MapMemoryBlock(Memory::STACK_AREA_VADDR_END - stack_size,
+        .MapMemoryBlock(vm_manager.GetTLSIORegionEndAddress() - stack_size,
                         std::make_shared<std::vector<u8>>(stack_size, 0), 0, stack_size,
                         MemoryState::Mapped)
         .Unwrap();
@@ -185,6 +193,7 @@ static std::tuple<std::size_t, std::size_t, bool> FindFreeThreadLocalSlot(
 
 VAddr Process::MarkNextAvailableTLSSlotAsUsed(Thread& thread) {
     auto [available_page, available_slot, needs_allocation] = FindFreeThreadLocalSlot(tls_slots);
+    const VAddr tls_begin = vm_manager.GetTLSIORegionBaseAddress();
 
     if (needs_allocation) {
         tls_slots.emplace_back(0); // The page is completely available at the start
@@ -197,18 +206,17 @@ VAddr Process::MarkNextAvailableTLSSlotAsUsed(Thread& thread) {
 
         vm_manager.RefreshMemoryBlockMappings(tls_memory.get());
 
-        vm_manager.MapMemoryBlock(Memory::TLS_AREA_VADDR + available_page * Memory::PAGE_SIZE,
-                                  tls_memory, 0, Memory::PAGE_SIZE, MemoryState::ThreadLocal);
+        vm_manager.MapMemoryBlock(tls_begin + available_page * Memory::PAGE_SIZE, tls_memory, 0,
+                                  Memory::PAGE_SIZE, MemoryState::ThreadLocal);
     }
 
     tls_slots[available_page].set(available_slot);
 
-    return Memory::TLS_AREA_VADDR + available_page * Memory::PAGE_SIZE +
-           available_slot * Memory::TLS_ENTRY_SIZE;
+    return tls_begin + available_page * Memory::PAGE_SIZE + available_slot * Memory::TLS_ENTRY_SIZE;
 }
 
 void Process::FreeTLSSlot(VAddr tls_address) {
-    const VAddr tls_base = tls_address - Memory::TLS_AREA_VADDR;
+    const VAddr tls_base = tls_address - vm_manager.GetTLSIORegionBaseAddress();
     const VAddr tls_page = tls_base / Memory::PAGE_SIZE;
     const VAddr tls_slot = (tls_base % Memory::PAGE_SIZE) / Memory::TLS_ENTRY_SIZE;
 
@@ -232,8 +240,8 @@ void Process::LoadModule(SharedPtr<CodeSet> module_, VAddr base_addr) {
 }
 
 ResultVal<VAddr> Process::HeapAllocate(VAddr target, u64 size, VMAPermission perms) {
-    if (target < Memory::HEAP_VADDR || target + size > Memory::HEAP_VADDR_END ||
-        target + size < target) {
+    if (target < vm_manager.GetHeapRegionBaseAddress() ||
+        target + size > vm_manager.GetHeapRegionEndAddress() || target + size < target) {
         return ERR_INVALID_ADDRESS;
     }
 
@@ -268,8 +276,8 @@ ResultVal<VAddr> Process::HeapAllocate(VAddr target, u64 size, VMAPermission per
 }
 
 ResultCode Process::HeapFree(VAddr target, u32 size) {
-    if (target < Memory::HEAP_VADDR || target + size > Memory::HEAP_VADDR_END ||
-        target + size < target) {
+    if (target < vm_manager.GetHeapRegionBaseAddress() ||
+        target + size > vm_manager.GetHeapRegionEndAddress() || target + size < target) {
         return ERR_INVALID_ADDRESS;
     }
 

@@ -14,11 +14,9 @@
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/resource_limit.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/nso.h"
-#include "core/memory.h"
 
 namespace Loader {
 
@@ -127,12 +125,16 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
     metadata.Print();
 
     const FileSys::ProgramAddressSpaceType arch_bits{metadata.GetAddressSpaceType()};
-    if (arch_bits == FileSys::ProgramAddressSpaceType::Is32Bit) {
+    if (arch_bits == FileSys::ProgramAddressSpaceType::Is32Bit ||
+        arch_bits == FileSys::ProgramAddressSpaceType::Is32BitNoMap) {
         return ResultStatus::Error32BitISA;
     }
 
+    process->LoadFromMetadata(metadata);
+
     // Load NSO modules
-    VAddr next_load_addr{Memory::PROCESS_IMAGE_VADDR};
+    const VAddr base_address = process->vm_manager.GetCodeRegionBaseAddress();
+    VAddr next_load_addr = base_address;
     for (const auto& module : {"rtld", "main", "subsdk0", "subsdk1", "subsdk2", "subsdk3",
                                "subsdk4", "subsdk5", "subsdk6", "subsdk7", "sdk"}) {
         const FileSys::VirtualFile module_file = dir->GetFile(module);
@@ -145,13 +147,7 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
         }
     }
 
-    auto& kernel = Core::System::GetInstance().Kernel();
-    process->program_id = metadata.GetTitleID();
-    process->svc_access_mask.set();
-    process->resource_limit =
-        kernel.ResourceLimitForCategory(Kernel::ResourceLimitCategory::APPLICATION);
-    process->Run(Memory::PROCESS_IMAGE_VADDR, metadata.GetMainThreadPriority(),
-                 metadata.GetMainThreadStackSize());
+    process->Run(base_address, metadata.GetMainThreadPriority(), metadata.GetMainThreadStackSize());
 
     // Find the RomFS by searching for a ".romfs" file in this directory
     const auto& files = dir->GetFiles();

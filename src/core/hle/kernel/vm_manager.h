@@ -12,6 +12,10 @@
 #include "core/memory.h"
 #include "core/memory_hook.h"
 
+namespace FileSys {
+enum class ProgramAddressSpaceType : u8;
+}
+
 namespace Kernel {
 
 enum class VMAType : u8 {
@@ -111,12 +115,6 @@ struct VirtualMemoryArea {
 class VMManager final {
 public:
     /**
-     * The maximum amount of address space managed by the kernel.
-     * @todo This was selected arbitrarily, and should be verified for Switch OS.
-     */
-    static constexpr VAddr MAX_ADDRESS{0x1000000000ULL};
-
-    /**
      * A map covering the entirety of the managed address space, keyed by the `base` field of each
      * VMA. It must always be modified by splitting or merging VMAs, so that the invariant
      * `elem.base + elem.size == next.base` is preserved, and mergeable regions must always be
@@ -130,7 +128,7 @@ public:
     ~VMManager();
 
     /// Clears the address space map, re-initializing with a single free area.
-    void Reset();
+    void Reset(FileSys::ProgramAddressSpaceType type);
 
     /// Finds the VMA in which the given address is included in, or `vma_map.end()`.
     VMAHandle FindVMA(VAddr target) const;
@@ -195,11 +193,62 @@ public:
     /// Gets the total heap usage, used by svcGetInfo
     u64 GetTotalHeapUsage() const;
 
-    /// Gets the total address space base address, used by svcGetInfo
-    VAddr GetAddressSpaceBaseAddr() const;
+    /// Gets the address space base address
+    VAddr GetAddressSpaceBaseAddress() const;
 
-    /// Gets the total address space address size, used by svcGetInfo
+    /// Gets the address space end address
+    VAddr GetAddressSpaceEndAddress() const;
+
+    /// Gets the total address space address size in bytes
     u64 GetAddressSpaceSize() const;
+
+    /// Gets the address space width in bits.
+    u64 GetAddressSpaceWidth() const;
+
+    /// Gets the base address of the code region.
+    VAddr GetCodeRegionBaseAddress() const;
+
+    /// Gets the end address of the code region.
+    VAddr GetCodeRegionEndAddress() const;
+
+    /// Gets the total size of the code region in bytes.
+    u64 GetCodeRegionSize() const;
+
+    /// Gets the base address of the heap region.
+    VAddr GetHeapRegionBaseAddress() const;
+
+    /// Gets the end address of the heap region;
+    VAddr GetHeapRegionEndAddress() const;
+
+    /// Gets the total size of the heap region in bytes.
+    u64 GetHeapRegionSize() const;
+
+    /// Gets the base address of the map region.
+    VAddr GetMapRegionBaseAddress() const;
+
+    /// Gets the end address of the map region.
+    VAddr GetMapRegionEndAddress() const;
+
+    /// Gets the total size of the map region in bytes.
+    u64 GetMapRegionSize() const;
+
+    /// Gets the base address of the new map region.
+    VAddr GetNewMapRegionBaseAddress() const;
+
+    /// Gets the end address of the new map region.
+    VAddr GetNewMapRegionEndAddress() const;
+
+    /// Gets the total size of the new map region in bytes.
+    u64 GetNewMapRegionSize() const;
+
+    /// Gets the base address of the TLS IO region.
+    VAddr GetTLSIORegionBaseAddress() const;
+
+    /// Gets the end address of the TLS IO region.
+    VAddr GetTLSIORegionEndAddress() const;
+
+    /// Gets the total size of the TLS IO region in bytes.
+    u64 GetTLSIORegionSize() const;
 
     /// Each VMManager has its own page table, which is set as the main one when the owning process
     /// is scheduled.
@@ -240,5 +289,36 @@ private:
 
     /// Updates the pages corresponding to this VMA so they match the VMA's attributes.
     void UpdatePageTableForVMA(const VirtualMemoryArea& vma);
+
+    /// Initializes memory region ranges to adhere to a given address space type.
+    void InitializeMemoryRegionRanges(FileSys::ProgramAddressSpaceType type);
+
+    /// Clears the underlying map and page table.
+    void Clear();
+
+    /// Clears out the VMA map, unmapping any previously mapped ranges.
+    void ClearVMAMap();
+
+    /// Clears out the page table
+    void ClearPageTable();
+
+    u32 address_space_width = 0;
+    VAddr address_space_base = 0;
+    VAddr address_space_end = 0;
+
+    VAddr code_region_base = 0;
+    VAddr code_region_end = 0;
+
+    VAddr heap_region_base = 0;
+    VAddr heap_region_end = 0;
+
+    VAddr map_region_base = 0;
+    VAddr map_region_end = 0;
+
+    VAddr new_map_region_base = 0;
+    VAddr new_map_region_end = 0;
+
+    VAddr tls_io_region_base = 0;
+    VAddr tls_io_region_end = 0;
 };
 } // namespace Kernel

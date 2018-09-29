@@ -13,7 +13,7 @@
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/resource_limit.h"
+#include "core/hle/kernel/vm_manager.h"
 #include "core/loader/nso.h"
 #include "core/memory.h"
 
@@ -159,15 +159,11 @@ ResultStatus AppLoader_NSO::Load(Kernel::SharedPtr<Kernel::Process>& process) {
     }
 
     // Load module
-    LoadModule(file, Memory::PROCESS_IMAGE_VADDR);
-    LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", file->GetName(), Memory::PROCESS_IMAGE_VADDR);
+    const VAddr base_address = process->vm_manager.GetCodeRegionBaseAddress();
+    LoadModule(file, base_address);
+    LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", file->GetName(), base_address);
 
-    auto& kernel = Core::System::GetInstance().Kernel();
-    process->svc_access_mask.set();
-    process->resource_limit =
-        kernel.ResourceLimitForCategory(Kernel::ResourceLimitCategory::APPLICATION);
-    process->Run(Memory::PROCESS_IMAGE_VADDR, Kernel::THREADPRIO_DEFAULT,
-                 Memory::DEFAULT_STACK_SIZE);
+    process->Run(base_address, Kernel::THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE);
 
     is_loaded = true;
     return ResultStatus::Success;
