@@ -325,13 +325,6 @@ if (ENABLE_QT)
     find_package(Qt5 REQUIRED COMPONENTS Widgets OpenGL ${QT_PREFIX_HINT})
 endif()
 
-if (ENABLE_WEB_SERVICE)
-    add_definitions(-DENABLE_WEB_SERVICE)
-endif()
-if (YUZU_ENABLE_COMPATIBILITY_REPORTING)
-    add_definitions(-DYUZU_ENABLE_COMPATIBILITY_REPORTING)
-endif()
-
 # Platform-specific library requirements
 # ======================================
 
