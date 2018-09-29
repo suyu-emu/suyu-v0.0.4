@@ -22,10 +22,16 @@ public:
         std::array<u64, 31> cpu_registers;
         u64 sp;
         u64 pc;
-        u64 pstate;
+        u32 pstate;
+        std::array<u8, 4> padding;
         std::array<u128, 32> vector_registers;
-        u64 fpcr;
+        u32 fpcr;
+        u32 fpsr;
+        u64 tpidr;
     };
+    // Internally within the kernel, it expects the AArch64 version of the
+    // thread context to be 800 bytes in size.
+    static_assert(sizeof(ThreadContext) == 0x320);
 
     /// Runs the CPU until an event happens
     virtual void Run() = 0;

@@ -250,7 +250,7 @@ static void RegWrite(std::size_t id, u64 val, Kernel::Thread* thread = nullptr) 
     } else if (id == PC_REGISTER) {
         thread->context.pc = val;
     } else if (id == PSTATE_REGISTER) {
-        thread->context.pstate = val;
+        thread->context.pstate = static_cast<u32>(val);
     } else if (id > PSTATE_REGISTER && id < FPCR_REGISTER) {
         thread->context.vector_registers[id - (PSTATE_REGISTER + 1)][0] = val;
     }

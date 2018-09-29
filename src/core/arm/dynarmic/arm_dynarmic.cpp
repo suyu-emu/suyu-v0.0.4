@@ -247,15 +247,19 @@ void ARM_Dynarmic::SaveContext(ThreadContext& ctx) {
     ctx.pstate = jit->GetPstate();
     ctx.vector_registers = jit->GetVectors();
     ctx.fpcr = jit->GetFpcr();
+    ctx.fpsr = jit->GetFpsr();
+    ctx.tpidr = cb->tpidr_el0;
 }
 
 void ARM_Dynarmic::LoadContext(const ThreadContext& ctx) {
     jit->SetRegisters(ctx.cpu_registers);
     jit->SetSP(ctx.sp);
     jit->SetPC(ctx.pc);
-    jit->SetPstate(static_cast<u32>(ctx.pstate));
+    jit->SetPstate(ctx.pstate);
     jit->SetVectors(ctx.vector_registers);
-    jit->SetFpcr(static_cast<u32>(ctx.fpcr));
+    jit->SetFpcr(ctx.fpcr);
+    jit->SetFpsr(ctx.fpsr);
+    SetTPIDR_EL0(ctx.tpidr);
 }
 
 void ARM_Dynarmic::PrepareReschedule() {
