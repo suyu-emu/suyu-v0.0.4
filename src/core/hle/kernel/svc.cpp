@@ -51,7 +51,7 @@ static ResultCode SetHeapSize(VAddr* heap_addr, u64 heap_size) {
     }
 
     auto& process = *Core::CurrentProcess();
-    const VAddr heap_base = process.vm_manager.GetHeapRegionBaseAddress();
+    const VAddr heap_base = process.VMManager().GetHeapRegionBaseAddress();
     CASCADE_RESULT(*heap_addr,
                    process.HeapAllocate(heap_base, heap_size, VMAPermission::ReadWrite));
     return RESULT_SUCCESS;
@@ -327,14 +327,14 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
               info_sub_id, handle);
 
     const auto& current_process = Core::CurrentProcess();
-    const auto& vm_manager = current_process->vm_manager;
+    const auto& vm_manager = current_process->VMManager();
 
     switch (static_cast<GetInfoType>(info_id)) {
     case GetInfoType::AllowedCpuIdBitmask:
-        *result = current_process->allowed_processor_mask;
+        *result = current_process->GetAllowedProcessorMask();
         break;
     case GetInfoType::AllowedThreadPrioBitmask:
-        *result = current_process->allowed_thread_priority_mask;
+        *result = current_process->GetAllowedThreadPriorityMask();
         break;
     case GetInfoType::MapRegionBaseAddr:
         *result = vm_manager.GetMapRegionBaseAddress();
@@ -386,10 +386,10 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
         *result = vm_manager.GetNewMapRegionSize();
         break;
     case GetInfoType::IsVirtualAddressMemoryEnabled:
-        *result = current_process->is_virtual_address_memory_enabled;
+        *result = current_process->IsVirtualMemoryEnabled();
         break;
     case GetInfoType::TitleId:
-        *result = current_process->program_id;
+        *result = current_process->GetTitleID();
         break;
     case GetInfoType::PrivilegedProcessId:
         LOG_WARNING(Kernel_SVC,
@@ -444,8 +444,8 @@ static ResultCode SetThreadPriority(Handle handle, u32 priority) {
 
     // Note: The kernel uses the current process's resource limit instead of
     // the one from the thread owner's resource limit.
-    SharedPtr<ResourceLimit>& resource_limit = Core::CurrentProcess()->resource_limit;
-    if (resource_limit->GetMaxResourceValue(ResourceType::Priority) > priority) {
+    const ResourceLimit& resource_limit = Core::CurrentProcess()->GetResourceLimit();
+    if (resource_limit.GetMaxResourceValue(ResourceType::Priority) > priority) {
         return ERR_NOT_AUTHORIZED;
     }
 
@@ -519,9 +519,9 @@ static ResultCode QueryProcessMemory(MemoryInfo* memory_info, PageInfo* /*page_i
     if (!process) {
         return ERR_INVALID_HANDLE;
     }
-    auto vma = process->vm_manager.FindVMA(addr);
+    auto vma = process->VMManager().FindVMA(addr);
     memory_info->attributes = 0;
-    if (vma == Core::CurrentProcess()->vm_manager.vma_map.end()) {
+    if (vma == Core::CurrentProcess()->VMManager().vma_map.end()) {
         memory_info->base_address = 0;
         memory_info->permission = static_cast<u32>(VMAPermission::None);
         memory_info->size = 0;
@@ -568,14 +568,14 @@ static ResultCode CreateThread(Handle* out_handle, VAddr entry_point, u64 arg, V
         return ERR_INVALID_THREAD_PRIORITY;
     }
 
-    SharedPtr<ResourceLimit>& resource_limit = Core::CurrentProcess()->resource_limit;
-    if (resource_limit->GetMaxResourceValue(ResourceType::Priority) > priority) {
+    const ResourceLimit& resource_limit = Core::CurrentProcess()->GetResourceLimit();
+    if (resource_limit.GetMaxResourceValue(ResourceType::Priority) > priority) {
         return ERR_NOT_AUTHORIZED;
     }
 
     if (processor_id == THREADPROCESSORID_DEFAULT) {
         // Set the target CPU to the one specified in the process' exheader.
-        processor_id = Core::CurrentProcess()->ideal_processor;
+        processor_id = Core::CurrentProcess()->GetDefaultProcessorID();
         ASSERT(processor_id != THREADPROCESSORID_DEFAULT);
     }
 
@@ -902,10 +902,10 @@ static ResultCode SetThreadCoreMask(Handle thread_handle, u32 core, u64 mask) {
     }
 
     if (core == static_cast<u32>(THREADPROCESSORID_DEFAULT)) {
-        ASSERT(thread->owner_process->ideal_processor !=
+        ASSERT(thread->owner_process->GetDefaultProcessorID() !=
                static_cast<u8>(THREADPROCESSORID_DEFAULT));
         // Set the target CPU to the one specified in the process' exheader.
-        core = thread->owner_process->ideal_processor;
+        core = thread->owner_process->GetDefaultProcessorID();
         mask = 1ull << core;
     }
 

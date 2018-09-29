@@ -159,7 +159,7 @@ ResultStatus AppLoader_NSO::Load(Kernel::Process& process) {
     }
 
     // Load module
-    const VAddr base_address = process.vm_manager.GetCodeRegionBaseAddress();
+    const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
     LoadModule(file, base_address);
     LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", file->GetName(), base_address);
 

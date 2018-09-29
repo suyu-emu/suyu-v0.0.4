@@ -132,7 +132,7 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(Kernel::Process& process)
     process.LoadFromMetadata(metadata);
 
     // Load NSO modules
-    const VAddr base_address = process.vm_manager.GetCodeRegionBaseAddress();
+    const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
     VAddr next_load_addr = base_address;
     for (const auto& module : {"rtld", "main", "subsdk0", "subsdk1", "subsdk2", "subsdk3",
                                "subsdk4", "subsdk5", "subsdk6", "subsdk7", "sdk"}) {

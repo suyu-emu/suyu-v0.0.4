@@ -88,7 +88,7 @@ void Scheduler::SwitchContext(Thread* new_thread) {
 
         if (previous_process != current_thread->owner_process) {
             Core::CurrentProcess() = current_thread->owner_process;
-            SetCurrentPageTable(&Core::CurrentProcess()->vm_manager.page_table);
+            SetCurrentPageTable(&Core::CurrentProcess()->VMManager().page_table);
         }
 
         cpu_core.LoadContext(new_thread->context);

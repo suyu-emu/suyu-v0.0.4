@@ -395,7 +395,7 @@ ResultStatus AppLoader_ELF::Load(Kernel::Process& process) {
     if (buffer.size() != file->GetSize())
         return ResultStatus::ErrorIncorrectELFFileSize;
 
-    const VAddr base_address = process.vm_manager.GetCodeRegionBaseAddress();
+    const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
     ElfReader elf_reader(&buffer[0]);
     SharedPtr<CodeSet> codeset = elf_reader.LoadInto(base_address);
     codeset->name = file->GetName();
