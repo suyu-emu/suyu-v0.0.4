@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #pragma once
+
 #include <vector>
 #include "common/common_funcs.h"
 #include "common/common_types.h"
@@ -22,9 +23,10 @@ enum class Package2Type {
 
 class PartitionDataManager {
 public:
-    const static u8 MAX_KEYBLOB_SOURCE_HASH;
+    static const u8 MAX_KEYBLOB_SOURCE_HASH;
 
     explicit PartitionDataManager(FileSys::VirtualDir sysdata_dir);
+    ~PartitionDataManager();
 
     // BOOT0
     bool HasBoot0() const;
@@ -77,7 +79,7 @@ public:
     // PRODINFO
     bool HasProdInfo() const;
     FileSys::VirtualFile GetProdInfoRaw() const;
-    void DecryptProdInfo(std::array<u8, 0x10> bis_crypt, std::array<u8, 0x10> bis_tweak);
+    void DecryptProdInfo(std::array<u8, 0x20> bis_key);
     std::array<u8, 0x240> GetETicketExtendedKek() const;
 
 private:
@@ -98,7 +100,6 @@ private:
     std::array<std::vector<u8>, 6> package2_spl;
 };
 
-template <size_t key_size = 0x10>
-std::array<u8, key_size> FindKeyFromHex(const std::vector<u8>& binary, std::array<u8, 0x20> hash);
+std::array<u8, 0x10> FindKeyFromHex16(const std::vector<u8>& binary, std::array<u8, 0x20> hash);
 
 } // namespace Core::Crypto

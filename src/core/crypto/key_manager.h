@@ -11,8 +11,8 @@
 #include <boost/optional.hpp>
 #include <fmt/format.h>
 #include "common/common_types.h"
+#include "core/crypto/partition_data_manager.h"
 #include "core/file_sys/vfs_types.h"
-#include "partition_data_manager.h"
 
 namespace FileUtil {
 class IOFile;
@@ -154,11 +154,11 @@ public:
     // 8*43 and the private file to exist.
     void DeriveSDSeedLazy();
 
-    bool BaseDeriveNecessary();
+    bool BaseDeriveNecessary() const;
     void DeriveBase();
-    void DeriveETicket(PartitionDataManager data);
+    void DeriveETicket(PartitionDataManager& data);
 
-    void PopulateFromPartitionData(PartitionDataManager data);
+    void PopulateFromPartitionData(PartitionDataManager& data);
 
 private:
     std::map<KeyIndex<S128KeyType>, Key128> s128_keys;
@@ -175,6 +175,8 @@ private:
     void WriteKeyToFile(KeyCategory category, std::string_view keyname,
                         const std::array<u8, Size>& key);
 
+    void DeriveGeneralPurposeKeys(u8 crypto_revision);
+
     void SetKeyWrapped(S128KeyType id, Key128 key, u64 field1 = 0, u64 field2 = 0);
     void SetKeyWrapped(S256KeyType id, Key256 key, u64 field1 = 0, u64 field2 = 0);
 
@@ -183,7 +185,11 @@ private:
 };
 
 Key128 GenerateKeyEncryptionKey(Key128 source, Key128 master, Key128 kek_seed, Key128 key_seed);
-Key128 DeriveKeyblobKey(Key128 sbk, Key128 tsec, Key128 source);
+Key128 DeriveKeyblobKey(const Key128& sbk, const Key128& tsec, Key128 source);
+Key128 DeriveKeyblobMACKey(const Key128& keyblob_key, const Key128& mac_source);
+Key128 DeriveMasterKey(const std::array<u8, 0x90>& keyblob, const Key128& master_source);
+std::array<u8, 0x90> DecryptKeyblob(const std::array<u8, 0xB0>& encrypted_keyblob,
+                                    const Key128& key);
 
 boost::optional<Key128> DeriveSDSeed();
 Loader::ResultStatus DeriveSDKeys(std::array<Key256, 2>& sd_keys, KeyManager& keys);

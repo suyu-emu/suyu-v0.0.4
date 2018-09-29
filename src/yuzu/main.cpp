@@ -173,7 +173,7 @@ GMainWindow::GMainWindow()
     show();
 
     // Gen keys if necessary
-    OnReinitializeKeys(false);
+    OnReinitializeKeys(ReinitializeKeyBehavior::NoWarning);
 
     // Necessary to load titles from nand in gamelist.
     Service::FileSystem::CreateFactories(vfs);
@@ -448,7 +448,7 @@ void GMainWindow::ConnectMenuEvents() {
 
     // Help
     connect(ui.action_Rederive, &QAction::triggered, this,
-            std::bind(&GMainWindow::OnReinitializeKeys, this, true));
+            std::bind(&GMainWindow::OnReinitializeKeys, this, ReinitializeKeyBehavior::Warning));
     connect(ui.action_About, &QAction::triggered, this, &GMainWindow::OnAbout);
 }
 
@@ -1381,8 +1381,8 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
     }
 }
 
-void GMainWindow::OnReinitializeKeys(bool callouts) {
-    if (callouts) {
+void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
+    if (behavior == ReinitializeKeyBehavior::Warning) {
         const auto res = QMessageBox::information(
             this, tr("Confirm Key Rederivation"),
             tr("You are about to force rederive all of your keys. \nIf you do not know what this "
@@ -1408,33 +1408,30 @@ void GMainWindow::OnReinitializeKeys(bool callouts) {
         Core::Crypto::PartitionDataManager pdm{vfs->OpenDirectory(
             FileUtil::GetUserPath(FileUtil::UserPath::SysDataDir), FileSys::Mode::Read)};
 
-        const auto function = [this, &keys, &pdm]() {
+        const auto function = [this, &keys, &pdm] {
             keys.PopulateFromPartitionData(pdm);
             Service::FileSystem::CreateFactories(vfs);
             keys.DeriveETicket(pdm);
         };
 
-        std::vector<std::string> errors;
+        QString errors;
 
         if (!pdm.HasFuses())
-            errors.push_back("Missing fuses - Cannot derive SBK");
+            errors += tr("- Missing fuses - Cannot derive SBK\n");
         if (!pdm.HasBoot0())
-            errors.push_back("Missing BOOT0 - Cannot derive master keys");
+            errors += tr("- Missing BOOT0 - Cannot derive master keys\n");
         if (!pdm.HasPackage2())
-            errors.push_back("Missing BCPKG2-1-Normal-Main - Cannot derive general keys");
+            errors += tr("- Missing BCPKG2-1-Normal-Main - Cannot derive general keys\n");
         if (!pdm.HasProdInfo())
-            errors.push_back("Missing PRODINFO - Cannot derive title keys");
+            errors += tr("- Missing PRODINFO - Cannot derive title keys\n");
 
-        if (!errors.empty()) {
-            std::string error_str;
-            for (const auto& error : errors)
-                error_str += " - " + error + "\n";
+        if (!errors.isEmpty()) {
 
             QMessageBox::warning(
                 this, tr("Warning Missing Derivation Components"),
                 tr("The following are missing from your configuration that may hinder key "
                    "derivation. It will be attempted but may not complete.\n\n") +
-                    QString::fromStdString(error_str));
+                    errors);
         }
 
         QProgressDialog prog;
@@ -1455,7 +1452,7 @@ void GMainWindow::OnReinitializeKeys(bool callouts) {
 
     Service::FileSystem::CreateFactories(vfs);
 
-    if (callouts) {
+    if (behavior == ReinitializeKeyBehavior::Warning) {
         game_list->PopulateAsync(UISettings::values.gamedir, UISettings::values.gamedir_deepscan);
     }
 }

@@ -7,20 +7,24 @@
 // hash the new keyblob source and master key and add the hashes to
 // the arrays below.
 
+#include <algorithm>
 #include <array>
+#include <cctype>
+#include <cstring>
 #include <boost/optional/optional.hpp>
 #include <mbedtls/sha256.h>
 #include "common/assert.h"
+#include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
+#include "core/crypto/ctr_encryption_layer.h"
 #include "core/crypto/key_manager.h"
 #include "core/crypto/partition_data_manager.h"
+#include "core/crypto/xts_encryption_layer.h"
 #include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_offset.h"
-#include "ctr_encryption_layer.h"
-#include "xts_encryption_layer.h"
 
 using namespace Common;
 
@@ -72,7 +76,7 @@ struct KIPHeader {
 };
 static_assert(sizeof(KIPHeader) == 0x100, "KIPHeader has incorrect size.");
 
-const static std::array<SHA256Hash, 0x10> source_hashes{
+const std::array<SHA256Hash, 0x10> source_hashes{
     "B24BD293259DBC7AC5D63F88E60C59792498E6FC5443402C7FFE87EE8B61A3F0"_array32, // keyblob_mac_key_source
     "7944862A3A5C31C6720595EFD302245ABD1B54CCDCF33000557681E65C5664A4"_array32, // master_key_source
     "21E2DF100FC9E094DB51B47B9B1D6E94ED379DB8B547955BEF8FE08D8DD35603"_array32, // package2_key_source
@@ -91,7 +95,7 @@ const static std::array<SHA256Hash, 0x10> source_hashes{
     "FC02B9D37B42D7A1452E71444F1F700311D1132E301A83B16062E72A78175085"_array32, // rsa_kek_mask0
 };
 
-const static std::array<SHA256Hash, 0x20> keyblob_source_hashes{
+const std::array<SHA256Hash, 0x20> keyblob_source_hashes{
     "8A06FE274AC491436791FDB388BCDD3AB9943BD4DEF8094418CDAC150FD73786"_array32, // keyblob_key_source_00
     "2D5CAEB2521FEF70B47E17D6D0F11F8CE2C1E442A979AD8035832C4E9FBCCC4B"_array32, // keyblob_key_source_01
     "61C5005E713BAE780641683AF43E5F5C0E03671117F702F401282847D2FC6064"_array32, // keyblob_key_source_02
@@ -129,7 +133,7 @@ const static std::array<SHA256Hash, 0x20> keyblob_source_hashes{
     "0000000000000000000000000000000000000000000000000000000000000000"_array32, // keyblob_key_source_1F
 };
 
-const static std::array<SHA256Hash, 0x20> master_key_hashes{
+const std::array<SHA256Hash, 0x20> master_key_hashes{
     "0EE359BE3C864BB0782E1D70A718A0342C551EED28C369754F9C4F691BECF7CA"_array32, // master_key_00
     "4FE707B7E4ABDAF727C894AAF13B1351BFE2AC90D875F73B2E20FA94B9CC661E"_array32, // master_key_01
     "79277C0237A2252EC3DFAC1F7C359C2B3D121E9DB15BB9AB4C2B4408D2F3AE09"_array32, // master_key_02
@@ -167,7 +171,7 @@ const static std::array<SHA256Hash, 0x20> master_key_hashes{
     "0000000000000000000000000000000000000000000000000000000000000000"_array32, // master_key_1F
 };
 
-std::vector<u8> DecompressBLZ(const std::vector<u8>& in) {
+static std::vector<u8> DecompressBLZ(const std::vector<u8>& in) {
     const auto data_size = in.size() - 0xC;
 
     u32 compressed_size{};
@@ -226,10 +230,10 @@ std::vector<u8> DecompressBLZ(const std::vector<u8>& in) {
     return out;
 }
 
-u8 CalculateMaxKeyblobSourceHash() {
+static u8 CalculateMaxKeyblobSourceHash() {
     for (s8 i = 0x1F; i >= 0; --i) {
         if (keyblob_source_hashes[i] != SHA256Hash{})
-            return i + 1;
+            return static_cast<u8>(i + 1);
     }
 
     return 0;
@@ -238,10 +242,12 @@ u8 CalculateMaxKeyblobSourceHash() {
 const u8 PartitionDataManager::MAX_KEYBLOB_SOURCE_HASH = CalculateMaxKeyblobSourceHash();
 
 template <size_t key_size = 0x10>
-std::array<u8, key_size> FindKeyFromHex(const std::vector<u8>& binary, std::array<u8, 0x20> hash) {
-    std::array<u8, 0x20> temp{};
+std::array<u8, key_size> FindKeyFromHex(const std::vector<u8>& binary,
+                                        const std::array<u8, 0x20>& hash) {
     if (binary.size() < key_size)
         return {};
+
+    std::array<u8, 0x20> temp{};
     for (size_t i = 0; i < binary.size() - key_size; ++i) {
         mbedtls_sha256(binary.data() + i, key_size, temp.data(), 0);
 
@@ -256,19 +262,24 @@ std::array<u8, key_size> FindKeyFromHex(const std::vector<u8>& binary, std::arra
     return {};
 }
 
-std::array<Key128, 0x20> FindEncryptedMasterKeyFromHex(const std::vector<u8>& binary, Key128 key) {
-    SHA256Hash temp{};
-    Key128 dec_temp{};
+std::array<u8, 16> FindKeyFromHex16(const std::vector<u8>& binary, std::array<u8, 32> hash) {
+    return FindKeyFromHex<0x10>(binary, hash);
+}
+
+static std::array<Key128, 0x20> FindEncryptedMasterKeyFromHex(const std::vector<u8>& binary,
+                                                              const Key128& key) {
     if (binary.size() < 0x10)
         return {};
 
+    SHA256Hash temp{};
+    Key128 dec_temp{};
     std::array<Key128, 0x20> out{};
     AESCipher<Key128> cipher(key, Mode::ECB);
     for (size_t i = 0; i < binary.size() - 0x10; ++i) {
         cipher.Transcode(binary.data() + i, dec_temp.size(), dec_temp.data(), Op::Decrypt);
         mbedtls_sha256(dec_temp.data(), dec_temp.size(), temp.data(), 0);
 
-        for (size_t k = 0; k < 0x20; ++k) {
+        for (size_t k = 0; k < out.size(); ++k) {
             if (temp == master_key_hashes[k]) {
                 out[k] = dec_temp;
                 break;
@@ -282,7 +293,7 @@ std::array<Key128, 0x20> FindEncryptedMasterKeyFromHex(const std::vector<u8>& bi
 FileSys::VirtualFile FindFileInDirWithNames(const FileSys::VirtualDir& dir,
                                             const std::string& name) {
     auto upper = name;
-    std::transform(upper.begin(), upper.end(), upper.begin(), ::toupper);
+    std::transform(upper.begin(), upper.end(), upper.begin(), [](u8 c) { return std::toupper(c); });
     for (const auto& fname : {name, name + ".bin", upper, upper + ".BIN"}) {
         if (dir->GetFile(fname) != nullptr)
             return dir->GetFile(fname);
@@ -303,13 +314,15 @@ PartitionDataManager::PartitionDataManager(FileSys::VirtualDir sysdata_dir)
           FindFileInDirWithNames(sysdata_dir, "BCPKG2-5-Repair-Main"),
           FindFileInDirWithNames(sysdata_dir, "BCPKG2-6-Repair-Sub"),
       }),
-      secure_monitor(FindFileInDirWithNames(sysdata_dir, "sm")),
-      package1_decrypted(FindFileInDirWithNames(sysdata_dir, "pkg_decr")),
+      secure_monitor(FindFileInDirWithNames(sysdata_dir, "secmon")),
+      package1_decrypted(FindFileInDirWithNames(sysdata_dir, "pkg1_decr")),
       secure_monitor_bytes(secure_monitor == nullptr ? std::vector<u8>{}
                                                      : secure_monitor->ReadAllBytes()),
       package1_decrypted_bytes(package1_decrypted == nullptr ? std::vector<u8>{}
                                                              : package1_decrypted->ReadAllBytes()),
       prodinfo(FindFileInDirWithNames(sysdata_dir, "PRODINFO")) {}
+
+PartitionDataManager::~PartitionDataManager() = default;
 
 bool PartitionDataManager::HasBoot0() const {
     return boot0 != nullptr;
@@ -417,6 +430,22 @@ FileSys::VirtualFile PartitionDataManager::GetPackage2Raw(Package2Type type) con
     return package2.at(static_cast<size_t>(type));
 }
 
+bool AttemptDecrypt(const std::array<u8, 16>& key, Package2Header& header) {
+
+    const std::vector<u8> iv(header.header_ctr.begin(), header.header_ctr.end());
+    Package2Header temp = header;
+    AESCipher<Key128> cipher(key, Mode::CTR);
+    cipher.SetIV(iv);
+    cipher.Transcode(&temp.header_ctr, sizeof(Package2Header) - 0x100, &temp.header_ctr,
+                     Op::Decrypt);
+    if (temp.magic == Common::MakeMagic('P', 'K', '2', '1')) {
+        header = temp;
+        return true;
+    }
+
+    return false;
+}
+
 void PartitionDataManager::DecryptPackage2(std::array<std::array<u8, 16>, 0x20> package2_keys,
                                            Package2Type type) {
     FileSys::VirtualFile file = std::make_shared<FileSys::OffsetVfsFile>(
@@ -429,18 +458,9 @@ void PartitionDataManager::DecryptPackage2(std::array<std::array<u8, 16>, 0x20> 
 
     u8 revision = 0xFF;
     if (header.magic != Common::MakeMagic('P', 'K', '2', '1')) {
-        for (size_t i = 0; i < 0x20; ++i) {
-            const std::vector<u8> iv(header.header_ctr.begin(), header.header_ctr.end());
-            Package2Header temp = header;
-            AESCipher<Key128> cipher(package2_keys[i], Mode::CTR);
-            cipher.SetIV(iv);
-            cipher.Transcode(&temp.header_ctr, sizeof(Package2Header) - 0x100, &temp.header_ctr,
-                             Op::Decrypt);
-            if (temp.magic == Common::MakeMagic('P', 'K', '2', '1')) {
-                header = temp;
+        for (size_t i = 0; i < package2_keys.size(); ++i) {
+            if (AttemptDecrypt(package2_keys[i], header))
                 revision = i;
-                break;
-            }
         }
     }
 
@@ -460,7 +480,7 @@ void PartitionDataManager::DecryptPackage2(std::array<std::array<u8, 16>, 0x20> 
 
     // package2_decrypted[static_cast<size_t>(type)] = s1;
 
-    INIHeader ini{};
+    INIHeader ini;
     std::memcpy(&ini, c.data(), sizeof(INIHeader));
     if (ini.magic != Common::MakeMagic('I', 'N', 'I', '1'))
         return;
@@ -468,7 +488,7 @@ void PartitionDataManager::DecryptPackage2(std::array<std::array<u8, 16>, 0x20> 
     std::map<u64, KIPHeader> kips{};
     u64 offset = sizeof(INIHeader);
     for (size_t i = 0; i < ini.process_count; ++i) {
-        KIPHeader kip{};
+        KIPHeader kip;
         std::memcpy(&kip, c.data() + offset, sizeof(KIPHeader));
         if (kip.magic != Common::MakeMagic('K', 'I', 'P', '1'))
             return;
@@ -565,16 +585,11 @@ FileSys::VirtualFile PartitionDataManager::GetProdInfoRaw() const {
     return prodinfo;
 }
 
-void PartitionDataManager::DecryptProdInfo(std::array<u8, 16> bis_crypt,
-                                           std::array<u8, 16> bis_tweak) {
+void PartitionDataManager::DecryptProdInfo(std::array<u8, 0x20> bis_key) {
     if (prodinfo == nullptr)
         return;
 
-    Key256 final_key{};
-    std::memcpy(final_key.data(), bis_crypt.data(), bis_crypt.size());
-    std::memcpy(final_key.data() + sizeof(Key128), bis_tweak.data(), bis_tweak.size());
-
-    prodinfo_decrypted = std::make_shared<XTSEncryptionLayer>(prodinfo, final_key);
+    prodinfo_decrypted = std::make_shared<XTSEncryptionLayer>(prodinfo, bis_key);
 }
 
 std::array<u8, 576> PartitionDataManager::GetETicketExtendedKek() const {

@@ -41,6 +41,11 @@ enum class EmulatedDirectoryTarget {
     SDMC,
 };
 
+enum class ReinitializeKeyBehavior {
+    NoWarning,
+    Warning,
+};
+
 namespace DiscordRPC {
 class DiscordInterface;
 }
@@ -167,7 +172,7 @@ private slots:
     void HideFullscreen();
     void ToggleWindowMode();
     void OnCoreError(Core::System::ResultStatus, std::string);
-    void OnReinitializeKeys(bool callouts);
+    void OnReinitializeKeys(ReinitializeKeyBehavior behavior);
 
 private:
     void UpdateStatusBar();
