@@ -6,7 +6,6 @@
 
 #include <string>
 #include "common/common_types.h"
-#include "core/hle/kernel/object.h"
 #include "core/loader/linker.h"
 #include "core/loader/loader.h"
 
@@ -33,7 +32,7 @@ public:
         return IdentifyType(file);
     }
 
-    ResultStatus Load(Kernel::SharedPtr<Kernel::Process>& process) override;
+    ResultStatus Load(Kernel::Process& process) override;
 
     ResultStatus ReadIcon(std::vector<u8>& buffer) override;
     ResultStatus ReadProgramId(u64& out_program_id) override;

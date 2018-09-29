@@ -4,9 +4,7 @@
 
 #pragma once
 
-#include <string>
 #include "common/common_types.h"
-#include "core/hle/kernel/object.h"
 #include "core/loader/linker.h"
 #include "core/loader/loader.h"
 
@@ -30,7 +28,7 @@ public:
 
     static VAddr LoadModule(FileSys::VirtualFile file, VAddr load_base);
 
-    ResultStatus Load(Kernel::SharedPtr<Kernel::Process>& process) override;
+    ResultStatus Load(Kernel::Process& process) override;
 };
 
 } // namespace Loader

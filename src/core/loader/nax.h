@@ -33,7 +33,7 @@ public:
 
     FileType GetFileType() override;
 
-    ResultStatus Load(Kernel::SharedPtr<Kernel::Process>& process) override;
+    ResultStatus Load(Kernel::Process& process) override;
 
     ResultStatus ReadRomFS(FileSys::VirtualFile& dir) override;
     ResultStatus ReadProgramId(u64& out_program_id) override;

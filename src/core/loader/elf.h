@@ -8,9 +8,6 @@
 #include "common/common_types.h"
 #include "core/loader/loader.h"
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Loader namespace
-
 namespace Loader {
 
 /// Loads an ELF/AXF file
@@ -29,7 +26,7 @@ public:
         return IdentifyType(file);
     }
 
-    ResultStatus Load(Kernel::SharedPtr<Kernel::Process>& process) override;
+    ResultStatus Load(Kernel::Process& process) override;
 };
 
 } // namespace Loader

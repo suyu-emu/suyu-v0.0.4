@@ -86,8 +86,7 @@ FileType AppLoader_DeconstructedRomDirectory::IdentifyType(const FileSys::Virtua
     return FileType::Error;
 }
 
-ResultStatus AppLoader_DeconstructedRomDirectory::Load(
-    Kernel::SharedPtr<Kernel::Process>& process) {
+ResultStatus AppLoader_DeconstructedRomDirectory::Load(Kernel::Process& process) {
     if (is_loaded) {
         return ResultStatus::ErrorAlreadyLoaded;
     }
@@ -130,10 +129,10 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
         return ResultStatus::Error32BitISA;
     }
 
-    process->LoadFromMetadata(metadata);
+    process.LoadFromMetadata(metadata);
 
     // Load NSO modules
-    const VAddr base_address = process->vm_manager.GetCodeRegionBaseAddress();
+    const VAddr base_address = process.vm_manager.GetCodeRegionBaseAddress();
     VAddr next_load_addr = base_address;
     for (const auto& module : {"rtld", "main", "subsdk0", "subsdk1", "subsdk2", "subsdk3",
                                "subsdk4", "subsdk5", "subsdk6", "subsdk7", "sdk"}) {
@@ -147,7 +146,7 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(
         }
     }
 
-    process->Run(base_address, metadata.GetMainThreadPriority(), metadata.GetMainThreadStackSize());
+    process.Run(base_address, metadata.GetMainThreadPriority(), metadata.GetMainThreadStackSize());
 
     // Find the RomFS by searching for a ".romfs" file in this directory
     const auto& files = dir->GetFiles();

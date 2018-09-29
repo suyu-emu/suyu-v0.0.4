@@ -6,7 +6,6 @@
 
 #include "common/common_types.h"
 #include "core/file_sys/vfs.h"
-#include "core/hle/kernel/object.h"
 #include "core/loader/loader.h"
 
 namespace FileSys {
@@ -34,7 +33,7 @@ public:
         return IdentifyType(file);
     }
 
-    ResultStatus Load(Kernel::SharedPtr<Kernel::Process>& process) override;
+    ResultStatus Load(Kernel::Process& process) override;
 
     ResultStatus ReadRomFS(FileSys::VirtualFile& dir) override;
     u64 ReadRomFSIVFCOffset() const override;

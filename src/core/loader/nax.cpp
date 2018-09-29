@@ -41,7 +41,7 @@ FileType AppLoader_NAX::GetFileType() {
     return IdentifyTypeImpl(*nax);
 }
 
-ResultStatus AppLoader_NAX::Load(Kernel::SharedPtr<Kernel::Process>& process) {
+ResultStatus AppLoader_NAX::Load(Kernel::Process& process) {
     if (is_loaded) {
         return ResultStatus::ErrorAlreadyLoaded;
     }

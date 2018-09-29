@@ -387,7 +387,7 @@ FileType AppLoader_ELF::IdentifyType(const FileSys::VirtualFile& file) {
     return FileType::Error;
 }
 
-ResultStatus AppLoader_ELF::Load(Kernel::SharedPtr<Kernel::Process>& process) {
+ResultStatus AppLoader_ELF::Load(Kernel::Process& process) {
     if (is_loaded)
         return ResultStatus::ErrorAlreadyLoaded;
 
@@ -395,13 +395,13 @@ ResultStatus AppLoader_ELF::Load(Kernel::SharedPtr<Kernel::Process>& process) {
     if (buffer.size() != file->GetSize())
         return ResultStatus::ErrorIncorrectELFFileSize;
 
-    const VAddr base_address = process->vm_manager.GetCodeRegionBaseAddress();
+    const VAddr base_address = process.vm_manager.GetCodeRegionBaseAddress();
     ElfReader elf_reader(&buffer[0]);
     SharedPtr<CodeSet> codeset = elf_reader.LoadInto(base_address);
     codeset->name = file->GetName();
 
-    process->LoadModule(codeset, codeset->entrypoint);
-    process->Run(codeset->entrypoint, 48, Memory::DEFAULT_STACK_SIZE);
+    process.LoadModule(codeset, codeset->entrypoint);
+    process.Run(codeset->entrypoint, 48, Memory::DEFAULT_STACK_SIZE);
 
     is_loaded = true;
     return ResultStatus::Success;
