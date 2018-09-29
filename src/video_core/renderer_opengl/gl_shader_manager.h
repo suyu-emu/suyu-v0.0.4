@@ -11,9 +11,6 @@
 
 namespace OpenGL::GLShader {
 
-/// Number of OpenGL texture samplers that can be used in the fragment shader
-static constexpr std::size_t NumTextureSamplers = 32;
-
 using Tegra::Engines::Maxwell3D;
 
 /// Uniform structure for the Uniform Buffer Object, all vectors must be 16-byte aligned

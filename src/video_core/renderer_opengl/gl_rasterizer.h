@@ -184,7 +184,7 @@ private:
              OGLVertexArray>
         vertex_array_cache;
 
-    std::array<SamplerInfo, GLShader::NumTextureSamplers> texture_samplers;
+    std::array<SamplerInfo, Tegra::Engines::Maxwell3D::Regs::NumTextureSamplers> texture_samplers;
 
     static constexpr std::size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;
     OGLBufferCache buffer_cache;

@@ -205,9 +205,6 @@ void OpenGLState::Apply() const {
             glActiveTexture(TextureUnits::MaxwellTexture(static_cast<int>(i)).Enum());
             glBindTexture(texture_unit.target, texture_unit.texture);
         }
-        if (texture_unit.sampler != cur_state_texture_unit.sampler) {
-            glBindSampler(static_cast<GLuint>(i), texture_unit.sampler);
-        }
         // Update the texture swizzle
         if (texture_unit.swizzle.r != cur_state_texture_unit.swizzle.r ||
             texture_unit.swizzle.g != cur_state_texture_unit.swizzle.g ||
@@ -216,6 +213,27 @@ void OpenGLState::Apply() const {
             std::array<GLint, 4> mask = {texture_unit.swizzle.r, texture_unit.swizzle.g,
                                          texture_unit.swizzle.b, texture_unit.swizzle.a};
             glTexParameteriv(texture_unit.target, GL_TEXTURE_SWIZZLE_RGBA, mask.data());
+        }
+    }
+
+    // Samplers
+    {
+        bool has_delta{};
+        std::size_t first{}, last{};
+        std::array<GLuint, Tegra::Engines::Maxwell3D::Regs::NumTextureSamplers> samplers;
+        for (std::size_t i = 0; i < std::size(samplers); ++i) {
+            samplers[i] = texture_units[i].sampler;
+            if (samplers[i] != cur_state.texture_units[i].sampler) {
+                if (!has_delta) {
+                    first = i;
+                    has_delta = true;
+                }
+                last = i;
+            }
+        }
+        if (has_delta) {
+            glBindSamplers(static_cast<GLuint>(first), static_cast<GLsizei>(last - first + 1),
+                           samplers.data());
         }
     }
 
