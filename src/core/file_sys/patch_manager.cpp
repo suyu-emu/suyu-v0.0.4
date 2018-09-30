@@ -6,13 +6,16 @@
 #include <array>
 #include <cstddef>
 
+#include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
+#include "core/file_sys/ips_layer.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/vfs_layered.h"
+#include "core/file_sys/vfs_vector.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
 
@@ -20,6 +23,14 @@ namespace FileSys {
 
 constexpr u64 SINGLE_BYTE_MODULUS = 0x100;
 constexpr u64 DLC_BASE_TITLE_ID_MASK = 0xFFFFFFFFFFFFE000;
+
+struct NSOBuildHeader {
+    u32_le magic;
+    INSERT_PADDING_BYTES(0x3C);
+    std::array<u8, 0x20> build_id;
+    INSERT_PADDING_BYTES(0xA0);
+};
+static_assert(sizeof(NSOBuildHeader) == 0x100, "NSOBuildHeader has incorrect size.");
 
 std::string FormatTitleVersion(u32 version, TitleVersionFormat format) {
     std::array<u8, sizeof(u32)> bytes{};
@@ -59,6 +70,89 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
     }
 
     return exefs;
+}
+
+std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso) const {
+    if (nso.size() < 0x100)
+        return nso;
+
+    NSOBuildHeader header{};
+    std::memcpy(&header, nso.data(), sizeof(NSOBuildHeader));
+
+    if (header.magic != Common::MakeMagic('N', 'S', 'O', '0'))
+        return nso;
+
+    const auto build_id_raw = Common::HexArrayToString(header.build_id);
+    const auto build_id = build_id_raw.substr(0, build_id_raw.find_last_not_of('0') + 1);
+
+    LOG_INFO(Loader, "Patching NSO for build_id={}", build_id);
+
+    const auto load_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
+    auto patch_dirs = load_dir->GetSubdirectories();
+    std::sort(patch_dirs.begin(), patch_dirs.end(),
+              [](const VirtualDir& l, const VirtualDir& r) { return l->GetName() < r->GetName(); });
+
+    std::vector<VirtualFile> ips;
+    ips.reserve(patch_dirs.size() - 1);
+    for (const auto& subdir : patch_dirs) {
+        auto exefs_dir = subdir->GetSubdirectory("exefs");
+        if (exefs_dir != nullptr) {
+            for (const auto& file : exefs_dir->GetFiles()) {
+                if (file->GetExtension() != "ips")
+                    continue;
+                auto name = file->GetName();
+                const auto p1 = name.substr(0, name.find_first_of('.'));
+                const auto this_build_id = p1.substr(0, p1.find_last_not_of('0') + 1);
+
+                if (build_id == this_build_id)
+                    ips.push_back(file);
+            }
+        }
+    }
+
+    auto out = nso;
+    for (const auto& ips_file : ips) {
+        LOG_INFO(Loader, "    - Appling IPS patch from mod \"{}\"",
+                 ips_file->GetContainingDirectory()->GetParentDirectory()->GetName());
+        const auto patched = PatchIPS(std::make_shared<VectorVfsFile>(out), ips_file);
+        if (patched != nullptr)
+            out = patched->ReadAllBytes();
+    }
+
+    if (out.size() < 0x100)
+        return nso;
+    std::memcpy(out.data(), &header, sizeof(NSOBuildHeader));
+    return out;
+}
+
+bool PatchManager::HasNSOPatch(const std::array<u8, 32>& build_id_) const {
+    const auto build_id_raw = Common::HexArrayToString(build_id_);
+    const auto build_id = build_id_raw.substr(0, build_id_raw.find_last_not_of('0') + 1);
+
+    LOG_INFO(Loader, "Querying NSO patch existence for build_id={}", build_id);
+
+    const auto load_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
+    auto patch_dirs = load_dir->GetSubdirectories();
+    std::sort(patch_dirs.begin(), patch_dirs.end(),
+              [](const VirtualDir& l, const VirtualDir& r) { return l->GetName() < r->GetName(); });
+
+    for (const auto& subdir : patch_dirs) {
+        auto exefs_dir = subdir->GetSubdirectory("exefs");
+        if (exefs_dir != nullptr) {
+            for (const auto& file : exefs_dir->GetFiles()) {
+                if (file->GetExtension() != "ips")
+                    continue;
+                auto name = file->GetName();
+                const auto p1 = name.substr(0, name.find_first_of('.'));
+                const auto this_build_id = p1.substr(0, p1.find_last_not_of('0') + 1);
+
+                if (build_id == this_build_id)
+                    return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType type) {

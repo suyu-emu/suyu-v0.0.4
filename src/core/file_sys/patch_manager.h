@@ -34,6 +34,14 @@ public:
     // - Game Updates
     VirtualDir PatchExeFS(VirtualDir exefs) const;
 
+    // Currently tracked NSO patches:
+    // - IPS
+    std::vector<u8> PatchNSO(const std::vector<u8>& nso) const;
+
+    // Checks to see if PatchNSO() will have any effect given the NSO's build ID.
+    // Used to prevent expensive copies in NSO loader.
+    bool HasNSOPatch(const std::array<u8, 0x20>& build_id) const;
+
     // Currently tracked RomFS patches:
     // - Game Updates
     // - LayeredFS
