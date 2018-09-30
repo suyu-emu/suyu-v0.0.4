@@ -707,29 +707,6 @@ struct SurfaceParams {
         return SizeInBytes2D() * depth;
     }
 
-    /**
-     * Returns the size in bytes of the 2D surface with mipmaps. Each mipmap level proceeds the
-     * previous with half the width and half the height. Once the size of the next mip reaches 0, we
-     * are done.
-     */
-    std::size_t SizeInBytes2DWithMipmap() const {
-        std::size_t size_in_bytes{};
-        auto mip_params{*this};
-        for (std::size_t level = 0; level < max_mip_level; level++) {
-            size_in_bytes += mip_params.SizeInBytes2D();
-
-            mip_params.width /= 2;
-            mip_params.height /= 2;
-
-            if (!mip_params.width || !mip_params.height) {
-                break;
-            }
-        }
-
-        // TODO(bunnei): This alignup is unverified, but necessary in games tested (e.g. in SMO)
-        return Common::AlignUp(size_in_bytes, 0x1000);
-    }
-
     /// Creates SurfaceParams from a texture configuration
     static SurfaceParams CreateForTexture(const Tegra::Texture::FullTextureInfo& config,
                                           const GLShader::SamplerEntry& entry);

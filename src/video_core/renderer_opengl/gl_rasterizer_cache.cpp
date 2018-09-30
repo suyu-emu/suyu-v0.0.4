@@ -1058,9 +1058,6 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& old_surface,
         }
         break;
     case SurfaceParams::SurfaceTarget::TextureCubemap: {
-        const u32 byte_stride{old_params.rt.layer_stride *
-                              (SurfaceParams::GetFormatBpp(old_params.pixel_format) / CHAR_BIT)};
-
         if (old_params.rt.array_mode != 1) {
             // TODO(bunnei): This is used by Breath of the Wild, I'm not sure how to implement this
             // yet (array rendering used as a cubemap texture).
@@ -1070,14 +1067,13 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& old_surface,
         }
 
         // This seems to be used for render-to-cubemap texture
-        const std::size_t size_with_mipmaps{new_params.SizeInBytes2DWithMipmap()};
-        ASSERT_MSG(size_with_mipmaps == byte_stride, "Unexpected");
         ASSERT_MSG(old_params.target == SurfaceParams::SurfaceTarget::Texture2D, "Unexpected");
         ASSERT_MSG(old_params.pixel_format == new_params.pixel_format, "Unexpected");
-        ASSERT_MSG(old_params.width == new_params.width, "Unexpected");
-        ASSERT_MSG(old_params.height == new_params.height, "Unexpected");
-        ASSERT_MSG(old_params.rt.array_mode == 1, "Unexpected");
         ASSERT_MSG(old_params.rt.base_layer == 0, "Unimplemented");
+
+        // TODO(bunnei): Verify the below - this stride seems to be in 32-bit words, not pixels.
+        // Tested with Splatoon 2, Super Mario Odyssey, and Breath of the Wild.
+        const std::size_t byte_stride{old_params.rt.layer_stride * sizeof(u32)};
 
         for (std::size_t index = 0; index < new_params.depth; ++index) {
             Surface face_surface{TryGetReservedSurface(old_params)};
@@ -1092,7 +1088,7 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& old_surface,
                             face_surface->GetSurfaceParams().rt.index, new_params.rt.index, index);
             }
 
-            old_params.addr += size_with_mipmaps;
+            old_params.addr += byte_stride;
         }
         break;
     }
