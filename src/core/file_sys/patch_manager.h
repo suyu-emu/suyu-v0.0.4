@@ -24,14 +24,6 @@ enum class TitleVersionFormat : u8 {
 std::string FormatTitleVersion(u32 version,
                                TitleVersionFormat format = TitleVersionFormat::ThreeElements);
 
-enum class PatchType {
-    Update,
-    LayeredFS,
-    DLC,
-};
-
-std::string FormatPatchTypeName(PatchType type);
-
 // A centralized class to manage patches to games.
 class PatchManager {
 public:
@@ -49,8 +41,8 @@ public:
                            ContentRecordType type = ContentRecordType::Program) const;
 
     // Returns a vector of pairs between patch names and patch versions.
-    // i.e. Update v80 will return {Update, 80}
-    std::map<PatchType, std::string> GetPatchVersionNames() const;
+    // i.e. Update 3.2.2 will return {"Update", "3.2.2"}
+    std::map<std::string, std::string> GetPatchVersionNames() const;
 
     // Given title_id of the program, attempts to get the control data of the update and parse it,
     // falling back to the base control data.

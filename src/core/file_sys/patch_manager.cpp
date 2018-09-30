@@ -34,16 +34,6 @@ std::string FormatTitleVersion(u32 version, TitleVersionFormat format) {
     return fmt::format("v{}.{}.{}", bytes[3], bytes[2], bytes[1]);
 }
 
-constexpr std::array<const char*, 3> PATCH_TYPE_NAMES{
-    "Update",
-    "LayeredFS",
-    "DLC",
-};
-
-std::string FormatPatchTypeName(PatchType type) {
-    return PATCH_TYPE_NAMES.at(static_cast<std::size_t>(type));
-}
-
 PatchManager::PatchManager(u64 title_id) : title_id(title_id) {}
 
 PatchManager::~PatchManager() = default;
@@ -138,8 +128,19 @@ VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset,
     return romfs;
 }
 
-std::map<PatchType, std::string> PatchManager::GetPatchVersionNames() const {
-    std::map<PatchType, std::string> out;
+void AppendCommaIfNotEmpty(std::string& to, const std::string& with) {
+    if (to.empty())
+        to += with;
+    else
+        to += ", " + with;
+}
+
+static bool IsDirValidAndNonEmpty(const VirtualDir& dir) {
+    return dir != nullptr && (!dir->GetFiles().empty() || !dir->GetSubdirectories().empty());
+}
+
+std::map<std::string, std::string> PatchManager::GetPatchVersionNames() const {
+    std::map<std::string, std::string> out;
     const auto installed = Service::FileSystem::GetUnionContents();
 
     // Game Updates
@@ -148,23 +149,34 @@ std::map<PatchType, std::string> PatchManager::GetPatchVersionNames() const {
     auto [nacp, discard_icon_file] = update.GetControlMetadata();
 
     if (nacp != nullptr) {
-        out[PatchType::Update] = nacp->GetVersionString();
+        out["Update"] = nacp->GetVersionString();
     } else {
         if (installed->HasEntry(update_tid, ContentRecordType::Program)) {
             const auto meta_ver = installed->GetEntryVersion(update_tid);
             if (meta_ver == boost::none || meta_ver.get() == 0) {
-                out[PatchType::Update] = "";
+                out["Update"] = "";
             } else {
-                out[PatchType::Update] =
+                out["Update"] =
                     FormatTitleVersion(meta_ver.get(), TitleVersionFormat::ThreeElements);
             }
         }
     }
 
-    // LayeredFS
-    const auto lfs_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
-    if (lfs_dir != nullptr && lfs_dir->GetSize() > 0)
-        out.insert_or_assign(PatchType::LayeredFS, "");
+    const auto mod_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
+    if (mod_dir != nullptr && mod_dir->GetSize() > 0) {
+        for (const auto& mod : mod_dir->GetSubdirectories()) {
+            std::string types;
+            if (IsDirValidAndNonEmpty(mod->GetSubdirectory("exefs")))
+                AppendCommaIfNotEmpty(types, "IPS");
+            if (IsDirValidAndNonEmpty(mod->GetSubdirectory("romfs")))
+                AppendCommaIfNotEmpty(types, "LayeredFS");
+
+            if (types.empty())
+                continue;
+
+            out.insert_or_assign(mod->GetName(), types);
+        }
+    }
 
     // DLC
     const auto dlc_entries = installed->ListEntriesFilter(TitleType::AOC, ContentRecordType::Data);
