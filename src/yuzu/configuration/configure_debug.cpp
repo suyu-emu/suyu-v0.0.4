@@ -33,6 +33,7 @@ void ConfigureDebug::setConfiguration() {
     ui->toggle_console->setEnabled(!Core::System::GetInstance().IsPoweredOn());
     ui->toggle_console->setChecked(UISettings::values.show_console);
     ui->log_filter_edit->setText(QString::fromStdString(Settings::values.log_filter));
+    ui->homebrew_args_edit->setText(QString::fromStdString(Settings::values.program_args));
 }
 
 void ConfigureDebug::applyConfiguration() {
@@ -40,6 +41,7 @@ void ConfigureDebug::applyConfiguration() {
     Settings::values.gdbstub_port = ui->gdbport_spinbox->value();
     UISettings::values.show_console = ui->toggle_console->isChecked();
     Settings::values.log_filter = ui->log_filter_edit->text().toStdString();
+    Settings::values.program_args = ui->homebrew_args_edit->text().toStdString();
     Debugger::ToggleConsole();
     Log::Filter filter;
     filter.ParseFilterString(Settings::values.log_filter);
