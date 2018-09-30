@@ -317,9 +317,9 @@ void PL_U::GetSharedMemoryAddressOffset(Kernel::HLERequestContext& ctx) {
 
 void PL_U::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx) {
     // Map backing memory for the font data
-    Core::CurrentProcess()->vm_manager.MapMemoryBlock(SHARED_FONT_MEM_VADDR, impl->shared_font, 0,
-                                                      SHARED_FONT_MEM_SIZE,
-                                                      Kernel::MemoryState::Shared);
+    Core::CurrentProcess()->VMManager().MapMemoryBlock(SHARED_FONT_MEM_VADDR, impl->shared_font, 0,
+                                                       SHARED_FONT_MEM_SIZE,
+                                                       Kernel::MemoryState::Shared);
 
     // Create shared font memory object
     auto& kernel = Core::System::GetInstance().Kernel();

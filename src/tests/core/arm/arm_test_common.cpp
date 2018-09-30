@@ -16,7 +16,7 @@ TestEnvironment::TestEnvironment(bool mutable_memory_)
     : mutable_memory(mutable_memory_), test_memory(std::make_shared<TestMemory>(this)) {
 
     Core::CurrentProcess() = Kernel::Process::Create(kernel, "");
-    page_table = &Core::CurrentProcess()->vm_manager.page_table;
+    page_table = &Core::CurrentProcess()->VMManager().page_table;
 
     std::fill(page_table->pointers.begin(), page_table->pointers.end(), nullptr);
     page_table->special_regions.clear();

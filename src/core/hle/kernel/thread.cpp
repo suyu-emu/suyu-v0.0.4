@@ -259,10 +259,10 @@ void Thread::BoostPriority(u32 priority) {
 SharedPtr<Thread> SetupMainThread(KernelCore& kernel, VAddr entry_point, u32 priority,
                                   Process& owner_process) {
     // Setup page table so we can write to memory
-    SetCurrentPageTable(&owner_process.vm_manager.page_table);
+    SetCurrentPageTable(&owner_process.VMManager().page_table);
 
     // Initialize new "main" thread
-    const VAddr stack_top = owner_process.vm_manager.GetTLSIORegionEndAddress();
+    const VAddr stack_top = owner_process.VMManager().GetTLSIORegionEndAddress();
     auto thread_res = Thread::Create(kernel, "main", entry_point, priority, 0, THREADPROCESSORID_0,
                                      stack_top, &owner_process);
 

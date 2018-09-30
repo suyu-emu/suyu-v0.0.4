@@ -622,9 +622,9 @@ void GMainWindow::BootGame(const QString& filename) {
     std::string title_name;
     const auto res = Core::System::GetInstance().GetGameName(title_name);
     if (res != Loader::ResultStatus::Success) {
-        const u64 program_id = Core::System::GetInstance().CurrentProcess()->program_id;
+        const u64 title_id = Core::System::GetInstance().CurrentProcess()->GetTitleID();
 
-        const auto [nacp, icon_file] = FileSys::PatchManager(program_id).GetControlMetadata();
+        const auto [nacp, icon_file] = FileSys::PatchManager(title_id).GetControlMetadata();
         if (nacp != nullptr)
             title_name = nacp->GetApplicationName();
 

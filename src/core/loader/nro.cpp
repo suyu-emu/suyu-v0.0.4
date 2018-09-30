@@ -181,7 +181,7 @@ ResultStatus AppLoader_NRO::Load(Kernel::Process& process) {
     }
 
     // Load NRO
-    const VAddr base_address = process.vm_manager.GetCodeRegionBaseAddress();
+    const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
 
     if (!LoadNro(file, base_address)) {
         return ResultStatus::ErrorLoadingNRO;

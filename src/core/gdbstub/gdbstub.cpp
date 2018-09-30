@@ -250,7 +250,7 @@ static void RegWrite(std::size_t id, u64 val, Kernel::Thread* thread = nullptr) 
     } else if (id == PC_REGISTER) {
         thread->context.pc = val;
     } else if (id == PSTATE_REGISTER) {
-        thread->context.pstate = val;
+        thread->context.pstate = static_cast<u32>(val);
     } else if (id > PSTATE_REGISTER && id < FPCR_REGISTER) {
         thread->context.vector_registers[id - (PSTATE_REGISTER + 1)][0] = val;
     }
@@ -587,7 +587,7 @@ static void HandleQuery() {
                        strlen("Xfer:features:read:target.xml:")) == 0) {
         SendReply(target_xml);
     } else if (strncmp(query, "Offsets", strlen("Offsets")) == 0) {
-        const VAddr base_address = Core::CurrentProcess()->vm_manager.GetCodeRegionBaseAddress();
+        const VAddr base_address = Core::CurrentProcess()->VMManager().GetCodeRegionBaseAddress();
         std::string buffer = fmt::format("TextSeg={:0x}", base_address);
         SendReply(buffer.c_str());
     } else if (strncmp(query, "fThreadInfo", strlen("fThreadInfo")) == 0) {
@@ -909,7 +909,7 @@ static void ReadMemory() {
         SendReply("E01");
     }
 
-    const auto& vm_manager = Core::CurrentProcess()->vm_manager;
+    const auto& vm_manager = Core::CurrentProcess()->VMManager();
     if (addr < vm_manager.GetCodeRegionBaseAddress() ||
         addr >= vm_manager.GetMapRegionEndAddress()) {
         return SendReply("E00");

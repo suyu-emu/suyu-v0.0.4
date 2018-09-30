@@ -130,7 +130,7 @@ public:
 
 std::unique_ptr<Dynarmic::A64::Jit> ARM_Dynarmic::MakeJit() const {
     auto& current_process = Core::CurrentProcess();
-    auto** const page_table = current_process->vm_manager.page_table.pointers.data();
+    auto** const page_table = current_process->VMManager().page_table.pointers.data();
 
     Dynarmic::A64::UserConfig config;
 
@@ -139,7 +139,7 @@ std::unique_ptr<Dynarmic::A64::Jit> ARM_Dynarmic::MakeJit() const {
 
     // Memory
     config.page_table = reinterpret_cast<void**>(page_table);
-    config.page_table_address_space_bits = current_process->vm_manager.GetAddressSpaceWidth();
+    config.page_table_address_space_bits = current_process->VMManager().GetAddressSpaceWidth();
     config.silently_mirror_page_table = false;
 
     // Multi-process state
@@ -247,15 +247,19 @@ void ARM_Dynarmic::SaveContext(ThreadContext& ctx) {
     ctx.pstate = jit->GetPstate();
     ctx.vector_registers = jit->GetVectors();
     ctx.fpcr = jit->GetFpcr();
+    ctx.fpsr = jit->GetFpsr();
+    ctx.tpidr = cb->tpidr_el0;
 }
 
 void ARM_Dynarmic::LoadContext(const ThreadContext& ctx) {
     jit->SetRegisters(ctx.cpu_registers);
     jit->SetSP(ctx.sp);
     jit->SetPC(ctx.pc);
-    jit->SetPstate(static_cast<u32>(ctx.pstate));
+    jit->SetPstate(ctx.pstate);
     jit->SetVectors(ctx.vector_registers);
-    jit->SetFpcr(static_cast<u32>(ctx.fpcr));
+    jit->SetFpcr(ctx.fpcr);
+    jit->SetFpsr(ctx.fpsr);
+    SetTPIDR_EL0(ctx.tpidr);
 }
 
 void ARM_Dynarmic::PrepareReschedule() {

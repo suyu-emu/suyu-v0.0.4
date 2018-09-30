@@ -64,6 +64,11 @@ void SvcWrap() {
     FuncReturn(func(Param(0), (s32)Param(1)).raw);
 }
 
+template <ResultCode func(u64, u32)>
+void SvcWrap() {
+    FuncReturn(func(Param(0), static_cast<u32>(Param(1))).raw);
+}
+
 template <ResultCode func(u64*, u64)>
 void SvcWrap() {
     u64 param_1 = 0;

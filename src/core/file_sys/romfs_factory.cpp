@@ -34,7 +34,7 @@ ResultVal<VirtualFile> RomFSFactory::OpenCurrentProcess() {
     if (!updatable)
         return MakeResult<VirtualFile>(file);
 
-    const PatchManager patch_manager(Core::CurrentProcess()->program_id);
+    const PatchManager patch_manager(Core::CurrentProcess()->GetTitleID());
     return MakeResult<VirtualFile>(patch_manager.PatchRomFS(file, ivfc_offset));
 }
 
