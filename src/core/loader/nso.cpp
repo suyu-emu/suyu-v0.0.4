@@ -36,8 +36,7 @@ struct NsoHeader {
     INSERT_PADDING_WORDS(1);
     u8 flags;
     std::array<NsoSegmentHeader, 3> segments; // Text, RoData, Data (in that order)
-    u32_le bss_size;
-    INSERT_PADDING_BYTES(0x1c);
+    std::array<u8, 0x20> build_id;
     std::array<u32_le, 3> segments_compressed_size;
 
     bool IsSegmentCompressed(size_t segment_num) const {
