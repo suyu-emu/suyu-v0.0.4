@@ -10,6 +10,7 @@
 #include "common/logging/log.h"
 #include "common/swap.h"
 #include "core/core.h"
+#include "core/file_sys/patch_manager.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
@@ -92,7 +93,8 @@ static constexpr u32 PageAlignSize(u32 size) {
     return (size + Memory::PAGE_MASK) & ~Memory::PAGE_MASK;
 }
 
-VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base) {
+VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base,
+                                std::shared_ptr<FileSys::PatchManager> pm) {
     if (file == nullptr)
         return {};
 
@@ -140,6 +142,17 @@ VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base) {
     codeset->DataSegment().size += bss_size;
     const u32 image_size{PageAlignSize(static_cast<u32>(program_image.size()) + bss_size)};
     program_image.resize(image_size);
+
+    // Apply patches if necessary
+    if (pm != nullptr && pm->HasNSOPatch(nso_header.build_id)) {
+        std::vector<u8> pi_header(program_image.size() + 0x100);
+        std::memcpy(pi_header.data(), &nso_header, sizeof(NsoHeader));
+        std::memcpy(pi_header.data() + 0x100, program_image.data(), program_image.size());
+
+        pi_header = pm->PatchNSO(pi_header);
+
+        std::memcpy(program_image.data(), pi_header.data() + 0x100, program_image.size());
+    }
 
     // Load codeset for current process
     codeset->name = file->GetName();

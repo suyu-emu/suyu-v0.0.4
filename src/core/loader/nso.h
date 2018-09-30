@@ -5,6 +5,7 @@
 #pragma once
 
 #include "common/common_types.h"
+#include "core/file_sys/patch_manager.h"
 #include "core/loader/linker.h"
 #include "core/loader/loader.h"
 
@@ -26,7 +27,8 @@ public:
         return IdentifyType(file);
     }
 
-    static VAddr LoadModule(FileSys::VirtualFile file, VAddr load_base);
+    static VAddr LoadModule(FileSys::VirtualFile file, VAddr load_base,
+                            std::shared_ptr<FileSys::PatchManager> pm = nullptr);
 
     ResultStatus Load(Kernel::Process& process) override;
 };
