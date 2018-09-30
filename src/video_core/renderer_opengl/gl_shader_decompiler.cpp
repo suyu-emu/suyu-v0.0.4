@@ -2021,7 +2021,10 @@ private:
                 std::string coord;
                 const Tegra::Shader::TextureType texture_type{instr.tlds.GetTextureType()};
                 const bool is_array{instr.tlds.IsArrayTexture()};
- 
+
+                ASSERT(texture_type == Tegra::Shader::TextureType::Texture2D);
+                ASSERT(is_array == false);
+
                 ASSERT_MSG(!instr.tlds.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
                            "NODEP is not implemented");
                 ASSERT_MSG(!instr.tlds.UsesMiscMode(Tegra::Shader::TextureMiscMode::AOFFI),
