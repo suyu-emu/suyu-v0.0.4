@@ -56,9 +56,10 @@ static void PrintHelp(const char* argv0) {
     std::cout << "Usage: " << argv0
               << " [options] <filename>\n"
                  "-g, --gdbport=NUMBER  Enable gdb stub on port NUMBER\n"
-                 "-f, --fullscreen     Start in fullscreen mode\n"
+                 "-f, --fullscreen      Start in fullscreen mode\n"
                  "-h, --help            Display this help and exit\n"
-                 "-v, --version         Output version information and exit\n";
+                 "-v, --version         Output version information and exit\n"
+                 "-p, --program         Pass following string as arguments to executable\n";
 }
 
 static void PrintVersion() {
@@ -103,15 +104,13 @@ int main(int argc, char** argv) {
     bool fullscreen = false;
 
     static struct option long_options[] = {
-        {"gdbport", required_argument, 0, 'g'},
-        {"fullscreen", no_argument, 0, 'f'},
-        {"help", no_argument, 0, 'h'},
-        {"version", no_argument, 0, 'v'},
-        {0, 0, 0, 0},
+        {"gdbport", required_argument, 0, 'g'}, {"fullscreen", no_argument, 0, 'f'},
+        {"help", no_argument, 0, 'h'},          {"version", no_argument, 0, 'v'},
+        {"program", optional_argument, 0, 'p'}, {0, 0, 0, 0},
     };
 
     while (optind < argc) {
-        char arg = getopt_long(argc, argv, "g:fhv", long_options, &option_index);
+        char arg = getopt_long(argc, argv, "g:fhvp::", long_options, &option_index);
         if (arg != -1) {
             switch (arg) {
             case 'g':
@@ -135,6 +134,10 @@ int main(int argc, char** argv) {
             case 'v':
                 PrintVersion();
                 return 0;
+            case 'p':
+                Settings::values.program_args = argv[optind];
+                ++optind;
+                break;
             }
         } else {
 #ifdef _WIN32

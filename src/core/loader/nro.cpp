@@ -155,7 +155,7 @@ bool AppLoader_NRO::LoadNro(FileSys::VirtualFile file, VAddr load_base) {
     if (!Settings::values.program_args.empty()) {
         const auto arg_data = Settings::values.program_args;
         codeset->DataSegment().size += 0x9000;
-        NSOArgumentHeader args_header{0x9000, arg_data.size(), {}};
+        NSOArgumentHeader args_header{0x9000, static_cast<u32_le>(arg_data.size()), {}};
         program_image.resize(static_cast<u32>(program_image.size()) + 0x9000);
         std::memcpy(program_image.data() + program_image.size() - 0x9000, &args_header,
                     sizeof(NSOArgumentHeader));
