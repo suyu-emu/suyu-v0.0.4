@@ -18,7 +18,9 @@
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/loader/nro.h"
+#include "core/loader/nso.h"
 #include "core/memory.h"
+#include "core/settings.h"
 
 namespace Loader {
 
@@ -148,6 +150,17 @@ bool AppLoader_NRO::LoadNro(FileSys::VirtualFile file, VAddr load_base) {
         codeset->segments[i].addr = nro_header.segments[i].offset;
         codeset->segments[i].offset = nro_header.segments[i].offset;
         codeset->segments[i].size = PageAlignSize(nro_header.segments[i].size);
+    }
+
+    if (!Settings::values.program_args.empty()) {
+        const auto arg_data = Settings::values.program_args;
+        codeset->DataSegment().size += 0x9000;
+        NSOArgumentHeader args_header{0x9000, arg_data.size(), {}};
+        program_image.resize(static_cast<u32>(program_image.size()) + 0x9000);
+        std::memcpy(program_image.data() + program_image.size() - 0x9000, &args_header,
+                    sizeof(NSOArgumentHeader));
+        std::memcpy(program_image.data() + program_image.size() - 0x8FE0, arg_data.data(),
+                    arg_data.size());
     }
 
     // Read MOD header
