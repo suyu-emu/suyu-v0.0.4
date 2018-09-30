@@ -612,7 +612,7 @@ public:
             {3000, nullptr, "ListDisplayModes"},
             {3001, nullptr, "ListDisplayRgbRanges"},
             {3002, nullptr, "ListDisplayContentTypes"},
-            {3200, nullptr, "GetDisplayMode"},
+            {3200, &ISystemDisplayService::GetDisplayMode, "GetDisplayMode"},
             {3201, nullptr, "SetDisplayMode"},
             {3202, nullptr, "GetDisplayUnderscan"},
             {3203, nullptr, "SetDisplayUnderscan"},
@@ -662,6 +662,24 @@ private:
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_VI, "(STUBBED) called, layer_id=0x{:08X}, visibility={}", layer_id,
                     visibility);
+    }
+
+    void GetDisplayMode(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 6};
+        rb.Push(RESULT_SUCCESS);
+
+        if (Settings::values.use_docked_mode) {
+            rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedWidth));
+            rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedHeight));
+        } else {
+            rb.Push(static_cast<u32>(Service::VI::DisplayResolution::UndockedWidth));
+            rb.Push(static_cast<u32>(Service::VI::DisplayResolution::UndockedHeight));
+        }
+
+        rb.PushRaw<float>(60.0f);
+        rb.Push<u32>(0);
+
+        LOG_DEBUG(Service_VI, "called");
     }
 };
 
