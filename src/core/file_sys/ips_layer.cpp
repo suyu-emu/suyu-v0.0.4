@@ -2,7 +2,9 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <sstream>
 #include "common/assert.h"
+#include "common/hex_util.h"
 #include "common/swap.h"
 #include "core/file_sys/ips_layer.h"
 #include "core/file_sys/vfs_vector.h"
@@ -82,6 +84,146 @@ VirtualFile PatchIPS(const VirtualFile& in, const VirtualFile& ips) {
 
     if (temp != std::vector<u8>{'E', 'E', 'O', 'F'} && temp != std::vector<u8>{'E', 'O', 'F'})
         return nullptr;
+    return std::make_shared<VectorVfsFile>(in_data, in->GetName(), in->GetContainingDirectory());
+}
+
+IPSwitchCompiler::IPSwitchCompiler(VirtualFile patch_text_)
+    : valid(false), patch_text(std::move(patch_text_)), nso_build_id{}, is_little_endian(false),
+      offset_shift(0), print_values(false) {
+    Parse();
+}
+
+std::array<u8, 32> IPSwitchCompiler::GetBuildID() const {
+    return nso_build_id;
+}
+
+bool IPSwitchCompiler::IsValid() const {
+    return valid;
+}
+
+static bool StartsWith(const std::string& base, const std::string& check) {
+    return base.size() >= check.size() && base.substr(0, check.size()) == check;
+}
+
+void IPSwitchCompiler::Parse() {
+    const auto bytes = patch_text->ReadAllBytes();
+    std::stringstream s;
+    s.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+
+    std::vector<std::string> lines;
+    std::string line;
+    while (std::getline(s, line)) {
+        // Remove a trailing \r
+        if (!line.empty() && line[line.size() - 1] == '\r')
+            line = line.substr(0, line.size() - 1);
+        lines.push_back(line);
+    }
+
+    for (std::size_t i = 0; i < lines.size(); ++i) {
+        auto line = lines[i];
+        if (StartsWith(line, "@stop")) {
+            // Force stop
+            break;
+        } else if (StartsWith(line, "@nsobid-")) {
+            // NSO Build ID Specifier
+            auto raw_build_id = line.substr(8);
+            if (raw_build_id.size() != 0x40)
+                raw_build_id.resize(0x40, '0');
+            nso_build_id = Common::HexStringToArray<0x20>(raw_build_id);
+        } else if (StartsWith(line, "@flag offset_shift ")) {
+            // Offset Shift Flag
+            offset_shift = std::stoull(line.substr(19), nullptr, 0);
+        } else if (StartsWith(line, "#")) {
+            // Mandatory Comment
+            LOG_INFO(Loader, "[IPSwitchCompiler ('{}')] Forced output comment: {}",
+                     patch_text->GetName(), line.substr(1));
+        } else if (StartsWith(line, "@little-endian")) {
+            // Set values to read as little endian
+            is_little_endian = true;
+        } else if (StartsWith(line, "@big-endian")) {
+            // Set values to read as big endian
+            is_little_endian = false;
+        } else if (StartsWith(line, "@flag print_values")) {
+            // Force printing of applied values
+            print_values = true;
+        } else if (StartsWith(line, "@enabled") || StartsWith(line, "@disabled")) {
+            // Start of patch
+            const auto enabled = StartsWith(line, "@enabled");
+            if (i == 0)
+                return;
+            const auto name = lines[i - 1].substr(3);
+            LOG_INFO(Loader, "[IPSwitchCompiler ('{}')] Parsing patch '{}' ({})",
+                     patch_text->GetName(), name, line.substr(1));
+
+            IPSwitchPatch patch{name, enabled, {}};
+
+            // Read rest of patch
+            while (true) {
+                if (i + 1 >= lines.size())
+                    break;
+                line = lines[++i];
+
+                // 11 - 8 hex digit offset + space + minimum two digit overwrite val
+                if (line.length() < 11)
+                    break;
+                auto offset = std::stoul(line.substr(0, 8), nullptr, 16);
+                offset += offset_shift;
+
+                std::vector<u8> replace;
+                // 9 - first char of replacement val
+                if (line[9] == '\"') {
+                    // string replacement
+                    const auto end_index = line.find_last_of('\"');
+                    if (end_index == std::string::npos || end_index < 10)
+                        return;
+                    const auto value = line.substr(10, end_index - 10);
+                    replace.reserve(value.size());
+                    std::copy(value.begin(), value.end(), std::back_inserter(replace));
+                } else {
+                    // hex replacement
+                    const auto value = line.substr(9);
+                    replace.reserve(value.size() / 2);
+                    replace = Common::HexStringToVector(value, is_little_endian);
+                }
+
+                if (print_values) {
+                    LOG_INFO(Loader,
+                             "[IPSwitchCompiler ('{}')]     - Patching value at offset 0x{:08X} "
+                             "with byte string '{}'",
+                             patch_text->GetName(), offset, Common::HexVectorToString(replace));
+                }
+
+                patch.records.emplace(offset, replace);
+            }
+
+            patches.push_back(std::move(patch));
+        }
+    }
+
+    valid = true;
+}
+
+VirtualFile IPSwitchCompiler::Apply(const VirtualFile& in) const {
+    if (in == nullptr || !valid)
+        return nullptr;
+
+    auto in_data = in->ReadAllBytes();
+
+    for (const auto& patch : patches) {
+        if (!patch.enabled)
+            continue;
+
+        for (const auto& record : patch.records) {
+            if (record.first >= in_data.size())
+                continue;
+            auto replace_size = record.second.size();
+            if (record.first + replace_size > in_data.size())
+                replace_size = in_data.size() - record.first;
+            for (std::size_t i = 0; i < replace_size; ++i)
+                in_data[i + record.first] = record.second[i];
+        }
+    }
+
     return std::make_shared<VectorVfsFile>(in_data, in->GetName(), in->GetContainingDirectory());
 }
 
