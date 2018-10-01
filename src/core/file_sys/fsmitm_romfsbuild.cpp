@@ -26,6 +26,7 @@
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "core/file_sys/fsmitm_romfsbuild.h"
+#include "core/file_sys/ips_layer.h"
 #include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_vector.h"
 
@@ -138,6 +139,9 @@ void RomFSBuildContext::VisitDirectory(VirtualDir root_romfs,
 
     for (const auto& kv : entries) {
         if (kv.second == VfsEntryType::Directory) {
+            if (dir->GetSubdirectory(kv.first + ".stub") != nullptr)
+                continue;
+
             const auto child = std::make_shared<RomFSBuildDirectoryContext>();
             // Set child's path.
             child->cur_path_ofs = parent->path_len + 1;
@@ -151,6 +155,9 @@ void RomFSBuildContext::VisitDirectory(VirtualDir root_romfs,
                 child_dirs.push_back(child);
             }
         } else {
+            if (dir->GetFile(kv.first + ".stub") != nullptr)
+                continue;
+
             const auto child = std::make_shared<RomFSBuildFileContext>();
             // Set child's path.
             child->cur_path_ofs = parent->path_len + 1;
@@ -161,6 +168,13 @@ void RomFSBuildContext::VisitDirectory(VirtualDir root_romfs,
             ASSERT(child->path_len < FS_MAX_PATH);
 
             child->source = root_romfs->GetFileRelative(child->path);
+
+            if (dir->GetFile(kv.first + ".ips") != nullptr) {
+                const auto ips = dir->GetFile(kv.first + ".ips");
+                auto patched = PatchIPS(child->source, ips);
+                if (patched != nullptr)
+                    child->source = std::move(patched);
+            }
 
             child->size = child->source->GetSize();
 
