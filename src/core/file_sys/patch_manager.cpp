@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 
@@ -185,7 +186,7 @@ std::map<PatchType, std::string> PatchManager::GetPatchVersionNames() const {
 
         list += fmt::format("{}", dlc_match.back().title_id & 0x7FF);
 
-        out[PatchType::DLC] = list;
+        out.insert_or_assign(PatchType::DLC, std::move(list));
     }
 
     return out;

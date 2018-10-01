@@ -2,7 +2,9 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <numeric>
+#include <vector>
 #include "common/logging/log.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/nca_metadata.h"
@@ -19,25 +21,12 @@ namespace Service::AOC {
 constexpr u64 DLC_BASE_TITLE_ID_MASK = 0xFFFFFFFFFFFFE000;
 constexpr u64 DLC_BASE_TO_AOC_ID_MASK = 0x1000;
 
-bool CheckAOCTitleIDMatchesBase(u64 base, u64 aoc) {
+static bool CheckAOCTitleIDMatchesBase(u64 base, u64 aoc) {
     return (aoc & DLC_BASE_TITLE_ID_MASK) == base;
 }
 
-AOC_U::AOC_U() : ServiceFramework("aoc:u") {
-    static const FunctionInfo functions[] = {
-        {0, nullptr, "CountAddOnContentByApplicationId"},
-        {1, nullptr, "ListAddOnContentByApplicationId"},
-        {2, &AOC_U::CountAddOnContent, "CountAddOnContent"},
-        {3, &AOC_U::ListAddOnContent, "ListAddOnContent"},
-        {4, nullptr, "GetAddOnContentBaseIdByApplicationId"},
-        {5, &AOC_U::GetAddOnContentBaseId, "GetAddOnContentBaseId"},
-        {6, nullptr, "PrepareAddOnContentByApplicationId"},
-        {7, &AOC_U::PrepareAddOnContent, "PrepareAddOnContent"},
-        {8, nullptr, "GetAddOnContentListChangedEvent"},
-    };
-    RegisterHandlers(functions);
-
-    // Accumulate AOC title ids
+static std::vector<u64> AccumulateAOCTitleIDs() {
+    std::vector<u64> add_on_content;
     const auto rcu = FileSystem::GetUnionContents();
     const auto list =
         rcu->ListEntriesFilter(FileSys::TitleType::AOC, FileSys::ContentRecordType::Data);
@@ -51,6 +40,22 @@ AOC_U::AOC_U() : ServiceFramework("aoc:u") {
                        Loader::ResultStatus::Success;
             }),
         add_on_content.end());
+    return add_on_content;
+}
+
+AOC_U::AOC_U() : ServiceFramework("aoc:u"), add_on_content(AccumulateAOCTitleIDs()) {
+    static const FunctionInfo functions[] = {
+        {0, nullptr, "CountAddOnContentByApplicationId"},
+        {1, nullptr, "ListAddOnContentByApplicationId"},
+        {2, &AOC_U::CountAddOnContent, "CountAddOnContent"},
+        {3, &AOC_U::ListAddOnContent, "ListAddOnContent"},
+        {4, nullptr, "GetAddOnContentBaseIdByApplicationId"},
+        {5, &AOC_U::GetAddOnContentBaseId, "GetAddOnContentBaseId"},
+        {6, nullptr, "PrepareAddOnContentByApplicationId"},
+        {7, &AOC_U::PrepareAddOnContent, "PrepareAddOnContent"},
+        {8, nullptr, "GetAddOnContentListChangedEvent"},
+    };
+    RegisterHandlers(functions);
 }
 
 AOC_U::~AOC_U() = default;
@@ -59,7 +64,7 @@ void AOC_U::CountAddOnContent(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
 
-    const auto current = Core::System::GetInstance().CurrentProcess()->program_id;
+    const auto current = Core::System::GetInstance().CurrentProcess()->GetTitleID();
     rb.Push<u32>(std::count_if(add_on_content.begin(), add_on_content.end(), [&current](u64 tid) {
         return (tid & DLC_BASE_TITLE_ID_MASK) == current;
     }));
@@ -71,7 +76,7 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
     const auto offset = rp.PopRaw<u32>();
     auto count = rp.PopRaw<u32>();
 
-    const auto current = Core::System::GetInstance().CurrentProcess()->program_id;
+    const auto current = Core::System::GetInstance().CurrentProcess()->GetTitleID();
 
     std::vector<u32> out;
     for (size_t i = 0; i < add_on_content.size(); ++i) {
@@ -87,7 +92,8 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
     }
 
     count = std::min<size_t>(out.size() - offset, count);
-    out = std::vector<u32>(out.begin() + offset, out.begin() + offset + count);
+    std::rotate(out.begin(), out.begin() + offset, out.end());
+    out.resize(count);
 
     ctx.WriteBuffer(out);
 
@@ -98,7 +104,7 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
 void AOC_U::GetAddOnContentBaseId(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
-    rb.Push(Core::System::GetInstance().CurrentProcess()->program_id | DLC_BASE_TO_AOC_ID_MASK);
+    rb.Push(Core::System::GetInstance().CurrentProcess()->GetTitleID() | DLC_BASE_TO_AOC_ID_MASK);
 }
 
 void AOC_U::PrepareAddOnContent(Kernel::HLERequestContext& ctx) {
