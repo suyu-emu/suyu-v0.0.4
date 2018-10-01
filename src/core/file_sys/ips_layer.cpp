@@ -17,6 +17,11 @@ enum class IPSFileType {
     Error,
 };
 
+const std::map<const char*, const char*> ESCAPE_CHARACTER_MAP{
+    {"\\a", "\a"}, {"\\b", "\b"},  {"\\f", "\f"},  {"\\n", "\n"},  {"\\r", "\r"},  {"\\t", "\t"},
+    {"\\v", "\v"}, {"\\\\", "\\"}, {"\\\'", "\'"}, {"\\\"", "\""}, {"\\\?", "\?"},
+};
+
 static IPSFileType IdentifyMagic(const std::vector<u8>& magic) {
     if (magic.size() != 5)
         return IPSFileType::Error;
@@ -89,7 +94,7 @@ VirtualFile PatchIPS(const VirtualFile& in, const VirtualFile& ips) {
 
 IPSwitchCompiler::IPSwitchCompiler(VirtualFile patch_text_)
     : valid(false), patch_text(std::move(patch_text_)), nso_build_id{}, is_little_endian(false),
-      offset_shift(0), print_values(false) {
+      offset_shift(0), print_values(false), last_comment("") {
     Parse();
 }
 
@@ -103,6 +108,18 @@ bool IPSwitchCompiler::IsValid() const {
 
 static bool StartsWith(const std::string& base, const std::string& check) {
     return base.size() >= check.size() && base.substr(0, check.size()) == check;
+}
+
+static std::string EscapeStringSequences(std::string in) {
+    for (const auto& seq : ESCAPE_CHARACTER_MAP) {
+        for (auto index = in.find(seq.first); index != std::string::npos;
+             index = in.find(seq.first, index)) {
+            in.replace(index, std::strlen(seq.first), seq.second);
+            index += std::strlen(seq.second);
+        }
+    }
+
+    return in;
 }
 
 void IPSwitchCompiler::Parse() {
@@ -121,6 +138,13 @@ void IPSwitchCompiler::Parse() {
 
     for (std::size_t i = 0; i < lines.size(); ++i) {
         auto line = lines[i];
+
+        // Remove midline comments
+        if (!StartsWith(line, "//") && line.find("//") != std::string::npos) {
+            last_comment = line.substr(line.find("//") + 2);
+            line = line.substr(0, line.find("//"));
+        }
+
         if (StartsWith(line, "@stop")) {
             // Force stop
             break;
@@ -132,11 +156,18 @@ void IPSwitchCompiler::Parse() {
             nso_build_id = Common::HexStringToArray<0x20>(raw_build_id);
         } else if (StartsWith(line, "@flag offset_shift ")) {
             // Offset Shift Flag
-            offset_shift = std::stoull(line.substr(19), nullptr, 0);
+            offset_shift = std::stoll(line.substr(19), nullptr, 0);
         } else if (StartsWith(line, "#")) {
             // Mandatory Comment
             LOG_INFO(Loader, "[IPSwitchCompiler ('{}')] Forced output comment: {}",
                      patch_text->GetName(), line.substr(1));
+        } else if (StartsWith(line, "//")) {
+            // Normal Comment
+            last_comment = line.substr(2);
+            if (last_comment.find_first_not_of(' ') == std::string::npos)
+                continue;
+            if (last_comment.find_first_not_of(' ') != 0)
+                last_comment = last_comment.substr(last_comment.find_first_not_of(' '));
         } else if (StartsWith(line, "@little-endian")) {
             // Set values to read as little endian
             is_little_endian = true;
@@ -151,11 +182,10 @@ void IPSwitchCompiler::Parse() {
             const auto enabled = StartsWith(line, "@enabled");
             if (i == 0)
                 return;
-            const auto name = lines[i - 1].substr(3);
             LOG_INFO(Loader, "[IPSwitchCompiler ('{}')] Parsing patch '{}' ({})",
-                     patch_text->GetName(), name, line.substr(1));
+                     patch_text->GetName(), last_comment, line.substr(1));
 
-            IPSwitchPatch patch{name, enabled, {}};
+            IPSwitchPatch patch{last_comment, enabled, {}};
 
             // Read rest of patch
             while (true) {
@@ -173,10 +203,11 @@ void IPSwitchCompiler::Parse() {
                 // 9 - first char of replacement val
                 if (line[9] == '\"') {
                     // string replacement
-                    const auto end_index = line.find_last_of('\"');
+                    const auto end_index = line.find('\"', 10);
                     if (end_index == std::string::npos || end_index < 10)
                         return;
-                    const auto value = line.substr(10, end_index - 10);
+                    auto value = line.substr(10, end_index - 10);
+                    value = EscapeStringSequences(value);
                     replace.reserve(value.size());
                     std::copy(value.begin(), value.end(), std::back_inserter(replace));
                 } else {

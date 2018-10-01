@@ -34,8 +34,9 @@ private:
     std::vector<IPSwitchPatch> patches;
     std::array<u8, 0x20> nso_build_id;
     bool is_little_endian;
-    u64 offset_shift;
+    s64 offset_shift;
     bool print_values;
+    std::string last_comment;
 };
 
 } // namespace FileSys
