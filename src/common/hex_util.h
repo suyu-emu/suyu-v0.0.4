@@ -30,7 +30,7 @@ std::array<u8, Size> HexStringToArray(std::string_view str) {
     return out;
 }
 
-std::string HexVectorToString(std::vector<u8> vector, bool upper = true);
+std::string HexVectorToString(const std::vector<u8>& vector, bool upper = true);
 
 template <std::size_t Size>
 std::string HexArrayToString(std::array<u8, Size> array, bool upper = true) {

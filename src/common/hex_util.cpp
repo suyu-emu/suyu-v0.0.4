@@ -30,7 +30,7 @@ std::vector<u8> HexStringToVector(std::string_view str, bool little_endian) {
     return out;
 }
 
-std::string HexVectorToString(std::vector<u8> vector, bool upper) {
+std::string HexVectorToString(const std::vector<u8>& vector, bool upper) {
     std::string out;
     for (u8 c : vector)
         out += fmt::format(upper ? "{:02X}" : "{:02x}", c);

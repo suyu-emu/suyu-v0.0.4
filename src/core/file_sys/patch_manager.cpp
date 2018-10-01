@@ -273,11 +273,13 @@ std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNam
     if (mod_dir != nullptr && mod_dir->GetSize() > 0) {
         for (const auto& mod : mod_dir->GetSubdirectories()) {
             std::string types;
-            if (IsDirValidAndNonEmpty(mod->GetSubdirectory("exefs"))) {
+
+            const auto exefs_dir = mod->GetSubdirectory("exefs");
+            if (IsDirValidAndNonEmpty(exefs_dir)) {
                 bool ips = false;
                 bool ipswitch = false;
 
-                for (const auto& file : mod->GetSubdirectory("exefs")->GetFiles()) {
+                for (const auto& file : exefs_dir->GetFiles()) {
                     if (file->GetExtension() == "ips")
                         ips = true;
                     else if (file->GetExtension() == "pchtxt")

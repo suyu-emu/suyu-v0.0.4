@@ -17,9 +17,10 @@ enum class IPSFileType {
     Error,
 };
 
-const std::map<const char*, const char*> ESCAPE_CHARACTER_MAP{
-    {"\\a", "\a"}, {"\\b", "\b"},  {"\\f", "\f"},  {"\\n", "\n"},  {"\\r", "\r"},  {"\\t", "\t"},
-    {"\\v", "\v"}, {"\\\\", "\\"}, {"\\\'", "\'"}, {"\\\"", "\""}, {"\\\?", "\?"},
+constexpr std::array<std::pair<const char*, const char*>, 11> ESCAPE_CHARACTER_MAP{
+    std::pair{"\\a", "\a"}, {"\\b", "\b"},  {"\\f", "\f"},  {"\\n", "\n"},
+    {"\\r", "\r"},          {"\\t", "\t"},  {"\\v", "\v"},  {"\\\\", "\\"},
+    {"\\\'", "\'"},         {"\\\"", "\""}, {"\\\?", "\?"},
 };
 
 static IPSFileType IdentifyMagic(const std::vector<u8>& magic) {
@@ -92,11 +93,11 @@ VirtualFile PatchIPS(const VirtualFile& in, const VirtualFile& ips) {
     return std::make_shared<VectorVfsFile>(in_data, in->GetName(), in->GetContainingDirectory());
 }
 
-IPSwitchCompiler::IPSwitchCompiler(VirtualFile patch_text_)
-    : valid(false), patch_text(std::move(patch_text_)), nso_build_id{}, is_little_endian(false),
-      offset_shift(0), print_values(false), last_comment("") {
+IPSwitchCompiler::IPSwitchCompiler(VirtualFile patch_text_) : patch_text(std::move(patch_text_)) {
     Parse();
 }
+
+IPSwitchCompiler::~IPSwitchCompiler() = default;
 
 std::array<u8, 32> IPSwitchCompiler::GetBuildID() const {
     return nso_build_id;
@@ -106,7 +107,7 @@ bool IPSwitchCompiler::IsValid() const {
     return valid;
 }
 
-static bool StartsWith(const std::string& base, const std::string& check) {
+static bool StartsWith(std::string_view base, std::string_view check) {
     return base.size() >= check.size() && base.substr(0, check.size()) == check;
 }
 
@@ -128,21 +129,22 @@ void IPSwitchCompiler::Parse() {
     s.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
 
     std::vector<std::string> lines;
-    std::string line;
-    while (std::getline(s, line)) {
+    std::string stream_line;
+    while (std::getline(s, stream_line)) {
         // Remove a trailing \r
-        if (!line.empty() && line[line.size() - 1] == '\r')
-            line = line.substr(0, line.size() - 1);
-        lines.push_back(line);
+        if (!stream_line.empty() && stream_line.back() == '\r')
+            stream_line.pop_back();
+        lines.push_back(std::move(stream_line));
     }
 
     for (std::size_t i = 0; i < lines.size(); ++i) {
         auto line = lines[i];
 
         // Remove midline comments
-        if (!StartsWith(line, "//") && line.find("//") != std::string::npos) {
-            last_comment = line.substr(line.find("//") + 2);
-            line = line.substr(0, line.find("//"));
+        const auto comment_index = line.find("//");
+        if (!StartsWith(line, "//") && comment_index != std::string::npos) {
+            last_comment = line.substr(comment_index + 2);
+            line = line.substr(0, comment_index);
         }
 
         if (StartsWith(line, "@stop")) {
@@ -191,28 +193,28 @@ void IPSwitchCompiler::Parse() {
             while (true) {
                 if (i + 1 >= lines.size())
                     break;
-                line = lines[++i];
+                const auto patch_line = lines[++i];
 
                 // 11 - 8 hex digit offset + space + minimum two digit overwrite val
-                if (line.length() < 11)
+                if (patch_line.length() < 11)
                     break;
-                auto offset = std::stoul(line.substr(0, 8), nullptr, 16);
+                auto offset = std::stoul(patch_line.substr(0, 8), nullptr, 16);
                 offset += offset_shift;
 
                 std::vector<u8> replace;
                 // 9 - first char of replacement val
-                if (line[9] == '\"') {
+                if (patch_line[9] == '\"') {
                     // string replacement
-                    const auto end_index = line.find('\"', 10);
+                    const auto end_index = patch_line.find('\"', 10);
                     if (end_index == std::string::npos || end_index < 10)
                         return;
-                    auto value = line.substr(10, end_index - 10);
+                    auto value = patch_line.substr(10, end_index - 10);
                     value = EscapeStringSequences(value);
                     replace.reserve(value.size());
                     std::copy(value.begin(), value.end(), std::back_inserter(replace));
                 } else {
                     // hex replacement
-                    const auto value = line.substr(9);
+                    const auto value = patch_line.substr(9);
                     replace.reserve(value.size() / 2);
                     replace = Common::HexStringToVector(value, is_little_endian);
                 }
@@ -224,7 +226,7 @@ void IPSwitchCompiler::Parse() {
                              patch_text->GetName(), offset, Common::HexVectorToString(replace));
                 }
 
-                patch.records.emplace(offset, replace);
+                patch.records.emplace(offset, std::move(replace));
             }
 
             patches.push_back(std::move(patch));
