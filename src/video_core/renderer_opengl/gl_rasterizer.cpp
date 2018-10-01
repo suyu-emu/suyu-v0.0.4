@@ -909,7 +909,10 @@ void RasterizerOpenGL::SyncTransformFeedback() {
 void RasterizerOpenGL::SyncPointState() {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
-    state.point.size = regs.point_size;
+    // TODO(Rodrigo): Most games do not set a point size. I think this is a case of a
+    // register carrying a default value. For now, if the point size is zero, assume it's
+    // OpenGL's default (1).
+    state.point.size = regs.point_size == 0 ? 1 : regs.point_size;
 }
 
 } // namespace OpenGL
