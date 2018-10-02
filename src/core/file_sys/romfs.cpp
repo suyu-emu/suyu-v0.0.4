@@ -129,11 +129,11 @@ VirtualDir ExtractRomFS(VirtualFile file, RomFSExtractionType type) {
     return out;
 }
 
-VirtualFile CreateRomFS(VirtualDir dir) {
+VirtualFile CreateRomFS(VirtualDir dir, VirtualDir ext) {
     if (dir == nullptr)
         return nullptr;
 
-    RomFSBuildContext ctx{dir};
+    RomFSBuildContext ctx{dir, ext};
     return ConcatenatedVfsFile::MakeConcatenatedFile(0, ctx.Build(), dir->GetName());
 }
 

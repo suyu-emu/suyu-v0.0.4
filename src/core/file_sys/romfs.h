@@ -44,6 +44,6 @@ VirtualDir ExtractRomFS(VirtualFile file,
 
 // Converts a VFS filesystem into a RomFS binary
 // Returns nullptr on failure
-VirtualFile CreateRomFS(VirtualDir dir);
+VirtualFile CreateRomFS(VirtualDir dir, VirtualDir ext = nullptr);
 
 } // namespace FileSys
