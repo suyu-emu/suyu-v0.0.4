@@ -744,6 +744,12 @@ public:
                         return static_cast<GPUVAddr>((static_cast<GPUVAddr>(end_addr_high) << 32) |
                                                      end_addr_low);
                     }
+
+                    /// Adjust the index buffer offset so it points to the first desired index.
+                    GPUVAddr IndexStart() const {
+                        return StartAddress() + static_cast<size_t>(first) *
+                                                    static_cast<size_t>(FormatSizeInBytes());
+                    }
                 } index_array;
 
                 INSERT_PADDING_WORDS(0x7);

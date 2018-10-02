@@ -23,6 +23,7 @@
 #include "video_core/rasterizer_cache.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
+#include "video_core/renderer_opengl/gl_primitive_assembler.h"
 #include "video_core/renderer_opengl/gl_rasterizer_cache.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
@@ -38,6 +39,7 @@ class EmuWindow;
 namespace OpenGL {
 
 struct ScreenInfo;
+struct DrawParameters;
 
 class RasterizerOpenGL : public VideoCore::RasterizerInterface {
 public:
@@ -192,11 +194,16 @@ private:
     static constexpr std::size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;
     OGLBufferCache buffer_cache;
     OGLFramebuffer framebuffer;
+    PrimitiveAssembler primitive_assembler{buffer_cache};
     GLint uniform_buffer_alignment;
 
     std::size_t CalculateVertexArraysSize() const;
 
+    std::size_t CalculateIndexBufferSize() const;
+
     void SetupVertexArrays();
+
+    DrawParameters SetupDraw();
 
     void SetupShaders();
 
