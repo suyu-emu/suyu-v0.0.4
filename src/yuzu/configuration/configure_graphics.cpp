@@ -8,27 +8,7 @@
 #include "ui_configure_graphics.h"
 #include "yuzu/configuration/configure_graphics.h"
 
-ConfigureGraphics::ConfigureGraphics(QWidget* parent)
-    : QWidget(parent), ui(new Ui::ConfigureGraphics) {
-
-    ui->setupUi(this);
-    this->setConfiguration();
-
-    ui->frame_limit->setEnabled(Settings::values.use_frame_limit);
-    connect(ui->toggle_frame_limit, &QCheckBox::stateChanged, ui->frame_limit,
-            &QSpinBox::setEnabled);
-    connect(ui->bg_button, &QPushButton::clicked, this, [this] {
-        const QColor new_bg_color = QColorDialog::getColor(bg_color);
-        if (!new_bg_color.isValid())
-            return;
-        bg_color = new_bg_color;
-        ui->bg_button->setStyleSheet(
-            QString("QPushButton { background-color: %1 }").arg(bg_color.name()));
-    });
-}
-
-ConfigureGraphics::~ConfigureGraphics() = default;
-
+namespace {
 enum class Resolution : int {
     Auto,
     Scale1x,
@@ -67,6 +47,28 @@ Resolution FromResolutionFactor(float factor) {
     }
     return Resolution::Auto;
 }
+} // Anonymous namespace
+
+ConfigureGraphics::ConfigureGraphics(QWidget* parent)
+    : QWidget(parent), ui(new Ui::ConfigureGraphics) {
+
+    ui->setupUi(this);
+    this->setConfiguration();
+
+    ui->frame_limit->setEnabled(Settings::values.use_frame_limit);
+    connect(ui->toggle_frame_limit, &QCheckBox::stateChanged, ui->frame_limit,
+            &QSpinBox::setEnabled);
+    connect(ui->bg_button, &QPushButton::clicked, this, [this] {
+        const QColor new_bg_color = QColorDialog::getColor(bg_color);
+        if (!new_bg_color.isValid())
+            return;
+        bg_color = new_bg_color;
+        ui->bg_button->setStyleSheet(
+            QString("QPushButton { background-color: %1 }").arg(bg_color.name()));
+    });
+}
+
+ConfigureGraphics::~ConfigureGraphics() = default;
 
 void ConfigureGraphics::setConfiguration() {
     ui->resolution_factor_combobox->setCurrentIndex(
