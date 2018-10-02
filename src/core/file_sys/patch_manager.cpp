@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <cstring>
 
 #include "common/hex_util.h"
 #include "common/logging/log.h"
@@ -72,11 +73,34 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
     return exefs;
 }
 
+static std::vector<VirtualFile> CollectIPSPatches(const std::vector<VirtualDir>& patch_dirs,
+                                                  const std::string& build_id) {
+    std::vector<VirtualFile> ips;
+    ips.reserve(patch_dirs.size());
+    for (const auto& subdir : patch_dirs) {
+        auto exefs_dir = subdir->GetSubdirectory("exefs");
+        if (exefs_dir != nullptr) {
+            for (const auto& file : exefs_dir->GetFiles()) {
+                if (file->GetExtension() != "ips")
+                    continue;
+                auto name = file->GetName();
+                const auto p1 = name.substr(0, name.find('.'));
+                const auto this_build_id = p1.substr(0, p1.find_last_not_of('0') + 1);
+
+                if (build_id == this_build_id)
+                    ips.push_back(file);
+            }
+        }
+    }
+
+    return ips;
+}
+
 std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso) const {
     if (nso.size() < 0x100)
         return nso;
 
-    NSOBuildHeader header{};
+    NSOBuildHeader header;
     std::memcpy(&header, nso.data(), sizeof(NSOBuildHeader));
 
     if (header.magic != Common::MakeMagic('N', 'S', 'O', '0'))
@@ -91,24 +115,7 @@ std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso) const {
     auto patch_dirs = load_dir->GetSubdirectories();
     std::sort(patch_dirs.begin(), patch_dirs.end(),
               [](const VirtualDir& l, const VirtualDir& r) { return l->GetName() < r->GetName(); });
-
-    std::vector<VirtualFile> ips;
-    ips.reserve(patch_dirs.size() - 1);
-    for (const auto& subdir : patch_dirs) {
-        auto exefs_dir = subdir->GetSubdirectory("exefs");
-        if (exefs_dir != nullptr) {
-            for (const auto& file : exefs_dir->GetFiles()) {
-                if (file->GetExtension() != "ips")
-                    continue;
-                auto name = file->GetName();
-                const auto p1 = name.substr(0, name.find_first_of('.'));
-                const auto this_build_id = p1.substr(0, p1.find_last_not_of('0') + 1);
-
-                if (build_id == this_build_id)
-                    ips.push_back(file);
-            }
-        }
-    }
+    const auto ips = CollectIPSPatches(patch_dirs, build_id);
 
     auto out = nso;
     for (const auto& ips_file : ips) {
@@ -136,23 +143,7 @@ bool PatchManager::HasNSOPatch(const std::array<u8, 32>& build_id_) const {
     std::sort(patch_dirs.begin(), patch_dirs.end(),
               [](const VirtualDir& l, const VirtualDir& r) { return l->GetName() < r->GetName(); });
 
-    for (const auto& subdir : patch_dirs) {
-        auto exefs_dir = subdir->GetSubdirectory("exefs");
-        if (exefs_dir != nullptr) {
-            for (const auto& file : exefs_dir->GetFiles()) {
-                if (file->GetExtension() != "ips")
-                    continue;
-                auto name = file->GetName();
-                const auto p1 = name.substr(0, name.find_first_of('.'));
-                const auto this_build_id = p1.substr(0, p1.find_last_not_of('0') + 1);
-
-                if (build_id == this_build_id)
-                    return true;
-            }
-        }
-    }
-
-    return false;
+    return !CollectIPSPatches(patch_dirs, build_id).empty();
 }
 
 static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType type) {
@@ -222,7 +213,7 @@ VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset,
     return romfs;
 }
 
-void AppendCommaIfNotEmpty(std::string& to, const std::string& with) {
+static void AppendCommaIfNotEmpty(std::string& to, const std::string& with) {
     if (to.empty())
         to += with;
     else
@@ -233,8 +224,8 @@ static bool IsDirValidAndNonEmpty(const VirtualDir& dir) {
     return dir != nullptr && (!dir->GetFiles().empty() || !dir->GetSubdirectories().empty());
 }
 
-std::map<std::string, std::string> PatchManager::GetPatchVersionNames() const {
-    std::map<std::string, std::string> out;
+std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNames() const {
+    std::map<std::string, std::string, std::less<>> out;
     const auto installed = Service::FileSystem::GetUnionContents();
 
     // Game Updates
@@ -243,19 +234,21 @@ std::map<std::string, std::string> PatchManager::GetPatchVersionNames() const {
     auto [nacp, discard_icon_file] = update.GetControlMetadata();
 
     if (nacp != nullptr) {
-        out["Update"] = nacp->GetVersionString();
+        out.insert_or_assign("Update", nacp->GetVersionString());
     } else {
         if (installed->HasEntry(update_tid, ContentRecordType::Program)) {
             const auto meta_ver = installed->GetEntryVersion(update_tid);
             if (meta_ver == boost::none || meta_ver.get() == 0) {
-                out["Update"] = "";
+                out.insert_or_assign("Update", "");
             } else {
-                out["Update"] =
-                    FormatTitleVersion(meta_ver.get(), TitleVersionFormat::ThreeElements);
+                out.insert_or_assign(
+                    "Update",
+                    FormatTitleVersion(meta_ver.get(), TitleVersionFormat::ThreeElements));
             }
         }
     }
 
+    // General Mods (LayeredFS and IPS)
     const auto mod_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
     if (mod_dir != nullptr && mod_dir->GetSize() > 0) {
         for (const auto& mod : mod_dir->GetSubdirectories()) {
@@ -292,7 +285,7 @@ std::map<std::string, std::string> PatchManager::GetPatchVersionNames() const {
 
         list += fmt::format("{}", dlc_match.back().title_id & 0x7FF);
 
-        out.insert_or_assign(PatchType::DLC, std::move(list));
+        out.insert_or_assign("DLC", std::move(list));
     }
 
     return out;

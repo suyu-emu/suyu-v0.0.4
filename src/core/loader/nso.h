@@ -28,7 +28,7 @@ public:
     }
 
     static VAddr LoadModule(FileSys::VirtualFile file, VAddr load_base,
-                            std::shared_ptr<FileSys::PatchManager> pm = nullptr);
+                            boost::optional<FileSys::PatchManager> pm = boost::none);
 
     ResultStatus Load(Kernel::Process& process) override;
 };

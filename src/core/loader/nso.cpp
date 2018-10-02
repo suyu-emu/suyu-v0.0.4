@@ -94,7 +94,7 @@ static constexpr u32 PageAlignSize(u32 size) {
 }
 
 VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base,
-                                std::shared_ptr<FileSys::PatchManager> pm) {
+                                boost::optional<FileSys::PatchManager> pm) {
     if (file == nullptr)
         return {};
 
@@ -144,7 +144,7 @@ VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base,
     program_image.resize(image_size);
 
     // Apply patches if necessary
-    if (pm != nullptr && pm->HasNSOPatch(nso_header.build_id)) {
+    if (pm != boost::none && pm->HasNSOPatch(nso_header.build_id)) {
         std::vector<u8> pi_header(program_image.size() + 0x100);
         std::memcpy(pi_header.data(), &nso_header, sizeof(NsoHeader));
         std::memcpy(pi_header.data() + 0x100, program_image.data(), program_image.size());

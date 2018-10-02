@@ -50,7 +50,7 @@ public:
 
     // Returns a vector of pairs between patch names and patch versions.
     // i.e. Update 3.2.2 will return {"Update", "3.2.2"}
-    std::map<std::string, std::string> GetPatchVersionNames() const;
+    std::map<std::string, std::string, std::less<>> GetPatchVersionNames() const;
 
     // Given title_id of the program, attempts to get the control data of the update and parse it,
     // falling back to the base control data.
