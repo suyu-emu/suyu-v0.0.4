@@ -39,9 +39,6 @@ public:
     bool DeleteFile(std::string_view name) override;
     bool Rename(std::string_view name) override;
 
-protected:
-    bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
-
 private:
     std::vector<VirtualDir> dirs;
     std::string name;

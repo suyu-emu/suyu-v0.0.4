@@ -51,9 +51,6 @@ public:
 
     std::shared_ptr<VfsDirectory> GetParentDirectory() const override;
 
-protected:
-    bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
-
 private:
     Loader::ResultStatus Parse(std::string_view path);
 

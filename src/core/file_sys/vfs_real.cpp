@@ -430,7 +430,4 @@ std::map<std::string, VfsEntryType, std::less<>> RealVfsDirectory::GetEntries() 
     return out;
 }
 
-bool RealVfsDirectory::ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) {
-    return false;
-}
 } // namespace FileSys

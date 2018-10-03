@@ -94,9 +94,6 @@ public:
 
     VirtualDir GetParentDirectory() const override;
 
-protected:
-    bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
-
 private:
     Loader::ResultStatus AddNCAFromPartition(XCIPartition part);
 

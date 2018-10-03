@@ -83,7 +83,7 @@ std::vector<std::shared_ptr<VfsFile>> PartitionFilesystem::GetFiles() const {
 }
 
 std::vector<std::shared_ptr<VfsDirectory>> PartitionFilesystem::GetSubdirectories() const {
-    return pfs_dirs;
+    return {};
 }
 
 std::string PartitionFilesystem::GetName() const {
@@ -102,19 +102,5 @@ void PartitionFilesystem::PrintDebugInfo() const {
         LOG_DEBUG(Service_FS, " > File {}:              {} (0x{:X} bytes)", i,
                   pfs_files[i]->GetName(), pfs_files[i]->GetSize());
     }
-}
-
-bool PartitionFilesystem::ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) {
-    const auto iter = std::find(pfs_files.begin(), pfs_files.end(), file);
-    if (iter == pfs_files.end())
-        return false;
-
-    const std::ptrdiff_t offset = std::distance(pfs_files.begin(), iter);
-    pfs_files[offset] = std::move(pfs_files.back());
-    pfs_files.pop_back();
-
-    pfs_dirs.emplace_back(std::move(dir));
-
-    return true;
 }
 } // namespace FileSys

@@ -35,9 +35,6 @@ public:
     std::shared_ptr<VfsDirectory> GetParentDirectory() const override;
     void PrintDebugInfo() const;
 
-protected:
-    bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
-
 private:
     struct Header {
         u32_le magic;
@@ -84,7 +81,6 @@ private:
     std::size_t content_offset = 0;
 
     std::vector<VirtualFile> pfs_files;
-    std::vector<VirtualDir> pfs_dirs;
 };
 
 } // namespace FileSys

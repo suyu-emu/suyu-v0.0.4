@@ -168,10 +168,6 @@ VirtualDir XCI::GetParentDirectory() const {
     return file->GetContainingDirectory();
 }
 
-bool XCI::ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) {
-    return false;
-}
-
 Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
     if (partitions[static_cast<std::size_t>(part)] == nullptr) {
         return Loader::ResultStatus::ErrorXCIMissingPartition;

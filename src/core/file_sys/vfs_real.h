@@ -100,9 +100,6 @@ public:
     std::string GetFullPath() const override;
     std::map<std::string, VfsEntryType, std::less<>> GetEntries() const override;
 
-protected:
-    bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
-
 private:
     RealVfsDirectory(RealVfsFilesystem& base, const std::string& path, Mode perms = Mode::Read);
 

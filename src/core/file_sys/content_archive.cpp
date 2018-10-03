@@ -546,7 +546,4 @@ u64 NCA::GetBaseIVFCOffset() const {
     return ivfc_offset;
 }
 
-bool NCA::ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) {
-    return false;
-}
 } // namespace FileSys

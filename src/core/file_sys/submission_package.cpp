@@ -205,10 +205,6 @@ VirtualDir NSP::GetParentDirectory() const {
     return file->GetContainingDirectory();
 }
 
-bool NSP::ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) {
-    return false;
-}
-
 void NSP::InitializeExeFSAndRomFS(const std::vector<VirtualFile>& files) {
     exefs = pfs;
 
