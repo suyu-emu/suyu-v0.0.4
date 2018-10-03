@@ -120,10 +120,10 @@ ResultCode ServerSession::HandleSyncRequest(SharedPtr<Thread> thread) {
         result = hle_handler->HandleSyncRequest(context);
     }
 
-    if (thread->status == ThreadStatus::Running) {
+    if (thread->GetStatus() == ThreadStatus::Running) {
         // Put the thread to sleep until the server replies, it will be awoken in
         // svcReplyAndReceive for LLE servers.
-        thread->status = ThreadStatus::WaitIPC;
+        thread->SetStatus(ThreadStatus::WaitIPC);
 
         if (hle_handler != nullptr) {
             // For HLE services, we put the request threads to sleep for a short duration to

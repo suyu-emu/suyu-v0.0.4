@@ -144,15 +144,15 @@ void Process::PrepareForTermination() {
 
     const auto stop_threads = [this](const std::vector<SharedPtr<Thread>>& thread_list) {
         for (auto& thread : thread_list) {
-            if (thread->owner_process != this)
+            if (thread->GetOwnerProcess() != this)
                 continue;
 
             if (thread == GetCurrentThread())
                 continue;
 
             // TODO(Subv): When are the other running/ready threads terminated?
-            ASSERT_MSG(thread->status == ThreadStatus::WaitSynchAny ||
-                           thread->status == ThreadStatus::WaitSynchAll,
+            ASSERT_MSG(thread->GetStatus() == ThreadStatus::WaitSynchAny ||
+                           thread->GetStatus() == ThreadStatus::WaitSynchAll,
                        "Exiting processes with non-waiting threads is currently unimplemented");
 
             thread->Stop();

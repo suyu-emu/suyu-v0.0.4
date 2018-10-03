@@ -209,7 +209,7 @@ static Kernel::Thread* FindThreadById(int id) {
     for (u32 core = 0; core < Core::NUM_CPU_CORES; core++) {
         const auto& threads = Core::System::GetInstance().Scheduler(core)->GetThreadList();
         for (auto& thread : threads) {
-            if (thread->GetThreadId() == static_cast<u32>(id)) {
+            if (thread->GetThreadID() == static_cast<u32>(id)) {
                 current_core = core;
                 return thread.get();
             }
@@ -223,16 +223,18 @@ static u64 RegRead(std::size_t id, Kernel::Thread* thread = nullptr) {
         return 0;
     }
 
+    const auto& thread_context = thread->GetContext();
+
     if (id < SP_REGISTER) {
-        return thread->context.cpu_registers[id];
+        return thread_context.cpu_registers[id];
     } else if (id == SP_REGISTER) {
-        return thread->context.sp;
+        return thread_context.sp;
     } else if (id == PC_REGISTER) {
-        return thread->context.pc;
+        return thread_context.pc;
     } else if (id == PSTATE_REGISTER) {
-        return thread->context.pstate;
+        return thread_context.pstate;
     } else if (id > PSTATE_REGISTER && id < FPCR_REGISTER) {
-        return thread->context.vector_registers[id - UC_ARM64_REG_Q0][0];
+        return thread_context.vector_registers[id - UC_ARM64_REG_Q0][0];
     } else {
         return 0;
     }
@@ -243,16 +245,18 @@ static void RegWrite(std::size_t id, u64 val, Kernel::Thread* thread = nullptr) 
         return;
     }
 
+    auto& thread_context = thread->GetContext();
+
     if (id < SP_REGISTER) {
-        thread->context.cpu_registers[id] = val;
+        thread_context.cpu_registers[id] = val;
     } else if (id == SP_REGISTER) {
-        thread->context.sp = val;
+        thread_context.sp = val;
     } else if (id == PC_REGISTER) {
-        thread->context.pc = val;
+        thread_context.pc = val;
     } else if (id == PSTATE_REGISTER) {
-        thread->context.pstate = static_cast<u32>(val);
+        thread_context.pstate = static_cast<u32>(val);
     } else if (id > PSTATE_REGISTER && id < FPCR_REGISTER) {
-        thread->context.vector_registers[id - (PSTATE_REGISTER + 1)][0] = val;
+        thread_context.vector_registers[id - (PSTATE_REGISTER + 1)][0] = val;
     }
 }
 
@@ -595,7 +599,7 @@ static void HandleQuery() {
         for (u32 core = 0; core < Core::NUM_CPU_CORES; core++) {
             const auto& threads = Core::System::GetInstance().Scheduler(core)->GetThreadList();
             for (const auto& thread : threads) {
-                val += fmt::format("{:x}", thread->GetThreadId());
+                val += fmt::format("{:x}", thread->GetThreadID());
                 val += ",";
             }
         }
@@ -612,7 +616,7 @@ static void HandleQuery() {
             for (const auto& thread : threads) {
                 buffer +=
                     fmt::format(R"*(<thread id="{:x}" core="{:d}" name="Thread {:x}"></thread>)*",
-                                thread->GetThreadId(), core, thread->GetThreadId());
+                                thread->GetThreadID(), core, thread->GetThreadID());
             }
         }
         buffer += "</threads>";
@@ -693,7 +697,7 @@ static void SendSignal(Kernel::Thread* thread, u32 signal, bool full = true) {
     }
 
     if (thread) {
-        buffer += fmt::format(";thread:{:x};", thread->GetThreadId());
+        buffer += fmt::format(";thread:{:x};", thread->GetThreadID());
     }
 
     SendReply(buffer.c_str());
@@ -857,7 +861,9 @@ static void WriteRegister() {
     }
 
     // Update Unicorn context skipping scheduler, no running threads at this point
-    Core::System::GetInstance().ArmInterface(current_core).LoadContext(current_thread->context);
+    Core::System::GetInstance()
+        .ArmInterface(current_core)
+        .LoadContext(current_thread->GetContext());
 
     SendReply("OK");
 }
@@ -886,7 +892,9 @@ static void WriteRegisters() {
     }
 
     // Update Unicorn context skipping scheduler, no running threads at this point
-    Core::System::GetInstance().ArmInterface(current_core).LoadContext(current_thread->context);
+    Core::System::GetInstance()
+        .ArmInterface(current_core)
+        .LoadContext(current_thread->GetContext());
 
     SendReply("OK");
 }
@@ -960,7 +968,9 @@ static void Step() {
     if (command_length > 1) {
         RegWrite(PC_REGISTER, GdbHexToLong(command_buffer + 1), current_thread);
         // Update Unicorn context skipping scheduler, no running threads at this point
-        Core::System::GetInstance().ArmInterface(current_core).LoadContext(current_thread->context);
+        Core::System::GetInstance()
+            .ArmInterface(current_core)
+            .LoadContext(current_thread->GetContext());
     }
     step_loop = true;
     halt_loop = true;

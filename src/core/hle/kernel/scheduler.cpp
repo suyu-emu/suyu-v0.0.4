@@ -38,10 +38,10 @@ Thread* Scheduler::PopNextReadyThread() {
     Thread* next = nullptr;
     Thread* thread = GetCurrentThread();
 
-    if (thread && thread->status == ThreadStatus::Running) {
+    if (thread && thread->GetStatus() == ThreadStatus::Running) {
         // We have to do better than the current thread.
         // This call returns null when that's not possible.
-        next = ready_queue.pop_first_better(thread->current_priority);
+        next = ready_queue.pop_first_better(thread->GetPriority());
         if (!next) {
             // Otherwise just keep going with the current thread
             next = thread;
@@ -58,22 +58,21 @@ void Scheduler::SwitchContext(Thread* new_thread) {
 
     // Save context for previous thread
     if (previous_thread) {
-        previous_thread->last_running_ticks = CoreTiming::GetTicks();
-        cpu_core.SaveContext(previous_thread->context);
+        cpu_core.SaveContext(previous_thread->GetContext());
         // Save the TPIDR_EL0 system register in case it was modified.
-        previous_thread->tpidr_el0 = cpu_core.GetTPIDR_EL0();
+        previous_thread->SetTPIDR_EL0(cpu_core.GetTPIDR_EL0());
 
-        if (previous_thread->status == ThreadStatus::Running) {
+        if (previous_thread->GetStatus() == ThreadStatus::Running) {
             // This is only the case when a reschedule is triggered without the current thread
             // yielding execution (i.e. an event triggered, system core time-sliced, etc)
-            ready_queue.push_front(previous_thread->current_priority, previous_thread);
-            previous_thread->status = ThreadStatus::Ready;
+            ready_queue.push_front(previous_thread->GetPriority(), previous_thread);
+            previous_thread->SetStatus(ThreadStatus::Ready);
         }
     }
 
     // Load context of new thread
     if (new_thread) {
-        ASSERT_MSG(new_thread->status == ThreadStatus::Ready,
+        ASSERT_MSG(new_thread->GetStatus() == ThreadStatus::Ready,
                    "Thread must be ready to become running.");
 
         // Cancel any outstanding wakeup events for this thread
@@ -83,15 +82,16 @@ void Scheduler::SwitchContext(Thread* new_thread) {
 
         current_thread = new_thread;
 
-        ready_queue.remove(new_thread->current_priority, new_thread);
-        new_thread->status = ThreadStatus::Running;
+        ready_queue.remove(new_thread->GetPriority(), new_thread);
+        new_thread->SetStatus(ThreadStatus::Running);
 
-        if (previous_process != current_thread->owner_process) {
-            Core::CurrentProcess() = current_thread->owner_process;
+        const auto thread_owner_process = current_thread->GetOwnerProcess();
+        if (previous_process != thread_owner_process) {
+            Core::CurrentProcess() = thread_owner_process;
             SetCurrentPageTable(&Core::CurrentProcess()->VMManager().page_table);
         }
 
-        cpu_core.LoadContext(new_thread->context);
+        cpu_core.LoadContext(new_thread->GetContext());
         cpu_core.SetTlsAddress(new_thread->GetTLSAddress());
         cpu_core.SetTPIDR_EL0(new_thread->GetTPIDR_EL0());
         cpu_core.ClearExclusiveState();
@@ -136,14 +136,14 @@ void Scheduler::RemoveThread(Thread* thread) {
 void Scheduler::ScheduleThread(Thread* thread, u32 priority) {
     std::lock_guard<std::mutex> lock(scheduler_mutex);
 
-    ASSERT(thread->status == ThreadStatus::Ready);
+    ASSERT(thread->GetStatus() == ThreadStatus::Ready);
     ready_queue.push_back(priority, thread);
 }
 
 void Scheduler::UnscheduleThread(Thread* thread, u32 priority) {
     std::lock_guard<std::mutex> lock(scheduler_mutex);
 
-    ASSERT(thread->status == ThreadStatus::Ready);
+    ASSERT(thread->GetStatus() == ThreadStatus::Ready);
     ready_queue.remove(priority, thread);
 }
 
@@ -151,8 +151,8 @@ void Scheduler::SetThreadPriority(Thread* thread, u32 priority) {
     std::lock_guard<std::mutex> lock(scheduler_mutex);
 
     // If thread was ready, adjust queues
-    if (thread->status == ThreadStatus::Ready)
-        ready_queue.move(thread, thread->current_priority, priority);
+    if (thread->GetStatus() == ThreadStatus::Ready)
+        ready_queue.move(thread, thread->GetPriority(), priority);
     else
         ready_queue.prepare(priority);
 }

@@ -70,7 +70,7 @@ void Thread::Stop() {
 
 void WaitCurrentThread_Sleep() {
     Thread* thread = GetCurrentThread();
-    thread->status = ThreadStatus::WaitSleep;
+    thread->SetStatus(ThreadStatus::WaitSleep);
 }
 
 void ExitCurrentThread() {
@@ -269,9 +269,9 @@ SharedPtr<Thread> SetupMainThread(KernelCore& kernel, VAddr entry_point, u32 pri
     SharedPtr<Thread> thread = std::move(thread_res).Unwrap();
 
     // Register 1 must be a handle to the main thread
-    thread->guest_handle = kernel.HandleTable().Create(thread).Unwrap();
-
-    thread->context.cpu_registers[1] = thread->guest_handle;
+    const Handle guest_handle = kernel.HandleTable().Create(thread).Unwrap();
+    thread->SetGuestHandle(guest_handle);
+    thread->GetContext().cpu_registers[1] = guest_handle;
 
     // Threads by default are dormant, wake up the main thread so it runs when the scheduler fires
     thread->ResumeFromWait();
@@ -297,6 +297,18 @@ VAddr Thread::GetCommandBufferAddress() const {
     // Offset from the start of TLS at which the IPC command buffer begins.
     static constexpr int CommandHeaderOffset = 0x80;
     return GetTLSAddress() + CommandHeaderOffset;
+}
+
+void Thread::SetStatus(ThreadStatus new_status) {
+    if (new_status == status) {
+        return;
+    }
+
+    if (status == ThreadStatus::Running) {
+        last_running_ticks = CoreTiming::GetTicks();
+    }
+
+    status = new_status;
 }
 
 void Thread::AddMutexWaiter(SharedPtr<Thread> thread) {
@@ -391,6 +403,18 @@ void Thread::ChangeCore(u32 core, u64 mask) {
     scheduler = next_scheduler;
 
     Core::System::GetInstance().CpuCore(processor_id).PrepareReschedule();
+}
+
+bool Thread::AllWaitObjectsReady() {
+    return std::none_of(
+        wait_objects.begin(), wait_objects.end(),
+        [this](const SharedPtr<WaitObject>& object) { return object->ShouldWait(this); });
+}
+
+bool Thread::InvokeWakeupCallback(ThreadWakeupReason reason, SharedPtr<Thread> thread,
+                                  SharedPtr<WaitObject> object, std::size_t index) {
+    ASSERT(wakeup_callback);
+    return wakeup_callback(reason, std::move(thread), std::move(object), index);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

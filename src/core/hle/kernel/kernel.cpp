@@ -46,40 +46,40 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] int cycles_
 
     bool resume = true;
 
-    if (thread->status == ThreadStatus::WaitSynchAny ||
-        thread->status == ThreadStatus::WaitSynchAll ||
-        thread->status == ThreadStatus::WaitHLEEvent) {
+    if (thread->GetStatus() == ThreadStatus::WaitSynchAny ||
+        thread->GetStatus() == ThreadStatus::WaitSynchAll ||
+        thread->GetStatus() == ThreadStatus::WaitHLEEvent) {
         // Remove the thread from each of its waiting objects' waitlists
-        for (auto& object : thread->wait_objects) {
+        for (const auto& object : thread->GetWaitObjects()) {
             object->RemoveWaitingThread(thread.get());
         }
-        thread->wait_objects.clear();
+        thread->ClearWaitObjects();
 
         // Invoke the wakeup callback before clearing the wait objects
-        if (thread->wakeup_callback) {
-            resume = thread->wakeup_callback(ThreadWakeupReason::Timeout, thread, nullptr, 0);
+        if (thread->HasWakeupCallback()) {
+            resume = thread->InvokeWakeupCallback(ThreadWakeupReason::Timeout, thread, nullptr, 0);
         }
     }
 
-    if (thread->mutex_wait_address != 0 || thread->condvar_wait_address != 0 ||
-        thread->wait_handle) {
-        ASSERT(thread->status == ThreadStatus::WaitMutex);
-        thread->mutex_wait_address = 0;
-        thread->condvar_wait_address = 0;
-        thread->wait_handle = 0;
+    if (thread->GetMutexWaitAddress() != 0 || thread->GetCondVarWaitAddress() != 0 ||
+        thread->GetWaitHandle() != 0) {
+        ASSERT(thread->GetStatus() == ThreadStatus::WaitMutex);
+        thread->SetMutexWaitAddress(0);
+        thread->SetCondVarWaitAddress(0);
+        thread->SetWaitHandle(0);
 
-        auto lock_owner = thread->lock_owner;
+        auto* const lock_owner = thread->GetLockOwner();
         // Threads waking up by timeout from WaitProcessWideKey do not perform priority inheritance
         // and don't have a lock owner unless SignalProcessWideKey was called first and the thread
         // wasn't awakened due to the mutex already being acquired.
-        if (lock_owner) {
+        if (lock_owner != nullptr) {
             lock_owner->RemoveMutexWaiter(thread);
         }
     }
 
-    if (thread->arb_wait_address != 0) {
-        ASSERT(thread->status == ThreadStatus::WaitArb);
-        thread->arb_wait_address = 0;
+    if (thread->GetArbiterWaitAddress() != 0) {
+        ASSERT(thread->GetStatus() == ThreadStatus::WaitArb);
+        thread->SetArbiterWaitAddress(0);
     }
 
     if (resume) {

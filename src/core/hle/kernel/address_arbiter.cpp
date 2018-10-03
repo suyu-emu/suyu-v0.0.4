@@ -23,13 +23,13 @@ namespace AddressArbiter {
 // Performs actual address waiting logic.
 static ResultCode WaitForAddress(VAddr address, s64 timeout) {
     SharedPtr<Thread> current_thread = GetCurrentThread();
-    current_thread->arb_wait_address = address;
-    current_thread->status = ThreadStatus::WaitArb;
-    current_thread->wakeup_callback = nullptr;
+    current_thread->SetArbiterWaitAddress(address);
+    current_thread->SetStatus(ThreadStatus::WaitArb);
+    current_thread->InvalidateWakeupCallback();
 
     current_thread->WakeAfterDelay(timeout);
 
-    Core::System::GetInstance().CpuCore(current_thread->processor_id).PrepareReschedule();
+    Core::System::GetInstance().CpuCore(current_thread->GetProcessorID()).PrepareReschedule();
     return RESULT_TIMEOUT;
 }
 
@@ -39,10 +39,10 @@ static std::vector<SharedPtr<Thread>> GetThreadsWaitingOnAddress(VAddr address) 
                                            std::vector<SharedPtr<Thread>>& waiting_threads,
                                            VAddr arb_addr) {
         const auto& scheduler = Core::System::GetInstance().Scheduler(core_index);
-        auto& thread_list = scheduler->GetThreadList();
+        const auto& thread_list = scheduler->GetThreadList();
 
-        for (auto& thread : thread_list) {
-            if (thread->arb_wait_address == arb_addr)
+        for (const auto& thread : thread_list) {
+            if (thread->GetArbiterWaitAddress() == arb_addr)
                 waiting_threads.push_back(thread);
         }
     };
@@ -57,7 +57,7 @@ static std::vector<SharedPtr<Thread>> GetThreadsWaitingOnAddress(VAddr address) 
     // Sort them by priority, such that the highest priority ones come first.
     std::sort(threads.begin(), threads.end(),
               [](const SharedPtr<Thread>& lhs, const SharedPtr<Thread>& rhs) {
-                  return lhs->current_priority < rhs->current_priority;
+                  return lhs->GetPriority() < rhs->GetPriority();
               });
 
     return threads;
@@ -73,9 +73,9 @@ static void WakeThreads(std::vector<SharedPtr<Thread>>& waiting_threads, s32 num
 
     // Signal the waiting threads.
     for (std::size_t i = 0; i < last; i++) {
-        ASSERT(waiting_threads[i]->status == ThreadStatus::WaitArb);
+        ASSERT(waiting_threads[i]->GetStatus() == ThreadStatus::WaitArb);
         waiting_threads[i]->SetWaitSynchronizationResult(RESULT_SUCCESS);
-        waiting_threads[i]->arb_wait_address = 0;
+        waiting_threads[i]->SetArbiterWaitAddress(0);
         waiting_threads[i]->ResumeFromWait();
     }
 }
