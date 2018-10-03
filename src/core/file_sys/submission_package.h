@@ -59,6 +59,8 @@ protected:
     bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
 
 private:
+    void ReadNCAs(const std::vector<VirtualFile>& files);
+
     VirtualFile file;
 
     bool extracted;

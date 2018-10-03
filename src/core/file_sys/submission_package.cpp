@@ -71,49 +71,7 @@ NSP::NSP(VirtualFile file_)
     const auto files = pfs->GetFiles();
 
     SetTicketKeys(files);
-
-    for (const auto& outer_file : files) {
-        if (outer_file->GetName().substr(outer_file->GetName().size() - 9) != ".cnmt.nca") {
-            continue;
-        }
-
-        const auto nca = std::make_shared<NCA>(outer_file);
-        if (nca->GetStatus() != Loader::ResultStatus::Success) {
-            program_status[nca->GetTitleId()] = nca->GetStatus();
-            continue;
-        }
-
-        const auto section0 = nca->GetSubdirectories()[0];
-
-        for (const auto& inner_file : section0->GetFiles()) {
-            if (inner_file->GetExtension() != "cnmt")
-                continue;
-
-            const CNMT cnmt(inner_file);
-            auto& ncas_title = ncas[cnmt.GetTitleID()];
-
-            ncas_title[ContentRecordType::Meta] = nca;
-            for (const auto& rec : cnmt.GetContentRecords()) {
-                const auto id_string = Common::HexArrayToString(rec.nca_id, false);
-                const auto next_file = pfs->GetFile(fmt::format("{}.nca", id_string));
-                if (next_file == nullptr) {
-                    LOG_WARNING(Service_FS,
-                        "NCA with ID {}.nca is listed in content metadata, but cannot "
-                        "be found in PFS. NSP appears to be corrupted.",
-                        id_string);
-                    continue;
-                }
-
-                auto next_nca = std::make_shared<NCA>(next_file);
-                if (next_nca->GetType() == NCAContentType::Program)
-                    program_status[cnmt.GetTitleID()] = next_nca->GetStatus();
-                if (next_nca->GetStatus() == Loader::ResultStatus::Success)
-                    ncas_title[rec.type] = std::move(next_nca);
-            }
-
-            break;
-        }
-    }
+    ReadNCAs(files);
 }
 
 NSP::~NSP() = default;
@@ -252,5 +210,50 @@ VirtualDir NSP::GetParentDirectory() const {
 
 bool NSP::ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) {
     return false;
+}
+
+void NSP::ReadNCAs(const std::vector<VirtualFile>& files) {
+    for (const auto& outer_file : files) {
+        if (outer_file->GetName().substr(outer_file->GetName().size() - 9) != ".cnmt.nca") {
+            continue;
+        }
+
+        const auto nca = std::make_shared<NCA>(outer_file);
+        if (nca->GetStatus() != Loader::ResultStatus::Success) {
+            program_status[nca->GetTitleId()] = nca->GetStatus();
+            continue;
+        }
+
+        const auto section0 = nca->GetSubdirectories()[0];
+
+        for (const auto& inner_file : section0->GetFiles()) {
+            if (inner_file->GetExtension() != "cnmt")
+                continue;
+
+            const CNMT cnmt(inner_file);
+            auto& ncas_title = ncas[cnmt.GetTitleID()];
+
+            ncas_title[ContentRecordType::Meta] = nca;
+            for (const auto& rec : cnmt.GetContentRecords()) {
+                const auto id_string = Common::HexArrayToString(rec.nca_id, false);
+                const auto next_file = pfs->GetFile(fmt::format("{}.nca", id_string));
+                if (next_file == nullptr) {
+                    LOG_WARNING(Service_FS,
+                                "NCA with ID {}.nca is listed in content metadata, but cannot "
+                                "be found in PFS. NSP appears to be corrupted.",
+                                id_string);
+                    continue;
+                }
+
+                auto next_nca = std::make_shared<NCA>(next_file);
+                if (next_nca->GetType() == NCAContentType::Program)
+                    program_status[cnmt.GetTitleID()] = next_nca->GetStatus();
+                if (next_nca->GetStatus() == Loader::ResultStatus::Success)
+                    ncas_title[rec.type] = std::move(next_nca);
+            }
+
+            break;
+        }
+    }
 }
 } // namespace FileSys
