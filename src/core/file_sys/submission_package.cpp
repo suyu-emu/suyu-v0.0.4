@@ -18,6 +18,33 @@
 #include "core/loader/loader.h"
 
 namespace FileSys {
+namespace {
+void SetTicketKeys(const std::vector<VirtualFile>& files) {
+    Core::Crypto::KeyManager keys;
+
+    for (const auto& ticket_file : files) {
+        if (ticket_file->GetExtension() != "tik") {
+            continue;
+        }
+
+        if (ticket_file == nullptr ||
+            ticket_file->GetSize() <
+                Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET + sizeof(Core::Crypto::Key128)) {
+            continue;
+        }
+
+        Core::Crypto::Key128 key{};
+        ticket_file->Read(key.data(), key.size(), Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET);
+        std::string_view name_only(ticket_file->GetName());
+        name_only.remove_suffix(4);
+        const auto rights_id_raw = Common::HexStringToArray<16>(name_only);
+        u128 rights_id;
+        std::memcpy(rights_id.data(), rights_id_raw.data(), sizeof(u128));
+        keys.SetKey(Core::Crypto::S128KeyType::Titlekey, key, rights_id[1], rights_id[0]);
+    }
+}
+} // Anonymous namespace
+
 NSP::NSP(VirtualFile file_)
     : file(std::move(file_)), status{Loader::ResultStatus::Success},
       pfs(std::make_shared<PartitionFilesystem>(file)) {
@@ -43,27 +70,7 @@ NSP::NSP(VirtualFile file_)
     extracted = false;
     const auto files = pfs->GetFiles();
 
-    Core::Crypto::KeyManager keys;
-    for (const auto& ticket_file : files) {
-        if (ticket_file->GetExtension() != "tik") {
-            continue;
-        }
-
-        if (ticket_file == nullptr ||
-            ticket_file->GetSize() <
-            Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET + sizeof(Core::Crypto::Key128)) {
-            continue;
-        }
-
-        Core::Crypto::Key128 key{};
-        ticket_file->Read(key.data(), key.size(), Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET);
-        std::string_view name_only(ticket_file->GetName());
-        name_only.remove_suffix(4);
-        const auto rights_id_raw = Common::HexStringToArray<16>(name_only);
-        u128 rights_id;
-        std::memcpy(rights_id.data(), rights_id_raw.data(), sizeof(u128));
-        keys.SetKey(Core::Crypto::S128KeyType::Titlekey, key, rights_id[1], rights_id[0]);
-    }
+    SetTicketKeys(files);
 
     for (const auto& outer_file : files) {
         if (outer_file->GetName().substr(outer_file->GetName().size() - 9) != ".cnmt.nca") {
