@@ -207,7 +207,7 @@ void NSP::InitializeExeFSAndRomFS(const std::vector<VirtualFile>& files) {
     exefs = pfs;
 
     const auto romfs_iter = std::find_if(files.begin(), files.end(), [](const VirtualFile& file) {
-        return file->GetName().find(".romfs") != std::string::npos;
+        return file->GetName().rfind(".romfs") != std::string::npos;
     });
 
     if (romfs_iter == files.end()) {
