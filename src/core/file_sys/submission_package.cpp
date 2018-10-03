@@ -38,8 +38,11 @@ void SetTicketKeys(const std::vector<VirtualFile>& files) {
 
         Core::Crypto::Key128 key{};
         ticket_file->Read(key.data(), key.size(), Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET);
-        std::string_view name_only(ticket_file->GetName());
-        name_only.remove_suffix(4);
+
+        // We get the name without the extension in order to create the rights ID.
+        std::string name_only(ticket_file->GetName());
+        name_only.erase(name_only.size() - 4);
+
         const auto rights_id_raw = Common::HexStringToArray<16>(name_only);
         u128 rights_id;
         std::memcpy(rights_id.data(), rights_id_raw.data(), sizeof(u128));
