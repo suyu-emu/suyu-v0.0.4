@@ -64,7 +64,7 @@ private:
 
     VirtualFile file;
 
-    bool extracted;
+    bool extracted = false;
     Loader::ResultStatus status;
     std::map<u64, Loader::ResultStatus> program_status;
 

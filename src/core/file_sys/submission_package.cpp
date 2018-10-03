@@ -61,8 +61,6 @@ NSP::NSP(VirtualFile file_)
         return;
     }
 
-    extracted = false;
-
     SetTicketKeys(files);
     ReadNCAs(files);
 }
