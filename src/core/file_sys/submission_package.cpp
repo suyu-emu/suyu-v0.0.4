@@ -53,22 +53,15 @@ NSP::NSP(VirtualFile file_)
         return;
     }
 
+    const auto files = pfs->GetFiles();
+
     if (IsDirectoryExeFS(pfs)) {
         extracted = true;
-        exefs = pfs;
-
-        const auto& files = pfs->GetFiles();
-        const auto romfs_iter =
-            std::find_if(files.begin(), files.end(), [](const FileSys::VirtualFile& file) {
-                return file->GetName().find(".romfs") != std::string::npos;
-            });
-        if (romfs_iter != files.end())
-            romfs = *romfs_iter;
+        InitializeExeFSAndRomFS(files);
         return;
     }
 
     extracted = false;
-    const auto files = pfs->GetFiles();
 
     SetTicketKeys(files);
     ReadNCAs(files);
@@ -210,6 +203,20 @@ VirtualDir NSP::GetParentDirectory() const {
 
 bool NSP::ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) {
     return false;
+}
+
+void NSP::InitializeExeFSAndRomFS(const std::vector<VirtualFile>& files) {
+    exefs = pfs;
+
+    const auto romfs_iter = std::find_if(files.begin(), files.end(), [](const VirtualFile& file) {
+        return file->GetName().find(".romfs") != std::string::npos;
+    });
+
+    if (romfs_iter == files.end()) {
+        return;
+    }
+
+    romfs = *romfs_iter;
 }
 
 void NSP::ReadNCAs(const std::vector<VirtualFile>& files) {
