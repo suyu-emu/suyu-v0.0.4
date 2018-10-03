@@ -23,13 +23,16 @@ void SetTicketKeys(const std::vector<VirtualFile>& files) {
     Core::Crypto::KeyManager keys;
 
     for (const auto& ticket_file : files) {
+        if (ticket_file == nullptr) {
+            continue;
+        }
+
         if (ticket_file->GetExtension() != "tik") {
             continue;
         }
 
-        if (ticket_file == nullptr ||
-            ticket_file->GetSize() <
-                Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET + sizeof(Core::Crypto::Key128)) {
+        if (ticket_file->GetSize() <
+            Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET + sizeof(Core::Crypto::Key128)) {
             continue;
         }
 
