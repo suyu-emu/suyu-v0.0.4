@@ -45,62 +45,66 @@ NSP::NSP(VirtualFile file_)
 
     Core::Crypto::KeyManager keys;
     for (const auto& ticket_file : files) {
-        if (ticket_file->GetExtension() == "tik") {
-            if (ticket_file == nullptr ||
-                ticket_file->GetSize() <
-                    Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET + sizeof(Core::Crypto::Key128)) {
-                continue;
-            }
-
-            Core::Crypto::Key128 key{};
-            ticket_file->Read(key.data(), key.size(), Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET);
-            std::string_view name_only(ticket_file->GetName());
-            name_only.remove_suffix(4);
-            const auto rights_id_raw = Common::HexStringToArray<16>(name_only);
-            u128 rights_id;
-            std::memcpy(rights_id.data(), rights_id_raw.data(), sizeof(u128));
-            keys.SetKey(Core::Crypto::S128KeyType::Titlekey, key, rights_id[1], rights_id[0]);
+        if (ticket_file->GetExtension() != "tik") {
+            continue;
         }
+
+        if (ticket_file == nullptr ||
+            ticket_file->GetSize() <
+            Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET + sizeof(Core::Crypto::Key128)) {
+            continue;
+        }
+
+        Core::Crypto::Key128 key{};
+        ticket_file->Read(key.data(), key.size(), Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET);
+        std::string_view name_only(ticket_file->GetName());
+        name_only.remove_suffix(4);
+        const auto rights_id_raw = Common::HexStringToArray<16>(name_only);
+        u128 rights_id;
+        std::memcpy(rights_id.data(), rights_id_raw.data(), sizeof(u128));
+        keys.SetKey(Core::Crypto::S128KeyType::Titlekey, key, rights_id[1], rights_id[0]);
     }
 
     for (const auto& outer_file : files) {
-        if (outer_file->GetName().substr(outer_file->GetName().size() - 9) == ".cnmt.nca") {
-            const auto nca = std::make_shared<NCA>(outer_file);
-            if (nca->GetStatus() != Loader::ResultStatus::Success) {
-                program_status[nca->GetTitleId()] = nca->GetStatus();
+        if (outer_file->GetName().substr(outer_file->GetName().size() - 9) != ".cnmt.nca") {
+            continue;
+        }
+
+        const auto nca = std::make_shared<NCA>(outer_file);
+        if (nca->GetStatus() != Loader::ResultStatus::Success) {
+            program_status[nca->GetTitleId()] = nca->GetStatus();
+            continue;
+        }
+
+        const auto section0 = nca->GetSubdirectories()[0];
+
+        for (const auto& inner_file : section0->GetFiles()) {
+            if (inner_file->GetExtension() != "cnmt")
                 continue;
-            }
 
-            const auto section0 = nca->GetSubdirectories()[0];
+            const CNMT cnmt(inner_file);
+            auto& ncas_title = ncas[cnmt.GetTitleID()];
 
-            for (const auto& inner_file : section0->GetFiles()) {
-                if (inner_file->GetExtension() != "cnmt")
+            ncas_title[ContentRecordType::Meta] = nca;
+            for (const auto& rec : cnmt.GetContentRecords()) {
+                const auto id_string = Common::HexArrayToString(rec.nca_id, false);
+                const auto next_file = pfs->GetFile(fmt::format("{}.nca", id_string));
+                if (next_file == nullptr) {
+                    LOG_WARNING(Service_FS,
+                        "NCA with ID {}.nca is listed in content metadata, but cannot "
+                        "be found in PFS. NSP appears to be corrupted.",
+                        id_string);
                     continue;
-
-                const CNMT cnmt(inner_file);
-                auto& ncas_title = ncas[cnmt.GetTitleID()];
-
-                ncas_title[ContentRecordType::Meta] = nca;
-                for (const auto& rec : cnmt.GetContentRecords()) {
-                    const auto id_string = Common::HexArrayToString(rec.nca_id, false);
-                    const auto next_file = pfs->GetFile(fmt::format("{}.nca", id_string));
-                    if (next_file == nullptr) {
-                        LOG_WARNING(Service_FS,
-                                    "NCA with ID {}.nca is listed in content metadata, but cannot "
-                                    "be found in PFS. NSP appears to be corrupted.",
-                                    id_string);
-                        continue;
-                    }
-
-                    auto next_nca = std::make_shared<NCA>(next_file);
-                    if (next_nca->GetType() == NCAContentType::Program)
-                        program_status[cnmt.GetTitleID()] = next_nca->GetStatus();
-                    if (next_nca->GetStatus() == Loader::ResultStatus::Success)
-                        ncas_title[rec.type] = std::move(next_nca);
                 }
 
-                break;
+                auto next_nca = std::make_shared<NCA>(next_file);
+                if (next_nca->GetType() == NCAContentType::Program)
+                    program_status[cnmt.GetTitleID()] = next_nca->GetStatus();
+                if (next_nca->GetStatus() == Loader::ResultStatus::Success)
+                    ncas_title[rec.type] = std::move(next_nca);
             }
+
+            break;
         }
     }
 }
