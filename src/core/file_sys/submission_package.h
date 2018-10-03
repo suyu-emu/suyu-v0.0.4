@@ -59,9 +59,12 @@ protected:
     bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
 
 private:
+    void InitializeExeFSAndRomFS(const std::vector<VirtualFile>& files);
+    void ReadNCAs(const std::vector<VirtualFile>& files);
+
     VirtualFile file;
 
-    bool extracted;
+    bool extracted = false;
     Loader::ResultStatus status;
     std::map<u64, Loader::ResultStatus> program_status;
 
