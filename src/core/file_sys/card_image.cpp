@@ -20,7 +20,9 @@ namespace FileSys {
 
 constexpr std::array<const char*, 0x4> partition_names = {"update", "normal", "secure", "logo"};
 
-XCI::XCI(VirtualFile file_) : file(std::move(file_)), partitions(0x4) {
+XCI::XCI(VirtualFile file_)
+    : file(std::move(file_)), program_nca_status{Loader::ResultStatus::ErrorXCIMissingProgramNCA},
+      partitions(0x4) {
     if (file->ReadObject(&header) != sizeof(GamecardHeader)) {
         status = Loader::ResultStatus::ErrorBadXCIHeader;
         return;
