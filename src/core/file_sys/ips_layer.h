@@ -22,6 +22,7 @@ public:
     VirtualFile Apply(const VirtualFile& in) const;
 
 private:
+    void ParseFlag(const std::string& flag);
     void Parse();
 
     bool valid = false;

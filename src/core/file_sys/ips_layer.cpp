@@ -123,6 +123,22 @@ static std::string EscapeStringSequences(std::string in) {
     return in;
 }
 
+void IPSwitchCompiler::ParseFlag(const std::string& line) {
+    if (StartsWith(line, "@flag offset_shift ")) {
+        // Offset Shift Flag
+        offset_shift = std::stoll(line.substr(19), nullptr, 0);
+    } else if (StartsWith(line, "@little-endian")) {
+        // Set values to read as little endian
+        is_little_endian = true;
+    } else if (StartsWith(line, "@big-endian")) {
+        // Set values to read as big endian
+        is_little_endian = false;
+    } else if (StartsWith(line, "@flag print_values")) {
+        // Force printing of applied values
+        print_values = true;
+    }
+}
+
 void IPSwitchCompiler::Parse() {
     const auto bytes = patch_text->ReadAllBytes();
     std::stringstream s;
@@ -141,7 +157,17 @@ void IPSwitchCompiler::Parse() {
         auto line = lines[i];
 
         // Remove midline comments
-        const auto comment_index = line.find("//");
+        std::size_t comment_index = std::string::npos;
+        bool within_string = false;
+        for (std::size_t k = 0; k < line.size(); ++k) {
+            if (line[k] == '\"' && (k > 0 && line[k - 1] != '\\')) {
+                within_string = !within_string;
+            } else if (line[k] == '\\' && (k < line.size() - 1 && line[k + 1] == '\\')) {
+                comment_index = k;
+                break;
+            }
+        }
+
         if (!StartsWith(line, "//") && comment_index != std::string::npos) {
             last_comment = line.substr(comment_index + 2);
             line = line.substr(0, comment_index);
@@ -156,9 +182,6 @@ void IPSwitchCompiler::Parse() {
             if (raw_build_id.size() != 0x40)
                 raw_build_id.resize(0x40, '0');
             nso_build_id = Common::HexStringToArray<0x20>(raw_build_id);
-        } else if (StartsWith(line, "@flag offset_shift ")) {
-            // Offset Shift Flag
-            offset_shift = std::stoll(line.substr(19), nullptr, 0);
         } else if (StartsWith(line, "#")) {
             // Mandatory Comment
             LOG_INFO(Loader, "[IPSwitchCompiler ('{}')] Forced output comment: {}",
@@ -170,15 +193,6 @@ void IPSwitchCompiler::Parse() {
                 continue;
             if (last_comment.find_first_not_of(' ') != 0)
                 last_comment = last_comment.substr(last_comment.find_first_not_of(' '));
-        } else if (StartsWith(line, "@little-endian")) {
-            // Set values to read as little endian
-            is_little_endian = true;
-        } else if (StartsWith(line, "@big-endian")) {
-            // Set values to read as big endian
-            is_little_endian = false;
-        } else if (StartsWith(line, "@flag print_values")) {
-            // Force printing of applied values
-            print_values = true;
         } else if (StartsWith(line, "@enabled") || StartsWith(line, "@disabled")) {
             // Start of patch
             const auto enabled = StartsWith(line, "@enabled");
@@ -195,6 +209,18 @@ void IPSwitchCompiler::Parse() {
                     break;
                 const auto patch_line = lines[++i];
 
+                // Start of new patch
+                if (StartsWith(patch_line, "@enabled") || StartsWith(patch_line, "@disabled")) {
+                    --i;
+                    break;
+                }
+
+                // Check for a flag
+                if (StartsWith(patch_line, "@")) {
+                    ParseFlag(patch_line);
+                    continue;
+                }
+
                 // 11 - 8 hex digit offset + space + minimum two digit overwrite val
                 if (patch_line.length() < 11)
                     break;
@@ -205,9 +231,15 @@ void IPSwitchCompiler::Parse() {
                 // 9 - first char of replacement val
                 if (patch_line[9] == '\"') {
                     // string replacement
-                    const auto end_index = patch_line.find('\"', 10);
+                    auto end_index = patch_line.find('\"', 10);
                     if (end_index == std::string::npos || end_index < 10)
                         return;
+                    while (patch_line[end_index - 1] == '\\') {
+                        end_index = patch_line.find('\"', end_index + 1);
+                        if (end_index == std::string::npos || end_index < 10)
+                            return;
+                    }
+
                     auto value = patch_line.substr(10, end_index - 10);
                     value = EscapeStringSequences(value);
                     replace.reserve(value.size());
@@ -226,10 +258,12 @@ void IPSwitchCompiler::Parse() {
                              patch_text->GetName(), offset, Common::HexVectorToString(replace));
                 }
 
-                patch.records.emplace(offset, std::move(replace));
+                patch.records.insert_or_assign(offset, std::move(replace));
             }
 
             patches.push_back(std::move(patch));
+        } else if (StartsWith(line, "@")) {
+            ParseFlag(line);
         }
     }
 

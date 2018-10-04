@@ -76,7 +76,7 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
 static std::vector<VirtualFile> CollectPatches(const std::vector<VirtualDir>& patch_dirs,
                                                const std::string& build_id) {
     std::vector<VirtualFile> out;
-    ips.reserve(patch_dirs.size());
+    out.reserve(patch_dirs.size());
     for (const auto& subdir : patch_dirs) {
         auto exefs_dir = subdir->GetSubdirectory("exefs");
         if (exefs_dir != nullptr) {
