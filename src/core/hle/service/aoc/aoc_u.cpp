@@ -84,7 +84,7 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
             out.push_back(static_cast<u32>(add_on_content[i] & 0x7FF));
     }
 
-    if (out.size() <= offset) {
+    if (out.size() < offset) {
         IPC::ResponseBuilder rb{ctx, 2};
         // TODO(DarkLordZach): Find the correct error code.
         rb.Push(ResultCode(-1));
