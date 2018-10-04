@@ -172,7 +172,7 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
 
         auto ext_dir = subdir->GetSubdirectory("romfs_ext");
         if (ext_dir != nullptr)
-            layers.push_back(std::move(ext_dir));
+            layers_ext.push_back(std::move(ext_dir));
     }
     layers.push_back(std::move(extracted));
 
@@ -182,9 +182,6 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
     }
 
     auto layered_ext = LayeredVfsDirectory::MakeLayeredDirectory(std::move(layers_ext));
-    if (layered_ext == nullptr) {
-        return;
-    }
 
     auto packed = CreateRomFS(std::move(layered), std::move(layered_ext));
     if (packed == nullptr) {
