@@ -10,8 +10,10 @@
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/patch_manager.h"
+#include "core/file_sys/registered_cache.h"
 #include "core/file_sys/submission_package.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/nca.h"
 #include "core/loader/nsp.h"
@@ -90,6 +92,10 @@ ResultStatus AppLoader_NSP::Load(Kernel::Process& process) {
     const auto result = secondary_loader->Load(process);
     if (result != ResultStatus::Success)
         return result;
+
+    FileSys::VirtualFile update_raw;
+    if (ReadUpdateRaw(update_raw) == ResultStatus::Success && update_raw != nullptr)
+        Service::FileSystem::SetPackedUpdate(std::move(update_raw));
 
     is_loaded = true;
 

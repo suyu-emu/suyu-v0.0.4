@@ -32,6 +32,7 @@ public:
     explicit RomFSFactory(Loader::AppLoader& app_loader);
     ~RomFSFactory();
 
+    void SetPackedUpdate(VirtualFile update_raw);
     ResultVal<VirtualFile> OpenCurrentProcess();
     ResultVal<VirtualFile> Open(u64 title_id, StorageId storage, ContentRecordType type);
 

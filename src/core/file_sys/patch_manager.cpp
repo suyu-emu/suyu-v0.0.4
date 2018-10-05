@@ -206,7 +206,7 @@ VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset, Content
             romfs = new_nca->GetRomFS();
         }
     } else if (update_raw != nullptr) {
-        const auto new_nca = std::make_shared<NCA>(update, romfs, ivfc_offset);
+        const auto new_nca = std::make_shared<NCA>(update_raw, romfs, ivfc_offset);
         if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
             new_nca->GetRomFS() != nullptr) {
             LOG_INFO(Loader, "    RomFS: Update (PACKED) applied successfully");
@@ -231,7 +231,8 @@ static bool IsDirValidAndNonEmpty(const VirtualDir& dir) {
     return dir != nullptr && (!dir->GetFiles().empty() || !dir->GetSubdirectories().empty());
 }
 
-std::map<PatchType, std::string> PatchManager::GetPatchVersionNames(VirtualFile update_raw) const {
+std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNames(
+    VirtualFile update_raw) const {
     std::map<std::string, std::string, std::less<>> out;
     const auto installed = Service::FileSystem::GetUnionContents();
 
@@ -253,7 +254,7 @@ std::map<PatchType, std::string> PatchManager::GetPatchVersionNames(VirtualFile 
                     FormatTitleVersion(meta_ver.get(), TitleVersionFormat::ThreeElements));
             }
         } else if (update_raw != nullptr) {
-            out[PatchType::Update] = "PACKED";
+            out.insert_or_assign("Update", "PACKED");
         }
     }
 

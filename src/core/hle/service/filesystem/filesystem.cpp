@@ -264,6 +264,15 @@ ResultCode RegisterBIS(std::unique_ptr<FileSys::BISFactory>&& factory) {
     return RESULT_SUCCESS;
 }
 
+void SetPackedUpdate(FileSys::VirtualFile update_raw) {
+    LOG_TRACE(Service_FS, "Setting packed update for romfs");
+
+    if (romfs_factory == nullptr)
+        return;
+
+    romfs_factory->SetPackedUpdate(std::move(update_raw));
+}
+
 ResultVal<FileSys::VirtualFile> OpenRomFSCurrentProcess() {
     LOG_TRACE(Service_FS, "Opening RomFS for current process");
 

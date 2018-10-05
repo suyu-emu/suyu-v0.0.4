@@ -24,12 +24,15 @@ RomFSFactory::RomFSFactory(Loader::AppLoader& app_loader) {
         LOG_ERROR(Service_FS, "Unable to read RomFS!");
     }
 
-    app_loader.ReadUpdateRaw(update_raw);
     updatable = app_loader.IsRomFSUpdatable();
     ivfc_offset = app_loader.ReadRomFSIVFCOffset();
 }
 
 RomFSFactory::~RomFSFactory() = default;
+
+void RomFSFactory::SetPackedUpdate(VirtualFile update_raw) {
+    this->update_raw = std::move(update_raw);
+}
 
 ResultVal<VirtualFile> RomFSFactory::OpenCurrentProcess() {
     if (!updatable)

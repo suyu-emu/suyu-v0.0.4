@@ -13,6 +13,7 @@
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/submission_package.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/nca.h"
 #include "core/loader/xci.h"
 
@@ -65,6 +66,10 @@ ResultStatus AppLoader_XCI::Load(Kernel::Process& process) {
     const auto result = nca_loader->Load(process);
     if (result != ResultStatus::Success)
         return result;
+
+    FileSys::VirtualFile update_raw;
+    if (ReadUpdateRaw(update_raw) == ResultStatus::Success && update_raw != nullptr)
+        Service::FileSystem::SetPackedUpdate(std::move(update_raw));
 
     is_loaded = true;
 

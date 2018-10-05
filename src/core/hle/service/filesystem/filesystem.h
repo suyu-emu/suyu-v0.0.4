@@ -39,6 +39,7 @@ ResultCode RegisterSaveData(std::unique_ptr<FileSys::SaveDataFactory>&& factory)
 ResultCode RegisterSDMC(std::unique_ptr<FileSys::SDMCFactory>&& factory);
 ResultCode RegisterBIS(std::unique_ptr<FileSys::BISFactory>&& factory);
 
+void SetPackedUpdate(FileSys::VirtualFile update_raw);
 ResultVal<FileSys::VirtualFile> OpenRomFSCurrentProcess();
 ResultVal<FileSys::VirtualFile> OpenRomFS(u64 title_id, FileSys::StorageId storage_id,
                                           FileSys::ContentRecordType type);
