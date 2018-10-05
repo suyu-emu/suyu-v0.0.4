@@ -214,8 +214,14 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
 
 VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset, ContentRecordType type,
                                      VirtualFile update_raw) const {
-    LOG_INFO(Loader, "Patching RomFS for title_id={:016X}, type={:02X}", title_id,
-             static_cast<u8>(type));
+    const auto log_string = fmt::format("Patching RomFS for title_id={:016X}, type={:02X}",
+                                        title_id, static_cast<u8>(type))
+                                .c_str();
+
+    if (type == ContentRecordType::Program)
+        LOG_INFO(Loader, log_string);
+    else
+        LOG_DEBUG(Loader, log_string);
 
     if (romfs == nullptr)
         return romfs;
