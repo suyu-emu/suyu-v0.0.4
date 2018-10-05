@@ -129,12 +129,14 @@ VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base,
 
     if (should_pass_arguments && !Settings::values.program_args.empty()) {
         const auto arg_data = Settings::values.program_args;
-        codeset->DataSegment().size += 0x9000;
-        NSOArgumentHeader args_header{0x9000, static_cast<u32_le>(arg_data.size()), {}};
-        program_image.resize(static_cast<u32>(program_image.size()) + 0x9000);
-        std::memcpy(program_image.data() + program_image.size() - 0x9000, &args_header,
-                    sizeof(NSOArgumentHeader));
-        std::memcpy(program_image.data() + program_image.size() - 0x8FE0, arg_data.data(),
+        codeset->DataSegment().size += NSO_ARGUMENT_DATA_ALLOCATION_SIZE;
+        NSOArgumentHeader args_header{
+            NSO_ARGUMENT_DATA_ALLOCATION_SIZE, static_cast<u32_le>(arg_data.size()), {}};
+        const auto end_offset = program_image.size();
+        program_image.resize(static_cast<u32>(program_image.size()) +
+                             NSO_ARGUMENT_DATA_ALLOCATION_SIZE);
+        std::memcpy(program_image.data() + end_offset, &args_header, sizeof(NSOArgumentHeader));
+        std::memcpy(program_image.data() + end_offset + sizeof(NSOArgumentHeader), arg_data.data(),
                     arg_data.size());
     }
 

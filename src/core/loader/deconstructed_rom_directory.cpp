@@ -141,8 +141,8 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(Kernel::Process& process)
         const FileSys::VirtualFile module_file = dir->GetFile(module);
         if (module_file != nullptr) {
             const VAddr load_addr = next_load_addr;
-            next_load_addr =
-                AppLoader_NSO::LoadModule(module_file, load_addr, std::strcmp(module, "rtld") == 0, pm);
+            next_load_addr = AppLoader_NSO::LoadModule(module_file, load_addr,
+                                                       std::strcmp(module, "rtld") == 0, pm);
             LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", module, load_addr);
             // Register module with GDBStub
             GDBStub::RegisterModule(module, load_addr, next_load_addr - 1, false);

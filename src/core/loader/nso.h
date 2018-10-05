@@ -11,6 +11,8 @@
 
 namespace Loader {
 
+constexpr u64 NSO_ARGUMENT_DATA_ALLOCATION_SIZE = 0x9000;
+
 struct NSOArgumentHeader {
     u32_le allocated_size;
     u32_le actual_size;
