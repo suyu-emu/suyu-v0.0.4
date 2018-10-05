@@ -195,7 +195,7 @@ void ARM_Unicorn::ExecuteInstructions(int num_instructions) {
             uc_reg_write(uc, UC_ARM64_REG_PC, &last_bkpt.address);
         }
         Kernel::Thread* thread = Kernel::GetCurrentThread();
-        SaveContext(thread->context);
+        SaveContext(thread->GetContext());
         if (last_bkpt_hit || GDBStub::GetCpuStepFlag()) {
             last_bkpt_hit = false;
             GDBStub::Break();

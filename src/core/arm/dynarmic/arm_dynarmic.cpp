@@ -86,7 +86,7 @@ public:
                 parent.jit->HaltExecution();
                 parent.SetPC(pc);
                 Kernel::Thread* thread = Kernel::GetCurrentThread();
-                parent.SaveContext(thread->context);
+                parent.SaveContext(thread->GetContext());
                 GDBStub::Break();
                 GDBStub::SendTrap(thread, 5);
                 return;

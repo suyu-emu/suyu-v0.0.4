@@ -42,14 +42,14 @@ SharedPtr<Event> HLERequestContext::SleepClientThread(SharedPtr<Thread> thread,
                                                       Kernel::SharedPtr<Kernel::Event> event) {
 
     // Put the client thread to sleep until the wait event is signaled or the timeout expires.
-    thread->wakeup_callback = [context = *this, callback](
+    thread->SetWakeupCallback([context = *this, callback](
                                   ThreadWakeupReason reason, SharedPtr<Thread> thread,
                                   SharedPtr<WaitObject> object, std::size_t index) mutable -> bool {
-        ASSERT(thread->status == ThreadStatus::WaitHLEEvent);
+        ASSERT(thread->GetStatus() == ThreadStatus::WaitHLEEvent);
         callback(thread, context, reason);
         context.WriteToOutgoingCommandBuffer(*thread);
         return true;
-    };
+    });
 
     if (!event) {
         // Create event if not provided
@@ -59,8 +59,8 @@ SharedPtr<Event> HLERequestContext::SleepClientThread(SharedPtr<Thread> thread,
     }
 
     event->Clear();
-    thread->status = ThreadStatus::WaitHLEEvent;
-    thread->wait_objects = {event};
+    thread->SetStatus(ThreadStatus::WaitHLEEvent);
+    thread->SetWaitObjects({event});
     event->AddWaitingThread(thread);
 
     if (timeout > 0) {
@@ -209,7 +209,7 @@ ResultCode HLERequestContext::PopulateFromIncomingCommandBuffer(u32_le* src_cmdb
 
 ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(const Thread& thread) {
     std::array<u32, IPC::COMMAND_BUFFER_LENGTH> dst_cmdbuf;
-    Memory::ReadBlock(*thread.owner_process, thread.GetTLSAddress(), dst_cmdbuf.data(),
+    Memory::ReadBlock(*thread.GetOwnerProcess(), thread.GetTLSAddress(), dst_cmdbuf.data(),
                       dst_cmdbuf.size() * sizeof(u32));
 
     // The header was already built in the internal command buffer. Attempt to parse it to verify
@@ -268,7 +268,7 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(const Thread& thread)
     }
 
     // Copy the translated command buffer back into the thread's command buffer area.
-    Memory::WriteBlock(*thread.owner_process, thread.GetTLSAddress(), dst_cmdbuf.data(),
+    Memory::WriteBlock(*thread.GetOwnerProcess(), thread.GetTLSAddress(), dst_cmdbuf.data(),
                        dst_cmdbuf.size() * sizeof(u32));
 
     return RESULT_SUCCESS;
