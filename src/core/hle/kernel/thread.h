@@ -419,7 +419,7 @@ private:
     /// available. In case of a timeout, the object will be nullptr.
     WakeupCallback wakeup_callback;
 
-    std::shared_ptr<Scheduler> scheduler;
+    Scheduler* scheduler = nullptr;
 
     u32 ideal_core{0xFFFFFFFF};
     u64 affinity_mask{0x1};
