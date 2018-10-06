@@ -31,7 +31,7 @@ void ConfigureWeb::setConfiguration() {
     ui->web_credentials_disclaimer->setWordWrap(true);
     ui->telemetry_learn_more->setOpenExternalLinks(true);
     ui->telemetry_learn_more->setText(
-        tr("<a href='https://yuzu-emu.org/help/features/telemetry/'><span style=\"text-decoration: "
+        tr("<a href='https://yuzu-emu.org/help/feature/telemetry/'><span style=\"text-decoration: "
            "underline; color:#039be5;\">Learn more</span></a>"));
 
     ui->web_signup_link->setOpenExternalLinks(true);
