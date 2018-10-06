@@ -7,13 +7,13 @@
 #include <string>
 #include "common/common_types.h"
 #include "core/hle/kernel/object.h"
+#include "core/hle/kernel/server_port.h"
 #include "core/hle/result.h"
 
 namespace Kernel {
 
 class ClientSession;
 class KernelCore;
-class ServerPort;
 
 class ClientPort final : public Object {
 public:
@@ -28,6 +28,10 @@ public:
     static const HandleType HANDLE_TYPE = HandleType::ClientPort;
     HandleType GetHandleType() const override {
         return HANDLE_TYPE;
+    }
+
+    SharedPtr<ServerPort> GetServerPort() const {
+        return server_port;
     }
 
     /**
