@@ -38,6 +38,9 @@ struct Values {
     bool confirm_before_closing;
     bool first_start;
 
+    // Discord RPC
+    bool enable_discord_presence;
+
     QString roms_path;
     QString symbols_path;
     QString gamedir;

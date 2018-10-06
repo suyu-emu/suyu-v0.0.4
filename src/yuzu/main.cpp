@@ -35,6 +35,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QtWidgets>
 #include <fmt/format.h>
 #include "common/common_paths.h"
+#include "common/detached_tasks.h"
 #include "common/file_util.h"
 #include "common/logging/backend.h"
 #include "common/logging/filter.h"
@@ -65,6 +66,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "video_core/debug_utils/debug_utils.h"
 #include "yuzu/about_dialog.h"
 #include "yuzu/bootmanager.h"
+#include "yuzu/compatdb.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_dialog.h"
@@ -73,11 +75,16 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/debugger/graphics/graphics_surface.h"
 #include "yuzu/debugger/profiler.h"
 #include "yuzu/debugger/wait_tree.h"
+#include "yuzu/discord.h"
 #include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
 #include "yuzu/hotkeys.h"
 #include "yuzu/main.h"
 #include "yuzu/ui_settings.h"
+
+#ifdef USE_DISCORD_PRESENCE
+#include "yuzu/discord_impl.h"
+#endif
 
 #ifdef QT_STATICPLUGIN
 Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
@@ -102,22 +109,21 @@ enum class CalloutFlag : uint32_t {
     DRDDeprecation = 0x2,
 };
 
-static void ShowCalloutMessage(const QString& message, CalloutFlag flag) {
-    if (UISettings::values.callout_flags & static_cast<uint32_t>(flag)) {
+void GMainWindow::ShowTelemetryCallout() {
+    if (UISettings::values.callout_flags & static_cast<uint32_t>(CalloutFlag::Telemetry)) {
         return;
     }
 
-    UISettings::values.callout_flags |= static_cast<uint32_t>(flag);
-
-    QMessageBox msg;
-    msg.setText(message);
-    msg.setStandardButtons(QMessageBox::Ok);
-    msg.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    msg.setStyleSheet("QLabel{min-width: 900px;}");
-    msg.exec();
+    UISettings::values.callout_flags |= static_cast<uint32_t>(CalloutFlag::Telemetry);
+    const QString telemetry_message =
+        tr("<a href='https://yuzu-emu.org/help/features/telemetry/'>Anonymous "
+           "data is collected</a> to help improve yuzu. "
+           "<br/><br/>Would you like to share your usage data with us?");
+    if (QMessageBox::question(this, tr("Telemetry"), telemetry_message) != QMessageBox::Yes) {
+        Settings::values.enable_telemetry = false;
+        Settings::Apply();
+    }
 }
-
-void GMainWindow::ShowCallouts() {}
 
 const int GMainWindow::max_recent_files_item;
 
@@ -145,6 +151,9 @@ GMainWindow::GMainWindow()
     default_theme_paths = QIcon::themeSearchPaths();
     UpdateUITheme();
 
+    SetDiscordEnabled(UISettings::values.enable_discord_presence);
+    discord_rpc->Update();
+
     InitializeWidgets();
     InitializeDebugWidgets();
     InitializeRecentFileMenuActions();
@@ -168,7 +177,7 @@ GMainWindow::GMainWindow()
     game_list->PopulateAsync(UISettings::values.gamedir, UISettings::values.gamedir_deepscan);
 
     // Show one-time "callout" messages to the user
-    ShowCallouts();
+    ShowTelemetryCallout();
 
     QStringList args = QApplication::arguments();
     if (args.length() >= 2) {
@@ -183,6 +192,9 @@ GMainWindow::~GMainWindow() {
 }
 
 void GMainWindow::InitializeWidgets() {
+#ifdef YUZU_ENABLE_COMPATIBILITY_REPORTING
+    ui.action_Report_Compatibility->setVisible(true);
+#endif
     render_window = new GRenderWindow(this, emu_thread.get());
     render_window->hide();
 
@@ -411,6 +423,8 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Start, &QAction::triggered, this, &GMainWindow::OnStartGame);
     connect(ui.action_Pause, &QAction::triggered, this, &GMainWindow::OnPauseGame);
     connect(ui.action_Stop, &QAction::triggered, this, &GMainWindow::OnStopGame);
+    connect(ui.action_Report_Compatibility, &QAction::triggered, this,
+            &GMainWindow::OnMenuReportCompatibility);
     connect(ui.action_Restart, &QAction::triggered, this, [this] { BootGame(QString(game_path)); });
     connect(ui.action_Configure, &QAction::triggered, this, &GMainWindow::OnConfigure);
 
@@ -647,6 +661,7 @@ void GMainWindow::BootGame(const QString& filename) {
 }
 
 void GMainWindow::ShutdownGame() {
+    discord_rpc->Pause();
     emu_thread->RequestStop();
 
     emit EmulationStopping();
@@ -654,6 +669,8 @@ void GMainWindow::ShutdownGame() {
     // Wait for emulation thread to complete and delete it
     emu_thread->wait();
     emu_thread = nullptr;
+
+    discord_rpc->Update();
 
     // The emulation is stopped, so closing the window or not does not matter anymore
     disconnect(render_window, &GRenderWindow::Closed, this, &GMainWindow::OnStopGame);
@@ -664,6 +681,7 @@ void GMainWindow::ShutdownGame() {
     ui.action_Pause->setEnabled(false);
     ui.action_Stop->setEnabled(false);
     ui.action_Restart->setEnabled(false);
+    ui.action_Report_Compatibility->setEnabled(false);
     render_window->hide();
     game_list->show();
     game_list->setFilterFocus();
@@ -1147,6 +1165,9 @@ void GMainWindow::OnStartGame() {
     ui.action_Pause->setEnabled(true);
     ui.action_Stop->setEnabled(true);
     ui.action_Restart->setEnabled(true);
+    ui.action_Report_Compatibility->setEnabled(true);
+
+    discord_rpc->Update();
 }
 
 void GMainWindow::OnPauseGame() {
@@ -1159,6 +1180,20 @@ void GMainWindow::OnPauseGame() {
 
 void GMainWindow::OnStopGame() {
     ShutdownGame();
+}
+
+void GMainWindow::OnMenuReportCompatibility() {
+    if (!Settings::values.yuzu_token.empty() && !Settings::values.yuzu_username.empty()) {
+        CompatDB compatdb{this};
+        compatdb.exec();
+    } else {
+        QMessageBox::critical(
+            this, tr("Missing yuzu Account"),
+            tr("In order to submit a game compatibility test case, you must link your yuzu "
+               "account.<br><br/>To link your yuzu account, go to Emulation &gt; Configuration "
+               "&gt; "
+               "Web."));
+    }
 }
 
 void GMainWindow::ToggleFullscreen() {
@@ -1224,11 +1259,14 @@ void GMainWindow::ToggleWindowMode() {
 void GMainWindow::OnConfigure() {
     ConfigureDialog configureDialog(this, hotkey_registry);
     auto old_theme = UISettings::values.theme;
+    const bool old_discord_presence = UISettings::values.enable_discord_presence;
     auto result = configureDialog.exec();
     if (result == QDialog::Accepted) {
         configureDialog.applyConfiguration();
         if (UISettings::values.theme != old_theme)
             UpdateUITheme();
+        if (UISettings::values.enable_discord_presence != old_discord_presence)
+            SetDiscordEnabled(UISettings::values.enable_discord_presence);
         game_list->PopulateAsync(UISettings::values.gamedir, UISettings::values.gamedir_deepscan);
         config->Save();
     }
@@ -1443,11 +1481,25 @@ void GMainWindow::UpdateUITheme() {
     emit UpdateThemedIcons();
 }
 
+void GMainWindow::SetDiscordEnabled(bool state) {
+#ifdef USE_DISCORD_PRESENCE
+    if (state) {
+        discord_rpc = std::make_unique<DiscordRPC::DiscordImpl>();
+    } else {
+        discord_rpc = std::make_unique<DiscordRPC::NullImpl>();
+    }
+#else
+    discord_rpc = std::make_unique<DiscordRPC::NullImpl>();
+#endif
+    discord_rpc->Update();
+}
+
 #ifdef main
 #undef main
 #endif
 
 int main(int argc, char* argv[]) {
+    Common::DetachedTasks detached_tasks;
     MicroProfileOnThreadCreate("Frontend");
     SCOPE_EXIT({ MicroProfileShutdown(); });
 
@@ -1465,5 +1517,7 @@ int main(int argc, char* argv[]) {
     GMainWindow main_window;
     // After settings have been loaded by GMainWindow, apply the filter
     main_window.show();
-    return app.exec();
+    int result = app.exec();
+    detached_tasks.WaitForAllTasks();
+    return result;
 }

@@ -41,6 +41,8 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/scm_rev.cpp.in" "${CMAKE_CURRENT_SOU
 add_library(common STATIC
     alignment.h
     assert.h
+    detached_tasks.cpp
+    detached_tasks.h
     bit_field.h
     bit_set.h
     cityhash.cpp
@@ -87,6 +89,7 @@ add_library(common STATIC
     timer.cpp
     timer.h
     vector_math.h
+    web_result.h
 )
 
 if(ARCHITECTURE_x86_64)

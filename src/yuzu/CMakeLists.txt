@@ -29,6 +29,8 @@ add_executable(yuzu
     configuration/configure_input.h
     configuration/configure_system.cpp
     configuration/configure_system.h
+    configuration/configure_web.cpp
+    configuration/configure_web.h
     debugger/graphics/graphics_breakpoint_observer.cpp
     debugger/graphics/graphics_breakpoint_observer.h
     debugger/graphics/graphics_breakpoints.cpp
@@ -42,6 +44,7 @@ add_executable(yuzu
     debugger/profiler.h
     debugger/wait_tree.cpp
     debugger/wait_tree.h
+    discord.h
     game_list.cpp
     game_list.h
     game_list_p.h
@@ -57,6 +60,8 @@ add_executable(yuzu
     util/spinbox.h
     util/util.cpp
     util/util.h
+    compatdb.cpp
+    compatdb.h
     yuzu.rc
 )
 
@@ -70,8 +75,10 @@ set(UIS
     configuration/configure_graphics.ui
     configuration/configure_input.ui
     configuration/configure_system.ui
+    configuration/configure_web.ui
     hotkeys.ui
     main.ui
+    compatdb.ui
 )
 
 file(GLOB COMPAT_LIST
@@ -112,6 +119,19 @@ create_target_directory_groups(yuzu)
 target_link_libraries(yuzu PRIVATE common core input_common video_core)
 target_link_libraries(yuzu PRIVATE Boost::boost glad Qt5::OpenGL Qt5::Widgets)
 target_link_libraries(yuzu PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
+
+if (YUZU_ENABLE_COMPATIBILITY_REPORTING)
+    add_definitions(-DYUZU_ENABLE_COMPATIBILITY_REPORTING)
+endif()
+
+if (USE_DISCORD_PRESENCE)
+    target_sources(yuzu PUBLIC
+        discord_impl.cpp
+        discord_impl.h
+    )
+    target_link_libraries(yuzu PRIVATE discord-rpc)
+    target_compile_definitions(yuzu PRIVATE -DUSE_DISCORD_PRESENCE)
+endif()
 
 if(UNIX AND NOT APPLE)
     install(TARGETS yuzu RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")

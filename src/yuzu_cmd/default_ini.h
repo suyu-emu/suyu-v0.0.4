@@ -202,12 +202,10 @@ gdbstub_port=24689
 # Whether or not to enable telemetry
 # 0: No, 1 (default): Yes
 enable_telemetry =
-# Endpoint URL for submitting telemetry data
-telemetry_endpoint_url =
-# Endpoint URL to verify the username and token
-verify_endpoint_url =
+# URL for Web API
+web_api_url = https://api.yuzu-emu.org
 # Username and token for yuzu Web Service
-# See https://services.citra-emu.org/ for more info
+# See https://profile.yuzu-emu.org/ for more info
 yuzu_username =
 yuzu_token =
 )";
