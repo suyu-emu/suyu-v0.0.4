@@ -42,6 +42,41 @@ MICROPROFILE_DEFINE(OpenGL_Framebuffer, "OpenGL", "Framebuffer Setup", MP_RGB(12
 MICROPROFILE_DEFINE(OpenGL_Drawing, "OpenGL", "Drawing", MP_RGB(128, 128, 192));
 MICROPROFILE_DEFINE(OpenGL_Blits, "OpenGL", "Blits", MP_RGB(128, 128, 192));
 MICROPROFILE_DEFINE(OpenGL_CacheManagement, "OpenGL", "Cache Mgmt", MP_RGB(100, 255, 100));
+MICROPROFILE_DEFINE(OpenGL_PrimitiveAssembly, "OpenGL", "Prim Asmbl", MP_RGB(255, 100, 100));
+
+struct DrawParameters {
+    GLenum primitive_mode;
+    GLsizei count;
+    GLint current_instance;
+    bool use_indexed;
+
+    GLint vertex_first;
+
+    GLenum index_format;
+    GLint base_vertex;
+    GLintptr index_buffer_offset;
+
+    void DispatchDraw() const {
+        if (use_indexed) {
+            const auto index_buffer_ptr = reinterpret_cast<const void*>(index_buffer_offset);
+            if (current_instance > 0) {
+                glDrawElementsInstancedBaseVertexBaseInstance(primitive_mode, count, index_format,
+                                                              index_buffer_ptr, 1, base_vertex,
+                                                              current_instance);
+            } else {
+                glDrawElementsBaseVertex(primitive_mode, count, index_format, index_buffer_ptr,
+                                         base_vertex);
+            }
+        } else {
+            if (current_instance > 0) {
+                glDrawArraysInstancedBaseInstance(primitive_mode, vertex_first, count, 1,
+                                                  current_instance);
+            } else {
+                glDrawArrays(primitive_mode, vertex_first, count);
+            }
+        }
+    }
+};
 
 RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window, ScreenInfo& info)
     : emu_window{window}, screen_info{info}, buffer_cache(STREAM_BUFFER_SIZE) {
@@ -172,6 +207,53 @@ void RasterizerOpenGL::SetupVertexArrays() {
     }
 }
 
+DrawParameters RasterizerOpenGL::SetupDraw() {
+    const auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
+    const auto& regs = gpu.regs;
+    const bool is_indexed = accelerate_draw == AccelDraw::Indexed;
+
+    DrawParameters params{};
+    params.current_instance = gpu.state.current_instance;
+
+    if (regs.draw.topology == Maxwell::PrimitiveTopology::Quads) {
+        MICROPROFILE_SCOPE(OpenGL_PrimitiveAssembly);
+
+        params.use_indexed = true;
+        params.primitive_mode = GL_TRIANGLES;
+
+        if (is_indexed) {
+            params.index_format = MaxwellToGL::IndexFormat(regs.index_array.format);
+            params.count = (regs.index_array.count / 4) * 6;
+            params.index_buffer_offset = primitive_assembler.MakeQuadIndexed(
+                regs.index_array.IndexStart(), regs.index_array.FormatSizeInBytes(),
+                regs.index_array.count);
+            params.base_vertex = static_cast<GLint>(regs.vb_element_base);
+        } else {
+            // MakeQuadArray always generates u32 indexes
+            params.index_format = GL_UNSIGNED_INT;
+            params.count = (regs.vertex_buffer.count / 4) * 6;
+            params.index_buffer_offset =
+                primitive_assembler.MakeQuadArray(regs.vertex_buffer.first, params.count);
+        }
+        return params;
+    }
+
+    params.use_indexed = is_indexed;
+    params.primitive_mode = MaxwellToGL::PrimitiveTopology(regs.draw.topology);
+
+    if (is_indexed) {
+        MICROPROFILE_SCOPE(OpenGL_Index);
+        params.index_format = MaxwellToGL::IndexFormat(regs.index_array.format);
+        params.count = regs.index_array.count;
+        params.index_buffer_offset =
+            buffer_cache.UploadMemory(regs.index_array.IndexStart(), CalculateIndexBufferSize());
+        params.base_vertex = static_cast<GLint>(regs.vb_element_base);
+    } else {
+        params.count = regs.vertex_buffer.count;
+        params.vertex_first = regs.vertex_buffer.first;
+    }
+}
+
 void RasterizerOpenGL::SetupShaders() {
     MICROPROFILE_SCOPE(OpenGL_Shader);
     const auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
@@ -254,6 +336,13 @@ std::size_t RasterizerOpenGL::CalculateVertexArraysSize() const {
     }
 
     return size;
+}
+
+std::size_t RasterizerOpenGL::CalculateIndexBufferSize() const {
+    const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
+
+    return static_cast<std::size_t>(regs.index_array.count) *
+           static_cast<std::size_t>(regs.index_array.FormatSizeInBytes());
 }
 
 bool RasterizerOpenGL::AccelerateDrawBatch(bool is_indexed) {
@@ -459,16 +548,23 @@ void RasterizerOpenGL::DrawArrays() {
 
     // Draw the vertex batch
     const bool is_indexed = accelerate_draw == AccelDraw::Indexed;
-    const u64 index_buffer_size{static_cast<u64>(regs.index_array.count) *
-                                static_cast<u64>(regs.index_array.FormatSizeInBytes())};
 
     state.draw.vertex_buffer = buffer_cache.GetHandle();
     state.Apply();
 
     std::size_t buffer_size = CalculateVertexArraysSize();
 
-    if (is_indexed) {
-        buffer_size = Common::AlignUp<std::size_t>(buffer_size, 4) + index_buffer_size;
+    // Add space for index buffer (keeping in mind non-core primitives)
+    switch (regs.draw.topology) {
+    case Maxwell::PrimitiveTopology::Quads:
+        buffer_size = Common::AlignUp<std::size_t>(buffer_size, 4) +
+                      primitive_assembler.CalculateQuadSize(regs.vertex_buffer.count);
+        break;
+    default:
+        if (is_indexed) {
+            buffer_size = Common::AlignUp<std::size_t>(buffer_size, 4) + CalculateIndexBufferSize();
+        }
+        break;
     }
 
     // Uniform space for the 5 shader stages
@@ -482,20 +578,7 @@ void RasterizerOpenGL::DrawArrays() {
     buffer_cache.Map(buffer_size);
 
     SetupVertexArrays();
-
-    // If indexed mode, copy the index buffer
-    GLintptr index_buffer_offset = 0;
-    if (is_indexed) {
-        MICROPROFILE_SCOPE(OpenGL_Index);
-
-        // Adjust the index buffer offset so it points to the first desired index.
-        auto index_start = regs.index_array.StartAddress();
-        index_start += static_cast<size_t>(regs.index_array.first) *
-                       static_cast<size_t>(regs.index_array.FormatSizeInBytes());
-
-        index_buffer_offset = buffer_cache.UploadMemory(index_start, index_buffer_size);
-    }
-
+    DrawParameters params = SetupDraw();
     SetupShaders();
 
     buffer_cache.Unmap();
@@ -503,31 +586,8 @@ void RasterizerOpenGL::DrawArrays() {
     shader_program_manager->ApplyTo(state);
     state.Apply();
 
-    const GLenum primitive_mode{MaxwellToGL::PrimitiveTopology(regs.draw.topology)};
-    if (is_indexed) {
-        const GLint base_vertex{static_cast<GLint>(regs.vb_element_base)};
-
-        if (gpu.state.current_instance > 0) {
-            glDrawElementsInstancedBaseVertexBaseInstance(
-                primitive_mode, regs.index_array.count,
-                MaxwellToGL::IndexFormat(regs.index_array.format),
-                reinterpret_cast<const void*>(index_buffer_offset), 1, base_vertex,
-                gpu.state.current_instance);
-        } else {
-            glDrawElementsBaseVertex(primitive_mode, regs.index_array.count,
-                                     MaxwellToGL::IndexFormat(regs.index_array.format),
-                                     reinterpret_cast<const void*>(index_buffer_offset),
-                                     base_vertex);
-        }
-    } else {
-        if (gpu.state.current_instance > 0) {
-            glDrawArraysInstancedBaseInstance(primitive_mode, regs.vertex_buffer.first,
-                                              regs.vertex_buffer.count, 1,
-                                              gpu.state.current_instance);
-        } else {
-            glDrawArrays(primitive_mode, regs.vertex_buffer.first, regs.vertex_buffer.count);
-        }
-    }
+    // Execute draw call
+    params.DispatchDraw();
 
     // Disable scissor test
     state.scissor.enabled = false;

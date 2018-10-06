@@ -34,7 +34,7 @@ GLintptr OGLBufferCache::UploadMemory(Tegra::GPUVAddr gpu_addr, std::size_t size
     }
 
     AlignBuffer(alignment);
-    GLintptr uploaded_offset = buffer_offset;
+    const GLintptr uploaded_offset = buffer_offset;
 
     Memory::ReadBlock(*cpu_addr, buffer_ptr, size);
 
@@ -57,11 +57,21 @@ GLintptr OGLBufferCache::UploadHostMemory(const void* raw_pointer, std::size_t s
                                           std::size_t alignment) {
     AlignBuffer(alignment);
     std::memcpy(buffer_ptr, raw_pointer, size);
-    GLintptr uploaded_offset = buffer_offset;
+    const GLintptr uploaded_offset = buffer_offset;
 
     buffer_ptr += size;
     buffer_offset += size;
     return uploaded_offset;
+}
+
+std::tuple<u8*, GLintptr> OGLBufferCache::ReserveMemory(std::size_t size, std::size_t alignment) {
+    AlignBuffer(alignment);
+    u8* const uploaded_ptr = buffer_ptr;
+    const GLintptr uploaded_offset = buffer_offset;
+
+    buffer_ptr += size;
+    buffer_offset += size;
+    return std::make_tuple(uploaded_ptr, uploaded_offset);
 }
 
 void OGLBufferCache::Map(std::size_t max_size) {
@@ -74,6 +84,7 @@ void OGLBufferCache::Map(std::size_t max_size) {
         InvalidateAll();
     }
 }
+
 void OGLBufferCache::Unmap() {
     stream_buffer.Unmap(buffer_offset - buffer_offset_base);
 }
@@ -84,7 +95,7 @@ GLuint OGLBufferCache::GetHandle() const {
 
 void OGLBufferCache::AlignBuffer(std::size_t alignment) {
     // Align the offset, not the mapped pointer
-    GLintptr offset_aligned =
+    const GLintptr offset_aligned =
         static_cast<GLintptr>(Common::AlignUp(static_cast<std::size_t>(buffer_offset), alignment));
     buffer_ptr += offset_aligned - buffer_offset;
     buffer_offset = offset_aligned;
