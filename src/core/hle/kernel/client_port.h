@@ -7,13 +7,13 @@
 #include <string>
 #include "common/common_types.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/server_port.h"
 #include "core/hle/result.h"
 
 namespace Kernel {
 
 class ClientSession;
 class KernelCore;
+class ServerPort;
 
 class ClientPort final : public Object {
 public:
@@ -30,9 +30,7 @@ public:
         return HANDLE_TYPE;
     }
 
-    SharedPtr<ServerPort> GetServerPort() const {
-        return server_port;
-    }
+    SharedPtr<ServerPort> GetServerPort() const;
 
     /**
      * Creates a new Session pair, adds the created ServerSession to the associated ServerPort's
