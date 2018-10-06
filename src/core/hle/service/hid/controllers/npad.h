@@ -6,15 +6,9 @@
 
 #include <array>
 #include "common/common_types.h"
+#include "core/frontend/input.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
 #include "core/settings.h"
-
-namespace Input {
-template <typename StatusType>
-class InputDevice;
-using ButtonDevice = InputDevice<bool>;
-using AnalogDevice = InputDevice<std::tuple<float, float>>;
-} // namespace Input
 
 namespace Service::HID {
 

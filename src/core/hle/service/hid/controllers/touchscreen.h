@@ -7,13 +7,8 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/swap.h"
+#include "core/frontend/input.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
-
-namespace Input {
-template <typename StatusType>
-class InputDevice;
-using TouchDevice = InputDevice<std::tuple<float, float, bool>>;
-} // namespace Input
 
 namespace Service::HID {
 class Controller_Touchscreen final : public ControllerBase {
