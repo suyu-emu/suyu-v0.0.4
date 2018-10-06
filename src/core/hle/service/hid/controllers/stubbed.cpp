@@ -2,15 +2,21 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cstring>
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "core/core_timing.h"
 #include "core/hle/service/hid/controllers/stubbed.h"
 
 namespace Service::HID {
+
+Controller_Stubbed::Controller_Stubbed() = default;
+
 void Controller_Stubbed::OnInit() {}
+
 void Controller_Stubbed::OnRelease() {}
-void Controller_Stubbed::OnUpdate(u8* data, size_t size) {
+
+void Controller_Stubbed::OnUpdate(u8* data, std::size_t size) {
     if (!smart_update) {
         return;
     }
@@ -23,10 +29,11 @@ void Controller_Stubbed::OnUpdate(u8* data, size_t size) {
 
     std::memcpy(data + common_offset, &header, sizeof(CommonHeader));
 }
+
 void Controller_Stubbed::OnLoadInputDevices() {}
 
-void Controller_Stubbed::SetCommonHeaderOffset(size_t off) {
+void Controller_Stubbed::SetCommonHeaderOffset(std::size_t off) {
     common_offset = off;
     smart_update = true;
 }
-}; // namespace Service::HID
+} // namespace Service::HID

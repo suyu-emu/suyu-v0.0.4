@@ -5,6 +5,8 @@
 #include "core/hle/service/hid/controllers/controller_base.h"
 
 namespace Service::HID {
+ControllerBase::~ControllerBase() = default;
+
 void ControllerBase::ActivateController() {
     if (is_activated) {
         OnRelease();
@@ -23,5 +25,4 @@ void ControllerBase::DeactivateController() {
 bool ControllerBase::IsControllerActivated() const {
     return is_activated;
 }
-// ControllerBase::~ControllerBase() = default;
-}; // namespace Service::HID
+} // namespace Service::HID

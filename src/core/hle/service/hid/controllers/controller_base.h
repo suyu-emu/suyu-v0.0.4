@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #pragma once
+
 #include "common/common_types.h"
 #include "common/swap.h"
 
@@ -10,6 +11,7 @@ namespace Service::HID {
 class ControllerBase {
 public:
     ControllerBase() = default;
+    virtual ~ControllerBase() = 0;
 
     // Called when the controller is initialized
     virtual void OnInit() = 0;
@@ -18,7 +20,7 @@ public:
     virtual void OnRelease() = 0;
 
     // When the controller is requesting an update for the shared memory
-    virtual void OnUpdate(u8* data, size_t size) = 0;
+    virtual void OnUpdate(u8* data, std::size_t size) = 0;
 
     // Called when input devices should be loaded
     virtual void OnLoadInputDevices() = 0;
@@ -40,4 +42,4 @@ protected:
     };
     static_assert(sizeof(CommonHeader) == 0x20, "CommonHeader is an invalid size");
 };
-}; // namespace Service::HID
+} // namespace Service::HID

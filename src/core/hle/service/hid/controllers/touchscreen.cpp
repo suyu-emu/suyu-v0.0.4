@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cstring>
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "core/core_timing.h"
@@ -11,10 +12,15 @@
 #include "core/settings.h"
 
 namespace Service::HID {
-constexpr size_t SHARED_MEMORY_OFFSET = 0x400;
+constexpr std::size_t SHARED_MEMORY_OFFSET = 0x400;
+
+Controller_Touchscreen::Controller_Touchscreen() = default;
+
 void Controller_Touchscreen::OnInit() {}
+
 void Controller_Touchscreen::OnRelease() {}
-void Controller_Touchscreen::OnUpdate(u8* data, size_t size) {
+
+void Controller_Touchscreen::OnUpdate(u8* data, std::size_t size) {
     shared_memory.header.timestamp = CoreTiming::GetTicks();
     shared_memory.header.total_entry_count = 17;
 
@@ -25,14 +31,15 @@ void Controller_Touchscreen::OnUpdate(u8* data, size_t size) {
     }
     shared_memory.header.entry_count = 16;
 
-    auto& last_entry = shared_memory.shared_memory_entries[shared_memory.header.last_entry_index];
+    const auto& last_entry =
+        shared_memory.shared_memory_entries[shared_memory.header.last_entry_index];
     shared_memory.header.last_entry_index = (shared_memory.header.last_entry_index + 1) % 17;
     auto& cur_entry = shared_memory.shared_memory_entries[shared_memory.header.last_entry_index];
 
     cur_entry.sampling_number = last_entry.sampling_number + 1;
     cur_entry.sampling_number2 = cur_entry.sampling_number;
 
-    auto [x, y, pressed] = touch_device->GetStatus();
+    const auto [x, y, pressed] = touch_device->GetStatus();
     auto& touch_entry = cur_entry.states[0];
     if (pressed) {
         touch_entry.x = static_cast<u16>(x * Layout::ScreenUndocked::Width);
@@ -55,4 +62,4 @@ void Controller_Touchscreen::OnUpdate(u8* data, size_t size) {
 void Controller_Touchscreen::OnLoadInputDevices() {
     touch_device = Input::CreateDevice<Input::TouchDevice>(Settings::values.touch_device);
 }
-}; // namespace Service::HID
+} // namespace Service::HID

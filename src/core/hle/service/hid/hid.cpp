@@ -38,8 +38,8 @@ namespace Service::HID {
 constexpr u64 pad_update_ticks = CoreTiming::BASE_CLOCK_RATE / 100;
 constexpr u64 accelerometer_update_ticks = CoreTiming::BASE_CLOCK_RATE / 100;
 constexpr u64 gyroscope_update_ticks = CoreTiming::BASE_CLOCK_RATE / 100;
-constexpr size_t SHARED_MEMORY_SIZE = 0x40000;
-enum class HidController : size_t {
+constexpr std::size_t SHARED_MEMORY_SIZE = 0x40000;
+enum class HidController : std::size_t {
     DebugPad,
     Touchscreen,
     Mouse,
@@ -52,7 +52,7 @@ enum class HidController : size_t {
     NPad,
     Gesture,
 
-    MaxControllers
+    MaxControllers,
 };
 
 class IAppletResource final : public ServiceFramework<IAppletResource> {
@@ -68,33 +68,21 @@ public:
             kernel, nullptr, SHARED_MEMORY_SIZE, Kernel::MemoryPermission::ReadWrite,
             Kernel::MemoryPermission::Read, 0, Kernel::MemoryRegion::BASE, "HID:SharedMemory");
 
-        controllers[static_cast<size_t>(HidController::DebugPad)] =
-            std::make_unique<Controller_DebugPad>();
-        controllers[static_cast<size_t>(HidController::Touchscreen)] =
-            std::make_unique<Controller_Touchscreen>();
-        controllers[static_cast<size_t>(HidController::Mouse)] =
-            std::make_unique<Controller_Mouse>();
-        controllers[static_cast<size_t>(HidController::Keyboard)] =
-            std::make_unique<Controller_Keyboard>();
-        controllers[static_cast<size_t>(HidController::XPad)] = std::make_unique<Controller_XPad>();
-
-        controllers[static_cast<size_t>(HidController::Unknown1)] =
-            std::make_unique<Controller_Stubbed>();
-        controllers[static_cast<size_t>(HidController::Unknown2)] =
-            std::make_unique<Controller_Stubbed>();
-        controllers[static_cast<size_t>(HidController::Unknown3)] =
-            std::make_unique<Controller_Stubbed>();
-
-        controllers[static_cast<size_t>(HidController::SixAxisSensor)] =
-            std::make_unique<Controller_Stubbed>();
-
-        controllers[static_cast<size_t>(HidController::NPad)] = std::make_unique<Controller_NPad>();
-        controllers[static_cast<size_t>(HidController::Gesture)] =
-            std::make_unique<Controller_Gesture>();
+        MakeController<Controller_DebugPad>(HidController::DebugPad);
+        MakeController<Controller_Touchscreen>(HidController::Touchscreen);
+        MakeController<Controller_Mouse>(HidController::Mouse);
+        MakeController<Controller_Keyboard>(HidController::Keyboard);
+        MakeController<Controller_XPad>(HidController::XPad);
+        MakeController<Controller_Stubbed>(HidController::Unknown1);
+        MakeController<Controller_Stubbed>(HidController::Unknown2);
+        MakeController<Controller_Stubbed>(HidController::Unknown3);
+        MakeController<Controller_Stubbed>(HidController::SixAxisSensor);
+        MakeController<Controller_NPad>(HidController::NPad);
+        MakeController<Controller_Gesture>(HidController::Gesture);
 
         // Homebrew doesn't try to activate some controllers, so we activate them by default
-        controllers[static_cast<size_t>(HidController::NPad)]->ActivateController();
-        controllers[static_cast<size_t>(HidController::Touchscreen)]->ActivateController();
+        GetController<Controller_NPad>(HidController::NPad).ActivateController();
+        GetController<Controller_Touchscreen>(HidController::Touchscreen).ActivateController();
 
         GetController<Controller_Stubbed>(HidController::Unknown1).SetCommonHeaderOffset(0x4c00);
         GetController<Controller_Stubbed>(HidController::Unknown2).SetCommonHeaderOffset(0x4e00);
@@ -119,6 +107,11 @@ public:
     }
 
     template <typename T>
+    void MakeController(HidController controller) {
+        controllers[static_cast<std::size_t>(controller)] = std::make_unique<T>();
+    }
+
+    template <typename T>
     T& GetController(HidController controller) {
         return static_cast<T&>(*controllers[static_cast<size_t>(controller)]);
     }
@@ -136,7 +129,7 @@ private:
     }
 
     void UpdateControllers(u64 userdata, int cycles_late) {
-        bool should_reload = Settings::values.is_device_reload_pending.exchange(false);
+        const bool should_reload = Settings::values.is_device_reload_pending.exchange(false);
         for (const auto& controller : controllers) {
             if (should_reload) {
                 controller->OnLoadInputDevices();
@@ -386,7 +379,6 @@ private:
     }
 
     void GetSupportedNpadStyleSet(Kernel::HLERequestContext& ctx) {
-        std::string blah = ctx.Description();
         auto& controller = applet_resource->GetController<Controller_NPad>(HidController::NPad);
 
         IPC::ResponseBuilder rb{ctx, 3};
@@ -434,7 +426,7 @@ private:
     void SetNpadJoyHoldType(Kernel::HLERequestContext& ctx) {
         auto& controller = applet_resource->GetController<Controller_NPad>(HidController::NPad);
         IPC::RequestParser rp{ctx};
-        auto hold_type = rp.PopRaw<u64>();
+        const auto hold_type = rp.PopRaw<u64>();
         controller.SetHoldType(Controller_NPad::NpadHoldType{hold_type});
 
         IPC::ResponseBuilder rb{ctx, 2};
@@ -443,7 +435,8 @@ private:
     }
 
     void GetNpadJoyHoldType(Kernel::HLERequestContext& ctx) {
-        auto& controller = applet_resource->GetController<Controller_NPad>(HidController::NPad);
+        const auto& controller =
+            applet_resource->GetController<Controller_NPad>(HidController::NPad);
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u64>(static_cast<u64>(controller.GetHoldType()));
@@ -458,8 +451,8 @@ private:
 
     void SendVibrationValue(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-        auto controller_id = rp.PopRaw<u32>();
-        auto vibration_values = rp.PopRaw<Controller_NPad::Vibration>();
+        const auto controller_id = rp.PopRaw<u32>();
+        const auto vibration_values = rp.PopRaw<Controller_NPad::Vibration>();
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
@@ -470,8 +463,8 @@ private:
     }
 
     void SendVibrationValues(Kernel::HLERequestContext& ctx) {
-        auto controllers = ctx.ReadBuffer(0);
-        auto vibrations = ctx.ReadBuffer(1);
+        const auto controllers = ctx.ReadBuffer(0);
+        const auto vibrations = ctx.ReadBuffer(1);
 
         std::vector<u32> controller_list(controllers.size() / sizeof(u32));
         std::vector<Controller_NPad::Vibration> vibration_list(vibrations.size() /
@@ -501,7 +494,7 @@ private:
 
     void SetNpadJoyAssignmentModeDual(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-        auto npad_id = rp.PopRaw<u32>();
+        const auto npad_id = rp.PopRaw<u32>();
         auto& controller = applet_resource->GetController<Controller_NPad>(HidController::NPad);
         controller.SetNpadMode(npad_id, Controller_NPad::NPadAssignments::Dual);
 

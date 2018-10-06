@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #pragma once
+
 #include <array>
 #include "common/common_types.h"
 #include "common/swap.h"
@@ -11,7 +12,7 @@
 namespace Service::HID {
 class Controller_Gesture final : public ControllerBase {
 public:
-    Controller_Gesture() = default;
+    Controller_Gesture();
 
     // Called when the controller is initialized
     void OnInit() override;
@@ -48,7 +49,7 @@ private:
         f32 scale;
         f32 rotation;
         s32_le location_count;
-        std::array<Locations, 4> locations{};
+        std::array<Locations, 4> locations;
     };
     static_assert(sizeof(GestureState) == 0x68, "GestureState is an invalid size");
 
@@ -58,4 +59,4 @@ private:
     };
     SharedMemory shared_memory{};
 };
-}; // namespace Service::HID
+} // namespace Service::HID

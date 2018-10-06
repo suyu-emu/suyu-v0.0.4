@@ -2,16 +2,22 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cstring>
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "core/core_timing.h"
 #include "core/hle/service/hid/controllers/xpad.h"
 
 namespace Service::HID {
-constexpr size_t SHARED_MEMORY_OFFSET = 0x3C00;
+constexpr std::size_t SHARED_MEMORY_OFFSET = 0x3C00;
+
+Controller_XPad::Controller_XPad() = default;
+
 void Controller_XPad::OnInit() {}
+
 void Controller_XPad::OnRelease() {}
-void Controller_XPad::OnUpdate(u8* data, size_t size) {
+
+void Controller_XPad::OnUpdate(u8* data, std::size_t size) {
     for (auto& xpad_entry : shared_memory.shared_memory_entries) {
         xpad_entry.header.timestamp = CoreTiming::GetTicks();
         xpad_entry.header.total_entry_count = 17;
@@ -23,7 +29,7 @@ void Controller_XPad::OnUpdate(u8* data, size_t size) {
         }
         xpad_entry.header.entry_count = 16;
 
-        auto& last_entry = xpad_entry.pad_states[xpad_entry.header.last_entry_index];
+        const auto& last_entry = xpad_entry.pad_states[xpad_entry.header.last_entry_index];
         xpad_entry.header.last_entry_index = (xpad_entry.header.last_entry_index + 1) % 17;
         auto& cur_entry = xpad_entry.pad_states[xpad_entry.header.last_entry_index];
 
@@ -34,5 +40,6 @@ void Controller_XPad::OnUpdate(u8* data, size_t size) {
 
     std::memcpy(data + SHARED_MEMORY_OFFSET, &shared_memory, sizeof(SharedMemory));
 }
+
 void Controller_XPad::OnLoadInputDevices() {}
-}; // namespace Service::HID
+} // namespace Service::HID

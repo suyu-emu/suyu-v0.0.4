@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #pragma once
+
 #include <array>
 #include "common/common_types.h"
 #include "common/swap.h"
@@ -11,7 +12,7 @@
 namespace Service::HID {
 class Controller_Mouse final : public ControllerBase {
 public:
-    Controller_Mouse() = default;
+    Controller_Mouse();
 
     // Called when the controller is initialized
     void OnInit() override;
@@ -20,7 +21,7 @@ public:
     void OnRelease() override;
 
     // When the controller is requesting an update for the shared memory
-    void OnUpdate(u8* data, size_t size) override;
+    void OnUpdate(u8* data, std::size_t size) override;
 
     // Called when input devices should be loaded
     void OnLoadInputDevices() override;
@@ -45,4 +46,4 @@ private:
     };
     SharedMemory shared_memory{};
 };
-}; // namespace Service::HID
+} // namespace Service::HID

@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #pragma once
+
 #include <array>
 #include "common/common_funcs.h"
 #include "common/common_types.h"
@@ -12,7 +13,7 @@
 namespace Service::HID {
 class Controller_DebugPad final : public ControllerBase {
 public:
-    Controller_DebugPad() = default;
+    Controller_DebugPad();
 
     // Called when the controller is initialized
     void OnInit() override;
@@ -21,7 +22,7 @@ public:
     void OnRelease() override;
 
     // When the controller is requesting an update for the shared memory
-    void OnUpdate(u8* data, size_t size) override;
+    void OnUpdate(u8* data, std::size_t size) override;
 
     // Called when input devices should be loaded
     void OnLoadInputDevices() override;
@@ -51,4 +52,4 @@ private:
     static_assert(sizeof(SharedMemory) == 0x400, "SharedMemory is an invalid size");
     SharedMemory shared_memory{};
 };
-}; // namespace Service::HID
+} // namespace Service::HID

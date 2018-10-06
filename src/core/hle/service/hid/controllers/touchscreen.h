@@ -3,16 +3,22 @@
 // Refer to the license.txt file included.
 
 #pragma once
+
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/swap.h"
-#include "core/frontend/input.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
+
+namespace Input {
+template <typename StatusType>
+class InputDevice;
+using TouchDevice = InputDevice<std::tuple<float, float, bool>>;
+} // namespace Input
 
 namespace Service::HID {
 class Controller_Touchscreen final : public ControllerBase {
 public:
-    Controller_Touchscreen() = default;
+    Controller_Touchscreen();
 
     // Called when the controller is initialized
     void OnInit() override;
@@ -21,7 +27,7 @@ public:
     void OnRelease() override;
 
     // When the controller is requesting an update for the shared memory
-    void OnUpdate(u8* data, size_t size) override;
+    void OnUpdate(u8* data, std::size_t size) override;
 
     // Called when input devices should be loaded
     void OnLoadInputDevices() override;
@@ -58,4 +64,4 @@ private:
     std::unique_ptr<Input::TouchDevice> touch_device;
     s64_le last_touch{};
 };
-}; // namespace Service::HID
+} // namespace Service::HID

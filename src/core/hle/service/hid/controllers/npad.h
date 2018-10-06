@@ -3,17 +3,24 @@
 // Refer to the license.txt file included.
 
 #pragma once
+
 #include <array>
 #include "common/common_types.h"
-#include "core/frontend/input.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
 #include "core/settings.h"
+
+namespace Input {
+template <typename StatusType>
+class InputDevice;
+using ButtonDevice = InputDevice<bool>;
+using AnalogDevice = InputDevice<std::tuple<float, float>>;
+} // namespace Input
 
 namespace Service::HID {
 
 class Controller_NPad final : public ControllerBase {
 public:
-    Controller_NPad() = default;
+    Controller_NPad();
 
     // Called when the controller is initialized
     void OnInit() override;
@@ -22,7 +29,7 @@ public:
     void OnRelease() override;
 
     // When the controller is requesting an update for the shared memory
-    void OnUpdate(u8* data, size_t size) override;
+    void OnUpdate(u8* data, std::size_t size) override;
 
     // Called when input devices should be loaded
     void OnLoadInputDevices() override;
@@ -67,15 +74,15 @@ public:
         JoyLeft,
         JoyRight,
         Tabletop,
-        Pokeball
+        Pokeball,
     };
 
     void SetSupportedStyleSet(NPadType style_set);
     NPadType GetSupportedStyleSet() const;
 
-    void SetSupportedNPadIdTypes(u8* data, size_t length);
-    void GetSupportedNpadIdTypes(u32* data, size_t max_length);
-    size_t GetSupportedNPadIdTypesSize() const;
+    void SetSupportedNPadIdTypes(u8* data, std::size_t length);
+    const void GetSupportedNpadIdTypes(u32* data, std::size_t max_length);
+    std::size_t GetSupportedNPadIdTypesSize() const;
 
     void SetHoldType(NpadHoldType joy_hold_type);
     NpadHoldType GetHoldType() const;
@@ -123,22 +130,22 @@ private:
             BitField<11, 1, u64_le> minus;
 
             // D-Pad
-            BitField<12, 1, u64_le> dleft;
-            BitField<13, 1, u64_le> dup;
-            BitField<14, 1, u64_le> dright;
-            BitField<15, 1, u64_le> ddown;
+            BitField<12, 1, u64_le> d_left;
+            BitField<13, 1, u64_le> d_up;
+            BitField<14, 1, u64_le> d_right;
+            BitField<15, 1, u64_le> d_down;
 
             // Left JoyStick
-            BitField<16, 1, u64_le> lstickleft;
-            BitField<17, 1, u64_le> lstickup;
-            BitField<18, 1, u64_le> lstickright;
-            BitField<19, 1, u64_le> lstickdown;
+            BitField<16, 1, u64_le> l_stick_left;
+            BitField<17, 1, u64_le> l_stick_up;
+            BitField<18, 1, u64_le> l_stick_right;
+            BitField<19, 1, u64_le> l_stick_down;
 
             // Right JoyStick
-            BitField<20, 1, u64_le> rstickleft;
-            BitField<21, 1, u64_le> rstickup;
-            BitField<22, 1, u64_le> rstickright;
-            BitField<23, 1, u64_le> rstickdown;
+            BitField<20, 1, u64_le> r_stick_left;
+            BitField<21, 1, u64_le> r_stick_up;
+            BitField<22, 1, u64_le> r_stick_right;
+            BitField<23, 1, u64_le> r_stick_down;
 
             // Not always active?
             BitField<24, 1, u64_le> sl;
@@ -166,8 +173,8 @@ private:
         s64_le timestamp;
         s64_le timestamp2;
         ControllerPadState pad_states;
-        AnalogPosition lstick;
-        AnalogPosition rstick;
+        AnalogPosition l_stick;
+        AnalogPosition r_stick;
         ConnectionState connection_status;
     };
     static_assert(sizeof(GenericStates) == 0x30, "NPadGenericStates is an invalid size");
@@ -187,7 +194,7 @@ private:
     struct NPadProperties {
         union {
             s64_le raw{};
-            BitField<11, 1, s64_le> is_verticle;
+            BitField<11, 1, s64_le> is_vertical;
             BitField<12, 1, s64_le> is_horizontal;
         };
     };
@@ -226,7 +233,7 @@ private:
                            // relying on this for the time being
         INSERT_PADDING_BYTES(
             0x708 *
-            6); // TODO(ogniK)L SixAxis states, require more information before implementation
+            6); // TODO(ogniK): SixAxis states, require more information before implementation
         NPadDevice device_type;
         NPadProperties properties;
         INSERT_PADDING_WORDS(4);
@@ -242,8 +249,12 @@ private:
     std::vector<u32> supported_npad_id_types{};
     NpadHoldType hold_type{NpadHoldType::Vertical};
     Kernel::SharedPtr<Kernel::Event> styleset_changed_event;
-    size_t dump_idx{};
+    std::size_t dump_idx{};
     Vibration last_processed_vibration{};
-    void InitNewlyAddedControler(size_t controller_idx);
+    std::size_t CONTROLLER_COUNT{};
+    const std::array<u32, 9> NPAD_ID_LIST{0, 1, 2, 3, 4, 5, 6, 7, 32};
+    std::array<Controller_NPad::NPadControllerType, 9> CONNECTED_CONTROLLERS{};
+
+    void InitNewlyAddedControler(std::size_t controller_idx);
 };
-}; // namespace Service::HID
+} // namespace Service::HID
