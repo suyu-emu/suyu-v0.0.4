@@ -47,7 +47,7 @@ static std::pair<SharedPtr<Thread>, u32> GetHighestPriorityMutexWaitingThread(
 /// Update the mutex owner field of all threads waiting on the mutex to point to the new owner.
 static void TransferMutexOwnership(VAddr mutex_addr, SharedPtr<Thread> current_thread,
                                    SharedPtr<Thread> new_owner) {
-    const auto& threads = current_thread->GetMutexWaitingThreads();
+    const auto threads = current_thread->GetMutexWaitingThreads();
     for (const auto& thread : threads) {
         if (thread->GetMutexWaitAddress() != mutex_addr)
             continue;
