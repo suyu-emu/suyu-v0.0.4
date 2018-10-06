@@ -559,6 +559,18 @@ static bool BlitSurface(const Surface& src_surface, const Surface& dst_surface,
     return true;
 }
 
+static void FastCopySurface(const Surface& src_surface, const Surface& dst_surface) {
+    const auto& src_params{src_surface->GetSurfaceParams()};
+    const auto& dst_params{dst_surface->GetSurfaceParams()};
+
+    const u32 width{std::min(src_params.width, dst_params.width)};
+    const u32 height{std::min(src_params.height, dst_params.height)};
+
+    glCopyImageSubData(src_surface->Texture().handle, SurfaceTargetToGL(src_params.target), 0, 0, 0,
+                       0, dst_surface->Texture().handle, SurfaceTargetToGL(dst_params.target), 0, 0,
+                       0, 0, width, height, 1);
+}
+
 static void CopySurface(const Surface& src_surface, const Surface& dst_surface,
                         GLuint copy_pbo_handle, GLenum src_attachment = 0,
                         GLenum dst_attachment = 0, std::size_t cubemap_face = 0) {
@@ -1040,6 +1052,15 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& old_surface,
 
     // Get a new surface with the new parameters, and blit the previous surface to it
     Surface new_surface{GetUncachedSurface(new_params)};
+
+    // For compatible surfaces, we can just do fast glCopyImageSubData based copy
+    if (old_params.target == new_params.target && old_params.type == new_params.type &&
+        old_params.depth == new_params.depth && old_params.depth == 1 &&
+        SurfaceParams::GetFormatBpp(old_params.pixel_format) ==
+            SurfaceParams::GetFormatBpp(new_params.pixel_format)) {
+        FastCopySurface(old_surface, new_surface);
+        return new_surface;
+    }
 
     // If the format is the same, just do a framebuffer blit. This is significantly faster than
     // using PBOs. The is also likely less accurate, as textures will be converted rather than
