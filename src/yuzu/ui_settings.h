@@ -15,9 +15,8 @@ namespace UISettings {
 using ContextualShortcut = std::pair<QString, int>;
 using Shortcut = std::pair<QString, ContextualShortcut>;
 
-static const std::array<std::pair<QString, QString>, 2> themes = {
-    {std::make_pair(QString("Default"), QString("default")),
-     std::make_pair(QString("Dark"), QString("qdarkstyle"))}};
+using Themes = std::array<std::pair<const char*, const char*>, 2>;
+extern const Themes themes;
 
 struct Values {
     QByteArray geometry;
