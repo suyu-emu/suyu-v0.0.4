@@ -169,7 +169,7 @@ void Thread::ResumeFromWait() {
     next_scheduler->ScheduleThread(this, current_priority);
 
     // Change thread's scheduler
-    scheduler = next_scheduler;
+    scheduler = next_scheduler.get();
 
     Core::System::GetInstance().CpuCore(processor_id).PrepareReschedule();
 }
@@ -233,7 +233,7 @@ ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name
     thread->name = std::move(name);
     thread->callback_handle = kernel.ThreadWakeupCallbackHandleTable().Create(thread).Unwrap();
     thread->owner_process = owner_process;
-    thread->scheduler = Core::System::GetInstance().Scheduler(processor_id);
+    thread->scheduler = Core::System::GetInstance().Scheduler(processor_id).get();
     thread->scheduler->AddThread(thread, priority);
     thread->tls_address = thread->owner_process->MarkNextAvailableTLSSlotAsUsed(*thread);
 
@@ -400,7 +400,7 @@ void Thread::ChangeCore(u32 core, u64 mask) {
     next_scheduler->ScheduleThread(this, current_priority);
 
     // Change thread's scheduler
-    scheduler = next_scheduler;
+    scheduler = next_scheduler.get();
 
     Core::System::GetInstance().CpuCore(processor_id).PrepareReschedule();
 }
