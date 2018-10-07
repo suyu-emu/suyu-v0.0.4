@@ -30,7 +30,7 @@ public:
         return info;
     }
 
-    VoiceInfo& Info() {
+    VoiceInfo& GetInfo() {
         return info;
     }
 
@@ -61,7 +61,7 @@ public:
         return info;
     }
 
-    EffectInStatus& Info() {
+    EffectInStatus& GetInfo() {
         return info;
     }
 
@@ -120,7 +120,7 @@ std::vector<u8> AudioRenderer::UpdateAudioRenderer(const std::vector<u8>& input_
     std::size_t voice_offset{sizeof(UpdateDataHeader) + config.behavior_size +
                              config.memory_pools_size + config.voice_resource_size};
     for (auto& voice : voices) {
-        std::memcpy(&voice.Info(), input_params.data() + voice_offset, sizeof(VoiceInfo));
+        std::memcpy(&voice.GetInfo(), input_params.data() + voice_offset, sizeof(VoiceInfo));
         voice_offset += sizeof(VoiceInfo);
     }
 
@@ -128,7 +128,7 @@ std::vector<u8> AudioRenderer::UpdateAudioRenderer(const std::vector<u8>& input_
                               config.memory_pools_size + config.voice_resource_size +
                               config.voices_size};
     for (auto& effect : effects) {
-        std::memcpy(&effect.Info(), input_params.data() + effect_offset, sizeof(EffectInStatus));
+        std::memcpy(&effect.GetInfo(), input_params.data() + effect_offset, sizeof(EffectInStatus));
         effect_offset += sizeof(EffectInStatus);
     }
 
@@ -285,7 +285,8 @@ void AudioRenderer::VoiceState::RefreshBuffer() {
         break;
     }
 
-    samples = Interpolate(interp_state, std::move(samples), Info().sample_rate, STREAM_SAMPLE_RATE);
+    samples =
+        Interpolate(interp_state, std::move(samples), GetInfo().sample_rate, STREAM_SAMPLE_RATE);
 
     is_refresh_pending = false;
 }

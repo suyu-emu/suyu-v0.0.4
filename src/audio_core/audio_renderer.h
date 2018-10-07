@@ -220,8 +220,8 @@ public:
     Stream::State GetStreamState() const;
 
 private:
-    class VoiceState;
     class EffectState;
+    class VoiceState;
 
     AudioRendererParameter worker_params;
     Kernel::SharedPtr<Kernel::Event> buffer_event;
