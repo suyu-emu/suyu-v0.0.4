@@ -30,7 +30,7 @@ using Tegra::Shader::SubOp;
 constexpr u32 PROGRAM_END = MAX_PROGRAM_CODE_LENGTH;
 constexpr u32 PROGRAM_HEADER_SIZE = sizeof(Tegra::Shader::Header);
 
-constexpr u32 POSITION_VARYING_LOCATION = 15;
+enum : u32 { POSITION_VARYING_LOCATION = 0, GENERIC_VARYING_START_LOCATION = 1 };
 
 constexpr u32 MAX_GEOMETRY_BUFFERS = 6;
 constexpr u32 MAX_ATTRIBUTES = 0x100; // Size in vec4s, this value is untested
@@ -559,7 +559,10 @@ private:
             // TODO(bunnei): Use proper number of elements for these
             u32 idx =
                 static_cast<u32>(element.first) - static_cast<u32>(Attribute::Index::Attribute_0);
-            ASSERT(idx != POSITION_VARYING_LOCATION);
+            if (stage != Maxwell3D::Regs::ShaderStage::Vertex) {
+                // If inputs are varyings, add an offset
+                idx += GENERIC_VARYING_START_LOCATION;
+            }
 
             std::string attr{GetInputAttribute(element.first, element.second)};
             if (stage == Maxwell3D::Regs::ShaderStage::Geometry) {
@@ -580,10 +583,11 @@ private:
         }
         for (const auto& index : declr_output_attribute) {
             // TODO(bunnei): Use proper number of elements for these
-            declarations.AddLine("layout (location = " +
-                                 std::to_string(static_cast<u32>(index) -
-                                                static_cast<u32>(Attribute::Index::Attribute_0)) +
-                                 ") out vec4 " + GetOutputAttribute(index) + ';');
+            const u32 idx = static_cast<u32>(index) -
+                            static_cast<u32>(Attribute::Index::Attribute_0) +
+                            GENERIC_VARYING_START_LOCATION;
+            declarations.AddLine("layout (location = " + std::to_string(idx) + ") out vec4 " +
+                                 GetOutputAttribute(index) + ';');
         }
         declarations.AddNewLine();
     }
