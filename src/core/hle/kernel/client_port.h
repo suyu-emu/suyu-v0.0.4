@@ -30,6 +30,8 @@ public:
         return HANDLE_TYPE;
     }
 
+    SharedPtr<ServerPort> GetServerPort() const;
+
     /**
      * Creates a new Session pair, adds the created ServerSession to the associated ServerPort's
      * list of pending sessions, and signals the ServerPort, causing any threads
