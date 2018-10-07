@@ -252,6 +252,7 @@ DrawParameters RasterizerOpenGL::SetupDraw() {
         params.count = regs.vertex_buffer.count;
         params.vertex_first = regs.vertex_buffer.first;
     }
+    return params;
 }
 
 void RasterizerOpenGL::SetupShaders() {
