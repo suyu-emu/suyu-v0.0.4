@@ -58,7 +58,7 @@ public:
     }
 
     const EffectInStatus& GetInfo() const {
-        info;
+        return info;
     }
 
     EffectInStatus& Info() {
