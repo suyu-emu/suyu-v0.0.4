@@ -33,7 +33,7 @@ enum class JoystickId : std::size_t { Joystick_Left, Joystick_Right };
 Controller_NPad::Controller_NPad() = default;
 
 void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
-    const auto controller_type = CONNECTED_CONTROLLERS[controller_idx];
+    const auto controller_type = connected_controllers[controller_idx].type;
     auto& controller = shared_memory_entries[controller_idx];
     if (controller_type == NPadControllerType::None) {
         return;
@@ -92,7 +92,7 @@ void Controller_NPad::OnInit() {
     if (!IsControllerActivated())
         return;
     std::size_t controller{};
-    supported_npad_id_types.resize(NPAD_ID_LIST.size());
+    supported_npad_id_types.resize(npad_id_list.size());
     if (style.raw == 0) {
         // We want to support all controllers
         style.handheld.Assign(1);
@@ -102,9 +102,9 @@ void Controller_NPad::OnInit() {
         style.pro_controller.Assign(1);
         style.pokeball.Assign(1);
     }
-    std::memcpy(supported_npad_id_types.data(), NPAD_ID_LIST.data(),
-                NPAD_ID_LIST.size() * sizeof(u32));
-    if (CONTROLLER_COUNT == 0) {
+    std::memcpy(supported_npad_id_types.data(), npad_id_list.data(),
+                npad_id_list.size() * sizeof(u32));
+    if (controller_count == 0) {
         AddNewController(NPadControllerType::Handheld);
     }
 }
@@ -150,11 +150,11 @@ void Controller_NPad::OnUpdate(u8* data, std::size_t data_len) {
             cur_entry.timestamp2 = cur_entry.timestamp;
         }
 
-        if (CONNECTED_CONTROLLERS[i] == NPadControllerType::None) {
+        const auto& controller_type = connected_controllers[i].type;
+
+        if (controller_type == NPadControllerType::None || !connected_controllers[i].is_connected) {
             continue;
         }
-
-        const auto& controller_type = CONNECTED_CONTROLLERS[i];
 
         // Pad states
         ControllerPadState pad_state{};
@@ -312,7 +312,7 @@ void Controller_NPad::SetNpadMode(u32 npad_id, NPadAssignments assignment_mode) 
 void Controller_NPad::VibrateController(const std::vector<u32>& controller_ids,
                                         const std::vector<Vibration>& vibrations) {
     for (std::size_t i = 0; i < controller_ids.size(); i++) {
-        if (i >= CONTROLLER_COUNT) {
+        if (i >= controller_count) {
             continue;
         }
         // TODO(ogniK): Vibrate the physical controller
@@ -329,11 +329,23 @@ Controller_NPad::Vibration Controller_NPad::GetLastVibration() const {
     return last_processed_vibration;
 }
 void Controller_NPad::AddNewController(NPadControllerType controller) {
-    if (CONTROLLER_COUNT >= CONNECTED_CONTROLLERS.size()) {
+    if (controller_count >= connected_controllers.size()) {
         LOG_ERROR(Service_HID, "Cannot connect any more controllers!");
         return;
     }
-    CONNECTED_CONTROLLERS[CONTROLLER_COUNT] = controller;
-    InitNewlyAddedControler(CONTROLLER_COUNT++);
+    connected_controllers[controller_count] = {controller, true};
+    InitNewlyAddedControler(controller_count++);
+}
+
+void Controller_NPad::ConnectNPad(u32 npad_id) {
+    if (npad_id >= connected_controllers.size())
+        return;
+    connected_controllers[npad_id].is_connected = true;
+}
+
+void Controller_NPad::DisconnectNPad(u32 npad_id) {
+    if (npad_id >= connected_controllers.size())
+        return;
+    connected_controllers[npad_id].is_connected = false;
 }
 } // namespace Service::HID

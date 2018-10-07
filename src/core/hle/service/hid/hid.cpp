@@ -411,7 +411,10 @@ private:
     }
 
     void DisconnectNpad(Kernel::HLERequestContext& ctx) {
-        applet_resource->DeactivateController(HidController::NPad);
+        IPC::RequestParser rp{ctx};
+        auto npad_id = rp.PopRaw<u32>();
+        applet_resource->GetController<Controller_NPad>(HidController::NPad)
+            .DisconnectNPad(npad_id);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_DEBUG(Service_HID, "called");

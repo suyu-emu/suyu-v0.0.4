@@ -91,6 +91,9 @@ public:
 
     void AddNewController(NPadControllerType controller);
 
+    void ConnectNPad(u32 npad_id);
+    void DisconnectNPad(u32 npad_id);
+
 private:
     struct CommonHeader {
         s64_le timestamp;
@@ -235,6 +238,12 @@ private:
         INSERT_PADDING_BYTES(0xdf8);
     };
     static_assert(sizeof(NPadEntry) == 0x5000, "NPadEntry is an invalid size");
+
+    struct ControllerHolder {
+        Controller_NPad::NPadControllerType type;
+        bool is_connected;
+    };
+
     NPadType style{};
     std::array<NPadEntry, 10> shared_memory_entries{};
     std::array<std::unique_ptr<Input::ButtonDevice>, Settings::NativeButton::NUM_BUTTONS_HID>
@@ -245,9 +254,9 @@ private:
     Kernel::SharedPtr<Kernel::Event> styleset_changed_event;
     std::size_t dump_idx{};
     Vibration last_processed_vibration{};
-    std::size_t CONTROLLER_COUNT{};
-    const std::array<u32, 9> NPAD_ID_LIST{0, 1, 2, 3, 4, 5, 6, 7, 32};
-    std::array<Controller_NPad::NPadControllerType, 9> CONNECTED_CONTROLLERS{};
+    std::size_t controller_count{};
+    static constexpr std::array<u32, 9> npad_id_list{0, 1, 2, 3, 4, 5, 6, 7, 32};
+    std::array<ControllerHolder, 9> connected_controllers{};
 
     void InitNewlyAddedControler(std::size_t controller_idx);
 };
