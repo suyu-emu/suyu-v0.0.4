@@ -10,8 +10,10 @@
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/patch_manager.h"
+#include "core/file_sys/registered_cache.h"
 #include "core/file_sys/submission_package.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/nca.h"
 #include "core/loader/nsp.h"
@@ -91,13 +93,39 @@ ResultStatus AppLoader_NSP::Load(Kernel::Process& process) {
     if (result != ResultStatus::Success)
         return result;
 
+    FileSys::VirtualFile update_raw;
+    if (ReadUpdateRaw(update_raw) == ResultStatus::Success && update_raw != nullptr)
+        Service::FileSystem::SetPackedUpdate(std::move(update_raw));
+
     is_loaded = true;
 
     return ResultStatus::Success;
 }
 
-ResultStatus AppLoader_NSP::ReadRomFS(FileSys::VirtualFile& dir) {
-    return secondary_loader->ReadRomFS(dir);
+ResultStatus AppLoader_NSP::ReadRomFS(FileSys::VirtualFile& file) {
+    return secondary_loader->ReadRomFS(file);
+}
+
+u64 AppLoader_NSP::ReadRomFSIVFCOffset() const {
+    return secondary_loader->ReadRomFSIVFCOffset();
+}
+
+ResultStatus AppLoader_NSP::ReadUpdateRaw(FileSys::VirtualFile& file) {
+    if (nsp->IsExtractedType())
+        return ResultStatus::ErrorNoPackedUpdate;
+
+    const auto read =
+        nsp->GetNCAFile(FileSys::GetUpdateTitleID(title_id), FileSys::ContentRecordType::Program);
+
+    if (read == nullptr)
+        return ResultStatus::ErrorNoPackedUpdate;
+    const auto nca_test = std::make_shared<FileSys::NCA>(read);
+
+    if (nca_test->GetStatus() != ResultStatus::ErrorMissingBKTRBaseRomFS)
+        return nca_test->GetStatus();
+
+    file = read;
+    return ResultStatus::Success;
 }
 
 ResultStatus AppLoader_NSP::ReadProgramId(u64& out_program_id) {

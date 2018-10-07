@@ -57,16 +57,25 @@ QString FormatGameName(const std::string& physical_name) {
     return physical_name_as_qstring;
 }
 
-QString FormatPatchNameVersions(const FileSys::PatchManager& patch_manager, bool updatable = true) {
+QString FormatPatchNameVersions(const FileSys::PatchManager& patch_manager,
+                                Loader::AppLoader& loader, bool updatable = true) {
     QString out;
-    for (const auto& kv : patch_manager.GetPatchVersionNames()) {
+    FileSys::VirtualFile update_raw;
+    loader.ReadUpdateRaw(update_raw);
+    for (const auto& kv : patch_manager.GetPatchVersionNames(update_raw)) {
         if (!updatable && kv.first == "Update")
             continue;
 
         if (kv.second.empty()) {
             out.append(fmt::format("{}\n", kv.first).c_str());
         } else {
-            out.append(fmt::format("{} ({})\n", kv.first, kv.second).c_str());
+            auto ver = kv.second;
+
+            // Display container name for packed updates
+            if (ver == "PACKED" && kv.first == "Update")
+                ver = Loader::GetFileTypeString(loader.GetFileType());
+
+            out.append(fmt::format("{} ({})\n", kv.first, ver).c_str());
         }
     }
 
@@ -116,7 +125,7 @@ void GameListWorker::AddInstalledTitlesToGameList() {
                 QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType())),
                 program_id),
             new GameListItemCompat(compatibility),
-            new GameListItem(FormatPatchNameVersions(patch)),
+            new GameListItem(FormatPatchNameVersions(patch, *loader)),
             new GameListItem(
                 QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType()))),
             new GameListItemSize(file->GetSize()),
@@ -206,7 +215,8 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
                     QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType())),
                     program_id),
                 new GameListItemCompat(compatibility),
-                new GameListItem(FormatPatchNameVersions(patch, loader->IsRomFSUpdatable())),
+                new GameListItem(
+                    FormatPatchNameVersions(patch, *loader, loader->IsRomFSUpdatable())),
                 new GameListItem(
                     QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType()))),
                 new GameListItemSize(FileUtil::GetSize(physical_name)),

@@ -259,8 +259,11 @@ void NSP::ReadNCAs(const std::vector<VirtualFile>& files) {
                 auto next_nca = std::make_shared<NCA>(next_file);
                 if (next_nca->GetType() == NCAContentType::Program)
                     program_status[cnmt.GetTitleID()] = next_nca->GetStatus();
-                if (next_nca->GetStatus() == Loader::ResultStatus::Success)
+                if (next_nca->GetStatus() == Loader::ResultStatus::Success ||
+                    (next_nca->GetStatus() == Loader::ResultStatus::ErrorMissingBKTRBaseRomFS &&
+                     (cnmt.GetTitleID() & 0x800) != 0)) {
                     ncas_title[rec.type] = std::move(next_nca);
+                }
             }
 
             break;
