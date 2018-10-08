@@ -182,11 +182,17 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
               [](const VirtualDir& l, const VirtualDir& r) { return l->GetName() < r->GetName(); });
 
     std::vector<VirtualDir> layers;
+    std::vector<VirtualDir> layers_ext;
     layers.reserve(patch_dirs.size() + 1);
+    layers_ext.reserve(patch_dirs.size() + 1);
     for (const auto& subdir : patch_dirs) {
         auto romfs_dir = subdir->GetSubdirectory("romfs");
         if (romfs_dir != nullptr)
             layers.push_back(std::move(romfs_dir));
+
+        auto ext_dir = subdir->GetSubdirectory("romfs_ext");
+        if (ext_dir != nullptr)
+            layers_ext.push_back(std::move(ext_dir));
     }
     layers.push_back(std::move(extracted));
 
@@ -195,7 +201,9 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
         return;
     }
 
-    auto packed = CreateRomFS(std::move(layered));
+    auto layered_ext = LayeredVfsDirectory::MakeLayeredDirectory(std::move(layers_ext));
+
+    auto packed = CreateRomFS(std::move(layered), std::move(layered_ext));
     if (packed == nullptr) {
         return;
     }

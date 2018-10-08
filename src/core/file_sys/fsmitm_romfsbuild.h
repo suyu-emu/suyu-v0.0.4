@@ -40,7 +40,7 @@ struct RomFSFileEntry;
 
 class RomFSBuildContext {
 public:
-    explicit RomFSBuildContext(VirtualDir base);
+    explicit RomFSBuildContext(VirtualDir base, VirtualDir ext = nullptr);
     ~RomFSBuildContext();
 
     // This finalizes the context.
@@ -48,6 +48,7 @@ public:
 
 private:
     VirtualDir base;
+    VirtualDir ext;
     std::shared_ptr<RomFSBuildDirectoryContext> root;
     std::map<std::string, std::shared_ptr<RomFSBuildDirectoryContext>, std::less<>> directories;
     std::map<std::string, std::shared_ptr<RomFSBuildFileContext>, std::less<>> files;
@@ -59,7 +60,8 @@ private:
     u64 file_hash_table_size = 0;
     u64 file_partition_size = 0;
 
-    void VisitDirectory(VirtualDir filesys, std::shared_ptr<RomFSBuildDirectoryContext> parent);
+    void VisitDirectory(VirtualDir filesys, VirtualDir ext,
+                        std::shared_ptr<RomFSBuildDirectoryContext> parent);
 
     bool AddDirectory(std::shared_ptr<RomFSBuildDirectoryContext> parent_dir_ctx,
                       std::shared_ptr<RomFSBuildDirectoryContext> dir_ctx);

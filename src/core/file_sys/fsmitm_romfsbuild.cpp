@@ -26,6 +26,7 @@
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "core/file_sys/fsmitm_romfsbuild.h"
+#include "core/file_sys/ips_layer.h"
 #include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_vector.h"
 
@@ -123,7 +124,7 @@ static u64 romfs_get_hash_table_count(u64 num_entries) {
     return count;
 }
 
-void RomFSBuildContext::VisitDirectory(VirtualDir root_romfs,
+void RomFSBuildContext::VisitDirectory(VirtualDir root_romfs, VirtualDir ext,
                                        std::shared_ptr<RomFSBuildDirectoryContext> parent) {
     std::vector<std::shared_ptr<RomFSBuildDirectoryContext>> child_dirs;
 
@@ -144,6 +145,9 @@ void RomFSBuildContext::VisitDirectory(VirtualDir root_romfs,
             child->path_len = child->cur_path_ofs + static_cast<u32>(kv.first.size());
             child->path = parent->path + "/" + kv.first;
 
+            if (ext != nullptr && ext->GetFileRelative(child->path + ".stub") != nullptr)
+                continue;
+
             // Sanity check on path_len
             ASSERT(child->path_len < FS_MAX_PATH);
 
@@ -157,10 +161,23 @@ void RomFSBuildContext::VisitDirectory(VirtualDir root_romfs,
             child->path_len = child->cur_path_ofs + static_cast<u32>(kv.first.size());
             child->path = parent->path + "/" + kv.first;
 
+            if (ext != nullptr && ext->GetFileRelative(child->path + ".stub") != nullptr)
+                continue;
+
             // Sanity check on path_len
             ASSERT(child->path_len < FS_MAX_PATH);
 
             child->source = root_romfs->GetFileRelative(child->path);
+
+            if (ext != nullptr) {
+                const auto ips = ext->GetFileRelative(child->path + ".ips");
+
+                if (ips != nullptr) {
+                    auto patched = PatchIPS(child->source, ips);
+                    if (patched != nullptr)
+                        child->source = std::move(patched);
+                }
+            }
 
             child->size = child->source->GetSize();
 
@@ -169,7 +186,7 @@ void RomFSBuildContext::VisitDirectory(VirtualDir root_romfs,
     }
 
     for (auto& child : child_dirs) {
-        this->VisitDirectory(root_romfs, child);
+        this->VisitDirectory(root_romfs, ext, child);
     }
 }
 
@@ -208,14 +225,15 @@ bool RomFSBuildContext::AddFile(std::shared_ptr<RomFSBuildDirectoryContext> pare
     return true;
 }
 
-RomFSBuildContext::RomFSBuildContext(VirtualDir base_) : base(std::move(base_)) {
+RomFSBuildContext::RomFSBuildContext(VirtualDir base_, VirtualDir ext_)
+    : base(std::move(base_)), ext(std::move(ext_)) {
     root = std::make_shared<RomFSBuildDirectoryContext>();
     root->path = "\0";
     directories.emplace(root->path, root);
     num_dirs = 1;
     dir_table_size = 0x18;
 
-    VisitDirectory(base, root);
+    VisitDirectory(base, ext, root);
 }
 
 RomFSBuildContext::~RomFSBuildContext() = default;
