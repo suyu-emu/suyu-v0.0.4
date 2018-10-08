@@ -155,6 +155,7 @@ struct Values {
     // Debugging
     bool use_gdbstub;
     u16 gdbstub_port;
+    std::string program_args;
 
     // WebService
     bool enable_telemetry;

@@ -17,6 +17,7 @@
 #include "core/hle/kernel/vm_manager.h"
 #include "core/loader/nso.h"
 #include "core/memory.h"
+#include "core/settings.h"
 
 namespace Loader {
 
@@ -94,6 +95,7 @@ static constexpr u32 PageAlignSize(u32 size) {
 }
 
 VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base,
+                                bool should_pass_arguments,
                                 boost::optional<FileSys::PatchManager> pm) {
     if (file == nullptr)
         return {};
@@ -123,6 +125,19 @@ VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base,
         codeset->segments[i].addr = nso_header.segments[i].location;
         codeset->segments[i].offset = nso_header.segments[i].location;
         codeset->segments[i].size = PageAlignSize(static_cast<u32>(data.size()));
+    }
+
+    if (should_pass_arguments && !Settings::values.program_args.empty()) {
+        const auto arg_data = Settings::values.program_args;
+        codeset->DataSegment().size += NSO_ARGUMENT_DATA_ALLOCATION_SIZE;
+        NSOArgumentHeader args_header{
+            NSO_ARGUMENT_DATA_ALLOCATION_SIZE, static_cast<u32_le>(arg_data.size()), {}};
+        const auto end_offset = program_image.size();
+        program_image.resize(static_cast<u32>(program_image.size()) +
+                             NSO_ARGUMENT_DATA_ALLOCATION_SIZE);
+        std::memcpy(program_image.data() + end_offset, &args_header, sizeof(NSOArgumentHeader));
+        std::memcpy(program_image.data() + end_offset + sizeof(NSOArgumentHeader), arg_data.data(),
+                    arg_data.size());
     }
 
     // MOD header pointer is at .text offset + 4
@@ -172,7 +187,7 @@ ResultStatus AppLoader_NSO::Load(Kernel::Process& process) {
 
     // Load module
     const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
-    LoadModule(file, base_address);
+    LoadModule(file, base_address, true);
     LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", file->GetName(), base_address);
 
     process.Run(base_address, Kernel::THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE);

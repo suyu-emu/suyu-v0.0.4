@@ -11,6 +11,15 @@
 
 namespace Loader {
 
+constexpr u64 NSO_ARGUMENT_DATA_ALLOCATION_SIZE = 0x9000;
+
+struct NSOArgumentHeader {
+    u32_le allocated_size;
+    u32_le actual_size;
+    INSERT_PADDING_BYTES(0x18);
+};
+static_assert(sizeof(NSOArgumentHeader) == 0x20, "NSOArgumentHeader has incorrect size.");
+
 /// Loads an NSO file
 class AppLoader_NSO final : public AppLoader, Linker {
 public:
@@ -27,7 +36,7 @@ public:
         return IdentifyType(file);
     }
 
-    static VAddr LoadModule(FileSys::VirtualFile file, VAddr load_base,
+    static VAddr LoadModule(FileSys::VirtualFile file, VAddr load_base, bool should_pass_arguments,
                             boost::optional<FileSys::PatchManager> pm = boost::none);
 
     ResultStatus Load(Kernel::Process& process) override;
