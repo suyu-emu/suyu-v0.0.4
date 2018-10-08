@@ -61,13 +61,13 @@ AOC_U::AOC_U() : ServiceFramework("aoc:u"), add_on_content(AccumulateAOCTitleIDs
 AOC_U::~AOC_U() = default;
 
 void AOC_U::CountAddOnContent(Kernel::HLERequestContext& ctx) {
-    IPC::ResponseBuilder rb{ctx, 4};
+    IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
 
     const auto current = Core::System::GetInstance().CurrentProcess()->GetTitleID();
-    rb.Push<u32>(std::count_if(add_on_content.begin(), add_on_content.end(), [&current](u64 tid) {
-        return (tid & DLC_BASE_TITLE_ID_MASK) == current;
-    }));
+    rb.Push<u32>(static_cast<u32>(
+        std::count_if(add_on_content.begin(), add_on_content.end(),
+                      [&current](u64 tid) { return (tid & DLC_BASE_TITLE_ID_MASK) == current; })));
 }
 
 void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
@@ -91,7 +91,7 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
         return;
     }
 
-    count = std::min<size_t>(out.size() - offset, count);
+    count = static_cast<u32>(std::min<size_t>(out.size() - offset, count));
     std::rotate(out.begin(), out.begin() + offset, out.end());
     out.resize(count);
 
