@@ -40,7 +40,7 @@ public:
     template <typename Arg>
     void Push(Arg&& t) {
         // create the element, add it to the queue
-        write_ptr->current = std::move(t);
+        write_ptr->current = std::forward<Arg>(t);
         // set the next pointer to a new element ptr
         // then advance the write pointer
         ElementPtr* new_ptr = new ElementPtr();
@@ -69,7 +69,6 @@ public:
         --size;
 
         ElementPtr* tmpptr = read_ptr;
-
         read_ptr = tmpptr->next.load(std::memory_order_acquire);
         t = std::move(tmpptr->current);
         tmpptr->next.store(nullptr);
@@ -77,12 +76,14 @@ public:
         return true;
     }
 
-    bool PopWait(T& t) {
+    T PopWait() {
         if (Empty()) {
             std::unique_lock<std::mutex> lock(cv_mutex);
             cv.wait(lock, [this]() { return !Empty(); });
         }
-        return Pop(t);
+        T t;
+        Pop(t);
+        return t;
     }
 
     // not thread-safe
@@ -148,8 +149,8 @@ public:
         return spsc_queue.Pop(t);
     }
 
-    bool PopWait(T& t) {
-        return spsc_queue.PopWait(t);
+    T PopWait() {
+        return spsc_queue.PopWait();
     }
 
     // not thread-safe
