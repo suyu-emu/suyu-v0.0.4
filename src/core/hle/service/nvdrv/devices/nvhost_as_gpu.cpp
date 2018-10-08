@@ -157,7 +157,12 @@ u32 nvhost_as_gpu::UnmapBuffer(const std::vector<u8>& input, std::vector<u8>& ou
     LOG_DEBUG(Service_NVDRV, "called, offset=0x{:X}", params.offset);
 
     const auto itr = buffer_mappings.find(params.offset);
-    ASSERT_MSG(itr != buffer_mappings.end(), "Tried to unmap invalid mapping");
+    if (itr == buffer_mappings.end()) {
+        LOG_WARNING(Service_NVDRV, "Tried to unmap an invalid offset 0x{:X}", params.offset);
+        // Hardware tests shows that unmapping an already unmapped buffer always returns successful
+        // and doesn't fail.
+        return 0;
+    }
 
     auto& system_instance = Core::System::GetInstance();
 
