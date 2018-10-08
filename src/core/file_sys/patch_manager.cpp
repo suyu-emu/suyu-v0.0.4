@@ -73,27 +73,38 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
     return exefs;
 }
 
-static std::vector<VirtualFile> CollectIPSPatches(const std::vector<VirtualDir>& patch_dirs,
-                                                  const std::string& build_id) {
-    std::vector<VirtualFile> ips;
-    ips.reserve(patch_dirs.size());
+static std::vector<VirtualFile> CollectPatches(const std::vector<VirtualDir>& patch_dirs,
+                                               const std::string& build_id) {
+    std::vector<VirtualFile> out;
+    out.reserve(patch_dirs.size());
     for (const auto& subdir : patch_dirs) {
         auto exefs_dir = subdir->GetSubdirectory("exefs");
         if (exefs_dir != nullptr) {
             for (const auto& file : exefs_dir->GetFiles()) {
-                if (file->GetExtension() != "ips")
-                    continue;
-                auto name = file->GetName();
-                const auto p1 = name.substr(0, name.find('.'));
-                const auto this_build_id = p1.substr(0, p1.find_last_not_of('0') + 1);
+                if (file->GetExtension() == "ips") {
+                    auto name = file->GetName();
+                    const auto p1 = name.substr(0, name.find('.'));
+                    const auto this_build_id = p1.substr(0, p1.find_last_not_of('0') + 1);
 
-                if (build_id == this_build_id)
-                    ips.push_back(file);
+                    if (build_id == this_build_id)
+                        out.push_back(file);
+                } else if (file->GetExtension() == "pchtxt") {
+                    IPSwitchCompiler compiler{file};
+                    if (!compiler.IsValid())
+                        continue;
+
+                    auto this_build_id = Common::HexArrayToString(compiler.GetBuildID());
+                    this_build_id =
+                        this_build_id.substr(0, this_build_id.find_last_not_of('0') + 1);
+
+                    if (build_id == this_build_id)
+                        out.push_back(file);
+                }
             }
         }
     }
 
-    return ips;
+    return out;
 }
 
 std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso) const {
@@ -115,15 +126,24 @@ std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso) const {
     auto patch_dirs = load_dir->GetSubdirectories();
     std::sort(patch_dirs.begin(), patch_dirs.end(),
               [](const VirtualDir& l, const VirtualDir& r) { return l->GetName() < r->GetName(); });
-    const auto ips = CollectIPSPatches(patch_dirs, build_id);
+    const auto patches = CollectPatches(patch_dirs, build_id);
 
     auto out = nso;
-    for (const auto& ips_file : ips) {
-        LOG_INFO(Loader, "    - Appling IPS patch from mod \"{}\"",
-                 ips_file->GetContainingDirectory()->GetParentDirectory()->GetName());
-        const auto patched = PatchIPS(std::make_shared<VectorVfsFile>(out), ips_file);
-        if (patched != nullptr)
-            out = patched->ReadAllBytes();
+    for (const auto& patch_file : patches) {
+        if (patch_file->GetExtension() == "ips") {
+            LOG_INFO(Loader, "    - Applying IPS patch from mod \"{}\"",
+                     patch_file->GetContainingDirectory()->GetParentDirectory()->GetName());
+            const auto patched = PatchIPS(std::make_shared<VectorVfsFile>(out), patch_file);
+            if (patched != nullptr)
+                out = patched->ReadAllBytes();
+        } else if (patch_file->GetExtension() == "pchtxt") {
+            LOG_INFO(Loader, "    - Applying IPSwitch patch from mod \"{}\"",
+                     patch_file->GetContainingDirectory()->GetParentDirectory()->GetName());
+            const IPSwitchCompiler compiler{patch_file};
+            const auto patched = compiler.Apply(std::make_shared<VectorVfsFile>(out));
+            if (patched != nullptr)
+                out = patched->ReadAllBytes();
+        }
     }
 
     if (out.size() < 0x100)
@@ -143,7 +163,7 @@ bool PatchManager::HasNSOPatch(const std::array<u8, 32>& build_id_) const {
     std::sort(patch_dirs.begin(), patch_dirs.end(),
               [](const VirtualDir& l, const VirtualDir& r) { return l->GetName() < r->GetName(); });
 
-    return !CollectIPSPatches(patch_dirs, build_id).empty();
+    return !CollectPatches(patch_dirs, build_id).empty();
 }
 
 static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType type) {
@@ -263,8 +283,24 @@ std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNam
     if (mod_dir != nullptr && mod_dir->GetSize() > 0) {
         for (const auto& mod : mod_dir->GetSubdirectories()) {
             std::string types;
-            if (IsDirValidAndNonEmpty(mod->GetSubdirectory("exefs")))
-                AppendCommaIfNotEmpty(types, "IPS");
+
+            const auto exefs_dir = mod->GetSubdirectory("exefs");
+            if (IsDirValidAndNonEmpty(exefs_dir)) {
+                bool ips = false;
+                bool ipswitch = false;
+
+                for (const auto& file : exefs_dir->GetFiles()) {
+                    if (file->GetExtension() == "ips")
+                        ips = true;
+                    else if (file->GetExtension() == "pchtxt")
+                        ipswitch = true;
+                }
+
+                if (ips)
+                    AppendCommaIfNotEmpty(types, "IPS");
+                if (ipswitch)
+                    AppendCommaIfNotEmpty(types, "IPSwitch");
+            }
             if (IsDirValidAndNonEmpty(mod->GetSubdirectory("romfs")))
                 AppendCommaIfNotEmpty(types, "LayeredFS");
 
