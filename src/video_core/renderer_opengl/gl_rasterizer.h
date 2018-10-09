@@ -132,6 +132,8 @@ private:
     u32 SetupTextures(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage, Shader& shader,
                       GLenum primitive_mode, u32 current_unit);
 
+    void SetupAlphaTesting(Shader& shader);
+
     /// Syncs the viewport to match the guest state
     void SyncViewport();
 

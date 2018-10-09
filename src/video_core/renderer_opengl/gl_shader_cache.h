@@ -73,6 +73,11 @@ public:
     /// Gets the GL uniform location for the specified resource, caching as needed
     GLint GetUniformLocation(const GLShader::SamplerEntry& sampler);
 
+
+    GLint GetAlphaTestingEnableLocation();
+    GLint GetAlphaTestingFuncLocation();
+    GLint GetAlphaTestingRefLocation();
+
 private:
     /// Generates a geometry shader or returns one that already exists.
     GLuint LazyGeometryProgram(OGLProgram& target_program, const std::string& glsl_topology,

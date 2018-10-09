@@ -643,6 +643,13 @@ private:
                                  ';');
         }
         declarations.AddNewLine();
+
+        if (stage == Maxwell3D::Regs::ShaderStage::Fragment) {
+            declarations.AddLine("uniform bool alpha_testing_active;");
+            declarations.AddLine("uniform float alpha_testing_ref;");
+            declarations.AddLine("uniform uint alpha_testing_func;");
+        }
+        declarations.AddNewLine();
     }
 
     /// Generates declarations used for geometry shaders.
@@ -1264,9 +1271,26 @@ private:
 
         ASSERT_MSG(header.ps.omap.sample_mask == 0, "Samplemask write is unimplemented");
 
+        shader.AddLine("if (alpha_testing_active) {");
+        ++shader.scope;
+        u32 current_reg = 3;
+        for (u32 render_target = 0; render_target < Maxwell3D::Regs::NumRenderTargets;
+             ++render_target) {
+            if (header.ps.IsColorComponentOutputEnabled(render_target, 0) ||
+                header.ps.IsColorComponentOutputEnabled(render_target, 1) ||
+                header.ps.IsColorComponentOutputEnabled(render_target, 2) ||
+                header.ps.IsColorComponentOutputEnabled(render_target, 3)) {
+                shader.AddLine(fmt::format("if ({} < alpha_testing_ref) discard;",
+                                           regs.GetRegisterAsFloat(current_reg)));
+                current_reg += 4;
+            }
+        }
+        --shader.scope;
+        shader.AddLine("}");
+
         // Write the color outputs using the data in the shader registers, disabled
         // rendertargets/components are skipped in the register assignment.
-        u32 current_reg = 0;
+        current_reg = 0;
         for (u32 render_target = 0; render_target < Maxwell3D::Regs::NumRenderTargets;
              ++render_target) {
             // TODO(Subv): Figure out how dual-source blending is configured in the Switch.
@@ -3497,7 +3521,7 @@ private:
 
     // Declarations
     std::set<std::string> declr_predicates;
-}; // namespace Decompiler
+}; // namespace OpenGL::GLShader::Decompiler
 
 std::string GetCommonDeclarations() {
     return fmt::format("#define MAX_CONSTBUFFER_ELEMENTS {}\n",

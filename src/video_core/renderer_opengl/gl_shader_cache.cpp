@@ -134,6 +134,18 @@ GLuint CachedShader::LazyGeometryProgram(OGLProgram& target_program,
     return target_program.handle;
 };
 
+GLint CachedShader::GetAlphaTestingEnableLocation() {
+    return glGetUniformLocation(program.handle, "alpha_testing_enable");
+}
+
+GLint CachedShader::GetAlphaTestingFuncLocation() {
+    return glGetUniformLocation(program.handle, "alpha_testing_func");
+}
+
+GLint CachedShader::GetAlphaTestingRefLocation() {
+    return glGetUniformLocation(program.handle, "alpha_testing_ref");
+}
+
 Shader ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
     const VAddr program_addr{GetShaderAddress(program)};
 

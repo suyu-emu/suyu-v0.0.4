@@ -323,6 +323,8 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
         current_texture_bindpoint = SetupTextures(static_cast<Maxwell::ShaderStage>(stage), shader,
                                                   primitive_mode, current_texture_bindpoint);
 
+        SetupAlphaTesting(shader);
+
         // When VertexA is enabled, we have dual vertex shaders
         if (program == Maxwell::ShaderProgram::VertexA) {
             // VertexB was combined with VertexA, so we skip the VertexB iteration
@@ -878,6 +880,15 @@ u32 RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, Shader& shader,
     }
 
     return current_unit + static_cast<u32>(entries.size());
+}
+
+void RasterizerOpenGL::SetupAlphaTesting(Shader& shader) {
+    const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
+
+    glProgramUniform1i(shader->GetProgramHandle(), shader->GetAlphaTestingEnableLocation(),
+                       regs.alpha_test_enabled);
+    glProgramUniform1f(shader->GetProgramHandle(), shader->GetAlphaTestingRefLocation(),
+                       regs.alpha_test_ref);
 }
 
 void RasterizerOpenGL::SyncViewport() {
