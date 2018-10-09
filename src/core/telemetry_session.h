@@ -52,7 +52,6 @@ u64 RegenerateTelemetryId();
  * Verifies the username and token.
  * @param username yuzu username to use for authentication.
  * @param token yuzu token to use for authentication.
- * @param func A function that gets exectued when the verification is finished
  * @returns Future with bool indicating whether the verification succeeded
  */
 bool VerifyLogin(const std::string& username, const std::string& token);
