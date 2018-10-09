@@ -541,6 +541,7 @@ void RasterizerOpenGL::DrawArrays() {
     SyncLogicOpState();
     SyncCullMode();
     SyncAlphaTest();
+    SyncScissorTest();
     SyncTransformFeedback();
     SyncPointState();
 
@@ -968,6 +969,17 @@ void RasterizerOpenGL::SyncAlphaTest() {
     // implemented with a test+discard in fragment shaders.
     if (regs.alpha_test_enabled != 0) {
         LOG_CRITICAL(Render_OpenGL, "Alpha testing is not implemented");
+        UNREACHABLE();
+    }
+}
+
+void RasterizerOpenGL::SyncScissorTest() {
+    const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
+
+    // TODO(Rodrigo): Alpha testing is a legacy OpenGL feature, but it can be
+    // implemented with a test+discard in fragment shaders.
+    if (regs.scissor_test.enable != 0) {
+        LOG_CRITICAL(Render_OpenGL, "Scissor testing is not implemented");
         UNREACHABLE();
     }
 }
