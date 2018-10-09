@@ -76,12 +76,12 @@ VirtualFile PatchIPS(const VirtualFile& in, const VirtualFile& ips) {
                 return nullptr;
 
             if (real_offset + rle_size > in_data.size())
-                rle_size = in_data.size() - real_offset;
+                rle_size = static_cast<u16>(in_data.size() - real_offset);
             std::memset(in_data.data() + real_offset, data.get(), rle_size);
         } else { // Standard Patch
             auto read = data_size;
             if (real_offset + read > in_data.size())
-                read = in_data.size() - real_offset;
+                read = static_cast<u16>(in_data.size() - real_offset);
             if (ips->Read(in_data.data() + real_offset, read, offset) != data_size)
                 return nullptr;
             offset += data_size;
@@ -225,7 +225,7 @@ void IPSwitchCompiler::Parse() {
                 if (patch_line.length() < 11)
                     break;
                 auto offset = std::stoul(patch_line.substr(0, 8), nullptr, 16);
-                offset += offset_shift;
+                offset += static_cast<unsigned long>(offset_shift);
 
                 std::vector<u8> replace;
                 // 9 - first char of replacement val
