@@ -2299,8 +2299,7 @@ private:
                 ASSERT_MSG(!instr.tmml.UsesMiscMode(Tegra::Shader::TextureMiscMode::NDV),
                            "NDV is not implemented");
 
-                const std::string op_a = regs.GetRegisterAsFloat(instr.gpr8);
-                const std::string op_b = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
+                const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
                 const bool is_array = instr.tmml.array != 0;
                 auto texture_type = instr.tmml.texture_type.Value();
                 const std::string sampler =
@@ -2311,13 +2310,11 @@ private:
                 std::string coord;
                 switch (texture_type) {
                 case Tegra::Shader::TextureType::Texture1D: {
-                    std::string x = regs.GetRegisterAsFloat(instr.gpr8);
                     coord = "float coords = " + x + ';';
                     break;
                 }
                 case Tegra::Shader::TextureType::Texture2D: {
-                    std::string x = regs.GetRegisterAsFloat(instr.gpr8);
-                    std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
+                    const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
                     coord = "vec2 coords = vec2(" + x + ", " + y + ");";
                     break;
                 }
@@ -2327,8 +2324,7 @@ private:
                     UNREACHABLE();
 
                     // Fallback to interpreting as a 2D texture for now
-                    std::string x = regs.GetRegisterAsFloat(instr.gpr8);
-                    std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
+                    const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
                     coord = "vec2 coords = vec2(" + x + ", " + y + ");";
                     texture_type = Tegra::Shader::TextureType::Texture2D;
                 }
