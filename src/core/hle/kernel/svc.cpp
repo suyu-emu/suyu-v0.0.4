@@ -308,12 +308,12 @@ static void Break(u64 reason, u64 info1, u64 info2) {
             Debug_Emulated,
             "Emulated program broke execution! reason=0x{:016X}, info1=0x{:016X}, info2=0x{:016X}",
             reason, info1, info2);
+        ASSERT(false);
     } else {
         LOG_ERROR(
             Debug_Emulated,
             "Emulated program broke execution! reason=0x{:016X}, info1=0x{:016X}, info2=0x{:016X}",
             reason, info1, info2);
-        ASSERT(false);
     }
 }
 
