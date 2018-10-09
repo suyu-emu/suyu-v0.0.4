@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstring>
 #include <map>
 #include <sstream>
@@ -37,13 +38,31 @@ constexpr std::array<std::pair<const char*, const char*>, 11> ESCAPE_CHARACTER_M
 }};
 
 static IPSFileType IdentifyMagic(const std::vector<u8>& magic) {
-    if (magic.size() != 5)
+    if (magic.size() != 5) {
         return IPSFileType::Error;
-    if (magic == std::vector<u8>{'P', 'A', 'T', 'C', 'H'})
+    }
+
+    constexpr std::array<u8, 5> patch_magic{{'P', 'A', 'T', 'C', 'H'}};
+    if (std::equal(magic.begin(), magic.end(), patch_magic.begin())) {
         return IPSFileType::IPS;
-    if (magic == std::vector<u8>{'I', 'P', 'S', '3', '2'})
+    }
+
+    constexpr std::array<u8, 5> ips32_magic{{'I', 'P', 'S', '3', '2'}};
+    if (std::equal(magic.begin(), magic.end(), ips32_magic.begin())) {
         return IPSFileType::IPS32;
+    }
+
     return IPSFileType::Error;
+}
+
+static bool IsEOF(IPSFileType type, const std::vector<u8>& data) {
+    constexpr std::array<u8, 3> eof{{'E', 'O', 'F'}};
+    if (type == IPSFileType::IPS && std::equal(data.begin(), data.end(), eof.begin())) {
+        return true;
+    }
+
+    constexpr std::array<u8, 4> eeof{{'E', 'E', 'O', 'F'}};
+    return type == IPSFileType::IPS32 && std::equal(data.begin(), data.end(), eeof.begin());
 }
 
 VirtualFile PatchIPS(const VirtualFile& in, const VirtualFile& ips) {
@@ -60,8 +79,7 @@ VirtualFile PatchIPS(const VirtualFile& in, const VirtualFile& ips) {
     u64 offset = 5; // After header
     while (ips->Read(temp.data(), temp.size(), offset) == temp.size()) {
         offset += temp.size();
-        if (type == IPSFileType::IPS32 && temp == std::vector<u8>{'E', 'E', 'O', 'F'} ||
-            type == IPSFileType::IPS && temp == std::vector<u8>{'E', 'O', 'F'}) {
+        if (IsEOF(type, temp)) {
             break;
         }
 
@@ -101,8 +119,9 @@ VirtualFile PatchIPS(const VirtualFile& in, const VirtualFile& ips) {
         }
     }
 
-    if (temp != std::vector<u8>{'E', 'E', 'O', 'F'} && temp != std::vector<u8>{'E', 'O', 'F'})
+    if (!IsEOF(type, temp)) {
         return nullptr;
+    }
 
     return std::make_shared<VectorVfsFile>(std::move(in_data), in->GetName(),
                                            in->GetContainingDirectory());
