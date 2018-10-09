@@ -4,12 +4,14 @@
 
 #include <array>
 
+#include <mbedtls/ctr_drbg.h>
+#include <mbedtls/entropy.h>
+
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/file_util.h"
+#include "common/logging/log.h"
 
-#include <mbedtls/ctr_drbg.h>
-#include <mbedtls/entropy.h>
 #include "core/core.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
