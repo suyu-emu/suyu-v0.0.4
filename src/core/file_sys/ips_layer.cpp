@@ -90,7 +90,9 @@ VirtualFile PatchIPS(const VirtualFile& in, const VirtualFile& ips) {
 
     if (temp != std::vector<u8>{'E', 'E', 'O', 'F'} && temp != std::vector<u8>{'E', 'O', 'F'})
         return nullptr;
-    return std::make_shared<VectorVfsFile>(in_data, in->GetName(), in->GetContainingDirectory());
+
+    return std::make_shared<VectorVfsFile>(std::move(in_data), in->GetName(),
+                                           in->GetContainingDirectory());
 }
 
 IPSwitchCompiler::IPSwitchCompiler(VirtualFile patch_text_) : patch_text(std::move(patch_text_)) {
@@ -291,7 +293,8 @@ VirtualFile IPSwitchCompiler::Apply(const VirtualFile& in) const {
         }
     }
 
-    return std::make_shared<VectorVfsFile>(in_data, in->GetName(), in->GetContainingDirectory());
+    return std::make_shared<VectorVfsFile>(std::move(in_data), in->GetName(),
+                                           in->GetContainingDirectory());
 }
 
 } // namespace FileSys
