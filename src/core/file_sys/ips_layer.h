@@ -4,8 +4,11 @@
 
 #pragma once
 
+#include <array>
 #include <memory>
+#include <vector>
 
+#include "common/common_types.h"
 #include "core/file_sys/vfs.h"
 
 namespace FileSys {
@@ -22,16 +25,12 @@ public:
     VirtualFile Apply(const VirtualFile& in) const;
 
 private:
+    struct IPSwitchPatch;
+
     void ParseFlag(const std::string& flag);
     void Parse();
 
     bool valid = false;
-
-    struct IPSwitchPatch {
-        std::string name;
-        bool enabled;
-        std::map<u32, std::vector<u8>> records;
-    };
 
     VirtualFile patch_text;
     std::vector<IPSwitchPatch> patches;

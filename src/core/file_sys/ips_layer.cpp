@@ -2,9 +2,14 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cstring>
+#include <map>
 #include <sstream>
-#include "common/assert.h"
+#include <string>
+#include <utility>
+
 #include "common/hex_util.h"
+#include "common/logging/log.h"
 #include "common/swap.h"
 #include "core/file_sys/ips_layer.h"
 #include "core/file_sys/vfs_vector.h"
@@ -94,6 +99,12 @@ VirtualFile PatchIPS(const VirtualFile& in, const VirtualFile& ips) {
     return std::make_shared<VectorVfsFile>(std::move(in_data), in->GetName(),
                                            in->GetContainingDirectory());
 }
+
+struct IPSwitchCompiler::IPSwitchPatch {
+    std::string name;
+    bool enabled;
+    std::map<u32, std::vector<u8>> records;
+};
 
 IPSwitchCompiler::IPSwitchCompiler(VirtualFile patch_text_) : patch_text(std::move(patch_text_)) {
     Parse();
