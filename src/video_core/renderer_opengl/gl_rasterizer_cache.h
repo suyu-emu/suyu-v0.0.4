@@ -802,6 +802,18 @@ public:
         return params.size_in_bytes_total;
     }
 
+    void Flush() {
+        // There is no need to flush the surface if it hasn't been modified by us.
+        if (!dirty)
+            return;
+        FlushGLBuffer();
+        dirty = false;
+    }
+
+    void MarkAsDirty() {
+        dirty = true;
+    }
+
     const OGLTexture& Texture() const {
         return texture;
     }
@@ -833,6 +845,7 @@ private:
     std::vector<u8> gl_buffer;
     SurfaceParams params;
     GLenum gl_target;
+    bool dirty = false;
 };
 
 class RasterizerCacheOpenGL final : public RasterizerCache<Surface> {
