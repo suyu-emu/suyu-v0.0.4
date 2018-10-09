@@ -22,11 +22,19 @@ enum class IPSFileType {
     Error,
 };
 
-constexpr std::array<std::pair<const char*, const char*>, 11> ESCAPE_CHARACTER_MAP{
-    std::pair{"\\a", "\a"}, {"\\b", "\b"},  {"\\f", "\f"},  {"\\n", "\n"},
-    {"\\r", "\r"},          {"\\t", "\t"},  {"\\v", "\v"},  {"\\\\", "\\"},
-    {"\\\'", "\'"},         {"\\\"", "\""}, {"\\\?", "\?"},
-};
+constexpr std::array<std::pair<const char*, const char*>, 11> ESCAPE_CHARACTER_MAP{{
+    {"\\a", "\a"},
+    {"\\b", "\b"},
+    {"\\f", "\f"},
+    {"\\n", "\n"},
+    {"\\r", "\r"},
+    {"\\t", "\t"},
+    {"\\v", "\v"},
+    {"\\\\", "\\"},
+    {"\\\'", "\'"},
+    {"\\\"", "\""},
+    {"\\\?", "\?"},
+}};
 
 static IPSFileType IdentifyMagic(const std::vector<u8>& magic) {
     if (magic.size() != 5)
