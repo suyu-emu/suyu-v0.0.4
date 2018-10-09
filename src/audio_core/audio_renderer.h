@@ -171,7 +171,7 @@ static_assert(sizeof(EffectInStatus) == 0xc0, "EffectInStatus is an invalid size
 
 struct EffectOutStatus {
     EffectStatus state;
-    INSERT_PADDING_BYTES(15);
+    INSERT_PADDING_BYTES(0xf);
 };
 static_assert(sizeof(EffectOutStatus) == 0x10, "EffectOutStatus is an invalid size");
 
