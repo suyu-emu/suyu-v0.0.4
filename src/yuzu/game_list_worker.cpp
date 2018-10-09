@@ -27,9 +27,8 @@
 #include "yuzu/ui_settings.h"
 
 namespace {
-void GetMetadataFromControlNCA(const FileSys::PatchManager& patch_manager,
-                               const std::shared_ptr<FileSys::NCA>& nca, std::vector<u8>& icon,
-                               std::string& name) {
+void GetMetadataFromControlNCA(const FileSys::PatchManager& patch_manager, const FileSys::NCA& nca,
+                               std::vector<u8>& icon, std::string& name) {
     auto [nacp, icon_file] = patch_manager.ParseControlNCA(nca);
     if (icon_file != nullptr)
         icon = icon_file->ReadAllBytes();
@@ -110,7 +109,7 @@ void GameListWorker::AddInstalledTitlesToGameList() {
         const FileSys::PatchManager patch{program_id};
         const auto& control = cache->GetEntry(game.title_id, FileSys::ContentRecordType::Control);
         if (control != nullptr)
-            GetMetadataFromControlNCA(patch, control, icon, name);
+            GetMetadataFromControlNCA(patch, *control, icon, name);
 
         auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
 
@@ -197,8 +196,8 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
                 res2 == Loader::ResultStatus::Success) {
                 // Use from metadata pool.
                 if (nca_control_map.find(program_id) != nca_control_map.end()) {
-                    const auto nca = nca_control_map[program_id];
-                    GetMetadataFromControlNCA(patch, nca, icon, name);
+                    const auto& nca = nca_control_map[program_id];
+                    GetMetadataFromControlNCA(patch, *nca, icon, name);
                 }
             }
 

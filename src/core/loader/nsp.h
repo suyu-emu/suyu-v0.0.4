@@ -49,7 +49,7 @@ private:
     std::unique_ptr<AppLoader> secondary_loader;
 
     FileSys::VirtualFile icon_file;
-    std::shared_ptr<FileSys::NACP> nacp_file;
+    std::unique_ptr<FileSys::NACP> nacp_file;
     u64 title_id;
 };
 
