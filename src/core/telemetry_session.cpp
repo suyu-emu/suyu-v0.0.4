@@ -2,12 +2,16 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "common/assert.h"
-#include "common/common_types.h"
-#include "common/file_util.h"
+#include <array>
 
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/entropy.h>
+
+#include "common/assert.h"
+#include "common/common_types.h"
+#include "common/file_util.h"
+#include "common/logging/log.h"
+
 #include "core/core.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
@@ -28,11 +32,11 @@ static u64 GenerateTelemetryId() {
     mbedtls_entropy_context entropy;
     mbedtls_entropy_init(&entropy);
     mbedtls_ctr_drbg_context ctr_drbg;
-    std::string personalization = "yuzu Telemetry ID";
+    constexpr std::array<char, 18> personalization{{"yuzu Telemetry ID"}};
 
     mbedtls_ctr_drbg_init(&ctr_drbg);
     ASSERT(mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
-                                 reinterpret_cast<const unsigned char*>(personalization.c_str()),
+                                 reinterpret_cast<const unsigned char*>(personalization.data()),
                                  personalization.size()) == 0);
     ASSERT(mbedtls_ctr_drbg_random(&ctr_drbg, reinterpret_cast<unsigned char*>(&telemetry_id),
                                    sizeof(u64)) == 0);
