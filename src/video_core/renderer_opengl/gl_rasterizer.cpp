@@ -885,18 +885,14 @@ u32 RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, Shader& shader,
 void RasterizerOpenGL::SetupAlphaTesting(Shader& shader) {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
-    glProgramUniform1ui(shader->GetProgramHandle(), shader->GetAlphaTestingEnableLocation(),
-                        regs.alpha_test_enabled);
-    glProgramUniform1f(shader->GetProgramHandle(), shader->GetAlphaTestingRefLocation(),
-                       regs.alpha_test_ref);
-
     u32 func = static_cast<u32>(regs.alpha_test_func);
     // Normalize the gl variants of opCompare to be the same as the normal variants
-    if (func >= 0x200) {
-        func = func - 0x200 + 1U;
+    u32 op = static_cast<u32>(Tegra::Engines::Maxwell3D::Regs::ComparisonOp::Never);
+    if (func >= op) {
+        func = func - op + 1U;
     }
 
-    glProgramUniform1ui(shader->GetProgramHandle(), shader->GetAlphaTestingFuncLocation(), func);
+    shader->SetAlphaTesting(regs.alpha_test_enabled == 1, regs.alpha_test_ref, func);
 }
 
 void RasterizerOpenGL::SyncViewport() {
@@ -1026,18 +1022,6 @@ void RasterizerOpenGL::SyncLogicOpState() {
     state.logic_op.operation = MaxwellToGL::LogicOp(regs.logic_op.operation);
 }
 
-<<<<<<< HEAD
-void RasterizerOpenGL::SyncAlphaTest() {
-    const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
-
-    // TODO(Rodrigo): Alpha testing is a legacy OpenGL feature, but it can be
-    // implemented with a test+discard in fragment shaders.
-    if (regs.alpha_test_enabled != 0) {
-        LOG_CRITICAL(Render_OpenGL, "Alpha testing is not implemented");
-        UNREACHABLE();
-    }
-}
-
 void RasterizerOpenGL::SyncScissorTest() {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
@@ -1054,8 +1038,6 @@ void RasterizerOpenGL::SyncScissorTest() {
     }
 }
 
-=======
->>>>>>> Remove SyncAlphaTest and clang format
 void RasterizerOpenGL::SyncTransformFeedback() {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
