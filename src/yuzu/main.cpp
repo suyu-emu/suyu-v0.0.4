@@ -757,12 +757,33 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
         open_target = "Save Data";
         const std::string nand_dir = FileUtil::GetUserPath(FileUtil::UserPath::NANDDir);
         ASSERT(program_id != 0);
-        // TODO(tech4me): Update this to work with arbitrary user profile
-        // Refer to core/hle/service/acc/profile_manager.cpp ProfileManager constructor
-        constexpr u128 user_id = {1, 0};
+
+        QStringList list{};
+        std::transform(Settings::values.users.begin(), Settings::values.users.end(),
+                       std::back_inserter(list),
+                       [](const auto& user) { return QString::fromStdString(user.first); });
+
+        bool ok = false;
+        const auto index_string =
+            QInputDialog::getItem(this, tr("Select User"),
+                                  tr("Please select the user's save data you would like to open."),
+                                  list, Settings::values.current_user, false, &ok);
+        if (!ok)
+            return;
+
+        const auto index = list.indexOf(index_string);
+        ASSERT(index != -1);
+
+        const auto user_id = Settings::values.users[index].second.uuid;
         path = nand_dir + FileSys::SaveDataFactory::GetFullPath(FileSys::SaveDataSpaceId::NandUser,
                                                                 FileSys::SaveDataType::SaveData,
                                                                 program_id, user_id, 0);
+
+        if (!FileUtil::Exists(path)) {
+            FileUtil::CreateFullPath(path);
+            FileUtil::CreateDir(path);
+        }
+
         break;
     }
     case GameListOpenTarget::ModData: {
