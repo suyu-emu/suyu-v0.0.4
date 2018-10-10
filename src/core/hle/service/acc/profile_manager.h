@@ -81,7 +81,7 @@ static_assert(sizeof(ProfileBase) == 0x38, "ProfileBase is an invalid size");
 /// objects
 class ProfileManager {
 public:
-    ProfileManager(); // TODO(ogniK): Load from system save
+    ProfileManager();
     ~ProfileManager();
 
     ResultCode AddUser(const ProfileInfo& user);

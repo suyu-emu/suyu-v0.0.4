@@ -23,10 +23,12 @@ const UUID& UUID::Generate() {
 }
 
 ProfileManager::ProfileManager() {
-    // TODO(ogniK): Create the default user we have for now until loading/saving users is added
-    auto user_uuid = UUID{1, 0};
-    ASSERT(CreateNewUser(user_uuid, Settings::values.username).IsSuccess());
-    OpenUser(user_uuid);
+    for (std::size_t i = 0; i < Settings::values.users.size(); ++i) {
+        const auto& val = Settings::values.users[i];
+        ASSERT(CreateNewUser(val.second, val.first).IsSuccess());
+    }
+
+    OpenUser(Settings::values.users[Settings::values.current_user].second);
 }
 
 ProfileManager::~ProfileManager() = default;
