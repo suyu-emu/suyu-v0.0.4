@@ -41,6 +41,7 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
     controller.joy_styles.raw = 0; // Zero out
     controller.device_type.raw = 0;
     switch (controller_type) {
+    case NPadControllerType::HandheldVariant:
     case NPadControllerType::Handheld:
         controller.joy_styles.handheld.Assign(1);
         controller.device_type.handheld.Assign(1);
@@ -220,9 +221,12 @@ void Controller_NPad::OnUpdate(u8* data, std::size_t data_len) {
         }
 
         switch (controller_type) {
+        case NPadControllerType::HandheldVariant:
         case NPadControllerType::Handheld:
             handheld_entry.connection_status.IsConnected.Assign(1);
-            handheld_entry.connection_status.IsWired.Assign(1);
+            if (!Settings::values.use_docked_mode) {
+                handheld_entry.connection_status.IsWired.Assign(1);
+            }
             handheld_entry.pad_states.raw = pad_state.raw;
             handheld_entry.l_stick = lstick_entry;
             handheld_entry.r_stick = rstick_entry;
@@ -334,7 +338,7 @@ void Controller_NPad::AddNewController(NPadControllerType controller) {
         LOG_ERROR(Service_HID, "Cannot connect any more controllers!");
         return;
     }
-    if (controller == NPadControllerType::Handheld) {
+    if (controller == NPadControllerType::HandheldVariant) {
         connected_controllers[8] = {controller, true};
         InitNewlyAddedControler(8);
         return;
@@ -353,5 +357,33 @@ void Controller_NPad::DisconnectNPad(u32 npad_id) {
     if (npad_id >= connected_controllers.size())
         return;
     connected_controllers[npad_id].is_connected = false;
+}
+
+Controller_NPad::LedPattern Controller_NPad::GetLedPattern(u32 npad_id) {
+    if (npad_id == npad_id_list.back() || npad_id == npad_id_list[npad_id_list.size() - 2]) {
+        // These are controllers without led patterns
+        return LedPattern{0, 0, 0, 0};
+    }
+    switch (npad_id) {
+    case 0:
+        return LedPattern{1, 0, 0, 0};
+    case 1:
+        return LedPattern{0, 1, 0, 0};
+    case 2:
+        return LedPattern{0, 0, 1, 0};
+    case 3:
+        return LedPattern{0, 0, 0, 1};
+    case 4:
+        return LedPattern{1, 0, 0, 1};
+    case 5:
+        return LedPattern{1, 0, 1, 0};
+    case 6:
+        return LedPattern{1, 0, 1, 1};
+    case 7:
+        return LedPattern{0, 1, 1, 0};
+    default:
+        UNIMPLEMENTED_MSG("Unhandled npad_id {}", npad_id);
+        return LedPattern{0, 0, 0, 0};
+    };
 }
 } // namespace Service::HID

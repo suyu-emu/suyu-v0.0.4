@@ -65,10 +65,27 @@ public:
         None,
         ProController,
         Handheld,
+        HandheldVariant, // Games which require the handheld controller to be at index 8
         JoyLeft,
         JoyRight,
         Tabletop,
         Pokeball,
+    };
+
+    struct LedPattern {
+        explicit LedPattern(u64 light1, u64 light2, u64 light3, u64 light4) {
+            position1.Assign(light1);
+            position1.Assign(light2);
+            position1.Assign(light3);
+            position1.Assign(light4);
+        };
+        union {
+            u64 raw{};
+            BitField<0, 1, u64> position1;
+            BitField<1, 1, u64> position2;
+            BitField<2, 1, u64> position3;
+            BitField<3, 1, u64> position4;
+        };
     };
 
     void SetSupportedStyleSet(NPadType style_set);
@@ -93,6 +110,7 @@ public:
 
     void ConnectNPad(u32 npad_id);
     void DisconnectNPad(u32 npad_id);
+    LedPattern GetLedPattern(u32 npad_id);
 
 private:
     struct CommonHeader {
@@ -255,8 +273,8 @@ private:
     std::size_t dump_idx{};
     Vibration last_processed_vibration{};
     std::size_t controller_count{};
-    static constexpr std::array<u32, 9> npad_id_list{0, 1, 2, 3, 4, 5, 6, 7, 32};
-    std::array<ControllerHolder, 9> connected_controllers{};
+    static constexpr std::array<u32, 10> npad_id_list{0, 1, 2, 3, 4, 5, 6, 7, 32, 16};
+    std::array<ControllerHolder, 10> connected_controllers{};
 
     void InitNewlyAddedControler(std::size_t controller_idx);
 };

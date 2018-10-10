@@ -421,9 +421,14 @@ private:
     }
 
     void GetPlayerLedPattern(Kernel::HLERequestContext& ctx) {
-        IPC::ResponseBuilder rb{ctx, 2};
+        IPC::RequestParser rp{ctx};
+        auto npad_id = rp.PopRaw<u32>();
+        IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
-        LOG_WARNING(Service_HID, "(STUBBED) called");
+        rb.PushRaw<u64>(applet_resource->GetController<Controller_NPad>(HidController::NPad)
+                            .GetLedPattern(npad_id)
+                            .raw);
+        LOG_DEBUG(Service_HID, "called");
     }
 
     void SetNpadJoyHoldType(Kernel::HLERequestContext& ctx) {
@@ -513,6 +518,8 @@ private:
     }
 
     void SetNpadHandheldActivationMode(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        auto mode = rp.PopRaw<u32>();
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_HID, "(STUBBED) called");
