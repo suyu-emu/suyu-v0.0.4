@@ -316,6 +316,9 @@ void Controller_NPad::SetNpadMode(u32 npad_id, NPadAssignments assignment_mode) 
 
 void Controller_NPad::VibrateController(const std::vector<u32>& controller_ids,
                                         const std::vector<Vibration>& vibrations) {
+    if (!can_controllers_vibrate) {
+        return;
+    }
     for (std::size_t i = 0; i < controller_ids.size(); i++) {
         if (i >= controller_count) {
             continue;
@@ -385,5 +388,8 @@ Controller_NPad::LedPattern Controller_NPad::GetLedPattern(u32 npad_id) {
         UNIMPLEMENTED_MSG("Unhandled npad_id {}", npad_id);
         return LedPattern{0, 0, 0, 0};
     };
+}
+void Controller_NPad::SetVibrationEnabled(bool can_vibrate) {
+    can_controllers_vibrate = can_vibrate;
 }
 } // namespace Service::HID

@@ -111,6 +111,7 @@ public:
     void ConnectNPad(u32 npad_id);
     void DisconnectNPad(u32 npad_id);
     LedPattern GetLedPattern(u32 npad_id);
+    void SetVibrationEnabled(bool can_vibrate);
 
 private:
     struct CommonHeader {
@@ -275,6 +276,7 @@ private:
     std::size_t controller_count{};
     static constexpr std::array<u32, 10> npad_id_list{0, 1, 2, 3, 4, 5, 6, 7, 32, 16};
     std::array<ControllerHolder, 10> connected_controllers{};
+    bool can_controllers_vibrate{true};
 
     void InitNewlyAddedControler(std::size_t controller_idx);
 };

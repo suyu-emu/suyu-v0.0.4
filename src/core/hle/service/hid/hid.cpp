@@ -240,8 +240,8 @@ public:
             {206, &Hid::SendVibrationValues, "SendVibrationValues"},
             {207, nullptr, "SendVibrationGcErmCommand"},
             {208, nullptr, "GetActualVibrationGcErmCommand"},
-            {209, nullptr, "BeginPermitVibrationSession"},
-            {210, nullptr, "EndPermitVibrationSession"},
+            {209, &Hid::BeginPermitVibrationSession, "BeginPermitVibrationSession"},
+            {210, &Hid::EndPermitVibrationSession, "EndPermitVibrationSession"},
             {300, &Hid::ActivateConsoleSixAxisSensor, "ActivateConsoleSixAxisSensor"},
             {301, &Hid::StartConsoleSixAxisSensor, "StartConsoleSixAxisSensor"},
             {302, nullptr, "StopConsoleSixAxisSensor"},
@@ -455,6 +455,22 @@ private:
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_HID, "(STUBBED) called");
+    }
+
+    void BeginPermitVibrationSession(Kernel::HLERequestContext& ctx) {
+        applet_resource->GetController<Controller_NPad>(HidController::NPad)
+            .SetVibrationEnabled(true);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_DEBUG(Service_HID, "called");
+    }
+
+    void EndPermitVibrationSession(Kernel::HLERequestContext& ctx) {
+        applet_resource->GetController<Controller_NPad>(HidController::NPad)
+            .SetVibrationEnabled(false);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_DEBUG(Service_HID, "called");
     }
 
     void SendVibrationValue(Kernel::HLERequestContext& ctx) {
