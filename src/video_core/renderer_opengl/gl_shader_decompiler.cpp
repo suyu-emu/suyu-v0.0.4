@@ -1280,8 +1280,9 @@ private:
                 header.ps.IsColorComponentOutputEnabled(render_target, 1) ||
                 header.ps.IsColorComponentOutputEnabled(render_target, 2) ||
                 header.ps.IsColorComponentOutputEnabled(render_target, 3)) {
-                shader.AddLine(fmt::format("if (AlphaFunc({}, alpha_testing_ref, alpha_testing_func)) discard;",
-                                           regs.GetRegisterAsFloat(current_reg)));
+                shader.AddLine(fmt::format(
+                    "if (AlphaFunc({}, alpha_testing_ref, alpha_testing_func)) discard;",
+                    regs.GetRegisterAsFloat(current_reg)));
                 current_reg += 4;
             }
         }

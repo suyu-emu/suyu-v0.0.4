@@ -73,7 +73,6 @@ public:
     /// Gets the GL uniform location for the specified resource, caching as needed
     GLint GetUniformLocation(const GLShader::SamplerEntry& sampler);
 
-
     GLint GetAlphaTestingEnableLocation();
     GLint GetAlphaTestingFuncLocation();
     GLint GetAlphaTestingRefLocation();
