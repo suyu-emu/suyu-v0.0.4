@@ -35,7 +35,7 @@ AppLoader_NSP::AppLoader_NSP(FileSys::VirtualFile file)
         return;
 
     std::tie(nacp_file, icon_file) =
-        FileSys::PatchManager(nsp->GetProgramTitleID()).ParseControlNCA(control_nca);
+        FileSys::PatchManager(nsp->GetProgramTitleID()).ParseControlNCA(*control_nca);
 }
 
 AppLoader_NSP::~AppLoader_NSP() = default;

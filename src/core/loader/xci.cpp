@@ -30,7 +30,7 @@ AppLoader_XCI::AppLoader_XCI(FileSys::VirtualFile file)
         return;
 
     std::tie(nacp_file, icon_file) =
-        FileSys::PatchManager(xci->GetProgramTitleID()).ParseControlNCA(control_nca);
+        FileSys::PatchManager(xci->GetProgramTitleID()).ParseControlNCA(*control_nca);
 }
 
 AppLoader_XCI::~AppLoader_XCI() = default;

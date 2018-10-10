@@ -49,7 +49,7 @@ private:
     std::unique_ptr<AppLoader_NCA> nca_loader;
 
     FileSys::VirtualFile icon_file;
-    std::shared_ptr<FileSys::NACP> nacp_file;
+    std::unique_ptr<FileSys::NACP> nacp_file;
 };
 
 } // namespace Loader

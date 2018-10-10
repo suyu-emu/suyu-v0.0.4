@@ -345,23 +345,22 @@ std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNam
     return out;
 }
 
-std::pair<std::shared_ptr<NACP>, VirtualFile> PatchManager::GetControlMetadata() const {
+std::pair<std::unique_ptr<NACP>, VirtualFile> PatchManager::GetControlMetadata() const {
     const auto& installed{Service::FileSystem::GetUnionContents()};
 
     const auto base_control_nca = installed->GetEntry(title_id, ContentRecordType::Control);
     if (base_control_nca == nullptr)
         return {};
 
-    return ParseControlNCA(base_control_nca);
+    return ParseControlNCA(*base_control_nca);
 }
 
-std::pair<std::shared_ptr<NACP>, VirtualFile> PatchManager::ParseControlNCA(
-    const std::shared_ptr<NCA>& nca) const {
-    const auto base_romfs = nca->GetRomFS();
+std::pair<std::unique_ptr<NACP>, VirtualFile> PatchManager::ParseControlNCA(const NCA& nca) const {
+    const auto base_romfs = nca.GetRomFS();
     if (base_romfs == nullptr)
         return {};
 
-    const auto romfs = PatchRomFS(base_romfs, nca->GetBaseIVFCOffset(), ContentRecordType::Control);
+    const auto romfs = PatchRomFS(base_romfs, nca.GetBaseIVFCOffset(), ContentRecordType::Control);
     if (romfs == nullptr)
         return {};
 
@@ -373,7 +372,7 @@ std::pair<std::shared_ptr<NACP>, VirtualFile> PatchManager::ParseControlNCA(
     if (nacp_file == nullptr)
         nacp_file = extracted->GetFile("Control.nacp");
 
-    const auto nacp = nacp_file == nullptr ? nullptr : std::make_shared<NACP>(nacp_file);
+    auto nacp = nacp_file == nullptr ? nullptr : std::make_unique<NACP>(nacp_file);
 
     VirtualFile icon_file;
     for (const auto& language : FileSys::LANGUAGE_NAMES) {
@@ -382,6 +381,6 @@ std::pair<std::shared_ptr<NACP>, VirtualFile> PatchManager::ParseControlNCA(
             break;
     }
 
-    return {nacp, icon_file};
+    return {std::move(nacp), icon_file};
 }
 } // namespace FileSys

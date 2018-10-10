@@ -57,11 +57,10 @@ public:
 
     // Given title_id of the program, attempts to get the control data of the update and parse it,
     // falling back to the base control data.
-    std::pair<std::shared_ptr<NACP>, VirtualFile> GetControlMetadata() const;
+    std::pair<std::unique_ptr<NACP>, VirtualFile> GetControlMetadata() const;
 
     // Version of GetControlMetadata that takes an arbitrary NCA
-    std::pair<std::shared_ptr<NACP>, VirtualFile> ParseControlNCA(
-        const std::shared_ptr<NCA>& nca) const;
+    std::pair<std::unique_ptr<NACP>, VirtualFile> ParseControlNCA(const NCA& nca) const;
 
 private:
     u64 title_id;
