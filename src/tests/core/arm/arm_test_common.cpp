@@ -15,7 +15,8 @@ namespace ArmTests {
 TestEnvironment::TestEnvironment(bool mutable_memory_)
     : mutable_memory(mutable_memory_), test_memory(std::make_shared<TestMemory>(this)) {
 
-    Core::CurrentProcess() = Kernel::Process::Create(kernel, "");
+    auto process = Kernel::Process::Create(kernel, "");
+    kernel.MakeCurrentProcess(process.get());
     page_table = &Core::CurrentProcess()->VMManager().page_table;
 
     std::fill(page_table->pointers.begin(), page_table->pointers.end(), nullptr);

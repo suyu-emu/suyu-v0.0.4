@@ -194,7 +194,7 @@ static void ResetThreadContext(Core::ARM_Interface::ThreadContext& context, VAdd
 
 ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name, VAddr entry_point,
                                             u32 priority, u64 arg, s32 processor_id,
-                                            VAddr stack_top, SharedPtr<Process> owner_process) {
+                                            VAddr stack_top, Process& owner_process) {
     // Check if priority is in ranged. Lowest priority -> highest priority id.
     if (priority > THREADPRIO_LOWEST) {
         LOG_ERROR(Kernel_SVC, "Invalid thread priority: {}", priority);
@@ -208,7 +208,7 @@ ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name
 
     // TODO(yuriks): Other checks, returning 0xD9001BEA
 
-    if (!Memory::IsValidVirtualAddress(*owner_process, entry_point)) {
+    if (!Memory::IsValidVirtualAddress(owner_process, entry_point)) {
         LOG_ERROR(Kernel_SVC, "(name={}): invalid entry {:016X}", name, entry_point);
         // TODO (bunnei): Find the correct error code to use here
         return ResultCode(-1);
@@ -232,7 +232,7 @@ ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name
     thread->wait_handle = 0;
     thread->name = std::move(name);
     thread->callback_handle = kernel.ThreadWakeupCallbackHandleTable().Create(thread).Unwrap();
-    thread->owner_process = owner_process;
+    thread->owner_process = &owner_process;
     thread->scheduler = Core::System::GetInstance().Scheduler(processor_id).get();
     thread->scheduler->AddThread(thread, priority);
     thread->tls_address = thread->owner_process->MarkNextAvailableTLSSlotAsUsed(*thread);
@@ -264,7 +264,7 @@ SharedPtr<Thread> SetupMainThread(KernelCore& kernel, VAddr entry_point, u32 pri
     // Initialize new "main" thread
     const VAddr stack_top = owner_process.VMManager().GetTLSIORegionEndAddress();
     auto thread_res = Thread::Create(kernel, "main", entry_point, priority, 0, THREADPROCESSORID_0,
-                                     stack_top, &owner_process);
+                                     stack_top, owner_process);
 
     SharedPtr<Thread> thread = std::move(thread_res).Unwrap();
 

@@ -341,7 +341,7 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
     LOG_TRACE(Kernel_SVC, "called info_id=0x{:X}, info_sub_id=0x{:X}, handle=0x{:08X}", info_id,
               info_sub_id, handle);
 
-    const auto& current_process = Core::CurrentProcess();
+    const auto* current_process = Core::CurrentProcess();
     const auto& vm_manager = current_process->VMManager();
 
     switch (static_cast<GetInfoType>(info_id)) {
@@ -439,7 +439,7 @@ static ResultCode GetThreadContext(VAddr thread_context, Handle handle) {
         return ERR_INVALID_HANDLE;
     }
 
-    const auto current_process = Core::CurrentProcess();
+    const auto* current_process = Core::CurrentProcess();
     if (thread->GetOwnerProcess() != current_process) {
         return ERR_INVALID_HANDLE;
     }
@@ -531,7 +531,7 @@ static ResultCode MapSharedMemory(Handle shared_memory_handle, VAddr addr, u64 s
         return ERR_INVALID_HANDLE;
     }
 
-    return shared_memory->Map(Core::CurrentProcess().get(), addr, permissions_type,
+    return shared_memory->Map(Core::CurrentProcess(), addr, permissions_type,
                               MemoryPermission::DontCare);
 }
 
@@ -550,7 +550,7 @@ static ResultCode UnmapSharedMemory(Handle shared_memory_handle, VAddr addr, u64
     auto& kernel = Core::System::GetInstance().Kernel();
     auto shared_memory = kernel.HandleTable().Get<SharedMemory>(shared_memory_handle);
 
-    return shared_memory->Unmap(Core::CurrentProcess().get(), addr);
+    return shared_memory->Unmap(Core::CurrentProcess(), addr);
 }
 
 /// Query process memory
@@ -588,7 +588,7 @@ static ResultCode QueryMemory(MemoryInfo* memory_info, PageInfo* page_info, VAdd
 
 /// Exits the current process
 static void ExitProcess() {
-    auto& current_process = Core::CurrentProcess();
+    auto* current_process = Core::CurrentProcess();
 
     LOG_INFO(Kernel_SVC, "Process {} exiting", current_process->GetProcessID());
     ASSERT_MSG(current_process->GetStatus() == ProcessStatus::Running,
@@ -636,7 +636,7 @@ static ResultCode CreateThread(Handle* out_handle, VAddr entry_point, u64 arg, V
     auto& kernel = Core::System::GetInstance().Kernel();
     CASCADE_RESULT(SharedPtr<Thread> thread,
                    Thread::Create(kernel, name, entry_point, priority, arg, processor_id, stack_top,
-                                  Core::CurrentProcess()));
+                                  *Core::CurrentProcess()));
     const auto new_guest_handle = kernel.HandleTable().Create(thread);
     if (new_guest_handle.Failed()) {
         return new_guest_handle.Code();
