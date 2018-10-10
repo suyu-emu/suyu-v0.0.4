@@ -716,10 +716,10 @@ struct SurfaceParams {
     static SurfaceParams CreateForFramebuffer(std::size_t index);
 
     /// Creates SurfaceParams for a depth buffer configuration
-    static SurfaceParams CreateForDepthBuffer(u32 zeta_width, u32 zeta_height,
-                                              Tegra::GPUVAddr zeta_address,
-                                              Tegra::DepthFormat format, u32 block_width,
-                                              u32 block_height, u32 block_depth);
+    static SurfaceParams CreateForDepthBuffer(
+        u32 zeta_width, u32 zeta_height, Tegra::GPUVAddr zeta_address, Tegra::DepthFormat format,
+        u32 block_width, u32 block_height, u32 block_depth,
+        Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout type);
 
     /// Creates SurfaceParams for a Fermi2D surface copy
     static SurfaceParams CreateForFermiCopySurface(

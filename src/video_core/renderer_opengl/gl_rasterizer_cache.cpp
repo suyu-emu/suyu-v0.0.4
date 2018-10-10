@@ -99,10 +99,11 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     const auto& config{Core::System::GetInstance().GPU().Maxwell3D().regs.rt[index]};
     SurfaceParams params{};
     params.addr = TryGetCpuAddr(config.Address());
-    params.is_tiled = true;
-    params.block_width = 1 << config.block_dimensions.block_width;
-    params.block_height = 1 << config.block_dimensions.block_height;
-    params.block_depth = 1 << config.block_dimensions.block_depth;
+    params.is_tiled =
+        config.memory_layout.type == Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout::BlockLinear;
+    params.block_width = 1 << config.memory_layout.block_width;
+    params.block_height = 1 << config.memory_layout.block_height;
+    params.block_depth = 1 << config.memory_layout.block_depth;
     params.pixel_format = PixelFormatFromRenderTargetFormat(config.format);
     params.component_type = ComponentTypeFromRenderTarget(config.format);
     params.type = GetFormatType(params.pixel_format);
@@ -124,14 +125,13 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     return params;
 }
 
-/*static*/ SurfaceParams SurfaceParams::CreateForDepthBuffer(u32 zeta_width, u32 zeta_height,
-                                                             Tegra::GPUVAddr zeta_address,
-                                                             Tegra::DepthFormat format,
-                                                             u32 block_width, u32 block_height,
-                                                             u32 block_depth) {
+/*static*/ SurfaceParams SurfaceParams::CreateForDepthBuffer(
+    u32 zeta_width, u32 zeta_height, Tegra::GPUVAddr zeta_address, Tegra::DepthFormat format,
+    u32 block_width, u32 block_height, u32 block_depth,
+    Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout type) {
     SurfaceParams params{};
     params.addr = TryGetCpuAddr(zeta_address);
-    params.is_tiled = true;
+    params.is_tiled = type == Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout::BlockLinear;
     params.block_width = 1 << std::min(block_width, 5U);
     params.block_height = 1 << std::min(block_height, 5U);
     params.block_depth = 1 << std::min(block_depth, 5U);
@@ -156,9 +156,9 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     SurfaceParams params{};
     params.addr = TryGetCpuAddr(config.Address());
     params.is_tiled = !config.linear;
-    params.block_width = params.is_tiled ? std::min(config.BlockWidth(),32U) : 0,
-    params.block_height = params.is_tiled ? std::min(config.BlockHeight(),32U) : 0,
-    params.block_depth = params.is_tiled ? std::min(config.BlockDepth(),32U) : 0,
+    params.block_width = params.is_tiled ? std::min(config.BlockWidth(), 32U) : 0,
+    params.block_height = params.is_tiled ? std::min(config.BlockHeight(), 32U) : 0,
+    params.block_depth = params.is_tiled ? std::min(config.BlockDepth(), 32U) : 0,
     params.pixel_format = PixelFormatFromRenderTargetFormat(config.format);
     params.component_type = ComponentTypeFromRenderTarget(config.format);
     params.type = GetFormatType(params.pixel_format);
@@ -1005,8 +1005,8 @@ Surface RasterizerCacheOpenGL::GetDepthBufferSurface(bool preserve_contents) {
 
     SurfaceParams depth_params{SurfaceParams::CreateForDepthBuffer(
         regs.zeta_width, regs.zeta_height, regs.zeta.Address(), regs.zeta.format,
-        regs.zeta.block_dimensions.block_width, regs.zeta.block_dimensions.block_height,
-        regs.zeta.block_dimensions.block_depth)};
+        regs.zeta.memory_layout.block_width, regs.zeta.memory_layout.block_height,
+        regs.zeta.memory_layout.block_depth, regs.zeta.memory_layout.type)};
 
     return GetSurface(depth_params, preserve_contents);
 }
