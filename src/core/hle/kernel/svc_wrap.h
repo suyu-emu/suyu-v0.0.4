@@ -239,4 +239,9 @@ void SvcWrap() {
     func(Param(0), Param(1), Param(2));
 }
 
+template <void func(u32, u64, u64)>
+void SvcWrap() {
+    func((u32)(Param(0) & 0xFFFFFFFF), Param(1), Param(2));
+}
+
 } // namespace Kernel
