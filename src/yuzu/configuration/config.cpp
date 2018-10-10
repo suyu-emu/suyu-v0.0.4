@@ -123,7 +123,25 @@ void Config::ReadValues() {
     qt_config->beginGroup("System");
     Settings::values.use_docked_mode = qt_config->value("use_docked_mode", false).toBool();
     Settings::values.enable_nfc = qt_config->value("enable_nfc", true).toBool();
-    Settings::values.username = qt_config->value("username", "yuzu").toString().toStdString();
+
+    Settings::values.users.clear();
+    const auto size = qt_config->beginReadArray("users");
+    for (int i = 0; i < size; ++i) {
+        qt_config->setArrayIndex(i);
+        const Service::Account::UUID uuid(qt_config->value("uuid_low").toULongLong(),
+                                          qt_config->value("uuid_high").toULongLong());
+        Settings::values.users.emplace_back(qt_config->value("username").toString().toStdString(),
+                                            uuid);
+    }
+
+    qt_config->endArray();
+
+    if (Settings::values.users.empty())
+        Settings::values.users.emplace_back("yuzu", Service::Account::UUID{}.Generate());
+
+    Settings::values.current_user =
+        std::clamp(qt_config->value("current_user", 0).toInt(), 0, size);
+
     Settings::values.language_index = qt_config->value("language_index", 1).toInt();
     qt_config->endGroup();
 
@@ -260,7 +278,19 @@ void Config::SaveValues() {
     qt_config->beginGroup("System");
     qt_config->setValue("use_docked_mode", Settings::values.use_docked_mode);
     qt_config->setValue("enable_nfc", Settings::values.enable_nfc);
-    qt_config->setValue("username", QString::fromStdString(Settings::values.username));
+    qt_config->setValue("current_user", Settings::values.current_user);
+
+    qt_config->beginWriteArray("users", Settings::values.users.size());
+    for (std::size_t i = 0; i < Settings::values.users.size(); ++i) {
+        qt_config->setArrayIndex(i);
+        const auto& user = Settings::values.users[i];
+        qt_config->setValue("uuid_low", user.second.uuid[0]);
+        qt_config->setValue("uuid_high", user.second.uuid[1]);
+        qt_config->setValue("username", QString::fromStdString(user.first));
+    }
+
+    qt_config->endArray();
+
     qt_config->setValue("language_index", Settings::values.language_index);
     qt_config->endGroup();
 

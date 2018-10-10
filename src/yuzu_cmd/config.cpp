@@ -126,9 +126,25 @@ void Config::ReadValues() {
     // System
     Settings::values.use_docked_mode = sdl2_config->GetBoolean("System", "use_docked_mode", false);
     Settings::values.enable_nfc = sdl2_config->GetBoolean("System", "enable_nfc", true);
-    Settings::values.username = sdl2_config->Get("System", "username", "yuzu");
-    if (Settings::values.username.empty()) {
-        Settings::values.username = "yuzu";
+    const auto size = sdl2_config->GetInteger("System", "users_size", 0);
+
+    Settings::values.users.clear();
+    for (std::size_t i = 0; i < size; ++i) {
+        const auto uuid_low = std::stoull(
+            sdl2_config->Get("System", fmt::format("users_{}_uuid_low", i), "0"), nullptr, 0);
+        const auto uuid_high = std::stoull(
+            sdl2_config->Get("System", fmt::format("users_{}_uuid_high", i), "0"), nullptr, 0);
+        Settings::values.users.emplace_back(
+            sdl2_config->Get("System", fmt::format("users_{}_username", i), ""),
+            Service::Account::UUID{uuid_low, uuid_high});
+    }
+
+    if (Settings::values.users.empty()) {
+        Settings::values.users.emplace_back("yuzu", Service::Account::UUID{1, 0});
+        LOG_WARNING(
+            Config,
+            "You are using the default UUID of {1, 0}! This might cause issues down the road! "
+            "Please consider randomizing a UUID and adding it to the sdl2_config.ini file.");
     }
 
     // Miscellaneous
