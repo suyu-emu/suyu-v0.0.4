@@ -104,7 +104,8 @@ void Controller_NPad::OnInit() {
     }
     std::memcpy(supported_npad_id_types.data(), npad_id_list.data(),
                 npad_id_list.size() * sizeof(u32));
-    if (controller_count == 0) {
+    if (std::none_of(connected_controllers.begin(), connected_controllers.end(),
+                     [](const ControllerHolder& controller) { return controller.is_connected; })) {
         AddNewController(NPadControllerType::Handheld);
     }
 }
@@ -272,7 +273,7 @@ void Controller_NPad::OnUpdate(u8* data, std::size_t data_len) {
     }
     std::memcpy(data + NPAD_OFFSET, shared_memory_entries.data(),
                 shared_memory_entries.size() * sizeof(NPadEntry));
-}
+} // namespace Service::HID
 
 void Controller_NPad::SetSupportedStyleSet(NPadType style_set) {
     style.raw = style_set.raw;
@@ -331,6 +332,11 @@ Controller_NPad::Vibration Controller_NPad::GetLastVibration() const {
 void Controller_NPad::AddNewController(NPadControllerType controller) {
     if (controller_count >= connected_controllers.size()) {
         LOG_ERROR(Service_HID, "Cannot connect any more controllers!");
+        return;
+    }
+    if (controller == NPadControllerType::Handheld) {
+        connected_controllers[8] = {controller, true};
+        InitNewlyAddedControler(8);
         return;
     }
     connected_controllers[controller_count] = {controller, true};
