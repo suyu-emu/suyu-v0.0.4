@@ -643,13 +643,6 @@ private:
                                  ';');
         }
         declarations.AddNewLine();
-
-        if (stage == Maxwell3D::Regs::ShaderStage::Fragment) {
-            declarations.AddLine("uniform bool alpha_testing_active;");
-            declarations.AddLine("uniform float alpha_testing_ref;");
-            declarations.AddLine("uniform uint alpha_testing_func;");
-        }
-        declarations.AddNewLine();
     }
 
     /// Generates declarations used for geometry shaders.
@@ -1271,17 +1264,20 @@ private:
 
         ASSERT_MSG(header.ps.omap.sample_mask == 0, "Samplemask write is unimplemented");
 
-        shader.AddLine("if (alpha_testing_active) {");
+        shader.AddLine("if (alpha_test[0] != 0) {");
         ++shader.scope;
+        // We start on the register containing the alpha value in the first RT.
         u32 current_reg = 3;
         for (u32 render_target = 0; render_target < Maxwell3D::Regs::NumRenderTargets;
              ++render_target) {
+            // TODO(Blinkhawk): verify the behavior of alpha testing on hardware when
+            // multiple render targets are used.
             if (header.ps.IsColorComponentOutputEnabled(render_target, 0) ||
                 header.ps.IsColorComponentOutputEnabled(render_target, 1) ||
                 header.ps.IsColorComponentOutputEnabled(render_target, 2) ||
                 header.ps.IsColorComponentOutputEnabled(render_target, 3)) {
                 shader.AddLine(fmt::format(
-                    "if (AlphaFunc({}, alpha_testing_ref, alpha_testing_func)) discard;",
+                    "if (AlphaFunc({})) discard;",
                     regs.GetRegisterAsFloat(current_reg)));
                 current_reg += 4;
             }
@@ -3506,38 +3502,6 @@ private:
             declarations.AddLine("bool " + pred + " = false;");
         }
         declarations.AddNewLine();
-        GenerateFunctionDeclarations();
-    }
-
-    void GenerateFunctionDeclarations() {
-        if (stage == Maxwell3D::Regs::ShaderStage::Fragment) {
-            declarations.AddLine("bool AlphaFunc(in float value, in float ref, in uint func) {");
-            declarations.scope++;
-            declarations.AddLine("switch (func) {");
-            declarations.scope++;
-            declarations.AddLine("case 1:");
-            declarations.AddLine("return false;");
-            declarations.AddLine("case 2:");
-            declarations.AddLine("return value < ref;");
-            declarations.AddLine("case 3:");
-            declarations.AddLine("return value == ref;");
-            declarations.AddLine("case 4:");
-            declarations.AddLine("return value <= ref;");
-            declarations.AddLine("case 5:");
-            declarations.AddLine("return value > ref;");
-            declarations.AddLine("case 6:");
-            declarations.AddLine("return value != ref;");
-            declarations.AddLine("case 7:");
-            declarations.AddLine("return value >= ref;");
-            declarations.AddLine("case 8:");
-            declarations.AddLine("return true;");
-            declarations.AddLine("default:");
-            declarations.AddLine("return false;");
-            declarations.scope--;
-            declarations.AddLine('}');
-            declarations.scope--;
-            declarations.AddLine('}');
-        }
     }
 
 private:

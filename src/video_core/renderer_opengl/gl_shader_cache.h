@@ -73,14 +73,10 @@ public:
     /// Gets the GL uniform location for the specified resource, caching as needed
     GLint GetUniformLocation(const GLShader::SamplerEntry& sampler);
 
-    void SetAlphaTesting(const bool enable, const float ref, const u32 func);
-
 private:
     /// Generates a geometry shader or returns one that already exists.
     GLuint LazyGeometryProgram(OGLProgram& target_program, const std::string& glsl_topology,
                                const std::string& debug_name);
-
-    void SaveAlphaTestingLocations();
 
     VAddr addr;
     Maxwell::ShaderProgram program_type;
@@ -101,12 +97,6 @@ private:
         OGLProgram triangles;
         OGLProgram triangles_adjacency;
     } geometry_programs;
-
-    struct {
-        GLint enable_loc;
-        GLint ref_loc;
-        GLint func_loc;
-    } alpha_test;
 
     std::map<u32, GLuint> resource_cache;
     std::map<u32, GLint> uniform_cache;

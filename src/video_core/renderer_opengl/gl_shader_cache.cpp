@@ -94,10 +94,6 @@ CachedShader::CachedShader(VAddr addr, Maxwell::ShaderProgram program_type)
         // Store shader's code to lazily build it on draw
         geometry_programs.code = program_result.first;
     }
-
-    if (program_type == Maxwell::ShaderProgram::Fragment) {
-        SaveAlphaTestingLocations();
-    }
 }
 
 GLuint CachedShader::GetProgramResourceIndex(const GLShader::ConstBufferEntry& buffer) {
@@ -137,22 +133,6 @@ GLuint CachedShader::LazyGeometryProgram(OGLProgram& target_program,
     VideoCore::LabelGLObject(GL_PROGRAM, target_program.handle, addr, debug_name);
     return target_program.handle;
 };
-
-void CachedShader::SetAlphaTesting(const bool enable, const float ref, const u32 func) {
-    if (program_type == Maxwell::ShaderProgram::Fragment) {
-        glProgramUniform1ui(program.handle, alpha_test.enable_loc,
-                            (enable ? 1 : 0));
-        glProgramUniform1f(program.handle, alpha_test.ref_loc,
-                           ref);
-        glProgramUniform1ui(program.handle, alpha_test.func_loc, func);
-    }
-}
-
-void CachedShader::SaveAlphaTestingLocations() {
-    alpha_test.enable_loc = glGetUniformLocation(program.handle, "alpha_testing_enable");
-    alpha_test.ref_loc = glGetUniformLocation(program.handle, "alpha_testing_ref");
-    alpha_test.func_loc = glGetUniformLocation(program.handle, "alpha_testing_func");
-}
 
 Shader ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
     const VAddr program_addr{GetShaderAddress(program)};
