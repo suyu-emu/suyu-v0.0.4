@@ -5,6 +5,11 @@
 #pragma once
 
 #include <memory>
+#include <QGraphicsScene>
+#include <QList>
+#include <QStandardItemModel>
+#include <QTreeView>
+#include <QVBoxLayout>
 #include <QWidget>
 
 namespace Ui {
@@ -21,12 +26,26 @@ public:
     void applyConfiguration();
     void setConfiguration();
 
+    void UpdateCurrentUser();
+
 public slots:
     void updateBirthdayComboBox(int birthmonth_index);
     void refreshConsoleID();
 
+    void SelectUser(const QModelIndex& index);
+    void AddUser();
+    void RenameUser();
+    void DeleteUser();
+
 private:
     void ReadSystemSettings();
+
+    QVBoxLayout* layout;
+    QTreeView* tree_view;
+    QStandardItemModel* item_model;
+    QGraphicsScene* scene;
+
+    std::vector<QList<QStandardItem*>> list_items;
 
     std::unique_ptr<Ui::ConfigureSystem> ui;
     bool enabled;
