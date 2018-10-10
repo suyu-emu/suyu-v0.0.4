@@ -304,14 +304,14 @@ static ResultCode ArbitrateUnlock(VAddr mutex_addr) {
 struct BreakReason {
     union {
         u32 raw;
-        BitField<31, 1, u32> dont_kill_application;
+        BitField<31, 1, u32> signal_debugger;
     };
 };
 
 /// Break program execution
 static void Break(u32 reason, u64 info1, u64 info2) {
     BreakReason break_reason{reason};
-    if (break_reason.dont_kill_application) {
+    if (break_reason.signal_debugger) {
         LOG_ERROR(
             Debug_Emulated,
             "Emulated program broke execution! reason=0x{:016X}, info1=0x{:016X}, info2=0x{:016X}",
