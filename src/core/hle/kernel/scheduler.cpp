@@ -9,7 +9,7 @@
 #include "common/logging/log.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
-#include "core/core_timing.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/scheduler.h"
 
@@ -78,16 +78,16 @@ void Scheduler::SwitchContext(Thread* new_thread) {
         // Cancel any outstanding wakeup events for this thread
         new_thread->CancelWakeupTimer();
 
-        auto previous_process = Core::CurrentProcess();
+        auto* const previous_process = Core::CurrentProcess();
 
         current_thread = new_thread;
 
         ready_queue.remove(new_thread->GetPriority(), new_thread);
         new_thread->SetStatus(ThreadStatus::Running);
 
-        const auto thread_owner_process = current_thread->GetOwnerProcess();
+        auto* const thread_owner_process = current_thread->GetOwnerProcess();
         if (previous_process != thread_owner_process) {
-            Core::CurrentProcess() = thread_owner_process;
+            Core::System::GetInstance().Kernel().MakeCurrentProcess(thread_owner_process);
             SetCurrentPageTable(&Core::CurrentProcess()->VMManager().page_table);
         }
 

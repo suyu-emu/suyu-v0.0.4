@@ -136,7 +136,8 @@ struct System::Impl {
         if (virtual_filesystem == nullptr)
             virtual_filesystem = std::make_shared<FileSys::RealVfsFilesystem>();
 
-        kernel.MakeCurrentProcess(Kernel::Process::Create(kernel, "main"));
+        auto main_process = Kernel::Process::Create(kernel, "main");
+        kernel.MakeCurrentProcess(main_process.get());
 
         cpu_barrier = std::make_shared<CpuBarrier>();
         cpu_exclusive_monitor = Cpu::MakeExclusiveMonitor(cpu_cores.size());
@@ -361,11 +362,11 @@ const std::shared_ptr<Kernel::Scheduler>& System::Scheduler(std::size_t core_ind
     return impl->cpu_cores[core_index]->Scheduler();
 }
 
-Kernel::SharedPtr<Kernel::Process>& System::CurrentProcess() {
+Kernel::Process* System::CurrentProcess() {
     return impl->kernel.CurrentProcess();
 }
 
-const Kernel::SharedPtr<Kernel::Process>& System::CurrentProcess() const {
+const Kernel::Process* System::CurrentProcess() const {
     return impl->kernel.CurrentProcess();
 }
 

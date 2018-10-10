@@ -129,7 +129,7 @@ public:
 };
 
 std::unique_ptr<Dynarmic::A64::Jit> ARM_Dynarmic::MakeJit() const {
-    auto& current_process = Core::CurrentProcess();
+    auto* current_process = Core::CurrentProcess();
     auto** const page_table = current_process->VMManager().page_table.pointers.data();
 
     Dynarmic::A64::UserConfig config;

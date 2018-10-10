@@ -66,13 +66,13 @@ public:
     void AppendNewProcess(SharedPtr<Process> process);
 
     /// Makes the given process the new current process.
-    void MakeCurrentProcess(SharedPtr<Process> process);
+    void MakeCurrentProcess(Process* process);
 
-    /// Retrieves a reference to the current process.
-    SharedPtr<Process>& CurrentProcess();
+    /// Retrieves a pointer to the current process.
+    Process* CurrentProcess();
 
-    /// Retrieves a const reference to the current process.
-    const SharedPtr<Process>& CurrentProcess() const;
+    /// Retrieves a const pointer to the current process.
+    const Process* CurrentProcess() const;
 
     /// Adds a port to the named port table
     void AddNamedPort(std::string name, SharedPtr<ClientPort> port);

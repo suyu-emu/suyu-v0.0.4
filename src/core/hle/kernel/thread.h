@@ -89,7 +89,7 @@ public:
     static ResultVal<SharedPtr<Thread>> Create(KernelCore& kernel, std::string name,
                                                VAddr entry_point, u32 priority, u64 arg,
                                                s32 processor_id, VAddr stack_top,
-                                               SharedPtr<Process> owner_process);
+                                               Process& owner_process);
 
     std::string GetName() const override {
         return name;
@@ -262,11 +262,11 @@ public:
         return processor_id;
     }
 
-    SharedPtr<Process>& GetOwnerProcess() {
+    Process* GetOwnerProcess() {
         return owner_process;
     }
 
-    const SharedPtr<Process>& GetOwnerProcess() const {
+    const Process* GetOwnerProcess() const {
         return owner_process;
     }
 
@@ -386,7 +386,7 @@ private:
     u64 tpidr_el0 = 0;     ///< TPIDR_EL0 read/write system register.
 
     /// Process that owns this thread
-    SharedPtr<Process> owner_process;
+    Process* owner_process;
 
     /// Objects that the thread is waiting on, in the same order as they were
     /// passed to WaitSynchronization1/N.

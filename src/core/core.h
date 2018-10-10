@@ -174,11 +174,11 @@ public:
     /// Gets the scheduler for the CPU core with the specified index
     const std::shared_ptr<Kernel::Scheduler>& Scheduler(std::size_t core_index);
 
-    /// Provides a reference to the current process
-    Kernel::SharedPtr<Kernel::Process>& CurrentProcess();
+    /// Provides a pointer to the current process
+    Kernel::Process* CurrentProcess();
 
-    /// Provides a constant reference to the current process.
-    const Kernel::SharedPtr<Kernel::Process>& CurrentProcess() const;
+    /// Provides a constant pointer to the current process.
+    const Kernel::Process* CurrentProcess() const;
 
     /// Provides a reference to the kernel instance.
     Kernel::KernelCore& Kernel();
@@ -246,7 +246,7 @@ inline TelemetrySession& Telemetry() {
     return System::GetInstance().TelemetrySession();
 }
 
-inline Kernel::SharedPtr<Kernel::Process>& CurrentProcess() {
+inline Kernel::Process* CurrentProcess() {
     return System::GetInstance().CurrentProcess();
 }
 
