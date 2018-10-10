@@ -885,10 +885,18 @@ u32 RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, Shader& shader,
 void RasterizerOpenGL::SetupAlphaTesting(Shader& shader) {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
-    glProgramUniform1i(shader->GetProgramHandle(), shader->GetAlphaTestingEnableLocation(),
+    glProgramUniform1ui(shader->GetProgramHandle(), shader->GetAlphaTestingEnableLocation(),
                        regs.alpha_test_enabled);
     glProgramUniform1f(shader->GetProgramHandle(), shader->GetAlphaTestingRefLocation(),
                        regs.alpha_test_ref);
+
+    u32 func = static_cast<u32>(regs.alpha_test_func);
+    // Normalize the gl variants of opCompare to be the same as the normal variants
+    if (func >= 0x200) {
+        func = func - 0x200 + 1U;
+    }
+
+    glProgramUniform1ui(shader->GetProgramHandle(), shader->GetAlphaTestingFuncLocation(), func);
 }
 
 void RasterizerOpenGL::SyncViewport() {
