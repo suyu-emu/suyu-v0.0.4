@@ -10,6 +10,7 @@
 // VFS includes must be before glad as they will conflict with Windows file api, which uses defines.
 #include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_real.h"
+#include "core/hle/service/acc/profile_manager.h"
 
 // These are wrappers to avoid the calls to CreateDirectory and CreateFile becuase of the Windows
 // defines.
@@ -758,10 +759,22 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
         const std::string nand_dir = FileUtil::GetUserPath(FileUtil::UserPath::NANDDir);
         ASSERT(program_id != 0);
 
-        QStringList list{};
-        std::transform(Settings::values.users.begin(), Settings::values.users.end(),
-                       std::back_inserter(list),
-                       [](const auto& user) { return QString::fromStdString(user.first); });
+        Service::Account::ProfileManager manager{};
+        const auto user_ids = manager.GetAllUsers();
+        QStringList list;
+        std::transform(
+            user_ids.begin(), user_ids.end(), std::back_inserter(list),
+            [&manager](const auto& user_id) -> QString {
+                if (user_id == Service::Account::UUID{})
+                    return "";
+                Service::Account::ProfileBase base;
+                if (!manager.GetProfileBase(user_id, base))
+                    return "";
+
+                return QString::fromStdString(Common::StringFromFixedZeroTerminatedBuffer(
+                    reinterpret_cast<const char*>(base.username.data()), base.username.size()));
+            });
+        list.removeAll("");
 
         bool ok = false;
         const auto index_string =
@@ -772,12 +785,12 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
             return;
 
         const auto index = list.indexOf(index_string);
-        ASSERT(index != -1);
+        ASSERT(index != -1 && index < 8);
 
-        const auto user_id = Settings::values.users[index].second.uuid;
+        const auto user_id = manager.GetAllUsers()[index];
         path = nand_dir + FileSys::SaveDataFactory::GetFullPath(FileSys::SaveDataSpaceId::NandUser,
                                                                 FileSys::SaveDataType::SaveData,
-                                                                program_id, user_id, 0);
+                                                                program_id, user_id.uuid, 0);
 
         if (!FileUtil::Exists(path)) {
             FileUtil::CreateFullPath(path);

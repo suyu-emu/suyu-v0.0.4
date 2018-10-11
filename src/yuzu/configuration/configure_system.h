@@ -5,12 +5,16 @@
 #pragma once
 
 #include <memory>
-#include <QGraphicsScene>
+
 #include <QList>
-#include <QStandardItemModel>
-#include <QTreeView>
-#include <QVBoxLayout>
 #include <QWidget>
+#include "core/hle/service/acc/profile_manager.h"
+
+class QVBoxLayout;
+class QTreeView;
+class QStandardItemModel;
+class QGraphicsScene;
+class QStandardItem;
 
 namespace Ui {
 class ConfigureSystem;
@@ -26,6 +30,7 @@ public:
     void applyConfiguration();
     void setConfiguration();
 
+    void PopulateUserList();
     void UpdateCurrentUser();
 
 public slots:
@@ -36,9 +41,11 @@ public slots:
     void AddUser();
     void RenameUser();
     void DeleteUser();
+    void SetUserImage();
 
 private:
     void ReadSystemSettings();
+    std::string GetAccountUsername(Service::Account::UUID uuid);
 
     QVBoxLayout* layout;
     QTreeView* tree_view;
@@ -50,8 +57,9 @@ private:
     std::unique_ptr<Ui::ConfigureSystem> ui;
     bool enabled;
 
-    std::u16string username;
     int birthmonth, birthday;
     int language_index;
     int sound_index;
+
+    std::unique_ptr<Service::Account::ProfileManager> profile_manager;
 };

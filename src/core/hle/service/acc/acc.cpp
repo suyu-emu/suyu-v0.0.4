@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <array>
 #include "common/common_paths.h"
 #include "common/common_types.h"
@@ -33,9 +34,9 @@ struct UserData {
 };
 static_assert(sizeof(UserData) == 0x80, "UserData structure has incorrect size");
 
-static std::string GetImagePath(const std::string& username) {
-    return FileUtil::GetUserPath(FileUtil::UserPath::ConfigDir) + "users" + DIR_SEP + username +
-           ".jpg";
+static std::string GetImagePath(UUID uuid) {
+    return FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
+           "/system/save/8000000000000010/su/avators/" + uuid.FormatSwitch() + ".jpg";
 }
 
 class IProfile final : public ServiceFramework<IProfile> {
@@ -49,15 +50,6 @@ public:
             {11, &IProfile::LoadImage, "LoadImage"},
         };
         RegisterHandlers(functions);
-
-        ProfileBase profile_base{};
-        if (profile_manager.GetProfileBase(user_id, profile_base)) {
-            image = std::make_unique<FileUtil::IOFile>(
-                GetImagePath(Common::StringFromFixedZeroTerminatedBuffer(
-                    reinterpret_cast<const char*>(profile_base.username.data()),
-                    profile_base.username.size())),
-                "rb");
-        }
     }
 
 private:
@@ -111,13 +103,15 @@ private:
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
 
-        if (image == nullptr) {
+        const FileUtil::IOFile image(GetImagePath(user_id), "rb");
+
+        if (!image.IsOpen()) {
             ctx.WriteBuffer(backup_jpeg);
             rb.Push<u32>(backup_jpeg_size);
         } else {
-            const auto size = std::min<u32>(image->GetSize(), MAX_JPEG_IMAGE_SIZE);
+            const auto size = std::min<u32>(image.GetSize(), MAX_JPEG_IMAGE_SIZE);
             std::vector<u8> buffer(size);
-            image->ReadBytes(buffer.data(), buffer.size());
+            image.ReadBytes(buffer.data(), buffer.size());
 
             ctx.WriteBuffer(buffer.data(), buffer.size());
             rb.Push<u32>(buffer.size());
@@ -130,15 +124,16 @@ private:
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
 
-        if (image == nullptr)
+        const FileUtil::IOFile image(GetImagePath(user_id), "rb");
+
+        if (!image.IsOpen())
             rb.Push<u32>(backup_jpeg_size);
         else
-            rb.Push<u32>(std::min<u32>(image->GetSize(), MAX_JPEG_IMAGE_SIZE));
+            rb.Push<u32>(std::min<u32>(image.GetSize(), MAX_JPEG_IMAGE_SIZE));
     }
 
     const ProfileManager& profile_manager;
     UUID user_id; ///< The user id this profile refers to.
-    std::unique_ptr<FileUtil::IOFile> image = nullptr;
 };
 
 class IManagerForApplication final : public ServiceFramework<IManagerForApplication> {

@@ -8,7 +8,6 @@
 #include <atomic>
 #include <string>
 #include "common/common_types.h"
-#include "core/hle/service/acc/profile_manager.h"
 
 namespace Settings {
 
@@ -116,7 +115,6 @@ struct Values {
     bool use_docked_mode;
     bool enable_nfc;
     int current_user;
-    std::vector<std::pair<std::string, Service::Account::UUID>> users;
     int language_index;
 
     // Controls

@@ -4,11 +4,13 @@
 
 #include <array>
 #include <cinttypes>
+#include <cstring>
 #include <stack>
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/event.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_ae.h"
 #include "core/hle/service/am/applet_oe.h"
@@ -734,8 +736,10 @@ void IApplicationFunctions::PopLaunchParameter(Kernel::HLERequestContext& ctx) {
     std::vector<u8> buffer(POP_LAUNCH_PARAMETER_BUFFER_SIZE);
 
     std::memcpy(buffer.data(), header_data.data(), header_data.size());
-    const auto current_uuid = Settings::values.users[Settings::values.current_user].second.uuid;
-    std::memcpy(buffer.data() + header_data.size(), current_uuid.data(), sizeof(u128));
+
+    Account::ProfileManager profile_manager{};
+    const auto uuid = profile_manager.GetAllUsers()[Settings::values.current_user].uuid;
+    std::memcpy(buffer.data() + header_data.size(), uuid.data(), sizeof(u128));
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
