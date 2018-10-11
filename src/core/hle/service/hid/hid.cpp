@@ -347,6 +347,8 @@ private:
     }
 
     void StartSixAxisSensor(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        auto handle = rp.PopRaw<u32>();
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_HID, "(STUBBED) called");
@@ -539,6 +541,8 @@ private:
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_HID, "(STUBBED) called");
+        applet_resource->GetController<Controller_NPad>(HidController::NPad)
+            .SetHandheldActiviationMode(mode);
     }
 
     void GetVibrationDeviceInfo(Kernel::HLERequestContext& ctx) {

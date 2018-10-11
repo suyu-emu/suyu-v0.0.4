@@ -65,7 +65,6 @@ public:
         None,
         ProController,
         Handheld,
-        HandheldVariant, // Games which require the handheld controller to be at index 8
         JoyLeft,
         JoyRight,
         Tabletop,
@@ -106,12 +105,13 @@ public:
     Kernel::SharedPtr<Kernel::Event> GetStyleSetChangedEvent() const;
     Vibration GetLastVibration() const;
 
-    void AddNewController(NPadControllerType controller);
+    void AddNewController(NPadControllerType controller, bool is_handheld_variant = false);
 
     void ConnectNPad(u32 npad_id);
     void DisconnectNPad(u32 npad_id);
     LedPattern GetLedPattern(u32 npad_id);
     void SetVibrationEnabled(bool can_vibrate);
+    void SetHandheldActiviationMode(u32 mode);
 
 private:
     struct CommonHeader {
@@ -273,10 +273,10 @@ private:
     Kernel::SharedPtr<Kernel::Event> styleset_changed_event;
     std::size_t dump_idx{};
     Vibration last_processed_vibration{};
-    std::size_t controller_count{};
     static constexpr std::array<u32, 10> npad_id_list{0, 1, 2, 3, 4, 5, 6, 7, 32, 16};
     std::array<ControllerHolder, 10> connected_controllers{};
     bool can_controllers_vibrate{true};
+    void CheckForHandheldVariant();
 
     void InitNewlyAddedControler(std::size_t controller_idx);
 };

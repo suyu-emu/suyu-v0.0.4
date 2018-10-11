@@ -41,7 +41,6 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
     controller.joy_styles.raw = 0; // Zero out
     controller.device_type.raw = 0;
     switch (controller_type) {
-    case NPadControllerType::HandheldVariant:
     case NPadControllerType::Handheld:
         controller.joy_styles.handheld.Assign(1);
         controller.device_type.handheld.Assign(1);
@@ -93,7 +92,6 @@ void Controller_NPad::OnInit() {
     if (!IsControllerActivated())
         return;
     std::size_t controller{};
-    supported_npad_id_types.resize(npad_id_list.size());
     if (style.raw == 0) {
         // We want to support all controllers
         style.handheld.Assign(1);
@@ -103,10 +101,11 @@ void Controller_NPad::OnInit() {
         style.pro_controller.Assign(1);
         style.pokeball.Assign(1);
     }
-    std::memcpy(supported_npad_id_types.data(), npad_id_list.data(),
-                npad_id_list.size() * sizeof(u32));
     if (std::none_of(connected_controllers.begin(), connected_controllers.end(),
                      [](const ControllerHolder& controller) { return controller.is_connected; })) {
+        supported_npad_id_types.resize(npad_id_list.size());
+        std::memcpy(supported_npad_id_types.data(), npad_id_list.data(),
+                    npad_id_list.size() * sizeof(u32));
         AddNewController(NPadControllerType::Handheld);
     }
 }
@@ -221,7 +220,6 @@ void Controller_NPad::OnUpdate(u8* data, std::size_t data_len) {
         }
 
         switch (controller_type) {
-        case NPadControllerType::HandheldVariant:
         case NPadControllerType::Handheld:
             handheld_entry.connection_status.IsConnected.Assign(1);
             if (!Settings::values.use_docked_mode) {
@@ -291,6 +289,29 @@ void Controller_NPad::SetSupportedNPadIdTypes(u8* data, std::size_t length) {
     ASSERT(length > 0 && (length % sizeof(u32)) == 0);
     supported_npad_id_types.resize(length / sizeof(u32));
     std::memcpy(supported_npad_id_types.data(), data, length);
+    CheckForHandheldVariant();
+}
+
+void Controller_NPad::CheckForHandheldVariant() {
+    // As some games expect us to use the variant of handheld mode and some games don't. It's
+    // consistent that games set the npad ids in order of priority. We can just swap the controller
+    // ids on the fly then if we're in handheld mode
+    if (supported_npad_id_types.size() > 0) {
+        const auto& first_controller = supported_npad_id_types.front();
+        if (first_controller == 32 && !connected_controllers[8].is_connected) {
+            const auto& first_controller = connected_controllers.front();
+            if (first_controller.is_connected &&
+                first_controller.type == NPadControllerType::Handheld) {
+                DisconnectNPad(0);
+                AddNewController(NPadControllerType::Handheld, true);
+            }
+        } else if (first_controller != 32 && connected_controllers[8].is_connected) {
+            if (!connected_controllers[0].is_connected) {
+                DisconnectNPad(8);
+                AddNewController(NPadControllerType::Handheld);
+            }
+        }
+    }
 }
 
 const void Controller_NPad::GetSupportedNpadIdTypes(u32* data, std::size_t max_length) {
@@ -320,10 +341,15 @@ void Controller_NPad::VibrateController(const std::vector<u32>& controller_ids,
         return;
     }
     for (std::size_t i = 0; i < controller_ids.size(); i++) {
-        if (i >= controller_count) {
-            continue;
+        std::size_t controller_pos = i;
+        if (controller_pos == 32)
+            controller_pos = 8;
+        if (controller_pos == 16)
+            controller_pos = 9;
+
+        if (connected_controllers[controller_pos].is_connected) {
+            // TODO(ogniK): Vibrate the physical controller
         }
-        // TODO(ogniK): Vibrate the physical controller
     }
     LOG_WARNING(Service_HID, "(STUBBED) called");
     last_processed_vibration = vibrations.back();
@@ -336,18 +362,22 @@ Kernel::SharedPtr<Kernel::Event> Controller_NPad::GetStyleSetChangedEvent() cons
 Controller_NPad::Vibration Controller_NPad::GetLastVibration() const {
     return last_processed_vibration;
 }
-void Controller_NPad::AddNewController(NPadControllerType controller) {
-    if (controller_count >= connected_controllers.size()) {
-        LOG_ERROR(Service_HID, "Cannot connect any more controllers!");
-        return;
-    }
-    if (controller == NPadControllerType::HandheldVariant) {
+void Controller_NPad::AddNewController(NPadControllerType controller, bool is_handheld_variant) {
+    if (is_handheld_variant) {
         connected_controllers[8] = {controller, true};
         InitNewlyAddedControler(8);
         return;
     }
-    connected_controllers[controller_count] = {controller, true};
-    InitNewlyAddedControler(controller_count++);
+    const auto pos =
+        std::find_if(connected_controllers.begin(), connected_controllers.end() - 2,
+                     [](const ControllerHolder& holder) { return !holder.is_connected; });
+    if (pos == connected_controllers.end() - 2) {
+        LOG_ERROR(Service_HID, "Cannot connect any more controllers!");
+        return;
+    }
+    const auto controller_id = std::distance(connected_controllers.begin(), pos);
+    connected_controllers[controller_id] = {controller, true};
+    InitNewlyAddedControler(controller_id);
 }
 
 void Controller_NPad::ConnectNPad(u32 npad_id) {
@@ -391,5 +421,14 @@ Controller_NPad::LedPattern Controller_NPad::GetLedPattern(u32 npad_id) {
 }
 void Controller_NPad::SetVibrationEnabled(bool can_vibrate) {
     can_controllers_vibrate = can_vibrate;
+}
+
+void Controller_NPad::SetHandheldActiviationMode(u32 mode) {
+    const auto& first_controller = connected_controllers.front();
+    if (!first_controller.is_connected || connected_controllers[8].is_connected) {
+        return;
+    }
+    DisconnectNPad(0);
+    AddNewController(NPadControllerType::Handheld, true);
 }
 } // namespace Service::HID
