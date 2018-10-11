@@ -5,10 +5,10 @@
 #pragma once
 
 #include <array>
+#include <chrono>
 #include <string>
 #include <json.hpp>
 #include "common/telemetry.h"
-#include "common/web_result.h"
 
 namespace WebService {
 
