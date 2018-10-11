@@ -98,11 +98,83 @@ static void FastSwizzleData(u32 width, u32 height, u32 bytes_per_pixel, u32 out_
     }
 }
 
+void Fast3DProcessGobs(u8* swizzled_data, u8* unswizzled_data, bool unswizzle, const u32 x_start,
+                       const u32 y_start, const u32 z_start, const u32 x_end, const u32 y_end,
+                       const u32 z_end, const u32 tile_offset, const u32 xy_block_size,
+                       const u32 layer_z, const u32 stride_x, const u32 bytes_per_pixel,
+                       const u32 out_bytes_per_pixel) {
+    std::array<u8*, 2> data_ptrs;
+    u32 z_adress = tile_offset;
+    const u32 x_startb = x_start * bytes_per_pixel;
+    const u32 x_endb = x_end * bytes_per_pixel;
+    const u32 copy_size = 16;
+    const u32 gob_size = 64 * 8 * 1;
+    for (u32 z = z_start; z < z_end; z++) {
+        u32 y_adress = z_adress;
+        u32 pixel_base = layer_z * z + y_start * stride_x;
+        for (u32 y = y_start; y < y_end; y++) {
+            const auto& table = fast_swizzle_table[y % 8];
+            for (u32 xb = x_startb; xb < x_endb; xb += copy_size) {
+                const u32 swizzle_offset{y_adress + table[(xb / 16) % 4]};
+                const u32 out_x = xb * out_bytes_per_pixel / bytes_per_pixel;
+                const u32 pixel_index{out_x + pixel_base};
+                data_ptrs[unswizzle] = swizzled_data + swizzle_offset;
+                data_ptrs[!unswizzle] = unswizzled_data + pixel_index;
+                std::memcpy(data_ptrs[0], data_ptrs[1], copy_size);
+            }
+            pixel_base += stride_x;
+            if ((y + 1) % 8 == 0)
+                y_adress += gob_size;
+        }
+        z_adress += xy_block_size;
+    }
+}
+
+void Fast3DSwizzledData(u8* swizzled_data, u8* unswizzled_data, bool unswizzle, u32 width,
+                        u32 height, u32 depth, u32 bytes_per_pixel, u32 out_bytes_per_pixel,
+                        u32 block_height, u32 block_depth) {
+    auto div_ceil = [](u32 x, u32 y) { return ((x + y - 1) / y); };
+
+    const u32 stride_x = width * out_bytes_per_pixel;
+    const u32 layer_z = height * stride_x;
+    const u32 gob_x_bytes = 64;
+    const u32 gob_elements_x = gob_x_bytes / bytes_per_pixel;
+    const u32 gob_elements_y = 8;
+    const u32 gob_elements_z = 1;
+    const u32 block_x_elements = gob_elements_x;
+    const u32 block_y_elements = gob_elements_y * block_height;
+    const u32 block_z_elements = gob_elements_z * block_depth;
+    const u32 blocks_on_x = div_ceil(width, block_x_elements);
+    const u32 blocks_on_y = div_ceil(height, block_y_elements);
+    const u32 blocks_on_z = div_ceil(depth, block_z_elements);
+    const u32 blocks = blocks_on_x * blocks_on_y * blocks_on_z;
+    const u32 gob_size = 64 * 8 * 1;
+    const u32 xy_block_size = gob_size * block_height;
+    const u32 block_size = xy_block_size * block_depth;
+    u32 tile_offset = 0;
+    for (u32 zb = 0; zb < blocks_on_z; zb++) {
+        const u32 z_start = zb * block_z_elements;
+        const u32 z_end = std::min(depth, z_start + block_z_elements);
+        for (u32 yb = 0; yb < blocks_on_y; yb++) {
+            const u32 y_start = yb * block_y_elements;
+            const u32 y_end = std::min(height, y_start + block_y_elements);
+            for (u32 xb = 0; xb < blocks_on_x; xb++) {
+                const u32 x_start = xb * block_x_elements;
+                const u32 x_end = std::min(width, x_start + block_x_elements);
+                Fast3DProcessGobs(swizzled_data, unswizzled_data, unswizzle, x_start, y_start,
+                                  z_start, x_end, y_end, z_end, tile_offset, xy_block_size, layer_z,
+                                  stride_x, bytes_per_pixel, out_bytes_per_pixel);
+                tile_offset += block_size;
+            }
+        }
+    }
+}
+
 void CopySwizzledData(u32 width, u32 height, u32 bytes_per_pixel, u32 out_bytes_per_pixel,
                       u8* swizzled_data, u8* unswizzled_data, bool unswizzle, u32 block_height) {
     if (bytes_per_pixel % 3 != 0 && (width * bytes_per_pixel) % 16 == 0) {
-        FastSwizzleData(width, height, bytes_per_pixel, out_bytes_per_pixel, swizzled_data,
-                        unswizzled_data, unswizzle, block_height);
+        Fast3DSwizzledData(swizzled_data, unswizzled_data, unswizzle, width, height, 1U,
+                           bytes_per_pixel, out_bytes_per_pixel, block_height, 1U);
     } else {
         LegacySwizzleData(width, height, bytes_per_pixel, out_bytes_per_pixel, swizzled_data,
                           unswizzled_data, unswizzle, block_height);
