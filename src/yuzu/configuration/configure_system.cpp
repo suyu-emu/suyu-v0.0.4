@@ -13,6 +13,7 @@
 #include <QVBoxLayout>
 #include "common/common_paths.h"
 #include "common/logging/backend.h"
+#include "common/string_util.h"
 #include "core/core.h"
 #include "core/settings.h"
 #include "ui_configure_system.h"
@@ -112,8 +113,6 @@ void ConfigureSystem::setConfiguration() {
     item_model->removeRows(0, item_model->rowCount());
     list_items.clear();
 
-    ui->pm_add->setEnabled(profile_manager->GetUserCount() < 8);
-
     PopulateUserList();
     UpdateCurrentUser();
 }
@@ -156,6 +155,8 @@ void ConfigureSystem::PopulateUserList() {
 }
 
 void ConfigureSystem::UpdateCurrentUser() {
+    ui->pm_add->setEnabled(profile_manager->GetUserCount() < 8);
+
     const auto& current_user = profile_manager->GetAllUsers()[Settings::values.current_user];
     const auto username = GetAccountUsername(current_user);
 
@@ -230,10 +231,7 @@ void ConfigureSystem::SelectUser(const QModelIndex& index) {
     UpdateCurrentUser();
 
     ui->pm_remove->setEnabled(profile_manager->GetUserCount() >= 2);
-    ui->pm_remove->setEnabled(false);
-
     ui->pm_rename->setEnabled(true);
-
     ui->pm_set_image->setEnabled(true);
 }
 
@@ -282,9 +280,12 @@ void ConfigureSystem::RenameUser() {
 
     profile_manager->SetProfileBase(uuid, profile);
 
-    list_items[user][0] = new QStandardItem{
-        GetIcon(uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-        QString::fromStdString(username_std + '\n' + uuid.FormatSwitch())};
+    item_model->setItem(
+        user, 0,
+        new QStandardItem{
+            GetIcon(uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
+            QString::fromStdString(username_std + '\n' + uuid.FormatSwitch())});
+    UpdateCurrentUser();
 }
 
 void ConfigureSystem::DeleteUser() {
@@ -302,11 +303,13 @@ void ConfigureSystem::DeleteUser() {
 
     if (Settings::values.current_user == tree_view->currentIndex().row())
         Settings::values.current_user = 0;
+    UpdateCurrentUser();
 
     if (!profile_manager->RemoveUser(uuid))
         return;
 
     item_model->removeRows(tree_view->currentIndex().row(), 1);
+    tree_view->clearSelection();
 
     ui->pm_remove->setEnabled(false);
     ui->pm_rename->setEnabled(false);
@@ -334,7 +337,10 @@ void ConfigureSystem::SetUserImage() {
     FileUtil::CreateFullPath(GetImagePath(uuid));
     FileUtil::Copy(file.toStdString(), GetImagePath(uuid));
 
-    list_items[index][0] = new QStandardItem{
-        GetIcon(uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-        QString::fromStdString(username + '\n' + uuid.FormatSwitch())};
+    item_model->setItem(
+        index, 0,
+        new QStandardItem{
+            GetIcon(uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
+            QString::fromStdString(username + '\n' + uuid.FormatSwitch())});
+    UpdateCurrentUser();
 }

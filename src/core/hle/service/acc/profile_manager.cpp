@@ -323,7 +323,7 @@ void ProfileManager::WriteUserSaveFile() {
 
     FileUtil::IOFile save(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
                               "/system/save/8000000000000010/su/avators/profiles.dat",
-                          "rb");
+                          "wb");
 
     save.Resize(sizeof(ProfileDataRaw));
     save.Seek(0, SEEK_SET);
