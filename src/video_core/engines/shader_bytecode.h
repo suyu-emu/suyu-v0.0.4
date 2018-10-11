@@ -214,6 +214,18 @@ enum class IMinMaxExchange : u64 {
     XHi = 3,
 };
 
+enum class VmadType : u64 {
+    Size16_Low = 0,
+    Size16_High = 1,
+    Size32 = 2,
+    Invalid = 3,
+};
+
+enum class VmadShr : u64 {
+    Shr7 = 1,
+    Shr15 = 2,
+};
+
 enum class XmadMode : u64 {
     None = 0,
     CLo = 1,
@@ -452,6 +464,7 @@ union Instruction {
     BitField<48, 16, u64> opcode;
 
     union {
+        BitField<20, 16, u64> imm20_16;
         BitField<20, 19, u64> imm20_19;
         BitField<20, 32, s64> imm20_32;
         BitField<45, 1, u64> negate_b;
@@ -492,6 +505,10 @@ union Instruction {
                 return static_cast<u32>(imm_lut48);
             }
         } lop3;
+
+        u16 GetImm20_16() const {
+            return static_cast<u16>(imm20_16);
+        }
 
         u32 GetImm20_19() const {
             u32 imm{static_cast<u32>(imm20_19)};
@@ -1017,6 +1034,23 @@ union Instruction {
     } isberd;
 
     union {
+        BitField<48, 1, u64> signed_a;
+        BitField<38, 1, u64> is_byte_chunk_a;
+        BitField<36, 2, VmadType> type_a;
+        BitField<36, 2, u64> byte_height_a;
+
+        BitField<49, 1, u64> signed_b;
+        BitField<50, 1, u64> use_register_b;
+        BitField<30, 1, u64> is_byte_chunk_b;
+        BitField<28, 2, VmadType> type_b;
+        BitField<28, 2, u64> byte_height_b;
+
+        BitField<51, 2, VmadShr> shr;
+        BitField<55, 1, u64> saturate; // Saturates the result (a * b + c)
+        BitField<47, 1, u64> cc;
+    } vmad;
+
+    union {
         BitField<20, 16, u64> imm20_16;
         BitField<36, 1, u64> product_shift_left;
         BitField<37, 1, u64> merge_37;
@@ -1083,6 +1117,7 @@ public:
         IPA,
         OUT_R, // Emit vertex/primitive
         ISBERD,
+        VMAD,
         FFMA_IMM, // Fused Multiply and Add
         FFMA_CR,
         FFMA_RC,
@@ -1320,6 +1355,7 @@ private:
             INST("11100000--------", Id::IPA, Type::Trivial, "IPA"),
             INST("1111101111100---", Id::OUT_R, Type::Trivial, "OUT_R"),
             INST("1110111111010---", Id::ISBERD, Type::Trivial, "ISBERD"),
+            INST("01011111--------", Id::VMAD, Type::Trivial, "VMAD"),
             INST("0011001-1-------", Id::FFMA_IMM, Type::Ffma, "FFMA_IMM"),
             INST("010010011-------", Id::FFMA_CR, Type::Ffma, "FFMA_CR"),
             INST("010100011-------", Id::FFMA_RC, Type::Ffma, "FFMA_RC"),
