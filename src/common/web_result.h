@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include "common/common_types.h"
 
 namespace Common {
 struct WebResult {
