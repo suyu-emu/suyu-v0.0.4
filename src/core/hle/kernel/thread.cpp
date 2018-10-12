@@ -183,13 +183,10 @@ void Thread::ResumeFromWait() {
  */
 static void ResetThreadContext(Core::ARM_Interface::ThreadContext& context, VAddr stack_top,
                                VAddr entry_point, u64 arg) {
-    memset(&context, 0, sizeof(Core::ARM_Interface::ThreadContext));
-
+    context = {};
     context.cpu_registers[0] = arg;
     context.pc = entry_point;
     context.sp = stack_top;
-    context.pstate = 0;
-    context.fpcr = 0;
 }
 
 ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name, VAddr entry_point,
