@@ -84,7 +84,6 @@ u32 nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& output) 
     std::memcpy(entries.data(), input.data(), input.size());
 
     auto& gpu = Core::System::GetInstance().GPU();
-    bool failed_remap{};
     for (const auto& entry : entries) {
         LOG_WARNING(Service_NVDRV, "remap entry, offset=0x{:X} handle=0x{:X} pages=0x{:X}",
                     entry.offset, entry.nvmap_handle, entry.pages);
@@ -92,8 +91,8 @@ u32 nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& output) 
         auto object = nvmap_dev->GetObject(entry.nvmap_handle);
         if (!object) {
             LOG_CRITICAL(Service_NVDRV, "nvmap {} is an invalid handle!", entry.nvmap_handle);
-            failed_remap = true;
-            continue;
+            std::memcpy(output.data(), entries.data(), output.size());
+            return static_cast<u32>(NvErrCodes::InvalidNmapHandle);
         }
 
         ASSERT(object->status == nvmap::Object::Status::Allocated);
@@ -105,9 +104,6 @@ u32 nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& output) 
         ASSERT(returned == offset);
     }
     std::memcpy(output.data(), entries.data(), output.size());
-    if (failed_remap) {
-        return static_cast<u32>(NvErrCodes::InvalidNmapHandle);
-    }
     return 0;
 }
 
