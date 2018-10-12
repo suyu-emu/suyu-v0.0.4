@@ -14,7 +14,6 @@
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/vfs_offset.h"
 #include "core/gdbstub/gdbstub.h"
-#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/loader/nro.h"
@@ -139,22 +138,21 @@ bool AppLoader_NRO::LoadNro(FileSys::VirtualFile file, VAddr load_base) {
     }
 
     // Build program image
-    auto& kernel = Core::System::GetInstance().Kernel();
-    Kernel::SharedPtr<Kernel::CodeSet> codeset = Kernel::CodeSet::Create(kernel, "");
     std::vector<u8> program_image = file->ReadBytes(PageAlignSize(nro_header.file_size));
     if (program_image.size() != PageAlignSize(nro_header.file_size)) {
         return {};
     }
 
+    Kernel::CodeSet codeset;
     for (std::size_t i = 0; i < nro_header.segments.size(); ++i) {
-        codeset->segments[i].addr = nro_header.segments[i].offset;
-        codeset->segments[i].offset = nro_header.segments[i].offset;
-        codeset->segments[i].size = PageAlignSize(nro_header.segments[i].size);
+        codeset.segments[i].addr = nro_header.segments[i].offset;
+        codeset.segments[i].offset = nro_header.segments[i].offset;
+        codeset.segments[i].size = PageAlignSize(nro_header.segments[i].size);
     }
 
     if (!Settings::values.program_args.empty()) {
         const auto arg_data = Settings::values.program_args;
-        codeset->DataSegment().size += NSO_ARGUMENT_DATA_ALLOCATION_SIZE;
+        codeset.DataSegment().size += NSO_ARGUMENT_DATA_ALLOCATION_SIZE;
         NSOArgumentHeader args_header{
             NSO_ARGUMENT_DATA_ALLOCATION_SIZE, static_cast<u32_le>(arg_data.size()), {}};
         const auto end_offset = program_image.size();
@@ -176,16 +174,15 @@ bool AppLoader_NRO::LoadNro(FileSys::VirtualFile file, VAddr load_base) {
         // Resize program image to include .bss section and page align each section
         bss_size = PageAlignSize(mod_header.bss_end_offset - mod_header.bss_start_offset);
     }
-    codeset->DataSegment().size += bss_size;
+    codeset.DataSegment().size += bss_size;
     program_image.resize(static_cast<u32>(program_image.size()) + bss_size);
 
     // Load codeset for current process
-    codeset->name = file->GetName();
-    codeset->memory = std::make_shared<std::vector<u8>>(std::move(program_image));
-    Core::CurrentProcess()->LoadModule(codeset, load_base);
+    codeset.memory = std::make_shared<std::vector<u8>>(std::move(program_image));
+    Core::CurrentProcess()->LoadModule(std::move(codeset), load_base);
 
     // Register module with GDBStub
-    GDBStub::RegisterModule(codeset->name, load_base, load_base);
+    GDBStub::RegisterModule(file->GetName(), load_base, load_base);
 
     return true;
 }

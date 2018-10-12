@@ -25,7 +25,6 @@ bool Object::IsWaitable() const {
     case HandleType::Process:
     case HandleType::AddressArbiter:
     case HandleType::ResourceLimit:
-    case HandleType::CodeSet:
     case HandleType::ClientPort:
     case HandleType::ClientSession:
         return false;
