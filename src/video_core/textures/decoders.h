@@ -32,4 +32,10 @@ void CopySwizzledData(u32 width, u32 height, u32 bytes_per_pixel, u32 out_bytes_
 std::vector<u8> DecodeTexture(const std::vector<u8>& texture_data, TextureFormat format, u32 width,
                               u32 height);
 
+/**
+ * This function calculates the correct size of a texture depending if it's tiled or not.
+ */
+std::size_t CalculateSize(bool tiled, u32 bytes_per_pixel, u32 width, u32 height, u32 depth,
+                          u32 block_height, u32 block_depth);
+
 } // namespace Tegra::Texture
