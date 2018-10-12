@@ -284,7 +284,7 @@ public:
 
 private:
     std::shared_ptr<IAppletResource> applet_resource;
-
+#pragma optimize("", off)
     void CreateAppletResource(Kernel::HLERequestContext& ctx) {
         if (applet_resource == nullptr) {
             applet_resource = std::make_shared<IAppletResource>();
@@ -405,6 +405,8 @@ private:
     }
 
     void AcquireNpadStyleSetUpdateEventHandle(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        auto npad_id = rp.PopRaw<u32>();
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(applet_resource->GetController<Controller_NPad>(HidController::NPad)
@@ -454,6 +456,8 @@ private:
     }
 
     void SetNpadJoyAssignmentModeSingleByDefault(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        auto npad_id = rp.PopRaw<u32>();
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_HID, "(STUBBED) called");

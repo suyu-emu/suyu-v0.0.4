@@ -287,15 +287,31 @@ Controller_NPad::NPadType Controller_NPad::GetSupportedStyleSet() const {
 
 void Controller_NPad::SetSupportedNPadIdTypes(u8* data, std::size_t length) {
     ASSERT(length > 0 && (length % sizeof(u32)) == 0);
+    supported_npad_id_types.clear();
     supported_npad_id_types.resize(length / sizeof(u32));
     std::memcpy(supported_npad_id_types.data(), data, length);
     CheckForHandheldVariant();
 }
-
+#pragma optimize("", off)
 void Controller_NPad::CheckForHandheldVariant() {
     // As some games expect us to use the variant of handheld mode and some games don't. It's
     // consistent that games set the npad ids in order of priority. We can just swap the controller
     // ids on the fly then if we're in handheld mode
+    if (std::find(supported_npad_id_types.begin(), supported_npad_id_types.end(), 32) !=
+        supported_npad_id_types.end()) {
+        const auto& first_controller = connected_controllers.front();
+        if (first_controller.is_connected &&
+            first_controller.type == NPadControllerType::Handheld) {
+            DisconnectNPad(0);
+            AddNewController(NPadControllerType::Handheld, true);
+        }
+    } else {
+        if (connected_controllers[8].is_connected) {
+            DisconnectNPad(8);
+            AddNewController(NPadControllerType::Handheld);
+        }
+    }
+    /*
     if (supported_npad_id_types.size() > 0) {
         const auto& first_controller = supported_npad_id_types.front();
         if (first_controller == 32 && !connected_controllers[8].is_connected) {
@@ -311,7 +327,7 @@ void Controller_NPad::CheckForHandheldVariant() {
                 AddNewController(NPadControllerType::Handheld);
             }
         }
-    }
+    }*/
 }
 
 const void Controller_NPad::GetSupportedNpadIdTypes(u32* data, std::size_t max_length) {
