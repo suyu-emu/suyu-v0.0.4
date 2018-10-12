@@ -85,8 +85,9 @@ u32 nvmap::IocAlloc(const std::vector<u8>& input, std::vector<u8>& output) {
         return static_cast<u32>(NvErrCodes::InvalidValue);
     }
 
-    if (params.align < 0x1000) {
-        params.align = 0x1000;
+    const u32 min_alignment = 0x1000;
+    if (params.align < min_alignment) {
+        params.align = min_alignment;
     }
 
     auto object = GetObject(params.handle);
