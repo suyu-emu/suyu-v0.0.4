@@ -668,8 +668,10 @@ static void CopySurface(const Surface& src_surface, const Surface& dst_surface,
         std::size_t remaining_size =
             dst_params.size_in_bytes_total - src_params.size_in_bytes_total;
         std::vector<u8> data(remaining_size);
-        Memory::ReadBlock(dst_params.addr + src_params.size_in_bytes_total, data.data(),
-                          data.size());
+        std::memcpy(data.data(),
+                    Memory::GetPointer(dst_params.addr + src_params.size_in_bytes_total),
+                    data.size());
+
         glBufferSubData(GL_PIXEL_PACK_BUFFER, src_params.size_in_bytes_total, remaining_size,
                         data.data());
     }
@@ -916,13 +918,8 @@ void CachedSurface::LoadGLBuffer() {
 MICROPROFILE_DEFINE(OpenGL_SurfaceFlush, "OpenGL", "Surface Flush", MP_RGB(128, 192, 64));
 void CachedSurface::FlushGLBuffer() {
     MICROPROFILE_SCOPE(OpenGL_SurfaceFlush);
-    const auto& rect{params.GetRect()};
+
     // Load data from memory to the surface
-    const GLint x0 = static_cast<GLint>(rect.left);
-    const GLint y0 = static_cast<GLint>(rect.bottom);
-    const size_t buffer_offset =
-        static_cast<size_t>(static_cast<size_t>(y0) * params.width + static_cast<size_t>(x0)) *
-        GetGLBytesPerPixel(params.pixel_format);
     const u32 bytes_per_pixel = GetGLBytesPerPixel(params.pixel_format);
     const u32 copy_size = params.width * params.height * bytes_per_pixel;
     gl_buffer.resize(static_cast<size_t>(params.depth) * copy_size);
@@ -931,7 +928,6 @@ void CachedSurface::FlushGLBuffer() {
     ASSERT(params.width * GetGLBytesPerPixel(params.pixel_format) % 4 == 0);
     glPixelStorei(GL_PACK_ROW_LENGTH, static_cast<GLint>(params.width));
     ASSERT(!tuple.compressed);
-    ASSERT(x0 == 0 && y0 == 0);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
     glGetTextureImage(texture.handle, 0, tuple.format, tuple.type, gl_buffer.size(),
                       gl_buffer.data());
@@ -954,11 +950,10 @@ void CachedSurface::FlushGLBuffer() {
             block_depth = 1U;
         }
         gl_to_morton_fns[static_cast<size_t>(params.pixel_format)](
-            params.width, params.block_height, params.height, block_depth, depth,
-            &gl_buffer[buffer_offset], copy_size, params.addr + buffer_offset);
+            params.width, params.block_height, params.height, block_depth, depth, gl_buffer.data(),
+            copy_size, GetAddr());
     } else {
-        Memory::WriteBlock(params.addr + buffer_offset, &gl_buffer[buffer_offset],
-                           gl_buffer.size() - buffer_offset);
+        std::memcpy(Memory::GetPointer(GetAddr()), gl_buffer.data(), GetSizeInBytes());
     }
 }
 
