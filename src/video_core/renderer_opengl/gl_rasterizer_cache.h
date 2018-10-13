@@ -18,6 +18,7 @@
 #include "video_core/rasterizer_cache.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
+#include "video_core/textures/decoders.h"
 #include "video_core/textures/texture.h"
 
 namespace OpenGL {
@@ -712,18 +713,31 @@ struct SurfaceParams {
     /// Returns the rectangle corresponding to this surface
     MathUtil::Rectangle<u32> GetRect() const;
 
-    /// Returns the size of this surface as a 2D texture in bytes, adjusted for compression
-    std::size_t SizeInBytes2D() const {
+    /// Returns the total size of this surface in bytes, adjusted for compression
+    std::size_t SizeInBytesRaw(bool ignore_tiled = false) const {
         const u32 compression_factor{GetCompressionFactor(pixel_format)};
-        ASSERT(width % compression_factor == 0);
-        ASSERT(height % compression_factor == 0);
-        return (width / compression_factor) * (height / compression_factor) *
-               GetFormatBpp(pixel_format) / CHAR_BIT;
+        const u32 bytes_per_pixel{GetBytesPerPixel(pixel_format)};
+        const size_t uncompressed_size{
+            Tegra::Texture::CalculateSize((ignore_tiled ? false : is_tiled), bytes_per_pixel, width,
+                                          height, depth, block_height, block_depth)};
+
+        // Divide by compression_factor^2, as height and width are factored by this
+        return uncompressed_size / (compression_factor * compression_factor);
     }
 
-    /// Returns the total size of this surface in bytes, adjusted for compression
-    std::size_t SizeInBytesTotal() const {
-        return SizeInBytes2D() * depth;
+    /// Returns the size of this surface as an OpenGL texture in bytes
+    std::size_t SizeInBytesGL() const {
+        return SizeInBytesRaw(true);
+    }
+
+    /// Returns the size of this surface as a cube face in bytes
+    std::size_t SizeInBytesCubeFace() const {
+        return size_in_bytes / 6;
+    }
+
+    /// Returns the size of this surface as an OpenGL cube face in bytes
+    std::size_t SizeInBytesCubeFaceGL() const {
+        return size_in_bytes_gl / 6;
     }
 
     /// Creates SurfaceParams from a texture configuration
@@ -769,8 +783,8 @@ struct SurfaceParams {
 
     // Parameters used for caching
     VAddr addr;
-    std::size_t size_in_bytes_total;
-    std::size_t size_in_bytes_2d;
+    std::size_t size_in_bytes;
+    std::size_t size_in_bytes_gl;
 
     // Render target specific parameters, not used in caching
     struct {
@@ -812,7 +826,7 @@ public:
     }
 
     std::size_t GetSizeInBytes() const {
-        return params.size_in_bytes_total;
+        return params.size_in_bytes;
     }
 
     void Flush() {

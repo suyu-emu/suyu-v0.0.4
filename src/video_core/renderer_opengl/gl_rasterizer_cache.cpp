@@ -34,23 +34,56 @@ struct FormatTuple {
     bool compressed;
 };
 
+static bool IsPixelFormatASTC(PixelFormat format) {
+    switch (format) {
+    case PixelFormat::ASTC_2D_4X4:
+    case PixelFormat::ASTC_2D_5X4:
+    case PixelFormat::ASTC_2D_8X8:
+    case PixelFormat::ASTC_2D_8X5:
+        return true;
+    default:
+        return false;
+    }
+}
+
+static std::pair<u32, u32> GetASTCBlockSize(PixelFormat format) {
+    switch (format) {
+    case PixelFormat::ASTC_2D_4X4:
+        return {4, 4};
+    case PixelFormat::ASTC_2D_5X4:
+        return {5, 4};
+    case PixelFormat::ASTC_2D_8X8:
+        return {8, 8};
+    case PixelFormat::ASTC_2D_8X5:
+        return {8, 5};
+    default:
+        LOG_CRITICAL(HW_GPU, "Unhandled format: {}", static_cast<u32>(format));
+        UNREACHABLE();
+    }
+}
+
 void SurfaceParams::InitCacheParameters(Tegra::GPUVAddr gpu_addr) {
     auto& memory_manager{Core::System::GetInstance().GPU().MemoryManager()};
     const auto cpu_addr{memory_manager.GpuToCpuAddress(gpu_addr)};
     const auto max_size{memory_manager.GetRegionEnd(gpu_addr) - gpu_addr};
 
     addr = cpu_addr ? *cpu_addr : 0;
-    size_in_bytes_total = SizeInBytesTotal();
-    size_in_bytes_2d = SizeInBytes2D();
+    size_in_bytes = SizeInBytesRaw();
 
-    // Clamp sizes to mapped GPU memory region
-    if (size_in_bytes_2d > max_size) {
-        LOG_ERROR(HW_GPU, "Surface size {} exceeds region size {}", size_in_bytes_2d, max_size);
-        size_in_bytes_total = max_size;
-        size_in_bytes_2d = max_size;
-    } else if (size_in_bytes_total > max_size) {
-        LOG_ERROR(HW_GPU, "Surface size {} exceeds region size {}", size_in_bytes_total, max_size);
-        size_in_bytes_total = max_size;
+    if (IsPixelFormatASTC(pixel_format)) {
+        // ASTC is uncompressed in software, in emulated as RGBA8
+        size_in_bytes_gl = width * height * depth * 4;
+    } else {
+        size_in_bytes_gl = SizeInBytesGL();
+    }
+
+    // Clamp size to mapped GPU memory region
+    // TODO(bunnei): Super Mario Odyssey maps a 0x40000 byte region and then uses it for a 0x80000
+    // R32F render buffer. We do not yet know if this is a game bug or something else, but this
+    // check is necessary to prevent flushing from overwriting unmapped memory.
+    if (size_in_bytes > max_size) {
+        LOG_ERROR(HW_GPU, "Surface size {} exceeds region size {}", size_in_bytes, max_size);
+        size_in_bytes = max_size;
     }
 }
 
@@ -289,34 +322,6 @@ static const FormatTuple& GetFormatTuple(PixelFormat pixel_format, ComponentType
     return format;
 }
 
-static bool IsPixelFormatASTC(PixelFormat format) {
-    switch (format) {
-    case PixelFormat::ASTC_2D_4X4:
-    case PixelFormat::ASTC_2D_5X4:
-    case PixelFormat::ASTC_2D_8X8:
-    case PixelFormat::ASTC_2D_8X5:
-        return true;
-    default:
-        return false;
-    }
-}
-
-static std::pair<u32, u32> GetASTCBlockSize(PixelFormat format) {
-    switch (format) {
-    case PixelFormat::ASTC_2D_4X4:
-        return {4, 4};
-    case PixelFormat::ASTC_2D_5X4:
-        return {5, 4};
-    case PixelFormat::ASTC_2D_8X8:
-        return {8, 8};
-    case PixelFormat::ASTC_2D_8X5:
-        return {8, 5};
-    default:
-        LOG_CRITICAL(HW_GPU, "Unhandled format: {}", static_cast<u32>(format));
-        UNREACHABLE();
-    }
-}
-
 MathUtil::Rectangle<u32> SurfaceParams::GetRect() const {
     u32 actual_height{unaligned_height};
     if (IsPixelFormatASTC(pixel_format)) {
@@ -358,7 +363,7 @@ void MortonCopy(u32 stride, u32 block_height, u32 height, u32 block_depth, u32 d
         const std::size_t size_to_copy{std::min(gl_buffer_size, data.size())};
         memcpy(gl_buffer, data.data(), size_to_copy);
     } else {
-        std::vector<u8> data(height * stride * bytes_per_pixel);
+        std::vector<u8> data(gl_buffer_size);
         Tegra::Texture::CopySwizzledData(stride / tile_size, height / tile_size, depth,
                                          bytes_per_pixel, bytes_per_pixel, data.data(), gl_buffer,
                                          false, block_height, block_depth);
@@ -639,22 +644,21 @@ static void CopySurface(const Surface& src_surface, const Surface& dst_surface,
     auto source_format = GetFormatTuple(src_params.pixel_format, src_params.component_type);
     auto dest_format = GetFormatTuple(dst_params.pixel_format, dst_params.component_type);
 
-    std::size_t buffer_size =
-        std::max(src_params.size_in_bytes_total, dst_params.size_in_bytes_total);
+    std::size_t buffer_size = std::max(src_params.size_in_bytes, dst_params.size_in_bytes);
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, copy_pbo_handle);
     glBufferData(GL_PIXEL_PACK_BUFFER, buffer_size, nullptr, GL_STREAM_DRAW_ARB);
     if (source_format.compressed) {
         glGetCompressedTextureImage(src_surface->Texture().handle, src_attachment,
-                                    static_cast<GLsizei>(src_params.size_in_bytes_total), nullptr);
+                                    static_cast<GLsizei>(src_params.size_in_bytes), nullptr);
     } else {
         glGetTextureImage(src_surface->Texture().handle, src_attachment, source_format.format,
-                          source_format.type, static_cast<GLsizei>(src_params.size_in_bytes_total),
+                          source_format.type, static_cast<GLsizei>(src_params.size_in_bytes),
                           nullptr);
     }
     // If the new texture is bigger than the previous one, we need to fill in the rest with data
     // from the CPU.
-    if (src_params.size_in_bytes_total < dst_params.size_in_bytes_total) {
+    if (src_params.size_in_bytes < dst_params.size_in_bytes) {
         // Upload the rest of the memory.
         if (dst_params.is_tiled) {
             // TODO(Subv): We might have to de-tile the subtexture and re-tile it with the rest
@@ -664,14 +668,12 @@ static void CopySurface(const Surface& src_surface, const Surface& dst_surface,
             LOG_DEBUG(HW_GPU, "Trying to upload extra texture data from the CPU during "
                               "reinterpretation but the texture is tiled.");
         }
-        std::size_t remaining_size =
-            dst_params.size_in_bytes_total - src_params.size_in_bytes_total;
+        std::size_t remaining_size = dst_params.size_in_bytes - src_params.size_in_bytes;
         std::vector<u8> data(remaining_size);
-        std::memcpy(data.data(),
-                    Memory::GetPointer(dst_params.addr + src_params.size_in_bytes_total),
+        std::memcpy(data.data(), Memory::GetPointer(dst_params.addr + src_params.size_in_bytes),
                     data.size());
 
-        glBufferSubData(GL_PIXEL_PACK_BUFFER, src_params.size_in_bytes_total, remaining_size,
+        glBufferSubData(GL_PIXEL_PACK_BUFFER, src_params.size_in_bytes, remaining_size,
                         data.data());
     }
 
@@ -873,20 +875,10 @@ static void ConvertFormatAsNeeded_FlushGLBuffer(std::vector<u8>& data, PixelForm
 
 MICROPROFILE_DEFINE(OpenGL_SurfaceLoad, "OpenGL", "Surface Load", MP_RGB(128, 64, 192));
 void CachedSurface::LoadGLBuffer() {
-    ASSERT(params.type != SurfaceType::Fill);
-
-    const u8* const texture_src_data = Memory::GetPointer(params.addr);
-
-    ASSERT(texture_src_data);
-
-    const u32 bytes_per_pixel = SurfaceParams::GetBytesPerPixel(params.pixel_format);
-    const u32 copy_size = params.width * params.height * bytes_per_pixel;
-    const std::size_t total_size = copy_size * params.depth;
-
     MICROPROFILE_SCOPE(OpenGL_SurfaceLoad);
 
+    gl_buffer.resize(params.size_in_bytes_gl);
     if (params.is_tiled) {
-        gl_buffer.resize(total_size);
         u32 depth = params.depth;
         u32 block_depth = params.block_depth;
 
@@ -899,13 +891,12 @@ void CachedSurface::LoadGLBuffer() {
             block_depth = 1U;
         }
 
-        const std::size_t size = copy_size * depth;
-
         morton_to_gl_fns[static_cast<std::size_t>(params.pixel_format)](
             params.width, params.block_height, params.height, block_depth, depth, gl_buffer.data(),
-            size, params.addr);
+            gl_buffer.size(), params.addr);
     } else {
-        const u8* const texture_src_data_end{texture_src_data + total_size};
+        const auto texture_src_data{Memory::GetPointer(params.addr)};
+        const auto texture_src_data_end{texture_src_data + params.size_in_bytes_gl};
         gl_buffer.assign(texture_src_data, texture_src_data_end);
     }
 
@@ -918,10 +909,11 @@ MICROPROFILE_DEFINE(OpenGL_SurfaceFlush, "OpenGL", "Surface Flush", MP_RGB(128, 
 void CachedSurface::FlushGLBuffer() {
     MICROPROFILE_SCOPE(OpenGL_SurfaceFlush);
 
-    // Load data from memory to the surface
-    const u32 bytes_per_pixel = SurfaceParams::GetBytesPerPixel(params.pixel_format);
-    const u32 copy_size = params.width * params.height * bytes_per_pixel;
-    gl_buffer.resize(static_cast<size_t>(params.depth) * copy_size);
+    ASSERT_MSG(!IsPixelFormatASTC(params.pixel_format), "Unimplemented");
+
+    // OpenGL temporary buffer needs to be big enough to store raw texture size
+    gl_buffer.resize(params.size_in_bytes);
+
     const FormatTuple& tuple = GetFormatTuple(params.pixel_format, params.component_type);
     // Ensure no bad interactions with GL_UNPACK_ALIGNMENT
     ASSERT(params.width * SurfaceParams::GetBytesPerPixel(params.pixel_format) % 4 == 0);
@@ -950,7 +942,7 @@ void CachedSurface::FlushGLBuffer() {
         }
         gl_to_morton_fns[static_cast<size_t>(params.pixel_format)](
             params.width, params.block_height, params.height, block_depth, depth, gl_buffer.data(),
-            copy_size, GetAddr());
+            gl_buffer.size(), GetAddr());
     } else {
         std::memcpy(Memory::GetPointer(GetAddr()), gl_buffer.data(), GetSizeInBytes());
     }
@@ -962,10 +954,6 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
         return;
 
     MICROPROFILE_SCOPE(OpenGL_TextureUL);
-
-    ASSERT(gl_buffer.size() == static_cast<std::size_t>(params.width) * params.height *
-                                   SurfaceParams::GetBytesPerPixel(params.pixel_format) *
-                                   params.depth);
 
     const auto& rect{params.GetRect()};
 
@@ -1001,7 +989,7 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
             glCompressedTexImage2D(
                 SurfaceTargetToGL(params.target), 0, tuple.internal_format,
                 static_cast<GLsizei>(params.width), static_cast<GLsizei>(params.height), 0,
-                static_cast<GLsizei>(params.size_in_bytes_2d), &gl_buffer[buffer_offset]);
+                static_cast<GLsizei>(params.size_in_bytes_gl), &gl_buffer[buffer_offset]);
             break;
         case SurfaceParams::SurfaceTarget::Texture3D:
         case SurfaceParams::SurfaceTarget::Texture2DArray:
@@ -1009,16 +997,16 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
                 SurfaceTargetToGL(params.target), 0, tuple.internal_format,
                 static_cast<GLsizei>(params.width), static_cast<GLsizei>(params.height),
                 static_cast<GLsizei>(params.depth), 0,
-                static_cast<GLsizei>(params.size_in_bytes_total), &gl_buffer[buffer_offset]);
+                static_cast<GLsizei>(params.size_in_bytes_gl), &gl_buffer[buffer_offset]);
             break;
         case SurfaceParams::SurfaceTarget::TextureCubemap:
             for (std::size_t face = 0; face < params.depth; ++face) {
                 glCompressedTexImage2D(static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face),
                                        0, tuple.internal_format, static_cast<GLsizei>(params.width),
                                        static_cast<GLsizei>(params.height), 0,
-                                       static_cast<GLsizei>(params.size_in_bytes_2d),
+                                       static_cast<GLsizei>(params.SizeInBytesCubeFaceGL()),
                                        &gl_buffer[buffer_offset]);
-                buffer_offset += params.size_in_bytes_2d;
+                buffer_offset += params.SizeInBytesCubeFace();
             }
             break;
         default:
@@ -1028,7 +1016,7 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
             glCompressedTexImage2D(
                 GL_TEXTURE_2D, 0, tuple.internal_format, static_cast<GLsizei>(params.width),
                 static_cast<GLsizei>(params.height), 0,
-                static_cast<GLsizei>(params.size_in_bytes_2d), &gl_buffer[buffer_offset]);
+                static_cast<GLsizei>(params.size_in_bytes_gl), &gl_buffer[buffer_offset]);
         }
     } else {
 
@@ -1057,7 +1045,7 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
                                 y0, static_cast<GLsizei>(rect.GetWidth()),
                                 static_cast<GLsizei>(rect.GetHeight()), tuple.format, tuple.type,
                                 &gl_buffer[buffer_offset]);
-                buffer_offset += params.size_in_bytes_2d;
+                buffer_offset += params.SizeInBytesCubeFace();
             }
             break;
         default:
