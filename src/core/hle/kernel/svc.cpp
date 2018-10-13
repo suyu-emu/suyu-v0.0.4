@@ -95,12 +95,12 @@ ResultCode MapUnmapMemorySanityChecks(const VMManager& vm_manager, VAddr dst_add
 
     const VAddr dst_end_address = dst_addr + size;
     if (dst_end_address > vm_manager.GetHeapRegionBaseAddress() &&
-        dst_addr < vm_manager.GetHeapRegionEndAddress()) {
+        vm_manager.GetHeapRegionEndAddress() > dst_addr) {
         return ERR_INVALID_MEMORY_RANGE;
     }
 
-    if (dst_end_address > vm_manager.GetNewMapRegionBaseAddress() &&
-        dst_addr < vm_manager.GetMapRegionEndAddress()) {
+    if (dst_end_address > vm_manager.GetMapRegionBaseAddress() &&
+        vm_manager.GetMapRegionEndAddress() > dst_addr) {
         return ERR_INVALID_MEMORY_RANGE;
     }
 
