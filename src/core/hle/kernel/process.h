@@ -24,6 +24,7 @@ class ProgramMetadata;
 namespace Kernel {
 
 class KernelCore;
+class ResourceLimit;
 
 struct AddressMapping {
     // Address and size must be page-aligned
@@ -57,9 +58,23 @@ union ProcessFlags {
     BitField<12, 1, u16> loaded_high; ///< Application loaded high (not at 0x00100000).
 };
 
-enum class ProcessStatus { Created, Running, Exited };
-
-class ResourceLimit;
+/**
+ * Indicates the status of a Process instance.
+ *
+ * @note These match the values as used by kernel,
+ *       so new entries should only be added if RE
+ *       shows that a new value has been introduced.
+ */
+enum class ProcessStatus {
+    Created,
+    CreatedWithDebuggerAttached,
+    Running,
+    WaitingForDebuggerToAttach,
+    DebuggerAttached,
+    Exiting,
+    Exited,
+    DebugBreak,
+};
 
 struct CodeSet final {
     struct Segment {

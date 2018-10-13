@@ -77,6 +77,14 @@ void SvcWrap() {
     FuncReturn(retval);
 }
 
+template <ResultCode func(u64*, u32, u32)>
+void SvcWrap() {
+    u64 param_1 = 0;
+    u32 retval = func(&param_1, static_cast<u32>(Param(1)), static_cast<u32>(Param(2))).raw;
+    Core::CurrentArmInterface().SetReg(1, param_1);
+    FuncReturn(retval);
+}
+
 template <ResultCode func(u32, u64)>
 void SvcWrap() {
     FuncReturn(func(static_cast<u32>(Param(0)), Param(1)).raw);
