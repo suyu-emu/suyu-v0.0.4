@@ -9,15 +9,10 @@
 #include "common/common_types.h"
 #include "common/file_util.h"
 #include "common/logging/log.h"
-#include "core/core.h"
-#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/loader/elf.h"
 #include "core/memory.h"
-
-using Kernel::CodeSet;
-using Kernel::SharedPtr;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // ELF Header Constants
@@ -211,7 +206,7 @@ public:
     u32 GetFlags() const {
         return (u32)(header->e_flags);
     }
-    SharedPtr<CodeSet> LoadInto(VAddr vaddr);
+    Kernel::CodeSet LoadInto(VAddr vaddr);
 
     int GetNumSegments() const {
         return (int)(header->e_phnum);
@@ -274,7 +269,7 @@ const char* ElfReader::GetSectionName(int section) const {
     return nullptr;
 }
 
-SharedPtr<CodeSet> ElfReader::LoadInto(VAddr vaddr) {
+Kernel::CodeSet ElfReader::LoadInto(VAddr vaddr) {
     LOG_DEBUG(Loader, "String section: {}", header->e_shstrndx);
 
     // Should we relocate?
@@ -302,8 +297,7 @@ SharedPtr<CodeSet> ElfReader::LoadInto(VAddr vaddr) {
     std::vector<u8> program_image(total_image_size);
     std::size_t current_image_position = 0;
 
-    auto& kernel = Core::System::GetInstance().Kernel();
-    SharedPtr<CodeSet> codeset = CodeSet::Create(kernel, "");
+    Kernel::CodeSet codeset;
 
     for (unsigned int i = 0; i < header->e_phnum; ++i) {
         const Elf32_Phdr* p = &segments[i];
@@ -311,14 +305,14 @@ SharedPtr<CodeSet> ElfReader::LoadInto(VAddr vaddr) {
                   p->p_vaddr, p->p_filesz, p->p_memsz);
 
         if (p->p_type == PT_LOAD) {
-            CodeSet::Segment* codeset_segment;
+            Kernel::CodeSet::Segment* codeset_segment;
             u32 permission_flags = p->p_flags & (PF_R | PF_W | PF_X);
             if (permission_flags == (PF_R | PF_X)) {
-                codeset_segment = &codeset->CodeSegment();
+                codeset_segment = &codeset.CodeSegment();
             } else if (permission_flags == (PF_R)) {
-                codeset_segment = &codeset->RODataSegment();
+                codeset_segment = &codeset.RODataSegment();
             } else if (permission_flags == (PF_R | PF_W)) {
-                codeset_segment = &codeset->DataSegment();
+                codeset_segment = &codeset.DataSegment();
             } else {
                 LOG_ERROR(Loader, "Unexpected ELF PT_LOAD segment id {} with flags {:X}", i,
                           p->p_flags);
@@ -345,8 +339,8 @@ SharedPtr<CodeSet> ElfReader::LoadInto(VAddr vaddr) {
         }
     }
 
-    codeset->entrypoint = base_addr + header->e_entry;
-    codeset->memory = std::make_shared<std::vector<u8>>(std::move(program_image));
+    codeset.entrypoint = base_addr + header->e_entry;
+    codeset.memory = std::make_shared<std::vector<u8>>(std::move(program_image));
 
     LOG_DEBUG(Loader, "Done loading.");
 
@@ -397,11 +391,11 @@ ResultStatus AppLoader_ELF::Load(Kernel::Process& process) {
 
     const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
     ElfReader elf_reader(&buffer[0]);
-    SharedPtr<CodeSet> codeset = elf_reader.LoadInto(base_address);
-    codeset->name = file->GetName();
+    Kernel::CodeSet codeset = elf_reader.LoadInto(base_address);
+    const VAddr entry_point = codeset.entrypoint;
 
-    process.LoadModule(codeset, codeset->entrypoint);
-    process.Run(codeset->entrypoint, 48, Memory::DEFAULT_STACK_SIZE);
+    process.LoadModule(std::move(codeset), entry_point);
+    process.Run(entry_point, 48, Memory::DEFAULT_STACK_SIZE);
 
     is_loaded = true;
     return ResultStatus::Success;

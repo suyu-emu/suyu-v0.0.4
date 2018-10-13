@@ -12,7 +12,6 @@
 #include "core/core.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/gdbstub/gdbstub.h"
-#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/loader/nso.h"
@@ -111,8 +110,7 @@ VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base,
         return {};
 
     // Build program image
-    auto& kernel = Core::System::GetInstance().Kernel();
-    Kernel::SharedPtr<Kernel::CodeSet> codeset = Kernel::CodeSet::Create(kernel, "");
+    Kernel::CodeSet codeset;
     std::vector<u8> program_image;
     for (std::size_t i = 0; i < nso_header.segments.size(); ++i) {
         std::vector<u8> data =
@@ -122,14 +120,14 @@ VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base,
         }
         program_image.resize(nso_header.segments[i].location);
         program_image.insert(program_image.end(), data.begin(), data.end());
-        codeset->segments[i].addr = nso_header.segments[i].location;
-        codeset->segments[i].offset = nso_header.segments[i].location;
-        codeset->segments[i].size = PageAlignSize(static_cast<u32>(data.size()));
+        codeset.segments[i].addr = nso_header.segments[i].location;
+        codeset.segments[i].offset = nso_header.segments[i].location;
+        codeset.segments[i].size = PageAlignSize(static_cast<u32>(data.size()));
     }
 
     if (should_pass_arguments && !Settings::values.program_args.empty()) {
         const auto arg_data = Settings::values.program_args;
-        codeset->DataSegment().size += NSO_ARGUMENT_DATA_ALLOCATION_SIZE;
+        codeset.DataSegment().size += NSO_ARGUMENT_DATA_ALLOCATION_SIZE;
         NSOArgumentHeader args_header{
             NSO_ARGUMENT_DATA_ALLOCATION_SIZE, static_cast<u32_le>(arg_data.size()), {}};
         const auto end_offset = program_image.size();
@@ -154,7 +152,7 @@ VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base,
         // Resize program image to include .bss section and page align each section
         bss_size = PageAlignSize(mod_header.bss_end_offset - mod_header.bss_start_offset);
     }
-    codeset->DataSegment().size += bss_size;
+    codeset.DataSegment().size += bss_size;
     const u32 image_size{PageAlignSize(static_cast<u32>(program_image.size()) + bss_size)};
     program_image.resize(image_size);
 
@@ -170,12 +168,11 @@ VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base,
     }
 
     // Load codeset for current process
-    codeset->name = file->GetName();
-    codeset->memory = std::make_shared<std::vector<u8>>(std::move(program_image));
-    Core::CurrentProcess()->LoadModule(codeset, load_base);
+    codeset.memory = std::make_shared<std::vector<u8>>(std::move(program_image));
+    Core::CurrentProcess()->LoadModule(std::move(codeset), load_base);
 
     // Register module with GDBStub
-    GDBStub::RegisterModule(codeset->name, load_base, load_base);
+    GDBStub::RegisterModule(file->GetName(), load_base, load_base);
 
     return load_base + image_size;
 }

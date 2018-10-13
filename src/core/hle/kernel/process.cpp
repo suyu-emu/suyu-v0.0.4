@@ -20,13 +20,7 @@
 
 namespace Kernel {
 
-SharedPtr<CodeSet> CodeSet::Create(KernelCore& kernel, std::string name) {
-    SharedPtr<CodeSet> codeset(new CodeSet(kernel));
-    codeset->name = std::move(name);
-    return codeset;
-}
-
-CodeSet::CodeSet(KernelCore& kernel) : Object{kernel} {}
+CodeSet::CodeSet() = default;
 CodeSet::~CodeSet() = default;
 
 SharedPtr<Process> Process::Create(KernelCore& kernel, std::string&& name) {
@@ -224,20 +218,20 @@ void Process::FreeTLSSlot(VAddr tls_address) {
     tls_slots[tls_page].reset(tls_slot);
 }
 
-void Process::LoadModule(SharedPtr<CodeSet> module_, VAddr base_addr) {
+void Process::LoadModule(CodeSet module_, VAddr base_addr) {
     const auto MapSegment = [&](CodeSet::Segment& segment, VMAPermission permissions,
                                 MemoryState memory_state) {
-        auto vma = vm_manager
-                       .MapMemoryBlock(segment.addr + base_addr, module_->memory, segment.offset,
-                                       segment.size, memory_state)
-                       .Unwrap();
+        const auto vma = vm_manager
+                             .MapMemoryBlock(segment.addr + base_addr, module_.memory,
+                                             segment.offset, segment.size, memory_state)
+                             .Unwrap();
         vm_manager.Reprotect(vma, permissions);
     };
 
     // Map CodeSet segments
-    MapSegment(module_->CodeSegment(), VMAPermission::ReadExecute, MemoryState::CodeStatic);
-    MapSegment(module_->RODataSegment(), VMAPermission::Read, MemoryState::CodeMutable);
-    MapSegment(module_->DataSegment(), VMAPermission::ReadWrite, MemoryState::CodeMutable);
+    MapSegment(module_.CodeSegment(), VMAPermission::ReadExecute, MemoryState::CodeStatic);
+    MapSegment(module_.RODataSegment(), VMAPermission::Read, MemoryState::CodeMutable);
+    MapSegment(module_.DataSegment(), VMAPermission::ReadWrite, MemoryState::CodeMutable);
 }
 
 ResultVal<VAddr> Process::HeapAllocate(VAddr target, u64 size, VMAPermission perms) {

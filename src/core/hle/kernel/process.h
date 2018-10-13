@@ -61,26 +61,15 @@ enum class ProcessStatus { Created, Running, Exited };
 
 class ResourceLimit;
 
-struct CodeSet final : public Object {
+struct CodeSet final {
     struct Segment {
         std::size_t offset = 0;
         VAddr addr = 0;
         u32 size = 0;
     };
 
-    static SharedPtr<CodeSet> Create(KernelCore& kernel, std::string name);
-
-    std::string GetTypeName() const override {
-        return "CodeSet";
-    }
-    std::string GetName() const override {
-        return name;
-    }
-
-    static const HandleType HANDLE_TYPE = HandleType::CodeSet;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
-    }
+    explicit CodeSet();
+    ~CodeSet();
 
     Segment& CodeSegment() {
         return segments[0];
@@ -109,14 +98,7 @@ struct CodeSet final : public Object {
     std::shared_ptr<std::vector<u8>> memory;
 
     std::array<Segment, 3> segments;
-    VAddr entrypoint;
-
-    /// Name of the process
-    std::string name;
-
-private:
-    explicit CodeSet(KernelCore& kernel);
-    ~CodeSet() override;
+    VAddr entrypoint = 0;
 };
 
 class Process final : public Object {
@@ -219,7 +201,7 @@ public:
      */
     void PrepareForTermination();
 
-    void LoadModule(SharedPtr<CodeSet> module_, VAddr base_addr);
+    void LoadModule(CodeSet module_, VAddr base_addr);
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Memory Management
