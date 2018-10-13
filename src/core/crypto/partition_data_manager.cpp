@@ -313,13 +313,14 @@ PartitionDataManager::PartitionDataManager(FileSys::VirtualDir sysdata_dir)
           FindFileInDirWithNames(sysdata_dir, "BCPKG2-5-Repair-Main"),
           FindFileInDirWithNames(sysdata_dir, "BCPKG2-6-Repair-Sub"),
       }),
+      prodinfo(FindFileInDirWithNames(sysdata_dir, "PRODINFO")),
       secure_monitor(FindFileInDirWithNames(sysdata_dir, "secmon")),
       package1_decrypted(FindFileInDirWithNames(sysdata_dir, "pkg1_decr")),
       secure_monitor_bytes(secure_monitor == nullptr ? std::vector<u8>{}
                                                      : secure_monitor->ReadAllBytes()),
       package1_decrypted_bytes(package1_decrypted == nullptr ? std::vector<u8>{}
-                                                             : package1_decrypted->ReadAllBytes()),
-      prodinfo(FindFileInDirWithNames(sysdata_dir, "PRODINFO")) {}
+                                                             : package1_decrypted->ReadAllBytes()) {
+}
 
 PartitionDataManager::~PartitionDataManager() = default;
 
