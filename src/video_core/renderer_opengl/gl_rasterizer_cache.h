@@ -867,9 +867,6 @@ public:
     /// Get the color surface based on the framebuffer configuration and the specified render target
     Surface GetColorBufferSurface(std::size_t index, bool preserve_contents);
 
-    /// Flushes the surface to Switch memory
-    void FlushSurface(const Surface& surface);
-
     /// Tries to find a framebuffer using on the provided CPU address
     Surface TryFindFramebufferSurface(VAddr addr) const;
 

@@ -1121,10 +1121,6 @@ void RasterizerCacheOpenGL::LoadSurface(const Surface& surface) {
     surface->UploadGLTexture(read_framebuffer.handle, draw_framebuffer.handle);
 }
 
-void RasterizerCacheOpenGL::FlushSurface(const Surface& surface) {
-    surface->FlushGLBuffer();
-}
-
 Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params, bool preserve_contents) {
     if (params.addr == 0 || params.height * params.width == 0) {
         return {};
