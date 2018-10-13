@@ -447,7 +447,7 @@ bool AttemptDecrypt(const std::array<u8, 16>& key, Package2Header& header) {
     return false;
 }
 
-void PartitionDataManager::DecryptPackage2(std::array<std::array<u8, 16>, 0x20> package2_keys,
+void PartitionDataManager::DecryptPackage2(const std::array<Key128, 0x20>& package2_keys,
                                            Package2Type type) {
     FileSys::VirtualFile file = std::make_shared<FileSys::OffsetVfsFile>(
         package2[static_cast<size_t>(type)],

@@ -60,7 +60,8 @@ public:
     // Package2
     bool HasPackage2(Package2Type type = Package2Type::NormalMain) const;
     FileSys::VirtualFile GetPackage2Raw(Package2Type type = Package2Type::NormalMain) const;
-    void DecryptPackage2(std::array<std::array<u8, 16>, 0x20> package2, Package2Type type);
+    void DecryptPackage2(const std::array<std::array<u8, 16>, 0x20>& package2_keys,
+                         Package2Type type);
     const std::vector<u8>& GetPackage2FSDecompressed(
         Package2Type type = Package2Type::NormalMain) const;
     std::array<u8, 0x10> GetKeyAreaKeyApplicationSource(
