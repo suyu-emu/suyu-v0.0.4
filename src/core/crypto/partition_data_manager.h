@@ -34,7 +34,7 @@ public:
     // BOOT0
     bool HasBoot0() const;
     FileSys::VirtualFile GetBoot0Raw() const;
-    EncryptedKeyBlob GetEncryptedKeyblob(u8 index) const;
+    EncryptedKeyBlob GetEncryptedKeyblob(std::size_t index) const;
     EncryptedKeyBlobs GetEncryptedKeyblobs() const;
     std::vector<u8> GetSecureMonitor() const;
     std::array<u8, 0x10> GetPackage2KeySource() const;
@@ -46,7 +46,7 @@ public:
     std::vector<u8> GetPackage1Decrypted() const;
     std::array<u8, 0x10> GetMasterKeySource() const;
     std::array<u8, 0x10> GetKeyblobMACKeySource() const;
-    std::array<u8, 0x10> GetKeyblobKeySource(u8 revision) const;
+    std::array<u8, 0x10> GetKeyblobKeySource(std::size_t revision) const;
 
     // Fuses
     bool HasFuses() const;

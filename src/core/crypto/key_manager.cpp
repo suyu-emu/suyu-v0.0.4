@@ -98,7 +98,7 @@ std::array<u8, 144> DecryptKeyblob(const std::array<u8, 176>& encrypted_keyblob,
     return keyblob;
 }
 
-void KeyManager::DeriveGeneralPurposeKeys(u8 crypto_revision) {
+void KeyManager::DeriveGeneralPurposeKeys(std::size_t crypto_revision) {
     const auto kek_generation_source =
         GetKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKekGeneration));
     const auto key_generation_source =
@@ -270,6 +270,9 @@ static std::array<u8, size> operator^(const std::array<u8, size>& lhs,
 
 template <size_t target_size, size_t in_size>
 static std::array<u8, target_size> MGF1(const std::array<u8, in_size>& seed) {
+    // Avoids truncation overflow within the loop below.
+    static_assert(target_size <= 0xFF);
+
     std::array<u8, in_size + 4> seed_exp{};
     std::memcpy(seed_exp.data(), seed.data(), in_size);
 
@@ -277,7 +280,7 @@ static std::array<u8, target_size> MGF1(const std::array<u8, in_size>& seed) {
     size_t i = 0;
     while (out.size() < target_size) {
         out.resize(out.size() + 0x20);
-        seed_exp[in_size + 3] = i;
+        seed_exp[in_size + 3] = static_cast<u8>(i);
         mbedtls_sha256(seed_exp.data(), seed_exp.size(), out.data() + out.size() - 0x20, 0);
         ++i;
     }

@@ -332,7 +332,8 @@ FileSys::VirtualFile PartitionDataManager::GetBoot0Raw() const {
     return boot0;
 }
 
-PartitionDataManager::EncryptedKeyBlob PartitionDataManager::GetEncryptedKeyblob(u8 index) const {
+PartitionDataManager::EncryptedKeyBlob PartitionDataManager::GetEncryptedKeyblob(
+    std::size_t index) const {
     if (HasBoot0() && index < NUM_ENCRYPTED_KEYBLOBS)
         return GetEncryptedKeyblobs()[index];
     return {};
@@ -389,7 +390,7 @@ std::array<u8, 16> PartitionDataManager::GetKeyblobMACKeySource() const {
     return FindKeyFromHex(package1_decrypted_bytes, source_hashes[0]);
 }
 
-std::array<u8, 16> PartitionDataManager::GetKeyblobKeySource(u8 revision) const {
+std::array<u8, 16> PartitionDataManager::GetKeyblobKeySource(std::size_t revision) const {
     if (keyblob_source_hashes[revision] == SHA256Hash{}) {
         LOG_WARNING(Crypto,
                     "No keyblob source hash for crypto revision {:02X}! Cannot derive keys...",
@@ -456,11 +457,12 @@ void PartitionDataManager::DecryptPackage2(std::array<std::array<u8, 16>, 0x20> 
     if (file->ReadObject(&header) != sizeof(Package2Header))
         return;
 
-    u8 revision = 0xFF;
+    std::size_t revision = 0xFF;
     if (header.magic != Common::MakeMagic('P', 'K', '2', '1')) {
-        for (size_t i = 0; i < package2_keys.size(); ++i) {
-            if (AttemptDecrypt(package2_keys[i], header))
+        for (std::size_t i = 0; i < package2_keys.size(); ++i) {
+            if (AttemptDecrypt(package2_keys[i], header)) {
                 revision = i;
+            }
         }
     }
 
