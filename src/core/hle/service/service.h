@@ -180,8 +180,7 @@ private:
 };
 
 /// Initialize ServiceManager
-void Init(std::shared_ptr<SM::ServiceManager>& sm,
-          const std::shared_ptr<FileSys::VfsFilesystem>& vfs);
+void Init(std::shared_ptr<SM::ServiceManager>& sm, FileSys::VfsFilesystem& vfs);
 
 /// Shutdown ServiceManager
 void Shutdown();
