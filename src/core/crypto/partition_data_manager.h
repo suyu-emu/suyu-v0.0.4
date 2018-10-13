@@ -22,6 +22,11 @@ enum class Package2Type {
 class PartitionDataManager {
 public:
     static const u8 MAX_KEYBLOB_SOURCE_HASH;
+    static constexpr std::size_t NUM_ENCRYPTED_KEYBLOBS = 32;
+    static constexpr std::size_t ENCRYPTED_KEYBLOB_SIZE = 0xB0;
+
+    using EncryptedKeyBlob = std::array<u8, ENCRYPTED_KEYBLOB_SIZE>;
+    using EncryptedKeyBlobs = std::array<EncryptedKeyBlob, NUM_ENCRYPTED_KEYBLOBS>;
 
     explicit PartitionDataManager(const FileSys::VirtualDir& sysdata_dir);
     ~PartitionDataManager();
@@ -29,8 +34,8 @@ public:
     // BOOT0
     bool HasBoot0() const;
     FileSys::VirtualFile GetBoot0Raw() const;
-    std::array<u8, 0xB0> GetEncryptedKeyblob(u8 index) const;
-    std::array<std::array<u8, 0xB0>, 0x20> GetEncryptedKeyblobs() const;
+    EncryptedKeyBlob GetEncryptedKeyblob(u8 index) const;
+    EncryptedKeyBlobs GetEncryptedKeyblobs() const;
     std::vector<u8> GetSecureMonitor() const;
     std::array<u8, 0x10> GetPackage2KeySource() const;
     std::array<u8, 0x10> GetAESKekGenerationSource() const;

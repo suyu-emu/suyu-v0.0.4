@@ -332,18 +332,18 @@ FileSys::VirtualFile PartitionDataManager::GetBoot0Raw() const {
     return boot0;
 }
 
-std::array<u8, 176> PartitionDataManager::GetEncryptedKeyblob(u8 index) const {
-    if (HasBoot0() && index < 32)
+PartitionDataManager::EncryptedKeyBlob PartitionDataManager::GetEncryptedKeyblob(u8 index) const {
+    if (HasBoot0() && index < NUM_ENCRYPTED_KEYBLOBS)
         return GetEncryptedKeyblobs()[index];
     return {};
 }
 
-std::array<std::array<u8, 176>, 32> PartitionDataManager::GetEncryptedKeyblobs() const {
+PartitionDataManager::EncryptedKeyBlobs PartitionDataManager::GetEncryptedKeyblobs() const {
     if (!HasBoot0())
         return {};
 
-    std::array<std::array<u8, 176>, 32> out{};
-    for (size_t i = 0; i < 0x20; ++i)
+    EncryptedKeyBlobs out{};
+    for (size_t i = 0; i < out.size(); ++i)
         boot0->Read(out[i].data(), out[i].size(), 0x180000 + i * 0x200);
     return out;
 }
