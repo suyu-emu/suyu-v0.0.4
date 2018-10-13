@@ -125,7 +125,9 @@ u32 BytesPerPixel(TextureFormat format) {
     case TextureFormat::R32_G32_B32:
         return 12;
     case TextureFormat::ASTC_2D_4X4:
+    case TextureFormat::ASTC_2D_5X4:
     case TextureFormat::ASTC_2D_8X8:
+    case TextureFormat::ASTC_2D_8X5:
     case TextureFormat::A8R8G8B8:
     case TextureFormat::A2B10G10R10:
     case TextureFormat::BF10GF11RF11:

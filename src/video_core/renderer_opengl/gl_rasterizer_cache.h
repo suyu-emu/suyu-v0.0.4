@@ -74,19 +74,21 @@ struct SurfaceParams {
         RG32UI = 43,
         R32UI = 44,
         ASTC_2D_8X8 = 45,
+        ASTC_2D_8X5 = 46,
+        ASTC_2D_5X4 = 47,
 
         MaxColorFormat,
 
         // Depth formats
-        Z32F = 46,
-        Z16 = 47,
+        Z32F = 48,
+        Z16 = 49,
 
         MaxDepthFormat,
 
         // DepthStencil formats
-        Z24S8 = 48,
-        S8Z24 = 49,
-        Z32FS8 = 50,
+        Z24S8 = 50,
+        S8Z24 = 51,
+        Z32FS8 = 52,
 
         MaxDepthStencilFormat,
 
@@ -220,6 +222,8 @@ struct SurfaceParams {
             1, // RG32UI
             1, // R32UI
             4, // ASTC_2D_8X8
+            4, // ASTC_2D_8X5
+            4, // ASTC_2D_5X4
             1, // Z32F
             1, // Z16
             1, // Z24S8
@@ -282,6 +286,8 @@ struct SurfaceParams {
             64,  // RG32UI
             32,  // R32UI
             16,  // ASTC_2D_8X8
+            32,  // ASTC_2D_8X5
+            32,  // ASTC_2D_5X4
             32,  // Z32F
             16,  // Z16
             32,  // Z24S8
@@ -553,8 +559,12 @@ struct SurfaceParams {
             return PixelFormat::BC6H_SF16;
         case Tegra::Texture::TextureFormat::ASTC_2D_4X4:
             return PixelFormat::ASTC_2D_4X4;
+        case Tegra::Texture::TextureFormat::ASTC_2D_5X4:
+            return PixelFormat::ASTC_2D_5X4;
         case Tegra::Texture::TextureFormat::ASTC_2D_8X8:
             return PixelFormat::ASTC_2D_8X8;
+        case Tegra::Texture::TextureFormat::ASTC_2D_8X5:
+            return PixelFormat::ASTC_2D_8X5;
         case Tegra::Texture::TextureFormat::R16_G16:
             switch (component_type) {
             case Tegra::Texture::ComponentType::FLOAT:
