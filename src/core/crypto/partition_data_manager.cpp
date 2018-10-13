@@ -301,7 +301,7 @@ FileSys::VirtualFile FindFileInDirWithNames(const FileSys::VirtualDir& dir,
     return nullptr;
 }
 
-PartitionDataManager::PartitionDataManager(FileSys::VirtualDir sysdata_dir)
+PartitionDataManager::PartitionDataManager(const FileSys::VirtualDir& sysdata_dir)
     : boot0(FindFileInDirWithNames(sysdata_dir, "BOOT0")),
       fuses(FindFileInDirWithNames(sysdata_dir, "fuse")),
       kfuses(FindFileInDirWithNames(sysdata_dir, "kfuse")),

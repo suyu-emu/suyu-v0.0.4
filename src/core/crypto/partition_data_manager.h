@@ -23,7 +23,7 @@ class PartitionDataManager {
 public:
     static const u8 MAX_KEYBLOB_SOURCE_HASH;
 
-    explicit PartitionDataManager(FileSys::VirtualDir sysdata_dir);
+    explicit PartitionDataManager(const FileSys::VirtualDir& sysdata_dir);
     ~PartitionDataManager();
 
     // BOOT0
