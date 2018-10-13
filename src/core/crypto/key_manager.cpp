@@ -881,9 +881,9 @@ void KeyManager::DeriveETicket(PartitionDataManager& data) {
                                      "/system/save/80000000000000e2",
                                  "rb+");
 
+    const auto blob2 = GetTicketblob(save2);
     auto res = GetTicketblob(save1);
-    const auto res2 = GetTicketblob(save2);
-    std::copy(res2.begin(), res2.end(), std::back_inserter(res));
+    res.insert(res.end(), blob2.begin(), blob2.end());
 
     for (const auto& raw : res) {
         const auto pair = ParseTicket(raw, rsa_key);
