@@ -147,30 +147,38 @@ boost::optional<Key128> DeriveSDSeed() {
                                    "rb+");
     if (!save_43.IsOpen())
         return boost::none;
+
     const FileUtil::IOFile sd_private(
         FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir) + "/Nintendo/Contents/private", "rb+");
     if (!sd_private.IsOpen())
         return boost::none;
 
     std::array<u8, 0x10> private_seed{};
-    if (sd_private.ReadBytes(private_seed.data(), private_seed.size()) != 0x10)
+    if (sd_private.ReadBytes(private_seed.data(), private_seed.size()) != private_seed.size()) {
         return boost::none;
+    }
 
     std::array<u8, 0x10> buffer{};
     std::size_t offset = 0;
     for (; offset + 0x10 < save_43.GetSize(); ++offset) {
-        save_43.Seek(offset, SEEK_SET);
+        if (!save_43.Seek(offset, SEEK_SET)) {
+            return boost::none;
+        }
+
         save_43.ReadBytes(buffer.data(), buffer.size());
-        if (buffer == private_seed)
+        if (buffer == private_seed) {
             break;
+        }
     }
 
-    if (offset + 0x10 >= save_43.GetSize())
+    if (!save_43.Seek(offset + 0x10, SEEK_SET)) {
         return boost::none;
+    }
 
     Key128 seed{};
-    save_43.Seek(offset + 0x10, SEEK_SET);
-    save_43.ReadBytes(seed.data(), seed.size());
+    if (save_43.ReadBytes(seed.data(), seed.size()) != seed.size()) {
+        return boost::none;
+    }
     return seed;
 }
 
@@ -233,7 +241,9 @@ std::vector<TicketRaw> GetTicketblob(const FileUtil::IOFile& ticket_save) {
         return {};
 
     std::vector<u8> buffer(ticket_save.GetSize());
-    ticket_save.ReadBytes(buffer.data(), buffer.size());
+    if (ticket_save.ReadBytes(buffer.data(), buffer.size()) != buffer.size()) {
+        return {};
+    }
 
     std::vector<TicketRaw> out;
     u32 magic{};
