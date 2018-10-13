@@ -469,15 +469,13 @@ void PartitionDataManager::DecryptPackage2(std::array<std::array<u8, 16>, 0x20> 
     if (header.magic != Common::MakeMagic('P', 'K', '2', '1'))
         return;
 
-    const std::vector<u8> s1_iv(header.section_ctr[1].begin(), header.section_ctr[1].end());
-
     const auto a = std::make_shared<FileSys::OffsetVfsFile>(
         file, header.section_size[1], header.section_size[0] + sizeof(Package2Header));
 
     auto c = a->ReadAllBytes();
 
     AESCipher<Key128> cipher(package2_keys[revision], Mode::CTR);
-    cipher.SetIV(s1_iv);
+    cipher.SetIV({header.section_ctr[1].begin(), header.section_ctr[1].end()});
     cipher.Transcode(c.data(), c.size(), c.data(), Op::Decrypt);
 
     INIHeader ini;
