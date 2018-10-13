@@ -131,38 +131,33 @@ static QPixmap GetIcon(Service::Account::UUID uuid) {
 
 void ConfigureSystem::PopulateUserList() {
     const auto& profiles = profile_manager->GetAllUsers();
-    std::transform(
-        profiles.begin(), profiles.end(), std::back_inserter(list_items),
-        [this](const Service::Account::UUID& user) {
-            Service::Account::ProfileBase profile;
-            if (!profile_manager->GetProfileBase(user, profile))
-                return QList<QStandardItem*>{};
-            const auto username = Common::StringFromFixedZeroTerminatedBuffer(
-                reinterpret_cast<const char*>(profile.username.data()), profile.username.size());
+    for (const auto& user : profiles) {
+        Service::Account::ProfileBase profile;
+        if (!profile_manager->GetProfileBase(user, profile))
+            continue;
 
-            return QList<QStandardItem*>{new QStandardItem{
-                GetIcon(user).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-                QString::fromStdString(username + '\n' + user.FormatSwitch())}};
-        });
+        const auto username = Common::StringFromFixedZeroTerminatedBuffer(
+            reinterpret_cast<const char*>(profile.username.data()), profile.username.size());
 
-    list_items.erase(
-        std::remove_if(list_items.begin(), list_items.end(),
-                       [](const auto& list) { return list == QList<QStandardItem*>{}; }),
-        list_items.end());
+        list_items.push_back(QList<QStandardItem*>{new QStandardItem{
+            GetIcon(user).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
+            QString::fromStdString(username + '\n' + user.FormatSwitch())}});
+    }
 
     for (const auto& item : list_items)
         item_model->appendRow(item);
 }
 
 void ConfigureSystem::UpdateCurrentUser() {
-    ui->pm_add->setEnabled(profile_manager->GetUserCount() < 8);
+    ui->pm_add->setEnabled(profile_manager->GetUserCount() < Service::Account::MAX_USERS);
 
-    const auto& current_user = profile_manager->GetAllUsers()[Settings::values.current_user];
-    const auto username = GetAccountUsername(current_user);
+    const auto& current_user = profile_manager->GetUser(Settings::values.current_user);
+    ASSERT(current_user != boost::none);
+    const auto username = GetAccountUsername(*current_user);
 
     scene->clear();
     scene->addPixmap(
-        GetIcon(current_user).scaled(48, 48, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+        GetIcon(*current_user).scaled(48, 48, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     ui->current_user_username->setText(QString::fromStdString(username));
 }
 
@@ -255,13 +250,12 @@ void ConfigureSystem::AddUser() {
 
 void ConfigureSystem::RenameUser() {
     const auto user = tree_view->currentIndex().row();
-    ASSERT(user < 8);
-
-    const auto uuid = profile_manager->GetAllUsers()[user];
-    const auto username = GetAccountUsername(uuid);
+    const auto uuid = profile_manager->GetUser(user);
+    ASSERT(uuid != boost::none);
+    const auto username = GetAccountUsername(*uuid);
 
     Service::Account::ProfileBase profile;
-    if (!profile_manager->GetProfileBase(uuid, profile))
+    if (!profile_manager->GetProfileBase(*uuid, profile))
         return;
 
     bool ok = false;
@@ -273,26 +267,28 @@ void ConfigureSystem::RenameUser() {
         return;
 
     const auto username_std = new_username.toStdString();
-    if (username_std.size() > profile.username.size())
-        std::copy_n(username_std.begin(), profile.username.size(), profile.username.begin());
-    else
+    if (username_std.size() > profile.username.size()) {
+        std::copy_n(username_std.begin(), std::min(profile.username.size(), username_std.size()),
+                    profile.username.begin());
+    } else {
         std::copy(username_std.begin(), username_std.end(), profile.username.begin());
+    }
 
-    profile_manager->SetProfileBase(uuid, profile);
+    profile_manager->SetProfileBase(*uuid, profile);
 
     item_model->setItem(
         user, 0,
         new QStandardItem{
-            GetIcon(uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-            QString::fromStdString(username_std + '\n' + uuid.FormatSwitch())});
+            GetIcon(*uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
+            QString::fromStdString(username_std + '\n' + uuid->FormatSwitch())});
     UpdateCurrentUser();
 }
 
 void ConfigureSystem::DeleteUser() {
     const auto index = tree_view->currentIndex().row();
-    ASSERT(index < 8);
-    const auto uuid = profile_manager->GetAllUsers()[index];
-    const auto username = GetAccountUsername(uuid);
+    const auto uuid = profile_manager->GetUser(index);
+    ASSERT(uuid != boost::none);
+    const auto username = GetAccountUsername(*uuid);
 
     const auto confirm = QMessageBox::question(
         this, tr("Confirm Delete"),
@@ -305,7 +301,7 @@ void ConfigureSystem::DeleteUser() {
         Settings::values.current_user = 0;
     UpdateCurrentUser();
 
-    if (!profile_manager->RemoveUser(uuid))
+    if (!profile_manager->RemoveUser(*uuid))
         return;
 
     item_model->removeRows(tree_view->currentIndex().row(), 1);
@@ -317,9 +313,9 @@ void ConfigureSystem::DeleteUser() {
 
 void ConfigureSystem::SetUserImage() {
     const auto index = tree_view->currentIndex().row();
-    ASSERT(index < 8);
-    const auto uuid = profile_manager->GetAllUsers()[index];
-    const auto username = GetAccountUsername(uuid);
+    const auto uuid = profile_manager->GetUser(index);
+    ASSERT(uuid != boost::none);
+    const auto username = GetAccountUsername(*uuid);
 
     const auto file = QFileDialog::getOpenFileName(this, tr("Select User Image"), QString(),
                                                    "JPEG Images (*.jpg *.jpeg)");
@@ -327,20 +323,20 @@ void ConfigureSystem::SetUserImage() {
     if (file.isEmpty())
         return;
 
-    FileUtil::Delete(GetImagePath(uuid));
+    FileUtil::Delete(GetImagePath(*uuid));
 
     const auto raw_path =
         FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) + "/system/save/8000000000000010";
     if (FileUtil::Exists(raw_path) && !FileUtil::IsDirectory(raw_path))
         FileUtil::Delete(raw_path);
 
-    FileUtil::CreateFullPath(GetImagePath(uuid));
-    FileUtil::Copy(file.toStdString(), GetImagePath(uuid));
+    FileUtil::CreateFullPath(GetImagePath(*uuid));
+    FileUtil::Copy(file.toStdString(), GetImagePath(*uuid));
 
     item_model->setItem(
         index, 0,
         new QStandardItem{
-            GetIcon(uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-            QString::fromStdString(username + '\n' + uuid.FormatSwitch())});
+            GetIcon(*uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
+            QString::fromStdString(username + '\n' + uuid->FormatSwitch())});
     UpdateCurrentUser();
 }

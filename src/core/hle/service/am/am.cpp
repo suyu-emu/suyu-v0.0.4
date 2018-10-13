@@ -28,7 +28,15 @@
 
 namespace Service::AM {
 
-constexpr std::size_t POP_LAUNCH_PARAMETER_BUFFER_SIZE = 0x88;
+constexpr u32 POP_LAUNCH_PARAMETER_MAGIC = 0xC79497CA;
+
+struct LaunchParameters {
+    u32_le magic;
+    u32_le is_account_selected;
+    u128 current_user;
+    INSERT_PADDING_BYTES(0x70);
+};
+static_assert(sizeof(LaunchParameters) == 0x88);
 
 IWindowController::IWindowController() : ServiceFramework("IWindowController") {
     // clang-format off
@@ -728,22 +736,23 @@ void IApplicationFunctions::EndBlockingHomeButton(Kernel::HLERequestContext& ctx
 }
 
 void IApplicationFunctions::PopLaunchParameter(Kernel::HLERequestContext& ctx) {
-    constexpr std::array<u8, 0x8> header_data{
-        0xca, 0x97, 0x94, 0xc7, // Magic
-        1,    0,    0,    0,    // IsAccountSelected (bool)
-    };
+    LaunchParameters params{};
 
-    std::vector<u8> buffer(POP_LAUNCH_PARAMETER_BUFFER_SIZE);
-
-    std::memcpy(buffer.data(), header_data.data(), header_data.size());
+    params.magic = POP_LAUNCH_PARAMETER_MAGIC;
+    params.is_account_selected = 1;
 
     Account::ProfileManager profile_manager{};
-    const auto uuid = profile_manager.GetAllUsers()[Settings::values.current_user].uuid;
-    std::memcpy(buffer.data() + header_data.size(), uuid.data(), sizeof(u128));
+    const auto uuid = profile_manager.GetUser(Settings::values.current_user);
+    ASSERT(uuid != boost::none);
+    params.current_user = uuid->uuid;
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
     rb.Push(RESULT_SUCCESS);
+
+    std::vector<u8> buffer(sizeof(LaunchParameters));
+    std::memcpy(buffer.data(), &params, buffer.size());
+
     rb.PushIpcInterface<AM::IStorage>(buffer);
 
     LOG_DEBUG(Service_AM, "called");

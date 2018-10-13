@@ -106,6 +106,8 @@ private:
         const FileUtil::IOFile image(GetImagePath(user_id), "rb");
 
         if (!image.IsOpen()) {
+            LOG_WARNING(Service_ACC,
+                        "Failed to load user provided image! Falling back to built-in backup...");
             ctx.WriteBuffer(backup_jpeg);
             rb.Push<u32>(backup_jpeg_size);
         } else {
@@ -126,10 +128,13 @@ private:
 
         const FileUtil::IOFile image(GetImagePath(user_id), "rb");
 
-        if (!image.IsOpen())
+        if (!image.IsOpen()) {
+            LOG_WARNING(Service_ACC,
+                        "Failed to load user provided image! Falling back to built-in backup...");
             rb.Push<u32>(backup_jpeg_size);
-        else
+        } else {
             rb.Push<u32>(std::min<u32>(image.GetSize(), MAX_JPEG_IMAGE_SIZE));
+        }
     }
 
     const ProfileManager& profile_manager;

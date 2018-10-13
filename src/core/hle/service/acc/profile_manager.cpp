@@ -30,6 +30,8 @@ constexpr ResultCode ERROR_TOO_MANY_USERS(ErrorModule::Account, -1);
 constexpr ResultCode ERROR_USER_ALREADY_EXISTS(ErrorModule::Account, -2);
 constexpr ResultCode ERROR_ARGUMENT_IS_NULL(ErrorModule::Account, 20);
 
+constexpr const char* ACC_SAVE_AVATORS_BASE_PATH = "/system/save/8000000000000010/su/avators/";
+
 const UUID& UUID::Generate() {
     std::random_device device;
     std::mt19937 gen(device());
@@ -45,11 +47,11 @@ ProfileManager::ProfileManager() {
     if (user_count == 0)
         CreateNewUser(UUID{}.Generate(), "yuzu");
 
-    auto current = Settings::values.current_user;
-    if (!GetAllUsers()[current])
+    auto current = std::clamp<int>(Settings::values.current_user, 0, MAX_USERS - 1);
+    if (UserExistsIndex(current))
         current = 0;
 
-    OpenUser(GetAllUsers()[current]);
+    OpenUser(*GetUser(current));
 }
 
 ProfileManager::~ProfileManager() {
@@ -126,6 +128,12 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, const std::string& username)
     return CreateNewUser(uuid, username_output);
 }
 
+boost::optional<UUID> ProfileManager::GetUser(std::size_t index) const {
+    if (index >= MAX_USERS)
+        return boost::none;
+    return profiles[index].user_uuid;
+}
+
 /// Returns a users profile index based on their user id.
 boost::optional<std::size_t> ProfileManager::GetUserIndex(const UUID& uuid) const {
     if (!uuid) {
@@ -187,6 +195,12 @@ std::size_t ProfileManager::GetOpenUserCount() const {
 /// Checks if a user id exists in our profile manager
 bool ProfileManager::UserExists(UUID uuid) const {
     return (GetUserIndex(uuid) != boost::none);
+}
+
+bool ProfileManager::UserExistsIndex(std::size_t index) const {
+    if (index >= MAX_USERS)
+        return false;
+    return profiles[index].user_uuid.uuid != INVALID_UUID;
 }
 
 /// Opens a specific user
@@ -292,7 +306,7 @@ bool ProfileManager::SetProfileBase(UUID uuid, const ProfileBase& profile_new) {
 
 void ProfileManager::ParseUserSaveFile() {
     FileUtil::IOFile save(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
-                              "/system/save/8000000000000010/su/avators/profiles.dat",
+                              ACC_SAVE_AVATORS_BASE_PATH + "profiles.dat",
                           "rb");
 
     ProfileDataRaw data;
@@ -322,7 +336,7 @@ void ProfileManager::WriteUserSaveFile() {
     }
 
     FileUtil::IOFile save(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
-                              "/system/save/8000000000000010/su/avators/profiles.dat",
+                              ACC_SAVE_AVATORS_BASE_PATH + "profiles.dat",
                           "wb");
 
     save.Resize(sizeof(ProfileDataRaw));

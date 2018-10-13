@@ -96,6 +96,7 @@ public:
     ResultCode AddUser(const ProfileInfo& user);
     ResultCode CreateNewUser(UUID uuid, const ProfileUsername& username);
     ResultCode CreateNewUser(UUID uuid, const std::string& username);
+    boost::optional<UUID> GetUser(std::size_t index) const;
     boost::optional<std::size_t> GetUserIndex(const UUID& uuid) const;
     boost::optional<std::size_t> GetUserIndex(const ProfileInfo& user) const;
     bool GetProfileBase(boost::optional<std::size_t> index, ProfileBase& profile) const;
@@ -109,6 +110,7 @@ public:
     std::size_t GetUserCount() const;
     std::size_t GetOpenUserCount() const;
     bool UserExists(UUID uuid) const;
+    bool UserExistsIndex(std::size_t index) const;
     void OpenUser(UUID uuid);
     void CloseUser(UUID uuid);
     UserIDArray GetOpenUsers() const;

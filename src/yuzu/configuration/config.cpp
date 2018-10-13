@@ -125,7 +125,8 @@ void Config::ReadValues() {
     Settings::values.use_docked_mode = qt_config->value("use_docked_mode", false).toBool();
     Settings::values.enable_nfc = qt_config->value("enable_nfc", true).toBool();
 
-    Settings::values.current_user = std::clamp(qt_config->value("current_user", 0).toInt(), 0, 7);
+    Settings::values.current_user = std::clamp<int>(qt_config->value("current_user", 0).toInt(), 0,
+                                                    Service::Account::MAX_USERS - 1);
 
     Settings::values.language_index = qt_config->value("language_index", 1).toInt();
     qt_config->endGroup();

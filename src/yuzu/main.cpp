@@ -762,19 +762,16 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
         Service::Account::ProfileManager manager{};
         const auto user_ids = manager.GetAllUsers();
         QStringList list;
-        std::transform(
-            user_ids.begin(), user_ids.end(), std::back_inserter(list),
-            [&manager](const auto& user_id) -> QString {
-                if (user_id == Service::Account::UUID{})
-                    return "";
-                Service::Account::ProfileBase base;
-                if (!manager.GetProfileBase(user_id, base))
-                    return "";
+        for (const auto& user_id : user_ids) {
+            if (user_id == Service::Account::UUID{})
+                continue;
+            Service::Account::ProfileBase base;
+            if (!manager.GetProfileBase(user_id, base))
+                continue;
 
-                return QString::fromStdString(Common::StringFromFixedZeroTerminatedBuffer(
-                    reinterpret_cast<const char*>(base.username.data()), base.username.size()));
-            });
-        list.removeAll("");
+            list.push_back(QString::fromStdString(Common::StringFromFixedZeroTerminatedBuffer(
+                reinterpret_cast<const char*>(base.username.data()), base.username.size())));
+        }
 
         bool ok = false;
         const auto index_string =
@@ -787,10 +784,11 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
         const auto index = list.indexOf(index_string);
         ASSERT(index != -1 && index < 8);
 
-        const auto user_id = manager.GetAllUsers()[index];
+        const auto user_id = manager.GetUser(index);
+        ASSERT(user_id != boost::none);
         path = nand_dir + FileSys::SaveDataFactory::GetFullPath(FileSys::SaveDataSpaceId::NandUser,
                                                                 FileSys::SaveDataType::SaveData,
-                                                                program_id, user_id.uuid, 0);
+                                                                program_id, user_id->uuid, 0);
 
         if (!FileUtil::Exists(path)) {
             FileUtil::CreateFullPath(path);
