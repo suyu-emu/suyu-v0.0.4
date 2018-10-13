@@ -34,16 +34,29 @@ struct FormatTuple {
     bool compressed;
 };
 
-static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
-    auto& gpu{Core::System::GetInstance().GPU()};
-    const auto cpu_addr{gpu.MemoryManager().GpuToCpuAddress(gpu_addr)};
-    return cpu_addr ? *cpu_addr : 0;
+void SurfaceParams::InitCacheParameters(Tegra::GPUVAddr gpu_addr) {
+    auto& memory_manager{Core::System::GetInstance().GPU().MemoryManager()};
+    const auto cpu_addr{memory_manager.GpuToCpuAddress(gpu_addr)};
+    const auto max_size{memory_manager.GetRegionEnd(gpu_addr) - gpu_addr};
+
+    addr = cpu_addr ? *cpu_addr : 0;
+    size_in_bytes_total = SizeInBytesTotal();
+    size_in_bytes_2d = SizeInBytes2D();
+
+    // Clamp sizes to mapped GPU memory region
+    if (size_in_bytes_2d > max_size) {
+        LOG_ERROR(HW_GPU, "Surface size {} exceeds region size {}", size_in_bytes_2d, max_size);
+        size_in_bytes_total = max_size;
+        size_in_bytes_2d = max_size;
+    } else if (size_in_bytes_total > max_size) {
+        LOG_ERROR(HW_GPU, "Surface size {} exceeds region size {}", size_in_bytes_total, max_size);
+        size_in_bytes_total = max_size;
+    }
 }
 
 /*static*/ SurfaceParams SurfaceParams::CreateForTexture(
     const Tegra::Texture::FullTextureInfo& config, const GLShader::SamplerEntry& entry) {
     SurfaceParams params{};
-    params.addr = TryGetCpuAddr(config.tic.Address());
     params.is_tiled = config.tic.IsTiled();
     params.block_width = params.is_tiled ? config.tic.BlockWidth() : 0,
     params.block_height = params.is_tiled ? config.tic.BlockHeight() : 0,
@@ -87,10 +100,10 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
         break;
     }
 
-    params.size_in_bytes_total = params.SizeInBytesTotal();
-    params.size_in_bytes_2d = params.SizeInBytes2D();
     params.max_mip_level = config.tic.max_mip_level + 1;
     params.rt = {};
+
+    params.InitCacheParameters(config.tic.Address());
 
     return params;
 }
@@ -98,7 +111,7 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
 /*static*/ SurfaceParams SurfaceParams::CreateForFramebuffer(std::size_t index) {
     const auto& config{Core::System::GetInstance().GPU().Maxwell3D().regs.rt[index]};
     SurfaceParams params{};
-    params.addr = TryGetCpuAddr(config.Address());
+
     params.is_tiled =
         config.memory_layout.type == Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout::BlockLinear;
     params.block_width = 1 << config.memory_layout.block_width;
@@ -112,8 +125,6 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.unaligned_height = config.height;
     params.target = SurfaceTarget::Texture2D;
     params.depth = 1;
-    params.size_in_bytes_total = params.SizeInBytesTotal();
-    params.size_in_bytes_2d = params.SizeInBytes2D();
     params.max_mip_level = 0;
 
     // Render target specific parameters, not used for caching
@@ -121,6 +132,8 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.rt.array_mode = config.array_mode;
     params.rt.layer_stride = config.layer_stride;
     params.rt.base_layer = config.base_layer;
+
+    params.InitCacheParameters(config.Address());
 
     return params;
 }
@@ -130,7 +143,7 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     u32 block_width, u32 block_height, u32 block_depth,
     Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout type) {
     SurfaceParams params{};
-    params.addr = TryGetCpuAddr(zeta_address);
+
     params.is_tiled = type == Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout::BlockLinear;
     params.block_width = 1 << std::min(block_width, 5U);
     params.block_height = 1 << std::min(block_height, 5U);
@@ -143,10 +156,10 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.unaligned_height = zeta_height;
     params.target = SurfaceTarget::Texture2D;
     params.depth = 1;
-    params.size_in_bytes_total = params.SizeInBytesTotal();
-    params.size_in_bytes_2d = params.SizeInBytes2D();
     params.max_mip_level = 0;
     params.rt = {};
+
+    params.InitCacheParameters(zeta_address);
 
     return params;
 }
@@ -154,7 +167,7 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
 /*static*/ SurfaceParams SurfaceParams::CreateForFermiCopySurface(
     const Tegra::Engines::Fermi2D::Regs::Surface& config) {
     SurfaceParams params{};
-    params.addr = TryGetCpuAddr(config.Address());
+
     params.is_tiled = !config.linear;
     params.block_width = params.is_tiled ? std::min(config.BlockWidth(), 32U) : 0,
     params.block_height = params.is_tiled ? std::min(config.BlockHeight(), 32U) : 0,
@@ -167,10 +180,10 @@ static VAddr TryGetCpuAddr(Tegra::GPUVAddr gpu_addr) {
     params.unaligned_height = config.height;
     params.target = SurfaceTarget::Texture2D;
     params.depth = 1;
-    params.size_in_bytes_total = params.SizeInBytesTotal();
-    params.size_in_bytes_2d = params.SizeInBytes2D();
     params.max_mip_level = 0;
     params.rt = {};
+
+    params.InitCacheParameters(config.Address());
 
     return params;
 }

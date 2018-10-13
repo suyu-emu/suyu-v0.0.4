@@ -742,7 +742,9 @@ struct SurfaceParams {
                         other.depth);
     }
 
-    VAddr addr;
+    /// Initializes parameters for caching, should be called after everything has been initialized
+    void InitCacheParameters(Tegra::GPUVAddr gpu_addr);
+
     bool is_tiled;
     u32 block_width;
     u32 block_height;
@@ -754,10 +756,13 @@ struct SurfaceParams {
     u32 height;
     u32 depth;
     u32 unaligned_height;
-    std::size_t size_in_bytes_total;
-    std::size_t size_in_bytes_2d;
     SurfaceTarget target;
     u32 max_mip_level;
+
+    // Parameters used for caching
+    VAddr addr;
+    std::size_t size_in_bytes_total;
+    std::size_t size_in_bytes_2d;
 
     // Render target specific parameters, not used in caching
     struct {
