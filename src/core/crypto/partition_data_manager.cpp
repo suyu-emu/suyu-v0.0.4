@@ -499,33 +499,29 @@ void PartitionDataManager::DecryptPackage2(const std::array<Key128, 0x20>& packa
             continue;
         }
 
-        std::vector<u8> text(kip.sections[0].size_compressed);
-        std::vector<u8> rodata(kip.sections[1].size_compressed);
-        std::vector<u8> data(kip.sections[2].size_compressed);
+        const u64 initial_offset = sizeof(KIPHeader) + offset;
+        const auto text_begin = c.cbegin() + initial_offset;
+        const auto text_end = text_begin + kip.sections[0].size_compressed;
+        const std::vector<u8> text = DecompressBLZ({text_begin, text_end});
 
-        u64 offset_sec = sizeof(KIPHeader) + offset;
-        std::memcpy(text.data(), c.data() + offset_sec, text.size());
-        offset_sec += text.size();
-        std::memcpy(rodata.data(), c.data() + offset_sec, rodata.size());
-        offset_sec += rodata.size();
-        std::memcpy(data.data(), c.data() + offset_sec, data.size());
+        const auto rodata_end = text_end + kip.sections[1].size_compressed;
+        const std::vector<u8> rodata = DecompressBLZ({text_end, rodata_end});
 
-        offset += sizeof(KIPHeader) + kip.sections[0].size_compressed +
-                  kip.sections[1].size_compressed + kip.sections[2].size_compressed;
+        const auto data_end = rodata_end + kip.sections[2].size_compressed;
+        const std::vector<u8> data = DecompressBLZ({rodata_end, data_end});
 
-        text = DecompressBLZ(text);
-        rodata = DecompressBLZ(rodata);
-        data = DecompressBLZ(data);
+        std::vector<u8> out;
+        out.reserve(text.size() + rodata.size() + data.size());
+        out.insert(out.end(), text.begin(), text.end());
+        out.insert(out.end(), rodata.begin(), rodata.end());
+        out.insert(out.end(), data.begin(), data.end());
 
-        std::vector<u8> out(text.size() + rodata.size() + data.size());
-        std::memcpy(out.data(), text.data(), text.size());
-        std::memcpy(out.data() + text.size(), rodata.data(), rodata.size());
-        std::memcpy(out.data() + text.size() + rodata.size(), data.data(), data.size());
+        offset += sizeof(KIPHeader) + out.size();
 
         if (name == "FS")
-            package2_fs[static_cast<size_t>(type)] = out;
+            package2_fs[static_cast<size_t>(type)] = std::move(out);
         else if (name == "spl")
-            package2_spl[static_cast<size_t>(type)] = out;
+            package2_spl[static_cast<size_t>(type)] = std::move(out);
     }
 }
 
