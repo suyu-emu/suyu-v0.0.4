@@ -483,14 +483,12 @@ void PartitionDataManager::DecryptPackage2(const std::array<Key128, 0x20>& packa
     if (ini.magic != Common::MakeMagic('I', 'N', 'I', '1'))
         return;
 
-    std::map<u64, KIPHeader> kips{};
     u64 offset = sizeof(INIHeader);
     for (size_t i = 0; i < ini.process_count; ++i) {
         KIPHeader kip;
         std::memcpy(&kip, c.data() + offset, sizeof(KIPHeader));
         if (kip.magic != Common::MakeMagic('K', 'I', 'P', '1'))
             return;
-        kips.emplace(offset, kip);
 
         const auto name =
             Common::StringFromFixedZeroTerminatedBuffer(kip.name.data(), kip.name.size());
