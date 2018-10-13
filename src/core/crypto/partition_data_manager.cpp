@@ -480,8 +480,6 @@ void PartitionDataManager::DecryptPackage2(std::array<std::array<u8, 16>, 0x20> 
     cipher.SetIV(s1_iv);
     cipher.Transcode(c.data(), c.size(), c.data(), Op::Decrypt);
 
-    // package2_decrypted[static_cast<size_t>(type)] = s1;
-
     INIHeader ini;
     std::memcpy(&ini, c.data(), sizeof(INIHeader));
     if (ini.magic != Common::MakeMagic('I', 'N', 'I', '1'))
