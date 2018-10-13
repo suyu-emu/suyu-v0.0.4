@@ -308,10 +308,11 @@ boost::optional<std::pair<Key128, Key128>> ParseTicket(const TicketRaw& ticket,
     std::memcpy(&cert_authority, ticket.data() + 0x140, sizeof(cert_authority));
     if (cert_authority == 0)
         return boost::none;
-    if (cert_authority != Common::MakeMagic('R', 'o', 'o', 't'))
+    if (cert_authority != Common::MakeMagic('R', 'o', 'o', 't')) {
         LOG_INFO(Crypto,
                  "Attempting to parse ticket with non-standard certificate authority {:08X}.",
                  cert_authority);
+    }
 
     Key128 rights_id;
     std::memcpy(rights_id.data(), ticket.data() + 0x2A0, sizeof(Key128));
