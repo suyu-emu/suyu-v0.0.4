@@ -11,7 +11,6 @@
 #include <array>
 #include <cctype>
 #include <cstring>
-#include <boost/optional/optional.hpp>
 #include <mbedtls/sha256.h>
 #include "common/assert.h"
 #include "common/common_funcs.h"
@@ -19,7 +18,7 @@
 #include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
-#include "core/crypto/ctr_encryption_layer.h"
+#include "common/swap.h"
 #include "core/crypto/key_manager.h"
 #include "core/crypto/partition_data_manager.h"
 #include "core/crypto/xts_encryption_layer.h"

@@ -5,9 +5,7 @@
 #pragma once
 
 #include <vector>
-#include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "common/swap.h"
 #include "core/file_sys/vfs_types.h"
 
 namespace Core::Crypto {
