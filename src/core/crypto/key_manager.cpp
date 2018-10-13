@@ -152,7 +152,6 @@ boost::optional<Key128> DeriveSDSeed() {
     if (!sd_private.IsOpen())
         return boost::none;
 
-    sd_private.Seek(0, SEEK_SET);
     std::array<u8, 0x10> private_seed{};
     if (sd_private.ReadBytes(private_seed.data(), private_seed.size()) != 0x10)
         return boost::none;
