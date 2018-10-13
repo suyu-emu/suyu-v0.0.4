@@ -701,6 +701,14 @@ struct SurfaceParams {
         return SurfaceType::Invalid;
     }
 
+    /// Returns the sizer in bytes of the specified pixel format
+    static constexpr u32 GetBytesPerPixel(PixelFormat pixel_format) {
+        if (pixel_format == SurfaceParams::PixelFormat::Invalid) {
+            return 0;
+        }
+        return GetFormatBpp(pixel_format) / CHAR_BIT;
+    }
+
     /// Returns the rectangle corresponding to this surface
     MathUtil::Rectangle<u32> GetRect() const;
 
@@ -825,13 +833,6 @@ public:
 
     GLenum Target() const {
         return gl_target;
-    }
-
-    static constexpr unsigned int GetGLBytesPerPixel(SurfaceParams::PixelFormat format) {
-        if (format == SurfaceParams::PixelFormat::Invalid)
-            return 0;
-
-        return SurfaceParams::GetFormatBpp(format) / CHAR_BIT;
     }
 
     const SurfaceParams& GetSurfaceParams() const {

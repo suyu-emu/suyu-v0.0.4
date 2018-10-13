@@ -346,8 +346,7 @@ static bool IsFormatBCn(PixelFormat format) {
 template <bool morton_to_gl, PixelFormat format>
 void MortonCopy(u32 stride, u32 block_height, u32 height, u32 block_depth, u32 depth, u8* gl_buffer,
                 std::size_t gl_buffer_size, VAddr addr) {
-    constexpr u32 bytes_per_pixel = SurfaceParams::GetFormatBpp(format) / CHAR_BIT;
-    constexpr u32 gl_bytes_per_pixel = CachedSurface::GetGLBytesPerPixel(format);
+    constexpr u32 bytes_per_pixel = SurfaceParams::GetBytesPerPixel(format);
 
     // With the BCn formats (DXT and DXN), each 4x4 tile is swizzled instead of just individual
     // pixel values.
@@ -785,7 +784,7 @@ static void ConvertS8Z24ToZ24S8(std::vector<u8>& data, u32 width, u32 height, bo
 
     S8Z24 s8z24_pixel{};
     Z24S8 z24s8_pixel{};
-    constexpr auto bpp{CachedSurface::GetGLBytesPerPixel(PixelFormat::S8Z24)};
+    constexpr auto bpp{SurfaceParams::GetBytesPerPixel(PixelFormat::S8Z24)};
     for (std::size_t y = 0; y < height; ++y) {
         for (std::size_t x = 0; x < width; ++x) {
             const std::size_t offset{bpp * (y * width + x)};
@@ -805,7 +804,7 @@ static void ConvertS8Z24ToZ24S8(std::vector<u8>& data, u32 width, u32 height, bo
 }
 
 static void ConvertG8R8ToR8G8(std::vector<u8>& data, u32 width, u32 height) {
-    constexpr auto bpp{CachedSurface::GetGLBytesPerPixel(PixelFormat::G8R8U)};
+    constexpr auto bpp{SurfaceParams::GetBytesPerPixel(PixelFormat::G8R8U)};
     for (std::size_t y = 0; y < height; ++y) {
         for (std::size_t x = 0; x < width; ++x) {
             const std::size_t offset{bpp * (y * width + x)};
@@ -880,7 +879,7 @@ void CachedSurface::LoadGLBuffer() {
 
     ASSERT(texture_src_data);
 
-    const u32 bytes_per_pixel = GetGLBytesPerPixel(params.pixel_format);
+    const u32 bytes_per_pixel = SurfaceParams::GetBytesPerPixel(params.pixel_format);
     const u32 copy_size = params.width * params.height * bytes_per_pixel;
     const std::size_t total_size = copy_size * params.depth;
 
@@ -920,12 +919,12 @@ void CachedSurface::FlushGLBuffer() {
     MICROPROFILE_SCOPE(OpenGL_SurfaceFlush);
 
     // Load data from memory to the surface
-    const u32 bytes_per_pixel = GetGLBytesPerPixel(params.pixel_format);
+    const u32 bytes_per_pixel = SurfaceParams::GetBytesPerPixel(params.pixel_format);
     const u32 copy_size = params.width * params.height * bytes_per_pixel;
     gl_buffer.resize(static_cast<size_t>(params.depth) * copy_size);
     const FormatTuple& tuple = GetFormatTuple(params.pixel_format, params.component_type);
     // Ensure no bad interactions with GL_UNPACK_ALIGNMENT
-    ASSERT(params.width * GetGLBytesPerPixel(params.pixel_format) % 4 == 0);
+    ASSERT(params.width * SurfaceParams::GetBytesPerPixel(params.pixel_format) % 4 == 0);
     glPixelStorei(GL_PACK_ROW_LENGTH, static_cast<GLint>(params.width));
     ASSERT(!tuple.compressed);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
@@ -965,7 +964,8 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
     MICROPROFILE_SCOPE(OpenGL_TextureUL);
 
     ASSERT(gl_buffer.size() == static_cast<std::size_t>(params.width) * params.height *
-                                   GetGLBytesPerPixel(params.pixel_format) * params.depth);
+                                   SurfaceParams::GetBytesPerPixel(params.pixel_format) *
+                                   params.depth);
 
     const auto& rect{params.GetRect()};
 
@@ -975,7 +975,7 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
     std::size_t buffer_offset =
         static_cast<std::size_t>(static_cast<std::size_t>(y0) * params.width +
                                  static_cast<std::size_t>(x0)) *
-        GetGLBytesPerPixel(params.pixel_format);
+        SurfaceParams::GetBytesPerPixel(params.pixel_format);
 
     const FormatTuple& tuple = GetFormatTuple(params.pixel_format, params.component_type);
     const GLuint target_tex = texture.handle;
@@ -991,7 +991,7 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
     cur_state.Apply();
 
     // Ensure no bad interactions with GL_UNPACK_ALIGNMENT
-    ASSERT(params.width * GetGLBytesPerPixel(params.pixel_format) % 4 == 0);
+    ASSERT(params.width * SurfaceParams::GetBytesPerPixel(params.pixel_format) % 4 == 0);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, static_cast<GLint>(params.width));
 
     glActiveTexture(GL_TEXTURE0);
