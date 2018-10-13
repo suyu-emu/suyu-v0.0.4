@@ -271,7 +271,7 @@ u32 BytesPerPixel(TextureFormat format) {
 
 std::vector<u8> UnswizzleTexture(VAddr address, u32 tile_size, u32 bytes_per_pixel, u32 width,
                                  u32 height, u32 depth, u32 block_height, u32 block_depth) {
-    std::vector<u8> unswizzled_data(width * height * bytes_per_pixel);
+    std::vector<u8> unswizzled_data(width * height * depth * bytes_per_pixel);
     CopySwizzledData(width / tile_size, height / tile_size, depth, bytes_per_pixel, bytes_per_pixel,
                      Memory::GetPointer(address), unswizzled_data.data(), true, block_height,
                      block_depth);

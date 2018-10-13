@@ -833,27 +833,10 @@ void CachedSurface::LoadGLBuffer() {
         ASSERT_MSG(params.block_width == 1, "Block width is defined as {} on texture type {}",
                    params.block_width, static_cast<u32>(params.target));
 
-        switch (params.target) {
-        case SurfaceParams::SurfaceTarget::Texture2D:
+        if (params.target == SurfaceParams::SurfaceTarget::Texture2D) {
             // TODO(Blinkhawk): Eliminate this condition once all texture types are implemented.
             depth = 1U;
             block_depth = 1U;
-            break;
-        case SurfaceParams::SurfaceTarget::Texture2DArray:
-        case SurfaceParams::SurfaceTarget::TextureCubemap:
-            depth = 1U;
-            block_depth = 1U;
-            for (std::size_t index = 0; index < params.depth; ++index) {
-                const std::size_t offset{index * copy_size};
-                morton_to_gl_fns[static_cast<std::size_t>(params.pixel_format)](
-                    params.width, params.block_height, params.height, 1U, 1U,
-                    gl_buffer.data() + offset, copy_size, params.addr + offset);
-            }
-            break;
-        default:
-            LOG_CRITICAL(HW_GPU, "Unimplemented tiled load for target={}",
-                         static_cast<u32>(params.target));
-            UNREACHABLE();
         }
 
         const std::size_t size = copy_size * depth;
