@@ -908,22 +908,20 @@ void GMainWindow::OnGameListNavigateToGamedbEntry(u64 program_id,
 }
 
 void GMainWindow::OnMenuLoadFile() {
-    QString extensions;
-    for (const auto& piece : game_list->supported_file_extensions)
-        extensions += "*." + piece + " ";
+    const QString extensions =
+        QString("*.").append(GameList::supported_file_extensions.join(" *.")).append(" main");
+    const QString file_filter = tr("Switch Executable (%1);;All Files (*.*)",
+                                   "%1 is an identifier for the Switch executable file extensions.")
+                                    .arg(extensions);
+    const QString filename = QFileDialog::getOpenFileName(
+        this, tr("Load File"), UISettings::values.roms_path, file_filter);
 
-    extensions += "main ";
-
-    QString file_filter = tr("Switch Executable") + " (" + extensions + ")";
-    file_filter += ";;" + tr("All Files (*.*)");
-
-    QString filename = QFileDialog::getOpenFileName(this, tr("Load File"),
-                                                    UISettings::values.roms_path, file_filter);
-    if (!filename.isEmpty()) {
-        UISettings::values.roms_path = QFileInfo(filename).path();
-
-        BootGame(filename);
+    if (filename.isEmpty()) {
+        return;
     }
+
+    UISettings::values.roms_path = QFileInfo(filename).path();
+    BootGame(filename);
 }
 
 void GMainWindow::OnMenuLoadFolder() {
