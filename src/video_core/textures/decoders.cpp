@@ -45,11 +45,11 @@ constexpr auto fast_swizzle_table = SwizzleTable<8, 4, 16>();
  * Instead of going gob by gob, we map the coordinates inside a block and manage from
  * those. Block_Width is assumed to be 1.
  */
-void Precise3DProcessBlock(u8* swizzled_data, u8* unswizzled_data, const bool unswizzle,
-                           const u32 x_start, const u32 y_start, const u32 z_start, const u32 x_end,
-                           const u32 y_end, const u32 z_end, const u32 tile_offset,
-                           const u32 xy_block_size, const u32 layer_z, const u32 stride_x,
-                           const u32 bytes_per_pixel, const u32 out_bytes_per_pixel) {
+void PreciseProcessBlock(u8* swizzled_data, u8* unswizzled_data, const bool unswizzle,
+                         const u32 x_start, const u32 y_start, const u32 z_start, const u32 x_end,
+                         const u32 y_end, const u32 z_end, const u32 tile_offset,
+                         const u32 xy_block_size, const u32 layer_z, const u32 stride_x,
+                         const u32 bytes_per_pixel, const u32 out_bytes_per_pixel) {
     std::array<u8*, 2> data_ptrs;
     u32 z_address = tile_offset;
     const u32 gob_size_x = 64;
@@ -77,64 +77,15 @@ void Precise3DProcessBlock(u8* swizzled_data, u8* unswizzled_data, const bool un
 }
 
 /**
- * This function unswizzles or swizzles a texture by mapping Linear to BlockLinear Textue.
- * The body of this function takes care of splitting the swizzled texture into blocks,
- * and managing the extents of it. Once all the parameters of a single block are obtained,
- * the function calls '3DProcessBlock' to process that particular Block.
- *
- * Documentation for the memory layout and decoding can be found at:
- *  https://envytools.readthedocs.io/en/latest/hw/memory/g80-surface.html#blocklinear-surfaces
- */
-void Precise3DSwizzledData(u8* swizzled_data, u8* unswizzled_data, const bool unswizzle,
-                           const u32 width, const u32 height, const u32 depth,
-                           const u32 bytes_per_pixel, const u32 out_bytes_per_pixel,
-                           const u32 block_height, const u32 block_depth) {
-    auto div_ceil = [](const u32 x, const u32 y) { return ((x + y - 1) / y); };
-    const u32 stride_x = width * out_bytes_per_pixel;
-    const u32 layer_z = height * stride_x;
-    const u32 gob_x_bytes = 64;
-    const u32 gob_elements_x = gob_x_bytes / bytes_per_pixel;
-    const u32 gob_elements_y = 8;
-    const u32 gob_elements_z = 1;
-    const u32 block_x_elements = gob_elements_x;
-    const u32 block_y_elements = gob_elements_y * block_height;
-    const u32 block_z_elements = gob_elements_z * block_depth;
-    const u32 blocks_on_x = div_ceil(width, block_x_elements);
-    const u32 blocks_on_y = div_ceil(height, block_y_elements);
-    const u32 blocks_on_z = div_ceil(depth, block_z_elements);
-    const u32 blocks = blocks_on_x * blocks_on_y * blocks_on_z;
-    const u32 gob_size = gob_x_bytes * gob_elements_y * gob_elements_z;
-    const u32 xy_block_size = gob_size * block_height;
-    const u32 block_size = xy_block_size * block_depth;
-    u32 tile_offset = 0;
-    for (u32 zb = 0; zb < blocks_on_z; zb++) {
-        const u32 z_start = zb * block_z_elements;
-        const u32 z_end = std::min(depth, z_start + block_z_elements);
-        for (u32 yb = 0; yb < blocks_on_y; yb++) {
-            const u32 y_start = yb * block_y_elements;
-            const u32 y_end = std::min(height, y_start + block_y_elements);
-            for (u32 xb = 0; xb < blocks_on_x; xb++) {
-                const u32 x_start = xb * block_x_elements;
-                const u32 x_end = std::min(width, x_start + block_x_elements);
-                Precise3DProcessBlock(swizzled_data, unswizzled_data, unswizzle, x_start, y_start,
-                                      z_start, x_end, y_end, z_end, tile_offset, xy_block_size,
-                                      layer_z, stride_x, bytes_per_pixel, out_bytes_per_pixel);
-                tile_offset += block_size;
-            }
-        }
-    }
-}
-
-/**
  * This function manages ALL the GOBs(Group of Bytes) Inside a single block.
  * Instead of going gob by gob, we map the coordinates inside a block and manage from
  * those. Block_Width is assumed to be 1.
  */
-void Fast3DProcessBlock(u8* swizzled_data, u8* unswizzled_data, const bool unswizzle,
-                        const u32 x_start, const u32 y_start, const u32 z_start, const u32 x_end,
-                        const u32 y_end, const u32 z_end, const u32 tile_offset,
-                        const u32 xy_block_size, const u32 layer_z, const u32 stride_x,
-                        const u32 bytes_per_pixel, const u32 out_bytes_per_pixel) {
+void FastProcessBlock(u8* swizzled_data, u8* unswizzled_data, const bool unswizzle,
+                      const u32 x_start, const u32 y_start, const u32 z_start, const u32 x_end,
+                      const u32 y_end, const u32 z_end, const u32 tile_offset,
+                      const u32 xy_block_size, const u32 layer_z, const u32 stride_x,
+                      const u32 bytes_per_pixel, const u32 out_bytes_per_pixel) {
     std::array<u8*, 2> data_ptrs;
     u32 z_address = tile_offset;
     const u32 x_startb = x_start * bytes_per_pixel;
@@ -169,15 +120,15 @@ void Fast3DProcessBlock(u8* swizzled_data, u8* unswizzled_data, const bool unswi
  * This function unswizzles or swizzles a texture by mapping Linear to BlockLinear Textue.
  * The body of this function takes care of splitting the swizzled texture into blocks,
  * and managing the extents of it. Once all the parameters of a single block are obtained,
- * the function calls '3DProcessBlock' to process that particular Block.
+ * the function calls 'ProcessBlock' to process that particular Block.
  *
  * Documentation for the memory layout and decoding can be found at:
  *  https://envytools.readthedocs.io/en/latest/hw/memory/g80-surface.html#blocklinear-surfaces
  */
-void Fast3DSwizzledData(u8* swizzled_data, u8* unswizzled_data, const bool unswizzle,
-                        const u32 width, const u32 height, const u32 depth,
-                        const u32 bytes_per_pixel, const u32 out_bytes_per_pixel,
-                        const u32 block_height, const u32 block_depth) {
+template <bool fast>
+void SwizzledData(u8* swizzled_data, u8* unswizzled_data, const bool unswizzle, const u32 width,
+                  const u32 height, const u32 depth, const u32 bytes_per_pixel,
+                  const u32 out_bytes_per_pixel, const u32 block_height, const u32 block_depth) {
     auto div_ceil = [](const u32 x, const u32 y) { return ((x + y - 1) / y); };
     const u32 stride_x = width * out_bytes_per_pixel;
     const u32 layer_z = height * stride_x;
@@ -205,9 +156,15 @@ void Fast3DSwizzledData(u8* swizzled_data, u8* unswizzled_data, const bool unswi
             for (u32 xb = 0; xb < blocks_on_x; xb++) {
                 const u32 x_start = xb * block_x_elements;
                 const u32 x_end = std::min(width, x_start + block_x_elements);
-                Fast3DProcessBlock(swizzled_data, unswizzled_data, unswizzle, x_start, y_start,
-                                   z_start, x_end, y_end, z_end, tile_offset, xy_block_size,
-                                   layer_z, stride_x, bytes_per_pixel, out_bytes_per_pixel);
+                if (fast) {
+                    FastProcessBlock(swizzled_data, unswizzled_data, unswizzle, x_start, y_start,
+                                     z_start, x_end, y_end, z_end, tile_offset, xy_block_size,
+                                     layer_z, stride_x, bytes_per_pixel, out_bytes_per_pixel);
+                } else {
+                    PreciseProcessBlock(swizzled_data, unswizzled_data, unswizzle, x_start, y_start,
+                                        z_start, x_end, y_end, z_end, tile_offset, xy_block_size,
+                                        layer_z, stride_x, bytes_per_pixel, out_bytes_per_pixel);
+                }
                 tile_offset += block_size;
             }
         }
@@ -218,11 +175,11 @@ void CopySwizzledData(u32 width, u32 height, u32 depth, u32 bytes_per_pixel,
                       u32 out_bytes_per_pixel, u8* swizzled_data, u8* unswizzled_data,
                       bool unswizzle, u32 block_height, u32 block_depth) {
     if (bytes_per_pixel % 3 != 0 && (width * bytes_per_pixel) % 16 == 0) {
-        Fast3DSwizzledData(swizzled_data, unswizzled_data, unswizzle, width, height, depth,
+        SwizzledData<true>(swizzled_data, unswizzled_data, unswizzle, width, height, depth,
                            bytes_per_pixel, out_bytes_per_pixel, block_height, block_depth);
     } else {
-        Precise3DSwizzledData(swizzled_data, unswizzled_data, unswizzle, width, height, depth,
-                              bytes_per_pixel, out_bytes_per_pixel, block_height, block_depth);
+        SwizzledData<false>(swizzled_data, unswizzled_data, unswizzle, width, height, depth,
+                            bytes_per_pixel, out_bytes_per_pixel, block_height, block_depth);
     }
 }
 
