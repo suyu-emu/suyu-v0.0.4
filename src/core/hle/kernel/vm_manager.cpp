@@ -393,30 +393,35 @@ void VMManager::InitializeMemoryRegionRanges(FileSys::ProgramAddressSpaceType ty
 
     switch (type) {
     case FileSys::ProgramAddressSpaceType::Is32Bit:
+    case FileSys::ProgramAddressSpaceType::Is32BitNoMap:
         address_space_width = 32;
         code_region_base = 0x200000;
         code_region_end = code_region_base + 0x3FE00000;
-        map_region_size = 0x40000000;
-        heap_region_size = 0x40000000;
+        aslr_region_base = 0x200000;
+        aslr_region_end = aslr_region_base + 0xFFE00000;
+        if (type == FileSys::ProgramAddressSpaceType::Is32Bit) {
+            map_region_size = 0x40000000;
+            heap_region_size = 0x40000000;
+        } else {
+            map_region_size = 0;
+            heap_region_size = 0x80000000;
+        }
         break;
     case FileSys::ProgramAddressSpaceType::Is36Bit:
         address_space_width = 36;
         code_region_base = 0x8000000;
         code_region_end = code_region_base + 0x78000000;
+        aslr_region_base = 0x8000000;
+        aslr_region_end = aslr_region_base + 0xFF8000000;
         map_region_size = 0x180000000;
         heap_region_size = 0x180000000;
-        break;
-    case FileSys::ProgramAddressSpaceType::Is32BitNoMap:
-        address_space_width = 32;
-        code_region_base = 0x200000;
-        code_region_end = code_region_base + 0x3FE00000;
-        map_region_size = 0;
-        heap_region_size = 0x80000000;
         break;
     case FileSys::ProgramAddressSpaceType::Is39Bit:
         address_space_width = 39;
         code_region_base = 0x8000000;
         code_region_end = code_region_base + 0x80000000;
+        aslr_region_base = 0x8000000;
+        aslr_region_end = aslr_region_base + 0x7FF8000000;
         map_region_size = 0x1000000000;
         heap_region_size = 0x180000000;
         new_map_region_size = 0x80000000;
@@ -488,6 +493,18 @@ u64 VMManager::GetAddressSpaceSize() const {
 
 u64 VMManager::GetAddressSpaceWidth() const {
     return address_space_width;
+}
+
+VAddr VMManager::GetASLRRegionBaseAddress() const {
+    return aslr_region_base;
+}
+
+VAddr VMManager::GetASLRRegionEndAddress() const {
+    return aslr_region_end;
+}
+
+u64 VMManager::GetASLRRegionSize() const {
+    return aslr_region_end - aslr_region_base;
 }
 
 VAddr VMManager::GetCodeRegionBaseAddress() const {
