@@ -637,7 +637,12 @@ void RasterizerOpenGL::FlushAll() {}
 
 void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
-    res_cache.FlushRegion(addr, size);
+
+    if (Settings::values.use_accurate_framebuffers) {
+        // Only flush if use_accurate_framebuffers is enabled, as it incurs a performance hit
+        res_cache.FlushRegion(addr, size);
+    }
+
     shader_cache.FlushRegion(addr, size);
     buffer_cache.FlushRegion(addr, size);
 }

@@ -11,6 +11,7 @@
 
 #include "common/common_types.h"
 #include "core/core.h"
+#include "core/settings.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_base.h"
 
@@ -87,7 +88,12 @@ protected:
     void Unregister(const T& object) {
         auto& rasterizer = Core::System::GetInstance().Renderer().Rasterizer();
         rasterizer.UpdatePagesCachedCount(object->GetAddr(), object->GetSizeInBytes(), -1);
-        object->Flush();
+
+        if (Settings::values.use_accurate_framebuffers) {
+            // Only flush if use_accurate_framebuffers is enabled, as it incurs a performance hit
+            object->Flush();
+        }
+
         object_cache.subtract({GetInterval(object), ObjectSet{object}});
     }
 
