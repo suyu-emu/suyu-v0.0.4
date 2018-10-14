@@ -175,7 +175,7 @@ private:
     void WriteKeyToFile(KeyCategory category, std::string_view keyname,
                         const std::array<u8, Size>& key);
 
-    void DeriveGeneralPurposeKeys(u8 crypto_revision);
+    void DeriveGeneralPurposeKeys(std::size_t crypto_revision);
 
     void SetKeyWrapped(S128KeyType id, Key128 key, u64 field1 = 0, u64 field2 = 0);
     void SetKeyWrapped(S256KeyType id, Key256 key, u64 field1 = 0, u64 field2 = 0);

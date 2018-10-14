@@ -11,7 +11,6 @@
 #include <array>
 #include <cctype>
 #include <cstring>
-#include <boost/optional/optional.hpp>
 #include <mbedtls/sha256.h>
 #include "common/assert.h"
 #include "common/common_funcs.h"
@@ -19,7 +18,7 @@
 #include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
-#include "core/crypto/ctr_encryption_layer.h"
+#include "common/swap.h"
 #include "core/crypto/key_manager.h"
 #include "core/crypto/partition_data_manager.h"
 #include "core/crypto/xts_encryption_layer.h"
@@ -302,7 +301,7 @@ FileSys::VirtualFile FindFileInDirWithNames(const FileSys::VirtualDir& dir,
     return nullptr;
 }
 
-PartitionDataManager::PartitionDataManager(FileSys::VirtualDir sysdata_dir)
+PartitionDataManager::PartitionDataManager(const FileSys::VirtualDir& sysdata_dir)
     : boot0(FindFileInDirWithNames(sysdata_dir, "BOOT0")),
       fuses(FindFileInDirWithNames(sysdata_dir, "fuse")),
       kfuses(FindFileInDirWithNames(sysdata_dir, "kfuse")),
@@ -314,13 +313,14 @@ PartitionDataManager::PartitionDataManager(FileSys::VirtualDir sysdata_dir)
           FindFileInDirWithNames(sysdata_dir, "BCPKG2-5-Repair-Main"),
           FindFileInDirWithNames(sysdata_dir, "BCPKG2-6-Repair-Sub"),
       }),
+      prodinfo(FindFileInDirWithNames(sysdata_dir, "PRODINFO")),
       secure_monitor(FindFileInDirWithNames(sysdata_dir, "secmon")),
       package1_decrypted(FindFileInDirWithNames(sysdata_dir, "pkg1_decr")),
       secure_monitor_bytes(secure_monitor == nullptr ? std::vector<u8>{}
                                                      : secure_monitor->ReadAllBytes()),
       package1_decrypted_bytes(package1_decrypted == nullptr ? std::vector<u8>{}
-                                                             : package1_decrypted->ReadAllBytes()),
-      prodinfo(FindFileInDirWithNames(sysdata_dir, "PRODINFO")) {}
+                                                             : package1_decrypted->ReadAllBytes()) {
+}
 
 PartitionDataManager::~PartitionDataManager() = default;
 
@@ -332,18 +332,19 @@ FileSys::VirtualFile PartitionDataManager::GetBoot0Raw() const {
     return boot0;
 }
 
-std::array<u8, 176> PartitionDataManager::GetEncryptedKeyblob(u8 index) const {
-    if (HasBoot0() && index < 32)
+PartitionDataManager::EncryptedKeyBlob PartitionDataManager::GetEncryptedKeyblob(
+    std::size_t index) const {
+    if (HasBoot0() && index < NUM_ENCRYPTED_KEYBLOBS)
         return GetEncryptedKeyblobs()[index];
     return {};
 }
 
-std::array<std::array<u8, 176>, 32> PartitionDataManager::GetEncryptedKeyblobs() const {
+PartitionDataManager::EncryptedKeyBlobs PartitionDataManager::GetEncryptedKeyblobs() const {
     if (!HasBoot0())
         return {};
 
-    std::array<std::array<u8, 176>, 32> out{};
-    for (size_t i = 0; i < 0x20; ++i)
+    EncryptedKeyBlobs out{};
+    for (size_t i = 0; i < out.size(); ++i)
         boot0->Read(out[i].data(), out[i].size(), 0x180000 + i * 0x200);
     return out;
 }
@@ -389,7 +390,7 @@ std::array<u8, 16> PartitionDataManager::GetKeyblobMACKeySource() const {
     return FindKeyFromHex(package1_decrypted_bytes, source_hashes[0]);
 }
 
-std::array<u8, 16> PartitionDataManager::GetKeyblobKeySource(u8 revision) const {
+std::array<u8, 16> PartitionDataManager::GetKeyblobKeySource(std::size_t revision) const {
     if (keyblob_source_hashes[revision] == SHA256Hash{}) {
         LOG_WARNING(Crypto,
                     "No keyblob source hash for crypto revision {:02X}! Cannot derive keys...",
@@ -446,7 +447,7 @@ bool AttemptDecrypt(const std::array<u8, 16>& key, Package2Header& header) {
     return false;
 }
 
-void PartitionDataManager::DecryptPackage2(std::array<std::array<u8, 16>, 0x20> package2_keys,
+void PartitionDataManager::DecryptPackage2(const std::array<Key128, 0x20>& package2_keys,
                                            Package2Type type) {
     FileSys::VirtualFile file = std::make_shared<FileSys::OffsetVfsFile>(
         package2[static_cast<size_t>(type)],
@@ -456,18 +457,17 @@ void PartitionDataManager::DecryptPackage2(std::array<std::array<u8, 16>, 0x20> 
     if (file->ReadObject(&header) != sizeof(Package2Header))
         return;
 
-    u8 revision = 0xFF;
+    std::size_t revision = 0xFF;
     if (header.magic != Common::MakeMagic('P', 'K', '2', '1')) {
-        for (size_t i = 0; i < package2_keys.size(); ++i) {
-            if (AttemptDecrypt(package2_keys[i], header))
+        for (std::size_t i = 0; i < package2_keys.size(); ++i) {
+            if (AttemptDecrypt(package2_keys[i], header)) {
                 revision = i;
+            }
         }
     }
 
     if (header.magic != Common::MakeMagic('P', 'K', '2', '1'))
         return;
-
-    const std::vector<u8> s1_iv(header.section_ctr[1].begin(), header.section_ctr[1].end());
 
     const auto a = std::make_shared<FileSys::OffsetVfsFile>(
         file, header.section_size[1], header.section_size[0] + sizeof(Package2Header));
@@ -475,24 +475,20 @@ void PartitionDataManager::DecryptPackage2(std::array<std::array<u8, 16>, 0x20> 
     auto c = a->ReadAllBytes();
 
     AESCipher<Key128> cipher(package2_keys[revision], Mode::CTR);
-    cipher.SetIV(s1_iv);
+    cipher.SetIV({header.section_ctr[1].begin(), header.section_ctr[1].end()});
     cipher.Transcode(c.data(), c.size(), c.data(), Op::Decrypt);
-
-    // package2_decrypted[static_cast<size_t>(type)] = s1;
 
     INIHeader ini;
     std::memcpy(&ini, c.data(), sizeof(INIHeader));
     if (ini.magic != Common::MakeMagic('I', 'N', 'I', '1'))
         return;
 
-    std::map<u64, KIPHeader> kips{};
     u64 offset = sizeof(INIHeader);
     for (size_t i = 0; i < ini.process_count; ++i) {
         KIPHeader kip;
         std::memcpy(&kip, c.data() + offset, sizeof(KIPHeader));
         if (kip.magic != Common::MakeMagic('K', 'I', 'P', '1'))
             return;
-        kips.emplace(offset, kip);
 
         const auto name =
             Common::StringFromFixedZeroTerminatedBuffer(kip.name.data(), kip.name.size());
@@ -503,33 +499,29 @@ void PartitionDataManager::DecryptPackage2(std::array<std::array<u8, 16>, 0x20> 
             continue;
         }
 
-        std::vector<u8> text(kip.sections[0].size_compressed);
-        std::vector<u8> rodata(kip.sections[1].size_compressed);
-        std::vector<u8> data(kip.sections[2].size_compressed);
+        const u64 initial_offset = sizeof(KIPHeader) + offset;
+        const auto text_begin = c.cbegin() + initial_offset;
+        const auto text_end = text_begin + kip.sections[0].size_compressed;
+        const std::vector<u8> text = DecompressBLZ({text_begin, text_end});
 
-        u64 offset_sec = sizeof(KIPHeader) + offset;
-        std::memcpy(text.data(), c.data() + offset_sec, text.size());
-        offset_sec += text.size();
-        std::memcpy(rodata.data(), c.data() + offset_sec, rodata.size());
-        offset_sec += rodata.size();
-        std::memcpy(data.data(), c.data() + offset_sec, data.size());
+        const auto rodata_end = text_end + kip.sections[1].size_compressed;
+        const std::vector<u8> rodata = DecompressBLZ({text_end, rodata_end});
 
-        offset += sizeof(KIPHeader) + kip.sections[0].size_compressed +
-                  kip.sections[1].size_compressed + kip.sections[2].size_compressed;
+        const auto data_end = rodata_end + kip.sections[2].size_compressed;
+        const std::vector<u8> data = DecompressBLZ({rodata_end, data_end});
 
-        text = DecompressBLZ(text);
-        rodata = DecompressBLZ(rodata);
-        data = DecompressBLZ(data);
+        std::vector<u8> out;
+        out.reserve(text.size() + rodata.size() + data.size());
+        out.insert(out.end(), text.begin(), text.end());
+        out.insert(out.end(), rodata.begin(), rodata.end());
+        out.insert(out.end(), data.begin(), data.end());
 
-        std::vector<u8> out(text.size() + rodata.size() + data.size());
-        std::memcpy(out.data(), text.data(), text.size());
-        std::memcpy(out.data() + text.size(), rodata.data(), rodata.size());
-        std::memcpy(out.data() + text.size() + rodata.size(), data.data(), data.size());
+        offset += sizeof(KIPHeader) + out.size();
 
         if (name == "FS")
-            package2_fs[static_cast<size_t>(type)] = out;
+            package2_fs[static_cast<size_t>(type)] = std::move(out);
         else if (name == "spl")
-            package2_spl[static_cast<size_t>(type)] = out;
+            package2_spl[static_cast<size_t>(type)] = std::move(out);
     }
 }
 

@@ -5,9 +5,7 @@
 #pragma once
 
 #include <vector>
-#include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "common/swap.h"
 #include "core/file_sys/vfs_types.h"
 
 namespace Core::Crypto {
@@ -24,15 +22,20 @@ enum class Package2Type {
 class PartitionDataManager {
 public:
     static const u8 MAX_KEYBLOB_SOURCE_HASH;
+    static constexpr std::size_t NUM_ENCRYPTED_KEYBLOBS = 32;
+    static constexpr std::size_t ENCRYPTED_KEYBLOB_SIZE = 0xB0;
 
-    explicit PartitionDataManager(FileSys::VirtualDir sysdata_dir);
+    using EncryptedKeyBlob = std::array<u8, ENCRYPTED_KEYBLOB_SIZE>;
+    using EncryptedKeyBlobs = std::array<EncryptedKeyBlob, NUM_ENCRYPTED_KEYBLOBS>;
+
+    explicit PartitionDataManager(const FileSys::VirtualDir& sysdata_dir);
     ~PartitionDataManager();
 
     // BOOT0
     bool HasBoot0() const;
     FileSys::VirtualFile GetBoot0Raw() const;
-    std::array<u8, 0xB0> GetEncryptedKeyblob(u8 index) const;
-    std::array<std::array<u8, 0xB0>, 0x20> GetEncryptedKeyblobs() const;
+    EncryptedKeyBlob GetEncryptedKeyblob(std::size_t index) const;
+    EncryptedKeyBlobs GetEncryptedKeyblobs() const;
     std::vector<u8> GetSecureMonitor() const;
     std::array<u8, 0x10> GetPackage2KeySource() const;
     std::array<u8, 0x10> GetAESKekGenerationSource() const;
@@ -43,7 +46,7 @@ public:
     std::vector<u8> GetPackage1Decrypted() const;
     std::array<u8, 0x10> GetMasterKeySource() const;
     std::array<u8, 0x10> GetKeyblobMACKeySource() const;
-    std::array<u8, 0x10> GetKeyblobKeySource(u8 revision) const;
+    std::array<u8, 0x10> GetKeyblobKeySource(std::size_t revision) const;
 
     // Fuses
     bool HasFuses() const;
@@ -57,7 +60,8 @@ public:
     // Package2
     bool HasPackage2(Package2Type type = Package2Type::NormalMain) const;
     FileSys::VirtualFile GetPackage2Raw(Package2Type type = Package2Type::NormalMain) const;
-    void DecryptPackage2(std::array<std::array<u8, 16>, 0x20> package2, Package2Type type);
+    void DecryptPackage2(const std::array<std::array<u8, 16>, 0x20>& package2_keys,
+                         Package2Type type);
     const std::vector<u8>& GetPackage2FSDecompressed(
         Package2Type type = Package2Type::NormalMain) const;
     std::array<u8, 0x10> GetKeyAreaKeyApplicationSource(

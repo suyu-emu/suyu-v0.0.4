@@ -98,7 +98,7 @@ std::array<u8, 144> DecryptKeyblob(const std::array<u8, 176>& encrypted_keyblob,
     return keyblob;
 }
 
-void KeyManager::DeriveGeneralPurposeKeys(u8 crypto_revision) {
+void KeyManager::DeriveGeneralPurposeKeys(std::size_t crypto_revision) {
     const auto kek_generation_source =
         GetKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKekGeneration));
     const auto key_generation_source =
@@ -147,31 +147,38 @@ boost::optional<Key128> DeriveSDSeed() {
                                    "rb+");
     if (!save_43.IsOpen())
         return boost::none;
+
     const FileUtil::IOFile sd_private(
         FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir) + "/Nintendo/Contents/private", "rb+");
     if (!sd_private.IsOpen())
         return boost::none;
 
-    sd_private.Seek(0, SEEK_SET);
     std::array<u8, 0x10> private_seed{};
-    if (sd_private.ReadBytes(private_seed.data(), private_seed.size()) != 0x10)
+    if (sd_private.ReadBytes(private_seed.data(), private_seed.size()) != private_seed.size()) {
         return boost::none;
+    }
 
     std::array<u8, 0x10> buffer{};
     std::size_t offset = 0;
     for (; offset + 0x10 < save_43.GetSize(); ++offset) {
-        save_43.Seek(offset, SEEK_SET);
+        if (!save_43.Seek(offset, SEEK_SET)) {
+            return boost::none;
+        }
+
         save_43.ReadBytes(buffer.data(), buffer.size());
-        if (buffer == private_seed)
+        if (buffer == private_seed) {
             break;
+        }
     }
 
-    if (offset + 0x10 >= save_43.GetSize())
+    if (!save_43.Seek(offset + 0x10, SEEK_SET)) {
         return boost::none;
+    }
 
     Key128 seed{};
-    save_43.Seek(offset + 0x10, SEEK_SET);
-    save_43.ReadBytes(seed.data(), seed.size());
+    if (save_43.ReadBytes(seed.data(), seed.size()) != seed.size()) {
+        return boost::none;
+    }
     return seed;
 }
 
@@ -234,7 +241,9 @@ std::vector<TicketRaw> GetTicketblob(const FileUtil::IOFile& ticket_save) {
         return {};
 
     std::vector<u8> buffer(ticket_save.GetSize());
-    ticket_save.ReadBytes(buffer.data(), buffer.size());
+    if (ticket_save.ReadBytes(buffer.data(), buffer.size()) != buffer.size()) {
+        return {};
+    }
 
     std::vector<TicketRaw> out;
     u32 magic{};
@@ -261,6 +270,9 @@ static std::array<u8, size> operator^(const std::array<u8, size>& lhs,
 
 template <size_t target_size, size_t in_size>
 static std::array<u8, target_size> MGF1(const std::array<u8, in_size>& seed) {
+    // Avoids truncation overflow within the loop below.
+    static_assert(target_size <= 0xFF);
+
     std::array<u8, in_size + 4> seed_exp{};
     std::memcpy(seed_exp.data(), seed.data(), in_size);
 
@@ -268,7 +280,7 @@ static std::array<u8, target_size> MGF1(const std::array<u8, in_size>& seed) {
     size_t i = 0;
     while (out.size() < target_size) {
         out.resize(out.size() + 0x20);
-        seed_exp[in_size + 3] = i;
+        seed_exp[in_size + 3] = static_cast<u8>(i);
         mbedtls_sha256(seed_exp.data(), seed_exp.size(), out.data() + out.size() - 0x20, 0);
         ++i;
     }
@@ -299,10 +311,11 @@ boost::optional<std::pair<Key128, Key128>> ParseTicket(const TicketRaw& ticket,
     std::memcpy(&cert_authority, ticket.data() + 0x140, sizeof(cert_authority));
     if (cert_authority == 0)
         return boost::none;
-    if (cert_authority != Common::MakeMagic('R', 'o', 'o', 't'))
+    if (cert_authority != Common::MakeMagic('R', 'o', 'o', 't')) {
         LOG_INFO(Crypto,
                  "Attempting to parse ticket with non-standard certificate authority {:08X}.",
                  cert_authority);
+    }
 
     Key128 rights_id;
     std::memcpy(rights_id.data(), ticket.data() + 0x2A0, sizeof(Key128));
@@ -871,9 +884,9 @@ void KeyManager::DeriveETicket(PartitionDataManager& data) {
                                      "/system/save/80000000000000e2",
                                  "rb+");
 
+    const auto blob2 = GetTicketblob(save2);
     auto res = GetTicketblob(save1);
-    const auto res2 = GetTicketblob(save2);
-    std::copy(res2.begin(), res2.end(), std::back_inserter(res));
+    res.insert(res.end(), blob2.begin(), blob2.end());
 
     for (const auto& raw : res) {
         const auto pair = ParseTicket(raw, rsa_key);
