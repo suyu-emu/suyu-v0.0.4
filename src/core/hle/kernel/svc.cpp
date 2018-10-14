@@ -1098,6 +1098,29 @@ static ResultCode ClearEvent(Handle handle) {
     return RESULT_SUCCESS;
 }
 
+static ResultCode GetProcessInfo(u64* out, Handle process_handle, u32 type) {
+    LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, type=0x{:X}", process_handle, type);
+
+    // This function currently only allows retrieving a process' status.
+    enum class InfoType {
+        Status,
+    };
+
+    const auto& kernel = Core::System::GetInstance().Kernel();
+    const auto process = kernel.HandleTable().Get<Process>(process_handle);
+    if (!process) {
+        return ERR_INVALID_HANDLE;
+    }
+
+    const auto info_type = static_cast<InfoType>(type);
+    if (info_type != InfoType::Status) {
+        return ERR_INVALID_ENUM_VALUE;
+    }
+
+    *out = static_cast<u64>(process->GetStatus());
+    return RESULT_SUCCESS;
+}
+
 namespace {
 struct FunctionDef {
     using Func = void();
@@ -1233,7 +1256,7 @@ static const FunctionDef SVC_Table[] = {
     {0x79, nullptr, "CreateProcess"},
     {0x7A, nullptr, "StartProcess"},
     {0x7B, nullptr, "TerminateProcess"},
-    {0x7C, nullptr, "GetProcessInfo"},
+    {0x7C, SvcWrap<GetProcessInfo>, "GetProcessInfo"},
     {0x7D, nullptr, "CreateResourceLimit"},
     {0x7E, nullptr, "SetResourceLimitLimitValue"},
     {0x7F, nullptr, "CallSecureMonitor"},
