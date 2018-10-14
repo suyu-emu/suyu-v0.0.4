@@ -10,11 +10,11 @@
 #include <QWidget>
 #include "core/hle/service/acc/profile_manager.h"
 
-class QVBoxLayout;
-class QTreeView;
-class QStandardItemModel;
 class QGraphicsScene;
 class QStandardItem;
+class QStandardItemModel;
+class QTreeView;
+class QVBoxLayout;
 
 namespace Ui {
 class ConfigureSystem;
@@ -45,7 +45,7 @@ public slots:
 
 private:
     void ReadSystemSettings();
-    std::string GetAccountUsername(Service::Account::UUID uuid);
+    std::string GetAccountUsername(Service::Account::UUID uuid) const;
 
     QVBoxLayout* layout;
     QTreeView* tree_view;

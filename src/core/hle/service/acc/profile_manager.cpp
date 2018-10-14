@@ -30,22 +30,20 @@ constexpr ResultCode ERROR_TOO_MANY_USERS(ErrorModule::Account, -1);
 constexpr ResultCode ERROR_USER_ALREADY_EXISTS(ErrorModule::Account, -2);
 constexpr ResultCode ERROR_ARGUMENT_IS_NULL(ErrorModule::Account, 20);
 
-constexpr const char* ACC_SAVE_AVATORS_BASE_PATH = "/system/save/8000000000000010/su/avators/";
+constexpr char ACC_SAVE_AVATORS_BASE_PATH[] = "/system/save/8000000000000010/su/avators/";
 
-const UUID& UUID::Generate() {
+UUID UUID::Generate() {
     std::random_device device;
     std::mt19937 gen(device());
     std::uniform_int_distribution<u64> distribution(1, std::numeric_limits<u64>::max());
-    uuid[0] = distribution(gen);
-    uuid[1] = distribution(gen);
-    return *this;
+    return UUID{distribution(gen), distribution(gen)};
 }
 
 ProfileManager::ProfileManager() {
     ParseUserSaveFile();
 
     if (user_count == 0)
-        CreateNewUser(UUID{}.Generate(), "yuzu");
+        CreateNewUser(UUID::Generate(), "yuzu");
 
     auto current = std::clamp<int>(Settings::values.current_user, 0, MAX_USERS - 1);
     if (UserExistsIndex(current))
@@ -309,10 +307,18 @@ void ProfileManager::ParseUserSaveFile() {
                               ACC_SAVE_AVATORS_BASE_PATH + "profiles.dat",
                           "rb");
 
-    ProfileDataRaw data;
-    save.Seek(0, SEEK_SET);
-    if (save.ReadBytes(&data, sizeof(ProfileDataRaw)) != sizeof(ProfileDataRaw))
+    if (!save.IsOpen()) {
+        LOG_WARNING(Service_ACC, "Failed to load profile data from save data... Generating new "
+                                 "user 'yuzu' with random UUID.");
         return;
+    }
+
+    ProfileDataRaw data;
+    if (save.ReadBytes(&data, sizeof(ProfileDataRaw)) != sizeof(ProfileDataRaw)) {
+        LOG_WARNING(Service_ACC, "profiles.dat is smaller than expected... Generating new user "
+                                 "'yuzu' with random UUID.");
+        return;
+    }
 
     for (std::size_t i = 0; i < MAX_USERS; ++i) {
         const auto& user = data.users[i];
@@ -335,12 +341,30 @@ void ProfileManager::WriteUserSaveFile() {
         raw.users[i].timestamp = profiles[i].creation_time;
     }
 
-    FileUtil::IOFile save(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
-                              ACC_SAVE_AVATORS_BASE_PATH + "profiles.dat",
-                          "wb");
+    const auto raw_path =
+        FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) + "/system/save/8000000000000010";
+    if (FileUtil::Exists(raw_path) && !FileUtil::IsDirectory(raw_path))
+        FileUtil::Delete(raw_path);
+
+    const auto path = FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
+                      ACC_SAVE_AVATORS_BASE_PATH + "profiles.dat";
+
+    if (!FileUtil::CreateFullPath(path)) {
+        LOG_WARNING(Service_ACC, "Failed to create full path of profiles.dat. Create the directory "
+                                 "nand/system/save/8000000000000010/su/avators to mitigate this "
+                                 "issue.");
+        return;
+    }
+
+    FileUtil::IOFile save(path, "wb");
+
+    if (!save.IsOpen()) {
+        LOG_WARNING(Service_ACC, "Failed to write save data to file... No changes to user data "
+                                 "made in current session will be saved.");
+        return;
+    }
 
     save.Resize(sizeof(ProfileDataRaw));
-    save.Seek(0, SEEK_SET);
     save.WriteBytes(&raw, sizeof(ProfileDataRaw));
 }
 

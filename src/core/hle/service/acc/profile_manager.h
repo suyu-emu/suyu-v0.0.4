@@ -36,7 +36,7 @@ struct UUID {
     }
 
     // TODO(ogniK): Properly generate uuids based on RFC-4122
-    const UUID& Generate();
+    static UUID Generate();
 
     // Set the UUID to {0,0} to be considered an invalid user
     void Invalidate() {

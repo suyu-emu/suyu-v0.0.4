@@ -163,7 +163,7 @@ void ConfigureSystem::UpdateCurrentUser() {
 
 void ConfigureSystem::ReadSystemSettings() {}
 
-std::string ConfigureSystem::GetAccountUsername(Service::Account::UUID uuid) {
+std::string ConfigureSystem::GetAccountUsername(Service::Account::UUID uuid) const {
     Service::Account::ProfileBase profile;
     if (!profile_manager->GetProfileBase(uuid, profile))
         return "";
