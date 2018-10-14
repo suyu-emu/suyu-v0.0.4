@@ -97,8 +97,9 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
 
     ctx.WriteBuffer(out);
 
-    IPC::ResponseBuilder rb{ctx, 2};
+    IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
+    rb.Push(count);
 }
 
 void AOC_U::GetAddOnContentBaseId(Kernel::HLERequestContext& ctx) {
