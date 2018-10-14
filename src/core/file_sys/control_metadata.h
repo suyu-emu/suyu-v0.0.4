@@ -79,6 +79,7 @@ public:
     std::string GetApplicationName(Language language = Language::Default) const;
     std::string GetDeveloperName(Language language = Language::Default) const;
     u64 GetTitleId() const;
+    u64 GetDLCBaseTitleId() const;
     std::string GetVersionString() const;
 
 private:

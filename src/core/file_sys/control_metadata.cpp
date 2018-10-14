@@ -56,6 +56,10 @@ u64 NACP::GetTitleId() const {
     return raw->title_id;
 }
 
+u64 NACP::GetDLCBaseTitleId() const {
+    return raw->dlc_base_title_id;
+}
+
 std::string NACP::GetVersionString() const {
     return Common::StringFromFixedZeroTerminatedBuffer(raw->version_string.data(), 0x10);
 }
