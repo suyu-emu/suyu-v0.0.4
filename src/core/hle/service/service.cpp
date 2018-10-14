@@ -197,7 +197,7 @@ ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::HLERequestContext& co
 // Module interface
 
 /// Initialize ServiceManager
-void Init(std::shared_ptr<SM::ServiceManager>& sm, const FileSys::VirtualFilesystem& rfs) {
+void Init(std::shared_ptr<SM::ServiceManager>& sm, FileSys::VfsFilesystem& vfs) {
     // NVFlinger needs to be accessed by several services like Vi and AppletOE so we instantiate it
     // here and pass it into the respective InstallInterfaces functions.
     auto nv_flinger = std::make_shared<NVFlinger::NVFlinger>();
@@ -220,7 +220,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm, const FileSys::VirtualFilesys
     EUPLD::InstallInterfaces(*sm);
     Fatal::InstallInterfaces(*sm);
     FGM::InstallInterfaces(*sm);
-    FileSystem::InstallInterfaces(*sm, rfs);
+    FileSystem::InstallInterfaces(*sm, vfs);
     Friend::InstallInterfaces(*sm);
     GRC::InstallInterfaces(*sm);
     HID::InstallInterfaces(*sm);

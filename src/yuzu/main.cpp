@@ -176,7 +176,7 @@ GMainWindow::GMainWindow()
     OnReinitializeKeys(ReinitializeKeyBehavior::NoWarning);
 
     // Necessary to load titles from nand in gamelist.
-    Service::FileSystem::CreateFactories(vfs);
+    Service::FileSystem::CreateFactories(*vfs);
     game_list->LoadCompatibilityList();
     game_list->PopulateAsync(UISettings::values.gamedir, UISettings::values.gamedir_deepscan);
 
@@ -1139,7 +1139,7 @@ void GMainWindow::OnMenuSelectEmulatedDirectory(EmulatedDirectoryTarget target) 
         FileUtil::GetUserPath(target == EmulatedDirectoryTarget::SDMC ? FileUtil::UserPath::SDMCDir
                                                                       : FileUtil::UserPath::NANDDir,
                               dir_path.toStdString());
-        Service::FileSystem::CreateFactories(vfs);
+        Service::FileSystem::CreateFactories(*vfs);
         game_list->PopulateAsync(UISettings::values.gamedir, UISettings::values.gamedir_deepscan);
     }
 }
@@ -1410,7 +1410,7 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
 
         const auto function = [this, &keys, &pdm] {
             keys.PopulateFromPartitionData(pdm);
-            Service::FileSystem::CreateFactories(vfs);
+            Service::FileSystem::CreateFactories(*vfs);
             keys.DeriveETicket(pdm);
         };
 
@@ -1450,7 +1450,7 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
         prog.close();
     }
 
-    Service::FileSystem::CreateFactories(vfs);
+    Service::FileSystem::CreateFactories(*vfs);
 
     if (behavior == ReinitializeKeyBehavior::Warning) {
         game_list->PopulateAsync(UISettings::values.gamedir, UISettings::values.gamedir_deepscan);

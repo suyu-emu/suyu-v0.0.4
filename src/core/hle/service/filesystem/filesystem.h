@@ -57,9 +57,9 @@ FileSys::VirtualDir GetModificationLoadRoot(u64 title_id);
 
 // Creates the SaveData, SDMC, and BIS Factories. Should be called once and before any function
 // above is called.
-void CreateFactories(const FileSys::VirtualFilesystem& vfs, bool overwrite = true);
+void CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite = true);
 
-void InstallInterfaces(SM::ServiceManager& service_manager, const FileSys::VirtualFilesystem& vfs);
+void InstallInterfaces(SM::ServiceManager& service_manager, FileSys::VfsFilesystem& vfs);
 
 // A class that wraps a VfsDirectory with methods that return ResultVal and ResultCode instead of
 // pointers and booleans. This makes using a VfsDirectory with switch services much easier and

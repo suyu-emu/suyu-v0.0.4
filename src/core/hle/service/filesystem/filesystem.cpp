@@ -361,19 +361,19 @@ FileSys::VirtualDir GetModificationLoadRoot(u64 title_id) {
     return bis_factory->GetModificationLoadRoot(title_id);
 }
 
-void CreateFactories(const FileSys::VirtualFilesystem& vfs, bool overwrite) {
+void CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite) {
     if (overwrite) {
         bis_factory = nullptr;
         save_data_factory = nullptr;
         sdmc_factory = nullptr;
     }
 
-    auto nand_directory = vfs->OpenDirectory(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir),
-                                             FileSys::Mode::ReadWrite);
-    auto sd_directory = vfs->OpenDirectory(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir),
-                                           FileSys::Mode::ReadWrite);
-    auto load_directory = vfs->OpenDirectory(FileUtil::GetUserPath(FileUtil::UserPath::LoadDir),
-                                             FileSys::Mode::ReadWrite);
+    auto nand_directory = vfs.OpenDirectory(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir),
+                                            FileSys::Mode::ReadWrite);
+    auto sd_directory = vfs.OpenDirectory(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir),
+                                          FileSys::Mode::ReadWrite);
+    auto load_directory = vfs.OpenDirectory(FileUtil::GetUserPath(FileUtil::UserPath::LoadDir),
+                                            FileSys::Mode::ReadWrite);
 
     if (bis_factory == nullptr)
         bis_factory = std::make_unique<FileSys::BISFactory>(nand_directory, load_directory);
@@ -383,7 +383,7 @@ void CreateFactories(const FileSys::VirtualFilesystem& vfs, bool overwrite) {
         sdmc_factory = std::make_unique<FileSys::SDMCFactory>(std::move(sd_directory));
 }
 
-void InstallInterfaces(SM::ServiceManager& service_manager, const FileSys::VirtualFilesystem& vfs) {
+void InstallInterfaces(SM::ServiceManager& service_manager, FileSys::VfsFilesystem& vfs) {
     romfs_factory = nullptr;
     CreateFactories(vfs, false);
     std::make_shared<FSP_LDR>()->InstallAsService(service_manager);
