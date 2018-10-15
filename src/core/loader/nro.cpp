@@ -127,10 +127,10 @@ static constexpr u32 PageAlignSize(u32 size) {
     return (size + Memory::PAGE_MASK) & ~Memory::PAGE_MASK;
 }
 
-bool AppLoader_NRO::LoadNro(FileSys::VirtualFile file, VAddr load_base) {
+bool AppLoader_NRO::LoadNro(const FileSys::VfsFile& file, VAddr load_base) {
     // Read NSO header
     NroHeader nro_header{};
-    if (sizeof(NroHeader) != file->ReadObject(&nro_header)) {
+    if (sizeof(NroHeader) != file.ReadObject(&nro_header)) {
         return {};
     }
     if (nro_header.magic != Common::MakeMagic('N', 'R', 'O', '0')) {
@@ -138,7 +138,7 @@ bool AppLoader_NRO::LoadNro(FileSys::VirtualFile file, VAddr load_base) {
     }
 
     // Build program image
-    std::vector<u8> program_image = file->ReadBytes(PageAlignSize(nro_header.file_size));
+    std::vector<u8> program_image = file.ReadBytes(PageAlignSize(nro_header.file_size));
     if (program_image.size() != PageAlignSize(nro_header.file_size)) {
         return {};
     }
@@ -182,7 +182,7 @@ bool AppLoader_NRO::LoadNro(FileSys::VirtualFile file, VAddr load_base) {
     Core::CurrentProcess()->LoadModule(std::move(codeset), load_base);
 
     // Register module with GDBStub
-    GDBStub::RegisterModule(file->GetName(), load_base, load_base);
+    GDBStub::RegisterModule(file.GetName(), load_base, load_base);
 
     return true;
 }
@@ -195,7 +195,7 @@ ResultStatus AppLoader_NRO::Load(Kernel::Process& process) {
     // Load NRO
     const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
 
-    if (!LoadNro(file, base_address)) {
+    if (!LoadNro(*file, base_address)) {
         return ResultStatus::ErrorLoadingNRO;
     }
 
