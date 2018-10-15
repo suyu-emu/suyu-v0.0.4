@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <optional>
 #include "common/common_types.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/loader/linker.h"
@@ -36,8 +37,9 @@ public:
         return IdentifyType(file);
     }
 
-    static VAddr LoadModule(FileSys::VirtualFile file, VAddr load_base, bool should_pass_arguments,
-                            boost::optional<FileSys::PatchManager> pm = boost::none);
+    static std::optional<VAddr> LoadModule(const FileSys::VfsFile& file, VAddr load_base,
+                                           bool should_pass_arguments,
+                                           std::optional<FileSys::PatchManager> pm = {});
 
     ResultStatus Load(Kernel::Process& process) override;
 };

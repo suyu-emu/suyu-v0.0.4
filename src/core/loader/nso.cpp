@@ -93,17 +93,14 @@ static constexpr u32 PageAlignSize(u32 size) {
     return (size + Memory::PAGE_MASK) & ~Memory::PAGE_MASK;
 }
 
-VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base,
-                                bool should_pass_arguments,
-                                boost::optional<FileSys::PatchManager> pm) {
-    if (file == nullptr)
-        return {};
-
-    if (file->GetSize() < sizeof(NsoHeader))
+std::optional<VAddr> AppLoader_NSO::LoadModule(const FileSys::VfsFile& file, VAddr load_base,
+                                               bool should_pass_arguments,
+                                               std::optional<FileSys::PatchManager> pm) {
+    if (file.GetSize() < sizeof(NsoHeader))
         return {};
 
     NsoHeader nso_header{};
-    if (sizeof(NsoHeader) != file->ReadObject(&nso_header))
+    if (sizeof(NsoHeader) != file.ReadObject(&nso_header))
         return {};
 
     if (nso_header.magic != Common::MakeMagic('N', 'S', 'O', '0'))
@@ -114,7 +111,7 @@ VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base,
     std::vector<u8> program_image;
     for (std::size_t i = 0; i < nso_header.segments.size(); ++i) {
         std::vector<u8> data =
-            file->ReadBytes(nso_header.segments_compressed_size[i], nso_header.segments[i].offset);
+            file.ReadBytes(nso_header.segments_compressed_size[i], nso_header.segments[i].offset);
         if (nso_header.IsSegmentCompressed(i)) {
             data = DecompressSegment(data, nso_header.segments[i]);
         }
@@ -157,7 +154,7 @@ VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base,
     program_image.resize(image_size);
 
     // Apply patches if necessary
-    if (pm != boost::none && pm->HasNSOPatch(nso_header.build_id)) {
+    if (pm && pm->HasNSOPatch(nso_header.build_id)) {
         std::vector<u8> pi_header(program_image.size() + 0x100);
         std::memcpy(pi_header.data(), &nso_header, sizeof(NsoHeader));
         std::memcpy(pi_header.data() + 0x100, program_image.data(), program_image.size());
@@ -172,7 +169,7 @@ VAddr AppLoader_NSO::LoadModule(FileSys::VirtualFile file, VAddr load_base,
     Core::CurrentProcess()->LoadModule(std::move(codeset), load_base);
 
     // Register module with GDBStub
-    GDBStub::RegisterModule(file->GetName(), load_base, load_base);
+    GDBStub::RegisterModule(file.GetName(), load_base, load_base);
 
     return load_base + image_size;
 }
@@ -184,7 +181,9 @@ ResultStatus AppLoader_NSO::Load(Kernel::Process& process) {
 
     // Load module
     const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
-    LoadModule(file, base_address, true);
+    if (!LoadModule(*file, base_address, true)) {
+        return ResultStatus::ErrorLoadingNSO;
+    }
     LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", file->GetName(), base_address);
 
     process.Run(base_address, Kernel::THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE);
