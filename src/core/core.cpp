@@ -71,9 +71,9 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 }
 
 /// Runs a CPU core while the system is powered on
-void RunCpuCore(std::shared_ptr<Cpu> cpu_state) {
+void RunCpuCore(Cpu& cpu_state) {
     while (Core::System::GetInstance().IsPoweredOn()) {
-        cpu_state->RunLoop(true);
+        cpu_state.RunLoop(true);
     }
 }
 } // Anonymous namespace
@@ -95,7 +95,7 @@ struct System::Impl {
         status = ResultStatus::Success;
 
         // Update thread_to_cpu in case Core 0 is run from a different host thread
-        thread_to_cpu[std::this_thread::get_id()] = cpu_cores[0];
+        thread_to_cpu[std::this_thread::get_id()] = cpu_cores[0].get();
 
         if (GDBStub::IsServerEnabled()) {
             GDBStub::HandlePacket();
@@ -142,7 +142,7 @@ struct System::Impl {
         cpu_barrier = std::make_unique<CpuBarrier>();
         cpu_exclusive_monitor = Cpu::MakeExclusiveMonitor(cpu_cores.size());
         for (std::size_t index = 0; index < cpu_cores.size(); ++index) {
-            cpu_cores[index] = std::make_shared<Cpu>(*cpu_exclusive_monitor, *cpu_barrier, index);
+            cpu_cores[index] = std::make_unique<Cpu>(*cpu_exclusive_monitor, *cpu_barrier, index);
         }
 
         telemetry_session = std::make_unique<Core::TelemetrySession>();
@@ -160,12 +160,12 @@ struct System::Impl {
 
         // Create threads for CPU cores 1-3, and build thread_to_cpu map
         // CPU core 0 is run on the main thread
-        thread_to_cpu[std::this_thread::get_id()] = cpu_cores[0];
+        thread_to_cpu[std::this_thread::get_id()] = cpu_cores[0].get();
         if (Settings::values.use_multi_core) {
             for (std::size_t index = 0; index < cpu_core_threads.size(); ++index) {
                 cpu_core_threads[index] =
-                    std::make_unique<std::thread>(RunCpuCore, cpu_cores[index + 1]);
-                thread_to_cpu[cpu_core_threads[index]->get_id()] = cpu_cores[index + 1];
+                    std::make_unique<std::thread>(RunCpuCore, std::ref(*cpu_cores[index + 1]));
+                thread_to_cpu[cpu_core_threads[index]->get_id()] = cpu_cores[index + 1].get();
             }
         }
 
@@ -285,7 +285,7 @@ struct System::Impl {
     std::shared_ptr<Tegra::DebugContext> debug_context;
     std::unique_ptr<ExclusiveMonitor> cpu_exclusive_monitor;
     std::unique_ptr<CpuBarrier> cpu_barrier;
-    std::array<std::shared_ptr<Cpu>, NUM_CPU_CORES> cpu_cores;
+    std::array<std::unique_ptr<Cpu>, NUM_CPU_CORES> cpu_cores;
     std::array<std::unique_ptr<std::thread>, NUM_CPU_CORES - 1> cpu_core_threads;
     std::size_t active_core{}; ///< Active core, only used in single thread mode
 
@@ -299,7 +299,7 @@ struct System::Impl {
     std::string status_details = "";
 
     /// Map of guest threads to CPU cores
-    std::map<std::thread::id, std::shared_ptr<Cpu>> thread_to_cpu;
+    std::map<std::thread::id, Cpu*> thread_to_cpu;
 
     Core::PerfStats perf_stats;
     Core::FrameLimiter frame_limiter;
