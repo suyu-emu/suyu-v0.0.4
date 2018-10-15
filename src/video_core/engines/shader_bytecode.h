@@ -267,7 +267,7 @@ enum class ControlCode : u64 {
     GTU = 12,
     NEU = 13,
     GEU = 14,
-    //
+    T = 15,
     OFF = 16,
     LO = 17,
     SFF = 18,
