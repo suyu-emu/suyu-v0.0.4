@@ -1436,7 +1436,6 @@ private:
 
             break;
         }
-
         case OpCode::Type::Shift: {
             std::string op_a = regs.GetRegisterAsInteger(instr.gpr8, 0, true);
             std::string op_b;
@@ -1478,7 +1477,6 @@ private:
             }
             break;
         }
-
         case OpCode::Type::ArithmeticIntegerImmediate: {
             std::string op_a = regs.GetRegisterAsInteger(instr.gpr8);
             std::string op_b = std::to_string(instr.alu.imm20_32.Value());
@@ -2626,14 +2624,14 @@ private:
                 const std::string pred =
                     GetPredicateCondition(instr.csetp.pred39, instr.csetp.neg_pred39 != 0);
                 const std::string combiner = GetPredicateCombiner(instr.csetp.op);
-                const std::string controlCode = regs.GetControlCode(instr.csetp.cc);
+                const std::string control_code = regs.GetControlCode(instr.csetp.cc);
                 if (instr.csetp.pred3 != static_cast<u64>(Pred::UnusedIndex)) {
                     SetPredicate(instr.csetp.pred3,
-                                 '(' + controlCode + ") " + combiner + " (" + pred + ')');
+                                 '(' + control_code + ") " + combiner + " (" + pred + ')');
                 }
                 if (instr.csetp.pred0 != static_cast<u64>(Pred::UnusedIndex)) {
                     SetPredicate(instr.csetp.pred0,
-                                 "!(" + controlCode + ") " + combiner + " (" + pred + ')');
+                                 "!(" + control_code + ") " + combiner + " (" + pred + ')');
                 }
                 break;
             }
