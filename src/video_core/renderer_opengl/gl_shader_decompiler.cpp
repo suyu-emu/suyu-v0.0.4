@@ -2791,6 +2791,51 @@ private:
             }
             break;
         }
+        case OpCode::Type::HalfSetPredicate: {
+            ASSERT_MSG(instr.hsetp2.ftz == 0, "Unimplemented");
+
+            const std::string op_a =
+                GetHalfFloat(regs.GetRegisterAsInteger(instr.gpr8, 0, false), instr.hsetp2.type_a,
+                             instr.hsetp2.abs_a, instr.hsetp2.negate_a);
+
+            const std::string op_b = [&]() {
+                switch (opcode->GetId()) {
+                case OpCode::Id::HSETP2_R:
+                    return GetHalfFloat(regs.GetRegisterAsInteger(instr.gpr20, 0, false),
+                                        instr.hsetp2.type_b, instr.hsetp2.abs_a,
+                                        instr.hsetp2.negate_b);
+                default:
+                    UNREACHABLE();
+                    return std::string("vec2(0)");
+                }
+            }();
+
+            // We can't use the constant predicate as destination.
+            ASSERT(instr.hsetp2.pred3 != static_cast<u64>(Pred::UnusedIndex));
+
+            const std::string second_pred =
+                GetPredicateCondition(instr.hsetp2.pred39, instr.hsetp2.neg_pred != 0);
+
+            const std::string combiner = GetPredicateCombiner(instr.hsetp2.op);
+
+            const std::string component_combiner = instr.hsetp2.h_and ? "&&" : "||";
+            const std::string predicate =
+                '(' + GetPredicateComparison(instr.hsetp2.cond, op_a + ".x", op_b + ".x") + ' ' +
+                component_combiner + ' ' +
+                GetPredicateComparison(instr.hsetp2.cond, op_a + ".y", op_b + ".y") + ')';
+
+            // Set the primary predicate to the result of Predicate OP SecondPredicate
+            SetPredicate(instr.hsetp2.pred3,
+                         '(' + predicate + ") " + combiner + " (" + second_pred + ')');
+
+            if (instr.hsetp2.pred0 != static_cast<u64>(Pred::UnusedIndex)) {
+                // Set the secondary predicate to the result of !Predicate OP SecondPredicate,
+                // if enabled
+                SetPredicate(instr.hsetp2.pred0,
+                             "!(" + predicate + ") " + combiner + " (" + second_pred + ')');
+            }
+            break;
+        }
         case OpCode::Type::PredicateSetRegister: {
             const std::string op_a =
                 GetPredicateCondition(instr.pset.pred12, instr.pset.neg_pred12 != 0);
