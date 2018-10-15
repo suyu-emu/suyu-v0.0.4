@@ -286,7 +286,8 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
             &ubo, sizeof(ubo), static_cast<std::size_t>(uniform_buffer_alignment));
 
         // Bind the buffer
-        glBindBufferRange(GL_UNIFORM_BUFFER, stage, buffer_cache.GetHandle(), offset, sizeof(ubo));
+        glBindBufferRange(GL_UNIFORM_BUFFER, static_cast<GLuint>(stage), buffer_cache.GetHandle(),
+                          offset, static_cast<GLsizeiptr>(sizeof(ubo)));
 
         Shader shader{shader_cache.GetStageProgram(program)};
 
