@@ -590,6 +590,31 @@ union Instruction {
     } alu_half;
 
     union {
+        BitField<39, 2, HalfPrecision> precision;
+        BitField<39, 1, u64> ftz;
+        BitField<52, 1, u64> saturate;
+        BitField<49, 2, HalfMerge> merge;
+
+        BitField<43, 1, u64> negate_a;
+        BitField<44, 1, u64> abs_a;
+        BitField<47, 2, HalfType> type_a;
+    } alu_half_imm;
+
+    union {
+        BitField<29, 1, u64> first_negate;
+        BitField<20, 9, u64> first;
+
+        BitField<56, 1, u64> second_negate;
+        BitField<30, 9, u64> second;
+
+        u32 PackImmediates() const {
+            // Immediates are half floats shifted.
+            constexpr u32 imm_shift = 6;
+            return static_cast<u32>((first << imm_shift) | (second << (16 + imm_shift)));
+        }
+    } half_imm;
+
+    union {
         BitField<40, 1, u64> invert;
     } popc;
 
@@ -1183,8 +1208,10 @@ public:
         LEA_HI,
         HADD2_C,
         HADD2_R,
+        HADD2_IMM,
         HMUL2_C,
         HMUL2_R,
+        HMUL2_IMM,
         POPC_C,
         POPC_R,
         POPC_IMM,
@@ -1259,6 +1286,7 @@ public:
         ArithmeticInteger,
         ArithmeticIntegerImmediate,
         ArithmeticHalf,
+        ArithmeticHalfImmediate,
         Bfe,
         Shift,
         Ffma,
@@ -1432,8 +1460,10 @@ private:
             INST("00011000--------", Id::LEA_HI, Type::ArithmeticInteger, "LEA_HI"),
             INST("0111101-1-------", Id::HADD2_C, Type::ArithmeticHalf, "HADD2_C"),
             INST("0101110100010---", Id::HADD2_R, Type::ArithmeticHalf, "HADD2_R"),
+            INST("0111101-0-------", Id::HADD2_IMM, Type::ArithmeticHalfImmediate, "HADD2_IMM"),
             INST("0111100-1-------", Id::HMUL2_C, Type::ArithmeticHalf, "HMUL2_C"),
             INST("0101110100001---", Id::HMUL2_R, Type::ArithmeticHalf, "HMUL2_R"),
+            INST("0111100-0-------", Id::HMUL2_IMM, Type::ArithmeticHalfImmediate, "HMUL2_IMM"),
             INST("0101000010000---", Id::MUFU, Type::Arithmetic, "MUFU"),
             INST("0100110010010---", Id::RRO_C, Type::Arithmetic, "RRO_C"),
             INST("0101110010010---", Id::RRO_R, Type::Arithmetic, "RRO_R"),

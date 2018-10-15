@@ -920,6 +920,19 @@ private:
         return fmt::format("uintBitsToFloat({})", instr.alu.GetImm20_32());
     }
 
+    /// Generates code representing a vec2 pair unpacked from a half float immediate
+    static std::string UnpackHalfImmediate(const Instruction& instr, bool negate) {
+        const std::string immediate = GetHalfFloat(std::to_string(instr.half_imm.PackImmediates()));
+        if (!negate) {
+            return immediate;
+        }
+        const std::string negate_first = instr.half_imm.first_negate != 0 ? "-" : "";
+        const std::string negate_second = instr.half_imm.second_negate != 0 ? "-" : "";
+        const std::string negate_vec = "vec2(" + negate_first + "1, " + negate_second + "1)";
+
+        return '(' + immediate + " * " + negate_vec + ')';
+    }
+
     /// Generates code representing a texture sampler.
     std::string GetSampler(const Sampler& sampler, Tegra::Shader::TextureType type, bool is_array,
                            bool is_shadow) {
@@ -1875,6 +1888,36 @@ private:
 
             regs.SetRegisterToHalfFloat(instr.gpr0, 0, result, instr.alu_half.merge, 1, 1,
                                         instr.alu_half.saturate != 0);
+            break;
+        }
+        case OpCode::Type::ArithmeticHalfImmediate: {
+            if (opcode->GetId() == OpCode::Id::HADD2_IMM) {
+                ASSERT_MSG(instr.alu_half_imm.ftz == 0, "Unimplemented");
+            } else {
+                ASSERT_MSG(instr.alu_half_imm.precision == Tegra::Shader::HalfPrecision::None,
+                           "Unimplemented");
+            }
+
+            const std::string op_a = GetHalfFloat(
+                regs.GetRegisterAsInteger(instr.gpr8, 0, false), instr.alu_half_imm.type_a,
+                instr.alu_half_imm.abs_a != 0, instr.alu_half_imm.negate_a != 0);
+
+            const std::string op_b = UnpackHalfImmediate(instr, true);
+
+            const std::string result = [&]() {
+                switch (opcode->GetId()) {
+                case OpCode::Id::HADD2_IMM:
+                    return op_a + " + " + op_b;
+                case OpCode::Id::HMUL2_IMM:
+                    return op_a + " * " + op_b;
+                default:
+                    UNREACHABLE();
+                    return std::string("0");
+                }
+            }();
+
+            regs.SetRegisterToHalfFloat(instr.gpr0, 0, result, instr.alu_half_imm.merge, 1, 1,
+                                        instr.alu_half_imm.saturate != 0);
             break;
         }
         case OpCode::Type::Ffma: {
