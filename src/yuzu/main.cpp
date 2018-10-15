@@ -1428,8 +1428,12 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
             QMessageBox::warning(
                 this, tr("Warning Missing Derivation Components"),
                 tr("The following are missing from your configuration that may hinder key "
-                   "derivation. It will be attempted but may not complete.\n\n") +
-                    errors);
+                   "derivation. It will be attempted but may not complete.<br><br>") +
+                    errors +
+                    tr("<br><br>You can get all of these and dump all of your games easily by "
+                       "following <a href='https://yuzu-emu.org/help/quickstart/quickstart/'>the "
+                       "quickstart guide</a>. Alternatively, you can use another method of dumping "
+                       "to obtain all of your keys."));
         }
 
         QProgressDialog prog;
