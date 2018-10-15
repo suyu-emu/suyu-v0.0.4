@@ -1827,6 +1827,56 @@ private:
 
             break;
         }
+        case OpCode::Type::ArithmeticHalf: {
+            if (opcode->GetId() == OpCode::Id::HADD2_C || opcode->GetId() == OpCode::Id::HADD2_R) {
+                ASSERT_MSG(instr.alu_half.ftz == 0, "Unimplemented");
+            }
+            const bool negate_a =
+                opcode->GetId() != OpCode::Id::HMUL2_R && instr.alu_half.negate_a != 0;
+            const bool negate_b =
+                opcode->GetId() != OpCode::Id::HMUL2_C && instr.alu_half.negate_b != 0;
+
+            const std::string op_a =
+                GetHalfFloat(regs.GetRegisterAsInteger(instr.gpr8, 0, false), instr.alu_half.type_a,
+                             instr.alu_half.abs_a != 0, negate_a);
+
+            std::string op_b;
+            switch (opcode->GetId()) {
+            case OpCode::Id::HADD2_C:
+            case OpCode::Id::HMUL2_C:
+                op_b = regs.GetUniform(instr.cbuf34.index, instr.cbuf34.offset,
+                                       GLSLRegister::Type::UnsignedInteger);
+                break;
+            case OpCode::Id::HADD2_R:
+            case OpCode::Id::HMUL2_R:
+                op_b = regs.GetRegisterAsInteger(instr.gpr20, 0, false);
+                break;
+            default:
+                UNREACHABLE();
+                op_b = "0";
+                break;
+            }
+            op_b = GetHalfFloat(op_b, instr.alu_half.type_b, instr.alu_half.abs_b != 0, negate_b);
+
+            const std::string result = [&]() {
+                switch (opcode->GetId()) {
+                case OpCode::Id::HADD2_C:
+                case OpCode::Id::HADD2_R:
+                    return '(' + op_a + " + " + op_b + ')';
+                case OpCode::Id::HMUL2_C:
+                case OpCode::Id::HMUL2_R:
+                    return '(' + op_a + " * " + op_b + ')';
+                default:
+                    LOG_CRITICAL(HW_GPU, "Unhandled half float instruction: {}", opcode->GetName());
+                    UNREACHABLE();
+                    return std::string("0");
+                }
+            }();
+
+            regs.SetRegisterToHalfFloat(instr.gpr0, 0, result, instr.alu_half.merge, 1, 1,
+                                        instr.alu_half.saturate != 0);
+            break;
+        }
         case OpCode::Type::Ffma: {
             const std::string op_a = regs.GetRegisterAsFloat(instr.gpr8);
             std::string op_b = instr.ffma.negate_b ? "-" : "";

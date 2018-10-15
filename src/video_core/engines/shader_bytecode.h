@@ -574,6 +574,22 @@ union Instruction {
     } alu_integer;
 
     union {
+        BitField<39, 1, u64> ftz;
+        BitField<32, 1, u64> saturate;
+        BitField<49, 2, HalfMerge> merge;
+
+        BitField<43, 1, u64> negate_a;
+        BitField<44, 1, u64> abs_a;
+        BitField<47, 2, HalfType> type_a;
+
+        BitField<31, 1, u64> negate_b;
+        BitField<30, 1, u64> abs_b;
+        BitField<47, 2, HalfType> type_b;
+
+        BitField<35, 2, HalfType> type_c;
+    } alu_half;
+
+    union {
         BitField<40, 1, u64> invert;
     } popc;
 
@@ -1165,6 +1181,10 @@ public:
         LEA_RZ,
         LEA_IMM,
         LEA_HI,
+        HADD2_C,
+        HADD2_R,
+        HMUL2_C,
+        HMUL2_R,
         POPC_C,
         POPC_R,
         POPC_IMM,
@@ -1238,6 +1258,7 @@ public:
         ArithmeticImmediate,
         ArithmeticInteger,
         ArithmeticIntegerImmediate,
+        ArithmeticHalf,
         Bfe,
         Shift,
         Ffma,
@@ -1409,6 +1430,10 @@ private:
             INST("001101101101----", Id::LEA_IMM, Type::ArithmeticInteger, "LEA_IMM"),
             INST("010010111101----", Id::LEA_RZ, Type::ArithmeticInteger, "LEA_RZ"),
             INST("00011000--------", Id::LEA_HI, Type::ArithmeticInteger, "LEA_HI"),
+            INST("0111101-1-------", Id::HADD2_C, Type::ArithmeticHalf, "HADD2_C"),
+            INST("0101110100010---", Id::HADD2_R, Type::ArithmeticHalf, "HADD2_R"),
+            INST("0111100-1-------", Id::HMUL2_C, Type::ArithmeticHalf, "HMUL2_C"),
+            INST("0101110100001---", Id::HMUL2_R, Type::ArithmeticHalf, "HMUL2_R"),
             INST("0101000010000---", Id::MUFU, Type::Arithmetic, "MUFU"),
             INST("0100110010010---", Id::RRO_C, Type::Arithmetic, "RRO_C"),
             INST("0101110010010---", Id::RRO_R, Type::Arithmetic, "RRO_R"),
