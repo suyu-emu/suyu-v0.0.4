@@ -139,10 +139,10 @@ struct System::Impl {
         auto main_process = Kernel::Process::Create(kernel, "main");
         kernel.MakeCurrentProcess(main_process.get());
 
-        cpu_barrier = std::make_shared<CpuBarrier>();
+        cpu_barrier = std::make_unique<CpuBarrier>();
         cpu_exclusive_monitor = Cpu::MakeExclusiveMonitor(cpu_cores.size());
         for (std::size_t index = 0; index < cpu_cores.size(); ++index) {
-            cpu_cores[index] = std::make_shared<Cpu>(cpu_exclusive_monitor, cpu_barrier, index);
+            cpu_cores[index] = std::make_shared<Cpu>(cpu_exclusive_monitor, *cpu_barrier, index);
         }
 
         telemetry_session = std::make_unique<Core::TelemetrySession>();
@@ -283,7 +283,7 @@ struct System::Impl {
     std::unique_ptr<Tegra::GPU> gpu_core;
     std::shared_ptr<Tegra::DebugContext> debug_context;
     std::shared_ptr<ExclusiveMonitor> cpu_exclusive_monitor;
-    std::shared_ptr<CpuBarrier> cpu_barrier;
+    std::unique_ptr<CpuBarrier> cpu_barrier;
     std::array<std::shared_ptr<Cpu>, NUM_CPU_CORES> cpu_cores;
     std::array<std::unique_ptr<std::thread>, NUM_CPU_CORES - 1> cpu_core_threads;
     std::size_t active_core{}; ///< Active core, only used in single thread mode

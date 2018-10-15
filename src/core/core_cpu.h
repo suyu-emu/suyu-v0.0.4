@@ -41,8 +41,8 @@ private:
 
 class Cpu {
 public:
-    Cpu(std::shared_ptr<ExclusiveMonitor> exclusive_monitor,
-        std::shared_ptr<CpuBarrier> cpu_barrier, std::size_t core_index);
+    Cpu(std::shared_ptr<ExclusiveMonitor> exclusive_monitor, CpuBarrier& cpu_barrier,
+        std::size_t core_index);
     ~Cpu();
 
     void RunLoop(bool tight_loop = true);
@@ -77,7 +77,7 @@ private:
     void Reschedule();
 
     std::unique_ptr<ARM_Interface> arm_interface;
-    std::shared_ptr<CpuBarrier> cpu_barrier;
+    CpuBarrier& cpu_barrier;
     std::shared_ptr<Kernel::Scheduler> scheduler;
 
     std::atomic<bool> reschedule_pending = false;

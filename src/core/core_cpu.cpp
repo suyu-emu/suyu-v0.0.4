@@ -49,10 +49,9 @@ bool CpuBarrier::Rendezvous() {
     return false;
 }
 
-Cpu::Cpu(std::shared_ptr<ExclusiveMonitor> exclusive_monitor,
-         std::shared_ptr<CpuBarrier> cpu_barrier, std::size_t core_index)
-    : cpu_barrier{std::move(cpu_barrier)}, core_index{core_index} {
-
+Cpu::Cpu(std::shared_ptr<ExclusiveMonitor> exclusive_monitor, CpuBarrier& cpu_barrier,
+         std::size_t core_index)
+    : cpu_barrier{cpu_barrier}, core_index{core_index} {
     if (Settings::values.use_cpu_jit) {
 #ifdef ARCHITECTURE_x86_64
         arm_interface = std::make_unique<ARM_Dynarmic>(exclusive_monitor, core_index);
@@ -83,7 +82,7 @@ std::shared_ptr<ExclusiveMonitor> Cpu::MakeExclusiveMonitor(std::size_t num_core
 
 void Cpu::RunLoop(bool tight_loop) {
     // Wait for all other CPU cores to complete the previous slice, such that they run in lock-step
-    if (!cpu_barrier->Rendezvous()) {
+    if (!cpu_barrier.Rendezvous()) {
         // If rendezvous failed, session has been killed
         return;
     }
