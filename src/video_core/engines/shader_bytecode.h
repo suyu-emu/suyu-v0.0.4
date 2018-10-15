@@ -832,6 +832,21 @@ union Instruction {
     } fset;
 
     union {
+        BitField<49, 1, u64> bf;
+        BitField<35, 3, PredCondition> cond;
+        BitField<50, 1, u64> ftz;
+        BitField<45, 2, PredOperation> op;
+        BitField<43, 1, u64> negate_a;
+        BitField<44, 1, u64> abs_a;
+        BitField<47, 2, HalfType> type_a;
+        BitField<31, 1, u64> negate_b;
+        BitField<30, 1, u64> abs_b;
+        BitField<28, 2, HalfType> type_b;
+        BitField<42, 1, u64> neg_pred;
+        BitField<39, 3, u64> pred39;
+    } hset2;
+
+    union {
         BitField<39, 3, u64> pred39;
         BitField<42, 1, u64> neg_pred;
         BitField<44, 1, u64> bf;
@@ -1257,6 +1272,7 @@ public:
         HFMA2_RR,
         HFMA2_IMM_R,
         HSETP2_R,
+        HSET2_R,
         POPC_C,
         POPC_R,
         POPC_IMM,
@@ -1343,6 +1359,7 @@ public:
         FloatSetPredicate,
         IntegerSet,
         IntegerSetPredicate,
+        HalfSet,
         HalfSetPredicate,
         PredicateSetPredicate,
         PredicateSetRegister,
@@ -1516,6 +1533,7 @@ private:
             INST("0101110100000---", Id::HFMA2_RR, Type::Hfma2, "HFMA2_RR"),
             INST("01110---0-------", Id::HFMA2_IMM_R, Type::Hfma2, "HFMA2_R_IMM"),
             INST("0101110100100---", Id::HSETP2_R, Type::HalfSetPredicate, "HSETP_R"),
+            INST("0101110100011---", Id::HSET2_R, Type::HalfSet, "HSET2_R"),
             INST("0101000010000---", Id::MUFU, Type::Arithmetic, "MUFU"),
             INST("0100110010010---", Id::RRO_C, Type::Arithmetic, "RRO_C"),
             INST("0101110010010---", Id::RRO_R, Type::Arithmetic, "RRO_R"),

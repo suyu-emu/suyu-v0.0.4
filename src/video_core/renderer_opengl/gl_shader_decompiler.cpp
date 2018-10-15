@@ -2996,6 +2996,50 @@ private:
             }
             break;
         }
+        case OpCode::Type::HalfSet: {
+            ASSERT_MSG(instr.hset2.ftz == 0, "Unimplemented");
+
+            const std::string op_a =
+                GetHalfFloat(regs.GetRegisterAsInteger(instr.gpr8, 0, false), instr.hset2.type_a,
+                             instr.hset2.abs_a != 0, instr.hset2.negate_a != 0);
+
+            const std::string op_b = [&]() {
+                switch (opcode->GetId()) {
+                case OpCode::Id::HSET2_R:
+                    return GetHalfFloat(regs.GetRegisterAsInteger(instr.gpr20, 0, false),
+                                        instr.hset2.type_b, instr.hset2.abs_b != 0,
+                                        instr.hset2.negate_b != 0);
+                default:
+                    UNREACHABLE();
+                    return std::string("vec2(0)");
+                }
+            }();
+
+            const std::string second_pred =
+                GetPredicateCondition(instr.hset2.pred39, instr.hset2.neg_pred != 0);
+
+            const std::string combiner = GetPredicateCombiner(instr.hset2.op);
+
+            // HSET2 operates on each half float in the pack.
+            std::string result;
+            for (int i = 0; i < 2; ++i) {
+                const std::string float_value = i == 0 ? "0x00003c00" : "0x3c000000";
+                const std::string integer_value = i == 0 ? "0x0000ffff" : "0xffff0000";
+                const std::string value = instr.hset2.bf == 1 ? float_value : integer_value;
+
+                const std::string comp = std::string(".") + "xy"[i];
+                const std::string predicate =
+                    "((" + GetPredicateComparison(instr.hset2.cond, op_a + comp, op_b + comp) +
+                    ") " + combiner + " (" + second_pred + "))";
+
+                result += '(' + predicate + " ? " + value + " : 0)";
+                if (i == 0) {
+                    result += " | ";
+                }
+            }
+            regs.SetRegisterToInteger(instr.gpr0, false, 0, '(' + result + ')', 1, 1);
+            break;
+        }
         case OpCode::Type::Xmad: {
             ASSERT_MSG(!instr.xmad.sign_a, "Unimplemented");
             ASSERT_MSG(!instr.xmad.sign_b, "Unimplemented");
