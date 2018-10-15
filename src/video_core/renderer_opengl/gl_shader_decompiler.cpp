@@ -376,6 +376,49 @@ public:
     }
 
     /**
+     * Writes code that does a register assignment to a half float value operation.
+     * @param reg The destination register to use.
+     * @param elem The element to use for the operation.
+     * @param value The code representing the value to assign. Type has to be half float.
+     * @param type Half float kind of assignment.
+     * @param dest_num_components Number of components in the destionation.
+     * @param value_num_components Number of components in the value.
+     * @param is_saturated Optional, when True, saturates the provided value.
+     * @param dest_elem Optional, the destination element to use for the operation.
+     */
+    void SetRegisterToHalfFloat(const Register& reg, u64 elem, const std::string& value,
+                                Tegra::Shader::HalfMerge merge, u64 dest_num_components,
+                                u64 value_num_components, bool is_saturated = false,
+                                u64 dest_elem = 0) {
+        ASSERT_MSG(!is_saturated, "Unimplemented");
+
+        const std::string result = [&]() {
+            switch (merge) {
+            case Tegra::Shader::HalfMerge::H0_H1:
+                return "uintBitsToFloat(packHalf2x16(" + value + "))";
+            case Tegra::Shader::HalfMerge::F32:
+                // Half float instructions take the first component when doing a float cast.
+                return "float(" + value + ".x)";
+            case Tegra::Shader::HalfMerge::Mrg_H0:
+                // TODO(Rodrigo): I guess Mrg_H0 and Mrg_H1 take their respective component from the
+                // pack. I couldn't test this on hardware but it shouldn't really matter since most
+                // of the time when a Mrg_* flag is used both components will be mirrored. That
+                // being said, it deserves a test.
+                return "((" + GetRegisterAsInteger(reg, 0, false) +
+                       " & 0xffff0000) | (packHalf2x16(" + value + ") & 0x0000ffff))";
+            case Tegra::Shader::HalfMerge::Mrg_H1:
+                return "((" + GetRegisterAsInteger(reg, 0, false) +
+                       " & 0x0000ffff) | (packHalf2x16(" + value + ") & 0xffff0000))";
+            default:
+                UNREACHABLE();
+                return std::string("0");
+            }
+        }();
+
+        SetRegister(reg, elem, result, dest_num_components, value_num_components, dest_elem);
+    }
+
+    /**
      * Writes code that does a register assignment to input attribute operation. Input attributes
      * are stored as floats, so this may require conversion.
      * @param reg The destination register to use.
@@ -1010,6 +1053,41 @@ private:
         }
 
         return result;
+    }
+
+    /*
+     * Transforms the input string GLSL operand into an unpacked half float pair.
+     * @note This function returns a float type pair instead of a half float pair. This is because
+     * real half floats are not standarized in GLSL but unpackHalf2x16 (which returns a vec2) is.
+     * @param operand Input operand. It has to be an unsigned integer.
+     * @param type How to unpack the unsigned integer to a half float pair.
+     * @param abs Get the absolute value of unpacked half floats.
+     * @param neg Get the negative value of unpacked half floats.
+     * @returns String corresponding to a half float pair.
+     */
+    static std::string GetHalfFloat(const std::string& operand,
+                                    Tegra::Shader::HalfType type = Tegra::Shader::HalfType::H0_H1,
+                                    bool abs = false, bool neg = false) {
+        // "vec2" calls emitted in this function are intended to alias components.
+        const std::string value = [&]() {
+            switch (type) {
+            case Tegra::Shader::HalfType::H0_H1:
+                return "unpackHalf2x16(" + operand + ')';
+            case Tegra::Shader::HalfType::F32:
+                return "vec2(uintBitsToFloat(" + operand + "))";
+            case Tegra::Shader::HalfType::H0_H0:
+            case Tegra::Shader::HalfType::H1_H1: {
+                const bool high = type == Tegra::Shader::HalfType::H1_H1;
+                const char unpack_index = "xy"[high ? 1 : 0];
+                return "vec2(unpackHalf2x16(" + operand + ")." + unpack_index + ')';
+            }
+            default:
+                UNREACHABLE();
+                return std::string("vec2(0)");
+            }
+        }();
+
+        return GetOperandAbsNeg(value, abs, neg);
     }
 
     /*

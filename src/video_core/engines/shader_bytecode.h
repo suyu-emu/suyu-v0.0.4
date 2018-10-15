@@ -335,6 +335,26 @@ enum class IsberdMode : u64 {
 
 enum class IsberdShift : u64 { None = 0, U16 = 1, B32 = 2 };
 
+enum class HalfType : u64 {
+    H0_H1 = 0,
+    F32 = 1,
+    H0_H0 = 2,
+    H1_H1 = 3,
+};
+
+enum class HalfMerge : u64 {
+    H0_H1 = 0,
+    F32 = 1,
+    Mrg_H0 = 2,
+    Mrg_H1 = 3,
+};
+
+enum class HalfPrecision : u64 {
+    None = 0,
+    FTZ = 1,
+    FMZ = 2,
+};
+
 enum class IpaInterpMode : u64 {
     Linear = 0,
     Perspective = 1,
