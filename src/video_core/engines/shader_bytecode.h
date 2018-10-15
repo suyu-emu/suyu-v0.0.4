@@ -615,6 +615,29 @@ union Instruction {
     } half_imm;
 
     union {
+        union {
+            BitField<37, 2, HalfPrecision> precision;
+            BitField<32, 1, u64> saturate;
+
+            BitField<30, 1, u64> negate_c;
+            BitField<35, 2, HalfType> type_c;
+        } rr;
+
+        BitField<57, 2, HalfPrecision> precision;
+        BitField<52, 1, u64> saturate;
+
+        BitField<49, 2, HalfMerge> merge;
+
+        BitField<47, 2, HalfType> type_a;
+
+        BitField<56, 1, u64> negate_b;
+        BitField<28, 2, HalfType> type_b;
+
+        BitField<51, 1, u64> negate_c;
+        BitField<53, 2, HalfType> type_reg39;
+    } hfma2;
+
+    union {
         BitField<40, 1, u64> invert;
     } popc;
 
@@ -1212,6 +1235,10 @@ public:
         HMUL2_C,
         HMUL2_R,
         HMUL2_IMM,
+        HFMA2_CR,
+        HFMA2_RC,
+        HFMA2_RR,
+        HFMA2_IMM_R,
         POPC_C,
         POPC_R,
         POPC_IMM,
@@ -1290,6 +1317,7 @@ public:
         Bfe,
         Shift,
         Ffma,
+        Hfma2,
         Flow,
         Synch,
         Memory,
@@ -1464,6 +1492,10 @@ private:
             INST("0111100-1-------", Id::HMUL2_C, Type::ArithmeticHalf, "HMUL2_C"),
             INST("0101110100001---", Id::HMUL2_R, Type::ArithmeticHalf, "HMUL2_R"),
             INST("0111100-0-------", Id::HMUL2_IMM, Type::ArithmeticHalfImmediate, "HMUL2_IMM"),
+            INST("01110---1-------", Id::HFMA2_CR, Type::Hfma2, "HFMA2_CR"),
+            INST("01100---1-------", Id::HFMA2_RC, Type::Hfma2, "HFMA2_RC"),
+            INST("0101110100000---", Id::HFMA2_RR, Type::Hfma2, "HFMA2_RR"),
+            INST("01110---0-------", Id::HFMA2_IMM_R, Type::Hfma2, "HFMA2_R_IMM"),
             INST("0101000010000---", Id::MUFU, Type::Arithmetic, "MUFU"),
             INST("0100110010010---", Id::RRO_C, Type::Arithmetic, "RRO_C"),
             INST("0101110010010---", Id::RRO_R, Type::Arithmetic, "RRO_R"),

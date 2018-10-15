@@ -1964,6 +1964,59 @@ private:
                                     instr.alu.saturate_d);
             break;
         }
+        case OpCode::Type::Hfma2: {
+            if (opcode->GetId() == OpCode::Id::HFMA2_RR) {
+                ASSERT_MSG(instr.hfma2.rr.precision == Tegra::Shader::HalfPrecision::None,
+                           "Unimplemented");
+            } else {
+                ASSERT_MSG(instr.hfma2.precision == Tegra::Shader::HalfPrecision::None,
+                           "Unimplemented");
+            }
+            const bool saturate = opcode->GetId() == OpCode::Id::HFMA2_RR
+                                      ? instr.hfma2.rr.saturate != 0
+                                      : instr.hfma2.saturate != 0;
+
+            const std::string op_a =
+                GetHalfFloat(regs.GetRegisterAsInteger(instr.gpr8, 0, false), instr.hfma2.type_a);
+            std::string op_b, op_c;
+
+            switch (opcode->GetId()) {
+            case OpCode::Id::HFMA2_CR:
+                op_b = GetHalfFloat(regs.GetUniform(instr.cbuf34.index, instr.cbuf34.offset,
+                                                    GLSLRegister::Type::UnsignedInteger),
+                                    instr.hfma2.type_b, false, instr.hfma2.negate_b);
+                op_c = GetHalfFloat(regs.GetRegisterAsInteger(instr.gpr39, 0, false),
+                                    instr.hfma2.type_reg39, false, instr.hfma2.negate_c);
+                break;
+            case OpCode::Id::HFMA2_RC:
+                op_b = GetHalfFloat(regs.GetRegisterAsInteger(instr.gpr39, 0, false),
+                                    instr.hfma2.type_reg39, false, instr.hfma2.negate_b);
+                op_c = GetHalfFloat(regs.GetUniform(instr.cbuf34.index, instr.cbuf34.offset,
+                                                    GLSLRegister::Type::UnsignedInteger),
+                                    instr.hfma2.type_b, false, instr.hfma2.negate_c);
+                break;
+            case OpCode::Id::HFMA2_RR:
+                op_b = GetHalfFloat(regs.GetRegisterAsInteger(instr.gpr20, 0, false),
+                                    instr.hfma2.type_b, false, instr.hfma2.negate_b);
+                op_c = GetHalfFloat(regs.GetRegisterAsInteger(instr.gpr39, 0, false),
+                                    instr.hfma2.rr.type_c, false, instr.hfma2.rr.negate_c);
+                break;
+            case OpCode::Id::HFMA2_IMM_R:
+                op_b = UnpackHalfImmediate(instr, true);
+                op_c = GetHalfFloat(regs.GetRegisterAsInteger(instr.gpr39, 0, false),
+                                    instr.hfma2.type_reg39, false, instr.hfma2.negate_c);
+                break;
+            default:
+                UNREACHABLE();
+                op_c = op_b = "vec2(0)";
+                break;
+            }
+
+            const std::string result = '(' + op_a + " * " + op_b + " + " + op_c + ')';
+
+            regs.SetRegisterToHalfFloat(instr.gpr0, 0, result, instr.hfma2.merge, 1, 1, saturate);
+            break;
+        }
         case OpCode::Type::Conversion: {
             switch (opcode->GetId()) {
             case OpCode::Id::I2I_R: {
