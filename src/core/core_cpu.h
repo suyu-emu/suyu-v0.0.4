@@ -41,8 +41,7 @@ private:
 
 class Cpu {
 public:
-    Cpu(std::shared_ptr<ExclusiveMonitor> exclusive_monitor, CpuBarrier& cpu_barrier,
-        std::size_t core_index);
+    Cpu(ExclusiveMonitor& exclusive_monitor, CpuBarrier& cpu_barrier, std::size_t core_index);
     ~Cpu();
 
     void RunLoop(bool tight_loop = true);
@@ -71,7 +70,7 @@ public:
         return core_index;
     }
 
-    static std::shared_ptr<ExclusiveMonitor> MakeExclusiveMonitor(std::size_t num_cores);
+    static std::unique_ptr<ExclusiveMonitor> MakeExclusiveMonitor(std::size_t num_cores);
 
 private:
     void Reschedule();

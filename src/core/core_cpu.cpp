@@ -49,8 +49,7 @@ bool CpuBarrier::Rendezvous() {
     return false;
 }
 
-Cpu::Cpu(std::shared_ptr<ExclusiveMonitor> exclusive_monitor, CpuBarrier& cpu_barrier,
-         std::size_t core_index)
+Cpu::Cpu(ExclusiveMonitor& exclusive_monitor, CpuBarrier& cpu_barrier, std::size_t core_index)
     : cpu_barrier{cpu_barrier}, core_index{core_index} {
     if (Settings::values.use_cpu_jit) {
 #ifdef ARCHITECTURE_x86_64
@@ -68,10 +67,10 @@ Cpu::Cpu(std::shared_ptr<ExclusiveMonitor> exclusive_monitor, CpuBarrier& cpu_ba
 
 Cpu::~Cpu() = default;
 
-std::shared_ptr<ExclusiveMonitor> Cpu::MakeExclusiveMonitor(std::size_t num_cores) {
+std::unique_ptr<ExclusiveMonitor> Cpu::MakeExclusiveMonitor(std::size_t num_cores) {
     if (Settings::values.use_cpu_jit) {
 #ifdef ARCHITECTURE_x86_64
-        return std::make_shared<DynarmicExclusiveMonitor>(num_cores);
+        return std::make_unique<DynarmicExclusiveMonitor>(num_cores);
 #else
         return nullptr; // TODO(merry): Passthrough exclusive monitor
 #endif
