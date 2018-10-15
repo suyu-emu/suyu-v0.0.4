@@ -90,6 +90,7 @@ enum class ResultStatus : u16 {
     ErrorNoRomFS,
     ErrorIncorrectELFFileSize,
     ErrorLoadingNRO,
+    ErrorLoadingNSO,
     ErrorNoIcon,
     ErrorNoControl,
     ErrorBadNAXHeader,

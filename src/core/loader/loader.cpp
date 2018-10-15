@@ -93,7 +93,7 @@ std::string GetFileTypeString(FileType type) {
     return "unknown";
 }
 
-constexpr std::array<const char*, 59> RESULT_MESSAGES{
+constexpr std::array<const char*, 60> RESULT_MESSAGES{
     "The operation completed successfully.",
     "The loader requested to load is already loaded.",
     "The operation is not implemented.",
@@ -128,6 +128,7 @@ constexpr std::array<const char*, 59> RESULT_MESSAGES{
     "The RomFS could not be found.",
     "The ELF file has incorrect size as determined by the header.",
     "There was a general error loading the NRO into emulated memory.",
+    "There was a general error loading the NSO into emulated memory.",
     "There is no icon available.",
     "There is no control data available.",
     "The NAX file has a bad header.",

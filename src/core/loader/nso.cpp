@@ -93,9 +93,9 @@ static constexpr u32 PageAlignSize(u32 size) {
     return (size + Memory::PAGE_MASK) & ~Memory::PAGE_MASK;
 }
 
-VAddr AppLoader_NSO::LoadModule(const FileSys::VfsFile& file, VAddr load_base,
-                                bool should_pass_arguments,
-                                boost::optional<FileSys::PatchManager> pm) {
+std::optional<VAddr> AppLoader_NSO::LoadModule(const FileSys::VfsFile& file, VAddr load_base,
+                                               bool should_pass_arguments,
+                                               std::optional<FileSys::PatchManager> pm) {
     if (file.GetSize() < sizeof(NsoHeader))
         return {};
 
@@ -154,7 +154,7 @@ VAddr AppLoader_NSO::LoadModule(const FileSys::VfsFile& file, VAddr load_base,
     program_image.resize(image_size);
 
     // Apply patches if necessary
-    if (pm != boost::none && pm->HasNSOPatch(nso_header.build_id)) {
+    if (pm && pm->HasNSOPatch(nso_header.build_id)) {
         std::vector<u8> pi_header(program_image.size() + 0x100);
         std::memcpy(pi_header.data(), &nso_header, sizeof(NsoHeader));
         std::memcpy(pi_header.data() + 0x100, program_image.data(), program_image.size());
@@ -181,7 +181,9 @@ ResultStatus AppLoader_NSO::Load(Kernel::Process& process) {
 
     // Load module
     const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
-    LoadModule(*file, base_address, true);
+    if (!LoadModule(*file, base_address, true)) {
+        return ResultStatus::ErrorLoadingNSO;
+    }
     LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", file->GetName(), base_address);
 
     process.Run(base_address, Kernel::THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE);
