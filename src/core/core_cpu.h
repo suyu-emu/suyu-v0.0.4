@@ -58,8 +58,12 @@ public:
         return *arm_interface;
     }
 
-    const std::shared_ptr<Kernel::Scheduler>& Scheduler() const {
-        return scheduler;
+    Kernel::Scheduler& Scheduler() {
+        return *scheduler;
+    }
+
+    const Kernel::Scheduler& Scheduler() const {
+        return *scheduler;
     }
 
     bool IsMainCore() const {
@@ -77,7 +81,7 @@ private:
 
     std::unique_ptr<ARM_Interface> arm_interface;
     CpuBarrier& cpu_barrier;
-    std::shared_ptr<Kernel::Scheduler> scheduler;
+    std::unique_ptr<Kernel::Scheduler> scheduler;
 
     std::atomic<bool> reschedule_pending = false;
     std::size_t core_index;

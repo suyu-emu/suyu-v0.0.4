@@ -153,11 +153,11 @@ void Process::PrepareForTermination() {
         }
     };
 
-    auto& system = Core::System::GetInstance();
-    stop_threads(system.Scheduler(0)->GetThreadList());
-    stop_threads(system.Scheduler(1)->GetThreadList());
-    stop_threads(system.Scheduler(2)->GetThreadList());
-    stop_threads(system.Scheduler(3)->GetThreadList());
+    const auto& system = Core::System::GetInstance();
+    stop_threads(system.Scheduler(0).GetThreadList());
+    stop_threads(system.Scheduler(1).GetThreadList());
+    stop_threads(system.Scheduler(2).GetThreadList());
+    stop_threads(system.Scheduler(3).GetThreadList());
 }
 
 /**

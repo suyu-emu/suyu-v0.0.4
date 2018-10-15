@@ -809,7 +809,7 @@ static ResultCode SignalProcessWideKey(VAddr condition_variable_addr, s32 target
                                            std::vector<SharedPtr<Thread>>& waiting_threads,
                                            VAddr condvar_addr) {
         const auto& scheduler = Core::System::GetInstance().Scheduler(core_index);
-        const auto& thread_list = scheduler->GetThreadList();
+        const auto& thread_list = scheduler.GetThreadList();
 
         for (const auto& thread : thread_list) {
             if (thread->GetCondVarWaitAddress() == condvar_addr)

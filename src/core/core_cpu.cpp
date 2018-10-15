@@ -62,7 +62,7 @@ Cpu::Cpu(ExclusiveMonitor& exclusive_monitor, CpuBarrier& cpu_barrier, std::size
         arm_interface = std::make_unique<ARM_Unicorn>();
     }
 
-    scheduler = std::make_shared<Kernel::Scheduler>(*arm_interface);
+    scheduler = std::make_unique<Kernel::Scheduler>(*arm_interface);
 }
 
 Cpu::~Cpu() = default;

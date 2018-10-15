@@ -97,7 +97,7 @@ void Thread::CancelWakeupTimer() {
 static boost::optional<s32> GetNextProcessorId(u64 mask) {
     for (s32 index = 0; index < Core::NUM_CPU_CORES; ++index) {
         if (mask & (1ULL << index)) {
-            if (!Core::System::GetInstance().Scheduler(index)->GetCurrentThread()) {
+            if (!Core::System::GetInstance().Scheduler(index).GetCurrentThread()) {
                 // Core is enabled and not running any threads, use this one
                 return index;
             }
@@ -147,14 +147,14 @@ void Thread::ResumeFromWait() {
         new_processor_id = processor_id;
     }
     if (ideal_core != -1 &&
-        Core::System::GetInstance().Scheduler(ideal_core)->GetCurrentThread() == nullptr) {
+        Core::System::GetInstance().Scheduler(ideal_core).GetCurrentThread() == nullptr) {
         new_processor_id = ideal_core;
     }
 
     ASSERT(*new_processor_id < 4);
 
     // Add thread to new core's scheduler
-    auto& next_scheduler = Core::System::GetInstance().Scheduler(*new_processor_id);
+    auto* next_scheduler = &Core::System::GetInstance().Scheduler(*new_processor_id);
 
     if (*new_processor_id != processor_id) {
         // Remove thread from previous core's scheduler
@@ -169,7 +169,7 @@ void Thread::ResumeFromWait() {
     next_scheduler->ScheduleThread(this, current_priority);
 
     // Change thread's scheduler
-    scheduler = next_scheduler.get();
+    scheduler = next_scheduler;
 
     Core::System::GetInstance().CpuCore(processor_id).PrepareReschedule();
 }
@@ -230,7 +230,7 @@ ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name
     thread->name = std::move(name);
     thread->callback_handle = kernel.ThreadWakeupCallbackHandleTable().Create(thread).Unwrap();
     thread->owner_process = &owner_process;
-    thread->scheduler = Core::System::GetInstance().Scheduler(processor_id).get();
+    thread->scheduler = &Core::System::GetInstance().Scheduler(processor_id);
     thread->scheduler->AddThread(thread, priority);
     thread->tls_address = thread->owner_process->MarkNextAvailableTLSSlotAsUsed(*thread);
 
@@ -375,14 +375,14 @@ void Thread::ChangeCore(u32 core, u64 mask) {
         new_processor_id = processor_id;
     }
     if (ideal_core != -1 &&
-        Core::System::GetInstance().Scheduler(ideal_core)->GetCurrentThread() == nullptr) {
+        Core::System::GetInstance().Scheduler(ideal_core).GetCurrentThread() == nullptr) {
         new_processor_id = ideal_core;
     }
 
     ASSERT(*new_processor_id < 4);
 
     // Add thread to new core's scheduler
-    auto& next_scheduler = Core::System::GetInstance().Scheduler(*new_processor_id);
+    auto* next_scheduler = &Core::System::GetInstance().Scheduler(*new_processor_id);
 
     if (*new_processor_id != processor_id) {
         // Remove thread from previous core's scheduler
@@ -397,7 +397,7 @@ void Thread::ChangeCore(u32 core, u64 mask) {
     next_scheduler->ScheduleThread(this, current_priority);
 
     // Change thread's scheduler
-    scheduler = next_scheduler.get();
+    scheduler = next_scheduler;
 
     Core::System::GetInstance().CpuCore(processor_id).PrepareReschedule();
 }

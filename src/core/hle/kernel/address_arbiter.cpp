@@ -39,7 +39,7 @@ static std::vector<SharedPtr<Thread>> GetThreadsWaitingOnAddress(VAddr address) 
                                            std::vector<SharedPtr<Thread>>& waiting_threads,
                                            VAddr arb_addr) {
         const auto& scheduler = Core::System::GetInstance().Scheduler(core_index);
-        const auto& thread_list = scheduler->GetThreadList();
+        const auto& thread_list = scheduler.GetThreadList();
 
         for (const auto& thread : thread_list) {
             if (thread->GetArbiterWaitAddress() == arb_addr)

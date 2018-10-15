@@ -355,12 +355,15 @@ std::size_t System::CurrentCoreIndex() {
 }
 
 Kernel::Scheduler& System::CurrentScheduler() {
-    return *CurrentCpuCore().Scheduler();
+    return CurrentCpuCore().Scheduler();
 }
 
-const std::shared_ptr<Kernel::Scheduler>& System::Scheduler(std::size_t core_index) {
-    ASSERT(core_index < NUM_CPU_CORES);
-    return impl->cpu_cores[core_index]->Scheduler();
+Kernel::Scheduler& System::Scheduler(std::size_t core_index) {
+    return CpuCore(core_index).Scheduler();
+}
+
+const Kernel::Scheduler& System::Scheduler(std::size_t core_index) const {
+    return CpuCore(core_index).Scheduler();
 }
 
 Kernel::Process* System::CurrentProcess() {
@@ -377,6 +380,11 @@ ARM_Interface& System::ArmInterface(std::size_t core_index) {
 }
 
 Cpu& System::CpuCore(std::size_t core_index) {
+    ASSERT(core_index < NUM_CPU_CORES);
+    return *impl->cpu_cores[core_index];
+}
+
+const Cpu& System::CpuCore(std::size_t core_index) const {
     ASSERT(core_index < NUM_CPU_CORES);
     return *impl->cpu_cores[core_index];
 }
