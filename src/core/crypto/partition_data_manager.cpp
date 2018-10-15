@@ -303,8 +303,8 @@ FileSys::VirtualFile FindFileInDirWithNames(const FileSys::VirtualDir& dir,
 
 PartitionDataManager::PartitionDataManager(const FileSys::VirtualDir& sysdata_dir)
     : boot0(FindFileInDirWithNames(sysdata_dir, "BOOT0")),
-      fuses(FindFileInDirWithNames(sysdata_dir, "fuse")),
-      kfuses(FindFileInDirWithNames(sysdata_dir, "kfuse")),
+      fuses(FindFileInDirWithNames(sysdata_dir, "fuses")),
+      kfuses(FindFileInDirWithNames(sysdata_dir, "kfuses")),
       package2({
           FindFileInDirWithNames(sysdata_dir, "BCPKG2-1-Normal-Main"),
           FindFileInDirWithNames(sysdata_dir, "BCPKG2-2-Normal-Sub"),
