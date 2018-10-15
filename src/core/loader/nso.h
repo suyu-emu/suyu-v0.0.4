@@ -36,7 +36,8 @@ public:
         return IdentifyType(file);
     }
 
-    static VAddr LoadModule(FileSys::VirtualFile file, VAddr load_base, bool should_pass_arguments,
+    static VAddr LoadModule(const FileSys::VfsFile& file, VAddr load_base,
+                            bool should_pass_arguments,
                             boost::optional<FileSys::PatchManager> pm = boost::none);
 
     ResultStatus Load(Kernel::Process& process) override;
