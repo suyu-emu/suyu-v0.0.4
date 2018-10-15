@@ -7,8 +7,10 @@
 #include <vector>
 #include "common/logging/log.h"
 #include "core/file_sys/content_archive.h"
+#include "core/file_sys/control_metadata.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/partition_filesystem.h"
+#include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/process.h"
@@ -19,7 +21,7 @@
 namespace Service::AOC {
 
 constexpr u64 DLC_BASE_TITLE_ID_MASK = 0xFFFFFFFFFFFFE000;
-constexpr u64 DLC_BASE_TO_AOC_ID_MASK = 0x1000;
+constexpr u64 DLC_BASE_TO_AOC_ID = 0x1000;
 
 static bool CheckAOCTitleIDMatchesBase(u64 base, u64 aoc) {
     return (aoc & DLC_BASE_TITLE_ID_MASK) == base;
@@ -97,14 +99,24 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
 
     ctx.WriteBuffer(out);
 
-    IPC::ResponseBuilder rb{ctx, 2};
+    IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
+    rb.Push(count);
 }
 
 void AOC_U::GetAddOnContentBaseId(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
-    rb.Push(Core::System::GetInstance().CurrentProcess()->GetTitleID() | DLC_BASE_TO_AOC_ID_MASK);
+    const auto title_id = Core::System::GetInstance().CurrentProcess()->GetTitleID();
+    FileSys::PatchManager pm{title_id};
+
+    const auto res = pm.GetControlMetadata();
+    if (res.first == nullptr) {
+        rb.Push(title_id + DLC_BASE_TO_AOC_ID);
+        return;
+    }
+
+    rb.Push(res.first->GetDLCBaseTitleId());
 }
 
 void AOC_U::PrepareAddOnContent(Kernel::HLERequestContext& ctx) {
