@@ -10,19 +10,19 @@ namespace FileSys {
 
 BISFactory::BISFactory(VirtualDir nand_root_, VirtualDir load_root_)
     : nand_root(std::move(nand_root_)), load_root(std::move(load_root_)),
-      sysnand_cache(std::make_shared<RegisteredCache>(
+      sysnand_cache(std::make_unique<RegisteredCache>(
           GetOrCreateDirectoryRelative(nand_root, "/system/Contents/registered"))),
-      usrnand_cache(std::make_shared<RegisteredCache>(
+      usrnand_cache(std::make_unique<RegisteredCache>(
           GetOrCreateDirectoryRelative(nand_root, "/user/Contents/registered"))) {}
 
 BISFactory::~BISFactory() = default;
 
-std::shared_ptr<RegisteredCache> BISFactory::GetSystemNANDContents() const {
-    return sysnand_cache;
+RegisteredCache* BISFactory::GetSystemNANDContents() const {
+    return sysnand_cache.get();
 }
 
-std::shared_ptr<RegisteredCache> BISFactory::GetUserNANDContents() const {
-    return usrnand_cache;
+RegisteredCache* BISFactory::GetUserNANDContents() const {
+    return usrnand_cache.get();
 }
 
 VirtualDir BISFactory::GetModificationLoadRoot(u64 title_id) const {

@@ -161,7 +161,7 @@ PL_U::PL_U() : ServiceFramework("pl:u"), impl{std::make_unique<Impl>()} {
     };
     RegisterHandlers(functions);
     // Attempt to load shared font data from disk
-    const auto nand = FileSystem::GetSystemNANDContents();
+    const auto* nand = FileSystem::GetSystemNANDContents();
     std::size_t offset = 0;
     // Rebuild shared fonts from data ncas
     if (nand->HasEntry(static_cast<u64>(FontArchives::Standard),

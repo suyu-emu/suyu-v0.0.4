@@ -88,8 +88,8 @@ public:
     VirtualFile GetEntryRaw(u64 title_id, ContentRecordType type) const;
     VirtualFile GetEntryRaw(RegisteredCacheEntry entry) const;
 
-    std::shared_ptr<NCA> GetEntry(u64 title_id, ContentRecordType type) const;
-    std::shared_ptr<NCA> GetEntry(RegisteredCacheEntry entry) const;
+    std::unique_ptr<NCA> GetEntry(u64 title_id, ContentRecordType type) const;
+    std::unique_ptr<NCA> GetEntry(RegisteredCacheEntry entry) const;
 
     std::vector<RegisteredCacheEntry> ListEntries() const;
     // If a parameter is not boost::none, it will be filtered for from all entries.
@@ -142,7 +142,7 @@ private:
 // Combines multiple RegisteredCaches (i.e. SysNAND, UserNAND, SDMC) into one interface.
 class RegisteredCacheUnion {
 public:
-    explicit RegisteredCacheUnion(std::vector<std::shared_ptr<RegisteredCache>> caches);
+    explicit RegisteredCacheUnion(std::vector<RegisteredCache*> caches);
 
     void Refresh();
 
@@ -157,8 +157,8 @@ public:
     VirtualFile GetEntryRaw(u64 title_id, ContentRecordType type) const;
     VirtualFile GetEntryRaw(RegisteredCacheEntry entry) const;
 
-    std::shared_ptr<NCA> GetEntry(u64 title_id, ContentRecordType type) const;
-    std::shared_ptr<NCA> GetEntry(RegisteredCacheEntry entry) const;
+    std::unique_ptr<NCA> GetEntry(u64 title_id, ContentRecordType type) const;
+    std::unique_ptr<NCA> GetEntry(RegisteredCacheEntry entry) const;
 
     std::vector<RegisteredCacheEntry> ListEntries() const;
     // If a parameter is not boost::none, it will be filtered for from all entries.
@@ -168,7 +168,7 @@ public:
         boost::optional<u64> title_id = boost::none) const;
 
 private:
-    std::vector<std::shared_ptr<RegisteredCache>> caches;
+    std::vector<RegisteredCache*> caches;
 };
 
 } // namespace FileSys

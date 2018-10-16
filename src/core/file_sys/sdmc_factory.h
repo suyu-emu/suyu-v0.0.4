@@ -19,12 +19,12 @@ public:
     ~SDMCFactory();
 
     ResultVal<VirtualDir> Open();
-    std::shared_ptr<RegisteredCache> GetSDMCContents() const;
+    RegisteredCache* GetSDMCContents() const;
 
 private:
     VirtualDir dir;
 
-    std::shared_ptr<RegisteredCache> contents;
+    std::unique_ptr<RegisteredCache> contents;
 };
 
 } // namespace FileSys

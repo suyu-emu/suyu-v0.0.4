@@ -346,7 +346,7 @@ std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNam
 }
 
 std::pair<std::unique_ptr<NACP>, VirtualFile> PatchManager::GetControlMetadata() const {
-    const auto& installed{Service::FileSystem::GetUnionContents()};
+    const auto installed{Service::FileSystem::GetUnionContents()};
 
     const auto base_control_nca = installed->GetEntry(title_id, ContentRecordType::Control);
     if (base_control_nca == nullptr)

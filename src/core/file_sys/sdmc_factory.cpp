@@ -10,10 +10,10 @@
 namespace FileSys {
 
 SDMCFactory::SDMCFactory(VirtualDir dir_)
-    : dir(std::move(dir_)), contents(std::make_shared<RegisteredCache>(
+    : dir(std::move(dir_)), contents(std::make_unique<RegisteredCache>(
                                 GetOrCreateDirectoryRelative(dir, "/Nintendo/Contents/registered"),
                                 [](const VirtualFile& file, const NcaID& id) {
-                                    return std::make_shared<NAX>(file, id)->GetDecrypted();
+                                    return NAX{file, id}.GetDecrypted();
                                 })) {}
 
 SDMCFactory::~SDMCFactory() = default;
@@ -22,8 +22,8 @@ ResultVal<VirtualDir> SDMCFactory::Open() {
     return MakeResult<VirtualDir>(dir);
 }
 
-std::shared_ptr<RegisteredCache> SDMCFactory::GetSDMCContents() const {
-    return contents;
+RegisteredCache* SDMCFactory::GetSDMCContents() const {
+    return contents.get();
 }
 
 } // namespace FileSys

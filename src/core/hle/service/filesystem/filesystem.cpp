@@ -319,13 +319,12 @@ ResultVal<FileSys::VirtualDir> OpenSDMC() {
     return sdmc_factory->Open();
 }
 
-std::shared_ptr<FileSys::RegisteredCacheUnion> GetUnionContents() {
-    return std::make_shared<FileSys::RegisteredCacheUnion>(
-        std::vector<std::shared_ptr<FileSys::RegisteredCache>>{
-            GetSystemNANDContents(), GetUserNANDContents(), GetSDMCContents()});
+std::unique_ptr<FileSys::RegisteredCacheUnion> GetUnionContents() {
+    return std::make_unique<FileSys::RegisteredCacheUnion>(std::vector<FileSys::RegisteredCache*>{
+        GetSystemNANDContents(), GetUserNANDContents(), GetSDMCContents()});
 }
 
-std::shared_ptr<FileSys::RegisteredCache> GetSystemNANDContents() {
+FileSys::RegisteredCache* GetSystemNANDContents() {
     LOG_TRACE(Service_FS, "Opening System NAND Contents");
 
     if (bis_factory == nullptr)
@@ -334,7 +333,7 @@ std::shared_ptr<FileSys::RegisteredCache> GetSystemNANDContents() {
     return bis_factory->GetSystemNANDContents();
 }
 
-std::shared_ptr<FileSys::RegisteredCache> GetUserNANDContents() {
+FileSys::RegisteredCache* GetUserNANDContents() {
     LOG_TRACE(Service_FS, "Opening User NAND Contents");
 
     if (bis_factory == nullptr)
@@ -343,7 +342,7 @@ std::shared_ptr<FileSys::RegisteredCache> GetUserNANDContents() {
     return bis_factory->GetUserNANDContents();
 }
 
-std::shared_ptr<FileSys::RegisteredCache> GetSDMCContents() {
+FileSys::RegisteredCache* GetSDMCContents() {
     LOG_TRACE(Service_FS, "Opening SDMC Contents");
 
     if (sdmc_factory == nullptr)

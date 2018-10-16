@@ -96,7 +96,7 @@ void GameListWorker::AddInstalledTitlesToGameList() {
                                                           FileSys::ContentRecordType::Program);
 
     for (const auto& game : installed_games) {
-        const auto& file = cache->GetEntryUnparsed(game);
+        const auto file = cache->GetEntryUnparsed(game);
         std::unique_ptr<Loader::AppLoader> loader = Loader::GetLoader(file);
         if (!loader)
             continue;
@@ -107,7 +107,7 @@ void GameListWorker::AddInstalledTitlesToGameList() {
         loader->ReadProgramId(program_id);
 
         const FileSys::PatchManager patch{program_id};
-        const auto& control = cache->GetEntry(game.title_id, FileSys::ContentRecordType::Control);
+        const auto control = cache->GetEntry(game.title_id, FileSys::ContentRecordType::Control);
         if (control != nullptr)
             GetMetadataFromControlNCA(patch, *control, icon, name);
 
@@ -135,9 +135,10 @@ void GameListWorker::AddInstalledTitlesToGameList() {
                                                        FileSys::ContentRecordType::Control);
 
     for (const auto& entry : control_data) {
-        const auto nca = cache->GetEntry(entry);
-        if (nca != nullptr)
-            nca_control_map.insert_or_assign(entry.title_id, nca);
+        auto nca = cache->GetEntry(entry);
+        if (nca != nullptr) {
+            nca_control_map.insert_or_assign(entry.title_id, std::move(nca));
+        }
     }
 }
 
@@ -153,9 +154,11 @@ void GameListWorker::FillControlMap(const std::string& dir_path) {
         QFileInfo file_info(physical_name.c_str());
         if (!is_dir && file_info.suffix().toStdString() == "nca") {
             auto nca =
-                std::make_shared<FileSys::NCA>(vfs->OpenFile(physical_name, FileSys::Mode::Read));
-            if (nca->GetType() == FileSys::NCAContentType::Control)
-                nca_control_map.insert_or_assign(nca->GetTitleId(), nca);
+                std::make_unique<FileSys::NCA>(vfs->OpenFile(physical_name, FileSys::Mode::Read));
+            if (nca->GetType() == FileSys::NCAContentType::Control) {
+                const u64 title_id = nca->GetTitleId();
+                nca_control_map.insert_or_assign(title_id, std::move(nca));
+            }
         }
         return true;
     };
