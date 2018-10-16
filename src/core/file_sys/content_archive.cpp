@@ -167,7 +167,7 @@ boost::optional<Core::Crypto::Key128> NCA::GetTitlekey() {
     return titlekey;
 }
 
-VirtualFile NCA::Decrypt(NCASectionHeader s_header, VirtualFile in, u64 starting_offset) {
+VirtualFile NCA::Decrypt(const NCASectionHeader& s_header, VirtualFile in, u64 starting_offset) {
     if (!encrypted)
         return in;
 
@@ -295,7 +295,7 @@ NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_, u64 bktr_base_ivfc_off
     ivfc_offset = 0;
 
     for (std::ptrdiff_t i = 0; i < number_sections; ++i) {
-        auto section = sections[i];
+        const auto& section = sections[i];
 
         if (section.raw.header.filesystem_type == NCASectionFilesystemType::ROMFS) {
             const std::size_t base_offset =
