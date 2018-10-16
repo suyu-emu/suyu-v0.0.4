@@ -155,6 +155,7 @@ void SurfaceParams::InitCacheParameters(Tegra::GPUVAddr gpu_addr_) {
     params.rt.index = static_cast<u32>(index);
     params.rt.array_mode = config.array_mode;
     params.rt.layer_stride = config.layer_stride;
+    params.rt.volume = config.volume;
     params.rt.base_layer = config.base_layer;
 
     params.InitCacheParameters(config.Address());
@@ -1213,6 +1214,7 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& old_surface,
     const bool is_blit{old_params.pixel_format == new_params.pixel_format};
 
     switch (new_params.target) {
+    case SurfaceParams::SurfaceTarget::Texture3D:
     case SurfaceParams::SurfaceTarget::Texture2D:
         if (is_blit) {
             BlitSurface(old_surface, new_surface, read_framebuffer.handle, draw_framebuffer.handle);
