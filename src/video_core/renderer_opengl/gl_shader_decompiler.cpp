@@ -165,10 +165,11 @@ private:
                     const ExitMethod jmp = Scan(target, end, labels);
                     return exit_method = ParallelExit(no_jmp, jmp);
                 }
-                case OpCode::Id::SSY: {
-                    // The SSY instruction uses a similar encoding as the BRA instruction.
+                case OpCode::Id::SSY:
+                case OpCode::Id::PBK: {
+                    // The SSY and PBK use a similar encoding as the BRA instruction.
                     ASSERT_MSG(instr.bra.constant_buffer == 0,
-                               "Constant buffer SSY is not supported");
+                               "Constant buffer branching is not supported");
                     const u32 target = offset + instr.bra.GetBranchTarget();
                     labels.insert(target);
                     // Continue scanning for an exit method.
@@ -1153,27 +1154,27 @@ private:
     }
 
     /*
-     * Emits code to push the input target address to the SSY address stack, incrementing the stack
+     * Emits code to push the input target address to the flow address stack, incrementing the stack
      * top.
      */
-    void EmitPushToSSYStack(u32 target) {
+    void EmitPushToFlowStack(u32 target) {
         shader.AddLine('{');
         ++shader.scope;
-        shader.AddLine("ssy_stack[ssy_stack_top] = " + std::to_string(target) + "u;");
-        shader.AddLine("ssy_stack_top++;");
+        shader.AddLine("flow_stack[flow_stack_top] = " + std::to_string(target) + "u;");
+        shader.AddLine("flow_stack_top++;");
         --shader.scope;
         shader.AddLine('}');
     }
 
     /*
-     * Emits code to pop an address from the SSY address stack, setting the jump address to the
+     * Emits code to pop an address from the flow address stack, setting the jump address to the
      * popped address and decrementing the stack top.
      */
-    void EmitPopFromSSYStack() {
+    void EmitPopFromFlowStack() {
         shader.AddLine('{');
         ++shader.scope;
-        shader.AddLine("ssy_stack_top--;");
-        shader.AddLine("jmp_to = ssy_stack[ssy_stack_top];");
+        shader.AddLine("flow_stack_top--;");
+        shader.AddLine("jmp_to = flow_stack[flow_stack_top];");
         shader.AddLine("break;");
         --shader.scope;
         shader.AddLine('}');
@@ -2933,16 +2934,32 @@ private:
                 // The SSY opcode tells the GPU where to re-converge divergent execution paths, it
                 // sets the target of the jump that the SYNC instruction will make. The SSY opcode
                 // has a similar structure to the BRA opcode.
-                ASSERT_MSG(instr.bra.constant_buffer == 0, "Constant buffer SSY is not supported");
+                ASSERT_MSG(instr.bra.constant_buffer == 0, "Constant buffer flow is not supported");
 
                 const u32 target = offset + instr.bra.GetBranchTarget();
-                EmitPushToSSYStack(target);
+                EmitPushToFlowStack(target);
+                break;
+            }
+            case OpCode::Id::PBK: {
+                // PBK pushes to a stack the address where BRK will jump to. This shares stack with
+                // SSY but using SYNC on a PBK address will kill the shader execution. We don't
+                // emulate this because it's very unlikely a driver will emit such invalid shader.
+                ASSERT_MSG(instr.bra.constant_buffer == 0, "Constant buffer PBK is not supported");
+
+                const u32 target = offset + instr.bra.GetBranchTarget();
+                EmitPushToFlowStack(target);
                 break;
             }
             case OpCode::Id::SYNC: {
                 // The SYNC opcode jumps to the address previously set by the SSY opcode
                 ASSERT(instr.flow.cond == Tegra::Shader::FlowCondition::Always);
-                EmitPopFromSSYStack();
+                EmitPopFromFlowStack();
+                break;
+            }
+            case OpCode::Id::BRK: {
+                // The BRK opcode jumps to the address previously set by the PBK opcode
+                ASSERT(instr.flow.cond == Tegra::Shader::FlowCondition::Always);
+                EmitPopFromFlowStack();
                 break;
             }
             case OpCode::Id::DEPBAR: {
@@ -3096,11 +3113,11 @@ private:
                 labels.insert(subroutine.begin);
                 shader.AddLine("uint jmp_to = " + std::to_string(subroutine.begin) + "u;");
 
-                // TODO(Subv): Figure out the actual depth of the SSY stack, for now it seems
-                // unlikely that shaders will use 20 nested SSYs.
-                constexpr u32 SSY_STACK_SIZE = 20;
-                shader.AddLine("uint ssy_stack[" + std::to_string(SSY_STACK_SIZE) + "];");
-                shader.AddLine("uint ssy_stack_top = 0u;");
+                // TODO(Subv): Figure out the actual depth of the flow stack, for now it seems
+                // unlikely that shaders will use 20 nested SSYs and PBKs.
+                constexpr u32 FLOW_STACK_SIZE = 20;
+                shader.AddLine("uint flow_stack[" + std::to_string(FLOW_STACK_SIZE) + "];");
+                shader.AddLine("uint flow_stack_top = 0u;");
 
                 shader.AddLine("while (true) {");
                 ++shader.scope;
