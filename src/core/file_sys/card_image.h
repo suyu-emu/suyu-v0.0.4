@@ -80,7 +80,7 @@ public:
 
     u64 GetProgramTitleID() const;
 
-    std::shared_ptr<NCA> GetProgramNCA() const;
+    bool HasProgramNCA() const;
     VirtualFile GetProgramNCAFile() const;
     const std::vector<std::shared_ptr<NCA>>& GetNCAs() const;
     std::shared_ptr<NCA> GetNCAByType(NCAContentType type) const;

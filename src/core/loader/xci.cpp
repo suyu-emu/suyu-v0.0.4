@@ -59,8 +59,7 @@ ResultStatus AppLoader_XCI::Load(Kernel::Process& process) {
     if (xci->GetProgramNCAStatus() != ResultStatus::Success)
         return xci->GetProgramNCAStatus();
 
-    const auto nca = xci->GetProgramNCA();
-    if (nca == nullptr && !Core::Crypto::KeyManager::KeyFileExists(false))
+    if (!xci->HasProgramNCA() && !Core::Crypto::KeyManager::KeyFileExists(false))
         return ResultStatus::ErrorMissingProductionKeyFile;
 
     const auto result = nca_loader->Load(process);
