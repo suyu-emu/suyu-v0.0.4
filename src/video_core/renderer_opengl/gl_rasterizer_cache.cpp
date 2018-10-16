@@ -62,12 +62,12 @@ static std::pair<u32, u32> GetASTCBlockSize(PixelFormat format) {
     }
 }
 
-void SurfaceParams::InitCacheParameters(Tegra::GPUVAddr gpu_addr) {
+void SurfaceParams::InitCacheParameters(Tegra::GPUVAddr gpu_addr_) {
     auto& memory_manager{Core::System::GetInstance().GPU().MemoryManager()};
-    const auto cpu_addr{memory_manager.GpuToCpuAddress(gpu_addr)};
-    const auto max_size{memory_manager.GetRegionEnd(gpu_addr) - gpu_addr};
+    const auto cpu_addr{memory_manager.GpuToCpuAddress(gpu_addr_)};
 
     addr = cpu_addr ? *cpu_addr : 0;
+    gpu_addr = gpu_addr_;
     size_in_bytes = SizeInBytesRaw();
 
     if (IsPixelFormatASTC(pixel_format)) {
@@ -75,15 +75,6 @@ void SurfaceParams::InitCacheParameters(Tegra::GPUVAddr gpu_addr) {
         size_in_bytes_gl = width * height * depth * 4;
     } else {
         size_in_bytes_gl = SizeInBytesGL();
-    }
-
-    // Clamp size to mapped GPU memory region
-    // TODO(bunnei): Super Mario Odyssey maps a 0x40000 byte region and then uses it for a 0x80000
-    // R32F render buffer. We do not yet know if this is a game bug or something else, but this
-    // check is necessary to prevent flushing from overwriting unmapped memory.
-    if (size_in_bytes > max_size) {
-        LOG_ERROR(HW_GPU, "Surface size {} exceeds region size {}", size_in_bytes, max_size);
-        size_in_bytes = max_size;
     }
 }
 
@@ -719,7 +710,8 @@ static void CopySurface(const Surface& src_surface, const Surface& dst_surface,
 }
 
 CachedSurface::CachedSurface(const SurfaceParams& params)
-    : params(params), gl_target(SurfaceTargetToGL(params.target)) {
+    : params(params), gl_target(SurfaceTargetToGL(params.target)),
+      cached_size_in_bytes(params.size_in_bytes) {
     texture.Create();
     const auto& rect{params.GetRect()};
 
@@ -769,6 +761,18 @@ CachedSurface::CachedSurface(const SurfaceParams& params)
 
     VideoCore::LabelGLObject(GL_TEXTURE, texture.handle, params.addr,
                              SurfaceParams::SurfaceTargetName(params.target));
+
+    // Clamp size to mapped GPU memory region
+    // TODO(bunnei): Super Mario Odyssey maps a 0x40000 byte region and then uses it for a 0x80000
+    // R32F render buffer. We do not yet know if this is a game bug or something else, but this
+    // check is necessary to prevent flushing from overwriting unmapped memory.
+
+    auto& memory_manager{Core::System::GetInstance().GPU().MemoryManager()};
+    const u64 max_size{memory_manager.GetRegionEnd(params.gpu_addr) - params.gpu_addr};
+    if (cached_size_in_bytes > max_size) {
+        LOG_ERROR(HW_GPU, "Surface size {} exceeds region size {}", params.size_in_bytes, max_size);
+        cached_size_in_bytes = max_size;
+    }
 }
 
 static void ConvertS8Z24ToZ24S8(std::vector<u8>& data, u32 width, u32 height, bool reverse) {
@@ -912,7 +916,7 @@ void CachedSurface::FlushGLBuffer() {
     ASSERT_MSG(!IsPixelFormatASTC(params.pixel_format), "Unimplemented");
 
     // OpenGL temporary buffer needs to be big enough to store raw texture size
-    gl_buffer.resize(params.size_in_bytes);
+    gl_buffer.resize(GetSizeInBytes());
 
     const FormatTuple& tuple = GetFormatTuple(params.pixel_format, params.component_type);
     // Ensure no bad interactions with GL_UNPACK_ALIGNMENT

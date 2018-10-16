@@ -783,6 +783,7 @@ struct SurfaceParams {
 
     // Parameters used for caching
     VAddr addr;
+    Tegra::GPUVAddr gpu_addr;
     std::size_t size_in_bytes;
     std::size_t size_in_bytes_gl;
 
@@ -802,7 +803,8 @@ struct SurfaceReserveKey : Common::HashableStruct<OpenGL::SurfaceParams> {
     static SurfaceReserveKey Create(const OpenGL::SurfaceParams& params) {
         SurfaceReserveKey res;
         res.state = params;
-        res.state.rt = {}; // Ignore rt config in caching
+        res.state.gpu_addr = {}; // Ignore GPU vaddr in caching
+        res.state.rt = {};       // Ignore rt config in caching
         return res;
     }
 };
@@ -826,7 +828,7 @@ public:
     }
 
     std::size_t GetSizeInBytes() const {
-        return params.size_in_bytes;
+        return cached_size_in_bytes;
     }
 
     void Flush() {
@@ -865,6 +867,7 @@ private:
     std::vector<u8> gl_buffer;
     SurfaceParams params;
     GLenum gl_target;
+    std::size_t cached_size_in_bytes;
     bool dirty = false;
 };
 
