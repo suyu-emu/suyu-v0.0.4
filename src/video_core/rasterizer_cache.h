@@ -119,8 +119,8 @@ protected:
         auto& rasterizer = Core::System::GetInstance().Renderer().Rasterizer();
         rasterizer.UpdatePagesCachedCount(object->GetAddr(), object->GetSizeInBytes(), -1);
 
-        // Only flush if use_accurate_framebuffers is enabled, as it incurs a performance hit
-        if (Settings::values.use_accurate_framebuffers) {
+        // Only flush if use_accurate_gpu_emulation is enabled, as it incurs a performance hit
+        if (Settings::values.use_accurate_gpu_emulation) {
             FlushObject(object);
         }
 

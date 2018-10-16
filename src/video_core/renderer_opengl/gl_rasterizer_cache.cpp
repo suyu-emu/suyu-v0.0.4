@@ -1197,11 +1197,11 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& old_surface,
 
     // If the format is the same, just do a framebuffer blit. This is significantly faster than
     // using PBOs. The is also likely less accurate, as textures will be converted rather than
-    // reinterpreted. When use_accurate_framebuffers setting is enabled, perform a more accurate
+    // reinterpreted. When use_accurate_gpu_emulation setting is enabled, perform a more accurate
     // surface copy, where pixels are reinterpreted as a new format (without conversion). This
     // code path uses OpenGL PBOs and is quite slow.
     const bool is_blit{old_params.pixel_format == new_params.pixel_format ||
-                       !Settings::values.use_accurate_framebuffers};
+                       !Settings::values.use_accurate_gpu_emulation};
 
     switch (new_params.target) {
     case SurfaceParams::SurfaceTarget::Texture2D:
