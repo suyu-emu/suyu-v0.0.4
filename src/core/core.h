@@ -156,6 +156,9 @@ public:
     /// Gets a CPU interface to the CPU core with the specified index
     Cpu& CpuCore(std::size_t core_index);
 
+    /// Gets a CPU interface to the CPU core with the specified index
+    const Cpu& CpuCore(std::size_t core_index) const;
+
     /// Gets the exclusive monitor
     ExclusiveMonitor& Monitor();
 
@@ -172,7 +175,10 @@ public:
     const VideoCore::RendererBase& Renderer() const;
 
     /// Gets the scheduler for the CPU core with the specified index
-    const std::shared_ptr<Kernel::Scheduler>& Scheduler(std::size_t core_index);
+    Kernel::Scheduler& Scheduler(std::size_t core_index);
+
+    /// Gets the scheduler for the CPU core with the specified index
+    const Kernel::Scheduler& Scheduler(std::size_t core_index) const;
 
     /// Provides a pointer to the current process
     Kernel::Process* CurrentProcess();

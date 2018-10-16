@@ -144,7 +144,7 @@ std::unique_ptr<Dynarmic::A64::Jit> ARM_Dynarmic::MakeJit() const {
 
     // Multi-process state
     config.processor_id = core_index;
-    config.global_monitor = &exclusive_monitor->monitor;
+    config.global_monitor = &exclusive_monitor.monitor;
 
     // System registers
     config.tpidrro_el0 = &cb->tpidrro_el0;
@@ -171,10 +171,9 @@ void ARM_Dynarmic::Step() {
     cb->InterpreterFallback(jit->GetPC(), 1);
 }
 
-ARM_Dynarmic::ARM_Dynarmic(std::shared_ptr<ExclusiveMonitor> exclusive_monitor,
-                           std::size_t core_index)
+ARM_Dynarmic::ARM_Dynarmic(ExclusiveMonitor& exclusive_monitor, std::size_t core_index)
     : cb(std::make_unique<ARM_Dynarmic_Callbacks>(*this)), core_index{core_index},
-      exclusive_monitor{std::dynamic_pointer_cast<DynarmicExclusiveMonitor>(exclusive_monitor)} {
+      exclusive_monitor{dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor)} {
     ThreadContext ctx{};
     inner_unicorn.SaveContext(ctx);
     PageTableChanged();

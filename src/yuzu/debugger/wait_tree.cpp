@@ -66,10 +66,11 @@ std::vector<std::unique_ptr<WaitTreeThread>> WaitTreeItem::MakeThreadItemList() 
         }
     };
 
-    add_threads(Core::System::GetInstance().Scheduler(0)->GetThreadList());
-    add_threads(Core::System::GetInstance().Scheduler(1)->GetThreadList());
-    add_threads(Core::System::GetInstance().Scheduler(2)->GetThreadList());
-    add_threads(Core::System::GetInstance().Scheduler(3)->GetThreadList());
+    const auto& system = Core::System::GetInstance();
+    add_threads(system.Scheduler(0).GetThreadList());
+    add_threads(system.Scheduler(1).GetThreadList());
+    add_threads(system.Scheduler(2).GetThreadList());
+    add_threads(system.Scheduler(3).GetThreadList());
 
     return item_list;
 }

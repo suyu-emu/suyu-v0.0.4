@@ -23,7 +23,7 @@ class DynarmicExclusiveMonitor;
 
 class ARM_Dynarmic final : public ARM_Interface {
 public:
-    ARM_Dynarmic(std::shared_ptr<ExclusiveMonitor> exclusive_monitor, std::size_t core_index);
+    ARM_Dynarmic(ExclusiveMonitor& exclusive_monitor, std::size_t core_index);
     ~ARM_Dynarmic();
 
     void MapBackingMemory(VAddr address, std::size_t size, u8* memory,
@@ -62,7 +62,7 @@ private:
     ARM_Unicorn inner_unicorn;
 
     std::size_t core_index;
-    std::shared_ptr<DynarmicExclusiveMonitor> exclusive_monitor;
+    DynarmicExclusiveMonitor& exclusive_monitor;
 
     Memory::PageTable* current_page_table = nullptr;
 };
