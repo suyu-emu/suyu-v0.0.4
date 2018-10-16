@@ -97,7 +97,7 @@ union NCASectionHeader {
 };
 static_assert(sizeof(NCASectionHeader) == 0x200, "NCASectionHeader has incorrect size.");
 
-bool IsValidNCA(const NCAHeader& header) {
+static bool IsValidNCA(const NCAHeader& header) {
     // TODO(DarkLordZach): Add NCA2/NCA0 support.
     return header.magic == Common::MakeMagic('N', 'C', 'A', '3');
 }

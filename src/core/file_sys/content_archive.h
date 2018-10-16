@@ -73,8 +73,6 @@ inline bool IsDirectoryExeFS(const std::shared_ptr<VfsDirectory>& pfs) {
     return pfs->GetFile("main") != nullptr && pfs->GetFile("main.npdm") != nullptr;
 }
 
-bool IsValidNCA(const NCAHeader& header);
-
 // An implementation of VfsDirectory that represents a Nintendo Content Archive (NCA) conatiner.
 // After construction, use GetStatus to determine if the file is valid and ready to be used.
 class NCA : public ReadOnlyVfsDirectory {
