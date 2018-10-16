@@ -103,8 +103,7 @@ static bool IsValidNCA(const NCAHeader& header) {
 }
 
 NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_, u64 bktr_base_ivfc_offset)
-    : file(std::move(file_)),
-      bktr_base_romfs(bktr_base_romfs_ ? std::move(bktr_base_romfs_) : nullptr) {
+    : file(std::move(file_)), bktr_base_romfs(std::move(bktr_base_romfs_)) {
     if (file == nullptr) {
         status = Loader::ResultStatus::ErrorNullFile;
         return;
