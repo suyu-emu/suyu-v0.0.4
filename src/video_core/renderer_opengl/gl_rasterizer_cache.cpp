@@ -1123,8 +1123,8 @@ Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params, bool pres
         } else if (preserve_contents) {
             // If surface parameters changed and we care about keeping the previous data, recreate
             // the surface from the old one
-            Unregister(surface);
             Surface new_surface{RecreateSurface(surface, params)};
+            Unregister(surface);
             Register(new_surface);
             return new_surface;
         } else {
@@ -1214,13 +1214,15 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& old_surface,
     const bool is_blit{old_params.pixel_format == new_params.pixel_format};
 
     switch (new_params.target) {
-    case SurfaceParams::SurfaceTarget::Texture3D:
     case SurfaceParams::SurfaceTarget::Texture2D:
         if (is_blit) {
             BlitSurface(old_surface, new_surface, read_framebuffer.handle, draw_framebuffer.handle);
         } else {
             CopySurface(old_surface, new_surface, copy_pbo.handle);
         }
+        break;
+    case SurfaceParams::SurfaceTarget::Texture3D:
+        AccurateCopySurface(old_surface, new_surface);
         break;
     case SurfaceParams::SurfaceTarget::TextureCubemap: {
         if (old_params.rt.array_mode != 1) {
