@@ -1567,7 +1567,7 @@ void GMainWindow::UpdateUITheme() {
     emit UpdateThemedIcons();
 }
 
-void GMainWindow::SetDiscordEnabled(bool state) {
+void GMainWindow::SetDiscordEnabled([[maybe_unused]] bool state) {
 #ifdef USE_DISCORD_PRESENCE
     if (state) {
         discord_rpc = std::make_unique<DiscordRPC::DiscordImpl>();
