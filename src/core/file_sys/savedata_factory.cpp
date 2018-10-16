@@ -99,6 +99,9 @@ std::string SaveDataFactory::GetFullPath(SaveDataSpaceId space, SaveDataType typ
     case SaveDataSpaceId::NandUser:
         out = "/user/";
         break;
+    case SaveDataSpaceId::TemporaryStorage:
+        out = "/temp/";
+        break;
     default:
         ASSERT_MSG(false, "Unrecognized SaveDataSpaceId: {:02X}", static_cast<u8>(space));
     }
@@ -111,7 +114,7 @@ std::string SaveDataFactory::GetFullPath(SaveDataSpaceId space, SaveDataType typ
         return fmt::format("{}save/{:016X}/{:016X}{:016X}/{:016X}", out, 0, user_id[1], user_id[0],
                            title_id);
     case SaveDataType::TemporaryStorage:
-        return fmt::format("{}temp/{:016X}/{:016X}{:016X}/{:016X}", out, 0, user_id[1], user_id[0],
+        return fmt::format("{}{:016X}/{:016X}{:016X}/{:016X}", out, 0, user_id[1], user_id[0],
                            title_id);
     default:
         ASSERT_MSG(false, "Unrecognized SaveDataType: {:02X}", static_cast<u8>(type));
