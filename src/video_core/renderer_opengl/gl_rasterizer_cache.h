@@ -819,28 +819,20 @@ struct hash<SurfaceReserveKey> {
 
 namespace OpenGL {
 
-class CachedSurface final {
+class CachedSurface final : public RasterizerCacheObject {
 public:
     CachedSurface(const SurfaceParams& params);
 
-    VAddr GetAddr() const {
+    VAddr GetAddr() const override {
         return params.addr;
     }
 
-    std::size_t GetSizeInBytes() const {
+    std::size_t GetSizeInBytes() const override {
         return cached_size_in_bytes;
     }
 
-    void Flush() {
-        // There is no need to flush the surface if it hasn't been modified by us.
-        if (!dirty)
-            return;
+    void Flush() override {
         FlushGLBuffer();
-        dirty = false;
-    }
-
-    void MarkAsDirty() {
-        dirty = true;
     }
 
     const OGLTexture& Texture() const {
@@ -868,7 +860,6 @@ private:
     SurfaceParams params;
     GLenum gl_target;
     std::size_t cached_size_in_bytes;
-    bool dirty = false;
 };
 
 class RasterizerCacheOpenGL final : public RasterizerCache<Surface> {

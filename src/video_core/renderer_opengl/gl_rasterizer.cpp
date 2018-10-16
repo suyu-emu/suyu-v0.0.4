@@ -428,7 +428,7 @@ void RasterizerOpenGL::ConfigureFramebuffers(bool using_color_fb, bool using_dep
             if (color_surface) {
                 // Assume that a surface will be written to if it is used as a framebuffer, even if
                 // the shader doesn't actually write to it.
-                color_surface->MarkAsDirty();
+                color_surface->MarkAsModified(true, res_cache);
             }
 
             glFramebufferTexture2D(
@@ -445,7 +445,7 @@ void RasterizerOpenGL::ConfigureFramebuffers(bool using_color_fb, bool using_dep
                 if (color_surface) {
                     // Assume that a surface will be written to if it is used as a framebuffer, even
                     // if the shader doesn't actually write to it.
-                    color_surface->MarkAsDirty();
+                    color_surface->MarkAsModified(true, res_cache);
                 }
 
                 buffers[index] = GL_COLOR_ATTACHMENT0 + regs.rt_control.GetMap(index);
@@ -469,7 +469,7 @@ void RasterizerOpenGL::ConfigureFramebuffers(bool using_color_fb, bool using_dep
     if (depth_surface) {
         // Assume that a surface will be written to if it is used as a framebuffer, even if
         // the shader doesn't actually write to it.
-        depth_surface->MarkAsDirty();
+        depth_surface->MarkAsModified(true, res_cache);
 
         if (regs.stencil_enable) {
             // Attach both depth and stencil
@@ -642,9 +642,6 @@ void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size) {
         // Only flush if use_accurate_framebuffers is enabled, as it incurs a performance hit
         res_cache.FlushRegion(addr, size);
     }
-
-    shader_cache.FlushRegion(addr, size);
-    buffer_cache.FlushRegion(addr, size);
 }
 
 void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size) {

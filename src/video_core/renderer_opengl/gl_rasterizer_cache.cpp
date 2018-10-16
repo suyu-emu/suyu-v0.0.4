@@ -905,8 +905,6 @@ void CachedSurface::LoadGLBuffer() {
     }
 
     ConvertFormatAsNeeded_LoadGLBuffer(gl_buffer, params.pixel_format, params.width, params.height);
-
-    dirty = false;
 }
 
 MICROPROFILE_DEFINE(OpenGL_SurfaceFlush, "OpenGL", "Surface Flush", MP_RGB(128, 192, 64));
@@ -1111,6 +1109,7 @@ Surface RasterizerCacheOpenGL::GetColorBufferSurface(std::size_t index, bool pre
 void RasterizerCacheOpenGL::LoadSurface(const Surface& surface) {
     surface->LoadGLBuffer();
     surface->UploadGLTexture(read_framebuffer.handle, draw_framebuffer.handle);
+    surface->MarkAsModified(false, *this);
 }
 
 Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params, bool preserve_contents) {
