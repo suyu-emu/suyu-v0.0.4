@@ -63,7 +63,7 @@ private:
     void AddFstEntriesToGameList(const std::string& dir_path, unsigned int recursion = 0);
 
     std::shared_ptr<FileSys::VfsFilesystem> vfs;
-    std::map<u64, std::shared_ptr<FileSys::NCA>> nca_control_map;
+    std::map<u64, std::unique_ptr<FileSys::NCA>> nca_control_map;
     QStringList watch_list;
     QString dir_path;
     bool deep_scan;

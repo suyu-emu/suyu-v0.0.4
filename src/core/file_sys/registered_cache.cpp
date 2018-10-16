@@ -308,14 +308,14 @@ VirtualFile RegisteredCache::GetEntryRaw(RegisteredCacheEntry entry) const {
     return GetEntryRaw(entry.title_id, entry.type);
 }
 
-std::shared_ptr<NCA> RegisteredCache::GetEntry(u64 title_id, ContentRecordType type) const {
+std::unique_ptr<NCA> RegisteredCache::GetEntry(u64 title_id, ContentRecordType type) const {
     const auto raw = GetEntryRaw(title_id, type);
     if (raw == nullptr)
         return nullptr;
-    return std::make_shared<NCA>(raw);
+    return std::make_unique<NCA>(raw);
 }
 
-std::shared_ptr<NCA> RegisteredCache::GetEntry(RegisteredCacheEntry entry) const {
+std::unique_ptr<NCA> RegisteredCache::GetEntry(RegisteredCacheEntry entry) const {
     return GetEntry(entry.title_id, entry.type);
 }
 
@@ -516,7 +516,7 @@ bool RegisteredCache::RawInstallYuzuMeta(const CNMT& cnmt) {
                         }) != yuzu_meta.end();
 }
 
-RegisteredCacheUnion::RegisteredCacheUnion(std::vector<std::shared_ptr<RegisteredCache>> caches)
+RegisteredCacheUnion::RegisteredCacheUnion(std::vector<RegisteredCache*> caches)
     : caches(std::move(caches)) {}
 
 void RegisteredCacheUnion::Refresh() {
@@ -572,14 +572,14 @@ VirtualFile RegisteredCacheUnion::GetEntryRaw(RegisteredCacheEntry entry) const 
     return GetEntryRaw(entry.title_id, entry.type);
 }
 
-std::shared_ptr<NCA> RegisteredCacheUnion::GetEntry(u64 title_id, ContentRecordType type) const {
+std::unique_ptr<NCA> RegisteredCacheUnion::GetEntry(u64 title_id, ContentRecordType type) const {
     const auto raw = GetEntryRaw(title_id, type);
     if (raw == nullptr)
         return nullptr;
-    return std::make_shared<NCA>(raw);
+    return std::make_unique<NCA>(raw);
 }
 
-std::shared_ptr<NCA> RegisteredCacheUnion::GetEntry(RegisteredCacheEntry entry) const {
+std::unique_ptr<NCA> RegisteredCacheUnion::GetEntry(RegisteredCacheEntry entry) const {
     return GetEntry(entry.title_id, entry.type);
 }
 

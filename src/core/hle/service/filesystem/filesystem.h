@@ -47,11 +47,11 @@ ResultVal<FileSys::VirtualDir> OpenSaveData(FileSys::SaveDataSpaceId space,
                                             FileSys::SaveDataDescriptor save_struct);
 ResultVal<FileSys::VirtualDir> OpenSDMC();
 
-std::shared_ptr<FileSys::RegisteredCacheUnion> GetUnionContents();
+std::unique_ptr<FileSys::RegisteredCacheUnion> GetUnionContents();
 
-std::shared_ptr<FileSys::RegisteredCache> GetSystemNANDContents();
-std::shared_ptr<FileSys::RegisteredCache> GetUserNANDContents();
-std::shared_ptr<FileSys::RegisteredCache> GetSDMCContents();
+FileSys::RegisteredCache* GetSystemNANDContents();
+FileSys::RegisteredCache* GetUserNANDContents();
+FileSys::RegisteredCache* GetSDMCContents();
 
 FileSys::VirtualDir GetModificationLoadRoot(u64 title_id);
 
