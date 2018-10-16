@@ -120,8 +120,8 @@ NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_, u64 bktr_base_ivfc_off
         return;
     }
 
-    has_rights_id = std::find_if_not(header.rights_id.begin(), header.rights_id.end(),
-                                     [](char c) { return c == '\0'; }) != header.rights_id.end();
+    has_rights_id = std::any_of(header.rights_id.begin(), header.rights_id.end(),
+                                [](char c) { return c != '\0'; });
 
     const std::vector<NCASectionHeader> sections = ReadSectionHeaders();
     is_update = std::any_of(sections.begin(), sections.end(), [](const NCASectionHeader& header) {
