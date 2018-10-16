@@ -133,7 +133,7 @@ boost::optional<Core::Crypto::Key128> NCA::GetKeyAreaKey(NCASectionCryptoType ty
                      static_cast<u8>(type));
     u128 out_128{};
     memcpy(out_128.data(), out.data(), 16);
-    LOG_DEBUG(Crypto, "called with crypto_rev={:02X}, kak_index={:02X}, key={:016X}{:016X}",
+    LOG_TRACE(Crypto, "called with crypto_rev={:02X}, kak_index={:02X}, key={:016X}{:016X}",
               master_key_id, header.key_index, out_128[1], out_128[0]);
 
     return out;
