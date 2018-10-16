@@ -17,11 +17,13 @@ const std::array<const char*, 15> LANGUAGE_NAMES = {
 };
 
 std::string LanguageEntry::GetApplicationName() const {
-    return Common::StringFromFixedZeroTerminatedBuffer(application_name.data(), 0x200);
+    return Common::StringFromFixedZeroTerminatedBuffer(application_name.data(),
+                                                       application_name.size());
 }
 
 std::string LanguageEntry::GetDeveloperName() const {
-    return Common::StringFromFixedZeroTerminatedBuffer(developer_name.data(), 0x100);
+    return Common::StringFromFixedZeroTerminatedBuffer(developer_name.data(),
+                                                       developer_name.size());
 }
 
 NACP::NACP(VirtualFile file) : raw(std::make_unique<RawNACP>()) {
@@ -61,6 +63,7 @@ u64 NACP::GetDLCBaseTitleId() const {
 }
 
 std::string NACP::GetVersionString() const {
-    return Common::StringFromFixedZeroTerminatedBuffer(raw->version_string.data(), 0x10);
+    return Common::StringFromFixedZeroTerminatedBuffer(raw->version_string.data(),
+                                                       raw->version_string.size());
 }
 } // namespace FileSys
