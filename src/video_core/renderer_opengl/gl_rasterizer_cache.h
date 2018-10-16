@@ -899,6 +899,9 @@ private:
     /// Tries to get a reserved surface for the specified parameters
     Surface TryGetReservedSurface(const SurfaceParams& params);
 
+    /// Performs a slow but accurate surface copy, flushing to RAM and reinterpreting the data
+    void AccurateCopySurface(const Surface& src_surface, const Surface& dst_surface);
+
     /// The surface reserve is a "backup" cache, this is where we put unique surfaces that have
     /// previously been used. This is to prevent surfaces from being constantly created and
     /// destroyed when used with different surface parameters.

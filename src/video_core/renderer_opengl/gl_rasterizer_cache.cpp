@@ -1178,6 +1178,14 @@ void RasterizerCacheOpenGL::FermiCopySurface(
     FastCopySurface(GetSurface(src_params, true), GetSurface(dst_params, false));
 }
 
+void RasterizerCacheOpenGL::AccurateCopySurface(const Surface& src_surface,
+                                                const Surface& dst_surface) {
+    const auto& src_params{src_surface->GetSurfaceParams()};
+    const auto& dst_params{dst_surface->GetSurfaceParams()};
+    FlushRegion(src_params.addr, dst_params.size_in_bytes);
+    LoadSurface(dst_surface);
+}
+
 Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& old_surface,
                                                const SurfaceParams& new_params) {
     // Verify surface is compatible for blitting
@@ -1185,6 +1193,12 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& old_surface,
 
     // Get a new surface with the new parameters, and blit the previous surface to it
     Surface new_surface{GetUncachedSurface(new_params)};
+
+    // With use_accurate_gpu_emulation enabled, do an accurate surface copy
+    if (Settings::values.use_accurate_gpu_emulation) {
+        AccurateCopySurface(old_surface, new_surface);
+        return new_surface;
+    }
 
     // For compatible surfaces, we can just do fast glCopyImageSubData based copy
     if (old_params.target == new_params.target && old_params.type == new_params.type &&
@@ -1200,8 +1214,7 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& old_surface,
     // reinterpreted. When use_accurate_gpu_emulation setting is enabled, perform a more accurate
     // surface copy, where pixels are reinterpreted as a new format (without conversion). This
     // code path uses OpenGL PBOs and is quite slow.
-    const bool is_blit{old_params.pixel_format == new_params.pixel_format ||
-                       !Settings::values.use_accurate_gpu_emulation};
+    const bool is_blit{old_params.pixel_format == new_params.pixel_format};
 
     switch (new_params.target) {
     case SurfaceParams::SurfaceTarget::Texture2D:
