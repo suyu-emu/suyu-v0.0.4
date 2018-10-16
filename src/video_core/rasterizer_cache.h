@@ -105,22 +105,6 @@ protected:
         return nullptr;
     }
 
-    std::vector<T> GetInRange(Tegra::GPUVAddr addr, size_t size) {
-        std::vector<T> objects;
-        if (size == 0)
-            return objects;
-
-        const ObjectInterval interval{addr, addr + size};
-        for (auto& pair : boost::make_iterator_range(object_cache.equal_range(interval))) {
-            for (auto& cached_object : pair.second) {
-                if (!cached_object)
-                    continue;
-                objects.push_back(cached_object);
-            }
-        }
-        return objects;
-    }
-
     /// Register an object into the cache
     void Register(const T& object) {
         object->SetIsRegistered(true);
