@@ -51,6 +51,13 @@ ResultVal<VirtualDir> SaveDataFactory::Open(SaveDataSpaceId space, SaveDataDescr
                     meta.title_id);
     }
 
+    if (meta.type == SaveDataType::DeviceSaveData && meta.user_id != u128{0, 0}) {
+        LOG_WARNING(Service_FS,
+                    "Possibly incorrect SaveDataDescriptor, type is DeviceSaveData but user_id is "
+                    "non-zero ({:016X}{:016X})",
+                    meta.user_id[1], meta.user_id[0]);
+    }
+
     std::string save_directory =
         GetFullPath(space, meta.type, meta.title_id, meta.user_id, meta.save_id);
 
@@ -100,6 +107,7 @@ std::string SaveDataFactory::GetFullPath(SaveDataSpaceId space, SaveDataType typ
     case SaveDataType::SystemSaveData:
         return fmt::format("{}save/{:016X}/{:016X}{:016X}", out, save_id, user_id[1], user_id[0]);
     case SaveDataType::SaveData:
+    case SaveDataType::DeviceSaveData:
         return fmt::format("{}save/{:016X}/{:016X}{:016X}/{:016X}", out, 0, user_id[1], user_id[0],
                            title_id);
     case SaveDataType::TemporaryStorage:
