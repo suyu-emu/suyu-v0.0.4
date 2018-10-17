@@ -937,7 +937,6 @@ void CachedSurface::FlushGLBuffer() {
         if (params.target == SurfaceParams::SurfaceTarget::Texture2D) {
             // TODO(Blinkhawk): Eliminate this condition once all texture types are implemented.
             depth = 1U;
-            block_depth = 1U;
         }
         gl_to_morton_fns[static_cast<size_t>(params.pixel_format)](
             params.width, params.block_height, params.height, block_depth, depth, gl_buffer.data(),
