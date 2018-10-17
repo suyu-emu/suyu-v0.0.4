@@ -354,12 +354,9 @@ void MortonCopy(u32 stride, u32 block_height, u32 height, u32 block_depth, u32 d
         const std::size_t size_to_copy{std::min(gl_buffer_size, data.size())};
         memcpy(gl_buffer, data.data(), size_to_copy);
     } else {
-        std::vector<u8> data(gl_buffer_size);
         Tegra::Texture::CopySwizzledData(stride / tile_size, height / tile_size, depth,
-                                         bytes_per_pixel, bytes_per_pixel, data.data(), gl_buffer,
-                                         false, block_height, block_depth);
-        const std::size_t size_to_copy{std::min(gl_buffer_size, data.size())};
-        memcpy(Memory::GetPointer(addr), data.data(), size_to_copy);
+                                         bytes_per_pixel, bytes_per_pixel, Memory::GetPointer(addr),
+                                         gl_buffer, false, block_height, block_depth);
     }
 }
 
