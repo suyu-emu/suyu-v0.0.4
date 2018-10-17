@@ -284,7 +284,7 @@ public:
 
 private:
     std::shared_ptr<IAppletResource> applet_resource;
-#pragma optimize("", off)
+
     void CreateAppletResource(Kernel::HLERequestContext& ctx) {
         if (applet_resource == nullptr) {
             applet_resource = std::make_shared<IAppletResource>();
@@ -545,8 +545,6 @@ private:
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_HID, "(STUBBED) called");
-        applet_resource->GetController<Controller_NPad>(HidController::NPad)
-            .SetHandheldActiviationMode(mode);
     }
 
     void GetVibrationDeviceInfo(Kernel::HLERequestContext& ctx) {

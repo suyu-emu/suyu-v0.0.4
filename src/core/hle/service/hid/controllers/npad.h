@@ -65,9 +65,9 @@ public:
         None,
         ProController,
         Handheld,
+        JoyDual,
         JoyLeft,
         JoyRight,
-        Tabletop,
         Pokeball,
     };
 
@@ -105,13 +105,12 @@ public:
     Kernel::SharedPtr<Kernel::Event> GetStyleSetChangedEvent() const;
     Vibration GetLastVibration() const;
 
-    void AddNewController(NPadControllerType controller, bool is_handheld_variant = false);
+    void AddNewController(NPadControllerType controller);
 
     void ConnectNPad(u32 npad_id);
     void DisconnectNPad(u32 npad_id);
     LedPattern GetLedPattern(u32 npad_id);
     void SetVibrationEnabled(bool can_vibrate);
-    void SetHandheldActiviationMode(u32 mode);
 
 private:
     struct CommonHeader {
@@ -181,6 +180,10 @@ private:
             u32_le raw{};
             BitField<0, 1, u32_le> IsConnected;
             BitField<1, 1, u32_le> IsWired;
+            BitField<2, 1, u32_le> IsLeftJoyConnected;
+            BitField<3, 1, u32_le> IsLeftJoyWired;
+            BitField<4, 1, u32_le> IsRightJoyConnected;
+            BitField<5, 1, u32_le> IsRightJoyWired;
         };
     };
     static_assert(sizeof(ConnectionState) == 4, "ConnectionState is an invalid size");
@@ -212,6 +215,8 @@ private:
             s64_le raw{};
             BitField<11, 1, s64_le> is_vertical;
             BitField<12, 1, s64_le> is_horizontal;
+            BitField<13, 1, s64_le> use_plus;
+            BitField<14, 1, s64_le> use_minus;
         };
     };
 
@@ -252,8 +257,9 @@ private:
             6); // TODO(ogniK): SixAxis states, require more information before implementation
         NPadDevice device_type;
         NPadProperties properties;
-        INSERT_PADDING_WORDS(4);
-        INSERT_PADDING_BYTES(0x60);
+        INSERT_PADDING_WORDS(1);
+        std::array<u32, 3> battery_level;
+        INSERT_PADDING_BYTES(0x5c);
         INSERT_PADDING_BYTES(0xdf8);
     };
     static_assert(sizeof(NPadEntry) == 0x5000, "NPadEntry is an invalid size");
@@ -276,7 +282,6 @@ private:
     static constexpr std::array<u32, 10> npad_id_list{0, 1, 2, 3, 4, 5, 6, 7, 32, 16};
     std::array<ControllerHolder, 10> connected_controllers{};
     bool can_controllers_vibrate{true};
-    void CheckForHandheldVariant();
 
     void InitNewlyAddedControler(std::size_t controller_idx);
 };

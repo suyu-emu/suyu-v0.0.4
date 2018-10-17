@@ -27,7 +27,7 @@ constexpr u32 JOYCON_BUTTONS_NEON_BLUE = 0x001E1E;
 constexpr s32 HID_JOYSTICK_MAX = 0x7fff;
 constexpr s32 HID_JOYSTICK_MIN = -0x7fff;
 constexpr std::size_t NPAD_OFFSET = 0x9A00;
-
+constexpr u32 BATTERY_FULL = 2;
 enum class JoystickId : std::size_t { Joystick_Left, Joystick_Right };
 
 Controller_NPad::Controller_NPad() = default;
@@ -46,6 +46,12 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
         controller.device_type.handheld.Assign(1);
         controller.pad_assignment = NPadAssignments::Dual;
         break;
+    case NPadControllerType::JoyDual:
+        controller.joy_styles.joycon_dual.Assign(1);
+        controller.device_type.joycon_left.Assign(1);
+        controller.device_type.joycon_right.Assign(1);
+        controller.pad_assignment = NPadAssignments::Dual;
+        break;
     case NPadControllerType::JoyLeft:
         controller.joy_styles.joycon_left.Assign(1);
         controller.device_type.joycon_left.Assign(1);
@@ -55,9 +61,6 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
         controller.joy_styles.joycon_right.Assign(1);
         controller.device_type.joycon_right.Assign(1);
         controller.pad_assignment = NPadAssignments::Dual;
-        break;
-    case NPadControllerType::Tabletop:
-        UNIMPLEMENTED_MSG("Tabletop is not implemented");
         break;
     case NPadControllerType::Pokeball:
         controller.joy_styles.pokeball.Assign(1);
@@ -82,6 +85,11 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
     controller.right_color.button_color = JOYCON_BUTTONS_NEON_RED;
 
     controller.properties.is_vertical.Assign(1); // TODO(ogniK): Swap joycons orientations
+    controller.properties.use_plus.Assign(1);
+    controller.properties.use_minus.Assign(1);
+    controller.battery_level[0] = BATTERY_FULL;
+    controller.battery_level[1] = BATTERY_FULL;
+    controller.battery_level[2] = BATTERY_FULL;
 }
 
 void Controller_NPad::OnInit() {
@@ -106,7 +114,7 @@ void Controller_NPad::OnInit() {
         supported_npad_id_types.resize(npad_id_list.size());
         std::memcpy(supported_npad_id_types.data(), npad_id_list.data(),
                     npad_id_list.size() * sizeof(u32));
-        AddNewController(NPadControllerType::Handheld);
+        AddNewController(NPadControllerType::JoyDual);
     }
 }
 
@@ -218,9 +226,11 @@ void Controller_NPad::OnUpdate(u8* data, std::size_t data_len) {
         if (hold_type == NpadHoldType::Horizontal) {
             // TODO(ogniK): Remap buttons for different orientations
         }
+        libnx_entry.connection_status.raw = 0;
 
         switch (controller_type) {
         case NPadControllerType::Handheld:
+            handheld_entry.connection_status.raw = 0;
             handheld_entry.connection_status.IsConnected.Assign(1);
             if (!Settings::values.use_docked_mode) {
                 handheld_entry.connection_status.IsWired.Assign(1);
@@ -229,26 +239,39 @@ void Controller_NPad::OnUpdate(u8* data, std::size_t data_len) {
             handheld_entry.l_stick = lstick_entry;
             handheld_entry.r_stick = rstick_entry;
             break;
+        case NPadControllerType::JoyDual:
+            dual_entry.connection_status.raw = 0;
+
+            dual_entry.connection_status.IsLeftJoyConnected.Assign(1);
+            dual_entry.connection_status.IsRightJoyConnected.Assign(1);
+            dual_entry.connection_status.IsConnected.Assign(1);
+
+            libnx_entry.connection_status.IsLeftJoyConnected.Assign(1);
+            libnx_entry.connection_status.IsRightJoyConnected.Assign(1);
+            libnx_entry.connection_status.IsConnected.Assign(1);
+
+            dual_entry.pad_states.raw = pad_state.raw;
+            dual_entry.l_stick = lstick_entry;
+            dual_entry.r_stick = rstick_entry;
         case NPadControllerType::JoyLeft:
+            left_entry.connection_status.raw = 0;
+
             left_entry.connection_status.IsConnected.Assign(1);
             left_entry.pad_states.raw = pad_state.raw;
             left_entry.l_stick = lstick_entry;
             left_entry.r_stick = rstick_entry;
             break;
         case NPadControllerType::JoyRight:
+            right_entry.connection_status.raw = 0;
+
             right_entry.connection_status.IsConnected.Assign(1);
             right_entry.pad_states.raw = pad_state.raw;
             right_entry.l_stick = lstick_entry;
             right_entry.r_stick = rstick_entry;
             break;
-        case NPadControllerType::Tabletop:
-            // TODO(ogniK): Figure out how to add proper tabletop support
-            dual_entry.pad_states.raw = pad_state.raw;
-            dual_entry.l_stick = lstick_entry;
-            dual_entry.r_stick = rstick_entry;
-            dual_entry.connection_status.IsConnected.Assign(1);
-            break;
         case NPadControllerType::Pokeball:
+            pokeball_entry.connection_status.raw = 0;
+
             pokeball_entry.connection_status.IsConnected.Assign(1);
             pokeball_entry.connection_status.IsWired.Assign(1);
 
@@ -257,18 +280,18 @@ void Controller_NPad::OnUpdate(u8* data, std::size_t data_len) {
             pokeball_entry.r_stick = rstick_entry;
             break;
         case NPadControllerType::ProController:
+            main_controller.connection_status.raw = 0;
+
+            main_controller.connection_status.IsConnected.Assign(1);
+            main_controller.connection_status.IsWired.Assign(1);
             main_controller.pad_states.raw = pad_state.raw;
             main_controller.l_stick = lstick_entry;
             main_controller.r_stick = rstick_entry;
-            main_controller.connection_status.IsConnected.Assign(1);
-            main_controller.connection_status.IsWired.Assign(1);
             break;
         }
 
         // LibNX exclusively uses this section, so we always update it since LibNX doesn't activate
         // any controllers.
-        libnx_entry.connection_status.IsConnected.Assign(1);
-        libnx_entry.connection_status.IsWired.Assign(1);
         libnx_entry.pad_states.raw = pad_state.raw;
         libnx_entry.l_stick = lstick_entry;
         libnx_entry.r_stick = rstick_entry;
@@ -290,44 +313,6 @@ void Controller_NPad::SetSupportedNPadIdTypes(u8* data, std::size_t length) {
     supported_npad_id_types.clear();
     supported_npad_id_types.resize(length / sizeof(u32));
     std::memcpy(supported_npad_id_types.data(), data, length);
-    CheckForHandheldVariant();
-}
-#pragma optimize("", off)
-void Controller_NPad::CheckForHandheldVariant() {
-    // As some games expect us to use the variant of handheld mode and some games don't. It's
-    // consistent that games set the npad ids in order of priority. We can just swap the controller
-    // ids on the fly then if we're in handheld mode
-    if (std::find(supported_npad_id_types.begin(), supported_npad_id_types.end(), 32) !=
-        supported_npad_id_types.end()) {
-        const auto& first_controller = connected_controllers.front();
-        if (first_controller.is_connected &&
-            first_controller.type == NPadControllerType::Handheld) {
-            DisconnectNPad(0);
-            AddNewController(NPadControllerType::Handheld, true);
-        }
-    } else {
-        if (connected_controllers[8].is_connected) {
-            DisconnectNPad(8);
-            AddNewController(NPadControllerType::Handheld);
-        }
-    }
-    /*
-    if (supported_npad_id_types.size() > 0) {
-        const auto& first_controller = supported_npad_id_types.front();
-        if (first_controller == 32 && !connected_controllers[8].is_connected) {
-            const auto& first_controller = connected_controllers.front();
-            if (first_controller.is_connected &&
-                first_controller.type == NPadControllerType::Handheld) {
-                DisconnectNPad(0);
-                AddNewController(NPadControllerType::Handheld, true);
-            }
-        } else if (first_controller != 32 && connected_controllers[8].is_connected) {
-            if (!connected_controllers[0].is_connected) {
-                DisconnectNPad(8);
-                AddNewController(NPadControllerType::Handheld);
-            }
-        }
-    }*/
 }
 
 const void Controller_NPad::GetSupportedNpadIdTypes(u32* data, std::size_t max_length) {
@@ -358,11 +343,14 @@ void Controller_NPad::VibrateController(const std::vector<u32>& controller_ids,
     }
     for (std::size_t i = 0; i < controller_ids.size(); i++) {
         std::size_t controller_pos = i;
-        if (controller_pos == 32)
+        // Handheld controller conversion
+        if (controller_pos == 32) {
             controller_pos = 8;
-        if (controller_pos == 16)
+        }
+        // Unknown controller conversion
+        if (controller_pos == 16) {
             controller_pos = 9;
-
+        }
         if (connected_controllers[controller_pos].is_connected) {
             // TODO(ogniK): Vibrate the physical controller
         }
@@ -378,8 +366,8 @@ Kernel::SharedPtr<Kernel::Event> Controller_NPad::GetStyleSetChangedEvent() cons
 Controller_NPad::Vibration Controller_NPad::GetLastVibration() const {
     return last_processed_vibration;
 }
-void Controller_NPad::AddNewController(NPadControllerType controller, bool is_handheld_variant) {
-    if (is_handheld_variant) {
+void Controller_NPad::AddNewController(NPadControllerType controller) {
+    if (controller == NPadControllerType::Handheld) {
         connected_controllers[8] = {controller, true};
         InitNewlyAddedControler(8);
         return;
@@ -437,14 +425,5 @@ Controller_NPad::LedPattern Controller_NPad::GetLedPattern(u32 npad_id) {
 }
 void Controller_NPad::SetVibrationEnabled(bool can_vibrate) {
     can_controllers_vibrate = can_vibrate;
-}
-
-void Controller_NPad::SetHandheldActiviationMode(u32 mode) {
-    const auto& first_controller = connected_controllers.front();
-    if (!first_controller.is_connected || connected_controllers[8].is_connected) {
-        return;
-    }
-    DisconnectNPad(0);
-    AddNewController(NPadControllerType::Handheld, true);
 }
 } // namespace Service::HID
