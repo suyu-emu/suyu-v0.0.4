@@ -205,6 +205,15 @@ public:
     /// Gets the address space width in bits.
     u64 GetAddressSpaceWidth() const;
 
+    /// Gets the base address of the ASLR region.
+    VAddr GetASLRRegionBaseAddress() const;
+
+    /// Gets the end address of the ASLR region.
+    VAddr GetASLRRegionEndAddress() const;
+
+    /// Gets the size of the ASLR region
+    u64 GetASLRRegionSize() const;
+
     /// Gets the base address of the code region.
     VAddr GetCodeRegionBaseAddress() const;
 
@@ -305,6 +314,9 @@ private:
     u32 address_space_width = 0;
     VAddr address_space_base = 0;
     VAddr address_space_end = 0;
+
+    VAddr aslr_region_base = 0;
+    VAddr aslr_region_end = 0;
 
     VAddr code_region_base = 0;
     VAddr code_region_end = 0;

@@ -448,25 +448,12 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
     case GetInfoType::RandomEntropy:
         *result = 0;
         break;
-    case GetInfoType::AddressSpaceBaseAddr:
-        *result = vm_manager.GetCodeRegionBaseAddress();
+    case GetInfoType::ASLRRegionBaseAddr:
+        *result = vm_manager.GetASLRRegionBaseAddress();
         break;
-    case GetInfoType::AddressSpaceSize: {
-        const u64 width = vm_manager.GetAddressSpaceWidth();
-
-        switch (width) {
-        case 32:
-            *result = 0xFFE00000;
-            break;
-        case 36:
-            *result = 0xFF8000000;
-            break;
-        case 39:
-            *result = 0x7FF8000000;
-            break;
-        }
+    case GetInfoType::ASLRRegionSize:
+        *result = vm_manager.GetASLRRegionSize();
         break;
-    }
     case GetInfoType::NewMapRegionBaseAddr:
         *result = vm_manager.GetNewMapRegionBaseAddress();
         break;

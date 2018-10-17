@@ -41,8 +41,8 @@ enum class GetInfoType : u64 {
     RandomEntropy = 11,
     PerformanceCounter = 0xF0000002,
     // 2.0.0+
-    AddressSpaceBaseAddr = 12,
-    AddressSpaceSize = 13,
+    ASLRRegionBaseAddr = 12,
+    ASLRRegionSize = 13,
     NewMapRegionBaseAddr = 14,
     NewMapRegionSize = 15,
     // 3.0.0+
