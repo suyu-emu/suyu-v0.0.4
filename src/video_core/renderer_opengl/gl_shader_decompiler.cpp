@@ -2293,6 +2293,8 @@ private:
                 ASSERT_MSG(!instr.tlds.UsesMiscMode(Tegra::Shader::TextureMiscMode::MZ),
                            "MZ is not implemented");
 
+                u32 op_c_offset = 0;
+
                 switch (texture_type) {
                 case Tegra::Shader::TextureType::Texture1D: {
                     const std::string x = regs.GetRegisterAsInteger(instr.gpr8);
@@ -2307,6 +2309,7 @@ private:
                         const std::string x = regs.GetRegisterAsInteger(instr.gpr8);
                         const std::string y = regs.GetRegisterAsInteger(instr.gpr20);
                         coord = "ivec2 coords = ivec2(" + x + ", " + y + ");";
+                        op_c_offset = 1;
                     }
                     break;
                 }
@@ -2318,13 +2321,14 @@ private:
                 const std::string sampler =
                     GetSampler(instr.sampler, texture_type, is_array, false);
                 std::string texture = "texelFetch(" + sampler + ", coords, 0)";
-                const std::string op_c = regs.GetRegisterAsInteger(instr.gpr20.Value() + 1);
                 switch (instr.tlds.GetTextureProcessMode()) {
                 case Tegra::Shader::TextureProcessMode::LZ: {
                     texture = "texelFetch(" + sampler + ", coords, 0)";
                     break;
                 }
                 case Tegra::Shader::TextureProcessMode::LL: {
+                    const std::string op_c =
+                        regs.GetRegisterAsInteger(instr.gpr20.Value() + op_c_offset);
                     texture = "texelFetch(" + sampler + ", coords, " + op_c + ')';
                     break;
                 }
