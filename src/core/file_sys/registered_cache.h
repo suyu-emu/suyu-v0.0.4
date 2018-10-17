@@ -52,6 +52,7 @@ bool operator<(const RegisteredCacheEntry& lhs, const RegisteredCacheEntry& rhs)
 
 // std unique requires operator== to identify duplicates.
 bool operator==(const RegisteredCacheEntry& lhs, const RegisteredCacheEntry& rhs);
+bool operator!=(const RegisteredCacheEntry& lhs, const RegisteredCacheEntry& rhs);
 
 /*
  * A class that catalogues NCAs in the registered directory structure.

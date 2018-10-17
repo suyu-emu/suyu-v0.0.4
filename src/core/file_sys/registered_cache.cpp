@@ -35,6 +35,10 @@ bool operator==(const RegisteredCacheEntry& lhs, const RegisteredCacheEntry& rhs
     return std::tie(lhs.title_id, lhs.type) == std::tie(rhs.title_id, rhs.type);
 }
 
+bool operator!=(const RegisteredCacheEntry& lhs, const RegisteredCacheEntry& rhs) {
+    return !operator==(lhs, rhs);
+}
+
 static bool FollowsTwoDigitDirFormat(std::string_view name) {
     static const std::regex two_digit_regex("000000[0-9A-F]{2}", std::regex_constants::ECMAScript |
                                                                      std::regex_constants::icase);
