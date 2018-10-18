@@ -272,7 +272,7 @@ private:
     static_assert(sizeof(NPadEntry) == 0x5000, "NPadEntry is an invalid size");
 
     struct ControllerHolder {
-        Controller_NPad::NPadControllerType type;
+        NPadControllerType type;
         bool is_connected;
     };
 
@@ -295,5 +295,7 @@ private:
     std::size_t NPadIdToIndex(u32 npad_id);
     u32 IndexToNPad(std::size_t index);
     std::array<ControllerPad, 10> npad_pad_states{};
+    NPadControllerType DecideBestController(NPadControllerType priority);
+    bool IsControllerSupported(NPadControllerType controller);
 };
 } // namespace Service::HID

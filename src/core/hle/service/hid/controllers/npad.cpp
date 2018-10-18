@@ -89,12 +89,12 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
     case NPadControllerType::JoyLeft:
         controller.joy_styles.joycon_left.Assign(1);
         controller.device_type.joycon_left.Assign(1);
-        controller.pad_assignment = NPadAssignments::Dual;
+        controller.pad_assignment = NPadAssignments::Single;
         break;
     case NPadControllerType::JoyRight:
         controller.joy_styles.joycon_right.Assign(1);
         controller.device_type.joycon_right.Assign(1);
-        controller.pad_assignment = NPadAssignments::Dual;
+        controller.pad_assignment = NPadAssignments::Single;
         break;
     case NPadControllerType::Pokeball:
         controller.joy_styles.pokeball.Assign(1);
@@ -381,7 +381,7 @@ void Controller_NPad::OnUpdate(u8* data, std::size_t data_len) {
     }
     std::memcpy(data + NPAD_OFFSET, shared_memory_entries.data(),
                 shared_memory_entries.size() * sizeof(NPadEntry));
-} // namespace Service::HID
+}
 
 void Controller_NPad::SetSupportedStyleSet(NPadType style_set) {
     style.raw = style_set.raw;
@@ -516,6 +516,7 @@ u32 Controller_NPad::IndexToNPad(std::size_t index) {
 }
 
 void Controller_NPad::AddNewController(NPadControllerType controller) {
+    controller = DecideBestController(controller);
     if (controller == NPadControllerType::Handheld) {
         connected_controllers[8] = {controller, true};
         InitNewlyAddedControler(8);
@@ -534,6 +535,7 @@ void Controller_NPad::AddNewController(NPadControllerType controller) {
 }
 
 void Controller_NPad::AddNewControllerAt(NPadControllerType controller, u32 npad_id) {
+    controller = DecideBestController(controller);
     if (controller == NPadControllerType::Handheld) {
         connected_controllers[8] = {controller, true};
         InitNewlyAddedControler(8);
@@ -550,6 +552,122 @@ void Controller_NPad::ConnectNPad(u32 npad_id) {
 
 void Controller_NPad::DisconnectNPad(u32 npad_id) {
     connected_controllers[NPadIdToIndex(npad_id)].is_connected = false;
+}
+
+Controller_NPad::NPadControllerType Controller_NPad::DecideBestController(
+    NPadControllerType priority) {
+    if (IsControllerSupported(priority)) {
+        return priority;
+    }
+    const auto is_docked = Settings::values->use_docked_mode;
+    if (is_docked && priority == NPadControllerType::Handheld) {
+        priority = NPadControllerType::JoyDual;
+        if (IsControllerSupported(priority)) {
+            return priority;
+        }
+    }
+    std::vector<NPadControllerType> priority_list{};
+    switch (priority) {
+    case NPadControllerType::ProController:
+        priority_list.push_back(NPadControllerType::JoyDual);
+        if (!is_docked) {
+            priority_list.push_back(NPadControllerType::Handheld);
+        }
+        priority_list.push_back(NPadControllerType::JoyLeft);
+        priority_list.push_back(NPadControllerType::JoyRight);
+        priority_list.push_back(NPadControllerType::Pokeball);
+        break;
+    case NPadControllerType::Handheld:
+        priority_list.push_back(NPadControllerType::JoyDual);
+        priority_list.push_back(NPadControllerType::ProController);
+        priority_list.push_back(NPadControllerType::JoyLeft);
+        priority_list.push_back(NPadControllerType::JoyRight);
+        priority_list.push_back(NPadControllerType::Pokeball);
+        break;
+    case NPadControllerType::JoyDual:
+        if (!is_docked) {
+            priority_list.push_back(NPadControllerType::Handheld);
+        }
+        priority_list.push_back(NPadControllerType::ProController);
+        priority_list.push_back(NPadControllerType::JoyLeft);
+        priority_list.push_back(NPadControllerType::JoyRight);
+        priority_list.push_back(NPadControllerType::Pokeball);
+        break;
+    case NPadControllerType::JoyLeft:
+        priority_list.push_back(NPadControllerType::JoyRight);
+        priority_list.push_back(NPadControllerType::JoyDual);
+        if (!is_docked) {
+            priority_list.push_back(NPadControllerType::Handheld);
+        }
+        priority_list.push_back(NPadControllerType::ProController);
+        priority_list.push_back(NPadControllerType::Pokeball);
+        break;
+    case NPadControllerType::JoyRight:
+        priority_list.push_back(NPadControllerType::JoyLeft);
+        priority_list.push_back(NPadControllerType::JoyDual);
+        if (!is_docked) {
+            priority_list.push_back(NPadControllerType::Handheld);
+        }
+        priority_list.push_back(NPadControllerType::ProController);
+        priority_list.push_back(NPadControllerType::Pokeball);
+        break;
+    case NPadControllerType::Pokeball:
+        priority_list.push_back(NPadControllerType::JoyLeft);
+        priority_list.push_back(NPadControllerType::JoyRight);
+        priority_list.push_back(NPadControllerType::JoyDual);
+        if (!is_docked) {
+            priority_list.push_back(NPadControllerType::Handheld);
+        }
+        priority_list.push_back(NPadControllerType::ProController);
+        break;
+    default:
+        priority_list.push_back(NPadControllerType::JoyDual);
+        if (!is_docked) {
+            priority_list.push_back(NPadControllerType::Handheld);
+        }
+        priority_list.push_back(NPadControllerType::ProController);
+        priority_list.push_back(NPadControllerType::JoyLeft);
+        priority_list.push_back(NPadControllerType::JoyRight);
+        priority_list.push_back(NPadControllerType::JoyDual);
+    }
+
+    for (const auto controller_type : priority_list) {
+        if (IsControllerSupported(controller_type)) {
+            return controller_type;
+        }
+    }
+    UNIMPLEMENTED_MSG("Could not find supported controller!");
+    return priority;
+}
+
+bool Controller_NPad::IsControllerSupported(NPadControllerType controller) {
+    if (controller == NPadControllerType::Handheld) {
+        // Handheld is not even a supported type, lets stop here
+        if (std::find(supported_npad_id_types.begin(), supported_npad_id_types.end(), 32) ==
+            supported_npad_id_types.end()) {
+            return false;
+        }
+        // Handheld should not be supported in docked mode
+        if (Settings::values->use_docked_mode) {
+            return false;
+        }
+    }
+    switch (controller) {
+    case NPadControllerType::ProController:
+        return style.pro_controller;
+    case NPadControllerType::Handheld:
+        return style.handheld;
+    case NPadControllerType::JoyDual:
+        return style.joycon_dual;
+    case NPadControllerType::JoyLeft:
+        return style.joycon_left;
+    case NPadControllerType::JoyRight:
+        return style.joycon_right;
+    case NPadControllerType::Pokeball:
+        return style.pokeball;
+    default:
+        return false;
+    }
 }
 
 Controller_NPad::LedPattern Controller_NPad::GetLedPattern(u32 npad_id) {
