@@ -237,6 +237,46 @@ std::vector<u8> UnswizzleTexture(VAddr address, u32 tile_size, u32 bytes_per_pix
     return unswizzled_data;
 }
 
+void SwizzleSubrect(u32 subrect_width, u32 subrect_height, u32 source_pitch, u32 swizzled_width,
+                    u32 bytes_per_pixel, VAddr swizzled_data, VAddr unswizzled_data,
+                    u32 block_height) {
+    const u32 image_width_in_gobs{(swizzled_width * bytes_per_pixel + 63) / 64};
+    for (u32 line = 0; line < subrect_height; ++line) {
+        const u32 gob_address_y =
+            (line / (8 * block_height)) * 512 * block_height * image_width_in_gobs +
+            (line % (8 * block_height) / 8) * 512;
+        const auto& table = legacy_swizzle_table[line % 8];
+        for (u32 x = 0; x < subrect_width; ++x) {
+            const u32 gob_address = gob_address_y + (x * bytes_per_pixel / 64) * 512 * block_height;
+            const u32 swizzled_offset = gob_address + table[(x * bytes_per_pixel) % 64];
+            const VAddr source_line = unswizzled_data + line * source_pitch + x * bytes_per_pixel;
+            const VAddr dest_addr = swizzled_data + swizzled_offset;
+
+            Memory::CopyBlock(dest_addr, source_line, bytes_per_pixel);
+        }
+    }
+}
+
+void UnswizzleSubrect(u32 subrect_width, u32 subrect_height, u32 dest_pitch, u32 swizzled_width,
+                      u32 bytes_per_pixel, VAddr swizzled_data, VAddr unswizzled_data,
+                      u32 block_height, u32 offset_x, u32 offset_y) {
+    for (u32 line = 0; line < subrect_height; ++line) {
+        const u32 y2 = line + offset_y;
+        const u32 gob_address_y =
+            (y2 / (8 * block_height)) * 512 * block_height + (y2 % (8 * block_height) / 8) * 512;
+        const auto& table = legacy_swizzle_table[y2 % 8];
+        for (u32 x = 0; x < subrect_width; ++x) {
+            const u32 x2 = (x + offset_x) * bytes_per_pixel;
+            const u32 gob_address = gob_address_y + (x2 / 64) * 512 * block_height;
+            const u32 swizzled_offset = gob_address + table[x2 % 64];
+            const VAddr dest_line = unswizzled_data + line * dest_pitch + x * bytes_per_pixel;
+            const VAddr source_addr = swizzled_data + swizzled_offset;
+
+            Memory::CopyBlock(dest_line, source_addr, bytes_per_pixel);
+        }
+    }
+}
+
 std::vector<u8> DecodeTexture(const std::vector<u8>& texture_data, TextureFormat format, u32 width,
                               u32 height) {
     std::vector<u8> rgba_data;
