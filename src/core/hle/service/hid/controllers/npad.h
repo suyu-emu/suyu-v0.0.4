@@ -78,7 +78,7 @@ public:
             position1.Assign(light2);
             position1.Assign(light3);
             position1.Assign(light4);
-        };
+        }
         union {
             u64 raw{};
             BitField<0, 1, u64> position1;
