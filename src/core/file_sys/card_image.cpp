@@ -122,14 +122,16 @@ u64 XCI::GetProgramTitleID() const {
     return secure_partition->GetProgramTitleID();
 }
 
-std::shared_ptr<NCA> XCI::GetProgramNCA() const {
-    return program;
+bool XCI::HasProgramNCA() const {
+    return program != nullptr;
 }
 
 VirtualFile XCI::GetProgramNCAFile() const {
-    if (GetProgramNCA() == nullptr)
+    if (!HasProgramNCA()) {
         return nullptr;
-    return GetProgramNCA()->GetBaseFile();
+    }
+
+    return program->GetBaseFile();
 }
 
 const std::vector<std::shared_ptr<NCA>>& XCI::GetNCAs() const {
