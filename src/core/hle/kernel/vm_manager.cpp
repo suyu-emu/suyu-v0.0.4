@@ -507,6 +507,26 @@ u64 VMManager::GetASLRRegionSize() const {
     return aslr_region_end - aslr_region_base;
 }
 
+bool VMManager::IsWithinASLRRegion(VAddr begin, u64 size) const {
+    const VAddr range_end = begin + size;
+    const VAddr aslr_start = GetASLRRegionBaseAddress();
+    const VAddr aslr_end = GetASLRRegionEndAddress();
+
+    if (aslr_start > begin || begin > range_end || range_end - 1 > aslr_end - 1) {
+        return false;
+    }
+
+    if (range_end > heap_region_base && heap_region_end > begin) {
+        return false;
+    }
+
+    if (range_end > map_region_base && map_region_end > begin) {
+        return false;
+    }
+
+    return true;
+}
+
 VAddr VMManager::GetCodeRegionBaseAddress() const {
     return code_region_base;
 }

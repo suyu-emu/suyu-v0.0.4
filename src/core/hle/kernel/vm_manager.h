@@ -211,6 +211,9 @@ public:
     /// Gets the end address of the ASLR region.
     VAddr GetASLRRegionEndAddress() const;
 
+    /// Determines whether or not the specified address range is within the ASLR region.
+    bool IsWithinASLRRegion(VAddr address, u64 size) const;
+
     /// Gets the size of the ASLR region
     u64 GetASLRRegionSize() const;
 
