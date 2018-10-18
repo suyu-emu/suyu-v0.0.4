@@ -47,9 +47,12 @@ void Fermi2D::HandleSurfaceCopy() {
     u32 dst_bytes_per_pixel = RenderTargetBytesPerPixel(regs.dst.format);
 
     if (!rasterizer.AccelerateSurfaceCopy(regs.src, regs.dst)) {
-        // TODO(bunnei): The below implementation currently will not get hit, as
-        // AccelerateSurfaceCopy tries to always copy and will always return success. This should be
-        // changed once we properly support flushing.
+        rasterizer.FlushRegion(source_cpu, src_bytes_per_pixel * regs.src.width * regs.src.height);
+        // We have to invalidate the destination region to evict any outdated surfaces from the
+        // cache. We do this before actually writing the new data because the destination address
+        // might contain a dirty surface that will have to be written back to memory.
+        rasterizer.InvalidateRegion(dest_cpu,
+                                    dst_bytes_per_pixel * regs.dst.width * regs.dst.height);
 
         if (regs.src.linear == regs.dst.linear) {
             // If the input layout and the output layout are the same, just perform a raw copy.

@@ -659,6 +659,12 @@ void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size) {
 bool RasterizerOpenGL::AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Regs::Surface& src,
                                              const Tegra::Engines::Fermi2D::Regs::Surface& dst) {
     MICROPROFILE_SCOPE(OpenGL_Blits);
+
+    if (Settings::values.use_accurate_gpu_emulation) {
+        // Skip the accelerated copy and perform a slow but more accurate copy
+        return false;
+    }
+
     res_cache.FermiCopySurface(src, dst);
     return true;
 }
