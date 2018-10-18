@@ -4,7 +4,6 @@
 
 #include <cstring>
 #include "common/common_types.h"
-#include "common/swap.h"
 #include "core/core_timing.h"
 #include "core/frontend/emu_window.h"
 #include "core/frontend/input.h"
