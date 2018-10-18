@@ -375,8 +375,7 @@ const Kernel::Process* System::CurrentProcess() const {
 }
 
 ARM_Interface& System::ArmInterface(std::size_t core_index) {
-    ASSERT(core_index < NUM_CPU_CORES);
-    return impl->cpu_cores[core_index]->ArmInterface();
+    return CpuCore(core_index).ArmInterface();
 }
 
 Cpu& System::CpuCore(std::size_t core_index) {
