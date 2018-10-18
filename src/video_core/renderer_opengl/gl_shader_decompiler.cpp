@@ -1291,6 +1291,63 @@ private:
         }
     }
 
+    /// Unpacks a video instruction operand (e.g. VMAD).
+    std::string GetVideoOperand(const std::string& op, bool is_chunk, bool is_signed,
+                                Tegra::Shader::VideoType type, u64 byte_height) {
+        const std::string value = [&]() {
+            if (!is_chunk) {
+                const auto offset = static_cast<u32>(byte_height * 8);
+                return "((" + op + " >> " + std::to_string(offset) + ") & 0xff)";
+            }
+            const std::string zero = "0";
+
+            switch (type) {
+            case Tegra::Shader::VideoType::Size16_Low:
+                return '(' + op + " & 0xffff)";
+            case Tegra::Shader::VideoType::Size16_High:
+                return '(' + op + " >> 16)";
+            case Tegra::Shader::VideoType::Size32:
+                // TODO(Rodrigo): From my hardware tests it becomes a bit "mad" when
+                // this type is used (1 * 1 + 0 == 0x5b800000). Until a better
+                // explanation is found: assert.
+                UNIMPLEMENTED();
+                return zero;
+            case Tegra::Shader::VideoType::Invalid:
+                UNREACHABLE_MSG("Invalid instruction encoding");
+                return zero;
+            default:
+                UNREACHABLE();
+                return zero;
+            }
+        }();
+
+        if (is_signed) {
+            return "int(" + value + ')';
+        }
+        return value;
+    };
+
+    /// Gets the A operand for a video instruction.
+    std::string GetVideoOperandA(Instruction instr) {
+        return GetVideoOperand(regs.GetRegisterAsInteger(instr.gpr8, 0, false),
+                               instr.video.is_byte_chunk_a != 0, instr.video.signed_a,
+                               instr.video.type_a, instr.video.byte_height_a);
+    }
+
+    /// Gets the B operand for a video instruction.
+    std::string GetVideoOperandB(Instruction instr) {
+        if (instr.video.use_register_b) {
+            return GetVideoOperand(regs.GetRegisterAsInteger(instr.gpr20, 0, false),
+                                   instr.video.is_byte_chunk_b != 0, instr.video.signed_b,
+                                   instr.video.type_b, instr.video.byte_height_b);
+        } else {
+            return '(' +
+                   std::to_string(instr.video.signed_b ? static_cast<s16>(instr.alu.GetImm20_16())
+                                                       : instr.alu.GetImm20_16()) +
+                   ')';
+        }
+    }
+
     /**
      * Compiles a single instruction from Tegra to GLSL.
      * @param offset the offset of the Tegra shader instruction.
@@ -3284,82 +3341,22 @@ private:
                 break;
             }
             case OpCode::Id::VMAD: {
-                const bool signed_a = instr.vmad.signed_a == 1;
-                const bool signed_b = instr.vmad.signed_b == 1;
-                const bool result_signed = signed_a || signed_b;
-                boost::optional<std::string> forced_result;
-
-                auto Unpack = [&](const std::string& op, bool is_chunk, bool is_signed,
-                                  Tegra::Shader::VmadType type, u64 byte_height) {
-                    const std::string value = [&]() {
-                        if (!is_chunk) {
-                            const auto shift = static_cast<u32>(byte_height * 8);
-                            return "((" + op + " >> " + std::to_string(shift) + ") & 0xff)";
-                        }
-                        const std::string zero = "0";
-
-                        switch (type) {
-                        case Tegra::Shader::VmadType::Size16_Low:
-                            return '(' + op + " & 0xffff)";
-                        case Tegra::Shader::VmadType::Size16_High:
-                            return '(' + op + " >> 16)";
-                        case Tegra::Shader::VmadType::Size32:
-                            // TODO(Rodrigo): From my hardware tests it becomes a bit "mad" when
-                            // this type is used (1 * 1 + 0 == 0x5b800000). Until a better
-                            // explanation is found: assert.
-                            UNREACHABLE_MSG("Unimplemented");
-                            return zero;
-                        case Tegra::Shader::VmadType::Invalid:
-                            // Note(Rodrigo): This flag is invalid according to nvdisasm. From my
-                            // testing (even though it's invalid) this makes the whole instruction
-                            // assign zero to target register.
-                            forced_result = boost::make_optional(zero);
-                            return zero;
-                        default:
-                            UNREACHABLE();
-                            return zero;
-                        }
-                    }();
-
-                    if (is_signed) {
-                        return "int(" + value + ')';
-                    }
-                    return value;
-                };
-
-                const std::string op_a = Unpack(regs.GetRegisterAsInteger(instr.gpr8, 0, false),
-                                                instr.vmad.is_byte_chunk_a != 0, signed_a,
-                                                instr.vmad.type_a, instr.vmad.byte_height_a);
-
-                std::string op_b;
-                if (instr.vmad.use_register_b) {
-                    op_b = Unpack(regs.GetRegisterAsInteger(instr.gpr20, 0, false),
-                                  instr.vmad.is_byte_chunk_b != 0, signed_b, instr.vmad.type_b,
-                                  instr.vmad.byte_height_b);
-                } else {
-                    op_b = '(' +
-                           std::to_string(signed_b ? static_cast<s16>(instr.alu.GetImm20_16())
-                                                   : instr.alu.GetImm20_16()) +
-                           ')';
-                }
-
+                const bool result_signed = instr.video.signed_a == 1 || instr.video.signed_b == 1;
+                const std::string op_a = GetVideoOperandA(instr);
+                const std::string op_b = GetVideoOperandB(instr);
                 const std::string op_c = regs.GetRegisterAsInteger(instr.gpr39, 0, result_signed);
 
-                std::string result;
-                if (forced_result) {
-                    result = *forced_result;
-                } else {
-                    result = '(' + op_a + " * " + op_b + " + " + op_c + ')';
+                std::string result = '(' + op_a + " * " + op_b + " + " + op_c + ')';
 
-                    switch (instr.vmad.shr) {
-                    case Tegra::Shader::VmadShr::Shr7:
-                        result = '(' + result + " >> 7)";
-                        break;
-                    case Tegra::Shader::VmadShr::Shr15:
-                        result = '(' + result + " >> 15)";
-                        break;
-                    }
+                switch (instr.vmad.shr) {
+                case Tegra::Shader::VmadShr::Shr7:
+                    result = '(' + result + " >> 7)";
+                    break;
+                case Tegra::Shader::VmadShr::Shr15:
+                    result = '(' + result + " >> 15)";
+                    break;
                 }
+
                 regs.SetRegisterToInteger(instr.gpr0, result_signed, 1, result, 1, 1,
                                           instr.vmad.saturate == 1, 0, Register::Size::Word,
                                           instr.vmad.cc);
