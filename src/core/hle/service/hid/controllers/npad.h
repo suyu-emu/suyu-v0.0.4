@@ -278,7 +278,6 @@ private:
     std::vector<u32> supported_npad_id_types{};
     NpadHoldType hold_type{NpadHoldType::Vertical};
     Kernel::SharedPtr<Kernel::Event> styleset_changed_event;
-    std::size_t dump_idx{};
     Vibration last_processed_vibration{};
     std::array<ControllerHolder, 10> connected_controllers{};
     bool can_controllers_vibrate{true};
