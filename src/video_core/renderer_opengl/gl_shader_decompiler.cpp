@@ -3362,6 +3362,30 @@ private:
                                           instr.vmad.cc);
                 break;
             }
+            case OpCode::Id::VSETP: {
+                const std::string op_a = GetVideoOperandA(instr);
+                const std::string op_b = GetVideoOperandB(instr);
+
+                // We can't use the constant predicate as destination.
+                ASSERT(instr.vsetp.pred3 != static_cast<u64>(Pred::UnusedIndex));
+
+                const std::string second_pred = GetPredicateCondition(instr.vsetp.pred39, false);
+
+                const std::string combiner = GetPredicateCombiner(instr.vsetp.op);
+
+                const std::string predicate = GetPredicateComparison(instr.vsetp.cond, op_a, op_b);
+                // Set the primary predicate to the result of Predicate OP SecondPredicate
+                SetPredicate(instr.vsetp.pred3,
+                             '(' + predicate + ") " + combiner + " (" + second_pred + ')');
+
+                if (instr.vsetp.pred0 != static_cast<u64>(Pred::UnusedIndex)) {
+                    // Set the secondary predicate to the result of !Predicate OP SecondPredicate,
+                    // if enabled
+                    SetPredicate(instr.vsetp.pred0,
+                                 "!(" + predicate + ") " + combiner + " (" + second_pred + ')');
+                }
+                break;
+            }
             default: {
                 LOG_CRITICAL(HW_GPU, "Unhandled instruction: {}", opcode->GetName());
                 UNREACHABLE();

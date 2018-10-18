@@ -1246,6 +1246,7 @@ public:
         OUT_R, // Emit vertex/primitive
         ISBERD,
         VMAD,
+        VSETP,
         FFMA_IMM, // Fused Multiply and Add
         FFMA_CR,
         FFMA_RC,
@@ -1501,6 +1502,7 @@ private:
             INST("1111101111100---", Id::OUT_R, Type::Trivial, "OUT_R"),
             INST("1110111111010---", Id::ISBERD, Type::Trivial, "ISBERD"),
             INST("01011111--------", Id::VMAD, Type::Trivial, "VMAD"),
+            INST("0101000011110---", Id::VSETP, Type::Trivial, "VSETP"),
             INST("0011001-1-------", Id::FFMA_IMM, Type::Ffma, "FFMA_IMM"),
             INST("010010011-------", Id::FFMA_CR, Type::Ffma, "FFMA_CR"),
             INST("010100011-------", Id::FFMA_RC, Type::Ffma, "FFMA_RC"),
