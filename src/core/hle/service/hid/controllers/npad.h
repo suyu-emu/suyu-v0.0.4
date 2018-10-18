@@ -165,8 +165,11 @@ private:
             BitField<23, 1, u64_le> r_stick_down;
 
             // Not always active?
-            BitField<24, 1, u64_le> sl;
-            BitField<25, 1, u64_le> sr;
+            BitField<24, 1, u64_le> left_sl;
+            BitField<25, 1, u64_le> left_sr;
+
+            BitField<26, 1, u64_le> right_sl;
+            BitField<27, 1, u64_le> right_sr;
         };
     };
     static_assert(sizeof(ControllerPadState) == 8, "ControllerPadState is an invalid size");

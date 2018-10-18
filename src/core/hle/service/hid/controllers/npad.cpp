@@ -79,21 +79,31 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
         controller.joy_styles.handheld.Assign(1);
         controller.device_type.handheld.Assign(1);
         controller.pad_assignment = NPadAssignments::Dual;
+        controller.properties.is_vertical.Assign(1);
+        controller.properties.use_plus.Assign(1);
+        controller.properties.use_minus.Assign(1);
         break;
     case NPadControllerType::JoyDual:
         controller.joy_styles.joycon_dual.Assign(1);
         controller.device_type.joycon_left.Assign(1);
         controller.device_type.joycon_right.Assign(1);
+        controller.properties.is_vertical.Assign(1);
+        controller.properties.use_plus.Assign(1);
+        controller.properties.use_minus.Assign(1);
         controller.pad_assignment = NPadAssignments::Dual;
         break;
     case NPadControllerType::JoyLeft:
         controller.joy_styles.joycon_left.Assign(1);
         controller.device_type.joycon_left.Assign(1);
+        controller.properties.is_horizontal.Assign(1);
+        controller.properties.use_minus.Assign(1);
         controller.pad_assignment = NPadAssignments::Single;
         break;
     case NPadControllerType::JoyRight:
         controller.joy_styles.joycon_right.Assign(1);
         controller.device_type.joycon_right.Assign(1);
+        controller.properties.is_horizontal.Assign(1);
+        controller.properties.use_plus.Assign(1);
         controller.pad_assignment = NPadAssignments::Single;
         break;
     case NPadControllerType::Pokeball:
@@ -104,6 +114,9 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
     case NPadControllerType::ProController:
         controller.joy_styles.pro_controller.Assign(1);
         controller.device_type.pro_controller.Assign(1);
+        controller.properties.is_vertical.Assign(1);
+        controller.properties.use_plus.Assign(1);
+        controller.properties.use_minus.Assign(1);
         controller.pad_assignment = NPadAssignments::Single;
         break;
     }
@@ -118,9 +131,6 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
     controller.right_color.body_color = JOYCON_BODY_NEON_RED;
     controller.right_color.button_color = JOYCON_BUTTONS_NEON_RED;
 
-    controller.properties.is_vertical.Assign(1); // TODO(ogniK): Swap joycons orientations
-    controller.properties.use_plus.Assign(1);
-    controller.properties.use_minus.Assign(1);
     controller.battery_level[0] = BATTERY_FULL;
     controller.battery_level[1] = BATTERY_FULL;
     controller.battery_level[2] = BATTERY_FULL;
@@ -202,8 +212,8 @@ void Controller_NPad::RequestPadStateUpdate(u32 npad_id) {
     pad_state.r_stick_right.Assign(buttons[RStick_Right - BUTTON_HID_BEGIN]->GetStatus());
     pad_state.r_stick_down.Assign(buttons[RStick_Down - BUTTON_HID_BEGIN]->GetStatus());
 
-    pad_state.sl.Assign(buttons[SL - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.sr.Assign(buttons[SR - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.left_sl.Assign(buttons[SL - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.left_sr.Assign(buttons[SR - BUTTON_HID_BEGIN]->GetStatus());
 
     const auto [stick_l_x_f, stick_l_y_f] =
         sticks[static_cast<std::size_t>(JoystickId::Joystick_Left)]->GetStatus();
@@ -307,6 +317,7 @@ void Controller_NPad::OnUpdate(u8* data, std::size_t data_len) {
             pad_state.l_stick = temp_lstick_entry;
             pad_state.r_stick = temp_rstick_entry;
         }
+
         libnx_entry.connection_status.raw = 0;
 
         switch (controller_type) {
