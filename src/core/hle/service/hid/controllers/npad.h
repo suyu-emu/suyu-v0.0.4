@@ -280,7 +280,6 @@ private:
     Kernel::SharedPtr<Kernel::Event> styleset_changed_event;
     std::size_t dump_idx{};
     Vibration last_processed_vibration{};
-    static constexpr std::array<u32, 10> npad_id_list{0, 1, 2, 3, 4, 5, 6, 7, 32, 16};
     std::array<ControllerHolder, 10> connected_controllers{};
     bool can_controllers_vibrate{true};
 

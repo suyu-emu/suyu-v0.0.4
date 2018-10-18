@@ -20,6 +20,7 @@
 #include "core/settings.h"
 
 namespace Service::HID {
+
 constexpr u32 JOYCON_BODY_NEON_RED = 0xFF3C28;
 constexpr u32 JOYCON_BUTTONS_NEON_RED = 0x1E0A0A;
 constexpr u32 JOYCON_BODY_NEON_BLUE = 0x0AB9E6;
@@ -28,7 +29,15 @@ constexpr s32 HID_JOYSTICK_MAX = 0x7fff;
 constexpr s32 HID_JOYSTICK_MIN = -0x7fff;
 constexpr std::size_t NPAD_OFFSET = 0x9A00;
 constexpr u32 BATTERY_FULL = 2;
-enum class JoystickId : std::size_t { Joystick_Left, Joystick_Right };
+
+constexpr std::array<u32, 10> npad_id_list{
+    0, 1, 2, 3, 4, 5, 6, 7, 32, 16,
+};
+
+enum class JoystickId : std::size_t {
+    Joystick_Left,
+    Joystick_Right,
+};
 
 Controller_NPad::Controller_NPad() = default;
 Controller_NPad::~Controller_NPad() = default;
