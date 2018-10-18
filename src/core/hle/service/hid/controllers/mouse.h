@@ -13,6 +13,7 @@ namespace Service::HID {
 class Controller_Mouse final : public ControllerBase {
 public:
     Controller_Mouse();
+    ~Controller_Mouse() override;
 
     // Called when the controller is initialized
     void OnInit() override;

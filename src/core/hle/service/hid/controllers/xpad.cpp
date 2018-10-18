@@ -12,6 +12,7 @@ namespace Service::HID {
 constexpr std::size_t SHARED_MEMORY_OFFSET = 0x3C00;
 
 Controller_XPad::Controller_XPad() = default;
+Controller_XPad::~Controller_XPad() = default;
 
 void Controller_XPad::OnInit() {}
 

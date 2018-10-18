@@ -11,6 +11,7 @@
 namespace Service::HID {
 
 Controller_DebugPad::Controller_DebugPad() = default;
+Controller_DebugPad::~Controller_DebugPad() = default;
 
 void Controller_DebugPad::OnInit() {}
 

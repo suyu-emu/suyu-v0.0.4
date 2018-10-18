@@ -11,6 +11,7 @@
 namespace Service::HID {
 
 Controller_Stubbed::Controller_Stubbed() = default;
+Controller_Stubbed::~Controller_Stubbed() = default;
 
 void Controller_Stubbed::OnInit() {}
 

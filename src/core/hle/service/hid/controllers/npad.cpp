@@ -31,6 +31,7 @@ constexpr u32 BATTERY_FULL = 2;
 enum class JoystickId : std::size_t { Joystick_Left, Joystick_Right };
 
 Controller_NPad::Controller_NPad() = default;
+Controller_NPad::~Controller_NPad() = default;
 
 void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
     const auto controller_type = connected_controllers[controller_idx].type;

@@ -14,6 +14,7 @@ namespace Service::HID {
 class Controller_XPad final : public ControllerBase {
 public:
     Controller_XPad();
+    ~Controller_XPad() override;
 
     // Called when the controller is initialized
     void OnInit() override;
