@@ -316,7 +316,7 @@ void Controller_NPad::SetSupportedNPadIdTypes(u8* data, std::size_t length) {
     std::memcpy(supported_npad_id_types.data(), data, length);
 }
 
-const void Controller_NPad::GetSupportedNpadIdTypes(u32* data, std::size_t max_length) {
+void Controller_NPad::GetSupportedNpadIdTypes(u32* data, std::size_t max_length) {
     ASSERT(max_length < supported_npad_id_types.size());
     std::memcpy(data, supported_npad_id_types.data(), supported_npad_id_types.size());
 }

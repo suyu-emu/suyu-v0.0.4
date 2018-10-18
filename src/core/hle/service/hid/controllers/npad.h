@@ -92,7 +92,7 @@ public:
     NPadType GetSupportedStyleSet() const;
 
     void SetSupportedNPadIdTypes(u8* data, std::size_t length);
-    const void GetSupportedNpadIdTypes(u32* data, std::size_t max_length);
+    void GetSupportedNpadIdTypes(u32* data, std::size_t max_length);
     std::size_t GetSupportedNPadIdTypesSize() const;
 
     void SetHoldType(NpadHoldType joy_hold_type);
