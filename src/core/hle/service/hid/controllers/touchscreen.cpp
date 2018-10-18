@@ -41,7 +41,11 @@ void Controller_Touchscreen::OnUpdate(u8* data, std::size_t size) {
 
     const auto [x, y, pressed] = touch_device->GetStatus();
     auto& touch_entry = cur_entry.states[0];
+    touch_entry.attribute.raw = 0;
     if (pressed) {
+        if (cur_entry.entry_count == 0) {
+            touch_entry.attribute.start_touch.Assign(1);
+        }
         touch_entry.x = static_cast<u16>(x * Layout::ScreenUndocked::Width);
         touch_entry.y = static_cast<u16>(y * Layout::ScreenUndocked::Height);
         touch_entry.diameter_x = 15;
@@ -53,6 +57,9 @@ void Controller_Touchscreen::OnUpdate(u8* data, std::size_t size) {
         touch_entry.finger = 0;
         cur_entry.entry_count = 1;
     } else {
+        if (cur_entry.entry_count == 1) {
+            touch_entry.attribute.end_touch.Assign(1);
+        }
         cur_entry.entry_count = 0;
     }
 
