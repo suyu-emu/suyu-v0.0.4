@@ -107,6 +107,7 @@ public:
     Vibration GetLastVibration() const;
 
     void AddNewController(NPadControllerType controller);
+    void AddNewControllerAt(NPadControllerType controller, u32 npad_id);
 
     void ConnectNPad(u32 npad_id);
     void DisconnectNPad(u32 npad_id);
@@ -189,12 +190,17 @@ private:
     };
     static_assert(sizeof(ConnectionState) == 4, "ConnectionState is an invalid size");
 
-    struct GenericStates {
-        s64_le timestamp;
-        s64_le timestamp2;
+    struct ControllerPad {
         ControllerPadState pad_states;
         AnalogPosition l_stick;
         AnalogPosition r_stick;
+    };
+    static_assert(sizeof(ControllerPad) == 0x18, "ControllerPad is an invalid size");
+
+    struct GenericStates {
+        s64_le timestamp;
+        s64_le timestamp2;
+        ControllerPad pad;
         ConnectionState connection_status;
     };
     static_assert(sizeof(GenericStates) == 0x30, "NPadGenericStates is an invalid size");
@@ -285,5 +291,9 @@ private:
     void InitNewlyAddedControler(std::size_t controller_idx);
     bool IsControllerSupported(NPadControllerType controller) const;
     NPadControllerType DecideBestController(NPadControllerType priority) const;
+    void RequestPadStateUpdate(u32 npad_id);
+    std::size_t NPadIdToIndex(u32 npad_id);
+    u32 IndexToNPad(std::size_t index);
+    std::array<ControllerPad, 10> npad_pad_states{};
 };
 } // namespace Service::HID
