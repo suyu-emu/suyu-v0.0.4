@@ -28,7 +28,7 @@ GPU::GPU(VideoCore::RasterizerInterface& rasterizer) {
     fermi_2d = std::make_unique<Engines::Fermi2D>(rasterizer, *memory_manager);
     maxwell_compute = std::make_unique<Engines::MaxwellCompute>();
     maxwell_dma = std::make_unique<Engines::MaxwellDMA>(*memory_manager);
-    kepler_memory = std::make_unique<Engines::KeplerMemory>(*memory_manager);
+    kepler_memory = std::make_unique<Engines::KeplerMemory>(rasterizer, *memory_manager);
 }
 
 GPU::~GPU() = default;
