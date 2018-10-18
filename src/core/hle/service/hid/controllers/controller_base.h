@@ -10,8 +10,8 @@
 namespace Service::HID {
 class ControllerBase {
 public:
-    ControllerBase() = default;
-    virtual ~ControllerBase() = 0;
+    ControllerBase();
+    virtual ~ControllerBase();
 
     // Called when the controller is initialized
     virtual void OnInit() = 0;

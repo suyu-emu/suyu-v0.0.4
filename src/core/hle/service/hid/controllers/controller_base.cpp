@@ -5,6 +5,8 @@
 #include "core/hle/service/hid/controllers/controller_base.h"
 
 namespace Service::HID {
+
+ControllerBase::ControllerBase() = default;
 ControllerBase::~ControllerBase() = default;
 
 void ControllerBase::ActivateController() {
