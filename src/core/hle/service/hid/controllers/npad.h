@@ -113,6 +113,10 @@ public:
     void DisconnectNPad(u32 npad_id);
     LedPattern GetLedPattern(u32 npad_id);
     void SetVibrationEnabled(bool can_vibrate);
+    void ClearAllConnectedControllers();
+    void DisconnectAllConnectedControllers();
+    void ConnectAllDisconnectedControllers();
+    void ClearAllControllers();
 
 private:
     struct CommonHeader {

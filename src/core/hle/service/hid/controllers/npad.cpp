@@ -712,6 +712,37 @@ void Controller_NPad::SetVibrationEnabled(bool can_vibrate) {
     can_controllers_vibrate = can_vibrate;
 }
 
+void Controller_NPad::ClearAllConnectedControllers() {
+    std::for_each(connected_controllers.begin(), connected_controllers.end(),
+                  [](ControllerHolder& controller) {
+                      if (controller.is_connected && controller.type != NPadControllerType::None) {
+                          controller.type = NPadControllerType::None;
+                          controller.is_connected = false;
+                      }
+                  });
+}
+void Controller_NPad::DisconnectAllConnectedControllers() {
+    std::for_each(connected_controllers.begin(), connected_controllers.end(),
+                  [](ControllerHolder& controller) { controller.is_connected = false; });
+}
+
+void Controller_NPad::ConnectAllDisconnectedControllers() {
+    std::for_each(connected_controllers.begin(), connected_controllers.end(),
+                  [](ControllerHolder& controller) {
+                      if (controller.type != NPadControllerType::None && !controller.is_connected) {
+                          controller.is_connected = false;
+                      }
+                  });
+}
+
+void Controller_NPad::ClearAllControllers() {
+    std::for_each(connected_controllers.begin(), connected_controllers.end(),
+                  [](ControllerHolder& controller) {
+                      controller.type = NPadControllerType::None;
+                      controller.is_connected = false;
+                  });
+}
+
 bool Controller_NPad::IsControllerSupported(NPadControllerType controller) const {
     const bool support_handheld =
         std::find(supported_npad_id_types.begin(), supported_npad_id_types.end(), NPAD_HANDHELD) !=
