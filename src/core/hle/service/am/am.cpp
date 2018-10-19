@@ -638,10 +638,12 @@ IApplicationFunctions::IApplicationFunctions() : ServiceFramework("IApplicationF
         {24, nullptr, "GetLaunchStorageInfoForDebug"},
         {25, nullptr, "ExtendSaveData"},
         {26, nullptr, "GetSaveDataSize"},
-        {30, nullptr, "BeginBlockingHomeButtonShortAndLongPressed"},
-        {31, nullptr, "EndBlockingHomeButtonShortAndLongPressed"},
-        {32, nullptr, "BeginBlockingHomeButton"},
-        {33, nullptr, "EndBlockingHomeButton"},
+        {30, &IApplicationFunctions::BeginBlockingHomeButtonShortAndLongPressed,
+         "BeginBlockingHomeButtonShortAndLongPressed"},
+        {31, &IApplicationFunctions::EndBlockingHomeButtonShortAndLongPressed,
+         "EndBlockingHomeButtonShortAndLongPressed"},
+        {32, &IApplicationFunctions::BeginBlockingHomeButton, "BeginBlockingHomeButton"},
+        {33, &IApplicationFunctions::EndBlockingHomeButton, "EndBlockingHomeButton"},
         {40, &IApplicationFunctions::NotifyRunning, "NotifyRunning"},
         {50, &IApplicationFunctions::GetPseudoDeviceId, "GetPseudoDeviceId"},
         {60, nullptr, "SetMediaPlaybackStateForApplication"},
@@ -668,6 +670,32 @@ IApplicationFunctions::IApplicationFunctions() : ServiceFramework("IApplicationF
 }
 
 IApplicationFunctions::~IApplicationFunctions() = default;
+
+void IApplicationFunctions::BeginBlockingHomeButtonShortAndLongPressed(
+    Kernel::HLERequestContext& ctx) {
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+}
+
+void IApplicationFunctions::EndBlockingHomeButtonShortAndLongPressed(
+    Kernel::HLERequestContext& ctx) {
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+}
+
+void IApplicationFunctions::BeginBlockingHomeButton(Kernel::HLERequestContext& ctx) {
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+}
+
+void IApplicationFunctions::EndBlockingHomeButton(Kernel::HLERequestContext& ctx) {
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+}
 
 void IApplicationFunctions::PopLaunchParameter(Kernel::HLERequestContext& ctx) {
     constexpr std::array<u8, 0x88> data{{
