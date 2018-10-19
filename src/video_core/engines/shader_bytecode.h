@@ -1232,6 +1232,7 @@ union Instruction {
     BitField<60, 1, u64> is_b_gpr;
     BitField<59, 1, u64> is_c_gpr;
     BitField<20, 24, s64> smem_imm;
+    BitField<0, 5, ControlCode> flow_control_code;
 
     Attribute attribute;
     Sampler sampler;
