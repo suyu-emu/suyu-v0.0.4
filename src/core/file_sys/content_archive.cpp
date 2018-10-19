@@ -97,9 +97,286 @@ union NCASectionHeader {
 };
 static_assert(sizeof(NCASectionHeader) == 0x200, "NCASectionHeader has incorrect size.");
 
-bool IsValidNCA(const NCAHeader& header) {
+static bool IsValidNCA(const NCAHeader& header) {
     // TODO(DarkLordZach): Add NCA2/NCA0 support.
     return header.magic == Common::MakeMagic('N', 'C', 'A', '3');
+}
+
+NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_, u64 bktr_base_ivfc_offset)
+    : file(std::move(file_)), bktr_base_romfs(std::move(bktr_base_romfs_)) {
+    if (file == nullptr) {
+        status = Loader::ResultStatus::ErrorNullFile;
+        return;
+    }
+
+    if (sizeof(NCAHeader) != file->ReadObject(&header)) {
+        LOG_ERROR(Loader, "File reader errored out during header read.");
+        status = Loader::ResultStatus::ErrorBadNCAHeader;
+        return;
+    }
+
+    if (!HandlePotentialHeaderDecryption()) {
+        return;
+    }
+
+    has_rights_id = std::any_of(header.rights_id.begin(), header.rights_id.end(),
+                                [](char c) { return c != '\0'; });
+
+    const std::vector<NCASectionHeader> sections = ReadSectionHeaders();
+    is_update = std::any_of(sections.begin(), sections.end(), [](const NCASectionHeader& header) {
+        return header.raw.header.crypto_type == NCASectionCryptoType::BKTR;
+    });
+
+    if (!ReadSections(sections, bktr_base_ivfc_offset)) {
+        return;
+    }
+
+    status = Loader::ResultStatus::Success;
+}
+
+NCA::~NCA() = default;
+
+bool NCA::CheckSupportedNCA(const NCAHeader& nca_header) {
+    if (nca_header.magic == Common::MakeMagic('N', 'C', 'A', '2')) {
+        status = Loader::ResultStatus::ErrorNCA2;
+        return false;
+    }
+
+    if (nca_header.magic == Common::MakeMagic('N', 'C', 'A', '0')) {
+        status = Loader::ResultStatus::ErrorNCA0;
+        return false;
+    }
+
+    return true;
+}
+
+bool NCA::HandlePotentialHeaderDecryption() {
+    if (IsValidNCA(header)) {
+        return true;
+    }
+
+    if (!CheckSupportedNCA(header)) {
+        return false;
+    }
+
+    NCAHeader dec_header{};
+    Core::Crypto::AESCipher<Core::Crypto::Key256> cipher(
+        keys.GetKey(Core::Crypto::S256KeyType::Header), Core::Crypto::Mode::XTS);
+    cipher.XTSTranscode(&header, sizeof(NCAHeader), &dec_header, 0, 0x200,
+                        Core::Crypto::Op::Decrypt);
+    if (IsValidNCA(dec_header)) {
+        header = dec_header;
+        encrypted = true;
+    } else {
+        if (!CheckSupportedNCA(dec_header)) {
+            return false;
+        }
+
+        if (keys.HasKey(Core::Crypto::S256KeyType::Header)) {
+            status = Loader::ResultStatus::ErrorIncorrectHeaderKey;
+        } else {
+            status = Loader::ResultStatus::ErrorMissingHeaderKey;
+        }
+        return false;
+    }
+
+    return true;
+}
+
+std::vector<NCASectionHeader> NCA::ReadSectionHeaders() const {
+    const std::ptrdiff_t number_sections =
+        std::count_if(std::begin(header.section_tables), std::end(header.section_tables),
+                      [](NCASectionTableEntry entry) { return entry.media_offset > 0; });
+
+    std::vector<NCASectionHeader> sections(number_sections);
+    const auto length_sections = SECTION_HEADER_SIZE * number_sections;
+
+    if (encrypted) {
+        auto raw = file->ReadBytes(length_sections, SECTION_HEADER_OFFSET);
+        Core::Crypto::AESCipher<Core::Crypto::Key256> cipher(
+            keys.GetKey(Core::Crypto::S256KeyType::Header), Core::Crypto::Mode::XTS);
+        cipher.XTSTranscode(raw.data(), length_sections, sections.data(), 2, SECTION_HEADER_SIZE,
+                            Core::Crypto::Op::Decrypt);
+    } else {
+        file->ReadBytes(sections.data(), length_sections, SECTION_HEADER_OFFSET);
+    }
+
+    return sections;
+}
+
+bool NCA::ReadSections(const std::vector<NCASectionHeader>& sections, u64 bktr_base_ivfc_offset) {
+    for (std::size_t i = 0; i < sections.size(); ++i) {
+        const auto& section = sections[i];
+
+        if (section.raw.header.filesystem_type == NCASectionFilesystemType::ROMFS) {
+            if (!ReadRomFSSection(section, header.section_tables[i], bktr_base_ivfc_offset)) {
+                return false;
+            }
+        } else if (section.raw.header.filesystem_type == NCASectionFilesystemType::PFS0) {
+            if (!ReadPFS0Section(section, header.section_tables[i])) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool NCA::ReadRomFSSection(const NCASectionHeader& section, const NCASectionTableEntry& entry,
+                           u64 bktr_base_ivfc_offset) {
+    const std::size_t base_offset = entry.media_offset * MEDIA_OFFSET_MULTIPLIER;
+    ivfc_offset = section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].offset;
+    const std::size_t romfs_offset = base_offset + ivfc_offset;
+    const std::size_t romfs_size = section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].size;
+    auto raw = std::make_shared<OffsetVfsFile>(file, romfs_size, romfs_offset);
+    auto dec = Decrypt(section, raw, romfs_offset);
+
+    if (dec == nullptr) {
+        if (status != Loader::ResultStatus::Success)
+            return false;
+        if (has_rights_id)
+            status = Loader::ResultStatus::ErrorIncorrectTitlekeyOrTitlekek;
+        else
+            status = Loader::ResultStatus::ErrorIncorrectKeyAreaKey;
+        return false;
+    }
+
+    if (section.raw.header.crypto_type == NCASectionCryptoType::BKTR) {
+        if (section.bktr.relocation.magic != Common::MakeMagic('B', 'K', 'T', 'R') ||
+            section.bktr.subsection.magic != Common::MakeMagic('B', 'K', 'T', 'R')) {
+            status = Loader::ResultStatus::ErrorBadBKTRHeader;
+            return false;
+        }
+
+        if (section.bktr.relocation.offset + section.bktr.relocation.size !=
+            section.bktr.subsection.offset) {
+            status = Loader::ResultStatus::ErrorBKTRSubsectionNotAfterRelocation;
+            return false;
+        }
+
+        const u64 size = MEDIA_OFFSET_MULTIPLIER * (entry.media_end_offset - entry.media_offset);
+        if (section.bktr.subsection.offset + section.bktr.subsection.size != size) {
+            status = Loader::ResultStatus::ErrorBKTRSubsectionNotAtEnd;
+            return false;
+        }
+
+        const u64 offset = section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].offset;
+        RelocationBlock relocation_block{};
+        if (dec->ReadObject(&relocation_block, section.bktr.relocation.offset - offset) !=
+            sizeof(RelocationBlock)) {
+            status = Loader::ResultStatus::ErrorBadRelocationBlock;
+            return false;
+        }
+        SubsectionBlock subsection_block{};
+        if (dec->ReadObject(&subsection_block, section.bktr.subsection.offset - offset) !=
+            sizeof(RelocationBlock)) {
+            status = Loader::ResultStatus::ErrorBadSubsectionBlock;
+            return false;
+        }
+
+        std::vector<RelocationBucketRaw> relocation_buckets_raw(
+            (section.bktr.relocation.size - sizeof(RelocationBlock)) / sizeof(RelocationBucketRaw));
+        if (dec->ReadBytes(relocation_buckets_raw.data(),
+                           section.bktr.relocation.size - sizeof(RelocationBlock),
+                           section.bktr.relocation.offset + sizeof(RelocationBlock) - offset) !=
+            section.bktr.relocation.size - sizeof(RelocationBlock)) {
+            status = Loader::ResultStatus::ErrorBadRelocationBuckets;
+            return false;
+        }
+
+        std::vector<SubsectionBucketRaw> subsection_buckets_raw(
+            (section.bktr.subsection.size - sizeof(SubsectionBlock)) / sizeof(SubsectionBucketRaw));
+        if (dec->ReadBytes(subsection_buckets_raw.data(),
+                           section.bktr.subsection.size - sizeof(SubsectionBlock),
+                           section.bktr.subsection.offset + sizeof(SubsectionBlock) - offset) !=
+            section.bktr.subsection.size - sizeof(SubsectionBlock)) {
+            status = Loader::ResultStatus::ErrorBadSubsectionBuckets;
+            return false;
+        }
+
+        std::vector<RelocationBucket> relocation_buckets(relocation_buckets_raw.size());
+        std::transform(relocation_buckets_raw.begin(), relocation_buckets_raw.end(),
+                       relocation_buckets.begin(), &ConvertRelocationBucketRaw);
+        std::vector<SubsectionBucket> subsection_buckets(subsection_buckets_raw.size());
+        std::transform(subsection_buckets_raw.begin(), subsection_buckets_raw.end(),
+                       subsection_buckets.begin(), &ConvertSubsectionBucketRaw);
+
+        u32 ctr_low;
+        std::memcpy(&ctr_low, section.raw.section_ctr.data(), sizeof(ctr_low));
+        subsection_buckets.back().entries.push_back({section.bktr.relocation.offset, {0}, ctr_low});
+        subsection_buckets.back().entries.push_back({size, {0}, 0});
+
+        boost::optional<Core::Crypto::Key128> key = boost::none;
+        if (encrypted) {
+            if (has_rights_id) {
+                status = Loader::ResultStatus::Success;
+                key = GetTitlekey();
+                if (key == boost::none) {
+                    status = Loader::ResultStatus::ErrorMissingTitlekey;
+                    return false;
+                }
+            } else {
+                key = GetKeyAreaKey(NCASectionCryptoType::BKTR);
+                if (key == boost::none) {
+                    status = Loader::ResultStatus::ErrorMissingKeyAreaKey;
+                    return false;
+                }
+            }
+        }
+
+        if (bktr_base_romfs == nullptr) {
+            status = Loader::ResultStatus::ErrorMissingBKTRBaseRomFS;
+            return false;
+        }
+
+        auto bktr = std::make_shared<BKTR>(
+            bktr_base_romfs, std::make_shared<OffsetVfsFile>(file, romfs_size, base_offset),
+            relocation_block, relocation_buckets, subsection_block, subsection_buckets, encrypted,
+            encrypted ? key.get() : Core::Crypto::Key128{}, base_offset, bktr_base_ivfc_offset,
+            section.raw.section_ctr);
+
+        // BKTR applies to entire IVFC, so make an offset version to level 6
+        files.push_back(std::make_shared<OffsetVfsFile>(
+            bktr, romfs_size, section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].offset));
+    } else {
+        files.push_back(std::move(dec));
+    }
+
+    romfs = files.back();
+    return true;
+}
+
+bool NCA::ReadPFS0Section(const NCASectionHeader& section, const NCASectionTableEntry& entry) {
+    const u64 offset = (static_cast<u64>(entry.media_offset) * MEDIA_OFFSET_MULTIPLIER) +
+                       section.pfs0.pfs0_header_offset;
+    const u64 size = MEDIA_OFFSET_MULTIPLIER * (entry.media_end_offset - entry.media_offset);
+
+    auto dec = Decrypt(section, std::make_shared<OffsetVfsFile>(file, size, offset), offset);
+    if (dec != nullptr) {
+        auto npfs = std::make_shared<PartitionFilesystem>(std::move(dec));
+
+        if (npfs->GetStatus() == Loader::ResultStatus::Success) {
+            dirs.push_back(std::move(npfs));
+            if (IsDirectoryExeFS(dirs.back()))
+                exefs = dirs.back();
+        } else {
+            if (has_rights_id)
+                status = Loader::ResultStatus::ErrorIncorrectTitlekeyOrTitlekek;
+            else
+                status = Loader::ResultStatus::ErrorIncorrectKeyAreaKey;
+            return false;
+        }
+    } else {
+        if (status != Loader::ResultStatus::Success)
+            return false;
+        if (has_rights_id)
+            status = Loader::ResultStatus::ErrorIncorrectTitlekeyOrTitlekek;
+        else
+            status = Loader::ResultStatus::ErrorIncorrectKeyAreaKey;
+        return false;
+    }
+
+    return true;
 }
 
 u8 NCA::GetCryptoRevision() const {
@@ -167,7 +444,7 @@ boost::optional<Core::Crypto::Key128> NCA::GetTitlekey() {
     return titlekey;
 }
 
-VirtualFile NCA::Decrypt(NCASectionHeader s_header, VirtualFile in, u64 starting_offset) {
+VirtualFile NCA::Decrypt(const NCASectionHeader& s_header, VirtualFile in, u64 starting_offset) {
     if (!encrypted)
         return in;
 
@@ -214,256 +491,6 @@ VirtualFile NCA::Decrypt(NCASectionHeader s_header, VirtualFile in, u64 starting
         return nullptr;
     }
 }
-
-NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_, u64 bktr_base_ivfc_offset)
-    : file(std::move(file_)),
-      bktr_base_romfs(bktr_base_romfs_ ? std::move(bktr_base_romfs_) : nullptr) {
-    status = Loader::ResultStatus::Success;
-
-    if (file == nullptr) {
-        status = Loader::ResultStatus::ErrorNullFile;
-        return;
-    }
-
-    if (sizeof(NCAHeader) != file->ReadObject(&header)) {
-        LOG_ERROR(Loader, "File reader errored out during header read.");
-        status = Loader::ResultStatus::ErrorBadNCAHeader;
-        return;
-    }
-
-    encrypted = false;
-
-    if (!IsValidNCA(header)) {
-        if (header.magic == Common::MakeMagic('N', 'C', 'A', '2')) {
-            status = Loader::ResultStatus::ErrorNCA2;
-            return;
-        }
-        if (header.magic == Common::MakeMagic('N', 'C', 'A', '0')) {
-            status = Loader::ResultStatus::ErrorNCA0;
-            return;
-        }
-
-        NCAHeader dec_header{};
-        Core::Crypto::AESCipher<Core::Crypto::Key256> cipher(
-            keys.GetKey(Core::Crypto::S256KeyType::Header), Core::Crypto::Mode::XTS);
-        cipher.XTSTranscode(&header, sizeof(NCAHeader), &dec_header, 0, 0x200,
-                            Core::Crypto::Op::Decrypt);
-        if (IsValidNCA(dec_header)) {
-            header = dec_header;
-            encrypted = true;
-        } else {
-            if (dec_header.magic == Common::MakeMagic('N', 'C', 'A', '2')) {
-                status = Loader::ResultStatus::ErrorNCA2;
-                return;
-            }
-            if (dec_header.magic == Common::MakeMagic('N', 'C', 'A', '0')) {
-                status = Loader::ResultStatus::ErrorNCA0;
-                return;
-            }
-
-            if (!keys.HasKey(Core::Crypto::S256KeyType::Header))
-                status = Loader::ResultStatus::ErrorMissingHeaderKey;
-            else
-                status = Loader::ResultStatus::ErrorIncorrectHeaderKey;
-            return;
-        }
-    }
-
-    has_rights_id = std::find_if_not(header.rights_id.begin(), header.rights_id.end(),
-                                     [](char c) { return c == '\0'; }) != header.rights_id.end();
-
-    const std::ptrdiff_t number_sections =
-        std::count_if(std::begin(header.section_tables), std::end(header.section_tables),
-                      [](NCASectionTableEntry entry) { return entry.media_offset > 0; });
-
-    std::vector<NCASectionHeader> sections(number_sections);
-    const auto length_sections = SECTION_HEADER_SIZE * number_sections;
-
-    if (encrypted) {
-        auto raw = file->ReadBytes(length_sections, SECTION_HEADER_OFFSET);
-        Core::Crypto::AESCipher<Core::Crypto::Key256> cipher(
-            keys.GetKey(Core::Crypto::S256KeyType::Header), Core::Crypto::Mode::XTS);
-        cipher.XTSTranscode(raw.data(), length_sections, sections.data(), 2, SECTION_HEADER_SIZE,
-                            Core::Crypto::Op::Decrypt);
-    } else {
-        file->ReadBytes(sections.data(), length_sections, SECTION_HEADER_OFFSET);
-    }
-
-    is_update = std::find_if(sections.begin(), sections.end(), [](const NCASectionHeader& header) {
-                    return header.raw.header.crypto_type == NCASectionCryptoType::BKTR;
-                }) != sections.end();
-    ivfc_offset = 0;
-
-    for (std::ptrdiff_t i = 0; i < number_sections; ++i) {
-        auto section = sections[i];
-
-        if (section.raw.header.filesystem_type == NCASectionFilesystemType::ROMFS) {
-            const std::size_t base_offset =
-                header.section_tables[i].media_offset * MEDIA_OFFSET_MULTIPLIER;
-            ivfc_offset = section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].offset;
-            const std::size_t romfs_offset = base_offset + ivfc_offset;
-            const std::size_t romfs_size = section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].size;
-            auto raw = std::make_shared<OffsetVfsFile>(file, romfs_size, romfs_offset);
-            auto dec = Decrypt(section, raw, romfs_offset);
-
-            if (dec == nullptr) {
-                if (status != Loader::ResultStatus::Success)
-                    return;
-                if (has_rights_id)
-                    status = Loader::ResultStatus::ErrorIncorrectTitlekeyOrTitlekek;
-                else
-                    status = Loader::ResultStatus::ErrorIncorrectKeyAreaKey;
-                return;
-            }
-
-            if (section.raw.header.crypto_type == NCASectionCryptoType::BKTR) {
-                if (section.bktr.relocation.magic != Common::MakeMagic('B', 'K', 'T', 'R') ||
-                    section.bktr.subsection.magic != Common::MakeMagic('B', 'K', 'T', 'R')) {
-                    status = Loader::ResultStatus::ErrorBadBKTRHeader;
-                    return;
-                }
-
-                if (section.bktr.relocation.offset + section.bktr.relocation.size !=
-                    section.bktr.subsection.offset) {
-                    status = Loader::ResultStatus::ErrorBKTRSubsectionNotAfterRelocation;
-                    return;
-                }
-
-                const u64 size =
-                    MEDIA_OFFSET_MULTIPLIER * (header.section_tables[i].media_end_offset -
-                                               header.section_tables[i].media_offset);
-                if (section.bktr.subsection.offset + section.bktr.subsection.size != size) {
-                    status = Loader::ResultStatus::ErrorBKTRSubsectionNotAtEnd;
-                    return;
-                }
-
-                const u64 offset = section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].offset;
-                RelocationBlock relocation_block{};
-                if (dec->ReadObject(&relocation_block, section.bktr.relocation.offset - offset) !=
-                    sizeof(RelocationBlock)) {
-                    status = Loader::ResultStatus::ErrorBadRelocationBlock;
-                    return;
-                }
-                SubsectionBlock subsection_block{};
-                if (dec->ReadObject(&subsection_block, section.bktr.subsection.offset - offset) !=
-                    sizeof(RelocationBlock)) {
-                    status = Loader::ResultStatus::ErrorBadSubsectionBlock;
-                    return;
-                }
-
-                std::vector<RelocationBucketRaw> relocation_buckets_raw(
-                    (section.bktr.relocation.size - sizeof(RelocationBlock)) /
-                    sizeof(RelocationBucketRaw));
-                if (dec->ReadBytes(relocation_buckets_raw.data(),
-                                   section.bktr.relocation.size - sizeof(RelocationBlock),
-                                   section.bktr.relocation.offset + sizeof(RelocationBlock) -
-                                       offset) !=
-                    section.bktr.relocation.size - sizeof(RelocationBlock)) {
-                    status = Loader::ResultStatus::ErrorBadRelocationBuckets;
-                    return;
-                }
-
-                std::vector<SubsectionBucketRaw> subsection_buckets_raw(
-                    (section.bktr.subsection.size - sizeof(SubsectionBlock)) /
-                    sizeof(SubsectionBucketRaw));
-                if (dec->ReadBytes(subsection_buckets_raw.data(),
-                                   section.bktr.subsection.size - sizeof(SubsectionBlock),
-                                   section.bktr.subsection.offset + sizeof(SubsectionBlock) -
-                                       offset) !=
-                    section.bktr.subsection.size - sizeof(SubsectionBlock)) {
-                    status = Loader::ResultStatus::ErrorBadSubsectionBuckets;
-                    return;
-                }
-
-                std::vector<RelocationBucket> relocation_buckets(relocation_buckets_raw.size());
-                std::transform(relocation_buckets_raw.begin(), relocation_buckets_raw.end(),
-                               relocation_buckets.begin(), &ConvertRelocationBucketRaw);
-                std::vector<SubsectionBucket> subsection_buckets(subsection_buckets_raw.size());
-                std::transform(subsection_buckets_raw.begin(), subsection_buckets_raw.end(),
-                               subsection_buckets.begin(), &ConvertSubsectionBucketRaw);
-
-                u32 ctr_low;
-                std::memcpy(&ctr_low, section.raw.section_ctr.data(), sizeof(ctr_low));
-                subsection_buckets.back().entries.push_back(
-                    {section.bktr.relocation.offset, {0}, ctr_low});
-                subsection_buckets.back().entries.push_back({size, {0}, 0});
-
-                boost::optional<Core::Crypto::Key128> key = boost::none;
-                if (encrypted) {
-                    if (has_rights_id) {
-                        status = Loader::ResultStatus::Success;
-                        key = GetTitlekey();
-                        if (key == boost::none) {
-                            status = Loader::ResultStatus::ErrorMissingTitlekey;
-                            return;
-                        }
-                    } else {
-                        key = GetKeyAreaKey(NCASectionCryptoType::BKTR);
-                        if (key == boost::none) {
-                            status = Loader::ResultStatus::ErrorMissingKeyAreaKey;
-                            return;
-                        }
-                    }
-                }
-
-                if (bktr_base_romfs == nullptr) {
-                    status = Loader::ResultStatus::ErrorMissingBKTRBaseRomFS;
-                    return;
-                }
-
-                auto bktr = std::make_shared<BKTR>(
-                    bktr_base_romfs, std::make_shared<OffsetVfsFile>(file, romfs_size, base_offset),
-                    relocation_block, relocation_buckets, subsection_block, subsection_buckets,
-                    encrypted, encrypted ? key.get() : Core::Crypto::Key128{}, base_offset,
-                    bktr_base_ivfc_offset, section.raw.section_ctr);
-
-                // BKTR applies to entire IVFC, so make an offset version to level 6
-
-                files.push_back(std::make_shared<OffsetVfsFile>(
-                    bktr, romfs_size, section.romfs.ivfc.levels[IVFC_MAX_LEVEL - 1].offset));
-                romfs = files.back();
-            } else {
-                files.push_back(std::move(dec));
-                romfs = files.back();
-            }
-        } else if (section.raw.header.filesystem_type == NCASectionFilesystemType::PFS0) {
-            u64 offset = (static_cast<u64>(header.section_tables[i].media_offset) *
-                          MEDIA_OFFSET_MULTIPLIER) +
-                         section.pfs0.pfs0_header_offset;
-            u64 size = MEDIA_OFFSET_MULTIPLIER * (header.section_tables[i].media_end_offset -
-                                                  header.section_tables[i].media_offset);
-            auto dec =
-                Decrypt(section, std::make_shared<OffsetVfsFile>(file, size, offset), offset);
-            if (dec != nullptr) {
-                auto npfs = std::make_shared<PartitionFilesystem>(std::move(dec));
-
-                if (npfs->GetStatus() == Loader::ResultStatus::Success) {
-                    dirs.push_back(std::move(npfs));
-                    if (IsDirectoryExeFS(dirs.back()))
-                        exefs = dirs.back();
-                } else {
-                    if (has_rights_id)
-                        status = Loader::ResultStatus::ErrorIncorrectTitlekeyOrTitlekek;
-                    else
-                        status = Loader::ResultStatus::ErrorIncorrectKeyAreaKey;
-                    return;
-                }
-            } else {
-                if (status != Loader::ResultStatus::Success)
-                    return;
-                if (has_rights_id)
-                    status = Loader::ResultStatus::ErrorIncorrectTitlekeyOrTitlekek;
-                else
-                    status = Loader::ResultStatus::ErrorIncorrectKeyAreaKey;
-                return;
-            }
-        }
-    }
-
-    status = Loader::ResultStatus::Success;
-}
-
-NCA::~NCA() = default;
 
 Loader::ResultStatus NCA::GetStatus() const {
     return status;

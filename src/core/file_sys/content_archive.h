@@ -73,8 +73,6 @@ inline bool IsDirectoryExeFS(const std::shared_ptr<VfsDirectory>& pfs) {
     return pfs->GetFile("main") != nullptr && pfs->GetFile("main.npdm") != nullptr;
 }
 
-bool IsValidNCA(const NCAHeader& header);
-
 // An implementation of VfsDirectory that represents a Nintendo Content Archive (NCA) conatiner.
 // After construction, use GetStatus to determine if the file is valid and ready to be used.
 class NCA : public ReadOnlyVfsDirectory {
@@ -106,10 +104,19 @@ protected:
     bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
 
 private:
+    bool CheckSupportedNCA(const NCAHeader& header);
+    bool HandlePotentialHeaderDecryption();
+
+    std::vector<NCASectionHeader> ReadSectionHeaders() const;
+    bool ReadSections(const std::vector<NCASectionHeader>& sections, u64 bktr_base_ivfc_offset);
+    bool ReadRomFSSection(const NCASectionHeader& section, const NCASectionTableEntry& entry,
+                          u64 bktr_base_ivfc_offset);
+    bool ReadPFS0Section(const NCASectionHeader& section, const NCASectionTableEntry& entry);
+
     u8 GetCryptoRevision() const;
     boost::optional<Core::Crypto::Key128> GetKeyAreaKey(NCASectionCryptoType type) const;
     boost::optional<Core::Crypto::Key128> GetTitlekey();
-    VirtualFile Decrypt(NCASectionHeader header, VirtualFile in, u64 starting_offset);
+    VirtualFile Decrypt(const NCASectionHeader& header, VirtualFile in, u64 starting_offset);
 
     std::vector<VirtualDir> dirs;
     std::vector<VirtualFile> files;
@@ -118,15 +125,15 @@ private:
     VirtualDir exefs = nullptr;
     VirtualFile file;
     VirtualFile bktr_base_romfs;
-    u64 ivfc_offset;
+    u64 ivfc_offset = 0;
 
     NCAHeader header{};
     bool has_rights_id{};
 
     Loader::ResultStatus status{};
 
-    bool encrypted;
-    bool is_update;
+    bool encrypted = false;
+    bool is_update = false;
 
     Core::Crypto::KeyManager keys;
 };
