@@ -9,6 +9,7 @@ namespace Service::ES {
 class ETicket final : public ServiceFramework<ETicket> {
 public:
     explicit ETicket() : ServiceFramework{"es"} {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {1, nullptr, "ImportTicket"},
             {2, nullptr, "ImportTicketCertificateSet"},
@@ -37,15 +38,18 @@ public:
             {25, nullptr, "DeletePrepurchaseRecord"},
             {26, nullptr, "DeleteAllPrepurchaseRecord"},
             {27, nullptr, "CountPrepurchaseRecord"},
-            {28, nullptr, "ListPrepurchaseRecord"},
+            {28, nullptr, "ListPrepurchaseRecordRightsIds"},
             {29, nullptr, "ListPrepurchaseRecordInfo"},
-            {30, nullptr, "Unknown1"},
-            {31, nullptr, "Unknown2"},
-            {32, nullptr, "Unknown3"},
-            {33, nullptr, "Unknown4"},
-            {34, nullptr, "Unknown5"},
-            {35, nullptr, "Unknown6"},
+            {30, nullptr, "CountTicket"},
+            {31, nullptr, "ListTicketRightsIds"},
+            {32, nullptr, "CountPrepurchaseRecordEx"},
+            {33, nullptr, "ListPrepurchaseRecordRightsIdsEx"},
+            {34, nullptr, "GetEncryptedTicketSize"},
+            {35, nullptr, "GetEncryptedTicketData"},
+            {36, nullptr, "DeleteAllInactiveELicenseRequiredPersonalizedTicket"},
+            {503, nullptr, "GetTitleKey"},
         };
+        // clang-format on
         RegisterHandlers(functions);
     }
 };
