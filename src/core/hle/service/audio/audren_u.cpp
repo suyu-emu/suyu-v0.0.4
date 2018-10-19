@@ -22,20 +22,22 @@ class IAudioRenderer final : public ServiceFramework<IAudioRenderer> {
 public:
     explicit IAudioRenderer(AudioCore::AudioRendererParameter audren_params)
         : ServiceFramework("IAudioRenderer") {
+        // clang-format off
         static const FunctionInfo functions[] = {
-            {0, &IAudioRenderer::GetAudioRendererSampleRate, "GetAudioRendererSampleRate"},
-            {1, &IAudioRenderer::GetAudioRendererSampleCount, "GetAudioRendererSampleCount"},
-            {2, &IAudioRenderer::GetAudioRendererMixBufferCount, "GetAudioRendererMixBufferCount"},
-            {3, &IAudioRenderer::GetAudioRendererState, "GetAudioRendererState"},
-            {4, &IAudioRenderer::RequestUpdateAudioRenderer, "RequestUpdateAudioRenderer"},
-            {5, &IAudioRenderer::StartAudioRenderer, "StartAudioRenderer"},
-            {6, &IAudioRenderer::StopAudioRenderer, "StopAudioRenderer"},
+            {0, &IAudioRenderer::GetSampleRate, "GetSampleRate"},
+            {1, &IAudioRenderer::GetSampleCount, "GetSampleCount"},
+            {2, &IAudioRenderer::GetMixBufferCount, "GetMixBufferCount"},
+            {3, &IAudioRenderer::GetState, "GetState"},
+            {4, &IAudioRenderer::RequestUpdate, "RequestUpdate"},
+            {5, &IAudioRenderer::Start, "Start"},
+            {6, &IAudioRenderer::Stop, "Stop"},
             {7, &IAudioRenderer::QuerySystemEvent, "QuerySystemEvent"},
-            {8, nullptr, "SetAudioRendererRenderingTimeLimit"},
-            {9, nullptr, "GetAudioRendererRenderingTimeLimit"},
-            {10, nullptr, "RequestUpdateAudioRendererAuto"},
+            {8, nullptr, "SetRenderingTimeLimit"},
+            {9, nullptr, "GetRenderingTimeLimit"},
+            {10, nullptr, "RequestUpdateAuto"},
             {11, nullptr, "ExecuteAudioRendererRendering"},
         };
+        // clang-format on
         RegisterHandlers(functions);
 
         auto& kernel = Core::System::GetInstance().Kernel();
@@ -49,42 +51,42 @@ private:
         system_event->Signal();
     }
 
-    void GetAudioRendererSampleRate(Kernel::HLERequestContext& ctx) {
+    void GetSampleRate(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(renderer->GetSampleRate());
         LOG_DEBUG(Service_Audio, "called");
     }
 
-    void GetAudioRendererSampleCount(Kernel::HLERequestContext& ctx) {
+    void GetSampleCount(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(renderer->GetSampleCount());
         LOG_DEBUG(Service_Audio, "called");
     }
 
-    void GetAudioRendererState(Kernel::HLERequestContext& ctx) {
+    void GetState(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(static_cast<u32>(renderer->GetStreamState()));
         LOG_DEBUG(Service_Audio, "called");
     }
 
-    void GetAudioRendererMixBufferCount(Kernel::HLERequestContext& ctx) {
+    void GetMixBufferCount(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(renderer->GetMixBufferCount());
         LOG_DEBUG(Service_Audio, "called");
     }
 
-    void RequestUpdateAudioRenderer(Kernel::HLERequestContext& ctx) {
+    void RequestUpdate(Kernel::HLERequestContext& ctx) {
         ctx.WriteBuffer(renderer->UpdateAudioRenderer(ctx.ReadBuffer()));
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_Audio, "(STUBBED) called");
     }
 
-    void StartAudioRenderer(Kernel::HLERequestContext& ctx) {
+    void Start(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2};
 
         rb.Push(RESULT_SUCCESS);
@@ -92,7 +94,7 @@ private:
         LOG_WARNING(Service_Audio, "(STUBBED) called");
     }
 
-    void StopAudioRenderer(Kernel::HLERequestContext& ctx) {
+    void Stop(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2};
 
         rb.Push(RESULT_SUCCESS);
@@ -129,6 +131,7 @@ public:
             {10, &IAudioDevice::GetActiveAudioDeviceName, "GetActiveAudioDeviceNameAuto"},
             {11, nullptr, "QueryAudioDeviceInputEvent"},
             {12, nullptr, "QueryAudioDeviceOutputEvent"},
+            {13, nullptr, "GetAudioSystemMasterVolumeSetting"},
         };
         RegisterHandlers(functions);
 
