@@ -219,6 +219,7 @@ IGeneralService::IGeneralService() : ServiceFramework("IGeneralService") {
         {35, nullptr, "GetScanData"},
         {36, nullptr, "GetCurrentAccessPoint"},
         {37, nullptr, "Shutdown"},
+        {38, nullptr, "GetAllowedChannels"},
     };
     RegisterHandlers(functions);
 }
