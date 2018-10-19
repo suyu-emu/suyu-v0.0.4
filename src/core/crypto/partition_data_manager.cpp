@@ -516,7 +516,8 @@ void PartitionDataManager::DecryptPackage2(const std::array<Key128, 0x20>& packa
         out.insert(out.end(), rodata.begin(), rodata.end());
         out.insert(out.end(), data.begin(), data.end());
 
-        offset += sizeof(KIPHeader) + out.size();
+        offset += sizeof(KIPHeader) + kip.sections[0].size_compressed +
+                  kip.sections[1].size_compressed + kip.sections[2].size_compressed;
 
         if (name == "FS")
             package2_fs[static_cast<size_t>(type)] = std::move(out);
