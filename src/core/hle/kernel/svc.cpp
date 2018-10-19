@@ -8,6 +8,7 @@
 #include <mutex>
 #include <vector>
 
+#include "common/alignment.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
@@ -36,9 +37,6 @@
 
 namespace Kernel {
 namespace {
-constexpr bool Is4KBAligned(VAddr address) {
-    return (address & 0xFFF) == 0;
-}
 
 // Checks if address + size is greater than the given address
 // This can return false if the size causes an overflow of a 64-bit type
@@ -69,11 +67,11 @@ bool IsInsideNewMapRegion(const VMManager& vm, VAddr address, u64 size) {
 // in the same order.
 ResultCode MapUnmapMemorySanityChecks(const VMManager& vm_manager, VAddr dst_addr, VAddr src_addr,
                                       u64 size) {
-    if (!Is4KBAligned(dst_addr) || !Is4KBAligned(src_addr)) {
+    if (!Common::Is4KBAligned(dst_addr) || !Common::Is4KBAligned(src_addr)) {
         return ERR_INVALID_ADDRESS;
     }
 
-    if (size == 0 || !Is4KBAligned(size)) {
+    if (size == 0 || !Common::Is4KBAligned(size)) {
         return ERR_INVALID_SIZE;
     }
 
@@ -352,6 +350,10 @@ static ResultCode ArbitrateLock(Handle holding_thread_handle, VAddr mutex_addr,
         return ERR_INVALID_ADDRESS_STATE;
     }
 
+    if (!Common::IsWordAligned(mutex_addr)) {
+        return ERR_INVALID_ADDRESS;
+    }
+
     auto& handle_table = Core::System::GetInstance().Kernel().HandleTable();
     return Mutex::TryAcquire(handle_table, mutex_addr, holding_thread_handle,
                              requesting_thread_handle);
@@ -363,6 +365,10 @@ static ResultCode ArbitrateUnlock(VAddr mutex_addr) {
 
     if (Memory::IsKernelVirtualAddress(mutex_addr)) {
         return ERR_INVALID_ADDRESS_STATE;
+    }
+
+    if (!Common::IsWordAligned(mutex_addr)) {
+        return ERR_INVALID_ADDRESS;
     }
 
     return Mutex::Release(mutex_addr);
@@ -570,11 +576,11 @@ static ResultCode MapSharedMemory(Handle shared_memory_handle, VAddr addr, u64 s
               "called, shared_memory_handle=0x{:X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
               shared_memory_handle, addr, size, permissions);
 
-    if (!Is4KBAligned(addr)) {
+    if (!Common::Is4KBAligned(addr)) {
         return ERR_INVALID_ADDRESS;
     }
 
-    if (size == 0 || !Is4KBAligned(size)) {
+    if (size == 0 || !Common::Is4KBAligned(size)) {
         return ERR_INVALID_SIZE;
     }
 
@@ -599,11 +605,11 @@ static ResultCode UnmapSharedMemory(Handle shared_memory_handle, VAddr addr, u64
     LOG_WARNING(Kernel_SVC, "called, shared_memory_handle=0x{:08X}, addr=0x{:X}, size=0x{:X}",
                 shared_memory_handle, addr, size);
 
-    if (!Is4KBAligned(addr)) {
+    if (!Common::Is4KBAligned(addr)) {
         return ERR_INVALID_ADDRESS;
     }
 
-    if (size == 0 || !Is4KBAligned(size)) {
+    if (size == 0 || !Common::Is4KBAligned(size)) {
         return ERR_INVALID_SIZE;
     }
 
