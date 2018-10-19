@@ -118,6 +118,7 @@ enum class SurfaceTarget {
     Texture1DArray,
     Texture2DArray,
     TextureCubemap,
+    TextureCubeArray,
 };
 
 /**
