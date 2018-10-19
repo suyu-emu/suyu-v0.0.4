@@ -39,7 +39,8 @@ SET_CAL::SET_CAL() : ServiceFramework("set:cal") {
         {29, nullptr, "GetAmiiboEcqvBlsKey"},
         {30, nullptr, "GetAmiiboEcqvBlsCertificate"},
         {31, nullptr, "GetAmiiboEcqvBlsRootCertificate"},
-        {32, nullptr, "GetUnknownId"},
+        {32, nullptr, "GetUsbTypeCPowerSourceCircuitVersion"},
+        {33, nullptr, "GetBatteryVersion"},
     };
     RegisterHandlers(functions);
 }
