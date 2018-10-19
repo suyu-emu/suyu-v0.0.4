@@ -279,6 +279,7 @@ public:
                         const Tegra::Shader::Header& header)
         : shader{shader}, declarations{declarations}, stage{stage}, suffix{suffix}, header{header},
           fixed_pipeline_output_attributes_used{} {
+        local_memory_size = 0;
         BuildRegisterList();
         BuildInputList();
     }
@@ -436,6 +437,24 @@ public:
         shader.AddLine(dest + " = " + src + ';');
     }
 
+    std::string GetLocalMemoryAsFloat(const std::string index) {
+        return "lmem[" + index + "]";
+    }
+
+    std::string GetLocalMemoryAsInteger(const std::string index, bool is_signed = false) {
+        const std::string func{is_signed ? "floatToIntBits" : "floatBitsToUint"};
+        return func + "(lmem[" + index + "])";
+    }
+
+    void SetLocalMemoryAsFloat(const std::string index, const std::string value) {
+        shader.AddLine("lmem[" + index + "] = " + value);
+    }
+
+    void SetLocalMemoryAsInteger(const std::string index, const std::string value, bool is_signed = false) {
+        const std::string func{is_signed ? "intBitsToFloat" : "uintBitsToFloat"};
+        shader.AddLine("lmem[" + index + "] = " + func + '(' + value + ')');
+    }
+
     std::string GetControlCode(const Tegra::Shader::ControlCode cc) const {
         switch (cc) {
         case Tegra::Shader::ControlCode::NEU:
@@ -533,6 +552,7 @@ public:
     void GenerateDeclarations(const std::string& suffix) {
         GenerateVertex();
         GenerateRegisters(suffix);
+        GenerateLocalMemory();
         GenerateInternalFlags();
         GenerateInputAttrs();
         GenerateOutputAttrs();
@@ -578,6 +598,10 @@ public:
         return entry.GetName();
     }
 
+    void SetLocalMemory(u64 lmem) {
+        local_memory_size = lmem;
+    }
+
 private:
     /// Generates declarations for registers.
     void GenerateRegisters(const std::string& suffix) {
@@ -586,6 +610,14 @@ private:
                                  std::to_string(reg.GetIndex()) + '_' + suffix + " = 0;");
         }
         declarations.AddNewLine();
+    }
+
+    /// Generates declarations for local memory.
+    void GenerateLocalMemory() {
+        if (local_memory_size > 0) {
+            declarations.AddLine("float lmem[" + std::to_string((local_memory_size - 1 + 4) / 4) + "];");
+            declarations.AddNewLine();
+        }
     }
 
     /// Generates declarations for internal flags.
@@ -895,6 +927,7 @@ private:
     const std::string& suffix;
     const Tegra::Shader::Header& header;
     std::unordered_set<Attribute::Index> fixed_pipeline_output_attributes_used;
+    u64 local_memory_size;
 };
 
 class GLSLGenerator {
@@ -904,6 +937,9 @@ public:
         : subroutines(subroutines), program_code(program_code), main_offset(main_offset),
           stage(stage), suffix(suffix) {
         std::memcpy(&header, program_code.data(), sizeof(Tegra::Shader::Header));
+        local_memory_size = (header.common2.shader_local_memory_high_size << 24) |
+                            header.common1.shader_local_memory_low_size;
+        regs.SetLocalMemory(local_memory_size);
         Generate(suffix);
     }
 
@@ -3575,6 +3611,7 @@ private:
     const u32 main_offset;
     Maxwell3D::Regs::ShaderStage stage;
     const std::string& suffix;
+    u64 local_memory_size;
 
     ShaderWriter shader;
     ShaderWriter declarations;
