@@ -15,6 +15,9 @@ class PSM final : public ServiceFramework<PSM> {
 public:
     explicit PSM();
     ~PSM() override;
+
+private:
+    void GetBatteryChargePercentage(Kernel::HLERequestContext& ctx);
 };
 
 void InstallInterfaces(SM::ServiceManager& sm);

@@ -12,10 +12,12 @@
 
 namespace Service::PSM {
 
+constexpr u32 BATTERY_FULLY_CHARGED = 100; // 100% Full
+
 PSM::PSM() : ServiceFramework{"psm"} {
     // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "GetBatteryChargePercentage"},
+            {0, &PSM::GetBatteryChargePercentage, "GetBatteryChargePercentage"},
             {1, nullptr, "GetChargerType"},
             {2, nullptr, "EnableBatteryCharging"},
             {3, nullptr, "DisableBatteryCharging"},
@@ -40,6 +42,14 @@ PSM::PSM() : ServiceFramework{"psm"} {
 }
 
 PSM::~PSM() = default;
+
+void PSM::GetBatteryChargePercentage(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_PSM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push<u32>(BATTERY_FULLY_CHARGED);
+}
 
 void InstallInterfaces(SM::ServiceManager& sm) {
     std::make_shared<PSM>()->InstallAsService(sm);
