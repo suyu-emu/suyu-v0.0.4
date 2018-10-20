@@ -26,7 +26,11 @@ constexpr s32 HID_JOYSTICK_MAX = 0x7fff;
 constexpr s32 HID_JOYSTICK_MIN = -0x7fff;
 constexpr std::size_t NPAD_OFFSET = 0x9A00;
 constexpr u32 BATTERY_FULL = 2;
-
+constexpr u32 NPAD_HANDHELD = 32;
+constexpr u32 NPAD_UNKNOWN = 16; // TODO(ogniK): What is this?
+constexpr u32 MAX_NPAD_ID = 7;
+constexpr Controller_NPad::NPadControllerType PREFERRED_CONTROLLER =
+    Controller_NPad::NPadControllerType::JoyDual;
 constexpr std::array<u32, 10> npad_id_list{
     0, 1, 2, 3, 4, 5, 6, 7, 32, 16,
 };
@@ -121,7 +125,7 @@ void Controller_NPad::OnInit() {
         supported_npad_id_types.resize(npad_id_list.size());
         std::memcpy(supported_npad_id_types.data(), npad_id_list.data(),
                     npad_id_list.size() * sizeof(u32));
-        AddNewController(NPadControllerType::JoyDual);
+        AddNewController(PREFERRED_CONTROLLER);
     }
 }
 
@@ -217,6 +221,51 @@ void Controller_NPad::OnUpdate(u8* data, std::size_t data_len) {
         lstick_entry.y = static_cast<s32>(stick_l_y_f * HID_JOYSTICK_MAX);
         rstick_entry.x = static_cast<s32>(stick_r_x_f * HID_JOYSTICK_MAX);
         rstick_entry.y = static_cast<s32>(stick_r_y_f * HID_JOYSTICK_MAX);
+
+        if (controller_type == NPadControllerType::JoyLeft ||
+            controller_type == NPadControllerType::JoyRight) {
+            if (npad.properties.is_horizontal) {
+                ControllerPadState state{};
+                AnalogPosition temp_lstick_entry{};
+                AnalogPosition temp_rstick_entry{};
+                if (controller_type == NPadControllerType::JoyLeft) {
+                    state.d_down.Assign(pad_state.d_left.Value());
+                    state.d_left.Assign(pad_state.d_up.Value());
+                    state.d_right.Assign(pad_state.d_down.Value());
+                    state.d_up.Assign(pad_state.d_right.Value());
+                    state.l.Assign(pad_state.l.Value() | pad_state.sl.Value());
+                    state.r.Assign(pad_state.r.Value() | pad_state.sr.Value());
+
+                    state.zl.Assign(pad_state.zl.Value());
+                    state.plus.Assign(pad_state.minus.Value());
+
+                    temp_lstick_entry = lstick_entry;
+                    temp_rstick_entry = rstick_entry;
+                    std::swap(temp_lstick_entry.x, temp_lstick_entry.y);
+                    std::swap(temp_rstick_entry.x, temp_rstick_entry.y);
+                    temp_lstick_entry.y *= -1;
+                } else if (controller_type == NPadControllerType::JoyRight) {
+                    state.x.Assign(pad_state.a.Value());
+                    state.a.Assign(pad_state.b.Value());
+                    state.b.Assign(pad_state.y.Value());
+                    state.y.Assign(pad_state.b.Value());
+
+                    state.l.Assign(pad_state.l.Value() | pad_state.sl.Value());
+                    state.r.Assign(pad_state.r.Value() | pad_state.sr.Value());
+                    state.zr.Assign(pad_state.zr.Value());
+                    state.plus.Assign(pad_state.plus.Value());
+
+                    temp_lstick_entry = lstick_entry;
+                    temp_rstick_entry = rstick_entry;
+                    std::swap(temp_lstick_entry.x, temp_lstick_entry.y);
+                    std::swap(temp_rstick_entry.x, temp_rstick_entry.y);
+                    temp_rstick_entry.x *= -1;
+                }
+                pad_state.raw = state.raw;
+                lstick_entry = temp_lstick_entry;
+                rstick_entry = temp_rstick_entry;
+            }
+        }
 
         auto& main_controller =
             npad.main_controller_states.npad[npad.main_controller_states.common.last_entry_index];
@@ -320,6 +369,16 @@ void Controller_NPad::SetSupportedNPadIdTypes(u8* data, std::size_t length) {
     supported_npad_id_types.clear();
     supported_npad_id_types.resize(length / sizeof(u32));
     std::memcpy(supported_npad_id_types.data(), data, length);
+    for (std::size_t i = 0; i < connected_controllers.size(); i++) {
+        auto& controller = connected_controllers[i];
+        if (!controller.is_connected) {
+            continue;
+        }
+        if (!IsControllerSupported(PREFERRED_CONTROLLER)) {
+            controller.type = DecideBestController(PREFERRED_CONTROLLER);
+            InitNewlyAddedControler(i);
+        }
+    }
 }
 
 void Controller_NPad::GetSupportedNpadIdTypes(u32* data, std::size_t max_length) {
@@ -351,11 +410,11 @@ void Controller_NPad::VibrateController(const std::vector<u32>& controller_ids,
     for (std::size_t i = 0; i < controller_ids.size(); i++) {
         std::size_t controller_pos = i;
         // Handheld controller conversion
-        if (controller_pos == 32) {
+        if (controller_pos == NPAD_HANDHELD) {
             controller_pos = 8;
         }
         // Unknown controller conversion
-        if (controller_pos == 16) {
+        if (controller_pos == NPAD_UNKNOWN) {
             controller_pos = 9;
         }
         if (connected_controllers[controller_pos].is_connected) {
@@ -433,4 +492,128 @@ Controller_NPad::LedPattern Controller_NPad::GetLedPattern(u32 npad_id) {
 void Controller_NPad::SetVibrationEnabled(bool can_vibrate) {
     can_controllers_vibrate = can_vibrate;
 }
+
+bool Controller_NPad::IsControllerSupported(NPadControllerType controller) const {
+    const bool support_handheld =
+        std::find(supported_npad_id_types.begin(), supported_npad_id_types.end(), NPAD_HANDHELD) !=
+        supported_npad_id_types.end();
+    if (controller == NPadControllerType::Handheld) {
+        // Handheld is not even a supported type, lets stop here
+        if (!support_handheld) {
+            return false;
+        }
+        // Handheld should not be supported in docked mode
+        if (Settings::values.use_docked_mode) {
+            return false;
+        }
+
+        return true;
+    }
+    if (std::any_of(supported_npad_id_types.begin(), supported_npad_id_types.end(),
+                    [](u32 npad_id) { return npad_id <= MAX_NPAD_ID; })) {
+        switch (controller) {
+        case NPadControllerType::ProController:
+            return style.pro_controller;
+        case NPadControllerType::JoyDual:
+            return style.joycon_dual;
+        case NPadControllerType::JoyLeft:
+            return style.joycon_left;
+        case NPadControllerType::JoyRight:
+            return style.joycon_right;
+        case NPadControllerType::Pokeball:
+            return style.pokeball;
+        default:
+            return false;
+        }
+    }
+    return false;
+}
+
+Controller_NPad::NPadControllerType Controller_NPad::DecideBestController(
+    NPadControllerType priority) const {
+    if (IsControllerSupported(priority)) {
+        return priority;
+    }
+    const auto is_docked = Settings::values.use_docked_mode;
+    if (is_docked && priority == NPadControllerType::Handheld) {
+        priority = NPadControllerType::JoyDual;
+        if (IsControllerSupported(priority)) {
+            return priority;
+        }
+    }
+    std::vector<NPadControllerType> priority_list;
+    switch (priority) {
+    case NPadControllerType::ProController:
+        priority_list.push_back(NPadControllerType::JoyDual);
+        if (!is_docked) {
+            priority_list.push_back(NPadControllerType::Handheld);
+        }
+        priority_list.push_back(NPadControllerType::JoyLeft);
+        priority_list.push_back(NPadControllerType::JoyRight);
+        priority_list.push_back(NPadControllerType::Pokeball);
+        break;
+    case NPadControllerType::Handheld:
+        priority_list.push_back(NPadControllerType::JoyDual);
+        priority_list.push_back(NPadControllerType::ProController);
+        priority_list.push_back(NPadControllerType::JoyLeft);
+        priority_list.push_back(NPadControllerType::JoyRight);
+        priority_list.push_back(NPadControllerType::Pokeball);
+        break;
+    case NPadControllerType::JoyDual:
+        if (!is_docked) {
+            priority_list.push_back(NPadControllerType::Handheld);
+        }
+        priority_list.push_back(NPadControllerType::ProController);
+        priority_list.push_back(NPadControllerType::JoyLeft);
+        priority_list.push_back(NPadControllerType::JoyRight);
+        priority_list.push_back(NPadControllerType::Pokeball);
+        break;
+    case NPadControllerType::JoyLeft:
+        priority_list.push_back(NPadControllerType::JoyRight);
+        priority_list.push_back(NPadControllerType::JoyDual);
+        if (!is_docked) {
+            priority_list.push_back(NPadControllerType::Handheld);
+        }
+        priority_list.push_back(NPadControllerType::ProController);
+        priority_list.push_back(NPadControllerType::Pokeball);
+        break;
+    case NPadControllerType::JoyRight:
+        priority_list.push_back(NPadControllerType::JoyLeft);
+        priority_list.push_back(NPadControllerType::JoyDual);
+        if (!is_docked) {
+            priority_list.push_back(NPadControllerType::Handheld);
+        }
+        priority_list.push_back(NPadControllerType::ProController);
+        priority_list.push_back(NPadControllerType::Pokeball);
+        break;
+    case NPadControllerType::Pokeball:
+        priority_list.push_back(NPadControllerType::JoyLeft);
+        priority_list.push_back(NPadControllerType::JoyRight);
+        priority_list.push_back(NPadControllerType::JoyDual);
+        if (!is_docked) {
+            priority_list.push_back(NPadControllerType::Handheld);
+        }
+        priority_list.push_back(NPadControllerType::ProController);
+        break;
+    default:
+        priority_list.push_back(NPadControllerType::JoyDual);
+        if (!is_docked) {
+            priority_list.push_back(NPadControllerType::Handheld);
+        }
+        priority_list.push_back(NPadControllerType::ProController);
+        priority_list.push_back(NPadControllerType::JoyLeft);
+        priority_list.push_back(NPadControllerType::JoyRight);
+        priority_list.push_back(NPadControllerType::JoyDual);
+    }
+
+    const auto iter = std::find_if(priority_list.begin(), priority_list.end(),
+                                   [this](auto type) { return IsControllerSupported(type); });
+    if (iter == priority_list.end()) {
+        UNIMPLEMENTED_MSG("Could not find supported controller!");
+        return priority;
+    }
+
+    return *iter;
+}
+
 } // namespace Service::HID
