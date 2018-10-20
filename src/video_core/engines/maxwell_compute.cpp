@@ -6,8 +6,7 @@
 #include "core/core.h"
 #include "video_core/engines/maxwell_compute.h"
 
-namespace Tegra {
-namespace Engines {
+namespace Tegra::Engines {
 
 void MaxwellCompute::WriteReg(u32 method, u32 value) {
     ASSERT_MSG(method < Regs::NUM_REGS,
@@ -26,5 +25,4 @@ void MaxwellCompute::WriteReg(u32 method, u32 value) {
     }
 }
 
-} // namespace Engines
-} // namespace Tegra
+} // namespace Tegra::Engines

@@ -13,8 +13,7 @@
 #include "video_core/renderer_base.h"
 #include "video_core/textures/texture.h"
 
-namespace Tegra {
-namespace Engines {
+namespace Tegra::Engines {
 
 /// First register id that is actually a Macro call.
 constexpr u32 MacroRegistersStart = 0xE00;
@@ -408,5 +407,4 @@ void Maxwell3D::ProcessClearBuffers() {
     rasterizer.Clear();
 }
 
-} // namespace Engines
-} // namespace Tegra
+} // namespace Tegra::Engines

@@ -7,8 +7,7 @@
 #include "video_core/rasterizer_interface.h"
 #include "video_core/textures/decoders.h"
 
-namespace Tegra {
-namespace Engines {
+namespace Tegra::Engines {
 
 MaxwellDMA::MaxwellDMA(VideoCore::RasterizerInterface& rasterizer, MemoryManager& memory_manager)
     : memory_manager(memory_manager), rasterizer{rasterizer} {}
@@ -119,5 +118,4 @@ void MaxwellDMA::HandleCopy() {
     }
 }
 
-} // namespace Engines
-} // namespace Tegra
+} // namespace Tegra::Engines
