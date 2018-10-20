@@ -97,18 +97,24 @@
     <addaction name="action_Show_Status_Bar"/>
     <addaction name="menu_View_Debugging"/>
    </widget>
+   <widget class ="QMenu" name="menu_Tools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="action_Rederive" />
+   </widget>
    <widget class="QMenu" name="menu_Help">
     <property name="title">
      <string>&amp;Help</string>
     </property>
     <addaction name="action_Report_Compatibility"/>
     <addaction name="separator"/>
-     <addaction name="action_Rederive"/>
     <addaction name="action_About"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Emulation"/>
    <addaction name="menu_View"/>
+   <addaction name="menu_Tools" />
    <addaction name="menu_Help"/>
   </widget>
    <action name="action_Install_File_NAND">
