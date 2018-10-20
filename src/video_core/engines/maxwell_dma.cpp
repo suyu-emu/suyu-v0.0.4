@@ -80,7 +80,7 @@ void MaxwellDMA::HandleCopy() {
 
     std::size_t copy_size = regs.x_count * regs.y_count;
 
-    const auto FlushAndInvalidate = [&](u32 src_size, u32 dst_size) {
+    const auto FlushAndInvalidate = [&](u32 src_size, u64 dst_size) {
         // TODO(Subv): For now, manually flush the regions until we implement GPU-accelerated
         // copying.
         rasterizer.FlushRegion(source_cpu, src_size);
