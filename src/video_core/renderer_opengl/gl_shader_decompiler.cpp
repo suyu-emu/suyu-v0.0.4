@@ -30,8 +30,6 @@ using Tegra::Shader::SubOp;
 constexpr u32 PROGRAM_END = MAX_PROGRAM_CODE_LENGTH;
 constexpr u32 PROGRAM_HEADER_SIZE = sizeof(Tegra::Shader::Header);
 
-enum : u32 { POSITION_VARYING_LOCATION = 0, GENERIC_VARYING_START_LOCATION = 1 };
-
 constexpr u32 MAX_GEOMETRY_BUFFERS = 6;
 constexpr u32 MAX_ATTRIBUTES = 0x100; // Size in vec4s, this value is untested
 
@@ -591,13 +589,6 @@ private:
 
     /// Generates declarations for input attributes.
     void GenerateInputAttrs() {
-        if (stage != Maxwell3D::Regs::ShaderStage::Vertex) {
-            const std::string attr =
-                stage == Maxwell3D::Regs::ShaderStage::Geometry ? "gs_position[]" : "position";
-            declarations.AddLine("layout (location = " + std::to_string(POSITION_VARYING_LOCATION) +
-                                 ") in vec4 " + attr + ';');
-        }
-
         for (const auto element : declr_input_attribute) {
             // TODO(bunnei): Use proper number of elements for these
             u32 idx =
@@ -620,10 +611,6 @@ private:
 
     /// Generates declarations for output attributes.
     void GenerateOutputAttrs() {
-        if (stage != Maxwell3D::Regs::ShaderStage::Fragment) {
-            declarations.AddLine("layout (location = " + std::to_string(POSITION_VARYING_LOCATION) +
-                                 ") out vec4 position;");
-        }
         for (const auto& index : declr_output_attribute) {
             // TODO(bunnei): Use proper number of elements for these
             const u32 idx = static_cast<u32>(index) -
