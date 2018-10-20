@@ -91,9 +91,6 @@ void MaxwellDMA::HandleCopy() {
         rasterizer.InvalidateRegion(dest_cpu, dst_size);
     };
 
-    u8* src_buffer = Memory::GetPointer(source_cpu);
-    u8* dst_buffer = Memory::GetPointer(dest_cpu);
-
     if (regs.exec.is_dst_linear && !regs.exec.is_src_linear) {
         ASSERT(regs.src_params.size_z == 1);
         // If the input is tiled and the output is linear, deswizzle the input and copy it over.
