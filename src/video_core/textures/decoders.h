@@ -35,4 +35,13 @@ std::vector<u8> DecodeTexture(const std::vector<u8>& texture_data, TextureFormat
 std::size_t CalculateSize(bool tiled, u32 bytes_per_pixel, u32 width, u32 height, u32 depth,
                           u32 block_height, u32 block_depth);
 
+/// Copies an untiled subrectangle into a tiled surface.
+void SwizzleSubrect(u32 subrect_width, u32 subrect_height, u32 source_pitch, u32 swizzled_width,
+                    u32 bytes_per_pixel, VAddr swizzled_data, VAddr unswizzled_data,
+                    u32 block_height);
+/// Copies a tiled subrectangle into a linear surface.
+void UnswizzleSubrect(u32 subrect_width, u32 subrect_height, u32 dest_pitch, u32 swizzled_width,
+                      u32 bytes_per_pixel, VAddr swizzled_data, VAddr unswizzled_data,
+                      u32 block_height, u32 offset_x, u32 offset_y);
+
 } // namespace Tegra::Texture
