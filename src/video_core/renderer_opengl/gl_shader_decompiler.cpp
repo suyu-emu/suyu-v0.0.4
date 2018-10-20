@@ -378,8 +378,8 @@ public:
      * @param reg The destination register to use.
      * @param elem The element to use for the operation.
      * @param value The code representing the value to assign. Type has to be half float.
-     * @param type Half float kind of assignment.
-     * @param dest_num_components Number of components in the destionation.
+     * @param merge Half float kind of assignment.
+     * @param dest_num_components Number of components in the destination.
      * @param value_num_components Number of components in the value.
      * @param is_saturated Optional, when True, saturates the provided value.
      * @param dest_elem Optional, the destination element to use for the operation.
@@ -422,6 +422,7 @@ public:
      * @param reg The destination register to use.
      * @param elem The element to use for the operation.
      * @param attribute The input attribute to use as the source value.
+     * @param input_mode The input mode.
      * @param vertex The register that decides which vertex to read from (used in GS).
      */
     void SetRegisterToInputAttibute(const Register& reg, u64 elem, Attribute::Index attribute,
@@ -1058,7 +1059,7 @@ private:
     /*
      * Transforms the input string GLSL operand into an unpacked half float pair.
      * @note This function returns a float type pair instead of a half float pair. This is because
-     * real half floats are not standarized in GLSL but unpackHalf2x16 (which returns a vec2) is.
+     * real half floats are not standardized in GLSL but unpackHalf2x16 (which returns a vec2) is.
      * @param operand Input operand. It has to be an unsigned integer.
      * @param type How to unpack the unsigned integer to a half float pair.
      * @param abs Get the absolute value of unpacked half floats.
