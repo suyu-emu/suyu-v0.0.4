@@ -952,7 +952,7 @@ private:
         // Can't assign to the constant predicate.
         ASSERT(pred != static_cast<u64>(Pred::UnusedIndex));
 
-        const std::string variable = 'p' + std::to_string(pred) + '_' + suffix;
+        std::string variable = 'p' + std::to_string(pred) + '_' + suffix;
         shader.AddLine(variable + " = " + value + ';');
         declr_predicates.insert(std::move(variable));
     }
