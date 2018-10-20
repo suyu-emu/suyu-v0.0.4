@@ -23,6 +23,8 @@ out gl_PerVertex {
     vec4 gl_Position;
 };
 
+layout (location = 0) out vec4 position;
+
 layout(std140) uniform vs_config {
     vec4 viewport_flip;
     uvec4 instance_id;
@@ -96,6 +98,9 @@ out gl_PerVertex {
     vec4 gl_Position;
 };
 
+layout (location = 0) in vec4 gs_position[];
+layout (location = 0) out vec4 position;
+
 layout (std140) uniform gs_config {
     vec4 viewport_flip;
     uvec4 instance_id;
@@ -130,6 +135,8 @@ layout(location = 4) out vec4 FragColor4;
 layout(location = 5) out vec4 FragColor5;
 layout(location = 6) out vec4 FragColor6;
 layout(location = 7) out vec4 FragColor7;
+
+layout (location = 0) in vec4 position;
 
 layout (std140) uniform fs_config {
     vec4 viewport_flip;

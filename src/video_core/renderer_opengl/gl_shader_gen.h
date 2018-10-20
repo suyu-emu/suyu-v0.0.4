@@ -16,6 +16,8 @@ namespace OpenGL::GLShader {
 constexpr std::size_t MAX_PROGRAM_CODE_LENGTH{0x1000};
 using ProgramCode = std::vector<u64>;
 
+enum : u32 { POSITION_VARYING_LOCATION = 0, GENERIC_VARYING_START_LOCATION = 1 };
+
 class ConstBufferEntry {
     using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
