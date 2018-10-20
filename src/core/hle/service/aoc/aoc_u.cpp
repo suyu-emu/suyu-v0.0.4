@@ -13,6 +13,7 @@
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/event.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/service/aoc/aoc_u.h"
 #include "core/hle/service/filesystem/filesystem.h"
@@ -55,9 +56,13 @@ AOC_U::AOC_U() : ServiceFramework("aoc:u"), add_on_content(AccumulateAOCTitleIDs
         {5, &AOC_U::GetAddOnContentBaseId, "GetAddOnContentBaseId"},
         {6, nullptr, "PrepareAddOnContentByApplicationId"},
         {7, &AOC_U::PrepareAddOnContent, "PrepareAddOnContent"},
-        {8, nullptr, "GetAddOnContentListChangedEvent"},
+        {8, &AOC_U::GetAddOnContentListChangedEvent, "GetAddOnContentListChangedEvent"},
     };
     RegisterHandlers(functions);
+
+    auto& kernel = Core::System::GetInstance().Kernel();
+    aoc_change_event = Kernel::Event::Create(kernel, Kernel::ResetType::Sticky,
+                                             "GetAddOnContentListChanged:Event");
 }
 
 AOC_U::~AOC_U() = default;
@@ -128,6 +133,14 @@ void AOC_U::PrepareAddOnContent(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
+}
+
+void AOC_U::GetAddOnContentListChangedEvent(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AOC, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushCopyObjects(aoc_change_event);
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager) {
