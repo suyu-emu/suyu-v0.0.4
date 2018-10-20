@@ -584,6 +584,10 @@ static ResultCode MapSharedMemory(Handle shared_memory_handle, VAddr addr, u64 s
         return ERR_INVALID_SIZE;
     }
 
+    if (!IsValidAddressRange(addr, size)) {
+        return ERR_INVALID_ADDRESS_STATE;
+    }
+
     const auto permissions_type = static_cast<MemoryPermission>(permissions);
     if (permissions_type != MemoryPermission::Read &&
         permissions_type != MemoryPermission::ReadWrite) {
@@ -597,8 +601,14 @@ static ResultCode MapSharedMemory(Handle shared_memory_handle, VAddr addr, u64 s
         return ERR_INVALID_HANDLE;
     }
 
-    return shared_memory->Map(Core::CurrentProcess(), addr, permissions_type,
-                              MemoryPermission::DontCare);
+    auto* const current_process = Core::CurrentProcess();
+    const auto& vm_manager = current_process->VMManager();
+
+    if (!vm_manager.IsWithinASLRRegion(addr, size)) {
+        return ERR_INVALID_MEMORY_RANGE;
+    }
+
+    return shared_memory->Map(current_process, addr, permissions_type, MemoryPermission::DontCare);
 }
 
 static ResultCode UnmapSharedMemory(Handle shared_memory_handle, VAddr addr, u64 size) {
@@ -613,10 +623,24 @@ static ResultCode UnmapSharedMemory(Handle shared_memory_handle, VAddr addr, u64
         return ERR_INVALID_SIZE;
     }
 
+    if (!IsValidAddressRange(addr, size)) {
+        return ERR_INVALID_ADDRESS_STATE;
+    }
+
     auto& kernel = Core::System::GetInstance().Kernel();
     auto shared_memory = kernel.HandleTable().Get<SharedMemory>(shared_memory_handle);
+    if (!shared_memory) {
+        return ERR_INVALID_HANDLE;
+    }
 
-    return shared_memory->Unmap(Core::CurrentProcess(), addr);
+    auto* const current_process = Core::CurrentProcess();
+    const auto& vm_manager = current_process->VMManager();
+
+    if (!vm_manager.IsWithinASLRRegion(addr, size)) {
+        return ERR_INVALID_MEMORY_RANGE;
+    }
+
+    return shared_memory->Unmap(current_process, addr);
 }
 
 /// Query process memory
