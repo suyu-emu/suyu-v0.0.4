@@ -3308,8 +3308,8 @@ private:
                                   Tegra::Shader::VmadType type, u64 byte_height) {
                     const std::string value = [&]() {
                         if (!is_chunk) {
-                            const auto offset = static_cast<u32>(byte_height * 8);
-                            return "((" + op + " >> " + std::to_string(offset) + ") & 0xff)";
+                            const auto shift = static_cast<u32>(byte_height * 8);
+                            return "((" + op + " >> " + std::to_string(shift) + ") & 0xff)";
                         }
                         const std::string zero = "0";
 
