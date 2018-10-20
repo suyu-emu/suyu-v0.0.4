@@ -78,7 +78,7 @@ void MaxwellDMA::HandleCopy() {
 
     ASSERT(regs.exec.enable_2d == 1);
 
-    std::size_t copy_size = regs.x_count * regs.y_count;
+    const std::size_t copy_size = regs.x_count * regs.y_count;
 
     const auto FlushAndInvalidate = [&](u32 src_size, u64 dst_size) {
         // TODO(Subv): For now, manually flush the regions until we implement GPU-accelerated
@@ -95,7 +95,7 @@ void MaxwellDMA::HandleCopy() {
         ASSERT(regs.src_params.size_z == 1);
         // If the input is tiled and the output is linear, deswizzle the input and copy it over.
 
-        u32 src_bytes_per_pixel = regs.src_pitch / regs.src_params.size_x;
+        const u32 src_bytes_per_pixel = regs.src_pitch / regs.src_params.size_x;
 
         FlushAndInvalidate(regs.src_pitch * regs.src_params.size_y,
                            copy_size * src_bytes_per_pixel);
@@ -108,7 +108,7 @@ void MaxwellDMA::HandleCopy() {
         ASSERT(regs.dst_params.size_z == 1);
         ASSERT(regs.src_pitch == regs.x_count);
 
-        u32 src_bpp = regs.src_pitch / regs.x_count;
+        const u32 src_bpp = regs.src_pitch / regs.x_count;
 
         FlushAndInvalidate(regs.src_pitch * regs.y_count,
                            regs.dst_params.size_x * regs.dst_params.size_y * src_bpp);
