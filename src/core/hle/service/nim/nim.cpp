@@ -71,6 +71,22 @@ public:
     }
 };
 
+class NIM_ECA final : public ServiceFramework<NIM_ECA> {
+public:
+    explicit NIM_ECA() : ServiceFramework{"nim:eca"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "CreateServerInterface"},
+            {1, nullptr, "RefreshDebugAvailability"},
+            {2, nullptr, "ClearDebugResponse"},
+            {3, nullptr, "RegisterDebugResponse"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
 class NIM_SHP final : public ServiceFramework<NIM_SHP> {
 public:
     explicit NIM_SHP() : ServiceFramework{"nim:shp"} {
@@ -214,6 +230,7 @@ private:
 
 void InstallInterfaces(SM::ServiceManager& sm) {
     std::make_shared<NIM>()->InstallAsService(sm);
+    std::make_shared<NIM_ECA>()->InstallAsService(sm);
     std::make_shared<NIM_SHP>()->InstallAsService(sm);
     std::make_shared<NTC>()->InstallAsService(sm);
 }
