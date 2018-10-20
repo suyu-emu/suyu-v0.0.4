@@ -23,21 +23,21 @@ option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF)
 
-if(NOT EXISTS ${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit)
+if(NOT EXISTS ${PROJECT_SOURCE_DIR}/.git/hooks/pre-commit)
     message(STATUS "Copying pre-commit hook")
     file(COPY hooks/pre-commit
-        DESTINATION ${CMAKE_SOURCE_DIR}/.git/hooks)
+        DESTINATION ${PROJECT_SOURCE_DIR}/.git/hooks)
 endif()
 
 # Sanity check : Check that all submodules are present
 # =======================================================================
 
 function(check_submodules_present)
-    file(READ "${CMAKE_SOURCE_DIR}/.gitmodules" gitmodules)
+    file(READ "${PROJECT_SOURCE_DIR}/.gitmodules" gitmodules)
     string(REGEX MATCHALL "path *= *[^ \t\r\n]*" gitmodules ${gitmodules})
     foreach(module ${gitmodules})
         string(REGEX REPLACE "path *= *" "" module ${module})
-        if (NOT EXISTS "${CMAKE_SOURCE_DIR}/${module}/.git")
+        if (NOT EXISTS "${PROJECT_SOURCE_DIR}/${module}/.git")
             message(FATAL_ERROR "Git submodule ${module} not found. "
                     "Please run: git submodule update --init --recursive")
         endif()
@@ -45,17 +45,17 @@ function(check_submodules_present)
 endfunction()
 check_submodules_present()
 
-configure_file(${CMAKE_SOURCE_DIR}/dist/compatibility_list/compatibility_list.qrc
-               ${CMAKE_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
+configure_file(${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.qrc
+               ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
                COPYONLY)
-if (ENABLE_COMPATIBILITY_LIST_DOWNLOAD AND NOT EXISTS ${CMAKE_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
+if (ENABLE_COMPATIBILITY_LIST_DOWNLOAD AND NOT EXISTS ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
     message(STATUS "Downloading compatibility list for yuzu...")
     file(DOWNLOAD
         https://api.yuzu-emu.org/gamedb/
-        "${CMAKE_BINARY_DIR}/dist/compatibility_list/compatibility_list.json" SHOW_PROGRESS)
+        "${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json" SHOW_PROGRESS)
 endif()
-if (NOT EXISTS ${CMAKE_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
-    file(WRITE ${CMAKE_BINARY_DIR}/dist/compatibility_list/compatibility_list.json "")
+if (NOT EXISTS ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
+    file(WRITE ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json "")
 endif()
 
 # Detect current compilation architecture and create standard definitions
@@ -189,13 +189,13 @@ find_package(Boost 1.63.0 QUIET)
 if (NOT Boost_FOUND)
     message(STATUS "Boost 1.63.0 or newer not found, falling back to externals")
 
-    set(BOOST_ROOT "${CMAKE_SOURCE_DIR}/externals/boost")
+    set(BOOST_ROOT "${PROJECT_SOURCE_DIR}/externals/boost")
     set(Boost_NO_SYSTEM_PATHS OFF)
     find_package(Boost QUIET REQUIRED)
 endif()
 
 # Output binaries to bin/
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 # Prefer the -pthread flag on Linux.
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -264,7 +264,7 @@ if (YUZU_USE_BUNDLED_UNICORN)
         endif()
 
         set(UNICORN_FOUND YES)
-        set(UNICORN_PREFIX ${CMAKE_SOURCE_DIR}/externals/unicorn)
+        set(UNICORN_PREFIX ${PROJECT_SOURCE_DIR}/externals/unicorn)
         set(LIBUNICORN_LIBRARY "${UNICORN_PREFIX}/${UNICORN_LIB_NAME}" CACHE PATH "Path to Unicorn library" FORCE)
         set(LIBUNICORN_INCLUDE_DIR "${UNICORN_PREFIX}/include" CACHE PATH "Path to Unicorn headers" FORCE)
         set(UNICORN_DLL_DIR "${UNICORN_PREFIX}/" CACHE PATH "Path to unicorn dynamic library" FORCE)
@@ -356,12 +356,12 @@ set(CLANG_FORMAT_POSTFIX "-6.0")
 find_program(CLANG_FORMAT
     NAMES clang-format${CLANG_FORMAT_POSTFIX}
           clang-format
-    PATHS ${CMAKE_BINARY_DIR}/externals)
+    PATHS ${PROJECT_BINARY_DIR}/externals)
 # if find_program doesn't find it, try to download from externals
 if (NOT CLANG_FORMAT)
     if (WIN32)
         message(STATUS "Clang format not found! Downloading...")
-        set(CLANG_FORMAT "${CMAKE_BINARY_DIR}/externals/clang-format${CLANG_FORMAT_POSTFIX}.exe")
+        set(CLANG_FORMAT "${PROJECT_BINARY_DIR}/externals/clang-format${CLANG_FORMAT_POSTFIX}.exe")
         file(DOWNLOAD
             https://github.com/yuzu-emu/ext-windows-bin/raw/master/clang-format${CLANG_FORMAT_POSTFIX}.exe
             "${CLANG_FORMAT}" SHOW_PROGRESS
@@ -377,7 +377,7 @@ if (NOT CLANG_FORMAT)
 endif()
 
 if (CLANG_FORMAT)
-    set(SRCS ${CMAKE_SOURCE_DIR}/src)
+    set(SRCS ${PROJECT_SOURCE_DIR}/src)
     set(CCOMMENT "Running clang format against all the .h and .cpp files in src/")
     if (WIN32)
         add_custom_target(clang-format
@@ -450,10 +450,10 @@ endif()
 # http://standards.freedesktop.org/icon-theme-spec/icon-theme-spec-latest.html
 # http://standards.freedesktop.org/shared-mime-info-spec/shared-mime-info-spec-latest.html
 if(ENABLE_QT AND UNIX AND NOT APPLE)
-    install(FILES "${CMAKE_SOURCE_DIR}/dist/yuzu.desktop"
+    install(FILES "${PROJECT_SOURCE_DIR}/dist/yuzu.desktop"
             DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications")
-    install(FILES "${CMAKE_SOURCE_DIR}/dist/yuzu.svg"
+    install(FILES "${PROJECT_SOURCE_DIR}/dist/yuzu.svg"
             DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps")
-    install(FILES "${CMAKE_SOURCE_DIR}/dist/yuzu.xml"
+    install(FILES "${PROJECT_SOURCE_DIR}/dist/yuzu.xml"
             DESTINATION "${CMAKE_INSTALL_PREFIX}/share/mime/packages")
 endif()
