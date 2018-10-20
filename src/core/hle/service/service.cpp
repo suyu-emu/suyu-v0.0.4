@@ -57,6 +57,7 @@
 #include "core/hle/service/pm/pm.h"
 #include "core/hle/service/prepo/prepo.h"
 #include "core/hle/service/psc/psc.h"
+#include "core/hle/service/ptm/psm.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/set/settings.h"
 #include "core/hle/service/sm/sm.h"
@@ -244,6 +245,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm, FileSys::VfsFilesystem& vfs) 
     PlayReport::InstallInterfaces(*sm);
     PM::InstallInterfaces(*sm);
     PSC::InstallInterfaces(*sm);
+    PSM::InstallInterfaces(*sm);
     Set::InstallInterfaces(*sm);
     Sockets::InstallInterfaces(*sm);
     SPL::InstallInterfaces(*sm);

@@ -91,6 +91,7 @@ enum class Class : ClassType {
     Service_PM,        ///< The PM service
     Service_PREPO,     ///< The PREPO (Play report) service
     Service_PSC,       ///< The PSC service
+    Service_PSM,       ///< The PSM service
     Service_SET,       ///< The SET (Settings) service
     Service_SM,        ///< The SM (Service manager) service
     Service_SPL,       ///< The SPL service
