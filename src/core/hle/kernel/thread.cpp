@@ -266,7 +266,7 @@ SharedPtr<Thread> SetupMainThread(KernelCore& kernel, VAddr entry_point, u32 pri
     SharedPtr<Thread> thread = std::move(thread_res).Unwrap();
 
     // Register 1 must be a handle to the main thread
-    const Handle guest_handle = kernel.HandleTable().Create(thread).Unwrap();
+    const Handle guest_handle = owner_process.GetHandleTable().Create(thread).Unwrap();
     thread->SetGuestHandle(guest_handle);
     thread->GetContext().cpu_registers[1] = guest_handle;
 
