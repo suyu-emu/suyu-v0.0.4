@@ -4,13 +4,13 @@
 
 #include <cstring>
 #include "common/common_types.h"
-#include "common/swap.h"
 #include "core/core_timing.h"
 #include "core/hle/service/hid/controllers/debug_pad.h"
 
 namespace Service::HID {
 
 Controller_DebugPad::Controller_DebugPad() = default;
+Controller_DebugPad::~Controller_DebugPad() = default;
 
 void Controller_DebugPad::OnInit() {}
 

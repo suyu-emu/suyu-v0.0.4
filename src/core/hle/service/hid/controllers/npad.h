@@ -15,6 +15,7 @@ namespace Service::HID {
 class Controller_NPad final : public ControllerBase {
 public:
     Controller_NPad();
+    ~Controller_NPad() override;
 
     // Called when the controller is initialized
     void OnInit() override;
@@ -77,7 +78,7 @@ public:
             position1.Assign(light2);
             position1.Assign(light3);
             position1.Assign(light4);
-        };
+        }
         union {
             u64 raw{};
             BitField<0, 1, u64> position1;
@@ -91,7 +92,7 @@ public:
     NPadType GetSupportedStyleSet() const;
 
     void SetSupportedNPadIdTypes(u8* data, std::size_t length);
-    const void GetSupportedNpadIdTypes(u32* data, std::size_t max_length);
+    void GetSupportedNpadIdTypes(u32* data, std::size_t max_length);
     std::size_t GetSupportedNPadIdTypesSize() const;
 
     void SetHoldType(NpadHoldType joy_hold_type);
@@ -277,9 +278,7 @@ private:
     std::vector<u32> supported_npad_id_types{};
     NpadHoldType hold_type{NpadHoldType::Vertical};
     Kernel::SharedPtr<Kernel::Event> styleset_changed_event;
-    std::size_t dump_idx{};
     Vibration last_processed_vibration{};
-    static constexpr std::array<u32, 10> npad_id_list{0, 1, 2, 3, 4, 5, 6, 7, 32, 16};
     std::array<ControllerHolder, 10> connected_controllers{};
     bool can_controllers_vibrate{true};
 

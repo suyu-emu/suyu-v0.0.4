@@ -4,13 +4,13 @@
 
 #include <cstring>
 #include "common/common_types.h"
-#include "common/swap.h"
 #include "core/core_timing.h"
 #include "core/hle/service/hid/controllers/stubbed.h"
 
 namespace Service::HID {
 
 Controller_Stubbed::Controller_Stubbed() = default;
+Controller_Stubbed::~Controller_Stubbed() = default;
 
 void Controller_Stubbed::OnInit() {}
 

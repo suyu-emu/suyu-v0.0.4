@@ -13,6 +13,7 @@ namespace Service::HID {
 class Controller_Gesture final : public ControllerBase {
 public:
     Controller_Gesture();
+    ~Controller_Gesture() override;
 
     // Called when the controller is initialized
     void OnInit() override;

@@ -2,8 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#pragma once
-
 #include <algorithm>
 #include <array>
 #include <cstring>
@@ -11,7 +9,6 @@
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
-#include "common/swap.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/frontend/input.h"
@@ -20,6 +17,7 @@
 #include "core/settings.h"
 
 namespace Service::HID {
+
 constexpr u32 JOYCON_BODY_NEON_RED = 0xFF3C28;
 constexpr u32 JOYCON_BUTTONS_NEON_RED = 0x1E0A0A;
 constexpr u32 JOYCON_BODY_NEON_BLUE = 0x0AB9E6;
@@ -28,9 +26,18 @@ constexpr s32 HID_JOYSTICK_MAX = 0x7fff;
 constexpr s32 HID_JOYSTICK_MIN = -0x7fff;
 constexpr std::size_t NPAD_OFFSET = 0x9A00;
 constexpr u32 BATTERY_FULL = 2;
-enum class JoystickId : std::size_t { Joystick_Left, Joystick_Right };
+
+constexpr std::array<u32, 10> npad_id_list{
+    0, 1, 2, 3, 4, 5, 6, 7, 32, 16,
+};
+
+enum class JoystickId : std::size_t {
+    Joystick_Left,
+    Joystick_Right,
+};
 
 Controller_NPad::Controller_NPad() = default;
+Controller_NPad::~Controller_NPad() = default;
 
 void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
     const auto controller_type = connected_controllers[controller_idx].type;
@@ -315,7 +322,7 @@ void Controller_NPad::SetSupportedNPadIdTypes(u8* data, std::size_t length) {
     std::memcpy(supported_npad_id_types.data(), data, length);
 }
 
-const void Controller_NPad::GetSupportedNpadIdTypes(u32* data, std::size_t max_length) {
+void Controller_NPad::GetSupportedNpadIdTypes(u32* data, std::size_t max_length) {
     ASSERT(max_length < supported_npad_id_types.size());
     std::memcpy(data, supported_npad_id_types.data(), supported_npad_id_types.size());
 }

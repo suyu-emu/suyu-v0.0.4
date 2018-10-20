@@ -4,7 +4,6 @@
 
 #include <cstring>
 #include "common/common_types.h"
-#include "common/swap.h"
 #include "core/core_timing.h"
 #include "core/frontend/emu_window.h"
 #include "core/frontend/input.h"
@@ -15,6 +14,7 @@ namespace Service::HID {
 constexpr std::size_t SHARED_MEMORY_OFFSET = 0x400;
 
 Controller_Touchscreen::Controller_Touchscreen() = default;
+Controller_Touchscreen::~Controller_Touchscreen() = default;
 
 void Controller_Touchscreen::OnInit() {}
 

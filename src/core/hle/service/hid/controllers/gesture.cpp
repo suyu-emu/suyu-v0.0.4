@@ -4,7 +4,6 @@
 
 #include <cstring>
 #include "common/common_types.h"
-#include "common/swap.h"
 #include "core/core_timing.h"
 #include "core/hle/service/hid/controllers/gesture.h"
 
@@ -12,6 +11,7 @@ namespace Service::HID {
 constexpr std::size_t SHARED_MEMORY_OFFSET = 0x3BA00;
 
 Controller_Gesture::Controller_Gesture() = default;
+Controller_Gesture::~Controller_Gesture() = default;
 
 void Controller_Gesture::OnInit() {}
 

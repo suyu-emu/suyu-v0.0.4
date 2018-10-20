@@ -4,7 +4,6 @@
 
 #include <cstring>
 #include "common/common_types.h"
-#include "common/swap.h"
 #include "core/core_timing.h"
 #include "core/hle/service/hid/controllers/mouse.h"
 
@@ -12,6 +11,7 @@ namespace Service::HID {
 constexpr std::size_t SHARED_MEMORY_OFFSET = 0x3400;
 
 Controller_Mouse::Controller_Mouse() = default;
+Controller_Mouse::~Controller_Mouse() = default;
 
 void Controller_Mouse::OnInit() {}
 

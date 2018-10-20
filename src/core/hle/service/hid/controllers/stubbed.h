@@ -11,6 +11,7 @@ namespace Service::HID {
 class Controller_Stubbed final : public ControllerBase {
 public:
     Controller_Stubbed();
+    ~Controller_Stubbed() override;
 
     // Called when the controller is initialized
     void OnInit() override;
