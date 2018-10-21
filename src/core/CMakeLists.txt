@@ -282,6 +282,8 @@ add_library(core STATIC
     hle/service/nifm/nifm.h
     hle/service/nim/nim.cpp
     hle/service/nim/nim.h
+    hle/service/npns/npns.cpp
+    hle/service/npns/npns.h
     hle/service/ns/ns.cpp
     hle/service/ns/ns.h
     hle/service/ns/pl_u.cpp

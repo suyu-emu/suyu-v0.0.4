@@ -22,7 +22,7 @@
 #include "core/hle/service/apm/apm.h"
 #include "core/hle/service/arp/arp.h"
 #include "core/hle/service/audio/audio.h"
-#include "core/hle/service/bcat/bcat.h"
+#include "core/hle/service/bcat/module.h"
 #include "core/hle/service/bpc/bpc.h"
 #include "core/hle/service/btdrv/btdrv.h"
 #include "core/hle/service/btm/btm.h"
@@ -48,11 +48,12 @@
 #include "core/hle/service/nfp/nfp.h"
 #include "core/hle/service/nifm/nifm.h"
 #include "core/hle/service/nim/nim.h"
+#include "core/hle/service/npns/npns.h"
 #include "core/hle/service/ns/ns.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvflinger/nvflinger.h"
 #include "core/hle/service/pcie/pcie.h"
-#include "core/hle/service/pctl/pctl.h"
+#include "core/hle/service/pctl/module.h"
 #include "core/hle/service/pcv/pcv.h"
 #include "core/hle/service/pm/pm.h"
 #include "core/hle/service/prepo/prepo.h"
@@ -236,6 +237,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm, FileSys::VfsFilesystem& vfs) 
     NFP::InstallInterfaces(*sm);
     NIFM::InstallInterfaces(*sm);
     NIM::InstallInterfaces(*sm);
+    NPNS::InstallInterfaces(*sm);
     NS::InstallInterfaces(*sm);
     Nvidia::InstallInterfaces(*sm, *nv_flinger);
     PCIe::InstallInterfaces(*sm);
