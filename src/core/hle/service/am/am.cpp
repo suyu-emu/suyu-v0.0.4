@@ -26,13 +26,18 @@
 namespace Service::AM {
 
 IWindowController::IWindowController() : ServiceFramework("IWindowController") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "CreateWindow"},
         {1, &IWindowController::GetAppletResourceUserId, "GetAppletResourceUserId"},
         {10, &IWindowController::AcquireForegroundRights, "AcquireForegroundRights"},
         {11, nullptr, "ReleaseForegroundRights"},
         {12, nullptr, "RejectToChangeIntoBackground"},
+        {20, nullptr, "SetAppletWindowVisibility"},
+        {21, nullptr, "SetAppletGpuTimeSlice"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 
@@ -87,6 +92,7 @@ void IAudioController::GetLibraryAppletExpectedMasterVolume(Kernel::HLERequestCo
 }
 
 IDisplayController::IDisplayController() : ServiceFramework("IDisplayController") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetLastForegroundCaptureImage"},
         {1, nullptr, "UpdateLastForegroundCaptureImage"},
@@ -117,7 +123,11 @@ IDisplayController::IDisplayController() : ServiceFramework("IDisplayController"
         {25, nullptr, "ReleaseLastForegroundCaptureSharedBuffer"},
         {26, nullptr, "AcquireCallerAppletCaptureSharedBuffer"},
         {27, nullptr, "ReleaseCallerAppletCaptureSharedBuffer"},
+        // 6.0.0+
+        {28, nullptr, "TakeScreenShotOfOwnLayerEx"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 
@@ -128,6 +138,7 @@ IDebugFunctions::~IDebugFunctions() = default;
 
 ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger)
     : ServiceFramework("ISelfController"), nvflinger(std::move(nvflinger)) {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "Exit"},
         {1, &ISelfController::LockExit, "LockExit"},
@@ -136,10 +147,8 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
         {4, nullptr, "LeaveFatalSection"},
         {9, &ISelfController::GetLibraryAppletLaunchableEvent, "GetLibraryAppletLaunchableEvent"},
         {10, &ISelfController::SetScreenShotPermission, "SetScreenShotPermission"},
-        {11, &ISelfController::SetOperationModeChangedNotification,
-         "SetOperationModeChangedNotification"},
-        {12, &ISelfController::SetPerformanceModeChangedNotification,
-         "SetPerformanceModeChangedNotification"},
+        {11, &ISelfController::SetOperationModeChangedNotification, "SetOperationModeChangedNotification"},
+        {12, &ISelfController::SetPerformanceModeChangedNotification, "SetPerformanceModeChangedNotification"},
         {13, &ISelfController::SetFocusHandlingMode, "SetFocusHandlingMode"},
         {14, &ISelfController::SetRestartMessageEnabled, "SetRestartMessageEnabled"},
         {15, nullptr, "SetScreenShotAppletIdentityInfo"},
@@ -165,7 +174,12 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
         {69, nullptr, "IsAutoSleepDisabled"},
         {70, nullptr, "ReportMultimediaError"},
         {80, nullptr, "SetWirelessPriorityMode"},
+        {90, nullptr, "GetAccumulatedSuspendedTickValue"},
+        {91, nullptr, "GetAccumulatedSuspendedTickChangedEvent"},
+        {1000, nullptr, "GetDebugStorageChannel"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 
     auto& kernel = Core::System::GetInstance().Kernel();
@@ -312,6 +326,7 @@ void ISelfController::GetIdleTimeDetectionExtension(Kernel::HLERequestContext& c
 }
 
 ICommonStateGetter::ICommonStateGetter() : ServiceFramework("ICommonStateGetter") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, &ICommonStateGetter::GetEventHandle, "GetEventHandle"},
         {1, &ICommonStateGetter::ReceiveMessage, "ReceiveMessage"},
@@ -336,11 +351,12 @@ ICommonStateGetter::ICommonStateGetter() : ServiceFramework("ICommonStateGetter"
         {52, nullptr, "SwitchLcdBacklight"},
         {55, nullptr, "IsInControllerFirmwareUpdateSection"},
         {60, &ICommonStateGetter::GetDefaultDisplayResolution, "GetDefaultDisplayResolution"},
-        {61, &ICommonStateGetter::GetDefaultDisplayResolutionChangeEvent,
-         "GetDefaultDisplayResolutionChangeEvent"},
+        {61, &ICommonStateGetter::GetDefaultDisplayResolutionChangeEvent, "GetDefaultDisplayResolutionChangeEvent"},
         {62, nullptr, "GetHdcpAuthenticationState"},
         {63, nullptr, "GetHdcpAuthenticationStateChangeEvent"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 
     auto& kernel = Core::System::GetInstance().Kernel();
@@ -432,11 +448,14 @@ class IStorageAccessor final : public ServiceFramework<IStorageAccessor> {
 public:
     explicit IStorageAccessor(std::vector<u8> buffer)
         : ServiceFramework("IStorageAccessor"), buffer(std::move(buffer)) {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IStorageAccessor::GetSize, "GetSize"},
             {10, &IStorageAccessor::Write, "Write"},
             {11, &IStorageAccessor::Read, "Read"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
     }
 
@@ -489,10 +508,13 @@ class IStorage final : public ServiceFramework<IStorage> {
 public:
     explicit IStorage(std::vector<u8> buffer)
         : ServiceFramework("IStorage"), buffer(std::move(buffer)) {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IStorage::Open, "Open"},
             {1, nullptr, "OpenTransferStorage"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
     }
 
@@ -512,6 +534,7 @@ private:
 class ILibraryAppletAccessor final : public ServiceFramework<ILibraryAppletAccessor> {
 public:
     explicit ILibraryAppletAccessor() : ServiceFramework("ILibraryAppletAccessor") {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, &ILibraryAppletAccessor::GetAppletStateChangedEvent, "GetAppletStateChangedEvent"},
             {1, nullptr, "IsCompleted"},
@@ -532,6 +555,8 @@ public:
             {150, nullptr, "RequestForAppletToGetForeground"},
             {160, nullptr, "GetIndirectLayerConsumerHandle"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
 
         auto& kernel = Core::System::GetInstance().Kernel();
@@ -624,13 +649,13 @@ void ILibraryAppletCreator::CreateStorage(Kernel::HLERequestContext& ctx) {
 }
 
 IApplicationFunctions::IApplicationFunctions() : ServiceFramework("IApplicationFunctions") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {1, &IApplicationFunctions::PopLaunchParameter, "PopLaunchParameter"},
         {10, nullptr, "CreateApplicationAndPushAndRequestToStart"},
         {11, nullptr, "CreateApplicationAndPushAndRequestToStartForQuest"},
         {12, nullptr, "CreateApplicationAndRequestToStart"},
-        {13, &IApplicationFunctions::CreateApplicationAndRequestToStartForQuest,
-         "CreateApplicationAndRequestToStartForQuest"},
+        {13, &IApplicationFunctions::CreateApplicationAndRequestToStartForQuest, "CreateApplicationAndRequestToStartForQuest"},
         {20, &IApplicationFunctions::EnsureSaveData, "EnsureSaveData"},
         {21, &IApplicationFunctions::GetDesiredLanguage, "GetDesiredLanguage"},
         {22, &IApplicationFunctions::SetTerminateResult, "SetTerminateResult"},
@@ -638,10 +663,8 @@ IApplicationFunctions::IApplicationFunctions() : ServiceFramework("IApplicationF
         {24, nullptr, "GetLaunchStorageInfoForDebug"},
         {25, nullptr, "ExtendSaveData"},
         {26, nullptr, "GetSaveDataSize"},
-        {30, &IApplicationFunctions::BeginBlockingHomeButtonShortAndLongPressed,
-         "BeginBlockingHomeButtonShortAndLongPressed"},
-        {31, &IApplicationFunctions::EndBlockingHomeButtonShortAndLongPressed,
-         "EndBlockingHomeButtonShortAndLongPressed"},
+        {30, &IApplicationFunctions::BeginBlockingHomeButtonShortAndLongPressed, "BeginBlockingHomeButtonShortAndLongPressed"},
+        {31, &IApplicationFunctions::EndBlockingHomeButtonShortAndLongPressed, "EndBlockingHomeButtonShortAndLongPressed"},
         {32, &IApplicationFunctions::BeginBlockingHomeButton, "BeginBlockingHomeButton"},
         {33, &IApplicationFunctions::EndBlockingHomeButton, "EndBlockingHomeButton"},
         {40, &IApplicationFunctions::NotifyRunning, "NotifyRunning"},
@@ -666,6 +689,8 @@ IApplicationFunctions::IApplicationFunctions() : ServiceFramework("IApplicationF
         {1000, nullptr, "CreateMovieMaker"},
         {1001, nullptr, "PrepareForJit"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 
@@ -807,6 +832,7 @@ void InstallInterfaces(SM::ServiceManager& service_manager,
 }
 
 IHomeMenuFunctions::IHomeMenuFunctions() : ServiceFramework("IHomeMenuFunctions") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {10, &IHomeMenuFunctions::RequestToGetForeground, "RequestToGetForeground"},
         {11, nullptr, "LockForeground"},
@@ -815,7 +841,10 @@ IHomeMenuFunctions::IHomeMenuFunctions() : ServiceFramework("IHomeMenuFunctions"
         {21, nullptr, "GetPopFromGeneralChannelEvent"},
         {30, nullptr, "GetHomeButtonWriterLockAccessor"},
         {31, nullptr, "GetWriterLockAccessorEx"},
+        {100, nullptr, "PopRequestLaunchApplicationForDebug"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 
@@ -828,6 +857,7 @@ void IHomeMenuFunctions::RequestToGetForeground(Kernel::HLERequestContext& ctx) 
 }
 
 IGlobalStateController::IGlobalStateController() : ServiceFramework("IGlobalStateController") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "RequestToEnterSleep"},
         {1, nullptr, "EnterSleep"},
@@ -841,18 +871,23 @@ IGlobalStateController::IGlobalStateController() : ServiceFramework("IGlobalStat
         {14, nullptr, "ShouldSleepOnBoot"},
         {15, nullptr, "GetHdcpAuthenticationFailedEvent"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 
 IGlobalStateController::~IGlobalStateController() = default;
 
 IApplicationCreator::IApplicationCreator() : ServiceFramework("IApplicationCreator") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "CreateApplication"},
         {1, nullptr, "PopLaunchRequestedApplication"},
         {10, nullptr, "CreateSystemApplication"},
         {100, nullptr, "PopFloatingApplicationForDevelopment"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 
@@ -860,6 +895,7 @@ IApplicationCreator::~IApplicationCreator() = default;
 
 IProcessWindingController::IProcessWindingController()
     : ServiceFramework("IProcessWindingController") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetLaunchReason"},
         {11, nullptr, "OpenCallingLibraryApplet"},
@@ -870,6 +906,8 @@ IProcessWindingController::IProcessWindingController()
         {40, nullptr, "ReserveToStartAndWaitAndUnwindThis"},
         {41, nullptr, "ReserveToStartAndWait"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 

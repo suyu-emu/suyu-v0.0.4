@@ -211,6 +211,7 @@ void AppletAE::OpenLibraryAppletProxyOld(Kernel::HLERequestContext& ctx) {
 
 AppletAE::AppletAE(std::shared_ptr<NVFlinger::NVFlinger> nvflinger)
     : ServiceFramework("appletAE"), nvflinger(std::move(nvflinger)) {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {100, &AppletAE::OpenSystemAppletProxy, "OpenSystemAppletProxy"},
         {200, &AppletAE::OpenLibraryAppletProxyOld, "OpenLibraryAppletProxyOld"},
@@ -218,7 +219,10 @@ AppletAE::AppletAE(std::shared_ptr<NVFlinger::NVFlinger> nvflinger)
         {300, nullptr, "OpenOverlayAppletProxy"},
         {350, nullptr, "OpenSystemApplicationProxy"},
         {400, nullptr, "CreateSelfLibraryAppletCreatorForDevelop"},
+        {401, nullptr, "GetSystemAppletControllerForDebug"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 
