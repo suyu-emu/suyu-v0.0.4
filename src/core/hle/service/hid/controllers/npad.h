@@ -283,5 +283,7 @@ private:
     bool can_controllers_vibrate{true};
 
     void InitNewlyAddedControler(std::size_t controller_idx);
+    bool IsControllerSupported(NPadControllerType controller) const;
+    NPadControllerType DecideBestController(NPadControllerType priority) const;
 };
 } // namespace Service::HID
