@@ -15,6 +15,7 @@
 #include "core/hle/service/am/idle.h"
 #include "core/hle/service/am/omm.h"
 #include "core/hle/service/am/spsm.h"
+#include "core/hle/service/am/tcap.h"
 #include "core/hle/service/apm/apm.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/nvflinger/nvflinger.h"
@@ -829,6 +830,7 @@ void InstallInterfaces(SM::ServiceManager& service_manager,
     std::make_shared<IdleSys>()->InstallAsService(service_manager);
     std::make_shared<OMM>()->InstallAsService(service_manager);
     std::make_shared<SPSM>()->InstallAsService(service_manager);
+    std::make_shared<TCAP>()->InstallAsService(service_manager);
 }
 
 IHomeMenuFunctions::IHomeMenuFunctions() : ServiceFramework("IHomeMenuFunctions") {
