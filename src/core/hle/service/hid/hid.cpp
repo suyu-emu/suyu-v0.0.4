@@ -827,6 +827,7 @@ public:
             {11, nullptr, "EnableJoyPollingReceiveMode"},
             {12, nullptr, "DisableJoyPollingReceiveMode"},
             {13, nullptr, "GetPollingData"},
+            {14, nullptr, "SetStatusManagerType"},
         };
         // clang-format on
 
