@@ -2736,20 +2736,13 @@ private:
             break;
         }
         case OpCode::Type::FloatSetPredicate: {
-            std::string op_a = instr.fsetp.neg_a ? "-" : "";
-            op_a += regs.GetRegisterAsFloat(instr.gpr8);
+            const std::string op_a =
+                GetOperandAbsNeg(regs.GetRegisterAsFloat(instr.gpr8), instr.fsetp.abs_a != 0,
+                                 instr.fsetp.neg_a != 0);
 
-            if (instr.fsetp.abs_a) {
-                op_a = "abs(" + op_a + ')';
-            }
-
-            std::string op_b{};
+            std::string op_b;
 
             if (instr.is_b_imm) {
-                if (instr.fsetp.neg_b) {
-                    // Only the immediate version of fsetp has a neg_b bit.
-                    op_b += '-';
-                }
                 op_b += '(' + GetImmediate19(instr) + ')';
             } else {
                 if (instr.is_b_gpr) {
@@ -2945,33 +2938,24 @@ private:
             break;
         }
         case OpCode::Type::FloatSet: {
-            std::string op_a = instr.fset.neg_a ? "-" : "";
-            op_a += regs.GetRegisterAsFloat(instr.gpr8);
+            const std::string op_a = GetOperandAbsNeg(regs.GetRegisterAsFloat(instr.gpr8),
+                                                      instr.fset.abs_a != 0, instr.fset.neg_a != 0);
 
-            if (instr.fset.abs_a) {
-                op_a = "abs(" + op_a + ')';
-            }
-
-            std::string op_b = instr.fset.neg_b ? "-" : "";
+            std::string op_b;
 
             if (instr.is_b_imm) {
                 const std::string imm = GetImmediate19(instr);
-                if (instr.fset.neg_imm)
-                    op_b += "(-" + imm + ')';
-                else
-                    op_b += imm;
+                op_b = imm;
             } else {
                 if (instr.is_b_gpr) {
-                    op_b += regs.GetRegisterAsFloat(instr.gpr20);
+                    op_b = regs.GetRegisterAsFloat(instr.gpr20);
                 } else {
-                    op_b += regs.GetUniform(instr.cbuf34.index, instr.cbuf34.offset,
-                                            GLSLRegister::Type::Float);
+                    op_b = regs.GetUniform(instr.cbuf34.index, instr.cbuf34.offset,
+                                           GLSLRegister::Type::Float);
                 }
             }
 
-            if (instr.fset.abs_b) {
-                op_b = "abs(" + op_b + ')';
-            }
+            op_b = GetOperandAbsNeg(op_b, instr.fset.abs_b != 0, instr.fset.neg_b != 0);
 
             // The fset instruction sets a register to 1.0 or -1 (depending on the bf bit) if the
             // condition is true, and to 0 otherwise.
