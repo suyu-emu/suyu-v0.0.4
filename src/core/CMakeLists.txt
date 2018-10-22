@@ -156,6 +156,8 @@ add_library(core STATIC
     hle/service/am/omm.h
     hle/service/am/spsm.cpp
     hle/service/am/spsm.h
+    hle/service/am/tcap.cpp
+    hle/service/am/tcap.h
     hle/service/aoc/aoc_u.cpp
     hle/service/aoc/aoc_u.h
     hle/service/apm/apm.cpp
@@ -280,6 +282,8 @@ add_library(core STATIC
     hle/service/nifm/nifm.h
     hle/service/nim/nim.cpp
     hle/service/nim/nim.h
+    hle/service/npns/npns.cpp
+    hle/service/npns/npns.h
     hle/service/ns/ns.cpp
     hle/service/ns/ns.h
     hle/service/ns/pl_u.cpp

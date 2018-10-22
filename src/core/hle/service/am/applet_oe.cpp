@@ -14,6 +14,7 @@ class IApplicationProxy final : public ServiceFramework<IApplicationProxy> {
 public:
     explicit IApplicationProxy(std::shared_ptr<NVFlinger::NVFlinger> nvflinger)
         : ServiceFramework("IApplicationProxy"), nvflinger(std::move(nvflinger)) {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IApplicationProxy::GetCommonStateGetter, "GetCommonStateGetter"},
             {1, &IApplicationProxy::GetSelfController, "GetSelfController"},
@@ -25,6 +26,8 @@ public:
             {20, &IApplicationProxy::GetApplicationFunctions, "GetApplicationFunctions"},
             {1000, &IApplicationProxy::GetDebugFunctions, "GetDebugFunctions"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
     }
 

@@ -12,9 +12,9 @@ IdleSys::IdleSys() : ServiceFramework{"idle:sys"} {
         {0, nullptr, "GetAutoPowerDownEvent"},
         {1, nullptr, "Unknown1"},
         {2, nullptr, "Unknown2"},
-        {3, nullptr, "Unknown3"},
-        {4, nullptr, "Unknown4"},
-        {5, nullptr, "Unknown5"},
+        {3, nullptr, "SetHandlingContext"},
+        {4, nullptr, "LoadAndApplySettings"},
+        {5, nullptr, "ReportUserIsActive"},
     };
     // clang-format on
 

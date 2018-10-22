@@ -18,35 +18,35 @@ public:
     explicit LBL() : ServiceFramework{"lbl"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "Unknown1"},
-            {1, nullptr, "Unknown2"},
-            {2, nullptr, "Unknown3"},
-            {3, nullptr, "GetCurrentBacklightLevel"},
-            {4, nullptr, "Unknown4"},
-            {5, nullptr, "GetAlsComputedBacklightLevel"},
-            {6, nullptr, "TurnOffBacklight"},
-            {7, nullptr, "TurnOnBacklight"},
-            {8, nullptr, "GetBacklightStatus"},
-            {9, nullptr, "Unknown5"},
-            {10, nullptr, "Unknown6"},
-            {11, nullptr, "Unknown7"},
-            {12, nullptr, "Unknown8"},
-            {13, nullptr, "Unknown9"},
-            {14, nullptr, "Unknown10"},
-            {15, nullptr, "GetAutoBrightnessSetting"},
-            {16, nullptr, "ReadRawLightSensor"},
-            {17, nullptr, "Unknown11"},
-            {18, nullptr, "Unknown12"},
-            {19, nullptr, "Unknown13"},
-            {20, nullptr, "Unknown14"},
-            {21, nullptr, "Unknown15"},
-            {22, nullptr, "Unknown16"},
-            {23, nullptr, "Unknown17"},
-            {24, nullptr, "Unknown18"},
-            {25, nullptr, "Unknown19"},
+            {0, nullptr, "SaveCurrentSetting"},
+            {1, nullptr, "LoadCurrentSetting"},
+            {2, nullptr, "SetCurrentBrightnessSetting"},
+            {3, nullptr, "GetCurrentBrightnessSetting"},
+            {4, nullptr, "ApplyCurrentBrightnessSettingToBacklight"},
+            {5, nullptr, "GetBrightnessSettingAppliedToBacklight"},
+            {6, nullptr, "SwitchBacklightOn"},
+            {7, nullptr, "SwitchBacklightOff"},
+            {8, nullptr, "GetBacklightSwitchStatus"},
+            {9, nullptr, "EnableDimming"},
+            {10, nullptr, "DisableDimming"},
+            {11, nullptr, "IsDimmingEnabled"},
+            {12, nullptr, "EnableAutoBrightnessControl"},
+            {13, nullptr, "DisableAutoBrightnessControl"},
+            {14, nullptr, "IsAutoBrightnessControlEnabled"},
+            {15, nullptr, "SetAmbientLightSensorValue"},
+            {16, nullptr, "GetAmbientLightSensorValue"},
+            {17, nullptr, "SetBrightnessReflectionDelayLevel"},
+            {18, nullptr, "GetBrightnessReflectionDelayLevel"},
+            {19, nullptr, "SetCurrentBrightnessMapping"},
+            {20, nullptr, "GetCurrentBrightnessMapping"},
+            {21, nullptr, "SetCurrentAmbientLightSensorMapping"},
+            {22, nullptr, "GetCurrentAmbientLightSensorMapping"},
+            {23, nullptr, "IsAmbientLightSensorAvailable"},
+            {24, nullptr, "SetCurrentBrightnessSettingForVrMode"},
+            {25, nullptr, "GetCurrentBrightnessSettingForVrMode"},
             {26, &LBL::EnableVrMode, "EnableVrMode"},
             {27, &LBL::DisableVrMode, "DisableVrMode"},
-            {28, &LBL::GetVrMode, "GetVrMode"},
+            {28, &LBL::IsVrModeEnabled, "IsVrModeEnabled"},
         };
         // clang-format on
 
@@ -72,7 +72,7 @@ private:
         LOG_DEBUG(Service_LBL, "called");
     }
 
-    void GetVrMode(Kernel::HLERequestContext& ctx) {
+    void IsVrModeEnabled(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push(vr_mode_enabled);
