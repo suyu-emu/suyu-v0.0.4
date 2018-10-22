@@ -82,8 +82,20 @@ inline GLenum VertexType(Maxwell::VertexAttribute attrib) {
         return {};
     }
 
-    case Maxwell::VertexAttribute::Type::Float:
-        return GL_FLOAT;
+    case Maxwell::VertexAttribute::Type::Float: {
+        switch (attrib.size) {
+        case Maxwell::VertexAttribute::Size::Size_16:
+        case Maxwell::VertexAttribute::Size::Size_16_16:
+        case Maxwell::VertexAttribute::Size::Size_16_16_16:
+        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
+            return GL_HALF_FLOAT;
+        case Maxwell::VertexAttribute::Size::Size_32:
+        case Maxwell::VertexAttribute::Size::Size_32_32:
+        case Maxwell::VertexAttribute::Size::Size_32_32_32:
+        case Maxwell::VertexAttribute::Size::Size_32_32_32_32:
+            return GL_FLOAT;
+        }
+    }
     }
 
     LOG_CRITICAL(Render_OpenGL, "Unimplemented vertex type={}", attrib.TypeString());
