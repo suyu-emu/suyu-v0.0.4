@@ -753,7 +753,6 @@ union Instruction {
         BitField<45, 2, PredOperation> op;
         BitField<47, 1, u64> ftz;
         BitField<48, 4, PredCondition> cond;
-        BitField<56, 1, u64> neg_b;
     } fsetp;
 
     union {
@@ -828,7 +827,6 @@ union Instruction {
         BitField<53, 1, u64> neg_b;
         BitField<54, 1, u64> abs_a;
         BitField<55, 1, u64> ftz;
-        BitField<56, 1, u64> neg_imm;
     } fset;
 
     union {
