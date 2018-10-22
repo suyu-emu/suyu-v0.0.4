@@ -654,7 +654,7 @@ static ResultCode QueryProcessMemory(MemoryInfo* memory_info, PageInfo* /*page_i
     }
     auto vma = process->VMManager().FindVMA(addr);
     memory_info->attributes = 0;
-    if (vma == Core::CurrentProcess()->VMManager().vma_map.end()) {
+    if (vma == process->VMManager().vma_map.end()) {
         memory_info->base_address = 0;
         memory_info->permission = static_cast<u32>(VMAPermission::None);
         memory_info->size = 0;
