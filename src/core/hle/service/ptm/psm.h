@@ -3,22 +3,12 @@
 // Refer to the license.txt file included.
 
 #pragma once
-#include "core/hle/service/service.h"
 
 namespace Service::SM {
 class ServiceManager;
 }
 
 namespace Service::PSM {
-
-class PSM final : public ServiceFramework<PSM> {
-public:
-    explicit PSM();
-    ~PSM() override;
-
-private:
-    void GetBatteryChargePercentage(Kernel::HLERequestContext& ctx);
-};
 
 void InstallInterfaces(SM::ServiceManager& sm);
 

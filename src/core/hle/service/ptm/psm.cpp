@@ -12,13 +12,16 @@
 
 namespace Service::PSM {
 
-constexpr u32 BATTERY_FULLY_CHARGED = 100; // 100% Full
+constexpr u32 BATTERY_FULLY_CHARGED = 100;    // 100% Full
+constexpr u32 BATTERY_CURRENTLY_CHARGING = 1; // Plugged into an official dock
 
-PSM::PSM() : ServiceFramework{"psm"} {
-    // clang-format off
+class PSM final : public ServiceFramework<PSM> {
+public:
+    explicit PSM() : ServiceFramework{"psm"} {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, &PSM::GetBatteryChargePercentage, "GetBatteryChargePercentage"},
-            {1, nullptr, "GetChargerType"},
+            {1, &PSM::GetChargerType, "GetChargerType"},
             {2, nullptr, "EnableBatteryCharging"},
             {3, nullptr, "DisableBatteryCharging"},
             {4, nullptr, "IsBatteryChargingEnabled"},
@@ -36,20 +39,30 @@ PSM::PSM() : ServiceFramework{"psm"} {
             {16, nullptr, "GetBatteryChargeInfoEvent"},
             {17, nullptr, "GetBatteryChargeInfoFields"},
         };
-    // clang-format on
+        // clang-format on
 
-    RegisterHandlers(functions);
-}
+        RegisterHandlers(functions);
+    }
 
-PSM::~PSM() = default;
+    ~PSM() override = default;
 
-void PSM::GetBatteryChargePercentage(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_PSM, "(STUBBED) called");
+private:
+    void GetBatteryChargePercentage(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_PSM, "(STUBBED) called");
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
-    rb.Push<u32>(BATTERY_FULLY_CHARGED);
-}
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(BATTERY_FULLY_CHARGED);
+    }
+
+    void GetChargerType(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_PSM, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(BATTERY_CURRENTLY_CHARGING);
+    }
+};
 
 void InstallInterfaces(SM::ServiceManager& sm) {
     std::make_shared<PSM>()->InstallAsService(sm);
