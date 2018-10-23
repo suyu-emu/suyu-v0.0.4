@@ -1213,11 +1213,13 @@ public:
         KIL,
         SSY,
         SYNC,
+        BRK,
         DEPBAR,
         BFE_C,
         BFE_R,
         BFE_IMM,
         BRA,
+        PBK,
         LD_A,
         LD_C,
         ST_A,
@@ -1374,7 +1376,7 @@ public:
     /// conditionally executed).
     static bool IsPredicatedInstruction(Id opcode) {
         // TODO(Subv): Add the rest of unpredicated instructions.
-        return opcode != Id::SSY;
+        return opcode != Id::SSY && opcode != Id::PBK;
     }
 
     class Matcher {
@@ -1470,9 +1472,11 @@ private:
 #define INST(bitstring, op, type, name) Detail::GetMatcher(bitstring, op, type, name)
             INST("111000110011----", Id::KIL, Type::Flow, "KIL"),
             INST("111000101001----", Id::SSY, Type::Flow, "SSY"),
+            INST("111000101010----", Id::PBK, Type::Flow, "PBK"),
             INST("111000100100----", Id::BRA, Type::Flow, "BRA"),
+            INST("1111000011111---", Id::SYNC, Type::Flow, "SYNC"),
+            INST("111000110100---", Id::BRK, Type::Flow, "BRK"),
             INST("1111000011110---", Id::DEPBAR, Type::Synch, "DEPBAR"),
-            INST("1111000011111---", Id::SYNC, Type::Synch, "SYNC"),
             INST("1110111111011---", Id::LD_A, Type::Memory, "LD_A"),
             INST("1110111110010---", Id::LD_C, Type::Memory, "LD_C"),
             INST("1110111111110---", Id::ST_A, Type::Memory, "ST_A"),
