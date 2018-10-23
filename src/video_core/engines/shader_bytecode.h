@@ -564,6 +564,10 @@ union Instruction {
     } fmul;
 
     union {
+        BitField<55, 1, u64> saturate;
+    } fmul32;
+
+    union {
         BitField<48, 1, u64> is_signed;
     } shift;
 

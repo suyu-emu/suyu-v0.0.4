@@ -1459,9 +1459,10 @@ private:
                 break;
             }
             case OpCode::Id::FMUL32_IMM: {
-                regs.SetRegisterToFloat(
-                    instr.gpr0, 0,
-                    regs.GetRegisterAsFloat(instr.gpr8) + " * " + GetImmediate32(instr), 1, 1);
+                regs.SetRegisterToFloat(instr.gpr0, 0,
+                                        regs.GetRegisterAsFloat(instr.gpr8) + " * " +
+                                            GetImmediate32(instr),
+                                        1, 1, instr.fmul32.saturate);
                 break;
             }
             case OpCode::Id::FADD32I: {
