@@ -1,3 +1,3 @@
 #!/bin/bash -ex
 
-docker run -v $(pwd):/yuzu ubuntu:18.04 /bin/bash -ex /yuzu/.travis/clang-format/docker.sh
+docker run --env-file .travis/common/travis-ci.env -v $(pwd):/yuzu -v "$HOME/.ccache":/root/.ccache citraemu/build-environments:linux-clang-format /bin/bash -ex /yuzu/.travis/clang-format/docker.sh
