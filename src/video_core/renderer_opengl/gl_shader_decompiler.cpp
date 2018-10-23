@@ -6,6 +6,7 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <unordered_set>
 
 #include <boost/optional.hpp>
 #include <fmt/format.h>
@@ -276,7 +277,8 @@ public:
     GLSLRegisterManager(ShaderWriter& shader, ShaderWriter& declarations,
                         const Maxwell3D::Regs::ShaderStage& stage, const std::string& suffix,
                         const Tegra::Shader::Header& header)
-        : shader{shader}, declarations{declarations}, stage{stage}, suffix{suffix}, header{header} {
+        : shader{shader}, declarations{declarations}, stage{stage}, suffix{suffix}, header{header},
+          fixed_pipeline_output_attributes_used{} {
         BuildRegisterList();
         BuildInputList();
     }
@@ -480,7 +482,12 @@ public:
                                std::to_string(static_cast<u32>(attribute)) + ']' +
                                GetSwizzle(elem) + " = " + src + ';');
             } else {
-                shader.AddLine(dest + GetSwizzle(elem) + " = " + src + ';');
+                if (attribute == Attribute::Index::PointSize) {
+                    fixed_pipeline_output_attributes_used.insert(attribute);
+                    shader.AddLine(dest + " = " + src + ';');
+                } else {
+                    shader.AddLine(dest + GetSwizzle(elem) + " = " + src + ';');
+                }
             }
         }
     }
@@ -524,6 +531,7 @@ public:
 
     /// Add declarations.
     void GenerateDeclarations(const std::string& suffix) {
+        GenerateVertex();
         GenerateRegisters(suffix);
         GenerateInternalFlags();
         GenerateInputAttrs();
@@ -683,6 +691,20 @@ private:
         declarations.AddNewLine();
     }
 
+    void GenerateVertex() {
+        if (stage != Maxwell3D::Regs::ShaderStage::Vertex)
+            return;
+        declarations.AddLine("out gl_PerVertex {");
+        ++declarations.scope;
+        declarations.AddLine("vec4 gl_Position;");
+        for (auto& o : fixed_pipeline_output_attributes_used) {
+            if (o == Attribute::Index::PointSize)
+                declarations.AddLine("float gl_PointSize;");
+        }
+        --declarations.scope;
+        declarations.AddLine("};");
+    }
+
     /// Generates code representing a temporary (GPR) register.
     std::string GetRegister(const Register& reg, unsigned elem) {
         if (reg == Register::ZeroIndex) {
@@ -836,6 +858,8 @@ private:
     /// Generates code representing the declaration name of an output attribute register.
     std::string GetOutputAttribute(Attribute::Index attribute) {
         switch (attribute) {
+        case Attribute::Index::PointSize:
+            return "gl_PointSize";
         case Attribute::Index::Position:
             return "position";
         default:
@@ -870,6 +894,7 @@ private:
     const Maxwell3D::Regs::ShaderStage& stage;
     const std::string& suffix;
     const Tegra::Shader::Header& header;
+    std::unordered_set<Attribute::Index> fixed_pipeline_output_attributes_used;
 };
 
 class GLSLGenerator {
