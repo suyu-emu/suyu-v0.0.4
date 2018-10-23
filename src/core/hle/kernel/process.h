@@ -13,6 +13,7 @@
 #include <boost/container/static_vector.hpp>
 #include "common/bit_field.h"
 #include "common/common_types.h"
+#include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/vm_manager.h"
@@ -140,6 +141,16 @@ public:
     /// Gets a const reference to the process' memory manager.
     const Kernel::VMManager& VMManager() const {
         return vm_manager;
+    }
+
+    /// Gets a reference to the process' handle table.
+    HandleTable& GetHandleTable() {
+        return handle_table;
+    }
+
+    /// Gets a const reference to the process' handle table.
+    const HandleTable& GetHandleTable() const {
+        return handle_table;
     }
 
     /// Gets the current status of the process
@@ -293,6 +304,9 @@ private:
     /// By default, we currently assume this is true, unless otherwise
     /// specified by metadata provided to the process during loading.
     bool is_64bit_process = true;
+
+    /// Per-process handle table for storing created object handles in.
+    HandleTable handle_table;
 
     std::string name;
 };

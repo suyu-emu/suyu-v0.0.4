@@ -24,10 +24,10 @@ class ServiceFrameworkBase;
 namespace Kernel {
 
 class Domain;
+class Event;
 class HandleTable;
 class HLERequestContext;
 class Process;
-class Event;
 
 /**
  * Interface implemented by HLE Session handlers.
@@ -126,13 +126,12 @@ public:
                                        u64 timeout, WakeupCallback&& callback,
                                        Kernel::SharedPtr<Kernel::Event> event = nullptr);
 
-    void ParseCommandBuffer(u32_le* src_cmdbuf, bool incoming);
-
     /// Populates this context with data from the requesting process/thread.
-    ResultCode PopulateFromIncomingCommandBuffer(u32_le* src_cmdbuf, Process& src_process,
-                                                 HandleTable& src_table);
+    ResultCode PopulateFromIncomingCommandBuffer(const HandleTable& handle_table,
+                                                 u32_le* src_cmdbuf);
+
     /// Writes data from this context back to the requesting process/thread.
-    ResultCode WriteToOutgoingCommandBuffer(const Thread& thread);
+    ResultCode WriteToOutgoingCommandBuffer(Thread& thread);
 
     u32_le GetCommand() const {
         return command;
@@ -255,6 +254,8 @@ public:
     std::string Description() const;
 
 private:
+    void ParseCommandBuffer(const HandleTable& handle_table, u32_le* src_cmdbuf, bool incoming);
+
     std::array<u32, IPC::COMMAND_BUFFER_LENGTH> cmd_buf;
     SharedPtr<Kernel::ServerSession> server_session;
     // TODO(yuriks): Check common usage of this and optimize size accordingly

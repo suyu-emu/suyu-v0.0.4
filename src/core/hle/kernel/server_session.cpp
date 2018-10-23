@@ -107,8 +107,7 @@ ResultCode ServerSession::HandleSyncRequest(SharedPtr<Thread> thread) {
     // similar.
     Kernel::HLERequestContext context(this);
     u32* cmd_buf = (u32*)Memory::GetPointer(thread->GetTLSAddress());
-    context.PopulateFromIncomingCommandBuffer(cmd_buf, *Core::CurrentProcess(),
-                                              kernel.HandleTable());
+    context.PopulateFromIncomingCommandBuffer(kernel.CurrentProcess()->GetHandleTable(), cmd_buf);
 
     ResultCode result = RESULT_SUCCESS;
     // If the session has been converted to a domain, handle the domain request

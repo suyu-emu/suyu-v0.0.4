@@ -118,7 +118,6 @@ struct KernelCore::Impl {
         process_list.clear();
         current_process = nullptr;
 
-        handle_table.Clear();
         resource_limits.fill(nullptr);
 
         thread_wakeup_callback_handle_table.Clear();
@@ -209,7 +208,6 @@ struct KernelCore::Impl {
     std::vector<SharedPtr<Process>> process_list;
     Process* current_process = nullptr;
 
-    Kernel::HandleTable handle_table;
     std::array<SharedPtr<ResourceLimit>, 4> resource_limits;
 
     /// The event type of the generic timer callback event
@@ -239,14 +237,6 @@ void KernelCore::Initialize() {
 
 void KernelCore::Shutdown() {
     impl->Shutdown();
-}
-
-Kernel::HandleTable& KernelCore::HandleTable() {
-    return impl->handle_table;
-}
-
-const Kernel::HandleTable& KernelCore::HandleTable() const {
-    return impl->handle_table;
 }
 
 SharedPtr<ResourceLimit> KernelCore::ResourceLimitForCategory(

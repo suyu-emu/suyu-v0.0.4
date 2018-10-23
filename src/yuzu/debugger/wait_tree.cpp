@@ -9,8 +9,8 @@
 #include "core/core.h"
 #include "core/hle/kernel/event.h"
 #include "core/hle/kernel/handle_table.h"
-#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/mutex.h"
+#include "core/hle/kernel/process.h"
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/timer.h"
@@ -83,7 +83,7 @@ QString WaitTreeText::GetText() const {
 }
 
 WaitTreeMutexInfo::WaitTreeMutexInfo(VAddr mutex_address) : mutex_address(mutex_address) {
-    auto& handle_table = Core::System::GetInstance().Kernel().HandleTable();
+    const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
 
     mutex_value = Memory::Read32(mutex_address);
     owner_handle = static_cast<Kernel::Handle>(mutex_value & Kernel::Mutex::MutexOwnerMask);

@@ -77,7 +77,8 @@ HLERequestContext::HLERequestContext(SharedPtr<Kernel::ServerSession> server_ses
 
 HLERequestContext::~HLERequestContext() = default;
 
-void HLERequestContext::ParseCommandBuffer(u32_le* src_cmdbuf, bool incoming) {
+void HLERequestContext::ParseCommandBuffer(const HandleTable& handle_table, u32_le* src_cmdbuf,
+                                           bool incoming) {
     IPC::RequestParser rp(src_cmdbuf);
     command_header = std::make_shared<IPC::CommandHeader>(rp.PopRaw<IPC::CommandHeader>());
 
@@ -94,8 +95,6 @@ void HLERequestContext::ParseCommandBuffer(u32_le* src_cmdbuf, bool incoming) {
             rp.Skip(2, false);
         }
         if (incoming) {
-            auto& handle_table = Core::System::GetInstance().Kernel().HandleTable();
-
             // Populate the object lists with the data in the IPC request.
             for (u32 handle = 0; handle < handle_descriptor_header->num_handles_to_copy; ++handle) {
                 copy_objects.push_back(handle_table.GetGeneric(rp.Pop<Handle>()));
@@ -189,10 +188,9 @@ void HLERequestContext::ParseCommandBuffer(u32_le* src_cmdbuf, bool incoming) {
     rp.Skip(1, false); // The command is actually an u64, but we don't use the high part.
 }
 
-ResultCode HLERequestContext::PopulateFromIncomingCommandBuffer(u32_le* src_cmdbuf,
-                                                                Process& src_process,
-                                                                HandleTable& src_table) {
-    ParseCommandBuffer(src_cmdbuf, true);
+ResultCode HLERequestContext::PopulateFromIncomingCommandBuffer(const HandleTable& handle_table,
+                                                                u32_le* src_cmdbuf) {
+    ParseCommandBuffer(handle_table, src_cmdbuf, true);
     if (command_header->type == IPC::CommandType::Close) {
         // Close does not populate the rest of the IPC header
         return RESULT_SUCCESS;
@@ -207,14 +205,17 @@ ResultCode HLERequestContext::PopulateFromIncomingCommandBuffer(u32_le* src_cmdb
     return RESULT_SUCCESS;
 }
 
-ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(const Thread& thread) {
+ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(Thread& thread) {
+    auto& owner_process = *thread.GetOwnerProcess();
+    auto& handle_table = owner_process.GetHandleTable();
+
     std::array<u32, IPC::COMMAND_BUFFER_LENGTH> dst_cmdbuf;
-    Memory::ReadBlock(*thread.GetOwnerProcess(), thread.GetTLSAddress(), dst_cmdbuf.data(),
+    Memory::ReadBlock(owner_process, thread.GetTLSAddress(), dst_cmdbuf.data(),
                       dst_cmdbuf.size() * sizeof(u32));
 
     // The header was already built in the internal command buffer. Attempt to parse it to verify
     // the integrity and then copy it over to the target command buffer.
-    ParseCommandBuffer(cmd_buf.data(), false);
+    ParseCommandBuffer(handle_table, cmd_buf.data(), false);
 
     // The data_size already includes the payload header, the padding and the domain header.
     std::size_t size = data_payload_offset + command_header->data_size -
@@ -235,8 +236,6 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(const Thread& thread)
 
         ASSERT(copy_objects.size() == handle_descriptor_header->num_handles_to_copy);
         ASSERT(move_objects.size() == handle_descriptor_header->num_handles_to_move);
-
-        auto& handle_table = Core::System::GetInstance().Kernel().HandleTable();
 
         // We don't make a distinction between copy and move handles when translating since HLE
         // services don't deal with handles directly. However, the guest applications might check
@@ -268,7 +267,7 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(const Thread& thread)
     }
 
     // Copy the translated command buffer back into the thread's command buffer area.
-    Memory::WriteBlock(*thread.GetOwnerProcess(), thread.GetTLSAddress(), dst_cmdbuf.data(),
+    Memory::WriteBlock(owner_process, thread.GetTLSAddress(), dst_cmdbuf.data(),
                        dst_cmdbuf.size() * sizeof(u32));
 
     return RESULT_SUCCESS;
