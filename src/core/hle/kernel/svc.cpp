@@ -374,9 +374,18 @@ static ResultCode ArbitrateUnlock(VAddr mutex_addr) {
     return Mutex::Release(mutex_addr);
 }
 
+enum BreakType : u32 {
+    Panic = 0,
+    PreNROLoad = 3,
+    PostNROLoad = 4,
+    PreNROUnload = 5,
+    PostNROUnload = 6,
+};
+
 struct BreakReason {
     union {
         u32 raw;
+        BitField<0, 30, BreakType> break_type;
         BitField<31, 1, u32> signal_debugger;
     };
 };
@@ -384,12 +393,41 @@ struct BreakReason {
 /// Break program execution
 static void Break(u32 reason, u64 info1, u64 info2) {
     BreakReason break_reason{reason};
-    if (break_reason.signal_debugger) {
+
+    switch (break_reason.break_type) {
+    case BreakType::Panic:
+        LOG_ERROR(Debug_Emulated, "Signalling debugger, PANIC! info1=0x{:016X}, info2=0x{:016X}",
+                  info1, info2);
+        break;
+    case BreakType::PreNROLoad:
+        LOG_ERROR(Debug_Emulated,
+                  "Signalling debugger, Attempting to load an NRO at 0x{:016X} with size 0x{:016X}",
+                  info1, info2);
+        break;
+    case BreakType::PostNROLoad:
+        LOG_ERROR(Debug_Emulated,
+                  "Signalling debugger, Loaded an NRO at 0x{:016X} with size 0x{:016X}", info1,
+                  info2);
+        break;
+    case BreakType::PreNROUnload:
         LOG_ERROR(
             Debug_Emulated,
-            "Emulated program broke execution! reason=0x{:016X}, info1=0x{:016X}, info2=0x{:016X}",
-            reason, info1, info2);
-    } else {
+            "Signalling debugger, Attempting to unload an NRO at 0x{:016X} with size 0x{:016X}",
+            info1, info2);
+        break;
+    case BreakType::PostNROUnload:
+        LOG_ERROR(Debug_Emulated,
+                  "Signalling debugger, Unloaded an NRO at 0x{:016X} with size 0x{:016X}", info1,
+                  info2);
+        break;
+    default:
+        LOG_ERROR(Debug_Emulated,
+                  "Signalling debugger, Unknown break reason {}, info1=0x{:016X}, info2=0x{:016X}",
+                  static_cast<u32>(break_reason.break_type), info1, info2);
+        break;
+    }
+
+    if (!break_reason.signal_debugger) {
         LOG_CRITICAL(
             Debug_Emulated,
             "Emulated program broke execution! reason=0x{:016X}, info1=0x{:016X}, info2=0x{:016X}",
