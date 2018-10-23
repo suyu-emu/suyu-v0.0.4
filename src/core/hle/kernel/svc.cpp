@@ -374,8 +374,9 @@ static ResultCode ArbitrateUnlock(VAddr mutex_addr) {
     return Mutex::Release(mutex_addr);
 }
 
-enum BreakType : u32 {
+enum class BreakType : u32 {
     Panic = 0,
+    AssertionFailed = 1,
     PreNROLoad = 3,
     PostNROLoad = 4,
     PreNROUnload = 5,
@@ -396,34 +397,41 @@ static void Break(u32 reason, u64 info1, u64 info2) {
 
     switch (break_reason.break_type) {
     case BreakType::Panic:
-        LOG_ERROR(Debug_Emulated, "Signalling debugger, PANIC! info1=0x{:016X}, info2=0x{:016X}",
-                  info1, info2);
+        LOG_CRITICAL(Debug_Emulated, "Signalling debugger, PANIC! info1=0x{:016X}, info2=0x{:016X}",
+                     info1, info2);
+        break;
+    case BreakType::AssertionFailed:
+        LOG_CRITICAL(Debug_Emulated,
+                     "Signalling debugger, Assertion failed! info1=0x{:016X}, info2=0x{:016X}",
+                     info1, info2);
         break;
     case BreakType::PreNROLoad:
-        LOG_ERROR(Debug_Emulated,
-                  "Signalling debugger, Attempting to load an NRO at 0x{:016X} with size 0x{:016X}",
-                  info1, info2);
+        LOG_WARNING(
+            Debug_Emulated,
+            "Signalling debugger, Attempting to load an NRO at 0x{:016X} with size 0x{:016X}",
+            info1, info2);
         break;
     case BreakType::PostNROLoad:
-        LOG_ERROR(Debug_Emulated,
-                  "Signalling debugger, Loaded an NRO at 0x{:016X} with size 0x{:016X}", info1,
-                  info2);
+        LOG_WARNING(Debug_Emulated,
+                    "Signalling debugger, Loaded an NRO at 0x{:016X} with size 0x{:016X}", info1,
+                    info2);
         break;
     case BreakType::PreNROUnload:
-        LOG_ERROR(
+        LOG_WARNING(
             Debug_Emulated,
             "Signalling debugger, Attempting to unload an NRO at 0x{:016X} with size 0x{:016X}",
             info1, info2);
         break;
     case BreakType::PostNROUnload:
-        LOG_ERROR(Debug_Emulated,
-                  "Signalling debugger, Unloaded an NRO at 0x{:016X} with size 0x{:016X}", info1,
-                  info2);
+        LOG_WARNING(Debug_Emulated,
+                    "Signalling debugger, Unloaded an NRO at 0x{:016X} with size 0x{:016X}", info1,
+                    info2);
         break;
     default:
-        LOG_ERROR(Debug_Emulated,
-                  "Signalling debugger, Unknown break reason {}, info1=0x{:016X}, info2=0x{:016X}",
-                  static_cast<u32>(break_reason.break_type), info1, info2);
+        LOG_WARNING(
+            Debug_Emulated,
+            "Signalling debugger, Unknown break reason {}, info1=0x{:016X}, info2=0x{:016X}",
+            static_cast<u32>(break_reason.break_type.Value()), info1, info2);
         break;
     }
 
