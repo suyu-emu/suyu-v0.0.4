@@ -214,7 +214,7 @@ enum class IMinMaxExchange : u64 {
     XHi = 3,
 };
 
-enum class VmadType : u64 {
+enum class VideoType : u64 {
     Size16_Low = 0,
     Size16_High = 1,
     Size32 = 2,
@@ -783,6 +783,14 @@ union Instruction {
     } psetp;
 
     union {
+        BitField<43, 4, PredCondition> cond;
+        BitField<45, 2, PredOperation> op;
+        BitField<3, 3, u64> pred3;
+        BitField<0, 3, u64> pred0;
+        BitField<39, 3, u64> pred39;
+    } vsetp;
+
+    union {
         BitField<12, 3, u64> pred12;
         BitField<15, 1, u64> neg_pred12;
         BitField<24, 2, PredOperation> cond;
@@ -1154,15 +1162,17 @@ union Instruction {
     union {
         BitField<48, 1, u64> signed_a;
         BitField<38, 1, u64> is_byte_chunk_a;
-        BitField<36, 2, VmadType> type_a;
+        BitField<36, 2, VideoType> type_a;
         BitField<36, 2, u64> byte_height_a;
 
         BitField<49, 1, u64> signed_b;
         BitField<50, 1, u64> use_register_b;
         BitField<30, 1, u64> is_byte_chunk_b;
-        BitField<28, 2, VmadType> type_b;
+        BitField<28, 2, VideoType> type_b;
         BitField<28, 2, u64> byte_height_b;
+    } video;
 
+    union {
         BitField<51, 2, VmadShr> shr;
         BitField<55, 1, u64> saturate; // Saturates the result (a * b + c)
         BitField<47, 1, u64> cc;
@@ -1238,6 +1248,7 @@ public:
         OUT_R, // Emit vertex/primitive
         ISBERD,
         VMAD,
+        VSETP,
         FFMA_IMM, // Fused Multiply and Add
         FFMA_CR,
         FFMA_RC,
@@ -1495,6 +1506,7 @@ private:
             INST("1111101111100---", Id::OUT_R, Type::Trivial, "OUT_R"),
             INST("1110111111010---", Id::ISBERD, Type::Trivial, "ISBERD"),
             INST("01011111--------", Id::VMAD, Type::Trivial, "VMAD"),
+            INST("0101000011110---", Id::VSETP, Type::Trivial, "VSETP"),
             INST("0011001-1-------", Id::FFMA_IMM, Type::Ffma, "FFMA_IMM"),
             INST("010010011-------", Id::FFMA_CR, Type::Ffma, "FFMA_CR"),
             INST("010100011-------", Id::FFMA_RC, Type::Ffma, "FFMA_RC"),
