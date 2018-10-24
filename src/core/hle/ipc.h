@@ -14,11 +14,6 @@ namespace IPC {
 /// Size of the command buffer area, in 32-bit words.
 constexpr std::size_t COMMAND_BUFFER_LENGTH = 0x100 / sizeof(u32);
 
-// These errors are commonly returned by invalid IPC translations, so alias them here for
-// convenience.
-// TODO(yuriks): These will probably go away once translation is implemented inside the kernel.
-constexpr auto ERR_INVALID_HANDLE = Kernel::ERR_INVALID_HANDLE_OS;
-
 enum class ControlCommand : u32 {
     ConvertSessionToDomain = 0,
     ConvertDomainToSession = 1,

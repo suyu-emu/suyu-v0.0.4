@@ -38,18 +38,14 @@ enum {
 // WARNING: The kernel is quite inconsistent in it's usage of errors code. Make sure to always
 // double check that the code matches before re-using the constant.
 
-// TODO(bunnei): Replace -1 with correct errors for Switch OS
 constexpr ResultCode ERR_HANDLE_TABLE_FULL(ErrorModule::Kernel, ErrCodes::HandleTableFull);
 constexpr ResultCode ERR_SESSION_CLOSED_BY_REMOTE(ErrorModule::Kernel, ErrCodes::SessionClosed);
 constexpr ResultCode ERR_PORT_NAME_TOO_LONG(ErrorModule::Kernel, ErrCodes::TooLarge);
 constexpr ResultCode ERR_MAX_CONNECTIONS_REACHED(ErrorModule::Kernel,
                                                  ErrCodes::MaxConnectionsReached);
 constexpr ResultCode ERR_INVALID_ENUM_VALUE(ErrorModule::Kernel, ErrCodes::InvalidEnumValue);
-constexpr ResultCode ERR_INVALID_ENUM_VALUE_FND(-1);
-constexpr ResultCode ERR_INVALID_COMBINATION(-1);
 constexpr ResultCode ERR_INVALID_COMBINATION_KERNEL(ErrorModule::Kernel,
                                                     ErrCodes::InvalidCombination);
-constexpr ResultCode ERR_OUT_OF_MEMORY(-1);
 constexpr ResultCode ERR_INVALID_ADDRESS(ErrorModule::Kernel, ErrCodes::InvalidAddress);
 constexpr ResultCode ERR_INVALID_ADDRESS_STATE(ErrorModule::Kernel, ErrCodes::InvalidMemoryState);
 constexpr ResultCode ERR_INVALID_MEMORY_PERMISSIONS(ErrorModule::Kernel,
@@ -63,10 +59,6 @@ constexpr ResultCode ERR_INVALID_STATE(ErrorModule::Kernel, ErrCodes::InvalidSta
 constexpr ResultCode ERR_INVALID_THREAD_PRIORITY(ErrorModule::Kernel,
                                                  ErrCodes::InvalidThreadPriority);
 constexpr ResultCode ERR_INVALID_POINTER(ErrorModule::Kernel, ErrCodes::InvalidPointer);
-constexpr ResultCode ERR_INVALID_OBJECT_ADDR(-1);
-constexpr ResultCode ERR_NOT_AUTHORIZED(-1);
-/// Alternate code returned instead of ERR_INVALID_HANDLE in some code paths.
-constexpr ResultCode ERR_INVALID_HANDLE_OS(-1);
 constexpr ResultCode ERR_NOT_FOUND(ErrorModule::Kernel, ErrCodes::NoSuchEntry);
 constexpr ResultCode RESULT_TIMEOUT(ErrorModule::Kernel, ErrCodes::Timeout);
 
