@@ -919,7 +919,7 @@ struct SurfaceParams {
         u32 height = MipHeight(mip_level);
         u32 bh = block_height;
         // Magical block resizing algorithm, needs more testing.
-        while (bh != 1 && height / bh <= 16) {
+        while (bh > 1 && (height +  bh - 1) / bh <= 16) {
             bh = bh >> 1;
         }
         return bh;
@@ -929,7 +929,7 @@ struct SurfaceParams {
         u32 depth = MipDepth(mip_level);
         u32 bd = block_depth;
         // Magical block resizing algorithm, needs more testing.
-        while (bd != 1 && depth / bd <= 16) {
+        while (bd > 1 && depth / bd <= 16) {
             bd = bd >> 1;
         }
         return bd;
