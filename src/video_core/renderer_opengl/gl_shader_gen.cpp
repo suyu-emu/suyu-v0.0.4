@@ -19,9 +19,6 @@ ProgramResult GenerateVertexShader(const ShaderSetup& setup) {
     out += Decompiler::GetCommonDeclarations();
 
     out += R"(
-out gl_PerVertex {
-    vec4 gl_Position;
-};
 
 layout (location = 0) out vec4 position;
 

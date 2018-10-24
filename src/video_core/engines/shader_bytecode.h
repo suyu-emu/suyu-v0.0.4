@@ -79,6 +79,7 @@ union Attribute {
     constexpr explicit Attribute(u64 value) : value(value) {}
 
     enum class Index : u64 {
+        PointSize = 6,
         Position = 7,
         Attribute_0 = 8,
         Attribute_31 = 39,
