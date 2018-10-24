@@ -104,20 +104,20 @@ private:
         rb.Push(RESULT_SUCCESS);
 
         const FileUtil::IOFile image(GetImagePath(user_id), "rb");
-
         if (!image.IsOpen()) {
             LOG_WARNING(Service_ACC,
                         "Failed to load user provided image! Falling back to built-in backup...");
             ctx.WriteBuffer(backup_jpeg);
             rb.Push<u32>(backup_jpeg_size);
-        } else {
-            const auto size = std::min<u32>(image.GetSize(), MAX_JPEG_IMAGE_SIZE);
-            std::vector<u8> buffer(size);
-            image.ReadBytes(buffer.data(), buffer.size());
-
-            ctx.WriteBuffer(buffer.data(), buffer.size());
-            rb.Push<u32>(buffer.size());
+            return;
         }
+
+        const auto size = std::min<u32>(image.GetSize(), MAX_JPEG_IMAGE_SIZE);
+        std::vector<u8> buffer(size);
+        image.ReadBytes(buffer.data(), buffer.size());
+
+        ctx.WriteBuffer(buffer.data(), buffer.size());
+        rb.Push<u32>(buffer.size());
     }
 
     void GetImageSize(Kernel::HLERequestContext& ctx) {
