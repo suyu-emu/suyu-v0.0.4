@@ -594,16 +594,17 @@ static ResultCode SetThreadPriority(Handle handle, u32 priority) {
     }
 
     const auto* const current_process = Core::CurrentProcess();
-    SharedPtr<Thread> thread = current_process->GetHandleTable().Get<Thread>(handle);
-    if (!thread) {
-        return ERR_INVALID_HANDLE;
-    }
 
     // Note: The kernel uses the current process's resource limit instead of
     // the one from the thread owner's resource limit.
     const ResourceLimit& resource_limit = current_process->GetResourceLimit();
     if (resource_limit.GetMaxResourceValue(ResourceType::Priority) > priority) {
-        return ERR_NOT_AUTHORIZED;
+        return ERR_INVALID_THREAD_PRIORITY;
+    }
+
+    SharedPtr<Thread> thread = current_process->GetHandleTable().Get<Thread>(handle);
+    if (!thread) {
+        return ERR_INVALID_HANDLE;
     }
 
     thread->SetPriority(priority);
