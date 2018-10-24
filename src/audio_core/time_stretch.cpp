@@ -10,8 +10,7 @@
 
 namespace AudioCore {
 
-TimeStretcher::TimeStretcher(u32 sample_rate, u32 channel_count)
-    : m_sample_rate(sample_rate), m_channel_count(channel_count) {
+TimeStretcher::TimeStretcher(u32 sample_rate, u32 channel_count) : m_sample_rate{sample_rate} {
     m_sound_touch.setChannels(channel_count);
     m_sound_touch.setSampleRate(sample_rate);
     m_sound_touch.setPitch(1.0);
