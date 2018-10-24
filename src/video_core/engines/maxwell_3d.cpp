@@ -155,7 +155,6 @@ void Maxwell3D::ProcessQueryGet() {
     ASSERT_MSG(regs.query.query_get.unit == Regs::QueryUnit::Crop,
                "Units other than CROP are unimplemented");
 
-    u32 value = Memory::Read32(*address);
     u64 result = 0;
 
     // TODO(Subv): Support the other query variables
