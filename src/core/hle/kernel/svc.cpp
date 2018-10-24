@@ -746,7 +746,7 @@ static ResultCode CreateThread(Handle* out_handle, VAddr entry_point, u64 arg, V
     auto* const current_process = Core::CurrentProcess();
     const ResourceLimit& resource_limit = current_process->GetResourceLimit();
     if (resource_limit.GetMaxResourceValue(ResourceType::Priority) > priority) {
-        return ERR_NOT_AUTHORIZED;
+        return ERR_INVALID_THREAD_PRIORITY;
     }
 
     if (processor_id == THREADPROCESSORID_DEFAULT) {
