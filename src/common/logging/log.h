@@ -83,6 +83,7 @@ enum class Class : ClassType {
     Service_NFP,       ///< The NFP service
     Service_NIFM,      ///< The NIFM (Network interface) service
     Service_NIM,       ///< The NIM service
+    Service_NPNS,      ///< The NPNS service
     Service_NS,        ///< The NS services
     Service_NVDRV,     ///< The NVDRV (Nvidia driver) service
     Service_PCIE,      ///< The PCIe service
@@ -96,6 +97,7 @@ enum class Class : ClassType {
     Service_SM,        ///< The SM (Service manager) service
     Service_SPL,       ///< The SPL service
     Service_SSL,       ///< The SSL service
+    Service_TCAP,      ///< The TCAP service.
     Service_Time,      ///< The time service
     Service_USB,       ///< The USB (Universal Serial Bus) service
     Service_VI,        ///< The VI (Video interface) service
