@@ -18,7 +18,7 @@ ServerPort::~ServerPort() = default;
 
 ResultVal<SharedPtr<ServerSession>> ServerPort::Accept() {
     if (pending_sessions.empty()) {
-        return ERR_NO_PENDING_SESSIONS;
+        return ERR_NOT_FOUND;
     }
 
     auto session = std::move(pending_sessions.back());

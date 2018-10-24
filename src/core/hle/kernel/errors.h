@@ -69,7 +69,5 @@ constexpr ResultCode ERR_NOT_AUTHORIZED(-1);
 constexpr ResultCode ERR_INVALID_HANDLE_OS(-1);
 constexpr ResultCode ERR_NOT_FOUND(ErrorModule::Kernel, ErrCodes::NoSuchEntry);
 constexpr ResultCode RESULT_TIMEOUT(ErrorModule::Kernel, ErrCodes::Timeout);
-/// Returned when Accept() is called on a port with no sessions to be accepted.
-constexpr ResultCode ERR_NO_PENDING_SESSIONS(-1);
 
 } // namespace Kernel
