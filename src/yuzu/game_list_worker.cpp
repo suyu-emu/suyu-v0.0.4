@@ -62,19 +62,24 @@ QString FormatPatchNameVersions(const FileSys::PatchManager& patch_manager,
     FileSys::VirtualFile update_raw;
     loader.ReadUpdateRaw(update_raw);
     for (const auto& kv : patch_manager.GetPatchVersionNames(update_raw)) {
-        if (!updatable && kv.first == "Update")
+        const bool is_update = kv.first == "Update";
+        if (!updatable && is_update) {
             continue;
+        }
+
+        const QString type = QString::fromStdString(kv.first);
 
         if (kv.second.empty()) {
-            out.append(fmt::format("{}\n", kv.first).c_str());
+            out.append(QStringLiteral("%1\n").arg(type));
         } else {
             auto ver = kv.second;
 
             // Display container name for packed updates
-            if (ver == "PACKED" && kv.first == "Update")
+            if (is_update && ver == "PACKED") {
                 ver = Loader::GetFileTypeString(loader.GetFileType());
+            }
 
-            out.append(fmt::format("{} ({})\n", kv.first, ver).c_str());
+            out.append(QStringLiteral("%1 (%2)\n").arg(type, QString::fromStdString(ver)));
         }
     }
 
