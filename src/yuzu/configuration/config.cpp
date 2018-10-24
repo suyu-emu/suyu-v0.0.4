@@ -13,9 +13,14 @@ Config::Config() {
     // TODO: Don't hardcode the path; let the frontend decide where to put the config files.
     qt_config_loc = FileUtil::GetUserPath(FileUtil::UserPath::ConfigDir) + "qt-config.ini";
     FileUtil::CreateFullPath(qt_config_loc);
-    qt_config = new QSettings(QString::fromStdString(qt_config_loc), QSettings::IniFormat);
+    qt_config =
+        std::make_unique<QSettings>(QString::fromStdString(qt_config_loc), QSettings::IniFormat);
 
     Reload();
+}
+
+Config::~Config() {
+    Save();
 }
 
 const std::array<int, Settings::NativeButton::NumButtons> Config::default_buttons = {
@@ -341,10 +346,4 @@ void Config::Reload() {
 
 void Config::Save() {
     SaveValues();
-}
-
-Config::~Config() {
-    Save();
-
-    delete qt_config;
 }
