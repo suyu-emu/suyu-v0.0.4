@@ -26,6 +26,7 @@ enum {
     InvalidThreadPriority = 112,
     InvalidProcessorId = 113,
     InvalidHandle = 114,
+    InvalidPointer = 115,
     InvalidCombination = 116,
     Timeout = 117,
     SynchronizationCanceled = 118,
@@ -33,6 +34,7 @@ enum {
     InvalidEnumValue = 120,
     NoSuchEntry = 121,
     AlreadyRegistered = 122,
+    SessionClosed = 123,
     InvalidState = 125,
     ResourceLimitExceeded = 132,
 };
@@ -43,7 +45,7 @@ enum {
 
 // TODO(bunnei): Replace -1 with correct errors for Switch OS
 constexpr ResultCode ERR_HANDLE_TABLE_FULL(ErrorModule::Kernel, ErrCodes::HandleTableFull);
-constexpr ResultCode ERR_SESSION_CLOSED_BY_REMOTE(-1);
+constexpr ResultCode ERR_SESSION_CLOSED_BY_REMOTE(ErrorModule::Kernel, ErrCodes::SessionClosed);
 constexpr ResultCode ERR_PORT_NAME_TOO_LONG(ErrorModule::Kernel, ErrCodes::TooLarge);
 constexpr ResultCode ERR_MAX_CONNECTIONS_REACHED(ErrorModule::Kernel,
                                                  ErrCodes::MaxConnectionsReached);
