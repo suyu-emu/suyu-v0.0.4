@@ -21,8 +21,6 @@
 
 namespace Service::Account {
 
-constexpr u32 MAX_JPEG_IMAGE_SIZE = 0x20000;
-
 // TODO: RE this structure
 struct UserData {
     INSERT_PADDING_WORDS(1);
@@ -37,6 +35,11 @@ static_assert(sizeof(UserData) == 0x80, "UserData structure has incorrect size")
 static std::string GetImagePath(UUID uuid) {
     return FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
            "/system/save/8000000000000010/su/avators/" + uuid.FormatSwitch() + ".jpg";
+}
+
+static constexpr u32 SanitizeJPEGSize(std::size_t size) {
+    constexpr std::size_t max_jpeg_image_size = 0x20000;
+    return static_cast<u32>(std::min(size, max_jpeg_image_size));
 }
 
 class IProfile final : public ServiceFramework<IProfile> {
@@ -112,12 +115,12 @@ private:
             return;
         }
 
-        const auto size = std::min<u32>(image.GetSize(), MAX_JPEG_IMAGE_SIZE);
+        const u32 size = SanitizeJPEGSize(image.GetSize());
         std::vector<u8> buffer(size);
         image.ReadBytes(buffer.data(), buffer.size());
 
         ctx.WriteBuffer(buffer.data(), buffer.size());
-        rb.Push<u32>(buffer.size());
+        rb.Push<u32>(size);
     }
 
     void GetImageSize(Kernel::HLERequestContext& ctx) {
@@ -133,7 +136,7 @@ private:
                         "Failed to load user provided image! Falling back to built-in backup...");
             rb.Push<u32>(backup_jpeg_size);
         } else {
-            rb.Push<u32>(std::min<u32>(image.GetSize(), MAX_JPEG_IMAGE_SIZE));
+            rb.Push<u32>(SanitizeJPEGSize(image.GetSize()));
         }
     }
 
