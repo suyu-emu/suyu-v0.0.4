@@ -114,7 +114,7 @@ struct Values {
     // System
     bool use_docked_mode;
     bool enable_nfc;
-    std::string username;
+    int current_user;
     int language_index;
 
     // Controls
