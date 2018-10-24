@@ -153,7 +153,7 @@ void ConfigureSystem::UpdateCurrentUser() {
     ui->pm_add->setEnabled(profile_manager->GetUserCount() < Service::Account::MAX_USERS);
 
     const auto& current_user = profile_manager->GetUser(Settings::values.current_user);
-    ASSERT(current_user != boost::none);
+    ASSERT(current_user != std::nullopt);
     const auto username = GetAccountUsername(*current_user);
 
     scene->clear();
@@ -252,7 +252,7 @@ void ConfigureSystem::AddUser() {
 void ConfigureSystem::RenameUser() {
     const auto user = tree_view->currentIndex().row();
     const auto uuid = profile_manager->GetUser(user);
-    ASSERT(uuid != boost::none);
+    ASSERT(uuid != std::nullopt);
     const auto username = GetAccountUsername(*uuid);
 
     Service::Account::ProfileBase profile;
@@ -292,7 +292,7 @@ void ConfigureSystem::RenameUser() {
 void ConfigureSystem::DeleteUser() {
     const auto index = tree_view->currentIndex().row();
     const auto uuid = profile_manager->GetUser(index);
-    ASSERT(uuid != boost::none);
+    ASSERT(uuid != std::nullopt);
     const auto username = GetAccountUsername(*uuid);
 
     const auto confirm =
@@ -320,7 +320,7 @@ void ConfigureSystem::DeleteUser() {
 void ConfigureSystem::SetUserImage() {
     const auto index = tree_view->currentIndex().row();
     const auto uuid = profile_manager->GetUser(index);
-    ASSERT(uuid != boost::none);
+    ASSERT(uuid != std::nullopt);
     const auto username = GetAccountUsername(*uuid);
 
     const auto file = QFileDialog::getOpenFileName(this, tr("Select User Image"), QString(),
