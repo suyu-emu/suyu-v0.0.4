@@ -16,7 +16,6 @@
 #include <fmt/format.h>
 #include "common/common_paths.h"
 #include "common/common_types.h"
-#include "common/file_util.h"
 #include "common/logging/log.h"
 #include "core/file_sys/patch_manager.h"
 #include "yuzu/compatibility_list.h"
@@ -387,9 +386,9 @@ void GameList::LoadCompatibilityList() {
 }
 
 void GameList::PopulateAsync(const QString& dir_path, bool deep_scan) {
-    if (!FileUtil::Exists(dir_path.toStdString()) ||
-        !FileUtil::IsDirectory(dir_path.toStdString())) {
-        LOG_ERROR(Frontend, "Could not find game list folder at {}", dir_path.toLocal8Bit().data());
+    const QFileInfo dir_info{dir_path};
+    if (!dir_info.exists() || !dir_info.isDir()) {
+        LOG_ERROR(Frontend, "Could not find game list folder at {}", dir_path.toStdString());
         search_field->setFilterResult(0, 0);
         return;
     }
