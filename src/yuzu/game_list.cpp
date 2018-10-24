@@ -217,11 +217,11 @@ GameList::GameList(FileSys::VirtualFilesystem vfs, GMainWindow* parent)
     tree_view->setContextMenuPolicy(Qt::CustomContextMenu);
 
     item_model->insertColumns(0, COLUMN_COUNT);
-    item_model->setHeaderData(COLUMN_NAME, Qt::Horizontal, "Name");
-    item_model->setHeaderData(COLUMN_COMPATIBILITY, Qt::Horizontal, "Compatibility");
-    item_model->setHeaderData(COLUMN_ADD_ONS, Qt::Horizontal, "Add-ons");
-    item_model->setHeaderData(COLUMN_FILE_TYPE, Qt::Horizontal, "File type");
-    item_model->setHeaderData(COLUMN_SIZE, Qt::Horizontal, "Size");
+    item_model->setHeaderData(COLUMN_NAME, Qt::Horizontal, tr("Name"));
+    item_model->setHeaderData(COLUMN_COMPATIBILITY, Qt::Horizontal, tr("Compatibility"));
+    item_model->setHeaderData(COLUMN_ADD_ONS, Qt::Horizontal, tr("Add-ons"));
+    item_model->setHeaderData(COLUMN_FILE_TYPE, Qt::Horizontal, tr("File type"));
+    item_model->setHeaderData(COLUMN_SIZE, Qt::Horizontal, tr("Size"));
 
     connect(tree_view, &QTreeView::activated, this, &GameList::ValidateEntry);
     connect(tree_view, &QTreeView::customContextMenuRequested, this, &GameList::PopupContextMenu);
