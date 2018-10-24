@@ -67,7 +67,7 @@ constexpr ResultCode ERR_ALREADY_REGISTERED(ErrorModule::Kernel, ErrCodes::Alrea
 constexpr ResultCode ERR_INVALID_STATE(ErrorModule::Kernel, ErrCodes::InvalidState);
 constexpr ResultCode ERR_INVALID_THREAD_PRIORITY(ErrorModule::Kernel,
                                                  ErrCodes::InvalidThreadPriority);
-constexpr ResultCode ERR_INVALID_POINTER(-1);
+constexpr ResultCode ERR_INVALID_POINTER(ErrorModule::Kernel, ErrCodes::InvalidPointer);
 constexpr ResultCode ERR_INVALID_OBJECT_ADDR(-1);
 constexpr ResultCode ERR_NOT_AUTHORIZED(-1);
 /// Alternate code returned instead of ERR_INVALID_HANDLE in some code paths.
