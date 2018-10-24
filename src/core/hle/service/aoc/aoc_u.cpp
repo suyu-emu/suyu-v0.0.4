@@ -24,8 +24,8 @@ namespace Service::AOC {
 constexpr u64 DLC_BASE_TITLE_ID_MASK = 0xFFFFFFFFFFFFE000;
 constexpr u64 DLC_BASE_TO_AOC_ID = 0x1000;
 
-static bool CheckAOCTitleIDMatchesBase(u64 base, u64 aoc) {
-    return (aoc & DLC_BASE_TITLE_ID_MASK) == base;
+static bool CheckAOCTitleIDMatchesBase(u64 title_id, u64 base) {
+    return (title_id & DLC_BASE_TITLE_ID_MASK) == base;
 }
 
 static std::vector<u64> AccumulateAOCTitleIDs() {
@@ -74,7 +74,7 @@ void AOC_U::CountAddOnContent(Kernel::HLERequestContext& ctx) {
     const auto current = Core::System::GetInstance().CurrentProcess()->GetTitleID();
     rb.Push<u32>(static_cast<u32>(
         std::count_if(add_on_content.begin(), add_on_content.end(),
-                      [&current](u64 tid) { return (tid & DLC_BASE_TITLE_ID_MASK) == current; })));
+                      [current](u64 tid) { return CheckAOCTitleIDMatchesBase(tid, current); })));
 }
 
 void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
