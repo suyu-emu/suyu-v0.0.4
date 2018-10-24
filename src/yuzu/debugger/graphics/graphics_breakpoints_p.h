@@ -29,6 +29,8 @@ public:
     void OnResumed();
 
 private:
+    static QString DebugContextEventToString(Tegra::DebugContext::Event event);
+
     std::weak_ptr<Tegra::DebugContext> context_weak;
     bool at_breakpoint;
     Tegra::DebugContext::Event active_breakpoint;

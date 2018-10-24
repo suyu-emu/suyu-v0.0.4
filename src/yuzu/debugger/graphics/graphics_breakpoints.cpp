@@ -2,7 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <map>
 #include <QLabel>
 #include <QMetaType>
 #include <QPushButton>
@@ -32,21 +31,8 @@ QVariant BreakPointModel::data(const QModelIndex& index, int role) const {
     switch (role) {
     case Qt::DisplayRole: {
         if (index.column() == 0) {
-            static const std::map<Tegra::DebugContext::Event, QString> map = {
-                {Tegra::DebugContext::Event::MaxwellCommandLoaded, tr("Maxwell command loaded")},
-                {Tegra::DebugContext::Event::MaxwellCommandProcessed,
-                 tr("Maxwell command processed")},
-                {Tegra::DebugContext::Event::IncomingPrimitiveBatch,
-                 tr("Incoming primitive batch")},
-                {Tegra::DebugContext::Event::FinishedPrimitiveBatch,
-                 tr("Finished primitive batch")},
-            };
-
-            DEBUG_ASSERT(map.size() ==
-                         static_cast<std::size_t>(Tegra::DebugContext::Event::NumEvents));
-            return (map.find(event) != map.end()) ? map.at(event) : QString();
+            return DebugContextEventToString(event);
         }
-
         break;
     }
 
@@ -126,6 +112,23 @@ void BreakPointModel::OnResumed() {
     emit dataChanged(createIndex(static_cast<int>(active_breakpoint), 0),
                      createIndex(static_cast<int>(active_breakpoint), 0));
     active_breakpoint = context->active_breakpoint;
+}
+
+QString BreakPointModel::DebugContextEventToString(Tegra::DebugContext::Event event) {
+    switch (event) {
+    case Tegra::DebugContext::Event::MaxwellCommandLoaded:
+        return tr("Maxwell command loaded");
+    case Tegra::DebugContext::Event::MaxwellCommandProcessed:
+        return tr("Maxwell command processed");
+    case Tegra::DebugContext::Event::IncomingPrimitiveBatch:
+        return tr("Incoming primitive batch");
+    case Tegra::DebugContext::Event::FinishedPrimitiveBatch:
+        return tr("Finished primitive batch");
+    case Tegra::DebugContext::Event::NumEvents:
+        break;
+    }
+
+    return tr("Unknown debug context event");
 }
 
 GraphicsBreakPointsWidget::GraphicsBreakPointsWidget(
