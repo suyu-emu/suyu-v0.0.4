@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <random>
-#include <boost/optional.hpp>
+
 #include "common/file_util.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/settings.h"
@@ -58,11 +58,11 @@ ProfileManager::~ProfileManager() {
 
 /// After a users creation it needs to be "registered" to the system. AddToProfiles handles the
 /// internal management of the users profiles
-boost::optional<std::size_t> ProfileManager::AddToProfiles(const ProfileInfo& user) {
+std::optional<std::size_t> ProfileManager::AddToProfiles(const ProfileInfo& profile) {
     if (user_count >= MAX_USERS) {
-        return boost::none;
+        return {};
     }
-    profiles[user_count] = user;
+    profiles[user_count] = profile;
     return user_count++;
 }
 
@@ -81,7 +81,7 @@ bool ProfileManager::RemoveProfileAtIndex(std::size_t index) {
 
 /// Helper function to register a user to the system
 ResultCode ProfileManager::AddUser(const ProfileInfo& user) {
-    if (AddToProfiles(user) == boost::none) {
+    if (!AddToProfiles(user)) {
         return ERROR_TOO_MANY_USERS;
     }
     return RESULT_SUCCESS;
@@ -126,37 +126,40 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, const std::string& username)
     return CreateNewUser(uuid, username_output);
 }
 
-boost::optional<UUID> ProfileManager::GetUser(std::size_t index) const {
-    if (index >= MAX_USERS)
-        return boost::none;
+std::optional<UUID> ProfileManager::GetUser(std::size_t index) const {
+    if (index >= MAX_USERS) {
+        return {};
+    }
+
     return profiles[index].user_uuid;
 }
 
 /// Returns a users profile index based on their user id.
-boost::optional<std::size_t> ProfileManager::GetUserIndex(const UUID& uuid) const {
+std::optional<std::size_t> ProfileManager::GetUserIndex(const UUID& uuid) const {
     if (!uuid) {
-        return boost::none;
+        return {};
     }
-    auto iter = std::find_if(profiles.begin(), profiles.end(),
-                             [&uuid](const ProfileInfo& p) { return p.user_uuid == uuid; });
+
+    const auto iter = std::find_if(profiles.begin(), profiles.end(),
+                                   [&uuid](const ProfileInfo& p) { return p.user_uuid == uuid; });
     if (iter == profiles.end()) {
-        return boost::none;
+        return {};
     }
+
     return static_cast<std::size_t>(std::distance(profiles.begin(), iter));
 }
 
 /// Returns a users profile index based on their profile
-boost::optional<std::size_t> ProfileManager::GetUserIndex(const ProfileInfo& user) const {
+std::optional<std::size_t> ProfileManager::GetUserIndex(const ProfileInfo& user) const {
     return GetUserIndex(user.user_uuid);
 }
 
 /// Returns the data structure used by the switch when GetProfileBase is called on acc:*
-bool ProfileManager::GetProfileBase(boost::optional<std::size_t> index,
-                                    ProfileBase& profile) const {
-    if (index == boost::none || index >= MAX_USERS) {
+bool ProfileManager::GetProfileBase(std::optional<std::size_t> index, ProfileBase& profile) const {
+    if (!index || index >= MAX_USERS) {
         return false;
     }
-    const auto& prof_info = profiles[index.get()];
+    const auto& prof_info = profiles[*index];
     profile.user_uuid = prof_info.user_uuid;
     profile.username = prof_info.username;
     profile.timestamp = prof_info.creation_time;
@@ -165,7 +168,7 @@ bool ProfileManager::GetProfileBase(boost::optional<std::size_t> index,
 
 /// Returns the data structure used by the switch when GetProfileBase is called on acc:*
 bool ProfileManager::GetProfileBase(UUID uuid, ProfileBase& profile) const {
-    auto idx = GetUserIndex(uuid);
+    const auto idx = GetUserIndex(uuid);
     return GetProfileBase(idx, profile);
 }
 
@@ -192,7 +195,7 @@ std::size_t ProfileManager::GetOpenUserCount() const {
 
 /// Checks if a user id exists in our profile manager
 bool ProfileManager::UserExists(UUID uuid) const {
-    return (GetUserIndex(uuid) != boost::none);
+    return GetUserIndex(uuid) != std::nullopt;
 }
 
 bool ProfileManager::UserExistsIndex(std::size_t index) const {
@@ -203,21 +206,23 @@ bool ProfileManager::UserExistsIndex(std::size_t index) const {
 
 /// Opens a specific user
 void ProfileManager::OpenUser(UUID uuid) {
-    auto idx = GetUserIndex(uuid);
-    if (idx == boost::none) {
+    const auto idx = GetUserIndex(uuid);
+    if (!idx) {
         return;
     }
-    profiles[idx.get()].is_open = true;
+
+    profiles[*idx].is_open = true;
     last_opened_user = uuid;
 }
 
 /// Closes a specific user
 void ProfileManager::CloseUser(UUID uuid) {
-    auto idx = GetUserIndex(uuid);
-    if (idx == boost::none) {
+    const auto idx = GetUserIndex(uuid);
+    if (!idx) {
         return;
     }
-    profiles[idx.get()].is_open = false;
+
+    profiles[*idx].is_open = false;
 }
 
 /// Gets all valid user ids on the system
@@ -247,10 +252,10 @@ UUID ProfileManager::GetLastOpenedUser() const {
 }
 
 /// Return the users profile base and the unknown arbitary data.
-bool ProfileManager::GetProfileBaseAndData(boost::optional<std::size_t> index, ProfileBase& profile,
+bool ProfileManager::GetProfileBaseAndData(std::optional<std::size_t> index, ProfileBase& profile,
                                            ProfileData& data) const {
     if (GetProfileBase(index, profile)) {
-        data = profiles[index.get()].data;
+        data = profiles[*index].data;
         return true;
     }
     return false;
@@ -259,7 +264,7 @@ bool ProfileManager::GetProfileBaseAndData(boost::optional<std::size_t> index, P
 /// Return the users profile base and the unknown arbitary data.
 bool ProfileManager::GetProfileBaseAndData(UUID uuid, ProfileBase& profile,
                                            ProfileData& data) const {
-    auto idx = GetUserIndex(uuid);
+    const auto idx = GetUserIndex(uuid);
     return GetProfileBaseAndData(idx, profile, data);
 }
 
@@ -277,8 +282,8 @@ bool ProfileManager::CanSystemRegisterUser() const {
 }
 
 bool ProfileManager::RemoveUser(UUID uuid) {
-    auto index = GetUserIndex(uuid);
-    if (index == boost::none) {
+    const auto index = GetUserIndex(uuid);
+    if (!index) {
         return false;
     }
 
@@ -289,8 +294,8 @@ bool ProfileManager::RemoveUser(UUID uuid) {
 }
 
 bool ProfileManager::SetProfileBase(UUID uuid, const ProfileBase& profile_new) {
-    auto index = GetUserIndex(uuid);
-    if (profile_new.user_uuid == UUID(INVALID_UUID) || index == boost::none) {
+    const auto index = GetUserIndex(uuid);
+    if (!index || profile_new.user_uuid == UUID(INVALID_UUID)) {
         return false;
     }
 

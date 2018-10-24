@@ -743,7 +743,7 @@ void IApplicationFunctions::PopLaunchParameter(Kernel::HLERequestContext& ctx) {
 
     Account::ProfileManager profile_manager{};
     const auto uuid = profile_manager.GetUser(Settings::values.current_user);
-    ASSERT(uuid != boost::none);
+    ASSERT(uuid != std::nullopt);
     params.current_user = uuid->uuid;
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};

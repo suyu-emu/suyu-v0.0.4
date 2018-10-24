@@ -5,8 +5,8 @@
 #pragma once
 
 #include <array>
+#include <optional>
 
-#include "boost/optional.hpp"
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "core/hle/result.h"
@@ -96,13 +96,13 @@ public:
     ResultCode AddUser(const ProfileInfo& user);
     ResultCode CreateNewUser(UUID uuid, const ProfileUsername& username);
     ResultCode CreateNewUser(UUID uuid, const std::string& username);
-    boost::optional<UUID> GetUser(std::size_t index) const;
-    boost::optional<std::size_t> GetUserIndex(const UUID& uuid) const;
-    boost::optional<std::size_t> GetUserIndex(const ProfileInfo& user) const;
-    bool GetProfileBase(boost::optional<std::size_t> index, ProfileBase& profile) const;
+    std::optional<UUID> GetUser(std::size_t index) const;
+    std::optional<std::size_t> GetUserIndex(const UUID& uuid) const;
+    std::optional<std::size_t> GetUserIndex(const ProfileInfo& user) const;
+    bool GetProfileBase(std::optional<std::size_t> index, ProfileBase& profile) const;
     bool GetProfileBase(UUID uuid, ProfileBase& profile) const;
     bool GetProfileBase(const ProfileInfo& user, ProfileBase& profile) const;
-    bool GetProfileBaseAndData(boost::optional<std::size_t> index, ProfileBase& profile,
+    bool GetProfileBaseAndData(std::optional<std::size_t> index, ProfileBase& profile,
                                ProfileData& data) const;
     bool GetProfileBaseAndData(UUID uuid, ProfileBase& profile, ProfileData& data) const;
     bool GetProfileBaseAndData(const ProfileInfo& user, ProfileBase& profile,
@@ -120,16 +120,16 @@ public:
     bool CanSystemRegisterUser() const;
 
     bool RemoveUser(UUID uuid);
-    bool SetProfileBase(UUID uuid, const ProfileBase& profile);
+    bool SetProfileBase(UUID uuid, const ProfileBase& profile_new);
 
 private:
     void ParseUserSaveFile();
     void WriteUserSaveFile();
+    std::optional<std::size_t> AddToProfiles(const ProfileInfo& profile);
+    bool RemoveProfileAtIndex(std::size_t index);
 
     std::array<ProfileInfo, MAX_USERS> profiles{};
     std::size_t user_count = 0;
-    boost::optional<std::size_t> AddToProfiles(const ProfileInfo& profile);
-    bool RemoveProfileAtIndex(std::size_t index);
     UUID last_opened_user{INVALID_UUID};
 };
 
