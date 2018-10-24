@@ -196,6 +196,7 @@ void FileBackend::Write(const Entry& entry) {
     SUB(Service, NFP)                                                                              \
     SUB(Service, NIFM)                                                                             \
     SUB(Service, NIM)                                                                              \
+    SUB(Service, NPNS)                                                                             \
     SUB(Service, NS)                                                                               \
     SUB(Service, NVDRV)                                                                            \
     SUB(Service, PCIE)                                                                             \
@@ -204,10 +205,12 @@ void FileBackend::Write(const Entry& entry) {
     SUB(Service, PM)                                                                               \
     SUB(Service, PREPO)                                                                            \
     SUB(Service, PSC)                                                                              \
+    SUB(Service, PSM)                                                                              \
     SUB(Service, SET)                                                                              \
     SUB(Service, SM)                                                                               \
     SUB(Service, SPL)                                                                              \
     SUB(Service, SSL)                                                                              \
+    SUB(Service, TCAP)                                                                             \
     SUB(Service, Time)                                                                             \
     SUB(Service, USB)                                                                              \
     SUB(Service, VI)                                                                               \
