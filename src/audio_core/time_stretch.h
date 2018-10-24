@@ -27,7 +27,6 @@ public:
 
 private:
     u32 m_sample_rate;
-    u32 m_channel_count;
     soundtouch::SoundTouch m_sound_touch;
     double m_stretch_ratio = 1.0;
 };
