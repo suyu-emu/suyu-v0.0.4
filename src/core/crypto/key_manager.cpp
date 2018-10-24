@@ -713,7 +713,6 @@ void KeyManager::DeriveBase() {
 
     const auto sbk = GetKey(S128KeyType::SecureBoot);
     const auto tsec = GetKey(S128KeyType::TSEC);
-    const auto master_source = GetKey(S128KeyType::Source, static_cast<u64>(SourceKeyType::Master));
 
     for (size_t i = 0; i < revisions.size(); ++i) {
         if (!revisions[i])
