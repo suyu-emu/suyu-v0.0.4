@@ -142,7 +142,6 @@ void SwizzledData(u8* swizzled_data, u8* unswizzled_data, const bool unswizzle, 
     const u32 blocks_on_x = div_ceil(width, block_x_elements);
     const u32 blocks_on_y = div_ceil(height, block_y_elements);
     const u32 blocks_on_z = div_ceil(depth, block_z_elements);
-    const u32 blocks = blocks_on_x * blocks_on_y * blocks_on_z;
     const u32 gob_size = gob_x_bytes * gob_elements_y * gob_elements_z;
     const u32 xy_block_size = gob_size * block_height;
     const u32 block_size = xy_block_size * block_depth;
