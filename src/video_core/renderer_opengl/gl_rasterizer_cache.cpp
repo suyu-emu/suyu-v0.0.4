@@ -1325,6 +1325,8 @@ void RasterizerCacheOpenGL::AccurateCopySurface(const Surface& src_surface,
                                                 const Surface& dst_surface) {
     const auto& src_params{src_surface->GetSurfaceParams()};
     const auto& dst_params{dst_surface->GetSurfaceParams()};
+    auto* start = Memory::GetPointer(src_params.addr);
+    std::fill(start, start + dst_params.MemorySize(), 0);
     FlushRegion(src_params.addr, dst_params.MemorySize());
     LoadSurface(dst_surface);
 }
