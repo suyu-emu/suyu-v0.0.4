@@ -10,11 +10,6 @@ namespace Kernel {
 
 namespace ErrCodes {
 enum {
-    // TODO(Subv): Remove these 3DS OS error codes.
-    SessionClosedByRemote = 26,
-    NoPendingSessions = 35,
-    InvalidBufferDescriptor = 48,
-
     // Confirmed Switch OS error codes
     MaxConnectionsReached = 7,
     InvalidSize = 101,
