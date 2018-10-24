@@ -15,6 +15,7 @@
 #include "common/logging/backend.h"
 #include "common/string_util.h"
 #include "core/core.h"
+#include "core/hle/service/acc/profile_manager.h"
 #include "core/settings.h"
 #include "ui_configure_system.h"
 #include "yuzu/configuration/configure_system.h"
@@ -266,6 +267,7 @@ void ConfigureSystem::RenameUser() {
     if (!ok)
         return;
 
+    std::fill(profile.username.begin(), profile.username.end(), '\0');
     const auto username_std = new_username.toStdString();
     if (username_std.size() > profile.username.size()) {
         std::copy_n(username_std.begin(), std::min(profile.username.size(), username_std.size()),
@@ -280,7 +282,10 @@ void ConfigureSystem::RenameUser() {
         user, 0,
         new QStandardItem{
             GetIcon(*uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-            QString::fromStdString(username_std + '\n' + uuid->FormatSwitch())});
+            tr("%1\n%2", "%1 is the profile username, %2 is the formatted UUID (e.g. "
+                         "00112233-4455-6677-8899-AABBCCDDEEFF))")
+                .arg(QString::fromStdString(username_std),
+                     QString::fromStdString(uuid->FormatSwitch()))});
     UpdateCurrentUser();
 }
 
@@ -290,9 +295,10 @@ void ConfigureSystem::DeleteUser() {
     ASSERT(uuid != boost::none);
     const auto username = GetAccountUsername(*uuid);
 
-    const auto confirm = QMessageBox::question(
-        this, tr("Confirm Delete"),
-        tr("You are about to delete user with name %1. Are you sure?").arg(username.c_str()));
+    const auto confirm =
+        QMessageBox::question(this, tr("Confirm Delete"),
+                              tr("You are about to delete user with name %1. Are you sure?")
+                                  .arg(QString::fromStdString(username)));
 
     if (confirm == QMessageBox::No)
         return;

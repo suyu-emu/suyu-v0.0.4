@@ -8,7 +8,11 @@
 
 #include <QList>
 #include <QWidget>
-#include "core/hle/service/acc/profile_manager.h"
+
+namespace Service::Account {
+class ProfileManager;
+struct UUID;
+} // namespace Service::Account
 
 class QGraphicsScene;
 class QStandardItem;
