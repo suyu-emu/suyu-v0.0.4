@@ -108,9 +108,10 @@ void Controller_NPad::OnInit() {
     styleset_changed_event =
         Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "npad:NpadStyleSetChanged");
 
-    if (!IsControllerActivated())
+    if (!IsControllerActivated()) {
         return;
-    std::size_t controller{};
+    }
+
     if (style.raw == 0) {
         // We want to support all controllers
         style.handheld.Assign(1);
