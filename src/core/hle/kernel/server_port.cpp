@@ -28,7 +28,7 @@ ResultVal<SharedPtr<ServerSession>> ServerPort::Accept() {
 
 bool ServerPort::ShouldWait(Thread* thread) const {
     // If there are no pending sessions, we wait until a new one is added.
-    return pending_sessions.size() == 0;
+    return pending_sessions.empty();
 }
 
 void ServerPort::Acquire(Thread* thread) {
