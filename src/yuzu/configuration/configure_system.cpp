@@ -21,12 +21,8 @@
 #include "yuzu/configuration/configure_system.h"
 #include "yuzu/main.h"
 
-static std::string GetImagePath(Service::Account::UUID uuid) {
-    return FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
-           "/system/save/8000000000000010/su/avators/" + uuid.FormatSwitch() + ".jpg";
-}
-
-static const std::array<int, 12> days_in_month = {{
+namespace {
+constexpr std::array<int, 12> days_in_month = {{
     31,
     29,
     31,
@@ -42,7 +38,7 @@ static const std::array<int, 12> days_in_month = {{
 }};
 
 // Same backup JPEG used by acc IProfile::GetImage if no jpeg found
-static constexpr std::array<u8, 107> backup_jpeg{
+constexpr std::array<u8, 107> backup_jpeg{
     0xff, 0xd8, 0xff, 0xdb, 0x00, 0x43, 0x00, 0x03, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x02, 0x02,
     0x02, 0x03, 0x03, 0x03, 0x03, 0x04, 0x06, 0x04, 0x04, 0x04, 0x04, 0x04, 0x08, 0x06, 0x06, 0x05,
     0x06, 0x09, 0x08, 0x0a, 0x0a, 0x09, 0x08, 0x09, 0x09, 0x0a, 0x0c, 0x0f, 0x0c, 0x0a, 0x0b, 0x0e,
@@ -51,6 +47,23 @@ static constexpr std::array<u8, 107> backup_jpeg{
     0x01, 0x01, 0x11, 0x00, 0xff, 0xcc, 0x00, 0x06, 0x00, 0x10, 0x10, 0x05, 0xff, 0xda, 0x00, 0x08,
     0x01, 0x01, 0x00, 0x00, 0x3f, 0x00, 0xd2, 0xcf, 0x20, 0xff, 0xd9,
 };
+
+std::string GetImagePath(Service::Account::UUID uuid) {
+    return FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
+           "/system/save/8000000000000010/su/avators/" + uuid.FormatSwitch() + ".jpg";
+}
+
+std::string GetAccountUsername(const Service::Account::ProfileManager& manager,
+                               Service::Account::UUID uuid) {
+    Service::Account::ProfileBase profile;
+    if (!manager.GetProfileBase(uuid, profile)) {
+        return "";
+    }
+
+    return Common::StringFromFixedZeroTerminatedBuffer(
+        reinterpret_cast<const char*>(profile.username.data()), profile.username.size());
+}
+} // Anonymous namespace
 
 ConfigureSystem::ConfigureSystem(QWidget* parent)
     : QWidget(parent), ui(new Ui::ConfigureSystem),
@@ -154,7 +167,7 @@ void ConfigureSystem::UpdateCurrentUser() {
 
     const auto& current_user = profile_manager->GetUser(Settings::values.current_user);
     ASSERT(current_user != std::nullopt);
-    const auto username = GetAccountUsername(*current_user);
+    const auto username = GetAccountUsername(*profile_manager, *current_user);
 
     scene->clear();
     scene->addPixmap(
@@ -163,14 +176,6 @@ void ConfigureSystem::UpdateCurrentUser() {
 }
 
 void ConfigureSystem::ReadSystemSettings() {}
-
-std::string ConfigureSystem::GetAccountUsername(Service::Account::UUID uuid) const {
-    Service::Account::ProfileBase profile;
-    if (!profile_manager->GetProfileBase(uuid, profile))
-        return "";
-    return Common::StringFromFixedZeroTerminatedBuffer(
-        reinterpret_cast<const char*>(profile.username.data()), profile.username.size());
-}
 
 void ConfigureSystem::applyConfiguration() {
     if (!enabled)
@@ -252,7 +257,7 @@ void ConfigureSystem::RenameUser() {
     const auto user = tree_view->currentIndex().row();
     const auto uuid = profile_manager->GetUser(user);
     ASSERT(uuid != std::nullopt);
-    const auto username = GetAccountUsername(*uuid);
+    const auto username = GetAccountUsername(*profile_manager, *uuid);
 
     Service::Account::ProfileBase profile;
     if (!profile_manager->GetProfileBase(*uuid, profile))
@@ -292,7 +297,7 @@ void ConfigureSystem::DeleteUser() {
     const auto index = tree_view->currentIndex().row();
     const auto uuid = profile_manager->GetUser(index);
     ASSERT(uuid != std::nullopt);
-    const auto username = GetAccountUsername(*uuid);
+    const auto username = GetAccountUsername(*profile_manager, *uuid);
 
     const auto confirm =
         QMessageBox::question(this, tr("Confirm Delete"),
@@ -320,7 +325,7 @@ void ConfigureSystem::SetUserImage() {
     const auto index = tree_view->currentIndex().row();
     const auto uuid = profile_manager->GetUser(index);
     ASSERT(uuid != std::nullopt);
-    const auto username = GetAccountUsername(*uuid);
+    const auto username = GetAccountUsername(*profile_manager, *uuid);
 
     const auto file = QFileDialog::getOpenFileName(this, tr("Select User Image"), QString(),
                                                    "JPEG Images (*.jpg *.jpeg)");

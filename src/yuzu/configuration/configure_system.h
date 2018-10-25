@@ -9,16 +9,15 @@
 #include <QList>
 #include <QWidget>
 
-namespace Service::Account {
-class ProfileManager;
-struct UUID;
-} // namespace Service::Account
-
 class QGraphicsScene;
 class QStandardItem;
 class QStandardItemModel;
 class QTreeView;
 class QVBoxLayout;
+
+namespace Service::Account {
+class ProfileManager;
+}
 
 namespace Ui {
 class ConfigureSystem;
@@ -36,7 +35,6 @@ public:
 
 private:
     void ReadSystemSettings();
-    std::string GetAccountUsername(Service::Account::UUID uuid) const;
 
     void UpdateBirthdayComboBox(int birthmonth_index);
     void RefreshConsoleID();
