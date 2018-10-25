@@ -38,8 +38,8 @@ private:
     void ReadSystemSettings();
     std::string GetAccountUsername(Service::Account::UUID uuid) const;
 
-    void updateBirthdayComboBox(int birthmonth_index);
-    void refreshConsoleID();
+    void UpdateBirthdayComboBox(int birthmonth_index);
+    void RefreshConsoleID();
 
     void PopulateUserList();
     void UpdateCurrentUser();

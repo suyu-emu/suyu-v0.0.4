@@ -58,9 +58,9 @@ ConfigureSystem::ConfigureSystem(QWidget* parent)
     ui->setupUi(this);
     connect(ui->combo_birthmonth,
             static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
-            &ConfigureSystem::updateBirthdayComboBox);
+            &ConfigureSystem::UpdateBirthdayComboBox);
     connect(ui->button_regenerate_console_id, &QPushButton::clicked, this,
-            &ConfigureSystem::refreshConsoleID);
+            &ConfigureSystem::RefreshConsoleID);
 
     layout = new QVBoxLayout;
     tree_view = new QTreeView;
@@ -180,7 +180,7 @@ void ConfigureSystem::applyConfiguration() {
     Settings::Apply();
 }
 
-void ConfigureSystem::updateBirthdayComboBox(int birthmonth_index) {
+void ConfigureSystem::UpdateBirthdayComboBox(int birthmonth_index) {
     if (birthmonth_index < 0 || birthmonth_index >= 12)
         return;
 
@@ -205,7 +205,7 @@ void ConfigureSystem::updateBirthdayComboBox(int birthmonth_index) {
     ui->combo_birthday->setCurrentIndex(birthday_index);
 }
 
-void ConfigureSystem::refreshConsoleID() {
+void ConfigureSystem::RefreshConsoleID() {
     QMessageBox::StandardButton reply;
     QString warning_text = tr("This will replace your current virtual Switch with a new one. "
                               "Your current virtual Switch will not be recoverable. "
