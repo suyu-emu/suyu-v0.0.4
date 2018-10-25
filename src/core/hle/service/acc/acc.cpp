@@ -21,8 +21,6 @@
 
 namespace Service::Account {
 
-constexpr u32 MAX_JPEG_IMAGE_SIZE = 0x20000;
-
 // TODO: RE this structure
 struct UserData {
     INSERT_PADDING_WORDS(1);
@@ -34,9 +32,27 @@ struct UserData {
 };
 static_assert(sizeof(UserData) == 0x80, "UserData structure has incorrect size");
 
+// Smallest JPEG https://github.com/mathiasbynens/small/blob/master/jpeg.jpg
+// used as a backup should the one on disk not exist
+constexpr u32 backup_jpeg_size = 107;
+constexpr std::array<u8, backup_jpeg_size> backup_jpeg{{
+    0xff, 0xd8, 0xff, 0xdb, 0x00, 0x43, 0x00, 0x03, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x02, 0x02,
+    0x02, 0x03, 0x03, 0x03, 0x03, 0x04, 0x06, 0x04, 0x04, 0x04, 0x04, 0x04, 0x08, 0x06, 0x06, 0x05,
+    0x06, 0x09, 0x08, 0x0a, 0x0a, 0x09, 0x08, 0x09, 0x09, 0x0a, 0x0c, 0x0f, 0x0c, 0x0a, 0x0b, 0x0e,
+    0x0b, 0x09, 0x09, 0x0d, 0x11, 0x0d, 0x0e, 0x0f, 0x10, 0x10, 0x11, 0x10, 0x0a, 0x0c, 0x12, 0x13,
+    0x12, 0x10, 0x13, 0x0f, 0x10, 0x10, 0x10, 0xff, 0xc9, 0x00, 0x0b, 0x08, 0x00, 0x01, 0x00, 0x01,
+    0x01, 0x01, 0x11, 0x00, 0xff, 0xcc, 0x00, 0x06, 0x00, 0x10, 0x10, 0x05, 0xff, 0xda, 0x00, 0x08,
+    0x01, 0x01, 0x00, 0x00, 0x3f, 0x00, 0xd2, 0xcf, 0x20, 0xff, 0xd9,
+}};
+
 static std::string GetImagePath(UUID uuid) {
     return FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
            "/system/save/8000000000000010/su/avators/" + uuid.FormatSwitch() + ".jpg";
+}
+
+static constexpr u32 SanitizeJPEGSize(std::size_t size) {
+    constexpr std::size_t max_jpeg_image_size = 0x20000;
+    return static_cast<u32>(std::min(size, max_jpeg_image_size));
 }
 
 class IProfile final : public ServiceFramework<IProfile> {
@@ -86,43 +102,29 @@ private:
 
     void LoadImage(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_ACC, "called");
-        // smallest jpeg https://github.com/mathiasbynens/small/blob/master/jpeg.jpg
-        // used as a backup should the one on disk not exist
-        constexpr u32 backup_jpeg_size = 107;
-        static constexpr std::array<u8, backup_jpeg_size> backup_jpeg{
-            0xff, 0xd8, 0xff, 0xdb, 0x00, 0x43, 0x00, 0x03, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03,
-            0x02, 0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x04, 0x06, 0x04, 0x04, 0x04, 0x04, 0x04,
-            0x08, 0x06, 0x06, 0x05, 0x06, 0x09, 0x08, 0x0a, 0x0a, 0x09, 0x08, 0x09, 0x09, 0x0a,
-            0x0c, 0x0f, 0x0c, 0x0a, 0x0b, 0x0e, 0x0b, 0x09, 0x09, 0x0d, 0x11, 0x0d, 0x0e, 0x0f,
-            0x10, 0x10, 0x11, 0x10, 0x0a, 0x0c, 0x12, 0x13, 0x12, 0x10, 0x13, 0x0f, 0x10, 0x10,
-            0x10, 0xff, 0xc9, 0x00, 0x0b, 0x08, 0x00, 0x01, 0x00, 0x01, 0x01, 0x01, 0x11, 0x00,
-            0xff, 0xcc, 0x00, 0x06, 0x00, 0x10, 0x10, 0x05, 0xff, 0xda, 0x00, 0x08, 0x01, 0x01,
-            0x00, 0x00, 0x3f, 0x00, 0xd2, 0xcf, 0x20, 0xff, 0xd9,
-        };
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
 
         const FileUtil::IOFile image(GetImagePath(user_id), "rb");
-
         if (!image.IsOpen()) {
             LOG_WARNING(Service_ACC,
                         "Failed to load user provided image! Falling back to built-in backup...");
             ctx.WriteBuffer(backup_jpeg);
             rb.Push<u32>(backup_jpeg_size);
-        } else {
-            const auto size = std::min<u32>(image.GetSize(), MAX_JPEG_IMAGE_SIZE);
-            std::vector<u8> buffer(size);
-            image.ReadBytes(buffer.data(), buffer.size());
-
-            ctx.WriteBuffer(buffer.data(), buffer.size());
-            rb.Push<u32>(buffer.size());
+            return;
         }
+
+        const u32 size = SanitizeJPEGSize(image.GetSize());
+        std::vector<u8> buffer(size);
+        image.ReadBytes(buffer.data(), buffer.size());
+
+        ctx.WriteBuffer(buffer.data(), buffer.size());
+        rb.Push<u32>(size);
     }
 
     void GetImageSize(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_ACC, "called");
-        constexpr u32 backup_jpeg_size = 107;
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
 
@@ -133,7 +135,7 @@ private:
                         "Failed to load user provided image! Falling back to built-in backup...");
             rb.Push<u32>(backup_jpeg_size);
         } else {
-            rb.Push<u32>(std::min<u32>(image.GetSize(), MAX_JPEG_IMAGE_SIZE));
+            rb.Push<u32>(SanitizeJPEGSize(image.GetSize()));
         }
     }
 
