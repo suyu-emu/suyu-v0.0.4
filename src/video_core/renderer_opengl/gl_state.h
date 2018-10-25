@@ -50,6 +50,11 @@ public:
     } depth;
 
     struct {
+        bool enabled;
+        GLuint index;
+    } primitive_restart; // GL_PRIMITIVE_RESTART
+
+    struct {
         GLboolean red_enabled;
         GLboolean green_enabled;
         GLboolean blue_enabled;

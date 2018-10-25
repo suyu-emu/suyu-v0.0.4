@@ -751,7 +751,14 @@ public:
                     };
                 } draw;
 
-                INSERT_PADDING_WORDS(0x6B);
+                INSERT_PADDING_WORDS(0xA);
+
+                struct {
+                    u32 enabled;
+                    u32 index;
+                } primitive_restart;
+
+                INSERT_PADDING_WORDS(0x5F);
 
                 struct {
                     u32 start_addr_high;
@@ -1082,6 +1089,7 @@ ASSERT_REG_POSITION(stencil_back_func_func, 0x569);
 ASSERT_REG_POSITION(point_coord_replace, 0x581);
 ASSERT_REG_POSITION(code_address, 0x582);
 ASSERT_REG_POSITION(draw, 0x585);
+ASSERT_REG_POSITION(primitive_restart, 0x591);
 ASSERT_REG_POSITION(index_array, 0x5F2);
 ASSERT_REG_POSITION(instanced_arrays, 0x620);
 ASSERT_REG_POSITION(cull, 0x646);
