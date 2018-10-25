@@ -34,22 +34,20 @@ public:
     void applyConfiguration();
     void setConfiguration();
 
-    void PopulateUserList();
-    void UpdateCurrentUser();
+private:
+    void ReadSystemSettings();
+    std::string GetAccountUsername(Service::Account::UUID uuid) const;
 
-public slots:
     void updateBirthdayComboBox(int birthmonth_index);
     void refreshConsoleID();
 
+    void PopulateUserList();
+    void UpdateCurrentUser();
     void SelectUser(const QModelIndex& index);
     void AddUser();
     void RenameUser();
     void DeleteUser();
     void SetUserImage();
-
-private:
-    void ReadSystemSettings();
-    std::string GetAccountUsername(Service::Account::UUID uuid) const;
 
     QVBoxLayout* layout;
     QTreeView* tree_view;
