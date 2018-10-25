@@ -57,11 +57,12 @@ private:
     std::vector<QList<QStandardItem*>> list_items;
 
     std::unique_ptr<Ui::ConfigureSystem> ui;
-    bool enabled;
+    bool enabled = false;
 
-    int birthmonth, birthday;
-    int language_index;
-    int sound_index;
+    int birthmonth = 0;
+    int birthday = 0;
+    int language_index = 0;
+    int sound_index = 0;
 
     std::unique_ptr<Service::Account::ProfileManager> profile_manager;
 };
