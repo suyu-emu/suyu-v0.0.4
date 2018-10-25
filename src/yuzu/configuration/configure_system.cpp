@@ -328,7 +328,7 @@ void ConfigureSystem::SetUserImage() {
     const auto username = GetAccountUsername(*profile_manager, *uuid);
 
     const auto file = QFileDialog::getOpenFileName(this, tr("Select User Image"), QString(),
-                                                   "JPEG Images (*.jpg *.jpeg)");
+                                                   tr("JPEG Images (*.jpg *.jpeg)"));
 
     if (file.isEmpty())
         return;
