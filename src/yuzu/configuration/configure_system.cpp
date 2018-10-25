@@ -232,8 +232,7 @@ void ConfigureSystem::SelectUser(const QModelIndex& index) {
 }
 
 void ConfigureSystem::AddUser() {
-    Service::Account::UUID uuid;
-    uuid.Generate();
+    const auto uuid = Service::Account::UUID::Generate();
 
     bool ok = false;
     const auto username =
