@@ -67,15 +67,15 @@ public:
     explicit IClientEpSession() : ServiceFramework{"IClientEpSession"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "Unknown1"},
-            {1, nullptr, "Unknown2"},
-            {2, nullptr, "Unknown3"},
-            {3, nullptr, "Unknown4"},
+            {0, nullptr, "Open"},
+            {1, nullptr, "Close"},
+            {2, nullptr, "Unknown1"},
+            {3, nullptr, "Populate"},
             {4, nullptr, "PostBufferAsync"},
-            {5, nullptr, "Unknown5"},
-            {6, nullptr, "Unknown6"},
-            {7, nullptr, "Unknown7"},
-            {8, nullptr, "Unknown8"},
+            {5, nullptr, "GetXferReport"},
+            {6, nullptr, "Unknown2"},
+            {7, nullptr, "Unknown3"},
+            {8, nullptr, "Unknown4"},
         };
         // clang-format on
 
@@ -89,15 +89,15 @@ public:
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Unknown1"},
-            {1, nullptr, "Unknown2"},
-            {2, nullptr, "Unknown3"},
-            {3, nullptr, "Unknown4"},
-            {4, nullptr, "Unknown5"},
+            {1, nullptr, "SetInterface"},
+            {2, nullptr, "GetInterface"},
+            {3, nullptr, "GetAlternateInterface"},
+            {4, nullptr, "GetCurrentFrame"},
             {5, nullptr, "CtrlXferAsync"},
-            {6, nullptr, "Unknown6"},
+            {6, nullptr, "Unknown2"},
             {7, nullptr, "GetCtrlXferReport"},
-            {8, nullptr, "Unknown7"},
-            {9, nullptr, "GetClientEpSession"},
+            {8, nullptr, "ResetDevice"},
+            {9, nullptr, "OpenUsbEp"},
         };
         // clang-format on
 
@@ -111,13 +111,14 @@ public:
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "BindClientProcess"},
-            {1, nullptr, "Unknown1"},
-            {2, nullptr, "Unknown2"},
-            {3, nullptr, "Unknown3"},
-            {4, nullptr, "Unknown4"},
-            {5, nullptr, "Unknown5"},
+            {1, nullptr, "QueryAllInterfaces"},
+            {2, nullptr, "QueryAvailableInterfaces"},
+            {3, nullptr, "QueryAcquiredInterfaces"},
+            {4, nullptr, "CreateInterfaceAvailableEvent"},
+            {5, nullptr, "DestroyInterfaceAvailableEvent"},
             {6, nullptr, "GetInterfaceStateChangeEvent"},
-            {7, nullptr, "GetClientIfSession"},
+            {7, nullptr, "AcquireUsbIf"},
+            {8, nullptr, "Unknown1"},
         };
         // clang-format on
 
