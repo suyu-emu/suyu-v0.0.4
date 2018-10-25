@@ -529,6 +529,36 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
                     "(STUBBED) Attempted to query user exception context address, returned 0");
         *result = 0;
         break;
+    case GetInfoType::ThreadTickCount: {
+        constexpr u64 num_cpus = 4;
+        if (info_sub_id != 0xFFFFFFFFFFFFFFFF && info_sub_id >= num_cpus) {
+            return ERR_INVALID_COMBINATION_KERNEL;
+        }
+
+        const auto thread =
+            current_process->GetHandleTable().Get<Thread>(static_cast<Handle>(handle));
+        if (!thread) {
+            return ERR_INVALID_HANDLE;
+        }
+
+        auto& system = Core::System::GetInstance();
+        const auto& scheduler = system.CurrentScheduler();
+        const auto* const current_thread = scheduler.GetCurrentThread();
+        const bool same_thread = current_thread == thread;
+
+        const u64 prev_ctx_ticks = scheduler.GetLastContextSwitchTicks();
+        u64 out_ticks = 0;
+        if (same_thread && info_sub_id == 0xFFFFFFFFFFFFFFFF) {
+            const u64 thread_ticks = current_thread->GetTotalCPUTimeTicks();
+
+            out_ticks = thread_ticks + (CoreTiming::GetTicks() - prev_ctx_ticks);
+        } else if (same_thread && info_sub_id == system.CurrentCoreIndex()) {
+            out_ticks = CoreTiming::GetTicks() - prev_ctx_ticks;
+        }
+
+        *result = out_ticks;
+        break;
+    }
     default:
         UNIMPLEMENTED();
     }

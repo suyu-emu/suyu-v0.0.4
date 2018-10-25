@@ -53,6 +53,7 @@ enum class GetInfoType : u64 {
     PrivilegedProcessId = 19,
     // 5.0.0+
     UserExceptionContextAddr = 20,
+    ThreadTickCount = 0xF0000002,
 };
 
 void CallSVC(u32 immediate);
