@@ -18,7 +18,7 @@ ServerPort::~ServerPort() = default;
 
 ResultVal<SharedPtr<ServerSession>> ServerPort::Accept() {
     if (pending_sessions.empty()) {
-        return ERR_NO_PENDING_SESSIONS;
+        return ERR_NOT_FOUND;
     }
 
     auto session = std::move(pending_sessions.back());
@@ -28,7 +28,7 @@ ResultVal<SharedPtr<ServerSession>> ServerPort::Accept() {
 
 bool ServerPort::ShouldWait(Thread* thread) const {
     // If there are no pending sessions, we wait until a new one is added.
-    return pending_sessions.size() == 0;
+    return pending_sessions.empty();
 }
 
 void ServerPort::Acquire(Thread* thread) {
