@@ -21,6 +21,8 @@ OpenGLState::OpenGLState() {
     depth.test_enabled = false;
     depth.test_func = GL_LESS;
     depth.write_mask = GL_TRUE;
+    depth.depth_range_near = 0.0f;
+    depth.depth_range_far = 1.0f;
 
     color_mask.red_enabled = GL_TRUE;
     color_mask.green_enabled = GL_TRUE;
@@ -117,6 +119,12 @@ void OpenGLState::Apply() const {
     // Depth mask
     if (depth.write_mask != cur_state.depth.write_mask) {
         glDepthMask(depth.write_mask);
+    }
+
+    // Depth range
+    if (depth.depth_range_near != cur_state.depth.depth_range_near ||
+        depth.depth_range_far != cur_state.depth.depth_range_far) {
+        glDepthRange(depth.depth_range_near, depth.depth_range_far);
     }
 
     // Color mask

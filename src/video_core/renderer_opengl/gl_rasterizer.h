@@ -144,11 +144,8 @@ private:
     /// Syncs the cull mode to match the guest state
     void SyncCullMode();
 
-    /// Syncs the depth scale to match the guest state
-    void SyncDepthScale();
-
-    /// Syncs the depth offset to match the guest state
-    void SyncDepthOffset();
+    /// Syncs the depth range to match the guest state
+    void SyncDepthRange();
 
     /// Syncs the depth test state to match the guest state
     void SyncDepthTestState();

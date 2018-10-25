@@ -42,9 +42,11 @@ public:
     } cull;
 
     struct {
-        bool test_enabled;    // GL_DEPTH_TEST
-        GLenum test_func;     // GL_DEPTH_FUNC
-        GLboolean write_mask; // GL_DEPTH_WRITEMASK
+        bool test_enabled;        // GL_DEPTH_TEST
+        GLenum test_func;         // GL_DEPTH_FUNC
+        GLboolean write_mask;     // GL_DEPTH_WRITEMASK
+        GLfloat depth_range_near; // GL_DEPTH_RANGE
+        GLfloat depth_range_far;  // GL_DEPTH_RANGE
     } depth;
 
     struct {

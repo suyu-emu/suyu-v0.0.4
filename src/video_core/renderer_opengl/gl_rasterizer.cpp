@@ -570,6 +570,7 @@ void RasterizerOpenGL::DrawArrays() {
     SyncBlendState();
     SyncLogicOpState();
     SyncCullMode();
+    SyncDepthRange();
     SyncScissorTest();
     // Alpha Testing is synced on shaders.
     SyncTransformFeedback();
@@ -923,12 +924,11 @@ void RasterizerOpenGL::SyncCullMode() {
     }
 }
 
-void RasterizerOpenGL::SyncDepthScale() {
-    UNREACHABLE();
-}
+void RasterizerOpenGL::SyncDepthRange() {
+    const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
-void RasterizerOpenGL::SyncDepthOffset() {
-    UNREACHABLE();
+    state.depth.depth_range_near = regs.viewport->depth_range_near;
+    state.depth.depth_range_far = regs.viewport->depth_range_far;
 }
 
 void RasterizerOpenGL::SyncDepthTestState() {
