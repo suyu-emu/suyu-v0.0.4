@@ -99,7 +99,7 @@ VirtualFile PatchIPS(const VirtualFile& in, const VirtualFile& ips) {
             u16 rle_size{};
             if (ips->ReadObject(&rle_size, offset) != sizeof(u16))
                 return nullptr;
-            rle_size = Common::swap16(data_size);
+            rle_size = Common::swap16(rle_size);
             offset += sizeof(u16);
 
             const auto data = ips->ReadByte(offset++);
