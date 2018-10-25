@@ -915,21 +915,28 @@ struct SurfaceParams {
         return std::max(1U, depth >> mip_level);
     }
 
-    u32 MipBlockHeight(u32 mip_level) const {
-        u32 height = MipHeight(mip_level);
-        u32 bh = block_height;
-        // Magical block resizing algorithm, needs more testing.
-        while (bh > 1 && (height +  bh - 1) / bh <= 16) {
-            bh = bh >> 1;
+    // Auto block resizing algorithm from:
+    // https://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv50/nv50_miptree.c
+    u32 MipBlockHeight(u32 mip_level, u32 alt_height = 0) const {
+        if (mip_level == 0)
+            return block_height;
+        if (alt_height == 0)
+            alt_height = MipHeight(mip_level);
+        u32 blocks_in_y = (alt_height + 7) / 8;
+        u32 bh = 32;
+        while (bh > 1 && blocks_in_y <= bh * 2) {
+            bh >>= 1;
         }
         return bh;
     }
 
     u32 MipBlockDepth(u32 mip_level) const {
+        if (mip_level == 0)
+            return block_depth;
         u32 depth = MipDepth(mip_level);
-        u32 bd = block_depth;
+        u32 bd = 32;
         // Magical block resizing algorithm, needs more testing.
-        while (bd > 1 && depth / bd <= 16) {
+        while (bd > 1 && depth / depth <= bd) {
             bd = bd >> 1;
         }
         return bd;

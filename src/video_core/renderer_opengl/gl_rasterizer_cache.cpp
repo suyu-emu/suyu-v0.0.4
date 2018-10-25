@@ -100,7 +100,7 @@ std::size_t SurfaceParams::InnerMipmapMemorySize(u32 mip_level, bool force_gl, b
     m_width = std::max(1U, m_width >> mip_level);
     m_height = std::max(1U, m_height >> mip_level);
     m_depth = std::max(1U, m_depth >> mip_level);
-    u32 m_block_height = MipBlockHeight(mip_level);
+    u32 m_block_height = MipBlockHeight(mip_level, m_height);
     u32 m_block_depth = MipBlockDepth(mip_level);
     return Tegra::Texture::CalculateSize(force_gl ? false : is_tiled, bytes_per_pixel, m_width,
                                          m_height, m_depth, m_block_height, m_block_depth);
@@ -875,6 +875,9 @@ CachedSurface::CachedSurface(const SurfaceParams& params)
     glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    if (params.max_mip_level == 1) {
+        glTexParameterf(SurfaceTargetToGL(params.target), GL_TEXTURE_LOD_BIAS, 1000.0);
+    }
 
     VideoCore::LabelGLObject(GL_TEXTURE, texture.handle, params.addr,
                              SurfaceParams::SurfaceTargetName(params.target));
@@ -1325,8 +1328,6 @@ void RasterizerCacheOpenGL::AccurateCopySurface(const Surface& src_surface,
                                                 const Surface& dst_surface) {
     const auto& src_params{src_surface->GetSurfaceParams()};
     const auto& dst_params{dst_surface->GetSurfaceParams()};
-    auto* start = Memory::GetPointer(src_params.addr);
-    std::fill(start, start + dst_params.MemorySize(), 0);
     FlushRegion(src_params.addr, dst_params.MemorySize());
     LoadSurface(dst_surface);
 }

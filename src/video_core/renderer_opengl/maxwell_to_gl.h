@@ -165,7 +165,6 @@ inline GLenum TextureFilterMode(Tegra::Texture::TextureFilter filter_mode,
     return {};
 }
 
-
 inline GLenum WrapMode(Tegra::Texture::WrapMode wrap_mode) {
     switch (wrap_mode) {
     case Tegra::Texture::WrapMode::Wrap:
