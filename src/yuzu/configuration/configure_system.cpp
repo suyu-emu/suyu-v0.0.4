@@ -48,9 +48,10 @@ constexpr std::array<u8, 107> backup_jpeg{
     0x01, 0x01, 0x00, 0x00, 0x3f, 0x00, 0xd2, 0xcf, 0x20, 0xff, 0xd9,
 };
 
-std::string GetImagePath(Service::Account::UUID uuid) {
-    return FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
-           "/system/save/8000000000000010/su/avators/" + uuid.FormatSwitch() + ".jpg";
+QString GetImagePath(Service::Account::UUID uuid) {
+    const auto path = FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
+                      "/system/save/8000000000000010/su/avators/" + uuid.FormatSwitch() + ".jpg";
+    return QString::fromStdString(path);
 }
 
 std::string GetAccountUsername(const Service::Account::ProfileManager& manager,
@@ -62,6 +63,17 @@ std::string GetAccountUsername(const Service::Account::ProfileManager& manager,
 
     return Common::StringFromFixedZeroTerminatedBuffer(
         reinterpret_cast<const char*>(profile.username.data()), profile.username.size());
+}
+
+QPixmap GetIcon(Service::Account::UUID uuid) {
+    QPixmap icon{GetImagePath(uuid)};
+
+    if (!icon) {
+        icon.fill(Qt::black);
+        icon.loadFromData(backup_jpeg.data(), backup_jpeg.size());
+    }
+
+    return icon;
 }
 } // Anonymous namespace
 
@@ -129,18 +141,6 @@ void ConfigureSystem::setConfiguration() {
 
     PopulateUserList();
     UpdateCurrentUser();
-}
-
-static QPixmap GetIcon(Service::Account::UUID uuid) {
-    const auto icon_url = QString::fromStdString(GetImagePath(uuid));
-    QPixmap icon{icon_url};
-
-    if (!icon) {
-        icon.fill(Qt::black);
-        icon.loadFromData(backup_jpeg.data(), backup_jpeg.size());
-    }
-
-    return icon;
 }
 
 void ConfigureSystem::PopulateUserList() {
@@ -325,24 +325,46 @@ void ConfigureSystem::SetUserImage() {
     const auto index = tree_view->currentIndex().row();
     const auto uuid = profile_manager->GetUser(index);
     ASSERT(uuid != std::nullopt);
-    const auto username = GetAccountUsername(*profile_manager, *uuid);
 
     const auto file = QFileDialog::getOpenFileName(this, tr("Select User Image"), QString(),
                                                    tr("JPEG Images (*.jpg *.jpeg)"));
 
-    if (file.isEmpty())
+    if (file.isEmpty()) {
         return;
+    }
 
-    FileUtil::Delete(GetImagePath(*uuid));
+    const auto image_path = GetImagePath(*uuid);
+    if (QFile::exists(image_path) && !QFile::remove(image_path)) {
+        QMessageBox::warning(
+            this, tr("Error deleting image"),
+            tr("Error occurred attempting to overwrite previous image at: %1.").arg(image_path));
+        return;
+    }
 
-    const auto raw_path =
-        FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) + "/system/save/8000000000000010";
-    if (FileUtil::Exists(raw_path) && !FileUtil::IsDirectory(raw_path))
-        FileUtil::Delete(raw_path);
+    const auto raw_path = QString::fromStdString(
+        FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) + "/system/save/8000000000000010");
+    const QFileInfo raw_info{raw_path};
+    if (raw_info.exists() && !raw_info.isDir() && !QFile::remove(raw_path)) {
+        QMessageBox::warning(this, tr("Error deleting file"),
+                             tr("Unable to delete existing file: %1.").arg(raw_path));
+        return;
+    }
 
-    FileUtil::CreateFullPath(GetImagePath(*uuid));
-    FileUtil::Copy(file.toStdString(), GetImagePath(*uuid));
+    const QString absolute_dst_path = QFileInfo{image_path}.absolutePath();
+    if (!QDir{raw_path}.mkpath(absolute_dst_path)) {
+        QMessageBox::warning(
+            this, tr("Error creating user image directory"),
+            tr("Unable to create directory %1 for storing user images.").arg(absolute_dst_path));
+        return;
+    }
 
+    if (!QFile::copy(file, image_path)) {
+        QMessageBox::warning(this, tr("Error copying user image"),
+                             tr("Unable to copy image from %1 to %2").arg(file, image_path));
+        return;
+    }
+
+    const auto username = GetAccountUsername(*profile_manager, *uuid);
     item_model->setItem(
         index, 0,
         new QStandardItem{
