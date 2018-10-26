@@ -328,13 +328,15 @@ void Module::Interface::CreateUserInterface(Kernel::HLERequestContext& ctx) {
     rb.PushIpcInterface<IUser>(*this);
 }
 
-void Module::Interface::LoadAmiibo(const std::vector<u8>& buffer) {
+bool Module::Interface::LoadAmiibo(const std::vector<u8>& buffer) {
     std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
     if (buffer.size() < sizeof(AmiiboFile)) {
-        return; // Failed to load file
+        return false;
     }
+
     std::memcpy(&amiibo, buffer.data(), sizeof(amiibo));
     nfc_tag_load->Signal();
+    return true;
 }
 const Kernel::SharedPtr<Kernel::Event>& Module::Interface::GetNFCEvent() const {
     return nfc_tag_load;

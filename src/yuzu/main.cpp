@@ -30,6 +30,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #define QT_NO_OPENGL
 #include <QDesktopWidget>
 #include <QDialogButtonBox>
+#include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QtConcurrent/QtConcurrent>
@@ -1336,20 +1337,40 @@ void GMainWindow::OnLoadAmiibo() {
     const QString extensions{"*.bin"};
     const QString file_filter = tr("Amiibo File (%1);; All Files (*.*)").arg(extensions);
     const QString filename = QFileDialog::getOpenFileName(this, tr("Load Amiibo"), "", file_filter);
-    if (!filename.isEmpty()) {
-        Core::System& system{Core::System::GetInstance()};
-        Service::SM::ServiceManager& sm = system.ServiceManager();
-        auto nfc = sm.GetService<Service::NFP::Module::Interface>("nfp:user");
-        if (nfc != nullptr) {
-            auto nfc_file = FileUtil::IOFile(filename.toStdString(), "rb");
-            if (!nfc_file.IsOpen()) {
-                return;
-            }
-            std::vector<u8> amiibo_buffer(nfc_file.GetSize());
-            nfc_file.ReadBytes(amiibo_buffer.data(), amiibo_buffer.size());
-            nfc_file.Close();
-            nfc->LoadAmiibo(amiibo_buffer);
-        }
+
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    Core::System& system{Core::System::GetInstance()};
+    Service::SM::ServiceManager& sm = system.ServiceManager();
+    auto nfc = sm.GetService<Service::NFP::Module::Interface>("nfp:user");
+    if (nfc == nullptr) {
+        return;
+    }
+
+    QFile nfc_file{filename};
+    if (!nfc_file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, tr("Error opening Amiibo data file"),
+                             tr("Unable to open Amiibo file \"%1\" for reading.").arg(filename));
+        return;
+    }
+
+    const u64 nfc_file_size = nfc_file.size();
+    std::vector<u8> buffer(nfc_file_size);
+    const u64 read_size = nfc_file.read(reinterpret_cast<char*>(buffer.data()), nfc_file_size);
+    if (nfc_file_size != read_size) {
+        QMessageBox::warning(this, tr("Error reading Amiibo data file"),
+                             tr("Unable to fully read Amiibo data. Expected to read %1 bytes, but "
+                                "was only able to read %2 bytes.")
+                                 .arg(nfc_file_size)
+                                 .arg(read_size));
+        return;
+    }
+
+    if (!nfc->LoadAmiibo(buffer)) {
+        QMessageBox::warning(this, tr("Error loading Amiibo data"),
+                             tr("Unable to load Amiibo data."));
     }
 }
 

@@ -32,7 +32,7 @@ public:
         static_assert(sizeof(AmiiboFile) == 0x94, "AmiiboFile is an invalid size");
 
         void CreateUserInterface(Kernel::HLERequestContext& ctx);
-        void LoadAmiibo(const std::vector<u8>& buffer);
+        bool LoadAmiibo(const std::vector<u8>& buffer);
         const Kernel::SharedPtr<Kernel::Event>& GetNFCEvent() const;
         const AmiiboFile& GetAmiiboBuffer() const;
 
