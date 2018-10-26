@@ -960,8 +960,8 @@ void CachedSurface::FlushGLBuffer() {
     glPixelStorei(GL_PACK_ROW_LENGTH, static_cast<GLint>(params.width));
     ASSERT(!tuple.compressed);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-    glGetTextureImage(texture.handle, 0, tuple.format, tuple.type, gl_buffer.size(),
-                      gl_buffer.data());
+    glGetTextureImage(texture.handle, 0, tuple.format, tuple.type,
+                      static_cast<GLsizei>(gl_buffer.size()), gl_buffer.data());
     glPixelStorei(GL_PACK_ROW_LENGTH, 0);
     ConvertFormatAsNeeded_FlushGLBuffer(gl_buffer, params.pixel_format, params.width,
                                         params.height);
