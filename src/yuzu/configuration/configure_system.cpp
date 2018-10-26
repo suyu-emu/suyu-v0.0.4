@@ -81,7 +81,7 @@ QPixmap GetIcon(Service::Account::UUID uuid) {
         icon.loadFromData(backup_jpeg.data(), backup_jpeg.size());
     }
 
-    return icon;
+    return icon.scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 }
 } // Anonymous namespace
 
@@ -162,8 +162,7 @@ void ConfigureSystem::PopulateUserList() {
             reinterpret_cast<const char*>(profile.username.data()), profile.username.size());
 
         list_items.push_back(QList<QStandardItem*>{new QStandardItem{
-            GetIcon(user).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-            FormatUserEntryText(QString::fromStdString(username), user)}});
+            GetIcon(user), FormatUserEntryText(QString::fromStdString(username), user)}});
     }
 
     for (const auto& item : list_items)
@@ -256,9 +255,7 @@ void ConfigureSystem::AddUser() {
 
     profile_manager->CreateNewUser(uuid, username.toStdString());
 
-    item_model->appendRow(new QStandardItem{
-        GetIcon(uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-        FormatUserEntryText(username, uuid)});
+    item_model->appendRow(new QStandardItem{GetIcon(uuid), FormatUserEntryText(username, uuid)});
 }
 
 void ConfigureSystem::RenameUser() {
@@ -292,9 +289,8 @@ void ConfigureSystem::RenameUser() {
 
     item_model->setItem(
         user, 0,
-        new QStandardItem{
-            GetIcon(*uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-            FormatUserEntryText(QString::fromStdString(username_std), *uuid)});
+        new QStandardItem{GetIcon(*uuid),
+                          FormatUserEntryText(QString::fromStdString(username_std), *uuid)});
     UpdateCurrentUser();
 }
 
@@ -369,10 +365,7 @@ void ConfigureSystem::SetUserImage() {
     }
 
     const auto username = GetAccountUsername(*profile_manager, *uuid);
-    item_model->setItem(
-        index, 0,
-        new QStandardItem{
-            GetIcon(*uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-            FormatUserEntryText(username, *uuid)});
+    item_model->setItem(index, 0,
+                        new QStandardItem{GetIcon(*uuid), FormatUserEntryText(username, *uuid)});
     UpdateCurrentUser();
 }
