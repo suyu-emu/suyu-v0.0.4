@@ -126,7 +126,4 @@ bool LayeredVfsDirectory::Rename(std::string_view name_) {
     return true;
 }
 
-bool LayeredVfsDirectory::ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) {
-    return false;
-}
 } // namespace FileSys

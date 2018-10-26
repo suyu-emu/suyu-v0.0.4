@@ -132,11 +132,4 @@ void VectorVfsDirectory::AddFile(VirtualFile file) {
 void VectorVfsDirectory::AddDirectory(VirtualDir dir) {
     dirs.push_back(std::move(dir));
 }
-
-bool VectorVfsDirectory::ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) {
-    if (!DeleteFile(file->GetName()))
-        return false;
-    dirs.emplace_back(std::move(dir));
-    return true;
-}
 } // namespace FileSys

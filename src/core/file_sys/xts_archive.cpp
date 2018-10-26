@@ -163,7 +163,4 @@ std::shared_ptr<VfsDirectory> NAX::GetParentDirectory() const {
     return file->GetContainingDirectory();
 }
 
-bool NAX::ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) {
-    return false;
-}
 } // namespace FileSys

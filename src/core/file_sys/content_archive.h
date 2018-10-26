@@ -100,9 +100,6 @@ public:
     // Returns the base ivfc offset used in BKTR patching.
     u64 GetBaseIVFCOffset() const;
 
-protected:
-    bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
-
 private:
     bool CheckSupportedNCA(const NCAHeader& header);
     bool HandlePotentialHeaderDecryption();

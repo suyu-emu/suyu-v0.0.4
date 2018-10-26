@@ -57,9 +57,6 @@ public:
     virtual void AddFile(VirtualFile file);
     virtual void AddDirectory(VirtualDir dir);
 
-protected:
-    bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) override;
-
 private:
     std::vector<VirtualFile> files;
     std::vector<VirtualDir> dirs;

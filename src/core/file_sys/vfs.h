@@ -262,36 +262,8 @@ public:
     // item name -> type.
     virtual std::map<std::string, VfsEntryType, std::less<>> GetEntries() const;
 
-    // Interprets the file with name file instead as a directory of type directory.
-    // The directory must have a constructor that takes a single argument of type
-    // std::shared_ptr<VfsFile>. Allows to reinterpret container files (i.e NCA, zip, XCI, etc) as a
-    // subdirectory in one call.
-    template <typename Directory>
-    bool InterpretAsDirectory(std::string_view file) {
-        auto file_p = GetFile(file);
-
-        if (file_p == nullptr) {
-            return false;
-        }
-
-        return ReplaceFileWithSubdirectory(file_p, std::make_shared<Directory>(file_p));
-    }
-
-    bool InterpretAsDirectory(const std::function<VirtualDir(VirtualFile)>& function,
-                              const std::string& file) {
-        auto file_p = GetFile(file);
-        if (file_p == nullptr)
-            return false;
-        return ReplaceFileWithSubdirectory(file_p, function(file_p));
-    }
-
     // Returns the full path of this directory as a string, recursively
     virtual std::string GetFullPath() const;
-
-protected:
-    // Backend for InterpretAsDirectory.
-    // Removes all references to file and adds a reference to dir in the directory's implementation.
-    virtual bool ReplaceFileWithSubdirectory(VirtualFile file, VirtualDir dir) = 0;
 };
 
 // A convenience partial-implementation of VfsDirectory that stubs out methods that should only work
