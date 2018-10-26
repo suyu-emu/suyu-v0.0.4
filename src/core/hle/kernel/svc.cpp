@@ -467,6 +467,37 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
     LOG_TRACE(Kernel_SVC, "called info_id=0x{:X}, info_sub_id=0x{:X}, handle=0x{:08X}", info_id,
               info_sub_id, handle);
 
+    enum class GetInfoType : u64 {
+        // 1.0.0+
+        AllowedCpuIdBitmask = 0,
+        AllowedThreadPrioBitmask = 1,
+        MapRegionBaseAddr = 2,
+        MapRegionSize = 3,
+        HeapRegionBaseAddr = 4,
+        HeapRegionSize = 5,
+        TotalMemoryUsage = 6,
+        TotalHeapUsage = 7,
+        IsCurrentProcessBeingDebugged = 8,
+        ResourceHandleLimit = 9,
+        IdleTickCount = 10,
+        RandomEntropy = 11,
+        PerformanceCounter = 0xF0000002,
+        // 2.0.0+
+        ASLRRegionBaseAddr = 12,
+        ASLRRegionSize = 13,
+        NewMapRegionBaseAddr = 14,
+        NewMapRegionSize = 15,
+        // 3.0.0+
+        IsVirtualAddressMemoryEnabled = 16,
+        PersonalMmHeapUsage = 17,
+        TitleId = 18,
+        // 4.0.0+
+        PrivilegedProcessId = 19,
+        // 5.0.0+
+        UserExceptionContextAddr = 20,
+        ThreadTickCount = 0xF0000002,
+    };
+
     const auto* current_process = Core::CurrentProcess();
     const auto& vm_manager = current_process->VMManager();
 

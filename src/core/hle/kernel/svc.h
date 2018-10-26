@@ -24,38 +24,6 @@ struct PageInfo {
     u64 flags;
 };
 
-/// Values accepted by svcGetInfo
-enum class GetInfoType : u64 {
-    // 1.0.0+
-    AllowedCpuIdBitmask = 0,
-    AllowedThreadPrioBitmask = 1,
-    MapRegionBaseAddr = 2,
-    MapRegionSize = 3,
-    HeapRegionBaseAddr = 4,
-    HeapRegionSize = 5,
-    TotalMemoryUsage = 6,
-    TotalHeapUsage = 7,
-    IsCurrentProcessBeingDebugged = 8,
-    ResourceHandleLimit = 9,
-    IdleTickCount = 10,
-    RandomEntropy = 11,
-    PerformanceCounter = 0xF0000002,
-    // 2.0.0+
-    ASLRRegionBaseAddr = 12,
-    ASLRRegionSize = 13,
-    NewMapRegionBaseAddr = 14,
-    NewMapRegionSize = 15,
-    // 3.0.0+
-    IsVirtualAddressMemoryEnabled = 16,
-    PersonalMmHeapUsage = 17,
-    TitleId = 18,
-    // 4.0.0+
-    PrivilegedProcessId = 19,
-    // 5.0.0+
-    UserExceptionContextAddr = 20,
-    ThreadTickCount = 0xF0000002,
-};
-
 void CallSVC(u32 immediate);
 
 } // namespace Kernel
