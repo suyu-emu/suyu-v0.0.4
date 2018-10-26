@@ -54,15 +54,23 @@ QString GetImagePath(Service::Account::UUID uuid) {
     return QString::fromStdString(path);
 }
 
-std::string GetAccountUsername(const Service::Account::ProfileManager& manager,
-                               Service::Account::UUID uuid) {
+QString GetAccountUsername(const Service::Account::ProfileManager& manager,
+                           Service::Account::UUID uuid) {
     Service::Account::ProfileBase profile;
     if (!manager.GetProfileBase(uuid, profile)) {
-        return "";
+        return {};
     }
 
-    return Common::StringFromFixedZeroTerminatedBuffer(
+    const auto text = Common::StringFromFixedZeroTerminatedBuffer(
         reinterpret_cast<const char*>(profile.username.data()), profile.username.size());
+    return QString::fromStdString(text);
+}
+
+QString FormatUserEntryText(const QString& username, Service::Account::UUID uuid) {
+    return ConfigureSystem::tr("%1\n%2",
+                               "%1 is the profile username, %2 is the formatted UUID (e.g. "
+                               "00112233-4455-6677-8899-AABBCCDDEEFF))")
+        .arg(username, QString::fromStdString(uuid.FormatSwitch()));
 }
 
 QPixmap GetIcon(Service::Account::UUID uuid) {
@@ -155,7 +163,7 @@ void ConfigureSystem::PopulateUserList() {
 
         list_items.push_back(QList<QStandardItem*>{new QStandardItem{
             GetIcon(user).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-            QString::fromStdString(username + '\n' + user.FormatSwitch())}});
+            FormatUserEntryText(QString::fromStdString(username), user)}});
     }
 
     for (const auto& item : list_items)
@@ -172,7 +180,7 @@ void ConfigureSystem::UpdateCurrentUser() {
     scene->clear();
     scene->addPixmap(
         GetIcon(*current_user).scaled(48, 48, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    ui->current_user_username->setText(QString::fromStdString(username));
+    ui->current_user_username->setText(username);
 }
 
 void ConfigureSystem::ReadSystemSettings() {}
@@ -250,23 +258,23 @@ void ConfigureSystem::AddUser() {
 
     item_model->appendRow(new QStandardItem{
         GetIcon(uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-        QString::fromStdString(username.toStdString() + '\n' + uuid.FormatSwitch())});
+        FormatUserEntryText(username, uuid)});
 }
 
 void ConfigureSystem::RenameUser() {
     const auto user = tree_view->currentIndex().row();
     const auto uuid = profile_manager->GetUser(user);
     ASSERT(uuid != std::nullopt);
-    const auto username = GetAccountUsername(*profile_manager, *uuid);
 
     Service::Account::ProfileBase profile;
     if (!profile_manager->GetProfileBase(*uuid, profile))
         return;
 
     bool ok = false;
+    const auto old_username = GetAccountUsername(*profile_manager, *uuid);
     const auto new_username =
         QInputDialog::getText(this, tr("Enter Username"), tr("Enter a new username:"),
-                              QLineEdit::Normal, QString::fromStdString(username), &ok);
+                              QLineEdit::Normal, old_username, &ok);
 
     if (!ok)
         return;
@@ -286,10 +294,7 @@ void ConfigureSystem::RenameUser() {
         user, 0,
         new QStandardItem{
             GetIcon(*uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-            tr("%1\n%2", "%1 is the profile username, %2 is the formatted UUID (e.g. "
-                         "00112233-4455-6677-8899-AABBCCDDEEFF))")
-                .arg(QString::fromStdString(username_std),
-                     QString::fromStdString(uuid->FormatSwitch()))});
+            FormatUserEntryText(QString::fromStdString(username_std), *uuid)});
     UpdateCurrentUser();
 }
 
@@ -299,10 +304,9 @@ void ConfigureSystem::DeleteUser() {
     ASSERT(uuid != std::nullopt);
     const auto username = GetAccountUsername(*profile_manager, *uuid);
 
-    const auto confirm =
-        QMessageBox::question(this, tr("Confirm Delete"),
-                              tr("You are about to delete user with name %1. Are you sure?")
-                                  .arg(QString::fromStdString(username)));
+    const auto confirm = QMessageBox::question(
+        this, tr("Confirm Delete"),
+        tr("You are about to delete user with name \"%1\". Are you sure?").arg(username));
 
     if (confirm == QMessageBox::No)
         return;
@@ -369,6 +373,6 @@ void ConfigureSystem::SetUserImage() {
         index, 0,
         new QStandardItem{
             GetIcon(*uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-            QString::fromStdString(username + '\n' + uuid->FormatSwitch())});
+            FormatUserEntryText(username, *uuid)});
     UpdateCurrentUser();
 }
