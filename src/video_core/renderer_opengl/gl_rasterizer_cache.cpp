@@ -95,10 +95,13 @@ std::size_t SurfaceParams::InnerMipmapMemorySize(u32 mip_level, bool force_gl, b
     const u32 compression_factor{GetCompressionFactor(pixel_format)};
     const u32 bytes_per_pixel{GetBytesPerPixel(pixel_format)};
     u32 m_depth = (layer_only ? 1U : depth);
-    u32 m_width = uncompressed ? width : std::max(1U, width / compression_factor);
-    u32 m_height = uncompressed ? height : std::max(1U, height / compression_factor);
-    m_width = std::max(1U, m_width >> mip_level);
-    m_height = std::max(1U, m_height >> mip_level);
+    u32 m_width = MipWidth(mip_level);
+    u32 m_height = MipHeight(mip_level);
+    m_width = uncompressed ? m_width
+                           : std::max(1U, (m_width + compression_factor - 1) / compression_factor);
+    m_height = uncompressed
+                   ? m_height
+                   : std::max(1U, (m_height + compression_factor - 1) / compression_factor);
     m_depth = std::max(1U, m_depth >> mip_level);
     u32 m_block_height = MipBlockHeight(mip_level, m_height);
     u32 m_block_depth = MipBlockDepth(mip_level);
