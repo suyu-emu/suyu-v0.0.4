@@ -917,14 +917,14 @@ struct SurfaceParams {
 
     // Auto block resizing algorithm from:
     // https://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv50/nv50_miptree.c
-    u32 MipBlockHeight(u32 mip_level, u32 alt_height = 0) const {
+    u32 MipBlockHeight(u32 mip_level) const {
         if (mip_level == 0)
             return block_height;
-        if (alt_height == 0)
-            alt_height = MipHeight(mip_level);
-        u32 blocks_in_y = (alt_height + 7) / 8;
-        u32 bh = 32;
-        while (bh > 1 && blocks_in_y <= bh * 2) {
+        u32 alt_height = MipHeight(mip_level);
+        u32 h = GetDefaultBlockHeight(pixel_format);
+        u32 blocks_in_y = (alt_height + h - 1) / h;
+        u32 bh = 16;
+        while (bh > 1 && blocks_in_y <= bh * 4) {
             bh >>= 1;
         }
         return bh;
@@ -933,11 +933,17 @@ struct SurfaceParams {
     u32 MipBlockDepth(u32 mip_level) const {
         if (mip_level == 0)
             return block_depth;
+        if (is_layered)
+            return 1;
         u32 depth = MipDepth(mip_level);
         u32 bd = 32;
-        // Magical block resizing algorithm, needs more testing.
-        while (bd > 1 && depth / depth <= bd) {
-            bd = bd >> 1;
+        while (bd > 1 && depth * 2 <= bd) {
+            bd >>= 1;
+        }
+        if (bd == 32) {
+            u32 bh = MipBlockHeight(mip_level);
+            if (bh >= 4)
+                return 16;
         }
         return bd;
     }

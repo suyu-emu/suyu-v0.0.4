@@ -103,7 +103,7 @@ std::size_t SurfaceParams::InnerMipmapMemorySize(u32 mip_level, bool force_gl, b
                    ? m_height
                    : std::max(1U, (m_height + compression_factor - 1) / compression_factor);
     m_depth = std::max(1U, m_depth >> mip_level);
-    u32 m_block_height = MipBlockHeight(mip_level, m_height);
+    u32 m_block_height = MipBlockHeight(mip_level);
     u32 m_block_depth = MipBlockDepth(mip_level);
     return Tegra::Texture::CalculateSize(force_gl ? false : is_tiled, bytes_per_pixel, m_width,
                                          m_height, m_depth, m_block_height, m_block_depth);
@@ -111,7 +111,7 @@ std::size_t SurfaceParams::InnerMipmapMemorySize(u32 mip_level, bool force_gl, b
 
 std::size_t SurfaceParams::InnerMemorySize(bool force_gl, bool layer_only,
                                            bool uncompressed) const {
-    std::size_t block_size_bytes = 512 * block_height * block_depth; // 512 is GOB size
+    std::size_t block_size_bytes = Tegra::Texture::GetGOBSize() * block_height * block_depth;
     std::size_t size = 0;
     for (u32 i = 0; i < max_mip_level; i++) {
         size += InnerMipmapMemorySize(i, force_gl, layer_only, uncompressed);
@@ -1043,8 +1043,8 @@ void CachedSurface::FlushGLBuffer() {
     glPixelStorei(GL_PACK_ROW_LENGTH, static_cast<GLint>(params.width));
     ASSERT(!tuple.compressed);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-    glGetTextureImage(texture.handle, 0, tuple.format, tuple.type, static_cast<GLsizei>(gl_buffer[0].size()),
-                      gl_buffer[0].data());
+    glGetTextureImage(texture.handle, 0, tuple.format, tuple.type,
+                      static_cast<GLsizei>(gl_buffer[0].size()), gl_buffer[0].data());
     glPixelStorei(GL_PACK_ROW_LENGTH, 0);
     ConvertFormatAsNeeded_FlushGLBuffer(gl_buffer[0], params.pixel_format, params.width,
                                         params.height);
