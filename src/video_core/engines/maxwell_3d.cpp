@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <cstring>
 #include "common/assert.h"
 #include "core/core.h"
 #include "core/core_timing.h"
@@ -19,7 +20,24 @@ namespace Tegra::Engines {
 constexpr u32 MacroRegistersStart = 0xE00;
 
 Maxwell3D::Maxwell3D(VideoCore::RasterizerInterface& rasterizer, MemoryManager& memory_manager)
-    : memory_manager(memory_manager), rasterizer{rasterizer}, macro_interpreter(*this) {}
+    : memory_manager(memory_manager), rasterizer{rasterizer}, macro_interpreter(*this) {
+    InitializeRegisterDefaults();
+}
+
+void Maxwell3D::InitializeRegisterDefaults() {
+    // Initializes registers to their default values - what games expect them to be at boot. This is
+    // for certain registers that may not be explicitly set by games.
+
+    // Reset all registers to zero
+    std::memset(&regs, 0, sizeof(regs));
+
+    // Depth range near/far is not always set, but is expected to be the default 0.0f, 1.0f. This is
+    // needed for ARMS.
+    for (std::size_t viewport{}; viewport < Regs::NumViewports; ++viewport) {
+        regs.viewport[viewport].depth_range_near = 0.0f;
+        regs.viewport[viewport].depth_range_far = 1.0f;
+    }
+}
 
 void Maxwell3D::CallMacroMethod(u32 method, std::vector<u32> parameters) {
     // Reset the current macro.

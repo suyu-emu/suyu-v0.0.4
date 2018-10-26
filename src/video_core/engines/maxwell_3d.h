@@ -984,6 +984,8 @@ public:
     Texture::FullTextureInfo GetStageTexture(Regs::ShaderStage stage, std::size_t offset) const;
 
 private:
+    void InitializeRegisterDefaults();
+
     VideoCore::RasterizerInterface& rasterizer;
 
     std::unordered_map<u32, std::vector<u32>> uploaded_macros;
