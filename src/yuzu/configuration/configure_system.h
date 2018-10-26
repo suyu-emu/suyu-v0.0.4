@@ -9,16 +9,15 @@
 #include <QList>
 #include <QWidget>
 
-namespace Service::Account {
-class ProfileManager;
-struct UUID;
-} // namespace Service::Account
-
 class QGraphicsScene;
 class QStandardItem;
 class QStandardItemModel;
 class QTreeView;
 class QVBoxLayout;
+
+namespace Service::Account {
+class ProfileManager;
+}
 
 namespace Ui {
 class ConfigureSystem;
@@ -29,27 +28,24 @@ class ConfigureSystem : public QWidget {
 
 public:
     explicit ConfigureSystem(QWidget* parent = nullptr);
-    ~ConfigureSystem();
+    ~ConfigureSystem() override;
 
     void applyConfiguration();
     void setConfiguration();
 
+private:
+    void ReadSystemSettings();
+
+    void UpdateBirthdayComboBox(int birthmonth_index);
+    void RefreshConsoleID();
+
     void PopulateUserList();
     void UpdateCurrentUser();
-
-public slots:
-    void updateBirthdayComboBox(int birthmonth_index);
-    void refreshConsoleID();
-
     void SelectUser(const QModelIndex& index);
     void AddUser();
     void RenameUser();
     void DeleteUser();
     void SetUserImage();
-
-private:
-    void ReadSystemSettings();
-    std::string GetAccountUsername(Service::Account::UUID uuid) const;
 
     QVBoxLayout* layout;
     QTreeView* tree_view;
@@ -59,11 +55,12 @@ private:
     std::vector<QList<QStandardItem*>> list_items;
 
     std::unique_ptr<Ui::ConfigureSystem> ui;
-    bool enabled;
+    bool enabled = false;
 
-    int birthmonth, birthday;
-    int language_index;
-    int sound_index;
+    int birthmonth = 0;
+    int birthday = 0;
+    int language_index = 0;
+    int sound_index = 0;
 
     std::unique_ptr<Service::Account::ProfileManager> profile_manager;
 };
