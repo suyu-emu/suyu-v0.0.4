@@ -255,6 +255,68 @@ struct SurfaceParams {
         return compression_factor_table[static_cast<std::size_t>(format)];
     }
 
+    static constexpr u32 GetDefaultBlockHeight(PixelFormat format) {
+        if (format == PixelFormat::Invalid)
+            return 0;
+        constexpr std::array<u32, MaxPixelFormat> block_height_table = {{
+            1, // ABGR8U
+            1, // ABGR8S
+            1, // ABGR8UI
+            1, // B5G6R5U
+            1, // A2B10G10R10U
+            1, // A1B5G5R5U
+            1, // R8U
+            1, // R8UI
+            1, // RGBA16F
+            1, // RGBA16U
+            1, // RGBA16UI
+            1, // R11FG11FB10F
+            1, // RGBA32UI
+            4, // DXT1
+            4, // DXT23
+            4, // DXT45
+            4, // DXN1
+            4, // DXN2UNORM
+            4, // DXN2SNORM
+            4, // BC7U
+            4, // BC6H_UF16
+            4, // BC6H_SF16
+            4, // ASTC_2D_4X4
+            1, // G8R8U
+            1, // G8R8S
+            1, // BGRA8
+            1, // RGBA32F
+            1, // RG32F
+            1, // R32F
+            1, // R16F
+            1, // R16U
+            1, // R16S
+            1, // R16UI
+            1, // R16I
+            1, // RG16
+            1, // RG16F
+            1, // RG16UI
+            1, // RG16I
+            1, // RG16S
+            1, // RGB32F
+            1, // SRGBA8
+            1, // RG8U
+            1, // RG8S
+            1, // RG32UI
+            1, // R32UI
+            8, // ASTC_2D_8X8
+            5, // ASTC_2D_8X5
+            4, // ASTC_2D_5X4
+            1, // Z32F
+            1, // Z16
+            1, // Z24S8
+            1, // S8Z24
+            1, // Z32FS8
+        }};
+        ASSERT(static_cast<std::size_t>(format) < block_height_table.size());
+        return block_height_table[static_cast<std::size_t>(format)];
+    }
+
     static constexpr u32 GetFormatBpp(PixelFormat format) {
         if (format == PixelFormat::Invalid)
             return 0;
