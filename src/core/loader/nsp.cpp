@@ -36,6 +36,16 @@ AppLoader_NSP::AppLoader_NSP(FileSys::VirtualFile file)
 
     std::tie(nacp_file, icon_file) =
         FileSys::PatchManager(nsp->GetProgramTitleID()).ParseControlNCA(*control_nca);
+
+    if (nsp->IsExtractedType()) {
+        secondary_loader = std::make_unique<AppLoader_DeconstructedRomDirectory>(nsp->GetExeFS());
+    } else {
+        if (title_id == 0)
+            return;
+
+        secondary_loader = std::make_unique<AppLoader_NCA>(
+            nsp->GetNCAFile(title_id, FileSys::ContentRecordType::Program));
+    }
 }
 
 AppLoader_NSP::~AppLoader_NSP() = default;
@@ -67,26 +77,19 @@ ResultStatus AppLoader_NSP::Load(Kernel::Process& process) {
         return ResultStatus::ErrorAlreadyLoaded;
     }
 
-    if (nsp->IsExtractedType()) {
-        secondary_loader = std::make_unique<AppLoader_DeconstructedRomDirectory>(nsp->GetExeFS());
-    } else {
-        if (title_id == 0)
-            return ResultStatus::ErrorNSPMissingProgramNCA;
+    if (title_id == 0)
+        return ResultStatus::ErrorNSPMissingProgramNCA;
 
-        secondary_loader = std::make_unique<AppLoader_NCA>(
-            nsp->GetNCAFile(title_id, FileSys::ContentRecordType::Program));
+    if (nsp->GetStatus() != ResultStatus::Success)
+        return nsp->GetStatus();
 
-        if (nsp->GetStatus() != ResultStatus::Success)
-            return nsp->GetStatus();
+    if (nsp->GetProgramStatus(title_id) != ResultStatus::Success)
+        return nsp->GetProgramStatus(title_id);
 
-        if (nsp->GetProgramStatus(title_id) != ResultStatus::Success)
-            return nsp->GetProgramStatus(title_id);
-
-        if (nsp->GetNCA(title_id, FileSys::ContentRecordType::Program) == nullptr) {
-            if (!Core::Crypto::KeyManager::KeyFileExists(false))
-                return ResultStatus::ErrorMissingProductionKeyFile;
-            return ResultStatus::ErrorNSPMissingProgramNCA;
-        }
+    if (nsp->GetNCA(title_id, FileSys::ContentRecordType::Program) == nullptr) {
+        if (!Core::Crypto::KeyManager::KeyFileExists(false))
+            return ResultStatus::ErrorMissingProductionKeyFile;
+        return ResultStatus::ErrorNSPMissingProgramNCA;
     }
 
     const auto result = secondary_loader->Load(process);
