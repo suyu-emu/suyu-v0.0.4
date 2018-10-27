@@ -144,6 +144,9 @@ private:
     /// Syncs the cull mode to match the guest state
     void SyncCullMode();
 
+    /// Syncs the primitve restart to match the guest state
+    void SyncPrimitiveRestart();
+
     /// Syncs the depth range to match the guest state
     void SyncDepthRange();
 

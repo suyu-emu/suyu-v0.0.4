@@ -570,6 +570,7 @@ void RasterizerOpenGL::DrawArrays() {
     SyncBlendState();
     SyncLogicOpState();
     SyncCullMode();
+    SyncPrimitiveRestart();
     SyncDepthRange();
     SyncScissorTest();
     // Alpha Testing is synced on shaders.
@@ -922,6 +923,13 @@ void RasterizerOpenGL::SyncCullMode() {
                 state.cull.front_face = GL_CCW;
         }
     }
+}
+
+void RasterizerOpenGL::SyncPrimitiveRestart() {
+    const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
+
+    state.primitive_restart.enabled = regs.primitive_restart.enabled;
+    state.primitive_restart.index = regs.primitive_restart.index;
 }
 
 void RasterizerOpenGL::SyncDepthRange() {

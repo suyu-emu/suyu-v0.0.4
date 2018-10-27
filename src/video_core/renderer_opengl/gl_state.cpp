@@ -24,6 +24,9 @@ OpenGLState::OpenGLState() {
     depth.depth_range_near = 0.0f;
     depth.depth_range_far = 1.0f;
 
+    primitive_restart.enabled = false;
+    primitive_restart.index = 0;
+
     color_mask.red_enabled = GL_TRUE;
     color_mask.green_enabled = GL_TRUE;
     color_mask.blue_enabled = GL_TRUE;
@@ -125,6 +128,18 @@ void OpenGLState::Apply() const {
     if (depth.depth_range_near != cur_state.depth.depth_range_near ||
         depth.depth_range_far != cur_state.depth.depth_range_far) {
         glDepthRange(depth.depth_range_near, depth.depth_range_far);
+    }
+
+    // Primitive restart
+    if (primitive_restart.enabled != cur_state.primitive_restart.enabled) {
+        if (primitive_restart.enabled) {
+            glEnable(GL_PRIMITIVE_RESTART);
+        } else {
+            glDisable(GL_PRIMITIVE_RESTART);
+        }
+    }
+    if (primitive_restart.index != cur_state.primitive_restart.index) {
+        glPrimitiveRestartIndex(primitive_restart.index);
     }
 
     // Color mask
