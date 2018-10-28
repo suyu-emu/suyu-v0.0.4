@@ -11,9 +11,10 @@
 namespace OpenGL {
 
 OpenGLState OpenGLState::cur_state;
-
+bool OpenGLState::s_rgb_used;
 OpenGLState::OpenGLState() {
     // These all match default OpenGL values
+    framebuffer_srgb.enabled = false;
     cull.enabled = false;
     cull.mode = GL_BACK;
     cull.front_face = GL_CCW;
@@ -89,6 +90,16 @@ OpenGLState::OpenGLState() {
 }
 
 void OpenGLState::Apply() const {
+    // sRGB
+    if (framebuffer_srgb.enabled != cur_state.framebuffer_srgb.enabled) {
+        if (framebuffer_srgb.enabled) {
+            // Track if sRGB is used
+            s_rgb_used = true;
+            glEnable(GL_FRAMEBUFFER_SRGB);
+        } else {
+            glDisable(GL_FRAMEBUFFER_SRGB);
+        }
+    }
     // Culling
     if (cull.enabled != cur_state.cull.enabled) {
         if (cull.enabled) {
