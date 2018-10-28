@@ -312,6 +312,10 @@ Cpu& System::CurrentCpuCore() {
     return impl->CurrentCpuCore();
 }
 
+const Cpu& System::CurrentCpuCore() const {
+    return impl->CurrentCpuCore();
+}
+
 System::ResultStatus System::RunLoop(bool tight_loop) {
     return impl->RunLoop(tight_loop);
 }
@@ -342,7 +346,11 @@ PerfStatsResults System::GetAndResetPerfStats() {
     return impl->GetAndResetPerfStats();
 }
 
-Core::TelemetrySession& System::TelemetrySession() const {
+TelemetrySession& System::TelemetrySession() {
+    return *impl->telemetry_session;
+}
+
+const TelemetrySession& System::TelemetrySession() const {
     return *impl->telemetry_session;
 }
 
@@ -350,11 +358,19 @@ ARM_Interface& System::CurrentArmInterface() {
     return CurrentCpuCore().ArmInterface();
 }
 
-std::size_t System::CurrentCoreIndex() {
+const ARM_Interface& System::CurrentArmInterface() const {
+    return CurrentCpuCore().ArmInterface();
+}
+
+std::size_t System::CurrentCoreIndex() const {
     return CurrentCpuCore().CoreIndex();
 }
 
 Kernel::Scheduler& System::CurrentScheduler() {
+    return CurrentCpuCore().Scheduler();
+}
+
+const Kernel::Scheduler& System::CurrentScheduler() const {
     return CurrentCpuCore().Scheduler();
 }
 
@@ -378,6 +394,10 @@ ARM_Interface& System::ArmInterface(std::size_t core_index) {
     return CpuCore(core_index).ArmInterface();
 }
 
+const ARM_Interface& System::ArmInterface(std::size_t core_index) const {
+    return CpuCore(core_index).ArmInterface();
+}
+
 Cpu& System::CpuCore(std::size_t core_index) {
     ASSERT(core_index < NUM_CPU_CORES);
     return *impl->cpu_cores[core_index];
@@ -389,6 +409,10 @@ const Cpu& System::CpuCore(std::size_t core_index) const {
 }
 
 ExclusiveMonitor& System::Monitor() {
+    return *impl->cpu_exclusive_monitor;
+}
+
+const ExclusiveMonitor& System::Monitor() const {
     return *impl->cpu_exclusive_monitor;
 }
 
