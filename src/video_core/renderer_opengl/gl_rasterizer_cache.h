@@ -404,7 +404,7 @@ struct SurfaceParams {
             128, // BC7U
             32,  // ASTC_2D_4X4_SRGB
             16,  // ASTC_2D_8X8_SRGB
-            32,  // ASTC_2D_8X5_SRGB
+            16,  // ASTC_2D_8X5_SRGB
             32,  // ASTC_2D_5X4_SRGB
             32,  // Z32F
             16,  // Z16
