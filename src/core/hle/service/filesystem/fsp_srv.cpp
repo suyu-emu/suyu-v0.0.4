@@ -11,6 +11,7 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
 #include "core/file_sys/directory.h"
@@ -449,6 +450,149 @@ public:
 
 private:
     VfsDirectoryServiceWrapper backend;
+};
+
+class ISaveDataInfoReader final : public ServiceFramework<ISaveDataInfoReader> {
+public:
+    explicit ISaveDataInfoReader(FileSys::SaveDataSpaceId space)
+        : ServiceFramework("ISaveDataInfoReader") {
+        static const FunctionInfo functions[] = {
+            {0, &ISaveDataInfoReader::ReadSaveDataInfo, "ReadSaveDataInfo"},
+        };
+        RegisterHandlers(functions);
+
+        FindAllSaves(space);
+    }
+
+    void ReadSaveDataInfo(Kernel::HLERequestContext& ctx) {
+        // Calculate how many entries we can fit in the output buffer
+        const u64 count_entries = ctx.GetWriteBufferSize() / sizeof(SaveDataInfo);
+
+        // Cap at total number of entries.
+        const u64 actual_entries = std::min(count_entries, info.size() - next_entry_index);
+
+        // Determine data start and end
+        const auto* begin = reinterpret_cast<u8*>(info.data() + next_entry_index);
+        const auto* end = reinterpret_cast<u8*>(info.data() + next_entry_index + actual_entries);
+        const auto range_size = static_cast<std::size_t>(std::distance(begin, end));
+
+        next_entry_index += actual_entries;
+
+        // Write the data to memory
+        ctx.WriteBuffer(begin, range_size);
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(actual_entries);
+    }
+
+private:
+    static u64 stoull_be(std::string_view str) {
+        if (str.size() != 16)
+            return 0;
+
+        const auto bytes = Common::HexStringToArray<0x8>(str);
+        u64 out{};
+        std::memcpy(&out, bytes.data(), sizeof(u64));
+
+        return Common::swap64(out);
+    }
+
+    static std::array<u8, 0x10> ArraySwap(const std::array<u8, 0x10>& in) {
+        std::array<u8, 0x10> out;
+        for (std::size_t i = 0; i < in.size(); ++i) {
+            out[0xF - i] = in[i];
+        }
+
+        return out;
+    }
+
+    void FindAllSaves(FileSys::SaveDataSpaceId space) {
+        const auto save_root = OpenSaveDataSpace(space);
+        ASSERT(save_root.Succeeded());
+
+        for (const auto& type : (*save_root)->GetSubdirectories()) {
+            if (type->GetName() == "save") {
+                for (const auto& save_id : type->GetSubdirectories()) {
+                    for (const auto& user_id : save_id->GetSubdirectories()) {
+                        const auto save_id_numeric = stoull_be(save_id->GetName());
+                        const auto user_id_numeric =
+                            ArraySwap(Common::HexStringToArray<0x10>(user_id->GetName()));
+                        if (save_id_numeric != 0) {
+                            // System Save Data
+                            info.emplace_back(SaveDataInfo{
+                                0,
+                                space,
+                                FileSys::SaveDataType::SystemSaveData,
+                                {},
+                                user_id_numeric,
+                                save_id_numeric,
+                                0,
+                                user_id->GetSize(),
+                                {},
+                            });
+
+                            continue;
+                        }
+
+                        for (const auto& title_id : user_id->GetSubdirectories()) {
+                            const auto device =
+                                std::all_of(user_id_numeric.begin(), user_id_numeric.end(),
+                                            [](u8 val) { return val == 0; });
+                            info.emplace_back(SaveDataInfo{
+                                0,
+                                space,
+                                device ? FileSys::SaveDataType::DeviceSaveData
+                                       : FileSys::SaveDataType::SaveData,
+                                {},
+                                user_id_numeric,
+                                save_id_numeric,
+                                stoull_be(title_id->GetName()),
+                                title_id->GetSize(),
+                                {},
+                            });
+                        }
+                    }
+                }
+            } else if (space == FileSys::SaveDataSpaceId::TemporaryStorage) {
+                // Temporary Storage
+                for (const auto& user_id : type->GetSubdirectories()) {
+                    for (const auto& title_id : user_id->GetSubdirectories()) {
+                        if (!title_id->GetFiles().empty() ||
+                            !title_id->GetSubdirectories().empty()) {
+                            info.emplace_back(SaveDataInfo{
+                                0,
+                                space,
+                                FileSys::SaveDataType::TemporaryStorage,
+                                {},
+                                Common::HexStringToArray<0x10, true>(user_id->GetName()),
+                                stoull_be(type->GetName()),
+                                stoull_be(title_id->GetName()),
+                                title_id->GetSize(),
+                                {},
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    struct SaveDataInfo {
+        u64_le save_id_unknown;
+        FileSys::SaveDataSpaceId space;
+        FileSys::SaveDataType type;
+        INSERT_PADDING_BYTES(0x6);
+        std::array<u8, 0x10> user_id;
+        u64_le save_id;
+        u64_le title_id;
+        u64_le save_image_size;
+        INSERT_PADDING_BYTES(0x28);
+    };
+    static_assert(sizeof(SaveDataInfo) == 0x60, "SaveDataInfo has incorrect size.");
+
+    std::vector<SaveDataInfo> info;
+    u64 next_entry_index = 0;
 };
 
 FSP_SRV::FSP_SRV() : ServiceFramework("fsp-srv") {
