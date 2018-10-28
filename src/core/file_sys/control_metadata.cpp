@@ -66,4 +66,10 @@ std::string NACP::GetVersionString() const {
     return Common::StringFromFixedZeroTerminatedBuffer(raw->version_string.data(),
                                                        raw->version_string.size());
 }
+
+std::vector<u8> NACP::GetRawBytes() const {
+    std::vector<u8> out(sizeof(RawNACP));
+    std::memcpy(out.data(), raw.get(), sizeof(RawNACP));
+    return out;
+}
 } // namespace FileSys
