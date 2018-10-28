@@ -395,7 +395,7 @@ struct SurfaceParams {
             64,  // RG32UI
             32,  // R32UI
             16,  // ASTC_2D_8X8
-            32,  // ASTC_2D_8X5
+            16,  // ASTC_2D_8X5
             32,  // ASTC_2D_5X4
             32,  // BGRA8_SRGB
             64,  // DXT1_SRGB
