@@ -6,20 +6,20 @@
 #include <QFileDialog>
 #include <QGraphicsItem>
 #include <QGraphicsScene>
-#include <QInputDialog>
+#include <QHeaderView>
 #include <QMessageBox>
 #include <QStandardItemModel>
 #include <QTreeView>
 #include <QVBoxLayout>
-#include "common/common_paths.h"
-#include "common/logging/backend.h"
+#include "common/assert.h"
+#include "common/file_util.h"
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/settings.h"
 #include "ui_configure_system.h"
 #include "yuzu/configuration/configure_system.h"
-#include "yuzu/main.h"
+#include "yuzu/util/limitable_input_dialog.h"
 
 namespace {
 constexpr std::array<int, 12> days_in_month = {{
@@ -82,6 +82,12 @@ QPixmap GetIcon(Service::Account::UUID uuid) {
     }
 
     return icon.scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+}
+
+QString GetProfileUsernameFromUser(QWidget* parent, const QString& description_text) {
+    return LimitableInputDialog::GetText(parent, ConfigureSystem::tr("Enter Username"),
+                                         description_text, 1,
+                                         static_cast<int>(Service::Account::profile_username_size));
 }
 } // Anonymous namespace
 
@@ -244,15 +250,13 @@ void ConfigureSystem::SelectUser(const QModelIndex& index) {
 }
 
 void ConfigureSystem::AddUser() {
-    const auto uuid = Service::Account::UUID::Generate();
-
-    bool ok = false;
     const auto username =
-        QInputDialog::getText(this, tr("Enter Username"), tr("Enter a username for the new user:"),
-                              QLineEdit::Normal, QString(), &ok);
-    if (!ok)
+        GetProfileUsernameFromUser(this, tr("Enter a username for the new user:"));
+    if (username.isEmpty()) {
         return;
+    }
 
+    const auto uuid = Service::Account::UUID::Generate();
     profile_manager->CreateNewUser(uuid, username.toStdString());
 
     item_model->appendRow(new QStandardItem{GetIcon(uuid), FormatUserEntryText(username, uuid)});
@@ -267,23 +271,14 @@ void ConfigureSystem::RenameUser() {
     if (!profile_manager->GetProfileBase(*uuid, profile))
         return;
 
-    bool ok = false;
-    const auto old_username = GetAccountUsername(*profile_manager, *uuid);
-    const auto new_username =
-        QInputDialog::getText(this, tr("Enter Username"), tr("Enter a new username:"),
-                              QLineEdit::Normal, old_username, &ok);
-
-    if (!ok)
+    const auto new_username = GetProfileUsernameFromUser(this, tr("Enter a new username:"));
+    if (new_username.isEmpty()) {
         return;
-
-    std::fill(profile.username.begin(), profile.username.end(), '\0');
-    const auto username_std = new_username.toStdString();
-    if (username_std.size() > profile.username.size()) {
-        std::copy_n(username_std.begin(), std::min(profile.username.size(), username_std.size()),
-                    profile.username.begin());
-    } else {
-        std::copy(username_std.begin(), username_std.end(), profile.username.begin());
     }
+
+    const auto username_std = new_username.toStdString();
+    std::fill(profile.username.begin(), profile.username.end(), '\0');
+    std::copy(username_std.begin(), username_std.end(), profile.username.begin());
 
     profile_manager->SetProfileBase(*uuid, profile);
 
