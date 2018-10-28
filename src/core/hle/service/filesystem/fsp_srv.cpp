@@ -273,8 +273,8 @@ public:
             {0, &IFileSystem::CreateFile, "CreateFile"},
             {1, &IFileSystem::DeleteFile, "DeleteFile"},
             {2, &IFileSystem::CreateDirectory, "CreateDirectory"},
-            {3, nullptr, "DeleteDirectory"},
-            {4, nullptr, "DeleteDirectoryRecursively"},
+            {3, &IFileSystem::DeleteDirectory, "DeleteDirectory"},
+            {4, &IFileSystem::DeleteDirectoryRecursively, "DeleteDirectoryRecursively"},
             {5, &IFileSystem::RenameFile, "RenameFile"},
             {6, nullptr, "RenameDirectory"},
             {7, &IFileSystem::GetEntryType, "GetEntryType"},
@@ -327,6 +327,30 @@ public:
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(backend.CreateDirectory(name));
+    }
+
+    void DeleteDirectory(Kernel::HLERequestContext& ctx) {
+        const IPC::RequestParser rp{ctx};
+
+        const auto file_buffer = ctx.ReadBuffer();
+        std::string name = Common::StringFromBuffer(file_buffer);
+
+        LOG_DEBUG(Service_FS, "called directory {}", name);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(backend.DeleteDirectory(name));
+    }
+
+    void DeleteDirectoryRecursively(Kernel::HLERequestContext& ctx) {
+        const IPC::RequestParser rp{ctx};
+
+        const auto file_buffer = ctx.ReadBuffer();
+        std::string name = Common::StringFromBuffer(file_buffer);
+
+        LOG_DEBUG(Service_FS, "called directory {}", name);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(backend.DeleteDirectoryRecursively(name));
     }
 
     void RenameFile(Kernel::HLERequestContext& ctx) {
