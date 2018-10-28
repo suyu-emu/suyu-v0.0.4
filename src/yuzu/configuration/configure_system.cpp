@@ -48,20 +48,40 @@ constexpr std::array<u8, 107> backup_jpeg{
     0x01, 0x01, 0x00, 0x00, 0x3f, 0x00, 0xd2, 0xcf, 0x20, 0xff, 0xd9,
 };
 
-std::string GetImagePath(Service::Account::UUID uuid) {
-    return FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
-           "/system/save/8000000000000010/su/avators/" + uuid.FormatSwitch() + ".jpg";
+QString GetImagePath(Service::Account::UUID uuid) {
+    const auto path = FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
+                      "/system/save/8000000000000010/su/avators/" + uuid.FormatSwitch() + ".jpg";
+    return QString::fromStdString(path);
 }
 
-std::string GetAccountUsername(const Service::Account::ProfileManager& manager,
-                               Service::Account::UUID uuid) {
+QString GetAccountUsername(const Service::Account::ProfileManager& manager,
+                           Service::Account::UUID uuid) {
     Service::Account::ProfileBase profile;
     if (!manager.GetProfileBase(uuid, profile)) {
-        return "";
+        return {};
     }
 
-    return Common::StringFromFixedZeroTerminatedBuffer(
+    const auto text = Common::StringFromFixedZeroTerminatedBuffer(
         reinterpret_cast<const char*>(profile.username.data()), profile.username.size());
+    return QString::fromStdString(text);
+}
+
+QString FormatUserEntryText(const QString& username, Service::Account::UUID uuid) {
+    return ConfigureSystem::tr("%1\n%2",
+                               "%1 is the profile username, %2 is the formatted UUID (e.g. "
+                               "00112233-4455-6677-8899-AABBCCDDEEFF))")
+        .arg(username, QString::fromStdString(uuid.FormatSwitch()));
+}
+
+QPixmap GetIcon(Service::Account::UUID uuid) {
+    QPixmap icon{GetImagePath(uuid)};
+
+    if (!icon) {
+        icon.fill(Qt::black);
+        icon.loadFromData(backup_jpeg.data(), backup_jpeg.size());
+    }
+
+    return icon.scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 }
 } // Anonymous namespace
 
@@ -131,18 +151,6 @@ void ConfigureSystem::setConfiguration() {
     UpdateCurrentUser();
 }
 
-static QPixmap GetIcon(Service::Account::UUID uuid) {
-    const auto icon_url = QString::fromStdString(GetImagePath(uuid));
-    QPixmap icon{icon_url};
-
-    if (!icon) {
-        icon.fill(Qt::black);
-        icon.loadFromData(backup_jpeg.data(), backup_jpeg.size());
-    }
-
-    return icon;
-}
-
 void ConfigureSystem::PopulateUserList() {
     const auto& profiles = profile_manager->GetAllUsers();
     for (const auto& user : profiles) {
@@ -154,8 +162,7 @@ void ConfigureSystem::PopulateUserList() {
             reinterpret_cast<const char*>(profile.username.data()), profile.username.size());
 
         list_items.push_back(QList<QStandardItem*>{new QStandardItem{
-            GetIcon(user).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-            QString::fromStdString(username + '\n' + user.FormatSwitch())}});
+            GetIcon(user), FormatUserEntryText(QString::fromStdString(username), user)}});
     }
 
     for (const auto& item : list_items)
@@ -172,7 +179,7 @@ void ConfigureSystem::UpdateCurrentUser() {
     scene->clear();
     scene->addPixmap(
         GetIcon(*current_user).scaled(48, 48, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    ui->current_user_username->setText(QString::fromStdString(username));
+    ui->current_user_username->setText(username);
 }
 
 void ConfigureSystem::ReadSystemSettings() {}
@@ -248,25 +255,23 @@ void ConfigureSystem::AddUser() {
 
     profile_manager->CreateNewUser(uuid, username.toStdString());
 
-    item_model->appendRow(new QStandardItem{
-        GetIcon(uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-        QString::fromStdString(username.toStdString() + '\n' + uuid.FormatSwitch())});
+    item_model->appendRow(new QStandardItem{GetIcon(uuid), FormatUserEntryText(username, uuid)});
 }
 
 void ConfigureSystem::RenameUser() {
     const auto user = tree_view->currentIndex().row();
     const auto uuid = profile_manager->GetUser(user);
     ASSERT(uuid != std::nullopt);
-    const auto username = GetAccountUsername(*profile_manager, *uuid);
 
     Service::Account::ProfileBase profile;
     if (!profile_manager->GetProfileBase(*uuid, profile))
         return;
 
     bool ok = false;
+    const auto old_username = GetAccountUsername(*profile_manager, *uuid);
     const auto new_username =
         QInputDialog::getText(this, tr("Enter Username"), tr("Enter a new username:"),
-                              QLineEdit::Normal, QString::fromStdString(username), &ok);
+                              QLineEdit::Normal, old_username, &ok);
 
     if (!ok)
         return;
@@ -284,12 +289,8 @@ void ConfigureSystem::RenameUser() {
 
     item_model->setItem(
         user, 0,
-        new QStandardItem{
-            GetIcon(*uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-            tr("%1\n%2", "%1 is the profile username, %2 is the formatted UUID (e.g. "
-                         "00112233-4455-6677-8899-AABBCCDDEEFF))")
-                .arg(QString::fromStdString(username_std),
-                     QString::fromStdString(uuid->FormatSwitch()))});
+        new QStandardItem{GetIcon(*uuid),
+                          FormatUserEntryText(QString::fromStdString(username_std), *uuid)});
     UpdateCurrentUser();
 }
 
@@ -299,10 +300,9 @@ void ConfigureSystem::DeleteUser() {
     ASSERT(uuid != std::nullopt);
     const auto username = GetAccountUsername(*profile_manager, *uuid);
 
-    const auto confirm =
-        QMessageBox::question(this, tr("Confirm Delete"),
-                              tr("You are about to delete user with name %1. Are you sure?")
-                                  .arg(QString::fromStdString(username)));
+    const auto confirm = QMessageBox::question(
+        this, tr("Confirm Delete"),
+        tr("You are about to delete user with name \"%1\". Are you sure?").arg(username));
 
     if (confirm == QMessageBox::No)
         return;
@@ -325,28 +325,47 @@ void ConfigureSystem::SetUserImage() {
     const auto index = tree_view->currentIndex().row();
     const auto uuid = profile_manager->GetUser(index);
     ASSERT(uuid != std::nullopt);
-    const auto username = GetAccountUsername(*profile_manager, *uuid);
 
     const auto file = QFileDialog::getOpenFileName(this, tr("Select User Image"), QString(),
                                                    tr("JPEG Images (*.jpg *.jpeg)"));
 
-    if (file.isEmpty())
+    if (file.isEmpty()) {
         return;
+    }
 
-    FileUtil::Delete(GetImagePath(*uuid));
+    const auto image_path = GetImagePath(*uuid);
+    if (QFile::exists(image_path) && !QFile::remove(image_path)) {
+        QMessageBox::warning(
+            this, tr("Error deleting image"),
+            tr("Error occurred attempting to overwrite previous image at: %1.").arg(image_path));
+        return;
+    }
 
-    const auto raw_path =
-        FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) + "/system/save/8000000000000010";
-    if (FileUtil::Exists(raw_path) && !FileUtil::IsDirectory(raw_path))
-        FileUtil::Delete(raw_path);
+    const auto raw_path = QString::fromStdString(
+        FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) + "/system/save/8000000000000010");
+    const QFileInfo raw_info{raw_path};
+    if (raw_info.exists() && !raw_info.isDir() && !QFile::remove(raw_path)) {
+        QMessageBox::warning(this, tr("Error deleting file"),
+                             tr("Unable to delete existing file: %1.").arg(raw_path));
+        return;
+    }
 
-    FileUtil::CreateFullPath(GetImagePath(*uuid));
-    FileUtil::Copy(file.toStdString(), GetImagePath(*uuid));
+    const QString absolute_dst_path = QFileInfo{image_path}.absolutePath();
+    if (!QDir{raw_path}.mkpath(absolute_dst_path)) {
+        QMessageBox::warning(
+            this, tr("Error creating user image directory"),
+            tr("Unable to create directory %1 for storing user images.").arg(absolute_dst_path));
+        return;
+    }
 
-    item_model->setItem(
-        index, 0,
-        new QStandardItem{
-            GetIcon(*uuid).scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-            QString::fromStdString(username + '\n' + uuid->FormatSwitch())});
+    if (!QFile::copy(file, image_path)) {
+        QMessageBox::warning(this, tr("Error copying user image"),
+                             tr("Unable to copy image from %1 to %2").arg(file, image_path));
+        return;
+    }
+
+    const auto username = GetAccountUsername(*profile_manager, *uuid);
+    item_model->setItem(index, 0,
+                        new QStandardItem{GetIcon(*uuid), FormatUserEntryText(username, *uuid)});
     UpdateCurrentUser();
 }
