@@ -258,6 +258,14 @@ public:
         return last_running_ticks;
     }
 
+    u64 GetTotalCPUTimeTicks() const {
+        return total_cpu_time_ticks;
+    }
+
+    void UpdateCPUTimeTicks(u64 ticks) {
+        total_cpu_time_ticks += ticks;
+    }
+
     s32 GetProcessorID() const {
         return processor_id;
     }
@@ -378,7 +386,8 @@ private:
     u32 nominal_priority = 0; ///< Nominal thread priority, as set by the emulated application
     u32 current_priority = 0; ///< Current thread priority, can be temporarily changed
 
-    u64 last_running_ticks = 0; ///< CPU tick when thread was last running
+    u64 total_cpu_time_ticks = 0; ///< Total CPU running ticks.
+    u64 last_running_ticks = 0;   ///< CPU tick when thread was last running
 
     s32 processor_id = 0;
 

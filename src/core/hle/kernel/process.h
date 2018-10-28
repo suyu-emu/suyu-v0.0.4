@@ -202,6 +202,16 @@ public:
         return is_64bit_process;
     }
 
+    /// Gets the total running time of the process instance in ticks.
+    u64 GetCPUTimeTicks() const {
+        return total_process_running_time_ticks;
+    }
+
+    /// Updates the total running time, adding the given ticks to it.
+    void UpdateCPUTimeTicks(u64 ticks) {
+        total_process_running_time_ticks += ticks;
+    }
+
     /**
      * Loads process-specifics configuration info with metadata provided
      * by an executable.
@@ -304,6 +314,9 @@ private:
     /// By default, we currently assume this is true, unless otherwise
     /// specified by metadata provided to the process during loading.
     bool is_64bit_process = true;
+
+    /// Total running time for the process in ticks.
+    u64 total_process_running_time_ticks = 0;
 
     /// Per-process handle table for storing created object handles in.
     HandleTable handle_table;

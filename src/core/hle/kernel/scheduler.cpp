@@ -9,6 +9,7 @@
 #include "common/logging/log.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
+#include "core/core_timing.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/scheduler.h"
@@ -34,6 +35,10 @@ Thread* Scheduler::GetCurrentThread() const {
     return current_thread.get();
 }
 
+u64 Scheduler::GetLastContextSwitchTicks() const {
+    return last_context_switch_time;
+}
+
 Thread* Scheduler::PopNextReadyThread() {
     Thread* next = nullptr;
     Thread* thread = GetCurrentThread();
@@ -54,7 +59,10 @@ Thread* Scheduler::PopNextReadyThread() {
 }
 
 void Scheduler::SwitchContext(Thread* new_thread) {
-    Thread* previous_thread = GetCurrentThread();
+    Thread* const previous_thread = GetCurrentThread();
+    Process* const previous_process = Core::CurrentProcess();
+
+    UpdateLastContextSwitchTime(previous_thread, previous_process);
 
     // Save context for previous thread
     if (previous_thread) {
@@ -78,8 +86,6 @@ void Scheduler::SwitchContext(Thread* new_thread) {
         // Cancel any outstanding wakeup events for this thread
         new_thread->CancelWakeupTimer();
 
-        auto* const previous_process = Core::CurrentProcess();
-
         current_thread = new_thread;
 
         ready_queue.remove(new_thread->GetPriority(), new_thread);
@@ -100,6 +106,22 @@ void Scheduler::SwitchContext(Thread* new_thread) {
         // Note: We do not reset the current process and current page table when idling because
         // technically we haven't changed processes, our threads are just paused.
     }
+}
+
+void Scheduler::UpdateLastContextSwitchTime(Thread* thread, Process* process) {
+    const u64 prev_switch_ticks = last_context_switch_time;
+    const u64 most_recent_switch_ticks = CoreTiming::GetTicks();
+    const u64 update_ticks = most_recent_switch_ticks - prev_switch_ticks;
+
+    if (thread != nullptr) {
+        thread->UpdateCPUTimeTicks(update_ticks);
+    }
+
+    if (process != nullptr) {
+        process->UpdateCPUTimeTicks(update_ticks);
+    }
+
+    last_context_switch_time = most_recent_switch_ticks;
 }
 
 void Scheduler::Reschedule() {
