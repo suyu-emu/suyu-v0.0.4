@@ -395,7 +395,7 @@ static bool ValidCryptoRevisionString(std::string_view base, size_t begin, size_
     if (base.size() < begin + length)
         return false;
     return std::all_of(base.begin() + begin, base.begin() + begin + length,
-                       [](u8 c) { return std::isdigit(c); });
+                       [](u8 c) { return std::isxdigit(c); });
 }
 
 void KeyManager::LoadFromFile(const std::string& filename, bool is_title_keys) {
