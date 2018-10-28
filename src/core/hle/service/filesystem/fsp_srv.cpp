@@ -452,6 +452,7 @@ private:
 };
 
 FSP_SRV::FSP_SRV() : ServiceFramework("fsp-srv") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "MountContent"},
         {1, &FSP_SRV::Initialize, "Initialize"},
@@ -485,7 +486,7 @@ FSP_SRV::FSP_SRV() : ServiceFramework("fsp-srv") {
         {58, nullptr, "ReadSaveDataFileSystemExtraData"},
         {59, nullptr, "WriteSaveDataFileSystemExtraData"},
         {60, nullptr, "OpenSaveDataInfoReader"},
-        {61, nullptr, "OpenSaveDataInfoReaderBySaveDataSpaceId"},
+        {61, &FSP_SRV::OpenSaveDataInfoReaderBySaveDataSpaceId, "OpenSaveDataInfoReaderBySaveDataSpaceId"},
         {62, nullptr, "OpenCacheStorageList"},
         {64, nullptr, "OpenSaveDataInternalStorageFileSystem"},
         {65, nullptr, "UpdateSaveDataMacForDebug"},
@@ -544,6 +545,7 @@ FSP_SRV::FSP_SRV() : ServiceFramework("fsp-srv") {
         {1009, nullptr, "GetAndClearMemoryReportInfo"},
         {1100, nullptr, "OverrideSaveDataTransferTokenSignVerificationKey"},
     };
+    // clang-format on
     RegisterHandlers(functions);
 }
 
@@ -616,6 +618,15 @@ void FSP_SRV::MountSaveData(Kernel::HLERequestContext& ctx) {
 void FSP_SRV::OpenReadOnlySaveDataFileSystem(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_FS, "(STUBBED) called, delegating to 51 OpenSaveDataFilesystem");
     MountSaveData(ctx);
+}
+
+void FSP_SRV::OpenSaveDataInfoReaderBySaveDataSpaceId(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto space = rp.PopRaw<FileSys::SaveDataSpaceId>();
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface<ISaveDataInfoReader>(std::make_shared<ISaveDataInfoReader>(space));
 }
 
 void FSP_SRV::GetGlobalAccessLogMode(Kernel::HLERequestContext& ctx) {
