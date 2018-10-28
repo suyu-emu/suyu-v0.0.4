@@ -309,6 +309,16 @@ ResultVal<FileSys::VirtualDir> OpenSaveData(FileSys::SaveDataSpaceId space,
     return save_data_factory->Open(space, save_struct);
 }
 
+ResultVal<FileSys::VirtualDir> OpenSaveDataSpace(FileSys::SaveDataSpaceId space) {
+    LOG_TRACE(Service_FS, "Opening Save Data Space for space_id={:01X}", static_cast<u8>(space));
+
+    if (save_data_factory == nullptr) {
+        return ResultCode(ErrorModule::FS, FileSys::ErrCodes::TitleNotFound);
+    }
+
+    return MakeResult(save_data_factory->GetSaveDataSpaceDirectory(space));
+}
+
 ResultVal<FileSys::VirtualDir> OpenSDMC() {
     LOG_TRACE(Service_FS, "Opening SDMC");
 
