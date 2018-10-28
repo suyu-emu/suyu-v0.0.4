@@ -61,13 +61,12 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
     // Game Updates
     const auto update_tid = GetUpdateTitleID(title_id);
     const auto update = installed->GetEntry(update_tid, ContentRecordType::Program);
-    if (update != nullptr) {
-        if (update->GetStatus() == Loader::ResultStatus::ErrorMissingBKTRBaseRomFS &&
-            update->GetExeFS() != nullptr) {
-            LOG_INFO(Loader, "    ExeFS: Update ({}) applied successfully",
-                     FormatTitleVersion(installed->GetEntryVersion(update_tid).get_value_or(0)));
-            exefs = update->GetExeFS();
-        }
+
+    if (update != nullptr && update->GetExeFS() != nullptr &&
+        update->GetStatus() == Loader::ResultStatus::ErrorMissingBKTRBaseRomFS) {
+        LOG_INFO(Loader, "    ExeFS: Update ({}) applied successfully",
+                 FormatTitleVersion(installed->GetEntryVersion(update_tid).get_value_or(0)));
+        exefs = update->GetExeFS();
     }
 
     return exefs;
