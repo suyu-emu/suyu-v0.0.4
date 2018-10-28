@@ -572,7 +572,7 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
             return ERR_INVALID_HANDLE;
         }
 
-        auto& system = Core::System::GetInstance();
+        const auto& system = Core::System::GetInstance();
         const auto& scheduler = system.CurrentScheduler();
         const auto* const current_thread = scheduler.GetCurrentThread();
         const bool same_thread = current_thread == thread;

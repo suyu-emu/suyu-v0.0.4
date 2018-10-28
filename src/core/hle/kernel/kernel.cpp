@@ -32,7 +32,7 @@ namespace Kernel {
  */
 static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] int cycles_late) {
     const auto proper_handle = static_cast<Handle>(thread_handle);
-    auto& system = Core::System::GetInstance();
+    const auto& system = Core::System::GetInstance();
 
     // Lock the global kernel mutex when we enter the kernel HLE.
     std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
@@ -90,7 +90,7 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] int cycles_
 /// The timer callback event, called when a timer is fired
 static void TimerCallback(u64 timer_handle, int cycles_late) {
     const auto proper_handle = static_cast<Handle>(timer_handle);
-    auto& system = Core::System::GetInstance();
+    const auto& system = Core::System::GetInstance();
     SharedPtr<Timer> timer = system.Kernel().RetrieveTimerFromCallbackHandleTable(proper_handle);
 
     if (timer == nullptr) {
