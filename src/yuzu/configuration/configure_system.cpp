@@ -78,7 +78,7 @@ QPixmap GetIcon(Service::Account::UUID uuid) {
 
     if (!icon) {
         icon.fill(Qt::black);
-        icon.loadFromData(backup_jpeg.data(), backup_jpeg.size());
+        icon.loadFromData(backup_jpeg.data(), static_cast<u32>(backup_jpeg.size()));
     }
 
     return icon.scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
