@@ -878,6 +878,8 @@ CachedSurface::CachedSurface(const SurfaceParams& params)
     glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_MAX_LEVEL,
+                    params.max_mip_level - 1);
     if (params.max_mip_level == 1) {
         glTexParameterf(SurfaceTargetToGL(params.target), GL_TEXTURE_LOD_BIAS, 1000.0);
     }
@@ -1196,20 +1198,6 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
 
     for (u32 i = 0; i < params.max_mip_level; i++)
         UploadGLMipmapTexture(i, read_fb_handle, draw_fb_handle);
-
-    if (params.max_mip_level == 1) {
-        const GLuint target_tex = texture.handle;
-        OpenGLState cur_state = OpenGLState::GetCurState();
-        const auto& old_tex = cur_state.texture_units[0];
-        SCOPE_EXIT({
-            cur_state.texture_units[0] = old_tex;
-            cur_state.Apply();
-        });
-        cur_state.texture_units[0].texture = target_tex;
-        cur_state.texture_units[0].target = SurfaceTargetToGL(params.target);
-        cur_state.Apply();
-        glGenerateMipmap(SurfaceTargetToGL(params.target));
-    }
 }
 
 RasterizerCacheOpenGL::RasterizerCacheOpenGL() {
