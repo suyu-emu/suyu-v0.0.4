@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>357</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -125,6 +125,25 @@
          <widget class="QLineEdit" name="homebrew_args_edit"/>
         </item>
        </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="title">
+      <string>Dump</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <item>
+       <widget class="QCheckBox" name="dump_decompressed_nso">
+        <property name="whatsThis">
+         <string>When checked, any NSO yuzu tries to load or patch will be copied decompressed to the yuzu/dump directory.</string>
+        </property>
+        <property name="text">
+         <string>Dump Decompressed NSOs</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

@@ -201,6 +201,8 @@ log_filter = *:Trace
 # Port for listening to GDB connections.
 use_gdbstub=false
 gdbstub_port=24689
+# Determines whether or not yuzu will dump all NSOs it attempts to load while loading them
+dump_nso=false
 
 [WebService]
 # Whether or not to enable telemetry
