@@ -83,7 +83,7 @@ ResultVal<VirtualDir> SaveDataFactory::Open(SaveDataSpaceId space, SaveDataDescr
     return MakeResult<VirtualDir>(std::move(out));
 }
 
-VirtualDir SaveDataFactory::GetSaveDataSpaceDirectory(SaveDataSpaceId space) {
+VirtualDir SaveDataFactory::GetSaveDataSpaceDirectory(SaveDataSpaceId space) const {
     return dir->GetDirectoryRelative(GetSaveDataSpaceIdPath(space));
 }
 

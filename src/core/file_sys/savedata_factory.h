@@ -52,7 +52,7 @@ public:
 
     ResultVal<VirtualDir> Open(SaveDataSpaceId space, SaveDataDescriptor meta);
 
-    VirtualDir GetSaveDataSpaceDirectory(SaveDataSpaceId space);
+    VirtualDir GetSaveDataSpaceDirectory(SaveDataSpaceId space) const;
 
     static std::string GetSaveDataSpaceIdPath(SaveDataSpaceId space);
     static std::string GetFullPath(SaveDataSpaceId space, SaveDataType type, u64 title_id,

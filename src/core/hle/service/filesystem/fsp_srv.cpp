@@ -481,9 +481,9 @@ public:
         // Write the data to memory
         ctx.WriteBuffer(begin, range_size);
 
-        IPC::ResponseBuilder rb{ctx, 4};
+        IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.Push(actual_entries);
+        rb.Push<u32>(static_cast<u32>(actual_entries));
     }
 
 private:
@@ -498,15 +498,6 @@ private:
         return Common::swap64(out);
     }
 
-    static std::array<u8, 0x10> ArraySwap(const std::array<u8, 0x10>& in) {
-        std::array<u8, 0x10> out;
-        for (std::size_t i = 0; i < in.size(); ++i) {
-            out[0xF - i] = in[i];
-        }
-
-        return out;
-    }
-
     void FindAllSaves(FileSys::SaveDataSpaceId space) {
         const auto save_root = OpenSaveDataSpace(space);
         ASSERT(save_root.Succeeded());
@@ -516,8 +507,9 @@ private:
                 for (const auto& save_id : type->GetSubdirectories()) {
                     for (const auto& user_id : save_id->GetSubdirectories()) {
                         const auto save_id_numeric = stoull_be(save_id->GetName());
-                        const auto user_id_numeric =
-                            ArraySwap(Common::HexStringToArray<0x10>(user_id->GetName()));
+                        auto user_id_numeric = Common::HexStringToArray<0x10>(user_id->GetName());
+                        std::reverse(user_id_numeric.begin(), user_id_numeric.end());
+
                         if (save_id_numeric != 0) {
                             // System Save Data
                             info.emplace_back(SaveDataInfo{
@@ -560,12 +552,16 @@ private:
                     for (const auto& title_id : user_id->GetSubdirectories()) {
                         if (!title_id->GetFiles().empty() ||
                             !title_id->GetSubdirectories().empty()) {
+                            auto user_id_numeric =
+                                Common::HexStringToArray<0x10>(user_id->GetName());
+                            std::reverse(user_id_numeric.begin(), user_id_numeric.end());
+
                             info.emplace_back(SaveDataInfo{
                                 0,
                                 space,
                                 FileSys::SaveDataType::TemporaryStorage,
                                 {},
-                                Common::HexStringToArray<0x10, true>(user_id->GetName()),
+                                user_id_numeric,
                                 stoull_be(type->GetName()),
                                 stoull_be(title_id->GetName()),
                                 title_id->GetSize(),
