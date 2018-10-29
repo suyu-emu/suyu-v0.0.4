@@ -8,6 +8,7 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
+#include "video_core/renderer_opengl/utils.h"
 #include "video_core/utils.h"
 
 namespace OpenGL {
@@ -89,7 +90,7 @@ CachedShader::CachedShader(VAddr addr, Maxwell::ShaderProgram program_type)
         shader.Create(program_result.first.c_str(), gl_type);
         program.Create(true, shader.handle);
         SetShaderUniformBlockBindings(program.handle);
-        VideoCore::LabelGLObject(GL_PROGRAM, program.handle, addr);
+        LabelGLObject(GL_PROGRAM, program.handle, addr);
     } else {
         // Store shader's code to lazily build it on draw
         geometry_programs.code = program_result.first;
@@ -130,7 +131,7 @@ GLuint CachedShader::LazyGeometryProgram(OGLProgram& target_program,
     shader.Create(source.c_str(), GL_GEOMETRY_SHADER);
     target_program.Create(true, shader.handle);
     SetShaderUniformBlockBindings(target_program.handle);
-    VideoCore::LabelGLObject(GL_PROGRAM, target_program.handle, addr, debug_name);
+    LabelGLObject(GL_PROGRAM, target_program.handle, addr, debug_name);
     return target_program.handle;
 };
 
