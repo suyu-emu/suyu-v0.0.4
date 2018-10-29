@@ -30,8 +30,8 @@
 namespace OpenGL {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
-using PixelFormat = SurfaceParams::PixelFormat;
-using SurfaceType = SurfaceParams::SurfaceType;
+using PixelFormat = VideoCore::Surface::PixelFormat;
+using SurfaceType = VideoCore::Surface::SurfaceType;
 
 MICROPROFILE_DEFINE(OpenGL_VAO, "OpenGL", "Vertex Array Setup", MP_RGB(128, 128, 192));
 MICROPROFILE_DEFINE(OpenGL_Shader, "OpenGL", "Shader Setup", MP_RGB(128, 128, 192));
@@ -703,7 +703,8 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
 
     // Verify that the cached surface is the same size and format as the requested framebuffer
     const auto& params{surface->GetSurfaceParams()};
-    const auto& pixel_format{SurfaceParams::PixelFormatFromGPUPixelFormat(config.pixel_format)};
+    const auto& pixel_format{
+        VideoCore::Surface::PixelFormatFromGPUPixelFormat(config.pixel_format)};
     ASSERT_MSG(params.width == config.width, "Framebuffer width is different");
     ASSERT_MSG(params.height == config.height, "Framebuffer height is different");
     ASSERT_MSG(params.pixel_format == pixel_format, "Framebuffer pixel_format is different");
