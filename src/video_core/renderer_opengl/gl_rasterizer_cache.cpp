@@ -16,6 +16,7 @@
 #include "core/settings.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_opengl/gl_rasterizer_cache.h"
+#include "video_core/renderer_opengl/utils.h"
 #include "video_core/textures/astc.h"
 #include "video_core/textures/decoders.h"
 #include "video_core/utils.h"
@@ -865,8 +866,8 @@ CachedSurface::CachedSurface(const SurfaceParams& params)
     glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(SurfaceTargetToGL(params.target), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    VideoCore::LabelGLObject(GL_TEXTURE, texture.handle, params.addr,
-                             SurfaceParams::SurfaceTargetName(params.target));
+    LabelGLObject(GL_TEXTURE, texture.handle, params.addr,
+                  SurfaceParams::SurfaceTargetName(params.target));
 
     // Clamp size to mapped GPU memory region
     // TODO(bunnei): Super Mario Odyssey maps a 0x40000 byte region and then uses it for a 0x80000
