@@ -19,6 +19,7 @@
 #include "core/file_sys/vfs_vector.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
+#include "core/settings.h"
 
 namespace FileSys {
 
@@ -118,6 +119,18 @@ std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso) const {
 
     const auto build_id_raw = Common::HexArrayToString(header.build_id);
     const auto build_id = build_id_raw.substr(0, build_id_raw.find_last_not_of('0') + 1);
+
+    if (Settings::values.dump_nso) {
+        LOG_INFO(Loader, "Dumping NSO for build_id={}, title_id={:016X}", build_id, title_id);
+        const auto dump_dir = Service::FileSystem::GetModificationDumpRoot(title_id);
+        if (dump_dir != nullptr) {
+            const auto nso_dir = GetOrCreateDirectoryRelative(dump_dir, "/nso");
+            const auto file = nso_dir->CreateFile(fmt::format("{}.nso", build_id));
+
+            file->Resize(nso.size());
+            file->WriteBytes(nso);
+        }
+    }
 
     LOG_INFO(Loader, "Patching NSO for build_id={}", build_id);
 
