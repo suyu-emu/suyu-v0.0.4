@@ -4,7 +4,9 @@
 
 #include <memory>
 #include <fmt/format.h>
+#include <mbedtls/sha256.h>
 
+#include "common/hex_util.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/service/ldr/ldr.h"
@@ -94,7 +96,7 @@ public:
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &RelocatableObject::LoadNro, "LoadNro"},
-            {1, nullptr, "UnloadNro"},
+            {1, &RelocatableObject::UnloadNro, "UnloadNro"},
             {2, &RelocatableObject::LoadNrr, "LoadNrr"},
             {3, nullptr, "UnloadNrr"},
             {4, &RelocatableObject::Initialize, "Initialize"},
@@ -187,9 +189,38 @@ public:
         rb.Push(RESULT_SUCCESS);
     }
 
+    void UnloadNrr(Kernel::HLERequestContext& ctx) {
+        if (!initialized) {
+            LOG_ERROR(Service_LDR, "LDR:RO not initialized before use!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_NOT_INITIALIZED);
+            return;
+        }
+
+        IPC::RequestParser rp{ctx};
+        rp.Skip(2, false);
+        const auto nrr_addr{rp.Pop<VAddr>()};
+
+        if ((nrr_addr & 0xFFF) != 0) {
+            LOG_ERROR(Service_LDR, "NRR Address has invalid alignment (actual {:016X})!", nrr_addr);
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_ALIGNMENT);
+            return;
+        }
+
+        const auto iter = nrr.find(nrr_addr);
+        if (iter == nrr.end()) {
+            LOG_ERROR(Service_LDR,
+                      "Attempting to unload NRR which has not been loaded! (addr={:016X})",
+                      nrr_addr);
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_NRR_ADDRESS);
+            return;
+        }
+
+        nrr.erase(iter);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_WARNING(Service_LDR, "(STUBBED) called");
     }
 
     void LoadNro(Kernel::HLERequestContext& ctx) {
@@ -227,6 +258,57 @@ public:
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_LDR, "(STUBBED) called");
     }
+
+private:
+    using SHA256Hash = std::array<u8, 0x20>;
+
+    struct NROHeader {
+        u32_le entrypoint_insn;
+        u32_le mod_offset;
+        INSERT_PADDING_WORDS(2);
+        u32_le magic;
+        INSERT_PADDING_WORDS(1);
+        u32_le nro_size;
+        INSERT_PADDING_WORDS(1);
+        u32_le text_offset;
+        u32_le text_size;
+        u32_le ro_offset;
+        u32_le ro_size;
+        u32_le rw_offset;
+        u32_le rw_size;
+        u32_le bss_size;
+        INSERT_PADDING_WORDS(1);
+        std::array<u8, 0x20> build_id;
+        INSERT_PADDING_BYTES(0x20);
+    };
+    static_assert(sizeof(NROHeader) == 0x80, "NROHeader has invalid size.");
+
+    struct NRRHeader {
+        u32_le magic;
+        INSERT_PADDING_BYTES(0x1C);
+        u64_le title_id_mask;
+        u64_le title_id_pattern;
+        std::array<u8, 0x100> modulus;
+        std::array<u8, 0x100> signature_1;
+        std::array<u8, 0x100> signature_2;
+        u64_le title_id;
+        u32_le size;
+        INSERT_PADDING_BYTES(4);
+        u32_le hash_offset;
+        u32_le hash_count;
+        INSERT_PADDING_BYTES(8);
+    };
+    static_assert(sizeof(NRRHeader) == 0x350, "NRRHeader has incorrect size.");
+
+    struct NROInfo {
+        SHA256Hash hash;
+        u64 size;
+    };
+
+    bool initialized = false;
+
+    std::map<VAddr, NROInfo> nro;
+    std::map<VAddr, std::vector<SHA256Hash>> nrr;
 };
 
 void InstallInterfaces(SM::ServiceManager& sm) {
