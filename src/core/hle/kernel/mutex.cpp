@@ -6,8 +6,6 @@
 #include <utility>
 #include <vector>
 
-#include <boost/range/algorithm_ext/erase.hpp>
-
 #include "common/assert.h"
 #include "core/core.h"
 #include "core/hle/kernel/errors.h"
