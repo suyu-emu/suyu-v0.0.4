@@ -165,6 +165,10 @@ public:
         return domain_message_header.get();
     }
 
+    bool HasDomainMessageHeader() const {
+        return domain_message_header != nullptr;
+    }
+
     /// Helper function to read a buffer using the appropriate buffer descriptor
     std::vector<u8> ReadBuffer(int buffer_index = 0) const;
 
