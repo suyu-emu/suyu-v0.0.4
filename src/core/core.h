@@ -129,11 +129,11 @@ public:
      */
     bool IsPoweredOn() const;
 
-    /**
-     * Returns a reference to the telemetry session for this emulation session.
-     * @returns Reference to the telemetry session.
-     */
-    Core::TelemetrySession& TelemetrySession() const;
+    /// Gets a reference to the telemetry session for this emulation session.
+    Core::TelemetrySession& TelemetrySession();
+
+    /// Gets a reference to the telemetry session for this emulation session.
+    const Core::TelemetrySession& TelemetrySession() const;
 
     /// Prepare the core emulation for a reschedule
     void PrepareReschedule();
@@ -144,14 +144,23 @@ public:
     /// Gets an ARM interface to the CPU core that is currently running
     ARM_Interface& CurrentArmInterface();
 
+    /// Gets an ARM interface to the CPU core that is currently running
+    const ARM_Interface& CurrentArmInterface() const;
+
     /// Gets the index of the currently running CPU core
-    std::size_t CurrentCoreIndex();
+    std::size_t CurrentCoreIndex() const;
 
     /// Gets the scheduler for the CPU core that is currently running
     Kernel::Scheduler& CurrentScheduler();
 
-    /// Gets an ARM interface to the CPU core with the specified index
+    /// Gets the scheduler for the CPU core that is currently running
+    const Kernel::Scheduler& CurrentScheduler() const;
+
+    /// Gets a reference to an ARM interface for the CPU core with the specified index
     ARM_Interface& ArmInterface(std::size_t core_index);
+
+    /// Gets a const reference to an ARM interface from the CPU core with the specified index
+    const ARM_Interface& ArmInterface(std::size_t core_index) const;
 
     /// Gets a CPU interface to the CPU core with the specified index
     Cpu& CpuCore(std::size_t core_index);
@@ -159,8 +168,11 @@ public:
     /// Gets a CPU interface to the CPU core with the specified index
     const Cpu& CpuCore(std::size_t core_index) const;
 
-    /// Gets the exclusive monitor
+    /// Gets a reference to the exclusive monitor
     ExclusiveMonitor& Monitor();
+
+    /// Gets a constant reference to the exclusive monitor
+    const ExclusiveMonitor& Monitor() const;
 
     /// Gets a mutable reference to the GPU interface
     Tegra::GPU& GPU();
@@ -229,6 +241,9 @@ private:
 
     /// Returns the currently running CPU core
     Cpu& CurrentCpuCore();
+
+    /// Returns the currently running CPU core
+    const Cpu& CurrentCpuCore() const;
 
     /**
      * Initialize the emulated system.
