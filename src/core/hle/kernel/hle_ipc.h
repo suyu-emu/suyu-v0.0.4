@@ -161,8 +161,12 @@ public:
         return buffer_c_desciptors;
     }
 
-    const std::shared_ptr<IPC::DomainMessageHeader>& GetDomainMessageHeader() const {
-        return domain_message_header;
+    const IPC::DomainMessageHeader* GetDomainMessageHeader() const {
+        return domain_message_header.get();
+    }
+
+    bool HasDomainMessageHeader() const {
+        return domain_message_header != nullptr;
     }
 
     /// Helper function to read a buffer using the appropriate buffer descriptor
