@@ -366,15 +366,18 @@ void MortonCopy(u32 stride, u32 block_height, u32 height, u32 block_depth, u32 d
 
     // With the BCn formats (DXT and DXN), each 4x4 tile is swizzled instead of just individual
     // pixel values.
-    const u32 tile_size{IsFormatBCn(format) ? 4U : 1U};
+    const u32 tile_size_x{SurfaceParams::GetDefaultBlockWidth(format)};
+    const u32 tile_size_y{SurfaceParams::GetDefaultBlockHeight(format)};
 
     if (morton_to_gl) {
-        const std::vector<u8> data = Tegra::Texture::UnswizzleTexture(
-            addr, tile_size, bytes_per_pixel, stride, height, depth, block_height, block_depth);
+        const std::vector<u8> data =
+            Tegra::Texture::UnswizzleTexture(addr, tile_size_x, tile_size_y, bytes_per_pixel,
+                                             stride, height, depth, block_height, block_depth);
         const std::size_t size_to_copy{std::min(gl_buffer_size, data.size())};
         memcpy(gl_buffer, data.data(), size_to_copy);
     } else {
-        Tegra::Texture::CopySwizzledData(stride / tile_size, height / tile_size, depth,
+        Tegra::Texture::CopySwizzledData((stride + tile_size_x - 1) / tile_size_x,
+                                         (height + tile_size_y - 1) / tile_size_y, depth,
                                          bytes_per_pixel, bytes_per_pixel, Memory::GetPointer(addr),
                                          gl_buffer, false, block_height, block_depth);
     }
@@ -442,6 +445,8 @@ static constexpr GLConversionArray morton_to_gl_fns = {
         MortonCopy<true, PixelFormat::ASTC_2D_8X8_SRGB>,
         MortonCopy<true, PixelFormat::ASTC_2D_8X5_SRGB>,
         MortonCopy<true, PixelFormat::ASTC_2D_5X4_SRGB>,
+        MortonCopy<true, PixelFormat::ASTC_2D_5X5>,
+        MortonCopy<true, PixelFormat::ASTC_2D_5X5_SRGB>,
         MortonCopy<true, PixelFormat::Z32F>,
         MortonCopy<true, PixelFormat::Z16>,
         MortonCopy<true, PixelFormat::Z24S8>,
@@ -506,6 +511,8 @@ static constexpr GLConversionArray gl_to_morton_fns = {
         MortonCopy<false, PixelFormat::DXT23_SRGB>,
         MortonCopy<false, PixelFormat::DXT45_SRGB>,
         MortonCopy<false, PixelFormat::BC7U_SRGB>,
+        nullptr,
+        nullptr,
         nullptr,
         nullptr,
         nullptr,
