@@ -81,7 +81,7 @@ void GPU::ProcessCommandLists(const std::vector<CommandListHeader>& commands) {
     for (auto entry : commands) {
         Tegra::GPUVAddr address = entry.Address();
         u32 size = entry.sz;
-        const boost::optional<VAddr> head_address = memory_manager->GpuToCpuAddress(address);
+        const std::optional<VAddr> head_address = memory_manager->GpuToCpuAddress(address);
         VAddr current_addr = *head_address;
         while (current_addr < *head_address + size * sizeof(CommandHeader)) {
             const CommandHeader header = {Memory::Read32(current_addr)};

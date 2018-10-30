@@ -4,13 +4,15 @@
 
 #pragma once
 
+#include <functional>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <vector>
-#include <boost/optional.hpp>
+
 #include "common/common_types.h"
 #include "core/file_sys/vfs_types.h"
 
@@ -103,8 +105,8 @@ public:
     // into file. Returns number of bytes successfully written.
     virtual std::size_t Write(const u8* data, std::size_t length, std::size_t offset = 0) = 0;
 
-    // Reads exactly one byte at the offset provided, returning boost::none on error.
-    virtual boost::optional<u8> ReadByte(std::size_t offset = 0) const;
+    // Reads exactly one byte at the offset provided, returning std::nullopt on error.
+    virtual std::optional<u8> ReadByte(std::size_t offset = 0) const;
     // Reads size bytes starting at offset in file into a vector.
     virtual std::vector<u8> ReadBytes(std::size_t size, std::size_t offset = 0) const;
     // Reads all the bytes from the file into a vector. Equivalent to 'file->Read(file->GetSize(),

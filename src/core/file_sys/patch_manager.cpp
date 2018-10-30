@@ -65,7 +65,7 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
     if (update != nullptr && update->GetExeFS() != nullptr &&
         update->GetStatus() == Loader::ResultStatus::ErrorMissingBKTRBaseRomFS) {
         LOG_INFO(Loader, "    ExeFS: Update ({}) applied successfully",
-                 FormatTitleVersion(installed->GetEntryVersion(update_tid).get_value_or(0)));
+                 FormatTitleVersion(installed->GetEntryVersion(update_tid).value_or(0)));
         exefs = update->GetExeFS();
     }
 
@@ -236,7 +236,7 @@ VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset, Content
         if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
             new_nca->GetRomFS() != nullptr) {
             LOG_INFO(Loader, "    RomFS: Update ({}) applied successfully",
-                     FormatTitleVersion(installed->GetEntryVersion(update_tid).get_value_or(0)));
+                     FormatTitleVersion(installed->GetEntryVersion(update_tid).value_or(0)));
             romfs = new_nca->GetRomFS();
         }
     } else if (update_raw != nullptr) {
@@ -280,12 +280,11 @@ std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNam
     } else {
         if (installed->HasEntry(update_tid, ContentRecordType::Program)) {
             const auto meta_ver = installed->GetEntryVersion(update_tid);
-            if (meta_ver == boost::none || meta_ver.get() == 0) {
+            if (meta_ver.value_or(0) == 0) {
                 out.insert_or_assign("Update", "");
             } else {
                 out.insert_or_assign(
-                    "Update",
-                    FormatTitleVersion(meta_ver.get(), TitleVersionFormat::ThreeElements));
+                    "Update", FormatTitleVersion(*meta_ver, TitleVersionFormat::ThreeElements));
             }
         } else if (update_raw != nullptr) {
             out.insert_or_assign("Update", "PACKED");

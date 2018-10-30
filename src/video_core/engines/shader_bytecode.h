@@ -5,11 +5,10 @@
 #pragma once
 
 #include <bitset>
+#include <optional>
 #include <string>
 #include <tuple>
 #include <vector>
-
-#include <boost/optional.hpp>
 
 #include "common/assert.h"
 #include "common/bit_field.h"
@@ -1456,7 +1455,7 @@ public:
         Type type;
     };
 
-    static boost::optional<const Matcher&> Decode(Instruction instr) {
+    static std::optional<std::reference_wrapper<const Matcher>> Decode(Instruction instr) {
         static const auto table{GetDecodeTable()};
 
         const auto matches_instruction = [instr](const auto& matcher) {
@@ -1464,7 +1463,8 @@ public:
         };
 
         auto iter = std::find_if(table.begin(), table.end(), matches_instruction);
-        return iter != table.end() ? boost::optional<const Matcher&>(*iter) : boost::none;
+        return iter != table.end() ? std::optional<std::reference_wrapper<const Matcher>>(*iter)
+                                   : std::nullopt;
     }
 
 private:

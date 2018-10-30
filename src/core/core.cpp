@@ -185,7 +185,7 @@ struct System::Impl {
             LOG_CRITICAL(Core, "Failed to obtain loader for {}!", filepath);
             return ResultStatus::ErrorGetLoader;
         }
-        std::pair<boost::optional<u32>, Loader::ResultStatus> system_mode =
+        std::pair<std::optional<u32>, Loader::ResultStatus> system_mode =
             app_loader->LoadKernelSystemMode();
 
         if (system_mode.second != Loader::ResultStatus::Success) {

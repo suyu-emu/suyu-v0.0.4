@@ -4,9 +4,8 @@
 
 #include <algorithm>
 #include <cstring>
+#include <optional>
 #include <utility>
-
-#include <boost/optional.hpp>
 
 #include "common/logging/log.h"
 #include "core/crypto/aes_util.h"
@@ -306,18 +305,18 @@ bool NCA::ReadRomFSSection(const NCASectionHeader& section, const NCASectionTabl
         subsection_buckets.back().entries.push_back({section.bktr.relocation.offset, {0}, ctr_low});
         subsection_buckets.back().entries.push_back({size, {0}, 0});
 
-        boost::optional<Core::Crypto::Key128> key = boost::none;
+        std::optional<Core::Crypto::Key128> key = {};
         if (encrypted) {
             if (has_rights_id) {
                 status = Loader::ResultStatus::Success;
                 key = GetTitlekey();
-                if (key == boost::none) {
+                if (!key) {
                     status = Loader::ResultStatus::ErrorMissingTitlekey;
                     return false;
                 }
             } else {
                 key = GetKeyAreaKey(NCASectionCryptoType::BKTR);
-                if (key == boost::none) {
+                if (!key) {
                     status = Loader::ResultStatus::ErrorMissingKeyAreaKey;
                     return false;
                 }
@@ -332,7 +331,7 @@ bool NCA::ReadRomFSSection(const NCASectionHeader& section, const NCASectionTabl
         auto bktr = std::make_shared<BKTR>(
             bktr_base_romfs, std::make_shared<OffsetVfsFile>(file, romfs_size, base_offset),
             relocation_block, relocation_buckets, subsection_block, subsection_buckets, encrypted,
-            encrypted ? key.get() : Core::Crypto::Key128{}, base_offset, bktr_base_ivfc_offset,
+            encrypted ? *key : Core::Crypto::Key128{}, base_offset, bktr_base_ivfc_offset,
             section.raw.section_ctr);
 
         // BKTR applies to entire IVFC, so make an offset version to level 6
@@ -388,11 +387,11 @@ u8 NCA::GetCryptoRevision() const {
     return master_key_id;
 }
 
-boost::optional<Core::Crypto::Key128> NCA::GetKeyAreaKey(NCASectionCryptoType type) const {
+std::optional<Core::Crypto::Key128> NCA::GetKeyAreaKey(NCASectionCryptoType type) const {
     const auto master_key_id = GetCryptoRevision();
 
     if (!keys.HasKey(Core::Crypto::S128KeyType::KeyArea, master_key_id, header.key_index))
-        return boost::none;
+        return {};
 
     std::vector<u8> key_area(header.key_area.begin(), header.key_area.end());
     Core::Crypto::AESCipher<Core::Crypto::Key128> cipher(
@@ -416,25 +415,25 @@ boost::optional<Core::Crypto::Key128> NCA::GetKeyAreaKey(NCASectionCryptoType ty
     return out;
 }
 
-boost::optional<Core::Crypto::Key128> NCA::GetTitlekey() {
+std::optional<Core::Crypto::Key128> NCA::GetTitlekey() {
     const auto master_key_id = GetCryptoRevision();
 
     u128 rights_id{};
     memcpy(rights_id.data(), header.rights_id.data(), 16);
     if (rights_id == u128{}) {
         status = Loader::ResultStatus::ErrorInvalidRightsID;
-        return boost::none;
+        return {};
     }
 
     auto titlekey = keys.GetKey(Core::Crypto::S128KeyType::Titlekey, rights_id[1], rights_id[0]);
     if (titlekey == Core::Crypto::Key128{}) {
         status = Loader::ResultStatus::ErrorMissingTitlekey;
-        return boost::none;
+        return {};
     }
 
     if (!keys.HasKey(Core::Crypto::S128KeyType::Titlekek, master_key_id)) {
         status = Loader::ResultStatus::ErrorMissingTitlekek;
-        return boost::none;
+        return {};
     }
 
     Core::Crypto::AESCipher<Core::Crypto::Key128> cipher(
@@ -458,25 +457,25 @@ VirtualFile NCA::Decrypt(const NCASectionHeader& s_header, VirtualFile in, u64 s
     case NCASectionCryptoType::BKTR:
         LOG_DEBUG(Crypto, "called with mode=CTR, starting_offset={:016X}", starting_offset);
         {
-            boost::optional<Core::Crypto::Key128> key = boost::none;
+            std::optional<Core::Crypto::Key128> key = {};
             if (has_rights_id) {
                 status = Loader::ResultStatus::Success;
                 key = GetTitlekey();
-                if (key == boost::none) {
+                if (!key) {
                     if (status == Loader::ResultStatus::Success)
                         status = Loader::ResultStatus::ErrorMissingTitlekey;
                     return nullptr;
                 }
             } else {
                 key = GetKeyAreaKey(NCASectionCryptoType::CTR);
-                if (key == boost::none) {
+                if (!key) {
                     status = Loader::ResultStatus::ErrorMissingKeyAreaKey;
                     return nullptr;
                 }
             }
 
-            auto out = std::make_shared<Core::Crypto::CTREncryptionLayer>(
-                std::move(in), key.value(), starting_offset);
+            auto out = std::make_shared<Core::Crypto::CTREncryptionLayer>(std::move(in), *key,
+                                                                          starting_offset);
             std::vector<u8> iv(16);
             for (u8 i = 0; i < 8; ++i)
                 iv[i] = s_header.raw.section_ctr[0x8 - i - 1];

@@ -6,8 +6,8 @@
 
 #include <array>
 #include <functional>
+#include <optional>
 #include <string>
-#include <boost/optional.hpp>
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
@@ -18,8 +18,8 @@ using Tegra::Engines::Maxwell3D;
 
 std::string GetCommonDeclarations();
 
-boost::optional<ProgramResult> DecompileProgram(const ProgramCode& program_code, u32 main_offset,
-                                                Maxwell3D::Regs::ShaderStage stage,
-                                                const std::string& suffix);
+std::optional<ProgramResult> DecompileProgram(const ProgramCode& program_code, u32 main_offset,
+                                              Maxwell3D::Regs::ShaderStage stage,
+                                              const std::string& suffix);
 
 } // namespace OpenGL::GLShader::Decompiler

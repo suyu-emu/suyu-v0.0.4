@@ -401,7 +401,7 @@ void RasterizerOpenGL::UpdatePagesCachedCount(VAddr addr, u64 size, int delta) {
 
 void RasterizerOpenGL::ConfigureFramebuffers(bool using_color_fb, bool using_depth_fb,
                                              bool preserve_contents,
-                                             boost::optional<std::size_t> single_color_target) {
+                                             std::optional<std::size_t> single_color_target) {
     MICROPROFILE_SCOPE(OpenGL_Framebuffer);
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 

@@ -5,7 +5,8 @@
 #pragma once
 
 #include <memory>
-#include <boost/optional.hpp>
+#include <optional>
+
 #include "common/common_types.h"
 
 namespace Memory {
@@ -18,19 +19,19 @@ namespace Memory {
  *
  * A hook may be mapped to multiple regions of memory.
  *
- * If a boost::none or false is returned from a function, the read/write request is passed through
+ * If a std::nullopt or false is returned from a function, the read/write request is passed through
  * to the underlying memory region.
  */
 class MemoryHook {
 public:
     virtual ~MemoryHook();
 
-    virtual boost::optional<bool> IsValidAddress(VAddr addr) = 0;
+    virtual std::optional<bool> IsValidAddress(VAddr addr) = 0;
 
-    virtual boost::optional<u8> Read8(VAddr addr) = 0;
-    virtual boost::optional<u16> Read16(VAddr addr) = 0;
-    virtual boost::optional<u32> Read32(VAddr addr) = 0;
-    virtual boost::optional<u64> Read64(VAddr addr) = 0;
+    virtual std::optional<u8> Read8(VAddr addr) = 0;
+    virtual std::optional<u16> Read16(VAddr addr) = 0;
+    virtual std::optional<u32> Read32(VAddr addr) = 0;
+    virtual std::optional<u64> Read64(VAddr addr) = 0;
 
     virtual bool ReadBlock(VAddr src_addr, void* dest_buffer, std::size_t size) = 0;
 

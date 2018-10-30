@@ -167,13 +167,13 @@ std::string VfsFile::GetExtension() const {
 
 VfsDirectory::~VfsDirectory() = default;
 
-boost::optional<u8> VfsFile::ReadByte(std::size_t offset) const {
+std::optional<u8> VfsFile::ReadByte(std::size_t offset) const {
     u8 out{};
     std::size_t size = Read(&out, 1, offset);
     if (size == 1)
         return out;
 
-    return boost::none;
+    return {};
 }
 
 std::vector<u8> VfsFile::ReadBytes(std::size_t size, std::size_t offset) const {

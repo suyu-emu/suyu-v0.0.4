@@ -786,7 +786,7 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
         ASSERT(index != -1 && index < 8);
 
         const auto user_id = manager.GetUser(index);
-        ASSERT(user_id != std::nullopt);
+        ASSERT(user_id);
         path = nand_dir + FileSys::SaveDataFactory::GetFullPath(FileSys::SaveDataSpaceId::NandUser,
                                                                 FileSys::SaveDataType::SaveData,
                                                                 program_id, user_id->uuid, 0);
@@ -1560,7 +1560,7 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
     }
 }
 
-boost::optional<u64> GMainWindow::SelectRomFSDumpTarget(
+std::optional<u64> GMainWindow::SelectRomFSDumpTarget(
     const FileSys::RegisteredCacheUnion& installed, u64 program_id) {
     const auto dlc_entries =
         installed.ListEntriesFilter(FileSys::TitleType::AOC, FileSys::ContentRecordType::Data);
@@ -1587,7 +1587,7 @@ boost::optional<u64> GMainWindow::SelectRomFSDumpTarget(
             this, tr("Select RomFS Dump Target"),
             tr("Please select which RomFS you would like to dump."), list, 0, false, &ok);
         if (!ok) {
-            return boost::none;
+            return {};
         }
 
         return romfs_tids[list.indexOf(res)];

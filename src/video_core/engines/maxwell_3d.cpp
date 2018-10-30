@@ -167,7 +167,7 @@ void Maxwell3D::ProcessQueryGet() {
     GPUVAddr sequence_address = regs.query.QueryAddress();
     // Since the sequence address is given as a GPU VAddr, we have to convert it to an application
     // VAddr before writing.
-    boost::optional<VAddr> address = memory_manager.GpuToCpuAddress(sequence_address);
+    std::optional<VAddr> address = memory_manager.GpuToCpuAddress(sequence_address);
 
     // TODO(Subv): Support the other query units.
     ASSERT_MSG(regs.query.query_get.unit == Regs::QueryUnit::Crop,
@@ -285,7 +285,7 @@ void Maxwell3D::ProcessCBData(u32 value) {
     // Don't allow writing past the end of the buffer.
     ASSERT(regs.const_buffer.cb_pos + sizeof(u32) <= regs.const_buffer.cb_size);
 
-    boost::optional<VAddr> address =
+    std::optional<VAddr> address =
         memory_manager.GpuToCpuAddress(buffer_address + regs.const_buffer.cb_pos);
 
     Memory::Write32(*address, value);
@@ -298,7 +298,7 @@ Texture::TICEntry Maxwell3D::GetTICEntry(u32 tic_index) const {
     GPUVAddr tic_base_address = regs.tic.TICAddress();
 
     GPUVAddr tic_address_gpu = tic_base_address + tic_index * sizeof(Texture::TICEntry);
-    boost::optional<VAddr> tic_address_cpu = memory_manager.GpuToCpuAddress(tic_address_gpu);
+    std::optional<VAddr> tic_address_cpu = memory_manager.GpuToCpuAddress(tic_address_gpu);
 
     Texture::TICEntry tic_entry;
     Memory::ReadBlock(*tic_address_cpu, &tic_entry, sizeof(Texture::TICEntry));
@@ -322,7 +322,7 @@ Texture::TSCEntry Maxwell3D::GetTSCEntry(u32 tsc_index) const {
     GPUVAddr tsc_base_address = regs.tsc.TSCAddress();
 
     GPUVAddr tsc_address_gpu = tsc_base_address + tsc_index * sizeof(Texture::TSCEntry);
-    boost::optional<VAddr> tsc_address_cpu = memory_manager.GpuToCpuAddress(tsc_address_gpu);
+    std::optional<VAddr> tsc_address_cpu = memory_manager.GpuToCpuAddress(tsc_address_gpu);
 
     Texture::TSCEntry tsc_entry;
     Memory::ReadBlock(*tsc_address_cpu, &tsc_entry, sizeof(Texture::TSCEntry));
@@ -386,7 +386,7 @@ Texture::FullTextureInfo Maxwell3D::GetStageTexture(Regs::ShaderStage stage,
 
     ASSERT(tex_info_address < tex_info_buffer.address + tex_info_buffer.size);
 
-    boost::optional<VAddr> tex_address_cpu = memory_manager.GpuToCpuAddress(tex_info_address);
+    std::optional<VAddr> tex_address_cpu = memory_manager.GpuToCpuAddress(tex_info_address);
     Texture::TextureHandle tex_handle{Memory::Read32(*tex_address_cpu)};
 
     Texture::FullTextureInfo tex_info{};

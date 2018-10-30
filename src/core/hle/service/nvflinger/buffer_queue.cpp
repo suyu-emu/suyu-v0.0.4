@@ -31,7 +31,7 @@ void BufferQueue::SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer)
     buffer_wait_event->Signal();
 }
 
-boost::optional<u32> BufferQueue::DequeueBuffer(u32 width, u32 height) {
+std::optional<u32> BufferQueue::DequeueBuffer(u32 width, u32 height) {
     auto itr = std::find_if(queue.begin(), queue.end(), [&](const Buffer& buffer) {
         // Only consider free buffers. Buffers become free once again after they've been Acquired
         // and Released by the compositor, see the NVFlinger::Compose method.
@@ -44,7 +44,7 @@ boost::optional<u32> BufferQueue::DequeueBuffer(u32 width, u32 height) {
     });
 
     if (itr == queue.end()) {
-        return boost::none;
+        return {};
     }
 
     itr->status = Buffer::Status::Dequeued;
@@ -70,12 +70,12 @@ void BufferQueue::QueueBuffer(u32 slot, BufferTransformFlags transform,
     itr->crop_rect = crop_rect;
 }
 
-boost::optional<const BufferQueue::Buffer&> BufferQueue::AcquireBuffer() {
+std::optional<std::reference_wrapper<const BufferQueue::Buffer>> BufferQueue::AcquireBuffer() {
     auto itr = std::find_if(queue.begin(), queue.end(), [](const Buffer& buffer) {
         return buffer.status == Buffer::Status::Queued;
     });
     if (itr == queue.end())
-        return boost::none;
+        return {};
     itr->status = Buffer::Status::Acquired;
     return *itr;
 }

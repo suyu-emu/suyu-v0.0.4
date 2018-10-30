@@ -195,7 +195,7 @@ std::size_t ProfileManager::GetOpenUserCount() const {
 
 /// Checks if a user id exists in our profile manager
 bool ProfileManager::UserExists(UUID uuid) const {
-    return GetUserIndex(uuid) != std::nullopt;
+    return GetUserIndex(uuid).has_value();
 }
 
 bool ProfileManager::UserExistsIndex(std::size_t index) const {

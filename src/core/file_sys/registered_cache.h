@@ -84,7 +84,7 @@ public:
     bool HasEntry(u64 title_id, ContentRecordType type) const;
     bool HasEntry(RegisteredCacheEntry entry) const;
 
-    boost::optional<u32> GetEntryVersion(u64 title_id) const;
+    std::optional<u32> GetEntryVersion(u64 title_id) const;
 
     VirtualFile GetEntryUnparsed(u64 title_id, ContentRecordType type) const;
     VirtualFile GetEntryUnparsed(RegisteredCacheEntry entry) const;
@@ -96,11 +96,10 @@ public:
     std::unique_ptr<NCA> GetEntry(RegisteredCacheEntry entry) const;
 
     std::vector<RegisteredCacheEntry> ListEntries() const;
-    // If a parameter is not boost::none, it will be filtered for from all entries.
+    // If a parameter is not std::nullopt, it will be filtered for from all entries.
     std::vector<RegisteredCacheEntry> ListEntriesFilter(
-        boost::optional<TitleType> title_type = boost::none,
-        boost::optional<ContentRecordType> record_type = boost::none,
-        boost::optional<u64> title_id = boost::none) const;
+        std::optional<TitleType> title_type = {}, std::optional<ContentRecordType> record_type = {},
+        std::optional<u64> title_id = {}) const;
 
     // Raw copies all the ncas from the xci/nsp to the csache. Does some quick checks to make sure
     // there is a meta NCA and all of them are accessible.
@@ -125,12 +124,11 @@ private:
     std::vector<NcaID> AccumulateFiles() const;
     void ProcessFiles(const std::vector<NcaID>& ids);
     void AccumulateYuzuMeta();
-    boost::optional<NcaID> GetNcaIDFromMetadata(u64 title_id, ContentRecordType type) const;
+    std::optional<NcaID> GetNcaIDFromMetadata(u64 title_id, ContentRecordType type) const;
     VirtualFile GetFileAtID(NcaID id) const;
     VirtualFile OpenFileOrDirectoryConcat(const VirtualDir& dir, std::string_view path) const;
     InstallResult RawInstallNCA(std::shared_ptr<NCA> nca, const VfsCopyFunction& copy,
-                                bool overwrite_if_exists,
-                                boost::optional<NcaID> override_id = boost::none);
+                                bool overwrite_if_exists, std::optional<NcaID> override_id = {});
     bool RawInstallYuzuMeta(const CNMT& cnmt);
 
     VirtualDir dir;
@@ -153,7 +151,7 @@ public:
     bool HasEntry(u64 title_id, ContentRecordType type) const;
     bool HasEntry(RegisteredCacheEntry entry) const;
 
-    boost::optional<u32> GetEntryVersion(u64 title_id) const;
+    std::optional<u32> GetEntryVersion(u64 title_id) const;
 
     VirtualFile GetEntryUnparsed(u64 title_id, ContentRecordType type) const;
     VirtualFile GetEntryUnparsed(RegisteredCacheEntry entry) const;
@@ -165,11 +163,10 @@ public:
     std::unique_ptr<NCA> GetEntry(RegisteredCacheEntry entry) const;
 
     std::vector<RegisteredCacheEntry> ListEntries() const;
-    // If a parameter is not boost::none, it will be filtered for from all entries.
+    // If a parameter is not std::nullopt, it will be filtered for from all entries.
     std::vector<RegisteredCacheEntry> ListEntriesFilter(
-        boost::optional<TitleType> title_type = boost::none,
-        boost::optional<ContentRecordType> record_type = boost::none,
-        boost::optional<u64> title_id = boost::none) const;
+        std::optional<TitleType> title_type = {}, std::optional<ContentRecordType> record_type = {},
+        std::optional<u64> title_id = {}) const;
 
 private:
     std::vector<RegisteredCache*> caches;

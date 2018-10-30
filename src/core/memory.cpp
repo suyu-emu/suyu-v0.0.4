@@ -4,9 +4,9 @@
 
 #include <algorithm>
 #include <cstring>
+#include <optional>
 #include <utility>
 
-#include <boost/optional.hpp>
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"

@@ -9,7 +9,7 @@
 namespace Tegra {
 
 GPUVAddr MemoryManager::AllocateSpace(u64 size, u64 align) {
-    boost::optional<GPUVAddr> gpu_addr = FindFreeBlock(size, align);
+    std::optional<GPUVAddr> gpu_addr = FindFreeBlock(size, align);
     ASSERT(gpu_addr);
 
     for (u64 offset = 0; offset < size; offset += PAGE_SIZE) {
@@ -34,7 +34,7 @@ GPUVAddr MemoryManager::AllocateSpace(GPUVAddr gpu_addr, u64 size, u64 align) {
 }
 
 GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, u64 size) {
-    boost::optional<GPUVAddr> gpu_addr = FindFreeBlock(size, PAGE_SIZE);
+    std::optional<GPUVAddr> gpu_addr = FindFreeBlock(size, PAGE_SIZE);
     ASSERT(gpu_addr);
 
     for (u64 offset = 0; offset < size; offset += PAGE_SIZE) {
@@ -97,7 +97,7 @@ GPUVAddr MemoryManager::GetRegionEnd(GPUVAddr region_start) const {
     return {};
 }
 
-boost::optional<GPUVAddr> MemoryManager::FindFreeBlock(u64 size, u64 align) {
+std::optional<GPUVAddr> MemoryManager::FindFreeBlock(u64 size, u64 align) {
     GPUVAddr gpu_addr = 0;
     u64 free_space = 0;
     align = (align + PAGE_MASK) & ~PAGE_MASK;
@@ -118,7 +118,7 @@ boost::optional<GPUVAddr> MemoryManager::FindFreeBlock(u64 size, u64 align) {
     return {};
 }
 
-boost::optional<VAddr> MemoryManager::GpuToCpuAddress(GPUVAddr gpu_addr) {
+std::optional<VAddr> MemoryManager::GpuToCpuAddress(GPUVAddr gpu_addr) {
     VAddr base_addr = PageSlot(gpu_addr);
 
     if (base_addr == static_cast<u64>(PageStatus::Allocated) ||

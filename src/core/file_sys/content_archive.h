@@ -6,9 +6,10 @@
 
 #include <array>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
-#include <boost/optional.hpp>
+
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/swap.h"
@@ -111,8 +112,8 @@ private:
     bool ReadPFS0Section(const NCASectionHeader& section, const NCASectionTableEntry& entry);
 
     u8 GetCryptoRevision() const;
-    boost::optional<Core::Crypto::Key128> GetKeyAreaKey(NCASectionCryptoType type) const;
-    boost::optional<Core::Crypto::Key128> GetTitlekey();
+    std::optional<Core::Crypto::Key128> GetKeyAreaKey(NCASectionCryptoType type) const;
+    std::optional<Core::Crypto::Key128> GetTitlekey();
     VirtualFile Decrypt(const NCASectionHeader& header, VirtualFile in, u64 starting_offset);
 
     std::vector<VirtualDir> dirs;

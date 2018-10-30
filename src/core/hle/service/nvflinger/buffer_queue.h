@@ -4,8 +4,9 @@
 
 #pragma once
 
+#include <optional>
 #include <vector>
-#include <boost/optional.hpp>
+
 #include "common/common_funcs.h"
 #include "common/math_util.h"
 #include "common/swap.h"
@@ -73,11 +74,11 @@ public:
     };
 
     void SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer);
-    boost::optional<u32> DequeueBuffer(u32 width, u32 height);
+    std::optional<u32> DequeueBuffer(u32 width, u32 height);
     const IGBPBuffer& RequestBuffer(u32 slot) const;
     void QueueBuffer(u32 slot, BufferTransformFlags transform,
                      const MathUtil::Rectangle<int>& crop_rect);
-    boost::optional<const Buffer&> AcquireBuffer();
+    std::optional<std::reference_wrapper<const Buffer>> AcquireBuffer();
     void ReleaseBuffer(u32 slot);
     u32 Query(QueryType type);
 

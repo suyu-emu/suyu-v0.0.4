@@ -103,12 +103,12 @@ VirtualFile PatchIPS(const VirtualFile& in, const VirtualFile& ips) {
             offset += sizeof(u16);
 
             const auto data = ips->ReadByte(offset++);
-            if (data == boost::none)
+            if (!data)
                 return nullptr;
 
             if (real_offset + rle_size > in_data.size())
                 rle_size = static_cast<u16>(in_data.size() - real_offset);
-            std::memset(in_data.data() + real_offset, data.get(), rle_size);
+            std::memset(in_data.data() + real_offset, *data, rle_size);
         } else { // Standard Patch
             auto read = data_size;
             if (real_offset + read > in_data.size())

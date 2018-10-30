@@ -6,9 +6,8 @@
 
 #include <array>
 #include <memory>
+#include <optional>
 #include <vector>
-
-#include <boost/optional.hpp>
 
 #include "common/common_types.h"
 
@@ -27,7 +26,7 @@ public:
     GPUVAddr MapBufferEx(VAddr cpu_addr, GPUVAddr gpu_addr, u64 size);
     GPUVAddr UnmapBuffer(GPUVAddr gpu_addr, u64 size);
     GPUVAddr GetRegionEnd(GPUVAddr region_start) const;
-    boost::optional<VAddr> GpuToCpuAddress(GPUVAddr gpu_addr);
+    std::optional<VAddr> GpuToCpuAddress(GPUVAddr gpu_addr);
     std::vector<GPUVAddr> CpuToGpuAddress(VAddr cpu_addr) const;
 
     static constexpr u64 PAGE_BITS = 16;
@@ -35,7 +34,7 @@ public:
     static constexpr u64 PAGE_MASK = PAGE_SIZE - 1;
 
 private:
-    boost::optional<GPUVAddr> FindFreeBlock(u64 size, u64 align = 1);
+    std::optional<GPUVAddr> FindFreeBlock(u64 size, u64 align = 1);
     bool IsPageMapped(GPUVAddr gpu_addr);
     VAddr& PageSlot(GPUVAddr gpu_addr);
 

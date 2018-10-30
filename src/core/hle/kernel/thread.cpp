@@ -4,9 +4,9 @@
 
 #include <algorithm>
 #include <cinttypes>
+#include <optional>
 #include <vector>
 
-#include <boost/optional.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
 
 #include "common/assert.h"
@@ -94,7 +94,7 @@ void Thread::CancelWakeupTimer() {
     CoreTiming::UnscheduleEventThreadsafe(kernel.ThreadWakeupCallbackEventType(), callback_handle);
 }
 
-static boost::optional<s32> GetNextProcessorId(u64 mask) {
+static std::optional<s32> GetNextProcessorId(u64 mask) {
     for (s32 index = 0; index < Core::NUM_CPU_CORES; ++index) {
         if (mask & (1ULL << index)) {
             if (!Core::System::GetInstance().Scheduler(index).GetCurrentThread()) {
@@ -142,7 +142,7 @@ void Thread::ResumeFromWait() {
 
     status = ThreadStatus::Ready;
 
-    boost::optional<s32> new_processor_id = GetNextProcessorId(affinity_mask);
+    std::optional<s32> new_processor_id = GetNextProcessorId(affinity_mask);
     if (!new_processor_id) {
         new_processor_id = processor_id;
     }
@@ -369,7 +369,7 @@ void Thread::ChangeCore(u32 core, u64 mask) {
         return;
     }
 
-    boost::optional<s32> new_processor_id{GetNextProcessorId(affinity_mask)};
+    std::optional<s32> new_processor_id{GetNextProcessorId(affinity_mask)};
 
     if (!new_processor_id) {
         new_processor_id = processor_id;

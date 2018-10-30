@@ -57,11 +57,11 @@ std::size_t OffsetVfsFile::Write(const u8* data, std::size_t length, std::size_t
     return file->Write(data, TrimToFit(length, r_offset), offset + r_offset);
 }
 
-boost::optional<u8> OffsetVfsFile::ReadByte(std::size_t r_offset) const {
+std::optional<u8> OffsetVfsFile::ReadByte(std::size_t r_offset) const {
     if (r_offset < size)
         return file->ReadByte(offset + r_offset);
 
-    return boost::none;
+    return {};
 }
 
 std::vector<u8> OffsetVfsFile::ReadBytes(std::size_t r_size, std::size_t r_offset) const {

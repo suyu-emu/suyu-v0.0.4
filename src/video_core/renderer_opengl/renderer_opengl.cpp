@@ -115,7 +115,8 @@ RendererOpenGL::RendererOpenGL(Core::Frontend::EmuWindow& window)
 RendererOpenGL::~RendererOpenGL() = default;
 
 /// Swap buffers (render frame)
-void RendererOpenGL::SwapBuffers(boost::optional<const Tegra::FramebufferConfig&> framebuffer) {
+void RendererOpenGL::SwapBuffers(
+    std::optional<std::reference_wrapper<const Tegra::FramebufferConfig>> framebuffer) {
     ScopeAcquireGLContext acquire_context{render_window};
 
     Core::System::GetInstance().GetPerfStats().EndSystemFrame();
@@ -124,11 +125,11 @@ void RendererOpenGL::SwapBuffers(boost::optional<const Tegra::FramebufferConfig&
     OpenGLState prev_state = OpenGLState::GetCurState();
     state.Apply();
 
-    if (framebuffer != boost::none) {
+    if (framebuffer) {
         // If framebuffer is provided, reload it from memory to a texture
-        if (screen_info.texture.width != (GLsizei)framebuffer->width ||
-            screen_info.texture.height != (GLsizei)framebuffer->height ||
-            screen_info.texture.pixel_format != framebuffer->pixel_format) {
+        if (screen_info.texture.width != (GLsizei)framebuffer->get().width ||
+            screen_info.texture.height != (GLsizei)framebuffer->get().height ||
+            screen_info.texture.pixel_format != framebuffer->get().pixel_format) {
             // Reallocate texture if the framebuffer size has changed.
             // This is expected to not happen very often and hence should not be a
             // performance problem.

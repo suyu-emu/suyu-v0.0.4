@@ -17,7 +17,7 @@ OGLBufferCache::OGLBufferCache(std::size_t size) : stream_buffer(GL_ARRAY_BUFFER
 GLintptr OGLBufferCache::UploadMemory(Tegra::GPUVAddr gpu_addr, std::size_t size,
                                       std::size_t alignment, bool cache) {
     auto& memory_manager = Core::System::GetInstance().GPU().MemoryManager();
-    const boost::optional<VAddr> cpu_addr{memory_manager.GpuToCpuAddress(gpu_addr)};
+    const std::optional<VAddr> cpu_addr{memory_manager.GpuToCpuAddress(gpu_addr)};
 
     // Cache management is a big overhead, so only cache entries with a given size.
     // TODO: Figure out which size is the best for given games.

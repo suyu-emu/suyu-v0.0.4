@@ -5,8 +5,9 @@
 #pragma once
 
 #include <array>
+#include <optional>
 #include <vector>
-#include <boost/optional.hpp>
+
 #include "common/bit_field.h"
 #include "common/common_types.h"
 
@@ -149,7 +150,7 @@ private:
     Engines::Maxwell3D& maxwell3d;
 
     u32 pc; ///< Current program counter
-    boost::optional<u32>
+    std::optional<u32>
         delayed_pc; ///< Program counter to execute at after the delay slot is executed.
 
     static constexpr std::size_t NumMacroRegisters = 8;

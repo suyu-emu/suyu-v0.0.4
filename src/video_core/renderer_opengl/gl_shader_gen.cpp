@@ -37,7 +37,7 @@ layout(std140) uniform vs_config {
     ProgramResult program =
         Decompiler::DecompileProgram(setup.program.code, PROGRAM_OFFSET,
                                      Maxwell3D::Regs::ShaderStage::Vertex, "vertex")
-            .get_value_or({});
+            .value_or(ProgramResult());
 
     out += program.first;
 
@@ -45,7 +45,7 @@ layout(std140) uniform vs_config {
         ProgramResult program_b =
             Decompiler::DecompileProgram(setup.program.code_b, PROGRAM_OFFSET,
                                          Maxwell3D::Regs::ShaderStage::Vertex, "vertex_b")
-                .get_value_or({});
+                .value_or(ProgramResult());
         out += program_b.first;
     }
 
@@ -90,7 +90,7 @@ ProgramResult GenerateGeometryShader(const ShaderSetup& setup) {
     ProgramResult program =
         Decompiler::DecompileProgram(setup.program.code, PROGRAM_OFFSET,
                                      Maxwell3D::Regs::ShaderStage::Geometry, "geometry")
-            .get_value_or({});
+            .value_or(ProgramResult());
     out += R"(
 out gl_PerVertex {
     vec4 gl_Position;
@@ -124,7 +124,7 @@ ProgramResult GenerateFragmentShader(const ShaderSetup& setup) {
     ProgramResult program =
         Decompiler::DecompileProgram(setup.program.code, PROGRAM_OFFSET,
                                      Maxwell3D::Regs::ShaderStage::Fragment, "fragment")
-            .get_value_or({});
+            .value_or(ProgramResult());
     out += R"(
 layout(location = 0) out vec4 FragColor0;
 layout(location = 1) out vec4 FragColor1;

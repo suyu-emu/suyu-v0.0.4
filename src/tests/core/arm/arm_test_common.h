@@ -64,12 +64,12 @@ private:
 
         ~TestMemory() override;
 
-        boost::optional<bool> IsValidAddress(VAddr addr) override;
+        std::optional<bool> IsValidAddress(VAddr addr) override;
 
-        boost::optional<u8> Read8(VAddr addr) override;
-        boost::optional<u16> Read16(VAddr addr) override;
-        boost::optional<u32> Read32(VAddr addr) override;
-        boost::optional<u64> Read64(VAddr addr) override;
+        std::optional<u8> Read8(VAddr addr) override;
+        std::optional<u16> Read16(VAddr addr) override;
+        std::optional<u32> Read32(VAddr addr) override;
+        std::optional<u64> Read64(VAddr addr) override;
 
         bool ReadBlock(VAddr src_addr, void* dest_buffer, std::size_t size) override;
 

@@ -6,7 +6,8 @@
 
 #include <atomic>
 #include <memory>
-#include <boost/optional.hpp>
+#include <optional>
+
 #include "common/common_types.h"
 #include "video_core/gpu.h"
 #include "video_core/rasterizer_interface.h"
@@ -28,7 +29,8 @@ public:
     virtual ~RendererBase();
 
     /// Swap buffers (render frame)
-    virtual void SwapBuffers(boost::optional<const Tegra::FramebufferConfig&> framebuffer) = 0;
+    virtual void SwapBuffers(
+        std::optional<std::reference_wrapper<const Tegra::FramebufferConfig>> framebuffer) = 0;
 
     /// Initialize the renderer
     virtual bool Init() = 0;

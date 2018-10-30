@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <boost/optional.hpp>
+#include <optional>
 
 #include "common/alignment.h"
 #include "common/assert.h"
@@ -134,7 +134,7 @@ void NVFlinger::Compose() {
 
         MicroProfileFlip();
 
-        if (buffer == boost::none) {
+        if (!buffer) {
             auto& system_instance = Core::System::GetInstance();
 
             // There was no queued buffer to draw, render previous frame
@@ -143,7 +143,7 @@ void NVFlinger::Compose() {
             continue;
         }
 
-        auto& igbp_buffer = buffer->igbp_buffer;
+        auto& igbp_buffer = buffer->get().igbp_buffer;
 
         // Now send the buffer to the GPU for drawing.
         // TODO(Subv): Support more than just disp0. The display device selection is probably based
@@ -152,10 +152,10 @@ void NVFlinger::Compose() {
         ASSERT(nvdisp);
 
         nvdisp->flip(igbp_buffer.gpu_buffer_id, igbp_buffer.offset, igbp_buffer.format,
-                     igbp_buffer.width, igbp_buffer.height, igbp_buffer.stride, buffer->transform,
-                     buffer->crop_rect);
+                     igbp_buffer.width, igbp_buffer.height, igbp_buffer.stride,
+                     buffer->get().transform, buffer->get().crop_rect);
 
-        buffer_queue->ReleaseBuffer(buffer->slot);
+        buffer_queue->ReleaseBuffer(buffer->get().slot);
     }
 }
 

@@ -8,12 +8,12 @@
 #include <cstddef>
 #include <map>
 #include <memory>
+#include <optional>
 #include <tuple>
 #include <utility>
 #include <vector>
 
 #include <boost/icl/interval_map.hpp>
-#include <boost/optional.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <glad/glad.h>
 
@@ -111,7 +111,7 @@ private:
      */
     void ConfigureFramebuffers(bool use_color_fb = true, bool using_depth_fb = true,
                                bool preserve_contents = true,
-                               boost::optional<std::size_t> single_color_target = {});
+                               std::optional<std::size_t> single_color_target = {});
 
     /*
      * Configures the current constbuffers to use for the draw command.

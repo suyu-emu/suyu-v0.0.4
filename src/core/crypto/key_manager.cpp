@@ -141,28 +141,28 @@ Key128 DeriveKeyblobMACKey(const Key128& keyblob_key, const Key128& mac_source) 
     return mac_key;
 }
 
-boost::optional<Key128> DeriveSDSeed() {
+std::optional<Key128> DeriveSDSeed() {
     const FileUtil::IOFile save_43(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
                                        "/system/save/8000000000000043",
                                    "rb+");
     if (!save_43.IsOpen())
-        return boost::none;
+        return {};
 
     const FileUtil::IOFile sd_private(
         FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir) + "/Nintendo/Contents/private", "rb+");
     if (!sd_private.IsOpen())
-        return boost::none;
+        return {};
 
     std::array<u8, 0x10> private_seed{};
     if (sd_private.ReadBytes(private_seed.data(), private_seed.size()) != private_seed.size()) {
-        return boost::none;
+        return {};
     }
 
     std::array<u8, 0x10> buffer{};
     std::size_t offset = 0;
     for (; offset + 0x10 < save_43.GetSize(); ++offset) {
         if (!save_43.Seek(offset, SEEK_SET)) {
-            return boost::none;
+            return {};
         }
 
         save_43.ReadBytes(buffer.data(), buffer.size());
@@ -172,12 +172,12 @@ boost::optional<Key128> DeriveSDSeed() {
     }
 
     if (!save_43.Seek(offset + 0x10, SEEK_SET)) {
-        return boost::none;
+        return {};
     }
 
     Key128 seed{};
     if (save_43.ReadBytes(seed.data(), seed.size()) != seed.size()) {
-        return boost::none;
+        return {};
     }
     return seed;
 }
@@ -291,26 +291,26 @@ static std::array<u8, target_size> MGF1(const std::array<u8, in_size>& seed) {
 }
 
 template <size_t size>
-static boost::optional<u64> FindTicketOffset(const std::array<u8, size>& data) {
+static std::optional<u64> FindTicketOffset(const std::array<u8, size>& data) {
     u64 offset = 0;
     for (size_t i = 0x20; i < data.size() - 0x10; ++i) {
         if (data[i] == 0x1) {
             offset = i + 1;
             break;
         } else if (data[i] != 0x0) {
-            return boost::none;
+            return {};
         }
     }
 
     return offset;
 }
 
-boost::optional<std::pair<Key128, Key128>> ParseTicket(const TicketRaw& ticket,
-                                                       const RSAKeyPair<2048>& key) {
+std::optional<std::pair<Key128, Key128>> ParseTicket(const TicketRaw& ticket,
+                                                     const RSAKeyPair<2048>& key) {
     u32 cert_authority;
     std::memcpy(&cert_authority, ticket.data() + 0x140, sizeof(cert_authority));
     if (cert_authority == 0)
-        return boost::none;
+        return {};
     if (cert_authority != Common::MakeMagic('R', 'o', 'o', 't')) {
         LOG_INFO(Crypto,
                  "Attempting to parse ticket with non-standard certificate authority {:08X}.",
@@ -321,7 +321,7 @@ boost::optional<std::pair<Key128, Key128>> ParseTicket(const TicketRaw& ticket,
     std::memcpy(rights_id.data(), ticket.data() + 0x2A0, sizeof(Key128));
 
     if (rights_id == Key128{})
-        return boost::none;
+        return {};
 
     Key128 key_temp{};
 
@@ -356,17 +356,17 @@ boost::optional<std::pair<Key128, Key128>> ParseTicket(const TicketRaw& ticket,
     std::memcpy(m_2.data(), rsa_step.data() + 0x21, m_2.size());
 
     if (m_0 != 0)
-        return boost::none;
+        return {};
 
     m_1 = m_1 ^ MGF1<0x20>(m_2);
     m_2 = m_2 ^ MGF1<0xDF>(m_1);
 
     const auto offset = FindTicketOffset(m_2);
-    if (offset == boost::none)
-        return boost::none;
-    ASSERT(offset.get() > 0);
+    if (!offset)
+        return {};
+    ASSERT(*offset > 0);
 
-    std::memcpy(key_temp.data(), m_2.data() + offset.get(), key_temp.size());
+    std::memcpy(key_temp.data(), m_2.data() + *offset, key_temp.size());
 
     return std::make_pair(rights_id, key_temp);
 }
@@ -661,8 +661,8 @@ void KeyManager::DeriveSDSeedLazy() {
         return;
 
     const auto res = DeriveSDSeed();
-    if (res != boost::none)
-        SetKey(S128KeyType::SDSeed, res.get());
+    if (res)
+        SetKey(S128KeyType::SDSeed, *res);
 }
 
 static Key128 CalculateCMAC(const u8* source, size_t size, const Key128& key) {
@@ -889,9 +889,9 @@ void KeyManager::DeriveETicket(PartitionDataManager& data) {
 
     for (const auto& raw : res) {
         const auto pair = ParseTicket(raw, rsa_key);
-        if (pair == boost::none)
+        if (!pair)
             continue;
-        const auto& [rid, key] = pair.value();
+        const auto& [rid, key] = *pair;
         u128 rights_id;
         std::memcpy(rights_id.data(), rid.data(), rid.size());
         SetKey(S128KeyType::Titlekey, key, rights_id[1], rights_id[0]);

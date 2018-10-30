@@ -53,10 +53,10 @@ public:
         return 0;
     }
 
-    boost::optional<u8> ReadByte(std::size_t offset) const override {
+    std::optional<u8> ReadByte(std::size_t offset) const override {
         if (offset < size)
             return value;
-        return boost::none;
+        return {};
     }
 
     std::vector<u8> ReadBytes(std::size_t length, std::size_t offset) const override {

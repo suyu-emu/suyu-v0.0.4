@@ -45,7 +45,7 @@ GLintptr PrimitiveAssembler::MakeQuadIndexed(Tegra::GPUVAddr gpu_addr, std::size
     auto [dst_pointer, index_offset] = buffer_cache.ReserveMemory(map_size);
 
     auto& memory_manager = Core::System::GetInstance().GPU().MemoryManager();
-    const boost::optional<VAddr> cpu_addr{memory_manager.GpuToCpuAddress(gpu_addr)};
+    const std::optional<VAddr> cpu_addr{memory_manager.GpuToCpuAddress(gpu_addr)};
     const u8* source{Memory::GetPointer(*cpu_addr)};
 
     for (u32 primitive = 0; primitive < count / 4; ++primitive) {

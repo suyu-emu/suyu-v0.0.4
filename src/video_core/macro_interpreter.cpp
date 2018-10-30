@@ -29,7 +29,7 @@ void MacroInterpreter::Execute(const std::vector<u32>& code, std::vector<u32> pa
 void MacroInterpreter::Reset() {
     registers = {};
     pc = 0;
-    delayed_pc = boost::none;
+    delayed_pc = {};
     method_address.raw = 0;
     parameters.clear();
     // The next parameter index starts at 1, because $r1 already has the value of the first
@@ -44,10 +44,10 @@ bool MacroInterpreter::Step(const std::vector<u32>& code, bool is_delay_slot) {
     pc += 4;
 
     // Update the program counter if we were delayed
-    if (delayed_pc != boost::none) {
+    if (delayed_pc) {
         ASSERT(is_delay_slot);
         pc = *delayed_pc;
-        delayed_pc = boost::none;
+        delayed_pc = {};
     }
 
     switch (opcode.operation) {

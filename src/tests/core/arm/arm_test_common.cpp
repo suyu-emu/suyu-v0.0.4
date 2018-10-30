@@ -64,11 +64,11 @@ void TestEnvironment::ClearWriteRecords() {
 
 TestEnvironment::TestMemory::~TestMemory() {}
 
-boost::optional<bool> TestEnvironment::TestMemory::IsValidAddress(VAddr addr) {
+std::optional<bool> TestEnvironment::TestMemory::IsValidAddress(VAddr addr) {
     return true;
 }
 
-boost::optional<u8> TestEnvironment::TestMemory::Read8(VAddr addr) {
+std::optional<u8> TestEnvironment::TestMemory::Read8(VAddr addr) {
     const auto iter = data.find(addr);
 
     if (iter == data.end()) {
@@ -79,15 +79,15 @@ boost::optional<u8> TestEnvironment::TestMemory::Read8(VAddr addr) {
     return iter->second;
 }
 
-boost::optional<u16> TestEnvironment::TestMemory::Read16(VAddr addr) {
+std::optional<u16> TestEnvironment::TestMemory::Read16(VAddr addr) {
     return *Read8(addr) | static_cast<u16>(*Read8(addr + 1)) << 8;
 }
 
-boost::optional<u32> TestEnvironment::TestMemory::Read32(VAddr addr) {
+std::optional<u32> TestEnvironment::TestMemory::Read32(VAddr addr) {
     return *Read16(addr) | static_cast<u32>(*Read16(addr + 2)) << 16;
 }
 
-boost::optional<u64> TestEnvironment::TestMemory::Read64(VAddr addr) {
+std::optional<u64> TestEnvironment::TestMemory::Read64(VAddr addr) {
     return *Read32(addr) | static_cast<u64>(*Read32(addr + 4)) << 32;
 }
 

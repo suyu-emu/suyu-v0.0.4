@@ -6,9 +6,10 @@
 #include <array>
 #include <cstring>
 #include <memory>
+#include <optional>
 #include <type_traits>
 #include <utility>
-#include <boost/optional.hpp>
+
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/common_funcs.h"
@@ -506,9 +507,9 @@ private:
             IGBPDequeueBufferRequestParcel request{ctx.ReadBuffer()};
             const u32 width{request.data.width};
             const u32 height{request.data.height};
-            boost::optional<u32> slot = buffer_queue->DequeueBuffer(width, height);
+            std::optional<u32> slot = buffer_queue->DequeueBuffer(width, height);
 
-            if (slot != boost::none) {
+            if (slot) {
                 // Buffer is available
                 IGBPDequeueBufferResponseParcel response{*slot};
                 ctx.WriteBuffer(response.Serialize());
@@ -520,7 +521,7 @@ private:
                         Kernel::ThreadWakeupReason reason) {
                         // Repeat TransactParcel DequeueBuffer when a buffer is available
                         auto buffer_queue = nv_flinger->GetBufferQueue(id);
-                        boost::optional<u32> slot = buffer_queue->DequeueBuffer(width, height);
+                        std::optional<u32> slot = buffer_queue->DequeueBuffer(width, height);
                         IGBPDequeueBufferResponseParcel response{*slot};
                         ctx.WriteBuffer(response.Serialize());
                         IPC::ResponseBuilder rb{ctx, 2};

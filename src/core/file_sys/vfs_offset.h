@@ -29,7 +29,7 @@ public:
     bool IsReadable() const override;
     std::size_t Read(u8* data, std::size_t length, std::size_t offset) const override;
     std::size_t Write(const u8* data, std::size_t length, std::size_t offset) override;
-    boost::optional<u8> ReadByte(std::size_t offset) const override;
+    std::optional<u8> ReadByte(std::size_t offset) const override;
     std::vector<u8> ReadBytes(std::size_t size, std::size_t offset) const override;
     std::vector<u8> ReadAllBytes() const override;
     bool WriteByte(u8 data, std::size_t offset) override;
