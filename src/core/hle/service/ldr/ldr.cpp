@@ -231,29 +231,128 @@ public:
         const VAddr bss_addr{rp.Pop<VAddr>()};
         const u64 bss_size{rp.Pop<u64>()};
 
+        if (!initialized) {
+            LOG_ERROR(Service_LDR, "LDR:RO not initialized before use!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_NOT_INITIALIZED);
+            return;
+        }
+
+        if (nro.size() >= MAXIMUM_LOADED_RO) {
+            LOG_ERROR(Service_LDR, "Loading new NRO would exceed the maximum number of loaded NROs "
+                                   "(0x40)! Failing...");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_MAXIMUM_NRO);
+            return;
+        }
+
+        // NRO Address does not fall on 0x1000 byte boundary
+        if ((nro_addr & 0xFFF) != 0) {
+            LOG_ERROR(Service_LDR, "NRO Address has invalid alignment (actual {:016X})!", nro_addr);
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_ALIGNMENT);
+            return;
+        }
+
+        // NRO Size or BSS Size is zero or causes overflow
+        if (nro_addr + nro_size <= nro_addr || nro_size == 0 || (nro_size & 0xFFF) != 0 ||
+            (bss_size != 0 && bss_addr + bss_size <= bss_addr) ||
+            (std::numeric_limits<u64>::max() - nro_size < bss_size)) {
+            LOG_ERROR(Service_LDR,
+                      "NRO Size or BSS Size is invalid! (nro_address={:016X}, nro_size={:016X}, "
+                      "bss_address={:016X}, bss_size={:016X})",
+                      nro_addr, nro_size, bss_addr, bss_size);
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_SIZE);
+            return;
+        }
+
         // Read NRO data from memory
         std::vector<u8> nro_data(nro_size);
         Memory::ReadBlock(nro_addr, nro_data.data(), nro_size);
 
-        // Load NRO as new executable module
-        const VAddr addr{*Core::CurrentProcess()->VMManager().FindFreeRegion(nro_size + bss_size)};
-        Loader::AppLoader_NRO::LoadNro(nro_data, fmt::format("nro-{:08x}", addr), addr);
+        SHA256Hash hash{};
+        mbedtls_sha256(nro_data.data(), nro_data.size(), hash.data(), 0);
 
-        // TODO(bunnei): This is an incomplete implementation. It was tested with Super Mario Party.
-        // It is currently missing:
-        // - Signature checks with LoadNRR
-        // - Checking if a module has already been loaded
-        // - Using/validating BSS, etc. params (these are used from NRO header instead)
-        // - Error checking
-        // - ...Probably other things
+        // NRO Hash is already loaded
+        if (std::find_if(nro.begin(), nro.end(), [&hash](const std::pair<VAddr, NROInfo>& info) {
+                return info.second.hash == hash;
+            }) != nro.end()) {
+            LOG_ERROR(Service_LDR, "NRO is already loaded!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_ALREADY_LOADED);
+            return;
+        }
+
+        // NRO Hash is not in any loaded NRR
+        if (std::find_if(nrr.begin(), nrr.end(),
+                         [&hash](const std::pair<VAddr, std::vector<SHA256Hash>>& p) {
+                             return std::find(p.second.begin(), p.second.end(), hash) !=
+                                    p.second.end();
+                         }) == nrr.end()) {
+            LOG_ERROR(Service_LDR,
+                      "NRO hash is not present in any currently loaded NRRs (hash={})!",
+                      Common::HexArrayToString(hash));
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_MISSING_NRR_HASH);
+            return;
+        }
+
+        NROHeader header;
+        std::memcpy(&header, nro_data.data(), sizeof(NROHeader));
+
+        if (header.magic != Common::MakeMagic('N', 'R', 'O', '0') || header.nro_size != nro_size ||
+            header.bss_size != bss_size ||
+            header.ro_offset != header.text_offset + header.text_size ||
+            header.rw_offset != header.ro_offset + header.ro_size ||
+            nro_size != header.rw_offset + header.rw_size || (header.text_size & 0xFFF) != 0 ||
+            (header.ro_size & 0xFFF) != 0 || (header.rw_size & 0xFFF) != 0) {
+            LOG_ERROR(Service_LDR, "NRO was invalid!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_NRO);
+            return;
+        }
+
+        // Load NRO as new executable module
+        auto process = Core::CurrentProcess();
+        auto& vm_manager = process->VMManager();
+        auto map_address = vm_manager.FindFreeRegion(nro_size + bss_size);
+
+        ASSERT(map_address.Succeeded());
+
+        ASSERT(process->MirrorMemory(*map_address, nro_addr, nro_size,
+                                     Kernel::MemoryState::ModuleCodeStatic) == RESULT_SUCCESS);
+        ASSERT(process->UnmapMemory(nro_addr, 0, nro_size) == RESULT_SUCCESS);
+
+        if (bss_size > 0) {
+            ASSERT(process->MirrorMemory(*map_address + nro_size, bss_addr, bss_size,
+                                         Kernel::MemoryState::ModuleCodeStatic) == RESULT_SUCCESS);
+            ASSERT(process->UnmapMemory(bss_addr, 0, bss_size) == RESULT_SUCCESS);
+        }
+
+        vm_manager.ReprotectRange(*map_address, header.text_size,
+                                  Kernel::VMAPermission::ReadExecute);
+        vm_manager.ReprotectRange(*map_address + header.ro_offset, header.ro_size,
+                                  Kernel::VMAPermission::Read);
+        vm_manager.ReprotectRange(*map_address + header.rw_offset, header.rw_size,
+                                  Kernel::VMAPermission::ReadWrite);
+
+        Core::System::GetInstance().ArmInterface(0).ClearInstructionCache();
+        Core::System::GetInstance().ArmInterface(1).ClearInstructionCache();
+        Core::System::GetInstance().ArmInterface(2).ClearInstructionCache();
+        Core::System::GetInstance().ArmInterface(3).ClearInstructionCache();
+
+        nro.insert_or_assign(*map_address, NROInfo{hash, nro_size + bss_size});
 
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
-        rb.Push(addr);
-        LOG_WARNING(Service_LDR, "(STUBBED) called");
+        rb.Push(*map_address);
+    }
     }
 
     void Initialize(Kernel::HLERequestContext& ctx) {
+        initialized = true;
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_LDR, "(STUBBED) called");
