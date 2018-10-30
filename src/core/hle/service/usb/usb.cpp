@@ -132,11 +132,11 @@ public:
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "BindNoticeEvent"},
-            {1, nullptr, "Unknown1"},
+            {1, nullptr, "UnbindNoticeEvent"},
             {2, nullptr, "GetStatus"},
             {3, nullptr, "GetNotice"},
-            {4, nullptr, "Unknown2"},
-            {5, nullptr, "Unknown3"},
+            {4, nullptr, "EnablePowerRequestNotice"},
+            {5, nullptr, "DisablePowerRequestNotice"},
             {6, nullptr, "ReplyPowerRequest"},
         };
         // clang-format on
