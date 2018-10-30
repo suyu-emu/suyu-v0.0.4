@@ -58,16 +58,14 @@ void SurfaceParams::InitCacheParameters(Tegra::GPUVAddr gpu_addr_) {
 
 std::size_t SurfaceParams::InnerMipmapMemorySize(u32 mip_level, bool force_gl, bool layer_only,
                                                  bool uncompressed) const {
-    const u32 compression_factor{GetCompressionFactor(pixel_format)};
+    const u32 tile_x{GetDefaultBlockWidth(pixel_format)};
+    const u32 tile_y{GetDefaultBlockHeight(pixel_format)};
     const u32 bytes_per_pixel{GetBytesPerPixel(pixel_format)};
     u32 m_depth = (layer_only ? 1U : depth);
     u32 m_width = MipWidth(mip_level);
     u32 m_height = MipHeight(mip_level);
-    m_width = uncompressed ? m_width
-                           : std::max(1U, (m_width + compression_factor - 1) / compression_factor);
-    m_height = uncompressed
-                   ? m_height
-                   : std::max(1U, (m_height + compression_factor - 1) / compression_factor);
+    m_width = uncompressed ? m_width : std::max(1U, (m_width + tile_x - 1) / tile_x);
+    m_height = uncompressed ? m_height : std::max(1U, (m_height + tile_y - 1) / tile_y);
     m_depth = std::max(1U, m_depth >> mip_level);
     u32 m_block_height = MipBlockHeight(mip_level);
     u32 m_block_depth = MipBlockDepth(mip_level);
@@ -366,8 +364,8 @@ void MortonCopy(u32 stride, u32 block_height, u32 height, u32 block_depth, u32 d
 
     // With the BCn formats (DXT and DXN), each 4x4 tile is swizzled instead of just individual
     // pixel values.
-    const u32 tile_size_x{SurfaceParams::GetDefaultBlockWidth(format)};
-    const u32 tile_size_y{SurfaceParams::GetDefaultBlockHeight(format)};
+    const u32 tile_size_x{GetDefaultBlockWidth(format)};
+    const u32 tile_size_y{GetDefaultBlockHeight(format)};
 
     if (morton_to_gl) {
         const std::vector<u8> data =
@@ -906,7 +904,7 @@ static void ConvertG8R8ToR8G8(std::vector<u8>& data, u32 width, u32 height) {
  * typical desktop GPUs.
  */
 static void ConvertFormatAsNeeded_LoadGLBuffer(std::vector<u8>& data, PixelFormat pixel_format,
-                                               u32 width, u32 height) {
+                                               u32 width, u32 height, u32 depth) {
     switch (pixel_format) {
     case PixelFormat::ASTC_2D_4X4:
     case PixelFormat::ASTC_2D_8X8:
@@ -922,7 +920,8 @@ static void ConvertFormatAsNeeded_LoadGLBuffer(std::vector<u8>& data, PixelForma
         u32 block_width{};
         u32 block_height{};
         std::tie(block_width, block_height) = GetASTCBlockSize(pixel_format);
-        data = Tegra::Texture::ASTC::Decompress(data, width, height, block_width, block_height);
+        data =
+            Tegra::Texture::ASTC::Decompress(data, width, height, depth, block_width, block_height);
         break;
     }
     case PixelFormat::S8Z24:
@@ -982,7 +981,7 @@ void CachedSurface::LoadGLBuffer() {
     }
     for (u32 i = 0; i < params.max_mip_level; i++)
         ConvertFormatAsNeeded_LoadGLBuffer(gl_buffer[i], params.pixel_format, params.MipWidth(i),
-                                           params.MipHeight(i));
+                                           params.MipHeight(i), params.MipDepth(i));
 }
 
 MICROPROFILE_DEFINE(OpenGL_SurfaceFlush, "OpenGL", "Surface Flush", MP_RGB(128, 192, 64));
