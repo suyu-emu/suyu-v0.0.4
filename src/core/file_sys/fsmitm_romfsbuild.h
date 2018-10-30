@@ -27,7 +27,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <boost/detail/container_fwd.hpp>
 #include "common/common_types.h"
 #include "core/file_sys/vfs.h"
 

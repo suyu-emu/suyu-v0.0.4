@@ -11,7 +11,6 @@
 #include <QAbstractItemModel>
 #include <QDockWidget>
 #include <QTreeView>
-#include <boost/container/flat_set.hpp>
 #include "common/common_types.h"
 #include "core/hle/kernel/object.h"
 
