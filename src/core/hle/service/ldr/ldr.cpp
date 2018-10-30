@@ -6,6 +6,7 @@
 #include <fmt/format.h>
 #include <mbedtls/sha256.h>
 
+#include "common/alignment.h"
 #include "common/hex_util.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/process.h"
@@ -98,7 +99,7 @@ public:
             {0, &RelocatableObject::LoadNro, "LoadNro"},
             {1, &RelocatableObject::UnloadNro, "UnloadNro"},
             {2, &RelocatableObject::LoadNrr, "LoadNrr"},
-            {3, nullptr, "UnloadNrr"},
+            {3, &RelocatableObject::UnloadNrr, "UnloadNrr"},
             {4, &RelocatableObject::Initialize, "Initialize"},
         };
         // clang-format on
@@ -128,7 +129,7 @@ public:
         }
 
         // NRR Address does not fall on 0x1000 byte boundary
-        if ((nrr_addr & 0xFFF) != 0) {
+        if (!Common::Is4KBAligned(nrr_addr)) {
             LOG_ERROR(Service_LDR, "NRR Address has invalid alignment (actual {:016X})!", nrr_addr);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERROR_INVALID_ALIGNMENT);
@@ -136,7 +137,7 @@ public:
         }
 
         // NRR Size is zero or causes overflow
-        if (nrr_addr + nrr_size <= nrr_addr || nrr_size == 0 || (nrr_size & 0xFFF) != 0) {
+        if (nrr_addr + nrr_size <= nrr_addr || nrr_size == 0 || !Common::Is4KBAligned(nrr_size)) {
             LOG_ERROR(Service_LDR, "NRR Size is invalid! (nrr_address={:016X}, nrr_size={:016X})",
                       nrr_addr, nrr_size);
             IPC::ResponseBuilder rb{ctx, 2};
@@ -201,7 +202,7 @@ public:
         rp.Skip(2, false);
         const auto nrr_addr{rp.Pop<VAddr>()};
 
-        if ((nrr_addr & 0xFFF) != 0) {
+        if (!Common::Is4KBAligned(nrr_addr)) {
             LOG_ERROR(Service_LDR, "NRR Address has invalid alignment (actual {:016X})!", nrr_addr);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERROR_INVALID_ALIGNMENT);
@@ -247,7 +248,7 @@ public:
         }
 
         // NRO Address does not fall on 0x1000 byte boundary
-        if ((nro_addr & 0xFFF) != 0) {
+        if (!Common::Is4KBAligned(nro_addr)) {
             LOG_ERROR(Service_LDR, "NRO Address has invalid alignment (actual {:016X})!", nro_addr);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERROR_INVALID_ALIGNMENT);
@@ -255,9 +256,12 @@ public:
         }
 
         // NRO Size or BSS Size is zero or causes overflow
-        if (nro_addr + nro_size <= nro_addr || nro_size == 0 || (nro_size & 0xFFF) != 0 ||
-            (bss_size != 0 && bss_addr + bss_size <= bss_addr) ||
-            (std::numeric_limits<u64>::max() - nro_size < bss_size)) {
+        const auto nro_size_valid =
+            nro_size != 0 && nro_addr + nro_size > nro_addr && Common::Is4KBAligned(nro_size);
+        const auto bss_size_valid = std::numeric_limits<u64>::max() - nro_size >= bss_size &&
+                                    (bss_size == 0 || bss_addr + bss_size > bss_addr);
+
+        if (!nro_size_valid || !bss_size_valid) {
             LOG_ERROR(Service_LDR,
                       "NRO Size or BSS Size is invalid! (nro_address={:016X}, nro_size={:016X}, "
                       "bss_address={:016X}, bss_size={:016X})",
@@ -275,9 +279,9 @@ public:
         mbedtls_sha256(nro_data.data(), nro_data.size(), hash.data(), 0);
 
         // NRO Hash is already loaded
-        if (std::find_if(nro.begin(), nro.end(), [&hash](const std::pair<VAddr, NROInfo>& info) {
+        if (std::any_of(nro.begin(), nro.end(), [&hash](const std::pair<VAddr, NROInfo>& info) {
                 return info.second.hash == hash;
-            }) != nro.end()) {
+            })) {
             LOG_ERROR(Service_LDR, "NRO is already loaded!");
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERROR_ALREADY_LOADED);
@@ -285,11 +289,7 @@ public:
         }
 
         // NRO Hash is not in any loaded NRR
-        if (std::find_if(nrr.begin(), nrr.end(),
-                         [&hash](const std::pair<VAddr, std::vector<SHA256Hash>>& p) {
-                             return std::find(p.second.begin(), p.second.end(), hash) !=
-                                    p.second.end();
-                         }) == nrr.end()) {
+        if (!IsValidNROHash(hash)) {
             LOG_ERROR(Service_LDR,
                       "NRO hash is not present in any currently loaded NRRs (hash={})!",
                       Common::HexArrayToString(hash));
@@ -301,12 +301,7 @@ public:
         NROHeader header;
         std::memcpy(&header, nro_data.data(), sizeof(NROHeader));
 
-        if (header.magic != Common::MakeMagic('N', 'R', 'O', '0') || header.nro_size != nro_size ||
-            header.bss_size != bss_size ||
-            header.ro_offset != header.text_offset + header.text_size ||
-            header.rw_offset != header.ro_offset + header.ro_size ||
-            nro_size != header.rw_offset + header.rw_size || (header.text_size & 0xFFF) != 0 ||
-            (header.ro_size & 0xFFF) != 0 || (header.rw_size & 0xFFF) != 0) {
+        if (!IsValidNRO(header, nro_size, bss_size)) {
             LOG_ERROR(Service_LDR, "NRO was invalid!");
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERROR_INVALID_NRO);
@@ -314,7 +309,7 @@ public:
         }
 
         // Load NRO as new executable module
-        auto process = Core::CurrentProcess();
+        auto* process = Core::CurrentProcess();
         auto& vm_manager = process->VMManager();
         auto map_address = vm_manager.FindFreeRegion(nro_size + bss_size);
 
@@ -348,6 +343,57 @@ public:
         rb.Push(RESULT_SUCCESS);
         rb.Push(*map_address);
     }
+
+    void UnloadNro(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        rp.Skip(2, false);
+        const VAddr mapped_addr{rp.PopRaw<VAddr>()};
+        const VAddr heap_addr{rp.PopRaw<VAddr>()};
+
+        if (!initialized) {
+            LOG_ERROR(Service_LDR, "LDR:RO not initialized before use!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_NOT_INITIALIZED);
+            return;
+        }
+
+        if (!Common::Is4KBAligned(mapped_addr) || !Common::Is4KBAligned(heap_addr)) {
+            LOG_ERROR(Service_LDR,
+                      "NRO/BSS Address has invalid alignment (actual nro_addr={:016X}, "
+                      "bss_addr={:016X})!",
+                      mapped_addr, heap_addr);
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_ALIGNMENT);
+            return;
+        }
+
+        const auto iter = nro.find(mapped_addr);
+        if (iter == nro.end()) {
+            LOG_ERROR(Service_LDR,
+                      "The NRO attempting to unmap was not mapped or has an invalid address "
+                      "(actual {:016X})!",
+                      mapped_addr);
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_NRO_ADDRESS);
+            return;
+        }
+
+        auto* process = Core::CurrentProcess();
+        auto& vm_manager = process->VMManager();
+        const auto& nro_size = iter->second.size;
+
+        ASSERT(process->MirrorMemory(heap_addr, mapped_addr, nro_size,
+                                     Kernel::MemoryState::ModuleCodeStatic) == RESULT_SUCCESS);
+        ASSERT(process->UnmapMemory(mapped_addr, 0, nro_size) == RESULT_SUCCESS);
+
+        Core::System::GetInstance().ArmInterface(0).ClearInstructionCache();
+        Core::System::GetInstance().ArmInterface(1).ClearInstructionCache();
+        Core::System::GetInstance().ArmInterface(2).ClearInstructionCache();
+        Core::System::GetInstance().ArmInterface(3).ClearInstructionCache();
+
+        nro.erase(iter);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
     }
 
     void Initialize(Kernel::HLERequestContext& ctx) {
@@ -408,6 +454,23 @@ private:
 
     std::map<VAddr, NROInfo> nro;
     std::map<VAddr, std::vector<SHA256Hash>> nrr;
+
+    bool IsValidNROHash(const SHA256Hash& hash) {
+        return std::any_of(
+            nrr.begin(), nrr.end(), [&hash](const std::pair<VAddr, std::vector<SHA256Hash>>& p) {
+                return std::find(p.second.begin(), p.second.end(), hash) != p.second.end();
+            });
+    }
+
+    static bool IsValidNRO(const NROHeader& header, u64 nro_size, u64 bss_size) {
+        return header.magic == Common::MakeMagic('N', 'R', 'O', '0') &&
+               header.nro_size == nro_size && header.bss_size == bss_size &&
+               header.ro_offset == header.text_offset + header.text_size &&
+               header.rw_offset == header.ro_offset + header.ro_size &&
+               nro_size == header.rw_offset + header.rw_size &&
+               Common::Is4KBAligned(header.text_size) && Common::Is4KBAligned(header.ro_size) &&
+               Common::Is4KBAligned(header.rw_size);
+    }
 };
 
 void InstallInterfaces(SM::ServiceManager& sm) {
