@@ -53,6 +53,8 @@ add_library(video_core STATIC
     renderer_opengl/renderer_opengl.h
     renderer_opengl/utils.cpp
     renderer_opengl/utils.h
+    surface.cpp
+    surface.h
     textures/astc.cpp
     textures/astc.h
     textures/decoders.cpp
