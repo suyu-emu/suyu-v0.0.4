@@ -56,6 +56,8 @@ add_executable(yuzu
     main.h
     ui_settings.cpp
     ui_settings.h
+    util/limitable_input_dialog.cpp
+    util/limitable_input_dialog.h
     util/spinbox.cpp
     util/spinbox.h
     util/util.cpp

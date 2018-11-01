@@ -57,7 +57,8 @@ struct UUID {
 };
 static_assert(sizeof(UUID) == 16, "UUID is an invalid size!");
 
-using ProfileUsername = std::array<u8, 0x20>;
+constexpr std::size_t profile_username_size = 32;
+using ProfileUsername = std::array<u8, profile_username_size>;
 using ProfileData = std::array<u8, MAX_DATA>;
 using UserIDArray = std::array<UUID, MAX_USERS>;
 
