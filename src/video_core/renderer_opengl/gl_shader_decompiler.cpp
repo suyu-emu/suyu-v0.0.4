@@ -3474,6 +3474,12 @@ private:
                     EmitFragmentOutputsWrite();
                 }
 
+                const Tegra::Shader::ControlCode cc = instr.flow_control_code;
+                if (cc != Tegra::Shader::ControlCode::T) {
+                    LOG_CRITICAL(HW_GPU, "EXIT Control Code used: {}", static_cast<u32>(cc));
+                    UNREACHABLE();
+                }
+
                 switch (instr.flow.cond) {
                 case Tegra::Shader::FlowCondition::Always:
                     shader.AddLine("return true;");
@@ -3503,6 +3509,11 @@ private:
 
                 // Enclose "discard" in a conditional, so that GLSL compilation does not complain
                 // about unexecuted instructions that may follow this.
+                const Tegra::Shader::ControlCode cc = instr.flow_control_code;
+                if (cc != Tegra::Shader::ControlCode::T) {
+                    LOG_CRITICAL(HW_GPU, "KIL Control Code used: {}", static_cast<u32>(cc));
+                    UNREACHABLE();
+                }
                 shader.AddLine("if (true) {");
                 ++shader.scope;
                 shader.AddLine("discard;");
@@ -3560,6 +3571,11 @@ private:
             case OpCode::Id::BRA: {
                 ASSERT_MSG(instr.bra.constant_buffer == 0,
                            "BRA with constant buffers are not implemented");
+                const Tegra::Shader::ControlCode cc = instr.flow_control_code;
+                if (cc != Tegra::Shader::ControlCode::T) {
+                    LOG_CRITICAL(HW_GPU, "BRA Control Code used: {}", static_cast<u32>(cc));
+                    UNREACHABLE();
+                }
                 const u32 target = offset + instr.bra.GetBranchTarget();
                 shader.AddLine("{ jmp_to = " + std::to_string(target) + "u; break; }");
                 break;
@@ -3600,13 +3616,21 @@ private:
             }
             case OpCode::Id::SYNC: {
                 // The SYNC opcode jumps to the address previously set by the SSY opcode
-                ASSERT(instr.flow.cond == Tegra::Shader::FlowCondition::Always);
+                const Tegra::Shader::ControlCode cc = instr.flow_control_code;
+                if (cc != Tegra::Shader::ControlCode::T) {
+                    LOG_CRITICAL(HW_GPU, "SYNC Control Code used: {}", static_cast<u32>(cc));
+                    UNREACHABLE();
+                }
                 EmitPopFromFlowStack();
                 break;
             }
             case OpCode::Id::BRK: {
                 // The BRK opcode jumps to the address previously set by the PBK opcode
-                ASSERT(instr.flow.cond == Tegra::Shader::FlowCondition::Always);
+                const Tegra::Shader::ControlCode cc = instr.flow_control_code;
+                if (cc != Tegra::Shader::ControlCode::T) {
+                    LOG_CRITICAL(HW_GPU, "BRK Control Code used: {}", static_cast<u32>(cc));
+                    UNREACHABLE();
+                }
                 EmitPopFromFlowStack();
                 break;
             }
