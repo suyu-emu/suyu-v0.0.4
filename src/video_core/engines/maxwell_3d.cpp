@@ -43,15 +43,17 @@ void Maxwell3D::CallMacroMethod(u32 method, std::vector<u32> parameters) {
     // Reset the current macro.
     executing_macro = 0;
 
-    // The requested macro must have been uploaded already.
-    auto macro_code = uploaded_macros.find(method);
-    if (macro_code == uploaded_macros.end()) {
-        LOG_ERROR(HW_GPU, "Macro {:04X} was not uploaded", method);
+    // Lookup the macro offset
+    const u32 entry{(method - MacroRegistersStart) >> 1};
+    const auto& search{macro_offsets.find(entry)};
+    if (search == macro_offsets.end()) {
+        LOG_CRITICAL(HW_GPU, "macro not found for method 0x{:X}!", method);
+        UNREACHABLE();
         return;
     }
 
     // Execute the current macro.
-    macro_interpreter.Execute(macro_code->second, std::move(parameters));
+    macro_interpreter.Execute(search->second, std::move(parameters));
 }
 
 void Maxwell3D::WriteReg(u32 method, u32 value, u32 remaining_params) {
@@ -95,6 +97,10 @@ void Maxwell3D::WriteReg(u32 method, u32 value, u32 remaining_params) {
     switch (method) {
     case MAXWELL3D_REG_INDEX(macros.data): {
         ProcessMacroUpload(value);
+        break;
+    }
+    case MAXWELL3D_REG_INDEX(macros.bind): {
+        ProcessMacroBind(value);
         break;
     }
     case MAXWELL3D_REG_INDEX(const_buffer.cb_data[0]):
@@ -158,9 +164,13 @@ void Maxwell3D::WriteReg(u32 method, u32 value, u32 remaining_params) {
 }
 
 void Maxwell3D::ProcessMacroUpload(u32 data) {
-    // Store the uploaded macro code to interpret them when they're called.
-    auto& macro = uploaded_macros[regs.macros.entry * 2 + MacroRegistersStart];
-    macro.push_back(data);
+    ASSERT_MSG(regs.macros.upload_address < macro_memory.size(),
+               "upload_address exceeded macro_memory size!");
+    macro_memory[regs.macros.upload_address++] = data;
+}
+
+void Maxwell3D::ProcessMacroBind(u32 data) {
+    macro_offsets[regs.macros.entry] = data;
 }
 
 void Maxwell3D::ProcessQueryGet() {
