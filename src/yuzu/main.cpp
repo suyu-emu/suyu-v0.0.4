@@ -454,6 +454,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Fullscreen, &QAction::triggered, this, &GMainWindow::ToggleFullscreen);
 
     // Help
+    connect(ui.action_Open_yuzu_Folder, &QAction::triggered, this, &GMainWindow::OnOpenYuzuFolder);
     connect(ui.action_Rederive, &QAction::triggered, this,
             std::bind(&GMainWindow::OnReinitializeKeys, this, ReinitializeKeyBehavior::Warning));
     connect(ui.action_About, &QAction::triggered, this, &GMainWindow::OnAbout);
@@ -1372,6 +1373,11 @@ void GMainWindow::OnLoadAmiibo() {
         QMessageBox::warning(this, tr("Error loading Amiibo data"),
                              tr("Unable to load Amiibo data."));
     }
+}
+
+void GMainWindow::OnOpenYuzuFolder() {
+    QDesktopServices::openUrl(QUrl::fromLocalFile(
+        QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::UserDir))));
 }
 
 void GMainWindow::OnAbout() {
