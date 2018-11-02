@@ -161,7 +161,7 @@ void HwOpus::OpenOpusDecoder(Kernel::HLERequestContext& ctx) {
     ASSERT_MSG(channel_count == 1 || channel_count == 2, "Invalid channel count");
 
     std::size_t worker_sz = WorkerBufferSize(channel_count);
-    ASSERT_MSG(buffer_sz < worker_sz, "Worker buffer too large");
+    ASSERT_MSG(buffer_sz >= worker_sz, "Worker buffer too large");
     std::unique_ptr<OpusDecoder, OpusDeleter> decoder{
         static_cast<OpusDecoder*>(operator new(worker_sz))};
     if (opus_decoder_init(decoder.get(), sample_rate, channel_count)) {
