@@ -285,9 +285,14 @@ private:
 
     NPadType style{};
     std::array<NPadEntry, 10> shared_memory_entries{};
-    std::array<std::unique_ptr<Input::ButtonDevice>, Settings::NativeButton::NUM_BUTTONS_HID>
+    std::array<
+        std::array<std::unique_ptr<Input::ButtonDevice>, Settings::NativeButton::NUM_BUTTONS_HID>,
+        10>
         buttons;
-    std::array<std::unique_ptr<Input::AnalogDevice>, Settings::NativeAnalog::NUM_STICKS_HID> sticks;
+    std::array<
+        std::array<std::unique_ptr<Input::AnalogDevice>, Settings::NativeAnalog::NUM_STICKS_HID>,
+        10>
+        sticks;
     std::vector<u32> supported_npad_id_types{};
     NpadHoldType hold_type{NpadHoldType::Vertical};
     Kernel::SharedPtr<Kernel::Event> styleset_changed_event;

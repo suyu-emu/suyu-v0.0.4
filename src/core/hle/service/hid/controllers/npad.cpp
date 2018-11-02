@@ -17,11 +17,6 @@
 #include "core/settings.h"
 
 namespace Service::HID {
-
-constexpr u32 JOYCON_BODY_NEON_RED = 0xFF3C28;
-constexpr u32 JOYCON_BUTTONS_NEON_RED = 0x1E0A0A;
-constexpr u32 JOYCON_BODY_NEON_BLUE = 0x0AB9E6;
-constexpr u32 JOYCON_BUTTONS_NEON_BLUE = 0x001E1E;
 constexpr s32 HID_JOYSTICK_MAX = 0x7fff;
 constexpr s32 HID_JOYSTICK_MIN = -0x7fff;
 constexpr std::size_t NPAD_OFFSET = 0x9A00;
@@ -39,6 +34,22 @@ enum class JoystickId : std::size_t {
     Joystick_Left,
     Joystick_Right,
 };
+
+static Controller_NPad::NPadControllerType MapSettingsTypeToNPad(Settings::ControllerType type) {
+    switch (type) {
+    case Settings::ControllerType::ProController:
+        return Controller_NPad::NPadControllerType::ProController;
+    case Settings::ControllerType::DualJoycon:
+        return Controller_NPad::NPadControllerType::JoyDual;
+    case Settings::ControllerType::LeftJoycon:
+        return Controller_NPad::NPadControllerType::JoyLeft;
+    case Settings::ControllerType::RightJoycon:
+        return Controller_NPad::NPadControllerType::JoyRight;
+    default:
+        UNREACHABLE();
+        return Controller_NPad::NPadControllerType::JoyDual;
+    }
+}
 
 static std::size_t NPadIdToIndex(u32 npad_id) {
     switch (npad_id) {
@@ -126,10 +137,11 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
     controller.single_color.button_color = 0;
 
     controller.dual_color_error = ColorReadError::ReadOk;
-    controller.left_color.body_color = JOYCON_BODY_NEON_BLUE;
-    controller.left_color.button_color = JOYCON_BUTTONS_NEON_BLUE;
-    controller.right_color.body_color = JOYCON_BODY_NEON_RED;
-    controller.right_color.button_color = JOYCON_BUTTONS_NEON_RED;
+    controller.left_color.body_color = Settings::values.players[controller_idx].body_color_left;
+    controller.left_color.button_color = Settings::values.players[controller_idx].button_color_left;
+    controller.right_color.body_color = Settings::values.players[controller_idx].body_color_right;
+    controller.right_color.button_color =
+        Settings::values.players[controller_idx].button_color_right;
 
     controller.battery_level[0] = BATTERY_FULL;
     controller.battery_level[1] = BATTERY_FULL;
@@ -154,6 +166,25 @@ void Controller_NPad::OnInit() {
         style.pro_controller.Assign(1);
         style.pokeball.Assign(1);
     }
+
+    std::transform(
+        Settings::values.players.begin(), Settings::values.players.end(),
+        connected_controllers.begin(), [](const Settings::PlayerInput& player) {
+            return ControllerHolder{MapSettingsTypeToNPad(player.type), player.connected};
+        });
+
+    std::stable_partition(connected_controllers.begin(), connected_controllers.begin() + 8,
+                          [](const ControllerHolder& holder) { return holder.is_connected; });
+
+    // Account for handheld
+    if (connected_controllers[8].is_connected)
+        connected_controllers[8].type = NPadControllerType::Handheld;
+
+    supported_npad_id_types.resize(npad_id_list.size());
+    std::memcpy(supported_npad_id_types.data(), npad_id_list.data(),
+                npad_id_list.size() * sizeof(u32));
+
+    // Add a default dual joycon controller if none are present.
     if (std::none_of(connected_controllers.begin(), connected_controllers.end(),
                      [](const ControllerHolder& controller) { return controller.is_connected; })) {
         supported_npad_id_types.resize(npad_id_list.size());
@@ -161,15 +192,25 @@ void Controller_NPad::OnInit() {
                     npad_id_list.size() * sizeof(u32));
         AddNewController(PREFERRED_CONTROLLER);
     }
+
+    for (std::size_t i = 0; i < connected_controllers.size(); ++i) {
+        const auto& controller = connected_controllers[i];
+        if (controller.is_connected) {
+            AddNewControllerAt(controller.type, IndexToNPad(i));
+        }
+    }
 }
 
 void Controller_NPad::OnLoadInputDevices() {
-    std::transform(Settings::values.buttons.begin() + Settings::NativeButton::BUTTON_HID_BEGIN,
-                   Settings::values.buttons.begin() + Settings::NativeButton::BUTTON_HID_END,
-                   buttons.begin(), Input::CreateDevice<Input::ButtonDevice>);
-    std::transform(Settings::values.analogs.begin() + Settings::NativeAnalog::STICK_HID_BEGIN,
-                   Settings::values.analogs.begin() + Settings::NativeAnalog::STICK_HID_END,
-                   sticks.begin(), Input::CreateDevice<Input::AnalogDevice>);
+    const auto& players = Settings::values.players;
+    for (std::size_t i = 0; i < players.size(); ++i) {
+        std::transform(players[i].buttons.begin() + Settings::NativeButton::BUTTON_HID_BEGIN,
+                       players[i].buttons.begin() + Settings::NativeButton::BUTTON_HID_END,
+                       buttons[i].begin(), Input::CreateDevice<Input::ButtonDevice>);
+        std::transform(players[i].analogs.begin() + Settings::NativeAnalog::STICK_HID_BEGIN,
+                       players[i].analogs.begin() + Settings::NativeAnalog::STICK_HID_END,
+                       sticks[i].begin(), Input::CreateDevice<Input::AnalogDevice>);
+    }
 }
 
 void Controller_NPad::OnRelease() {}
@@ -183,42 +224,45 @@ void Controller_NPad::RequestPadStateUpdate(u32 npad_id) {
     auto& pad_state = npad_pad_states[controller_idx].pad_states;
     auto& lstick_entry = npad_pad_states[controller_idx].l_stick;
     auto& rstick_entry = npad_pad_states[controller_idx].r_stick;
+    const auto& button_state = buttons[controller_idx];
+    const auto& analog_state = sticks[controller_idx];
+
     using namespace Settings::NativeButton;
-    pad_state.a.Assign(buttons[A - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.b.Assign(buttons[B - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.x.Assign(buttons[X - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.y.Assign(buttons[Y - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.l_stick.Assign(buttons[LStick - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.r_stick.Assign(buttons[RStick - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.l.Assign(buttons[L - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.r.Assign(buttons[R - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.zl.Assign(buttons[ZL - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.zr.Assign(buttons[ZR - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.plus.Assign(buttons[Plus - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.minus.Assign(buttons[Minus - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.a.Assign(button_state[A - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.b.Assign(button_state[B - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.x.Assign(button_state[X - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.y.Assign(button_state[Y - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.l_stick.Assign(button_state[LStick - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.r_stick.Assign(button_state[RStick - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.l.Assign(button_state[L - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.r.Assign(button_state[R - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.zl.Assign(button_state[ZL - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.zr.Assign(button_state[ZR - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.plus.Assign(button_state[Plus - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.minus.Assign(button_state[Minus - BUTTON_HID_BEGIN]->GetStatus());
 
-    pad_state.d_left.Assign(buttons[DLeft - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.d_up.Assign(buttons[DUp - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.d_right.Assign(buttons[DRight - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.d_down.Assign(buttons[DDown - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.d_left.Assign(button_state[DLeft - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.d_up.Assign(button_state[DUp - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.d_right.Assign(button_state[DRight - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.d_down.Assign(button_state[DDown - BUTTON_HID_BEGIN]->GetStatus());
 
-    pad_state.l_stick_left.Assign(buttons[LStick_Left - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.l_stick_up.Assign(buttons[LStick_Up - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.l_stick_right.Assign(buttons[LStick_Right - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.l_stick_down.Assign(buttons[LStick_Down - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.l_stick_left.Assign(button_state[LStick_Left - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.l_stick_up.Assign(button_state[LStick_Up - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.l_stick_right.Assign(button_state[LStick_Right - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.l_stick_down.Assign(button_state[LStick_Down - BUTTON_HID_BEGIN]->GetStatus());
 
-    pad_state.r_stick_left.Assign(buttons[RStick_Left - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.r_stick_up.Assign(buttons[RStick_Up - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.r_stick_right.Assign(buttons[RStick_Right - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.r_stick_down.Assign(buttons[RStick_Down - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.r_stick_left.Assign(button_state[RStick_Left - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.r_stick_up.Assign(button_state[RStick_Up - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.r_stick_right.Assign(button_state[RStick_Right - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.r_stick_down.Assign(button_state[RStick_Down - BUTTON_HID_BEGIN]->GetStatus());
 
-    pad_state.left_sl.Assign(buttons[SL - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.left_sr.Assign(buttons[SR - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.left_sl.Assign(button_state[SL - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.left_sr.Assign(button_state[SR - BUTTON_HID_BEGIN]->GetStatus());
 
     const auto [stick_l_x_f, stick_l_y_f] =
-        sticks[static_cast<std::size_t>(JoystickId::Joystick_Left)]->GetStatus();
+        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Left)]->GetStatus();
     const auto [stick_r_x_f, stick_r_y_f] =
-        sticks[static_cast<std::size_t>(JoystickId::Joystick_Right)]->GetStatus();
+        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Right)]->GetStatus();
     lstick_entry.x = static_cast<s32>(stick_l_x_f * HID_JOYSTICK_MAX);
     lstick_entry.y = static_cast<s32>(stick_l_y_f * HID_JOYSTICK_MAX);
     rstick_entry.x = static_cast<s32>(stick_r_x_f * HID_JOYSTICK_MAX);
@@ -285,8 +329,10 @@ void Controller_NPad::OnUpdate(u8* data, std::size_t data_len) {
                 state.d_left.Assign(pad_state.pad_states.d_up.Value());
                 state.d_right.Assign(pad_state.pad_states.d_down.Value());
                 state.d_up.Assign(pad_state.pad_states.d_right.Value());
-                state.l.Assign(pad_state.pad_states.l.Value() | pad_state.pad_states.sl.Value());
-                state.r.Assign(pad_state.pad_states.r.Value() | pad_state.pad_states.sr.Value());
+                state.l.Assign(pad_state.pad_states.l.Value() |
+                               pad_state.pad_states.left_sl.Value());
+                state.r.Assign(pad_state.pad_states.r.Value() |
+                               pad_state.pad_states.left_sr.Value());
 
                 state.zl.Assign(pad_state.pad_states.zl.Value());
                 state.plus.Assign(pad_state.pad_states.minus.Value());
@@ -302,8 +348,10 @@ void Controller_NPad::OnUpdate(u8* data, std::size_t data_len) {
                 state.b.Assign(pad_state.pad_states.y.Value());
                 state.y.Assign(pad_state.pad_states.b.Value());
 
-                state.l.Assign(pad_state.pad_states.l.Value() | pad_state.pad_states.sl.Value());
-                state.r.Assign(pad_state.pad_states.r.Value() | pad_state.pad_states.sr.Value());
+                state.l.Assign(pad_state.pad_states.l.Value() |
+                               pad_state.pad_states.right_sl.Value());
+                state.r.Assign(pad_state.pad_states.r.Value() |
+                               pad_state.pad_states.right_sr.Value());
                 state.zr.Assign(pad_state.pad_states.zr.Value());
                 state.plus.Assign(pad_state.pad_states.plus.Value());
 
@@ -570,7 +618,7 @@ Controller_NPad::NPadControllerType Controller_NPad::DecideBestController(
     if (IsControllerSupported(priority)) {
         return priority;
     }
-    const auto is_docked = Settings::values->use_docked_mode;
+    const auto is_docked = Settings::values.use_docked_mode;
     if (is_docked && priority == NPadControllerType::Handheld) {
         priority = NPadControllerType::JoyDual;
         if (IsControllerSupported(priority)) {
@@ -659,7 +707,7 @@ bool Controller_NPad::IsControllerSupported(NPadControllerType controller) {
             return false;
         }
         // Handheld should not be supported in docked mode
-        if (Settings::values->use_docked_mode) {
+        if (Settings::values.use_docked_mode) {
             return false;
         }
     }
