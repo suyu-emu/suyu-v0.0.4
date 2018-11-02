@@ -646,8 +646,14 @@ public:
                 ComparisonOp depth_test_func;
                 float alpha_test_ref;
                 ComparisonOp alpha_test_func;
-
-                INSERT_PADDING_WORDS(0x9);
+                u32 draw_tfb_stride;
+                struct {
+                    float r;
+                    float g;
+                    float b;
+                    float a;
+                } blend_color;
+                INSERT_PADDING_WORDS(0x4);
 
                 struct {
                     u32 separate_alpha;
@@ -1087,6 +1093,10 @@ ASSERT_REG_POSITION(depth_write_enabled, 0x4BA);
 ASSERT_REG_POSITION(alpha_test_enabled, 0x4BB);
 ASSERT_REG_POSITION(d3d_cull_mode, 0x4C2);
 ASSERT_REG_POSITION(depth_test_func, 0x4C3);
+ASSERT_REG_POSITION(alpha_test_ref, 0x4C4);
+ASSERT_REG_POSITION(alpha_test_func, 0x4C5);
+ASSERT_REG_POSITION(draw_tfb_stride, 0x4C6);
+ASSERT_REG_POSITION(blend_color, 0x4C7);
 ASSERT_REG_POSITION(blend, 0x4CF);
 ASSERT_REG_POSITION(stencil_enable, 0x4E0);
 ASSERT_REG_POSITION(stencil_front_op_fail, 0x4E1);

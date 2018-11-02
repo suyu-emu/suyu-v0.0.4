@@ -580,7 +580,6 @@ void RasterizerOpenGL::DrawArrays() {
     SyncLogicOpState();
     SyncCullMode();
     SyncPrimitiveRestart();
-    SyncDepthRange();
     SyncScissorTest();
     // Alpha Testing is synced on shaders.
     SyncTransformFeedback();
@@ -899,12 +898,16 @@ u32 RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, Shader& shader,
 
 void RasterizerOpenGL::SyncViewport() {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
-    const MathUtil::Rectangle<s32> viewport_rect{regs.viewport_transform[0].GetRect()};
-
-    state.viewport.x = viewport_rect.left;
-    state.viewport.y = viewport_rect.bottom;
-    state.viewport.width = static_cast<GLsizei>(viewport_rect.GetWidth());
-    state.viewport.height = static_cast<GLsizei>(viewport_rect.GetHeight());
+    for (size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
+        const MathUtil::Rectangle<s32> viewport_rect{regs.viewport_transform[i].GetRect()};
+        auto& viewport = state.viewports[i];
+        viewport.x = viewport_rect.left;
+        viewport.y = viewport_rect.bottom;
+        viewport.width = static_cast<GLsizei>(viewport_rect.GetWidth());
+        viewport.height = static_cast<GLsizei>(viewport_rect.GetHeight());
+        viewport.depth_range_far = regs.viewport[i].depth_range_far;
+        viewport.depth_range_near = regs.viewport[i].depth_range_near;
+    }
 }
 
 void RasterizerOpenGL::SyncClipEnabled() {
@@ -944,13 +947,6 @@ void RasterizerOpenGL::SyncPrimitiveRestart() {
 
     state.primitive_restart.enabled = regs.primitive_restart.enabled;
     state.primitive_restart.index = regs.primitive_restart.index;
-}
-
-void RasterizerOpenGL::SyncDepthRange() {
-    const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
-
-    state.depth.depth_range_near = regs.viewport->depth_range_near;
-    state.depth.depth_range_far = regs.viewport->depth_range_far;
 }
 
 void RasterizerOpenGL::SyncDepthTestState() {
@@ -996,23 +992,44 @@ void RasterizerOpenGL::SyncStencilTestState() {
 void RasterizerOpenGL::SyncBlendState() {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
-    // TODO(Subv): Support more than just render target 0.
-    state.blend.enabled = regs.blend.enable[0] != 0;
+    state.blend_color.red = regs.blend_color.r;
+    state.blend_color.green = regs.blend_color.g;
+    state.blend_color.blue = regs.blend_color.b;
+    state.blend_color.alpha = regs.blend_color.a;
 
-    if (!state.blend.enabled)
+    state.independant_blend.enabled = regs.independent_blend_enable;
+    if (!state.independant_blend.enabled) {
+        auto& blend = state.blend[0];
+        blend.separate_alpha = regs.blend.separate_alpha;
+        blend.rgb_equation = MaxwellToGL::BlendEquation(regs.blend.equation_rgb);
+        blend.src_rgb_func = MaxwellToGL::BlendFunc(regs.blend.factor_source_rgb);
+        blend.dst_rgb_func = MaxwellToGL::BlendFunc(regs.blend.factor_dest_rgb);
+        if (blend.separate_alpha) {
+            blend.a_equation = MaxwellToGL::BlendEquation(regs.blend.equation_a);
+            blend.src_a_func = MaxwellToGL::BlendFunc(regs.blend.factor_source_a);
+            blend.dst_a_func = MaxwellToGL::BlendFunc(regs.blend.factor_dest_a);
+        }
+        for (size_t i = 1; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
+            state.blend[i].enabled = false;
+        }
         return;
+    }
 
-    ASSERT_MSG(regs.logic_op.enable == 0,
-               "Blending and logic op can't be enabled at the same time.");
-
-    ASSERT_MSG(regs.independent_blend_enable == 1, "Only independent blending is implemented");
-    ASSERT_MSG(!regs.independent_blend[0].separate_alpha, "Unimplemented");
-    state.blend.rgb_equation = MaxwellToGL::BlendEquation(regs.independent_blend[0].equation_rgb);
-    state.blend.src_rgb_func = MaxwellToGL::BlendFunc(regs.independent_blend[0].factor_source_rgb);
-    state.blend.dst_rgb_func = MaxwellToGL::BlendFunc(regs.independent_blend[0].factor_dest_rgb);
-    state.blend.a_equation = MaxwellToGL::BlendEquation(regs.independent_blend[0].equation_a);
-    state.blend.src_a_func = MaxwellToGL::BlendFunc(regs.independent_blend[0].factor_source_a);
-    state.blend.dst_a_func = MaxwellToGL::BlendFunc(regs.independent_blend[0].factor_dest_a);
+    for (size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
+        auto& blend = state.blend[i];
+        blend.enabled = regs.blend.enable[i] != 0;
+        if (!blend.enabled)
+            continue;
+        blend.separate_alpha = regs.independent_blend[i].separate_alpha;
+        blend.rgb_equation = MaxwellToGL::BlendEquation(regs.independent_blend[i].equation_rgb);
+        blend.src_rgb_func = MaxwellToGL::BlendFunc(regs.independent_blend[i].factor_source_rgb);
+        blend.dst_rgb_func = MaxwellToGL::BlendFunc(regs.independent_blend[i].factor_dest_rgb);
+        if (blend.separate_alpha) {
+            blend.a_equation = MaxwellToGL::BlendEquation(regs.independent_blend[i].equation_a);
+            blend.src_a_func = MaxwellToGL::BlendFunc(regs.independent_blend[i].factor_source_a);
+            blend.dst_a_func = MaxwellToGL::BlendFunc(regs.independent_blend[i].factor_dest_a);
+        }
+    }
 }
 
 void RasterizerOpenGL::SyncLogicOpState() {
@@ -1031,19 +1048,19 @@ void RasterizerOpenGL::SyncLogicOpState() {
 }
 
 void RasterizerOpenGL::SyncScissorTest() {
+    // TODO: what is the correct behavior here, a single scissor for all targets
+    // or scissor disabled for the rest of the targets?
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
-
     state.scissor.enabled = (regs.scissor_test.enable != 0);
-    // TODO(Blinkhawk): Figure if the hardware supports scissor testing per viewport and how it's
-    // implemented.
-    if (regs.scissor_test.enable != 0) {
-        const u32 width = regs.scissor_test.max_x - regs.scissor_test.min_x;
-        const u32 height = regs.scissor_test.max_y - regs.scissor_test.min_y;
-        state.scissor.x = regs.scissor_test.min_x;
-        state.scissor.y = regs.scissor_test.min_y;
-        state.scissor.width = width;
-        state.scissor.height = height;
+    if (regs.scissor_test.enable == 0) {
+        return;
     }
+    const u32 width = regs.scissor_test.max_x - regs.scissor_test.min_x;
+    const u32 height = regs.scissor_test.max_y - regs.scissor_test.min_y;
+    state.scissor.x = regs.scissor_test.min_x;
+    state.scissor.y = regs.scissor_test.min_y;
+    state.scissor.width = width;
+    state.scissor.height = height;
 }
 
 void RasterizerOpenGL::SyncTransformFeedback() {
