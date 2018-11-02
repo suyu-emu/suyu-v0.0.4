@@ -135,6 +135,212 @@ static const std::array<const char*, NumMouseButtons> mapping = {{
 }};
 } // namespace NativeMouseButton
 
+namespace NativeKeyboard {
+enum Keys {
+    None,
+    Error,
+
+    A = 4,
+    B,
+    C,
+    D,
+    E,
+    F,
+    G,
+    H,
+    I,
+    J,
+    K,
+    L,
+    M,
+    N,
+    O,
+    P,
+    Q,
+    R,
+    S,
+    T,
+    U,
+    V,
+    W,
+    X,
+    Y,
+    Z,
+    N1,
+    N2,
+    N3,
+    N4,
+    N5,
+    N6,
+    N7,
+    N8,
+    N9,
+    N0,
+    Enter,
+    Escape,
+    Backspace,
+    Tab,
+    Space,
+    Minus,
+    Equal,
+    LeftBrace,
+    RightBrace,
+    Backslash,
+    Tilde,
+    Semicolon,
+    Apostrophe,
+    Grave,
+    Comma,
+    Dot,
+    Slash,
+    CapsLockKey,
+
+    F1,
+    F2,
+    F3,
+    F4,
+    F5,
+    F6,
+    F7,
+    F8,
+    F9,
+    F10,
+    F11,
+    F12,
+
+    SystemRequest,
+    ScrollLockKey,
+    Pause,
+    Insert,
+    Home,
+    PageUp,
+    Delete,
+    End,
+    PageDown,
+    Right,
+    Left,
+    Down,
+    Up,
+
+    NumLockKey,
+    KPSlash,
+    KPAsterisk,
+    KPMinus,
+    KPPlus,
+    KPEnter,
+    KP1,
+    KP2,
+    KP3,
+    KP4,
+    KP5,
+    KP6,
+    KP7,
+    KP8,
+    KP9,
+    KP0,
+    KPDot,
+
+    Key102,
+    Compose,
+    Power,
+    KPEqual,
+
+    F13,
+    F14,
+    F15,
+    F16,
+    F17,
+    F18,
+    F19,
+    F20,
+    F21,
+    F22,
+    F23,
+    F24,
+
+    Open,
+    Help,
+    Properties,
+    Front,
+    Stop,
+    Repeat,
+    Undo,
+    Cut,
+    Copy,
+    Paste,
+    Find,
+    Mute,
+    VolumeUp,
+    VolumeDown,
+    CapsLockActive,
+    NumLockActive,
+    ScrollLockActive,
+    KPComma,
+
+    KPLeftParenthesis,
+    KPRightParenthesis,
+
+    LeftControlKey = 0xE0,
+    LeftShiftKey,
+    LeftAltKey,
+    LeftMetaKey,
+    RightControlKey,
+    RightShiftKey,
+    RightAltKey,
+    RightMetaKey,
+
+    MediaPlayPause,
+    MediaStopCD,
+    MediaPrevious,
+    MediaNext,
+    MediaEject,
+    MediaVolumeUp,
+    MediaVolumeDown,
+    MediaMute,
+    MediaWebsite,
+    MediaBack,
+    MediaForward,
+    MediaStop,
+    MediaFind,
+    MediaScrollUp,
+    MediaScrollDown,
+    MediaEdit,
+    MediaSleep,
+    MediaCoffee,
+    MediaRefresh,
+    MediaCalculator,
+
+    NumKeyboardKeys,
+};
+
+static_assert(NumKeyboardKeys == 0xFC, "Incorrect number of keyboard keys.");
+
+enum Modifiers {
+    LeftControl,
+    LeftShift,
+    LeftAlt,
+    LeftMeta,
+    RightControl,
+    RightShift,
+    RightAlt,
+    RightMeta,
+    CapsLock,
+    ScrollLock,
+    NumLock,
+
+    NumKeyboardMods,
+};
+
+constexpr int KEYBOARD_KEYS_HID_BEGIN = None;
+constexpr int KEYBOARD_KEYS_HID_END = NumKeyboardKeys;
+constexpr int NUM_KEYBOARD_KEYS_HID = NumKeyboardKeys;
+
+constexpr int KEYBOARD_MODS_HID_BEGIN = LeftControl;
+constexpr int KEYBOARD_MODS_HID_END = NumKeyboardMods;
+constexpr int NUM_KEYBOARD_MODS_HID = NumKeyboardMods;
+
+} // namespace NativeKeyboard
+
 struct Values {
     // System
     bool use_docked_mode;
@@ -149,6 +355,10 @@ struct Values {
     bool mouse_enabled;
     std::string mouse_device;
     MouseButtonsRaw mouse_buttons;
+
+    bool keyboard_enabled;
+    KeyboardKeysRaw keyboard_keys;
+    KeyboardModsRaw keyboard_mods;
     std::string motion_device;
     std::string touch_device;
     std::atomic_bool is_device_reload_pending{true};
