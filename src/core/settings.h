@@ -111,6 +111,30 @@ static const std::array<const char*, NumAnalogs> mapping = {{
 }};
 } // namespace NativeAnalog
 
+namespace NativeMouseButton {
+enum Values {
+    Left,
+    Right,
+    Middle,
+    Forward,
+    Back,
+
+    NumMouseButtons,
+};
+
+constexpr int MOUSE_HID_BEGIN = Left;
+constexpr int MOUSE_HID_END = NumMouseButtons;
+constexpr int NUM_MOUSE_HID = NumMouseButtons;
+
+static const std::array<const char*, NumMouseButtons> mapping = {{
+    "left",
+    "right",
+    "middle",
+    "forward",
+    "back",
+}};
+} // namespace NativeMouseButton
+
 struct Values {
     // System
     bool use_docked_mode;
@@ -122,6 +146,9 @@ struct Values {
     // Controls
     std::array<std::string, NativeButton::NumButtons> buttons;
     std::array<std::string, NativeAnalog::NumAnalogs> analogs;
+    bool mouse_enabled;
+    std::string mouse_device;
+    MouseButtonsRaw mouse_buttons;
     std::string motion_device;
     std::string touch_device;
     std::atomic_bool is_device_reload_pending{true};
