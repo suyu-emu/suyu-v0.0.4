@@ -101,8 +101,9 @@ static bool IsValidNCA(const NCAHeader& header) {
     return header.magic == Common::MakeMagic('N', 'C', 'A', '3');
 }
 
-NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_, u64 bktr_base_ivfc_offset)
-    : file(std::move(file_)), bktr_base_romfs(std::move(bktr_base_romfs_)) {
+NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_, u64 bktr_base_ivfc_offset,
+         Core::Crypto::KeyManager keys_)
+    : file(std::move(file_)), bktr_base_romfs(std::move(bktr_base_romfs_)), keys(std::move(keys_)) {
     if (file == nullptr) {
         status = Loader::ResultStatus::ErrorNullFile;
         return;
