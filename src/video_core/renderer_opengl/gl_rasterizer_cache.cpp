@@ -1304,10 +1304,9 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& old_surface,
             CopySurface(old_surface, new_surface, copy_pbo.handle);
         }
         break;
-
-    case SurfaceParams::SurfaceTarget::TextureCubemap:
-    case SurfaceParams::SurfaceTarget::Texture3D:
-    case SurfaceParams::SurfaceTarget::Texture2DArray:
+    case SurfaceTarget::TextureCubemap:
+    case SurfaceTarget::Texture3D:
+    case SurfaceTarget::Texture2DArray:
         AccurateCopySurface(old_surface, new_surface);
         break;
     default:
