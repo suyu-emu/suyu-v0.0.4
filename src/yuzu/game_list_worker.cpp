@@ -123,17 +123,22 @@ void GameListWorker::AddInstalledTitlesToGameList() {
         if (it != compatibility_list.end())
             compatibility = it->second.first;
 
-        emit EntryReady({
+        QList<QStandardItem*> list{
             new GameListItemPath(
                 FormatGameName(file->GetFullPath()), icon, QString::fromStdString(name),
                 QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType())),
                 program_id),
             new GameListItemCompat(compatibility),
-            new GameListItem(FormatPatchNameVersions(patch, *loader)),
             new GameListItem(
                 QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType()))),
             new GameListItemSize(file->GetSize()),
-        });
+        };
+
+        if (UISettings::values.show_add_ons) {
+            list.insert(2, new GameListItem(FormatPatchNameVersions(patch, *loader)));
+        }
+
+        emit EntryReady(list);
     }
 
     const auto control_data = cache->ListEntriesFilter(FileSys::TitleType::Application,
@@ -216,18 +221,23 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
             if (it != compatibility_list.end())
                 compatibility = it->second.first;
 
-            emit EntryReady({
+            QList<QStandardItem*> list{
                 new GameListItemPath(
                     FormatGameName(physical_name), icon, QString::fromStdString(name),
                     QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType())),
                     program_id),
                 new GameListItemCompat(compatibility),
                 new GameListItem(
-                    FormatPatchNameVersions(patch, *loader, loader->IsRomFSUpdatable())),
-                new GameListItem(
                     QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType()))),
                 new GameListItemSize(FileUtil::GetSize(physical_name)),
-            });
+            };
+
+            if (UISettings::values.show_add_ons) {
+                list.insert(2, new GameListItem(FormatPatchNameVersions(
+                                   patch, *loader, loader->IsRomFSUpdatable())));
+            }
+
+            emit EntryReady(std::move(list));
         } else if (is_dir && recursion > 0) {
             watch_list.append(QString::fromStdString(physical_name));
             AddFstEntriesToGameList(physical_name, recursion - 1);

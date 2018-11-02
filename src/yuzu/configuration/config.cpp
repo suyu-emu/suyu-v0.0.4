@@ -162,6 +162,7 @@ void Config::ReadValues() {
 
     qt_config->beginGroup("UIGameList");
     UISettings::values.show_unknown = qt_config->value("show_unknown", true).toBool();
+    UISettings::values.show_add_ons = qt_config->value("show_add_ons", true).toBool();
     UISettings::values.icon_size = qt_config->value("icon_size", 64).toUInt();
     UISettings::values.row_1_text_id = qt_config->value("row_1_text_id", 3).toUInt();
     UISettings::values.row_2_text_id = qt_config->value("row_2_text_id", 2).toUInt();
@@ -298,6 +299,7 @@ void Config::SaveValues() {
 
     qt_config->beginGroup("UIGameList");
     qt_config->setValue("show_unknown", UISettings::values.show_unknown);
+    qt_config->setValue("show_add_ons", UISettings::values.show_add_ons);
     qt_config->setValue("icon_size", UISettings::values.icon_size);
     qt_config->setValue("row_1_text_id", UISettings::values.row_1_text_id);
     qt_config->setValue("row_2_text_id", UISettings::values.row_2_text_id);
