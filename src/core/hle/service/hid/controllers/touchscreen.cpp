@@ -42,19 +42,19 @@ void Controller_Touchscreen::OnUpdate(u8* data, std::size_t size) {
     const auto [x, y, pressed] = touch_device->GetStatus();
     auto& touch_entry = cur_entry.states[0];
     touch_entry.attribute.raw = 0;
-    if (pressed) {
+    if (pressed && Settings::values.touchscreen.enabled) {
         if (cur_entry.entry_count == 0) {
             touch_entry.attribute.start_touch.Assign(1);
         }
         touch_entry.x = static_cast<u16>(x * Layout::ScreenUndocked::Width);
         touch_entry.y = static_cast<u16>(y * Layout::ScreenUndocked::Height);
-        touch_entry.diameter_x = 15;
-        touch_entry.diameter_y = 15;
-        touch_entry.rotation_angle = 0;
+        touch_entry.diameter_x = Settings::values.touchscreen.diameter_x;
+        touch_entry.diameter_y = Settings::values.touchscreen.diameter_y;
+        touch_entry.rotation_angle = Settings::values.touchscreen.rotation_angle;
         const u64 tick = CoreTiming::GetTicks();
         touch_entry.delta_time = tick - last_touch;
         last_touch = tick;
-        touch_entry.finger = 0;
+        touch_entry.finger = Settings::values.touchscreen.finger;
         cur_entry.entry_count = 1;
     } else {
         if (cur_entry.entry_count == 1) {
@@ -67,6 +67,6 @@ void Controller_Touchscreen::OnUpdate(u8* data, std::size_t size) {
 }
 
 void Controller_Touchscreen::OnLoadInputDevices() {
-    touch_device = Input::CreateDevice<Input::TouchDevice>(Settings::values.touch_device);
+    touch_device = Input::CreateDevice<Input::TouchDevice>(Settings::values.touchscreen.device);
 }
 } // namespace Service::HID
