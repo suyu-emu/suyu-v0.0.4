@@ -9,6 +9,7 @@
 #include <vector>
 #include "common/common_types.h"
 #include "common/swap.h"
+#include "core/crypto/key_manager.h"
 #include "core/file_sys/vfs.h"
 
 namespace Loader {
@@ -107,5 +108,7 @@ private:
     std::shared_ptr<NSP> secure_partition;
     std::shared_ptr<NCA> program;
     std::vector<std::shared_ptr<NCA>> ncas;
+
+    Core::Crypto::KeyManager keys;
 };
 } // namespace FileSys

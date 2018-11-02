@@ -12,6 +12,7 @@
 #include <vector>
 #include <boost/container/flat_map.hpp>
 #include "common/common_types.h"
+#include "core/crypto/key_manager.h"
 #include "core/file_sys/vfs.h"
 
 namespace FileSys {
@@ -133,6 +134,8 @@ private:
 
     VirtualDir dir;
     RegisteredCacheParsingFunction parser;
+    Core::Crypto::KeyManager keys;
+
     // maps tid -> NcaID of meta
     boost::container::flat_map<u64, NcaID> meta_id;
     // maps tid -> meta

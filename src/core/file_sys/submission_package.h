@@ -70,6 +70,8 @@ private:
     std::map<u64, std::map<ContentRecordType, std::shared_ptr<NCA>>> ncas;
     std::vector<VirtualFile> ticket_files;
 
+    Core::Crypto::KeyManager keys;
+
     VirtualFile romfs;
     VirtualDir exefs;
 };
