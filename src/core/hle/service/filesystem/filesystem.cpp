@@ -319,9 +319,16 @@ ResultVal<FileSys::VirtualDir> OpenSDMC() {
     return sdmc_factory->Open();
 }
 
-std::unique_ptr<FileSys::RegisteredCacheUnion> GetUnionContents() {
-    return std::make_unique<FileSys::RegisteredCacheUnion>(std::vector<FileSys::RegisteredCache*>{
-        GetSystemNANDContents(), GetUserNANDContents(), GetSDMCContents()});
+std::shared_ptr<FileSys::RegisteredCacheUnion> registered_cache_union;
+
+std::shared_ptr<FileSys::RegisteredCacheUnion> GetUnionContents() {
+    if (registered_cache_union == nullptr) {
+        registered_cache_union =
+            std::make_shared<FileSys::RegisteredCacheUnion>(std::vector<FileSys::RegisteredCache*>{
+                GetSystemNANDContents(), GetUserNANDContents(), GetSDMCContents()});
+    }
+
+    return registered_cache_union;
 }
 
 FileSys::RegisteredCache* GetSystemNANDContents() {
