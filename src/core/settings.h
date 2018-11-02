@@ -341,6 +341,46 @@ constexpr int NUM_KEYBOARD_MODS_HID = NumKeyboardMods;
 
 } // namespace NativeKeyboard
 
+using ButtonsRaw = std::array<std::string, NativeButton::NumButtons>;
+using AnalogsRaw = std::array<std::string, NativeAnalog::NumAnalogs>;
+using MouseButtonsRaw = std::array<std::string, NativeMouseButton::NumMouseButtons>;
+using KeyboardKeysRaw = std::array<std::string, NativeKeyboard::NumKeyboardKeys>;
+using KeyboardModsRaw = std::array<std::string, NativeKeyboard::NumKeyboardMods>;
+
+constexpr u32 JOYCON_BODY_NEON_RED = 0xFF3C28;
+constexpr u32 JOYCON_BUTTONS_NEON_RED = 0x1E0A0A;
+constexpr u32 JOYCON_BODY_NEON_BLUE = 0x0AB9E6;
+constexpr u32 JOYCON_BUTTONS_NEON_BLUE = 0x001E1E;
+
+enum class ControllerType {
+    ProController,
+    DualJoycon,
+    RightJoycon,
+    LeftJoycon,
+};
+
+struct PlayerInput {
+    bool connected;
+    ControllerType type;
+    ButtonsRaw buttons;
+    AnalogsRaw analogs;
+
+    u32 body_color_right;
+    u32 button_color_right;
+    u32 body_color_left;
+    u32 button_color_left;
+};
+
+struct TouchscreenInput {
+    bool enabled;
+    std::string device;
+
+    u32 finger;
+    u32 diameter_x;
+    u32 diameter_y;
+    u32 rotation_angle;
+};
+
 struct Values {
     // System
     bool use_docked_mode;
@@ -350,8 +390,8 @@ struct Values {
     s32 language_index;
 
     // Controls
-    std::array<std::string, NativeButton::NumButtons> buttons;
-    std::array<std::string, NativeAnalog::NumAnalogs> analogs;
+    std::array<PlayerInput, 10> players;
+
     bool mouse_enabled;
     std::string mouse_device;
     MouseButtonsRaw mouse_buttons;
@@ -359,8 +399,13 @@ struct Values {
     bool keyboard_enabled;
     KeyboardKeysRaw keyboard_keys;
     KeyboardModsRaw keyboard_mods;
+
+    bool debug_pad_enabled;
+    ButtonsRaw debug_pad_buttons;
+    AnalogsRaw debug_pad_analogs;
+
     std::string motion_device;
-    std::string touch_device;
+    TouchscreenInput touchscreen;
     std::atomic_bool is_device_reload_pending{true};
 
     // Core
