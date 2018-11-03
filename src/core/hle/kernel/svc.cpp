@@ -122,6 +122,12 @@ static ResultCode SetHeapSize(VAddr* heap_addr, u64 heap_size) {
     return RESULT_SUCCESS;
 }
 
+static ResultCode SetMemoryPermission(VAddr addr, u64 size, u32 prot) {
+    LOG_WARNING(Kernel_SVC, "(STUBBED) called, addr=0x{:X}, size=0x{:X}, prot=0x{:X}", addr, size,
+                prot);
+    return RESULT_SUCCESS;
+}
+
 static ResultCode SetMemoryAttribute(VAddr addr, u64 size, u32 state0, u32 state1) {
     LOG_WARNING(Kernel_SVC,
                 "(STUBBED) called, addr=0x{:X}, size=0x{:X}, state0=0x{:X}, state1=0x{:X}", addr,
@@ -1259,7 +1265,7 @@ struct FunctionDef {
 static const FunctionDef SVC_Table[] = {
     {0x00, nullptr, "Unknown"},
     {0x01, SvcWrap<SetHeapSize>, "SetHeapSize"},
-    {0x02, nullptr, "SetMemoryPermission"},
+    {0x02, SvcWrap<SetMemoryPermission>, "SetMemoryPermission"},
     {0x03, SvcWrap<SetMemoryAttribute>, "SetMemoryAttribute"},
     {0x04, SvcWrap<MapMemory>, "MapMemory"},
     {0x05, SvcWrap<UnmapMemory>, "UnmapMemory"},
