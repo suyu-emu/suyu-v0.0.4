@@ -29,7 +29,17 @@ public:
 
 private:
     void ReadValues();
+    void ReadPlayerValues();
+    void ReadDebugValues();
+    void ReadKeyboardValues();
+    void ReadMouseValues();
+    void ReadTouchscreenValues();
+
     void SaveValues();
+    void SavePlayerValues();
+    void SaveDebugValues();
+    void SaveMouseValues();
+    void SaveTouchscreenValues();
 
     std::unique_ptr<QSettings> qt_config;
     std::string qt_config_loc;

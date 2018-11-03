@@ -203,9 +203,8 @@ const std::array<int, Settings::NativeKeyboard::NumKeyboardMods> Config::default
     Qt::Key_Control, Qt::Key_Shift, Qt::Key_AltGr, Qt::Key_ApplicationRight,
 };
 
-void Config::ReadValues() {
-    qt_config->beginGroup("Controls");
-    for (std::size_t p = 0; p < 10; ++p) {
+void Config::ReadPlayerValues() {
+    for (std::size_t p = 0; p < Settings::values.players.size(); ++p) {
         Settings::values.players[p].connected =
             qt_config->value(QString("player_%1_connected").arg(p), false).toBool();
 
@@ -265,28 +264,9 @@ void Config::ReadValues() {
 
     std::stable_partition(Settings::values.players.begin(), Settings::values.players.end(),
                           [](const auto& player) { return player.connected; });
+}
 
-    Settings::values.motion_device =
-        qt_config->value("motion_device", "engine:motion_emu,update_period:100,sensitivity:0.01")
-            .toString()
-            .toStdString();
-
-    Settings::values.mouse_enabled = qt_config->value("mouse_enabled", false).toBool();
-
-    for (int i = 0; i < Settings::NativeMouseButton::NumMouseButtons; ++i) {
-        std::string default_param = InputCommon::GenerateKeyboardParam(default_mouse_buttons[i]);
-        Settings::values.mouse_buttons[i] =
-            qt_config
-                ->value(QString("mouse_") + Settings::NativeMouseButton::mapping[i],
-                        QString::fromStdString(default_param))
-                .toString()
-                .toStdString();
-        if (Settings::values.mouse_buttons[i].empty())
-            Settings::values.mouse_buttons[i] = default_param;
-    }
-
-    Settings::values.keyboard_enabled = qt_config->value("keyboard_enabled", false).toBool();
-
+void Config::ReadDebugValues() {
     Settings::values.debug_pad_enabled = qt_config->value("debug_pad_enabled", false).toBool();
     for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
         std::string default_param = InputCommon::GenerateKeyboardParam(default_buttons[i]);
@@ -313,7 +293,38 @@ void Config::ReadValues() {
         if (Settings::values.debug_pad_analogs[i].empty())
             Settings::values.debug_pad_analogs[i] = default_param;
     }
+}
 
+void Config::ReadKeyboardValues() {
+    Settings::values.keyboard_enabled = qt_config->value("keyboard_enabled", false).toBool();
+
+    std::transform(default_keyboard_keys.begin(), default_keyboard_keys.end(),
+                   Settings::values.keyboard_keys.begin(), InputCommon::GenerateKeyboardParam);
+    std::transform(default_keyboard_mods.begin(), default_keyboard_mods.end(),
+                   Settings::values.keyboard_keys.begin() +
+                       Settings::NativeKeyboard::LeftControlKey,
+                   InputCommon::GenerateKeyboardParam);
+    std::transform(default_keyboard_mods.begin(), default_keyboard_mods.end(),
+                   Settings::values.keyboard_mods.begin(), InputCommon::GenerateKeyboardParam);
+}
+
+void Config::ReadMouseValues() {
+    Settings::values.mouse_enabled = qt_config->value("mouse_enabled", false).toBool();
+
+    for (int i = 0; i < Settings::NativeMouseButton::NumMouseButtons; ++i) {
+        std::string default_param = InputCommon::GenerateKeyboardParam(default_mouse_buttons[i]);
+        Settings::values.mouse_buttons[i] =
+            qt_config
+                ->value(QString("mouse_") + Settings::NativeMouseButton::mapping[i],
+                        QString::fromStdString(default_param))
+                .toString()
+                .toStdString();
+        if (Settings::values.mouse_buttons[i].empty())
+            Settings::values.mouse_buttons[i] = default_param;
+    }
+}
+
+void Config::ReadTouchscreenValues() {
     Settings::values.touchscreen.enabled = qt_config->value("touchscreen_enabled", true).toBool();
     Settings::values.touchscreen.device =
         qt_config->value("touchscreen_device", "engine:emu_window").toString().toStdString();
@@ -325,6 +336,21 @@ void Config::ReadValues() {
     Settings::values.touchscreen.diameter_y =
         qt_config->value("touchscreen_diameter_y", 15).toUInt();
     qt_config->endGroup();
+}
+
+void Config::ReadValues() {
+    qt_config->beginGroup("Controls");
+
+    ReadPlayerValues();
+    ReadDebugValues();
+    ReadKeyboardValues();
+    ReadMouseValues();
+    ReadTouchscreenValues();
+
+    Settings::values.motion_device =
+        qt_config->value("motion_device", "engine:motion_emu,update_period:100,sensitivity:0.01")
+            .toString()
+            .toStdString();
 
     qt_config->beginGroup("Core");
     Settings::values.use_cpu_jit = qt_config->value("use_cpu_jit", true).toBool();
@@ -369,15 +395,6 @@ void Config::ReadValues() {
             .toString()
             .toStdString());
     qt_config->endGroup();
-
-    std::transform(default_keyboard_keys.begin(), default_keyboard_keys.end(),
-                   Settings::values.keyboard_keys.begin(), InputCommon::GenerateKeyboardParam);
-    std::transform(default_keyboard_mods.begin(), default_keyboard_mods.end(),
-                   Settings::values.keyboard_keys.begin() +
-                       Settings::NativeKeyboard::LeftControlKey,
-                   InputCommon::GenerateKeyboardParam);
-    std::transform(default_keyboard_mods.begin(), default_keyboard_mods.end(),
-                   Settings::values.keyboard_mods.begin(), InputCommon::GenerateKeyboardParam);
 
     qt_config->beginGroup("Core");
     Settings::values.use_cpu_jit = qt_config->value("use_cpu_jit", true).toBool();
@@ -488,9 +505,8 @@ void Config::ReadValues() {
     qt_config->endGroup();
 }
 
-void Config::SaveValues() {
-    qt_config->beginGroup("Controls");
-    for (int p = 0; p < 10; ++p) {
+void Config::SavePlayerValues() {
+    for (int p = 0; p < Settings::values.players.size(); ++p) {
         qt_config->setValue(QString("player_%1_connected").arg(p),
                             Settings::values.players[p].connected);
         qt_config->setValue(QString("player_%1_type").arg(p),
@@ -516,19 +532,9 @@ void Config::SaveValues() {
                                 QString::fromStdString(Settings::values.players[p].analogs[i]));
         }
     }
+}
 
-    qt_config->setValue("motion_device", QString::fromStdString(Settings::values.motion_device));
-
-    qt_config->setValue("mouse_enabled", Settings::values.mouse_enabled);
-
-    for (int i = 0; i < Settings::NativeMouseButton::NumMouseButtons; ++i) {
-        qt_config->setValue(QString("mouse_") +
-                                QString::fromStdString(Settings::NativeMouseButton::mapping[i]),
-                            QString::fromStdString(Settings::values.mouse_buttons[i]));
-    }
-
-    qt_config->setValue("keyboard_enabled", Settings::values.keyboard_enabled);
-
+void Config::SaveDebugValues() {
     qt_config->setValue("debug_pad_enabled", Settings::values.debug_pad_enabled);
     for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
         qt_config->setValue(QString("debug_pad_") +
@@ -540,7 +546,19 @@ void Config::SaveValues() {
                                 QString::fromStdString(Settings::NativeAnalog::mapping[i]),
                             QString::fromStdString(Settings::values.debug_pad_analogs[i]));
     }
+}
 
+void Config::SaveMouseValues() {
+    qt_config->setValue("mouse_enabled", Settings::values.mouse_enabled);
+
+    for (int i = 0; i < Settings::NativeMouseButton::NumMouseButtons; ++i) {
+        qt_config->setValue(QString("mouse_") +
+                                QString::fromStdString(Settings::NativeMouseButton::mapping[i]),
+                            QString::fromStdString(Settings::values.mouse_buttons[i]));
+    }
+}
+
+void Config::SaveTouchscreenValues() {
     qt_config->setValue("touchscreen_enabled", Settings::values.touchscreen.enabled);
     qt_config->setValue("touchscreen_device",
                         QString::fromStdString(Settings::values.touchscreen.device));
@@ -549,6 +567,19 @@ void Config::SaveValues() {
     qt_config->setValue("touchscreen_angle", Settings::values.touchscreen.rotation_angle);
     qt_config->setValue("touchscreen_diameter_x", Settings::values.touchscreen.diameter_x);
     qt_config->setValue("touchscreen_diameter_y", Settings::values.touchscreen.diameter_y);
+}
+
+void Config::SaveValues() {
+    qt_config->beginGroup("Controls");
+
+    SavePlayerValues();
+    SaveDebugValues();
+    SaveMouseValues();
+    SaveTouchscreenValues();
+
+    qt_config->setValue("motion_device", QString::fromStdString(Settings::values.motion_device));
+    qt_config->setValue("keyboard_enabled", Settings::values.keyboard_enabled);
+
     qt_config->endGroup();
 
     qt_config->beginGroup("Core");

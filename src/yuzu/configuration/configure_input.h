@@ -41,7 +41,7 @@ private:
     void updateUIEnabled();
 
     template <typename Dialog, typename... Args>
-    void CallConfigureDialog(Args... args);
+    void CallConfigureDialog(Args&&... args);
 
     /// Load configuration settings.
     void loadConfiguration();

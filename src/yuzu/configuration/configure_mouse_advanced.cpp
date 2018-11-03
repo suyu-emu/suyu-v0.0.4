@@ -16,7 +16,7 @@
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_mouse_advanced.h"
 
-static QString getKeyName(int key_code) {
+static QString GetKeyName(int key_code) {
     switch (key_code) {
     case Qt::Key_Shift:
         return QObject::tr("Shift");
@@ -35,7 +35,7 @@ static QString ButtonToText(const Common::ParamPackage& param) {
     if (!param.Has("engine")) {
         return QObject::tr("[not set]");
     } else if (param.Get("engine", "") == "keyboard") {
-        return getKeyName(param.Get("code", 0));
+        return GetKeyName(param.Get("code", 0));
     } else if (param.Get("engine", "") == "sdl") {
         if (param.Has("hat")) {
             return QString(QObject::tr("Hat %1 %2"))
@@ -191,7 +191,7 @@ void ConfigureMouseAdvanced::setPollingResult(const Common::ParamPackage& params
     }
 
     updateButtonLabels();
-    input_setter = boost::none;
+    input_setter = std::nullopt;
 }
 
 void ConfigureMouseAdvanced::keyPressEvent(QKeyEvent* event) {

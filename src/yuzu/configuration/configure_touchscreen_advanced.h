@@ -18,6 +18,7 @@ class ConfigureTouchscreenAdvanced : public QDialog {
 
 public:
     explicit ConfigureTouchscreenAdvanced(QWidget* parent);
+    ~ConfigureTouchscreenAdvanced() override;
 
     void applyConfiguration();
 

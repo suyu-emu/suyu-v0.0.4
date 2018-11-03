@@ -60,36 +60,7 @@ constexpr int BUTTON_NS_END = NumButtons;
 constexpr int NUM_BUTTONS_HID = BUTTON_HID_END - BUTTON_HID_BEGIN;
 constexpr int NUM_BUTTONS_NS = BUTTON_NS_END - BUTTON_NS_BEGIN;
 
-static const std::array<const char*, NumButtons> mapping = {{
-    "button_a",
-    "button_b",
-    "button_x",
-    "button_y",
-    "button_lstick",
-    "button_rstick",
-    "button_l",
-    "button_r",
-    "button_zl",
-    "button_zr",
-    "button_plus",
-    "button_minus",
-    "button_dleft",
-    "button_dup",
-    "button_dright",
-    "button_ddown",
-    "button_lstick_left",
-    "button_lstick_up",
-    "button_lstick_right",
-    "button_lstick_down",
-    "button_rstick_left",
-    "button_rstick_up",
-    "button_rstick_right",
-    "button_rstick_down",
-    "button_sl",
-    "button_sr",
-    "button_home",
-    "button_screenshot",
-}};
+extern const std::array<const char*, NumButtons> mapping;
 
 } // namespace NativeButton
 
@@ -105,10 +76,7 @@ constexpr int STICK_HID_BEGIN = LStick;
 constexpr int STICK_HID_END = NumAnalogs;
 constexpr int NUM_STICKS_HID = NumAnalogs;
 
-static const std::array<const char*, NumAnalogs> mapping = {{
-    "lstick",
-    "rstick",
-}};
+extern const std::array<const char*, NumAnalogs> mapping;
 } // namespace NativeAnalog
 
 namespace NativeMouseButton {
@@ -126,13 +94,7 @@ constexpr int MOUSE_HID_BEGIN = Left;
 constexpr int MOUSE_HID_END = NumMouseButtons;
 constexpr int NUM_MOUSE_HID = NumMouseButtons;
 
-static const std::array<const char*, NumMouseButtons> mapping = {{
-    "left",
-    "right",
-    "middle",
-    "forward",
-    "back",
-}};
+extern const std::array<const char*, NumMouseButtons> mapping;
 } // namespace NativeMouseButton
 
 namespace NativeKeyboard {

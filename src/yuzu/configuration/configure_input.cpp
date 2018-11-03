@@ -11,6 +11,7 @@
 #include "common/param_package.h"
 #include "configuration/configure_touchscreen_advanced.h"
 #include "core/core.h"
+#include "core/hle/service/hid/controllers/npad.h"
 #include "input_common/main.h"
 #include "ui_configure_input.h"
 #include "ui_configure_input_player.h"
@@ -83,9 +84,9 @@ ConfigureInput::ConfigureInput(QWidget* parent)
 }
 
 template <typename Dialog, typename... Args>
-void ConfigureInput::CallConfigureDialog(Args... args) {
+void ConfigureInput::CallConfigureDialog(Args&&... args) {
     this->applyConfiguration();
-    Dialog dialog(this, args...);
+    Dialog dialog(this, std::forward<Args>(args)...);
 
     const auto res = dialog.exec();
     if (res == QDialog::Accepted) {
@@ -94,14 +95,16 @@ void ConfigureInput::CallConfigureDialog(Args... args) {
 }
 
 void ConfigureInput::applyConfiguration() {
-    for (std::size_t i = 0; i < 8; ++i) {
+    for (std::size_t i = 0; i < players_enabled.size(); ++i) {
         Settings::values.players[i].connected = players_enabled[i]->isChecked();
         Settings::values.players[i].type =
             static_cast<Settings::ControllerType>(player_controller[i]->currentIndex());
     }
 
     Settings::values.use_docked_mode = ui->use_docked_mode->isChecked();
-    Settings::values.players[8].connected = ui->handheld_connected->isChecked();
+    Settings::values
+        .players[Service::HID::Controller_NPad::NPadIdToIndex(Service::HID::NPAD_HANDHELD)]
+        .connected = ui->handheld_connected->isChecked();
     Settings::values.debug_pad_enabled = ui->debug_enabled->isChecked();
     Settings::values.mouse_enabled = ui->mouse_enabled->isChecked();
     Settings::values.keyboard_enabled = ui->keyboard_enabled->isChecked();
@@ -109,7 +112,7 @@ void ConfigureInput::applyConfiguration() {
 }
 
 void ConfigureInput::updateUIEnabled() {
-    for (std::size_t i = 0; i < 8; ++i) {
+    for (std::size_t i = 0; i < players_enabled.size(); ++i) {
         const auto enabled = players_enabled[i]->checkState() == Qt::Checked;
 
         player_controller[i]->setEnabled(enabled);
@@ -118,10 +121,7 @@ void ConfigureInput::updateUIEnabled() {
 
     bool hit_disabled = false;
     for (auto* player : players_enabled) {
-        if (hit_disabled)
-            player->setDisabled(true);
-        else
-            player->setEnabled(true);
+        player->setDisabled(hit_disabled);
         if (!player->isChecked())
             hit_disabled = true;
     }
@@ -138,13 +138,16 @@ void ConfigureInput::loadConfiguration() {
     std::stable_partition(Settings::values.players.begin(), Settings::values.players.end(),
                           [](const auto& player) { return player.connected; });
 
-    for (std::size_t i = 0; i < 8; ++i) {
+    for (std::size_t i = 0; i < players_enabled.size(); ++i) {
         players_enabled[i]->setChecked(Settings::values.players[i].connected);
         player_controller[i]->setCurrentIndex(static_cast<u8>(Settings::values.players[i].type));
     }
 
     ui->use_docked_mode->setChecked(Settings::values.use_docked_mode);
-    ui->handheld_connected->setChecked(Settings::values.players[8].connected);
+    ui->handheld_connected->setChecked(
+        Settings::values
+            .players[Service::HID::Controller_NPad::NPadIdToIndex(Service::HID::NPAD_HANDHELD)]
+            .connected);
     ui->debug_enabled->setChecked(Settings::values.debug_pad_enabled);
     ui->mouse_enabled->setChecked(Settings::values.mouse_enabled);
     ui->keyboard_enabled->setChecked(Settings::values.keyboard_enabled);
@@ -157,7 +160,7 @@ void ConfigureInput::restoreDefaults() {
     players_enabled[0]->setCheckState(Qt::Checked);
     player_controller[0]->setCurrentIndex(1);
 
-    for (std::size_t i = 1; i < 8; ++i) {
+    for (std::size_t i = 1; i < players_enabled.size(); ++i) {
         players_enabled[i]->setCheckState(Qt::Unchecked);
         player_controller[i]->setCurrentIndex(0);
     }

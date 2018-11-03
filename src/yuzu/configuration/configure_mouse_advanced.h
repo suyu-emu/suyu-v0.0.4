@@ -5,9 +5,9 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <QDialog>
 #include <QWidget>
-#include <boost/optional.hpp>
 #include "core/settings.h"
 
 class QCheckBox;
@@ -30,7 +30,7 @@ private:
     std::unique_ptr<Ui::ConfigureMouseAdvanced> ui;
 
     /// This will be the the setting function when an input is awaiting configuration.
-    boost::optional<std::function<void(const Common::ParamPackage&)>> input_setter;
+    std::optional<std::function<void(const Common::ParamPackage&)>> input_setter;
 
     std::array<QPushButton*, Settings::NativeMouseButton::NumMouseButtons> button_map;
     std::array<Common::ParamPackage, Settings::NativeMouseButton::NumMouseButtons> buttons_param;

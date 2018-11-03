@@ -2,15 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <algorithm>
 #include <memory>
-#include <utility>
-#include <QMenu>
-#include <QMessageBox>
-#include <QTimer>
-#include "common/assert.h"
-#include "common/param_package.h"
-#include "input_common/main.h"
 #include "ui_configure_touchscreen_advanced.h"
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_touchscreen_advanced.h"
@@ -22,9 +14,11 @@ ConfigureTouchscreenAdvanced::ConfigureTouchscreenAdvanced(QWidget* parent)
     connect(ui->restore_defaults_button, &QPushButton::pressed, this,
             &ConfigureTouchscreenAdvanced::restoreDefaults);
 
-    this->loadConfiguration();
-    this->resize(0, 0);
+    loadConfiguration();
+    resize(0, 0);
 }
+
+ConfigureTouchscreenAdvanced::~ConfigureTouchscreenAdvanced() = default;
 
 void ConfigureTouchscreenAdvanced::applyConfiguration() {
     Settings::values.touchscreen.finger = ui->finger_box->value();

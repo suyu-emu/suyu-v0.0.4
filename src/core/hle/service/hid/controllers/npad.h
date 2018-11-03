@@ -5,12 +5,17 @@
 #pragma once
 
 #include <array>
+#include "common/bit_field.h"
 #include "common/common_types.h"
 #include "core/frontend/input.h"
+#include "core/hle/kernel/event.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
 #include "core/settings.h"
 
 namespace Service::HID {
+
+constexpr u32 NPAD_HANDHELD = 32;
+constexpr u32 NPAD_UNKNOWN = 16; // TODO(ogniK): What is this?
 
 class Controller_NPad final : public ControllerBase {
 public:
@@ -117,6 +122,9 @@ public:
     void DisconnectAllConnectedControllers();
     void ConnectAllDisconnectedControllers();
     void ClearAllControllers();
+
+    static std::size_t NPadIdToIndex(u32 npad_id);
+    static u32 IndexToNPad(std::size_t index);
 
 private:
     struct CommonHeader {
@@ -304,10 +312,7 @@ private:
     bool IsControllerSupported(NPadControllerType controller) const;
     NPadControllerType DecideBestController(NPadControllerType priority) const;
     void RequestPadStateUpdate(u32 npad_id);
-    std::size_t NPadIdToIndex(u32 npad_id);
-    u32 IndexToNPad(std::size_t index);
     std::array<ControllerPad, 10> npad_pad_states{};
-    NPadControllerType DecideBestController(NPadControllerType priority);
     bool IsControllerSupported(NPadControllerType controller);
 };
 } // namespace Service::HID
