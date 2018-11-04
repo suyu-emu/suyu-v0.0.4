@@ -5,6 +5,7 @@
 #include <QSettings>
 #include "common/file_util.h"
 #include "core/hle/service/acc/profile_manager.h"
+#include "core/hle/service/hid/controllers/npad.h"
 #include "input_common/main.h"
 #include "yuzu/configuration/config.h"
 #include "yuzu/ui_settings.h"
@@ -262,8 +263,11 @@ void Config::ReadPlayerValues() {
         }
     }
 
-    std::stable_partition(Settings::values.players.begin(), Settings::values.players.end(),
-                          [](const auto& player) { return player.connected; });
+    std::stable_partition(
+        Settings::values.players.begin(),
+        Settings::values.players.begin() +
+            Service::HID::Controller_NPad::NPadIdToIndex(Service::HID::NPAD_HANDHELD),
+        [](const auto& player) { return player.connected; });
 }
 
 void Config::ReadDebugValues() {

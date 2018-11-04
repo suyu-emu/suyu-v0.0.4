@@ -30,6 +30,7 @@ class ConfigureInputPlayer : public QDialog {
 
 public:
     explicit ConfigureInputPlayer(QWidget* parent, u8 player_index, bool debug = false);
+    ~ConfigureInputPlayer() override;
 
     /// Save all button configurations to settings file
     void applyConfiguration();

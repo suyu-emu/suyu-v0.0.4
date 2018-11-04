@@ -325,6 +325,8 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, u8 player_index, boo
     ui->buttonHome->setEnabled(false);
 }
 
+ConfigureInputPlayer::~ConfigureInputPlayer() = default;
+
 void ConfigureInputPlayer::applyConfiguration() {
     auto& buttons =
         debug ? Settings::values.debug_pad_buttons : Settings::values.players[player_index].buttons;

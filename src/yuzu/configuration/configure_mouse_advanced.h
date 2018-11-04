@@ -23,6 +23,7 @@ class ConfigureMouseAdvanced : public QDialog {
 
 public:
     explicit ConfigureMouseAdvanced(QWidget* parent);
+    ~ConfigureMouseAdvanced() override;
 
     void applyConfiguration();
 

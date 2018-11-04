@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>473</width>
-    <height>677</height>
+    <height>685</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -46,62 +46,6 @@
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QCheckBox" name="player1_checkbox">
-          <property name="text">
-           <string>Player 1</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="1">
-         <widget class="QCheckBox" name="player7_checkbox">
-          <property name="text">
-           <string>Player 7</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QCheckBox" name="player4_checkbox">
-          <property name="text">
-           <string>Player 4</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="1">
-         <widget class="QCheckBox" name="player5_checkbox">
-          <property name="text">
-           <string>Player 5</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="1">
-         <widget class="QCheckBox" name="player6_checkbox">
-          <property name="text">
-           <string>Player 6</string>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="1">
-         <widget class="QCheckBox" name="player8_checkbox">
-          <property name="text">
-           <string>Player 8</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QCheckBox" name="player3_checkbox">
-          <property name="text">
-           <string>Player 3</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QCheckBox" name="player2_checkbox">
-          <property name="text">
-           <string>Player 2</string>
           </property>
          </widget>
         </item>
@@ -250,13 +194,65 @@
           </property>
          </spacer>
         </item>
-        <item row="0" column="1">
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Enabled</string>
+        <item row="1" column="1">
+         <widget class="QLabel" name="label_3">
+          <property name="minimumSize">
+           <size>
+            <width>55</width>
+            <height>0</height>
+           </size>
           </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
+          <property name="text">
+           <string>Player 1</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Player 2</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Player 3</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>Player 4</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QLabel" name="label_7">
+          <property name="text">
+           <string>Player 5</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QLabel" name="label_8">
+          <property name="text">
+           <string>Player 6</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Player 7</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="1">
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>Player 8</string>
           </property>
          </widget>
         </item>

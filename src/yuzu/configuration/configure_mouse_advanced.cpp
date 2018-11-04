@@ -112,6 +112,8 @@ ConfigureMouseAdvanced::ConfigureMouseAdvanced(QWidget* parent)
     resize(0, 0);
 }
 
+ConfigureMouseAdvanced::~ConfigureMouseAdvanced() = default;
+
 void ConfigureMouseAdvanced::applyConfiguration() {
     std::transform(buttons_param.begin(), buttons_param.end(),
                    Settings::values.mouse_buttons.begin(),

@@ -43,6 +43,8 @@ private:
     template <typename Dialog, typename... Args>
     void CallConfigureDialog(Args&&... args);
 
+    void OnDockedModeChanged(bool last_state, bool new_state);
+
     /// Load configuration settings.
     void loadConfiguration();
     /// Restore all buttons to their default values.
@@ -50,7 +52,6 @@ private:
 
     std::unique_ptr<Ui::ConfigureInput> ui;
 
-    std::array<QCheckBox*, 8> players_enabled;
-    std::array<QComboBox*, 8> player_controller;
-    std::array<QPushButton*, 8> player_configure;
+    std::array<QComboBox*, 8> players_controller;
+    std::array<QPushButton*, 8> players_configure;
 };

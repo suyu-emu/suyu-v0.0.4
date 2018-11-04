@@ -11,7 +11,11 @@
 #include "common/param_package.h"
 #include "configuration/configure_touchscreen_advanced.h"
 #include "core/core.h"
+#include "core/hle/service/am/am.h"
+#include "core/hle/service/am/applet_ae.h"
+#include "core/hle/service/am/applet_oe.h"
 #include "core/hle/service/hid/controllers/npad.h"
+#include "core/hle/service/sm/sm.h"
 #include "input_common/main.h"
 #include "ui_configure_input.h"
 #include "ui_configure_input_player.h"
@@ -26,24 +30,19 @@ ConfigureInput::ConfigureInput(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureInput>()) {
     ui->setupUi(this);
 
-    players_enabled = {
-        ui->player1_checkbox, ui->player2_checkbox, ui->player3_checkbox, ui->player4_checkbox,
-        ui->player5_checkbox, ui->player6_checkbox, ui->player7_checkbox, ui->player8_checkbox,
-    };
-
-    player_controller = {
+    players_controller = {
         ui->player1_combobox, ui->player2_combobox, ui->player3_combobox, ui->player4_combobox,
         ui->player5_combobox, ui->player6_combobox, ui->player7_combobox, ui->player8_combobox,
     };
 
-    player_configure = {
+    players_configure = {
         ui->player1_configure, ui->player2_configure, ui->player3_configure, ui->player4_configure,
         ui->player5_configure, ui->player6_configure, ui->player7_configure, ui->player8_configure,
     };
 
-    for (auto* controller_box : player_controller) {
-        controller_box->addItems(
-            {"Pro Controller", "Dual Joycons", "Single Right Joycon", "Single Left Joycon"});
+    for (auto* controller_box : players_controller) {
+        controller_box->addItems({"None", "Pro Controller", "Dual Joycons", "Single Right Joycon",
+                                  "Single Left Joycon"});
     }
 
     this->loadConfiguration();
@@ -52,8 +51,9 @@ ConfigureInput::ConfigureInput(QWidget* parent)
     connect(ui->restore_defaults_button, &QPushButton::pressed, this,
             &ConfigureInput::restoreDefaults);
 
-    for (auto* enabled : players_enabled)
-        connect(enabled, &QCheckBox::stateChanged, this, &ConfigureInput::updateUIEnabled);
+    for (auto* enabled : players_controller)
+        connect(enabled, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+                &ConfigureInput::updateUIEnabled);
     connect(ui->use_docked_mode, &QCheckBox::stateChanged, this, &ConfigureInput::updateUIEnabled);
     connect(ui->handheld_connected, &QCheckBox::stateChanged, this,
             &ConfigureInput::updateUIEnabled);
@@ -63,8 +63,8 @@ ConfigureInput::ConfigureInput(QWidget* parent)
     connect(ui->touchscreen_enabled, &QCheckBox::stateChanged, this,
             &ConfigureInput::updateUIEnabled);
 
-    for (std::size_t i = 0; i < player_configure.size(); ++i) {
-        connect(player_configure[i], &QPushButton::pressed, this,
+    for (std::size_t i = 0; i < players_configure.size(); ++i) {
+        connect(players_configure[i], &QPushButton::pressed, this,
                 [this, i]() { CallConfigureDialog<ConfigureInputPlayer>(i, false); });
     }
 
@@ -79,8 +79,6 @@ ConfigureInput::ConfigureInput(QWidget* parent)
 
     connect(ui->touchscreen_advanced, &QPushButton::pressed, this,
             [this]() { CallConfigureDialog<ConfigureTouchscreenAdvanced>(); });
-
-    ui->use_docked_mode->setEnabled(!Core::System::GetInstance().IsPoweredOn());
 }
 
 template <typename Dialog, typename... Args>
@@ -94,14 +92,50 @@ void ConfigureInput::CallConfigureDialog(Args&&... args) {
     }
 }
 
-void ConfigureInput::applyConfiguration() {
-    for (std::size_t i = 0; i < players_enabled.size(); ++i) {
-        Settings::values.players[i].connected = players_enabled[i]->isChecked();
-        Settings::values.players[i].type =
-            static_cast<Settings::ControllerType>(player_controller[i]->currentIndex());
+void ConfigureInput::OnDockedModeChanged(bool last_state, bool new_state) {
+    if (last_state == new_state) {
+        return;
     }
 
+    Core::System& system{Core::System::GetInstance()};
+    if (!system.IsPoweredOn()) {
+        return;
+    }
+    Service::SM::ServiceManager& sm = system.ServiceManager();
+
+    // Message queue is shared between these services, we just need to signal an operation
+    // change to one and it will handle both automatically
+    auto applet_oe = sm.GetService<Service::AM::AppletOE>("appletOE");
+    auto applet_ae = sm.GetService<Service::AM::AppletAE>("appletAE");
+    bool has_signalled = false;
+
+    if (applet_oe != nullptr) {
+        applet_oe->GetMessageQueue()->OperationModeChanged();
+        has_signalled = true;
+    }
+
+    if (applet_ae != nullptr && !has_signalled) {
+        applet_ae->GetMessageQueue()->OperationModeChanged();
+    }
+}
+
+void ConfigureInput::applyConfiguration() {
+    for (std::size_t i = 0; i < players_controller.size(); ++i) {
+        const auto controller_type_index = players_controller[i]->currentIndex();
+
+        Settings::values.players[i].connected = controller_type_index != 0;
+
+        if (controller_type_index > 0) {
+            Settings::values.players[i].type =
+                static_cast<Settings::ControllerType>(controller_type_index - 1);
+        } else {
+            Settings::values.players[i].type = Settings::ControllerType::DualJoycon;
+        }
+    }
+
+    const bool pre_docked_mode = Settings::values.use_docked_mode;
     Settings::values.use_docked_mode = ui->use_docked_mode->isChecked();
+    OnDockedModeChanged(pre_docked_mode, Settings::values.use_docked_mode);
     Settings::values
         .players[Service::HID::Controller_NPad::NPadIdToIndex(Service::HID::NPAD_HANDHELD)]
         .connected = ui->handheld_connected->isChecked();
@@ -112,18 +146,15 @@ void ConfigureInput::applyConfiguration() {
 }
 
 void ConfigureInput::updateUIEnabled() {
-    for (std::size_t i = 0; i < players_enabled.size(); ++i) {
-        const auto enabled = players_enabled[i]->checkState() == Qt::Checked;
-
-        player_controller[i]->setEnabled(enabled);
-        player_configure[i]->setEnabled(enabled);
+    bool hit_disabled = false;
+    for (auto* player : players_controller) {
+        player->setDisabled(hit_disabled);
+        if (!hit_disabled && player->currentIndex() == 0)
+            hit_disabled = true;
     }
 
-    bool hit_disabled = false;
-    for (auto* player : players_enabled) {
-        player->setDisabled(hit_disabled);
-        if (!player->isChecked())
-            hit_disabled = true;
+    for (std::size_t i = 0; i < players_controller.size(); ++i) {
+        players_configure[i]->setEnabled(players_controller[i]->currentIndex() != 0);
     }
 
     ui->handheld_connected->setEnabled(!ui->use_docked_mode->isChecked());
@@ -135,12 +166,16 @@ void ConfigureInput::updateUIEnabled() {
 }
 
 void ConfigureInput::loadConfiguration() {
-    std::stable_partition(Settings::values.players.begin(), Settings::values.players.end(),
-                          [](const auto& player) { return player.connected; });
+    std::stable_partition(
+        Settings::values.players.begin(),
+        Settings::values.players.begin() +
+            Service::HID::Controller_NPad::NPadIdToIndex(Service::HID::NPAD_HANDHELD),
+        [](const auto& player) { return player.connected; });
 
-    for (std::size_t i = 0; i < players_enabled.size(); ++i) {
-        players_enabled[i]->setChecked(Settings::values.players[i].connected);
-        player_controller[i]->setCurrentIndex(static_cast<u8>(Settings::values.players[i].type));
+    for (std::size_t i = 0; i < players_controller.size(); ++i) {
+        const auto connected = Settings::values.players[i].connected;
+        players_controller[i]->setCurrentIndex(
+            connected ? static_cast<u8>(Settings::values.players[i].type) + 1 : 0);
     }
 
     ui->use_docked_mode->setChecked(Settings::values.use_docked_mode);
@@ -157,12 +192,10 @@ void ConfigureInput::loadConfiguration() {
 }
 
 void ConfigureInput::restoreDefaults() {
-    players_enabled[0]->setCheckState(Qt::Checked);
-    player_controller[0]->setCurrentIndex(1);
+    players_controller[0]->setCurrentIndex(2);
 
-    for (std::size_t i = 1; i < players_enabled.size(); ++i) {
-        players_enabled[i]->setCheckState(Qt::Unchecked);
-        player_controller[i]->setCurrentIndex(0);
+    for (std::size_t i = 1; i < players_controller.size(); ++i) {
+        players_controller[i]->setCurrentIndex(0);
     }
 
     ui->use_docked_mode->setCheckState(Qt::Unchecked);
