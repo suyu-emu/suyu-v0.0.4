@@ -58,9 +58,9 @@ public:
         /// Rotate source image 90 degrees clockwise
         Rotate90 = 0x04,
         /// Rotate source image 180 degrees
-        Roate180 = 0x03,
+        Rotate180 = 0x03,
         /// Rotate source image 270 degrees clockwise
-        Roate270 = 0x07,
+        Rotate270 = 0x07,
     };
 
     struct Buffer {
