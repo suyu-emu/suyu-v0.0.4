@@ -1532,7 +1532,7 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
                    "derivation. It will be attempted but may not complete.<br><br>") +
                     errors +
                     tr("<br><br>You can get all of these and dump all of your games easily by "
-                       "following <a href='https://yuzu-emu.org/help/quickstart/quickstart/'>the "
+                       "following <a href='https://yuzu-emu.org/help/quickstart/'>the "
                        "quickstart guide</a>. Alternatively, you can use another method of dumping "
                        "to obtain all of your keys."));
         }
