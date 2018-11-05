@@ -462,6 +462,16 @@ public:
             }
         };
 
+        struct ColorMask {
+            union {
+                u32 raw;
+                BitField<0, 4, u32> R;
+                BitField<4, 4, u32> G;
+                BitField<8, 4, u32> B;
+                BitField<12, 4, u32> A;
+            };
+        };
+
         bool IsShaderConfigEnabled(std::size_t index) const {
             // The VertexB is always enabled.
             if (index == static_cast<std::size_t>(Regs::ShaderProgram::VertexB)) {
@@ -571,7 +581,11 @@ public:
                 u32 stencil_back_mask;
                 u32 stencil_back_func_mask;
 
-                INSERT_PADDING_WORDS(0x13);
+                INSERT_PADDING_WORDS(0xC);
+
+                u32 color_mask_common;
+
+                INSERT_PADDING_WORDS(0x6);
 
                 u32 rt_separate_frag_data;
 
@@ -847,8 +861,9 @@ public:
                     BitField<6, 4, u32> RT;
                     BitField<10, 11, u32> layer;
                 } clear_buffers;
-
-                INSERT_PADDING_WORDS(0x4B);
+                INSERT_PADDING_WORDS(0xB);
+                std::array<ColorMask, NumRenderTargets> color_mask;
+                INSERT_PADDING_WORDS(0x38);
 
                 struct {
                     u32 query_address_high;
@@ -1081,6 +1096,7 @@ ASSERT_REG_POSITION(scissor_test, 0x380);
 ASSERT_REG_POSITION(stencil_back_func_ref, 0x3D5);
 ASSERT_REG_POSITION(stencil_back_mask, 0x3D6);
 ASSERT_REG_POSITION(stencil_back_func_mask, 0x3D7);
+ASSERT_REG_POSITION(color_mask_common, 0x3E4);
 ASSERT_REG_POSITION(rt_separate_frag_data, 0x3EB);
 ASSERT_REG_POSITION(zeta, 0x3F8);
 ASSERT_REG_POSITION(vertex_attrib_format, 0x458);
@@ -1127,6 +1143,7 @@ ASSERT_REG_POSITION(instanced_arrays, 0x620);
 ASSERT_REG_POSITION(cull, 0x646);
 ASSERT_REG_POSITION(logic_op, 0x671);
 ASSERT_REG_POSITION(clear_buffers, 0x674);
+ASSERT_REG_POSITION(color_mask, 0x680);
 ASSERT_REG_POSITION(query, 0x6C0);
 ASSERT_REG_POSITION(vertex_array[0], 0x700);
 ASSERT_REG_POSITION(independent_blend, 0x780);

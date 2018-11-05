@@ -25,12 +25,12 @@ OpenGLState::OpenGLState() {
 
     primitive_restart.enabled = false;
     primitive_restart.index = 0;
-
-    color_mask.red_enabled = GL_TRUE;
-    color_mask.green_enabled = GL_TRUE;
-    color_mask.blue_enabled = GL_TRUE;
-    color_mask.alpha_enabled = GL_TRUE;
-
+    for (auto& item : color_mask) {
+        item.red_enabled = GL_TRUE;
+        item.green_enabled = GL_TRUE;
+        item.blue_enabled = GL_TRUE;
+        item.alpha_enabled = GL_TRUE;
+    }
     stencil.test_enabled = false;
     auto reset_stencil = [](auto& config) {
         config.test_func = GL_ALWAYS;
@@ -131,6 +131,32 @@ void OpenGLState::ApplyCulling() const {
 
         if (cull_changed || cull.front_face != cur_state.cull.front_face) {
             glFrontFace(cull.front_face);
+        }
+    }
+}
+
+void OpenGLState::ApplyColorMask() const {
+    if (GLAD_GL_ARB_viewport_array) {
+        for (size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
+            const auto& updated = color_mask[i];
+            const auto& current = cur_state.color_mask[i];
+            if (updated.red_enabled != current.red_enabled ||
+                updated.green_enabled != current.green_enabled ||
+                updated.blue_enabled != current.blue_enabled ||
+                updated.alpha_enabled != current.alpha_enabled) {
+                glColorMaski(static_cast<GLuint>(i), updated.red_enabled, updated.green_enabled,
+                             updated.blue_enabled, updated.alpha_enabled);
+            }
+        }
+    } else {
+        const auto& updated = color_mask[0];
+        const auto& current = cur_state.color_mask[0];
+        if (updated.red_enabled != current.red_enabled ||
+            updated.green_enabled != current.green_enabled ||
+            updated.blue_enabled != current.blue_enabled ||
+            updated.alpha_enabled != current.alpha_enabled) {
+            glColorMask(updated.red_enabled, updated.green_enabled, updated.blue_enabled,
+                        updated.alpha_enabled);
         }
     }
 }
@@ -444,18 +470,11 @@ void OpenGLState::Apply() const {
             }
         }
     }
-    // Color mask
-    if (color_mask.red_enabled != cur_state.color_mask.red_enabled ||
-        color_mask.green_enabled != cur_state.color_mask.green_enabled ||
-        color_mask.blue_enabled != cur_state.color_mask.blue_enabled ||
-        color_mask.alpha_enabled != cur_state.color_mask.alpha_enabled) {
-        glColorMask(color_mask.red_enabled, color_mask.green_enabled, color_mask.blue_enabled,
-                    color_mask.alpha_enabled);
-    }
     // Point
     if (point.size != cur_state.point.size) {
         glPointSize(point.size);
     }
+    ApplyColorMask();
     ApplyViewport();
     ApplyScissor();
     ApplyStencilTest();

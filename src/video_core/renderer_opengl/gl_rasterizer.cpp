@@ -511,10 +511,10 @@ void RasterizerOpenGL::Clear() {
 
     OpenGLState clear_state;
     clear_state.draw.draw_framebuffer = framebuffer.handle;
-    clear_state.color_mask.red_enabled = regs.clear_buffers.R ? GL_TRUE : GL_FALSE;
-    clear_state.color_mask.green_enabled = regs.clear_buffers.G ? GL_TRUE : GL_FALSE;
-    clear_state.color_mask.blue_enabled = regs.clear_buffers.B ? GL_TRUE : GL_FALSE;
-    clear_state.color_mask.alpha_enabled = regs.clear_buffers.A ? GL_TRUE : GL_FALSE;
+    clear_state.color_mask[0].red_enabled = regs.clear_buffers.R ? GL_TRUE : GL_FALSE;
+    clear_state.color_mask[0].green_enabled = regs.clear_buffers.G ? GL_TRUE : GL_FALSE;
+    clear_state.color_mask[0].blue_enabled = regs.clear_buffers.B ? GL_TRUE : GL_FALSE;
+    clear_state.color_mask[0].alpha_enabled = regs.clear_buffers.A ? GL_TRUE : GL_FALSE;
 
     if (regs.clear_buffers.R || regs.clear_buffers.G || regs.clear_buffers.B ||
         regs.clear_buffers.A) {
@@ -573,7 +573,7 @@ void RasterizerOpenGL::DrawArrays() {
     ScopeAcquireGLContext acquire_context{emu_window};
 
     ConfigureFramebuffers();
-
+    SyncColorMask();
     SyncDepthTestState();
     SyncStencilTestState();
     SyncBlendState();
@@ -989,6 +989,18 @@ void RasterizerOpenGL::SyncStencilTestState() {
     state.stencil.back.write_mask = regs.stencil_back_mask;
 }
 
+void RasterizerOpenGL::SyncColorMask() {
+    const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
+    for (size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
+        const auto& source = regs.color_mask[regs.color_mask_common ? 0 : i];
+        auto& dest = state.color_mask[i];
+        dest.red_enabled = (source.R == 0) ? GL_FALSE : GL_TRUE;
+        dest.green_enabled = (source.G == 0) ? GL_FALSE : GL_TRUE;
+        dest.blue_enabled = (source.B == 0) ? GL_FALSE : GL_TRUE;
+        dest.alpha_enabled = (source.A == 0) ? GL_FALSE : GL_TRUE;
+    }
+}
+
 void RasterizerOpenGL::SyncBlendState() {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
@@ -1000,6 +1012,7 @@ void RasterizerOpenGL::SyncBlendState() {
     state.independant_blend.enabled = regs.independent_blend_enable;
     if (!state.independant_blend.enabled) {
         auto& blend = state.blend[0];
+        blend.enabled = regs.blend.enable[0] != 0;
         blend.separate_alpha = regs.blend.separate_alpha;
         blend.rgb_equation = MaxwellToGL::BlendEquation(regs.blend.equation_rgb);
         blend.src_rgb_func = MaxwellToGL::BlendFunc(regs.blend.factor_source_rgb);

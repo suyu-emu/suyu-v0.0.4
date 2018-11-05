@@ -56,13 +56,14 @@ public:
         GLuint index;
     } primitive_restart; // GL_PRIMITIVE_RESTART
 
-    struct {
+    struct ColorMask {
         GLboolean red_enabled;
         GLboolean green_enabled;
         GLboolean blue_enabled;
         GLboolean alpha_enabled;
-    } color_mask; // GL_COLOR_WRITEMASK
-
+    };
+    std::array<ColorMask, Tegra::Engines::Maxwell3D::Regs::NumRenderTargets>
+        color_mask; // GL_COLOR_WRITEMASK
     struct {
         bool test_enabled; // GL_STENCIL_TEST
         struct {
@@ -198,6 +199,7 @@ private:
     static bool s_rgb_used;
     void ApplySRgb() const;
     void ApplyCulling() const;
+    void ApplyColorMask() const;
     void ApplyDepth() const;
     void ApplyPrimitiveRestart() const;
     void ApplyStencilTest() const;
