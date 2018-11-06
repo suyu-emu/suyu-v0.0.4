@@ -142,6 +142,9 @@ static void InitializeLogging() {
     const std::string& log_dir = FileUtil::GetUserPath(FileUtil::UserPath::LogDir);
     FileUtil::CreateFullPath(log_dir);
     Log::AddBackend(std::make_unique<Log::FileBackend>(log_dir + LOG_FILE));
+#ifdef _WIN32
+    Log::AddBackend(std::make_unique<Log::DebuggerBackend>());
+#endif
 }
 
 GMainWindow::GMainWindow()
@@ -454,6 +457,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Fullscreen, &QAction::triggered, this, &GMainWindow::ToggleFullscreen);
 
     // Help
+    connect(ui.action_Open_yuzu_Folder, &QAction::triggered, this, &GMainWindow::OnOpenYuzuFolder);
     connect(ui.action_Rederive, &QAction::triggered, this,
             std::bind(&GMainWindow::OnReinitializeKeys, this, ReinitializeKeyBehavior::Warning));
     connect(ui.action_About, &QAction::triggered, this, &GMainWindow::OnAbout);
@@ -1374,6 +1378,11 @@ void GMainWindow::OnLoadAmiibo() {
     }
 }
 
+void GMainWindow::OnOpenYuzuFolder() {
+    QDesktopServices::openUrl(QUrl::fromLocalFile(
+        QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::UserDir))));
+}
+
 void GMainWindow::OnAbout() {
     AboutDialog aboutDialog(this);
     aboutDialog.exec();
@@ -1532,7 +1541,7 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
                    "derivation. It will be attempted but may not complete.<br><br>") +
                     errors +
                     tr("<br><br>You can get all of these and dump all of your games easily by "
-                       "following <a href='https://yuzu-emu.org/help/quickstart/quickstart/'>the "
+                       "following <a href='https://yuzu-emu.org/help/quickstart/'>the "
                        "quickstart guide</a>. Alternatively, you can use another method of dumping "
                        "to obtain all of your keys."));
         }

@@ -167,6 +167,7 @@ private slots:
     void OnMenuRecentFile();
     void OnConfigure();
     void OnLoadAmiibo();
+    void OnOpenYuzuFolder();
     void OnAbout();
     void OnToggleFilterBar();
     void OnDisplayTitleBars(bool);

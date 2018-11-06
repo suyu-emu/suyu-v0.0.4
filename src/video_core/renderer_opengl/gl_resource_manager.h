@@ -8,7 +8,6 @@
 #include <glad/glad.h>
 #include "common/common_types.h"
 #include "video_core/renderer_opengl/gl_shader_util.h"
-#include "video_core/renderer_opengl/gl_state.h"
 
 namespace OpenGL {
 
@@ -29,20 +28,10 @@ public:
     }
 
     /// Creates a new internal OpenGL resource and stores the handle
-    void Create() {
-        if (handle != 0)
-            return;
-        glGenTextures(1, &handle);
-    }
+    void Create();
 
     /// Deletes the internal OpenGL resource
-    void Release() {
-        if (handle == 0)
-            return;
-        glDeleteTextures(1, &handle);
-        OpenGLState::GetCurState().UnbindTexture(handle).Apply();
-        handle = 0;
-    }
+    void Release();
 
     GLuint handle = 0;
 };
@@ -64,20 +53,10 @@ public:
     }
 
     /// Creates a new internal OpenGL resource and stores the handle
-    void Create() {
-        if (handle != 0)
-            return;
-        glGenSamplers(1, &handle);
-    }
+    void Create();
 
     /// Deletes the internal OpenGL resource
-    void Release() {
-        if (handle == 0)
-            return;
-        glDeleteSamplers(1, &handle);
-        OpenGLState::GetCurState().ResetSampler(handle).Apply();
-        handle = 0;
-    }
+    void Release();
 
     GLuint handle = 0;
 };
@@ -98,20 +77,9 @@ public:
         return *this;
     }
 
-    void Create(const char* source, GLenum type) {
-        if (handle != 0)
-            return;
-        if (source == nullptr)
-            return;
-        handle = GLShader::LoadShader(source, type);
-    }
+    void Create(const char* source, GLenum type);
 
-    void Release() {
-        if (handle == 0)
-            return;
-        glDeleteShader(handle);
-        handle = 0;
-    }
+    void Release();
 
     GLuint handle = 0;
 };
@@ -141,25 +109,10 @@ public:
 
     /// Creates a new internal OpenGL resource and stores the handle
     void CreateFromSource(const char* vert_shader, const char* geo_shader, const char* frag_shader,
-                          bool separable_program = false) {
-        OGLShader vert, geo, frag;
-        if (vert_shader)
-            vert.Create(vert_shader, GL_VERTEX_SHADER);
-        if (geo_shader)
-            geo.Create(geo_shader, GL_GEOMETRY_SHADER);
-        if (frag_shader)
-            frag.Create(frag_shader, GL_FRAGMENT_SHADER);
-        Create(separable_program, vert.handle, geo.handle, frag.handle);
-    }
+                          bool separable_program = false);
 
     /// Deletes the internal OpenGL resource
-    void Release() {
-        if (handle == 0)
-            return;
-        glDeleteProgram(handle);
-        OpenGLState::GetCurState().ResetProgram(handle).Apply();
-        handle = 0;
-    }
+    void Release();
 
     GLuint handle = 0;
 };
@@ -178,20 +131,10 @@ public:
     }
 
     /// Creates a new internal OpenGL resource and stores the handle
-    void Create() {
-        if (handle != 0)
-            return;
-        glGenProgramPipelines(1, &handle);
-    }
+    void Create();
 
     /// Deletes the internal OpenGL resource
-    void Release() {
-        if (handle == 0)
-            return;
-        glDeleteProgramPipelines(1, &handle);
-        OpenGLState::GetCurState().ResetPipeline(handle).Apply();
-        handle = 0;
-    }
+    void Release();
 
     GLuint handle = 0;
 };
@@ -213,20 +156,10 @@ public:
     }
 
     /// Creates a new internal OpenGL resource and stores the handle
-    void Create() {
-        if (handle != 0)
-            return;
-        glGenBuffers(1, &handle);
-    }
+    void Create();
 
     /// Deletes the internal OpenGL resource
-    void Release() {
-        if (handle == 0)
-            return;
-        glDeleteBuffers(1, &handle);
-        OpenGLState::GetCurState().ResetBuffer(handle).Apply();
-        handle = 0;
-    }
+    void Release();
 
     GLuint handle = 0;
 };
@@ -247,19 +180,10 @@ public:
     }
 
     /// Creates a new internal OpenGL resource and stores the handle
-    void Create() {
-        if (handle != 0)
-            return;
-        handle = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-    }
+    void Create();
 
     /// Deletes the internal OpenGL resource
-    void Release() {
-        if (handle == 0)
-            return;
-        glDeleteSync(handle);
-        handle = 0;
-    }
+    void Release();
 
     GLsync handle = 0;
 };
@@ -281,20 +205,10 @@ public:
     }
 
     /// Creates a new internal OpenGL resource and stores the handle
-    void Create() {
-        if (handle != 0)
-            return;
-        glGenVertexArrays(1, &handle);
-    }
+    void Create();
 
     /// Deletes the internal OpenGL resource
-    void Release() {
-        if (handle == 0)
-            return;
-        glDeleteVertexArrays(1, &handle);
-        OpenGLState::GetCurState().ResetVertexArray(handle).Apply();
-        handle = 0;
-    }
+    void Release();
 
     GLuint handle = 0;
 };
@@ -316,20 +230,10 @@ public:
     }
 
     /// Creates a new internal OpenGL resource and stores the handle
-    void Create() {
-        if (handle != 0)
-            return;
-        glGenFramebuffers(1, &handle);
-    }
+    void Create();
 
     /// Deletes the internal OpenGL resource
-    void Release() {
-        if (handle == 0)
-            return;
-        glDeleteFramebuffers(1, &handle);
-        OpenGLState::GetCurState().ResetFramebuffer(handle).Apply();
-        handle = 0;
-    }
+    void Release();
 
     GLuint handle = 0;
 };

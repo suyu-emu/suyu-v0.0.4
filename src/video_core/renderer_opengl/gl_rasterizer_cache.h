@@ -49,6 +49,8 @@ struct SurfaceParams {
             return "Texture2DArray";
         case SurfaceTarget::TextureCubemap:
             return "TextureCubemap";
+        case SurfaceTarget::TextureCubeArray:
+            return "TextureCubeArray";
         default:
             LOG_CRITICAL(HW_GPU, "Unimplemented surface_target={}", static_cast<u32>(target));
             UNREACHABLE();
@@ -139,7 +141,7 @@ struct SurfaceParams {
     }
 
     u32 MipDepth(u32 mip_level) const {
-        return std::max(1U, depth >> mip_level);
+        return is_layered ? depth : std::max(1U, depth >> mip_level);
     }
 
     // Auto block resizing algorithm from:
