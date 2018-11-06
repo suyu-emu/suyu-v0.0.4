@@ -124,9 +124,14 @@ RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window, ScreenInfo
 RasterizerOpenGL::~RasterizerOpenGL() {}
 
 void RasterizerOpenGL::SetupVertexFormat() {
-    MICROPROFILE_SCOPE(OpenGL_VAO);
-    const auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
+    auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
     const auto& regs = gpu.regs;
+
+    if (!gpu.dirty_flags.vertex_attrib_format)
+        return;
+    gpu.dirty_flags.vertex_attrib_format = false;
+
+    MICROPROFILE_SCOPE(OpenGL_VAO);
 
     auto [iter, is_cache_miss] = vertex_array_cache.try_emplace(regs.vertex_attrib_format);
     auto& VAO = iter->second;
