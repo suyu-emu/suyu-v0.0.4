@@ -16,6 +16,7 @@
 #include "core/settings.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_opengl/gl_rasterizer_cache.h"
+#include "video_core/renderer_opengl/gl_state.h"
 #include "video_core/renderer_opengl/utils.h"
 #include "video_core/surface.h"
 #include "video_core/textures/astc.h"

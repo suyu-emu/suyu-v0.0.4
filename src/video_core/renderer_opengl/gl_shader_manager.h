@@ -7,6 +7,7 @@
 #include <glad/glad.h>
 
 #include "video_core/renderer_opengl/gl_resource_manager.h"
+#include "video_core/renderer_opengl/gl_state.h"
 #include "video_core/renderer_opengl/maxwell_to_gl.h"
 
 namespace OpenGL::GLShader {
