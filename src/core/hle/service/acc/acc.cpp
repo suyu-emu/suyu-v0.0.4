@@ -244,7 +244,7 @@ void Module::Interface::GetBaasAccountManagerForApplication(Kernel::HLERequestCo
 
 void Module::Interface::TrySelectUserWithoutInteraction(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_ACC, "called");
-    // A u8 is passed into this function which we can safely ignore. It's to determain if we have
+    // A u8 is passed into this function which we can safely ignore. It's to determine if we have
     // access to use the network or not by the looks of it
     IPC::ResponseBuilder rb{ctx, 6};
     if (profile_manager->GetUserCount() != 1) {
