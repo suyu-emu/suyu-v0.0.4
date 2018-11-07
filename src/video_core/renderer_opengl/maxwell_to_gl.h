@@ -159,10 +159,9 @@ inline GLenum TextureFilterMode(Tegra::Texture::TextureFilter filter_mode,
         }
     }
     }
-    LOG_CRITICAL(Render_OpenGL, "Unimplemented texture filter mode={}",
+    LOG_ERROR(Render_OpenGL, "Unimplemented texture filter mode={}",
                  static_cast<u32>(filter_mode));
-    UNREACHABLE();
-    return {};
+    return GL_LINEAR;
 }
 
 inline GLenum WrapMode(Tegra::Texture::WrapMode wrap_mode) {
@@ -183,9 +182,8 @@ inline GLenum WrapMode(Tegra::Texture::WrapMode wrap_mode) {
     case Tegra::Texture::WrapMode::MirrorOnceClampToEdge:
         return GL_MIRROR_CLAMP_TO_EDGE;
     }
-    LOG_CRITICAL(Render_OpenGL, "Unimplemented texture wrap mode={}", static_cast<u32>(wrap_mode));
-    UNREACHABLE();
-    return {};
+    LOG_ERROR(Render_OpenGL, "Unimplemented texture wrap mode={}", static_cast<u32>(wrap_mode));
+    return GL_REPEAT;
 }
 
 inline GLenum DepthCompareFunc(Tegra::Texture::DepthCompareFunc func) {
@@ -207,10 +205,9 @@ inline GLenum DepthCompareFunc(Tegra::Texture::DepthCompareFunc func) {
     case Tegra::Texture::DepthCompareFunc::Always:
         return GL_ALWAYS;
     }
-    LOG_CRITICAL(Render_OpenGL, "Unimplemented texture depth compare function ={}",
+    LOG_ERROR(Render_OpenGL, "Unimplemented texture depth compare function ={}",
                  static_cast<u32>(func));
-    UNREACHABLE();
-    return {};
+    return GL_GREATER;
 }
 
 inline GLenum BlendEquation(Maxwell::Blend::Equation equation) {
@@ -226,9 +223,8 @@ inline GLenum BlendEquation(Maxwell::Blend::Equation equation) {
     case Maxwell::Blend::Equation::Max:
         return GL_MAX;
     }
-    LOG_CRITICAL(Render_OpenGL, "Unimplemented blend equation={}", static_cast<u32>(equation));
-    UNREACHABLE();
-    return {};
+    LOG_ERROR(Render_OpenGL, "Unimplemented blend equation={}", static_cast<u32>(equation));
+    return GL_FUNC_ADD;
 }
 
 inline GLenum BlendFunc(Maxwell::Blend::Factor factor) {
@@ -291,9 +287,8 @@ inline GLenum BlendFunc(Maxwell::Blend::Factor factor) {
     case Maxwell::Blend::Factor::OneMinusConstantAlphaGL:
         return GL_ONE_MINUS_CONSTANT_ALPHA;
     }
-    LOG_CRITICAL(Render_OpenGL, "Unimplemented blend factor={}", static_cast<u32>(factor));
-    UNREACHABLE();
-    return {};
+    LOG_ERROR(Render_OpenGL, "Unimplemented blend factor={}", static_cast<u32>(factor));
+    return GL_ZERO;
 }
 
 inline GLenum SwizzleSource(Tegra::Texture::SwizzleSource source) {
@@ -312,9 +307,8 @@ inline GLenum SwizzleSource(Tegra::Texture::SwizzleSource source) {
     case Tegra::Texture::SwizzleSource::OneFloat:
         return GL_ONE;
     }
-    LOG_CRITICAL(Render_OpenGL, "Unimplemented swizzle source={}", static_cast<u32>(source));
-    UNREACHABLE();
-    return {};
+    LOG_ERROR(Render_OpenGL, "Unimplemented swizzle source={}", static_cast<u32>(source));
+    return GL_ZERO;
 }
 
 inline GLenum ComparisonOp(Maxwell::ComparisonOp comparison) {
@@ -344,33 +338,39 @@ inline GLenum ComparisonOp(Maxwell::ComparisonOp comparison) {
     case Maxwell::ComparisonOp::AlwaysOld:
         return GL_ALWAYS;
     }
-    LOG_CRITICAL(Render_OpenGL, "Unimplemented comparison op={}", static_cast<u32>(comparison));
-    UNREACHABLE();
-    return {};
+    LOG_ERROR(Render_OpenGL, "Unimplemented comparison op={}", static_cast<u32>(comparison));
+    return GL_ALWAYS;
 }
 
 inline GLenum StencilOp(Maxwell::StencilOp stencil) {
     switch (stencil) {
     case Maxwell::StencilOp::Keep:
+    case Maxwell::StencilOp::KeepOGL:
         return GL_KEEP;
     case Maxwell::StencilOp::Zero:
+    case Maxwell::StencilOp::ZeroOGL:
         return GL_ZERO;
     case Maxwell::StencilOp::Replace:
+    case Maxwell::StencilOp::ReplaceOGL:
         return GL_REPLACE;
     case Maxwell::StencilOp::Incr:
+    case Maxwell::StencilOp::IncrOGL:
         return GL_INCR;
     case Maxwell::StencilOp::Decr:
+    case Maxwell::StencilOp::DecrOGL:
         return GL_DECR;
     case Maxwell::StencilOp::Invert:
+    case Maxwell::StencilOp::InvertOGL:
         return GL_INVERT;
     case Maxwell::StencilOp::IncrWrap:
+    case Maxwell::StencilOp::IncrWrapOGL:
         return GL_INCR_WRAP;
     case Maxwell::StencilOp::DecrWrap:
+    case Maxwell::StencilOp::DecrWrapOGL:
         return GL_DECR_WRAP;
     }
-    LOG_CRITICAL(Render_OpenGL, "Unimplemented stencil op={}", static_cast<u32>(stencil));
-    UNREACHABLE();
-    return {};
+    LOG_ERROR(Render_OpenGL, "Unimplemented stencil op={}", static_cast<u32>(stencil));
+    return GL_KEEP;
 }
 
 inline GLenum FrontFace(Maxwell::Cull::FrontFace front_face) {
@@ -380,9 +380,8 @@ inline GLenum FrontFace(Maxwell::Cull::FrontFace front_face) {
     case Maxwell::Cull::FrontFace::CounterClockWise:
         return GL_CCW;
     }
-    LOG_CRITICAL(Render_OpenGL, "Unimplemented front face cull={}", static_cast<u32>(front_face));
-    UNREACHABLE();
-    return {};
+    LOG_ERROR(Render_OpenGL, "Unimplemented front face cull={}", static_cast<u32>(front_face));
+    return GL_CCW;
 }
 
 inline GLenum CullFace(Maxwell::Cull::CullFace cull_face) {
@@ -394,9 +393,8 @@ inline GLenum CullFace(Maxwell::Cull::CullFace cull_face) {
     case Maxwell::Cull::CullFace::FrontAndBack:
         return GL_FRONT_AND_BACK;
     }
-    LOG_CRITICAL(Render_OpenGL, "Unimplemented cull face={}", static_cast<u32>(cull_face));
-    UNREACHABLE();
-    return {};
+    LOG_ERROR(Render_OpenGL, "Unimplemented cull face={}", static_cast<u32>(cull_face));
+    return GL_BACK;
 }
 
 inline GLenum LogicOp(Maxwell::LogicOperation operation) {
@@ -434,9 +432,8 @@ inline GLenum LogicOp(Maxwell::LogicOperation operation) {
     case Maxwell::LogicOperation::Set:
         return GL_SET;
     }
-    LOG_CRITICAL(Render_OpenGL, "Unimplemented logic operation={}", static_cast<u32>(operation));
-    UNREACHABLE();
-    return {};
+    LOG_ERROR(Render_OpenGL, "Unimplemented logic operation={}", static_cast<u32>(operation));
+    return GL_COPY;
 }
 
 } // namespace MaxwellToGL

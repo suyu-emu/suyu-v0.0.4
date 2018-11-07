@@ -996,9 +996,6 @@ void RasterizerOpenGL::SyncStencilTestState() {
         return;
     }
 
-    // TODO(bunnei): Verify behavior when this is not set
-    ASSERT(regs.stencil_two_side_enable);
-
     state.stencil.front.test_func = MaxwellToGL::ComparisonOp(regs.stencil_front_func_func);
     state.stencil.front.test_ref = regs.stencil_front_func_ref;
     state.stencil.front.test_mask = regs.stencil_front_func_mask;
@@ -1006,7 +1003,7 @@ void RasterizerOpenGL::SyncStencilTestState() {
     state.stencil.front.action_depth_fail = MaxwellToGL::StencilOp(regs.stencil_front_op_zfail);
     state.stencil.front.action_depth_pass = MaxwellToGL::StencilOp(regs.stencil_front_op_zpass);
     state.stencil.front.write_mask = regs.stencil_front_mask;
-
+    if (regs.stencil_two_side_enable) {
         state.stencil.back.test_func = MaxwellToGL::ComparisonOp(regs.stencil_back_func_func);
         state.stencil.back.test_ref = regs.stencil_back_func_ref;
         state.stencil.back.test_mask = regs.stencil_back_func_mask;
@@ -1014,6 +1011,15 @@ void RasterizerOpenGL::SyncStencilTestState() {
         state.stencil.back.action_depth_fail = MaxwellToGL::StencilOp(regs.stencil_back_op_zfail);
         state.stencil.back.action_depth_pass = MaxwellToGL::StencilOp(regs.stencil_back_op_zpass);
         state.stencil.back.write_mask = regs.stencil_back_mask;
+    } else {
+        state.stencil.back.test_func = GL_ALWAYS;
+        state.stencil.back.test_ref = 0;
+        state.stencil.back.test_mask = 0xFFFFFFFF;
+        state.stencil.back.write_mask = 0xFFFFFFFF;
+        state.stencil.back.action_stencil_fail = GL_KEEP;
+        state.stencil.back.action_depth_fail = GL_KEEP;
+        state.stencil.back.action_depth_pass = GL_KEEP;
+    }
 }
 
 void RasterizerOpenGL::SyncColorMask() {
