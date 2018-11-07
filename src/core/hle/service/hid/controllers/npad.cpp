@@ -392,8 +392,10 @@ std::size_t Controller_NPad::GetSupportedNPadIdTypesSize() const {
 }
 
 void Controller_NPad::SetHoldType(NpadHoldType joy_hold_type) {
+    styleset_changed_event->Signal();
     hold_type = joy_hold_type;
 }
+
 Controller_NPad::NpadHoldType Controller_NPad::GetHoldType() const {
     return hold_type;
 }
