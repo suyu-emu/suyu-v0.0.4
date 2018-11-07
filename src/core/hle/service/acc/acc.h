@@ -27,6 +27,7 @@ public:
         void InitializeApplicationInfo(Kernel::HLERequestContext& ctx);
         void GetBaasAccountManagerForApplication(Kernel::HLERequestContext& ctx);
         void IsUserRegistrationRequestPermitted(Kernel::HLERequestContext& ctx);
+        void TrySelectUserWithoutInteraction(Kernel::HLERequestContext& ctx);
 
     protected:
         std::shared_ptr<Module> module;
