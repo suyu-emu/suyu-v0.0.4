@@ -41,17 +41,8 @@ void ConfigureGeneral::PopulateHotkeyList(const HotkeyRegistry& registry) {
     ui->widget->Populate(registry);
 }
 
-void ConfigureGeneral::applyConfiguration() {
-    UISettings::values.gamedir_deepscan = ui->toggle_deepscan->isChecked();
-    UISettings::values.confirm_before_closing = ui->toggle_check_exit->isChecked();
-    UISettings::values.theme =
-        ui->theme_combobox->itemData(ui->theme_combobox->currentIndex()).toString();
-
-    Settings::values.use_cpu_jit = ui->use_cpu_jit->isChecked();
-    const bool pre_docked_mode = Settings::values.use_docked_mode;
-    Settings::values.use_docked_mode = ui->use_docked_mode->isChecked();
-
-    if (pre_docked_mode != Settings::values.use_docked_mode) {
+void ConfigureGeneral::CheckIfOperationChanged(bool last_state, bool new_state) {
+    if (last_state != new_state) {
         Core::System& system{Core::System::GetInstance()};
         Service::SM::ServiceManager& sm = system.ServiceManager();
 
@@ -70,5 +61,18 @@ void ConfigureGeneral::applyConfiguration() {
             applet_ae->GetMessageQueue()->OperationModeChanged();
         }
     }
+}
+
+void ConfigureGeneral::applyConfiguration() {
+    UISettings::values.gamedir_deepscan = ui->toggle_deepscan->isChecked();
+    UISettings::values.confirm_before_closing = ui->toggle_check_exit->isChecked();
+    UISettings::values.theme =
+        ui->theme_combobox->itemData(ui->theme_combobox->currentIndex()).toString();
+
+    Settings::values.use_cpu_jit = ui->use_cpu_jit->isChecked();
+    const bool pre_docked_mode = Settings::values.use_docked_mode;
+    Settings::values.use_docked_mode = ui->use_docked_mode->isChecked();
+    CheckIfOperationChanged(pre_docked_mode, Settings::values.use_docked_mode);
+
     Settings::values.enable_nfc = ui->enable_nfc->isChecked();
 }

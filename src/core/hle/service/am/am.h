@@ -60,7 +60,7 @@ public:
     void OperationModeChanged();
 
 private:
-    std::queue<AppletMessage> messages{};
+    std::queue<AppletMessage> messages;
     Kernel::SharedPtr<Kernel::Event> on_new_message;
     Kernel::SharedPtr<Kernel::Event> on_operation_mode_changed;
 };
