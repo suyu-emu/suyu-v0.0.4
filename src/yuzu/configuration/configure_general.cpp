@@ -3,6 +3,10 @@
 // Refer to the license.txt file included.
 
 #include "core/core.h"
+#include "core/hle/service/am/am.h"
+#include "core/hle/service/am/applet_ae.h"
+#include "core/hle/service/am/applet_oe.h"
+#include "core/hle/service/sm/sm.h"
 #include "core/settings.h"
 #include "ui_configure_general.h"
 #include "yuzu/configuration/configure_general.h"
@@ -20,7 +24,6 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
     this->setConfiguration();
 
     ui->use_cpu_jit->setEnabled(!Core::System::GetInstance().IsPoweredOn());
-    ui->use_docked_mode->setEnabled(!Core::System::GetInstance().IsPoweredOn());
 }
 
 ConfigureGeneral::~ConfigureGeneral() = default;
@@ -45,6 +48,27 @@ void ConfigureGeneral::applyConfiguration() {
         ui->theme_combobox->itemData(ui->theme_combobox->currentIndex()).toString();
 
     Settings::values.use_cpu_jit = ui->use_cpu_jit->isChecked();
+    const bool pre_docked_mode = Settings::values.use_docked_mode;
     Settings::values.use_docked_mode = ui->use_docked_mode->isChecked();
+
+    if (pre_docked_mode != Settings::values.use_docked_mode) {
+        Core::System& system{Core::System::GetInstance()};
+        Service::SM::ServiceManager& sm = system.ServiceManager();
+
+        // Message queue is shared between these services, we just need to signal an operation
+        // change to one and it will handle both automatically
+        auto applet_oe = sm.GetService<Service::AM::AppletOE>("appletOE");
+        auto applet_ae = sm.GetService<Service::AM::AppletAE>("appletAE");
+        bool has_signalled = false;
+
+        if (applet_oe != nullptr) {
+            applet_oe->GetMessageQueue()->OperationModeChanged();
+            has_signalled = true;
+        }
+
+        if (applet_ae != nullptr && !has_signalled) {
+            applet_ae->GetMessageQueue()->OperationModeChanged();
+        }
+    }
     Settings::values.enable_nfc = ui->enable_nfc->isChecked();
 }
