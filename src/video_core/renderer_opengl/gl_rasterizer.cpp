@@ -740,9 +740,9 @@ void RasterizerOpenGL::SamplerInfo::Create() {
     glSamplerParameteri(sampler.handle, GL_TEXTURE_COMPARE_FUNC, GL_NEVER);
 }
 
-void RasterizerOpenGL::SamplerInfo::SyncWithConfig(const Tegra::Texture::TSCEntry& config) {
+void RasterizerOpenGL::SamplerInfo::SyncWithConfig(const Tegra::Texture::FullTextureInfo& info) {
     const GLuint s = sampler.handle;
-
+    const Tegra::Texture::TSCEntry& config = info.tsc;
     if (mag_filter != config.mag_filter) {
         mag_filter = config.mag_filter;
         glSamplerParameteri(
@@ -792,6 +792,17 @@ void RasterizerOpenGL::SamplerInfo::SyncWithConfig(const Tegra::Texture::TSCEntr
             border_color = new_border_color;
             glSamplerParameterfv(s, GL_TEXTURE_BORDER_COLOR, border_color.data());
         }
+    }
+    if (info.tic.use_header_opt_control == 0) {
+        glSamplerParameterf(s, GL_TEXTURE_MAX_ANISOTROPY_EXT,
+                            static_cast<float>(1 << info.tic.max_anisotropy.Value()));
+        glSamplerParameterf(s, GL_TEXTURE_MIN_LOD,
+                            static_cast<float>(info.tic.res_min_mip_level.Value()));
+        glSamplerParameterf(s, GL_TEXTURE_MAX_LOD,
+                            static_cast<float>(info.tic.res_max_mip_level.Value() == 0
+                                                   ? 16
+                                                   : info.tic.res_max_mip_level.Value()));
+        glSamplerParameterf(s, GL_TEXTURE_LOD_BIAS, info.tic.mip_lod_bias.Value() / 256.f);
     }
 }
 
@@ -890,7 +901,7 @@ u32 RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, Shader& shader,
             continue;
         }
 
-        texture_samplers[current_bindpoint].SyncWithConfig(texture.tsc);
+        texture_samplers[current_bindpoint].SyncWithConfig(texture);
         Surface surface = res_cache.GetTextureSurface(texture, entry);
         if (surface != nullptr) {
             state.texture_units[current_bindpoint].texture = surface->Texture().handle;
@@ -996,13 +1007,13 @@ void RasterizerOpenGL::SyncStencilTestState() {
     state.stencil.front.action_depth_pass = MaxwellToGL::StencilOp(regs.stencil_front_op_zpass);
     state.stencil.front.write_mask = regs.stencil_front_mask;
 
-    state.stencil.back.test_func = MaxwellToGL::ComparisonOp(regs.stencil_back_func_func);
-    state.stencil.back.test_ref = regs.stencil_back_func_ref;
-    state.stencil.back.test_mask = regs.stencil_back_func_mask;
-    state.stencil.back.action_stencil_fail = MaxwellToGL::StencilOp(regs.stencil_back_op_fail);
-    state.stencil.back.action_depth_fail = MaxwellToGL::StencilOp(regs.stencil_back_op_zfail);
-    state.stencil.back.action_depth_pass = MaxwellToGL::StencilOp(regs.stencil_back_op_zpass);
-    state.stencil.back.write_mask = regs.stencil_back_mask;
+        state.stencil.back.test_func = MaxwellToGL::ComparisonOp(regs.stencil_back_func_func);
+        state.stencil.back.test_ref = regs.stencil_back_func_ref;
+        state.stencil.back.test_mask = regs.stencil_back_func_mask;
+        state.stencil.back.action_stencil_fail = MaxwellToGL::StencilOp(regs.stencil_back_op_fail);
+        state.stencil.back.action_depth_fail = MaxwellToGL::StencilOp(regs.stencil_back_op_zfail);
+        state.stencil.back.action_depth_pass = MaxwellToGL::StencilOp(regs.stencil_back_op_zpass);
+        state.stencil.back.write_mask = regs.stencil_back_mask;
 }
 
 void RasterizerOpenGL::SyncColorMask() {

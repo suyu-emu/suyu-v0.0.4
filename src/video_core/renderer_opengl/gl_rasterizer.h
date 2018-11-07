@@ -88,7 +88,7 @@ private:
         /// SamplerInfo struct.
         void Create();
         /// Syncs the sampler object with the config, updating any necessary state.
-        void SyncWithConfig(const Tegra::Texture::TSCEntry& config);
+        void SyncWithConfig(const Tegra::Texture::FullTextureInfo& info);
 
     private:
         Tegra::Texture::TextureFilter mag_filter;
