@@ -11,7 +11,6 @@
 #include "audio_core/stream.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
-#include "common/microprofile.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/settings.h"
@@ -104,10 +103,7 @@ void Stream::PlayNextBuffer() {
     CoreTiming::ScheduleEventThreadsafe(GetBufferReleaseCycles(*active_buffer), release_event, {});
 }
 
-MICROPROFILE_DEFINE(AudioOutput, "Audio", "ReleaseActiveBuffer", MP_RGB(100, 100, 255));
-
 void Stream::ReleaseActiveBuffer() {
-    MICROPROFILE_SCOPE(AudioOutput);
     ASSERT(active_buffer);
     released_buffers.push(std::move(active_buffer));
     release_callback();

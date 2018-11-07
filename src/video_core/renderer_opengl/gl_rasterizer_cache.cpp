@@ -562,9 +562,11 @@ void SwizzleFunc(const GLConversionArray& functions, const SurfaceParams& params
     }
 }
 
+MICROPROFILE_DEFINE(OpenGL_BlitSurface, "OpenGL", "BlitSurface", MP_RGB(128, 192, 64));
 static bool BlitSurface(const Surface& src_surface, const Surface& dst_surface,
                         GLuint read_fb_handle, GLuint draw_fb_handle, GLenum src_attachment = 0,
                         GLenum dst_attachment = 0, std::size_t cubemap_face = 0) {
+    MICROPROFILE_SCOPE(OpenGL_BlitSurface);
 
     const auto& src_params{src_surface->GetSurfaceParams()};
     const auto& dst_params{dst_surface->GetSurfaceParams()};
@@ -704,9 +706,11 @@ static void FastCopySurface(const Surface& src_surface, const Surface& dst_surfa
                        0, 0, width, height, 1);
 }
 
+MICROPROFILE_DEFINE(OpenGL_CopySurface, "OpenGL", "CopySurface", MP_RGB(128, 192, 64));
 static void CopySurface(const Surface& src_surface, const Surface& dst_surface,
                         GLuint copy_pbo_handle, GLenum src_attachment = 0,
                         GLenum dst_attachment = 0, std::size_t cubemap_face = 0) {
+    MICROPROFILE_SCOPE(OpenGL_CopySurface);
     ASSERT_MSG(dst_attachment == 0, "Unimplemented");
 
     const auto& src_params{src_surface->GetSurfaceParams()};
@@ -975,7 +979,7 @@ static void ConvertFormatAsNeeded_FlushGLBuffer(std::vector<u8>& data, PixelForm
     }
 }
 
-MICROPROFILE_DEFINE(OpenGL_SurfaceLoad, "OpenGL", "Surface Load", MP_RGB(128, 64, 192));
+MICROPROFILE_DEFINE(OpenGL_SurfaceLoad, "OpenGL", "Surface Load", MP_RGB(128, 192, 64));
 void CachedSurface::LoadGLBuffer() {
     MICROPROFILE_SCOPE(OpenGL_SurfaceLoad);
     gl_buffer.resize(params.max_mip_level);
@@ -1157,7 +1161,7 @@ void CachedSurface::UploadGLMipmapTexture(u32 mip_map, GLuint read_fb_handle,
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 }
 
-MICROPROFILE_DEFINE(OpenGL_TextureUL, "OpenGL", "Texture Upload", MP_RGB(128, 64, 192));
+MICROPROFILE_DEFINE(OpenGL_TextureUL, "OpenGL", "Texture Upload", MP_RGB(128, 192, 64));
 void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle) {
     if (params.type == SurfaceType::Fill)
         return;
