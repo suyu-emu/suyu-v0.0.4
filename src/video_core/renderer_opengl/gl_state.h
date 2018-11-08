@@ -181,6 +181,10 @@ public:
     }
     /// Apply this state as the current OpenGL state
     void Apply() const;
+    /// Apply only the state afecting the framebuffer
+    void ApplyFramebufferState() const;
+    /// Apply only the state afecting the vertex buffer
+    void ApplyVertexBufferState() const;
     /// Set the initial OpenGL state
     static void ApplyDefaultState();
     /// Resets any references to the given resource

@@ -159,8 +159,7 @@ inline GLenum TextureFilterMode(Tegra::Texture::TextureFilter filter_mode,
         }
     }
     }
-    LOG_ERROR(Render_OpenGL, "Unimplemented texture filter mode={}",
-                 static_cast<u32>(filter_mode));
+    LOG_ERROR(Render_OpenGL, "Unimplemented texture filter mode={}", static_cast<u32>(filter_mode));
     return GL_LINEAR;
 }
 
@@ -206,7 +205,7 @@ inline GLenum DepthCompareFunc(Tegra::Texture::DepthCompareFunc func) {
         return GL_ALWAYS;
     }
     LOG_ERROR(Render_OpenGL, "Unimplemented texture depth compare function ={}",
-                 static_cast<u32>(func));
+              static_cast<u32>(func));
     return GL_GREATER;
 }
 
