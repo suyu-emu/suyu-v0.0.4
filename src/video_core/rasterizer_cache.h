@@ -10,10 +10,8 @@
 #include <boost/range/iterator_range_core.hpp>
 
 #include "common/common_types.h"
-#include "core/core.h"
 #include "core/settings.h"
 #include "video_core/rasterizer_interface.h"
-#include "video_core/renderer_base.h"
 
 class RasterizerCacheObject {
 public:
@@ -64,6 +62,8 @@ class RasterizerCache : NonCopyable {
     friend class RasterizerCacheObject;
 
 public:
+    explicit RasterizerCache(VideoCore::RasterizerInterface& rasterizer) : rasterizer{rasterizer} {}
+
     /// Write any cached resources overlapping the specified region back to memory
     void FlushRegion(Tegra::GPUVAddr addr, size_t size) {
         const auto& objects{GetSortedObjectsFromRegion(addr, size)};
@@ -109,14 +109,12 @@ protected:
     void Register(const T& object) {
         object->SetIsRegistered(true);
         object_cache.add({GetInterval(object), ObjectSet{object}});
-        auto& rasterizer = Core::System::GetInstance().Renderer().Rasterizer();
         rasterizer.UpdatePagesCachedCount(object->GetAddr(), object->GetSizeInBytes(), 1);
     }
 
     /// Unregisters an object from the cache
     void Unregister(const T& object) {
         object->SetIsRegistered(false);
-        auto& rasterizer = Core::System::GetInstance().Renderer().Rasterizer();
         rasterizer.UpdatePagesCachedCount(object->GetAddr(), object->GetSizeInBytes(), -1);
 
         // Only flush if use_accurate_gpu_emulation is enabled, as it incurs a performance hit
@@ -177,4 +175,5 @@ private:
 
     ObjectCache object_cache; ///< Cache of objects
     u64 modified_ticks{};     ///< Counter of cache state ticks, used for in-order flushing
+    VideoCore::RasterizerInterface& rasterizer;
 };

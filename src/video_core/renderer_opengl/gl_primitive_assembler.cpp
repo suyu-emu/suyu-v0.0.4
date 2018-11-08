@@ -6,6 +6,7 @@
 #include <array>
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "core/core.h"
 #include "core/memory.h"
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_primitive_assembler.h"

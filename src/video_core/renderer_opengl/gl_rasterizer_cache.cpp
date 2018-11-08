@@ -15,6 +15,7 @@
 #include "core/memory.h"
 #include "core/settings.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_rasterizer_cache.h"
 #include "video_core/renderer_opengl/gl_state.h"
 #include "video_core/renderer_opengl/utils.h"
@@ -1172,7 +1173,8 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
         UploadGLMipmapTexture(i, read_fb_handle, draw_fb_handle);
 }
 
-RasterizerCacheOpenGL::RasterizerCacheOpenGL() {
+RasterizerCacheOpenGL::RasterizerCacheOpenGL(RasterizerOpenGL& rasterizer)
+    : RasterizerCache{rasterizer} {
     read_framebuffer.Create();
     draw_framebuffer.Create();
     copy_pbo.Create();

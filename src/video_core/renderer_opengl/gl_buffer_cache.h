@@ -15,6 +15,8 @@
 
 namespace OpenGL {
 
+class RasterizerOpenGL;
+
 struct CachedBufferEntry final : public RasterizerCacheObject {
     VAddr GetAddr() const override {
         return addr;
@@ -35,7 +37,7 @@ struct CachedBufferEntry final : public RasterizerCacheObject {
 
 class OGLBufferCache final : public RasterizerCache<std::shared_ptr<CachedBufferEntry>> {
 public:
-    explicit OGLBufferCache(std::size_t size);
+    explicit OGLBufferCache(RasterizerOpenGL& rasterizer, std::size_t size);
 
     /// Uploads data from a guest GPU address. Returns host's buffer offset where it's been
     /// allocated.

@@ -79,7 +79,8 @@ struct DrawParameters {
 };
 
 RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window, ScreenInfo& info)
-    : emu_window{window}, screen_info{info}, buffer_cache(STREAM_BUFFER_SIZE) {
+    : res_cache{*this}, shader_cache{*this}, emu_window{window}, screen_info{info},
+      buffer_cache(*this, STREAM_BUFFER_SIZE) {
     // Create sampler objects
     for (std::size_t i = 0; i < texture_samplers.size(); ++i) {
         texture_samplers[i].Create();
