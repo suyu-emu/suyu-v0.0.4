@@ -41,25 +41,27 @@ void ConfigureGeneral::PopulateHotkeyList(const HotkeyRegistry& registry) {
     ui->widget->Populate(registry);
 }
 
-void ConfigureGeneral::CheckIfOperationChanged(bool last_state, bool new_state) {
-    if (last_state != new_state) {
-        Core::System& system{Core::System::GetInstance()};
-        Service::SM::ServiceManager& sm = system.ServiceManager();
+void ConfigureGeneral::OnDockedModeChanged(bool last_state, bool new_state) {
+    if (last_state == new_state) {
+        return;
+    }
 
-        // Message queue is shared between these services, we just need to signal an operation
-        // change to one and it will handle both automatically
-        auto applet_oe = sm.GetService<Service::AM::AppletOE>("appletOE");
-        auto applet_ae = sm.GetService<Service::AM::AppletAE>("appletAE");
-        bool has_signalled = false;
+    Core::System& system{Core::System::GetInstance()};
+    Service::SM::ServiceManager& sm = system.ServiceManager();
 
-        if (applet_oe != nullptr) {
-            applet_oe->GetMessageQueue()->OperationModeChanged();
-            has_signalled = true;
-        }
+    // Message queue is shared between these services, we just need to signal an operation
+    // change to one and it will handle both automatically
+    auto applet_oe = sm.GetService<Service::AM::AppletOE>("appletOE");
+    auto applet_ae = sm.GetService<Service::AM::AppletAE>("appletAE");
+    bool has_signalled = false;
 
-        if (applet_ae != nullptr && !has_signalled) {
-            applet_ae->GetMessageQueue()->OperationModeChanged();
-        }
+    if (applet_oe != nullptr) {
+        applet_oe->GetMessageQueue()->OperationModeChanged();
+        has_signalled = true;
+    }
+
+    if (applet_ae != nullptr && !has_signalled) {
+        applet_ae->GetMessageQueue()->OperationModeChanged();
     }
 }
 
@@ -72,7 +74,7 @@ void ConfigureGeneral::applyConfiguration() {
     Settings::values.use_cpu_jit = ui->use_cpu_jit->isChecked();
     const bool pre_docked_mode = Settings::values.use_docked_mode;
     Settings::values.use_docked_mode = ui->use_docked_mode->isChecked();
-    CheckIfOperationChanged(pre_docked_mode, Settings::values.use_docked_mode);
+    OnDockedModeChanged(pre_docked_mode, Settings::values.use_docked_mode);
 
     Settings::values.enable_nfc = ui->enable_nfc->isChecked();
 }
