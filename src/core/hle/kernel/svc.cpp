@@ -395,16 +395,42 @@ struct BreakReason {
 /// Break program execution
 static void Break(u32 reason, u64 info1, u64 info2) {
     BreakReason break_reason{reason};
+    bool has_dumped_buffer{};
 
+    const auto handle_debug_buffer = [&](VAddr addr, u64 sz) {
+        if (sz == 0 || addr == 0 || has_dumped_buffer) {
+            return;
+        }
+
+        // This typically is an error code so we're going to assume this is the case
+        if (sz == sizeof(u32)) {
+            LOG_CRITICAL(Debug_Emulated, "debug_buffer_err_code={:X}", Memory::Read32(addr));
+        } else {
+            // We don't know what's in here so we'll hexdump it
+            std::vector<u8> debug_buffer(sz);
+            Memory::ReadBlock(addr, debug_buffer.data(), sz);
+            std::string hexdump;
+            for (std::size_t i = 0; i < debug_buffer.size(); i++) {
+                hexdump += fmt::format("{:02X} ", debug_buffer[i]);
+                if (i != 0 && i % 16 == 0) {
+                    hexdump += '\n';
+                }
+            }
+            LOG_CRITICAL(Debug_Emulated, "debug_buffer=\n{}", hexdump);
+        }
+        has_dumped_buffer = true;
+    };
     switch (break_reason.break_type) {
     case BreakType::Panic:
         LOG_CRITICAL(Debug_Emulated, "Signalling debugger, PANIC! info1=0x{:016X}, info2=0x{:016X}",
                      info1, info2);
+        handle_debug_buffer(info1, info2);
         break;
     case BreakType::AssertionFailed:
         LOG_CRITICAL(Debug_Emulated,
                      "Signalling debugger, Assertion failed! info1=0x{:016X}, info2=0x{:016X}",
                      info1, info2);
+        handle_debug_buffer(info1, info2);
         break;
     case BreakType::PreNROLoad:
         LOG_WARNING(
@@ -433,6 +459,7 @@ static void Break(u32 reason, u64 info1, u64 info2) {
             Debug_Emulated,
             "Signalling debugger, Unknown break reason {}, info1=0x{:016X}, info2=0x{:016X}",
             static_cast<u32>(break_reason.break_type.Value()), info1, info2);
+        handle_debug_buffer(info1, info2);
         break;
     }
 
@@ -441,6 +468,7 @@ static void Break(u32 reason, u64 info1, u64 info2) {
             Debug_Emulated,
             "Emulated program broke execution! reason=0x{:016X}, info1=0x{:016X}, info2=0x{:016X}",
             reason, info1, info2);
+        handle_debug_buffer(info1, info2);
         ASSERT(false);
 
         Core::CurrentProcess()->PrepareForTermination();
