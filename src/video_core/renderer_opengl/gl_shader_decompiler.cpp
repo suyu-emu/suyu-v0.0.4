@@ -2777,7 +2777,11 @@ private:
                     break;
                 }
                 case Tegra::Shader::TextureProcessMode::LZ: {
-                    texture = "textureLod(" + sampler + ", coords, 0.0)";
+                    if (depth_compare && is_array) {
+                        texture = "texture(" + sampler + ", coords)";
+                    } else {
+                        texture = "textureLod(" + sampler + ", coords, 0.0)";
+                    }
                     break;
                 }
                 case Tegra::Shader::TextureProcessMode::LL: {
