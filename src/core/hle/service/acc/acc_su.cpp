@@ -17,7 +17,7 @@ ACC_SU::ACC_SU(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {5, &ACC_SU::GetProfile, "GetProfile"},
         {6, nullptr, "GetProfileDigest"},
         {50, &ACC_SU::IsUserRegistrationRequestPermitted, "IsUserRegistrationRequestPermitted"},
-        {51, nullptr, "TrySelectUserWithoutInteraction"},
+        {51, &ACC_SU::TrySelectUserWithoutInteraction, "TrySelectUserWithoutInteraction"},
         {60, nullptr, "ListOpenContextStoredUsers"},
         {100, nullptr, "GetUserRegistrationNotifier"},
         {101, nullptr, "GetUserStateChangeNotifier"},

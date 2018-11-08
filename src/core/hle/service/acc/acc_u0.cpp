@@ -17,7 +17,7 @@ ACC_U0::ACC_U0(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {5, &ACC_U0::GetProfile, "GetProfile"},
         {6, nullptr, "GetProfileDigest"},
         {50, &ACC_U0::IsUserRegistrationRequestPermitted, "IsUserRegistrationRequestPermitted"},
-        {51, nullptr, "TrySelectUserWithoutInteraction"},
+        {51, &ACC_U0::TrySelectUserWithoutInteraction, "TrySelectUserWithoutInteraction"},
         {60, nullptr, "ListOpenContextStoredUsers"},
         {100, &ACC_U0::InitializeApplicationInfo, "InitializeApplicationInfo"},
         {101, &ACC_U0::GetBaasAccountManagerForApplication, "GetBaasAccountManagerForApplication"},

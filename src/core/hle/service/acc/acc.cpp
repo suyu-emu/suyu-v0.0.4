@@ -242,6 +242,28 @@ void Module::Interface::GetBaasAccountManagerForApplication(Kernel::HLERequestCo
     LOG_DEBUG(Service_ACC, "called");
 }
 
+void Module::Interface::TrySelectUserWithoutInteraction(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_ACC, "called");
+    // A u8 is passed into this function which we can safely ignore. It's to determine if we have
+    // access to use the network or not by the looks of it
+    IPC::ResponseBuilder rb{ctx, 6};
+    if (profile_manager->GetUserCount() != 1) {
+        rb.Push(RESULT_SUCCESS);
+        rb.PushRaw<u128>(INVALID_UUID);
+        return;
+    }
+    auto user_list = profile_manager->GetAllUsers();
+    if (user_list.empty()) {
+        rb.Push(ResultCode(-1)); // TODO(ogniK): Find the correct error code
+        rb.PushRaw<u128>(INVALID_UUID);
+        return;
+    }
+
+    // Select the first user we have
+    rb.Push(RESULT_SUCCESS);
+    rb.PushRaw<u128>(profile_manager->GetUser(0)->uuid);
+}
+
 Module::Interface::Interface(std::shared_ptr<Module> module,
                              std::shared_ptr<ProfileManager> profile_manager, const char* name)
     : ServiceFramework(name), module(std::move(module)),
