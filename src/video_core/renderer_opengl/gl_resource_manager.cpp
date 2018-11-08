@@ -10,10 +10,8 @@
 #include "video_core/renderer_opengl/gl_shader_util.h"
 #include "video_core/renderer_opengl/gl_state.h"
 
-MICROPROFILE_DEFINE(OpenGL_ResourceCreation, "OpenGL", "Resource Creation",
-                    MP_RGB(128, 128, 192));
-MICROPROFILE_DEFINE(OpenGL_ResourceDeletion, "OpenGL", "Resource Deletion",
-                    MP_RGB(128, 128, 192));
+MICROPROFILE_DEFINE(OpenGL_ResourceCreation, "OpenGL", "Resource Creation", MP_RGB(128, 128, 192));
+MICROPROFILE_DEFINE(OpenGL_ResourceDeletion, "OpenGL", "Resource Deletion", MP_RGB(128, 128, 192));
 
 namespace OpenGL {
 
