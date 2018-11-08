@@ -787,8 +787,13 @@ void RasterizerOpenGL::SamplerInfo::SyncWithConfig(const Tegra::Texture::FullTex
         }
     }
     if (info.tic.use_header_opt_control == 0) {
-        glSamplerParameterf(s, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-                            static_cast<float>(1 << info.tic.max_anisotropy.Value()));
+        if (GLAD_GL_ARB_texture_filter_anisotropic) {
+            glSamplerParameterf(s, GL_TEXTURE_MAX_ANISOTROPY,
+                                static_cast<float>(1 << info.tic.max_anisotropy.Value()));
+        } else if (GLAD_GL_EXT_texture_filter_anisotropic) {
+            glSamplerParameterf(s, GL_TEXTURE_MAX_ANISOTROPY_EXT,
+                                static_cast<float>(1 << info.tic.max_anisotropy.Value()));
+        }
         glSamplerParameterf(s, GL_TEXTURE_MIN_LOD,
                             static_cast<float>(info.tic.res_min_mip_level.Value()));
         glSamplerParameterf(s, GL_TEXTURE_MAX_LOD,
