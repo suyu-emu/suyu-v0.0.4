@@ -15,6 +15,26 @@
 
 namespace Service::Time {
 
+void PosixToCalendar(u64 posix_time, CalendarTime& calendar_time,
+                     CalendarAdditionalInfo& additional_info, const TimeZoneRule& /*rule*/) {
+    std::time_t time(posix_time);
+    std::tm* tm = std::localtime(&time);
+    if (tm == nullptr) {
+        return;
+    }
+    calendar_time.year = tm->tm_year + 1900;
+    calendar_time.month = tm->tm_mon + 1;
+    calendar_time.day = tm->tm_mday;
+    calendar_time.hour = tm->tm_hour;
+    calendar_time.minute = tm->tm_min;
+    calendar_time.second = tm->tm_sec;
+
+    additional_info.day_of_week = tm->tm_wday;
+    additional_info.day_of_year = tm->tm_yday;
+    std::memcpy(additional_info.name.data(), "UTC", sizeof("UTC"));
+    additional_info.utc_offset = 0;
+}
+
 class ISystemClock final : public ServiceFramework<ISystemClock> {
 public:
     ISystemClock() : ServiceFramework("ISystemClock") {
@@ -150,26 +170,6 @@ private:
         rb.PushRaw(calendar_time);
         rb.PushRaw(additional_info);
     }
-
-    void PosixToCalendar(u64 posix_time, CalendarTime& calendar_time,
-                         CalendarAdditionalInfo& additional_info, const TimeZoneRule& /*rule*/) {
-        std::time_t t(posix_time);
-        std::tm* tm = std::localtime(&t);
-        if (!tm) {
-            return;
-        }
-        calendar_time.year = tm->tm_year + 1900;
-        calendar_time.month = tm->tm_mon + 1;
-        calendar_time.day = tm->tm_mday;
-        calendar_time.hour = tm->tm_hour;
-        calendar_time.minute = tm->tm_min;
-        calendar_time.second = tm->tm_sec;
-
-        additional_info.day_of_week = tm->tm_wday;
-        additional_info.day_of_year = tm->tm_yday;
-        std::memcpy(additional_info.name.data(), "UTC", sizeof("UTC"));
-        additional_info.utc_offset = 0;
-    }
 };
 
 void Module::Interface::GetStandardUserSystemClock(Kernel::HLERequestContext& ctx) {
@@ -205,6 +205,55 @@ void Module::Interface::GetStandardLocalSystemClock(Kernel::HLERequestContext& c
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<ISystemClock>();
     LOG_DEBUG(Service_Time, "called");
+}
+
+void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_Time, "called");
+
+    IPC::RequestParser rp{ctx};
+    auto unknown_u8 = rp.PopRaw<u8>();
+
+    ClockSnapshot clock_snapshot{};
+
+    const s64 time_since_epoch{std::chrono::duration_cast<std::chrono::seconds>(
+                                   std::chrono::system_clock::now().time_since_epoch())
+                                   .count()};
+    CalendarTime calendar_time{};
+    std::time_t time(time_since_epoch);
+    std::tm* tm = std::localtime(&time);
+    if (tm == nullptr) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultCode(-1)); // TODO(ogniK): Find appropriate error code
+        return;
+    }
+    SteadyClockTimePoint steady_clock_time_point{CoreTiming::cyclesToMs(CoreTiming::GetTicks()) /
+                                                 1000};
+
+    LocationName location_name{"UTC"};
+    calendar_time.year = tm->tm_year + 1900;
+    calendar_time.month = tm->tm_mon + 1;
+    calendar_time.day = tm->tm_mday;
+    calendar_time.hour = tm->tm_hour;
+    calendar_time.minute = tm->tm_min;
+    calendar_time.second = tm->tm_sec;
+    clock_snapshot.system_posix_time = time_since_epoch;
+    clock_snapshot.network_posix_time = time_since_epoch;
+    clock_snapshot.system_calendar_time = calendar_time;
+    clock_snapshot.network_calendar_time = calendar_time;
+
+    CalendarAdditionalInfo additional_info{};
+    PosixToCalendar(time_since_epoch, calendar_time, additional_info, {});
+
+    clock_snapshot.system_calendar_info = additional_info;
+    clock_snapshot.network_calendar_info = additional_info;
+
+    clock_snapshot.steady_clock_timepoint = steady_clock_time_point;
+    clock_snapshot.location_name = location_name;
+    clock_snapshot.clock_auto_adjustment_enabled = 1;
+    clock_snapshot.ipc_u8 = unknown_u8;
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+    ctx.WriteBuffer(&clock_snapshot, sizeof(ClockSnapshot));
 }
 
 Module::Interface::Interface(std::shared_ptr<Module> time, const char* name)

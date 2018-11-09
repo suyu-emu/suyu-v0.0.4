@@ -53,6 +53,23 @@ struct SystemClockContext {
 static_assert(sizeof(SystemClockContext) == 0x20,
               "SystemClockContext structure has incorrect size");
 
+struct ClockSnapshot {
+    SystemClockContext user_clock_context;
+    SystemClockContext network_clock_context;
+    s64_le system_posix_time;
+    s64_le network_posix_time;
+    CalendarTime system_calendar_time;
+    CalendarTime network_calendar_time;
+    CalendarAdditionalInfo system_calendar_info;
+    CalendarAdditionalInfo network_calendar_info;
+    SteadyClockTimePoint steady_clock_timepoint;
+    LocationName location_name;
+    u8 clock_auto_adjustment_enabled;
+    u8 ipc_u8;
+    INSERT_PADDING_BYTES(2);
+};
+static_assert(sizeof(ClockSnapshot) == 0xd0, "ClockSnapshot is an invalid size");
+
 class Module final {
 public:
     class Interface : public ServiceFramework<Interface> {
@@ -65,6 +82,7 @@ public:
         void GetStandardSteadyClock(Kernel::HLERequestContext& ctx);
         void GetTimeZoneService(Kernel::HLERequestContext& ctx);
         void GetStandardLocalSystemClock(Kernel::HLERequestContext& ctx);
+        void GetClockSnapshot(Kernel::HLERequestContext& ctx);
 
     protected:
         std::shared_ptr<Module> time;
