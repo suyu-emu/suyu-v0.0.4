@@ -481,6 +481,22 @@ void ICommonStateGetter::GetDefaultDisplayResolution(Kernel::HLERequestContext& 
     LOG_DEBUG(Service_AM, "called");
 }
 
+IStorage::IStorage(std::vector<u8> buffer)
+    : ServiceFramework("IStorage"), buffer(std::move(buffer)) {
+    // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &IStorage::Open, "Open"},
+            {1, nullptr, "OpenTransferStorage"},
+        };
+    // clang-format on
+
+    RegisterHandlers(functions);
+}
+
+const std::vector<u8>& IStorage::GetData() const {
+    return buffer;
+}
+
 void ICommonStateGetter::GetOperationMode(Kernel::HLERequestContext& ctx) {
     const bool use_docked_mode{Settings::values.use_docked_mode};
     IPC::ResponseBuilder rb{ctx, 3};
