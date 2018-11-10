@@ -150,6 +150,8 @@ add_library(core STATIC
     hle/service/am/applet_ae.h
     hle/service/am/applet_oe.cpp
     hle/service/am/applet_oe.h
+    hle/service/am/applets/applets.cpp
+    hle/service/am/applets/applets.h
     hle/service/am/idle.cpp
     hle/service/am/idle.h
     hle/service/am/omm.cpp
