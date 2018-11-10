@@ -548,6 +548,9 @@ public:
         auto& kernel = Core::System::GetInstance().Kernel();
         state_changed_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
                                                     "ILibraryAppletAccessor:StateChangedEvent");
+        pop_interactive_out_data_event =
+            Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
+                                  "ILibraryAppletAccessor:PopInteractiveDataOutEvent");
     }
 
 private:
@@ -596,27 +599,34 @@ private:
         LOG_DEBUG(Service_AM, "called");
     }
 
-        ctx.WriteBuffer(buffer.data() + offset, size);
+    void PushInteractiveInData(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        interactive_storage_stack.push_back(rp.PopIpcInterface<IStorage>());
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
 
-        LOG_DEBUG(Service_AM, "called, offset={}", offset);
+        LOG_DEBUG(Service_AM, "called");
     }
-};
 
-class IStorage final : public ServiceFramework<IStorage> {
-public:
-    explicit IStorage(std::vector<u8> buffer)
-        : ServiceFramework("IStorage"), buffer(std::move(buffer)) {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, &IStorage::Open, "Open"},
-            {1, nullptr, "OpenTransferStorage"},
-        };
-        // clang-format on
+    void PopInteractiveOutData(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<IStorage>(std::move(interactive_storage_stack.back()));
 
-        RegisterHandlers(functions);
+        interactive_storage_stack.pop_back();
+
+        LOG_DEBUG(Service_AM, "called");
+    }
+
+    void GetPopInteractiveOutDataEvent(Kernel::HLERequestContext& ctx) {
+        pop_interactive_out_data_event->Signal();
+
+        IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushCopyObjects(pop_interactive_out_data_event);
+
+        LOG_WARNING(Service_AM, "(STUBBED) called");
     }
 
     std::shared_ptr<Applets::Applet> applet;
