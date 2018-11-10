@@ -725,11 +725,36 @@ ILibraryAppletCreator::ILibraryAppletCreator() : ServiceFramework("ILibraryApple
 
 ILibraryAppletCreator::~ILibraryAppletCreator() = default;
 
+static std::shared_ptr<Applets::Applet> GetAppletFromId(AppletId id) {
+    switch (id) {
+    case AppletId::SoftwareKeyboard:
+        return std::make_shared<Applets::SoftwareKeyboard>();
+    default:
+        UNREACHABLE_MSG("Unimplemented AppletId [{:08X}]!", static_cast<u32>(id));
+        return nullptr;
+    }
+}
+
 void ILibraryAppletCreator::CreateLibraryApplet(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto applet_id = rp.PopRaw<AppletId>();
+    const auto applet_mode = rp.PopRaw<u32>();
+
+    LOG_DEBUG(Service_AM, "called with applet_id={:08X}, applet_mode={:08X}",
+              static_cast<u32>(applet_id), applet_mode);
+
+    const auto applet = GetAppletFromId(applet_id);
+
+    if (applet == nullptr) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultCode(-1));
+        return;
+    }
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<AM::ILibraryAppletAccessor>();
+    rb.PushIpcInterface<AM::ILibraryAppletAccessor>(applet);
 
     LOG_DEBUG(Service_AM, "called");
 }
