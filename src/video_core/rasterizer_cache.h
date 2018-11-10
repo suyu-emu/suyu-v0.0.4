@@ -17,6 +17,8 @@
 
 class RasterizerCacheObject {
 public:
+    virtual ~RasterizerCacheObject();
+
     /// Gets the address of the shader in guest memory, required for cache management
     virtual VAddr GetAddr() const = 0;
 
