@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "common/logging/backend.h"
+#include "common/string_util.h"
 #include "core/frontend/applets/software_keyboard.h"
 
 namespace Frontend {

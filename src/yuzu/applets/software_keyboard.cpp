@@ -9,6 +9,7 @@
 #include <QLineEdit>
 #include <QVBoxLayout>
 #include "common/logging/backend.h"
+#include "common/string_util.h"
 #include "yuzu/applets/software_keyboard.h"
 
 QtSoftwareKeyboardValidator::QtSoftwareKeyboardValidator(
