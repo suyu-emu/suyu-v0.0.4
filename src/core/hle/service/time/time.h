@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include "common/common_funcs.h"
 #include "core/hle/service/service.h"
 
 namespace Service::Time {

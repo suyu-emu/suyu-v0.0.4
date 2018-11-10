@@ -16,10 +16,13 @@
 namespace Service::Time {
 
 static void PosixToCalendar(u64 posix_time, CalendarTime& calendar_time,
-                            CalendarAdditionalInfo& additional_info, const TimeZoneRule& /*rule*/) {
+                            CalendarAdditionalInfo& additional_info,
+                            [[maybe_unused]] const TimeZoneRule& /*rule*/) {
     const std::time_t time(posix_time);
     const std::tm* tm = std::localtime(&time);
     if (tm == nullptr) {
+        calendar_time = {};
+        additional_info = {};
         return;
     }
     calendar_time.year = tm->tm_year + 1900;
@@ -35,7 +38,8 @@ static void PosixToCalendar(u64 posix_time, CalendarTime& calendar_time,
     additional_info.utc_offset = 0;
 }
 
-u64 CalendarToPosix(const CalendarTime& calendar_time, const TimeZoneRule& /*rule*/) {
+static u64 CalendarToPosix(const CalendarTime& calendar_time,
+                           [[maybe_unused]] const TimeZoneRule& /*rule*/) {
     std::tm time{};
     time.tm_year = calendar_time.year - 1900;
     time.tm_mon = calendar_time.month - 1;
