@@ -704,6 +704,31 @@ void ILibraryAppletCreator::CreateStorage(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called, size={}", size);
 }
 
+void ILibraryAppletCreator::CreateTransferMemoryStorage(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    rp.SetCurrentOffset(3);
+    const auto handle{rp.Pop<Kernel::Handle>()};
+
+    const auto shared_mem =
+        Core::System::GetInstance().CurrentProcess()->GetHandleTable().Get<Kernel::SharedMemory>(
+            handle);
+
+    if (shared_mem == nullptr) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultCode(-1));
+        return;
+    }
+
+    std::vector<u8> memory(shared_mem->size);
+    std::memcpy(memory.data(), shared_mem->backing_block->data() + shared_mem->backing_block_offset,
+                memory.size());
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface(std::make_shared<IStorage>(std::move(memory)));
+}
+
 IApplicationFunctions::IApplicationFunctions() : ServiceFramework("IApplicationFunctions") {
     // clang-format off
     static const FunctionInfo functions[] = {
