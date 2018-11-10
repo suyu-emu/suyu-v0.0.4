@@ -77,6 +77,8 @@ add_library(core STATIC
     file_sys/vfs_vector.h
     file_sys/xts_archive.cpp
     file_sys/xts_archive.h
+    frontend/applets/software_keyboard.cpp
+    frontend/applets/software_keyboard.h
     frontend/emu_window.cpp
     frontend/emu_window.h
     frontend/framebuffer_layout.cpp
