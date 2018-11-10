@@ -35,6 +35,20 @@ static void PosixToCalendar(u64 posix_time, CalendarTime& calendar_time,
     additional_info.utc_offset = 0;
 }
 
+u64 CalendarToPosix(const CalendarTime& calendar_time, const TimeZoneRule& /*rule*/) {
+    std::tm time{};
+    time.tm_year = calendar_time.year - 1900;
+    time.tm_mon = calendar_time.month - 1;
+    time.tm_mday = calendar_time.day;
+
+    time.tm_hour = calendar_time.hour;
+    time.tm_min = calendar_time.minute;
+    time.tm_sec = calendar_time.second;
+
+    std::time_t epoch_time = std::mktime(&time);
+    return static_cast<u64>(epoch_time);
+}
+
 class ISystemClock final : public ServiceFramework<ISystemClock> {
 public:
     ISystemClock() : ServiceFramework("ISystemClock") {
@@ -100,8 +114,8 @@ public:
             {5, nullptr, "GetTimeZoneRuleVersion"},
             {100, &ITimeZoneService::ToCalendarTime, "ToCalendarTime"},
             {101, &ITimeZoneService::ToCalendarTimeWithMyRule, "ToCalendarTimeWithMyRule"},
-            {201, nullptr, "ToPosixTime"},
-            {202, nullptr, "ToPosixTimeWithMyRule"},
+            {201, &ITimeZoneService::ToPosixTime, "ToPosixTime"},
+            {202, &ITimeZoneService::ToPosixTimeWithMyRule, "ToPosixTimeWithMyRule"},
         };
         RegisterHandlers(functions);
     }
@@ -169,6 +183,31 @@ private:
         rb.Push(RESULT_SUCCESS);
         rb.PushRaw(calendar_time);
         rb.PushRaw(additional_info);
+    }
+
+    void ToPosixTime(Kernel::HLERequestContext& ctx) {
+        // TODO(ogniK): Figure out how to handle multiple times
+        LOG_WARNING(Service_Time, "(STUBBED) called");
+        IPC::RequestParser rp{ctx};
+        auto calendar_time = rp.PopRaw<CalendarTime>();
+        auto posix_time = CalendarToPosix(calendar_time, {});
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushRaw<u32>(1); // Amount of times we're returning
+        ctx.WriteBuffer(&posix_time, sizeof(u64));
+    }
+
+    void ToPosixTimeWithMyRule(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_Time, "(STUBBED) called");
+        IPC::RequestParser rp{ctx};
+        auto calendar_time = rp.PopRaw<CalendarTime>();
+        auto posix_time = CalendarToPosix(calendar_time, {});
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushRaw<u32>(1); // Amount of times we're returning
+        ctx.WriteBuffer(&posix_time, sizeof(u64));
     }
 };
 
