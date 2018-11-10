@@ -6,10 +6,14 @@
 #include <cinttypes>
 #include <cstring>
 #include <stack>
+#include "applets/applets.h"
+#include "applets/software_keyboard.h"
+#include "audio_core/audio_renderer.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/event.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/shared_memory.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_ae.h"
@@ -27,6 +31,10 @@
 #include "core/settings.h"
 
 namespace Service::AM {
+
+enum class AppletId : u32 {
+    SoftwareKeyboard = 0x11,
+};
 
 constexpr u32 POP_LAUNCH_PARAMETER_MAGIC = 0xC79497CA;
 
@@ -571,13 +579,17 @@ private:
         LOG_WARNING(Service_AM, "(STUBBED) called");
     }
 
-    void Write(Kernel::HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
+    void Start(Kernel::HLERequestContext& ctx) {
+        ASSERT(applet != nullptr);
 
-        const u64 offset{rp.Pop<u64>()};
-        const std::vector<u8> data{ctx.ReadBuffer()};
+        applet->Initialize(storage_stack);
+        interactive_storage_stack.push_back(std::make_shared<IStorage>(applet->Execute()));
+        state_changed_event->Signal();
+        pop_interactive_out_data_event->Signal();
 
-        ASSERT(offset + data.size() <= buffer.size());
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
 
     void PushInData(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
