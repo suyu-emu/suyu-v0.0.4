@@ -121,12 +121,16 @@ GLint CachedShader::GetUniformLocation(const GLShader::SamplerEntry& sampler) {
 }
 
 GLuint CachedShader::LazyGeometryProgram(OGLProgram& target_program,
-                                         const std::string& glsl_topology,
+                                         const std::string& glsl_topology, u32 max_vertices,
                                          const std::string& debug_name) {
     if (target_program.handle != 0) {
         return target_program.handle;
     }
-    const std::string source{geometry_programs.code + "layout (" + glsl_topology + ") in;\n"};
+    std::string source = "#version 430 core\n";
+    source += "layout (" + glsl_topology + ") in;\n";
+    source += "#define MAX_VERTEX_INPUT " + std::to_string(max_vertices) + '\n';
+    source += geometry_programs.code;
+
     OGLShader shader;
     shader.Create(source.c_str(), GL_GEOMETRY_SHADER);
     target_program.Create(true, shader.handle);

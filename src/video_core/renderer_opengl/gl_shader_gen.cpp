@@ -82,8 +82,8 @@ void main() {
 }
 
 ProgramResult GenerateGeometryShader(const ShaderSetup& setup) {
-    std::string out = "#version 430 core\n";
-    out += "#extension GL_ARB_separate_shader_objects : enable\n\n";
+    // Version is intentionally skipped in shader generation, it's added by the lazy compilation.
+    std::string out = "#extension GL_ARB_separate_shader_objects : enable\n\n";
     out += Decompiler::GetCommonDeclarations();
     out += "bool exec_geometry();\n";
 

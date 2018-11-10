@@ -46,22 +46,23 @@ public:
         }
         switch (primitive_mode) {
         case GL_POINTS:
-            return LazyGeometryProgram(geometry_programs.points, "points", "ShaderPoints");
+            return LazyGeometryProgram(geometry_programs.points, "points", 1, "ShaderPoints");
         case GL_LINES:
         case GL_LINE_STRIP:
-            return LazyGeometryProgram(geometry_programs.lines, "lines", "ShaderLines");
+            return LazyGeometryProgram(geometry_programs.lines, "lines", 2, "ShaderLines");
         case GL_LINES_ADJACENCY:
         case GL_LINE_STRIP_ADJACENCY:
-            return LazyGeometryProgram(geometry_programs.lines_adjacency, "lines_adjacency",
+            return LazyGeometryProgram(geometry_programs.lines_adjacency, "lines_adjacency", 4,
                                        "ShaderLinesAdjacency");
         case GL_TRIANGLES:
         case GL_TRIANGLE_STRIP:
         case GL_TRIANGLE_FAN:
-            return LazyGeometryProgram(geometry_programs.triangles, "triangles", "ShaderTriangles");
+            return LazyGeometryProgram(geometry_programs.triangles, "triangles", 3,
+                                       "ShaderTriangles");
         case GL_TRIANGLES_ADJACENCY:
         case GL_TRIANGLE_STRIP_ADJACENCY:
             return LazyGeometryProgram(geometry_programs.triangles_adjacency, "triangles_adjacency",
-                                       "ShaderLines");
+                                       6, "ShaderTrianglesAdjacency");
         default:
             UNREACHABLE_MSG("Unknown primitive mode.");
         }
@@ -76,7 +77,7 @@ public:
 private:
     /// Generates a geometry shader or returns one that already exists.
     GLuint LazyGeometryProgram(OGLProgram& target_program, const std::string& glsl_topology,
-                               const std::string& debug_name);
+                               u32 max_vertices, const std::string& debug_name);
 
     VAddr addr;
     Maxwell::ShaderProgram program_type;
