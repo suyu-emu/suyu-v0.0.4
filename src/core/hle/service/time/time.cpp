@@ -15,10 +15,10 @@
 
 namespace Service::Time {
 
-void PosixToCalendar(u64 posix_time, CalendarTime& calendar_time,
-                     CalendarAdditionalInfo& additional_info, const TimeZoneRule& /*rule*/) {
-    std::time_t time(posix_time);
-    std::tm* tm = std::localtime(&time);
+static void PosixToCalendar(u64 posix_time, CalendarTime& calendar_time,
+                            CalendarAdditionalInfo& additional_info, const TimeZoneRule& /*rule*/) {
+    const std::time_t time(posix_time);
+    const std::tm* tm = std::localtime(&time);
     if (tm == nullptr) {
         return;
     }
@@ -219,8 +219,8 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
                                    std::chrono::system_clock::now().time_since_epoch())
                                    .count()};
     CalendarTime calendar_time{};
-    std::time_t time(time_since_epoch);
-    std::tm* tm = std::localtime(&time);
+    const std::time_t time(time_since_epoch);
+    const std::tm* tm = std::localtime(&time);
     if (tm == nullptr) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultCode(-1)); // TODO(ogniK): Find appropriate error code
