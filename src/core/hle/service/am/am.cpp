@@ -516,31 +516,56 @@ void ICommonStateGetter::GetPerformanceMode(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 }
 
-class IStorageAccessor final : public ServiceFramework<IStorageAccessor> {
+class ILibraryAppletAccessor final : public ServiceFramework<ILibraryAppletAccessor> {
 public:
-    explicit IStorageAccessor(std::vector<u8> buffer)
-        : ServiceFramework("IStorageAccessor"), buffer(std::move(buffer)) {
+    explicit ILibraryAppletAccessor(std::shared_ptr<Applets::Applet> applet)
+        : ServiceFramework("ILibraryAppletAccessor"), applet(std::move(applet)) {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, &IStorageAccessor::GetSize, "GetSize"},
-            {10, &IStorageAccessor::Write, "Write"},
-            {11, &IStorageAccessor::Read, "Read"},
+            {0, &ILibraryAppletAccessor::GetAppletStateChangedEvent, "GetAppletStateChangedEvent"},
+            {1, nullptr, "IsCompleted"},
+            {10, &ILibraryAppletAccessor::Start, "Start"},
+            {20, nullptr, "RequestExit"},
+            {25, nullptr, "Terminate"},
+            {30, &ILibraryAppletAccessor::GetResult, "GetResult"},
+            {50, nullptr, "SetOutOfFocusApplicationSuspendingEnabled"},
+            {100, &ILibraryAppletAccessor::PushInData, "PushInData"},
+            {101, &ILibraryAppletAccessor::PopOutData, "PopOutData"},
+            {102, nullptr, "PushExtraStorage"},
+            {103, &ILibraryAppletAccessor::PushInteractiveInData, "PushInteractiveInData"},
+            {104, &ILibraryAppletAccessor::PopInteractiveOutData, "PopInteractiveOutData"},
+            {105, nullptr, "GetPopOutDataEvent"},
+            {106, &ILibraryAppletAccessor::GetPopInteractiveOutDataEvent, "GetPopInteractiveOutDataEvent"},
+            {110, nullptr, "NeedsToExitProcess"},
+            {120, nullptr, "GetLibraryAppletInfo"},
+            {150, nullptr, "RequestForAppletToGetForeground"},
+            {160, nullptr, "GetIndirectLayerConsumerHandle"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
+
+        auto& kernel = Core::System::GetInstance().Kernel();
+        state_changed_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
+                                                    "ILibraryAppletAccessor:StateChangedEvent");
     }
 
 private:
-    std::vector<u8> buffer;
+    void GetAppletStateChangedEvent(Kernel::HLERequestContext& ctx) {
+        state_changed_event->Signal();
 
-    void GetSize(Kernel::HLERequestContext& ctx) {
-        IPC::ResponseBuilder rb{ctx, 4};
-
+        IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.Push(static_cast<u64>(buffer.size()));
+        rb.PushCopyObjects(state_changed_event);
 
-        LOG_DEBUG(Service_AM, "called");
+        LOG_WARNING(Service_AM, "(STUBBED) called");
+    }
+
+    void GetResult(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+
+        LOG_WARNING(Service_AM, "(STUBBED) called");
     }
 
     void Write(Kernel::HLERequestContext& ctx) {
@@ -551,21 +576,25 @@ private:
 
         ASSERT(offset + data.size() <= buffer.size());
 
-        std::memcpy(&buffer[offset], data.data(), data.size());
+    void PushInData(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        storage_stack.push_back(rp.PopIpcInterface<IStorage>());
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
 
-        LOG_DEBUG(Service_AM, "called, offset={}", offset);
+        LOG_DEBUG(Service_AM, "called");
     }
 
-    void Read(Kernel::HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
+    void PopOutData(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<IStorage>(std::move(storage_stack.back()));
 
-        const u64 offset{rp.Pop<u64>()};
-        const std::size_t size{ctx.GetWriteBufferSize()};
+        storage_stack.pop_back();
 
-        ASSERT(offset + size <= buffer.size());
+        LOG_DEBUG(Service_AM, "called");
+    }
 
         ctx.WriteBuffer(buffer.data() + offset, size);
 
@@ -590,18 +619,21 @@ public:
         RegisterHandlers(functions);
     }
 
-private:
-    std::vector<u8> buffer;
-
-    void Open(Kernel::HLERequestContext& ctx) {
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-
-        rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<AM::IStorageAccessor>(buffer);
-
-        LOG_DEBUG(Service_AM, "called");
-    }
+    std::shared_ptr<Applets::Applet> applet;
+    std::vector<std::shared_ptr<IStorage>> storage_stack;
+    std::vector<std::shared_ptr<IStorage>> interactive_storage_stack;
+    Kernel::SharedPtr<Kernel::Event> state_changed_event;
+    Kernel::SharedPtr<Kernel::Event> pop_interactive_out_data_event;
 };
+
+void IStorage::Open(Kernel::HLERequestContext& ctx) {
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface<IStorageAccessor>(*this);
+
+    LOG_DEBUG(Service_AM, "called");
+}
 
 IStorageAccessor::IStorageAccessor(IStorage& storage)
     : ServiceFramework("IStorageAccessor"), backing(storage) {
