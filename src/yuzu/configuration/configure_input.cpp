@@ -149,6 +149,8 @@ void ConfigureInput::updateUIEnabled() {
     bool hit_disabled = false;
     for (auto* player : players_controller) {
         player->setDisabled(hit_disabled);
+        if (hit_disabled)
+            player->setCurrentIndex(0);
         if (!hit_disabled && player->currentIndex() == 0)
             hit_disabled = true;
     }
