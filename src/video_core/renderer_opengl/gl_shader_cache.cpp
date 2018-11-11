@@ -6,10 +6,10 @@
 #include "core/core.h"
 #include "core/memory.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/utils.h"
-#include "video_core/utils.h"
 
 namespace OpenGL {
 
@@ -134,6 +134,8 @@ GLuint CachedShader::LazyGeometryProgram(OGLProgram& target_program,
     LabelGLObject(GL_PROGRAM, target_program.handle, addr, debug_name);
     return target_program.handle;
 };
+
+ShaderCacheOpenGL::ShaderCacheOpenGL(RasterizerOpenGL& rasterizer) : RasterizerCache{rasterizer} {}
 
 Shader ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
     const VAddr program_addr{GetShaderAddress(program)};

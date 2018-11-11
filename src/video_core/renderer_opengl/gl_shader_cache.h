@@ -16,6 +16,8 @@
 namespace OpenGL {
 
 class CachedShader;
+class RasterizerOpenGL;
+
 using Shader = std::shared_ptr<CachedShader>;
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
@@ -104,6 +106,8 @@ private:
 
 class ShaderCacheOpenGL final : public RasterizerCache<Shader> {
 public:
+    explicit ShaderCacheOpenGL(RasterizerOpenGL& rasterizer);
+
     /// Gets the current specified shader stage program
     Shader GetStageProgram(Maxwell::ShaderProgram program);
 };

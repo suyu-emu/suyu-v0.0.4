@@ -9,10 +9,12 @@
 #include "core/core.h"
 #include "core/memory.h"
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
+#include "video_core/renderer_opengl/gl_rasterizer.h"
 
 namespace OpenGL {
 
-OGLBufferCache::OGLBufferCache(std::size_t size) : stream_buffer(GL_ARRAY_BUFFER, size) {}
+OGLBufferCache::OGLBufferCache(RasterizerOpenGL& rasterizer, std::size_t size)
+    : RasterizerCache{rasterizer}, stream_buffer(GL_ARRAY_BUFFER, size) {}
 
 GLintptr OGLBufferCache::UploadMemory(Tegra::GPUVAddr gpu_addr, std::size_t size,
                                       std::size_t alignment, bool cache) {

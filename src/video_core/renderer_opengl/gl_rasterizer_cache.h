@@ -264,6 +264,8 @@ struct hash<SurfaceReserveKey> {
 
 namespace OpenGL {
 
+class RasterizerOpenGL;
+
 class CachedSurface final : public RasterizerCacheObject {
 public:
     CachedSurface(const SurfaceParams& params);
@@ -311,7 +313,7 @@ private:
 
 class RasterizerCacheOpenGL final : public RasterizerCache<Surface> {
 public:
-    RasterizerCacheOpenGL();
+    explicit RasterizerCacheOpenGL(RasterizerOpenGL& rasterizer);
 
     /// Get a surface based on the texture configuration
     Surface GetTextureSurface(const Tegra::Texture::FullTextureInfo& config,
