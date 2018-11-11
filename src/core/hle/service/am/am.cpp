@@ -533,7 +533,7 @@ public:
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &ILibraryAppletAccessor::GetAppletStateChangedEvent, "GetAppletStateChangedEvent"},
-            {1, nullptr, "IsCompleted"},
+            {1, &ILibraryAppletAccessor::IsCompleted, "IsCompleted"},
             {10, &ILibraryAppletAccessor::Start, "Start"},
             {20, nullptr, "RequestExit"},
             {25, nullptr, "Terminate"},
@@ -576,11 +576,15 @@ private:
         LOG_WARNING(Service_AM, "(STUBBED) called");
     }
 
+    void IsCompleted(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(applet->TransactionComplete());
+    }
+
     void GetResult(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
-
-        LOG_WARNING(Service_AM, "(STUBBED) called");
+        rb.Push(applet->GetStatus());
     }
 
     void Start(Kernel::HLERequestContext& ctx) {
