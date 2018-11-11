@@ -240,7 +240,7 @@ void ConfigureSystem::RefreshConsoleID() {
 
 void ConfigureSystem::SelectUser(const QModelIndex& index) {
     Settings::values.current_user =
-        std::clamp<std::size_t>(index.row(), 0, profile_manager->GetUserCount() - 1);
+        std::clamp<s32>(index.row(), 0, static_cast<s32>(profile_manager->GetUserCount() - 1));
 
     UpdateCurrentUser();
 

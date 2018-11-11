@@ -114,8 +114,8 @@ struct Values {
     // System
     bool use_docked_mode;
     bool enable_nfc;
-    int current_user;
-    int language_index;
+    s32 current_user;
+    s32 language_index;
 
     // Controls
     std::array<std::string, NativeButton::NumButtons> buttons;
