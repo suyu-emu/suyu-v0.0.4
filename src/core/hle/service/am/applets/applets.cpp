@@ -7,23 +7,13 @@
 
 namespace Service::AM::Applets {
 
-std::shared_ptr<Frontend::SoftwareKeyboardApplet> software_keyboard =
-    std::make_shared<Frontend::DefaultSoftwareKeyboardApplet>();
+Applet::Applet() = default;
+
+Applet::~Applet() = default;
 
 void Applet::Initialize(std::vector<std::shared_ptr<IStorage>> storage) {
     storage_stack = std::move(storage);
     initialized = true;
-}
-
-void RegisterSoftwareKeyboard(std::shared_ptr<Frontend::SoftwareKeyboardApplet> applet) {
-    if (applet == nullptr)
-        return;
-
-    software_keyboard = std::move(applet);
-}
-
-std::shared_ptr<Frontend::SoftwareKeyboardApplet> GetSoftwareKeyboard() {
-    return software_keyboard;
 }
 
 } // namespace Service::AM::Applets

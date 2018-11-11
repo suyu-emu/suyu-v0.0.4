@@ -1207,14 +1207,15 @@ static ResultCode CreateTransferMemory(Handle* handle, VAddr addr, u64 size, u32
         return ERR_INVALID_ADDRESS;
     }
 
-    if (addr + size <= addr) {
+    if (!IsValidAddressRange(addr, size)) {
         LOG_ERROR(Kernel_SVC, "Address and size cause overflow! (address={:016X}, size={:016X})",
                   addr, size);
         return ERR_INVALID_ADDRESS_STATE;
     }
 
-    if (permissions > static_cast<u32>(MemoryPermission::ReadWrite) ||
-        permissions == static_cast<u32>(MemoryPermission::Write)) {
+    const auto perms = static_cast<MemoryPermission>(permissions);
+    if (perms != MemoryPermission::None && perms != MemoryPermission::Read &&
+        perms != MemoryPermission::ReadWrite) {
         LOG_ERROR(Kernel_SVC, "Invalid memory permissions for transfer memory! (perms={:08X})",
                   permissions);
         return ERR_INVALID_MEMORY_PERMISSIONS;
@@ -1222,7 +1223,6 @@ static ResultCode CreateTransferMemory(Handle* handle, VAddr addr, u64 size, u32
 
     auto& kernel = Core::System::GetInstance().Kernel();
     auto& handle_table = Core::CurrentProcess()->GetHandleTable();
-    const auto perms = static_cast<MemoryPermission>(permissions);
     const auto shared_mem_handle = SharedMemory::Create(
         kernel, handle_table.Get<Process>(CurrentProcess), size, perms, perms, addr);
 

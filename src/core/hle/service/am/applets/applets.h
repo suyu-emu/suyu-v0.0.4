@@ -20,9 +20,16 @@ namespace Applets {
 
 class Applet {
 public:
+    Applet();
+    virtual ~Applet();
+
     virtual void Initialize(std::vector<std::shared_ptr<IStorage>> storage);
 
     virtual IStorage Execute() = 0;
+
+    bool IsInitialized() const {
+        return initialized;
+    }
 
 protected:
     struct CommonArguments {
@@ -38,9 +45,6 @@ protected:
     std::vector<std::shared_ptr<IStorage>> storage_stack;
     bool initialized = false;
 };
-
-void RegisterSoftwareKeyboard(std::shared_ptr<Frontend::SoftwareKeyboardApplet> applet);
-std::shared_ptr<Frontend::SoftwareKeyboardApplet> GetSoftwareKeyboard();
 
 } // namespace Applets
 } // namespace Service::AM

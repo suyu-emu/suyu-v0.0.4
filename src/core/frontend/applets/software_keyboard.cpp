@@ -3,16 +3,19 @@
 // Refer to the license.txt file included.
 
 #include "common/logging/backend.h"
-#include "common/string_util.h"
 #include "core/frontend/applets/software_keyboard.h"
 
-namespace Frontend {
-bool DefaultSoftwareKeyboardApplet::GetText(Parameters parameters, std::u16string& text) {
+namespace Core::Frontend {
+SoftwareKeyboardApplet::~SoftwareKeyboardApplet() = default;
+
+bool DefaultSoftwareKeyboardApplet::GetText(SoftwareKeyboardParameters parameters,
+                                            std::u16string& text) const {
     if (parameters.initial_text.empty())
-        text = Common::UTF8ToUTF16("yuzu");
+        text = u"yuzu";
     else
         text = parameters.initial_text;
 
     return true;
 }
-} // namespace Frontend
+
+} // namespace Core::Frontend

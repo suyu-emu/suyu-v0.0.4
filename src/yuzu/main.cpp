@@ -561,7 +561,7 @@ bool GMainWindow::LoadROM(const QString& filename) {
 
     system.SetGPUDebugContext(debug_context);
 
-    Service::AM::Applets::RegisterSoftwareKeyboard(std::make_shared<QtSoftwareKeyboard>(*this));
+    system.SetSoftwareKeyboard(std::make_unique<QtSoftwareKeyboard>(*this));
 
     const Core::System::ResultStatus result{system.Load(*render_window, filename.toStdString())};
 
@@ -1232,8 +1232,13 @@ void GMainWindow::OnMenuRecentFile() {
 
 void GMainWindow::OnStartGame() {
     emu_thread->SetRunning(true);
+
+    qRegisterMetaType<Core::Frontend::SoftwareKeyboardParameters>(
+        "core::Frontend::SoftwareKeyboardParameters");
     qRegisterMetaType<Core::System::ResultStatus>("Core::System::ResultStatus");
     qRegisterMetaType<std::string>("std::string");
+    qRegisterMetaType<std::u16string>("std::u16string");
+
     connect(emu_thread.get(), &EmuThread::ErrorThrown, this, &GMainWindow::OnCoreError);
 
     ui.action_Start->setEnabled(false);

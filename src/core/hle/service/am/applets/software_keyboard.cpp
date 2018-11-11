@@ -2,8 +2,10 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cstring>
 #include "common/assert.h"
 #include "common/string_util.h"
+#include "core/core.h"
 #include "core/frontend/applets/software_keyboard.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/software_keyboard.h"
@@ -11,11 +13,13 @@
 namespace Service::AM::Applets {
 
 constexpr std::size_t SWKBD_OUTPUT_BUFFER_SIZE = 0x7D8;
+constexpr std::size_t SWKBD_OUTPUT_INTERACTIVE_BUFFER_SIZE = 0x7D4;
 constexpr std::size_t DEFAULT_MAX_LENGTH = 500;
+constexpr bool INTERACTIVE_STATUS_OK = false;
 
-static Frontend::SoftwareKeyboardApplet::Parameters ConvertToFrontendParameters(
+static Core::Frontend::SoftwareKeyboardParameters ConvertToFrontendParameters(
     KeyboardConfig config, std::u16string initial_text) {
-    Frontend::SoftwareKeyboardApplet::Parameters params{};
+    Core::Frontend::SoftwareKeyboardParameters params{};
 
     params.submit_text = Common::UTF16StringFromFixedZeroTerminatedBuffer(
         config.submit_text.data(), config.submit_text.size());
@@ -33,6 +37,10 @@ static Frontend::SoftwareKeyboardApplet::Parameters ConvertToFrontendParameters(
 
     return params;
 }
+
+SoftwareKeyboard::SoftwareKeyboard() = default;
+
+SoftwareKeyboard::~SoftwareKeyboard() = default;
 
 void SoftwareKeyboard::Initialize(std::vector<std::shared_ptr<IStorage>> storage_) {
     Applet::Initialize(std::move(storage_));

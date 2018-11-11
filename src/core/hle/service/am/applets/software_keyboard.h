@@ -5,6 +5,7 @@
 #pragma once
 
 #include "common/common_funcs.h"
+#include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/applets.h"
 
 namespace Service::AM::Applets {
@@ -45,13 +46,21 @@ static_assert(sizeof(KeyboardConfig) == 0x3E0, "KeyboardConfig has incorrect siz
 
 class SoftwareKeyboard final : public Applet {
 public:
+    SoftwareKeyboard();
+    ~SoftwareKeyboard() override;
+
     void Initialize(std::vector<std::shared_ptr<IStorage>> storage) override;
 
+    bool TransactionComplete() const override;
+    ResultCode GetStatus() const override;
+    void ReceiveInteractiveData(std::shared_ptr<IStorage> storage) override;
     IStorage Execute() override;
 
 private:
     KeyboardConfig config;
     std::u16string initial_text;
+    bool complete = false;
+    std::vector<u8> final_data;
 };
 
 } // namespace Service::AM::Applets

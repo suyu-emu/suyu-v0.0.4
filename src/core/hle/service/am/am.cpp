@@ -501,6 +501,8 @@ IStorage::IStorage(std::vector<u8> buffer)
     RegisterHandlers(functions);
 }
 
+IStorage::~IStorage() = default;
+
 const std::vector<u8>& IStorage::GetData() const {
     return buffer;
 }
@@ -670,6 +672,8 @@ IStorageAccessor::IStorageAccessor(IStorage& storage)
     RegisterHandlers(functions);
 }
 
+IStorageAccessor::~IStorageAccessor() = default;
+
 void IStorageAccessor::GetSize(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 4};
 
@@ -685,7 +689,7 @@ void IStorageAccessor::Write(Kernel::HLERequestContext& ctx) {
     const u64 offset{rp.Pop<u64>()};
     const std::vector<u8> data{ctx.ReadBuffer()};
 
-    const auto size = std::min<std::size_t>(data.size(), backing.buffer.size() - offset);
+    const auto size = std::min(data.size(), backing.buffer.size() - offset);
 
     std::memcpy(&backing.buffer[offset], data.data(), size);
 
@@ -701,7 +705,7 @@ void IStorageAccessor::Read(Kernel::HLERequestContext& ctx) {
     const u64 offset{rp.Pop<u64>()};
     std::size_t size{ctx.GetWriteBufferSize()};
 
-    size = std::min<std::size_t>(size, backing.buffer.size() - offset);
+    size = std::min(size, backing.buffer.size() - offset);
 
     ctx.WriteBuffer(backing.buffer.data() + offset, size);
 
@@ -787,9 +791,9 @@ void ILibraryAppletCreator::CreateTransferMemoryStorage(Kernel::HLERequestContex
         return;
     }
 
-    std::vector<u8> memory(shared_mem->size);
-    std::memcpy(memory.data(), shared_mem->backing_block->data() + shared_mem->backing_block_offset,
-                memory.size());
+    const auto mem_begin = shared_mem->backing_block->begin() + shared_mem->backing_block_offset;
+    const auto mem_end = mem_begin + shared_mem->size;
+    std::vector<u8> memory{mem_begin, mem_end};
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);

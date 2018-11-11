@@ -2,21 +2,20 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <locale>
+#include <algorithm>
 #include <QDialogButtonBox>
 #include <QFont>
 #include <QLabel>
 #include <QLineEdit>
 #include <QVBoxLayout>
-#include "common/logging/backend.h"
-#include "common/string_util.h"
 #include "yuzu/applets/software_keyboard.h"
+#include "yuzu/main.h"
 
 QtSoftwareKeyboardValidator::QtSoftwareKeyboardValidator(
-    Frontend::SoftwareKeyboardApplet::Parameters parameters)
+    Core::Frontend::SoftwareKeyboardParameters parameters)
     : parameters(std::move(parameters)) {}
 
-QValidator::State QtSoftwareKeyboardValidator::validate(QString& input, int&) const {
+QValidator::State QtSoftwareKeyboardValidator::validate(QString& input, int& pos) const {
     if (input.size() > parameters.max_length)
         return Invalid;
     if (parameters.disable_space && input.contains(' '))
@@ -28,18 +27,20 @@ QValidator::State QtSoftwareKeyboardValidator::validate(QString& input, int&) co
     if (parameters.disable_slash && (input.contains('/') || input.contains('\\')))
         return Invalid;
     if (parameters.disable_number &&
-        std::any_of(input.begin(), input.end(), [](QChar c) { return c.isDigit(); }))
+        std::any_of(input.begin(), input.end(), [](QChar c) { return c.isDigit(); })) {
         return Invalid;
+    }
 
     if (parameters.disable_download_code &&
-        std::any_of(input.begin(), input.end(), [](QChar c) { return c == 'O' || c == 'I'; }))
+        std::any_of(input.begin(), input.end(), [](QChar c) { return c == 'O' || c == 'I'; })) {
         return Invalid;
+    }
 
     return Acceptable;
 }
 
 QtSoftwareKeyboardDialog::QtSoftwareKeyboardDialog(
-    QWidget* parent, Frontend::SoftwareKeyboardApplet::Parameters parameters_)
+    QWidget* parent, Core::Frontend::SoftwareKeyboardParameters parameters_)
     : QDialog(parent), parameters(std::move(parameters_)) {
     layout = new QVBoxLayout;
 
@@ -79,8 +80,10 @@ QtSoftwareKeyboardDialog::QtSoftwareKeyboardDialog(
     layout->addWidget(line_edit);
     layout->addWidget(buttons);
     setLayout(layout);
-    setWindowTitle("Software Keyboard");
+    setWindowTitle(tr("Software Keyboard"));
 }
+
+QtSoftwareKeyboardDialog::~QtSoftwareKeyboardDialog() = default;
 
 void QtSoftwareKeyboardDialog::Submit() {
     ok = true;
@@ -90,19 +93,33 @@ void QtSoftwareKeyboardDialog::Submit() {
 
 void QtSoftwareKeyboardDialog::Reject() {
     ok = false;
-    text = Common::UTF8ToUTF16("");
+    text.clear();
     accept();
 }
 
-QtSoftwareKeyboard::QtSoftwareKeyboard(QWidget& parent) : parent(parent) {}
+std::u16string QtSoftwareKeyboardDialog::GetText() {
+    return text;
+}
 
-bool QtSoftwareKeyboard::GetText(Parameters parameters, std::u16string& text) {
-    QtSoftwareKeyboardDialog dialog(&parent, parameters);
-    dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
-                          Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
-    dialog.setWindowModality(Qt::WindowModal);
-    dialog.exec();
+bool QtSoftwareKeyboardDialog::GetStatus() {
+    return ok;
+}
 
-    text = dialog.text;
-    return dialog.ok;
+QtSoftwareKeyboard::QtSoftwareKeyboard(GMainWindow& parent) : main_window(parent) {}
+
+QtSoftwareKeyboard::~QtSoftwareKeyboard() = default;
+
+bool QtSoftwareKeyboard::GetText(Core::Frontend::SoftwareKeyboardParameters parameters,
+                                 std::u16string& text) const {
+    bool success;
+    QMetaObject::invokeMethod(&main_window, "SoftwareKeyboardGetText", Qt::BlockingQueuedConnection,
+                              Q_RETURN_ARG(bool, success),
+                              Q_ARG(Core::Frontend::SoftwareKeyboardParameters, parameters),
+                              Q_ARG(std::u16string&, text));
+    return success;
+}
+
+void QtSoftwareKeyboard::SendTextCheckDialog(std::u16string error_message) const {
+    QMetaObject::invokeMethod(&main_window, "SoftwareKeyboardInvokeCheckDialog",
+                              Qt::BlockingQueuedConnection, Q_ARG(std::u16string, error_message));
 }

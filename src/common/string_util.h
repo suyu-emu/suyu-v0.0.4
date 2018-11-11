@@ -68,10 +68,10 @@ std::string StringFromFixedZeroTerminatedBuffer(const char* buffer, std::size_t 
 
 /**
  * Creates a UTF-16 std::u16string from a fixed-size NUL-terminated char buffer. If the buffer isn't
- * NUL-terminated, then the string ends at the greatest multiple of two less then or equal to
+ * null-terminated, then the string ends at the greatest multiple of two less then or equal to
  * max_len_bytes.
  */
-std::u16string UTF16StringFromFixedZeroTerminatedBuffer(const char16_t* buffer,
+std::u16string UTF16StringFromFixedZeroTerminatedBuffer(std::u16string_view buffer,
                                                         std::size_t max_len);
 
 /**

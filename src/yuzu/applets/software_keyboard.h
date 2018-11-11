@@ -3,11 +3,13 @@
 // Refer to the license.txt file included.
 
 #pragma once
+
 #include <QDialog>
 #include <QValidator>
 #include "common/assert.h"
 #include "core/frontend/applets/software_keyboard.h"
 
+class GMainWindow;
 class QDialogButtonBox;
 class QLabel;
 class QLineEdit;
@@ -16,11 +18,11 @@ class QtSoftwareKeyboard;
 
 class QtSoftwareKeyboardValidator final : public QValidator {
 public:
-    explicit QtSoftwareKeyboardValidator(Frontend::SoftwareKeyboardApplet::Parameters parameters);
-    State validate(QString&, int&) const override;
+    explicit QtSoftwareKeyboardValidator(Core::Frontend::SoftwareKeyboardParameters parameters);
+    State validate(QString& input, int& pos) const override;
 
 private:
-    Frontend::SoftwareKeyboardApplet::Parameters parameters;
+    Core::Frontend::SoftwareKeyboardParameters parameters;
 };
 
 class QtSoftwareKeyboardDialog final : public QDialog {
@@ -28,9 +30,14 @@ class QtSoftwareKeyboardDialog final : public QDialog {
 
 public:
     QtSoftwareKeyboardDialog(QWidget* parent,
-                             Frontend::SoftwareKeyboardApplet::Parameters parameters);
+                             Core::Frontend::SoftwareKeyboardParameters parameters);
+    ~QtSoftwareKeyboardDialog() override;
+
     void Submit();
     void Reject();
+
+    std::u16string GetText();
+    bool GetStatus();
 
 private:
     bool ok = false;
@@ -43,20 +50,18 @@ private:
     QLineEdit* line_edit;
     QVBoxLayout* layout;
 
-    Frontend::SoftwareKeyboardApplet::Parameters parameters;
-
-    friend class QtSoftwareKeyboard;
+    Core::Frontend::SoftwareKeyboardParameters parameters;
 };
 
-class QtSoftwareKeyboard final : public QObject, public Frontend::SoftwareKeyboardApplet {
+class QtSoftwareKeyboard final : public QObject, public Core::Frontend::SoftwareKeyboardApplet {
 public:
-    explicit QtSoftwareKeyboard(QWidget& parent);
-    bool GetText(Parameters parameters, std::u16string& text) override;
+    explicit QtSoftwareKeyboard(GMainWindow& parent);
+    ~QtSoftwareKeyboard() override;
 
-    ~QtSoftwareKeyboard() {
-        UNREACHABLE();
-    }
+    bool GetText(Core::Frontend::SoftwareKeyboardParameters parameters,
+                 std::u16string& text) const override;
+    void SendTextCheckDialog(std::u16string error_message) const override;
 
 private:
-    QWidget& parent;
+    GMainWindow& main_window;
 };
