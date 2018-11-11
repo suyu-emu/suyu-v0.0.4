@@ -117,21 +117,21 @@ private:
     // We don't delete it because we want BitField to be trivially copyable.
     constexpr BitField& operator=(const BitField&) = default;
 
-    // StorageType is T for non-enum types and the underlying type of T if
+    // UnderlyingType is T for non-enum types and the underlying type of T if
     // T is an enumeration. Note that T is wrapped within an enable_if in the
     // former case to workaround compile errors which arise when using
     // std::underlying_type<T>::type directly.
-    using StorageType = typename std::conditional_t<std::is_enum<T>::value, std::underlying_type<T>,
-                                                    std::enable_if<true, T>>::type;
+    using UnderlyingType = typename std::conditional_t<std::is_enum_v<T>, std::underlying_type<T>,
+                                                       std::enable_if<true, T>>::type;
 
-    // Unsigned version of StorageType
-    using StorageTypeU = std::make_unsigned_t<StorageType>;
+    // We store the value as the unsigned type to avoid undefined behaviour on value shifting
+    using StorageType = std::make_unsigned_t<UnderlyingType>;
 
 public:
     /// Constants to allow limited introspection of fields if needed
     static constexpr std::size_t position = Position;
     static constexpr std::size_t bits = Bits;
-    static constexpr StorageType mask = (((StorageTypeU)~0) >> (8 * sizeof(T) - bits)) << position;
+    static constexpr StorageType mask = (((StorageType)~0) >> (8 * sizeof(T) - bits)) << position;
 
     /**
      * Formats a value by masking and shifting it according to the field parameters. A value
@@ -148,11 +148,12 @@ public:
      * union in a constexpr context.
      */
     static constexpr FORCE_INLINE T ExtractValue(const StorageType& storage) {
-        if (std::numeric_limits<T>::is_signed) {
+        if constexpr (std::numeric_limits<UnderlyingType>::is_signed) {
             std::size_t shift = 8 * sizeof(T) - bits;
-            return (T)((storage << (shift - position)) >> shift);
+            return static_cast<T>(static_cast<UnderlyingType>(storage << (shift - position)) >>
+                                  shift);
         } else {
-            return (T)((storage & mask) >> position);
+            return static_cast<T>((storage & mask) >> position);
         }
     }
 
