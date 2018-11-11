@@ -494,10 +494,10 @@ public:
             // instruction for now.
             if (stage == Maxwell3D::Regs::ShaderStage::Geometry) {
                 // TODO(Rodrigo): nouveau sets some attributes after setting emitting a geometry
-                // shader. These instructions use a dirty register as buffer index. To avoid some
-                // drivers from complaining for the out of boundary writes, guard them.
-                const std::string buf_index{"min(" + GetRegisterAsInteger(buf_reg) + ", " +
-                                            std::to_string(MAX_GEOMETRY_BUFFERS - 1) + ')'};
+                // shader. These instructions use a dirty register as buffer index, to avoid some
+                // drivers from complaining about out of boundary writes, guard them.
+                const std::string buf_index{"((" + GetRegisterAsInteger(buf_reg) + ") % " +
+                                            std::to_string(MAX_GEOMETRY_BUFFERS) + ')'};
                 shader.AddLine("amem[" + buf_index + "][" +
                                std::to_string(static_cast<u32>(attribute)) + ']' +
                                GetSwizzle(elem) + " = " + src + ';');
@@ -811,7 +811,11 @@ private:
                                   std::optional<Register> vertex = {}) {
         auto GeometryPass = [&](const std::string& name) {
             if (stage == Maxwell3D::Regs::ShaderStage::Geometry && vertex) {
-                return "gs_" + name + '[' + GetRegisterAsInteger(*vertex, 0, false) + ']';
+                // TODO(Rodrigo): Guard geometry inputs against out of bound reads. Some games set
+                // an 0x80000000 index for those and the shader fails to build. Find out why this
+                // happens and what's its intent.
+                return "gs_" + name + '[' + GetRegisterAsInteger(*vertex, 0, false) +
+                       " % MAX_VERTEX_INPUT]";
             }
             return name;
         };
