@@ -8,6 +8,8 @@
 #include <vector>
 #include "common/swap.h"
 
+union ResultCode;
+
 namespace Frontend {
 class SoftwareKeyboardApplet;
 }
@@ -25,6 +27,9 @@ public:
 
     virtual void Initialize(std::vector<std::shared_ptr<IStorage>> storage);
 
+    virtual bool TransactionComplete() const = 0;
+    virtual ResultCode GetStatus() const = 0;
+    virtual void ReceiveInteractiveData(std::shared_ptr<IStorage> storage) = 0;
     virtual IStorage Execute() = 0;
 
     bool IsInitialized() const {

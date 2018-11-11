@@ -50,28 +50,77 @@ void SoftwareKeyboard::Initialize(std::vector<std::shared_ptr<IStorage>> storage
     ASSERT(keyboard_config.size() >= sizeof(KeyboardConfig));
     std::memcpy(&config, keyboard_config.data(), sizeof(KeyboardConfig));
 
-    ASSERT_MSG(config.text_check == 0, "Text check software keyboard mode is not implemented!");
-
     const auto& work_buffer = storage_stack[2]->GetData();
-    std::memcpy(initial_text.data(), work_buffer.data() + config.initial_string_offset,
-                config.initial_string_size);
+
+    if (config.initial_string_size == 0)
+        return;
+
+    std::vector<char16_t> string(config.initial_string_size);
+    std::memcpy(string.data(), work_buffer.data() + 4, string.size() * 2);
+    initial_text = Common::UTF16StringFromFixedZeroTerminatedBuffer(string.data(), string.size());
+}
+
+bool SoftwareKeyboard::TransactionComplete() const {
+    return complete;
+}
+
+ResultCode SoftwareKeyboard::GetStatus() const {
+    return RESULT_SUCCESS;
+}
+
+void SoftwareKeyboard::ReceiveInteractiveData(std::shared_ptr<IStorage> storage) {
+    if (complete)
+        return;
+
+    const auto data = storage->GetData();
+    const auto status = static_cast<bool>(data[0]);
+
+    if (status == INTERACTIVE_STATUS_OK) {
+        complete = true;
+    } else {
+        const auto& frontend{Core::System::GetInstance().GetSoftwareKeyboard()};
+
+        std::array<char16_t, SWKBD_OUTPUT_INTERACTIVE_BUFFER_SIZE / 2 - 2> string;
+        std::memcpy(string.data(), data.data() + 4, string.size() * 2);
+        frontend.SendTextCheckDialog(
+            Common::UTF16StringFromFixedZeroTerminatedBuffer(string.data(), string.size()));
+    }
 }
 
 IStorage SoftwareKeyboard::Execute() {
-    const auto frontend{GetSoftwareKeyboard()};
-    ASSERT(frontend != nullptr);
+    if (complete)
+        return IStorage{final_data};
+
+    const auto& frontend{Core::System::GetInstance().GetSoftwareKeyboard()};
 
     const auto parameters = ConvertToFrontendParameters(config, initial_text);
 
     std::u16string text;
-    const auto success = frontend->GetText(parameters, text);
+    const auto success = frontend.GetText(parameters, text);
 
     std::vector<u8> output(SWKBD_OUTPUT_BUFFER_SIZE);
 
     if (success) {
-        output[0] = 1;
+        if (config.text_check) {
+            const auto size = static_cast<u32>(text.size() * 2 + 4);
+            std::memcpy(output.data(), &size, sizeof(u32));
+        } else {
+            output[0] = 1;
+        }
+
         std::memcpy(output.data() + 4, text.data(),
-                    std::min<std::size_t>(text.size() * 2, SWKBD_OUTPUT_BUFFER_SIZE - 4));
+                    std::min(text.size() * 2, SWKBD_OUTPUT_BUFFER_SIZE - 4));
+    } else {
+        complete = true;
+        final_data = std::move(output);
+        return IStorage{final_data};
+    }
+
+    complete = !config.text_check;
+
+    if (complete) {
+        final_data = std::move(output);
+        return IStorage{final_data};
     }
 
     return IStorage{output};

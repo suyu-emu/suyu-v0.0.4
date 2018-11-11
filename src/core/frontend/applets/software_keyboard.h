@@ -36,11 +36,13 @@ public:
     virtual ~SoftwareKeyboardApplet();
 
     virtual bool GetText(SoftwareKeyboardParameters parameters, std::u16string& text) const = 0;
+    virtual void SendTextCheckDialog(std::u16string error_message) const = 0;
 };
 
 class DefaultSoftwareKeyboardApplet final : public SoftwareKeyboardApplet {
 public:
     bool GetText(SoftwareKeyboardParameters parameters, std::u16string& text) const override;
+    void SendTextCheckDialog(std::u16string error_message) const override;
 };
 
 } // namespace Core::Frontend

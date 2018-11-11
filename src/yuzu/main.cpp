@@ -61,6 +61,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/savedata_factory.h"
 #include "core/file_sys/submission_package.h"
+#include "core/frontend/applets/software_keyboard.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/filesystem/fsp_ldr.h"
@@ -204,6 +205,22 @@ GMainWindow::~GMainWindow() {
     // will get automatically deleted otherwise
     if (render_window->parent() == nullptr)
         delete render_window;
+}
+
+bool GMainWindow::SoftwareKeyboardGetText(
+    const Core::Frontend::SoftwareKeyboardParameters& parameters, std::u16string& text) {
+    QtSoftwareKeyboardDialog dialog(this, parameters);
+    dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
+                          Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
+    dialog.setWindowModality(Qt::WindowModal);
+    dialog.exec();
+
+    text = dialog.GetText();
+    return dialog.GetStatus();
+}
+
+void GMainWindow::SoftwareKeyboardInvokeCheckDialog(std::u16string error_message) {
+    QMessageBox::warning(this, tr("Text Check Failed"), QString::fromStdU16String(error_message));
 }
 
 void GMainWindow::InitializeWidgets() {

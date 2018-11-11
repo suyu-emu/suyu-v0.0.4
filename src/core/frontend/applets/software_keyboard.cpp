@@ -18,4 +18,10 @@ bool DefaultSoftwareKeyboardApplet::GetText(SoftwareKeyboardParameters parameter
     return true;
 }
 
+void DefaultSoftwareKeyboardApplet::SendTextCheckDialog(std::u16string error_message) const {
+    LOG_WARNING(Service_AM,
+                "(STUBBED) called - Default fallback software keyboard does not support text "
+                "check! (error_message={})",
+                Common::UTF16ToUTF8(error_message));
+}
 } // namespace Core::Frontend

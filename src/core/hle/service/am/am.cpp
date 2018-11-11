@@ -544,7 +544,7 @@ public:
             {102, nullptr, "PushExtraStorage"},
             {103, &ILibraryAppletAccessor::PushInteractiveInData, "PushInteractiveInData"},
             {104, &ILibraryAppletAccessor::PopInteractiveOutData, "PopInteractiveOutData"},
-            {105, nullptr, "GetPopOutDataEvent"},
+            {105, &ILibraryAppletAccessor::GetPopOutDataEvent, "GetPopOutDataEvent"},
             {106, &ILibraryAppletAccessor::GetPopInteractiveOutDataEvent, "GetPopInteractiveOutDataEvent"},
             {110, nullptr, "NeedsToExitProcess"},
             {120, nullptr, "GetLibraryAppletInfo"},
@@ -558,6 +558,8 @@ public:
         auto& kernel = Core::System::GetInstance().Kernel();
         state_changed_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
                                                     "ILibraryAppletAccessor:StateChangedEvent");
+        pop_out_data_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
+                                                   "ILibraryAppletAccessor:PopDataOutEvent");
         pop_interactive_out_data_event =
             Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
                                   "ILibraryAppletAccessor:PopInteractiveDataOutEvent");
@@ -585,9 +587,16 @@ private:
         ASSERT(applet != nullptr);
 
         applet->Initialize(storage_stack);
-        interactive_storage_stack.push_back(std::make_shared<IStorage>(applet->Execute()));
+        const auto data = std::make_shared<IStorage>(applet->Execute());
         state_changed_event->Signal();
-        pop_interactive_out_data_event->Signal();
+
+        if (applet->TransactionComplete()) {
+            storage_stack.push_back(data);
+            pop_out_data_event->Signal();
+        } else {
+            interactive_storage_stack.push_back(data);
+            pop_interactive_out_data_event->Signal();
+        }
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
@@ -617,6 +626,19 @@ private:
         IPC::RequestParser rp{ctx};
         interactive_storage_stack.push_back(rp.PopIpcInterface<IStorage>());
 
+        ASSERT(applet->IsInitialized());
+        applet->ReceiveInteractiveData(interactive_storage_stack.back());
+        const auto data = std::make_shared<IStorage>(applet->Execute());
+        state_changed_event->Signal();
+
+        if (applet->TransactionComplete()) {
+            storage_stack.push_back(data);
+            pop_out_data_event->Signal();
+        } else {
+            interactive_storage_stack.push_back(data);
+            pop_interactive_out_data_event->Signal();
+        }
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
 
@@ -633,9 +655,13 @@ private:
         LOG_DEBUG(Service_AM, "called");
     }
 
-    void GetPopInteractiveOutDataEvent(Kernel::HLERequestContext& ctx) {
-        pop_interactive_out_data_event->Signal();
+    void GetPopOutDataEvent(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushCopyObjects(pop_out_data_event);
+    }
 
+    void GetPopInteractiveOutDataEvent(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(pop_interactive_out_data_event);
@@ -647,6 +673,7 @@ private:
     std::vector<std::shared_ptr<IStorage>> storage_stack;
     std::vector<std::shared_ptr<IStorage>> interactive_storage_stack;
     Kernel::SharedPtr<Kernel::Event> state_changed_event;
+    Kernel::SharedPtr<Kernel::Event> pop_out_data_event;
     Kernel::SharedPtr<Kernel::Event> pop_interactive_out_data_event;
 };
 
