@@ -919,8 +919,8 @@ void RasterizerOpenGL::SyncViewport() {
         auto& viewport = state.viewports[i];
         viewport.x = viewport_rect.left;
         viewport.y = viewport_rect.bottom;
-        viewport.width = static_cast<GLsizei>(viewport_rect.GetWidth());
-        viewport.height = static_cast<GLsizei>(viewport_rect.GetHeight());
+        viewport.width = static_cast<GLfloat>(viewport_rect.GetWidth());
+        viewport.height = static_cast<GLfloat>(viewport_rect.GetHeight());
         viewport.depth_range_far = regs.viewport[i].depth_range_far;
         viewport.depth_range_near = regs.viewport[i].depth_range_near;
     }
