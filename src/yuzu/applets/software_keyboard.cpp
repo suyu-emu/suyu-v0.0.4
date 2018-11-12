@@ -97,11 +97,11 @@ void QtSoftwareKeyboardDialog::Reject() {
     accept();
 }
 
-std::u16string QtSoftwareKeyboardDialog::GetText() {
+std::u16string QtSoftwareKeyboardDialog::GetText() const {
     return text;
 }
 
-bool QtSoftwareKeyboardDialog::GetStatus() {
+bool QtSoftwareKeyboardDialog::GetStatus() const {
     return ok;
 }
 
@@ -109,13 +109,12 @@ QtSoftwareKeyboard::QtSoftwareKeyboard(GMainWindow& parent) : main_window(parent
 
 QtSoftwareKeyboard::~QtSoftwareKeyboard() = default;
 
-bool QtSoftwareKeyboard::GetText(Core::Frontend::SoftwareKeyboardParameters parameters,
-                                 std::u16string& text) const {
-    bool success;
+std::optional<std::u16string> QtSoftwareKeyboard::GetText(
+    Core::Frontend::SoftwareKeyboardParameters parameters) const {
+    std::optional<std::u16string> success;
     QMetaObject::invokeMethod(&main_window, "SoftwareKeyboardGetText", Qt::BlockingQueuedConnection,
-                              Q_RETURN_ARG(bool, success),
-                              Q_ARG(Core::Frontend::SoftwareKeyboardParameters, parameters),
-                              Q_ARG(std::u16string&, text));
+                              Q_RETURN_ARG(std::optional<std::u16string>, success),
+                              Q_ARG(Core::Frontend::SoftwareKeyboardParameters, parameters));
     return success;
 }
 

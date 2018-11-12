@@ -566,6 +566,16 @@ public:
     }
 
 private:
+    void AppletStorageProxyOutData(IStorage storage) {
+        storage_stack.push_back(std::make_shared<IStorage>(storage));
+        pop_out_data_event->Signal();
+    }
+
+    void AppletStorageProxyOutInteractiveData(IStorage storage) {
+        interactive_storage_stack.push_back(std::make_shared<IStorage>(storage));
+        pop_interactive_out_data_event->Signal();
+    }
+
     void GetAppletStateChangedEvent(Kernel::HLERequestContext& ctx) {
         state_changed_event->Signal();
 
@@ -591,16 +601,10 @@ private:
         ASSERT(applet != nullptr);
 
         applet->Initialize(storage_stack);
-        const auto data = std::make_shared<IStorage>(applet->Execute());
+        applet->Execute(
+            [this](IStorage storage) { AppletStorageProxyOutData(storage); },
+            [this](IStorage storage) { AppletStorageProxyOutInteractiveData(storage); });
         state_changed_event->Signal();
-
-        if (applet->TransactionComplete()) {
-            storage_stack.push_back(data);
-            pop_out_data_event->Signal();
-        } else {
-            interactive_storage_stack.push_back(data);
-            pop_interactive_out_data_event->Signal();
-        }
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
@@ -632,16 +636,10 @@ private:
 
         ASSERT(applet->IsInitialized());
         applet->ReceiveInteractiveData(interactive_storage_stack.back());
-        const auto data = std::make_shared<IStorage>(applet->Execute());
+        applet->Execute(
+            [this](IStorage storage) { AppletStorageProxyOutData(storage); },
+            [this](IStorage storage) { AppletStorageProxyOutInteractiveData(storage); });
         state_changed_event->Signal();
-
-        if (applet->TransactionComplete()) {
-            storage_stack.push_back(data);
-            pop_out_data_event->Signal();
-        } else {
-            interactive_storage_stack.push_back(data);
-            pop_interactive_out_data_event->Signal();
-        }
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);

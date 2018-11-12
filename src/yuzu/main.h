@@ -100,8 +100,8 @@ signals:
     void UpdateThemedIcons();
 
 public slots:
-    bool SoftwareKeyboardGetText(const Core::Frontend::SoftwareKeyboardParameters& parameters,
-                                 std::u16string& text);
+    std::optional<std::u16string> SoftwareKeyboardGetText(
+        const Core::Frontend::SoftwareKeyboardParameters& parameters);
     void SoftwareKeyboardInvokeCheckDialog(std::u16string error_message);
 
 private:

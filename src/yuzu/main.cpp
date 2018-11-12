@@ -207,16 +207,18 @@ GMainWindow::~GMainWindow() {
         delete render_window;
 }
 
-bool GMainWindow::SoftwareKeyboardGetText(
-    const Core::Frontend::SoftwareKeyboardParameters& parameters, std::u16string& text) {
+std::optional<std::u16string> GMainWindow::SoftwareKeyboardGetText(
+    const Core::Frontend::SoftwareKeyboardParameters& parameters) {
     QtSoftwareKeyboardDialog dialog(this, parameters);
     dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
                           Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
     dialog.setWindowModality(Qt::WindowModal);
     dialog.exec();
 
-    text = dialog.GetText();
-    return dialog.GetStatus();
+    if (!dialog.GetStatus())
+        return std::nullopt;
+
+    return dialog.GetText();
 }
 
 void GMainWindow::SoftwareKeyboardInvokeCheckDialog(std::u16string error_message) {
@@ -1251,10 +1253,10 @@ void GMainWindow::OnStartGame() {
     emu_thread->SetRunning(true);
 
     qRegisterMetaType<Core::Frontend::SoftwareKeyboardParameters>(
-        "core::Frontend::SoftwareKeyboardParameters");
+        "Core::Frontend::SoftwareKeyboardParameters");
     qRegisterMetaType<Core::System::ResultStatus>("Core::System::ResultStatus");
     qRegisterMetaType<std::string>("std::string");
-    qRegisterMetaType<std::u16string>("std::u16string");
+    qRegisterMetaType<std::optional<std::u16string>>("std::optional<std::u16string>");
 
     connect(emu_thread.get(), &EmuThread::ErrorThrown, this, &GMainWindow::OnCoreError);
 

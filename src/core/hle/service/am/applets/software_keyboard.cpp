@@ -87,42 +87,37 @@ void SoftwareKeyboard::ReceiveInteractiveData(std::shared_ptr<IStorage> storage)
     }
 }
 
-IStorage SoftwareKeyboard::Execute() {
+void SoftwareKeyboard::Execute(AppletStorageProxyFunction out_data,
+                               AppletStorageProxyFunction out_interactive_data) {
     if (complete)
-        return IStorage{final_data};
+        return;
 
     const auto& frontend{Core::System::GetInstance().GetSoftwareKeyboard()};
 
     const auto parameters = ConvertToFrontendParameters(config, initial_text);
 
-    std::u16string text;
-    const auto success = frontend.GetText(parameters, text);
+    const auto res = frontend.GetText(parameters);
 
     std::vector<u8> output(SWKBD_OUTPUT_BUFFER_SIZE);
 
-    if (success) {
+    if (res.has_value()) {
         if (config.text_check) {
-            const auto size = static_cast<u32>(text.size() * 2 + 4);
+            const auto size = static_cast<u32>(res->size() * 2 + 4);
             std::memcpy(output.data(), &size, sizeof(u32));
         } else {
             output[0] = 1;
         }
 
-        std::memcpy(output.data() + 4, text.data(),
-                    std::min(text.size() * 2, SWKBD_OUTPUT_BUFFER_SIZE - 4));
+        std::memcpy(output.data() + 4, res->data(),
+                    std::min(res->size() * 2, SWKBD_OUTPUT_BUFFER_SIZE - 4));
     } else {
         complete = true;
-        final_data = std::move(output);
-        return IStorage{final_data};
+        out_data(IStorage{output});
+        return;
     }
 
     complete = !config.text_check;
 
-    if (complete) {
-        final_data = std::move(output);
-        return IStorage{final_data};
-    }
-
-    return IStorage{output};
+    (complete ? out_data : out_interactive_data)(IStorage{output});
 }
 } // namespace Service::AM::Applets

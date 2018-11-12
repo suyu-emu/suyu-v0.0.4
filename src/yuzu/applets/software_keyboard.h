@@ -36,8 +36,8 @@ public:
     void Submit();
     void Reject();
 
-    std::u16string GetText();
-    bool GetStatus();
+    std::u16string GetText() const;
+    bool GetStatus() const;
 
 private:
     bool ok = false;
@@ -58,8 +58,8 @@ public:
     explicit QtSoftwareKeyboard(GMainWindow& parent);
     ~QtSoftwareKeyboard() override;
 
-    bool GetText(Core::Frontend::SoftwareKeyboardParameters parameters,
-                 std::u16string& text) const override;
+    std::optional<std::u16string> GetText(
+        Core::Frontend::SoftwareKeyboardParameters parameters) const override;
     void SendTextCheckDialog(std::u16string error_message) const override;
 
 private:

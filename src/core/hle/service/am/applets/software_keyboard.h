@@ -54,7 +54,8 @@ public:
     bool TransactionComplete() const override;
     ResultCode GetStatus() const override;
     void ReceiveInteractiveData(std::shared_ptr<IStorage> storage) override;
-    IStorage Execute() override;
+    void Execute(AppletStorageProxyFunction out_data,
+                 AppletStorageProxyFunction out_interactive_data) override;
 
 private:
     KeyboardConfig config;

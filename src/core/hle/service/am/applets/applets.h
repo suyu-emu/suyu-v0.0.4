@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <vector>
 #include "common/swap.h"
@@ -20,6 +21,8 @@ class IStorage;
 
 namespace Applets {
 
+using AppletStorageProxyFunction = std::function<void(IStorage)>;
+
 class Applet {
 public:
     Applet();
@@ -30,7 +33,8 @@ public:
     virtual bool TransactionComplete() const = 0;
     virtual ResultCode GetStatus() const = 0;
     virtual void ReceiveInteractiveData(std::shared_ptr<IStorage> storage) = 0;
-    virtual IStorage Execute() = 0;
+    virtual void Execute(AppletStorageProxyFunction out_data,
+                         AppletStorageProxyFunction out_interactive_data) = 0;
 
     bool IsInitialized() const {
         return initialized;

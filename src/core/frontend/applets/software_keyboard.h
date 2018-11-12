@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 #include "common/bit_field.h"
 #include "common/common_types.h"
@@ -35,13 +36,13 @@ class SoftwareKeyboardApplet {
 public:
     virtual ~SoftwareKeyboardApplet();
 
-    virtual bool GetText(SoftwareKeyboardParameters parameters, std::u16string& text) const = 0;
+    virtual std::optional<std::u16string> GetText(SoftwareKeyboardParameters parameters) const = 0;
     virtual void SendTextCheckDialog(std::u16string error_message) const = 0;
 };
 
 class DefaultSoftwareKeyboardApplet final : public SoftwareKeyboardApplet {
 public:
-    bool GetText(SoftwareKeyboardParameters parameters, std::u16string& text) const override;
+    std::optional<std::u16string> GetText(SoftwareKeyboardParameters parameters) const override;
     void SendTextCheckDialog(std::u16string error_message) const override;
 };
 
