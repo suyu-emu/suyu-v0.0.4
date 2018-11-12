@@ -168,20 +168,29 @@ struct TICEntry {
 
         // High 16 bits of the pitch value
         BitField<0, 16, u32> pitch_high;
-
+        BitField<26, 1, u32> use_header_opt_control;
+        BitField<27, 1, u32> depth_texture;
         BitField<28, 4, u32> max_mip_level;
     };
     union {
         BitField<0, 16, u32> width_minus_1;
         BitField<22, 1, u32> srgb_conversion;
         BitField<23, 4, TextureType> texture_type;
+        BitField<29, 3, u32> border_size;
     };
     union {
         BitField<0, 16, u32> height_minus_1;
         BitField<16, 15, u32> depth_minus_1;
     };
+    union {
+        BitField<6, 13, u32> mip_lod_bias;
+        BitField<27, 3, u32> max_anisotropy;
+    };
 
-    INSERT_PADDING_BYTES(8);
+    union {
+        BitField<0, 4, u32> res_min_mip_level;
+        BitField<4, 4, u32> res_max_mip_level;
+    };
 
     GPUVAddr Address() const {
         return static_cast<GPUVAddr>((static_cast<GPUVAddr>(address_high) << 32) | address_low);

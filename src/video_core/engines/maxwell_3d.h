@@ -345,6 +345,14 @@ public:
             Invert = 6,
             IncrWrap = 7,
             DecrWrap = 8,
+            KeepOGL = 0x1E00,
+            ZeroOGL = 0,
+            ReplaceOGL = 0x1E01,
+            IncrOGL = 0x1E02,
+            DecrOGL = 0x1E03,
+            InvertOGL = 0x150A,
+            IncrWrapOGL = 0x8507,
+            DecrWrapOGL = 0x8508,
         };
 
         enum class MemoryLayout : u32 {

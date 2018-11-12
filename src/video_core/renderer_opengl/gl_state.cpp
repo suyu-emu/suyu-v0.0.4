@@ -427,7 +427,7 @@ void OpenGLState::ApplySamplers() const {
     }
 }
 
-void OpenGLState::Apply() const {
+void OpenGLState::ApplyFramebufferState() const {
     // Framebuffer
     if (draw.read_framebuffer != cur_state.draw.read_framebuffer) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, draw.read_framebuffer);
@@ -435,7 +435,9 @@ void OpenGLState::Apply() const {
     if (draw.draw_framebuffer != cur_state.draw.draw_framebuffer) {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, draw.draw_framebuffer);
     }
+}
 
+void OpenGLState::ApplyVertexBufferState() const {
     // Vertex array
     if (draw.vertex_array != cur_state.draw.vertex_array) {
         glBindVertexArray(draw.vertex_array);
@@ -445,7 +447,11 @@ void OpenGLState::Apply() const {
     if (draw.vertex_buffer != cur_state.draw.vertex_buffer) {
         glBindBuffer(GL_ARRAY_BUFFER, draw.vertex_buffer);
     }
+}
 
+void OpenGLState::Apply() const {
+    ApplyFramebufferState();
+    ApplyVertexBufferState();
     // Uniform buffer
     if (draw.uniform_buffer != cur_state.draw.uniform_buffer) {
         glBindBuffer(GL_UNIFORM_BUFFER, draw.uniform_buffer);

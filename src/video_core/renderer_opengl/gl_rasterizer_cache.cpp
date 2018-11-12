@@ -580,7 +580,7 @@ static bool BlitSurface(const Surface& src_surface, const Surface& dst_surface,
     state.draw.draw_framebuffer = draw_fb_handle;
     // Set sRGB enabled if the destination surfaces need it
     state.framebuffer_srgb.enabled = dst_params.srgb_conversion;
-    state.Apply();
+    state.ApplyFramebufferState();
 
     u32 buffers{};
 
