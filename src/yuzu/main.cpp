@@ -1612,7 +1612,7 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
         return;
     }
 
-    if (ui.action_Fullscreen->isChecked()) {
+    if (!ui.action_Fullscreen->isChecked()) {
         UISettings::values.geometry = saveGeometry();
         UISettings::values.renderwindow_geometry = render_window->saveGeometry();
     }
