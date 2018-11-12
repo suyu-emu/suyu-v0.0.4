@@ -134,6 +134,14 @@ void Config::ReadValues() {
                                                     Service::Account::MAX_USERS - 1);
 
     Settings::values.language_index = qt_config->value("language_index", 1).toInt();
+
+    const auto enabled = qt_config->value("rng_seed_enabled", false).toBool();
+    if (enabled) {
+        Settings::values.rng_seed = qt_config->value("rng_seed", 0).toULongLong();
+    } else {
+        Settings::values.rng_seed = std::nullopt;
+    }
+
     qt_config->endGroup();
 
     qt_config->beginGroup("Miscellaneous");
@@ -272,6 +280,10 @@ void Config::SaveValues() {
     qt_config->setValue("current_user", Settings::values.current_user);
 
     qt_config->setValue("language_index", Settings::values.language_index);
+
+    qt_config->setValue("rng_seed_enabled", Settings::values.rng_seed.has_value());
+    qt_config->setValue("rng_seed", Settings::values.rng_seed.value_or(0));
+
     qt_config->endGroup();
 
     qt_config->beginGroup("Miscellaneous");

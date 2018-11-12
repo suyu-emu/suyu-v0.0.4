@@ -137,6 +137,12 @@ ConfigureSystem::ConfigureSystem(QWidget* parent)
     connect(ui->pm_remove, &QPushButton::pressed, this, &ConfigureSystem::DeleteUser);
     connect(ui->pm_set_image, &QPushButton::pressed, this, &ConfigureSystem::SetUserImage);
 
+    connect(ui->rng_seed_checkbox, &QCheckBox::stateChanged, this, [this](bool checked) {
+        ui->rng_seed_edit->setEnabled(checked);
+        if (!checked)
+            ui->rng_seed_edit->setText("0000000000000000");
+    });
+
     scene = new QGraphicsScene;
     ui->current_user_icon->setScene(scene);
 
@@ -155,6 +161,11 @@ void ConfigureSystem::setConfiguration() {
 
     PopulateUserList();
     UpdateCurrentUser();
+
+    ui->rng_seed_checkbox->setChecked(Settings::values.rng_seed.has_value());
+    ui->rng_seed_edit->setEnabled(Settings::values.rng_seed.has_value());
+    ui->rng_seed_edit->setText(
+        QString::fromStdString(fmt::format("{:016X}", Settings::values.rng_seed.value_or(0))));
 }
 
 void ConfigureSystem::PopulateUserList() {
@@ -195,6 +206,12 @@ void ConfigureSystem::applyConfiguration() {
         return;
 
     Settings::values.language_index = ui->combo_language->currentIndex();
+
+    if (ui->rng_seed_checkbox->isChecked())
+        Settings::values.rng_seed = ui->rng_seed_edit->text().toULongLong(nullptr, 16);
+    else
+        Settings::values.rng_seed = std::nullopt;
+
     Settings::Apply();
 }
 

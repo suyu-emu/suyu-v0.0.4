@@ -132,6 +132,13 @@ void Config::ReadValues() {
     Settings::values.current_user = std::clamp<int>(
         sdl2_config->GetInteger("System", "current_user", 0), 0, Service::Account::MAX_USERS - 1);
 
+    const auto enabled = sdl2_config->GetBoolean("System", "rng_seed_enabled", false);
+    if (enabled) {
+        Settings::values.rng_seed = sdl2_config->GetInteger("System", "rng_seed", 0);
+    } else {
+        Settings::values.rng_seed = std::nullopt;
+    }
+
     // Miscellaneous
     Settings::values.log_filter = sdl2_config->Get("Miscellaneous", "log_filter", "*:Trace");
     Settings::values.use_dev_keys = sdl2_config->GetBoolean("Miscellaneous", "use_dev_keys", false);

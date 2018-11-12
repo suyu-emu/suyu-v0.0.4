@@ -6,6 +6,7 @@
 
 #include <array>
 #include <atomic>
+#include <optional>
 #include <string>
 #include "common/common_types.h"
 
@@ -114,6 +115,7 @@ struct Values {
     // System
     bool use_docked_mode;
     bool enable_nfc;
+    std::optional<u64> rng_seed;
     s32 current_user;
     s32 language_index;
 
