@@ -718,7 +718,7 @@ void IStorageAccessor::Write(Kernel::HLERequestContext& ctx) {
     const u64 offset{rp.Pop<u64>()};
     const std::vector<u8> data{ctx.ReadBuffer()};
 
-    const auto size = std::min(data.size(), backing.buffer.size() - offset);
+    const auto size = std::min<std::size_t>(data.size(), backing.buffer.size() - offset);
 
     std::memcpy(&backing.buffer[offset], data.data(), size);
 

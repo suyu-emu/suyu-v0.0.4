@@ -57,11 +57,16 @@ public:
     void Execute(AppletStorageProxyFunction out_data,
                  AppletStorageProxyFunction out_interactive_data) override;
 
+    void WriteText(std::optional<std::u16string> text);
+
 private:
     KeyboardConfig config;
     std::u16string initial_text;
     bool complete = false;
     std::vector<u8> final_data;
+
+    AppletStorageProxyFunction out_data;
+    AppletStorageProxyFunction out_interactive_data;
 };
 
 } // namespace Service::AM::Applets

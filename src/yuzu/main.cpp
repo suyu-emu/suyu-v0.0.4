@@ -207,7 +207,7 @@ GMainWindow::~GMainWindow() {
         delete render_window;
 }
 
-std::optional<std::u16string> GMainWindow::SoftwareKeyboardGetText(
+void GMainWindow::SoftwareKeyboardGetText(
     const Core::Frontend::SoftwareKeyboardParameters& parameters) {
     QtSoftwareKeyboardDialog dialog(this, parameters);
     dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
@@ -216,9 +216,9 @@ std::optional<std::u16string> GMainWindow::SoftwareKeyboardGetText(
     dialog.exec();
 
     if (!dialog.GetStatus())
-        return std::nullopt;
+        emit SoftwareKeyboardFinishedText(std::nullopt);
 
-    return dialog.GetText();
+    emit SoftwareKeyboardFinishedText(dialog.GetText());
 }
 
 void GMainWindow::SoftwareKeyboardInvokeCheckDialog(std::u16string error_message) {

@@ -99,9 +99,10 @@ signals:
     // Signal that tells widgets to update icons to use the current theme
     void UpdateThemedIcons();
 
+    void SoftwareKeyboardFinishedText(std::optional<std::u16string> text);
+
 public slots:
-    std::optional<std::u16string> SoftwareKeyboardGetText(
-        const Core::Frontend::SoftwareKeyboardParameters& parameters);
+    void SoftwareKeyboardGetText(const Core::Frontend::SoftwareKeyboardParameters& parameters);
     void SoftwareKeyboardInvokeCheckDialog(std::u16string error_message);
 
 private:

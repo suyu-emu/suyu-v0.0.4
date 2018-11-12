@@ -105,20 +105,27 @@ bool QtSoftwareKeyboardDialog::GetStatus() const {
     return ok;
 }
 
-QtSoftwareKeyboard::QtSoftwareKeyboard(GMainWindow& parent) : main_window(parent) {}
+QtSoftwareKeyboard::QtSoftwareKeyboard(GMainWindow& main_window) {
+    connect(this, &QtSoftwareKeyboard::MainWindowGetText, &main_window,
+            &GMainWindow::SoftwareKeyboardGetText, Qt::QueuedConnection);
+    connect(this, &QtSoftwareKeyboard::MainWindowTextCheckDialog, &main_window,
+            &GMainWindow::SoftwareKeyboardInvokeCheckDialog, Qt::BlockingQueuedConnection);
+    connect(&main_window, &GMainWindow::SoftwareKeyboardFinishedText, this,
+            &QtSoftwareKeyboard::MainWindowFinishedText, Qt::QueuedConnection);
+}
 
 QtSoftwareKeyboard::~QtSoftwareKeyboard() = default;
 
-std::optional<std::u16string> QtSoftwareKeyboard::GetText(
-    Core::Frontend::SoftwareKeyboardParameters parameters) const {
-    std::optional<std::u16string> success;
-    QMetaObject::invokeMethod(&main_window, "SoftwareKeyboardGetText", Qt::BlockingQueuedConnection,
-                              Q_RETURN_ARG(std::optional<std::u16string>, success),
-                              Q_ARG(Core::Frontend::SoftwareKeyboardParameters, parameters));
-    return success;
+void QtSoftwareKeyboard::RequestText(std::function<void(std::optional<std::u16string>)> out,
+                                     Core::Frontend::SoftwareKeyboardParameters parameters) const {
+    text_output = out;
+    emit MainWindowGetText(parameters);
 }
 
 void QtSoftwareKeyboard::SendTextCheckDialog(std::u16string error_message) const {
-    QMetaObject::invokeMethod(&main_window, "SoftwareKeyboardInvokeCheckDialog",
-                              Qt::BlockingQueuedConnection, Q_ARG(std::u16string, error_message));
+    emit MainWindowTextCheckDialog(error_message);
+}
+
+void QtSoftwareKeyboard::MainWindowFinishedText(std::optional<std::u16string> text) {
+    text_output(text);
 }

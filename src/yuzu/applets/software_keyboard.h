@@ -54,14 +54,23 @@ private:
 };
 
 class QtSoftwareKeyboard final : public QObject, public Core::Frontend::SoftwareKeyboardApplet {
+    Q_OBJECT
+
 public:
     explicit QtSoftwareKeyboard(GMainWindow& parent);
     ~QtSoftwareKeyboard() override;
 
-    std::optional<std::u16string> GetText(
-        Core::Frontend::SoftwareKeyboardParameters parameters) const override;
+    void RequestText(std::function<void(std::optional<std::u16string>)> out,
+                     Core::Frontend::SoftwareKeyboardParameters parameters) const override;
     void SendTextCheckDialog(std::u16string error_message) const override;
 
+signals:
+    void MainWindowGetText(Core::Frontend::SoftwareKeyboardParameters parameters) const;
+    void MainWindowTextCheckDialog(std::u16string error_message) const;
+
+public slots:
+    void MainWindowFinishedText(std::optional<std::u16string> text);
+
 private:
-    GMainWindow& main_window;
+    mutable std::function<void(std::optional<std::u16string>)> text_output;
 };

@@ -43,6 +43,10 @@ SoftwareKeyboard::SoftwareKeyboard() = default;
 SoftwareKeyboard::~SoftwareKeyboard() = default;
 
 void SoftwareKeyboard::Initialize(std::vector<std::shared_ptr<IStorage>> storage_) {
+    complete = false;
+    initial_text.clear();
+    final_data.clear();
+
     Applet::Initialize(std::move(storage_));
 
     ASSERT(storage_stack.size() >= 2);
@@ -96,20 +100,25 @@ void SoftwareKeyboard::Execute(AppletStorageProxyFunction out_data,
 
     const auto parameters = ConvertToFrontendParameters(config, initial_text);
 
-    const auto res = frontend.GetText(parameters);
+    this->out_data = out_data;
+    this->out_interactive_data = out_interactive_data;
+    frontend.RequestText([this](std::optional<std::u16string> text) { WriteText(text); },
+                         parameters);
+}
 
+void SoftwareKeyboard::WriteText(std::optional<std::u16string> text) {
     std::vector<u8> output(SWKBD_OUTPUT_BUFFER_SIZE);
 
-    if (res.has_value()) {
+    if (text.has_value()) {
         if (config.text_check) {
-            const auto size = static_cast<u32>(res->size() * 2 + 4);
+            const auto size = static_cast<u32>(text->size() * 2 + 4);
             std::memcpy(output.data(), &size, sizeof(u32));
         } else {
             output[0] = 1;
         }
 
-        std::memcpy(output.data() + 4, res->data(),
-                    std::min(res->size() * 2, SWKBD_OUTPUT_BUFFER_SIZE - 4));
+        std::memcpy(output.data() + 4, text->data(),
+                    std::min(text->size() * 2, SWKBD_OUTPUT_BUFFER_SIZE - 4));
     } else {
         complete = true;
         out_data(IStorage{output});
