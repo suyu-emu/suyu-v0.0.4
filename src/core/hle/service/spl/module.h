@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <random>
 #include "core/hle/service/service.h"
 
 namespace Service::SPL {
@@ -19,6 +20,9 @@ public:
 
     protected:
         std::shared_ptr<Module> module;
+
+    private:
+        std::mt19937 rng;
     };
 };
 

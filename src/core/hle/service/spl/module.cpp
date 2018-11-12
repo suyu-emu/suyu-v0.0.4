@@ -3,18 +3,23 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <chrono>
 #include <cstdlib>
+#include <ctime>
+#include <functional>
 #include <vector>
 #include "common/logging/log.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/service/spl/csrng.h"
 #include "core/hle/service/spl/module.h"
 #include "core/hle/service/spl/spl.h"
+#include "core/settings.h"
 
 namespace Service::SPL {
 
 Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
-    : ServiceFramework(name), module(std::move(module)) {}
+    : ServiceFramework(name), module(std::move(module)),
+      rng(Settings::values.rng_seed.value_or(std::time(nullptr))) {}
 
 Module::Interface::~Interface() = default;
 
@@ -24,7 +29,7 @@ void Module::Interface::GetRandomBytes(Kernel::HLERequestContext& ctx) {
     std::size_t size = ctx.GetWriteBufferSize();
 
     std::vector<u8> data(size);
-    std::generate(data.begin(), data.end(), std::rand);
+    std::generate(data.begin(), data.end(), rng);
 
     ctx.WriteBuffer(data);
 
