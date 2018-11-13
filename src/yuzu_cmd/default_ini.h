@@ -178,6 +178,11 @@ use_docked_mode =
 # 1 (default): Yes, 0 : No
 enable_nfc =
 
+# Sets the seed for the RNG generator built into the switch
+# rng_seed will be ignored and randomly generated if rng_seed_enabled is false
+rng_seed_enabled =
+rng_seed =
+
 # Sets the account username, max length is 32 characters
 # yuzu (default)
 username = yuzu
