@@ -8,6 +8,7 @@
 #include <bitset>
 #include <cstddef>
 #include <memory>
+#include <random>
 #include <string>
 #include <vector>
 #include <boost/container/static_vector.hpp>
@@ -119,6 +120,8 @@ struct CodeSet final {
 
 class Process final : public Object {
 public:
+    static constexpr std::size_t RANDOM_ENTROPY_SIZE = 4;
+
     static SharedPtr<Process> Create(KernelCore& kernel, std::string&& name);
 
     std::string GetTypeName() const override {
@@ -210,6 +213,11 @@ public:
     /// Updates the total running time, adding the given ticks to it.
     void UpdateCPUTimeTicks(u64 ticks) {
         total_process_running_time_ticks += ticks;
+    }
+
+    /// Gets 8 bytes of random data for svcGetInfo RandomEntropy
+    u64 GetRandomEntropy(std::size_t index) const {
+        return random_entropy.at(index);
     }
 
     /**
@@ -320,6 +328,9 @@ private:
 
     /// Per-process handle table for storing created object handles in.
     HandleTable handle_table;
+
+    /// Random values for svcGetInfo RandomEntropy
+    std::array<u64, RANDOM_ENTROPY_SIZE> random_entropy;
 
     std::string name;
 };

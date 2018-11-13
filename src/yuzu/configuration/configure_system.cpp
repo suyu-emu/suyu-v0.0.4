@@ -140,7 +140,7 @@ ConfigureSystem::ConfigureSystem(QWidget* parent)
     connect(ui->rng_seed_checkbox, &QCheckBox::stateChanged, this, [this](bool checked) {
         ui->rng_seed_edit->setEnabled(checked);
         if (!checked)
-            ui->rng_seed_edit->setText(QStringLiteral("0000000000000000"));
+            ui->rng_seed_edit->setText(QStringLiteral("00000000"));
     });
 
     scene = new QGraphicsScene;
@@ -165,9 +165,8 @@ void ConfigureSystem::setConfiguration() {
     ui->rng_seed_checkbox->setChecked(Settings::values.rng_seed.has_value());
     ui->rng_seed_edit->setEnabled(Settings::values.rng_seed.has_value());
 
-    const auto rng_seed = QString("%1")
-                              .arg(Settings::values.rng_seed.value_or(0), 16, 16, QLatin1Char{'0'})
-                              .toUpper();
+    const auto rng_seed =
+        QString("%1").arg(Settings::values.rng_seed.value_or(0), 8, 16, QLatin1Char{'0'}).toUpper();
     ui->rng_seed_edit->setText(rng_seed);
 }
 
