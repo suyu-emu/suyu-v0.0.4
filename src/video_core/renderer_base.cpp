@@ -5,7 +5,6 @@
 #include "core/frontend/emu_window.h"
 #include "core/settings.h"
 #include "video_core/renderer_base.h"
-#include "video_core/renderer_opengl/gl_rasterizer.h"
 
 namespace VideoCore {
 
