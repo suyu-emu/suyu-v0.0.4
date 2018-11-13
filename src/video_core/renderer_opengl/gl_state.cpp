@@ -266,7 +266,8 @@ void OpenGLState::ApplyViewport() const {
         const auto& updated = viewports[0];
         if (updated.x != current.x || updated.y != current.y || updated.width != current.width ||
             updated.height != current.height) {
-            glViewport(updated.x, updated.y, updated.width, updated.height);
+            glViewport(static_cast<GLint>(updated.x), static_cast<GLint>(updated.y),
+                       static_cast<GLsizei>(updated.width), static_cast<GLsizei>(updated.height));
         }
         if (updated.depth_range_near != current.depth_range_near ||
             updated.depth_range_far != current.depth_range_far) {
@@ -313,7 +314,7 @@ void OpenGLState::ApplyGlobalBlending() const {
     }
 }
 
-void OpenGLState::ApplyTargetBlending(int target, bool force) const {
+void OpenGLState::ApplyTargetBlending(std::size_t target, bool force) const {
     const Blend& updated = blend[target];
     const Blend& current = cur_state.blend[target];
     const bool blend_changed = updated.enabled != current.enabled || force;
