@@ -66,6 +66,9 @@ void Maxwell3D::InitializeRegisterDefaults() {
     regs.stencil_back_func_func = Regs::ComparisonOp::Always;
     regs.stencil_back_func_mask = 0xFFFFFFFF;
     regs.stencil_back_mask = 0xFFFFFFFF;
+    // TODO(Rodrigo): Most games do not set a point size. I think this is a case of a
+    // register carrying a default value. Assume it's OpenGL's default (1).
+    regs.point_size = 1.0f;
 }
 
 void Maxwell3D::CallMacroMethod(u32 method, std::vector<u32> parameters) {
