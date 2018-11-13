@@ -71,10 +71,6 @@ constexpr u32 PSTATE_REGISTER = 33;
 constexpr u32 UC_ARM64_REG_Q0 = 34;
 constexpr u32 FPCR_REGISTER = 66;
 
-// TODO/WiP - Used while working on support for FPU
-constexpr u32 TODO_DUMMY_REG_997 = 997;
-constexpr u32 TODO_DUMMY_REG_998 = 998;
-
 // For sample XML files see the GDB source /gdb/features
 // GDB also wants the l character at the start
 // This XML defines what the registers are for this specific ARM device
@@ -260,6 +256,36 @@ static void RegWrite(std::size_t id, u64 val, Kernel::Thread* thread = nullptr) 
     }
 }
 
+static u128 FpuRead(std::size_t id, Kernel::Thread* thread = nullptr) {
+    if (!thread) {
+        return u128{0};
+    }
+
+    auto& thread_context = thread->GetContext();
+
+    if (id >= UC_ARM64_REG_Q0 && id < FPCR_REGISTER) {
+        return thread_context.vector_registers[id - UC_ARM64_REG_Q0];
+    } else if (id == FPCR_REGISTER) {
+        return u128{thread_context.fpcr, 0};
+    } else {
+        return u128{0};
+    }
+}
+
+static void FpuWrite(std::size_t id, u128 val, Kernel::Thread* thread = nullptr) {
+    if (!thread) {
+        return;
+    }
+
+    auto& thread_context = thread->GetContext();
+
+    if (id >= UC_ARM64_REG_Q0 && id < FPCR_REGISTER) {
+        thread_context.vector_registers[id - UC_ARM64_REG_Q0] = val;
+    } else if (id == FPCR_REGISTER) {
+        thread_context.fpcr = val[0];
+    }
+}
+
 /**
  * Turns hex string character into the equivalent byte.
  *
@@ -404,6 +430,27 @@ static u64 GdbHexToLong(const u8* src) {
     for (int i = 0; i < 16; i += 2) {
         output = (output << 4) | HexCharToValue(src[15 - i - 1]);
         output = (output << 4) | HexCharToValue(src[15 - i]);
+    }
+
+    return output;
+}
+
+/**
+ * Convert a gdb-formatted hex string into a u128.
+ *
+ * @param src Pointer to hex string.
+ */
+static u128 GdbHexToU128(const u8* src) {
+    u128 output;
+
+    for (int i = 0; i < 16; i += 2) {
+        output[0] = (output[0] << 4) | HexCharToValue(src[15 - i - 1]);
+        output[0] = (output[0] << 4) | HexCharToValue(src[15 - i]);
+    }
+
+    for (int i = 0; i < 16; i += 2) {
+        output[1] = (output[1] << 4) | HexCharToValue(src[16 + 15 - i - 1]);
+        output[1] = (output[1] << 4) | HexCharToValue(src[16 + 15 - i]);
     }
 
     return output;
@@ -599,8 +646,7 @@ static void HandleQuery() {
         for (u32 core = 0; core < Core::NUM_CPU_CORES; core++) {
             const auto& threads = Core::System::GetInstance().Scheduler(core).GetThreadList();
             for (const auto& thread : threads) {
-                val += fmt::format("{:x}", thread->GetThreadID());
-                val += ",";
+                val += fmt::format("{:x},", thread->GetThreadID());
             }
         }
         val.pop_back();
@@ -791,11 +837,15 @@ static void ReadRegister() {
     } else if (id == PSTATE_REGISTER) {
         IntToGdbHex(reply, static_cast<u32>(RegRead(id, current_thread)));
     } else if (id >= UC_ARM64_REG_Q0 && id < FPCR_REGISTER) {
-        LongToGdbHex(reply, RegRead(id, current_thread));
+        u128 r = FpuRead(id, current_thread);
+        LongToGdbHex(reply, r[0]);
+        LongToGdbHex(reply + 16, r[1]);
     } else if (id == FPCR_REGISTER) {
-        LongToGdbHex(reply, RegRead(TODO_DUMMY_REG_998, current_thread));
-    } else {
-        LongToGdbHex(reply, RegRead(TODO_DUMMY_REG_997, current_thread));
+        u128 r = FpuRead(id, current_thread);
+        IntToGdbHex(reply, static_cast<u32>(r[0]));
+    } else if (id == FPCR_REGISTER + 1) {
+        u128 r = FpuRead(id, current_thread);
+        IntToGdbHex(reply, static_cast<u32>(r[0] >> 32));
     }
 
     SendReply(reinterpret_cast<char*>(reply));
@@ -822,13 +872,18 @@ static void ReadRegisters() {
 
     bufptr += 8;
 
-    for (u32 reg = UC_ARM64_REG_Q0; reg <= UC_ARM64_REG_Q0 + 31; reg++) {
-        LongToGdbHex(bufptr + reg * 16, RegRead(reg, current_thread));
+    u128 r;
+
+    for (u32 reg = UC_ARM64_REG_Q0; reg < FPCR_REGISTER; reg++) {
+        r = FpuRead(reg, current_thread);
+        LongToGdbHex(bufptr + reg * 32, r[0]);
+        LongToGdbHex(bufptr + reg * 32 + 16, r[1]);
     }
 
     bufptr += 32 * 32;
 
-    LongToGdbHex(bufptr, RegRead(TODO_DUMMY_REG_998, current_thread));
+    r = FpuRead(FPCR_REGISTER, current_thread);
+    IntToGdbHex(bufptr, static_cast<u32>(r[0]));
 
     bufptr += 8;
 
@@ -853,14 +908,12 @@ static void WriteRegister() {
     } else if (id == PSTATE_REGISTER) {
         RegWrite(id, GdbHexToInt(buffer_ptr), current_thread);
     } else if (id >= UC_ARM64_REG_Q0 && id < FPCR_REGISTER) {
-        RegWrite(id, GdbHexToLong(buffer_ptr), current_thread);
+        FpuWrite(id, GdbHexToU128(buffer_ptr), current_thread);
     } else if (id == FPCR_REGISTER) {
-        RegWrite(TODO_DUMMY_REG_998, GdbHexToLong(buffer_ptr), current_thread);
-    } else {
-        RegWrite(TODO_DUMMY_REG_997, GdbHexToLong(buffer_ptr), current_thread);
+    } else if (id == FPCR_REGISTER + 1) {
     }
 
-    // Update Unicorn context skipping scheduler, no running threads at this point
+    // Update ARM context, skipping scheduler - no running threads at this point
     Core::System::GetInstance()
         .ArmInterface(current_core)
         .LoadContext(current_thread->GetContext());
@@ -885,13 +938,13 @@ static void WriteRegisters() {
         } else if (reg >= UC_ARM64_REG_Q0 && reg < FPCR_REGISTER) {
             RegWrite(reg, GdbHexToLong(buffer_ptr + i * 16), current_thread);
         } else if (reg == FPCR_REGISTER) {
-            RegWrite(TODO_DUMMY_REG_998, GdbHexToLong(buffer_ptr + i * 16), current_thread);
-        } else {
-            UNIMPLEMENTED();
+            RegWrite(FPCR_REGISTER, GdbHexToLong(buffer_ptr + i * 16), current_thread);
+        } else if (reg == FPCR_REGISTER + 1) {
+            RegWrite(FPCR_REGISTER, GdbHexToLong(buffer_ptr + i * 16), current_thread);
         }
     }
 
-    // Update Unicorn context skipping scheduler, no running threads at this point
+    // Update ARM context, skipping scheduler - no running threads at this point
     Core::System::GetInstance()
         .ArmInterface(current_core)
         .LoadContext(current_thread->GetContext());
@@ -915,12 +968,6 @@ static void ReadMemory() {
 
     if (len * 2 > sizeof(reply)) {
         SendReply("E01");
-    }
-
-    const auto& vm_manager = Core::CurrentProcess()->VMManager();
-    if (addr < vm_manager.GetCodeRegionBaseAddress() ||
-        addr >= vm_manager.GetMapRegionEndAddress()) {
-        return SendReply("E00");
     }
 
     if (!Memory::IsValidVirtualAddress(addr)) {
@@ -967,7 +1014,7 @@ void Break(bool is_memory_break) {
 static void Step() {
     if (command_length > 1) {
         RegWrite(PC_REGISTER, GdbHexToLong(command_buffer + 1), current_thread);
-        // Update Unicorn context skipping scheduler, no running threads at this point
+        // Update ARM context, skipping scheduler - no running threads at this point
         Core::System::GetInstance()
             .ArmInterface(current_core)
             .LoadContext(current_thread->GetContext());
@@ -1010,7 +1057,7 @@ static bool CommitBreakpoint(BreakpointType type, VAddr addr, u64 len) {
     breakpoint.addr = addr;
     breakpoint.len = len;
     Memory::ReadBlock(addr, breakpoint.inst.data(), breakpoint.inst.size());
-    static constexpr std::array<u8, 4> btrap{{0x00, 0x7d, 0x20, 0xd4}};
+    static constexpr std::array<u8, 4> btrap{0x00, 0x7d, 0x20, 0xd4};
     Memory::WriteBlock(addr, btrap.data(), btrap.size());
     Core::System::GetInstance().InvalidateCpuInstructionCaches();
     p.insert({addr, breakpoint});
@@ -1321,13 +1368,15 @@ void SetCpuStepFlag(bool is_step) {
 }
 
 void SendTrap(Kernel::Thread* thread, int trap) {
-    if (send_trap) {
-        if (!halt_loop || current_thread == thread) {
-            current_thread = thread;
-            SendSignal(thread, trap);
-        }
-        halt_loop = true;
-        send_trap = false;
+    if (!send_trap) {
+        return;
     }
+
+    if (!halt_loop || current_thread == thread) {
+        current_thread = thread;
+        SendSignal(thread, trap);
+    }
+    halt_loop = true;
+    send_trap = false;
 }
 }; // namespace GDBStub
