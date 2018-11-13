@@ -243,6 +243,85 @@ ResultCode VMManager::ReprotectRange(VAddr target, u64 size, VMAPermission new_p
     return RESULT_SUCCESS;
 }
 
+ResultVal<VAddr> VMManager::HeapAllocate(VAddr target, u64 size, VMAPermission perms) {
+    if (target < GetHeapRegionBaseAddress() || target + size > GetHeapRegionEndAddress() ||
+        target + size < target) {
+        return ERR_INVALID_ADDRESS;
+    }
+
+    if (heap_memory == nullptr) {
+        // Initialize heap
+        heap_memory = std::make_shared<std::vector<u8>>();
+        heap_start = heap_end = target;
+    } else {
+        UnmapRange(heap_start, heap_end - heap_start);
+    }
+
+    // If necessary, expand backing vector to cover new heap extents.
+    if (target < heap_start) {
+        heap_memory->insert(begin(*heap_memory), heap_start - target, 0);
+        heap_start = target;
+        RefreshMemoryBlockMappings(heap_memory.get());
+    }
+    if (target + size > heap_end) {
+        heap_memory->insert(end(*heap_memory), (target + size) - heap_end, 0);
+        heap_end = target + size;
+        RefreshMemoryBlockMappings(heap_memory.get());
+    }
+    ASSERT(heap_end - heap_start == heap_memory->size());
+
+    CASCADE_RESULT(auto vma, MapMemoryBlock(target, heap_memory, target - heap_start, size,
+                                            MemoryState::Heap));
+    Reprotect(vma, perms);
+
+    heap_used = size;
+
+    return MakeResult<VAddr>(heap_end - size);
+}
+
+ResultCode VMManager::HeapFree(VAddr target, u64 size) {
+    if (target < GetHeapRegionBaseAddress() || target + size > GetHeapRegionEndAddress() ||
+        target + size < target) {
+        return ERR_INVALID_ADDRESS;
+    }
+
+    if (size == 0) {
+        return RESULT_SUCCESS;
+    }
+
+    const ResultCode result = UnmapRange(target, size);
+    if (result.IsError()) {
+        return result;
+    }
+
+    heap_used -= size;
+    return RESULT_SUCCESS;
+}
+
+ResultCode VMManager::MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
+    const auto vma = FindVMA(src_addr);
+
+    ASSERT_MSG(vma != vma_map.end(), "Invalid memory address");
+    ASSERT_MSG(vma->second.backing_block, "Backing block doesn't exist for address");
+
+    // The returned VMA might be a bigger one encompassing the desired address.
+    const auto vma_offset = src_addr - vma->first;
+    ASSERT_MSG(vma_offset + size <= vma->second.size,
+               "Shared memory exceeds bounds of mapped block");
+
+    const std::shared_ptr<std::vector<u8>>& backing_block = vma->second.backing_block;
+    const std::size_t backing_block_offset = vma->second.offset + vma_offset;
+
+    CASCADE_RESULT(auto new_vma, MapMemoryBlock(dst_addr, backing_block, backing_block_offset, size,
+                                                MemoryState::Mapped));
+    // Protect mirror with permissions from old region
+    Reprotect(new_vma, vma->second.permissions);
+    // Remove permissions from old region
+    Reprotect(vma, VMAPermission::None);
+
+    return RESULT_SUCCESS;
+}
+
 void VMManager::RefreshMemoryBlockMappings(const std::vector<u8>* block) {
     // If this ever proves to have a noticeable performance impact, allow users of the function to
     // specify a specific range of addresses to limit the scan to.
