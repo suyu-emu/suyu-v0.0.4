@@ -14,6 +14,7 @@ OpenGLState OpenGLState::cur_state;
 bool OpenGLState::s_rgb_used;
 OpenGLState::OpenGLState() {
     // These all match default OpenGL values
+    geometry_shaders.enabled = false;
     framebuffer_srgb.enabled = false;
     cull.enabled = false;
     cull.mode = GL_BACK;
@@ -50,12 +51,12 @@ OpenGLState::OpenGLState() {
         item.height = 0;
         item.depth_range_near = 0.0f;
         item.depth_range_far = 1.0f;
+        item.scissor.enabled = false;
+        item.scissor.x = 0;
+        item.scissor.y = 0;
+        item.scissor.width = 0;
+        item.scissor.height = 0;
     }
-    scissor.enabled = false;
-    scissor.x = 0;
-    scissor.y = 0;
-    scissor.width = 0;
-    scissor.height = 0;
     for (auto& item : blend) {
         item.enabled = true;
         item.rgb_equation = GL_FUNC_ADD;
@@ -136,7 +137,7 @@ void OpenGLState::ApplyCulling() const {
 }
 
 void OpenGLState::ApplyColorMask() const {
-    if (GLAD_GL_ARB_viewport_array) {
+    if (GLAD_GL_ARB_viewport_array && independant_blend.enabled) {
         for (size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
             const auto& updated = color_mask[i];
             const auto& current = cur_state.color_mask[i];
@@ -230,26 +231,10 @@ void OpenGLState::ApplyStencilTest() const {
     }
 }
 
-void OpenGLState::ApplyScissor() const {
-    const bool scissor_changed = scissor.enabled != cur_state.scissor.enabled;
-    if (scissor_changed) {
-        if (scissor.enabled) {
-            glEnable(GL_SCISSOR_TEST);
-        } else {
-            glDisable(GL_SCISSOR_TEST);
-        }
-    }
-    if (scissor.enabled &&
-        (scissor_changed || scissor.x != cur_state.scissor.x || scissor.y != cur_state.scissor.y ||
-         scissor.width != cur_state.scissor.width || scissor.height != cur_state.scissor.height)) {
-        glScissor(scissor.x, scissor.y, scissor.width, scissor.height);
-    }
-}
-
 void OpenGLState::ApplyViewport() const {
-    if (GLAD_GL_ARB_viewport_array) {
-        for (GLuint i = 0;
-             i < static_cast<GLuint>(Tegra::Engines::Maxwell3D::Regs::NumRenderTargets); i++) {
+    if (GLAD_GL_ARB_viewport_array && geometry_shaders.enabled) {
+        for (GLuint i = 0; i < static_cast<GLuint>(Tegra::Engines::Maxwell3D::Regs::NumViewports);
+             i++) {
             const auto& current = cur_state.viewports[i];
             const auto& updated = viewports[i];
             if (updated.x != current.x || updated.y != current.y ||
@@ -259,6 +244,22 @@ void OpenGLState::ApplyViewport() const {
             if (updated.depth_range_near != current.depth_range_near ||
                 updated.depth_range_far != current.depth_range_far) {
                 glDepthRangeIndexed(i, updated.depth_range_near, updated.depth_range_far);
+            }
+            const bool scissor_changed = updated.scissor.enabled != current.scissor.enabled;
+            if (scissor_changed) {
+                if (updated.scissor.enabled) {
+                    glEnablei(GL_SCISSOR_TEST, i);
+                } else {
+                    glDisablei(GL_SCISSOR_TEST, i);
+                }
+            }
+            if (updated.scissor.enabled &&
+                (scissor_changed || updated.scissor.x != current.scissor.x ||
+                 updated.scissor.y != current.scissor.y ||
+                 updated.scissor.width != current.scissor.width ||
+                 updated.scissor.height != current.scissor.height)) {
+                glScissorIndexed(i, updated.scissor.x, updated.scissor.y, updated.scissor.width,
+                                 updated.scissor.height);
             }
         }
     } else {
@@ -272,6 +273,21 @@ void OpenGLState::ApplyViewport() const {
         if (updated.depth_range_near != current.depth_range_near ||
             updated.depth_range_far != current.depth_range_far) {
             glDepthRange(updated.depth_range_near, updated.depth_range_far);
+        }
+        const bool scissor_changed = updated.scissor.enabled != current.scissor.enabled;
+        if (scissor_changed) {
+            if (updated.scissor.enabled) {
+                glEnable(GL_SCISSOR_TEST);
+            } else {
+                glDisable(GL_SCISSOR_TEST);
+            }
+        }
+        if (updated.scissor.enabled && (scissor_changed || updated.scissor.x != current.scissor.x ||
+                                        updated.scissor.y != current.scissor.y ||
+                                        updated.scissor.width != current.scissor.width ||
+                                        updated.scissor.height != current.scissor.height)) {
+            glScissor(updated.scissor.x, updated.scissor.y, updated.scissor.width,
+                      updated.scissor.height);
         }
     }
 }
@@ -483,7 +499,6 @@ void OpenGLState::Apply() const {
     }
     ApplyColorMask();
     ApplyViewport();
-    ApplyScissor();
     ApplyStencilTest();
     ApplySRgb();
     ApplyCulling();

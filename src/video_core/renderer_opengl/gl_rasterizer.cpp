@@ -642,7 +642,7 @@ void RasterizerOpenGL::DrawArrays() {
     params.DispatchDraw();
 
     // Disable scissor test
-    state.scissor.enabled = false;
+    state.viewports[0].scissor.enabled = false;
 
     accelerate_draw = AccelDraw::Disabled;
 
@@ -923,15 +923,15 @@ u32 RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, Shader& shader,
 
 void RasterizerOpenGL::SyncViewport(OpenGLState& current_state) {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
-    for (size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
+    for (size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumViewports; i++) {
         const MathUtil::Rectangle<s32> viewport_rect{regs.viewport_transform[i].GetRect()};
         auto& viewport = current_state.viewports[i];
         viewport.x = viewport_rect.left;
         viewport.y = viewport_rect.bottom;
         viewport.width = static_cast<GLfloat>(viewport_rect.GetWidth());
         viewport.height = static_cast<GLfloat>(viewport_rect.GetHeight());
-        viewport.depth_range_far = regs.viewport[i].depth_range_far;
-        viewport.depth_range_near = regs.viewport[i].depth_range_near;
+        viewport.depth_range_far = regs.viewports[i].depth_range_far;
+        viewport.depth_range_near = regs.viewports[i].depth_range_near;
     }
 }
 
@@ -1079,7 +1079,6 @@ void RasterizerOpenGL::SyncBlendState() {
 void RasterizerOpenGL::SyncLogicOpState() {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
 
-    // TODO(Subv): Support more than just render target 0.
     state.logic_op.enabled = regs.logic_op.enable != 0;
 
     if (!state.logic_op.enabled)
@@ -1092,19 +1091,21 @@ void RasterizerOpenGL::SyncLogicOpState() {
 }
 
 void RasterizerOpenGL::SyncScissorTest() {
-    // TODO: what is the correct behavior here, a single scissor for all targets
-    // or scissor disabled for the rest of the targets?
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
-    state.scissor.enabled = (regs.scissor_test.enable != 0);
-    if (regs.scissor_test.enable == 0) {
-        return;
+    for (size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumViewports; i++) {
+        const auto& src = regs.scissor_test[i];
+        auto& dst = state.viewports[i].scissor;
+        dst.enabled = (src.enable != 0);
+        if (dst.enabled == 0) {
+            return;
+        }
+        const u32 width = src.max_x - src.min_x;
+        const u32 height = src.max_y - src.min_y;
+        dst.x = src.min_x;
+        dst.y = src.min_y;
+        dst.width = width;
+        dst.height = height;
     }
-    const u32 width = regs.scissor_test.max_x - regs.scissor_test.min_x;
-    const u32 height = regs.scissor_test.max_y - regs.scissor_test.min_y;
-    state.scissor.x = regs.scissor_test.min_x;
-    state.scissor.y = regs.scissor_test.min_y;
-    state.scissor.width = width;
-    state.scissor.height = height;
 }
 
 void RasterizerOpenGL::SyncTransformFeedback() {

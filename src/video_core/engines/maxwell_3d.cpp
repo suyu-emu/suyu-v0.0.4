@@ -34,8 +34,8 @@ void Maxwell3D::InitializeRegisterDefaults() {
     // Depth range near/far is not always set, but is expected to be the default 0.0f, 1.0f. This is
     // needed for ARMS.
     for (std::size_t viewport{}; viewport < Regs::NumViewports; ++viewport) {
-        regs.viewport[viewport].depth_range_near = 0.0f;
-        regs.viewport[viewport].depth_range_far = 1.0f;
+        regs.viewports[viewport].depth_range_near = 0.0f;
+        regs.viewports[viewport].depth_range_far = 1.0f;
     }
     // Doom and Bomberman seems to use the uninitialized registers and just enable blend
     // so initialize blend registers with sane values

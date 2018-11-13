@@ -40,6 +40,10 @@ public:
     } framebuffer_srgb;
 
     struct {
+        bool enabled; // viewports arrays are only supported when geometry shaders are enabled.
+    } geometry_shaders;
+
+    struct {
         bool enabled;      // GL_CULL_FACE
         GLenum mode;       // GL_CULL_FACE_MODE
         GLenum front_face; // GL_FRONT_FACE
@@ -150,16 +154,15 @@ public:
         GLfloat height;
         GLfloat depth_range_near; // GL_DEPTH_RANGE
         GLfloat depth_range_far;  // GL_DEPTH_RANGE
+        struct {
+            bool enabled; // GL_SCISSOR_TEST
+            GLint x;
+            GLint y;
+            GLsizei width;
+            GLsizei height;
+        } scissor;
     };
-    std::array<viewport, Tegra::Engines::Maxwell3D::Regs::NumRenderTargets> viewports;
-
-    struct {
-        bool enabled; // GL_SCISSOR_TEST
-        GLint x;
-        GLint y;
-        GLsizei width;
-        GLsizei height;
-    } scissor;
+    std::array<viewport, Tegra::Engines::Maxwell3D::Regs::NumViewports> viewports;
 
     struct {
         float size; // GL_POINT_SIZE
@@ -214,7 +217,6 @@ private:
     void ApplyLogicOp() const;
     void ApplyTextures() const;
     void ApplySamplers() const;
-    void ApplyScissor() const;
 };
 
 } // namespace OpenGL

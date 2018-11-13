@@ -505,9 +505,9 @@ public:
 
                 INSERT_PADDING_WORDS(0x2E);
 
-                RenderTargetConfig rt[NumRenderTargets];
+                std::array<RenderTargetConfig, NumRenderTargets> rt;
 
-                struct {
+                struct ViewportTransform {
                     f32 scale_x;
                     f32 scale_y;
                     f32 scale_z;
@@ -540,9 +540,11 @@ public:
                     s32 GetHeight() const {
                         return static_cast<s32>(translate_y + std::fabs(scale_y)) - GetY();
                     }
-                } viewport_transform[NumViewports];
+                };
 
-                struct {
+                std::array<ViewportTransform, NumViewports> viewport_transform;
+
+                struct ViewPort {
                     union {
                         BitField<0, 16, u32> x;
                         BitField<16, 16, u32> width;
@@ -553,7 +555,9 @@ public:
                     };
                     float depth_range_near;
                     float depth_range_far;
-                } viewport[NumViewports];
+                };
+
+                std::array<ViewPort, NumViewports> viewports;
 
                 INSERT_PADDING_WORDS(0x1D);
 
@@ -571,7 +575,7 @@ public:
 
                 INSERT_PADDING_WORDS(0x17);
 
-                struct {
+                struct ScissorTest {
                     u32 enable;
                     union {
                         BitField<0, 16, u32> min_x;
@@ -581,9 +585,11 @@ public:
                         BitField<0, 16, u32> min_y;
                         BitField<16, 16, u32> max_y;
                     };
-                } scissor_test;
+                    u32 fill;
+                };
+                std::array<ScissorTest, NumViewports> scissor_test;
 
-                INSERT_PADDING_WORDS(0x52);
+                INSERT_PADDING_WORDS(0x15);
 
                 s32 stencil_back_func_ref;
                 u32 stencil_back_mask;
@@ -1100,8 +1106,8 @@ private:
 ASSERT_REG_POSITION(macros, 0x45);
 ASSERT_REG_POSITION(tfb_enabled, 0x1D1);
 ASSERT_REG_POSITION(rt, 0x200);
-ASSERT_REG_POSITION(viewport_transform[0], 0x280);
-ASSERT_REG_POSITION(viewport, 0x300);
+ASSERT_REG_POSITION(viewport_transform, 0x280);
+ASSERT_REG_POSITION(viewports, 0x300);
 ASSERT_REG_POSITION(vertex_buffer, 0x35D);
 ASSERT_REG_POSITION(clear_color[0], 0x360);
 ASSERT_REG_POSITION(clear_depth, 0x364);
