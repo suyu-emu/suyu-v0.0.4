@@ -574,8 +574,7 @@ u64 VMManager::GetTotalMemoryUsage() const {
 }
 
 u64 VMManager::GetTotalHeapUsage() const {
-    LOG_WARNING(Kernel, "(STUBBED) called");
-    return 0x0;
+    return heap_used;
 }
 
 VAddr VMManager::GetAddressSpaceBaseAddress() const {
