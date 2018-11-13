@@ -143,7 +143,7 @@ struct AuxInfo {
     std::array<u8, 24> output_mix_buffers;
     u32_le mix_buffer_count;
     u32_le sample_rate; // Stored in the aux buffer currently
-    u32_le sampe_count;
+    u32_le sample_count;
     u64_le send_buffer_info;
     u64_le send_buffer_base;
 
