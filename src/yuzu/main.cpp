@@ -933,7 +933,8 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
     const auto full = res == "Full";
     const auto entry_size = CalculateRomFSEntrySize(extracted, full);
 
-    QProgressDialog progress(tr("Extracting RomFS..."), tr("Cancel"), 0, entry_size, this);
+    QProgressDialog progress(tr("Extracting RomFS..."), tr("Cancel"), 0,
+                             static_cast<s32>(entry_size), this);
     progress.setWindowModality(Qt::WindowModal);
     progress.setMinimumDuration(100);
 
