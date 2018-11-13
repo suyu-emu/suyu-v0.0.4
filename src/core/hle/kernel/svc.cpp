@@ -34,6 +34,7 @@
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
 #include "core/hle/service/service.h"
+#include "core/settings.h"
 
 namespace Kernel {
 namespace {
@@ -558,7 +559,7 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
         *result = 0;
         break;
     case GetInfoType::RandomEntropy:
-        *result = 0;
+        *result = Settings::values.rng_seed.value_or(0);
         break;
     case GetInfoType::ASLRRegionBaseAddr:
         *result = vm_manager.GetASLRRegionBaseAddress();
