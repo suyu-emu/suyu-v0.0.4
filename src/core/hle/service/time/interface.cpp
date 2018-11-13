@@ -21,7 +21,7 @@ Time::Time(std::shared_ptr<Module> time, const char* name)
         {102, nullptr, "GetStandardUserSystemClockInitialYear"},
         {200, nullptr, "IsStandardNetworkSystemClockAccuracySufficient"},
         {300, nullptr, "CalculateMonotonicSystemClockBaseTimePoint"},
-        {400, nullptr, "GetClockSnapshot"},
+        {400, &Time::GetClockSnapshot, "GetClockSnapshot"},
         {401, nullptr, "GetClockSnapshotFromSystemClockContext"},
         {500, nullptr, "CalculateStandardUserSystemClockDifferenceByUser"},
         {501, nullptr, "CalculateSpanBetween"},
