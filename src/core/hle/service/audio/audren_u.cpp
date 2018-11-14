@@ -28,13 +28,13 @@ public:
             {1, &IAudioRenderer::GetSampleCount, "GetSampleCount"},
             {2, &IAudioRenderer::GetMixBufferCount, "GetMixBufferCount"},
             {3, &IAudioRenderer::GetState, "GetState"},
-            {4, &IAudioRenderer::RequestUpdate, "RequestUpdate"},
+            {4, &IAudioRenderer::RequestUpdateImpl, "RequestUpdate"},
             {5, &IAudioRenderer::Start, "Start"},
             {6, &IAudioRenderer::Stop, "Stop"},
             {7, &IAudioRenderer::QuerySystemEvent, "QuerySystemEvent"},
             {8, &IAudioRenderer::SetRenderingTimeLimit, "SetRenderingTimeLimit"},
             {9, &IAudioRenderer::GetRenderingTimeLimit, "GetRenderingTimeLimit"},
-            {10, nullptr, "RequestUpdateAuto"},
+            {10, &IAudioRenderer::RequestUpdateImpl, "RequestUpdateAuto"},
             {11, nullptr, "ExecuteAudioRendererRendering"},
         };
         // clang-format on
@@ -79,7 +79,7 @@ private:
         LOG_DEBUG(Service_Audio, "called");
     }
 
-    void RequestUpdate(Kernel::HLERequestContext& ctx) {
+    void RequestUpdateImpl(Kernel::HLERequestContext& ctx) {
         ctx.WriteBuffer(renderer->UpdateAudioRenderer(ctx.ReadBuffer()));
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
