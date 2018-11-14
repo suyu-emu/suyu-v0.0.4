@@ -777,15 +777,13 @@ void RasterizerOpenGL::SamplerInfo::SyncWithConfig(const Tegra::Texture::FullTex
                             MaxwellToGL::DepthCompareFunc(depth_compare_func));
     }
 
-    if (wrap_u == Tegra::Texture::WrapMode::Border || wrap_v == Tegra::Texture::WrapMode::Border ||
-        wrap_p == Tegra::Texture::WrapMode::Border) {
-        const GLvec4 new_border_color = {{config.border_color_r, config.border_color_g,
-                                          config.border_color_b, config.border_color_a}};
-        if (border_color != new_border_color) {
-            border_color = new_border_color;
-            glSamplerParameterfv(s, GL_TEXTURE_BORDER_COLOR, border_color.data());
-        }
+    const GLvec4 new_border_color = {{config.border_color_r, config.border_color_g,
+                                      config.border_color_b, config.border_color_a}};
+    if (border_color != new_border_color) {
+        border_color = new_border_color;
+        glSamplerParameterfv(s, GL_TEXTURE_BORDER_COLOR, border_color.data());
     }
+
     if (info.tic.use_header_opt_control == 0) {
         if (GLAD_GL_ARB_texture_filter_anisotropic) {
             glSamplerParameterf(s, GL_TEXTURE_MAX_ANISOTROPY,
@@ -1022,7 +1020,9 @@ void RasterizerOpenGL::SyncStencilTestState() {
 
 void RasterizerOpenGL::SyncColorMask() {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
-    for (size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
+    size_t count =
+        regs.independent_blend_enable ? Tegra::Engines::Maxwell3D::Regs::NumRenderTargets : 1;
+    for (size_t i = 0; i < count; i++) {
         const auto& source = regs.color_mask[regs.color_mask_common ? 0 : i];
         auto& dest = state.color_mask[i];
         dest.red_enabled = (source.R == 0) ? GL_FALSE : GL_TRUE;
