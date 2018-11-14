@@ -40,6 +40,11 @@ public:
     } framebuffer_srgb;
 
     struct {
+        bool alpha_to_coverage; // GL_ALPHA_TO_COVERAGE
+        bool alpha_to_one;      // GL_ALPHA_TO_ONE
+    } multisample_control;
+
+    struct {
         bool enabled; // GL_CLAMP_FRAGMENT_COLOR_ARB
     } fragment_color_clamp;
 

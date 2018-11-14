@@ -16,6 +16,8 @@ OpenGLState::OpenGLState() {
     // These all match default OpenGL values
     geometry_shaders.enabled = false;
     framebuffer_srgb.enabled = false;
+    multisample_control.alpha_to_coverage = false;
+    multisample_control.alpha_to_one = false;
     cull.enabled = false;
     cull.mode = GL_BACK;
     cull.front_face = GL_CCW;
@@ -504,6 +506,21 @@ void OpenGLState::Apply() const {
                          fragment_color_clamp.enabled ? GL_TRUE : GL_FALSE);
         }
     }
+    if (multisample_control.alpha_to_coverage != cur_state.multisample_control.alpha_to_coverage) {
+        if (multisample_control.alpha_to_coverage) {
+            glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+        } else {
+            glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+        }
+    }
+    if (multisample_control.alpha_to_one != cur_state.multisample_control.alpha_to_one) {
+        if (multisample_control.alpha_to_one) {
+            glEnable(GL_SAMPLE_ALPHA_TO_ONE);
+        } else {
+            glDisable(GL_SAMPLE_ALPHA_TO_ONE);
+        }
+    }
+
     ApplyColorMask();
     ApplyViewport();
     ApplyStencilTest();

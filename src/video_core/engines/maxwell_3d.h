@@ -726,7 +726,12 @@ public:
 
                 u32 zeta_enable;
 
-                INSERT_PADDING_WORDS(0x8);
+                union {
+                    BitField<1, 1, u32> alpha_to_coverage;
+                    BitField<2, 1, u32> alpha_to_one;
+                } multisample_control;
+
+                INSERT_PADDING_WORDS(0x7);
 
                 struct {
                     u32 tsc_address_high;
@@ -1149,6 +1154,7 @@ ASSERT_REG_POSITION(screen_y_control, 0x4EB);
 ASSERT_REG_POSITION(vb_element_base, 0x50D);
 ASSERT_REG_POSITION(point_size, 0x546);
 ASSERT_REG_POSITION(zeta_enable, 0x54E);
+ASSERT_REG_POSITION(multisample_control, 0x54F);
 ASSERT_REG_POSITION(tsc, 0x557);
 ASSERT_REG_POSITION(tic, 0x55D);
 ASSERT_REG_POSITION(stencil_two_side_enable, 0x565);

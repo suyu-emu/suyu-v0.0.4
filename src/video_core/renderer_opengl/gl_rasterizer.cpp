@@ -583,6 +583,7 @@ void RasterizerOpenGL::DrawArrays() {
     ConfigureFramebuffers(state);
     SyncColorMask();
     SyncFragmentColorClampState();
+    SyncMultiSampleState();
     SyncDepthTestState();
     SyncStencilTestState();
     SyncBlendState();
@@ -1031,6 +1032,12 @@ void RasterizerOpenGL::SyncColorMask() {
         dest.blue_enabled = (source.B == 0) ? GL_FALSE : GL_TRUE;
         dest.alpha_enabled = (source.A == 0) ? GL_FALSE : GL_TRUE;
     }
+}
+
+void RasterizerOpenGL::SyncMultiSampleState() {
+    const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
+    state.multisample_control.alpha_to_coverage = regs.multisample_control.alpha_to_coverage != 0;
+    state.multisample_control.alpha_to_one = regs.multisample_control.alpha_to_one != 0;
 }
 
 void RasterizerOpenGL::SyncFragmentColorClampState() {
