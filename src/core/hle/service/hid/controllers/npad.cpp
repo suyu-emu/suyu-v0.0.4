@@ -310,6 +310,7 @@ void Controller_NPad::OnUpdate(u8* data, std::size_t data_len) {
             dual_entry.pad_states.raw = pad_state.raw;
             dual_entry.l_stick = lstick_entry;
             dual_entry.r_stick = rstick_entry;
+            break;
         case NPadControllerType::JoyLeft:
             left_entry.connection_status.raw = 0;
 
