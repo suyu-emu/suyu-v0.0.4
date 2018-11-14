@@ -341,11 +341,12 @@ void ProfileManager::ParseUserSaveFile() {
         return;
     }
 
-    for (std::size_t i = 0; i < MAX_USERS; ++i) {
-        const auto& user = data.users[i];
+    for (const auto& user : data.users) {
+        if (user.uuid == UUID(INVALID_UUID)) {
+            continue;
+        }
 
-        if (user.uuid != UUID(INVALID_UUID))
-            AddUser({user.uuid, user.username, user.timestamp, {}, false});
+        AddUser({user.uuid, user.username, user.timestamp, {}, false});
     }
 
     std::stable_partition(profiles.begin(), profiles.end(),
