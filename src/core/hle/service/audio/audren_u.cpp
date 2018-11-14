@@ -32,8 +32,8 @@ public:
             {5, &IAudioRenderer::Start, "Start"},
             {6, &IAudioRenderer::Stop, "Stop"},
             {7, &IAudioRenderer::QuerySystemEvent, "QuerySystemEvent"},
-            {8, nullptr, "SetRenderingTimeLimit"},
-            {9, nullptr, "GetRenderingTimeLimit"},
+            {8, &IAudioRenderer::SetRenderingTimeLimit, "SetRenderingTimeLimit"},
+            {9, &IAudioRenderer::GetRenderingTimeLimit, "GetRenderingTimeLimit"},
             {10, nullptr, "RequestUpdateAuto"},
             {11, nullptr, "ExecuteAudioRendererRendering"},
         };
@@ -110,8 +110,29 @@ private:
         LOG_WARNING(Service_Audio, "(STUBBED) called");
     }
 
+    void SetRenderingTimeLimit(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        rendering_time_limit_percent = rp.Pop<u32>();
+        ASSERT(rendering_time_limit_percent >= 0 && rendering_time_limit_percent <= 100);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+
+        LOG_DEBUG(Service_Audio, "called. rendering_time_limit_percent={}",
+                  rendering_time_limit_percent);
+    }
+
+    void GetRenderingTimeLimit(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_Audio, "called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(rendering_time_limit_percent);
+    }
+
     Kernel::SharedPtr<Kernel::Event> system_event;
     std::unique_ptr<AudioCore::AudioRenderer> renderer;
+    u32 rendering_time_limit_percent = 100;
 };
 
 class IAudioDevice final : public ServiceFramework<IAudioDevice> {
