@@ -374,6 +374,8 @@ private:
     explicit Thread(KernelCore& kernel);
     ~Thread() override;
 
+    void ChangeScheduler();
+
     Core::ARM_Interface::ThreadContext context{};
 
     u32 thread_id = 0;
