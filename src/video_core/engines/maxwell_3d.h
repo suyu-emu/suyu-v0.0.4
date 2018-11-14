@@ -728,8 +728,8 @@ public:
                 u32 zeta_enable;
 
                 union {
-                    BitField<1, 1, u32> alpha_to_coverage;
-                    BitField<2, 1, u32> alpha_to_one;
+                    BitField<0, 1, u32> alpha_to_coverage;
+                    BitField<4, 1, u32> alpha_to_one;
                 } multisample_control;
 
                 INSERT_PADDING_WORDS(0x7);
