@@ -559,7 +559,16 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
         *result = 0;
         break;
     case GetInfoType::RandomEntropy:
-        *result = Settings::values.rng_seed.value_or(0);
+        if (handle != 0) {
+            return ERR_INVALID_HANDLE;
+        }
+
+        if (info_sub_id >= Process::RANDOM_ENTROPY_SIZE) {
+            return ERR_INVALID_COMBINATION_KERNEL;
+        }
+
+        *result = current_process->GetRandomEntropy(info_sub_id);
+        return RESULT_SUCCESS;
         break;
     case GetInfoType::ASLRRegionBaseAddr:
         *result = vm_manager.GetASLRRegionBaseAddress();

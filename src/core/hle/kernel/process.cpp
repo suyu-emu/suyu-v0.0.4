@@ -15,6 +15,7 @@
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/memory.h"
+#include "core/settings.h"
 
 namespace Kernel {
 
@@ -32,6 +33,11 @@ SharedPtr<Process> Process::Create(KernelCore& kernel, std::string&& name) {
     process->program_id = 0;
     process->process_id = kernel.CreateNewProcessID();
     process->svc_access_mask.set();
+
+    std::mt19937 rng(Settings::values.rng_seed.value_or(0));
+    std::uniform_int_distribution<u64> distribution;
+    std::generate(process->random_entropy.begin(), process->random_entropy.end(),
+                  [&] { return distribution(rng); });
 
     kernel.AppendNewProcess(process);
     return process;
