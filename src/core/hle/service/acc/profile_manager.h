@@ -42,18 +42,9 @@ struct UUID {
     void Invalidate() {
         uuid = INVALID_UUID;
     }
-    std::string Format() const {
-        return fmt::format("0x{:016X}{:016X}", uuid[1], uuid[0]);
-    }
 
-    std::string FormatSwitch() const {
-        std::array<u8, 16> s{};
-        std::memcpy(s.data(), uuid.data(), sizeof(u128));
-        return fmt::format("{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{"
-                           ":02x}{:02x}{:02x}{:02x}{:02x}",
-                           s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], s[8], s[9], s[10], s[11],
-                           s[12], s[13], s[14], s[15]);
-    }
+    std::string Format() const;
+    std::string FormatSwitch() const;
 };
 static_assert(sizeof(UUID) == 16, "UUID is an invalid size!");
 
