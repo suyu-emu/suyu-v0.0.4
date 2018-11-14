@@ -89,6 +89,7 @@ OpenGLState::OpenGLState() {
     clip_distance = {};
 
     point.size = 1;
+    fragment_color_clamp.enabled = false;
 }
 
 void OpenGLState::ApplyDefaultState() {
@@ -496,6 +497,12 @@ void OpenGLState::Apply() const {
     // Point
     if (point.size != cur_state.point.size) {
         glPointSize(point.size);
+    }
+    if (GLAD_GL_ARB_color_buffer_float) {
+        if (fragment_color_clamp.enabled != cur_state.fragment_color_clamp.enabled) {
+            glClampColor(GL_CLAMP_FRAGMENT_COLOR_ARB,
+                         fragment_color_clamp.enabled ? GL_TRUE : GL_FALSE);
+        }
     }
     ApplyColorMask();
     ApplyViewport();

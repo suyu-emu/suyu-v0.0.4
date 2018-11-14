@@ -40,6 +40,10 @@ public:
     } framebuffer_srgb;
 
     struct {
+        bool enabled; // GL_CLAMP_FRAGMENT_COLOR_ARB
+    } fragment_color_clamp;
+
+    struct {
         bool enabled; // viewports arrays are only supported when geometry shaders are enabled.
     } geometry_shaders;
 

@@ -706,7 +706,9 @@ public:
                 u32 stencil_front_func_mask;
                 u32 stencil_front_mask;
 
-                INSERT_PADDING_WORDS(0x3);
+                INSERT_PADDING_WORDS(0x2);
+
+                u32 frag_color_clamp;
 
                 union {
                     BitField<4, 1, u32> triangle_rast_flip;
@@ -1142,6 +1144,7 @@ ASSERT_REG_POSITION(stencil_front_func_func, 0x4E4);
 ASSERT_REG_POSITION(stencil_front_func_ref, 0x4E5);
 ASSERT_REG_POSITION(stencil_front_func_mask, 0x4E6);
 ASSERT_REG_POSITION(stencil_front_mask, 0x4E7);
+ASSERT_REG_POSITION(frag_color_clamp, 0x4EA);
 ASSERT_REG_POSITION(screen_y_control, 0x4EB);
 ASSERT_REG_POSITION(vb_element_base, 0x50D);
 ASSERT_REG_POSITION(point_size, 0x546);
