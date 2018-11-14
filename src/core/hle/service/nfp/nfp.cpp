@@ -212,7 +212,7 @@ private:
         IPC::ResponseBuilder rb{ctx, 2};
         auto amiibo = nfp_interface.GetAmiiboBuffer();
         TagInfo tag_info{};
-        std::memcpy(tag_info.uuid.data(), amiibo.uuid.data(), sizeof(tag_info.uuid.size()));
+        tag_info.uuid = amiibo.uuid;
         tag_info.uuid_length = static_cast<u8>(tag_info.uuid.size());
 
         tag_info.protocol = 1; // TODO(ogniK): Figure out actual values
