@@ -12,10 +12,12 @@
 #include "common/swap.h"
 #include "core/core.h"
 #include "core/file_sys/control_metadata.h"
+#include "core/file_sys/romfs_factory.h"
 #include "core/file_sys/vfs_offset.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/vm_manager.h"
+#include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/nro.h"
 #include "core/loader/nso.h"
 #include "core/memory.h"
@@ -207,6 +209,9 @@ ResultStatus AppLoader_NRO::Load(Kernel::Process& process) {
     if (!LoadNro(*file, base_address)) {
         return ResultStatus::ErrorLoadingNRO;
     }
+
+    if (romfs != nullptr)
+        Service::FileSystem::RegisterRomFS(std::make_unique<FileSys::RomFSFactory>(*this));
 
     process.Run(base_address, Kernel::THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE);
 

@@ -2,6 +2,9 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "common/logging/log.h"
+#include "core/file_sys/control_metadata.h"
+#include "core/file_sys/patch_manager.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/service/ns/ns.h"
@@ -118,7 +121,7 @@ public:
             {305, nullptr, "TerminateSystemApplet"},
             {306, nullptr, "LaunchOverlayApplet"},
             {307, nullptr, "TerminateOverlayApplet"},
-            {400, nullptr, "GetApplicationControlData"},
+            {400, &IApplicationManagerInterface::GetApplicationControlData, "GetApplicationControlData"},
             {401, nullptr, "InvalidateAllApplicationControlCache"},
             {402, nullptr, "RequestDownloadApplicationControlData"},
             {403, nullptr, "GetMaxApplicationControlCacheCount"},
@@ -242,6 +245,65 @@ public:
         // clang-format on
 
         RegisterHandlers(functions);
+    }
+
+    void GetApplicationControlData(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto flag = rp.PopRaw<u64>();
+        LOG_DEBUG(Service_NS, "called with flag={:016X}", flag);
+
+        const auto title_id = rp.PopRaw<u64>();
+
+        const auto size = ctx.GetWriteBufferSize();
+
+        const FileSys::PatchManager pm{title_id};
+        const auto control = pm.GetControlMetadata();
+
+        std::vector<u8> out;
+
+        if (control.first != nullptr) {
+            if (size < 0x4000) {
+                LOG_ERROR(Service_NS,
+                          "output buffer is too small! (actual={:016X}, expected_min=0x4000)",
+                          size);
+                IPC::ResponseBuilder rb{ctx, 2};
+                // TODO(DarkLordZach): Find a better error code for this.
+                rb.Push(ResultCode(-1));
+                return;
+            }
+
+            out.resize(0x4000);
+            const auto bytes = control.first->GetRawBytes();
+            std::memcpy(out.data(), bytes.data(), bytes.size());
+        } else {
+            LOG_WARNING(Service_NS, "missing NACP data for title_id={:016X}, defaulting to zeros.",
+                        title_id);
+            out.resize(std::min<u64>(0x4000, size));
+        }
+
+        if (control.second != nullptr) {
+            if (size < 0x4000 + control.second->GetSize()) {
+                LOG_ERROR(Service_NS,
+                          "output buffer is too small! (actual={:016X}, expected_min={:016X})",
+                          size, 0x4000 + control.second->GetSize());
+                IPC::ResponseBuilder rb{ctx, 2};
+                // TODO(DarkLordZach): Find a better error code for this.
+                rb.Push(ResultCode(-1));
+                return;
+            }
+
+            out.resize(0x4000 + control.second->GetSize());
+            control.second->Read(out.data() + 0x4000, control.second->GetSize());
+        } else {
+            LOG_WARNING(Service_NS, "missing icon data for title_id={:016X}, defaulting to zeros.",
+                        title_id);
+        }
+
+        ctx.WriteBuffer(out);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(static_cast<u32>(out.size()));
     }
 };
 

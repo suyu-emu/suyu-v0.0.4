@@ -25,6 +25,7 @@ private:
     void CreateSaveData(Kernel::HLERequestContext& ctx);
     void MountSaveData(Kernel::HLERequestContext& ctx);
     void OpenReadOnlySaveDataFileSystem(Kernel::HLERequestContext& ctx);
+    void OpenSaveDataInfoReaderBySaveDataSpaceId(Kernel::HLERequestContext& ctx);
     void GetGlobalAccessLogMode(Kernel::HLERequestContext& ctx);
     void OpenDataStorageByCurrentProcess(Kernel::HLERequestContext& ctx);
     void OpenDataStorageByDataId(Kernel::HLERequestContext& ctx);

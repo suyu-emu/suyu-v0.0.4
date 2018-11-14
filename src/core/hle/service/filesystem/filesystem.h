@@ -45,6 +45,7 @@ ResultVal<FileSys::VirtualFile> OpenRomFS(u64 title_id, FileSys::StorageId stora
                                           FileSys::ContentRecordType type);
 ResultVal<FileSys::VirtualDir> OpenSaveData(FileSys::SaveDataSpaceId space,
                                             FileSys::SaveDataDescriptor save_struct);
+ResultVal<FileSys::VirtualDir> OpenSaveDataSpace(FileSys::SaveDataSpaceId space);
 ResultVal<FileSys::VirtualDir> OpenSDMC();
 
 std::unique_ptr<FileSys::RegisteredCacheUnion> GetUnionContents();
