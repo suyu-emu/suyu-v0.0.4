@@ -292,17 +292,6 @@ private:
     u32 allowed_thread_priority_mask = 0xFFFFFFFF;
     u32 is_virtual_address_memory_enabled = 0;
 
-    // Memory used to back the allocations in the regular heap. A single vector is used to cover
-    // the entire virtual address space extents that bound the allocations, including any holes.
-    // This makes deallocation and reallocation of holes fast and keeps process memory contiguous
-    // in the emulator address space, allowing Memory::GetPointer to be reasonably safe.
-    std::shared_ptr<std::vector<u8>> heap_memory;
-
-    // The left/right bounds of the address space covered by heap_memory.
-    VAddr heap_start = 0;
-    VAddr heap_end = 0;
-    u64 heap_used = 0;
-
     /// The Thread Local Storage area is allocated as processes create threads,
     /// each TLS area is 0x200 bytes, so one page (0x1000) is split up in 8 parts, and each part
     /// holds the TLS for a specific thread. This vector contains which parts are in use for each

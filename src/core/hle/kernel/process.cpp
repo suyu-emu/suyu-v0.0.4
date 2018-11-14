@@ -5,11 +5,9 @@
 #include <algorithm>
 #include <memory>
 #include "common/assert.h"
-#include "common/common_funcs.h"
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/file_sys/program_metadata.h"
-#include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
@@ -241,83 +239,15 @@ void Process::LoadModule(CodeSet module_, VAddr base_addr) {
 }
 
 ResultVal<VAddr> Process::HeapAllocate(VAddr target, u64 size, VMAPermission perms) {
-    if (target < vm_manager.GetHeapRegionBaseAddress() ||
-        target + size > vm_manager.GetHeapRegionEndAddress() || target + size < target) {
-        return ERR_INVALID_ADDRESS;
-    }
-
-    if (heap_memory == nullptr) {
-        // Initialize heap
-        heap_memory = std::make_shared<std::vector<u8>>();
-        heap_start = heap_end = target;
-    } else {
-        vm_manager.UnmapRange(heap_start, heap_end - heap_start);
-    }
-
-    // If necessary, expand backing vector to cover new heap extents.
-    if (target < heap_start) {
-        heap_memory->insert(begin(*heap_memory), heap_start - target, 0);
-        heap_start = target;
-        vm_manager.RefreshMemoryBlockMappings(heap_memory.get());
-    }
-    if (target + size > heap_end) {
-        heap_memory->insert(end(*heap_memory), (target + size) - heap_end, 0);
-        heap_end = target + size;
-        vm_manager.RefreshMemoryBlockMappings(heap_memory.get());
-    }
-    ASSERT(heap_end - heap_start == heap_memory->size());
-
-    CASCADE_RESULT(auto vma, vm_manager.MapMemoryBlock(target, heap_memory, target - heap_start,
-                                                       size, MemoryState::Heap));
-    vm_manager.Reprotect(vma, perms);
-
-    heap_used = size;
-
-    return MakeResult<VAddr>(heap_end - size);
+    return vm_manager.HeapAllocate(target, size, perms);
 }
 
 ResultCode Process::HeapFree(VAddr target, u32 size) {
-    if (target < vm_manager.GetHeapRegionBaseAddress() ||
-        target + size > vm_manager.GetHeapRegionEndAddress() || target + size < target) {
-        return ERR_INVALID_ADDRESS;
-    }
-
-    if (size == 0) {
-        return RESULT_SUCCESS;
-    }
-
-    ResultCode result = vm_manager.UnmapRange(target, size);
-    if (result.IsError())
-        return result;
-
-    heap_used -= size;
-
-    return RESULT_SUCCESS;
+    return vm_manager.HeapFree(target, size);
 }
 
 ResultCode Process::MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
-    auto vma = vm_manager.FindVMA(src_addr);
-
-    ASSERT_MSG(vma != vm_manager.vma_map.end(), "Invalid memory address");
-    ASSERT_MSG(vma->second.backing_block, "Backing block doesn't exist for address");
-
-    // The returned VMA might be a bigger one encompassing the desired address.
-    auto vma_offset = src_addr - vma->first;
-    ASSERT_MSG(vma_offset + size <= vma->second.size,
-               "Shared memory exceeds bounds of mapped block");
-
-    const std::shared_ptr<std::vector<u8>>& backing_block = vma->second.backing_block;
-    std::size_t backing_block_offset = vma->second.offset + vma_offset;
-
-    CASCADE_RESULT(auto new_vma,
-                   vm_manager.MapMemoryBlock(dst_addr, backing_block, backing_block_offset, size,
-                                             MemoryState::Mapped));
-    // Protect mirror with permissions from old region
-    vm_manager.Reprotect(new_vma, vma->second.permissions);
-    // Remove permissions from old region
-    vm_manager.Reprotect(vma, VMAPermission::None);
-
-    return RESULT_SUCCESS;
+    return vm_manager.MirrorMemory(dst_addr, src_addr, size);
 }
 
 ResultCode Process::UnmapMemory(VAddr dst_addr, VAddr /*src_addr*/, u64 size) {
