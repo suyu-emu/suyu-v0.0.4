@@ -480,6 +480,67 @@ public:
             };
         };
 
+        struct ViewportTransform {
+            f32 scale_x;
+            f32 scale_y;
+            f32 scale_z;
+            f32 translate_x;
+            f32 translate_y;
+            f32 translate_z;
+            INSERT_PADDING_WORDS(2);
+
+            MathUtil::Rectangle<s32> GetRect() const {
+                return {
+                    GetX(),               // left
+                    GetY() + GetHeight(), // top
+                    GetX() + GetWidth(),  // right
+                    GetY()                // bottom
+                };
+            };
+
+            s32 GetX() const {
+                return static_cast<s32>(std::max(0.0f, translate_x - std::fabs(scale_x)));
+            }
+
+            s32 GetY() const {
+                return static_cast<s32>(std::max(0.0f, translate_y - std::fabs(scale_y)));
+            }
+
+            s32 GetWidth() const {
+                return static_cast<s32>(translate_x + std::fabs(scale_x)) - GetX();
+            }
+
+            s32 GetHeight() const {
+                return static_cast<s32>(translate_y + std::fabs(scale_y)) - GetY();
+            }
+        };
+
+        struct ScissorTest {
+            u32 enable;
+            union {
+                BitField<0, 16, u32> min_x;
+                BitField<16, 16, u32> max_x;
+            };
+            union {
+                BitField<0, 16, u32> min_y;
+                BitField<16, 16, u32> max_y;
+            };
+            u32 fill;
+        };
+
+        struct ViewPort {
+            union {
+                BitField<0, 16, u32> x;
+                BitField<16, 16, u32> width;
+            };
+            union {
+                BitField<0, 16, u32> y;
+                BitField<16, 16, u32> height;
+            };
+            float depth_range_near;
+            float depth_range_far;
+        };
+
         bool IsShaderConfigEnabled(std::size_t index) const {
             // The VertexB is always enabled.
             if (index == static_cast<std::size_t>(Regs::ShaderProgram::VertexB)) {
@@ -507,55 +568,7 @@ public:
 
                 std::array<RenderTargetConfig, NumRenderTargets> rt;
 
-                struct ViewportTransform {
-                    f32 scale_x;
-                    f32 scale_y;
-                    f32 scale_z;
-                    f32 translate_x;
-                    f32 translate_y;
-                    f32 translate_z;
-                    INSERT_PADDING_WORDS(2);
-
-                    MathUtil::Rectangle<s32> GetRect() const {
-                        return {
-                            GetX(),               // left
-                            GetY() + GetHeight(), // top
-                            GetX() + GetWidth(),  // right
-                            GetY()                // bottom
-                        };
-                    };
-
-                    s32 GetX() const {
-                        return static_cast<s32>(std::max(0.0f, translate_x - std::fabs(scale_x)));
-                    }
-
-                    s32 GetY() const {
-                        return static_cast<s32>(std::max(0.0f, translate_y - std::fabs(scale_y)));
-                    }
-
-                    s32 GetWidth() const {
-                        return static_cast<s32>(translate_x + std::fabs(scale_x)) - GetX();
-                    }
-
-                    s32 GetHeight() const {
-                        return static_cast<s32>(translate_y + std::fabs(scale_y)) - GetY();
-                    }
-                };
-
                 std::array<ViewportTransform, NumViewports> viewport_transform;
-
-                struct ViewPort {
-                    union {
-                        BitField<0, 16, u32> x;
-                        BitField<16, 16, u32> width;
-                    };
-                    union {
-                        BitField<0, 16, u32> y;
-                        BitField<16, 16, u32> height;
-                    };
-                    float depth_range_near;
-                    float depth_range_far;
-                };
 
                 std::array<ViewPort, NumViewports> viewports;
 
@@ -575,18 +588,6 @@ public:
 
                 INSERT_PADDING_WORDS(0x17);
 
-                struct ScissorTest {
-                    u32 enable;
-                    union {
-                        BitField<0, 16, u32> min_x;
-                        BitField<16, 16, u32> max_x;
-                    };
-                    union {
-                        BitField<0, 16, u32> min_y;
-                        BitField<16, 16, u32> max_y;
-                    };
-                    u32 fill;
-                };
                 std::array<ScissorTest, NumViewports> scissor_test;
 
                 INSERT_PADDING_WORDS(0x15);
