@@ -269,7 +269,7 @@
            </font>
           </property>
           <property name="inputMask">
-           <string>HHHHHHHH</string>
+           <string notr="true">HHHHHHHH</string>
           </property>
           <property name="maxLength">
            <number>8</number>
