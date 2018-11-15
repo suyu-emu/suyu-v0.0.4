@@ -142,36 +142,7 @@ void Thread::ResumeFromWait() {
 
     status = ThreadStatus::Ready;
 
-    std::optional<s32> new_processor_id = GetNextProcessorId(affinity_mask);
-    if (!new_processor_id) {
-        new_processor_id = processor_id;
-    }
-    if (ideal_core != -1 &&
-        Core::System::GetInstance().Scheduler(ideal_core).GetCurrentThread() == nullptr) {
-        new_processor_id = ideal_core;
-    }
-
-    ASSERT(*new_processor_id < 4);
-
-    // Add thread to new core's scheduler
-    auto* next_scheduler = &Core::System::GetInstance().Scheduler(*new_processor_id);
-
-    if (*new_processor_id != processor_id) {
-        // Remove thread from previous core's scheduler
-        scheduler->RemoveThread(this);
-        next_scheduler->AddThread(this, current_priority);
-    }
-
-    processor_id = *new_processor_id;
-
-    // If the thread was ready, unschedule from the previous core and schedule on the new core
-    scheduler->UnscheduleThread(this, current_priority);
-    next_scheduler->ScheduleThread(this, current_priority);
-
-    // Change thread's scheduler
-    scheduler = next_scheduler;
-
-    Core::System::GetInstance().CpuCore(processor_id).PrepareReschedule();
+    ChangeScheduler();
 }
 
 /**
@@ -364,42 +335,45 @@ void Thread::UpdatePriority() {
 void Thread::ChangeCore(u32 core, u64 mask) {
     ideal_core = core;
     affinity_mask = mask;
+    ChangeScheduler();
+}
 
+void Thread::ChangeScheduler() {
     if (status != ThreadStatus::Ready) {
         return;
     }
 
+    auto& system = Core::System::GetInstance();
     std::optional<s32> new_processor_id{GetNextProcessorId(affinity_mask)};
 
     if (!new_processor_id) {
         new_processor_id = processor_id;
     }
-    if (ideal_core != -1 &&
-        Core::System::GetInstance().Scheduler(ideal_core).GetCurrentThread() == nullptr) {
+    if (ideal_core != -1 && system.Scheduler(ideal_core).GetCurrentThread() == nullptr) {
         new_processor_id = ideal_core;
     }
 
     ASSERT(*new_processor_id < 4);
 
     // Add thread to new core's scheduler
-    auto* next_scheduler = &Core::System::GetInstance().Scheduler(*new_processor_id);
+    auto& next_scheduler = system.Scheduler(*new_processor_id);
 
     if (*new_processor_id != processor_id) {
         // Remove thread from previous core's scheduler
         scheduler->RemoveThread(this);
-        next_scheduler->AddThread(this, current_priority);
+        next_scheduler.AddThread(this, current_priority);
     }
 
     processor_id = *new_processor_id;
 
     // If the thread was ready, unschedule from the previous core and schedule on the new core
     scheduler->UnscheduleThread(this, current_priority);
-    next_scheduler->ScheduleThread(this, current_priority);
+    next_scheduler.ScheduleThread(this, current_priority);
 
     // Change thread's scheduler
-    scheduler = next_scheduler;
+    scheduler = &next_scheduler;
 
-    Core::System::GetInstance().CpuCore(processor_id).PrepareReschedule();
+    system.CpuCore(processor_id).PrepareReschedule();
 }
 
 bool Thread::AllWaitObjectsReady() {
