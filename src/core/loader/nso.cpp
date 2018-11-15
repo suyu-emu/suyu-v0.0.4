@@ -154,7 +154,7 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(const FileSys::VfsFile& file, VAd
     program_image.resize(image_size);
 
     // Apply patches if necessary
-    if (pm && pm->HasNSOPatch(nso_header.build_id)) {
+    if (pm && (pm->HasNSOPatch(nso_header.build_id) || Settings::values.dump_nso)) {
         std::vector<u8> pi_header(program_image.size() + 0x100);
         std::memcpy(pi_header.data(), &nso_header, sizeof(NsoHeader));
         std::memcpy(pi_header.data() + 0x100, program_image.data(), program_image.size());

@@ -370,6 +370,15 @@ FileSys::VirtualDir GetModificationLoadRoot(u64 title_id) {
     return bis_factory->GetModificationLoadRoot(title_id);
 }
 
+FileSys::VirtualDir GetModificationDumpRoot(u64 title_id) {
+    LOG_TRACE(Service_FS, "Opening mod dump root for tid={:016X}", title_id);
+
+    if (bis_factory == nullptr)
+        return nullptr;
+
+    return bis_factory->GetModificationDumpRoot(title_id);
+}
+
 void CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite) {
     if (overwrite) {
         bis_factory = nullptr;
@@ -383,13 +392,21 @@ void CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite) {
                                           FileSys::Mode::ReadWrite);
     auto load_directory = vfs.OpenDirectory(FileUtil::GetUserPath(FileUtil::UserPath::LoadDir),
                                             FileSys::Mode::ReadWrite);
+    auto dump_directory = vfs.OpenDirectory(FileUtil::GetUserPath(FileUtil::UserPath::DumpDir),
+                                            FileSys::Mode::ReadWrite);
 
-    if (bis_factory == nullptr)
-        bis_factory = std::make_unique<FileSys::BISFactory>(nand_directory, load_directory);
-    if (save_data_factory == nullptr)
+    if (bis_factory == nullptr) {
+        bis_factory =
+            std::make_unique<FileSys::BISFactory>(nand_directory, load_directory, dump_directory);
+    }
+
+    if (save_data_factory == nullptr) {
         save_data_factory = std::make_unique<FileSys::SaveDataFactory>(std::move(nand_directory));
-    if (sdmc_factory == nullptr)
+    }
+
+    if (sdmc_factory == nullptr) {
         sdmc_factory = std::make_unique<FileSys::SDMCFactory>(std::move(sd_directory));
+    }
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager, FileSys::VfsFilesystem& vfs) {

@@ -55,6 +55,7 @@ FileSys::RegisteredCache* GetUserNANDContents();
 FileSys::RegisteredCache* GetSDMCContents();
 
 FileSys::VirtualDir GetModificationLoadRoot(u64 title_id);
+FileSys::VirtualDir GetModificationDumpRoot(u64 title_id);
 
 // Creates the SaveData, SDMC, and BIS Factories. Should be called once and before any function
 // above is called.
