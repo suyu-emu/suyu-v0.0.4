@@ -47,6 +47,9 @@ void ConfigureGeneral::OnDockedModeChanged(bool last_state, bool new_state) {
     }
 
     Core::System& system{Core::System::GetInstance()};
+    if (!system.IsPoweredOn()) {
+        return;
+    }
     Service::SM::ServiceManager& sm = system.ServiceManager();
 
     // Message queue is shared between these services, we just need to signal an operation
