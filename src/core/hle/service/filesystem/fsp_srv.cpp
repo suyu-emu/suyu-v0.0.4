@@ -63,12 +63,12 @@ private:
         // Error checking
         if (length < 0) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultCode(ErrorModule::FS, ErrorDescription::InvalidLength));
+            rb.Push(FileSys::ERROR_INVALID_SIZE);
             return;
         }
         if (offset < 0) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultCode(ErrorModule::FS, ErrorDescription::InvalidOffset));
+            rb.Push(FileSys::ERROR_INVALID_OFFSET);
             return;
         }
 
@@ -108,12 +108,12 @@ private:
         // Error checking
         if (length < 0) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultCode(ErrorModule::FS, ErrorDescription::InvalidLength));
+            rb.Push(FileSys::ERROR_INVALID_SIZE);
             return;
         }
         if (offset < 0) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultCode(ErrorModule::FS, ErrorDescription::InvalidOffset));
+            rb.Push(FileSys::ERROR_INVALID_OFFSET);
             return;
         }
 
@@ -139,12 +139,12 @@ private:
         // Error checking
         if (length < 0) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultCode(ErrorModule::FS, ErrorDescription::InvalidLength));
+            rb.Push(FileSys::ERROR_INVALID_SIZE);
             return;
         }
         if (offset < 0) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultCode(ErrorModule::FS, ErrorDescription::InvalidOffset));
+            rb.Push(FileSys::ERROR_INVALID_OFFSET);
             return;
         }
 
@@ -744,7 +744,7 @@ void FSP_SRV::MountSaveData(Kernel::HLERequestContext& ctx) {
 
     if (dir.Failed()) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 0};
-        rb.Push(ResultCode(ErrorModule::FS, FileSys::ErrCodes::TitleNotFound));
+        rb.Push(FileSys::ERROR_ENTITY_NOT_FOUND);
         return;
     }
 
@@ -836,7 +836,7 @@ void FSP_SRV::OpenRomStorage(Kernel::HLERequestContext& ctx) {
               static_cast<u8>(storage_id), title_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultCode(ErrorModule::FS, FileSys::ErrCodes::TitleNotFound));
+    rb.Push(FileSys::ERROR_ENTITY_NOT_FOUND);
 }
 
 } // namespace Service::FileSystem
