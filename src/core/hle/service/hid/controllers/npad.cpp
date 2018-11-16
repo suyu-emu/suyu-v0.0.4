@@ -40,6 +40,29 @@ enum class JoystickId : std::size_t {
     Joystick_Right,
 };
 
+static std::size_t NPadIdToIndex(u32 npad_id) {
+    switch (npad_id) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+        return npad_id;
+    case 8:
+    case NPAD_HANDHELD:
+        return 8;
+    case 9:
+    case NPAD_UNKNOWN:
+        return 9;
+    default:
+        UNIMPLEMENTED_MSG("Unknown npad id {}", npad_id);
+        return 0;
+    }
+}
+
 Controller_NPad::Controller_NPad() = default;
 Controller_NPad::~Controller_NPad() = default;
 
@@ -288,10 +311,11 @@ void Controller_NPad::OnUpdate(u8* data, std::size_t data_len) {
         switch (controller_type) {
         case NPadControllerType::Handheld:
             handheld_entry.connection_status.raw = 0;
-            handheld_entry.connection_status.IsConnected.Assign(1);
-            if (!Settings::values.use_docked_mode) {
-                handheld_entry.connection_status.IsWired.Assign(1);
-            }
+            handheld_entry.connection_status.IsWired.Assign(1);
+            handheld_entry.connection_status.IsLeftJoyConnected.Assign(1);
+            handheld_entry.connection_status.IsRightJoyConnected.Assign(1);
+            handheld_entry.connection_status.IsLeftJoyWired.Assign(1);
+            handheld_entry.connection_status.IsRightJoyWired.Assign(1);
             handheld_entry.pad_states.raw = pad_state.raw;
             handheld_entry.l_stick = lstick_entry;
             handheld_entry.r_stick = rstick_entry;
@@ -371,15 +395,29 @@ void Controller_NPad::SetSupportedNPadIdTypes(u8* data, std::size_t length) {
     supported_npad_id_types.clear();
     supported_npad_id_types.resize(length / sizeof(u32));
     std::memcpy(supported_npad_id_types.data(), data, length);
+    bool had_controller_update = false;
     for (std::size_t i = 0; i < connected_controllers.size(); i++) {
         auto& controller = connected_controllers[i];
         if (!controller.is_connected) {
             continue;
         }
         if (!IsControllerSupported(PREFERRED_CONTROLLER)) {
-            controller.type = DecideBestController(PREFERRED_CONTROLLER);
-            InitNewlyAddedControler(i);
+            const auto best_type = DecideBestController(PREFERRED_CONTROLLER);
+            const bool is_handheld = (best_type == NPadControllerType::Handheld ||
+                                      PREFERRED_CONTROLLER == NPadControllerType::Handheld);
+            if (is_handheld) {
+                controller.type = NPadControllerType::None;
+                controller.is_connected = false;
+                AddNewController(best_type);
+            } else {
+                controller.type = best_type;
+                InitNewlyAddedControler(i);
+            }
+            had_controller_update = true;
         }
+    }
+    if (had_controller_update) {
+        styleset_changed_event->Signal();
     }
 }
 
@@ -458,15 +496,11 @@ void Controller_NPad::AddNewController(NPadControllerType controller) {
 }
 
 void Controller_NPad::ConnectNPad(u32 npad_id) {
-    if (npad_id >= connected_controllers.size())
-        return;
-    connected_controllers[npad_id].is_connected = true;
+    connected_controllers[NPadIdToIndex(npad_id)].is_connected = true;
 }
 
 void Controller_NPad::DisconnectNPad(u32 npad_id) {
-    if (npad_id >= connected_controllers.size())
-        return;
-    connected_controllers[npad_id].is_connected = false;
+    connected_controllers[NPadIdToIndex(npad_id)].is_connected = false;
 }
 
 Controller_NPad::LedPattern Controller_NPad::GetLedPattern(u32 npad_id) {
