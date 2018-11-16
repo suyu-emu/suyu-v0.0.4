@@ -97,6 +97,7 @@ std::size_t SurfaceParams::InnerMemorySize(bool force_gl, bool layer_only,
     params.block_width = params.is_tiled ? config.tic.BlockWidth() : 0,
     params.block_height = params.is_tiled ? config.tic.BlockHeight() : 0,
     params.block_depth = params.is_tiled ? config.tic.BlockDepth() : 0,
+    params.tile_width_spacing = params.is_tiled ? (1 << config.tic.tile_width_spacing.Value()) : 1;
     params.srgb_conversion = config.tic.IsSrgbConversionEnabled();
     params.pixel_format = PixelFormatFromTextureFormat(config.tic.format, config.tic.r_type.Value(),
                                                        params.srgb_conversion);
@@ -162,6 +163,7 @@ std::size_t SurfaceParams::InnerMemorySize(bool force_gl, bool layer_only,
     params.block_width = 1 << config.memory_layout.block_width;
     params.block_height = 1 << config.memory_layout.block_height;
     params.block_depth = 1 << config.memory_layout.block_depth;
+    params.tile_width_spacing = 1;
     params.pixel_format = PixelFormatFromRenderTargetFormat(config.format);
     params.srgb_conversion = config.format == Tegra::RenderTargetFormat::BGRA8_SRGB ||
                              config.format == Tegra::RenderTargetFormat::RGBA8_SRGB;
@@ -197,6 +199,7 @@ std::size_t SurfaceParams::InnerMemorySize(bool force_gl, bool layer_only,
     params.block_width = 1 << std::min(block_width, 5U);
     params.block_height = 1 << std::min(block_height, 5U);
     params.block_depth = 1 << std::min(block_depth, 5U);
+    params.tile_width_spacing = 1;
     params.pixel_format = PixelFormatFromDepthFormat(format);
     params.component_type = ComponentTypeFromDepthFormat(format);
     params.type = GetFormatType(params.pixel_format);
@@ -223,6 +226,7 @@ std::size_t SurfaceParams::InnerMemorySize(bool force_gl, bool layer_only,
     params.block_width = params.is_tiled ? std::min(config.BlockWidth(), 32U) : 0,
     params.block_height = params.is_tiled ? std::min(config.BlockHeight(), 32U) : 0,
     params.block_depth = params.is_tiled ? std::min(config.BlockDepth(), 32U) : 0,
+    params.tile_width_spacing = 1;
     params.pixel_format = PixelFormatFromRenderTargetFormat(config.format);
     params.srgb_conversion = config.format == Tegra::RenderTargetFormat::BGRA8_SRGB ||
                              config.format == Tegra::RenderTargetFormat::RGBA8_SRGB;
@@ -387,8 +391,8 @@ void SwizzleFunc(const MortonSwizzleMode& mode, const SurfaceParams& params,
         for (u32 i = 0; i < params.depth; i++) {
             MortonSwizzle(mode, params.pixel_format, params.MipWidth(mip_level),
                           params.MipBlockHeight(mip_level), params.MipHeight(mip_level),
-                          params.MipBlockDepth(mip_level), 1, gl_buffer.data() + offset_gl, gl_size,
-                          params.addr + offset);
+                          params.MipBlockDepth(mip_level), params.tile_width_spacing, 1,
+                          gl_buffer.data() + offset_gl, gl_size, params.addr + offset);
             offset += layer_size;
             offset_gl += gl_size;
         }
@@ -396,8 +400,8 @@ void SwizzleFunc(const MortonSwizzleMode& mode, const SurfaceParams& params,
         const u64 offset = params.GetMipmapLevelOffset(mip_level);
         MortonSwizzle(mode, params.pixel_format, params.MipWidth(mip_level),
                       params.MipBlockHeight(mip_level), params.MipHeight(mip_level),
-                      params.MipBlockDepth(mip_level), depth, gl_buffer.data(), gl_buffer.size(),
-                      params.addr + offset);
+                      params.MipBlockDepth(mip_level), depth, params.tile_width_spacing,
+                      gl_buffer.data(), gl_buffer.size(), params.addr + offset);
     }
 }
 

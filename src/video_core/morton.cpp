@@ -16,12 +16,12 @@ namespace VideoCore {
 using Surface::GetBytesPerPixel;
 using Surface::PixelFormat;
 
-using MortonCopyFn = void (*)(u32, u32, u32, u32, u32, u8*, std::size_t, VAddr);
+using MortonCopyFn = void (*)(u32, u32, u32, u32, u32, u32, u8*, std::size_t, VAddr);
 using ConversionArray = std::array<MortonCopyFn, Surface::MaxPixelFormat>;
 
 template <bool morton_to_linear, PixelFormat format>
 static void MortonCopy(u32 stride, u32 block_height, u32 height, u32 block_depth, u32 depth,
-                       u8* buffer, std::size_t buffer_size, VAddr addr) {
+                       u32 tile_width_spacing, u8* buffer, std::size_t buffer_size, VAddr addr) {
     constexpr u32 bytes_per_pixel = GetBytesPerPixel(format);
 
     // With the BCn formats (DXT and DXN), each 4x4 tile is swizzled instead of just individual
@@ -31,12 +31,13 @@ static void MortonCopy(u32 stride, u32 block_height, u32 height, u32 block_depth
 
     if constexpr (morton_to_linear) {
         Tegra::Texture::UnswizzleTexture(buffer, addr, tile_size_x, tile_size_y, bytes_per_pixel,
-                                         stride, height, depth, block_height, block_depth);
+                                         stride, height, depth, block_height, block_depth,
+                                         tile_width_spacing);
     } else {
-        Tegra::Texture::CopySwizzledData((stride + tile_size_x - 1) / tile_size_x,
-                                         (height + tile_size_y - 1) / tile_size_y, depth,
-                                         bytes_per_pixel, bytes_per_pixel, Memory::GetPointer(addr),
-                                         buffer, false, block_height, block_depth);
+        Tegra::Texture::CopySwizzledData(
+            (stride + tile_size_x - 1) / tile_size_x, (height + tile_size_y - 1) / tile_size_y,
+            depth, bytes_per_pixel, bytes_per_pixel, Memory::GetPointer(addr), buffer, false,
+            block_height, block_depth, tile_width_spacing);
     }
 }
 
@@ -325,11 +326,11 @@ static u32 GetMortonOffset128(u32 x, u32 y, u32 bytes_per_pixel) {
 }
 
 void MortonSwizzle(MortonSwizzleMode mode, Surface::PixelFormat format, u32 stride,
-                   u32 block_height, u32 height, u32 block_depth, u32 depth, u8* buffer,
-                   std::size_t buffer_size, VAddr addr) {
+                   u32 block_height, u32 height, u32 block_depth, u32 depth, u32 tile_width_spacing,
+                   u8* buffer, std::size_t buffer_size, VAddr addr) {
 
-    GetSwizzleFunction(mode, format)(stride, block_height, height, block_depth, depth, buffer,
-                                     buffer_size, addr);
+    GetSwizzleFunction(mode, format)(stride, block_height, height, block_depth, depth,
+                                     tile_width_spacing, buffer, buffer_size, addr);
 }
 
 void MortonCopyPixels128(u32 width, u32 height, u32 bytes_per_pixel, u32 linear_bytes_per_pixel,
