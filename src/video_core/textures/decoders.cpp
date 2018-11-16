@@ -45,7 +45,7 @@ constexpr auto fast_swizzle_table = SwizzleTable<8, 4, 16>();
  * Instead of going gob by gob, we map the coordinates inside a block and manage from
  * those. Block_Width is assumed to be 1.
  */
-void PreciseProcessBlock(u8* swizzled_data, u8* unswizzled_data, const bool unswizzle,
+void PreciseProcessBlock(u8* const swizzled_data, u8* const unswizzled_data, const bool unswizzle,
                          const u32 x_start, const u32 y_start, const u32 z_start, const u32 x_end,
                          const u32 y_end, const u32 z_end, const u32 tile_offset,
                          const u32 xy_block_size, const u32 layer_z, const u32 stride_x,
@@ -81,7 +81,7 @@ void PreciseProcessBlock(u8* swizzled_data, u8* unswizzled_data, const bool unsw
  * Instead of going gob by gob, we map the coordinates inside a block and manage from
  * those. Block_Width is assumed to be 1.
  */
-void FastProcessBlock(u8* swizzled_data, u8* unswizzled_data, const bool unswizzle,
+void FastProcessBlock(u8* const swizzled_data, u8* const unswizzled_data, const bool unswizzle,
                       const u32 x_start, const u32 y_start, const u32 z_start, const u32 x_end,
                       const u32 y_end, const u32 z_end, const u32 tile_offset,
                       const u32 xy_block_size, const u32 layer_z, const u32 stride_x,
@@ -90,10 +90,10 @@ void FastProcessBlock(u8* swizzled_data, u8* unswizzled_data, const bool unswizz
     u32 z_address = tile_offset;
     const u32 x_startb = x_start * bytes_per_pixel;
     const u32 x_endb = x_end * bytes_per_pixel;
-    const u32 copy_size = 16;
-    const u32 gob_size_x = 64;
-    const u32 gob_size_y = 8;
-    const u32 gob_size_z = 1;
+    constexpr u32 copy_size = 16;
+    constexpr u32 gob_size_x = 64;
+    constexpr u32 gob_size_y = 8;
+    constexpr u32 gob_size_z = 1;
     const u32 gob_size = gob_size_x * gob_size_y * gob_size_z;
     for (u32 z = z_start; z < z_end; z++) {
         u32 y_address = z_address;
@@ -126,23 +126,23 @@ void FastProcessBlock(u8* swizzled_data, u8* unswizzled_data, const bool unswizz
  *  https://envytools.readthedocs.io/en/latest/hw/memory/g80-surface.html#blocklinear-surfaces
  */
 template <bool fast>
-void SwizzledData(u8* swizzled_data, u8* unswizzled_data, const bool unswizzle, const u32 width,
-                  const u32 height, const u32 depth, const u32 bytes_per_pixel,
+void SwizzledData(u8* const swizzled_data, u8* const unswizzled_data, const bool unswizzle,
+                  const u32 width, const u32 height, const u32 depth, const u32 bytes_per_pixel,
                   const u32 out_bytes_per_pixel, const u32 block_height, const u32 block_depth) {
     auto div_ceil = [](const u32 x, const u32 y) { return ((x + y - 1) / y); };
     const u32 stride_x = width * out_bytes_per_pixel;
     const u32 layer_z = height * stride_x;
-    const u32 gob_x_bytes = 64;
+    constexpr u32 gob_x_bytes = 64;
     const u32 gob_elements_x = gob_x_bytes / bytes_per_pixel;
-    const u32 gob_elements_y = 8;
-    const u32 gob_elements_z = 1;
+    constexpr u32 gob_elements_y = 8;
+    constexpr u32 gob_elements_z = 1;
     const u32 block_x_elements = gob_elements_x;
     const u32 block_y_elements = gob_elements_y * block_height;
     const u32 block_z_elements = gob_elements_z * block_depth;
     const u32 blocks_on_x = div_ceil(width, block_x_elements);
     const u32 blocks_on_y = div_ceil(height, block_y_elements);
     const u32 blocks_on_z = div_ceil(depth, block_z_elements);
-    const u32 gob_size = gob_x_bytes * gob_elements_y * gob_elements_z;
+    constexpr u32 gob_size = gob_x_bytes * gob_elements_y * gob_elements_z;
     const u32 xy_block_size = gob_size * block_height;
     const u32 block_size = xy_block_size * block_depth;
     u32 tile_offset = 0;
@@ -171,7 +171,7 @@ void SwizzledData(u8* swizzled_data, u8* unswizzled_data, const bool unswizzle, 
 }
 
 void CopySwizzledData(u32 width, u32 height, u32 depth, u32 bytes_per_pixel,
-                      u32 out_bytes_per_pixel, u8* swizzled_data, u8* unswizzled_data,
+                      u32 out_bytes_per_pixel, u8* const swizzled_data, u8* const unswizzled_data,
                       bool unswizzle, u32 block_height, u32 block_depth) {
     if (bytes_per_pixel % 3 != 0 && (width * bytes_per_pixel) % 16 == 0) {
         SwizzledData<true>(swizzled_data, unswizzled_data, unswizzle, width, height, depth,
@@ -325,9 +325,9 @@ std::vector<u8> DecodeTexture(const std::vector<u8>& texture_data, TextureFormat
 std::size_t CalculateSize(bool tiled, u32 bytes_per_pixel, u32 width, u32 height, u32 depth,
                           u32 block_height, u32 block_depth) {
     if (tiled) {
-        const u32 gobs_in_x = 64;
-        const u32 gobs_in_y = 8;
-        const u32 gobs_in_z = 1;
+        constexpr u32 gobs_in_x = 64;
+        constexpr u32 gobs_in_y = 8;
+        constexpr u32 gobs_in_z = 1;
         const u32 aligned_width = Common::AlignUp(width * bytes_per_pixel, gobs_in_x);
         const u32 aligned_height = Common::AlignUp(height, gobs_in_y * block_height);
         const u32 aligned_depth = Common::AlignUp(depth, gobs_in_z * block_depth);
