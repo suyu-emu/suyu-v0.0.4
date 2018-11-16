@@ -214,7 +214,7 @@ static ResultCode ConnectToNamedPort(Handle* out_handle, VAddr port_name_address
     // Read 1 char beyond the max allowed port name to detect names that are too long.
     std::string port_name = Memory::ReadCString(port_name_address, PortNameMaxLength + 1);
     if (port_name.size() > PortNameMaxLength) {
-        return ERR_PORT_NAME_TOO_LONG;
+        return ERR_OUT_OF_RANGE;
     }
 
     LOG_TRACE(Kernel_SVC, "called port_name={}", port_name);
@@ -310,8 +310,9 @@ static ResultCode WaitSynchronization(Handle* index, VAddr handles_address, u64 
 
     static constexpr u64 MaxHandles = 0x40;
 
-    if (handle_count > MaxHandles)
-        return ResultCode(ErrorModule::Kernel, ErrCodes::TooLarge);
+    if (handle_count > MaxHandles) {
+        return ERR_OUT_OF_RANGE;
+    }
 
     auto* const thread = GetCurrentThread();
 
@@ -376,8 +377,7 @@ static ResultCode CancelSynchronization(Handle thread_handle) {
     }
 
     ASSERT(thread->GetStatus() == ThreadStatus::WaitSynchAny);
-    thread->SetWaitSynchronizationResult(
-        ResultCode(ErrorModule::Kernel, ErrCodes::SynchronizationCanceled));
+    thread->SetWaitSynchronizationResult(ERR_SYNCHRONIZATION_CANCELED);
     thread->ResumeFromWait();
     return RESULT_SUCCESS;
 }
@@ -606,7 +606,7 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
         }
 
         if (info_sub_id >= Process::RANDOM_ENTROPY_SIZE) {
-            return ERR_INVALID_COMBINATION_KERNEL;
+            return ERR_INVALID_COMBINATION;
         }
 
         *result = current_process->GetRandomEntropy(info_sub_id);
@@ -643,7 +643,7 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
     case GetInfoType::ThreadTickCount: {
         constexpr u64 num_cpus = 4;
         if (info_sub_id != 0xFFFFFFFFFFFFFFFF && info_sub_id >= num_cpus) {
-            return ERR_INVALID_COMBINATION_KERNEL;
+            return ERR_INVALID_COMBINATION;
         }
 
         const auto thread =
@@ -1236,7 +1236,7 @@ static ResultCode SetThreadCoreMask(Handle thread_handle, u32 core, u64 mask) {
     }
 
     if (mask == 0) {
-        return ResultCode(ErrorModule::Kernel, ErrCodes::InvalidCombination);
+        return ERR_INVALID_COMBINATION;
     }
 
     /// This value is used to only change the affinity mask without changing the current ideal core.
@@ -1245,12 +1245,12 @@ static ResultCode SetThreadCoreMask(Handle thread_handle, u32 core, u64 mask) {
     if (core == OnlyChangeMask) {
         core = thread->GetIdealCore();
     } else if (core >= Core::NUM_CPU_CORES && core != static_cast<u32>(-1)) {
-        return ResultCode(ErrorModule::Kernel, ErrCodes::InvalidProcessorId);
+        return ERR_INVALID_PROCESSOR_ID;
     }
 
     // Error out if the input core isn't enabled in the input mask.
     if (core < Core::NUM_CPU_CORES && (mask & (1ull << core)) == 0) {
-        return ResultCode(ErrorModule::Kernel, ErrCodes::InvalidCombination);
+        return ERR_INVALID_COMBINATION;
     }
 
     thread->ChangeCore(core, mask);
