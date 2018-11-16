@@ -208,7 +208,7 @@ private:
     void ApplyPrimitiveRestart() const;
     void ApplyStencilTest() const;
     void ApplyViewport() const;
-    void ApplyTargetBlending(int target, bool force) const;
+    void ApplyTargetBlending(std::size_t target, bool force) const;
     void ApplyGlobalBlending() const;
     void ApplyBlending() const;
     void ApplyLogicOp() const;
