@@ -79,7 +79,8 @@ inline bool IsDirectoryExeFS(const std::shared_ptr<VfsDirectory>& pfs) {
 class NCA : public ReadOnlyVfsDirectory {
 public:
     explicit NCA(VirtualFile file, VirtualFile bktr_base_romfs = nullptr,
-                 u64 bktr_base_ivfc_offset = 0);
+                 u64 bktr_base_ivfc_offset = 0,
+                 Core::Crypto::KeyManager keys = Core::Crypto::KeyManager());
     ~NCA() override;
 
     Loader::ResultStatus GetStatus() const;

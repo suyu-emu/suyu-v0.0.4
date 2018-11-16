@@ -176,7 +176,7 @@ Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
     for (const VirtualFile& file : partitions[static_cast<std::size_t>(part)]->GetFiles()) {
         if (file->GetExtension() != "nca")
             continue;
-        auto nca = std::make_shared<NCA>(file);
+        auto nca = std::make_shared<NCA>(file, nullptr, 0, keys);
         // TODO(DarkLordZach): Add proper Rev1+ Support
         if (nca->IsUpdate())
             continue;

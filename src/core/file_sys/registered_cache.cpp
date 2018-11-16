@@ -106,9 +106,12 @@ static ContentRecordType GetCRTypeFromNCAType(NCAContentType type) {
 
 VirtualFile RegisteredCache::OpenFileOrDirectoryConcat(const VirtualDir& dir,
                                                        std::string_view path) const {
-    if (dir->GetFileRelative(path) != nullptr)
-        return dir->GetFileRelative(path);
-    if (dir->GetDirectoryRelative(path) != nullptr) {
+    const auto file = dir->GetFileRelative(path);
+    if (file != nullptr)
+        return file;
+
+    const auto nca_dir = dir->GetDirectoryRelative(path);
+    if (nca_dir != nullptr) {
         const auto nca_dir = dir->GetDirectoryRelative(path);
         VirtualFile file = nullptr;
 
@@ -225,7 +228,7 @@ void RegisteredCache::ProcessFiles(const std::vector<NcaID>& ids) {
 
         if (file == nullptr)
             continue;
-        const auto nca = std::make_shared<NCA>(parser(file, id));
+        const auto nca = std::make_shared<NCA>(parser(file, id), nullptr, 0, keys);
         if (nca->GetStatus() != Loader::ResultStatus::Success ||
             nca->GetType() != NCAContentType::Meta) {
             continue;
@@ -315,7 +318,7 @@ std::unique_ptr<NCA> RegisteredCache::GetEntry(u64 title_id, ContentRecordType t
     const auto raw = GetEntryRaw(title_id, type);
     if (raw == nullptr)
         return nullptr;
-    return std::make_unique<NCA>(raw);
+    return std::make_unique<NCA>(raw, nullptr, 0, keys);
 }
 
 std::unique_ptr<NCA> RegisteredCache::GetEntry(RegisteredCacheEntry entry) const {

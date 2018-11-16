@@ -215,12 +215,18 @@ GameList::GameList(FileSys::VirtualFilesystem vfs, GMainWindow* parent)
     tree_view->setUniformRowHeights(true);
     tree_view->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    item_model->insertColumns(0, COLUMN_COUNT);
+    item_model->insertColumns(0, UISettings::values.show_add_ons ? COLUMN_COUNT : COLUMN_COUNT - 1);
     item_model->setHeaderData(COLUMN_NAME, Qt::Horizontal, tr("Name"));
     item_model->setHeaderData(COLUMN_COMPATIBILITY, Qt::Horizontal, tr("Compatibility"));
-    item_model->setHeaderData(COLUMN_ADD_ONS, Qt::Horizontal, tr("Add-ons"));
-    item_model->setHeaderData(COLUMN_FILE_TYPE, Qt::Horizontal, tr("File type"));
-    item_model->setHeaderData(COLUMN_SIZE, Qt::Horizontal, tr("Size"));
+
+    if (UISettings::values.show_add_ons) {
+        item_model->setHeaderData(COLUMN_ADD_ONS, Qt::Horizontal, tr("Add-ons"));
+        item_model->setHeaderData(COLUMN_FILE_TYPE, Qt::Horizontal, tr("File type"));
+        item_model->setHeaderData(COLUMN_SIZE, Qt::Horizontal, tr("Size"));
+    } else {
+        item_model->setHeaderData(COLUMN_FILE_TYPE - 1, Qt::Horizontal, tr("File type"));
+        item_model->setHeaderData(COLUMN_SIZE - 1, Qt::Horizontal, tr("Size"));
+    }
 
     connect(tree_view, &QTreeView::activated, this, &GameList::ValidateEntry);
     connect(tree_view, &QTreeView::customContextMenuRequested, this, &GameList::PopupContextMenu);
@@ -394,6 +400,25 @@ void GameList::PopulateAsync(const QString& dir_path, bool deep_scan) {
     }
 
     tree_view->setEnabled(false);
+
+    // Update the columns in case UISettings has changed
+    item_model->removeColumns(0, item_model->columnCount());
+    item_model->insertColumns(0, UISettings::values.show_add_ons ? COLUMN_COUNT : COLUMN_COUNT - 1);
+    item_model->setHeaderData(COLUMN_NAME, Qt::Horizontal, tr("Name"));
+    item_model->setHeaderData(COLUMN_COMPATIBILITY, Qt::Horizontal, tr("Compatibility"));
+
+    if (UISettings::values.show_add_ons) {
+        item_model->setHeaderData(COLUMN_ADD_ONS, Qt::Horizontal, tr("Add-ons"));
+        item_model->setHeaderData(COLUMN_FILE_TYPE, Qt::Horizontal, tr("File type"));
+        item_model->setHeaderData(COLUMN_SIZE, Qt::Horizontal, tr("Size"));
+    } else {
+        item_model->setHeaderData(COLUMN_FILE_TYPE - 1, Qt::Horizontal, tr("File type"));
+        item_model->setHeaderData(COLUMN_SIZE - 1, Qt::Horizontal, tr("Size"));
+        item_model->removeColumns(COLUMN_COUNT - 1, 1);
+    }
+
+    LoadInterfaceLayout();
+
     // Delete any rows that might already exist if we're repopulating
     item_model->removeRows(0, item_model->rowCount());
 
