@@ -123,6 +123,48 @@ static ResultCode SetHeapSize(VAddr* heap_addr, u64 heap_size) {
     return RESULT_SUCCESS;
 }
 
+static ResultCode SetMemoryPermission(VAddr addr, u64 size, u32 prot) {
+    LOG_TRACE(Kernel_SVC, "called, addr=0x{:X}, size=0x{:X}, prot=0x{:X}", addr, size, prot);
+
+    if (!Common::Is4KBAligned(addr)) {
+        return ERR_INVALID_ADDRESS;
+    }
+
+    if (size == 0 || !Common::Is4KBAligned(size)) {
+        return ERR_INVALID_SIZE;
+    }
+
+    if (!IsValidAddressRange(addr, size)) {
+        return ERR_INVALID_ADDRESS_STATE;
+    }
+
+    const auto permission = static_cast<MemoryPermission>(prot);
+    if (permission != MemoryPermission::None && permission != MemoryPermission::Read &&
+        permission != MemoryPermission::ReadWrite) {
+        return ERR_INVALID_MEMORY_PERMISSIONS;
+    }
+
+    auto* const current_process = Core::CurrentProcess();
+    auto& vm_manager = current_process->VMManager();
+
+    if (!IsInsideAddressSpace(vm_manager, addr, size)) {
+        return ERR_INVALID_ADDRESS_STATE;
+    }
+
+    const VMManager::VMAHandle iter = vm_manager.FindVMA(addr);
+    if (iter == vm_manager.vma_map.end()) {
+        return ERR_INVALID_ADDRESS_STATE;
+    }
+
+    LOG_WARNING(Kernel_SVC, "Uniformity check on protected memory is not implemented.");
+    // TODO: Performs a uniformity check to make sure only protected memory is changed (it doesn't
+    // make sense to allow changing permissions on kernel memory itself, etc).
+
+    const auto converted_permissions = SharedMemory::ConvertPermissions(permission);
+
+    return vm_manager.ReprotectRange(addr, size, converted_permissions);
+}
+
 static ResultCode SetMemoryAttribute(VAddr addr, u64 size, u32 state0, u32 state1) {
     LOG_WARNING(Kernel_SVC,
                 "(STUBBED) called, addr=0x{:X}, size=0x{:X}, state0=0x{:X}, state1=0x{:X}", addr,
@@ -1297,7 +1339,7 @@ struct FunctionDef {
 static const FunctionDef SVC_Table[] = {
     {0x00, nullptr, "Unknown"},
     {0x01, SvcWrap<SetHeapSize>, "SetHeapSize"},
-    {0x02, nullptr, "SetMemoryPermission"},
+    {0x02, SvcWrap<SetMemoryPermission>, "SetMemoryPermission"},
     {0x03, SvcWrap<SetMemoryAttribute>, "SetMemoryAttribute"},
     {0x04, SvcWrap<MapMemory>, "MapMemory"},
     {0x05, SvcWrap<UnmapMemory>, "UnmapMemory"},
