@@ -19,8 +19,6 @@
 enum class ErrorDescription : u32 {
     Success = 0,
     RemoteProcessDead = 301,
-    InvalidOffset = 6061,
-    InvalidLength = 6062,
 };
 
 /**
