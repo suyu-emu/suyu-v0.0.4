@@ -471,11 +471,15 @@ void ICommonStateGetter::GetDefaultDisplayResolution(Kernel::HLERequestContext& 
     rb.Push(RESULT_SUCCESS);
 
     if (Settings::values.use_docked_mode) {
-        rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedWidth));
-        rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedHeight));
+        rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedWidth) *
+                static_cast<u32>(Settings::values.resolution_factor));
+        rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedHeight) *
+                static_cast<u32>(Settings::values.resolution_factor));
     } else {
-        rb.Push(static_cast<u32>(Service::VI::DisplayResolution::UndockedWidth));
-        rb.Push(static_cast<u32>(Service::VI::DisplayResolution::UndockedHeight));
+        rb.Push(static_cast<u32>(Service::VI::DisplayResolution::UndockedWidth) *
+                static_cast<u32>(Settings::values.resolution_factor));
+        rb.Push(static_cast<u32>(Service::VI::DisplayResolution::UndockedHeight) *
+                static_cast<u32>(Settings::values.resolution_factor));
     }
 
     LOG_DEBUG(Service_AM, "called");
