@@ -286,10 +286,10 @@ public:
             {519, nullptr, "GetPalmaOperationResult"},
             {520, nullptr, "ReadPalmaPlayLog"},
             {521, nullptr, "ResetPalmaPlayLog"},
-            {522, nullptr, "SetIsPalmaAllConnectable"},
+            {522, &Hid::SetIsPalmaAllConnectable, "SetIsPalmaAllConnectable"},
             {523, nullptr, "SetIsPalmaPairedConnectable"},
             {524, nullptr, "PairPalma"},
-            {525, nullptr, "SetPalmaBoostMode"},
+            {525, &Hid::SetPalmaBoostMode, "SetPalmaBoostMode"},
             {1000, nullptr, "SetNpadCommunicationMode"},
             {1001, nullptr, "GetNpadCommunicationMode"},
         };
@@ -592,6 +592,18 @@ private:
     }
 
     void StopSixAxisSensor(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+    }
+
+    void SetIsPalmaAllConnectable(Kernel::HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+    }
+
+    void SetPalmaBoostMode(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_HID, "(STUBBED) called");
