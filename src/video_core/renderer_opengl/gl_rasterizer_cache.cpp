@@ -550,8 +550,8 @@ void SwizzleFunc(const GLConversionArray& functions, const SurfaceParams& params
     if (params.is_layered) {
         u64 offset = params.GetMipmapLevelOffset(mip_level);
         u64 offset_gl = 0;
-        u64 layer_size = params.LayerMemorySize();
-        u64 gl_size = params.LayerSizeGL(mip_level);
+        const u64 layer_size = params.LayerMemorySize();
+        const u64 gl_size = params.LayerSizeGL(mip_level);
         for (u32 i = 0; i < params.depth; i++) {
             functions[static_cast<std::size_t>(params.pixel_format)](
                 params.MipWidth(mip_level), params.MipBlockHeight(mip_level),
@@ -561,7 +561,7 @@ void SwizzleFunc(const GLConversionArray& functions, const SurfaceParams& params
             offset_gl += gl_size;
         }
     } else {
-        u64 offset = params.GetMipmapLevelOffset(mip_level);
+        const u64 offset = params.GetMipmapLevelOffset(mip_level);
         functions[static_cast<std::size_t>(params.pixel_format)](
             params.MipWidth(mip_level), params.MipBlockHeight(mip_level),
             params.MipHeight(mip_level), params.MipBlockDepth(mip_level), depth, gl_buffer.data(),
