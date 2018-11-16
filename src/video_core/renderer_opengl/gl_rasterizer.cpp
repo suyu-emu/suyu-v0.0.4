@@ -923,7 +923,7 @@ u32 RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, Shader& shader,
 
 void RasterizerOpenGL::SyncViewport(OpenGLState& current_state) {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
-    for (size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumViewports; i++) {
+    for (std::size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumViewports; i++) {
         const MathUtil::Rectangle<s32> viewport_rect{regs.viewport_transform[i].GetRect()};
         auto& viewport = current_state.viewports[i];
         viewport.x = viewport_rect.left;
@@ -1022,9 +1022,9 @@ void RasterizerOpenGL::SyncStencilTestState() {
 
 void RasterizerOpenGL::SyncColorMask() {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
-    size_t count =
+    const std::size_t count =
         regs.independent_blend_enable ? Tegra::Engines::Maxwell3D::Regs::NumRenderTargets : 1;
-    for (size_t i = 0; i < count; i++) {
+    for (std::size_t i = 0; i < count; i++) {
         const auto& source = regs.color_mask[regs.color_mask_common ? 0 : i];
         auto& dest = state.color_mask[i];
         dest.red_enabled = (source.R == 0) ? GL_FALSE : GL_TRUE;
@@ -1066,13 +1066,13 @@ void RasterizerOpenGL::SyncBlendState() {
             blend.src_a_func = MaxwellToGL::BlendFunc(regs.blend.factor_source_a);
             blend.dst_a_func = MaxwellToGL::BlendFunc(regs.blend.factor_dest_a);
         }
-        for (size_t i = 1; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
+        for (std::size_t i = 1; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
             state.blend[i].enabled = false;
         }
         return;
     }
 
-    for (size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
+    for (std::size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
         auto& blend = state.blend[i];
         blend.enabled = regs.blend.enable[i] != 0;
         if (!blend.enabled)
@@ -1105,7 +1105,7 @@ void RasterizerOpenGL::SyncLogicOpState() {
 
 void RasterizerOpenGL::SyncScissorTest() {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
-    for (size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumViewports; i++) {
+    for (std::size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumViewports; i++) {
         const auto& src = regs.scissor_test[i];
         auto& dst = state.viewports[i].scissor;
         dst.enabled = (src.enable != 0);
