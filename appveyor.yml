@@ -133,7 +133,7 @@ after_build:
 
           # copy the qt jpeg imageformat dll to platforms
           Copy-Item -path "C:/msys64/mingw64/share/qt5/plugins/imageformats/qjpeg.dll" -force -destination "$RELEASE_DIST/imageformats"
-          
+
           # copy all the dll dependencies to the release folder
           . "./.appveyor/UtilityFunctions.ps1"
           $DLLSearchPath = "C:\msys64\mingw64\bin;$env:PATH"
