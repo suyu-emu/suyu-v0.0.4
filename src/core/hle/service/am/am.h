@@ -185,6 +185,7 @@ private:
     void EndBlockingHomeButtonShortAndLongPressed(Kernel::HLERequestContext& ctx);
     void BeginBlockingHomeButton(Kernel::HLERequestContext& ctx);
     void EndBlockingHomeButton(Kernel::HLERequestContext& ctx);
+    void EnableApplicationCrashReport(Kernel::HLERequestContext& ctx);
 };
 
 class IHomeMenuFunctions final : public ServiceFramework<IHomeMenuFunctions> {
