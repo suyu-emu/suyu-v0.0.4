@@ -203,8 +203,8 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
 ISelfController::~ISelfController() = default;
 
 void ISelfController::SetFocusHandlingMode(Kernel::HLERequestContext& ctx) {
-    // Takes 3 input u8s with each field located immediately after the previous u8, these are
-    // bool flags. No output.
+    // Takes 3 input u8s with each field located immediately after the previous
+    // u8, these are bool flags. No output.
 
     IPC::RequestParser rp{ctx};
 
@@ -258,8 +258,8 @@ void ISelfController::SetOperationModeChangedNotification(Kernel::HLERequestCont
 }
 
 void ISelfController::SetOutOfFocusSuspendingEnabled(Kernel::HLERequestContext& ctx) {
-    // Takes 3 input u8s with each field located immediately after the previous u8, these are
-    // bool flags. No output.
+    // Takes 3 input u8s with each field located immediately after the previous
+    // u8, these are bool flags. No output.
     IPC::RequestParser rp{ctx};
 
     bool enabled = rp.Pop<bool>();
@@ -302,8 +302,8 @@ void ISelfController::SetScreenShotImageOrientation(Kernel::HLERequestContext& c
 }
 
 void ISelfController::CreateManagedDisplayLayer(Kernel::HLERequestContext& ctx) {
-    // TODO(Subv): Find out how AM determines the display to use, for now just create the layer
-    // in the Default display.
+    // TODO(Subv): Find out how AM determines the display to use, for now just
+    // create the layer in the Default display.
     u64 display_id = nvflinger->OpenDisplay("Default");
     u64 layer_id = nvflinger->CreateLayer(display_id);
 
@@ -733,7 +733,7 @@ IApplicationFunctions::IApplicationFunctions() : ServiceFramework("IApplicationF
         {70, nullptr, "RequestToShutdown"},
         {71, nullptr, "RequestToReboot"},
         {80, nullptr, "ExitAndRequestToShowThanksMessage"},
-        {90, nullptr, "EnableApplicationCrashReport"},
+        {90, &IApplicationFunctions::EnableApplicationCrashReport, "EnableApplicationCrashReport"},
         {100, nullptr, "InitializeApplicationCopyrightFrameBuffer"},
         {101, nullptr, "SetApplicationCopyrightImage"},
         {102, nullptr, "SetApplicationCopyrightVisibility"},
@@ -751,6 +751,12 @@ IApplicationFunctions::IApplicationFunctions() : ServiceFramework("IApplicationF
 }
 
 IApplicationFunctions::~IApplicationFunctions() = default;
+
+void IApplicationFunctions::EnableApplicationCrashReport(Kernel::HLERequestContext& ctx) {
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+}
 
 void IApplicationFunctions::BeginBlockingHomeButtonShortAndLongPressed(
     Kernel::HLERequestContext& ctx) {
@@ -821,7 +827,8 @@ void IApplicationFunctions::EnsureSaveData(Kernel::HLERequestContext& ctx) {
 
 void IApplicationFunctions::SetTerminateResult(Kernel::HLERequestContext& ctx) {
     // Takes an input u32 Result, no output.
-    // For example, in some cases official apps use this with error 0x2A2 then uses svcBreak.
+    // For example, in some cases official apps use this with error 0x2A2 then
+    // uses svcBreak.
 
     IPC::RequestParser rp{ctx};
     u32 result = rp.Pop<u32>();
@@ -884,8 +891,8 @@ void IApplicationFunctions::GetPseudoDeviceId(Kernel::HLERequestContext& ctx) {
 void InstallInterfaces(SM::ServiceManager& service_manager,
                        std::shared_ptr<NVFlinger::NVFlinger> nvflinger) {
     auto message_queue = std::make_shared<AppletMessageQueue>();
-    message_queue->PushMessage(
-        AppletMessageQueue::AppletMessage::FocusStateChanged); // Needed on game boot
+    message_queue->PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged); // Needed on
+                                                                                      // game boot
 
     std::make_shared<AppletAE>(nvflinger, message_queue)->InstallAsService(service_manager);
     std::make_shared<AppletOE>(nvflinger, message_queue)->InstallAsService(service_manager);
