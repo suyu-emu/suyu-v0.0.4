@@ -235,6 +235,12 @@
            <layout class="QHBoxLayout" name="buttonDpadLeftHorizontalLayout">
             <item>
              <widget class="QLabel" name="labelDpadLeft">
+              <property name="minimumSize">
+               <size>
+                <width>80</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="text">
                <string>Left:</string>
               </property>
@@ -257,6 +263,12 @@
            <layout class="QHBoxLayout" name="buttonDpadRightHorizontalLayout">
             <item>
              <widget class="QLabel" name="labelDpadRight">
+              <property name="minimumSize">
+               <size>
+                <width>80</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="text">
                <string>Right:</string>
               </property>
@@ -294,6 +306,12 @@
            <layout class="QHBoxLayout" name="buttonFaceButtonsAHorizontalLayout">
             <item>
              <widget class="QLabel" name="labelA">
+              <property name="minimumSize">
+               <size>
+                <width>80</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="text">
                <string>A:</string>
               </property>
@@ -316,6 +334,12 @@
            <layout class="QHBoxLayout" name="buttonFaceButtonsBHorizontalLayout">
             <item>
              <widget class="QLabel" name="labelB">
+              <property name="minimumSize">
+               <size>
+                <width>80</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="text">
                <string>B:</string>
               </property>
@@ -1016,22 +1040,6 @@
       </size>
      </property>
     </spacer>
-   </item>
-   <item>
-    <widget class="QLabel" name="override_label">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Check the box to override the global default key with this one for this game only.</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout"/>
