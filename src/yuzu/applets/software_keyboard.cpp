@@ -47,7 +47,7 @@ QtSoftwareKeyboardDialog::QtSoftwareKeyboardDialog(
     layout = new QVBoxLayout;
 
     header_label = new QLabel(QString::fromStdU16String(parameters.header_text));
-    header_label->setFont({header_label->font().family(), 12, QFont::Bold});
+    header_label->setFont({header_label->font().family(), 11, QFont::Bold});
     if (header_label->text().isEmpty())
         header_label->setText(tr("Enter text:"));
 
@@ -59,6 +59,10 @@ QtSoftwareKeyboardDialog::QtSoftwareKeyboardDialog(
     guide_label = new QLabel(QString::fromStdU16String(parameters.guide_text));
     guide_label->setHidden(parameters.guide_text.empty());
 
+    length_label = new QLabel(QStringLiteral("0/%1").arg(parameters.max_length));
+    length_label->setAlignment(Qt::AlignRight);
+    length_label->setFont({length_label->font().family(), 8});
+
     line_edit = new QLineEdit;
     line_edit->setValidator(new QtSoftwareKeyboardValidator(parameters));
     line_edit->setMaxLength(static_cast<int>(parameters.max_length));
@@ -66,6 +70,10 @@ QtSoftwareKeyboardDialog::QtSoftwareKeyboardDialog(
     line_edit->setCursorPosition(
         parameters.cursor_at_beginning ? 0 : static_cast<int>(parameters.initial_text.size()));
     line_edit->setEchoMode(parameters.password ? QLineEdit::Password : QLineEdit::Normal);
+
+    connect(line_edit, &QLineEdit::textChanged, this, [this](const QString& text) {
+        length_label->setText(QStringLiteral("%1/%2").arg(text.size()).arg(parameters.max_length));
+    });
 
     buttons = new QDialogButtonBox;
     buttons->addButton(tr("Cancel"), QDialogButtonBox::RejectRole);
@@ -79,6 +87,7 @@ QtSoftwareKeyboardDialog::QtSoftwareKeyboardDialog(
     layout->addWidget(header_label);
     layout->addWidget(sub_label);
     layout->addWidget(guide_label);
+    layout->addWidget(length_label);
     layout->addWidget(line_edit);
     layout->addWidget(buttons);
     setLayout(layout);

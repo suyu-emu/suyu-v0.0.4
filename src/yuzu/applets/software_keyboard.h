@@ -47,6 +47,7 @@ private:
     QLabel* header_label;
     QLabel* sub_label;
     QLabel* guide_label;
+    QLabel* length_label;
     QLineEdit* line_edit;
     QVBoxLayout* layout;
 
