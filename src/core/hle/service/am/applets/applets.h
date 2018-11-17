@@ -22,6 +22,7 @@ class IStorage;
 namespace Applets {
 
 using AppletStorageProxyFunction = std::function<void(IStorage)>;
+using AppletStateProxyFunction = std::function<void()>;
 
 class Applet {
 public:
@@ -34,7 +35,8 @@ public:
     virtual ResultCode GetStatus() const = 0;
     virtual void ReceiveInteractiveData(std::shared_ptr<IStorage> storage) = 0;
     virtual void Execute(AppletStorageProxyFunction out_data,
-                         AppletStorageProxyFunction out_interactive_data) = 0;
+                         AppletStorageProxyFunction out_interactive_data,
+                         AppletStateProxyFunction state) = 0;
 
     bool IsInitialized() const {
         return initialized;

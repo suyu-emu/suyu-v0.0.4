@@ -583,31 +583,38 @@ private:
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(state_changed_event);
 
-        LOG_WARNING(Service_AM, "(STUBBED) called");
+        LOG_DEBUG(Service_AM, "called");
     }
 
     void IsCompleted(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(applet->TransactionComplete());
+
+        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetResult(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(applet->GetStatus());
+
+        LOG_DEBUG(Service_AM, "called");
     }
 
     void Start(Kernel::HLERequestContext& ctx) {
         ASSERT(applet != nullptr);
 
         applet->Initialize(storage_stack);
-        applet->Execute(
-            [this](IStorage storage) { AppletStorageProxyOutData(storage); },
-            [this](IStorage storage) { AppletStorageProxyOutInteractiveData(storage); });
-        state_changed_event->Signal();
+        storage_stack.clear();
+        interactive_storage_stack.clear();
+        applet->Execute([this](IStorage storage) { AppletStorageProxyOutData(storage); },
+                        [this](IStorage storage) { AppletStorageProxyOutInteractiveData(storage); },
+                        [this] { state_changed_event->Signal(); });
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
+
+        LOG_DEBUG(Service_AM, "called");
     }
 
     void PushInData(Kernel::HLERequestContext& ctx) {
@@ -636,10 +643,9 @@ private:
 
         ASSERT(applet->IsInitialized());
         applet->ReceiveInteractiveData(interactive_storage_stack.back());
-        applet->Execute(
-            [this](IStorage storage) { AppletStorageProxyOutData(storage); },
-            [this](IStorage storage) { AppletStorageProxyOutInteractiveData(storage); });
-        state_changed_event->Signal();
+        applet->Execute([this](IStorage storage) { AppletStorageProxyOutData(storage); },
+                        [this](IStorage storage) { AppletStorageProxyOutInteractiveData(storage); },
+                        [this] { state_changed_event->Signal(); });
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
@@ -661,6 +667,8 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(pop_out_data_event);
+
+        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetPopInteractiveOutDataEvent(Kernel::HLERequestContext& ctx) {
@@ -668,7 +676,7 @@ private:
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(pop_interactive_out_data_event);
 
-        LOG_WARNING(Service_AM, "(STUBBED) called");
+        LOG_DEBUG(Service_AM, "called");
     }
 
     std::shared_ptr<Applets::Applet> applet;
@@ -734,7 +742,7 @@ void IStorageAccessor::Read(Kernel::HLERequestContext& ctx) {
     const u64 offset{rp.Pop<u64>()};
     std::size_t size{ctx.GetWriteBufferSize()};
 
-    size = std::min(size, backing.buffer.size() - offset);
+    size = std::min<std::size_t>(size, backing.buffer.size() - offset);
 
     ctx.WriteBuffer(backing.buffer.data() + offset, size);
 

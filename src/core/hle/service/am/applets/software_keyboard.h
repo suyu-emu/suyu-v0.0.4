@@ -55,7 +55,8 @@ public:
     ResultCode GetStatus() const override;
     void ReceiveInteractiveData(std::shared_ptr<IStorage> storage) override;
     void Execute(AppletStorageProxyFunction out_data,
-                 AppletStorageProxyFunction out_interactive_data) override;
+                 AppletStorageProxyFunction out_interactive_data,
+                 AppletStateProxyFunction state) override;
 
     void WriteText(std::optional<std::u16string> text);
 
@@ -64,9 +65,11 @@ private:
     std::u16string initial_text;
     bool complete = false;
     std::vector<u8> final_data;
+    ResultCode status = ResultCode(-1);
 
     AppletStorageProxyFunction out_data;
     AppletStorageProxyFunction out_interactive_data;
+    AppletStateProxyFunction state;
 };
 
 } // namespace Service::AM::Applets
