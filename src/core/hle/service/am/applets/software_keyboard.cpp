@@ -97,8 +97,10 @@ void SoftwareKeyboard::ReceiveInteractiveData(std::shared_ptr<IStorage> storage)
 void SoftwareKeyboard::Execute(AppletStorageProxyFunction out_data,
                                AppletStorageProxyFunction out_interactive_data,
                                AppletStateProxyFunction state) {
-    if (complete)
+    if (complete) {
+        out_data(IStorage{final_data});
         return;
+    }
 
     const auto& frontend{Core::System::GetInstance().GetSoftwareKeyboard()};
 
@@ -112,32 +114,38 @@ void SoftwareKeyboard::Execute(AppletStorageProxyFunction out_data,
 }
 
 void SoftwareKeyboard::WriteText(std::optional<std::u16string> text) {
-    std::vector<u8> output(SWKBD_OUTPUT_BUFFER_SIZE);
+    std::vector<u8> output_main(SWKBD_OUTPUT_BUFFER_SIZE);
 
     if (text.has_value()) {
+        std::vector<u8> output_sub(SWKBD_OUTPUT_BUFFER_SIZE);
         status = RESULT_SUCCESS;
-        if (config.text_check) {
-            const auto size = static_cast<u32>(text->size() * 2 + 4);
-            std::memcpy(output.data(), &size, sizeof(u32));
+
+        const u64 size = text->size() * 2 + 8;
+        std::memcpy(output_sub.data(), &size, sizeof(u64));
+        std::memcpy(output_sub.data() + 8, text->data(),
+                    std::min(text->size() * 2, SWKBD_OUTPUT_BUFFER_SIZE - 8));
+
+        output_main[0] = config.text_check;
+        std::memcpy(output_main.data() + 4, text->data(),
+                    std::min(text->size() * 2, SWKBD_OUTPUT_BUFFER_SIZE - 4));
+
+        complete = !config.text_check;
+        final_data = output_main;
+
+        if (complete) {
+            out_data(IStorage{output_main});
         } else {
-            output[0] = 1;
+            out_data(IStorage{output_main});
+            out_interactive_data(IStorage{output_sub});
         }
 
-        const auto size = static_cast<u32>(text->size());
-        std::memcpy(output.data() + 4, &size, sizeof(u32));
-        std::memcpy(output.data() + 8, text->data(),
-                    std::min(text->size() * 2, SWKBD_OUTPUT_BUFFER_SIZE - 8));
+        state();
     } else {
         status = ResultCode(-1);
+        output_main[0] = 1;
         complete = true;
-        out_data(IStorage{output});
-        return;
+        out_data(IStorage{output_main});
+        state();
     }
-
-    complete = !config.text_check;
-
-    out_data(IStorage{output});
-    out_interactive_data(IStorage{output});
-    state();
 }
 } // namespace Service::AM::Applets
