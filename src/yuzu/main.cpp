@@ -12,7 +12,7 @@
 #include "core/file_sys/vfs_real.h"
 #include "core/hle/service/acc/profile_manager.h"
 
-// These are wrappers to avoid the calls to CreateDirectory and CreateFile becuase of the Windows
+// These are wrappers to avoid the calls to CreateDirectory and CreateFile because of the Windows
 // defines.
 static FileSys::VirtualDir VfsFilesystemCreateDirectoryWrapper(
     const FileSys::VirtualFilesystem& vfs, const std::string& path, FileSys::Mode mode) {
@@ -308,6 +308,8 @@ void GMainWindow::InitializeHotkeys() {
                                    Qt::ApplicationShortcut);
     hotkey_registry.RegisterHotkey("Main Window", "Decrease Speed Limit", QKeySequence("-"),
                                    Qt::ApplicationShortcut);
+    hotkey_registry.RegisterHotkey("Main Window", "Load Amiibo", QKeySequence(Qt::Key_F2),
+                                   Qt::ApplicationShortcut);
     hotkey_registry.LoadHotkeys();
 
     connect(hotkey_registry.GetHotkey("Main Window", "Load File", this), &QShortcut::activated,
@@ -359,6 +361,12 @@ void GMainWindow::InitializeHotkeys() {
                 if (Settings::values.frame_limit > SPEED_LIMIT_STEP) {
                     Settings::values.frame_limit -= SPEED_LIMIT_STEP;
                     UpdateStatusBar();
+                }
+            });
+    connect(hotkey_registry.GetHotkey("Main Window", "Load Amiibo", this), &QShortcut::activated,
+            this, [&] {
+                if (ui.action_Load_Amiibo->isEnabled()) {
+                    OnLoadAmiibo();
                 }
             });
 }
