@@ -100,6 +100,7 @@ signals:
     void UpdateThemedIcons();
 
     void SoftwareKeyboardFinishedText(std::optional<std::u16string> text);
+    void SoftwareKeyboardFinishedCheckDialog();
 
 public slots:
     void SoftwareKeyboardGetText(const Core::Frontend::SoftwareKeyboardParameters& parameters);

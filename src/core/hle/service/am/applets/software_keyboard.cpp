@@ -87,7 +87,7 @@ void SoftwareKeyboard::ReceiveInteractiveData(std::shared_ptr<IStorage> storage)
         std::array<char16_t, SWKBD_OUTPUT_INTERACTIVE_BUFFER_SIZE / 2 - 2> string;
         std::memcpy(string.data(), data.data() + 4, string.size() * 2);
         frontend.SendTextCheckDialog(
-            Common::UTF16StringFromFixedZeroTerminatedBuffer(string.data(), string.size()));
+            Common::UTF16StringFromFixedZeroTerminatedBuffer(string.data(), string.size()), state);
     }
 }
 

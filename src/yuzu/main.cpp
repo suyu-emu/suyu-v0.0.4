@@ -215,14 +215,17 @@ void GMainWindow::SoftwareKeyboardGetText(
     dialog.setWindowModality(Qt::WindowModal);
     dialog.exec();
 
-    if (!dialog.GetStatus())
+    if (!dialog.GetStatus()) {
         emit SoftwareKeyboardFinishedText(std::nullopt);
+        return;
+    }
 
     emit SoftwareKeyboardFinishedText(dialog.GetText());
 }
 
 void GMainWindow::SoftwareKeyboardInvokeCheckDialog(std::u16string error_message) {
     QMessageBox::warning(this, tr("Text Check Failed"), QString::fromStdU16String(error_message));
+    emit SoftwareKeyboardFinishedCheckDialog();
 }
 
 void GMainWindow::InitializeWidgets() {

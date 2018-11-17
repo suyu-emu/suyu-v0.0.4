@@ -39,14 +39,16 @@ public:
 
     virtual void RequestText(std::function<void(std::optional<std::u16string>)> out,
                              SoftwareKeyboardParameters parameters) const = 0;
-    virtual void SendTextCheckDialog(std::u16string error_message) const = 0;
+    virtual void SendTextCheckDialog(std::u16string error_message,
+                                     std::function<void()> finished_check) const = 0;
 };
 
 class DefaultSoftwareKeyboardApplet final : public SoftwareKeyboardApplet {
 public:
     void RequestText(std::function<void(std::optional<std::u16string>)> out,
                      SoftwareKeyboardParameters parameters) const override;
-    void SendTextCheckDialog(std::u16string error_message) const override;
+    void SendTextCheckDialog(std::u16string error_message,
+                             std::function<void()> finished_check) const override;
 };
 
 } // namespace Core::Frontend

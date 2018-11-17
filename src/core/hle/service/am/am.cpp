@@ -605,8 +605,10 @@ private:
         ASSERT(applet != nullptr);
 
         applet->Initialize(storage_stack);
-        storage_stack.clear();
-        interactive_storage_stack.clear();
+        while (!storage_stack.empty())
+            storage_stack.pop();
+        while (!interactive_storage_stack.empty())
+            interactive_storage_stack.pop();
         applet->Execute([this](IStorage storage) { AppletStorageProxyOutData(storage); },
                         [this](IStorage storage) { AppletStorageProxyOutInteractiveData(storage); },
                         [this] { state_changed_event->Signal(); });

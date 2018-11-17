@@ -3,11 +3,13 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <mutex>
 #include <QDialogButtonBox>
 #include <QFont>
 #include <QLabel>
 #include <QLineEdit>
 #include <QVBoxLayout>
+#include "core/hle/lock.h"
 #include "yuzu/applets/software_keyboard.h"
 #include "yuzu/main.h"
 
@@ -122,10 +124,20 @@ void QtSoftwareKeyboard::RequestText(std::function<void(std::optional<std::u16st
     emit MainWindowGetText(parameters);
 }
 
-void QtSoftwareKeyboard::SendTextCheckDialog(std::u16string error_message) const {
+void QtSoftwareKeyboard::SendTextCheckDialog(std::u16string error_message,
+                                             std::function<void()> finished_check) const {
+    this->finished_check = finished_check;
     emit MainWindowTextCheckDialog(error_message);
 }
 
 void QtSoftwareKeyboard::MainWindowFinishedText(std::optional<std::u16string> text) {
+    // Acquire the HLE mutex
+    std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
     text_output(text);
+}
+
+void QtSoftwareKeyboard::MainWindowFinishedCheckDialog() {
+    // Acquire the HLE mutex
+    std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
+    finished_check();
 }

@@ -62,7 +62,8 @@ public:
 
     void RequestText(std::function<void(std::optional<std::u16string>)> out,
                      Core::Frontend::SoftwareKeyboardParameters parameters) const override;
-    void SendTextCheckDialog(std::u16string error_message) const override;
+    void SendTextCheckDialog(std::u16string error_message,
+                             std::function<void()> finished_check) const override;
 
 signals:
     void MainWindowGetText(Core::Frontend::SoftwareKeyboardParameters parameters) const;
@@ -70,7 +71,9 @@ signals:
 
 public slots:
     void MainWindowFinishedText(std::optional<std::u16string> text);
+    void MainWindowFinishedCheckDialog();
 
 private:
     mutable std::function<void(std::optional<std::u16string>)> text_output;
+    mutable std::function<void()> finished_check;
 };
