@@ -49,7 +49,7 @@ public:
     SoftwareKeyboard();
     ~SoftwareKeyboard() override;
 
-    void Initialize(std::vector<std::shared_ptr<IStorage>> storage) override;
+    void Initialize(std::queue<std::shared_ptr<IStorage>> storage) override;
 
     bool TransactionComplete() const override;
     ResultCode GetStatus() const override;

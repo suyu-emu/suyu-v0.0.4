@@ -567,12 +567,12 @@ public:
 
 private:
     void AppletStorageProxyOutData(IStorage storage) {
-        storage_stack.push_back(std::make_shared<IStorage>(storage));
+        storage_stack.push(std::make_shared<IStorage>(storage));
         pop_out_data_event->Signal();
     }
 
     void AppletStorageProxyOutInteractiveData(IStorage storage) {
-        interactive_storage_stack.push_back(std::make_shared<IStorage>(storage));
+        interactive_storage_stack.push(std::make_shared<IStorage>(storage));
         pop_interactive_out_data_event->Signal();
     }
 
@@ -621,7 +621,7 @@ private:
 
     void PushInData(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-        storage_stack.push_back(rp.PopIpcInterface<IStorage>());
+        storage_stack.push(rp.PopIpcInterface<IStorage>());
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
@@ -631,17 +631,23 @@ private:
 
     void PopOutData(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IStorage>(std::move(storage_stack.back()));
 
-        storage_stack.pop_back();
+        if (storage_stack.empty()) {
+            rb.Push(ResultCode(-1));
+            return;
+        }
+
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<IStorage>(std::move(storage_stack.front()));
+
+        storage_stack.pop();
 
         LOG_DEBUG(Service_AM, "called");
     }
 
     void PushInteractiveInData(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-        interactive_storage_stack.push_back(rp.PopIpcInterface<IStorage>());
+        interactive_storage_stack.push(rp.PopIpcInterface<IStorage>());
 
         ASSERT(applet->IsInitialized());
         applet->ReceiveInteractiveData(interactive_storage_stack.back());
@@ -657,10 +663,16 @@ private:
 
     void PopInteractiveOutData(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IStorage>(std::move(interactive_storage_stack.back()));
 
-        interactive_storage_stack.pop_back();
+        if (interactive_storage_stack.empty()) {
+            rb.Push(ResultCode(-1));
+            return;
+        }
+
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<IStorage>(std::move(interactive_storage_stack.front()));
+
+        interactive_storage_stack.pop();
 
         LOG_DEBUG(Service_AM, "called");
     }
@@ -682,8 +694,8 @@ private:
     }
 
     std::shared_ptr<Applets::Applet> applet;
-    std::vector<std::shared_ptr<IStorage>> storage_stack;
-    std::vector<std::shared_ptr<IStorage>> interactive_storage_stack;
+    std::queue<std::shared_ptr<IStorage>> storage_stack;
+    std::queue<std::shared_ptr<IStorage>> interactive_storage_stack;
     Kernel::SharedPtr<Kernel::Event> state_changed_event;
     Kernel::SharedPtr<Kernel::Event> pop_out_data_event;
     Kernel::SharedPtr<Kernel::Event> pop_interactive_out_data_event;

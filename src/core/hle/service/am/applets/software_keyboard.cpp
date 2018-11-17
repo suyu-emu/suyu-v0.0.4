@@ -42,7 +42,7 @@ SoftwareKeyboard::SoftwareKeyboard() = default;
 
 SoftwareKeyboard::~SoftwareKeyboard() = default;
 
-void SoftwareKeyboard::Initialize(std::vector<std::shared_ptr<IStorage>> storage_) {
+void SoftwareKeyboard::Initialize(std::queue<std::shared_ptr<IStorage>> storage_) {
     complete = false;
     initial_text.clear();
     final_data.clear();
@@ -50,11 +50,14 @@ void SoftwareKeyboard::Initialize(std::vector<std::shared_ptr<IStorage>> storage
     Applet::Initialize(std::move(storage_));
 
     ASSERT(storage_stack.size() >= 2);
-    const auto& keyboard_config = storage_stack[1]->GetData();
+    const auto& keyboard_config = storage_stack.front()->GetData();
+    storage_stack.pop();
+
     ASSERT(keyboard_config.size() >= sizeof(KeyboardConfig));
     std::memcpy(&config, keyboard_config.data(), sizeof(KeyboardConfig));
 
-    const auto& work_buffer = storage_stack[2]->GetData();
+    const auto& work_buffer = storage_stack.front()->GetData();
+    storage_stack.pop();
 
     if (config.initial_string_size == 0)
         return;

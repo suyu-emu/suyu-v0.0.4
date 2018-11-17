@@ -6,7 +6,7 @@
 
 #include <functional>
 #include <memory>
-#include <vector>
+#include <queue>
 #include "common/swap.h"
 
 union ResultCode;
@@ -29,7 +29,7 @@ public:
     Applet();
     virtual ~Applet();
 
-    virtual void Initialize(std::vector<std::shared_ptr<IStorage>> storage);
+    virtual void Initialize(std::queue<std::shared_ptr<IStorage>> storage);
 
     virtual bool TransactionComplete() const = 0;
     virtual ResultCode GetStatus() const = 0;
@@ -53,7 +53,8 @@ protected:
     };
     static_assert(sizeof(CommonArguments) == 0x20, "CommonArguments has incorrect size.");
 
-    std::vector<std::shared_ptr<IStorage>> storage_stack;
+    CommonArguments common_args;
+    std::queue<std::shared_ptr<IStorage>> storage_stack;
     bool initialized = false;
 };
 
