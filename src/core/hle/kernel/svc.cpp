@@ -1181,7 +1181,7 @@ static ResultCode CloseHandle(Handle handle) {
 
 /// Reset an event
 static ResultCode ResetSignal(Handle handle) {
-    LOG_WARNING(Kernel_SVC, "(STUBBED) called handle 0x{:08X}", handle);
+    LOG_DEBUG(Kernel_SVC, "called handle 0x{:08X}", handle);
 
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
     auto event = handle_table.Get<Event>(handle);
