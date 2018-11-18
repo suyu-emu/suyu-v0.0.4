@@ -18,6 +18,7 @@ namespace Service::LDR {
 
 namespace ErrCodes {
 enum {
+    InvalidMemoryState = 51,
     InvalidNRO = 52,
     InvalidNRR = 53,
     MissingNRRHash = 54,
@@ -32,6 +33,7 @@ enum {
 };
 }
 
+constexpr ResultCode ERROR_INVALID_MEMORY_STATE(ErrorModule::Loader, ErrCodes::InvalidMemoryState);
 constexpr ResultCode ERROR_INVALID_NRO(ErrorModule::Loader, ErrCodes::InvalidNRO);
 constexpr ResultCode ERROR_INVALID_NRR(ErrorModule::Loader, ErrCodes::InvalidNRR);
 constexpr ResultCode ERROR_MISSING_NRR_HASH(ErrorModule::Loader, ErrCodes::MissingNRRHash);
@@ -120,7 +122,7 @@ public:
             return;
         }
 
-        if (nro.size() >= MAXIMUM_LOADED_RO) {
+        if (nrr.size() >= MAXIMUM_LOADED_RO) {
             LOG_ERROR(Service_LDR, "Loading new NRR would exceed the maximum number of loaded NRRs "
                                    "(0x40)! Failing...");
             IPC::ResponseBuilder rb{ctx, 2};
@@ -178,10 +180,13 @@ public:
         }
 
         std::vector<SHA256Hash> hashes;
+
+        // Copy all hashes in the NRR (specified by hash count/hash offset) into vector.
         for (std::size_t i = header.hash_offset;
-             i < (header.hash_offset + (header.hash_count << 5)); i += 8) {
-            hashes.emplace_back();
-            std::memcpy(hashes.back().data(), nrr_data.data() + i, sizeof(SHA256Hash));
+             i < (header.hash_offset + (header.hash_count * sizeof(SHA256Hash))); i += 8) {
+            SHA256Hash hash;
+            std::memcpy(hash.data(), nrr_data.data() + i, sizeof(SHA256Hash));
+            hashes.emplace_back(hash);
         }
 
         nrr.insert_or_assign(nrr_addr, std::move(hashes));
@@ -258,8 +263,8 @@ public:
         // NRO Size or BSS Size is zero or causes overflow
         const auto nro_size_valid =
             nro_size != 0 && nro_addr + nro_size > nro_addr && Common::Is4KBAligned(nro_size);
-        const auto bss_size_valid = std::numeric_limits<u64>::max() - nro_size >= bss_size &&
-                                    (bss_size == 0 || bss_addr + bss_size > bss_addr);
+        const auto bss_size_valid =
+            nro_size + bss_size >= nro_size && (bss_size == 0 || bss_addr + bss_size > bss_addr);
 
         if (!nro_size_valid || !bss_size_valid) {
             LOG_ERROR(Service_LDR,
@@ -313,7 +318,15 @@ public:
         auto& vm_manager = process->VMManager();
         auto map_address = vm_manager.FindFreeRegion(nro_size + bss_size);
 
-        ASSERT(map_address.Succeeded());
+        if (!map_address.Succeeded() ||
+            *map_address + nro_size + bss_size > vm_manager.GetAddressSpaceEndAddress()) {
+
+            LOG_ERROR(Service_LDR,
+                      "General error while allocation memory or no available memory to allocate!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_MEMORY_STATE);
+            return;
+        }
 
         ASSERT(process->MirrorMemory(*map_address, nro_addr, nro_size,
                                      Kernel::MemoryState::ModuleCodeStatic) == RESULT_SUCCESS);

@@ -252,8 +252,8 @@ ResultCode Process::HeapFree(VAddr target, u32 size) {
     return vm_manager.HeapFree(target, size);
 }
 
-ResultCode Process::MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
-    return vm_manager.MirrorMemory(dst_addr, src_addr, size);
+ResultCode Process::MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size, MemoryState state) {
+    return vm_manager.MirrorMemory(dst_addr, src_addr, size, state);
 }
 
 ResultCode Process::UnmapMemory(VAddr dst_addr, VAddr /*src_addr*/, u64 size) {

@@ -189,7 +189,8 @@ public:
     ResultVal<VAddr> HeapAllocate(VAddr target, u64 size, VMAPermission perms);
     ResultCode HeapFree(VAddr target, u64 size);
 
-    ResultCode MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size);
+    ResultCode MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size,
+                            MemoryState state = MemoryState::Mapped);
 
     /**
      * Scans all VMAs and updates the page table range of any that use the given vector as backing
