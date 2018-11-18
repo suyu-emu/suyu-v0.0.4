@@ -309,27 +309,16 @@ void OpenGLState::ApplyGlobalBlending() const {
     if (!updated.enabled) {
         return;
     }
-    if (updated.separate_alpha) {
-        if (blend_changed || updated.src_rgb_func != current.src_rgb_func ||
-            updated.dst_rgb_func != current.dst_rgb_func ||
-            updated.src_a_func != current.src_a_func || updated.dst_a_func != current.dst_a_func) {
-            glBlendFuncSeparate(updated.src_rgb_func, updated.dst_rgb_func, updated.src_a_func,
-                                updated.dst_a_func);
-        }
+    if (blend_changed || updated.src_rgb_func != current.src_rgb_func ||
+        updated.dst_rgb_func != current.dst_rgb_func || updated.src_a_func != current.src_a_func ||
+        updated.dst_a_func != current.dst_a_func) {
+        glBlendFuncSeparate(updated.src_rgb_func, updated.dst_rgb_func, updated.src_a_func,
+                            updated.dst_a_func);
+    }
 
-        if (blend_changed || updated.rgb_equation != current.rgb_equation ||
-            updated.a_equation != current.a_equation) {
-            glBlendEquationSeparate(updated.rgb_equation, updated.a_equation);
-        }
-    } else {
-        if (blend_changed || updated.src_rgb_func != current.src_rgb_func ||
-            updated.dst_rgb_func != current.dst_rgb_func) {
-            glBlendFunc(updated.src_rgb_func, updated.dst_rgb_func);
-        }
-
-        if (blend_changed || updated.rgb_equation != current.rgb_equation) {
-            glBlendEquation(updated.rgb_equation);
-        }
+    if (blend_changed || updated.rgb_equation != current.rgb_equation ||
+        updated.a_equation != current.a_equation) {
+        glBlendEquationSeparate(updated.rgb_equation, updated.a_equation);
     }
 }
 
@@ -347,29 +336,17 @@ void OpenGLState::ApplyTargetBlending(std::size_t target, bool force) const {
     if (!updated.enabled) {
         return;
     }
-    if (updated.separate_alpha) {
-        if (blend_changed || updated.src_rgb_func != current.src_rgb_func ||
-            updated.dst_rgb_func != current.dst_rgb_func ||
-            updated.src_a_func != current.src_a_func || updated.dst_a_func != current.dst_a_func) {
-            glBlendFuncSeparateiARB(static_cast<GLuint>(target), updated.src_rgb_func,
-                                    updated.dst_rgb_func, updated.src_a_func, updated.dst_a_func);
-        }
+    if (blend_changed || updated.src_rgb_func != current.src_rgb_func ||
+        updated.dst_rgb_func != current.dst_rgb_func || updated.src_a_func != current.src_a_func ||
+        updated.dst_a_func != current.dst_a_func) {
+        glBlendFuncSeparateiARB(static_cast<GLuint>(target), updated.src_rgb_func,
+                                updated.dst_rgb_func, updated.src_a_func, updated.dst_a_func);
+    }
 
-        if (blend_changed || updated.rgb_equation != current.rgb_equation ||
-            updated.a_equation != current.a_equation) {
-            glBlendEquationSeparateiARB(static_cast<GLuint>(target), updated.rgb_equation,
-                                        updated.a_equation);
-        }
-    } else {
-        if (blend_changed || updated.src_rgb_func != current.src_rgb_func ||
-            updated.dst_rgb_func != current.dst_rgb_func) {
-            glBlendFunciARB(static_cast<GLuint>(target), updated.src_rgb_func,
-                            updated.dst_rgb_func);
-        }
-
-        if (blend_changed || updated.rgb_equation != current.rgb_equation) {
-            glBlendEquationiARB(static_cast<GLuint>(target), updated.rgb_equation);
-        }
+    if (blend_changed || updated.rgb_equation != current.rgb_equation ||
+        updated.a_equation != current.a_equation) {
+        glBlendEquationSeparateiARB(static_cast<GLuint>(target), updated.rgb_equation,
+                                    updated.a_equation);
     }
 }
 

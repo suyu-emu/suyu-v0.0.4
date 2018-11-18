@@ -1077,15 +1077,15 @@ void RasterizerOpenGL::SyncBlendState() {
     state.independant_blend.enabled = regs.independent_blend_enable;
     if (!state.independant_blend.enabled) {
         auto& blend = state.blend[0];
-        blend.enabled = regs.blend.enable[0] != 0;
-        blend.separate_alpha = regs.blend.separate_alpha;
-        blend.rgb_equation = MaxwellToGL::BlendEquation(regs.blend.equation_rgb);
-        blend.src_rgb_func = MaxwellToGL::BlendFunc(regs.blend.factor_source_rgb);
-        blend.dst_rgb_func = MaxwellToGL::BlendFunc(regs.blend.factor_dest_rgb);
-        if (blend.separate_alpha) {
-            blend.a_equation = MaxwellToGL::BlendEquation(regs.blend.equation_a);
-            blend.src_a_func = MaxwellToGL::BlendFunc(regs.blend.factor_source_a);
-            blend.dst_a_func = MaxwellToGL::BlendFunc(regs.blend.factor_dest_a);
+        const auto& src = regs.blend;
+        blend.enabled = src.enable[0] != 0;
+        if (blend.enabled) {
+            blend.rgb_equation = MaxwellToGL::BlendEquation(src.equation_rgb);
+            blend.src_rgb_func = MaxwellToGL::BlendFunc(src.factor_source_rgb);
+            blend.dst_rgb_func = MaxwellToGL::BlendFunc(src.factor_dest_rgb);
+            blend.a_equation = MaxwellToGL::BlendEquation(src.equation_a);
+            blend.src_a_func = MaxwellToGL::BlendFunc(src.factor_source_a);
+            blend.dst_a_func = MaxwellToGL::BlendFunc(src.factor_dest_a);
         }
         for (std::size_t i = 1; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
             state.blend[i].enabled = false;
@@ -1095,18 +1095,16 @@ void RasterizerOpenGL::SyncBlendState() {
 
     for (std::size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
         auto& blend = state.blend[i];
+        const auto& src = regs.independent_blend[i];
         blend.enabled = regs.blend.enable[i] != 0;
         if (!blend.enabled)
             continue;
-        blend.separate_alpha = regs.independent_blend[i].separate_alpha;
-        blend.rgb_equation = MaxwellToGL::BlendEquation(regs.independent_blend[i].equation_rgb);
-        blend.src_rgb_func = MaxwellToGL::BlendFunc(regs.independent_blend[i].factor_source_rgb);
-        blend.dst_rgb_func = MaxwellToGL::BlendFunc(regs.independent_blend[i].factor_dest_rgb);
-        if (blend.separate_alpha) {
-            blend.a_equation = MaxwellToGL::BlendEquation(regs.independent_blend[i].equation_a);
-            blend.src_a_func = MaxwellToGL::BlendFunc(regs.independent_blend[i].factor_source_a);
-            blend.dst_a_func = MaxwellToGL::BlendFunc(regs.independent_blend[i].factor_dest_a);
-        }
+        blend.rgb_equation = MaxwellToGL::BlendEquation(src.equation_rgb);
+        blend.src_rgb_func = MaxwellToGL::BlendFunc(src.factor_source_rgb);
+        blend.dst_rgb_func = MaxwellToGL::BlendFunc(src.factor_dest_rgb);
+        blend.a_equation = MaxwellToGL::BlendEquation(src.equation_a);
+        blend.src_a_func = MaxwellToGL::BlendFunc(src.factor_source_a);
+        blend.dst_a_func = MaxwellToGL::BlendFunc(src.factor_dest_a);
     }
 }
 

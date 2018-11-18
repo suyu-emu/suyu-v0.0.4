@@ -92,7 +92,6 @@ public:
 
     struct Blend {
         bool enabled;        // GL_BLEND
-        bool separate_alpha; // Independent blend enabled
         GLenum rgb_equation; // GL_BLEND_EQUATION_RGB
         GLenum a_equation;   // GL_BLEND_EQUATION_ALPHA
         GLenum src_rgb_func; // GL_BLEND_SRC_RGB
