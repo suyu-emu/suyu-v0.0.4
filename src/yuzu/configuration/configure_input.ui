@@ -317,7 +317,7 @@
         <item row="1" column="1">
          <widget class="QCheckBox" name="handheld_connected">
           <property name="text">
-           <string>Connected</string>
+           <string>Joycons Docked</string>
           </property>
          </widget>
         </item>
