@@ -495,8 +495,10 @@ private:
         if (transaction == TransactionId::Connect) {
             IGBPConnectRequestParcel request{ctx.ReadBuffer()};
             IGBPConnectResponseParcel response{
-                static_cast<u32>(1280 * Settings::values.resolution_factor),
-                static_cast<u32>(720 * Settings::values.resolution_factor)};
+                static_cast<u32>(static_cast<u32>(DisplayResolution::UndockedWidth) *
+                                 Settings::values.resolution_factor),
+                static_cast<u32>(static_cast<u32>(DisplayResolution::UndockedHeight) *
+                                 Settings::values.resolution_factor)};
             ctx.WriteBuffer(response.Serialize());
         } else if (transaction == TransactionId::SetPreallocatedBuffer) {
             IGBPSetPreallocatedBufferRequestParcel request{ctx.ReadBuffer()};
