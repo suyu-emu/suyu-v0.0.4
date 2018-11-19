@@ -33,7 +33,8 @@ struct KeyboardConfig {
     u32_le length_limit;
     INSERT_PADDING_BYTES(4);
     u32_le is_password;
-    INSERT_PADDING_BYTES(6);
+    INSERT_PADDING_BYTES(5);
+    bool utf_8;
     bool draw_background;
     u32_le initial_string_offset;
     u32_le initial_string_size;
