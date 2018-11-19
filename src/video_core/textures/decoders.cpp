@@ -37,8 +37,14 @@ struct alignas(64) SwizzleTable {
     std::array<std::array<u16, M>, N> values{};
 };
 
-constexpr auto legacy_swizzle_table = SwizzleTable<8, 64, 1>();
-constexpr auto fast_swizzle_table = SwizzleTable<8, 4, 16>();
+constexpr u32 gob_size_x = 64;
+constexpr u32 gob_size_y = 8;
+constexpr u32 gob_size_z = 1;
+constexpr u32 gob_size = gob_size_x * gob_size_y * gob_size_z;
+constexpr u32 fast_swizzle_align = 16;
+
+constexpr auto legacy_swizzle_table = SwizzleTable<gob_size_y, gob_size_x, gob_size_z>();
+constexpr auto fast_swizzle_table = SwizzleTable<gob_size_y, 4, fast_swizzle_align>();
 
 /**
  * This function manages ALL the GOBs(Group of Bytes) Inside a single block.
@@ -52,10 +58,7 @@ void PreciseProcessBlock(u8* const swizzled_data, u8* const unswizzled_data, con
                          const u32 bytes_per_pixel, const u32 out_bytes_per_pixel) {
     std::array<u8*, 2> data_ptrs;
     u32 z_address = tile_offset;
-    const u32 gob_size_x = 64;
-    const u32 gob_size_y = 8;
-    const u32 gob_size_z = 1;
-    const u32 gob_size = gob_size_x * gob_size_y * gob_size_z;
+
     for (u32 z = z_start; z < z_end; z++) {
         u32 y_address = z_address;
         u32 pixel_base = layer_z * z + y_start * stride_x;
@@ -90,23 +93,19 @@ void FastProcessBlock(u8* const swizzled_data, u8* const unswizzled_data, const 
     u32 z_address = tile_offset;
     const u32 x_startb = x_start * bytes_per_pixel;
     const u32 x_endb = x_end * bytes_per_pixel;
-    constexpr u32 copy_size = 16;
-    constexpr u32 gob_size_x = 64;
-    constexpr u32 gob_size_y = 8;
-    constexpr u32 gob_size_z = 1;
-    const u32 gob_size = gob_size_x * gob_size_y * gob_size_z;
+
     for (u32 z = z_start; z < z_end; z++) {
         u32 y_address = z_address;
         u32 pixel_base = layer_z * z + y_start * stride_x;
         for (u32 y = y_start; y < y_end; y++) {
             const auto& table = fast_swizzle_table[y % gob_size_y];
-            for (u32 xb = x_startb; xb < x_endb; xb += copy_size) {
-                const u32 swizzle_offset{y_address + table[(xb / copy_size) % 4]};
+            for (u32 xb = x_startb; xb < x_endb; xb += fast_swizzle_align) {
+                const u32 swizzle_offset{y_address + table[(xb / fast_swizzle_align) % 4]};
                 const u32 out_x = xb * out_bytes_per_pixel / bytes_per_pixel;
                 const u32 pixel_index{out_x + pixel_base};
                 data_ptrs[unswizzle] = swizzled_data + swizzle_offset;
                 data_ptrs[!unswizzle] = unswizzled_data + pixel_index;
-                std::memcpy(data_ptrs[0], data_ptrs[1], copy_size);
+                std::memcpy(data_ptrs[0], data_ptrs[1], fast_swizzle_align);
             }
             pixel_base += stride_x;
             if ((y + 1) % gob_size_y == 0)
@@ -132,17 +131,15 @@ void SwizzledData(u8* const swizzled_data, u8* const unswizzled_data, const bool
     auto div_ceil = [](const u32 x, const u32 y) { return ((x + y - 1) / y); };
     const u32 stride_x = width * out_bytes_per_pixel;
     const u32 layer_z = height * stride_x;
-    constexpr u32 gob_x_bytes = 64;
-    const u32 gob_elements_x = gob_x_bytes / bytes_per_pixel;
-    constexpr u32 gob_elements_y = 8;
-    constexpr u32 gob_elements_z = 1;
+    const u32 gob_elements_x = gob_size_x / bytes_per_pixel;
+    constexpr u32 gob_elements_y = gob_size_y;
+    constexpr u32 gob_elements_z = gob_size_z;
     const u32 block_x_elements = gob_elements_x;
     const u32 block_y_elements = gob_elements_y * block_height;
     const u32 block_z_elements = gob_elements_z * block_depth;
     const u32 blocks_on_x = div_ceil(width, block_x_elements);
     const u32 blocks_on_y = div_ceil(height, block_y_elements);
     const u32 blocks_on_z = div_ceil(depth, block_z_elements);
-    constexpr u32 gob_size = gob_x_bytes * gob_elements_y * gob_elements_z;
     const u32 xy_block_size = gob_size * block_height;
     const u32 block_size = xy_block_size * block_depth;
     u32 tile_offset = 0;
@@ -173,7 +170,7 @@ void SwizzledData(u8* const swizzled_data, u8* const unswizzled_data, const bool
 void CopySwizzledData(u32 width, u32 height, u32 depth, u32 bytes_per_pixel,
                       u32 out_bytes_per_pixel, u8* const swizzled_data, u8* const unswizzled_data,
                       bool unswizzle, u32 block_height, u32 block_depth) {
-    if (bytes_per_pixel % 3 != 0 && (width * bytes_per_pixel) % 16 == 0) {
+    if (bytes_per_pixel % 3 != 0 && (width * bytes_per_pixel) % fast_swizzle_align == 0) {
         SwizzledData<true>(swizzled_data, unswizzled_data, unswizzle, width, height, depth,
                            bytes_per_pixel, out_bytes_per_pixel, block_height, block_depth);
     } else {
@@ -250,15 +247,17 @@ std::vector<u8> UnswizzleTexture(VAddr address, u32 tile_size_x, u32 tile_size_y
 void SwizzleSubrect(u32 subrect_width, u32 subrect_height, u32 source_pitch, u32 swizzled_width,
                     u32 bytes_per_pixel, VAddr swizzled_data, VAddr unswizzled_data,
                     u32 block_height) {
-    const u32 image_width_in_gobs{(swizzled_width * bytes_per_pixel + 63) / 64};
+    const u32 image_width_in_gobs{(swizzled_width * bytes_per_pixel + (gob_size_x - 1)) /
+                                  gob_size_x};
     for (u32 line = 0; line < subrect_height; ++line) {
         const u32 gob_address_y =
-            (line / (8 * block_height)) * 512 * block_height * image_width_in_gobs +
-            (line % (8 * block_height) / 8) * 512;
-        const auto& table = legacy_swizzle_table[line % 8];
+            (line / (gob_size_y * block_height)) * gob_size * block_height * image_width_in_gobs +
+            ((line % (gob_size_y * block_height)) / gob_size_y) * gob_size;
+        const auto& table = legacy_swizzle_table[line % gob_size_y];
         for (u32 x = 0; x < subrect_width; ++x) {
-            const u32 gob_address = gob_address_y + (x * bytes_per_pixel / 64) * 512 * block_height;
-            const u32 swizzled_offset = gob_address + table[(x * bytes_per_pixel) % 64];
+            const u32 gob_address =
+                gob_address_y + (x * bytes_per_pixel / gob_size_x) * gob_size * block_height;
+            const u32 swizzled_offset = gob_address + table[(x * bytes_per_pixel) % gob_size_x];
             const VAddr source_line = unswizzled_data + line * source_pitch + x * bytes_per_pixel;
             const VAddr dest_addr = swizzled_data + swizzled_offset;
 
@@ -272,13 +271,13 @@ void UnswizzleSubrect(u32 subrect_width, u32 subrect_height, u32 dest_pitch, u32
                       u32 block_height, u32 offset_x, u32 offset_y) {
     for (u32 line = 0; line < subrect_height; ++line) {
         const u32 y2 = line + offset_y;
-        const u32 gob_address_y =
-            (y2 / (8 * block_height)) * 512 * block_height + (y2 % (8 * block_height) / 8) * 512;
-        const auto& table = legacy_swizzle_table[y2 % 8];
+        const u32 gob_address_y = (y2 / (gob_size_y * block_height)) * gob_size * block_height +
+                                  ((y2 % (gob_size_y * block_height)) / gob_size_y) * gob_size;
+        const auto& table = legacy_swizzle_table[y2 % gob_size_y];
         for (u32 x = 0; x < subrect_width; ++x) {
             const u32 x2 = (x + offset_x) * bytes_per_pixel;
-            const u32 gob_address = gob_address_y + (x2 / 64) * 512 * block_height;
-            const u32 swizzled_offset = gob_address + table[x2 % 64];
+            const u32 gob_address = gob_address_y + (x2 / gob_size_x) * gob_size * block_height;
+            const u32 swizzled_offset = gob_address + table[x2 % gob_size_x];
             const VAddr dest_line = unswizzled_data + line * dest_pitch + x * bytes_per_pixel;
             const VAddr source_addr = swizzled_data + swizzled_offset;
 
@@ -332,12 +331,9 @@ std::vector<u8> DecodeTexture(const std::vector<u8>& texture_data, TextureFormat
 std::size_t CalculateSize(bool tiled, u32 bytes_per_pixel, u32 width, u32 height, u32 depth,
                           u32 block_height, u32 block_depth) {
     if (tiled) {
-        constexpr u32 gobs_in_x = 64;
-        constexpr u32 gobs_in_y = 8;
-        constexpr u32 gobs_in_z = 1;
-        const u32 aligned_width = Common::AlignUp(width * bytes_per_pixel, gobs_in_x);
-        const u32 aligned_height = Common::AlignUp(height, gobs_in_y * block_height);
-        const u32 aligned_depth = Common::AlignUp(depth, gobs_in_z * block_depth);
+        const u32 aligned_width = Common::AlignUp(width * bytes_per_pixel, gob_size_x);
+        const u32 aligned_height = Common::AlignUp(height, gob_size_y * block_height);
+        const u32 aligned_depth = Common::AlignUp(depth, gob_size_z * block_depth);
         return aligned_width * aligned_height * aligned_depth;
     } else {
         return width * height * depth * bytes_per_pixel;
