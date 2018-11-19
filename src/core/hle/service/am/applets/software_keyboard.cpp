@@ -63,7 +63,8 @@ void SoftwareKeyboard::Initialize(std::queue<std::shared_ptr<IStorage>> storage_
         return;
 
     std::vector<char16_t> string(config.initial_string_size);
-    std::memcpy(string.data(), work_buffer.data() + 4, string.size() * 2);
+    std::memcpy(string.data(), work_buffer.data() + config.initial_string_offset,
+                string.size() * 2);
     initial_text = Common::UTF16StringFromFixedZeroTerminatedBuffer(string.data(), string.size());
 }
 
