@@ -341,6 +341,10 @@ std::shared_ptr<FileSys::RegisteredCacheUnion> GetUnionContents() {
     return registered_cache_union;
 }
 
+void ClearUnionContents() {
+    registered_cache_union = nullptr;
+}
+
 FileSys::RegisteredCache* GetSystemNANDContents() {
     LOG_TRACE(Service_FS, "Opening System NAND Contents");
 
@@ -391,6 +395,7 @@ void CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite) {
         bis_factory = nullptr;
         save_data_factory = nullptr;
         sdmc_factory = nullptr;
+        ClearUnionContents();
     }
 
     auto nand_directory = vfs.OpenDirectory(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir),
