@@ -78,10 +78,10 @@ SharedPtr<SharedMemory> SharedMemory::CreateForApplet(
     return shared_memory;
 }
 
-ResultCode SharedMemory::Map(Process* target_process, VAddr address, MemoryPermission permissions,
+ResultCode SharedMemory::Map(Process& target_process, VAddr address, MemoryPermission permissions,
                              MemoryPermission other_permissions) {
     const MemoryPermission own_other_permissions =
-        target_process == owner_process ? this->permissions : this->other_permissions;
+        &target_process == owner_process ? this->permissions : this->other_permissions;
 
     // Automatically allocated memory blocks can only be mapped with other_permissions = DontCare
     if (base_address == 0 && other_permissions != MemoryPermission::DontCare) {
@@ -106,7 +106,7 @@ ResultCode SharedMemory::Map(Process* target_process, VAddr address, MemoryPermi
     VAddr target_address = address;
 
     // Map the memory block into the target process
-    auto result = target_process->VMManager().MapMemoryBlock(
+    auto result = target_process.VMManager().MapMemoryBlock(
         target_address, backing_block, backing_block_offset, size, MemoryState::Shared);
     if (result.Failed()) {
         LOG_ERROR(
@@ -116,14 +116,14 @@ ResultCode SharedMemory::Map(Process* target_process, VAddr address, MemoryPermi
         return result.Code();
     }
 
-    return target_process->VMManager().ReprotectRange(target_address, size,
-                                                      ConvertPermissions(permissions));
+    return target_process.VMManager().ReprotectRange(target_address, size,
+                                                     ConvertPermissions(permissions));
 }
 
-ResultCode SharedMemory::Unmap(Process* target_process, VAddr address) {
+ResultCode SharedMemory::Unmap(Process& target_process, VAddr address) {
     // TODO(Subv): Verify what happens if the application tries to unmap an address that is not
     // mapped to a SharedMemory.
-    return target_process->VMManager().UnmapRange(address, size);
+    return target_process.VMManager().UnmapRange(address, size);
 }
 
 VMAPermission SharedMemory::ConvertPermissions(MemoryPermission permission) {

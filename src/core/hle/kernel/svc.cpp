@@ -796,7 +796,7 @@ static ResultCode MapSharedMemory(Handle shared_memory_handle, VAddr addr, u64 s
         return ERR_INVALID_MEMORY_RANGE;
     }
 
-    return shared_memory->Map(current_process, addr, permissions_type, MemoryPermission::DontCare);
+    return shared_memory->Map(*current_process, addr, permissions_type, MemoryPermission::DontCare);
 }
 
 static ResultCode UnmapSharedMemory(Handle shared_memory_handle, VAddr addr, u64 size) {
@@ -826,7 +826,7 @@ static ResultCode UnmapSharedMemory(Handle shared_memory_handle, VAddr addr, u64
         return ERR_INVALID_MEMORY_RANGE;
     }
 
-    return shared_memory->Unmap(current_process, addr);
+    return shared_memory->Unmap(*current_process, addr);
 }
 
 /// Query process memory
