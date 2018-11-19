@@ -127,7 +127,7 @@ void SoftwareKeyboard::WriteText(std::optional<std::u16string> text) {
             std::memcpy(output_sub.data() + 8, new_text.data(),
                         std::min(new_text.size(), SWKBD_OUTPUT_BUFFER_SIZE - 8));
 
-            output_main[0] = config.text_check;
+            output_main[0] = INTERACTIVE_STATUS_OK;
             std::memcpy(output_main.data() + 4, new_text.data(),
                         std::min(new_text.size(), SWKBD_OUTPUT_BUFFER_SIZE - 4));
         } else {
@@ -136,7 +136,7 @@ void SoftwareKeyboard::WriteText(std::optional<std::u16string> text) {
             std::memcpy(output_sub.data() + 8, text->data(),
                         std::min(text->size() * 2, SWKBD_OUTPUT_BUFFER_SIZE - 8));
 
-            output_main[0] = config.text_check;
+            output_main[0] = INTERACTIVE_STATUS_OK;
             std::memcpy(output_main.data() + 4, text->data(),
                         std::min(text->size() * 2, SWKBD_OUTPUT_BUFFER_SIZE - 4));
         }
@@ -147,7 +147,6 @@ void SoftwareKeyboard::WriteText(std::optional<std::u16string> text) {
         if (complete) {
             broker->PushNormalDataFromApplet(IStorage{output_main});
         } else {
-            broker->PushNormalDataFromApplet(IStorage{output_main});
             broker->PushInteractiveDataFromApplet(IStorage{output_sub});
         }
 
