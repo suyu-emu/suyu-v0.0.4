@@ -298,7 +298,7 @@ ResultCode VMManager::HeapFree(VAddr target, u64 size) {
     return RESULT_SUCCESS;
 }
 
-ResultCode VMManager::MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
+ResultCode VMManager::MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size, MemoryState state) {
     const auto vma = FindVMA(src_addr);
 
     ASSERT_MSG(vma != vma_map.end(), "Invalid memory address");
@@ -312,8 +312,8 @@ ResultCode VMManager::MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
     const std::shared_ptr<std::vector<u8>>& backing_block = vma->second.backing_block;
     const std::size_t backing_block_offset = vma->second.offset + vma_offset;
 
-    CASCADE_RESULT(auto new_vma, MapMemoryBlock(dst_addr, backing_block, backing_block_offset, size,
-                                                MemoryState::Mapped));
+    CASCADE_RESULT(auto new_vma,
+                   MapMemoryBlock(dst_addr, backing_block, backing_block_offset, size, state));
     // Protect mirror with permissions from old region
     Reprotect(new_vma, vma->second.permissions);
     // Remove permissions from old region
