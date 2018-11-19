@@ -81,6 +81,11 @@ public:
         return HANDLE_TYPE;
     }
 
+    /// Gets the size of the underlying memory block in bytes.
+    u64 GetSize() const {
+        return size;
+    }
+
     /**
      * Converts the specified MemoryPermission into the equivalent VMAPermission.
      * @param permission The MemoryPermission to convert.
@@ -112,26 +117,26 @@ public:
      */
     u8* GetPointer(u32 offset = 0);
 
-    /// Process that created this shared memory block.
-    SharedPtr<Process> owner_process;
-    /// Address of shared memory block in the owner process if specified.
-    VAddr base_address;
-    /// Backing memory for this shared memory block.
-    std::shared_ptr<std::vector<u8>> backing_block;
-    /// Offset into the backing block for this shared memory.
-    std::size_t backing_block_offset;
-    /// Size of the memory block. Page-aligned.
-    u64 size;
-    /// Permission restrictions applied to the process which created the block.
-    MemoryPermission permissions;
-    /// Permission restrictions applied to other processes mapping the block.
-    MemoryPermission other_permissions;
-    /// Name of shared memory object.
-    std::string name;
-
 private:
     explicit SharedMemory(KernelCore& kernel);
     ~SharedMemory() override;
+
+    /// Backing memory for this shared memory block.
+    std::shared_ptr<std::vector<u8>> backing_block;
+    /// Offset into the backing block for this shared memory.
+    std::size_t backing_block_offset = 0;
+    /// Size of the memory block. Page-aligned.
+    u64 size = 0;
+    /// Permission restrictions applied to the process which created the block.
+    MemoryPermission permissions{};
+    /// Permission restrictions applied to other processes mapping the block.
+    MemoryPermission other_permissions{};
+    /// Process that created this shared memory block.
+    SharedPtr<Process> owner_process;
+    /// Address of shared memory block in the owner process if specified.
+    VAddr base_address = 0;
+    /// Name of shared memory object.
+    std::string name;
 };
 
 } // namespace Kernel
