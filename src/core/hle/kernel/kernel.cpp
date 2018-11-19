@@ -105,7 +105,7 @@ struct KernelCore::Impl {
     void Initialize(KernelCore& kernel) {
         Shutdown();
 
-        InitializeResourceLimits(kernel);
+        InitializeSystemResourceLimit(kernel);
         InitializeThreads();
         InitializeTimers();
     }
@@ -118,7 +118,7 @@ struct KernelCore::Impl {
         process_list.clear();
         current_process = nullptr;
 
-        resource_limits.fill(nullptr);
+        system_resource_limit = nullptr;
 
         thread_wakeup_callback_handle_table.Clear();
         thread_wakeup_event_type = nullptr;
@@ -129,63 +129,17 @@ struct KernelCore::Impl {
         named_ports.clear();
     }
 
-    void InitializeResourceLimits(KernelCore& kernel) {
-        // Create the four resource limits that the system uses
-        // Create the APPLICATION resource limit
-        SharedPtr<ResourceLimit> resource_limit = ResourceLimit::Create(kernel, "Applications");
-        resource_limit->max_priority = 0x18;
-        resource_limit->max_commit = 0x4000000;
-        resource_limit->max_threads = 0x20;
-        resource_limit->max_events = 0x20;
-        resource_limit->max_mutexes = 0x20;
-        resource_limit->max_semaphores = 0x8;
-        resource_limit->max_timers = 0x8;
-        resource_limit->max_shared_mems = 0x10;
-        resource_limit->max_address_arbiters = 0x2;
-        resource_limit->max_cpu_time = 0x1E;
-        resource_limits[static_cast<u8>(ResourceLimitCategory::APPLICATION)] = resource_limit;
+    // Creates the default system resource limit
+    void InitializeSystemResourceLimit(KernelCore& kernel) {
+        system_resource_limit = ResourceLimit::Create(kernel, "System");
 
-        // Create the SYS_APPLET resource limit
-        resource_limit = ResourceLimit::Create(kernel, "System Applets");
-        resource_limit->max_priority = 0x4;
-        resource_limit->max_commit = 0x5E00000;
-        resource_limit->max_threads = 0x1D;
-        resource_limit->max_events = 0xB;
-        resource_limit->max_mutexes = 0x8;
-        resource_limit->max_semaphores = 0x4;
-        resource_limit->max_timers = 0x4;
-        resource_limit->max_shared_mems = 0x8;
-        resource_limit->max_address_arbiters = 0x3;
-        resource_limit->max_cpu_time = 0x2710;
-        resource_limits[static_cast<u8>(ResourceLimitCategory::SYS_APPLET)] = resource_limit;
-
-        // Create the LIB_APPLET resource limit
-        resource_limit = ResourceLimit::Create(kernel, "Library Applets");
-        resource_limit->max_priority = 0x4;
-        resource_limit->max_commit = 0x600000;
-        resource_limit->max_threads = 0xE;
-        resource_limit->max_events = 0x8;
-        resource_limit->max_mutexes = 0x8;
-        resource_limit->max_semaphores = 0x4;
-        resource_limit->max_timers = 0x4;
-        resource_limit->max_shared_mems = 0x8;
-        resource_limit->max_address_arbiters = 0x1;
-        resource_limit->max_cpu_time = 0x2710;
-        resource_limits[static_cast<u8>(ResourceLimitCategory::LIB_APPLET)] = resource_limit;
-
-        // Create the OTHER resource limit
-        resource_limit = ResourceLimit::Create(kernel, "Others");
-        resource_limit->max_priority = 0x4;
-        resource_limit->max_commit = 0x2180000;
-        resource_limit->max_threads = 0xE1;
-        resource_limit->max_events = 0x108;
-        resource_limit->max_mutexes = 0x25;
-        resource_limit->max_semaphores = 0x43;
-        resource_limit->max_timers = 0x2C;
-        resource_limit->max_shared_mems = 0x1F;
-        resource_limit->max_address_arbiters = 0x2D;
-        resource_limit->max_cpu_time = 0x3E8;
-        resource_limits[static_cast<u8>(ResourceLimitCategory::OTHER)] = resource_limit;
+        // If setting the default system values fails, then something seriously wrong has occurred.
+        ASSERT(system_resource_limit->SetLimitValue(ResourceType::PhysicalMemory, 0x200000000)
+                   .IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(ResourceType::Threads, 800).IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(ResourceType::Events, 700).IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(ResourceType::TransferMemory, 200).IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(ResourceType::Sessions, 900).IsSuccess());
     }
 
     void InitializeThreads() {
@@ -208,7 +162,7 @@ struct KernelCore::Impl {
     std::vector<SharedPtr<Process>> process_list;
     Process* current_process = nullptr;
 
-    std::array<SharedPtr<ResourceLimit>, 4> resource_limits;
+    SharedPtr<ResourceLimit> system_resource_limit;
 
     /// The event type of the generic timer callback event
     CoreTiming::EventType* timer_callback_event_type = nullptr;
@@ -239,9 +193,8 @@ void KernelCore::Shutdown() {
     impl->Shutdown();
 }
 
-SharedPtr<ResourceLimit> KernelCore::ResourceLimitForCategory(
-    ResourceLimitCategory category) const {
-    return impl->resource_limits.at(static_cast<std::size_t>(category));
+SharedPtr<ResourceLimit> KernelCore::GetSystemResourceLimit() const {
+    return impl->system_resource_limit;
 }
 
 SharedPtr<Thread> KernelCore::RetrieveThreadFromWakeupCallbackHandleTable(Handle handle) const {
