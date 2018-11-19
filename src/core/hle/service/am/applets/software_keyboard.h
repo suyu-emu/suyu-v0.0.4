@@ -64,7 +64,6 @@ private:
     std::u16string initial_text;
     bool complete = false;
     std::vector<u8> final_data;
-    ResultCode status = ResultCode(-1);
 };
 
 } // namespace Service::AM::Applets

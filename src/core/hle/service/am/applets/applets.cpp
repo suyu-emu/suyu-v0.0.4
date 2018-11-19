@@ -5,7 +5,6 @@
 #include <cstring>
 #include "common/assert.h"
 #include "core/core.h"
-#include "core/frontend/applets/software_keyboard.h"
 #include "core/hle/kernel/event.h"
 #include "core/hle/kernel/server_port.h"
 #include "core/hle/service/am/am.h"

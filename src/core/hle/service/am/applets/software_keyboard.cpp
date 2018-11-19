@@ -74,7 +74,7 @@ bool SoftwareKeyboard::TransactionComplete() const {
 }
 
 ResultCode SoftwareKeyboard::GetStatus() const {
-    return status;
+    return RESULT_SUCCESS;
 }
 
 void SoftwareKeyboard::ExecuteInteractive() {
@@ -118,7 +118,6 @@ void SoftwareKeyboard::WriteText(std::optional<std::u16string> text) {
 
     if (text.has_value()) {
         std::vector<u8> output_sub(SWKBD_OUTPUT_BUFFER_SIZE);
-        status = RESULT_SUCCESS;
 
         if (config.utf_8) {
             const u64 size = text->size() + 8;
@@ -154,7 +153,6 @@ void SoftwareKeyboard::WriteText(std::optional<std::u16string> text) {
 
         broker->SignalStateChanged();
     } else {
-        status = ResultCode(-1);
         output_main[0] = 1;
         complete = true;
         broker->PushNormalDataFromApplet(IStorage{output_main});
