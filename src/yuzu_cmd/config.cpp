@@ -139,6 +139,8 @@ void Config::ReadValues() {
         Settings::values.rng_seed = std::nullopt;
     }
 
+    Settings::values.language_index = sdl2_config->GetInteger("System", "language_index", 1);
+
     // Miscellaneous
     Settings::values.log_filter = sdl2_config->Get("Miscellaneous", "log_filter", "*:Trace");
     Settings::values.use_dev_keys = sdl2_config->GetBoolean("Miscellaneous", "use_dev_keys", false);
