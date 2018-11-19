@@ -107,8 +107,6 @@ RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window, ScreenInfo
 
     ASSERT_MSG(has_ARB_separate_shader_objects, "has_ARB_separate_shader_objects is unsupported");
     OpenGLState::ApplyDefaultState();
-    // Clipping plane 0 is always enabled for PICA fixed clip plane z <= 0
-    state.clip_distance[0] = true;
 
     // Create render framebuffer
     framebuffer.Create();
