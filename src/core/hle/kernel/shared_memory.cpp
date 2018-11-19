@@ -61,7 +61,7 @@ SharedPtr<SharedMemory> SharedMemory::Create(KernelCore& kernel, SharedPtr<Proce
 }
 
 SharedPtr<SharedMemory> SharedMemory::CreateForApplet(
-    KernelCore& kernel, std::shared_ptr<std::vector<u8>> heap_block, u32 offset, u32 size,
+    KernelCore& kernel, std::shared_ptr<std::vector<u8>> heap_block, std::size_t offset, u64 size,
     MemoryPermission permissions, MemoryPermission other_permissions, std::string name) {
     SharedPtr<SharedMemory> shared_memory(new SharedMemory(kernel));
 

@@ -64,7 +64,7 @@ public:
      */
     static SharedPtr<SharedMemory> CreateForApplet(KernelCore& kernel,
                                                    std::shared_ptr<std::vector<u8>> heap_block,
-                                                   u32 offset, u32 size,
+                                                   std::size_t offset, u64 size,
                                                    MemoryPermission permissions,
                                                    MemoryPermission other_permissions,
                                                    std::string name = "Unknown Applet");
