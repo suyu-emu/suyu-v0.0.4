@@ -136,4 +136,8 @@ u8* SharedMemory::GetPointer(std::size_t offset) {
     return backing_block->data() + backing_block_offset + offset;
 }
 
+const u8* SharedMemory::GetPointer(std::size_t offset) const {
+    return backing_block->data() + backing_block_offset + offset;
+}
+
 } // namespace Kernel
