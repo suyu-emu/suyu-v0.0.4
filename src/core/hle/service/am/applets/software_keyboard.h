@@ -50,14 +50,12 @@ public:
     SoftwareKeyboard();
     ~SoftwareKeyboard() override;
 
-    void Initialize(std::queue<std::shared_ptr<IStorage>> storage) override;
+    void Initialize(std::shared_ptr<AppletDataBroker> broker) override;
 
     bool TransactionComplete() const override;
     ResultCode GetStatus() const override;
-    void ReceiveInteractiveData(std::shared_ptr<IStorage> storage) override;
-    void Execute(AppletStorageProxyFunction out_data,
-                 AppletStorageProxyFunction out_interactive_data,
-                 AppletStateProxyFunction state) override;
+    void ExecuteInteractive() override;
+    void Execute() override;
 
     void WriteText(std::optional<std::u16string> text);
 
@@ -67,10 +65,6 @@ private:
     bool complete = false;
     std::vector<u8> final_data;
     ResultCode status = ResultCode(-1);
-
-    AppletStorageProxyFunction out_data;
-    AppletStorageProxyFunction out_interactive_data;
-    AppletStateProxyFunction state;
 };
 
 } // namespace Service::AM::Applets

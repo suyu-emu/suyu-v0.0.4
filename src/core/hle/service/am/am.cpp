@@ -32,6 +32,9 @@
 
 namespace Service::AM {
 
+constexpr ResultCode ERR_NO_DATA_IN_CHANNEL{ErrorModule::AM, 0x2};
+constexpr ResultCode ERR_SIZE_OUT_OF_BOUNDS{ErrorModule::AM, 0x1F7};
+
 enum class AppletId : u32 {
     SoftwareKeyboard = 0x11,
 };
@@ -529,7 +532,8 @@ void ICommonStateGetter::GetPerformanceMode(Kernel::HLERequestContext& ctx) {
 class ILibraryAppletAccessor final : public ServiceFramework<ILibraryAppletAccessor> {
 public:
     explicit ILibraryAppletAccessor(std::shared_ptr<Applets::Applet> applet)
-        : ServiceFramework("ILibraryAppletAccessor"), applet(std::move(applet)) {
+        : ServiceFramework("ILibraryAppletAccessor"), applet(std::move(applet)),
+          broker(std::make_shared<Applets::AppletDataBroker>()) {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &ILibraryAppletAccessor::GetAppletStateChangedEvent, "GetAppletStateChangedEvent"},
@@ -554,34 +558,16 @@ public:
         // clang-format on
 
         RegisterHandlers(functions);
-
-        auto& kernel = Core::System::GetInstance().Kernel();
-        state_changed_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
-                                                    "ILibraryAppletAccessor:StateChangedEvent");
-        pop_out_data_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
-                                                   "ILibraryAppletAccessor:PopDataOutEvent");
-        pop_interactive_out_data_event =
-            Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
-                                  "ILibraryAppletAccessor:PopInteractiveDataOutEvent");
     }
 
 private:
-    void AppletStorageProxyOutData(IStorage storage) {
-        storage_stack.push(std::make_shared<IStorage>(storage));
-        pop_out_data_event->Signal();
-    }
-
-    void AppletStorageProxyOutInteractiveData(IStorage storage) {
-        interactive_storage_stack.push(std::make_shared<IStorage>(storage));
-        pop_interactive_out_data_event->Signal();
-    }
-
     void GetAppletStateChangedEvent(Kernel::HLERequestContext& ctx) {
-        state_changed_event->Signal();
+        const auto event = broker->GetStateChangedEvent();
+        event->Signal();
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(state_changed_event);
+        rb.PushCopyObjects(event);
 
         LOG_DEBUG(Service_AM, "called");
     }
@@ -604,14 +590,8 @@ private:
     void Start(Kernel::HLERequestContext& ctx) {
         ASSERT(applet != nullptr);
 
-        applet->Initialize(storage_stack);
-        while (!storage_stack.empty())
-            storage_stack.pop();
-        while (!interactive_storage_stack.empty())
-            interactive_storage_stack.pop();
-        applet->Execute([this](IStorage storage) { AppletStorageProxyOutData(storage); },
-                        [this](IStorage storage) { AppletStorageProxyOutInteractiveData(storage); },
-                        [this] { state_changed_event->Signal(); });
+        applet->Initialize(broker);
+        applet->Execute();
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
@@ -621,7 +601,7 @@ private:
 
     void PushInData(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-        storage_stack.push(rp.PopIpcInterface<IStorage>());
+        broker->PushNormalDataFromGame(*rp.PopIpcInterface<IStorage>());
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
@@ -632,28 +612,25 @@ private:
     void PopOutData(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
-        if (storage_stack.empty()) {
-            rb.Push(ResultCode(-1));
+        const auto storage = broker->PopNormalDataToGame();
+        if (storage == nullptr) {
+            rb.Push(ERR_NO_DATA_IN_CHANNEL);
             return;
         }
 
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IStorage>(std::move(storage_stack.front()));
-
-        storage_stack.pop();
+        rb.PushIpcInterface<IStorage>(std::move(*storage));
 
         LOG_DEBUG(Service_AM, "called");
     }
 
     void PushInteractiveInData(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-        interactive_storage_stack.push(rp.PopIpcInterface<IStorage>());
+        broker->PushInteractiveDataFromGame(*rp.PopIpcInterface<IStorage>());
 
         ASSERT(applet->IsInitialized());
-        applet->ReceiveInteractiveData(interactive_storage_stack.back());
-        applet->Execute([this](IStorage storage) { AppletStorageProxyOutData(storage); },
-                        [this](IStorage storage) { AppletStorageProxyOutInteractiveData(storage); },
-                        [this] { state_changed_event->Signal(); });
+        applet->ExecuteInteractive();
+        applet->Execute();
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
@@ -664,15 +641,14 @@ private:
     void PopInteractiveOutData(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
-        if (interactive_storage_stack.empty()) {
-            rb.Push(ResultCode(-1));
+        const auto storage = broker->PopInteractiveDataToGame();
+        if (storage == nullptr) {
+            rb.Push(ERR_NO_DATA_IN_CHANNEL);
             return;
         }
 
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IStorage>(std::move(interactive_storage_stack.front()));
-
-        interactive_storage_stack.pop();
+        rb.PushIpcInterface<IStorage>(std::move(*storage));
 
         LOG_DEBUG(Service_AM, "called");
     }
@@ -680,7 +656,7 @@ private:
     void GetPopOutDataEvent(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(pop_out_data_event);
+        rb.PushCopyObjects(broker->GetNormalDataEvent());
 
         LOG_DEBUG(Service_AM, "called");
     }
@@ -688,17 +664,13 @@ private:
     void GetPopInteractiveOutDataEvent(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(pop_interactive_out_data_event);
+        rb.PushCopyObjects(broker->GetInteractiveDataEvent());
 
         LOG_DEBUG(Service_AM, "called");
     }
 
     std::shared_ptr<Applets::Applet> applet;
-    std::queue<std::shared_ptr<IStorage>> storage_stack;
-    std::queue<std::shared_ptr<IStorage>> interactive_storage_stack;
-    Kernel::SharedPtr<Kernel::Event> state_changed_event;
-    Kernel::SharedPtr<Kernel::Event> pop_out_data_event;
-    Kernel::SharedPtr<Kernel::Event> pop_interactive_out_data_event;
+    std::shared_ptr<Applets::AppletDataBroker> broker;
 };
 
 void IStorage::Open(Kernel::HLERequestContext& ctx) {
@@ -740,9 +712,12 @@ void IStorageAccessor::Write(Kernel::HLERequestContext& ctx) {
     const u64 offset{rp.Pop<u64>()};
     const std::vector<u8> data{ctx.ReadBuffer()};
 
-    const auto size = std::min<std::size_t>(data.size(), backing.buffer.size() - offset);
+    if (data.size() > backing.buffer.size() - offset) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ERR_SIZE_OUT_OF_BOUNDS);
+    }
 
-    std::memcpy(&backing.buffer[offset], data.data(), size);
+    std::memcpy(backing.buffer.data() + offset, data.data(), data.size());
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
@@ -754,9 +729,12 @@ void IStorageAccessor::Read(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
     const u64 offset{rp.Pop<u64>()};
-    std::size_t size{ctx.GetWriteBufferSize()};
+    const std::size_t size{ctx.GetWriteBufferSize()};
 
-    size = std::min<std::size_t>(size, backing.buffer.size() - offset);
+    if (size > backing.buffer.size() - offset) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ERR_SIZE_OUT_OF_BOUNDS);
+    }
 
     ctx.WriteBuffer(backing.buffer.data() + offset, size);
 

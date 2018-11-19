@@ -42,22 +42,23 @@ SoftwareKeyboard::SoftwareKeyboard() = default;
 
 SoftwareKeyboard::~SoftwareKeyboard() = default;
 
-void SoftwareKeyboard::Initialize(std::queue<std::shared_ptr<IStorage>> storage_) {
+void SoftwareKeyboard::Initialize(std::shared_ptr<AppletDataBroker> broker_) {
     complete = false;
     initial_text.clear();
     final_data.clear();
 
-    Applet::Initialize(std::move(storage_));
+    Applet::Initialize(std::move(broker_));
 
-    ASSERT(storage_stack.size() >= 2);
-    const auto& keyboard_config = storage_stack.front()->GetData();
-    storage_stack.pop();
+    const auto keyboard_config_storage = broker->PopNormalDataToApplet();
+    ASSERT(keyboard_config_storage != nullptr);
+    const auto& keyboard_config = keyboard_config_storage->GetData();
 
     ASSERT(keyboard_config.size() >= sizeof(KeyboardConfig));
     std::memcpy(&config, keyboard_config.data(), sizeof(KeyboardConfig));
 
-    const auto& work_buffer = storage_stack.front()->GetData();
-    storage_stack.pop();
+    const auto work_buffer_storage = broker->PopNormalDataToApplet();
+    ASSERT(work_buffer_storage != nullptr);
+    const auto& work_buffer = work_buffer_storage->GetData();
 
     if (config.initial_string_size == 0)
         return;
@@ -76,10 +77,12 @@ ResultCode SoftwareKeyboard::GetStatus() const {
     return status;
 }
 
-void SoftwareKeyboard::ReceiveInteractiveData(std::shared_ptr<IStorage> storage) {
+void SoftwareKeyboard::ExecuteInteractive() {
     if (complete)
         return;
 
+    const auto storage = broker->PopInteractiveDataToApplet();
+    ASSERT(storage != nullptr);
     const auto data = storage->GetData();
     const auto status = static_cast<bool>(data[0]);
 
@@ -91,15 +94,14 @@ void SoftwareKeyboard::ReceiveInteractiveData(std::shared_ptr<IStorage> storage)
         std::array<char16_t, SWKBD_OUTPUT_INTERACTIVE_BUFFER_SIZE / 2 - 2> string;
         std::memcpy(string.data(), data.data() + 4, string.size() * 2);
         frontend.SendTextCheckDialog(
-            Common::UTF16StringFromFixedZeroTerminatedBuffer(string.data(), string.size()), state);
+            Common::UTF16StringFromFixedZeroTerminatedBuffer(string.data(), string.size()),
+            [this] { broker->SignalStateChanged(); });
     }
 }
 
-void SoftwareKeyboard::Execute(AppletStorageProxyFunction out_data,
-                               AppletStorageProxyFunction out_interactive_data,
-                               AppletStateProxyFunction state) {
+void SoftwareKeyboard::Execute() {
     if (complete) {
-        out_data(IStorage{final_data});
+        broker->PushNormalDataFromApplet(IStorage{final_data});
         return;
     }
 
@@ -107,9 +109,6 @@ void SoftwareKeyboard::Execute(AppletStorageProxyFunction out_data,
 
     const auto parameters = ConvertToFrontendParameters(config, initial_text);
 
-    this->out_data = out_data;
-    this->out_interactive_data = out_interactive_data;
-    this->state = state;
     frontend.RequestText([this](std::optional<std::u16string> text) { WriteText(text); },
                          parameters);
 }
@@ -147,19 +146,19 @@ void SoftwareKeyboard::WriteText(std::optional<std::u16string> text) {
         final_data = output_main;
 
         if (complete) {
-            out_data(IStorage{output_main});
+            broker->PushNormalDataFromApplet(IStorage{output_main});
         } else {
-            out_data(IStorage{output_main});
-            out_interactive_data(IStorage{output_sub});
+            broker->PushNormalDataFromApplet(IStorage{output_main});
+            broker->PushInteractiveDataFromApplet(IStorage{output_sub});
         }
 
-        state();
+        broker->SignalStateChanged();
     } else {
         status = ResultCode(-1);
         output_main[0] = 1;
         complete = true;
-        out_data(IStorage{output_main});
-        state();
+        broker->PushNormalDataFromApplet(IStorage{output_main});
+        broker->SignalStateChanged();
     }
 }
 } // namespace Service::AM::Applets

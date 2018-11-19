@@ -8,12 +8,9 @@
 #include <memory>
 #include <queue>
 #include "common/swap.h"
+#include "core/hle/kernel/event.h"
 
 union ResultCode;
-
-namespace Frontend {
-class SoftwareKeyboardApplet;
-}
 
 namespace Service::AM {
 
@@ -21,22 +18,57 @@ class IStorage;
 
 namespace Applets {
 
-using AppletStorageProxyFunction = std::function<void(IStorage)>;
-using AppletStateProxyFunction = std::function<void()>;
+class AppletDataBroker final {
+public:
+    AppletDataBroker();
+    ~AppletDataBroker();
+
+    std::unique_ptr<IStorage> PopNormalDataToGame();
+    std::unique_ptr<IStorage> PopNormalDataToApplet();
+
+    std::unique_ptr<IStorage> PopInteractiveDataToGame();
+    std::unique_ptr<IStorage> PopInteractiveDataToApplet();
+
+    void PushNormalDataFromGame(IStorage storage);
+    void PushNormalDataFromApplet(IStorage storage);
+
+    void PushInteractiveDataFromGame(IStorage storage);
+    void PushInteractiveDataFromApplet(IStorage storage);
+
+    void SignalStateChanged() const;
+
+    Kernel::SharedPtr<Kernel::Event> GetNormalDataEvent() const;
+    Kernel::SharedPtr<Kernel::Event> GetInteractiveDataEvent() const;
+    Kernel::SharedPtr<Kernel::Event> GetStateChangedEvent() const;
+
+private:
+    // Queues are named from applet's perspective
+    std::queue<std::unique_ptr<IStorage>>
+        in_channel; // PopNormalDataToApplet and PushNormalDataFromGame
+    std::queue<std::unique_ptr<IStorage>>
+        out_channel; // PopNormalDataToGame and PushNormalDataFromApplet
+    std::queue<std::unique_ptr<IStorage>>
+        in_interactive_channel; // PopInteractiveDataToApplet and PushInteractiveDataFromGame
+    std::queue<std::unique_ptr<IStorage>>
+        out_interactive_channel; // PopInteractiveDataToGame and PushInteractiveDataFromApplet
+
+    Kernel::SharedPtr<Kernel::Event> state_changed_event;
+    Kernel::SharedPtr<Kernel::Event> pop_out_data_event; // Signaled on PushNormalDataFromApplet
+    Kernel::SharedPtr<Kernel::Event>
+        pop_interactive_out_data_event; // Signaled on PushInteractiveDataFromApplet
+};
 
 class Applet {
 public:
     Applet();
     virtual ~Applet();
 
-    virtual void Initialize(std::queue<std::shared_ptr<IStorage>> storage);
+    virtual void Initialize(std::shared_ptr<AppletDataBroker> broker);
 
     virtual bool TransactionComplete() const = 0;
     virtual ResultCode GetStatus() const = 0;
-    virtual void ReceiveInteractiveData(std::shared_ptr<IStorage> storage) = 0;
-    virtual void Execute(AppletStorageProxyFunction out_data,
-                         AppletStorageProxyFunction out_interactive_data,
-                         AppletStateProxyFunction state) = 0;
+    virtual void ExecuteInteractive() = 0;
+    virtual void Execute() = 0;
 
     bool IsInitialized() const {
         return initialized;
@@ -54,7 +86,7 @@ protected:
     static_assert(sizeof(CommonArguments) == 0x20, "CommonArguments has incorrect size.");
 
     CommonArguments common_args;
-    std::queue<std::shared_ptr<IStorage>> storage_stack;
+    std::shared_ptr<AppletDataBroker> broker;
     bool initialized = false;
 };
 
