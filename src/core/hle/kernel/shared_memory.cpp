@@ -132,7 +132,7 @@ VMAPermission SharedMemory::ConvertPermissions(MemoryPermission permission) {
     return static_cast<VMAPermission>(masked_permissions);
 }
 
-u8* SharedMemory::GetPointer(u32 offset) {
+u8* SharedMemory::GetPointer(std::size_t offset) {
     return backing_block->data() + backing_block_offset + offset;
 }
 

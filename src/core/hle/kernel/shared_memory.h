@@ -115,7 +115,7 @@ public:
      * @param offset Offset from the start of the shared memory block to get pointer
      * @return Pointer to the shared memory block from the specified offset
      */
-    u8* GetPointer(u32 offset = 0);
+    u8* GetPointer(std::size_t offset = 0);
 
 private:
     explicit SharedMemory(KernelCore& kernel);
