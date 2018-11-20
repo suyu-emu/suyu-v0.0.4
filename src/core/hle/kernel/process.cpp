@@ -28,7 +28,7 @@ SharedPtr<Process> Process::Create(KernelCore& kernel, std::string&& name) {
     process->name = std::move(name);
     process->flags.raw = 0;
     process->flags.memory_region.Assign(MemoryRegion::APPLICATION);
-    process->resource_limit = kernel.ResourceLimitForCategory(ResourceLimitCategory::APPLICATION);
+    process->resource_limit = kernel.GetSystemResourceLimit();
     process->status = ProcessStatus::Created;
     process->program_id = 0;
     process->process_id = kernel.CreateNewProcessID();

@@ -736,13 +736,6 @@ static ResultCode SetThreadPriority(Handle handle, u32 priority) {
 
     const auto* const current_process = Core::CurrentProcess();
 
-    // Note: The kernel uses the current process's resource limit instead of
-    // the one from the thread owner's resource limit.
-    const ResourceLimit& resource_limit = current_process->GetResourceLimit();
-    if (resource_limit.GetMaxResourceValue(ResourceType::Priority) > priority) {
-        return ERR_INVALID_THREAD_PRIORITY;
-    }
-
     SharedPtr<Thread> thread = current_process->GetHandleTable().Get<Thread>(handle);
     if (!thread) {
         return ERR_INVALID_HANDLE;
@@ -885,10 +878,6 @@ static ResultCode CreateThread(Handle* out_handle, VAddr entry_point, u64 arg, V
     }
 
     auto* const current_process = Core::CurrentProcess();
-    const ResourceLimit& resource_limit = current_process->GetResourceLimit();
-    if (resource_limit.GetMaxResourceValue(ResourceType::Priority) > priority) {
-        return ERR_INVALID_THREAD_PRIORITY;
-    }
 
     if (processor_id == THREADPROCESSORID_DEFAULT) {
         // Set the target CPU to the one specified in the process' exheader.
