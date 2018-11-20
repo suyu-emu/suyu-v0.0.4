@@ -54,3 +54,6 @@ __declspec(noinline, noreturn)
 
 #define UNIMPLEMENTED() ASSERT_MSG(false, "Unimplemented code!")
 #define UNIMPLEMENTED_MSG(...) ASSERT_MSG(false, __VA_ARGS__)
+
+#define UNIMPLEMENTED_IF(cond) ASSERT_MSG(!(cond), "Unimplemented code!")
+#define UNIMPLEMENTED_IF_MSG(cond, ...) ASSERT_MSG(!(cond), __VA_ARGS__)
