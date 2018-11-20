@@ -43,19 +43,26 @@ public:
 
 private:
     // Queues are named from applet's perspective
-    std::queue<std::unique_ptr<IStorage>>
-        in_channel; // PopNormalDataToApplet and PushNormalDataFromGame
-    std::queue<std::unique_ptr<IStorage>>
-        out_channel; // PopNormalDataToGame and PushNormalDataFromApplet
-    std::queue<std::unique_ptr<IStorage>>
-        in_interactive_channel; // PopInteractiveDataToApplet and PushInteractiveDataFromGame
-    std::queue<std::unique_ptr<IStorage>>
-        out_interactive_channel; // PopInteractiveDataToGame and PushInteractiveDataFromApplet
+
+    // PopNormalDataToApplet and PushNormalDataFromGame
+    std::queue<std::unique_ptr<IStorage>> in_channel;
+
+    // PopNormalDataToGame and PushNormalDataFromApplet
+    std::queue<std::unique_ptr<IStorage>> out_channel;
+
+    // PopInteractiveDataToApplet and PushInteractiveDataFromGame
+    std::queue<std::unique_ptr<IStorage>> in_interactive_channel;
+
+    // PopInteractiveDataToGame and PushInteractiveDataFromApplet
+    std::queue<std::unique_ptr<IStorage>> out_interactive_channel;
 
     Kernel::SharedPtr<Kernel::Event> state_changed_event;
-    Kernel::SharedPtr<Kernel::Event> pop_out_data_event; // Signaled on PushNormalDataFromApplet
-    Kernel::SharedPtr<Kernel::Event>
-        pop_interactive_out_data_event; // Signaled on PushInteractiveDataFromApplet
+
+    // Signaled on PushNormalDataFromApplet
+    Kernel::SharedPtr<Kernel::Event> pop_out_data_event;
+
+    // Signaled on PushInteractiveDataFromApplet
+    Kernel::SharedPtr<Kernel::Event> pop_interactive_out_data_event;
 };
 
 class Applet {
