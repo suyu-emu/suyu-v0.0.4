@@ -4,7 +4,12 @@
 
 #pragma once
 
+#include <array>
+#include <string>
+#include <vector>
+
 #include "common/common_funcs.h"
+#include "common/swap.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/applets.h"
 

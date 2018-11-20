@@ -4,13 +4,15 @@
 
 #pragma once
 
-#include <functional>
 #include <memory>
 #include <queue>
 #include "common/swap.h"
-#include "core/hle/kernel/event.h"
 
 union ResultCode;
+
+namespace Kernel {
+class Event;
+}
 
 namespace Service::AM {
 
