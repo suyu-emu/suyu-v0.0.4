@@ -153,6 +153,7 @@ void Config::ReadValues() {
     Settings::values.use_gdbstub = qt_config->value("use_gdbstub", false).toBool();
     Settings::values.gdbstub_port = qt_config->value("gdbstub_port", 24689).toInt();
     Settings::values.program_args = qt_config->value("program_args", "").toString().toStdString();
+    Settings::values.dump_exefs = qt_config->value("dump_exefs", false).toBool();
     Settings::values.dump_nso = qt_config->value("dump_nso", false).toBool();
     qt_config->endGroup();
 
@@ -297,6 +298,7 @@ void Config::SaveValues() {
     qt_config->setValue("use_gdbstub", Settings::values.use_gdbstub);
     qt_config->setValue("gdbstub_port", Settings::values.gdbstub_port);
     qt_config->setValue("program_args", QString::fromStdString(Settings::values.program_args));
+    qt_config->setValue("dump_exefs", Settings::values.dump_exefs);
     qt_config->setValue("dump_nso", Settings::values.dump_nso);
     qt_config->endGroup();
 
