@@ -42,21 +42,21 @@ SoftwareKeyboard::SoftwareKeyboard() = default;
 
 SoftwareKeyboard::~SoftwareKeyboard() = default;
 
-void SoftwareKeyboard::Initialize(std::shared_ptr<AppletDataBroker> broker_) {
+void SoftwareKeyboard::Initialize() {
     complete = false;
     initial_text.clear();
     final_data.clear();
 
-    Applet::Initialize(std::move(broker_));
+    Applet::Initialize();
 
-    const auto keyboard_config_storage = broker->PopNormalDataToApplet();
+    const auto keyboard_config_storage = broker.PopNormalDataToApplet();
     ASSERT(keyboard_config_storage != nullptr);
     const auto& keyboard_config = keyboard_config_storage->GetData();
 
     ASSERT(keyboard_config.size() >= sizeof(KeyboardConfig));
     std::memcpy(&config, keyboard_config.data(), sizeof(KeyboardConfig));
 
-    const auto work_buffer_storage = broker->PopNormalDataToApplet();
+    const auto work_buffer_storage = broker.PopNormalDataToApplet();
     ASSERT(work_buffer_storage != nullptr);
     const auto& work_buffer = work_buffer_storage->GetData();
 
@@ -81,7 +81,7 @@ void SoftwareKeyboard::ExecuteInteractive() {
     if (complete)
         return;
 
-    const auto storage = broker->PopInteractiveDataToApplet();
+    const auto storage = broker.PopInteractiveDataToApplet();
     ASSERT(storage != nullptr);
     const auto data = storage->GetData();
     const auto status = static_cast<bool>(data[0]);
@@ -95,13 +95,13 @@ void SoftwareKeyboard::ExecuteInteractive() {
         std::memcpy(string.data(), data.data() + 4, string.size() * 2);
         frontend.SendTextCheckDialog(
             Common::UTF16StringFromFixedZeroTerminatedBuffer(string.data(), string.size()),
-            [this] { broker->SignalStateChanged(); });
+            [this] { broker.SignalStateChanged(); });
     }
 }
 
 void SoftwareKeyboard::Execute() {
     if (complete) {
-        broker->PushNormalDataFromApplet(IStorage{final_data});
+        broker.PushNormalDataFromApplet(IStorage{final_data});
         return;
     }
 
@@ -145,17 +145,17 @@ void SoftwareKeyboard::WriteText(std::optional<std::u16string> text) {
         final_data = output_main;
 
         if (complete) {
-            broker->PushNormalDataFromApplet(IStorage{output_main});
+            broker.PushNormalDataFromApplet(IStorage{output_main});
         } else {
-            broker->PushInteractiveDataFromApplet(IStorage{output_sub});
+            broker.PushInteractiveDataFromApplet(IStorage{output_sub});
         }
 
-        broker->SignalStateChanged();
+        broker.SignalStateChanged();
     } else {
         output_main[0] = 1;
         complete = true;
-        broker->PushNormalDataFromApplet(IStorage{output_main});
-        broker->SignalStateChanged();
+        broker.PushNormalDataFromApplet(IStorage{output_main});
+        broker.SignalStateChanged();
     }
 }
 } // namespace Service::AM::Applets

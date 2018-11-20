@@ -55,7 +55,7 @@ public:
     SoftwareKeyboard();
     ~SoftwareKeyboard() override;
 
-    void Initialize(std::shared_ptr<AppletDataBroker> broker) override;
+    void Initialize() override;
 
     bool TransactionComplete() const override;
     ResultCode GetStatus() const override;

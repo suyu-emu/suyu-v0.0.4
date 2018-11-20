@@ -7,6 +7,7 @@
 #include <memory>
 #include <queue>
 #include "common/swap.h"
+#include "core/hle/kernel/kernel.h"
 
 union ResultCode;
 
@@ -72,7 +73,7 @@ public:
     Applet();
     virtual ~Applet();
 
-    virtual void Initialize(std::shared_ptr<AppletDataBroker> broker);
+    virtual void Initialize();
 
     virtual bool TransactionComplete() const = 0;
     virtual ResultCode GetStatus() const = 0;
@@ -81,6 +82,14 @@ public:
 
     bool IsInitialized() const {
         return initialized;
+    }
+
+    AppletDataBroker& GetBroker() {
+        return broker;
+    }
+
+    const AppletDataBroker& GetBroker() const {
+        return broker;
     }
 
 protected:
@@ -94,8 +103,8 @@ protected:
     };
     static_assert(sizeof(CommonArguments) == 0x20, "CommonArguments has incorrect size.");
 
-    CommonArguments common_args;
-    std::shared_ptr<AppletDataBroker> broker;
+    CommonArguments common_args{};
+    AppletDataBroker broker;
     bool initialized = false;
 };
 
