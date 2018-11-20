@@ -79,6 +79,31 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
         exefs = update->GetExeFS();
     }
 
+    // LayeredExeFS
+    const auto load_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
+    if (load_dir != nullptr && load_dir->GetSize() > 0) {
+
+        auto patch_dirs = load_dir->GetSubdirectories();
+        std::sort(
+            patch_dirs.begin(), patch_dirs.end(),
+            [](const VirtualDir& l, const VirtualDir& r) { return l->GetName() < r->GetName(); });
+
+        std::vector<VirtualDir> layers;
+        layers.reserve(patch_dirs.size() + 1);
+        for (const auto& subdir : patch_dirs) {
+            auto exefs_dir = subdir->GetSubdirectory("exefs");
+            if (exefs_dir != nullptr)
+                layers.push_back(std::move(exefs_dir));
+        }
+        layers.push_back(exefs);
+
+        auto layered = LayeredVfsDirectory::MakeLayeredDirectory(std::move(layers));
+        if (layered != nullptr) {
+            LOG_INFO(Loader, "    ExeFS: LayeredExeFS patches applied successfully");
+            exefs = std::move(layered);
+        }
+    }
+
     return exefs;
 }
 
