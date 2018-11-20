@@ -33,8 +33,8 @@ public:
                              Core::Frontend::SoftwareKeyboardParameters parameters);
     ~QtSoftwareKeyboardDialog() override;
 
-    void Submit();
-    void Reject();
+    void accept() override;
+    void reject() override;
 
     std::u16string GetText() const;
     bool GetStatus() const;

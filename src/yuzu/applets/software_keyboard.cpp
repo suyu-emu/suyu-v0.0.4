@@ -82,8 +82,8 @@ QtSoftwareKeyboardDialog::QtSoftwareKeyboardDialog(
                            : QString::fromStdU16String(parameters.submit_text),
                        QDialogButtonBox::AcceptRole);
 
-    connect(buttons, &QDialogButtonBox::accepted, this, &QtSoftwareKeyboardDialog::Submit);
-    connect(buttons, &QDialogButtonBox::rejected, this, &QtSoftwareKeyboardDialog::Reject);
+    connect(buttons, &QDialogButtonBox::accepted, this, &QtSoftwareKeyboardDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, this, &QtSoftwareKeyboardDialog::reject);
     layout->addWidget(header_label);
     layout->addWidget(sub_label);
     layout->addWidget(guide_label);
@@ -96,16 +96,16 @@ QtSoftwareKeyboardDialog::QtSoftwareKeyboardDialog(
 
 QtSoftwareKeyboardDialog::~QtSoftwareKeyboardDialog() = default;
 
-void QtSoftwareKeyboardDialog::Submit() {
+void QtSoftwareKeyboardDialog::accept() {
     ok = true;
     text = line_edit->text().toStdU16String();
-    accept();
+    QDialog::accept();
 }
 
-void QtSoftwareKeyboardDialog::Reject() {
+void QtSoftwareKeyboardDialog::reject() {
     ok = false;
     text.clear();
-    accept();
+    QDialog::reject();
 }
 
 std::u16string QtSoftwareKeyboardDialog::GetText() const {
