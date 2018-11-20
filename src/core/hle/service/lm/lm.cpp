@@ -18,7 +18,7 @@ public:
     ILogger() : ServiceFramework("ILogger") {
         static const FunctionInfo functions[] = {
             {0x00000000, &ILogger::Initialize, "Initialize"},
-            {0x00000001, nullptr, "SetDestination"},
+            {0x00000001, &ILogger::SetDestination, "SetDestination"},
         };
         RegisterHandlers(functions);
     }
@@ -176,6 +176,17 @@ private:
                 break;
             }
         }
+    }
+
+    // This service function is intended to be used as a way to
+    // redirect logging output to different destinations, however,
+    // given we always want to see the logging output, it's sufficient
+    // to do nothing and return success here.
+    void SetDestination(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_LM, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
     }
 
     std::ostringstream log_stream;
