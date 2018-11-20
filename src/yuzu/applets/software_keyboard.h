@@ -70,11 +70,10 @@ signals:
     void MainWindowGetText(Core::Frontend::SoftwareKeyboardParameters parameters) const;
     void MainWindowTextCheckDialog(std::u16string error_message) const;
 
-public slots:
+private:
     void MainWindowFinishedText(std::optional<std::u16string> text);
     void MainWindowFinishedCheckDialog();
 
-private:
     mutable std::function<void(std::optional<std::u16string>)> text_output;
     mutable std::function<void()> finished_check;
 };
