@@ -129,13 +129,13 @@ QtSoftwareKeyboard::~QtSoftwareKeyboard() = default;
 
 void QtSoftwareKeyboard::RequestText(std::function<void(std::optional<std::u16string>)> out,
                                      Core::Frontend::SoftwareKeyboardParameters parameters) const {
-    text_output = out;
+    text_output = std::move(out);
     emit MainWindowGetText(parameters);
 }
 
 void QtSoftwareKeyboard::SendTextCheckDialog(std::u16string error_message,
                                              std::function<void()> finished_check) const {
-    this->finished_check = finished_check;
+    this->finished_check = std::move(finished_check);
     emit MainWindowTextCheckDialog(error_message);
 }
 
