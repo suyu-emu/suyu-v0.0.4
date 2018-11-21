@@ -95,14 +95,9 @@ if(ARCHITECTURE_x86_64)
         PRIVATE
             x64/cpu_detect.cpp
             x64/cpu_detect.h
-            x64/xbyak_abi.h
-            x64/xbyak_util.h
     )
 endif()
 
 create_target_directory_groups(common)
 
 target_link_libraries(common PUBLIC Boost::boost fmt microprofile)
-if (ARCHITECTURE_x86_64)
-    target_link_libraries(common PRIVATE xbyak)
-endif()

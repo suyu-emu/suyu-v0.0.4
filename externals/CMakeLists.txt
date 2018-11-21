@@ -9,7 +9,6 @@ target_include_directories(catch-single-include INTERFACE catch/single_include)
 
 # Dynarmic
 if (ARCHITECTURE_x86_64)
-    add_library(xbyak INTERFACE)
     set(DYNARMIC_TESTS OFF)
     set(DYNARMIC_NO_BUNDLED_FMT ON)
     add_subdirectory(dynarmic)
@@ -52,14 +51,6 @@ target_include_directories(unicorn-headers INTERFACE ./unicorn/include)
 
 # SoundTouch
 add_subdirectory(soundtouch)
-
-# Xbyak
-if (ARCHITECTURE_x86_64)
-    # Defined before "dynarmic" above
-    # add_library(xbyak INTERFACE)
-    target_include_directories(xbyak INTERFACE ./xbyak/xbyak)
-    target_compile_definitions(xbyak INTERFACE XBYAK_NO_OP_NAMES)
-endif()
 
 # Opus
 add_subdirectory(opus)
