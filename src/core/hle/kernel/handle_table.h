@@ -90,11 +90,8 @@ public:
     void Clear();
 
 private:
-    /**
-     * This is the maximum limit of handles allowed per process in CTR-OS. It can be further
-     * reduced by ExHeader values, but this is not emulated here.
-     */
-    static const std::size_t MAX_COUNT = 4096;
+    /// This is the maximum limit of handles allowed per process in Horizon
+    static constexpr std::size_t MAX_COUNT = 1024;
 
     static u16 GetSlot(Handle handle) {
         return handle >> 15;
