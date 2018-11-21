@@ -93,13 +93,6 @@ private:
     /// This is the maximum limit of handles allowed per process in Horizon
     static constexpr std::size_t MAX_COUNT = 1024;
 
-    static u16 GetSlot(Handle handle) {
-        return handle >> 15;
-    }
-    static u16 GetGeneration(Handle handle) {
-        return handle & 0x7FFF;
-    }
-
     /// Stores the Object referenced by the handle or null if the slot is empty.
     std::array<SharedPtr<Object>, MAX_COUNT> objects;
 
