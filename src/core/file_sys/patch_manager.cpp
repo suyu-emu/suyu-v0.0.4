@@ -26,6 +26,11 @@ namespace FileSys {
 constexpr u64 SINGLE_BYTE_MODULUS = 0x100;
 constexpr u64 DLC_BASE_TITLE_ID_MASK = 0xFFFFFFFFFFFFE000;
 
+constexpr std::array<const char*, 14> EXEFS_FILE_NAMES{
+    "main",    "main.npdm", "rtld",    "sdk",     "subsdk0", "subsdk1", "subsdk2",
+    "subsdk3", "subsdk4",   "subsdk5", "subsdk6", "subsdk7", "subsdk8", "subsdk9",
+};
+
 struct NSOBuildHeader {
     u32_le magic;
     INSERT_PADDING_BYTES(0x3C);
@@ -82,7 +87,6 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
     // LayeredExeFS
     const auto load_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
     if (load_dir != nullptr && load_dir->GetSize() > 0) {
-
         auto patch_dirs = load_dir->GetSubdirectories();
         std::sort(
             patch_dirs.begin(), patch_dirs.end(),
@@ -348,18 +352,25 @@ std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNam
             if (IsDirValidAndNonEmpty(exefs_dir)) {
                 bool ips = false;
                 bool ipswitch = false;
+                bool layeredfs = false;
 
                 for (const auto& file : exefs_dir->GetFiles()) {
-                    if (file->GetExtension() == "ips")
+                    if (file->GetExtension() == "ips") {
                         ips = true;
-                    else if (file->GetExtension() == "pchtxt")
+                    } else if (file->GetExtension() == "pchtxt") {
                         ipswitch = true;
+                    } else if (std::find(EXEFS_FILE_NAMES.begin(), EXEFS_FILE_NAMES.end(),
+                                         file->GetName()) != EXEFS_FILE_NAMES.end()) {
+                        layeredfs = true;
+                    }
                 }
 
                 if (ips)
                     AppendCommaIfNotEmpty(types, "IPS");
                 if (ipswitch)
                     AppendCommaIfNotEmpty(types, "IPSwitch");
+                if (layeredfs)
+                    AppendCommaIfNotEmpty(types, "LayeredExeFS");
             }
             if (IsDirValidAndNonEmpty(mod->GetSubdirectory("romfs")))
                 AppendCommaIfNotEmpty(types, "LayeredFS");
