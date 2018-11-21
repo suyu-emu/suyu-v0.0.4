@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <random>
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
