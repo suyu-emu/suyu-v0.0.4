@@ -16,35 +16,18 @@
 
 namespace Service::LDR {
 
-namespace ErrCodes {
-enum {
-    InvalidMemoryState = 51,
-    InvalidNRO = 52,
-    InvalidNRR = 53,
-    MissingNRRHash = 54,
-    MaximumNRO = 55,
-    MaximumNRR = 56,
-    AlreadyLoaded = 57,
-    InvalidAlignment = 81,
-    InvalidSize = 82,
-    InvalidNROAddress = 84,
-    InvalidNRRAddress = 85,
-    NotInitialized = 87,
-};
-}
-
-constexpr ResultCode ERROR_INVALID_MEMORY_STATE(ErrorModule::Loader, ErrCodes::InvalidMemoryState);
-constexpr ResultCode ERROR_INVALID_NRO(ErrorModule::Loader, ErrCodes::InvalidNRO);
-constexpr ResultCode ERROR_INVALID_NRR(ErrorModule::Loader, ErrCodes::InvalidNRR);
-constexpr ResultCode ERROR_MISSING_NRR_HASH(ErrorModule::Loader, ErrCodes::MissingNRRHash);
-constexpr ResultCode ERROR_MAXIMUM_NRO(ErrorModule::Loader, ErrCodes::MaximumNRO);
-constexpr ResultCode ERROR_MAXIMUM_NRR(ErrorModule::Loader, ErrCodes::MaximumNRR);
-constexpr ResultCode ERROR_ALREADY_LOADED(ErrorModule::Loader, ErrCodes::AlreadyLoaded);
-constexpr ResultCode ERROR_INVALID_ALIGNMENT(ErrorModule::Loader, ErrCodes::InvalidAlignment);
-constexpr ResultCode ERROR_INVALID_SIZE(ErrorModule::Loader, ErrCodes::InvalidSize);
-constexpr ResultCode ERROR_INVALID_NRO_ADDRESS(ErrorModule::Loader, ErrCodes::InvalidNROAddress);
-constexpr ResultCode ERROR_INVALID_NRR_ADDRESS(ErrorModule::Loader, ErrCodes::InvalidNRRAddress);
-constexpr ResultCode ERROR_NOT_INITIALIZED(ErrorModule::Loader, ErrCodes::NotInitialized);
+constexpr ResultCode ERROR_INVALID_MEMORY_STATE{ErrorModule::Loader, 51};
+constexpr ResultCode ERROR_INVALID_NRO{ErrorModule::Loader, 52};
+constexpr ResultCode ERROR_INVALID_NRR{ErrorModule::Loader, 53};
+constexpr ResultCode ERROR_MISSING_NRR_HASH{ErrorModule::Loader, 54};
+constexpr ResultCode ERROR_MAXIMUM_NRO{ErrorModule::Loader, 55};
+constexpr ResultCode ERROR_MAXIMUM_NRR{ErrorModule::Loader, 56};
+constexpr ResultCode ERROR_ALREADY_LOADED{ErrorModule::Loader, 57};
+constexpr ResultCode ERROR_INVALID_ALIGNMENT{ErrorModule::Loader, 81};
+constexpr ResultCode ERROR_INVALID_SIZE{ErrorModule::Loader, 82};
+constexpr ResultCode ERROR_INVALID_NRO_ADDRESS{ErrorModule::Loader, 84};
+constexpr ResultCode ERROR_INVALID_NRR_ADDRESS{ErrorModule::Loader, 85};
+constexpr ResultCode ERROR_NOT_INITIALIZED{ErrorModule::Loader, 87};
 
 constexpr u64 MAXIMUM_LOADED_RO = 0x40;
 
