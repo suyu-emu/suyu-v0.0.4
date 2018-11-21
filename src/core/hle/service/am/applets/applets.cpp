@@ -98,10 +98,8 @@ Applet::Applet() = default;
 
 Applet::~Applet() = default;
 
-void Applet::Initialize(std::shared_ptr<AppletDataBroker> broker_) {
-    broker = std::move(broker_);
-
-    const auto common = broker->PopNormalDataToApplet();
+void Applet::Initialize() {
+    const auto common = broker.PopNormalDataToApplet();
     ASSERT(common != nullptr);
 
     const auto common_data = common->GetData();

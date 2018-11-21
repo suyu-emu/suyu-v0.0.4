@@ -4,13 +4,16 @@
 
 #pragma once
 
-#include <functional>
 #include <memory>
 #include <queue>
 #include "common/swap.h"
-#include "core/hle/kernel/event.h"
+#include "core/hle/kernel/kernel.h"
 
 union ResultCode;
+
+namespace Kernel {
+class Event;
+}
 
 namespace Service::AM {
 
@@ -43,19 +46,26 @@ public:
 
 private:
     // Queues are named from applet's perspective
-    std::queue<std::unique_ptr<IStorage>>
-        in_channel; // PopNormalDataToApplet and PushNormalDataFromGame
-    std::queue<std::unique_ptr<IStorage>>
-        out_channel; // PopNormalDataToGame and PushNormalDataFromApplet
-    std::queue<std::unique_ptr<IStorage>>
-        in_interactive_channel; // PopInteractiveDataToApplet and PushInteractiveDataFromGame
-    std::queue<std::unique_ptr<IStorage>>
-        out_interactive_channel; // PopInteractiveDataToGame and PushInteractiveDataFromApplet
+
+    // PopNormalDataToApplet and PushNormalDataFromGame
+    std::queue<std::unique_ptr<IStorage>> in_channel;
+
+    // PopNormalDataToGame and PushNormalDataFromApplet
+    std::queue<std::unique_ptr<IStorage>> out_channel;
+
+    // PopInteractiveDataToApplet and PushInteractiveDataFromGame
+    std::queue<std::unique_ptr<IStorage>> in_interactive_channel;
+
+    // PopInteractiveDataToGame and PushInteractiveDataFromApplet
+    std::queue<std::unique_ptr<IStorage>> out_interactive_channel;
 
     Kernel::SharedPtr<Kernel::Event> state_changed_event;
-    Kernel::SharedPtr<Kernel::Event> pop_out_data_event; // Signaled on PushNormalDataFromApplet
-    Kernel::SharedPtr<Kernel::Event>
-        pop_interactive_out_data_event; // Signaled on PushInteractiveDataFromApplet
+
+    // Signaled on PushNormalDataFromApplet
+    Kernel::SharedPtr<Kernel::Event> pop_out_data_event;
+
+    // Signaled on PushInteractiveDataFromApplet
+    Kernel::SharedPtr<Kernel::Event> pop_interactive_out_data_event;
 };
 
 class Applet {
@@ -63,7 +73,7 @@ public:
     Applet();
     virtual ~Applet();
 
-    virtual void Initialize(std::shared_ptr<AppletDataBroker> broker);
+    virtual void Initialize();
 
     virtual bool TransactionComplete() const = 0;
     virtual ResultCode GetStatus() const = 0;
@@ -72,6 +82,14 @@ public:
 
     bool IsInitialized() const {
         return initialized;
+    }
+
+    AppletDataBroker& GetBroker() {
+        return broker;
+    }
+
+    const AppletDataBroker& GetBroker() const {
+        return broker;
     }
 
 protected:
@@ -85,8 +103,8 @@ protected:
     };
     static_assert(sizeof(CommonArguments) == 0x20, "CommonArguments has incorrect size.");
 
-    CommonArguments common_args;
-    std::shared_ptr<AppletDataBroker> broker;
+    CommonArguments common_args{};
+    AppletDataBroker broker;
     bool initialized = false;
 };
 

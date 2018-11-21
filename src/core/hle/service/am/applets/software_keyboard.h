@@ -4,7 +4,12 @@
 
 #pragma once
 
+#include <array>
+#include <string>
+#include <vector>
+
 #include "common/common_funcs.h"
+#include "common/swap.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/applets.h"
 
@@ -50,7 +55,7 @@ public:
     SoftwareKeyboard();
     ~SoftwareKeyboard() override;
 
-    void Initialize(std::shared_ptr<AppletDataBroker> broker) override;
+    void Initialize() override;
 
     bool TransactionComplete() const override;
     ResultCode GetStatus() const override;
