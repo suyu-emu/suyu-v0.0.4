@@ -32,7 +32,18 @@ enum class GamecardSize : u8 {
 };
 
 struct GamecardInfo {
-    std::array<u8, 0x70> data;
+    u64_le firmware_version;
+    u32_le access_control_flags;
+    u32_le read_wait_time1;
+    u32_le read_wait_time2;
+    u32_le write_wait_time1;
+    u32_le write_wait_time2;
+    u32_le firmware_mode;
+    u32_le cup_version;
+    std::array<u8, 4> reserved1;
+    u64_le update_partition_hash;
+    u64_le cup_id;
+    std::array<u8, 0x38> reserved2;
 };
 static_assert(sizeof(GamecardInfo) == 0x70, "GamecardInfo has incorrect size.");
 
