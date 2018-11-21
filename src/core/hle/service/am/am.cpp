@@ -820,8 +820,8 @@ void ILibraryAppletCreator::CreateTransferMemoryStorage(Kernel::HLERequestContex
         return;
     }
 
-    const auto mem_begin = shared_mem->backing_block->begin() + shared_mem->backing_block_offset;
-    const auto mem_end = mem_begin + shared_mem->size;
+    const u8* mem_begin = shared_mem->GetPointer();
+    const u8* mem_end = mem_begin + shared_mem->GetSize();
     std::vector<u8> memory{mem_begin, mem_end};
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
