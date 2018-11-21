@@ -18,6 +18,8 @@ HandleTable::HandleTable() {
     Clear();
 }
 
+HandleTable::~HandleTable() = default;
+
 ResultVal<Handle> HandleTable::Create(SharedPtr<Object> obj) {
     DEBUG_ASSERT(obj != nullptr);
 

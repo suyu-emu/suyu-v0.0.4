@@ -43,6 +43,7 @@ enum KernelHandle : Handle {
 class HandleTable final : NonCopyable {
 public:
     HandleTable();
+    ~HandleTable();
 
     /**
      * Allocates a handle for the given object.
