@@ -761,8 +761,7 @@ private:
                      u64 dest_num_components, u64 value_num_components, u64 dest_elem,
                      bool precise) {
         if (reg == Register::ZeroIndex) {
-            LOG_CRITICAL(HW_GPU, "Cannot set Register::ZeroIndex");
-            UNREACHABLE();
+            // Setting RZ is a nop in hardware.
             return;
         }
 
