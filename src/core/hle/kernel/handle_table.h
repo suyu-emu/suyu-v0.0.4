@@ -43,6 +43,7 @@ enum KernelHandle : Handle {
 class HandleTable final : NonCopyable {
 public:
     HandleTable();
+    ~HandleTable();
 
     /**
      * Allocates a handle for the given object.
@@ -89,18 +90,8 @@ public:
     void Clear();
 
 private:
-    /**
-     * This is the maximum limit of handles allowed per process in CTR-OS. It can be further
-     * reduced by ExHeader values, but this is not emulated here.
-     */
-    static const std::size_t MAX_COUNT = 4096;
-
-    static u16 GetSlot(Handle handle) {
-        return handle >> 15;
-    }
-    static u16 GetGeneration(Handle handle) {
-        return handle & 0x7FFF;
-    }
+    /// This is the maximum limit of handles allowed per process in Horizon
+    static constexpr std::size_t MAX_COUNT = 1024;
 
     /// Stores the Object referenced by the handle or null if the slot is empty.
     std::array<SharedPtr<Object>, MAX_COUNT> objects;
