@@ -2499,61 +2499,81 @@ private:
                 const bool depth_compare =
                     instr.tex.UsesMiscMode(Tegra::Shader::TextureMiscMode::DC);
                 u32 num_coordinates = TextureCoordinates(texture_type);
-                if (depth_compare)
-                    num_coordinates += 1;
+                u32 start_index = 0;
+                std::string array_elem;
+                if (is_array) {
+                    array_elem = regs.GetRegisterAsInteger(instr.gpr8);
+                    start_index = 1;
+                }
+                auto process_mode = instr.tex.GetTextureProcessMode();
+                u32 start_index_b = 0;
+                std::string lod_value;
+                if (process_mode != Tegra::Shader::TextureProcessMode::LZ &&
+                    process_mode != Tegra::Shader::TextureProcessMode::None) {
+                    start_index_b = 1;
+                    lod_value = regs.GetRegisterAsFloat(instr.gpr20);
+                }
+
+                std::string depth_value;
+                if (depth_compare) {
+                    depth_value = regs.GetRegisterAsFloat(instr.gpr20.Value() + start_index_b);
+                }
+
+                bool depth_compare_extra = false;
 
                 switch (num_coordinates) {
                 case 1: {
+                    const std::string x = regs.GetRegisterAsFloat(instr.gpr8.Value() + start_index);
                     if (is_array) {
-                        const std::string index = regs.GetRegisterAsInteger(instr.gpr8);
-                        const std::string x = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
-                        coord = "vec2 coords = vec2(" + x + ", " + index + ");";
+                        if (depth_compare) {
+                            coord = "vec3 coords = vec3(" + x + ", " + depth_value + ", " +
+                                    array_elem + ");";
+                        } else {
+                            coord = "vec2 coords = vec2(" + x + ", " + array_elem + ");";
+                        }
                     } else {
-                        const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
-                        coord = "float coords = " + x + ';';
+                        if (depth_compare) {
+                            coord = "vec2 coords = vec2(" + x + ", " + depth_value + ");";
+                        } else {
+                            coord = "float coords = " + x + ';';
+                        }
                     }
                     break;
                 }
                 case 2: {
+                    const std::string x = regs.GetRegisterAsFloat(instr.gpr8.Value() + start_index);
+                    const std::string y =
+                        regs.GetRegisterAsFloat(instr.gpr8.Value() + start_index + 1);
                     if (is_array) {
-                        const std::string index = regs.GetRegisterAsInteger(instr.gpr8);
-                        const std::string x = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
-                        const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 2);
-                        coord = "vec3 coords = vec3(" + x + ", " + y + ", " + index + ");";
+                        if (depth_compare) {
+                            coord = "vec4 coords = vec4(" + x + ", " + y + ", " + depth_value +
+                                    ", " + array_elem + ");";
+                        } else {
+                            coord = "vec3 coords = vec3(" + x + ", " + y + ", " + array_elem + ");";
+                        }
                     } else {
-                        const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
-                        const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
-                        coord = "vec2 coords = vec2(" + x + ", " + y + ");";
+                        if (depth_compare) {
+                            coord =
+                                "vec3 coords = vec3(" + x + ", " + y + ", " + depth_value + ");";
+                        } else {
+                            coord = "vec2 coords = vec2(" + x + ", " + y + ");";
+                        }
                     }
                     break;
                 }
                 case 3: {
-                    if (depth_compare) {
-                        if (is_array) {
-                            const std::string index = regs.GetRegisterAsInteger(instr.gpr8);
-                            const std::string x = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
-                            const std::string y = regs.GetRegisterAsFloat(instr.gpr20);
-                            const std::string z = regs.GetRegisterAsFloat(instr.gpr20.Value() + 1);
-                            coord = "vec4 coords = vec4(" + x + ", " + y + ", " + z + ", " + index +
-                                    ");";
-                        } else {
-                            const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
-                            const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
-                            const std::string z = regs.GetRegisterAsFloat(instr.gpr20);
-                            coord = "vec3 coords = vec3(" + x + ", " + y + ", " + z + ");";
-                        }
+                    const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
+                    const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
+                    const std::string z = regs.GetRegisterAsFloat(instr.gpr8.Value() + 2);
+                    if (is_array) {
+                        depth_compare_extra = depth_compare;
+                        coord = "vec4 coords = vec4(" + x + ", " + y + ", " + z + ", " +
+                                array_elem + ");";
                     } else {
-                        if (is_array) {
-                            const std::string index = regs.GetRegisterAsInteger(instr.gpr8);
-                            const std::string x = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
-                            const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 2);
-                            const std::string z = regs.GetRegisterAsFloat(instr.gpr8.Value() + 3);
-                            coord = "vec4 coords = vec4(" + x + ", " + y + ", " + z + ", " + index +
-                                    ");";
+                        if (depth_compare) {
+                            coord = "vec4 coords = vec4(" + x + ", " + y + ", " + z + ", " +
+                                    depth_value + ");";
                         } else {
-                            const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
-                            const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
-                            const std::string z = regs.GetRegisterAsFloat(instr.gpr8.Value() + 2);
                             coord = "vec3 coords = vec3(" + x + ", " + y + ", " + z + ");";
                         }
                     }
@@ -2569,8 +2589,6 @@ private:
                     coord = "vec2 coords = vec2(" + x + ", " + y + ");";
                     texture_type = Tegra::Shader::TextureType::Texture2D;
                 }
-                // TODO: make sure coordinates are always indexed to gpr8 and gpr20 is always bias
-                // or lod.
 
                 const std::string sampler =
                     GetSampler(instr.sampler, texture_type, is_array, depth_compare);
@@ -2584,48 +2602,49 @@ private:
 
                 switch (instr.tex.GetTextureProcessMode()) {
                 case Tegra::Shader::TextureProcessMode::None: {
-                    texture = "texture(" + sampler + ", coords)";
+                    if (!depth_compare_extra) {
+                        texture = "texture(" + sampler + ", coords)";
+                    } else {
+                        texture = "texture(" + sampler + ", coords, " + depth_value + ')';
+                    }
                     break;
                 }
                 case Tegra::Shader::TextureProcessMode::LZ: {
-                    texture = "textureLod(" + sampler + ", coords, 0.0)";
+                    if (!depth_compare_extra) {
+                        texture = "textureLod(" + sampler + ", coords, 0.0)";
+                    } else {
+                        texture = "texture(" + sampler + ", coords, " + depth_value + ')';
+                    }
                     break;
                 }
                 case Tegra::Shader::TextureProcessMode::LB:
                 case Tegra::Shader::TextureProcessMode::LBA: {
-                    const std::string bias = [&]() {
-                        if (depth_compare) {
-                            if (is_array)
-                                return regs.GetRegisterAsFloat(instr.gpr20.Value() + 2);
-                            else
-                                return regs.GetRegisterAsFloat(instr.gpr20.Value() + 1);
-                        } else {
-                            return regs.GetRegisterAsFloat(instr.gpr20);
-                        }
-                    }();
-                    shader.AddLine("float bias = " + bias + ';');
-
                     // TODO: Figure if A suffix changes the equation at all.
-                    texture = "texture(" + sampler + ", coords, bias)";
+                    if (!depth_compare_extra) {
+                        texture = "texture(" + sampler + ", coords, " + lod_value + ')';
+                    } else {
+                        texture = "texture(" + sampler + ", coords, " + depth_value + ')';
+                        LOG_WARNING(HW_GPU, "OpenGL Limitation: can't set bias value along depth compare");
+                    }
                     break;
                 }
                 case Tegra::Shader::TextureProcessMode::LL:
                 case Tegra::Shader::TextureProcessMode::LLA: {
-                    const std::string lod = [&]() {
-                        if (num_coordinates <= 2) {
-                            return regs.GetRegisterAsFloat(instr.gpr20);
-                        } else {
-                            return regs.GetRegisterAsFloat(instr.gpr20.Value() + 1);
-                        }
-                    }();
-                    shader.AddLine("float lod = " + lod + ';');
-
                     // TODO: Figure if A suffix changes the equation at all.
-                    texture = "textureLod(" + sampler + ", coords, lod)";
+                    if (!depth_compare_extra) {
+                        texture = "textureLod(" + sampler + ", coords, " + lod_value + ')';
+                    } else {
+                        texture = "texture(" + sampler + ", coords, " + depth_value + ')';
+                        LOG_WARNING(HW_GPU, "OpenGL Limitation: can't set lod value along depth compare");
+                    }
                     break;
                 }
                 default: {
-                    texture = "texture(" + sampler + ", coords)";
+                    if (!depth_compare_extra) {
+                        texture = "texture(" + sampler + ", coords)";
+                    } else {
+                        texture = "texture(" + sampler + ", coords, " + depth_value + ')';
+                    }
                     UNIMPLEMENTED_MSG("Unhandled texture process mode {}",
                                       static_cast<u32>(instr.tex.GetTextureProcessMode()));
                 }
