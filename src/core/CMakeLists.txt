@@ -12,6 +12,8 @@ add_library(core STATIC
     core_timing.h
     core_timing_util.cpp
     core_timing_util.h
+    cpu_core_manager.cpp
+    cpu_core_manager.h
     crypto/aes_util.cpp
     crypto/aes_util.h
     crypto/encryption_layer.cpp
