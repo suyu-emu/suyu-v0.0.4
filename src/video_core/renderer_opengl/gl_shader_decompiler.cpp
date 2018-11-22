@@ -34,6 +34,17 @@ constexpr u32 PROGRAM_HEADER_SIZE = sizeof(Tegra::Shader::Header);
 constexpr u32 MAX_GEOMETRY_BUFFERS = 6;
 constexpr u32 MAX_ATTRIBUTES = 0x100; // Size in vec4s, this value is untested
 
+static const char* INTERNAL_FLAG_NAMES[] = {"zero_flag", "sign_flag", "carry_flag",
+                                            "overflow_flag"};
+
+enum class InternalFlag : u64 {
+    ZeroFlag = 0,
+    SignFlag = 1,
+    CarryFlag = 2,
+    OverflowFlag = 3,
+    Amount
+};
+
 class DecompileFail : public std::runtime_error {
 public:
     using std::runtime_error::runtime_error;
@@ -257,14 +268,6 @@ private:
     const std::string& suffix;
 };
 
-enum class InternalFlag : u64 {
-    ZeroFlag = 0,
-    CarryFlag = 1,
-    OverflowFlag = 2,
-    NaNFlag = 3,
-    Amount
-};
-
 /**
  * Used to manage shader registers that are emulated with GLSL. This class keeps track of the state
  * of all registers (e.g. whether they are currently being used as Floats or Integers), and
@@ -464,13 +467,15 @@ public:
         }
     }
 
-    std::string GetInternalFlag(const InternalFlag ii) const {
-        const u32 code = static_cast<u32>(ii);
-        return "internalFlag_" + std::to_string(code) + suffix;
+    std::string GetInternalFlag(const InternalFlag flag) const {
+        const auto index = static_cast<u32>(flag);
+        ASSERT(index < static_cast<u32>(InternalFlag::Amount));
+
+        return std::string(INTERNAL_FLAG_NAMES[index]) + '_' + suffix;
     }
 
-    void SetInternalFlag(const InternalFlag ii, const std::string& value) const {
-        shader.AddLine(GetInternalFlag(ii) + " = " + value + ';');
+    void SetInternalFlag(const InternalFlag flag, const std::string& value) const {
+        shader.AddLine(GetInternalFlag(flag) + " = " + value + ';');
     }
 
     /**
@@ -621,8 +626,8 @@ private:
 
     /// Generates declarations for internal flags.
     void GenerateInternalFlags() {
-        for (u32 ii = 0; ii < static_cast<u64>(InternalFlag::Amount); ii++) {
-            const InternalFlag code = static_cast<InternalFlag>(ii);
+        for (u32 flag = 0; flag < static_cast<u32>(InternalFlag::Amount); flag++) {
+            const InternalFlag code = static_cast<InternalFlag>(flag);
             declarations.AddLine("bool " + GetInternalFlag(code) + " = false;");
         }
         declarations.AddNewLine();
