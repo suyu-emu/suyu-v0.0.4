@@ -2,7 +2,12 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <string>
+
 #include "common/hex_util.h"
+#include "common/logging/log.h"
+#include "core/hle/result.h"
+#include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/stub_applet.h"
 
 namespace Service::AM::Applets {
