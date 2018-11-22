@@ -1513,7 +1513,8 @@ private:
                     instr.fmul.tab5c68_0 != 1, "FMUL tab5cb8_0({}) is not implemented",
                     instr.fmul.tab5c68_0
                         .Value()); // SMO typical sends 1 here which seems to be the default
-                UNIMPLEMENTED_IF(instr.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in FMUL is not implemented");
 
                 op_b = GetOperandAbsNeg(op_b, false, instr.fmul.negate_b);
 
@@ -1524,7 +1525,8 @@ private:
             case OpCode::Id::FADD_C:
             case OpCode::Id::FADD_R:
             case OpCode::Id::FADD_IMM: {
-                UNIMPLEMENTED_IF(instr.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in FADD is not implemented");
 
                 op_a = GetOperandAbsNeg(op_a, instr.alu.abs_a, instr.alu.negate_a);
                 op_b = GetOperandAbsNeg(op_b, instr.alu.abs_b, instr.alu.negate_b);
@@ -1573,7 +1575,8 @@ private:
             case OpCode::Id::FMNMX_C:
             case OpCode::Id::FMNMX_R:
             case OpCode::Id::FMNMX_IMM: {
-                UNIMPLEMENTED_IF(instr.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in FMNMX is not implemented");
 
                 op_a = GetOperandAbsNeg(op_a, instr.alu.abs_a, instr.alu.negate_a);
                 op_b = GetOperandAbsNeg(op_b, instr.alu.abs_b, instr.alu.negate_b);
@@ -1609,7 +1612,8 @@ private:
                 break;
             }
             case OpCode::Id::FMUL32_IMM: {
-                UNIMPLEMENTED_IF(instr.op_32.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.op_32.generates_cc,
+                                     "Condition codes generation in FMUL32 is not implemented");
 
                 regs.SetRegisterToFloat(instr.gpr0, 0,
                                         regs.GetRegisterAsFloat(instr.gpr8) + " * " +
@@ -1618,7 +1622,8 @@ private:
                 break;
             }
             case OpCode::Id::FADD32I: {
-                UNIMPLEMENTED_IF(instr.op_32.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.op_32.generates_cc,
+                                     "Condition codes generation in FADD32I is not implemented");
 
                 std::string op_a = regs.GetRegisterAsFloat(instr.gpr8);
                 std::string op_b = GetImmediate32(instr);
@@ -1653,7 +1658,8 @@ private:
 
             switch (opcode->get().GetId()) {
             case OpCode::Id::BFE_IMM: {
-                UNIMPLEMENTED_IF(instr.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in BFE is not implemented");
 
                 std::string inner_shift =
                     '(' + op_a + " << " + std::to_string(instr.bfe.GetLeftShiftValue()) + ')';
@@ -1690,7 +1696,8 @@ private:
             case OpCode::Id::SHR_C:
             case OpCode::Id::SHR_R:
             case OpCode::Id::SHR_IMM: {
-                UNIMPLEMENTED_IF(instr.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in SHR is not implemented");
 
                 if (!instr.shift.is_signed) {
                     // Logical shift right
@@ -1705,7 +1712,8 @@ private:
             case OpCode::Id::SHL_C:
             case OpCode::Id::SHL_R:
             case OpCode::Id::SHL_IMM:
-                UNIMPLEMENTED_IF(instr.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in SHL is not implemented");
                 regs.SetRegisterToInteger(instr.gpr0, true, 0, op_a + " << " + op_b, 1, 1);
                 break;
             default: {
@@ -1720,7 +1728,8 @@ private:
 
             switch (opcode->get().GetId()) {
             case OpCode::Id::IADD32I:
-                UNIMPLEMENTED_IF_MSG(instr.op_32.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.op_32.generates_cc,
+                                     "Condition codes generation in IADD32I is not implemented");
 
                 if (instr.iadd32i.negate_a)
                     op_a = "-(" + op_a + ')';
@@ -1729,7 +1738,8 @@ private:
                                           instr.iadd32i.saturate != 0);
                 break;
             case OpCode::Id::LOP32I: {
-                UNIMPLEMENTED_IF(instr.op_32.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.op_32.generates_cc,
+                                     "Condition codes generation in LOP32I is not implemented");
 
                 if (instr.alu.lop32i.invert_a)
                     op_a = "~(" + op_a + ')';
@@ -1767,7 +1777,8 @@ private:
             case OpCode::Id::IADD_C:
             case OpCode::Id::IADD_R:
             case OpCode::Id::IADD_IMM: {
-                UNIMPLEMENTED_IF(instr.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in IADD is not implemented");
 
                 if (instr.alu_integer.negate_a)
                     op_a = "-(" + op_a + ')';
@@ -1782,7 +1793,8 @@ private:
             case OpCode::Id::IADD3_C:
             case OpCode::Id::IADD3_R:
             case OpCode::Id::IADD3_IMM: {
-                UNIMPLEMENTED_IF(instr.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in IADD3 is not implemented");
 
                 std::string op_c = regs.GetRegisterAsInteger(instr.gpr39);
 
@@ -1844,7 +1856,8 @@ private:
             case OpCode::Id::ISCADD_C:
             case OpCode::Id::ISCADD_R:
             case OpCode::Id::ISCADD_IMM: {
-                UNIMPLEMENTED_IF(instr.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in ISCADD is not implemented");
 
                 if (instr.alu_integer.negate_a)
                     op_a = "-(" + op_a + ')';
@@ -1879,7 +1892,8 @@ private:
             case OpCode::Id::LOP_C:
             case OpCode::Id::LOP_R:
             case OpCode::Id::LOP_IMM: {
-                UNIMPLEMENTED_IF(instr.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in LOP is not implemented");
 
                 if (instr.alu.lop.invert_a)
                     op_a = "~(" + op_a + ')';
@@ -1894,7 +1908,8 @@ private:
             case OpCode::Id::LOP3_C:
             case OpCode::Id::LOP3_R:
             case OpCode::Id::LOP3_IMM: {
-                UNIMPLEMENTED_IF(instr.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in LOP3 is not implemented");
 
                 const std::string op_c = regs.GetRegisterAsInteger(instr.gpr39);
                 std::string lut;
@@ -1912,7 +1927,8 @@ private:
             case OpCode::Id::IMNMX_R:
             case OpCode::Id::IMNMX_IMM: {
                 UNIMPLEMENTED_IF(instr.imnmx.exchange != Tegra::Shader::IMinMaxExchange::None);
-                UNIMPLEMENTED_IF(instr.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in IMNMX is not implemented");
 
                 const std::string condition =
                     GetPredicateCondition(instr.imnmx.pred, instr.imnmx.negate_pred != 0);
@@ -2085,7 +2101,8 @@ private:
                 instr.ffma.tab5980_0.Value()); // Seems to be 1 by default based on SMO
             UNIMPLEMENTED_IF_MSG(instr.ffma.tab5980_1 != 0, "FFMA tab5980_1({}) not implemented",
                                  instr.ffma.tab5980_1.Value());
-            UNIMPLEMENTED_IF(instr.generates_cc);
+            UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                 "Condition codes generation in FFMA is not implemented");
 
             switch (opcode->get().GetId()) {
             case OpCode::Id::FFMA_CR: {
@@ -2195,7 +2212,8 @@ private:
             case OpCode::Id::I2F_C: {
                 UNIMPLEMENTED_IF(instr.conversion.dest_size != Register::Size::Word);
                 UNIMPLEMENTED_IF(instr.conversion.selector);
-                UNIMPLEMENTED_IF(instr.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in I2F is not implemented");
 
                 std::string op_a{};
 
@@ -2225,7 +2243,8 @@ private:
             case OpCode::Id::F2F_R: {
                 UNIMPLEMENTED_IF(instr.conversion.dest_size != Register::Size::Word);
                 UNIMPLEMENTED_IF(instr.conversion.src_size != Register::Size::Word);
-                UNIMPLEMENTED_IF(instr.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in F2F is not implemented");
                 std::string op_a = regs.GetRegisterAsFloat(instr.gpr20);
 
                 if (instr.conversion.abs_a) {
@@ -2263,7 +2282,8 @@ private:
             case OpCode::Id::F2I_R:
             case OpCode::Id::F2I_C: {
                 UNIMPLEMENTED_IF(instr.conversion.src_size != Register::Size::Word);
-                UNIMPLEMENTED_IF(instr.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in F2I is not implemented");
                 std::string op_a{};
 
                 if (instr.is_b_gpr) {
@@ -3074,7 +3094,8 @@ private:
             break;
         }
         case OpCode::Type::PredicateSetRegister: {
-            UNIMPLEMENTED_IF(instr.generates_cc);
+            UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                 "Condition codes generation in PSET is not implemented");
 
             const std::string op_a =
                 GetPredicateCondition(instr.pset.pred12, instr.pset.neg_pred12 != 0);
@@ -3271,7 +3292,8 @@ private:
         case OpCode::Type::Xmad: {
             UNIMPLEMENTED_IF(instr.xmad.sign_a);
             UNIMPLEMENTED_IF(instr.xmad.sign_b);
-            UNIMPLEMENTED_IF(instr.generates_cc);
+            UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                 "Condition codes generation in XMAD is not implemented");
 
             std::string op_a{regs.GetRegisterAsInteger(instr.gpr8, 0, instr.xmad.sign_a)};
             std::string op_b;
@@ -3530,7 +3552,8 @@ private:
                 break;
             }
             case OpCode::Id::VMAD: {
-                UNIMPLEMENTED_IF(instr.generates_cc);
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in VMAD is not implemented");
 
                 const bool result_signed = instr.video.signed_a == 1 || instr.video.signed_b == 1;
                 const std::string op_a = GetVideoOperandA(instr);
