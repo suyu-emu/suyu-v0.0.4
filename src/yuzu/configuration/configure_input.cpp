@@ -96,7 +96,7 @@ void ConfigureInput::OnDockedModeChanged(bool last_state, bool new_state) {
     if (ui->use_docked_mode->isChecked() && ui->handheld_connected->isChecked()){
         ui->handheld_connected->setChecked(false);
     }
-    
+
     if (last_state == new_state) {
         return;
     }
