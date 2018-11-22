@@ -371,10 +371,6 @@ public:
         return affinity_mask;
     }
 
-    void YieldNormal();
-    void YieldWithLoadBalancing();
-    void YieldAndWaitForLoadBalancing();
-
 private:
     explicit Thread(KernelCore& kernel);
     ~Thread() override;

@@ -965,16 +965,23 @@ static void SleepThread(s64 nanoseconds) {
     if (!Core::System::GetInstance().CurrentScheduler().HaveReadyThreads())
         return;
 
+    enum class SleepType : s64 {
+        YieldWithoutLoadBalancing = 0,
+        YieldWithLoadBalancing = 1,
+        YieldAndWaitForLoadBalancing = 2,
+    };
+
     if (nanoseconds <= 0) {
-        switch (nanoseconds) {
-        case 0:
-            GetCurrentThread()->YieldNormal();
+        auto& scheduler{Core::System::GetInstance().CurrentScheduler()};
+        switch (static_cast<SleepType>(nanoseconds)) {
+        case SleepType::YieldWithoutLoadBalancing:
+            scheduler.YieldWithoutLoadBalancing(GetCurrentThread());
             break;
-        case -1:
-            GetCurrentThread()->YieldWithLoadBalancing();
+        case SleepType::YieldWithLoadBalancing:
+            scheduler.YieldWithLoadBalancing(GetCurrentThread());
             break;
-        case -2:
-            GetCurrentThread()->YieldAndWaitForLoadBalancing();
+        case SleepType::YieldAndWaitForLoadBalancing:
+            scheduler.YieldAndWaitForLoadBalancing(GetCurrentThread());
             break;
         default:
             UNREACHABLE_MSG(

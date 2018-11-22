@@ -6,7 +6,6 @@
 
 #include <array>
 #include <deque>
-#include <functional>
 #include <boost/range/algorithm_ext/erase.hpp>
 
 namespace Common {
@@ -50,7 +49,8 @@ struct ThreadQueueList {
         return T();
     }
 
-    T get_first_filter(std::function<bool(T)> filter) const {
+    template <typename UnaryPredicate>
+    T get_first_filter(UnaryPredicate filter) const {
         const Queue* cur = first;
         while (cur != nullptr) {
             if (!cur->data.empty()) {
