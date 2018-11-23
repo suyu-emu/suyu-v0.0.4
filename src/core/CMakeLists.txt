@@ -160,6 +160,8 @@ add_library(core STATIC
     hle/service/am/applet_oe.h
     hle/service/am/applets/applets.cpp
     hle/service/am/applets/applets.h
+    hle/service/am/applets/profile_select.cpp
+    hle/service/am/applets/profile_select.h
     hle/service/am/applets/software_keyboard.cpp
     hle/service/am/applets/software_keyboard.h
     hle/service/am/applets/stub_applet.cpp
