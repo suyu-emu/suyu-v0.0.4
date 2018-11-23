@@ -2562,9 +2562,9 @@ private:
                     break;
                 }
                 case 3: {
-                    const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
-                    const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
-                    const std::string z = regs.GetRegisterAsFloat(instr.gpr8.Value() + 2);
+                    const std::string x = regs.GetRegisterAsFloat(instr.gpr8.Value() + start_index);
+                    const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + start_index + 1);
+                    const std::string z = regs.GetRegisterAsFloat(instr.gpr8.Value() + start_index + 2);
                     if (is_array) {
                         depth_compare_extra = depth_compare;
                         coord = "vec4 coords = vec4(" + x + ", " + y + ", " + z + ", " +
