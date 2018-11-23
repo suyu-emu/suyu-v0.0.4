@@ -38,7 +38,12 @@ static Core::Frontend::SoftwareKeyboardParameters ConvertToFrontendParameters(
     return params;
 }
 
-SoftwareKeyboard::SoftwareKeyboard() = default;
+SoftwareKeyboard::SoftwareKeyboard() {
+    // Some applets require this to be signalled on applet creation, some do not. Internally, this
+    // is done by a flag in the applet module, but for simplicity SoftwareKeyboard is one of the
+    // applets with this flag.
+    broker.SignalStateChanged();
+}
 
 SoftwareKeyboard::~SoftwareKeyboard() = default;
 
