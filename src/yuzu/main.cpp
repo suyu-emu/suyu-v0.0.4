@@ -8,6 +8,7 @@
 #include <thread>
 
 // VFS includes must be before glad as they will conflict with Windows file api, which uses defines.
+#include "applets/profile_select.h"
 #include "applets/software_keyboard.h"
 #include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_real.h"
@@ -571,6 +572,7 @@ bool GMainWindow::LoadROM(const QString& filename) {
 
     system.SetGPUDebugContext(debug_context);
 
+    system.SetProfileSelector(std::make_unique<QtProfileSelector>(*this));
     system.SetSoftwareKeyboard(std::make_unique<QtSoftwareKeyboard>(*this));
 
     const Core::System::ResultStatus result{system.Load(*render_window, filename.toStdString())};
