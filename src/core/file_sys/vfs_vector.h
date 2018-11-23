@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstring>
 #include "core/file_sys/vfs.h"
 
 namespace FileSys {
@@ -13,7 +14,7 @@ template <std::size_t size>
 class ArrayVfsFile : public VfsFile {
 public:
     ArrayVfsFile(std::array<u8, size> data, std::string name = "", VirtualDir parent = nullptr)
-        : data(std::move(data)), name(std::move(name)), parent(std::move(parent)) {}
+        : data(data), name(std::move(name)), parent(std::move(parent)) {}
 
     std::string GetName() const override {
         return name;

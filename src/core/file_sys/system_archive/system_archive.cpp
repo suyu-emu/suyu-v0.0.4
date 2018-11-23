@@ -21,7 +21,7 @@ struct SystemArchiveDescriptor {
     SystemArchiveSupplier supplier;
 };
 
-const static std::array<SystemArchiveDescriptor, SYSTEM_ARCHIVE_COUNT> SYSTEM_ARCHIVES = {{
+const std::array<SystemArchiveDescriptor, SYSTEM_ARCHIVE_COUNT> SYSTEM_ARCHIVES = {{
     {0x0100000000000800, "CertStore", nullptr},
     {0x0100000000000801, "ErrorMessage", nullptr},
     {0x0100000000000802, "MiiModel", nullptr},
@@ -50,7 +50,7 @@ const static std::array<SystemArchiveDescriptor, SYSTEM_ARCHIVE_COUNT> SYSTEM_AR
     {0x0100000000000819, "BootImagePackage", nullptr},
     {0x010000000000081A, "BootImagePackageSafe", nullptr},
     {0x010000000000081B, "BootImagePackageExFat", nullptr},
-    {0x010000000000081C, "BottImagePackageExFatSafe", nullptr},
+    {0x010000000000081C, "BootImagePackageExFatSafe", nullptr},
     {0x010000000000081D, "FatalMessage", nullptr},
     {0x010000000000081E, "ControllerIcon", nullptr},
     {0x010000000000081F, "PlatformConfigIcosa", nullptr},
@@ -64,11 +64,11 @@ const static std::array<SystemArchiveDescriptor, SYSTEM_ARCHIVE_COUNT> SYSTEM_AR
     {0x0100000000000827, "ContentActionTable", nullptr},
 }};
 
-VirtualFile SynthesizeSystemArchive(u64 title_id) {
+VirtualFile SynthesizeSystemArchive(const u64 title_id) {
     if (title_id < SYSTEM_ARCHIVES.front().title_id || title_id > SYSTEM_ARCHIVES.back().title_id)
         return nullptr;
 
-    const auto desc = SYSTEM_ARCHIVES[title_id - SYSTEM_ARCHIVE_BASE_TITLE_ID];
+    const auto& desc = SYSTEM_ARCHIVES[title_id - SYSTEM_ARCHIVE_BASE_TITLE_ID];
 
     LOG_INFO(Service_FS, "Synthesizing system archive '{}' (0x{:016X}).", desc.name, desc.title_id);
 
