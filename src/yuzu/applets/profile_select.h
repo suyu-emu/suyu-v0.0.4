@@ -23,7 +23,7 @@ class QtProfileSelectionDialog final : public QDialog {
     Q_OBJECT
 
 public:
-    QtProfileSelectionDialog(QWidget* parent);
+    explicit QtProfileSelectionDialog(QWidget* parent);
     ~QtProfileSelectionDialog() override;
 
     void accept() override;
