@@ -2676,14 +2676,29 @@ private:
                 const bool depth_compare =
                     instr.texs.UsesMiscMode(Tegra::Shader::TextureMiscMode::DC);
                 u32 num_coordinates = TextureCoordinates(texture_type);
-                if (depth_compare)
-                    num_coordinates += 1;
+                auto process_mode = instr.texs.GetTextureProcessMode();
+                std::string lod_value;
+                u32 lod_offset = 0;
+                if (process_mode == Tegra::Shader::TextureProcessMode::LL) {
+                    if (num_coordinates > 2) {
+                        lod_value = regs.GetRegisterAsFloat(instr.gpr20.Value() + 1);
+                        lod_offset = 2;
+                    } else {
+                        lod_value = regs.GetRegisterAsFloat(instr.gpr20);
+                        lod_offset = 1;
+                    }
+                }
 
                 // Scope to avoid variable name overlaps.
                 shader.AddLine('{');
                 ++shader.scope;
 
                 switch (num_coordinates) {
+                case 1: {
+                    const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
+                    coord = "float coords = " + x + ';';
+                    break;
+                }
                 case 2: {
                     if (is_array) {
                         const std::string index = regs.GetRegisterAsInteger(instr.gpr8);
@@ -2691,26 +2706,37 @@ private:
                         const std::string y = regs.GetRegisterAsFloat(instr.gpr20);
                         shader.AddLine("vec3 coords = vec3(" + x + ", " + y + ", " + index + ");");
                     } else {
-                        const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
-                        const std::string y = regs.GetRegisterAsFloat(instr.gpr20);
-                        shader.AddLine("vec2 coords = vec2(" + x + ", " + y + ");");
+                        if (lod_offset != 0) {
+                            if (depth_compare) {
+                                const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
+                                const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
+                                const std::string z = regs.GetRegisterAsFloat(instr.gpr20.Value() + lod_offset);
+                                coord = "vec3 coords = vec3(" + x + ", " + y + ", " + z + ");";
+                            } else {
+                                const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
+                                const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
+                                coord = "vec2 coords = vec2(" + x + ", " + y + ");";
+                            }
+                        } else {
+                            if (depth_compare) {
+                                const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
+                                const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
+                                const std::string z = regs.GetRegisterAsFloat(instr.gpr20);
+                                coord = "vec3 coords = vec3(" + x + ", " + y + ", " + z + ");";
+                            } else {
+                                const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
+                                const std::string y = regs.GetRegisterAsFloat(instr.gpr20);
+                                coord = "vec2 coords = vec2(" + x + ", " + y + ");";
+                            }
+                        }
                     }
                     break;
                 }
                 case 3: {
-                    if (is_array) {
-                        const std::string index = regs.GetRegisterAsInteger(instr.gpr8);
-                        const std::string x = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
-                        const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 2);
-                        const std::string z = regs.GetRegisterAsFloat(instr.gpr20);
-                        shader.AddLine("vec4 coords = vec4(" + x + ", " + y + ", " + z + ", " +
-                                       index + ");");
-                    } else {
-                        const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
-                        const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
-                        const std::string z = regs.GetRegisterAsFloat(instr.gpr20);
-                        shader.AddLine("vec3 coords = vec3(" + x + ", " + y + ", " + z + ");");
-                    }
+                    const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
+                    const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
+                    const std::string z = regs.GetRegisterAsFloat(instr.gpr20);
+                    coord = "vec3 coords = vec3(" + x + ", " + y + ", " + z + ");";
                     break;
                 }
                 default:
@@ -2727,22 +2753,22 @@ private:
                 const std::string sampler =
                     GetSampler(instr.sampler, texture_type, is_array, depth_compare);
                 std::string texture;
-                switch (instr.texs.GetTextureProcessMode()) {
+                switch (process_mode) {
                 case Tegra::Shader::TextureProcessMode::None: {
                     texture = "texture(" + sampler + ", coords)";
                     break;
                 }
                 case Tegra::Shader::TextureProcessMode::LZ: {
                     if (depth_compare && is_array) {
-                        texture = "texture(" + sampler + ", coords)";
+                        // Since we got an OpenGL limitation, we set bias very high to enforce mipmap 0
+                        texture = "texture(" + sampler + ", coords, 1000.0)";
                     } else {
                         texture = "textureLod(" + sampler + ", coords, 0.0)";
                     }
                     break;
                 }
                 case Tegra::Shader::TextureProcessMode::LL: {
-                    const std::string op_c = regs.GetRegisterAsFloat(instr.gpr20.Value() + 1);
-                    texture = "textureLod(" + sampler + ", coords, " + op_c + ')';
+                    texture = "textureLod(" + sampler + ", coords, " + lod_value + ')';
                     break;
                 }
                 default: {
