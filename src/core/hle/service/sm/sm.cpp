@@ -63,6 +63,17 @@ ResultVal<Kernel::SharedPtr<Kernel::ServerPort>> ServiceManager::RegisterService
     return MakeResult<Kernel::SharedPtr<Kernel::ServerPort>>(std::move(server_port));
 }
 
+ResultCode ServiceManager::UnregisterService(std::string name) {
+    CASCADE_CODE(ValidateServiceName(name));
+
+    const auto iter = registered_services.find(name);
+    if (iter == registered_services.end())
+        return ERR_SERVICE_NOT_REGISTERED;
+
+    registered_services.erase(iter);
+    return RESULT_SUCCESS;
+}
+
 ResultVal<Kernel::SharedPtr<Kernel::ClientPort>> ServiceManager::GetServicePort(
     const std::string& name) {
 
@@ -127,13 +138,52 @@ void SM::GetService(Kernel::HLERequestContext& ctx) {
     }
 }
 
+void SM::RegisterService(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    const auto name_buf = rp.PopRaw<std::array<char, 8>>();
+    const auto end = std::find(name_buf.begin(), name_buf.end(), '\0');
+
+    const std::string name(name_buf.begin(), end);
+
+    const auto unk_bool = static_cast<bool>(rp.PopRaw<u32>());
+    const auto session_count = rp.PopRaw<u32>();
+
+    LOG_DEBUG(Service_SM, "called with unk_bool={}", unk_bool);
+
+    auto handle = service_manager->RegisterService(name, session_count);
+    if (handle.Failed()) {
+        LOG_ERROR(Service_SM, "failed to register service with error_code={:08X}",
+                  handle.Code().raw);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(handle.Code());
+        return;
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
+    rb.Push(handle.Code());
+    rb.PushMoveObjects(std::move(handle).Unwrap());
+}
+
+void SM::UnregisterService(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    const auto name_buf = rp.PopRaw<std::array<char, 8>>();
+    const auto end = std::find(name_buf.begin(), name_buf.end(), '\0');
+
+    const std::string name(name_buf.begin(), end);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(service_manager->UnregisterService(name));
+}
+
 SM::SM(std::shared_ptr<ServiceManager> service_manager)
     : ServiceFramework("sm:", 4), service_manager(std::move(service_manager)) {
     static const FunctionInfo functions[] = {
         {0x00000000, &SM::Initialize, "Initialize"},
         {0x00000001, &SM::GetService, "GetService"},
-        {0x00000002, nullptr, "RegisterService"},
-        {0x00000003, nullptr, "UnregisterService"},
+        {0x00000002, &SM::RegisterService, "RegisterService"},
+        {0x00000003, &SM::UnregisterService, "UnregisterService"},
     };
     RegisterHandlers(functions);
 }
