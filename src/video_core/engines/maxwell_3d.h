@@ -879,7 +879,13 @@ public:
 
                 Cull cull;
 
-                INSERT_PADDING_WORDS(0x28);
+                u32 pixel_center_integer;
+
+                INSERT_PADDING_WORDS(0x1);
+
+                u32 viewport_transform_enabled;
+
+                INSERT_PADDING_WORDS(0x25);
 
                 struct {
                     u32 enable;
@@ -1188,6 +1194,8 @@ ASSERT_REG_POSITION(primitive_restart, 0x591);
 ASSERT_REG_POSITION(index_array, 0x5F2);
 ASSERT_REG_POSITION(instanced_arrays, 0x620);
 ASSERT_REG_POSITION(cull, 0x646);
+ASSERT_REG_POSITION(pixel_center_integer, 0x649);
+ASSERT_REG_POSITION(viewport_transform_enabled, 0x64B);
 ASSERT_REG_POSITION(logic_op, 0x671);
 ASSERT_REG_POSITION(clear_buffers, 0x674);
 ASSERT_REG_POSITION(color_mask, 0x680);

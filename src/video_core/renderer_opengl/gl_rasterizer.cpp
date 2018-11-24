@@ -970,12 +970,20 @@ u32 RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, Shader& shader,
 void RasterizerOpenGL::SyncViewport(OpenGLState& current_state) {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
     for (std::size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumViewports; i++) {
-        const MathUtil::Rectangle<s32> viewport_rect{regs.viewport_transform[i].GetRect()};
         auto& viewport = current_state.viewports[i];
-        viewport.x = viewport_rect.left;
-        viewport.y = viewport_rect.bottom;
-        viewport.width = viewport_rect.GetWidth();
-        viewport.height = viewport_rect.GetHeight();
+        const auto& src = regs.viewports[i];
+        if (regs.viewport_transform_enabled) {
+            const MathUtil::Rectangle<s32> viewport_rect{regs.viewport_transform[i].GetRect()};
+            viewport.x = viewport_rect.left;
+            viewport.y = viewport_rect.bottom;
+            viewport.width = viewport_rect.GetWidth();
+            viewport.height = viewport_rect.GetHeight();
+        } else {
+            viewport.x = src.x;
+            viewport.y = src.y;
+            viewport.width = src.width;
+            viewport.height = src.height;
+        }
         viewport.depth_range_far = regs.viewports[i].depth_range_far;
         viewport.depth_range_near = regs.viewports[i].depth_range_near;
     }
