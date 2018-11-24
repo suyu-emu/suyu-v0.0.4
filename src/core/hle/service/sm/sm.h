@@ -50,7 +50,7 @@ public:
 
     ResultVal<Kernel::SharedPtr<Kernel::ServerPort>> RegisterService(std::string name,
                                                                      unsigned int max_sessions);
-    ResultCode UnregisterService(std::string name);
+    ResultCode UnregisterService(const std::string& name);
     ResultVal<Kernel::SharedPtr<Kernel::ClientPort>> GetServicePort(const std::string& name);
     ResultVal<Kernel::SharedPtr<Kernel::ClientSession>> ConnectToService(const std::string& name);
 

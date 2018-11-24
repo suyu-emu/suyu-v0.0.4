@@ -63,7 +63,7 @@ ResultVal<Kernel::SharedPtr<Kernel::ServerPort>> ServiceManager::RegisterService
     return MakeResult<Kernel::SharedPtr<Kernel::ServerPort>>(std::move(server_port));
 }
 
-ResultCode ServiceManager::UnregisterService(std::string name) {
+ResultCode ServiceManager::UnregisterService(const std::string& name) {
     CASCADE_CODE(ValidateServiceName(name));
 
     const auto iter = registered_services.find(name);
