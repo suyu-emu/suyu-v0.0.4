@@ -366,6 +366,7 @@ void Config::ReadValues() {
     Settings::values.gdbstub_port =
         static_cast<u16>(sdl2_config->GetInteger("Debugging", "gdbstub_port", 24689));
     Settings::values.program_args = sdl2_config->Get("Debugging", "program_args", "");
+    Settings::values.dump_exefs = sdl2_config->GetBoolean("Debugging", "dump_exefs", false);
     Settings::values.dump_nso = sdl2_config->GetBoolean("Debugging", "dump_nso", false);
 
     // Web Service

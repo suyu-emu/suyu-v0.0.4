@@ -26,6 +26,11 @@ namespace FileSys {
 constexpr u64 SINGLE_BYTE_MODULUS = 0x100;
 constexpr u64 DLC_BASE_TITLE_ID_MASK = 0xFFFFFFFFFFFFE000;
 
+constexpr std::array<const char*, 14> EXEFS_FILE_NAMES{
+    "main",    "main.npdm", "rtld",    "sdk",     "subsdk0", "subsdk1", "subsdk2",
+    "subsdk3", "subsdk4",   "subsdk5", "subsdk6", "subsdk7", "subsdk8", "subsdk9",
+};
+
 struct NSOBuildHeader {
     u32_le magic;
     INSERT_PADDING_BYTES(0x3C);
@@ -57,6 +62,15 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
     if (exefs == nullptr)
         return exefs;
 
+    if (Settings::values.dump_exefs) {
+        LOG_INFO(Loader, "Dumping ExeFS for title_id={:016X}", title_id);
+        const auto dump_dir = Service::FileSystem::GetModificationDumpRoot(title_id);
+        if (dump_dir != nullptr) {
+            const auto exefs_dir = GetOrCreateDirectoryRelative(dump_dir, "/exefs");
+            VfsRawCopyD(exefs, exefs_dir);
+        }
+    }
+
     const auto installed = Service::FileSystem::GetUnionContents();
 
     // Game Updates
@@ -68,6 +82,30 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
         LOG_INFO(Loader, "    ExeFS: Update ({}) applied successfully",
                  FormatTitleVersion(installed->GetEntryVersion(update_tid).value_or(0)));
         exefs = update->GetExeFS();
+    }
+
+    // LayeredExeFS
+    const auto load_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
+    if (load_dir != nullptr && load_dir->GetSize() > 0) {
+        auto patch_dirs = load_dir->GetSubdirectories();
+        std::sort(
+            patch_dirs.begin(), patch_dirs.end(),
+            [](const VirtualDir& l, const VirtualDir& r) { return l->GetName() < r->GetName(); });
+
+        std::vector<VirtualDir> layers;
+        layers.reserve(patch_dirs.size() + 1);
+        for (const auto& subdir : patch_dirs) {
+            auto exefs_dir = subdir->GetSubdirectory("exefs");
+            if (exefs_dir != nullptr)
+                layers.push_back(std::move(exefs_dir));
+        }
+        layers.push_back(exefs);
+
+        auto layered = LayeredVfsDirectory::MakeLayeredDirectory(std::move(layers));
+        if (layered != nullptr) {
+            LOG_INFO(Loader, "    ExeFS: LayeredExeFS patches applied successfully");
+            exefs = std::move(layered);
+        }
     }
 
     return exefs;
@@ -314,18 +352,25 @@ std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNam
             if (IsDirValidAndNonEmpty(exefs_dir)) {
                 bool ips = false;
                 bool ipswitch = false;
+                bool layeredfs = false;
 
                 for (const auto& file : exefs_dir->GetFiles()) {
-                    if (file->GetExtension() == "ips")
+                    if (file->GetExtension() == "ips") {
                         ips = true;
-                    else if (file->GetExtension() == "pchtxt")
+                    } else if (file->GetExtension() == "pchtxt") {
                         ipswitch = true;
+                    } else if (std::find(EXEFS_FILE_NAMES.begin(), EXEFS_FILE_NAMES.end(),
+                                         file->GetName()) != EXEFS_FILE_NAMES.end()) {
+                        layeredfs = true;
+                    }
                 }
 
                 if (ips)
                     AppendCommaIfNotEmpty(types, "IPS");
                 if (ipswitch)
                     AppendCommaIfNotEmpty(types, "IPSwitch");
+                if (layeredfs)
+                    AppendCommaIfNotEmpty(types, "LayeredExeFS");
             }
             if (IsDirValidAndNonEmpty(mod->GetSubdirectory("romfs")))
                 AppendCommaIfNotEmpty(types, "LayeredFS");

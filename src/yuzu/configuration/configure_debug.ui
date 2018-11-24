@@ -145,6 +145,16 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QCheckBox" name="dump_exefs">
+        <property name="whatsThis">
+         <string>When checked, any game that yuzu loads will have its ExeFS dumped to the yuzu/dump directory.</string>
+        </property>
+        <property name="text">
+         <string>Dump ExeFS</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
