@@ -510,7 +510,11 @@ private:
 
         if (transaction == TransactionId::Connect) {
             IGBPConnectRequestParcel request{ctx.ReadBuffer()};
-            IGBPConnectResponseParcel response{1280, 720};
+            IGBPConnectResponseParcel response{
+                static_cast<u32>(static_cast<u32>(DisplayResolution::UndockedWidth) *
+                                 Settings::values.resolution_factor),
+                static_cast<u32>(static_cast<u32>(DisplayResolution::UndockedHeight) *
+                                 Settings::values.resolution_factor)};
             ctx.WriteBuffer(response.Serialize());
         } else if (transaction == TransactionId::SetPreallocatedBuffer) {
             IGBPSetPreallocatedBufferRequestParcel request{ctx.ReadBuffer()};
@@ -692,11 +696,15 @@ private:
         rb.Push(RESULT_SUCCESS);
 
         if (Settings::values.use_docked_mode) {
-            rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedWidth));
-            rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedHeight));
+            rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedWidth) *
+                    static_cast<u32>(Settings::values.resolution_factor));
+            rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedHeight) *
+                    static_cast<u32>(Settings::values.resolution_factor));
         } else {
-            rb.Push(static_cast<u32>(Service::VI::DisplayResolution::UndockedWidth));
-            rb.Push(static_cast<u32>(Service::VI::DisplayResolution::UndockedHeight));
+            rb.Push(static_cast<u32>(Service::VI::DisplayResolution::UndockedWidth) *
+                    static_cast<u32>(Settings::values.resolution_factor));
+            rb.Push(static_cast<u32>(Service::VI::DisplayResolution::UndockedHeight) *
+                    static_cast<u32>(Settings::values.resolution_factor));
         }
 
         rb.PushRaw<float>(60.0f);
@@ -901,11 +909,15 @@ private:
         rb.Push(RESULT_SUCCESS);
 
         if (Settings::values.use_docked_mode) {
-            rb.Push(static_cast<u64>(DisplayResolution::DockedWidth));
-            rb.Push(static_cast<u64>(DisplayResolution::DockedHeight));
+            rb.Push(static_cast<u64>(DisplayResolution::DockedWidth) *
+                    static_cast<u32>(Settings::values.resolution_factor));
+            rb.Push(static_cast<u64>(DisplayResolution::DockedHeight) *
+                    static_cast<u32>(Settings::values.resolution_factor));
         } else {
-            rb.Push(static_cast<u64>(DisplayResolution::UndockedWidth));
-            rb.Push(static_cast<u64>(DisplayResolution::UndockedHeight));
+            rb.Push(static_cast<u64>(DisplayResolution::UndockedWidth) *
+                    static_cast<u32>(Settings::values.resolution_factor));
+            rb.Push(static_cast<u64>(DisplayResolution::UndockedHeight) *
+                    static_cast<u32>(Settings::values.resolution_factor));
         }
     }
 
@@ -922,6 +934,8 @@ private:
     void ListDisplays(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         DisplayInfo display_info;
+        display_info.width *= static_cast<u64>(Settings::values.resolution_factor);
+        display_info.height *= static_cast<u64>(Settings::values.resolution_factor);
         ctx.WriteBuffer(&display_info, sizeof(DisplayInfo));
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
