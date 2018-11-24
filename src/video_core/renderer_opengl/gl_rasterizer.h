@@ -193,9 +193,6 @@ private:
     /// but are needed for correct emulation
     void CheckExtensions();
 
-    bool has_ARB_direct_state_access = false;
-    bool has_ARB_multi_bind = false;
-
     OpenGLState state;
 
     RasterizerCacheOpenGL res_cache;
