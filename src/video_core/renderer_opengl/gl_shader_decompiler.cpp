@@ -34,6 +34,17 @@ constexpr u32 PROGRAM_HEADER_SIZE = sizeof(Tegra::Shader::Header);
 constexpr u32 MAX_GEOMETRY_BUFFERS = 6;
 constexpr u32 MAX_ATTRIBUTES = 0x100; // Size in vec4s, this value is untested
 
+static const char* INTERNAL_FLAG_NAMES[] = {"zero_flag", "sign_flag", "carry_flag",
+                                            "overflow_flag"};
+
+enum class InternalFlag : u64 {
+    ZeroFlag = 0,
+    SignFlag = 1,
+    CarryFlag = 2,
+    OverflowFlag = 3,
+    Amount
+};
+
 class DecompileFail : public std::runtime_error {
 public:
     using std::runtime_error::runtime_error;
@@ -267,14 +278,6 @@ private:
     const std::string& suffix;
 };
 
-enum class InternalFlag : u64 {
-    ZeroFlag = 0,
-    CarryFlag = 1,
-    OverflowFlag = 2,
-    NaNFlag = 3,
-    Amount
-};
-
 /**
  * Used to manage shader registers that are emulated with GLSL. This class keeps track of the state
  * of all registers (e.g. whether they are currently being used as Floats or Integers), and
@@ -381,7 +384,7 @@ public:
         if (sets_cc) {
             const std::string zero_condition = "( " + ConvertIntegerSize(value, size) + " == 0 )";
             SetInternalFlag(InternalFlag::ZeroFlag, zero_condition);
-            LOG_WARNING(HW_GPU, "Control Codes Imcomplete.");
+            LOG_WARNING(HW_GPU, "Condition codes implementation is incomplete.");
         }
     }
 
@@ -464,23 +467,25 @@ public:
         shader.AddLine("lmem[" + index + "] = " + func + '(' + value + ");");
     }
 
-    std::string GetControlCode(const Tegra::Shader::ControlCode cc) const {
+    std::string GetConditionCode(const Tegra::Shader::ConditionCode cc) const {
         switch (cc) {
-        case Tegra::Shader::ControlCode::NEU:
+        case Tegra::Shader::ConditionCode::NEU:
             return "!(" + GetInternalFlag(InternalFlag::ZeroFlag) + ')';
         default:
-            UNIMPLEMENTED_MSG("Unimplemented Control Code: {}", static_cast<u32>(cc));
+            UNIMPLEMENTED_MSG("Unimplemented condition code: {}", static_cast<u32>(cc));
             return "false";
         }
     }
 
-    std::string GetInternalFlag(const InternalFlag ii) const {
-        const u32 code = static_cast<u32>(ii);
-        return "internalFlag_" + std::to_string(code) + suffix;
+    std::string GetInternalFlag(const InternalFlag flag) const {
+        const auto index = static_cast<u32>(flag);
+        ASSERT(index < static_cast<u32>(InternalFlag::Amount));
+
+        return std::string(INTERNAL_FLAG_NAMES[index]) + '_' + suffix;
     }
 
-    void SetInternalFlag(const InternalFlag ii, const std::string& value) const {
-        shader.AddLine(GetInternalFlag(ii) + " = " + value + ';');
+    void SetInternalFlag(const InternalFlag flag, const std::string& value) const {
+        shader.AddLine(GetInternalFlag(flag) + " = " + value + ';');
     }
 
     /**
@@ -631,8 +636,8 @@ private:
 
     /// Generates declarations for internal flags.
     void GenerateInternalFlags() {
-        for (u32 ii = 0; ii < static_cast<u64>(InternalFlag::Amount); ii++) {
-            const InternalFlag code = static_cast<InternalFlag>(ii);
+        for (u32 flag = 0; flag < static_cast<u32>(InternalFlag::Amount); flag++) {
+            const InternalFlag code = static_cast<InternalFlag>(flag);
             declarations.AddLine("bool " + GetInternalFlag(code) + " = false;");
         }
         declarations.AddNewLine();
@@ -1516,9 +1521,8 @@ private:
                     instr.fmul.tab5c68_0 != 1, "FMUL tab5cb8_0({}) is not implemented",
                     instr.fmul.tab5c68_0
                         .Value()); // SMO typical sends 1 here which seems to be the default
-                UNIMPLEMENTED_IF_MSG(instr.fmul.cc != 0, "FMUL cc is not implemented");
                 UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                                     "FMUL Generates an unhandled Control Code");
+                                     "Condition codes generation in FMUL is not implemented");
 
                 op_b = GetOperandAbsNeg(op_b, false, instr.fmul.negate_b);
 
@@ -1530,7 +1534,7 @@ private:
             case OpCode::Id::FADD_R:
             case OpCode::Id::FADD_IMM: {
                 UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                                     "FADD Generates an unhandled Control Code");
+                                     "Condition codes generation in FADD is not implemented");
 
                 op_a = GetOperandAbsNeg(op_a, instr.alu.abs_a, instr.alu.negate_a);
                 op_b = GetOperandAbsNeg(op_b, instr.alu.abs_b, instr.alu.negate_b);
@@ -1580,7 +1584,7 @@ private:
             case OpCode::Id::FMNMX_R:
             case OpCode::Id::FMNMX_IMM: {
                 UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                                     "FMNMX Generates an unhandled Control Code");
+                                     "Condition codes generation in FMNMX is not implemented");
 
                 op_a = GetOperandAbsNeg(op_a, instr.alu.abs_a, instr.alu.negate_a);
                 op_b = GetOperandAbsNeg(op_b, instr.alu.abs_b, instr.alu.negate_b);
@@ -1617,7 +1621,7 @@ private:
             }
             case OpCode::Id::FMUL32_IMM: {
                 UNIMPLEMENTED_IF_MSG(instr.op_32.generates_cc,
-                                     "FMUL32 Generates an unhandled Control Code");
+                                     "Condition codes generation in FMUL32 is not implemented");
 
                 regs.SetRegisterToFloat(instr.gpr0, 0,
                                         regs.GetRegisterAsFloat(instr.gpr8) + " * " +
@@ -1627,7 +1631,7 @@ private:
             }
             case OpCode::Id::FADD32I: {
                 UNIMPLEMENTED_IF_MSG(instr.op_32.generates_cc,
-                                     "FADD32 Generates an unhandled Control Code");
+                                     "Condition codes generation in FADD32I is not implemented");
 
                 std::string op_a = regs.GetRegisterAsFloat(instr.gpr8);
                 std::string op_b = GetImmediate32(instr);
@@ -1662,7 +1666,8 @@ private:
 
             switch (opcode->get().GetId()) {
             case OpCode::Id::BFE_IMM: {
-                UNIMPLEMENTED_IF_MSG(instr.generates_cc, "BFE Generates an unhandled Control Code");
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in BFE is not implemented");
 
                 std::string inner_shift =
                     '(' + op_a + " << " + std::to_string(instr.bfe.GetLeftShiftValue()) + ')';
@@ -1699,7 +1704,8 @@ private:
             case OpCode::Id::SHR_C:
             case OpCode::Id::SHR_R:
             case OpCode::Id::SHR_IMM: {
-                UNIMPLEMENTED_IF_MSG(instr.generates_cc, "SHR Generates an unhandled Control Code");
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in SHR is not implemented");
 
                 if (!instr.shift.is_signed) {
                     // Logical shift right
@@ -1714,8 +1720,8 @@ private:
             case OpCode::Id::SHL_C:
             case OpCode::Id::SHL_R:
             case OpCode::Id::SHL_IMM:
-                UNIMPLEMENTED_IF_MSG(instr.generates_cc, "SHL Generates an unhandled Control Code");
-
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in SHL is not implemented");
                 regs.SetRegisterToInteger(instr.gpr0, true, 0, op_a + " << " + op_b, 1, 1);
                 break;
             default: {
@@ -1731,7 +1737,7 @@ private:
             switch (opcode->get().GetId()) {
             case OpCode::Id::IADD32I:
                 UNIMPLEMENTED_IF_MSG(instr.op_32.generates_cc,
-                                     "IADD32 Generates an unhandled Control Code");
+                                     "Condition codes generation in IADD32I is not implemented");
 
                 if (instr.iadd32i.negate_a)
                     op_a = "-(" + op_a + ')';
@@ -1741,7 +1747,7 @@ private:
                 break;
             case OpCode::Id::LOP32I: {
                 UNIMPLEMENTED_IF_MSG(instr.op_32.generates_cc,
-                                     "LOP32I Generates an unhandled Control Code");
+                                     "Condition codes generation in LOP32I is not implemented");
 
                 if (instr.alu.lop32i.invert_a)
                     op_a = "~(" + op_a + ')';
@@ -1780,7 +1786,7 @@ private:
             case OpCode::Id::IADD_R:
             case OpCode::Id::IADD_IMM: {
                 UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                                     "IADD Generates an unhandled Control Code");
+                                     "Condition codes generation in IADD is not implemented");
 
                 if (instr.alu_integer.negate_a)
                     op_a = "-(" + op_a + ')';
@@ -1796,7 +1802,7 @@ private:
             case OpCode::Id::IADD3_R:
             case OpCode::Id::IADD3_IMM: {
                 UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                                     "IADD3 Generates an unhandled Control Code");
+                                     "Condition codes generation in IADD3 is not implemented");
 
                 std::string op_c = regs.GetRegisterAsInteger(instr.gpr39);
 
@@ -1859,7 +1865,7 @@ private:
             case OpCode::Id::ISCADD_R:
             case OpCode::Id::ISCADD_IMM: {
                 UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                                     "ISCADD Generates an unhandled Control Code");
+                                     "Condition codes generation in ISCADD is not implemented");
 
                 if (instr.alu_integer.negate_a)
                     op_a = "-(" + op_a + ')';
@@ -1894,7 +1900,8 @@ private:
             case OpCode::Id::LOP_C:
             case OpCode::Id::LOP_R:
             case OpCode::Id::LOP_IMM: {
-                UNIMPLEMENTED_IF_MSG(instr.generates_cc, "LOP Generates an unhandled Control Code");
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in LOP is not implemented");
 
                 if (instr.alu.lop.invert_a)
                     op_a = "~(" + op_a + ')';
@@ -1910,7 +1917,7 @@ private:
             case OpCode::Id::LOP3_R:
             case OpCode::Id::LOP3_IMM: {
                 UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                                     "LOP3 Generates an unhandled Control Code");
+                                     "Condition codes generation in LOP3 is not implemented");
 
                 const std::string op_c = regs.GetRegisterAsInteger(instr.gpr39);
                 std::string lut;
@@ -1929,7 +1936,7 @@ private:
             case OpCode::Id::IMNMX_IMM: {
                 UNIMPLEMENTED_IF(instr.imnmx.exchange != Tegra::Shader::IMinMaxExchange::None);
                 UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                                     "IMNMX Generates an unhandled Control Code");
+                                     "Condition codes generation in IMNMX is not implemented");
 
                 const std::string condition =
                     GetPredicateCondition(instr.imnmx.pred, instr.imnmx.negate_pred != 0);
@@ -2102,7 +2109,8 @@ private:
                 instr.ffma.tab5980_0.Value()); // Seems to be 1 by default based on SMO
             UNIMPLEMENTED_IF_MSG(instr.ffma.tab5980_1 != 0, "FFMA tab5980_1({}) not implemented",
                                  instr.ffma.tab5980_1.Value());
-            UNIMPLEMENTED_IF_MSG(instr.generates_cc, "FFMA Generates an unhandled Control Code");
+            UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                 "Condition codes generation in FFMA is not implemented");
 
             switch (opcode->get().GetId()) {
             case OpCode::Id::FFMA_CR: {
@@ -2212,7 +2220,8 @@ private:
             case OpCode::Id::I2F_C: {
                 UNIMPLEMENTED_IF(instr.conversion.dest_size != Register::Size::Word);
                 UNIMPLEMENTED_IF(instr.conversion.selector);
-                UNIMPLEMENTED_IF_MSG(instr.generates_cc, "I2F Generates an unhandled Control Code");
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in I2F is not implemented");
 
                 std::string op_a{};
 
@@ -2242,7 +2251,8 @@ private:
             case OpCode::Id::F2F_R: {
                 UNIMPLEMENTED_IF(instr.conversion.dest_size != Register::Size::Word);
                 UNIMPLEMENTED_IF(instr.conversion.src_size != Register::Size::Word);
-                UNIMPLEMENTED_IF_MSG(instr.generates_cc, "F2F Generates an unhandled Control Code");
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in F2F is not implemented");
                 std::string op_a = regs.GetRegisterAsFloat(instr.gpr20);
 
                 if (instr.conversion.abs_a) {
@@ -2280,7 +2290,8 @@ private:
             case OpCode::Id::F2I_R:
             case OpCode::Id::F2I_C: {
                 UNIMPLEMENTED_IF(instr.conversion.src_size != Register::Size::Word);
-                UNIMPLEMENTED_IF_MSG(instr.generates_cc, "F2I Generates an unhandled Control Code");
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in F2I is not implemented");
                 std::string op_a{};
 
                 if (instr.is_b_gpr) {
@@ -3129,7 +3140,8 @@ private:
             break;
         }
         case OpCode::Type::PredicateSetRegister: {
-            UNIMPLEMENTED_IF_MSG(instr.generates_cc, "PSET Generates an unhandled Control Code");
+            UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                 "Condition codes generation in PSET is not implemented");
 
             const std::string op_a =
                 GetPredicateCondition(instr.pset.pred12, instr.pset.neg_pred12 != 0);
@@ -3188,14 +3200,14 @@ private:
                 const std::string pred =
                     GetPredicateCondition(instr.csetp.pred39, instr.csetp.neg_pred39 != 0);
                 const std::string combiner = GetPredicateCombiner(instr.csetp.op);
-                const std::string control_code = regs.GetControlCode(instr.csetp.cc);
+                const std::string condition_code = regs.GetConditionCode(instr.csetp.cc);
                 if (instr.csetp.pred3 != static_cast<u64>(Pred::UnusedIndex)) {
                     SetPredicate(instr.csetp.pred3,
-                                 '(' + control_code + ") " + combiner + " (" + pred + ')');
+                                 '(' + condition_code + ") " + combiner + " (" + pred + ')');
                 }
                 if (instr.csetp.pred0 != static_cast<u64>(Pred::UnusedIndex)) {
                     SetPredicate(instr.csetp.pred0,
-                                 "!(" + control_code + ") " + combiner + " (" + pred + ')');
+                                 "!(" + condition_code + ") " + combiner + " (" + pred + ')');
                 }
                 break;
             }
@@ -3326,7 +3338,8 @@ private:
         case OpCode::Type::Xmad: {
             UNIMPLEMENTED_IF(instr.xmad.sign_a);
             UNIMPLEMENTED_IF(instr.xmad.sign_b);
-            UNIMPLEMENTED_IF_MSG(instr.generates_cc, "XMAD Generates an unhandled Control Code");
+            UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                 "Condition codes generation in XMAD is not implemented");
 
             std::string op_a{regs.GetRegisterAsInteger(instr.gpr8, 0, instr.xmad.sign_a)};
             std::string op_b;
@@ -3418,9 +3431,9 @@ private:
         default: {
             switch (opcode->get().GetId()) {
             case OpCode::Id::EXIT: {
-                const Tegra::Shader::ControlCode cc = instr.flow_control_code;
-                UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ControlCode::T,
-                                     "EXIT Control Code used: {}", static_cast<u32>(cc));
+                const Tegra::Shader::ConditionCode cc = instr.flow_condition_code;
+                UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ConditionCode::T,
+                                     "EXIT condition code used: {}", static_cast<u32>(cc));
 
                 if (stage == Maxwell3D::Regs::ShaderStage::Fragment) {
                     EmitFragmentOutputsWrite();
@@ -3452,9 +3465,9 @@ private:
             case OpCode::Id::KIL: {
                 UNIMPLEMENTED_IF(instr.flow.cond != Tegra::Shader::FlowCondition::Always);
 
-                const Tegra::Shader::ControlCode cc = instr.flow_control_code;
-                UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ControlCode::T,
-                                     "KIL Control Code used: {}", static_cast<u32>(cc));
+                const Tegra::Shader::ConditionCode cc = instr.flow_condition_code;
+                UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ConditionCode::T,
+                                     "KIL condition code used: {}", static_cast<u32>(cc));
 
                 // Enclose "discard" in a conditional, so that GLSL compilation does not complain
                 // about unexecuted instructions that may follow this.
@@ -3516,9 +3529,9 @@ private:
                 UNIMPLEMENTED_IF_MSG(instr.bra.constant_buffer != 0,
                                      "BRA with constant buffers are not implemented");
 
-                const Tegra::Shader::ControlCode cc = instr.flow_control_code;
-                UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ControlCode::T,
-                                     "BRA Control Code used: {}", static_cast<u32>(cc));
+                const Tegra::Shader::ConditionCode cc = instr.flow_condition_code;
+                UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ConditionCode::T,
+                                     "BRA condition code used: {}", static_cast<u32>(cc));
 
                 const u32 target = offset + instr.bra.GetBranchTarget();
                 shader.AddLine("{ jmp_to = " + std::to_string(target) + "u; break; }");
@@ -3561,9 +3574,9 @@ private:
                 break;
             }
             case OpCode::Id::SYNC: {
-                const Tegra::Shader::ControlCode cc = instr.flow_control_code;
-                UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ControlCode::T,
-                                     "SYNC Control Code used: {}", static_cast<u32>(cc));
+                const Tegra::Shader::ConditionCode cc = instr.flow_condition_code;
+                UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ConditionCode::T,
+                                     "SYNC condition code used: {}", static_cast<u32>(cc));
 
                 // The SYNC opcode jumps to the address previously set by the SSY opcode
                 EmitPopFromFlowStack();
@@ -3571,10 +3584,10 @@ private:
             }
             case OpCode::Id::BRK: {
                 // The BRK opcode jumps to the address previously set by the PBK opcode
-                const Tegra::Shader::ControlCode cc = instr.flow_control_code;
-                if (cc != Tegra::Shader::ControlCode::T) {
-                    UNIMPLEMENTED_MSG("BRK Control Code used: {}", static_cast<u32>(cc));
-                }
+                const Tegra::Shader::ConditionCode cc = instr.flow_condition_code;
+                UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ConditionCode::T,
+                                     "BRK condition code used: {}", static_cast<u32>(cc));
+
                 EmitPopFromFlowStack();
                 break;
             }
@@ -3585,6 +3598,9 @@ private:
                 break;
             }
             case OpCode::Id::VMAD: {
+                UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                                     "Condition codes generation in VMAD is not implemented");
+
                 const bool result_signed = instr.video.signed_a == 1 || instr.video.signed_b == 1;
                 const std::string op_a = GetVideoOperandA(instr);
                 const std::string op_b = GetVideoOperandB(instr);
@@ -3604,10 +3620,6 @@ private:
                 regs.SetRegisterToInteger(instr.gpr0, result_signed, 1, result, 1, 1,
                                           instr.vmad.saturate == 1, 0, Register::Size::Word,
                                           instr.vmad.cc);
-                if (instr.generates_cc) {
-                    UNIMPLEMENTED_MSG("VMAD Generates an unhandled Control Code");
-                }
-
                 break;
             }
             case OpCode::Id::VSETP: {
