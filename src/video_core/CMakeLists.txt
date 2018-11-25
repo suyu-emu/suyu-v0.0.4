@@ -21,6 +21,8 @@ add_library(video_core STATIC
     macro_interpreter.h
     memory_manager.cpp
     memory_manager.h
+    morton.cpp
+    morton.h
     rasterizer_cache.cpp
     rasterizer_cache.h
     rasterizer_interface.h
@@ -62,7 +64,6 @@ add_library(video_core STATIC
     textures/decoders.cpp
     textures/decoders.h
     textures/texture.h
-    utils.h
     video_core.cpp
     video_core.h
 )
