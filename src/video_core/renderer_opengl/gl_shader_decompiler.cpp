@@ -845,7 +845,8 @@ private:
             // vertex shader, and what's the value of the fourth element when inside a Tess Eval
             // shader.
             ASSERT(stage == Maxwell3D::Regs::ShaderStage::Vertex);
-            return "vec4(0, 0, uintBitsToFloat(instance_id.x), uintBitsToFloat(gl_VertexID))";
+            // Config pack's first value is instance_id.
+            return "vec4(0, 0, uintBitsToFloat(config_pack[0]), uintBitsToFloat(gl_VertexID))";
         case Attribute::Index::FrontFacing:
             // TODO(Subv): Find out what the values are for the other elements.
             ASSERT(stage == Maxwell3D::Regs::ShaderStage::Fragment);
@@ -3505,6 +3506,11 @@ private:
                 case Tegra::Shader::SystemVariable::InvocationInfo: {
                     LOG_WARNING(HW_GPU, "MOV_SYS instruction with InvocationInfo is incomplete");
                     regs.SetRegisterToInteger(instr.gpr0, false, 0, "0u", 1, 1);
+                    break;
+                }
+                case Tegra::Shader::SystemVariable::Ydirection: {
+                    // Config pack's third value is Y_NEGATE's state.
+                    regs.SetRegisterToFloat(instr.gpr0, 0, "uintBitsToFloat(config_pack[2])", 1, 1);
                     break;
                 }
                 default: {
