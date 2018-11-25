@@ -29,7 +29,7 @@ static void MortonCopy(u32 stride, u32 block_height, u32 height, u32 block_depth
     const u32 tile_size_x{GetDefaultBlockWidth(format)};
     const u32 tile_size_y{GetDefaultBlockHeight(format)};
 
-    if (morton_to_linear) {
+    if constexpr (morton_to_linear) {
         Tegra::Texture::UnswizzleTexture(buffer, addr, tile_size_x, tile_size_y, bytes_per_pixel,
                                          stride, height, depth, block_height, block_depth);
     } else {
@@ -314,12 +314,12 @@ static u32 GetMortonOffset128(u32 x, u32 y, u32 bytes_per_pixel) {
     // Calculates the offset of the position of the pixel in Morton order
     // Framebuffer images are split into 128x128 tiles.
 
-    const unsigned int block_height = 128;
-    const unsigned int coarse_x = x & ~127;
+    constexpr u32 block_height = 128;
+    const u32 coarse_x = x & ~127;
 
-    u32 i = MortonInterleave128(x, y);
+    const u32 i = MortonInterleave128(x, y);
 
-    const unsigned int offset = coarse_x * block_height;
+    const u32 offset = coarse_x * block_height;
 
     return (i + offset) * bytes_per_pixel;
 }
@@ -335,17 +335,17 @@ void MortonSwizzle(MortonSwizzleMode mode, Surface::PixelFormat format, u32 stri
 void MortonCopyPixels128(u32 width, u32 height, u32 bytes_per_pixel, u32 linear_bytes_per_pixel,
                          u8* morton_data, u8* linear_data, bool morton_to_linear) {
     u8* data_ptrs[2];
-    for (unsigned y = 0; y < height; ++y) {
-        for (unsigned x = 0; x < width; ++x) {
+    for (u32 y = 0; y < height; ++y) {
+        for (u32 x = 0; x < width; ++x) {
             const u32 coarse_y = y & ~127;
-            u32 morton_offset =
+            const u32 morton_offset =
                 GetMortonOffset128(x, y, bytes_per_pixel) + coarse_y * width * bytes_per_pixel;
-            u32 gl_pixel_index = (x + y * width) * linear_bytes_per_pixel;
+            const u32 linear_pixel_index = (x + y * width) * linear_bytes_per_pixel;
 
-            data_ptrs[morton_to_linear] = morton_data + morton_offset;
-            data_ptrs[!morton_to_linear] = &linear_data[gl_pixel_index];
+            data_ptrs[morton_to_linear ? 1 : 0] = morton_data + morton_offset;
+            data_ptrs[morton_to_linear ? 0 : 1] = &linear_data[linear_pixel_index];
 
-            memcpy(data_ptrs[0], data_ptrs[1], bytes_per_pixel);
+            std::memcpy(data_ptrs[0], data_ptrs[1], bytes_per_pixel);
         }
     }
 }
