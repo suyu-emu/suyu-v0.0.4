@@ -671,7 +671,8 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
         break;
     }
     default:
-        UNIMPLEMENTED();
+        LOG_WARNING(Kernel_SVC, "(STUBBED) Unimplemented svcGetInfo id=0x{:016X}", info_id);
+        return ERR_INVALID_ENUM_VALUE;
     }
 
     return RESULT_SUCCESS;
