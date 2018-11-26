@@ -68,46 +68,68 @@ bool IsInsideNewMapRegion(const VMManager& vm, VAddr address, u64 size) {
 // in the same order.
 ResultCode MapUnmapMemorySanityChecks(const VMManager& vm_manager, VAddr dst_addr, VAddr src_addr,
                                       u64 size) {
-    if (!Common::Is4KBAligned(dst_addr) || !Common::Is4KBAligned(src_addr)) {
-        LOG_ERROR(Kernel_SVC, "Invalid address");
+    if (!Common::Is4KBAligned(dst_addr)) {
+        LOG_ERROR(Kernel_SVC, "Destination address is not aligned to 4KB, 0x{:016X}", dst_addr);
         return ERR_INVALID_ADDRESS;
     }
 
-    if (size == 0 || !Common::Is4KBAligned(size)) {
-        LOG_ERROR(Kernel_SVC, "Invalid size");
+    if (!Common::Is4KBAligned(src_addr)) {
+        LOG_ERROR(Kernel_SVC, "Source address is not aligned to 4KB, 0x{:016X}", src_addr);
+    }
+
+    if (size == 0) {
+        LOG_ERROR(Kernel_SVC, "Size is 0");
+        return ERR_INVALID_SIZE;
+    }
+
+    if (!Common::Is4KBAligned(size)) {
+        LOG_ERROR(Kernel_SVC, "Size is not aligned to 4KB, 0x{:016X}", size);
         return ERR_INVALID_SIZE;
     }
 
     if (!IsValidAddressRange(dst_addr, size)) {
-        LOG_ERROR(Kernel_SVC, "size is out of range");
+        LOG_ERROR(Kernel_SVC,
+                  "Destination is not a valid address range, addr=0x{:016X}, size=0x{:016X}",
+                  dst_addr, size);
         return ERR_INVALID_ADDRESS_STATE;
     }
 
     if (!IsValidAddressRange(src_addr, size)) {
-        LOG_ERROR(Kernel_SVC, "size is out of range");
+        LOG_ERROR(Kernel_SVC, "Source is not a valid address range, addr=0x{:016X}, size=0x{:016X}",
+                  src_addr, size);
         return ERR_INVALID_ADDRESS_STATE;
     }
 
     if (!IsInsideAddressSpace(vm_manager, src_addr, size)) {
-        LOG_ERROR(Kernel_SVC, "Region is out of the address space");
+        LOG_ERROR(Kernel_SVC,
+                  "Source is not within the address space, addr=0x{:016X}, size=0x{:016X}",
+                  src_addr, size);
         return ERR_INVALID_ADDRESS_STATE;
     }
 
     if (!IsInsideNewMapRegion(vm_manager, dst_addr, size)) {
-        LOG_ERROR(Kernel_SVC, "Region is out of the address space");
+        LOG_ERROR(Kernel_SVC,
+                  "Destination is not within the new map region, addr=0x{:016X}, size=0x{:016X}",
+                  dst_addr, size);
         return ERR_INVALID_MEMORY_RANGE;
     }
 
     const VAddr dst_end_address = dst_addr + size;
     if (dst_end_address > vm_manager.GetHeapRegionBaseAddress() &&
         vm_manager.GetHeapRegionEndAddress() > dst_addr) {
-        LOG_ERROR(Kernel_SVC, "Region is not in the correct address space");
+        LOG_ERROR(Kernel_SVC,
+                  "Destination does not fit within the heap region, addr=0x{:016X}, "
+                  "size=0x{:016X}, end_addr=0x{:016X}",
+                  dst_addr, size, dst_end_address);
         return ERR_INVALID_MEMORY_RANGE;
     }
 
     if (dst_end_address > vm_manager.GetMapRegionBaseAddress() &&
         vm_manager.GetMapRegionEndAddress() > dst_addr) {
-        LOG_ERROR(Kernel_SVC, "Region is not in the correct address space");
+        LOG_ERROR(Kernel_SVC,
+                  "Destination does not fit within the map region, addr=0x{:016X}, "
+                  "size=0x{:016X}, end_addr=0x{:016X}",
+                  dst_addr, size, dst_end_address);
         return ERR_INVALID_MEMORY_RANGE;
     }
 
@@ -121,7 +143,10 @@ static ResultCode SetHeapSize(VAddr* heap_addr, u64 heap_size) {
 
     // Size must be a multiple of 0x200000 (2MB) and be equal to or less than 4GB.
     if ((heap_size & 0xFFFFFFFE001FFFFF) != 0) {
-        LOG_ERROR(Kernel_SVC, "Invalid heap size");
+        LOG_ERROR(
+            Kernel_SVC,
+            "The heap size is not a multiple of 2mb or is greater than 4GB, heap_size=0x{:016X}",
+            heap_size);
         return ERR_INVALID_SIZE;
     }
 
@@ -136,24 +161,31 @@ static ResultCode SetMemoryPermission(VAddr addr, u64 size, u32 prot) {
     LOG_TRACE(Kernel_SVC, "called, addr=0x{:X}, size=0x{:X}, prot=0x{:X}", addr, size, prot);
 
     if (!Common::Is4KBAligned(addr)) {
-        LOG_ERROR(Kernel_SVC, "Address is not aligned");
+        LOG_ERROR(Kernel_SVC, "Address is not aligned to 4KB, addr=0x{:016X}", addr);
         return ERR_INVALID_ADDRESS;
     }
 
-    if (size == 0 || !Common::Is4KBAligned(size)) {
-        LOG_ERROR(Kernel_SVC, "Invalid size");
+    if (size == 0) {
+        LOG_ERROR(Kernel_SVC, "Size is 0");
+        return ERR_INVALID_SIZE;
+    }
+
+    if (!Common::Is4KBAligned(size)) {
+        LOG_ERROR(Kernel_SVC, "Size is not aligned to 4KB, size=0x{:016X}", size);
         return ERR_INVALID_SIZE;
     }
 
     if (!IsValidAddressRange(addr, size)) {
-        LOG_ERROR(Kernel_SVC, "Region is out of the address space");
+        LOG_ERROR(Kernel_SVC, "Region is not a valid address range, addr=0x{:016X}, size=0x{:016X}",
+                  addr, size);
         return ERR_INVALID_ADDRESS_STATE;
     }
 
     const auto permission = static_cast<MemoryPermission>(prot);
     if (permission != MemoryPermission::None && permission != MemoryPermission::Read &&
         permission != MemoryPermission::ReadWrite) {
-        LOG_ERROR(Kernel_SVC, "Incorrect memory permissions");
+        LOG_ERROR(Kernel_SVC, "Invalid memory permission specified, Got memory permission=0x{:08X}",
+                  static_cast<u32>(permission));
         return ERR_INVALID_MEMORY_PERMISSIONS;
     }
 
@@ -161,13 +193,15 @@ static ResultCode SetMemoryPermission(VAddr addr, u64 size, u32 prot) {
     auto& vm_manager = current_process->VMManager();
 
     if (!IsInsideAddressSpace(vm_manager, addr, size)) {
-        LOG_ERROR(Kernel_SVC, "Region is not inside the address space");
+        LOG_ERROR(Kernel_SVC,
+                  "Source is not within the address space, addr=0x{:016X}, size=0x{:016X}", addr,
+                  size);
         return ERR_INVALID_ADDRESS_STATE;
     }
 
     const VMManager::VMAHandle iter = vm_manager.FindVMA(addr);
     if (iter == vm_manager.vma_map.end()) {
-        LOG_ERROR(Kernel_SVC, "Unable to find VMA");
+        LOG_ERROR(Kernel_SVC, "Unable to find VMA for address=0x{:016X}", addr);
         return ERR_INVALID_ADDRESS_STATE;
     }
 
@@ -197,7 +231,6 @@ static ResultCode MapMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
 
     const auto result = MapUnmapMemorySanityChecks(vm_manager, dst_addr, src_addr, size);
     if (result != RESULT_SUCCESS) {
-        LOG_ERROR(Kernel_SVC, "Map Memory failed");
         return result;
     }
 
@@ -214,7 +247,6 @@ static ResultCode UnmapMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
 
     const auto result = MapUnmapMemorySanityChecks(vm_manager, dst_addr, src_addr, size);
     if (result != RESULT_SUCCESS) {
-        LOG_ERROR(Kernel_SVC, "UnmapMemory failed");
         return result;
     }
 
@@ -224,7 +256,9 @@ static ResultCode UnmapMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
 /// Connect to an OS service given the port name, returns the handle to the port to out
 static ResultCode ConnectToNamedPort(Handle* out_handle, VAddr port_name_address) {
     if (!Memory::IsValidVirtualAddress(port_name_address)) {
-        LOG_ERROR(Kernel_SVC, "Invalid port name address");
+        LOG_ERROR(Kernel_SVC,
+                  "Port Name Address is not a valid virtual address, port_name_address=0x{:016X}",
+                  port_name_address);
         return ERR_NOT_FOUND;
     }
 
@@ -232,7 +266,8 @@ static ResultCode ConnectToNamedPort(Handle* out_handle, VAddr port_name_address
     // Read 1 char beyond the max allowed port name to detect names that are too long.
     std::string port_name = Memory::ReadCString(port_name_address, PortNameMaxLength + 1);
     if (port_name.size() > PortNameMaxLength) {
-        LOG_ERROR(Kernel_SVC, "Port name is too long");
+        LOG_ERROR(Kernel_SVC, "Port name is too long, expected {} but got {}", PortNameMaxLength,
+                  port_name.size());
         return ERR_OUT_OF_RANGE;
     }
 
@@ -281,7 +316,7 @@ static ResultCode GetThreadId(u32* thread_id, Handle thread_handle) {
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
     const SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
     if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread handle");
+        LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}", thread_handle);
         return ERR_INVALID_HANDLE;
     }
 
@@ -296,7 +331,8 @@ static ResultCode GetProcessId(u32* process_id, Handle process_handle) {
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
     const SharedPtr<Process> process = handle_table.Get<Process>(process_handle);
     if (!process) {
-        LOG_ERROR(Kernel_SVC, "Invalid process");
+        LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
+                  process_handle);
         return ERR_INVALID_HANDLE;
     }
 
@@ -327,14 +363,17 @@ static ResultCode WaitSynchronization(Handle* index, VAddr handles_address, u64 
               handles_address, handle_count, nano_seconds);
 
     if (!Memory::IsValidVirtualAddress(handles_address)) {
-        LOG_ERROR(Kernel_SVC, "Invalid handle address");
+        LOG_ERROR(Kernel_SVC,
+                  "Handle address is not a valid virtual address, handle_address=0x{:016X}",
+                  handles_address);
         return ERR_INVALID_POINTER;
     }
 
     static constexpr u64 MaxHandles = 0x40;
 
     if (handle_count > MaxHandles) {
-        LOG_ERROR(Kernel_SVC, "Handle count is too big");
+        LOG_ERROR(Kernel_SVC, "Handle count specified is too large, expected {} but got {}",
+                  MaxHandles, handle_count);
         return ERR_OUT_OF_RANGE;
     }
 
@@ -400,7 +439,8 @@ static ResultCode CancelSynchronization(Handle thread_handle) {
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
     const SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
     if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread handle");
+        LOG_ERROR(Kernel_SVC, "Thread handle does not exist, thread_handle=0x{:08X}",
+                  thread_handle);
         return ERR_INVALID_HANDLE;
     }
 
@@ -419,12 +459,13 @@ static ResultCode ArbitrateLock(Handle holding_thread_handle, VAddr mutex_addr,
               holding_thread_handle, mutex_addr, requesting_thread_handle);
 
     if (Memory::IsKernelVirtualAddress(mutex_addr)) {
-        LOG_ERROR(Kernel_SVC, "Invalid mutex address");
+        LOG_ERROR(Kernel_SVC, "Mutex Address is a kernel virtual address, mutex_addr={:016X}",
+                  mutex_addr);
         return ERR_INVALID_ADDRESS_STATE;
     }
 
     if (!Common::IsWordAligned(mutex_addr)) {
-        LOG_ERROR(Kernel_SVC, "Mutex address is not aligned");
+        LOG_ERROR(Kernel_SVC, "Mutex Address is not word aligned, mutex_addr={:016X}", mutex_addr);
         return ERR_INVALID_ADDRESS;
     }
 
@@ -438,12 +479,13 @@ static ResultCode ArbitrateUnlock(VAddr mutex_addr) {
     LOG_TRACE(Kernel_SVC, "called mutex_addr=0x{:X}", mutex_addr);
 
     if (Memory::IsKernelVirtualAddress(mutex_addr)) {
-        LOG_ERROR(Kernel_SVC, "Invalid size");
+        LOG_ERROR(Kernel_SVC, "Mutex Address is a kernel virtual address, mutex_addr={:016X}",
+                  mutex_addr);
         return ERR_INVALID_ADDRESS_STATE;
     }
 
     if (!Common::IsWordAligned(mutex_addr)) {
-        LOG_ERROR(Kernel_SVC, "Mutex address is not aligned");
+        LOG_ERROR(Kernel_SVC, "Mutex Address is not word aligned, mutex_addr={:016X}", mutex_addr);
         return ERR_INVALID_ADDRESS;
     }
 
@@ -634,12 +676,14 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
         break;
     case GetInfoType::RandomEntropy:
         if (handle != 0) {
-            LOG_ERROR(Kernel_SVC, "Non zero handle specified");
+            LOG_ERROR(Kernel_SVC, "Process Handle is non zero, expected 0 result but got {:016X}",
+                      handle);
             return ERR_INVALID_HANDLE;
         }
 
         if (info_sub_id >= Process::RANDOM_ENTROPY_SIZE) {
-            LOG_ERROR(Kernel_SVC, "Entropy size is too big");
+            LOG_ERROR(Kernel_SVC, "Entropy size is out of range, expected {} but got {}",
+                      Process::RANDOM_ENTROPY_SIZE, info_sub_id);
             return ERR_INVALID_COMBINATION;
         }
 
@@ -677,14 +721,16 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
     case GetInfoType::ThreadTickCount: {
         constexpr u64 num_cpus = 4;
         if (info_sub_id != 0xFFFFFFFFFFFFFFFF && info_sub_id >= num_cpus) {
-            LOG_ERROR(Kernel_SVC, "Incorrect info_sub_id");
+            LOG_ERROR(Kernel_SVC, "Core count is out of range, expected {} but got {}", num_cpus,
+                      info_sub_id);
             return ERR_INVALID_COMBINATION;
         }
 
         const auto thread =
             current_process->GetHandleTable().Get<Thread>(static_cast<Handle>(handle));
         if (!thread) {
-            LOG_ERROR(Kernel_SVC, "Thread is not a valid handle");
+            LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}",
+                      static_cast<Handle>(handle));
             return ERR_INVALID_HANDLE;
         }
 
@@ -727,17 +773,22 @@ static ResultCode GetThreadContext(VAddr thread_context, Handle handle) {
     const auto* current_process = Core::CurrentProcess();
     const SharedPtr<Thread> thread = current_process->GetHandleTable().Get<Thread>(handle);
     if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Thread is not a valid handle");
+        LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}", handle);
         return ERR_INVALID_HANDLE;
     }
 
     if (thread->GetOwnerProcess() != current_process) {
-        LOG_ERROR(Kernel_SVC, "Thread owner process is not the current process");
+        LOG_ERROR(Kernel_SVC,
+                  "The current process does not own the current thread, thread_handle={:08X} "
+                  "thread_pid={}, "
+                  "current_process_pid={}",
+                  handle, thread->GetOwnerProcess()->GetProcessID(),
+                  current_process->GetProcessID());
         return ERR_INVALID_HANDLE;
     }
 
     if (thread == GetCurrentThread()) {
-        LOG_ERROR(Kernel_SVC, "Thread is already registered");
+        LOG_ERROR(Kernel_SVC, "The thread handle specified is the current running thread");
         return ERR_ALREADY_REGISTERED;
     }
 
@@ -763,7 +814,7 @@ static ResultCode GetThreadPriority(u32* priority, Handle handle) {
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
     const SharedPtr<Thread> thread = handle_table.Get<Thread>(handle);
     if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread handle");
+        LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}", handle);
         return ERR_INVALID_HANDLE;
     }
 
@@ -776,7 +827,10 @@ static ResultCode SetThreadPriority(Handle handle, u32 priority) {
     LOG_TRACE(Kernel_SVC, "called");
 
     if (priority > THREADPRIO_LOWEST) {
-        LOG_ERROR(Kernel_SVC, "Priority is out of range");
+        LOG_ERROR(
+            Kernel_SVC,
+            "An invalid priority was specified, expected {} but got {} for thread_handle={:08X}",
+            THREADPRIO_LOWEST, priority, handle);
         return ERR_INVALID_THREAD_PRIORITY;
     }
 
@@ -784,7 +838,7 @@ static ResultCode SetThreadPriority(Handle handle, u32 priority) {
 
     SharedPtr<Thread> thread = current_process->GetHandleTable().Get<Thread>(handle);
     if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread handle");
+        LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}", handle);
         return ERR_INVALID_HANDLE;
     }
 
@@ -807,37 +861,46 @@ static ResultCode MapSharedMemory(Handle shared_memory_handle, VAddr addr, u64 s
               shared_memory_handle, addr, size, permissions);
 
     if (!Common::Is4KBAligned(addr)) {
-        LOG_ERROR(Kernel_SVC, "Address is not aligned");
+        LOG_ERROR(Kernel_SVC, "Address is not aligned to 4KB, addr=0x{:016X}", addr);
         return ERR_INVALID_ADDRESS;
     }
 
-    if (size == 0 || !Common::Is4KBAligned(size)) {
-        LOG_ERROR(Kernel_SVC, "Invalid size");
+    if (size == 0) {
+        LOG_ERROR(Kernel_SVC, "Size is 0");
+        return ERR_INVALID_SIZE;
+    }
+
+    if (!Common::Is4KBAligned(size)) {
+        LOG_ERROR(Kernel_SVC, "Size is not aligned to 4KB, size=0x{:016X}", size);
         return ERR_INVALID_SIZE;
     }
 
     if (!IsValidAddressRange(addr, size)) {
-        LOG_ERROR(Kernel_SVC, "Region is not in the address space");
+        LOG_ERROR(Kernel_SVC, "Region is not a valid address range, addr=0x{:016X}, size=0x{:016X}",
+                  addr, size);
         return ERR_INVALID_ADDRESS_STATE;
     }
 
     const auto permissions_type = static_cast<MemoryPermission>(permissions);
     if (permissions_type != MemoryPermission::Read &&
         permissions_type != MemoryPermission::ReadWrite) {
-        LOG_ERROR(Kernel_SVC, "Invalid permissions=0x{:08X}", permissions);
+        LOG_ERROR(Kernel_SVC, "Expected Read or ReadWrite permission but got permissions=0x{:08X}",
+                  permissions);
         return ERR_INVALID_MEMORY_PERMISSIONS;
     }
 
     auto* const current_process = Core::CurrentProcess();
     auto shared_memory = current_process->GetHandleTable().Get<SharedMemory>(shared_memory_handle);
     if (!shared_memory) {
-        LOG_ERROR(Kernel_SVC, "Invalid shared memory handle");
+        LOG_ERROR(Kernel_SVC, "Shared memory does not exist, shared_memory_handle=0x{:08X}",
+                  shared_memory_handle);
         return ERR_INVALID_HANDLE;
     }
 
     const auto& vm_manager = current_process->VMManager();
     if (!vm_manager.IsWithinASLRRegion(addr, size)) {
-        LOG_ERROR(Kernel_SVC, "Region is not within the ASLR region");
+        LOG_ERROR(Kernel_SVC, "Region is not within the ASLR region. addr=0x{:016X}, size={:016X}",
+                  addr, size);
         return ERR_INVALID_MEMORY_RANGE;
     }
 
@@ -849,30 +912,38 @@ static ResultCode UnmapSharedMemory(Handle shared_memory_handle, VAddr addr, u64
                 shared_memory_handle, addr, size);
 
     if (!Common::Is4KBAligned(addr)) {
-        LOG_ERROR(Kernel_SVC, "Address is not aligned");
+        LOG_ERROR(Kernel_SVC, "Address is not aligned to 4KB, addr=0x{:016X}", addr);
         return ERR_INVALID_ADDRESS;
     }
 
-    if (size == 0 || !Common::Is4KBAligned(size)) {
-        LOG_ERROR(Kernel_SVC, "Size is invalid");
+    if (size == 0) {
+        LOG_ERROR(Kernel_SVC, "Size is 0");
+        return ERR_INVALID_SIZE;
+    }
+
+    if (!Common::Is4KBAligned(size)) {
+        LOG_ERROR(Kernel_SVC, "Size is not aligned to 4KB, size=0x{:016X}", size);
         return ERR_INVALID_SIZE;
     }
 
     if (!IsValidAddressRange(addr, size)) {
-        LOG_ERROR(Kernel_SVC, "Region is not in the valid address range");
+        LOG_ERROR(Kernel_SVC, "Region is not a valid address range, addr=0x{:016X}, size=0x{:016X}",
+                  addr, size);
         return ERR_INVALID_ADDRESS_STATE;
     }
 
     auto* const current_process = Core::CurrentProcess();
     auto shared_memory = current_process->GetHandleTable().Get<SharedMemory>(shared_memory_handle);
     if (!shared_memory) {
-        LOG_ERROR(Kernel_SVC, "Shared memory is an invalid handle");
+        LOG_ERROR(Kernel_SVC, "Shared memory does not exist, shared_memory_handle=0x{:08X}",
+                  shared_memory_handle);
         return ERR_INVALID_HANDLE;
     }
 
     const auto& vm_manager = current_process->VMManager();
     if (!vm_manager.IsWithinASLRRegion(addr, size)) {
-        LOG_ERROR(Kernel_SVC, "Region is not within the ASLR region");
+        LOG_ERROR(Kernel_SVC, "Region is not within the ASLR region. addr=0x{:016X}, size={:016X}",
+                  addr, size);
         return ERR_INVALID_MEMORY_RANGE;
     }
 
@@ -886,7 +957,8 @@ static ResultCode QueryProcessMemory(MemoryInfo* memory_info, PageInfo* /*page_i
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
     SharedPtr<Process> process = handle_table.Get<Process>(process_handle);
     if (!process) {
-        LOG_ERROR(Kernel_SVC, "Invalid process handle");
+        LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
+                  process_handle);
         return ERR_INVALID_HANDLE;
     }
     auto vma = process->VMManager().FindVMA(addr);
@@ -936,7 +1008,8 @@ static ResultCode CreateThread(Handle* out_handle, VAddr entry_point, u64 arg, V
               entry_point, name, arg, stack_top, priority, processor_id, *out_handle);
 
     if (priority > THREADPRIO_LOWEST) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread priority");
+        LOG_ERROR(Kernel_SVC, "An invalid priority was specified, expected {} but got {}",
+                  THREADPRIO_LOWEST, priority);
         return ERR_INVALID_THREAD_PRIORITY;
     }
 
@@ -986,7 +1059,8 @@ static ResultCode StartThread(Handle thread_handle) {
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
     const SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
     if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Thread is an invalid handle");
+        LOG_ERROR(Kernel_SVC, "Thread handle does not exist, thread_handle=0x{:08X}",
+                  thread_handle);
         return ERR_INVALID_HANDLE;
     }
 
@@ -1166,12 +1240,12 @@ static ResultCode WaitForAddress(VAddr address, u32 type, s32 value, s64 timeout
                 address, type, value, timeout);
     // If the passed address is a kernel virtual address, return invalid memory state.
     if (Memory::IsKernelVirtualAddress(address)) {
-        LOG_ERROR(Kernel_SVC, "Address is a kernel virtual address");
+        LOG_ERROR(Kernel_SVC, "Address is a kernel virtual address, address={:016X}", address);
         return ERR_INVALID_ADDRESS_STATE;
     }
     // If the address is not properly aligned to 4 bytes, return invalid address.
-    if (address % sizeof(u32) != 0) {
-        LOG_ERROR(Kernel_SVC, "Address is not aligned");
+    if (!Common::IsWordAligned(address)) {
+        LOG_ERROR(Kernel_SVC, "Address is not word aligned, address={:016X}", address);
         return ERR_INVALID_ADDRESS;
     }
 
@@ -1183,7 +1257,10 @@ static ResultCode WaitForAddress(VAddr address, u32 type, s32 value, s64 timeout
     case AddressArbiter::ArbitrationType::WaitIfEqual:
         return AddressArbiter::WaitForAddressIfEqual(address, value, timeout);
     default:
-        LOG_ERROR(Kernel_SVC, "Invalid arbitration type");
+        LOG_ERROR(Kernel_SVC,
+                  "Invalid arbitration type, expected WaitIfLessThan, DecrementAndWaitIfLessThan "
+                  "or WaitIfEqual but got {}",
+                  type);
         return ERR_INVALID_ENUM_VALUE;
     }
 }
@@ -1194,12 +1271,12 @@ static ResultCode SignalToAddress(VAddr address, u32 type, s32 value, s32 num_to
                 address, type, value, num_to_wake);
     // If the passed address is a kernel virtual address, return invalid memory state.
     if (Memory::IsKernelVirtualAddress(address)) {
-        LOG_ERROR(Kernel_SVC, "Address is a kernel virtual address");
+        LOG_ERROR(Kernel_SVC, "Address is a kernel virtual address, address={:016X}", address);
         return ERR_INVALID_ADDRESS_STATE;
     }
     // If the address is not properly aligned to 4 bytes, return invalid address.
-    if (address % sizeof(u32) != 0) {
-        LOG_ERROR(Kernel_SVC, "Address is not aligned");
+    if (!Common::IsWordAligned(address)) {
+        LOG_ERROR(Kernel_SVC, "Address is not word aligned, address={:016X}", address);
         return ERR_INVALID_ADDRESS;
     }
 
@@ -1212,7 +1289,10 @@ static ResultCode SignalToAddress(VAddr address, u32 type, s32 value, s32 num_to
         return AddressArbiter::ModifyByWaitingCountAndSignalToAddressIfEqual(address, value,
                                                                              num_to_wake);
     default:
-        LOG_ERROR(Kernel_SVC, "Invalid arbitration type");
+        LOG_ERROR(Kernel_SVC,
+                  "Invalid signal type, expected Signal, IncrementAndSignalIfEqual "
+                  "or ModifyByWaitingCountAndSignalIfEqual but got {}",
+                  type);
         return ERR_INVALID_ENUM_VALUE;
     }
 }
@@ -1294,7 +1374,8 @@ static ResultCode GetThreadCoreMask(Handle thread_handle, u32* core, u64* mask) 
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
     const SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
     if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Thread is an invalid handle");
+        LOG_ERROR(Kernel_SVC, "Thread handle does not exist, thread_handle=0x{:08X}",
+                  thread_handle);
         return ERR_INVALID_HANDLE;
     }
 
@@ -1311,7 +1392,8 @@ static ResultCode SetThreadCoreMask(Handle thread_handle, u32 core, u64 mask) {
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
     const SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
     if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Thread is an invalid handle");
+        LOG_ERROR(Kernel_SVC, "Thread handle does not exist, thread_handle=0x{:08X}",
+                  thread_handle);
         return ERR_INVALID_HANDLE;
     }
 
@@ -1336,13 +1418,14 @@ static ResultCode SetThreadCoreMask(Handle thread_handle, u32 core, u64 mask) {
     if (core == OnlyChangeMask) {
         core = thread->GetIdealCore();
     } else if (core >= Core::NUM_CPU_CORES && core != static_cast<u32>(-1)) {
-        LOG_ERROR(Kernel_SVC, "Invalid processor ID specified");
+        LOG_ERROR(Kernel_SVC, "Invalid core specified, got {}", core);
         return ERR_INVALID_PROCESSOR_ID;
     }
 
     // Error out if the input core isn't enabled in the input mask.
     if (core < Core::NUM_CPU_CORES && (mask & (1ull << core)) == 0) {
-        LOG_ERROR(Kernel_SVC, "Invalid core and mask");
+        LOG_ERROR(Kernel_SVC, "Core is not enabled for the current mask, core={}, mask={:016X}",
+                  core, mask);
         return ERR_INVALID_COMBINATION;
     }
 
@@ -1358,21 +1441,31 @@ static ResultCode CreateSharedMemory(Handle* handle, u64 size, u32 local_permiss
 
     // Size must be a multiple of 4KB and be less than or equal to
     // approx. 8 GB (actually (1GB - 512B) * 8)
-    if (size == 0 || (size & 0xFFFFFFFE00000FFF) != 0) {
-        LOG_ERROR(Kernel_SVC, "Invalid size");
+    if (size == 0) {
+        LOG_ERROR(Kernel_SVC, "Size is 0");
+    }
+    if ((size & 0xFFFFFFFE00000FFF) != 0) {
+        LOG_ERROR(Kernel_SVC, "Size is not a multiple of 4KB or is greater than 8GB, size={:016X}",
+                  size);
         return ERR_INVALID_SIZE;
     }
 
     const auto local_perms = static_cast<MemoryPermission>(local_permissions);
     if (local_perms != MemoryPermission::Read && local_perms != MemoryPermission::ReadWrite) {
-        LOG_ERROR(Kernel_SVC, "Invalid memory permissions");
+        LOG_ERROR(Kernel_SVC,
+                  "Invalid local memory permissions, expected Read or ReadWrite but got "
+                  "local_permissions={}",
+                  static_cast<u32>(local_permissions));
         return ERR_INVALID_MEMORY_PERMISSIONS;
     }
 
     const auto remote_perms = static_cast<MemoryPermission>(remote_permissions);
     if (remote_perms != MemoryPermission::Read && remote_perms != MemoryPermission::ReadWrite &&
         remote_perms != MemoryPermission::DontCare) {
-        LOG_ERROR(Kernel_SVC, "Invalid memory permissions");
+        LOG_ERROR(Kernel_SVC,
+                  "Invalid remote memory permissions, expected Read, ReadWrite or DontCare but got "
+                  "remote_permissions={}",
+                  static_cast<u32>(remote_permissions));
         return ERR_INVALID_MEMORY_PERMISSIONS;
     }
 
@@ -1392,7 +1485,7 @@ static ResultCode ClearEvent(Handle handle) {
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
     SharedPtr<Event> evt = handle_table.Get<Event>(handle);
     if (evt == nullptr) {
-        LOG_ERROR(Kernel_SVC, "Invalid event handle");
+        LOG_ERROR(Kernel_SVC, "Event handle does not exist, handle=0x{:08X}", handle);
         return ERR_INVALID_HANDLE;
     }
 
@@ -1411,13 +1504,14 @@ static ResultCode GetProcessInfo(u64* out, Handle process_handle, u32 type) {
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
     const auto process = handle_table.Get<Process>(process_handle);
     if (!process) {
-        LOG_ERROR(Kernel_SVC, "Invalid process handle");
+        LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
+                  process_handle);
         return ERR_INVALID_HANDLE;
     }
 
     const auto info_type = static_cast<InfoType>(type);
     if (info_type != InfoType::Status) {
-        LOG_ERROR(Kernel_SVC, "Info type is not status");
+        LOG_ERROR(Kernel_SVC, "Expected info_type to be Status but got {} instead", type);
         return ERR_INVALID_ENUM_VALUE;
     }
 
