@@ -13,7 +13,6 @@
 
 namespace Service::Account {
 constexpr std::size_t MAX_USERS = 8;
-constexpr std::size_t MAX_DATA = 128;
 constexpr u128 INVALID_UUID{{0, 0}};
 
 struct UUID {
@@ -50,8 +49,19 @@ static_assert(sizeof(UUID) == 16, "UUID is an invalid size!");
 
 constexpr std::size_t profile_username_size = 32;
 using ProfileUsername = std::array<u8, profile_username_size>;
-using ProfileData = std::array<u8, MAX_DATA>;
 using UserIDArray = std::array<UUID, MAX_USERS>;
+
+/// Contains extra data related to a user.
+/// TODO: RE this structure
+struct ProfileData {
+    INSERT_PADDING_WORDS(1);
+    u32 icon_id;
+    u8 bg_color_id;
+    INSERT_PADDING_BYTES(0x7);
+    INSERT_PADDING_BYTES(0x10);
+    INSERT_PADDING_BYTES(0x60);
+};
+static_assert(sizeof(ProfileData) == 0x80, "ProfileData structure has incorrect size");
 
 /// This holds general information about a users profile. This is where we store all the information
 /// based on a specific user
