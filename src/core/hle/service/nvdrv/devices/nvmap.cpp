@@ -79,12 +79,12 @@ u32 nvmap::IocAlloc(const std::vector<u8>& input, std::vector<u8>& output) {
     LOG_DEBUG(Service_NVDRV, "called, addr={:X}", params.addr);
 
     if (!params.handle) {
-        LOG_ERROR(Service_NVDRV, "Handle is zero");
+        LOG_ERROR(Service_NVDRV, "Handle is 0");
         return static_cast<u32>(NvErrCodes::InvalidValue);
     }
 
     if ((params.align - 1) & params.align) {
-        LOG_ERROR(Service_NVDRV, "Incorrect alignment");
+        LOG_ERROR(Service_NVDRV, "Incorrect alignment used, alignment={:08X}", params.align);
         return static_cast<u32>(NvErrCodes::InvalidValue);
     }
 
@@ -95,12 +95,12 @@ u32 nvmap::IocAlloc(const std::vector<u8>& input, std::vector<u8>& output) {
 
     auto object = GetObject(params.handle);
     if (!object) {
-        LOG_ERROR(Service_NVDRV, "Object does not exist");
+        LOG_ERROR(Service_NVDRV, "Object does not exist, handle={:08X}", params.handle);
         return static_cast<u32>(NvErrCodes::InvalidValue);
     }
 
     if (object->status == Object::Status::Allocated) {
-        LOG_ERROR(Service_NVDRV, "Object is already allocated");
+        LOG_ERROR(Service_NVDRV, "Object is already allocated, handle={:08X}", params.handle);
         return static_cast<u32>(NvErrCodes::OperationNotPermitted);
     }
 
@@ -127,7 +127,7 @@ u32 nvmap::IocGetId(const std::vector<u8>& input, std::vector<u8>& output) {
 
     auto object = GetObject(params.handle);
     if (!object) {
-        LOG_ERROR(Service_NVDRV, "Object does not exist");
+        LOG_ERROR(Service_NVDRV, "Object does not exist, handle={:08X}", params.handle);
         return static_cast<u32>(NvErrCodes::OperationNotPermitted);
     }
 
@@ -146,13 +146,13 @@ u32 nvmap::IocFromId(const std::vector<u8>& input, std::vector<u8>& output) {
     auto itr = std::find_if(handles.begin(), handles.end(),
                             [&](const auto& entry) { return entry.second->id == params.id; });
     if (itr == handles.end()) {
-        LOG_ERROR(Service_NVDRV, "Object does not exist");
+        LOG_ERROR(Service_NVDRV, "Object does not exist, handle={:08X}", params.handle);
         return static_cast<u32>(NvErrCodes::InvalidValue);
     }
 
     auto& object = itr->second;
     if (object->status != Object::Status::Allocated) {
-        LOG_ERROR(Service_NVDRV, "Object is not allocated");
+        LOG_ERROR(Service_NVDRV, "Object is not allocated, handle={:08X}", params.handle);
         return static_cast<u32>(NvErrCodes::InvalidValue);
     }
 
@@ -175,12 +175,12 @@ u32 nvmap::IocParam(const std::vector<u8>& input, std::vector<u8>& output) {
 
     auto object = GetObject(params.handle);
     if (!object) {
-        LOG_ERROR(Service_NVDRV, "Object does not exist");
+        LOG_ERROR(Service_NVDRV, "Object does not exist, handle={:08X}", params.handle);
         return static_cast<u32>(NvErrCodes::InvalidValue);
     }
 
     if (object->status != Object::Status::Allocated) {
-        LOG_ERROR(Service_NVDRV, "Object is not allocated");
+        LOG_ERROR(Service_NVDRV, "Object is not allocated, handle={:08X}", params.handle);
         return static_cast<u32>(NvErrCodes::OperationNotPermitted);
     }
 
@@ -220,12 +220,14 @@ u32 nvmap::IocFree(const std::vector<u8>& input, std::vector<u8>& output) {
 
     auto itr = handles.find(params.handle);
     if (itr == handles.end()) {
-        LOG_ERROR(Service_NVDRV, "Object does not exist");
+        LOG_ERROR(Service_NVDRV, "Object does not exist, handle={:08X}", params.handle);
         return static_cast<u32>(NvErrCodes::InvalidValue);
     }
     if (!itr->second->refcount) {
-        LOG_ERROR(Service_NVDRV,
-                  "There is no references to this object. The object is already freed");
+        LOG_ERROR(
+            Service_NVDRV,
+            "There is no references to this object. The object is already freed. handle={:08X}",
+            params.handle);
         return static_cast<u32>(NvErrCodes::InvalidValue);
     }
 

@@ -95,13 +95,15 @@ private:
         const auto start_time = std::chrono::high_resolution_clock::now();
         std::size_t raw_output_sz = output.size() * sizeof(opus_int16);
         if (sizeof(OpusHeader) > input.size()) {
-            LOG_ERROR(Audio, "Input is smaller than the header size");
+            LOG_ERROR(Audio, "Input is smaller than the header size, header_sz={}, input_sz={}",
+                      sizeof(OpusHeader), input.size());
             return false;
         }
         OpusHeader hdr{};
         std::memcpy(&hdr, input.data(), sizeof(OpusHeader));
         if (sizeof(OpusHeader) + static_cast<u32>(hdr.sz) > input.size()) {
-            LOG_ERROR(Audio, "Input does not fit in the opus header size");
+            LOG_ERROR(Audio, "Input does not fit in the opus header size. data_sz={}, input_sz={}",
+                      sizeof(OpusHeader) + static_cast<u32>(hdr.sz), input.size());
             return false;
         }
         auto frame = input.data() + sizeof(OpusHeader);
@@ -109,14 +111,20 @@ private:
             frame, static_cast<opus_int32>(input.size() - sizeof(OpusHeader)),
             static_cast<opus_int32>(sample_rate));
         if (decoded_sample_count * channel_count * sizeof(u16) > raw_output_sz) {
-            LOG_ERROR(Audio, "Decoded data does not fit into the output data");
+            LOG_ERROR(
+                Audio,
+                "Decoded data does not fit into the output data, decoded_sz={}, raw_output_sz={}",
+                decoded_sample_count * channel_count * sizeof(u16), raw_output_sz);
             return false;
         }
+        const int frame_size = (static_cast<int>(raw_output_sz / sizeof(s16) / channel_count));
         auto out_sample_count =
-            opus_decode(decoder.get(), frame, hdr.sz, output.data(),
-                        (static_cast<int>(raw_output_sz / sizeof(s16) / channel_count)), 0);
+            opus_decode(decoder.get(), frame, hdr.sz, output.data(), frame_size, 0);
         if (out_sample_count < 0) {
-            LOG_ERROR(Audio, "Incorrect sample count received from opus_decode");
+            LOG_ERROR(Audio,
+                      "Incorrect sample count received from opus_decode, "
+                      "output_sample_count={}, frame_size={}, data_sz_from_hdr={}",
+                      out_sample_count, frame_size, hdr.sz);
             return false;
         }
         const auto end_time = std::chrono::high_resolution_clock::now() - start_time;
@@ -181,8 +189,8 @@ void HwOpus::OpenOpusDecoder(Kernel::HLERequestContext& ctx) {
     ASSERT_MSG(buffer_sz >= worker_sz, "Worker buffer too large");
     std::unique_ptr<OpusDecoder, OpusDeleter> decoder{
         static_cast<OpusDecoder*>(operator new(worker_sz))};
-    if (opus_decoder_init(decoder.get(), sample_rate, channel_count)) {
-        LOG_ERROR(Audio, "Failed to init opus decoder");
+    if (const int err = opus_decoder_init(decoder.get(), sample_rate, channel_count)) {
+        LOG_ERROR(Audio, "Failed to init opus decoder with error={}", err);
         IPC::ResponseBuilder rb{ctx, 2};
         // TODO(ogniK): Use correct error code
         rb.Push(ResultCode(-1));

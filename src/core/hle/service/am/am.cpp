@@ -616,7 +616,7 @@ private:
 
         const auto storage = applet->GetBroker().PopNormalDataToGame();
         if (storage == nullptr) {
-            LOG_ERROR(Service_AM, "storage is a nullptr");
+            LOG_ERROR(Service_AM, "storage is a nullptr. There is no data in the current channel");
 
             rb.Push(ERR_NO_DATA_IN_CHANNEL);
             return;
@@ -647,7 +647,7 @@ private:
 
         const auto storage = applet->GetBroker().PopInteractiveDataToGame();
         if (storage == nullptr) {
-            LOG_ERROR(Service_AM, "storage is a nullptr");
+            LOG_ERROR(Service_AM, "storage is a nullptr. There is no data in the current channel");
 
             rb.Push(ERR_NO_DATA_IN_CHANNEL);
             return;
@@ -718,7 +718,9 @@ void IStorageAccessor::Write(Kernel::HLERequestContext& ctx) {
     const std::vector<u8> data{ctx.ReadBuffer()};
 
     if (data.size() > backing.buffer.size() - offset) {
-        LOG_ERROR(Service_AM, "offset is out of bounds");
+        LOG_ERROR(Service_AM,
+                  "offset is out of bounds, backing_buffer_sz={}, data_size={}, offset={}",
+                  backing.buffer.size(), data.size(), offset);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ERR_SIZE_OUT_OF_BOUNDS);
@@ -739,7 +741,8 @@ void IStorageAccessor::Read(Kernel::HLERequestContext& ctx) {
     const std::size_t size{ctx.GetWriteBufferSize()};
 
     if (size > backing.buffer.size() - offset) {
-        LOG_ERROR(Service_AM, "offset is out of bounds");
+        LOG_ERROR(Service_AM, "offset is out of bounds, backing_buffer_sz={}, size={}, offset={}",
+                  backing.buffer.size(), size, offset);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ERR_SIZE_OUT_OF_BOUNDS);
@@ -787,7 +790,7 @@ void ILibraryAppletCreator::CreateLibraryApplet(Kernel::HLERequestContext& ctx) 
     const auto applet = GetAppletFromId(applet_id);
 
     if (applet == nullptr) {
-        LOG_ERROR(Service_AM, "Applet doesn't exist!");
+        LOG_ERROR(Service_AM, "Applet doesn't exist! applet_id={}", static_cast<u32>(applet_id));
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultCode(-1));
@@ -825,7 +828,7 @@ void ILibraryAppletCreator::CreateTransferMemoryStorage(Kernel::HLERequestContex
             handle);
 
     if (shared_mem == nullptr) {
-        LOG_ERROR(Service_AM, "shared_mem is a nullpr");
+        LOG_ERROR(Service_AM, "shared_mem is a nullpr for handle={:08X}", handle);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultCode(-1));
         return;
