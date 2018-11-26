@@ -124,7 +124,7 @@ private:
             LOG_ERROR(Audio,
                       "Incorrect sample count received from opus_decode, "
                       "output_sample_count={}, frame_size={}, data_sz_from_hdr={}",
-                      out_sample_count, frame_size, hdr.sz);
+                      out_sample_count, frame_size, static_cast<u32>(hdr.sz));
             return false;
         }
         const auto end_time = std::chrono::high_resolution_clock::now() - start_time;
