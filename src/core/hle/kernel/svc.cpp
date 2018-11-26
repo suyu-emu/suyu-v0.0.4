@@ -1346,6 +1346,24 @@ static ResultCode GetProcessInfo(u64* out, Handle process_handle, u32 type) {
     return RESULT_SUCCESS;
 }
 
+static ResultCode CreateResourceLimit(Handle* out_handle) {
+    LOG_DEBUG(Kernel_SVC, "called");
+
+    auto& kernel = Core::System::GetInstance().Kernel();
+    auto resource_limit = ResourceLimit::Create(kernel);
+
+    auto* const current_process = kernel.CurrentProcess();
+    ASSERT(current_process != nullptr);
+
+    const auto handle = current_process->GetHandleTable().Create(std::move(resource_limit));
+    if (handle.Failed()) {
+        return handle.Code();
+    }
+
+    *out_handle = *handle;
+    return RESULT_SUCCESS;
+}
+
 namespace {
 struct FunctionDef {
     using Func = void();
@@ -1482,7 +1500,7 @@ static const FunctionDef SVC_Table[] = {
     {0x7A, nullptr, "StartProcess"},
     {0x7B, nullptr, "TerminateProcess"},
     {0x7C, SvcWrap<GetProcessInfo>, "GetProcessInfo"},
-    {0x7D, nullptr, "CreateResourceLimit"},
+    {0x7D, SvcWrap<CreateResourceLimit>, "CreateResourceLimit"},
     {0x7E, nullptr, "SetResourceLimitLimitValue"},
     {0x7F, nullptr, "CallSecureMonitor"},
 };
