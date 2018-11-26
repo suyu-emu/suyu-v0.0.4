@@ -1364,6 +1364,33 @@ static ResultCode CreateResourceLimit(Handle* out_handle) {
     return RESULT_SUCCESS;
 }
 
+static ResultCode GetResourceLimitLimitValue(u64* out_value, Handle resource_limit,
+                                             u32 resource_type) {
+    LOG_DEBUG(Kernel_SVC, "called. Handle={:08X}, Resource type={}", resource_limit, resource_type);
+
+    const auto type = static_cast<ResourceType>(resource_type);
+    if (!IsValidResourceType(type)) {
+        LOG_ERROR(Kernel_SVC, "Invalid resource limit type: '{}'.", resource_type);
+        return ERR_INVALID_ENUM_VALUE;
+    }
+
+    const auto& kernel = Core::System::GetInstance().Kernel();
+    const auto* const current_process = kernel.CurrentProcess();
+    ASSERT(current_process != nullptr);
+
+    const auto resource_limit_object =
+        current_process->GetHandleTable().Get<ResourceLimit>(resource_limit);
+    if (!resource_limit_object) {
+        LOG_ERROR(Kernel_SVC, "Handle to non-existent resource limit instance used. Handle={:08X}",
+                  resource_limit);
+        return ERR_INVALID_HANDLE;
+    }
+
+    const s64 limit_value = resource_limit_object->GetMaxResourceValue(type);
+    *out_value = static_cast<u64>(limit_value);
+    return RESULT_SUCCESS;
+}
+
 namespace {
 struct FunctionDef {
     using Func = void();
@@ -1423,7 +1450,7 @@ static const FunctionDef SVC_Table[] = {
     {0x2D, nullptr, "UnmapPhysicalMemory"},
     {0x2E, nullptr, "GetFutureThreadInfo"},
     {0x2F, nullptr, "GetLastThreadInfo"},
-    {0x30, nullptr, "GetResourceLimitLimitValue"},
+    {0x30, SvcWrap<GetResourceLimitLimitValue>, "GetResourceLimitLimitValue"},
     {0x31, nullptr, "GetResourceLimitCurrentValue"},
     {0x32, SvcWrap<SetThreadActivity>, "SetThreadActivity"},
     {0x33, SvcWrap<GetThreadContext>, "GetThreadContext"},

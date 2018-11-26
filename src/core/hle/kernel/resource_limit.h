@@ -14,7 +14,7 @@ namespace Kernel {
 
 class KernelCore;
 
-enum class ResourceType {
+enum class ResourceType : u32 {
     PhysicalMemory,
     Threads,
     Events,
@@ -24,6 +24,10 @@ enum class ResourceType {
     // Used as a count, not an actual type.
     ResourceTypeCount
 };
+
+constexpr bool IsValidResourceType(ResourceType type) {
+    return type < ResourceType::ResourceTypeCount;
+}
 
 class ResourceLimit final : public Object {
 public:
