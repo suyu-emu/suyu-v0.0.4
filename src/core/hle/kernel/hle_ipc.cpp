@@ -15,13 +15,14 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/event.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/server_session.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/memory.h"
 
 namespace Kernel {
@@ -36,11 +37,9 @@ void SessionRequestHandler::ClientDisconnected(const SharedPtr<ServerSession>& s
     boost::range::remove_erase(connected_sessions, server_session);
 }
 
-SharedPtr<Event> HLERequestContext::SleepClientThread(SharedPtr<Thread> thread,
-                                                      const std::string& reason, u64 timeout,
-                                                      WakeupCallback&& callback,
-                                                      Kernel::SharedPtr<Kernel::Event> event) {
-
+SharedPtr<WritableEvent> HLERequestContext::SleepClientThread(
+    SharedPtr<Thread> thread, const std::string& reason, u64 timeout, WakeupCallback&& callback,
+    SharedPtr<WritableEvent> writable_event, SharedPtr<ReadableEvent> readable_event) {
     // Put the client thread to sleep until the wait event is signaled or the timeout expires.
     thread->SetWakeupCallback([context = *this, callback](
                                   ThreadWakeupReason reason, SharedPtr<Thread> thread,
@@ -51,23 +50,23 @@ SharedPtr<Event> HLERequestContext::SleepClientThread(SharedPtr<Thread> thread,
         return true;
     });
 
-    if (!event) {
+    auto& kernel = Core::System::GetInstance().Kernel();
+    if (!writable_event || !readable_event) {
         // Create event if not provided
-        auto& kernel = Core::System::GetInstance().Kernel();
-        event =
-            Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "HLE Pause Event: " + reason);
+        std::tie(writable_event, readable_event) = WritableEvent::CreateEventPair(
+            kernel, Kernel::ResetType::OneShot, "HLE Pause Event: " + reason);
     }
 
-    event->Clear();
+    writable_event->Clear();
     thread->SetStatus(ThreadStatus::WaitHLEEvent);
-    thread->SetWaitObjects({event});
-    event->AddWaitingThread(thread);
+    thread->SetWaitObjects({readable_event});
+    readable_event->AddWaitingThread(thread);
 
     if (timeout > 0) {
         thread->WakeAfterDelay(timeout);
     }
 
-    return event;
+    return writable_event;
 }
 
 HLERequestContext::HLERequestContext(SharedPtr<Kernel::ServerSession> server_session)
