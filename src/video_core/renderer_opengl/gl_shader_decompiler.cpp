@@ -3401,6 +3401,10 @@ private:
                 regs.SetRegisterToInteger(instr.gpr0, false, 0, predicate + " ? 0xFFFFFFFF : 0", 1,
                                           1);
             }
+            if (instr.generates_cc.Value() != 0) {
+                regs.SetInternalFlag(InternalFlag::ZeroFlag, predicate);
+                LOG_WARNING(HW_GPU, "FSET Condition Code is incomplete");
+            }
             break;
         }
         case OpCode::Type::IntegerSet: {
@@ -3682,11 +3686,17 @@ private:
                                      "BRA with constant buffers are not implemented");
 
                 const Tegra::Shader::ConditionCode cc = instr.flow_condition_code;
-                UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ConditionCode::T,
-                                     "BRA condition code used: {}", static_cast<u32>(cc));
-
                 const u32 target = offset + instr.bra.GetBranchTarget();
-                shader.AddLine("{ jmp_to = " + std::to_string(target) + "u; break; }");
+                if (cc != Tegra::Shader::ConditionCode::T) {
+                    const std::string condition_code = regs.GetConditionCode(cc);
+                    shader.AddLine("if (" + condition_code + "){");
+                    shader.scope++;
+                    shader.AddLine("{ jmp_to = " + std::to_string(target) + "u; break; }");
+                    shader.scope--;
+                    shader.AddLine('}');
+                } else {
+                    shader.AddLine("{ jmp_to = " + std::to_string(target) + "u; break; }");
+                }
                 break;
             }
             case OpCode::Id::IPA: {
