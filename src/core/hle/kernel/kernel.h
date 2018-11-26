@@ -20,6 +20,7 @@ namespace Kernel {
 class ClientPort;
 class HandleTable;
 class Process;
+class ReadableEvent;
 class ResourceLimit;
 class Thread;
 class Timer;
@@ -27,6 +28,7 @@ class Timer;
 /// Represents a single instance of the kernel.
 class KernelCore {
 private:
+    using NamedEventTable = std::unordered_map<std::string, SharedPtr<ReadableEvent>>;
     using NamedPortTable = std::unordered_map<std::string, SharedPtr<ClientPort>>;
 
 public:
@@ -65,6 +67,15 @@ public:
 
     /// Retrieves a const pointer to the current process.
     const Process* CurrentProcess() const;
+
+    /// Adds an event to the named event table
+    void AddNamedEvent(std::string name, SharedPtr<ReadableEvent> event);
+
+    /// Finds an event within the named event table wit the given name.
+    NamedEventTable::iterator FindNamedEvent(const std::string& name);
+
+    /// Finds an event within the named event table wit the given name.
+    NamedEventTable::const_iterator FindNamedEvent(const std::string& name) const;
 
     /// Adds a port to the named port table
     void AddNamedPort(std::string name, SharedPtr<ClientPort> port);
