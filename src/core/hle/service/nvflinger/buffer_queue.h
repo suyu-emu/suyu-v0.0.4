@@ -10,11 +10,16 @@
 #include "common/common_funcs.h"
 #include "common/math_util.h"
 #include "common/swap.h"
-#include "core/hle/kernel/event.h"
+#include "core/hle/kernel/object.h"
 
 namespace CoreTiming {
 struct EventType;
 }
+
+namespace Kernel {
+class ReadableEvent;
+class WritableEvent;
+} // namespace Kernel
 
 namespace Service::NVFlinger {
 
@@ -86,16 +91,16 @@ public:
         return id;
     }
 
-    Kernel::SharedPtr<Kernel::Event> GetBufferWaitEvent() const {
-        return buffer_wait_event;
-    }
+    Kernel::SharedPtr<Kernel::WritableEvent> GetWritableBufferWaitEvent() const;
+
+    Kernel::SharedPtr<Kernel::ReadableEvent> GetBufferWaitEvent() const;
 
 private:
     u32 id;
     u64 layer_id;
 
     std::vector<Buffer> queue;
-    Kernel::SharedPtr<Kernel::Event> buffer_wait_event;
+    Kernel::SharedPtr<Kernel::WritableEvent> buffer_wait_event;
 };
 
 } // namespace Service::NVFlinger

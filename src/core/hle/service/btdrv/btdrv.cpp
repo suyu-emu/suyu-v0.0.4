@@ -4,8 +4,10 @@
 
 #include "common/logging/log.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/event.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/btdrv/btdrv.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
@@ -30,20 +32,22 @@ public:
         };
         // clang-format on
         RegisterHandlers(functions);
+
+        auto& kernel = Core::System::GetInstance().Kernel();
+        register_event = Kernel::WritableEvent::CreateRegisteredEventPair(
+            kernel, Kernel::ResetType::OneShot, "BT:RegisterEvent");
     }
 
 private:
     void RegisterEvent(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_BTM, "(STUBBED) called");
 
-        auto& kernel = Core::System::GetInstance().Kernel();
-        register_event =
-            Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "BT:RegisterEvent");
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(register_event);
+        const auto& event{Core::System::GetInstance().Kernel().FindNamedEvent("BT:RegisterEvent")};
+        rb.PushCopyObjects(event->second);
     }
-    Kernel::SharedPtr<Kernel::Event> register_event;
+    Kernel::SharedPtr<Kernel::WritableEvent> register_event;
 };
 
 class BtDrv final : public ServiceFramework<BtDrv> {

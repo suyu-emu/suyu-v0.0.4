@@ -6,8 +6,10 @@
 
 #include "common/logging/log.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/event.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/btm/btm.h"
 #include "core/hle/service/service.h"
 
@@ -53,53 +55,64 @@ public:
         };
         // clang-format on
         RegisterHandlers(functions);
+
+        auto& kernel = Core::System::GetInstance().Kernel();
+        scan_event = Kernel::WritableEvent::CreateRegisteredEventPair(
+            kernel, Kernel::ResetType::OneShot, "IBtmUserCore:ScanEvent");
+        connection_event = Kernel::WritableEvent::CreateRegisteredEventPair(
+            kernel, Kernel::ResetType::OneShot, "IBtmUserCore:ConnectionEvent");
+        service_discovery = Kernel::WritableEvent::CreateRegisteredEventPair(
+            kernel, Kernel::ResetType::OneShot, "IBtmUserCore:Discovery");
+        config_event = Kernel::WritableEvent::CreateRegisteredEventPair(
+            kernel, Kernel::ResetType::OneShot, "IBtmUserCore:ConfigEvent");
     }
 
 private:
     void GetScanEvent(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_BTM, "(STUBBED) called");
 
-        auto& kernel = Core::System::GetInstance().Kernel();
-        scan_event =
-            Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "IBtmUserCore:ScanEvent");
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(scan_event);
+
+        const auto& event{
+            Core::System::GetInstance().Kernel().FindNamedEvent("IBtmUserCore:ScanEvent")};
+        rb.PushCopyObjects(event->second);
     }
     void GetConnectionEvent(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_BTM, "(STUBBED) called");
 
-        auto& kernel = Core::System::GetInstance().Kernel();
-        connection_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
-                                                 "IBtmUserCore:ConnectionEvent");
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(connection_event);
+
+        const auto& event{
+            Core::System::GetInstance().Kernel().FindNamedEvent("IBtmUserCore:ConnectionEvent")};
+        rb.PushCopyObjects(event->second);
     }
     void GetDiscoveryEvent(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_BTM, "(STUBBED) called");
 
-        auto& kernel = Core::System::GetInstance().Kernel();
-        service_discovery =
-            Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "IBtmUserCore:Discovery");
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(service_discovery);
+
+        const auto& event{
+            Core::System::GetInstance().Kernel().FindNamedEvent("IBtmUserCore:Discovery")};
+        rb.PushCopyObjects(event->second);
     }
     void GetConfigEvent(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_BTM, "(STUBBED) called");
 
-        auto& kernel = Core::System::GetInstance().Kernel();
-        config_event =
-            Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "IBtmUserCore:ConfigEvent");
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(config_event);
+
+        const auto& event{
+            Core::System::GetInstance().Kernel().FindNamedEvent("IBtmUserCore:ConfigEvent")};
+        rb.PushCopyObjects(event->second);
     }
-    Kernel::SharedPtr<Kernel::Event> scan_event;
-    Kernel::SharedPtr<Kernel::Event> connection_event;
-    Kernel::SharedPtr<Kernel::Event> service_discovery;
-    Kernel::SharedPtr<Kernel::Event> config_event;
+
+    Kernel::SharedPtr<Kernel::WritableEvent> scan_event;
+    Kernel::SharedPtr<Kernel::WritableEvent> connection_event;
+    Kernel::SharedPtr<Kernel::WritableEvent> service_discovery;
+    Kernel::SharedPtr<Kernel::WritableEvent> config_event;
 };
 
 class BTM_USR final : public ServiceFramework<BTM_USR> {

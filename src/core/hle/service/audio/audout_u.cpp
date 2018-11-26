@@ -13,8 +13,10 @@
 #include "common/swap.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/event.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/audio/audout_u.h"
 #include "core/memory.h"
 
@@ -67,8 +69,8 @@ public:
 
         // This is the event handle used to check if the audio buffer was released
         auto& kernel = Core::System::GetInstance().Kernel();
-        buffer_event =
-            Kernel::Event::Create(kernel, Kernel::ResetType::Sticky, "IAudioOutBufferReleased");
+        buffer_event = Kernel::WritableEvent::CreateRegisteredEventPair(
+            kernel, Kernel::ResetType::Sticky, "IAudioOutBufferReleased");
 
         stream = audio_core.OpenStream(audio_params.sample_rate, audio_params.channel_count,
                                        std::move(unique_name), [=]() { buffer_event->Signal(); });
@@ -121,7 +123,9 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(buffer_event);
+        const auto& event{
+            Core::System::GetInstance().Kernel().FindNamedEvent("IAudioOutBufferReleased")};
+        rb.PushCopyObjects(event->second);
     }
 
     void AppendAudioOutBufferImpl(Kernel::HLERequestContext& ctx) {
@@ -188,7 +192,7 @@ private:
     AudoutParams audio_params{};
 
     /// This is the evend handle used to check if the audio buffer was released
-    Kernel::SharedPtr<Kernel::Event> buffer_event;
+    Kernel::SharedPtr<Kernel::WritableEvent> buffer_event;
 };
 
 void AudOutU::ListAudioOutsImpl(Kernel::HLERequestContext& ctx) {

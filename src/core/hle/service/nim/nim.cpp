@@ -6,7 +6,9 @@
 #include <ctime>
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/event.h"
+#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nim/nim.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
@@ -138,13 +140,13 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = Core::System::GetInstance().Kernel();
-        finished_event =
-            Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
-                                  "IEnsureNetworkClockAvailabilityService:FinishEvent");
+        finished_event = Kernel::WritableEvent::CreateRegisteredEventPair(
+            kernel, Kernel::ResetType::OneShot,
+            "IEnsureNetworkClockAvailabilityService:FinishEvent");
     }
 
 private:
-    Kernel::SharedPtr<Kernel::Event> finished_event;
+    Kernel::SharedPtr<Kernel::WritableEvent> finished_event;
 
     void StartTask(Kernel::HLERequestContext& ctx) {
         // No need to connect to the internet, just finish the task straight away.
@@ -160,7 +162,9 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(finished_event);
+        const auto& event{Core::System::GetInstance().Kernel().FindNamedEvent(
+            "IEnsureNetworkClockAvailabilityService:FinishEvent")};
+        rb.PushCopyObjects(event->second);
     }
 
     void GetResult(Kernel::HLERequestContext& ctx) {

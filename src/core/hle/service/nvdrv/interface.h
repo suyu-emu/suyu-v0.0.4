@@ -5,9 +5,12 @@
 #pragma once
 
 #include <memory>
-#include "core/hle/kernel/event.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/service.h"
+
+namespace Kernel {
+class WritableEvent;
+}
 
 namespace Service::Nvidia {
 
@@ -31,7 +34,7 @@ private:
 
     u64 pid{};
 
-    Kernel::SharedPtr<Kernel::Event> query_event;
+    Kernel::SharedPtr<Kernel::WritableEvent> query_event;
 };
 
 } // namespace Service::Nvidia

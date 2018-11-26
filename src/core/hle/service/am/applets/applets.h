@@ -12,8 +12,9 @@
 union ResultCode;
 
 namespace Kernel {
-class Event;
-}
+class ReadableEvent;
+class WritableEvent;
+} // namespace Kernel
 
 namespace Service::AM {
 
@@ -40,9 +41,9 @@ public:
 
     void SignalStateChanged() const;
 
-    Kernel::SharedPtr<Kernel::Event> GetNormalDataEvent() const;
-    Kernel::SharedPtr<Kernel::Event> GetInteractiveDataEvent() const;
-    Kernel::SharedPtr<Kernel::Event> GetStateChangedEvent() const;
+    Kernel::SharedPtr<Kernel::ReadableEvent> GetNormalDataEvent() const;
+    Kernel::SharedPtr<Kernel::ReadableEvent> GetInteractiveDataEvent() const;
+    Kernel::SharedPtr<Kernel::ReadableEvent> GetStateChangedEvent() const;
 
 private:
     // Queues are named from applet's perspective
@@ -59,13 +60,13 @@ private:
     // PopInteractiveDataToGame and PushInteractiveDataFromApplet
     std::queue<std::unique_ptr<IStorage>> out_interactive_channel;
 
-    Kernel::SharedPtr<Kernel::Event> state_changed_event;
+    Kernel::SharedPtr<Kernel::WritableEvent> state_changed_event;
 
     // Signaled on PushNormalDataFromApplet
-    Kernel::SharedPtr<Kernel::Event> pop_out_data_event;
+    Kernel::SharedPtr<Kernel::WritableEvent> pop_out_data_event;
 
     // Signaled on PushInteractiveDataFromApplet
-    Kernel::SharedPtr<Kernel::Event> pop_interactive_out_data_event;
+    Kernel::SharedPtr<Kernel::WritableEvent> pop_interactive_out_data_event;
 };
 
 class Applet {

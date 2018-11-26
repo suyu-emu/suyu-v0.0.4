@@ -5,8 +5,9 @@
 #include <cstring>
 #include "common/assert.h"
 #include "core/core.h"
-#include "core/hle/kernel/event.h"
+#include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/server_port.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/applets.h"
 
@@ -14,11 +15,11 @@ namespace Service::AM::Applets {
 
 AppletDataBroker::AppletDataBroker() {
     auto& kernel = Core::System::GetInstance().Kernel();
-    state_changed_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
-                                                "ILibraryAppletAccessor:StateChangedEvent");
-    pop_out_data_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
-                                               "ILibraryAppletAccessor:PopDataOutEvent");
-    pop_interactive_out_data_event = Kernel::Event::Create(
+    state_changed_event = Kernel::WritableEvent::CreateRegisteredEventPair(
+        kernel, Kernel::ResetType::OneShot, "ILibraryAppletAccessor:StateChangedEvent");
+    pop_out_data_event = Kernel::WritableEvent::CreateRegisteredEventPair(
+        kernel, Kernel::ResetType::OneShot, "ILibraryAppletAccessor:PopDataOutEvent");
+    pop_interactive_out_data_event = Kernel::WritableEvent::CreateRegisteredEventPair(
         kernel, Kernel::ResetType::OneShot, "ILibraryAppletAccessor:PopInteractiveDataOutEvent");
 }
 
@@ -82,16 +83,22 @@ void AppletDataBroker::SignalStateChanged() const {
     state_changed_event->Signal();
 }
 
-Kernel::SharedPtr<Kernel::Event> AppletDataBroker::GetNormalDataEvent() const {
-    return pop_out_data_event;
+Kernel::SharedPtr<Kernel::ReadableEvent> AppletDataBroker::GetNormalDataEvent() const {
+    const auto& event{Core::System::GetInstance().Kernel().FindNamedEvent(
+        "ILibraryAppletAccessor:PopDataOutEvent")};
+    return event->second;
 }
 
-Kernel::SharedPtr<Kernel::Event> AppletDataBroker::GetInteractiveDataEvent() const {
-    return pop_interactive_out_data_event;
+Kernel::SharedPtr<Kernel::ReadableEvent> AppletDataBroker::GetInteractiveDataEvent() const {
+    const auto& event{Core::System::GetInstance().Kernel().FindNamedEvent(
+        "ILibraryAppletAccessor:PopInteractiveDataOutEvent")};
+    return event->second;
 }
 
-Kernel::SharedPtr<Kernel::Event> AppletDataBroker::GetStateChangedEvent() const {
-    return state_changed_event;
+Kernel::SharedPtr<Kernel::ReadableEvent> AppletDataBroker::GetStateChangedEvent() const {
+    const auto& event{Core::System::GetInstance().Kernel().FindNamedEvent(
+        "ILibraryAppletAccessor:StateChangedEvent")};
+    return event->second;
 }
 
 Applet::Applet() = default;

@@ -10,11 +10,16 @@
 #include <vector>
 
 #include "common/common_types.h"
-#include "core/hle/kernel/event.h"
+#include "core/hle/kernel/object.h"
 
 namespace CoreTiming {
 struct EventType;
 }
+
+namespace Kernel {
+class ReadableEvent;
+class WritableEvent;
+} // namespace Kernel
 
 namespace Service::Nvidia {
 class Module;
@@ -40,7 +45,7 @@ struct Display {
     std::string name;
 
     std::vector<Layer> layers;
-    Kernel::SharedPtr<Kernel::Event> vsync_event;
+    Kernel::SharedPtr<Kernel::WritableEvent> vsync_event;
 };
 
 class NVFlinger final {
@@ -61,7 +66,7 @@ public:
     u32 GetBufferQueueId(u64 display_id, u64 layer_id);
 
     /// Gets the vsync event for the specified display.
-    Kernel::SharedPtr<Kernel::Event> GetVsyncEvent(u64 display_id);
+    Kernel::SharedPtr<Kernel::ReadableEvent> GetVsyncEvent(u64 display_id);
 
     /// Obtains a buffer queue identified by the id.
     std::shared_ptr<BufferQueue> GetBufferQueue(u32 id) const;

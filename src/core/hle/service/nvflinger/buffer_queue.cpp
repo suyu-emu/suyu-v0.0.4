@@ -7,14 +7,17 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
 
 namespace Service::NVFlinger {
 
 BufferQueue::BufferQueue(u32 id, u64 layer_id) : id(id), layer_id(layer_id) {
     auto& kernel = Core::System::GetInstance().Kernel();
-    buffer_wait_event =
-        Kernel::Event::Create(kernel, Kernel::ResetType::Sticky, "BufferQueue NativeHandle");
+    buffer_wait_event = Kernel::WritableEvent::CreateRegisteredEventPair(
+        kernel, Kernel::ResetType::Sticky, "BufferQueue NativeHandle");
 }
 
 BufferQueue::~BufferQueue() = default;
@@ -102,6 +105,16 @@ u32 BufferQueue::Query(QueryType type) {
 
     UNIMPLEMENTED();
     return 0;
+}
+
+Kernel::SharedPtr<Kernel::WritableEvent> BufferQueue::GetWritableBufferWaitEvent() const {
+    return buffer_wait_event;
+}
+
+Kernel::SharedPtr<Kernel::ReadableEvent> BufferQueue::GetBufferWaitEvent() const {
+    const auto& event{
+        Core::System::GetInstance().Kernel().FindNamedEvent("BufferQueue NativeHandle")};
+    return event->second;
 }
 
 } // namespace Service::NVFlinger

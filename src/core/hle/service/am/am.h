@@ -9,8 +9,9 @@
 #include "core/hle/service/service.h"
 
 namespace Kernel {
-class Event;
-}
+class ReadableEvent;
+class WritableEvent;
+} // namespace Kernel
 
 namespace Service {
 namespace NVFlinger {
@@ -52,8 +53,8 @@ public:
     AppletMessageQueue();
     ~AppletMessageQueue();
 
-    const Kernel::SharedPtr<Kernel::Event>& GetMesssageRecieveEvent() const;
-    const Kernel::SharedPtr<Kernel::Event>& GetOperationModeChangedEvent() const;
+    const Kernel::SharedPtr<Kernel::ReadableEvent>& GetMesssageRecieveEvent() const;
+    const Kernel::SharedPtr<Kernel::ReadableEvent>& GetOperationModeChangedEvent() const;
     void PushMessage(AppletMessage msg);
     AppletMessage PopMessage();
     std::size_t GetMessageCount() const;
@@ -61,8 +62,8 @@ public:
 
 private:
     std::queue<AppletMessage> messages;
-    Kernel::SharedPtr<Kernel::Event> on_new_message;
-    Kernel::SharedPtr<Kernel::Event> on_operation_mode_changed;
+    Kernel::SharedPtr<Kernel::WritableEvent> on_new_message;
+    Kernel::SharedPtr<Kernel::WritableEvent> on_operation_mode_changed;
 };
 
 class IWindowController final : public ServiceFramework<IWindowController> {
@@ -122,7 +123,7 @@ private:
     void GetIdleTimeDetectionExtension(Kernel::HLERequestContext& ctx);
 
     std::shared_ptr<NVFlinger::NVFlinger> nvflinger;
-    Kernel::SharedPtr<Kernel::Event> launchable_event;
+    Kernel::SharedPtr<Kernel::WritableEvent> launchable_event;
     u32 idle_time_detection_extension = 0;
 };
 
@@ -151,7 +152,6 @@ private:
     void GetBootMode(Kernel::HLERequestContext& ctx);
     void GetDefaultDisplayResolution(Kernel::HLERequestContext& ctx);
 
-    Kernel::SharedPtr<Kernel::Event> event;
     std::shared_ptr<AppletMessageQueue> msg_queue;
 };
 

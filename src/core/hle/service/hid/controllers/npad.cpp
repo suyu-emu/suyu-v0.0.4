@@ -12,7 +12,9 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/frontend/input.h"
-#include "core/hle/kernel/event.h"
+#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/settings.h"
 
@@ -167,8 +169,8 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
 
 void Controller_NPad::OnInit() {
     auto& kernel = Core::System::GetInstance().Kernel();
-    styleset_changed_event =
-        Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "npad:NpadStyleSetChanged");
+    styleset_changed_event = Kernel::WritableEvent::CreateRegisteredEventPair(
+        kernel, Kernel::ResetType::OneShot, "npad:NpadStyleSetChanged");
 
     if (!IsControllerActivated()) {
         return;
@@ -538,11 +540,13 @@ void Controller_NPad::VibrateController(const std::vector<u32>& controller_ids,
     last_processed_vibration = vibrations.back();
 }
 
-Kernel::SharedPtr<Kernel::Event> Controller_NPad::GetStyleSetChangedEvent() const {
+Kernel::SharedPtr<Kernel::ReadableEvent> Controller_NPad::GetStyleSetChangedEvent() const {
     // TODO(ogniK): Figure out the best time to signal this event. This event seems that it should
     // be signalled at least once, and signaled after a new controller is connected?
     styleset_changed_event->Signal();
-    return styleset_changed_event;
+    const auto& event{
+        Core::System::GetInstance().Kernel().FindNamedEvent("npad:NpadStyleSetChanged")};
+    return event->second;
 }
 
 Controller_NPad::Vibration Controller_NPad::GetLastVibration() const {

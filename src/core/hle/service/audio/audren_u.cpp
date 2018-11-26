@@ -12,8 +12,10 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/event.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/audio/audren_u.h"
 
 namespace Service::Audio {
@@ -41,8 +43,8 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = Core::System::GetInstance().Kernel();
-        system_event =
-            Kernel::Event::Create(kernel, Kernel::ResetType::Sticky, "IAudioRenderer:SystemEvent");
+        system_event = Kernel::WritableEvent::CreateRegisteredEventPair(
+            kernel, Kernel::ResetType::Sticky, "IAudioRenderer:SystemEvent");
         renderer = std::make_unique<AudioCore::AudioRenderer>(audren_params, system_event);
     }
 
@@ -112,7 +114,9 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(system_event);
+        const auto& event{
+            Core::System::GetInstance().Kernel().FindNamedEvent("IAudioRenderer:SystemEvent")};
+        rb.PushCopyObjects(event->second);
     }
 
     void SetRenderingTimeLimit(Kernel::HLERequestContext& ctx) {
@@ -135,7 +139,7 @@ private:
         rb.Push(rendering_time_limit_percent);
     }
 
-    Kernel::SharedPtr<Kernel::Event> system_event;
+    Kernel::SharedPtr<Kernel::WritableEvent> system_event;
     std::unique_ptr<AudioCore::AudioRenderer> renderer;
     u32 rendering_time_limit_percent = 100;
 };
@@ -162,8 +166,8 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = Core::System::GetInstance().Kernel();
-        buffer_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
-                                             "IAudioOutBufferReleasedEvent");
+        buffer_event = Kernel::WritableEvent::CreateRegisteredEventPair(
+            kernel, Kernel::ResetType::OneShot, "IAudioOutBufferReleasedEvent");
     }
 
 private:
@@ -211,7 +215,9 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(buffer_event);
+        const auto& event{
+            Core::System::GetInstance().Kernel().FindNamedEvent("IAudioOutBufferReleasedEvent")};
+        rb.PushCopyObjects(event->second);
     }
 
     void GetActiveChannelCount(Kernel::HLERequestContext& ctx) {
@@ -222,7 +228,7 @@ private:
         rb.Push<u32>(1);
     }
 
-    Kernel::SharedPtr<Kernel::Event> buffer_event;
+    Kernel::SharedPtr<Kernel::WritableEvent> buffer_event;
 
 }; // namespace Audio
 

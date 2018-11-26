@@ -20,17 +20,18 @@
 #include "core/hle/kernel/address_arbiter.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/client_session.h"
-#include "core/hle/kernel/event.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/mutex.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/shared_memory.h"
 #include "core/hle/kernel/svc.h"
 #include "core/hle/kernel/svc_wrap.h"
 #include "core/hle/kernel/thread.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
 #include "core/hle/service/service.h"
@@ -1361,11 +1362,11 @@ static ResultCode ResetSignal(Handle handle) {
     LOG_DEBUG(Kernel_SVC, "called handle 0x{:08X}", handle);
 
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
-    auto event = handle_table.Get<Event>(handle);
+    auto event = handle_table.Get<ReadableEvent>(handle);
 
     ASSERT(event != nullptr);
 
-    event->Clear();
+    event->PromoteToWritable()->Clear();
     return RESULT_SUCCESS;
 }
 
@@ -1524,13 +1525,13 @@ static ResultCode ClearEvent(Handle handle) {
     LOG_TRACE(Kernel_SVC, "called, event=0x{:08X}", handle);
 
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
-    SharedPtr<Event> evt = handle_table.Get<Event>(handle);
+    SharedPtr<ReadableEvent> evt = handle_table.Get<ReadableEvent>(handle);
     if (evt == nullptr) {
         LOG_ERROR(Kernel_SVC, "Event handle does not exist, handle=0x{:08X}", handle);
         return ERR_INVALID_HANDLE;
     }
 
-    evt->Clear();
+    evt->PromoteToWritable()->Clear();
     return RESULT_SUCCESS;
 }
 
