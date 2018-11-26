@@ -728,6 +728,7 @@ public:
                 u32 frag_color_clamp;
 
                 union {
+                    BitField<0, 1, u32> y_negate;
                     BitField<4, 1, u32> triangle_rast_flip;
                 } screen_y_control;
 

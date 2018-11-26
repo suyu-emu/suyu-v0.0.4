@@ -27,16 +27,18 @@ void MaxwellUniformData::SetFromRegs(const Maxwell3D::State::ShaderStageInfo& sh
     alpha_test.func = func;
     alpha_test.ref = regs.alpha_test_ref;
 
-    // We only assign the instance to the first component of the vector, the rest is just padding.
-    instance_id[0] = state.current_instance;
+    instance_id = state.current_instance;
 
     // Assign in which stage the position has to be flipped
     // (the last stage before the fragment shader).
     if (gpu.regs.shader_config[static_cast<u32>(Maxwell3D::Regs::ShaderProgram::Geometry)].enable) {
-        flip_stage[0] = static_cast<u32>(Maxwell3D::Regs::ShaderProgram::Geometry);
+        flip_stage = static_cast<u32>(Maxwell3D::Regs::ShaderProgram::Geometry);
     } else {
-        flip_stage[0] = static_cast<u32>(Maxwell3D::Regs::ShaderProgram::VertexB);
+        flip_stage = static_cast<u32>(Maxwell3D::Regs::ShaderProgram::VertexB);
     }
+
+    // Y_NEGATE controls what value S2R returns for the Y_DIRECTION system value.
+    y_direction = regs.screen_y_control.y_negate == 0 ? 1.f : -1.f;
 }
 
 } // namespace OpenGL::GLShader

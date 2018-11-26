@@ -21,8 +21,11 @@ using Tegra::Engines::Maxwell3D;
 struct MaxwellUniformData {
     void SetFromRegs(const Maxwell3D::State::ShaderStageInfo& shader_stage);
     alignas(16) GLvec4 viewport_flip;
-    alignas(16) GLuvec4 instance_id;
-    alignas(16) GLuvec4 flip_stage;
+    struct alignas(16) {
+        GLuint instance_id;
+        GLuint flip_stage;
+        GLfloat y_direction;
+    };
     struct alignas(16) {
         GLuint enabled;
         GLuint func;
@@ -30,7 +33,7 @@ struct MaxwellUniformData {
         GLuint padding;
     } alpha_test;
 };
-static_assert(sizeof(MaxwellUniformData) == 64, "MaxwellUniformData structure size is incorrect");
+static_assert(sizeof(MaxwellUniformData) == 48, "MaxwellUniformData structure size is incorrect");
 static_assert(sizeof(MaxwellUniformData) < 16384,
               "MaxwellUniformData structure must be less than 16kb as per the OpenGL spec");
 
