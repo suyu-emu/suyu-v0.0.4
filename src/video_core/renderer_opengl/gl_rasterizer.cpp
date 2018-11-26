@@ -628,6 +628,7 @@ void RasterizerOpenGL::DrawArrays() {
     SyncCullMode();
     SyncPrimitiveRestart();
     SyncScissorTest(state);
+    SyncClipEnabled();
     // Alpha Testing is synced on shaders.
     SyncTransformFeedback();
     SyncPointState();
@@ -1010,7 +1011,15 @@ void RasterizerOpenGL::SyncViewport(OpenGLState& current_state) {
 }
 
 void RasterizerOpenGL::SyncClipEnabled() {
-    UNREACHABLE();
+    const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
+    state.clip_distance[0] = regs.clip_distance_enabled.c0 != 0;
+    state.clip_distance[1] = regs.clip_distance_enabled.c1 != 0;
+    state.clip_distance[2] = regs.clip_distance_enabled.c2 != 0;
+    state.clip_distance[3] = regs.clip_distance_enabled.c3 != 0;
+    state.clip_distance[4] = regs.clip_distance_enabled.c4 != 0;
+    state.clip_distance[5] = regs.clip_distance_enabled.c5 != 0;
+    state.clip_distance[6] = regs.clip_distance_enabled.c6 != 0;
+    state.clip_distance[7] = regs.clip_distance_enabled.c7 != 0;
 }
 
 void RasterizerOpenGL::SyncClipCoef() {
