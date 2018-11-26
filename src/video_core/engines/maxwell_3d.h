@@ -590,10 +590,18 @@ public:
 
                 float clear_color[4];
                 float clear_depth;
+
                 INSERT_PADDING_WORDS(0x3);
+
                 s32 clear_stencil;
 
-                INSERT_PADDING_WORDS(0x17);
+                INSERT_PADDING_WORDS(0x7);
+
+                u32 polygon_offset_point_enable;
+                u32 polygon_offset_line_enable;
+                u32 polygon_offset_fill_enable;
+
+                INSERT_PADDING_WORDS(0xD);
 
                 std::array<ScissorTest, NumViewports> scissor_test;
 
@@ -762,7 +770,11 @@ public:
                     }
                 } tsc;
 
-                INSERT_PADDING_WORDS(0x3);
+                INSERT_PADDING_WORDS(0x1);
+
+                float polygon_offset_factor;
+
+                INSERT_PADDING_WORDS(0x1);
 
                 struct {
                     u32 tic_address_high;
@@ -787,7 +799,9 @@ public:
 
                 u32 framebuffer_srgb;
 
-                INSERT_PADDING_WORDS(0x12);
+                float polygon_offset_units;
+
+                INSERT_PADDING_WORDS(0x11);
 
                 union {
                     BitField<2, 1, u32> coord_origin;
@@ -864,7 +878,9 @@ public:
 
                 INSERT_PADDING_WORDS(0x7);
 
-                INSERT_PADDING_WORDS(0x20);
+                INSERT_PADDING_WORDS(0x1F);
+
+                float polygon_offset_clamp;
 
                 struct {
                     u32 is_instanced[NumVertexArrays];
@@ -1137,6 +1153,9 @@ ASSERT_REG_POSITION(vertex_buffer, 0x35D);
 ASSERT_REG_POSITION(clear_color[0], 0x360);
 ASSERT_REG_POSITION(clear_depth, 0x364);
 ASSERT_REG_POSITION(clear_stencil, 0x368);
+ASSERT_REG_POSITION(polygon_offset_point_enable, 0x370);
+ASSERT_REG_POSITION(polygon_offset_line_enable, 0x371);
+ASSERT_REG_POSITION(polygon_offset_fill_enable, 0x372);
 ASSERT_REG_POSITION(scissor_test, 0x380);
 ASSERT_REG_POSITION(stencil_back_func_ref, 0x3D5);
 ASSERT_REG_POSITION(stencil_back_mask, 0x3D6);
@@ -1175,6 +1194,7 @@ ASSERT_REG_POSITION(point_size, 0x546);
 ASSERT_REG_POSITION(zeta_enable, 0x54E);
 ASSERT_REG_POSITION(multisample_control, 0x54F);
 ASSERT_REG_POSITION(tsc, 0x557);
+ASSERT_REG_POSITION(polygon_offset_factor, 0x55b);
 ASSERT_REG_POSITION(tic, 0x55D);
 ASSERT_REG_POSITION(stencil_two_side_enable, 0x565);
 ASSERT_REG_POSITION(stencil_back_op_fail, 0x566);
@@ -1182,11 +1202,13 @@ ASSERT_REG_POSITION(stencil_back_op_zfail, 0x567);
 ASSERT_REG_POSITION(stencil_back_op_zpass, 0x568);
 ASSERT_REG_POSITION(stencil_back_func_func, 0x569);
 ASSERT_REG_POSITION(framebuffer_srgb, 0x56E);
+ASSERT_REG_POSITION(polygon_offset_units, 0x56F);
 ASSERT_REG_POSITION(point_coord_replace, 0x581);
 ASSERT_REG_POSITION(code_address, 0x582);
 ASSERT_REG_POSITION(draw, 0x585);
 ASSERT_REG_POSITION(primitive_restart, 0x591);
 ASSERT_REG_POSITION(index_array, 0x5F2);
+ASSERT_REG_POSITION(polygon_offset_clamp, 0x61F);
 ASSERT_REG_POSITION(instanced_arrays, 0x620);
 ASSERT_REG_POSITION(cull, 0x646);
 ASSERT_REG_POSITION(logic_op, 0x671);

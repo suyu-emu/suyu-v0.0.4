@@ -92,6 +92,13 @@ OpenGLState::OpenGLState() {
 
     point.size = 1;
     fragment_color_clamp.enabled = false;
+
+    polygon_offset.fill_enable = false;
+    polygon_offset.line_enable = false;
+    polygon_offset.point_enable = false;
+    polygon_offset.factor = 0.0f;
+    polygon_offset.units = 0.0f;
+    polygon_offset.clamp = 0.0f;
 }
 
 void OpenGLState::ApplyDefaultState() {
@@ -406,6 +413,55 @@ void OpenGLState::ApplyLogicOp() const {
     }
 }
 
+void OpenGLState::ApplyPolygonOffset() const {
+
+    const bool fill_enable_changed =
+        polygon_offset.fill_enable != cur_state.polygon_offset.fill_enable;
+    const bool line_enable_changed =
+        polygon_offset.line_enable != cur_state.polygon_offset.line_enable;
+    const bool point_enable_changed =
+        polygon_offset.point_enable != cur_state.polygon_offset.point_enable;
+    const bool factor_changed = polygon_offset.factor != cur_state.polygon_offset.factor;
+    const bool units_changed = polygon_offset.units != cur_state.polygon_offset.units;
+    const bool clamp_changed = polygon_offset.clamp != cur_state.polygon_offset.clamp;
+
+    if (fill_enable_changed) {
+        if (polygon_offset.fill_enable) {
+            glEnable(GL_POLYGON_OFFSET_FILL);
+        } else {
+            glDisable(GL_POLYGON_OFFSET_FILL);
+        }
+    }
+
+    if (line_enable_changed) {
+        if (polygon_offset.line_enable) {
+            glEnable(GL_POLYGON_OFFSET_LINE);
+        } else {
+            glDisable(GL_POLYGON_OFFSET_LINE);
+        }
+    }
+
+    if (point_enable_changed) {
+        if (polygon_offset.point_enable) {
+            glEnable(GL_POLYGON_OFFSET_POINT);
+        } else {
+            glDisable(GL_POLYGON_OFFSET_POINT);
+        }
+    }
+
+    if ((polygon_offset.fill_enable || polygon_offset.line_enable || polygon_offset.point_enable) &&
+        (factor_changed || units_changed || clamp_changed)) {
+
+        if (GLAD_GL_EXT_polygon_offset_clamp && polygon_offset.clamp != 0) {
+            glPolygonOffsetClamp(polygon_offset.factor, polygon_offset.units, polygon_offset.clamp);
+        } else {
+            glPolygonOffset(polygon_offset.factor, polygon_offset.units);
+            UNIMPLEMENTED_IF_MSG(polygon_offset.clamp != 0,
+                                 "Unimplemented Depth polygon offset clamp.");
+        }
+    }
+}
+
 void OpenGLState::ApplyTextures() const {
     for (std::size_t i = 0; i < std::size(texture_units); ++i) {
         const auto& texture_unit = texture_units[i];
@@ -532,6 +588,7 @@ void OpenGLState::Apply() const {
     ApplyLogicOp();
     ApplyTextures();
     ApplySamplers();
+    ApplyPolygonOffset();
     cur_state = *this;
 }
 

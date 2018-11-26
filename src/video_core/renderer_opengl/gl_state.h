@@ -176,6 +176,15 @@ public:
         float size; // GL_POINT_SIZE
     } point;
 
+    struct {
+        bool point_enable;
+        bool line_enable;
+        bool fill_enable;
+        GLfloat units;
+        GLfloat factor;
+        GLfloat clamp;
+    } polygon_offset;
+
     std::array<bool, 2> clip_distance; // GL_CLIP_DISTANCE
 
     OpenGLState();
@@ -226,6 +235,7 @@ private:
     void ApplyLogicOp() const;
     void ApplyTextures() const;
     void ApplySamplers() const;
+    void ApplyPolygonOffset() const;
 };
 
 } // namespace OpenGL
