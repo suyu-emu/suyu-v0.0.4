@@ -114,29 +114,33 @@ public:
 private:
     void Initialize(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_PCTL, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 0};
         rb.Push(RESULT_SUCCESS);
     }
 
     void CheckFreeCommunicationPermission(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_PCTL, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 };
 
 void Module::Interface::CreateService(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_PCTL, "called");
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IParentalControlService>();
-    LOG_DEBUG(Service_PCTL, "called");
 }
 
 void Module::Interface::CreateServiceWithoutInitialize(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_PCTL, "called");
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IParentalControlService>();
-    LOG_DEBUG(Service_PCTL, "called");
 }
 
 Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)

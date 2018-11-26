@@ -20,12 +20,12 @@ BufferQueue::BufferQueue(u32 id, u64 layer_id) : id(id), layer_id(layer_id) {
 BufferQueue::~BufferQueue() = default;
 
 void BufferQueue::SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer) {
+    LOG_WARNING(Service, "Adding graphics buffer {}", slot);
+
     Buffer buffer{};
     buffer.slot = slot;
     buffer.igbp_buffer = igbp_buffer;
     buffer.status = Buffer::Status::Free;
-
-    LOG_WARNING(Service, "Adding graphics buffer {}", slot);
 
     queue.emplace_back(buffer);
     buffer_wait_event->Signal();
@@ -92,6 +92,7 @@ void BufferQueue::ReleaseBuffer(u32 slot) {
 
 u32 BufferQueue::Query(QueryType type) {
     LOG_WARNING(Service, "(STUBBED) called type={}", static_cast<u32>(type));
+
     switch (type) {
     case QueryType::NativeWindowFormat:
         // TODO(Subv): Use an enum for this

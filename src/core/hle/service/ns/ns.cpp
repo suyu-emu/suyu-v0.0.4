@@ -433,11 +433,11 @@ public:
 private:
     template <typename T>
     void PushInterface(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NS, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<T>();
-
-        LOG_DEBUG(Service_NS, "called");
     }
 };
 
@@ -526,11 +526,11 @@ public:
 
 private:
     void OpenSystemUpdateControl(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NS, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<ISystemUpdateControl>();
-
-        LOG_DEBUG(Service_NS, "called");
     }
 };
 

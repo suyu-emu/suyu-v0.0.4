@@ -69,6 +69,7 @@ public:
 private:
     void SetOption(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_SSL, "(STUBBED) called");
+
         IPC::RequestParser rp{ctx};
 
         IPC::ResponseBuilder rb{ctx, 2};
@@ -114,6 +115,7 @@ private:
 
     void SetInterfaceVersion(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_SSL, "called");
+
         IPC::RequestParser rp{ctx};
         ssl_version = rp.Pop<u32>();
 

@@ -55,6 +55,7 @@ void NVDRV::Close(Kernel::HLERequestContext& ctx) {
 
 void NVDRV::Initialize(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_NVDRV, "(STUBBED) called");
+
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.Push<u32>(0);
@@ -75,8 +76,8 @@ void NVDRV::QueryEvent(Kernel::HLERequestContext& ctx) {
 void NVDRV::SetClientPID(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     pid = rp.Pop<u64>();
-
     LOG_WARNING(Service_NVDRV, "(STUBBED) called, pid=0x{:X}", pid);
+
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.Push<u32>(0);
@@ -84,12 +85,14 @@ void NVDRV::SetClientPID(Kernel::HLERequestContext& ctx) {
 
 void NVDRV::FinishInitialize(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_NVDRV, "(STUBBED) called");
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
 
 void NVDRV::GetStatus(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_NVDRV, "(STUBBED) called");
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
@@ -98,6 +101,7 @@ void NVDRV::DumpGraphicsMemoryInfo(Kernel::HLERequestContext& ctx) {
     // According to SwitchBrew, this has no inputs and no outputs, so effectively does nothing on
     // retail hardware.
     LOG_DEBUG(Service_NVDRV, "called");
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }

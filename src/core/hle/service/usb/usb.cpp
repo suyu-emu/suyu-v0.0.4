@@ -159,11 +159,11 @@ public:
 
 private:
     void GetPdSession(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_USB, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IPdSession>();
-
-        LOG_DEBUG(Service_USB, "called");
     }
 };
 

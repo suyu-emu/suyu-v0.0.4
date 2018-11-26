@@ -57,40 +57,44 @@ public:
 
 private:
     void GetScanEvent(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_BTM, "(STUBBED) called");
+
         auto& kernel = Core::System::GetInstance().Kernel();
         scan_event =
             Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "IBtmUserCore:ScanEvent");
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(scan_event);
-        LOG_WARNING(Service_BTM, "(STUBBED) called");
     }
     void GetConnectionEvent(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_BTM, "(STUBBED) called");
+
         auto& kernel = Core::System::GetInstance().Kernel();
         connection_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
                                                  "IBtmUserCore:ConnectionEvent");
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(connection_event);
-        LOG_WARNING(Service_BTM, "(STUBBED) called");
     }
     void GetDiscoveryEvent(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_BTM, "(STUBBED) called");
+
         auto& kernel = Core::System::GetInstance().Kernel();
         service_discovery =
             Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "IBtmUserCore:Discovery");
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(service_discovery);
-        LOG_WARNING(Service_BTM, "(STUBBED) called");
     }
     void GetConfigEvent(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_BTM, "(STUBBED) called");
+
         auto& kernel = Core::System::GetInstance().Kernel();
         config_event =
             Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "IBtmUserCore:ConfigEvent");
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(config_event);
-        LOG_WARNING(Service_BTM, "(STUBBED) called");
     }
     Kernel::SharedPtr<Kernel::Event> scan_event;
     Kernel::SharedPtr<Kernel::Event> connection_event;
@@ -111,10 +115,11 @@ public:
 
 private:
     void GetCoreImpl(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_BTM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IBtmUserCore>();
-        LOG_DEBUG(Service_BTM, "called");
     }
 };
 
@@ -209,11 +214,11 @@ public:
 
 private:
     void GetCoreImpl(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_BTM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IBtmSystemCore>();
-
-        LOG_DEBUG(Service_BTM, "called");
     }
 };
 

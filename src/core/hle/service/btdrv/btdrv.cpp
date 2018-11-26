@@ -34,13 +34,14 @@ public:
 
 private:
     void RegisterEvent(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_BTM, "(STUBBED) called");
+
         auto& kernel = Core::System::GetInstance().Kernel();
         register_event =
             Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "BT:RegisterEvent");
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(register_event);
-        LOG_WARNING(Service_BTM, "(STUBBED) called");
     }
     Kernel::SharedPtr<Kernel::Event> register_event;
 };

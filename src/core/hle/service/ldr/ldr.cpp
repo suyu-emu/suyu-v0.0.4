@@ -97,6 +97,8 @@ public:
         rp.Skip(2, false);
         const VAddr nrr_addr{rp.Pop<VAddr>()};
         const u64 nrr_size{rp.Pop<u64>()};
+        LOG_DEBUG(Service_LDR, "called with nrr_addr={:016X}, nrr_size={:016X}", nrr_addr,
+                  nrr_size);
 
         if (!initialized) {
             LOG_ERROR(Service_LDR, "LDR:RO not initialized before use!");
@@ -189,6 +191,7 @@ public:
         IPC::RequestParser rp{ctx};
         rp.Skip(2, false);
         const auto nrr_addr{rp.Pop<VAddr>()};
+        LOG_DEBUG(Service_LDR, "called with nrr_addr={:016X}", nrr_addr);
 
         if (!Common::Is4KBAligned(nrr_addr)) {
             LOG_ERROR(Service_LDR, "NRR Address has invalid alignment (actual {:016X})!", nrr_addr);
@@ -219,6 +222,10 @@ public:
         const u64 nro_size{rp.Pop<u64>()};
         const VAddr bss_addr{rp.Pop<VAddr>()};
         const u64 bss_size{rp.Pop<u64>()};
+        LOG_DEBUG(
+            Service_LDR,
+            "called with nro_addr={:016X}, nro_size={:016X}, bss_addr={:016X}, bss_size={:016X}",
+            nro_addr, nro_size, bss_addr, bss_size);
 
         if (!initialized) {
             LOG_ERROR(Service_LDR, "LDR:RO not initialized before use!");
@@ -345,6 +352,8 @@ public:
         rp.Skip(2, false);
         const VAddr mapped_addr{rp.PopRaw<VAddr>()};
         const VAddr heap_addr{rp.PopRaw<VAddr>()};
+        LOG_DEBUG(Service_LDR, "called with mapped_addr={:016X}, heap_addr={:016X}", mapped_addr,
+                  heap_addr);
 
         if (!initialized) {
             LOG_ERROR(Service_LDR, "LDR:RO not initialized before use!");
@@ -393,11 +402,12 @@ public:
     }
 
     void Initialize(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_LDR, "(STUBBED) called");
+
         initialized = true;
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_WARNING(Service_LDR, "(STUBBED) called");
     }
 
 private:

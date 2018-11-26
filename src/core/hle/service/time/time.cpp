@@ -72,6 +72,7 @@ private:
                                        std::chrono::system_clock::now().time_since_epoch())
                                        .count()};
         LOG_DEBUG(Service_Time, "called");
+
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u64>(time_since_epoch);
@@ -79,6 +80,7 @@ private:
 
     void GetSystemClockContext(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_Time, "(STUBBED) called");
+
         SystemClockContext system_clock_ontext{};
         IPC::ResponseBuilder rb{ctx, (sizeof(SystemClockContext) / 4) + 2};
         rb.Push(RESULT_SUCCESS);
@@ -98,6 +100,7 @@ public:
 private:
     void GetCurrentTimePoint(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_Time, "called");
+
         SteadyClockTimePoint steady_clock_time_point{
             CoreTiming::cyclesToMs(CoreTiming::GetTicks()) / 1000};
         IPC::ResponseBuilder rb{ctx, (sizeof(SteadyClockTimePoint) / 4) + 2};
@@ -130,6 +133,7 @@ private:
 
     void GetDeviceLocationName(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_Time, "called");
+
         IPC::ResponseBuilder rb{ctx, (sizeof(LocationName) / 4) + 2};
         rb.Push(RESULT_SUCCESS);
         rb.PushRaw(location_name);
@@ -137,6 +141,7 @@ private:
 
     void GetTotalLocationNameCount(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_Time, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(0);
@@ -154,7 +159,6 @@ private:
     void ToCalendarTime(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const u64 posix_time = rp.Pop<u64>();
-
         LOG_WARNING(Service_Time, "(STUBBED) called, posix_time=0x{:016X}", posix_time);
 
         TimeZoneRule time_zone_rule{};
@@ -175,7 +179,6 @@ private:
     void ToCalendarTimeWithMyRule(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const u64 posix_time = rp.Pop<u64>();
-
         LOG_WARNING(Service_Time, "(STUBBED) called, posix_time=0x{:016X}", posix_time);
 
         CalendarTime calendar_time{2018, 1, 1, 0, 0, 0};
@@ -192,6 +195,7 @@ private:
     void ToPosixTime(Kernel::HLERequestContext& ctx) {
         // TODO(ogniK): Figure out how to handle multiple times
         LOG_WARNING(Service_Time, "(STUBBED) called");
+
         IPC::RequestParser rp{ctx};
         auto calendar_time = rp.PopRaw<CalendarTime>();
         auto posix_time = CalendarToPosix(calendar_time, {});
@@ -204,6 +208,7 @@ private:
 
     void ToPosixTimeWithMyRule(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_Time, "(STUBBED) called");
+
         IPC::RequestParser rp{ctx};
         auto calendar_time = rp.PopRaw<CalendarTime>();
         auto posix_time = CalendarToPosix(calendar_time, {});
@@ -216,38 +221,43 @@ private:
 };
 
 void Module::Interface::GetStandardUserSystemClock(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_Time, "called");
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<ISystemClock>();
-    LOG_DEBUG(Service_Time, "called");
 }
 
 void Module::Interface::GetStandardNetworkSystemClock(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_Time, "called");
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<ISystemClock>();
-    LOG_DEBUG(Service_Time, "called");
 }
 
 void Module::Interface::GetStandardSteadyClock(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_Time, "called");
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<ISteadyClock>();
-    LOG_DEBUG(Service_Time, "called");
 }
 
 void Module::Interface::GetTimeZoneService(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_Time, "called");
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<ITimeZoneService>();
-    LOG_DEBUG(Service_Time, "called");
 }
 
 void Module::Interface::GetStandardLocalSystemClock(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_Time, "called");
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<ISystemClock>();
-    LOG_DEBUG(Service_Time, "called");
 }
 
 void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
@@ -265,6 +275,7 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
     const std::time_t time(time_since_epoch);
     const std::tm* tm = std::localtime(&time);
     if (tm == nullptr) {
+        LOG_ERROR(Service_Time, "tm is a nullptr");
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultCode(-1)); // TODO(ogniK): Find appropriate error code
         return;

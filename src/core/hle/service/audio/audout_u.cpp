@@ -86,6 +86,7 @@ private:
 
     void GetAudioOutState(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_Audio, "called");
+
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push(static_cast<u32>(stream->IsPlaying() ? AudioState::Started : AudioState::Stopped));
@@ -148,6 +149,7 @@ private:
 
     void GetReleasedAudioOutBufferImpl(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_Audio, "called {}", ctx.Description());
+
         IPC::RequestParser rp{ctx};
         const u64 max_count{ctx.GetWriteBufferSize() / sizeof(u64)};
         const auto released_buffers{audio_core.GetTagsAndReleaseBuffers(stream, max_count)};
@@ -163,6 +165,7 @@ private:
 
     void ContainsAudioOutBuffer(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_Audio, "called");
+
         IPC::RequestParser rp{ctx};
         const u64 tag{rp.Pop<u64>()};
         IPC::ResponseBuilder rb{ctx, 3};
@@ -172,6 +175,7 @@ private:
 
     void GetAudioOutBufferCount(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_Audio, "called");
+
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push(static_cast<u32>(stream->GetQueueSize()));
@@ -189,6 +193,7 @@ private:
 
 void AudOutU::ListAudioOutsImpl(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Audio, "called");
+
     IPC::RequestParser rp{ctx};
 
     ctx.WriteBuffer(DefaultDevice);

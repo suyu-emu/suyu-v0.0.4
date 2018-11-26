@@ -63,12 +63,14 @@ public:
 private:
     void Submit(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 
     void GetRequestState(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(0);
@@ -76,12 +78,14 @@ private:
 
     void GetResult(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 
     void GetSystemEventReadableHandles(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 2, 2};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(event1, event2);
@@ -89,12 +93,14 @@ private:
 
     void Cancel(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 
     void SetConnectionConfirmationOption(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
@@ -122,32 +128,36 @@ private:
     void GetClientId(Kernel::HLERequestContext& ctx) {
         static constexpr u32 client_id = 1;
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u64>(client_id); // Client ID needs to be non zero otherwise it's considered invalid
     }
     void CreateScanRequest(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NIFM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IScanRequest>();
-
-        LOG_DEBUG(Service_NIFM, "called");
     }
     void CreateRequest(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NIFM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IRequest>();
-
-        LOG_DEBUG(Service_NIFM, "called");
     }
     void RemoveNetworkProfile(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
     void CreateTemporaryNetworkProfile(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NIFM, "called");
+
         ASSERT_MSG(ctx.GetReadBufferSize() == 0x17c, "NetworkProfileData is not the correct size");
         u128 uuid{};
         auto buffer = ctx.ReadBuffer();
@@ -158,23 +168,24 @@ private:
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<INetworkProfile>();
         rb.PushRaw<u128>(uuid);
-
-        LOG_DEBUG(Service_NIFM, "called");
     }
     void IsWirelessCommunicationEnabled(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u8>(0);
     }
     void IsEthernetCommunicationEnabled(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u8>(0);
     }
     void IsAnyInternetRequestAccepted(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u8>(0);
@@ -235,17 +246,19 @@ public:
     }
 
     void CreateGeneralServiceOld(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NIFM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IGeneralService>();
-        LOG_DEBUG(Service_NIFM, "called");
     }
 
     void CreateGeneralService(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NIFM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IGeneralService>();
-        LOG_DEBUG(Service_NIFM, "called");
     }
 };
 

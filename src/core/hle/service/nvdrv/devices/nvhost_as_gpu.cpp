@@ -54,6 +54,7 @@ u32 nvhost_as_gpu::InitalizeEx(const std::vector<u8>& input, std::vector<u8>& ou
     IoctlInitalizeEx params{};
     std::memcpy(&params, input.data(), input.size());
     LOG_WARNING(Service_NVDRV, "(STUBBED) called, big_page_size=0x{:X}", params.big_page_size);
+
     return 0;
 }
 
@@ -191,6 +192,7 @@ u32 nvhost_as_gpu::BindChannel(const std::vector<u8>& input, std::vector<u8>& ou
     IoctlBindChannel params{};
     std::memcpy(&params, input.data(), input.size());
     LOG_DEBUG(Service_NVDRV, "called, fd={:X}", params.fd);
+
     channel = params.fd;
     return 0;
 }

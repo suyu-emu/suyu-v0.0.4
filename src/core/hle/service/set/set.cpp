@@ -49,38 +49,39 @@ static std::array<LanguageCode, size> MakeLanguageCodeSubset() {
 static void PushResponseLanguageCode(Kernel::HLERequestContext& ctx, std::size_t max_size) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
-    if (available_language_codes.size() > max_size)
+    if (available_language_codes.size() > max_size) {
         rb.Push(static_cast<u32>(max_size));
-    else
+    } else {
         rb.Push(static_cast<u32>(available_language_codes.size()));
+    }
 }
 
 void SET::GetAvailableLanguageCodes(Kernel::HLERequestContext& ctx) {
-    if (available_language_codes.size() > pre4_0_0_max_entries)
-        ctx.WriteBuffer(MakeLanguageCodeSubset<pre4_0_0_max_entries>());
-    else
-        ctx.WriteBuffer(available_language_codes);
-
-    PushResponseLanguageCode(ctx, pre4_0_0_max_entries);
-
     LOG_DEBUG(Service_SET, "called");
+
+    if (available_language_codes.size() > pre4_0_0_max_entries) {
+        ctx.WriteBuffer(MakeLanguageCodeSubset<pre4_0_0_max_entries>());
+    } else {
+        ctx.WriteBuffer(available_language_codes);
+    }
+    PushResponseLanguageCode(ctx, pre4_0_0_max_entries);
 }
 
 void SET::GetAvailableLanguageCodes2(Kernel::HLERequestContext& ctx) {
-    if (available_language_codes.size() > post4_0_0_max_entries)
-        ctx.WriteBuffer(MakeLanguageCodeSubset<post4_0_0_max_entries>());
-    else
-        ctx.WriteBuffer(available_language_codes);
-
-    PushResponseLanguageCode(ctx, post4_0_0_max_entries);
-
     LOG_DEBUG(Service_SET, "called");
+
+    if (available_language_codes.size() > post4_0_0_max_entries) {
+        ctx.WriteBuffer(MakeLanguageCodeSubset<post4_0_0_max_entries>());
+    } else {
+        ctx.WriteBuffer(available_language_codes);
+    }
+    PushResponseLanguageCode(ctx, post4_0_0_max_entries);
 }
 
 void SET::GetAvailableLanguageCodeCount(Kernel::HLERequestContext& ctx) {
-    PushResponseLanguageCode(ctx, pre4_0_0_max_entries);
-
     LOG_DEBUG(Service_SET, "called");
+
+    PushResponseLanguageCode(ctx, pre4_0_0_max_entries);
 }
 
 void SET::GetAvailableLanguageCodeCount2(Kernel::HLERequestContext& ctx) {
@@ -90,11 +91,11 @@ void SET::GetAvailableLanguageCodeCount2(Kernel::HLERequestContext& ctx) {
 }
 
 void SET::GetLanguageCode(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_SET, "called {}", Settings::values.language_index);
+
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
     rb.Push(static_cast<u64>(available_language_codes[Settings::values.language_index]));
-
-    LOG_DEBUG(Service_SET, "called {}", Settings::values.language_index);
 }
 
 SET::SET() : ServiceFramework("set") {

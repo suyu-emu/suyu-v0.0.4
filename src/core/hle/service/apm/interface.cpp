@@ -40,24 +40,22 @@ private:
 
         auto mode = static_cast<PerformanceMode>(rp.Pop<u32>());
         u32 config = rp.Pop<u32>();
+        LOG_WARNING(Service_APM, "(STUBBED) called mode={} config={}", static_cast<u32>(mode),
+                    config);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-
-        LOG_WARNING(Service_APM, "(STUBBED) called mode={} config={}", static_cast<u32>(mode),
-                    config);
     }
 
     void GetPerformanceConfiguration(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
 
         auto mode = static_cast<PerformanceMode>(rp.Pop<u32>());
+        LOG_WARNING(Service_APM, "(STUBBED) called mode={}", static_cast<u32>(mode));
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(static_cast<u32>(PerformanceConfiguration::Config1));
-
-        LOG_WARNING(Service_APM, "(STUBBED) called mode={}", static_cast<u32>(mode));
     }
 };
 
@@ -73,11 +71,11 @@ APM::APM(std::shared_ptr<Module> apm, const char* name)
 APM::~APM() = default;
 
 void APM::OpenSession(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_APM, "called");
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<ISession>();
-
-    LOG_DEBUG(Service_APM, "called");
 }
 
 APM_Sys::APM_Sys() : ServiceFramework{"apm:sys"} {
@@ -98,11 +96,11 @@ APM_Sys::APM_Sys() : ServiceFramework{"apm:sys"} {
 APM_Sys::~APM_Sys() = default;
 
 void APM_Sys::GetPerformanceEvent(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_APM, "called");
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<ISession>();
-
-    LOG_DEBUG(Service_APM, "called");
 }
 
 } // namespace Service::APM

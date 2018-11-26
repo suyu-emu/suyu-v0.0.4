@@ -59,11 +59,11 @@ public:
 
 private:
     void AcquireRegistrar(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_ARP, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IRegistrar>();
-
-        LOG_DEBUG(Service_ARP, "called");
     }
 };
 

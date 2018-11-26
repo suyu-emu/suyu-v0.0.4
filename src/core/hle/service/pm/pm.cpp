@@ -20,11 +20,11 @@ public:
 
 private:
     void GetBootMode(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_PM, "called");
+
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(static_cast<u32>(SystemBootMode::Normal)); // Normal boot mode
-
-        LOG_DEBUG(Service_PM, "called");
     }
 };
 
