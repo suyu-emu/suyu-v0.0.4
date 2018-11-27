@@ -21,17 +21,6 @@
 
 namespace Service::Account {
 
-// TODO: RE this structure
-struct UserData {
-    INSERT_PADDING_WORDS(1);
-    u32 icon_id;
-    u8 bg_color_id;
-    INSERT_PADDING_BYTES(0x7);
-    INSERT_PADDING_BYTES(0x10);
-    INSERT_PADDING_BYTES(0x60);
-};
-static_assert(sizeof(UserData) == 0x80, "UserData structure has incorrect size");
-
 // Smallest JPEG https://github.com/mathiasbynens/small/blob/master/jpeg.jpg
 // used as a backup should the one on disk not exist
 constexpr u32 backup_jpeg_size = 107;
@@ -72,9 +61,11 @@ private:
     void Get(Kernel::HLERequestContext& ctx) {
         LOG_INFO(Service_ACC, "called user_id={}", user_id.Format());
         ProfileBase profile_base{};
-        std::array<u8, MAX_DATA> data{};
+        ProfileData data{};
         if (profile_manager.GetProfileBaseAndData(user_id, profile_base, data)) {
-            ctx.WriteBuffer(data);
+            std::array<u8, sizeof(ProfileData)> raw_data;
+            std::memcpy(raw_data.data(), &data, sizeof(ProfileData));
+            ctx.WriteBuffer(raw_data);
             IPC::ResponseBuilder rb{ctx, 16};
             rb.Push(RESULT_SUCCESS);
             rb.PushRaw(profile_base);

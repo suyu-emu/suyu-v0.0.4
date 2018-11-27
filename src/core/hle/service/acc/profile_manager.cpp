@@ -18,7 +18,7 @@ struct UserRaw {
     UUID uuid2;
     u64 timestamp;
     ProfileUsername username;
-    INSERT_PADDING_BYTES(0x80);
+    ProfileData extra_data;
 };
 static_assert(sizeof(UserRaw) == 0xC8, "UserRaw has incorrect size.");
 
@@ -346,7 +346,7 @@ void ProfileManager::ParseUserSaveFile() {
             continue;
         }
 
-        AddUser({user.uuid, user.username, user.timestamp, {}, false});
+        AddUser({user.uuid, user.username, user.timestamp, user.extra_data, false});
     }
 
     std::stable_partition(profiles.begin(), profiles.end(),
@@ -361,6 +361,7 @@ void ProfileManager::WriteUserSaveFile() {
         raw.users[i].uuid2 = profiles[i].user_uuid;
         raw.users[i].uuid = profiles[i].user_uuid;
         raw.users[i].timestamp = profiles[i].creation_time;
+        raw.users[i].extra_data = profiles[i].data;
     }
 
     const auto raw_path =
