@@ -7,7 +7,7 @@
 #include <memory>
 #include <optional>
 #include <QDialog>
-#include <QWidget>
+
 #include "core/settings.h"
 
 class QCheckBox;

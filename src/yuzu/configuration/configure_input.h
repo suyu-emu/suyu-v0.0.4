@@ -5,20 +5,12 @@
 #pragma once
 
 #include <array>
-#include <functional>
 #include <memory>
-#include <optional>
-#include <string>
-#include <unordered_map>
 
 #include <QKeyEvent>
 #include <QWidget>
 
-#include "common/param_package.h"
-#include "core/settings.h"
-#include "input_common/main.h"
 #include "ui_configure_input.h"
-#include "yuzu/configuration/config.h"
 
 class QPushButton;
 class QString;

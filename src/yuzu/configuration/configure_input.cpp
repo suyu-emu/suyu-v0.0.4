@@ -4,11 +4,9 @@
 
 #include <algorithm>
 #include <memory>
-#include <utility>
-#include <QMenu>
-#include <QMessageBox>
+
 #include <QTimer>
-#include "common/param_package.h"
+
 #include "configuration/configure_touchscreen_advanced.h"
 #include "core/core.h"
 #include "core/hle/service/am/am.h"
@@ -16,12 +14,8 @@
 #include "core/hle/service/am/applet_oe.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/sm/sm.h"
-#include "input_common/main.h"
 #include "ui_configure_input.h"
 #include "ui_configure_input_player.h"
-#include "ui_configure_mouse_advanced.h"
-#include "ui_configure_touchscreen_advanced.h"
-#include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_input.h"
 #include "yuzu/configuration/configure_input_player.h"
 #include "yuzu/configuration/configure_mouse_advanced.h"
