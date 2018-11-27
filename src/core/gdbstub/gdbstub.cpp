@@ -282,7 +282,7 @@ static void FpuWrite(std::size_t id, u128 val, Kernel::Thread* thread = nullptr)
     if (id >= UC_ARM64_REG_Q0 && id < FPCR_REGISTER) {
         thread_context.vector_registers[id - UC_ARM64_REG_Q0] = val;
     } else if (id == FPCR_REGISTER) {
-        thread_context.fpcr = val[0];
+        thread_context.fpcr = static_cast<u32>(val[0]);
     }
 }
 
