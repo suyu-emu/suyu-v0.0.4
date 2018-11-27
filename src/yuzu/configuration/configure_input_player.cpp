@@ -25,13 +25,6 @@ const std::array<std::string, ConfigureInputPlayer::ANALOG_SUB_BUTTONS_NUM>
         "modifier",
     }};
 
-static void MoveGridElement(QGridLayout* grid, int row_old, int column_old, int row_new,
-                            int column_new) {
-    const auto item = grid->itemAtPosition(row_old, column_old);
-    // grid->removeItem(item);
-    grid->addItem(item, row_new, column_new);
-}
-
 static void LayerGridElements(QGridLayout* grid, QWidget* item, QWidget* onTopOf) {
     const int index1 = grid->indexOf(item);
     const int index2 = grid->indexOf(onTopOf);
@@ -111,11 +104,10 @@ static QString AnalogToText(const Common::ParamPackage& param, const std::string
     }
 };
 
-ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, u8 player_index, bool debug)
-    : QDialog(parent), ui(std::make_unique<Ui::ConfigureInputPlayer>()),
-      timeout_timer(std::make_unique<QTimer>()), poll_timer(std::make_unique<QTimer>()),
-      player_index(player_index), debug(debug) {
-
+ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_index, bool debug)
+    : QDialog(parent), ui(std::make_unique<Ui::ConfigureInputPlayer>()), player_index(player_index),
+      debug(debug), timeout_timer(std::make_unique<QTimer>()),
+      poll_timer(std::make_unique<QTimer>()) {
     ui->setupUi(this);
     setFocusPolicy(Qt::ClickFocus);
 
@@ -315,7 +307,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, u8 player_index, boo
 
     for (std::size_t i = 0; i < controller_color_buttons.size(); ++i) {
         connect(controller_color_buttons[i], &QPushButton::clicked, this,
-                std::bind(&ConfigureInputPlayer::OnControllerButtonClick, this, i));
+                [this, i] { OnControllerButtonClick(static_cast<int>(i)); });
     }
 
     this->loadConfiguration();

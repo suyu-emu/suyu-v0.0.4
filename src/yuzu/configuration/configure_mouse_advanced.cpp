@@ -4,11 +4,11 @@
 
 #include <algorithm>
 #include <memory>
-#include <utility>
+
 #include <QKeyEvent>
 #include <QMenu>
-#include <QMessageBox>
 #include <QTimer>
+
 #include "common/assert.h"
 #include "common/param_package.h"
 #include "input_common/main.h"
