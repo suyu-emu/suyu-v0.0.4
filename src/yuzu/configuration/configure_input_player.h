@@ -30,7 +30,7 @@ class ConfigureInputPlayer : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ConfigureInputPlayer(QWidget* parent, u8 player_index, bool debug = false);
+    explicit ConfigureInputPlayer(QWidget* parent, std::size_t player_index, bool debug = false);
     ~ConfigureInputPlayer() override;
 
     /// Save all button configurations to settings file
@@ -62,7 +62,7 @@ private:
 
     std::unique_ptr<Ui::ConfigureInputPlayer> ui;
 
-    u8 player_index;
+    std::size_t player_index;
     bool debug;
 
     std::unique_ptr<QTimer> timeout_timer;

@@ -104,7 +104,7 @@ static QString AnalogToText(const Common::ParamPackage& param, const std::string
     }
 };
 
-ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, u8 player_index, bool debug)
+ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_index, bool debug)
     : QDialog(parent), ui(std::make_unique<Ui::ConfigureInputPlayer>()), player_index(player_index),
       debug(debug), timeout_timer(std::make_unique<QTimer>()),
       poll_timer(std::make_unique<QTimer>()) {
