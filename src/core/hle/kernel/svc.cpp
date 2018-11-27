@@ -1424,6 +1424,41 @@ static ResultCode GetResourceLimitCurrentValue(u64* out_value, Handle resource_l
     return RESULT_SUCCESS;
 }
 
+static ResultCode SetResourceLimitLimitValue(Handle resource_limit, u32 resource_type, u64 value) {
+    LOG_DEBUG(Kernel_SVC, "called. Handle={:08X}, Resource type={}, Value={}", resource_limit,
+              resource_type, value);
+
+    const auto type = static_cast<ResourceType>(resource_type);
+    if (!IsValidResourceType(type)) {
+        LOG_ERROR(Kernel_SVC, "Invalid resource limit type: '{}'", resource_type);
+        return ERR_INVALID_ENUM_VALUE;
+    }
+
+    auto& kernel = Core::System::GetInstance().Kernel();
+    auto* const current_process = kernel.CurrentProcess();
+    ASSERT(current_process != nullptr);
+
+    auto resource_limit_object =
+        current_process->GetHandleTable().Get<ResourceLimit>(resource_limit);
+    if (!resource_limit_object) {
+        LOG_ERROR(Kernel_SVC, "Handle to non-existent resource limit instance used. Handle={:08X}",
+                  resource_limit);
+        return ERR_INVALID_HANDLE;
+    }
+
+    const auto set_result = resource_limit_object->SetLimitValue(type, static_cast<s64>(value));
+    if (set_result.IsError()) {
+        LOG_ERROR(
+            Kernel_SVC,
+            "Attempted to lower resource limit ({}) for category '{}' below its current value ({})",
+            resource_limit_object->GetMaxResourceValue(type), resource_type,
+            resource_limit_object->GetCurrentResourceValue(type));
+        return set_result;
+    }
+
+    return RESULT_SUCCESS;
+}
+
 namespace {
 struct FunctionDef {
     using Func = void();
@@ -1561,7 +1596,7 @@ static const FunctionDef SVC_Table[] = {
     {0x7B, nullptr, "TerminateProcess"},
     {0x7C, SvcWrap<GetProcessInfo>, "GetProcessInfo"},
     {0x7D, SvcWrap<CreateResourceLimit>, "CreateResourceLimit"},
-    {0x7E, nullptr, "SetResourceLimitLimitValue"},
+    {0x7E, SvcWrap<SetResourceLimitLimitValue>, "SetResourceLimitLimitValue"},
     {0x7F, nullptr, "CallSecureMonitor"},
 };
 
