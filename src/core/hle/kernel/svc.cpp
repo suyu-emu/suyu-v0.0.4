@@ -63,7 +63,7 @@ bool IsInsideNewMapRegion(const VMManager& vm, VAddr address, u64 size) {
                                 vm.GetNewMapRegionEndAddress());
 }
 
-const u64 SZ_8GB = 0x200000000;
+constexpr u64 MAIN_MEMORY_SIZE = 0x200000000;
 
 // Helper function that performs the common sanity checks for svcMapMemory
 // and svcUnmapMemory. This is doable, as both functions perform their sanitizing
@@ -145,13 +145,13 @@ static ResultCode SetHeapSize(VAddr* heap_addr, u64 heap_size) {
     LOG_TRACE(Kernel_SVC, "called, heap_size=0x{:X}", heap_size);
 
     // Size must be a multiple of 0x200000 (2MB) and be equal to or less than 8GB.
-    if ((heap_size & 0x1FFFFF) != 0) {
+    if ((heap_size % 0x200000) != 0) {
         LOG_ERROR(Kernel_SVC, "The heap size is not a multiple of 2MB, heap_size=0x{:016X}",
                   heap_size);
         return ERR_INVALID_SIZE;
     }
 
-    if (heap_size >= SZ_8GB) {
+    if (heap_size >= 0x200000000) {
         LOG_ERROR(Kernel_SVC, "The heap size is not less than 8GB, heap_size=0x{:016X}", heap_size);
         return ERR_INVALID_SIZE;
     }
@@ -1453,7 +1453,7 @@ static ResultCode CreateSharedMemory(Handle* handle, u64 size, u32 local_permiss
         return ERR_INVALID_SIZE;
     }
 
-    if (size >= SZ_8GB) {
+    if (size >= MAIN_MEMORY_SIZE) {
         LOG_ERROR(Kernel_SVC, "Size is not less than 8GB, 0x{:016X}", size);
         return ERR_INVALID_SIZE;
     }
