@@ -9,9 +9,10 @@
 #include <memory>
 #include <optional>
 #include <string>
-#include <unordered_map>
+
 #include <QDialog>
 #include <QKeyEvent>
+
 #include "common/param_package.h"
 #include "core/settings.h"
 #include "input_common/main.h"
@@ -36,6 +37,29 @@ public:
     void applyConfiguration();
 
 private:
+    void OnControllerButtonClick(int i);
+
+    /// Load configuration settings.
+    void loadConfiguration();
+    /// Restore all buttons to their default values.
+    void restoreDefaults();
+    /// Clear all input configuration
+    void ClearAll();
+
+    /// Update UI to reflect current configuration.
+    void updateButtonLabels();
+
+    /// Called when the button was pressed.
+    void handleClick(QPushButton* button,
+                     std::function<void(const Common::ParamPackage&)> new_input_setter,
+                     InputCommon::Polling::DeviceType type);
+
+    /// Finish polling and configure input using the input_setter
+    void setPollingResult(const Common::ParamPackage& params, bool abort);
+
+    /// Handle key press events.
+    void keyPressEvent(QKeyEvent* event) override;
+
     std::unique_ptr<Ui::ConfigureInputPlayer> ui;
 
     u8 player_index;
@@ -77,27 +101,4 @@ private:
 
     std::array<QPushButton*, 4> controller_color_buttons;
     std::array<QColor, 4> controller_colors;
-
-    void OnControllerButtonClick(int i);
-
-    /// Load configuration settings.
-    void loadConfiguration();
-    /// Restore all buttons to their default values.
-    void restoreDefaults();
-    /// Clear all input configuration
-    void ClearAll();
-
-    /// Update UI to reflect current configuration.
-    void updateButtonLabels();
-
-    /// Called when the button was pressed.
-    void handleClick(QPushButton* button,
-                     std::function<void(const Common::ParamPackage&)> new_input_setter,
-                     InputCommon::Polling::DeviceType type);
-
-    /// Finish polling and configure input using the input_setter
-    void setPollingResult(const Common::ParamPackage& params, bool abort);
-
-    /// Handle key press events.
-    void keyPressEvent(QKeyEvent* event) override;
 };

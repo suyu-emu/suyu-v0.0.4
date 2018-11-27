@@ -28,23 +28,6 @@ public:
     void applyConfiguration();
 
 private:
-    std::unique_ptr<Ui::ConfigureMouseAdvanced> ui;
-
-    /// This will be the the setting function when an input is awaiting configuration.
-    std::optional<std::function<void(const Common::ParamPackage&)>> input_setter;
-
-    std::array<QPushButton*, Settings::NativeMouseButton::NumMouseButtons> button_map;
-    std::array<Common::ParamPackage, Settings::NativeMouseButton::NumMouseButtons> buttons_param;
-
-    std::vector<std::unique_ptr<InputCommon::Polling::DevicePoller>> device_pollers;
-
-    std::unique_ptr<QTimer> timeout_timer;
-    std::unique_ptr<QTimer> poll_timer;
-
-    /// A flag to indicate if keyboard keys are okay when configuring an input. If this is false,
-    /// keyboard events are ignored.
-    bool want_keyboard_keys = false;
-
     /// Load configuration settings.
     void loadConfiguration();
     /// Restore all buttons to their default values.
@@ -65,4 +48,21 @@ private:
 
     /// Handle key press events.
     void keyPressEvent(QKeyEvent* event) override;
+
+    std::unique_ptr<Ui::ConfigureMouseAdvanced> ui;
+
+    /// This will be the the setting function when an input is awaiting configuration.
+    std::optional<std::function<void(const Common::ParamPackage&)>> input_setter;
+
+    std::array<QPushButton*, Settings::NativeMouseButton::NumMouseButtons> button_map;
+    std::array<Common::ParamPackage, Settings::NativeMouseButton::NumMouseButtons> buttons_param;
+
+    std::vector<std::unique_ptr<InputCommon::Polling::DevicePoller>> device_pollers;
+
+    std::unique_ptr<QTimer> timeout_timer;
+    std::unique_ptr<QTimer> poll_timer;
+
+    /// A flag to indicate if keyboard keys are okay when configuring an input. If this is false,
+    /// keyboard events are ignored.
+    bool want_keyboard_keys = false;
 };
