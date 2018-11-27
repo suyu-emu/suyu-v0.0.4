@@ -616,7 +616,8 @@ private:
 
         const auto storage = applet->GetBroker().PopNormalDataToGame();
         if (storage == nullptr) {
-            LOG_ERROR(Service_AM, "storage is a nullptr. There is no data in the current channel");
+            LOG_ERROR(Service_AM,
+                      "storage is a nullptr. There is no data in the current normal channel");
 
             rb.Push(ERR_NO_DATA_IN_CHANNEL);
             return;
@@ -647,7 +648,8 @@ private:
 
         const auto storage = applet->GetBroker().PopInteractiveDataToGame();
         if (storage == nullptr) {
-            LOG_ERROR(Service_AM, "storage is a nullptr. There is no data in the current channel");
+            LOG_ERROR(Service_AM,
+                      "storage is a nullptr. There is no data in the current interactive channel");
 
             rb.Push(ERR_NO_DATA_IN_CHANNEL);
             return;

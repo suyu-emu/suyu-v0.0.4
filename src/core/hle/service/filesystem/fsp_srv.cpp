@@ -62,13 +62,13 @@ private:
 
         // Error checking
         if (length < 0) {
-            LOG_ERROR(Service_FS, "Invalid length provided");
+            LOG_ERROR(Service_FS, "Length is less than 0, length={}", length);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(FileSys::ERROR_INVALID_SIZE);
             return;
         }
         if (offset < 0) {
-            LOG_ERROR(Service_FS, "Invalid offset provided");
+            LOG_ERROR(Service_FS, "Offset is less than 0, offset={}", offset);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(FileSys::ERROR_INVALID_OFFSET);
             return;
@@ -109,13 +109,13 @@ private:
 
         // Error checking
         if (length < 0) {
-            LOG_ERROR(Service_FS, "Invalid length provided");
+            LOG_ERROR(Service_FS, "Length is less than 0, length={}", length);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(FileSys::ERROR_INVALID_SIZE);
             return;
         }
         if (offset < 0) {
-            LOG_ERROR(Service_FS, "Invalid offset provided");
+            LOG_ERROR(Service_FS, "Offset is less than 0, offset={}", offset);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(FileSys::ERROR_INVALID_OFFSET);
             return;
@@ -142,13 +142,13 @@ private:
 
         // Error checking
         if (length < 0) {
-            LOG_ERROR(Service_FS, "Invalid length provided");
+            LOG_ERROR(Service_FS, "Length is less than 0, length={}", length);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(FileSys::ERROR_INVALID_SIZE);
             return;
         }
         if (offset < 0) {
-            LOG_ERROR(Service_FS, "Invalid offset provided");
+            LOG_ERROR(Service_FS, "Offset is less than 0, offset={}", offset);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(FileSys::ERROR_INVALID_OFFSET);
             return;

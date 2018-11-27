@@ -63,6 +63,8 @@ bool IsInsideNewMapRegion(const VMManager& vm, VAddr address, u64 size) {
                                 vm.GetNewMapRegionEndAddress());
 }
 
+const u64 SZ_8GB = 0x200000000;
+
 // Helper function that performs the common sanity checks for svcMapMemory
 // and svcUnmapMemory. This is doable, as both functions perform their sanitizing
 // in the same order.
@@ -75,6 +77,7 @@ ResultCode MapUnmapMemorySanityChecks(const VMManager& vm_manager, VAddr dst_add
 
     if (!Common::Is4KBAligned(src_addr)) {
         LOG_ERROR(Kernel_SVC, "Source address is not aligned to 4KB, 0x{:016X}", src_addr);
+        return ERR_INVALID_SIZE;
     }
 
     if (size == 0) {
@@ -141,12 +144,15 @@ ResultCode MapUnmapMemorySanityChecks(const VMManager& vm_manager, VAddr dst_add
 static ResultCode SetHeapSize(VAddr* heap_addr, u64 heap_size) {
     LOG_TRACE(Kernel_SVC, "called, heap_size=0x{:X}", heap_size);
 
-    // Size must be a multiple of 0x200000 (2MB) and be equal to or less than 4GB.
-    if ((heap_size & 0xFFFFFFFE001FFFFF) != 0) {
-        LOG_ERROR(
-            Kernel_SVC,
-            "The heap size is not a multiple of 2mb or is greater than 4GB, heap_size=0x{:016X}",
-            heap_size);
+    // Size must be a multiple of 0x200000 (2MB) and be equal to or less than 8GB.
+    if ((heap_size & 0x1FFFFF) != 0) {
+        LOG_ERROR(Kernel_SVC, "The heap size is not a multiple of 2MB, heap_size=0x{:016X}",
+                  heap_size);
+        return ERR_INVALID_SIZE;
+    }
+
+    if (heap_size >= SZ_8GB) {
+        LOG_ERROR(Kernel_SVC, "The heap size is not less than 8GB, heap_size=0x{:016X}", heap_size);
         return ERR_INVALID_SIZE;
     }
 
@@ -1438,15 +1444,17 @@ static ResultCode CreateSharedMemory(Handle* handle, u64 size, u32 local_permiss
                                      u32 remote_permissions) {
     LOG_TRACE(Kernel_SVC, "called, size=0x{:X}, localPerms=0x{:08X}, remotePerms=0x{:08X}", size,
               local_permissions, remote_permissions);
-
-    // Size must be a multiple of 4KB and be less than or equal to
-    // approx. 8 GB (actually (1GB - 512B) * 8)
     if (size == 0) {
         LOG_ERROR(Kernel_SVC, "Size is 0");
+        return ERR_INVALID_SIZE;
     }
-    if ((size & 0xFFFFFFFE00000FFF) != 0) {
-        LOG_ERROR(Kernel_SVC, "Size is not a multiple of 4KB or is greater than 8GB, size={:016X}",
-                  size);
+    if (!Common::Is4KBAligned(size)) {
+        LOG_ERROR(Kernel_SVC, "Size is not aligned to 4KB, 0x{:016X}", size);
+        return ERR_INVALID_SIZE;
+    }
+
+    if (size >= SZ_8GB) {
+        LOG_ERROR(Kernel_SVC, "Size is not less than 8GB, 0x{:016X}", size);
         return ERR_INVALID_SIZE;
     }
 
