@@ -668,7 +668,7 @@ void RasterizerOpenGL::DrawArrays() {
     bool invalidate = buffer_cache.Map(buffer_size);
     if (invalidate) {
         // As all cached buffers are invalidated, we need to recheck their state.
-        gpu.dirty_flags.vertex_attrib_format = 0xFFFFFFFF;
+        gpu.dirty_flags.vertex_array = 0xFFFFFFFF;
     }
 
     SetupVertexFormat();
