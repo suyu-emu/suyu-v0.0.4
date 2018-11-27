@@ -25,13 +25,6 @@ const std::array<std::string, ConfigureInputPlayer::ANALOG_SUB_BUTTONS_NUM>
         "modifier",
     }};
 
-static void MoveGridElement(QGridLayout* grid, int row_old, int column_old, int row_new,
-                            int column_new) {
-    const auto item = grid->itemAtPosition(row_old, column_old);
-    // grid->removeItem(item);
-    grid->addItem(item, row_new, column_new);
-}
-
 static void LayerGridElements(QGridLayout* grid, QWidget* item, QWidget* onTopOf) {
     const int index1 = grid->indexOf(item);
     const int index2 = grid->indexOf(onTopOf);
