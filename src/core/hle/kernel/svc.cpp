@@ -105,6 +105,38 @@ ResultCode MapUnmapMemorySanityChecks(const VMManager& vm_manager, VAddr dst_add
 
     return RESULT_SUCCESS;
 }
+
+enum class ResourceLimitValueType {
+    CurrentValue,
+    LimitValue,
+};
+
+ResultVal<s64> RetrieveResourceLimitValue(Handle resource_limit, u32 resource_type,
+                                          ResourceLimitValueType value_type) {
+    const auto type = static_cast<ResourceType>(resource_type);
+    if (!IsValidResourceType(type)) {
+        LOG_ERROR(Kernel_SVC, "Invalid resource limit type: '{}'", resource_type);
+        return ERR_INVALID_ENUM_VALUE;
+    }
+
+    const auto& kernel = Core::System::GetInstance().Kernel();
+    const auto* const current_process = kernel.CurrentProcess();
+    ASSERT(current_process != nullptr);
+
+    const auto resource_limit_object =
+        current_process->GetHandleTable().Get<ResourceLimit>(resource_limit);
+    if (!resource_limit_object) {
+        LOG_ERROR(Kernel_SVC, "Handle to non-existent resource limit instance used. Handle={:08X}",
+                  resource_limit);
+        return ERR_INVALID_HANDLE;
+    }
+
+    if (value_type == ResourceLimitValueType::CurrentValue) {
+        return MakeResult(resource_limit_object->GetCurrentResourceValue(type));
+    }
+
+    return MakeResult(resource_limit_object->GetMaxResourceValue(type));
+}
 } // Anonymous namespace
 
 /// Set the process heap to a given Size. It can both extend and shrink the heap.
@@ -1346,6 +1378,87 @@ static ResultCode GetProcessInfo(u64* out, Handle process_handle, u32 type) {
     return RESULT_SUCCESS;
 }
 
+static ResultCode CreateResourceLimit(Handle* out_handle) {
+    LOG_DEBUG(Kernel_SVC, "called");
+
+    auto& kernel = Core::System::GetInstance().Kernel();
+    auto resource_limit = ResourceLimit::Create(kernel);
+
+    auto* const current_process = kernel.CurrentProcess();
+    ASSERT(current_process != nullptr);
+
+    const auto handle = current_process->GetHandleTable().Create(std::move(resource_limit));
+    if (handle.Failed()) {
+        return handle.Code();
+    }
+
+    *out_handle = *handle;
+    return RESULT_SUCCESS;
+}
+
+static ResultCode GetResourceLimitLimitValue(u64* out_value, Handle resource_limit,
+                                             u32 resource_type) {
+    LOG_DEBUG(Kernel_SVC, "called. Handle={:08X}, Resource type={}", resource_limit, resource_type);
+
+    const auto limit_value = RetrieveResourceLimitValue(resource_limit, resource_type,
+                                                        ResourceLimitValueType::LimitValue);
+    if (limit_value.Failed()) {
+        return limit_value.Code();
+    }
+
+    *out_value = static_cast<u64>(*limit_value);
+    return RESULT_SUCCESS;
+}
+
+static ResultCode GetResourceLimitCurrentValue(u64* out_value, Handle resource_limit,
+                                               u32 resource_type) {
+    LOG_DEBUG(Kernel_SVC, "called. Handle={:08X}, Resource type={}", resource_limit, resource_type);
+
+    const auto current_value = RetrieveResourceLimitValue(resource_limit, resource_type,
+                                                          ResourceLimitValueType::CurrentValue);
+    if (current_value.Failed()) {
+        return current_value.Code();
+    }
+
+    *out_value = static_cast<u64>(*current_value);
+    return RESULT_SUCCESS;
+}
+
+static ResultCode SetResourceLimitLimitValue(Handle resource_limit, u32 resource_type, u64 value) {
+    LOG_DEBUG(Kernel_SVC, "called. Handle={:08X}, Resource type={}, Value={}", resource_limit,
+              resource_type, value);
+
+    const auto type = static_cast<ResourceType>(resource_type);
+    if (!IsValidResourceType(type)) {
+        LOG_ERROR(Kernel_SVC, "Invalid resource limit type: '{}'", resource_type);
+        return ERR_INVALID_ENUM_VALUE;
+    }
+
+    auto& kernel = Core::System::GetInstance().Kernel();
+    auto* const current_process = kernel.CurrentProcess();
+    ASSERT(current_process != nullptr);
+
+    auto resource_limit_object =
+        current_process->GetHandleTable().Get<ResourceLimit>(resource_limit);
+    if (!resource_limit_object) {
+        LOG_ERROR(Kernel_SVC, "Handle to non-existent resource limit instance used. Handle={:08X}",
+                  resource_limit);
+        return ERR_INVALID_HANDLE;
+    }
+
+    const auto set_result = resource_limit_object->SetLimitValue(type, static_cast<s64>(value));
+    if (set_result.IsError()) {
+        LOG_ERROR(
+            Kernel_SVC,
+            "Attempted to lower resource limit ({}) for category '{}' below its current value ({})",
+            resource_limit_object->GetMaxResourceValue(type), resource_type,
+            resource_limit_object->GetCurrentResourceValue(type));
+        return set_result;
+    }
+
+    return RESULT_SUCCESS;
+}
+
 namespace {
 struct FunctionDef {
     using Func = void();
@@ -1405,8 +1518,8 @@ static const FunctionDef SVC_Table[] = {
     {0x2D, nullptr, "UnmapPhysicalMemory"},
     {0x2E, nullptr, "GetFutureThreadInfo"},
     {0x2F, nullptr, "GetLastThreadInfo"},
-    {0x30, nullptr, "GetResourceLimitLimitValue"},
-    {0x31, nullptr, "GetResourceLimitCurrentValue"},
+    {0x30, SvcWrap<GetResourceLimitLimitValue>, "GetResourceLimitLimitValue"},
+    {0x31, SvcWrap<GetResourceLimitCurrentValue>, "GetResourceLimitCurrentValue"},
     {0x32, SvcWrap<SetThreadActivity>, "SetThreadActivity"},
     {0x33, SvcWrap<GetThreadContext>, "GetThreadContext"},
     {0x34, SvcWrap<WaitForAddress>, "WaitForAddress"},
@@ -1482,8 +1595,8 @@ static const FunctionDef SVC_Table[] = {
     {0x7A, nullptr, "StartProcess"},
     {0x7B, nullptr, "TerminateProcess"},
     {0x7C, SvcWrap<GetProcessInfo>, "GetProcessInfo"},
-    {0x7D, nullptr, "CreateResourceLimit"},
-    {0x7E, nullptr, "SetResourceLimitLimitValue"},
+    {0x7D, SvcWrap<CreateResourceLimit>, "CreateResourceLimit"},
+    {0x7E, SvcWrap<SetResourceLimitLimitValue>, "SetResourceLimitLimitValue"},
     {0x7F, nullptr, "CallSecureMonitor"},
 };
 
