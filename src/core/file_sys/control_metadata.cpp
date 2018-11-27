@@ -8,13 +8,23 @@
 
 namespace FileSys {
 
-const std::array<const char*, 15> LANGUAGE_NAMES = {
-    "AmericanEnglish", "BritishEnglish", "Japanese",
-    "French",          "German",         "LatinAmericanSpanish",
-    "Spanish",         "Italian",        "Dutch",
-    "CanadianFrench",  "Portugese",      "Russian",
-    "Korean",          "Taiwanese",      "Chinese",
-};
+const std::array<const char*, 15> LANGUAGE_NAMES{{
+    "AmericanEnglish",
+    "BritishEnglish",
+    "Japanese",
+    "French",
+    "German",
+    "LatinAmericanSpanish",
+    "Spanish",
+    "Italian",
+    "Dutch",
+    "CanadianFrench",
+    "Portuguese",
+    "Russian",
+    "Korean",
+    "Taiwanese",
+    "Chinese",
+}};
 
 std::string LanguageEntry::GetApplicationName() const {
     return Common::StringFromFixedZeroTerminatedBuffer(application_name.data(),
