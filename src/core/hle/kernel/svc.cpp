@@ -63,6 +63,7 @@ bool IsInsideNewMapRegion(const VMManager& vm, VAddr address, u64 size) {
                                 vm.GetNewMapRegionEndAddress());
 }
 
+// 8 GiB
 constexpr u64 MAIN_MEMORY_SIZE = 0x200000000;
 
 // Helper function that performs the common sanity checks for svcMapMemory
