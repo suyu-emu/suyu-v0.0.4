@@ -381,22 +381,22 @@ std::vector<RegisteredCacheEntry> RegisteredCache::ListEntriesFilter(
     return out;
 }
 
-static std::shared_ptr<NCA> GetNCAFromNSPForID(std::shared_ptr<NSP> nsp, const NcaID& id) {
-    const auto file = nsp->GetFile(fmt::format("{}.nca", Common::HexArrayToString(id, false)));
+static std::shared_ptr<NCA> GetNCAFromNSPForID(const NSP& nsp, const NcaID& id) {
+    const auto file = nsp.GetFile(fmt::format("{}.nca", Common::HexArrayToString(id, false)));
     if (file == nullptr)
         return nullptr;
     return std::make_shared<NCA>(file);
 }
 
-InstallResult RegisteredCache::InstallEntry(std::shared_ptr<XCI> xci, bool overwrite_if_exists,
+InstallResult RegisteredCache::InstallEntry(const XCI& xci, bool overwrite_if_exists,
                                             const VfsCopyFunction& copy) {
-    return InstallEntry(xci->GetSecurePartitionNSP(), overwrite_if_exists, copy);
+    return InstallEntry(*xci.GetSecurePartitionNSP(), overwrite_if_exists, copy);
 }
 
-InstallResult RegisteredCache::InstallEntry(std::shared_ptr<NSP> nsp, bool overwrite_if_exists,
+InstallResult RegisteredCache::InstallEntry(const NSP& nsp, bool overwrite_if_exists,
                                             const VfsCopyFunction& copy) {
-    const auto& ncas = nsp->GetNCAsCollapsed();
-    const auto& meta_iter = std::find_if(ncas.begin(), ncas.end(), [](std::shared_ptr<NCA> nca) {
+    const auto ncas = nsp.GetNCAsCollapsed();
+    const auto meta_iter = std::find_if(ncas.begin(), ncas.end(), [](const auto& nca) {
         return nca->GetType() == NCAContentType::Meta;
     });
 
@@ -410,7 +410,7 @@ InstallResult RegisteredCache::InstallEntry(std::shared_ptr<NSP> nsp, bool overw
     const auto meta_id_raw = (*meta_iter)->GetName().substr(0, 32);
     const auto meta_id = Common::HexStringToArray<16>(meta_id_raw);
 
-    const auto res = RawInstallNCA(*meta_iter, copy, overwrite_if_exists, meta_id);
+    const auto res = RawInstallNCA(**meta_iter, copy, overwrite_if_exists, meta_id);
     if (res != InstallResult::Success)
         return res;
 
@@ -422,7 +422,7 @@ InstallResult RegisteredCache::InstallEntry(std::shared_ptr<NSP> nsp, bool overw
         const auto nca = GetNCAFromNSPForID(nsp, record.nca_id);
         if (nca == nullptr)
             return InstallResult::ErrorCopyFailed;
-        const auto res2 = RawInstallNCA(nca, copy, overwrite_if_exists, record.nca_id);
+        const auto res2 = RawInstallNCA(*nca, copy, overwrite_if_exists, record.nca_id);
         if (res2 != InstallResult::Success)
             return res2;
     }
@@ -431,21 +431,21 @@ InstallResult RegisteredCache::InstallEntry(std::shared_ptr<NSP> nsp, bool overw
     return InstallResult::Success;
 }
 
-InstallResult RegisteredCache::InstallEntry(std::shared_ptr<NCA> nca, TitleType type,
+InstallResult RegisteredCache::InstallEntry(const NCA& nca, TitleType type,
                                             bool overwrite_if_exists, const VfsCopyFunction& copy) {
     CNMTHeader header{
-        nca->GetTitleId(), ///< Title ID
-        0,                 ///< Ignore/Default title version
-        type,              ///< Type
-        {},                ///< Padding
-        0x10,              ///< Default table offset
-        1,                 ///< 1 Content Entry
-        0,                 ///< No Meta Entries
-        {},                ///< Padding
+        nca.GetTitleId(), ///< Title ID
+        0,                ///< Ignore/Default title version
+        type,             ///< Type
+        {},               ///< Padding
+        0x10,             ///< Default table offset
+        1,                ///< 1 Content Entry
+        0,                ///< No Meta Entries
+        {},               ///< Padding
     };
     OptionalHeader opt_header{0, 0};
-    ContentRecord c_rec{{}, {}, {}, GetCRTypeFromNCAType(nca->GetType()), {}};
-    const auto& data = nca->GetBaseFile()->ReadBytes(0x100000);
+    ContentRecord c_rec{{}, {}, {}, GetCRTypeFromNCAType(nca.GetType()), {}};
+    const auto& data = nca.GetBaseFile()->ReadBytes(0x100000);
     mbedtls_sha256(data.data(), data.size(), c_rec.hash.data(), 0);
     memcpy(&c_rec.nca_id, &c_rec.hash, 16);
     const CNMT new_cnmt(header, opt_header, {c_rec}, {});
@@ -454,10 +454,10 @@ InstallResult RegisteredCache::InstallEntry(std::shared_ptr<NCA> nca, TitleType 
     return RawInstallNCA(nca, copy, overwrite_if_exists, c_rec.nca_id);
 }
 
-InstallResult RegisteredCache::RawInstallNCA(std::shared_ptr<NCA> nca, const VfsCopyFunction& copy,
+InstallResult RegisteredCache::RawInstallNCA(const NCA& nca, const VfsCopyFunction& copy,
                                              bool overwrite_if_exists,
                                              std::optional<NcaID> override_id) {
-    const auto in = nca->GetBaseFile();
+    const auto in = nca.GetBaseFile();
     Core::Crypto::SHA256Hash hash{};
 
     // Calculate NcaID
