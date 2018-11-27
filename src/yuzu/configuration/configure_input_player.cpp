@@ -307,7 +307,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, u8 player_index, boo
 
     for (std::size_t i = 0; i < controller_color_buttons.size(); ++i) {
         connect(controller_color_buttons[i], &QPushButton::clicked, this,
-                std::bind(&ConfigureInputPlayer::OnControllerButtonClick, this, i));
+                [this, i] { OnControllerButtonClick(static_cast<int>(i)); });
     }
 
     this->loadConfiguration();
