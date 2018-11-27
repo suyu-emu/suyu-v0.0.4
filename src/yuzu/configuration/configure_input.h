@@ -32,9 +32,6 @@ public:
 private:
     void updateUIEnabled();
 
-    template <typename Dialog, typename... Args>
-    void CallConfigureDialog(Args&&... args);
-
     void OnDockedModeChanged(bool last_state, bool new_state);
 
     /// Load configuration settings.

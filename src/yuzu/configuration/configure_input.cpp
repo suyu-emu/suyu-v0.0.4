@@ -20,6 +20,19 @@
 #include "yuzu/configuration/configure_input_player.h"
 #include "yuzu/configuration/configure_mouse_advanced.h"
 
+namespace {
+template <typename Dialog, typename... Args>
+void CallConfigureDialog(ConfigureInput& parent, Args&&... args) {
+    parent.applyConfiguration();
+    Dialog dialog(&parent, std::forward<Args>(args)...);
+
+    const auto res = dialog.exec();
+    if (res == QDialog::Accepted) {
+        dialog.applyConfiguration();
+    }
+}
+} // Anonymous namespace
+
 ConfigureInput::ConfigureInput(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureInput>()) {
     ui->setupUi(this);
@@ -59,31 +72,20 @@ ConfigureInput::ConfigureInput(QWidget* parent)
 
     for (std::size_t i = 0; i < players_configure.size(); ++i) {
         connect(players_configure[i], &QPushButton::pressed, this,
-                [this, i]() { CallConfigureDialog<ConfigureInputPlayer>(i, false); });
+                [this, i] { CallConfigureDialog<ConfigureInputPlayer>(*this, i, false); });
     }
 
     connect(ui->handheld_configure, &QPushButton::pressed, this,
-            [this]() { CallConfigureDialog<ConfigureInputPlayer>(8, false); });
+            [this] { CallConfigureDialog<ConfigureInputPlayer>(*this, 8, false); });
 
     connect(ui->debug_configure, &QPushButton::pressed, this,
-            [this]() { CallConfigureDialog<ConfigureInputPlayer>(9, true); });
+            [this] { CallConfigureDialog<ConfigureInputPlayer>(*this, 9, true); });
 
     connect(ui->mouse_advanced, &QPushButton::pressed, this,
-            [this]() { CallConfigureDialog<ConfigureMouseAdvanced>(); });
+            [this] { CallConfigureDialog<ConfigureMouseAdvanced>(*this); });
 
     connect(ui->touchscreen_advanced, &QPushButton::pressed, this,
-            [this]() { CallConfigureDialog<ConfigureTouchscreenAdvanced>(); });
-}
-
-template <typename Dialog, typename... Args>
-void ConfigureInput::CallConfigureDialog(Args&&... args) {
-    this->applyConfiguration();
-    Dialog dialog(this, std::forward<Args>(args)...);
-
-    const auto res = dialog.exec();
-    if (res == QDialog::Accepted) {
-        dialog.applyConfiguration();
-    }
+            [this] { CallConfigureDialog<ConfigureTouchscreenAdvanced>(*this); });
 }
 
 void ConfigureInput::OnDockedModeChanged(bool last_state, bool new_state) {
