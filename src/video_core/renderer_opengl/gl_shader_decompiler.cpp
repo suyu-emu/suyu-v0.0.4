@@ -520,7 +520,7 @@ public:
         switch (attribute) {
         case Attribute::Index::ClipDistances0123:
         case Attribute::Index::ClipDistances4567: {
-            const u64 index = attribute == Attribute::Index::ClipDistances4567 ? 4 : 0 + elem;
+            const u64 index = (attribute == Attribute::Index::ClipDistances4567 ? 4 : 0) + elem;
             UNIMPLEMENTED_IF_MSG(
                 ((header.vtg.clip_distances >> index) & 1) == 0,
                 "Shader is setting gl_ClipDistance{} without enabling it in the header", index);
