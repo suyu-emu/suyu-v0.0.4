@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "common/assert.h"
-#include "common/microprofile.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/engines/kepler_memory.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -128,11 +127,7 @@ enum class BufferMethods {
     CountBufferMethods = 0x40,
 };
 
-MICROPROFILE_DEFINE(ProcessCommandLists, "GPU", "Execute command buffer", MP_RGB(128, 128, 192));
-
 void GPU::CallMethod(const MethodCall& method_call) {
-    MICROPROFILE_SCOPE(ProcessCommandLists);
-
     LOG_TRACE(HW_GPU,
               "Processing method {:08X} on subchannel {} value "
               "{:08X} remaining params {}",
