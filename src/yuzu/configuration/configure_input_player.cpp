@@ -105,10 +105,9 @@ static QString AnalogToText(const Common::ParamPackage& param, const std::string
 };
 
 ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, u8 player_index, bool debug)
-    : QDialog(parent), ui(std::make_unique<Ui::ConfigureInputPlayer>()),
-      timeout_timer(std::make_unique<QTimer>()), poll_timer(std::make_unique<QTimer>()),
-      player_index(player_index), debug(debug) {
-
+    : QDialog(parent), ui(std::make_unique<Ui::ConfigureInputPlayer>()), player_index(player_index),
+      debug(debug), timeout_timer(std::make_unique<QTimer>()),
+      poll_timer(std::make_unique<QTimer>()) {
     ui->setupUi(this);
     setFocusPolicy(Qt::ClickFocus);
 
