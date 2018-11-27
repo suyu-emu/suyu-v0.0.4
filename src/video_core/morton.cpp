@@ -183,13 +183,14 @@ static constexpr ConversionArray linear_to_morton_fns = {
     // clang-format on
 };
 
-constexpr MortonCopyFn GetSwizzleFunction(MortonSwizzleMode mode, Surface::PixelFormat format) {
+static MortonCopyFn GetSwizzleFunction(MortonSwizzleMode mode, Surface::PixelFormat format) {
     switch (mode) {
     case MortonSwizzleMode::MortonToLinear:
         return morton_to_linear_fns[static_cast<std::size_t>(format)];
     case MortonSwizzleMode::LinearToMorton:
         return linear_to_morton_fns[static_cast<std::size_t>(format)];
     }
+    UNREACHABLE();
 }
 
 /// 8x8 Z-Order coordinate from 2D coordinates
