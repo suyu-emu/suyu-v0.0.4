@@ -69,11 +69,12 @@ public:
 
         // This is the event handle used to check if the audio buffer was released
         auto& kernel = Core::System::GetInstance().Kernel();
-        buffer_event = Kernel::WritableEvent::CreateRegisteredEventPair(
-            kernel, Kernel::ResetType::Sticky, "IAudioOutBufferReleased");
+        buffer_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Sticky,
+                                                              "IAudioOutBufferReleased");
 
         stream = audio_core.OpenStream(audio_params.sample_rate, audio_params.channel_count,
-                                       std::move(unique_name), [=]() { buffer_event->Signal(); });
+                                       std::move(unique_name),
+                                       [=]() { buffer_event.writable->Signal(); });
     }
 
 private:
@@ -123,9 +124,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        const auto& event{
-            Core::System::GetInstance().Kernel().FindNamedEvent("IAudioOutBufferReleased")};
-        rb.PushCopyObjects(event->second);
+        rb.PushCopyObjects(buffer_event.readable);
     }
 
     void AppendAudioOutBufferImpl(Kernel::HLERequestContext& ctx) {
@@ -191,8 +190,8 @@ private:
 
     AudoutParams audio_params{};
 
-    /// This is the evend handle used to check if the audio buffer was released
-    Kernel::SharedPtr<Kernel::WritableEvent> buffer_event;
+    /// This is the event handle used to check if the audio buffer was released
+    Kernel::EventPair buffer_event;
 };
 
 void AudOutU::ListAudioOutsImpl(Kernel::HLERequestContext& ctx) {

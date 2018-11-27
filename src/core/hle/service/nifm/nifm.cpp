@@ -58,10 +58,10 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = Core::System::GetInstance().Kernel();
-        event1 = Kernel::WritableEvent::CreateRegisteredEventPair(
-            kernel, Kernel::ResetType::OneShot, "IRequest:Event1");
-        event2 = Kernel::WritableEvent::CreateRegisteredEventPair(
-            kernel, Kernel::ResetType::OneShot, "IRequest:Event2");
+        event1 = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::OneShot,
+                                                        "IRequest:Event1");
+        event2 = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::OneShot,
+                                                        "IRequest:Event2");
     }
 
 private:
@@ -92,11 +92,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 2};
         rb.Push(RESULT_SUCCESS);
-
-        const auto& event1{Core::System::GetInstance().Kernel().FindNamedEvent("IRequest:Event1")};
-        const auto& event2{Core::System::GetInstance().Kernel().FindNamedEvent("IRequest:Event2")};
-
-        rb.PushCopyObjects(event1->second, event2->second);
+        rb.PushCopyObjects(event1.readable, event2.readable);
     }
 
     void Cancel(Kernel::HLERequestContext& ctx) {
@@ -113,7 +109,7 @@ private:
         rb.Push(RESULT_SUCCESS);
     }
 
-    Kernel::SharedPtr<Kernel::WritableEvent> event1, event2;
+    Kernel::EventPair event1, event2;
 };
 
 class INetworkProfile final : public ServiceFramework<INetworkProfile> {

@@ -169,7 +169,7 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
 
 void Controller_NPad::OnInit() {
     auto& kernel = Core::System::GetInstance().Kernel();
-    styleset_changed_event = Kernel::WritableEvent::CreateRegisteredEventPair(
+    styleset_changed_event = Kernel::WritableEvent::CreateEventPair(
         kernel, Kernel::ResetType::OneShot, "npad:NpadStyleSetChanged");
 
     if (!IsControllerActivated()) {
@@ -496,7 +496,7 @@ void Controller_NPad::SetSupportedNPadIdTypes(u8* data, std::size_t length) {
             had_controller_update = true;
         }
         if (had_controller_update) {
-            styleset_changed_event->Signal();
+            styleset_changed_event.writable->Signal();
         }
     }
 }
@@ -511,7 +511,7 @@ std::size_t Controller_NPad::GetSupportedNPadIdTypesSize() const {
 }
 
 void Controller_NPad::SetHoldType(NpadHoldType joy_hold_type) {
-    styleset_changed_event->Signal();
+    styleset_changed_event.writable->Signal();
     hold_type = joy_hold_type;
 }
 
@@ -543,10 +543,8 @@ void Controller_NPad::VibrateController(const std::vector<u32>& controller_ids,
 Kernel::SharedPtr<Kernel::ReadableEvent> Controller_NPad::GetStyleSetChangedEvent() const {
     // TODO(ogniK): Figure out the best time to signal this event. This event seems that it should
     // be signalled at least once, and signaled after a new controller is connected?
-    styleset_changed_event->Signal();
-    const auto& event{
-        Core::System::GetInstance().Kernel().FindNamedEvent("npad:NpadStyleSetChanged")};
-    return event->second;
+    styleset_changed_event.writable->Signal();
+    return styleset_changed_event.readable;
 }
 
 Controller_NPad::Vibration Controller_NPad::GetLastVibration() const {

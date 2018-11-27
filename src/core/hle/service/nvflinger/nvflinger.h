@@ -45,7 +45,7 @@ struct Display {
     std::string name;
 
     std::vector<Layer> layers;
-    Kernel::SharedPtr<Kernel::WritableEvent> vsync_event;
+    Kernel::EventPair vsync_event;
 };
 
 class NVFlinger final {

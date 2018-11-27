@@ -210,8 +210,8 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
     RegisterHandlers(functions);
 
     auto& kernel = Core::System::GetInstance().Kernel();
-    launchable_event = Kernel::WritableEvent::CreateRegisteredEventPair(
-        kernel, Kernel::ResetType::Sticky, "ISelfController:LaunchableEvent");
+    launchable_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Sticky,
+                                                              "ISelfController:LaunchableEvent");
 }
 
 ISelfController::~ISelfController() = default;
@@ -297,11 +297,11 @@ void ISelfController::UnlockExit(Kernel::HLERequestContext& ctx) {
 void ISelfController::GetLibraryAppletLaunchableEvent(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    launchable_event->Signal();
+    launchable_event.writable->Signal();
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(event->second);
+    rb.PushCopyObjects(launchable_event.readable);
 
 void ISelfController::SetScreenShotImageOrientation(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
@@ -349,9 +349,9 @@ void ISelfController::GetIdleTimeDetectionExtension(Kernel::HLERequestContext& c
 
 AppletMessageQueue::AppletMessageQueue() {
     auto& kernel = Core::System::GetInstance().Kernel();
-    on_new_message = Kernel::WritableEvent::CreateRegisteredEventPair(
-        kernel, Kernel::ResetType::Sticky, "AMMessageQueue:OnMessageRecieved");
-    on_operation_mode_changed = Kernel::WritableEvent::CreateRegisteredEventPair(
+    on_new_message = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Sticky,
+                                                            "AMMessageQueue:OnMessageRecieved");
+    on_operation_mode_changed = Kernel::WritableEvent::CreateEventPair(
         kernel, Kernel::ResetType::OneShot, "AMMessageQueue:OperationModeChanged");
 }
 
@@ -359,32 +359,28 @@ AppletMessageQueue::~AppletMessageQueue() = default;
 
 const Kernel::SharedPtr<Kernel::ReadableEvent>& AppletMessageQueue::GetMesssageRecieveEvent()
     const {
-    const auto& event{
-        Core::System::GetInstance().Kernel().FindNamedEvent("AMMessageQueue:OnMessageRecieved")};
-    return event->second;
+    return on_new_message.readable;
 }
 
 const Kernel::SharedPtr<Kernel::ReadableEvent>& AppletMessageQueue::GetOperationModeChangedEvent()
     const {
-    const auto& event{
-        Core::System::GetInstance().Kernel().FindNamedEvent("AMMessageQueue:OperationModeChanged")};
-    return event->second;
+    return on_operation_mode_changed.readable;
 }
 
 void AppletMessageQueue::PushMessage(AppletMessage msg) {
     messages.push(msg);
-    on_new_message->Signal();
+    on_new_message.writable->Signal();
 }
 
 AppletMessageQueue::AppletMessage AppletMessageQueue::PopMessage() {
     if (messages.empty()) {
-        on_new_message->Clear();
+        on_new_message.writable->Clear();
         return AppletMessage::NoMessage;
     }
     auto msg = messages.front();
     messages.pop();
     if (messages.empty()) {
-        on_new_message->Clear();
+        on_new_message.writable->Clear();
     }
     return msg;
 }
@@ -396,7 +392,7 @@ std::size_t AppletMessageQueue::GetMessageCount() const {
 void AppletMessageQueue::OperationModeChanged() {
     PushMessage(AppletMessage::OperationModeChanged);
     PushMessage(AppletMessage::PerformanceModeChanged);
-    on_operation_mode_changed->Signal();
+    on_operation_mode_changed.writable->Signal();
 }
 
 ICommonStateGetter::ICommonStateGetter(std::shared_ptr<AppletMessageQueue> msg_queue)

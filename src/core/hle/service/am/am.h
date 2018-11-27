@@ -6,12 +6,8 @@
 
 #include <memory>
 #include <queue>
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/service.h"
-
-namespace Kernel {
-class ReadableEvent;
-class WritableEvent;
-} // namespace Kernel
 
 namespace Service {
 namespace NVFlinger {
@@ -62,8 +58,8 @@ public:
 
 private:
     std::queue<AppletMessage> messages;
-    Kernel::SharedPtr<Kernel::WritableEvent> on_new_message;
-    Kernel::SharedPtr<Kernel::WritableEvent> on_operation_mode_changed;
+    Kernel::EventPair on_new_message;
+    Kernel::EventPair on_operation_mode_changed;
 };
 
 class IWindowController final : public ServiceFramework<IWindowController> {
@@ -123,7 +119,7 @@ private:
     void GetIdleTimeDetectionExtension(Kernel::HLERequestContext& ctx);
 
     std::shared_ptr<NVFlinger::NVFlinger> nvflinger;
-    Kernel::SharedPtr<Kernel::WritableEvent> launchable_event;
+    Kernel::EventPair launchable_event;
     u32 idle_time_detection_extension = 0;
 };
 

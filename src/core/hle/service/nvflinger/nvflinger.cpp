@@ -87,9 +87,7 @@ u32 NVFlinger::GetBufferQueueId(u64 display_id, u64 layer_id) {
 }
 
 Kernel::SharedPtr<Kernel::ReadableEvent> NVFlinger::GetVsyncEvent(u64 display_id) {
-    const auto& event{Core::System::GetInstance().Kernel().FindNamedEvent(
-        fmt::format("Display VSync Event {}", display_id))};
-    return event->second;
+    return GetDisplay(display_id).vsync_event.readable;
 }
 
 std::shared_ptr<BufferQueue> NVFlinger::GetBufferQueue(u32 id) const {
@@ -121,7 +119,7 @@ Layer& NVFlinger::GetLayer(u64 display_id, u64 layer_id) {
 void NVFlinger::Compose() {
     for (auto& display : displays) {
         // Trigger vsync for this display at the end of drawing
-        SCOPE_EXIT({ display.vsync_event->Signal(); });
+        SCOPE_EXIT({ display.vsync_event.writable->Signal(); });
 
         // Don't do anything for displays without layers.
         if (display.layers.empty())
@@ -168,8 +166,8 @@ Layer::~Layer() = default;
 
 Display::Display(u64 id, std::string name) : id(id), name(std::move(name)) {
     auto& kernel = Core::System::GetInstance().Kernel();
-    vsync_event = Kernel::WritableEvent::CreateRegisteredEventPair(
-        kernel, Kernel::ResetType::Pulse, fmt::format("Display VSync Event {}", id));
+    vsync_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Pulse,
+                                                         fmt::format("Display VSync Event {}", id));
 }
 
 Display::~Display() = default;

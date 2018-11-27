@@ -12,8 +12,14 @@ namespace Kernel {
 
 class KernelCore;
 class ReadableEvent;
+class WritableEvent;
 
-class WritableEvent final : public WaitObject {
+struct EventPair {
+    SharedPtr<ReadableEvent> readable;
+    SharedPtr<WritableEvent> writable;
+};
+
+class WritableEvent final : public Object {
 public:
     ~WritableEvent() override;
 
@@ -23,18 +29,8 @@ public:
      * @param reset_type ResetType describing how to create event
      * @param name Optional name of event
      */
-    static std::tuple<SharedPtr<WritableEvent>, SharedPtr<ReadableEvent>> CreateEventPair(
-        KernelCore& kernel, ResetType reset_type, std::string name = "Unknown");
-
-    /**
-     * Creates an event and registers it in the kernel's named event table
-     * @param kernel The kernel instance to create this event under.
-     * @param reset_type ResetType describing how to create event
-     * @param name name of event
-     */
-    static SharedPtr<WritableEvent> CreateRegisteredEventPair(KernelCore& kernel,
-                                                              ResetType reset_type,
-                                                              std::string name);
+    static EventPair CreateEventPair(KernelCore& kernel, ResetType reset_type,
+                                     std::string name = "Unknown");
 
     std::string GetTypeName() const override {
         return "WritableEvent";
@@ -48,27 +44,17 @@ public:
         return HANDLE_TYPE;
     }
 
-    ResetType GetResetType() const {
-        return reset_type;
-    }
-
-    bool ShouldWait(Thread* thread) const override;
-    void Acquire(Thread* thread) override;
-
-    void WakeupAllWaitingThreads() override;
+    ResetType GetResetType() const;
 
     void Signal();
     void Clear();
-    void ResetOnAcquire();
-    void ResetOnWakeup();
     bool IsSignaled() const;
 
 private:
     explicit WritableEvent(KernelCore& kernel);
 
-    ResetType reset_type; ///< Current ResetType
+    SharedPtr<ReadableEvent> readable;
 
-    bool signaled;    ///< Whether the event has already been signaled
     std::string name; ///< Name of event (optional)
 };
 

@@ -60,13 +60,13 @@ private:
     // PopInteractiveDataToGame and PushInteractiveDataFromApplet
     std::queue<std::unique_ptr<IStorage>> out_interactive_channel;
 
-    Kernel::SharedPtr<Kernel::WritableEvent> state_changed_event;
+    Kernel::EventPair state_changed_event;
 
     // Signaled on PushNormalDataFromApplet
-    Kernel::SharedPtr<Kernel::WritableEvent> pop_out_data_event;
+    Kernel::EventPair pop_out_data_event;
 
     // Signaled on PushInteractiveDataFromApplet
-    Kernel::SharedPtr<Kernel::WritableEvent> pop_interactive_out_data_event;
+    Kernel::EventPair pop_interactive_out_data_event;
 };
 
 class Applet {

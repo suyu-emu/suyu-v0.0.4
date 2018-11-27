@@ -1366,7 +1366,7 @@ static ResultCode ResetSignal(Handle handle) {
 
     ASSERT(event != nullptr);
 
-    event->PromoteToWritable()->Clear();
+    event->Clear();
     return RESULT_SUCCESS;
 }
 
@@ -1531,7 +1531,7 @@ static ResultCode ClearEvent(Handle handle) {
         return ERR_INVALID_HANDLE;
     }
 
-    evt->PromoteToWritable()->Clear();
+    evt->Clear();
     return RESULT_SUCCESS;
 }
 

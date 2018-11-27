@@ -16,8 +16,8 @@ namespace Service::NVFlinger {
 
 BufferQueue::BufferQueue(u32 id, u64 layer_id) : id(id), layer_id(layer_id) {
     auto& kernel = Core::System::GetInstance().Kernel();
-    buffer_wait_event = Kernel::WritableEvent::CreateRegisteredEventPair(
-        kernel, Kernel::ResetType::Sticky, "BufferQueue NativeHandle");
+    buffer_wait_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Sticky,
+                                                               "BufferQueue NativeHandle");
 }
 
 BufferQueue::~BufferQueue() = default;
@@ -31,7 +31,7 @@ void BufferQueue::SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer)
     buffer.status = Buffer::Status::Free;
 
     queue.emplace_back(buffer);
-    buffer_wait_event->Signal();
+    buffer_wait_event.writable->Signal();
 }
 
 std::optional<u32> BufferQueue::DequeueBuffer(u32 width, u32 height) {
@@ -90,7 +90,7 @@ void BufferQueue::ReleaseBuffer(u32 slot) {
     ASSERT(itr->status == Buffer::Status::Acquired);
     itr->status = Buffer::Status::Free;
 
-    buffer_wait_event->Signal();
+    buffer_wait_event.writable->Signal();
 }
 
 u32 BufferQueue::Query(QueryType type) {
@@ -108,13 +108,11 @@ u32 BufferQueue::Query(QueryType type) {
 }
 
 Kernel::SharedPtr<Kernel::WritableEvent> BufferQueue::GetWritableBufferWaitEvent() const {
-    return buffer_wait_event;
+    return buffer_wait_event.writable;
 }
 
 Kernel::SharedPtr<Kernel::ReadableEvent> BufferQueue::GetBufferWaitEvent() const {
-    const auto& event{
-        Core::System::GetInstance().Kernel().FindNamedEvent("BufferQueue NativeHandle")};
-    return event->second;
+    return buffer_wait_event.readable;
 }
 
 } // namespace Service::NVFlinger

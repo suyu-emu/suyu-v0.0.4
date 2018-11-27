@@ -53,8 +53,10 @@ SharedPtr<WritableEvent> HLERequestContext::SleepClientThread(
     auto& kernel = Core::System::GetInstance().Kernel();
     if (!writable_event || !readable_event) {
         // Create event if not provided
-        std::tie(writable_event, readable_event) = WritableEvent::CreateEventPair(
-            kernel, Kernel::ResetType::OneShot, "HLE Pause Event: " + reason);
+        const auto pair = WritableEvent::CreateEventPair(kernel, Kernel::ResetType::OneShot,
+                                                         "HLE Pause Event: " + reason);
+        writable_event = pair.writable;
+        readable_event = pair.readable;
     }
 
     writable_event->Clear();

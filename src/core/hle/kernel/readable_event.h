@@ -25,6 +25,10 @@ public:
         return name;
     }
 
+    ResetType GetResetType() const {
+        return reset_type;
+    }
+
     static const HandleType HANDLE_TYPE = HandleType::Event;
     HandleType GetHandleType() const override {
         return HANDLE_TYPE;
@@ -35,20 +39,15 @@ public:
 
     void WakeupAllWaitingThreads() override;
 
-    void AddWaitingThread(SharedPtr<Thread> thread) override;
-    void RemoveWaitingThread(Thread* thread) override;
-
-    void Signal();
     void Clear();
-
-    SharedPtr<WritableEvent> PromoteToWritable() const {
-        return writable_event;
-    }
 
 private:
     explicit ReadableEvent(KernelCore& kernel);
 
-    SharedPtr<WritableEvent> writable_event; ///< WritableEvent associated with this ReadableEvent
+    void Signal();
+
+    ResetType reset_type;
+    bool signaled;
 
     std::string name; ///< Name of event (optional)
 };

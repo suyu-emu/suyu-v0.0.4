@@ -15,34 +15,30 @@ ReadableEvent::ReadableEvent(KernelCore& kernel) : WaitObject{kernel} {}
 ReadableEvent::~ReadableEvent() = default;
 
 bool ReadableEvent::ShouldWait(Thread* thread) const {
-    return !writable_event->IsSignaled();
+    return !signaled;
 }
 
 void ReadableEvent::Acquire(Thread* thread) {
     ASSERT_MSG(!ShouldWait(thread), "object unavailable!");
 
-    writable_event->ResetOnAcquire();
-}
-
-void ReadableEvent::AddWaitingThread(SharedPtr<Thread> thread) {
-    writable_event->AddWaitingThread(thread);
-}
-
-void ReadableEvent::RemoveWaitingThread(Thread* thread) {
-    writable_event->RemoveWaitingThread(thread);
+    if (reset_type == ResetType::OneShot)
+        signaled = false;
 }
 
 void ReadableEvent::Signal() {
-    writable_event->Signal();
+    signaled = true;
+    WakeupAllWaitingThreads();
 }
 
 void ReadableEvent::Clear() {
-    writable_event->Clear();
+    signaled = false;
 }
 
 void ReadableEvent::WakeupAllWaitingThreads() {
-    writable_event->WakeupAllWaitingThreads();
-    writable_event->ResetOnWakeup();
+    WaitObject::WakeupAllWaitingThreads();
+
+    if (reset_type == ResetType::Pulse)
+        signaled = false;
 }
 
 } // namespace Kernel

@@ -11,15 +11,11 @@
 #include "common/math_util.h"
 #include "common/swap.h"
 #include "core/hle/kernel/object.h"
+#include "core/hle/kernel/writable_event.h"
 
 namespace CoreTiming {
 struct EventType;
 }
-
-namespace Kernel {
-class ReadableEvent;
-class WritableEvent;
-} // namespace Kernel
 
 namespace Service::NVFlinger {
 
@@ -100,7 +96,7 @@ private:
     u64 layer_id;
 
     std::vector<Buffer> queue;
-    Kernel::SharedPtr<Kernel::WritableEvent> buffer_wait_event;
+    Kernel::EventPair buffer_wait_event;
 };
 
 } // namespace Service::NVFlinger

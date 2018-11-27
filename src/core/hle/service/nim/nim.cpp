@@ -140,19 +140,18 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = Core::System::GetInstance().Kernel();
-        finished_event = Kernel::WritableEvent::CreateRegisteredEventPair(
+        finished_event = Kernel::WritableEvent::CreateEventPair(
             kernel, Kernel::ResetType::OneShot,
             "IEnsureNetworkClockAvailabilityService:FinishEvent");
     }
 
 private:
-    Kernel::SharedPtr<Kernel::WritableEvent> finished_event;
+    Kernel::EventPair finished_event;
 
     void StartTask(Kernel::HLERequestContext& ctx) {
         // No need to connect to the internet, just finish the task straight away.
         LOG_DEBUG(Service_NIM, "called");
-
-        finished_event->Signal();
+        finished_event.writable->Signal();
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
@@ -162,9 +161,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        const auto& event{Core::System::GetInstance().Kernel().FindNamedEvent(
-            "IEnsureNetworkClockAvailabilityService:FinishEvent")};
-        rb.PushCopyObjects(event->second);
+        rb.PushCopyObjects(finished_event.readable);
     }
 
     void GetResult(Kernel::HLERequestContext& ctx) {
@@ -176,8 +173,7 @@ private:
 
     void Cancel(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_NIM, "called");
-
-        finished_event->Clear();
+        finished_event.writable->Clear();
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }

@@ -25,7 +25,7 @@ private:
     void GetAddOnContentListChangedEvent(Kernel::HLERequestContext& ctx);
 
     std::vector<u64> add_on_content;
-    Kernel::SharedPtr<Kernel::WritableEvent> aoc_change_event;
+    Kernel::EventPair aoc_change_event;
 };
 
 /// Registers all AOC services with the specified service manager.

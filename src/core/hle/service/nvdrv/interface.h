@@ -34,7 +34,7 @@ private:
 
     u64 pid{};
 
-    Kernel::SharedPtr<Kernel::WritableEvent> query_event;
+    Kernel::EventPair query_event;
 };
 
 } // namespace Service::Nvidia

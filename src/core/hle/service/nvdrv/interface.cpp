@@ -71,9 +71,7 @@ void NVDRV::QueryEvent(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3, 1};
     rb.Push(RESULT_SUCCESS);
-
-    const auto& event{Core::System::GetInstance().Kernel().FindNamedEvent("NVDRV::query_event")};
-    rb.PushCopyObjects(event->second);
+    rb.PushCopyObjects(query_event.readable);
     rb.Push<u32>(0);
 }
 
@@ -131,8 +129,8 @@ NVDRV::NVDRV(std::shared_ptr<Module> nvdrv, const char* name)
     RegisterHandlers(functions);
 
     auto& kernel = Core::System::GetInstance().Kernel();
-    query_event = Kernel::WritableEvent::CreateRegisteredEventPair(
-        kernel, Kernel::ResetType::OneShot, "NVDRV::query_event");
+    query_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::OneShot,
+                                                         "NVDRV::query_event");
 }
 
 NVDRV::~NVDRV() = default;

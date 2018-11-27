@@ -63,8 +63,8 @@ AOC_U::AOC_U() : ServiceFramework("aoc:u"), add_on_content(AccumulateAOCTitleIDs
     RegisterHandlers(functions);
 
     auto& kernel = Core::System::GetInstance().Kernel();
-    aoc_change_event = Kernel::WritableEvent::CreateRegisteredEventPair(
-        kernel, Kernel::ResetType::Sticky, "GetAddOnContentListChanged:Event");
+    aoc_change_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Sticky,
+                                                              "GetAddOnContentListChanged:Event");
 }
 
 AOC_U::~AOC_U() = default;
@@ -144,12 +144,9 @@ void AOC_U::PrepareAddOnContent(Kernel::HLERequestContext& ctx) {
 void AOC_U::GetAddOnContentListChangedEvent(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AOC, "(STUBBED) called");
 
-    const auto& event{
-        Core::System::GetInstance().Kernel().FindNamedEvent("GetAddOnContentListChanged:Event")};
-
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(event->second);
+    rb.PushCopyObjects(aoc_change_event.readable);
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager) {

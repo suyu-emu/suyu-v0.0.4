@@ -9,13 +9,9 @@
 #include "common/common_types.h"
 #include "core/frontend/input.h"
 #include "core/hle/kernel/object.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
 #include "core/settings.h"
-
-namespace Kernel {
-class ReadableEvent;
-class WritableEvent;
-} // namespace Kernel
 
 namespace Service::HID {
 
@@ -308,7 +304,7 @@ private:
         sticks;
     std::vector<u32> supported_npad_id_types{};
     NpadHoldType hold_type{NpadHoldType::Vertical};
-    Kernel::SharedPtr<Kernel::WritableEvent> styleset_changed_event;
+    Kernel::EventPair styleset_changed_event;
     Vibration last_processed_vibration{};
     std::array<ControllerHolder, 10> connected_controllers{};
     bool can_controllers_vibrate{true};

@@ -6,12 +6,8 @@
 
 #include <array>
 #include <vector>
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/service.h"
-
-namespace Kernel {
-class ReadableEvent;
-class WritableEvent;
-} // namespace Kernel
 
 namespace Service::NFP {
 
@@ -41,7 +37,7 @@ public:
         const AmiiboFile& GetAmiiboBuffer() const;
 
     private:
-        Kernel::SharedPtr<Kernel::WritableEvent> nfc_tag_load{};
+        Kernel::EventPair nfc_tag_load{};
         AmiiboFile amiibo{};
 
     protected:

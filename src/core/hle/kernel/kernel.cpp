@@ -177,10 +177,6 @@ struct KernelCore::Impl {
     // allowing us to simply use a pool index or similar.
     Kernel::HandleTable thread_wakeup_callback_handle_table;
 
-    /// Map of named events managed by the kernel, which are retrieved when HLE services need to
-    /// return an event to the system.
-    NamedEventTable named_events;
-
     /// Map of named ports managed by the kernel, which can be retrieved using
     /// the ConnectToPort SVC.
     NamedPortTable named_ports;
@@ -225,19 +221,6 @@ Process* KernelCore::CurrentProcess() {
 
 const Process* KernelCore::CurrentProcess() const {
     return impl->current_process;
-}
-
-void KernelCore::AddNamedEvent(std::string name, SharedPtr<ReadableEvent> event) {
-    impl->named_events.emplace(std::move(name), std::move(event));
-}
-
-KernelCore::NamedEventTable::iterator KernelCore::FindNamedEvent(const std::string& name) {
-    return impl->named_events.find(name);
-}
-
-KernelCore::NamedEventTable::const_iterator KernelCore::FindNamedEvent(
-    const std::string& name) const {
-    return impl->named_events.find(name);
 }
 
 void KernelCore::AddNamedPort(std::string name, SharedPtr<ClientPort> port) {

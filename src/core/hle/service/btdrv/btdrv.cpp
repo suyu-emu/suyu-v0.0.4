@@ -34,8 +34,8 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = Core::System::GetInstance().Kernel();
-        register_event = Kernel::WritableEvent::CreateRegisteredEventPair(
-            kernel, Kernel::ResetType::OneShot, "BT:RegisterEvent");
+        register_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::OneShot,
+                                                                "BT:RegisterEvent");
     }
 
 private:
@@ -44,10 +44,10 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        const auto& event{Core::System::GetInstance().Kernel().FindNamedEvent("BT:RegisterEvent")};
-        rb.PushCopyObjects(event->second);
+        rb.PushCopyObjects(register_event.readable);
     }
-    Kernel::SharedPtr<Kernel::WritableEvent> register_event;
+
+    Kernel::EventPair register_event;
 };
 
 class BtDrv final : public ServiceFramework<BtDrv> {
