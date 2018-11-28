@@ -2674,11 +2674,11 @@ private:
                     if (is_array) {
                         depth_compare_extra = depth_compare;
                         shader.AddLine("vec4 coords = vec4(" + x + ", " + y + ", " + z + ", " +
-                                array_elem + ");");
+                                       array_elem + ");");
                     } else {
                         if (depth_compare) {
                             shader.AddLine("vec4 coords = vec4(" + x + ", " + y + ", " + z + ", " +
-                                    depth_value + ");");
+                                           depth_value + ");");
                         } else {
                             shader.AddLine("vec3 coords = vec3(" + x + ", " + y + ", " + z + ");");
                         }
@@ -2701,59 +2701,47 @@ private:
                 // Add an extra scope and declare the texture coords inside to prevent
                 // overwriting them in case they are used as outputs of the texs instruction.
 
-                std::string texture;
-
-                switch (instr.tex.GetTextureProcessMode()) {
-                case Tegra::Shader::TextureProcessMode::None: {
-                    if (!depth_compare_extra) {
-                        texture = "texture(" + sampler + ", coords)";
-                    } else {
-                        texture = "texture(" + sampler + ", coords, " + depth_value + ')';
+                const std::string texture = [&]() {
+                    switch (instr.tex.GetTextureProcessMode()) {
+                    case Tegra::Shader::TextureProcessMode::None:
+                        if (depth_compare_extra) {
+                            return "texture(" + sampler + ", coords, " + depth_value + ')';
+                        }
+                        return "texture(" + sampler + ", coords)";
+                    case Tegra::Shader::TextureProcessMode::LZ:
+                        if (depth_compare_extra) {
+                            return "texture(" + sampler + ", coords, " + depth_value + ')';
+                        }
+                        return "textureLod(" + sampler + ", coords, 0.0)";
+                    case Tegra::Shader::TextureProcessMode::LB:
+                    case Tegra::Shader::TextureProcessMode::LBA:
+                        // TODO: Figure if A suffix changes the equation at all.
+                        if (depth_compare_extra) {
+                            LOG_WARNING(
+                                HW_GPU,
+                                "OpenGL Limitation: can't set bias value along depth compare");
+                            return "texture(" + sampler + ", coords, " + depth_value + ')';
+                        }
+                        return "texture(" + sampler + ", coords, " + lod_value + ')';
+                    case Tegra::Shader::TextureProcessMode::LL:
+                    case Tegra::Shader::TextureProcessMode::LLA:
+                        // TODO: Figure if A suffix changes the equation at all.
+                        if (depth_compare_extra) {
+                            LOG_WARNING(
+                                HW_GPU,
+                                "OpenGL Limitation: can't set lod value along depth compare");
+                            return "texture(" + sampler + ", coords, " + depth_value + ')';
+                        }
+                        return "textureLod(" + sampler + ", coords, " + lod_value + ')';
+                    default:
+                        UNIMPLEMENTED_MSG("Unhandled texture process mode {}",
+                                          static_cast<u32>(instr.tex.GetTextureProcessMode()));
+                        if (depth_compare_extra) {
+                            return "texture(" + sampler + ", coords, " + depth_value + ')';
+                        }
+                        return "texture(" + sampler + ", coords)";
                     }
-                    break;
-                }
-                case Tegra::Shader::TextureProcessMode::LZ: {
-                    if (!depth_compare_extra) {
-                        texture = "textureLod(" + sampler + ", coords, 0.0)";
-                    } else {
-                        texture = "texture(" + sampler + ", coords, " + depth_value + ')';
-                    }
-                    break;
-                }
-                case Tegra::Shader::TextureProcessMode::LB:
-                case Tegra::Shader::TextureProcessMode::LBA: {
-                    // TODO: Figure if A suffix changes the equation at all.
-                    if (!depth_compare_extra) {
-                        texture = "texture(" + sampler + ", coords, " + lod_value + ')';
-                    } else {
-                        texture = "texture(" + sampler + ", coords, " + depth_value + ')';
-                        LOG_WARNING(HW_GPU,
-                                    "OpenGL Limitation: can't set bias value along depth compare");
-                    }
-                    break;
-                }
-                case Tegra::Shader::TextureProcessMode::LL:
-                case Tegra::Shader::TextureProcessMode::LLA: {
-                    // TODO: Figure if A suffix changes the equation at all.
-                    if (!depth_compare_extra) {
-                        texture = "textureLod(" + sampler + ", coords, " + lod_value + ')';
-                    } else {
-                        texture = "texture(" + sampler + ", coords, " + depth_value + ')';
-                        LOG_WARNING(HW_GPU,
-                                    "OpenGL Limitation: can't set lod value along depth compare");
-                    }
-                    break;
-                }
-                default: {
-                    if (!depth_compare_extra) {
-                        texture = "texture(" + sampler + ", coords)";
-                    } else {
-                        texture = "texture(" + sampler + ", coords, " + depth_value + ')';
-                    }
-                    UNIMPLEMENTED_MSG("Unhandled texture process mode {}",
-                                      static_cast<u32>(instr.tex.GetTextureProcessMode()));
-                }
-                }
+                }();
 
                 if (depth_compare) {
                     regs.SetRegisterToFloat(instr.gpr0, 0, texture, 1, 1, false);
@@ -2871,34 +2859,29 @@ private:
                 const std::string sampler =
                     GetSampler(instr.sampler, texture_type, is_array, depth_compare);
 
-                std::string texture;
-                switch (process_mode) {
-                case Tegra::Shader::TextureProcessMode::None: {
-                    texture = "texture(" + sampler + ", coords)";
-                    break;
-                }
-                case Tegra::Shader::TextureProcessMode::LZ: {
-                    if (depth_compare && is_array) {
-                        texture = "texture(" + sampler + ", coords)";
-                    } else {
-                        texture = "textureLod(" + sampler + ", coords, 0.0)";
+                std::string texture = [&]() {
+                    switch (process_mode) {
+                    case Tegra::Shader::TextureProcessMode::None:
+                        return "texture(" + sampler + ", coords)";
+                    case Tegra::Shader::TextureProcessMode::LZ:
+                        if (depth_compare && is_array) {
+                            return "texture(" + sampler + ", coords)";
+                        } else {
+                            return "textureLod(" + sampler + ", coords, 0.0)";
+                        }
+                        break;
+                    case Tegra::Shader::TextureProcessMode::LL:
+                        return "textureLod(" + sampler + ", coords, lod_value)";
+                    default:
+                        UNIMPLEMENTED_MSG("Unhandled texture process mode {}",
+                                          static_cast<u32>(instr.texs.GetTextureProcessMode()));
+                        return "texture(" + sampler + ", coords)";
                     }
-                    break;
-                }
-                case Tegra::Shader::TextureProcessMode::LL: {
-                    texture = "textureLod(" + sampler + ", coords, lod_value)";
-                    break;
-                }
-                default: {
-                    texture = "texture(" + sampler + ", coords)";
-                    UNIMPLEMENTED_MSG("Unhandled texture process mode {}",
-                                      static_cast<u32>(instr.texs.GetTextureProcessMode()));
-                }
-                }
-
+                }();
                 if (depth_compare) {
                     texture = "vec4(" + texture + ')';
                 }
+
                 WriteTexsInstruction(instr, texture);
                 break;
             }
@@ -2941,25 +2924,23 @@ private:
                 }
                 const std::string sampler =
                     GetSampler(instr.sampler, texture_type, is_array, false);
-                std::string texture = "texelFetch(" + sampler + ", coords, 0)";
-                switch (instr.tlds.GetTextureProcessMode()) {
-                case Tegra::Shader::TextureProcessMode::LZ: {
-                    texture = "texelFetch(" + sampler + ", coords, 0)";
-                    break;
-                }
-                case Tegra::Shader::TextureProcessMode::LL: {
-                    shader.AddLine(
-                        "float lod = " +
-                        regs.GetRegisterAsInteger(instr.gpr20.Value() + extra_op_offset) + ';');
-                    texture = "texelFetch(" + sampler + ", coords, lod)";
-                    break;
-                }
-                default: {
-                    texture = "texelFetch(" + sampler + ", coords, 0)";
-                    UNIMPLEMENTED_MSG("Unhandled texture process mode {}",
-                                      static_cast<u32>(instr.tlds.GetTextureProcessMode()));
-                }
-                }
+
+                const std::string texture = [&]() {
+                    switch (instr.tlds.GetTextureProcessMode()) {
+                    case Tegra::Shader::TextureProcessMode::LZ:
+                        return "texelFetch(" + sampler + ", coords, 0)";
+                    case Tegra::Shader::TextureProcessMode::LL:
+                        shader.AddLine(
+                            "float lod = " +
+                            regs.GetRegisterAsInteger(instr.gpr20.Value() + extra_op_offset) + ';');
+                        return "texelFetch(" + sampler + ", coords, lod)";
+                    default:
+                        UNIMPLEMENTED_MSG("Unhandled texture process mode {}",
+                                          static_cast<u32>(instr.tlds.GetTextureProcessMode()));
+                        return "texelFetch(" + sampler + ", coords, 0)";
+                    }
+                }();
+
                 WriteTexsInstruction(instr, texture);
                 break;
             }
