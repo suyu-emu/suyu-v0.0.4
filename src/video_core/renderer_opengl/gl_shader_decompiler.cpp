@@ -854,14 +854,12 @@ private:
         }
 
         if (precise && stage != Maxwell3D::Regs::ShaderStage::Fragment) {
-            shader.AddLine('{');
-            ++shader.scope;
+            const auto scope = shader.Scope();
+
             // This avoids optimizations of constant propagation and keeps the code as the original
             // Sadly using the precise keyword causes "linking" errors on fragment shaders.
             shader.AddLine("precise float tmp = " + src + ';');
             shader.AddLine(dest + " = tmp;");
-            --shader.scope;
-            shader.AddLine('}');
         } else {
             shader.AddLine(dest + " = " + src + ';');
         }
@@ -1382,12 +1380,10 @@ private:
      * top.
      */
     void EmitPushToFlowStack(u32 target) {
-        shader.AddLine('{');
-        ++shader.scope;
+        const auto scope = shader.Scope();
+
         shader.AddLine("flow_stack[flow_stack_top] = " + std::to_string(target) + "u;");
         shader.AddLine("flow_stack_top++;");
-        --shader.scope;
-        shader.AddLine('}');
     }
 
     /*
@@ -1395,13 +1391,11 @@ private:
      * popped address and decrementing the stack top.
      */
     void EmitPopFromFlowStack() {
-        shader.AddLine('{');
-        ++shader.scope;
+        const auto scope = shader.Scope();
+
         shader.AddLine("flow_stack_top--;");
         shader.AddLine("jmp_to = flow_stack[flow_stack_top];");
         shader.AddLine("break;");
-        --shader.scope;
-        shader.AddLine('}');
     }
 
     /// Writes the output values from a fragment shader to the corresponding GLSL output variables.
@@ -2313,8 +2307,7 @@ private:
                 UNIMPLEMENTED_IF(instr.conversion.selector);
                 UNIMPLEMENTED_IF_MSG(instr.generates_cc,
                                      "Condition codes generation in I2F is not implemented");
-
-                std::string op_a{};
+                std::string op_a;
 
                 if (instr.is_b_gpr) {
                     op_a =
@@ -2470,10 +2463,7 @@ private:
             case OpCode::Id::LD_C: {
                 UNIMPLEMENTED_IF(instr.ld_c.unknown != 0);
 
-                // Add an extra scope and declare the index register inside to prevent
-                // overwriting it in case it is used as an output of the LD instruction.
-                shader.AddLine("{");
-                ++shader.scope;
+                const auto scope = shader.Scope();
 
                 shader.AddLine("uint index = (" + regs.GetRegisterAsInteger(instr.gpr8, 0, false) +
                                " / 4) & (MAX_CONSTBUFFER_ELEMENTS - 1);");
@@ -2499,19 +2489,13 @@ private:
                     UNIMPLEMENTED_MSG("Unhandled type: {}",
                                       static_cast<unsigned>(instr.ld_c.type.Value()));
                 }
-
-                --shader.scope;
-                shader.AddLine("}");
                 break;
             }
             case OpCode::Id::LD_L: {
                 UNIMPLEMENTED_IF_MSG(instr.ld_l.unknown == 1, "LD_L Unhandled mode: {}",
                                      static_cast<unsigned>(instr.ld_l.unknown.Value()));
 
-                // Add an extra scope and declare the index register inside to prevent
-                // overwriting it in case it is used as an output of the LD instruction.
-                shader.AddLine('{');
-                ++shader.scope;
+                const auto scope = shader.Scope();
 
                 std::string op = '(' + regs.GetRegisterAsInteger(instr.gpr8, 0, false) + " + " +
                                  std::to_string(instr.smem_imm.Value()) + ')';
@@ -2528,9 +2512,6 @@ private:
                     UNIMPLEMENTED_MSG("LD_L Unhandled type: {}",
                                       static_cast<unsigned>(instr.ldst_sl.type.Value()));
                 }
-
-                --shader.scope;
-                shader.AddLine('}');
                 break;
             }
             case OpCode::Id::ST_A: {
@@ -2565,10 +2546,7 @@ private:
                 UNIMPLEMENTED_IF_MSG(instr.st_l.unknown == 0, "ST_L Unhandled mode: {}",
                                      static_cast<unsigned>(instr.st_l.unknown.Value()));
 
-                // Add an extra scope and declare the index register inside to prevent
-                // overwriting it in case it is used as an output of the LD instruction.
-                shader.AddLine('{');
-                ++shader.scope;
+                const auto scope = shader.Scope();
 
                 std::string op = '(' + regs.GetRegisterAsInteger(instr.gpr8, 0, false) + " + " +
                                  std::to_string(instr.smem_imm.Value()) + ')';
@@ -2583,9 +2561,6 @@ private:
                     UNIMPLEMENTED_MSG("ST_L Unhandled type: {}",
                                       static_cast<unsigned>(instr.ldst_sl.type.Value()));
                 }
-
-                --shader.scope;
-                shader.AddLine('}');
                 break;
             }
             case OpCode::Id::TEX: {
