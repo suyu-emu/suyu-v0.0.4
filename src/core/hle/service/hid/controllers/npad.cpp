@@ -575,8 +575,8 @@ void Controller_NPad::AddNewControllerAt(NPadControllerType controller, u32 npad
         return;
     }
 
-    connected_controllers[npad_id] = {controller, true};
-    InitNewlyAddedControler(npad_id);
+    connected_controllers[NPadIdToIndex(npad_id)] = {controller, true};
+    InitNewlyAddedControler(NPadIdToIndex(npad_id));
 }
 
 void Controller_NPad::ConnectNPad(u32 npad_id) {
