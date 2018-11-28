@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <vector>
 #include <queue>
 
 #include "common/bit_field.h"
@@ -45,6 +46,8 @@ static_assert(sizeof(CommandHeader) == sizeof(u32), "CommandHeader has incorrect
 
 class GPU;
 
+using CommandList = std::vector<Tegra::CommandListHeader>;
+
 /**
  * The DmaPusher class implements DMA submission to FIFOs, providing an area of memory that the
  * emulated app fills with commands and tells PFIFO to process. The pushbuffers are then assembled
@@ -57,8 +60,8 @@ public:
     explicit DmaPusher(GPU& gpu);
     ~DmaPusher();
 
-    void Push(const CommandListHeader& command_list_header) {
-        dma_pushbuffer.push(command_list_header);
+    void Push(CommandList&& entries) {
+        dma_pushbuffer.push(std::move(entries));
     }
 
     void DispatchCalls();
@@ -72,7 +75,8 @@ private:
 
     GPU& gpu;
 
-    std::queue<CommandListHeader> dma_pushbuffer;
+    std::queue<CommandList> dma_pushbuffer; ///< Queue of command lists to be processed
+    std::size_t dma_pushbuffer_subindex{};  ///< Index within a command list within the pushbuffer
 
     struct DmaState {
         u32 method;            ///< Current method

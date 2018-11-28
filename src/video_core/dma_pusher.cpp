@@ -23,6 +23,8 @@ void DmaPusher::DispatchCalls() {
     // On entering GPU code, assume all memory may be touched by the ARM core.
     gpu.Maxwell3D().dirty_flags.OnMemoryWrite();
 
+    dma_pushbuffer_subindex = 0;
+
     while (Core::System::GetInstance().IsPoweredOn()) {
         if (!Step()) {
             break;
@@ -89,11 +91,17 @@ bool DmaPusher::Step() {
         }
     } else if (ib_enable && !dma_pushbuffer.empty()) {
         // Current pushbuffer empty, but we have more IB entries to read
-        const CommandListHeader& command_list_header{dma_pushbuffer.front()};
+        const CommandList& command_list{dma_pushbuffer.front()};
+        const CommandListHeader& command_list_header{command_list[dma_pushbuffer_subindex++]};
         dma_get = command_list_header.addr;
         dma_put = dma_get + command_list_header.size * sizeof(u32);
         non_main = command_list_header.is_non_main;
-        dma_pushbuffer.pop();
+
+        if (dma_pushbuffer_subindex >= command_list.size()) {
+            // We've gone through the current list, remove it from the queue
+            dma_pushbuffer.pop();
+            dma_pushbuffer_subindex = 0;
+        }
     } else {
         // Otherwise, pushbuffer empty and IB empty or nonexistent - nothing to do
         return {};
