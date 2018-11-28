@@ -1105,14 +1105,14 @@ void GMainWindow::OnMenuInstallToNAND() {
             return;
         }
         const auto res =
-            Service::FileSystem::GetUserNANDContents()->InstallEntry(nsp, false, qt_raw_copy);
+            Service::FileSystem::GetUserNANDContents()->InstallEntry(*nsp, false, qt_raw_copy);
         if (res == FileSys::InstallResult::Success) {
             success();
         } else {
             if (res == FileSys::InstallResult::ErrorAlreadyExists) {
                 if (overwrite()) {
                     const auto res2 = Service::FileSystem::GetUserNANDContents()->InstallEntry(
-                        nsp, true, qt_raw_copy);
+                        *nsp, true, qt_raw_copy);
                     if (res2 == FileSys::InstallResult::Success) {
                         success();
                     } else {
@@ -1167,10 +1167,10 @@ void GMainWindow::OnMenuInstallToNAND() {
         FileSys::InstallResult res;
         if (index >= static_cast<size_t>(FileSys::TitleType::Application)) {
             res = Service::FileSystem::GetUserNANDContents()->InstallEntry(
-                nca, static_cast<FileSys::TitleType>(index), false, qt_raw_copy);
+                *nca, static_cast<FileSys::TitleType>(index), false, qt_raw_copy);
         } else {
             res = Service::FileSystem::GetSystemNANDContents()->InstallEntry(
-                nca, static_cast<FileSys::TitleType>(index), false, qt_raw_copy);
+                *nca, static_cast<FileSys::TitleType>(index), false, qt_raw_copy);
         }
 
         if (res == FileSys::InstallResult::Success) {
@@ -1178,7 +1178,7 @@ void GMainWindow::OnMenuInstallToNAND() {
         } else if (res == FileSys::InstallResult::ErrorAlreadyExists) {
             if (overwrite()) {
                 const auto res2 = Service::FileSystem::GetUserNANDContents()->InstallEntry(
-                    nca, static_cast<FileSys::TitleType>(index), true, qt_raw_copy);
+                    *nca, static_cast<FileSys::TitleType>(index), true, qt_raw_copy);
                 if (res2 == FileSys::InstallResult::Success) {
                     success();
                 } else {
