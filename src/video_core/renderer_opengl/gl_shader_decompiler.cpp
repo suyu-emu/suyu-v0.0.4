@@ -1337,15 +1337,7 @@ private:
         regs.SetRegisterToInteger(dest, true, 0, result, 1, 1);
     }
 
-    void WriteTexsInstruction(const Instruction& instr, const std::string& coord,
-                              const std::string& texture) {
-        // Add an extra scope and declare the texture coords inside to prevent
-        // overwriting them in case they are used as outputs of the texs instruction.
-        shader.AddLine('{');
-        ++shader.scope;
-        shader.AddLine(coord);
-        shader.AddLine("vec4 texture_tmp = " + texture + ';');
-
+    void WriteTexsInstruction(const Instruction& instr, const std::string& texture) {
         // TEXS has two destination registers and a swizzle. The first two elements in the swizzle
         // go into gpr0+0 and gpr0+1, and the rest goes into gpr28+0 and gpr28+1
 
@@ -1357,19 +1349,17 @@ private:
 
             if (written_components < 2) {
                 // Write the first two swizzle components to gpr0 and gpr0+1
-                regs.SetRegisterToFloat(instr.gpr0, component, "texture_tmp", 1, 4, false,
+                regs.SetRegisterToFloat(instr.gpr0, component, texture, 1, 4, false,
                                         written_components % 2);
             } else {
                 ASSERT(instr.texs.HasTwoDestinations());
                 // Write the rest of the swizzle components to gpr28 and gpr28+1
-                regs.SetRegisterToFloat(instr.gpr28, component, "texture_tmp", 1, 4, false,
+                regs.SetRegisterToFloat(instr.gpr28, component, texture, 1, 4, false,
                                         written_components % 2);
             }
 
             ++written_components;
         }
-        --shader.scope;
-        shader.AddLine('}');
     }
 
     static u32 TextureCoordinates(Tegra::Shader::TextureType texture_type) {
@@ -2600,7 +2590,6 @@ private:
             }
             case OpCode::Id::TEX: {
                 Tegra::Shader::TextureType texture_type{instr.tex.texture_type};
-                std::string coord;
                 const bool is_array = instr.tex.array != 0;
 
                 UNIMPLEMENTED_IF_MSG(instr.tex.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
@@ -2633,21 +2622,23 @@ private:
 
                 bool depth_compare_extra = false;
 
+                const auto scope = shader.Scope();
+
                 switch (num_coordinates) {
                 case 1: {
                     const std::string x = regs.GetRegisterAsFloat(instr.gpr8.Value() + start_index);
                     if (is_array) {
                         if (depth_compare) {
-                            coord = "vec3 coords = vec3(" + x + ", " + depth_value + ", " +
-                                    array_elem + ");";
+                            shader.AddLine("vec3 coords = vec3(" + x + ", " + depth_value + ", " +
+                                           array_elem + ");");
                         } else {
-                            coord = "vec2 coords = vec2(" + x + ", " + array_elem + ");";
+                            shader.AddLine("vec2 coords = vec2(" + x + ", " + array_elem + ");");
                         }
                     } else {
                         if (depth_compare) {
-                            coord = "vec2 coords = vec2(" + x + ", " + depth_value + ");";
+                            shader.AddLine("vec2 coords = vec2(" + x + ", " + depth_value + ");");
                         } else {
-                            coord = "float coords = " + x + ';';
+                            shader.AddLine("float coords = " + x + ';');
                         }
                     }
                     break;
@@ -2658,17 +2649,18 @@ private:
                         regs.GetRegisterAsFloat(instr.gpr8.Value() + start_index + 1);
                     if (is_array) {
                         if (depth_compare) {
-                            coord = "vec4 coords = vec4(" + x + ", " + y + ", " + depth_value +
-                                    ", " + array_elem + ");";
+                            shader.AddLine("vec4 coords = vec4(" + x + ", " + y + ", " +
+                                           depth_value + ", " + array_elem + ");");
                         } else {
-                            coord = "vec3 coords = vec3(" + x + ", " + y + ", " + array_elem + ");";
+                            shader.AddLine("vec3 coords = vec3(" + x + ", " + y + ", " +
+                                           array_elem + ");");
                         }
                     } else {
                         if (depth_compare) {
-                            coord =
-                                "vec3 coords = vec3(" + x + ", " + y + ", " + depth_value + ");";
+                            shader.AddLine("vec3 coords = vec3(" + x + ", " + y + ", " +
+                                           depth_value + ");");
                         } else {
-                            coord = "vec2 coords = vec2(" + x + ", " + y + ");";
+                            shader.AddLine("vec2 coords = vec2(" + x + ", " + y + ");");
                         }
                     }
                     break;
@@ -2681,14 +2673,14 @@ private:
                         regs.GetRegisterAsFloat(instr.gpr8.Value() + start_index + 2);
                     if (is_array) {
                         depth_compare_extra = depth_compare;
-                        coord = "vec4 coords = vec4(" + x + ", " + y + ", " + z + ", " +
-                                array_elem + ");";
+                        shader.AddLine("vec4 coords = vec4(" + x + ", " + y + ", " + z + ", " +
+                                array_elem + ");");
                     } else {
                         if (depth_compare) {
-                            coord = "vec4 coords = vec4(" + x + ", " + y + ", " + z + ", " +
-                                    depth_value + ");";
+                            shader.AddLine("vec4 coords = vec4(" + x + ", " + y + ", " + z + ", " +
+                                    depth_value + ");");
                         } else {
-                            coord = "vec3 coords = vec3(" + x + ", " + y + ", " + z + ");";
+                            shader.AddLine("vec3 coords = vec3(" + x + ", " + y + ", " + z + ");");
                         }
                     }
                     break;
@@ -2700,7 +2692,7 @@ private:
                     // Fallback to interpreting as a 2D texture for now
                     const std::string x = regs.GetRegisterAsFloat(instr.gpr8);
                     const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
-                    coord = "vec2 coords = vec2(" + x + ", " + y + ");";
+                    shader.AddLine("vec2 coords = vec2(" + x + ", " + y + ");");
                     texture_type = Tegra::Shader::TextureType::Texture2D;
                 }
 
@@ -2709,9 +2701,6 @@ private:
                 // Add an extra scope and declare the texture coords inside to prevent
                 // overwriting them in case they are used as outputs of the texs instruction.
 
-                shader.AddLine('{');
-                ++shader.scope;
-                shader.AddLine(coord);
                 std::string texture;
 
                 switch (instr.tex.GetTextureProcessMode()) {
@@ -2765,23 +2754,20 @@ private:
                                       static_cast<u32>(instr.tex.GetTextureProcessMode()));
                 }
                 }
-                if (!depth_compare) {
-                    shader.AddLine("vec4 texture_tmp = " + texture + ';');
+
+                if (depth_compare) {
+                    regs.SetRegisterToFloat(instr.gpr0, 0, texture, 1, 1, false);
+                } else {
                     std::size_t dest_elem{};
                     for (std::size_t elem = 0; elem < 4; ++elem) {
                         if (!instr.tex.IsComponentEnabled(elem)) {
                             // Skip disabled components
                             continue;
                         }
-                        regs.SetRegisterToFloat(instr.gpr0, elem, "texture_tmp", 1, 4, false,
-                                                dest_elem);
+                        regs.SetRegisterToFloat(instr.gpr0, elem, texture, 1, 4, false, dest_elem);
                         ++dest_elem;
                     }
-                } else {
-                    regs.SetRegisterToFloat(instr.gpr0, 0, texture, 1, 1, false);
                 }
-                --shader.scope;
-                shader.AddLine('}');
                 break;
             }
             case OpCode::Id::TEXS: {
@@ -2884,6 +2870,7 @@ private:
                 }
                 const std::string sampler =
                     GetSampler(instr.sampler, texture_type, is_array, depth_compare);
+
                 std::string texture;
                 switch (process_mode) {
                 case Tegra::Shader::TextureProcessMode::None: {
@@ -2908,12 +2895,11 @@ private:
                                       static_cast<u32>(instr.texs.GetTextureProcessMode()));
                 }
                 }
-                if (!depth_compare) {
-                    WriteTexsInstruction(instr, coord, texture);
-                } else {
-                    WriteTexsInstruction(instr, coord, "vec4(" + texture + ')');
-                }
 
+                if (depth_compare) {
+                    texture = "vec4(" + texture + ')';
+                }
+                WriteTexsInstruction(instr, texture);
                 break;
             }
             case OpCode::Id::TLDS: {
@@ -2974,13 +2960,12 @@ private:
                                       static_cast<u32>(instr.tlds.GetTextureProcessMode()));
                 }
                 }
-                WriteTexsInstruction(instr, coords, texture);
+                WriteTexsInstruction(instr, texture);
                 break;
             }
             case OpCode::Id::TLD4: {
                 ASSERT(instr.tld4.texture_type == Tegra::Shader::TextureType::Texture2D);
                 ASSERT(instr.tld4.array == 0);
-                std::string coord;
 
                 UNIMPLEMENTED_IF_MSG(instr.tld4.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
                                      "NODEP is not implemented");
@@ -2997,10 +2982,7 @@ private:
                 if (depth_compare)
                     num_coordinates += 1;
 
-                // Add an extra scope and declare the texture coords inside to prevent
-                // overwriting them in case they are used as outputs of the texs instruction.
-                shader.AddLine('{');
-                ++shader.scope;
+                const auto scope = shader.Scope();
 
                 switch (num_coordinates) {
                 case 2: {
@@ -3031,7 +3013,9 @@ private:
                 const std::string texture = "textureGather(" + sampler + ", coords, " +
                                             std::to_string(instr.tld4.component) + ')';
 
-                if (!depth_compare) {
+                if (depth_compare) {
+                    regs.SetRegisterToFloat(instr.gpr0, 0, texture, 1, 1, false);
+                } else {
                     shader.AddLine("vec4 texture_tmp = " + texture + ';');
                     std::size_t dest_elem{};
                     for (std::size_t elem = 0; elem < 4; ++elem) {
@@ -3043,11 +3027,7 @@ private:
                                                 dest_elem);
                         ++dest_elem;
                     }
-                } else {
-                    regs.SetRegisterToFloat(instr.gpr0, 0, texture, 1, 1, false);
                 }
-                --shader.scope;
-                shader.AddLine('}');
                 break;
             }
             case OpCode::Id::TLD4S: {
@@ -3074,26 +3054,22 @@ private:
                     const std::string op_y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
                     shader.AddLine("vec3 coords = vec3(" + op_a + ", " + op_y + ", " + op_b + ");");
                 }
-                const std::string texture = "textureGather(" + sampler + ", coords, " +
-                                            std::to_string(instr.tld4s.component) + ')';
 
-                if (!depth_compare) {
-                    WriteTexsInstruction(instr, coords, texture);
-                } else {
-                    WriteTexsInstruction(instr, coords, "vec4(" + texture + ')');
+                std::string texture = "textureGather(" + sampler + ", coords, " +
+                                      std::to_string(instr.tld4s.component) + ')';
+                if (depth_compare) {
+                    texture = "vec4(" + texture + ')';
                 }
-
-                --shader.scope;
-                shader.AddLine('}');
+                WriteTexsInstruction(instr, texture);
                 break;
             }
             case OpCode::Id::TXQ: {
                 UNIMPLEMENTED_IF_MSG(instr.txq.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
                                      "NODEP is not implemented");
 
-                ++shader.scope;
-                shader.AddLine('{');
-                // TODO: the new commits on the texture refactor, change the way samplers work.
+                const auto scope = shader.Scope();
+
+                // TODO: The new commits on the texture refactor, change the way samplers work.
                 // Sadly, not all texture instructions specify the type of texture their sampler
                 // uses. This must be fixed at a later instance.
                 const std::string sampler =
@@ -3104,7 +3080,8 @@ private:
                                                 regs.GetRegisterAsInteger(instr.gpr8) + ')';
                     const std::string mip_level = "textureQueryLevels(" + sampler + ')';
                     shader.AddLine("ivec2 sizes = " + texture + ';');
-                    regs.SetRegisterToInteger(instr.gpr0, true, 0, "sizes.x", 1, 1);
+
+                    regs.SetRegisterToInteger(instr.gpr0.Value() + 0, true, 0, "sizes.x", 1, 1);
                     regs.SetRegisterToInteger(instr.gpr0.Value() + 1, true, 0, "sizes.y", 1, 1);
                     regs.SetRegisterToInteger(instr.gpr0.Value() + 2, true, 0, "0", 1, 1);
                     regs.SetRegisterToInteger(instr.gpr0.Value() + 3, true, 0, mip_level, 1, 1);
@@ -3115,8 +3092,6 @@ private:
                                       static_cast<u32>(instr.txq.query_type.Value()));
                 }
                 }
-                --shader.scope;
-                shader.AddLine('}');
                 break;
             }
             case OpCode::Id::TMML: {
@@ -3131,17 +3106,18 @@ private:
                 const std::string sampler =
                     GetSampler(instr.sampler, texture_type, is_array, false);
 
-                // TODO: add coordinates for different samplers once other texture types are
+                const auto scope = shader.Scope();
+
+                // TODO: Add coordinates for different samplers once other texture types are
                 // implemented.
-                std::string coord;
                 switch (texture_type) {
                 case Tegra::Shader::TextureType::Texture1D: {
-                    coord = "float coords = " + x + ';';
+                    shader.AddLine("float coords = " + x + ';');
                     break;
                 }
                 case Tegra::Shader::TextureType::Texture2D: {
                     const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
-                    coord = "vec2 coords = vec2(" + x + ", " + y + ");";
+                    shader.AddLine("vec2 coords = vec2(" + x + ", " + y + ");");
                     break;
                 }
                 default:
@@ -3149,22 +3125,15 @@ private:
 
                     // Fallback to interpreting as a 2D texture for now
                     const std::string y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
-                    coord = "vec2 coords = vec2(" + x + ", " + y + ");";
+                    shader.AddLine("vec2 coords = vec2(" + x + ", " + y + ");");
                     texture_type = Tegra::Shader::TextureType::Texture2D;
                 }
-                // Add an extra scope and declare the texture coords inside to prevent
-                // overwriting them in case they are used as outputs of the texs instruction.
-                shader.AddLine('{');
-                ++shader.scope;
-                shader.AddLine(coord);
+
                 const std::string texture = "textureQueryLod(" + sampler + ", coords)";
-                const std::string tmp = "vec2 tmp = " + texture + "*vec2(256.0, 256.0);";
-                shader.AddLine(tmp);
+                shader.AddLine("vec2 tmp = " + texture + " * vec2(256.0, 256.0);");
 
                 regs.SetRegisterToInteger(instr.gpr0, true, 0, "int(tmp.y)", 1, 1);
                 regs.SetRegisterToInteger(instr.gpr0.Value() + 1, false, 0, "uint(tmp.x)", 1, 1);
-                --shader.scope;
-                shader.AddLine('}');
                 break;
             }
             default: {
