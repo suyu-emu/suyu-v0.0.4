@@ -2972,15 +2972,13 @@ private:
                 if (depth_compare) {
                     regs.SetRegisterToFloat(instr.gpr0, 0, texture, 1, 1, false);
                 } else {
-                    shader.AddLine("vec4 texture_tmp = " + texture + ';');
                     std::size_t dest_elem{};
                     for (std::size_t elem = 0; elem < 4; ++elem) {
                         if (!instr.tex.IsComponentEnabled(elem)) {
                             // Skip disabled components
                             continue;
                         }
-                        regs.SetRegisterToFloat(instr.gpr0, elem, "texture_tmp", 1, 4, false,
-                                                dest_elem);
+                        regs.SetRegisterToFloat(instr.gpr0, elem, texture, 1, 4, false, dest_elem);
                         ++dest_elem;
                     }
                 }
