@@ -3003,12 +3003,12 @@ private:
                 // TODO(Subv): Figure out how the sampler type is encoded in the TLD4S instruction.
                 const std::string sampler = GetSampler(
                     instr.sampler, Tegra::Shader::TextureType::Texture2D, false, depth_compare);
-                if (!depth_compare) {
-                    shader.AddLine("vec2 coords = vec2(" + op_a + ", " + op_b + ");");
-                } else {
+                if (depth_compare) {
                     // Note: TLD4S coordinate encoding works just like TEXS's
                     const std::string op_y = regs.GetRegisterAsFloat(instr.gpr8.Value() + 1);
                     shader.AddLine("vec3 coords = vec3(" + op_a + ", " + op_y + ", " + op_b + ");");
+                } else {
+                    shader.AddLine("vec2 coords = vec2(" + op_a + ", " + op_b + ");");
                 }
 
                 std::string texture = "textureGather(" + sampler + ", coords, " +
