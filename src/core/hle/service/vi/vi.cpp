@@ -504,9 +504,9 @@ private:
         u32 id = rp.Pop<u32>();
         auto transaction = static_cast<TransactionId>(rp.Pop<u32>());
         u32 flags = rp.Pop<u32>();
-        auto buffer_queue = nv_flinger->GetBufferQueue(id);
-
         LOG_DEBUG(Service_VI, "called, transaction={:X}", static_cast<u32>(transaction));
+
+        auto buffer_queue = nv_flinger->GetBufferQueue(id);
 
         if (transaction == TransactionId::Connect) {
             IGBPConnectRequestParcel request{ctx.ReadBuffer()};
@@ -593,9 +593,9 @@ private:
         u32 id = rp.Pop<u32>();
         s32 addval = rp.PopRaw<s32>();
         u32 type = rp.Pop<u32>();
-
         LOG_WARNING(Service_VI, "(STUBBED) called id={}, addval={:08X}, type={:08X}", id, addval,
                     type);
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
@@ -604,12 +604,11 @@ private:
         IPC::RequestParser rp{ctx};
         u32 id = rp.Pop<u32>();
         u32 unknown = rp.Pop<u32>();
+        LOG_WARNING(Service_VI, "(STUBBED) called id={}, unknown={:08X}", id, unknown);
 
         auto buffer_queue = nv_flinger->GetBufferQueue(id);
 
         // TODO(Subv): Find out what this actually is.
-
-        LOG_WARNING(Service_VI, "(STUBBED) called id={}, unknown={:08X}", id, unknown);
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(buffer_queue->GetBufferWaitEvent());
@@ -673,6 +672,7 @@ public:
 private:
     void SetLayerZ(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_VI, "(STUBBED) called");
+
         IPC::RequestParser rp{ctx};
         u64 layer_id = rp.Pop<u64>();
         u64 z_value = rp.Pop<u64>();
@@ -685,13 +685,16 @@ private:
         IPC::RequestParser rp{ctx};
         u64 layer_id = rp.Pop<u64>();
         bool visibility = rp.Pop<bool>();
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_VI, "(STUBBED) called, layer_id=0x{:08X}, visibility={}", layer_id,
                     visibility);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
     }
 
     void GetDisplayMode(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_VI, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 6};
         rb.Push(RESULT_SUCCESS);
 
@@ -707,10 +710,8 @@ private:
                     static_cast<u32>(Settings::values.resolution_factor));
         }
 
-        rb.PushRaw<float>(60.0f);
+        rb.PushRaw<float>(60.0f); // This wouldn't seem to be correct for 30 fps games.
         rb.Push<u32>(0);
-
-        LOG_DEBUG(Service_VI, "called");
     }
 };
 
@@ -793,6 +794,7 @@ public:
 private:
     void CloseDisplay(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_VI, "(STUBBED) called");
+
         IPC::RequestParser rp{ctx};
         u64 display = rp.Pop<u64>();
 
@@ -802,6 +804,7 @@ private:
 
     void CreateManagedLayer(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_VI, "(STUBBED) called");
+
         IPC::RequestParser rp{ctx};
         u32 unknown = rp.Pop<u32>();
         rp.Skip(1, false);
@@ -817,6 +820,7 @@ private:
 
     void AddToLayerStack(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_VI, "(STUBBED) called");
+
         IPC::RequestParser rp{ctx};
         u32 stack = rp.Pop<u32>();
         u64 layer_id = rp.Pop<u64>();
@@ -829,10 +833,11 @@ private:
         IPC::RequestParser rp{ctx};
         u64 layer_id = rp.Pop<u64>();
         bool visibility = rp.Pop<bool>();
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
         LOG_WARNING(Service_VI, "(STUBBED) called, layer_id=0x{:X}, visibility={}", layer_id,
                     visibility);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
     }
 
     std::shared_ptr<NVFlinger::NVFlinger> nv_flinger;
@@ -878,6 +883,7 @@ private:
 
     void OpenDisplay(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_VI, "(STUBBED) called");
+
         IPC::RequestParser rp{ctx};
         auto name_buf = rp.PopRaw<std::array<u8, 0x40>>();
         auto end = std::find(name_buf.begin(), name_buf.end(), '\0');
@@ -893,6 +899,7 @@ private:
 
     void CloseDisplay(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_VI, "(STUBBED) called");
+
         IPC::RequestParser rp{ctx};
         u64 display_id = rp.Pop<u64>();
 
@@ -902,6 +909,7 @@ private:
 
     void GetDisplayResolution(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_VI, "(STUBBED) called");
+
         IPC::RequestParser rp{ctx};
         u64 display_id = rp.Pop<u64>();
 
@@ -923,6 +931,7 @@ private:
 
     void SetLayerScalingMode(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_VI, "(STUBBED) called");
+
         IPC::RequestParser rp{ctx};
         u32 scaling_mode = rp.Pop<u32>();
         u64 unknown = rp.Pop<u64>();
@@ -932,6 +941,8 @@ private:
     }
 
     void ListDisplays(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_VI, "(STUBBED) called");
+
         IPC::RequestParser rp{ctx};
         DisplayInfo display_info;
         display_info.width *= static_cast<u64>(Settings::values.resolution_factor);
@@ -940,11 +951,11 @@ private:
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u64>(1);
-        LOG_WARNING(Service_VI, "(STUBBED) called");
     }
 
     void OpenLayer(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_VI, "called");
+
         IPC::RequestParser rp{ctx};
         auto name_buf = rp.PopRaw<std::array<u8, 0x40>>();
         auto end = std::find(name_buf.begin(), name_buf.end(), '\0');
@@ -995,6 +1006,7 @@ private:
 
     void GetDisplayVsyncEvent(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_VI, "(STUBBED) called");
+
         IPC::RequestParser rp{ctx};
         u64 display_id = rp.Pop<u64>();
 

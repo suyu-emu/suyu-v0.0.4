@@ -42,11 +42,11 @@ public:
 
 private:
     void Initialize(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_FGM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IRequest>();
-
-        LOG_DEBUG(Service_FGM, "called");
     }
 };
 

@@ -33,10 +33,11 @@ public:
 };
 
 void Module::Interface::CreateBcatService(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_BCAT, "called");
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IBcatService>();
-    LOG_DEBUG(Service_BCAT, "called");
 }
 
 Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)

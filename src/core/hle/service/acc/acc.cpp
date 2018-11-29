@@ -207,10 +207,11 @@ void Module::Interface::GetLastOpenedUser(Kernel::HLERequestContext& ctx) {
 void Module::Interface::GetProfile(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     UUID user_id = rp.PopRaw<UUID>();
+    LOG_DEBUG(Service_ACC, "called user_id={}", user_id.Format());
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IProfile>(user_id, *profile_manager);
-    LOG_DEBUG(Service_ACC, "called user_id={}", user_id.Format());
 }
 
 void Module::Interface::IsUserRegistrationRequestPermitted(Kernel::HLERequestContext& ctx) {
@@ -227,10 +228,10 @@ void Module::Interface::InitializeApplicationInfo(Kernel::HLERequestContext& ctx
 }
 
 void Module::Interface::GetBaasAccountManagerForApplication(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_ACC, "called");
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IManagerForApplication>();
-    LOG_DEBUG(Service_ACC, "called");
 }
 
 void Module::Interface::TrySelectUserWithoutInteraction(Kernel::HLERequestContext& ctx) {

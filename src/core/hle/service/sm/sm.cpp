@@ -103,9 +103,10 @@ SM::~SM() = default;
  *      0: ResultCode
  */
 void SM::Initialize(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_SM, "called");
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
-    LOG_DEBUG(Service_SM, "called");
 }
 
 void SM::GetService(Kernel::HLERequestContext& ctx) {
@@ -172,6 +173,7 @@ void SM::UnregisterService(Kernel::HLERequestContext& ctx) {
     const auto end = std::find(name_buf.begin(), name_buf.end(), '\0');
 
     const std::string name(name_buf.begin(), end);
+    LOG_DEBUG(Service_SM, "called with name={}", name);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(service_manager->UnregisterService(name));

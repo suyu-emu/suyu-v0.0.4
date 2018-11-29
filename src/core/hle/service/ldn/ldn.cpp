@@ -44,11 +44,11 @@ public:
     }
 
     void CreateMonitorService(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_LDN, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IMonitorService>();
-
-        LOG_DEBUG(Service_LDN, "called");
     }
 };
 
@@ -104,11 +104,11 @@ public:
     }
 
     void CreateSystemLocalCommunicationService(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_LDN, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<ILocalCommunicationService>("ISystemLocalCommunicationService");
-
-        LOG_DEBUG(Service_LDN, "called");
     }
 };
 
@@ -125,11 +125,11 @@ public:
     }
 
     void CreateUserLocalCommunicationService(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_LDN, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<ILocalCommunicationService>("IUserLocalCommunicationService");
-
-        LOG_DEBUG(Service_LDN, "called");
     }
 };
 

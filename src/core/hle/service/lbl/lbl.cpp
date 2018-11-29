@@ -55,29 +55,29 @@ public:
 
 private:
     void EnableVrMode(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_LBL, "called");
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
 
         vr_mode_enabled = true;
-
-        LOG_DEBUG(Service_LBL, "called");
     }
 
     void DisableVrMode(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_LBL, "called");
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
 
         vr_mode_enabled = false;
-
-        LOG_DEBUG(Service_LBL, "called");
     }
 
     void IsVrModeEnabled(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_LBL, "called");
+
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push(vr_mode_enabled);
-
-        LOG_DEBUG(Service_LBL, "called");
     }
 
     bool vr_mode_enabled = false;

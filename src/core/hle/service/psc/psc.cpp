@@ -61,11 +61,11 @@ public:
 
 private:
     void GetPmModule(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_PSC, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IPmModule>();
-
-        LOG_DEBUG(Service_PSC, "called");
     }
 };
 

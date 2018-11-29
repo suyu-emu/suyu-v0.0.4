@@ -14,25 +14,26 @@ namespace Service::SM {
 
 void Controller::ConvertSessionToDomain(Kernel::HLERequestContext& ctx) {
     ASSERT_MSG(ctx.Session()->IsSession(), "Session is already a domain");
+    LOG_DEBUG(Service, "called, server_session={}", ctx.Session()->GetObjectId());
     ctx.Session()->ConvertToDomain();
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.Push<u32>(1); // Converted sessions start with 1 request handler
-
-    LOG_DEBUG(Service, "called, server_session={}", ctx.Session()->GetObjectId());
 }
 
 void Controller::DuplicateSession(Kernel::HLERequestContext& ctx) {
     // TODO(bunnei): This is just creating a new handle to the same Session. I assume this is wrong
     // and that we probably want to actually make an entirely new Session, but we still need to
     // verify this on hardware.
+    LOG_DEBUG(Service, "called");
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(RESULT_SUCCESS);
     Kernel::SharedPtr<Kernel::ClientSession> session{ctx.Session()->parent->client};
     rb.PushMoveObjects(session);
 
-    LOG_DEBUG(Service, "called, session={}", session->GetObjectId());
+    LOG_DEBUG(Service, "session={}", session->GetObjectId());
 }
 
 void Controller::DuplicateSessionEx(Kernel::HLERequestContext& ctx) {
@@ -42,11 +43,11 @@ void Controller::DuplicateSessionEx(Kernel::HLERequestContext& ctx) {
 }
 
 void Controller::QueryPointerBufferSize(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service, "(STUBBED) called");
+
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.Push<u16>(0x500);
-
-    LOG_WARNING(Service, "(STUBBED) called");
 }
 
 Controller::Controller() : ServiceFramework("IpcController") {

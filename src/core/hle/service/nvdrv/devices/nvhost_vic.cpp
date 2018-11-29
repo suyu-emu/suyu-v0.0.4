@@ -30,6 +30,7 @@ u32 nvhost_vic::SetNVMAPfd(const std::vector<u8>& input, std::vector<u8>& output
     IoctlSetNvmapFD params{};
     std::memcpy(&params, input.data(), input.size());
     LOG_DEBUG(Service_NVDRV, "called, fd={}", params.nvmap_fd);
+
     nvmap_fd = params.nvmap_fd;
     return 0;
 }

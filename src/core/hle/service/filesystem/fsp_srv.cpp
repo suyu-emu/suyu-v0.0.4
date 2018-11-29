@@ -62,11 +62,13 @@ private:
 
         // Error checking
         if (length < 0) {
+            LOG_ERROR(Service_FS, "Length is less than 0, length={}", length);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(FileSys::ERROR_INVALID_SIZE);
             return;
         }
         if (offset < 0) {
+            LOG_ERROR(Service_FS, "Offset is less than 0, offset={}", offset);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(FileSys::ERROR_INVALID_OFFSET);
             return;
@@ -107,11 +109,13 @@ private:
 
         // Error checking
         if (length < 0) {
+            LOG_ERROR(Service_FS, "Length is less than 0, length={}", length);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(FileSys::ERROR_INVALID_SIZE);
             return;
         }
         if (offset < 0) {
+            LOG_ERROR(Service_FS, "Offset is less than 0, offset={}", offset);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(FileSys::ERROR_INVALID_OFFSET);
             return;
@@ -138,11 +142,13 @@ private:
 
         // Error checking
         if (length < 0) {
+            LOG_ERROR(Service_FS, "Length is less than 0, length={}", length);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(FileSys::ERROR_INVALID_SIZE);
             return;
         }
         if (offset < 0) {
+            LOG_ERROR(Service_FS, "Offset is less than 0, offset={}", offset);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(FileSys::ERROR_INVALID_OFFSET);
             return;
@@ -180,8 +186,9 @@ private:
     void SetSize(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const u64 size = rp.Pop<u64>();
-        backend->Resize(size);
         LOG_DEBUG(Service_FS, "called, size={}", size);
+
+        backend->Resize(size);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
@@ -465,6 +472,8 @@ public:
     }
 
     void ReadSaveDataInfo(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_FS, "called");
+
         // Calculate how many entries we can fit in the output buffer
         const u64 count_entries = ctx.GetWriteBufferSize() / sizeof(SaveDataInfo);
 
@@ -703,6 +712,8 @@ void FSP_SRV::OpenFileSystemWithPatch(Kernel::HLERequestContext& ctx) {
 
     const auto type = rp.PopRaw<FileSystemType>();
     const auto title_id = rp.PopRaw<u64>();
+    LOG_WARNING(Service_FS, "(STUBBED) called with type={}, title_id={:016X}",
+                static_cast<u8>(type), title_id);
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 0};
     rb.Push(ResultCode(-1));
@@ -738,6 +749,7 @@ void FSP_SRV::MountSaveData(Kernel::HLERequestContext& ctx) {
     auto space_id = rp.PopRaw<FileSys::SaveDataSpaceId>();
     auto unk = rp.Pop<u32>();
     LOG_INFO(Service_FS, "called with unknown={:08X}", unk);
+
     auto save_struct = rp.PopRaw<FileSys::SaveDataDescriptor>();
 
     auto dir = OpenSaveData(space_id, save_struct);
@@ -763,6 +775,7 @@ void FSP_SRV::OpenReadOnlySaveDataFileSystem(Kernel::HLERequestContext& ctx) {
 void FSP_SRV::OpenSaveDataInfoReaderBySaveDataSpaceId(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto space = rp.PopRaw<FileSys::SaveDataSpaceId>();
+    LOG_INFO(Service_FS, "called, space={}", static_cast<u8>(space));
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);

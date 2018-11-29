@@ -43,11 +43,11 @@ public:
 
 private:
     void CreateAmInterface(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NFC, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IAm>();
-
-        LOG_DEBUG(Service_NFC, "called");
     }
 };
 
@@ -91,11 +91,11 @@ public:
 
 private:
     void CreateUserInterface(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NFC, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<MFIUser>();
-
-        LOG_DEBUG(Service_NFC, "called");
     }
 };
 
@@ -138,19 +138,19 @@ private:
     };
 
     void InitializeOld(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NFC, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0};
         rb.Push(RESULT_SUCCESS);
-
         // We don't deal with hardware initialization so we can just stub this.
-        LOG_DEBUG(Service_NFC, "called");
     }
 
     void IsNfcEnabledOld(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NFC, "IsNfcEnabledOld");
+
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.PushRaw<u8>(Settings::values.enable_nfc);
-
-        LOG_DEBUG(Service_NFC, "IsNfcEnabledOld");
     }
 
     void GetStateOld(Kernel::HLERequestContext& ctx) {
@@ -183,11 +183,11 @@ public:
 
 private:
     void CreateUserInterface(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NFC, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IUser>();
-
-        LOG_DEBUG(Service_NFC, "called");
     }
 };
 
@@ -241,11 +241,11 @@ public:
 
 private:
     void CreateSystemInterface(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NFC, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<ISystem>();
-
-        LOG_DEBUG(Service_NFC, "called");
     }
 };
 

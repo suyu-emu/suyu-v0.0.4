@@ -209,11 +209,11 @@ public:
      *      0: ResultCode
      */
     void OpenLogger(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_LM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<ILogger>();
-
-        LOG_DEBUG(Service_LM, "called");
     }
 };
 

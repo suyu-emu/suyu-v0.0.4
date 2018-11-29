@@ -10,22 +10,22 @@
 namespace Service::Set {
 
 void SET_SYS::GetColorSetId(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_SET, "called");
+
     IPC::ResponseBuilder rb{ctx, 3};
 
     rb.Push(RESULT_SUCCESS);
     rb.PushEnum(color_set);
-
-    LOG_DEBUG(Service_SET, "called");
 }
 
 void SET_SYS::SetColorSetId(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_SET, "called");
+
     IPC::RequestParser rp{ctx};
     color_set = rp.PopEnum<ColorSet>();
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
-
-    LOG_DEBUG(Service_SET, "called");
 }
 
 SET_SYS::SET_SYS() : ServiceFramework("set:sys") {

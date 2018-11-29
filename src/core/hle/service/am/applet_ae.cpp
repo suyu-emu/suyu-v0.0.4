@@ -32,66 +32,75 @@ public:
 
 private:
     void GetCommonStateGetter(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<ICommonStateGetter>(msg_queue);
-        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetSelfController(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<ISelfController>(nvflinger);
-        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetWindowController(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IWindowController>();
-        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetAudioController(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IAudioController>();
-        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetDisplayController(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IDisplayController>();
-        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetProcessWindingController(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IProcessWindingController>();
-        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetDebugFunctions(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IDebugFunctions>();
-        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetLibraryAppletCreator(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<ILibraryAppletCreator>();
-        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetApplicationFunctions(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IApplicationFunctions>();
-        LOG_DEBUG(Service_AM, "called");
     }
 
     std::shared_ptr<NVFlinger::NVFlinger> nvflinger;
@@ -122,97 +131,110 @@ public:
 
 private:
     void GetCommonStateGetter(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<ICommonStateGetter>(msg_queue);
-        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetSelfController(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<ISelfController>(nvflinger);
-        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetWindowController(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IWindowController>();
-        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetAudioController(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IAudioController>();
-        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetDisplayController(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IDisplayController>();
-        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetDebugFunctions(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IDebugFunctions>();
-        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetLibraryAppletCreator(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<ILibraryAppletCreator>();
-        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetHomeMenuFunctions(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IHomeMenuFunctions>();
-        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetGlobalStateController(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IGlobalStateController>();
-        LOG_DEBUG(Service_AM, "called");
     }
 
     void GetApplicationCreator(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IApplicationCreator>();
-        LOG_DEBUG(Service_AM, "called");
     }
     std::shared_ptr<NVFlinger::NVFlinger> nvflinger;
     std::shared_ptr<AppletMessageQueue> msg_queue;
 };
 
 void AppletAE::OpenSystemAppletProxy(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_AM, "called");
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<ISystemAppletProxy>(nvflinger, msg_queue);
-    LOG_DEBUG(Service_AM, "called");
 }
 
 void AppletAE::OpenLibraryAppletProxy(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_AM, "called");
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<ILibraryAppletProxy>(nvflinger, msg_queue);
-    LOG_DEBUG(Service_AM, "called");
 }
 
 void AppletAE::OpenLibraryAppletProxyOld(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_AM, "called");
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<ILibraryAppletProxy>(nvflinger, msg_queue);
-    LOG_DEBUG(Service_AM, "called");
 }
 
 AppletAE::AppletAE(std::shared_ptr<NVFlinger::NVFlinger> nvflinger,

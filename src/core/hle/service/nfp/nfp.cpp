@@ -108,29 +108,28 @@ private:
     static_assert(sizeof(CommonInfo) == 0x40, "CommonInfo is an invalid size");
 
     void Initialize(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NFC, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0};
         rb.Push(RESULT_SUCCESS);
 
         state = State::Initialized;
-
-        LOG_DEBUG(Service_NFC, "called");
     }
 
     void GetState(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NFC, "called");
+
         IPC::ResponseBuilder rb{ctx, 3, 0};
         rb.Push(RESULT_SUCCESS);
         rb.PushRaw<u32>(static_cast<u32>(state));
-
-        LOG_DEBUG(Service_NFC, "called");
     }
 
     void ListDevices(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const u32 array_size = rp.Pop<u32>();
+        LOG_DEBUG(Service_NFP, "called, array_size={}", array_size);
 
         ctx.WriteBuffer(&device_handle, sizeof(device_handle));
-
-        LOG_DEBUG(Service_NFP, "called, array_size={}", array_size);
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
@@ -141,6 +140,7 @@ private:
         IPC::RequestParser rp{ctx};
         const u64 dev_handle = rp.Pop<u64>();
         LOG_DEBUG(Service_NFP, "called, dev_handle=0x{:X}", dev_handle);
+
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(npad_id);
@@ -150,6 +150,7 @@ private:
         IPC::RequestParser rp{ctx};
         const u64 dev_handle = rp.Pop<u64>();
         LOG_DEBUG(Service_NFP, "called, dev_handle=0x{:X}", dev_handle);
+
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(nfp_interface.GetNFCEvent());
@@ -168,6 +169,7 @@ private:
 
     void StopDetection(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_NFP, "called");
+
         switch (device_state) {
         case DeviceState::TagFound:
         case DeviceState::TagNearby:
@@ -185,6 +187,7 @@ private:
 
     void GetDeviceState(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_NFP, "called");
+
         auto nfc_event = nfp_interface.GetNFCEvent();
         if (!nfc_event->ShouldWait(Kernel::GetCurrentThread()) && !has_attached_handle) {
             device_state = DeviceState::TagFound;
@@ -323,6 +326,7 @@ private:
 
 void Module::Interface::CreateUserInterface(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_NFP, "called");
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IUser>(*this);

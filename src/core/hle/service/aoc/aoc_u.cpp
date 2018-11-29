@@ -68,6 +68,8 @@ AOC_U::AOC_U() : ServiceFramework("aoc:u"), add_on_content(AccumulateAOCTitleIDs
 AOC_U::~AOC_U() = default;
 
 void AOC_U::CountAddOnContent(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_AOC, "called");
+
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
 
@@ -82,6 +84,7 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
 
     const auto offset = rp.PopRaw<u32>();
     auto count = rp.PopRaw<u32>();
+    LOG_DEBUG(Service_AOC, "called with offset={}, count={}", offset, count);
 
     const auto current = Core::System::GetInstance().CurrentProcess()->GetTitleID();
 
@@ -110,6 +113,8 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
 }
 
 void AOC_U::GetAddOnContentBaseId(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_AOC, "called");
+
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
     const auto title_id = Core::System::GetInstance().CurrentProcess()->GetTitleID();
@@ -128,7 +133,6 @@ void AOC_U::PrepareAddOnContent(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
     const auto aoc_id = rp.PopRaw<u32>();
-
     LOG_WARNING(Service_AOC, "(STUBBED) called with aoc_id={:08X}", aoc_id);
 
     IPC::ResponseBuilder rb{ctx, 2};

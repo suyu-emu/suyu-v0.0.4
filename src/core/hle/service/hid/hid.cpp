@@ -124,10 +124,11 @@ public:
 
 private:
     void GetSharedMemoryHandle(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(shared_mem);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void UpdateControllers(u64 userdata, int cycles_late) {
@@ -163,9 +164,10 @@ public:
 
 private:
     void ActivateVibrationDevice(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_WARNING(Service_HID, "(STUBBED) called");
     }
 };
 
@@ -303,6 +305,8 @@ private:
     std::shared_ptr<IAppletResource> applet_resource;
 
     void CreateAppletResource(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         if (applet_resource == nullptr) {
             applet_resource = std::make_shared<IAppletResource>();
         }
@@ -310,206 +314,228 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IAppletResource>(applet_resource);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void ActivateXpad(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         applet_resource->ActivateController(HidController::XPad);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void ActivateDebugPad(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         applet_resource->ActivateController(HidController::DebugPad);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void ActivateTouchScreen(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         applet_resource->ActivateController(HidController::Touchscreen);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void ActivateMouse(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         applet_resource->ActivateController(HidController::Mouse);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void ActivateKeyboard(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         applet_resource->ActivateController(HidController::Keyboard);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void ActivateGesture(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         applet_resource->ActivateController(HidController::Gesture);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void ActivateNpadWithRevision(Kernel::HLERequestContext& ctx) {
         // Should have no effect with how our npad sets up the data
+        LOG_DEBUG(Service_HID, "called");
+
         applet_resource->ActivateController(HidController::NPad);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void StartSixAxisSensor(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         auto handle = rp.PopRaw<u32>();
+        LOG_WARNING(Service_HID, "(STUBBED) called with handle={}", handle);
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_WARNING(Service_HID, "(STUBBED) called");
     }
 
     void SetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_WARNING(Service_HID, "(STUBBED) called");
     }
 
     void IsSixAxisSensorAtRest(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         // TODO (Hexagon12): Properly implement reading gyroscope values from controllers.
         rb.Push(true);
-        LOG_WARNING(Service_HID, "(STUBBED) called");
     }
 
     void SetSupportedNpadStyleSet(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         auto supported_styleset = rp.PopRaw<u32>();
+        LOG_DEBUG(Service_HID, "called with supported_styleset={}", supported_styleset);
+
         applet_resource->GetController<Controller_NPad>(HidController::NPad)
             .SetSupportedStyleSet({supported_styleset});
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void GetSupportedNpadStyleSet(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         auto& controller = applet_resource->GetController<Controller_NPad>(HidController::NPad);
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(controller.GetSupportedStyleSet().raw);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void SetSupportedNpadIdType(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         applet_resource->GetController<Controller_NPad>(HidController::NPad)
             .SetSupportedNPadIdTypes(ctx.ReadBuffer().data(), ctx.GetReadBufferSize());
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void ActivateNpad(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         applet_resource->ActivateController(HidController::NPad);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void AcquireNpadStyleSetUpdateEventHandle(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         auto npad_id = rp.PopRaw<u32>();
+        LOG_DEBUG(Service_HID, "called with npad_id={}", npad_id);
+
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(applet_resource->GetController<Controller_NPad>(HidController::NPad)
                                .GetStyleSetChangedEvent());
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void DisconnectNpad(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         auto npad_id = rp.PopRaw<u32>();
+        LOG_DEBUG(Service_HID, "called with npad_id={}", npad_id);
+
         applet_resource->GetController<Controller_NPad>(HidController::NPad)
             .DisconnectNPad(npad_id);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void GetPlayerLedPattern(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         auto npad_id = rp.PopRaw<u32>();
+        LOG_DEBUG(Service_HID, "called with npad_id={}", npad_id);
+
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
         rb.PushRaw<u64>(applet_resource->GetController<Controller_NPad>(HidController::NPad)
                             .GetLedPattern(npad_id)
                             .raw);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void SetNpadJoyHoldType(Kernel::HLERequestContext& ctx) {
-        auto& controller = applet_resource->GetController<Controller_NPad>(HidController::NPad);
         IPC::RequestParser rp{ctx};
         const auto hold_type = rp.PopRaw<u64>();
+        LOG_DEBUG(Service_HID, "called with hold_type={}", hold_type);
+
+        auto& controller = applet_resource->GetController<Controller_NPad>(HidController::NPad);
         controller.SetHoldType(Controller_NPad::NpadHoldType{hold_type});
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void GetNpadJoyHoldType(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         const auto& controller =
             applet_resource->GetController<Controller_NPad>(HidController::NPad);
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u64>(static_cast<u64>(controller.GetHoldType()));
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void SetNpadJoyAssignmentModeSingleByDefault(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         auto npad_id = rp.PopRaw<u32>();
+        LOG_WARNING(Service_HID, "(STUBBED) called with npad_id={}", npad_id);
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_WARNING(Service_HID, "(STUBBED) called");
     }
 
     void BeginPermitVibrationSession(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         applet_resource->GetController<Controller_NPad>(HidController::NPad)
             .SetVibrationEnabled(true);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void EndPermitVibrationSession(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         applet_resource->GetController<Controller_NPad>(HidController::NPad)
             .SetVibrationEnabled(false);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void SendVibrationValue(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto controller_id = rp.PopRaw<u32>();
         const auto vibration_values = rp.PopRaw<Controller_NPad::Vibration>();
+        LOG_DEBUG(Service_HID, "called with controller_id={}", controller_id);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
 
         applet_resource->GetController<Controller_NPad>(HidController::NPad)
             .VibrateController({controller_id}, {vibration_values});
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void SendVibrationValues(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         const auto controllers = ctx.ReadBuffer(0);
         const auto vibrations = ctx.ReadBuffer(1);
 
@@ -527,86 +553,96 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void GetActualVibrationValue(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         IPC::ResponseBuilder rb{ctx, 6};
         rb.Push(RESULT_SUCCESS);
         rb.PushRaw<Controller_NPad::Vibration>(
             applet_resource->GetController<Controller_NPad>(HidController::NPad)
                 .GetLastVibration());
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void SetNpadJoyAssignmentModeDual(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto npad_id = rp.PopRaw<u32>();
+        LOG_DEBUG(Service_HID, "called with npad_id={}", npad_id);
+
         auto& controller = applet_resource->GetController<Controller_NPad>(HidController::NPad);
         controller.SetNpadMode(npad_id, Controller_NPad::NPadAssignments::Dual);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void MergeSingleJoyAsDualJoy(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_WARNING(Service_HID, "(STUBBED) called");
     }
 
     void SetNpadHandheldActivationMode(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         auto mode = rp.PopRaw<u32>();
+        LOG_WARNING(Service_HID, "(STUBBED) called with mode={}", mode);
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_WARNING(Service_HID, "(STUBBED) called");
     }
 
     void GetVibrationDeviceInfo(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(1);
         rb.Push<u32>(0);
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void CreateActiveVibrationDeviceList(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "called");
+
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IActiveVibrationDeviceList>();
-        LOG_DEBUG(Service_HID, "called");
     }
 
     void ActivateConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_WARNING(Service_HID, "(STUBBED) called");
     }
 
     void StartConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_WARNING(Service_HID, "(STUBBED) called");
     }
 
     void StopSixAxisSensor(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_WARNING(Service_HID, "(STUBBED) called");
     }
 
     void SetIsPalmaAllConnectable(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_WARNING(Service_HID, "(STUBBED) called");
     }
 
     void SetPalmaBoostMode(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        LOG_WARNING(Service_HID, "(STUBBED) called");
     }
 };
 

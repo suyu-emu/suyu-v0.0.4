@@ -24,6 +24,8 @@ Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
 Module::Interface::~Interface() = default;
 
 void Module::Interface::GetRandomBytes(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_SPL, "called");
+
     IPC::RequestParser rp{ctx};
 
     std::size_t size = ctx.GetWriteBufferSize();
@@ -36,7 +38,6 @@ void Module::Interface::GetRandomBytes(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
-    LOG_DEBUG(Service_SPL, "called");
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager) {
