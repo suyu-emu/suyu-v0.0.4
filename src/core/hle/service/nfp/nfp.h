@@ -6,6 +6,7 @@
 
 #include <array>
 #include <vector>
+#include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/service.h"
 

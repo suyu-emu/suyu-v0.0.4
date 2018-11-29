@@ -122,13 +122,11 @@ public:
      * was called.
      * @param writable_event Event to use to wake up the thread. If unspecified, an event will be
      * created.
-     * @param readable_event Event to be bound to the thread to wake up upon.
      * @returns Event that when signaled will resume the thread and call the callback function.
      */
     SharedPtr<WritableEvent> SleepClientThread(SharedPtr<Thread> thread, const std::string& reason,
                                                u64 timeout, WakeupCallback&& callback,
-                                               SharedPtr<WritableEvent> writable_event = nullptr,
-                                               SharedPtr<ReadableEvent> readable_event = nullptr);
+                                               SharedPtr<WritableEvent> writable_event = nullptr);
 
     /// Populates this context with data from the requesting process/thread.
     ResultCode PopulateFromIncomingCommandBuffer(const HandleTable& handle_table,

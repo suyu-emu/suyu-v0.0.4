@@ -29,6 +29,10 @@ EventPair WritableEvent::CreateEventPair(KernelCore& kernel, ResetType reset_typ
     return {std::move(readable_event), std::move(writable_event)};
 }
 
+SharedPtr<ReadableEvent> WritableEvent::GetReadableEvent() const {
+    return readable;
+}
+
 ResetType WritableEvent::GetResetType() const {
     return readable->reset_type;
 }

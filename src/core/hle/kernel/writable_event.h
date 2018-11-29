@@ -44,6 +44,8 @@ public:
         return HANDLE_TYPE;
     }
 
+    SharedPtr<ReadableEvent> GetReadableEvent() const;
+
     ResetType GetResetType() const;
 
     void Signal();

@@ -302,6 +302,7 @@ void ISelfController::GetLibraryAppletLaunchableEvent(Kernel::HLERequestContext&
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushCopyObjects(launchable_event.readable);
+}
 
 void ISelfController::SetScreenShotImageOrientation(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");

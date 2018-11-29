@@ -8,13 +8,9 @@
 #include <queue>
 #include "common/swap.h"
 #include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/writable_event.h"
 
 union ResultCode;
-
-namespace Kernel {
-class ReadableEvent;
-class WritableEvent;
-} // namespace Kernel
 
 namespace Service::AM {
 

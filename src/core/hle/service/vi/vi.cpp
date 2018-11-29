@@ -548,7 +548,7 @@ private:
                         IPC::ResponseBuilder rb{ctx, 2};
                         rb.Push(RESULT_SUCCESS);
                     },
-                    buffer_queue->GetWritableBufferWaitEvent(), buffer_queue->GetBufferWaitEvent());
+                    buffer_queue->GetWritableBufferWaitEvent());
             }
         } else if (transaction == TransactionId::RequestBuffer) {
             IGBPRequestBufferRequestParcel request{ctx.ReadBuffer()};

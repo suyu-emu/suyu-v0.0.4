@@ -17,11 +17,9 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/timer.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
 
