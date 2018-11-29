@@ -38,6 +38,7 @@ public:
 private:
     void GetLanguageCode(Kernel::HLERequestContext& ctx);
     void GetAvailableLanguageCodes(Kernel::HLERequestContext& ctx);
+    void MakeLanguageCode(Kernel::HLERequestContext& ctx);
     void GetAvailableLanguageCodes2(Kernel::HLERequestContext& ctx);
     void GetAvailableLanguageCodeCount(Kernel::HLERequestContext& ctx);
     void GetAvailableLanguageCodeCount2(Kernel::HLERequestContext& ctx);
