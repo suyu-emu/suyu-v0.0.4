@@ -542,6 +542,8 @@ private:
                         // Repeat TransactParcel DequeueBuffer when a buffer is available
                         auto buffer_queue = nv_flinger->GetBufferQueue(id);
                         std::optional<u32> slot = buffer_queue->DequeueBuffer(width, height);
+                        ASSERT_MSG(slot != std::nullopt, "Could not dequeue buffer.");
+
                         IGBPDequeueBufferResponseParcel response{*slot};
                         ctx.WriteBuffer(response.Serialize());
                         IPC::ResponseBuilder rb{ctx, 2};
