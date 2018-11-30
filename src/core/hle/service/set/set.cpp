@@ -35,6 +35,8 @@ constexpr std::array<LanguageCode, 17> available_language_codes = {{
 constexpr std::size_t pre4_0_0_max_entries = 0xF;
 constexpr std::size_t post4_0_0_max_entries = 0x40;
 
+constexpr ResultCode ERR_INVALID_LANGUAGE{ErrorModule::Settings, 625};
+
 LanguageCode GetLanguageCodeFromIndex(std::size_t index) {
     return available_language_codes.at(index);
 }
@@ -67,6 +69,21 @@ void SET::GetAvailableLanguageCodes(Kernel::HLERequestContext& ctx) {
     PushResponseLanguageCode(ctx, pre4_0_0_max_entries);
 }
 
+void SET::MakeLanguageCode(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto index = rp.Pop<u32>();
+
+    if (index >= available_language_codes.size()) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ERR_INVALID_LANGUAGE);
+        return;
+    }
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushEnum(available_language_codes[index]);
+}
+
 void SET::GetAvailableLanguageCodes2(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
@@ -95,14 +112,14 @@ void SET::GetLanguageCode(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
-    rb.Push(static_cast<u64>(available_language_codes[Settings::values.language_index]));
+    rb.PushEnum(available_language_codes[Settings::values.language_index]);
 }
 
 SET::SET() : ServiceFramework("set") {
     static const FunctionInfo functions[] = {
         {0, &SET::GetLanguageCode, "GetLanguageCode"},
         {1, &SET::GetAvailableLanguageCodes, "GetAvailableLanguageCodes"},
-        {2, nullptr, "MakeLanguageCode"},
+        {2, &SET::MakeLanguageCode, "MakeLanguageCode"},
         {3, &SET::GetAvailableLanguageCodeCount, "GetAvailableLanguageCodeCount"},
         {4, nullptr, "GetRegionCode"},
         {5, &SET::GetAvailableLanguageCodes2, "GetAvailableLanguageCodes2"},
