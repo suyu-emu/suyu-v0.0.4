@@ -114,6 +114,18 @@ public:
     ResultCode DeleteDirectoryRecursively(const std::string& path) const;
 
     /**
+     * Cleans the specified directory. This is similar to DeleteDirectoryRecursively,
+     * in that it deletes all the contents of the specified directory, however, this
+     * function does *not* delete the directory itself. It only deletes everything
+     * within it.
+     *
+     * @param path Path relative to the archive.
+     *
+     * @return Result of the operation.
+     */
+    ResultCode CleanDirectoryRecursively(const std::string& path) const;
+
+    /**
      * Rename a File specified by its path
      * @param src_path Source path relative to the archive
      * @param dest_path Destination path relative to the archive

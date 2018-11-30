@@ -113,6 +113,18 @@ ResultCode VfsDirectoryServiceWrapper::DeleteDirectoryRecursively(const std::str
     return RESULT_SUCCESS;
 }
 
+ResultCode VfsDirectoryServiceWrapper::CleanDirectoryRecursively(const std::string& path) const {
+    const std::string sanitized_path(FileUtil::SanitizePath(path));
+    auto dir = GetDirectoryRelativeWrapped(backing, FileUtil::GetParentPath(sanitized_path));
+
+    if (!dir->CleanSubdirectoryRecursive(FileUtil::GetFilename(sanitized_path))) {
+        // TODO(DarkLordZach): Find a better error code for this
+        return ResultCode(-1);
+    }
+
+    return RESULT_SUCCESS;
+}
+
 ResultCode VfsDirectoryServiceWrapper::RenameFile(const std::string& src_path_,
                                                   const std::string& dest_path_) const {
     std::string src_path(FileUtil::SanitizePath(src_path_));
