@@ -112,7 +112,7 @@ void SET::GetLanguageCode(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
-    rb.Push(static_cast<u64>(available_language_codes[Settings::values.language_index]));
+    rb.PushEnum(available_language_codes[Settings::values.language_index]);
 }
 
 SET::SET() : ServiceFramework("set") {
