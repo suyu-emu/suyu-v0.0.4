@@ -453,7 +453,27 @@ std::shared_ptr<VfsFile> ReadOnlyVfsDirectory::CreateFile(std::string_view name)
     return nullptr;
 }
 
+std::shared_ptr<VfsFile> ReadOnlyVfsDirectory::CreateFileAbsolute(std::string_view path) {
+    return nullptr;
+}
+
+std::shared_ptr<VfsFile> ReadOnlyVfsDirectory::CreateFileRelative(std::string_view path) {
+    return nullptr;
+}
+
+std::shared_ptr<VfsDirectory> ReadOnlyVfsDirectory::CreateDirectoryAbsolute(std::string_view path) {
+    return nullptr;
+}
+
+std::shared_ptr<VfsDirectory> ReadOnlyVfsDirectory::CreateDirectoryRelative(std::string_view path) {
+    return nullptr;
+}
+
 bool ReadOnlyVfsDirectory::DeleteSubdirectory(std::string_view name) {
+    return false;
+}
+
+bool ReadOnlyVfsDirectory::DeleteSubdirectoryRecursive(std::string_view name) {
     return false;
 }
 

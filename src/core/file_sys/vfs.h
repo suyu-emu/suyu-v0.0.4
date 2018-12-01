@@ -282,7 +282,12 @@ public:
     bool IsReadable() const override;
     std::shared_ptr<VfsDirectory> CreateSubdirectory(std::string_view name) override;
     std::shared_ptr<VfsFile> CreateFile(std::string_view name) override;
+    std::shared_ptr<VfsFile> CreateFileAbsolute(std::string_view path) override;
+    std::shared_ptr<VfsFile> CreateFileRelative(std::string_view path) override;
+    std::shared_ptr<VfsDirectory> CreateDirectoryAbsolute(std::string_view path) override;
+    std::shared_ptr<VfsDirectory> CreateDirectoryRelative(std::string_view path) override;
     bool DeleteSubdirectory(std::string_view name) override;
+    bool DeleteSubdirectoryRecursive(std::string_view name) override;
     bool CleanSubdirectoryRecursive(std::string_view name) override;
     bool DeleteFile(std::string_view name) override;
     bool Rename(std::string_view name) override;
