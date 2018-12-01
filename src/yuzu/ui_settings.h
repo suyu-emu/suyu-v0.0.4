@@ -59,7 +59,7 @@ struct Values {
     bool show_console;
 
     // Controllers
-    uint32_t profile_index;
+    int profile_index;
 
     // Game List
     bool show_unknown;

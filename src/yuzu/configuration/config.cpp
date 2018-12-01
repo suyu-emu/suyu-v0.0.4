@@ -4,6 +4,7 @@
 
 #include <QSettings>
 #include "common/file_util.h"
+#include "configure_input_simple.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "input_common/main.h"
@@ -342,6 +343,13 @@ void Config::ReadTouchscreenValues() {
     qt_config->endGroup();
 }
 
+void Config::ApplyDefaultProfileIfInputInvalid() {
+    if (!std::any_of(Settings::values.players.begin(), Settings::values.players.end(),
+                     [](const Settings::PlayerInput& in) { return in.connected; })) {
+        ApplyInputProfileConfiguration(UISettings::values.profile_index);
+    }
+}
+
 void Config::ReadValues() {
     qt_config->beginGroup("Controls");
 
@@ -507,6 +515,8 @@ void Config::ReadValues() {
     UISettings::values.callout_flags = qt_config->value("calloutFlags", 0).toUInt();
     UISettings::values.show_console = qt_config->value("showConsole", false).toBool();
     UISettings::values.profile_index = qt_config->value("profileIndex", 0).toUInt();
+
+    ApplyDefaultProfileIfInputInvalid();
 
     qt_config->endGroup();
 }
