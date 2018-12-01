@@ -128,10 +128,8 @@ enum class BufferMethods {
 };
 
 void GPU::CallMethod(const MethodCall& method_call) {
-    LOG_TRACE(HW_GPU,
-              "Processing method {:08X} on subchannel {} value "
-              "{:08X} remaining params {}",
-              MethCall.method, MethCall.subchannel, value, remaining_params);
+    LOG_TRACE(HW_GPU, "Processing method {:08X} on subchannel {}", method_call.method,
+              method_call.subchannel);
 
     ASSERT(method_call.subchannel < bound_engines.size());
 
