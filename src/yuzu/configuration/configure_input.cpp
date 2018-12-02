@@ -88,6 +88,8 @@ ConfigureInput::ConfigureInput(QWidget* parent)
             [this] { CallConfigureDialog<ConfigureTouchscreenAdvanced>(*this); });
 }
 
+ConfigureInput::~ConfigureInput() = default;
+
 void ConfigureInput::OnDockedModeChanged(bool last_state, bool new_state) {
     if (ui->use_docked_mode->isChecked() && ui->handheld_connected->isChecked()) {
         ui->handheld_connected->setChecked(false);
