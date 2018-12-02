@@ -794,7 +794,7 @@ void KeyManager::DeriveBase() {
 
 void KeyManager::DeriveETicket(PartitionDataManager& data) {
     // ETicket keys
-    const auto es = Service::FileSystem::GetUnionContents()->GetEntry(
+    const auto es = Service::FileSystem::GetUnionContents().GetEntry(
         0x0100000000000033, FileSys::ContentRecordType::Program);
 
     if (es == nullptr)

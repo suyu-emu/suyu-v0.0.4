@@ -75,12 +75,12 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
 
     // Game Updates
     const auto update_tid = GetUpdateTitleID(title_id);
-    const auto update = installed->GetEntry(update_tid, ContentRecordType::Program);
+    const auto update = installed.GetEntry(update_tid, ContentRecordType::Program);
 
     if (update != nullptr && update->GetExeFS() != nullptr &&
         update->GetStatus() == Loader::ResultStatus::ErrorMissingBKTRBaseRomFS) {
         LOG_INFO(Loader, "    ExeFS: Update ({}) applied successfully",
-                 FormatTitleVersion(installed->GetEntryVersion(update_tid).value_or(0)));
+                 FormatTitleVersion(installed.GetEntryVersion(update_tid).value_or(0)));
         exefs = update->GetExeFS();
     }
 
@@ -281,13 +281,13 @@ VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset, Content
 
     // Game Updates
     const auto update_tid = GetUpdateTitleID(title_id);
-    const auto update = installed->GetEntryRaw(update_tid, type);
+    const auto update = installed.GetEntryRaw(update_tid, type);
     if (update != nullptr) {
         const auto new_nca = std::make_shared<NCA>(update, romfs, ivfc_offset);
         if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
             new_nca->GetRomFS() != nullptr) {
             LOG_INFO(Loader, "    RomFS: Update ({}) applied successfully",
-                     FormatTitleVersion(installed->GetEntryVersion(update_tid).value_or(0)));
+                     FormatTitleVersion(installed.GetEntryVersion(update_tid).value_or(0)));
             romfs = new_nca->GetRomFS();
         }
     } else if (update_raw != nullptr) {
@@ -329,8 +329,8 @@ std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNam
     if (nacp != nullptr) {
         out.insert_or_assign("Update", nacp->GetVersionString());
     } else {
-        if (installed->HasEntry(update_tid, ContentRecordType::Program)) {
-            const auto meta_ver = installed->GetEntryVersion(update_tid);
+        if (installed.HasEntry(update_tid, ContentRecordType::Program)) {
+            const auto meta_ver = installed.GetEntryVersion(update_tid);
             if (meta_ver.value_or(0) == 0) {
                 out.insert_or_assign("Update", "");
             } else {
@@ -383,14 +383,13 @@ std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNam
     }
 
     // DLC
-    const auto dlc_entries = installed->ListEntriesFilter(TitleType::AOC, ContentRecordType::Data);
+    const auto dlc_entries = installed.ListEntriesFilter(TitleType::AOC, ContentRecordType::Data);
     std::vector<RegisteredCacheEntry> dlc_match;
     dlc_match.reserve(dlc_entries.size());
     std::copy_if(dlc_entries.begin(), dlc_entries.end(), std::back_inserter(dlc_match),
                  [this, &installed](const RegisteredCacheEntry& entry) {
                      return (entry.title_id & DLC_BASE_TITLE_ID_MASK) == title_id &&
-                            installed->GetEntry(entry)->GetStatus() ==
-                                Loader::ResultStatus::Success;
+                            installed.GetEntry(entry)->GetStatus() == Loader::ResultStatus::Success;
                  });
     if (!dlc_match.empty()) {
         // Ensure sorted so DLC IDs show in order.
@@ -411,7 +410,7 @@ std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNam
 std::pair<std::unique_ptr<NACP>, VirtualFile> PatchManager::GetControlMetadata() const {
     const auto installed{Service::FileSystem::GetUnionContents()};
 
-    const auto base_control_nca = installed->GetEntry(title_id, ContentRecordType::Control);
+    const auto base_control_nca = installed.GetEntry(title_id, ContentRecordType::Control);
     if (base_control_nca == nullptr)
         return {};
 
