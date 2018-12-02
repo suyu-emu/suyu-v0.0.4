@@ -21,10 +21,9 @@ public:
     void applyConfiguration();
     void retranslateUi();
 
-public slots:
+private:
     void updateAudioDevices(int sink_index);
 
-private:
     void setConfiguration();
     void setOutputSinkFromSinkID();
     void setAudioDeviceFromDeviceID();

@@ -25,6 +25,5 @@ public:
 private:
     void setConfiguration();
 
-private:
     std::unique_ptr<Ui::ConfigureDialog> ui;
 };
