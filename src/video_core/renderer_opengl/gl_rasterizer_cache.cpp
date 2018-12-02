@@ -709,9 +709,10 @@ void CachedSurface::LoadGLBuffer() {
         const auto texture_src_data_end{texture_src_data + params.size_in_bytes_gl};
         gl_buffer[0].assign(texture_src_data, texture_src_data_end);
     }
-    for (u32 i = 0; i < params.max_mip_level; i++)
+    for (u32 i = 0; i < params.max_mip_level; i++) {
         ConvertFormatAsNeeded_LoadGLBuffer(gl_buffer[i], params.pixel_format, params.MipWidth(i),
                                            params.MipHeight(i), params.MipDepth(i));
+    }
 }
 
 MICROPROFILE_DEFINE(OpenGL_SurfaceFlush, "OpenGL", "Surface Flush", MP_RGB(128, 192, 64));

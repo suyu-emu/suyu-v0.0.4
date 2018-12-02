@@ -518,6 +518,8 @@ void GMainWindow::OnDisplayTitleBars(bool show) {
 QStringList GMainWindow::GetUnsupportedGLExtensions() {
     QStringList unsupported_ext;
 
+    if (!GLAD_GL_ARB_direct_state_access)
+        unsupported_ext.append("ARB_direct_state_access");
     if (!GLAD_GL_ARB_vertex_type_10f_11f_11f_rev)
         unsupported_ext.append("ARB_vertex_type_10f_11f_11f_rev");
     if (!GLAD_GL_ARB_texture_mirror_clamp_to_edge)

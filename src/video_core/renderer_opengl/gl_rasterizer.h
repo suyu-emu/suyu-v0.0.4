@@ -60,20 +60,6 @@ public:
     bool AccelerateDrawBatch(bool is_indexed) override;
     void UpdatePagesCachedCount(Tegra::GPUVAddr addr, u64 size, int delta) override;
 
-    /// OpenGL shader generated for a given Maxwell register state
-    struct MaxwellShader {
-        /// OpenGL shader resource
-        OGLProgram shader;
-    };
-
-    struct VertexShader {
-        OGLShader shader;
-    };
-
-    struct FragmentShader {
-        OGLShader shader;
-    };
-
     /// Maximum supported size that a constbuffer can have in bytes.
     static constexpr std::size_t MaxConstbufferSize = 0x10000;
     static_assert(MaxConstbufferSize % sizeof(GLvec4) == 0,
@@ -192,9 +178,6 @@ private:
     /// Check for extension that are not strictly required
     /// but are needed for correct emulation
     void CheckExtensions();
-
-    bool has_ARB_direct_state_access = false;
-    bool has_ARB_multi_bind = false;
 
     OpenGLState state;
 

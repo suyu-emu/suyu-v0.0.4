@@ -88,19 +88,6 @@ RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window, ScreenInfo
         state.texture_units[i].sampler = texture_samplers[i].sampler.handle;
     }
 
-    GLint ext_num;
-    glGetIntegerv(GL_NUM_EXTENSIONS, &ext_num);
-    for (GLint i = 0; i < ext_num; i++) {
-        const std::string_view extension{
-            reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, i))};
-
-        if (extension == "GL_ARB_direct_state_access") {
-            has_ARB_direct_state_access = true;
-        } else if (extension == "GL_ARB_multi_bind") {
-            has_ARB_multi_bind = true;
-        }
-    }
-
     OpenGLState::ApplyDefaultState();
 
     // Create render framebuffer
@@ -443,7 +430,7 @@ void RasterizerOpenGL::ConfigureFramebuffers(OpenGLState& current_state, bool us
     // TODO(bunnei): Figure out how the below register works. According to envytools, this should be
     // used to enable multiple render targets. However, it is left unset on all games that I have
     // tested.
-    ASSERT_MSG(regs.rt_separate_frag_data == 0, "Unimplemented");
+    UNIMPLEMENTED_IF(regs.rt_separate_frag_data != 0);
 
     // Bind the framebuffer surfaces
     current_state.draw.draw_framebuffer = framebuffer.handle;
