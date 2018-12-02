@@ -107,42 +107,41 @@ static ContentRecordType GetCRTypeFromNCAType(NCAContentType type) {
 VirtualFile RegisteredCache::OpenFileOrDirectoryConcat(const VirtualDir& dir,
                                                        std::string_view path) const {
     const auto file = dir->GetFileRelative(path);
-    if (file != nullptr)
-        return file;
-
-    const auto nca_dir = dir->GetDirectoryRelative(path);
-    if (nca_dir != nullptr) {
-        const auto nca_dir = dir->GetDirectoryRelative(path);
-        VirtualFile file = nullptr;
-
-        const auto files = nca_dir->GetFiles();
-        if (files.size() == 1 && files[0]->GetName() == "00") {
-            file = files[0];
-        } else {
-            std::vector<VirtualFile> concat;
-            // Since the files are a two-digit hex number, max is FF.
-            for (std::size_t i = 0; i < 0x100; ++i) {
-                auto next = nca_dir->GetFile(fmt::format("{:02X}", i));
-                if (next != nullptr) {
-                    concat.push_back(std::move(next));
-                } else {
-                    next = nca_dir->GetFile(fmt::format("{:02x}", i));
-                    if (next != nullptr)
-                        concat.push_back(std::move(next));
-                    else
-                        break;
-                }
-            }
-
-            if (concat.empty())
-                return nullptr;
-
-            file = ConcatenatedVfsFile::MakeConcatenatedFile(concat, concat.front()->GetName());
-        }
-
+    if (file != nullptr) {
         return file;
     }
-    return nullptr;
+
+    const auto nca_dir = dir->GetDirectoryRelative(path);
+    if (nca_dir == nullptr) {
+        return nullptr;
+    }
+
+    const auto files = nca_dir->GetFiles();
+    if (files.size() == 1 && files[0]->GetName() == "00") {
+        return files[0];
+    }
+
+    std::vector<VirtualFile> concat;
+    // Since the files are a two-digit hex number, max is FF.
+    for (std::size_t i = 0; i < 0x100; ++i) {
+        auto next = nca_dir->GetFile(fmt::format("{:02X}", i));
+        if (next != nullptr) {
+            concat.push_back(std::move(next));
+        } else {
+            next = nca_dir->GetFile(fmt::format("{:02x}", i));
+            if (next != nullptr) {
+                concat.push_back(std::move(next));
+            } else {
+                break;
+            }
+        }
+    }
+
+    if (concat.empty()) {
+        return nullptr;
+    }
+
+    return ConcatenatedVfsFile::MakeConcatenatedFile(concat, concat.front()->GetName());
 }
 
 VirtualFile RegisteredCache::GetFileAtID(NcaID id) const {
