@@ -682,37 +682,109 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
         ThreadTickCount = 0xF0000002,
     };
 
-    const auto* current_process = Core::CurrentProcess();
-    const auto& vm_manager = current_process->VMManager();
+    const auto info_id_type = static_cast<GetInfoType>(info_id);
 
-    switch (static_cast<GetInfoType>(info_id)) {
+    switch (info_id_type) {
     case GetInfoType::AllowedCpuIdBitmask:
-        *result = current_process->GetAllowedProcessorMask();
-        break;
     case GetInfoType::AllowedThreadPrioBitmask:
-        *result = current_process->GetAllowedThreadPriorityMask();
-        break;
     case GetInfoType::MapRegionBaseAddr:
-        *result = vm_manager.GetMapRegionBaseAddress();
-        break;
     case GetInfoType::MapRegionSize:
-        *result = vm_manager.GetMapRegionSize();
-        break;
     case GetInfoType::HeapRegionBaseAddr:
-        *result = vm_manager.GetHeapRegionBaseAddress();
-        break;
     case GetInfoType::HeapRegionSize:
-        *result = vm_manager.GetHeapRegionSize();
-        break;
+    case GetInfoType::ASLRRegionBaseAddr:
+    case GetInfoType::ASLRRegionSize:
+    case GetInfoType::NewMapRegionBaseAddr:
+    case GetInfoType::NewMapRegionSize:
     case GetInfoType::TotalMemoryUsage:
-        *result = vm_manager.GetTotalMemoryUsage();
-        break;
     case GetInfoType::TotalHeapUsage:
-        *result = vm_manager.GetTotalHeapUsage();
-        break;
+    case GetInfoType::IsVirtualAddressMemoryEnabled:
+    case GetInfoType::PersonalMmHeapUsage:
+    case GetInfoType::TitleId:
+    case GetInfoType::UserExceptionContextAddr: {
+        if (info_sub_id != 0) {
+            return ERR_INVALID_ENUM_VALUE;
+        }
+
+        const auto* process = Core::CurrentProcess();
+        if (!process) {
+            return ERR_INVALID_HANDLE;
+        }
+
+        switch (info_id_type) {
+        case GetInfoType::AllowedCpuIdBitmask:
+            *result = process->GetAllowedProcessorMask();
+            return RESULT_SUCCESS;
+
+        case GetInfoType::AllowedThreadPrioBitmask:
+            *result = process->GetAllowedThreadPriorityMask();
+            return RESULT_SUCCESS;
+
+        case GetInfoType::MapRegionBaseAddr:
+            *result = process->VMManager().GetMapRegionBaseAddress();
+            return RESULT_SUCCESS;
+
+        case GetInfoType::MapRegionSize:
+            *result = process->VMManager().GetMapRegionSize();
+            return RESULT_SUCCESS;
+
+        case GetInfoType::HeapRegionBaseAddr:
+            *result = process->VMManager().GetHeapRegionBaseAddress();
+            return RESULT_SUCCESS;
+
+        case GetInfoType::HeapRegionSize:
+            *result = process->VMManager().GetHeapRegionSize();
+            return RESULT_SUCCESS;
+
+        case GetInfoType::ASLRRegionBaseAddr:
+            *result = process->VMManager().GetASLRRegionBaseAddress();
+            return RESULT_SUCCESS;
+
+        case GetInfoType::ASLRRegionSize:
+            *result = process->VMManager().GetASLRRegionSize();
+            return RESULT_SUCCESS;
+
+        case GetInfoType::NewMapRegionBaseAddr:
+            *result = process->VMManager().GetNewMapRegionBaseAddress();
+            return RESULT_SUCCESS;
+
+        case GetInfoType::NewMapRegionSize:
+            *result = process->VMManager().GetNewMapRegionSize();
+            return RESULT_SUCCESS;
+
+        case GetInfoType::TotalMemoryUsage:
+            *result = process->VMManager().GetTotalMemoryUsage();
+            return RESULT_SUCCESS;
+
+        case GetInfoType::TotalHeapUsage:
+            *result = process->VMManager().GetTotalHeapUsage();
+            return RESULT_SUCCESS;
+
+        case GetInfoType::IsVirtualAddressMemoryEnabled:
+            *result = process->IsVirtualMemoryEnabled();
+            return RESULT_SUCCESS;
+
+        case GetInfoType::TitleId:
+            *result = process->GetTitleID();
+            return RESULT_SUCCESS;
+
+        case GetInfoType::UserExceptionContextAddr:
+            LOG_WARNING(Kernel_SVC,
+                        "(STUBBED) Attempted to query user exception context address, returned 0");
+            *result = 0;
+            return RESULT_SUCCESS;
+
+        default:
+            break;
+        }
+
+        LOG_WARNING(Kernel_SVC, "(STUBBED) Unimplemented svcGetInfo id=0x{:016X}", info_id);
+        return ERR_INVALID_ENUM_VALUE;
+    }
+
     case GetInfoType::IsCurrentProcessBeingDebugged:
         *result = 0;
-        break;
+        return RESULT_SUCCESS;
+
     case GetInfoType::RandomEntropy:
         if (handle != 0) {
             LOG_ERROR(Kernel_SVC, "Process Handle is non zero, expected 0 result but got {:016X}",
@@ -726,37 +798,15 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
             return ERR_INVALID_COMBINATION;
         }
 
-        *result = current_process->GetRandomEntropy(info_sub_id);
+        *result = Core::CurrentProcess()->GetRandomEntropy(info_sub_id);
         return RESULT_SUCCESS;
-        break;
-    case GetInfoType::ASLRRegionBaseAddr:
-        *result = vm_manager.GetASLRRegionBaseAddress();
-        break;
-    case GetInfoType::ASLRRegionSize:
-        *result = vm_manager.GetASLRRegionSize();
-        break;
-    case GetInfoType::NewMapRegionBaseAddr:
-        *result = vm_manager.GetNewMapRegionBaseAddress();
-        break;
-    case GetInfoType::NewMapRegionSize:
-        *result = vm_manager.GetNewMapRegionSize();
-        break;
-    case GetInfoType::IsVirtualAddressMemoryEnabled:
-        *result = current_process->IsVirtualMemoryEnabled();
-        break;
-    case GetInfoType::TitleId:
-        *result = current_process->GetTitleID();
-        break;
+
     case GetInfoType::PrivilegedProcessId:
         LOG_WARNING(Kernel_SVC,
                     "(STUBBED) Attempted to query privileged process id bounds, returned 0");
         *result = 0;
-        break;
-    case GetInfoType::UserExceptionContextAddr:
-        LOG_WARNING(Kernel_SVC,
-                    "(STUBBED) Attempted to query user exception context address, returned 0");
-        *result = 0;
-        break;
+        return RESULT_SUCCESS;
+
     case GetInfoType::ThreadTickCount: {
         constexpr u64 num_cpus = 4;
         if (info_sub_id != 0xFFFFFFFFFFFFFFFF && info_sub_id >= num_cpus) {
@@ -766,7 +816,7 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
         }
 
         const auto thread =
-            current_process->GetHandleTable().Get<Thread>(static_cast<Handle>(handle));
+            Core::CurrentProcess()->GetHandleTable().Get<Thread>(static_cast<Handle>(handle));
         if (!thread) {
             LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}",
                       static_cast<Handle>(handle));
@@ -789,14 +839,13 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
         }
 
         *result = out_ticks;
-        break;
+        return RESULT_SUCCESS;
     }
+
     default:
         LOG_WARNING(Kernel_SVC, "(STUBBED) Unimplemented svcGetInfo id=0x{:016X}", info_id);
         return ERR_INVALID_ENUM_VALUE;
     }
-
-    return RESULT_SUCCESS;
 }
 
 /// Sets the thread activity
