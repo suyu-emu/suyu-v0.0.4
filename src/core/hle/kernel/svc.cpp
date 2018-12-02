@@ -705,7 +705,8 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
             return ERR_INVALID_ENUM_VALUE;
         }
 
-        const auto* process = Core::CurrentProcess();
+        const auto& current_process_handle_table = Core::CurrentProcess()->GetHandleTable();
+        const auto process = current_process_handle_table.Get<Process>(static_cast<Handle>(handle));
         if (!process) {
             return ERR_INVALID_HANDLE;
         }
