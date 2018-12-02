@@ -518,8 +518,9 @@ Controller_NPad::NpadHoldType Controller_NPad::GetHoldType() const {
 }
 
 void Controller_NPad::SetNpadMode(u32 npad_id, NPadAssignments assignment_mode) {
-    ASSERT(npad_id < shared_memory_entries.size());
-    shared_memory_entries[npad_id].pad_assignment = assignment_mode;
+    const std::size_t npad_index = NPadIdToIndex(npad_id);
+    ASSERT(npad_index < shared_memory_entries.size());
+    shared_memory_entries[npad_index].pad_assignment = assignment_mode;
 }
 
 void Controller_NPad::VibrateController(const std::vector<u32>& controller_ids,
