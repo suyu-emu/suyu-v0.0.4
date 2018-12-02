@@ -214,6 +214,7 @@ GameList::GameList(FileSys::VirtualFilesystem vfs, GMainWindow* parent)
     tree_view->setEditTriggers(QHeaderView::NoEditTriggers);
     tree_view->setUniformRowHeights(true);
     tree_view->setContextMenuPolicy(Qt::CustomContextMenu);
+    tree_view->setStyleSheet("QTreeView{ border: none; }");
 
     item_model->insertColumns(0, UISettings::values.show_add_ons ? COLUMN_COUNT : COLUMN_COUNT - 1);
     item_model->setHeaderData(COLUMN_NAME, Qt::Horizontal, tr("Name"));
