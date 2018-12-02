@@ -155,14 +155,15 @@ void GameListWorker::AddInstalledTitlesToGameList() {
 void GameListWorker::FillControlMap(const std::string& dir_path) {
     const auto nca_control_callback = [this](u64* num_entries_out, const std::string& directory,
                                              const std::string& virtual_name) -> bool {
-        std::string physical_name = directory + DIR_SEP + virtual_name;
+        const std::string physical_name = directory + DIR_SEP + virtual_name;
 
-        if (stop_processing)
-            return false; // Breaks the callback loop.
+        if (stop_processing) {
+            // Breaks the callback loop
+            return false;
+        }
 
-        bool is_dir = FileUtil::IsDirectory(physical_name);
-        QFileInfo file_info(physical_name.c_str());
-        if (!is_dir && file_info.suffix().toStdString() == "nca") {
+        const QFileInfo file_info(QString::fromStdString(physical_name));
+        if (!file_info.isDir() && file_info.suffix() == QStringLiteral("nca")) {
             auto nca =
                 std::make_unique<FileSys::NCA>(vfs->OpenFile(physical_name, FileSys::Mode::Read));
             if (nca->GetType() == FileSys::NCAContentType::Control) {
