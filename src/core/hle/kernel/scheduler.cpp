@@ -207,8 +207,8 @@ void Scheduler::YieldWithoutLoadBalancing(Thread* thread) {
     ASSERT(thread->GetPriority() < THREADPRIO_COUNT);
 
     // Yield this thread
-    MoveThreadToBackOfPriorityQueue(thread, thread->GetPriority());
     Reschedule();
+    MoveThreadToBackOfPriorityQueue(thread, thread->GetPriority());
 }
 
 void Scheduler::YieldWithLoadBalancing(Thread* thread) {
@@ -223,6 +223,7 @@ void Scheduler::YieldWithLoadBalancing(Thread* thread) {
     ASSERT(priority < THREADPRIO_COUNT);
 
     // Reschedule thread to end of queue.
+    Reschedule();
     MoveThreadToBackOfPriorityQueue(thread, priority);
 
     Thread* suggested_thread = nullptr;

@@ -962,13 +962,13 @@ static void SleepThread(s64 nanoseconds) {
 
     // Don't attempt to yield execution if there are no available threads to run,
     // this way we avoid a useless reschedule to the idle thread.
-    if (!Core::System::GetInstance().CurrentScheduler().HaveReadyThreads())
+    if (nanoseconds <= 0 && !Core::System::GetInstance().CurrentScheduler().HaveReadyThreads())
         return;
 
     enum class SleepType : s64 {
         YieldWithoutLoadBalancing = 0,
-        YieldWithLoadBalancing = 1,
-        YieldAndWaitForLoadBalancing = 2,
+        YieldWithLoadBalancing = -1,
+        YieldAndWaitForLoadBalancing = -2,
     };
 
     if (nanoseconds <= 0) {
@@ -998,10 +998,7 @@ static void SleepThread(s64 nanoseconds) {
     // Create an event to wake the thread up after the specified nanosecond delay has passed
     GetCurrentThread()->WakeAfterDelay(nanoseconds);
 
-    Core::System::GetInstance().CpuCore(0).PrepareReschedule();
-    Core::System::GetInstance().CpuCore(1).PrepareReschedule();
-    Core::System::GetInstance().CpuCore(2).PrepareReschedule();
-    Core::System::GetInstance().CpuCore(3).PrepareReschedule();
+    Core::System::GetInstance().PrepareReschedule();
 }
 
 /// Wait process wide key atomic
