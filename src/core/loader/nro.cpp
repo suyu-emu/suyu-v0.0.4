@@ -10,7 +10,6 @@
 #include "common/file_util.h"
 #include "common/logging/log.h"
 #include "common/swap.h"
-#include "core/core.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/romfs_factory.h"
 #include "core/file_sys/vfs_offset.h"
@@ -129,9 +128,8 @@ static constexpr u32 PageAlignSize(u32 size) {
     return (size + Memory::PAGE_MASK) & ~Memory::PAGE_MASK;
 }
 
-/*static*/ bool AppLoader_NRO::LoadNro(const std::vector<u8>& data, const std::string& name,
-                                       VAddr load_base) {
-
+/*static*/ bool AppLoader_NRO::LoadNro(Kernel::Process& process, const std::vector<u8>& data,
+                                       const std::string& name, VAddr load_base) {
     if (data.size() < sizeof(NroHeader)) {
         return {};
     }
@@ -189,7 +187,7 @@ static constexpr u32 PageAlignSize(u32 size) {
 
     // Load codeset for current process
     codeset.memory = std::make_shared<std::vector<u8>>(std::move(program_image));
-    Core::CurrentProcess()->LoadModule(std::move(codeset), load_base);
+    process.LoadModule(std::move(codeset), load_base);
 
     // Register module with GDBStub
     GDBStub::RegisterModule(name, load_base, load_base);
@@ -197,8 +195,8 @@ static constexpr u32 PageAlignSize(u32 size) {
     return true;
 }
 
-bool AppLoader_NRO::LoadNro(const FileSys::VfsFile& file, VAddr load_base) {
-    return AppLoader_NRO::LoadNro(file.ReadAllBytes(), file.GetName(), load_base);
+bool AppLoader_NRO::LoadNro(Kernel::Process& process, const FileSys::VfsFile& file, VAddr load_base) {
+    return LoadNro(process, file.ReadAllBytes(), file.GetName(), load_base);
 }
 
 ResultStatus AppLoader_NRO::Load(Kernel::Process& process) {
@@ -209,7 +207,7 @@ ResultStatus AppLoader_NRO::Load(Kernel::Process& process) {
     // Load NRO
     const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
 
-    if (!LoadNro(*file, base_address)) {
+    if (!LoadNro(process, *file, base_address)) {
         return ResultStatus::ErrorLoadingNRO;
     }
 
