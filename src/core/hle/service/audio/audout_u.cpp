@@ -46,8 +46,8 @@ class IAudioOut final : public ServiceFramework<IAudioOut> {
 public:
     IAudioOut(AudoutParams audio_params, AudioCore::AudioOut& audio_core, std::string&& device_name,
               std::string&& unique_name)
-        : ServiceFramework("IAudioOut"), audio_core(audio_core), audio_params(audio_params),
-          device_name(std::move(device_name)) {
+        : ServiceFramework("IAudioOut"), audio_core(audio_core),
+          device_name(std::move(device_name)), audio_params(audio_params) {
 
         static const FunctionInfo functions[] = {
             {0, &IAudioOut::GetAudioOutState, "GetAudioOutState"},
