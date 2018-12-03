@@ -291,7 +291,7 @@ public:
             {10, &IFileSystem::Commit, "Commit"},
             {11, nullptr, "GetFreeSpaceSize"},
             {12, nullptr, "GetTotalSpaceSize"},
-            {13, nullptr, "CleanDirectoryRecursively"},
+            {13, &IFileSystem::CleanDirectoryRecursively, "CleanDirectoryRecursively"},
             {14, nullptr, "GetFileTimeStampRaw"},
             {15, nullptr, "QueryEntry"},
         };
@@ -359,6 +359,16 @@ public:
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(backend.DeleteDirectoryRecursively(name));
+    }
+
+    void CleanDirectoryRecursively(Kernel::HLERequestContext& ctx) {
+        const auto file_buffer = ctx.ReadBuffer();
+        const std::string name = Common::StringFromBuffer(file_buffer);
+
+        LOG_DEBUG(Service_FS, "called. Directory: {}", name);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(backend.CleanDirectoryRecursively(name));
     }
 
     void RenameFile(Kernel::HLERequestContext& ctx) {
