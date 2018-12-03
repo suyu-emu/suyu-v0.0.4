@@ -851,8 +851,35 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
 }
 
 /// Sets the thread activity
-static ResultCode SetThreadActivity(Handle handle, u32 unknown) {
-    LOG_WARNING(Kernel_SVC, "(STUBBED) called, handle=0x{:08X}, unknown=0x{:08X}", handle, unknown);
+static ResultCode SetThreadActivity(Handle handle, u32 activity) {
+    LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, activity=0x{:08X}", handle, activity);
+    if (activity > static_cast<u32>(ThreadActivity::Paused)) {
+        return ERR_INVALID_ENUM_VALUE;
+    }
+
+    const auto* current_process = Core::CurrentProcess();
+    const SharedPtr<Thread> thread = current_process->GetHandleTable().Get<Thread>(handle);
+    if (!thread) {
+        LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}", handle);
+        return ERR_INVALID_HANDLE;
+    }
+
+    if (thread->GetOwnerProcess() != current_process) {
+        LOG_ERROR(Kernel_SVC,
+                  "The current process does not own the current thread, thread_handle={:08X} "
+                  "thread_pid={}, "
+                  "current_process_pid={}",
+                  handle, thread->GetOwnerProcess()->GetProcessID(),
+                  current_process->GetProcessID());
+        return ERR_INVALID_HANDLE;
+    }
+
+    if (thread == GetCurrentThread()) {
+        LOG_ERROR(Kernel_SVC, "The thread handle specified is the current running thread");
+        return ERR_BUSY;
+    }
+
+    thread->SetActivity(static_cast<ThreadActivity>(activity));
     return RESULT_SUCCESS;
 }
 
@@ -879,7 +906,7 @@ static ResultCode GetThreadContext(VAddr thread_context, Handle handle) {
 
     if (thread == GetCurrentThread()) {
         LOG_ERROR(Kernel_SVC, "The thread handle specified is the current running thread");
-        return ERR_ALREADY_REGISTERED;
+        return ERR_BUSY;
     }
 
     Core::ARM_Interface::ThreadContext ctx = thread->GetContext();
@@ -1157,7 +1184,10 @@ static ResultCode StartThread(Handle thread_handle) {
     ASSERT(thread->GetStatus() == ThreadStatus::Dormant);
 
     thread->ResumeFromWait();
-    Core::System::GetInstance().CpuCore(thread->GetProcessorID()).PrepareReschedule();
+
+    if (thread->GetStatus() == ThreadStatus::Ready) {
+        Core::System::GetInstance().CpuCore(thread->GetProcessorID()).PrepareReschedule();
+    }
 
     return RESULT_SUCCESS;
 }

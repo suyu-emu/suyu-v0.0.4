@@ -221,6 +221,9 @@ QString WaitTreeThread::GetText() const {
     case Kernel::ThreadStatus::Ready:
         status = tr("ready");
         break;
+    case Kernel::ThreadStatus::Paused:
+        status = tr("paused");
+        break;
     case Kernel::ThreadStatus::WaitHLEEvent:
         status = tr("waiting for HLE return");
         break;
@@ -261,6 +264,7 @@ QColor WaitTreeThread::GetColor() const {
     case Kernel::ThreadStatus::Running:
         return QColor(Qt::GlobalColor::darkGreen);
     case Kernel::ThreadStatus::Ready:
+    case Kernel::ThreadStatus::Paused:
         return QColor(Qt::GlobalColor::darkBlue);
     case Kernel::ThreadStatus::WaitHLEEvent:
     case Kernel::ThreadStatus::WaitIPC:

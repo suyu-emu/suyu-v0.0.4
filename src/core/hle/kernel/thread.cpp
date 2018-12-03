@@ -50,7 +50,7 @@ void Thread::Stop() {
 
     // Clean up thread from ready queue
     // This is only needed when the thread is terminated forcefully (SVC TerminateProcess)
-    if (status == ThreadStatus::Ready) {
+    if (status == ThreadStatus::Ready || status == ThreadStatus::Paused) {
         scheduler->UnscheduleThread(this, current_priority);
     }
 
@@ -139,6 +139,11 @@ void Thread::ResumeFromWait() {
     }
 
     wakeup_callback = nullptr;
+
+    if (activity == ThreadActivity::Paused) {
+        status = ThreadStatus::Paused;
+        return;
+    }
 
     status = ThreadStatus::Ready;
 
@@ -386,6 +391,23 @@ bool Thread::InvokeWakeupCallback(ThreadWakeupReason reason, SharedPtr<Thread> t
                                   SharedPtr<WaitObject> object, std::size_t index) {
     ASSERT(wakeup_callback);
     return wakeup_callback(reason, std::move(thread), std::move(object), index);
+}
+
+void Thread::SetActivity(ThreadActivity value) {
+    activity = value;
+
+    if (value == ThreadActivity::Paused) {
+        // Set status if not waiting
+        if (status == ThreadStatus::Ready) {
+            status = ThreadStatus::Paused;
+        } else if (status == ThreadStatus::Running) {
+            status = ThreadStatus::Paused;
+            Core::System::GetInstance().CpuCore(processor_id).PrepareReschedule();
+        }
+    } else if (status == ThreadStatus::Paused) {
+        // Ready to reschedule
+        ResumeFromWait();
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
