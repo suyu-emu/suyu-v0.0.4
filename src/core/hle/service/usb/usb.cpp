@@ -73,7 +73,7 @@ public:
             {3, nullptr, "Populate"},
             {4, nullptr, "PostBufferAsync"},
             {5, nullptr, "GetXferReport"},
-            {6, nullptr, "Unknown2"},
+            {6, nullptr, "PostBufferMultiAsync"},
             {7, nullptr, "Unknown3"},
             {8, nullptr, "Unknown4"},
         };

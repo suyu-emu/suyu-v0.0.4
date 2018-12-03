@@ -17,11 +17,13 @@ public:
         static const FunctionInfo functions[] = {
             {0, nullptr, "SubmitContext"},
             {1, nullptr, "CreateReport"},
-            {2, nullptr, "Unknown1"},
-            {3, nullptr, "Unknown2"},
-            {4, nullptr, "Unknown3"},
-            {5, nullptr, "Unknown4"},
-            {6, nullptr, "Unknown5"},
+            {2, nullptr, "SetInitialLaunchSettingsCompletionTime"},
+            {3, nullptr, "ClearInitialLaunchSettingsCompletionTime"},
+            {4, nullptr, "UpdatePowerOnTime"},
+            {5, nullptr, "UpdateAwakeTime"},
+            {6, nullptr, "SubmitMultipleCategoryContext"},
+            {7, nullptr, "UpdateApplicationLaunchTime"},
+            {8, nullptr, "ClearApplicationLaunchTime"},
         };
         // clang-format on
 
