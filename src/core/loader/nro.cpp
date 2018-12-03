@@ -128,8 +128,8 @@ static constexpr u32 PageAlignSize(u32 size) {
     return (size + Memory::PAGE_MASK) & ~Memory::PAGE_MASK;
 }
 
-/*static*/ bool AppLoader_NRO::LoadNro(Kernel::Process& process, const std::vector<u8>& data,
-                                       const std::string& name, VAddr load_base) {
+static bool LoadNroImpl(Kernel::Process& process, const std::vector<u8>& data,
+                        const std::string& name, VAddr load_base) {
     if (data.size() < sizeof(NroHeader)) {
         return {};
     }
@@ -195,8 +195,9 @@ static constexpr u32 PageAlignSize(u32 size) {
     return true;
 }
 
-bool AppLoader_NRO::LoadNro(Kernel::Process& process, const FileSys::VfsFile& file, VAddr load_base) {
-    return LoadNro(process, file.ReadAllBytes(), file.GetName(), load_base);
+bool AppLoader_NRO::LoadNro(Kernel::Process& process, const FileSys::VfsFile& file,
+                            VAddr load_base) {
+    return LoadNroImpl(process, file.ReadAllBytes(), file.GetName(), load_base);
 }
 
 ResultStatus AppLoader_NRO::Load(Kernel::Process& process) {

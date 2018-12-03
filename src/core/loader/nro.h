@@ -45,9 +45,6 @@ public:
     ResultStatus ReadTitle(std::string& title) override;
     bool IsRomFSUpdatable() const override;
 
-    static bool LoadNro(Kernel::Process& process, const std::vector<u8>& data,
-                        const std::string& name, VAddr load_base);
-
 private:
     bool LoadNro(Kernel::Process& process, const FileSys::VfsFile& file, VAddr load_base);
 
