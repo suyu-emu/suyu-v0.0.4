@@ -48,14 +48,11 @@ public:
     /// Unschedules a thread that was already scheduled
     void UnscheduleThread(Thread* thread, u32 priority);
 
-    /// Moves a thread to the back of the current priority queue
-    void MoveThreadToBackOfPriorityQueue(Thread* thread, u32 priority);
-
     /// Sets the priority of a thread in the scheduler
     void SetThreadPriority(Thread* thread, u32 priority);
 
     /// Gets the next suggested thread for load balancing
-    Thread* GetNextSuggestedThread(u32 core) const;
+    Thread* GetNextSuggestedThread(u32 core, u32 minimum_priority) const;
 
     /**
      * YieldWithoutLoadBalancing -- analogous to normal yield on a system

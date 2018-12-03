@@ -170,16 +170,6 @@ void Scheduler::UnscheduleThread(Thread* thread, u32 priority) {
     ready_queue.remove(priority, thread);
 }
 
-void Scheduler::MoveThreadToBackOfPriorityQueue(Thread* thread, u32 priority) {
-    std::lock_guard<std::mutex> lock(scheduler_mutex);
-
-    // Thread is not in queue
-    ASSERT(ready_queue.contains(thread) != -1);
-
-    ready_queue.remove(priority, thread);
-    ready_queue.push_back(priority, thread);
-}
-
 void Scheduler::SetThreadPriority(Thread* thread, u32 priority) {
     std::lock_guard<std::mutex> lock(scheduler_mutex);
 
@@ -190,12 +180,13 @@ void Scheduler::SetThreadPriority(Thread* thread, u32 priority) {
         ready_queue.prepare(priority);
 }
 
-Thread* Scheduler::GetNextSuggestedThread(u32 core) const {
+Thread* Scheduler::GetNextSuggestedThread(u32 core, u32 maximum_priority) const {
     std::lock_guard<std::mutex> lock(scheduler_mutex);
 
     const u32 mask = 1U << core;
-    return ready_queue.get_first_filter(
-        [mask](Thread const* thread) { return (thread->GetAffinityMask() & mask) != 0; });
+    return ready_queue.get_first_filter([mask, maximum_priority](Thread const* thread) {
+        return (thread->GetAffinityMask() & mask) != 0 && thread->GetPriority() < maximum_priority;
+    });
 }
 
 void Scheduler::YieldWithoutLoadBalancing(Thread* thread) {
@@ -206,9 +197,10 @@ void Scheduler::YieldWithoutLoadBalancing(Thread* thread) {
     // Sanity check that the priority is valid
     ASSERT(thread->GetPriority() < THREADPRIO_COUNT);
 
-    // Yield this thread
+    // Yield this thread -- sleep for zero time and force reschedule to different thread
+    WaitCurrentThread_Sleep();
+    GetCurrentThread()->WakeAfterDelay(0);
     Reschedule();
-    MoveThreadToBackOfPriorityQueue(thread, thread->GetPriority());
 }
 
 void Scheduler::YieldWithLoadBalancing(Thread* thread) {
@@ -222,9 +214,9 @@ void Scheduler::YieldWithLoadBalancing(Thread* thread) {
     // Sanity check that the priority is valid
     ASSERT(priority < THREADPRIO_COUNT);
 
-    // Reschedule thread to end of queue.
-    Reschedule();
-    MoveThreadToBackOfPriorityQueue(thread, priority);
+    // Sleep for zero time to be able to force reschedule to different thread
+    WaitCurrentThread_Sleep();
+    GetCurrentThread()->WakeAfterDelay(0);
 
     Thread* suggested_thread = nullptr;
 
@@ -235,16 +227,20 @@ void Scheduler::YieldWithLoadBalancing(Thread* thread) {
             continue;
 
         const auto res =
-            Core::System::GetInstance().CpuCore(cur_core).Scheduler().GetNextSuggestedThread(core);
-        if (res != nullptr) {
+            Core::System::GetInstance().CpuCore(cur_core).Scheduler().GetNextSuggestedThread(
+                core, priority);
+        if (res != nullptr &&
+            (suggested_thread == nullptr || suggested_thread->GetPriority() > res->GetPriority())) {
             suggested_thread = res;
-            break;
         }
     }
 
     // If a suggested thread was found, queue that for this core
     if (suggested_thread != nullptr)
         suggested_thread->ChangeCore(core, suggested_thread->GetAffinityMask());
+
+    // Perform actual yielding.
+    Reschedule();
 }
 
 void Scheduler::YieldAndWaitForLoadBalancing(Thread* thread) {

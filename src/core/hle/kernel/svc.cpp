@@ -984,19 +984,15 @@ static void SleepThread(s64 nanoseconds) {
             scheduler.YieldAndWaitForLoadBalancing(GetCurrentThread());
             break;
         default:
-            UNREACHABLE_MSG(
-                "Unimplemented sleep yield type '{:016X}'! Falling back to forced reschedule...",
-                nanoseconds);
+            UNREACHABLE_MSG("Unimplemented sleep yield type '{:016X}'!", nanoseconds);
         }
+    } else {
+        // Sleep current thread and check for next thread to schedule
+        WaitCurrentThread_Sleep();
 
-        nanoseconds = 0;
+        // Create an event to wake the thread up after the specified nanosecond delay has passed
+        GetCurrentThread()->WakeAfterDelay(nanoseconds);
     }
-
-    // Sleep current thread and check for next thread to schedule
-    WaitCurrentThread_Sleep();
-
-    // Create an event to wake the thread up after the specified nanosecond delay has passed
-    GetCurrentThread()->WakeAfterDelay(nanoseconds);
 
     Core::System::GetInstance().PrepareReschedule();
 }
