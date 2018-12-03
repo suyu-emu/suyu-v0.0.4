@@ -907,7 +907,7 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
     }
 
     const auto installed = Service::FileSystem::GetUnionContents();
-    auto romfs_title_id = SelectRomFSDumpTarget(*installed, program_id);
+    const auto romfs_title_id = SelectRomFSDumpTarget(installed, program_id);
 
     if (!romfs_title_id) {
         failed();
@@ -922,7 +922,7 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
     if (*romfs_title_id == program_id) {
         romfs = file;
     } else {
-        romfs = installed->GetEntry(*romfs_title_id, FileSys::ContentRecordType::Data)->GetRomFS();
+        romfs = installed.GetEntry(*romfs_title_id, FileSys::ContentRecordType::Data)->GetRomFS();
     }
 
     const auto extracted = FileSys::ExtractRomFS(romfs, FileSys::RomFSExtractionType::Full);

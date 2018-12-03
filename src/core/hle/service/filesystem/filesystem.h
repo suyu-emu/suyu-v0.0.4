@@ -48,8 +48,7 @@ ResultVal<FileSys::VirtualDir> OpenSaveData(FileSys::SaveDataSpaceId space,
 ResultVal<FileSys::VirtualDir> OpenSaveDataSpace(FileSys::SaveDataSpaceId space);
 ResultVal<FileSys::VirtualDir> OpenSDMC();
 
-std::shared_ptr<FileSys::RegisteredCacheUnion> GetUnionContents();
-void ClearUnionContents();
+FileSys::RegisteredCacheUnion GetUnionContents();
 
 FileSys::RegisteredCache* GetSystemNANDContents();
 FileSys::RegisteredCache* GetUserNANDContents();

@@ -97,11 +97,11 @@ GameListWorker::~GameListWorker() = default;
 
 void GameListWorker::AddInstalledTitlesToGameList() {
     const auto cache = Service::FileSystem::GetUnionContents();
-    const auto installed_games = cache->ListEntriesFilter(FileSys::TitleType::Application,
-                                                          FileSys::ContentRecordType::Program);
+    const auto installed_games = cache.ListEntriesFilter(FileSys::TitleType::Application,
+                                                         FileSys::ContentRecordType::Program);
 
     for (const auto& game : installed_games) {
-        const auto file = cache->GetEntryUnparsed(game);
+        const auto file = cache.GetEntryUnparsed(game);
         std::unique_ptr<Loader::AppLoader> loader = Loader::GetLoader(file);
         if (!loader)
             continue;
@@ -112,7 +112,7 @@ void GameListWorker::AddInstalledTitlesToGameList() {
         loader->ReadProgramId(program_id);
 
         const FileSys::PatchManager patch{program_id};
-        const auto control = cache->GetEntry(game.title_id, FileSys::ContentRecordType::Control);
+        const auto control = cache.GetEntry(game.title_id, FileSys::ContentRecordType::Control);
         if (control != nullptr)
             GetMetadataFromControlNCA(patch, *control, icon, name);
 
@@ -141,11 +141,11 @@ void GameListWorker::AddInstalledTitlesToGameList() {
         emit EntryReady(list);
     }
 
-    const auto control_data = cache->ListEntriesFilter(FileSys::TitleType::Application,
-                                                       FileSys::ContentRecordType::Control);
+    const auto control_data = cache.ListEntriesFilter(FileSys::TitleType::Application,
+                                                      FileSys::ContentRecordType::Control);
 
     for (const auto& entry : control_data) {
-        auto nca = cache->GetEntry(entry);
+        auto nca = cache.GetEntry(entry);
         if (nca != nullptr) {
             nca_control_map.insert_or_assign(entry.title_id, std::move(nca));
         }
