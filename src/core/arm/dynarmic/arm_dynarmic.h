@@ -53,6 +53,8 @@ public:
     void ClearInstructionCache() override;
     void PageTableChanged() override;
 
+    void LogBacktrace() override;
+
 private:
     std::unique_ptr<Dynarmic::A64::Jit> MakeJit() const;
 

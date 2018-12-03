@@ -389,20 +389,7 @@ bool Thread::InvokeWakeupCallback(ThreadWakeupReason reason, SharedPtr<Thread> t
 }
 
 void Thread::LogBacktrace() {
-    auto& system = Core::System::GetInstance();
-    VAddr fp = system.ArmInterface(processor_id).GetReg(29);
-    VAddr lr = system.ArmInterface(processor_id).GetReg(30);
-    VAddr sp = system.ArmInterface(processor_id).GetReg(13);
-    VAddr pc = system.ArmInterface(processor_id).GetPC();
-    LOG_ERROR(Debug, "Backtrace, sp={:016X}, pc={:016X}", sp, pc);
-    for (std::size_t i = 0; i < 256; i++) {
-        LOG_ERROR(Debug, "{:016X}", lr - 4);
-        if (!fp) {
-            break;
-        }
-        lr = Memory::Read64(fp + 8);
-        fp = Memory::Read64(fp);
-    }
+    Core::System::GetInstance().ArmInterface(processor_id).LogBacktrace();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

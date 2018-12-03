@@ -10,6 +10,7 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/hle/kernel/svc.h"
+#include "core/memory.h"
 
 namespace Core {
 
@@ -265,6 +266,22 @@ void ARM_Unicorn::PrepareReschedule() {
 void ARM_Unicorn::ClearExclusiveState() {}
 
 void ARM_Unicorn::ClearInstructionCache() {}
+
+void ARM_Unicorn::LogBacktrace() {
+    VAddr fp = GetReg(29);
+    VAddr lr = GetReg(30);
+    VAddr sp = GetReg(13);
+    VAddr pc = GetPC();
+    LOG_ERROR(Core_ARM, "Backtrace, sp={:016X}, pc={:016X}", sp, pc);
+    for (;;) {
+        LOG_ERROR(Core_ARM, "{:016X}", lr);
+        if (!fp) {
+            break;
+        }
+        lr = Memory::Read64(fp + 8) - 4;
+        fp = Memory::Read64(fp);
+    }
+}
 
 void ARM_Unicorn::RecordBreak(GDBStub::BreakpointAddress bkpt) {
     last_bkpt = bkpt;

@@ -278,6 +278,22 @@ void ARM_Dynarmic::PageTableChanged() {
     current_page_table = Memory::GetCurrentPageTable();
 }
 
+void ARM_Dynarmic::LogBacktrace() {
+    VAddr fp = GetReg(29);
+    VAddr lr = GetReg(30);
+    VAddr sp = GetReg(13);
+    VAddr pc = GetPC();
+    LOG_ERROR(Core_ARM, "Backtrace, sp={:016X}, pc={:016X}", sp, pc);
+    for (;;) {
+        LOG_ERROR(Core_ARM, "{:016X}", lr);
+        if (!fp) {
+            break;
+        }
+        lr = Memory::Read64(fp + 8) - 4;
+        fp = Memory::Read64(fp);
+    }
+}
+
 DynarmicExclusiveMonitor::DynarmicExclusiveMonitor(std::size_t core_count) : monitor(core_count) {}
 DynarmicExclusiveMonitor::~DynarmicExclusiveMonitor() = default;
 

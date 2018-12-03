@@ -141,6 +141,8 @@ public:
 
     /// Prepare core for thread reschedule (if needed to correctly handle state)
     virtual void PrepareReschedule() = 0;
+
+    virtual void LogBacktrace() = 0;
 };
 
 } // namespace Core
