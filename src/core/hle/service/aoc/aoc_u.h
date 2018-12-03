@@ -6,6 +6,10 @@
 
 #include "core/hle/service/service.h"
 
+namespace Kernel {
+class WritableEvent;
+}
+
 namespace Service::AOC {
 
 class AOC_U final : public ServiceFramework<AOC_U> {
@@ -21,7 +25,7 @@ private:
     void GetAddOnContentListChangedEvent(Kernel::HLERequestContext& ctx);
 
     std::vector<u64> add_on_content;
-    Kernel::SharedPtr<Kernel::Event> aoc_change_event;
+    Kernel::EventPair aoc_change_event;
 };
 
 /// Registers all AOC services with the specified service manager.

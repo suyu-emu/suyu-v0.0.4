@@ -15,7 +15,7 @@
 #include "core/hle/kernel/object.h"
 
 namespace Kernel {
-class Event;
+class WritableEvent;
 }
 
 namespace AudioCore {
@@ -208,7 +208,8 @@ static_assert(sizeof(UpdateDataHeader) == 0x40, "UpdateDataHeader has wrong size
 
 class AudioRenderer {
 public:
-    AudioRenderer(AudioRendererParameter params, Kernel::SharedPtr<Kernel::Event> buffer_event);
+    AudioRenderer(AudioRendererParameter params,
+                  Kernel::SharedPtr<Kernel::WritableEvent> buffer_event);
     ~AudioRenderer();
 
     std::vector<u8> UpdateAudioRenderer(const std::vector<u8>& input_params);
@@ -224,7 +225,7 @@ private:
     class VoiceState;
 
     AudioRendererParameter worker_params;
-    Kernel::SharedPtr<Kernel::Event> buffer_event;
+    Kernel::SharedPtr<Kernel::WritableEvent> buffer_event;
     std::vector<VoiceState> voices;
     std::vector<EffectState> effects;
     std::unique_ptr<AudioOut> audio_out;

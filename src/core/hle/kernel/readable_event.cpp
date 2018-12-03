@@ -4,46 +4,37 @@
 
 #include <algorithm>
 #include "common/assert.h"
-#include "core/hle/kernel/event.h"
 #include "core/hle/kernel/object.h"
+#include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/thread.h"
+#include "core/hle/kernel/writable_event.h"
 
 namespace Kernel {
 
-Event::Event(KernelCore& kernel) : WaitObject{kernel} {}
-Event::~Event() = default;
+ReadableEvent::ReadableEvent(KernelCore& kernel) : WaitObject{kernel} {}
+ReadableEvent::~ReadableEvent() = default;
 
-SharedPtr<Event> Event::Create(KernelCore& kernel, ResetType reset_type, std::string name) {
-    SharedPtr<Event> evt(new Event(kernel));
-
-    evt->signaled = false;
-    evt->reset_type = reset_type;
-    evt->name = std::move(name);
-
-    return evt;
-}
-
-bool Event::ShouldWait(Thread* thread) const {
+bool ReadableEvent::ShouldWait(Thread* thread) const {
     return !signaled;
 }
 
-void Event::Acquire(Thread* thread) {
+void ReadableEvent::Acquire(Thread* thread) {
     ASSERT_MSG(!ShouldWait(thread), "object unavailable!");
 
     if (reset_type == ResetType::OneShot)
         signaled = false;
 }
 
-void Event::Signal() {
+void ReadableEvent::Signal() {
     signaled = true;
     WakeupAllWaitingThreads();
 }
 
-void Event::Clear() {
+void ReadableEvent::Clear() {
     signaled = false;
 }
 
-void Event::WakeupAllWaitingThreads() {
+void ReadableEvent::WakeupAllWaitingThreads() {
     WaitObject::WakeupAllWaitingThreads();
 
     if (reset_type == ResetType::Pulse)

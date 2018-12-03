@@ -6,7 +6,8 @@
 
 #include <array>
 #include <vector>
-#include "core/hle/kernel/event.h"
+#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/service.h"
 
 namespace Service::NFP {
@@ -33,11 +34,11 @@ public:
 
         void CreateUserInterface(Kernel::HLERequestContext& ctx);
         bool LoadAmiibo(const std::vector<u8>& buffer);
-        const Kernel::SharedPtr<Kernel::Event>& GetNFCEvent() const;
+        const Kernel::SharedPtr<Kernel::ReadableEvent>& GetNFCEvent() const;
         const AmiiboFile& GetAmiiboBuffer() const;
 
     private:
-        Kernel::SharedPtr<Kernel::Event> nfc_tag_load{};
+        Kernel::EventPair nfc_tag_load{};
         AmiiboFile amiibo{};
 
     protected:

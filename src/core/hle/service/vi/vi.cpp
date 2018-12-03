@@ -18,7 +18,8 @@
 #include "common/swap.h"
 #include "core/core_timing.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/event.h"
+#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
 #include "core/hle/service/nvflinger/nvflinger.h"
@@ -549,7 +550,7 @@ private:
                         IPC::ResponseBuilder rb{ctx, 2};
                         rb.Push(RESULT_SUCCESS);
                     },
-                    buffer_queue->GetBufferWaitEvent());
+                    buffer_queue->GetWritableBufferWaitEvent());
             }
         } else if (transaction == TransactionId::RequestBuffer) {
             IGBPRequestBufferRequestParcel request{ctx.ReadBuffer()};

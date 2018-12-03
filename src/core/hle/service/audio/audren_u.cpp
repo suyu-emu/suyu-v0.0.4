@@ -12,8 +12,10 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/event.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/audio/audren_u.h"
 
 namespace Service::Audio {
@@ -41,14 +43,14 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = Core::System::GetInstance().Kernel();
-        system_event =
-            Kernel::Event::Create(kernel, Kernel::ResetType::Sticky, "IAudioRenderer:SystemEvent");
-        renderer = std::make_unique<AudioCore::AudioRenderer>(audren_params, system_event);
+        system_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Sticky,
+                                                              "IAudioRenderer:SystemEvent");
+        renderer = std::make_unique<AudioCore::AudioRenderer>(audren_params, system_event.writable);
     }
 
 private:
     void UpdateAudioCallback() {
-        system_event->Signal();
+        system_event.writable->Signal();
     }
 
     void GetSampleRate(Kernel::HLERequestContext& ctx) {
@@ -112,7 +114,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(system_event);
+        rb.PushCopyObjects(system_event.readable);
     }
 
     void SetRenderingTimeLimit(Kernel::HLERequestContext& ctx) {
@@ -135,7 +137,7 @@ private:
         rb.Push(rendering_time_limit_percent);
     }
 
-    Kernel::SharedPtr<Kernel::Event> system_event;
+    Kernel::EventPair system_event;
     std::unique_ptr<AudioCore::AudioRenderer> renderer;
     u32 rendering_time_limit_percent = 100;
 };
@@ -162,8 +164,8 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = Core::System::GetInstance().Kernel();
-        buffer_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
-                                             "IAudioOutBufferReleasedEvent");
+        buffer_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::OneShot,
+                                                              "IAudioOutBufferReleasedEvent");
     }
 
 private:
@@ -207,11 +209,11 @@ private:
     void QueryAudioDeviceSystemEvent(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_Audio, "(STUBBED) called");
 
-        buffer_event->Signal();
+        buffer_event.writable->Signal();
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(buffer_event);
+        rb.PushCopyObjects(buffer_event.readable);
     }
 
     void GetActiveChannelCount(Kernel::HLERequestContext& ctx) {
@@ -222,7 +224,7 @@ private:
         rb.Push<u32>(1);
     }
 
-    Kernel::SharedPtr<Kernel::Event> buffer_event;
+    Kernel::EventPair buffer_event;
 
 }; // namespace Audio
 

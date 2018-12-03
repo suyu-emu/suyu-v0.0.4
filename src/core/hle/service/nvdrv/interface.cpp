@@ -6,7 +6,9 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/event.h"
+#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nvdrv/interface.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 
@@ -69,7 +71,7 @@ void NVDRV::QueryEvent(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(query_event);
+    rb.PushCopyObjects(query_event.readable);
     rb.Push<u32>(0);
 }
 
@@ -127,7 +129,8 @@ NVDRV::NVDRV(std::shared_ptr<Module> nvdrv, const char* name)
     RegisterHandlers(functions);
 
     auto& kernel = Core::System::GetInstance().Kernel();
-    query_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "NVDRV::query_event");
+    query_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::OneShot,
+                                                         "NVDRV::query_event");
 }
 
 NVDRV::~NVDRV() = default;

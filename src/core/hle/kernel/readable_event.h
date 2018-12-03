@@ -4,30 +4,29 @@
 
 #pragma once
 
-#include "common/common_types.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/wait_object.h"
 
 namespace Kernel {
 
 class KernelCore;
+class WritableEvent;
 
-class Event final : public WaitObject {
+class ReadableEvent final : public WaitObject {
+    friend class WritableEvent;
+
 public:
-    /**
-     * Creates an event
-     * @param kernel The kernel instance to create this event under.
-     * @param reset_type ResetType describing how to create event
-     * @param name Optional name of event
-     */
-    static SharedPtr<Event> Create(KernelCore& kernel, ResetType reset_type,
-                                   std::string name = "Unknown");
+    ~ReadableEvent() override;
 
     std::string GetTypeName() const override {
-        return "Event";
+        return "ReadableEvent";
     }
     std::string GetName() const override {
         return name;
+    }
+
+    ResetType GetResetType() const {
+        return reset_type;
     }
 
     static const HandleType HANDLE_TYPE = HandleType::Event;
@@ -35,25 +34,21 @@ public:
         return HANDLE_TYPE;
     }
 
-    ResetType GetResetType() const {
-        return reset_type;
-    }
-
     bool ShouldWait(Thread* thread) const override;
     void Acquire(Thread* thread) override;
 
     void WakeupAllWaitingThreads() override;
 
-    void Signal();
     void Clear();
 
 private:
-    explicit Event(KernelCore& kernel);
-    ~Event() override;
+    explicit ReadableEvent(KernelCore& kernel);
 
-    ResetType reset_type; ///< Current ResetType
+    void Signal();
 
-    bool signaled;    ///< Whether the event has already been signaled
+    ResetType reset_type;
+    bool signaled;
+
     std::string name; ///< Name of event (optional)
 };
 

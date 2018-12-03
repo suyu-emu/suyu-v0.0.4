@@ -7,7 +7,9 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/event.h"
+#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/lock.h"
 #include "core/hle/service/hid/hid.h"
 #include "core/hle/service/nfp/nfp.h"
@@ -23,8 +25,8 @@ constexpr ResultCode ERR_TAG_FAILED(ErrorModule::NFP,
 Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
     : ServiceFramework(name), module(std::move(module)) {
     auto& kernel = Core::System::GetInstance().Kernel();
-    nfc_tag_load =
-        Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "IUser:NFCTagDetected");
+    nfc_tag_load = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::OneShot,
+                                                          "IUser:NFCTagDetected");
 }
 
 Module::Interface::~Interface() = default;
@@ -63,10 +65,10 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = Core::System::GetInstance().Kernel();
-        deactivate_event =
-            Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "IUser:DeactivateEvent");
-        availability_change_event = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot,
-                                                          "IUser:AvailabilityChangeEvent");
+        deactivate_event = Kernel::WritableEvent::CreateEventPair(
+            kernel, Kernel::ResetType::OneShot, "IUser:DeactivateEvent");
+        availability_change_event = Kernel::WritableEvent::CreateEventPair(
+            kernel, Kernel::ResetType::OneShot, "IUser:AvailabilityChangeEvent");
     }
 
 private:
@@ -164,7 +166,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(deactivate_event);
+        rb.PushCopyObjects(deactivate_event.readable);
     }
 
     void StopDetection(Kernel::HLERequestContext& ctx) {
@@ -173,7 +175,7 @@ private:
         switch (device_state) {
         case DeviceState::TagFound:
         case DeviceState::TagNearby:
-            deactivate_event->Signal();
+            deactivate_event.writable->Signal();
             device_state = DeviceState::Initialized;
             break;
         case DeviceState::SearchingForTag:
@@ -264,7 +266,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(availability_change_event);
+        rb.PushCopyObjects(availability_change_event.readable);
     }
 
     void GetRegisterInfo(Kernel::HLERequestContext& ctx) {
@@ -319,8 +321,8 @@ private:
     const u32 npad_id{0}; // Player 1 controller
     State state{State::NonInitialized};
     DeviceState device_state{DeviceState::Initialized};
-    Kernel::SharedPtr<Kernel::Event> deactivate_event;
-    Kernel::SharedPtr<Kernel::Event> availability_change_event;
+    Kernel::EventPair deactivate_event;
+    Kernel::EventPair availability_change_event;
     const Module::Interface& nfp_interface;
 };
 
@@ -339,12 +341,14 @@ bool Module::Interface::LoadAmiibo(const std::vector<u8>& buffer) {
     }
 
     std::memcpy(&amiibo, buffer.data(), sizeof(amiibo));
-    nfc_tag_load->Signal();
+    nfc_tag_load.writable->Signal();
     return true;
 }
-const Kernel::SharedPtr<Kernel::Event>& Module::Interface::GetNFCEvent() const {
-    return nfc_tag_load;
+
+const Kernel::SharedPtr<Kernel::ReadableEvent>& Module::Interface::GetNFCEvent() const {
+    return nfc_tag_load.readable;
 }
+
 const Module::Interface::AmiiboFile& Module::Interface::GetAmiiboBuffer() const {
     return amiibo;
 }

@@ -24,10 +24,11 @@ class ServiceFrameworkBase;
 namespace Kernel {
 
 class Domain;
-class Event;
 class HandleTable;
 class HLERequestContext;
 class Process;
+class ReadableEvent;
+class WritableEvent;
 
 /**
  * Interface implemented by HLE Session handlers.
@@ -119,12 +120,13 @@ public:
      * @param callback Callback to be invoked when the thread is resumed. This callback must write
      * the entire command response once again, regardless of the state of it before this function
      * was called.
-     * @param event Event to use to wake up the thread. If unspecified, an event will be created.
+     * @param writable_event Event to use to wake up the thread. If unspecified, an event will be
+     * created.
      * @returns Event that when signaled will resume the thread and call the callback function.
      */
-    SharedPtr<Event> SleepClientThread(SharedPtr<Thread> thread, const std::string& reason,
-                                       u64 timeout, WakeupCallback&& callback,
-                                       Kernel::SharedPtr<Kernel::Event> event = nullptr);
+    SharedPtr<WritableEvent> SleepClientThread(SharedPtr<Thread> thread, const std::string& reason,
+                                               u64 timeout, WakeupCallback&& callback,
+                                               SharedPtr<WritableEvent> writable_event = nullptr);
 
     /// Populates this context with data from the requesting process/thread.
     ResultCode PopulateFromIncomingCommandBuffer(const HandleTable& handle_table,

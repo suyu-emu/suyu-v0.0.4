@@ -4,7 +4,9 @@
 
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/event.h"
+#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nifm/nifm.h"
 #include "core/hle/service/service.h"
 
@@ -56,8 +58,10 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = Core::System::GetInstance().Kernel();
-        event1 = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "IRequest:Event1");
-        event2 = Kernel::Event::Create(kernel, Kernel::ResetType::OneShot, "IRequest:Event2");
+        event1 = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::OneShot,
+                                                        "IRequest:Event1");
+        event2 = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::OneShot,
+                                                        "IRequest:Event2");
     }
 
 private:
@@ -88,7 +92,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 2};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(event1, event2);
+        rb.PushCopyObjects(event1.readable, event2.readable);
     }
 
     void Cancel(Kernel::HLERequestContext& ctx) {
@@ -105,7 +109,7 @@ private:
         rb.Push(RESULT_SUCCESS);
     }
 
-    Kernel::SharedPtr<Kernel::Event> event1, event2;
+    Kernel::EventPair event1, event2;
 };
 
 class INetworkProfile final : public ServiceFramework<INetworkProfile> {
