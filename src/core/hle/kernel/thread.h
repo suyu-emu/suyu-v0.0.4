@@ -240,6 +240,11 @@ public:
         return status == ThreadStatus::WaitSynchAll;
     }
 
+    /**
+     * Logs the backtrace for the current thread
+     */
+    void LogBacktrace();
+
     ThreadContext& GetContext() {
         return context;
     }
