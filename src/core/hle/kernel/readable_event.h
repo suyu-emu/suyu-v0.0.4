@@ -7,6 +7,8 @@
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/wait_object.h"
 
+union ResultCode;
+
 namespace Kernel {
 
 class KernelCore;
@@ -39,7 +41,16 @@ public:
 
     void WakeupAllWaitingThreads() override;
 
+    /// Unconditionally clears the readable event's state.
     void Clear();
+
+    /// Clears the readable event's state if and only if it
+    /// has already been signaled.
+    ///
+    /// @pre The event must be in a signaled state. If this event
+    ///      is in an unsignaled state and this function is called,
+    ///      then ERR_INVALID_STATE will be returned.
+    ResultCode Reset();
 
 private:
     explicit ReadableEvent(KernelCore& kernel);
