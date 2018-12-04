@@ -1575,14 +1575,21 @@ static ResultCode ClearEvent(Handle handle) {
     LOG_TRACE(Kernel_SVC, "called, event=0x{:08X}", handle);
 
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
-    SharedPtr<ReadableEvent> evt = handle_table.Get<ReadableEvent>(handle);
-    if (evt == nullptr) {
-        LOG_ERROR(Kernel_SVC, "Event handle does not exist, handle=0x{:08X}", handle);
-        return ERR_INVALID_HANDLE;
+
+    auto writable_event = handle_table.Get<WritableEvent>(handle);
+    if (writable_event) {
+        writable_event->Clear();
+        return RESULT_SUCCESS;
     }
 
-    evt->Clear();
-    return RESULT_SUCCESS;
+    auto readable_event = handle_table.Get<ReadableEvent>(handle);
+    if (readable_event) {
+        readable_event->Clear();
+        return RESULT_SUCCESS;
+    }
+
+    LOG_ERROR(Kernel_SVC, "Event handle does not exist, handle=0x{:08X}", handle);
+    return ERR_INVALID_HANDLE;
 }
 
 static ResultCode GetProcessInfo(u64* out, Handle process_handle, u32 type) {
