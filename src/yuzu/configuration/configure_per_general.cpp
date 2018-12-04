@@ -5,24 +5,27 @@
 #include <algorithm>
 #include <memory>
 #include <utility>
+
+#include <QHeaderView>
 #include <QMenu>
 #include <QMessageBox>
 #include <QStandardItemModel>
 #include <QString>
 #include <QTimer>
 #include <QTreeView>
-#include "common/param_package.h"
+
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/xts_archive.h"
 #include "core/loader/loader.h"
-#include "input_common/main.h"
+#include "ui_configure_per_general.h"
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_input.h"
 #include "yuzu/configuration/configure_per_general.h"
 #include "yuzu/ui_settings.h"
+#include "yuzu/util/util.h"
 
-ConfigurePerGameGeneral::ConfigurePerGameGeneral(u64 title_id, QWidget* parent)
+ConfigurePerGameGeneral::ConfigurePerGameGeneral(QWidget* parent, u64 title_id)
     : QDialog(parent), ui(std::make_unique<Ui::ConfigurePerGameGeneral>()), title_id(title_id) {
 
     ui->setupUi(this);
@@ -61,10 +64,12 @@ ConfigurePerGameGeneral::ConfigurePerGameGeneral(u64 title_id, QWidget* parent)
     ui->icon_view->setScene(scene);
 
     connect(item_model, &QStandardItemModel::itemChanged,
-            [&]() { UISettings::values.is_game_list_reload_pending.exchange(true); });
+            [] { UISettings::values.is_game_list_reload_pending.exchange(true); });
 
     this->loadConfiguration();
 }
+
+ConfigurePerGameGeneral::~ConfigurePerGameGeneral() = default;
 
 void ConfigurePerGameGeneral::applyConfiguration() {
     std::vector<std::string> disabled_addons;
@@ -107,7 +112,7 @@ void ConfigurePerGameGeneral::loadConfiguration() {
         if (loader->ReadDeveloper(developer) == Loader::ResultStatus::Success)
             ui->display_developer->setText(QString::fromStdString(developer));
 
-        ui->display_version->setText("1.0.0");
+        ui->display_version->setText(QStringLiteral("1.0.0"));
     }
 
     if (control.second != nullptr) {
@@ -160,7 +165,6 @@ void ConfigurePerGameGeneral::loadConfiguration() {
     ui->display_format->setText(
         QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType())));
 
-    QLocale locale = this->locale();
-    QString valueText = locale.formattedDataSize(file->GetSize());
+    const auto valueText = ReadableByteSize(file->GetSize());
     ui->display_size->setText(valueText);
 }

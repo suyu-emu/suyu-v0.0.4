@@ -669,7 +669,7 @@ void Config::SaveValues() {
     int i = 0;
     for (const auto& elem : Settings::values.disabled_addons) {
         qt_config->setArrayIndex(i);
-        qt_config->setValue("title_id", elem.first);
+        qt_config->setValue("title_id", QVariant::fromValue<u64>(elem.first));
         qt_config->beginWriteArray("disabled");
         for (std::size_t j = 0; j < elem.second.size(); ++j) {
             qt_config->setArrayIndex(j);

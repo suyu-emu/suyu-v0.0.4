@@ -4,21 +4,14 @@
 
 #pragma once
 
-#include <array>
-#include <functional>
 #include <memory>
-#include <string>
-#include <unordered_map>
+#include <vector>
+
 #include <QKeyEvent>
 #include <QList>
 #include <QWidget>
-#include <boost/optional.hpp>
-#include "common/param_package.h"
-#include "core/file_sys/vfs.h"
-#include "core/settings.h"
-#include "input_common/main.h"
-#include "ui_configure_per_general.h"
-#include "yuzu/configuration/config.h"
+
+#include "core/file_sys/vfs_types.h"
 
 class QTreeView;
 class QGraphicsScene;
@@ -33,7 +26,8 @@ class ConfigurePerGameGeneral : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ConfigurePerGameGeneral(u64 title_id, QWidget* parent = nullptr);
+    explicit ConfigurePerGameGeneral(QWidget* parent, u64 title_id);
+    ~ConfigurePerGameGeneral() override;
 
     /// Save all button configurations to settings file
     void applyConfiguration();
