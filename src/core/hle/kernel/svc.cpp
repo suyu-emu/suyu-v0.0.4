@@ -1598,6 +1598,34 @@ static ResultCode CreateSharedMemory(Handle* handle, u64 size, u32 local_permiss
     return RESULT_SUCCESS;
 }
 
+static ResultCode CreateEvent(Handle* write_handle, Handle* read_handle) {
+    LOG_DEBUG(Kernel_SVC, "called");
+
+    auto& kernel = Core::System::GetInstance().Kernel();
+    const auto [readable_event, writable_event] =
+        WritableEvent::CreateEventPair(kernel, ResetType::Sticky, "CreateEvent");
+
+    HandleTable& handle_table = kernel.CurrentProcess()->GetHandleTable();
+
+    const auto write_create_result = handle_table.Create(writable_event);
+    if (write_create_result.Failed()) {
+        return write_create_result.Code();
+    }
+    *write_handle = *write_create_result;
+
+    const auto read_create_result = handle_table.Create(readable_event);
+    if (read_create_result.Failed()) {
+        handle_table.Close(*write_create_result);
+        return read_create_result.Code();
+    }
+    *read_handle = *read_create_result;
+
+    LOG_DEBUG(Kernel_SVC,
+              "successful. Writable event handle=0x{:08X}, Readable event handle=0x{:08X}",
+              *write_create_result, *read_create_result);
+    return RESULT_SUCCESS;
+}
+
 static ResultCode ClearEvent(Handle handle) {
     LOG_TRACE(Kernel_SVC, "called, event=0x{:08X}", handle);
 
@@ -1806,7 +1834,7 @@ static const FunctionDef SVC_Table[] = {
     {0x42, nullptr, "ReplyAndReceiveLight"},
     {0x43, nullptr, "ReplyAndReceive"},
     {0x44, nullptr, "ReplyAndReceiveWithUserBuffer"},
-    {0x45, nullptr, "CreateEvent"},
+    {0x45, SvcWrap<CreateEvent>, "CreateEvent"},
     {0x46, nullptr, "Unknown"},
     {0x47, nullptr, "Unknown"},
     {0x48, nullptr, "MapPhysicalMemoryUnsafe"},
