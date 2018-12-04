@@ -141,6 +141,12 @@ void GPU::CallMethod(const MethodCall& method_call) {
         return;
     }
 
+    if (method_call.method < static_cast<u32>(BufferMethods::CountBufferMethods)) {
+        // TODO(Subv): Research and implement these methods.
+        LOG_ERROR(HW_GPU, "Special buffer methods other than Bind are not implemented");
+        return;
+    }
+
     const EngineID engine = bound_engines[method_call.subchannel];
 
     switch (engine) {
