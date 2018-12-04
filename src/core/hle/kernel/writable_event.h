@@ -39,7 +39,7 @@ public:
         return name;
     }
 
-    static const HandleType HANDLE_TYPE = HandleType::Event;
+    static const HandleType HANDLE_TYPE = HandleType::WritableEvent;
     HandleType GetHandleType() const override {
         return HANDLE_TYPE;
     }

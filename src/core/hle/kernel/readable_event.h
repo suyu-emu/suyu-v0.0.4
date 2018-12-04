@@ -29,7 +29,7 @@ public:
         return reset_type;
     }
 
-    static const HandleType HANDLE_TYPE = HandleType::Event;
+    static const HandleType HANDLE_TYPE = HandleType::ReadableEvent;
     HandleType GetHandleType() const override {
         return HANDLE_TYPE;
     }

@@ -19,7 +19,8 @@ using Handle = u32;
 
 enum class HandleType : u32 {
     Unknown,
-    Event,
+    WritableEvent,
+    ReadableEvent,
     SharedMemory,
     Thread,
     Process,

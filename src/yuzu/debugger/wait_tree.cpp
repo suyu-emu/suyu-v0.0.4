@@ -153,7 +153,7 @@ QString WaitTreeWaitObject::GetText() const {
 
 std::unique_ptr<WaitTreeWaitObject> WaitTreeWaitObject::make(const Kernel::WaitObject& object) {
     switch (object.GetHandleType()) {
-    case Kernel::HandleType::Event:
+    case Kernel::HandleType::ReadableEvent:
         return std::make_unique<WaitTreeEvent>(static_cast<const Kernel::ReadableEvent&>(object));
     case Kernel::HandleType::Timer:
         return std::make_unique<WaitTreeTimer>(static_cast<const Kernel::Timer&>(object));
