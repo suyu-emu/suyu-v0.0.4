@@ -10,6 +10,10 @@
 #include "core/loader/linker.h"
 #include "core/loader/loader.h"
 
+namespace Kernel {
+class Process;
+}
+
 namespace Loader {
 
 constexpr u64 NSO_ARGUMENT_DATA_ALLOCATION_SIZE = 0x9000;
@@ -37,8 +41,8 @@ public:
         return IdentifyType(file);
     }
 
-    static std::optional<VAddr> LoadModule(const FileSys::VfsFile& file, VAddr load_base,
-                                           bool should_pass_arguments,
+    static std::optional<VAddr> LoadModule(Kernel::Process& process, const FileSys::VfsFile& file,
+                                           VAddr load_base, bool should_pass_arguments,
                                            std::optional<FileSys::PatchManager> pm = {});
 
     ResultStatus Load(Kernel::Process& process) override;

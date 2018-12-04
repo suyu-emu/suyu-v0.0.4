@@ -7,7 +7,6 @@
 #include "common/common_funcs.h"
 #include "common/file_util.h"
 #include "common/logging/log.h"
-#include "core/core.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
@@ -146,7 +145,7 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(Kernel::Process& process)
         const VAddr load_addr = next_load_addr;
         const bool should_pass_arguments = std::strcmp(module, "rtld") == 0;
         const auto tentative_next_load_addr =
-            AppLoader_NSO::LoadModule(*module_file, load_addr, should_pass_arguments, pm);
+            AppLoader_NSO::LoadModule(process, *module_file, load_addr, should_pass_arguments, pm);
         if (!tentative_next_load_addr) {
             return ResultStatus::ErrorLoadingNSO;
         }

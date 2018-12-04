@@ -9,7 +9,6 @@
 #include "common/file_util.h"
 #include "common/logging/log.h"
 #include "common/swap.h"
-#include "core/core.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/process.h"
@@ -93,7 +92,8 @@ static constexpr u32 PageAlignSize(u32 size) {
     return (size + Memory::PAGE_MASK) & ~Memory::PAGE_MASK;
 }
 
-std::optional<VAddr> AppLoader_NSO::LoadModule(const FileSys::VfsFile& file, VAddr load_base,
+std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
+                                               const FileSys::VfsFile& file, VAddr load_base,
                                                bool should_pass_arguments,
                                                std::optional<FileSys::PatchManager> pm) {
     if (file.GetSize() < sizeof(NsoHeader))
@@ -166,7 +166,7 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(const FileSys::VfsFile& file, VAd
 
     // Load codeset for current process
     codeset.memory = std::make_shared<std::vector<u8>>(std::move(program_image));
-    Core::CurrentProcess()->LoadModule(std::move(codeset), load_base);
+    process.LoadModule(std::move(codeset), load_base);
 
     // Register module with GDBStub
     GDBStub::RegisterModule(file.GetName(), load_base, load_base);
@@ -181,7 +181,7 @@ ResultStatus AppLoader_NSO::Load(Kernel::Process& process) {
 
     // Load module
     const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
-    if (!LoadModule(*file, base_address, true)) {
+    if (!LoadModule(process, *file, base_address, true)) {
         return ResultStatus::ErrorLoadingNSO;
     }
     LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", file->GetName(), base_address);
