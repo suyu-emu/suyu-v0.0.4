@@ -44,6 +44,10 @@ SharedPtr<Process> Process::Create(KernelCore& kernel, std::string&& name) {
     return process;
 }
 
+SharedPtr<ResourceLimit> Process::GetResourceLimit() const {
+    return resource_limit;
+}
+
 void Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata) {
     program_id = metadata.GetTitleID();
     is_64bit_process = metadata.Is64BitProgram();

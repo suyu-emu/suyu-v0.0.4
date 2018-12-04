@@ -171,14 +171,7 @@ public:
     }
 
     /// Gets the resource limit descriptor for this process
-    ResourceLimit& GetResourceLimit() {
-        return *resource_limit;
-    }
-
-    /// Gets the resource limit descriptor for this process
-    const ResourceLimit& GetResourceLimit() const {
-        return *resource_limit;
-    }
+    SharedPtr<ResourceLimit> GetResourceLimit() const;
 
     /// Gets the default CPU ID for this process
     u8 GetDefaultProcessorID() const {

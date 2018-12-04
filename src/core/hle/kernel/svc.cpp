@@ -663,7 +663,7 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
         TotalMemoryUsage = 6,
         TotalHeapUsage = 7,
         IsCurrentProcessBeingDebugged = 8,
-        ResourceHandleLimit = 9,
+        RegisterResourceLimit = 9,
         IdleTickCount = 10,
         RandomEntropy = 11,
         PerformanceCounter = 0xF0000002,
@@ -786,6 +786,33 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
     case GetInfoType::IsCurrentProcessBeingDebugged:
         *result = 0;
         return RESULT_SUCCESS;
+
+    case GetInfoType::RegisterResourceLimit: {
+        if (handle != 0) {
+            return ERR_INVALID_HANDLE;
+        }
+
+        if (info_sub_id != 0) {
+            return ERR_INVALID_COMBINATION;
+        }
+
+        Process* const current_process = Core::CurrentProcess();
+        HandleTable& handle_table = current_process->GetHandleTable();
+        const auto resource_limit = current_process->GetResourceLimit();
+        if (!resource_limit) {
+            *result = KernelHandle::InvalidHandle;
+            // Yes, the kernel considers this a successful operation.
+            return RESULT_SUCCESS;
+        }
+
+        const auto table_result = handle_table.Create(resource_limit);
+        if (table_result.Failed()) {
+            return table_result.Code();
+        }
+
+        *result = *table_result;
+        return RESULT_SUCCESS;
+    }
 
     case GetInfoType::RandomEntropy:
         if (handle != 0) {

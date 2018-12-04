@@ -13,6 +13,7 @@
 namespace Kernel {
 
 enum KernelHandle : Handle {
+    InvalidHandle = 0,
     CurrentThread = 0xFFFF8000,
     CurrentProcess = 0xFFFF8001,
 };
