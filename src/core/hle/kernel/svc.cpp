@@ -35,7 +35,6 @@
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
 #include "core/hle/service/service.h"
-#include "core/settings.h"
 
 namespace Kernel {
 namespace {
