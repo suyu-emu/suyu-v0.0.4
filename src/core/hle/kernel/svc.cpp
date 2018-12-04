@@ -1093,7 +1093,7 @@ static void ExitProcess() {
 static ResultCode CreateThread(Handle* out_handle, VAddr entry_point, u64 arg, VAddr stack_top,
                                u32 priority, s32 processor_id) {
     LOG_TRACE(Kernel_SVC,
-              "called entrypoint=0x{:08X} ({}), arg=0x{:08X}, stacktop=0x{:08X}, "
+              "called entrypoint=0x{:08X}, arg=0x{:08X}, stacktop=0x{:08X}, "
               "threadpriority=0x{:08X}, processorid=0x{:08X} : created handle=0x{:08X}",
               entry_point, arg, stack_top, priority, processor_id, *out_handle);
 
