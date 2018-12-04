@@ -1647,6 +1647,21 @@ static ResultCode ClearEvent(Handle handle) {
     return ERR_INVALID_HANDLE;
 }
 
+static ResultCode SignalEvent(Handle handle) {
+    LOG_DEBUG(Kernel_SVC, "called. Handle=0x{:08X}", handle);
+
+    HandleTable& handle_table = Core::CurrentProcess()->GetHandleTable();
+    auto writable_event = handle_table.Get<WritableEvent>(handle);
+
+    if (!writable_event) {
+        LOG_ERROR(Kernel_SVC, "Non-existent writable event handle used (0x{:08X})", handle);
+        return ERR_INVALID_HANDLE;
+    }
+
+    writable_event->Signal();
+    return RESULT_SUCCESS;
+}
+
 static ResultCode GetProcessInfo(u64* out, Handle process_handle, u32 type) {
     LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, type=0x{:X}", process_handle, type);
 
@@ -1782,7 +1797,7 @@ static const FunctionDef SVC_Table[] = {
     {0x0E, SvcWrap<GetThreadCoreMask>, "GetThreadCoreMask"},
     {0x0F, SvcWrap<SetThreadCoreMask>, "SetThreadCoreMask"},
     {0x10, SvcWrap<GetCurrentProcessorNumber>, "GetCurrentProcessorNumber"},
-    {0x11, nullptr, "SignalEvent"},
+    {0x11, SvcWrap<SignalEvent>, "SignalEvent"},
     {0x12, SvcWrap<ClearEvent>, "ClearEvent"},
     {0x13, SvcWrap<MapSharedMemory>, "MapSharedMemory"},
     {0x14, SvcWrap<UnmapSharedMemory>, "UnmapSharedMemory"},
