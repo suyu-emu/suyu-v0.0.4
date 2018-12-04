@@ -35,7 +35,6 @@
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
 #include "core/hle/service/service.h"
-#include "core/settings.h"
 
 namespace Kernel {
 namespace {
@@ -1598,6 +1597,34 @@ static ResultCode CreateSharedMemory(Handle* handle, u64 size, u32 local_permiss
     return RESULT_SUCCESS;
 }
 
+static ResultCode CreateEvent(Handle* write_handle, Handle* read_handle) {
+    LOG_DEBUG(Kernel_SVC, "called");
+
+    auto& kernel = Core::System::GetInstance().Kernel();
+    const auto [readable_event, writable_event] =
+        WritableEvent::CreateEventPair(kernel, ResetType::Sticky, "CreateEvent");
+
+    HandleTable& handle_table = kernel.CurrentProcess()->GetHandleTable();
+
+    const auto write_create_result = handle_table.Create(writable_event);
+    if (write_create_result.Failed()) {
+        return write_create_result.Code();
+    }
+    *write_handle = *write_create_result;
+
+    const auto read_create_result = handle_table.Create(readable_event);
+    if (read_create_result.Failed()) {
+        handle_table.Close(*write_create_result);
+        return read_create_result.Code();
+    }
+    *read_handle = *read_create_result;
+
+    LOG_DEBUG(Kernel_SVC,
+              "successful. Writable event handle=0x{:08X}, Readable event handle=0x{:08X}",
+              *write_create_result, *read_create_result);
+    return RESULT_SUCCESS;
+}
+
 static ResultCode ClearEvent(Handle handle) {
     LOG_TRACE(Kernel_SVC, "called, event=0x{:08X}", handle);
 
@@ -1617,6 +1644,21 @@ static ResultCode ClearEvent(Handle handle) {
 
     LOG_ERROR(Kernel_SVC, "Event handle does not exist, handle=0x{:08X}", handle);
     return ERR_INVALID_HANDLE;
+}
+
+static ResultCode SignalEvent(Handle handle) {
+    LOG_DEBUG(Kernel_SVC, "called. Handle=0x{:08X}", handle);
+
+    HandleTable& handle_table = Core::CurrentProcess()->GetHandleTable();
+    auto writable_event = handle_table.Get<WritableEvent>(handle);
+
+    if (!writable_event) {
+        LOG_ERROR(Kernel_SVC, "Non-existent writable event handle used (0x{:08X})", handle);
+        return ERR_INVALID_HANDLE;
+    }
+
+    writable_event->Signal();
+    return RESULT_SUCCESS;
 }
 
 static ResultCode GetProcessInfo(u64* out, Handle process_handle, u32 type) {
@@ -1754,7 +1796,7 @@ static const FunctionDef SVC_Table[] = {
     {0x0E, SvcWrap<GetThreadCoreMask>, "GetThreadCoreMask"},
     {0x0F, SvcWrap<SetThreadCoreMask>, "SetThreadCoreMask"},
     {0x10, SvcWrap<GetCurrentProcessorNumber>, "GetCurrentProcessorNumber"},
-    {0x11, nullptr, "SignalEvent"},
+    {0x11, SvcWrap<SignalEvent>, "SignalEvent"},
     {0x12, SvcWrap<ClearEvent>, "ClearEvent"},
     {0x13, SvcWrap<MapSharedMemory>, "MapSharedMemory"},
     {0x14, SvcWrap<UnmapSharedMemory>, "UnmapSharedMemory"},
@@ -1806,7 +1848,7 @@ static const FunctionDef SVC_Table[] = {
     {0x42, nullptr, "ReplyAndReceiveLight"},
     {0x43, nullptr, "ReplyAndReceive"},
     {0x44, nullptr, "ReplyAndReceiveWithUserBuffer"},
-    {0x45, nullptr, "CreateEvent"},
+    {0x45, SvcWrap<CreateEvent>, "CreateEvent"},
     {0x46, nullptr, "Unknown"},
     {0x47, nullptr, "Unknown"},
     {0x48, nullptr, "MapPhysicalMemoryUnsafe"},
