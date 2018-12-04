@@ -163,13 +163,12 @@ void GameListWorker::AddInstalledTitlesToGameList() {
 void GameListWorker::FillControlMap(const std::string& dir_path) {
     const auto nca_control_callback = [this](u64* num_entries_out, const std::string& directory,
                                              const std::string& virtual_name) -> bool {
-        const std::string physical_name = directory + DIR_SEP + virtual_name;
-
         if (stop_processing) {
             // Breaks the callback loop
             return false;
         }
 
+        const std::string physical_name = directory + DIR_SEP + virtual_name;
         const QFileInfo file_info(QString::fromStdString(physical_name));
         if (!file_info.isDir() && file_info.suffix() == QStringLiteral("nca")) {
             auto nca =
@@ -188,12 +187,13 @@ void GameListWorker::FillControlMap(const std::string& dir_path) {
 void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsigned int recursion) {
     const auto callback = [this, recursion](u64* num_entries_out, const std::string& directory,
                                             const std::string& virtual_name) -> bool {
-        std::string physical_name = directory + DIR_SEP + virtual_name;
+        if (stop_processing) {
+            // Breaks the callback loop.
+            return false;
+        }
 
-        if (stop_processing)
-            return false; // Breaks the callback loop.
-
-        bool is_dir = FileUtil::IsDirectory(physical_name);
+        const std::string physical_name = directory + DIR_SEP + virtual_name;
+        const bool is_dir = FileUtil::IsDirectory(physical_name);
         if (!is_dir &&
             (HasSupportedFileExtension(physical_name) || IsExtractedNCAMain(physical_name))) {
             std::unique_ptr<Loader::AppLoader> loader =
