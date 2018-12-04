@@ -200,7 +200,6 @@ void Scheduler::YieldWithoutLoadBalancing(Thread* thread) {
     // Yield this thread -- sleep for zero time and force reschedule to different thread
     WaitCurrentThread_Sleep();
     GetCurrentThread()->WakeAfterDelay(0);
-    Reschedule();
 }
 
 void Scheduler::YieldWithLoadBalancing(Thread* thread) {
@@ -223,24 +222,23 @@ void Scheduler::YieldWithLoadBalancing(Thread* thread) {
     // Search through all of the cpu cores (except this one) for a suggested thread.
     // Take the first non-nullptr one
     for (unsigned cur_core = 0; cur_core < Core::NUM_CPU_CORES; ++cur_core) {
-        if (cur_core == core)
-            continue;
-
         const auto res =
             Core::System::GetInstance().CpuCore(cur_core).Scheduler().GetNextSuggestedThread(
                 core, priority);
-        if (res != nullptr &&
-            (suggested_thread == nullptr || suggested_thread->GetPriority() > res->GetPriority())) {
-            suggested_thread = res;
+
+        // If scheduler provides a suggested thread
+        if (res != nullptr) {
+            // And its better than the current suggested thread (or is the first valid one)
+            if (suggested_thread == nullptr ||
+                suggested_thread->GetPriority() > res->GetPriority()) {
+                suggested_thread = res;
+            }
         }
     }
 
     // If a suggested thread was found, queue that for this core
     if (suggested_thread != nullptr)
         suggested_thread->ChangeCore(core, suggested_thread->GetAffinityMask());
-
-    // Perform actual yielding.
-    Reschedule();
 }
 
 void Scheduler::YieldAndWaitForLoadBalancing(Thread* thread) {

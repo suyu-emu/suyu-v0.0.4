@@ -994,7 +994,9 @@ static void SleepThread(s64 nanoseconds) {
         GetCurrentThread()->WakeAfterDelay(nanoseconds);
     }
 
-    Core::System::GetInstance().PrepareReschedule();
+    // Reschedule all CPU cores
+    for (std::size_t i = 0; i < 4; ++i)
+        Core::System::GetInstance().CpuCore(i).PrepareReschedule();
 }
 
 /// Wait process wide key atomic
