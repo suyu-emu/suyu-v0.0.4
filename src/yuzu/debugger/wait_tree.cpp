@@ -264,8 +264,9 @@ QColor WaitTreeThread::GetColor() const {
     case Kernel::ThreadStatus::Running:
         return QColor(Qt::GlobalColor::darkGreen);
     case Kernel::ThreadStatus::Ready:
-    case Kernel::ThreadStatus::Paused:
         return QColor(Qt::GlobalColor::darkBlue);
+    case Kernel::ThreadStatus::Paused:
+        return QColor(Qt::GlobalColor::lightGray);
     case Kernel::ThreadStatus::WaitHLEEvent:
     case Kernel::ThreadStatus::WaitIPC:
         return QColor(Qt::GlobalColor::darkRed);
