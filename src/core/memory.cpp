@@ -53,6 +53,14 @@ void PageTable::Resize(std::size_t address_space_width_in_bits) {
 
     pointers.resize(num_page_table_entries);
     attributes.resize(num_page_table_entries);
+
+    // The default is a 39-bit address space, which causes an initial 1GB allocation size. If the
+    // vector size is subsequently decreased (via resize), the vector might not automatically
+    // actually reallocate/resize its underlying allocation, which wastes up to ~800 MB for
+    // 36-bit titles. Call shrink_to_fit to reduce capacity to what's actually in use.
+
+    pointers.shrink_to_fit();
+    attributes.shrink_to_fit();
 }
 
 static void MapPages(PageTable& page_table, VAddr base, u64 size, u8* memory, PageType type) {
