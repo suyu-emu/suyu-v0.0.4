@@ -37,7 +37,7 @@ FileType AppLoader_NAX::IdentifyType(const FileSys::VirtualFile& file) {
     return IdentifyTypeImpl(nax);
 }
 
-FileType AppLoader_NAX::GetFileType() {
+FileType AppLoader_NAX::GetFileType() const {
     return IdentifyTypeImpl(*nax);
 }
 
