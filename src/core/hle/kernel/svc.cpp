@@ -1433,17 +1433,24 @@ static ResultCode CloseHandle(Handle handle) {
     return handle_table.Close(handle);
 }
 
-/// Reset an event
+/// Clears the signaled state of an event or process.
 static ResultCode ResetSignal(Handle handle) {
     LOG_DEBUG(Kernel_SVC, "called handle 0x{:08X}", handle);
 
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
+
     auto event = handle_table.Get<ReadableEvent>(handle);
+    if (event) {
+        return event->Reset();
+    }
 
-    ASSERT(event != nullptr);
+    auto process = handle_table.Get<Process>(handle);
+    if (process) {
+        return process->ClearSignalState();
+    }
 
-    event->Clear();
-    return RESULT_SUCCESS;
+    LOG_ERROR(Kernel_SVC, "Invalid handle (0x{:08X})", handle);
+    return ERR_INVALID_HANDLE;
 }
 
 /// Creates a TransferMemory object
