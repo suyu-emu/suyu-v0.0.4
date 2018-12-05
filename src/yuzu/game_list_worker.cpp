@@ -99,12 +99,14 @@ QList<QStandardItem*> MakeGameListEntry(const std::string& path, const std::stri
         compatibility = it->second.first;
     }
 
+    const auto file_type = loader.GetFileType();
+    const auto file_type_string = QString::fromStdString(Loader::GetFileTypeString(file_type));
+
     QList<QStandardItem*> list{
-        new GameListItemPath(
-            FormatGameName(path), icon, QString::fromStdString(name),
-            QString::fromStdString(Loader::GetFileTypeString(loader.GetFileType())), program_id),
+        new GameListItemPath(FormatGameName(path), icon, QString::fromStdString(name),
+                             file_type_string, program_id),
         new GameListItemCompat(compatibility),
-        new GameListItem(QString::fromStdString(Loader::GetFileTypeString(loader.GetFileType()))),
+        new GameListItem(file_type_string),
         new GameListItemSize(FileUtil::GetSize(path)),
     };
 
