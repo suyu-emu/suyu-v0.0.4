@@ -2766,22 +2766,21 @@ private:
                 const bool depth_compare =
                     instr.texs.UsesMiscMode(Tegra::Shader::TextureMiscMode::DC);
                 const auto process_mode = instr.texs.GetTextureProcessMode();
+
                 UNIMPLEMENTED_IF_MSG(instr.texs.UsesMiscMode(Tegra::Shader::TextureMiscMode::NODEP),
                                      "NODEP is not implemented");
 
                 const auto scope = shader.Scope();
 
-                const auto [coord, texture] =
+                auto [coord, texture] =
                     GetTEXSCode(instr, texture_type, process_mode, depth_compare, is_array);
 
                 shader.AddLine(coord);
 
-                if (!depth_compare) {
-                    shader.AddLine("vec4 texture_tmp = " + texture + ';');
-
-                } else {
-                    shader.AddLine("vec4 texture_tmp = vec4(" + texture + ");");
+                if (depth_compare) {
+                    texture = "vec4(" + texture + ')';
                 }
+                shader.AddLine("vec4 texture_tmp = " + texture + ';');
 
                 WriteTexsInstruction(instr, "texture_tmp");
                 break;
