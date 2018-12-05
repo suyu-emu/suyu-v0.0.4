@@ -960,11 +960,6 @@ static void ExitThread() {
 static void SleepThread(s64 nanoseconds) {
     LOG_TRACE(Kernel_SVC, "called nanoseconds={}", nanoseconds);
 
-    // Don't attempt to yield execution if there are no available threads to run,
-    // this way we avoid a useless reschedule to the idle thread.
-    if (nanoseconds <= 0 && !Core::System::GetInstance().CurrentScheduler().HaveReadyThreads())
-        return;
-
     enum class SleepType : s64 {
         YieldWithoutLoadBalancing = 0,
         YieldWithLoadBalancing = -1,
@@ -995,7 +990,7 @@ static void SleepThread(s64 nanoseconds) {
     }
 
     // Reschedule all CPU cores
-    for (std::size_t i = 0; i < 4; ++i)
+    for (std::size_t i = 0; i < Core::NUM_CPU_CORES; ++i)
         Core::System::GetInstance().CpuCore(i).PrepareReschedule();
 }
 
