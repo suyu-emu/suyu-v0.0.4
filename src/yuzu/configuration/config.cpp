@@ -206,60 +206,57 @@ const std::array<int, Settings::NativeKeyboard::NumKeyboardMods> Config::default
 
 void Config::ReadPlayerValues() {
     for (std::size_t p = 0; p < Settings::values.players.size(); ++p) {
-        Settings::values.players[p].connected =
-            qt_config->value(QString("player_%1_connected").arg(p), false).toBool();
+        auto& player = Settings::values.players[p];
 
-        Settings::values.players[p].type = static_cast<Settings::ControllerType>(
+        player.connected = qt_config->value(QString("player_%1_connected").arg(p), false).toBool();
+
+        player.type = static_cast<Settings::ControllerType>(
             qt_config
                 ->value(QString("player_%1_type").arg(p),
                         static_cast<u8>(Settings::ControllerType::DualJoycon))
                 .toUInt());
 
-        Settings::values.players[p].body_color_left =
-            qt_config
-                ->value(QString("player_%1_body_color_left").arg(p),
-                        Settings::JOYCON_BODY_NEON_BLUE)
-                .toUInt();
-        Settings::values.players[p].body_color_right =
-            qt_config
-                ->value(QString("player_%1_body_color_right").arg(p),
-                        Settings::JOYCON_BODY_NEON_RED)
-                .toUInt();
-        Settings::values.players[p].button_color_left =
-            qt_config
-                ->value(QString("player_%1_button_color_left").arg(p),
-                        Settings::JOYCON_BUTTONS_NEON_BLUE)
-                .toUInt();
-        Settings::values.players[p].button_color_right =
-            qt_config
-                ->value(QString("player_%1_button_color_right").arg(p),
-                        Settings::JOYCON_BUTTONS_NEON_RED)
-                .toUInt();
+        player.body_color_left = qt_config
+                                     ->value(QString("player_%1_body_color_left").arg(p),
+                                             Settings::JOYCON_BODY_NEON_BLUE)
+                                     .toUInt();
+        player.body_color_right = qt_config
+                                      ->value(QString("player_%1_body_color_right").arg(p),
+                                              Settings::JOYCON_BODY_NEON_RED)
+                                      .toUInt();
+        player.button_color_left = qt_config
+                                       ->value(QString("player_%1_button_color_left").arg(p),
+                                               Settings::JOYCON_BUTTONS_NEON_BLUE)
+                                       .toUInt();
+        player.button_color_right = qt_config
+                                        ->value(QString("player_%1_button_color_right").arg(p),
+                                                Settings::JOYCON_BUTTONS_NEON_RED)
+                                        .toUInt();
 
         for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
             std::string default_param = InputCommon::GenerateKeyboardParam(default_buttons[i]);
-            Settings::values.players[p].buttons[i] =
+            player.buttons[i] =
                 qt_config
                     ->value(QString("player_%1_").arg(p) + Settings::NativeButton::mapping[i],
                             QString::fromStdString(default_param))
                     .toString()
                     .toStdString();
-            if (Settings::values.players[p].buttons[i].empty())
-                Settings::values.players[p].buttons[i] = default_param;
+            if (player.buttons[i].empty())
+                player.buttons[i] = default_param;
         }
 
         for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
             std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
                 default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
                 default_analogs[i][3], default_analogs[i][4], 0.5f);
-            Settings::values.players[p].analogs[i] =
+            player.analogs[i] =
                 qt_config
                     ->value(QString("player_%1_").arg(p) + Settings::NativeAnalog::mapping[i],
                             QString::fromStdString(default_param))
                     .toString()
                     .toStdString();
-            if (Settings::values.players[p].analogs[i].empty())
-                Settings::values.players[p].analogs[i] = default_param;
+            if (player.analogs[i].empty())
+                player.analogs[i] = default_param;
         }
     }
 
@@ -511,30 +508,28 @@ void Config::ReadValues() {
 }
 
 void Config::SavePlayerValues() {
-    for (int p = 0; p < Settings::values.players.size(); ++p) {
-        qt_config->setValue(QString("player_%1_connected").arg(p),
-                            Settings::values.players[p].connected);
-        qt_config->setValue(QString("player_%1_type").arg(p),
-                            static_cast<u8>(Settings::values.players[p].type));
+    for (std::size_t p = 0; p < Settings::values.players.size(); ++p) {
+        const auto& player = Settings::values.players[p];
 
-        qt_config->setValue(QString("player_%1_body_color_left").arg(p),
-                            Settings::values.players[p].body_color_left);
-        qt_config->setValue(QString("player_%1_body_color_right").arg(p),
-                            Settings::values.players[p].body_color_right);
+        qt_config->setValue(QString("player_%1_connected").arg(p), player.connected);
+        qt_config->setValue(QString("player_%1_type").arg(p), static_cast<u8>(player.type));
+
+        qt_config->setValue(QString("player_%1_body_color_left").arg(p), player.body_color_left);
+        qt_config->setValue(QString("player_%1_body_color_right").arg(p), player.body_color_right);
         qt_config->setValue(QString("player_%1_button_color_left").arg(p),
-                            Settings::values.players[p].button_color_left);
+                            player.button_color_left);
         qt_config->setValue(QString("player_%1_button_color_right").arg(p),
-                            Settings::values.players[p].button_color_right);
+                            player.button_color_right);
 
         for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
             qt_config->setValue(QString("player_%1_").arg(p) +
                                     QString::fromStdString(Settings::NativeButton::mapping[i]),
-                                QString::fromStdString(Settings::values.players[p].buttons[i]));
+                                QString::fromStdString(player.buttons[i]));
         }
         for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
             qt_config->setValue(QString("player_%1_").arg(p) +
                                     QString::fromStdString(Settings::NativeAnalog::mapping[i]),
-                                QString::fromStdString(Settings::values.players[p].analogs[i]));
+                                QString::fromStdString(player.analogs[i]));
         }
     }
 }
