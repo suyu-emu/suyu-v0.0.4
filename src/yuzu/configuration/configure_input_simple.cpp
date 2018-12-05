@@ -132,7 +132,9 @@ void ConfigureInputSimple::loadConfiguration() {
 }
 
 void ConfigureInputSimple::OnSelectProfile(int index) {
+    const auto old_docked = Settings::values.use_docked_mode;
     ApplyInputProfileConfiguration(index);
+    OnDockedModeChanged(old_docked, Settings::values.use_docked_mode);
 }
 
 void ConfigureInputSimple::OnConfigure() {

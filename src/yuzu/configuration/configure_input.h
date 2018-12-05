@@ -20,6 +20,8 @@ namespace Ui {
 class ConfigureInput;
 }
 
+void OnDockedModeChanged(bool last_state, bool new_state);
+
 class ConfigureInput : public QDialog {
     Q_OBJECT
 
@@ -32,8 +34,6 @@ public:
 
 private:
     void updateUIEnabled();
-
-    void OnDockedModeChanged(bool last_state, bool new_state);
 
     /// Load configuration settings.
     void loadConfiguration();
