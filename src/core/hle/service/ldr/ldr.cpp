@@ -436,9 +436,10 @@ private:
 
     struct NRRHeader {
         u32_le magic;
-        INSERT_PADDING_BYTES(0x1C);
+        INSERT_PADDING_BYTES(12);
         u64_le title_id_mask;
         u64_le title_id_pattern;
+        INSERT_PADDING_BYTES(16);
         std::array<u8, 0x100> modulus;
         std::array<u8, 0x100> signature_1;
         std::array<u8, 0x100> signature_2;
