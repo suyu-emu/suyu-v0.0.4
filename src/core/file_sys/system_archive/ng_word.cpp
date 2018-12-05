@@ -26,7 +26,7 @@ constexpr std::array<u8, 30> WORD_TXT{
 VirtualDir NgWord1() {
     std::vector<VirtualFile> files(NgWord1Data::NUMBER_WORD_TXT_FILES);
 
-    for (std::size_t i = 0; i < NgWord1Data::NUMBER_WORD_TXT_FILES; ++i) {
+    for (std::size_t i = 0; i < files.size(); ++i) {
         files[i] = std::make_shared<ArrayVfsFile<NgWord1Data::WORD_TXT.size()>>(
             NgWord1Data::WORD_TXT, fmt::format("{}.txt", i));
     }
