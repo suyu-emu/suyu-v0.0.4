@@ -9,6 +9,7 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/file_sys/program_metadata.h"
+#include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
@@ -46,6 +47,21 @@ SharedPtr<Process> Process::Create(KernelCore& kernel, std::string&& name) {
 
 SharedPtr<ResourceLimit> Process::GetResourceLimit() const {
     return resource_limit;
+}
+
+ResultCode Process::ClearSignalState() {
+    if (status == ProcessStatus::Exited) {
+        LOG_ERROR(Kernel, "called on a terminated process instance.");
+        return ERR_INVALID_STATE;
+    }
+
+    if (!is_signaled) {
+        LOG_ERROR(Kernel, "called on a process instance that isn't signaled.");
+        return ERR_INVALID_STATE;
+    }
+
+    is_signaled = false;
+    return RESULT_SUCCESS;
 }
 
 void Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata) {
@@ -137,13 +153,13 @@ void Process::Run(VAddr entry_point, s32 main_thread_priority, u32 stack_size) {
         .Unwrap();
 
     vm_manager.LogLayout();
-    status = ProcessStatus::Running;
+    ChangeStatus(ProcessStatus::Running);
 
     Kernel::SetupMainThread(kernel, entry_point, main_thread_priority, *this);
 }
 
 void Process::PrepareForTermination() {
-    status = ProcessStatus::Exited;
+    ChangeStatus(ProcessStatus::Exiting);
 
     const auto stop_threads = [this](const std::vector<SharedPtr<Thread>>& thread_list) {
         for (auto& thread : thread_list) {
@@ -167,6 +183,8 @@ void Process::PrepareForTermination() {
     stop_threads(system.Scheduler(1).GetThreadList());
     stop_threads(system.Scheduler(2).GetThreadList());
     stop_threads(system.Scheduler(3).GetThreadList());
+
+    ChangeStatus(ProcessStatus::Exited);
 }
 
 /**
@@ -265,7 +283,25 @@ ResultCode Process::UnmapMemory(VAddr dst_addr, VAddr /*src_addr*/, u64 size) {
     return vm_manager.UnmapRange(dst_addr, size);
 }
 
-Kernel::Process::Process(KernelCore& kernel) : Object{kernel} {}
+Kernel::Process::Process(KernelCore& kernel) : WaitObject{kernel} {}
 Kernel::Process::~Process() {}
+
+void Process::Acquire(Thread* thread) {
+    ASSERT_MSG(!ShouldWait(thread), "Object unavailable!");
+}
+
+bool Process::ShouldWait(Thread* thread) const {
+    return !is_signaled;
+}
+
+void Process::ChangeStatus(ProcessStatus new_status) {
+    if (status == new_status) {
+        return;
+    }
+
+    status = new_status;
+    is_signaled = true;
+    WakeupAllWaitingThreads();
+}
 
 } // namespace Kernel

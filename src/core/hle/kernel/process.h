@@ -14,9 +14,10 @@
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "core/hle/kernel/handle_table.h"
-#include "core/hle/kernel/object.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/vm_manager.h"
+#include "core/hle/kernel/wait_object.h"
+#include "core/hle/result.h"
 
 namespace FileSys {
 class ProgramMetadata;
@@ -117,7 +118,7 @@ struct CodeSet final {
     VAddr entrypoint = 0;
 };
 
-class Process final : public Object {
+class Process final : public WaitObject {
 public:
     static constexpr std::size_t RANDOM_ENTROPY_SIZE = 4;
 
@@ -212,6 +213,16 @@ public:
         return random_entropy.at(index);
     }
 
+    /// Clears the signaled state of the process if and only if it's signaled.
+    ///
+    /// @pre The process must not be already terminated. If this is called on a
+    ///      terminated process, then ERR_INVALID_STATE will be returned.
+    ///
+    /// @pre The process must be in a signaled state. If this is called on a
+    ///      process instance that is not signaled, ERR_INVALID_STATE will be
+    ///      returned.
+    ResultCode ClearSignalState();
+
     /**
      * Loads process-specifics configuration info with metadata provided
      * by an executable.
@@ -260,6 +271,17 @@ private:
     explicit Process(KernelCore& kernel);
     ~Process() override;
 
+    /// Checks if the specified thread should wait until this process is available.
+    bool ShouldWait(Thread* thread) const override;
+
+    /// Acquires/locks this process for the specified thread if it's available.
+    void Acquire(Thread* thread) override;
+
+    /// Changes the process status. If the status is different
+    /// from the current process status, then this will trigger
+    /// a process signal.
+    void ChangeStatus(ProcessStatus new_status);
+
     /// Memory manager for this process.
     Kernel::VMManager vm_manager;
 
@@ -304,6 +326,10 @@ private:
     /// By default, we currently assume this is true, unless otherwise
     /// specified by metadata provided to the process during loading.
     bool is_64bit_process = true;
+
+    /// Whether or not this process is signaled. This occurs
+    /// upon the process changing to a different state.
+    bool is_signaled = false;
 
     /// Total running time for the process in ticks.
     u64 total_process_running_time_ticks = 0;
