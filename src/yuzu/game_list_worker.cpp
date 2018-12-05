@@ -86,6 +86,35 @@ QString FormatPatchNameVersions(const FileSys::PatchManager& patch_manager,
     out.chop(1);
     return out;
 }
+
+QList<QStandardItem*> MakeGameListEntry(const std::string& path, const std::string& name,
+                                        const std::vector<u8>& icon, Loader::AppLoader& loader,
+                                        u64 program_id, const CompatibilityList& compatibility_list,
+                                        const FileSys::PatchManager& patch) {
+    const auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
+
+    // The game list uses this as compatibility number for untested games
+    QString compatibility{"99"};
+    if (it != compatibility_list.end()) {
+        compatibility = it->second.first;
+    }
+
+    QList<QStandardItem*> list{
+        new GameListItemPath(
+            FormatGameName(path), icon, QString::fromStdString(name),
+            QString::fromStdString(Loader::GetFileTypeString(loader.GetFileType())), program_id),
+        new GameListItemCompat(compatibility),
+        new GameListItem(QString::fromStdString(Loader::GetFileTypeString(loader.GetFileType()))),
+        new GameListItemSize(FileUtil::GetSize(path)),
+    };
+
+    if (UISettings::values.show_add_ons) {
+        list.insert(
+            2, new GameListItem(FormatPatchNameVersions(patch, loader, loader.IsRomFSUpdatable())));
+    }
+
+    return list;
+}
 } // Anonymous namespace
 
 GameListWorker::GameListWorker(FileSys::VirtualFilesystem vfs, QString dir_path, bool deep_scan,
@@ -116,29 +145,8 @@ void GameListWorker::AddInstalledTitlesToGameList() {
         if (control != nullptr)
             GetMetadataFromControlNCA(patch, *control, icon, name);
 
-        auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
-
-        // The game list uses this as compatibility number for untested games
-        QString compatibility("99");
-        if (it != compatibility_list.end())
-            compatibility = it->second.first;
-
-        QList<QStandardItem*> list{
-            new GameListItemPath(
-                FormatGameName(file->GetFullPath()), icon, QString::fromStdString(name),
-                QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType())),
-                program_id),
-            new GameListItemCompat(compatibility),
-            new GameListItem(
-                QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType()))),
-            new GameListItemSize(file->GetSize()),
-        };
-
-        if (UISettings::values.show_add_ons) {
-            list.insert(2, new GameListItem(FormatPatchNameVersions(patch, *loader)));
-        }
-
-        emit EntryReady(list);
+        emit EntryReady(MakeGameListEntry(file->GetFullPath(), name, icon, *loader, program_id,
+                                          compatibility_list, patch));
     }
 
     const auto control_data = cache.ListEntriesFilter(FileSys::TitleType::Application,
@@ -155,14 +163,14 @@ void GameListWorker::AddInstalledTitlesToGameList() {
 void GameListWorker::FillControlMap(const std::string& dir_path) {
     const auto nca_control_callback = [this](u64* num_entries_out, const std::string& directory,
                                              const std::string& virtual_name) -> bool {
-        std::string physical_name = directory + DIR_SEP + virtual_name;
+        if (stop_processing) {
+            // Breaks the callback loop
+            return false;
+        }
 
-        if (stop_processing)
-            return false; // Breaks the callback loop.
-
-        bool is_dir = FileUtil::IsDirectory(physical_name);
-        QFileInfo file_info(physical_name.c_str());
-        if (!is_dir && file_info.suffix().toStdString() == "nca") {
+        const std::string physical_name = directory + DIR_SEP + virtual_name;
+        const QFileInfo file_info(QString::fromStdString(physical_name));
+        if (!file_info.isDir() && file_info.suffix() == QStringLiteral("nca")) {
             auto nca =
                 std::make_unique<FileSys::NCA>(vfs->OpenFile(physical_name, FileSys::Mode::Read));
             if (nca->GetType() == FileSys::NCAContentType::Control) {
@@ -179,12 +187,13 @@ void GameListWorker::FillControlMap(const std::string& dir_path) {
 void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsigned int recursion) {
     const auto callback = [this, recursion](u64* num_entries_out, const std::string& directory,
                                             const std::string& virtual_name) -> bool {
-        std::string physical_name = directory + DIR_SEP + virtual_name;
+        if (stop_processing) {
+            // Breaks the callback loop.
+            return false;
+        }
 
-        if (stop_processing)
-            return false; // Breaks the callback loop.
-
-        bool is_dir = FileUtil::IsDirectory(physical_name);
+        const std::string physical_name = directory + DIR_SEP + virtual_name;
+        const bool is_dir = FileUtil::IsDirectory(physical_name);
         if (!is_dir &&
             (HasSupportedFileExtension(physical_name) || IsExtractedNCAMain(physical_name))) {
             std::unique_ptr<Loader::AppLoader> loader =
@@ -214,30 +223,8 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
                 }
             }
 
-            auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
-
-            // The game list uses this as compatibility number for untested games
-            QString compatibility("99");
-            if (it != compatibility_list.end())
-                compatibility = it->second.first;
-
-            QList<QStandardItem*> list{
-                new GameListItemPath(
-                    FormatGameName(physical_name), icon, QString::fromStdString(name),
-                    QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType())),
-                    program_id),
-                new GameListItemCompat(compatibility),
-                new GameListItem(
-                    QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType()))),
-                new GameListItemSize(FileUtil::GetSize(physical_name)),
-            };
-
-            if (UISettings::values.show_add_ons) {
-                list.insert(2, new GameListItem(FormatPatchNameVersions(
-                                   patch, *loader, loader->IsRomFSUpdatable())));
-            }
-
-            emit EntryReady(std::move(list));
+            emit EntryReady(MakeGameListEntry(physical_name, name, icon, *loader, program_id,
+                                              compatibility_list, patch));
         } else if (is_dir && recursion > 0) {
             watch_list.append(QString::fromStdString(physical_name));
             AddFstEntriesToGameList(physical_name, recursion - 1);
