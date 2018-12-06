@@ -2,7 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <functional>
 #include "common/logging/log.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/system_archive/ng_word.h"
@@ -13,7 +12,7 @@ namespace FileSys::SystemArchive {
 constexpr u64 SYSTEM_ARCHIVE_BASE_TITLE_ID = 0x0100000000000800;
 constexpr std::size_t SYSTEM_ARCHIVE_COUNT = 0x28;
 
-using SystemArchiveSupplier = std::function<VirtualDir()>;
+using SystemArchiveSupplier = VirtualDir (*)();
 
 struct SystemArchiveDescriptor {
     u64 title_id;
@@ -21,7 +20,7 @@ struct SystemArchiveDescriptor {
     SystemArchiveSupplier supplier;
 };
 
-const std::array<SystemArchiveDescriptor, SYSTEM_ARCHIVE_COUNT> SYSTEM_ARCHIVES = {{
+constexpr std::array<SystemArchiveDescriptor, SYSTEM_ARCHIVE_COUNT> SYSTEM_ARCHIVES{{
     {0x0100000000000800, "CertStore", nullptr},
     {0x0100000000000801, "ErrorMessage", nullptr},
     {0x0100000000000802, "MiiModel", nullptr},
