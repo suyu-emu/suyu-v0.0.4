@@ -70,10 +70,6 @@
 #include "core/hle/service/vi/vi.h"
 #include "core/hle/service/wlan/wlan.h"
 
-using Kernel::ClientPort;
-using Kernel::ServerPort;
-using Kernel::SharedPtr;
-
 namespace Service {
 
 /**
@@ -111,7 +107,7 @@ void ServiceFrameworkBase::InstallAsNamedPort() {
 
     auto& kernel = Core::System::GetInstance().Kernel();
     auto [server_port, client_port] =
-        ServerPort::CreatePortPair(kernel, max_sessions, service_name);
+        Kernel::ServerPort::CreatePortPair(kernel, max_sessions, service_name);
     server_port->SetHleHandler(shared_from_this());
     kernel.AddNamedPort(service_name, std::move(client_port));
 }
