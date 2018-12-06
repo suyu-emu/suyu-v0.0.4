@@ -128,7 +128,7 @@ static u8* GetPointerFromVMA(const Kernel::Process& process, VAddr vaddr) {
     const auto& vm_manager = process.VMManager();
 
     const auto it = vm_manager.FindVMA(vaddr);
-    ASSERT(vm_manager.IsValidHandle(it));
+    DEBUG_ASSERT(vm_manager.IsValidHandle(it));
 
     u8* direct_pointer = nullptr;
     const auto& vma = it->second;
