@@ -122,7 +122,7 @@ Kernel::SharedPtr<Kernel::ClientPort> ServiceFrameworkBase::CreatePort() {
     auto& kernel = Core::System::GetInstance().Kernel();
     auto [server_port, client_port] =
         Kernel::ServerPort::CreatePortPair(kernel, max_sessions, service_name);
-    port = MakeResult<Kernel::SharedPtr<Kernel::ServerPort>>(std::move(server_port)).Unwrap();
+    port = MakeResult(std::move(server_port)).Unwrap();
     port->SetHleHandler(shared_from_this());
     return client_port;
 }
