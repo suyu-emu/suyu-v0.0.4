@@ -9,5 +9,6 @@
 namespace FileSys::SystemArchive {
 
 VirtualDir NgWord1();
+VirtualDir NgWord2();
 
 } // namespace FileSys::SystemArchive

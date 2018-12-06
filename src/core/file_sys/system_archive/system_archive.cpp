@@ -56,7 +56,7 @@ constexpr std::array<SystemArchiveDescriptor, SYSTEM_ARCHIVE_COUNT> SYSTEM_ARCHI
     {0x0100000000000820, "PlatformConfigCopper", nullptr},
     {0x0100000000000821, "PlatformConfigHoag", nullptr},
     {0x0100000000000822, "ControllerFirmware", nullptr},
-    {0x0100000000000823, "NgWord2", nullptr},
+    {0x0100000000000823, "NgWord2", &NgWord2},
     {0x0100000000000824, "PlatformConfigIcosaMariko", nullptr},
     {0x0100000000000825, "ApplicationBlackList", nullptr},
     {0x0100000000000826, "RebootlessSystemUpdateVersion", nullptr},
