@@ -54,9 +54,7 @@ ResultVal<Kernel::SharedPtr<Kernel::ServerPort>> ServiceManager::RegisterService
         return ERR_ALREADY_REGISTERED;
 
     auto& kernel = Core::System::GetInstance().Kernel();
-    Kernel::SharedPtr<Kernel::ServerPort> server_port;
-    Kernel::SharedPtr<Kernel::ClientPort> client_port;
-    std::tie(server_port, client_port) =
+    auto [server_port, client_port] =
         Kernel::ServerPort::CreatePortPair(kernel, max_sessions, name);
 
     registered_services.emplace(std::move(name), std::move(client_port));
