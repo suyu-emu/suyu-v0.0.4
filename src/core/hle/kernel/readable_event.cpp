@@ -4,10 +4,10 @@
 
 #include <algorithm>
 #include "common/assert.h"
+#include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/thread.h"
-#include "core/hle/kernel/writable_event.h"
 
 namespace Kernel {
 
@@ -32,6 +32,16 @@ void ReadableEvent::Signal() {
 
 void ReadableEvent::Clear() {
     signaled = false;
+}
+
+ResultCode ReadableEvent::Reset() {
+    if (!signaled) {
+        return ERR_INVALID_STATE;
+    }
+
+    Clear();
+
+    return RESULT_SUCCESS;
 }
 
 void ReadableEvent::WakeupAllWaitingThreads() {
