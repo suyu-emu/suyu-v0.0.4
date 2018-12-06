@@ -87,6 +87,10 @@ VMManager::VMAHandle VMManager::FindVMA(VAddr target) const {
     }
 }
 
+bool VMManager::IsValidHandle(VMAHandle handle) const {
+    return handle != vma_map.cend();
+}
+
 ResultVal<VMManager::VMAHandle> VMManager::MapMemoryBlock(VAddr target,
                                                           std::shared_ptr<std::vector<u8>> block,
                                                           std::size_t offset, u64 size,

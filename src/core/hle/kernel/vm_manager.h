@@ -113,16 +113,10 @@ struct VirtualMemoryArea {
  *  - http://duartes.org/gustavo/blog/post/page-cache-the-affair-between-memory-and-files/
  */
 class VMManager final {
+    using VMAMap = std::map<VAddr, VirtualMemoryArea>;
+
 public:
-    /**
-     * A map covering the entirety of the managed address space, keyed by the `base` field of each
-     * VMA. It must always be modified by splitting or merging VMAs, so that the invariant
-     * `elem.base + elem.size == next.base` is preserved, and mergeable regions must always be
-     * merged when possible so that no two similar and adjacent regions exist that have not been
-     * merged.
-     */
-    std::map<VAddr, VirtualMemoryArea> vma_map;
-    using VMAHandle = decltype(vma_map)::const_iterator;
+    using VMAHandle = VMAMap::const_iterator;
 
     VMManager();
     ~VMManager();
@@ -132,6 +126,9 @@ public:
 
     /// Finds the VMA in which the given address is included in, or `vma_map.end()`.
     VMAHandle FindVMA(VAddr target) const;
+
+    /// Indicates whether or not the given handle is within the VMA map.
+    bool IsValidHandle(VMAHandle handle) const;
 
     // TODO(yuriks): Should these functions actually return the handle?
 
@@ -281,7 +278,7 @@ public:
     Memory::PageTable page_table;
 
 private:
-    using VMAIter = decltype(vma_map)::iterator;
+    using VMAIter = VMAMap::iterator;
 
     /// Converts a VMAHandle to a mutable VMAIter.
     VMAIter StripIterConstness(const VMAHandle& iter);
@@ -327,6 +324,15 @@ private:
 
     /// Clears out the page table
     void ClearPageTable();
+
+    /**
+     * A map covering the entirety of the managed address space, keyed by the `base` field of each
+     * VMA. It must always be modified by splitting or merging VMAs, so that the invariant
+     * `elem.base + elem.size == next.base` is preserved, and mergeable regions must always be
+     * merged when possible so that no two similar and adjacent regions exist that have not been
+     * merged.
+     */
+    VMAMap vma_map;
 
     u32 address_space_width = 0;
     VAddr address_space_base = 0;

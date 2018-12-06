@@ -39,15 +39,15 @@ SharedPtr<SharedMemory> SharedMemory::Create(KernelCore& kernel, SharedPtr<Proce
                 shared_memory->backing_block.get());
         }
     } else {
-        auto& vm_manager = shared_memory->owner_process->VMManager();
+        const auto& vm_manager = shared_memory->owner_process->VMManager();
 
         // The memory is already available and mapped in the owner process.
-        auto vma = vm_manager.FindVMA(address);
-        ASSERT_MSG(vma != vm_manager.vma_map.end(), "Invalid memory address");
+        const auto vma = vm_manager.FindVMA(address);
+        ASSERT_MSG(vm_manager.IsValidHandle(vma), "Invalid memory address");
         ASSERT_MSG(vma->second.backing_block, "Backing block doesn't exist for address");
 
         // The returned VMA might be a bigger one encompassing the desired address.
-        auto vma_offset = address - vma->first;
+        const auto vma_offset = address - vma->first;
         ASSERT_MSG(vma_offset + size <= vma->second.size,
                    "Shared memory exceeds bounds of mapped block");
 

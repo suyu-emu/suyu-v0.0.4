@@ -239,7 +239,7 @@ static ResultCode SetMemoryPermission(VAddr addr, u64 size, u32 prot) {
     }
 
     const VMManager::VMAHandle iter = vm_manager.FindVMA(addr);
-    if (iter == vm_manager.vma_map.end()) {
+    if (!vm_manager.IsValidHandle(iter)) {
         LOG_ERROR(Kernel_SVC, "Unable to find VMA for address=0x{:016X}", addr);
         return ERR_INVALID_ADDRESS_STATE;
     }
@@ -1077,19 +1077,23 @@ static ResultCode QueryProcessMemory(MemoryInfo* memory_info, PageInfo* /*page_i
                   process_handle);
         return ERR_INVALID_HANDLE;
     }
-    auto vma = process->VMManager().FindVMA(addr);
+
+    const auto& vm_manager = process->VMManager();
+    const auto vma = vm_manager.FindVMA(addr);
+
     memory_info->attributes = 0;
-    if (vma == process->VMManager().vma_map.end()) {
-        memory_info->base_address = 0;
-        memory_info->permission = static_cast<u32>(VMAPermission::None);
-        memory_info->size = 0;
-        memory_info->type = static_cast<u32>(MemoryState::Unmapped);
-    } else {
+    if (vm_manager.IsValidHandle(vma)) {
         memory_info->base_address = vma->second.base;
         memory_info->permission = static_cast<u32>(vma->second.permissions);
         memory_info->size = vma->second.size;
         memory_info->type = static_cast<u32>(vma->second.meminfo_state);
+    } else {
+        memory_info->base_address = 0;
+        memory_info->permission = static_cast<u32>(VMAPermission::None);
+        memory_info->size = 0;
+        memory_info->type = static_cast<u32>(MemoryState::Unmapped);
     }
+
     return RESULT_SUCCESS;
 }
 
