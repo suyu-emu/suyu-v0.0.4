@@ -335,10 +335,7 @@ public:
         vm_manager.ReprotectRange(*map_address + header.rw_offset, header.rw_size,
                                   Kernel::VMAPermission::ReadWrite);
 
-        Core::System::GetInstance().ArmInterface(0).ClearInstructionCache();
-        Core::System::GetInstance().ArmInterface(1).ClearInstructionCache();
-        Core::System::GetInstance().ArmInterface(2).ClearInstructionCache();
-        Core::System::GetInstance().ArmInterface(3).ClearInstructionCache();
+        Core::System::GetInstance().InvalidateCpuInstructionCaches();
 
         nro.insert_or_assign(*map_address, NROInfo{hash, nro_size + bss_size});
 
@@ -391,10 +388,7 @@ public:
                                      Kernel::MemoryState::ModuleCodeStatic) == RESULT_SUCCESS);
         ASSERT(process->UnmapMemory(mapped_addr, 0, nro_size) == RESULT_SUCCESS);
 
-        Core::System::GetInstance().ArmInterface(0).ClearInstructionCache();
-        Core::System::GetInstance().ArmInterface(1).ClearInstructionCache();
-        Core::System::GetInstance().ArmInterface(2).ClearInstructionCache();
-        Core::System::GetInstance().ArmInterface(3).ClearInstructionCache();
+        Core::System::GetInstance().InvalidateCpuInstructionCaches();
 
         nro.erase(iter);
         IPC::ResponseBuilder rb{ctx, 2};
