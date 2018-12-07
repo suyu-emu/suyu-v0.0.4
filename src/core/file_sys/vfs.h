@@ -150,7 +150,7 @@ public:
     template <typename T>
     std::size_t WriteArray(const T* data, std::size_t number_elements, std::size_t offset = 0) {
         static_assert(std::is_trivially_copyable_v<T>, "Data type must be trivially copyable.");
-        return Write(data, number_elements * sizeof(T), offset);
+        return Write(reinterpret_cast<const u8*>(data), number_elements * sizeof(T), offset);
     }
 
     // Writes size bytes starting at memory location data to offset in file.
@@ -166,7 +166,7 @@ public:
     template <typename T>
     std::size_t WriteObject(const T& data, std::size_t offset = 0) {
         static_assert(std::is_trivially_copyable_v<T>, "Data type must be trivially copyable.");
-        return Write(&data, sizeof(T), offset);
+        return Write(reinterpret_cast<const u8*>(&data), sizeof(T), offset);
     }
 
     // Renames the file to name. Returns whether or not the operation was successsful.
