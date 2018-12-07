@@ -99,12 +99,14 @@ QList<QStandardItem*> MakeGameListEntry(const std::string& path, const std::stri
         compatibility = it->second.first;
     }
 
+    const auto file_type = loader.GetFileType();
+    const auto file_type_string = QString::fromStdString(Loader::GetFileTypeString(file_type));
+
     QList<QStandardItem*> list{
-        new GameListItemPath(
-            FormatGameName(path), icon, QString::fromStdString(name),
-            QString::fromStdString(Loader::GetFileTypeString(loader.GetFileType())), program_id),
+        new GameListItemPath(FormatGameName(path), icon, QString::fromStdString(name),
+                             file_type_string, program_id),
         new GameListItemCompat(compatibility),
-        new GameListItem(QString::fromStdString(Loader::GetFileTypeString(loader.GetFileType()))),
+        new GameListItem(file_type_string),
         new GameListItemSize(FileUtil::GetSize(path)),
     };
 
@@ -196,12 +198,16 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
         const bool is_dir = FileUtil::IsDirectory(physical_name);
         if (!is_dir &&
             (HasSupportedFileExtension(physical_name) || IsExtractedNCAMain(physical_name))) {
-            std::unique_ptr<Loader::AppLoader> loader =
-                Loader::GetLoader(vfs->OpenFile(physical_name, FileSys::Mode::Read));
-            if (!loader || ((loader->GetFileType() == Loader::FileType::Unknown ||
-                             loader->GetFileType() == Loader::FileType::Error) &&
-                            !UISettings::values.show_unknown))
+            auto loader = Loader::GetLoader(vfs->OpenFile(physical_name, FileSys::Mode::Read));
+            if (!loader) {
                 return true;
+            }
+
+            const auto file_type = loader->GetFileType();
+            if ((file_type == Loader::FileType::Unknown || file_type == Loader::FileType::Error) &&
+                !UISettings::values.show_unknown) {
+                return true;
+            }
 
             std::vector<u8> icon;
             const auto res1 = loader->ReadIcon(icon);

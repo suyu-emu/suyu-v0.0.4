@@ -22,7 +22,7 @@ public:
      */
     static FileType IdentifyType(const FileSys::VirtualFile& file);
 
-    FileType GetFileType() override {
+    FileType GetFileType() const override {
         return IdentifyType(file);
     }
 
