@@ -72,6 +72,7 @@ extern const std::array<const char*, 15> LANGUAGE_NAMES;
 // These store application name, dev name, title id, and other miscellaneous data.
 class NACP {
 public:
+    explicit NACP();
     explicit NACP(VirtualFile file);
     ~NACP();
 
@@ -84,7 +85,7 @@ public:
     std::vector<u8> GetRawBytes() const;
 
 private:
-    std::unique_ptr<RawNACP> raw;
+    RawNACP raw;
 };
 
 } // namespace FileSys
