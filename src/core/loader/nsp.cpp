@@ -152,10 +152,10 @@ ResultStatus AppLoader_NSP::ReadTitle(std::string& title) {
     return ResultStatus::Success;
 }
 
-ResultStatus AppLoader_NSP::ReadDeveloper(std::string& developer) {
+ResultStatus AppLoader_NSP::ReadControlData(FileSys::NACP& nacp) {
     if (nacp_file == nullptr)
         return ResultStatus::ErrorNoControl;
-    developer = nacp_file->GetDeveloperName();
+    nacp = *nacp_file;
     return ResultStatus::Success;
 }
 } // namespace Loader
