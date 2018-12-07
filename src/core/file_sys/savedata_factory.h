@@ -17,8 +17,10 @@ namespace FileSys {
 enum class SaveDataSpaceId : u8 {
     NandSystem = 0,
     NandUser = 1,
-    SdCard = 2,
+    SdCardSystem = 2,
     TemporaryStorage = 3,
+    SdCardUser = 4,
+    ProperSystem = 100,
 };
 
 enum class SaveDataType : u8 {
