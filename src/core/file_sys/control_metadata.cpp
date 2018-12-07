@@ -79,6 +79,14 @@ std::string NACP::GetVersionString() const {
                                                        raw.version_string.size());
 }
 
+u64 NACP::GetDefaultNormalSaveSize() const {
+    return raw.normal_save_data_size;
+}
+
+u64 NACP::GetDefaultJournalSaveSize() const {
+    return raw.journal_sava_data_size;
+}
+
 std::vector<u8> NACP::GetRawBytes() const {
     std::vector<u8> out(sizeof(RawNACP));
     std::memcpy(out.data(), &raw, sizeof(RawNACP));
