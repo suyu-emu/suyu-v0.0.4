@@ -54,13 +54,11 @@ ResultVal<Kernel::SharedPtr<Kernel::ServerPort>> ServiceManager::RegisterService
         return ERR_ALREADY_REGISTERED;
 
     auto& kernel = Core::System::GetInstance().Kernel();
-    Kernel::SharedPtr<Kernel::ServerPort> server_port;
-    Kernel::SharedPtr<Kernel::ClientPort> client_port;
-    std::tie(server_port, client_port) =
+    auto [server_port, client_port] =
         Kernel::ServerPort::CreatePortPair(kernel, max_sessions, name);
 
     registered_services.emplace(std::move(name), std::move(client_port));
-    return MakeResult<Kernel::SharedPtr<Kernel::ServerPort>>(std::move(server_port));
+    return MakeResult(std::move(server_port));
 }
 
 ResultCode ServiceManager::UnregisterService(const std::string& name) {
@@ -83,7 +81,7 @@ ResultVal<Kernel::SharedPtr<Kernel::ClientPort>> ServiceManager::GetServicePort(
         return ERR_SERVICE_NOT_REGISTERED;
     }
 
-    return MakeResult<Kernel::SharedPtr<Kernel::ClientPort>>(it->second);
+    return MakeResult(it->second);
 }
 
 ResultVal<Kernel::SharedPtr<Kernel::ClientSession>> ServiceManager::ConnectToService(
