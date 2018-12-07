@@ -18,7 +18,11 @@ std::string SaveDataDescriptor::DebugInfo() const {
                        static_cast<u8>(type), title_id, user_id[1], user_id[0], save_id);
 }
 
-SaveDataFactory::SaveDataFactory(VirtualDir save_directory) : dir(std::move(save_directory)) {}
+SaveDataFactory::SaveDataFactory(VirtualDir save_directory) : dir(std::move(save_directory)) {
+    // Delete all temporary storages
+    // On hardware, it is expected that temporary storage be empty at first use.
+    dir->DeleteSubdirectoryRecursive("temp");
+}
 
 SaveDataFactory::~SaveDataFactory() = default;
 
