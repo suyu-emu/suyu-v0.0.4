@@ -408,13 +408,13 @@ private:
     using SHA256Hash = std::array<u8, 0x20>;
 
     struct NROHeader {
-        u32_le entrypoint_insn;
+        INSERT_PADDING_WORDS(1);
         u32_le mod_offset;
         INSERT_PADDING_WORDS(2);
         u32_le magic;
-        INSERT_PADDING_WORDS(1);
+        u32_le version;
         u32_le nro_size;
-        INSERT_PADDING_WORDS(1);
+        u32_le flags;
         u32_le text_offset;
         u32_le text_size;
         u32_le ro_offset;
@@ -430,9 +430,10 @@ private:
 
     struct NRRHeader {
         u32_le magic;
-        INSERT_PADDING_BYTES(0x1C);
+        INSERT_PADDING_BYTES(12);
         u64_le title_id_mask;
         u64_le title_id_pattern;
+        INSERT_PADDING_BYTES(16);
         std::array<u8, 0x100> modulus;
         std::array<u8, 0x100> signature_1;
         std::array<u8, 0x100> signature_2;
