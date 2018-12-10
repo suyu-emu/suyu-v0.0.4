@@ -565,7 +565,6 @@ private:
     void GetAppletStateChangedEvent(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
-        applet->GetBroker().SignalStateChanged();
         const auto event = applet->GetBroker().GetStateChangedEvent();
 
         IPC::ResponseBuilder rb{ctx, 2, 1};

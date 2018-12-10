@@ -146,11 +146,10 @@ void SoftwareKeyboard::WriteText(std::optional<std::u16string> text) {
 
         if (complete) {
             broker.PushNormalDataFromApplet(IStorage{output_main});
+            broker.SignalStateChanged();
         } else {
             broker.PushInteractiveDataFromApplet(IStorage{output_sub});
         }
-
-        broker.SignalStateChanged();
     } else {
         output_main[0] = 1;
         complete = true;
