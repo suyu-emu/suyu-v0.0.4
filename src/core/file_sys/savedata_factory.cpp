@@ -18,7 +18,11 @@ std::string SaveDataDescriptor::DebugInfo() const {
                        static_cast<u8>(type), title_id, user_id[1], user_id[0], save_id);
 }
 
-SaveDataFactory::SaveDataFactory(VirtualDir save_directory) : dir(std::move(save_directory)) {}
+SaveDataFactory::SaveDataFactory(VirtualDir save_directory) : dir(std::move(save_directory)) {
+    // Delete all temporary storages
+    // On hardware, it is expected that temporary storage be empty at first use.
+    dir->DeleteSubdirectoryRecursive("temp");
+}
 
 SaveDataFactory::~SaveDataFactory() = default;
 
@@ -120,6 +124,8 @@ std::string SaveDataFactory::GetFullPath(SaveDataSpaceId space, SaveDataType typ
     case SaveDataType::TemporaryStorage:
         return fmt::format("{}{:016X}/{:016X}{:016X}/{:016X}", out, 0, user_id[1], user_id[0],
                            title_id);
+    case SaveDataType::CacheStorage:
+        return fmt::format("{}save/cache/{:016X}", out, title_id);
     default:
         ASSERT_MSG(false, "Unrecognized SaveDataType: {:02X}", static_cast<u8>(type));
     }
