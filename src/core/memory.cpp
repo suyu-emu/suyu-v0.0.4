@@ -125,14 +125,13 @@ void RemoveDebugHook(PageTable& page_table, VAddr base, u64 size, MemoryHookPoin
  * using a VMA from the current process
  */
 static u8* GetPointerFromVMA(const Kernel::Process& process, VAddr vaddr) {
+    const auto& vm_manager = process.VMManager();
+
+    const auto it = vm_manager.FindVMA(vaddr);
+    DEBUG_ASSERT(vm_manager.IsValidHandle(it));
+
     u8* direct_pointer = nullptr;
-
-    auto& vm_manager = process.VMManager();
-
-    auto it = vm_manager.FindVMA(vaddr);
-    ASSERT(it != vm_manager.vma_map.end());
-
-    auto& vma = it->second;
+    const auto& vma = it->second;
     switch (vma.type) {
     case Kernel::VMAType::AllocatedMemoryBlock:
         direct_pointer = vma.backing_block->data() + vma.offset;
