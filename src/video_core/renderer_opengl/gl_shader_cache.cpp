@@ -153,7 +153,7 @@ static bool IsSchedInstruction(std::size_t offset, std::size_t main_offset) {
 }
 
 static std::size_t CalculateProgramSize(const GLShader::ProgramCode& program) {
-    const std::size_t start_offset = 10;
+    constexpr std::size_t start_offset = 10;
     std::size_t offset = start_offset;
     std::size_t size = start_offset * sizeof(u64);
     while (offset < program.size()) {
@@ -163,7 +163,7 @@ static std::size_t CalculateProgramSize(const GLShader::ProgramCode& program) {
                 break;
             }
         }
-        size += 8;
+        size += sizeof(inst);
         offset++;
     }
     return size;
