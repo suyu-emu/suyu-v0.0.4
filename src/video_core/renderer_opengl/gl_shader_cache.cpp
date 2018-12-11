@@ -145,7 +145,7 @@ GLuint CachedShader::LazyGeometryProgram(OGLProgram& target_program,
     return target_program.handle;
 };
 
-static bool IsSchedInstruction(u32 offset, u32 main_offset) {
+static bool IsSchedInstruction(std::size_t offset, std::size_t main_offset) {
     // sched instructions appear once every 4 instructions.
     static constexpr std::size_t SchedPeriod = 4;
     const std::size_t absolute_offset = offset - main_offset;
