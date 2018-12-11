@@ -8,6 +8,7 @@
 #include <stack>
 #include "audio_core/audio_renderer.h"
 #include "core/core.h"
+#include "core/file_sys/savedata_factory.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
@@ -865,8 +866,8 @@ IApplicationFunctions::IApplicationFunctions() : ServiceFramework("IApplicationF
         {22, &IApplicationFunctions::SetTerminateResult, "SetTerminateResult"},
         {23, &IApplicationFunctions::GetDisplayVersion, "GetDisplayVersion"},
         {24, nullptr, "GetLaunchStorageInfoForDebug"},
-        {25, nullptr, "ExtendSaveData"},
-        {26, nullptr, "GetSaveDataSize"},
+        {25, &IApplicationFunctions::ExtendSaveData, "ExtendSaveData"},
+        {26, &IApplicationFunctions::GetSaveDataSize, "GetSaveDataSize"},
         {30, &IApplicationFunctions::BeginBlockingHomeButtonShortAndLongPressed, "BeginBlockingHomeButtonShortAndLongPressed"},
         {31, &IApplicationFunctions::EndBlockingHomeButtonShortAndLongPressed, "EndBlockingHomeButtonShortAndLongPressed"},
         {32, &IApplicationFunctions::BeginBlockingHomeButton, "BeginBlockingHomeButton"},
@@ -1041,6 +1042,48 @@ void IApplicationFunctions::GetPseudoDeviceId(Kernel::HLERequestContext& ctx) {
     // Returns a 128-bit UUID
     rb.Push<u64>(0);
     rb.Push<u64>(0);
+}
+
+void IApplicationFunctions::ExtendSaveData(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto type{rp.PopRaw<FileSys::SaveDataType>()};
+    rp.Skip(1, false);
+    const auto user_id{rp.PopRaw<u128>()};
+    const auto new_normal_size{rp.PopRaw<u64>()};
+    const auto new_journal_size{rp.PopRaw<u64>()};
+
+    LOG_DEBUG(Service_AM,
+              "called with type={:02X}, user_id={:016X}{:016X}, new_normal={:016X}, "
+              "new_journal={:016X}",
+              static_cast<u8>(type), user_id[1], user_id[0], new_normal_size, new_journal_size);
+
+    FileSystem::WriteSaveDataSize(type, Core::CurrentProcess()->GetTitleID(), user_id,
+                                  {new_normal_size, new_journal_size});
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(RESULT_SUCCESS);
+
+    // The following value is used upon failure to help the system recover.
+    // Since we always succeed, this should be 0.
+    rb.Push<u64>(0);
+}
+
+void IApplicationFunctions::GetSaveDataSize(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto type{rp.PopRaw<FileSys::SaveDataType>()};
+    rp.Skip(1, false);
+    const auto user_id{rp.PopRaw<u128>()};
+
+    LOG_DEBUG(Service_AM, "called with type={:02X}, user_id={:016X}{:016X}", static_cast<u8>(type),
+              user_id[1], user_id[0]);
+
+    const auto size =
+        FileSystem::ReadSaveDataSize(type, Core::CurrentProcess()->GetTitleID(), user_id);
+
+    IPC::ResponseBuilder rb{ctx, 6};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push(size.normal);
+    rb.Push(size.journal);
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager,

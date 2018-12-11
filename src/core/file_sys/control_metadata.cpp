@@ -36,7 +36,7 @@ std::string LanguageEntry::GetDeveloperName() const {
                                                        developer_name.size());
 }
 
-NACP::NACP() : raw{} {}
+NACP::NACP() = default;
 
 NACP::NACP(VirtualFile file) {
     file->ReadObject(&raw);

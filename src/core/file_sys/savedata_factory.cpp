@@ -13,7 +13,7 @@
 
 namespace FileSys {
 
-constexpr const char* SAVE_DATA_SIZE_FILENAME = ".yuzu_save_size";
+constexpr char SAVE_DATA_SIZE_FILENAME[] = ".yuzu_save_size";
 
 std::string SaveDataDescriptor::DebugInfo() const {
     return fmt::format("[type={:02X}, title_id={:016X}, user_id={:016X}{:016X}, save_id={:016X}]",

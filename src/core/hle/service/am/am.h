@@ -206,6 +206,8 @@ private:
     void SetGamePlayRecordingState(Kernel::HLERequestContext& ctx);
     void NotifyRunning(Kernel::HLERequestContext& ctx);
     void GetPseudoDeviceId(Kernel::HLERequestContext& ctx);
+    void ExtendSaveData(Kernel::HLERequestContext& ctx);
+    void GetSaveDataSize(Kernel::HLERequestContext& ctx);
     void BeginBlockingHomeButtonShortAndLongPressed(Kernel::HLERequestContext& ctx);
     void EndBlockingHomeButtonShortAndLongPressed(Kernel::HLERequestContext& ctx);
     void BeginBlockingHomeButton(Kernel::HLERequestContext& ctx);

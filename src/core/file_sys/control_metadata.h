@@ -100,7 +100,7 @@ public:
     std::vector<u8> GetRawBytes() const;
 
 private:
-    RawNACP raw;
+    RawNACP raw{};
 };
 
 } // namespace FileSys
