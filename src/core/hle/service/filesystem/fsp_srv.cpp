@@ -796,9 +796,18 @@ void FSP_SRV::OpenSaveDataInfoReaderBySaveDataSpaceId(Kernel::HLERequestContext&
 void FSP_SRV::GetGlobalAccessLogMode(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_FS, "(STUBBED) called");
 
+    enum class LogMode : u32 {
+        Off,
+        Log,
+        RedirectToSdCard,
+        LogToSdCard = Log | RedirectToSdCard,
+    };
+
+    // Given we always want to receive logging information,
+    // we always specify logging as enabled.
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
-    rb.Push<u32>(5);
+    rb.PushEnum(LogMode::Log);
 }
 
 void FSP_SRV::OpenDataStorageByCurrentProcess(Kernel::HLERequestContext& ctx) {
