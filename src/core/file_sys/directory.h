@@ -29,8 +29,8 @@ struct Entry {
         filename[copy_size] = '\0';
     }
 
-    char filename[0x300];
-    INSERT_PADDING_BYTES(4);
+    char filename[0x301];
+    INSERT_PADDING_BYTES(3);
     EntryType type;
     INSERT_PADDING_BYTES(3);
     u64 file_size;
