@@ -1086,6 +1086,9 @@ static ResultCode QueryProcessMemory(VAddr memory_info_address, VAddr page_info_
     Memory::Write32(memory_info_address + 16, memory_info.state);
     Memory::Write32(memory_info_address + 20, memory_info.attributes);
     Memory::Write32(memory_info_address + 24, memory_info.permission);
+    Memory::Write32(memory_info_address + 32, memory_info.ipc_ref_count);
+    Memory::Write32(memory_info_address + 28, memory_info.device_ref_count);
+    Memory::Write32(memory_info_address + 36, 0);
 
     // Page info appears to be currently unused by the kernel and is always set to zero.
     Memory::Write32(page_info_address, 0);
