@@ -262,8 +262,7 @@ public:
     ResultVal<VAddr> HeapAllocate(VAddr target, u64 size, VMAPermission perms);
     ResultCode HeapFree(VAddr target, u32 size);
 
-    ResultCode MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size,
-                            MemoryState state = MemoryState::Mapped);
+    ResultCode MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size, MemoryState state);
 
     ResultCode UnmapMemory(VAddr dst_addr, VAddr src_addr, u64 size);
 

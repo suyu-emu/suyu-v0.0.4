@@ -25,14 +25,14 @@ static const char* GetMemoryStateName(MemoryState state) {
         "CodeMutable",      "Heap",
         "Shared",           "Unknown1",
         "ModuleCodeStatic", "ModuleCodeMutable",
-        "IpcBuffer0",       "Mapped",
+        "IpcBuffer0",       "Stack",
         "ThreadLocal",      "TransferMemoryIsolated",
         "TransferMemory",   "ProcessMemory",
         "Unknown2",         "IpcBuffer1",
         "IpcBuffer3",       "KernelStack",
     };
 
-    return names[static_cast<int>(state)];
+    return names[ToSvcMemoryState(state)];
 }
 
 bool VirtualMemoryArea::CanBeMergedWith(const VirtualMemoryArea& next) const {

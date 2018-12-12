@@ -273,7 +273,7 @@ static ResultCode MapMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
         return result;
     }
 
-    return current_process->MirrorMemory(dst_addr, src_addr, size);
+    return current_process->MirrorMemory(dst_addr, src_addr, size, MemoryState::Stack);
 }
 
 /// Unmaps a region that was previously mapped with svcMapMemory
@@ -1086,7 +1086,7 @@ static ResultCode QueryProcessMemory(MemoryInfo* memory_info, PageInfo* /*page_i
         memory_info->base_address = vma->second.base;
         memory_info->permission = static_cast<u32>(vma->second.permissions);
         memory_info->size = vma->second.size;
-        memory_info->type = static_cast<u32>(vma->second.meminfo_state);
+        memory_info->type = ToSvcMemoryState(vma->second.meminfo_state);
     } else {
         memory_info->base_address = 0;
         memory_info->permission = static_cast<u32>(VMAPermission::None);
