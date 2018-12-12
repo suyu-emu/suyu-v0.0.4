@@ -7,9 +7,7 @@
 #include "common/common_types.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
-#include "core/hle/kernel/vm_manager.h"
 #include "core/hle/result.h"
-#include "core/memory.h"
 
 namespace Kernel {
 
@@ -188,21 +186,6 @@ void SvcWrap() {
                       static_cast<s32>(Param(5)))
                      .raw;
     Core::CurrentArmInterface().SetReg(1, param_1);
-    FuncReturn(retval);
-}
-
-template <ResultCode func(MemoryInfo*, PageInfo*, u64)>
-void SvcWrap() {
-    MemoryInfo memory_info = {};
-    PageInfo page_info = {};
-    u32 retval = func(&memory_info, &page_info, Param(2)).raw;
-
-    Memory::Write64(Param(0), memory_info.base_address);
-    Memory::Write64(Param(0) + 8, memory_info.size);
-    Memory::Write32(Param(0) + 16, memory_info.state);
-    Memory::Write32(Param(0) + 20, memory_info.attributes);
-    Memory::Write32(Param(0) + 24, memory_info.permission);
-
     FuncReturn(retval);
 }
 
