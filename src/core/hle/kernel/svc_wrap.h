@@ -199,7 +199,7 @@ void SvcWrap() {
 
     Memory::Write64(Param(0), memory_info.base_address);
     Memory::Write64(Param(0) + 8, memory_info.size);
-    Memory::Write32(Param(0) + 16, memory_info.type);
+    Memory::Write32(Param(0) + 16, memory_info.state);
     Memory::Write32(Param(0) + 20, memory_info.attributes);
     Memory::Write32(Param(0) + 24, memory_info.permission);
 

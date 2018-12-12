@@ -153,7 +153,7 @@ constexpr u32 ToSvcMemoryState(MemoryState state) {
 struct MemoryInfo {
     u64 base_address;
     u64 size;
-    u32 type;
+    u32 state;
     u32 attributes;
     u32 permission;
     u32 device_refcount;
@@ -287,6 +287,14 @@ public:
     ResultCode HeapFree(VAddr target, u64 size);
 
     ResultCode MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size, MemoryState state);
+
+    /// Queries the memory manager for information about the given address.
+    ///
+    /// @param address The address to query the memory manager about for information.
+    ///
+    /// @return A MemoryInfo instance containing information about the given address.
+    ///
+    MemoryInfo QueryMemory(VAddr address) const;
 
     /**
      * Scans all VMAs and updates the page table range of any that use the given vector as backing

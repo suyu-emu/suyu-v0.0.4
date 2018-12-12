@@ -1068,8 +1068,8 @@ static ResultCode UnmapSharedMemory(Handle shared_memory_handle, VAddr addr, u64
 
 /// Query process memory
 static ResultCode QueryProcessMemory(MemoryInfo* memory_info, PageInfo* /*page_info*/,
-                                     Handle process_handle, u64 addr) {
-    LOG_TRACE(Kernel_SVC, "called process=0x{:08X} addr={:X}", process_handle, addr);
+                                     Handle process_handle, u64 address) {
+    LOG_TRACE(Kernel_SVC, "called process=0x{:08X} address={:X}", process_handle, address);
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
     SharedPtr<Process> process = handle_table.Get<Process>(process_handle);
     if (!process) {
@@ -1079,21 +1079,9 @@ static ResultCode QueryProcessMemory(MemoryInfo* memory_info, PageInfo* /*page_i
     }
 
     const auto& vm_manager = process->VMManager();
-    const auto vma = vm_manager.FindVMA(addr);
+    const auto result = vm_manager.QueryMemory(address);
 
-    memory_info->attributes = 0;
-    if (vm_manager.IsValidHandle(vma)) {
-        memory_info->base_address = vma->second.base;
-        memory_info->permission = static_cast<u32>(vma->second.permissions);
-        memory_info->size = vma->second.size;
-        memory_info->type = ToSvcMemoryState(vma->second.meminfo_state);
-    } else {
-        memory_info->base_address = 0;
-        memory_info->permission = static_cast<u32>(VMAPermission::None);
-        memory_info->size = 0;
-        memory_info->type = static_cast<u32>(MemoryState::Unmapped);
-    }
-
+    *memory_info = result;
     return RESULT_SUCCESS;
 }
 
