@@ -150,6 +150,21 @@ constexpr u32 ToSvcMemoryState(MemoryState state) {
     return static_cast<u32>(state & MemoryState::Mask);
 }
 
+struct MemoryInfo {
+    u64 base_address;
+    u64 size;
+    u32 type;
+    u32 attributes;
+    u32 permission;
+    u32 device_refcount;
+    u32 ipc_refcount;
+};
+static_assert(sizeof(MemoryInfo) == 0x28, "MemoryInfo has incorrect size.");
+
+struct PageInfo {
+    u32 flags;
+};
+
 /**
  * Represents a VMA in an address space. A VMA is a contiguous region of virtual addressing space
  * with homogeneous attributes across its extents. In this particular implementation each VMA is
