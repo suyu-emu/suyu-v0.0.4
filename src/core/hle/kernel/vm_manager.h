@@ -105,6 +105,9 @@ enum class MemoryState : u32 {
 
     ProcessMemory          = 0x0F | FlagIPC3   | FlagIPC1   | FlagMapped | FlagMemoryPoolAllocated,
 
+    // Used to signify an inaccessible or invalid memory region with memory queries
+    Inaccessible           = 0x10,
+
     IpcBuffer1             = 0x11 | FlagIPC3   | FlagIPC1   | FlagMapped | FlagQueryPhysicalAddressAllowed |
                                     FlagSharedDevice | FlagSharedDeviceAligned | FlagMemoryPoolAllocated,
 

@@ -28,7 +28,7 @@ static const char* GetMemoryStateName(MemoryState state) {
         "IpcBuffer0",       "Stack",
         "ThreadLocal",      "TransferMemoryIsolated",
         "TransferMemory",   "ProcessMemory",
-        "Unknown2",         "IpcBuffer1",
+        "Inaccessible",     "IpcBuffer1",
         "IpcBuffer3",       "KernelStack",
     };
 
@@ -312,10 +312,10 @@ MemoryInfo VMManager::QueryMemory(VAddr address) const {
         memory_info.size = vma->second.size;
         memory_info.state = ToSvcMemoryState(vma->second.meminfo_state);
     } else {
-        memory_info.base_address = 0;
+        memory_info.base_address = address_space_end;
         memory_info.permission = static_cast<u32>(VMAPermission::None);
-        memory_info.size = 0;
-        memory_info.state = static_cast<u32>(MemoryState::Unmapped);
+        memory_info.size = 0 - address_space_end;
+        memory_info.state = static_cast<u32>(MemoryState::Inaccessible);
     }
 
     return memory_info;
