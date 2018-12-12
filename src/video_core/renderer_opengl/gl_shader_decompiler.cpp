@@ -347,6 +347,15 @@ public:
         BuildInputList();
     }
 
+    void SetConditionalCodesFromExpression(const std::string& expresion) {
+        SetInternalFlag(InternalFlag::ZeroFlag, "(" + expresion + ") == 0");
+        LOG_WARNING(HW_GPU, "Condition codes implementation is incomplete.");
+    }
+
+    void SetConditionalCodesFromRegister(const Register& reg, u64 dest_elem = 0) {
+        SetConditionalCodesFromExpression(GetRegister(reg, static_cast<u32>(dest_elem)));
+    }
+
     /**
      * Returns code that does an integer size conversion for the specified size.
      * @param value Value to perform integer size conversion on.
@@ -411,10 +420,11 @@ public:
         SetRegister(reg, elem, is_saturated ? "clamp(" + value + ", 0.0, 1.0)" : value,
                     dest_num_components, value_num_components, dest_elem, precise);
         if (sets_cc) {
-            const std::string zero_condition =
-                "( " + GetRegister(reg, static_cast<u32>(dest_elem)) + " == 0 )";
-            SetInternalFlag(InternalFlag::ZeroFlag, zero_condition);
-            LOG_WARNING(HW_GPU, "Condition codes implementation is incomplete.");
+            if (reg == Register::ZeroIndex) {
+                SetConditionalCodesFromExpression(value);
+            } else {
+                SetConditionalCodesFromRegister(reg, dest_elem);
+            }
         }
     }
 
@@ -442,10 +452,11 @@ public:
                     dest_num_components, value_num_components, dest_elem, false);
 
         if (sets_cc) {
-            const std::string zero_condition =
-                "( " + GetRegister(reg, static_cast<u32>(dest_elem)) + " == 0 )";
-            SetInternalFlag(InternalFlag::ZeroFlag, zero_condition);
-            LOG_WARNING(HW_GPU, "Condition codes implementation is incomplete.");
+            if (reg == Register::ZeroIndex) {
+                SetConditionalCodesFromExpression(value);
+            } else {
+                SetConditionalCodesFromRegister(reg, dest_elem);
+            }
         }
     }
 
@@ -3365,14 +3376,11 @@ private:
                                           ") " + combiner + " (" + second_pred + "))";
 
             if (instr.fset.bf) {
-                regs.SetRegisterToFloat(instr.gpr0, 0, predicate + " ? 1.0 : 0.0", 1, 1);
+                regs.SetRegisterToFloat(instr.gpr0, 0, predicate + " ? 1.0 : 0.0", 1, 1, false,
+                                        instr.generates_cc);
             } else {
                 regs.SetRegisterToInteger(instr.gpr0, false, 0, predicate + " ? 0xFFFFFFFF : 0", 1,
-                                          1);
-            }
-            if (instr.generates_cc.Value() != 0) {
-                regs.SetInternalFlag(InternalFlag::ZeroFlag, predicate);
-                LOG_WARNING(HW_GPU, "FSET Condition Code is incomplete");
+                                          1, false, instr.generates_cc);
             }
             break;
         }
