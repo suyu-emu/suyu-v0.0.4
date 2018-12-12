@@ -410,16 +410,17 @@ public:
      * @param dest_num_components Number of components in the destination.
      * @param value_num_components Number of components in the value.
      * @param is_saturated Optional, when True, saturates the provided value.
+     * @param sets_cc Optional, when True, sets the corresponding values to the implemented
+     * condition flags.
      * @param dest_elem Optional, the destination element to use for the operation.
      */
     void SetRegisterToFloat(const Register& reg, u64 elem, const std::string& value,
                             u64 dest_num_components, u64 value_num_components,
                             bool is_saturated = false, bool sets_cc = false, u64 dest_elem = 0,
                             bool precise = false) {
-        const const std::string clamped_value =
-            is_saturated ? "clamp(" + value + ", 0.0, 1.0)" : value;
-        SetRegister(reg, elem, clamped_value,
-                    dest_num_components, value_num_components, dest_elem, precise);
+        const std::string clamped_value = is_saturated ? "clamp(" + value + ", 0.0, 1.0)" : value;
+        SetRegister(reg, elem, clamped_value, dest_num_components, value_num_components, dest_elem,
+                    precise);
         if (sets_cc) {
             if (reg == Register::ZeroIndex) {
                 SetConditionalCodesFromExpression(clamped_value);
@@ -437,6 +438,8 @@ public:
      * @param dest_num_components Number of components in the destination.
      * @param value_num_components Number of components in the value.
      * @param is_saturated Optional, when True, saturates the provided value.
+     * @param sets_cc Optional, when True, sets the corresponding values to the implemented
+     * condition flags.
      * @param dest_elem Optional, the destination element to use for the operation.
      * @param size Register size to use for conversion instructions.
      */
@@ -446,15 +449,15 @@ public:
                               bool sets_cc = false, u64 dest_elem = 0,
                               Register::Size size = Register::Size::Word) {
         UNIMPLEMENTED_IF(is_saturated);
-
+        const std::string final_value = ConvertIntegerSize(value, size);
         const std::string func{is_signed ? "intBitsToFloat" : "uintBitsToFloat"};
 
-        SetRegister(reg, elem, func + '(' + ConvertIntegerSize(value, size) + ')',
-                    dest_num_components, value_num_components, dest_elem, false);
+        SetRegister(reg, elem, func + '(' + final_value + ')', dest_num_components,
+                    value_num_components, dest_elem, false);
 
         if (sets_cc) {
             if (reg == Register::ZeroIndex) {
-                SetConditionalCodesFromExpression(value);
+                SetConditionalCodesFromExpression(final_value);
             } else {
                 SetConditionalCodesFromRegister(reg, dest_elem);
             }
@@ -1629,7 +1632,7 @@ private:
         if (process_mode != Tegra::Shader::TextureProcessMode::None && gl_lod_supported) {
             if (process_mode == Tegra::Shader::TextureProcessMode::LZ) {
                 texture += ", 0.0";
-                } else {
+            } else {
                 // If present, lod or bias are always stored in the register indexed by the
                 // gpr20
                 // field with an offset depending on the usage of the other registers
