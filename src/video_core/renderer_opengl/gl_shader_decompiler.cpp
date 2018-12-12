@@ -416,12 +416,13 @@ public:
                             u64 dest_num_components, u64 value_num_components,
                             bool is_saturated = false, bool sets_cc = false, u64 dest_elem = 0,
                             bool precise = false) {
-
-        SetRegister(reg, elem, is_saturated ? "clamp(" + value + ", 0.0, 1.0)" : value,
+        const const std::string clamped_value =
+            is_saturated ? "clamp(" + value + ", 0.0, 1.0)" : value;
+        SetRegister(reg, elem, clamped_value,
                     dest_num_components, value_num_components, dest_elem, precise);
         if (sets_cc) {
             if (reg == Register::ZeroIndex) {
-                SetConditionalCodesFromExpression(value);
+                SetConditionalCodesFromExpression(clamped_value);
             } else {
                 SetConditionalCodesFromRegister(reg, dest_elem);
             }
