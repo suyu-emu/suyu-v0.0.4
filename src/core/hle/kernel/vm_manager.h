@@ -159,8 +159,8 @@ struct MemoryInfo {
     u32 state;
     u32 attributes;
     u32 permission;
-    u32 device_refcount;
-    u32 ipc_refcount;
+    u32 ipc_ref_count;
+    u32 device_ref_count;
 };
 static_assert(sizeof(MemoryInfo) == 0x28, "MemoryInfo has incorrect size.");
 
