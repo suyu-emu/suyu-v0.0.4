@@ -1912,7 +1912,7 @@ static const FunctionDef SVC_Table[] = {
     {0x73, nullptr, "SetProcessMemoryPermission"},
     {0x74, nullptr, "MapProcessMemory"},
     {0x75, nullptr, "UnmapProcessMemory"},
-    {0x76, nullptr, "QueryProcessMemory"},
+    {0x76, SvcWrap<QueryProcessMemory>, "QueryProcessMemory"},
     {0x77, nullptr, "MapProcessCodeMemory"},
     {0x78, nullptr, "UnmapProcessCodeMemory"},
     {0x79, nullptr, "CreateProcess"},
