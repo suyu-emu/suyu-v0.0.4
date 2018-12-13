@@ -681,6 +681,10 @@ private:
 
     void WriteTexsInstructionFloat(BasicBlock& bb, Tegra::Shader::Instruction instr, Node texture);
 
+    Node GetTexCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
+                    Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
+                    bool is_array);
+
     Node GetTexsCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
                      Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
                      bool is_array);

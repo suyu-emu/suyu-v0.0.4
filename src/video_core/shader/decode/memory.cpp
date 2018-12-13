@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <vector>
 
 #include "common/assert.h"
@@ -102,6 +103,44 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
 
         break;
     }
+    case OpCode::Id::TEX: {
+        Tegra::Shader::TextureType texture_type{instr.tex.texture_type};
+        const bool is_array = instr.tex.array != 0;
+        const bool depth_compare = instr.tex.UsesMiscMode(TextureMiscMode::DC);
+        const auto process_mode = instr.tex.GetTextureProcessMode();
+        UNIMPLEMENTED_IF_MSG(instr.tex.UsesMiscMode(TextureMiscMode::AOFFI),
+                             "AOFFI is not implemented");
+
+        if (instr.tex.UsesMiscMode(TextureMiscMode::NODEP)) {
+            LOG_WARNING(HW_GPU, "TEX.NODEP is not implemented");
+        }
+
+        const Node texture = GetTexCode(instr, texture_type, process_mode, depth_compare, is_array);
+
+        if (depth_compare) {
+            SetRegister(bb, instr.gpr0, texture);
+        } else {
+            MetaComponents meta;
+            std::array<Node, 4> dest;
+
+            std::size_t dest_elem = 0;
+            for (std::size_t elem = 0; elem < 4; ++elem) {
+                if (!instr.tex.IsComponentEnabled(elem)) {
+                    // Skip disabled components
+                    continue;
+                }
+                meta.components_map[dest_elem] = static_cast<u32>(elem);
+                dest[dest_elem] = GetRegister(instr.gpr0.Value() + dest_elem);
+
+                ++dest_elem;
+            }
+            std::generate(dest.begin() + dest_elem, dest.end(), [&]() { return GetRegister(RZ); });
+
+            bb.push_back(Operation(OperationCode::AssignComposite, std::move(meta), texture,
+                                   dest[0], dest[1], dest[2], dest[3]));
+        }
+        break;
+    }
     case OpCode::Id::TEXS: {
         Tegra::Shader::TextureType texture_type{instr.texs.GetTextureType()};
         const bool is_array{instr.texs.IsArrayTexture()};
@@ -120,6 +159,148 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
         } else {
             UNIMPLEMENTED();
             // WriteTexsInstructionHalfFloat(bb, instr, texture);
+        }
+        break;
+    }
+    case OpCode::Id::TLD4: {
+        ASSERT(instr.tld4.texture_type == Tegra::Shader::TextureType::Texture2D);
+        ASSERT(instr.tld4.array == 0);
+        UNIMPLEMENTED_IF_MSG(instr.tld4.UsesMiscMode(TextureMiscMode::AOFFI),
+                             "AOFFI is not implemented");
+        UNIMPLEMENTED_IF_MSG(instr.tld4.UsesMiscMode(TextureMiscMode::NDV),
+                             "NDV is not implemented");
+        UNIMPLEMENTED_IF_MSG(instr.tld4.UsesMiscMode(TextureMiscMode::PTP),
+                             "PTP is not implemented");
+
+        if (instr.tld4.UsesMiscMode(TextureMiscMode::NODEP)) {
+            LOG_WARNING(HW_GPU, "TLD4.NODEP implementation is incomplete");
+        }
+
+        const bool depth_compare = instr.tld4.UsesMiscMode(TextureMiscMode::DC);
+        auto texture_type = instr.tld4.texture_type.Value();
+        u32 num_coordinates = static_cast<u32>(GetCoordCount(texture_type));
+        if (depth_compare)
+            num_coordinates += 1;
+
+        std::vector<Node> params;
+
+        switch (num_coordinates) {
+        case 2: {
+            params.push_back(GetRegister(instr.gpr8));
+            params.push_back(GetRegister(instr.gpr8.Value() + 1));
+            break;
+        }
+        case 3: {
+            params.push_back(GetRegister(instr.gpr8));
+            params.push_back(GetRegister(instr.gpr8.Value() + 1));
+            params.push_back(GetRegister(instr.gpr8.Value() + 2));
+            break;
+        }
+        default:
+            UNIMPLEMENTED_MSG("Unhandled coordinates number {}", static_cast<u32>(num_coordinates));
+            params.push_back(GetRegister(instr.gpr8));
+            params.push_back(GetRegister(instr.gpr8.Value() + 1));
+            num_coordinates = 2;
+            texture_type = Tegra::Shader::TextureType::Texture2D;
+        }
+        params.push_back(Immediate(static_cast<u32>(instr.tld4.component)));
+
+        const auto& sampler = GetSampler(instr.sampler, texture_type, false, depth_compare);
+        const MetaTexture meta{sampler, num_coordinates};
+
+        const Node texture =
+            Operation(OperationCode::F4TextureGather, std::move(meta), std::move(params));
+
+        if (depth_compare) {
+            SetRegister(bb, instr.gpr0, texture);
+        } else {
+            MetaComponents meta;
+            std::array<Node, 4> dest;
+
+            std::size_t dest_elem = 0;
+            for (std::size_t elem = 0; elem < 4; ++elem) {
+                if (!instr.tex.IsComponentEnabled(elem)) {
+                    // Skip disabled components
+                    continue;
+                }
+                meta.components_map[dest_elem] = static_cast<u32>(elem);
+                dest[dest_elem] = GetRegister(instr.gpr0.Value() + dest_elem);
+
+                ++dest_elem;
+            }
+            std::generate(dest.begin() + dest_elem, dest.end(), [&]() { return GetRegister(RZ); });
+
+            bb.push_back(Operation(OperationCode::AssignComposite, std::move(meta), texture,
+                                   dest[0], dest[1], dest[2], dest[3]));
+        }
+        break;
+    }
+    case OpCode::Id::TLD4S: {
+        UNIMPLEMENTED_IF_MSG(instr.tld4s.UsesMiscMode(TextureMiscMode::AOFFI),
+                             "AOFFI is not implemented");
+
+        if (instr.tld4s.UsesMiscMode(TextureMiscMode::NODEP)) {
+            LOG_WARNING(HW_GPU, "TLD4S.NODEP is not implemented");
+        }
+
+        const bool depth_compare = instr.tld4s.UsesMiscMode(TextureMiscMode::DC);
+        const Node op_a = GetRegister(instr.gpr8);
+        const Node op_b = GetRegister(instr.gpr20);
+
+        std::vector<Node> params;
+
+        // TODO(Subv): Figure out how the sampler type is encoded in the TLD4S instruction.
+        if (depth_compare) {
+            // Note: TLD4S coordinate encoding works just like TEXS's
+            const Node op_y = GetRegister(instr.gpr8.Value() + 1);
+            params.push_back(op_a);
+            params.push_back(op_y);
+            params.push_back(op_b);
+        } else {
+            params.push_back(op_a);
+            params.push_back(op_b);
+        }
+        const auto num_coords = static_cast<u32>(params.size());
+        params.push_back(Immediate(static_cast<u32>(instr.tld4s.component)));
+
+        const auto& sampler =
+            GetSampler(instr.sampler, TextureType::Texture2D, false, depth_compare);
+        const MetaTexture meta{sampler, num_coords};
+
+        WriteTexsInstructionFloat(
+            bb, instr, Operation(OperationCode::F4TextureGather, meta, std::move(params)));
+        break;
+    }
+    case OpCode::Id::TXQ: {
+        if (instr.txq.UsesMiscMode(TextureMiscMode::NODEP)) {
+            LOG_WARNING(HW_GPU, "TXQ.NODEP is not implemented");
+        }
+
+        // TODO: The new commits on the texture refactor, change the way samplers work.
+        // Sadly, not all texture instructions specify the type of texture their sampler
+        // uses. This must be fixed at a later instance.
+        const auto& sampler =
+            GetSampler(instr.sampler, Tegra::Shader::TextureType::Texture2D, false, false);
+
+        switch (instr.txq.query_type) {
+        case Tegra::Shader::TextureQueryType::Dimension: {
+            const MetaTexture meta_texture{sampler};
+            const MetaComponents meta_components{{0, 1, 2, 3}};
+
+            const Node texture = Operation(OperationCode::F4TextureQueryDimensions, meta_texture,
+                                           GetRegister(instr.gpr8));
+            std::array<Node, 4> dest;
+            for (std::size_t i = 0; i < dest.size(); ++i) {
+                dest[i] = GetRegister(instr.gpr0.Value() + i);
+            }
+
+            bb.push_back(Operation(OperationCode::AssignComposite, meta_components, texture,
+                                   dest[0], dest[1], dest[2], dest[3]));
+            break;
+        }
+        default:
+            UNIMPLEMENTED_MSG("Unhandled texture query type: {}",
+                              static_cast<u32>(instr.txq.query_type.Value()));
         }
         break;
     }
@@ -225,6 +406,44 @@ Node ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
     }
 
     return Operation(read_method, meta, std::move(params));
+}
+
+Node ShaderIR::GetTexCode(Instruction instr, TextureType texture_type,
+                          TextureProcessMode process_mode, bool depth_compare, bool is_array) {
+    const bool lod_bias_enabled = (process_mode != Tegra::Shader::TextureProcessMode::None &&
+                                   process_mode != Tegra::Shader::TextureProcessMode::LZ);
+
+    const auto [coord_count, total_coord_count] = ValidateAndGetCoordinateElement(
+        texture_type, depth_compare, is_array, lod_bias_enabled, 4, 5);
+    // If enabled arrays index is always stored in the gpr8 field
+    const u64 array_register = instr.gpr8.Value();
+    // First coordinate index is the gpr8 or gpr8 + 1 when arrays are used
+    const u64 coord_register = array_register + (is_array ? 1 : 0);
+
+    std::vector<Node> coords;
+    for (std::size_t i = 0; i < coord_count; ++i) {
+        coords.push_back(GetRegister(coord_register + i));
+    }
+    // 1D.DC in opengl the 2nd component is ignored.
+    if (depth_compare && !is_array && texture_type == TextureType::Texture1D) {
+        coords.push_back(Immediate(0.0f));
+    }
+    if (depth_compare) {
+        // Depth is always stored in the register signaled by gpr20
+        // or in the next register if lod or bias are used
+        const u64 depth_register = instr.gpr20.Value() + (lod_bias_enabled ? 1 : 0);
+        coords.push_back(GetRegister(depth_register));
+    }
+    if (is_array) {
+        coords.push_back(GetRegister(array_register));
+    }
+    // Fill ignored coordinates
+    while (coords.size() < total_coord_count) {
+        coords.push_back(Immediate(0));
+    }
+
+    return GetTextureCode(instr, texture_type, process_mode, depth_compare, is_array, 0,
+                          std::move(coords));
 }
 
 Node ShaderIR::GetTexsCode(Instruction instr, TextureType texture_type,
