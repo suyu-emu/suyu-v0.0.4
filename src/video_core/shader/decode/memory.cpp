@@ -112,7 +112,7 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
                              "AOFFI is not implemented");
 
         if (instr.tex.UsesMiscMode(TextureMiscMode::NODEP)) {
-            LOG_WARNING(HW_GPU, "TEX.NODEP is not implemented");
+            LOG_WARNING(HW_GPU, "TEX.NODEP implementation is incomplete");
         }
 
         const Node texture = GetTexCode(instr, texture_type, process_mode, depth_compare, is_array);
@@ -240,7 +240,7 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
                              "AOFFI is not implemented");
 
         if (instr.tld4s.UsesMiscMode(TextureMiscMode::NODEP)) {
-            LOG_WARNING(HW_GPU, "TLD4S.NODEP is not implemented");
+            LOG_WARNING(HW_GPU, "TLD4S.NODEP implementation is incomplete");
         }
 
         const bool depth_compare = instr.tld4s.UsesMiscMode(TextureMiscMode::DC);
@@ -273,7 +273,7 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
     }
     case OpCode::Id::TXQ: {
         if (instr.txq.UsesMiscMode(TextureMiscMode::NODEP)) {
-            LOG_WARNING(HW_GPU, "TXQ.NODEP is not implemented");
+            LOG_WARNING(HW_GPU, "TXQ.NODEP implementation is incomplete");
         }
 
         // TODO: The new commits on the texture refactor, change the way samplers work.
@@ -302,6 +302,48 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
             UNIMPLEMENTED_MSG("Unhandled texture query type: {}",
                               static_cast<u32>(instr.txq.query_type.Value()));
         }
+        break;
+    }
+    case OpCode::Id::TMML: {
+        UNIMPLEMENTED_IF_MSG(instr.tmml.UsesMiscMode(Tegra::Shader::TextureMiscMode::NDV),
+                             "NDV is not implemented");
+
+        if (instr.tmml.UsesMiscMode(TextureMiscMode::NODEP)) {
+            LOG_WARNING(HW_GPU, "TMML.NODEP implementation is incomplete");
+        }
+
+        auto texture_type = instr.tmml.texture_type.Value();
+        const bool is_array = instr.tmml.array != 0;
+        const auto& sampler = GetSampler(instr.sampler, texture_type, is_array, false);
+
+        std::vector<Node> coords;
+
+        // TODO: Add coordinates for different samplers once other texture types are implemented.
+        switch (texture_type) {
+        case TextureType::Texture1D:
+            coords.push_back(GetRegister(instr.gpr8));
+            break;
+        case TextureType::Texture2D:
+            coords.push_back(GetRegister(instr.gpr8.Value() + 0));
+            coords.push_back(GetRegister(instr.gpr8.Value() + 1));
+            break;
+        default:
+            UNIMPLEMENTED_MSG("Unhandled texture type {}", static_cast<u32>(texture_type));
+
+            // Fallback to interpreting as a 2D texture for now
+            coords.push_back(GetRegister(instr.gpr8.Value() + 0));
+            coords.push_back(GetRegister(instr.gpr8.Value() + 1));
+            texture_type = TextureType::Texture2D;
+        }
+
+        const MetaTexture meta_texture{sampler, static_cast<u32>(coords.size())};
+        const Node texture =
+            Operation(OperationCode::F4TextureQueryLod, meta_texture, std::move(coords));
+
+        const MetaComponents meta_composite{{0, 1, 2, 3}};
+        bb.push_back(Operation(OperationCode::AssignComposite, meta_composite, texture,
+                               GetRegister(instr.gpr0), GetRegister(instr.gpr0.Value() + 1),
+                               GetRegister(RZ), GetRegister(RZ)));
         break;
     }
     default:
