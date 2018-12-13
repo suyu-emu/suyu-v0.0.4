@@ -30,8 +30,7 @@ static Stream::Format ChannelsToStreamFormat(u32 num_channels) {
 StreamPtr AudioOut::OpenStream(u32 sample_rate, u32 num_channels, std::string&& name,
                                Stream::ReleaseCallback&& release_callback) {
     if (!sink) {
-        const SinkDetails& sink_details = GetSinkDetails(Settings::values.sink_id);
-        sink = sink_details.factory(Settings::values.audio_device_id);
+        sink = CreateSinkFromID(Settings::values.sink_id, Settings::values.audio_device_id);
     }
 
     return std::make_shared<Stream>(

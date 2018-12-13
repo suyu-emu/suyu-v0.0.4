@@ -107,7 +107,7 @@ private:
     static void StateCallback(cubeb_stream* stream, void* user_data, cubeb_state state);
 };
 
-CubebSink::CubebSink(std::string target_device_name) {
+CubebSink::CubebSink(std::string_view target_device_name) {
     if (cubeb_init(&ctx, "yuzu", nullptr) != CUBEB_OK) {
         LOG_CRITICAL(Audio_Sink, "cubeb_init failed");
         return;

@@ -10,7 +10,7 @@ namespace AudioCore {
 
 class NullSink final : public Sink {
 public:
-    explicit NullSink(std::string){};
+    explicit NullSink(std::string_view) {}
     ~NullSink() override = default;
 
     SinkStream& AcquireSinkStream(u32 /*sample_rate*/, u32 /*num_channels*/,

@@ -15,7 +15,7 @@ namespace AudioCore {
 
 class CubebSink final : public Sink {
 public:
-    explicit CubebSink(std::string device_id);
+    explicit CubebSink(std::string_view device_id);
     ~CubebSink() override;
 
     SinkStream& AcquireSinkStream(u32 sample_rate, u32 num_channels,
