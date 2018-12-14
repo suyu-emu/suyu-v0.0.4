@@ -43,6 +43,88 @@ enum class VMAPermission : u8 {
     ReadWriteExecute = Read | Write | Execute,
 };
 
+constexpr VMAPermission operator|(VMAPermission lhs, VMAPermission rhs) {
+    return static_cast<VMAPermission>(u32(lhs) | u32(rhs));
+}
+
+constexpr VMAPermission operator&(VMAPermission lhs, VMAPermission rhs) {
+    return static_cast<VMAPermission>(u32(lhs) & u32(rhs));
+}
+
+constexpr VMAPermission operator^(VMAPermission lhs, VMAPermission rhs) {
+    return static_cast<VMAPermission>(u32(lhs) ^ u32(rhs));
+}
+
+constexpr VMAPermission operator~(VMAPermission permission) {
+    return static_cast<VMAPermission>(~u32(permission));
+}
+
+constexpr VMAPermission& operator|=(VMAPermission& lhs, VMAPermission rhs) {
+    lhs = lhs | rhs;
+    return lhs;
+}
+
+constexpr VMAPermission& operator&=(VMAPermission& lhs, VMAPermission rhs) {
+    lhs = lhs & rhs;
+    return lhs;
+}
+
+constexpr VMAPermission& operator^=(VMAPermission& lhs, VMAPermission rhs) {
+    lhs = lhs ^ rhs;
+    return lhs;
+}
+
+/// Attribute flags that can be applied to a VMA
+enum class MemoryAttribute : u32 {
+    Mask = 0xFF,
+
+    /// No particular qualities
+    None = 0,
+    /// Memory locked/borrowed for use. e.g. This would be used by transfer memory.
+    Locked = 1,
+    /// Memory locked for use by IPC-related internals.
+    LockedForIPC = 2,
+    /// Mapped as part of the device address space.
+    DeviceMapped = 4,
+    /// Uncached memory
+    Uncached = 8,
+};
+
+constexpr MemoryAttribute operator|(MemoryAttribute lhs, MemoryAttribute rhs) {
+    return static_cast<MemoryAttribute>(u32(lhs) | u32(rhs));
+}
+
+constexpr MemoryAttribute operator&(MemoryAttribute lhs, MemoryAttribute rhs) {
+    return static_cast<MemoryAttribute>(u32(lhs) & u32(rhs));
+}
+
+constexpr MemoryAttribute operator^(MemoryAttribute lhs, MemoryAttribute rhs) {
+    return static_cast<MemoryAttribute>(u32(lhs) ^ u32(rhs));
+}
+
+constexpr MemoryAttribute operator~(MemoryAttribute attribute) {
+    return static_cast<MemoryAttribute>(~u32(attribute));
+}
+
+constexpr MemoryAttribute& operator|=(MemoryAttribute& lhs, MemoryAttribute rhs) {
+    lhs = lhs | rhs;
+    return lhs;
+}
+
+constexpr MemoryAttribute& operator&=(MemoryAttribute& lhs, MemoryAttribute rhs) {
+    lhs = lhs & rhs;
+    return lhs;
+}
+
+constexpr MemoryAttribute& operator^=(MemoryAttribute& lhs, MemoryAttribute rhs) {
+    lhs = lhs ^ rhs;
+    return lhs;
+}
+
+constexpr u32 ToSvcMemoryAttribute(MemoryAttribute attribute) {
+    return static_cast<u32>(attribute & MemoryAttribute::Mask);
+}
+
 // clang-format off
 /// Represents memory states and any relevant flags, as used by the kernel.
 /// svcQueryMemory interprets these by masking away all but the first eight
@@ -183,6 +265,7 @@ struct VirtualMemoryArea {
     VMAPermission permissions = VMAPermission::None;
     /// Tag returned by svcQueryMemory. Not otherwise used.
     MemoryState meminfo_state = MemoryState::Unmapped;
+    MemoryAttribute attribute = MemoryAttribute::None;
 
     // Settings for type = AllocatedMemoryBlock
     /// Memory block backing this VMA.

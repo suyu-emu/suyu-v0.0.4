@@ -38,7 +38,7 @@ static const char* GetMemoryStateName(MemoryState state) {
 bool VirtualMemoryArea::CanBeMergedWith(const VirtualMemoryArea& next) const {
     ASSERT(base + size == next.base);
     if (permissions != next.permissions || meminfo_state != next.meminfo_state ||
-        type != next.type) {
+        attribute != next.attribute || type != next.type) {
         return false;
     }
     if (type == VMAType::AllocatedMemoryBlock &&
@@ -308,6 +308,7 @@ MemoryInfo VMManager::QueryMemory(VAddr address) const {
 
     if (IsValidHandle(vma)) {
         memory_info.base_address = vma->second.base;
+        memory_info.attributes = ToSvcMemoryAttribute(vma->second.attribute);
         memory_info.permission = static_cast<u32>(vma->second.permissions);
         memory_info.size = vma->second.size;
         memory_info.state = ToSvcMemoryState(vma->second.meminfo_state);
