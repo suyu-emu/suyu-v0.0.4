@@ -43,26 +43,129 @@ enum class VMAPermission : u8 {
     ReadWriteExecute = Read | Write | Execute,
 };
 
-/// Set of values returned in MemoryInfo.state by svcQueryMemory.
+// clang-format off
+/// Represents memory states and any relevant flags, as used by the kernel.
+/// svcQueryMemory interprets these by masking away all but the first eight
+/// bits when storing memory state into a MemoryInfo instance.
 enum class MemoryState : u32 {
-    Unmapped = 0x0,
-    Io = 0x1,
-    Normal = 0x2,
-    CodeStatic = 0x3,
-    CodeMutable = 0x4,
-    Heap = 0x5,
-    Shared = 0x6,
-    ModuleCodeStatic = 0x8,
-    ModuleCodeMutable = 0x9,
-    IpcBuffer0 = 0xA,
-    Mapped = 0xB,
-    ThreadLocal = 0xC,
-    TransferMemoryIsolated = 0xD,
-    TransferMemory = 0xE,
-    ProcessMemory = 0xF,
-    IpcBuffer1 = 0x11,
-    IpcBuffer3 = 0x12,
-    KernelStack = 0x13,
+    Mask                            = 0xFF,
+    FlagProtect                     = 1U << 8,
+    FlagDebug                       = 1U << 9,
+    FlagIPC0                        = 1U << 10,
+    FlagIPC3                        = 1U << 11,
+    FlagIPC1                        = 1U << 12,
+    FlagMapped                      = 1U << 13,
+    FlagCode                        = 1U << 14,
+    FlagAlias                       = 1U << 15,
+    FlagModule                      = 1U << 16,
+    FlagTransfer                    = 1U << 17,
+    FlagQueryPhysicalAddressAllowed = 1U << 18,
+    FlagSharedDevice                = 1U << 19,
+    FlagSharedDeviceAligned         = 1U << 20,
+    FlagIPCBuffer                   = 1U << 21,
+    FlagMemoryPoolAllocated         = 1U << 22,
+    FlagMapProcess                  = 1U << 23,
+    FlagUncached                    = 1U << 24,
+    FlagCodeMemory                  = 1U << 25,
+
+    // Convenience flag sets to reduce repetition
+    IPCFlags = FlagIPC0 | FlagIPC3 | FlagIPC1,
+
+    CodeFlags = FlagDebug | IPCFlags | FlagMapped | FlagCode | FlagQueryPhysicalAddressAllowed |
+                FlagSharedDevice | FlagSharedDeviceAligned | FlagMemoryPoolAllocated,
+
+    DataFlags = FlagProtect | IPCFlags | FlagMapped | FlagAlias | FlagTransfer |
+                FlagQueryPhysicalAddressAllowed | FlagSharedDevice | FlagSharedDeviceAligned |
+                FlagMemoryPoolAllocated | FlagIPCBuffer | FlagUncached,
+
+    Unmapped               = 0x00,
+    Io                     = 0x01 | FlagMapped,
+    Normal                 = 0x02 | FlagMapped | FlagQueryPhysicalAddressAllowed,
+    CodeStatic             = 0x03 | CodeFlags  | FlagMapProcess,
+    CodeMutable            = 0x04 | CodeFlags  | FlagMapProcess | FlagCodeMemory,
+    Heap                   = 0x05 | DataFlags  | FlagCodeMemory,
+    Shared                 = 0x06 | FlagMapped | FlagMemoryPoolAllocated,
+    ModuleCodeStatic       = 0x08 | CodeFlags  | FlagModule | FlagMapProcess,
+    ModuleCodeMutable      = 0x09 | DataFlags  | FlagModule | FlagMapProcess | FlagCodeMemory,
+
+    IpcBuffer0             = 0x0A | FlagMapped | FlagQueryPhysicalAddressAllowed | FlagMemoryPoolAllocated |
+                                    IPCFlags | FlagSharedDevice | FlagSharedDeviceAligned,
+
+    Stack                  = 0x0B | FlagMapped | IPCFlags | FlagQueryPhysicalAddressAllowed |
+                                    FlagSharedDevice | FlagSharedDeviceAligned | FlagMemoryPoolAllocated,
+
+    ThreadLocal            = 0x0C | FlagMapped | FlagMemoryPoolAllocated,
+
+    TransferMemoryIsolated = 0x0D | IPCFlags | FlagMapped | FlagQueryPhysicalAddressAllowed |
+                                    FlagSharedDevice | FlagSharedDeviceAligned | FlagMemoryPoolAllocated |
+                                    FlagUncached,
+
+    TransferMemory         = 0x0E | FlagIPC3   | FlagIPC1   | FlagMapped | FlagQueryPhysicalAddressAllowed |
+                                    FlagSharedDevice | FlagSharedDeviceAligned | FlagMemoryPoolAllocated,
+
+    ProcessMemory          = 0x0F | FlagIPC3   | FlagIPC1   | FlagMapped | FlagMemoryPoolAllocated,
+
+    // Used to signify an inaccessible or invalid memory region with memory queries
+    Inaccessible           = 0x10,
+
+    IpcBuffer1             = 0x11 | FlagIPC3   | FlagIPC1   | FlagMapped | FlagQueryPhysicalAddressAllowed |
+                                    FlagSharedDevice | FlagSharedDeviceAligned | FlagMemoryPoolAllocated,
+
+    IpcBuffer3             = 0x12 | FlagIPC3   | FlagMapped | FlagQueryPhysicalAddressAllowed |
+                                    FlagSharedDeviceAligned | FlagMemoryPoolAllocated,
+
+    KernelStack            = 0x13 | FlagMapped,
+};
+// clang-format on
+
+constexpr MemoryState operator|(MemoryState lhs, MemoryState rhs) {
+    return static_cast<MemoryState>(u32(lhs) | u32(rhs));
+}
+
+constexpr MemoryState operator&(MemoryState lhs, MemoryState rhs) {
+    return static_cast<MemoryState>(u32(lhs) & u32(rhs));
+}
+
+constexpr MemoryState operator^(MemoryState lhs, MemoryState rhs) {
+    return static_cast<MemoryState>(u32(lhs) ^ u32(rhs));
+}
+
+constexpr MemoryState operator~(MemoryState lhs) {
+    return static_cast<MemoryState>(~u32(lhs));
+}
+
+constexpr MemoryState& operator|=(MemoryState& lhs, MemoryState rhs) {
+    lhs = lhs | rhs;
+    return lhs;
+}
+
+constexpr MemoryState& operator&=(MemoryState& lhs, MemoryState rhs) {
+    lhs = lhs & rhs;
+    return lhs;
+}
+
+constexpr MemoryState& operator^=(MemoryState& lhs, MemoryState rhs) {
+    lhs = lhs ^ rhs;
+    return lhs;
+}
+
+constexpr u32 ToSvcMemoryState(MemoryState state) {
+    return static_cast<u32>(state & MemoryState::Mask);
+}
+
+struct MemoryInfo {
+    u64 base_address;
+    u64 size;
+    u32 state;
+    u32 attributes;
+    u32 permission;
+    u32 ipc_ref_count;
+    u32 device_ref_count;
+};
+static_assert(sizeof(MemoryInfo) == 0x28, "MemoryInfo has incorrect size.");
+
+struct PageInfo {
+    u32 flags;
 };
 
 /**
@@ -186,8 +289,15 @@ public:
     ResultVal<VAddr> HeapAllocate(VAddr target, u64 size, VMAPermission perms);
     ResultCode HeapFree(VAddr target, u64 size);
 
-    ResultCode MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size,
-                            MemoryState state = MemoryState::Mapped);
+    ResultCode MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size, MemoryState state);
+
+    /// Queries the memory manager for information about the given address.
+    ///
+    /// @param address The address to query the memory manager about for information.
+    ///
+    /// @return A MemoryInfo instance containing information about the given address.
+    ///
+    MemoryInfo QueryMemory(VAddr address) const;
 
     /**
      * Scans all VMAs and updates the page table range of any that use the given vector as backing

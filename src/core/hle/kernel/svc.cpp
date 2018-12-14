@@ -35,6 +35,7 @@
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
 #include "core/hle/service/service.h"
+#include "core/memory.h"
 
 namespace Kernel {
 namespace {
@@ -273,7 +274,7 @@ static ResultCode MapMemory(VAddr dst_addr, VAddr src_addr, u64 size) {
         return result;
     }
 
-    return current_process->MirrorMemory(dst_addr, src_addr, size);
+    return current_process->MirrorMemory(dst_addr, src_addr, size, MemoryState::Stack);
 }
 
 /// Unmaps a region that was previously mapped with svcMapMemory
@@ -1066,10 +1067,9 @@ static ResultCode UnmapSharedMemory(Handle shared_memory_handle, VAddr addr, u64
     return shared_memory->Unmap(*current_process, addr);
 }
 
-/// Query process memory
-static ResultCode QueryProcessMemory(MemoryInfo* memory_info, PageInfo* /*page_info*/,
-                                     Handle process_handle, u64 addr) {
-    LOG_TRACE(Kernel_SVC, "called process=0x{:08X} addr={:X}", process_handle, addr);
+static ResultCode QueryProcessMemory(VAddr memory_info_address, VAddr page_info_address,
+                                     Handle process_handle, VAddr address) {
+    LOG_TRACE(Kernel_SVC, "called process=0x{:08X} address={:X}", process_handle, address);
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
     SharedPtr<Process> process = handle_table.Get<Process>(process_handle);
     if (!process) {
@@ -1079,28 +1079,32 @@ static ResultCode QueryProcessMemory(MemoryInfo* memory_info, PageInfo* /*page_i
     }
 
     const auto& vm_manager = process->VMManager();
-    const auto vma = vm_manager.FindVMA(addr);
+    const MemoryInfo memory_info = vm_manager.QueryMemory(address);
 
-    memory_info->attributes = 0;
-    if (vm_manager.IsValidHandle(vma)) {
-        memory_info->base_address = vma->second.base;
-        memory_info->permission = static_cast<u32>(vma->second.permissions);
-        memory_info->size = vma->second.size;
-        memory_info->type = static_cast<u32>(vma->second.meminfo_state);
-    } else {
-        memory_info->base_address = 0;
-        memory_info->permission = static_cast<u32>(VMAPermission::None);
-        memory_info->size = 0;
-        memory_info->type = static_cast<u32>(MemoryState::Unmapped);
-    }
+    Memory::Write64(memory_info_address, memory_info.base_address);
+    Memory::Write64(memory_info_address + 8, memory_info.size);
+    Memory::Write32(memory_info_address + 16, memory_info.state);
+    Memory::Write32(memory_info_address + 20, memory_info.attributes);
+    Memory::Write32(memory_info_address + 24, memory_info.permission);
+    Memory::Write32(memory_info_address + 32, memory_info.ipc_ref_count);
+    Memory::Write32(memory_info_address + 28, memory_info.device_ref_count);
+    Memory::Write32(memory_info_address + 36, 0);
+
+    // Page info appears to be currently unused by the kernel and is always set to zero.
+    Memory::Write32(page_info_address, 0);
 
     return RESULT_SUCCESS;
 }
 
-/// Query memory
-static ResultCode QueryMemory(MemoryInfo* memory_info, PageInfo* page_info, VAddr addr) {
-    LOG_TRACE(Kernel_SVC, "called, addr={:X}", addr);
-    return QueryProcessMemory(memory_info, page_info, CurrentProcess, addr);
+static ResultCode QueryMemory(VAddr memory_info_address, VAddr page_info_address,
+                              VAddr query_address) {
+    LOG_TRACE(Kernel_SVC,
+              "called, memory_info_address=0x{:016X}, page_info_address=0x{:016X}, "
+              "query_address=0x{:016X}",
+              memory_info_address, page_info_address, query_address);
+
+    return QueryProcessMemory(memory_info_address, page_info_address, CurrentProcess,
+                              query_address);
 }
 
 /// Exits the current process
@@ -1907,7 +1911,7 @@ static const FunctionDef SVC_Table[] = {
     {0x73, nullptr, "SetProcessMemoryPermission"},
     {0x74, nullptr, "MapProcessMemory"},
     {0x75, nullptr, "UnmapProcessMemory"},
-    {0x76, nullptr, "QueryProcessMemory"},
+    {0x76, SvcWrap<QueryProcessMemory>, "QueryProcessMemory"},
     {0x77, nullptr, "MapProcessCodeMemory"},
     {0x78, nullptr, "UnmapProcessCodeMemory"},
     {0x79, nullptr, "CreateProcess"},

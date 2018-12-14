@@ -150,7 +150,7 @@ void Process::Run(VAddr entry_point, s32 main_thread_priority, u32 stack_size) {
     vm_manager
         .MapMemoryBlock(vm_manager.GetTLSIORegionEndAddress() - stack_size,
                         std::make_shared<std::vector<u8>>(stack_size, 0), 0, stack_size,
-                        MemoryState::Mapped)
+                        MemoryState::Stack)
         .Unwrap();
 
     vm_manager.LogLayout();

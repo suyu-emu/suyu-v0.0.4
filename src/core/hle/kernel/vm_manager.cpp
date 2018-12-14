@@ -25,14 +25,14 @@ static const char* GetMemoryStateName(MemoryState state) {
         "CodeMutable",      "Heap",
         "Shared",           "Unknown1",
         "ModuleCodeStatic", "ModuleCodeMutable",
-        "IpcBuffer0",       "Mapped",
+        "IpcBuffer0",       "Stack",
         "ThreadLocal",      "TransferMemoryIsolated",
         "TransferMemory",   "ProcessMemory",
-        "Unknown2",         "IpcBuffer1",
+        "Inaccessible",     "IpcBuffer1",
         "IpcBuffer3",       "KernelStack",
     };
 
-    return names[static_cast<int>(state)];
+    return names[ToSvcMemoryState(state)];
 }
 
 bool VirtualMemoryArea::CanBeMergedWith(const VirtualMemoryArea& next) const {
@@ -300,6 +300,25 @@ ResultCode VMManager::HeapFree(VAddr target, u64 size) {
 
     heap_used -= size;
     return RESULT_SUCCESS;
+}
+
+MemoryInfo VMManager::QueryMemory(VAddr address) const {
+    const auto vma = FindVMA(address);
+    MemoryInfo memory_info{};
+
+    if (IsValidHandle(vma)) {
+        memory_info.base_address = vma->second.base;
+        memory_info.permission = static_cast<u32>(vma->second.permissions);
+        memory_info.size = vma->second.size;
+        memory_info.state = ToSvcMemoryState(vma->second.meminfo_state);
+    } else {
+        memory_info.base_address = address_space_end;
+        memory_info.permission = static_cast<u32>(VMAPermission::None);
+        memory_info.size = 0 - address_space_end;
+        memory_info.state = static_cast<u32>(MemoryState::Inaccessible);
+    }
+
+    return memory_info;
 }
 
 ResultCode VMManager::MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size, MemoryState state) {
