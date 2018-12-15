@@ -322,6 +322,34 @@ MemoryInfo VMManager::QueryMemory(VAddr address) const {
     return memory_info;
 }
 
+ResultCode VMManager::SetMemoryAttribute(VAddr address, u64 size, MemoryAttribute mask,
+                                         MemoryAttribute attribute) {
+    constexpr auto ignore_mask = MemoryAttribute::Uncached | MemoryAttribute::DeviceMapped;
+    constexpr auto attribute_mask = ~ignore_mask;
+
+    const auto result = CheckRangeState(
+        address, size, MemoryState::FlagUncached, MemoryState::FlagUncached, VMAPermission::None,
+        VMAPermission::None, attribute_mask, MemoryAttribute::None, ignore_mask);
+
+    if (result.Failed()) {
+        return result.Code();
+    }
+
+    const auto [prev_state, prev_permissions, prev_attributes] = *result;
+    const auto new_attribute = (prev_attributes & ~mask) | (mask & attribute);
+
+    const auto carve_result = CarveVMARange(address, size);
+    if (carve_result.Failed()) {
+        return carve_result.Code();
+    }
+
+    auto vma_iter = *carve_result;
+    vma_iter->second.attribute = new_attribute;
+
+    MergeAdjacent(vma_iter);
+    return RESULT_SUCCESS;
+}
+
 ResultCode VMManager::MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size, MemoryState state) {
     const auto vma = FindVMA(src_addr);
 

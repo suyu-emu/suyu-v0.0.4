@@ -392,6 +392,19 @@ public:
     ///
     MemoryInfo QueryMemory(VAddr address) const;
 
+    /// Sets an attribute across the given address range.
+    ///
+    /// @param address   The starting address
+    /// @param size      The size of the range to set the attribute on.
+    /// @param mask      The attribute mask
+    /// @param attribute The attribute to set across the given address range
+    ///
+    /// @returns RESULT_SUCCESS if successful
+    /// @returns ERR_INVALID_ADDRESS_STATE if the attribute could not be set.
+    ///
+    ResultCode SetMemoryAttribute(VAddr address, u64 size, MemoryAttribute mask,
+                                  MemoryAttribute attribute);
+
     /**
      * Scans all VMAs and updates the page table range of any that use the given vector as backing
      * memory. This should be called after any operation that causes reallocation of the vector.
