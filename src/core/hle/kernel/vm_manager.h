@@ -6,6 +6,7 @@
 
 #include <map>
 #include <memory>
+#include <tuple>
 #include <vector>
 #include "common/common_types.h"
 #include "core/hle/result.h"
@@ -256,6 +257,16 @@ struct PageInfo {
  * also backed by a single host memory allocation.
  */
 struct VirtualMemoryArea {
+    /// Gets the starting (base) address of this VMA.
+    VAddr StartAddress() const {
+        return base;
+    }
+
+    /// Gets the ending address of this VMA.
+    VAddr EndAddress() const {
+        return base + size - 1;
+    }
+
     /// Virtual base address of the region.
     VAddr base = 0;
     /// Size of the region.
@@ -516,6 +527,35 @@ private:
 
     /// Clears out the page table
     void ClearPageTable();
+
+    using CheckResults = ResultVal<std::tuple<MemoryState, VMAPermission, MemoryAttribute>>;
+
+    /// Checks if an address range adheres to the specified states provided.
+    ///
+    /// @param address         The starting address of the address range.
+    /// @param size            The size of the address range.
+    /// @param state_mask      The memory state mask.
+    /// @param state           The state to compare the individual VMA states against,
+    ///                        which is done in the form of: (vma.state & state_mask) != state.
+    /// @param permission_mask The memory permissions mask.
+    /// @param permissions     The permission to compare the individual VMA permissions against,
+    ///                        which is done in the form of:
+    ///                        (vma.permission & permission_mask) != permission.
+    /// @param attribute_mask  The memory attribute mask.
+    /// @param attribute       The memory attributes to compare the individual VMA attributes
+    ///                        against, which is done in the form of:
+    ///                        (vma.attributes & attribute_mask) != attribute.
+    /// @param ignore_mask     The memory attributes to ignore during the check.
+    ///
+    /// @returns If successful, returns a tuple containing the memory attributes
+    ///          (with ignored bits specified by ignore_mask unset), memory permissions, and
+    ///          memory state across the memory range.
+    /// @returns If not successful, returns ERR_INVALID_ADDRESS_STATE.
+    ///
+    CheckResults CheckRangeState(VAddr address, u64 size, MemoryState state_mask, MemoryState state,
+                                 VMAPermission permission_mask, VMAPermission permissions,
+                                 MemoryAttribute attribute_mask, MemoryAttribute attribute,
+                                 MemoryAttribute ignore_mask) const;
 
     /**
      * A map covering the entirety of the managed address space, keyed by the `base` field of each

@@ -592,6 +592,66 @@ void VMManager::ClearPageTable() {
               Memory::PageType::Unmapped);
 }
 
+VMManager::CheckResults VMManager::CheckRangeState(VAddr address, u64 size, MemoryState state_mask,
+                                                   MemoryState state, VMAPermission permission_mask,
+                                                   VMAPermission permissions,
+                                                   MemoryAttribute attribute_mask,
+                                                   MemoryAttribute attribute,
+                                                   MemoryAttribute ignore_mask) const {
+    auto iter = FindVMA(address);
+
+    // If we don't have a valid VMA handle at this point, then it means this is
+    // being called with an address outside of the address space, which is definitely
+    // indicative of a bug, as this function only operates on mapped memory regions.
+    DEBUG_ASSERT(IsValidHandle(iter));
+
+    const VAddr end_address = address + size - 1;
+    const MemoryAttribute initial_attributes = iter->second.attribute;
+    const VMAPermission initial_permissions = iter->second.permissions;
+    const MemoryState initial_state = iter->second.state;
+
+    while (true) {
+        // The iterator should be valid throughout the traversal. Hitting the end of
+        // the mapped VMA regions is unquestionably indicative of a bug.
+        DEBUG_ASSERT(IsValidHandle(iter));
+
+        const auto& vma = iter->second;
+
+        if (vma.state != initial_state) {
+            return ERR_INVALID_ADDRESS_STATE;
+        }
+
+        if ((vma.state & state_mask) != state) {
+            return ERR_INVALID_ADDRESS_STATE;
+        }
+
+        if (vma.permissions != initial_permissions) {
+            return ERR_INVALID_ADDRESS_STATE;
+        }
+
+        if ((vma.permissions & permission_mask) != permissions) {
+            return ERR_INVALID_ADDRESS_STATE;
+        }
+
+        if ((vma.attribute | ignore_mask) != (initial_attributes | ignore_mask)) {
+            return ERR_INVALID_ADDRESS_STATE;
+        }
+
+        if ((vma.attribute & attribute_mask) != attribute) {
+            return ERR_INVALID_ADDRESS_STATE;
+        }
+
+        if (end_address <= vma.EndAddress()) {
+            break;
+        }
+
+        ++iter;
+    }
+
+    return MakeResult(
+        std::make_tuple(initial_state, initial_permissions, initial_attributes & ~ignore_mask));
+}
+
 u64 VMManager::GetTotalMemoryUsage() const {
     LOG_WARNING(Kernel, "(STUBBED) called");
     return 0xF8000000;
