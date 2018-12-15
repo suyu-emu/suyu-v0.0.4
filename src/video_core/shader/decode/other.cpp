@@ -57,6 +57,25 @@ u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
         bb.push_back(Operation(OperationCode::Bra, Immediate(target)));
         break;
     }
+    case OpCode::Id::SSY: {
+        UNIMPLEMENTED_IF_MSG(instr.bra.constant_buffer != 0,
+                             "Constant buffer flow is not supported");
+
+        // The SSY opcode tells the GPU where to re-converge divergent execution paths, it sets the
+        // target of the jump that the SYNC instruction will make. The SSY opcode has a similar
+        // structure to the BRA opcode.
+        bb.push_back(Operation(OperationCode::Ssy, Immediate(pc + instr.bra.GetBranchTarget())));
+        break;
+    }
+    case OpCode::Id::SYNC: {
+        const Tegra::Shader::ConditionCode cc = instr.flow_condition_code;
+        UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ConditionCode::T, "SYNC condition code used: {}",
+                             static_cast<u32>(cc));
+
+        // The SYNC opcode jumps to the address previously set by the SSY opcode
+        bb.push_back(Operation(OperationCode::Sync));
+        break;
+    }
     case OpCode::Id::IPA: {
         const auto& attribute = instr.attribute.fmt28;
         const Tegra::Shader::IpaMode input_mode{instr.ipa.interp_mode.Value(),
