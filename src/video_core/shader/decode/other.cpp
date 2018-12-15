@@ -88,6 +88,10 @@ u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, value);
         break;
     }
+    case OpCode::Id::DEPBAR: {
+        LOG_WARNING(HW_GPU, "DEPBAR instruction is stubbed");
+        break;
+    }
     default:
         UNIMPLEMENTED_MSG("Unhandled instruction: {}", opcode->get().GetName());
     }
