@@ -37,8 +37,8 @@ static const char* GetMemoryStateName(MemoryState state) {
 
 bool VirtualMemoryArea::CanBeMergedWith(const VirtualMemoryArea& next) const {
     ASSERT(base + size == next.base);
-    if (permissions != next.permissions || meminfo_state != next.meminfo_state ||
-        attribute != next.attribute || type != next.type) {
+    if (permissions != next.permissions || state != next.state || attribute != next.attribute ||
+        type != next.type) {
         return false;
     }
     if (type == VMAType::AllocatedMemoryBlock &&
@@ -115,7 +115,7 @@ ResultVal<VMManager::VMAHandle> VMManager::MapMemoryBlock(VAddr target,
 
     final_vma.type = VMAType::AllocatedMemoryBlock;
     final_vma.permissions = VMAPermission::ReadWrite;
-    final_vma.meminfo_state = state;
+    final_vma.state = state;
     final_vma.backing_block = std::move(block);
     final_vma.offset = offset;
     UpdatePageTableForVMA(final_vma);
@@ -140,7 +140,7 @@ ResultVal<VMManager::VMAHandle> VMManager::MapBackingMemory(VAddr target, u8* me
 
     final_vma.type = VMAType::BackingMemory;
     final_vma.permissions = VMAPermission::ReadWrite;
-    final_vma.meminfo_state = state;
+    final_vma.state = state;
     final_vma.backing_memory = memory;
     UpdatePageTableForVMA(final_vma);
 
@@ -177,7 +177,7 @@ ResultVal<VMManager::VMAHandle> VMManager::MapMMIO(VAddr target, PAddr paddr, u6
 
     final_vma.type = VMAType::MMIO;
     final_vma.permissions = VMAPermission::ReadWrite;
-    final_vma.meminfo_state = state;
+    final_vma.state = state;
     final_vma.paddr = paddr;
     final_vma.mmio_handler = std::move(mmio_handler);
     UpdatePageTableForVMA(final_vma);
@@ -189,7 +189,7 @@ VMManager::VMAIter VMManager::Unmap(VMAIter vma_handle) {
     VirtualMemoryArea& vma = vma_handle->second;
     vma.type = VMAType::Free;
     vma.permissions = VMAPermission::None;
-    vma.meminfo_state = MemoryState::Unmapped;
+    vma.state = MemoryState::Unmapped;
 
     vma.backing_block = nullptr;
     vma.offset = 0;
@@ -311,7 +311,7 @@ MemoryInfo VMManager::QueryMemory(VAddr address) const {
         memory_info.attributes = ToSvcMemoryAttribute(vma->second.attribute);
         memory_info.permission = static_cast<u32>(vma->second.permissions);
         memory_info.size = vma->second.size;
-        memory_info.state = ToSvcMemoryState(vma->second.meminfo_state);
+        memory_info.state = ToSvcMemoryState(vma->second.state);
     } else {
         memory_info.base_address = address_space_end;
         memory_info.permission = static_cast<u32>(VMAPermission::None);
@@ -365,7 +365,7 @@ void VMManager::LogLayout() const {
                   (u8)vma.permissions & (u8)VMAPermission::Read ? 'R' : '-',
                   (u8)vma.permissions & (u8)VMAPermission::Write ? 'W' : '-',
                   (u8)vma.permissions & (u8)VMAPermission::Execute ? 'X' : '-',
-                  GetMemoryStateName(vma.meminfo_state));
+                  GetMemoryStateName(vma.state));
     }
 }
 

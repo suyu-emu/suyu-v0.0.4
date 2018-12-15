@@ -263,8 +263,7 @@ struct VirtualMemoryArea {
 
     VMAType type = VMAType::Free;
     VMAPermission permissions = VMAPermission::None;
-    /// Tag returned by svcQueryMemory. Not otherwise used.
-    MemoryState meminfo_state = MemoryState::Unmapped;
+    MemoryState state = MemoryState::Unmapped;
     MemoryAttribute attribute = MemoryAttribute::None;
 
     // Settings for type = AllocatedMemoryBlock
