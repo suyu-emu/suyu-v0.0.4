@@ -11,12 +11,48 @@ namespace VideoCommon::Shader {
 
 using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
+using Tegra::Shader::Register;
 
 u32 ShaderIR::DecodeConversion(BasicBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
-    UNIMPLEMENTED();
+    switch (opcode->get().GetId()) {
+    case OpCode::Id::F2F_R: {
+        UNIMPLEMENTED_IF(instr.conversion.dest_size != Register::Size::Word);
+        UNIMPLEMENTED_IF(instr.conversion.src_size != Register::Size::Word);
+        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                             "Condition codes generation in F2F is not implemented");
+
+        Node value = GetRegister(instr.gpr20);
+        value = GetOperandAbsNegFloat(value, instr.conversion.abs_a, instr.conversion.negate_a);
+
+        value = [&]() {
+            switch (instr.conversion.f2f.rounding) {
+            case Tegra::Shader::F2fRoundingOp::None:
+                return value;
+            case Tegra::Shader::F2fRoundingOp::Round:
+                return Operation(OperationCode::FRoundEven, PRECISE, value);
+            case Tegra::Shader::F2fRoundingOp::Floor:
+                return Operation(OperationCode::FFloor, PRECISE, value);
+            case Tegra::Shader::F2fRoundingOp::Ceil:
+                return Operation(OperationCode::FCeil, PRECISE, value);
+            case Tegra::Shader::F2fRoundingOp::Trunc:
+                return Operation(OperationCode::FTrunc, PRECISE, value);
+            default:
+                UNIMPLEMENTED_MSG("Unimplemented F2F rounding mode {}",
+                                  static_cast<u32>(instr.conversion.f2f.rounding.Value()));
+                break;
+            }
+        }();
+        value = GetSaturatedFloat(value, instr.alu.saturate_d);
+
+        SetRegister(bb, instr.gpr0, value);
+        break;
+    }
+    default:
+        UNIMPLEMENTED_MSG("Unhandled conversion instruction: {}", opcode->get().GetName());
+    }
 
     return pc;
 }
