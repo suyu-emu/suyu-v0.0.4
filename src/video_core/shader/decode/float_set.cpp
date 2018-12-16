@@ -16,7 +16,42 @@ u32 ShaderIR::DecodeFloatSet(BasicBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
-    UNIMPLEMENTED();
+    const Node op_a = GetOperandAbsNegFloat(GetRegister(instr.gpr8), instr.fset.abs_a != 0,
+                                            instr.fset.neg_a != 0);
+
+    Node op_b = [&]() {
+        if (instr.is_b_imm) {
+            return GetImmediate19(instr);
+        } else if (instr.is_b_gpr) {
+            return GetRegister(instr.gpr20);
+        } else {
+            return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset);
+        }
+    }();
+
+    op_b = GetOperandAbsNegFloat(op_b, instr.fset.abs_b != 0, instr.fset.neg_b != 0);
+
+    // The fset instruction sets a register to 1.0 or -1 (depending on the bf bit) if the
+    // condition is true, and to 0 otherwise.
+    const Node second_pred = GetPredicate(instr.fset.pred39, instr.fset.neg_pred != 0);
+
+    const OperationCode combiner = GetPredicateCombiner(instr.fset.op);
+    const Node first_pred = GetPredicateComparisonFloat(instr.fset.cond, op_a, op_b);
+
+    const Node predicate = Operation(combiner, first_pred, second_pred);
+
+    const Node true_value = instr.fset.bf ? Immediate(1.0f) : Immediate(-1);
+    const Node false_value = instr.fset.bf ? Immediate(0.0f) : Immediate(0);
+    const Node value =
+        Operation(OperationCode::Select, PRECISE, predicate, true_value, false_value);
+
+    SetRegister(bb, instr.gpr0, value);
+
+    if (instr.generates_cc.Value() != 0) {
+        const Node is_zero = Operation(OperationCode::LogicalFEqual, predicate, Immediate(0.0f));
+        SetInternalFlag(bb, InternalFlag::Zero, is_zero);
+        LOG_WARNING(HW_GPU, "FSET condition code is incomplete");
+    }
 
     return pc;
 }
