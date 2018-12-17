@@ -41,6 +41,21 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, Operation(OperationCode::IAdd, PRECISE, op_a, op_b));
         break;
     }
+    case OpCode::Id::ISCADD_C:
+    case OpCode::Id::ISCADD_R:
+    case OpCode::Id::ISCADD_IMM: {
+        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                             "Condition codes generation in ISCADD is not implemented");
+
+        op_a = GetOperandAbsNegInteger(op_a, false, instr.alu_integer.negate_a, true);
+        op_b = GetOperandAbsNegInteger(op_b, false, instr.alu_integer.negate_b, true);
+
+        const Node shift = Immediate(static_cast<u32>(instr.alu_integer.shift_amount));
+        const Node shifted_a = Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, op_a, shift);
+        const Node value = Operation(OperationCode::IAdd, NO_PRECISE, shifted_a, op_b);
+        SetRegister(bb, instr.gpr0, value);
+        break;
+    }
     case OpCode::Id::SEL_C:
     case OpCode::Id::SEL_R:
     case OpCode::Id::SEL_IMM: {
