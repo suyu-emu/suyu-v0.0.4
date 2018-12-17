@@ -50,11 +50,15 @@ u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
         UNIMPLEMENTED_IF_MSG(instr.bra.constant_buffer != 0,
                              "BRA with constant buffers are not implemented");
 
-        const Tegra::Shader::ConditionCode cc = instr.flow_condition_code;
-        UNIMPLEMENTED_IF(cc != Tegra::Shader::ConditionCode::T);
-
         const u32 target = pc + instr.bra.GetBranchTarget();
-        bb.push_back(Operation(OperationCode::Bra, Immediate(target)));
+        const Node branch = Operation(OperationCode::Bra, Immediate(target));
+
+        const Tegra::Shader::ConditionCode cc = instr.flow_condition_code;
+        if (cc != Tegra::Shader::ConditionCode::T) {
+            bb.push_back(Conditional(GetConditionCode(cc), {branch}));
+        } else {
+            bb.push_back(branch);
+        }
         break;
     }
     case OpCode::Id::SSY: {
