@@ -16,7 +16,28 @@ u32 ShaderIR::DecodeBfi(BasicBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
-    UNIMPLEMENTED();
+    UNIMPLEMENTED_IF(instr.generates_cc);
+
+    const auto [base, packed_shift] = [&]() -> std::tuple<Node, Node> {
+        switch (opcode->get().GetId()) {
+        case OpCode::Id::BFI_IMM_R:
+            return {GetRegister(instr.gpr39), Immediate(instr.alu.GetSignedImm20_20())};
+        default:
+            UNREACHABLE();
+        }
+    }();
+    const Node insert = GetRegister(instr.gpr8);
+
+    const Node offset =
+        Operation(OperationCode::UBitwiseAnd, NO_PRECISE, packed_shift, Immediate(0xff));
+
+    Node bits =
+        Operation(OperationCode::ULogicalShiftRight, NO_PRECISE, packed_shift, Immediate(8));
+    bits = Operation(OperationCode::UBitwiseAnd, NO_PRECISE, bits, Immediate(0xff));
+
+    const Node value =
+        Operation(OperationCode::UBitfieldInsert, PRECISE, base, insert, offset, bits);
+    SetRegister(bb, instr.gpr0, value);
 
     return pc;
 }
