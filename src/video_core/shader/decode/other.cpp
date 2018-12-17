@@ -64,7 +64,19 @@ u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
         // The SSY opcode tells the GPU where to re-converge divergent execution paths, it sets the
         // target of the jump that the SYNC instruction will make. The SSY opcode has a similar
         // structure to the BRA opcode.
-        bb.push_back(Operation(OperationCode::Ssy, Immediate(pc + instr.bra.GetBranchTarget())));
+        const u32 target = pc + instr.bra.GetBranchTarget();
+        bb.push_back(Operation(OperationCode::Ssy, Immediate(target)));
+        break;
+    }
+    case OpCode::Id::PBK: {
+        UNIMPLEMENTED_IF_MSG(instr.bra.constant_buffer != 0,
+                             "Constant buffer PBK is not supported");
+
+        // PBK pushes to a stack the address where BRK will jump to. This shares stack with SSY but
+        // using SYNC on a PBK address will kill the shader execution. We don't emulate this because
+        // it's very unlikely a driver will emit such invalid shader.
+        const u32 target = pc + instr.bra.GetBranchTarget();
+        bb.push_back(Operation(OperationCode::Pbk, Immediate(target)));
         break;
     }
     case OpCode::Id::SYNC: {
@@ -74,6 +86,15 @@ u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
 
         // The SYNC opcode jumps to the address previously set by the SSY opcode
         bb.push_back(Operation(OperationCode::Sync));
+        break;
+    }
+    case OpCode::Id::BRK: {
+        const Tegra::Shader::ConditionCode cc = instr.flow_condition_code;
+        UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ConditionCode::T, "BRK condition code used: {}",
+                             static_cast<u32>(cc));
+
+        // The BRK opcode jumps to the address previously set by the PBK opcode
+        bb.push_back(Operation(OperationCode::Brk));
         break;
     }
     case OpCode::Id::IPA: {
