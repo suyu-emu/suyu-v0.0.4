@@ -79,6 +79,22 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
                             instr.alu.lop.pred_result_mode, instr.alu.lop.pred48);
         break;
     }
+    case OpCode::Id::IMNMX_C:
+    case OpCode::Id::IMNMX_R:
+    case OpCode::Id::IMNMX_IMM: {
+        UNIMPLEMENTED_IF(instr.imnmx.exchange != Tegra::Shader::IMinMaxExchange::None);
+        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                             "Condition codes generation in IMNMX is not implemented");
+
+        const bool is_signed = instr.imnmx.is_signed;
+
+        const Node condition = GetPredicate(instr.imnmx.pred, instr.imnmx.negate_pred != 0);
+        const Node min = SignedOperation(OperationCode::IMin, is_signed, NO_PRECISE, op_a, op_b);
+        const Node max = SignedOperation(OperationCode::IMax, is_signed, NO_PRECISE, op_a, op_b);
+        const Node value = Operation(OperationCode::Select, NO_PRECISE, condition, min, max);
+        SetRegister(bb, instr.gpr0, value);
+        break;
+    }
     default:
         UNIMPLEMENTED_MSG("Unhandled ArithmeticInteger instruction: {}", opcode->get().GetName());
     }
