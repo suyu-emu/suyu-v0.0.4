@@ -151,6 +151,7 @@ std::unique_ptr<Dynarmic::A64::Jit> ARM_Dynarmic::MakeJit() const {
     config.tpidr_el0 = &cb->tpidr_el0;
     config.dczid_el0 = 4;
     config.ctr_el0 = 0x8444c004;
+    config.cntfrq_el0 = 19200000; // Value from fusee.
 
     // Unpredictable instructions
     config.define_unpredictable_behaviour = true;
