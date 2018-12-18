@@ -67,13 +67,21 @@ u32 ShaderIR::DecodeConversion(BasicBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, value);
         break;
     }
-    case OpCode::Id::F2F_R: {
+    case OpCode::Id::F2F_R:
+    case OpCode::Id::F2F_C: {
         UNIMPLEMENTED_IF(instr.conversion.dest_size != Register::Size::Word);
         UNIMPLEMENTED_IF(instr.conversion.src_size != Register::Size::Word);
         UNIMPLEMENTED_IF_MSG(instr.generates_cc,
                              "Condition codes generation in F2F is not implemented");
 
-        Node value = GetRegister(instr.gpr20);
+        Node value = [&]() {
+            if (instr.is_b_gpr) {
+                return GetRegister(instr.gpr20);
+            } else {
+                return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset);
+            }
+        }();
+
         value = GetOperandAbsNegFloat(value, instr.conversion.abs_a, instr.conversion.negate_a);
 
         value = [&]() {
