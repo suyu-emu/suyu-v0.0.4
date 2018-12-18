@@ -158,6 +158,9 @@ static void ResetThreadContext(Core::ARM_Interface::ThreadContext& context, VAdd
     context.cpu_registers[0] = arg;
     context.pc = entry_point;
     context.sp = stack_top;
+    // TODO(merry): Perform a hardware test to determine the below value.
+    // AHP = 0, DN = 1, FTZ = 1, RMode = Round towards zero
+    context.fpcr = 0x03C00000;
 }
 
 ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name, VAddr entry_point,
