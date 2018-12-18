@@ -46,6 +46,33 @@ u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
         }
         break;
     }
+    case OpCode::Id::KIL: {
+        UNIMPLEMENTED_IF(instr.flow.cond != Tegra::Shader::FlowCondition::Always);
+
+        const Tegra::Shader::ConditionCode cc = instr.flow_condition_code;
+        UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ConditionCode::T, "KIL condition code used: {}",
+                             static_cast<u32>(cc));
+
+        bb.push_back(Operation(OperationCode::Kil));
+        break;
+    }
+    case OpCode::Id::MOV_SYS: {
+        switch (instr.sys20) {
+        case Tegra::Shader::SystemVariable::InvocationInfo: {
+            LOG_WARNING(HW_GPU, "MOV_SYS instruction with InvocationInfo is incomplete");
+            SetRegister(bb, instr.gpr0, Immediate(0u));
+            break;
+        }
+        case Tegra::Shader::SystemVariable::Ydirection: {
+            // Config pack's third value is Y_NEGATE's state.
+            SetRegister(bb, instr.gpr0, Operation(OperationCode::YNegate));
+            break;
+        }
+        default:
+            UNIMPLEMENTED_MSG("Unhandled system move: {}", static_cast<u32>(instr.sys20.Value()));
+        }
+        break;
+    }
     case OpCode::Id::BRA: {
         UNIMPLEMENTED_IF_MSG(instr.bra.constant_buffer != 0,
                              "BRA with constant buffers are not implemented");
