@@ -609,7 +609,7 @@ union Instruction {
 
         BitField<31, 1, u64> negate_b;
         BitField<30, 1, u64> abs_b;
-        BitField<28, 2, HalfType> type_b;
+        BitField<28 , 2, HalfType> type_b;
 
         BitField<35, 2, HalfType> type_c;
     } alu_half;
