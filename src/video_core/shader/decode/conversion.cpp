@@ -18,6 +18,32 @@ u32 ShaderIR::DecodeConversion(BasicBlock& bb, u32 pc) {
     const auto opcode = OpCode::Decode(instr);
 
     switch (opcode->get().GetId()) {
+    case OpCode::Id::I2I_R: {
+        UNIMPLEMENTED_IF(instr.conversion.selector);
+
+        const bool input_signed = instr.conversion.is_input_signed;
+        const bool output_signed = instr.conversion.is_output_signed;
+
+        Node value = GetRegister(instr.gpr20);
+        value = ConvertIntegerSize(value, instr.conversion.src_size, input_signed);
+
+        value = GetOperandAbsNegInteger(value, instr.conversion.abs_a, instr.conversion.negate_a,
+                                        input_signed);
+        if (input_signed != output_signed) {
+            value = SignedOperation(OperationCode::ICastUnsigned, output_signed, NO_PRECISE, value);
+        }
+
+        SetRegister(bb, instr.gpr0, value);
+
+        if (instr.generates_cc) {
+            const Node zero_condition =
+                SignedOperation(OperationCode::LogicalIEqual, output_signed, value, Immediate(0));
+            SetInternalFlag(bb, InternalFlag::Zero, zero_condition);
+            LOG_WARNING(HW_GPU, "I2I Condition codes implementation is incomplete.");
+        }
+
+        break;
+    }
     case OpCode::Id::I2F_R:
     case OpCode::Id::I2F_C: {
         UNIMPLEMENTED_IF(instr.conversion.dest_size != Register::Size::Word);
