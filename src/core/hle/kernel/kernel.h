@@ -91,7 +91,7 @@ private:
     u64 CreateNewProcessID();
 
     /// Creates a new thread ID, incrementing the internal thread ID counter.
-    u32 CreateNewThreadID();
+    u64 CreateNewThreadID();
 
     /// Creates a timer callback handle for the given timer.
     ResultVal<Handle> CreateTimerCallbackHandle(const SharedPtr<Timer>& timer);
