@@ -9,6 +9,7 @@
 
 namespace VideoCommon::Shader {
 
+using Tegra::Shader::IAdd3Height;
 using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
 using Tegra::Shader::Register;
@@ -40,6 +41,66 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
         op_b = GetOperandAbsNegInteger(op_b, false, instr.alu_integer.negate_b, true);
 
         SetRegister(bb, instr.gpr0, Operation(OperationCode::IAdd, PRECISE, op_a, op_b));
+        break;
+    }
+    case OpCode::Id::IADD3_C:
+    case OpCode::Id::IADD3_R:
+    case OpCode::Id::IADD3_IMM: {
+        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                             "Condition codes generation in IADD3 is not implemented");
+
+        Node op_c = GetRegister(instr.gpr39);
+
+        const auto ApplyHeight = [&](IAdd3Height height, Node value) {
+            switch (height) {
+            case IAdd3Height::None:
+                return value;
+            case IAdd3Height::LowerHalfWord:
+                return Operation(OperationCode::IBitwiseAnd, NO_PRECISE, value, Immediate(0xffff));
+            case IAdd3Height::UpperHalfWord:
+                return Operation(OperationCode::ILogicalShiftRight, NO_PRECISE, value,
+                                 Immediate(16));
+            default:
+                UNIMPLEMENTED_MSG("Unhandled IADD3 height: {}", static_cast<u32>(height));
+                return Immediate(0);
+            }
+        };
+
+        if (opcode->get().GetId() == OpCode::Id::IADD3_R) {
+            op_a = ApplyHeight(instr.iadd3.height_a, op_a);
+            op_b = ApplyHeight(instr.iadd3.height_b, op_b);
+            op_c = ApplyHeight(instr.iadd3.height_c, op_c);
+        }
+
+        op_a = GetOperandAbsNegInteger(op_a, false, instr.iadd3.neg_a, true);
+        op_b = GetOperandAbsNegInteger(op_b, false, instr.iadd3.neg_b, true);
+        op_c = GetOperandAbsNegInteger(op_c, false, instr.iadd3.neg_c, true);
+
+        const Node value = [&]() {
+            const Node add_ab = Operation(OperationCode::IAdd, NO_PRECISE, op_a, op_b);
+            if (opcode->get().GetId() != OpCode::Id::IADD3_R) {
+                return Operation(OperationCode::IAdd, NO_PRECISE, add_ab, op_c);
+            }
+            const Node shifted = [&]() {
+                switch (instr.iadd3.mode) {
+                case Tegra::Shader::IAdd3Mode::RightShift:
+                    // TODO(tech4me): According to
+                    // https://envytools.readthedocs.io/en/latest/hw/graph/maxwell/cuda/int.html?highlight=iadd3
+                    // The addition between op_a and op_b should be done in uint33, more
+                    // investigation required
+                    return Operation(OperationCode::ILogicalShiftRight, NO_PRECISE, add_ab,
+                                     Immediate(16));
+                case Tegra::Shader::IAdd3Mode::LeftShift:
+                    return Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, add_ab,
+                                     Immediate(16));
+                default:
+                    return add_ab;
+                }
+            }();
+            return Operation(OperationCode::IAdd, NO_PRECISE, shifted, op_c);
+        }();
+
+        SetRegister(bb, instr.gpr0, value);
         break;
     }
     case OpCode::Id::ISCADD_C:
