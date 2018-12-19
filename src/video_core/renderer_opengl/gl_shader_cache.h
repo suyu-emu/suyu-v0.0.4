@@ -67,6 +67,7 @@ public:
                                        6, "ShaderTrianglesAdjacency");
         default:
             UNREACHABLE_MSG("Unknown primitive mode.");
+            return LazyGeometryProgram(geometry_programs.points, "points", 1, "ShaderPoints");
         }
     }
 

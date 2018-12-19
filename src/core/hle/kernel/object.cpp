@@ -32,6 +32,7 @@ bool Object::IsWaitable() const {
     }
 
     UNREACHABLE();
+    return false;
 }
 
 } // namespace Kernel

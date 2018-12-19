@@ -226,7 +226,7 @@ u32 BytesPerPixel(TextureFormat format) {
         return 8;
     default:
         UNIMPLEMENTED_MSG("Format not implemented");
-        break;
+        return 1;
     }
 }
 

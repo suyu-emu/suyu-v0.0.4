@@ -192,6 +192,7 @@ static MortonCopyFn GetSwizzleFunction(MortonSwizzleMode mode, Surface::PixelFor
         return linear_to_morton_fns[static_cast<std::size_t>(format)];
     }
     UNREACHABLE();
+    return morton_to_linear_fns[static_cast<std::size_t>(format)];
 }
 
 /// 8x8 Z-Order coordinate from 2D coordinates

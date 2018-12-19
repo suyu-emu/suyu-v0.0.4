@@ -1065,6 +1065,7 @@ union Instruction {
             LOG_CRITICAL(HW_GPU, "Unhandled texture_info: {}",
                          static_cast<u32>(texture_info.Value()));
             UNREACHABLE();
+            return TextureType::Texture1D;
         }
 
         TextureProcessMode GetTextureProcessMode() const {
@@ -1145,6 +1146,7 @@ union Instruction {
             LOG_CRITICAL(HW_GPU, "Unhandled texture_info: {}",
                          static_cast<u32>(texture_info.Value()));
             UNREACHABLE();
+            return TextureType::Texture1D;
         }
 
         TextureProcessMode GetTextureProcessMode() const {

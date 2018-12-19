@@ -102,6 +102,7 @@ u32 RenderTargetBytesPerPixel(RenderTargetFormat format) {
         return 1;
     default:
         UNIMPLEMENTED_MSG("Unimplemented render target format {}", static_cast<u32>(format));
+        return 1;
     }
 }
 
@@ -119,6 +120,7 @@ u32 DepthFormatBytesPerPixel(DepthFormat format) {
         return 2;
     default:
         UNIMPLEMENTED_MSG("Unimplemented Depth format {}", static_cast<u32>(format));
+        return 1;
     }
 }
 

@@ -427,6 +427,7 @@ static const char* GetSource(GLenum source) {
         RET(OTHER);
     default:
         UNREACHABLE();
+        return "Unknown source";
     }
 #undef RET
 }
@@ -445,6 +446,7 @@ static const char* GetType(GLenum type) {
         RET(MARKER);
     default:
         UNREACHABLE();
+        return "Unknown type";
     }
 #undef RET
 }
