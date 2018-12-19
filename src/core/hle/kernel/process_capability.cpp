@@ -1,0 +1,253 @@
+// Copyright 2018 yuzu emulator team
+// Licensed under GPLv2 or any later version
+// Refer to the license.txt file included.
+
+#include "common/bit_util.h"
+#include "core/hle/kernel/errors.h"
+#include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/process_capability.h"
+#include "core/hle/kernel/vm_manager.h"
+
+namespace Kernel {
+namespace {
+
+// clang-format off
+
+// Shift offsets for kernel capability types.
+enum : u32 {
+    CapabilityOffset_PriorityAndCoreNum = 3,
+    CapabilityOffset_Syscall            = 4,
+    CapabilityOffset_MapPhysical        = 6,
+    CapabilityOffset_MapIO              = 7,
+    CapabilityOffset_Interrupt          = 11,
+    CapabilityOffset_ProgramType        = 13,
+    CapabilityOffset_KernelVersion      = 14,
+    CapabilityOffset_HandleTableSize    = 15,
+    CapabilityOffset_Debug              = 16,
+};
+
+// Combined mask of all parameters that may be initialized only once.
+constexpr u32 InitializeOnceMask = (1U << CapabilityOffset_PriorityAndCoreNum) |
+                                   (1U << CapabilityOffset_ProgramType) |
+                                   (1U << CapabilityOffset_KernelVersion) |
+                                   (1U << CapabilityOffset_HandleTableSize) |
+                                   (1U << CapabilityOffset_Debug);
+
+// Packed kernel version indicating 10.4.0
+constexpr u32 PackedKernelVersion = 0x520000;
+
+// Indicates possible types of capabilities that can be specified.
+enum class CapabilityType : u32 {
+    Unset              = 0U,
+    PriorityAndCoreNum = (1U << CapabilityOffset_PriorityAndCoreNum) - 1,
+    Syscall            = (1U << CapabilityOffset_Syscall) - 1,
+    MapPhysical        = (1U << CapabilityOffset_MapPhysical) - 1,
+    MapIO              = (1U << CapabilityOffset_MapIO) - 1,
+    Interrupt          = (1U << CapabilityOffset_Interrupt) - 1,
+    ProgramType        = (1U << CapabilityOffset_ProgramType) - 1,
+    KernelVersion      = (1U << CapabilityOffset_KernelVersion) - 1,
+    HandleTableSize    = (1U << CapabilityOffset_HandleTableSize) - 1,
+    Debug              = (1U << CapabilityOffset_Debug) - 1,
+    Ignorable          = 0xFFFFFFFFU,
+};
+
+// clang-format on
+
+constexpr CapabilityType GetCapabilityType(u32 value) {
+    return static_cast<CapabilityType>((~value & (value + 1)) - 1);
+}
+
+u32 GetFlagBitOffset(CapabilityType type) {
+    const auto value = static_cast<u32>(type);
+    return static_cast<u32>(Common::BitSize<u32>() - Common::CountLeadingZeroes32(value));
+}
+
+} // Anonymous namespace
+
+ResultCode ProcessCapabilities::InitializeForKernelProcess(const u32* capabilities,
+                                                           std::size_t num_capabilities,
+                                                           VMManager& vm_manager) {
+    Clear();
+
+    // Allow all cores and priorities.
+    core_mask = 0xF;
+    priority_mask = 0xFFFFFFFFFFFFFFFF;
+    kernel_version = PackedKernelVersion;
+
+    return ParseCapabilities(capabilities, num_capabilities, vm_manager);
+}
+
+ResultCode ProcessCapabilities::InitializeForUserProcess(const u32* capabilities,
+                                                         std::size_t num_capabilities,
+                                                         VMManager& vm_manager) {
+    Clear();
+
+    return ParseCapabilities(capabilities, num_capabilities, vm_manager);
+}
+
+void ProcessCapabilities::InitializeForMetadatalessProcess() {
+    // Allow all cores and priorities
+    core_mask = 0xF;
+    priority_mask = 0xFFFFFFFFFFFFFFFF;
+    kernel_version = PackedKernelVersion;
+
+    // Allow all system calls and interrupts.
+    svc_capabilities.set();
+    interrupt_capabilities.set();
+
+    // Allow using the maximum possible amount of handles
+    handle_table_size = static_cast<u32>(HandleTable::MAX_COUNT);
+
+    // Allow all debugging capabilities.
+    is_debuggable = true;
+    can_force_debug = true;
+}
+
+ResultCode ProcessCapabilities::ParseCapabilities(const u32* capabilities,
+                                                  std::size_t num_capabilities,
+                                                  VMManager& vm_manager) {
+    u32 set_flags = 0;
+    u32 set_svc_bits = 0;
+
+    for (std::size_t i = 0; i < num_capabilities; ++i) {
+        const u32 descriptor = capabilities[i];
+        const auto type = GetCapabilityType(descriptor);
+
+        if (type == CapabilityType::MapPhysical) {
+            i++;
+
+            // The MapPhysical type uses two descriptor flags for its parameters.
+            // If there's only one, then there's a problem.
+            if (i >= num_capabilities) {
+                return ERR_INVALID_COMBINATION;
+            }
+
+            const auto size_flags = capabilities[i];
+            if (GetCapabilityType(size_flags) != CapabilityType::MapPhysical) {
+                return ERR_INVALID_COMBINATION;
+            }
+
+            const auto result = HandleMapPhysicalFlags(descriptor, size_flags, vm_manager);
+            if (result.IsError()) {
+                return result;
+            }
+        } else {
+            const auto result =
+                ParseSingleFlagCapability(set_flags, set_svc_bits, descriptor, vm_manager);
+            if (result.IsError()) {
+                return result;
+            }
+        }
+    }
+
+    return RESULT_SUCCESS;
+}
+
+ResultCode ProcessCapabilities::ParseSingleFlagCapability(u32& set_flags, u32& set_svc_bits,
+                                                          u32 flag, VMManager& vm_manager) {
+    const auto type = GetCapabilityType(flag);
+
+    if (type == CapabilityType::Unset) {
+        return ERR_INVALID_CAPABILITY_DESCRIPTOR;
+    }
+
+    // Bail early on ignorable entries, as one would expect,
+    // ignorable descriptors can be ignored.
+    if (type == CapabilityType::Ignorable) {
+        return RESULT_SUCCESS;
+    }
+
+    // Ensure that the give flag hasn't already been initialized before.
+    // If it has been, then bail.
+    const u32 flag_length = GetFlagBitOffset(type);
+    const u32 set_flag = 1U << flag_length;
+    if ((set_flag & set_flags & InitializeOnceMask) != 0) {
+        return ERR_INVALID_COMBINATION;
+    }
+    set_flags |= set_flag;
+
+    switch (type) {
+    case CapabilityType::PriorityAndCoreNum:
+        return HandlePriorityCoreNumFlags(flag);
+    case CapabilityType::Syscall:
+        return HandleSyscallFlags(set_svc_bits, flag);
+    case CapabilityType::MapIO:
+        return HandleMapIOFlags(flag, vm_manager);
+    case CapabilityType::Interrupt:
+        return HandleInterruptFlags(flag);
+    case CapabilityType::ProgramType:
+        return HandleProgramTypeFlags(flag);
+    case CapabilityType::KernelVersion:
+        return HandleKernelVersionFlags(flag);
+    case CapabilityType::HandleTableSize:
+        return HandleHandleTableFlags(flag);
+    case CapabilityType::Debug:
+        return HandleDebugFlags(flag);
+    default:
+        break;
+    }
+
+    return ERR_INVALID_CAPABILITY_DESCRIPTOR;
+}
+
+void ProcessCapabilities::Clear() {
+    svc_capabilities.reset();
+    interrupt_capabilities.reset();
+
+    core_mask = 0;
+    priority_mask = 0;
+
+    handle_table_size = 0;
+    kernel_version = 0;
+
+    is_debuggable = false;
+    can_force_debug = false;
+}
+
+ResultCode ProcessCapabilities::HandlePriorityCoreNumFlags(u32 flags) {
+    // TODO: Implement
+    return RESULT_SUCCESS;
+}
+
+ResultCode ProcessCapabilities::HandleSyscallFlags(u32& set_svc_bits, u32 flags) {
+    // TODO: Implement
+    return RESULT_SUCCESS;
+}
+
+ResultCode ProcessCapabilities::HandleMapPhysicalFlags(u32 flags, u32 size_flags,
+                                                       VMManager& vm_manager) {
+    // TODO(Lioncache): Implement once the memory manager can handle this.
+    return RESULT_SUCCESS;
+}
+
+ResultCode ProcessCapabilities::HandleMapIOFlags(u32 flags, VMManager& vm_manager) {
+    // TODO(Lioncache): Implement once the memory manager can handle this.
+    return RESULT_SUCCESS;
+}
+
+ResultCode ProcessCapabilities::HandleInterruptFlags(u32 flags) {
+    // TODO: Implement
+    return RESULT_SUCCESS;
+}
+
+ResultCode ProcessCapabilities::HandleProgramTypeFlags(u32 flags) {
+    // TODO: Implement
+    return RESULT_SUCCESS;
+}
+
+ResultCode ProcessCapabilities::HandleKernelVersionFlags(u32 flags) {
+    // TODO: Implement
+    return RESULT_SUCCESS;
+}
+
+ResultCode ProcessCapabilities::HandleHandleTableFlags(u32 flags) {
+    // TODO: Implement
+    return RESULT_SUCCESS;
+}
+
+ResultCode ProcessCapabilities::HandleDebugFlags(u32 flags) {
+    // TODO: Implement
+    return RESULT_SUCCESS;
+}
+
+} // namespace Kernel
