@@ -12,6 +12,7 @@ namespace VideoCommon::Shader {
 using Tegra::Shader::IAdd3Height;
 using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
+using Tegra::Shader::Pred;
 using Tegra::Shader::Register;
 
 u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
@@ -173,6 +174,60 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
         const Node max = SignedOperation(OperationCode::IMax, is_signed, NO_PRECISE, op_a, op_b);
         const Node value = Operation(OperationCode::Select, NO_PRECISE, condition, min, max);
         SetRegister(bb, instr.gpr0, value);
+        break;
+    }
+    case OpCode::Id::LEA_R2:
+    case OpCode::Id::LEA_R1:
+    case OpCode::Id::LEA_IMM:
+    case OpCode::Id::LEA_RZ:
+    case OpCode::Id::LEA_HI: {
+        const auto [op_a, op_b, op_c] = [&]() -> std::tuple<Node, Node, Node> {
+            switch (opcode->get().GetId()) {
+            case OpCode::Id::LEA_R2: {
+                return {GetRegister(instr.gpr20), GetRegister(instr.gpr39),
+                        Immediate(static_cast<u32>(instr.lea.r2.entry_a))};
+            }
+
+            case OpCode::Id::LEA_R1: {
+                const bool neg = instr.lea.r1.neg != 0;
+                return {GetOperandAbsNegInteger(GetRegister(instr.gpr8), false, neg, true),
+                        GetRegister(instr.gpr20),
+                        Immediate(static_cast<u32>(instr.lea.r1.entry_a))};
+            }
+
+            case OpCode::Id::LEA_IMM: {
+                const bool neg = instr.lea.imm.neg != 0;
+                return {Immediate(static_cast<u32>(instr.lea.imm.entry_a)),
+                        GetOperandAbsNegInteger(GetRegister(instr.gpr8), false, neg, true),
+                        Immediate(static_cast<u32>(instr.lea.imm.entry_b))};
+            }
+
+            case OpCode::Id::LEA_RZ: {
+                const bool neg = instr.lea.rz.neg != 0;
+                return {GetConstBuffer(instr.lea.rz.cb_index, instr.lea.rz.cb_offset),
+                        GetOperandAbsNegInteger(GetRegister(instr.gpr8), false, neg, true),
+                        Immediate(static_cast<u32>(instr.lea.rz.entry_a))};
+            }
+
+            case OpCode::Id::LEA_HI:
+            default:
+                UNIMPLEMENTED_MSG("Unhandled LEA subinstruction: {}", opcode->get().GetName());
+
+                return {Immediate(static_cast<u32>(instr.lea.imm.entry_a)), GetRegister(instr.gpr8),
+                        Immediate(static_cast<u32>(instr.lea.imm.entry_b))};
+            }
+        }();
+
+        UNIMPLEMENTED_IF_MSG(instr.lea.pred48 != static_cast<u64>(Pred::UnusedIndex),
+                             "Unhandled LEA Predicate");
+
+        const Node shifted_c =
+            Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, Immediate(1), op_c);
+        const Node mul_bc = Operation(OperationCode::IMul, NO_PRECISE, op_b, shifted_c);
+        const Node value = Operation(OperationCode::IAdd, NO_PRECISE, op_a, mul_bc);
+
+        SetRegister(bb, instr.gpr0, value);
+
         break;
     }
     default:
