@@ -120,6 +120,18 @@ struct CodeSet final {
 
 class Process final : public WaitObject {
 public:
+    enum : u64 {
+        /// Lowest allowed process ID for a kernel initial process.
+        InitialKIPIDMin = 1,
+        /// Highest allowed process ID for a kernel initial process.
+        InitialKIPIDMax = 80,
+
+        /// Lowest allowed process ID for a userland process.
+        ProcessIDMin = 81,
+        /// Highest allowed process ID for a userland process.
+        ProcessIDMax = 0xFFFFFFFFFFFFFFFF,
+    };
+
     static constexpr std::size_t RANDOM_ENTROPY_SIZE = 4;
 
     static SharedPtr<Process> Create(KernelCore& kernel, std::string&& name);
