@@ -365,7 +365,7 @@ static ResultCode GetThreadId(u32* thread_id, Handle thread_handle) {
 }
 
 /// Get the ID of the specified process
-static ResultCode GetProcessId(u32* process_id, Handle process_handle) {
+static ResultCode GetProcessId(u64* process_id, Handle process_handle) {
     LOG_TRACE(Kernel_SVC, "called process=0x{:08X}", process_handle);
 
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
