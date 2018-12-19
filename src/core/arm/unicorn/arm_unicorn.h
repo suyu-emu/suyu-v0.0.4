@@ -40,7 +40,6 @@ public:
     void ClearInstructionCache() override;
     void PageTableChanged() override{};
     void RecordBreak(GDBStub::BreakpointAddress bkpt);
-    void LogBacktrace() override;
 
 private:
     uc_engine* uc{};

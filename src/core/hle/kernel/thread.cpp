@@ -388,10 +388,6 @@ bool Thread::InvokeWakeupCallback(ThreadWakeupReason reason, SharedPtr<Thread> t
     return wakeup_callback(reason, std::move(thread), std::move(object), index);
 }
 
-void Thread::LogBacktrace() {
-    Core::System::GetInstance().ArmInterface(processor_id).LogBacktrace();
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
