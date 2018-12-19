@@ -364,20 +364,33 @@ static ResultCode GetThreadId(u64* thread_id, Handle thread_handle) {
     return RESULT_SUCCESS;
 }
 
-/// Get the ID of the specified process
-static ResultCode GetProcessId(u64* process_id, Handle process_handle) {
-    LOG_TRACE(Kernel_SVC, "called process=0x{:08X}", process_handle);
+/// Gets the ID of the specified process or a specified thread's owning process.
+static ResultCode GetProcessId(u64* process_id, Handle handle) {
+    LOG_DEBUG(Kernel_SVC, "called handle=0x{:08X}", handle);
 
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
-    const SharedPtr<Process> process = handle_table.Get<Process>(process_handle);
-    if (!process) {
-        LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
-                  process_handle);
-        return ERR_INVALID_HANDLE;
+    const SharedPtr<Process> process = handle_table.Get<Process>(handle);
+    if (process) {
+        *process_id = process->GetProcessID();
+        return RESULT_SUCCESS;
     }
 
-    *process_id = process->GetProcessID();
-    return RESULT_SUCCESS;
+    const SharedPtr<Thread> thread = handle_table.Get<Thread>(handle);
+    if (thread) {
+        const Process* const owner_process = thread->GetOwnerProcess();
+        if (!owner_process) {
+            LOG_ERROR(Kernel_SVC, "Non-existent owning process encountered.");
+            return ERR_INVALID_HANDLE;
+        }
+
+        *process_id = owner_process->GetProcessID();
+        return RESULT_SUCCESS;
+    }
+
+    // NOTE: This should also handle debug objects before returning.
+
+    LOG_ERROR(Kernel_SVC, "Handle does not exist, handle=0x{:08X}", handle);
+    return ERR_INVALID_HANDLE;
 }
 
 /// Default thread wakeup callback for WaitSynchronization
