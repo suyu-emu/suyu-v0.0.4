@@ -701,6 +701,8 @@ private:
                              Tegra::Shader::LogicOperation logic_op, Node op_a, Node op_b,
                              Tegra::Shader::PredicateResultMode predicate_mode,
                              Tegra::Shader::Pred predicate);
+    void WriteLop3Instruction(BasicBlock& bb, Tegra::Shader::Register dest, Node op_a, Node op_b,
+                              Node op_c, Node imm_lut);
 
     template <typename... T>
     inline Node Operation(OperationCode code, const T*... operands) {

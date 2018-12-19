@@ -11,6 +11,7 @@ namespace VideoCommon::Shader {
 
 using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
+using Tegra::Shader::Register;
 
 u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
@@ -79,6 +80,24 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
                             instr.alu.lop.pred_result_mode, instr.alu.lop.pred48);
         break;
     }
+    case OpCode::Id::LOP3_C:
+    case OpCode::Id::LOP3_R:
+    case OpCode::Id::LOP3_IMM: {
+        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                             "Condition codes generation in LOP3 is not implemented");
+
+        const Node op_c = GetRegister(instr.gpr39);
+        const Node lut = [&]() {
+            if (opcode->get().GetId() == OpCode::Id::LOP3_R) {
+                return Immediate(instr.alu.lop3.GetImmLut28());
+            } else {
+                return Immediate(instr.alu.lop3.GetImmLut48());
+            }
+        }();
+
+        WriteLop3Instruction(bb, instr.gpr0, op_a, op_b, op_c, lut);
+        break;
+    }
     case OpCode::Id::IMNMX_C:
     case OpCode::Id::IMNMX_R:
     case OpCode::Id::IMNMX_IMM: {
@@ -100,6 +119,47 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
     }
 
     return pc;
+}
+
+void ShaderIR::WriteLop3Instruction(BasicBlock& bb, Register dest, Node op_a, Node op_b, Node op_c,
+                                    Node imm_lut) {
+    constexpr u32 lop_iterations = 32;
+    const Node one = Immediate(1);
+    const Node two = Immediate(2);
+
+    Node value{};
+    for (u32 i = 0; i < lop_iterations; ++i) {
+        const Node shift_amount = Immediate(i);
+
+        const Node a = Operation(OperationCode::ILogicalShiftRight, NO_PRECISE, op_c, shift_amount);
+        const Node pack_0 = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, a, one);
+
+        const Node b = Operation(OperationCode::ILogicalShiftRight, NO_PRECISE, op_b, shift_amount);
+        const Node c = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, b, one);
+        const Node pack_1 = Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, c, one);
+
+        const Node d = Operation(OperationCode::ILogicalShiftRight, NO_PRECISE, op_a, shift_amount);
+        const Node e = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, d, one);
+        const Node pack_2 = Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, e, two);
+
+        const Node pack_01 = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, pack_0, pack_1);
+        const Node pack_012 = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, pack_01, pack_2);
+
+        const Node shifted_bit =
+            Operation(OperationCode::ILogicalShiftRight, NO_PRECISE, imm_lut, pack_012);
+        const Node bit = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, shifted_bit, one);
+
+        const Node right =
+            Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, bit, shift_amount);
+
+        if (i > 0) {
+            value = Operation(OperationCode::IBitwiseOr, NO_PRECISE, value, right);
+        } else {
+            value = right;
+        }
+    }
+
+    SetRegister(bb, dest, value);
 }
 
 } // namespace VideoCommon::Shader
