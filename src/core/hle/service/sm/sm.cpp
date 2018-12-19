@@ -145,12 +145,13 @@ void SM::RegisterService(Kernel::HLERequestContext& ctx) {
 
     const std::string name(name_buf.begin(), end);
 
-    const auto unk_bool = static_cast<bool>(rp.PopRaw<u32>());
-    const auto session_count = rp.PopRaw<u32>();
+    const auto is_light = static_cast<bool>(rp.PopRaw<u32>());
+    const auto max_session_count = rp.PopRaw<u32>();
 
-    LOG_DEBUG(Service_SM, "called with unk_bool={}", unk_bool);
+    LOG_DEBUG(Service_SM, "called with name={}, max_session_count={}, is_light={}", name,
+              max_session_count, is_light);
 
-    auto handle = service_manager->RegisterService(name, session_count);
+    auto handle = service_manager->RegisterService(name, max_session_count);
     if (handle.Failed()) {
         LOG_ERROR(Service_SM, "failed to register service with error_code={:08X}",
                   handle.Code().raw);
