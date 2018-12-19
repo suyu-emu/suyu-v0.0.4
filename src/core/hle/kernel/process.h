@@ -162,7 +162,7 @@ public:
     }
 
     /// Gets the unique ID that identifies this particular process.
-    u32 GetProcessID() const {
+    u64 GetProcessID() const {
         return process_id;
     }
 
@@ -288,10 +288,10 @@ private:
     ProcessStatus status;
 
     /// The ID of this process
-    u32 process_id = 0;
+    u64 process_id = 0;
 
     /// Title ID corresponding to the process
-    u64 program_id;
+    u64 program_id = 0;
 
     /// Resource limit descriptor for this process
     SharedPtr<ResourceLimit> resource_limit;

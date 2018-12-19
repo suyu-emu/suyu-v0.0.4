@@ -155,7 +155,7 @@ struct KernelCore::Impl {
     std::atomic<u32> next_object_id{0};
     // TODO(Subv): Start the process ids from 10 for now, as lower PIDs are
     // reserved for low-level services
-    std::atomic<u32> next_process_id{10};
+    std::atomic<u64> next_process_id{10};
     std::atomic<u32> next_thread_id{1};
 
     // Lists all processes that exist in the current session.
@@ -246,7 +246,7 @@ u32 KernelCore::CreateNewThreadID() {
     return impl->next_thread_id++;
 }
 
-u32 KernelCore::CreateNewProcessID() {
+u64 KernelCore::CreateNewProcessID() {
     return impl->next_process_id++;
 }
 
