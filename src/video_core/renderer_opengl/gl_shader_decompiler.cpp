@@ -3784,6 +3784,7 @@ private:
             }
             default: {
                 UNIMPLEMENTED_MSG("Unhandled instruction: {}", opcode->get().GetName());
+                break;
             }
             }
 
