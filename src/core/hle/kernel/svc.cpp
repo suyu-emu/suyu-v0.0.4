@@ -350,7 +350,7 @@ static ResultCode SendSyncRequest(Handle handle) {
 }
 
 /// Get the ID for the specified thread.
-static ResultCode GetThreadId(u32* thread_id, Handle thread_handle) {
+static ResultCode GetThreadId(u64* thread_id, Handle thread_handle) {
     LOG_TRACE(Kernel_SVC, "called thread=0x{:08X}", thread_handle);
 
     const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
