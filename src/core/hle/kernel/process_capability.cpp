@@ -278,7 +278,27 @@ ResultCode ProcessCapabilities::HandleMapIOFlags(u32 flags, VMManager& vm_manage
 }
 
 ResultCode ProcessCapabilities::HandleInterruptFlags(u32 flags) {
-    // TODO: Implement
+    constexpr u32 interrupt_ignore_value = 0x3FF;
+    const u32 interrupt0 = (flags >> 12) & 0x3FF;
+    const u32 interrupt1 = (flags >> 22) & 0x3FF;
+
+    for (u32 interrupt : {interrupt0, interrupt1}) {
+        if (interrupt == interrupt_ignore_value) {
+            continue;
+        }
+
+        // NOTE:
+        // This should be checking a generic interrupt controller value
+        // as part of the calculation, however, given we don't currently
+        // emulate that, it's sufficient to mark every interrupt as defined.
+
+        if (interrupt >= interrupt_capabilities.size()) {
+            return ERR_OUT_OF_RANGE;
+        }
+
+        interrupt_capabilities[interrupt] = true;
+    }
+
     return RESULT_SUCCESS;
 }
 
