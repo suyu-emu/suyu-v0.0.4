@@ -200,6 +200,8 @@ void ProcessCapabilities::Clear() {
     handle_table_size = 0;
     kernel_version = 0;
 
+    program_type = ProgramType::SysModule;
+
     is_debuggable = false;
     can_force_debug = false;
 }
@@ -303,7 +305,12 @@ ResultCode ProcessCapabilities::HandleInterruptFlags(u32 flags) {
 }
 
 ResultCode ProcessCapabilities::HandleProgramTypeFlags(u32 flags) {
-    // TODO: Implement
+    const u32 reserved = flags >> 17;
+    if (reserved != 0) {
+        return ERR_RESERVED_VALUE;
+    }
+
+    program_type = static_cast<ProgramType>((flags >> 14) & 0b111);
     return RESULT_SUCCESS;
 }
 

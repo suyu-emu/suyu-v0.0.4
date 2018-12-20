@@ -14,6 +14,14 @@ namespace Kernel {
 
 class VMManager;
 
+/// The possible types of programs that may be indicated
+/// by the program type capability descriptor.
+enum class ProgramType {
+    SysModule,
+    Application,
+    Applet,
+};
+
 /// Handles kernel capability descriptors that are provided by
 /// application metadata. These descriptors provide information
 /// that alters certain parameters for kernel process instance
@@ -137,6 +145,16 @@ public:
         return svc_capabilities;
     }
 
+    /// Gets the valid interrupt bits.
+    const InterruptCapabilities& GetInterruptCapabilities() const {
+        return interrupt_capabilities;
+    }
+
+    /// Gets the program type for this process.
+    ProgramType GetProgramType() const {
+        return program_type;
+    }
+
 private:
     /// Attempts to parse a given sequence of capability descriptors.
     ///
@@ -215,7 +233,8 @@ private:
 
     u32 handle_table_size = 0;
     u32 kernel_version = 0;
-    u32 program_type = 0;
+
+    ProgramType program_type = ProgramType::SysModule;
 
     bool is_debuggable = false;
     bool can_force_debug = false;
