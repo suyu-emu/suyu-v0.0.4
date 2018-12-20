@@ -397,6 +397,10 @@ struct IpaMode {
     bool operator!=(const IpaMode& a) const {
         return !operator==(a);
     }
+    bool operator<(const IpaMode& a) const {
+        return std::tie(interpolation_mode, sampling_mode) <
+               std::tie(a.interpolation_mode, a.sampling_mode);
+    }
 };
 
 enum class SystemVariable : u64 {
