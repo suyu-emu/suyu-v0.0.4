@@ -122,6 +122,16 @@ public:
     ///
     void InitializeForMetadatalessProcess();
 
+    /// Gets the allowable core mask
+    u64 GetCoreMask() const {
+        return core_mask;
+    }
+
+    /// Gets the allowable priority mask
+    u64 GetPriorityMask() const {
+        return priority_mask;
+    }
+
 private:
     /// Attempts to parse a given sequence of capability descriptors.
     ///

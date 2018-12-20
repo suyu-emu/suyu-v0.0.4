@@ -205,7 +205,36 @@ void ProcessCapabilities::Clear() {
 }
 
 ResultCode ProcessCapabilities::HandlePriorityCoreNumFlags(u32 flags) {
-    // TODO: Implement
+    if (priority_mask != 0 || core_mask != 0) {
+        return ERR_INVALID_CAPABILITY_DESCRIPTOR;
+    }
+
+    const u32 core_num_min = (flags >> 16) & 0xFF;
+    const u32 core_num_max = (flags >> 24) & 0xFF;
+    if (core_num_min > core_num_max) {
+        return ERR_INVALID_COMBINATION;
+    }
+
+    const u32 priority_min = (flags >> 10) & 0x3F;
+    const u32 priority_max = (flags >> 4) & 0x3F;
+    if (priority_min > priority_max) {
+        return ERR_INVALID_COMBINATION;
+    }
+
+    // The switch only has 4 usable cores.
+    if (core_num_max >= 4) {
+        return ERR_INVALID_PROCESSOR_ID;
+    }
+
+    const auto make_mask = [](u64 min, u64 max) {
+        const u64 range = max - min + 1;
+        const u64 mask = (1ULL << range) - 1;
+
+        return mask << min;
+    };
+
+    core_mask = make_mask(core_num_min, core_num_max);
+    priority_mask = make_mask(priority_min, priority_max);
     return RESULT_SUCCESS;
 }
 
