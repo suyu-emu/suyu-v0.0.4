@@ -315,7 +315,19 @@ ResultCode ProcessCapabilities::HandleProgramTypeFlags(u32 flags) {
 }
 
 ResultCode ProcessCapabilities::HandleKernelVersionFlags(u32 flags) {
-    // TODO: Implement
+    // Yes, the internal member variable is checked in the actual kernel here.
+    // This might look odd for options that are only allowed to be initialized
+    // just once, however the kernel has a separate initialization function for
+    // kernel processes and userland processes. The kernel variant sets this
+    // member variable ahead of time.
+
+    const u32 major_version = kernel_version >> 19;
+
+    if (major_version != 0 || flags < 0x80000) {
+        return ERR_INVALID_CAPABILITY_DESCRIPTOR;
+    }
+
+    kernel_version = flags;
     return RESULT_SUCCESS;
 }
 

@@ -155,6 +155,11 @@ public:
         return program_type;
     }
 
+    /// Gets the kernel version value.
+    u32 GetKernelVersion() const {
+        return kernel_version;
+    }
+
 private:
     /// Attempts to parse a given sequence of capability descriptors.
     ///
