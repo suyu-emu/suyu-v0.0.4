@@ -332,7 +332,12 @@ ResultCode ProcessCapabilities::HandleKernelVersionFlags(u32 flags) {
 }
 
 ResultCode ProcessCapabilities::HandleHandleTableFlags(u32 flags) {
-    // TODO: Implement
+    const u32 reserved = flags >> 26;
+    if (reserved != 0) {
+        return ERR_RESERVED_VALUE;
+    }
+
+    handle_table_size = (flags >> 16) & 0x3FF;
     return RESULT_SUCCESS;
 }
 

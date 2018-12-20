@@ -155,6 +155,11 @@ public:
         return program_type;
     }
 
+    /// Gets the number of total allowable handles for the process' handle table.
+    u32 GetHandleTableSize() const {
+        return handle_table_size;
+    }
+
     /// Gets the kernel version value.
     u32 GetKernelVersion() const {
         return kernel_version;
