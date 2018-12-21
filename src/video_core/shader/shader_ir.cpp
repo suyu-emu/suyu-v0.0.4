@@ -109,6 +109,14 @@ Node ShaderIR::GetOutputAttribute(Attribute::Index index, u64 element, Node buff
     return StoreNode(AbufNode(index, static_cast<u32>(element), buffer));
 }
 
+Node ShaderIR::GetInternalFlag(InternalFlag flag, bool negated) {
+    const Node node = StoreNode(InternalFlagNode(flag));
+    if (negated) {
+        return Operation(OperationCode::LogicalNegate, node);
+    }
+    return node;
+}
+
 /*static*/ OperationCode ShaderIR::SignedToUnsignedCode(OperationCode operation_code,
                                                         bool is_signed) {
     if (is_signed) {

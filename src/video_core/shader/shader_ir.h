@@ -629,6 +629,8 @@ private:
                            const Tegra::Shader::IpaMode& input_mode, Node buffer = {});
     /// Generates a node representing an output atttribute. Keeps track of used attributes.
     Node GetOutputAttribute(Tegra::Shader::Attribute::Index index, u64 element, Node buffer);
+    /// Generates a node representing an internal flag
+    Node GetInternalFlag(InternalFlag flag, bool negated = false);
 
     template <typename... T>
     inline Node Operation(OperationCode code, const T*... operands) {
