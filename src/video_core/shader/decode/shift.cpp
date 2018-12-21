@@ -39,6 +39,14 @@ u32 ShaderIR::DecodeShift(BasicBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, value);
         break;
     }
+    case OpCode::Id::SHL_C:
+    case OpCode::Id::SHL_R:
+    case OpCode::Id::SHL_IMM:
+        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                             "Condition codes generation in SHL is not implemented");
+        SetRegister(bb, instr.gpr0,
+                    Operation(OperationCode::ILogicalShiftLeft, PRECISE, op_a, op_b));
+        break;
     default:
         UNIMPLEMENTED_MSG("Unhandled shift instruction: {}", opcode->get().GetName());
     }
