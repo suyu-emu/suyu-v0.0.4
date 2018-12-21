@@ -140,6 +140,41 @@ Node ShaderIR::GetSaturatedFloat(Node value, bool saturate) {
     return Operation(OperationCode::FClamp, NO_PRECISE, value, positive_zero, positive_one);
 }
 
+Node ShaderIR::ConvertIntegerSize(Node value, Tegra::Shader::Register::Size size, bool is_signed) {
+    switch (size) {
+    case Register::Size::Byte:
+        value = SignedOperation(OperationCode::ILogicalShiftLeft, is_signed, NO_PRECISE, value,
+                                Immediate(24));
+        value = SignedOperation(OperationCode::IArithmeticShiftRight, is_signed, NO_PRECISE, value,
+                                Immediate(24));
+        return value;
+    case Register::Size::Short:
+        value = SignedOperation(OperationCode::ILogicalShiftLeft, is_signed, NO_PRECISE, value,
+                                Immediate(16));
+        value = SignedOperation(OperationCode::IArithmeticShiftRight, is_signed, NO_PRECISE, value,
+                                Immediate(16));
+    case Register::Size::Word:
+        // Default - do nothing
+        return value;
+    default:
+        UNREACHABLE_MSG("Unimplemented conversion size: {}", static_cast<u32>(size));
+    }
+}
+
+Node ShaderIR::GetOperandAbsNegInteger(Node value, bool absolute, bool negate, bool is_signed) {
+    if (!is_signed) {
+        // Absolute or negate on an unsigned is pointless
+        return value;
+    }
+    if (absolute) {
+        value = Operation(OperationCode::IAbsolute, NO_PRECISE, value);
+    }
+    if (negate) {
+        value = Operation(OperationCode::INegate, NO_PRECISE, value);
+    }
+    return value;
+}
+
 void ShaderIR::SetRegister(BasicBlock& bb, Register dest, Node src) {
     bb.push_back(Operation(OperationCode::Assign, GetRegister(dest), src));
 }

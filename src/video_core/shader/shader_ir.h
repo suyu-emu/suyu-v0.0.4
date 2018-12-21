@@ -648,6 +648,11 @@ private:
     /// Conditionally saturates a float
     Node GetSaturatedFloat(Node value, bool saturate = true);
 
+    /// Converts an integer to different sizes.
+    Node ConvertIntegerSize(Node value, Tegra::Shader::Register::Size size, bool is_signed);
+    /// Conditionally absolute/negated integer. Absolute is applied first
+    Node GetOperandAbsNegInteger(Node value, bool absolute, bool negate, bool is_signed);
+
     template <typename... T>
     inline Node Operation(OperationCode code, const T*... operands) {
         return StoreNode(OperationNode(code, operands...));
