@@ -73,6 +73,43 @@ u32 ShaderIR::DecodeConversion(BasicBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, value);
         break;
     }
+    case OpCode::Id::F2I_R:
+    case OpCode::Id::F2I_C: {
+        UNIMPLEMENTED_IF(instr.conversion.src_size != Register::Size::Word);
+        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                             "Condition codes generation in F2I is not implemented");
+        Node value = [&]() {
+            if (instr.is_b_gpr) {
+                return GetRegister(instr.gpr20);
+            } else {
+                return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset);
+            }
+        }();
+
+        value = GetOperandAbsNegFloat(value, instr.conversion.abs_a, instr.conversion.negate_a);
+
+        value = [&]() {
+            switch (instr.conversion.f2i.rounding) {
+            case Tegra::Shader::F2iRoundingOp::None:
+                return value;
+            case Tegra::Shader::F2iRoundingOp::Floor:
+                return Operation(OperationCode::FFloor, PRECISE, value);
+            case Tegra::Shader::F2iRoundingOp::Ceil:
+                return Operation(OperationCode::FCeil, PRECISE, value);
+            case Tegra::Shader::F2iRoundingOp::Trunc:
+                return Operation(OperationCode::FTrunc, PRECISE, value);
+            default:
+                UNIMPLEMENTED_MSG("Unimplemented F2I rounding mode {}",
+                                  static_cast<u32>(instr.conversion.f2i.rounding.Value()));
+            }
+        }();
+        const bool is_signed = instr.conversion.is_output_signed;
+        value = SignedOperation(OperationCode::ICastFloat, is_signed, PRECISE, value);
+        value = ConvertIntegerSize(value, instr.conversion.dest_size, is_signed);
+
+        SetRegister(bb, instr.gpr0, value);
+        break;
+    }
     default:
         UNIMPLEMENTED_MSG("Unhandled conversion instruction: {}", opcode->get().GetName());
     }
