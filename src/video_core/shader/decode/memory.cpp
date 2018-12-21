@@ -152,6 +152,23 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
 
         break;
     }
+    case OpCode::Id::ST_L: {
+        // UNIMPLEMENTED_IF_MSG(instr.st_l.unknown == 0, "ST_L Unhandled mode: {}",
+        //                      static_cast<u32>(instr.st_l.unknown.Value()));
+
+        const Node index = Operation(OperationCode::IAdd, NO_PRECISE, GetRegister(instr.gpr8),
+                                     Immediate(static_cast<s32>(instr.smem_imm)));
+
+        switch (instr.ldst_sl.type.Value()) {
+        case Tegra::Shader::StoreType::Bytes32:
+            SetLocalMemory(bb, index, GetRegister(instr.gpr0));
+            break;
+        default:
+            UNIMPLEMENTED_MSG("ST_L Unhandled type: {}",
+                              static_cast<u32>(instr.ldst_sl.type.Value()));
+        }
+        break;
+    }
     case OpCode::Id::TEX: {
         Tegra::Shader::TextureType texture_type{instr.tex.texture_type};
         const bool is_array = instr.tex.array != 0;
