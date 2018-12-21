@@ -364,6 +364,7 @@ public:
             return value;
         default:
             UNREACHABLE_MSG("Unimplemented conversion size: {}", static_cast<u32>(size));
+            return value;
         }
     }
 
@@ -626,6 +627,7 @@ public:
             return "floatBitsToInt(" + value + ')';
         } else {
             UNREACHABLE();
+            return value;
         }
     }
 
@@ -2062,6 +2064,8 @@ private:
                             std::to_string(instr.alu.GetSignedImm20_20())};
                 default:
                     UNREACHABLE();
+                    return {regs.GetRegisterAsInteger(instr.gpr39, 0, false),
+                            std::to_string(instr.alu.GetSignedImm20_20())};
                 }
             }();
             const std::string offset = '(' + packed_shift + " & 0xff)";
@@ -3312,6 +3316,7 @@ private:
                     return std::to_string(instr.r2p.immediate_mask);
                 default:
                     UNREACHABLE();
+                    return std::to_string(instr.r2p.immediate_mask);
                 }
             }();
             const std::string mask = '(' + regs.GetRegisterAsInteger(instr.gpr8, 0, false) +
@@ -3775,7 +3780,10 @@ private:
                 }
                 break;
             }
-            default: { UNIMPLEMENTED_MSG("Unhandled instruction: {}", opcode->get().GetName()); }
+            default: {
+                UNIMPLEMENTED_MSG("Unhandled instruction: {}", opcode->get().GetName());
+                break;
+            }
             }
 
             break;

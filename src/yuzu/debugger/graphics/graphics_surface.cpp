@@ -30,6 +30,7 @@ static Tegra::Texture::TextureFormat ConvertToTextureFormat(
         return Tegra::Texture::TextureFormat::A2B10G10R10;
     default:
         UNIMPLEMENTED_MSG("Unimplemented RT format");
+        return Tegra::Texture::TextureFormat::A8R8G8B8;
     }
 }
 

@@ -187,6 +187,7 @@ T Read(const VAddr vaddr) {
     default:
         UNREACHABLE();
     }
+    return {};
 }
 
 template <typename T>

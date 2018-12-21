@@ -171,6 +171,7 @@ u32 MacroInterpreter::GetALUResult(ALUOperation operation, u32 src_a, u32 src_b)
 
     default:
         UNIMPLEMENTED_MSG("Unimplemented ALU operation {}", static_cast<u32>(operation));
+        return 0;
     }
 }
 
@@ -268,6 +269,7 @@ bool MacroInterpreter::EvaluateBranchCondition(BranchCondition cond, u32 value) 
         return value != 0;
     }
     UNREACHABLE();
+    return true;
 }
 
 } // namespace Tegra
