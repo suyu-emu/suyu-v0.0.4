@@ -11,6 +11,7 @@ namespace VideoCommon::Shader {
 
 using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
+using Tegra::Shader::ConditionCode;
 
 u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
@@ -43,6 +44,17 @@ u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
             UNIMPLEMENTED_MSG("Unhandled flow condition: {}",
                               static_cast<u32>(instr.flow.cond.Value()));
         }
+        break;
+    }
+    case OpCode::Id::BRA: {
+        UNIMPLEMENTED_IF_MSG(instr.bra.constant_buffer != 0,
+                             "BRA with constant buffers are not implemented");
+
+        const Tegra::Shader::ConditionCode cc = instr.flow_condition_code;
+        UNIMPLEMENTED_IF(cc != Tegra::Shader::ConditionCode::T);
+
+        const u32 target = pc + instr.bra.GetBranchTarget();
+        bb.push_back(Operation(OperationCode::Bra, Immediate(target)));
         break;
     }
     case OpCode::Id::IPA: {
