@@ -42,6 +42,7 @@ u32 ShaderIR::DecodeFfma(BasicBlock& bb, u32 pc) {
             return {GetImmediate19(instr), GetRegister(instr.gpr39)};
         default:
             UNIMPLEMENTED_MSG("Unhandled FFMA instruction: {}", opcode->get().GetName());
+            return {Immediate(0), Immediate(0)};
         }
     }();
 

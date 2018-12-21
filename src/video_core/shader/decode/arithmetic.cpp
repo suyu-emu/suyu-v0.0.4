@@ -115,6 +115,7 @@ u32 ShaderIR::DecodeArithmetic(BasicBlock& bb, u32 pc) {
             default:
                 UNIMPLEMENTED_MSG("Unhandled MUFU sub op={0:x}",
                                   static_cast<unsigned>(instr.sub_op.Value()));
+                return Immediate(0);
             }
         }();
         value = GetSaturatedFloat(value, instr.alu.saturate_d);

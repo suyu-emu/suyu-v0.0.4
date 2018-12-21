@@ -42,9 +42,9 @@ u32 ShaderIR::DecodeXmad(BasicBlock& bb, u32 pc) {
         case OpCode::Id::XMAD_IMM:
             return {instr.xmad.merge_37, Immediate(static_cast<u32>(instr.xmad.imm20_16)),
                     GetRegister(instr.gpr39)};
-        default:
-            UNIMPLEMENTED_MSG("Unhandled XMAD instruction: {}", opcode->get().GetName());
         }
+        UNIMPLEMENTED_MSG("Unhandled XMAD instruction: {}", opcode->get().GetName());
+        return {false, Immediate(0), Immediate(0)};
     }();
 
     if (instr.xmad.high_a) {
@@ -85,9 +85,9 @@ u32 ShaderIR::DecodeXmad(BasicBlock& bb, u32 pc) {
                                                    NO_PRECISE, original_b, Immediate(16));
             return SignedOperation(OperationCode::IAdd, is_signed_c, NO_PRECISE, op_c, shifted_b);
         }
-        default: {
+        default:
             UNIMPLEMENTED_MSG("Unhandled XMAD mode: {}", static_cast<u32>(instr.xmad.mode.Value()));
-        }
+            return Immediate(0);
         }
     }();
 

@@ -96,11 +96,10 @@ u32 ShaderIR::DecodeConversion(BasicBlock& bb, u32 pc) {
                 return Operation(OperationCode::FCeil, PRECISE, value);
             case Tegra::Shader::F2fRoundingOp::Trunc:
                 return Operation(OperationCode::FTrunc, PRECISE, value);
-            default:
-                UNIMPLEMENTED_MSG("Unimplemented F2F rounding mode {}",
-                                  static_cast<u32>(instr.conversion.f2f.rounding.Value()));
-                break;
             }
+            UNIMPLEMENTED_MSG("Unimplemented F2F rounding mode {}",
+                              static_cast<u32>(instr.conversion.f2f.rounding.Value()));
+            return Immediate(0);
         }();
         value = GetSaturatedFloat(value, instr.alu.saturate_d);
 
@@ -135,6 +134,7 @@ u32 ShaderIR::DecodeConversion(BasicBlock& bb, u32 pc) {
             default:
                 UNIMPLEMENTED_MSG("Unimplemented F2I rounding mode {}",
                                   static_cast<u32>(instr.conversion.f2i.rounding.Value()));
+                return Immediate(0);
             }
         }();
         const bool is_signed = instr.conversion.is_output_signed;

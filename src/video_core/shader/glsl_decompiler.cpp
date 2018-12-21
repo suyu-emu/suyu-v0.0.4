@@ -353,6 +353,7 @@ private:
                     return "samplerCube";
                 default:
                     UNREACHABLE();
+                    return "sampler2D";
                 }
             }();
             if (sampler.IsArray())
@@ -506,6 +507,7 @@ private:
             return "// " + comment->GetText();
         }
         UNREACHABLE();
+        return {};
     }
 
     std::string ApplyPrecise(Operation operation, const std::string& value) {
@@ -563,6 +565,7 @@ private:
             }
         }
         UNREACHABLE();
+        return value;
     }
 
     std::string BitwiseCastResult(std::string value, Type type, bool needs_parenthesis = false) {
@@ -581,6 +584,7 @@ private:
             return "fromHalf2(" + value + ')';
         }
         UNREACHABLE();
+        return value;
     }
 
     std::string GenerateUnary(Operation operation, const std::string& func, Type result_type,
@@ -697,6 +701,7 @@ private:
                     }
                     UNIMPLEMENTED_MSG("Unhandled output attribute: {}",
                                       static_cast<u32>(attribute));
+                    return "0";
                 }
             }();
 

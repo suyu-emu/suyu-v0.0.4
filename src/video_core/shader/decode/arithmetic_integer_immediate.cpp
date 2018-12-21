@@ -62,6 +62,7 @@ void ShaderIR::WriteLogicOperation(BasicBlock& bb, Register dest, LogicOperation
             return op_b;
         default:
             UNIMPLEMENTED_MSG("Unimplemented logic operation={}", static_cast<u32>(logic_op));
+            return Immediate(0);
         }
     }();
 

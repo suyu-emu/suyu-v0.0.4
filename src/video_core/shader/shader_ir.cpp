@@ -158,6 +158,7 @@ Node ShaderIR::ConvertIntegerSize(Node value, Tegra::Shader::Register::Size size
         return value;
     default:
         UNREACHABLE_MSG("Unimplemented conversion size: {}", static_cast<u32>(size));
+        return value;
     }
 }
 
@@ -403,6 +404,7 @@ void ShaderIR::SetLocalMemory(BasicBlock& bb, Node address, Node value) {
         UNREACHABLE_MSG("Can't apply absolute to an unsigned integer");
     }
     UNREACHABLE_MSG("Unknown signed operation with code={}", static_cast<u32>(operation_code));
+    return {};
 }
 
 } // namespace VideoCommon::Shader

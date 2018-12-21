@@ -24,6 +24,7 @@ u32 ShaderIR::DecodeBfi(BasicBlock& bb, u32 pc) {
             return {GetRegister(instr.gpr39), Immediate(instr.alu.GetSignedImm20_20())};
         default:
             UNREACHABLE();
+            return {Immediate(0), Immediate(0)};
         }
     }();
     const Node insert = GetRegister(instr.gpr8);
