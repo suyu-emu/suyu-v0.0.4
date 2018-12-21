@@ -598,9 +598,26 @@ private:
     Node Conditional(Node condition, std::vector<Node>&& code);
     /// Creates a commentary
     Node Comment(const std::string& text);
+    /// Creates an u32 immediate
+    Node Immediate(u32 value);
+    /// Creates a s32 immediate
+    Node Immediate(s32 value) {
+        return Immediate(static_cast<u32>(value));
+    }
+    /// Creates a f32 immediate
+    Node Immediate(f32 value) {
+        // TODO(Rodrigo): Replace this with bit_cast when C++20 releases
+        return Immediate(*reinterpret_cast<const u32*>(&value));
+    }
 
+    /// Generates a node representing a 19-bit immediate value
+    Node GetImmediate19(Tegra::Shader::Instruction instr);
+    /// Generates a node representing a 32-bit immediate value
+    Node GetImmediate32(Tegra::Shader::Instruction instr);
     /// Generates a node for a passed predicate. It can be optionally negated
     Node GetPredicate(u64 pred, bool negated = false);
+    /// Generates a predicate node for an immediate true or false value
+    Node GetPredicate(bool immediate);
 
     template <typename... T>
     inline Node Operation(OperationCode code, const T*... operands) {

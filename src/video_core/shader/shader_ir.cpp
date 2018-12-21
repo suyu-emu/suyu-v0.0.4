@@ -35,6 +35,18 @@ Node ShaderIR::Comment(const std::string& text) {
     return StoreNode(CommentNode(text));
 }
 
+Node ShaderIR::Immediate(u32 value) {
+    return StoreNode(ImmediateNode(value));
+}
+
+Node ShaderIR::GetImmediate19(Instruction instr) {
+    return Immediate(instr.alu.GetImm20_19());
+}
+
+Node ShaderIR::GetImmediate32(Instruction instr) {
+    return Immediate(instr.alu.GetImm20_32());
+}
+
 Node ShaderIR::GetPredicate(u64 pred_, bool negated) {
     const auto pred = static_cast<Pred>(pred_);
     if (pred != Pred::UnusedIndex && pred != Pred::NeverExecute) {
@@ -42,6 +54,10 @@ Node ShaderIR::GetPredicate(u64 pred_, bool negated) {
     }
 
     return StoreNode(PredicateNode(pred, negated));
+}
+
+Node ShaderIR::GetPredicate(bool immediate) {
+    return GetPredicate(static_cast<u64>(immediate ? Pred::UnusedIndex : Pred::NeverExecute));
 }
 
 /*static*/ OperationCode ShaderIR::SignedToUnsignedCode(OperationCode operation_code,
