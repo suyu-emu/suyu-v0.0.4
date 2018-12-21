@@ -93,6 +93,35 @@ u32 ShaderIR::DecodeArithmetic(BasicBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, value);
         break;
     }
+    case OpCode::Id::MUFU: {
+        op_a = GetOperandAbsNegFloat(op_a, instr.alu.abs_a, instr.alu.negate_a);
+
+        Node value = [&]() {
+            switch (instr.sub_op) {
+            case SubOp::Cos:
+                return Operation(OperationCode::FCos, PRECISE, op_a);
+            case SubOp::Sin:
+                return Operation(OperationCode::FSin, PRECISE, op_a);
+            case SubOp::Ex2:
+                return Operation(OperationCode::FExp2, PRECISE, op_a);
+            case SubOp::Lg2:
+                return Operation(OperationCode::FLog2, PRECISE, op_a);
+            case SubOp::Rcp:
+                return Operation(OperationCode::FDiv, PRECISE, Immediate(1.0f), op_a);
+            case SubOp::Rsq:
+                return Operation(OperationCode::FInverseSqrt, PRECISE, op_a);
+            case SubOp::Sqrt:
+                return Operation(OperationCode::FSqrt, PRECISE, op_a);
+            default:
+                UNIMPLEMENTED_MSG("Unhandled MUFU sub op={0:x}",
+                                  static_cast<unsigned>(instr.sub_op.Value()));
+            }
+        }();
+        value = GetSaturatedFloat(value, instr.alu.saturate_d);
+
+        SetRegister(bb, instr.gpr0, value);
+        break;
+    }
     default:
         UNIMPLEMENTED_MSG("Unhandled arithmetic instruction: {}", opcode->get().GetName());
     }
