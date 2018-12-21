@@ -52,6 +52,36 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
         }
         break;
     }
+    case OpCode::Id::ST_A: {
+        UNIMPLEMENTED_IF_MSG(instr.gpr8.Value() != Register::ZeroIndex,
+                             "Indirect attribute loads are not supported");
+        UNIMPLEMENTED_IF_MSG((instr.attribute.fmt20.immediate.Value() % sizeof(u32)) != 0,
+                             "Unaligned attribute loads are not supported");
+
+        u64 next_element = instr.attribute.fmt20.element;
+        auto next_index = static_cast<u64>(instr.attribute.fmt20.index.Value());
+
+        const auto StoreNextElement = [&](u32 reg_offset) {
+            const auto dest = GetOutputAttribute(static_cast<Attribute::Index>(next_index),
+                                                 next_element, GetRegister(instr.gpr39));
+            const auto src = GetRegister(instr.gpr0.Value() + reg_offset);
+
+            bb.push_back(Operation(OperationCode::Assign, dest, src));
+
+            // Load the next attribute element into the following register. If the element
+            // to load goes beyond the vec4 size, load the first element of the next
+            // attribute.
+            next_element = (next_element + 1) % 4;
+            next_index = next_index + (next_element == 0 ? 1 : 0);
+        };
+
+        const u32 num_words = static_cast<u32>(instr.attribute.fmt20.size.Value()) + 1;
+        for (u32 reg_offset = 0; reg_offset < num_words; ++reg_offset) {
+            StoreNextElement(reg_offset);
+        }
+
+        break;
+    }
     default:
         UNIMPLEMENTED_MSG("Unhandled memory instruction: {}", opcode->get().GetName());
     }
