@@ -492,7 +492,7 @@ private:
 /// Commentary, can be dropped
 class CommentNode final {
 public:
-    explicit CommentNode(const std::string& text) : text{text} {}
+    explicit CommentNode(std::string text) : text{std::move(text)} {}
 
     const std::string& GetText() const {
         return text;
