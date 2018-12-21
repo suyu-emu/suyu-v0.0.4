@@ -653,6 +653,13 @@ private:
     /// Conditionally absolute/negated integer. Absolute is applied first
     Node GetOperandAbsNegInteger(Node value, bool absolute, bool negate, bool is_signed);
 
+    /// Unpacks a half immediate from an instruction
+    Node UnpackHalfImmediate(Tegra::Shader::Instruction instr, bool has_negation);
+    /// Merges a half pair into another value
+    Node HalfMerge(Node dest, Node src, Tegra::Shader::HalfMerge merge);
+    /// Conditionally absolute/negated half float pair. Absolute is applied first
+    Node GetOperandAbsNegHalf(Node value, bool absolute, bool negate);
+
     template <typename... T>
     inline Node Operation(OperationCode code, const T*... operands) {
         return StoreNode(OperationNode(code, operands...));

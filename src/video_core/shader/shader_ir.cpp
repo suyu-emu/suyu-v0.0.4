@@ -175,6 +175,43 @@ Node ShaderIR::GetOperandAbsNegInteger(Node value, bool absolute, bool negate, b
     return value;
 }
 
+Node ShaderIR::UnpackHalfImmediate(Instruction instr, bool has_negation) {
+    const Node value = Immediate(instr.half_imm.PackImmediates());
+    if (!has_negation) {
+        return value;
+    }
+    const Node first_negate = GetPredicate(instr.half_imm.first_negate != 0);
+    const Node second_negate = GetPredicate(instr.half_imm.second_negate != 0);
+
+    return Operation(OperationCode::HNegate, HALF_NO_PRECISE, value, first_negate, second_negate);
+}
+
+Node ShaderIR::HalfMerge(Node dest, Node src, Tegra::Shader::HalfMerge merge) {
+    switch (merge) {
+    case Tegra::Shader::HalfMerge::H0_H1:
+        return src;
+    case Tegra::Shader::HalfMerge::F32:
+        return Operation(OperationCode::HMergeF32, src);
+    case Tegra::Shader::HalfMerge::Mrg_H0:
+        return Operation(OperationCode::HMergeH0, dest, src);
+    case Tegra::Shader::HalfMerge::Mrg_H1:
+        return Operation(OperationCode::HMergeH1, dest, src);
+    }
+    UNREACHABLE();
+    return src;
+}
+
+Node ShaderIR::GetOperandAbsNegHalf(Node value, bool absolute, bool negate) {
+    if (absolute) {
+        value = Operation(OperationCode::HAbsolute, HALF_NO_PRECISE, value);
+    }
+    if (negate) {
+        value = Operation(OperationCode::HNegate, HALF_NO_PRECISE, value, GetPredicate(true),
+                          GetPredicate(true));
+    }
+    return value;
+}
+
 void ShaderIR::SetRegister(BasicBlock& bb, Register dest, Node src) {
     bb.push_back(Operation(OperationCode::Assign, GetRegister(dest), src));
 }
