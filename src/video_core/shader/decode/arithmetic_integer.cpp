@@ -41,6 +41,14 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, Operation(OperationCode::IAdd, PRECISE, op_a, op_b));
         break;
     }
+    case OpCode::Id::SEL_C:
+    case OpCode::Id::SEL_R:
+    case OpCode::Id::SEL_IMM: {
+        const Node condition = GetPredicate(instr.sel.pred, instr.sel.neg_pred != 0);
+        const Node value = Operation(OperationCode::Select, PRECISE, condition, op_a, op_b);
+        SetRegister(bb, instr.gpr0, value);
+        break;
+    }
     default:
         UNIMPLEMENTED_MSG("Unhandled ArithmeticInteger instruction: {}", opcode->get().GetName());
     }
