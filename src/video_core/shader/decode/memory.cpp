@@ -104,6 +104,24 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
         }
         break;
     }
+    case OpCode::Id::LD_L: {
+        UNIMPLEMENTED_IF_MSG(instr.ld_l.unknown == 1, "LD_L Unhandled mode: {}",
+                             static_cast<unsigned>(instr.ld_l.unknown.Value()));
+
+        const Node index = Operation(OperationCode::IAdd, GetRegister(instr.gpr8),
+                                     Immediate(static_cast<s32>(instr.smem_imm)));
+        const Node lmem = GetLocalMemory(index);
+
+        switch (instr.ldst_sl.type.Value()) {
+        case Tegra::Shader::StoreType::Bytes32:
+            SetRegister(bb, instr.gpr0, lmem);
+            break;
+        default:
+            UNIMPLEMENTED_MSG("LD_L Unhandled type: {}",
+                              static_cast<unsigned>(instr.ldst_sl.type.Value()));
+        }
+        break;
+    }
     case OpCode::Id::ST_A: {
         UNIMPLEMENTED_IF_MSG(instr.gpr8.Value() != Register::ZeroIndex,
                              "Indirect attribute loads are not supported");
