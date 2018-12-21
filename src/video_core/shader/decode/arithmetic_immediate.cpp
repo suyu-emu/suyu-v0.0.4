@@ -21,6 +21,16 @@ u32 ShaderIR::DecodeArithmeticImmediate(BasicBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, GetImmediate32(instr));
         break;
     }
+    case OpCode::Id::FMUL32_IMM: {
+        UNIMPLEMENTED_IF_MSG(instr.op_32.generates_cc,
+                             "Condition codes generation in FMUL32 is not implemented");
+        Node value =
+            Operation(OperationCode::FMul, PRECISE, GetRegister(instr.gpr8), GetImmediate32(instr));
+        value = GetSaturatedFloat(value, instr.fmul32.saturate);
+
+        SetRegister(bb, instr.gpr0, value);
+        break;
+    }
     default:
         UNIMPLEMENTED_MSG("Unhandled arithmetic immediate instruction: {}",
                           opcode->get().GetName());
