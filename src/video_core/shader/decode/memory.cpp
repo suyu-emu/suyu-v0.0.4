@@ -73,6 +73,37 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
         }
         break;
     }
+    case OpCode::Id::LD_C: {
+        UNIMPLEMENTED_IF(instr.ld_c.unknown != 0);
+
+        Node index = GetRegister(instr.gpr8);
+
+        const Node op_a =
+            GetConstBufferIndirect(instr.cbuf36.index, instr.cbuf36.offset + 0, index);
+
+        switch (instr.ld_c.type.Value()) {
+        case Tegra::Shader::UniformType::Single:
+            SetRegister(bb, instr.gpr0, op_a);
+            break;
+
+        case Tegra::Shader::UniformType::Double: {
+            const Node op_b =
+                GetConstBufferIndirect(instr.cbuf36.index, instr.cbuf36.offset + 4, index);
+
+            const Node composite =
+                Operation(OperationCode::Composite, op_a, op_b, GetRegister(RZ), GetRegister(RZ));
+
+            MetaComponents meta{{0, 1, 2, 3}};
+            bb.push_back(Operation(OperationCode::AssignComposite, meta, composite,
+                                   GetRegister(instr.gpr0), GetRegister(instr.gpr0.Value() + 1),
+                                   GetRegister(RZ), GetRegister(RZ)));
+            break;
+        }
+        default:
+            UNIMPLEMENTED_MSG("Unhandled type: {}", static_cast<unsigned>(instr.ld_c.type.Value()));
+        }
+        break;
+    }
     case OpCode::Id::ST_A: {
         UNIMPLEMENTED_IF_MSG(instr.gpr8.Value() != Register::ZeroIndex,
                              "Indirect attribute loads are not supported");
