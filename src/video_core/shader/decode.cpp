@@ -7,6 +7,7 @@
 
 #include <fmt/format.h>
 
+#include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/engines/shader_header.h"

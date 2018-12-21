@@ -9,9 +9,9 @@
 
 namespace VideoCommon::Shader {
 
+using Tegra::Shader::ConditionCode;
 using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
-using Tegra::Shader::ConditionCode;
 
 u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
