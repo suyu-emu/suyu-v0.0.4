@@ -84,6 +84,8 @@ add_library(video_core STATIC
     shader/decode/xmad.cpp
     shader/decode/other.cpp
     shader/decode.cpp
+    shader/glsl_decompiler.cpp
+    shader/glsl_decompiler.h
     shader/shader_ir.cpp
     shader/shader_ir.h
     surface.cpp
