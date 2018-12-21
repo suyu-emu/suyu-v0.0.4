@@ -49,6 +49,21 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, value);
         break;
     }
+    case OpCode::Id::LOP_C:
+    case OpCode::Id::LOP_R:
+    case OpCode::Id::LOP_IMM: {
+        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                             "Condition codes generation in LOP is not implemented");
+
+        if (instr.alu.lop.invert_a)
+            op_a = Operation(OperationCode::IBitwiseNot, NO_PRECISE, op_a);
+        if (instr.alu.lop.invert_b)
+            op_b = Operation(OperationCode::IBitwiseNot, NO_PRECISE, op_b);
+
+        WriteLogicOperation(bb, instr.gpr0, instr.alu.lop.operation, op_a, op_b,
+                            instr.alu.lop.pred_result_mode, instr.alu.lop.pred48);
+        break;
+    }
     default:
         UNIMPLEMENTED_MSG("Unhandled ArithmeticInteger instruction: {}", opcode->get().GetName());
     }
