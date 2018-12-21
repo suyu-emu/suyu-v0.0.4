@@ -660,6 +660,15 @@ private:
     /// Conditionally absolute/negated half float pair. Absolute is applied first
     Node GetOperandAbsNegHalf(Node value, bool absolute, bool negate);
 
+    /// Returns a predicate comparing two floats
+    Node GetPredicateComparisonFloat(Tegra::Shader::PredCondition condition, Node op_a, Node op_b);
+    /// Returns a predicate comparing two integers
+    Node GetPredicateComparisonInteger(Tegra::Shader::PredCondition condition, bool is_signed,
+                                       Node op_a, Node op_b);
+    /// Returns a predicate comparing two half floats. meta consumes how both pairs will be compared
+    Node GetPredicateComparisonHalf(Tegra::Shader::PredCondition condition,
+                                    const MetaHalfArithmetic& meta, Node op_a, Node op_b);
+
     template <typename... T>
     inline Node Operation(OperationCode code, const T*... operands) {
         return StoreNode(OperationNode(code, operands...));
