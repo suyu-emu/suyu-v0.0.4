@@ -16,7 +16,32 @@ u32 ShaderIR::DecodeShift(BasicBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
-    UNIMPLEMENTED();
+    const Node op_a = GetRegister(instr.gpr8);
+    const Node op_b = [&]() {
+        if (instr.is_b_imm) {
+            return Immediate(instr.alu.GetSignedImm20_20());
+        } else if (instr.is_b_gpr) {
+            return GetRegister(instr.gpr20);
+        } else {
+            return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset);
+        }
+    }();
+
+    switch (opcode->get().GetId()) {
+    case OpCode::Id::SHR_C:
+    case OpCode::Id::SHR_R:
+    case OpCode::Id::SHR_IMM: {
+        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                             "Condition codes generation in SHR is not implemented");
+
+        const Node value = SignedOperation(OperationCode::IArithmeticShiftRight,
+                                           instr.shift.is_signed, PRECISE, op_a, op_b);
+        SetRegister(bb, instr.gpr0, value);
+        break;
+    }
+    default:
+        UNIMPLEMENTED_MSG("Unhandled shift instruction: {}", opcode->get().GetName());
+    }
 
     return pc;
 }
