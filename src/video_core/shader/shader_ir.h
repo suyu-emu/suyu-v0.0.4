@@ -697,6 +697,11 @@ private:
                         Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
                         bool is_array, std::size_t bias_offset, std::vector<Node>&& coords);
 
+    void WriteLogicOperation(BasicBlock& bb, Tegra::Shader::Register dest,
+                             Tegra::Shader::LogicOperation logic_op, Node op_a, Node op_b,
+                             Tegra::Shader::PredicateResultMode predicate_mode,
+                             Tegra::Shader::Pred predicate);
+
     template <typename... T>
     inline Node Operation(OperationCode code, const T*... operands) {
         return StoreNode(OperationNode(code, operands...));
