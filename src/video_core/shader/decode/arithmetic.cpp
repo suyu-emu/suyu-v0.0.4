@@ -36,6 +36,48 @@ u32 ShaderIR::DecodeArithmetic(BasicBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, op_b);
         break;
     }
+    case OpCode::Id::FMUL_C:
+    case OpCode::Id::FMUL_R:
+    case OpCode::Id::FMUL_IMM: {
+        // FMUL does not have 'abs' bits and only the second operand has a 'neg' bit.
+        UNIMPLEMENTED_IF_MSG(instr.fmul.tab5cb8_2 != 0, "FMUL tab5cb8_2({}) is not implemented",
+                             instr.fmul.tab5cb8_2.Value());
+        UNIMPLEMENTED_IF_MSG(
+            instr.fmul.tab5c68_0 != 1, "FMUL tab5cb8_0({}) is not implemented",
+            instr.fmul.tab5c68_0.Value()); // SMO typical sends 1 here which seems to be the default
+        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                             "Condition codes generation in FMUL is not implemented");
+
+        op_b = GetOperandAbsNegFloat(op_b, false, instr.fmul.negate_b);
+
+        // TODO(Rodrigo): Should precise be used when there's a postfactor?
+        Node value = Operation(OperationCode::FMul, PRECISE, op_a, op_b);
+
+        if (instr.fmul.postfactor != 0) {
+            auto postfactor = static_cast<s32>(instr.fmul.postfactor);
+
+            // Postfactor encoded as 3-bit 1's complement in instruction, interpreted with below
+            // logic.
+            if (postfactor >= 4) {
+                postfactor = 7 - postfactor;
+            } else {
+                postfactor = 0 - postfactor;
+            }
+
+            if (postfactor > 0) {
+                value = Operation(OperationCode::FMul, NO_PRECISE, value,
+                                  Immediate(static_cast<f32>(1 << postfactor)));
+            } else {
+                value = Operation(OperationCode::FDiv, NO_PRECISE, value,
+                                  Immediate(static_cast<f32>(1 << -postfactor)));
+            }
+        }
+
+        value = GetSaturatedFloat(value, instr.alu.saturate_d);
+
+        SetRegister(bb, instr.gpr0, value);
+        break;
+    }
     default:
         UNIMPLEMENTED_MSG("Unhandled arithmetic instruction: {}", opcode->get().GetName());
     }
