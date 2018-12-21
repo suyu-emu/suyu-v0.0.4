@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstring>
 #include <map>
 #include <set>
 #include <string>
@@ -606,8 +607,9 @@ private:
     }
     /// Creates a f32 immediate
     Node Immediate(f32 value) {
-        // TODO(Rodrigo): Replace this with bit_cast when C++20 releases
-        return Immediate(*reinterpret_cast<const u32*>(&value));
+        u32 integral;
+        std::memcpy(&integral, &value, sizeof(u32));
+        return Immediate(integral);
     }
 
     /// Generates a node for a passed register.
