@@ -140,6 +140,15 @@ u32 ShaderIR::DecodeArithmetic(BasicBlock& bb, u32 pc) {
                     Operation(OperationCode::Select, NO_PRECISE, condition, min, max));
         break;
     }
+    case OpCode::Id::RRO_C:
+    case OpCode::Id::RRO_R:
+    case OpCode::Id::RRO_IMM: {
+        // Currently RRO is only implemented as a register move.
+        op_b = GetOperandAbsNegFloat(op_b, instr.alu.abs_b, instr.alu.negate_b);
+        SetRegister(bb, instr.gpr0, op_b);
+        LOG_WARNING(HW_GPU, "RRO instruction is incomplete");
+        break;
+    }
     default:
         UNIMPLEMENTED_MSG("Unhandled arithmetic instruction: {}", opcode->get().GetName());
     }
