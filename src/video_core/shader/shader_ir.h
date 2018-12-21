@@ -634,6 +634,14 @@ private:
     /// Generates a node representing a local memory address
     Node GetLocalMemory(Node address);
 
+    /// Sets a register. src value must be a number-evaluated node.
+    void SetRegister(BasicBlock& bb, Tegra::Shader::Register dest, Node src);
+    /// Sets a predicate. src value must be a bool-evaluated node
+    void SetPredicate(BasicBlock& bb, u64 dest, Node src);
+    /// Sets an internal flag. src value must be a bool-evaluated node
+    void SetInternalFlag(BasicBlock& bb, InternalFlag flag, Node value);
+    /// Sets a local memory address. address and value must be a number-evaluated node
+    void SetLocalMemory(BasicBlock& bb, Node address, Node value);
 
     template <typename... T>
     inline Node Operation(OperationCode code, const T*... operands) {

@@ -121,6 +121,22 @@ Node ShaderIR::GetLocalMemory(Node address) {
     return StoreNode(LmemNode(address));
 }
 
+void ShaderIR::SetRegister(BasicBlock& bb, Register dest, Node src) {
+    bb.push_back(Operation(OperationCode::Assign, GetRegister(dest), src));
+}
+
+void ShaderIR::SetPredicate(BasicBlock& bb, u64 dest, Node src) {
+    bb.push_back(Operation(OperationCode::LogicalAssign, GetPredicate(dest), src));
+}
+
+void ShaderIR::SetInternalFlag(BasicBlock& bb, InternalFlag flag, Node value) {
+    bb.push_back(Operation(OperationCode::LogicalAssign, GetInternalFlag(flag), value));
+}
+
+void ShaderIR::SetLocalMemory(BasicBlock& bb, Node address, Node value) {
+    bb.push_back(Operation(OperationCode::Assign, GetLocalMemory(address), value));
+}
+
 /*static*/ OperationCode ShaderIR::SignedToUnsignedCode(OperationCode operation_code,
                                                         bool is_signed) {
     if (is_signed) {
