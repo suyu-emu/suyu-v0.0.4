@@ -643,6 +643,11 @@ private:
     /// Sets a local memory address. address and value must be a number-evaluated node
     void SetLocalMemory(BasicBlock& bb, Node address, Node value);
 
+    /// Conditionally absolute/negated float. Absolute is applied first
+    Node GetOperandAbsNegFloat(Node value, bool absolute, bool negate);
+    /// Conditionally saturates a float
+    Node GetSaturatedFloat(Node value, bool saturate = true);
+
     template <typename... T>
     inline Node Operation(OperationCode code, const T*... operands) {
         return StoreNode(OperationNode(code, operands...));

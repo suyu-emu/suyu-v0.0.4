@@ -121,6 +121,25 @@ Node ShaderIR::GetLocalMemory(Node address) {
     return StoreNode(LmemNode(address));
 }
 
+Node ShaderIR::GetOperandAbsNegFloat(Node value, bool absolute, bool negate) {
+    if (absolute) {
+        value = Operation(OperationCode::FAbsolute, NO_PRECISE, value);
+    }
+    if (negate) {
+        value = Operation(OperationCode::FNegate, NO_PRECISE, value);
+    }
+    return value;
+}
+
+Node ShaderIR::GetSaturatedFloat(Node value, bool saturate) {
+    if (!saturate) {
+        return value;
+    }
+    const Node positive_zero = Immediate(std::copysignf(0, 1));
+    const Node positive_one = Immediate(1.0f);
+    return Operation(OperationCode::FClamp, NO_PRECISE, value, positive_zero, positive_one);
+}
+
 void ShaderIR::SetRegister(BasicBlock& bb, Register dest, Node src) {
     bb.push_back(Operation(OperationCode::Assign, GetRegister(dest), src));
 }
