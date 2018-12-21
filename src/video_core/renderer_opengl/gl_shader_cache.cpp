@@ -12,8 +12,12 @@
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/utils.h"
+#include "video_core/shader/glsl_decompiler.h"
+#include "video_core/shader/shader_ir.h"
 
 namespace OpenGL {
+
+using VideoCommon::Shader::ProgramCode;
 
 /// Gets the address for the specified shader stage program
 static VAddr GetShaderAddress(Maxwell::ShaderProgram program) {
@@ -24,8 +28,8 @@ static VAddr GetShaderAddress(Maxwell::ShaderProgram program) {
 }
 
 /// Gets the shader program code from memory for the specified address
-static GLShader::ProgramCode GetShaderCode(VAddr addr) {
-    GLShader::ProgramCode program_code(GLShader::MAX_PROGRAM_CODE_LENGTH);
+static ProgramCode GetShaderCode(VAddr addr) {
+    ProgramCode program_code(VideoCommon::Shader::MAX_PROGRAM_LENGTH);
     Memory::ReadBlock(addr, program_code.data(), program_code.size() * sizeof(u64));
     return program_code;
 }

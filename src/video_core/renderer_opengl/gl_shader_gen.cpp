@@ -5,24 +5,27 @@
 #include <fmt/format.h>
 #include "common/assert.h"
 #include "video_core/engines/maxwell_3d.h"
-#include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
+#include "video_core/shader/glsl_decompiler.h"
+#include "video_core/shader/shader_ir.h"
 
 namespace OpenGL::GLShader {
 
 using Tegra::Engines::Maxwell3D;
+using VideoCommon::Shader::ProgramCode;
+using VideoCommon::Shader::ShaderIR;
 
 static constexpr u32 PROGRAM_OFFSET{10};
 
 ProgramResult GenerateVertexShader(const ShaderSetup& setup) {
-    std::string out = "#version 430 core\n";
-    out += "#extension GL_ARB_separate_shader_objects : enable\n\n";
     const std::string id = fmt::format("{:016x}", setup.program.unique_identifier);
-    out += "// Shader Unique Id: VS" + id + "\n\n";
-    out += Decompiler::GetCommonDeclarations();
+
+    std::string out = "#version 430 core\n";
+    out += "// Shader Unique Id: VS" + id + '\n';
+    out += "#extension GL_ARB_separate_shader_objects : enable\n";
+    out += GetCommonDeclarations();
 
     out += R"(
-
 layout (location = 0) out vec4 position;
 
 layout(std140) uniform vs_config {
@@ -31,39 +34,30 @@ layout(std140) uniform vs_config {
     uvec4 alpha_test;
 };
 )";
-
-    if (setup.IsDualProgram()) {
-        out += "bool exec_vertex_b();\n";
-    }
-
-    ProgramResult program =
-        Decompiler::DecompileProgram(setup.program.code, PROGRAM_OFFSET,
-                                     Maxwell3D::Regs::ShaderStage::Vertex, "vertex")
-            .value_or(ProgramResult());
+    ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET);
+    ProgramResult program = Decompile(program_ir, Maxwell3D::Regs::ShaderStage::Vertex, "vertex");
 
     out += program.first;
 
     if (setup.IsDualProgram()) {
+        ShaderIR program_ir_b(setup.program.code_b, PROGRAM_OFFSET);
         ProgramResult program_b =
-            Decompiler::DecompileProgram(setup.program.code_b, PROGRAM_OFFSET,
-                                         Maxwell3D::Regs::ShaderStage::Vertex, "vertex_b")
-                .value_or(ProgramResult());
+            Decompile(program_ir_b, Maxwell3D::Regs::ShaderStage::Vertex, "vertex_b");
+
         out += program_b.first;
     }
 
     out += R"(
-
 void main() {
     position = vec4(0.0, 0.0, 0.0, 0.0);
-    exec_vertex();
+    execute_vertex();
 )";
 
     if (setup.IsDualProgram()) {
-        out += "    exec_vertex_b();";
+        out += "    execute_vertex_b();";
     }
 
     out += R"(
-
     // Check if the flip stage is VertexB
     // Config pack's second value is flip_stage
     if (config_pack[1] == 1) {
@@ -77,25 +71,23 @@ void main() {
     if (config_pack[1] == 1) {
         position.w = 1.0;
     }
-}
-
-)";
+})";
 
     return {out, program.second};
 }
 
 ProgramResult GenerateGeometryShader(const ShaderSetup& setup) {
     // Version is intentionally skipped in shader generation, it's added by the lazy compilation.
-    std::string out = "#extension GL_ARB_separate_shader_objects : enable\n\n";
     const std::string id = fmt::format("{:016x}", setup.program.unique_identifier);
-    out += "// Shader Unique Id: GS" + id + "\n\n";
-    out += Decompiler::GetCommonDeclarations();
-    out += "bool exec_geometry();\n";
 
+    std::string out = out += "// Shader Unique Id: GS" + id + '\n';
+    out += "#extension GL_ARB_separate_shader_objects : enable\n";
+    out += GetCommonDeclarations();
+
+    ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET);
     ProgramResult program =
-        Decompiler::DecompileProgram(setup.program.code, PROGRAM_OFFSET,
-                                     Maxwell3D::Regs::ShaderStage::Geometry, "geometry")
-            .value_or(ProgramResult());
+        Decompile(program_ir, Maxwell3D::Regs::ShaderStage::Geometry, "geometry");
+
     out += R"(
 out gl_PerVertex {
     vec4 gl_Position;
@@ -109,28 +101,26 @@ layout (std140) uniform gs_config {
     uvec4 config_pack; // instance_id, flip_stage, y_direction, padding
     uvec4 alpha_test;
 };
-
-void main() {
-    exec_geometry();
-}
-
 )";
+
     out += program.first;
+
+    out = R"(
+void main() {
+    execute_geometry();
+};)";
+
     return {out, program.second};
 }
 
 ProgramResult GenerateFragmentShader(const ShaderSetup& setup) {
-    std::string out = "#version 430 core\n";
-    out += "#extension GL_ARB_separate_shader_objects : enable\n\n";
     const std::string id = fmt::format("{:016x}", setup.program.unique_identifier);
-    out += "// Shader Unique Id: FS" + id + "\n\n";
-    out += Decompiler::GetCommonDeclarations();
-    out += "bool exec_fragment();\n";
 
-    ProgramResult program =
-        Decompiler::DecompileProgram(setup.program.code, PROGRAM_OFFSET,
-                                     Maxwell3D::Regs::ShaderStage::Fragment, "fragment")
-            .value_or(ProgramResult());
+    std::string out = "#version 430 core\n";
+    out += "// Shader Unique Id: FS" + id + '\n';
+    out += "#extension GL_ARB_separate_shader_objects : enable\n";
+    out += GetCommonDeclarations();
+
     out += R"(
 layout(location = 0) out vec4 FragColor0;
 layout(location = 1) out vec4 FragColor1;
@@ -171,14 +161,20 @@ bool AlphaFunc(in float value) {
         default:
             return false;
     }
-}
+})";
 
+    ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET);
+    ProgramResult program =
+        Decompile(program_ir, Maxwell3D::Regs::ShaderStage::Fragment, "fragment");
+
+    out += program.first;
+
+    out += R"(
 void main() {
-    exec_fragment();
+    execute_fragment();
 }
 
 )";
-    out += program.first;
     return {out, program.second};
 }
 } // namespace OpenGL::GLShader
