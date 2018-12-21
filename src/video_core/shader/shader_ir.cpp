@@ -39,6 +39,13 @@ Node ShaderIR::Immediate(u32 value) {
     return StoreNode(ImmediateNode(value));
 }
 
+Node ShaderIR::GetRegister(Register reg) {
+    if (reg != Register::ZeroIndex) {
+        used_registers.insert(static_cast<u32>(reg));
+    }
+    return StoreNode(GprNode(reg));
+}
+
 Node ShaderIR::GetImmediate19(Instruction instr) {
     return Immediate(instr.alu.GetImm20_19());
 }

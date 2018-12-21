@@ -610,6 +610,8 @@ private:
         return Immediate(*reinterpret_cast<const u32*>(&value));
     }
 
+    /// Generates a node for a passed register.
+    Node GetRegister(Tegra::Shader::Register reg);
     /// Generates a node representing a 19-bit immediate value
     Node GetImmediate19(Tegra::Shader::Instruction instr);
     /// Generates a node representing a 32-bit immediate value
