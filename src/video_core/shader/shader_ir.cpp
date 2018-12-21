@@ -54,6 +54,27 @@ Node ShaderIR::GetImmediate32(Instruction instr) {
     return Immediate(instr.alu.GetImm20_32());
 }
 
+Node ShaderIR::GetConstBuffer(u64 index_, u64 offset_) {
+    const auto index = static_cast<u32>(index_);
+    const auto offset = static_cast<u32>(offset_);
+
+    const auto [entry, is_new] = used_cbufs.try_emplace(index);
+    entry->second.MarkAsUsed(offset);
+
+    return StoreNode(CbufNode(index, Immediate(offset)));
+}
+
+Node ShaderIR::GetConstBufferIndirect(u64 index_, u64 offset_, Node node) {
+    const auto index = static_cast<u32>(index_);
+    const auto offset = static_cast<u32>(offset_);
+
+    const auto [entry, is_new] = used_cbufs.try_emplace(index);
+    entry->second.MarkAsUsedIndirect();
+
+    const Node final_offset = Operation(OperationCode::UAdd, NO_PRECISE, node, Immediate(offset));
+    return StoreNode(CbufNode(index, final_offset));
+}
+
 Node ShaderIR::GetPredicate(u64 pred_, bool negated) {
     const auto pred = static_cast<Pred>(pred_);
     if (pred != Pred::UnusedIndex && pred != Pred::NeverExecute) {

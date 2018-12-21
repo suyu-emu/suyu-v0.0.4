@@ -616,6 +616,10 @@ private:
     Node GetImmediate19(Tegra::Shader::Instruction instr);
     /// Generates a node representing a 32-bit immediate value
     Node GetImmediate32(Tegra::Shader::Instruction instr);
+    /// Generates a node representing a constant buffer
+    Node GetConstBuffer(u64 index, u64 offset);
+    /// Generates a node representing a constant buffer with a variadic offset
+    Node GetConstBufferIndirect(u64 index, u64 offset, Node node);
     /// Generates a node for a passed predicate. It can be optionally negated
     Node GetPredicate(u64 pred, bool negated = false);
     /// Generates a predicate node for an immediate true or false value
