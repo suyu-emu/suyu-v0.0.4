@@ -31,6 +31,18 @@ u32 ShaderIR::DecodeArithmeticImmediate(BasicBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, value);
         break;
     }
+    case OpCode::Id::FADD32I: {
+        UNIMPLEMENTED_IF_MSG(instr.op_32.generates_cc,
+                             "Condition codes generation in FADD32I is not implemented");
+        const Node op_a = GetOperandAbsNegFloat(GetRegister(instr.gpr8), instr.fadd32i.abs_a,
+                                                instr.fadd32i.negate_a);
+        const Node op_b = GetOperandAbsNegFloat(GetImmediate32(instr), instr.fadd32i.abs_b,
+                                                instr.fadd32i.negate_b);
+
+        const Node value = Operation(OperationCode::FAdd, PRECISE, op_a, op_b);
+        SetRegister(bb, instr.gpr0, value);
+        break;
+    }
     default:
         UNIMPLEMENTED_MSG("Unhandled arithmetic immediate instruction: {}",
                           opcode->get().GetName());
