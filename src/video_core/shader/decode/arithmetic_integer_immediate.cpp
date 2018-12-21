@@ -24,6 +24,17 @@ u32 ShaderIR::DecodeArithmeticIntegerImmediate(BasicBlock& bb, u32 pc) {
     Node op_b = Immediate(static_cast<s32>(instr.alu.imm20_32));
 
     switch (opcode->get().GetId()) {
+    case OpCode::Id::IADD32I: {
+        UNIMPLEMENTED_IF_MSG(instr.op_32.generates_cc,
+                             "Condition codes generation in IADD32I is not implemented");
+        UNIMPLEMENTED_IF_MSG(instr.iadd32i.saturate, "IADD32I saturation is not implemented");
+
+        op_a = GetOperandAbsNegInteger(op_a, false, instr.iadd32i.negate_a, true);
+
+        const Node value = Operation(OperationCode::IAdd, PRECISE, op_a, op_b);
+        SetRegister(bb, instr.gpr0, value);
+        break;
+    }
     case OpCode::Id::LOP32I: {
         UNIMPLEMENTED_IF_MSG(instr.op_32.generates_cc,
                              "Condition codes generation in LOP32I is not implemented");
