@@ -1354,7 +1354,7 @@ private:
     }
 
     std::string GetSampler(const Sampler& sampler) const {
-        return GetDeclarationWithSuffix(sampler.GetIndex(), "sampler");
+        return GetDeclarationWithSuffix(static_cast<u32>(sampler.GetIndex()), "sampler");
     }
 
     std::string GetDeclarationWithSuffix(u32 index, const std::string& name) const {

@@ -63,7 +63,7 @@ public:
     }
 
     u32 GetHash() const {
-        return (static_cast<u32>(stage) << 16) | GetIndex();
+        return (static_cast<u32>(stage) << 16) | static_cast<u32>(GetIndex());
     }
 
 private:

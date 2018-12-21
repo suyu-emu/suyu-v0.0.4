@@ -18,6 +18,8 @@ namespace VideoCommon::Shader {
 using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
 
+namespace {
+
 /// Merges exit method of two parallel branches.
 constexpr ExitMethod ParallelExit(ExitMethod a, ExitMethod b) {
     if (a == ExitMethod::Undetermined) {
@@ -42,6 +44,8 @@ constexpr bool IsSchedInstruction(u32 offset, u32 main_offset) {
 
     return (absolute_offset % SchedPeriod) == 0;
 }
+
+} // namespace
 
 void ShaderIR::Decode() {
     std::memcpy(&header, program_code.data(), sizeof(Tegra::Shader::Header));

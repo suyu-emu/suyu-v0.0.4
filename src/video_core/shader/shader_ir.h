@@ -196,8 +196,8 @@ public:
         return offset;
     }
 
-    u32 GetIndex() const {
-        return static_cast<u32>(index);
+    std::size_t GetIndex() const {
+        return index;
     }
 
     Tegra::Shader::TextureType GetType() const {
@@ -478,7 +478,7 @@ private:
 /// Global memory node
 class GmemNode final {
 public:
-    explicit GmemNode(Node address) : address{address} {}
+    explicit constexpr GmemNode(Node address) : address{address} {}
 
     Node GetAddress() const {
         return address;
@@ -498,7 +498,7 @@ public:
     }
 
 private:
-    const std::string text;
+    std::string text;
 };
 
 class ShaderIR final {
@@ -706,33 +706,32 @@ private:
                               Node op_c, Node imm_lut);
 
     template <typename... T>
-    inline Node Operation(OperationCode code, const T*... operands) {
+    Node Operation(OperationCode code, const T*... operands) {
         return StoreNode(OperationNode(code, operands...));
     }
 
     template <typename... T>
-    inline Node Operation(OperationCode code, Meta&& meta, const T*... operands) {
+    Node Operation(OperationCode code, Meta&& meta, const T*... operands) {
         return StoreNode(OperationNode(code, std::move(meta), operands...));
     }
 
     template <typename... T>
-    inline Node Operation(OperationCode code, std::vector<Node>&& operands) {
+    Node Operation(OperationCode code, std::vector<Node>&& operands) {
         return StoreNode(OperationNode(code, std::move(operands)));
     }
 
     template <typename... T>
-    inline Node Operation(OperationCode code, Meta&& meta, std::vector<Node>&& operands) {
+    Node Operation(OperationCode code, Meta&& meta, std::vector<Node>&& operands) {
         return StoreNode(OperationNode(code, std::move(meta), std::move(operands)));
     }
 
     template <typename... T>
-    inline Node SignedOperation(OperationCode code, bool is_signed, const T*... operands) {
+    Node SignedOperation(OperationCode code, bool is_signed, const T*... operands) {
         return StoreNode(OperationNode(SignedToUnsignedCode(code, is_signed), operands...));
     }
 
     template <typename... T>
-    inline Node SignedOperation(OperationCode code, bool is_signed, Meta&& meta,
-                                const T*... operands) {
+    Node SignedOperation(OperationCode code, bool is_signed, Meta&& meta, const T*... operands) {
         return StoreNode(
             OperationNode(SignedToUnsignedCode(code, is_signed), std::move(meta), operands...));
     }
