@@ -78,6 +78,21 @@ u32 ShaderIR::DecodeArithmetic(BasicBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, value);
         break;
     }
+    case OpCode::Id::FADD_C:
+    case OpCode::Id::FADD_R:
+    case OpCode::Id::FADD_IMM: {
+        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                             "Condition codes generation in FADD is not implemented");
+
+        op_a = GetOperandAbsNegFloat(op_a, instr.alu.abs_a, instr.alu.negate_a);
+        op_b = GetOperandAbsNegFloat(op_b, instr.alu.abs_b, instr.alu.negate_b);
+
+        Node value = Operation(OperationCode::FAdd, PRECISE, op_a, op_b);
+        value = GetSaturatedFloat(value, instr.alu.saturate_d);
+
+        SetRegister(bb, instr.gpr0, value);
+        break;
+    }
     default:
         UNIMPLEMENTED_MSG("Unhandled arithmetic instruction: {}", opcode->get().GetName());
     }
