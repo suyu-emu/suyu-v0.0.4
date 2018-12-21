@@ -165,6 +165,17 @@ public:
         return kernel_version;
     }
 
+    /// Whether or not this process can be debugged.
+    bool IsDebuggable() const {
+        return is_debuggable;
+    }
+
+    /// Whether or not this process can forcibly debug another
+    /// process, even if that process is not considered debuggable.
+    bool CanForceDebug() const {
+        return can_force_debug;
+    }
+
 private:
     /// Attempts to parse a given sequence of capability descriptors.
     ///

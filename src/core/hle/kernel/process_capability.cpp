@@ -342,7 +342,13 @@ ResultCode ProcessCapabilities::HandleHandleTableFlags(u32 flags) {
 }
 
 ResultCode ProcessCapabilities::HandleDebugFlags(u32 flags) {
-    // TODO: Implement
+    const u32 reserved = flags >> 19;
+    if (reserved != 0) {
+        return ERR_RESERVED_VALUE;
+    }
+
+    is_debuggable = (flags & 0x20000) != 0;
+    can_force_debug = (flags & 0x40000) != 0;
     return RESULT_SUCCESS;
 }
 
