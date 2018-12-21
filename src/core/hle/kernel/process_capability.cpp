@@ -239,7 +239,30 @@ ResultCode ProcessCapabilities::HandlePriorityCoreNumFlags(u32 flags) {
 }
 
 ResultCode ProcessCapabilities::HandleSyscallFlags(u32& set_svc_bits, u32 flags) {
-    // TODO: Implement
+    const u32 index = flags >> 29;
+    const u32 svc_bit = 1U << index;
+
+    // If we've already set this svc before, bail.
+    if ((set_svc_bits & svc_bit) != 0) {
+        return ERR_INVALID_COMBINATION;
+    }
+    set_svc_bits |= svc_bit;
+
+    const u32 svc_mask = (flags >> 5) & 0xFFFFFF;
+    for (u32 i = 0; i < 24; ++i) {
+        const u32 svc_number = index * 24 + i;
+
+        if ((svc_mask & (1U << i)) == 0) {
+            continue;
+        }
+
+        if (svc_number >= svc_capabilities.size()) {
+            return ERR_OUT_OF_RANGE;
+        }
+
+        svc_capabilities[svc_number] = true;
+    }
+
     return RESULT_SUCCESS;
 }
 

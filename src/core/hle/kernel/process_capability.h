@@ -132,6 +132,11 @@ public:
         return priority_mask;
     }
 
+    /// Gets the SVC access permission bits
+    const SyscallCapabilities& GetServiceCapabilities() const {
+        return svc_capabilities;
+    }
+
 private:
     /// Attempts to parse a given sequence of capability descriptors.
     ///
