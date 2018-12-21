@@ -16,7 +16,15 @@ u32 ShaderIR::DecodeArithmeticImmediate(BasicBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
-    UNIMPLEMENTED();
+    switch (opcode->get().GetId()) {
+    case OpCode::Id::MOV32_IMM: {
+        SetRegister(bb, instr.gpr0, GetImmediate32(instr));
+        break;
+    }
+    default:
+        UNIMPLEMENTED_MSG("Unhandled arithmetic immediate instruction: {}",
+                          opcode->get().GetName());
+    }
 
     return pc;
 }
