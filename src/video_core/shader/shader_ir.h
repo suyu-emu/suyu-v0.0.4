@@ -675,6 +675,24 @@ private:
     /// Returns a condition code evaluated from internal flags
     Node GetConditionCode(Tegra::Shader::ConditionCode cc);
 
+    /// Accesses a texture sampler
+    const Sampler& GetSampler(const Tegra::Shader::Sampler& sampler,
+                              Tegra::Shader::TextureType type, bool is_array, bool is_shadow);
+
+    void WriteTexsInstructionFloat(BasicBlock& bb, Tegra::Shader::Instruction instr, Node texture);
+
+    Node GetTexsCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
+                     Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
+                     bool is_array);
+
+    std::tuple<std::size_t, std::size_t> ValidateAndGetCoordinateElement(
+        Tegra::Shader::TextureType texture_type, bool depth_compare, bool is_array,
+        bool lod_bias_enabled, std::size_t max_coords, std::size_t max_inputs);
+
+    Node GetTextureCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
+                        Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
+                        bool is_array, std::size_t bias_offset, std::vector<Node>&& coords);
+
     template <typename... T>
     inline Node Operation(OperationCode code, const T*... operands) {
         return StoreNode(OperationNode(code, operands...));
