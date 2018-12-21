@@ -669,6 +669,9 @@ private:
     Node GetPredicateComparisonHalf(Tegra::Shader::PredCondition condition,
                                     const MetaHalfArithmetic& meta, Node op_a, Node op_b);
 
+    /// Returns a predicate combiner operation
+    OperationCode GetPredicateCombiner(Tegra::Shader::PredOperation operation);
+
     template <typename... T>
     inline Node Operation(OperationCode code, const T*... operands) {
         return StoreNode(OperationNode(code, operands...));

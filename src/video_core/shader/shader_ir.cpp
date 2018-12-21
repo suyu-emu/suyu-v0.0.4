@@ -309,6 +309,18 @@ Node ShaderIR::GetPredicateComparisonHalf(Tegra::Shader::PredCondition condition
     return predicate;
 }
 
+OperationCode ShaderIR::GetPredicateCombiner(PredOperation operation) {
+    static const std::unordered_map<PredOperation, OperationCode> PredicateOperationTable = {
+        {PredOperation::And, OperationCode::LogicalAnd},
+        {PredOperation::Or, OperationCode::LogicalOr},
+        {PredOperation::Xor, OperationCode::LogicalXor},
+    };
+
+    const auto op = PredicateOperationTable.find(operation);
+    UNIMPLEMENTED_IF_MSG(op == PredicateOperationTable.end(), "Unknown predicate operation");
+    return op->second;
+}
+
 void ShaderIR::SetRegister(BasicBlock& bb, Register dest, Node src) {
     bb.push_back(Operation(OperationCode::Assign, GetRegister(dest), src));
 }
