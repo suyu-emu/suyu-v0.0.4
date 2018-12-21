@@ -117,6 +117,10 @@ Node ShaderIR::GetInternalFlag(InternalFlag flag, bool negated) {
     return node;
 }
 
+Node ShaderIR::GetLocalMemory(Node address) {
+    return StoreNode(LmemNode(address));
+}
+
 /*static*/ OperationCode ShaderIR::SignedToUnsignedCode(OperationCode operation_code,
                                                         bool is_signed) {
     if (is_signed) {

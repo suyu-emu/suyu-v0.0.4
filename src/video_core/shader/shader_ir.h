@@ -631,6 +631,9 @@ private:
     Node GetOutputAttribute(Tegra::Shader::Attribute::Index index, u64 element, Node buffer);
     /// Generates a node representing an internal flag
     Node GetInternalFlag(InternalFlag flag, bool negated = false);
+    /// Generates a node representing a local memory address
+    Node GetLocalMemory(Node address);
+
 
     template <typename... T>
     inline Node Operation(OperationCode code, const T*... operands) {
