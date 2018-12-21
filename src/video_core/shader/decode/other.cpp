@@ -45,6 +45,18 @@ u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
         }
         break;
     }
+    case OpCode::Id::IPA: {
+        const auto& attribute = instr.attribute.fmt28;
+        const Tegra::Shader::IpaMode input_mode{instr.ipa.interp_mode.Value(),
+                                                instr.ipa.sample_mode.Value()};
+
+        const Node input_attr = GetInputAttribute(attribute.index, attribute.element, input_mode);
+        const Node ipa = Operation(OperationCode::Ipa, input_attr);
+        const Node value = GetSaturatedFloat(ipa, instr.ipa.saturate);
+
+        SetRegister(bb, instr.gpr0, value);
+        break;
+    }
     default:
         UNIMPLEMENTED_MSG("Unhandled instruction: {}", opcode->get().GetName());
     }
