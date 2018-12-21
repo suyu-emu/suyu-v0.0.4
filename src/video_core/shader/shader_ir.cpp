@@ -321,6 +321,16 @@ OperationCode ShaderIR::GetPredicateCombiner(PredOperation operation) {
     return op->second;
 }
 
+Node ShaderIR::GetConditionCode(Tegra::Shader::ConditionCode cc) {
+    switch (cc) {
+    case Tegra::Shader::ConditionCode::NEU:
+        return GetInternalFlag(InternalFlag::Zero, true);
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented condition code: {}", static_cast<u32>(cc));
+        return GetPredicate(static_cast<u64>(Pred::NeverExecute));
+    }
+}
+
 void ShaderIR::SetRegister(BasicBlock& bb, Register dest, Node src) {
     bb.push_back(Operation(OperationCode::Assign, GetRegister(dest), src));
 }

@@ -672,6 +672,9 @@ private:
     /// Returns a predicate combiner operation
     OperationCode GetPredicateCombiner(Tegra::Shader::PredOperation operation);
 
+    /// Returns a condition code evaluated from internal flags
+    Node GetConditionCode(Tegra::Shader::ConditionCode cc);
+
     template <typename... T>
     inline Node Operation(OperationCode code, const T*... operands) {
         return StoreNode(OperationNode(code, operands...));
