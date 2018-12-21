@@ -21,7 +21,7 @@ u32 ShaderIR::DecodeXmad(BasicBlock& bb, u32 pc) {
     UNIMPLEMENTED_IF_MSG(instr.generates_cc,
                          "Condition codes generation in XMAD is not implemented");
 
-    Node op_a = GetRegister(instr.gpr8); // instr.xmad.sign_a
+    Node op_a = GetRegister(instr.gpr8);
 
     // TODO(bunnei): Needs to be fixed once op_a or op_b is signed
     UNIMPLEMENTED_IF(instr.xmad.sign_a != instr.xmad.sign_b);

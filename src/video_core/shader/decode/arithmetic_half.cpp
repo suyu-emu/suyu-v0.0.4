@@ -20,8 +20,7 @@ u32 ShaderIR::DecodeArithmeticHalf(BasicBlock& bb, u32 pc) {
         opcode->get().GetId() == OpCode::Id::HADD2_R) {
         UNIMPLEMENTED_IF(instr.alu_half.ftz != 0);
     }
-    UNIMPLEMENTED_IF_MSG(instr.alu_half.saturate != 0,
-                         "Half float saturation not implemented");
+    UNIMPLEMENTED_IF_MSG(instr.alu_half.saturate != 0, "Half float saturation not implemented");
 
     const bool negate_a =
         opcode->get().GetId() != OpCode::Id::HMUL2_R && instr.alu_half.negate_a != 0;
