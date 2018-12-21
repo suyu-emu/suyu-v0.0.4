@@ -624,6 +624,11 @@ private:
     Node GetPredicate(u64 pred, bool negated = false);
     /// Generates a predicate node for an immediate true or false value
     Node GetPredicate(bool immediate);
+    /// Generates a node representing an input atttribute. Keeps track of used attributes.
+    Node GetInputAttribute(Tegra::Shader::Attribute::Index index, u64 element,
+                           const Tegra::Shader::IpaMode& input_mode, Node buffer = {});
+    /// Generates a node representing an output atttribute. Keeps track of used attributes.
+    Node GetOutputAttribute(Tegra::Shader::Attribute::Index index, u64 element, Node buffer);
 
     template <typename... T>
     inline Node Operation(OperationCode code, const T*... operands) {

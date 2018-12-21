@@ -88,6 +88,27 @@ Node ShaderIR::GetPredicate(bool immediate) {
     return GetPredicate(static_cast<u64>(immediate ? Pred::UnusedIndex : Pred::NeverExecute));
 }
 
+Node ShaderIR::GetInputAttribute(Attribute::Index index, u64 element,
+                                 const Tegra::Shader::IpaMode& input_mode, Node buffer) {
+    const auto [entry, is_new] =
+        used_input_attributes.emplace(std::make_pair(index, std::set<Tegra::Shader::IpaMode>{}));
+    entry->second.insert(input_mode);
+
+    return StoreNode(AbufNode(index, static_cast<u32>(element), input_mode, buffer));
+}
+
+Node ShaderIR::GetOutputAttribute(Attribute::Index index, u64 element, Node buffer) {
+    if (index == Attribute::Index::ClipDistances0123 ||
+        index == Attribute::Index::ClipDistances4567) {
+        const auto clip_index =
+            static_cast<u32>((index == Attribute::Index::ClipDistances4567 ? 1 : 0) + element);
+        used_clip_distances.at(clip_index) = true;
+    }
+    used_output_attributes.insert(index);
+
+    return StoreNode(AbufNode(index, static_cast<u32>(element), buffer));
+}
+
 /*static*/ OperationCode ShaderIR::SignedToUnsignedCode(OperationCode operation_code,
                                                         bool is_signed) {
     if (is_signed) {
