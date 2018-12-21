@@ -122,6 +122,24 @@ u32 ShaderIR::DecodeArithmetic(BasicBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, value);
         break;
     }
+    case OpCode::Id::FMNMX_C:
+    case OpCode::Id::FMNMX_R:
+    case OpCode::Id::FMNMX_IMM: {
+        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                             "Condition codes generation in FMNMX is not implemented");
+
+        op_a = GetOperandAbsNegFloat(op_a, instr.alu.abs_a, instr.alu.negate_a);
+        op_b = GetOperandAbsNegFloat(op_b, instr.alu.abs_b, instr.alu.negate_b);
+
+        const Node condition = GetPredicate(instr.alu.fmnmx.pred, instr.alu.fmnmx.negate_pred != 0);
+
+        const Node min = Operation(OperationCode::FMin, NO_PRECISE, op_a, op_b);
+        const Node max = Operation(OperationCode::FMax, NO_PRECISE, op_a, op_b);
+
+        SetRegister(bb, instr.gpr0,
+                    Operation(OperationCode::Select, NO_PRECISE, condition, min, max));
+        break;
+    }
     default:
         UNIMPLEMENTED_MSG("Unhandled arithmetic instruction: {}", opcode->get().GetName());
     }
