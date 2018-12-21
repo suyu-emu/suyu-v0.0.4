@@ -18,6 +18,29 @@ u32 ShaderIR::DecodeConversion(BasicBlock& bb, u32 pc) {
     const auto opcode = OpCode::Decode(instr);
 
     switch (opcode->get().GetId()) {
+    case OpCode::Id::I2F_R:
+    case OpCode::Id::I2F_C: {
+        UNIMPLEMENTED_IF(instr.conversion.dest_size != Register::Size::Word);
+        UNIMPLEMENTED_IF(instr.conversion.selector);
+        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                             "Condition codes generation in I2F is not implemented");
+
+        Node value = [&]() {
+            if (instr.is_b_gpr) {
+                return GetRegister(instr.gpr20);
+            } else {
+                return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset);
+            }
+        }();
+        const bool input_signed = instr.conversion.is_input_signed;
+        value = ConvertIntegerSize(value, instr.conversion.src_size, input_signed);
+        value = GetOperandAbsNegInteger(value, instr.conversion.abs_a, false, input_signed);
+        value = SignedOperation(OperationCode::FCastInteger, input_signed, PRECISE, value);
+        value = GetOperandAbsNegFloat(value, false, instr.conversion.negate_a);
+
+        SetRegister(bb, instr.gpr0, value);
+        break;
+    }
     case OpCode::Id::F2F_R: {
         UNIMPLEMENTED_IF(instr.conversion.dest_size != Register::Size::Word);
         UNIMPLEMENTED_IF(instr.conversion.src_size != Register::Size::Word);
