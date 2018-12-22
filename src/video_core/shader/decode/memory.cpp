@@ -183,28 +183,24 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
 
         const Node texture = GetTexCode(instr, texture_type, process_mode, depth_compare, is_array);
 
-        if (depth_compare) {
-            SetRegister(bb, instr.gpr0, texture);
-        } else {
-            MetaComponents meta;
-            std::array<Node, 4> dest;
+        MetaComponents meta;
+        std::array<Node, 4> dest;
 
-            std::size_t dest_elem = 0;
-            for (std::size_t elem = 0; elem < 4; ++elem) {
-                if (!instr.tex.IsComponentEnabled(elem)) {
-                    // Skip disabled components
-                    continue;
-                }
-                meta.components_map[dest_elem] = static_cast<u32>(elem);
-                dest[dest_elem] = GetRegister(instr.gpr0.Value() + dest_elem);
-
-                ++dest_elem;
+        std::size_t dest_elem = 0;
+        for (std::size_t elem = 0; elem < 4; ++elem) {
+            if (!instr.tex.IsComponentEnabled(elem)) {
+                // Skip disabled components
+                continue;
             }
-            std::generate(dest.begin() + dest_elem, dest.end(), [&]() { return GetRegister(RZ); });
+            meta.components_map[dest_elem] = static_cast<u32>(elem);
+            dest[dest_elem] = GetRegister(instr.gpr0.Value() + dest_elem);
 
-            bb.push_back(Operation(OperationCode::AssignComposite, std::move(meta), texture,
-                                   dest[0], dest[1], dest[2], dest[3]));
+            ++dest_elem;
         }
+        std::generate(dest.begin() + dest_elem, dest.end(), [&]() { return GetRegister(RZ); });
+
+        bb.push_back(Operation(OperationCode::AssignComposite, std::move(meta), texture, dest[0],
+                               dest[1], dest[2], dest[3]));
         break;
     }
     case OpCode::Id::TEXS: {
@@ -272,7 +268,7 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
         params.push_back(Immediate(static_cast<u32>(instr.tld4.component)));
 
         const auto& sampler = GetSampler(instr.sampler, texture_type, false, depth_compare);
-        const MetaTexture meta{sampler, num_coordinates};
+        MetaTexture meta{sampler, num_coordinates};
 
         const Node texture =
             Operation(OperationCode::F4TextureGather, std::move(meta), std::move(params));
@@ -331,7 +327,7 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
 
         const auto& sampler =
             GetSampler(instr.sampler, TextureType::Texture2D, false, depth_compare);
-        const MetaTexture meta{sampler, num_coords};
+        MetaTexture meta{sampler, num_coords};
 
         WriteTexsInstructionFloat(
             bb, instr, Operation(OperationCode::F4TextureGather, meta, std::move(params)));
@@ -350,7 +346,7 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
 
         switch (instr.txq.query_type) {
         case Tegra::Shader::TextureQueryType::Dimension: {
-            const MetaTexture meta_texture{sampler};
+            MetaTexture meta_texture{sampler};
             const MetaComponents meta_components{{0, 1, 2, 3}};
 
             const Node texture = Operation(OperationCode::F4TextureQueryDimensions, meta_texture,
@@ -402,7 +398,7 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
             texture_type = TextureType::Texture2D;
         }
 
-        const MetaTexture meta_texture{sampler, static_cast<u32>(coords.size())};
+        MetaTexture meta_texture{sampler, static_cast<u32>(coords.size())};
         const Node texture =
             Operation(OperationCode::F4TextureQueryLod, meta_texture, std::move(coords));
 
@@ -474,7 +470,8 @@ void ShaderIR::WriteTexsInstructionFloat(BasicBlock& bb, Tegra::Shader::Instruct
 
 Node ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
                               TextureProcessMode process_mode, bool depth_compare, bool is_array,
-                              std::size_t bias_offset, std::vector<Node>&& coords) {
+                              std::size_t array_offset, std::size_t bias_offset,
+                              std::vector<Node>&& coords) {
     UNIMPLEMENTED_IF_MSG(
         (texture_type == TextureType::Texture3D && (is_array || depth_compare)) ||
             (texture_type == TextureType::TextureCube && is_array && depth_compare),
@@ -486,26 +483,26 @@ Node ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
                             process_mode == TextureProcessMode::LL ||
                             process_mode == TextureProcessMode::LLA;
 
+    // LOD selection (either via bias or explicit textureLod) not supported in GL for
+    // sampler2DArrayShadow and samplerCubeArrayShadow.
     const bool gl_lod_supported =
-        !((texture_type == TextureType::Texture2D && is_array && depth_compare) ||
-          (texture_type == TextureType::TextureCube && !is_array && depth_compare));
+        !((texture_type == Tegra::Shader::TextureType::Texture2D && is_array && depth_compare) ||
+          (texture_type == Tegra::Shader::TextureType::TextureCube && is_array && depth_compare));
 
     const OperationCode read_method =
         lod_needed && gl_lod_supported ? OperationCode::F4TextureLod : OperationCode::F4Texture;
 
-    const MetaTexture meta{sampler, static_cast<u32>(coords.size())};
+    UNIMPLEMENTED_IF(process_mode != TextureProcessMode::None && !gl_lod_supported);
 
+    std::optional<u32> array_offset_value;
+    if (is_array)
+        array_offset_value = static_cast<u32>(array_offset);
+    MetaTexture meta{sampler, static_cast<u32>(coords.size()), array_offset_value};
     std::vector<Node> params = std::move(coords);
 
-    if (process_mode != TextureProcessMode::None) {
+    if (process_mode != TextureProcessMode::None && gl_lod_supported) {
         if (process_mode == TextureProcessMode::LZ) {
-            if (gl_lod_supported) {
-                params.push_back(Immediate(0));
-            } else {
-                // Lod 0 is emulated by a big negative bias in scenarios that are not supported by
-                // GLSL
-                params.push_back(Immediate(-1000));
-            }
+            params.push_back(Immediate(0.0f));
         } else {
             // If present, lod or bias are always stored in the register indexed by the gpr20 field
             // with an offset depending on the usage of the other registers
@@ -518,8 +515,8 @@ Node ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
 
 Node ShaderIR::GetTexCode(Instruction instr, TextureType texture_type,
                           TextureProcessMode process_mode, bool depth_compare, bool is_array) {
-    const bool lod_bias_enabled = (process_mode != Tegra::Shader::TextureProcessMode::None &&
-                                   process_mode != Tegra::Shader::TextureProcessMode::LZ);
+    const bool lod_bias_enabled =
+        (process_mode != TextureProcessMode::None && process_mode != TextureProcessMode::LZ);
 
     const auto [coord_count, total_coord_count] = ValidateAndGetCoordinateElement(
         texture_type, depth_compare, is_array, lod_bias_enabled, 4, 5);
@@ -536,29 +533,30 @@ Node ShaderIR::GetTexCode(Instruction instr, TextureType texture_type,
     if (depth_compare && !is_array && texture_type == TextureType::Texture1D) {
         coords.push_back(Immediate(0.0f));
     }
+    std::size_t array_offset{};
+    if (is_array) {
+        array_offset = coords.size();
+        coords.push_back(GetRegister(array_register));
+    }
     if (depth_compare) {
         // Depth is always stored in the register signaled by gpr20
         // or in the next register if lod or bias are used
         const u64 depth_register = instr.gpr20.Value() + (lod_bias_enabled ? 1 : 0);
         coords.push_back(GetRegister(depth_register));
     }
-    if (is_array) {
-        coords.push_back(GetRegister(array_register));
-    }
     // Fill ignored coordinates
     while (coords.size() < total_coord_count) {
         coords.push_back(Immediate(0));
     }
 
-    return GetTextureCode(instr, texture_type, process_mode, depth_compare, is_array, 0,
-                          std::move(coords));
+    return GetTextureCode(instr, texture_type, process_mode, depth_compare, is_array, array_offset,
+                          0, std::move(coords));
 }
 
 Node ShaderIR::GetTexsCode(Instruction instr, TextureType texture_type,
                            TextureProcessMode process_mode, bool depth_compare, bool is_array) {
-
-    const bool lod_bias_enabled = (process_mode != Tegra::Shader::TextureProcessMode::None &&
-                                   process_mode != Tegra::Shader::TextureProcessMode::LZ);
+    const bool lod_bias_enabled =
+        (process_mode != TextureProcessMode::None && process_mode != TextureProcessMode::LZ);
 
     const auto [coord_count, total_coord_count] = ValidateAndGetCoordinateElement(
         texture_type, depth_compare, is_array, lod_bias_enabled, 4, 4);
@@ -577,22 +575,23 @@ Node ShaderIR::GetTexsCode(Instruction instr, TextureType texture_type,
         coords.push_back(GetRegister(last ? last_coord_register : coord_register + i));
     }
 
+    std::size_t array_offset{};
+    if (is_array) {
+        array_offset = coords.size();
+        coords.push_back(GetRegister(array_register));
+    }
     if (depth_compare) {
         // Depth is always stored in the register signaled by gpr20
         // or in the next register if lod or bias are used
         const u64 depth_register = instr.gpr20.Value() + (lod_bias_enabled ? 1 : 0);
         coords.push_back(GetRegister(depth_register));
     }
-    if (is_array) {
-        coords.push_back(
-            Operation(OperationCode::ICastFloat, NO_PRECISE, GetRegister(array_register)));
-    }
     // Fill ignored coordinates
     while (coords.size() < total_coord_count) {
         coords.push_back(Immediate(0));
     }
 
-    return GetTextureCode(instr, texture_type, process_mode, depth_compare, is_array,
+    return GetTextureCode(instr, texture_type, process_mode, depth_compare, is_array, array_offset,
                           (coord_count > 2 ? 1 : 0), std::move(coords));
 }
 

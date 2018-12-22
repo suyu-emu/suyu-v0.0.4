@@ -635,8 +635,10 @@ private:
                                                          result_type));
     }
 
+#pragma optimize("", off)
+
     std::string GenerateTexture(Operation operation, const std::string& func,
-                                const std::string& extra_cast = "") {
+                                std::string extra_cast(std::string) = nullptr) {
         constexpr std::array<const char*, 4> coord_constructors = {"float", "vec2", "vec3", "vec4"};
 
         const auto& meta = std::get<MetaTexture>(operation.GetMeta());
@@ -651,15 +653,17 @@ private:
         expr += '(';
         for (u32 i = 0; i < count; ++i) {
             const bool is_extra = i >= meta.coords_count;
-            const bool do_cast = is_extra && !extra_cast.empty();
-            if (do_cast) {
-                expr += extra_cast;
-                expr += '(';
+            const bool is_array = i == meta.array_index;
+
+            std::string operand = Visit(operation[i]);
+            if (is_extra && extra_cast != nullptr) {
+                operand = extra_cast(operand);
             }
-            expr += Visit(operation[i]);
-            if (do_cast) {
-                expr += ')';
+            if (is_array) {
+                ASSERT(!is_extra);
+                operand = "float(ftoi(" + operand + "))";
             }
+            expr += operand;
             if (i + 1 == meta.coords_count) {
                 expr += ')';
             }
@@ -1065,7 +1069,14 @@ private:
     }
 
     std::string F4TextureGather(Operation operation) {
-        return GenerateTexture(operation, "textureGather", "int");
+        const bool is_shadow = std::get<MetaTexture>(operation.GetMeta()).sampler.IsShadow();
+        if (is_shadow) {
+            return GenerateTexture(operation, "textureGather",
+                                   [](std::string ref_z) { return ref_z; });
+        } else {
+            return GenerateTexture(operation, "textureGather",
+                                   [](std::string comp) { return "ftoi(" + comp + ')'; });
+        }
     }
 
     std::string F4TextureQueryDimensions(Operation operation) {

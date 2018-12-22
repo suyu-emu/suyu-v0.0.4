@@ -265,6 +265,7 @@ struct MetaHalfArithmetic {
 struct MetaTexture {
     const Sampler& sampler;
     u32 coords_count{};
+    std::optional<u32> array_index;
 };
 
 struct MetaComponents {
@@ -696,7 +697,8 @@ private:
 
     Node GetTextureCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
                         Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
-                        bool is_array, std::size_t bias_offset, std::vector<Node>&& coords);
+                        bool is_array, std::size_t array_offset, std::size_t bias_offset,
+                        std::vector<Node>&& coords);
 
     void WriteLogicOperation(BasicBlock& bb, Tegra::Shader::Register dest,
                              Tegra::Shader::LogicOperation logic_op, Node op_a, Node op_b,
