@@ -386,6 +386,8 @@ void ShaderIR::SetLocalMemory(BasicBlock& bb, Node address, Node value) {
         return OperationCode::UBitwiseNot;
     case OperationCode::IBitfieldInsert:
         return OperationCode::UBitfieldInsert;
+    case OperationCode::IBitCount:
+        return OperationCode::UBitCount;
     case OperationCode::LogicalILessThan:
         return OperationCode::LogicalULessThan;
     case OperationCode::LogicalIEqual:

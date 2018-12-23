@@ -908,6 +908,11 @@ private:
                                   Type::Int);
     }
 
+    template <Type type>
+    std::string BitCount(Operation operation) {
+        return GenerateUnary(operation, "bitCount", type, type, false);
+    }
+
     std::string HNegate(Operation operation) {
         const auto GetNegate = [&](std::size_t index) -> std::string {
             if (const auto pred = std::get_if<PredicateNode>(operation[index])) {
@@ -1273,6 +1278,7 @@ private:
         &BitwiseXor<Type::Int>,
         &BitwiseNot<Type::Int>,
         &BitfieldInsert<Type::Int>,
+        &BitCount<Type::Int>,
 
         &Add<Type::Uint>,
         &Mul<Type::Uint>,
@@ -1289,6 +1295,7 @@ private:
         &BitwiseXor<Type::Uint>,
         &BitwiseNot<Type::Uint>,
         &BitfieldInsert<Type::Uint>,
+        &BitCount<Type::Uint>,
 
         &Add<Type::HalfFloat>,
         &Mul<Type::HalfFloat>,

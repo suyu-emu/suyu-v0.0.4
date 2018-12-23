@@ -89,6 +89,7 @@ enum class OperationCode {
     IBitwiseXor,           /// (MetaArithmetic, int a, int b) -> int
     IBitwiseNot,           /// (MetaArithmetic, int a) -> int
     IBitfieldInsert,       /// (MetaArithmetic, int base, int insert, int offset, int bits) -> int
+    IBitCount,             /// (MetaArithmetic, int) -> int
 
     UAdd,                  /// (MetaArithmetic, uint a, uint b) -> uint
     UMul,                  /// (MetaArithmetic, uint a, uint b) -> uint
@@ -103,8 +104,9 @@ enum class OperationCode {
     UBitwiseAnd,           /// (MetaArithmetic, uint a, uint b) -> uint
     UBitwiseOr,            /// (MetaArithmetic, uint a, uint b) -> uint
     UBitwiseXor,           /// (MetaArithmetic, uint a, uint b) -> uint
-    UBitwiseNot,           /// (MetaArithmetic, uint a) -> int
+    UBitwiseNot,           /// (MetaArithmetic, uint a) -> uint
     UBitfieldInsert, /// (MetaArithmetic, uint base, uint insert, int offset, int bits) -> uint
+    UBitCount,       /// (MetaArithmetic, uint) -> uint
 
     HAdd,      /// (MetaHalfArithmetic, f16vec2 a, f16vec2 b) -> f16vec2
     HMul,      /// (MetaHalfArithmetic, f16vec2 a, f16vec2 b) -> f16vec2

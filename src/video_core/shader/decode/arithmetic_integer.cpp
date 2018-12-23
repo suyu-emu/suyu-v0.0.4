@@ -119,6 +119,16 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, value);
         break;
     }
+    case OpCode::Id::POPC_C:
+    case OpCode::Id::POPC_R:
+    case OpCode::Id::POPC_IMM: {
+        if (instr.popc.invert) {
+            op_b = Operation(OperationCode::IBitwiseNot, NO_PRECISE, op_b);
+        }
+        const Node value = Operation(OperationCode::IBitCount, PRECISE, op_b);
+        SetRegister(bb, instr.gpr0, value);
+        break;
+    }
     case OpCode::Id::SEL_C:
     case OpCode::Id::SEL_R:
     case OpCode::Id::SEL_IMM: {
