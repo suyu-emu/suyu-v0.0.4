@@ -455,6 +455,8 @@ std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNam
             }
             if (IsDirValidAndNonEmpty(mod->GetSubdirectory("romfs")))
                 AppendCommaIfNotEmpty(types, "LayeredFS");
+            if (IsDirValidAndNonEmpty(mod->GetSubdirectory("cheats")))
+                AppendCommaIfNotEmpty(types, "Cheats");
 
             if (types.empty())
                 continue;
