@@ -480,6 +480,14 @@ public:
     /// Gets the total size of the new map region in bytes.
     u64 GetNewMapRegionSize() const;
 
+    void SetMainCodeRegion(VAddr begin, VAddr end);
+
+    VAddr GetMainCodeRegionBaseAddress() const;
+
+    VAddr GetMainCodeRegionEndAddress() const;
+
+    u64 GetMainCodeRegionSize() const;
+
     /// Gets the base address of the TLS IO region.
     VAddr GetTLSIORegionBaseAddress() const;
 
@@ -597,6 +605,9 @@ private:
 
     VAddr new_map_region_base = 0;
     VAddr new_map_region_end = 0;
+
+    VAddr main_code_region_base = 0;
+    VAddr main_code_region_end = 0;
 
     VAddr tls_io_region_base = 0;
     VAddr tls_io_region_end = 0;
