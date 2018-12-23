@@ -110,6 +110,7 @@ enum class OperationCode {
 
     HAdd,      /// (MetaHalfArithmetic, f16vec2 a, f16vec2 b) -> f16vec2
     HMul,      /// (MetaHalfArithmetic, f16vec2 a, f16vec2 b) -> f16vec2
+    HFma,      /// (MetaHalfArithmetic, f16vec2 a, f16vec2 b, f16vec2 c) -> f16vec2
     HAbsolute, /// (f16vec2 a) -> f16vec2
     HNegate,   /// (f16vec2 a, bool first, bool second) -> f16vec2
     HMergeF32, /// (f16vec2 src) -> float

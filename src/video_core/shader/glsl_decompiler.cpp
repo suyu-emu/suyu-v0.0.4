@@ -762,9 +762,9 @@ private:
         return GenerateBinaryInfix(operation, "/", type, type, type);
     }
 
-    std::string FFma(Operation operation) {
-        return GenerateTernary(operation, "fma", Type::Float, Type::Float, Type::Float,
-                               Type::Float);
+    template <Type type>
+    std::string Fma(Operation operation) {
+        return GenerateTernary(operation, "fma", type, type, type, type);
     }
 
     template <Type type>
@@ -1231,7 +1231,7 @@ private:
         &Add<Type::Float>,
         &Mul<Type::Float>,
         &Div<Type::Float>,
-        &FFma,
+        &Fma<Type::Float>,
         &Negate<Type::Float>,
         &Absolute<Type::Float>,
         &FClamp,
@@ -1289,6 +1289,7 @@ private:
 
         &Add<Type::HalfFloat>,
         &Mul<Type::HalfFloat>,
+        &Fma<Type::HalfFloat>,
         &Absolute<Type::HalfFloat>,
         &HNegate,
         &HMergeF32,

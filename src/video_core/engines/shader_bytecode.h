@@ -648,6 +648,7 @@ union Instruction {
             BitField<37, 2, HalfPrecision> precision;
             BitField<32, 1, u64> saturate;
 
+            BitField<31, 1, u64> negate_b;
             BitField<30, 1, u64> negate_c;
             BitField<35, 2, HalfType> type_c;
         } rr;
