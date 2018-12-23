@@ -691,6 +691,9 @@ private:
                      Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
                      bool is_array);
 
+    Node GetTld4Code(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
+                     bool depth_compare, bool is_array);
+
     std::tuple<std::size_t, std::size_t> ValidateAndGetCoordinateElement(
         Tegra::Shader::TextureType texture_type, bool depth_compare, bool is_array,
         bool lod_bias_enabled, std::size_t max_coords, std::size_t max_inputs);
