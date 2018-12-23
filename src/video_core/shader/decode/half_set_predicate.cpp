@@ -39,10 +39,12 @@ u32 ShaderIR::DecodeHalfSetPredicate(BasicBlock& bb, u32 pc) {
     const Node second_pred = GetPredicate(instr.hsetp2.pred39, instr.hsetp2.neg_pred != 0);
 
     const OperationCode combiner = GetPredicateCombiner(instr.hsetp2.op);
+    const OperationCode pair_combiner =
+        instr.hsetp2.h_and ? OperationCode::LogicalAll2 : OperationCode::LogicalAny2;
 
-    MetaHalfArithmetic meta = {
-        false, {instr.hsetp2.type_a, instr.hsetp2.type_b}, instr.hsetp2.h_and != 0};
-    const Node first_pred = GetPredicateComparisonHalf(instr.hsetp2.cond, meta, op_a, op_b);
+    MetaHalfArithmetic meta = {false, {instr.hsetp2.type_a, instr.hsetp2.type_b}};
+    const Node comparison = GetPredicateComparisonHalf(instr.hsetp2.cond, meta, op_a, op_b);
+    const Node first_pred = Operation(pair_combiner, comparison);
 
     // Set the primary predicate to the result of Predicate OP SecondPredicate
     const Node value = Operation(combiner, first_pred, second_pred);

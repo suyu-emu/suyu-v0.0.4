@@ -122,6 +122,8 @@ enum class OperationCode {
     LogicalOr,     /// (bool a, bool b) -> bool
     LogicalXor,    /// (bool a, bool b) -> bool
     LogicalNegate, /// (bool a) -> bool
+    LogicalAll2,   /// (bool2 a) -> bool
+    LogicalAny2,   /// (bool2 a) -> bool
 
     LogicalFLessThan,     /// (float a, float b) -> bool
     LogicalFEqual,        /// (float a, float b) -> bool
@@ -145,12 +147,12 @@ enum class OperationCode {
     LogicalUNotEqual,     /// (uint a, uint b) -> bool
     LogicalUGreaterEqual, /// (uint a, uint b) -> bool
 
-    LogicalHLessThan,     /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool
-    LogicalHEqual,        /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool
-    LogicalHLessEqual,    /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool
-    LogicalHGreaterThan,  /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool
-    LogicalHNotEqual,     /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool
-    LogicalHGreaterEqual, /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool
+    Logical2HLessThan,     /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
+    Logical2HEqual,        /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
+    Logical2HLessEqual,    /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
+    Logical2HGreaterThan,  /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
+    Logical2HNotEqual,     /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
+    Logical2HGreaterEqual, /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
 
     F4Texture,                /// (MetaTexture, float[N] coords, float[M] params) -> float4
     F4TextureLod,             /// (MetaTexture, float[N] coords, float[M] params) -> float4
@@ -263,7 +265,6 @@ struct MetaHalfArithmetic {
     std::array<Tegra::Shader::HalfType, 3> types = {Tegra::Shader::HalfType::H0_H1,
                                                     Tegra::Shader::HalfType::H0_H1,
                                                     Tegra::Shader::HalfType::H0_H1};
-    bool and_comparison{};
 };
 
 struct MetaTexture {

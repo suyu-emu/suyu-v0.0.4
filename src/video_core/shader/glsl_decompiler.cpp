@@ -31,7 +31,7 @@ using Operation = const OperationNode&;
 enum : u32 { POSITION_VARYING_LOCATION = 0, GENERIC_VARYING_START_LOCATION = 1 };
 constexpr u32 MAX_CONSTBUFFER_ELEMENTS = 65536 / 16; // TODO(Rodrigo): Use rasterizer's value
 
-enum class Type { Bool, Float, Int, Uint, HalfFloat };
+enum class Type { Bool, Bool2, Float, Int, Uint, HalfFloat };
 
 class ShaderWriter {
 public:
@@ -541,6 +541,7 @@ private:
 
         switch (type) {
         case Type::Bool:
+        case Type::Bool2:
         case Type::Float:
             return value;
         case Type::Int:
@@ -1011,38 +1012,42 @@ private:
         return GenerateUnary(operation, "!", Type::Bool, Type::Bool, false);
     }
 
-    std::string LogicalHComparison(Operation operation, const std::string& func) {
-        const auto& meta = std::get<MetaHalfArithmetic>(operation.GetMeta());
-        const std::string op_a = VisitOperand(operation, 0, Type::HalfFloat);
-        const std::string op_b = VisitOperand(operation, 1, Type::HalfFloat);
-
-        std::string value = meta.and_comparison ? "all" : "any";
-        value += '(' + func + '(' + op_a + ", " + op_b + "))";
-        return value;
+    std::string LogicalAll2(Operation operation) {
+        return GenerateUnary(operation, "all", Type::Bool, Type::Bool2);
     }
 
-    std::string LogicalHLessThan(Operation operation) {
-        return LogicalHComparison(operation, "lessThan");
+    std::string LogicalAny2(Operation operation) {
+        return GenerateUnary(operation, "any", Type::Bool, Type::Bool2);
     }
 
-    std::string LogicalHEqual(Operation operation) {
-        return LogicalHComparison(operation, "equal");
+    std::string Logical2HLessThan(Operation operation) {
+        return GenerateBinaryCall(operation, "lessThan", Type::Bool2, Type::HalfFloat,
+                                  Type::HalfFloat);
     }
 
-    std::string LogicalHLessEqual(Operation operation) {
-        return LogicalHComparison(operation, "lessThanEqual");
+    std::string Logical2HEqual(Operation operation) {
+        return GenerateBinaryCall(operation, "equal", Type::Bool2, Type::HalfFloat,
+                                  Type::HalfFloat);
     }
 
-    std::string LogicalHGreaterThan(Operation operation) {
-        return LogicalHComparison(operation, "greaterThan");
+    std::string Logical2HLessEqual(Operation operation) {
+        return GenerateBinaryCall(operation, "lessThanEqual", Type::Bool2, Type::HalfFloat,
+                                  Type::HalfFloat);
     }
 
-    std::string LogicalHNotEqual(Operation operation) {
-        return LogicalHComparison(operation, "notEqual");
+    std::string Logical2HGreaterThan(Operation operation) {
+        return GenerateBinaryCall(operation, "greaterThan", Type::Bool2, Type::HalfFloat,
+                                  Type::HalfFloat);
     }
 
-    std::string LogicalHGreaterEqual(Operation operation) {
-        return LogicalHComparison(operation, "greaterThanEqual");
+    std::string Logical2HNotEqual(Operation operation) {
+        return GenerateBinaryCall(operation, "notEqual", Type::Bool2, Type::HalfFloat,
+                                  Type::HalfFloat);
+    }
+
+    std::string Logical2HGreaterEqual(Operation operation) {
+        return GenerateBinaryCall(operation, "greaterThanEqual", Type::Bool2, Type::HalfFloat,
+                                  Type::HalfFloat);
     }
 
     std::string F4Texture(Operation operation) {
@@ -1301,6 +1306,8 @@ private:
         &LogicalOr,
         &LogicalXor,
         &LogicalNegate,
+        &LogicalAll2,
+        &LogicalAny2,
 
         &LogicalLessThan<Type::Float>,
         &LogicalEqual<Type::Float>,
@@ -1324,12 +1331,12 @@ private:
         &LogicalNotEqual<Type::Uint>,
         &LogicalGreaterEqual<Type::Uint>,
 
-        &LogicalHLessThan,
-        &LogicalHEqual,
-        &LogicalHLessEqual,
-        &LogicalHGreaterThan,
-        &LogicalHNotEqual,
-        &LogicalHGreaterEqual,
+        &Logical2HLessThan,
+        &Logical2HEqual,
+        &Logical2HLessEqual,
+        &Logical2HGreaterThan,
+        &Logical2HNotEqual,
+        &Logical2HGreaterEqual,
 
         &F4Texture,
         &F4TextureLod,

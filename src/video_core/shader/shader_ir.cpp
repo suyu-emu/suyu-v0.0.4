@@ -289,17 +289,17 @@ Node ShaderIR::GetPredicateComparisonHalf(Tegra::Shader::PredCondition condition
                          "Unimplemented NaN comparison for half floats");
 
     static const std::unordered_map<PredCondition, OperationCode> PredicateComparisonTable = {
-        {PredCondition::LessThan, OperationCode::LogicalHLessThan},
-        {PredCondition::Equal, OperationCode::LogicalHEqual},
-        {PredCondition::LessEqual, OperationCode::LogicalHLessEqual},
-        {PredCondition::GreaterThan, OperationCode::LogicalHGreaterThan},
-        {PredCondition::NotEqual, OperationCode::LogicalHNotEqual},
-        {PredCondition::GreaterEqual, OperationCode::LogicalHGreaterEqual},
-        {PredCondition::LessThanWithNan, OperationCode::LogicalHLessThan},
-        {PredCondition::NotEqualWithNan, OperationCode::LogicalHNotEqual},
-        {PredCondition::LessEqualWithNan, OperationCode::LogicalHLessEqual},
-        {PredCondition::GreaterThanWithNan, OperationCode::LogicalHGreaterThan},
-        {PredCondition::GreaterEqualWithNan, OperationCode::LogicalHGreaterEqual}};
+        {PredCondition::LessThan, OperationCode::Logical2HLessThan},
+        {PredCondition::Equal, OperationCode::Logical2HEqual},
+        {PredCondition::LessEqual, OperationCode::Logical2HLessEqual},
+        {PredCondition::GreaterThan, OperationCode::Logical2HGreaterThan},
+        {PredCondition::NotEqual, OperationCode::Logical2HNotEqual},
+        {PredCondition::GreaterEqual, OperationCode::Logical2HGreaterEqual},
+        {PredCondition::LessThanWithNan, OperationCode::Logical2HLessThan},
+        {PredCondition::NotEqualWithNan, OperationCode::Logical2HNotEqual},
+        {PredCondition::LessEqualWithNan, OperationCode::Logical2HLessEqual},
+        {PredCondition::GreaterThanWithNan, OperationCode::Logical2HGreaterThan},
+        {PredCondition::GreaterEqualWithNan, OperationCode::Logical2HGreaterEqual}};
 
     const auto comparison{PredicateComparisonTable.find(condition)};
     UNIMPLEMENTED_IF_MSG(comparison == PredicateComparisonTable.end(),
