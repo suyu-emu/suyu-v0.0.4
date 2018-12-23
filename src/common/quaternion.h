@@ -12,7 +12,7 @@ template <typename T>
 class Quaternion {
 public:
     Math::Vec3<T> xyz;
-    T w;
+    T w{};
 
     Quaternion<decltype(-T{})> Inverse() const {
         return {-xyz, w};
