@@ -32,6 +32,7 @@
 #include "core/perf_stats.h"
 #include "core/settings.h"
 #include "core/telemetry_session.h"
+#include "file_sys/cheat_engine.h"
 #include "frontend/applets/profile_select.h"
 #include "frontend/applets/software_keyboard.h"
 #include "frontend/applets/web_browser.h"
@@ -197,6 +198,7 @@ struct System::Impl {
         GDBStub::Shutdown();
         Service::Shutdown();
         service_manager.reset();
+        cheat_engine.reset();
         telemetry_session.reset();
         gpu_core.reset();
 
@@ -246,6 +248,8 @@ struct System::Impl {
     std::shared_ptr<Tegra::DebugContext> debug_context;
     CpuCoreManager cpu_core_manager;
     bool is_powered_on = false;
+
+    std::unique_ptr<FileSys::CheatEngine> cheat_engine;
 
     /// Frontend applets
     std::unique_ptr<Core::Frontend::ProfileSelectApplet> profile_selector;
@@ -443,6 +447,11 @@ void System::SetGPUDebugContext(std::shared_ptr<Tegra::DebugContext> context) {
 
 Tegra::DebugContext* System::GetGPUDebugContext() const {
     return impl->debug_context.get();
+}
+
+void System::RegisterCheatList(const std::vector<FileSys::CheatList>& list,
+                               const std::string& build_id) {
+    impl->cheat_engine = std::make_unique<FileSys::CheatEngine>(list, build_id);
 }
 
 void System::SetFilesystem(std::shared_ptr<FileSys::VfsFilesystem> vfs) {
