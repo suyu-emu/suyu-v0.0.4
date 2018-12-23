@@ -7,8 +7,10 @@
 #include <lz4.h>
 #include "common/common_funcs.h"
 #include "common/file_util.h"
+#include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "common/swap.h"
+#include "core/core.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/process.h"
@@ -95,6 +97,7 @@ static constexpr u32 PageAlignSize(u32 size) {
 std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
                                                const FileSys::VfsFile& file, VAddr load_base,
                                                bool should_pass_arguments,
+                                               bool should_register_data_region,
                                                std::optional<FileSys::PatchManager> pm) {
     if (file.GetSize() < sizeof(NsoHeader))
         return {};
@@ -153,6 +156,10 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
     const u32 image_size{PageAlignSize(static_cast<u32>(program_image.size()) + bss_size)};
     program_image.resize(image_size);
 
+    if (should_register_data_region) {
+        process.VMManager().SetMainCodeRegion(load_base, load_base + program_image.size());
+    }
+
     // Apply patches if necessary
     if (pm && (pm->HasNSOPatch(nso_header.build_id) || Settings::values.dump_nso)) {
         std::vector<u8> pi_header(program_image.size() + 0x100);
@@ -162,6 +169,15 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
         pi_header = pm->PatchNSO(pi_header);
 
         std::memcpy(program_image.data(), pi_header.data() + 0x100, program_image.size());
+    }
+
+    // Apply cheats if they exist and the program has a valid title ID
+    if (pm) {
+        const auto cheats = pm->CreateCheatList(nso_header.build_id);
+        if (!cheats.empty()) {
+            Core::System::GetInstance().RegisterCheatList(
+                cheats, Common::HexArrayToString(nso_header.build_id));
+        }
     }
 
     // Load codeset for current process
@@ -181,7 +197,7 @@ ResultStatus AppLoader_NSO::Load(Kernel::Process& process) {
 
     // Load module
     const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
-    if (!LoadModule(process, *file, base_address, true)) {
+    if (!LoadModule(process, *file, base_address, true, true)) {
         return ResultStatus::ErrorLoadingNSO;
     }
     LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", file->GetName(), base_address);
