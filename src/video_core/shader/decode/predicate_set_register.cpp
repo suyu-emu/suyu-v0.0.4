@@ -16,7 +16,22 @@ u32 ShaderIR::DecodePredicateSetRegister(BasicBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
-    UNIMPLEMENTED();
+    UNIMPLEMENTED_IF_MSG(instr.generates_cc,
+                         "Condition codes generation in PSET is not implemented");
+
+    const Node op_a = GetPredicate(instr.pset.pred12, instr.pset.neg_pred12 != 0);
+    const Node op_b = GetPredicate(instr.pset.pred29, instr.pset.neg_pred29 != 0);
+    const Node first_pred = Operation(GetPredicateCombiner(instr.pset.cond), op_a, op_b);
+
+    const Node second_pred = GetPredicate(instr.pset.pred39, instr.pset.neg_pred39 != 0);
+
+    const OperationCode combiner = GetPredicateCombiner(instr.pset.op);
+    const Node result = Operation(combiner, first_pred, second_pred);
+
+    const Node true_value = instr.pset.bf ? Immediate(1.0f) : Immediate(0xffffffff);
+    const Node false_value = instr.pset.bf ? Immediate(0.0f) : Immediate(0);
+    const Node value = Operation(OperationCode::Select, PRECISE, true_value, false_value);
+    SetRegister(bb, instr.gpr0, value);
 
     return pc;
 }
