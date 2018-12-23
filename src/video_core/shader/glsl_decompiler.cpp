@@ -635,8 +635,6 @@ private:
                                                          result_type));
     }
 
-#pragma optimize("", off)
-
     std::string GenerateTexture(Operation operation, const std::string& func,
                                 std::string extra_cast(std::string) = nullptr) {
         constexpr std::array<const char*, 4> coord_constructors = {"float", "vec2", "vec3", "vec4"};
@@ -1100,6 +1098,32 @@ private:
         return "vec4(itof(int(" + tmp + ".y)), utof(uint(" + tmp + ".x)), 0, 0)";
     }
 
+    std::string F4TexelFetch(Operation operation) {
+        constexpr std::array<const char*, 4> constructors = {"int", "ivec2", "ivec3", "ivec4"};
+        const auto& meta = std::get<MetaTexture>(operation.GetMeta());
+        const auto count = static_cast<u32>(operation.GetOperandsCount());
+
+        std::string expr = "texelFetch(";
+        expr += GetSampler(meta.sampler);
+        expr += ", ";
+
+        expr += constructors[meta.coords_count - 1];
+        expr += '(';
+        for (u32 i = 0; i < count; ++i) {
+            expr += VisitOperand(operation, i, Type::Int);
+            expr += ", ";
+
+            if (i + 1 == meta.coords_count) {
+                expr += ')';
+            }
+            if (i + 1 < count) {
+                expr += ", ";
+            }
+        }
+        expr += ')';
+        return expr;
+    }
+
     std::string Ipa(Operation operation) {
         const auto& attribute = operation[0];
         // TODO(Rodrigo): Special IPA attribute interactions
@@ -1314,6 +1338,7 @@ private:
         &F4TextureGather,
         &F4TextureQueryDimensions,
         &F4TextureQueryLod,
+        &F4TexelFetch,
 
         &Ipa,
 

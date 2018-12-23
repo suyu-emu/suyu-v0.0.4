@@ -154,6 +154,7 @@ enum class OperationCode {
     F4TextureGather,          /// (MetaTexture, float[N] coords, float[M] params) -> float4
     F4TextureQueryDimensions, /// (MetaTexture, float a) -> float4
     F4TextureQueryLod,        /// (MetaTexture, float[N] coords) -> float4
+    F4TexelFetch,             /// (MetaTexture, int[N], int) -> float4
 
     Ipa, /// (abuf src) -> float
 
@@ -693,6 +694,9 @@ private:
 
     Node GetTld4Code(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
                      bool depth_compare, bool is_array);
+
+    Node GetTldsCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
+                     bool is_array);
 
     std::tuple<std::size_t, std::size_t> ValidateAndGetCoordinateElement(
         Tegra::Shader::TextureType texture_type, bool depth_compare, bool is_array,

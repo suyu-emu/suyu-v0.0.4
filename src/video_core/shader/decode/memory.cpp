@@ -204,7 +204,7 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::TEXS: {
-        Tegra::Shader::TextureType texture_type{instr.texs.GetTextureType()};
+        const TextureType texture_type{instr.texs.GetTextureType()};
         const bool is_array{instr.texs.IsArrayTexture()};
         const bool depth_compare = instr.texs.UsesMiscMode(TextureMiscMode::DC);
         const auto process_mode = instr.texs.GetTextureProcessMode();
@@ -371,6 +371,22 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
         bb.push_back(Operation(OperationCode::AssignComposite, meta_composite, texture,
                                GetRegister(instr.gpr0), GetRegister(instr.gpr0.Value() + 1),
                                GetRegister(RZ), GetRegister(RZ)));
+        break;
+    }
+    case OpCode::Id::TLDS: {
+        const Tegra::Shader::TextureType texture_type{instr.tlds.GetTextureType()};
+        const bool is_array{instr.tlds.IsArrayTexture()};
+
+        UNIMPLEMENTED_IF_MSG(instr.tlds.UsesMiscMode(TextureMiscMode::AOFFI),
+                             "AOFFI is not implemented");
+        UNIMPLEMENTED_IF_MSG(instr.tlds.UsesMiscMode(TextureMiscMode::MZ), "MZ is not implemented");
+
+        if (instr.tlds.UsesMiscMode(TextureMiscMode::NODEP)) {
+            LOG_WARNING(HW_GPU, "TMML.NODEP implementation is incomplete");
+        }
+
+        const Node texture = GetTldsCode(instr, texture_type, is_array);
+        WriteTexsInstructionFloat(bb, instr, texture);
         break;
     }
     default:
@@ -576,20 +592,57 @@ Node ShaderIR::GetTld4Code(Instruction instr, TextureType texture_type, bool dep
     for (size_t i = 0; i < coord_count; ++i) {
         params.push_back(GetRegister(coord_register + i));
     }
-    std::size_t array_offset{};
+    std::optional<u32> array_offset;
     if (is_array) {
-        array_offset = params.size();
+        array_offset = static_cast<u32>(params.size());
         params.push_back(GetRegister(array_register));
     }
 
     const auto& sampler = GetSampler(instr.sampler, texture_type, is_array, depth_compare);
-
-    std::optional<u32> array_offset_value;
-    if (is_array)
-        array_offset_value = static_cast<u32>(array_offset);
-    MetaTexture meta{sampler, static_cast<u32>(params.size()), array_offset_value};
+    MetaTexture meta{sampler, static_cast<u32>(params.size()), array_offset};
 
     return Operation(OperationCode::F4TextureGather, std::move(meta), std::move(params));
+}
+
+Node ShaderIR::GetTldsCode(Instruction instr, TextureType texture_type, bool is_array) {
+    const std::size_t type_coord_count = GetCoordCount(texture_type);
+    const std::size_t total_coord_count = type_coord_count + (is_array ? 1 : 0);
+    const bool lod_enabled = instr.tlds.GetTextureProcessMode() == TextureProcessMode::LL;
+
+    // If enabled arrays index is always stored in the gpr8 field
+    const u64 array_register = instr.gpr8.Value();
+    // if is array gpr20 is used
+    const u64 coord_register = is_array ? instr.gpr20.Value() : instr.gpr8.Value();
+
+    const u64 last_coord_register =
+        ((type_coord_count > 2) || (type_coord_count == 2 && !lod_enabled)) && !is_array
+            ? static_cast<u64>(instr.gpr20.Value())
+            : coord_register + 1;
+
+    std::vector<Node> params;
+
+    for (std::size_t i = 0; i < type_coord_count; ++i) {
+        const bool last = (i == (type_coord_count - 1)) && (type_coord_count > 1);
+        params.push_back(GetRegister(last ? last_coord_register : coord_register + i));
+    }
+    std::optional<u32> array_offset;
+    if (is_array) {
+        array_offset = static_cast<u32>(params.size());
+        params.push_back(GetRegister(array_register));
+    }
+    const auto coords_count = static_cast<u32>(params.size());
+
+    if (lod_enabled) {
+        // When lod is used always is in grp20
+        params.push_back(GetRegister(instr.gpr20));
+    } else {
+        params.push_back(Immediate(0));
+    }
+
+    const auto& sampler = GetSampler(instr.sampler, texture_type, is_array, false);
+    MetaTexture meta{sampler, coords_count, array_offset};
+
+    return Operation(OperationCode::F4TexelFetch, std::move(meta), std::move(params));
 }
 
 std::tuple<std::size_t, std::size_t> ShaderIR::ValidateAndGetCoordinateElement(
