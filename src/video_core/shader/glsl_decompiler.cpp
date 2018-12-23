@@ -915,16 +915,6 @@ private:
 
     std::string HNegate(Operation operation) {
         const auto GetNegate = [&](std::size_t index) -> std::string {
-            if (const auto pred = std::get_if<PredicateNode>(operation[index])) {
-                if (!pred->IsNegated()) {
-                    switch (pred->GetIndex()) {
-                    case Tegra::Shader::Pred::UnusedIndex:
-                        return "-1";
-                    case Tegra::Shader::Pred::NeverExecute:
-                        return "1";
-                    }
-                }
-            }
             return VisitOperand(operation, index, Type::Bool) + " ? -1 : 1";
         };
         const std::string value = '(' + VisitOperand(operation, 0, Type::HalfFloat) + " * vec2(" +
