@@ -19,6 +19,8 @@ option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 
 option(YUZU_USE_BUNDLED_UNICORN "Build/Download bundled Unicorn" ON)
 
+option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
+
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF)
@@ -319,6 +321,10 @@ if (ENABLE_QT)
     endif()
 
     find_package(Qt5 REQUIRED COMPONENTS Widgets OpenGL ${QT_PREFIX_HINT})
+
+    if (YUZU_USE_QT_WEB_ENGINE)
+        find_package(Qt5 REQUIRED COMPONENTS WebEngineCore WebEngineWidgets ${QT_PREFIX_HINT})
+    endif ()
 endif()
 
 # Platform-specific library requirements
