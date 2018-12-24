@@ -23,6 +23,7 @@
 #include "core/hle/service/am/applets/profile_select.h"
 #include "core/hle/service/am/applets/software_keyboard.h"
 #include "core/hle/service/am/applets/stub_applet.h"
+#include "core/hle/service/am/applets/web_browser.h"
 #include "core/hle/service/am/idle.h"
 #include "core/hle/service/am/omm.h"
 #include "core/hle/service/am/spsm.h"
@@ -43,6 +44,7 @@ constexpr ResultCode ERR_SIZE_OUT_OF_BOUNDS{ErrorModule::AM, 0x1F7};
 enum class AppletId : u32 {
     ProfileSelect = 0x10,
     SoftwareKeyboard = 0x11,
+    LibAppletOff = 0x17,
 };
 
 constexpr u32 POP_LAUNCH_PARAMETER_MAGIC = 0xC79497CA;
@@ -782,6 +784,8 @@ static std::shared_ptr<Applets::Applet> GetAppletFromId(AppletId id) {
         return std::make_shared<Applets::ProfileSelect>();
     case AppletId::SoftwareKeyboard:
         return std::make_shared<Applets::SoftwareKeyboard>();
+    case AppletId::LibAppletOff:
+        return std::make_shared<Applets::WebBrowser>();
     default:
         LOG_ERROR(Service_AM, "Unimplemented AppletId [{:08X}]! -- Falling back to stub!",
                   static_cast<u32>(id));
