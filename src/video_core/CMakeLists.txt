@@ -79,6 +79,7 @@ add_library(video_core STATIC
     shader/decode/float_set.cpp
     shader/decode/integer_set.cpp
     shader/decode/half_set.cpp
+    shader/decode/video.cpp
     shader/decode/xmad.cpp
     shader/decode/other.cpp
     shader/decode.cpp

@@ -174,6 +174,7 @@ u32 ShaderIR::DecodeInstr(BasicBlock& bb, u32 pc) {
         {OpCode::Type::FloatSet, &ShaderIR::DecodeFloatSet},
         {OpCode::Type::IntegerSet, &ShaderIR::DecodeIntegerSet},
         {OpCode::Type::HalfSet, &ShaderIR::DecodeHalfSet},
+        {OpCode::Type::Video, &ShaderIR::DecodeVideo},
         {OpCode::Type::Xmad, &ShaderIR::DecodeXmad},
     };
 

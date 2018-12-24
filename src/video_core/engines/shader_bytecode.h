@@ -1436,6 +1436,7 @@ public:
         PredicateSetRegister,
         RegisterSetPredicate,
         Conversion,
+        Video,
         Xmad,
         Unknown,
     };
@@ -1567,8 +1568,8 @@ private:
             INST("11100000--------", Id::IPA, Type::Trivial, "IPA"),
             INST("1111101111100---", Id::OUT_R, Type::Trivial, "OUT_R"),
             INST("1110111111010---", Id::ISBERD, Type::Trivial, "ISBERD"),
-            INST("01011111--------", Id::VMAD, Type::Trivial, "VMAD"),
-            INST("0101000011110---", Id::VSETP, Type::Trivial, "VSETP"),
+            INST("01011111--------", Id::VMAD, Type::Video, "VMAD"),
+            INST("0101000011110---", Id::VSETP, Type::Video, "VSETP"),
             INST("0011001-1-------", Id::FFMA_IMM, Type::Ffma, "FFMA_IMM"),
             INST("010010011-------", Id::FFMA_CR, Type::Ffma, "FFMA_CR"),
             INST("010100011-------", Id::FFMA_RC, Type::Ffma, "FFMA_RC"),

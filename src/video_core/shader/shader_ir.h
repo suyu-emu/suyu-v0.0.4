@@ -595,6 +595,7 @@ private:
     u32 DecodeFloatSet(BasicBlock& bb, u32 pc);
     u32 DecodeIntegerSet(BasicBlock& bb, u32 pc);
     u32 DecodeHalfSet(BasicBlock& bb, u32 pc);
+    u32 DecodeVideo(BasicBlock& bb, u32 pc);
     u32 DecodeXmad(BasicBlock& bb, u32 pc);
     u32 DecodeOther(BasicBlock& bb, u32 pc);
 
@@ -711,6 +712,9 @@ private:
                         Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
                         bool is_array, std::size_t array_offset, std::size_t bias_offset,
                         std::vector<Node>&& coords);
+
+    Node GetVideoOperand(Node op, bool is_chunk, bool is_signed, Tegra::Shader::VideoType type,
+                         u64 byte_height);
 
     void WriteLogicOperation(BasicBlock& bb, Tegra::Shader::Register dest,
                              Tegra::Shader::LogicOperation logic_op, Node op_a, Node op_b,
