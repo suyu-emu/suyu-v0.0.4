@@ -226,6 +226,9 @@ public:
     MiiInfo CreateRandom(RandomParameters params);
     MiiInfo CreateDefault(u32 index);
 
+    bool CheckUpdatedFlag() const;
+    void ResetUpdatedFlag();
+
     bool Empty() const;
     bool Full() const;
 
@@ -254,6 +257,7 @@ private:
     void EnsureDatabasePartition();
 
     MiiDatabase database;
+    bool updated_flag = false;
 };
 
 }; // namespace Service::Mii

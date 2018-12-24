@@ -204,6 +204,14 @@ MiiInfo MiiManager::CreateDefault(u32 index) {
     return ConvertStoreDataToInfo(new_mii);
 }
 
+bool MiiManager::CheckUpdatedFlag() const {
+    return updated_flag;
+}
+
+void MiiManager::ResetUpdatedFlag() {
+    updated_flag = false;
+}
+
 bool MiiManager::Empty() const {
     return Size() == 0;
 }
@@ -213,6 +221,7 @@ bool MiiManager::Full() const {
 }
 
 void MiiManager::Clear() {
+    updated_flag = true;
     std::fill(database.miis.begin(), database.miis.end(), MiiStoreData{});
 }
 
@@ -244,6 +253,7 @@ bool MiiManager::Remove(Common::UUID uuid) {
     if (iter == database.miis.end())
         return false;
 
+    updated_flag = true;
     *iter = MiiStoreData{};
     EnsureDatabasePartition();
     return true;
@@ -277,6 +287,7 @@ bool MiiManager::Move(Common::UUID uuid, u32 new_index) {
     if (index == INVALID_INDEX || new_index >= MAX_MIIS)
         return false;
 
+    updated_flag = true;
     const auto moving = database.miis[index];
     const auto replacing = database.miis[new_index];
     if (replacing.uuid) {
@@ -294,6 +305,7 @@ bool MiiManager::Move(Common::UUID uuid, u32 new_index) {
 bool MiiManager::AddOrReplace(const MiiStoreData& data) {
     const auto index = IndexOf(data.uuid);
 
+    updated_flag = true;
     if (index == INVALID_INDEX) {
         const auto size = Size();
         if (size == MAX_MIIS)

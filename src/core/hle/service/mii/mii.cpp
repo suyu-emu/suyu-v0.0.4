@@ -68,13 +68,14 @@ private:
 
     void IsUpdated(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-        const auto unknown{rp.PopRaw<u32>()};
+        const auto source{rp.PopRaw<Source>()};
 
-        LOG_WARNING(Service_Mii, "(STUBBED) called with unknown={:08X}", unknown);
+        LOG_DEBUG(Service_Mii, "called with source={}", source);
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.Push(false);
+        rb.Push(db.CheckUpdatedFlag());
+        db.ResetUpdatedFlag();
     }
 
     void IsFullDatabase(Kernel::HLERequestContext& ctx) {
@@ -87,9 +88,9 @@ private:
 
     void GetCount(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-        const auto unknown{rp.PopRaw<u32>()};
+        const auto source{rp.PopRaw<Source>()};
 
-        LOG_DEBUG(Service_Mii, "called with unknown={:08X}", unknown);
+        LOG_DEBUG(Service_Mii, "called with source={}", source);
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
@@ -100,8 +101,10 @@ private:
     void Get(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto size{rp.PopRaw<u32>()};
+        const auto source{rp.PopRaw<Source>()};
 
-        LOG_DEBUG(Service_Mii, "called with size={:08X}, offset={:08X}", size, offsets[0]);
+        LOG_DEBUG(Service_Mii, "called with size={:08X}, offset={:08X}, source={}", size,
+                  offsets[0], source);
 
         u32 read_size{};
         ctx.WriteBuffer(SerializeArray(&MiiManager::GetInfoElement, offsets[0], size, read_size));
@@ -116,8 +119,10 @@ private:
     void Get1(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto size{rp.PopRaw<u32>()};
+        const auto source{rp.PopRaw<Source>()};
 
-        LOG_DEBUG(Service_Mii, "called with size={:08X}, offset={:08X}", size, offsets[1]);
+        LOG_DEBUG(Service_Mii, "called with size={:08X}, offset={:08X}, source={}", size,
+                  offsets[1], source);
 
         u32 read_size{};
         ctx.WriteBuffer(SerializeArray(&MiiManager::GetInfo, offsets[1], size, read_size));
@@ -157,8 +162,10 @@ private:
     void Get2(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto size{rp.PopRaw<u32>()};
+        const auto source{rp.PopRaw<Source>()};
 
-        LOG_DEBUG(Service_Mii, "called with size={:08X}, offset={:08X}", size, offsets[2]);
+        LOG_DEBUG(Service_Mii, "called with size={:08X}, offset={:08X}, source={}", size,
+                  offsets[2], source);
 
         u32 read_size{};
         ctx.WriteBuffer(
@@ -174,8 +181,10 @@ private:
     void Get3(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto size{rp.PopRaw<u32>()};
+        const auto source{rp.PopRaw<Source>()};
 
-        LOG_DEBUG(Service_Mii, "called with size={:08X}, offset={:08X}", size, offsets[3]);
+        LOG_DEBUG(Service_Mii, "called with size={:08X}, offset={:08X}, source={}", size,
+                  offsets[3], source);
 
         u32 read_size{};
         ctx.WriteBuffer(SerializeArray(&MiiManager::GetStoreData, offsets[3], size, read_size));
