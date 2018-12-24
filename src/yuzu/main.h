@@ -26,6 +26,7 @@ class GraphicsSurfaceWidget;
 class GRenderWindow;
 class MicroProfileDialog;
 class ProfilerWidget;
+class QLabel;
 class WaitTreeWidget;
 enum class GameListOpenTarget;
 
@@ -37,6 +38,10 @@ namespace FileSys {
 class RegisteredCacheUnion;
 class VfsFilesystem;
 } // namespace FileSys
+
+namespace Service::Account {
+struct UUID;
+} // namespace Service::Account
 
 namespace Tegra {
 class DebugContext;
@@ -103,10 +108,15 @@ signals:
     void SoftwareKeyboardFinishedText(std::optional<std::u16string> text);
     void SoftwareKeyboardFinishedCheckDialog();
 
+    void WebBrowserUnpackRomFS();
+    void WebBrowserFinishedBrowsing();
+
 public slots:
     void ProfileSelectorSelectProfile();
     void SoftwareKeyboardGetText(const Core::Frontend::SoftwareKeyboardParameters& parameters);
     void SoftwareKeyboardInvokeCheckDialog(std::u16string error_message);
+
+    void WebBrowserOpenPage(std::string_view filename, std::string_view arguments);
 
 private:
     void InitializeWidgets();
