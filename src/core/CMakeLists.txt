@@ -87,6 +87,8 @@ add_library(core STATIC
     frontend/applets/profile_select.h
     frontend/applets/software_keyboard.cpp
     frontend/applets/software_keyboard.h
+    frontend/applets/web_browser.cpp
+    frontend/applets/web_browser.h
     frontend/emu_window.cpp
     frontend/emu_window.h
     frontend/framebuffer_layout.cpp
