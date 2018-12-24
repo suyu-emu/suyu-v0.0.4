@@ -26,11 +26,12 @@ u32 ShaderIR::DecodePredicateSetRegister(BasicBlock& bb, u32 pc) {
     const Node second_pred = GetPredicate(instr.pset.pred39, instr.pset.neg_pred39 != 0);
 
     const OperationCode combiner = GetPredicateCombiner(instr.pset.op);
-    const Node result = Operation(combiner, first_pred, second_pred);
+    const Node predicate = Operation(combiner, first_pred, second_pred);
 
     const Node true_value = instr.pset.bf ? Immediate(1.0f) : Immediate(0xffffffff);
     const Node false_value = instr.pset.bf ? Immediate(0.0f) : Immediate(0);
-    const Node value = Operation(OperationCode::Select, PRECISE, true_value, false_value);
+    const Node value =
+        Operation(OperationCode::Select, PRECISE, predicate, true_value, false_value);
     SetRegister(bb, instr.gpr0, value);
 
     return pc;
