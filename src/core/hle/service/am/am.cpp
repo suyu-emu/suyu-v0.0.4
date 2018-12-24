@@ -721,9 +721,9 @@ void IStorageAccessor::Write(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
     const u64 offset{rp.Pop<u64>()};
-    LOG_DEBUG(Service_AM, "called, offset={}", offset);
-
     const std::vector<u8> data{ctx.ReadBuffer()};
+
+    LOG_DEBUG(Service_AM, "called, offset={}, size={}", offset, data.size());
 
     if (data.size() > backing.buffer.size() - offset) {
         LOG_ERROR(Service_AM,
@@ -744,9 +744,9 @@ void IStorageAccessor::Read(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
     const u64 offset{rp.Pop<u64>()};
-    LOG_DEBUG(Service_AM, "called, offset={}", offset);
-
     const std::size_t size{ctx.GetWriteBufferSize()};
+
+    LOG_DEBUG(Service_AM, "called, offset={}, size={}", offset, size);
 
     if (size > backing.buffer.size() - offset) {
         LOG_ERROR(Service_AM, "offset is out of bounds, backing_buffer_sz={}, size={}, offset={}",
