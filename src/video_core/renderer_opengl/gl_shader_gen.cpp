@@ -80,16 +80,11 @@ ProgramResult GenerateGeometryShader(const ShaderSetup& setup) {
     // Version is intentionally skipped in shader generation, it's added by the lazy compilation.
     const std::string id = fmt::format("{:016x}", setup.program.unique_identifier);
 
-    std::string out = out += "// Shader Unique Id: GS" + id + '\n';
+    std::string out = "// Shader Unique Id: GS" + id + '\n';
     out += "#extension GL_ARB_separate_shader_objects : enable\n";
     out += GetCommonDeclarations();
 
-    ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET);
-    ProgramResult program =
-        Decompile(program_ir, Maxwell3D::Regs::ShaderStage::Geometry, "geometry");
-
-    out += R"(
-out gl_PerVertex {
+    out += R"(out gl_PerVertex {
     vec4 gl_Position;
 };
 
@@ -103,9 +98,12 @@ layout (std140) uniform gs_config {
 };
 )";
 
+    ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET);
+    ProgramResult program =
+        Decompile(program_ir, Maxwell3D::Regs::ShaderStage::Geometry, "geometry");
     out += program.first;
 
-    out = R"(
+    out += R"(
 void main() {
     execute_geometry();
 };)";

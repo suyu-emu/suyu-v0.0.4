@@ -12,6 +12,7 @@ namespace VideoCommon::Shader {
 using Tegra::Shader::ConditionCode;
 using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
+using Tegra::Shader::Register;
 
 u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
@@ -138,6 +139,30 @@ u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
         const Node value = GetSaturatedFloat(ipa, instr.ipa.saturate);
 
         SetRegister(bb, instr.gpr0, value);
+        break;
+    }
+    case OpCode::Id::OUT_R: {
+        UNIMPLEMENTED_IF_MSG(instr.gpr20.Value() != Register::ZeroIndex,
+                             "Stream buffer is not supported");
+
+        if (instr.out.emit) {
+            // gpr0 is used to store the next address and gpr8 contains the address to emit.
+            // Hardware uses pointers here but we just ignore it
+            bb.push_back(Operation(OperationCode::EmitVertex));
+            SetRegister(bb, instr.gpr0, Immediate(0));
+        }
+        if (instr.out.cut) {
+            bb.push_back(Operation(OperationCode::EndPrimitive));
+        }
+        break;
+    }
+    case OpCode::Id::ISBERD: {
+        UNIMPLEMENTED_IF(instr.isberd.o != 0);
+        UNIMPLEMENTED_IF(instr.isberd.skew != 0);
+        UNIMPLEMENTED_IF(instr.isberd.shift != Tegra::Shader::IsberdShift::None);
+        UNIMPLEMENTED_IF(instr.isberd.mode != Tegra::Shader::IsberdMode::None);
+        LOG_WARNING(HW_GPU, "ISBERD instruction is incomplete");
+        SetRegister(bb, instr.gpr0, GetRegister(instr.gpr8));
         break;
     }
     case OpCode::Id::DEPBAR: {

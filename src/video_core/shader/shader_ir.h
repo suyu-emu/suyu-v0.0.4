@@ -172,6 +172,9 @@ enum class OperationCode {
     Exit, /// () -> void
     Kil,  /// () -> void
 
+    EmitVertex,   /// () -> void
+    EndPrimitive, /// () -> void
+
     YNegate, /// () -> float
 
     Amount,

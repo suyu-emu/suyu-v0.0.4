@@ -89,6 +89,22 @@ static std::string GetSwizzle(u32 elem) {
     return swizzle;
 }
 
+/// Translate topology
+static std::string GetTopologyName(Tegra::Shader::OutputTopology topology) {
+    switch (topology) {
+    case Tegra::Shader::OutputTopology::PointList:
+        return "points";
+    case Tegra::Shader::OutputTopology::LineStrip:
+        return "line_strip";
+    case Tegra::Shader::OutputTopology::TriangleStrip:
+        return "triangle_strip";
+    default:
+        UNIMPLEMENTED_MSG("Unknown output topology: {}", static_cast<u32>(topology));
+        return "points";
+    }
+}
+
+/// Returns true if an object has to be treated as precise
 static bool IsPrecise(Operation operand) {
     const auto& meta = operand.GetMeta();
 
@@ -115,6 +131,7 @@ public:
 
     void Decompile() {
         DeclareVertex();
+        DeclareGeometry();
         DeclareRegisters();
         DeclarePredicates();
         DeclareLocalMemory();
@@ -209,6 +226,16 @@ private:
 
         --code.scope;
         code.AddLine("};");
+        code.AddNewLine();
+    }
+
+    void DeclareGeometry() {
+        if (stage != ShaderStage::Geometry)
+            return;
+
+        const auto topology = GetTopologyName(header.common3.output_topology);
+        const auto max_vertices = std::to_string(header.common4.max_output_vertices);
+        code.AddLine("layout (" + topology + ", max_vertices = " + max_vertices + ") out;");
         code.AddNewLine();
     }
 
@@ -419,9 +446,24 @@ private:
             const auto attribute = abuf->GetIndex();
             const auto element = abuf->GetElement();
 
+            const auto GeometryPass = [&](const std::string& name) {
+                if (stage == ShaderStage::Geometry && abuf->GetBuffer()) {
+                    // TODO(Rodrigo): Guard geometry inputs against out of bound reads. Some games
+                    // set an 0x80000000 index for those and the shader fails to build. Find out why
+                    // this happens and what's its intent.
+                    return "gs_" + name + "[ftou(" + Visit(abuf->GetBuffer()) +
+                           ") % MAX_VERTEX_INPUT]";
+                }
+                return name;
+            };
+
             switch (attribute) {
             case Attribute::Index::Position:
-                return element == 3 ? "1.0f" : "gl_FragCoord" + GetSwizzle(element);
+                if (stage != ShaderStage::Fragment) {
+                    return GeometryPass("position") + GetSwizzle(element);
+                } else {
+                    return element == 3 ? "1.0f" : "gl_FragCoord" + GetSwizzle(element);
+                }
             case Attribute::Index::PointCoord:
                 switch (element) {
                 case 0:
@@ -460,7 +502,7 @@ private:
             default:
                 if (attribute >= Attribute::Index::Attribute_0 &&
                     attribute <= Attribute::Index::Attribute_31) {
-                    return GetInputAttribute(attribute) + GetSwizzle(abuf->GetElement());
+                    return GeometryPass(GetInputAttribute(attribute)) + GetSwizzle(element);
                 }
                 break;
             }
@@ -1226,6 +1268,27 @@ private:
         return {};
     }
 
+    std::string EmitVertex(Operation operation) {
+        ASSERT_MSG(stage == ShaderStage::Geometry,
+                   "EmitVertex is expected to be used in a geometry shader.");
+
+        // If a geometry shader is attached, it will always flip (it's the last stage before
+        // fragment). For more info about flipping, refer to gl_shader_gen.cpp.
+        code.AddLine("position.xy *= viewport_flip.xy;");
+        code.AddLine("gl_Position = position;");
+        code.AddLine("position.w = 1.0;");
+        code.AddLine("EmitVertex();");
+        return {};
+    }
+
+    std::string EndPrimitive(Operation operation) {
+        ASSERT_MSG(stage == ShaderStage::Geometry,
+                   "EndPrimitive is expected to be used in a geometry shader.");
+
+        code.AddLine("EndPrimitive();");
+        return {};
+    }
+
     std::string YNegate(Operation operation) {
         // Config pack's third value is Y_NEGATE's state.
         return "uintBitsToFloat(config_pack[2])";
@@ -1360,6 +1423,9 @@ private:
         &PopFlowStack,  // Brk
         &Exit,
         &Kil,
+
+        &EmitVertex,
+        &EndPrimitive,
 
         &YNegate,
     };
