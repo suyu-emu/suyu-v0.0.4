@@ -54,7 +54,8 @@ u32 ShaderIR::DecodeHalfSet(BasicBlock& bb, u32 pc) {
             Operation(OperationCode::LogicalPick2, comparison_pair, Immediate(i));
         const Node predicate = Operation(combiner, comparison, second_pred);
 
-        values[i] = Operation(OperationCode::Select, NO_PRECISE, predicate, true_value, false_value);
+        values[i] =
+            Operation(OperationCode::Select, NO_PRECISE, predicate, true_value, false_value);
     }
 
     const Node value = Operation(OperationCode::UBitwiseOr, NO_PRECISE, values[0], values[1]);

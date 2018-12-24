@@ -35,7 +35,8 @@ u32 ShaderIR::DecodeRegisterSetPredicate(BasicBlock& bb, u32 pc) {
     for (u64 pred = 0; pred < programmable_preds; ++pred) {
         const Node shift = Immediate(1u << static_cast<u32>(pred));
 
-        const Node apply_compare = Operation(OperationCode::UBitwiseAnd, NO_PRECISE, apply_mask, shift);
+        const Node apply_compare =
+            Operation(OperationCode::UBitwiseAnd, NO_PRECISE, apply_mask, shift);
         const Node condition = Operation(OperationCode::LogicalUEqual, apply_compare, Immediate(0));
 
         const Node value_compare = Operation(OperationCode::UBitwiseAnd, NO_PRECISE, mask, shift);
