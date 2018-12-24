@@ -1012,6 +1012,11 @@ private:
         return GenerateUnary(operation, "!", Type::Bool, Type::Bool, false);
     }
 
+    std::string LogicalPick2(Operation operation) {
+        const std::string pair = VisitOperand(operation, 0, Type::Bool2);
+        return pair + '[' + VisitOperand(operation, 1, Type::Uint) + ']';
+    }
+
     std::string LogicalAll2(Operation operation) {
         return GenerateUnary(operation, "all", Type::Bool, Type::Bool2);
     }
@@ -1306,6 +1311,7 @@ private:
         &LogicalOr,
         &LogicalXor,
         &LogicalNegate,
+        &LogicalPick2,
         &LogicalAll2,
         &LogicalAny2,
 

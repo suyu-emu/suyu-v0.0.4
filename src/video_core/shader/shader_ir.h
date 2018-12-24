@@ -122,6 +122,7 @@ enum class OperationCode {
     LogicalOr,     /// (bool a, bool b) -> bool
     LogicalXor,    /// (bool a, bool b) -> bool
     LogicalNegate, /// (bool a) -> bool
+    LogicalPick2,  /// (bool2 pair, uint index) -> bool
     LogicalAll2,   /// (bool2 a) -> bool
     LogicalAny2,   /// (bool2 a) -> bool
 
