@@ -89,7 +89,7 @@ void ShaderIR::WriteLogicOperation(BasicBlock& bb, Register dest, LogicOperation
         return;
     case PredicateResultMode::NotZero: {
         // Set the predicate to true if the result is not zero.
-        const Node compare = Operation(OperationCode::LogicalIEqual, result, Immediate(0));
+        const Node compare = Operation(OperationCode::LogicalINotEqual, result, Immediate(0));
         SetPredicate(bb, static_cast<u64>(predicate), compare);
         break;
     }
