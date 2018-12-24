@@ -1,8 +1,10 @@
-// Copyright 2018 Citra Emulator Project
+// Copyright 2018 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
 #pragma once
+
+#include <string>
 
 #include "common/common_types.h"
 
@@ -33,7 +35,7 @@ struct UUID {
     static UUID Generate();
 
     // Set the UUID to {0,0} to be considered an invalid user
-    void Invalidate() {
+    constexpr void Invalidate() {
         uuid = INVALID_UUID;
     }
 

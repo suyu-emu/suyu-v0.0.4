@@ -84,6 +84,8 @@ struct MiiInfo {
     std::u16string Name() const;
 };
 static_assert(sizeof(MiiInfo) == 0x58, "MiiInfo has incorrect size.");
+static_assert(std::has_unique_object_representations_v<MiiInfo>,
+              "All bits of MiiInfo must contribute to its value.");
 
 bool operator==(const MiiInfo& lhs, const MiiInfo& rhs);
 bool operator!=(const MiiInfo& lhs, const MiiInfo& rhs);
@@ -238,14 +240,18 @@ public:
 
     bool Remove(Common::UUID uuid);
     u32 IndexOf(Common::UUID uuid) const;
-    u32 IndexOf(MiiInfo info) const;
+    u32 IndexOf(const MiiInfo& info) const;
 
     bool Move(Common::UUID uuid, u32 new_index);
-    bool AddOrReplace(MiiStoreData data);
+    bool AddOrReplace(const MiiStoreData& data);
 
 private:
     void WriteToFile();
     void ReadFromFile();
+
+    MiiStoreData CreateMiiWithUniqueUUID() const;
+
+    void EnsureDatabasePartition();
 
     MiiDatabase database;
 };

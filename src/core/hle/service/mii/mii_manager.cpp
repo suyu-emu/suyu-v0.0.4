@@ -12,8 +12,10 @@
 
 namespace Service::Mii {
 
+namespace {
+
 constexpr char MII_SAVE_DATABASE_PATH[] = "/system/save/8000000000000030/MiiDatabase.dat";
-constexpr std::array<char16_t, 11> DEFAULT_MII_NAME = {'y', 'u', 'z', 'u', '\0'};
+constexpr std::array<char16_t, 11> DEFAULT_MII_NAME = {u'y', u'u', u'z', u'u', u'\0'};
 
 // This value was retrieved from HW test
 constexpr MiiStoreData DEFAULT_MII = {
@@ -30,10 +32,10 @@ constexpr MiiStoreData DEFAULT_MII = {
 // Default values taken from multiple real databases
 const MiiDatabase DEFAULT_MII_DATABASE{Common::MakeMagic('N', 'F', 'D', 'B'), {}, {1}, 0, 0};
 
-template <typename T, std::size_t s1, std::size_t s2>
-std::array<T, s2> ResizeArray(const std::array<T, s1>& in) {
-    std::array<T, s2> out{};
-    std::memcpy(out.data(), in.data(), sizeof(T) * std::min(s1, s2));
+template <typename T, std::size_t SourceArraySize, std::size_t DestArraySize>
+std::array<T, DestArraySize> ResizeArray(const std::array<T, SourceArraySize>& in) {
+    std::array<T, DestArraySize> out{};
+    std::memcpy(out.data(), in.data(), sizeof(T) * std::min(SourceArraySize, DestArraySize));
     return out;
 }
 
@@ -163,12 +165,14 @@ MiiStoreData ConvertInfoToStoreData(const MiiInfo& info) {
     return out;
 }
 
+} // namespace
+
 std::u16string MiiInfo::Name() const {
     return Common::UTF16StringFromFixedZeroTerminatedBuffer(name.data(), name.size());
 }
 
 bool operator==(const MiiInfo& lhs, const MiiInfo& rhs) {
-    return std::memcmp(&lhs, &rhs, sizeof(MiiInfo));
+    return std::memcmp(&lhs, &rhs, sizeof(MiiInfo)) == 0;
 }
 
 bool operator!=(const MiiInfo& lhs, const MiiInfo& rhs) {
@@ -188,27 +192,15 @@ MiiInfo MiiManager::CreateRandom(RandomParameters params) {
                 "(STUBBED) called with params={:08X}{:08X}{:08X}, returning default Mii",
                 params.unknown_1, params.unknown_2, params.unknown_3);
 
-    auto new_mii = DEFAULT_MII;
-
-    do {
-        new_mii.uuid = Common::UUID::Generate();
-    } while (IndexOf(new_mii.uuid) == INVALID_INDEX);
-
-    return ConvertStoreDataToInfo(new_mii);
+    return ConvertStoreDataToInfo(CreateMiiWithUniqueUUID());
 }
 
 MiiInfo MiiManager::CreateDefault(u32 index) {
-    auto new_mii = DEFAULT_MII;
+    const auto new_mii = CreateMiiWithUniqueUUID();
 
-    do {
-        new_mii.uuid = Common::UUID::Generate();
-    } while (IndexOf(new_mii.uuid) == INVALID_INDEX);
+    database.miis.at(index) = new_mii;
 
-    ASSERT(index < MAX_MIIS);
-    database.miis[index] = new_mii;
-    std::stable_partition(database.miis.begin(), database.miis.end(),
-                          [](const MiiStoreData& elem) { return elem.uuid; });
-
+    EnsureDatabasePartition();
     return ConvertStoreDataToInfo(new_mii);
 }
 
@@ -253,8 +245,7 @@ bool MiiManager::Remove(Common::UUID uuid) {
         return false;
 
     *iter = MiiStoreData{};
-    std::stable_partition(database.miis.begin(), database.miis.end(),
-                          [](const MiiStoreData& elem) { return elem.uuid; });
+    EnsureDatabasePartition();
     return true;
 }
 
@@ -268,9 +259,9 @@ u32 MiiManager::IndexOf(Common::UUID uuid) const {
     return static_cast<u32>(std::distance(database.miis.begin(), iter));
 }
 
-u32 MiiManager::IndexOf(MiiInfo info) const {
+u32 MiiManager::IndexOf(const MiiInfo& info) const {
     const auto iter =
-        std::find_if(database.miis.begin(), database.miis.end(), [info](const MiiStoreData& elem) {
+        std::find_if(database.miis.begin(), database.miis.end(), [&info](const MiiStoreData& elem) {
             return ConvertStoreDataToInfo(elem) == info;
         });
 
@@ -296,12 +287,11 @@ bool MiiManager::Move(Common::UUID uuid, u32 new_index) {
         database.miis[new_index] = moving;
     }
 
-    std::stable_partition(database.miis.begin(), database.miis.end(),
-                          [](const MiiStoreData& elem) { return elem.uuid; });
+    EnsureDatabasePartition();
     return true;
 }
 
-bool MiiManager::AddOrReplace(MiiStoreData data) {
+bool MiiManager::AddOrReplace(const MiiStoreData& data) {
     const auto index = IndexOf(data.uuid);
 
     if (index == INVALID_INDEX) {
@@ -341,7 +331,11 @@ void MiiManager::WriteToFile() {
     }
 
     save.Resize(sizeof(MiiDatabase));
-    save.WriteBytes(&database, sizeof(MiiDatabase));
+    if (save.WriteBytes(&database, sizeof(MiiDatabase)) != sizeof(MiiDatabase)) {
+        LOG_WARNING(Service_Mii, "Failed to write all data to save file... Data may be malformed "
+                                 "and/or regenerated on next run.");
+        save.Resize(0);
+    }
 }
 
 void MiiManager::ReadFromFile() {
@@ -362,6 +356,20 @@ void MiiManager::ReadFromFile() {
         return;
     }
 
+    EnsureDatabasePartition();
+}
+
+MiiStoreData MiiManager::CreateMiiWithUniqueUUID() const {
+    auto new_mii = DEFAULT_MII;
+
+    do {
+        new_mii.uuid = Common::UUID::Generate();
+    } while (IndexOf(new_mii.uuid) == INVALID_INDEX);
+
+    return new_mii;
+}
+
+void MiiManager::EnsureDatabasePartition() {
     std::stable_partition(database.miis.begin(), database.miis.end(),
                           [](const MiiStoreData& elem) { return elem.uuid; });
 }
