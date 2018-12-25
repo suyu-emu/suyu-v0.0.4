@@ -1164,7 +1164,6 @@ private:
         expr += '(';
         for (u32 i = 0; i < count; ++i) {
             expr += VisitOperand(operation, i, Type::Int);
-            expr += ", ";
 
             if (i + 1 == meta.coords_count) {
                 expr += ')';
