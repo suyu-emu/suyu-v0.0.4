@@ -827,31 +827,25 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
         const std::string nand_dir = FileUtil::GetUserPath(FileUtil::UserPath::NANDDir);
         ASSERT(program_id != 0);
 
-        Service::Account::ProfileManager manager{};
-        const auto user_ids = manager.GetAllUsers();
-        QStringList list;
-        for (const auto& user_id : user_ids) {
-            if (user_id == Service::Account::UUID{})
-                continue;
-            Service::Account::ProfileBase base;
-            if (!manager.GetProfileBase(user_id, base))
-                continue;
+        const auto select_profile = [this]() -> s32 {
+            QtProfileSelectionDialog dialog(this);
+            dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
+                                  Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
+            dialog.setWindowModality(Qt::WindowModal);
+            dialog.exec();
 
-            list.push_back(QString::fromStdString(Common::StringFromFixedZeroTerminatedBuffer(
-                reinterpret_cast<const char*>(base.username.data()), base.username.size())));
-        }
+            if (!dialog.GetStatus()) {
+                return -1;
+            }
 
-        bool ok = false;
-        const auto index_string =
-            QInputDialog::getItem(this, tr("Select User"),
-                                  tr("Please select the user's save data you would like to open."),
-                                  list, Settings::values.current_user, false, &ok);
-        if (!ok)
+            return dialog.GetIndex();
+        };
+
+        const auto index = select_profile();
+        if (index == -1)
             return;
 
-        const auto index = list.indexOf(index_string);
-        ASSERT(index != -1 && index < 8);
-
+        Service::Account::ProfileManager manager;
         const auto user_id = manager.GetUser(index);
         ASSERT(user_id);
         path = nand_dir + FileSys::SaveDataFactory::GetFullPath(FileSys::SaveDataSpaceId::NandUser,
