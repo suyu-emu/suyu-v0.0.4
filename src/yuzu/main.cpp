@@ -687,9 +687,25 @@ bool GMainWindow::LoadROM(const QString& filename) {
     return true;
 }
 
+void GMainWindow::SelectAndSetCurrentUser() {
+    QtProfileSelectionDialog dialog(this);
+    dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
+                          Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
+    dialog.setWindowModality(Qt::WindowModal);
+    dialog.exec();
+
+    if (dialog.GetStatus()) {
+        Settings::values.current_user = static_cast<s32>(dialog.GetIndex());
+    }
+}
+
 void GMainWindow::BootGame(const QString& filename) {
     LOG_INFO(Frontend, "yuzu starting...");
     StoreRecentFile(filename); // Put the filename on top of the list
+
+    if (UISettings::values.select_user_on_boot) {
+        SelectAndSetCurrentUser();
+    }
 
     if (!LoadROM(filename))
         return;
