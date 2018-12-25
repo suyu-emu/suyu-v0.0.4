@@ -84,11 +84,7 @@ ProgramResult GenerateGeometryShader(const ShaderSetup& setup) {
     out += "#extension GL_ARB_separate_shader_objects : enable\n";
     out += GetCommonDeclarations();
 
-    out += R"(out gl_PerVertex {
-    vec4 gl_Position;
-};
-
-layout (location = 0) in vec4 gs_position[];
+    out += R"(layout (location = 0) in vec4 gs_position[];
 layout (location = 0) out vec4 position;
 
 layout (std140) uniform gs_config {

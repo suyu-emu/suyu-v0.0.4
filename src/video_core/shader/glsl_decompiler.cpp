@@ -207,6 +207,22 @@ private:
         if (stage != ShaderStage::Vertex)
             return;
 
+        DeclareVertexRedeclarations();
+    }
+
+    void DeclareGeometry() {
+        if (stage != ShaderStage::Geometry)
+            return;
+
+        const auto topology = GetTopologyName(header.common3.output_topology);
+        const auto max_vertices = std::to_string(header.common4.max_output_vertices);
+        code.AddLine("layout (" + topology + ", max_vertices = " + max_vertices + ") out;");
+        code.AddNewLine();
+
+        DeclareVertexRedeclarations();
+    }
+
+    void DeclareVertexRedeclarations() {
         bool clip_distances_declared = false;
 
         code.AddLine("out gl_PerVertex {");
@@ -226,16 +242,6 @@ private:
 
         --code.scope;
         code.AddLine("};");
-        code.AddNewLine();
-    }
-
-    void DeclareGeometry() {
-        if (stage != ShaderStage::Geometry)
-            return;
-
-        const auto topology = GetTopologyName(header.common3.output_topology);
-        const auto max_vertices = std::to_string(header.common4.max_output_vertices);
-        code.AddLine("layout (" + topology + ", max_vertices = " + max_vertices + ") out;");
         code.AddNewLine();
     }
 
