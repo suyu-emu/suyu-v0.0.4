@@ -37,10 +37,11 @@ u32 ShaderIR::DecodeRegisterSetPredicate(BasicBlock& bb, u32 pc) {
 
         const Node apply_compare =
             Operation(OperationCode::UBitwiseAnd, NO_PRECISE, apply_mask, shift);
-        const Node condition = Operation(OperationCode::LogicalUEqual, apply_compare, Immediate(0));
+        const Node condition =
+            Operation(OperationCode::LogicalUNotEqual, apply_compare, Immediate(0));
 
         const Node value_compare = Operation(OperationCode::UBitwiseAnd, NO_PRECISE, mask, shift);
-        const Node value = Operation(OperationCode::LogicalUEqual, value_compare, Immediate(0));
+        const Node value = Operation(OperationCode::LogicalUNotEqual, value_compare, Immediate(0));
 
         const Node code = Operation(OperationCode::LogicalAssign, GetPredicate(pred), value);
         bb.push_back(Conditional(condition, {code}));
