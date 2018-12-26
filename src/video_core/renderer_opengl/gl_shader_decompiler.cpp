@@ -808,7 +808,7 @@ private:
         if (meta.count > 2) {
             const auto dst2 = std::get<GprNode>(*operation[2]).GetIndex();
             const std::string src2 = "vec2(" + ReadComponent(2) + ", " + ReadComponent(3) + ')';
-            code.AddLine(GetRegister(dst2) + " = utof(packHalf2x16(" + src2 + "))");
+            code.AddLine(GetRegister(dst2) + " = utof(packHalf2x16(" + src2 + "));");
         }
         return {};
     }
