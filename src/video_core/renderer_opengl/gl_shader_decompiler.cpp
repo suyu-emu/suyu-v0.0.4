@@ -325,8 +325,8 @@ private:
             }
 
             ASSERT(element.second.size() > 0);
-            // UNIMPLEMENTED_IF_MSG(element.second.size() > 1,
-            //                     "Multiple input flag modes are not supported in GLSL");
+            UNIMPLEMENTED_IF_MSG(element.second.size() > 1,
+                                 "Multiple input flag modes are not supported in GLSL");
 
             // TODO(bunnei): Use proper number of elements for these
             u32 idx = static_cast<u32>(index) - static_cast<u32>(Attribute::Index::Attribute_0);
@@ -1209,7 +1209,7 @@ private:
         return expr;
     }
 
-    std::string Bra(Operation operation) {
+    std::string Branch(Operation operation) {
         const auto target = std::get<ImmediateNode>(*operation[0]);
         code.AddLine(fmt::format("jmp_to = 0x{:x}u;", target.GetValue()));
         code.AddLine("break;");
@@ -1289,7 +1289,7 @@ private:
         return {};
     }
 
-    std::string Kil(Operation operation) {
+    std::string Discard(Operation operation) {
         // Enclose "discard" in a conditional, so that GLSL compilation does not complain
         // about unexecuted instructions that may follow this.
         code.AddLine("if (true) {");
@@ -1449,13 +1449,11 @@ private:
         &GLSLDecompiler::F4TextureQueryLod,
         &GLSLDecompiler::F4TexelFetch,
 
-        &GLSLDecompiler::Bra,
-        &GLSLDecompiler::PushFlowStack, // Ssy
-        &GLSLDecompiler::PushFlowStack, // Brk
-        &GLSLDecompiler::PopFlowStack,  // Sync
-        &GLSLDecompiler::PopFlowStack,  // Brk
+        &GLSLDecompiler::Branch,
+        &GLSLDecompiler::PushFlowStack,
+        &GLSLDecompiler::PopFlowStack,
         &GLSLDecompiler::Exit,
-        &GLSLDecompiler::Kil,
+        &GLSLDecompiler::Discard,
 
         &GLSLDecompiler::EmitVertex,
         &GLSLDecompiler::EndPrimitive,

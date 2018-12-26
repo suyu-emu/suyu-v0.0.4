@@ -155,8 +155,8 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::ST_L: {
-        // UNIMPLEMENTED_IF_MSG(instr.st_l.unknown == 0, "ST_L Unhandled mode: {}",
-        //                      static_cast<u32>(instr.st_l.unknown.Value()));
+        UNIMPLEMENTED_IF_MSG(instr.st_l.unknown == 0, "ST_L Unhandled mode: {}",
+                             static_cast<u32>(instr.st_l.unknown.Value()));
 
         const Node index = Operation(OperationCode::IAdd, NO_PRECISE, GetRegister(instr.gpr8),
                                      Immediate(static_cast<s32>(instr.smem_imm)));

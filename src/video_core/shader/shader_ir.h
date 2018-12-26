@@ -163,13 +163,11 @@ enum class OperationCode {
     F4TextureQueryLod,        /// (MetaTexture, float[N] coords) -> float4
     F4TexelFetch,             /// (MetaTexture, int[N], int) -> float4
 
-    Bra,  /// (uint branch_target) -> void
-    Ssy,  /// (uint branch_target) -> void
-    Pbk,  /// (uint branch_target) -> void
-    Sync, /// () -> void
-    Brk,  /// () -> void
-    Exit, /// () -> void
-    Kil,  /// () -> void
+    Branch,        /// (uint branch_target) -> void
+    PushFlowStack, /// (uint branch_target) -> void
+    PopFlowStack,  /// () -> void
+    Exit,          /// () -> void
+    Discard,       /// () -> void
 
     EmitVertex,   /// () -> void
     EndPrimitive, /// () -> void

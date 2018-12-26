@@ -54,7 +54,7 @@ u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
         UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ConditionCode::T, "KIL condition code used: {}",
                              static_cast<u32>(cc));
 
-        bb.push_back(Operation(OperationCode::Kil));
+        bb.push_back(Operation(OperationCode::Discard));
         break;
     }
     case OpCode::Id::MOV_SYS: {
@@ -79,7 +79,7 @@ u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
                              "BRA with constant buffers are not implemented");
 
         const u32 target = pc + instr.bra.GetBranchTarget();
-        const Node branch = Operation(OperationCode::Bra, Immediate(target));
+        const Node branch = Operation(OperationCode::Branch, Immediate(target));
 
         const Tegra::Shader::ConditionCode cc = instr.flow_condition_code;
         if (cc != Tegra::Shader::ConditionCode::T) {
@@ -97,7 +97,7 @@ u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
         // target of the jump that the SYNC instruction will make. The SSY opcode has a similar
         // structure to the BRA opcode.
         const u32 target = pc + instr.bra.GetBranchTarget();
-        bb.push_back(Operation(OperationCode::Ssy, Immediate(target)));
+        bb.push_back(Operation(OperationCode::PushFlowStack, Immediate(target)));
         break;
     }
     case OpCode::Id::PBK: {
@@ -108,7 +108,7 @@ u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
         // using SYNC on a PBK address will kill the shader execution. We don't emulate this because
         // it's very unlikely a driver will emit such invalid shader.
         const u32 target = pc + instr.bra.GetBranchTarget();
-        bb.push_back(Operation(OperationCode::Pbk, Immediate(target)));
+        bb.push_back(Operation(OperationCode::PushFlowStack, Immediate(target)));
         break;
     }
     case OpCode::Id::SYNC: {
@@ -117,7 +117,7 @@ u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
                              static_cast<u32>(cc));
 
         // The SYNC opcode jumps to the address previously set by the SSY opcode
-        bb.push_back(Operation(OperationCode::Sync));
+        bb.push_back(Operation(OperationCode::PopFlowStack));
         break;
     }
     case OpCode::Id::BRK: {
@@ -126,7 +126,7 @@ u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
                              static_cast<u32>(cc));
 
         // The BRK opcode jumps to the address previously set by the PBK opcode
-        bb.push_back(Operation(OperationCode::Brk));
+        bb.push_back(Operation(OperationCode::PopFlowStack));
         break;
     }
     case OpCode::Id::IPA: {
