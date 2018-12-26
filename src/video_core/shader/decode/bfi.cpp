@@ -28,13 +28,8 @@ u32 ShaderIR::DecodeBfi(BasicBlock& bb, u32 pc) {
         }
     }();
     const Node insert = GetRegister(instr.gpr8);
-
-    const Node offset =
-        Operation(OperationCode::UBitwiseAnd, NO_PRECISE, packed_shift, Immediate(0xff));
-
-    Node bits =
-        Operation(OperationCode::ULogicalShiftRight, NO_PRECISE, packed_shift, Immediate(8));
-    bits = Operation(OperationCode::UBitwiseAnd, NO_PRECISE, bits, Immediate(0xff));
+    const Node offset = BitfieldExtract(packed_shift, 0, 8);
+    const Node bits = BitfieldExtract(packed_shift, 8, 8);
 
     const Node value =
         Operation(OperationCode::UBitfieldInsert, PRECISE, base, insert, offset, bits);

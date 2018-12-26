@@ -27,20 +27,18 @@ u32 ShaderIR::DecodeRegisterSetPredicate(BasicBlock& bb, u32 pc) {
             return Immediate(static_cast<u32>(instr.r2p.immediate_mask));
         }
     }();
-    const Node mask =
-        Operation(OperationCode::ULogicalShiftRight, NO_PRECISE, GetRegister(instr.gpr8),
-                  Immediate(static_cast<u32>(instr.r2p.byte)));
+    const Node mask = GetRegister(instr.gpr8);
+    const auto offset = static_cast<u32>(instr.r2p.byte) * 8;
 
     constexpr u32 programmable_preds = 7;
     for (u64 pred = 0; pred < programmable_preds; ++pred) {
-        const Node shift = Immediate(1u << static_cast<u32>(pred));
+        const auto shift = static_cast<u32>(pred);
 
-        const Node apply_compare =
-            Operation(OperationCode::UBitwiseAnd, NO_PRECISE, apply_mask, shift);
+        const Node apply_compare = BitfieldExtract(apply_mask, shift, 1);
         const Node condition =
             Operation(OperationCode::LogicalUNotEqual, apply_compare, Immediate(0));
 
-        const Node value_compare = Operation(OperationCode::UBitwiseAnd, NO_PRECISE, mask, shift);
+        const Node value_compare = BitfieldExtract(mask, offset + shift, 1);
         const Node value = Operation(OperationCode::LogicalUNotEqual, value_compare, Immediate(0));
 
         const Node code = Operation(OperationCode::LogicalAssign, GetPredicate(pred), value);

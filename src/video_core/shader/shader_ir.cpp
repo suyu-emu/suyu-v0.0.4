@@ -348,6 +348,11 @@ void ShaderIR::SetLocalMemory(BasicBlock& bb, Node address, Node value) {
     bb.push_back(Operation(OperationCode::Assign, GetLocalMemory(address), value));
 }
 
+Node ShaderIR::BitfieldExtract(Node value, u32 offset, u32 bits) {
+    return Operation(OperationCode::UBitfieldExtract, NO_PRECISE, value, Immediate(offset),
+                     Immediate(bits));
+}
+
 /*static*/ OperationCode ShaderIR::SignedToUnsignedCode(OperationCode operation_code,
                                                         bool is_signed) {
     if (is_signed) {

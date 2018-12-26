@@ -47,22 +47,10 @@ u32 ShaderIR::DecodeXmad(BasicBlock& bb, u32 pc) {
         return {false, Immediate(0), Immediate(0)};
     }();
 
-    if (instr.xmad.high_a) {
-        op_a = SignedOperation(OperationCode::ILogicalShiftRight, is_signed_a, NO_PRECISE, op_a,
-                               Immediate(16));
-    } else {
-        op_a = SignedOperation(OperationCode::IBitwiseAnd, is_signed_a, NO_PRECISE, op_a,
-                               Immediate(0xffff));
-    }
+    op_a = BitfieldExtract(op_a, instr.xmad.high_a ? 16 : 0, 16);
 
     const Node original_b = op_b;
-    if (instr.xmad.high_b) {
-        op_b = SignedOperation(OperationCode::ILogicalShiftRight, is_signed_b, NO_PRECISE, op_a,
-                               Immediate(16));
-    } else {
-        op_b = SignedOperation(OperationCode::IBitwiseAnd, is_signed_b, NO_PRECISE, op_b,
-                               Immediate(0xffff));
-    }
+    op_b = BitfieldExtract(op_b, instr.xmad.high_b ? 16 : 0, 16);
 
     // TODO(Rodrigo): Use an appropiate sign for this operation
     Node product = Operation(OperationCode::IMul, NO_PRECISE, op_a, op_b);
@@ -75,11 +63,9 @@ u32 ShaderIR::DecodeXmad(BasicBlock& bb, u32 pc) {
         case Tegra::Shader::XmadMode::None:
             return op_c;
         case Tegra::Shader::XmadMode::CLo:
-            return SignedOperation(OperationCode::IBitwiseAnd, is_signed_c, NO_PRECISE, op_c,
-                                   Immediate(0xffff));
+            return BitfieldExtract(op_c, 0, 16);
         case Tegra::Shader::XmadMode::CHi:
-            return SignedOperation(OperationCode::ILogicalShiftRight, is_signed_c, NO_PRECISE, op_c,
-                                   Immediate(16));
+            return BitfieldExtract(op_c, 16, 16);
         case Tegra::Shader::XmadMode::CBcc: {
             const Node shifted_b = SignedOperation(OperationCode::ILogicalShiftLeft, is_signed_b,
                                                    NO_PRECISE, original_b, Immediate(16));
@@ -94,9 +80,9 @@ u32 ShaderIR::DecodeXmad(BasicBlock& bb, u32 pc) {
     // TODO(Rodrigo): Use an appropiate sign for this operation
     Node sum = Operation(OperationCode::IAdd, product, op_c);
     if (is_merge) {
-        const Node a = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, sum, Immediate(0xffff));
+        const Node a = BitfieldExtract(sum, 0, 16);
         const Node b =
-            Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, original_b, Immediate(0xffff));
+            Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, original_b, Immediate(16));
         sum = Operation(OperationCode::IBitwiseOr, NO_PRECISE, a, b);
     }
 

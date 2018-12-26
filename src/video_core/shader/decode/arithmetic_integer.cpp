@@ -57,10 +57,9 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
             case IAdd3Height::None:
                 return value;
             case IAdd3Height::LowerHalfWord:
-                return Operation(OperationCode::IBitwiseAnd, NO_PRECISE, value, Immediate(0xffff));
+                return BitfieldExtract(value, 0, 16);
             case IAdd3Height::UpperHalfWord:
-                return Operation(OperationCode::ILogicalShiftRight, NO_PRECISE, value,
-                                 Immediate(16));
+                return BitfieldExtract(value, 16, 16);
             default:
                 UNIMPLEMENTED_MSG("Unhandled IADD3 height: {}", static_cast<u32>(height));
                 return Immediate(0);

@@ -88,21 +88,15 @@ u32 ShaderIR::DecodeVideo(BasicBlock& bb, u32 pc) {
 Node ShaderIR::GetVideoOperand(Node op, bool is_chunk, bool is_signed,
                                Tegra::Shader::VideoType type, u64 byte_height) {
     if (!is_chunk) {
-        const auto offset = static_cast<u32>(byte_height * 8);
-        const Node shift = SignedOperation(OperationCode::ILogicalShiftRight, is_signed, NO_PRECISE,
-                                           op, Immediate(offset));
-        return SignedOperation(OperationCode::IBitwiseAnd, is_signed, NO_PRECISE, shift,
-                               Immediate(0xff));
+        return BitfieldExtract(op, static_cast<u32>(byte_height * 8), 8);
     }
     const Node zero = Immediate(0);
 
     switch (type) {
     case Tegra::Shader::VideoType::Size16_Low:
-        return SignedOperation(OperationCode::IBitwiseAnd, is_signed, NO_PRECISE, op,
-                               Immediate(0xffff));
+        return BitfieldExtract(op, 0, 16);
     case Tegra::Shader::VideoType::Size16_High:
-        return SignedOperation(OperationCode::ILogicalShiftRight, is_signed, NO_PRECISE, op,
-                               Immediate(16));
+        return BitfieldExtract(op, 16, 16);
     case Tegra::Shader::VideoType::Size32:
         // TODO(Rodrigo): From my hardware tests it becomes a bit "mad" when this type is used
         // (1 * 1 + 0 == 0x5b800000). Until a better explanation is found: abort.

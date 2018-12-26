@@ -986,6 +986,11 @@ private:
     }
 
     template <Type type>
+    std::string BitfieldExtract(Operation operation) {
+        return GenerateTernary(operation, "bitfieldExtract", type, type, Type::Int, Type::Int);
+    }
+
+    template <Type type>
     std::string BitCount(Operation operation) {
         return GenerateUnary(operation, "bitCount", type, type, false);
     }
@@ -1369,6 +1374,7 @@ private:
         &GLSLDecompiler::BitwiseXor<Type::Int>,
         &GLSLDecompiler::BitwiseNot<Type::Int>,
         &GLSLDecompiler::BitfieldInsert<Type::Int>,
+        &GLSLDecompiler::BitfieldExtract<Type::Int>,
         &GLSLDecompiler::BitCount<Type::Int>,
 
         &GLSLDecompiler::Add<Type::Uint>,
@@ -1386,6 +1392,7 @@ private:
         &GLSLDecompiler::BitwiseXor<Type::Uint>,
         &GLSLDecompiler::BitwiseNot<Type::Uint>,
         &GLSLDecompiler::BitfieldInsert<Type::Uint>,
+        &GLSLDecompiler::BitfieldExtract<Type::Uint>,
         &GLSLDecompiler::BitCount<Type::Uint>,
 
         &GLSLDecompiler::Add<Type::HalfFloat>,
