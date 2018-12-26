@@ -47,8 +47,8 @@ ConfigurePerGameGeneral::ConfigurePerGameGeneral(QWidget* parent, u64 title_id)
     tree_view->setContextMenuPolicy(Qt::NoContextMenu);
 
     item_model->insertColumns(0, 2);
-    item_model->setHeaderData(0, Qt::Horizontal, "Patch Name");
-    item_model->setHeaderData(1, Qt::Horizontal, "Version");
+    item_model->setHeaderData(0, Qt::Horizontal, tr("Patch Name"));
+    item_model->setHeaderData(1, Qt::Horizontal, tr("Version"));
 
     // We must register all custom types with the Qt Automoc system so that we are able to use it
     // with signals/slots. In this case, QList falls under the umbrells of custom types.
