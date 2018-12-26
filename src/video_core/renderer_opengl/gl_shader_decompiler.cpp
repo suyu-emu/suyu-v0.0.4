@@ -12,6 +12,7 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/shader/shader_ir.h"
 
@@ -30,7 +31,8 @@ using ShaderStage = Tegra::Engines::Maxwell3D::Regs::ShaderStage;
 using Operation = const OperationNode&;
 
 enum : u32 { POSITION_VARYING_LOCATION = 0, GENERIC_VARYING_START_LOCATION = 1 };
-constexpr u32 MAX_CONSTBUFFER_ELEMENTS = 65536 / 16; // TODO(Rodrigo): Use rasterizer's value
+constexpr u32 MAX_CONSTBUFFER_ELEMENTS =
+    static_cast<u32>(RasterizerOpenGL::MaxConstbufferSize) / (4 * sizeof(float));
 
 enum class Type { Bool, Bool2, Float, Int, Uint, HalfFloat };
 
