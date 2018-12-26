@@ -785,6 +785,31 @@ private:
         return {};
     }
 
+    std::string AssignCompositeHalf(Operation operation) {
+        const auto& meta = std::get<MetaComponents>(operation.GetMeta());
+
+        const std::string composite = code.GenerateTemporal();
+        code.AddLine("vec4 " + composite + " = " + Visit(operation[0]) + ';');
+
+        const auto ReadComponent = [&](u32 component) {
+            if (component < meta.count) {
+                return composite + '[' + std::to_string(meta.GetSourceComponent(component)) + ']';
+            }
+            return std::string("0");
+        };
+
+        const auto dst1 = std::get<GprNode>(*operation[1]).GetIndex();
+        const std::string src1 = "vec2(" + ReadComponent(0) + ", " + ReadComponent(1) + ')';
+        code.AddLine(GetRegister(dst1) + " = utof(packHalf2x16(" + src1 + "))");
+
+        if (meta.count > 2) {
+            const auto dst2 = std::get<GprNode>(*operation[2]).GetIndex();
+            const std::string src2 = "vec2(" + ReadComponent(2) + ", " + ReadComponent(3) + ')';
+            code.AddLine(GetRegister(dst2) + " = utof(packHalf2x16(" + src2 + "))");
+        }
+        return {};
+    }
+
     std::string Composite(Operation operation) {
         std::string value = "vec4(";
         for (std::size_t i = 0; i < 4; ++i) {
@@ -1302,6 +1327,7 @@ private:
     static constexpr OperationDecompilersArray operation_decompilers = {
         &GLSLDecompiler::Assign,
         &GLSLDecompiler::AssignComposite,
+        &GLSLDecompiler::AssignCompositeHalf,
 
         &GLSLDecompiler::Composite,
         &GLSLDecompiler::Select,

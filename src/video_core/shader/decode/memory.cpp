@@ -219,8 +219,7 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
         if (instr.texs.fp32_flag) {
             WriteTexsInstructionFloat(bb, instr, texture);
         } else {
-            UNIMPLEMENTED();
-            // WriteTexsInstructionHalfFloat(bb, instr, texture);
+            WriteTexsInstructionHalfFloat(bb, instr, texture);
         }
         break;
     }
@@ -416,37 +415,50 @@ const Sampler& ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler, Textu
     return *used_samplers.emplace(entry).first;
 }
 
-void ShaderIR::WriteTexsInstructionFloat(BasicBlock& bb, Tegra::Shader::Instruction instr,
-                                         Node texture) {
+void ShaderIR::WriteTexsInstructionFloat(BasicBlock& bb, Instruction instr, Node texture) {
     // TEXS has two destination registers and a swizzle. The first two elements in the swizzle
     // go into gpr0+0 and gpr0+1, and the rest goes into gpr28+0 and gpr28+1
 
     MetaComponents meta;
     std::array<Node, 4> dest;
-
-    std::size_t written_components = 0;
     for (u32 component = 0; component < 4; ++component) {
         if (!instr.texs.IsComponentEnabled(component)) {
             continue;
         }
-        meta.components_map[written_components] = static_cast<u32>(component);
+        meta.components_map[meta.count] = component;
 
-        if (written_components < 2) {
+        if (meta.count < 2) {
             // Write the first two swizzle components to gpr0 and gpr0+1
-            dest[written_components] = GetRegister(instr.gpr0.Value() + written_components % 2);
+            dest[meta.count] = GetRegister(instr.gpr0.Value() + meta.count % 2);
         } else {
             ASSERT(instr.texs.HasTwoDestinations());
             // Write the rest of the swizzle components to gpr28 and gpr28+1
-            dest[written_components] = GetRegister(instr.gpr28.Value() + written_components % 2);
+            dest[meta.count] = GetRegister(instr.gpr28.Value() + meta.count % 2);
         }
-
-        ++written_components;
+        ++meta.count;
     }
 
-    std::generate(dest.begin() + written_components, dest.end(), [&]() { return GetRegister(RZ); });
+    std::generate(dest.begin() + meta.count, dest.end(), [&]() { return GetRegister(RZ); });
 
     bb.push_back(Operation(OperationCode::AssignComposite, meta, texture, dest[0], dest[1], dest[2],
                            dest[3]));
+}
+
+void ShaderIR::WriteTexsInstructionHalfFloat(BasicBlock& bb, Instruction instr, Node texture) {
+    // TEXS.F16 destionation registers are packed in two registers in pairs (just like any half
+    // float instruction).
+
+    MetaComponents meta;
+    for (u32 component = 0; component < 4; ++component) {
+        if (!instr.texs.IsComponentEnabled(component))
+            continue;
+        meta.components_map[meta.count++] = component;
+    }
+    if (meta.count == 0)
+        return;
+
+    bb.push_back(Operation(OperationCode::AssignCompositeHalf, meta, texture,
+                           GetRegister(instr.gpr0), GetRegister(instr.gpr28)));
 }
 
 Node ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,

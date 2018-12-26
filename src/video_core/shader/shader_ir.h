@@ -44,8 +44,9 @@ constexpr u32 MAX_PROGRAM_LENGTH = 0x1000;
 constexpr u32 RZ = 0xff;
 
 enum class OperationCode {
-    Assign,          /// (float& dest, float src) -> void
-    AssignComposite, /// (MetaComponents, float4 src, float&[4] dst) -> void
+    Assign,              /// (float& dest, float src) -> void
+    AssignComposite,     /// (MetaComponents, float4 src, float&[4] dst) -> void
+    AssignCompositeHalf, /// (MetaComponents, float4 src, float&[2] dst) -> void
 
     Composite, /// (float[4] values) -> float4
     Select,    /// (MetaArithmetic, bool pred, float a, float b) -> float
@@ -279,6 +280,7 @@ struct MetaTexture {
 
 struct MetaComponents {
     std::array<u32, 4> components_map{};
+    u32 count{};
 
     u32 GetSourceComponent(u32 dest_index) const {
         return components_map[dest_index];
@@ -692,6 +694,8 @@ private:
                               Tegra::Shader::TextureType type, bool is_array, bool is_shadow);
 
     void WriteTexsInstructionFloat(BasicBlock& bb, Tegra::Shader::Instruction instr, Node texture);
+    void WriteTexsInstructionHalfFloat(BasicBlock& bb, Tegra::Shader::Instruction instr,
+                                       Node texture);
 
     Node GetTexCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
                     Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
