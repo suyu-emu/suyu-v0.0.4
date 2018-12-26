@@ -1755,7 +1755,7 @@ private:
             instr.tlds.GetTextureProcessMode() == Tegra::Shader::TextureProcessMode::LL;
 
         constexpr std::array<const char*, 4> coord_container{
-            {"", "int coord = (", "ivec2 coord = ivec2(", "ivec3 coord = ivec3("}};
+            {"", "int coords = (", "ivec2 coords = ivec2(", "ivec3 coords = ivec3("}};
 
         std::string coord = coord_container[total_coord_count];
 
