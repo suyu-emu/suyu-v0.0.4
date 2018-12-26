@@ -3,11 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <array>
-#include <cstring>
-#include <functional>
 #include <tuple>
-
-#include <QDialog>
 
 #include "ui_configure_input_simple.h"
 #include "yuzu/configuration/configure_input.h"
@@ -73,20 +69,18 @@ void DualJoyconsDockedOnProfileSelect() {
 
 // Name, OnProfileSelect (called when selected in drop down), OnConfigure (called when configure
 // is clicked)
-using InputProfile =
-    std::tuple<QString, std::function<void()>, std::function<void(ConfigureInputSimple*)>>;
+using InputProfile = std::tuple<const char*, void (*)(), void (*)(ConfigureInputSimple*)>;
 
-const std::array<InputProfile, 3> INPUT_PROFILES{{
-    {ConfigureInputSimple::tr("Single Player - Handheld - Undocked"), HandheldOnProfileSelect,
+constexpr std::array<InputProfile, 3> INPUT_PROFILES{{
+    {QT_TR_NOOP("Single Player - Handheld - Undocked"), HandheldOnProfileSelect,
      [](ConfigureInputSimple* caller) {
          CallConfigureDialog<ConfigureInputPlayer>(caller, HANDHELD_INDEX, false);
      }},
-    {ConfigureInputSimple::tr("Single Player - Dual Joycons - Docked"),
-     DualJoyconsDockedOnProfileSelect,
+    {QT_TR_NOOP("Single Player - Dual Joycons - Docked"), DualJoyconsDockedOnProfileSelect,
      [](ConfigureInputSimple* caller) {
          CallConfigureDialog<ConfigureInputPlayer>(caller, 1, false);
      }},
-    {ConfigureInputSimple::tr("Custom"), [] {}, CallConfigureDialog<ConfigureInput>},
+    {QT_TR_NOOP("Custom"), [] {}, CallConfigureDialog<ConfigureInput>},
 }};
 
 } // namespace
@@ -101,7 +95,8 @@ ConfigureInputSimple::ConfigureInputSimple(QWidget* parent)
     ui->setupUi(this);
 
     for (const auto& profile : INPUT_PROFILES) {
-        ui->profile_combobox->addItem(std::get<0>(profile), std::get<0>(profile));
+        const QString label = tr(std::get<0>(profile));
+        ui->profile_combobox->addItem(label, label);
     }
 
     connect(ui->profile_combobox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
