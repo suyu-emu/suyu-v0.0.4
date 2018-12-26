@@ -1049,7 +1049,7 @@ union Instruction {
         BitField<49, 1, u64> nodep_flag;
         BitField<50, 3, u64> component_mask_selector;
         BitField<53, 4, u64> texture_info;
-        BitField<60, 1, u64> fp32_flag;
+        BitField<59, 1, u64> fp32_flag;
 
         TextureType GetTextureType() const {
             // The TEXS instruction has a weird encoding for the texture type.
