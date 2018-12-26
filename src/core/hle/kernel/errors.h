@@ -27,7 +27,7 @@ constexpr ResultCode ERR_SYNCHRONIZATION_CANCELED{ErrorModule::Kernel, 118};
 constexpr ResultCode ERR_OUT_OF_RANGE{ErrorModule::Kernel, 119};
 constexpr ResultCode ERR_INVALID_ENUM_VALUE{ErrorModule::Kernel, 120};
 constexpr ResultCode ERR_NOT_FOUND{ErrorModule::Kernel, 121};
-constexpr ResultCode ERR_ALREADY_REGISTERED{ErrorModule::Kernel, 122};
+constexpr ResultCode ERR_BUSY{ErrorModule::Kernel, 122};
 constexpr ResultCode ERR_SESSION_CLOSED_BY_REMOTE{ErrorModule::Kernel, 123};
 constexpr ResultCode ERR_INVALID_STATE{ErrorModule::Kernel, 125};
 constexpr ResultCode ERR_RESOURCE_LIMIT_EXCEEDED{ErrorModule::Kernel, 132};
