@@ -41,8 +41,6 @@ using BasicBlock = std::vector<Node>;
 
 constexpr u32 MAX_PROGRAM_LENGTH = 0x1000;
 
-constexpr u32 RZ = 0xff;
-
 enum class OperationCode {
     Assign,              /// (float& dest, float src) -> void
     AssignComposite,     /// (MetaComponents, float4 src, float&[4] dst) -> void

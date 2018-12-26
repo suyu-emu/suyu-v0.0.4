@@ -91,12 +91,14 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
                 GetConstBufferIndirect(instr.cbuf36.index, instr.cbuf36.offset + 4, index);
 
             const Node composite =
-                Operation(OperationCode::Composite, op_a, op_b, GetRegister(RZ), GetRegister(RZ));
+                Operation(OperationCode::Composite, op_a, op_b, GetRegister(Register::ZeroIndex),
+                          GetRegister(Register::ZeroIndex));
 
             MetaComponents meta{{0, 1, 2, 3}};
             bb.push_back(Operation(OperationCode::AssignComposite, meta, composite,
                                    GetRegister(instr.gpr0), GetRegister(instr.gpr0.Value() + 1),
-                                   GetRegister(RZ), GetRegister(RZ)));
+                                   GetRegister(Register::ZeroIndex),
+                                   GetRegister(Register::ZeroIndex)));
             break;
         }
         default:
@@ -197,7 +199,8 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
 
             ++dest_elem;
         }
-        std::generate(dest.begin() + dest_elem, dest.end(), [&]() { return GetRegister(RZ); });
+        std::generate(dest.begin() + dest_elem, dest.end(),
+                      [&]() { return GetRegister(Register::ZeroIndex); });
 
         bb.push_back(Operation(OperationCode::AssignComposite, std::move(meta), texture, dest[0],
                                dest[1], dest[2], dest[3]));
@@ -255,7 +258,8 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
 
             ++dest_elem;
         }
-        std::generate(dest.begin() + dest_elem, dest.end(), [&]() { return GetRegister(RZ); });
+        std::generate(dest.begin() + dest_elem, dest.end(),
+                      [&]() { return GetRegister(Register::ZeroIndex); });
 
         bb.push_back(Operation(OperationCode::AssignComposite, std::move(meta_components), texture,
                                dest[0], dest[1], dest[2], dest[3]));
@@ -369,7 +373,7 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
         const MetaComponents meta_composite{{0, 1, 2, 3}};
         bb.push_back(Operation(OperationCode::AssignComposite, meta_composite, texture,
                                GetRegister(instr.gpr0), GetRegister(instr.gpr0.Value() + 1),
-                               GetRegister(RZ), GetRegister(RZ)));
+                               GetRegister(Register::ZeroIndex), GetRegister(Register::ZeroIndex)));
         break;
     }
     case OpCode::Id::TLDS: {
@@ -438,7 +442,8 @@ void ShaderIR::WriteTexsInstructionFloat(BasicBlock& bb, Instruction instr, Node
         ++meta.count;
     }
 
-    std::generate(dest.begin() + meta.count, dest.end(), [&]() { return GetRegister(RZ); });
+    std::generate(dest.begin() + meta.count, dest.end(),
+                  [&]() { return GetRegister(Register::ZeroIndex); });
 
     bb.push_back(Operation(OperationCode::AssignComposite, meta, texture, dest[0], dest[1], dest[2],
                            dest[3]));

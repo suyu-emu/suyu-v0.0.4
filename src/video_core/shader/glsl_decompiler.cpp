@@ -22,6 +22,7 @@ using Tegra::Shader::Header;
 using Tegra::Shader::IpaInterpMode;
 using Tegra::Shader::IpaMode;
 using Tegra::Shader::IpaSampleMode;
+using Tegra::Shader::Register;
 using namespace VideoCommon::Shader;
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
@@ -419,7 +420,7 @@ private:
 
         } else if (const auto gpr = std::get_if<GprNode>(node)) {
             const u32 index = gpr->GetIndex();
-            if (index == RZ) {
+            if (index == Register::ZeroIndex) {
                 return "0";
             }
             return GetRegister(index);
@@ -728,8 +729,8 @@ private:
 
         std::string target;
         if (const auto gpr = std::get_if<GprNode>(dest)) {
-            if (gpr->GetIndex() == RZ) {
-                // Writing to RZ is a no op
+            if (gpr->GetIndex() == Register::ZeroIndex) {
+                // Writing to Register::ZeroIndex is a no op
                 return {};
             }
             target = GetRegister(gpr->GetIndex());
@@ -776,7 +777,7 @@ private:
         constexpr u32 composite_size = 4;
         for (u32 i = 0; i < composite_size; ++i) {
             const auto gpr = std::get<GprNode>(*operation[i + 1]).GetIndex();
-            if (gpr == RZ) {
+            if (gpr == Register::ZeroIndex) {
                 continue;
             }
             code.AddLine(GetRegister(gpr) + " = " + composite +
