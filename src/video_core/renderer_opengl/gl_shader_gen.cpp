@@ -21,8 +21,8 @@ ProgramResult GenerateVertexShader(const ShaderSetup& setup) {
     const std::string id = fmt::format("{:016x}", setup.program.unique_identifier);
 
     std::string out = "#version 430 core\n";
-    out += "// Shader Unique Id: VS" + id + '\n';
-    out += "#extension GL_ARB_separate_shader_objects : enable\n";
+    out += "#extension GL_ARB_separate_shader_objects : enable\n\n";
+    out += "// Shader Unique Id: VS" + id + "\n\n";
     out += GetCommonDeclarations();
 
     out += R"(
@@ -33,6 +33,7 @@ layout(std140) uniform vs_config {
     uvec4 config_pack; // instance_id, flip_stage, y_direction, padding
     uvec4 alpha_test;
 };
+
 )";
     ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET);
     ProgramResult program = Decompile(program_ir, Maxwell3D::Regs::ShaderStage::Vertex, "vertex");
@@ -80,11 +81,12 @@ ProgramResult GenerateGeometryShader(const ShaderSetup& setup) {
     // Version is intentionally skipped in shader generation, it's added by the lazy compilation.
     const std::string id = fmt::format("{:016x}", setup.program.unique_identifier);
 
-    std::string out = "// Shader Unique Id: GS" + id + '\n';
-    out += "#extension GL_ARB_separate_shader_objects : enable\n";
+    std::string out = "#extension GL_ARB_separate_shader_objects : enable\n\n";
+    out += "// Shader Unique Id: GS" + id + "\n\n";
     out += GetCommonDeclarations();
 
-    out += R"(layout (location = 0) in vec4 gs_position[];
+    out += R"(
+layout (location = 0) in vec4 gs_position[];
 layout (location = 0) out vec4 position;
 
 layout (std140) uniform gs_config {
@@ -92,8 +94,8 @@ layout (std140) uniform gs_config {
     uvec4 config_pack; // instance_id, flip_stage, y_direction, padding
     uvec4 alpha_test;
 };
-)";
 
+)";
     ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET);
     ProgramResult program =
         Decompile(program_ir, Maxwell3D::Regs::ShaderStage::Geometry, "geometry");
@@ -111,19 +113,19 @@ ProgramResult GenerateFragmentShader(const ShaderSetup& setup) {
     const std::string id = fmt::format("{:016x}", setup.program.unique_identifier);
 
     std::string out = "#version 430 core\n";
-    out += "// Shader Unique Id: FS" + id + '\n';
-    out += "#extension GL_ARB_separate_shader_objects : enable\n";
+    out += "#extension GL_ARB_separate_shader_objects : enable\n\n";
+    out += "// Shader Unique Id: FS" + id + "\n\n";
     out += GetCommonDeclarations();
 
     out += R"(
-layout(location = 0) out vec4 FragColor0;
-layout(location = 1) out vec4 FragColor1;
-layout(location = 2) out vec4 FragColor2;
-layout(location = 3) out vec4 FragColor3;
-layout(location = 4) out vec4 FragColor4;
-layout(location = 5) out vec4 FragColor5;
-layout(location = 6) out vec4 FragColor6;
-layout(location = 7) out vec4 FragColor7;
+layout (location = 0) out vec4 FragColor0;
+layout (location = 1) out vec4 FragColor1;
+layout (location = 2) out vec4 FragColor2;
+layout (location = 3) out vec4 FragColor3;
+layout (location = 4) out vec4 FragColor4;
+layout (location = 5) out vec4 FragColor5;
+layout (location = 6) out vec4 FragColor6;
+layout (location = 7) out vec4 FragColor7;
 
 layout (location = 0) in vec4 position;
 
@@ -155,8 +157,9 @@ bool AlphaFunc(in float value) {
         default:
             return false;
     }
-})";
+}
 
+)";
     ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET);
     ProgramResult program =
         Decompile(program_ir, Maxwell3D::Regs::ShaderStage::Fragment, "fragment");
@@ -171,4 +174,5 @@ void main() {
 )";
     return {out, program.second};
 }
+
 } // namespace OpenGL::GLShader

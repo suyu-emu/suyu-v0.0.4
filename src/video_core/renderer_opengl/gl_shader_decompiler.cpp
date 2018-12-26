@@ -1531,7 +1531,7 @@ std::string GetCommonDeclarations() {
            "}\n\n"
            "vec2 toHalf2(float value) {\n"
            "    return unpackHalf2x16(ftou(value));\n"
-           "}\n\n";
+           "}\n";
 }
 
 ProgramResult Decompile(const ShaderIR& ir, Maxwell::ShaderStage stage, const std::string& suffix) {
