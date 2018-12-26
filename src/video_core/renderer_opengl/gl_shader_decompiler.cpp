@@ -12,7 +12,7 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
-#include "video_core/shader/glsl_decompiler.h"
+#include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace OpenGL::GLShader {

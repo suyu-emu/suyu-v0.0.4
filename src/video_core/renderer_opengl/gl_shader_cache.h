@@ -12,8 +12,8 @@
 #include "common/common_types.h"
 #include "video_core/rasterizer_cache.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
+#include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
-#include "video_core/shader/glsl_decompiler.h"
 
 namespace OpenGL {
 
