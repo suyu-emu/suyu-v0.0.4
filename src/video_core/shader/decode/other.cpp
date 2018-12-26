@@ -134,9 +134,8 @@ u32 ShaderIR::DecodeOther(BasicBlock& bb, u32 pc) {
         const Tegra::Shader::IpaMode input_mode{instr.ipa.interp_mode.Value(),
                                                 instr.ipa.sample_mode.Value()};
 
-        const Node input_attr = GetInputAttribute(attribute.index, attribute.element, input_mode);
-        const Node ipa = Operation(OperationCode::Ipa, input_attr);
-        const Node value = GetSaturatedFloat(ipa, instr.ipa.saturate);
+        const Node attr = GetInputAttribute(attribute.index, attribute.element, input_mode);
+        const Node value = GetSaturatedFloat(attr, instr.ipa.saturate);
 
         SetRegister(bb, instr.gpr0, value);
         break;

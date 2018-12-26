@@ -161,8 +161,6 @@ enum class OperationCode {
     F4TextureQueryLod,        /// (MetaTexture, float[N] coords) -> float4
     F4TexelFetch,             /// (MetaTexture, int[N], int) -> float4
 
-    Ipa, /// (abuf src) -> float
-
     Bra,  /// (uint branch_target) -> void
     Ssy,  /// (uint branch_target) -> void
     Pbk,  /// (uint branch_target) -> void

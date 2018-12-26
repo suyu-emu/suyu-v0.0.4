@@ -1204,12 +1204,6 @@ private:
         return expr;
     }
 
-    std::string Ipa(Operation operation) {
-        const auto& attribute = operation[0];
-        // TODO(Rodrigo): Special IPA attribute interactions
-        return Visit(attribute);
-    }
-
     std::string Bra(Operation operation) {
         const auto target = std::get<ImmediateNode>(*operation[0]);
         code.AddLine(fmt::format("jmp_to = 0x{:x}u;", target.GetValue()));
@@ -1447,8 +1441,6 @@ private:
         &GLSLDecompiler::F4TextureQueryDimensions,
         &GLSLDecompiler::F4TextureQueryLod,
         &GLSLDecompiler::F4TexelFetch,
-
-        &GLSLDecompiler::Ipa,
 
         &GLSLDecompiler::Bra,
         &GLSLDecompiler::PushFlowStack, // Ssy
