@@ -318,14 +318,18 @@ public:
             return;
         }
 
-        ASSERT(process->MirrorMemory(*map_address, nro_addr, nro_size,
-                                     Kernel::MemoryState::ModuleCodeStatic) == RESULT_SUCCESS);
-        ASSERT(process->UnmapMemory(nro_addr, 0, nro_size) == RESULT_SUCCESS);
+        ASSERT(vm_manager
+                   .MirrorMemory(*map_address, nro_addr, nro_size,
+                                 Kernel::MemoryState::ModuleCodeStatic)
+                   .IsSuccess());
+        ASSERT(vm_manager.UnmapRange(nro_addr, nro_size).IsSuccess());
 
         if (bss_size > 0) {
-            ASSERT(process->MirrorMemory(*map_address + nro_size, bss_addr, bss_size,
-                                         Kernel::MemoryState::ModuleCodeStatic) == RESULT_SUCCESS);
-            ASSERT(process->UnmapMemory(bss_addr, 0, bss_size) == RESULT_SUCCESS);
+            ASSERT(vm_manager
+                       .MirrorMemory(*map_address + nro_size, bss_addr, bss_size,
+                                     Kernel::MemoryState::ModuleCodeStatic)
+                       .IsSuccess());
+            ASSERT(vm_manager.UnmapRange(bss_addr, bss_size).IsSuccess());
         }
 
         vm_manager.ReprotectRange(*map_address, header.text_size,
@@ -380,13 +384,14 @@ public:
             return;
         }
 
-        auto* process = Core::CurrentProcess();
-        auto& vm_manager = process->VMManager();
+        auto& vm_manager = Core::CurrentProcess()->VMManager();
         const auto& nro_size = iter->second.size;
 
-        ASSERT(process->MirrorMemory(heap_addr, mapped_addr, nro_size,
-                                     Kernel::MemoryState::ModuleCodeStatic) == RESULT_SUCCESS);
-        ASSERT(process->UnmapMemory(mapped_addr, 0, nro_size) == RESULT_SUCCESS);
+        ASSERT(vm_manager
+                   .MirrorMemory(heap_addr, mapped_addr, nro_size,
+                                 Kernel::MemoryState::ModuleCodeStatic)
+                   .IsSuccess());
+        ASSERT(vm_manager.UnmapRange(mapped_addr, nro_size).IsSuccess());
 
         Core::System::GetInstance().InvalidateCpuInstructionCaches();
 
