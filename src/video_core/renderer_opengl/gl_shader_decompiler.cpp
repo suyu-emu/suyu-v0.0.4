@@ -493,10 +493,10 @@ public:
                 // pack. I couldn't test this on hardware but it shouldn't really matter since most
                 // of the time when a Mrg_* flag is used both components will be mirrored. That
                 // being said, it deserves a test.
-                return "((" + GetRegisterAsInteger(reg, 0, false) +
+                return "uintBitsToFloat((" + GetRegisterAsInteger(reg, 0, false) +
                        " & 0xffff0000) | (packHalf2x16(" + value + ") & 0x0000ffff))";
             case Tegra::Shader::HalfMerge::Mrg_H1:
-                return "((" + GetRegisterAsInteger(reg, 0, false) +
+                return "uintBitsToFloat((" + GetRegisterAsInteger(reg, 0, false) +
                        " & 0x0000ffff) | (packHalf2x16(" + value + ") & 0xffff0000))";
             default:
                 UNREACHABLE();
