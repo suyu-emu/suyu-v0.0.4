@@ -86,6 +86,7 @@ u32 ShaderIR::DecodeXmad(BasicBlock& bb, u32 pc) {
         sum = Operation(OperationCode::IBitwiseOr, NO_PRECISE, a, b);
     }
 
+    SetInternalFlagsFromInteger(bb, sum, instr.generates_cc);
     SetRegister(bb, instr.gpr0, sum);
 
     return pc;

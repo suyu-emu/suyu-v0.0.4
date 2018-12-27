@@ -34,22 +34,20 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
     case OpCode::Id::IADD_C:
     case OpCode::Id::IADD_R:
     case OpCode::Id::IADD_IMM: {
-        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                             "Condition codes generation in IADD is not implemented");
         UNIMPLEMENTED_IF_MSG(instr.alu.saturate_d, "IADD saturation not implemented");
 
         op_a = GetOperandAbsNegInteger(op_a, false, instr.alu_integer.negate_a, true);
         op_b = GetOperandAbsNegInteger(op_b, false, instr.alu_integer.negate_b, true);
 
-        SetRegister(bb, instr.gpr0, Operation(OperationCode::IAdd, PRECISE, op_a, op_b));
+        const Node value = Operation(OperationCode::IAdd, PRECISE, op_a, op_b);
+
+        SetInternalFlagsFromInteger(bb, value, instr.op_32.generates_cc);
+        SetRegister(bb, instr.gpr0, value);
         break;
     }
     case OpCode::Id::IADD3_C:
     case OpCode::Id::IADD3_R:
     case OpCode::Id::IADD3_IMM: {
-        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                             "Condition codes generation in IADD3 is not implemented");
-
         Node op_c = GetRegister(instr.gpr39);
 
         const auto ApplyHeight = [&](IAdd3Height height, Node value) {
@@ -100,6 +98,7 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
             return Operation(OperationCode::IAdd, NO_PRECISE, shifted, op_c);
         }();
 
+        SetInternalFlagsFromInteger(bb, value, instr.generates_cc);
         SetRegister(bb, instr.gpr0, value);
         break;
     }
@@ -115,6 +114,8 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
         const Node shift = Immediate(static_cast<u32>(instr.alu_integer.shift_amount));
         const Node shifted_a = Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, op_a, shift);
         const Node value = Operation(OperationCode::IAdd, NO_PRECISE, shifted_a, op_b);
+
+        SetInternalFlagsFromInteger(bb, value, instr.generates_cc);
         SetRegister(bb, instr.gpr0, value);
         break;
     }
@@ -139,24 +140,19 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
     case OpCode::Id::LOP_C:
     case OpCode::Id::LOP_R:
     case OpCode::Id::LOP_IMM: {
-        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                             "Condition codes generation in LOP is not implemented");
-
         if (instr.alu.lop.invert_a)
             op_a = Operation(OperationCode::IBitwiseNot, NO_PRECISE, op_a);
         if (instr.alu.lop.invert_b)
             op_b = Operation(OperationCode::IBitwiseNot, NO_PRECISE, op_b);
 
         WriteLogicOperation(bb, instr.gpr0, instr.alu.lop.operation, op_a, op_b,
-                            instr.alu.lop.pred_result_mode, instr.alu.lop.pred48);
+                            instr.alu.lop.pred_result_mode, instr.alu.lop.pred48,
+                            instr.generates_cc);
         break;
     }
     case OpCode::Id::LOP3_C:
     case OpCode::Id::LOP3_R:
     case OpCode::Id::LOP3_IMM: {
-        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                             "Condition codes generation in LOP3 is not implemented");
-
         const Node op_c = GetRegister(instr.gpr39);
         const Node lut = [&]() {
             if (opcode->get().GetId() == OpCode::Id::LOP3_R) {
@@ -166,15 +162,13 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
             }
         }();
 
-        WriteLop3Instruction(bb, instr.gpr0, op_a, op_b, op_c, lut);
+        WriteLop3Instruction(bb, instr.gpr0, op_a, op_b, op_c, lut, instr.generates_cc);
         break;
     }
     case OpCode::Id::IMNMX_C:
     case OpCode::Id::IMNMX_R:
     case OpCode::Id::IMNMX_IMM: {
         UNIMPLEMENTED_IF(instr.imnmx.exchange != Tegra::Shader::IMinMaxExchange::None);
-        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                             "Condition codes generation in IMNMX is not implemented");
 
         const bool is_signed = instr.imnmx.is_signed;
 
@@ -182,6 +176,8 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
         const Node min = SignedOperation(OperationCode::IMin, is_signed, NO_PRECISE, op_a, op_b);
         const Node max = SignedOperation(OperationCode::IMax, is_signed, NO_PRECISE, op_a, op_b);
         const Node value = Operation(OperationCode::Select, NO_PRECISE, condition, min, max);
+
+        SetInternalFlagsFromInteger(bb, value, instr.generates_cc);
         SetRegister(bb, instr.gpr0, value);
         break;
     }
@@ -247,7 +243,7 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, u32 pc) {
 }
 
 void ShaderIR::WriteLop3Instruction(BasicBlock& bb, Register dest, Node op_a, Node op_b, Node op_c,
-                                    Node imm_lut) {
+                                    Node imm_lut, bool sets_cc) {
     constexpr u32 lop_iterations = 32;
     const Node one = Immediate(1);
     const Node two = Immediate(2);
@@ -284,6 +280,7 @@ void ShaderIR::WriteLop3Instruction(BasicBlock& bb, Register dest, Node op_a, No
         }
     }
 
+    SetInternalFlagsFromInteger(bb, value, sets_cc);
     SetRegister(bb, dest, value);
 }
 

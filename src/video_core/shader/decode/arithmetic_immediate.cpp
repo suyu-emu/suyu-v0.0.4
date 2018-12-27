@@ -22,24 +22,22 @@ u32 ShaderIR::DecodeArithmeticImmediate(BasicBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::FMUL32_IMM: {
-        UNIMPLEMENTED_IF_MSG(instr.op_32.generates_cc,
-                             "Condition codes generation in FMUL32 is not implemented");
         Node value =
             Operation(OperationCode::FMul, PRECISE, GetRegister(instr.gpr8), GetImmediate32(instr));
         value = GetSaturatedFloat(value, instr.fmul32.saturate);
 
+        SetInternalFlagsFromFloat(bb, value, instr.op_32.generates_cc);
         SetRegister(bb, instr.gpr0, value);
         break;
     }
     case OpCode::Id::FADD32I: {
-        UNIMPLEMENTED_IF_MSG(instr.op_32.generates_cc,
-                             "Condition codes generation in FADD32I is not implemented");
         const Node op_a = GetOperandAbsNegFloat(GetRegister(instr.gpr8), instr.fadd32i.abs_a,
                                                 instr.fadd32i.negate_a);
         const Node op_b = GetOperandAbsNegFloat(GetImmediate32(instr), instr.fadd32i.abs_b,
                                                 instr.fadd32i.negate_b);
 
         const Node value = Operation(OperationCode::FAdd, PRECISE, op_a, op_b);
+        SetInternalFlagsFromFloat(bb, value, instr.op_32.generates_cc);
         SetRegister(bb, instr.gpr0, value);
         break;
     }

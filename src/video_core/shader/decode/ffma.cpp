@@ -21,8 +21,6 @@ u32 ShaderIR::DecodeFfma(BasicBlock& bb, u32 pc) {
                          instr.ffma.tab5980_0.Value()); // Seems to be 1 by default based on SMO
     UNIMPLEMENTED_IF_MSG(instr.ffma.tab5980_1 != 0, "FFMA tab5980_1({}) not implemented",
                          instr.ffma.tab5980_1.Value());
-    UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                         "Condition codes generation in FFMA is not implemented");
 
     const Node op_a = GetRegister(instr.gpr8);
 
@@ -52,6 +50,7 @@ u32 ShaderIR::DecodeFfma(BasicBlock& bb, u32 pc) {
     Node value = Operation(OperationCode::FFma, PRECISE, op_a, op_b, op_c);
     value = GetSaturatedFloat(value, instr.alu.saturate_d);
 
+    SetInternalFlagsFromFloat(bb, value, instr.generates_cc);
     SetRegister(bb, instr.gpr0, value);
 
     return pc;

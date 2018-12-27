@@ -38,9 +38,6 @@ u32 ShaderIR::DecodeVideo(BasicBlock& bb, u32 pc) {
 
     switch (opcode->get().GetId()) {
     case OpCode::Id::VMAD: {
-        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                             "Condition codes generation in VMAD is not implemented");
-
         const bool result_signed = instr.video.signed_a == 1 || instr.video.signed_b == 1;
         const Node op_c = GetRegister(instr.gpr39);
 
@@ -53,8 +50,8 @@ u32 ShaderIR::DecodeVideo(BasicBlock& bb, u32 pc) {
                 SignedOperation(OperationCode::IArithmeticShiftRight, result_signed, value, shift);
         }
 
+        SetInternalFlagsFromInteger(bb, value, instr.generates_cc);
         SetRegister(bb, instr.gpr0, value);
-
         break;
     }
     case OpCode::Id::VSETP: {

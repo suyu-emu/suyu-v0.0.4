@@ -35,6 +35,7 @@ u32 ShaderIR::DecodeBfe(BasicBlock& bb, u32 pc) {
         const Node outer_shift =
             Operation(OperationCode::ILogicalShiftRight, NO_PRECISE, inner_shift, outer_shift_imm);
 
+        SetInternalFlagsFromInteger(bb, outer_shift, instr.generates_cc);
         SetRegister(bb, instr.gpr0, outer_shift);
         break;
     }

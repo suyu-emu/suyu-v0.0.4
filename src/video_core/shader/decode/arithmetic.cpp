@@ -45,8 +45,6 @@ u32 ShaderIR::DecodeArithmetic(BasicBlock& bb, u32 pc) {
         UNIMPLEMENTED_IF_MSG(
             instr.fmul.tab5c68_0 != 1, "FMUL tab5cb8_0({}) is not implemented",
             instr.fmul.tab5c68_0.Value()); // SMO typical sends 1 here which seems to be the default
-        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                             "Condition codes generation in FMUL is not implemented");
 
         op_b = GetOperandAbsNegFloat(op_b, false, instr.fmul.negate_b);
 
@@ -75,21 +73,20 @@ u32 ShaderIR::DecodeArithmetic(BasicBlock& bb, u32 pc) {
 
         value = GetSaturatedFloat(value, instr.alu.saturate_d);
 
+        SetInternalFlagsFromFloat(bb, value, instr.generates_cc);
         SetRegister(bb, instr.gpr0, value);
         break;
     }
     case OpCode::Id::FADD_C:
     case OpCode::Id::FADD_R:
     case OpCode::Id::FADD_IMM: {
-        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                             "Condition codes generation in FADD is not implemented");
-
         op_a = GetOperandAbsNegFloat(op_a, instr.alu.abs_a, instr.alu.negate_a);
         op_b = GetOperandAbsNegFloat(op_b, instr.alu.abs_b, instr.alu.negate_b);
 
         Node value = Operation(OperationCode::FAdd, PRECISE, op_a, op_b);
         value = GetSaturatedFloat(value, instr.alu.saturate_d);
 
+        SetInternalFlagsFromFloat(bb, value, instr.generates_cc);
         SetRegister(bb, instr.gpr0, value);
         break;
     }
@@ -126,9 +123,6 @@ u32 ShaderIR::DecodeArithmetic(BasicBlock& bb, u32 pc) {
     case OpCode::Id::FMNMX_C:
     case OpCode::Id::FMNMX_R:
     case OpCode::Id::FMNMX_IMM: {
-        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                             "Condition codes generation in FMNMX is not implemented");
-
         op_a = GetOperandAbsNegFloat(op_a, instr.alu.abs_a, instr.alu.negate_a);
         op_b = GetOperandAbsNegFloat(op_b, instr.alu.abs_b, instr.alu.negate_b);
 
@@ -136,9 +130,10 @@ u32 ShaderIR::DecodeArithmetic(BasicBlock& bb, u32 pc) {
 
         const Node min = Operation(OperationCode::FMin, NO_PRECISE, op_a, op_b);
         const Node max = Operation(OperationCode::FMax, NO_PRECISE, op_a, op_b);
+        const Node value = Operation(OperationCode::Select, NO_PRECISE, condition, min, max);
 
-        SetRegister(bb, instr.gpr0,
-                    Operation(OperationCode::Select, NO_PRECISE, condition, min, max));
+        SetInternalFlagsFromFloat(bb, value, instr.generates_cc);
+        SetRegister(bb, instr.gpr0, value);
         break;
     }
     case OpCode::Id::RRO_C:

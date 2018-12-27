@@ -45,13 +45,12 @@ u32 ShaderIR::DecodeFloatSet(BasicBlock& bb, u32 pc) {
     const Node value =
         Operation(OperationCode::Select, PRECISE, predicate, true_value, false_value);
 
-    SetRegister(bb, instr.gpr0, value);
-
-    if (instr.generates_cc) {
-        const Node is_zero = Operation(OperationCode::LogicalFEqual, value, Immediate(0.0f));
-        SetInternalFlag(bb, InternalFlag::Zero, is_zero);
-        LOG_WARNING(HW_GPU, "FSET condition code is incomplete");
+    if (instr.fset.bf) {
+        SetInternalFlagsFromFloat(bb, value, instr.generates_cc);
+    } else {
+        SetInternalFlagsFromInteger(bb, value, instr.generates_cc);
     }
+    SetRegister(bb, instr.gpr0, value);
 
     return pc;
 }

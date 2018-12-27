@@ -32,6 +32,12 @@ u32 ShaderIR::DecodePredicateSetRegister(BasicBlock& bb, u32 pc) {
     const Node false_value = instr.pset.bf ? Immediate(0.0f) : Immediate(0);
     const Node value =
         Operation(OperationCode::Select, PRECISE, predicate, true_value, false_value);
+
+    if (instr.pset.bf) {
+        SetInternalFlagsFromFloat(bb, value, instr.generates_cc);
+    } else {
+        SetInternalFlagsFromInteger(bb, value, instr.generates_cc);
+    }
     SetRegister(bb, instr.gpr0, value);
 
     return pc;

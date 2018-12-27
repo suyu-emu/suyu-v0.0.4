@@ -649,6 +649,11 @@ private:
     /// Sets a temporal. Internally it uses a post-RZ register
     void SetTemporal(BasicBlock& bb, u32 id, Node value);
 
+    /// Sets internal flags from a float
+    void SetInternalFlagsFromFloat(BasicBlock& bb, Node value, bool sets_cc = true);
+    /// Sets internal flags from an integer
+    void SetInternalFlagsFromInteger(BasicBlock& bb, Node value, bool sets_cc = true);
+
     /// Conditionally absolute/negated float. Absolute is applied first
     Node GetOperandAbsNegFloat(Node value, bool absolute, bool negate);
     /// Conditionally saturates a float
@@ -725,9 +730,9 @@ private:
     void WriteLogicOperation(BasicBlock& bb, Tegra::Shader::Register dest,
                              Tegra::Shader::LogicOperation logic_op, Node op_a, Node op_b,
                              Tegra::Shader::PredicateResultMode predicate_mode,
-                             Tegra::Shader::Pred predicate);
+                             Tegra::Shader::Pred predicate, bool sets_cc);
     void WriteLop3Instruction(BasicBlock& bb, Tegra::Shader::Register dest, Node op_a, Node op_b,
-                              Node op_c, Node imm_lut);
+                              Node op_c, Node imm_lut, bool sets_cc);
 
     template <typename... T>
     Node Operation(OperationCode code, const T*... operands) {

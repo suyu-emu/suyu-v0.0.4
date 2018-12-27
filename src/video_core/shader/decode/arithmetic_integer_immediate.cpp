@@ -25,20 +25,17 @@ u32 ShaderIR::DecodeArithmeticIntegerImmediate(BasicBlock& bb, u32 pc) {
 
     switch (opcode->get().GetId()) {
     case OpCode::Id::IADD32I: {
-        UNIMPLEMENTED_IF_MSG(instr.op_32.generates_cc,
-                             "Condition codes generation in IADD32I is not implemented");
         UNIMPLEMENTED_IF_MSG(instr.iadd32i.saturate, "IADD32I saturation is not implemented");
 
         op_a = GetOperandAbsNegInteger(op_a, false, instr.iadd32i.negate_a, true);
 
         const Node value = Operation(OperationCode::IAdd, PRECISE, op_a, op_b);
+
+        SetInternalFlagsFromInteger(bb, value, instr.op_32.generates_cc);
         SetRegister(bb, instr.gpr0, value);
         break;
     }
     case OpCode::Id::LOP32I: {
-        UNIMPLEMENTED_IF_MSG(instr.op_32.generates_cc,
-                             "Condition codes generation in LOP32I is not implemented");
-
         if (instr.alu.lop32i.invert_a)
             op_a = Operation(OperationCode::IBitwiseNot, NO_PRECISE, op_a);
 
@@ -46,8 +43,7 @@ u32 ShaderIR::DecodeArithmeticIntegerImmediate(BasicBlock& bb, u32 pc) {
             op_b = Operation(OperationCode::IBitwiseNot, NO_PRECISE, op_b);
 
         WriteLogicOperation(bb, instr.gpr0, instr.alu.lop32i.operation, op_a, op_b,
-                            Tegra::Shader::PredicateResultMode::None,
-                            Tegra::Shader::Pred::UnusedIndex);
+                            PredicateResultMode::None, Pred::UnusedIndex, instr.op_32.generates_cc);
         break;
     }
     default:
@@ -60,7 +56,7 @@ u32 ShaderIR::DecodeArithmeticIntegerImmediate(BasicBlock& bb, u32 pc) {
 
 void ShaderIR::WriteLogicOperation(BasicBlock& bb, Register dest, LogicOperation logic_op,
                                    Node op_a, Node op_b, PredicateResultMode predicate_mode,
-                                   Pred predicate) {
+                                   Pred predicate, bool sets_cc) {
     const Node result = [&]() {
         switch (logic_op) {
         case LogicOperation::And:
@@ -77,11 +73,9 @@ void ShaderIR::WriteLogicOperation(BasicBlock& bb, Register dest, LogicOperation
         }
     }();
 
-    if (dest != Register::ZeroIndex) {
-        SetRegister(bb, dest, result);
-    }
+    SetInternalFlagsFromInteger(bb, result, sets_cc);
+    SetRegister(bb, dest, result);
 
-    using Tegra::Shader::PredicateResultMode;
     // Write the predicate value depending on the predicate mode.
     switch (predicate_mode) {
     case PredicateResultMode::None:

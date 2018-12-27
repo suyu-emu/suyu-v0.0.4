@@ -16,8 +16,6 @@ u32 ShaderIR::DecodeBfi(BasicBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
-    UNIMPLEMENTED_IF(instr.generates_cc);
-
     const auto [base, packed_shift] = [&]() -> std::tuple<Node, Node> {
         switch (opcode->get().GetId()) {
         case OpCode::Id::BFI_IMM_R:
@@ -33,6 +31,8 @@ u32 ShaderIR::DecodeBfi(BasicBlock& bb, u32 pc) {
 
     const Node value =
         Operation(OperationCode::UBitfieldInsert, PRECISE, base, insert, offset, bits);
+
+    SetInternalFlagsFromInteger(bb, value, instr.generates_cc);
     SetRegister(bb, instr.gpr0, value);
 
     return pc;

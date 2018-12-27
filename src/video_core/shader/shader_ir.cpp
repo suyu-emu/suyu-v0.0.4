@@ -7,6 +7,7 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "common/logging/log.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/shader/shader_ir.h"
 
@@ -354,6 +355,24 @@ void ShaderIR::SetLocalMemory(BasicBlock& bb, Node address, Node value) {
 
 void ShaderIR::SetTemporal(BasicBlock& bb, u32 id, Node value) {
     SetRegister(bb, Register::ZeroIndex + 1 + id, value);
+}
+
+void ShaderIR::SetInternalFlagsFromFloat(BasicBlock& bb, Node value, bool sets_cc) {
+    if (!sets_cc) {
+        return;
+    }
+    const Node zerop = Operation(OperationCode::LogicalFEqual, value, Immediate(0.0f));
+    SetInternalFlag(bb, InternalFlag::Zero, zerop);
+    LOG_WARNING(HW_GPU, "Condition codes implementation is incomplete");
+}
+
+void ShaderIR::SetInternalFlagsFromInteger(BasicBlock& bb, Node value, bool sets_cc) {
+    if (!sets_cc) {
+        return;
+    }
+    const Node zerop = Operation(OperationCode::LogicalIEqual, value, Immediate(0));
+    SetInternalFlag(bb, InternalFlag::Zero, zerop);
+    LOG_WARNING(HW_GPU, "Condition codes implementation is incomplete");
 }
 
 Node ShaderIR::BitfieldExtract(Node value, u32 offset, u32 bits) {

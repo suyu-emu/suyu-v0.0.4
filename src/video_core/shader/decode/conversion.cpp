@@ -33,15 +33,8 @@ u32 ShaderIR::DecodeConversion(BasicBlock& bb, u32 pc) {
             value = SignedOperation(OperationCode::ICastUnsigned, output_signed, NO_PRECISE, value);
         }
 
+        SetInternalFlagsFromInteger(bb, value, instr.generates_cc);
         SetRegister(bb, instr.gpr0, value);
-
-        if (instr.generates_cc) {
-            const Node zero_condition =
-                SignedOperation(OperationCode::LogicalIEqual, output_signed, value, Immediate(0));
-            SetInternalFlag(bb, InternalFlag::Zero, zero_condition);
-            LOG_WARNING(HW_GPU, "I2I Condition codes implementation is incomplete.");
-        }
-
         break;
     }
     case OpCode::Id::I2F_R:
@@ -64,6 +57,7 @@ u32 ShaderIR::DecodeConversion(BasicBlock& bb, u32 pc) {
         value = SignedOperation(OperationCode::FCastInteger, input_signed, PRECISE, value);
         value = GetOperandAbsNegFloat(value, false, instr.conversion.negate_a);
 
+        SetInternalFlagsFromFloat(bb, value, instr.generates_cc);
         SetRegister(bb, instr.gpr0, value);
         break;
     }
@@ -103,6 +97,7 @@ u32 ShaderIR::DecodeConversion(BasicBlock& bb, u32 pc) {
         }();
         value = GetSaturatedFloat(value, instr.alu.saturate_d);
 
+        SetInternalFlagsFromFloat(bb, value, instr.generates_cc);
         SetRegister(bb, instr.gpr0, value);
         break;
     }
