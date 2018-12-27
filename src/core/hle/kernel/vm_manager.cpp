@@ -190,6 +190,7 @@ VMManager::VMAIter VMManager::Unmap(VMAIter vma_handle) {
     vma.type = VMAType::Free;
     vma.permissions = VMAPermission::None;
     vma.state = MemoryState::Unmapped;
+    vma.attribute = MemoryAttribute::None;
 
     vma.backing_block = nullptr;
     vma.offset = 0;
