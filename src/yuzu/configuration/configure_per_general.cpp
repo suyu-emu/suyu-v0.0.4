@@ -108,9 +108,9 @@ void ConfigurePerGameGeneral::loadConfiguration() {
         if (loader->ReadTitle(title) == Loader::ResultStatus::Success)
             ui->display_name->setText(QString::fromStdString(title));
 
-        std::string developer;
-        if (loader->ReadDeveloper(developer) == Loader::ResultStatus::Success)
-            ui->display_developer->setText(QString::fromStdString(developer));
+        FileSys::NACP nacp;
+        if (loader->ReadControlData(nacp) == Loader::ResultStatus::Success)
+            ui->display_developer->setText(QString::fromStdString(nacp.GetDeveloperName()));
 
         ui->display_version->setText(QStringLiteral("1.0.0"));
     }

@@ -36,18 +36,20 @@ std::string LanguageEntry::GetDeveloperName() const {
                                                        developer_name.size());
 }
 
-NACP::NACP(VirtualFile file) : raw(std::make_unique<RawNACP>()) {
-    file->ReadObject(raw.get());
+NACP::NACP() = default;
+
+NACP::NACP(VirtualFile file) {
+    file->ReadObject(&raw);
 }
 
 NACP::~NACP() = default;
 
 const LanguageEntry& NACP::GetLanguageEntry(Language language) const {
     if (language != Language::Default) {
-        return raw->language_entries.at(static_cast<u8>(language));
+        return raw.language_entries.at(static_cast<u8>(language));
     }
 
-    for (const auto& language_entry : raw->language_entries) {
+    for (const auto& language_entry : raw.language_entries) {
         if (!language_entry.GetApplicationName().empty())
             return language_entry;
     }
@@ -65,21 +67,29 @@ std::string NACP::GetDeveloperName(Language language) const {
 }
 
 u64 NACP::GetTitleId() const {
-    return raw->title_id;
+    return raw.title_id;
 }
 
 u64 NACP::GetDLCBaseTitleId() const {
-    return raw->dlc_base_title_id;
+    return raw.dlc_base_title_id;
 }
 
 std::string NACP::GetVersionString() const {
-    return Common::StringFromFixedZeroTerminatedBuffer(raw->version_string.data(),
-                                                       raw->version_string.size());
+    return Common::StringFromFixedZeroTerminatedBuffer(raw.version_string.data(),
+                                                       raw.version_string.size());
+}
+
+u64 NACP::GetDefaultNormalSaveSize() const {
+    return raw.normal_save_data_size;
+}
+
+u64 NACP::GetDefaultJournalSaveSize() const {
+    return raw.journal_sava_data_size;
 }
 
 std::vector<u8> NACP::GetRawBytes() const {
     std::vector<u8> out(sizeof(RawNACP));
-    std::memcpy(out.data(), raw.get(), sizeof(RawNACP));
+    std::memcpy(out.data(), &raw, sizeof(RawNACP));
     return out;
 }
 } // namespace FileSys

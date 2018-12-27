@@ -46,6 +46,11 @@ struct SaveDataDescriptor {
 };
 static_assert(sizeof(SaveDataDescriptor) == 0x40, "SaveDataDescriptor has incorrect size.");
 
+struct SaveDataSize {
+    u64 normal;
+    u64 journal;
+};
+
 /// File system interface to the SaveData archive
 class SaveDataFactory {
 public:
@@ -59,6 +64,9 @@ public:
     static std::string GetSaveDataSpaceIdPath(SaveDataSpaceId space);
     static std::string GetFullPath(SaveDataSpaceId space, SaveDataType type, u64 title_id,
                                    u128 user_id, u64 save_id);
+
+    SaveDataSize ReadSaveDataSize(SaveDataType type, u64 title_id, u128 user_id) const;
+    void WriteSaveDataSize(SaveDataType type, u64 title_id, u128 user_id, SaveDataSize new_value);
 
 private:
     VirtualDir dir;

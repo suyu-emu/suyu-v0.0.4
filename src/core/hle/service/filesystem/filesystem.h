@@ -21,9 +21,11 @@ class SDMCFactory;
 enum class ContentRecordType : u8;
 enum class Mode : u32;
 enum class SaveDataSpaceId : u8;
+enum class SaveDataType : u8;
 enum class StorageId : u8;
 
 struct SaveDataDescriptor;
+struct SaveDataSize;
 } // namespace FileSys
 
 namespace Service {
@@ -47,6 +49,10 @@ ResultVal<FileSys::VirtualDir> OpenSaveData(FileSys::SaveDataSpaceId space,
                                             FileSys::SaveDataDescriptor save_struct);
 ResultVal<FileSys::VirtualDir> OpenSaveDataSpace(FileSys::SaveDataSpaceId space);
 ResultVal<FileSys::VirtualDir> OpenSDMC();
+
+FileSys::SaveDataSize ReadSaveDataSize(FileSys::SaveDataType type, u64 title_id, u128 user_id);
+void WriteSaveDataSize(FileSys::SaveDataType type, u64 title_id, u128 user_id,
+                       FileSys::SaveDataSize new_value);
 
 FileSys::RegisteredCacheUnion GetUnionContents();
 

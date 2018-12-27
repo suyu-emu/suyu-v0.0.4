@@ -15,6 +15,10 @@
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/vfs.h"
 
+namespace FileSys {
+class NACP;
+} // namespace FileSys
+
 namespace Kernel {
 struct AddressMapping;
 class Process;
@@ -245,11 +249,11 @@ public:
     }
 
     /**
-     * Get the developer of the application
-     * @param developer Reference to store the application developer into
+     * Get the control data (CNMT) of the application
+     * @param control Reference to store the application control data into
      * @return ResultStatus result of function
      */
-    virtual ResultStatus ReadDeveloper(std::string& developer) {
+    virtual ResultStatus ReadControlData(FileSys::NACP& control) {
         return ResultStatus::ErrorNotImplemented;
     }
 

@@ -28,17 +28,30 @@ static_assert(sizeof(LanguageEntry) == 0x300, "LanguageEntry has incorrect size.
 // The raw file format of a NACP file.
 struct RawNACP {
     std::array<LanguageEntry, 16> language_entries;
-    INSERT_PADDING_BYTES(0x38);
+    std::array<u8, 0x25> isbn;
+    u8 startup_user_account;
+    INSERT_PADDING_BYTES(2);
+    u32_le application_attribute;
+    u32_le supported_languages;
+    u32_le parental_control;
+    bool screenshot_enabled;
+    u8 video_capture_mode;
+    bool data_loss_confirmation;
+    INSERT_PADDING_BYTES(1);
     u64_le title_id;
-    INSERT_PADDING_BYTES(0x20);
+    std::array<u8, 0x20> rating_age;
     std::array<char, 0x10> version_string;
     u64_le dlc_base_title_id;
     u64_le title_id_2;
-    INSERT_PADDING_BYTES(0x28);
+    u64_le normal_save_data_size;
+    u64_le journal_sava_data_size;
+    INSERT_PADDING_BYTES(0x18);
     u64_le product_code;
-    u64_le title_id_3;
-    std::array<u64_le, 0x7> title_id_array;
-    INSERT_PADDING_BYTES(0x8);
+    std::array<u64_le, 0x8> local_communication;
+    u8 logo_type;
+    u8 logo_handling;
+    bool runtime_add_on_content_install;
+    INSERT_PADDING_BYTES(5);
     u64_le title_id_update;
     std::array<u8, 0x40> bcat_passphrase;
     INSERT_PADDING_BYTES(0xEC0);
@@ -72,6 +85,7 @@ extern const std::array<const char*, 15> LANGUAGE_NAMES;
 // These store application name, dev name, title id, and other miscellaneous data.
 class NACP {
 public:
+    explicit NACP();
     explicit NACP(VirtualFile file);
     ~NACP();
 
@@ -81,10 +95,12 @@ public:
     u64 GetTitleId() const;
     u64 GetDLCBaseTitleId() const;
     std::string GetVersionString() const;
+    u64 GetDefaultNormalSaveSize() const;
+    u64 GetDefaultJournalSaveSize() const;
     std::vector<u8> GetRawBytes() const;
 
 private:
-    std::unique_ptr<RawNACP> raw;
+    RawNACP raw{};
 };
 
 } // namespace FileSys
