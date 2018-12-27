@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstring>
 #include <map>
 #include <set>
@@ -37,17 +38,15 @@ using NodeData =
     std::variant<OperationNode, ConditionalNode, GprNode, ImmediateNode, InternalFlagNode,
                  PredicateNode, AbufNode, CbufNode, LmemNode, GmemNode, CommentNode>;
 using Node = const NodeData*;
+using Node4 = std::array<Node, 4>;
 using BasicBlock = std::vector<Node>;
 
 constexpr u32 MAX_PROGRAM_LENGTH = 0x1000;
 
 enum class OperationCode {
-    Assign,              /// (float& dest, float src) -> void
-    AssignComposite,     /// (MetaComponents, float4 src, float&[4] dst) -> void
-    AssignCompositeHalf, /// (MetaComponents, float4 src, float&[2] dst) -> void
+    Assign, /// (float& dest, float src) -> void
 
-    Composite, /// (float[4] values) -> float4
-    Select,    /// (MetaArithmetic, bool pred, float a, float b) -> float
+    Select, /// (MetaArithmetic, bool pred, float a, float b) -> float
 
     FAdd,          /// (MetaArithmetic, float a, float b) -> float
     FMul,          /// (MetaArithmetic, float a, float b) -> float
@@ -117,6 +116,7 @@ enum class OperationCode {
     HMergeF32, /// (f16vec2 src) -> float
     HMergeH0,  /// (f16vec2 dest, f16vec2 src) -> f16vec2
     HMergeH1,  /// (f16vec2 dest, f16vec2 src) -> f16vec2
+    HPack2,    /// (float a, float b) -> f16vec2
 
     LogicalAssign, /// (bool& dst, bool src) -> void
     LogicalAnd,    /// (bool a, bool b) -> bool
@@ -270,24 +270,16 @@ struct MetaHalfArithmetic {
 
 struct MetaTexture {
     const Sampler& sampler;
+    u32 element{};
     u32 coords_count{};
     std::optional<u32> array_index;
-};
-
-struct MetaComponents {
-    std::array<u32, 4> components_map{};
-    u32 count{};
-
-    u32 GetSourceComponent(u32 dest_index) const {
-        return components_map[dest_index];
-    }
 };
 
 constexpr MetaArithmetic PRECISE = {true};
 constexpr MetaArithmetic NO_PRECISE = {false};
 constexpr MetaHalfArithmetic HALF_NO_PRECISE = {false};
 
-using Meta = std::variant<MetaArithmetic, MetaHalfArithmetic, MetaTexture, MetaComponents>;
+using Meta = std::variant<MetaArithmetic, MetaHalfArithmetic, MetaTexture>;
 
 /// Holds any kind of operation that can be done in the IR
 class OperationNode final {
@@ -643,6 +635,8 @@ private:
     Node GetInternalFlag(InternalFlag flag, bool negated = false);
     /// Generates a node representing a local memory address
     Node GetLocalMemory(Node address);
+    /// Generates a temporal, internally it uses a post-RZ register
+    Node GetTemporal(u32 id);
 
     /// Sets a register. src value must be a number-evaluated node.
     void SetRegister(BasicBlock& bb, Tegra::Shader::Register dest, Node src);
@@ -652,6 +646,8 @@ private:
     void SetInternalFlag(BasicBlock& bb, InternalFlag flag, Node value);
     /// Sets a local memory address. address and value must be a number-evaluated node
     void SetLocalMemory(BasicBlock& bb, Node address, Node value);
+    /// Sets a temporal. Internally it uses a post-RZ register
+    void SetTemporal(BasicBlock& bb, u32 id, Node value);
 
     /// Conditionally absolute/negated float. Absolute is applied first
     Node GetOperandAbsNegFloat(Node value, bool absolute, bool negate);
@@ -692,32 +688,36 @@ private:
     /// Extracts a sequence of bits from a node
     Node BitfieldExtract(Node value, u32 offset, u32 bits);
 
-    void WriteTexsInstructionFloat(BasicBlock& bb, Tegra::Shader::Instruction instr, Node texture);
+    void WriteTexInstructionFloat(BasicBlock& bb, Tegra::Shader::Instruction instr,
+                                  const Node4& components);
+
+    void WriteTexsInstructionFloat(BasicBlock& bb, Tegra::Shader::Instruction instr,
+                                   const Node4& components);
     void WriteTexsInstructionHalfFloat(BasicBlock& bb, Tegra::Shader::Instruction instr,
-                                       Node texture);
+                                       const Node4& components);
 
-    Node GetTexCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
-                    Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
-                    bool is_array);
-
-    Node GetTexsCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
+    Node4 GetTexCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
                      Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
                      bool is_array);
 
-    Node GetTld4Code(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
-                     bool depth_compare, bool is_array);
+    Node4 GetTexsCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
+                      Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
+                      bool is_array);
 
-    Node GetTldsCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
-                     bool is_array);
+    Node4 GetTld4Code(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
+                      bool depth_compare, bool is_array);
+
+    Node4 GetTldsCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
+                      bool is_array);
 
     std::tuple<std::size_t, std::size_t> ValidateAndGetCoordinateElement(
         Tegra::Shader::TextureType texture_type, bool depth_compare, bool is_array,
         bool lod_bias_enabled, std::size_t max_coords, std::size_t max_inputs);
 
-    Node GetTextureCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
-                        Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
-                        bool is_array, std::size_t array_offset, std::size_t bias_offset,
-                        std::vector<Node>&& coords);
+    Node4 GetTextureCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
+                         Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
+                         bool is_array, std::size_t array_offset, std::size_t bias_offset,
+                         std::vector<Node>&& coords);
 
     Node GetVideoOperand(Node op, bool is_chunk, bool is_signed, Tegra::Shader::VideoType type,
                          u64 byte_height);

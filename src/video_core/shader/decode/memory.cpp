@@ -90,15 +90,10 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
             const Node op_b =
                 GetConstBufferIndirect(instr.cbuf36.index, instr.cbuf36.offset + 4, index);
 
-            const Node composite =
-                Operation(OperationCode::Composite, op_a, op_b, GetRegister(Register::ZeroIndex),
-                          GetRegister(Register::ZeroIndex));
-
-            MetaComponents meta{{0, 1, 2, 3}};
-            bb.push_back(Operation(OperationCode::AssignComposite, meta, composite,
-                                   GetRegister(instr.gpr0), GetRegister(instr.gpr0.Value() + 1),
-                                   GetRegister(Register::ZeroIndex),
-                                   GetRegister(Register::ZeroIndex)));
+            SetTemporal(bb, 0, op_a);
+            SetTemporal(bb, 1, op_b);
+            SetRegister(bb, instr.gpr0, GetTemporal(0));
+            SetRegister(bb, instr.gpr0.Value() + 1, GetTemporal(1));
             break;
         }
         default:
@@ -172,10 +167,6 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::TEX: {
-        Tegra::Shader::TextureType texture_type{instr.tex.texture_type};
-        const bool is_array = instr.tex.array != 0;
-        const bool depth_compare = instr.tex.UsesMiscMode(TextureMiscMode::DC);
-        const auto process_mode = instr.tex.GetTextureProcessMode();
         UNIMPLEMENTED_IF_MSG(instr.tex.UsesMiscMode(TextureMiscMode::AOFFI),
                              "AOFFI is not implemented");
 
@@ -183,27 +174,12 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
             LOG_WARNING(HW_GPU, "TEX.NODEP implementation is incomplete");
         }
 
-        const Node texture = GetTexCode(instr, texture_type, process_mode, depth_compare, is_array);
-
-        MetaComponents meta;
-        std::array<Node, 4> dest;
-
-        std::size_t dest_elem = 0;
-        for (std::size_t elem = 0; elem < 4; ++elem) {
-            if (!instr.tex.IsComponentEnabled(elem)) {
-                // Skip disabled components
-                continue;
-            }
-            meta.components_map[dest_elem] = static_cast<u32>(elem);
-            dest[dest_elem] = GetRegister(instr.gpr0.Value() + dest_elem);
-
-            ++dest_elem;
-        }
-        std::generate(dest.begin() + dest_elem, dest.end(),
-                      [&]() { return GetRegister(Register::ZeroIndex); });
-
-        bb.push_back(Operation(OperationCode::AssignComposite, std::move(meta), texture, dest[0],
-                               dest[1], dest[2], dest[3]));
+        const TextureType texture_type{instr.tex.texture_type};
+        const bool is_array = instr.tex.array != 0;
+        const bool depth_compare = instr.tex.UsesMiscMode(TextureMiscMode::DC);
+        const auto process_mode = instr.tex.GetTextureProcessMode();
+        WriteTexInstructionFloat(
+            bb, instr, GetTexCode(instr, texture_type, process_mode, depth_compare, is_array));
         break;
     }
     case OpCode::Id::TEXS: {
@@ -216,13 +192,13 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
             LOG_WARNING(HW_GPU, "TEXS.NODEP implementation is incomplete");
         }
 
-        const Node texture =
+        const Node4 components =
             GetTexsCode(instr, texture_type, process_mode, depth_compare, is_array);
 
         if (instr.texs.fp32_flag) {
-            WriteTexsInstructionFloat(bb, instr, texture);
+            WriteTexsInstructionFloat(bb, instr, components);
         } else {
-            WriteTexsInstructionHalfFloat(bb, instr, texture);
+            WriteTexsInstructionHalfFloat(bb, instr, components);
         }
         break;
     }
@@ -242,27 +218,8 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
         const auto texture_type = instr.tld4.texture_type.Value();
         const bool depth_compare = instr.tld4.UsesMiscMode(TextureMiscMode::DC);
         const bool is_array = instr.tld4.array != 0;
-        const Node texture = GetTld4Code(instr, texture_type, depth_compare, is_array);
-
-        MetaComponents meta_components;
-        std::array<Node, 4> dest;
-
-        std::size_t dest_elem = 0;
-        for (std::size_t elem = 0; elem < 4; ++elem) {
-            if (!instr.tex.IsComponentEnabled(elem)) {
-                // Skip disabled components
-                continue;
-            }
-            meta_components.components_map[dest_elem] = static_cast<u32>(elem);
-            dest[dest_elem] = GetRegister(instr.gpr0.Value() + dest_elem);
-
-            ++dest_elem;
-        }
-        std::generate(dest.begin() + dest_elem, dest.end(),
-                      [&]() { return GetRegister(Register::ZeroIndex); });
-
-        bb.push_back(Operation(OperationCode::AssignComposite, std::move(meta_components), texture,
-                               dest[0], dest[1], dest[2], dest[3]));
+        WriteTexInstructionFloat(bb, instr,
+                                 GetTld4Code(instr, texture_type, depth_compare, is_array));
         break;
     }
     case OpCode::Id::TLD4S: {
@@ -277,28 +234,34 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
         const Node op_a = GetRegister(instr.gpr8);
         const Node op_b = GetRegister(instr.gpr20);
 
-        std::vector<Node> params;
+        std::vector<Node> coords;
 
         // TODO(Subv): Figure out how the sampler type is encoded in the TLD4S instruction.
         if (depth_compare) {
             // Note: TLD4S coordinate encoding works just like TEXS's
             const Node op_y = GetRegister(instr.gpr8.Value() + 1);
-            params.push_back(op_a);
-            params.push_back(op_y);
-            params.push_back(op_b);
+            coords.push_back(op_a);
+            coords.push_back(op_y);
+            coords.push_back(op_b);
         } else {
-            params.push_back(op_a);
-            params.push_back(op_b);
+            coords.push_back(op_a);
+            coords.push_back(op_b);
         }
-        const auto num_coords = static_cast<u32>(params.size());
-        params.push_back(Immediate(static_cast<u32>(instr.tld4s.component)));
+        const auto num_coords = static_cast<u32>(coords.size());
+        coords.push_back(Immediate(static_cast<u32>(instr.tld4s.component)));
 
         const auto& sampler =
             GetSampler(instr.sampler, TextureType::Texture2D, false, depth_compare);
-        MetaTexture meta{sampler, num_coords};
 
-        WriteTexsInstructionFloat(
-            bb, instr, Operation(OperationCode::F4TextureGather, meta, std::move(params)));
+        Node4 values;
+        for (u32 element = 0; element < values.size(); ++element) {
+            auto params = coords;
+            MetaTexture meta{sampler, element, num_coords};
+            values[element] =
+                Operation(OperationCode::F4TextureGather, std::move(meta), std::move(params));
+        }
+
+        WriteTexsInstructionFloat(bb, instr, values);
         break;
     }
     case OpCode::Id::TXQ: {
@@ -314,18 +277,15 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
 
         switch (instr.txq.query_type) {
         case Tegra::Shader::TextureQueryType::Dimension: {
-            MetaTexture meta_texture{sampler};
-            const MetaComponents meta_components{{0, 1, 2, 3}};
-
-            const Node texture = Operation(OperationCode::F4TextureQueryDimensions, meta_texture,
-                                           GetRegister(instr.gpr8));
-            std::array<Node, 4> dest;
-            for (std::size_t i = 0; i < dest.size(); ++i) {
-                dest[i] = GetRegister(instr.gpr0.Value() + i);
+            for (u32 element = 0; element < 4; ++element) {
+                MetaTexture meta{sampler, element};
+                const Node value = Operation(OperationCode::F4TextureQueryDimensions,
+                                             std::move(meta), GetRegister(instr.gpr8));
+                SetTemporal(bb, element, value);
             }
-
-            bb.push_back(Operation(OperationCode::AssignComposite, meta_components, texture,
-                                   dest[0], dest[1], dest[2], dest[3]));
+            for (u32 i = 0; i < 4; ++i) {
+                SetRegister(bb, instr.gpr0.Value() + i, GetTemporal(i));
+            }
             break;
         }
         default:
@@ -366,14 +326,17 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
             texture_type = TextureType::Texture2D;
         }
 
-        MetaTexture meta_texture{sampler, static_cast<u32>(coords.size())};
-        const Node texture =
-            Operation(OperationCode::F4TextureQueryLod, meta_texture, std::move(coords));
+        for (u32 element = 0; element < 2; ++element) {
+            auto params = coords;
+            MetaTexture meta_texture{sampler, element, static_cast<u32>(coords.size())};
+            const Node value =
+                Operation(OperationCode::F4TextureQueryLod, meta_texture, std::move(params));
+            SetTemporal(bb, element, value);
+        }
+        for (u32 element = 0; element < 2; ++element) {
+            SetRegister(bb, instr.gpr0.Value() + element, GetTemporal(element));
+        }
 
-        const MetaComponents meta_composite{{0, 1, 2, 3}};
-        bb.push_back(Operation(OperationCode::AssignComposite, meta_composite, texture,
-                               GetRegister(instr.gpr0), GetRegister(instr.gpr0.Value() + 1),
-                               GetRegister(Register::ZeroIndex), GetRegister(Register::ZeroIndex)));
         break;
     }
     case OpCode::Id::TLDS: {
@@ -388,8 +351,7 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
             LOG_WARNING(HW_GPU, "TMML.NODEP implementation is incomplete");
         }
 
-        const Node texture = GetTldsCode(instr, texture_type, is_array);
-        WriteTexsInstructionFloat(bb, instr, texture);
+        WriteTexsInstructionFloat(bb, instr, GetTldsCode(instr, texture_type, is_array));
         break;
     }
     default:
@@ -419,57 +381,80 @@ const Sampler& ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler, Textu
     return *used_samplers.emplace(entry).first;
 }
 
-void ShaderIR::WriteTexsInstructionFloat(BasicBlock& bb, Instruction instr, Node texture) {
+void ShaderIR::WriteTexInstructionFloat(BasicBlock& bb, Instruction instr,
+                                        const Node4& components) {
+    u32 dest_elem = 0;
+    for (u32 elem = 0; elem < 4; ++elem) {
+        if (!instr.tex.IsComponentEnabled(elem)) {
+            // Skip disabled components
+            continue;
+        }
+        SetTemporal(bb, dest_elem++, components[elem]);
+    }
+    // After writing values in temporals, move them to the real registers
+    for (u32 i = 0; i < dest_elem; ++i) {
+        SetRegister(bb, instr.gpr0.Value() + i, GetTemporal(i));
+    }
+}
+
+void ShaderIR::WriteTexsInstructionFloat(BasicBlock& bb, Instruction instr,
+                                         const Node4& components) {
     // TEXS has two destination registers and a swizzle. The first two elements in the swizzle
     // go into gpr0+0 and gpr0+1, and the rest goes into gpr28+0 and gpr28+1
 
-    MetaComponents meta;
-    std::array<Node, 4> dest;
-    for (u32 component = 0; component < 4; ++component) {
-        if (!instr.texs.IsComponentEnabled(component)) {
-            continue;
-        }
-        meta.components_map[meta.count] = component;
-
-        if (meta.count < 2) {
-            // Write the first two swizzle components to gpr0 and gpr0+1
-            dest[meta.count] = GetRegister(instr.gpr0.Value() + meta.count % 2);
-        } else {
-            ASSERT(instr.texs.HasTwoDestinations());
-            // Write the rest of the swizzle components to gpr28 and gpr28+1
-            dest[meta.count] = GetRegister(instr.gpr28.Value() + meta.count % 2);
-        }
-        ++meta.count;
-    }
-
-    std::generate(dest.begin() + meta.count, dest.end(),
-                  [&]() { return GetRegister(Register::ZeroIndex); });
-
-    bb.push_back(Operation(OperationCode::AssignComposite, meta, texture, dest[0], dest[1], dest[2],
-                           dest[3]));
-}
-
-void ShaderIR::WriteTexsInstructionHalfFloat(BasicBlock& bb, Instruction instr, Node texture) {
-    // TEXS.F16 destionation registers are packed in two registers in pairs (just like any half
-    // float instruction).
-
-    MetaComponents meta;
+    u32 dest_elem = 0;
     for (u32 component = 0; component < 4; ++component) {
         if (!instr.texs.IsComponentEnabled(component))
             continue;
-        meta.components_map[meta.count++] = component;
+        SetTemporal(bb, dest_elem++, components[component]);
     }
-    if (meta.count == 0)
-        return;
 
-    bb.push_back(Operation(OperationCode::AssignCompositeHalf, meta, texture,
-                           GetRegister(instr.gpr0), GetRegister(instr.gpr28)));
+    for (u32 i = 0; i < dest_elem; ++i) {
+        if (i < 2) {
+            // Write the first two swizzle components to gpr0 and gpr0+1
+            SetRegister(bb, instr.gpr0.Value() + i % 2, GetTemporal(i));
+        } else {
+            ASSERT(instr.texs.HasTwoDestinations());
+            // Write the rest of the swizzle components to gpr28 and gpr28+1
+            SetRegister(bb, instr.gpr28.Value() + i % 2, GetTemporal(i));
+        }
+    }
 }
 
-Node ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
-                              TextureProcessMode process_mode, bool depth_compare, bool is_array,
-                              std::size_t array_offset, std::size_t bias_offset,
-                              std::vector<Node>&& coords) {
+void ShaderIR::WriteTexsInstructionHalfFloat(BasicBlock& bb, Instruction instr,
+                                             const Node4& components) {
+    // TEXS.F16 destionation registers are packed in two registers in pairs (just like any half
+    // float instruction).
+
+    Node4 values;
+    u32 dest_elem = 0;
+    for (u32 component = 0; component < 4; ++component) {
+        if (!instr.texs.IsComponentEnabled(component))
+            continue;
+        values[dest_elem++] = components[component];
+    }
+    if (dest_elem == 0)
+        return;
+
+    std::generate(values.begin() + dest_elem, values.end(), [&]() { return Immediate(0); });
+
+    const Node first_value = Operation(OperationCode::HPack2, values[0], values[1]);
+    if (dest_elem <= 2) {
+        SetRegister(bb, instr.gpr0, first_value);
+        return;
+    }
+
+    SetTemporal(bb, 0, first_value);
+    SetTemporal(bb, 1, Operation(OperationCode::HPack2, values[2], values[3]));
+
+    SetRegister(bb, instr.gpr0, GetTemporal(0));
+    SetRegister(bb, instr.gpr28, GetTemporal(1));
+}
+
+Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
+                               TextureProcessMode process_mode, bool depth_compare, bool is_array,
+                               std::size_t array_offset, std::size_t bias_offset,
+                               std::vector<Node>&& coords) {
     UNIMPLEMENTED_IF_MSG(
         (texture_type == TextureType::Texture3D && (is_array || depth_compare)) ||
             (texture_type == TextureType::TextureCube && is_array && depth_compare),
@@ -495,24 +480,31 @@ Node ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
     std::optional<u32> array_offset_value;
     if (is_array)
         array_offset_value = static_cast<u32>(array_offset);
-    MetaTexture meta{sampler, static_cast<u32>(coords.size()), array_offset_value};
-    std::vector<Node> params = std::move(coords);
+
+    const auto coords_count = static_cast<u32>(coords.size());
 
     if (process_mode != TextureProcessMode::None && gl_lod_supported) {
         if (process_mode == TextureProcessMode::LZ) {
-            params.push_back(Immediate(0.0f));
+            coords.push_back(Immediate(0.0f));
         } else {
-            // If present, lod or bias are always stored in the register indexed by the gpr20 field
-            // with an offset depending on the usage of the other registers
-            params.push_back(GetRegister(instr.gpr20.Value() + bias_offset));
+            // If present, lod or bias are always stored in the register indexed by the gpr20
+            // field with an offset depending on the usage of the other registers
+            coords.push_back(GetRegister(instr.gpr20.Value() + bias_offset));
         }
     }
 
-    return Operation(read_method, meta, std::move(params));
+    Node4 values;
+    for (u32 element = 0; element < values.size(); ++element) {
+        auto params = coords;
+        MetaTexture meta{sampler, element, coords_count, array_offset_value};
+        values[element] = Operation(read_method, std::move(meta), std::move(params));
+    }
+
+    return values;
 }
 
-Node ShaderIR::GetTexCode(Instruction instr, TextureType texture_type,
-                          TextureProcessMode process_mode, bool depth_compare, bool is_array) {
+Node4 ShaderIR::GetTexCode(Instruction instr, TextureType texture_type,
+                           TextureProcessMode process_mode, bool depth_compare, bool is_array) {
     const bool lod_bias_enabled =
         (process_mode != TextureProcessMode::None && process_mode != TextureProcessMode::LZ);
 
@@ -551,8 +543,8 @@ Node ShaderIR::GetTexCode(Instruction instr, TextureType texture_type,
                           0, std::move(coords));
 }
 
-Node ShaderIR::GetTexsCode(Instruction instr, TextureType texture_type,
-                           TextureProcessMode process_mode, bool depth_compare, bool is_array) {
+Node4 ShaderIR::GetTexsCode(Instruction instr, TextureType texture_type,
+                            TextureProcessMode process_mode, bool depth_compare, bool is_array) {
     const bool lod_bias_enabled =
         (process_mode != TextureProcessMode::None && process_mode != TextureProcessMode::LZ);
 
@@ -593,8 +585,8 @@ Node ShaderIR::GetTexsCode(Instruction instr, TextureType texture_type,
                           (coord_count > 2 ? 1 : 0), std::move(coords));
 }
 
-Node ShaderIR::GetTld4Code(Instruction instr, TextureType texture_type, bool depth_compare,
-                           bool is_array) {
+Node4 ShaderIR::GetTld4Code(Instruction instr, TextureType texture_type, bool depth_compare,
+                            bool is_array) {
     const std::size_t coord_count = GetCoordCount(texture_type);
     const std::size_t total_coord_count = coord_count + (is_array ? 1 : 0);
     const std::size_t total_reg_count = total_coord_count + (depth_compare ? 1 : 0);
@@ -604,24 +596,31 @@ Node ShaderIR::GetTld4Code(Instruction instr, TextureType texture_type, bool dep
     // First coordinate index is the gpr8 or gpr8 + 1 when arrays are used
     const u64 coord_register = array_register + (is_array ? 1 : 0);
 
-    std::vector<Node> params;
+    std::vector<Node> coords;
 
     for (size_t i = 0; i < coord_count; ++i) {
-        params.push_back(GetRegister(coord_register + i));
+        coords.push_back(GetRegister(coord_register + i));
     }
     std::optional<u32> array_offset;
     if (is_array) {
-        array_offset = static_cast<u32>(params.size());
-        params.push_back(GetRegister(array_register));
+        array_offset = static_cast<u32>(coords.size());
+        coords.push_back(GetRegister(array_register));
     }
 
     const auto& sampler = GetSampler(instr.sampler, texture_type, is_array, depth_compare);
-    MetaTexture meta{sampler, static_cast<u32>(params.size()), array_offset};
 
-    return Operation(OperationCode::F4TextureGather, std::move(meta), std::move(params));
+    Node4 values;
+    for (u32 element = 0; element < values.size(); ++element) {
+        auto params = coords;
+        MetaTexture meta{sampler, element, static_cast<u32>(coords.size()), array_offset};
+        values[element] =
+            Operation(OperationCode::F4TextureGather, std::move(meta), std::move(params));
+    }
+
+    return values;
 }
 
-Node ShaderIR::GetTldsCode(Instruction instr, TextureType texture_type, bool is_array) {
+Node4 ShaderIR::GetTldsCode(Instruction instr, TextureType texture_type, bool is_array) {
     const std::size_t type_coord_count = GetCoordCount(texture_type);
     const std::size_t total_coord_count = type_coord_count + (is_array ? 1 : 0);
     const bool lod_enabled = instr.tlds.GetTextureProcessMode() == TextureProcessMode::LL;
@@ -636,36 +635,41 @@ Node ShaderIR::GetTldsCode(Instruction instr, TextureType texture_type, bool is_
             ? static_cast<u64>(instr.gpr20.Value())
             : coord_register + 1;
 
-    std::vector<Node> params;
+    std::vector<Node> coords;
 
     for (std::size_t i = 0; i < type_coord_count; ++i) {
         const bool last = (i == (type_coord_count - 1)) && (type_coord_count > 1);
-        params.push_back(GetRegister(last ? last_coord_register : coord_register + i));
+        coords.push_back(GetRegister(last ? last_coord_register : coord_register + i));
     }
     std::optional<u32> array_offset;
     if (is_array) {
-        array_offset = static_cast<u32>(params.size());
-        params.push_back(GetRegister(array_register));
+        array_offset = static_cast<u32>(coords.size());
+        coords.push_back(GetRegister(array_register));
     }
-    const auto coords_count = static_cast<u32>(params.size());
+    const auto coords_count = static_cast<u32>(coords.size());
 
     if (lod_enabled) {
         // When lod is used always is in grp20
-        params.push_back(GetRegister(instr.gpr20));
+        coords.push_back(GetRegister(instr.gpr20));
     } else {
-        params.push_back(Immediate(0));
+        coords.push_back(Immediate(0));
     }
 
     const auto& sampler = GetSampler(instr.sampler, texture_type, is_array, false);
-    MetaTexture meta{sampler, coords_count, array_offset};
 
-    return Operation(OperationCode::F4TexelFetch, std::move(meta), std::move(params));
+    Node4 values;
+    for (u32 element = 0; element < values.size(); ++element) {
+        auto params = coords;
+        MetaTexture meta{sampler, element, coords_count, array_offset};
+        values[element] =
+            Operation(OperationCode::F4TexelFetch, std::move(meta), std::move(params));
+    }
+    return values;
 }
 
 std::tuple<std::size_t, std::size_t> ShaderIR::ValidateAndGetCoordinateElement(
     TextureType texture_type, bool depth_compare, bool is_array, bool lod_bias_enabled,
     std::size_t max_coords, std::size_t max_inputs) {
-
     const std::size_t coord_count = GetCoordCount(texture_type);
 
     std::size_t total_coord_count = coord_count + (is_array ? 1 : 0) + (depth_compare ? 1 : 0);

@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <array>
 #include <string>
 #include <string_view>
 #include <variant>
@@ -770,49 +771,6 @@ private:
         return {};
     }
 
-    std::string AssignComposite(Operation operation) {
-        const auto& meta = std::get<MetaComponents>(operation.GetMeta());
-
-        const std::string composite = code.GenerateTemporal();
-        code.AddLine("vec4 " + composite + " = " + Visit(operation[0]) + ';');
-
-        constexpr u32 composite_size = 4;
-        for (u32 i = 0; i < composite_size; ++i) {
-            const auto gpr = std::get<GprNode>(*operation[i + 1]).GetIndex();
-            if (gpr == Register::ZeroIndex) {
-                continue;
-            }
-            code.AddLine(GetRegister(gpr) + " = " + composite +
-                         GetSwizzle(meta.GetSourceComponent(i)) + ';');
-        }
-        return {};
-    }
-
-    std::string AssignCompositeHalf(Operation operation) {
-        const auto& meta = std::get<MetaComponents>(operation.GetMeta());
-
-        const std::string composite = code.GenerateTemporal();
-        code.AddLine("vec4 " + composite + " = " + Visit(operation[0]) + ';');
-
-        const auto ReadComponent = [&](u32 component) {
-            if (component < meta.count) {
-                return composite + '[' + std::to_string(meta.GetSourceComponent(component)) + ']';
-            }
-            return std::string("0");
-        };
-
-        const auto dst1 = std::get<GprNode>(*operation[1]).GetIndex();
-        const std::string src1 = "vec2(" + ReadComponent(0) + ", " + ReadComponent(1) + ')';
-        code.AddLine(GetRegister(dst1) + " = utof(packHalf2x16(" + src1 + "))");
-
-        if (meta.count > 2) {
-            const auto dst2 = std::get<GprNode>(*operation[2]).GetIndex();
-            const std::string src2 = "vec2(" + ReadComponent(2) + ", " + ReadComponent(3) + ')';
-            code.AddLine(GetRegister(dst2) + " = utof(packHalf2x16(" + src2 + "));");
-        }
-        return {};
-    }
-
     std::string Composite(Operation operation) {
         std::string value = "vec4(";
         for (std::size_t i = 0; i < 4; ++i) {
@@ -1018,6 +976,10 @@ private:
                Visit(operation[1]) + ")[1]))";
     }
 
+    std::string HPack2(Operation operation) {
+        return "utof(packHalf2x16(vec2(" + Visit(operation[0]) + ", " + Visit(operation[1]) + ")))";
+    }
+
     template <Type type>
     std::string LogicalLessThan(Operation operation) {
         return GenerateBinaryInfix(operation, "<", Type::Bool, type, type);
@@ -1137,30 +1099,35 @@ private:
     }
 
     std::string F4Texture(Operation operation) {
+        const auto meta = std::get<MetaTexture>(operation.GetMeta());
         std::string expr = GenerateTexture(operation, "texture");
-        if (std::get<MetaTexture>(operation.GetMeta()).sampler.IsShadow()) {
+        if (meta.sampler.IsShadow()) {
             expr = "vec4(" + expr + ')';
         }
-        return expr;
+        return expr + GetSwizzle(meta.element);
     }
 
     std::string F4TextureLod(Operation operation) {
+        const auto meta = std::get<MetaTexture>(operation.GetMeta());
         std::string expr = GenerateTexture(operation, "textureLod");
-        if (std::get<MetaTexture>(operation.GetMeta()).sampler.IsShadow()) {
+        if (meta.sampler.IsShadow()) {
             expr = "vec4(" + expr + ')';
         }
-        return expr;
+        return expr + GetSwizzle(meta.element);
     }
 
     std::string F4TextureGather(Operation operation) {
-        const bool is_shadow = std::get<MetaTexture>(operation.GetMeta()).sampler.IsShadow();
-        if (is_shadow) {
-            return GenerateTexture(operation, "textureGather",
+        const auto meta = std::get<MetaTexture>(operation.GetMeta());
+
+        std::string expr;
+        if (meta.sampler.IsShadow()) {
+            expr = GenerateTexture(operation, "textureGather",
                                    [](std::string ref_z) { return ref_z; });
         } else {
-            return GenerateTexture(operation, "textureGather",
+            expr = GenerateTexture(operation, "textureGather",
                                    [](std::string comp) { return "ftoi(" + comp + ')'; });
         }
+        return expr + GetSwizzle(meta.element);
     }
 
     std::string F4TextureQueryDimensions(Operation operation) {
@@ -1168,20 +1135,26 @@ private:
         const std::string sampler = GetSampler(meta.sampler);
         const std::string lod = VisitOperand(operation, 0, Type::Int);
 
-        const std::string sizes = code.GenerateTemporal();
-        code.AddLine("ivec2 " + sizes + " = textureSize(" + sampler + ", " + lod + ");");
-
-        const std::string mip_level = "textureQueryLevels(" + sampler + ')';
-
-        return "itof(ivec4(" + sizes + ", 0, " + mip_level + "))";
+        switch (meta.element) {
+        case 0:
+        case 1:
+            return "textureSize(" + sampler + ", " + lod + ')' + GetSwizzle(meta.element);
+        case 2:
+            return "0";
+        case 3:
+            return "textureQueryLevels(" + sampler + ')';
+        }
+        UNREACHABLE();
+        return "0";
     }
 
     std::string F4TextureQueryLod(Operation operation) {
-        const std::string tmp = code.GenerateTemporal();
-        code.AddLine("vec2 " + tmp + " = " + GenerateTexture(operation, "textureQueryLod") +
-                     " * vec2(256);");
-
-        return "vec4(itof(int(" + tmp + ".y)), utof(uint(" + tmp + ".x)), 0, 0)";
+        const auto& meta = std::get<MetaTexture>(operation.GetMeta());
+        if (meta.element < 2) {
+            return "itof(int((" + GenerateTexture(operation, "textureQueryLod") + " * vec2(256))" +
+                   GetSwizzle(meta.element) + "))";
+        }
+        return "0";
     }
 
     std::string F4TexelFetch(Operation operation) {
@@ -1206,7 +1179,7 @@ private:
             }
         }
         expr += ')';
-        return expr;
+        return expr + GetSwizzle(meta.element);
     }
 
     std::string Branch(Operation operation) {
@@ -1328,10 +1301,7 @@ private:
 
     static constexpr OperationDecompilersArray operation_decompilers = {
         &GLSLDecompiler::Assign,
-        &GLSLDecompiler::AssignComposite,
-        &GLSLDecompiler::AssignCompositeHalf,
 
-        &GLSLDecompiler::Composite,
         &GLSLDecompiler::Select,
 
         &GLSLDecompiler::Add<Type::Float>,
@@ -1403,6 +1373,7 @@ private:
         &GLSLDecompiler::HMergeF32,
         &GLSLDecompiler::HMergeH0,
         &GLSLDecompiler::HMergeH1,
+        &GLSLDecompiler::HPack2,
 
         &GLSLDecompiler::LogicalAssign,
         &GLSLDecompiler::LogicalAnd,

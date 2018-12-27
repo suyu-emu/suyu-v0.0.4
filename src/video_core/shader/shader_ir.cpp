@@ -121,6 +121,10 @@ Node ShaderIR::GetLocalMemory(Node address) {
     return StoreNode(LmemNode(address));
 }
 
+Node ShaderIR::GetTemporal(u32 id) {
+    return GetRegister(Register::ZeroIndex + 1 + id);
+}
+
 Node ShaderIR::GetOperandAbsNegFloat(Node value, bool absolute, bool negate) {
     if (absolute) {
         value = Operation(OperationCode::FAbsolute, NO_PRECISE, value);
@@ -346,6 +350,10 @@ void ShaderIR::SetInternalFlag(BasicBlock& bb, InternalFlag flag, Node value) {
 
 void ShaderIR::SetLocalMemory(BasicBlock& bb, Node address, Node value) {
     bb.push_back(Operation(OperationCode::Assign, GetLocalMemory(address), value));
+}
+
+void ShaderIR::SetTemporal(BasicBlock& bb, u32 id, Node value) {
+    SetRegister(bb, Register::ZeroIndex + 1 + id, value);
 }
 
 Node ShaderIR::BitfieldExtract(Node value, u32 offset, u32 bits) {
