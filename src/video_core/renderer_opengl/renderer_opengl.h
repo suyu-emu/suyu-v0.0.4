@@ -17,7 +17,7 @@ class EmuWindow;
 }
 
 namespace Layout {
-class FramebufferLayout;
+struct FramebufferLayout;
 }
 
 namespace OpenGL {
