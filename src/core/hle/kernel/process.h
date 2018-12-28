@@ -242,20 +242,13 @@ public:
     void LoadModule(CodeSet module_, VAddr base_addr);
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    // Memory Management
+    // Thread-local storage management
 
     // Marks the next available region as used and returns the address of the slot.
     VAddr MarkNextAvailableTLSSlotAsUsed(Thread& thread);
 
     // Frees a used TLS slot identified by the given address
     void FreeTLSSlot(VAddr tls_address);
-
-    ResultVal<VAddr> HeapAllocate(VAddr target, u64 size, VMAPermission perms);
-    ResultCode HeapFree(VAddr target, u32 size);
-
-    ResultCode MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size, MemoryState state);
-
-    ResultCode UnmapMemory(VAddr dst_addr, VAddr src_addr, u64 size);
 
 private:
     explicit Process(KernelCore& kernel);

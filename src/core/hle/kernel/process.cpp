@@ -198,22 +198,6 @@ void Process::LoadModule(CodeSet module_, VAddr base_addr) {
     Core::System::GetInstance().ArmInterface(3).ClearInstructionCache();
 }
 
-ResultVal<VAddr> Process::HeapAllocate(VAddr target, u64 size, VMAPermission perms) {
-    return vm_manager.HeapAllocate(target, size, perms);
-}
-
-ResultCode Process::HeapFree(VAddr target, u32 size) {
-    return vm_manager.HeapFree(target, size);
-}
-
-ResultCode Process::MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size, MemoryState state) {
-    return vm_manager.MirrorMemory(dst_addr, src_addr, size, state);
-}
-
-ResultCode Process::UnmapMemory(VAddr dst_addr, VAddr /*src_addr*/, u64 size) {
-    return vm_manager.UnmapRange(dst_addr, size);
-}
-
 Kernel::Process::Process(KernelCore& kernel) : WaitObject{kernel} {}
 Kernel::Process::~Process() {}
 
