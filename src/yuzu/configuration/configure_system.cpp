@@ -51,6 +51,12 @@ ConfigureSystem::ConfigureSystem(QWidget* parent) : QWidget(parent), ui(new Ui::
             ui->rng_seed_edit->setText(QStringLiteral("00000000"));
     });
 
+    connect(ui->custom_rtc_checkbox, &QCheckBox::stateChanged, this, [this](bool checked) {
+        ui->custom_rtc_edit->setEnabled(checked);
+        if (!checked)
+            ui->custom_rtc_edit->setDateTime(QDateTime::currentDateTime());
+    });
+
     this->setConfiguration();
 }
 
@@ -67,6 +73,12 @@ void ConfigureSystem::setConfiguration() {
     const auto rng_seed =
         QString("%1").arg(Settings::values.rng_seed.value_or(0), 8, 16, QLatin1Char{'0'}).toUpper();
     ui->rng_seed_edit->setText(rng_seed);
+
+    ui->custom_rtc_checkbox->setChecked(Settings::values.custom_rtc.has_value());
+    ui->custom_rtc_edit->setEnabled(Settings::values.custom_rtc.has_value());
+
+    const auto rtc_time = Settings::values.custom_rtc.value_or(QDateTime::currentSecsSinceEpoch());
+    ui->custom_rtc_edit->setDateTime(QDateTime::fromSecsSinceEpoch(rtc_time));
 }
 
 void ConfigureSystem::ReadSystemSettings() {}
@@ -81,6 +93,11 @@ void ConfigureSystem::applyConfiguration() {
         Settings::values.rng_seed = ui->rng_seed_edit->text().toULongLong(nullptr, 16);
     else
         Settings::values.rng_seed = std::nullopt;
+
+    if (ui->custom_rtc_checkbox->isChecked())
+        Settings::values.custom_rtc = ui->custom_rtc_edit->dateTime().toSecsSinceEpoch();
+    else
+        Settings::values.custom_rtc = std::nullopt;
 
     Settings::Apply();
 }
