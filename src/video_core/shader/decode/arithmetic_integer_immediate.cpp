@@ -16,7 +16,7 @@ using Tegra::Shader::Pred;
 using Tegra::Shader::PredicateResultMode;
 using Tegra::Shader::Register;
 
-u32 ShaderIR::DecodeArithmeticIntegerImmediate(BasicBlock& bb, u32 pc) {
+u32 ShaderIR::DecodeArithmeticIntegerImmediate(BasicBlock& bb, const BasicBlock& code, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 

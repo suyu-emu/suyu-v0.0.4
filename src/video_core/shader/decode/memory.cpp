@@ -35,7 +35,7 @@ static std::size_t GetCoordCount(TextureType texture_type) {
     }
 }
 
-u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
+u32 ShaderIR::DecodeMemory(BasicBlock& bb, const BasicBlock& code, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
