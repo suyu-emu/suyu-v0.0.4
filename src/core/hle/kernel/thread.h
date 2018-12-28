@@ -456,17 +456,6 @@ private:
 };
 
 /**
- * Sets up the primary application thread
- * @param kernel The kernel instance to create the main thread under.
- * @param entry_point The address at which the thread should start execution
- * @param priority The priority to give the main thread
- * @param owner_process The parent process for the main thread
- * @return A shared pointer to the main thread
- */
-SharedPtr<Thread> SetupMainThread(KernelCore& kernel, VAddr entry_point, u32 priority,
-                                  Process& owner_process);
-
-/**
  * Gets the current thread
  */
 Thread* GetCurrentThread();
