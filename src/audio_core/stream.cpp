@@ -28,8 +28,7 @@ u32 Stream::GetNumChannels() const {
     case Format::Multi51Channel16:
         return 6;
     }
-    LOG_CRITICAL(Audio, "Unimplemented format={}", static_cast<u32>(format));
-    UNREACHABLE();
+    UNIMPLEMENTED_MSG("Unimplemented format={}", static_cast<u32>(format));
     return {};
 }
 
@@ -49,7 +48,7 @@ void Stream::Play() {
 
 void Stream::Stop() {
     state = State::Stopped;
-    ASSERT_MSG(false, "Unimplemented");
+    UNIMPLEMENTED();
 }
 
 Stream::State Stream::GetState() const {
@@ -120,7 +119,7 @@ bool Stream::QueueBuffer(BufferPtr&& buffer) {
 }
 
 bool Stream::ContainsBuffer(Buffer::Tag tag) const {
-    ASSERT_MSG(false, "Unimplemented");
+    UNIMPLEMENTED();
     return {};
 }
 
