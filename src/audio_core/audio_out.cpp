@@ -22,8 +22,7 @@ static Stream::Format ChannelsToStreamFormat(u32 num_channels) {
         return Stream::Format::Multi51Channel16;
     }
 
-    LOG_CRITICAL(Audio, "Unimplemented num_channels={}", num_channels);
-    UNREACHABLE();
+    UNIMPLEMENTED_MSG("Unimplemented num_channels={}", num_channels);
     return {};
 }
 
