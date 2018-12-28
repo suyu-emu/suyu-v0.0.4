@@ -32,6 +32,13 @@ constexpr MiiStoreData DEFAULT_MII = {
 // Default values taken from multiple real databases
 const MiiDatabase DEFAULT_MII_DATABASE{Common::MakeMagic('N', 'F', 'D', 'B'), {}, {1}, 0, 0};
 
+constexpr std::array<const char*, 4> SOURCE_NAMES{
+    "Database",
+    "Default",
+    "Account",
+    "Friend",
+};
+
 template <typename T, std::size_t SourceArraySize, std::size_t DestArraySize>
 std::array<T, DestArraySize> ResizeArray(const std::array<T, SourceArraySize>& in) {
     std::array<T, DestArraySize> out{};
@@ -167,6 +174,11 @@ MiiStoreData ConvertInfoToStoreData(const MiiInfo& info) {
 
 } // namespace
 
+std::ostream& operator<<(std::ostream& os,Source source) {
+    os << SOURCE_NAMES.at(static_cast<std::size_t>(source));
+    return os;
+}
+
 std::u16string MiiInfo::Name() const {
     return Common::UTF16StringFromFixedZeroTerminatedBuffer(name.data(), name.size());
 }
@@ -210,6 +222,10 @@ bool MiiManager::CheckUpdatedFlag() const {
 
 void MiiManager::ResetUpdatedFlag() {
     updated_flag = false;
+}
+
+bool MiiManager::IsTestModeEnabled() const {
+    return is_test_mode_enabled;
 }
 
 bool MiiManager::Empty() const {
@@ -316,6 +332,17 @@ bool MiiManager::AddOrReplace(const MiiStoreData& data) {
     }
 
     return true;
+}
+
+bool MiiManager::DestroyFile() {
+    database = DEFAULT_MII_DATABASE;
+    updated_flag = false;
+    return DeleteFile();
+}
+
+bool MiiManager::DeleteFile() {
+    const auto path = FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) + MII_SAVE_DATABASE_PATH;
+    return FileUtil::Exists(path) && FileUtil::Delete(path);
 }
 
 void MiiManager::WriteToFile() {

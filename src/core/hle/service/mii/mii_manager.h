@@ -27,6 +27,8 @@ enum class Source : u32 {
     Friend = 3,
 };
 
+std::ostream& operator<<(std::ostream& os, Source source);
+
 struct MiiInfo {
     Common::UUID uuid;
     std::array<char16_t, 11> name;
@@ -183,6 +185,8 @@ struct MiiStoreBitFields {
     };
 };
 static_assert(sizeof(MiiStoreBitFields) == 0x1C, "MiiStoreBitFields has incorrect size.");
+static_assert(std::is_trivially_copyable_v<MiiStoreBitFields>,
+              "MiiStoreBitFields is not trivially copyable.");
 
 struct MiiStoreData {
     // This corresponds to the above structure MiiStoreBitFields. I did it like this because the
@@ -229,6 +233,8 @@ public:
     bool CheckUpdatedFlag() const;
     void ResetUpdatedFlag();
 
+    bool IsTestModeEnabled() const;
+
     bool Empty() const;
     bool Full() const;
 
@@ -248,6 +254,9 @@ public:
     bool Move(Common::UUID uuid, u32 new_index);
     bool AddOrReplace(const MiiStoreData& data);
 
+    bool DestroyFile();
+    bool DeleteFile();
+
 private:
     void WriteToFile();
     void ReadFromFile();
@@ -258,6 +267,7 @@ private:
 
     MiiDatabase database;
     bool updated_flag = false;
+    bool is_test_mode_enabled = false;
 };
 
 }; // namespace Service::Mii

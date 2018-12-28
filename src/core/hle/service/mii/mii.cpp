@@ -4,6 +4,8 @@
 
 #include <memory>
 
+#include <fmt/ostream.h>
+
 #include "common/logging/log.h"
 #include "common/string_util.h"
 #include "core/hle/ipc_helpers.h"
@@ -14,6 +16,10 @@
 #include "core/hle/service/sm/sm.h"
 
 namespace Service::Mii {
+
+constexpr ResultCode ERROR_INVALID_ARGUMENT{ErrorModule::Mii, 1};
+constexpr ResultCode ERROR_CANNOT_FIND_ENTRY{ErrorModule::Mii, 4};
+constexpr ResultCode ERROR_NOT_IN_TEST_MODE{ErrorModule::Mii, 99};
 
 class IDatabaseService final : public ServiceFramework<IDatabaseService> {
 public:
@@ -35,8 +41,8 @@ public:
             {12, &IDatabaseService::Move, "Move"},
             {13, &IDatabaseService::AddOrReplace, "AddOrReplace"},
             {14, &IDatabaseService::Delete, "Delete"},
-            {15, nullptr, "DestroyFile"},
-            {16, nullptr, "DeleteFile"},
+            {15, &IDatabaseService::DestroyFile, "DestroyFile"},
+            {16, &IDatabaseService::DeleteFile, "DeleteFile"},
             {17, &IDatabaseService::Format, "Format"},
             {18, nullptr, "Import"},
             {19, nullptr, "Export"},
@@ -135,12 +141,33 @@ private:
 
     void BuildRandom(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-        const auto random_params{rp.PopRaw<RandomParameters>()};
+        const auto [unknown1, unknown2, unknown3] = rp.PopRaw<RandomParameters>();
+
+        if (unknown1 > 3) {
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_ARGUMENT);
+            LOG_ERROR(Service_Mii, "Invalid unknown1 value: {}", unknown1);
+            return;
+        }
+
+        if (unknown2 > 2) {
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_ARGUMENT);
+            LOG_ERROR(Service_Mii, "Invalid unknown2 value: {}", unknown2);
+            return;
+        }
+
+        if (unknown3 > 3) {
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_ARGUMENT);
+            LOG_ERROR(Service_Mii, "Invalid unknown3 value: {}", unknown3);
+            return;
+        }
 
         LOG_DEBUG(Service_Mii, "called with param_1={:08X}, param_2={:08X}, param_3={:08X}",
-                  random_params.unknown_1, random_params.unknown_2, random_params.unknown_3);
+                  unknown1, unknown2, unknown3);
 
-        const auto info = db.CreateRandom(random_params);
+        const auto info = db.CreateRandom({unknown1, unknown2, unknown3});
         IPC::ResponseBuilder rb{ctx, 2 + sizeof(MiiInfo) / sizeof(u32)};
         rb.Push(RESULT_SUCCESS);
         rb.PushRaw<MiiInfo>(info);
@@ -149,6 +176,14 @@ private:
     void BuildDefault(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto index{rp.PopRaw<u32>()};
+
+        if (index > 5) {
+            LOG_ERROR(Service_Mii, "invalid argument, index cannot be greater than 5 but is {:08X}",
+                      index);
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_ARGUMENT);
+            return;
+        }
 
         LOG_DEBUG(Service_Mii, "called with index={:08X}", index);
 
@@ -218,7 +253,14 @@ private:
     void Move(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto uuid{rp.PopRaw<Common::UUID>()};
-        const auto index{rp.PopRaw<u32>()};
+        const auto index{rp.PopRaw<s32>()};
+
+        if (index < 0) {
+            LOG_ERROR(Service_Mii, "Index cannot be negative but is {:08X}!", index);
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_ARGUMENT);
+            return;
+        }
 
         LOG_DEBUG(Service_Mii, "called with uuid={}, index={:08X}", uuid.FormatSwitch(), index);
 
@@ -252,8 +294,37 @@ private:
         const auto success = db.Remove(uuid);
 
         IPC::ResponseBuilder rb{ctx, 2};
-        // TODO(DarkLordZach): Find a better error code
-        rb.Push(success ? RESULT_SUCCESS : ResultCode(-1));
+        rb.Push(success ? RESULT_SUCCESS : ERROR_CANNOT_FIND_ENTRY);
+    }
+
+    void DestroyFile(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_Mii, "called");
+
+        if (!db.IsTestModeEnabled()) {
+            LOG_ERROR(Service_Mii, "Database is not in test mode -- cannot destory database file.");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_NOT_IN_TEST_MODE);
+            return;
+        }
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(db.DestroyFile());
+    }
+
+    void DeleteFile(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_Mii, "called");
+
+        if (!db.IsTestModeEnabled()) {
+            LOG_ERROR(Service_Mii, "Database is not in test mode -- cannot delete database file.");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_NOT_IN_TEST_MODE);
+            return;
+        }
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(db.DeleteFile());
     }
 
     void Format(Kernel::HLERequestContext& ctx) {
