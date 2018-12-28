@@ -638,10 +638,8 @@ void Controller_NPad::ClearAllControllers() {
                   });
 }
 
-u32 Controller_NPad::GetPressState() {
-    const auto res = press_state;
-    press_state = 0;
-    return res;
+u32 Controller_NPad::GetAndResetPressState() {
+    return std::exchange(press_state, 0);
 }
 
 bool Controller_NPad::IsControllerSupported(NPadControllerType controller) const {

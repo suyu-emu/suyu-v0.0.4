@@ -10,15 +10,17 @@
 #include "yuzu/applets/web_browser.h"
 #include "yuzu/main.h"
 
+#ifdef YUZU_USE_QT_WEB_ENGINE
+
 constexpr char NX_SHIM_INJECT_SCRIPT[] = R"(
     window.nx = {};
     window.nx.playReport = {};
     window.nx.playReport.setCounterSetIdentifier = function () {
-        console.log("nx.footer.setCounterSetIdentifier called - unimplemented");
+        console.log("nx.playReport.setCounterSetIdentifier called - unimplemented");
     };
 
     window.nx.playReport.incrementCounter = function () {
-        console.log("nx.footer.incrementCounter called - unimplemented");
+        console.log("nx.playReport.incrementCounter called - unimplemented");
     };
 
     window.nx.footer = {};
@@ -56,6 +58,12 @@ constexpr char NX_SHIM_INJECT_SCRIPT[] = R"(
     };
 )";
 
+QString GetNXShimInjectionScript() {
+    return QString::fromStdString(NX_SHIM_INJECT_SCRIPT);
+}
+
+NXInputWebEngineView::NXInputWebEngineView(QWidget* parent) : QWebEngineView(parent) {}
+
 void NXInputWebEngineView::keyPressEvent(QKeyEvent* event) {
     parent()->event(event);
 }
@@ -64,11 +72,7 @@ void NXInputWebEngineView::keyReleaseEvent(QKeyEvent* event) {
     parent()->event(event);
 }
 
-QString GetNXShimInjectionScript() {
-    return QString::fromStdString(NX_SHIM_INJECT_SCRIPT);
-}
-
-NXInputWebEngineView::NXInputWebEngineView(QWidget* parent) : QWebEngineView(parent) {}
+#endif
 
 QtWebBrowser::QtWebBrowser(GMainWindow& main_window) {
     connect(this, &QtWebBrowser::MainWindowOpenPage, &main_window, &GMainWindow::WebBrowserOpenPage,

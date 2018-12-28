@@ -126,7 +126,7 @@ public:
 
     // Logical OR for all buttons presses on all controllers
     // Specifically for cheat engine and other features.
-    u32 GetPressState();
+    u32 GetAndResetPressState();
 
     static std::size_t NPadIdToIndex(u32 npad_id);
     static u32 IndexToNPad(std::size_t index);

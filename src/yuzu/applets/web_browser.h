@@ -6,21 +6,29 @@
 
 #include <functional>
 #include <QObject>
+
+#ifdef YUZU_USE_QT_WEB_ENGINE
 #include <QWebEngineView>
+#endif
+
 #include "core/frontend/applets/web_browser.h"
 
 class GMainWindow;
+
+#ifdef YUZU_USE_QT_WEB_ENGINE
 
 QString GetNXShimInjectionScript();
 
 class NXInputWebEngineView : public QWebEngineView {
 public:
-    NXInputWebEngineView(QWidget* parent = nullptr);
+    explicit NXInputWebEngineView(QWidget* parent = nullptr);
 
 protected:
     void keyPressEvent(QKeyEvent* event) override;
     void keyReleaseEvent(QKeyEvent* event) override;
 };
+
+#endif
 
 class QtWebBrowser final : public QObject, public Core::Frontend::WebBrowserApplet {
     Q_OBJECT

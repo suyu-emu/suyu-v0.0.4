@@ -44,7 +44,6 @@ public:
     ResultStatus ReadIcon(std::vector<u8>& buffer) override;
     ResultStatus ReadTitle(std::string& title) override;
     ResultStatus ReadControlData(FileSys::NACP& control) override;
-    ResultStatus ReadDeveloper(std::string& developer) override;
     ResultStatus ReadManualRomFS(FileSys::VirtualFile& file) override;
 
 private:

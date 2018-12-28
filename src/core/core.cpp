@@ -203,6 +203,11 @@ struct System::Impl {
         // Close app loader
         app_loader.reset();
 
+        // Clear all applets
+        profile_selector.reset();
+        software_keyboard.reset();
+        web_browser.reset();
+
         LOG_DEBUG(Core, "Shutdown OK");
     }
 

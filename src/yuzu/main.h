@@ -13,6 +13,7 @@
 
 #include "common/common_types.h"
 #include "core/core.h"
+#include "core/hle/service/acc/profile_manager.h"
 #include "ui_main.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/hotkeys.h"
@@ -38,10 +39,6 @@ namespace FileSys {
 class RegisteredCacheUnion;
 class VfsFilesystem;
 } // namespace FileSys
-
-namespace Service::Account {
-struct UUID;
-} // namespace Service::Account
 
 namespace Tegra {
 class DebugContext;

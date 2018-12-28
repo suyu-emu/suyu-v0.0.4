@@ -49,17 +49,20 @@ static_assert(sizeof(WebArgumentResult) == 0x1010, "WebArgumentResult has incorr
 
 static std::vector<u8> GetArgumentDataForTagType(const std::vector<u8>& data, u16 type) {
     WebBufferHeader header;
+    ASSERT(sizeof(WebBufferHeader) <= data.size());
     std::memcpy(&header, data.data(), sizeof(WebBufferHeader));
 
     u64 offset = sizeof(WebBufferHeader);
     for (u16 i = 0; i < header.count; ++i) {
         WebArgumentHeader arg;
+        ASSERT(offset + sizeof(WebArgumentHeader) <= data.size());
         std::memcpy(&arg, data.data() + offset, sizeof(WebArgumentHeader));
         offset += sizeof(WebArgumentHeader);
 
         if (arg.type == type) {
             std::vector<u8> out(arg.size);
             offset += arg.offset;
+            ASSERT(offset + arg.size <= data.size());
             std::memcpy(out.data(), data.data() + offset, out.size());
             return out;
         }
@@ -91,18 +94,16 @@ WebBrowser::WebBrowser() = default;
 WebBrowser::~WebBrowser() = default;
 
 void WebBrowser::Initialize() {
+    Applet::Initialize();
+
     complete = false;
     temporary_dir.clear();
     filename.clear();
     status = RESULT_SUCCESS;
 
-    Applet::Initialize();
-
     const auto web_arg_storage = broker.PopNormalDataToApplet();
     ASSERT(web_arg_storage != nullptr);
     const auto& web_arg = web_arg_storage->GetData();
-
-    LOG_CRITICAL(Service_AM, "{}", Common::HexVectorToString(web_arg));
 
     const auto url_data = GetArgumentDataForTagType(web_arg, WEB_ARGUMENT_URL_TYPE);
     filename = Common::StringFromFixedZeroTerminatedBuffer(
@@ -133,7 +134,7 @@ ResultCode WebBrowser::GetStatus() const {
 }
 
 void WebBrowser::ExecuteInteractive() {
-    UNIMPLEMENTED_MSG(Service_AM, "Unexpected interactive data recieved!");
+    UNIMPLEMENTED_MSG("Unexpected interactive data recieved!");
 }
 
 void WebBrowser::Execute() {
@@ -147,8 +148,7 @@ void WebBrowser::Execute() {
 
     const auto& frontend{Core::System::GetInstance().GetWebBrowser()};
 
-    frontend.OpenPage(
-        filename, [this] { UnpackRomFS(); }, [this] { Finalize(); });
+    frontend.OpenPage(filename, [this] { UnpackRomFS(); }, [this] { Finalize(); });
 }
 
 void WebBrowser::UnpackRomFS() {
