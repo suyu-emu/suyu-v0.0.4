@@ -419,11 +419,18 @@ void Config::ReadValues() {
 
     Settings::values.language_index = qt_config->value("language_index", 1).toInt();
 
-    const auto enabled = qt_config->value("rng_seed_enabled", false).toBool();
-    if (enabled) {
+    const auto rng_seed_enabled = qt_config->value("rng_seed_enabled", false).toBool();
+    if (rng_seed_enabled) {
         Settings::values.rng_seed = qt_config->value("rng_seed", 0).toULongLong();
     } else {
         Settings::values.rng_seed = std::nullopt;
+    }
+
+    const auto custom_rtc_enabled = qt_config->value("custom_rtc_enabled", false).toBool();
+    if (custom_rtc_enabled) {
+        Settings::values.custom_rtc = qt_config->value("custom_rtc", 0).toULongLong();
+    } else {
+        Settings::values.custom_rtc = std::nullopt;
     }
 
     qt_config->endGroup();
@@ -652,6 +659,9 @@ void Config::SaveValues() {
 
     qt_config->setValue("rng_seed_enabled", Settings::values.rng_seed.has_value());
     qt_config->setValue("rng_seed", Settings::values.rng_seed.value_or(0));
+
+    qt_config->setValue("custom_rtc_enabled", Settings::values.custom_rtc.has_value());
+    qt_config->setValue("custom_rtc", Settings::values.custom_rtc.value_or(0));
 
     qt_config->endGroup();
 
