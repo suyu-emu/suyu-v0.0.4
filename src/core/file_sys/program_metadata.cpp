@@ -92,15 +92,19 @@ void ProgramMetadata::Print() const {
     LOG_DEBUG(Service_FS, " > 64-bit instructions: {}",
               npdm_header.has_64_bit_instructions ? "YES" : "NO");
 
-    auto address_space = "Unknown";
+    const char* address_space = "Unknown";
     switch (npdm_header.address_space_type) {
     case ProgramAddressSpaceType::Is36Bit:
+        address_space = "64-bit (36-bit address space)";
+        break;
     case ProgramAddressSpaceType::Is39Bit:
-        address_space = "64-bit";
+        address_space = "64-bit (39-bit address space)";
         break;
     case ProgramAddressSpaceType::Is32Bit:
-    case ProgramAddressSpaceType::Is32BitNoMap:
         address_space = "32-bit";
+        break;
+    case ProgramAddressSpaceType::Is32BitNoMap:
+        address_space = "32-bit (no map region)";
         break;
     }
 
