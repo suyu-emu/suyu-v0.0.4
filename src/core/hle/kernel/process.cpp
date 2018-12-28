@@ -35,8 +35,8 @@ void SetupMainThread(Process& owner_process, KernelCore& kernel, VAddr entry_poi
 
     // Initialize new "main" thread
     const VAddr stack_top = owner_process.VMManager().GetTLSIORegionEndAddress();
-    auto thread_res = Thread::Create(kernel, "main", entry_point, priority, 0, THREADPROCESSORID_0,
-                                     stack_top, owner_process);
+    auto thread_res = Thread::Create(kernel, "main", entry_point, priority, 0,
+                                     owner_process.GetIdealCore(), stack_top, owner_process);
 
     SharedPtr<Thread> thread = std::move(thread_res).Unwrap();
 
