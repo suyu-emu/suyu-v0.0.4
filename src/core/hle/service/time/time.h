@@ -22,7 +22,6 @@ struct CalendarTime {
     u8 hour;
     u8 minute;
     u8 second;
-    INSERT_PADDING_BYTES(1);
 };
 static_assert(sizeof(CalendarTime) == 0x8, "CalendarTime structure has incorrect size");
 
@@ -30,7 +29,7 @@ struct CalendarAdditionalInfo {
     u32_le day_of_week;
     u32_le day_of_year;
     std::array<u8, 8> name;
-    INSERT_PADDING_BYTES(1);
+    u8 is_dst;
     s32_le utc_offset;
 };
 static_assert(sizeof(CalendarAdditionalInfo) == 0x18,
@@ -42,8 +41,10 @@ struct TimeZoneRule {
 };
 
 struct SteadyClockTimePoint {
+    using SourceID = std::array<u8, 16>;
+
     u64_le value;
-    INSERT_PADDING_WORDS(4);
+    SourceID source_id;
 };
 static_assert(sizeof(SteadyClockTimePoint) == 0x18, "SteadyClockTimePoint is incorrect size");
 
@@ -66,8 +67,9 @@ struct ClockSnapshot {
     SteadyClockTimePoint steady_clock_timepoint;
     LocationName location_name;
     u8 clock_auto_adjustment_enabled;
-    u8 ipc_u8;
-    INSERT_PADDING_BYTES(2);
+    u8 type;
+    u8 version;
+    INSERT_PADDING_BYTES(1);
 };
 static_assert(sizeof(ClockSnapshot) == 0xd0, "ClockSnapshot is an invalid size");
 

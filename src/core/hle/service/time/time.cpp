@@ -264,7 +264,7 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
 
     IPC::RequestParser rp{ctx};
-    auto unknown_u8 = rp.PopRaw<u8>();
+    const auto initial_type = rp.PopRaw<u8>();
 
     ClockSnapshot clock_snapshot{};
 
@@ -304,7 +304,7 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
     clock_snapshot.steady_clock_timepoint = steady_clock_time_point;
     clock_snapshot.location_name = location_name;
     clock_snapshot.clock_auto_adjustment_enabled = 1;
-    clock_snapshot.ipc_u8 = unknown_u8;
+    clock_snapshot.type = initial_type;
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
     ctx.WriteBuffer(&clock_snapshot, sizeof(ClockSnapshot));
