@@ -428,7 +428,8 @@ void Config::ReadValues() {
 
     const auto custom_rtc_enabled = qt_config->value("custom_rtc_enabled", false).toBool();
     if (custom_rtc_enabled) {
-        Settings::values.custom_rtc = qt_config->value("custom_rtc", 0).toULongLong();
+        Settings::values.custom_rtc =
+            std::chrono::seconds(qt_config->value("custom_rtc", 0).toULongLong());
     } else {
         Settings::values.custom_rtc = std::nullopt;
     }
@@ -661,7 +662,8 @@ void Config::SaveValues() {
     qt_config->setValue("rng_seed", Settings::values.rng_seed.value_or(0));
 
     qt_config->setValue("custom_rtc_enabled", Settings::values.custom_rtc.has_value());
-    qt_config->setValue("custom_rtc", Settings::values.custom_rtc.value_or(0));
+    qt_config->setValue("custom_rtc",
+                        Settings::values.custom_rtc.value_or(std::chrono::seconds{}).count());
 
     qt_config->endGroup();
 

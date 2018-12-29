@@ -16,10 +16,9 @@
 
 namespace Service::Time {
 
-static s64 GetSecondsSinceEpoch() {
+static std::chrono::seconds GetSecondsSinceEpoch() {
     return std::chrono::duration_cast<std::chrono::seconds>(
-               std::chrono::system_clock::now().time_since_epoch())
-               .count() +
+               std::chrono::system_clock::now().time_since_epoch()) +
            Settings::values.custom_rtc_differential;
 }
 
@@ -76,7 +75,7 @@ public:
 
 private:
     void GetCurrentTime(Kernel::HLERequestContext& ctx) {
-        const s64 time_since_epoch{GetSecondsSinceEpoch()};
+        const s64 time_since_epoch{GetSecondsSinceEpoch().count()};
         LOG_DEBUG(Service_Time, "called");
 
         IPC::ResponseBuilder rb{ctx, 4};
@@ -272,8 +271,7 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto initial_type = rp.PopRaw<u8>();
 
-    const s64 time_since_epoch{GetSecondsSinceEpoch()};
-
+    const s64 time_since_epoch{GetSecondsSinceEpoch().count()};
     const std::time_t time(time_since_epoch);
     const std::tm* tm = std::localtime(&time);
     if (tm == nullptr) {

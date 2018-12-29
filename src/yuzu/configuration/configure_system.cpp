@@ -77,8 +77,9 @@ void ConfigureSystem::setConfiguration() {
     ui->custom_rtc_checkbox->setChecked(Settings::values.custom_rtc.has_value());
     ui->custom_rtc_edit->setEnabled(Settings::values.custom_rtc.has_value());
 
-    const auto rtc_time = Settings::values.custom_rtc.value_or(QDateTime::currentSecsSinceEpoch());
-    ui->custom_rtc_edit->setDateTime(QDateTime::fromSecsSinceEpoch(rtc_time));
+    const auto rtc_time = Settings::values.custom_rtc.value_or(
+        std::chrono::seconds(QDateTime::currentSecsSinceEpoch()));
+    ui->custom_rtc_edit->setDateTime(QDateTime::fromSecsSinceEpoch(rtc_time.count()));
 }
 
 void ConfigureSystem::ReadSystemSettings() {}
@@ -95,7 +96,8 @@ void ConfigureSystem::applyConfiguration() {
         Settings::values.rng_seed = std::nullopt;
 
     if (ui->custom_rtc_checkbox->isChecked())
-        Settings::values.custom_rtc = ui->custom_rtc_edit->dateTime().toSecsSinceEpoch();
+        Settings::values.custom_rtc =
+            std::chrono::seconds(ui->custom_rtc_edit->dateTime().toSecsSinceEpoch());
     else
         Settings::values.custom_rtc = std::nullopt;
 
