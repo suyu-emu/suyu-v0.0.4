@@ -351,7 +351,7 @@ void GMainWindow::WebBrowserOpenPage(std::string_view filename, std::string_view
             running_exit_check = true;
         }
 
-        const auto input = npad.GetPressState();
+        const auto input = npad.GetAndResetPressState();
         for (std::size_t i = 0; i < Settings::NativeButton::NumButtons; ++i) {
             if ((input & (1 << i)) != 0) {
                 LOG_DEBUG(Frontend, "firing input for button id={:02X}", i);

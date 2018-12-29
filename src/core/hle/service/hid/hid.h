@@ -3,6 +3,8 @@
 // Refer to the license.txt file included.
 
 #pragma once
+
+#include "controllers/controller_base.h"
 #include "core/hle/service/service.h"
 
 namespace CoreTiming {
@@ -18,8 +20,6 @@ class ServiceManager;
 }
 
 namespace Service::HID {
-
-class ControllerBase;
 
 enum class HidController : std::size_t {
     DebugPad,
