@@ -87,6 +87,7 @@ add_library(video_core STATIC
     shader/decode.cpp
     shader/shader_ir.cpp
     shader/shader_ir.h
+    shader/track.cpp
     surface.cpp
     surface.h
     textures/astc.cpp
