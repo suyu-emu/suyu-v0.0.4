@@ -111,7 +111,8 @@ static void GenerateErrorReport(ResultCode error_code, const FatalInfo& info) {
 }
 
 static void ThrowFatalError(ResultCode error_code, FatalType fatal_type, const FatalInfo& info) {
-    LOG_ERROR(Service_Fatal, "Threw fatal error type {}", static_cast<u32>(fatal_type));
+    LOG_ERROR(Service_Fatal, "Threw fatal error type {} with error code 0x{:X}",
+              static_cast<u32>(fatal_type), error_code.raw);
     switch (fatal_type) {
     case FatalType::ErrorReportAndScreen:
         GenerateErrorReport(error_code, info);

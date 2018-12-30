@@ -141,6 +141,14 @@ public:
 
     /// Prepare core for thread reschedule (if needed to correctly handle state)
     virtual void PrepareReschedule() = 0;
+
+    /// fp (= r29) points to the last frame record.
+    /// Note that this is the frame record for the *previous* frame, not the current one.
+    /// Note we need to subtract 4 from our last read to get the proper address
+    /// Frame records are two words long:
+    /// fp+0 : pointer to previous frame record
+    /// fp+8 : value of lr for frame
+    void LogBacktrace();
 };
 
 } // namespace Core

@@ -684,6 +684,9 @@ static void Break(u32 reason, u64 info1, u64 info2) {
             "Emulated program broke execution! reason=0x{:016X}, info1=0x{:016X}, info2=0x{:016X}",
             reason, info1, info2);
         handle_debug_buffer(info1, info2);
+        Core::System::GetInstance()
+            .ArmInterface(static_cast<std::size_t>(GetCurrentThread()->GetProcessorID()))
+            .LogBacktrace();
         ASSERT(false);
 
         Core::CurrentProcess()->PrepareForTermination();
