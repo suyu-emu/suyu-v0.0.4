@@ -264,14 +264,12 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
 
     IPC::RequestParser rp{ctx};
-    auto unknown_u8 = rp.PopRaw<u8>();
-
-    ClockSnapshot clock_snapshot{};
+    const auto initial_type = rp.PopRaw<u8>();
 
     const s64 time_since_epoch{std::chrono::duration_cast<std::chrono::seconds>(
                                    std::chrono::system_clock::now().time_since_epoch())
                                    .count()};
-    CalendarTime calendar_time{};
+
     const std::time_t time(time_since_epoch);
     const std::tm* tm = std::localtime(&time);
     if (tm == nullptr) {
@@ -280,16 +278,19 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
         rb.Push(ResultCode(-1)); // TODO(ogniK): Find appropriate error code
         return;
     }
-    SteadyClockTimePoint steady_clock_time_point{CoreTiming::cyclesToMs(CoreTiming::GetTicks()) /
-                                                 1000};
 
-    LocationName location_name{"UTC"};
+    const SteadyClockTimePoint steady_clock_time_point{
+        CoreTiming::cyclesToMs(CoreTiming::GetTicks()) / 1000, {}};
+
+    CalendarTime calendar_time{};
     calendar_time.year = tm->tm_year + 1900;
     calendar_time.month = tm->tm_mon + 1;
     calendar_time.day = tm->tm_mday;
     calendar_time.hour = tm->tm_hour;
     calendar_time.minute = tm->tm_min;
     calendar_time.second = tm->tm_sec;
+
+    ClockSnapshot clock_snapshot{};
     clock_snapshot.system_posix_time = time_since_epoch;
     clock_snapshot.network_posix_time = time_since_epoch;
     clock_snapshot.system_calendar_time = calendar_time;
@@ -302,9 +303,10 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
     clock_snapshot.network_calendar_info = additional_info;
 
     clock_snapshot.steady_clock_timepoint = steady_clock_time_point;
-    clock_snapshot.location_name = location_name;
+    clock_snapshot.location_name = LocationName{"UTC"};
     clock_snapshot.clock_auto_adjustment_enabled = 1;
-    clock_snapshot.ipc_u8 = unknown_u8;
+    clock_snapshot.type = initial_type;
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
     ctx.WriteBuffer(&clock_snapshot, sizeof(ClockSnapshot));
