@@ -55,7 +55,7 @@ u32 ShaderIR::DecodeXmad(BasicBlock& bb, const BasicBlock& code, u32 pc) {
     // TODO(Rodrigo): Use an appropiate sign for this operation
     Node product = Operation(OperationCode::IMul, NO_PRECISE, op_a, op_b);
     if (instr.xmad.product_shift_left) {
-        product = Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, op_a, Immediate(16));
+        product = Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, product, Immediate(16));
     }
 
     op_c = [&]() {
