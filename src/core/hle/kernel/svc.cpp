@@ -1233,13 +1233,7 @@ static ResultCode CreateThread(Handle* out_handle, VAddr entry_point, u64 arg, V
         ASSERT(processor_id != THREADPROCESSORID_IDEAL);
     }
 
-    switch (processor_id) {
-    case THREADPROCESSORID_0:
-    case THREADPROCESSORID_1:
-    case THREADPROCESSORID_2:
-    case THREADPROCESSORID_3:
-        break;
-    default:
+    if (processor_id < THREADPROCESSORID_0 || processor_id > THREADPROCESSORID_3) {
         LOG_ERROR(Kernel_SVC, "Invalid thread processor ID: {}", processor_id);
         return ERR_INVALID_PROCESSOR_ID;
     }
