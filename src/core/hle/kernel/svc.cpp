@@ -1239,8 +1239,9 @@ static ResultCode CreateThread(Handle* out_handle, VAddr entry_point, u64 arg, V
     }
 
     if (priority > THREADPRIO_LOWEST) {
-        LOG_ERROR(Kernel_SVC, "An invalid priority was specified, expected {} but got {}",
-                  THREADPRIO_LOWEST, priority);
+        LOG_ERROR(Kernel_SVC,
+                  "Invalid thread priority specified ({}). Must be within the range 0-64",
+                  priority);
         return ERR_INVALID_THREAD_PRIORITY;
     }
 
