@@ -23,4 +23,4 @@ void ARM_Interface::LogBacktrace() {
         fp = Memory::Read64(fp);
     }
 }
-}; // namespace Core
+} // namespace Core
