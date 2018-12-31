@@ -715,8 +715,8 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
 
     enum class GetInfoType : u64 {
         // 1.0.0+
-        AllowedCpuIdBitmask = 0,
-        AllowedThreadPrioBitmask = 1,
+        AllowedCPUCoreMask = 0,
+        AllowedThreadPriorityMask = 1,
         MapRegionBaseAddr = 2,
         MapRegionSize = 3,
         HeapRegionBaseAddr = 4,
@@ -747,8 +747,8 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
     const auto info_id_type = static_cast<GetInfoType>(info_id);
 
     switch (info_id_type) {
-    case GetInfoType::AllowedCpuIdBitmask:
-    case GetInfoType::AllowedThreadPrioBitmask:
+    case GetInfoType::AllowedCPUCoreMask:
+    case GetInfoType::AllowedThreadPriorityMask:
     case GetInfoType::MapRegionBaseAddr:
     case GetInfoType::MapRegionSize:
     case GetInfoType::HeapRegionBaseAddr:
@@ -774,12 +774,12 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
         }
 
         switch (info_id_type) {
-        case GetInfoType::AllowedCpuIdBitmask:
-            *result = process->GetAllowedProcessorMask();
+        case GetInfoType::AllowedCPUCoreMask:
+            *result = process->GetCoreMask();
             return RESULT_SUCCESS;
 
-        case GetInfoType::AllowedThreadPrioBitmask:
-            *result = process->GetAllowedThreadPriorityMask();
+        case GetInfoType::AllowedThreadPriorityMask:
+            *result = process->GetPriorityMask();
             return RESULT_SUCCESS;
 
         case GetInfoType::MapRegionBaseAddr:
