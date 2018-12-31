@@ -1219,12 +1219,6 @@ static ResultCode CreateThread(Handle* out_handle, VAddr entry_point, u64 arg, V
               "threadpriority=0x{:08X}, processorid=0x{:08X} : created handle=0x{:08X}",
               entry_point, arg, stack_top, priority, processor_id, *out_handle);
 
-    if (priority > THREADPRIO_LOWEST) {
-        LOG_ERROR(Kernel_SVC, "An invalid priority was specified, expected {} but got {}",
-                  THREADPRIO_LOWEST, priority);
-        return ERR_INVALID_THREAD_PRIORITY;
-    }
-
     auto* const current_process = Core::CurrentProcess();
 
     if (processor_id == THREADPROCESSORID_IDEAL) {
@@ -1236,6 +1230,23 @@ static ResultCode CreateThread(Handle* out_handle, VAddr entry_point, u64 arg, V
     if (processor_id < THREADPROCESSORID_0 || processor_id > THREADPROCESSORID_3) {
         LOG_ERROR(Kernel_SVC, "Invalid thread processor ID: {}", processor_id);
         return ERR_INVALID_PROCESSOR_ID;
+    }
+
+    const u64 core_mask = current_process->GetCoreMask();
+    if ((core_mask | (1ULL << processor_id)) != core_mask) {
+        LOG_ERROR(Kernel_SVC, "Invalid thread core specified ({})", processor_id);
+        return ERR_INVALID_PROCESSOR_ID;
+    }
+
+    if (priority > THREADPRIO_LOWEST) {
+        LOG_ERROR(Kernel_SVC, "An invalid priority was specified, expected {} but got {}",
+                  THREADPRIO_LOWEST, priority);
+        return ERR_INVALID_THREAD_PRIORITY;
+    }
+
+    if (((1ULL << priority) & current_process->GetPriorityMask()) == 0) {
+        LOG_ERROR(Kernel_SVC, "Invalid thread priority specified ({})", priority);
+        return ERR_INVALID_THREAD_PRIORITY;
     }
 
     const std::string name = fmt::format("thread-{:X}", entry_point);
