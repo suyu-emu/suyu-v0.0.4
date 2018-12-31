@@ -11,10 +11,11 @@ namespace Core {
 void ARM_Interface::LogBacktrace() {
     VAddr fp = GetReg(29);
     VAddr lr = GetReg(30);
-    VAddr sp = GetReg(13);
-    VAddr pc = GetPC();
+    const VAddr sp = GetReg(13);
+    const VAddr pc = GetPC();
+
     LOG_ERROR(Core_ARM, "Backtrace, sp={:016X}, pc={:016X}", sp, pc);
-    for (;;) {
+    while (true) {
         LOG_ERROR(Core_ARM, "{:016X}", lr);
         if (!fp) {
             break;
