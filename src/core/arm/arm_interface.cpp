@@ -2,19 +2,20 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "arm_interface.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
+#include "core/arm/arm_interface.h"
 #include "core/memory.h"
 
 namespace Core {
-void ARM_Interface::LogBacktrace() {
+void ARM_Interface::LogBacktrace() const {
     VAddr fp = GetReg(29);
     VAddr lr = GetReg(30);
-    VAddr sp = GetReg(13);
-    VAddr pc = GetPC();
+    const VAddr sp = GetReg(13);
+    const VAddr pc = GetPC();
+
     LOG_ERROR(Core_ARM, "Backtrace, sp={:016X}, pc={:016X}", sp, pc);
-    for (;;) {
+    while (true) {
         LOG_ERROR(Core_ARM, "{:016X}", lr);
         if (!fp) {
             break;
@@ -23,4 +24,4 @@ void ARM_Interface::LogBacktrace() {
         fp = Memory::Read64(fp);
     }
 }
-}; // namespace Core
+} // namespace Core
