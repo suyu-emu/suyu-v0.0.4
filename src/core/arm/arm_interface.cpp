@@ -8,7 +8,7 @@
 #include "core/memory.h"
 
 namespace Core {
-void ARM_Interface::LogBacktrace() {
+void ARM_Interface::LogBacktrace() const {
     VAddr fp = GetReg(29);
     VAddr lr = GetReg(30);
     const VAddr sp = GetReg(13);

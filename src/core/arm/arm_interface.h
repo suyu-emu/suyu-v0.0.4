@@ -148,7 +148,7 @@ public:
     /// Frame records are two words long:
     /// fp+0 : pointer to previous frame record
     /// fp+8 : value of lr for frame
-    void LogBacktrace();
+    void LogBacktrace() const;
 };
 
 } // namespace Core
