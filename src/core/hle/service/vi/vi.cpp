@@ -19,6 +19,7 @@
 #include "core/core_timing.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"

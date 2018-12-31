@@ -22,10 +22,15 @@
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/server_session.h"
+#include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/memory.h"
 
 namespace Kernel {
+
+SessionRequestHandler::SessionRequestHandler() = default;
+
+SessionRequestHandler::~SessionRequestHandler() = default;
 
 void SessionRequestHandler::ClientConnected(SharedPtr<ServerSession> server_session) {
     server_session->SetHleHandler(shared_from_this());

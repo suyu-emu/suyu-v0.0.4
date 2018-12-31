@@ -9,9 +9,9 @@
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/lock.h"
-#include "core/hle/service/hid/hid.h"
 #include "core/hle/service/nfp/nfp.h"
 #include "core/hle/service/nfp/nfp_user.h"
 

@@ -6,7 +6,7 @@
 #include "common/assert.h"
 #include "core/core.h"
 #include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/server_port.h"
+#include "core/hle/kernel/server_session.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/applets.h"
