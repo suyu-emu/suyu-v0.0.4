@@ -120,7 +120,7 @@ void ConfigurePerGameGeneral::loadConfiguration() {
 
         QPixmap map;
         const auto bytes = control.second->ReadAllBytes();
-        map.loadFromData(bytes.data(), bytes.size());
+        map.loadFromData(bytes.data(), static_cast<u32>(bytes.size()));
 
         scene->addPixmap(map.scaled(ui->icon_view->width(), ui->icon_view->height(),
                                     Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
@@ -130,7 +130,7 @@ void ConfigurePerGameGeneral::loadConfiguration() {
             scene->clear();
 
             QPixmap map;
-            map.loadFromData(bytes.data(), bytes.size());
+            map.loadFromData(bytes.data(), static_cast<u32>(bytes.size()));
 
             scene->addPixmap(map.scaled(ui->icon_view->width(), ui->icon_view->height(),
                                         Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
