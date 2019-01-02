@@ -44,10 +44,10 @@ struct DisplayInfo {
     u64 max_layers{1};
 
     /// Maximum width in pixels.
-    u64 width{1280};
+    u64 width{1920};
 
     /// Maximum height in pixels.
-    u64 height{720};
+    u64 height{1080};
 };
 static_assert(sizeof(DisplayInfo) == 0x60, "DisplayInfo has wrong size");
 
