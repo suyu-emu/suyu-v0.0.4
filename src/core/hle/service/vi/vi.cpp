@@ -888,10 +888,23 @@ private:
         LOG_WARNING(Service_VI, "(STUBBED) called");
 
         IPC::RequestParser rp{ctx};
-        auto name_buf = rp.PopRaw<std::array<u8, 0x40>>();
-        auto end = std::find(name_buf.begin(), name_buf.end(), '\0');
+        const auto name_buf = rp.PopRaw<std::array<char, 0x40>>();
 
-        std::string name(name_buf.begin(), end);
+        OpenDisplayImpl(ctx, std::string_view{name_buf.data(), name_buf.size()});
+    }
+
+    void OpenDefaultDisplay(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_VI, "called");
+
+        OpenDisplayImpl(ctx, "Default");
+    }
+
+    void OpenDisplayImpl(Kernel::HLERequestContext& ctx, std::string_view name) {
+        const auto trim_pos = name.find('\0');
+
+        if (trim_pos != std::string_view::npos) {
+            name.remove_suffix(name.size() - trim_pos);
+        }
 
         ASSERT_MSG(name == "Default", "Non-default displays aren't supported yet");
 
@@ -1082,7 +1095,7 @@ IApplicationDisplayService::IApplicationDisplayService(
          "GetIndirectDisplayTransactionService"},
         {1000, &IApplicationDisplayService::ListDisplays, "ListDisplays"},
         {1010, &IApplicationDisplayService::OpenDisplay, "OpenDisplay"},
-        {1011, nullptr, "OpenDefaultDisplay"},
+        {1011, &IApplicationDisplayService::OpenDefaultDisplay, "OpenDefaultDisplay"},
         {1020, &IApplicationDisplayService::CloseDisplay, "CloseDisplay"},
         {1101, nullptr, "SetDisplayEnabled"},
         {1102, &IApplicationDisplayService::GetDisplayResolution, "GetDisplayResolution"},
