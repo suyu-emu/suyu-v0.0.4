@@ -4,11 +4,11 @@
 
 #include <algorithm>
 #include "common/assert.h"
+#include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/thread.h"
-#include "core/hle/kernel/timer.h"
 
 namespace Kernel {
 

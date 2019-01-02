@@ -14,7 +14,6 @@
 #include "common/common_types.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/process_capability.h"
-#include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/hle/kernel/wait_object.h"
 #include "core/hle/result.h"
@@ -27,6 +26,7 @@ namespace Kernel {
 
 class KernelCore;
 class ResourceLimit;
+class Thread;
 
 struct AddressMapping {
     // Address and size must be page-aligned

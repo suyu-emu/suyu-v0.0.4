@@ -14,8 +14,6 @@
 #include "common/swap.h"
 #include "core/hle/ipc.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/server_session.h"
-#include "core/hle/kernel/thread.h"
 
 namespace Service {
 class ServiceFrameworkBase;
@@ -27,8 +25,12 @@ class Domain;
 class HandleTable;
 class HLERequestContext;
 class Process;
+class ServerSession;
+class Thread;
 class ReadableEvent;
 class WritableEvent;
+
+enum class ThreadWakeupReason;
 
 /**
  * Interface implemented by HLE Session handlers.
@@ -37,7 +39,8 @@ class WritableEvent;
  */
 class SessionRequestHandler : public std::enable_shared_from_this<SessionRequestHandler> {
 public:
-    virtual ~SessionRequestHandler() = default;
+    SessionRequestHandler();
+    virtual ~SessionRequestHandler();
 
     /**
      * Handles a sync request from the emulated application.

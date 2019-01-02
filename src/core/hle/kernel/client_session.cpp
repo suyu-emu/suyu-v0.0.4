@@ -8,6 +8,7 @@
 #include "core/hle/kernel/server_session.h"
 #include "core/hle/kernel/session.h"
 #include "core/hle/kernel/thread.h"
+#include "core/hle/result.h"
 
 namespace Kernel {
 

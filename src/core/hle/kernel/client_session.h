@@ -6,9 +6,9 @@
 
 #include <memory>
 #include <string>
-#include "common/common_types.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/result.h"
+
+union ResultCode;
 
 namespace Kernel {
 

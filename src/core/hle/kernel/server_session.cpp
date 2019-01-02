@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "common/assert.h"
+#include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
