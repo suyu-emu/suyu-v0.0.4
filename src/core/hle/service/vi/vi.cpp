@@ -921,6 +921,15 @@ private:
         rb.Push(RESULT_SUCCESS);
     }
 
+    // This literally does nothing internally in the actual service itself,
+    // and just returns a successful result code regardless of the input.
+    void SetDisplayEnabled(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_VI, "called.");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
     void GetDisplayResolution(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const u64 display_id = rp.Pop<u64>();
@@ -1096,7 +1105,7 @@ IApplicationDisplayService::IApplicationDisplayService(
         {1010, &IApplicationDisplayService::OpenDisplay, "OpenDisplay"},
         {1011, nullptr, "OpenDefaultDisplay"},
         {1020, &IApplicationDisplayService::CloseDisplay, "CloseDisplay"},
-        {1101, nullptr, "SetDisplayEnabled"},
+        {1101, &IApplicationDisplayService::SetDisplayEnabled, "SetDisplayEnabled"},
         {1102, &IApplicationDisplayService::GetDisplayResolution, "GetDisplayResolution"},
         {2020, &IApplicationDisplayService::OpenLayer, "OpenLayer"},
         {2021, nullptr, "CloseLayer"},
