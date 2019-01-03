@@ -470,6 +470,8 @@ void Config::ReadValues() {
         qt_config->value("enable_discord_presence", true).toBool();
     UISettings::values.screenshot_resolution_factor =
         static_cast<u16>(qt_config->value("screenshot_resolution_factor", 0).toUInt());
+    UISettings::values.select_user_on_boot =
+        qt_config->value("select_user_on_boot", false).toBool();
 
     qt_config->beginGroup("UIGameList");
     UISettings::values.show_unknown = qt_config->value("show_unknown", true).toBool();
@@ -693,6 +695,7 @@ void Config::SaveValues() {
     qt_config->setValue("enable_discord_presence", UISettings::values.enable_discord_presence);
     qt_config->setValue("screenshot_resolution_factor",
                         UISettings::values.screenshot_resolution_factor);
+    qt_config->setValue("select_user_on_boot", UISettings::values.select_user_on_boot);
 
     qt_config->beginGroup("UIGameList");
     qt_config->setValue("show_unknown", UISettings::values.show_unknown);

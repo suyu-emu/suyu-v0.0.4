@@ -40,6 +40,8 @@ struct Values {
     bool confirm_before_closing;
     bool first_start;
 
+    bool select_user_on_boot;
+
     // Discord RPC
     bool enable_discord_presence;
 

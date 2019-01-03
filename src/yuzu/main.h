@@ -128,6 +128,8 @@ private:
     void ShowTelemetryCallout();
     void SetDiscordEnabled(bool state);
 
+    void SelectAndSetCurrentUser();
+
     /**
      * Stores the filename in the recently loaded files list.
      * The new filename is stored at the beginning of the recently loaded files list.

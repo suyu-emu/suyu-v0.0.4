@@ -38,6 +38,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="toggle_user_on_boot">
+            <property name="text">
+             <string>Prompt for user on game boot</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>
