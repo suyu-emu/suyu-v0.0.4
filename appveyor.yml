@@ -94,6 +94,7 @@ after_build:
           Copy-Item "$BUILD_DIR\*" -Destination $RELEASE_DIST -Recurse
           rm "$RELEASE_DIST\*.exe"
           Get-ChildItem "$BUILD_DIR" -Recurse -Filter "yuzu*.exe" | Copy-Item -destination $RELEASE_DIST
+          Get-ChildItem "$BUILD_DIR" -Recurse -Filter "QtWebEngineProcess*.exe" | Copy-Item -destination $RELEASE_DIST
           Copy-Item .\license.txt -Destination $RELEASE_DIST
           Copy-Item .\README.md -Destination $RELEASE_DIST
           7z a -tzip $MSVC_BUILD_ZIP $RELEASE_DIST\*
