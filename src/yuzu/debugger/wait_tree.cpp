@@ -182,8 +182,6 @@ QString WaitTreeWaitObject::GetResetTypeQString(Kernel::ResetType reset_type) {
         return tr("one shot");
     case Kernel::ResetType::Sticky:
         return tr("sticky");
-    case Kernel::ResetType::Pulse:
-        return tr("pulse");
     }
     UNREACHABLE();
     return {};

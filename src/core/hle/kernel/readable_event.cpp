@@ -46,9 +46,6 @@ ResultCode ReadableEvent::Reset() {
 
 void ReadableEvent::WakeupAllWaitingThreads() {
     WaitObject::WakeupAllWaitingThreads();
-
-    if (reset_type == ResetType::Pulse)
-        signaled = false;
 }
 
 } // namespace Kernel
