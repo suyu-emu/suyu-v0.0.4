@@ -68,9 +68,6 @@ void Timer::Clear() {
 
 void Timer::WakeupAllWaitingThreads() {
     WaitObject::WakeupAllWaitingThreads();
-
-    if (reset_type == ResetType::Pulse)
-        signaled = false;
 }
 
 void Timer::Signal(int cycles_late) {
