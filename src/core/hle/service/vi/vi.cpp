@@ -1003,7 +1003,7 @@ private:
         const u64 unknown = rp.Pop<u64>();
 
         LOG_DEBUG(Service_VI, "called. scaling_mode=0x{:08X}, unknown=0x{:016X}",
-                    static_cast<u32>(scaling_mode), unknown);
+                  static_cast<u32>(scaling_mode), unknown);
 
         IPC::ResponseBuilder rb{ctx, 2};
 
@@ -1102,31 +1102,35 @@ private:
 
     void ConvertScalingMode(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-        auto mode = rp.PopEnum<NintendoScaleMode>();
+        const auto mode = rp.PopEnum<NintendoScaleMode>();
         LOG_DEBUG(Service_VI, "called mode={}", static_cast<u32>(mode));
 
-        IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
+        const auto converted_mode = ConvertScalingModeImpl(mode);
+
+        if (converted_mode.Succeeded()) {
+            IPC::ResponseBuilder rb{ctx, 4};
+            rb.Push(RESULT_SUCCESS);
+            rb.PushEnum(*converted_mode);
+        } else {
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(converted_mode.Code());
+        }
+    }
+
+    static ResultVal<ConvertedScaleMode> ConvertScalingModeImpl(NintendoScaleMode mode) {
         switch (mode) {
         case NintendoScaleMode::None:
-            rb.PushEnum(ConvertedScaleMode::None);
-            break;
+            return MakeResult(ConvertedScaleMode::None);
         case NintendoScaleMode::Freeze:
-            rb.PushEnum(ConvertedScaleMode::Freeze);
-            break;
+            return MakeResult(ConvertedScaleMode::Freeze);
         case NintendoScaleMode::ScaleToWindow:
-            rb.PushEnum(ConvertedScaleMode::ScaleToWindow);
-            break;
+            return MakeResult(ConvertedScaleMode::ScaleToWindow);
         case NintendoScaleMode::Crop:
-            rb.PushEnum(ConvertedScaleMode::Crop);
-            break;
+            return MakeResult(ConvertedScaleMode::Crop);
         case NintendoScaleMode::NoCrop:
-            rb.PushEnum(ConvertedScaleMode::NoCrop);
-            break;
+            return MakeResult(ConvertedScaleMode::NoCrop);
         default:
-            UNIMPLEMENTED_MSG("Unknown scaling mode {}", static_cast<u32>(mode));
-            rb.PushEnum(ConvertedScaleMode::None);
-            break;
+            return ERR_OPERATION_FAILED;
         }
     }
 
