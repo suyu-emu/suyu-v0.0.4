@@ -300,6 +300,7 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
     // Next available bindpoints to use when uploading the const buffers and textures to the GLSL
     // shaders. The constbuffer bindpoint starts after the shader stage configuration bind points.
     u32 current_constbuffer_bindpoint = Tegra::Engines::Maxwell3D::Regs::MaxShaderStage;
+    u32 current_gmem_bindpoint = 0;
     u32 current_texture_bindpoint = 0;
     std::array<bool, Maxwell::NumClipDistances> clip_distances{};
 
@@ -357,6 +358,10 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
         current_constbuffer_bindpoint =
             SetupConstBuffers(static_cast<Maxwell::ShaderStage>(stage), shader, primitive_mode,
                               current_constbuffer_bindpoint);
+
+        // Configure global memory regions for this shader stage.
+        current_gmem_bindpoint = SetupGlobalRegions(static_cast<Maxwell::ShaderStage>(stage),
+                                                    shader, primitive_mode, current_gmem_bindpoint);
 
         // Configure the textures for this shader stage.
         current_texture_bindpoint = SetupTextures(static_cast<Maxwell::ShaderStage>(stage), shader,
@@ -991,6 +996,23 @@ u32 RasterizerOpenGL::SetupConstBuffers(Maxwell::ShaderStage stage, Shader& shad
                        bind_buffers.data(), bind_offsets.data(), bind_sizes.data());
 
     return current_bindpoint + static_cast<u32>(entries.size());
+}
+
+u32 RasterizerOpenGL::SetupGlobalRegions(Maxwell::ShaderStage stage, Shader& shader,
+                                         GLenum primitive_mode, u32 current_bindpoint) {
+    for (const auto& global_region : shader->GetShaderEntries().global_memory_entries) {
+        const auto& region =
+            global_cache.GetGlobalRegion(global_region, static_cast<Maxwell::ShaderStage>(stage));
+        const GLuint block_index{shader->GetProgramResourceIndex(global_region)};
+        ASSERT(block_index != GL_INVALID_INDEX);
+
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, current_bindpoint, region->GetBufferHandle());
+        glShaderStorageBlockBinding(shader->GetProgramHandle(primitive_mode), block_index,
+                                    current_bindpoint);
+        ++current_bindpoint;
+    }
+
+    return current_bindpoint;
 }
 
 u32 RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, Shader& shader,
