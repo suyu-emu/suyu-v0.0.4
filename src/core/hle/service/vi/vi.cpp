@@ -958,22 +958,18 @@ private:
         IPC::RequestParser rp{ctx};
         const u64 display_id = rp.Pop<u64>();
 
-        LOG_WARNING(Service_VI, "(STUBBED) called. display_id=0x{:016X}", display_id);
+        LOG_DEBUG(Service_VI, "called. display_id=0x{:016X}", display_id);
 
         IPC::ResponseBuilder rb{ctx, 6};
         rb.Push(RESULT_SUCCESS);
 
-        if (Settings::values.use_docked_mode) {
-            rb.Push(static_cast<u64>(DisplayResolution::DockedWidth) *
-                    static_cast<u32>(Settings::values.resolution_factor));
-            rb.Push(static_cast<u64>(DisplayResolution::DockedHeight) *
-                    static_cast<u32>(Settings::values.resolution_factor));
-        } else {
-            rb.Push(static_cast<u64>(DisplayResolution::UndockedWidth) *
-                    static_cast<u32>(Settings::values.resolution_factor));
-            rb.Push(static_cast<u64>(DisplayResolution::UndockedHeight) *
-                    static_cast<u32>(Settings::values.resolution_factor));
-        }
+        // This only returns the fixed values of 1280x720 and makes no distinguishing
+        // between docked and undocked dimensions. We take the liberty of applying
+        // the resolution scaling factor here.
+        rb.Push(static_cast<u64>(DisplayResolution::UndockedWidth) *
+                static_cast<u32>(Settings::values.resolution_factor));
+        rb.Push(static_cast<u64>(DisplayResolution::UndockedHeight) *
+                static_cast<u32>(Settings::values.resolution_factor));
     }
 
     void SetLayerScalingMode(Kernel::HLERequestContext& ctx) {
