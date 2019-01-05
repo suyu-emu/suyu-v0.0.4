@@ -9,7 +9,6 @@ function(copy_yuzu_Qt5_deps target_dir)
     set(PLATFORMS ${DLL_DEST}platforms/)
     set(STYLES ${DLL_DEST}styles/)
     set(IMAGEFORMATS ${DLL_DEST}imageformats/)
-    set(RESOURCES ${DLL_DEST}resources/)
     windows_copy_files(${target_dir} ${Qt5_DLL_DIR} ${DLL_DEST}
         icudt*.dll
         icuin*.dll
@@ -35,7 +34,7 @@ function(copy_yuzu_Qt5_deps target_dir)
             QtWebEngineProcess$<$<CONFIG:Debug>:d>.*
         )
 
-        windows_copy_files(${target_dir} ${Qt5_RESOURCES_DIR} ${RESOURCES}
+        windows_copy_files(${target_dir} ${Qt5_RESOURCES_DIR} ${DLL_DEST}
             qtwebengine_resources.pak
             qtwebengine_devtools_resources.pak
             qtwebengine_resources_100p.pak
