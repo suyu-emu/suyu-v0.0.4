@@ -878,21 +878,19 @@ public:
 
 private:
     enum class ConvertedScaleMode : u64 {
-        None = 0, // VI seems to name this as "Unknown" but lots of games pass it, assume it's no
-                  // scaling/default
-        Freeze = 1,
-        ScaleToWindow = 2,
-        Crop = 3,
-        NoCrop = 4,
+        Freeze = 0,
+        ScaleToWindow = 1,
+        ScaleAndCrop = 2,
+        None = 3,
+        PreserveAspectRatio = 4,
     };
 
-    // This struct is different, currently it's 1:1 but this might change in the future.
     enum class NintendoScaleMode : u32 {
         None = 0,
         Freeze = 1,
         ScaleToWindow = 2,
-        Crop = 3,
-        NoCrop = 4,
+        ScaleAndCrop = 3,
+        PreserveAspectRatio = 4,
     };
 
     void GetRelayService(Kernel::HLERequestContext& ctx) {
@@ -1007,14 +1005,14 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
 
-        if (scaling_mode > NintendoScaleMode::NoCrop) {
+        if (scaling_mode > NintendoScaleMode::PreserveAspectRatio) {
             LOG_ERROR(Service_VI, "Invalid scaling mode provided.");
             rb.Push(ERR_OPERATION_FAILED);
             return;
         }
 
         if (scaling_mode != NintendoScaleMode::ScaleToWindow &&
-            scaling_mode != NintendoScaleMode::NoCrop) {
+            scaling_mode != NintendoScaleMode::PreserveAspectRatio) {
             LOG_ERROR(Service_VI, "Unsupported scaling mode supplied.");
             rb.Push(ERR_UNSUPPORTED);
             return;
@@ -1125,10 +1123,10 @@ private:
             return MakeResult(ConvertedScaleMode::Freeze);
         case NintendoScaleMode::ScaleToWindow:
             return MakeResult(ConvertedScaleMode::ScaleToWindow);
-        case NintendoScaleMode::Crop:
-            return MakeResult(ConvertedScaleMode::Crop);
-        case NintendoScaleMode::NoCrop:
-            return MakeResult(ConvertedScaleMode::NoCrop);
+        case NintendoScaleMode::ScaleAndCrop:
+            return MakeResult(ConvertedScaleMode::ScaleAndCrop);
+        case NintendoScaleMode::PreserveAspectRatio:
+            return MakeResult(ConvertedScaleMode::PreserveAspectRatio);
         default:
             return ERR_OPERATION_FAILED;
         }
