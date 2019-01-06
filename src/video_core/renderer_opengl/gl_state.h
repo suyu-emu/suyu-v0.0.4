@@ -155,7 +155,6 @@ public:
         GLuint draw_framebuffer; // GL_DRAW_FRAMEBUFFER_BINDING
         GLuint vertex_array;     // GL_VERTEX_ARRAY_BINDING
         GLuint vertex_buffer;    // GL_ARRAY_BUFFER_BINDING
-        GLuint uniform_buffer;   // GL_UNIFORM_BUFFER_BINDING
         GLuint shader_program;   // GL_CURRENT_PROGRAM
         GLuint program_pipeline; // GL_PROGRAM_PIPELINE_BINDING
     } draw;
