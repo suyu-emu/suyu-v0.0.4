@@ -393,7 +393,6 @@ private:
     SurfaceParams params{};
     GLenum gl_target{};
     GLenum gl_internal_format{};
-    bool gl_is_compressed{};
     std::size_t cached_size_in_bytes{};
 };
 
