@@ -52,6 +52,11 @@
          <string>System</string>
         </attribute>
        </widget>
+       <widget class="ConfigureProfileManager" name="profileManagerTab">
+        <attribute name="title">
+         <string>Profiles</string>
+        </attribute>
+       </widget>
        <widget class="ConfigureInputSimple" name="inputTab">
         <attribute name="title">
          <string>Input</string>
@@ -101,6 +106,12 @@
    <class>ConfigureSystem</class>
    <extends>QWidget</extends>
    <header>configuration/configure_system.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ConfigureProfileManager</class>
+   <extends>QWidget</extends>
+   <header>configuration/configure_profile_manager.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

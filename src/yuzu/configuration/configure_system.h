@@ -9,16 +9,6 @@
 #include <QList>
 #include <QWidget>
 
-class QGraphicsScene;
-class QStandardItem;
-class QStandardItemModel;
-class QTreeView;
-class QVBoxLayout;
-
-namespace Service::Account {
-class ProfileManager;
-}
-
 namespace Ui {
 class ConfigureSystem;
 }
@@ -39,21 +29,6 @@ private:
     void UpdateBirthdayComboBox(int birthmonth_index);
     void RefreshConsoleID();
 
-    void PopulateUserList();
-    void UpdateCurrentUser();
-    void SelectUser(const QModelIndex& index);
-    void AddUser();
-    void RenameUser();
-    void DeleteUser();
-    void SetUserImage();
-
-    QVBoxLayout* layout;
-    QTreeView* tree_view;
-    QStandardItemModel* item_model;
-    QGraphicsScene* scene;
-
-    std::vector<QList<QStandardItem*>> list_items;
-
     std::unique_ptr<Ui::ConfigureSystem> ui;
     bool enabled = false;
 
@@ -61,6 +36,4 @@ private:
     int birthday = 0;
     int language_index = 0;
     int sound_index = 0;
-
-    std::unique_ptr<Service::Account::ProfileManager> profile_manager;
 };

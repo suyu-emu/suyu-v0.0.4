@@ -32,6 +32,7 @@ void ConfigureDialog::applyConfiguration() {
     ui->generalTab->applyConfiguration();
     ui->gameListTab->applyConfiguration();
     ui->systemTab->applyConfiguration();
+    ui->profileManagerTab->applyConfiguration();
     ui->inputTab->applyConfiguration();
     ui->graphicsTab->applyConfiguration();
     ui->audioTab->applyConfiguration();
@@ -43,7 +44,7 @@ void ConfigureDialog::applyConfiguration() {
 void ConfigureDialog::PopulateSelectionList() {
     const std::array<std::pair<QString, QStringList>, 4> items{
         {{tr("General"), {tr("General"), tr("Web"), tr("Debug"), tr("Game List")}},
-         {tr("System"), {tr("System"), tr("Audio")}},
+         {tr("System"), {tr("System"), tr("Profiles"), tr("Audio")}},
          {tr("Graphics"), {tr("Graphics")}},
          {tr("Controls"), {tr("Input")}}}};
 
@@ -60,11 +61,15 @@ void ConfigureDialog::UpdateVisibleTabs() {
     if (items.isEmpty())
         return;
 
-    const std::map<QString, QWidget*> widgets = {
-        {tr("General"), ui->generalTab}, {tr("System"), ui->systemTab},
-        {tr("Input"), ui->inputTab},     {tr("Graphics"), ui->graphicsTab},
-        {tr("Audio"), ui->audioTab},     {tr("Debug"), ui->debugTab},
-        {tr("Web"), ui->webTab},         {tr("Game List"), ui->gameListTab}};
+    const std::map<QString, QWidget*> widgets = {{tr("General"), ui->generalTab},
+                                                 {tr("System"), ui->systemTab},
+                                                 {tr("Profiles"), ui->profileManagerTab},
+                                                 {tr("Input"), ui->inputTab},
+                                                 {tr("Graphics"), ui->graphicsTab},
+                                                 {tr("Audio"), ui->audioTab},
+                                                 {tr("Debug"), ui->debugTab},
+                                                 {tr("Web"), ui->webTab},
+                                                 {tr("Game List"), ui->gameListTab}};
 
     ui->tabWidget->clear();
 
