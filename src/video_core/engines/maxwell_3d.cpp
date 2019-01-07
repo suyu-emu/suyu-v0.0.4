@@ -135,6 +135,15 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
 
     if (regs.reg_array[method_call.method] != method_call.argument) {
         regs.reg_array[method_call.method] = method_call.argument;
+        // Color buffers
+        constexpr u32 first_rt_reg = MAXWELL3D_REG_INDEX(rt);
+        constexpr u32 registers_per_rt = sizeof(regs.rt[0]) / sizeof(u32);
+        if (method_call.method >= first_rt_reg &&
+            method_call.method < first_rt_reg + registers_per_rt * Regs::NumRenderTargets) {
+            const std::size_t rt_index = (method_call.method - first_rt_reg) / registers_per_rt;
+            dirty_flags.color_buffer |= 1u << static_cast<u32>(rt_index);
+        }
+
         // Shader
         constexpr u32 shader_registers_count =
             sizeof(regs.shader_config[0]) * Regs::MaxShaderProgram / sizeof(u32);
