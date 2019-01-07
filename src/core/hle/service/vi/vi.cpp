@@ -32,6 +32,9 @@
 
 namespace Service::VI {
 
+constexpr ResultCode ERR_OPERATION_FAILED{ErrorModule::VI, 1};
+constexpr ResultCode ERR_UNSUPPORTED{ErrorModule::VI, 6};
+
 struct DisplayInfo {
     /// The name of this particular display.
     char display_name[0x40]{"Default"};
@@ -874,6 +877,22 @@ public:
     ~IApplicationDisplayService() = default;
 
 private:
+    enum class ConvertedScaleMode : u64 {
+        Freeze = 0,
+        ScaleToWindow = 1,
+        ScaleAndCrop = 2,
+        None = 3,
+        PreserveAspectRatio = 4,
+    };
+
+    enum class NintendoScaleMode : u32 {
+        None = 0,
+        Freeze = 1,
+        ScaleToWindow = 2,
+        ScaleAndCrop = 3,
+        PreserveAspectRatio = 4,
+    };
+
     void GetRelayService(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_VI, "(STUBBED) called");
 
@@ -974,13 +993,27 @@ private:
 
     void SetLayerScalingMode(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-        const u32 scaling_mode = rp.Pop<u32>();
+        const auto scaling_mode = rp.PopEnum<NintendoScaleMode>();
         const u64 unknown = rp.Pop<u64>();
 
-        LOG_WARNING(Service_VI, "(STUBBED) called. scaling_mode=0x{:08X}, unknown=0x{:016X}",
-                    scaling_mode, unknown);
+        LOG_DEBUG(Service_VI, "called. scaling_mode=0x{:08X}, unknown=0x{:016X}",
+                  static_cast<u32>(scaling_mode), unknown);
 
         IPC::ResponseBuilder rb{ctx, 2};
+
+        if (scaling_mode > NintendoScaleMode::PreserveAspectRatio) {
+            LOG_ERROR(Service_VI, "Invalid scaling mode provided.");
+            rb.Push(ERR_OPERATION_FAILED);
+            return;
+        }
+
+        if (scaling_mode != NintendoScaleMode::ScaleToWindow &&
+            scaling_mode != NintendoScaleMode::PreserveAspectRatio) {
+            LOG_ERROR(Service_VI, "Unsupported scaling mode supplied.");
+            rb.Push(ERR_UNSUPPORTED);
+            return;
+        }
+
         rb.Push(RESULT_SUCCESS);
     }
 
@@ -1061,51 +1094,37 @@ private:
         rb.PushCopyObjects(vsync_event);
     }
 
-    enum class ConvertedScaleMode : u64 {
-        None = 0, // VI seems to name this as "Unknown" but lots of games pass it, assume it's no
-                  // scaling/default
-        Freeze = 1,
-        ScaleToWindow = 2,
-        Crop = 3,
-        NoCrop = 4,
-    };
-
-    // This struct is different, currently it's 1:1 but this might change in the future.
-    enum class NintendoScaleMode : u32 {
-        None = 0,
-        Freeze = 1,
-        ScaleToWindow = 2,
-        Crop = 3,
-        NoCrop = 4,
-    };
-
     void ConvertScalingMode(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-        auto mode = rp.PopEnum<NintendoScaleMode>();
+        const auto mode = rp.PopEnum<NintendoScaleMode>();
         LOG_DEBUG(Service_VI, "called mode={}", static_cast<u32>(mode));
 
-        IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
+        const auto converted_mode = ConvertScalingModeImpl(mode);
+
+        if (converted_mode.Succeeded()) {
+            IPC::ResponseBuilder rb{ctx, 4};
+            rb.Push(RESULT_SUCCESS);
+            rb.PushEnum(*converted_mode);
+        } else {
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(converted_mode.Code());
+        }
+    }
+
+    static ResultVal<ConvertedScaleMode> ConvertScalingModeImpl(NintendoScaleMode mode) {
         switch (mode) {
         case NintendoScaleMode::None:
-            rb.PushEnum(ConvertedScaleMode::None);
-            break;
+            return MakeResult(ConvertedScaleMode::None);
         case NintendoScaleMode::Freeze:
-            rb.PushEnum(ConvertedScaleMode::Freeze);
-            break;
+            return MakeResult(ConvertedScaleMode::Freeze);
         case NintendoScaleMode::ScaleToWindow:
-            rb.PushEnum(ConvertedScaleMode::ScaleToWindow);
-            break;
-        case NintendoScaleMode::Crop:
-            rb.PushEnum(ConvertedScaleMode::Crop);
-            break;
-        case NintendoScaleMode::NoCrop:
-            rb.PushEnum(ConvertedScaleMode::NoCrop);
-            break;
+            return MakeResult(ConvertedScaleMode::ScaleToWindow);
+        case NintendoScaleMode::ScaleAndCrop:
+            return MakeResult(ConvertedScaleMode::ScaleAndCrop);
+        case NintendoScaleMode::PreserveAspectRatio:
+            return MakeResult(ConvertedScaleMode::PreserveAspectRatio);
         default:
-            UNIMPLEMENTED_MSG("Unknown scaling mode {}", static_cast<u32>(mode));
-            rb.PushEnum(ConvertedScaleMode::None);
-            break;
+            return ERR_OPERATION_FAILED;
         }
     }
 
