@@ -689,7 +689,7 @@ private:
     }
 
     std::string GenerateTexture(Operation operation, const std::string& func,
-                                std::string extra_cast(std::string) = nullptr) {
+                                bool is_extra_int = false) {
         constexpr std::array<const char*, 4> coord_constructors = {"float", "vec2", "vec3", "vec4"};
 
         const auto& meta = std::get<MetaTexture>(operation.GetMeta());
@@ -706,15 +706,24 @@ private:
             const bool is_extra = i >= meta.coords_count;
             const bool is_array = i == meta.array_index;
 
-            std::string operand = Visit(operation[i]);
-            if (is_extra && extra_cast != nullptr) {
-                operand = extra_cast(operand);
-            }
+            std::string operand = [&]() {
+                if (is_extra && is_extra_int) {
+                    if (const auto immediate = std::get_if<ImmediateNode>(operation[i])) {
+                        return std::to_string(static_cast<s32>(immediate->GetValue()));
+                    } else {
+                        return "ftoi(" + Visit(operation[i]) + ')';
+                    }
+                } else {
+                    return Visit(operation[i]);
+                }
+            }();
             if (is_array) {
                 ASSERT(!is_extra);
                 operand = "float(ftoi(" + operand + "))";
             }
+
             expr += operand;
+
             if (i + 1 == meta.coords_count) {
                 expr += ')';
             }
@@ -1118,16 +1127,8 @@ private:
 
     std::string F4TextureGather(Operation operation) {
         const auto meta = std::get<MetaTexture>(operation.GetMeta());
-
-        std::string expr;
-        if (meta.sampler.IsShadow()) {
-            expr = GenerateTexture(operation, "textureGather",
-                                   [](std::string ref_z) { return ref_z; });
-        } else {
-            expr = GenerateTexture(operation, "textureGather",
-                                   [](std::string comp) { return "ftoi(" + comp + ')'; });
-        }
-        return expr + GetSwizzle(meta.element);
+        return GenerateTexture(operation, "textureGather", !meta.sampler.IsShadow()) +
+               GetSwizzle(meta.element);
     }
 
     std::string F4TextureQueryDimensions(Operation operation) {
