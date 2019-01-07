@@ -1090,6 +1090,7 @@ public:
 
     struct DirtyFlags {
         u8 color_buffer = 0xFF;
+        bool zeta_buffer = true;
 
         bool shaders = true;
 
@@ -1098,6 +1099,7 @@ public:
 
         void OnMemoryWrite() {
             color_buffer = 0xFF;
+            zeta_buffer = true;
             shaders = true;
             vertex_array = 0xFFFFFFFF;
         }

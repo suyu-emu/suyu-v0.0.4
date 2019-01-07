@@ -398,6 +398,7 @@ private:
     OGLBuffer copy_pbo;
 
     std::array<Surface, Tegra::Engines::Maxwell3D::Regs::NumRenderTargets> last_color_buffers;
+    Surface last_depth_buffer;
 };
 
 } // namespace OpenGL

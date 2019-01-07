@@ -144,6 +144,16 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
             dirty_flags.color_buffer |= 1u << static_cast<u32>(rt_index);
         }
 
+        // Zeta buffer
+        constexpr u32 registers_in_zeta = sizeof(regs.zeta) / sizeof(u32);
+        if (method_call.method == MAXWELL3D_REG_INDEX(zeta_enable) ||
+            method_call.method == MAXWELL3D_REG_INDEX(zeta_width) ||
+            method_call.method == MAXWELL3D_REG_INDEX(zeta_height) ||
+            (method_call.method >= MAXWELL3D_REG_INDEX(zeta) &&
+             method_call.method < MAXWELL3D_REG_INDEX(zeta) + registers_in_zeta)) {
+            dirty_flags.zeta_buffer = true;
+        }
+
         // Shader
         constexpr u32 shader_registers_count =
             sizeof(regs.shader_config[0]) * Regs::MaxShaderProgram / sizeof(u32);
