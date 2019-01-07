@@ -127,19 +127,9 @@ public:
         GLuint texture; // GL_TEXTURE_BINDING_2D
         GLuint sampler; // GL_SAMPLER_BINDING
         GLenum target;
-        struct {
-            GLint r; // GL_TEXTURE_SWIZZLE_R
-            GLint g; // GL_TEXTURE_SWIZZLE_G
-            GLint b; // GL_TEXTURE_SWIZZLE_B
-            GLint a; // GL_TEXTURE_SWIZZLE_A
-        } swizzle;
 
         void Unbind() {
             texture = 0;
-            swizzle.r = GL_RED;
-            swizzle.g = GL_GREEN;
-            swizzle.b = GL_BLUE;
-            swizzle.a = GL_ALPHA;
         }
 
         void Reset() {

@@ -857,6 +857,8 @@ void CachedSurface::EnsureTextureView() {
     glTextureView(texture_view.handle, target, texture.handle, gl_internal_format, 0,
                   params.max_mip_level, 0, 1);
     ApplyTextureDefaults(texture_view.handle, params.max_mip_level);
+    glTextureParameteriv(texture_view.handle, GL_TEXTURE_SWIZZLE_RGBA,
+                         reinterpret_cast<const GLint*>(swizzle.data()));
 }
 
 MICROPROFILE_DEFINE(OpenGL_TextureUL, "OpenGL", "Texture Upload", MP_RGB(128, 192, 64));
@@ -868,6 +870,24 @@ void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle
 
     for (u32 i = 0; i < params.max_mip_level; i++)
         UploadGLMipmapTexture(i, read_fb_handle, draw_fb_handle);
+}
+
+void CachedSurface::UpdateSwizzle(Tegra::Texture::SwizzleSource swizzle_x,
+                                  Tegra::Texture::SwizzleSource swizzle_y,
+                                  Tegra::Texture::SwizzleSource swizzle_z,
+                                  Tegra::Texture::SwizzleSource swizzle_w) {
+    const GLenum new_x = MaxwellToGL::SwizzleSource(swizzle_x);
+    const GLenum new_y = MaxwellToGL::SwizzleSource(swizzle_y);
+    const GLenum new_z = MaxwellToGL::SwizzleSource(swizzle_z);
+    const GLenum new_w = MaxwellToGL::SwizzleSource(swizzle_w);
+    if (swizzle[0] != new_x || swizzle[1] != new_y || swizzle[2] != new_z || swizzle[3] != new_w) {
+        swizzle = {new_x, new_y, new_z, new_w};
+        const auto swizzle_data = reinterpret_cast<const GLint*>(swizzle.data());
+        glTextureParameteriv(texture.handle, GL_TEXTURE_SWIZZLE_RGBA, swizzle_data);
+        if (texture_view.handle != 0) {
+            glTextureParameteriv(texture_view.handle, GL_TEXTURE_SWIZZLE_RGBA, swizzle_data);
+        }
+    }
 }
 
 RasterizerCacheOpenGL::RasterizerCacheOpenGL(RasterizerOpenGL& rasterizer)

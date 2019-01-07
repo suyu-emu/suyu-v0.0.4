@@ -320,7 +320,6 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
     }};
 
     state.texture_units[0].texture = screen_info.display_texture;
-    state.texture_units[0].swizzle = {GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA};
     // Workaround brigthness problems in SMO by enabling sRGB in the final output
     // if it has been used in the frame. Needed because of this bug in QT: QTBUG-50987
     state.framebuffer_srgb.enabled = OpenGLState::GetsRGBUsed();
