@@ -101,7 +101,7 @@ struct FramebufferCacheKey {
 
 RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window, ScreenInfo& info)
     : res_cache{*this}, shader_cache{*this}, emu_window{window}, screen_info{info},
-      buffer_cache(*this, STREAM_BUFFER_SIZE) {
+      buffer_cache(*this, STREAM_BUFFER_SIZE), global_cache{*this} {
     // Create sampler objects
     for (std::size_t i = 0; i < texture_samplers.size(); ++i) {
         texture_samplers[i].Create();
@@ -763,6 +763,7 @@ void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
     res_cache.InvalidateRegion(addr, size);
     shader_cache.InvalidateRegion(addr, size);
+    global_cache.InvalidateRegion(addr, size);
     buffer_cache.InvalidateRegion(addr, size);
 }
 
