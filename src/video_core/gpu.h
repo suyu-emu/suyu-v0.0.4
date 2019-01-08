@@ -16,8 +16,8 @@ class System;
 }
 
 namespace VideoCore {
-class RasterizerInterface;
-}
+class RendererBase;
+} // namespace VideoCore
 
 namespace Tegra {
 
@@ -121,7 +121,8 @@ enum class EngineID {
 
 class GPU final {
 public:
-    explicit GPU(Core::System& system, VideoCore::RasterizerInterface& rasterizer);
+    explicit GPU(Core::System& system, VideoCore::RendererBase& renderer);
+
     ~GPU();
 
     struct MethodCall {
@@ -201,8 +202,23 @@ public:
     } regs{};
 
 private:
+    void ProcessBindMethod(const MethodCall& method_call);
+    void ProcessSemaphoreTriggerMethod();
+    void ProcessSemaphoreRelease();
+    void ProcessSemaphoreAcquire();
+
+    // Calls a GPU puller method.
+    void CallPullerMethod(const MethodCall& method_call);
+    // Calls a GPU engine method.
+    void CallEngineMethod(const MethodCall& method_call);
+    // Determines where the method should be executed.
+    bool ExecuteMethodOnEngine(const MethodCall& method_call);
+
+private:
     std::unique_ptr<Tegra::DmaPusher> dma_pusher;
     std::unique_ptr<Tegra::MemoryManager> memory_manager;
+    
+    VideoCore::RendererBase& renderer;
 
     /// Mapping of command subchannels to their bound engine ids.
     std::array<EngineID, 8> bound_engines = {};
@@ -217,18 +233,6 @@ private:
     std::unique_ptr<Engines::MaxwellDMA> maxwell_dma;
     /// Inline memory engine
     std::unique_ptr<Engines::KeplerMemory> kepler_memory;
-
-    void ProcessBindMethod(const MethodCall& method_call);
-    void ProcessSemaphoreTriggerMethod();
-    void ProcessSemaphoreRelease();
-    void ProcessSemaphoreAcquire();
-
-    // Calls a GPU puller method.
-    void CallPullerMethod(const MethodCall& method_call);
-    // Calls a GPU engine method.
-    void CallEngineMethod(const MethodCall& method_call);
-    // Determines where the method should be executed.
-    bool ExecuteMethodOnEngine(const MethodCall& method_call);
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \
