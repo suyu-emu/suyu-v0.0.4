@@ -663,7 +663,8 @@ void Config::SaveValues() {
 
     qt_config->setValue("custom_rtc_enabled", Settings::values.custom_rtc.has_value());
     qt_config->setValue("custom_rtc",
-                        Settings::values.custom_rtc.value_or(std::chrono::seconds{}).count());
+                        QVariant::fromValue<long long>(
+                            Settings::values.custom_rtc.value_or(std::chrono::seconds{}).count()));
 
     qt_config->endGroup();
 
