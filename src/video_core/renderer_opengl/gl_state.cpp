@@ -503,12 +503,17 @@ void OpenGLState::ApplySamplers() const {
 }
 
 void OpenGLState::ApplyFramebufferState() const {
-    // Framebuffer
     if (draw.read_framebuffer != cur_state.draw.read_framebuffer) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, draw.read_framebuffer);
     }
     if (draw.draw_framebuffer != cur_state.draw.draw_framebuffer) {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, draw.draw_framebuffer);
+    }
+}
+
+void OpenGLState::ApplyVertexArrayState() const {
+    if (draw.vertex_array != cur_state.draw.vertex_array) {
+        glBindVertexArray(draw.vertex_array);
     }
 }
 
@@ -529,11 +534,7 @@ void OpenGLState::ApplyDepthClamp() const {
 
 void OpenGLState::Apply() const {
     ApplyFramebufferState();
-
-    // Vertex array
-    if (draw.vertex_array != cur_state.draw.vertex_array) {
-        glBindVertexArray(draw.vertex_array);
-    }
+    ApplyVertexArrayState();
 
     // Shader program
     if (draw.shader_program != cur_state.draw.shader_program) {

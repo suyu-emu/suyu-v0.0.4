@@ -153,6 +153,12 @@ GLuint RasterizerOpenGL::SetupVertexFormat() {
         vao_entry.Create();
         const GLuint vao = vao_entry.handle;
 
+        // Eventhough we are using DSA to create this vertex array, there is a bug on Intel's blob
+        // that fails to properly create the vertex array if it's not bound even after creating it
+        // with glCreateVertexArrays
+        state.draw.vertex_array = vao;
+        state.ApplyVertexArrayState();
+
         glVertexArrayElementBuffer(vao, buffer_cache.GetHandle());
 
         // Use the vertex array as-is, assumes that the data is formatted correctly for OpenGL.

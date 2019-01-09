@@ -204,8 +204,10 @@ public:
     }
     /// Apply this state as the current OpenGL state
     void Apply() const;
-    /// Apply only the state afecting the framebuffer
+    /// Apply only the state affecting the framebuffer
     void ApplyFramebufferState() const;
+    /// Apply only the state affecting the vertex array
+    void ApplyVertexArrayState() const;
     /// Set the initial OpenGL state
     static void ApplyDefaultState();
     /// Resets any references to the given resource
