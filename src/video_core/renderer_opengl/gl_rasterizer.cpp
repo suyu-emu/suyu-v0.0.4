@@ -1022,11 +1022,8 @@ void RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, const Shader& s
         if (surface != nullptr) {
             unit.texture =
                 entry.IsArray() ? surface->TextureLayer().handle : surface->Texture().handle;
-            const GLenum target = entry.IsArray() ? surface->TargetLayer() : surface->Target();
             surface->UpdateSwizzle(texture.tic.x_source, texture.tic.y_source, texture.tic.z_source,
                                    texture.tic.w_source);
-            unit.texture = handle;
-            unit.target = target;
         } else {
             // Can occur when texture addr is null or its memory is unmapped/invalid
             unit.texture = 0;

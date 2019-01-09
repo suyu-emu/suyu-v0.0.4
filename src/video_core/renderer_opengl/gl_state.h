@@ -126,7 +126,6 @@ public:
     struct TextureUnit {
         GLuint texture; // GL_TEXTURE_BINDING_2D
         GLuint sampler; // GL_SAMPLER_BINDING
-        GLenum target;
 
         void Unbind() {
             texture = 0;
@@ -135,7 +134,6 @@ public:
         void Reset() {
             Unbind();
             sampler = 0;
-            target = GL_TEXTURE_2D;
         }
     };
     std::array<TextureUnit, Tegra::Engines::Maxwell3D::Regs::NumTextureSamplers> texture_units;
