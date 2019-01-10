@@ -30,6 +30,7 @@
 #include "core/hle/service/sm/sm.h"
 #include "core/loader/loader.h"
 #include "core/perf_stats.h"
+#include "core/settings.h"
 #include "core/telemetry_session.h"
 #include "frontend/applets/profile_select.h"
 #include "frontend/applets/software_keyboard.h"
@@ -95,6 +96,11 @@ struct System::Impl {
 
         CoreTiming::Init();
         kernel.Initialize();
+
+        const auto current_time = std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now().time_since_epoch());
+        Settings::values.custom_rtc_differential =
+            Settings::values.custom_rtc.value_or(current_time) - current_time;
 
         // Create a default fs if one doesn't already exist.
         if (virtual_filesystem == nullptr)
