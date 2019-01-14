@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cstring>
+
 #include <fmt/format.h>
 
 #include "common/assert.h"
@@ -11,6 +13,7 @@
 #include "common/common_types.h"
 #include "common/file_util.h"
 #include "common/logging/log.h"
+#include "common/scm_rev.h"
 
 #include "core/core.h"
 #include "core/hle/kernel/process.h"
@@ -26,9 +29,7 @@ enum class EntryKind : u32 {
 };
 
 constexpr u32 NativeVersion = 1;
-
-// TODO(Rodrigo): Hash files
-constexpr u64 PrecompiledHash = 0xdeadbeefdeadbeef;
+constexpr u32 ShaderHashSize = 64;
 
 // Making sure sizes doesn't change by accident
 static_assert(sizeof(BaseBindings) == 12);
@@ -37,6 +38,12 @@ static_assert(sizeof(ShaderDiskCacheUsage) == 24);
 namespace {
 std::string GetTitleID() {
     return fmt::format("{:016X}", Core::CurrentProcess()->GetTitleID());
+}
+
+std::string GetShaderHash() {
+    std::array<char, ShaderHashSize> hash{};
+    std::strncpy(hash.data(), Common::g_shader_cache_version, ShaderHashSize);
+    return std::string(hash.data());
 }
 } // namespace
 
@@ -130,9 +137,9 @@ std::vector<ShaderDiskCachePrecompiledEntry> ShaderDiskCacheOpenGL::LoadPrecompi
     }
     const u64 file_size = file.GetSize();
 
-    u64 precompiled_hash{};
-    file.ReadBytes(&precompiled_hash, sizeof(precompiled_hash));
-    if (precompiled_hash != PrecompiledHash) {
+    char precompiled_hash[ShaderHashSize];
+    file.ReadBytes(&precompiled_hash, ShaderHashSize);
+    if (std::string(precompiled_hash) != GetShaderHash()) {
         LOG_INFO(Render_OpenGL, "Precompiled cache is from another version of yuzu - removing");
         file.Close();
         InvalidatePrecompiled();
@@ -255,7 +262,9 @@ FileUtil::IOFile ShaderDiskCacheOpenGL::AppendPrecompiledFile() const {
     }
 
     if (!existed || file.GetSize() == 0) {
-        file.WriteObject(PrecompiledHash);
+        std::array<char, ShaderHashSize> hash{};
+        std::strcpy(hash.data(), GetShaderHash().c_str());
+        file.WriteArray(hash.data(), hash.size());
     }
     return file;
 }
