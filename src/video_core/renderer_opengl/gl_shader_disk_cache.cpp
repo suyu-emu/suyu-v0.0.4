@@ -17,6 +17,7 @@
 
 #include "core/core.h"
 #include "core/hle/kernel/process.h"
+#include "core/settings.h"
 
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_shader_disk_cache.h"
@@ -78,6 +79,10 @@ void ShaderDiskCacheRaw::Save(FileUtil::IOFile& file) const {
 
 bool ShaderDiskCacheOpenGL::LoadTransferable(std::vector<ShaderDiskCacheRaw>& raws,
                                              std::vector<ShaderDiskCacheUsage>& usages) {
+    if (!Settings::values.use_disk_shader_cache) {
+        return false;
+    }
+
     FileUtil::IOFile file(GetTransferablePath(), "rb");
     if (!file.IsOpen()) {
         LOG_INFO(Render_OpenGL, "No transferable shader cache found for game with title id={}",
@@ -129,6 +134,10 @@ bool ShaderDiskCacheOpenGL::LoadTransferable(std::vector<ShaderDiskCacheRaw>& ra
 }
 
 std::vector<ShaderDiskCachePrecompiledEntry> ShaderDiskCacheOpenGL::LoadPrecompiled() {
+    if (!Settings::values.use_disk_shader_cache) {
+        return {};
+    }
+
     FileUtil::IOFile file(GetPrecompiledPath(), "rb");
     if (!file.IsOpen()) {
         LOG_INFO(Render_OpenGL, "No precompiled shader cache found for game with title id={}",
@@ -173,6 +182,10 @@ void ShaderDiskCacheOpenGL::InvalidatePrecompiled() const {
 }
 
 void ShaderDiskCacheOpenGL::SaveRaw(const ShaderDiskCacheRaw& entry) {
+    if (!Settings::values.use_disk_shader_cache) {
+        return;
+    }
+
     const u64 id = entry.GetUniqueIdentifier();
     if (transferable.find(id) != transferable.end()) {
         // The shader already exists
@@ -190,6 +203,10 @@ void ShaderDiskCacheOpenGL::SaveRaw(const ShaderDiskCacheRaw& entry) {
 }
 
 void ShaderDiskCacheOpenGL::SaveUsage(const ShaderDiskCacheUsage& usage) {
+    if (!Settings::values.use_disk_shader_cache) {
+        return;
+    }
+
     const auto it = transferable.find(usage.unique_identifier);
     if (it == transferable.end()) {
         LOG_CRITICAL(Render_OpenGL, "Saving shader usage without storing raw previously");
@@ -208,6 +225,10 @@ void ShaderDiskCacheOpenGL::SaveUsage(const ShaderDiskCacheUsage& usage) {
 }
 
 void ShaderDiskCacheOpenGL::SavePrecompiled(const ShaderDiskCacheUsage& usage, GLuint program) {
+    if (!Settings::values.use_disk_shader_cache) {
+        return;
+    }
+
     FileUtil::IOFile file = AppendPrecompiledFile();
     if (!file.IsOpen()) {
         return;
