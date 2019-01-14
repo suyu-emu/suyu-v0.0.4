@@ -156,6 +156,11 @@ std::vector<ShaderDiskCachePrecompiledEntry> ShaderDiskCacheOpenGL::LoadPrecompi
     return precompiled;
 }
 
+void ShaderDiskCacheOpenGL::InvalidateTransferable() const {
+    FileUtil::Delete(GetTransferablePath());
+    InvalidatePrecompiled();
+}
+
 void ShaderDiskCacheOpenGL::InvalidatePrecompiled() const {
     FileUtil::Delete(GetPrecompiledPath());
 }

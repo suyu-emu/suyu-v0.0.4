@@ -147,6 +147,9 @@ public:
     /// Loads current game's precompiled cache. Invalidates if emulator's version has changed.
     std::vector<ShaderDiskCachePrecompiledEntry> LoadPrecompiled();
 
+    /// Removes the transferable (and precompiled) cache file.
+    void InvalidateTransferable() const;
+
     /// Removes the precompiled cache file.
     void InvalidatePrecompiled() const;
 
