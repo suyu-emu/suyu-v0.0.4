@@ -193,15 +193,13 @@ public:
     ShaderEntries GetShaderEntries() const {
         ShaderEntries entries;
         for (const auto& cbuf : ir.GetConstantBuffers()) {
-            entries.const_buffers.emplace_back(cbuf.second, stage, GetConstBufferBlock(cbuf.first),
-                                               cbuf.first);
+            entries.const_buffers.emplace_back(cbuf.second, stage, cbuf.first);
         }
         for (const auto& sampler : ir.GetSamplers()) {
-            entries.samplers.emplace_back(sampler, stage, GetSampler(sampler));
+            entries.samplers.emplace_back(sampler, stage);
         }
         for (const auto& gmem : ir.GetGlobalMemoryBases()) {
-            entries.global_memory_entries.emplace_back(gmem.cbuf_index, gmem.cbuf_offset, stage,
-                                                       GetGlobalMemoryBlock(gmem));
+            entries.global_memory_entries.emplace_back(gmem.cbuf_index, gmem.cbuf_offset, stage);
         }
         entries.clip_distances = ir.GetClipDistances();
         entries.shader_length = ir.GetLength();
