@@ -27,6 +27,9 @@ enum class EntryKind : u32 {
 
 constexpr u32 NativeVersion = 1;
 
+// TODO(Rodrigo): Hash files
+constexpr u64 PrecompiledHash = 0xdeadbeefdeadbeef;
+
 // Making sure sizes doesn't change by accident
 static_assert(sizeof(BaseBindings) == 12);
 static_assert(sizeof(ShaderDiskCacheUsage) == 24);
@@ -153,6 +156,26 @@ void ShaderDiskCacheOpenGL::SaveUsage(const ShaderDiskCacheUsage& usage) {
     file.WriteObject(usage);
 }
 
+void ShaderDiskCacheOpenGL::SavePrecompiled(const ShaderDiskCacheUsage& usage, GLuint program) {
+    FileUtil::IOFile file = AppendPrecompiledFile();
+    if (!file.IsOpen()) {
+        return;
+    }
+
+    file.WriteObject(usage);
+
+    GLint binary_length{};
+    glGetProgramiv(program, GL_PROGRAM_BINARY_LENGTH, &binary_length);
+
+    GLenum binary_format{};
+    std::vector<u8> binary(binary_length);
+    glGetProgramBinary(program, binary_length, nullptr, &binary_format, binary.data());
+
+    file.WriteObject(static_cast<u32>(binary_format));
+    file.WriteObject(static_cast<u32>(binary_length));
+    file.WriteArray(binary.data(), binary.size());
+}
+
 FileUtil::IOFile ShaderDiskCacheOpenGL::AppendTransferableFile() const {
     if (!EnsureDirectories()) {
         return {};
@@ -169,6 +192,26 @@ FileUtil::IOFile ShaderDiskCacheOpenGL::AppendTransferableFile() const {
     if (!existed || file.GetSize() == 0) {
         // If the file didn't exist, write its version
         file.WriteObject(NativeVersion);
+    }
+    return file;
+}
+
+FileUtil::IOFile ShaderDiskCacheOpenGL::AppendPrecompiledFile() const {
+    if (!EnsureDirectories()) {
+        return {};
+    }
+
+    const auto precompiled_path{GetPrecompiledPath()};
+    const bool existed = FileUtil::Exists(precompiled_path);
+
+    FileUtil::IOFile file(precompiled_path, "ab");
+    if (!file.IsOpen()) {
+        LOG_ERROR(Render_OpenGL, "Failed to open precompiled cache in path={}", precompiled_path);
+        return {};
+    }
+
+    if (!existed || file.GetSize() == 0) {
+        file.WriteObject(PrecompiledHash);
     }
     return file;
 }

@@ -130,6 +130,14 @@ public:
     }
 };
 
+struct ShaderDiskCachePrecompiledEntry {
+    ShaderDiskCacheUsage usage;
+    GLenum binary_format;
+    std::vector<u8> binary;
+    std::string code;
+    GLShader::ShaderEntries entries;
+};
+
 class ShaderDiskCacheOpenGL {
 public:
     /// Loads transferable cache. If file has a old version, it deletes it. Returns true on success.
@@ -142,9 +150,15 @@ public:
     /// Saves shader usage to the transferable file. Does not check for collisions.
     void SaveUsage(const ShaderDiskCacheUsage& usage);
 
+    /// Saves a precompiled shader entry. Does not check for collisions.
+    void SavePrecompiled(const ShaderDiskCacheUsage& usage, GLuint program);
+
 private:
     /// Opens current game's transferable file and write it's header if it doesn't exist
     FileUtil::IOFile AppendTransferableFile() const;
+
+    /// Opens current game's precompiled file and write it's header if it doesn't exist
+    FileUtil::IOFile AppendPrecompiledFile() const;
 
     /// Create shader disk cache directories. Returns true on success.
     bool EnsureDirectories() const;
