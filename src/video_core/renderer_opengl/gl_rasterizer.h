@@ -60,6 +60,7 @@ public:
                            u32 pixel_stride) override;
     bool AccelerateDrawBatch(bool is_indexed) override;
     void UpdatePagesCachedCount(Tegra::GPUVAddr addr, u64 size, int delta) override;
+    void LoadDiskResources() override;
 
     /// Maximum supported size that a constbuffer can have in bytes.
     static constexpr std::size_t MaxConstbufferSize = 0x10000;

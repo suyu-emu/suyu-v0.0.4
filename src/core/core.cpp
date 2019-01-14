@@ -175,6 +175,9 @@ struct System::Impl {
             return static_cast<ResultStatus>(static_cast<u32>(ResultStatus::ErrorLoader) +
                                              static_cast<u32>(load_result));
         }
+
+        renderer->Rasterizer().LoadDiskResources();
+
         status = ResultStatus::Success;
         return status;
     }

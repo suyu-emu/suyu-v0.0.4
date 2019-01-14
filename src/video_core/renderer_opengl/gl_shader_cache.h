@@ -103,6 +103,9 @@ class ShaderCacheOpenGL final : public RasterizerCache<Shader> {
 public:
     explicit ShaderCacheOpenGL(RasterizerOpenGL& rasterizer);
 
+    /// Loads disk cache for the current game
+    void LoadDiskCache();
+
     /// Gets the current specified shader stage program
     Shader GetStageProgram(Maxwell::ShaderProgram program);
 

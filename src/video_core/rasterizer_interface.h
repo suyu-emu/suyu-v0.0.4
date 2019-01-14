@@ -61,5 +61,8 @@ public:
 
     /// Increase/decrease the number of object in pages touching the specified region
     virtual void UpdatePagesCachedCount(Tegra::GPUVAddr addr, u64 size, int delta) {}
+
+    /// Initialize disk cached resources for the game being emulated
+    virtual void LoadDiskResources() {}
 };
 } // namespace VideoCore

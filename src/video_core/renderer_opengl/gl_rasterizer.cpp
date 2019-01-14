@@ -22,6 +22,7 @@
 #include "core/settings.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
+#include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
 #include "video_core/renderer_opengl/maxwell_to_gl.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
@@ -475,6 +476,10 @@ void RasterizerOpenGL::UpdatePagesCachedCount(VAddr addr, u64 size, int delta) {
 
     if (delta < 0)
         cached_pages.add({pages_interval, delta});
+}
+
+void RasterizerOpenGL::LoadDiskResources() {
+    shader_cache.LoadDiskCache();
 }
 
 std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(

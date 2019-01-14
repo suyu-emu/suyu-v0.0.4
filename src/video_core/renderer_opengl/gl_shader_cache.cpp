@@ -225,6 +225,8 @@ void CachedShader::CalculateProperties() {
 
 ShaderCacheOpenGL::ShaderCacheOpenGL(RasterizerOpenGL& rasterizer) : RasterizerCache{rasterizer} {}
 
+void ShaderCacheOpenGL::LoadDiskCache() {}
+
 Shader ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
     if (!Core::System::GetInstance().GPU().Maxwell3D().dirty_flags.shaders) {
         return last_shaders[static_cast<u32>(program)];
