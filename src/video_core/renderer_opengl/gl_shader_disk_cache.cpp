@@ -121,6 +121,45 @@ bool ShaderDiskCacheOpenGL::LoadTransferable(std::vector<ShaderDiskCacheRaw>& ra
     return true;
 }
 
+std::vector<ShaderDiskCachePrecompiledEntry> ShaderDiskCacheOpenGL::LoadPrecompiled() {
+    FileUtil::IOFile file(GetPrecompiledPath(), "rb");
+    if (!file.IsOpen()) {
+        LOG_INFO(Render_OpenGL, "No precompiled shader cache found for game with title id={}",
+                 GetTitleID());
+        return {};
+    }
+    const u64 file_size = file.GetSize();
+
+    u64 precompiled_hash{};
+    file.ReadBytes(&precompiled_hash, sizeof(precompiled_hash));
+    if (precompiled_hash != PrecompiledHash) {
+        LOG_INFO(Render_OpenGL, "Precompiled cache is from another version of yuzu - removing");
+        file.Close();
+        InvalidatePrecompiled();
+        return {};
+    }
+
+    std::vector<ShaderDiskCachePrecompiledEntry> precompiled;
+    while (file.Tell() < file_size) {
+        ShaderDiskCachePrecompiledEntry entry;
+        file.ReadBytes(&entry.usage, sizeof(entry.usage));
+
+        file.ReadBytes(&entry.binary_format, sizeof(u32));
+
+        u32 binary_length{};
+        file.ReadBytes(&binary_length, sizeof(u32));
+        entry.binary.resize(binary_length);
+        file.ReadBytes(entry.binary.data(), entry.binary.size());
+
+        precompiled.push_back(entry);
+    }
+    return precompiled;
+}
+
+void ShaderDiskCacheOpenGL::InvalidatePrecompiled() const {
+    FileUtil::Delete(GetPrecompiledPath());
+}
+
 void ShaderDiskCacheOpenGL::SaveRaw(const ShaderDiskCacheRaw& entry) {
     const u64 id = entry.GetUniqueIdentifier();
     if (transferable.find(id) != transferable.end()) {

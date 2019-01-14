@@ -144,6 +144,12 @@ public:
     bool LoadTransferable(std::vector<ShaderDiskCacheRaw>& raws,
                           std::vector<ShaderDiskCacheUsage>& usages);
 
+    /// Loads current game's precompiled cache. Invalidates if emulator's version has changed.
+    std::vector<ShaderDiskCachePrecompiledEntry> LoadPrecompiled();
+
+    /// Removes the precompiled cache file.
+    void InvalidatePrecompiled() const;
+
     /// Saves a raw dump to the transferable file. Checks for collisions.
     void SaveRaw(const ShaderDiskCacheRaw& entry);
 
