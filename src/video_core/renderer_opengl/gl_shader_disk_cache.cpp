@@ -66,6 +66,58 @@ void ShaderDiskCacheRaw::Save(FileUtil::IOFile& file) const {
     }
 }
 
+bool ShaderDiskCacheOpenGL::LoadTransferable(std::vector<ShaderDiskCacheRaw>& raws,
+                                             std::vector<ShaderDiskCacheUsage>& usages) {
+    FileUtil::IOFile file(GetTransferablePath(), "rb");
+    if (!file.IsOpen()) {
+        LOG_INFO(Render_OpenGL, "No transferable shader cache found for game with title id={}",
+                 GetTitleID());
+        return false;
+    }
+    const u64 file_size = file.GetSize();
+
+    u32 version{};
+    file.ReadBytes(&version, sizeof(version));
+
+    if (version < NativeVersion) {
+        LOG_INFO(Render_OpenGL, "Transferable shader cache is old - removing");
+        file.Close();
+        FileUtil::Delete(GetTransferablePath());
+        return false;
+    }
+    if (version > NativeVersion) {
+        LOG_WARNING(Render_OpenGL, "Transferable shader cache was generated with a newer version "
+                                   "of the emulator - skipping");
+        return false;
+    }
+
+    // Version is valid, load the shaders
+    while (file.Tell() < file_size) {
+        EntryKind kind{};
+        file.ReadBytes(&kind, sizeof(u32));
+
+        switch (kind) {
+        case EntryKind::Raw: {
+            ShaderDiskCacheRaw entry{file};
+            transferable.insert({entry.GetUniqueIdentifier(), {}});
+            raws.push_back(std::move(entry));
+            break;
+        }
+        case EntryKind::Usage: {
+            ShaderDiskCacheUsage usage{};
+            file.ReadBytes(&usage, sizeof(usage));
+            usages.push_back(std::move(usage));
+            break;
+        }
+        default:
+            LOG_ERROR(Render_OpenGL, "Unknown transferable shader cache entry kind={} - aborting",
+                      static_cast<u32>(kind));
+            return false;
+        }
+    }
+    return true;
+}
+
 void ShaderDiskCacheOpenGL::SaveRaw(const ShaderDiskCacheRaw& entry) {
     const u64 id = entry.GetUniqueIdentifier();
     if (transferable.find(id) != transferable.end()) {

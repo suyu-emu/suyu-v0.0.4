@@ -132,6 +132,10 @@ public:
 
 class ShaderDiskCacheOpenGL {
 public:
+    /// Loads transferable cache. If file has a old version, it deletes it. Returns true on success.
+    bool LoadTransferable(std::vector<ShaderDiskCacheRaw>& raws,
+                          std::vector<ShaderDiskCacheUsage>& usages);
+
     /// Saves a raw dump to the transferable file. Checks for collisions.
     void SaveRaw(const ShaderDiskCacheRaw& entry);
 
