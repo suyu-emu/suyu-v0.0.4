@@ -16,6 +16,7 @@
 #include "video_core/rasterizer_cache.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
+#include "video_core/renderer_opengl/gl_shader_disk_cache.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
 
 namespace OpenGL {
@@ -25,16 +26,6 @@ class RasterizerOpenGL;
 
 using Shader = std::shared_ptr<CachedShader>;
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
-
-struct BaseBindings {
-    u32 cbuf{};
-    u32 gmem{};
-    u32 sampler{};
-
-    bool operator<(const BaseBindings& rhs) const {
-        return std::tie(cbuf, gmem, sampler) < std::tie(rhs.cbuf, rhs.gmem, rhs.sampler);
-    }
-};
 
 class CachedShader final : public RasterizerCacheObject {
 public:
