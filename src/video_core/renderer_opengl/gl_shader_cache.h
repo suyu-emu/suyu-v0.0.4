@@ -117,12 +117,11 @@ public:
 
 private:
     std::map<u64, UnspecializedShader> GenerateUnspecializedShaders(
-        const std::vector<ShaderDiskCacheRaw>& raws);
+        const std::vector<ShaderDiskCacheRaw>& raws,
+        const std::map<u64, ShaderDiskCacheDecompiled>& decompiled);
 
-    CachedProgram GeneratePrecompiledProgram(
-        std::vector<ShaderDiskCachePrecompiledEntry>& precompiled,
-        const ShaderDiskCachePrecompiledEntry& precompiled_entry,
-        const std::set<GLenum>& supported_formats);
+    CachedProgram GeneratePrecompiledProgram(const ShaderDiskCacheDump& dump,
+                                             const std::set<GLenum>& supported_formats);
 
     std::array<Shader, Maxwell::MaxShaderProgram> last_shaders;
 

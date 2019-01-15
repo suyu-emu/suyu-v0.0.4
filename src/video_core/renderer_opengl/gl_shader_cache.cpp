@@ -143,6 +143,8 @@ GLShader::ProgramResult CreateProgram(Maxwell::ShaderProgram program_type, Progr
         // stage here.
         setup.SetProgramB(std::move(program_code_b));
     }
+    setup.program.unique_identifier =
+        GetUniqueIdentifier(program_type, program_code, program_code_b);
 
     switch (program_type) {
     case Maxwell::ShaderProgram::VertexA:
@@ -348,15 +350,12 @@ void ShaderCacheOpenGL::LoadDiskCache() {
         return;
     }
 
-    std::vector<ShaderDiskCachePrecompiledEntry> precompiled = disk_cache.LoadPrecompiled();
-    const auto SearchPrecompiled = [&precompiled](const ShaderDiskCacheUsage& usage) {
-        return std::find_if(
-            precompiled.begin(), precompiled.end(),
-            [&usage](const auto& precompiled_entry) { return precompiled_entry.usage == usage; });
-    };
+    std::map<u64, ShaderDiskCacheDecompiled> decompiled;
+    std::map<ShaderDiskCacheUsage, ShaderDiskCacheDump> dumps;
+    disk_cache.LoadPrecompiled(decompiled, dumps);
 
     const std::set<GLenum> supported_formats{GetSupportedFormats()};
-    const auto unspecialized{GenerateUnspecializedShaders(raws)};
+    const auto unspecialized{GenerateUnspecializedShaders(raws, decompiled)};
 
     // Build shaders
     for (std::size_t i = 0; i < usages.size(); ++i) {
@@ -365,13 +364,17 @@ void ShaderCacheOpenGL::LoadDiskCache() {
                  i + 1, usages.size());
 
         const auto& unspec{unspecialized.at(usage.unique_identifier)};
-
-        const auto precompiled_it = SearchPrecompiled(usage);
-        const bool is_precompiled = precompiled_it != precompiled.end();
+        const auto dump_it = dumps.find(usage);
 
         CachedProgram shader;
-        if (is_precompiled) {
-            shader = GeneratePrecompiledProgram(precompiled, *precompiled_it, supported_formats);
+        if (dump_it != dumps.end()) {
+            // If the shader is dumped, attempt to load it with
+            shader = GeneratePrecompiledProgram(dump_it->second, supported_formats);
+            if (!shader) {
+                // Invalidate the precompiled cache if a shader dumped shader was rejected
+                disk_cache.InvalidatePrecompiled();
+                dumps.clear();
+            }
         }
         if (!shader) {
             shader = SpecializeShader(unspec.code, unspec.entries, unspec.program_type,
@@ -385,52 +388,47 @@ void ShaderCacheOpenGL::LoadDiskCache() {
 
     for (std::size_t i = 0; i < usages.size(); ++i) {
         const auto& usage{usages[i]};
-        if (SearchPrecompiled(usage) == precompiled.end()) {
+        if (dumps.find(usage) == dumps.end()) {
             const auto& program = precompiled_programs.at(usage);
-            disk_cache.SavePrecompiled(usage, program->handle);
+            disk_cache.SaveDump(usage, program->handle);
         }
     }
 }
 
 CachedProgram ShaderCacheOpenGL::GeneratePrecompiledProgram(
-    std::vector<ShaderDiskCachePrecompiledEntry>& precompiled,
-    const ShaderDiskCachePrecompiledEntry& precompiled_entry,
-    const std::set<GLenum>& supported_formats) {
+    const ShaderDiskCacheDump& dump, const std::set<GLenum>& supported_formats) {
 
-    if (supported_formats.find(precompiled_entry.binary_format) == supported_formats.end()) {
+    if (supported_formats.find(dump.binary_format) == supported_formats.end()) {
         LOG_INFO(Render_OpenGL, "Precompiled cache entry with unsupported format - removing");
-        disk_cache.InvalidatePrecompiled();
-        precompiled.clear();
         return {};
     }
 
     CachedProgram shader = std::make_shared<OGLProgram>();
     shader->handle = glCreateProgram();
-    glProgramBinary(shader->handle, precompiled_entry.binary_format,
-                    precompiled_entry.binary.data(),
-                    static_cast<GLsizei>(precompiled_entry.binary.size()));
+    glProgramBinary(shader->handle, dump.binary_format, dump.binary.data(),
+                    static_cast<GLsizei>(dump.binary.size()));
 
     GLint link_status{};
     glGetProgramiv(shader->handle, GL_LINK_STATUS, &link_status);
     if (link_status == GL_FALSE) {
         LOG_INFO(Render_OpenGL, "Precompiled cache rejected by the driver - removing");
-        disk_cache.InvalidatePrecompiled();
-        precompiled.clear();
-
-        shader.reset();
+        return {};
     }
 
     return shader;
 }
 
 std::map<u64, UnspecializedShader> ShaderCacheOpenGL::GenerateUnspecializedShaders(
-    const std::vector<ShaderDiskCacheRaw>& raws) {
+    const std::vector<ShaderDiskCacheRaw>& raws,
+    const std::map<u64, ShaderDiskCacheDecompiled>& decompiled) {
 
     std::map<u64, UnspecializedShader> unspecialized;
+
     for (const auto& raw : raws) {
+        const u64 unique_identifier = raw.GetUniqueIdentifier();
         const u64 calculated_hash =
             GetUniqueIdentifier(raw.GetProgramType(), raw.GetProgramCode(), raw.GetProgramCodeB());
-        if (raw.GetUniqueIdentifier() != calculated_hash) {
+        if (unique_identifier != calculated_hash) {
             LOG_ERROR(
                 Render_OpenGL,
                 "Invalid hash in entry={:016x} (obtained hash={:016x}) - removing shader cache",
@@ -439,10 +437,19 @@ std::map<u64, UnspecializedShader> ShaderCacheOpenGL::GenerateUnspecializedShade
             return {};
         }
 
-        auto result =
-            CreateProgram(raw.GetProgramType(), raw.GetProgramCode(), raw.GetProgramCodeB());
+        GLShader::ProgramResult result;
+        if (const auto it = decompiled.find(unique_identifier); it != decompiled.end()) {
+            // If it's stored in the precompiled file, avoid decompiling it here
+            const auto& stored_decompiled{it->second};
+            result = {stored_decompiled.code, stored_decompiled.entries};
+        } else {
+            // Otherwise decompile the shader at boot and save the result to the decompiled file
+            result =
+                CreateProgram(raw.GetProgramType(), raw.GetProgramCode(), raw.GetProgramCodeB());
+            disk_cache.SaveDecompiled(unique_identifier, result.first, result.second);
+        }
 
-        precompiled_shaders.insert({raw.GetUniqueIdentifier(), result});
+        precompiled_shaders.insert({unique_identifier, result});
 
         unspecialized.insert(
             {raw.GetUniqueIdentifier(),

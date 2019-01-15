@@ -23,40 +23,23 @@ using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
 class ConstBufferEntry : public VideoCommon::Shader::ConstBuffer {
 public:
-    explicit ConstBufferEntry(const VideoCommon::Shader::ConstBuffer& entry,
-                              Maxwell::ShaderStage stage, u32 index)
-        : VideoCommon::Shader::ConstBuffer{entry}, stage{stage}, index{index} {}
-
-    Maxwell::ShaderStage GetStage() const {
-        return stage;
-    }
+    explicit ConstBufferEntry(u32 max_offset, bool is_indirect, u32 index)
+        : VideoCommon::Shader::ConstBuffer{max_offset, is_indirect}, index{index} {}
 
     u32 GetIndex() const {
         return index;
     }
 
 private:
-    Maxwell::ShaderStage stage{};
     u32 index{};
 };
 
-class SamplerEntry : public VideoCommon::Shader::Sampler {
-public:
-    explicit SamplerEntry(const VideoCommon::Shader::Sampler& entry, Maxwell::ShaderStage stage)
-        : VideoCommon::Shader::Sampler{entry}, stage{stage} {}
-
-    Maxwell::ShaderStage GetStage() const {
-        return stage;
-    }
-
-private:
-    Maxwell::ShaderStage stage{};
-};
+using SamplerEntry = VideoCommon::Shader::Sampler;
 
 class GlobalMemoryEntry {
 public:
-    explicit GlobalMemoryEntry(u32 cbuf_index, u32 cbuf_offset, Maxwell::ShaderStage stage)
-        : cbuf_index{cbuf_index}, cbuf_offset{cbuf_offset}, stage{stage} {}
+    explicit GlobalMemoryEntry(u32 cbuf_index, u32 cbuf_offset)
+        : cbuf_index{cbuf_index}, cbuf_offset{cbuf_offset} {}
 
     u32 GetCbufIndex() const {
         return cbuf_index;
@@ -66,47 +49,9 @@ public:
         return cbuf_offset;
     }
 
-    Maxwell::ShaderStage GetStage() const {
-        return stage;
-    }
-
 private:
     u32 cbuf_index{};
     u32 cbuf_offset{};
-    Maxwell::ShaderStage stage{};
-    std::string name;
-};
-
-class GlobalMemoryEntry {
-public:
-    explicit GlobalMemoryEntry(u32 cbuf_index, u32 cbuf_offset, Maxwell::ShaderStage stage,
-                               std::string name)
-        : cbuf_index{cbuf_index}, cbuf_offset{cbuf_offset}, stage{stage}, name{std::move(name)} {}
-
-    u32 GetCbufIndex() const {
-        return cbuf_index;
-    }
-
-    u32 GetCbufOffset() const {
-        return cbuf_offset;
-    }
-
-    const std::string& GetName() const {
-        return name;
-    }
-
-    Maxwell::ShaderStage GetStage() const {
-        return stage;
-    }
-
-    u32 GetHash() const {
-        return (static_cast<u32>(stage) << 24) | (cbuf_index << 16) | cbuf_offset;
-    }
-
-private:
-    u32 cbuf_index{};
-    u32 cbuf_offset{};
-    Maxwell::ShaderStage stage{};
 };
 
 struct ShaderEntries {

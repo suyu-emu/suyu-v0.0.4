@@ -130,12 +130,14 @@ public:
     }
 };
 
-struct ShaderDiskCachePrecompiledEntry {
-    ShaderDiskCacheUsage usage;
-    GLenum binary_format;
-    std::vector<u8> binary;
+struct ShaderDiskCacheDecompiled {
     std::string code;
     GLShader::ShaderEntries entries;
+};
+
+struct ShaderDiskCacheDump {
+    GLenum binary_format;
+    std::vector<u8> binary;
 };
 
 class ShaderDiskCacheOpenGL {
@@ -145,7 +147,8 @@ public:
                           std::vector<ShaderDiskCacheUsage>& usages);
 
     /// Loads current game's precompiled cache. Invalidates if emulator's version has changed.
-    std::vector<ShaderDiskCachePrecompiledEntry> LoadPrecompiled();
+    bool LoadPrecompiled(std::map<u64, ShaderDiskCacheDecompiled>& decompiled,
+                         std::map<ShaderDiskCacheUsage, ShaderDiskCacheDump>& dumps);
 
     /// Removes the transferable (and precompiled) cache file.
     void InvalidateTransferable() const;
@@ -159,8 +162,12 @@ public:
     /// Saves shader usage to the transferable file. Does not check for collisions.
     void SaveUsage(const ShaderDiskCacheUsage& usage);
 
-    /// Saves a precompiled shader entry. Does not check for collisions.
-    void SavePrecompiled(const ShaderDiskCacheUsage& usage, GLuint program);
+    /// Saves a decompiled entry to the precompiled file. Does not check for collisions.
+    void SaveDecompiled(u64 unique_identifier, const std::string& code,
+                        const GLShader::ShaderEntries& entries);
+
+    /// Saves a dump entry to the precompiled file. Does not check for collisions.
+    void SaveDump(const ShaderDiskCacheUsage& usage, GLuint program);
 
 private:
     /// Opens current game's transferable file and write it's header if it doesn't exist

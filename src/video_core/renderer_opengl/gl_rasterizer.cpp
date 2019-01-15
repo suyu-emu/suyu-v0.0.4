@@ -1009,22 +1009,20 @@ void RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, const Shader& s
 
     for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
         const auto& entry = entries[bindpoint];
+        const auto texture = maxwell3d.GetStageTexture(stage, entry.GetOffset());
         const u32 current_bindpoint = base_bindings.sampler + bindpoint;
-        auto& unit = state.texture_units[current_bindpoint];
-
-        const auto texture = maxwell3d.GetStageTexture(entry.GetStage(), entry.GetOffset());
 
         texture_samplers[current_bindpoint].SyncWithConfig(texture.tsc);
 
         Surface surface = res_cache.GetTextureSurface(texture, entry);
         if (surface != nullptr) {
-            unit.texture =
+            state.texture_units[current_bindpoint].texture =
                 entry.IsArray() ? surface->TextureLayer().handle : surface->Texture().handle;
             surface->UpdateSwizzle(texture.tic.x_source, texture.tic.y_source, texture.tic.z_source,
                                    texture.tic.w_source);
         } else {
             // Can occur when texture addr is null or its memory is unmapped/invalid
-            unit.texture = 0;
+            state.texture_units[current_bindpoint].texture = 0;
         }
     }
 }
