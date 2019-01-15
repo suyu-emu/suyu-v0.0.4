@@ -282,9 +282,22 @@ bool ShaderDiskCacheOpenGL::LoadPrecompiled(
             file.ReadBytes(&dump.binary_format, sizeof(u32));
 
             u32 binary_length{};
+            u32 compressed_size{};
             file.ReadBytes(&binary_length, sizeof(u32));
-            dump.binary.resize(binary_length);
-            file.ReadBytes(dump.binary.data(), dump.binary.size());
+            file.ReadBytes(&compressed_size, sizeof(u32));
+
+            std::vector<u8> compressed_binary(compressed_size);
+            file.ReadArray(compressed_binary.data(), compressed_binary.size());
+
+            dump.binary = DecompressData(compressed_binary, binary_length);
+            if (dump.binary.empty()) {
+                LOG_ERROR(Render_OpenGL,
+                          "Failed to decompress precompiled binary program - removing");
+                InvalidatePrecompiled();
+                dumps.clear();
+                decompiled.clear();
+                return false;
+            }
 
             dumps.insert({usage, dump});
             break;
@@ -418,10 +431,6 @@ void ShaderDiskCacheOpenGL::SaveDump(const ShaderDiskCacheUsage& usage, GLuint p
         return;
     }
 
-    file.WriteObject(static_cast<u32>(PrecompiledEntryKind::Dump));
-
-    file.WriteObject(usage);
-
     GLint binary_length{};
     glGetProgramiv(program, GL_PROGRAM_BINARY_LENGTH, &binary_length);
 
@@ -429,9 +438,21 @@ void ShaderDiskCacheOpenGL::SaveDump(const ShaderDiskCacheUsage& usage, GLuint p
     std::vector<u8> binary(binary_length);
     glGetProgramBinary(program, binary_length, nullptr, &binary_format, binary.data());
 
+    const std::vector<u8> compressed_binary = CompressData(binary.data(), binary.size());
+    if (compressed_binary.empty()) {
+        LOG_ERROR(Render_OpenGL, "Failed to compress binary program in shader={:016x}",
+                  usage.unique_identifier);
+        return;
+    }
+
+    file.WriteObject(static_cast<u32>(PrecompiledEntryKind::Dump));
+
+    file.WriteObject(usage);
+
     file.WriteObject(static_cast<u32>(binary_format));
     file.WriteObject(static_cast<u32>(binary_length));
-    file.WriteArray(binary.data(), binary.size());
+    file.WriteObject(static_cast<u32>(compressed_binary.size()));
+    file.WriteArray(compressed_binary.data(), compressed_binary.size());
 }
 
 FileUtil::IOFile ShaderDiskCacheOpenGL::AppendTransferableFile() const {
