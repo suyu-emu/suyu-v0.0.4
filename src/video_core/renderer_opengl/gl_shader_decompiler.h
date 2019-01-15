@@ -19,7 +19,11 @@ class ShaderIR;
 
 namespace OpenGL::GLShader {
 
+struct ShaderEntries;
+
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
+using ProgramResult = std::pair<std::string, ShaderEntries>;
+using SamplerEntry = VideoCommon::Shader::Sampler;
 
 class ConstBufferEntry : public VideoCommon::Shader::ConstBuffer {
 public:
@@ -33,8 +37,6 @@ public:
 private:
     u32 index{};
 };
-
-using SamplerEntry = VideoCommon::Shader::Sampler;
 
 class GlobalMemoryEntry {
 public:
@@ -61,8 +63,6 @@ struct ShaderEntries {
     std::array<bool, Maxwell::NumClipDistances> clip_distances{};
     std::size_t shader_length{};
 };
-
-using ProgramResult = std::pair<std::string, ShaderEntries>;
 
 std::string GetCommonDeclarations();
 

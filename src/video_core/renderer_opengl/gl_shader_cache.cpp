@@ -181,7 +181,8 @@ CachedProgram SpecializeShader(const std::string& code, const GLShader::ShaderEn
     }
 
     if (program_type == Maxwell::ShaderProgram::Geometry) {
-        const auto [glsl_topology, _, max_vertices] = GetPrimitiveDescription(primitive_mode);
+        const auto [glsl_topology, debug_name, max_vertices] =
+            GetPrimitiveDescription(primitive_mode);
 
         source += "layout (" + std::string(glsl_topology) + ") in;\n";
         source += "#define MAX_VERTEX_INPUT " + std::to_string(max_vertices) + '\n';
@@ -314,7 +315,7 @@ GLuint CachedShader::LazyGeometryProgram(CachedProgram& target_program, BaseBind
     if (target_program) {
         return target_program->handle;
     }
-    const auto [_, debug_name, __] = GetPrimitiveDescription(primitive_mode);
+    const auto [glsl_name, debug_name, vertices] = GetPrimitiveDescription(primitive_mode);
     target_program = TryLoadProgram(primitive_mode, base_bindings);
     if (!target_program) {
         target_program =
@@ -419,7 +420,6 @@ CachedProgram ShaderCacheOpenGL::GeneratePrecompiledProgram(
 std::map<u64, UnspecializedShader> ShaderCacheOpenGL::GenerateUnspecializedShaders(
     const std::vector<ShaderDiskCacheRaw>& raws,
     const std::map<u64, ShaderDiskCacheDecompiled>& decompiled) {
-
     std::map<u64, UnspecializedShader> unspecialized;
 
     for (const auto& raw : raws) {

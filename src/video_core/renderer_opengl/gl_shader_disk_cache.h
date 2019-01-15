@@ -15,22 +15,20 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
-#include "common/file_util.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
+
+namespace FileUtil {
+class IOFile;
+} // namespace FileUtil
 
 namespace OpenGL {
 
 using ProgramCode = std::vector<u64>;
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
+/// Allocated bindings used by an OpenGL shader program
 struct BaseBindings {
-private:
-    auto Tie() const {
-        return std::tie(cbuf, gmem, sampler);
-    }
-
-public:
     u32 cbuf{};
     u32 gmem{};
     u32 sampler{};
@@ -44,20 +42,24 @@ public:
     }
 
     bool operator!=(const BaseBindings& rhs) const {
-        return !this->operator==(rhs);
+        return !operator==(rhs);
+    }
+
+    std::tuple<u32, u32, u32> Tie() const {
+        return std::tie(cbuf, gmem, sampler);
     }
 };
 
+/// Describes a shader how it's used by the guest GPU
 class ShaderDiskCacheRaw {
 public:
     explicit ShaderDiskCacheRaw(FileUtil::IOFile& file);
 
     explicit ShaderDiskCacheRaw(u64 unique_identifier, Maxwell::ShaderProgram program_type,
                                 u32 program_code_size, u32 program_code_size_b,
-                                ProgramCode program_code, ProgramCode program_code_b)
-        : unique_identifier{unique_identifier}, program_type{program_type},
-          program_code_size{program_code_size}, program_code_size_b{program_code_size_b},
-          program_code{std::move(program_code)}, program_code_b{std::move(program_code_b)} {}
+                                ProgramCode program_code, ProgramCode program_code_b);
+
+    ~ShaderDiskCacheRaw();
 
     void Save(FileUtil::IOFile& file) const;
 
@@ -108,17 +110,8 @@ private:
     ProgramCode program_code_b;
 };
 
+/// Describes how a shader is used
 struct ShaderDiskCacheUsage {
-private:
-    auto Tie() const {
-        return std::tie(unique_identifier, bindings, primitive);
-    }
-
-public:
-    u64 unique_identifier{};
-    BaseBindings bindings;
-    GLenum primitive{};
-
     bool operator<(const ShaderDiskCacheUsage& rhs) const {
         return Tie() < rhs.Tie();
     }
@@ -128,15 +121,26 @@ public:
     }
 
     bool operator!=(const ShaderDiskCacheUsage& rhs) const {
-        return !this->operator==(rhs);
+        return !operator==(rhs);
+    }
+
+    u64 unique_identifier{};
+    BaseBindings bindings;
+    GLenum primitive{};
+
+private:
+    std::tuple<u64, BaseBindings, GLenum> Tie() const {
+        return std::tie(unique_identifier, bindings, primitive);
     }
 };
 
+/// Contains decompiled data from a shader
 struct ShaderDiskCacheDecompiled {
     std::string code;
     GLShader::ShaderEntries entries;
 };
 
+/// Contains an OpenGL dumped binary program
 struct ShaderDiskCacheDump {
     GLenum binary_format;
     std::vector<u8> binary;
@@ -154,10 +158,10 @@ public:
     LoadPrecompiled();
 
     /// Removes the transferable (and precompiled) cache file.
-    void InvalidateTransferable() const;
+    bool InvalidateTransferable() const;
 
     /// Removes the precompiled cache file.
-    void InvalidatePrecompiled() const;
+    bool InvalidatePrecompiled() const;
 
     /// Saves a raw dump to the transferable file. Checks for collisions.
     void SaveRaw(const ShaderDiskCacheRaw& entry);

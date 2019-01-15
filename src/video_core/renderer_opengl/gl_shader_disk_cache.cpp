@@ -49,7 +49,7 @@ std::string GetTitleID() {
 std::string GetShaderHash() {
     std::array<char, ShaderHashSize> hash{};
     std::strncpy(hash.data(), Common::g_shader_cache_version, ShaderHashSize);
-    return std::string(hash.data());
+    return std::string(hash.data(), hash.size());
 }
 
 template <typename T>
@@ -86,7 +86,8 @@ ShaderDiskCacheRaw::ShaderDiskCacheRaw(FileUtil::IOFile& file) {
     file.ReadBytes(&unique_identifier, sizeof(u64));
     file.ReadBytes(&program_type, sizeof(u32));
 
-    u32 program_code_size{}, program_code_size_b{};
+    u32 program_code_size{};
+    u32 program_code_size_b{};
     file.ReadBytes(&program_code_size, sizeof(u32));
     file.ReadBytes(&program_code_size_b, sizeof(u32));
 
@@ -98,6 +99,15 @@ ShaderDiskCacheRaw::ShaderDiskCacheRaw(FileUtil::IOFile& file) {
         file.ReadArray(program_code_b.data(), program_code_size_b);
     }
 }
+
+ShaderDiskCacheRaw::ShaderDiskCacheRaw(u64 unique_identifier, Maxwell::ShaderProgram program_type,
+                                       u32 program_code_size, u32 program_code_size_b,
+                                       ProgramCode program_code, ProgramCode program_code_b)
+    : unique_identifier{unique_identifier}, program_type{program_type},
+      program_code_size{program_code_size}, program_code_size_b{program_code_size_b},
+      program_code{std::move(program_code)}, program_code_b{std::move(program_code_b)} {}
+
+ShaderDiskCacheRaw::~ShaderDiskCacheRaw() = default;
 
 void ShaderDiskCacheRaw::Save(FileUtil::IOFile& file) const {
     file.WriteObject(unique_identifier);
@@ -186,7 +196,7 @@ ShaderDiskCacheOpenGL::LoadPrecompiled() {
 
     char precompiled_hash[ShaderHashSize];
     file.ReadBytes(&precompiled_hash, ShaderHashSize);
-    if (std::string(precompiled_hash) != GetShaderHash()) {
+    if (precompiled_hash != GetShaderHash()) {
         LOG_INFO(Render_OpenGL, "Precompiled cache is from another version of yuzu - removing");
         file.Close();
         InvalidatePrecompiled();
@@ -311,13 +321,13 @@ ShaderDiskCacheOpenGL::LoadPrecompiled() {
     return {decompiled, dumps};
 }
 
-void ShaderDiskCacheOpenGL::InvalidateTransferable() const {
-    FileUtil::Delete(GetTransferablePath());
-    InvalidatePrecompiled();
+bool ShaderDiskCacheOpenGL::InvalidateTransferable() const {
+    const bool success = FileUtil::Delete(GetTransferablePath());
+    return InvalidatePrecompiled() && success;
 }
 
-void ShaderDiskCacheOpenGL::InvalidatePrecompiled() const {
-    FileUtil::Delete(GetPrecompiledPath());
+bool ShaderDiskCacheOpenGL::InvalidatePrecompiled() const {
+    return FileUtil::Delete(GetPrecompiledPath());
 }
 
 void ShaderDiskCacheOpenGL::SaveRaw(const ShaderDiskCacheRaw& entry) {

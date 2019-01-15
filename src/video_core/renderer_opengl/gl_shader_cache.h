@@ -86,9 +86,9 @@ private:
 
     ShaderDiskCacheUsage GetUsage(GLenum primitive_mode, BaseBindings base_bindings) const;
 
-    const VAddr addr;
-    const u64 unique_identifier;
-    const Maxwell::ShaderProgram program_type;
+    VAddr addr{};
+    u64 unique_identifier{};
+    Maxwell::ShaderProgram program_type{};
     ShaderDiskCacheOpenGL& disk_cache;
     const PrecompiledPrograms& precompiled_programs;
 
