@@ -112,20 +112,20 @@ static std::string GetTopologyName(Tegra::Shader::OutputTopology topology) {
 static bool IsPrecise(Operation operand) {
     const auto& meta = operand.GetMeta();
 
-    if (std::holds_alternative<MetaArithmetic>(meta)) {
-        return std::get<MetaArithmetic>(meta).precise;
+    if (const auto arithmetic = std::get_if<MetaArithmetic>(&meta)) {
+        return arithmetic->precise;
     }
-    if (std::holds_alternative<MetaHalfArithmetic>(meta)) {
-        return std::get<MetaHalfArithmetic>(meta).precise;
+    if (const auto half_arithmetic = std::get_if<MetaHalfArithmetic>(&meta)) {
+        return half_arithmetic->precise;
     }
     return false;
 }
 
 static bool IsPrecise(Node node) {
-    if (!std::holds_alternative<OperationNode>(*node)) {
-        return false;
+    if (const auto operation = std::get_if<OperationNode>(node)) {
+        return IsPrecise(*operation);
     }
-    return IsPrecise(std::get<OperationNode>(*node));
+    return false;
 }
 
 class GLSLDecompiler final {
@@ -601,12 +601,12 @@ private:
         case Type::Uint:
             return "ftou(" + value + ')';
         case Type::HalfFloat:
-            if (!std::holds_alternative<MetaHalfArithmetic>(operation.GetMeta())) {
+            const auto half_meta = std::get_if<MetaHalfArithmetic>(&operation.GetMeta());
+            if (!half_meta) {
                 value = "toHalf2(" + value + ')';
             }
 
-            const auto& half_meta = std::get<MetaHalfArithmetic>(operation.GetMeta());
-            switch (half_meta.types.at(operand_index)) {
+            switch (half_meta->types.at(operand_index)) {
             case Tegra::Shader::HalfType::H0_H1:
                 return "toHalf2(" + value + ')';
             case Tegra::Shader::HalfType::F32:
@@ -692,19 +692,20 @@ private:
                                 bool is_extra_int = false) {
         constexpr std::array<const char*, 4> coord_constructors = {"float", "vec2", "vec3", "vec4"};
 
-        const auto& meta = std::get<MetaTexture>(operation.GetMeta());
+        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
         const auto count = static_cast<u32>(operation.GetOperandsCount());
+        ASSERT(meta);
 
         std::string expr = func;
         expr += '(';
-        expr += GetSampler(meta.sampler);
+        expr += GetSampler(meta->sampler);
         expr += ", ";
 
-        expr += coord_constructors[meta.coords_count - 1];
+        expr += coord_constructors[meta->coords_count - 1];
         expr += '(';
         for (u32 i = 0; i < count; ++i) {
-            const bool is_extra = i >= meta.coords_count;
-            const bool is_array = i == meta.array_index;
+            const bool is_extra = i >= meta->coords_count;
+            const bool is_array = i == meta->array_index;
 
             std::string operand = [&]() {
                 if (is_extra && is_extra_int) {
@@ -724,7 +725,7 @@ private:
 
             expr += operand;
 
-            if (i + 1 == meta.coords_count) {
+            if (i + 1 == meta->coords_count) {
                 expr += ')';
             }
             if (i + 1 < count) {
@@ -1108,38 +1109,46 @@ private:
     }
 
     std::string F4Texture(Operation operation) {
-        const auto meta = std::get<MetaTexture>(operation.GetMeta());
+        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
+        ASSERT(meta);
+
         std::string expr = GenerateTexture(operation, "texture");
-        if (meta.sampler.IsShadow()) {
+        if (meta->sampler.IsShadow()) {
             expr = "vec4(" + expr + ')';
         }
-        return expr + GetSwizzle(meta.element);
+        return expr + GetSwizzle(meta->element);
     }
 
     std::string F4TextureLod(Operation operation) {
-        const auto meta = std::get<MetaTexture>(operation.GetMeta());
+        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
+        ASSERT(meta);
+
         std::string expr = GenerateTexture(operation, "textureLod");
-        if (meta.sampler.IsShadow()) {
+        if (meta->sampler.IsShadow()) {
             expr = "vec4(" + expr + ')';
         }
-        return expr + GetSwizzle(meta.element);
+        return expr + GetSwizzle(meta->element);
     }
 
     std::string F4TextureGather(Operation operation) {
-        const auto meta = std::get<MetaTexture>(operation.GetMeta());
-        return GenerateTexture(operation, "textureGather", !meta.sampler.IsShadow()) +
-               GetSwizzle(meta.element);
+        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
+        ASSERT(meta);
+
+        return GenerateTexture(operation, "textureGather", !meta->sampler.IsShadow()) +
+               GetSwizzle(meta->element);
     }
 
     std::string F4TextureQueryDimensions(Operation operation) {
-        const auto& meta = std::get<MetaTexture>(operation.GetMeta());
-        const std::string sampler = GetSampler(meta.sampler);
+        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
+        ASSERT(meta);
+
+        const std::string sampler = GetSampler(meta->sampler);
         const std::string lod = VisitOperand(operation, 0, Type::Int);
 
-        switch (meta.element) {
+        switch (meta->element) {
         case 0:
         case 1:
-            return "textureSize(" + sampler + ", " + lod + ')' + GetSwizzle(meta.element);
+            return "textureSize(" + sampler + ", " + lod + ')' + GetSwizzle(meta->element);
         case 2:
             return "0";
         case 3:
@@ -1150,29 +1159,32 @@ private:
     }
 
     std::string F4TextureQueryLod(Operation operation) {
-        const auto& meta = std::get<MetaTexture>(operation.GetMeta());
-        if (meta.element < 2) {
+        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
+        ASSERT(meta);
+
+        if (meta->element < 2) {
             return "itof(int((" + GenerateTexture(operation, "textureQueryLod") + " * vec2(256))" +
-                   GetSwizzle(meta.element) + "))";
+                   GetSwizzle(meta->element) + "))";
         }
         return "0";
     }
 
     std::string F4TexelFetch(Operation operation) {
         constexpr std::array<const char*, 4> constructors = {"int", "ivec2", "ivec3", "ivec4"};
-        const auto& meta = std::get<MetaTexture>(operation.GetMeta());
+        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
         const auto count = static_cast<u32>(operation.GetOperandsCount());
+        ASSERT(meta);
 
         std::string expr = "texelFetch(";
-        expr += GetSampler(meta.sampler);
+        expr += GetSampler(meta->sampler);
         expr += ", ";
 
-        expr += constructors[meta.coords_count - 1];
+        expr += constructors[meta->coords_count - 1];
         expr += '(';
         for (u32 i = 0; i < count; ++i) {
             expr += VisitOperand(operation, i, Type::Int);
 
-            if (i + 1 == meta.coords_count) {
+            if (i + 1 == meta->coords_count) {
                 expr += ')';
             }
             if (i + 1 < count) {
@@ -1180,26 +1192,28 @@ private:
             }
         }
         expr += ')';
-        return expr + GetSwizzle(meta.element);
+        return expr + GetSwizzle(meta->element);
     }
 
     std::string Branch(Operation operation) {
-        const auto target = std::get<ImmediateNode>(*operation[0]);
-        code.AddLine(fmt::format("jmp_to = 0x{:x}u;", target.GetValue()));
+        const auto target = std::get_if<ImmediateNode>(operation[0]);
+        UNIMPLEMENTED_IF(!target);
+
+        code.AddLine(fmt::format("jmp_to = 0x{:x}u;", target->GetValue()));
         code.AddLine("break;");
         return {};
     }
 
     std::string PushFlowStack(Operation operation) {
-        const auto target = std::get<ImmediateNode>(*operation[0]);
-        code.AddLine(fmt::format("flow_stack[flow_stack_top] = 0x{:x}u;", target.GetValue()));
-        code.AddLine("flow_stack_top++;");
+        const auto target = std::get_if<ImmediateNode>(operation[0]);
+        UNIMPLEMENTED_IF(!target);
+
+        code.AddLine(fmt::format("flow_stack[flow_stack_top++] = 0x{:x}u;", target->GetValue()));
         return {};
     }
 
     std::string PopFlowStack(Operation operation) {
-        code.AddLine("flow_stack_top--;");
-        code.AddLine("jmp_to = flow_stack[flow_stack_top];");
+        code.AddLine("jmp_to = flow_stack[--flow_stack_top];");
         code.AddLine("break;");
         return {};
     }
