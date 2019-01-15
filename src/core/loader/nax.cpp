@@ -79,4 +79,13 @@ u64 AppLoader_NAX::ReadRomFSIVFCOffset() const {
 ResultStatus AppLoader_NAX::ReadProgramId(u64& out_program_id) {
     return nca_loader->ReadProgramId(out_program_id);
 }
+
+ResultStatus AppLoader_NAX::ReadBanner(std::vector<u8>& buffer) {
+    return nca_loader->ReadBanner(buffer);
+}
+
+ResultStatus AppLoader_NAX::ReadLogo(std::vector<u8>& buffer) {
+    return nca_loader->ReadLogo(buffer);
+}
+
 } // namespace Loader

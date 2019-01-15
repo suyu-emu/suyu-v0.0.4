@@ -166,4 +166,13 @@ ResultStatus AppLoader_NSP::ReadManualRomFS(FileSys::VirtualFile& file) {
     file = nca->GetRomFS();
     return file == nullptr ? ResultStatus::ErrorNoRomFS : ResultStatus::Success;
 }
+
+ResultStatus AppLoader_NSP::ReadBanner(std::vector<u8>& buffer) {
+    return secondary_loader->ReadBanner(buffer);
+}
+
+ResultStatus AppLoader_NSP::ReadLogo(std::vector<u8>& buffer) {
+    return secondary_loader->ReadLogo(buffer);
+}
+
 } // namespace Loader

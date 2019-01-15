@@ -178,6 +178,8 @@ public:
 
     /**
      * Get the banner (typically banner section) of the application
+     * In the context of NX, this is the animation that displays in the bottom right of the screen
+     * when a game boots. Stored in GIF format.
      * @param buffer Reference to buffer to store data
      * @return ResultStatus result of function
      */
@@ -187,6 +189,8 @@ public:
 
     /**
      * Get the logo (typically logo section) of the application
+     * In the context of NX, this is the static image that displays in the top left of the screen
+     * when a game boots. Stored in JPEG format.
      * @param buffer Reference to buffer to store data
      * @return ResultStatus result of function
      */

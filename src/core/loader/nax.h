@@ -39,6 +39,9 @@ public:
     u64 ReadRomFSIVFCOffset() const override;
     ResultStatus ReadProgramId(u64& out_program_id) override;
 
+    ResultStatus ReadBanner(std::vector<u8>& buffer) override;
+    ResultStatus ReadLogo(std::vector<u8>& buffer) override;
+
 private:
     std::unique_ptr<FileSys::NAX> nax;
     std::unique_ptr<AppLoader_NCA> nca_loader;

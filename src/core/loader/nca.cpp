@@ -84,4 +84,23 @@ ResultStatus AppLoader_NCA::ReadProgramId(u64& out_program_id) {
     return ResultStatus::Success;
 }
 
+ResultStatus AppLoader_NCA::ReadBanner(std::vector<u8>& buffer) {
+    if (nca == nullptr || nca->GetStatus() != ResultStatus::Success)
+        return ResultStatus::ErrorNotInitialized;
+    const auto logo = nca->GetLogoPartition();
+    if (logo == nullptr)
+        return ResultStatus::ErrorNoIcon;
+    buffer = logo->GetFile("StartupMovie.gif")->ReadAllBytes();
+    return ResultStatus::Success;
+}
+
+ResultStatus AppLoader_NCA::ReadLogo(std::vector<u8>& buffer) {
+    if (nca == nullptr || nca->GetStatus() != ResultStatus::Success)
+        return ResultStatus::ErrorNotInitialized;
+    const auto logo = nca->GetLogoPartition();
+    if (logo == nullptr)
+        return ResultStatus::ErrorNoIcon;
+    buffer = logo->GetFile("NintendoLogo.png")->ReadAllBytes();
+    return ResultStatus::Success;
+}
 } // namespace Loader
