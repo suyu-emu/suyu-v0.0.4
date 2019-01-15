@@ -111,17 +111,17 @@ void ShaderDiskCacheRaw::Save(FileUtil::IOFile& file) const {
     }
 }
 
-bool ShaderDiskCacheOpenGL::LoadTransferable(std::vector<ShaderDiskCacheRaw>& raws,
-                                             std::vector<ShaderDiskCacheUsage>& usages) {
+std::optional<std::pair<std::vector<ShaderDiskCacheRaw>, std::vector<ShaderDiskCacheUsage>>>
+ShaderDiskCacheOpenGL::LoadTransferable() {
     if (!Settings::values.use_disk_shader_cache) {
-        return false;
+        return {};
     }
 
     FileUtil::IOFile file(GetTransferablePath(), "rb");
     if (!file.IsOpen()) {
         LOG_INFO(Render_OpenGL, "No transferable shader cache found for game with title id={}",
                  GetTitleID());
-        return false;
+        return {};
     }
     const u64 file_size = file.GetSize();
 
@@ -132,15 +132,17 @@ bool ShaderDiskCacheOpenGL::LoadTransferable(std::vector<ShaderDiskCacheRaw>& ra
         LOG_INFO(Render_OpenGL, "Transferable shader cache is old - removing");
         file.Close();
         FileUtil::Delete(GetTransferablePath());
-        return false;
+        return {};
     }
     if (version > NativeVersion) {
         LOG_WARNING(Render_OpenGL, "Transferable shader cache was generated with a newer version "
                                    "of the emulator - skipping");
-        return false;
+        return {};
     }
 
     // Version is valid, load the shaders
+    std::vector<ShaderDiskCacheRaw> raws;
+    std::vector<ShaderDiskCacheUsage> usages;
     while (file.Tell() < file_size) {
         TransferableEntryKind kind{};
         file.ReadBytes(&kind, sizeof(u32));
@@ -161,25 +163,24 @@ bool ShaderDiskCacheOpenGL::LoadTransferable(std::vector<ShaderDiskCacheRaw>& ra
         default:
             LOG_ERROR(Render_OpenGL, "Unknown transferable shader cache entry kind={} - aborting",
                       static_cast<u32>(kind));
-            return false;
+            return {};
         }
     }
-    return true;
+    return {{raws, usages}};
 }
 
-bool ShaderDiskCacheOpenGL::LoadPrecompiled(
-    std::map<u64, ShaderDiskCacheDecompiled>& decompiled,
-    std::map<ShaderDiskCacheUsage, ShaderDiskCacheDump>& dumps) {
-
+std::pair<std::map<u64, ShaderDiskCacheDecompiled>,
+          std::map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>
+ShaderDiskCacheOpenGL::LoadPrecompiled() {
     if (!Settings::values.use_disk_shader_cache) {
-        return false;
+        return {};
     }
 
     FileUtil::IOFile file(GetPrecompiledPath(), "rb");
     if (!file.IsOpen()) {
         LOG_INFO(Render_OpenGL, "No precompiled shader cache found for game with title id={}",
                  GetTitleID());
-        return false;
+        return {};
     }
     const u64 file_size = file.GetSize();
 
@@ -189,9 +190,11 @@ bool ShaderDiskCacheOpenGL::LoadPrecompiled(
         LOG_INFO(Render_OpenGL, "Precompiled cache is from another version of yuzu - removing");
         file.Close();
         InvalidatePrecompiled();
-        return false;
+        return {};
     }
 
+    std::map<u64, ShaderDiskCacheDecompiled> decompiled;
+    std::map<ShaderDiskCacheUsage, ShaderDiskCacheDump> dumps;
     while (file.Tell() < file_size) {
         PrecompiledEntryKind kind{};
         file.ReadBytes(&kind, sizeof(u32));
@@ -217,9 +220,7 @@ bool ShaderDiskCacheOpenGL::LoadPrecompiled(
                           "Failed to decompress GLSL code in precompiled shader={:016x} - removing",
                           unique_identifier);
                 InvalidatePrecompiled();
-                dumps.clear();
-                decompiled.clear();
-                return false;
+                return {};
             }
             entry.code = std::string(reinterpret_cast<const char*>(code.data()), code_size);
 
@@ -294,9 +295,7 @@ bool ShaderDiskCacheOpenGL::LoadPrecompiled(
                 LOG_ERROR(Render_OpenGL,
                           "Failed to decompress precompiled binary program - removing");
                 InvalidatePrecompiled();
-                dumps.clear();
-                decompiled.clear();
-                return false;
+                return {};
             }
 
             dumps.insert({usage, dump});
@@ -306,12 +305,10 @@ bool ShaderDiskCacheOpenGL::LoadPrecompiled(
             LOG_ERROR(Render_OpenGL, "Unknown precompiled shader cache entry kind={} - removing",
                       static_cast<u32>(kind));
             InvalidatePrecompiled();
-            dumps.clear();
-            decompiled.clear();
-            return false;
+            return {};
         }
     }
-    return true;
+    return {decompiled, dumps};
 }
 
 void ShaderDiskCacheOpenGL::InvalidateTransferable() const {

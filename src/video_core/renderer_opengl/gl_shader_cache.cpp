@@ -344,17 +344,15 @@ ShaderDiskCacheUsage CachedShader::GetUsage(GLenum primitive_mode,
 ShaderCacheOpenGL::ShaderCacheOpenGL(RasterizerOpenGL& rasterizer) : RasterizerCache{rasterizer} {}
 
 void ShaderCacheOpenGL::LoadDiskCache() {
-    std::vector<ShaderDiskCacheRaw> raws;
-    std::vector<ShaderDiskCacheUsage> usages;
-    if (!disk_cache.LoadTransferable(raws, usages)) {
+    const auto transferable = disk_cache.LoadTransferable();
+    if (!transferable) {
         return;
     }
+    const auto [raws, usages] = *transferable;
 
-    std::map<u64, ShaderDiskCacheDecompiled> decompiled;
-    std::map<ShaderDiskCacheUsage, ShaderDiskCacheDump> dumps;
-    disk_cache.LoadPrecompiled(decompiled, dumps);
+    auto [decompiled, dumps] = disk_cache.LoadPrecompiled();
 
-    const std::set<GLenum> supported_formats{GetSupportedFormats()};
+    const auto supported_formats{GetSupportedFormats()};
     const auto unspecialized{GenerateUnspecializedShaders(raws, decompiled)};
 
     // Build shaders

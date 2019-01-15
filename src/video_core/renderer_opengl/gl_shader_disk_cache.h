@@ -4,9 +4,11 @@
 
 #pragma once
 
+#include <optional>
 #include <set>
 #include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 #include <glad/glad.h>
@@ -142,13 +144,14 @@ struct ShaderDiskCacheDump {
 
 class ShaderDiskCacheOpenGL {
 public:
-    /// Loads transferable cache. If file has a old version, it deletes it. Returns true on success.
-    bool LoadTransferable(std::vector<ShaderDiskCacheRaw>& raws,
-                          std::vector<ShaderDiskCacheUsage>& usages);
+    /// Loads transferable cache. If file has a old version or on failure, it deletes the file.
+    std::optional<std::pair<std::vector<ShaderDiskCacheRaw>, std::vector<ShaderDiskCacheUsage>>>
+    LoadTransferable();
 
-    /// Loads current game's precompiled cache. Invalidates if emulator's version has changed.
-    bool LoadPrecompiled(std::map<u64, ShaderDiskCacheDecompiled>& decompiled,
-                         std::map<ShaderDiskCacheUsage, ShaderDiskCacheDump>& dumps);
+    /// Loads current game's precompiled cache. Invalidates on failure.
+    std::pair<std::map<u64, ShaderDiskCacheDecompiled>,
+              std::map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>
+    LoadPrecompiled();
 
     /// Removes the transferable (and precompiled) cache file.
     void InvalidateTransferable() const;
