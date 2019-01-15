@@ -5,8 +5,8 @@
 #pragma once
 
 #include <cstring>
-
 #include <fmt/format.h>
+#include <lz4.h>
 
 #include "common/assert.h"
 #include "common/common_paths.h"
@@ -50,6 +50,35 @@ std::string GetShaderHash() {
     std::array<char, ShaderHashSize> hash{};
     std::strncpy(hash.data(), Common::g_shader_cache_version, ShaderHashSize);
     return std::string(hash.data());
+}
+
+template <typename T>
+std::vector<u8> CompressData(const T* source, std::size_t source_size) {
+    const auto source_size_int = static_cast<int>(source_size);
+    const int max_compressed_size = LZ4_compressBound(source_size_int);
+    std::vector<u8> compressed(max_compressed_size);
+    const int compressed_size = LZ4_compress_default(reinterpret_cast<const char*>(source),
+                                                     reinterpret_cast<char*>(compressed.data()),
+                                                     source_size_int, max_compressed_size);
+    if (compressed_size < 0) {
+        // Compression failed
+        return {};
+    }
+    compressed.resize(compressed_size);
+    return compressed;
+}
+
+std::vector<u8> DecompressData(const std::vector<u8>& compressed, std::size_t uncompressed_size) {
+    std::vector<u8> uncompressed(uncompressed_size);
+    const int size_check = LZ4_decompress_safe(reinterpret_cast<const char*>(compressed.data()),
+                                               reinterpret_cast<char*>(uncompressed.data()),
+                                               static_cast<int>(compressed.size()),
+                                               static_cast<int>(uncompressed.size()));
+    if (static_cast<int>(uncompressed_size) != size_check) {
+        // Decompression failed
+        return {};
+    }
+    return uncompressed;
 }
 } // namespace
 
@@ -175,10 +204,24 @@ bool ShaderDiskCacheOpenGL::LoadPrecompiled(
             file.ReadBytes(&unique_identifier, sizeof(u64));
 
             u32 code_size{};
+            u32 compressed_code_size{};
             file.ReadBytes(&code_size, sizeof(u32));
-            std::vector<u8> code(code_size);
-            file.ReadArray(code.data(), code.size());
-            entry.code = std::string(reinterpret_cast<char*>(code.data()), code_size);
+            file.ReadBytes(&compressed_code_size, sizeof(u32));
+
+            std::vector<u8> compressed_code(compressed_code_size);
+            file.ReadArray(compressed_code.data(), compressed_code.size());
+
+            const std::vector<u8> code = DecompressData(compressed_code, code_size);
+            if (code.empty()) {
+                LOG_ERROR(Render_OpenGL,
+                          "Failed to decompress GLSL code in precompiled shader={:016x} - removing",
+                          unique_identifier);
+                InvalidatePrecompiled();
+                dumps.clear();
+                decompiled.clear();
+                return false;
+            }
+            entry.code = std::string(reinterpret_cast<const char*>(code.data()), code_size);
 
             u32 const_buffers_count{};
             file.ReadBytes(&const_buffers_count, sizeof(u32));
@@ -321,12 +364,20 @@ void ShaderDiskCacheOpenGL::SaveDecompiled(u64 unique_identifier, const std::str
         return;
     }
 
+    const std::vector<u8> compressed_code{CompressData(code.data(), code.size())};
+    if (compressed_code.empty()) {
+        LOG_ERROR(Render_OpenGL, "Failed to compress GLSL code - skipping shader {:016x}",
+                  unique_identifier);
+        return;
+    }
+
     file.WriteObject(static_cast<u32>(PrecompiledEntryKind::Decompiled));
 
     file.WriteObject(unique_identifier);
 
     file.WriteObject(static_cast<u32>(code.size()));
-    file.WriteArray(code.data(), code.size());
+    file.WriteObject(static_cast<u32>(compressed_code.size()));
+    file.WriteArray(compressed_code.data(), compressed_code.size());
 
     file.WriteObject(static_cast<u32>(entries.const_buffers.size()));
     for (const auto& cbuf : entries.const_buffers) {
