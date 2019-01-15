@@ -359,6 +359,8 @@ bool NCA::ReadPFS0Section(const NCASectionHeader& section, const NCASectionTable
             dirs.push_back(std::move(npfs));
             if (IsDirectoryExeFS(dirs.back()))
                 exefs = dirs.back();
+            else if (IsDirectoryLogoPartition(dirs.back()))
+                logo = dirs.back();
         } else {
             if (has_rights_id)
                 status = Loader::ResultStatus::ErrorIncorrectTitlekeyOrTitlekek;
@@ -544,6 +546,10 @@ VirtualFile NCA::GetBaseFile() const {
 
 u64 NCA::GetBaseIVFCOffset() const {
     return ivfc_offset;
+}
+
+VirtualDir NCA::GetLogoPartition() const {
+    return logo;
 }
 
 } // namespace FileSys
