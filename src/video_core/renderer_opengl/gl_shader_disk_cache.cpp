@@ -43,9 +43,6 @@ static_assert(sizeof(BaseBindings) == 12);
 static_assert(sizeof(ShaderDiskCacheUsage) == 24);
 
 namespace {
-std::string GetTitleID() {
-    return fmt::format("{:016X}", Core::CurrentProcess()->GetTitleID());
-}
 
 ShaderCacheVersionHash GetShaderCacheVersionHash() {
     ShaderCacheVersionHash hash{};
@@ -82,6 +79,7 @@ std::vector<u8> DecompressData(const std::vector<u8>& compressed, std::size_t un
     }
     return uncompressed;
 }
+
 } // namespace
 
 ShaderDiskCacheRaw::ShaderDiskCacheRaw(u64 unique_identifier, Maxwell::ShaderProgram program_type,
@@ -137,9 +135,13 @@ bool ShaderDiskCacheRaw::Save(FileUtil::IOFile& file) const {
     return true;
 }
 
+ShaderDiskCacheOpenGL::ShaderDiskCacheOpenGL(Core::System& system) : system{system} {}
+
 std::optional<std::pair<std::vector<ShaderDiskCacheRaw>, std::vector<ShaderDiskCacheUsage>>>
 ShaderDiskCacheOpenGL::LoadTransferable() {
-    if (!Settings::values.use_disk_shader_cache)
+    // Skip games without title id
+    const bool has_title_id = system.CurrentProcess()->GetTitleID() != 0;
+    if (!Settings::values.use_disk_shader_cache || !has_title_id)
         return {};
     tried_to_load = true;
 
@@ -641,6 +643,10 @@ std::string ShaderDiskCacheOpenGL::GetPrecompiledDir() const {
 
 std::string ShaderDiskCacheOpenGL::GetBaseDir() const {
     return FileUtil::GetUserPath(FileUtil::UserPath::ShaderDir) + DIR_SEP "opengl";
+}
+
+std::string ShaderDiskCacheOpenGL::GetTitleID() const {
+    return fmt::format("{:016X}", system.CurrentProcess()->GetTitleID());
 }
 
 } // namespace OpenGL

@@ -33,6 +33,10 @@
 #include "video_core/renderer_opengl/gl_state.h"
 #include "video_core/renderer_opengl/gl_stream_buffer.h"
 
+namespace Core {
+class System;
+}
+
 namespace Core::Frontend {
 class EmuWindow;
 }
@@ -45,7 +49,8 @@ struct FramebufferCacheKey;
 
 class RasterizerOpenGL : public VideoCore::RasterizerInterface {
 public:
-    explicit RasterizerOpenGL(Core::Frontend::EmuWindow& renderer, ScreenInfo& info);
+    explicit RasterizerOpenGL(Core::Frontend::EmuWindow& window, Core::System& system,
+                              ScreenInfo& info);
     ~RasterizerOpenGL() override;
 
     void DrawArrays() override;

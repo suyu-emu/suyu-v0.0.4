@@ -18,9 +18,13 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
 
+namespace Core {
+class System;
+}
+
 namespace FileUtil {
 class IOFile;
-} // namespace FileUtil
+}
 
 namespace OpenGL {
 
@@ -148,6 +152,8 @@ struct ShaderDiskCacheDump {
 
 class ShaderDiskCacheOpenGL {
 public:
+    explicit ShaderDiskCacheOpenGL(Core::System& system);
+
     /// Loads transferable cache. If file has a old version or on failure, it deletes the file.
     std::optional<std::pair<std::vector<ShaderDiskCacheRaw>, std::vector<ShaderDiskCacheUsage>>>
     LoadTransferable();
@@ -217,6 +223,11 @@ private:
     /// Get user's shader directory path
     std::string GetBaseDir() const;
 
+    /// Get current game's title id
+    std::string GetTitleID() const;
+
+    // Copre system
+    Core::System& system;
     // Stored transferable shaders
     std::map<u64, std::set<ShaderDiskCacheUsage>> transferable;
     // The cache has been loaded at boot

@@ -20,6 +20,10 @@
 #include "video_core/renderer_opengl/gl_shader_disk_cache.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
 
+namespace Core {
+class System;
+} // namespace Core
+
 namespace OpenGL {
 
 class CachedShader;
@@ -107,7 +111,7 @@ private:
 
 class ShaderCacheOpenGL final : public RasterizerCache<Shader> {
 public:
-    explicit ShaderCacheOpenGL(RasterizerOpenGL& rasterizer);
+    explicit ShaderCacheOpenGL(RasterizerOpenGL& rasterizer, Core::System& system);
 
     /// Loads disk cache for the current game
     void LoadDiskCache();

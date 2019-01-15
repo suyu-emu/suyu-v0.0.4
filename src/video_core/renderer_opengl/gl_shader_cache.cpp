@@ -342,7 +342,8 @@ ShaderDiskCacheUsage CachedShader::GetUsage(GLenum primitive_mode,
     return {unique_identifier, base_bindings, primitive_mode};
 }
 
-ShaderCacheOpenGL::ShaderCacheOpenGL(RasterizerOpenGL& rasterizer) : RasterizerCache{rasterizer} {}
+ShaderCacheOpenGL::ShaderCacheOpenGL(RasterizerOpenGL& rasterizer, Core::System& system)
+    : RasterizerCache{rasterizer}, disk_cache{system} {}
 
 void ShaderCacheOpenGL::LoadDiskCache() {
     const auto transferable = disk_cache.LoadTransferable();
