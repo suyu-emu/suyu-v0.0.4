@@ -405,6 +405,7 @@ CachedProgram ShaderCacheOpenGL::GeneratePrecompiledProgram(
 
     CachedProgram shader = std::make_shared<OGLProgram>();
     shader->handle = glCreateProgram();
+    glProgramParameteri(shader->handle, GL_PROGRAM_SEPARABLE, GL_TRUE);
     glProgramBinary(shader->handle, dump.binary_format, dump.binary.data(),
                     static_cast<GLsizei>(dump.binary.size()));
 
