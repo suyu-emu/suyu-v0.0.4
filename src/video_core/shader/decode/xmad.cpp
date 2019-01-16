@@ -58,18 +58,20 @@ u32 ShaderIR::DecodeXmad(BasicBlock& bb, const BasicBlock& code, u32 pc) {
         product = Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, product, Immediate(16));
     }
 
+    const Node original_c = op_c;
     op_c = [&]() {
         switch (instr.xmad.mode) {
         case Tegra::Shader::XmadMode::None:
-            return op_c;
+            return original_c;
         case Tegra::Shader::XmadMode::CLo:
-            return BitfieldExtract(op_c, 0, 16);
+            return BitfieldExtract(original_c, 0, 16);
         case Tegra::Shader::XmadMode::CHi:
-            return BitfieldExtract(op_c, 16, 16);
+            return BitfieldExtract(original_c, 16, 16);
         case Tegra::Shader::XmadMode::CBcc: {
             const Node shifted_b = SignedOperation(OperationCode::ILogicalShiftLeft, is_signed_b,
                                                    NO_PRECISE, original_b, Immediate(16));
-            return SignedOperation(OperationCode::IAdd, is_signed_c, NO_PRECISE, op_c, shifted_b);
+            return SignedOperation(OperationCode::IAdd, is_signed_c, NO_PRECISE, original_c,
+                                   shifted_b);
         }
         default:
             UNIMPLEMENTED_MSG("Unhandled XMAD mode: {}", static_cast<u32>(instr.xmad.mode.Value()));
