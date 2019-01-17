@@ -146,7 +146,7 @@ void WebBrowser::Execute() {
         return;
     }
 
-    const auto& frontend{Core::System::GetInstance().GetWebBrowser()};
+    auto& frontend{Core::System::GetInstance().GetWebBrowser()};
 
     frontend.OpenPage(filename, [this] { UnpackRomFS(); }, [this] { Finalize(); });
 }

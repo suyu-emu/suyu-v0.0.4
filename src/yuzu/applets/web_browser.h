@@ -38,7 +38,7 @@ public:
     ~QtWebBrowser() override;
 
     void OpenPage(std::string_view url, std::function<void()> unpack_romfs_callback,
-                  std::function<void()> finished_callback) const override;
+                  std::function<void()> finished_callback) override;
 
 signals:
     void MainWindowOpenPage(std::string_view filename, std::string_view additional_args) const;
@@ -47,6 +47,6 @@ private:
     void MainWindowUnpackRomFS();
     void MainWindowFinishedBrowsing();
 
-    mutable std::function<void()> unpack_romfs_callback;
-    mutable std::function<void()> finished_callback;
+    std::function<void()> unpack_romfs_callback;
+    std::function<void()> finished_callback;
 };
