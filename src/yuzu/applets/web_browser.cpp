@@ -87,8 +87,8 @@ QtWebBrowser::~QtWebBrowser() = default;
 
 void QtWebBrowser::OpenPage(std::string_view url, std::function<void()> unpack_romfs_callback,
                             std::function<void()> finished_callback) const {
-    this->unpack_romfs_callback = unpack_romfs_callback;
-    this->finished_callback = finished_callback;
+    this->unpack_romfs_callback = std::move(unpack_romfs_callback);
+    this->finished_callback = std::move(finished_callback);
 
     const auto index = url.find('?');
     if (index == std::string::npos) {
