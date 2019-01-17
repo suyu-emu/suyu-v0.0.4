@@ -45,5 +45,8 @@ function(copy_yuzu_Qt5_deps target_dir)
 
     windows_copy_files(yuzu ${Qt5_PLATFORMS_DIR} ${PLATFORMS} qwindows$<$<CONFIG:Debug>:d>.*)
     windows_copy_files(yuzu ${Qt5_STYLES_DIR} ${STYLES} qwindowsvistastyle$<$<CONFIG:Debug>:d>.*)
-    windows_copy_files(yuzu ${Qt5_IMAGEFORMATS_DIR} ${IMAGEFORMATS} qjpeg$<$<CONFIG:Debug>:d>.*)
+    windows_copy_files(yuzu ${Qt5_IMAGEFORMATS_DIR} ${IMAGEFORMATS}
+        qjpeg$<$<CONFIG:Debug>:d>.*
+        qgif$<$<CONFIG:Debug>:d>.*
+        )
 endfunction(copy_yuzu_Qt5_deps)

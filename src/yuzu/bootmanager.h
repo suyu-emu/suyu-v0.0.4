@@ -152,6 +152,7 @@ public slots:
 signals:
     /// Emitted when the window is closed
     void Closed();
+    void FirstFrameDisplayed();
 
 private:
     std::pair<unsigned, unsigned> ScaleTouch(const QPointF pos) const;
@@ -170,6 +171,8 @@ private:
 
     /// Temporary storage of the screenshot taken
     QImage screenshot_image;
+
+    bool first_frame = false;
 
 protected:
     void showEvent(QShowEvent* event) override;

@@ -25,6 +25,7 @@ class GImageInfo;
 class GraphicsBreakPointsWidget;
 class GraphicsSurfaceWidget;
 class GRenderWindow;
+class LoadingScreen;
 class MicroProfileDialog;
 class ProfilerWidget;
 class QLabel;
@@ -109,10 +110,10 @@ signals:
     void WebBrowserFinishedBrowsing();
 
 public slots:
+    void OnLoadComplete();
     void ProfileSelectorSelectProfile();
     void SoftwareKeyboardGetText(const Core::Frontend::SoftwareKeyboardParameters& parameters);
     void SoftwareKeyboardInvokeCheckDialog(std::u16string error_message);
-
     void WebBrowserOpenPage(std::string_view filename, std::string_view arguments);
 
 private:
@@ -212,6 +213,7 @@ private:
 
     GRenderWindow* render_window;
     GameList* game_list;
+    LoadingScreen* loading_screen;
 
     // Status bar elements
     QLabel* message_label = nullptr;

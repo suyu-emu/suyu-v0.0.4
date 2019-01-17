@@ -68,6 +68,8 @@ add_executable(yuzu
     game_list_p.h
     game_list_worker.cpp
     game_list_worker.h
+    loading_screen.cpp
+    loading_screen.h
     hotkeys.cpp
     hotkeys.h
     main.cpp
@@ -102,9 +104,10 @@ set(UIS
     configuration/configure_system.ui
     configuration/configure_touchscreen_advanced.ui
     configuration/configure_web.ui
-    hotkeys.ui
-    main.ui
     compatdb.ui
+    hotkeys.ui
+    loading_screen.ui
+    main.ui
 )
 
 file(GLOB COMPAT_LIST
