@@ -6,8 +6,6 @@
 
 #include <memory>
 #include <QDialog>
-#include <QWidget>
-#include "yuzu/configuration/config.h"
 
 namespace Ui {
 class ConfigureTouchscreenAdvanced;
