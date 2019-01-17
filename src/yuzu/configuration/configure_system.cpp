@@ -2,23 +2,19 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <algorithm>
+#include <array>
+#include <chrono>
+#include <optional>
+
 #include <QFileDialog>
 #include <QGraphicsItem>
-#include <QGraphicsScene>
-#include <QHeaderView>
 #include <QMessageBox>
-#include <QStandardItemModel>
-#include <QTreeView>
-#include <QVBoxLayout>
 #include "common/assert.h"
 #include "common/file_util.h"
-#include "common/string_util.h"
 #include "core/core.h"
 #include "core/settings.h"
 #include "ui_configure_system.h"
 #include "yuzu/configuration/configure_system.h"
-#include "yuzu/util/limitable_input_dialog.h"
 
 namespace {
 constexpr std::array<int, 12> days_in_month = {{
