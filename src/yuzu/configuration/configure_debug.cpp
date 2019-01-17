@@ -7,7 +7,6 @@
 #include "common/file_util.h"
 #include "common/logging/backend.h"
 #include "common/logging/filter.h"
-#include "common/logging/log.h"
 #include "core/core.h"
 #include "core/settings.h"
 #include "ui_configure_debug.h"
