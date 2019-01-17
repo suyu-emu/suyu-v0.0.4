@@ -43,11 +43,10 @@ public:
 signals:
     void MainWindowOpenPage(std::string_view filename, std::string_view additional_args) const;
 
-public slots:
+private:
     void MainWindowUnpackRomFS();
     void MainWindowFinishedBrowsing();
 
-private:
     mutable std::function<void()> unpack_romfs_callback;
     mutable std::function<void()> finished_callback;
 };
