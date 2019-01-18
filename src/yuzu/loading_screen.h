@@ -7,6 +7,10 @@
 #include <memory>
 #include <QWidget>
 
+#if !QT_CONFIG(movie)
+#define YUZU_QT_MOVIE_MISSING 1
+#endif
+
 namespace Loader {
 class AppLoader;
 }
@@ -42,9 +46,11 @@ public:
     void OnLoadProgress(std::size_t value, std::size_t total);
 
 private:
+#ifndef YUZU_QT_MOVIE_MISSING
     std::unique_ptr<QMovie> animation;
     std::unique_ptr<QBuffer> backing_buf;
     std::unique_ptr<QByteArray> backing_mem;
+#endif
     std::unique_ptr<Ui::LoadingScreen> ui;
     std::size_t previous_total = 0;
 };

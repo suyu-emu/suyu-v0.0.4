@@ -8,7 +8,6 @@
 #include <QIODevice>
 #include <QImage>
 #include <QLabel>
-#include <QMovie>
 #include <QPainter>
 #include <QPalette>
 #include <QPixmap>
@@ -19,6 +18,12 @@
 #include "core/loader/loader.h"
 #include "ui_loading_screen.h"
 #include "yuzu/loading_screen.h"
+
+// Mingw seems to not have QMovie at all. If QMovie is missing then use a single frame instead of an
+// showing the full animation
+#if !YUZU_QT_MOVIE_MISSING
+#include <QMovie>
+#endif
 
 LoadingScreen::LoadingScreen(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::LoadingScreen>()) {
@@ -32,6 +37,11 @@ LoadingScreen::~LoadingScreen() = default;
 void LoadingScreen::Prepare(Loader::AppLoader& loader) {
     std::vector<u8> buffer;
     if (loader.ReadBanner(buffer) == Loader::ResultStatus::Success) {
+#ifdef YUZU_QT_MOVIE_MISSING
+        QPixmap map;
+        map.loadFromData(buffer.data(), buffer.size());
+        ui->banner->setPixmap(map);
+#else
         backing_mem =
             std::make_unique<QByteArray>(reinterpret_cast<char*>(buffer.data()), buffer.size());
         backing_buf = std::make_unique<QBuffer>(backing_mem.get());
@@ -39,6 +49,7 @@ void LoadingScreen::Prepare(Loader::AppLoader& loader) {
         animation = std::make_unique<QMovie>(backing_buf.get(), QByteArray("GIF"));
         animation->start();
         ui->banner->setMovie(animation.get());
+#endif
         buffer.clear();
     }
     if (loader.ReadLogo(buffer) == Loader::ResultStatus::Success) {
@@ -65,7 +76,9 @@ void LoadingScreen::paintEvent(QPaintEvent* event) {
 }
 
 void LoadingScreen::Clear() {
+#ifndef YUZU_QT_MOVIE_MISSING
     animation.reset();
     backing_buf.reset();
     backing_mem.reset();
+#endif
 }
