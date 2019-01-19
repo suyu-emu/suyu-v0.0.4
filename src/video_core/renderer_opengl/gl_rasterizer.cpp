@@ -365,7 +365,7 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
         // (sometimes it's half the screen, sometimes three quarters). To avoid this, enable the
         // clip distances only when it's written by a shader stage.
         for (std::size_t i = 0; i < Maxwell::NumClipDistances; ++i) {
-            clip_distances[i] |= shader->GetShaderEntries().clip_distances[i];
+            clip_distances[i] = clip_distances[i] || shader->GetShaderEntries().clip_distances[i];
         }
 
         // When VertexA is enabled, we have dual vertex shaders
