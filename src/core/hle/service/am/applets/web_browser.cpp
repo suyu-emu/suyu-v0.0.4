@@ -2,9 +2,16 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <array>
+#include <cstring>
+#include <vector>
+
+#include "common/assert.h"
+#include "common/common_funcs.h"
 #include "common/common_paths.h"
+#include "common/file_util.h"
 #include "common/hex_util.h"
-#include "common/logging/backend.h"
+#include "common/logging/log.h"
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/file_sys/content_archive.h"
@@ -12,7 +19,6 @@
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs.h"
-#include "core/file_sys/romfs_factory.h"
 #include "core/file_sys/vfs_types.h"
 #include "core/frontend/applets/web_browser.h"
 #include "core/hle/kernel/process.h"
@@ -146,7 +152,7 @@ void WebBrowser::Execute() {
         return;
     }
 
-    const auto& frontend{Core::System::GetInstance().GetWebBrowser()};
+    auto& frontend{Core::System::GetInstance().GetWebBrowser()};
 
     frontend.OpenPage(filename, [this] { UnpackRomFS(); }, [this] { Finalize(); });
 }

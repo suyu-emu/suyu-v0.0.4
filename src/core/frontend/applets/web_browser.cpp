@@ -13,7 +13,7 @@ DefaultWebBrowserApplet::~DefaultWebBrowserApplet() = default;
 
 void DefaultWebBrowserApplet::OpenPage(std::string_view filename,
                                        std::function<void()> unpack_romfs_callback,
-                                       std::function<void()> finished_callback) const {
+                                       std::function<void()> finished_callback) {
     LOG_INFO(Service_AM,
              "(STUBBED) called - No suitable web browser implementation found to open website page "
              "at '{}'!",

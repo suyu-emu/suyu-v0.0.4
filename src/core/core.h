@@ -243,17 +243,18 @@ public:
 
     std::shared_ptr<FileSys::VfsFilesystem> GetFilesystem() const;
 
-    void SetProfileSelector(std::unique_ptr<Core::Frontend::ProfileSelectApplet> applet);
+    void SetProfileSelector(std::unique_ptr<Frontend::ProfileSelectApplet> applet);
 
-    const Core::Frontend::ProfileSelectApplet& GetProfileSelector() const;
+    const Frontend::ProfileSelectApplet& GetProfileSelector() const;
 
-    void SetSoftwareKeyboard(std::unique_ptr<Core::Frontend::SoftwareKeyboardApplet> applet);
+    void SetSoftwareKeyboard(std::unique_ptr<Frontend::SoftwareKeyboardApplet> applet);
 
-    const Core::Frontend::SoftwareKeyboardApplet& GetSoftwareKeyboard() const;
+    const Frontend::SoftwareKeyboardApplet& GetSoftwareKeyboard() const;
 
-    void SetWebBrowser(std::unique_ptr<Core::Frontend::WebBrowserApplet> applet);
+    void SetWebBrowser(std::unique_ptr<Frontend::WebBrowserApplet> applet);
 
-    const Core::Frontend::WebBrowserApplet& GetWebBrowser() const;
+    Frontend::WebBrowserApplet& GetWebBrowser();
+    const Frontend::WebBrowserApplet& GetWebBrowser() const;
 
 private:
     System();
