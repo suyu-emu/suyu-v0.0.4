@@ -137,4 +137,12 @@ ResultStatus AppLoader_XCI::ReadManualRomFS(FileSys::VirtualFile& file) {
     return file == nullptr ? ResultStatus::ErrorNoRomFS : ResultStatus::Success;
 }
 
+ResultStatus AppLoader_XCI::ReadBanner(std::vector<u8>& buffer) {
+    return nca_loader->ReadBanner(buffer);
+}
+
+ResultStatus AppLoader_XCI::ReadLogo(std::vector<u8>& buffer) {
+    return nca_loader->ReadLogo(buffer);
+}
+
 } // namespace Loader

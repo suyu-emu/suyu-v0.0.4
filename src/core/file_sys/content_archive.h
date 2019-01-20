@@ -74,6 +74,13 @@ inline bool IsDirectoryExeFS(const std::shared_ptr<VfsDirectory>& pfs) {
     return pfs->GetFile("main") != nullptr && pfs->GetFile("main.npdm") != nullptr;
 }
 
+inline bool IsDirectoryLogoPartition(const VirtualDir& pfs) {
+    // NintendoLogo is the static image in the top left corner while StartupMovie is the animation
+    // in the bottom right corner.
+    return pfs->GetFile("NintendoLogo.png") != nullptr &&
+           pfs->GetFile("StartupMovie.gif") != nullptr;
+}
+
 // An implementation of VfsDirectory that represents a Nintendo Content Archive (NCA) conatiner.
 // After construction, use GetStatus to determine if the file is valid and ready to be used.
 class NCA : public ReadOnlyVfsDirectory {
@@ -102,6 +109,8 @@ public:
     // Returns the base ivfc offset used in BKTR patching.
     u64 GetBaseIVFCOffset() const;
 
+    VirtualDir GetLogoPartition() const;
+
 private:
     bool CheckSupportedNCA(const NCAHeader& header);
     bool HandlePotentialHeaderDecryption();
@@ -122,6 +131,7 @@ private:
 
     VirtualFile romfs = nullptr;
     VirtualDir exefs = nullptr;
+    VirtualDir logo = nullptr;
     VirtualFile file;
     VirtualFile bktr_base_romfs;
     u64 ivfc_offset = 0;

@@ -46,6 +46,9 @@ public:
     ResultStatus ReadControlData(FileSys::NACP& nacp) override;
     ResultStatus ReadManualRomFS(FileSys::VirtualFile& file) override;
 
+    ResultStatus ReadBanner(std::vector<u8>& buffer) override;
+    ResultStatus ReadLogo(std::vector<u8>& buffer) override;
+
 private:
     std::unique_ptr<FileSys::NSP> nsp;
     std::unique_ptr<AppLoader> secondary_loader;
