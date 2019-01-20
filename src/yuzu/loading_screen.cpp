@@ -46,12 +46,8 @@ LoadingScreen::LoadingScreen(QWidget* parent)
     progressbar_style = {
         {VideoCore::LoadCallbackStage::Prepare,
          R"(
-QProgressBar {
-  background-color: black;
-}
-QProgressBar::chunk {
-  background-color: white;
-})"},
+QProgressBar {}
+QProgressBar::chunk {})"},
         {VideoCore::LoadCallbackStage::Raw,
          R"(
 QProgressBar {
@@ -114,7 +110,7 @@ void LoadingScreen::Prepare(Loader::AppLoader& loader) {
         ui->logo->setPixmap(map);
     }
 
-    OnLoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 100);
+    OnLoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
 }
 
 void LoadingScreen::OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size_t value,
@@ -124,6 +120,11 @@ void LoadingScreen::OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size
     // reset the timer if the stage changes
     if (stage != previous_stage) {
         ui->progress_bar->setStyleSheet(progressbar_style[stage]);
+        if (stage == VideoCore::LoadCallbackStage::Prepare) {
+            ui->progress_bar->hide();
+        } else {
+            ui->progress_bar->show();
+        }
         previous_stage = stage;
         // reset back to fast shader compiling since the stage changed
         slow_shader_compile_start = false;
