@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <chrono>
 #include <memory>
+#include <QString>
 #include <QWidget>
 
 #if !QT_CONFIG(movie)
@@ -17,6 +19,10 @@ class AppLoader;
 
 namespace Ui {
 class LoadingScreen;
+}
+
+namespace VideoCore {
+enum class LoadCallbackStage;
 }
 
 class QBuffer;
@@ -39,11 +45,14 @@ public:
     /// used resources such as the logo and banner.
     void Clear();
 
+    void OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total);
+
     // In order to use a custom widget with a stylesheet, you need to override the paintEvent
     // See https://wiki.qt.io/How_to_Change_the_Background_Color_of_QWidget
     void paintEvent(QPaintEvent* event) override;
 
-    void OnLoadProgress(std::size_t value, std::size_t total);
+signals:
+    void LoadProgress(VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total);
 
 private:
 #ifndef YUZU_QT_MOVIE_MISSING
@@ -53,4 +62,19 @@ private:
 #endif
     std::unique_ptr<Ui::LoadingScreen> ui;
     std::size_t previous_total = 0;
+    VideoCore::LoadCallbackStage previous_stage;
+
+    // Definitions for the differences in text and styling for each stage
+    std::unordered_map<VideoCore::LoadCallbackStage, const char*> progressbar_style;
+    std::unordered_map<VideoCore::LoadCallbackStage, QString> stage_translations;
+
+    // newly generated shaders are added to the end of the file, so when loading and compiling
+    // shaders, it will start quickly but end slow if new shaders were added since previous launch.
+    // These variables are used to detect the change in speed so we can generate an ETA
+    bool slow_shader_compile_start = false;
+    std::chrono::high_resolution_clock::time_point slow_shader_start;
+    std::chrono::high_resolution_clock::time_point previous_time;
+    std::size_t slow_shader_first_value = 0;
 };
+
+Q_DECLARE_METATYPE(VideoCore::LoadCallbackStage);
