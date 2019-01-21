@@ -393,6 +393,8 @@ void GRenderWindow::InitRenderTarget() {
     BackupGeometry();
     // show causes the window to actually be created and the gl context as well
     show();
+    // but we don't want the widget to be shown yet, so immediately hide it
+    hide();
 }
 
 void GRenderWindow::CaptureScreenshot(u16 res_scale, const QString& screenshot_path) {
