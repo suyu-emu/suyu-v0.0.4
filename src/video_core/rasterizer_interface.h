@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <functional>
 #include "common/common_types.h"
 #include "video_core/engines/fermi_2d.h"
@@ -63,6 +64,7 @@ public:
     virtual void UpdatePagesCachedCount(Tegra::GPUVAddr addr, u64 size, int delta) {}
 
     /// Initialize disk cached resources for the game being emulated
-    virtual void LoadDiskResources() {}
+    virtual void LoadDiskResources(const std::atomic_bool& stop_loading = false,
+                                   const DiskResourceLoadCallback& callback = {}) {}
 };
 } // namespace VideoCore

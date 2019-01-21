@@ -15,6 +15,7 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/rasterizer_cache.h"
+#include "video_core/renderer_base.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_disk_cache.h"
@@ -114,13 +115,15 @@ public:
     explicit ShaderCacheOpenGL(RasterizerOpenGL& rasterizer, Core::System& system);
 
     /// Loads disk cache for the current game
-    void LoadDiskCache();
+    void LoadDiskCache(const std::atomic_bool& stop_loading,
+                       const VideoCore::DiskResourceLoadCallback& callback);
 
     /// Gets the current specified shader stage program
     Shader GetStageProgram(Maxwell::ShaderProgram program);
 
 private:
     std::map<u64, UnspecializedShader> GenerateUnspecializedShaders(
+        const std::atomic_bool& stop_loading, const VideoCore::DiskResourceLoadCallback& callback,
         const std::vector<ShaderDiskCacheRaw>& raws,
         const std::map<u64, ShaderDiskCacheDecompiled>& decompiled);
 

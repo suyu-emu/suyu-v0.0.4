@@ -345,7 +345,8 @@ ShaderDiskCacheUsage CachedShader::GetUsage(GLenum primitive_mode,
 ShaderCacheOpenGL::ShaderCacheOpenGL(RasterizerOpenGL& rasterizer, Core::System& system)
     : RasterizerCache{rasterizer}, disk_cache{system} {}
 
-void ShaderCacheOpenGL::LoadDiskCache() {
+void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
+                                      const VideoCore::DiskResourceLoadCallback& callback) {
     const auto transferable = disk_cache.LoadTransferable();
     if (!transferable) {
         return;
@@ -355,10 +356,18 @@ void ShaderCacheOpenGL::LoadDiskCache() {
     auto [decompiled, dumps] = disk_cache.LoadPrecompiled();
 
     const auto supported_formats{GetSupportedFormats()};
-    const auto unspecialized{GenerateUnspecializedShaders(raws, decompiled)};
+    const auto unspecialized{
+        GenerateUnspecializedShaders(stop_loading, callback, raws, decompiled)};
+    if (stop_loading)
+        return;
 
     // Build shaders
+    if (callback)
+        callback(VideoCore::LoadCallbackStage::Build, 0, usages.size());
     for (std::size_t i = 0; i < usages.size(); ++i) {
+        if (stop_loading)
+            return;
+
         const auto& usage{usages[i]};
         LOG_INFO(Render_OpenGL, "Building shader {:016x} ({} of {})", usage.unique_identifier,
                  i + 1, usages.size());
@@ -381,6 +390,9 @@ void ShaderCacheOpenGL::LoadDiskCache() {
                                       usage.bindings, usage.primitive, true);
         }
         precompiled_programs.insert({usage, std::move(shader)});
+
+        if (callback)
+            callback(VideoCore::LoadCallbackStage::Build, i + 1, usages.size());
     }
 
     // TODO(Rodrigo): Do state tracking for transferable shaders and do a dummy draw before
@@ -420,11 +432,19 @@ CachedProgram ShaderCacheOpenGL::GeneratePrecompiledProgram(
 }
 
 std::map<u64, UnspecializedShader> ShaderCacheOpenGL::GenerateUnspecializedShaders(
+    const std::atomic_bool& stop_loading, const VideoCore::DiskResourceLoadCallback& callback,
     const std::vector<ShaderDiskCacheRaw>& raws,
     const std::map<u64, ShaderDiskCacheDecompiled>& decompiled) {
     std::map<u64, UnspecializedShader> unspecialized;
 
-    for (const auto& raw : raws) {
+    if (callback)
+        callback(VideoCore::LoadCallbackStage::Decompile, 0, raws.size());
+
+    for (std::size_t i = 0; i < raws.size(); ++i) {
+        if (stop_loading)
+            return {};
+
+        const auto& raw{raws[i]};
         const u64 unique_identifier = raw.GetUniqueIdentifier();
         const u64 calculated_hash =
             GetUniqueIdentifier(raw.GetProgramType(), raw.GetProgramCode(), raw.GetProgramCodeB());
@@ -454,6 +474,9 @@ std::map<u64, UnspecializedShader> ShaderCacheOpenGL::GenerateUnspecializedShade
         unspecialized.insert(
             {raw.GetUniqueIdentifier(),
              {std::move(result.first), std::move(result.second), raw.GetProgramType()}});
+
+        if (callback)
+            callback(VideoCore::LoadCallbackStage::Decompile, i, raws.size());
     }
     return unspecialized;
 }

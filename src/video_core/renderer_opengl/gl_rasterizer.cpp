@@ -449,7 +449,7 @@ static constexpr auto RangeFromInterval(Map& map, const Interval& interval) {
     return boost::make_iterator_range(map.equal_range(interval));
 }
 
-void RasterizerOpenGL::UpdatePagesCachedCount(VAddr addr, u64 size, int delta) {
+void RasterizerOpenGL::UpdatePagesCachedCount(Tegra::GPUVAddr addr, u64 size, int delta) {
     const u64 page_start{addr >> Memory::PAGE_BITS};
     const u64 page_end{(addr + size + Memory::PAGE_SIZE - 1) >> Memory::PAGE_BITS};
 
@@ -479,8 +479,9 @@ void RasterizerOpenGL::UpdatePagesCachedCount(VAddr addr, u64 size, int delta) {
         cached_pages.add({pages_interval, delta});
 }
 
-void RasterizerOpenGL::LoadDiskResources() {
-    shader_cache.LoadDiskCache();
+void RasterizerOpenGL::LoadDiskResources(const std::atomic_bool& stop_loading,
+                                         const VideoCore::DiskResourceLoadCallback& callback) {
+    shader_cache.LoadDiskCache(stop_loading, callback);
 }
 
 std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
