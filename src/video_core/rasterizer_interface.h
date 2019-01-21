@@ -14,8 +14,8 @@ namespace VideoCore {
 
 enum class LoadCallbackStage {
     Prepare,
-    Raw,
-    Binary,
+    Decompile,
+    Build,
     Complete,
 };
 using DiskResourceLoadCallback = std::function<void(LoadCallbackStage, std::size_t, std::size_t)>;

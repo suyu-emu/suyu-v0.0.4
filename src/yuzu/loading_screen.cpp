@@ -32,7 +32,7 @@ constexpr const char* PROGRESSBAR_STYLE_PREPARE = R"(
 QProgressBar {}
 QProgressBar::chunk {})";
 
-constexpr const char* PROGRESSBAR_STYLE_RAW = R"(
+constexpr const char* PROGRESSBAR_STYLE_DECOMPILE = R"(
 QProgressBar {
   background-color: black;
   border: 2px solid white;
@@ -43,7 +43,7 @@ QProgressBar::chunk {
   background-color: #0ab9e6;
 })";
 
-constexpr const char* PROGRESSBAR_STYLE_BINARY = R"(
+constexpr const char* PROGRESSBAR_STYLE_BUILD = R"(
 QProgressBar {
   background-color: black;
   border: 2px solid white;
@@ -76,14 +76,14 @@ LoadingScreen::LoadingScreen(QWidget* parent)
 
     stage_translations = {
         {VideoCore::LoadCallbackStage::Prepare, tr("Loading...")},
-        {VideoCore::LoadCallbackStage::Raw, tr("Preparing Shaders %1 / %2")},
-        {VideoCore::LoadCallbackStage::Binary, tr("Loading Shaders %1 / %2")},
+        {VideoCore::LoadCallbackStage::Decompile, tr("Preparing Shaders %1 / %2")},
+        {VideoCore::LoadCallbackStage::Build, tr("Loading Shaders %1 / %2")},
         {VideoCore::LoadCallbackStage::Complete, tr("Launching...")},
     };
     progressbar_style = {
         {VideoCore::LoadCallbackStage::Prepare, PROGRESSBAR_STYLE_PREPARE},
-        {VideoCore::LoadCallbackStage::Raw, PROGRESSBAR_STYLE_RAW},
-        {VideoCore::LoadCallbackStage::Binary, PROGRESSBAR_STYLE_BINARY},
+        {VideoCore::LoadCallbackStage::Decompile, PROGRESSBAR_STYLE_DECOMPILE},
+        {VideoCore::LoadCallbackStage::Build, PROGRESSBAR_STYLE_BUILD},
         {VideoCore::LoadCallbackStage::Complete, PROGRESSBAR_STYLE_COMPLETE},
     };
 }
