@@ -7,16 +7,16 @@
 #include <memory>
 #include <vector>
 
-#include <QKeyEvent>
+#include <QDialog>
 #include <QList>
-#include <QWidget>
 
 #include "core/file_sys/vfs_types.h"
 
-class QTreeView;
 class QGraphicsScene;
 class QStandardItem;
 class QStandardItemModel;
+class QTreeView;
+class QVBoxLayout;
 
 namespace Ui {
 class ConfigurePerGameGeneral;

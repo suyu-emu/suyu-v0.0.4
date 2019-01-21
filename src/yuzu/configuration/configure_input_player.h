@@ -11,16 +11,20 @@
 #include <string>
 
 #include <QDialog>
-#include <QKeyEvent>
 
 #include "common/param_package.h"
 #include "core/settings.h"
-#include "input_common/main.h"
 #include "ui_configure_input.h"
 
+class QKeyEvent;
 class QPushButton;
 class QString;
 class QTimer;
+
+namespace InputCommon::Polling {
+class DevicePoller;
+enum class DeviceType;
+} // namespace InputCommon::Polling
 
 namespace Ui {
 class ConfigureInputPlayer;

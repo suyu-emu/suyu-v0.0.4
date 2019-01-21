@@ -8,7 +8,6 @@
 
 #include <QHeaderView>
 #include <QMenu>
-#include <QMessageBox>
 #include <QStandardItemModel>
 #include <QString>
 #include <QTimer>

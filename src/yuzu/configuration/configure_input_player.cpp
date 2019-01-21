@@ -7,6 +7,7 @@
 #include <utility>
 #include <QColorDialog>
 #include <QGridLayout>
+#include <QKeyEvent>
 #include <QMenu>
 #include <QMessageBox>
 #include <QTimer>
