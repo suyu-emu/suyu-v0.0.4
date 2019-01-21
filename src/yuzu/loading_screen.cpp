@@ -120,8 +120,8 @@ void LoadingScreen::Prepare(Loader::AppLoader& loader) {
         map.loadFromData(buffer.data(), buffer.size());
         ui->banner->setPixmap(map);
 #else
-        backing_mem =
-            std::make_unique<QByteArray>(reinterpret_cast<char*>(buffer.data()), buffer.size());
+        backing_mem = std::make_unique<QByteArray>(reinterpret_cast<char*>(buffer.data()),
+                                                   static_cast<int>(buffer.size()));
         backing_buf = std::make_unique<QBuffer>(backing_mem.get());
         backing_buf->open(QIODevice::ReadOnly);
         animation = std::make_unique<QMovie>(backing_buf.get(), QByteArray());
@@ -132,7 +132,7 @@ void LoadingScreen::Prepare(Loader::AppLoader& loader) {
     }
     if (loader.ReadLogo(buffer) == Loader::ResultStatus::Success) {
         QPixmap map;
-        map.loadFromData(buffer.data(), buffer.size());
+        map.loadFromData(buffer.data(), static_cast<uint>(buffer.size()));
         ui->logo->setPixmap(map);
     }
 
@@ -163,7 +163,7 @@ void LoadingScreen::OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size
     }
     // update the max of the progress bar if the number of shaders change
     if (total != previous_total) {
-        ui->progress_bar->setMaximum(total);
+        ui->progress_bar->setMaximum(static_cast<int>(total));
         previous_total = total;
     }
 
@@ -192,7 +192,7 @@ void LoadingScreen::OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size
     // update labels and progress bar
     ui->stage->setText(stage_translations[stage].arg(value).arg(total));
     ui->value->setText(estimate);
-    ui->progress_bar->setValue(value);
+    ui->progress_bar->setValue(static_cast<int>(value));
     previous_time = now;
 }
 

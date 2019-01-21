@@ -74,7 +74,7 @@ private:
     VideoCore::LoadCallbackStage previous_stage;
 
     QGraphicsOpacityEffect* opacity_effect = nullptr;
-    std::unique_ptr<QPropertyAnimation> fadeout_animation = nullptr;
+    std::unique_ptr<QPropertyAnimation> fadeout_animation;
 
     // Definitions for the differences in text and styling for each stage
     std::unordered_map<VideoCore::LoadCallbackStage, const char*> progressbar_style;
