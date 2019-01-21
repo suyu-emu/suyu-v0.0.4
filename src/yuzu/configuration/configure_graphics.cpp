@@ -62,9 +62,7 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
         const QColor new_bg_color = QColorDialog::getColor(bg_color);
         if (!new_bg_color.isValid())
             return;
-        bg_color = new_bg_color;
-        ui->bg_button->setStyleSheet(
-            QString("QPushButton { background-color: %1 }").arg(bg_color.name()));
+        UpdateBackgroundColorButton(new_bg_color);
     });
 }
 
@@ -76,10 +74,8 @@ void ConfigureGraphics::setConfiguration() {
     ui->toggle_frame_limit->setChecked(Settings::values.use_frame_limit);
     ui->frame_limit->setValue(Settings::values.frame_limit);
     ui->use_accurate_gpu_emulation->setChecked(Settings::values.use_accurate_gpu_emulation);
-    bg_color = QColor::fromRgbF(Settings::values.bg_red, Settings::values.bg_green,
-                                Settings::values.bg_blue);
-    ui->bg_button->setStyleSheet(
-        QString("QPushButton { background-color: %1 }").arg(bg_color.name()));
+    UpdateBackgroundColorButton(QColor::fromRgbF(Settings::values.bg_red, Settings::values.bg_green,
+                                                 Settings::values.bg_blue));
 }
 
 void ConfigureGraphics::applyConfiguration() {
@@ -91,4 +87,14 @@ void ConfigureGraphics::applyConfiguration() {
     Settings::values.bg_red = static_cast<float>(bg_color.redF());
     Settings::values.bg_green = static_cast<float>(bg_color.greenF());
     Settings::values.bg_blue = static_cast<float>(bg_color.blueF());
+}
+
+void ConfigureGraphics::UpdateBackgroundColorButton(QColor color) {
+    bg_color = color;
+
+    QPixmap pixmap(ui->bg_button->size());
+    pixmap.fill(bg_color);
+
+    const QIcon color_icon(pixmap);
+    ui->bg_button->setIcon(color_icon);
 }
