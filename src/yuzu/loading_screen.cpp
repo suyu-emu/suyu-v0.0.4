@@ -30,11 +30,11 @@
 #include <QMovie>
 #endif
 
-constexpr const char* PROGRESSBAR_STYLE_PREPARE = R"(
+constexpr const char PROGRESSBAR_STYLE_PREPARE[] = R"(
 QProgressBar {}
 QProgressBar::chunk {})";
 
-constexpr const char* PROGRESSBAR_STYLE_DECOMPILE = R"(
+constexpr const char PROGRESSBAR_STYLE_DECOMPILE[] = R"(
 QProgressBar {
   background-color: black;
   border: 2px solid white;
@@ -45,7 +45,7 @@ QProgressBar::chunk {
   background-color: #0ab9e6;
 })";
 
-constexpr const char* PROGRESSBAR_STYLE_BUILD = R"(
+constexpr const char PROGRESSBAR_STYLE_BUILD[] = R"(
 QProgressBar {
   background-color: black;
   border: 2px solid white;
@@ -56,7 +56,7 @@ QProgressBar::chunk {
  background-color: #ff3c28;
 })";
 
-constexpr const char* PROGRESSBAR_STYLE_COMPLETE = R"(
+constexpr const char PROGRESSBAR_STYLE_COMPLETE[] = R"(
 QProgressBar {
   background-color: #0ab9e6;
   border: 2px solid white;
