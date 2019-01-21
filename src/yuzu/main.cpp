@@ -904,7 +904,6 @@ void GMainWindow::BootGame(const QString& filename) {
 
     loading_screen->Prepare(Core::System::GetInstance().GetAppLoader());
     loading_screen->show();
-    loading_screen->setFocus();
 
     emulation_running = true;
     if (ui.action_Fullscreen->isChecked()) {
