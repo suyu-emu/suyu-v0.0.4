@@ -141,7 +141,7 @@ void LoadingScreen::OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size
 
     QString estimate;
     // If theres a drastic slowdown in the rate, then display an estimate
-    if (now - previous_time > milliseconds{20}) {
+    if (now - previous_time > milliseconds{50} || slow_shader_compile_start) {
         if (!slow_shader_compile_start) {
             slow_shader_start = high_resolution_clock::now();
             slow_shader_compile_start = true;
