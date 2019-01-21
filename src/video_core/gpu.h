@@ -200,6 +200,13 @@ public:
             std::array<u32, NUM_REGS> reg_array;
         };
     } regs{};
+    
+    /// Push GPU command entries to be processed
+    void PushGPUEntries(Tegra::CommandList&& entries);
+
+    /// Swap buffers (render frame)
+    void SwapBuffers(
+        std::optional<std::reference_wrapper<const Tegra::FramebufferConfig>> framebuffer);
 
 private:
     void ProcessBindMethod(const MethodCall& method_call);
@@ -207,11 +214,13 @@ private:
     void ProcessSemaphoreRelease();
     void ProcessSemaphoreAcquire();
 
-    // Calls a GPU puller method.
+    /// Calls a GPU puller method.
     void CallPullerMethod(const MethodCall& method_call);
-    // Calls a GPU engine method.
+    
+    /// Calls a GPU engine method.
     void CallEngineMethod(const MethodCall& method_call);
-    // Determines where the method should be executed.
+    
+    /// Determines where the method should be executed.
     bool ExecuteMethodOnEngine(const MethodCall& method_call);
 
 private:

@@ -65,6 +65,16 @@ const DmaPusher& GPU::DmaPusher() const {
     return *dma_pusher;
 }
 
+void GPU::PushGPUEntries(Tegra::CommandList&& entries) {
+    dma_pusher->Push(std::move(entries));
+    dma_pusher->DispatchCalls();
+}
+
+void GPU::SwapBuffers(
+    std::optional<std::reference_wrapper<const Tegra::FramebufferConfig>> framebuffer) {
+    renderer.SwapBuffers(std::move(framebuffer));
+}
+
 u32 RenderTargetBytesPerPixel(RenderTargetFormat format) {
     ASSERT(format != RenderTargetFormat::NONE);
 
