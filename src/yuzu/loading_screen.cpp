@@ -69,6 +69,7 @@ LoadingScreen::LoadingScreen(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::LoadingScreen>()),
       previous_stage(VideoCore::LoadCallbackStage::Complete) {
     ui->setupUi(this);
+    setMinimumSize(1280, 720);
 
     connect(this, &LoadingScreen::LoadProgress, this, &LoadingScreen::OnLoadProgress,
             Qt::QueuedConnection);
