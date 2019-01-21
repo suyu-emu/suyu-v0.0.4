@@ -28,6 +28,43 @@
 #include <QMovie>
 #endif
 
+constexpr const char* PROGRESSBAR_STYLE_PREPARE = R"(
+QProgressBar {}
+QProgressBar::chunk {})";
+
+constexpr const char* PROGRESSBAR_STYLE_RAW = R"(
+QProgressBar {
+  background-color: black;
+  border: 2px solid white;
+  border-radius: 4px;
+  padding: 2px;
+}
+QProgressBar::chunk {
+  background-color: #0ab9e6;
+})";
+
+constexpr const char* PROGRESSBAR_STYLE_BINARY = R"(
+QProgressBar {
+  background-color: black;
+  border: 2px solid white;
+  border-radius: 4px;
+  padding: 2px;
+}
+QProgressBar::chunk {
+ background-color: #ff3c28;
+})";
+
+constexpr const char* PROGRESSBAR_STYLE_COMPLETE = R"(
+QProgressBar {
+  background-color: black;
+  border: 2px solid white;
+  border-radius: 4px;
+  padding: 2px;
+}
+QProgressBar::chunk {
+  background-color: #ff3c28;
+})";
+
 LoadingScreen::LoadingScreen(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::LoadingScreen>()),
       previous_stage(VideoCore::LoadCallbackStage::Complete) {
@@ -44,43 +81,10 @@ LoadingScreen::LoadingScreen(QWidget* parent)
         {VideoCore::LoadCallbackStage::Complete, tr("Launching...")},
     };
     progressbar_style = {
-        {VideoCore::LoadCallbackStage::Prepare,
-         R"(
-QProgressBar {}
-QProgressBar::chunk {})"},
-        {VideoCore::LoadCallbackStage::Raw,
-         R"(
-QProgressBar {
-  background-color: black;
-  border: 2px solid white;
-  border-radius: 4px;
-  padding: 2px;
-}
-QProgressBar::chunk {
-  background-color: #0ab9e6;
-})"},
-        {VideoCore::LoadCallbackStage::Binary,
-         R"(
-QProgressBar {
-  background-color: black;
-  border: 2px solid white;
-  border-radius: 4px;
-  padding: 2px;
-}
-QProgressBar::chunk {
- background-color: #ff3c28;
-})"},
-        {VideoCore::LoadCallbackStage::Complete,
-         R"(
-QProgressBar {
-  background-color: black;
-  border: 2px solid white;
-  border-radius: 4px;
-  padding: 2px;
-}
-QProgressBar::chunk {
-  background-color: #ff3c28;
-})"},
+        {VideoCore::LoadCallbackStage::Prepare, PROGRESSBAR_STYLE_PREPARE},
+        {VideoCore::LoadCallbackStage::Raw, PROGRESSBAR_STYLE_RAW},
+        {VideoCore::LoadCallbackStage::Binary, PROGRESSBAR_STYLE_BINARY},
+        {VideoCore::LoadCallbackStage::Complete, PROGRESSBAR_STYLE_COMPLETE},
     };
 }
 
