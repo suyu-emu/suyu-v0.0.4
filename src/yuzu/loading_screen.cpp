@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <QBuffer>
 #include <QByteArray>
+#include <QGraphicsOpacityEffect>
 #include <QHBoxLayout>
 #include <QIODevice>
 #include <QImage>
@@ -13,6 +14,7 @@
 #include <QPalette>
 #include <QPixmap>
 #include <QProgressBar>
+#include <QPropertyAnimation>
 #include <QStyleOption>
 #include <QTime>
 #include <QtConcurrent/QtConcurrentRun>
@@ -71,6 +73,25 @@ LoadingScreen::LoadingScreen(QWidget* parent)
     ui->setupUi(this);
     setMinimumSize(1280, 720);
 
+    // Create a fade out effect to hide this loading screen widget.
+    // When fading opacity, it will fade to the parent widgets background color, which is why we
+    // create an internal widget named fade_widget that we use the effect on, while keeping the
+    // loading screen widget's background color black. This way we can create a fade to black effect
+    opacity_effect = new QGraphicsOpacityEffect(this);
+    opacity_effect->setOpacity(1);
+    ui->fade_parent->setGraphicsEffect(opacity_effect);
+    fadeout_animation = std::make_unique<QPropertyAnimation>(opacity_effect, "opacity");
+    fadeout_animation->setDuration(500);
+    fadeout_animation->setStartValue(1);
+    fadeout_animation->setEndValue(0);
+    fadeout_animation->setEasingCurve(QEasingCurve::OutBack);
+
+    // After the fade completes, hide the widget and reset the opacity
+    connect(fadeout_animation.get(), &QPropertyAnimation::finished, [this] {
+        hide();
+        opacity_effect->setOpacity(1);
+        emit Hidden();
+    });
     connect(this, &LoadingScreen::LoadProgress, this, &LoadingScreen::OnLoadProgress,
             Qt::QueuedConnection);
     qRegisterMetaType<VideoCore::LoadCallbackStage>();
@@ -115,7 +136,12 @@ void LoadingScreen::Prepare(Loader::AppLoader& loader) {
         ui->logo->setPixmap(map);
     }
 
+    slow_shader_compile_start = false;
     OnLoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
+}
+
+void LoadingScreen::OnLoadComplete() {
+    fadeout_animation->start(QPropertyAnimation::KeepWhenStopped);
 }
 
 void LoadingScreen::OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size_t value,
@@ -125,6 +151,7 @@ void LoadingScreen::OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size
     // reset the timer if the stage changes
     if (stage != previous_stage) {
         ui->progress_bar->setStyleSheet(progressbar_style[stage]);
+        // Hide the progress bar during the prepare stage
         if (stage == VideoCore::LoadCallbackStage::Prepare) {
             ui->progress_bar->hide();
         } else {

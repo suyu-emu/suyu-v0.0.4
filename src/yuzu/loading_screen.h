@@ -27,7 +27,9 @@ enum class LoadCallbackStage;
 
 class QBuffer;
 class QByteArray;
+class QGraphicsOpacityEffect;
 class QMovie;
+class QPropertyAnimation;
 
 class LoadingScreen : public QWidget {
     Q_OBJECT
@@ -45,7 +47,11 @@ public:
     /// used resources such as the logo and banner.
     void Clear();
 
+    /// Slot used to update the status of the progress bar
     void OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total);
+
+    /// Hides the LoadingScreen with a fade out effect
+    void OnLoadComplete();
 
     // In order to use a custom widget with a stylesheet, you need to override the paintEvent
     // See https://wiki.qt.io/How_to_Change_the_Background_Color_of_QWidget
@@ -53,6 +59,9 @@ public:
 
 signals:
     void LoadProgress(VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total);
+    /// Signals that this widget is completely hidden now and should be replaced with the other
+    /// widget
+    void Hidden();
 
 private:
 #ifndef YUZU_QT_MOVIE_MISSING
@@ -63,6 +72,9 @@ private:
     std::unique_ptr<Ui::LoadingScreen> ui;
     std::size_t previous_total = 0;
     VideoCore::LoadCallbackStage previous_stage;
+
+    QGraphicsOpacityEffect* opacity_effect = nullptr;
+    std::unique_ptr<QPropertyAnimation> fadeout_animation = nullptr;
 
     // Definitions for the differences in text and styling for each stage
     std::unordered_map<VideoCore::LoadCallbackStage, const char*> progressbar_style;
