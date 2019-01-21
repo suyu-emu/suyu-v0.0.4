@@ -415,6 +415,13 @@ void GMainWindow::InitializeWidgets() {
     loading_screen = new LoadingScreen(this);
     loading_screen->hide();
     ui.horizontalLayout->addWidget(loading_screen);
+    connect(loading_screen, &LoadingScreen::Hidden, [&] {
+        loading_screen->Clear();
+        if (emulation_running) {
+            render_window->show();
+            render_window->setFocus();
+        }
+    });
 
     // Create status bar
     message_label = new QLabel();
@@ -904,7 +911,6 @@ void GMainWindow::BootGame(const QString& filename) {
 
     loading_screen->Prepare(Core::System::GetInstance().GetAppLoader());
     loading_screen->show();
-    loading_screen->setFocus();
 
     emulation_running = true;
     if (ui.action_Fullscreen->isChecked()) {
@@ -1514,10 +1520,7 @@ void GMainWindow::OnStopGame() {
 }
 
 void GMainWindow::OnLoadComplete() {
-    loading_screen->hide();
-    loading_screen->Clear();
-    render_window->show();
-    render_window->setFocus();
+    loading_screen->OnLoadComplete();
 }
 
 void GMainWindow::OnMenuReportCompatibility() {

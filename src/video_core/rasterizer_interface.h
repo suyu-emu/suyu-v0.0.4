@@ -4,12 +4,21 @@
 
 #pragma once
 
+#include <functional>
 #include "common/common_types.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
 
 namespace VideoCore {
+
+enum class LoadCallbackStage {
+    Prepare,
+    Decompile,
+    Build,
+    Complete,
+};
+using DiskResourceLoadCallback = std::function<void(LoadCallbackStage, std::size_t, std::size_t)>;
 
 class RasterizerInterface {
 public:
