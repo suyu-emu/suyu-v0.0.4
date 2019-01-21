@@ -56,7 +56,7 @@ QProgressBar::chunk {
 
 constexpr const char* PROGRESSBAR_STYLE_COMPLETE = R"(
 QProgressBar {
-  background-color: black;
+  background-color: #0ab9e6;
   border: 2px solid white;
   border-radius: 4px;
   padding: 2px;
