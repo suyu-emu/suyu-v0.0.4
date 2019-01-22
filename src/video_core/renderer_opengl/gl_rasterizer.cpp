@@ -1008,10 +1008,6 @@ void RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, const Shader& s
         auto& unit = state.texture_units[current_bindpoint];
 
         const auto texture = maxwell3d.GetStageTexture(entry.GetStage(), entry.GetOffset());
-        if (!texture.enabled) {
-            unit.texture = 0;
-            continue;
-        }
 
         texture_samplers[current_bindpoint].SyncWithConfig(texture.tsc);
 
