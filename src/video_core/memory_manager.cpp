@@ -154,7 +154,8 @@ std::optional<VAddr> MemoryManager::GpuToCpuAddress(GPUVAddr gpu_addr) {
     const VAddr base_addr{PageSlot(gpu_addr)};
 
     if (base_addr == static_cast<u64>(PageStatus::Allocated) ||
-        base_addr == static_cast<u64>(PageStatus::Unmapped)) {
+        base_addr == static_cast<u64>(PageStatus::Unmapped) ||
+        base_addr == static_cast<u64>(PageStatus::Reserved)) {
         return {};
     }
 
