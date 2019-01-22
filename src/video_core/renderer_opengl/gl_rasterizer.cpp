@@ -509,10 +509,7 @@ void RasterizerOpenGL::ConfigureFramebuffers(OpenGLState& current_state, bool us
         depth_surface = res_cache.GetDepthBufferSurface(preserve_contents);
     }
 
-    // TODO(bunnei): Figure out how the below register works. According to envytools, this should be
-    // used to enable multiple render targets. However, it is left unset on all games that I have
-    // tested.
-    UNIMPLEMENTED_IF(regs.rt_separate_frag_data != 0);
+    UNIMPLEMENTED_IF(regs.rt_separate_frag_data == 0);
 
     // Bind the framebuffer surfaces
     current_state.framebuffer_srgb.enabled = regs.framebuffer_srgb != 0;

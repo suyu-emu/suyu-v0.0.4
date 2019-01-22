@@ -37,6 +37,7 @@ void Maxwell3D::InitializeRegisterDefaults() {
         regs.viewports[viewport].depth_range_near = 0.0f;
         regs.viewports[viewport].depth_range_far = 1.0f;
     }
+
     // Doom and Bomberman seems to use the uninitialized registers and just enable blend
     // so initialize blend registers with sane values
     regs.blend.equation_rgb = Regs::Blend::Equation::Add;
@@ -66,6 +67,7 @@ void Maxwell3D::InitializeRegisterDefaults() {
     regs.stencil_back_func_func = Regs::ComparisonOp::Always;
     regs.stencil_back_func_mask = 0xFFFFFFFF;
     regs.stencil_back_mask = 0xFFFFFFFF;
+
     // TODO(Rodrigo): Most games do not set a point size. I think this is a case of a
     // register carrying a default value. Assume it's OpenGL's default (1).
     regs.point_size = 1.0f;
@@ -78,6 +80,9 @@ void Maxwell3D::InitializeRegisterDefaults() {
         regs.color_mask[color_mask].B.Assign(1);
         regs.color_mask[color_mask].A.Assign(1);
     }
+
+    // Commercial games seem to assume this value is enabled and nouveau sets this value manually.
+    regs.rt_separate_frag_data = 1;
 }
 
 void Maxwell3D::CallMacroMethod(u32 method, std::vector<u32> parameters) {
