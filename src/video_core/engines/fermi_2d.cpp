@@ -42,8 +42,10 @@ void Fermi2D::HandleSurfaceCopy() {
     // TODO(Subv): Only raw copies are implemented.
     ASSERT(regs.operation == Regs::Operation::SrcCopy);
 
-    const VAddr source_cpu = *memory_manager.GpuToCpuAddress(source);
-    const VAddr dest_cpu = *memory_manager.GpuToCpuAddress(dest);
+    const auto source_cpu = memory_manager.GpuToCpuAddress(source);
+    const auto dest_cpu = memory_manager.GpuToCpuAddress(dest);
+    ASSERT_MSG(source_cpu, "Invalid source GPU address");
+    ASSERT_MSG(dest_cpu, "Invalid destination GPU address");
 
     u32 src_bytes_per_pixel = RenderTargetBytesPerPixel(regs.src.format);
     u32 dst_bytes_per_pixel = RenderTargetBytesPerPixel(regs.dst.format);
@@ -52,22 +54,22 @@ void Fermi2D::HandleSurfaceCopy() {
         // All copies here update the main memory, so mark all rasterizer states as invalid.
         Core::System::GetInstance().GPU().Maxwell3D().dirty_flags.OnMemoryWrite();
 
-        rasterizer.FlushRegion(source_cpu, src_bytes_per_pixel * regs.src.width * regs.src.height);
+        rasterizer.FlushRegion(*source_cpu, src_bytes_per_pixel * regs.src.width * regs.src.height);
         // We have to invalidate the destination region to evict any outdated surfaces from the
         // cache. We do this before actually writing the new data because the destination address
         // might contain a dirty surface that will have to be written back to memory.
-        rasterizer.InvalidateRegion(dest_cpu,
+        rasterizer.InvalidateRegion(*dest_cpu,
                                     dst_bytes_per_pixel * regs.dst.width * regs.dst.height);
 
         if (regs.src.linear == regs.dst.linear) {
             // If the input layout and the output layout are the same, just perform a raw copy.
             ASSERT(regs.src.BlockHeight() == regs.dst.BlockHeight());
-            Memory::CopyBlock(dest_cpu, source_cpu,
+            Memory::CopyBlock(*dest_cpu, *source_cpu,
                               src_bytes_per_pixel * regs.dst.width * regs.dst.height);
             return;
         }
-        u8* src_buffer = Memory::GetPointer(source_cpu);
-        u8* dst_buffer = Memory::GetPointer(dest_cpu);
+        u8* src_buffer = Memory::GetPointer(*source_cpu);
+        u8* dst_buffer = Memory::GetPointer(*dest_cpu);
         if (!regs.src.linear && regs.dst.linear) {
             // If the input is tiled and the output is linear, deswizzle the input and copy it over.
             Texture::CopySwizzledData(regs.src.width, regs.src.height, regs.src.depth,

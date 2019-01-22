@@ -23,8 +23,10 @@ using VideoCommon::Shader::ProgramCode;
 static VAddr GetShaderAddress(Maxwell::ShaderProgram program) {
     const auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
     const auto& shader_config = gpu.regs.shader_config[static_cast<std::size_t>(program)];
-    return *gpu.memory_manager.GpuToCpuAddress(gpu.regs.code_address.CodeAddress() +
-                                               shader_config.offset);
+    const auto address = gpu.memory_manager.GpuToCpuAddress(gpu.regs.code_address.CodeAddress() +
+                                                            shader_config.offset);
+    ASSERT_MSG(address, "Invalid GPU address");
+    return *address;
 }
 
 /// Gets the shader program code from memory for the specified address

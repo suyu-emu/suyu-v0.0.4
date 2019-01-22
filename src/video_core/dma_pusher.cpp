@@ -35,8 +35,10 @@ void DmaPusher::DispatchCalls() {
 bool DmaPusher::Step() {
     if (dma_get != dma_put) {
         // Push buffer non-empty, read a word
-        const CommandHeader command_header{
-            Memory::Read32(*gpu.MemoryManager().GpuToCpuAddress(dma_get))};
+        const auto address = gpu.MemoryManager().GpuToCpuAddress(dma_get);
+        ASSERT_MSG(address, "Invalid GPU address");
+
+        const CommandHeader command_header{Memory::Read32(*address)};
 
         dma_get += sizeof(u32);
 
