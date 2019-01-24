@@ -195,6 +195,7 @@ EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen) {
     SDL_GL_SetSwapInterval(false);
     LOG_INFO(Frontend, "yuzu Version: {} | {}-{}", Common::g_build_fullname, Common::g_scm_branch,
              Common::g_scm_desc);
+    Settings::LogSettings();
 
     DoneCurrent();
 }

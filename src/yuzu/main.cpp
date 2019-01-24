@@ -2042,6 +2042,9 @@ int main(int argc, char* argv[]) {
     GMainWindow main_window;
     // After settings have been loaded by GMainWindow, apply the filter
     main_window.show();
+
+    Settings::LogSettings();
+
     int result = app.exec();
     detached_tasks.WaitForAllTasks();
     return result;
