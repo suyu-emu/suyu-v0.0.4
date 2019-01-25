@@ -19,11 +19,11 @@ public:
     virtual ~nvdevice() = default;
     union Ioctl {
         u32_le raw;
-        BitField<0, 8, u32_le> cmd;
-        BitField<8, 8, u32_le> group;
-        BitField<16, 14, u32_le> length;
-        BitField<30, 1, u32_le> is_in;
-        BitField<31, 1, u32_le> is_out;
+        BitField<0, 8, u32> cmd;
+        BitField<8, 8, u32> group;
+        BitField<16, 14, u32> length;
+        BitField<30, 1, u32> is_in;
+        BitField<31, 1, u32> is_out;
     };
 
     /**
