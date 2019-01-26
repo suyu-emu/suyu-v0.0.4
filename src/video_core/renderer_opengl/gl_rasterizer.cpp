@@ -930,7 +930,7 @@ u32 RasterizerOpenGL::SetupConstBuffers(Maxwell::ShaderStage stage, Shader& shad
     const auto& gpu = Core::System::GetInstance().GPU();
     const auto& maxwell3d = gpu.Maxwell3D();
     const auto& shader_stage = maxwell3d.state.shader_stages[static_cast<std::size_t>(stage)];
-    const auto& entries = shader->GetShaderEntries().const_buffer_entries;
+    const auto& entries = shader->GetShaderEntries().const_buffers;
 
     constexpr u64 max_binds = Tegra::Engines::Maxwell3D::Regs::MaxConstBuffers;
     std::array<GLuint, max_binds> bind_buffers;
@@ -998,7 +998,7 @@ u32 RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, Shader& shader,
     MICROPROFILE_SCOPE(OpenGL_Texture);
     const auto& gpu = Core::System::GetInstance().GPU();
     const auto& maxwell3d = gpu.Maxwell3D();
-    const auto& entries = shader->GetShaderEntries().texture_samplers;
+    const auto& entries = shader->GetShaderEntries().samplers;
 
     ASSERT_MSG(current_unit + entries.size() <= std::size(state.texture_units),
                "Exceeded the number of active textures.");
