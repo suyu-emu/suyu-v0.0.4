@@ -597,6 +597,7 @@ enum class BreakType : u32 {
     PostNROLoad = 4,
     PreNROUnload = 5,
     PostNROUnload = 6,
+    CppException = 7,
 };
 
 struct BreakReason {
@@ -668,6 +669,9 @@ static void Break(u32 reason, u64 info1, u64 info2) {
         LOG_WARNING(Debug_Emulated,
                     "Signalling debugger, Unloaded an NRO at 0x{:016X} with size 0x{:016X}", info1,
                     info2);
+        break;
+    case BreakType::CppException:
+        LOG_CRITICAL(Debug_Emulated, "Signalling debugger. Uncaught C++ exception encountered.");
         break;
     default:
         LOG_WARNING(
