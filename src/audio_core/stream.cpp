@@ -68,7 +68,7 @@ static void VolumeAdjustSamples(std::vector<s16>& samples) {
     }
 
     // Implementation of a volume slider with a dynamic range of 60 dB
-    const float volume_scale_factor{std::exp(6.90775f * volume) * 0.001f};
+    const float volume_scale_factor = volume == 0 ? 0 : std::exp(6.90775f * volume) * 0.001f;
     for (auto& sample : samples) {
         sample = static_cast<s16>(sample * volume_scale_factor);
     }
