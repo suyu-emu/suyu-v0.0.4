@@ -24,8 +24,10 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u32>(static_cast<u32>(SystemBootMode::Normal)); // Normal boot mode
+        rb.PushEnum(boot_mode);
     }
+
+    SystemBootMode boot_mode = SystemBootMode::Normal;
 };
 
 class DebugMonitor final : public ServiceFramework<DebugMonitor> {
