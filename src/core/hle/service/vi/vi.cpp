@@ -704,13 +704,14 @@ private:
         rb.Push(RESULT_SUCCESS);
     }
 
+    // This function currently does nothing but return a success error code in
+    // the vi library itself, so do the same thing, but log out the passed in values.
     void SetLayerVisibility(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const u64 layer_id = rp.Pop<u64>();
         const bool visibility = rp.Pop<bool>();
 
-        LOG_WARNING(Service_VI, "(STUBBED) called, layer_id=0x{:08X}, visibility={}", layer_id,
-                    visibility);
+        LOG_DEBUG(Service_VI, "called, layer_id=0x{:08X}, visibility={}", layer_id, visibility);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
