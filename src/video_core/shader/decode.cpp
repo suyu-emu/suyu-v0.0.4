@@ -126,7 +126,7 @@ BasicBlock ShaderIR::DecodeRange(u32 begin, u32 end) {
     for (u32 pc = begin; pc < (begin > end ? MAX_PROGRAM_LENGTH : end);) {
         pc = DecodeInstr(basic_block, pc);
     }
-    return std::move(basic_block);
+    return basic_block;
 }
 
 u32 ShaderIR::DecodeInstr(BasicBlock& bb, u32 pc) {
