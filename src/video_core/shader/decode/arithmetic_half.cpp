@@ -35,7 +35,7 @@ u32 ShaderIR::DecodeArithmeticHalf(BasicBlock& bb, const BasicBlock& code, u32 p
         switch (opcode->get().GetId()) {
         case OpCode::Id::HADD2_C:
         case OpCode::Id::HMUL2_C:
-            return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset);
+            return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset());
         case OpCode::Id::HADD2_R:
         case OpCode::Id::HMUL2_R:
             return GetRegister(instr.gpr20);

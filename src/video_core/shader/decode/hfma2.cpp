@@ -39,13 +39,14 @@ u32 ShaderIR::DecodeHfma2(BasicBlock& bb, const BasicBlock& code, u32 pc) {
             neg_b = instr.hfma2.negate_b;
             neg_c = instr.hfma2.negate_c;
             return {instr.hfma2.saturate, instr.hfma2.type_b,
-                    GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset), instr.hfma2.type_reg39,
-                    GetRegister(instr.gpr39)};
+                    GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset()),
+                    instr.hfma2.type_reg39, GetRegister(instr.gpr39)};
         case OpCode::Id::HFMA2_RC:
             neg_b = instr.hfma2.negate_b;
             neg_c = instr.hfma2.negate_c;
             return {instr.hfma2.saturate, instr.hfma2.type_reg39, GetRegister(instr.gpr39),
-                    instr.hfma2.type_b, GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset)};
+                    instr.hfma2.type_b,
+                    GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset())};
         case OpCode::Id::HFMA2_RR:
             neg_b = instr.hfma2.rr.negate_b;
             neg_c = instr.hfma2.rr.negate_c;

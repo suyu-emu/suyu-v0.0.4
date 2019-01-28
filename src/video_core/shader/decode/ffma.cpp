@@ -27,14 +27,14 @@ u32 ShaderIR::DecodeFfma(BasicBlock& bb, const BasicBlock& code, u32 pc) {
     auto [op_b, op_c] = [&]() -> std::tuple<Node, Node> {
         switch (opcode->get().GetId()) {
         case OpCode::Id::FFMA_CR: {
-            return {GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset),
+            return {GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset()),
                     GetRegister(instr.gpr39)};
         }
         case OpCode::Id::FFMA_RR:
             return {GetRegister(instr.gpr20), GetRegister(instr.gpr39)};
         case OpCode::Id::FFMA_RC: {
             return {GetRegister(instr.gpr39),
-                    GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset)};
+                    GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset())};
         }
         case OpCode::Id::FFMA_IMM:
             return {GetImmediate19(instr), GetRegister(instr.gpr39)};

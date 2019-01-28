@@ -543,8 +543,9 @@ private:
             if (const auto immediate = std::get_if<ImmediateNode>(offset)) {
                 // Direct access
                 const u32 offset_imm = immediate->GetValue();
-                return fmt::format("{}[{}][{}]", GetConstBuffer(cbuf->GetIndex()), offset_imm / 4,
-                                   offset_imm % 4);
+                ASSERT_MSG(offset_imm % 4 == 0, "Unaligned cbuf direct access");
+                return fmt::format("{}[{}][{}]", GetConstBuffer(cbuf->GetIndex()),
+                                   offset_imm / (4 * 4), (offset_imm / 4) % 4);
 
             } else if (std::holds_alternative<OperationNode>(*offset)) {
                 // Indirect access

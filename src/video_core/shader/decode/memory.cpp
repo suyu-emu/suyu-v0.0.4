@@ -80,7 +80,7 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, const BasicBlock& code, u32 pc) {
         Node index = GetRegister(instr.gpr8);
 
         const Node op_a =
-            GetConstBufferIndirect(instr.cbuf36.index, instr.cbuf36.offset + 0, index);
+            GetConstBufferIndirect(instr.cbuf36.index, instr.cbuf36.GetOffset() + 0, index);
 
         switch (instr.ld_c.type.Value()) {
         case Tegra::Shader::UniformType::Single:
@@ -89,7 +89,7 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, const BasicBlock& code, u32 pc) {
 
         case Tegra::Shader::UniformType::Double: {
             const Node op_b =
-                GetConstBufferIndirect(instr.cbuf36.index, instr.cbuf36.offset + 4, index);
+                GetConstBufferIndirect(instr.cbuf36.index, instr.cbuf36.GetOffset() + 4, index);
 
             SetTemporal(bb, 0, op_a);
             SetTemporal(bb, 1, op_b);
@@ -142,7 +142,7 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, const BasicBlock& code, u32 pc) {
         ASSERT(cbuf != nullptr);
         const auto cbuf_offset_imm = std::get_if<ImmediateNode>(cbuf->GetOffset());
         ASSERT(cbuf_offset_imm != nullptr);
-        const auto cbuf_offset = cbuf_offset_imm->GetValue() * 4;
+        const auto cbuf_offset = cbuf_offset_imm->GetValue();
 
         bb.push_back(Comment(
             fmt::format("Base address is c[0x{:x}][0x{:x}]", cbuf->GetIndex(), cbuf_offset)));

@@ -249,7 +249,7 @@ public:
     }
 
     u32 GetSize() const {
-        return max_offset + 1;
+        return max_offset + sizeof(float);
     }
 
 private:
