@@ -415,11 +415,11 @@ class AbufNode final {
 public:
     explicit constexpr AbufNode(Tegra::Shader::Attribute::Index index, u32 element,
                                 const Tegra::Shader::IpaMode& input_mode, Node buffer = {})
-        : input_mode{input_mode}, index{index}, element{element}, buffer{buffer} {}
+        : input_mode{input_mode}, buffer{buffer}, index{index}, element{element} {}
 
     explicit constexpr AbufNode(Tegra::Shader::Attribute::Index index, u32 element,
                                 Node buffer = {})
-        : input_mode{}, index{index}, element{element}, buffer{buffer} {}
+        : input_mode{}, buffer{buffer}, index{index}, element{element} {}
 
     Tegra::Shader::IpaMode GetInputMode() const {
         return input_mode;
