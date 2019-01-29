@@ -1140,7 +1140,7 @@ private:
                                   Type::HalfFloat);
     }
 
-    std::string F4Texture(Operation operation) {
+    std::string Texture(Operation operation) {
         const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
         ASSERT(meta);
 
@@ -1151,7 +1151,7 @@ private:
         return expr + GetSwizzle(meta->element);
     }
 
-    std::string F4TextureLod(Operation operation) {
+    std::string TextureLod(Operation operation) {
         const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
         ASSERT(meta);
 
@@ -1162,7 +1162,7 @@ private:
         return expr + GetSwizzle(meta->element);
     }
 
-    std::string F4TextureGather(Operation operation) {
+    std::string TextureGather(Operation operation) {
         const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
         ASSERT(meta);
 
@@ -1170,7 +1170,7 @@ private:
                GetSwizzle(meta->element);
     }
 
-    std::string F4TextureQueryDimensions(Operation operation) {
+    std::string TextureQueryDimensions(Operation operation) {
         const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
         ASSERT(meta);
 
@@ -1190,7 +1190,7 @@ private:
         return "0";
     }
 
-    std::string F4TextureQueryLod(Operation operation) {
+    std::string TextureQueryLod(Operation operation) {
         const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
         ASSERT(meta);
 
@@ -1201,7 +1201,7 @@ private:
         return "0";
     }
 
-    std::string F4TexelFetch(Operation operation) {
+    std::string TexelFetch(Operation operation) {
         constexpr std::array<const char*, 4> constructors = {"int", "ivec2", "ivec3", "ivec4"};
         const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
         ASSERT(meta);
@@ -1463,12 +1463,12 @@ private:
         &GLSLDecompiler::Logical2HNotEqual,
         &GLSLDecompiler::Logical2HGreaterEqual,
 
-        &GLSLDecompiler::F4Texture,
-        &GLSLDecompiler::F4TextureLod,
-        &GLSLDecompiler::F4TextureGather,
-        &GLSLDecompiler::F4TextureQueryDimensions,
-        &GLSLDecompiler::F4TextureQueryLod,
-        &GLSLDecompiler::F4TexelFetch,
+        &GLSLDecompiler::Texture,
+        &GLSLDecompiler::TextureLod,
+        &GLSLDecompiler::TextureGather,
+        &GLSLDecompiler::TextureQueryDimensions,
+        &GLSLDecompiler::TextureQueryLod,
+        &GLSLDecompiler::TexelFetch,
 
         &GLSLDecompiler::Branch,
         &GLSLDecompiler::PushFlowStack,

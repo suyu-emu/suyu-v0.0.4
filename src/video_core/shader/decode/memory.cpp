@@ -336,8 +336,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         for (u32 element = 0; element < values.size(); ++element) {
             auto coords_copy = coords;
             MetaTexture meta{sampler, {}, {}, extras, element};
-            values[element] =
-                Operation(OperationCode::F4TextureGather, meta, std::move(coords_copy));
+            values[element] = Operation(OperationCode::TextureGather, meta, std::move(coords_copy));
         }
 
         WriteTexsInstructionFloat(bb, instr, values);
@@ -362,8 +361,8 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
                     continue;
                 }
                 MetaTexture meta{sampler, {}, {}, {}, element};
-                const Node value = Operation(OperationCode::F4TextureQueryDimensions, meta,
-                                             GetRegister(instr.gpr8));
+                const Node value =
+                    Operation(OperationCode::TextureQueryDimensions, meta, GetRegister(instr.gpr8));
                 SetTemporal(bb, indexer++, value);
             }
             for (u32 i = 0; i < indexer; ++i) {
@@ -412,7 +411,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         for (u32 element = 0; element < 2; ++element) {
             auto params = coords;
             MetaTexture meta{sampler, {}, {}, {}, element};
-            const Node value = Operation(OperationCode::F4TextureQueryLod, meta, std::move(params));
+            const Node value = Operation(OperationCode::TextureQueryLod, meta, std::move(params));
             SetTemporal(bb, element, value);
         }
         for (u32 element = 0; element < 2; ++element) {
@@ -555,7 +554,7 @@ Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
           (texture_type == Tegra::Shader::TextureType::TextureCube && is_array && is_shadow));
 
     const OperationCode read_method =
-        lod_needed && gl_lod_supported ? OperationCode::F4TextureLod : OperationCode::F4Texture;
+        lod_needed && gl_lod_supported ? OperationCode::TextureLod : OperationCode::Texture;
 
     UNIMPLEMENTED_IF(process_mode != TextureProcessMode::None && !gl_lod_supported);
 
@@ -671,7 +670,7 @@ Node4 ShaderIR::GetTld4Code(Instruction instr, TextureType texture_type, bool de
     for (u32 element = 0; element < values.size(); ++element) {
         auto coords_copy = coords;
         MetaTexture meta{sampler, GetRegister(array_register), {}, {}, element};
-        values[element] = Operation(OperationCode::F4TextureGather, meta, std::move(coords_copy));
+        values[element] = Operation(OperationCode::TextureGather, meta, std::move(coords_copy));
     }
 
     return values;
@@ -707,7 +706,7 @@ Node4 ShaderIR::GetTldsCode(Instruction instr, TextureType texture_type, bool is
     for (u32 element = 0; element < values.size(); ++element) {
         auto coords_copy = coords;
         MetaTexture meta{sampler, array, {}, {lod}, element};
-        values[element] = Operation(OperationCode::F4TexelFetch, meta, std::move(coords_copy));
+        values[element] = Operation(OperationCode::TexelFetch, meta, std::move(coords_copy));
     }
     return values;
 }

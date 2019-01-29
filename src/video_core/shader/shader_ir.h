@@ -156,12 +156,12 @@ enum class OperationCode {
     Logical2HNotEqual,     /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
     Logical2HGreaterEqual, /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
 
-    F4Texture,                /// (MetaTexture, float[N] coords, float[M] params) -> float4
-    F4TextureLod,             /// (MetaTexture, float[N] coords, float[M] params) -> float4
-    F4TextureGather,          /// (MetaTexture, float[N] coords, float[M] params) -> float4
-    F4TextureQueryDimensions, /// (MetaTexture, float a) -> float4
-    F4TextureQueryLod,        /// (MetaTexture, float[N] coords) -> float4
-    F4TexelFetch,             /// (MetaTexture, int[N], int) -> float4
+    Texture,                /// (MetaTexture, float[N] coords) -> float4
+    TextureLod,             /// (MetaTexture, float[N] coords) -> float4
+    TextureGather,          /// (MetaTexture, float[N] coords) -> float4
+    TextureQueryDimensions, /// (MetaTexture, float a) -> float4
+    TextureQueryLod,        /// (MetaTexture, float[N] coords) -> float4
+    TexelFetch,             /// (MetaTexture, int[N], int) -> float4
 
     Branch,        /// (uint branch_target) -> void
     PushFlowStack, /// (uint branch_target) -> void
