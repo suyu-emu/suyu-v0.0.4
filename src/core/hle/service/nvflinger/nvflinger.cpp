@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <optional>
 
-#include "common/alignment.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
@@ -22,7 +21,6 @@
 #include "core/hle/service/nvflinger/nvflinger.h"
 #include "core/perf_stats.h"
 #include "video_core/renderer_base.h"
-#include "video_core/video_core.h"
 
 namespace Service::NVFlinger {
 
