@@ -37,7 +37,7 @@ public:
             {3, nullptr, "SetContextForMultiStream"},
             {4, &IHardwareOpusDecoderManager::DecodeInterleavedWithPerfOld, "DecodeInterleavedWithPerfOld"},
             {5, nullptr, "DecodeInterleavedForMultiStreamWithPerfOld"},
-            {6, nullptr, "DecodeInterleaved"},
+            {6, &IHardwareOpusDecoderManager::DecodeInterleaved, "DecodeInterleaved"},
             {7, nullptr, "DecodeInterleavedForMultiStream"},
         };
         // clang-format on
@@ -46,23 +46,48 @@ public:
     }
 
 private:
+    /// Describes extra behavior that may be asked of the decoding context.
+    enum class ExtraBehavior {
+        /// No extra behavior.
+        None,
+
+        /// Resets the decoder context back to a freshly initialized state.
+        ResetContext,
+    };
+
     void DecodeInterleavedOld(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Audio, "called");
 
-        DecodeInterleavedHelper(ctx, nullptr);
+        DecodeInterleavedHelper(ctx, nullptr, ExtraBehavior::None);
     }
 
     void DecodeInterleavedWithPerfOld(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Audio, "called");
 
         u64 performance = 0;
-        DecodeInterleavedHelper(ctx, &performance);
+        DecodeInterleavedHelper(ctx, &performance, ExtraBehavior::None);
     }
 
-    void DecodeInterleavedHelper(Kernel::HLERequestContext& ctx, u64* performance) {
+    void DecodeInterleaved(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Audio, "called");
+
+        IPC::RequestParser rp{ctx};
+        const auto extra_behavior =
+            rp.Pop<bool>() ? ExtraBehavior::ResetContext : ExtraBehavior::None;
+
+        u64 performance = 0;
+        DecodeInterleavedHelper(ctx, &performance, extra_behavior);
+    }
+
+    void DecodeInterleavedHelper(Kernel::HLERequestContext& ctx, u64* performance,
+                                 ExtraBehavior extra_behavior) {
         u32 consumed = 0;
         u32 sample_count = 0;
         std::vector<opus_int16> samples(ctx.GetWriteBufferSize() / sizeof(opus_int16));
+
+        if (extra_behavior == ExtraBehavior::ResetContext) {
+            ResetDecoderContext();
+        }
 
         if (!Decoder_DecodeInterleaved(consumed, sample_count, ctx.ReadBuffer(), samples,
                                        performance)) {
@@ -134,6 +159,12 @@ private:
         }
 
         return true;
+    }
+
+    void ResetDecoderContext() {
+        ASSERT(decoder != nullptr);
+
+        opus_decoder_ctl(decoder.get(), OPUS_RESET_STATE);
     }
 
     struct OpusHeader {
