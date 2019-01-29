@@ -5,7 +5,6 @@
 #include <chrono>
 #include <cstring>
 #include <memory>
-#include <optional>
 #include <vector>
 
 #include <opus.h>
@@ -53,7 +52,7 @@ private:
         u32 consumed = 0;
         u32 sample_count = 0;
         std::vector<opus_int16> samples(ctx.GetWriteBufferSize() / sizeof(opus_int16));
-        if (!Decoder_DecodeInterleaved(consumed, sample_count, ctx.ReadBuffer(), samples)) {
+        if (!Decoder_DecodeInterleaved(consumed, sample_count, ctx.ReadBuffer(), samples, nullptr)) {
             LOG_ERROR(Audio, "Failed to decode opus data");
             IPC::ResponseBuilder rb{ctx, 2};
             // TODO(ogniK): Use correct error code
@@ -75,7 +74,7 @@ private:
         u64 performance = 0;
         std::vector<opus_int16> samples(ctx.GetWriteBufferSize() / sizeof(opus_int16));
         if (!Decoder_DecodeInterleaved(consumed, sample_count, ctx.ReadBuffer(), samples,
-                                       performance)) {
+                                       &performance)) {
             LOG_ERROR(Audio, "Failed to decode opus data");
             IPC::ResponseBuilder rb{ctx, 2};
             // TODO(ogniK): Use correct error code
@@ -90,10 +89,8 @@ private:
         ctx.WriteBuffer(samples.data(), samples.size() * sizeof(s16));
     }
 
-    bool Decoder_DecodeInterleaved(
-        u32& consumed, u32& sample_count, const std::vector<u8>& input,
-        std::vector<opus_int16>& output,
-        std::optional<std::reference_wrapper<u64>> performance_time = std::nullopt) {
+    bool Decoder_DecodeInterleaved(u32& consumed, u32& sample_count, const std::vector<u8>& input,
+                                   std::vector<opus_int16>& output, u64* out_performance_time) {
         const auto start_time = std::chrono::high_resolution_clock::now();
         const std::size_t raw_output_sz = output.size() * sizeof(opus_int16);
         if (sizeof(OpusHeader) > input.size()) {
@@ -136,8 +133,8 @@ private:
         const auto end_time = std::chrono::high_resolution_clock::now() - start_time;
         sample_count = out_sample_count;
         consumed = static_cast<u32>(sizeof(OpusHeader) + hdr.sz);
-        if (performance_time.has_value()) {
-            performance_time->get() =
+        if (out_performance_time != nullptr) {
+            *out_performance_time =
                 std::chrono::duration_cast<std::chrono::milliseconds>(end_time).count();
         }
 
