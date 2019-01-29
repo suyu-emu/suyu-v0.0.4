@@ -225,6 +225,7 @@ struct SurfaceParams {
     SurfaceTarget target;
     u32 max_mip_level;
     bool is_layered;
+    bool is_array;
     bool srgb_conversion;
     // Parameters used for caching
     VAddr addr;
@@ -294,7 +295,7 @@ public:
     }
 
     const OGLTexture& TextureLayer() {
-        if (params.is_layered) {
+        if (params.is_array) {
             return Texture();
         }
         EnsureTextureView();

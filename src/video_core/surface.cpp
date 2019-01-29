@@ -50,6 +50,24 @@ bool SurfaceTargetIsLayered(SurfaceTarget target) {
     }
 }
 
+bool SurfaceTargetIsArray(SurfaceTarget target) {
+    switch (target) {
+    case SurfaceTarget::Texture1D:
+    case SurfaceTarget::Texture2D:
+    case SurfaceTarget::Texture3D:
+    case SurfaceTarget::TextureCubemap:
+        return false;
+    case SurfaceTarget::Texture1DArray:
+    case SurfaceTarget::Texture2DArray:
+    case SurfaceTarget::TextureCubeArray:
+        return true;
+    default:
+        LOG_CRITICAL(HW_GPU, "Unimplemented surface_target={}", static_cast<u32>(target));
+        UNREACHABLE();
+        return false;
+    }
+}
+
 PixelFormat PixelFormatFromDepthFormat(Tegra::DepthFormat format) {
     switch (format) {
     case Tegra::DepthFormat::S8_Z24_UNORM:

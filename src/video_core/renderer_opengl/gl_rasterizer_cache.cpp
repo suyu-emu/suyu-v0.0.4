@@ -167,6 +167,7 @@ std::size_t SurfaceParams::InnerMemorySize(bool force_gl, bool layer_only,
     }
 
     params.is_layered = SurfaceTargetIsLayered(params.target);
+    params.is_array = SurfaceTargetIsArray(params.target);
     params.max_mip_level = config.tic.max_mip_level + 1;
     params.rt = {};
 
@@ -877,10 +878,13 @@ void CachedSurface::EnsureTextureView() {
     UNIMPLEMENTED_IF(gl_is_compressed);
 
     const GLenum target{TargetLayer()};
+    const GLuint num_layers{target == GL_TEXTURE_CUBE_MAP_ARRAY ? 6u : 1u};
+    constexpr GLuint min_layer = 0;
+    constexpr GLuint min_level = 0;
 
     texture_view.Create();
-    glTextureView(texture_view.handle, target, texture.handle, gl_internal_format, 0,
-                  params.max_mip_level, 0, 1);
+    glTextureView(texture_view.handle, target, texture.handle, gl_internal_format, min_level,
+                  params.max_mip_level, min_layer, num_layers);
 
     OpenGLState cur_state = OpenGLState::GetCurState();
     const auto& old_tex = cur_state.texture_units[0];
