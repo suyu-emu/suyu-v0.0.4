@@ -391,7 +391,7 @@ private:
     const InternalFlag flag;
 };
 
-/// A predicate register, it can be negated without aditional nodes
+/// A predicate register, it can be negated without additional nodes
 class PredicateNode final {
 public:
     explicit constexpr PredicateNode(Tegra::Shader::Pred index, bool negated)
@@ -415,11 +415,11 @@ class AbufNode final {
 public:
     explicit constexpr AbufNode(Tegra::Shader::Attribute::Index index, u32 element,
                                 const Tegra::Shader::IpaMode& input_mode, Node buffer = {})
-        : input_mode{input_mode}, index{index}, element{element}, buffer{buffer} {}
+        : input_mode{input_mode}, buffer{buffer}, index{index}, element{element} {}
 
     explicit constexpr AbufNode(Tegra::Shader::Attribute::Index index, u32 element,
                                 Node buffer = {})
-        : input_mode{}, index{index}, element{element}, buffer{buffer} {}
+        : input_mode{}, buffer{buffer}, index{index}, element{element} {}
 
     Tegra::Shader::IpaMode GetInputMode() const {
         return input_mode;
@@ -626,10 +626,10 @@ private:
     Node GetPredicate(u64 pred, bool negated = false);
     /// Generates a predicate node for an immediate true or false value
     Node GetPredicate(bool immediate);
-    /// Generates a node representing an input atttribute. Keeps track of used attributes.
+    /// Generates a node representing an input attribute. Keeps track of used attributes.
     Node GetInputAttribute(Tegra::Shader::Attribute::Index index, u64 element,
                            const Tegra::Shader::IpaMode& input_mode, Node buffer = {});
-    /// Generates a node representing an output atttribute. Keeps track of used attributes.
+    /// Generates a node representing an output attribute. Keeps track of used attributes.
     Node GetOutputAttribute(Tegra::Shader::Attribute::Index index, u64 element, Node buffer);
     /// Generates a node representing an internal flag
     Node GetInternalFlag(InternalFlag flag, bool negated = false);
