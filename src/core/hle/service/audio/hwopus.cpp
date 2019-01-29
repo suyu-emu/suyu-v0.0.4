@@ -95,12 +95,13 @@ private:
         std::vector<opus_int16>& output,
         std::optional<std::reference_wrapper<u64>> performance_time = std::nullopt) {
         const auto start_time = std::chrono::high_resolution_clock::now();
-        std::size_t raw_output_sz = output.size() * sizeof(opus_int16);
+        const std::size_t raw_output_sz = output.size() * sizeof(opus_int16);
         if (sizeof(OpusHeader) > input.size()) {
             LOG_ERROR(Audio, "Input is smaller than the header size, header_sz={}, input_sz={}",
                       sizeof(OpusHeader), input.size());
             return false;
         }
+
         OpusHeader hdr{};
         std::memcpy(&hdr, input.data(), sizeof(OpusHeader));
         if (sizeof(OpusHeader) + static_cast<u32>(hdr.sz) > input.size()) {
@@ -108,8 +109,9 @@ private:
                       sizeof(OpusHeader) + static_cast<u32>(hdr.sz), input.size());
             return false;
         }
-        auto frame = input.data() + sizeof(OpusHeader);
-        auto decoded_sample_count = opus_packet_get_nb_samples(
+
+        const auto frame = input.data() + sizeof(OpusHeader);
+        const auto decoded_sample_count = opus_packet_get_nb_samples(
             frame, static_cast<opus_int32>(input.size() - sizeof(OpusHeader)),
             static_cast<opus_int32>(sample_rate));
         if (decoded_sample_count * channel_count * sizeof(u16) > raw_output_sz) {
@@ -119,8 +121,9 @@ private:
                 decoded_sample_count * channel_count * sizeof(u16), raw_output_sz);
             return false;
         }
+
         const int frame_size = (static_cast<int>(raw_output_sz / sizeof(s16) / channel_count));
-        auto out_sample_count =
+        const auto out_sample_count =
             opus_decode(decoder.get(), frame, hdr.sz, output.data(), frame_size, 0);
         if (out_sample_count < 0) {
             LOG_ERROR(Audio,
@@ -129,6 +132,7 @@ private:
                       out_sample_count, frame_size, static_cast<u32>(hdr.sz));
             return false;
         }
+
         const auto end_time = std::chrono::high_resolution_clock::now() - start_time;
         sample_count = out_sample_count;
         consumed = static_cast<u32>(sizeof(OpusHeader) + hdr.sz);
@@ -136,6 +140,7 @@ private:
             performance_time->get() =
                 std::chrono::duration_cast<std::chrono::milliseconds>(end_time).count();
         }
+
         return true;
     }
 
@@ -159,6 +164,7 @@ void HwOpus::GetWorkBufferSize(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto sample_rate = rp.Pop<u32>();
     const auto channel_count = rp.Pop<u32>();
+
     LOG_DEBUG(Audio, "called with sample_rate={}, channel_count={}", sample_rate, channel_count);
 
     ASSERT_MSG(sample_rate == 48000 || sample_rate == 24000 || sample_rate == 16000 ||
@@ -176,9 +182,10 @@ void HwOpus::GetWorkBufferSize(Kernel::HLERequestContext& ctx) {
 
 void HwOpus::OpenOpusDecoder(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    auto sample_rate = rp.Pop<u32>();
-    auto channel_count = rp.Pop<u32>();
-    auto buffer_sz = rp.Pop<u32>();
+    const auto sample_rate = rp.Pop<u32>();
+    const auto channel_count = rp.Pop<u32>();
+    const auto buffer_sz = rp.Pop<u32>();
+
     LOG_DEBUG(Audio, "called sample_rate={}, channel_count={}, buffer_size={}", sample_rate,
               channel_count, buffer_sz);
 
@@ -187,8 +194,9 @@ void HwOpus::OpenOpusDecoder(Kernel::HLERequestContext& ctx) {
                "Invalid sample rate");
     ASSERT_MSG(channel_count == 1 || channel_count == 2, "Invalid channel count");
 
-    std::size_t worker_sz = WorkerBufferSize(channel_count);
+    const std::size_t worker_sz = WorkerBufferSize(channel_count);
     ASSERT_MSG(buffer_sz >= worker_sz, "Worker buffer too large");
+
     std::unique_ptr<OpusDecoder, OpusDeleter> decoder{
         static_cast<OpusDecoder*>(operator new(worker_sz))};
     if (const int err = opus_decoder_init(decoder.get(), sample_rate, channel_count)) {
