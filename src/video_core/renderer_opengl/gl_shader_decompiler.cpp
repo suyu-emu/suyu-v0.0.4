@@ -719,45 +719,51 @@ private:
         constexpr std::array<const char*, 4> coord_constructors = {"float", "vec2", "vec3", "vec4"};
 
         const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
-        const auto count = static_cast<u32>(operation.GetOperandsCount());
         ASSERT(meta);
+
+        const auto count = static_cast<u32>(operation.GetOperandsCount());
+        const bool has_array = meta->sampler.IsArray();
+        const bool has_shadow = meta->sampler.IsShadow();
 
         std::string expr = func;
         expr += '(';
         expr += GetSampler(meta->sampler);
         expr += ", ";
 
-        expr += coord_constructors[meta->coords_count - 1];
+        expr += coord_constructors.at(count + (has_array ? 1 : 0) + (has_shadow ? 1 : 0) - 1);
         expr += '(';
         for (u32 i = 0; i < count; ++i) {
-            const bool is_extra = i >= meta->coords_count;
-            const bool is_array = i == meta->array_index;
+            expr += Visit(operation[i]);
 
-            std::string operand = [&]() {
-                if (is_extra && is_extra_int) {
-                    if (const auto immediate = std::get_if<ImmediateNode>(operation[i])) {
-                        return std::to_string(static_cast<s32>(immediate->GetValue()));
-                    } else {
-                        return "ftoi(" + Visit(operation[i]) + ')';
-                    }
-                } else {
-                    return Visit(operation[i]);
-                }
-            }();
-            if (is_array) {
-                ASSERT(!is_extra);
-                operand = "float(ftoi(" + operand + "))";
-            }
-
-            expr += operand;
-
-            if (i + 1 == meta->coords_count) {
-                expr += ')';
-            }
-            if (i + 1 < count) {
+            const u32 next = i + 1;
+            if (next < count || has_array || has_shadow)
                 expr += ", ";
+        }
+        if (has_array) {
+            expr += "float(ftoi(" + Visit(meta->array) + "))";
+        }
+        if (has_shadow) {
+            if (has_array)
+                expr += ", ";
+            expr += Visit(meta->depth_compare);
+        }
+        expr += ')';
+
+        for (const Node extra : meta->extras) {
+            expr += ", ";
+            if (is_extra_int) {
+                if (const auto immediate = std::get_if<ImmediateNode>(extra)) {
+                    // Inline the string as an immediate integer in GLSL (some extra arguments are
+                    // required to be constant)
+                    expr += std::to_string(static_cast<s32>(immediate->GetValue()));
+                } else {
+                    expr += "ftoi(" + Visit(extra) + ')';
+                }
+            } else {
+                expr += Visit(extra);
             }
         }
+
         expr += ')';
         return expr;
     }
@@ -1198,26 +1204,29 @@ private:
     std::string F4TexelFetch(Operation operation) {
         constexpr std::array<const char*, 4> constructors = {"int", "ivec2", "ivec3", "ivec4"};
         const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
-        const auto count = static_cast<u32>(operation.GetOperandsCount());
         ASSERT(meta);
+        UNIMPLEMENTED_IF(meta->sampler.IsArray());
+        UNIMPLEMENTED_IF(!meta->extras.empty());
+
+        const auto count = static_cast<u32>(operation.GetOperandsCount());
 
         std::string expr = "texelFetch(";
         expr += GetSampler(meta->sampler);
         expr += ", ";
 
-        expr += constructors[meta->coords_count - 1];
+        expr += constructors.at(count - 1);
         expr += '(';
         for (u32 i = 0; i < count; ++i) {
             expr += VisitOperand(operation, i, Type::Int);
 
-            if (i + 1 == meta->coords_count) {
+            const u32 next = i + 1;
+            if (next == count)
                 expr += ')';
-            }
-            if (i + 1 < count) {
+            if (next < count)
                 expr += ", ";
-            }
         }
         expr += ')';
+
         return expr + GetSwizzle(meta->element);
     }
 
