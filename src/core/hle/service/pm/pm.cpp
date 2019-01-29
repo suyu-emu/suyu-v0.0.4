@@ -13,7 +13,7 @@ public:
     explicit BootMode() : ServiceFramework{"pm:bm"} {
         static const FunctionInfo functions[] = {
             {0, &BootMode::GetBootMode, "GetBootMode"},
-            {1, nullptr, "SetMaintenanceBoot"},
+            {1, &BootMode::SetMaintenanceBoot, "SetMaintenanceBoot"},
         };
         RegisterHandlers(functions);
     }
@@ -24,8 +24,19 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u32>(static_cast<u32>(SystemBootMode::Normal)); // Normal boot mode
+        rb.PushEnum(boot_mode);
     }
+
+    void SetMaintenanceBoot(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_PM, "called");
+
+        boot_mode = SystemBootMode::Maintenance;
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    SystemBootMode boot_mode = SystemBootMode::Normal;
 };
 
 class DebugMonitor final : public ServiceFramework<DebugMonitor> {
