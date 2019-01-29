@@ -217,6 +217,11 @@ private:
 /// Push ///
 
 template <>
+inline void ResponseBuilder::Push(s32 value) {
+    cmdbuf[index++] = static_cast<u32>(value);
+}
+
+template <>
 inline void ResponseBuilder::Push(u32 value) {
     cmdbuf[index++] = value;
 }
@@ -235,9 +240,26 @@ inline void ResponseBuilder::Push(ResultCode value) {
 }
 
 template <>
+inline void ResponseBuilder::Push(s8 value) {
+    PushRaw(value);
+}
+
+template <>
+inline void ResponseBuilder::Push(s16 value) {
+    PushRaw(value);
+}
+
+template <>
+inline void ResponseBuilder::Push(s64 value) {
+    Push(static_cast<u32>(value));
+    Push(static_cast<u32>(value >> 32));
+}
+
+template <>
 inline void ResponseBuilder::Push(u8 value) {
     PushRaw(value);
 }
+
 
 template <>
 inline void ResponseBuilder::Push(u16 value) {
