@@ -85,11 +85,12 @@ private:
 
     std::shared_ptr<Nvidia::Module> nvdrv;
 
-    std::array<Display, 4> displays{{
+    std::array<Display, 5> displays{{
         {0, "Default"},
         {1, "External"},
         {2, "Edid"},
         {3, "Internal"},
+        {4, "Null"},
     }};
     std::vector<std::shared_ptr<BufferQueue>> buffer_queues;
 
