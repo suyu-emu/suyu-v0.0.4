@@ -49,43 +49,38 @@ private:
     void DecodeInterleavedOld(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Audio, "called");
 
-        u32 consumed = 0;
-        u32 sample_count = 0;
-        std::vector<opus_int16> samples(ctx.GetWriteBufferSize() / sizeof(opus_int16));
-        if (!Decoder_DecodeInterleaved(consumed, sample_count, ctx.ReadBuffer(), samples, nullptr)) {
-            LOG_ERROR(Audio, "Failed to decode opus data");
-            IPC::ResponseBuilder rb{ctx, 2};
-            // TODO(ogniK): Use correct error code
-            rb.Push(ResultCode(-1));
-            return;
-        }
-        IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
-        rb.Push<u32>(consumed);
-        rb.Push<u32>(sample_count);
-        ctx.WriteBuffer(samples.data(), samples.size() * sizeof(s16));
+        DecodeInterleavedHelper(ctx, nullptr);
     }
 
     void DecodeInterleavedWithPerfOld(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Audio, "called");
 
+        u64 performance = 0;
+        DecodeInterleavedHelper(ctx, &performance);
+    }
+
+    void DecodeInterleavedHelper(Kernel::HLERequestContext& ctx, u64* performance) {
         u32 consumed = 0;
         u32 sample_count = 0;
-        u64 performance = 0;
         std::vector<opus_int16> samples(ctx.GetWriteBufferSize() / sizeof(opus_int16));
+
         if (!Decoder_DecodeInterleaved(consumed, sample_count, ctx.ReadBuffer(), samples,
-                                       &performance)) {
+                                       performance)) {
             LOG_ERROR(Audio, "Failed to decode opus data");
             IPC::ResponseBuilder rb{ctx, 2};
             // TODO(ogniK): Use correct error code
             rb.Push(ResultCode(-1));
             return;
         }
-        IPC::ResponseBuilder rb{ctx, 6};
+
+        const u32 param_size = performance != nullptr ? 6 : 4;
+        IPC::ResponseBuilder rb{ctx, param_size};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(consumed);
         rb.Push<u32>(sample_count);
-        rb.Push<u64>(performance);
+        if (performance) {
+            rb.Push<u64>(*performance);
+        }
         ctx.WriteBuffer(samples.data(), samples.size() * sizeof(s16));
     }
 
