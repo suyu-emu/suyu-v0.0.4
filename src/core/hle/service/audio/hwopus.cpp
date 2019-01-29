@@ -30,22 +30,24 @@ public:
                                 u32 channel_count)
         : ServiceFramework("IHardwareOpusDecoderManager"), decoder(std::move(decoder)),
           sample_rate(sample_rate), channel_count(channel_count) {
+        // clang-format off
         static const FunctionInfo functions[] = {
-            {0, &IHardwareOpusDecoderManager::DecodeInterleaved, "DecodeInterleaved"},
+            {0, &IHardwareOpusDecoderManager::DecodeInterleavedOld, "DecodeInterleavedOld"},
             {1, nullptr, "SetContext"},
-            {2, nullptr, "DecodeInterleavedForMultiStream"},
+            {2, nullptr, "DecodeInterleavedForMultiStreamOld"},
             {3, nullptr, "SetContextForMultiStream"},
-            {4, &IHardwareOpusDecoderManager::DecodeInterleavedWithPerformance,
-             "DecodeInterleavedWithPerformance"},
-            {5, nullptr, "Unknown5"},
-            {6, nullptr, "Unknown6"},
-            {7, nullptr, "Unknown7"},
+            {4, &IHardwareOpusDecoderManager::DecodeInterleavedWithPerfOld, "DecodeInterleavedWithPerfOld"},
+            {5, nullptr, "DecodeInterleavedForMultiStreamWithPerfOld"},
+            {6, nullptr, "DecodeInterleaved"},
+            {7, nullptr, "DecodeInterleavedForMultiStream"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
     }
 
 private:
-    void DecodeInterleaved(Kernel::HLERequestContext& ctx) {
+    void DecodeInterleavedOld(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Audio, "called");
 
         u32 consumed = 0;
@@ -65,7 +67,7 @@ private:
         ctx.WriteBuffer(samples.data(), samples.size() * sizeof(s16));
     }
 
-    void DecodeInterleavedWithPerformance(Kernel::HLERequestContext& ctx) {
+    void DecodeInterleavedWithPerfOld(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Audio, "called");
 
         u32 consumed = 0;
