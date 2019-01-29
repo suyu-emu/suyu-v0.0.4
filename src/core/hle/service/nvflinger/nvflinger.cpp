@@ -47,7 +47,7 @@ void NVFlinger::SetNVDrvInstance(std::shared_ptr<Nvidia::Module> instance) {
 }
 
 u64 NVFlinger::OpenDisplay(std::string_view name) {
-    LOG_WARNING(Service, "Opening display {}", name);
+    LOG_DEBUG(Service, "Opening \"{}\" display", name);
 
     // TODO(Subv): Currently we only support the Default display.
     ASSERT(name == "Default");
