@@ -30,12 +30,6 @@ constexpr std::size_t SCREEN_REFRESH_RATE = 60;
 constexpr u64 frame_ticks = static_cast<u64>(CoreTiming::BASE_CLOCK_RATE / SCREEN_REFRESH_RATE);
 
 NVFlinger::NVFlinger() {
-    // Add the different displays to the list of displays.
-    displays.emplace_back(0, "Default");
-    displays.emplace_back(1, "External");
-    displays.emplace_back(2, "Edid");
-    displays.emplace_back(3, "Internal");
-
     // Schedule the screen composition events
     composition_event =
         CoreTiming::RegisterEvent("ScreenComposition", [this](u64 userdata, int cycles_late) {

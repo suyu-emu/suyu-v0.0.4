@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -84,7 +85,12 @@ private:
 
     std::shared_ptr<Nvidia::Module> nvdrv;
 
-    std::vector<Display> displays;
+    std::array<Display, 4> displays{{
+        {0, "Default"},
+        {1, "External"},
+        {2, "Edid"},
+        {3, "Internal"},
+    }};
     std::vector<std::shared_ptr<BufferQueue>> buffer_queues;
 
     /// Id to use for the next layer that is created, this counter is shared among all displays.
