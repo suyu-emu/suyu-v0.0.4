@@ -249,7 +249,8 @@ AppletAE::AppletAE(std::shared_ptr<NVFlinger::NVFlinger> nvflinger,
         {300, nullptr, "OpenOverlayAppletProxy"},
         {350, nullptr, "OpenSystemApplicationProxy"},
         {400, nullptr, "CreateSelfLibraryAppletCreatorForDevelop"},
-        {401, nullptr, "GetSystemAppletControllerForDebug"},
+        {410, nullptr, "GetSystemAppletControllerForDebug"},
+        {1000, nullptr, "GetDebugFunctions"},
     };
     // clang-format on
 
