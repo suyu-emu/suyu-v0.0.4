@@ -71,9 +71,43 @@ private:
     Maxwell::ShaderStage stage{};
 };
 
+class GlobalMemoryEntry {
+public:
+    explicit GlobalMemoryEntry(u32 cbuf_index, u32 cbuf_offset, Maxwell::ShaderStage stage,
+                               std::string name)
+        : cbuf_index{cbuf_index}, cbuf_offset{cbuf_offset}, stage{stage}, name{std::move(name)} {}
+
+    u32 GetCbufIndex() const {
+        return cbuf_index;
+    }
+
+    u32 GetCbufOffset() const {
+        return cbuf_offset;
+    }
+
+    const std::string& GetName() const {
+        return name;
+    }
+
+    Maxwell::ShaderStage GetStage() const {
+        return stage;
+    }
+
+    u32 GetHash() const {
+        return (static_cast<u32>(stage) << 24) | (cbuf_index << 16) | cbuf_offset;
+    }
+
+private:
+    u32 cbuf_index{};
+    u32 cbuf_offset{};
+    Maxwell::ShaderStage stage{};
+    std::string name;
+};
+
 struct ShaderEntries {
     std::vector<ConstBufferEntry> const_buffers;
     std::vector<SamplerEntry> samplers;
+    std::vector<GlobalMemoryEntry> global_memory_entries;
     std::array<bool, Maxwell::NumClipDistances> clip_distances{};
     std::size_t shader_length{};
 };

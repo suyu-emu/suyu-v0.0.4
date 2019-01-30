@@ -34,6 +34,8 @@ using Operation = const OperationNode&;
 enum : u32 { POSITION_VARYING_LOCATION = 0, GENERIC_VARYING_START_LOCATION = 1 };
 constexpr u32 MAX_CONSTBUFFER_ELEMENTS =
     static_cast<u32>(RasterizerOpenGL::MaxConstbufferSize) / (4 * sizeof(float));
+constexpr u32 MAX_GLOBALMEMORY_ELEMENTS =
+    static_cast<u32>(RasterizerOpenGL::MaxGlobalMemorySize) / sizeof(float);
 
 enum class Type { Bool, Bool2, Float, Int, Uint, HalfFloat };
 
@@ -143,6 +145,7 @@ public:
         DeclareInputAttributes();
         DeclareOutputAttributes();
         DeclareConstantBuffers();
+        DeclareGlobalMemory();
         DeclareSamplers();
 
         code.AddLine("void execute_" + suffix + "() {");
@@ -190,12 +193,15 @@ public:
     ShaderEntries GetShaderEntries() const {
         ShaderEntries entries;
         for (const auto& cbuf : ir.GetConstantBuffers()) {
-            ConstBufferEntry desc(cbuf.second, stage, GetConstBufferBlock(cbuf.first), cbuf.first);
-            entries.const_buffers.push_back(desc);
+            entries.const_buffers.emplace_back(cbuf.second, stage, GetConstBufferBlock(cbuf.first),
+                                               cbuf.first);
         }
         for (const auto& sampler : ir.GetSamplers()) {
-            SamplerEntry desc(sampler, stage, GetSampler(sampler));
-            entries.samplers.push_back(desc);
+            entries.samplers.emplace_back(sampler, stage, GetSampler(sampler));
+        }
+        for (const auto& gmem : ir.GetGlobalMemoryBases()) {
+            entries.global_memory_entries.emplace_back(gmem.cbuf_index, gmem.cbuf_offset, stage,
+                                                       GetGlobalMemoryBlock(gmem));
         }
         entries.clip_distances = ir.GetClipDistances();
         entries.shader_length = ir.GetLength();
@@ -375,6 +381,15 @@ private:
         }
     }
 
+    void DeclareGlobalMemory() {
+        for (const auto& entry : ir.GetGlobalMemoryBases()) {
+            code.AddLine("layout (std430) buffer " + GetGlobalMemoryBlock(entry) + " {");
+            code.AddLine("    float " + GetGlobalMemory(entry) + "[MAX_GLOBALMEMORY_ELEMENTS];");
+            code.AddLine("};");
+            code.AddNewLine();
+        }
+    }
+
     void DeclareSamplers() {
         const auto& samplers = ir.GetSamplers();
         for (const auto& sampler : samplers) {
@@ -537,6 +552,12 @@ private:
             } else {
                 UNREACHABLE_MSG("Unmanaged offset node type");
             }
+
+        } else if (const auto gmem = std::get_if<GmemNode>(node)) {
+            const std::string real = Visit(gmem->GetRealAddress());
+            const std::string base = Visit(gmem->GetBaseAddress());
+            const std::string final_offset = "(ftou(" + real + ") - ftou(" + base + ")) / 4";
+            return fmt::format("{}[{}]", GetGlobalMemory(gmem->GetDescriptor()), final_offset);
 
         } else if (const auto lmem = std::get_if<LmemNode>(node)) {
             return fmt::format("{}[ftou({}) / 4]", GetLocalMemory(), Visit(lmem->GetAddress()));
@@ -1471,6 +1492,15 @@ private:
         return GetDeclarationWithSuffix(index, "cbuf");
     }
 
+    std::string GetGlobalMemory(const GlobalMemoryBase& descriptor) const {
+        return fmt::format("gmem_{}_{}_{}", descriptor.cbuf_index, descriptor.cbuf_offset, suffix);
+    }
+
+    std::string GetGlobalMemoryBlock(const GlobalMemoryBase& descriptor) const {
+        return fmt::format("gmem_block_{}_{}_{}", descriptor.cbuf_index, descriptor.cbuf_offset,
+                           suffix);
+    }
+
     std::string GetConstBufferBlock(u32 index) const {
         return GetDeclarationWithSuffix(index, "cbuf_block");
     }
@@ -1505,8 +1535,10 @@ private:
 };
 
 std::string GetCommonDeclarations() {
-    return "#define MAX_CONSTBUFFER_ELEMENTS " + std::to_string(MAX_CONSTBUFFER_ELEMENTS) +
-           "\n"
+    const auto cbuf = std::to_string(MAX_CONSTBUFFER_ELEMENTS);
+    const auto gmem = std::to_string(MAX_GLOBALMEMORY_ELEMENTS);
+    return "#define MAX_CONSTBUFFER_ELEMENTS " + cbuf + "\n" +
+           "#define MAX_GLOBALMEMORY_ELEMENTS " + gmem + "\n" +
            "#define ftoi floatBitsToInt\n"
            "#define ftou floatBitsToUint\n"
            "#define itof intBitsToFloat\n"
