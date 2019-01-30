@@ -229,14 +229,16 @@ private:
 }; // namespace Audio
 
 AudRenU::AudRenU() : ServiceFramework("audren:u") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, &AudRenU::OpenAudioRenderer, "OpenAudioRenderer"},
         {1, &AudRenU::GetAudioRendererWorkBufferSize, "GetAudioRendererWorkBufferSize"},
-        {2, &AudRenU::GetAudioDevice, "GetAudioDevice"},
+        {2, &AudRenU::GetAudioDeviceService, "GetAudioDeviceService"},
         {3, nullptr, "OpenAudioRendererAuto"},
-        {4, &AudRenU::GetAudioDeviceServiceWithRevisionInfo,
-         "GetAudioDeviceServiceWithRevisionInfo"},
+        {4, &AudRenU::GetAudioDeviceServiceWithRevisionInfo, "GetAudioDeviceServiceWithRevisionInfo"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 
@@ -313,7 +315,7 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Audio, "buffer_size=0x{:X}", output_sz);
 }
 
-void AudRenU::GetAudioDevice(Kernel::HLERequestContext& ctx) {
+void AudRenU::GetAudioDeviceService(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Audio, "called");
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};

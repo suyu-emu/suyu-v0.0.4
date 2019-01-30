@@ -12,6 +12,7 @@ namespace Service::Audio {
 class IAudioIn final : public ServiceFramework<IAudioIn> {
 public:
     IAudioIn() : ServiceFramework("IAudioIn") {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetAudioInState"},
             {1, nullptr, "StartAudioIn"},
@@ -28,16 +29,24 @@ public:
             {12, nullptr, "SetAudioInDeviceGain"},
             {13, nullptr, "GetAudioInDeviceGain"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
     }
     ~IAudioIn() = default;
 };
 
 AudInU::AudInU() : ServiceFramework("audin:u") {
+    // clang-format off
     static const FunctionInfo functions[] = {
-        {0, nullptr, "ListAudioIns"},    {1, nullptr, "OpenAudioIn"},      {2, nullptr, "Unknown"},
-        {3, nullptr, "OpenAudioInAuto"}, {4, nullptr, "ListAudioInsAuto"},
+        {0, nullptr, "ListAudioIns"},
+        {1, nullptr, "OpenAudioIn"},
+        {2, nullptr, "Unknown"},
+        {3, nullptr, "OpenAudioInAuto"},
+        {4, nullptr, "ListAudioInsAuto"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 
