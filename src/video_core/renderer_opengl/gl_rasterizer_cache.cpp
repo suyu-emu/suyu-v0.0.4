@@ -883,12 +883,11 @@ void CachedSurface::UpdateSwizzle(Tegra::Texture::SwizzleSource swizzle_x,
     if (swizzle[0] == new_x && swizzle[1] == new_y && swizzle[2] == new_z && swizzle[3] == new_w) {
         return;
     }
-        swizzle = {new_x, new_y, new_z, new_w};
-        const auto swizzle_data = reinterpret_cast<const GLint*>(swizzle.data());
-        glTextureParameteriv(texture.handle, GL_TEXTURE_SWIZZLE_RGBA, swizzle_data);
-        if (texture_view.handle != 0) {
-            glTextureParameteriv(texture_view.handle, GL_TEXTURE_SWIZZLE_RGBA, swizzle_data);
-        }
+    swizzle = {new_x, new_y, new_z, new_w};
+    const auto swizzle_data = reinterpret_cast<const GLint*>(swizzle.data());
+    glTextureParameteriv(texture.handle, GL_TEXTURE_SWIZZLE_RGBA, swizzle_data);
+    if (texture_view.handle != 0) {
+        glTextureParameteriv(texture_view.handle, GL_TEXTURE_SWIZZLE_RGBA, swizzle_data);
     }
 }
 
