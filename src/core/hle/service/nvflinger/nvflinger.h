@@ -64,7 +64,7 @@ public:
     u64 CreateLayer(u64 display_id);
 
     /// Finds the buffer queue ID of the specified layer in the specified display.
-    u32 FindBufferQueueId(u64 display_id, u64 layer_id);
+    u32 FindBufferQueueId(u64 display_id, u64 layer_id) const;
 
     /// Gets the vsync event for the specified display.
     Kernel::SharedPtr<Kernel::ReadableEvent> GetVsyncEvent(u64 display_id);
@@ -80,8 +80,14 @@ private:
     /// Finds the display identified by the specified ID.
     Display& FindDisplay(u64 display_id);
 
+    /// Finds the display identified by the specified ID.
+    const Display& FindDisplay(u64 display_id) const;
+
     /// Finds the layer identified by the specified ID in the desired display.
     Layer& FindLayer(u64 display_id, u64 layer_id);
+
+    /// Finds the layer identified by the specified ID in the desired display.
+    const Layer& FindLayer(u64 display_id, u64 layer_id) const;
 
     std::shared_ptr<Nvidia::Module> nvdrv;
 

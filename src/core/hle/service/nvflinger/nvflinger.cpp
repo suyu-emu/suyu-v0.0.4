@@ -73,7 +73,7 @@ u64 NVFlinger::CreateLayer(u64 display_id) {
     return layer_id;
 }
 
-u32 NVFlinger::FindBufferQueueId(u64 display_id, u64 layer_id) {
+u32 NVFlinger::FindBufferQueueId(u64 display_id, u64 layer_id) const {
     const auto& layer = FindLayer(display_id, layer_id);
     return layer.buffer_queue->GetId();
 }
@@ -98,8 +98,26 @@ Display& NVFlinger::FindDisplay(u64 display_id) {
     return *itr;
 }
 
+const Display& NVFlinger::FindDisplay(u64 display_id) const {
+    const auto itr = std::find_if(displays.begin(), displays.end(),
+                                  [&](const Display& display) { return display.id == display_id; });
+
+    ASSERT(itr != displays.end());
+    return *itr;
+}
+
 Layer& NVFlinger::FindLayer(u64 display_id, u64 layer_id) {
     auto& display = FindDisplay(display_id);
+
+    const auto itr = std::find_if(display.layers.begin(), display.layers.end(),
+                                  [&](const Layer& layer) { return layer.id == layer_id; });
+
+    ASSERT(itr != display.layers.end());
+    return *itr;
+}
+
+const Layer& NVFlinger::FindLayer(u64 display_id, u64 layer_id) const {
+    const auto& display = FindDisplay(display_id);
 
     const auto itr = std::find_if(display.layers.begin(), display.layers.end(),
                                   [&](const Layer& layer) { return layer.id == layer_id; });
