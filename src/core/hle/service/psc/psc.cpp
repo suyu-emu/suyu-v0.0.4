@@ -17,13 +17,13 @@ public:
     explicit PSC_C() : ServiceFramework{"psc:c"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "Unknown1"},
-            {1, nullptr, "Unknown2"},
-            {2, nullptr, "Unknown3"},
-            {3, nullptr, "Unknown4"},
-            {4, nullptr, "Unknown5"},
-            {5, nullptr, "Unknown6"},
-            {6, nullptr, "Unknown7"},
+            {0, nullptr, "Initialize"},
+            {1, nullptr, "DispatchRequest"},
+            {2, nullptr, "GetResult"},
+            {3, nullptr, "GetState"},
+            {4, nullptr, "Cancel"},
+            {5, nullptr, "PrintModuleInformation"},
+            {6, nullptr, "GetModuleInformation"},
         };
         // clang-format on
 
@@ -39,7 +39,8 @@ public:
             {0, nullptr, "Initialize"},
             {1, nullptr, "GetRequest"},
             {2, nullptr, "Acknowledge"},
-            {3, nullptr, "Unknown1"},
+            {3, nullptr, "Finalize"},
+            {4, nullptr, "AcknowledgeEx"},
         };
         // clang-format on
 
