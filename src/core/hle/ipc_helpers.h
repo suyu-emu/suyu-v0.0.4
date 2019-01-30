@@ -260,7 +260,6 @@ inline void ResponseBuilder::Push(u8 value) {
     PushRaw(value);
 }
 
-
 template <>
 inline void ResponseBuilder::Push(u16 value) {
     PushRaw(value);
