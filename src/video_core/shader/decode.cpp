@@ -151,7 +151,7 @@ u32 ShaderIR::DecodeInstr(BasicBlock& bb, u32 pc) {
     UNIMPLEMENTED_IF_MSG(instr.pred.full_pred == Pred::NeverExecute,
                          "NeverExecute predicate not implemented");
 
-    static const std::map<OpCode::Type, u32 (ShaderIR::*)(BasicBlock&, const BasicBlock&, u32)>
+    static const std::map<OpCode::Type, u32 (ShaderIR::*)(BasicBlock&, u32)>
         decoders = {
             {OpCode::Type::Arithmetic, &ShaderIR::DecodeArithmetic},
             {OpCode::Type::ArithmeticImmediate, &ShaderIR::DecodeArithmeticImmediate},
@@ -181,9 +181,9 @@ u32 ShaderIR::DecodeInstr(BasicBlock& bb, u32 pc) {
 
     std::vector<Node> tmp_block;
     if (const auto decoder = decoders.find(opcode->get().GetType()); decoder != decoders.end()) {
-        pc = (this->*decoder->second)(tmp_block, bb, pc);
+        pc = (this->*decoder->second)(tmp_block, pc);
     } else {
-        pc = DecodeOther(tmp_block, bb, pc);
+        pc = DecodeOther(tmp_block, pc);
     }
 
     // Some instructions (like SSY) don't have a predicate field, they are always unconditionally
@@ -192,11 +192,14 @@ u32 ShaderIR::DecodeInstr(BasicBlock& bb, u32 pc) {
     const auto pred_index = static_cast<u32>(instr.pred.pred_index);
 
     if (can_be_predicated && pred_index != static_cast<u32>(Pred::UnusedIndex)) {
-        bb.push_back(
-            Conditional(GetPredicate(pred_index, instr.negate_pred != 0), std::move(tmp_block)));
+        const Node conditional =
+            Conditional(GetPredicate(pred_index, instr.negate_pred != 0), std::move(tmp_block));
+        global_code.push_back(conditional);
+        bb.push_back(conditional);
     } else {
         for (auto& node : tmp_block) {
-            bb.push_back(std::move(node));
+            global_code.push_back(node);
+            bb.push_back(node);
         }
     }
 

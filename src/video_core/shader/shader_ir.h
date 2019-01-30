@@ -591,31 +591,31 @@ private:
      */
     u32 DecodeInstr(BasicBlock& bb, u32 pc);
 
-    u32 DecodeArithmetic(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeArithmeticImmediate(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeBfe(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeBfi(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeShift(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeArithmeticInteger(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeArithmeticIntegerImmediate(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeArithmeticHalf(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeArithmeticHalfImmediate(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeFfma(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeHfma2(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeConversion(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeMemory(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeFloatSetPredicate(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeIntegerSetPredicate(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeHalfSetPredicate(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodePredicateSetRegister(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodePredicateSetPredicate(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeRegisterSetPredicate(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeFloatSet(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeIntegerSet(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeHalfSet(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeVideo(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeXmad(BasicBlock& bb, const BasicBlock& code, u32 pc);
-    u32 DecodeOther(BasicBlock& bb, const BasicBlock& code, u32 pc);
+    u32 DecodeArithmetic(BasicBlock& bb, u32 pc);
+    u32 DecodeArithmeticImmediate(BasicBlock& bb, u32 pc);
+    u32 DecodeBfe(BasicBlock& bb, u32 pc);
+    u32 DecodeBfi(BasicBlock& bb, u32 pc);
+    u32 DecodeShift(BasicBlock& bb, u32 pc);
+    u32 DecodeArithmeticInteger(BasicBlock& bb, u32 pc);
+    u32 DecodeArithmeticIntegerImmediate(BasicBlock& bb, u32 pc);
+    u32 DecodeArithmeticHalf(BasicBlock& bb, u32 pc);
+    u32 DecodeArithmeticHalfImmediate(BasicBlock& bb, u32 pc);
+    u32 DecodeFfma(BasicBlock& bb, u32 pc);
+    u32 DecodeHfma2(BasicBlock& bb, u32 pc);
+    u32 DecodeConversion(BasicBlock& bb, u32 pc);
+    u32 DecodeMemory(BasicBlock& bb, u32 pc);
+    u32 DecodeFloatSetPredicate(BasicBlock& bb, u32 pc);
+    u32 DecodeIntegerSetPredicate(BasicBlock& bb, u32 pc);
+    u32 DecodeHalfSetPredicate(BasicBlock& bb, u32 pc);
+    u32 DecodePredicateSetRegister(BasicBlock& bb, u32 pc);
+    u32 DecodePredicateSetPredicate(BasicBlock& bb, u32 pc);
+    u32 DecodeRegisterSetPredicate(BasicBlock& bb, u32 pc);
+    u32 DecodeFloatSet(BasicBlock& bb, u32 pc);
+    u32 DecodeIntegerSet(BasicBlock& bb, u32 pc);
+    u32 DecodeHalfSet(BasicBlock& bb, u32 pc);
+    u32 DecodeVideo(BasicBlock& bb, u32 pc);
+    u32 DecodeXmad(BasicBlock& bb, u32 pc);
+    u32 DecodeOther(BasicBlock& bb, u32 pc);
 
     /// Internalizes node's data and returns a managed pointer to a clone of that node
     Node StoreNode(NodeData&& node_data);
@@ -804,6 +804,7 @@ private:
     std::map<std::pair<u32, u32>, ExitMethod> exit_method_map;
 
     std::map<u32, BasicBlock> basic_blocks;
+    BasicBlock global_code;
 
     std::vector<std::unique_ptr<NodeData>> stored_nodes;
 

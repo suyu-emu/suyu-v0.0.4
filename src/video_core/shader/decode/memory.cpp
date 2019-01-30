@@ -36,7 +36,7 @@ static std::size_t GetCoordCount(TextureType texture_type) {
     }
 }
 
-u32 ShaderIR::DecodeMemory(BasicBlock& bb, const BasicBlock& code, u32 pc) {
+u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
@@ -137,7 +137,8 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, const BasicBlock& code, u32 pc) {
         }();
 
         const Node addr_register = GetRegister(instr.gpr8);
-        const Node base_address = TrackCbuf(addr_register, code, static_cast<s64>(code.size()));
+        const Node base_address =
+            TrackCbuf(addr_register, global_code, static_cast<s64>(global_code.size()));
         const auto cbuf = std::get_if<CbufNode>(base_address);
         ASSERT(cbuf != nullptr);
         const auto cbuf_offset_imm = std::get_if<ImmediateNode>(cbuf->GetOffset());
