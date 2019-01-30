@@ -19,17 +19,17 @@ public:
     ~FSP_SRV() override;
 
 private:
-    void Initialize(Kernel::HLERequestContext& ctx);
+    void SetCurrentProcess(Kernel::HLERequestContext& ctx);
     void OpenFileSystemWithPatch(Kernel::HLERequestContext& ctx);
-    void MountSdCard(Kernel::HLERequestContext& ctx);
-    void CreateSaveData(Kernel::HLERequestContext& ctx);
-    void MountSaveData(Kernel::HLERequestContext& ctx);
+    void OpenSdCardFileSystem(Kernel::HLERequestContext& ctx);
+    void CreateSaveDataFileSystem(Kernel::HLERequestContext& ctx);
+    void OpenSaveDataFileSystem(Kernel::HLERequestContext& ctx);
     void OpenReadOnlySaveDataFileSystem(Kernel::HLERequestContext& ctx);
     void OpenSaveDataInfoReaderBySaveDataSpaceId(Kernel::HLERequestContext& ctx);
     void GetGlobalAccessLogMode(Kernel::HLERequestContext& ctx);
     void OpenDataStorageByCurrentProcess(Kernel::HLERequestContext& ctx);
     void OpenDataStorageByDataId(Kernel::HLERequestContext& ctx);
-    void OpenRomStorage(Kernel::HLERequestContext& ctx);
+    void OpenPatchDataStorageByCurrentProcess(Kernel::HLERequestContext& ctx);
 
     FileSys::VirtualFile romfs;
 };
