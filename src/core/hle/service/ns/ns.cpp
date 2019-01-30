@@ -43,7 +43,7 @@ public:
             {11, nullptr, "CalculateApplicationOccupiedSize"},
             {16, nullptr, "PushApplicationRecord"},
             {17, nullptr, "ListApplicationRecordContentMeta"},
-            {19, nullptr, "LaunchApplication"},
+            {19, nullptr, "LaunchApplicationOld"},
             {21, nullptr, "GetApplicationContentPath"},
             {22, nullptr, "TerminateApplication"},
             {23, nullptr, "ResolveApplicationContentPath"},
@@ -96,10 +96,10 @@ public:
             {86, nullptr, "EnableApplicationCrashReport"},
             {87, nullptr, "IsApplicationCrashReportEnabled"},
             {90, nullptr, "BoostSystemMemoryResourceLimit"},
-            {91, nullptr, "Unknown1"},
-            {92, nullptr, "Unknown2"},
+            {91, nullptr, "DeprecatedLaunchApplication"},
+            {92, nullptr, "GetRunningApplicationProgramId"},
             {93, nullptr, "GetMainApplicationProgramIndex"},
-            {94, nullptr, "LaunchApplication2"},
+            {94, nullptr, "LaunchApplication"},
             {95, nullptr, "GetApplicationLaunchInfo"},
             {96, nullptr, "AcquireApplicationLaunchInfo"},
             {97, nullptr, "GetMainApplicationProgramIndex2"},
@@ -163,7 +163,7 @@ public:
             {907, nullptr, "WithdrawApplicationUpdateRequest"},
             {908, nullptr, "ListApplicationRecordInstalledContentMeta"},
             {909, nullptr, "WithdrawCleanupAddOnContentsWithNoRightsRecommendation"},
-            {910, nullptr, "Unknown3"},
+            {910, nullptr, "HasApplicationRecord"},
             {911, nullptr, "SetPreInstalledApplication"},
             {912, nullptr, "ClearPreInstalledApplicationFlag"},
             {1000, nullptr, "RequestVerifyApplicationDeprecated"},
@@ -219,10 +219,10 @@ public:
             {2015, nullptr, "CompareSystemDeliveryInfo"},
             {2016, nullptr, "ListNotCommittedContentMeta"},
             {2017, nullptr, "CreateDownloadTask"},
-            {2018, nullptr, "Unknown4"},
-            {2050, nullptr, "Unknown5"},
-            {2100, nullptr, "Unknown6"},
-            {2101, nullptr, "Unknown7"},
+            {2018, nullptr, "GetApplicationDeliveryInfoHash"},
+            {2050, nullptr, "GetApplicationRightsOnClient"},
+            {2100, nullptr, "GetApplicationTerminateResult"},
+            {2101, nullptr, "GetRawApplicationTerminateResult"},
             {2150, nullptr, "CreateRightsEnvironment"},
             {2151, nullptr, "DestroyRightsEnvironment"},
             {2152, nullptr, "ActivateRightsEnvironment"},
@@ -237,10 +237,10 @@ public:
             {2182, nullptr, "SetActiveRightsContextUsingStateToRightsEnvironment"},
             {2190, nullptr, "GetRightsEnvironmentHandleForApplication"},
             {2199, nullptr, "GetRightsEnvironmentCountForDebug"},
-            {2200, nullptr, "Unknown8"},
-            {2201, nullptr, "Unknown9"},
-            {2250, nullptr, "Unknown10"},
-            {2300, nullptr, "Unknown11"},
+            {2200, nullptr, "GetGameCardApplicationCopyIdentifier"},
+            {2201, nullptr, "GetInstalledApplicationCopyIdentifier"},
+            {2250, nullptr, "RequestReportActiveELicence"},
+            {2300, nullptr, "ListEventLog"},
         };
         // clang-format on
 
@@ -355,6 +355,7 @@ public:
         static const FunctionInfo functions[] = {
             {21, nullptr, "GetApplicationContentPath"},
             {23, nullptr, "ResolveApplicationContentPath"},
+            {93, nullptr, "GetRunningApplicationProgramId"},
         };
         // clang-format on
 
@@ -389,6 +390,11 @@ public:
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "RequestLinkDevice"},
+            {1, nullptr, "RequestCleanupAllPreInstalledApplications"},
+            {2, nullptr, "RequestCleanupPreInstalledApplication"},
+            {3, nullptr, "RequestSyncRights"},
+            {4, nullptr, "RequestUnlinkDevice"},
+            {5, nullptr, "RequestRevokeAllELicense"},
         };
         // clang-format on
 
@@ -403,7 +409,7 @@ public:
         static const FunctionInfo functions[] = {
             {100, nullptr, "ResetToFactorySettings"},
             {101, nullptr, "ResetToFactorySettingsWithoutUserSaveData"},
-            {102, nullptr, "ResetToFactorySettingsForRefurbishment "},
+            {102, nullptr, "ResetToFactorySettingsForRefurbishment"},
         };
         // clang-format on
 
