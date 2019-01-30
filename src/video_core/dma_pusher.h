@@ -83,7 +83,7 @@ private:
         u32 subchannel;        ///< Current subchannel
         u32 method_count;      ///< Current method count
         u32 length_pending;    ///< Large NI command length pending
-        bool non_incrementing; ///< Current command’s NI flag
+        bool non_incrementing; ///< Current command's NI flag
     };
 
     DmaState dma_state{};
