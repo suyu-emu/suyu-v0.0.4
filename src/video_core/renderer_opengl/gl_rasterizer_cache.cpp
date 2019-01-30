@@ -880,7 +880,9 @@ void CachedSurface::UpdateSwizzle(Tegra::Texture::SwizzleSource swizzle_x,
     const GLenum new_y = MaxwellToGL::SwizzleSource(swizzle_y);
     const GLenum new_z = MaxwellToGL::SwizzleSource(swizzle_z);
     const GLenum new_w = MaxwellToGL::SwizzleSource(swizzle_w);
-    if (swizzle[0] != new_x || swizzle[1] != new_y || swizzle[2] != new_z || swizzle[3] != new_w) {
+    if (swizzle[0] == new_x && swizzle[1] == new_y && swizzle[2] == new_z && swizzle[3] == new_w) {
+        return;
+    }
         swizzle = {new_x, new_y, new_z, new_w};
         const auto swizzle_data = reinterpret_cast<const GLint*>(swizzle.data());
         glTextureParameteriv(texture.handle, GL_TEXTURE_SWIZZLE_RGBA, swizzle_data);
