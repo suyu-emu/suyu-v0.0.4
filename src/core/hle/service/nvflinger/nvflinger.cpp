@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <optional>
 
-#include "common/alignment.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
@@ -22,7 +21,6 @@
 #include "core/hle/service/nvflinger/nvflinger.h"
 #include "core/perf_stats.h"
 #include "video_core/renderer_base.h"
-#include "video_core/video_core.h"
 
 namespace Service::NVFlinger {
 
@@ -30,12 +28,6 @@ constexpr std::size_t SCREEN_REFRESH_RATE = 60;
 constexpr u64 frame_ticks = static_cast<u64>(CoreTiming::BASE_CLOCK_RATE / SCREEN_REFRESH_RATE);
 
 NVFlinger::NVFlinger() {
-    // Add the different displays to the list of displays.
-    displays.emplace_back(0, "Default");
-    displays.emplace_back(1, "External");
-    displays.emplace_back(2, "Edid");
-    displays.emplace_back(3, "Internal");
-
     // Schedule the screen composition events
     composition_event =
         CoreTiming::RegisterEvent("ScreenComposition", [this](u64 userdata, int cycles_late) {
@@ -55,13 +47,13 @@ void NVFlinger::SetNVDrvInstance(std::shared_ptr<Nvidia::Module> instance) {
 }
 
 u64 NVFlinger::OpenDisplay(std::string_view name) {
-    LOG_WARNING(Service, "Opening display {}", name);
+    LOG_DEBUG(Service, "Opening \"{}\" display", name);
 
     // TODO(Subv): Currently we only support the Default display.
     ASSERT(name == "Default");
 
-    auto itr = std::find_if(displays.begin(), displays.end(),
-                            [&](const Display& display) { return display.name == name; });
+    const auto itr = std::find_if(displays.begin(), displays.end(),
+                                  [&](const Display& display) { return display.name == name; });
 
     ASSERT(itr != displays.end());
 
@@ -73,8 +65,8 @@ u64 NVFlinger::CreateLayer(u64 display_id) {
 
     ASSERT_MSG(display.layers.empty(), "Only one layer is supported per display at the moment");
 
-    u64 layer_id = next_layer_id++;
-    u32 buffer_queue_id = next_buffer_queue_id++;
+    const u64 layer_id = next_layer_id++;
+    const u32 buffer_queue_id = next_buffer_queue_id++;
     auto buffer_queue = std::make_shared<BufferQueue>(buffer_queue_id, layer_id);
     display.layers.emplace_back(layer_id, buffer_queue);
     buffer_queues.emplace_back(std::move(buffer_queue));
@@ -91,16 +83,16 @@ Kernel::SharedPtr<Kernel::ReadableEvent> NVFlinger::GetVsyncEvent(u64 display_id
 }
 
 std::shared_ptr<BufferQueue> NVFlinger::GetBufferQueue(u32 id) const {
-    auto itr = std::find_if(buffer_queues.begin(), buffer_queues.end(),
-                            [&](const auto& queue) { return queue->GetId() == id; });
+    const auto itr = std::find_if(buffer_queues.begin(), buffer_queues.end(),
+                                  [&](const auto& queue) { return queue->GetId() == id; });
 
     ASSERT(itr != buffer_queues.end());
     return *itr;
 }
 
 Display& NVFlinger::GetDisplay(u64 display_id) {
-    auto itr = std::find_if(displays.begin(), displays.end(),
-                            [&](const Display& display) { return display.id == display_id; });
+    const auto itr = std::find_if(displays.begin(), displays.end(),
+                                  [&](const Display& display) { return display.id == display_id; });
 
     ASSERT(itr != displays.end());
     return *itr;
@@ -109,8 +101,8 @@ Display& NVFlinger::GetDisplay(u64 display_id) {
 Layer& NVFlinger::GetLayer(u64 display_id, u64 layer_id) {
     auto& display = GetDisplay(display_id);
 
-    auto itr = std::find_if(display.layers.begin(), display.layers.end(),
-                            [&](const Layer& layer) { return layer.id == layer_id; });
+    const auto itr = std::find_if(display.layers.begin(), display.layers.end(),
+                                  [&](const Layer& layer) { return layer.id == layer_id; });
 
     ASSERT(itr != display.layers.end());
     return *itr;
@@ -145,7 +137,7 @@ void NVFlinger::Compose() {
             continue;
         }
 
-        auto& igbp_buffer = buffer->get().igbp_buffer;
+        const auto& igbp_buffer = buffer->get().igbp_buffer;
 
         // Now send the buffer to the GPU for drawing.
         // TODO(Subv): Support more than just disp0. The display device selection is probably based
