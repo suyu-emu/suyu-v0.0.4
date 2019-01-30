@@ -39,8 +39,6 @@ public:
     bool ShouldWait(Thread* thread) const override;
     void Acquire(Thread* thread) override;
 
-    void WakeupAllWaitingThreads() override;
-
     /// Unconditionally clears the readable event's state.
     void Clear();
 

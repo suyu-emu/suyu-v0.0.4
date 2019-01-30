@@ -44,8 +44,4 @@ ResultCode ReadableEvent::Reset() {
     return RESULT_SUCCESS;
 }
 
-void ReadableEvent::WakeupAllWaitingThreads() {
-    WaitObject::WakeupAllWaitingThreads();
-}
-
 } // namespace Kernel
