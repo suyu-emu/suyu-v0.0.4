@@ -51,8 +51,6 @@ public:
     bool ShouldWait(Thread* thread) const override;
     void Acquire(Thread* thread) override;
 
-    void WakeupAllWaitingThreads() override;
-
     /**
      * Starts the timer, with the specified initial delay and interval.
      * @param initial Delay until the timer is first fired

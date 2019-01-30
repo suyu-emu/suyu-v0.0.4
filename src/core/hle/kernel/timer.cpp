@@ -66,10 +66,6 @@ void Timer::Clear() {
     signaled = false;
 }
 
-void Timer::WakeupAllWaitingThreads() {
-    WaitObject::WakeupAllWaitingThreads();
-}
-
 void Timer::Signal(int cycles_late) {
     LOG_TRACE(Kernel, "Timer {} fired", GetObjectId());
 
