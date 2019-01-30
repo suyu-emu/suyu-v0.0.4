@@ -19,6 +19,13 @@ std::pair<Node, s64> FindOperation(const NodeBlock& code, s64 cursor,
             if (operation->GetCode() == operation_code)
                 return {node, cursor};
         }
+        if (const auto conditional = std::get_if<ConditionalNode>(node)) {
+            const auto& code = conditional->GetCode();
+            const auto [found, internal_cursor] =
+                FindOperation(code, static_cast<s64>(code.size() - 1), operation_code);
+            if (found)
+                return {found, cursor};
+        }
     }
     return {};
 }
@@ -49,6 +56,10 @@ Node ShaderIR::TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) {
             }
         }
         return nullptr;
+    }
+    if (const auto conditional = std::get_if<ConditionalNode>(tracked)) {
+        const auto& code = conditional->GetCode();
+        return TrackCbuf(tracked, code, static_cast<s64>(code.size()));
     }
     return nullptr;
 }
