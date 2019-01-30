@@ -441,6 +441,8 @@ SurfaceTarget SurfaceTargetFromTextureType(Tegra::Texture::TextureType texture_t
 
 bool SurfaceTargetIsLayered(SurfaceTarget target);
 
+bool SurfaceTargetIsArray(SurfaceTarget target);
+
 PixelFormat PixelFormatFromDepthFormat(Tegra::DepthFormat format);
 
 PixelFormat PixelFormatFromRenderTargetFormat(Tegra::RenderTargetFormat format);
