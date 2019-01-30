@@ -11,7 +11,7 @@
 namespace VideoCommon::Shader {
 
 namespace {
-std::pair<Node, s64> FindOperation(const BasicBlock& code, s64 cursor,
+std::pair<Node, s64> FindOperation(const NodeBlock& code, s64 cursor,
                                    OperationCode operation_code) {
     for (; cursor >= 0; --cursor) {
         const Node node = code[cursor];
@@ -24,7 +24,7 @@ std::pair<Node, s64> FindOperation(const BasicBlock& code, s64 cursor,
 }
 } // namespace
 
-Node ShaderIR::TrackCbuf(Node tracked, const BasicBlock& code, s64 cursor) {
+Node ShaderIR::TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) {
     if (const auto cbuf = std::get_if<CbufNode>(tracked)) {
         // Cbuf found, but it has to be immediate
         return std::holds_alternative<ImmediateNode>(*cbuf->GetOffset()) ? tracked : nullptr;
@@ -53,7 +53,7 @@ Node ShaderIR::TrackCbuf(Node tracked, const BasicBlock& code, s64 cursor) {
     return nullptr;
 }
 
-std::pair<Node, s64> ShaderIR::TrackRegister(const GprNode* tracked, const BasicBlock& code,
+std::pair<Node, s64> ShaderIR::TrackRegister(const GprNode* tracked, const NodeBlock& code,
                                              s64 cursor) {
     for (; cursor >= 0; --cursor) {
         const auto [found_node, new_cursor] = FindOperation(code, cursor, OperationCode::Assign);

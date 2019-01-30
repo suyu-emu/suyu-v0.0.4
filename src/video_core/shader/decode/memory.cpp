@@ -36,7 +36,7 @@ static std::size_t GetCoordCount(TextureType texture_type) {
     }
 }
 
-u32 ShaderIR::DecodeMemory(BasicBlock& bb, u32 pc) {
+u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
@@ -431,8 +431,7 @@ const Sampler& ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler, Textu
     return *used_samplers.emplace(entry).first;
 }
 
-void ShaderIR::WriteTexInstructionFloat(BasicBlock& bb, Instruction instr,
-                                        const Node4& components) {
+void ShaderIR::WriteTexInstructionFloat(NodeBlock& bb, Instruction instr, const Node4& components) {
     u32 dest_elem = 0;
     for (u32 elem = 0; elem < 4; ++elem) {
         if (!instr.tex.IsComponentEnabled(elem)) {
@@ -447,7 +446,7 @@ void ShaderIR::WriteTexInstructionFloat(BasicBlock& bb, Instruction instr,
     }
 }
 
-void ShaderIR::WriteTexsInstructionFloat(BasicBlock& bb, Instruction instr,
+void ShaderIR::WriteTexsInstructionFloat(NodeBlock& bb, Instruction instr,
                                          const Node4& components) {
     // TEXS has two destination registers and a swizzle. The first two elements in the swizzle
     // go into gpr0+0 and gpr0+1, and the rest goes into gpr28+0 and gpr28+1
@@ -471,7 +470,7 @@ void ShaderIR::WriteTexsInstructionFloat(BasicBlock& bb, Instruction instr,
     }
 }
 
-void ShaderIR::WriteTexsInstructionHalfFloat(BasicBlock& bb, Instruction instr,
+void ShaderIR::WriteTexsInstructionHalfFloat(NodeBlock& bb, Instruction instr,
                                              const Node4& components) {
     // TEXS.F16 destionation registers are packed in two registers in pairs (just like any half
     // float instruction).

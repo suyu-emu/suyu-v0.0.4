@@ -39,7 +39,7 @@ using NodeData =
                  PredicateNode, AbufNode, CbufNode, LmemNode, GmemNode, CommentNode>;
 using Node = const NodeData*;
 using Node4 = std::array<Node, 4>;
-using BasicBlock = std::vector<Node>;
+using NodeBlock = std::vector<Node>;
 
 constexpr u32 MAX_PROGRAM_LENGTH = 0x1000;
 
@@ -530,7 +530,7 @@ public:
         Decode();
     }
 
-    const std::map<u32, BasicBlock>& GetBasicBlocks() const {
+    const std::map<u32, NodeBlock>& GetBasicBlocks() const {
         return basic_blocks;
     }
 
@@ -581,7 +581,7 @@ private:
 
     ExitMethod Scan(u32 begin, u32 end, std::set<u32>& labels);
 
-    BasicBlock DecodeRange(u32 begin, u32 end);
+    NodeBlock DecodeRange(u32 begin, u32 end);
 
     /**
      * Decodes a single instruction from Tegra to IR.
@@ -589,33 +589,33 @@ private:
      * @param pc Program counter. Offset to decode.
      * @return Next address to decode.
      */
-    u32 DecodeInstr(BasicBlock& bb, u32 pc);
+    u32 DecodeInstr(NodeBlock& bb, u32 pc);
 
-    u32 DecodeArithmetic(BasicBlock& bb, u32 pc);
-    u32 DecodeArithmeticImmediate(BasicBlock& bb, u32 pc);
-    u32 DecodeBfe(BasicBlock& bb, u32 pc);
-    u32 DecodeBfi(BasicBlock& bb, u32 pc);
-    u32 DecodeShift(BasicBlock& bb, u32 pc);
-    u32 DecodeArithmeticInteger(BasicBlock& bb, u32 pc);
-    u32 DecodeArithmeticIntegerImmediate(BasicBlock& bb, u32 pc);
-    u32 DecodeArithmeticHalf(BasicBlock& bb, u32 pc);
-    u32 DecodeArithmeticHalfImmediate(BasicBlock& bb, u32 pc);
-    u32 DecodeFfma(BasicBlock& bb, u32 pc);
-    u32 DecodeHfma2(BasicBlock& bb, u32 pc);
-    u32 DecodeConversion(BasicBlock& bb, u32 pc);
-    u32 DecodeMemory(BasicBlock& bb, u32 pc);
-    u32 DecodeFloatSetPredicate(BasicBlock& bb, u32 pc);
-    u32 DecodeIntegerSetPredicate(BasicBlock& bb, u32 pc);
-    u32 DecodeHalfSetPredicate(BasicBlock& bb, u32 pc);
-    u32 DecodePredicateSetRegister(BasicBlock& bb, u32 pc);
-    u32 DecodePredicateSetPredicate(BasicBlock& bb, u32 pc);
-    u32 DecodeRegisterSetPredicate(BasicBlock& bb, u32 pc);
-    u32 DecodeFloatSet(BasicBlock& bb, u32 pc);
-    u32 DecodeIntegerSet(BasicBlock& bb, u32 pc);
-    u32 DecodeHalfSet(BasicBlock& bb, u32 pc);
-    u32 DecodeVideo(BasicBlock& bb, u32 pc);
-    u32 DecodeXmad(BasicBlock& bb, u32 pc);
-    u32 DecodeOther(BasicBlock& bb, u32 pc);
+    u32 DecodeArithmetic(NodeBlock& bb, u32 pc);
+    u32 DecodeArithmeticImmediate(NodeBlock& bb, u32 pc);
+    u32 DecodeBfe(NodeBlock& bb, u32 pc);
+    u32 DecodeBfi(NodeBlock& bb, u32 pc);
+    u32 DecodeShift(NodeBlock& bb, u32 pc);
+    u32 DecodeArithmeticInteger(NodeBlock& bb, u32 pc);
+    u32 DecodeArithmeticIntegerImmediate(NodeBlock& bb, u32 pc);
+    u32 DecodeArithmeticHalf(NodeBlock& bb, u32 pc);
+    u32 DecodeArithmeticHalfImmediate(NodeBlock& bb, u32 pc);
+    u32 DecodeFfma(NodeBlock& bb, u32 pc);
+    u32 DecodeHfma2(NodeBlock& bb, u32 pc);
+    u32 DecodeConversion(NodeBlock& bb, u32 pc);
+    u32 DecodeMemory(NodeBlock& bb, u32 pc);
+    u32 DecodeFloatSetPredicate(NodeBlock& bb, u32 pc);
+    u32 DecodeIntegerSetPredicate(NodeBlock& bb, u32 pc);
+    u32 DecodeHalfSetPredicate(NodeBlock& bb, u32 pc);
+    u32 DecodePredicateSetRegister(NodeBlock& bb, u32 pc);
+    u32 DecodePredicateSetPredicate(NodeBlock& bb, u32 pc);
+    u32 DecodeRegisterSetPredicate(NodeBlock& bb, u32 pc);
+    u32 DecodeFloatSet(NodeBlock& bb, u32 pc);
+    u32 DecodeIntegerSet(NodeBlock& bb, u32 pc);
+    u32 DecodeHalfSet(NodeBlock& bb, u32 pc);
+    u32 DecodeVideo(NodeBlock& bb, u32 pc);
+    u32 DecodeXmad(NodeBlock& bb, u32 pc);
+    u32 DecodeOther(NodeBlock& bb, u32 pc);
 
     /// Internalizes node's data and returns a managed pointer to a clone of that node
     Node StoreNode(NodeData&& node_data);
@@ -664,20 +664,20 @@ private:
     Node GetTemporal(u32 id);
 
     /// Sets a register. src value must be a number-evaluated node.
-    void SetRegister(BasicBlock& bb, Tegra::Shader::Register dest, Node src);
+    void SetRegister(NodeBlock& bb, Tegra::Shader::Register dest, Node src);
     /// Sets a predicate. src value must be a bool-evaluated node
-    void SetPredicate(BasicBlock& bb, u64 dest, Node src);
+    void SetPredicate(NodeBlock& bb, u64 dest, Node src);
     /// Sets an internal flag. src value must be a bool-evaluated node
-    void SetInternalFlag(BasicBlock& bb, InternalFlag flag, Node value);
+    void SetInternalFlag(NodeBlock& bb, InternalFlag flag, Node value);
     /// Sets a local memory address. address and value must be a number-evaluated node
-    void SetLocalMemory(BasicBlock& bb, Node address, Node value);
+    void SetLocalMemory(NodeBlock& bb, Node address, Node value);
     /// Sets a temporal. Internally it uses a post-RZ register
-    void SetTemporal(BasicBlock& bb, u32 id, Node value);
+    void SetTemporal(NodeBlock& bb, u32 id, Node value);
 
     /// Sets internal flags from a float
-    void SetInternalFlagsFromFloat(BasicBlock& bb, Node value, bool sets_cc = true);
+    void SetInternalFlagsFromFloat(NodeBlock& bb, Node value, bool sets_cc = true);
     /// Sets internal flags from an integer
-    void SetInternalFlagsFromInteger(BasicBlock& bb, Node value, bool sets_cc = true);
+    void SetInternalFlagsFromInteger(NodeBlock& bb, Node value, bool sets_cc = true);
 
     /// Conditionally absolute/negated float. Absolute is applied first
     Node GetOperandAbsNegFloat(Node value, bool absolute, bool negate);
@@ -718,12 +718,12 @@ private:
     /// Extracts a sequence of bits from a node
     Node BitfieldExtract(Node value, u32 offset, u32 bits);
 
-    void WriteTexInstructionFloat(BasicBlock& bb, Tegra::Shader::Instruction instr,
+    void WriteTexInstructionFloat(NodeBlock& bb, Tegra::Shader::Instruction instr,
                                   const Node4& components);
 
-    void WriteTexsInstructionFloat(BasicBlock& bb, Tegra::Shader::Instruction instr,
+    void WriteTexsInstructionFloat(NodeBlock& bb, Tegra::Shader::Instruction instr,
                                    const Node4& components);
-    void WriteTexsInstructionHalfFloat(BasicBlock& bb, Tegra::Shader::Instruction instr,
+    void WriteTexsInstructionHalfFloat(NodeBlock& bb, Tegra::Shader::Instruction instr,
                                        const Node4& components);
 
     Node4 GetTexCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
@@ -752,16 +752,16 @@ private:
     Node GetVideoOperand(Node op, bool is_chunk, bool is_signed, Tegra::Shader::VideoType type,
                          u64 byte_height);
 
-    void WriteLogicOperation(BasicBlock& bb, Tegra::Shader::Register dest,
+    void WriteLogicOperation(NodeBlock& bb, Tegra::Shader::Register dest,
                              Tegra::Shader::LogicOperation logic_op, Node op_a, Node op_b,
                              Tegra::Shader::PredicateResultMode predicate_mode,
                              Tegra::Shader::Pred predicate, bool sets_cc);
-    void WriteLop3Instruction(BasicBlock& bb, Tegra::Shader::Register dest, Node op_a, Node op_b,
+    void WriteLop3Instruction(NodeBlock& bb, Tegra::Shader::Register dest, Node op_a, Node op_b,
                               Node op_c, Node imm_lut, bool sets_cc);
 
-    Node TrackCbuf(Node tracked, const BasicBlock& code, s64 cursor);
+    Node TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor);
 
-    std::pair<Node, s64> TrackRegister(const GprNode* tracked, const BasicBlock& code, s64 cursor);
+    std::pair<Node, s64> TrackRegister(const GprNode* tracked, const NodeBlock& code, s64 cursor);
 
     template <typename... T>
     Node Operation(OperationCode code, const T*... operands) {
@@ -803,8 +803,8 @@ private:
     u32 coverage_end{};
     std::map<std::pair<u32, u32>, ExitMethod> exit_method_map;
 
-    std::map<u32, BasicBlock> basic_blocks;
-    BasicBlock global_code;
+    std::map<u32, NodeBlock> basic_blocks;
+    NodeBlock global_code;
 
     std::vector<std::unique_ptr<NodeData>> stored_nodes;
 
