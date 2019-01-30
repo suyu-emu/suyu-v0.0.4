@@ -374,7 +374,8 @@ private:
     void DeclareConstantBuffers() {
         for (const auto& entry : ir.GetConstantBuffers()) {
             const auto [index, size] = entry;
-            code.AddLine("layout (std140) uniform " + GetConstBufferBlock(index) + " {");
+            code.AddLine("layout (std140, binding = CBUF_BINDING_" + std::to_string(index) +
+                         ") uniform " + GetConstBufferBlock(index) + " {");
             code.AddLine("    vec4 " + GetConstBuffer(index) + "[MAX_CONSTBUFFER_ELEMENTS];");
             code.AddLine("};");
             code.AddNewLine();
@@ -383,7 +384,10 @@ private:
 
     void DeclareGlobalMemory() {
         for (const auto& entry : ir.GetGlobalMemoryBases()) {
-            code.AddLine("layout (std430) buffer " + GetGlobalMemoryBlock(entry) + " {");
+            const std::string binding =
+                fmt::format("GMEM_BINDING_{}_{}", entry.cbuf_index, entry.cbuf_offset);
+            code.AddLine("layout (std430, binding = " + binding + ") buffer " +
+                         GetGlobalMemoryBlock(entry) + " {");
             code.AddLine("    float " + GetGlobalMemory(entry) + "[MAX_GLOBALMEMORY_ELEMENTS];");
             code.AddLine("};");
             code.AddNewLine();
@@ -413,7 +417,8 @@ private:
             if (sampler.IsShadow())
                 sampler_type += "Shadow";
 
-            code.AddLine("uniform " + sampler_type + ' ' + GetSampler(sampler) + ';');
+            code.AddLine("layout (binding = SAMPLER_BINDING_" + std::to_string(sampler.GetIndex()) +
+                         ") uniform " + sampler_type + ' ' + GetSampler(sampler) + ';');
         }
         if (!samplers.empty())
             code.AddNewLine();

@@ -38,10 +38,6 @@ public:
         return index;
     }
 
-    u32 GetHash() const {
-        return (static_cast<u32>(stage) << 16) | index;
-    }
-
 private:
     std::string name;
     Maxwell::ShaderStage stage{};
@@ -60,10 +56,6 @@ public:
 
     Maxwell::ShaderStage GetStage() const {
         return stage;
-    }
-
-    u32 GetHash() const {
-        return (static_cast<u32>(stage) << 16) | static_cast<u32>(GetIndex());
     }
 
 private:
@@ -91,10 +83,6 @@ public:
 
     Maxwell::ShaderStage GetStage() const {
         return stage;
-    }
-
-    u32 GetHash() const {
-        return (static_cast<u32>(stage) << 24) | (cbuf_index << 16) | cbuf_offset;
     }
 
 private:
