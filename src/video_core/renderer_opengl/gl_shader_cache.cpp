@@ -136,12 +136,12 @@ u64 GetUniqueIdentifier(Maxwell::ShaderProgram program_type, const ProgramCode& 
 /// Creates an unspecialized program from code streams
 GLShader::ProgramResult CreateProgram(Maxwell::ShaderProgram program_type, ProgramCode program_code,
                                       ProgramCode program_code_b) {
-    GLShader::ShaderSetup setup(std::move(program_code));
+    GLShader::ShaderSetup setup(program_code);
     if (program_type == Maxwell::ShaderProgram::VertexA) {
         // VertexB is always enabled, so when VertexA is enabled, we have two vertex shaders.
         // Conventional HW does not support this, so we combine VertexA and VertexB into one
         // stage here.
-        setup.SetProgramB(std::move(program_code_b));
+        setup.SetProgramB(program_code_b);
     }
     setup.program.unique_identifier =
         GetUniqueIdentifier(program_type, program_code, program_code_b);
