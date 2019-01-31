@@ -57,31 +57,37 @@ public:
     /// Sets the NVDrv module instance to use to send buffers to the GPU.
     void SetNVDrvInstance(std::shared_ptr<Nvidia::Module> instance);
 
-    /// Opens the specified display and returns the id.
+    /// Opens the specified display and returns the ID.
     u64 OpenDisplay(std::string_view name);
 
-    /// Creates a layer on the specified display and returns the layer id.
+    /// Creates a layer on the specified display and returns the layer ID.
     u64 CreateLayer(u64 display_id);
 
-    /// Gets the buffer queue id of the specified layer in the specified display.
-    u32 GetBufferQueueId(u64 display_id, u64 layer_id);
+    /// Finds the buffer queue ID of the specified layer in the specified display.
+    u32 FindBufferQueueId(u64 display_id, u64 layer_id) const;
 
     /// Gets the vsync event for the specified display.
     Kernel::SharedPtr<Kernel::ReadableEvent> GetVsyncEvent(u64 display_id);
 
-    /// Obtains a buffer queue identified by the id.
-    std::shared_ptr<BufferQueue> GetBufferQueue(u32 id) const;
+    /// Obtains a buffer queue identified by the ID.
+    std::shared_ptr<BufferQueue> FindBufferQueue(u32 id) const;
 
     /// Performs a composition request to the emulated nvidia GPU and triggers the vsync events when
     /// finished.
     void Compose();
 
 private:
-    /// Returns the display identified by the specified id.
-    Display& GetDisplay(u64 display_id);
+    /// Finds the display identified by the specified ID.
+    Display& FindDisplay(u64 display_id);
 
-    /// Returns the layer identified by the specified id in the desired display.
-    Layer& GetLayer(u64 display_id, u64 layer_id);
+    /// Finds the display identified by the specified ID.
+    const Display& FindDisplay(u64 display_id) const;
+
+    /// Finds the layer identified by the specified ID in the desired display.
+    Layer& FindLayer(u64 display_id, u64 layer_id);
+
+    /// Finds the layer identified by the specified ID in the desired display.
+    const Layer& FindLayer(u64 display_id, u64 layer_id) const;
 
     std::shared_ptr<Nvidia::Module> nvdrv;
 
