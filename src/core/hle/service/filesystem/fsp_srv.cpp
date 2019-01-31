@@ -627,8 +627,8 @@ private:
 FSP_SRV::FSP_SRV() : ServiceFramework("fsp-srv") {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, nullptr, "MountContent"},
-        {1, &FSP_SRV::Initialize, "Initialize"},
+        {0, nullptr, "OpenFileSystem"},
+        {1, &FSP_SRV::SetCurrentProcess, "SetCurrentProcess"},
         {2, nullptr, "OpenDataFileSystemByCurrentProcess"},
         {7, &FSP_SRV::OpenFileSystemWithPatch, "OpenFileSystemWithPatch"},
         {8, nullptr, "OpenFileSystemWithId"},
@@ -637,10 +637,10 @@ FSP_SRV::FSP_SRV() : ServiceFramework("fsp-srv") {
         {12, nullptr, "OpenBisStorage"},
         {13, nullptr, "InvalidateBisCache"},
         {17, nullptr, "OpenHostFileSystem"},
-        {18, &FSP_SRV::MountSdCard, "MountSdCard"},
+        {18, &FSP_SRV::OpenSdCardFileSystem, "OpenSdCardFileSystem"},
         {19, nullptr, "FormatSdCardFileSystem"},
         {21, nullptr, "DeleteSaveDataFileSystem"},
-        {22, &FSP_SRV::CreateSaveData, "CreateSaveData"},
+        {22, &FSP_SRV::CreateSaveDataFileSystem, "CreateSaveDataFileSystem"},
         {23, nullptr, "CreateSaveDataFileSystemBySystemSaveDataId"},
         {24, nullptr, "RegisterSaveDataFileSystemAtomicDeletion"},
         {25, nullptr, "DeleteSaveDataFileSystemBySaveDataSpaceId"},
@@ -652,7 +652,8 @@ FSP_SRV::FSP_SRV() : ServiceFramework("fsp-srv") {
         {32, nullptr, "ExtendSaveDataFileSystem"},
         {33, nullptr, "DeleteCacheStorage"},
         {34, nullptr, "GetCacheStorageSize"},
-        {51, &FSP_SRV::MountSaveData, "MountSaveData"},
+        {35, nullptr, "CreateSaveDataFileSystemByHashSalt"},
+        {51, &FSP_SRV::OpenSaveDataFileSystem, "OpenSaveDataFileSystem"},
         {52, nullptr, "OpenSaveDataFileSystemBySystemSaveDataId"},
         {53, &FSP_SRV::OpenReadOnlySaveDataFileSystem, "OpenReadOnlySaveDataFileSystem"},
         {57, nullptr, "ReadSaveDataFileSystemExtraDataBySaveDataSpaceId"},
@@ -664,21 +665,26 @@ FSP_SRV::FSP_SRV() : ServiceFramework("fsp-srv") {
         {64, nullptr, "OpenSaveDataInternalStorageFileSystem"},
         {65, nullptr, "UpdateSaveDataMacForDebug"},
         {66, nullptr, "WriteSaveDataFileSystemExtraData2"},
+        {67, nullptr, "FindSaveDataWithFilter"},
+        {68, nullptr, "OpenSaveDataInfoReaderBySaveDataFilter"},
         {80, nullptr, "OpenSaveDataMetaFile"},
         {81, nullptr, "OpenSaveDataTransferManager"},
         {82, nullptr, "OpenSaveDataTransferManagerVersion2"},
         {83, nullptr, "OpenSaveDataTransferProhibiterForCloudBackUp"},
+        {84, nullptr, "ListApplicationAccessibleSaveDataOwnerId"},
         {100, nullptr, "OpenImageDirectoryFileSystem"},
         {110, nullptr, "OpenContentStorageFileSystem"},
+        {120, nullptr, "OpenCloudBackupWorkStorageFileSystem"},
         {200, &FSP_SRV::OpenDataStorageByCurrentProcess, "OpenDataStorageByCurrentProcess"},
         {201, nullptr, "OpenDataStorageByProgramId"},
         {202, &FSP_SRV::OpenDataStorageByDataId, "OpenDataStorageByDataId"},
-        {203, &FSP_SRV::OpenRomStorage, "OpenRomStorage"},
+        {203, &FSP_SRV::OpenPatchDataStorageByCurrentProcess, "OpenPatchDataStorageByCurrentProcess"},
         {400, nullptr, "OpenDeviceOperator"},
         {500, nullptr, "OpenSdCardDetectionEventNotifier"},
         {501, nullptr, "OpenGameCardDetectionEventNotifier"},
         {510, nullptr, "OpenSystemDataUpdateEventNotifier"},
         {511, nullptr, "NotifySystemDataUpdateEvent"},
+        {520, nullptr, "SimulateGameCardDetectionEvent"},
         {600, nullptr, "SetCurrentPosixTime"},
         {601, nullptr, "QuerySaveDataTotalSize"},
         {602, nullptr, "VerifySaveDataFileSystem"},
@@ -717,6 +723,8 @@ FSP_SRV::FSP_SRV() : ServiceFramework("fsp-srv") {
         {1008, nullptr, "OpenRegisteredUpdatePartition"},
         {1009, nullptr, "GetAndClearMemoryReportInfo"},
         {1100, nullptr, "OverrideSaveDataTransferTokenSignVerificationKey"},
+        {1110, nullptr, "CorruptSaveDataFileSystemBySaveDataSpaceId2"},
+        {1200, nullptr, "OpenMultiCommitManager"},
     };
     // clang-format on
     RegisterHandlers(functions);
@@ -724,7 +732,7 @@ FSP_SRV::FSP_SRV() : ServiceFramework("fsp-srv") {
 
 FSP_SRV::~FSP_SRV() = default;
 
-void FSP_SRV::Initialize(Kernel::HLERequestContext& ctx) {
+void FSP_SRV::SetCurrentProcess(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_FS, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2};
@@ -743,7 +751,7 @@ void FSP_SRV::OpenFileSystemWithPatch(Kernel::HLERequestContext& ctx) {
     rb.Push(ResultCode(-1));
 }
 
-void FSP_SRV::MountSdCard(Kernel::HLERequestContext& ctx) {
+void FSP_SRV::OpenSdCardFileSystem(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_FS, "called");
 
     IFileSystem filesystem(OpenSDMC().Unwrap());
@@ -753,7 +761,7 @@ void FSP_SRV::MountSdCard(Kernel::HLERequestContext& ctx) {
     rb.PushIpcInterface<IFileSystem>(std::move(filesystem));
 }
 
-void FSP_SRV::CreateSaveData(Kernel::HLERequestContext& ctx) {
+void FSP_SRV::CreateSaveDataFileSystem(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
     auto save_struct = rp.PopRaw<FileSys::SaveDataDescriptor>();
@@ -767,7 +775,7 @@ void FSP_SRV::CreateSaveData(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
 }
 
-void FSP_SRV::MountSaveData(Kernel::HLERequestContext& ctx) {
+void FSP_SRV::OpenSaveDataFileSystem(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
     auto space_id = rp.PopRaw<FileSys::SaveDataSpaceId>();
@@ -793,7 +801,7 @@ void FSP_SRV::MountSaveData(Kernel::HLERequestContext& ctx) {
 
 void FSP_SRV::OpenReadOnlySaveDataFileSystem(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_FS, "(STUBBED) called, delegating to 51 OpenSaveDataFilesystem");
-    MountSaveData(ctx);
+    OpenSaveDataFileSystem(ctx);
 }
 
 void FSP_SRV::OpenSaveDataInfoReaderBySaveDataSpaceId(Kernel::HLERequestContext& ctx) {
@@ -881,7 +889,7 @@ void FSP_SRV::OpenDataStorageByDataId(Kernel::HLERequestContext& ctx) {
     rb.PushIpcInterface<IStorage>(std::move(storage));
 }
 
-void FSP_SRV::OpenRomStorage(Kernel::HLERequestContext& ctx) {
+void FSP_SRV::OpenPatchDataStorageByCurrentProcess(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
     auto storage_id = rp.PopRaw<FileSys::StorageId>();

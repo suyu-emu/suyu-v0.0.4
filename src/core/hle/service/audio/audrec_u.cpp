@@ -12,6 +12,7 @@ namespace Service::Audio {
 class IFinalOutputRecorder final : public ServiceFramework<IFinalOutputRecorder> {
 public:
     IFinalOutputRecorder() : ServiceFramework("IFinalOutputRecorder") {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetFinalOutputRecorderState"},
             {1, nullptr, "StartFinalOutputRecorder"},
@@ -20,10 +21,13 @@ public:
             {4, nullptr, "RegisterBufferEvent"},
             {5, nullptr, "GetReleasedFinalOutputRecorderBuffer"},
             {6, nullptr, "ContainsFinalOutputRecorderBuffer"},
-            {7, nullptr, "Unknown"},
+            {7, nullptr, "GetFinalOutputRecorderBufferEndTime"},
             {8, nullptr, "AppendFinalOutputRecorderBufferAuto"},
             {9, nullptr, "GetReleasedFinalOutputRecorderBufferAuto"},
+            {10, nullptr, "FlushFinalOutputRecorderBuffers"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
     }
     ~IFinalOutputRecorder() = default;

@@ -40,10 +40,10 @@ public:
             {6, nullptr, "CloseContentStorageForcibly"},
             {7, nullptr, "CloseContentMetaDatabaseForcibly"},
             {8, nullptr, "CleanupContentMetaDatabase"},
-            {9, nullptr, "OpenContentStorage2"},
-            {10, nullptr, "CloseContentStorage"},
-            {11, nullptr, "OpenContentMetaDatabase2"},
-            {12, nullptr, "CloseContentMetaDatabase"},
+            {9, nullptr, "ActivateContentStorage"},
+            {10, nullptr, "InactivateContentStorage"},
+            {11, nullptr, "ActivateContentMetaDatabase"},
+            {12, nullptr, "InactivateContentMetaDatabase"},
         };
         // clang-format on
 
