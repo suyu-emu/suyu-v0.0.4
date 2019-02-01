@@ -734,7 +734,6 @@ void CachedSurface::FlushGLBuffer() {
     glPixelStorei(GL_PACK_ROW_LENGTH, 0);
     ConvertFormatAsNeeded_FlushGLBuffer(gl_buffer[0], params.pixel_format, params.width,
                                         params.height);
-    ASSERT(params.type != SurfaceType::Fill);
     const u8* const texture_src_data = Memory::GetPointer(params.addr);
     ASSERT(texture_src_data);
     if (params.is_tiled) {
@@ -904,9 +903,6 @@ void CachedSurface::EnsureTextureView() {
 
 MICROPROFILE_DEFINE(OpenGL_TextureUL, "OpenGL", "Texture Upload", MP_RGB(128, 192, 64));
 void CachedSurface::UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle) {
-    if (params.type == SurfaceType::Fill)
-        return;
-
     MICROPROFILE_SCOPE(OpenGL_TextureUL);
 
     for (u32 i = 0; i < params.max_mip_level; i++)
