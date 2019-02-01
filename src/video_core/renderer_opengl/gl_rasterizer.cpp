@@ -954,7 +954,7 @@ void RasterizerOpenGL::SetupConstBuffers(Tegra::Engines::Maxwell3D::Regs::Shader
             }
         } else {
             // Buffer is accessed directly, upload just what we use
-            size = used_buffer.GetSize() * sizeof(float);
+            size = used_buffer.GetSize();
         }
 
         // Align the actual size so it ends up being a multiple of vec4 to meet the OpenGL std140

@@ -32,13 +32,14 @@ u32 ShaderIR::DecodeXmad(BasicBlock& bb, const BasicBlock& code, u32 pc) {
     auto [is_merge, op_b, op_c] = [&]() -> std::tuple<bool, Node, Node> {
         switch (opcode->get().GetId()) {
         case OpCode::Id::XMAD_CR:
-            return {instr.xmad.merge_56, GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset),
+            return {instr.xmad.merge_56,
+                    GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset()),
                     GetRegister(instr.gpr39)};
         case OpCode::Id::XMAD_RR:
             return {instr.xmad.merge_37, GetRegister(instr.gpr20), GetRegister(instr.gpr39)};
         case OpCode::Id::XMAD_RC:
             return {false, GetRegister(instr.gpr39),
-                    GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset)};
+                    GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset())};
         case OpCode::Id::XMAD_IMM:
             return {instr.xmad.merge_37, Immediate(static_cast<u32>(instr.xmad.imm20_16)),
                     GetRegister(instr.gpr39)};

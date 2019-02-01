@@ -23,7 +23,7 @@ u32 ShaderIR::DecodeShift(BasicBlock& bb, const BasicBlock& code, u32 pc) {
         } else if (instr.is_b_gpr) {
             return GetRegister(instr.gpr20);
         } else {
-            return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset);
+            return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset());
         }
     }();
 

@@ -26,7 +26,7 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, const BasicBlock& code, u3
         } else if (instr.is_b_gpr) {
             return GetRegister(instr.gpr20);
         } else {
-            return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset);
+            return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset());
         }
     }();
 

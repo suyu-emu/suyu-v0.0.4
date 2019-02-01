@@ -48,7 +48,7 @@ u32 ShaderIR::DecodeConversion(BasicBlock& bb, const BasicBlock& code, u32 pc) {
             if (instr.is_b_gpr) {
                 return GetRegister(instr.gpr20);
             } else {
-                return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset);
+                return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset());
             }
         }();
         const bool input_signed = instr.conversion.is_input_signed;
@@ -72,7 +72,7 @@ u32 ShaderIR::DecodeConversion(BasicBlock& bb, const BasicBlock& code, u32 pc) {
             if (instr.is_b_gpr) {
                 return GetRegister(instr.gpr20);
             } else {
-                return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset);
+                return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset());
             }
         }();
 
@@ -110,7 +110,7 @@ u32 ShaderIR::DecodeConversion(BasicBlock& bb, const BasicBlock& code, u32 pc) {
             if (instr.is_b_gpr) {
                 return GetRegister(instr.gpr20);
             } else {
-                return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset);
+                return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset());
             }
         }();
 

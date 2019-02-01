@@ -1248,11 +1248,19 @@ union Instruction {
     union {
         BitField<20, 14, u64> offset;
         BitField<34, 5, u64> index;
+
+        u64 GetOffset() const {
+            return offset * 4;
+        }
     } cbuf34;
 
     union {
         BitField<20, 16, s64> offset;
         BitField<36, 5, u64> index;
+
+        s64 GetOffset() const {
+            return offset;
+        }
     } cbuf36;
 
     // Unsure about the size of this one.
