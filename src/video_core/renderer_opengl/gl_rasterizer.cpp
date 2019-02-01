@@ -477,9 +477,9 @@ void RasterizerOpenGL::UpdatePagesCachedCount(VAddr addr, u64 size, int delta) {
         cached_pages.add({pages_interval, delta});
 }
 
-void RasterizerOpenGL::ConfigureFramebuffers(OpenGLState& current_state, bool using_color_fb,
-                                             bool using_depth_fb, bool preserve_contents,
-                                             std::optional<std::size_t> single_color_target) {
+std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
+    OpenGLState& current_state, bool using_color_fb, bool using_depth_fb, bool preserve_contents,
+    std::optional<std::size_t> single_color_target) {
     MICROPROFILE_SCOPE(OpenGL_Framebuffer);
     const auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
     const auto& regs = gpu.regs;
@@ -491,7 +491,7 @@ void RasterizerOpenGL::ConfigureFramebuffers(OpenGLState& current_state, bool us
         // Only skip if the previous ConfigureFramebuffers call was from the same kind (multiple or
         // single color targets). This is done because the guest registers may not change but the
         // host framebuffer may contain different attachments
-        return;
+        return current_depth_stencil_usage;
     }
     current_framebuffer_config_state = fb_config_state;
 
@@ -561,12 +561,14 @@ void RasterizerOpenGL::ConfigureFramebuffers(OpenGLState& current_state, bool us
         depth_surface->MarkAsModified(true, res_cache);
 
         fbkey.zeta = depth_surface->Texture().handle;
-        fbkey.stencil_enable = regs.stencil_enable;
+        fbkey.stencil_enable = regs.stencil_enable &&
+                               depth_surface->GetSurfaceParams().type == SurfaceType::DepthStencil;
     }
 
     SetupCachedFramebuffer(fbkey, current_state);
-
     SyncViewport(current_state);
+
+    return current_depth_stencil_usage = {static_cast<bool>(depth_surface), fbkey.stencil_enable};
 }
 
 void RasterizerOpenGL::Clear() {
@@ -634,8 +636,8 @@ void RasterizerOpenGL::Clear() {
         return;
     }
 
-    ConfigureFramebuffers(clear_state, use_color, use_depth || use_stencil, false,
-                          regs.clear_buffers.RT.Value());
+    const auto [clear_depth, clear_stencil] = ConfigureFramebuffers(
+        clear_state, use_color, use_depth || use_stencil, false, regs.clear_buffers.RT.Value());
     if (regs.clear_flags.scissor) {
         SyncScissorTest(clear_state);
     }
@@ -650,11 +652,11 @@ void RasterizerOpenGL::Clear() {
         glClearBufferfv(GL_COLOR, regs.clear_buffers.RT, regs.clear_color);
     }
 
-    if (use_depth && use_stencil) {
+    if (clear_depth && clear_stencil) {
         glClearBufferfi(GL_DEPTH_STENCIL, 0, regs.clear_depth, regs.clear_stencil);
-    } else if (use_depth) {
+    } else if (clear_depth) {
         glClearBufferfv(GL_DEPTH, 0, &regs.clear_depth);
-    } else if (use_stencil) {
+    } else if (clear_stencil) {
         glClearBufferiv(GL_STENCIL, 0, &regs.clear_stencil);
     }
 }
