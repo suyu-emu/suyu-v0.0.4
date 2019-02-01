@@ -25,7 +25,6 @@ enum class HandleType : u32 {
     Thread,
     Process,
     AddressArbiter,
-    Timer,
     ResourceLimit,
     ClientPort,
     ServerPort,

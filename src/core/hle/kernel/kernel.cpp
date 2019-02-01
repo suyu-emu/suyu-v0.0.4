@@ -18,7 +18,6 @@
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/thread.h"
-#include "core/hle/kernel/timer.h"
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
 
@@ -86,27 +85,12 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] int cycles_
     }
 }
 
-/// The timer callback event, called when a timer is fired
-static void TimerCallback(u64 timer_handle, int cycles_late) {
-    const auto proper_handle = static_cast<Handle>(timer_handle);
-    const auto& system = Core::System::GetInstance();
-    SharedPtr<Timer> timer = system.Kernel().RetrieveTimerFromCallbackHandleTable(proper_handle);
-
-    if (timer == nullptr) {
-        LOG_CRITICAL(Kernel, "Callback fired for invalid timer {:016X}", timer_handle);
-        return;
-    }
-
-    timer->Signal(cycles_late);
-}
-
 struct KernelCore::Impl {
     void Initialize(KernelCore& kernel) {
         Shutdown();
 
         InitializeSystemResourceLimit(kernel);
         InitializeThreads();
-        InitializeTimers();
     }
 
     void Shutdown() {
@@ -121,9 +105,6 @@ struct KernelCore::Impl {
 
         thread_wakeup_callback_handle_table.Clear();
         thread_wakeup_event_type = nullptr;
-
-        timer_callback_handle_table.Clear();
-        timer_callback_event_type = nullptr;
 
         named_ports.clear();
     }
@@ -146,11 +127,6 @@ struct KernelCore::Impl {
             CoreTiming::RegisterEvent("ThreadWakeupCallback", ThreadWakeupCallback);
     }
 
-    void InitializeTimers() {
-        timer_callback_handle_table.Clear();
-        timer_callback_event_type = CoreTiming::RegisterEvent("TimerCallback", TimerCallback);
-    }
-
     std::atomic<u32> next_object_id{0};
     std::atomic<u64> next_process_id{Process::ProcessIDMin};
     std::atomic<u64> next_thread_id{1};
@@ -160,12 +136,6 @@ struct KernelCore::Impl {
     Process* current_process = nullptr;
 
     SharedPtr<ResourceLimit> system_resource_limit;
-
-    /// The event type of the generic timer callback event
-    CoreTiming::EventType* timer_callback_event_type = nullptr;
-    // TODO(yuriks): This can be removed if Timer objects are explicitly pooled in the future,
-    // allowing us to simply use a pool index or similar.
-    Kernel::HandleTable timer_callback_handle_table;
 
     CoreTiming::EventType* thread_wakeup_event_type = nullptr;
     // TODO(yuriks): This can be removed if Thread objects are explicitly pooled in the future,
@@ -196,10 +166,6 @@ SharedPtr<ResourceLimit> KernelCore::GetSystemResourceLimit() const {
 
 SharedPtr<Thread> KernelCore::RetrieveThreadFromWakeupCallbackHandleTable(Handle handle) const {
     return impl->thread_wakeup_callback_handle_table.Get<Thread>(handle);
-}
-
-SharedPtr<Timer> KernelCore::RetrieveTimerFromCallbackHandleTable(Handle handle) const {
-    return impl->timer_callback_handle_table.Get<Timer>(handle);
 }
 
 void KernelCore::AppendNewProcess(SharedPtr<Process> process) {
@@ -247,16 +213,8 @@ u64 KernelCore::CreateNewProcessID() {
     return impl->next_process_id++;
 }
 
-ResultVal<Handle> KernelCore::CreateTimerCallbackHandle(const SharedPtr<Timer>& timer) {
-    return impl->timer_callback_handle_table.Create(timer);
-}
-
 CoreTiming::EventType* KernelCore::ThreadWakeupCallbackEventType() const {
     return impl->thread_wakeup_event_type;
-}
-
-CoreTiming::EventType* KernelCore::TimerCallbackEventType() const {
-    return impl->timer_callback_event_type;
 }
 
 Kernel::HandleTable& KernelCore::ThreadWakeupCallbackHandleTable() {
