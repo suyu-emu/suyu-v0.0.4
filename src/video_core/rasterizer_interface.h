@@ -49,11 +49,6 @@ public:
         return false;
     }
 
-    /// Attempt to use a faster method to fill a region
-    virtual bool AccelerateFill(const void* config) {
-        return false;
-    }
-
     /// Attempt to use a faster method to display the framebuffer to screen
     virtual bool AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr,
                                    u32 pixel_stride) {
