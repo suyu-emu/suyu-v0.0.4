@@ -16,7 +16,6 @@ bool Object::IsWaitable() const {
     case HandleType::ReadableEvent:
     case HandleType::Thread:
     case HandleType::Process:
-    case HandleType::Timer:
     case HandleType::ServerPort:
     case HandleType::ServerSession:
         return true;

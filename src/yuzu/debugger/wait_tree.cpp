@@ -13,7 +13,6 @@
 #include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
-#include "core/hle/kernel/timer.h"
 #include "core/hle/kernel/wait_object.h"
 #include "core/memory.h"
 
@@ -155,8 +154,6 @@ std::unique_ptr<WaitTreeWaitObject> WaitTreeWaitObject::make(const Kernel::WaitO
     switch (object.GetHandleType()) {
     case Kernel::HandleType::ReadableEvent:
         return std::make_unique<WaitTreeEvent>(static_cast<const Kernel::ReadableEvent&>(object));
-    case Kernel::HandleType::Timer:
-        return std::make_unique<WaitTreeTimer>(static_cast<const Kernel::Timer&>(object));
     case Kernel::HandleType::Thread:
         return std::make_unique<WaitTreeThread>(static_cast<const Kernel::Thread&>(object));
     default:
@@ -345,23 +342,6 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeEvent::GetChildren() const {
         tr("reset type = %1")
             .arg(GetResetTypeQString(
                 static_cast<const Kernel::ReadableEvent&>(object).GetResetType()))));
-    return list;
-}
-
-WaitTreeTimer::WaitTreeTimer(const Kernel::Timer& object) : WaitTreeWaitObject(object) {}
-WaitTreeTimer::~WaitTreeTimer() = default;
-
-std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeTimer::GetChildren() const {
-    std::vector<std::unique_ptr<WaitTreeItem>> list(WaitTreeWaitObject::GetChildren());
-
-    const auto& timer = static_cast<const Kernel::Timer&>(object);
-
-    list.push_back(std::make_unique<WaitTreeText>(
-        tr("reset type = %1").arg(GetResetTypeQString(timer.GetResetType()))));
-    list.push_back(
-        std::make_unique<WaitTreeText>(tr("initial delay = %1").arg(timer.GetInitialDelay())));
-    list.push_back(
-        std::make_unique<WaitTreeText>(tr("interval delay = %1").arg(timer.GetIntervalDelay())));
     return list;
 }
 

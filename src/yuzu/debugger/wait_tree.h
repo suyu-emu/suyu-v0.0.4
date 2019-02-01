@@ -20,7 +20,6 @@ namespace Kernel {
 class ReadableEvent;
 class WaitObject;
 class Thread;
-class Timer;
 } // namespace Kernel
 
 class WaitTreeThread;
@@ -146,15 +145,6 @@ class WaitTreeEvent : public WaitTreeWaitObject {
 public:
     explicit WaitTreeEvent(const Kernel::ReadableEvent& object);
     ~WaitTreeEvent() override;
-
-    std::vector<std::unique_ptr<WaitTreeItem>> GetChildren() const override;
-};
-
-class WaitTreeTimer : public WaitTreeWaitObject {
-    Q_OBJECT
-public:
-    explicit WaitTreeTimer(const Kernel::Timer& object);
-    ~WaitTreeTimer() override;
 
     std::vector<std::unique_ptr<WaitTreeItem>> GetChildren() const override;
 };

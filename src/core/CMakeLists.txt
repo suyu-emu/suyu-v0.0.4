@@ -140,8 +140,6 @@ add_library(core STATIC
     hle/kernel/svc_wrap.h
     hle/kernel/thread.cpp
     hle/kernel/thread.h
-    hle/kernel/timer.cpp
-    hle/kernel/timer.h
     hle/kernel/vm_manager.cpp
     hle/kernel/vm_manager.h
     hle/kernel/wait_object.cpp
