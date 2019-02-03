@@ -104,16 +104,27 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, const BasicBlock& code, u32 pc) {
     }
     case OpCode::Id::LD_L: {
         UNIMPLEMENTED_IF_MSG(instr.ld_l.unknown == 1, "LD_L Unhandled mode: {}",
-                             static_cast<unsigned>(instr.ld_l.unknown.Value()));
+                             static_cast<u32>(instr.ld_l.unknown.Value()));
 
-        const Node index = Operation(OperationCode::IAdd, GetRegister(instr.gpr8),
-                                     Immediate(static_cast<s32>(instr.smem_imm)));
-        const Node lmem = GetLocalMemory(index);
+        const auto GetLmem = [&](s32 offset) {
+            ASSERT(offset % 4 == 0);
+            const Node immediate_offset = Immediate(static_cast<s32>(instr.smem_imm) + offset);
+            const Node address = Operation(OperationCode::IAdd, NO_PRECISE, GetRegister(instr.gpr8),
+                                           immediate_offset);
+            return GetLocalMemory(address);
+        };
 
         switch (instr.ldst_sl.type.Value()) {
         case Tegra::Shader::StoreType::Bytes32:
-            SetRegister(bb, instr.gpr0, lmem);
+            SetRegister(bb, instr.gpr0, GetLmem(0));
             break;
+        case Tegra::Shader::StoreType::Bytes64: {
+            SetTemporal(bb, 0, GetLmem(0));
+            SetTemporal(bb, 1, GetLmem(4));
+            SetRegister(bb, instr.gpr0, GetTemporal(0));
+            SetRegister(bb, instr.gpr0.Value() + 1, GetTemporal(1));
+            break;
+        }
         default:
             UNIMPLEMENTED_MSG("LD_L Unhandled type: {}",
                               static_cast<unsigned>(instr.ldst_sl.type.Value()));
