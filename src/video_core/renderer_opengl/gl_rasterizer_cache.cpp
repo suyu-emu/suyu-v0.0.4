@@ -428,7 +428,8 @@ void SwizzleFunc(const MortonSwizzleMode& mode, const SurfaceParams& params,
     }
 }
 
-static void FastCopySurface(const Surface& src_surface, const Surface& dst_surface) {
+void RasterizerCacheOpenGL::FastCopySurface(const Surface& src_surface,
+                                            const Surface& dst_surface) {
     const auto& src_params{src_surface->GetSurfaceParams()};
     const auto& dst_params{dst_surface->GetSurfaceParams()};
 
@@ -438,12 +439,15 @@ static void FastCopySurface(const Surface& src_surface, const Surface& dst_surfa
     glCopyImageSubData(src_surface->Texture().handle, SurfaceTargetToGL(src_params.target), 0, 0, 0,
                        0, dst_surface->Texture().handle, SurfaceTargetToGL(dst_params.target), 0, 0,
                        0, 0, width, height, 1);
+
+    dst_surface->MarkAsModified(true, *this);
 }
 
 MICROPROFILE_DEFINE(OpenGL_CopySurface, "OpenGL", "CopySurface", MP_RGB(128, 192, 64));
-static void CopySurface(const Surface& src_surface, const Surface& dst_surface,
-                        const GLuint copy_pbo_handle, const GLenum src_attachment = 0,
-                        const GLenum dst_attachment = 0, const std::size_t cubemap_face = 0) {
+void RasterizerCacheOpenGL::CopySurface(const Surface& src_surface, const Surface& dst_surface,
+                                        const GLuint copy_pbo_handle, const GLenum src_attachment,
+                                        const GLenum dst_attachment,
+                                        const std::size_t cubemap_face) {
     MICROPROFILE_SCOPE(OpenGL_CopySurface);
     ASSERT_MSG(dst_attachment == 0, "Unimplemented");
 
@@ -523,6 +527,8 @@ static void CopySurface(const Surface& src_surface, const Surface& dst_surface,
         }
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
     }
+
+    dst_surface->MarkAsModified(true, *this);
 }
 
 CachedSurface::CachedSurface(const SurfaceParams& params)
@@ -1019,6 +1025,8 @@ void RasterizerCacheOpenGL::FastLayeredCopySurface(const Surface& src_surface,
         }
         address += layer_size;
     }
+
+    dst_surface->MarkAsModified(true, *this);
 }
 
 static bool BlitSurface(const Surface& src_surface, const Surface& dst_surface,
@@ -1170,6 +1178,8 @@ void RasterizerCacheOpenGL::FermiCopySurface(
 
     BlitSurface(src_surface, dst_surface, src_rect, dst_rect, read_framebuffer.handle,
                 draw_framebuffer.handle);
+
+    dst_surface->MarkAsModified(true, *this);
 }
 
 void RasterizerCacheOpenGL::AccurateCopySurface(const Surface& src_surface,
