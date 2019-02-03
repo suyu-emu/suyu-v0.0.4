@@ -467,11 +467,9 @@ std::vector<Texture::FullTextureInfo> Maxwell3D::GetStageTextures(Regs::ShaderSt
         std::memcpy(&tex_info.tic, &tic_entry, sizeof(tic_entry));
 
         // Load the TSC data
-        if (tex_handle.tsc_id != 0) {
-            auto tsc_entry = GetTSCEntry(tex_handle.tsc_id);
-            // TODO(Subv): Workaround for BitField's move constructor being deleted.
-            std::memcpy(&tex_info.tsc, &tsc_entry, sizeof(tsc_entry));
-        }
+        auto tsc_entry = GetTSCEntry(tex_handle.tsc_id);
+        // TODO(Subv): Workaround for BitField's move constructor being deleted.
+        std::memcpy(&tex_info.tsc, &tsc_entry, sizeof(tsc_entry));
 
         textures.push_back(tex_info);
     }
@@ -501,11 +499,9 @@ Texture::FullTextureInfo Maxwell3D::GetStageTexture(Regs::ShaderStage stage,
     std::memcpy(&tex_info.tic, &tic_entry, sizeof(tic_entry));
 
     // Load the TSC data
-    if (tex_handle.tsc_id != 0) {
-        auto tsc_entry = GetTSCEntry(tex_handle.tsc_id);
-        // TODO(Subv): Workaround for BitField's move constructor being deleted.
-        std::memcpy(&tex_info.tsc, &tsc_entry, sizeof(tsc_entry));
-    }
+    auto tsc_entry = GetTSCEntry(tex_handle.tsc_id);
+    // TODO(Subv): Workaround for BitField's move constructor being deleted.
+    std::memcpy(&tex_info.tsc, &tsc_entry, sizeof(tsc_entry));
 
     return tex_info;
 }
