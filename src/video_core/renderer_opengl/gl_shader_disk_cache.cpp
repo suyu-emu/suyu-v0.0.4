@@ -53,6 +53,10 @@ ShaderCacheVersionHash GetShaderCacheVersionHash() {
 
 template <typename T>
 std::vector<u8> CompressData(const T* source, std::size_t source_size) {
+    if (source_size > LZ4_MAX_INPUT_SIZE) {
+        // Source size exceeds LZ4 maximum input size
+        return {};
+    }
     const auto source_size_int = static_cast<int>(source_size);
     const int max_compressed_size = LZ4_compressBound(source_size_int);
     std::vector<u8> compressed(max_compressed_size);
