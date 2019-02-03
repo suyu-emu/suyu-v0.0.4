@@ -59,7 +59,7 @@ std::vector<u8> CompressData(const T* source, std::size_t source_size) {
     const int compressed_size = LZ4_compress_default(reinterpret_cast<const char*>(source),
                                                      reinterpret_cast<char*>(compressed.data()),
                                                      source_size_int, max_compressed_size);
-    if (compressed_size < 0) {
+    if (compressed_size <= 0) {
         // Compression failed
         return {};
     }
