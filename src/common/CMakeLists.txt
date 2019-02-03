@@ -4,7 +4,7 @@
 # like this allows for much better caching since it doesn't force the user to recompile binary shaders every update
 set(VIDEO_CORE "${CMAKE_SOURCE_DIR}/src/video_core")
 add_custom_command(OUTPUT scm_rev.cpp
-    COMMAND cmake -DSRC_DIR="${CMAKE_SOURCE_DIR}" -P "${CMAKE_SOURCE_DIR}/CMakeModules/GenerateSCMRev.cmake"
+    COMMAND ${CMAKE_COMMAND} -DSRC_DIR="${CMAKE_SOURCE_DIR}" -P "${CMAKE_SOURCE_DIR}/CMakeModules/GenerateSCMRev.cmake"
     DEPENDS
       # WARNING! It was too much work to try and make a common location for this list,
       # so if you need to change it, please update CMakeModules/GenerateSCMRev.cmake as well
