@@ -116,13 +116,25 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, const BasicBlock& code, u32 pc) {
 
         switch (instr.ldst_sl.type.Value()) {
         case Tegra::Shader::StoreType::Bits32:
-            SetRegister(bb, instr.gpr0, GetLmem(0));
-            break;
-        case Tegra::Shader::StoreType::Bits64: {
-            SetTemporal(bb, 0, GetLmem(0));
-            SetTemporal(bb, 1, GetLmem(4));
-            SetRegister(bb, instr.gpr0, GetTemporal(0));
-            SetRegister(bb, instr.gpr0.Value() + 1, GetTemporal(1));
+        case Tegra::Shader::StoreType::Bits64:
+        case Tegra::Shader::StoreType::Bits128: {
+            const u32 count = [&]() {
+                switch (instr.ldst_sl.type.Value()) {
+                case Tegra::Shader::StoreType::Bits32:
+                    return 1;
+                case Tegra::Shader::StoreType::Bits64:
+                    return 2;
+                case Tegra::Shader::StoreType::Bits128:
+                    return 4;
+                default:
+                    UNREACHABLE();
+                    return 0;
+                }
+            }();
+            for (u32 i = 0; i < count; ++i)
+                SetTemporal(bb, i, GetLmem(i * 4));
+            for (u32 i = 0; i < count; ++i)
+                SetRegister(bb, instr.gpr0.Value() + i, GetTemporal(i));
             break;
         }
         default:
