@@ -225,12 +225,20 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, const BasicBlock& code, u32 pc) {
         UNIMPLEMENTED_IF_MSG(instr.st_l.unknown == 0, "ST_L Unhandled mode: {}",
                              static_cast<u32>(instr.st_l.unknown.Value()));
 
-        const Node index = Operation(OperationCode::IAdd, NO_PRECISE, GetRegister(instr.gpr8),
-                                     Immediate(static_cast<s32>(instr.smem_imm)));
+        const auto GetLmemAddr = [&](s32 offset) {
+            ASSERT(offset % 4 == 0);
+            const Node immediate = Immediate(static_cast<s32>(instr.smem_imm) + offset);
+            return Operation(OperationCode::IAdd, NO_PRECISE, GetRegister(instr.gpr8), immediate);
+        };
 
         switch (instr.ldst_sl.type.Value()) {
+        case Tegra::Shader::StoreType::Bits128:
+            SetLocalMemory(bb, GetLmemAddr(12), GetRegister(instr.gpr0.Value() + 3));
+            SetLocalMemory(bb, GetLmemAddr(8), GetRegister(instr.gpr0.Value() + 2));
+        case Tegra::Shader::StoreType::Bits64:
+            SetLocalMemory(bb, GetLmemAddr(4), GetRegister(instr.gpr0.Value() + 1));
         case Tegra::Shader::StoreType::Bits32:
-            SetLocalMemory(bb, index, GetRegister(instr.gpr0));
+            SetLocalMemory(bb, GetLmemAddr(0), GetRegister(instr.gpr0));
             break;
         default:
             UNIMPLEMENTED_MSG("ST_L Unhandled type: {}",
