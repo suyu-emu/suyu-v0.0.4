@@ -324,15 +324,18 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, const BasicBlock& code, u32 pc) {
         const auto& sampler =
             GetSampler(instr.sampler, Tegra::Shader::TextureType::Texture2D, false, false);
 
+        u32 indexer = 0;
         switch (instr.txq.query_type) {
         case Tegra::Shader::TextureQueryType::Dimension: {
             for (u32 element = 0; element < 4; ++element) {
-                MetaTexture meta{sampler, element};
-                const Node value = Operation(OperationCode::F4TextureQueryDimensions,
-                                             std::move(meta), GetRegister(instr.gpr8));
-                SetTemporal(bb, element, value);
+                if (instr.txq.IsComponentEnabled(element)) {
+                    MetaTexture meta{sampler, element};
+                    const Node value = Operation(OperationCode::F4TextureQueryDimensions,
+                                                 std::move(meta), GetRegister(instr.gpr8));
+                    SetTemporal(bb, indexer++, value);
+                }
             }
-            for (u32 i = 0; i < 4; ++i) {
+            for (u32 i = 0; i < indexer; ++i) {
                 SetRegister(bb, instr.gpr0.Value() + i, GetTemporal(i));
             }
             break;
