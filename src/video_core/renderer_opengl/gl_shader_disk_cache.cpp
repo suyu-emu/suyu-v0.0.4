@@ -211,8 +211,8 @@ ShaderDiskCacheOpenGL::LoadTransferable() {
     return {{raws, usages}};
 }
 
-std::pair<std::map<u64, ShaderDiskCacheDecompiled>,
-          std::map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>
+std::pair<std::unordered_map<u64, ShaderDiskCacheDecompiled>,
+          std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>
 ShaderDiskCacheOpenGL::LoadPrecompiled() {
     if (!IsUsable())
         return {};
@@ -236,8 +236,8 @@ ShaderDiskCacheOpenGL::LoadPrecompiled() {
     return *result;
 }
 
-std::optional<std::pair<std::map<u64, ShaderDiskCacheDecompiled>,
-                        std::map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>>
+std::optional<std::pair<std::unordered_map<u64, ShaderDiskCacheDecompiled>,
+                        std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>>
 ShaderDiskCacheOpenGL::LoadPrecompiledFile(FileUtil::IOFile& file) {
     ShaderCacheVersionHash file_hash{};
     if (file.ReadArray(file_hash.data(), file_hash.size()) != file_hash.size()) {
@@ -248,8 +248,8 @@ ShaderDiskCacheOpenGL::LoadPrecompiledFile(FileUtil::IOFile& file) {
         return {};
     }
 
-    std::map<u64, ShaderDiskCacheDecompiled> decompiled;
-    std::map<ShaderDiskCacheUsage, ShaderDiskCacheDump> dumps;
+    std::unordered_map<u64, ShaderDiskCacheDecompiled> decompiled;
+    std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump> dumps;
     while (file.Tell() < file.GetSize()) {
         PrecompiledEntryKind kind{};
         if (file.ReadBytes(&kind, sizeof(u32)) != sizeof(u32)) {

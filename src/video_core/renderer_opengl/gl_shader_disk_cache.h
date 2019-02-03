@@ -5,9 +5,10 @@
 #pragma once
 
 #include <optional>
-#include <set>
 #include <string>
 #include <tuple>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -37,22 +38,53 @@ struct BaseBindings {
     u32 gmem{};
     u32 sampler{};
 
-    bool operator<(const BaseBindings& rhs) const {
-        return Tie() < rhs.Tie();
-    }
-
     bool operator==(const BaseBindings& rhs) const {
-        return Tie() == rhs.Tie();
+        return std::tie(cbuf, gmem, sampler) == std::tie(rhs.cbuf, rhs.gmem, rhs.sampler);
     }
 
     bool operator!=(const BaseBindings& rhs) const {
         return !operator==(rhs);
     }
+};
 
-    std::tuple<u32, u32, u32> Tie() const {
-        return std::tie(cbuf, gmem, sampler);
+/// Describes how a shader is used
+struct ShaderDiskCacheUsage {
+    u64 unique_identifier{};
+    BaseBindings bindings;
+    GLenum primitive{};
+
+    bool operator==(const ShaderDiskCacheUsage& rhs) const {
+        return std::tie(unique_identifier, bindings, primitive) ==
+               std::tie(rhs.unique_identifier, rhs.bindings, rhs.primitive);
+    }
+
+    bool operator!=(const ShaderDiskCacheUsage& rhs) const {
+        return !operator==(rhs);
     }
 };
+
+} // namespace OpenGL
+
+namespace std {
+
+template <>
+struct hash<OpenGL::BaseBindings> {
+    std::size_t operator()(const OpenGL::BaseBindings& bindings) const {
+        return bindings.cbuf | bindings.gmem << 8 | bindings.sampler << 16;
+    }
+};
+
+template <>
+struct hash<OpenGL::ShaderDiskCacheUsage> {
+    std::size_t operator()(const OpenGL::ShaderDiskCacheUsage& usage) const {
+        return static_cast<std::size_t>(usage.unique_identifier) ^
+               std::hash<OpenGL::BaseBindings>()(usage.bindings) ^ usage.primitive << 16;
+    }
+};
+
+} // namespace std
+
+namespace OpenGL {
 
 /// Describes a shader how it's used by the guest GPU
 class ShaderDiskCacheRaw {
@@ -114,30 +146,6 @@ private:
     ProgramCode program_code_b;
 };
 
-/// Describes how a shader is used
-struct ShaderDiskCacheUsage {
-    bool operator<(const ShaderDiskCacheUsage& rhs) const {
-        return Tie() < rhs.Tie();
-    }
-
-    bool operator==(const ShaderDiskCacheUsage& rhs) const {
-        return Tie() == rhs.Tie();
-    }
-
-    bool operator!=(const ShaderDiskCacheUsage& rhs) const {
-        return !operator==(rhs);
-    }
-
-    u64 unique_identifier{};
-    BaseBindings bindings;
-    GLenum primitive{};
-
-private:
-    std::tuple<u64, BaseBindings, GLenum> Tie() const {
-        return std::tie(unique_identifier, bindings, primitive);
-    }
-};
-
 /// Contains decompiled data from a shader
 struct ShaderDiskCacheDecompiled {
     std::string code;
@@ -159,8 +167,8 @@ public:
     LoadTransferable();
 
     /// Loads current game's precompiled cache. Invalidates on failure.
-    std::pair<std::map<u64, ShaderDiskCacheDecompiled>,
-              std::map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>
+    std::pair<std::unordered_map<u64, ShaderDiskCacheDecompiled>,
+              std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>
     LoadPrecompiled();
 
     /// Removes the transferable (and precompiled) cache file.
@@ -184,8 +192,8 @@ public:
 
 private:
     /// Loads the transferable cache. Returns empty on failure.
-    std::optional<std::pair<std::map<u64, ShaderDiskCacheDecompiled>,
-                            std::map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>>
+    std::optional<std::pair<std::unordered_map<u64, ShaderDiskCacheDecompiled>,
+                            std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>>
     LoadPrecompiledFile(FileUtil::IOFile& file);
 
     /// Loads a decompiled cache entry from the passed file. Returns empty on failure.
@@ -229,7 +237,7 @@ private:
     // Copre system
     Core::System& system;
     // Stored transferable shaders
-    std::map<u64, std::set<ShaderDiskCacheUsage>> transferable;
+    std::map<u64, std::unordered_set<ShaderDiskCacheUsage>> transferable;
     // The cache has been loaded at boot
     bool tried_to_load{};
 };

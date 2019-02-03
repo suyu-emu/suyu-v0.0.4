@@ -5,10 +5,10 @@
 #pragma once
 
 #include <array>
-#include <map>
 #include <memory>
 #include <set>
 #include <tuple>
+#include <unordered_map>
 
 #include <glad/glad.h>
 
@@ -34,8 +34,8 @@ struct UnspecializedShader;
 using Shader = std::shared_ptr<CachedShader>;
 using CachedProgram = std::shared_ptr<OGLProgram>;
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
-using PrecompiledPrograms = std::map<ShaderDiskCacheUsage, CachedProgram>;
-using PrecompiledShaders = std::map<u64, GLShader::ProgramResult>;
+using PrecompiledPrograms = std::unordered_map<ShaderDiskCacheUsage, CachedProgram>;
+using PrecompiledShaders = std::unordered_map<u64, GLShader::ProgramResult>;
 
 class CachedShader final : public RasterizerCacheObject {
 public:
@@ -102,12 +102,12 @@ private:
 
     std::string code;
 
-    std::map<BaseBindings, CachedProgram> programs;
-    std::map<BaseBindings, GeometryPrograms> geometry_programs;
+    std::unordered_map<BaseBindings, CachedProgram> programs;
+    std::unordered_map<BaseBindings, GeometryPrograms> geometry_programs;
 
-    std::map<u32, GLuint> cbuf_resource_cache;
-    std::map<u32, GLuint> gmem_resource_cache;
-    std::map<u32, GLint> uniform_cache;
+    std::unordered_map<u32, GLuint> cbuf_resource_cache;
+    std::unordered_map<u32, GLuint> gmem_resource_cache;
+    std::unordered_map<u32, GLint> uniform_cache;
 };
 
 class ShaderCacheOpenGL final : public RasterizerCache<Shader> {
@@ -122,10 +122,10 @@ public:
     Shader GetStageProgram(Maxwell::ShaderProgram program);
 
 private:
-    std::map<u64, UnspecializedShader> GenerateUnspecializedShaders(
+    std::unordered_map<u64, UnspecializedShader> GenerateUnspecializedShaders(
         const std::atomic_bool& stop_loading, const VideoCore::DiskResourceLoadCallback& callback,
         const std::vector<ShaderDiskCacheRaw>& raws,
-        const std::map<u64, ShaderDiskCacheDecompiled>& decompiled);
+        const std::unordered_map<u64, ShaderDiskCacheDecompiled>& decompiled);
 
     CachedProgram GeneratePrecompiledProgram(const ShaderDiskCacheDump& dump,
                                              const std::set<GLenum>& supported_formats);

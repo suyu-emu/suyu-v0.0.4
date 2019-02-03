@@ -431,11 +431,11 @@ CachedProgram ShaderCacheOpenGL::GeneratePrecompiledProgram(
     return shader;
 }
 
-std::map<u64, UnspecializedShader> ShaderCacheOpenGL::GenerateUnspecializedShaders(
+std::unordered_map<u64, UnspecializedShader> ShaderCacheOpenGL::GenerateUnspecializedShaders(
     const std::atomic_bool& stop_loading, const VideoCore::DiskResourceLoadCallback& callback,
     const std::vector<ShaderDiskCacheRaw>& raws,
-    const std::map<u64, ShaderDiskCacheDecompiled>& decompiled) {
-    std::map<u64, UnspecializedShader> unspecialized;
+    const std::unordered_map<u64, ShaderDiskCacheDecompiled>& decompiled) {
+    std::unordered_map<u64, UnspecializedShader> unspecialized;
 
     if (callback)
         callback(VideoCore::LoadCallbackStage::Decompile, 0, raws.size());
