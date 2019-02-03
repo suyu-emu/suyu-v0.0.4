@@ -115,10 +115,10 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, const BasicBlock& code, u32 pc) {
         };
 
         switch (instr.ldst_sl.type.Value()) {
-        case Tegra::Shader::StoreType::Bytes32:
+        case Tegra::Shader::StoreType::Bits32:
             SetRegister(bb, instr.gpr0, GetLmem(0));
             break;
-        case Tegra::Shader::StoreType::Bytes64: {
+        case Tegra::Shader::StoreType::Bits64: {
             SetTemporal(bb, 0, GetLmem(0));
             SetTemporal(bb, 1, GetLmem(4));
             SetRegister(bb, instr.gpr0, GetTemporal(0));
@@ -127,7 +127,7 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, const BasicBlock& code, u32 pc) {
         }
         default:
             UNIMPLEMENTED_MSG("LD_L Unhandled type: {}",
-                              static_cast<unsigned>(instr.ldst_sl.type.Value()));
+                              static_cast<u32>(instr.ldst_sl.type.Value()));
         }
         break;
     }
@@ -217,7 +217,7 @@ u32 ShaderIR::DecodeMemory(BasicBlock& bb, const BasicBlock& code, u32 pc) {
                                      Immediate(static_cast<s32>(instr.smem_imm)));
 
         switch (instr.ldst_sl.type.Value()) {
-        case Tegra::Shader::StoreType::Bytes32:
+        case Tegra::Shader::StoreType::Bits32:
             SetLocalMemory(bb, index, GetRegister(instr.gpr0));
             break;
         default:
