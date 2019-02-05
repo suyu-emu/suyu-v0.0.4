@@ -322,14 +322,15 @@ void ISelfController::SetScreenShotImageOrientation(Kernel::HLERequestContext& c
 
 void ISelfController::CreateManagedDisplayLayer(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
+
     // TODO(Subv): Find out how AM determines the display to use, for now just
     // create the layer in the Default display.
-    u64 display_id = nvflinger->OpenDisplay("Default");
-    u64 layer_id = nvflinger->CreateLayer(display_id);
+    const auto display_id = nvflinger->OpenDisplay("Default");
+    const auto layer_id = nvflinger->CreateLayer(*display_id);
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
-    rb.Push(layer_id);
+    rb.Push(*layer_id);
 }
 
 void ISelfController::SetHandlesRequestToDisplay(Kernel::HLERequestContext& ctx) {
