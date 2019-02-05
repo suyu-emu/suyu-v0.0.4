@@ -182,7 +182,7 @@ struct TICEntry {
     };
     union {
         BitField<0, 16, u32> height_minus_1;
-        BitField<16, 15, u32> depth_minus_1;
+        BitField<16, 14, u32> depth_minus_1;
     };
     union {
         BitField<6, 13, u32> mip_lod_bias;
