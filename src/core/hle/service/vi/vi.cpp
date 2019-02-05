@@ -1088,7 +1088,7 @@ private:
 
         LOG_WARNING(Service_VI, "(STUBBED) called. display_id=0x{:016X}", display_id);
 
-        const auto vsync_event = nv_flinger->GetVsyncEvent(display_id);
+        const auto vsync_event = nv_flinger->FindVsyncEvent(display_id);
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);

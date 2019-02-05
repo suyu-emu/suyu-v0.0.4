@@ -78,7 +78,7 @@ u32 NVFlinger::FindBufferQueueId(u64 display_id, u64 layer_id) const {
     return layer.buffer_queue->GetId();
 }
 
-Kernel::SharedPtr<Kernel::ReadableEvent> NVFlinger::GetVsyncEvent(u64 display_id) {
+Kernel::SharedPtr<Kernel::ReadableEvent> NVFlinger::FindVsyncEvent(u64 display_id) {
     return FindDisplay(display_id).vsync_event.readable;
 }
 

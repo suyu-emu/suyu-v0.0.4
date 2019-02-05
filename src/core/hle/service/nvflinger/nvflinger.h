@@ -67,7 +67,7 @@ public:
     u32 FindBufferQueueId(u64 display_id, u64 layer_id) const;
 
     /// Gets the vsync event for the specified display.
-    Kernel::SharedPtr<Kernel::ReadableEvent> GetVsyncEvent(u64 display_id);
+    Kernel::SharedPtr<Kernel::ReadableEvent> FindVsyncEvent(u64 display_id);
 
     /// Obtains a buffer queue identified by the ID.
     std::shared_ptr<BufferQueue> FindBufferQueue(u32 id) const;
