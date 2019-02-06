@@ -132,7 +132,7 @@ border-radius: 15px;
 font: 75 15pt &quot;Arial&quot;;</string>
           </property>
           <property name="text">
-           <string>Stage 1 of 2. Estimate Time 5m 4s</string>
+           <string>Estimated Time 5m 4s</string>
           </property>
          </widget>
         </item>
@@ -145,6 +145,9 @@ font: 75 15pt &quot;Arial&quot;;</string>
         </property>
         <property name="text">
          <string/>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
         </property>
         <property name="margin">
          <number>30</number>
