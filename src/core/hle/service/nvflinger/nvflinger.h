@@ -6,6 +6,7 @@
 
 #include <array>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -58,16 +59,24 @@ public:
     void SetNVDrvInstance(std::shared_ptr<Nvidia::Module> instance);
 
     /// Opens the specified display and returns the ID.
-    u64 OpenDisplay(std::string_view name);
+    ///
+    /// If an invalid display name is provided, then an empty optional is returned.
+    std::optional<u64> OpenDisplay(std::string_view name);
 
     /// Creates a layer on the specified display and returns the layer ID.
-    u64 CreateLayer(u64 display_id);
+    ///
+    /// If an invalid display ID is specified, then an empty optional is returned.
+    std::optional<u64> CreateLayer(u64 display_id);
 
     /// Finds the buffer queue ID of the specified layer in the specified display.
-    u32 FindBufferQueueId(u64 display_id, u64 layer_id) const;
+    ///
+    /// If an invalid display ID or layer ID is provided, then an empty optional is returned.
+    std::optional<u32> FindBufferQueueId(u64 display_id, u64 layer_id) const;
 
     /// Gets the vsync event for the specified display.
-    Kernel::SharedPtr<Kernel::ReadableEvent> GetVsyncEvent(u64 display_id);
+    ///
+    /// If an invalid display ID is provided, then nullptr is returned.
+    Kernel::SharedPtr<Kernel::ReadableEvent> FindVsyncEvent(u64 display_id) const;
 
     /// Obtains a buffer queue identified by the ID.
     std::shared_ptr<BufferQueue> FindBufferQueue(u32 id) const;
@@ -78,16 +87,16 @@ public:
 
 private:
     /// Finds the display identified by the specified ID.
-    Display& FindDisplay(u64 display_id);
+    Display* FindDisplay(u64 display_id);
 
     /// Finds the display identified by the specified ID.
-    const Display& FindDisplay(u64 display_id) const;
+    const Display* FindDisplay(u64 display_id) const;
 
     /// Finds the layer identified by the specified ID in the desired display.
-    Layer& FindLayer(u64 display_id, u64 layer_id);
+    Layer* FindLayer(u64 display_id, u64 layer_id);
 
     /// Finds the layer identified by the specified ID in the desired display.
-    const Layer& FindLayer(u64 display_id, u64 layer_id) const;
+    const Layer* FindLayer(u64 display_id, u64 layer_id) const;
 
     std::shared_ptr<Nvidia::Module> nvdrv;
 
