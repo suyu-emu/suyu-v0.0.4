@@ -273,7 +273,8 @@ void Maxwell3D::ProcessQueryGet() {
     GPUVAddr sequence_address = regs.query.QueryAddress();
     // Since the sequence address is given as a GPU VAddr, we have to convert it to an application
     // VAddr before writing.
-    std::optional<VAddr> address = memory_manager.GpuToCpuAddress(sequence_address);
+    const auto address = memory_manager.GpuToCpuAddress(sequence_address);
+    ASSERT_MSG(address, "Invalid GPU address");
 
     // TODO(Subv): Support the other query units.
     ASSERT_MSG(regs.query.query_get.unit == Regs::QueryUnit::Crop,
@@ -386,14 +387,14 @@ void Maxwell3D::ProcessCBBind(Regs::ShaderStage stage) {
 
 void Maxwell3D::ProcessCBData(u32 value) {
     // Write the input value to the current const buffer at the current position.
-    GPUVAddr buffer_address = regs.const_buffer.BufferAddress();
+    const GPUVAddr buffer_address = regs.const_buffer.BufferAddress();
     ASSERT(buffer_address != 0);
 
     // Don't allow writing past the end of the buffer.
     ASSERT(regs.const_buffer.cb_pos + sizeof(u32) <= regs.const_buffer.cb_size);
 
-    std::optional<VAddr> address =
-        memory_manager.GpuToCpuAddress(buffer_address + regs.const_buffer.cb_pos);
+    const auto address = memory_manager.GpuToCpuAddress(buffer_address + regs.const_buffer.cb_pos);
+    ASSERT_MSG(address, "Invalid GPU address");
 
     Memory::Write32(*address, value);
     dirty_flags.OnMemoryWrite();
@@ -403,10 +404,11 @@ void Maxwell3D::ProcessCBData(u32 value) {
 }
 
 Texture::TICEntry Maxwell3D::GetTICEntry(u32 tic_index) const {
-    GPUVAddr tic_base_address = regs.tic.TICAddress();
+    const GPUVAddr tic_base_address = regs.tic.TICAddress();
 
-    GPUVAddr tic_address_gpu = tic_base_address + tic_index * sizeof(Texture::TICEntry);
-    std::optional<VAddr> tic_address_cpu = memory_manager.GpuToCpuAddress(tic_address_gpu);
+    const GPUVAddr tic_address_gpu = tic_base_address + tic_index * sizeof(Texture::TICEntry);
+    const auto tic_address_cpu = memory_manager.GpuToCpuAddress(tic_address_gpu);
+    ASSERT_MSG(tic_address_cpu, "Invalid GPU address");
 
     Texture::TICEntry tic_entry;
     Memory::ReadBlock(*tic_address_cpu, &tic_entry, sizeof(Texture::TICEntry));
@@ -415,10 +417,10 @@ Texture::TICEntry Maxwell3D::GetTICEntry(u32 tic_index) const {
                    tic_entry.header_version == Texture::TICHeaderVersion::Pitch,
                "TIC versions other than BlockLinear or Pitch are unimplemented");
 
-    auto r_type = tic_entry.r_type.Value();
-    auto g_type = tic_entry.g_type.Value();
-    auto b_type = tic_entry.b_type.Value();
-    auto a_type = tic_entry.a_type.Value();
+    const auto r_type = tic_entry.r_type.Value();
+    const auto g_type = tic_entry.g_type.Value();
+    const auto b_type = tic_entry.b_type.Value();
+    const auto a_type = tic_entry.a_type.Value();
 
     // TODO(Subv): Different data types for separate components are not supported
     ASSERT(r_type == g_type && r_type == b_type && r_type == a_type);
@@ -427,10 +429,11 @@ Texture::TICEntry Maxwell3D::GetTICEntry(u32 tic_index) const {
 }
 
 Texture::TSCEntry Maxwell3D::GetTSCEntry(u32 tsc_index) const {
-    GPUVAddr tsc_base_address = regs.tsc.TSCAddress();
+    const GPUVAddr tsc_base_address = regs.tsc.TSCAddress();
 
-    GPUVAddr tsc_address_gpu = tsc_base_address + tsc_index * sizeof(Texture::TSCEntry);
-    std::optional<VAddr> tsc_address_cpu = memory_manager.GpuToCpuAddress(tsc_address_gpu);
+    const GPUVAddr tsc_address_gpu = tsc_base_address + tsc_index * sizeof(Texture::TSCEntry);
+    const auto tsc_address_cpu = memory_manager.GpuToCpuAddress(tsc_address_gpu);
+    ASSERT_MSG(tsc_address_cpu, "Invalid GPU address");
 
     Texture::TSCEntry tsc_entry;
     Memory::ReadBlock(*tsc_address_cpu, &tsc_entry, sizeof(Texture::TSCEntry));
@@ -452,8 +455,10 @@ std::vector<Texture::FullTextureInfo> Maxwell3D::GetStageTextures(Regs::ShaderSt
     for (GPUVAddr current_texture = tex_info_buffer.address + TextureInfoOffset;
          current_texture < tex_info_buffer_end; current_texture += sizeof(Texture::TextureHandle)) {
 
-        Texture::TextureHandle tex_handle{
-            Memory::Read32(*memory_manager.GpuToCpuAddress(current_texture))};
+        const auto address = memory_manager.GpuToCpuAddress(current_texture);
+        ASSERT_MSG(address, "Invalid GPU address");
+
+        const Texture::TextureHandle tex_handle{Memory::Read32(*address)};
 
         Texture::FullTextureInfo tex_info{};
         // TODO(Subv): Use the shader to determine which textures are actually accessed.
@@ -462,23 +467,16 @@ std::vector<Texture::FullTextureInfo> Maxwell3D::GetStageTextures(Regs::ShaderSt
             sizeof(Texture::TextureHandle);
 
         // Load the TIC data.
-        if (tex_handle.tic_id != 0) {
-            tex_info.enabled = true;
-
-            auto tic_entry = GetTICEntry(tex_handle.tic_id);
-            // TODO(Subv): Workaround for BitField's move constructor being deleted.
-            std::memcpy(&tex_info.tic, &tic_entry, sizeof(tic_entry));
-        }
+        auto tic_entry = GetTICEntry(tex_handle.tic_id);
+        // TODO(Subv): Workaround for BitField's move constructor being deleted.
+        std::memcpy(&tex_info.tic, &tic_entry, sizeof(tic_entry));
 
         // Load the TSC data
-        if (tex_handle.tsc_id != 0) {
-            auto tsc_entry = GetTSCEntry(tex_handle.tsc_id);
-            // TODO(Subv): Workaround for BitField's move constructor being deleted.
-            std::memcpy(&tex_info.tsc, &tsc_entry, sizeof(tsc_entry));
-        }
+        auto tsc_entry = GetTSCEntry(tex_handle.tsc_id);
+        // TODO(Subv): Workaround for BitField's move constructor being deleted.
+        std::memcpy(&tex_info.tsc, &tsc_entry, sizeof(tsc_entry));
 
-        if (tex_info.enabled)
-            textures.push_back(tex_info);
+        textures.push_back(tex_info);
     }
 
     return textures;
@@ -490,31 +488,28 @@ Texture::FullTextureInfo Maxwell3D::GetStageTexture(Regs::ShaderStage stage,
     auto& tex_info_buffer = shader.const_buffers[regs.tex_cb_index];
     ASSERT(tex_info_buffer.enabled && tex_info_buffer.address != 0);
 
-    GPUVAddr tex_info_address = tex_info_buffer.address + offset * sizeof(Texture::TextureHandle);
+    const GPUVAddr tex_info_address =
+        tex_info_buffer.address + offset * sizeof(Texture::TextureHandle);
 
     ASSERT(tex_info_address < tex_info_buffer.address + tex_info_buffer.size);
 
-    std::optional<VAddr> tex_address_cpu = memory_manager.GpuToCpuAddress(tex_info_address);
-    Texture::TextureHandle tex_handle{Memory::Read32(*tex_address_cpu)};
+    const auto tex_address_cpu = memory_manager.GpuToCpuAddress(tex_info_address);
+    ASSERT_MSG(tex_address_cpu, "Invalid GPU address");
+
+    const Texture::TextureHandle tex_handle{Memory::Read32(*tex_address_cpu)};
 
     Texture::FullTextureInfo tex_info{};
     tex_info.index = static_cast<u32>(offset);
 
     // Load the TIC data.
-    if (tex_handle.tic_id != 0) {
-        tex_info.enabled = true;
-
-        auto tic_entry = GetTICEntry(tex_handle.tic_id);
-        // TODO(Subv): Workaround for BitField's move constructor being deleted.
-        std::memcpy(&tex_info.tic, &tic_entry, sizeof(tic_entry));
-    }
+    auto tic_entry = GetTICEntry(tex_handle.tic_id);
+    // TODO(Subv): Workaround for BitField's move constructor being deleted.
+    std::memcpy(&tex_info.tic, &tic_entry, sizeof(tic_entry));
 
     // Load the TSC data
-    if (tex_handle.tsc_id != 0) {
-        auto tsc_entry = GetTSCEntry(tex_handle.tsc_id);
-        // TODO(Subv): Workaround for BitField's move constructor being deleted.
-        std::memcpy(&tex_info.tsc, &tsc_entry, sizeof(tsc_entry));
-    }
+    auto tsc_entry = GetTSCEntry(tex_handle.tsc_id);
+    // TODO(Subv): Workaround for BitField's move constructor being deleted.
+    std::memcpy(&tex_info.tsc, &tsc_entry, sizeof(tsc_entry));
 
     return tex_info;
 }

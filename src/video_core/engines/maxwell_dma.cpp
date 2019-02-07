@@ -39,8 +39,10 @@ void MaxwellDMA::HandleCopy() {
     const GPUVAddr source = regs.src_address.Address();
     const GPUVAddr dest = regs.dst_address.Address();
 
-    const VAddr source_cpu = *memory_manager.GpuToCpuAddress(source);
-    const VAddr dest_cpu = *memory_manager.GpuToCpuAddress(dest);
+    const auto source_cpu = memory_manager.GpuToCpuAddress(source);
+    const auto dest_cpu = memory_manager.GpuToCpuAddress(dest);
+    ASSERT_MSG(source_cpu, "Invalid source GPU address");
+    ASSERT_MSG(dest_cpu, "Invalid destination GPU address");
 
     // TODO(Subv): Perform more research and implement all features of this engine.
     ASSERT(regs.exec.enable_swizzle == 0);
@@ -64,7 +66,7 @@ void MaxwellDMA::HandleCopy() {
         // buffer of length `x_count`, otherwise we copy a 2D image of dimensions (x_count,
         // y_count).
         if (!regs.exec.enable_2d) {
-            Memory::CopyBlock(dest_cpu, source_cpu, regs.x_count);
+            Memory::CopyBlock(*dest_cpu, *source_cpu, regs.x_count);
             return;
         }
 
@@ -73,8 +75,8 @@ void MaxwellDMA::HandleCopy() {
         // rectangle. There is no need to manually flush/invalidate the regions because
         // CopyBlock does that for us.
         for (u32 line = 0; line < regs.y_count; ++line) {
-            const VAddr source_line = source_cpu + line * regs.src_pitch;
-            const VAddr dest_line = dest_cpu + line * regs.dst_pitch;
+            const VAddr source_line = *source_cpu + line * regs.src_pitch;
+            const VAddr dest_line = *dest_cpu + line * regs.dst_pitch;
             Memory::CopyBlock(dest_line, source_line, regs.x_count);
         }
         return;
@@ -87,12 +89,12 @@ void MaxwellDMA::HandleCopy() {
     const auto FlushAndInvalidate = [&](u32 src_size, u64 dst_size) {
         // TODO(Subv): For now, manually flush the regions until we implement GPU-accelerated
         // copying.
-        rasterizer.FlushRegion(source_cpu, src_size);
+        rasterizer.FlushRegion(*source_cpu, src_size);
 
         // We have to invalidate the destination region to evict any outdated surfaces from the
         // cache. We do this before actually writing the new data because the destination address
         // might contain a dirty surface that will have to be written back to memory.
-        rasterizer.InvalidateRegion(dest_cpu, dst_size);
+        rasterizer.InvalidateRegion(*dest_cpu, dst_size);
     };
 
     if (regs.exec.is_dst_linear && !regs.exec.is_src_linear) {
@@ -105,8 +107,8 @@ void MaxwellDMA::HandleCopy() {
                            copy_size * src_bytes_per_pixel);
 
         Texture::UnswizzleSubrect(regs.x_count, regs.y_count, regs.dst_pitch,
-                                  regs.src_params.size_x, src_bytes_per_pixel, source_cpu, dest_cpu,
-                                  regs.src_params.BlockHeight(), regs.src_params.pos_x,
+                                  regs.src_params.size_x, src_bytes_per_pixel, *source_cpu,
+                                  *dest_cpu, regs.src_params.BlockHeight(), regs.src_params.pos_x,
                                   regs.src_params.pos_y);
     } else {
         ASSERT(regs.dst_params.size_z == 1);
@@ -119,7 +121,7 @@ void MaxwellDMA::HandleCopy() {
 
         // If the input is linear and the output is tiled, swizzle the input and copy it over.
         Texture::SwizzleSubrect(regs.x_count, regs.y_count, regs.src_pitch, regs.dst_params.size_x,
-                                src_bpp, dest_cpu, source_cpu, regs.dst_params.BlockHeight());
+                                src_bpp, *dest_cpu, *source_cpu, regs.dst_params.BlockHeight());
     }
 }
 

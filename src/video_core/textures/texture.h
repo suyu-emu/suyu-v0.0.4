@@ -317,7 +317,6 @@ struct FullTextureInfo {
     u32 index;
     TICEntry tic;
     TSCEntry tsc;
-    bool enabled;
 };
 
 /// Returns the number of bytes per pixel of the input texture format.
