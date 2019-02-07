@@ -79,6 +79,8 @@ add_library(common STATIC
     common_funcs.h
     common_paths.h
     common_types.h
+    data_compression.cpp
+    data_compression.h
     file_util.cpp
     file_util.h
     hash.h
@@ -136,3 +138,4 @@ endif()
 create_target_directory_groups(common)
 
 target_link_libraries(common PUBLIC Boost::boost fmt microprofile)
+target_link_libraries(common PRIVATE lz4_static)
