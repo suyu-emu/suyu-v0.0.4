@@ -475,7 +475,7 @@ void ShaderDiskCacheOpenGL::SaveDecompiled(u64 unique_identifier, const std::str
         return;
 
     const std::vector<u8> compressed_code{
-        Compression::CompressDataLZ4(reinterpret_cast<const u8*>(code.data()), code.size())};
+        Compression::CompressDataLZ4(reinterpret_cast<const u8*>(code.data()), code.size(), true)};
     if (compressed_code.empty()) {
         LOG_ERROR(Render_OpenGL, "Failed to compress GLSL code - skipping shader {:016x}",
                   unique_identifier);
@@ -506,7 +506,7 @@ void ShaderDiskCacheOpenGL::SaveDump(const ShaderDiskCacheUsage& usage, GLuint p
     glGetProgramBinary(program, binary_length, nullptr, &binary_format, binary.data());
 
     const std::vector<u8> compressed_binary =
-        Compression::CompressDataLZ4(binary.data(), binary.size());
+        Compression::CompressDataLZ4(binary.data(), binary.size(), true);
 
     if (compressed_binary.empty()) {
         LOG_ERROR(Render_OpenGL, "Failed to compress binary program in shader={:016x}",
