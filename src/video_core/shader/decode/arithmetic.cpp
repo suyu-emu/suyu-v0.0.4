@@ -13,7 +13,7 @@ using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
 using Tegra::Shader::SubOp;
 
-u32 ShaderIR::DecodeArithmetic(BasicBlock& bb, const BasicBlock& code, u32 pc) {
+u32 ShaderIR::DecodeArithmetic(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 

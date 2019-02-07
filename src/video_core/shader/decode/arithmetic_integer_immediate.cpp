@@ -16,7 +16,7 @@ using Tegra::Shader::Pred;
 using Tegra::Shader::PredicateResultMode;
 using Tegra::Shader::Register;
 
-u32 ShaderIR::DecodeArithmeticIntegerImmediate(BasicBlock& bb, const BasicBlock& code, u32 pc) {
+u32 ShaderIR::DecodeArithmeticIntegerImmediate(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
@@ -54,9 +54,9 @@ u32 ShaderIR::DecodeArithmeticIntegerImmediate(BasicBlock& bb, const BasicBlock&
     return pc;
 }
 
-void ShaderIR::WriteLogicOperation(BasicBlock& bb, Register dest, LogicOperation logic_op,
-                                   Node op_a, Node op_b, PredicateResultMode predicate_mode,
-                                   Pred predicate, bool sets_cc) {
+void ShaderIR::WriteLogicOperation(NodeBlock& bb, Register dest, LogicOperation logic_op, Node op_a,
+                                   Node op_b, PredicateResultMode predicate_mode, Pred predicate,
+                                   bool sets_cc) {
     const Node result = [&]() {
         switch (logic_op) {
         case LogicOperation::And:

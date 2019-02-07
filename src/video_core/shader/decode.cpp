@@ -121,15 +121,15 @@ ExitMethod ShaderIR::Scan(u32 begin, u32 end, std::set<u32>& labels) {
     return exit_method = ExitMethod::AlwaysReturn;
 }
 
-BasicBlock ShaderIR::DecodeRange(u32 begin, u32 end) {
-    BasicBlock basic_block;
+NodeBlock ShaderIR::DecodeRange(u32 begin, u32 end) {
+    NodeBlock basic_block;
     for (u32 pc = begin; pc < (begin > end ? MAX_PROGRAM_LENGTH : end);) {
         pc = DecodeInstr(basic_block, pc);
     }
     return basic_block;
 }
 
-u32 ShaderIR::DecodeInstr(BasicBlock& bb, u32 pc) {
+u32 ShaderIR::DecodeInstr(NodeBlock& bb, u32 pc) {
     // Ignore sched instructions when generating code.
     if (IsSchedInstruction(pc, main_offset)) {
         return pc + 1;
@@ -151,39 +151,38 @@ u32 ShaderIR::DecodeInstr(BasicBlock& bb, u32 pc) {
     UNIMPLEMENTED_IF_MSG(instr.pred.full_pred == Pred::NeverExecute,
                          "NeverExecute predicate not implemented");
 
-    static const std::map<OpCode::Type, u32 (ShaderIR::*)(BasicBlock&, const BasicBlock&, u32)>
-        decoders = {
-            {OpCode::Type::Arithmetic, &ShaderIR::DecodeArithmetic},
-            {OpCode::Type::ArithmeticImmediate, &ShaderIR::DecodeArithmeticImmediate},
-            {OpCode::Type::Bfe, &ShaderIR::DecodeBfe},
-            {OpCode::Type::Bfi, &ShaderIR::DecodeBfi},
-            {OpCode::Type::Shift, &ShaderIR::DecodeShift},
-            {OpCode::Type::ArithmeticInteger, &ShaderIR::DecodeArithmeticInteger},
-            {OpCode::Type::ArithmeticIntegerImmediate, &ShaderIR::DecodeArithmeticIntegerImmediate},
-            {OpCode::Type::ArithmeticHalf, &ShaderIR::DecodeArithmeticHalf},
-            {OpCode::Type::ArithmeticHalfImmediate, &ShaderIR::DecodeArithmeticHalfImmediate},
-            {OpCode::Type::Ffma, &ShaderIR::DecodeFfma},
-            {OpCode::Type::Hfma2, &ShaderIR::DecodeHfma2},
-            {OpCode::Type::Conversion, &ShaderIR::DecodeConversion},
-            {OpCode::Type::Memory, &ShaderIR::DecodeMemory},
-            {OpCode::Type::FloatSetPredicate, &ShaderIR::DecodeFloatSetPredicate},
-            {OpCode::Type::IntegerSetPredicate, &ShaderIR::DecodeIntegerSetPredicate},
-            {OpCode::Type::HalfSetPredicate, &ShaderIR::DecodeHalfSetPredicate},
-            {OpCode::Type::PredicateSetRegister, &ShaderIR::DecodePredicateSetRegister},
-            {OpCode::Type::PredicateSetPredicate, &ShaderIR::DecodePredicateSetPredicate},
-            {OpCode::Type::RegisterSetPredicate, &ShaderIR::DecodeRegisterSetPredicate},
-            {OpCode::Type::FloatSet, &ShaderIR::DecodeFloatSet},
-            {OpCode::Type::IntegerSet, &ShaderIR::DecodeIntegerSet},
-            {OpCode::Type::HalfSet, &ShaderIR::DecodeHalfSet},
-            {OpCode::Type::Video, &ShaderIR::DecodeVideo},
-            {OpCode::Type::Xmad, &ShaderIR::DecodeXmad},
-        };
+    static const std::map<OpCode::Type, u32 (ShaderIR::*)(NodeBlock&, u32)> decoders = {
+        {OpCode::Type::Arithmetic, &ShaderIR::DecodeArithmetic},
+        {OpCode::Type::ArithmeticImmediate, &ShaderIR::DecodeArithmeticImmediate},
+        {OpCode::Type::Bfe, &ShaderIR::DecodeBfe},
+        {OpCode::Type::Bfi, &ShaderIR::DecodeBfi},
+        {OpCode::Type::Shift, &ShaderIR::DecodeShift},
+        {OpCode::Type::ArithmeticInteger, &ShaderIR::DecodeArithmeticInteger},
+        {OpCode::Type::ArithmeticIntegerImmediate, &ShaderIR::DecodeArithmeticIntegerImmediate},
+        {OpCode::Type::ArithmeticHalf, &ShaderIR::DecodeArithmeticHalf},
+        {OpCode::Type::ArithmeticHalfImmediate, &ShaderIR::DecodeArithmeticHalfImmediate},
+        {OpCode::Type::Ffma, &ShaderIR::DecodeFfma},
+        {OpCode::Type::Hfma2, &ShaderIR::DecodeHfma2},
+        {OpCode::Type::Conversion, &ShaderIR::DecodeConversion},
+        {OpCode::Type::Memory, &ShaderIR::DecodeMemory},
+        {OpCode::Type::FloatSetPredicate, &ShaderIR::DecodeFloatSetPredicate},
+        {OpCode::Type::IntegerSetPredicate, &ShaderIR::DecodeIntegerSetPredicate},
+        {OpCode::Type::HalfSetPredicate, &ShaderIR::DecodeHalfSetPredicate},
+        {OpCode::Type::PredicateSetRegister, &ShaderIR::DecodePredicateSetRegister},
+        {OpCode::Type::PredicateSetPredicate, &ShaderIR::DecodePredicateSetPredicate},
+        {OpCode::Type::RegisterSetPredicate, &ShaderIR::DecodeRegisterSetPredicate},
+        {OpCode::Type::FloatSet, &ShaderIR::DecodeFloatSet},
+        {OpCode::Type::IntegerSet, &ShaderIR::DecodeIntegerSet},
+        {OpCode::Type::HalfSet, &ShaderIR::DecodeHalfSet},
+        {OpCode::Type::Video, &ShaderIR::DecodeVideo},
+        {OpCode::Type::Xmad, &ShaderIR::DecodeXmad},
+    };
 
     std::vector<Node> tmp_block;
     if (const auto decoder = decoders.find(opcode->get().GetType()); decoder != decoders.end()) {
-        pc = (this->*decoder->second)(tmp_block, bb, pc);
+        pc = (this->*decoder->second)(tmp_block, pc);
     } else {
-        pc = DecodeOther(tmp_block, bb, pc);
+        pc = DecodeOther(tmp_block, pc);
     }
 
     // Some instructions (like SSY) don't have a predicate field, they are always unconditionally
@@ -192,11 +191,14 @@ u32 ShaderIR::DecodeInstr(BasicBlock& bb, u32 pc) {
     const auto pred_index = static_cast<u32>(instr.pred.pred_index);
 
     if (can_be_predicated && pred_index != static_cast<u32>(Pred::UnusedIndex)) {
-        bb.push_back(
-            Conditional(GetPredicate(pred_index, instr.negate_pred != 0), std::move(tmp_block)));
+        const Node conditional =
+            Conditional(GetPredicate(pred_index, instr.negate_pred != 0), std::move(tmp_block));
+        global_code.push_back(conditional);
+        bb.push_back(conditional);
     } else {
         for (auto& node : tmp_block) {
-            bb.push_back(std::move(node));
+            global_code.push_back(node);
+            bb.push_back(node);
         }
     }
 

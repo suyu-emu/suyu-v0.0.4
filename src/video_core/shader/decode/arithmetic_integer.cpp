@@ -15,7 +15,7 @@ using Tegra::Shader::OpCode;
 using Tegra::Shader::Pred;
 using Tegra::Shader::Register;
 
-u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, const BasicBlock& code, u32 pc) {
+u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
@@ -242,7 +242,7 @@ u32 ShaderIR::DecodeArithmeticInteger(BasicBlock& bb, const BasicBlock& code, u3
     return pc;
 }
 
-void ShaderIR::WriteLop3Instruction(BasicBlock& bb, Register dest, Node op_a, Node op_b, Node op_c,
+void ShaderIR::WriteLop3Instruction(NodeBlock& bb, Register dest, Node op_a, Node op_b, Node op_c,
                                     Node imm_lut, bool sets_cc) {
     constexpr u32 lop_iterations = 32;
     const Node one = Immediate(1);

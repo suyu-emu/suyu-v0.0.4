@@ -171,7 +171,7 @@ public:
             code.AddLine(fmt::format("case 0x{:x}u: {{", address));
             ++code.scope;
 
-            VisitBasicBlock(bb);
+            VisitBlock(bb);
 
             --code.scope;
             code.AddLine('}');
@@ -423,7 +423,7 @@ private:
             code.AddNewLine();
     }
 
-    void VisitBasicBlock(const BasicBlock& bb) {
+    void VisitBlock(const NodeBlock& bb) {
         for (const Node node : bb) {
             if (const std::string expr = Visit(node); !expr.empty()) {
                 code.AddLine(expr);
@@ -575,7 +575,7 @@ private:
             code.AddLine("if (" + Visit(conditional->GetCondition()) + ") {");
             ++code.scope;
 
-            VisitBasicBlock(conditional->GetCode());
+            VisitBlock(conditional->GetCode());
 
             --code.scope;
             code.AddLine('}');

@@ -337,27 +337,27 @@ Node ShaderIR::GetConditionCode(Tegra::Shader::ConditionCode cc) {
     }
 }
 
-void ShaderIR::SetRegister(BasicBlock& bb, Register dest, Node src) {
+void ShaderIR::SetRegister(NodeBlock& bb, Register dest, Node src) {
     bb.push_back(Operation(OperationCode::Assign, GetRegister(dest), src));
 }
 
-void ShaderIR::SetPredicate(BasicBlock& bb, u64 dest, Node src) {
+void ShaderIR::SetPredicate(NodeBlock& bb, u64 dest, Node src) {
     bb.push_back(Operation(OperationCode::LogicalAssign, GetPredicate(dest), src));
 }
 
-void ShaderIR::SetInternalFlag(BasicBlock& bb, InternalFlag flag, Node value) {
+void ShaderIR::SetInternalFlag(NodeBlock& bb, InternalFlag flag, Node value) {
     bb.push_back(Operation(OperationCode::LogicalAssign, GetInternalFlag(flag), value));
 }
 
-void ShaderIR::SetLocalMemory(BasicBlock& bb, Node address, Node value) {
+void ShaderIR::SetLocalMemory(NodeBlock& bb, Node address, Node value) {
     bb.push_back(Operation(OperationCode::Assign, GetLocalMemory(address), value));
 }
 
-void ShaderIR::SetTemporal(BasicBlock& bb, u32 id, Node value) {
+void ShaderIR::SetTemporal(NodeBlock& bb, u32 id, Node value) {
     SetRegister(bb, Register::ZeroIndex + 1 + id, value);
 }
 
-void ShaderIR::SetInternalFlagsFromFloat(BasicBlock& bb, Node value, bool sets_cc) {
+void ShaderIR::SetInternalFlagsFromFloat(NodeBlock& bb, Node value, bool sets_cc) {
     if (!sets_cc) {
         return;
     }
@@ -366,7 +366,7 @@ void ShaderIR::SetInternalFlagsFromFloat(BasicBlock& bb, Node value, bool sets_c
     LOG_WARNING(HW_GPU, "Condition codes implementation is incomplete");
 }
 
-void ShaderIR::SetInternalFlagsFromInteger(BasicBlock& bb, Node value, bool sets_cc) {
+void ShaderIR::SetInternalFlagsFromInteger(NodeBlock& bb, Node value, bool sets_cc) {
     if (!sets_cc) {
         return;
     }

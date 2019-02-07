@@ -13,7 +13,7 @@ using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
 using Tegra::Shader::Pred;
 
-u32 ShaderIR::DecodeHalfSetPredicate(BasicBlock& bb, const BasicBlock& code, u32 pc) {
+u32 ShaderIR::DecodeHalfSetPredicate(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 

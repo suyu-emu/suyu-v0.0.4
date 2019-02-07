@@ -11,7 +11,7 @@
 namespace VideoCommon::Shader {
 
 namespace {
-std::pair<Node, s64> FindOperation(const BasicBlock& code, s64 cursor,
+std::pair<Node, s64> FindOperation(const NodeBlock& code, s64 cursor,
                                    OperationCode operation_code) {
     for (; cursor >= 0; --cursor) {
         const Node node = code[cursor];
@@ -19,12 +19,19 @@ std::pair<Node, s64> FindOperation(const BasicBlock& code, s64 cursor,
             if (operation->GetCode() == operation_code)
                 return {node, cursor};
         }
+        if (const auto conditional = std::get_if<ConditionalNode>(node)) {
+            const auto& code = conditional->GetCode();
+            const auto [found, internal_cursor] =
+                FindOperation(code, static_cast<s64>(code.size() - 1), operation_code);
+            if (found)
+                return {found, cursor};
+        }
     }
     return {};
 }
 } // namespace
 
-Node ShaderIR::TrackCbuf(Node tracked, const BasicBlock& code, s64 cursor) {
+Node ShaderIR::TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) {
     if (const auto cbuf = std::get_if<CbufNode>(tracked)) {
         // Cbuf found, but it has to be immediate
         return std::holds_alternative<ImmediateNode>(*cbuf->GetOffset()) ? tracked : nullptr;
@@ -50,10 +57,14 @@ Node ShaderIR::TrackCbuf(Node tracked, const BasicBlock& code, s64 cursor) {
         }
         return nullptr;
     }
+    if (const auto conditional = std::get_if<ConditionalNode>(tracked)) {
+        const auto& code = conditional->GetCode();
+        return TrackCbuf(tracked, code, static_cast<s64>(code.size()));
+    }
     return nullptr;
 }
 
-std::pair<Node, s64> ShaderIR::TrackRegister(const GprNode* tracked, const BasicBlock& code,
+std::pair<Node, s64> ShaderIR::TrackRegister(const GprNode* tracked, const NodeBlock& code,
                                              s64 cursor) {
     for (; cursor >= 0; --cursor) {
         const auto [found_node, new_cursor] = FindOperation(code, cursor, OperationCode::Assign);
