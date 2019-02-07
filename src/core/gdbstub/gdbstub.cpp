@@ -507,8 +507,11 @@ static void RemoveBreakpoint(BreakpointType type, VAddr addr) {
 
     LOG_DEBUG(Debug_GDBStub, "gdb: removed a breakpoint: {:016X} bytes at {:016X} of type {}",
               bp->second.len, bp->second.addr, static_cast<int>(type));
-    Memory::WriteBlock(bp->second.addr, bp->second.inst.data(), bp->second.inst.size());
-    Core::System::GetInstance().InvalidateCpuInstructionCaches();
+
+    if (type == BreakpointType::Execute) {
+        Memory::WriteBlock(bp->second.addr, bp->second.inst.data(), bp->second.inst.size());
+        Core::System::GetInstance().InvalidateCpuInstructionCaches();
+    }
     p.erase(addr);
 }
 
@@ -1057,9 +1060,12 @@ static bool CommitBreakpoint(BreakpointType type, VAddr addr, u64 len) {
     breakpoint.addr = addr;
     breakpoint.len = len;
     Memory::ReadBlock(addr, breakpoint.inst.data(), breakpoint.inst.size());
+
     static constexpr std::array<u8, 4> btrap{0x00, 0x7d, 0x20, 0xd4};
-    Memory::WriteBlock(addr, btrap.data(), btrap.size());
-    Core::System::GetInstance().InvalidateCpuInstructionCaches();
+    if (type == BreakpointType::Execute) {
+        Memory::WriteBlock(addr, btrap.data(), btrap.size());
+        Core::System::GetInstance().InvalidateCpuInstructionCaches();
+    }
     p.insert({addr, breakpoint});
 
     LOG_DEBUG(Debug_GDBStub, "gdb: added {} breakpoint: {:016X} bytes at {:016X}",
