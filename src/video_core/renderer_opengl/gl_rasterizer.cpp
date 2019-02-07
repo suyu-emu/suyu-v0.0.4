@@ -22,6 +22,7 @@
 #include "core/settings.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
+#include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
 #include "video_core/renderer_opengl/maxwell_to_gl.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
@@ -99,8 +100,9 @@ struct FramebufferCacheKey {
     }
 };
 
-RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window, ScreenInfo& info)
-    : res_cache{*this}, shader_cache{*this}, emu_window{window}, screen_info{info},
+RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window, Core::System& system,
+                                   ScreenInfo& info)
+    : res_cache{*this}, shader_cache{*this, system}, emu_window{window}, screen_info{info},
       buffer_cache(*this, STREAM_BUFFER_SIZE), global_cache{*this} {
     // Create sampler objects
     for (std::size_t i = 0; i < texture_samplers.size(); ++i) {
@@ -447,7 +449,7 @@ static constexpr auto RangeFromInterval(Map& map, const Interval& interval) {
     return boost::make_iterator_range(map.equal_range(interval));
 }
 
-void RasterizerOpenGL::UpdatePagesCachedCount(VAddr addr, u64 size, int delta) {
+void RasterizerOpenGL::UpdatePagesCachedCount(Tegra::GPUVAddr addr, u64 size, int delta) {
     const u64 page_start{addr >> Memory::PAGE_BITS};
     const u64 page_end{(addr + size + Memory::PAGE_SIZE - 1) >> Memory::PAGE_BITS};
 
@@ -475,6 +477,11 @@ void RasterizerOpenGL::UpdatePagesCachedCount(VAddr addr, u64 size, int delta) {
 
     if (delta < 0)
         cached_pages.add({pages_interval, delta});
+}
+
+void RasterizerOpenGL::LoadDiskResources(const std::atomic_bool& stop_loading,
+                                         const VideoCore::DiskResourceLoadCallback& callback) {
+    shader_cache.LoadDiskCache(stop_loading, callback);
 }
 
 std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
@@ -1004,22 +1011,20 @@ void RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, const Shader& s
 
     for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
         const auto& entry = entries[bindpoint];
+        const auto texture = maxwell3d.GetStageTexture(stage, entry.GetOffset());
         const u32 current_bindpoint = base_bindings.sampler + bindpoint;
-        auto& unit = state.texture_units[current_bindpoint];
-
-        const auto texture = maxwell3d.GetStageTexture(entry.GetStage(), entry.GetOffset());
 
         texture_samplers[current_bindpoint].SyncWithConfig(texture.tsc);
 
         Surface surface = res_cache.GetTextureSurface(texture, entry);
         if (surface != nullptr) {
-            unit.texture =
+            state.texture_units[current_bindpoint].texture =
                 entry.IsArray() ? surface->TextureLayer().handle : surface->Texture().handle;
             surface->UpdateSwizzle(texture.tic.x_source, texture.tic.y_source, texture.tic.z_source,
                                    texture.tic.w_source);
         } else {
             // Can occur when texture addr is null or its memory is unmapped/invalid
-            unit.texture = 0;
+            state.texture_units[current_bindpoint].texture = 0;
         }
     }
 }
