@@ -4,7 +4,8 @@
 
 #include <cinttypes>
 #include <vector>
-#include <lz4.h>
+
+#include "common/data_compression.h"
 #include "common/common_funcs.h"
 #include "common/file_util.h"
 #include "common/hex_util.h"
@@ -35,15 +36,11 @@ static_assert(sizeof(MODHeader) == 0x1c, "MODHeader has incorrect size.");
 
 std::vector<u8> DecompressSegment(const std::vector<u8>& compressed_data,
                                   const NSOSegmentHeader& header) {
-    std::vector<u8> uncompressed_data(header.size);
-    const int bytes_uncompressed =
-        LZ4_decompress_safe(reinterpret_cast<const char*>(compressed_data.data()),
-                            reinterpret_cast<char*>(uncompressed_data.data()),
-                            static_cast<int>(compressed_data.size()), header.size);
+    const std::vector<u8> uncompressed_data =
+        Compression::DecompressDataLZ4(compressed_data, header.size);
 
-    ASSERT_MSG(bytes_uncompressed == static_cast<int>(header.size) &&
-                   bytes_uncompressed == static_cast<int>(uncompressed_data.size()),
-               "{} != {} != {}", bytes_uncompressed, header.size, uncompressed_data.size());
+    ASSERT_MSG(uncompressed_data.size() == static_cast<int>(header.size),
+               "{} != {}", header.size, uncompressed_data.size());
 
     return uncompressed_data;
 }
