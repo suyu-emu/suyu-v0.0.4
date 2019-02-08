@@ -5,7 +5,6 @@
 #include <cinttypes>
 #include <vector>
 
-#include "common/data_compression.h"
 #include "common/common_funcs.h"
 #include "common/file_util.h"
 #include "common/hex_util.h"
