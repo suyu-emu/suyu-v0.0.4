@@ -968,18 +968,27 @@ Surface RasterizerCacheOpenGL::GetColorBufferSurface(std::size_t index, bool pre
     gpu.dirty_flags.color_buffer.reset(index);
 
     ASSERT(index < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets);
+    auto Notify = [&]() {
+        if (last_color_buffers[index] != current_color_buffers[index]) {
+            NotifyFrameBufferChange(current_color_buffers[index]);
+        }
+        last_color_buffers[index] = current_color_buffers[index];
+    };
 
     if (index >= regs.rt_control.count) {
-        return last_color_buffers[index] = {};
+        Notify();
+        return current_color_buffers[index] = {};
     }
 
     if (regs.rt[index].Address() == 0 || regs.rt[index].format == Tegra::RenderTargetFormat::NONE) {
-        return last_color_buffers[index] = {};
+        Notify();
+        return current_color_buffers[index] = {};
     }
 
     const SurfaceParams color_params{SurfaceParams::CreateForFramebuffer(index)};
 
-    return last_color_buffers[index] = GetSurface(color_params, preserve_contents);
+    Notify();
+    return current_color_buffers[index] = GetSurface(color_params, preserve_contents);
 }
 
 void RasterizerCacheOpenGL::LoadSurface(const Surface& surface) {
@@ -1288,6 +1297,11 @@ Surface RasterizerCacheOpenGL::TryGetReservedSurface(const SurfaceParams& params
         return search->second;
     }
     return {};
+}
+
+void RasterizerCacheOpenGL::NotifyFrameBufferChange(Surface triggering_surface) {
+    if (triggering_surface == nullptr)
+        return;
 }
 
 } // namespace OpenGL

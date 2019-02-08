@@ -34,6 +34,7 @@ using SurfaceTarget = VideoCore::Surface::SurfaceTarget;
 using SurfaceType = VideoCore::Surface::SurfaceType;
 using PixelFormat = VideoCore::Surface::PixelFormat;
 using ComponentType = VideoCore::Surface::ComponentType;
+using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
 struct SurfaceParams {
     enum class SurfaceClass {
@@ -449,6 +450,9 @@ private:
     /// Tries to get a reserved surface for the specified parameters
     Surface TryGetReservedSurface(const SurfaceParams& params);
 
+    /// When a render target is changed, this method is called with the previous render target
+    void NotifyFrameBufferChange(Surface triggering_surface);
+
     /// Performs a slow but accurate surface copy, flushing to RAM and reinterpreting the data
     void AccurateCopySurface(const Surface& src_surface, const Surface& dst_surface);
     void FastLayeredCopySurface(const Surface& src_surface, const Surface& dst_surface);
@@ -469,7 +473,8 @@ private:
     /// using the new format.
     OGLBuffer copy_pbo;
 
-    std::array<Surface, Tegra::Engines::Maxwell3D::Regs::NumRenderTargets> last_color_buffers;
+    std::array<Surface, Maxwell::NumRenderTargets> last_color_buffers;
+    std::array<Surface, Maxwell::NumRenderTargets> current_color_buffers;
     Surface last_depth_buffer;
 };
 
