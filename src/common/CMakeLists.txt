@@ -138,4 +138,4 @@ endif()
 create_target_directory_groups(common)
 
 target_link_libraries(common PUBLIC Boost::boost fmt microprofile)
-target_link_libraries(common PRIVATE lz4_static)
+target_link_libraries(common PRIVATE lz4_static libzstd_static)
