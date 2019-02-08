@@ -79,8 +79,6 @@ add_library(common STATIC
     common_funcs.h
     common_paths.h
     common_types.h
-    data_compression.cpp
-    data_compression.h
     file_util.cpp
     file_util.h
     hash.h
@@ -93,6 +91,8 @@ add_library(common STATIC
     logging/log.h
     logging/text_formatter.cpp
     logging/text_formatter.h
+    lz4_compression.cpp
+    lz4_compression.h
     math_util.h
     memory_hook.cpp
     memory_hook.h
