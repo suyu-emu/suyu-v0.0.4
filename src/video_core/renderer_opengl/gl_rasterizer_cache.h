@@ -141,8 +141,16 @@ struct SurfaceParams {
         return offset;
     }
 
+    std::size_t GetMipmapSingleSize(u32 mip_level) const {
+        return InnerMipmapMemorySize(mip_level, false, is_layered);
+    }
+
     u32 MipWidth(u32 mip_level) const {
         return std::max(1U, width >> mip_level);
+    }
+
+    u32 MipWidthGobAligned(u32 mip_level) const {
+        return std::max(64U*8U / GetFormatBpp(), width >> mip_level);
     }
 
     u32 MipHeight(u32 mip_level) const {
@@ -479,6 +487,9 @@ private:
 
     /// When a render target is changed, this method is called with the previous render target
     void NotifyFrameBufferChange(Surface triggering_surface);
+
+    // Partialy reinterpret a surface based on a triggering_surface that collides with it.
+    bool PartialReinterpretSurface(Surface triggering_surface, Surface intersect);
 
     /// Performs a slow but accurate surface copy, flushing to RAM and reinterpreting the data
     void AccurateCopySurface(const Surface& src_surface, const Surface& dst_surface);
