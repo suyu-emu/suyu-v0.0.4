@@ -853,8 +853,8 @@ void CachedSurface::EnsureTextureView() {
     constexpr GLuint min_level = 0;
 
     glGenTextures(1, &texture_view.handle);
-    glTextureView(texture_view.handle, target, texture.handle, gl_internal_format, 0,
-                  params.max_mip_level, 0, 1);
+    glTextureView(texture_view.handle, target, texture.handle, gl_internal_format, min_level,
+                  params.max_mip_level, min_layer, num_layers);
     ApplyTextureDefaults(texture_view.handle, params.max_mip_level);
     glTextureParameteriv(texture_view.handle, GL_TEXTURE_SWIZZLE_RGBA,
                          reinterpret_cast<const GLint*>(swizzle.data()));
