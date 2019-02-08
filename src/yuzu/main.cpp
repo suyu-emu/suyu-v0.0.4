@@ -1071,21 +1071,16 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
 void GMainWindow::OnTransferableShaderCacheOpenFile(u64 program_id) {
     ASSERT(program_id != 0);
 
-    std::string transferable_shader_cache_file_path;
     constexpr char open_target[] = "Transferable Shader Cache";
-    const std::string tranferable_shader_cache_folder =
-        FileUtil::GetUserPath(FileUtil::UserPath::ShaderDir) + "opengl" + DIR_SEP "transferable";
+    const QString tranferable_shader_cache_folder_path =
+        QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ShaderDir)) + "opengl" +
+        DIR_SEP + "transferable";
 
-    transferable_shader_cache_file_path.append(tranferable_shader_cache_folder);
-    transferable_shader_cache_file_path.append(DIR_SEP);
-    transferable_shader_cache_file_path.append(fmt::format("{:016X}", program_id));
-    transferable_shader_cache_file_path.append(".bin");
+    const QString transferable_shader_cache_file_path =
+        tranferable_shader_cache_folder_path + DIR_SEP +
+        QString::fromStdString(fmt::format("{:016X}", program_id)) + ".bin";
 
-    const QString qpath_transferable_shader_cache_file =
-        QString::fromStdString(transferable_shader_cache_file_path);
-
-    const QFile qfile(qpath_transferable_shader_cache_file);
-    if (!qfile.exists()) {
+    if (!QFile(transferable_shader_cache_file_path).exists()) {
         QMessageBox::warning(this,
                              tr("Error Opening %1 File").arg(QString::fromStdString(open_target)),
                              tr("File does not exist!"));
@@ -1099,14 +1094,13 @@ void GMainWindow::OnTransferableShaderCacheOpenFile(u64 program_id) {
 #if defined(Q_OS_WIN)
     const QString explorer = "explorer";
     QStringList param;
-    if (!QFileInfo(qpath_transferable_shader_cache_file).isDir())
+    if (!QFileInfo(transferable_shader_cache_file_path).isDir()) {
         param << QLatin1String("/select,");
-    param << QDir::toNativeSeparators(qpath_transferable_shader_cache_file);
+    }
+    param << QDir::toNativeSeparators(transferable_shader_cache_file_path);
     QProcess::startDetached(explorer, param);
 #else
-    const QString qpath_transferable_shader_cache_folder =
-        QString::fromStdString(tranferable_shader_cache_folder);
-    QDesktopServices::openUrl(QUrl::fromLocalFile(qpath_transferable_shader_cache_folder));
+    QDesktopServices::openUrl(QUrl::fromLocalFile(tranferable_shader_cache_folder_path));
 #endif
 }
 
