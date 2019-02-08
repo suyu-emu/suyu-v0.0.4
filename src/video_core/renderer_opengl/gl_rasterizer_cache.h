@@ -347,6 +347,10 @@ public:
         return cached_size_in_bytes;
     }
 
+    std::size_t GetMemorySize() const {
+        return memory_size;
+    }
+
     void Flush() override {
         FlushGLBuffer();
     }
@@ -396,6 +400,26 @@ public:
                        Tegra::Texture::SwizzleSource swizzle_z,
                        Tegra::Texture::SwizzleSource swizzle_w);
 
+    void MarkReinterpreted() {
+        reinterpreted = true;
+    }
+
+    bool IsReinterpreted() {
+        return reinterpreted;
+    }
+
+    void MarkForReload(bool reload) {
+        must_reload = reload;
+    }
+
+    bool MustReload() {
+        return must_reload;
+    }
+
+    bool IsUploaded() {
+        return params.identity == SurfaceParams::SurfaceClass::Uploaded;
+    }
+
 private:
     void UploadGLMipmapTexture(u32 mip_map, GLuint read_fb_handle, GLuint draw_fb_handle);
 
@@ -409,6 +433,9 @@ private:
     GLenum gl_internal_format{};
     std::size_t cached_size_in_bytes{};
     std::array<GLenum, 4> swizzle{GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA};
+    std::size_t memory_size;
+    bool reinterpreted = false;
+    bool must_reload = false;
 };
 
 class RasterizerCacheOpenGL final : public RasterizerCache<Surface> {
@@ -469,6 +496,9 @@ private:
     OGLFramebuffer read_framebuffer;
     OGLFramebuffer draw_framebuffer;
 
+    bool run_texception_pass = false;
+    bool texception = false;
+
     /// Use a Pixel Buffer Object to download the previous texture and then upload it to the new one
     /// using the new format.
     OGLBuffer copy_pbo;
@@ -476,6 +506,49 @@ private:
     std::array<Surface, Maxwell::NumRenderTargets> last_color_buffers;
     std::array<Surface, Maxwell::NumRenderTargets> current_color_buffers;
     Surface last_depth_buffer;
+
+    using SurfaceIntervalCache = boost::icl::interval_map<VAddr, Surface>;
+    using SurfaceInterval = typename IntervalCache::interval_type;
+
+    static auto GetReinterpretInterval(const Surface& object) {
+        return SurfaceInterval::right_open(object->GetAddr() + 1,
+                                           object->GetAddr() + object->GetMemorySize() - 1);
+    }
+
+    // Reinterpreted surfaces are very fragil as the game may keep rendering into them.
+    SurfaceIntervalCache reinterpreted_surfaces;
+
+    void RegisterReinterpretSurface(Surface r_surface) {
+        auto interval = GetReinterpretInterval(r_surface);
+        reinterpreted_surfaces.insert({interval, r_surface});
+        r_surface->MarkReinterpreted();
+        run_texception_pass = true;
+    }
+
+    Surface CollideOnReinterpretedSurface(VAddr addr) const {
+        const SurfaceInterval interval{addr};
+        for (auto& pair :
+             boost::make_iterator_range(reinterpreted_surfaces.equal_range(interval))) {
+            return pair.second;
+        }
+        return nullptr;
+    }
+
+protected:
+    void Register(const Surface& object) {
+        RasterizerCache<Surface>::Register(object);
+    }
+
+    /// Unregisters an object from the cache
+    void Unregister(const Surface& object) {
+        const auto& params = object->GetSurfaceParams();
+        if (object->IsReinterpreted()) {
+            auto interval = GetReinterpretInterval(object);
+            reinterpreted_surfaces.erase(interval);
+        }
+        RasterizerCache<Surface>::Unregister(object);
+    }
+
 };
 
 } // namespace OpenGL

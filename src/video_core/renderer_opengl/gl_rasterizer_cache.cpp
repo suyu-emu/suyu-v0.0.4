@@ -1007,6 +1007,8 @@ Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params, bool pres
     if (surface) {
         if (surface->GetSurfaceParams().IsCompatibleSurface(params)) {
             // Use the cached surface as-is
+            if (surface->MustReload())
+                LoadSurface(surface);
             return surface;
         } else if (preserve_contents) {
             // If surface parameters changed and we care about keeping the previous data, recreate
@@ -1014,6 +1016,9 @@ Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params, bool pres
             Surface new_surface{RecreateSurface(surface, params)};
             Unregister(surface);
             Register(new_surface);
+            if (new_surface->IsUploaded()) {
+                RegisterReinterpretSurface(new_surface);
+            }
             return new_surface;
         } else {
             // Delete the old surface before creating a new one to prevent collisions.
