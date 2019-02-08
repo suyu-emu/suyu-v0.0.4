@@ -1072,7 +1072,7 @@ void GMainWindow::OnTransferableShaderCacheOpenFile(u64 program_id) {
     ASSERT(program_id != 0);
 
     std::string transferable_shader_cache_file_path;
-    const std::string open_target = "Transferable Shader Cache";
+    constexpr char open_target[] = "Transferable Shader Cache";
     const std::string tranferable_shader_cache_folder =
         FileUtil::GetUserPath(FileUtil::UserPath::ShaderDir) + "opengl" + DIR_SEP "transferable";
 
