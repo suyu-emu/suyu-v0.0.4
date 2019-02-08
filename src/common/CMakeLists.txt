@@ -125,6 +125,8 @@ add_library(common STATIC
     uint128.h
     vector_math.h
     web_result.h
+    zstd_compression.cpp
+    zstd_compression.h
 )
 
 if(ARCHITECTURE_x86_64)
