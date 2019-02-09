@@ -19,10 +19,6 @@ namespace VideoCore {
 class RendererBase;
 } // namespace VideoCore
 
-namespace VideoCommon::GPUThread {
-class ThreadManager;
-} // namespace VideoCommon::GPUThread
-
 namespace Tegra {
 
 enum class RenderTargetFormat : u32 {
@@ -123,7 +119,7 @@ enum class EngineID {
     MAXWELL_DMA_COPY_A = 0xB0B5,
 };
 
-class GPU final {
+class GPU {
 public:
     explicit GPU(Core::System& system, VideoCore::RendererBase& renderer);
 
@@ -206,20 +202,20 @@ public:
     } regs{};
 
     /// Push GPU command entries to be processed
-    void PushGPUEntries(Tegra::CommandList&& entries);
+    virtual void PushGPUEntries(Tegra::CommandList&& entries) = 0;
 
     /// Swap buffers (render frame)
-    void SwapBuffers(
-        std::optional<std::reference_wrapper<const Tegra::FramebufferConfig>> framebuffer);
+    virtual void SwapBuffers(
+        std::optional<std::reference_wrapper<const Tegra::FramebufferConfig>> framebuffer) = 0;
 
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
-    void FlushRegion(VAddr addr, u64 size);
+    virtual void FlushRegion(VAddr addr, u64 size) = 0;
 
     /// Notify rasterizer that any caches of the specified region should be invalidated
-    void InvalidateRegion(VAddr addr, u64 size);
+    virtual void InvalidateRegion(VAddr addr, u64 size) = 0;
 
     /// Notify rasterizer that any caches of the specified region should be flushed and invalidated
-    void FlushAndInvalidateRegion(VAddr addr, u64 size);
+    virtual void FlushAndInvalidateRegion(VAddr addr, u64 size) = 0;
 
 private:
     void ProcessBindMethod(const MethodCall& method_call);
@@ -236,12 +232,12 @@ private:
     /// Determines where the method should be executed.
     bool ExecuteMethodOnEngine(const MethodCall& method_call);
 
-private:
+protected:
     std::unique_ptr<Tegra::DmaPusher> dma_pusher;
-    std::unique_ptr<Tegra::MemoryManager> memory_manager;
-    std::unique_ptr<VideoCommon::GPUThread::ThreadManager> gpu_thread;
-
     VideoCore::RendererBase& renderer;
+
+private:
+    std::unique_ptr<Tegra::MemoryManager> memory_manager;
 
     /// Mapping of command subchannels to their bound engine ids.
     std::array<EngineID, 8> bound_engines = {};
