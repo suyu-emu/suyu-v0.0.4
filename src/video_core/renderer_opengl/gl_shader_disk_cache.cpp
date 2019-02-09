@@ -10,8 +10,8 @@
 #include "common/common_types.h"
 #include "common/file_util.h"
 #include "common/logging/log.h"
-#include "common/zstd_compression.h"
 #include "common/scm_rev.h"
+#include "common/zstd_compression.h"
 
 #include "core/core.h"
 #include "core/hle/kernel/process.h"
@@ -288,7 +288,8 @@ std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEn
         return {};
     }
 
-    const std::vector<u8> code = Common::Compression::DecompressDataZSTD(compressed_code, code_size);
+    const std::vector<u8> code =
+        Common::Compression::DecompressDataZSTD(compressed_code, code_size);
     if (code.empty()) {
         return {};
     }
