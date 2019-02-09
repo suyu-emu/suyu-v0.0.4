@@ -201,7 +201,6 @@ private:
 
     /// Saves a decompiled entry to the passed file. Returns true on success.
     bool SaveDecompiledFile(FileUtil::IOFile& file, u64 unique_identifier, const std::string& code,
-                            const std::vector<u8>& compressed_code,
                             const GLShader::ShaderEntries& entries);
 
     /// Returns if the cache can be used

@@ -247,20 +247,12 @@ ShaderDiskCacheOpenGL::LoadPrecompiledFile(FileUtil::IOFile& file) {
                 return {};
 
             u32 binary_length{};
-            u32 compressed_size{};
-            if (file.ReadBytes(&binary_length, sizeof(u32)) != sizeof(u32) ||
-                file.ReadBytes(&compressed_size, sizeof(u32)) != sizeof(u32)) {
+            if (file.ReadBytes(&binary_length, sizeof(u32)) != sizeof(u32)) {
                 return {};
             }
 
-            std::vector<u8> compressed_binary(compressed_size);
-            if (file.ReadArray(compressed_binary.data(), compressed_binary.size()) !=
-                compressed_binary.size()) {
-                return {};
-            }
-
-            dump.binary = Common::Compression::DecompressDataZSTD(compressed_binary);
-            if (dump.binary.empty()) {
+            dump.binary.resize(binary_length);
+            if (file.ReadArray(dump.binary.data(), binary_length) != binary_length) {
                 return {};
             }
 
@@ -277,21 +269,15 @@ ShaderDiskCacheOpenGL::LoadPrecompiledFile(FileUtil::IOFile& file) {
 std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEntry(
     FileUtil::IOFile& file) {
     u32 code_size{};
-    u32 compressed_code_size{};
-    if (file.ReadBytes(&code_size, sizeof(u32)) != sizeof(u32) ||
-        file.ReadBytes(&compressed_code_size, sizeof(u32)) != sizeof(u32)) {
+    if (file.ReadBytes(&code_size, sizeof(u32)) != sizeof(u32)) {
         return {};
     }
 
-    std::vector<u8> compressed_code(compressed_code_size);
-    if (file.ReadArray(compressed_code.data(), compressed_code.size()) != compressed_code.size()) {
+    std::vector<u8> code(code_size);
+    if (file.ReadArray(code.data(), code.size()) != code_size) {
         return {};
     }
 
-    const std::vector<u8> code = Common::Compression::DecompressDataZSTD(compressed_code);
-    if (code.empty()) {
-        return {};
-    }
     ShaderDiskCacheDecompiled entry;
     entry.code = std::string(reinterpret_cast<const char*>(code.data()), code_size);
 
@@ -369,13 +355,11 @@ std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEn
 
 bool ShaderDiskCacheOpenGL::SaveDecompiledFile(FileUtil::IOFile& file, u64 unique_identifier,
                                                const std::string& code,
-                                               const std::vector<u8>& compressed_code,
                                                const GLShader::ShaderEntries& entries) {
     if (file.WriteObject(static_cast<u32>(PrecompiledEntryKind::Decompiled)) != 1 ||
         file.WriteObject(unique_identifier) != 1 ||
         file.WriteObject(static_cast<u32>(code.size())) != 1 ||
-        file.WriteObject(static_cast<u32>(compressed_code.size())) != 1 ||
-        file.WriteArray(compressed_code.data(), compressed_code.size()) != compressed_code.size()) {
+        file.WriteArray(code.data(), code.size()) != code.size()) {
         return false;
     }
 
@@ -485,19 +469,12 @@ void ShaderDiskCacheOpenGL::SaveDecompiled(u64 unique_identifier, const std::str
     if (!IsUsable())
         return;
 
-    const std::vector<u8> compressed_code{Common::Compression::CompressDataZSTDDefault(
-        reinterpret_cast<const u8*>(code.data()), code.size())};
-    if (compressed_code.empty()) {
-        LOG_ERROR(Render_OpenGL, "Failed to compress GLSL code - skipping shader {:016x}",
-                  unique_identifier);
-        return;
-    }
-
     FileUtil::IOFile file = AppendPrecompiledFile();
+
     if (!file.IsOpen())
         return;
 
-    if (!SaveDecompiledFile(file, unique_identifier, code, compressed_code, entries)) {
+    if (!SaveDecompiledFile(file, unique_identifier, code, entries)) {
         LOG_ERROR(Render_OpenGL,
                   "Failed to save decompiled entry to the precompiled file - removing");
         file.Close();
@@ -516,25 +493,15 @@ void ShaderDiskCacheOpenGL::SaveDump(const ShaderDiskCacheUsage& usage, GLuint p
     std::vector<u8> binary(binary_length);
     glGetProgramBinary(program, binary_length, nullptr, &binary_format, binary.data());
 
-    const std::vector<u8> compressed_binary =
-        Common::Compression::CompressDataZSTDDefault(binary.data(), binary.size());
-
-    if (compressed_binary.empty()) {
-        LOG_ERROR(Render_OpenGL, "Failed to compress binary program in shader={:016x}",
-                  usage.unique_identifier);
-        return;
-    }
-
     FileUtil::IOFile file = AppendPrecompiledFile();
+
     if (!file.IsOpen())
         return;
 
     if (file.WriteObject(static_cast<u32>(PrecompiledEntryKind::Dump)) != 1 ||
         file.WriteObject(usage) != 1 || file.WriteObject(static_cast<u32>(binary_format)) != 1 ||
         file.WriteObject(static_cast<u32>(binary_length)) != 1 ||
-        file.WriteObject(static_cast<u32>(compressed_binary.size())) != 1 ||
-        file.WriteArray(compressed_binary.data(), compressed_binary.size()) !=
-            compressed_binary.size()) {
+        file.WriteArray(binary.data(), binary.size()) != binary_length) {
         LOG_ERROR(Render_OpenGL, "Failed to save binary program file in shader={:016x} - removing",
                   usage.unique_identifier);
         file.Close();
