@@ -110,9 +110,8 @@ void ThreadManager::SwapBuffers(
 }
 
 void ThreadManager::FlushRegion(VAddr addr, u64 size) {
-    if (Settings::values.use_accurate_gpu_emulation) {
-        PushCommand(FlushRegionCommand(addr, size), true, false);
-    }
+    // Block the CPU when using accurate emulation
+    PushCommand(FlushRegionCommand(addr, size), Settings::values.use_accurate_gpu_emulation, false);
 }
 
 void ThreadManager::InvalidateRegion(VAddr addr, u64 size) {
@@ -120,11 +119,9 @@ void ThreadManager::InvalidateRegion(VAddr addr, u64 size) {
 }
 
 void ThreadManager::FlushAndInvalidateRegion(VAddr addr, u64 size) {
-    if (Settings::values.use_accurate_gpu_emulation) {
-        PushCommand(FlushAndInvalidateRegionCommand(addr, size), true, false);
-    } else {
-        InvalidateRegion(addr, size);
-    }
+    // Block the CPU when using accurate emulation
+    PushCommand(FlushAndInvalidateRegionCommand(addr, size),
+                Settings::values.use_accurate_gpu_emulation, false);
 }
 
 void ThreadManager::PushCommand(CommandData&& command_data, bool wait_for_idle, bool allow_on_cpu) {
