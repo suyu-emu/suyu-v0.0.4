@@ -150,7 +150,7 @@ struct SurfaceParams {
     }
 
     u32 MipWidthGobAligned(u32 mip_level) const {
-        return std::max(64U*8U / GetFormatBpp(), width >> mip_level);
+        return Common::AlignUp(std::max(1U, width >> mip_level), 64U * 8U / GetFormatBpp());
     }
 
     u32 MipHeight(u32 mip_level) const {
@@ -564,7 +564,6 @@ protected:
         }
         RasterizerCache<Surface>::Unregister(object);
     }
-
 };
 
 } // namespace OpenGL

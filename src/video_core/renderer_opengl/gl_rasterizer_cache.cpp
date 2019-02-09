@@ -549,6 +549,8 @@ CachedSurface::CachedSurface(const SurfaceParams& params)
     // alternatives. This signals a bug on those functions.
     const auto width = static_cast<GLsizei>(params.MipWidth(0));
     const auto height = static_cast<GLsizei>(params.MipHeight(0));
+    memory_size = params.MemorySize();
+    reinterpreted = false;
 
     const auto& format_tuple = GetFormatTuple(params.pixel_format, params.component_type);
     gl_internal_format = format_tuple.internal_format;
@@ -995,6 +997,7 @@ void RasterizerCacheOpenGL::LoadSurface(const Surface& surface) {
     surface->LoadGLBuffer();
     surface->UploadGLTexture(read_framebuffer.handle, draw_framebuffer.handle);
     surface->MarkAsModified(false, *this);
+    surface->MarkForReload(false);
 }
 
 Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params, bool preserve_contents) {
@@ -1387,7 +1390,6 @@ bool RasterizerCacheOpenGL::PartialReinterpretSurface(Surface triggering_surface
     }
     return true;
 }
-
 
 void RasterizerCacheOpenGL::NotifyFrameBufferChange(Surface triggering_surface) {
     if (triggering_surface == nullptr)
