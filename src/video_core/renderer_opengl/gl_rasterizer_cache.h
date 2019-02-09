@@ -471,8 +471,6 @@ public:
 
     void SignalPreDrawCall();
     void SignalPostDrawCall();
-    void SignalSurfaceParameter(Surface& surface);
-    void SignalPostFramebufferSetup();
 
 private:
     void LoadSurface(const Surface& surface);
@@ -512,7 +510,6 @@ private:
     OGLFramebuffer read_framebuffer;
     OGLFramebuffer draw_framebuffer;
 
-    bool run_texception_pass = false;
     bool texception = false;
 
     /// Use a Pixel Buffer Object to download the previous texture and then upload it to the new one

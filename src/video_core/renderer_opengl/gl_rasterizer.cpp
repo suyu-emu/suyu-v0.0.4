@@ -575,8 +575,6 @@ std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
     SetupCachedFramebuffer(fbkey, current_state);
     SyncViewport(current_state);
 
-    res_cache.SignalPostFramebufferSetup();
-
     return current_depth_stencil_usage = {static_cast<bool>(depth_surface), fbkey.stencil_enable};
 }
 
@@ -1019,7 +1017,6 @@ void RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, const Shader& s
         texture_samplers[current_bindpoint].SyncWithConfig(texture.tsc);
 
         Surface surface = res_cache.GetTextureSurface(texture, entry);
-        res_cache.SignalSurfaceParameter(surface);
         if (surface != nullptr) {
             state.texture_units[current_bindpoint].texture =
                 entry.IsArray() ? surface->TextureLayer().handle : surface->Texture().handle;
