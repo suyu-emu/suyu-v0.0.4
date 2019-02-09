@@ -1392,9 +1392,48 @@ bool RasterizerCacheOpenGL::PartialReinterpretSurface(Surface triggering_surface
 void RasterizerCacheOpenGL::NotifyFrameBufferChange(Surface triggering_surface) {
     if (triggering_surface == nullptr)
         return;
+    run_texception_pass = false;
+    if (texception) {
+        return;
+    }
     Surface intersect = CollideOnReinterpretedSurface(triggering_surface->GetAddr());
     if (intersect != nullptr) {
         PartialReinterpretSurface(triggering_surface, intersect);
+    }
+}
+
+void RasterizerCacheOpenGL::SignalPreDrawCall() {
+    if (texception) {
+        glTextureBarrier();
+    }
+}
+
+void RasterizerCacheOpenGL::SignalPostDrawCall() {
+    if (!run_texception_pass)
+        return;
+    for (u32 i = 0; i < Maxwell::NumRenderTargets; i++) {
+        if (current_color_buffers[i] != nullptr) {
+            Surface intersect = CollideOnReinterpretedSurface(current_color_buffers[i]->GetAddr());
+            if (intersect != nullptr) {
+                PartialReinterpretSurface(current_color_buffers[i], intersect);
+                texception = true;
+            }
+        }
+    }
+    if (!texception)
+        run_texception_pass = false;
+}
+
+void RasterizerCacheOpenGL::SignalPostFramebufferSetup() {
+    if (!run_texception_pass)
+        texception = false;
+}
+
+void RasterizerCacheOpenGL::SignalSurfaceParameter(Surface& surface) {
+    if (surface == nullptr)
+        return;
+    if (surface->IsReinterpreted()) {
+        run_texception_pass = true;
     }
 }
 

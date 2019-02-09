@@ -469,6 +469,11 @@ public:
                           const Common::Rectangle<u32>& src_rect,
                           const Common::Rectangle<u32>& dst_rect);
 
+    void SignalPreDrawCall();
+    void SignalPostDrawCall();
+    void SignalSurfaceParameter(Surface& surface);
+    void SignalPostFramebufferSetup();
+
 private:
     void LoadSurface(const Surface& surface);
     Surface GetSurface(const SurfaceParams& params, bool preserve_contents = true);
