@@ -119,9 +119,7 @@ void ThreadManager::InvalidateRegion(VAddr addr, u64 size) {
 }
 
 void ThreadManager::FlushAndInvalidateRegion(VAddr addr, u64 size) {
-    // Block the CPU when using accurate emulation
-    PushCommand(FlushAndInvalidateRegionCommand(addr, size),
-                Settings::values.use_accurate_gpu_emulation, false);
+    InvalidateRegion(addr, size);
 }
 
 void ThreadManager::PushCommand(CommandData&& command_data, bool wait_for_idle, bool allow_on_cpu) {
