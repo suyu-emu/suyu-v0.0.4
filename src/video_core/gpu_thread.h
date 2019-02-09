@@ -70,6 +70,7 @@ using CommandData = std::variant<SubmitListCommand, SwapBuffersCommand, FlushReg
 /// Struct used to synchronize the GPU thread
 struct SynchState final {
     std::atomic<bool> is_running{true};
+    std::atomic<bool> is_idle{true};
     std::condition_variable signal_condition;
     std::mutex signal_mutex;
     std::condition_variable idle_condition;
@@ -84,9 +85,9 @@ struct SynchState final {
     CommandQueue* push_queue{&command_queues[0]};
     CommandQueue* pop_queue{&command_queues[1]};
 
-    /// Returns true if the GPU thread should be idle, meaning there are no commands to process
-    bool IsIdle() const {
-        return command_queues[0].empty() && command_queues[1].empty();
+    void UpdateIdleState() {
+        std::lock_guard<std::mutex> lock{idle_mutex};
+        is_idle = command_queues[0].empty() && command_queues[1].empty();
     }
 };
 

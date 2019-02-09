@@ -40,7 +40,7 @@ static void RunThread(VideoCore::RendererBase& renderer, Tegra::DmaPusher& dma_p
 
     auto WaitForWakeup = [&]() {
         std::unique_lock<std::mutex> lock{state.signal_mutex};
-        state.signal_condition.wait(lock, [&] { return !state.IsIdle() || !state.is_running; });
+        state.signal_condition.wait(lock, [&] { return !state.is_idle || !state.is_running; });
     };
 
     // Wait for first GPU command before acquiring the window context
@@ -70,8 +70,10 @@ static void RunThread(VideoCore::RendererBase& renderer, Tegra::DmaPusher& dma_p
             state.pop_queue->pop();
         }
 
+        state.UpdateIdleState();
+
         // Signal that the GPU thread has finished processing commands
-        if (state.IsIdle()) {
+        if (state.is_idle) {
             state.idle_condition.notify_one();
         }
 
@@ -126,13 +128,14 @@ void ThreadManager::PushCommand(CommandData&& command_data, bool wait_for_idle, 
     {
         std::lock_guard<std::mutex> lock{state.signal_mutex};
 
-        if ((allow_on_cpu && state.IsIdle()) || IsGpuThread()) {
+        if ((allow_on_cpu && state.is_idle) || IsGpuThread()) {
             // Execute the command synchronously on the current thread
             ExecuteCommand(&command_data, renderer, dma_pusher);
             return;
         }
 
         // Push the command to the GPU thread
+        state.UpdateIdleState();
         state.push_queue->emplace(command_data);
     }
 
@@ -142,7 +145,7 @@ void ThreadManager::PushCommand(CommandData&& command_data, bool wait_for_idle, 
     if (wait_for_idle) {
         // Wait for the GPU to be idle (all commands to be executed)
         std::unique_lock<std::mutex> lock{state.idle_mutex};
-        state.idle_condition.wait(lock, [this] { return state.IsIdle(); });
+        state.idle_condition.wait(lock, [this] { return static_cast<bool>(state.is_idle); });
     }
 }
 
