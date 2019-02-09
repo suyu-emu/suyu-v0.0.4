@@ -970,26 +970,17 @@ Surface RasterizerCacheOpenGL::GetColorBufferSurface(std::size_t index, bool pre
     gpu.dirty_flags.color_buffer.reset(index);
 
     ASSERT(index < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets);
-    auto Notify = [&]() {
-        if (last_color_buffers[index] != current_color_buffers[index]) {
-            NotifyFrameBufferChange(current_color_buffers[index]);
-        }
-        last_color_buffers[index] = current_color_buffers[index];
-    };
 
     if (index >= regs.rt_control.count) {
-        Notify();
         return current_color_buffers[index] = {};
     }
 
     if (regs.rt[index].Address() == 0 || regs.rt[index].format == Tegra::RenderTargetFormat::NONE) {
-        Notify();
         return current_color_buffers[index] = {};
     }
 
     const SurfaceParams color_params{SurfaceParams::CreateForFramebuffer(index)};
 
-    Notify();
     return current_color_buffers[index] = GetSurface(color_params, preserve_contents);
 }
 
@@ -1389,18 +1380,6 @@ bool RasterizerCacheOpenGL::PartialReinterpretSurface(Surface triggering_surface
         intersect->MarkForReload(true);
     }
     return true;
-}
-
-void RasterizerCacheOpenGL::NotifyFrameBufferChange(Surface triggering_surface) {
-    if (triggering_surface == nullptr)
-        return;
-    if (texception) {
-        return;
-    }
-    Surface intersect = CollideOnReinterpretedSurface(triggering_surface->GetAddr());
-    if (intersect != nullptr) {
-        PartialReinterpretSurface(triggering_surface, intersect);
-    }
 }
 
 void RasterizerCacheOpenGL::SignalPreDrawCall() {

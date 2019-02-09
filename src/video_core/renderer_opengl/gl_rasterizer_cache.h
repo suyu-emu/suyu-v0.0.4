@@ -488,9 +488,6 @@ private:
     /// Tries to get a reserved surface for the specified parameters
     Surface TryGetReservedSurface(const SurfaceParams& params);
 
-    /// When a render target is changed, this method is called with the previous render target
-    void NotifyFrameBufferChange(Surface triggering_surface);
-
     // Partialy reinterpret a surface based on a triggering_surface that collides with it.
     bool PartialReinterpretSurface(Surface triggering_surface, Surface intersect);
 
@@ -535,7 +532,6 @@ private:
         auto interval = GetReinterpretInterval(r_surface);
         reinterpreted_surfaces.insert({interval, r_surface});
         r_surface->MarkReinterpreted();
-        run_texception_pass = true;
     }
 
     Surface CollideOnReinterpretedSurface(VAddr addr) const {
