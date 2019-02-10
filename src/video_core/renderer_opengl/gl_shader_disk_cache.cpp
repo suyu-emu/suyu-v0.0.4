@@ -11,6 +11,7 @@
 #include "common/file_util.h"
 #include "common/logging/log.h"
 #include "common/scm_rev.h"
+#include "common/zstd_compression.h"
 
 #include "core/core.h"
 #include "core/hle/kernel/process.h"
@@ -209,9 +210,11 @@ ShaderDiskCacheOpenGL::LoadPrecompiled() {
 std::optional<std::pair<std::unordered_map<u64, ShaderDiskCacheDecompiled>,
                         std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>>
 ShaderDiskCacheOpenGL::LoadPrecompiledFile(FileUtil::IOFile& file) {
-    std::vector<u8> precompiled_cache(file.GetSize());
-    file.ReadBytes(precompiled_cache.data(), precompiled_cache.size());
-    SaveArrayToPrecompiled(precompiled_cache.data(), precompiled_cache.size());
+    // Read compressed file from disk and decompress to virtual precompiled cache file
+    std::vector<u8> compressed(file.GetSize());
+    file.ReadBytes(compressed.data(), compressed.size());
+    const std::vector<u8> decompressed = Common::Compression::DecompressDataZSTD(compressed);
+    SaveArrayToPrecompiled(decompressed.data(), decompressed.size());
     precompiled_cache_virtual_file_offset = 0;
 
     ShaderCacheVersionHash file_hash{};
@@ -564,7 +567,9 @@ void ShaderDiskCacheOpenGL::SavePrecompiledHeaderToVirtualPrecompiledCache() {
 
 void ShaderDiskCacheOpenGL::SaveVirtualPrecompiledFile() {
     precompiled_cache_virtual_file_offset = 0;
-    const std::vector<u8>& precompiled_cache = precompiled_cache_virtual_file.ReadAllBytes();
+    const std::vector<u8>& uncompressed = precompiled_cache_virtual_file.ReadAllBytes();
+    const std::vector<u8>& compressed =
+        Common::Compression::CompressDataZSTDDefault(uncompressed.data(), uncompressed.size());
 
     const auto precompiled_path{GetPrecompiledPath()};
     FileUtil::IOFile file(precompiled_path, "wb");
@@ -573,8 +578,7 @@ void ShaderDiskCacheOpenGL::SaveVirtualPrecompiledFile() {
         LOG_ERROR(Render_OpenGL, "Failed to open precompiled cache in path={}", precompiled_path);
         return;
     }
-    if (file.WriteBytes(precompiled_cache.data(), precompiled_cache.size()) !=
-        precompiled_cache.size()) {
+    if (file.WriteBytes(compressed.data(), compressed.size()) != compressed.size()) {
         LOG_ERROR(Render_OpenGL, "Failed to write precompiled cache version in path={}",
                   precompiled_path);
         return;
