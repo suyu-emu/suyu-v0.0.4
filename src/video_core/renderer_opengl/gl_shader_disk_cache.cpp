@@ -259,7 +259,7 @@ ShaderDiskCacheOpenGL::LoadPrecompiledFile(FileUtil::IOFile& file) {
                 return {};
             }
 
-            dump.binary = Common::Compression::DecompressDataZSTD(compressed_binary, binary_length);
+            dump.binary = Common::Compression::DecompressDataZSTD(compressed_binary);
             if (dump.binary.empty()) {
                 return {};
             }
@@ -288,8 +288,7 @@ std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEn
         return {};
     }
 
-    const std::vector<u8> code =
-        Common::Compression::DecompressDataZSTD(compressed_code, code_size);
+    const std::vector<u8> code = Common::Compression::DecompressDataZSTD(compressed_code);
     if (code.empty()) {
         return {};
     }

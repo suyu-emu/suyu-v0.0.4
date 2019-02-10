@@ -34,11 +34,9 @@ std::vector<u8> CompressDataZSTDDefault(const u8* source, std::size_t source_siz
  * Decompresses a source memory region with Zstandard and returns the uncompressed data in a vector.
  *
  * @param compressed the compressed source memory region.
- * @param uncompressed_size the size in bytes of the uncompressed data.
  *
  * @return the decompressed data.
  */
-std::vector<u8> DecompressDataZSTD(const std::vector<u8>& compressed,
-                                   std::size_t uncompressed_size);
+std::vector<u8> DecompressDataZSTD(const std::vector<u8>& compressed);
 
 } // namespace Common::Compression
