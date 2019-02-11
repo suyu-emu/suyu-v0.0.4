@@ -41,7 +41,7 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
 
         const Node value = Operation(OperationCode::IAdd, PRECISE, op_a, op_b);
 
-        SetInternalFlagsFromInteger(bb, value, instr.op_32.generates_cc);
+        SetInternalFlagsFromInteger(bb, value, instr.generates_cc);
         SetRegister(bb, instr.gpr0, value);
         break;
     }
