@@ -118,8 +118,8 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
 
         value = [&]() {
             switch (instr.conversion.f2i.rounding) {
-            case Tegra::Shader::F2iRoundingOp::None:
-                return value;
+            case Tegra::Shader::F2iRoundingOp::RoundEven:
+                return Operation(OperationCode::FRoundEven, PRECISE, value);
             case Tegra::Shader::F2iRoundingOp::Floor:
                 return Operation(OperationCode::FFloor, PRECISE, value);
             case Tegra::Shader::F2iRoundingOp::Ceil:
