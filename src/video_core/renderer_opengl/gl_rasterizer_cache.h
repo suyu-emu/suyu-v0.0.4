@@ -36,7 +36,6 @@ using PixelFormat = VideoCore::Surface::PixelFormat;
 using ComponentType = VideoCore::Surface::ComponentType;
 
 struct SurfaceParams {
-
     enum class SurfaceClass {
         Uploaded,
         RenderTarget,
@@ -185,7 +184,6 @@ struct SurfaceParams {
 
         if (bd == 32) {
             const u32 bh = MipBlockHeight(mip_level);
-
             if (bh >= 4) {
                 return 16;
             }
