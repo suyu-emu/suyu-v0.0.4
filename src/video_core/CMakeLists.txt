@@ -102,7 +102,10 @@ add_library(video_core STATIC
 )
 
 if (ENABLE_VULKAN)
-    target_sources(video_core PRIVATE renderer_vulkan/declarations.h)
+    target_sources(video_core PRIVATE
+        renderer_vulkan/declarations.h
+        renderer_vulkan/vk_device.cpp
+        renderer_vulkan/vk_device.h)
 
     target_include_directories(video_core PRIVATE ../../externals/Vulkan-Headers/include)
     target_compile_definitions(video_core PRIVATE HAS_VULKAN)
