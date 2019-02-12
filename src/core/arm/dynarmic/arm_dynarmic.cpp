@@ -112,14 +112,14 @@ public:
         // Always execute at least one tick.
         amortized_ticks = std::max<u64>(amortized_ticks, 1);
 
-        CoreTiming::AddTicks(amortized_ticks);
+        Timing::AddTicks(amortized_ticks);
         num_interpreted_instructions = 0;
     }
     u64 GetTicksRemaining() override {
-        return std::max(CoreTiming::GetDowncount(), 0);
+        return std::max(Timing::GetDowncount(), 0);
     }
     u64 GetCNTPCT() override {
-        return CoreTiming::GetTicks();
+        return Timing::GetTicks();
     }
 
     ARM_Dynarmic& parent;

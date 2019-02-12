@@ -22,7 +22,7 @@ void Controller_Stubbed::OnUpdate(u8* data, std::size_t size) {
     }
 
     CommonHeader header{};
-    header.timestamp = CoreTiming::GetTicks();
+    header.timestamp = Core::Timing::GetTicks();
     header.total_entry_count = 17;
     header.entry_count = 0;
     header.last_entry_index = 0;

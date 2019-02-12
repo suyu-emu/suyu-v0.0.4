@@ -7,7 +7,7 @@
 #include "controllers/controller_base.h"
 #include "core/hle/service/service.h"
 
-namespace CoreTiming {
+namespace Core::Timing {
 struct EventType;
 }
 
@@ -66,7 +66,7 @@ private:
 
     Kernel::SharedPtr<Kernel::SharedMemory> shared_mem;
 
-    CoreTiming::EventType* pad_update_event;
+    Core::Timing::EventType* pad_update_event;
 
     std::array<std::unique_ptr<ControllerBase>, static_cast<size_t>(HidController::MaxControllers)>
         controllers{};

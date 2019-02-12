@@ -308,7 +308,7 @@ void Controller_NPad::OnUpdate(u8* data, std::size_t data_len) {
             const auto& last_entry =
                 main_controller->npad[main_controller->common.last_entry_index];
 
-            main_controller->common.timestamp = CoreTiming::GetTicks();
+            main_controller->common.timestamp = Core::Timing::GetTicks();
             main_controller->common.last_entry_index =
                 (main_controller->common.last_entry_index + 1) % 17;
 

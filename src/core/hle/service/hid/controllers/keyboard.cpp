@@ -20,7 +20,7 @@ void Controller_Keyboard::OnInit() {}
 void Controller_Keyboard::OnRelease() {}
 
 void Controller_Keyboard::OnUpdate(u8* data, std::size_t size) {
-    shared_memory.header.timestamp = CoreTiming::GetTicks();
+    shared_memory.header.timestamp = Core::Timing::GetTicks();
     shared_memory.header.total_entry_count = 17;
 
     if (!IsControllerActivated()) {

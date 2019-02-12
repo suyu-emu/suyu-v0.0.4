@@ -93,14 +93,14 @@ void Cpu::RunLoop(bool tight_loop) {
 
         if (IsMainCore()) {
             // TODO(Subv): Only let CoreTiming idle if all 4 cores are idling.
-            CoreTiming::Idle();
-            CoreTiming::Advance();
+            Timing::Idle();
+            Timing::Advance();
         }
 
         PrepareReschedule();
     } else {
         if (IsMainCore()) {
-            CoreTiming::Advance();
+            Timing::Advance();
         }
 
         if (tight_loop) {

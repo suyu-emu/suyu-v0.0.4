@@ -94,7 +94,7 @@ struct System::Impl {
     ResultStatus Init(System& system, Frontend::EmuWindow& emu_window) {
         LOG_DEBUG(HW_Memory, "initialized OK");
 
-        CoreTiming::Init();
+        Timing::Init();
         kernel.Initialize();
 
         const auto current_time = std::chrono::duration_cast<std::chrono::seconds>(
@@ -205,7 +205,7 @@ struct System::Impl {
 
         // Shutdown kernel and core timing
         kernel.Shutdown();
-        CoreTiming::Shutdown();
+        Timing::Shutdown();
 
         // Close app loader
         app_loader.reset();
@@ -232,7 +232,7 @@ struct System::Impl {
     }
 
     PerfStatsResults GetAndResetPerfStats() {
-        return perf_stats.GetAndResetStats(CoreTiming::GetGlobalTimeUs());
+        return perf_stats.GetAndResetStats(Timing::GetGlobalTimeUs());
     }
 
     Kernel::KernelCore kernel;

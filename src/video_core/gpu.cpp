@@ -282,7 +282,7 @@ void GPU::ProcessSemaphoreTriggerMethod() {
         block.sequence = regs.semaphore_sequence;
         // TODO(Kmather73): Generate a real GPU timestamp and write it here instead of
         // CoreTiming
-        block.timestamp = CoreTiming::GetTicks();
+        block.timestamp = Core::Timing::GetTicks();
         Memory::WriteBlock(*address, &block, sizeof(block));
     } else {
         const auto address =

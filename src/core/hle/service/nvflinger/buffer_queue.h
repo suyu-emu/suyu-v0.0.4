@@ -13,10 +13,6 @@
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/writable_event.h"
 
-namespace CoreTiming {
-struct EventType;
-}
-
 namespace Service::NVFlinger {
 
 struct IGBPBuffer {

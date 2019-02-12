@@ -14,7 +14,7 @@
 #include "common/common_types.h"
 #include "core/hle/kernel/object.h"
 
-namespace CoreTiming {
+namespace Core::Timing {
 struct EventType;
 }
 
@@ -115,8 +115,8 @@ private:
     /// layers.
     u32 next_buffer_queue_id = 1;
 
-    /// CoreTiming event that handles screen composition.
-    CoreTiming::EventType* composition_event;
+    /// Event that handles screen composition.
+    Core::Timing::EventType* composition_event;
 };
 
 } // namespace Service::NVFlinger

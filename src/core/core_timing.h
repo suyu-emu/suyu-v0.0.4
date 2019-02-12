@@ -22,7 +22,7 @@
 #include <string>
 #include "common/common_types.h"
 
-namespace CoreTiming {
+namespace Core::Timing {
 
 struct EventType;
 
@@ -92,4 +92,4 @@ std::chrono::microseconds GetGlobalTimeUs();
 
 int GetDowncount();
 
-} // namespace CoreTiming
+} // namespace Core::Timing

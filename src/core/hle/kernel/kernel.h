@@ -11,7 +11,7 @@
 template <typename T>
 class ResultVal;
 
-namespace CoreTiming {
+namespace Core::Timing {
 struct EventType;
 }
 
@@ -89,7 +89,7 @@ private:
     u64 CreateNewThreadID();
 
     /// Retrieves the event type used for thread wakeup callbacks.
-    CoreTiming::EventType* ThreadWakeupCallbackEventType() const;
+    Core::Timing::EventType* ThreadWakeupCallbackEventType() const;
 
     /// Provides a reference to the thread wakeup callback handle table.
     Kernel::HandleTable& ThreadWakeupCallbackHandleTable();
