@@ -186,7 +186,7 @@ enum class SubOp : u64 {
 };
 
 enum class F2iRoundingOp : u64 {
-    None = 0,
+    RoundEven = 0,
     Floor = 1,
     Ceil = 2,
     Trunc = 3,
