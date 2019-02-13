@@ -15,7 +15,7 @@
 #include "common/threadsafe_queue.h"
 #include "core/core_timing_util.h"
 
-namespace CoreTiming {
+namespace Core::Timing {
 
 static s64 global_timer;
 static int slice_length;
@@ -242,4 +242,4 @@ int GetDowncount() {
     return downcount;
 }
 
-} // namespace CoreTiming
+} // namespace Core::Timing

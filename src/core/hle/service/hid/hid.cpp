@@ -36,9 +36,9 @@ namespace Service::HID {
 
 // Updating period for each HID device.
 // TODO(ogniK): Find actual polling rate of hid
-constexpr u64 pad_update_ticks = CoreTiming::BASE_CLOCK_RATE / 66;
-constexpr u64 accelerometer_update_ticks = CoreTiming::BASE_CLOCK_RATE / 100;
-constexpr u64 gyroscope_update_ticks = CoreTiming::BASE_CLOCK_RATE / 100;
+constexpr u64 pad_update_ticks = Core::Timing::BASE_CLOCK_RATE / 66;
+constexpr u64 accelerometer_update_ticks = Core::Timing::BASE_CLOCK_RATE / 100;
+constexpr u64 gyroscope_update_ticks = Core::Timing::BASE_CLOCK_RATE / 100;
 constexpr std::size_t SHARED_MEMORY_SIZE = 0x40000;
 
 IAppletResource::IAppletResource() : ServiceFramework("IAppletResource") {
@@ -73,14 +73,13 @@ IAppletResource::IAppletResource() : ServiceFramework("IAppletResource") {
     GetController<Controller_Stubbed>(HidController::Unknown3).SetCommonHeaderOffset(0x5000);
 
     // Register update callbacks
-    pad_update_event =
-        CoreTiming::RegisterEvent("HID::UpdatePadCallback", [this](u64 userdata, int cycles_late) {
-            UpdateControllers(userdata, cycles_late);
-        });
+    pad_update_event = Core::Timing::RegisterEvent(
+        "HID::UpdatePadCallback",
+        [this](u64 userdata, int cycles_late) { UpdateControllers(userdata, cycles_late); });
 
     // TODO(shinyquagsire23): Other update callbacks? (accel, gyro?)
 
-    CoreTiming::ScheduleEvent(pad_update_ticks, pad_update_event);
+    Core::Timing::ScheduleEvent(pad_update_ticks, pad_update_event);
 
     ReloadInputDevices();
 }
@@ -94,7 +93,7 @@ void IAppletResource::DeactivateController(HidController controller) {
 }
 
 IAppletResource ::~IAppletResource() {
-    CoreTiming::UnscheduleEvent(pad_update_event, 0);
+    Core::Timing::UnscheduleEvent(pad_update_event, 0);
 }
 
 void IAppletResource::GetSharedMemoryHandle(Kernel::HLERequestContext& ctx) {
@@ -114,7 +113,7 @@ void IAppletResource::UpdateControllers(u64 userdata, int cycles_late) {
         controller->OnUpdate(shared_mem->GetPointer(), SHARED_MEMORY_SIZE);
     }
 
-    CoreTiming::ScheduleEvent(pad_update_ticks - cycles_late, pad_update_event);
+    Core::Timing::ScheduleEvent(pad_update_ticks - cycles_late, pad_update_event);
 }
 
 class IActiveVibrationDeviceList final : public ServiceFramework<IActiveVibrationDeviceList> {

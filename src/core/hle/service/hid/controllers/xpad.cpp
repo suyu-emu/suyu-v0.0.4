@@ -19,7 +19,7 @@ void Controller_XPad::OnRelease() {}
 
 void Controller_XPad::OnUpdate(u8* data, std::size_t size) {
     for (auto& xpad_entry : shared_memory.shared_memory_entries) {
-        xpad_entry.header.timestamp = CoreTiming::GetTicks();
+        xpad_entry.header.timestamp = Core::Timing::GetTicks();
         xpad_entry.header.total_entry_count = 17;
 
         if (!IsControllerActivated()) {

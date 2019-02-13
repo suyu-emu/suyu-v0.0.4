@@ -6,7 +6,7 @@
 
 #include "common/common_types.h"
 
-namespace CoreTiming {
+namespace Core::Timing {
 
 // The below clock rate is based on Switch's clockspeed being widely known as 1.020GHz
 // The exact value used is of course unverified.
@@ -61,4 +61,4 @@ inline u64 cyclesToMs(s64 cycles) {
     return cycles * 1000 / BASE_CLOCK_RATE;
 }
 
-} // namespace CoreTiming
+} // namespace Core::Timing

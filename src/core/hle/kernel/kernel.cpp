@@ -124,7 +124,7 @@ struct KernelCore::Impl {
 
     void InitializeThreads() {
         thread_wakeup_event_type =
-            CoreTiming::RegisterEvent("ThreadWakeupCallback", ThreadWakeupCallback);
+            Core::Timing::RegisterEvent("ThreadWakeupCallback", ThreadWakeupCallback);
     }
 
     std::atomic<u32> next_object_id{0};
@@ -137,7 +137,7 @@ struct KernelCore::Impl {
 
     SharedPtr<ResourceLimit> system_resource_limit;
 
-    CoreTiming::EventType* thread_wakeup_event_type = nullptr;
+    Core::Timing::EventType* thread_wakeup_event_type = nullptr;
     // TODO(yuriks): This can be removed if Thread objects are explicitly pooled in the future,
     // allowing us to simply use a pool index or similar.
     Kernel::HandleTable thread_wakeup_callback_handle_table;
@@ -213,7 +213,7 @@ u64 KernelCore::CreateNewProcessID() {
     return impl->next_process_id++;
 }
 
-CoreTiming::EventType* KernelCore::ThreadWakeupCallbackEventType() const {
+Core::Timing::EventType* KernelCore::ThreadWakeupCallbackEventType() const {
     return impl->thread_wakeup_event_type;
 }
 

@@ -25,21 +25,21 @@
 namespace Service::NVFlinger {
 
 constexpr std::size_t SCREEN_REFRESH_RATE = 60;
-constexpr u64 frame_ticks = static_cast<u64>(CoreTiming::BASE_CLOCK_RATE / SCREEN_REFRESH_RATE);
+constexpr u64 frame_ticks = static_cast<u64>(Core::Timing::BASE_CLOCK_RATE / SCREEN_REFRESH_RATE);
 
 NVFlinger::NVFlinger() {
     // Schedule the screen composition events
     composition_event =
-        CoreTiming::RegisterEvent("ScreenComposition", [this](u64 userdata, int cycles_late) {
+        Core::Timing::RegisterEvent("ScreenComposition", [this](u64 userdata, int cycles_late) {
             Compose();
-            CoreTiming::ScheduleEvent(frame_ticks - cycles_late, composition_event);
+            Core::Timing::ScheduleEvent(frame_ticks - cycles_late, composition_event);
         });
 
-    CoreTiming::ScheduleEvent(frame_ticks, composition_event);
+    Core::Timing::ScheduleEvent(frame_ticks, composition_event);
 }
 
 NVFlinger::~NVFlinger() {
-    CoreTiming::UnscheduleEvent(composition_event, 0);
+    Core::Timing::UnscheduleEvent(composition_event, 0);
 }
 
 void NVFlinger::SetNVDrvInstance(std::shared_ptr<Nvidia::Module> instance) {

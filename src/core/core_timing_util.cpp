@@ -8,7 +8,7 @@
 #include <limits>
 #include "common/logging/log.h"
 
-namespace CoreTiming {
+namespace Core::Timing {
 
 constexpr u64 MAX_VALUE_TO_MULTIPLY = std::numeric_limits<s64>::max() / BASE_CLOCK_RATE;
 
@@ -60,4 +60,4 @@ s64 nsToCycles(u64 ns) {
     return (BASE_CLOCK_RATE * static_cast<s64>(ns)) / 1000000000;
 }
 
-} // namespace CoreTiming
+} // namespace Core::Timing

@@ -106,8 +106,8 @@ private:
     void GetCurrentTimePoint(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_Time, "called");
 
-        SteadyClockTimePoint steady_clock_time_point{
-            CoreTiming::cyclesToMs(CoreTiming::GetTicks()) / 1000};
+        const SteadyClockTimePoint steady_clock_time_point{
+            Core::Timing::cyclesToMs(Core::Timing::GetTicks()) / 1000};
         IPC::ResponseBuilder rb{ctx, (sizeof(SteadyClockTimePoint) / 4) + 2};
         rb.Push(RESULT_SUCCESS);
         rb.PushRaw(steady_clock_time_point);
@@ -282,7 +282,7 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
     }
 
     const SteadyClockTimePoint steady_clock_time_point{
-        CoreTiming::cyclesToMs(CoreTiming::GetTicks()) / 1000, {}};
+        Core::Timing::cyclesToMs(Core::Timing::GetTicks()) / 1000, {}};
 
     CalendarTime calendar_time{};
     calendar_time.year = tm->tm_year + 1900;
