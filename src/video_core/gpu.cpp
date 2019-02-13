@@ -6,9 +6,9 @@
 #include "core/core_timing.h"
 #include "core/memory.h"
 #include "video_core/engines/fermi_2d.h"
+#include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/kepler_memory.h"
 #include "video_core/engines/maxwell_3d.h"
-#include "video_core/engines/maxwell_compute.h"
 #include "video_core/engines/maxwell_dma.h"
 #include "video_core/gpu.h"
 #include "video_core/rasterizer_interface.h"
@@ -31,7 +31,7 @@ GPU::GPU(VideoCore::RasterizerInterface& rasterizer) {
     dma_pusher = std::make_unique<Tegra::DmaPusher>(*this);
     maxwell_3d = std::make_unique<Engines::Maxwell3D>(rasterizer, *memory_manager);
     fermi_2d = std::make_unique<Engines::Fermi2D>(rasterizer, *memory_manager);
-    maxwell_compute = std::make_unique<Engines::MaxwellCompute>();
+    kepler_compute = std::make_unique<Engines::KeplerCompute>(*memory_manager);
     maxwell_dma = std::make_unique<Engines::MaxwellDMA>(rasterizer, *memory_manager);
     kepler_memory = std::make_unique<Engines::KeplerMemory>(rasterizer, *memory_manager);
 }
@@ -245,8 +245,8 @@ void GPU::CallEngineMethod(const MethodCall& method_call) {
     case EngineID::MAXWELL_B:
         maxwell_3d->CallMethod(method_call);
         break;
-    case EngineID::MAXWELL_COMPUTE_B:
-        maxwell_compute->CallMethod(method_call);
+    case EngineID::KEPLER_COMPUTE_B:
+        kepler_compute->CallMethod(method_call);
         break;
     case EngineID::MAXWELL_DMA_COPY_A:
         maxwell_dma->CallMethod(method_call);

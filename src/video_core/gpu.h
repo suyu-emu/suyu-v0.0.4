@@ -102,15 +102,15 @@ struct FramebufferConfig {
 namespace Engines {
 class Fermi2D;
 class Maxwell3D;
-class MaxwellCompute;
 class MaxwellDMA;
+class KeplerCompute;
 class KeplerMemory;
 } // namespace Engines
 
 enum class EngineID {
     FERMI_TWOD_A = 0x902D, // 2D Engine
     MAXWELL_B = 0xB197,    // 3D Engine
-    MAXWELL_COMPUTE_B = 0xB1C0,
+    KEPLER_COMPUTE_B = 0xB1C0,
     KEPLER_INLINE_TO_MEMORY_B = 0xA140,
     MAXWELL_DMA_COPY_A = 0xB0B5,
 };
@@ -208,7 +208,7 @@ private:
     /// 2D engine
     std::unique_ptr<Engines::Fermi2D> fermi_2d;
     /// Compute engine
-    std::unique_ptr<Engines::MaxwellCompute> maxwell_compute;
+    std::unique_ptr<Engines::KeplerCompute> kepler_compute;
     /// DMA engine
     std::unique_ptr<Engines::MaxwellDMA> maxwell_dma;
     /// Inline memory engine
