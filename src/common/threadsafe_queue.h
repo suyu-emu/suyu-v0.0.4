@@ -7,11 +7,10 @@
 // a simple lockless thread-safe,
 // single reader, single writer queue
 
-#include <algorithm>
 #include <atomic>
 #include <cstddef>
 #include <mutex>
-#include "common/common_types.h"
+#include <utility>
 
 namespace Common {
 template <typename T>
@@ -25,7 +24,7 @@ public:
         delete read_ptr;
     }
 
-    u32 Size() const {
+    std::size_t Size() const {
         return size.load();
     }
 
@@ -87,7 +86,7 @@ private:
     // and a pointer to the next ElementPtr
     class ElementPtr {
     public:
-        ElementPtr() : next(nullptr) {}
+        ElementPtr() {}
         ~ElementPtr() {
             ElementPtr* next_ptr = next.load();
 
@@ -96,12 +95,12 @@ private:
         }
 
         T current;
-        std::atomic<ElementPtr*> next;
+        std::atomic<ElementPtr*> next{nullptr};
     };
 
     ElementPtr* write_ptr;
     ElementPtr* read_ptr;
-    std::atomic<u32> size{0};
+    std::atomic_size_t size{0};
 };
 
 // a simple thread-safe,
@@ -110,7 +109,7 @@ private:
 template <typename T>
 class MPSCQueue {
 public:
-    u32 Size() const {
+    std::size_t Size() const {
         return spsc_queue.Size();
     }
 
