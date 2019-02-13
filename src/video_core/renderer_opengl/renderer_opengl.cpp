@@ -107,7 +107,7 @@ RendererOpenGL::~RendererOpenGL() = default;
 void RendererOpenGL::SwapBuffers(
     std::optional<std::reference_wrapper<const Tegra::FramebufferConfig>> framebuffer) {
 
-    Core::System::GetInstance().GetPerfStats().EndSystemFrame();
+    system.GetPerfStats().EndSystemFrame();
 
     // Maintain the rasterizer's state as a priority
     OpenGLState prev_state = OpenGLState::GetCurState();
@@ -137,8 +137,8 @@ void RendererOpenGL::SwapBuffers(
 
     render_window.PollEvents();
 
-    Core::System::GetInstance().FrameLimiter().DoFrameLimiting(Core::Timing::GetGlobalTimeUs());
-    Core::System::GetInstance().GetPerfStats().BeginSystemFrame();
+    system.FrameLimiter().DoFrameLimiting(Core::Timing::GetGlobalTimeUs());
+    system.GetPerfStats().BeginSystemFrame();
 
     // Restore the rasterizer state
     prev_state.Apply();
