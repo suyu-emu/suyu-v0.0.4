@@ -518,7 +518,7 @@ private:
     Surface last_depth_buffer;
 
     using SurfaceIntervalCache = boost::icl::interval_map<VAddr, Surface>;
-    using SurfaceInterval = typename IntervalCache::interval_type;
+    using SurfaceInterval = typename SurfaceIntervalCache::interval_type;
 
     static auto GetReinterpretInterval(const Surface& object) {
         return SurfaceInterval::right_open(object->GetAddr() + 1,
