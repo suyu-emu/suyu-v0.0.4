@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cstddef>
+#include <memory>
 #include <vector>
 #include "video_core/renderer_vulkan/declarations.h"
 
@@ -114,6 +116,27 @@ public:
 
 private:
     VKFence* fence{}; ///< Fence watching this resource. nullptr when the watch is free.
+};
+
+/**
+ * The resource manager handles all resources that can be protected with a fence avoiding
+ * driver-side or GPU-side concurrent usage. Usage is documented in VKFence.
+ */
+class VKResourceManager final {
+public:
+    explicit VKResourceManager(const VKDevice& device);
+    ~VKResourceManager();
+
+    /// Commits a fence. It has to be sent to a queue and released.
+    VKFence& CommitFence();
+
+private:
+    /// Allocates new fences.
+    void GrowFences(std::size_t new_fences_count);
+
+    const VKDevice& device;          ///< Device handler.
+    std::size_t fences_iterator = 0; ///< Index where a free fence is likely to be found.
+    std::vector<std::unique_ptr<VKFence>> fences; ///< Pool of fences.
 };
 
 } // namespace Vulkan

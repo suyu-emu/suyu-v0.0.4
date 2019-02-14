@@ -4,11 +4,15 @@
 
 #include <algorithm>
 #include "common/assert.h"
+#include "common/logging/log.h"
 #include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_resource_manager.h"
 
 namespace Vulkan {
+
+// TODO(Rodrigo): Fine tune these numbers.
+constexpr std::size_t FENCES_GROW_STEP = 0x40;
 
 VKResource::VKResource() = default;
 
@@ -115,6 +119,64 @@ bool VKFenceWatch::TryWatch(VKFence& new_fence) {
 void VKFenceWatch::OnFenceRemoval(VKFence* signaling_fence) {
     ASSERT_MSG(signaling_fence == fence, "Removing the wrong fence");
     fence = nullptr;
+}
+
+VKResourceManager::VKResourceManager(const VKDevice& device) : device{device} {
+    GrowFences(FENCES_GROW_STEP);
+}
+
+VKResourceManager::~VKResourceManager() = default;
+
+VKFence& VKResourceManager::CommitFence() {
+    const auto StepFences = [&](bool gpu_wait, bool owner_wait) -> VKFence* {
+        const auto Tick = [=](auto& fence) { return fence->Tick(gpu_wait, owner_wait); };
+        const auto hinted = fences.begin() + fences_iterator;
+
+        auto it = std::find_if(hinted, fences.end(), Tick);
+        if (it == fences.end()) {
+            it = std::find_if(fences.begin(), hinted, Tick);
+            if (it == hinted) {
+                return nullptr;
+            }
+        }
+        fences_iterator = std::distance(fences.begin(), it) + 1;
+        if (fences_iterator >= fences.size())
+            fences_iterator = 0;
+
+        auto& fence = *it;
+        fence->Commit();
+        return fence.get();
+    };
+
+    VKFence* found_fence = StepFences(false, false);
+    if (!found_fence) {
+        // Try again, this time waiting.
+        found_fence = StepFences(true, false);
+
+        if (!found_fence) {
+            // Allocate new fences and try again.
+            LOG_INFO(Render_Vulkan, "Allocating new fences {} -> {}", fences.size(),
+                     fences.size() + FENCES_GROW_STEP);
+
+            GrowFences(FENCES_GROW_STEP);
+            found_fence = StepFences(true, false);
+            ASSERT(found_fence != nullptr);
+        }
+    }
+    return *found_fence;
+}
+
+void VKResourceManager::GrowFences(std::size_t new_fences_count) {
+    const auto dev = device.GetLogical();
+    const auto& dld = device.GetDispatchLoader();
+    const vk::FenceCreateInfo fence_ci;
+
+    const std::size_t previous_size = fences.size();
+    fences.resize(previous_size + new_fences_count);
+
+    std::generate(fences.begin() + previous_size, fences.end(), [&]() {
+        return std::make_unique<VKFence>(device, dev.createFenceUnique(fence_ci, nullptr, dld));
+    });
 }
 
 } // namespace Vulkan
