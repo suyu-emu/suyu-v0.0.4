@@ -70,8 +70,6 @@ static bool is_global_timer_sane;
 
 static EventType* ev_lost = nullptr;
 
-static void EmptyTimedCallback(u64 userdata, s64 cyclesLate) {}
-
 EventType* RegisterEvent(const std::string& name, TimedCallback callback) {
     // check for existing type with same name.
     // we want event type names to remain unique so that we can use them for serialization.
@@ -104,7 +102,9 @@ void Init() {
     is_global_timer_sane = true;
 
     event_fifo_id = 0;
-    ev_lost = RegisterEvent("_lost_event", &EmptyTimedCallback);
+
+    const auto empty_timed_callback = [](u64, s64) {};
+    ev_lost = RegisterEvent("_lost_event", empty_timed_callback);
 }
 
 void Shutdown() {
