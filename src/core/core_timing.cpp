@@ -54,10 +54,10 @@ static std::vector<Event> event_queue;
 static u64 event_fifo_id;
 // the queue for storing the events from other threads threadsafe until they will be added
 // to the event_queue by the emu thread
-static Common::MPSCQueue<Event, false> ts_queue;
+static Common::MPSCQueue<Event> ts_queue;
 
 // the queue for unscheduling the events from other threads threadsafe
-static Common::MPSCQueue<std::pair<const EventType*, u64>, false> unschedule_queue;
+static Common::MPSCQueue<std::pair<const EventType*, u64>> unschedule_queue;
 
 constexpr int MAX_SLICE_LENGTH = 20000;
 
