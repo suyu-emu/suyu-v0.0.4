@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include "common/assert.h"
 #include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_resource_manager.h"
@@ -77,6 +78,43 @@ void VKFence::Unprotect(const VKResource* resource) {
     if (it != protected_resources.end()) {
         protected_resources.erase(it);
     }
+}
+
+VKFenceWatch::VKFenceWatch() = default;
+
+VKFenceWatch::~VKFenceWatch() {
+    if (fence) {
+        fence->Unprotect(this);
+    }
+}
+
+void VKFenceWatch::Wait() {
+    if (!fence) {
+        return;
+    }
+    fence->Wait();
+    fence->Unprotect(this);
+    fence = nullptr;
+}
+
+void VKFenceWatch::Watch(VKFence& new_fence) {
+    Wait();
+    fence = &new_fence;
+    fence->Protect(this);
+}
+
+bool VKFenceWatch::TryWatch(VKFence& new_fence) {
+    if (fence) {
+        return false;
+    }
+    fence = &new_fence;
+    fence->Protect(this);
+    return true;
+}
+
+void VKFenceWatch::OnFenceRemoval(VKFence* signaling_fence) {
+    ASSERT_MSG(signaling_fence == fence, "Removing the wrong fence");
+    fence = nullptr;
 }
 
 } // namespace Vulkan

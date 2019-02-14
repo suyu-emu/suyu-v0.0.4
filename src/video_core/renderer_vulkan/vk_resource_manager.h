@@ -86,4 +86,34 @@ private:
     bool is_used = false;  ///< The fence has been commited but it has not been checked to be free.
 };
 
+/**
+ * A fence watch is used to keep track of the usage of a fence and protect a resource or set of
+ * resources without having to inherit VKResource from their handlers.
+ */
+class VKFenceWatch final : public VKResource {
+public:
+    explicit VKFenceWatch();
+    ~VKFenceWatch();
+
+    /// Waits for the fence to be released.
+    void Wait();
+
+    /**
+     * Waits for a previous fence and watches a new one.
+     * @param new_fence New fence to wait to.
+     */
+    void Watch(VKFence& new_fence);
+
+    /**
+     * Checks if it's currently being watched and starts watching it if it's available.
+     * @returns True if a watch has started, false if it's being watched.
+     */
+    bool TryWatch(VKFence& new_fence);
+
+    void OnFenceRemoval(VKFence* signaling_fence) override;
+
+private:
+    VKFence* fence{}; ///< Fence watching this resource. nullptr when the watch is free.
+};
+
 } // namespace Vulkan
