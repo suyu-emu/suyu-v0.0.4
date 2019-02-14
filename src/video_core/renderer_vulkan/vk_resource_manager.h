@@ -119,6 +119,38 @@ private:
 };
 
 /**
+ * Handles a pool of resources protected by fences. Manages resource overflow allocating more
+ * resources.
+ */
+class VKFencedPool {
+public:
+    explicit VKFencedPool(std::size_t grow_step);
+    virtual ~VKFencedPool();
+
+protected:
+    /**
+     * Commits a free resource and protects it with a fence. It may allocate new resources.
+     * @param fence Fence that protects the commited resource.
+     * @returns Index of the resource commited.
+     */
+    std::size_t CommitResource(VKFence& fence);
+
+    /// Called when a chunk of resources have to be allocated.
+    virtual void Allocate(std::size_t begin, std::size_t end) = 0;
+
+private:
+    /// Manages pool overflow allocating new resources.
+    std::size_t ManageOverflow();
+
+    /// Allocates a new page of resources.
+    void Grow();
+
+    std::size_t grow_step = 0;     ///< Number of new resources created after an overflow
+    std::size_t free_iterator = 0; ///< Hint to where the next free resources is likely to be found
+    std::vector<std::unique_ptr<VKFenceWatch>> watches; ///< Set of watched resources
+};
+
+/**
  * The resource manager handles all resources that can be protected with a fence avoiding
  * driver-side or GPU-side concurrent usage. Usage is documented in VKFence.
  */

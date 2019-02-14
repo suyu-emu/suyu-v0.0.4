@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <optional>
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "video_core/renderer_vulkan/declarations.h"
@@ -119,6 +120,56 @@ bool VKFenceWatch::TryWatch(VKFence& new_fence) {
 void VKFenceWatch::OnFenceRemoval(VKFence* signaling_fence) {
     ASSERT_MSG(signaling_fence == fence, "Removing the wrong fence");
     fence = nullptr;
+}
+
+VKFencedPool::VKFencedPool(std::size_t grow_step) : grow_step{grow_step} {}
+
+VKFencedPool::~VKFencedPool() = default;
+
+std::size_t VKFencedPool::CommitResource(VKFence& fence) {
+    const auto Search = [&](std::size_t begin, std::size_t end) -> std::optional<std::size_t> {
+        for (std::size_t iterator = begin; iterator < end; ++iterator) {
+            if (watches[iterator]->TryWatch(fence)) {
+                // The resource is now being watched, a free resource was successfully found.
+                return iterator;
+            }
+        }
+        return {};
+    };
+    // Try to find a free resource from the hinted position to the end.
+    auto found = Search(free_iterator, watches.size());
+    if (!found) {
+        // Search from beginning to the hinted position.
+        found = Search(0, free_iterator);
+        if (!found) {
+            // Both searches failed, the pool is full; handle it.
+            const std::size_t free_resource = ManageOverflow();
+
+            // Watch will wait for the resource to be free.
+            watches[free_resource]->Watch(fence);
+            found = free_resource;
+        }
+    }
+    // Free iterator is hinted to the resource after the one that's been commited.
+    free_iterator = (*found + 1) % watches.size();
+    return *found;
+}
+
+std::size_t VKFencedPool::ManageOverflow() {
+    const std::size_t old_capacity = watches.size();
+    Grow();
+
+    // The last entry is guaranted to be free, since it's the first element of the freshly
+    // allocated resources.
+    return old_capacity;
+}
+
+void VKFencedPool::Grow() {
+    const std::size_t old_capacity = watches.size();
+    watches.resize(old_capacity + grow_step);
+    std::generate(watches.begin() + old_capacity, watches.end(),
+                  []() { return std::make_unique<VKFenceWatch>(); });
+    Allocate(old_capacity, old_capacity + grow_step);
 }
 
 VKResourceManager::VKResourceManager(const VKDevice& device) : device{device} {
