@@ -13,7 +13,54 @@
 namespace Vulkan {
 
 // TODO(Rodrigo): Fine tune these numbers.
+constexpr std::size_t COMMAND_BUFFER_POOL_SIZE = 0x1000;
 constexpr std::size_t FENCES_GROW_STEP = 0x40;
+
+class CommandBufferPool final : public VKFencedPool {
+public:
+    CommandBufferPool(const VKDevice& device)
+        : VKFencedPool(COMMAND_BUFFER_POOL_SIZE), device{device} {}
+
+    void Allocate(std::size_t begin, std::size_t end) {
+        const auto dev = device.GetLogical();
+        const auto& dld = device.GetDispatchLoader();
+        const u32 graphics_family = device.GetGraphicsFamily();
+
+        auto pool = std::make_unique<Pool>();
+
+        // Command buffers are going to be commited, recorded, executed every single usage cycle.
+        // They are also going to be reseted when commited.
+        const auto pool_flags = vk::CommandPoolCreateFlagBits::eTransient |
+                                vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+        const vk::CommandPoolCreateInfo cmdbuf_pool_ci(pool_flags, graphics_family);
+        pool->handle = dev.createCommandPoolUnique(cmdbuf_pool_ci, nullptr, dld);
+
+        const vk::CommandBufferAllocateInfo cmdbuf_ai(*pool->handle,
+                                                      vk::CommandBufferLevel::ePrimary,
+                                                      static_cast<u32>(COMMAND_BUFFER_POOL_SIZE));
+        pool->cmdbufs =
+            dev.allocateCommandBuffersUnique<std::allocator<UniqueCommandBuffer>>(cmdbuf_ai, dld);
+
+        pools.push_back(std::move(pool));
+    }
+
+    vk::CommandBuffer Commit(VKFence& fence) {
+        const std::size_t index = CommitResource(fence);
+        const auto pool_index = index / COMMAND_BUFFER_POOL_SIZE;
+        const auto sub_index = index % COMMAND_BUFFER_POOL_SIZE;
+        return *pools[pool_index]->cmdbufs[sub_index];
+    }
+
+private:
+    struct Pool {
+        UniqueCommandPool handle;
+        std::vector<UniqueCommandBuffer> cmdbufs;
+    };
+
+    const VKDevice& device;
+
+    std::vector<std::unique_ptr<Pool>> pools;
+};
 
 VKResource::VKResource() = default;
 
@@ -174,6 +221,7 @@ void VKFencedPool::Grow() {
 
 VKResourceManager::VKResourceManager(const VKDevice& device) : device{device} {
     GrowFences(FENCES_GROW_STEP);
+    command_buffer_pool = std::make_unique<CommandBufferPool>(device);
 }
 
 VKResourceManager::~VKResourceManager() = default;
@@ -215,6 +263,10 @@ VKFence& VKResourceManager::CommitFence() {
         }
     }
     return *found_fence;
+}
+
+vk::CommandBuffer VKResourceManager::CommitCommandBuffer(VKFence& fence) {
+    return command_buffer_pool->Commit(fence);
 }
 
 void VKResourceManager::GrowFences(std::size_t new_fences_count) {

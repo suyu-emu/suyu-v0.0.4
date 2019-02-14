@@ -15,6 +15,8 @@ class VKDevice;
 class VKFence;
 class VKResourceManager;
 
+class CommandBufferPool;
+
 /// Interface for a Vulkan resource
 class VKResource {
 public:
@@ -162,13 +164,17 @@ public:
     /// Commits a fence. It has to be sent to a queue and released.
     VKFence& CommitFence();
 
+    /// Commits an unused command buffer and protects it with a fence.
+    vk::CommandBuffer CommitCommandBuffer(VKFence& fence);
+
 private:
     /// Allocates new fences.
     void GrowFences(std::size_t new_fences_count);
 
     const VKDevice& device;          ///< Device handler.
     std::size_t fences_iterator = 0; ///< Index where a free fence is likely to be found.
-    std::vector<std::unique_ptr<VKFence>> fences; ///< Pool of fences.
+    std::vector<std::unique_ptr<VKFence>> fences;           ///< Pool of fences.
+    std::unique_ptr<CommandBufferPool> command_buffer_pool; ///< Pool of command buffers.
 };
 
 } // namespace Vulkan
