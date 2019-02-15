@@ -36,7 +36,6 @@ using PixelFormat = VideoCore::Surface::PixelFormat;
 using ComponentType = VideoCore::Surface::ComponentType;
 
 struct SurfaceParams {
-
     enum class SurfaceClass {
         Uploaded,
         RenderTarget,
@@ -169,20 +168,27 @@ struct SurfaceParams {
     }
 
     u32 MipBlockDepth(u32 mip_level) const {
-        if (mip_level == 0)
+        if (mip_level == 0) {
             return block_depth;
-        if (is_layered)
+        }
+
+        if (is_layered) {
             return 1;
-        u32 depth = MipDepth(mip_level);
+        }
+
+        const u32 mip_depth = MipDepth(mip_level);
         u32 bd = 32;
-        while (bd > 1 && depth * 2 <= bd) {
+        while (bd > 1 && mip_depth * 2 <= bd) {
             bd >>= 1;
         }
+
         if (bd == 32) {
-            u32 bh = MipBlockHeight(mip_level);
-            if (bh >= 4)
+            const u32 bh = MipBlockHeight(mip_level);
+            if (bh >= 4) {
                 return 16;
+            }
         }
+
         return bd;
     }
 
