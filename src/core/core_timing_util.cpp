@@ -60,4 +60,11 @@ s64 nsToCycles(u64 ns) {
     return (BASE_CLOCK_RATE * static_cast<s64>(ns)) / 1000000000;
 }
 
+u64 CpuCyclesToClockCycles(u64 ticks) {
+    u64 result = ticks;
+    result *= CNTFREQ;
+    result /= BASE_CLOCK_RATE;
+    return static_cast<u64>(result);
+}
+
 } // namespace Core::Timing
