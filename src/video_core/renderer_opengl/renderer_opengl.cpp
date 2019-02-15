@@ -380,7 +380,8 @@ void RendererOpenGL::CaptureScreenshot() {
     GLuint renderbuffer;
     glGenRenderbuffers(1, &renderbuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB8, layout.width, layout.height);
+    glRenderbufferStorage(GL_RENDERBUFFER, state.GetsRGBUsed() ? GL_SRGB8 : GL_RGB8, layout.width,
+                          layout.height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuffer);
 
     DrawScreen(layout);
