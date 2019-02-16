@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <optional>
 #include <glad/glad.h>
 
 #include "common/alignment.h"
@@ -1000,7 +1001,7 @@ Surface RasterizerCacheOpenGL::GetSurface(const SurfaceParams& params, bool pres
     Surface surface{TryGet(params.addr)};
     if (surface) {
         if (surface->GetSurfaceParams().IsCompatibleSurface(params)) {
-            // Use the cached surface as-is
+            // Use the cached surface as-is unless it's not synced with memory
             if (surface->MustReload())
                 LoadSurface(surface);
             return surface;
@@ -1298,44 +1299,47 @@ Surface RasterizerCacheOpenGL::TryGetReservedSurface(const SurfaceParams& params
     return {};
 }
 
-bool FindBestMipMap(std::size_t memory, const SurfaceParams params, u32 height, u32& mipmap) {
-    for (u32 i = 0; i < params.max_mip_level; i++)
+static std::optional<u32> TryFindBestMipMap(std::size_t memory, const SurfaceParams params,
+                                            u32 height) {
+    for (u32 i = 0; i < params.max_mip_level; i++) {
         if (memory == params.GetMipmapSingleSize(i) && params.MipHeight(i) == height) {
-            mipmap = i;
-            return true;
+            return {i};
         }
-    return false;
+    }
+    return {};
 }
 
-bool FindBestLayer(VAddr addr, const SurfaceParams params, u32 mipmap, u32& layer) {
-    std::size_t size = params.LayerMemorySize();
+static std::optional<u32> TryFindBestLayer(VAddr addr, const SurfaceParams params, u32 mipmap) {
+    const std::size_t size = params.LayerMemorySize();
     VAddr start = params.addr + params.GetMipmapLevelOffset(mipmap);
     for (u32 i = 0; i < params.depth; i++) {
         if (start == addr) {
-            layer = i;
-            return true;
+            return {i};
         }
         start += size;
     }
-    return false;
+    return {};
 }
 
-bool LayerFitReinterpretSurface(RasterizerCacheOpenGL& cache, const Surface render_surface,
-                                const Surface blitted_surface) {
-    const auto dst_params = blitted_surface->GetSurfaceParams();
-    const auto src_params = render_surface->GetSurfaceParams();
-    u32 level = 0;
-    std::size_t src_memory_size = src_params.size_in_bytes;
-    if (FindBestMipMap(src_memory_size, dst_params, src_params.height, level)) {
-        if (src_params.width == dst_params.MipWidthGobAligned(level) &&
-            src_params.height == dst_params.MipHeight(level) &&
-            src_params.block_height >= dst_params.MipBlockHeight(level)) {
-            u32 slot = 0;
-            if (FindBestLayer(render_surface->GetAddr(), dst_params, level, slot)) {
-                glCopyImageSubData(
-                    render_surface->Texture().handle, SurfaceTargetToGL(src_params.target), 0, 0, 0,
-                    0, blitted_surface->Texture().handle, SurfaceTargetToGL(dst_params.target),
-                    level, 0, 0, slot, dst_params.MipWidth(level), dst_params.MipHeight(level), 1);
+static bool LayerFitReinterpretSurface(RasterizerCacheOpenGL& cache, const Surface render_surface,
+                                       const Surface blitted_surface) {
+    const auto& dst_params = blitted_surface->GetSurfaceParams();
+    const auto& src_params = render_surface->GetSurfaceParams();
+    const std::size_t src_memory_size = src_params.size_in_bytes;
+    const std::optional<u32> level =
+        TryFindBestMipMap(src_memory_size, dst_params, src_params.height);
+    if (level.has_value()) {
+        if (src_params.width == dst_params.MipWidthGobAligned(*level) &&
+            src_params.height == dst_params.MipHeight(*level) &&
+            src_params.block_height >= dst_params.MipBlockHeight(*level)) {
+            const std::optional<u32> slot =
+                TryFindBestLayer(render_surface->GetAddr(), dst_params, *level);
+            if (slot.has_value()) {
+                glCopyImageSubData(render_surface->Texture().handle,
+                                   SurfaceTargetToGL(src_params.target), 0, 0, 0, 0,
+                                   blitted_surface->Texture().handle,
+                                   SurfaceTargetToGL(dst_params.target), *level, 0, 0, *slot,
+                                   dst_params.MipWidth(*level), dst_params.MipHeight(*level), 1);
                 blitted_surface->MarkAsModified(true, cache);
                 return true;
             }
@@ -1344,24 +1348,21 @@ bool LayerFitReinterpretSurface(RasterizerCacheOpenGL& cache, const Surface rend
     return false;
 }
 
-bool IsReinterpretInvalid(const Surface render_surface, const Surface blitted_surface) {
-    VAddr bound1 = blitted_surface->GetAddr() + blitted_surface->GetMemorySize();
-    VAddr bound2 = render_surface->GetAddr() + render_surface->GetMemorySize();
+static bool IsReinterpretInvalid(const Surface render_surface, const Surface blitted_surface) {
+    const VAddr bound1 = blitted_surface->GetAddr() + blitted_surface->GetMemorySize();
+    const VAddr bound2 = render_surface->GetAddr() + render_surface->GetMemorySize();
     if (bound2 > bound1)
         return true;
-    const auto dst_params = blitted_surface->GetSurfaceParams();
-    const auto src_params = render_surface->GetSurfaceParams();
-    if (dst_params.component_type != src_params.component_type)
-        return true;
-    return false;
+    const auto& dst_params = blitted_surface->GetSurfaceParams();
+    const auto& src_params = render_surface->GetSurfaceParams();
+    return (dst_params.component_type != src_params.component_type);
 }
 
-bool IsReinterpretInvalidSecond(const Surface render_surface, const Surface blitted_surface) {
-    const auto dst_params = blitted_surface->GetSurfaceParams();
-    const auto src_params = render_surface->GetSurfaceParams();
-    if (dst_params.height > src_params.height && dst_params.width > src_params.width)
-        return false;
-    return true;
+static bool IsReinterpretInvalidSecond(const Surface render_surface,
+                                       const Surface blitted_surface) {
+    const auto& dst_params = blitted_surface->GetSurfaceParams();
+    const auto& src_params = render_surface->GetSurfaceParams();
+    return (dst_params.height > src_params.height && dst_params.width > src_params.width);
 }
 
 bool RasterizerCacheOpenGL::PartialReinterpretSurface(Surface triggering_surface,
@@ -1383,7 +1384,7 @@ bool RasterizerCacheOpenGL::PartialReinterpretSurface(Surface triggering_surface
 }
 
 void RasterizerCacheOpenGL::SignalPreDrawCall() {
-    if (texception) {
+    if (texception && GLAD_GL_ARB_texture_barrier) {
         glTextureBarrier();
     }
     texception = false;

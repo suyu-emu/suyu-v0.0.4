@@ -412,7 +412,7 @@ public:
         reinterpreted = true;
     }
 
-    bool IsReinterpreted() {
+    bool IsReinterpreted() const {
         return reinterpreted;
     }
 
@@ -420,11 +420,11 @@ public:
         must_reload = reload;
     }
 
-    bool MustReload() {
+    bool MustReload() const {
         return must_reload;
     }
 
-    bool IsUploaded() {
+    bool IsUploaded() const {
         return params.identity == SurfaceParams::SurfaceClass::Uploaded;
     }
 
@@ -489,6 +489,7 @@ private:
     Surface TryGetReservedSurface(const SurfaceParams& params);
 
     // Partialy reinterpret a surface based on a triggering_surface that collides with it.
+    // returns true if the reinterpret was successful, false in case it was not.
     bool PartialReinterpretSurface(Surface triggering_surface, Surface intersect);
 
     /// Performs a slow but accurate surface copy, flushing to RAM and reinterpreting the data
@@ -528,10 +529,10 @@ private:
     // Reinterpreted surfaces are very fragil as the game may keep rendering into them.
     SurfaceIntervalCache reinterpreted_surfaces;
 
-    void RegisterReinterpretSurface(Surface r_surface) {
-        auto interval = GetReinterpretInterval(r_surface);
-        reinterpreted_surfaces.insert({interval, r_surface});
-        r_surface->MarkReinterpreted();
+    void RegisterReinterpretSurface(Surface reinterpret_surface) {
+        auto interval = GetReinterpretInterval(reinterpret_surface);
+        reinterpreted_surfaces.insert({interval, reinterpret_surface});
+        reinterpret_surface->MarkReinterpreted();
     }
 
     Surface CollideOnReinterpretedSurface(VAddr addr) const {
@@ -543,14 +544,12 @@ private:
         return nullptr;
     }
 
-protected:
     void Register(const Surface& object) {
         RasterizerCache<Surface>::Register(object);
     }
 
     /// Unregisters an object from the cache
     void Unregister(const Surface& object) {
-        const auto& params = object->GetSurfaceParams();
         if (object->IsReinterpreted()) {
             auto interval = GetReinterpretInterval(object);
             reinterpreted_surfaces.erase(interval);
