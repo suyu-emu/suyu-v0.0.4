@@ -8,6 +8,7 @@
 // single reader, single writer queue
 
 #include <atomic>
+#include <condition_variable>
 #include <cstddef>
 #include <mutex>
 #include <utility>
@@ -45,6 +46,7 @@ public:
         ElementPtr* new_ptr = new ElementPtr();
         write_ptr->next.store(new_ptr, std::memory_order_release);
         write_ptr = new_ptr;
+        cv.notify_one();
 
         ++size;
     }
@@ -74,6 +76,16 @@ public:
         return true;
     }
 
+    T PopWait() {
+        if (Empty()) {
+            std::unique_lock<std::mutex> lock(cv_mutex);
+            cv.wait(lock, [this]() { return !Empty(); });
+        }
+        T t;
+        Pop(t);
+        return t;
+    }
+
     // not thread-safe
     void Clear() {
         size.store(0);
@@ -101,6 +113,8 @@ private:
     ElementPtr* write_ptr;
     ElementPtr* read_ptr;
     std::atomic_size_t size{0};
+    std::mutex cv_mutex;
+    std::condition_variable cv;
 };
 
 // a simple thread-safe,
@@ -133,6 +147,10 @@ public:
 
     bool Pop(T& t) {
         return spsc_queue.Pop(t);
+    }
+
+    T PopWait() {
+        return spsc_queue.PopWait();
     }
 
     // not thread-safe
