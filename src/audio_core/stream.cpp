@@ -95,7 +95,7 @@ void Stream::PlayNextBuffer() {
     active_buffer = queued_buffers.front();
     queued_buffers.pop();
 
-    VolumeAdjustSamples(active_buffer->Samples());
+    VolumeAdjustSamples(active_buffer->GetSamples());
 
     sink_stream.EnqueueSamples(GetNumChannels(), active_buffer->GetSamples());
 

@@ -21,7 +21,7 @@ public:
     Buffer(Tag tag, std::vector<s16>&& samples) : tag{tag}, samples{std::move(samples)} {}
 
     /// Returns the raw audio data for the buffer
-    std::vector<s16>& Samples() {
+    std::vector<s16>& GetSamples() {
         return samples;
     }
 
