@@ -17,8 +17,7 @@
 #include "core/hle/result.h"
 #include "core/memory.h"
 
-namespace Kernel {
-namespace AddressArbiter {
+namespace Kernel::AddressArbiter {
 
 // Performs actual address waiting logic.
 static ResultCode WaitForAddress(VAddr address, s64 timeout) {
@@ -176,5 +175,4 @@ ResultCode WaitForAddressIfEqual(VAddr address, s32 value, s64 timeout) {
 
     return WaitForAddress(address, timeout);
 }
-} // namespace AddressArbiter
-} // namespace Kernel
+} // namespace Kernel::AddressArbiter
