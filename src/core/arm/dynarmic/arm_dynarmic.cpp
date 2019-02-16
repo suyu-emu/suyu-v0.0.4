@@ -120,7 +120,7 @@ public:
         return std::max(parent.core_timing.GetDowncount(), 0);
     }
     u64 GetCNTPCT() override {
-        return CpuCyclesToClockCycles(parent.core_timing.GetTicks());
+        return Timing::CpuCyclesToClockCycles(parent.core_timing.GetTicks());
     }
 
     ARM_Dynarmic& parent;
