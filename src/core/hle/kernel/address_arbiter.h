@@ -8,9 +8,8 @@
 
 union ResultCode;
 
-namespace Kernel {
+namespace Kernel::AddressArbiter {
 
-namespace AddressArbiter {
 enum class ArbitrationType {
     WaitIfLessThan = 0,
     DecrementAndWaitIfLessThan = 1,
@@ -29,6 +28,5 @@ ResultCode ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr address, s32 valu
 
 ResultCode WaitForAddressIfLessThan(VAddr address, s32 value, s64 timeout, bool should_decrement);
 ResultCode WaitForAddressIfEqual(VAddr address, s32 value, s64 timeout);
-} // namespace AddressArbiter
 
-} // namespace Kernel
+} // namespace Kernel::AddressArbiter
