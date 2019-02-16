@@ -19,8 +19,10 @@ namespace Tegra::Engines {
 /// First register id that is actually a Macro call.
 constexpr u32 MacroRegistersStart = 0xE00;
 
-Maxwell3D::Maxwell3D(VideoCore::RasterizerInterface& rasterizer, MemoryManager& memory_manager)
-    : memory_manager(memory_manager), rasterizer{rasterizer}, macro_interpreter(*this) {
+Maxwell3D::Maxwell3D(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
+                     MemoryManager& memory_manager)
+    : memory_manager(memory_manager), system{system}, rasterizer{rasterizer},
+      macro_interpreter(*this) {
     InitializeRegisterDefaults();
 }
 
@@ -103,7 +105,7 @@ void Maxwell3D::CallMacroMethod(u32 method, std::vector<u32> parameters) {
 }
 
 void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
-    auto debug_context = Core::System::GetInstance().GetGPUDebugContext();
+    auto debug_context = system.GetGPUDebugContext();
 
     // It is an error to write to a register other than the current macro's ARG register before it
     // has finished execution.
@@ -317,7 +319,7 @@ void Maxwell3D::ProcessQueryGet() {
             LongQueryResult query_result{};
             query_result.value = result;
             // TODO(Subv): Generate a real GPU timestamp and write it here instead of CoreTiming
-            query_result.timestamp = Core::System::GetInstance().CoreTiming().GetTicks();
+            query_result.timestamp = system.CoreTiming().GetTicks();
             Memory::WriteBlock(*address, &query_result, sizeof(query_result));
         }
         dirty_flags.OnMemoryWrite();
@@ -334,7 +336,7 @@ void Maxwell3D::DrawArrays() {
               regs.vertex_buffer.count);
     ASSERT_MSG(!(regs.index_array.count && regs.vertex_buffer.count), "Both indexed and direct?");
 
-    auto debug_context = Core::System::GetInstance().GetGPUDebugContext();
+    auto debug_context = system.GetGPUDebugContext();
 
     if (debug_context) {
         debug_context->OnEvent(Tegra::DebugContext::Event::IncomingPrimitiveBatch, nullptr);

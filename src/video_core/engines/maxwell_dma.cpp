@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "common/assert.h"
 #include "core/core.h"
 #include "core/memory.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -11,8 +12,9 @@
 
 namespace Tegra::Engines {
 
-MaxwellDMA::MaxwellDMA(VideoCore::RasterizerInterface& rasterizer, MemoryManager& memory_manager)
-    : memory_manager(memory_manager), rasterizer{rasterizer} {}
+MaxwellDMA::MaxwellDMA(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
+                       MemoryManager& memory_manager)
+    : memory_manager(memory_manager), system{system}, rasterizer{rasterizer} {}
 
 void MaxwellDMA::CallMethod(const GPU::MethodCall& method_call) {
     ASSERT_MSG(method_call.method < Regs::NUM_REGS,
@@ -59,7 +61,7 @@ void MaxwellDMA::HandleCopy() {
     }
 
     // All copies here update the main memory, so mark all rasterizer states as invalid.
-    Core::System::GetInstance().GPU().Maxwell3D().dirty_flags.OnMemoryWrite();
+    system.GPU().Maxwell3D().dirty_flags.OnMemoryWrite();
 
     if (regs.exec.is_dst_linear && regs.exec.is_src_linear) {
         // When the enable_2d bit is disabled, the copy is performed as if we were copying a 1D

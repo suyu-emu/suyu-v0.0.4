@@ -6,11 +6,14 @@
 
 #include <array>
 #include <memory>
-#include <vector>
 #include "common/common_types.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
 #include "video_core/dma_pusher.h"
 #include "video_core/memory_manager.h"
+
+namespace Core {
+class System;
+}
 
 namespace VideoCore {
 class RasterizerInterface;
@@ -118,7 +121,7 @@ enum class EngineID {
 
 class GPU final {
 public:
-    explicit GPU(VideoCore::RasterizerInterface& rasterizer);
+    explicit GPU(Core::System& system, VideoCore::RasterizerInterface& rasterizer);
     ~GPU();
 
     struct MethodCall {
