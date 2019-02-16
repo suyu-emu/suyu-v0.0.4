@@ -36,10 +36,6 @@ void ConfigureGeneral::setConfiguration() {
     ui->enable_nfc->setChecked(Settings::values.enable_nfc);
 }
 
-void ConfigureGeneral::PopulateHotkeyList(const HotkeyRegistry& registry) {
-    ui->widget->Populate(registry);
-}
-
 void ConfigureGeneral::applyConfiguration() {
     UISettings::values.gamedir_deepscan = ui->toggle_deepscan->isChecked();
     UISettings::values.confirm_before_closing = ui->toggle_check_exit->isChecked();

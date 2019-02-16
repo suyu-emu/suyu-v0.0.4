@@ -120,7 +120,6 @@ private:
     void InitializeWidgets();
     void InitializeDebugWidgets();
     void InitializeRecentFileMenuActions();
-    void InitializeHotkeys();
 
     void SetDefaultUIGeometry();
     void RestoreUIState();
@@ -195,6 +194,7 @@ private slots:
     void OnAbout();
     void OnToggleFilterBar();
     void OnDisplayTitleBars(bool);
+    void InitializeHotkeys();
     void ToggleFullscreen();
     void ShowFullscreen();
     void HideFullscreen();
