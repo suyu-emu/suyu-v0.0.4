@@ -62,9 +62,8 @@ s64 nsToCycles(u64 ns) {
 }
 
 u64 CpuCyclesToClockCycles(u64 ticks) {
-    u128 temporal = Common::Multiply64Into128(ticks, CNTFREQ);
-    std::pair<u64, u64> result = Common::Divide128On64(temporal, BASE_CLOCK_RATE);
-    return result.first;
+    const u128 temporal = Common::Multiply64Into128(ticks, CNTFREQ);
+    return Common::Divide128On32(temporal, static_cast<u32>(BASE_CLOCK_RATE)).first;
 }
 
 } // namespace Core::Timing
