@@ -75,6 +75,8 @@ private:
 
     GPU& gpu;
 
+    std::vector<CommandHeader> command_headers; ///< Buffer for list of commands fetched at once
+
     std::queue<CommandList> dma_pushbuffer; ///< Queue of command lists to be processed
     std::size_t dma_pushbuffer_subindex{};  ///< Index within a command list within the pushbuffer
 

@@ -38,58 +38,66 @@ bool DmaPusher::Step() {
         const auto address = gpu.MemoryManager().GpuToCpuAddress(dma_get);
         ASSERT_MSG(address, "Invalid GPU address");
 
-        const CommandHeader command_header{Memory::Read32(*address)};
+        GPUVAddr size = dma_put - dma_get;
+        ASSERT_MSG(size % sizeof(CommandHeader) == 0, "Invalid aligned GPU addresses");
+        command_headers.resize(size / sizeof(CommandHeader));
 
-        dma_get += sizeof(u32);
+        Memory::ReadBlock(*address, command_headers.data(), size);
 
-        if (!non_main) {
-            dma_mget = dma_get;
+        for (const CommandHeader& command_header : command_headers) {
+
+            // now, see if we're in the middle of a command
+            if (dma_state.length_pending) {
+                // Second word of long non-inc methods command - method count
+                dma_state.length_pending = 0;
+                dma_state.method_count = command_header.method_count_;
+            } else if (dma_state.method_count) {
+                // Data word of methods command
+                CallMethod(command_header.argument);
+
+                if (!dma_state.non_incrementing) {
+                    dma_state.method++;
+                }
+
+                if (dma_increment_once) {
+                    dma_state.non_incrementing = true;
+                }
+
+                dma_state.method_count--;
+            } else {
+                // No command active - this is the first word of a new one
+                switch (command_header.mode) {
+                case SubmissionMode::Increasing:
+                    SetState(command_header);
+                    dma_state.non_incrementing = false;
+                    dma_increment_once = false;
+                    break;
+                case SubmissionMode::NonIncreasing:
+                    SetState(command_header);
+                    dma_state.non_incrementing = true;
+                    dma_increment_once = false;
+                    break;
+                case SubmissionMode::Inline:
+                    dma_state.method = command_header.method;
+                    dma_state.subchannel = command_header.subchannel;
+                    CallMethod(command_header.arg_count);
+                    dma_state.non_incrementing = true;
+                    dma_increment_once = false;
+                    break;
+                case SubmissionMode::IncreaseOnce:
+                    SetState(command_header);
+                    dma_state.non_incrementing = false;
+                    dma_increment_once = true;
+                    break;
+                }
+            }
         }
 
-        // now, see if we're in the middle of a command
-        if (dma_state.length_pending) {
-            // Second word of long non-inc methods command - method count
-            dma_state.length_pending = 0;
-            dma_state.method_count = command_header.method_count_;
-        } else if (dma_state.method_count) {
-            // Data word of methods command
-            CallMethod(command_header.argument);
+        dma_get = dma_put;
 
-            if (!dma_state.non_incrementing) {
-                dma_state.method++;
-            }
-
-            if (dma_increment_once) {
-                dma_state.non_incrementing = true;
-            }
-
-            dma_state.method_count--;
-        } else {
-            // No command active - this is the first word of a new one
-            switch (command_header.mode) {
-            case SubmissionMode::Increasing:
-                SetState(command_header);
-                dma_state.non_incrementing = false;
-                dma_increment_once = false;
-                break;
-            case SubmissionMode::NonIncreasing:
-                SetState(command_header);
-                dma_state.non_incrementing = true;
-                dma_increment_once = false;
-                break;
-            case SubmissionMode::Inline:
-                dma_state.method = command_header.method;
-                dma_state.subchannel = command_header.subchannel;
-                CallMethod(command_header.arg_count);
-                dma_state.non_incrementing = true;
-                dma_increment_once = false;
-                break;
-            case SubmissionMode::IncreaseOnce:
-                SetState(command_header);
-                dma_state.non_incrementing = false;
-                dma_increment_once = true;
-                break;
-            }
+        if (!non_main) {
+            // TODO (degasus): This is dead code, as dma_mget is never read.
+            dma_mget = dma_get;
         }
     } else if (ib_enable && !dma_pushbuffer.empty()) {
         // Current pushbuffer empty, but we have more IB entries to read
