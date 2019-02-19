@@ -91,11 +91,8 @@ private:
     DmaState dma_state{};
     bool dma_increment_once{};
 
-    GPUVAddr dma_put{};   ///< pushbuffer current end address
-    GPUVAddr dma_get{};   ///< pushbuffer current read address
     GPUVAddr dma_mget{};  ///< main pushbuffer last read address
     bool ib_enable{true}; ///< IB mode enabled
-    bool non_main{};      ///< non-main pushbuffer active
 };
 
 } // namespace Tegra

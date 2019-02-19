@@ -33,88 +33,87 @@ void DmaPusher::DispatchCalls() {
 }
 
 bool DmaPusher::Step() {
-    if (dma_get != dma_put) {
-        // Push buffer non-empty, read a word
-        const auto address = gpu.MemoryManager().GpuToCpuAddress(dma_get);
-        ASSERT_MSG(address, "Invalid GPU address");
+    if (!ib_enable || dma_pushbuffer.empty()) {
+        // pushbuffer empty and IB empty or nonexistent - nothing to do
+        return false;
+    }
 
-        GPUVAddr size = dma_put - dma_get;
-        ASSERT_MSG(size % sizeof(CommandHeader) == 0, "Invalid aligned GPU addresses");
-        command_headers.resize(size / sizeof(CommandHeader));
+    const CommandList& command_list{dma_pushbuffer.front()};
+    const CommandListHeader& command_list_header{command_list[dma_pushbuffer_subindex++]};
+    GPUVAddr dma_get = command_list_header.addr;
+    GPUVAddr dma_put = dma_get + command_list_header.size * sizeof(u32);
+    bool non_main = command_list_header.is_non_main;
 
-        Memory::ReadBlock(*address, command_headers.data(), size);
+    if (dma_pushbuffer_subindex >= command_list.size()) {
+        // We've gone through the current list, remove it from the queue
+        dma_pushbuffer.pop();
+        dma_pushbuffer_subindex = 0;
+    }
 
-        for (const CommandHeader& command_header : command_headers) {
+    if (command_list_header.size == 0) {
+        return true;
+    }
 
-            // now, see if we're in the middle of a command
-            if (dma_state.length_pending) {
-                // Second word of long non-inc methods command - method count
-                dma_state.length_pending = 0;
-                dma_state.method_count = command_header.method_count_;
-            } else if (dma_state.method_count) {
-                // Data word of methods command
-                CallMethod(command_header.argument);
+    // Push buffer non-empty, read a word
+    const auto address = gpu.MemoryManager().GpuToCpuAddress(dma_get);
+    ASSERT_MSG(address, "Invalid GPU address");
 
-                if (!dma_state.non_incrementing) {
-                    dma_state.method++;
-                }
+    command_headers.resize(command_list_header.size);
 
-                if (dma_increment_once) {
-                    dma_state.non_incrementing = true;
-                }
+    Memory::ReadBlock(*address, command_headers.data(), command_list_header.size * sizeof(u32));
 
-                dma_state.method_count--;
-            } else {
-                // No command active - this is the first word of a new one
-                switch (command_header.mode) {
-                case SubmissionMode::Increasing:
-                    SetState(command_header);
-                    dma_state.non_incrementing = false;
-                    dma_increment_once = false;
-                    break;
-                case SubmissionMode::NonIncreasing:
-                    SetState(command_header);
-                    dma_state.non_incrementing = true;
-                    dma_increment_once = false;
-                    break;
-                case SubmissionMode::Inline:
-                    dma_state.method = command_header.method;
-                    dma_state.subchannel = command_header.subchannel;
-                    CallMethod(command_header.arg_count);
-                    dma_state.non_incrementing = true;
-                    dma_increment_once = false;
-                    break;
-                case SubmissionMode::IncreaseOnce:
-                    SetState(command_header);
-                    dma_state.non_incrementing = false;
-                    dma_increment_once = true;
-                    break;
-                }
+    for (const CommandHeader& command_header : command_headers) {
+
+        // now, see if we're in the middle of a command
+        if (dma_state.length_pending) {
+            // Second word of long non-inc methods command - method count
+            dma_state.length_pending = 0;
+            dma_state.method_count = command_header.method_count_;
+        } else if (dma_state.method_count) {
+            // Data word of methods command
+            CallMethod(command_header.argument);
+
+            if (!dma_state.non_incrementing) {
+                dma_state.method++;
+            }
+
+            if (dma_increment_once) {
+                dma_state.non_incrementing = true;
+            }
+
+            dma_state.method_count--;
+        } else {
+            // No command active - this is the first word of a new one
+            switch (command_header.mode) {
+            case SubmissionMode::Increasing:
+                SetState(command_header);
+                dma_state.non_incrementing = false;
+                dma_increment_once = false;
+                break;
+            case SubmissionMode::NonIncreasing:
+                SetState(command_header);
+                dma_state.non_incrementing = true;
+                dma_increment_once = false;
+                break;
+            case SubmissionMode::Inline:
+                dma_state.method = command_header.method;
+                dma_state.subchannel = command_header.subchannel;
+                CallMethod(command_header.arg_count);
+                dma_state.non_incrementing = true;
+                dma_increment_once = false;
+                break;
+            case SubmissionMode::IncreaseOnce:
+                SetState(command_header);
+                dma_state.non_incrementing = false;
+                dma_increment_once = true;
+                break;
             }
         }
+    }
 
-        dma_get = dma_put;
-
-        if (!non_main) {
-            // TODO (degasus): This is dead code, as dma_mget is never read.
-            dma_mget = dma_get;
-        }
-    } else if (ib_enable && !dma_pushbuffer.empty()) {
-        // Current pushbuffer empty, but we have more IB entries to read
-        const CommandList& command_list{dma_pushbuffer.front()};
-        const CommandListHeader& command_list_header{command_list[dma_pushbuffer_subindex++]};
-        dma_get = command_list_header.addr;
-        dma_put = dma_get + command_list_header.size * sizeof(u32);
-        non_main = command_list_header.is_non_main;
-
-        if (dma_pushbuffer_subindex >= command_list.size()) {
-            // We've gone through the current list, remove it from the queue
-            dma_pushbuffer.pop();
-            dma_pushbuffer_subindex = 0;
-        }
-    } else {
-        // Otherwise, pushbuffer empty and IB empty or nonexistent - nothing to do
-        return {};
+    if (!non_main) {
+        // TODO (degasus): This is dead code, as dma_mget is never read.
+        dma_mget = dma_put;
     }
 
     return true;
