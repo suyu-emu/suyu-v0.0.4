@@ -400,6 +400,10 @@ add_library(core STATIC
     hle/service/time/time.h
     hle/service/usb/usb.cpp
     hle/service/usb/usb.h
+    hle/service/vi/display/vi_display.cpp
+    hle/service/vi/display/vi_display.h
+    hle/service/vi/layer/vi_layer.cpp
+    hle/service/vi/layer/vi_layer.h
     hle/service/vi/vi.cpp
     hle/service/vi/vi.h
     hle/service/vi/vi_m.cpp

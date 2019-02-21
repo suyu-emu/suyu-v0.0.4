@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <array>
 #include <memory>
 #include <optional>
 #include <string>
@@ -26,30 +25,16 @@ class WritableEvent;
 
 namespace Service::Nvidia {
 class Module;
-}
+} // namespace Service::Nvidia
+
+namespace Service::VI {
+struct Display;
+struct Layer;
+} // namespace Service::VI
 
 namespace Service::NVFlinger {
 
 class BufferQueue;
-
-struct Layer {
-    Layer(u64 id, std::shared_ptr<BufferQueue> queue);
-    ~Layer();
-
-    u64 id;
-    std::shared_ptr<BufferQueue> buffer_queue;
-};
-
-struct Display {
-    Display(u64 id, std::string name);
-    ~Display();
-
-    u64 id;
-    std::string name;
-
-    std::vector<Layer> layers;
-    Kernel::EventPair vsync_event;
-};
 
 class NVFlinger final {
 public:
@@ -88,26 +73,20 @@ public:
 
 private:
     /// Finds the display identified by the specified ID.
-    Display* FindDisplay(u64 display_id);
+    VI::Display* FindDisplay(u64 display_id);
 
     /// Finds the display identified by the specified ID.
-    const Display* FindDisplay(u64 display_id) const;
+    const VI::Display* FindDisplay(u64 display_id) const;
 
     /// Finds the layer identified by the specified ID in the desired display.
-    Layer* FindLayer(u64 display_id, u64 layer_id);
+    VI::Layer* FindLayer(u64 display_id, u64 layer_id);
 
     /// Finds the layer identified by the specified ID in the desired display.
-    const Layer* FindLayer(u64 display_id, u64 layer_id) const;
+    const VI::Layer* FindLayer(u64 display_id, u64 layer_id) const;
 
     std::shared_ptr<Nvidia::Module> nvdrv;
 
-    std::array<Display, 5> displays{{
-        {0, "Default"},
-        {1, "External"},
-        {2, "Edid"},
-        {3, "Internal"},
-        {4, "Null"},
-    }};
+    std::vector<VI::Display> displays;
     std::vector<std::shared_ptr<BufferQueue>> buffer_queues;
 
     /// Id to use for the next layer that is created, this counter is shared among all displays.
