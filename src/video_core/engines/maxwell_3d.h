@@ -17,6 +17,10 @@
 #include "video_core/memory_manager.h"
 #include "video_core/textures/texture.h"
 
+namespace Core {
+class System;
+}
+
 namespace VideoCore {
 class RasterizerInterface;
 }
@@ -28,7 +32,8 @@ namespace Tegra::Engines {
 
 class Maxwell3D final {
 public:
-    explicit Maxwell3D(VideoCore::RasterizerInterface& rasterizer, MemoryManager& memory_manager);
+    explicit Maxwell3D(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
+                       MemoryManager& memory_manager);
     ~Maxwell3D() = default;
 
     /// Register structure of the Maxwell3D engine.
@@ -1130,6 +1135,8 @@ public:
 
 private:
     void InitializeRegisterDefaults();
+
+    Core::System& system;
 
     VideoCore::RasterizerInterface& rasterizer;
 

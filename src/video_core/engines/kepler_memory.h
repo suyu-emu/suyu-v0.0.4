@@ -5,12 +5,15 @@
 #pragma once
 
 #include <array>
-#include "common/assert.h"
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
+
+namespace Core {
+class System;
+}
 
 namespace VideoCore {
 class RasterizerInterface;
@@ -23,7 +26,8 @@ namespace Tegra::Engines {
 
 class KeplerMemory final {
 public:
-    KeplerMemory(VideoCore::RasterizerInterface& rasterizer, MemoryManager& memory_manager);
+    KeplerMemory(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
+                 MemoryManager& memory_manager);
     ~KeplerMemory();
 
     /// Write the value to the register identified by method.
@@ -76,6 +80,7 @@ public:
     } state{};
 
 private:
+    Core::System& system;
     MemoryManager& memory_manager;
     VideoCore::RasterizerInterface& rasterizer;
 

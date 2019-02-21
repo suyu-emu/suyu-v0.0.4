@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/memory.h"
@@ -11,9 +12,9 @@
 
 namespace Tegra::Engines {
 
-KeplerMemory::KeplerMemory(VideoCore::RasterizerInterface& rasterizer,
+KeplerMemory::KeplerMemory(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
                            MemoryManager& memory_manager)
-    : memory_manager(memory_manager), rasterizer{rasterizer} {}
+    : system{system}, memory_manager(memory_manager), rasterizer{rasterizer} {}
 
 KeplerMemory::~KeplerMemory() = default;
 
@@ -50,7 +51,7 @@ void KeplerMemory::ProcessData(u32 data) {
     rasterizer.InvalidateRegion(*dest_address, sizeof(u32));
 
     Memory::Write32(*dest_address, data);
-    Core::System::GetInstance().GPU().Maxwell3D().dirty_flags.OnMemoryWrite();
+    system.GPU().Maxwell3D().dirty_flags.OnMemoryWrite();
 
     state.write_offset++;
 }

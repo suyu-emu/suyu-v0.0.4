@@ -5,12 +5,15 @@
 #pragma once
 
 #include <array>
-#include "common/assert.h"
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
+
+namespace Core {
+class System;
+}
 
 namespace VideoCore {
 class RasterizerInterface;
@@ -20,7 +23,8 @@ namespace Tegra::Engines {
 
 class MaxwellDMA final {
 public:
-    explicit MaxwellDMA(VideoCore::RasterizerInterface& rasterizer, MemoryManager& memory_manager);
+    explicit MaxwellDMA(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
+                        MemoryManager& memory_manager);
     ~MaxwellDMA() = default;
 
     /// Write the value to the register identified by method.
@@ -137,6 +141,8 @@ public:
     MemoryManager& memory_manager;
 
 private:
+    Core::System& system;
+
     VideoCore::RasterizerInterface& rasterizer;
 
     /// Performs the copy from the source buffer to the destination buffer as configured in the
