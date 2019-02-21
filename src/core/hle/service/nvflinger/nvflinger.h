@@ -28,7 +28,7 @@ class Module;
 } // namespace Service::Nvidia
 
 namespace Service::VI {
-struct Display;
+class Display;
 struct Layer;
 } // namespace Service::VI
 
