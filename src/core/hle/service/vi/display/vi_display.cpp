@@ -48,7 +48,7 @@ void Display::CreateLayer(u64 id, std::shared_ptr<NVFlinger::BufferQueue> buffer
 
 Layer* Display::FindLayer(u64 id) {
     const auto itr = std::find_if(layers.begin(), layers.end(),
-                                  [id](const VI::Layer& layer) { return layer.id == id; });
+                                  [id](const VI::Layer& layer) { return layer.GetID() == id; });
 
     if (itr == layers.end()) {
         return nullptr;
@@ -59,7 +59,7 @@ Layer* Display::FindLayer(u64 id) {
 
 const Layer* Display::FindLayer(u64 id) const {
     const auto itr = std::find_if(layers.begin(), layers.end(),
-                                  [id](const VI::Layer& layer) { return layer.id == id; });
+                                  [id](const VI::Layer& layer) { return layer.GetID() == id; });
 
     if (itr == layers.end()) {
         return nullptr;

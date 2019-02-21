@@ -91,7 +91,7 @@ std::optional<u32> NVFlinger::FindBufferQueueId(u64 display_id, u64 layer_id) co
         return {};
     }
 
-    return layer->buffer_queue->GetId();
+    return layer->GetBufferQueue().GetId();
 }
 
 Kernel::SharedPtr<Kernel::ReadableEvent> NVFlinger::FindVsyncEvent(u64 display_id) const {
@@ -167,10 +167,10 @@ void NVFlinger::Compose() {
 
         // TODO(Subv): Support more than 1 layer.
         VI::Layer& layer = display.GetLayer(0);
-        auto& buffer_queue = layer.buffer_queue;
+        auto& buffer_queue = layer.GetBufferQueue();
 
         // Search for a queued buffer and acquire it
-        auto buffer = buffer_queue->AcquireBuffer();
+        auto buffer = buffer_queue.AcquireBuffer();
 
         MicroProfileFlip();
 
@@ -195,7 +195,7 @@ void NVFlinger::Compose() {
                      igbp_buffer.width, igbp_buffer.height, igbp_buffer.stride,
                      buffer->get().transform, buffer->get().crop_rect);
 
-        buffer_queue->ReleaseBuffer(buffer->get().slot);
+        buffer_queue.ReleaseBuffer(buffer->get().slot);
     }
 }
 

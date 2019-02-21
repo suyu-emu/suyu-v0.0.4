@@ -16,7 +16,7 @@ class BufferQueue;
 
 namespace Service::VI {
 
-struct Layer;
+class Layer;
 
 /// Represents a single display type
 class Display {

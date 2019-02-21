@@ -29,7 +29,7 @@ class Module;
 
 namespace Service::VI {
 class Display;
-struct Layer;
+class Layer;
 } // namespace Service::VI
 
 namespace Service::NVFlinger {
