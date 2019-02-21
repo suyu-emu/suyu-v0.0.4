@@ -78,9 +78,8 @@ std::optional<u64> NVFlinger::CreateLayer(u64 display_id) {
 
     const u64 layer_id = next_layer_id++;
     const u32 buffer_queue_id = next_buffer_queue_id++;
-    auto buffer_queue = std::make_shared<BufferQueue>(buffer_queue_id, layer_id);
-    display->CreateLayer(layer_id, buffer_queue);
-    buffer_queues.emplace_back(std::move(buffer_queue));
+    buffer_queues.emplace_back(buffer_queue_id, layer_id);
+    display->CreateLayer(layer_id, buffer_queues.back());
     return layer_id;
 }
 
@@ -104,9 +103,17 @@ Kernel::SharedPtr<Kernel::ReadableEvent> NVFlinger::FindVsyncEvent(u64 display_i
     return display->GetVSyncEvent();
 }
 
-std::shared_ptr<BufferQueue> NVFlinger::FindBufferQueue(u32 id) const {
+BufferQueue& NVFlinger::FindBufferQueue(u32 id) {
     const auto itr = std::find_if(buffer_queues.begin(), buffer_queues.end(),
-                                  [&](const auto& queue) { return queue->GetId() == id; });
+                                  [id](const auto& queue) { return queue.GetId() == id; });
+
+    ASSERT(itr != buffer_queues.end());
+    return *itr;
+}
+
+const BufferQueue& NVFlinger::FindBufferQueue(u32 id) const {
+    const auto itr = std::find_if(buffer_queues.begin(), buffer_queues.end(),
+                                  [id](const auto& queue) { return queue.GetId() == id; });
 
     ASSERT(itr != buffer_queues.end());
     return *itr;

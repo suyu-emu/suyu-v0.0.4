@@ -39,11 +39,11 @@ void Display::SignalVSyncEvent() {
     vsync_event.writable->Signal();
 }
 
-void Display::CreateLayer(u64 id, std::shared_ptr<NVFlinger::BufferQueue> buffer_queue) {
+void Display::CreateLayer(u64 id, NVFlinger::BufferQueue& buffer_queue) {
     // TODO(Subv): Support more than 1 layer.
     ASSERT_MSG(layers.empty(), "Only one layer is supported per display at the moment");
 
-    layers.emplace_back(id, std::move(buffer_queue));
+    layers.emplace_back(id, buffer_queue);
 }
 
 Layer* Display::FindLayer(u64 id) {

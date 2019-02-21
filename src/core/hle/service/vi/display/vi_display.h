@@ -67,7 +67,7 @@ public:
     /// @param id           The ID to assign to the created layer.
     /// @param buffer_queue The buffer queue for the layer instance to use.
     ///
-    void CreateLayer(u64 id, std::shared_ptr<NVFlinger::BufferQueue> buffer_queue);
+    void CreateLayer(u64 id, NVFlinger::BufferQueue& buffer_queue);
 
     /// Attempts to find a layer with the given ID.
     ///
