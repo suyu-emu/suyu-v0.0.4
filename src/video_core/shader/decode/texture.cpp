@@ -119,8 +119,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
             coords.push_back(op_a);
             coords.push_back(op_b);
         }
-        std::vector<Node> extras;
-        extras.push_back(Immediate(static_cast<u32>(instr.tld4s.component)));
+        const Node component = Immediate(static_cast<u32>(instr.tld4s.component));
 
         const auto& sampler =
             GetSampler(instr.sampler, TextureType::Texture2D, false, depth_compare);
@@ -128,7 +127,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         Node4 values;
         for (u32 element = 0; element < values.size(); ++element) {
             auto coords_copy = coords;
-            MetaTexture meta{sampler, {}, {}, extras, element};
+            MetaTexture meta{sampler, {}, {}, {}, {}, component, element};
             values[element] = Operation(OperationCode::TextureGather, meta, std::move(coords_copy));
         }
 
@@ -153,7 +152,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
                 if (!instr.txq.IsComponentEnabled(element)) {
                     continue;
                 }
-                MetaTexture meta{sampler, {}, {}, {}, element};
+                MetaTexture meta{sampler, {}, {}, {}, {}, {}, element};
                 const Node value =
                     Operation(OperationCode::TextureQueryDimensions, meta, GetRegister(instr.gpr8));
                 SetTemporal(bb, indexer++, value);
@@ -203,7 +202,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
 
         for (u32 element = 0; element < 2; ++element) {
             auto params = coords;
-            MetaTexture meta{sampler, {}, {}, {}, element};
+            MetaTexture meta{sampler, {}, {}, {}, {}, {}, element};
             const Node value = Operation(OperationCode::TextureQueryLod, meta, std::move(params));
             SetTemporal(bb, element, value);
         }
@@ -347,25 +346,35 @@ Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
           (texture_type == Tegra::Shader::TextureType::TextureCube && is_array && is_shadow));
 
     const OperationCode read_method =
-        lod_needed && gl_lod_supported ? OperationCode::TextureLod : OperationCode::Texture;
+        (lod_needed && gl_lod_supported) ? OperationCode::TextureLod : OperationCode::Texture;
 
     UNIMPLEMENTED_IF(process_mode != TextureProcessMode::None && !gl_lod_supported);
 
-    std::vector<Node> extras;
+    Node bias = {};
+    Node lod = {};
     if (process_mode != TextureProcessMode::None && gl_lod_supported) {
-        if (process_mode == TextureProcessMode::LZ) {
-            extras.push_back(Immediate(0.0f));
-        } else {
+        switch (process_mode) {
+        case TextureProcessMode::LZ:
+            lod = Immediate(0.0f);
+            break;
+        case TextureProcessMode::LB:
             // If present, lod or bias are always stored in the register indexed by the gpr20
             // field with an offset depending on the usage of the other registers
-            extras.push_back(GetRegister(instr.gpr20.Value() + bias_offset));
+            bias = GetRegister(instr.gpr20.Value() + bias_offset);
+            break;
+        case TextureProcessMode::LL:
+            lod = GetRegister(instr.gpr20.Value() + bias_offset);
+            break;
+        default:
+            UNIMPLEMENTED_MSG("Unimplemented process mode={}", static_cast<u32>(process_mode));
+            break;
         }
     }
 
     Node4 values;
     for (u32 element = 0; element < values.size(); ++element) {
         auto copy_coords = coords;
-        MetaTexture meta{sampler, array, depth_compare, extras, element};
+        MetaTexture meta{sampler, array, depth_compare, bias, lod, {}, element};
         values[element] = Operation(read_method, meta, std::move(copy_coords));
     }
 
@@ -462,7 +471,7 @@ Node4 ShaderIR::GetTld4Code(Instruction instr, TextureType texture_type, bool de
     Node4 values;
     for (u32 element = 0; element < values.size(); ++element) {
         auto coords_copy = coords;
-        MetaTexture meta{sampler, GetRegister(array_register), {}, {}, element};
+        MetaTexture meta{sampler, GetRegister(array_register), {}, {}, {}, {}, element};
         values[element] = Operation(OperationCode::TextureGather, meta, std::move(coords_copy));
     }
 
@@ -498,7 +507,7 @@ Node4 ShaderIR::GetTldsCode(Instruction instr, TextureType texture_type, bool is
     Node4 values;
     for (u32 element = 0; element < values.size(); ++element) {
         auto coords_copy = coords;
-        MetaTexture meta{sampler, array, {}, {lod}, element};
+        MetaTexture meta{sampler, array, {}, {}, lod, {}, element};
         values[element] = Operation(OperationCode::TexelFetch, meta, std::move(coords_copy));
     }
     return values;

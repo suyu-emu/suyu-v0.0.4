@@ -325,11 +325,11 @@ enum class TextureQueryType : u64 {
 
 enum class TextureProcessMode : u64 {
     None = 0,
-    LZ = 1,  // Unknown, appears to be the same as none.
+    LZ = 1,  // Load LOD of zero.
     LB = 2,  // Load Bias.
-    LL = 3,  // Load LOD (LevelOfDetail)
-    LBA = 6, // Load Bias. The A is unknown, does not appear to differ with LB
-    LLA = 7  // Load LOD. The A is unknown, does not appear to differ with LL
+    LL = 3,  // Load LOD.
+    LBA = 6, // Load Bias. The A is unknown, does not appear to differ with LB.
+    LLA = 7  // Load LOD. The A is unknown, does not appear to differ with LL.
 };
 
 enum class TextureMiscMode : u64 {

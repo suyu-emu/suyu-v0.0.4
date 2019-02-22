@@ -290,7 +290,9 @@ struct MetaTexture {
     const Sampler& sampler;
     Node array{};
     Node depth_compare{};
-    std::vector<Node> extras;
+    Node bias{};
+    Node lod{};
+    Node component{};
     u32 element{};
 };
 
