@@ -63,7 +63,7 @@ public:
     void Protect(VKResource* resource);
 
     /// Removes protection for a resource.
-    void Unprotect(const VKResource* resource);
+    void Unprotect(VKResource* resource);
 
     /// Retreives the fence.
     operator vk::Fence() const {
