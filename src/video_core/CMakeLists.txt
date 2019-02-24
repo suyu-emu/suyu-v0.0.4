@@ -111,7 +111,9 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_resource_manager.cpp
         renderer_vulkan/vk_resource_manager.h
         renderer_vulkan/vk_scheduler.cpp
-        renderer_vulkan/vk_scheduler.h)
+        renderer_vulkan/vk_scheduler.h
+        renderer_vulkan/vk_stream_buffer.cpp
+        renderer_vulkan/vk_stream_buffer.h)
 
     target_include_directories(video_core PRIVATE ../../externals/Vulkan-Headers/include)
     target_compile_definitions(video_core PRIVATE HAS_VULKAN)
