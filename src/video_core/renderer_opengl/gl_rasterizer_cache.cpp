@@ -423,7 +423,7 @@ void SwizzleFunc(const MortonSwizzleMode& mode, const SurfaceParams& params,
         for (u32 i = 0; i < params.depth; i++) {
             MortonSwizzle(mode, params.pixel_format, params.MipWidth(mip_level),
                           params.MipBlockHeight(mip_level), params.MipHeight(mip_level),
-                          params.MipBlockDepth(mip_level), params.tile_width_spacing, 1,
+                          params.MipBlockDepth(mip_level), 1, params.tile_width_spacing,
                           gl_buffer.data() + offset_gl, gl_size, params.addr + offset);
             offset += layer_size;
             offset_gl += gl_size;
