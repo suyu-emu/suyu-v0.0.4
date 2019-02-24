@@ -154,7 +154,7 @@ void SwizzledData(u8* const swizzled_data, u8* const unswizzled_data, const bool
             for (u32 xb = 0; xb < blocks_on_x; xb++) {
                 const u32 x_start = xb * block_x_elements;
                 const u32 x_end = std::min(width, x_start + block_x_elements);
-                if (fast) {
+                if constexpr (fast) {
                     FastProcessBlock(swizzled_data, unswizzled_data, unswizzle, x_start, y_start,
                                      z_start, x_end, y_end, z_end, tile_offset, xy_block_size,
                                      layer_z, stride_x, bytes_per_pixel, out_bytes_per_pixel);

@@ -20,7 +20,7 @@
 #include "video_core/renderer_opengl/gl_rasterizer_cache.h"
 #include "video_core/renderer_opengl/utils.h"
 #include "video_core/surface.h"
-#include "video_core/textures/astc.h"
+#include "video_core/textures/convert.h"
 #include "video_core/textures/decoders.h"
 
 namespace OpenGL {
@@ -594,103 +594,6 @@ CachedSurface::CachedSurface(const SurfaceParams& params)
     }
 }
 
-static void ConvertS8Z24ToZ24S8(std::vector<u8>& data, u32 width, u32 height, bool reverse) {
-    union S8Z24 {
-        BitField<0, 24, u32> z24;
-        BitField<24, 8, u32> s8;
-    };
-    static_assert(sizeof(S8Z24) == 4, "S8Z24 is incorrect size");
-
-    union Z24S8 {
-        BitField<0, 8, u32> s8;
-        BitField<8, 24, u32> z24;
-    };
-    static_assert(sizeof(Z24S8) == 4, "Z24S8 is incorrect size");
-
-    S8Z24 s8z24_pixel{};
-    Z24S8 z24s8_pixel{};
-    constexpr auto bpp{GetBytesPerPixel(PixelFormat::S8Z24)};
-    for (std::size_t y = 0; y < height; ++y) {
-        for (std::size_t x = 0; x < width; ++x) {
-            const std::size_t offset{bpp * (y * width + x)};
-            if (reverse) {
-                std::memcpy(&z24s8_pixel, &data[offset], sizeof(Z24S8));
-                s8z24_pixel.s8.Assign(z24s8_pixel.s8);
-                s8z24_pixel.z24.Assign(z24s8_pixel.z24);
-                std::memcpy(&data[offset], &s8z24_pixel, sizeof(S8Z24));
-            } else {
-                std::memcpy(&s8z24_pixel, &data[offset], sizeof(S8Z24));
-                z24s8_pixel.s8.Assign(s8z24_pixel.s8);
-                z24s8_pixel.z24.Assign(s8z24_pixel.z24);
-                std::memcpy(&data[offset], &z24s8_pixel, sizeof(Z24S8));
-            }
-        }
-    }
-}
-
-/**
- * Helper function to perform software conversion (as needed) when loading a buffer from Switch
- * memory. This is for Maxwell pixel formats that cannot be represented as-is in OpenGL or with
- * typical desktop GPUs.
- */
-static void ConvertFormatAsNeeded_LoadGLBuffer(std::vector<u8>& data, PixelFormat pixel_format,
-                                               u32 width, u32 height, u32 depth) {
-    switch (pixel_format) {
-    case PixelFormat::ASTC_2D_4X4:
-    case PixelFormat::ASTC_2D_8X8:
-    case PixelFormat::ASTC_2D_8X5:
-    case PixelFormat::ASTC_2D_5X4:
-    case PixelFormat::ASTC_2D_5X5:
-    case PixelFormat::ASTC_2D_4X4_SRGB:
-    case PixelFormat::ASTC_2D_8X8_SRGB:
-    case PixelFormat::ASTC_2D_8X5_SRGB:
-    case PixelFormat::ASTC_2D_5X4_SRGB:
-    case PixelFormat::ASTC_2D_5X5_SRGB:
-    case PixelFormat::ASTC_2D_10X8:
-    case PixelFormat::ASTC_2D_10X8_SRGB: {
-        // Convert ASTC pixel formats to RGBA8, as most desktop GPUs do not support ASTC.
-        u32 block_width{};
-        u32 block_height{};
-        std::tie(block_width, block_height) = GetASTCBlockSize(pixel_format);
-        data =
-            Tegra::Texture::ASTC::Decompress(data, width, height, depth, block_width, block_height);
-        break;
-    }
-    case PixelFormat::S8Z24:
-        // Convert the S8Z24 depth format to Z24S8, as OpenGL does not support S8Z24.
-        ConvertS8Z24ToZ24S8(data, width, height, false);
-        break;
-    }
-}
-
-/**
- * Helper function to perform software conversion (as needed) when flushing a buffer from OpenGL to
- * Switch memory. This is for Maxwell pixel formats that cannot be represented as-is in OpenGL or
- * with typical desktop GPUs.
- */
-static void ConvertFormatAsNeeded_FlushGLBuffer(std::vector<u8>& data, PixelFormat pixel_format,
-                                                u32 width, u32 height) {
-    switch (pixel_format) {
-    case PixelFormat::ASTC_2D_4X4:
-    case PixelFormat::ASTC_2D_8X8:
-    case PixelFormat::ASTC_2D_4X4_SRGB:
-    case PixelFormat::ASTC_2D_8X8_SRGB:
-    case PixelFormat::ASTC_2D_5X5:
-    case PixelFormat::ASTC_2D_5X5_SRGB:
-    case PixelFormat::ASTC_2D_10X8:
-    case PixelFormat::ASTC_2D_10X8_SRGB: {
-        LOG_CRITICAL(HW_GPU, "Conversion of format {} after texture flushing is not implemented",
-                     static_cast<u32>(pixel_format));
-        UNREACHABLE();
-        break;
-    }
-    case PixelFormat::S8Z24:
-        // Convert the Z24S8 depth format to S8Z24, as OpenGL does not support S8Z24.
-        ConvertS8Z24ToZ24S8(data, width, height, true);
-        break;
-    }
-}
-
 MICROPROFILE_DEFINE(OpenGL_SurfaceLoad, "OpenGL", "Surface Load", MP_RGB(128, 192, 64));
 void CachedSurface::LoadGLBuffer() {
     MICROPROFILE_SCOPE(OpenGL_SurfaceLoad);
@@ -719,8 +622,16 @@ void CachedSurface::LoadGLBuffer() {
         }
     }
     for (u32 i = 0; i < params.max_mip_level; i++) {
-        ConvertFormatAsNeeded_LoadGLBuffer(gl_buffer[i], params.pixel_format, params.MipWidth(i),
-                                           params.MipHeight(i), params.MipDepth(i));
+        const u32 width = params.MipWidth(i);
+        const u32 height = params.MipHeight(i);
+        const u32 depth = params.MipDepth(i);
+        if (VideoCore::Surface::IsPixelFormatASTC(params.pixel_format)) {
+            // Reserve size for RGBA8 conversion
+            constexpr std::size_t rgba_bpp = 4;
+            gl_buffer[i].resize(std::max(gl_buffer[i].size(), width * height * depth * rgba_bpp));
+        }
+        Tegra::Texture::ConvertFromGuestToHost(gl_buffer[i].data(), params.pixel_format, width,
+                                               height, depth, true, true);
     }
 }
 
@@ -743,8 +654,8 @@ void CachedSurface::FlushGLBuffer() {
     glGetTextureImage(texture.handle, 0, tuple.format, tuple.type,
                       static_cast<GLsizei>(gl_buffer[0].size()), gl_buffer[0].data());
     glPixelStorei(GL_PACK_ROW_LENGTH, 0);
-    ConvertFormatAsNeeded_FlushGLBuffer(gl_buffer[0], params.pixel_format, params.width,
-                                        params.height);
+    Tegra::Texture::ConvertFromHostToGuest(gl_buffer[0].data(), params.pixel_format, params.width,
+                                           params.height, params.depth, true, true);
     const u8* const texture_src_data = Memory::GetPointer(params.addr);
     ASSERT(texture_src_data);
     if (params.is_tiled) {
