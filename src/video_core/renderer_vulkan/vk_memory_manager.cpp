@@ -238,8 +238,7 @@ bool VKMemoryManager::AllocMemory(vk::MemoryPropertyFlags wanted_properties, u32
 
 VKMemoryCommitImpl::VKMemoryCommitImpl(VKMemoryAllocation* allocation, vk::DeviceMemory memory,
                                        u8* data, u64 begin, u64 end)
-    : allocation{allocation}, memory{memory}, data{data},
-      interval(std::make_pair(begin, begin + end)) {}
+    : allocation{allocation}, memory{memory}, data{data}, interval(std::make_pair(begin, end)) {}
 
 VKMemoryCommitImpl::~VKMemoryCommitImpl() {
     allocation->Free(this);
