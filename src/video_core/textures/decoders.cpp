@@ -103,8 +103,8 @@ void FastProcessBlock(u8* const swizzled_data, u8* const unswizzled_data, const 
                 const u32 swizzle_offset{y_address + table[(xb / fast_swizzle_align) % 4]};
                 const u32 out_x = xb * out_bytes_per_pixel / bytes_per_pixel;
                 const u32 pixel_index{out_x + pixel_base};
-                data_ptrs[unswizzle] = swizzled_data + swizzle_offset;
-                data_ptrs[!unswizzle] = unswizzled_data + pixel_index;
+                data_ptrs[unswizzle ? 1 : 0] = swizzled_data + swizzle_offset;
+                data_ptrs[unswizzle ? 0 : 1] = unswizzled_data + pixel_index;
                 std::memcpy(data_ptrs[0], data_ptrs[1], fast_swizzle_align);
             }
             pixel_base += stride_x;
