@@ -75,11 +75,11 @@ public:
         queue.Push(samples);
     }
 
-    std::size_t SamplesInQueue(u32 num_channels) const override {
+    std::size_t SamplesInQueue(u32 channel_count) const override {
         if (!ctx)
             return 0;
 
-        return queue.Size() / num_channels;
+        return queue.Size() / channel_count;
     }
 
     void Flush() override {
