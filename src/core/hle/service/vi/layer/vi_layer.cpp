@@ -6,8 +6,7 @@
 
 namespace Service::VI {
 
-Layer::Layer(u64 id, std::shared_ptr<NVFlinger::BufferQueue> queue)
-    : id{id}, buffer_queue{std::move(queue)} {}
+Layer::Layer(u64 id, NVFlinger::BufferQueue& queue) : id{id}, buffer_queue{queue} {}
 
 Layer::~Layer() = default;
 

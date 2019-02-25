@@ -525,7 +525,7 @@ private:
         LOG_DEBUG(Service_VI, "called. id=0x{:08X} transaction={:X}, flags=0x{:08X}", id,
                   static_cast<u32>(transaction), flags);
 
-        auto buffer_queue = nv_flinger->FindBufferQueue(id);
+        auto& buffer_queue = nv_flinger->FindBufferQueue(id);
 
         if (transaction == TransactionId::Connect) {
             IGBPConnectRequestParcel request{ctx.ReadBuffer()};
@@ -538,7 +538,7 @@ private:
         } else if (transaction == TransactionId::SetPreallocatedBuffer) {
             IGBPSetPreallocatedBufferRequestParcel request{ctx.ReadBuffer()};
 
-            buffer_queue->SetPreallocatedBuffer(request.data.slot, request.buffer);
+            buffer_queue.SetPreallocatedBuffer(request.data.slot, request.buffer);
 
             IGBPSetPreallocatedBufferResponseParcel response{};
             ctx.WriteBuffer(response.Serialize());
@@ -546,7 +546,7 @@ private:
             IGBPDequeueBufferRequestParcel request{ctx.ReadBuffer()};
             const u32 width{request.data.width};
             const u32 height{request.data.height};
-            std::optional<u32> slot = buffer_queue->DequeueBuffer(width, height);
+            std::optional<u32> slot = buffer_queue.DequeueBuffer(width, height);
 
             if (slot) {
                 // Buffer is available
@@ -559,8 +559,8 @@ private:
                     [=](Kernel::SharedPtr<Kernel::Thread> thread, Kernel::HLERequestContext& ctx,
                         Kernel::ThreadWakeupReason reason) {
                         // Repeat TransactParcel DequeueBuffer when a buffer is available
-                        auto buffer_queue = nv_flinger->FindBufferQueue(id);
-                        std::optional<u32> slot = buffer_queue->DequeueBuffer(width, height);
+                        auto& buffer_queue = nv_flinger->FindBufferQueue(id);
+                        std::optional<u32> slot = buffer_queue.DequeueBuffer(width, height);
                         ASSERT_MSG(slot != std::nullopt, "Could not dequeue buffer.");
 
                         IGBPDequeueBufferResponseParcel response{*slot};
@@ -568,28 +568,28 @@ private:
                         IPC::ResponseBuilder rb{ctx, 2};
                         rb.Push(RESULT_SUCCESS);
                     },
-                    buffer_queue->GetWritableBufferWaitEvent());
+                    buffer_queue.GetWritableBufferWaitEvent());
             }
         } else if (transaction == TransactionId::RequestBuffer) {
             IGBPRequestBufferRequestParcel request{ctx.ReadBuffer()};
 
-            auto& buffer = buffer_queue->RequestBuffer(request.slot);
+            auto& buffer = buffer_queue.RequestBuffer(request.slot);
 
             IGBPRequestBufferResponseParcel response{buffer};
             ctx.WriteBuffer(response.Serialize());
         } else if (transaction == TransactionId::QueueBuffer) {
             IGBPQueueBufferRequestParcel request{ctx.ReadBuffer()};
 
-            buffer_queue->QueueBuffer(request.data.slot, request.data.transform,
-                                      request.data.GetCropRect());
+            buffer_queue.QueueBuffer(request.data.slot, request.data.transform,
+                                     request.data.GetCropRect());
 
             IGBPQueueBufferResponseParcel response{1280, 720};
             ctx.WriteBuffer(response.Serialize());
         } else if (transaction == TransactionId::Query) {
             IGBPQueryRequestParcel request{ctx.ReadBuffer()};
 
-            u32 value =
-                buffer_queue->Query(static_cast<NVFlinger::BufferQueue::QueryType>(request.type));
+            const u32 value =
+                buffer_queue.Query(static_cast<NVFlinger::BufferQueue::QueryType>(request.type));
 
             IGBPQueryResponseParcel response{value};
             ctx.WriteBuffer(response.Serialize());
@@ -629,12 +629,12 @@ private:
 
         LOG_WARNING(Service_VI, "(STUBBED) called id={}, unknown={:08X}", id, unknown);
 
-        const auto buffer_queue = nv_flinger->FindBufferQueue(id);
+        const auto& buffer_queue = nv_flinger->FindBufferQueue(id);
 
         // TODO(Subv): Find out what this actually is.
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(buffer_queue->GetBufferWaitEvent());
+        rb.PushCopyObjects(buffer_queue.GetBufferWaitEvent());
     }
 
     std::shared_ptr<NVFlinger::NVFlinger> nv_flinger;

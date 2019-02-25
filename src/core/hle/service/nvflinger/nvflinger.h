@@ -28,8 +28,8 @@ class Module;
 } // namespace Service::Nvidia
 
 namespace Service::VI {
-struct Display;
-struct Layer;
+class Display;
+class Layer;
 } // namespace Service::VI
 
 namespace Service::NVFlinger {
@@ -65,7 +65,10 @@ public:
     Kernel::SharedPtr<Kernel::ReadableEvent> FindVsyncEvent(u64 display_id) const;
 
     /// Obtains a buffer queue identified by the ID.
-    std::shared_ptr<BufferQueue> FindBufferQueue(u32 id) const;
+    BufferQueue& FindBufferQueue(u32 id);
+
+    /// Obtains a buffer queue identified by the ID.
+    const BufferQueue& FindBufferQueue(u32 id) const;
 
     /// Performs a composition request to the emulated nvidia GPU and triggers the vsync events when
     /// finished.
@@ -87,7 +90,7 @@ private:
     std::shared_ptr<Nvidia::Module> nvdrv;
 
     std::vector<VI::Display> displays;
-    std::vector<std::shared_ptr<BufferQueue>> buffer_queues;
+    std::vector<BufferQueue> buffer_queues;
 
     /// Id to use for the next layer that is created, this counter is shared among all displays.
     u64 next_layer_id = 1;
