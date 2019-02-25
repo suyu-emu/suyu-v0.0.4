@@ -46,7 +46,7 @@ public:
         }
     }
 
-    ~CubebSinkStream() {
+    ~CubebSinkStream() override {
         if (!ctx) {
             return;
         }
@@ -75,11 +75,11 @@ public:
         queue.Push(samples);
     }
 
-    std::size_t SamplesInQueue(u32 num_channels) const override {
+    std::size_t SamplesInQueue(u32 channel_count) const override {
         if (!ctx)
             return 0;
 
-        return queue.Size() / num_channels;
+        return queue.Size() / channel_count;
     }
 
     void Flush() override {
@@ -98,7 +98,7 @@ private:
     u32 num_channels{};
 
     Common::RingBuffer<s16, 0x10000> queue;
-    std::array<s16, 2> last_frame;
+    std::array<s16, 2> last_frame{};
     std::atomic<bool> should_flush{};
     TimeStretcher time_stretch;
 
