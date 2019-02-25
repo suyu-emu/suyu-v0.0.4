@@ -14,11 +14,11 @@
 namespace Kernel {
 namespace {
 constexpr u16 GetSlot(Handle handle) {
-    return handle >> 15;
+    return static_cast<u16>(handle >> 15);
 }
 
 constexpr u16 GetGeneration(Handle handle) {
-    return handle & 0x7FFF;
+    return static_cast<u16>(handle & 0x7FFF);
 }
 } // Anonymous namespace
 
