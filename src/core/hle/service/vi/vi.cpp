@@ -752,6 +752,7 @@ public:
             {1102, nullptr, "GetDisplayResolution"},
             {2010, &IManagerDisplayService::CreateManagedLayer, "CreateManagedLayer"},
             {2011, nullptr, "DestroyManagedLayer"},
+            {2012, nullptr, "CreateStrayLayer"},
             {2050, nullptr, "CreateIndirectLayer"},
             {2051, nullptr, "DestroyIndirectLayer"},
             {2052, nullptr, "CreateIndirectProducerEndPoint"},
