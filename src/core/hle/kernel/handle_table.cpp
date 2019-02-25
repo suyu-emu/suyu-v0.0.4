@@ -28,17 +28,33 @@ HandleTable::HandleTable() {
 
 HandleTable::~HandleTable() = default;
 
+ResultCode HandleTable::SetSize(s32 handle_table_size) {
+    if (static_cast<u32>(handle_table_size) > MAX_COUNT) {
+        return ERR_OUT_OF_MEMORY;
+    }
+
+    // Values less than or equal to zero indicate to use the maximum allowable
+    // size for the handle table in the actual kernel, so we ignore the given
+    // value in that case, since we assume this by default unless this function
+    // is called.
+    if (handle_table_size > 0) {
+        table_size = static_cast<u16>(handle_table_size);
+    }
+
+    return RESULT_SUCCESS;
+}
+
 ResultVal<Handle> HandleTable::Create(SharedPtr<Object> obj) {
     DEBUG_ASSERT(obj != nullptr);
 
-    u16 slot = next_free_slot;
-    if (slot >= generations.size()) {
+    const u16 slot = next_free_slot;
+    if (slot >= table_size) {
         LOG_ERROR(Kernel, "Unable to allocate Handle, too many slots in use.");
         return ERR_HANDLE_TABLE_FULL;
     }
     next_free_slot = generations[slot];
 
-    u16 generation = next_generation++;
+    const u16 generation = next_generation++;
 
     // Overflow count so it fits in the 15 bits dedicated to the generation in the handle.
     // Horizon OS uses zero to represent an invalid handle, so skip to 1.
@@ -79,7 +95,7 @@ bool HandleTable::IsValid(Handle handle) const {
     std::size_t slot = GetSlot(handle);
     u16 generation = GetGeneration(handle);
 
-    return slot < MAX_COUNT && objects[slot] != nullptr && generations[slot] == generation;
+    return slot < table_size && objects[slot] != nullptr && generations[slot] == generation;
 }
 
 SharedPtr<Object> HandleTable::GetGeneric(Handle handle) const {
@@ -96,7 +112,7 @@ SharedPtr<Object> HandleTable::GetGeneric(Handle handle) const {
 }
 
 void HandleTable::Clear() {
-    for (u16 i = 0; i < MAX_COUNT; ++i) {
+    for (u16 i = 0; i < table_size; ++i) {
         generations[i] = i + 1;
         objects[i] = nullptr;
     }
