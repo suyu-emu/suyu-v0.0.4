@@ -107,10 +107,10 @@ private:
      * Global counter of the number of created handles. Stored in `generations` when a handle is
      * created, and wraps around to 1 when it hits 0x8000.
      */
-    u16 next_generation;
+    u16 next_generation = 1;
 
     /// Head of the free slots linked list.
-    u16 next_free_slot;
+    u16 next_free_slot = 0;
 };
 
 } // namespace Kernel

@@ -23,7 +23,6 @@ constexpr u16 GetGeneration(Handle handle) {
 } // Anonymous namespace
 
 HandleTable::HandleTable() {
-    next_generation = 1;
     Clear();
 }
 
