@@ -11,7 +11,6 @@
 #include "common/file_util.h"
 #include "common/logging/log.h"
 #include "common/scm_rev.h"
-#include "common/zstd_compression.h"
 
 #include "core/core.h"
 #include "core/hle/kernel/process.h"
@@ -104,7 +103,8 @@ bool ShaderDiskCacheRaw::Save(FileUtil::IOFile& file) const {
     return true;
 }
 
-ShaderDiskCacheOpenGL::ShaderDiskCacheOpenGL(Core::System& system) : system{system} {}
+ShaderDiskCacheOpenGL::ShaderDiskCacheOpenGL(Core::System& system)
+    : system{system}, precompiled_cache_virtual_file_offset{0} {}
 
 std::optional<std::pair<std::vector<ShaderDiskCacheRaw>, std::vector<ShaderDiskCacheUsage>>>
 ShaderDiskCacheOpenGL::LoadTransferable() {
@@ -177,6 +177,7 @@ ShaderDiskCacheOpenGL::LoadTransferable() {
             return {};
         }
     }
+
     return {{raws, usages}};
 }
 
@@ -208,51 +209,62 @@ ShaderDiskCacheOpenGL::LoadPrecompiled() {
 std::optional<std::pair<std::unordered_map<u64, ShaderDiskCacheDecompiled>,
                         std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>>
 ShaderDiskCacheOpenGL::LoadPrecompiledFile(FileUtil::IOFile& file) {
+    std::vector<u8> precompiled_cache(file.GetSize());
+    file.ReadBytes(precompiled_cache.data(), precompiled_cache.size());
+    SaveArrayToPrecompiled(precompiled_cache.data(), precompiled_cache.size());
+    precompiled_cache_virtual_file_offset = 0;
+
     ShaderCacheVersionHash file_hash{};
-    if (file.ReadArray(file_hash.data(), file_hash.size()) != file_hash.size()) {
+    if (!LoadArrayFromPrecompiled(file_hash.data(), file_hash.size())) {
+        precompiled_cache_virtual_file_offset = 0;
         return {};
     }
     if (GetShaderCacheVersionHash() != file_hash) {
         LOG_INFO(Render_OpenGL, "Precompiled cache is from another version of the emulator");
+        precompiled_cache_virtual_file_offset = 0;
         return {};
     }
 
     std::unordered_map<u64, ShaderDiskCacheDecompiled> decompiled;
     std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump> dumps;
-    while (file.Tell() < file.GetSize()) {
+    while (precompiled_cache_virtual_file_offset < precompiled_cache_virtual_file.GetSize()) {
         PrecompiledEntryKind kind{};
-        if (file.ReadBytes(&kind, sizeof(u32)) != sizeof(u32)) {
+        if (!LoadObjectFromPrecompiled(kind)) {
             return {};
         }
 
         switch (kind) {
         case PrecompiledEntryKind::Decompiled: {
             u64 unique_identifier{};
-            if (file.ReadBytes(&unique_identifier, sizeof(u64)) != sizeof(u64))
+            if (!LoadObjectFromPrecompiled(unique_identifier)) {
                 return {};
+            }
 
-            const auto entry = LoadDecompiledEntry(file);
-            if (!entry)
+            const auto entry = LoadDecompiledEntry();
+            if (!entry) {
                 return {};
+            }
             decompiled.insert({unique_identifier, std::move(*entry)});
             break;
         }
         case PrecompiledEntryKind::Dump: {
             ShaderDiskCacheUsage usage;
-            if (file.ReadBytes(&usage, sizeof(usage)) != sizeof(usage))
+            if (!LoadObjectFromPrecompiled(usage)) {
                 return {};
+            }
 
             ShaderDiskCacheDump dump;
-            if (file.ReadBytes(&dump.binary_format, sizeof(u32)) != sizeof(u32))
+            if (!LoadObjectFromPrecompiled(dump.binary_format)) {
                 return {};
+            }
 
             u32 binary_length{};
-            if (file.ReadBytes(&binary_length, sizeof(u32)) != sizeof(u32)) {
+            if (!LoadObjectFromPrecompiled(binary_length)) {
                 return {};
             }
 
             dump.binary.resize(binary_length);
-            if (file.ReadArray(dump.binary.data(), binary_length) != binary_length) {
+            if (!LoadArrayFromPrecompiled(dump.binary.data(), dump.binary.size())) {
                 return {};
             }
 
@@ -266,15 +278,14 @@ ShaderDiskCacheOpenGL::LoadPrecompiledFile(FileUtil::IOFile& file) {
     return {{decompiled, dumps}};
 }
 
-std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEntry(
-    FileUtil::IOFile& file) {
+std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEntry() {
     u32 code_size{};
-    if (file.ReadBytes(&code_size, sizeof(u32)) != sizeof(u32)) {
+    if (!LoadObjectFromPrecompiled(code_size)) {
         return {};
     }
 
     std::vector<u8> code(code_size);
-    if (file.ReadArray(code.data(), code.size()) != code_size) {
+    if (!LoadArrayFromPrecompiled(code.data(), code.size())) {
         return {};
     }
 
@@ -282,23 +293,26 @@ std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEn
     entry.code = std::string(reinterpret_cast<const char*>(code.data()), code_size);
 
     u32 const_buffers_count{};
-    if (file.ReadBytes(&const_buffers_count, sizeof(u32)) != sizeof(u32))
+    if (!LoadObjectFromPrecompiled(const_buffers_count)) {
         return {};
+    }
+
     for (u32 i = 0; i < const_buffers_count; ++i) {
         u32 max_offset{};
         u32 index{};
         u8 is_indirect{};
-        if (file.ReadBytes(&max_offset, sizeof(u32)) != sizeof(u32) ||
-            file.ReadBytes(&index, sizeof(u32)) != sizeof(u32) ||
-            file.ReadBytes(&is_indirect, sizeof(u8)) != sizeof(u8)) {
+        if (!LoadObjectFromPrecompiled(max_offset) || !LoadObjectFromPrecompiled(index) ||
+            !LoadObjectFromPrecompiled(is_indirect)) {
             return {};
         }
         entry.entries.const_buffers.emplace_back(max_offset, is_indirect != 0, index);
     }
 
     u32 samplers_count{};
-    if (file.ReadBytes(&samplers_count, sizeof(u32)) != sizeof(u32))
+    if (!LoadObjectFromPrecompiled(samplers_count)) {
         return {};
+    }
+
     for (u32 i = 0; i < samplers_count; ++i) {
         u64 offset{};
         u64 index{};
@@ -306,12 +320,9 @@ std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEn
         u8 is_array{};
         u8 is_shadow{};
         u8 is_bindless{};
-        if (file.ReadBytes(&offset, sizeof(u64)) != sizeof(u64) ||
-            file.ReadBytes(&index, sizeof(u64)) != sizeof(u64) ||
-            file.ReadBytes(&type, sizeof(u32)) != sizeof(u32) ||
-            file.ReadBytes(&is_array, sizeof(u8)) != sizeof(u8) ||
-            file.ReadBytes(&is_shadow, sizeof(u8)) != sizeof(u8) ||
-            file.ReadBytes(&is_bindless, sizeof(u8)) != sizeof(u8)) {
+        if (!LoadObjectFromPrecompiled(offset) || !LoadObjectFromPrecompiled(index) ||
+            !LoadObjectFromPrecompiled(type) || !LoadObjectFromPrecompiled(is_array) ||
+            !LoadObjectFromPrecompiled(is_shadow) || !LoadObjectFromPrecompiled(is_bindless)) {
             return {};
         }
         entry.entries.samplers.emplace_back(static_cast<std::size_t>(offset),
@@ -321,17 +332,17 @@ std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEn
     }
 
     u32 global_memory_count{};
-    if (file.ReadBytes(&global_memory_count, sizeof(u32)) != sizeof(u32))
+    if (!LoadObjectFromPrecompiled(global_memory_count)) {
         return {};
+    }
+
     for (u32 i = 0; i < global_memory_count; ++i) {
         u32 cbuf_index{};
         u32 cbuf_offset{};
         u8 is_read{};
         u8 is_written{};
-        if (file.ReadBytes(&cbuf_index, sizeof(u32)) != sizeof(u32) ||
-            file.ReadBytes(&cbuf_offset, sizeof(u32)) != sizeof(u32) ||
-            file.ReadBytes(&is_read, sizeof(u8)) != sizeof(u8) ||
-            file.ReadBytes(&is_written, sizeof(u8)) != sizeof(u8)) {
+        if (!LoadObjectFromPrecompiled(cbuf_index) || !LoadObjectFromPrecompiled(cbuf_offset) ||
+            !LoadObjectFromPrecompiled(is_read) || !LoadObjectFromPrecompiled(is_written)) {
             return {};
         }
         entry.entries.global_memory_entries.emplace_back(cbuf_index, cbuf_offset, is_read != 0,
@@ -340,72 +351,81 @@ std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEn
 
     for (auto& clip_distance : entry.entries.clip_distances) {
         u8 clip_distance_raw{};
-        if (file.ReadBytes(&clip_distance_raw, sizeof(u8)) != sizeof(u8))
+        if (!LoadObjectFromPrecompiled(clip_distance_raw))
             return {};
         clip_distance = clip_distance_raw != 0;
     }
 
     u64 shader_length{};
-    if (file.ReadBytes(&shader_length, sizeof(u64)) != sizeof(u64))
+    if (!LoadObjectFromPrecompiled(shader_length)) {
         return {};
+    }
+
     entry.entries.shader_length = static_cast<std::size_t>(shader_length);
 
     return entry;
 }
 
-bool ShaderDiskCacheOpenGL::SaveDecompiledFile(FileUtil::IOFile& file, u64 unique_identifier,
-                                               const std::string& code,
+bool ShaderDiskCacheOpenGL::SaveDecompiledFile(u64 unique_identifier, const std::string& code,
                                                const GLShader::ShaderEntries& entries) {
-    if (file.WriteObject(static_cast<u32>(PrecompiledEntryKind::Decompiled)) != 1 ||
-        file.WriteObject(unique_identifier) != 1 ||
-        file.WriteObject(static_cast<u32>(code.size())) != 1 ||
-        file.WriteArray(code.data(), code.size()) != code.size()) {
+    if (!SaveObjectToPrecompiled(static_cast<u32>(PrecompiledEntryKind::Decompiled)) ||
+        !SaveObjectToPrecompiled(unique_identifier) ||
+        !SaveObjectToPrecompiled(static_cast<u32>(code.size())) ||
+        !SaveArrayToPrecompiled(code.data(), code.size())) {
         return false;
     }
 
-    if (file.WriteObject(static_cast<u32>(entries.const_buffers.size())) != 1)
+    if (!SaveObjectToPrecompiled(static_cast<u32>(entries.const_buffers.size()))) {
         return false;
+    }
     for (const auto& cbuf : entries.const_buffers) {
-        if (file.WriteObject(static_cast<u32>(cbuf.GetMaxOffset())) != 1 ||
-            file.WriteObject(static_cast<u32>(cbuf.GetIndex())) != 1 ||
-            file.WriteObject(static_cast<u8>(cbuf.IsIndirect() ? 1 : 0)) != 1) {
+        if (!SaveObjectToPrecompiled(static_cast<u32>(cbuf.GetMaxOffset())) ||
+            !SaveObjectToPrecompiled(static_cast<u32>(cbuf.GetIndex())) ||
+            !SaveObjectToPrecompiled(static_cast<u8>(cbuf.IsIndirect() ? 1 : 0))) {
             return false;
         }
     }
 
-    if (file.WriteObject(static_cast<u32>(entries.samplers.size())) != 1)
+    if (!SaveObjectToPrecompiled(static_cast<u32>(entries.samplers.size()))) {
         return false;
+    }
     for (const auto& sampler : entries.samplers) {
-        if (file.WriteObject(static_cast<u64>(sampler.GetOffset())) != 1 ||
-            file.WriteObject(static_cast<u64>(sampler.GetIndex())) != 1 ||
-            file.WriteObject(static_cast<u32>(sampler.GetType())) != 1 ||
-            file.WriteObject(static_cast<u8>(sampler.IsArray() ? 1 : 0)) != 1 ||
-            file.WriteObject(static_cast<u8>(sampler.IsShadow() ? 1 : 0)) != 1 ||
-            file.WriteObject(static_cast<u8>(sampler.IsBindless() ? 1 : 0)) != 1) {
+        if (!SaveObjectToPrecompiled(static_cast<u64>(sampler.GetOffset())) ||
+            !SaveObjectToPrecompiled(static_cast<u64>(sampler.GetIndex())) ||
+            !SaveObjectToPrecompiled(static_cast<u32>(sampler.GetType())) ||
+            !SaveObjectToPrecompiled(static_cast<u8>(sampler.IsArray() ? 1 : 0)) ||
+            !SaveObjectToPrecompiled(static_cast<u8>(sampler.IsShadow() ? 1 : 0)) ||
+            !SaveObjectToPrecompiled(static_cast<u8>(sampler.IsBindless() ? 1 : 0))) {
             return false;
         }
     }
 
-    if (file.WriteObject(static_cast<u32>(entries.global_memory_entries.size())) != 1)
+    if (!SaveObjectToPrecompiled(static_cast<u32>(entries.global_memory_entries.size()))) {
         return false;
+    }
     for (const auto& gmem : entries.global_memory_entries) {
-        if (file.WriteObject(static_cast<u32>(gmem.GetCbufIndex())) != 1 ||
-            file.WriteObject(static_cast<u32>(gmem.GetCbufOffset())) != 1 ||
-            file.WriteObject(static_cast<u8>(gmem.IsRead() ? 1 : 0)) != 1 ||
-            file.WriteObject(static_cast<u8>(gmem.IsWritten() ? 1 : 0)) != 1) {
+        if (!SaveObjectToPrecompiled(static_cast<u32>(gmem.GetCbufIndex())) ||
+            !SaveObjectToPrecompiled(static_cast<u32>(gmem.GetCbufOffset())) ||
+            !SaveObjectToPrecompiled(static_cast<u8>(gmem.IsRead() ? 1 : 0)) ||
+            !SaveObjectToPrecompiled(static_cast<u8>(gmem.IsWritten() ? 1 : 0))) {
             return false;
         }
     }
 
     for (const bool clip_distance : entries.clip_distances) {
-        if (file.WriteObject(static_cast<u8>(clip_distance ? 1 : 0)) != 1)
+        if (!SaveObjectToPrecompiled(static_cast<u8>(clip_distance ? 1 : 0))) {
             return false;
+        }
     }
 
-    return file.WriteObject(static_cast<u64>(entries.shader_length)) == 1;
+    if (!SaveObjectToPrecompiled(static_cast<u64>(entries.shader_length))) {
+        return false;
+    }
+
+    return true;
 }
 
-void ShaderDiskCacheOpenGL::InvalidateTransferable() const {
+void ShaderDiskCacheOpenGL::InvalidateTransferable() {
     if (!FileUtil::Delete(GetTransferablePath())) {
         LOG_ERROR(Render_OpenGL, "Failed to invalidate transferable file={}",
                   GetTransferablePath());
@@ -413,7 +433,10 @@ void ShaderDiskCacheOpenGL::InvalidateTransferable() const {
     InvalidatePrecompiled();
 }
 
-void ShaderDiskCacheOpenGL::InvalidatePrecompiled() const {
+void ShaderDiskCacheOpenGL::InvalidatePrecompiled() {
+    // Clear virtaul precompiled cache file
+    precompiled_cache_virtual_file.Resize(0);
+
     if (!FileUtil::Delete(GetPrecompiledPath())) {
         LOG_ERROR(Render_OpenGL, "Failed to invalidate precompiled file={}", GetPrecompiledPath());
     }
@@ -469,15 +492,13 @@ void ShaderDiskCacheOpenGL::SaveDecompiled(u64 unique_identifier, const std::str
     if (!IsUsable())
         return;
 
-    FileUtil::IOFile file = AppendPrecompiledFile();
+    if (precompiled_cache_virtual_file.GetSize() == 0) {
+        SavePrecompiledHeaderToVirtualPrecompiledCache();
+    }
 
-    if (!file.IsOpen())
-        return;
-
-    if (!SaveDecompiledFile(file, unique_identifier, code, entries)) {
+    if (!SaveDecompiledFile(unique_identifier, code, entries)) {
         LOG_ERROR(Render_OpenGL,
                   "Failed to save decompiled entry to the precompiled file - removing");
-        file.Close();
         InvalidatePrecompiled();
     }
 }
@@ -493,18 +514,13 @@ void ShaderDiskCacheOpenGL::SaveDump(const ShaderDiskCacheUsage& usage, GLuint p
     std::vector<u8> binary(binary_length);
     glGetProgramBinary(program, binary_length, nullptr, &binary_format, binary.data());
 
-    FileUtil::IOFile file = AppendPrecompiledFile();
-
-    if (!file.IsOpen())
-        return;
-
-    if (file.WriteObject(static_cast<u32>(PrecompiledEntryKind::Dump)) != 1 ||
-        file.WriteObject(usage) != 1 || file.WriteObject(static_cast<u32>(binary_format)) != 1 ||
-        file.WriteObject(static_cast<u32>(binary_length)) != 1 ||
-        file.WriteArray(binary.data(), binary.size()) != binary_length) {
+    if (!SaveObjectToPrecompiled(static_cast<u32>(PrecompiledEntryKind::Dump)) ||
+        !SaveObjectToPrecompiled(usage) ||
+        !SaveObjectToPrecompiled(static_cast<u32>(binary_format)) ||
+        !SaveObjectToPrecompiled(static_cast<u32>(binary_length)) ||
+        !SaveArrayToPrecompiled(binary.data(), binary.size())) {
         LOG_ERROR(Render_OpenGL, "Failed to save binary program file in shader={:016x} - removing",
                   usage.unique_identifier);
-        file.Close();
         InvalidatePrecompiled();
         return;
     }
@@ -537,28 +553,32 @@ FileUtil::IOFile ShaderDiskCacheOpenGL::AppendTransferableFile() const {
     return file;
 }
 
-FileUtil::IOFile ShaderDiskCacheOpenGL::AppendPrecompiledFile() const {
-    if (!EnsureDirectories())
-        return {};
+void ShaderDiskCacheOpenGL::SavePrecompiledHeaderToVirtualPrecompiledCache() {
+    const auto hash{GetShaderCacheVersionHash()};
+    if (!SaveArrayToPrecompiled(hash.data(), hash.size())) {
+        LOG_ERROR(
+            Render_OpenGL,
+            "Failed to write precompiled cache version hash to virtual precompiled cache file");
+    }
+}
+
+void ShaderDiskCacheOpenGL::SaveVirtualPrecompiledFile() {
+    precompiled_cache_virtual_file_offset = 0;
+    const std::vector<u8>& precompiled_cache = precompiled_cache_virtual_file.ReadAllBytes();
 
     const auto precompiled_path{GetPrecompiledPath()};
-    const bool existed = FileUtil::Exists(precompiled_path);
+    FileUtil::IOFile file(precompiled_path, "wb");
 
-    FileUtil::IOFile file(precompiled_path, "ab");
     if (!file.IsOpen()) {
         LOG_ERROR(Render_OpenGL, "Failed to open precompiled cache in path={}", precompiled_path);
-        return {};
+        return;
     }
-
-    if (!existed || file.GetSize() == 0) {
-        const auto hash{GetShaderCacheVersionHash()};
-        if (file.WriteArray(hash.data(), hash.size()) != hash.size()) {
-            LOG_ERROR(Render_OpenGL, "Failed to write precompiled cache version hash in path={}",
-                      precompiled_path);
-            return {};
-        }
+    if (file.WriteBytes(precompiled_cache.data(), precompiled_cache.size()) !=
+        precompiled_cache.size()) {
+        LOG_ERROR(Render_OpenGL, "Failed to write precompiled cache version in path={}",
+                  precompiled_path);
+        return;
     }
-    return file;
 }
 
 bool ShaderDiskCacheOpenGL::EnsureDirectories() const {
