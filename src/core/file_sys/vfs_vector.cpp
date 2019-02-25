@@ -47,7 +47,7 @@ std::size_t VectorVfsFile::Write(const u8* data_, std::size_t length, std::size_
     if (offset + length > data.size())
         data.resize(offset + length);
     const auto write = std::min(length, data.size() - offset);
-    std::memcpy(data.data(), data_, write);
+    std::memcpy(data.data() + offset, data_, write);
     return write;
 }
 
