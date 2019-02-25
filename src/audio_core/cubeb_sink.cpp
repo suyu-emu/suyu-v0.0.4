@@ -98,7 +98,7 @@ private:
     u32 num_channels{};
 
     Common::RingBuffer<s16, 0x10000> queue;
-    std::array<s16, 2> last_frame;
+    std::array<s16, 2> last_frame{};
     std::atomic<bool> should_flush{};
     TimeStretcher time_stretch;
 
