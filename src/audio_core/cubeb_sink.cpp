@@ -46,7 +46,7 @@ public:
         }
     }
 
-    ~CubebSinkStream() {
+    ~CubebSinkStream() override {
         if (!ctx) {
             return;
         }
