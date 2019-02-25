@@ -79,10 +79,11 @@ ResultVal<Handle> HandleTable::Duplicate(Handle handle) {
 }
 
 ResultCode HandleTable::Close(Handle handle) {
-    if (!IsValid(handle))
+    if (!IsValid(handle)) {
         return ERR_INVALID_HANDLE;
+    }
 
-    u16 slot = GetSlot(handle);
+    const u16 slot = GetSlot(handle);
 
     objects[slot] = nullptr;
 
@@ -92,8 +93,8 @@ ResultCode HandleTable::Close(Handle handle) {
 }
 
 bool HandleTable::IsValid(Handle handle) const {
-    std::size_t slot = GetSlot(handle);
-    u16 generation = GetGeneration(handle);
+    const std::size_t slot = GetSlot(handle);
+    const u16 generation = GetGeneration(handle);
 
     return slot < table_size && objects[slot] != nullptr && generations[slot] == generation;
 }
