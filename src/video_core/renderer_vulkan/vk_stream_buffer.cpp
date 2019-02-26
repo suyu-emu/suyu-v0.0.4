@@ -23,16 +23,15 @@ constexpr u64 WATCHES_RESERVE_CHUNK = 0x1000;
 VKStreamBuffer::VKStreamBuffer(const VKDevice& device, VKMemoryManager& memory_manager,
                                VKScheduler& scheduler, u64 size, vk::BufferUsageFlags usage,
                                vk::AccessFlags access, vk::PipelineStageFlags pipeline_stage)
-    : device{device}, scheduler{scheduler},
-      has_device_exclusive_memory{!memory_manager.IsMemoryUnified()},
-      buffer_size{size}, access{access}, pipeline_stage{pipeline_stage} {
+    : device{device}, scheduler{scheduler}, buffer_size{size}, access{access}, pipeline_stage{
+                                                                                   pipeline_stage} {
     CreateBuffers(memory_manager, usage);
     ReserveWatches(WATCHES_INITIAL_RESERVE);
 }
 
 VKStreamBuffer::~VKStreamBuffer() = default;
 
-std::tuple<u8*, u64, vk::Buffer, bool> VKStreamBuffer::Reserve(u64 size, bool keep_in_host) {
+std::tuple<u8*, u64, bool> VKStreamBuffer::Reserve(u64 size) {
     ASSERT(size <= buffer_size);
     mapped_size = size;
 
@@ -44,10 +43,7 @@ std::tuple<u8*, u64, vk::Buffer, bool> VKStreamBuffer::Reserve(u64 size, bool ke
         offset = 0;
     }
 
-    use_device = has_device_exclusive_memory && !keep_in_host;
-
-    const vk::Buffer buffer = use_device ? *device_buffer : *mappable_buffer;
-    return {mapped_pointer + offset, offset, buffer, invalidation_mark.has_value()};
+    return {mapped_pointer + offset, offset, invalidation_mark.has_value()};
 }
 
 VKExecutionContext VKStreamBuffer::Send(VKExecutionContext exctx, u64 size) {
@@ -59,24 +55,6 @@ VKExecutionContext VKStreamBuffer::Send(VKExecutionContext exctx, u64 size) {
         std::for_each(watches.begin(), watches.begin() + *invalidation_mark,
                       [&](auto& resource) { resource->Wait(); });
         invalidation_mark = std::nullopt;
-    }
-
-    // Only copy to VRAM when requested.
-    if (use_device) {
-        const auto& dld = device.GetDispatchLoader();
-        const u32 graphics_family = device.GetGraphicsFamily();
-        const auto cmdbuf = exctx.GetCommandBuffer();
-
-        // Buffers are mirrored, that's why the copy is done with the same offset on both buffers.
-        const vk::BufferCopy copy_region(offset, offset, size);
-        cmdbuf.copyBuffer(*mappable_buffer, *device_buffer, {copy_region}, dld);
-
-        // Protect the buffer from GPU usage until the copy has finished.
-        const vk::BufferMemoryBarrier barrier(vk::AccessFlagBits::eTransferWrite, access,
-                                              graphics_family, graphics_family, *device_buffer,
-                                              offset, size);
-        cmdbuf.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, pipeline_stage, {}, {},
-                               {barrier}, {}, dld);
     }
 
     if (used_watches + 1 >= watches.size()) {
@@ -92,26 +70,14 @@ VKExecutionContext VKStreamBuffer::Send(VKExecutionContext exctx, u64 size) {
 }
 
 void VKStreamBuffer::CreateBuffers(VKMemoryManager& memory_manager, vk::BufferUsageFlags usage) {
-    vk::BufferUsageFlags mappable_usage = usage;
-    if (has_device_exclusive_memory) {
-        mappable_usage |= vk::BufferUsageFlagBits::eTransferSrc;
-    }
-    const vk::BufferCreateInfo buffer_ci({}, buffer_size, mappable_usage,
-                                         vk::SharingMode::eExclusive, 0, nullptr);
+    const vk::BufferCreateInfo buffer_ci({}, buffer_size, usage, vk::SharingMode::eExclusive, 0,
+                                         nullptr);
 
     const auto dev = device.GetLogical();
     const auto& dld = device.GetDispatchLoader();
-    mappable_buffer = dev.createBufferUnique(buffer_ci, nullptr, dld);
-    mappable_commit = memory_manager.Commit(*mappable_buffer, true);
-    mapped_pointer = mappable_commit->GetData();
-
-    if (has_device_exclusive_memory) {
-        const vk::BufferCreateInfo buffer_ci({}, buffer_size,
-                                             usage | vk::BufferUsageFlagBits::eTransferDst,
-                                             vk::SharingMode::eExclusive, 0, nullptr);
-        device_buffer = dev.createBufferUnique(buffer_ci, nullptr, dld);
-        device_commit = memory_manager.Commit(*device_buffer, false);
-    }
+    buffer = dev.createBufferUnique(buffer_ci, nullptr, dld);
+    commit = memory_manager.Commit(*buffer, true);
+    mapped_pointer = commit->GetData();
 }
 
 void VKStreamBuffer::ReserveWatches(std::size_t grow_size) {

@@ -31,14 +31,17 @@ public:
     /**
      * Reserves a region of memory from the stream buffer.
      * @param size Size to reserve.
-     * @param keep_in_host Mapped buffer will be in host memory, skipping the copy to device local.
      * @returns A tuple in the following order: Raw memory pointer (with offset added), buffer
-     * offset, Vulkan buffer handle, buffer has been invalited.
+     * offset and a boolean that's true when buffer has been invalidated.
      */
-    std::tuple<u8*, u64, vk::Buffer, bool> Reserve(u64 size, bool keep_in_host);
+    std::tuple<u8*, u64, bool> Reserve(u64 size);
 
     /// Ensures that "size" bytes of memory are available to the GPU, potentially recording a copy.
     [[nodiscard]] VKExecutionContext Send(VKExecutionContext exctx, u64 size);
+
+    vk::Buffer GetBuffer() const {
+        return *buffer;
+    }
 
 private:
     /// Creates Vulkan buffer handles committing the required the required memory.
@@ -50,19 +53,15 @@ private:
     const VKDevice& device;                      ///< Vulkan device manager.
     VKScheduler& scheduler;                      ///< Command scheduler.
     const u64 buffer_size;                       ///< Total size of the stream buffer.
-    const bool has_device_exclusive_memory;      ///< True if the streaming buffer will use VRAM.
     const vk::AccessFlags access;                ///< Access usage of this stream buffer.
     const vk::PipelineStageFlags pipeline_stage; ///< Pipeline usage of this stream buffer.
 
-    UniqueBuffer mappable_buffer;   ///< Mapped buffer.
-    UniqueBuffer device_buffer;     ///< Buffer exclusive to the GPU.
-    VKMemoryCommit mappable_commit; ///< Commit visible from the CPU.
-    VKMemoryCommit device_commit;   ///< Commit stored in VRAM.
-    u8* mapped_pointer{};           ///< Pointer to the host visible commit
+    UniqueBuffer buffer;   ///< Mapped buffer.
+    VKMemoryCommit commit; ///< Memory commit.
+    u8* mapped_pointer{};  ///< Pointer to the host visible commit
 
     u64 offset{};      ///< Buffer iterator.
     u64 mapped_size{}; ///< Size reserved for the current copy.
-    bool use_device{}; ///< True if the current uses VRAM.
 
     std::vector<std::unique_ptr<VKFenceWatch>> watches; ///< Total watches
     std::size_t used_watches{}; ///< Count of watches, reset on invalidation.
