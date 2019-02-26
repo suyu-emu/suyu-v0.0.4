@@ -19,9 +19,9 @@ VI_U::VI_U(std::shared_ptr<NVFlinger::NVFlinger> nv_flinger)
 VI_U::~VI_U() = default;
 
 void VI_U::GetDisplayService(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_VI, "(STUBBED) called");
+    LOG_DEBUG(Service_VI, "called");
 
-    detail::GetDisplayServiceImpl(ctx, nv_flinger);
+    detail::GetDisplayServiceImpl(ctx, nv_flinger, Permission::User);
 }
 
 } // namespace Service::VI

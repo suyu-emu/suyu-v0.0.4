@@ -34,6 +34,7 @@
 namespace Service::VI {
 
 constexpr ResultCode ERR_OPERATION_FAILED{ErrorModule::VI, 1};
+constexpr ResultCode ERR_PERMISSION_DENIED{ErrorModule::VI, 5};
 constexpr ResultCode ERR_UNSUPPORTED{ErrorModule::VI, 6};
 constexpr ResultCode ERR_NOT_FOUND{ErrorModule::VI, 7};
 
@@ -1203,8 +1204,30 @@ IApplicationDisplayService::IApplicationDisplayService(
     RegisterHandlers(functions);
 }
 
+static bool IsValidServiceAccess(Permission permission, Policy policy) {
+    if (permission == Permission::User) {
+        return policy == Policy::User;
+    }
+
+    if (permission == Permission::System || permission == Permission::Manager) {
+        return policy == Policy::User || policy == Policy::Compositor;
+    }
+
+    return false;
+}
+
 void detail::GetDisplayServiceImpl(Kernel::HLERequestContext& ctx,
-                                   std::shared_ptr<NVFlinger::NVFlinger> nv_flinger) {
+                                   std::shared_ptr<NVFlinger::NVFlinger> nv_flinger,
+                                   Permission permission) {
+    IPC::RequestParser rp{ctx};
+    const auto policy = rp.PopEnum<Policy>();
+
+    if (!IsValidServiceAccess(permission, policy)) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ERR_PERMISSION_DENIED);
+        return;
+    }
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IApplicationDisplayService>(std::move(nv_flinger));

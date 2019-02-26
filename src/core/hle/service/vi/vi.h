@@ -20,10 +20,6 @@ class ServiceManager;
 }
 
 namespace Service::VI {
-namespace detail {
-void GetDisplayServiceImpl(Kernel::HLERequestContext& ctx,
-                           std::shared_ptr<NVFlinger::NVFlinger> nv_flinger);
-}
 
 enum class DisplayResolution : u32 {
     DockedWidth = 1920,
@@ -31,6 +27,25 @@ enum class DisplayResolution : u32 {
     UndockedWidth = 1280,
     UndockedHeight = 720,
 };
+
+/// Permission level for a particular VI service instance
+enum class Permission {
+    User,
+    System,
+    Manager,
+};
+
+/// A policy type that may be requested via GetDisplayService and
+/// GetDisplayServiceWithProxyNameExchange
+enum class Policy {
+    User,
+    Compositor,
+};
+
+namespace detail {
+void GetDisplayServiceImpl(Kernel::HLERequestContext& ctx,
+                           std::shared_ptr<NVFlinger::NVFlinger> nv_flinger, Permission permission);
+} // namespace detail
 
 /// Registers all VI services with the specified service manager.
 void InstallInterfaces(SM::ServiceManager& service_manager,
