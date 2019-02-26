@@ -257,6 +257,7 @@ void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
                                                  const Tegra::FramebufferConfig& framebuffer) {
     texture.width = framebuffer.width;
     texture.height = framebuffer.height;
+    texture.pixel_format = framebuffer.pixel_format;
 
     GLint internal_format;
     switch (framebuffer.pixel_format) {
