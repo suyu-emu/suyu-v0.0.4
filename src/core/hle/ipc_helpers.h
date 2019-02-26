@@ -362,6 +362,11 @@ inline u32 RequestParser::Pop() {
     return cmdbuf[index++];
 }
 
+template <>
+inline s32 RequestParser::Pop() {
+    return static_cast<s32>(Pop<u32>());
+}
+
 template <typename T>
 void RequestParser::PopRaw(T& value) {
     std::memcpy(&value, cmdbuf + index, sizeof(T));
@@ -390,6 +395,16 @@ inline u64 RequestParser::Pop() {
     const u64 lsw = Pop<u32>();
     const u64 msw = Pop<u32>();
     return msw << 32 | lsw;
+}
+
+template <>
+inline s8 RequestParser::Pop() {
+    return static_cast<s8>(Pop<u8>());
+}
+
+template <>
+inline s16 RequestParser::Pop() {
+    return static_cast<s16>(Pop<u16>());
 }
 
 template <>
