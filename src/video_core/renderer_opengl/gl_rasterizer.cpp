@@ -200,7 +200,7 @@ GLuint RasterizerOpenGL::SetupVertexFormat() {
     }
 
     // Rebinding the VAO invalidates the vertex buffer bindings.
-    gpu.dirty_flags.vertex_array = 0xFFFFFFFF;
+    gpu.dirty_flags.vertex_array.set();
 
     state.draw.vertex_array = vao_entry.handle;
     return vao_entry.handle;
@@ -210,14 +210,14 @@ void RasterizerOpenGL::SetupVertexBuffer(GLuint vao) {
     auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
     const auto& regs = gpu.regs;
 
-    if (!gpu.dirty_flags.vertex_array)
+    if (gpu.dirty_flags.vertex_array.none())
         return;
 
     MICROPROFILE_SCOPE(OpenGL_VB);
 
     // Upload all guest vertex arrays sequentially to our buffer
     for (u32 index = 0; index < Maxwell::NumVertexArrays; ++index) {
-        if (~gpu.dirty_flags.vertex_array & (1u << index))
+        if (!gpu.dirty_flags.vertex_array[index])
             continue;
 
         const auto& vertex_array = regs.vertex_array[index];
@@ -244,7 +244,7 @@ void RasterizerOpenGL::SetupVertexBuffer(GLuint vao) {
         }
     }
 
-    gpu.dirty_flags.vertex_array = 0;
+    gpu.dirty_flags.vertex_array.reset();
 }
 
 DrawParameters RasterizerOpenGL::SetupDraw() {
@@ -488,13 +488,13 @@ std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
     OpenGLState& current_state, bool using_color_fb, bool using_depth_fb, bool preserve_contents,
     std::optional<std::size_t> single_color_target) {
     MICROPROFILE_SCOPE(OpenGL_Framebuffer);
-    const auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
+    auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
     const auto& regs = gpu.regs;
 
     const FramebufferConfigState fb_config_state{using_color_fb, using_depth_fb, preserve_contents,
                                                  single_color_target};
-    if (fb_config_state == current_framebuffer_config_state && gpu.dirty_flags.color_buffer == 0 &&
-        !gpu.dirty_flags.zeta_buffer) {
+    if (fb_config_state == current_framebuffer_config_state &&
+        gpu.dirty_flags.color_buffer.none() && !gpu.dirty_flags.zeta_buffer) {
         // Only skip if the previous ConfigureFramebuffers call was from the same kind (multiple or
         // single color targets). This is done because the guest registers may not change but the
         // host framebuffer may contain different attachments
@@ -721,10 +721,10 @@ void RasterizerOpenGL::DrawArrays() {
     // Add space for at least 18 constant buffers
     buffer_size += Maxwell::MaxConstBuffers * (MaxConstbufferSize + uniform_buffer_alignment);
 
-    bool invalidate = buffer_cache.Map(buffer_size);
+    const bool invalidate = buffer_cache.Map(buffer_size);
     if (invalidate) {
         // As all cached buffers are invalidated, we need to recheck their state.
-        gpu.dirty_flags.vertex_array = 0xFFFFFFFF;
+        gpu.dirty_flags.vertex_array.set();
     }
 
     const GLuint vao = SetupVertexFormat();

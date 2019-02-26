@@ -5,8 +5,10 @@
 #pragma once
 
 #include <array>
+#include <bitset>
 #include <unordered_map>
 #include <vector>
+
 #include "common/assert.h"
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
@@ -1094,19 +1096,18 @@ public:
     MemoryManager& memory_manager;
 
     struct DirtyFlags {
-        u8 color_buffer = 0xFF;
-        bool zeta_buffer = true;
-
-        bool shaders = true;
+        std::bitset<8> color_buffer{0xFF};
+        std::bitset<32> vertex_array{0xFFFFFFFF};
 
         bool vertex_attrib_format = true;
-        u32 vertex_array = 0xFFFFFFFF;
+        bool zeta_buffer = true;
+        bool shaders = true;
 
         void OnMemoryWrite() {
-            color_buffer = 0xFF;
             zeta_buffer = true;
             shaders = true;
-            vertex_array = 0xFFFFFFFF;
+            color_buffer.set();
+            vertex_array.set();
         }
     };
 

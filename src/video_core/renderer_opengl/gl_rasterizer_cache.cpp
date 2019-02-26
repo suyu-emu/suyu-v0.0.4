@@ -962,10 +962,10 @@ Surface RasterizerCacheOpenGL::GetColorBufferSurface(std::size_t index, bool pre
     auto& gpu{Core::System::GetInstance().GPU().Maxwell3D()};
     const auto& regs{gpu.regs};
 
-    if ((gpu.dirty_flags.color_buffer & (1u << static_cast<u32>(index))) == 0) {
+    if (!gpu.dirty_flags.color_buffer[index]) {
         return last_color_buffers[index];
     }
-    gpu.dirty_flags.color_buffer &= ~(1u << static_cast<u32>(index));
+    gpu.dirty_flags.color_buffer.reset(index);
 
     ASSERT(index < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets);
 
