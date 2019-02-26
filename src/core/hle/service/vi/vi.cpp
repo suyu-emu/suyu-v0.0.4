@@ -24,6 +24,7 @@
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
 #include "core/hle/service/nvflinger/nvflinger.h"
+#include "core/hle/service/service.h"
 #include "core/hle/service/vi/vi.h"
 #include "core/hle/service/vi/vi_m.h"
 #include "core/hle/service/vi/vi_s.h"
@@ -1202,26 +1203,18 @@ IApplicationDisplayService::IApplicationDisplayService(
     RegisterHandlers(functions);
 }
 
-Module::Interface::Interface(std::shared_ptr<Module> module, const char* name,
-                             std::shared_ptr<NVFlinger::NVFlinger> nv_flinger)
-    : ServiceFramework(name), module(std::move(module)), nv_flinger(std::move(nv_flinger)) {}
-
-Module::Interface::~Interface() = default;
-
-void Module::Interface::GetDisplayService(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_VI, "(STUBBED) called");
-
+void detail::GetDisplayServiceImpl(Kernel::HLERequestContext& ctx,
+                                   std::shared_ptr<NVFlinger::NVFlinger> nv_flinger) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IApplicationDisplayService>(nv_flinger);
+    rb.PushIpcInterface<IApplicationDisplayService>(std::move(nv_flinger));
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager,
                        std::shared_ptr<NVFlinger::NVFlinger> nv_flinger) {
-    auto module = std::make_shared<Module>();
-    std::make_shared<VI_M>(module, nv_flinger)->InstallAsService(service_manager);
-    std::make_shared<VI_S>(module, nv_flinger)->InstallAsService(service_manager);
-    std::make_shared<VI_U>(module, nv_flinger)->InstallAsService(service_manager);
+    std::make_shared<VI_M>(nv_flinger)->InstallAsService(service_manager);
+    std::make_shared<VI_S>(nv_flinger)->InstallAsService(service_manager);
+    std::make_shared<VI_U>(nv_flinger)->InstallAsService(service_manager);
 }
 
 } // namespace Service::VI

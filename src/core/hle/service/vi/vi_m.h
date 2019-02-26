@@ -4,14 +4,27 @@
 
 #pragma once
 
-#include "core/hle/service/vi/vi.h"
+#include "core/hle/service/service.h"
+
+namespace Kernel {
+class HLERequestContext;
+}
+
+namespace Service::NVFlinger {
+class NVFlinger;
+}
 
 namespace Service::VI {
 
-class VI_M final : public Module::Interface {
+class VI_M final : public ServiceFramework<VI_M> {
 public:
-    explicit VI_M(std::shared_ptr<Module> module, std::shared_ptr<NVFlinger::NVFlinger> nv_flinger);
+    explicit VI_M(std::shared_ptr<NVFlinger::NVFlinger> nv_flinger);
     ~VI_M() override;
+
+private:
+    void GetDisplayService(Kernel::HLERequestContext& ctx);
+
+    std::shared_ptr<NVFlinger::NVFlinger> nv_flinger;
 };
 
 } // namespace Service::VI
