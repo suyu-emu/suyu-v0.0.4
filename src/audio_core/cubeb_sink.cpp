@@ -12,6 +12,10 @@
 #include "common/ring_buffer.h"
 #include "core/settings.h"
 
+#ifdef _MSC_VER
+#include <objbase.h>
+#endif
+
 namespace AudioCore {
 
 class CubebSinkStream final : public SinkStream {
@@ -108,6 +112,11 @@ private:
 };
 
 CubebSink::CubebSink(std::string_view target_device_name) {
+    // Cubeb requires COM to be initialized on the thread calling cubeb_init on Windows
+#ifdef _MSC_VER
+    com_init_result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+#endif
+
     if (cubeb_init(&ctx, "yuzu", nullptr) != CUBEB_OK) {
         LOG_CRITICAL(Audio_Sink, "cubeb_init failed");
         return;
@@ -142,6 +151,12 @@ CubebSink::~CubebSink() {
     }
 
     cubeb_destroy(ctx);
+
+#ifdef _MSC_VER
+    if (SUCCEEDED(com_init_result)) {
+        CoUninitialize();
+    }
+#endif
 }
 
 SinkStream& CubebSink::AcquireSinkStream(u32 sample_rate, u32 num_channels,

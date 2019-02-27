@@ -25,6 +25,10 @@ private:
     cubeb* ctx{};
     cubeb_devid output_device{};
     std::vector<SinkStreamPtr> sink_streams;
+
+#ifdef _MSC_VER
+    u32 com_init_result = 0;
+#endif
 };
 
 std::vector<std::string> ListCubebSinkDevices();
