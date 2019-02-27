@@ -45,7 +45,7 @@ public:
             } else {
                 tilt_direction = mouse_move.Cast<float>();
                 tilt_angle =
-                    std::clamp(tilt_direction.Normalize() * sensitivity, 0.0f, MathUtil::PI * 0.5f);
+                    std::clamp(tilt_direction.Normalize() * sensitivity, 0.0f, Common::PI * 0.5f);
             }
         }
     }
@@ -107,7 +107,7 @@ private:
 
             // Find the angular rate vector in world space
             auto angular_rate = ((q - old_q) * inv_q).xyz * 2;
-            angular_rate *= 1000 / update_millisecond / MathUtil::PI * 180;
+            angular_rate *= 1000 / update_millisecond / Common::PI * 180;
 
             // Transform the two vectors from world space to 3DS space
             gravity = QuaternionRotate(inv_q, gravity);

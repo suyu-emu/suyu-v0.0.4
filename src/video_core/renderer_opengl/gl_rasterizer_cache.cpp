@@ -399,7 +399,7 @@ static const FormatTuple& GetFormatTuple(PixelFormat pixel_format, ComponentType
     return format;
 }
 
-MathUtil::Rectangle<u32> SurfaceParams::GetRect(u32 mip_level) const {
+Common::Rectangle<u32> SurfaceParams::GetRect(u32 mip_level) const {
     u32 actual_height{std::max(1U, unaligned_height >> mip_level)};
     if (IsPixelFormatASTC(pixel_format)) {
         // ASTC formats must stop at the ATSC block size boundary
@@ -1062,8 +1062,8 @@ void RasterizerCacheOpenGL::FastLayeredCopySurface(const Surface& src_surface,
 }
 
 static bool BlitSurface(const Surface& src_surface, const Surface& dst_surface,
-                        const MathUtil::Rectangle<u32>& src_rect,
-                        const MathUtil::Rectangle<u32>& dst_rect, GLuint read_fb_handle,
+                        const Common::Rectangle<u32>& src_rect,
+                        const Common::Rectangle<u32>& dst_rect, GLuint read_fb_handle,
                         GLuint draw_fb_handle, GLenum src_attachment = 0, GLenum dst_attachment = 0,
                         std::size_t cubemap_face = 0) {
 
@@ -1193,7 +1193,7 @@ static bool BlitSurface(const Surface& src_surface, const Surface& dst_surface,
 void RasterizerCacheOpenGL::FermiCopySurface(
     const Tegra::Engines::Fermi2D::Regs::Surface& src_config,
     const Tegra::Engines::Fermi2D::Regs::Surface& dst_config,
-    const MathUtil::Rectangle<u32>& src_rect, const MathUtil::Rectangle<u32>& dst_rect) {
+    const Common::Rectangle<u32>& src_rect, const Common::Rectangle<u32>& dst_rect) {
 
     const auto& src_params = SurfaceParams::CreateForFermiCopySurface(src_config);
     const auto& dst_params = SurfaceParams::CreateForFermiCopySurface(dst_config);

@@ -63,7 +63,7 @@ const IGBPBuffer& BufferQueue::RequestBuffer(u32 slot) const {
 }
 
 void BufferQueue::QueueBuffer(u32 slot, BufferTransformFlags transform,
-                              const MathUtil::Rectangle<int>& crop_rect) {
+                              const Common::Rectangle<int>& crop_rect) {
     auto itr = std::find_if(queue.begin(), queue.end(),
                             [&](const Buffer& buffer) { return buffer.slot == slot; });
     ASSERT(itr != queue.end());
