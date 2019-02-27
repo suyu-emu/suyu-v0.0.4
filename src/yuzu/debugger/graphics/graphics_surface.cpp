@@ -398,7 +398,7 @@ void GraphicsSurfaceWidget::OnUpdate() {
 
     for (unsigned int y = 0; y < surface_height; ++y) {
         for (unsigned int x = 0; x < surface_width; ++x) {
-            Math::Vec4<u8> color;
+            Common::Vec4<u8> color;
             color[0] = texture_data[x + y * surface_width + 0];
             color[1] = texture_data[x + y * surface_width + 1];
             color[2] = texture_data[x + y * surface_width + 2];
