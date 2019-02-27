@@ -67,7 +67,7 @@ static bool IsWithinTouchscreen(const Layout::FramebufferLayout& layout, unsigne
             framebuffer_x >= layout.screen.left && framebuffer_x < layout.screen.right);
 }
 
-std::tuple<unsigned, unsigned> EmuWindow::ClipToTouchScreen(unsigned new_x, unsigned new_y) {
+std::tuple<unsigned, unsigned> EmuWindow::ClipToTouchScreen(unsigned new_x, unsigned new_y) const {
     new_x = std::max(new_x, framebuffer_layout.screen.left);
     new_x = std::min(new_x, framebuffer_layout.screen.right - 1);
 
