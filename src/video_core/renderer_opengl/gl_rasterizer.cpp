@@ -779,8 +779,8 @@ void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size) {
 
 bool RasterizerOpenGL::AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Regs::Surface& src,
                                              const Tegra::Engines::Fermi2D::Regs::Surface& dst,
-                                             const MathUtil::Rectangle<u32>& src_rect,
-                                             const MathUtil::Rectangle<u32>& dst_rect) {
+                                             const Common::Rectangle<u32>& src_rect,
+                                             const Common::Rectangle<u32>& dst_rect) {
     MICROPROFILE_SCOPE(OpenGL_Blits);
     res_cache.FermiCopySurface(src, dst, src_rect, dst_rect);
     return true;
@@ -1034,7 +1034,7 @@ void RasterizerOpenGL::SyncViewport(OpenGLState& current_state) {
     for (std::size_t i = 0; i < viewport_count; i++) {
         auto& viewport = current_state.viewports[i];
         const auto& src = regs.viewports[i];
-        const MathUtil::Rectangle<s32> viewport_rect{regs.viewport_transform[i].GetRect()};
+        const Common::Rectangle<s32> viewport_rect{regs.viewport_transform[i].GetRect()};
         viewport.x = viewport_rect.left;
         viewport.y = viewport_rect.bottom;
         viewport.width = viewport_rect.GetWidth();

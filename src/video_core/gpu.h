@@ -100,7 +100,7 @@ struct FramebufferConfig {
 
     using TransformFlags = Service::NVFlinger::BufferQueue::BufferTransformFlags;
     TransformFlags transform_flags;
-    MathUtil::Rectangle<int> crop_rect;
+    Common::Rectangle<int> crop_rect;
 };
 
 namespace Engines {

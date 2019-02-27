@@ -25,7 +25,7 @@ public:
     /// Performs a screen flip, drawing the buffer pointed to by the handle.
     void flip(u32 buffer_handle, u32 offset, u32 format, u32 width, u32 height, u32 stride,
               NVFlinger::BufferQueue::BufferTransformFlags transform,
-              const MathUtil::Rectangle<int>& crop_rect);
+              const Common::Rectangle<int>& crop_rect);
 
 private:
     std::shared_ptr<nvmap> nvmap_dev;

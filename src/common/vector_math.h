@@ -33,7 +33,7 @@
 #include <cmath>
 #include <type_traits>
 
-namespace Math {
+namespace Common {
 
 template <typename T>
 class Vec2;
@@ -690,4 +690,4 @@ constexpr Vec4<T> MakeVec(const T& x, const Vec3<T>& yzw) {
     return MakeVec(x, yzw[0], yzw[1], yzw[2]);
 }
 
-} // namespace Math
+} // namespace Common

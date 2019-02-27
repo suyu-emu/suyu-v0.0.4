@@ -28,7 +28,7 @@ namespace OpenGL {
 
 class CachedSurface;
 using Surface = std::shared_ptr<CachedSurface>;
-using SurfaceSurfaceRect_Tuple = std::tuple<Surface, Surface, MathUtil::Rectangle<u32>>;
+using SurfaceSurfaceRect_Tuple = std::tuple<Surface, Surface, Common::Rectangle<u32>>;
 
 using SurfaceTarget = VideoCore::Surface::SurfaceTarget;
 using SurfaceType = VideoCore::Surface::SurfaceType;
@@ -71,7 +71,7 @@ struct SurfaceParams {
     }
 
     /// Returns the rectangle corresponding to this surface
-    MathUtil::Rectangle<u32> GetRect(u32 mip_level = 0) const;
+    Common::Rectangle<u32> GetRect(u32 mip_level = 0) const;
 
     /// Returns the total size of this surface in bytes, adjusted for compression
     std::size_t SizeInBytesRaw(bool ignore_tiled = false) const {
@@ -430,8 +430,8 @@ public:
     /// Copies the contents of one surface to another
     void FermiCopySurface(const Tegra::Engines::Fermi2D::Regs::Surface& src_config,
                           const Tegra::Engines::Fermi2D::Regs::Surface& dst_config,
-                          const MathUtil::Rectangle<u32>& src_rect,
-                          const MathUtil::Rectangle<u32>& dst_rect);
+                          const Common::Rectangle<u32>& src_rect,
+                          const Common::Rectangle<u32>& dst_rect);
 
 private:
     void LoadSurface(const Surface& surface);

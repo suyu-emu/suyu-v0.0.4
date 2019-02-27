@@ -23,7 +23,7 @@ u32 nvdisp_disp0::ioctl(Ioctl command, const std::vector<u8>& input, std::vector
 
 void nvdisp_disp0::flip(u32 buffer_handle, u32 offset, u32 format, u32 width, u32 height,
                         u32 stride, NVFlinger::BufferQueue::BufferTransformFlags transform,
-                        const MathUtil::Rectangle<int>& crop_rect) {
+                        const Common::Rectangle<int>& crop_rect) {
     VAddr addr = nvmap_dev->GetObjectAddress(buffer_handle);
     LOG_TRACE(Service,
               "Drawing from address {:X} offset {:08X} Width {} Height {} Stride {} Format {}",

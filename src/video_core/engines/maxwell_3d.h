@@ -503,7 +503,7 @@ public:
             f32 translate_z;
             INSERT_PADDING_WORDS(2);
 
-            MathUtil::Rectangle<s32> GetRect() const {
+            Common::Rectangle<s32> GetRect() const {
                 return {
                     GetX(),               // left
                     GetY() + GetHeight(), // top

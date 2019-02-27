@@ -420,7 +420,7 @@ public:
         u32_le fence_is_valid;
         std::array<Fence, 2> fences;
 
-        MathUtil::Rectangle<int> GetCropRect() const {
+        Common::Rectangle<int> GetCropRect() const {
             return {crop_left, crop_top, crop_right, crop_bottom};
         }
     };

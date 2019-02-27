@@ -39,7 +39,7 @@ struct TextureInfo {
 /// Structure used for storing information about the display target for the Switch screen
 struct ScreenInfo {
     GLuint display_texture;
-    const MathUtil::Rectangle<float> display_texcoords{0.0f, 0.0f, 1.0f, 1.0f};
+    const Common::Rectangle<float> display_texcoords{0.0f, 0.0f, 1.0f, 1.0f};
     TextureInfo texture;
 };
 
@@ -102,7 +102,7 @@ private:
 
     /// Used for transforming the framebuffer orientation
     Tegra::FramebufferConfig::TransformFlags framebuffer_transform_flags;
-    MathUtil::Rectangle<int> framebuffer_crop_rect;
+    Common::Rectangle<int> framebuffer_crop_rect;
 };
 
 } // namespace OpenGL
