@@ -262,20 +262,20 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Audio, "called");
 
     u64 buffer_sz = Common::AlignUp(4 * params.mix_buffer_count, 0x40);
-    buffer_sz += params.unknown_c * 1024;
-    buffer_sz += 0x940 * (params.unknown_c + 1);
+    buffer_sz += params.submix_count * 1024;
+    buffer_sz += 0x940 * (params.submix_count + 1);
     buffer_sz += 0x3F0 * params.voice_count;
-    buffer_sz += Common::AlignUp(8 * (params.unknown_c + 1), 0x10);
+    buffer_sz += Common::AlignUp(8 * (params.submix_count + 1), 0x10);
     buffer_sz += Common::AlignUp(8 * params.voice_count, 0x10);
-    buffer_sz +=
-        Common::AlignUp((0x3C0 * (params.sink_count + params.unknown_c) + 4 * params.sample_count) *
-                            (params.mix_buffer_count + 6),
-                        0x40);
+    buffer_sz += Common::AlignUp(
+        (0x3C0 * (params.sink_count + params.submix_count) + 4 * params.sample_count) *
+            (params.mix_buffer_count + 6),
+        0x40);
 
     if (IsFeatureSupported(AudioFeatures::Splitter, params.revision)) {
-        u32 count = params.unknown_c + 1;
+        const u32 count = params.submix_count + 1;
         u64 node_count = Common::AlignUp(count, 0x40);
-        u64 node_state_buffer_sz =
+        const u64 node_state_buffer_sz =
             4 * (node_count * node_count) + 0xC * node_count + 2 * (node_count / 8);
         u64 edge_matrix_buffer_sz = 0;
         node_count = Common::AlignUp(count * count, 0x40);
@@ -289,19 +289,19 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
 
     buffer_sz += 0x20 * (params.effect_count + 4 * params.voice_count) + 0x50;
     if (IsFeatureSupported(AudioFeatures::Splitter, params.revision)) {
-        buffer_sz += 0xE0 * params.unknown_2c;
+        buffer_sz += 0xE0 * params.num_splitter_send_channels;
         buffer_sz += 0x20 * params.splitter_count;
-        buffer_sz += Common::AlignUp(4 * params.unknown_2c, 0x10);
+        buffer_sz += Common::AlignUp(4 * params.num_splitter_send_channels, 0x10);
     }
     buffer_sz = Common::AlignUp(buffer_sz, 0x40) + 0x170 * params.sink_count;
     u64 output_sz = buffer_sz + 0x280 * params.sink_count + 0x4B0 * params.effect_count +
                     ((params.voice_count * 256) | 0x40);
 
-    if (params.unknown_1c >= 1) {
+    if (params.performance_frame_count >= 1) {
         output_sz = Common::AlignUp(((16 * params.sink_count + 16 * params.effect_count +
                                       16 * params.voice_count + 16) +
                                      0x658) *
-                                            (params.unknown_1c + 1) +
+                                            (params.performance_frame_count + 1) +
                                         0xc0,
                                     0x40) +
                     output_sz;
