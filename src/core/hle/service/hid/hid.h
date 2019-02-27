@@ -15,7 +15,7 @@ namespace Kernel {
 class SharedMemory;
 }
 
-namespace SM {
+namespace Service::SM {
 class ServiceManager;
 }
 
