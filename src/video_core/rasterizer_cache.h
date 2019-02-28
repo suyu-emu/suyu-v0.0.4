@@ -104,7 +104,7 @@ protected:
     }
 
     /// Register an object into the cache
-    virtual void Register(const T& object) {
+    void Register(const T& object) {
         object->SetIsRegistered(true);
         interval_cache.add({GetInterval(object), ObjectSet{object}});
         map_cache.insert({object->GetAddr(), object});
@@ -112,7 +112,7 @@ protected:
     }
 
     /// Unregisters an object from the cache
-    virtual void Unregister(const T& object) {
+    void Unregister(const T& object) {
         object->SetIsRegistered(false);
         rasterizer.UpdatePagesCachedCount(object->GetAddr(), object->GetSizeInBytes(), -1);
         // Only flush if use_accurate_gpu_emulation is enabled, as it incurs a performance hit
