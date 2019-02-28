@@ -125,11 +125,12 @@ void VKFence::Protect(VKResource* resource) {
     protected_resources.push_back(resource);
 }
 
-void VKFence::Unprotect(const VKResource* resource) {
+void VKFence::Unprotect(VKResource* resource) {
     const auto it = std::find(protected_resources.begin(), protected_resources.end(), resource);
-    if (it != protected_resources.end()) {
-        protected_resources.erase(it);
-    }
+    ASSERT(it != protected_resources.end());
+
+    resource->OnFenceRemoval(this);
+    protected_resources.erase(it);
 }
 
 VKFenceWatch::VKFenceWatch() = default;
@@ -141,12 +142,11 @@ VKFenceWatch::~VKFenceWatch() {
 }
 
 void VKFenceWatch::Wait() {
-    if (!fence) {
+    if (fence == nullptr) {
         return;
     }
     fence->Wait();
     fence->Unprotect(this);
-    fence = nullptr;
 }
 
 void VKFenceWatch::Watch(VKFence& new_fence) {
