@@ -104,6 +104,8 @@ add_library(video_core STATIC
 if (ENABLE_VULKAN)
     target_sources(video_core PRIVATE
         renderer_vulkan/declarations.h
+        renderer_vulkan/vk_buffer_cache.cpp
+        renderer_vulkan/vk_buffer_cache.h
         renderer_vulkan/vk_device.cpp
         renderer_vulkan/vk_device.h
         renderer_vulkan/vk_memory_manager.cpp
