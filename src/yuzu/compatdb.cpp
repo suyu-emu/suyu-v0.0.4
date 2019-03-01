@@ -61,7 +61,7 @@ void CompatDB::Submit() {
         button(QWizard::CancelButton)->setVisible(false);
 
         testcase_watcher.setFuture(QtConcurrent::run(
-            [this]() { return Core::System::GetInstance().TelemetrySession().SubmitTestcase(); }));
+            [] { return Core::System::GetInstance().TelemetrySession().SubmitTestcase(); }));
         break;
     default:
         LOG_ERROR(Frontend, "Unexpected page: {}", currentId());
