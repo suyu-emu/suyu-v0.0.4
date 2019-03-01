@@ -37,7 +37,7 @@ public:
             {8, &IAudioRenderer::SetRenderingTimeLimit, "SetRenderingTimeLimit"},
             {9, &IAudioRenderer::GetRenderingTimeLimit, "GetRenderingTimeLimit"},
             {10, &IAudioRenderer::RequestUpdateImpl, "RequestUpdateAuto"},
-            {11, nullptr, "ExecuteAudioRendererRendering"},
+            {11, &IAudioRenderer::ExecuteAudioRendererRendering, "ExecuteAudioRendererRendering"},
         };
         // clang-format on
         RegisterHandlers(functions);
@@ -136,6 +136,17 @@ private:
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push(rendering_time_limit_percent);
+    }
+
+    void ExecuteAudioRendererRendering(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_Audio, "called");
+
+        // This service command currently only reports an unsupported operation
+        // error code, or aborts. Given that, we just always return an error
+        // code in this case.
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultCode{ErrorModule::Audio, 201});
     }
 
     Kernel::EventPair system_event;
