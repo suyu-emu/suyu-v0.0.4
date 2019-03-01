@@ -235,7 +235,7 @@ AudRenU::AudRenU() : ServiceFramework("audren:u") {
         {0, &AudRenU::OpenAudioRenderer, "OpenAudioRenderer"},
         {1, &AudRenU::GetAudioRendererWorkBufferSize, "GetAudioRendererWorkBufferSize"},
         {2, &AudRenU::GetAudioDeviceService, "GetAudioDeviceService"},
-        {3, nullptr, "OpenAudioRendererAuto"},
+        {3, &AudRenU::OpenAudioRendererAuto, "OpenAudioRendererAuto"},
         {4, &AudRenU::GetAudioDeviceServiceWithRevisionInfo, "GetAudioDeviceServiceWithRevisionInfo"},
     };
     // clang-format on
@@ -248,12 +248,7 @@ AudRenU::~AudRenU() = default;
 void AudRenU::OpenAudioRenderer(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Audio, "called");
 
-    IPC::RequestParser rp{ctx};
-    auto params = rp.PopRaw<AudioCore::AudioRendererParameter>();
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-
-    rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<Audio::IAudioRenderer>(std::move(params));
+    OpenAudioRendererImpl(ctx);
 }
 
 void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
@@ -325,6 +320,12 @@ void AudRenU::GetAudioDeviceService(Kernel::HLERequestContext& ctx) {
     rb.PushIpcInterface<Audio::IAudioDevice>();
 }
 
+void AudRenU::OpenAudioRendererAuto(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_Audio, "called");
+
+    OpenAudioRendererImpl(ctx);
+}
+
 void AudRenU::GetAudioDeviceServiceWithRevisionInfo(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_Audio, "(STUBBED) called");
 
@@ -333,6 +334,15 @@ void AudRenU::GetAudioDeviceServiceWithRevisionInfo(Kernel::HLERequestContext& c
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<Audio::IAudioDevice>(); // TODO(ogniK): Figure out what is different
                                                 // based on the current revision
+}
+
+void AudRenU::OpenAudioRendererImpl(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto params = rp.PopRaw<AudioCore::AudioRendererParameter>();
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface<IAudioRenderer>(params);
 }
 
 bool AudRenU::IsFeatureSupported(AudioFeatures feature, u32_le revision) const {
