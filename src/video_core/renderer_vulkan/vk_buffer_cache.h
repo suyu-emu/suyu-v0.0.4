@@ -44,9 +44,9 @@ struct CachedBufferEntry final : public RasterizerCacheObject {
 
 class VKBufferCache final : public RasterizerCache<std::shared_ptr<CachedBufferEntry>> {
 public:
-    explicit VKBufferCache(Tegra::MemoryManager& tegra_memory_manager, VideoCore::RasterizerInterface& rasterizer,
-                           const VKDevice& device, VKMemoryManager& memory_manager,
-                           VKScheduler& scheduler, u64 size);
+    explicit VKBufferCache(Tegra::MemoryManager& tegra_memory_manager,
+                           VideoCore::RasterizerInterface& rasterizer, const VKDevice& device,
+                           VKMemoryManager& memory_manager, VKScheduler& scheduler, u64 size);
     ~VKBufferCache();
 
     /// Uploads data from a guest GPU address. Returns host's buffer offset where it's been
