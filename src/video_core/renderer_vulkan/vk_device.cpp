@@ -122,8 +122,7 @@ bool VKDevice::IsFormatSupported(vk::Format wanted_format, vk::FormatFeatureFlag
                                  FormatType format_type) const {
     const auto it = format_properties.find(wanted_format);
     if (it == format_properties.end()) {
-        LOG_CRITICAL(Render_Vulkan, "Unimplemented format query={}",
-                     static_cast<u32>(wanted_format));
+        LOG_CRITICAL(Render_Vulkan, "Unimplemented format query={}", vk::to_string(wanted_format));
         UNREACHABLE();
         return true;
     }
@@ -219,11 +218,19 @@ std::map<vk::Format, vk::FormatProperties> VKDevice::GetFormatProperties(
         format_properties.emplace(format, physical.getFormatProperties(format, dldi));
     };
     AddFormatQuery(vk::Format::eA8B8G8R8UnormPack32);
-    AddFormatQuery(vk::Format::eR5G6B5UnormPack16);
+    AddFormatQuery(vk::Format::eB5G6R5UnormPack16);
+    AddFormatQuery(vk::Format::eA2B10G10R10UnormPack32);
+    AddFormatQuery(vk::Format::eR8G8B8A8Srgb);
+    AddFormatQuery(vk::Format::eR8Unorm);
     AddFormatQuery(vk::Format::eD32Sfloat);
+    AddFormatQuery(vk::Format::eD16Unorm);
     AddFormatQuery(vk::Format::eD16UnormS8Uint);
     AddFormatQuery(vk::Format::eD24UnormS8Uint);
     AddFormatQuery(vk::Format::eD32SfloatS8Uint);
+    AddFormatQuery(vk::Format::eBc1RgbaUnormBlock);
+    AddFormatQuery(vk::Format::eBc2UnormBlock);
+    AddFormatQuery(vk::Format::eBc3UnormBlock);
+    AddFormatQuery(vk::Format::eBc4UnormBlock);
 
     return format_properties;
 }
