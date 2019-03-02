@@ -115,8 +115,6 @@ private:
         using std::chrono::duration_cast;
         using std::chrono::steady_clock;
 
-        static steady_clock::time_point time_origin = steady_clock::now();
-
         Entry entry;
         entry.timestamp =
             duration_cast<std::chrono::microseconds>(steady_clock::now() - time_origin);
@@ -135,6 +133,7 @@ private:
     std::vector<std::unique_ptr<Backend>> backends;
     Common::MPSCQueue<Log::Entry> message_queue;
     Filter filter;
+    std::chrono::steady_clock::time_point time_origin{std::chrono::steady_clock::now()};
 };
 
 void ConsoleBackend::Write(const Entry& entry) {
