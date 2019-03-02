@@ -216,7 +216,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    Core::Telemetry().AddField(Telemetry::FieldType::App, "Frontend", "SDL");
+    system.TelemetrySession().AddField(Telemetry::FieldType::App, "Frontend", "SDL");
 
     system.Renderer().Rasterizer().LoadDiskResources();
 
