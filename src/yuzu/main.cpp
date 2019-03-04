@@ -339,6 +339,11 @@ void GMainWindow::WebBrowserOpenPage(std::string_view filename, std::string_view
                 .arg(QString::fromStdString(std::to_string(key_code))));
     };
 
+    QMessageBox::information(
+        this, tr("Exit"),
+        tr("To exit the web application, use the game provided controls to select exit, select the "
+           "'Exit Web Applet' option in the menu bar, or press the 'Enter' key."));
+
     bool running_exit_check = false;
     while (!finished) {
         QApplication::processEvents();

@@ -56,6 +56,8 @@ constexpr char NX_SHIM_INJECT_SCRIPT[] = R"(
     window.nx.endApplet = function() {
         applet_done = true;
     };
+
+    window.onkeypress = function(e) { if (e.keyCode === 13) { applet_done = true; } };
 )";
 
 QString GetNXShimInjectionScript() {
