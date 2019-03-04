@@ -10,7 +10,6 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/web_result.h"
-#include "core/settings.h"
 #include "web_service/web_backend.h"
 
 namespace WebService {
