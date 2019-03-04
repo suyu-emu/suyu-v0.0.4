@@ -173,16 +173,8 @@ u32 nvhost_as_gpu::UnmapBuffer(const std::vector<u8>& input, std::vector<u8>& ou
         return 0;
     }
 
-    auto& system_instance = Core::System::GetInstance();
-
-    // Remove this memory region from the rasterizer cache.
-    auto& gpu = system_instance.GPU();
-    auto cpu_addr = gpu.MemoryManager().GpuToCpuAddress(params.offset);
-    ASSERT(cpu_addr);
-    gpu.FlushAndInvalidateRegion(ToCacheAddr(Memory::GetPointer(*cpu_addr)), itr->second.size);
-
-    params.offset = gpu.MemoryManager().UnmapBuffer(params.offset, itr->second.size);
-
+    params.offset = Core::System::GetInstance().GPU().MemoryManager().UnmapBuffer(params.offset,
+                                                                                  itr->second.size);
     buffer_mappings.erase(itr->second.offset);
 
     std::memcpy(output.data(), &params, output.size());

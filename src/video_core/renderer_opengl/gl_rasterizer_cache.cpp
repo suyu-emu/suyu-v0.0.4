@@ -610,11 +610,11 @@ CachedSurface::CachedSurface(const SurfaceParams& params)
     // check is necessary to prevent flushing from overwriting unmapped memory.
 
     auto& memory_manager{Core::System::GetInstance().GPU().MemoryManager()};
-    const u64 max_size{memory_manager.GetRegionEnd(params.gpu_addr) - params.gpu_addr};
-    if (cached_size_in_bytes > max_size) {
-        LOG_ERROR(HW_GPU, "Surface size {} exceeds region size {}", params.size_in_bytes, max_size);
-        cached_size_in_bytes = max_size;
-    }
+    // const u64 max_size{memory_manager.GetRegionEnd(params.gpu_addr) - params.gpu_addr};
+    // if (cached_size_in_bytes > max_size) {
+    //    LOG_ERROR(HW_GPU, "Surface size {} exceeds region size {}", params.size_in_bytes,
+    //    max_size); cached_size_in_bytes = max_size;
+    //}
 
     cpu_addr = *memory_manager.GpuToCpuAddress(params.gpu_addr);
 }
