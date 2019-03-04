@@ -432,6 +432,9 @@ public:
     /// Gets the address space width in bits.
     u64 GetAddressSpaceWidth() const;
 
+    /// Determines whether or not the given address range lies within the address space.
+    bool IsWithinAddressSpace(VAddr address, u64 size) const;
+
     /// Gets the base address of the ASLR region.
     VAddr GetASLRRegionBaseAddress() const;
 
@@ -479,6 +482,9 @@ public:
 
     /// Gets the total size of the new map region in bytes.
     u64 GetNewMapRegionSize() const;
+
+    /// Determines whether or not the given address range lies within the new map region
+    bool IsWithinNewMapRegion(VAddr address, u64 size) const;
 
     /// Gets the base address of the TLS IO region.
     VAddr GetTLSIORegionBaseAddress() const;

@@ -47,23 +47,6 @@ constexpr bool IsValidAddressRange(VAddr address, u64 size) {
     return address + size > address;
 }
 
-// Checks if a given address range lies within a larger address range.
-constexpr bool IsInsideAddressRange(VAddr address, u64 size, VAddr address_range_begin,
-                                    VAddr address_range_end) {
-    const VAddr end_address = address + size - 1;
-    return address_range_begin <= address && end_address <= address_range_end - 1;
-}
-
-bool IsInsideAddressSpace(const VMManager& vm, VAddr address, u64 size) {
-    return IsInsideAddressRange(address, size, vm.GetAddressSpaceBaseAddress(),
-                                vm.GetAddressSpaceEndAddress());
-}
-
-bool IsInsideNewMapRegion(const VMManager& vm, VAddr address, u64 size) {
-    return IsInsideAddressRange(address, size, vm.GetNewMapRegionBaseAddress(),
-                                vm.GetNewMapRegionEndAddress());
-}
-
 // 8 GiB
 constexpr u64 MAIN_MEMORY_SIZE = 0x200000000;
 
@@ -105,14 +88,14 @@ ResultCode MapUnmapMemorySanityChecks(const VMManager& vm_manager, VAddr dst_add
         return ERR_INVALID_ADDRESS_STATE;
     }
 
-    if (!IsInsideAddressSpace(vm_manager, src_addr, size)) {
+    if (!vm_manager.IsWithinAddressSpace(src_addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Source is not within the address space, addr=0x{:016X}, size=0x{:016X}",
                   src_addr, size);
         return ERR_INVALID_ADDRESS_STATE;
     }
 
-    if (!IsInsideNewMapRegion(vm_manager, dst_addr, size)) {
+    if (!vm_manager.IsWithinNewMapRegion(dst_addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Destination is not within the new map region, addr=0x{:016X}, size=0x{:016X}",
                   dst_addr, size);
@@ -238,7 +221,7 @@ static ResultCode SetMemoryPermission(VAddr addr, u64 size, u32 prot) {
     auto* const current_process = Core::CurrentProcess();
     auto& vm_manager = current_process->VMManager();
 
-    if (!IsInsideAddressSpace(vm_manager, addr, size)) {
+    if (!vm_manager.IsWithinAddressSpace(addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Source is not within the address space, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
@@ -299,7 +282,7 @@ static ResultCode SetMemoryAttribute(VAddr address, u64 size, u32 mask, u32 attr
     }
 
     auto& vm_manager = Core::CurrentProcess()->VMManager();
-    if (!IsInsideAddressSpace(vm_manager, address, size)) {
+    if (!vm_manager.IsWithinAddressSpace(address, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Given address (0x{:016X}) is outside the bounds of the address space.", address);
         return ERR_INVALID_ADDRESS_STATE;

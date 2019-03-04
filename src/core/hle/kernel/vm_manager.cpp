@@ -17,8 +17,8 @@
 #include "core/memory_setup.h"
 
 namespace Kernel {
-
-static const char* GetMemoryStateName(MemoryState state) {
+namespace {
+const char* GetMemoryStateName(MemoryState state) {
     static constexpr const char* names[] = {
         "Unmapped",         "Io",
         "Normal",           "CodeStatic",
@@ -34,6 +34,14 @@ static const char* GetMemoryStateName(MemoryState state) {
 
     return names[ToSvcMemoryState(state)];
 }
+
+// Checks if a given address range lies within a larger address range.
+constexpr bool IsInsideAddressRange(VAddr address, u64 size, VAddr address_range_begin,
+                                    VAddr address_range_end) {
+    const VAddr end_address = address + size - 1;
+    return address_range_begin <= address && end_address <= address_range_end - 1;
+}
+} // Anonymous namespace
 
 bool VirtualMemoryArea::CanBeMergedWith(const VirtualMemoryArea& next) const {
     ASSERT(base + size == next.base);
@@ -706,6 +714,11 @@ u64 VMManager::GetAddressSpaceWidth() const {
     return address_space_width;
 }
 
+bool VMManager::IsWithinAddressSpace(VAddr address, u64 size) const {
+    return IsInsideAddressRange(address, size, GetAddressSpaceBaseAddress(),
+                                GetAddressSpaceEndAddress());
+}
+
 VAddr VMManager::GetASLRRegionBaseAddress() const {
     return aslr_region_base;
 }
@@ -784,6 +797,11 @@ VAddr VMManager::GetNewMapRegionEndAddress() const {
 
 u64 VMManager::GetNewMapRegionSize() const {
     return new_map_region_end - new_map_region_base;
+}
+
+bool VMManager::IsWithinNewMapRegion(VAddr address, u64 size) const {
+    return IsInsideAddressRange(address, size, GetNewMapRegionBaseAddress(),
+                                GetNewMapRegionEndAddress());
 }
 
 VAddr VMManager::GetTLSIORegionBaseAddress() const {
