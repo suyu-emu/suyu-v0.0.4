@@ -46,7 +46,7 @@ GlobalRegion GlobalRegionCacheOpenGL::TryGetReservedGlobalRegion(CacheAddr addr,
     return search->second;
 }
 
-GlobalRegion GlobalRegionCacheOpenGL::GetUncachedGlobalRegion(Tegra::GPUVAddr addr, u32 size,
+GlobalRegion GlobalRegionCacheOpenGL::GetUncachedGlobalRegion(GPUVAddr addr, u32 size,
                                                               u8* host_ptr) {
     GlobalRegion region{TryGetReservedGlobalRegion(ToCacheAddr(host_ptr), size)};
     if (!region) {

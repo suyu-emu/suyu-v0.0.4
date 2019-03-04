@@ -89,7 +89,7 @@ u32 nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& output) 
     for (const auto& entry : entries) {
         LOG_WARNING(Service_NVDRV, "remap entry, offset=0x{:X} handle=0x{:X} pages=0x{:X}",
                     entry.offset, entry.nvmap_handle, entry.pages);
-        Tegra::GPUVAddr offset = static_cast<Tegra::GPUVAddr>(entry.offset) << 0x10;
+        GPUVAddr offset = static_cast<GPUVAddr>(entry.offset) << 0x10;
         auto object = nvmap_dev->GetObject(entry.nvmap_handle);
         if (!object) {
             LOG_CRITICAL(Service_NVDRV, "nvmap {} is an invalid handle!", entry.nvmap_handle);
@@ -102,7 +102,7 @@ u32 nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& output) 
         u64 size = static_cast<u64>(entry.pages) << 0x10;
         ASSERT(size <= object->size);
 
-        Tegra::GPUVAddr returned = gpu.MemoryManager().MapBufferEx(object->addr, offset, size);
+        GPUVAddr returned = gpu.MemoryManager().MapBufferEx(object->addr, offset, size);
         ASSERT(returned == offset);
     }
     std::memcpy(output.data(), entries.data(), output.size());
