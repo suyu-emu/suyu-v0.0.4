@@ -763,6 +763,11 @@ u64 VMManager::GetCodeRegionSize() const {
     return code_region_end - code_region_base;
 }
 
+bool VMManager::IsWithinCodeRegion(VAddr address, u64 size) const {
+    return IsInsideAddressRange(address, size, GetCodeRegionBaseAddress(),
+                                GetCodeRegionEndAddress());
+}
+
 VAddr VMManager::GetHeapRegionBaseAddress() const {
     return heap_region_base;
 }
@@ -775,6 +780,11 @@ u64 VMManager::GetHeapRegionSize() const {
     return heap_region_end - heap_region_base;
 }
 
+bool VMManager::IsWithinHeapRegion(VAddr address, u64 size) const {
+    return IsInsideAddressRange(address, size, GetHeapRegionBaseAddress(),
+                                GetHeapRegionEndAddress());
+}
+
 VAddr VMManager::GetMapRegionBaseAddress() const {
     return map_region_base;
 }
@@ -785,6 +795,10 @@ VAddr VMManager::GetMapRegionEndAddress() const {
 
 u64 VMManager::GetMapRegionSize() const {
     return map_region_end - map_region_base;
+}
+
+bool VMManager::IsWithinMapRegion(VAddr address, u64 size) const {
+    return IsInsideAddressRange(address, size, GetMapRegionBaseAddress(), GetMapRegionEndAddress());
 }
 
 VAddr VMManager::GetNewMapRegionBaseAddress() const {
@@ -814,6 +828,11 @@ VAddr VMManager::GetTLSIORegionEndAddress() const {
 
 u64 VMManager::GetTLSIORegionSize() const {
     return tls_io_region_end - tls_io_region_base;
+}
+
+bool VMManager::IsWithinTLSIORegion(VAddr address, u64 size) const {
+    return IsInsideAddressRange(address, size, GetTLSIORegionBaseAddress(),
+                                GetTLSIORegionEndAddress());
 }
 
 } // namespace Kernel

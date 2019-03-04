@@ -441,11 +441,11 @@ public:
     /// Gets the end address of the ASLR region.
     VAddr GetASLRRegionEndAddress() const;
 
-    /// Determines whether or not the specified address range is within the ASLR region.
-    bool IsWithinASLRRegion(VAddr address, u64 size) const;
-
     /// Gets the size of the ASLR region
     u64 GetASLRRegionSize() const;
+
+    /// Determines whether or not the specified address range is within the ASLR region.
+    bool IsWithinASLRRegion(VAddr address, u64 size) const;
 
     /// Gets the base address of the code region.
     VAddr GetCodeRegionBaseAddress() const;
@@ -456,6 +456,9 @@ public:
     /// Gets the total size of the code region in bytes.
     u64 GetCodeRegionSize() const;
 
+    /// Determines whether or not the specified range is within the code region.
+    bool IsWithinCodeRegion(VAddr address, u64 size) const;
+
     /// Gets the base address of the heap region.
     VAddr GetHeapRegionBaseAddress() const;
 
@@ -464,6 +467,9 @@ public:
 
     /// Gets the total size of the heap region in bytes.
     u64 GetHeapRegionSize() const;
+
+    /// Determines whether or not the specified range is within the heap region.
+    bool IsWithinHeapRegion(VAddr address, u64 size) const;
 
     /// Gets the base address of the map region.
     VAddr GetMapRegionBaseAddress() const;
@@ -474,6 +480,9 @@ public:
     /// Gets the total size of the map region in bytes.
     u64 GetMapRegionSize() const;
 
+    /// Determines whether or not the specified range is within the map region.
+    bool IsWithinMapRegion(VAddr address, u64 size) const;
+
     /// Gets the base address of the new map region.
     VAddr GetNewMapRegionBaseAddress() const;
 
@@ -483,7 +492,7 @@ public:
     /// Gets the total size of the new map region in bytes.
     u64 GetNewMapRegionSize() const;
 
-    /// Determines whether or not the given address range lies within the new map region
+    /// Determines whether or not the given address range is within the new map region
     bool IsWithinNewMapRegion(VAddr address, u64 size) const;
 
     /// Gets the base address of the TLS IO region.
@@ -494,6 +503,9 @@ public:
 
     /// Gets the total size of the TLS IO region in bytes.
     u64 GetTLSIORegionSize() const;
+
+    /// Determines if the given address range is within the TLS IO region.
+    bool IsWithinTLSIORegion(VAddr address, u64 size) const;
 
     /// Each VMManager has its own page table, which is set as the main one when the owning process
     /// is scheduled.
