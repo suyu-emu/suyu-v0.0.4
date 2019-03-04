@@ -257,8 +257,7 @@ ResultCode VMManager::ReprotectRange(VAddr target, u64 size, VMAPermission new_p
 }
 
 ResultVal<VAddr> VMManager::HeapAllocate(VAddr target, u64 size, VMAPermission perms) {
-    if (target < GetHeapRegionBaseAddress() || target + size > GetHeapRegionEndAddress() ||
-        target + size < target) {
+    if (!IsWithinHeapRegion(target, size)) {
         return ERR_INVALID_ADDRESS;
     }
 
@@ -293,8 +292,7 @@ ResultVal<VAddr> VMManager::HeapAllocate(VAddr target, u64 size, VMAPermission p
 }
 
 ResultCode VMManager::HeapFree(VAddr target, u64 size) {
-    if (target < GetHeapRegionBaseAddress() || target + size > GetHeapRegionEndAddress() ||
-        target + size < target) {
+    if (!IsWithinHeapRegion(target, size)) {
         return ERR_INVALID_ADDRESS;
     }
 
