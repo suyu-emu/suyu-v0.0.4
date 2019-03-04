@@ -11,6 +11,7 @@
 #endif
 #include "core/arm/exclusive_monitor.h"
 #include "core/arm/unicorn/arm_unicorn.h"
+#include "core/core.h"
 #include "core/core_cpu.h"
 #include "core/core_timing.h"
 #include "core/hle/kernel/scheduler.h"
@@ -49,9 +50,9 @@ bool CpuBarrier::Rendezvous() {
     return false;
 }
 
-Cpu::Cpu(Timing::CoreTiming& core_timing, ExclusiveMonitor& exclusive_monitor,
-         CpuBarrier& cpu_barrier, std::size_t core_index)
-    : cpu_barrier{cpu_barrier}, core_timing{core_timing}, core_index{core_index} {
+Cpu::Cpu(System& system, ExclusiveMonitor& exclusive_monitor, CpuBarrier& cpu_barrier,
+         std::size_t core_index)
+    : cpu_barrier{cpu_barrier}, core_timing{system.CoreTiming()}, core_index{core_index} {
     if (Settings::values.use_cpu_jit) {
 #ifdef ARCHITECTURE_x86_64
         arm_interface = std::make_unique<ARM_Dynarmic>(core_timing, exclusive_monitor, core_index);
@@ -63,7 +64,7 @@ Cpu::Cpu(Timing::CoreTiming& core_timing, ExclusiveMonitor& exclusive_monitor,
         arm_interface = std::make_unique<ARM_Unicorn>(core_timing);
     }
 
-    scheduler = std::make_unique<Kernel::Scheduler>(*arm_interface);
+    scheduler = std::make_unique<Kernel::Scheduler>(system, *arm_interface);
 }
 
 Cpu::~Cpu() = default;

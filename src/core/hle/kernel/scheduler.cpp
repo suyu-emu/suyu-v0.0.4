@@ -19,7 +19,8 @@ namespace Kernel {
 
 std::mutex Scheduler::scheduler_mutex;
 
-Scheduler::Scheduler(Core::ARM_Interface& cpu_core) : cpu_core(cpu_core) {}
+Scheduler::Scheduler(Core::System& system, Core::ARM_Interface& cpu_core)
+    : cpu_core{cpu_core}, system{system} {}
 
 Scheduler::~Scheduler() {
     for (auto& thread : thread_list) {
@@ -61,7 +62,7 @@ Thread* Scheduler::PopNextReadyThread() {
 
 void Scheduler::SwitchContext(Thread* new_thread) {
     Thread* const previous_thread = GetCurrentThread();
-    Process* const previous_process = Core::CurrentProcess();
+    Process* const previous_process = system.Kernel().CurrentProcess();
 
     UpdateLastContextSwitchTime(previous_thread, previous_process);
 
@@ -94,8 +95,8 @@ void Scheduler::SwitchContext(Thread* new_thread) {
 
         auto* const thread_owner_process = current_thread->GetOwnerProcess();
         if (previous_process != thread_owner_process) {
-            Core::System::GetInstance().Kernel().MakeCurrentProcess(thread_owner_process);
-            SetCurrentPageTable(&Core::CurrentProcess()->VMManager().page_table);
+            system.Kernel().MakeCurrentProcess(thread_owner_process);
+            SetCurrentPageTable(&thread_owner_process->VMManager().page_table);
         }
 
         cpu_core.LoadContext(new_thread->GetContext());
@@ -111,7 +112,7 @@ void Scheduler::SwitchContext(Thread* new_thread) {
 
 void Scheduler::UpdateLastContextSwitchTime(Thread* thread, Process* process) {
     const u64 prev_switch_ticks = last_context_switch_time;
-    const u64 most_recent_switch_ticks = Core::System::GetInstance().CoreTiming().GetTicks();
+    const u64 most_recent_switch_ticks = system.CoreTiming().GetTicks();
     const u64 update_ticks = most_recent_switch_ticks - prev_switch_ticks;
 
     if (thread != nullptr) {
@@ -223,8 +224,7 @@ void Scheduler::YieldWithLoadBalancing(Thread* thread) {
     // Take the first non-nullptr one
     for (unsigned cur_core = 0; cur_core < Core::NUM_CPU_CORES; ++cur_core) {
         const auto res =
-            Core::System::GetInstance().CpuCore(cur_core).Scheduler().GetNextSuggestedThread(
-                core, priority);
+            system.CpuCore(cur_core).Scheduler().GetNextSuggestedThread(core, priority);
 
         // If scheduler provides a suggested thread
         if (res != nullptr) {
