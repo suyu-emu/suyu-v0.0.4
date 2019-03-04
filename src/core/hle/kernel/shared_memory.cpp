@@ -6,7 +6,6 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
-#include "core/core.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/shared_memory.h"
@@ -34,8 +33,8 @@ SharedPtr<SharedMemory> SharedMemory::Create(KernelCore& kernel, Process* owner_
         shared_memory->backing_block_offset = 0;
 
         // Refresh the address mappings for the current process.
-        if (Core::CurrentProcess() != nullptr) {
-            Core::CurrentProcess()->VMManager().RefreshMemoryBlockMappings(
+        if (kernel.CurrentProcess() != nullptr) {
+            kernel.CurrentProcess()->VMManager().RefreshMemoryBlockMappings(
                 shared_memory->backing_block.get());
         }
     } else {
