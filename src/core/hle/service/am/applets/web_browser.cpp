@@ -86,7 +86,7 @@ static FileSys::VirtualFile GetManualRomFS() {
     if (loader.ReadManualRomFS(out) == Loader::ResultStatus::Success)
         return out;
 
-    const auto& installed{FileSystem::GetUnionContents()};
+    const auto& installed{Core::System::GetInstance().GetContentProvider()};
     const auto res = installed.GetEntry(Core::System::GetInstance().CurrentProcess()->GetTitleID(),
                                         FileSys::ContentRecordType::Manual);
 
@@ -154,7 +154,8 @@ void WebBrowser::Execute() {
 
     auto& frontend{Core::System::GetInstance().GetWebBrowser()};
 
-    frontend.OpenPage(filename, [this] { UnpackRomFS(); }, [this] { Finalize(); });
+    frontend.OpenPage(
+        filename, [this] { UnpackRomFS(); }, [this] { Finalize(); });
 }
 
 void WebBrowser::UnpackRomFS() {
