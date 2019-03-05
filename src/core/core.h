@@ -254,8 +254,8 @@ public:
 
     std::shared_ptr<FileSys::VfsFilesystem> GetFilesystem() const;
 
-    void RegisterCheatList(const std::vector<FileSys::CheatList>& list,
-                           const std::string& build_id);
+    void RegisterCheatList(const std::vector<FileSys::CheatList>& list, const std::string& build_id,
+                           VAddr code_region_start, VAddr code_region_end);
 
     void SetProfileSelector(std::unique_ptr<Frontend::ProfileSelectApplet> applet);
 

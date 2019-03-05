@@ -147,10 +147,8 @@ ResultStatus AppLoader_DeconstructedRomDirectory::Load(Kernel::Process& process)
 
         const VAddr load_addr = next_load_addr;
         const bool should_pass_arguments = std::strcmp(module, "rtld") == 0;
-        const bool should_register_data_segment = std::strcmp(module, "main") == 0;
         const auto tentative_next_load_addr =
-            AppLoader_NSO::LoadModule(process, *module_file, load_addr, should_pass_arguments,
-                                      should_register_data_segment, pm);
+            AppLoader_NSO::LoadModule(process, *module_file, load_addr, should_pass_arguments, pm);
         if (!tentative_next_load_addr) {
             return ResultStatus::ErrorLoadingNSO;
         }

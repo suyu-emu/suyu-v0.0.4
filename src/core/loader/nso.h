@@ -43,7 +43,6 @@ public:
 
     static std::optional<VAddr> LoadModule(Kernel::Process& process, const FileSys::VfsFile& file,
                                            VAddr load_base, bool should_pass_arguments,
-                                           bool should_register_data_segment,
                                            std::optional<FileSys::PatchManager> pm = {});
 
     ResultStatus Load(Kernel::Process& process) override;

@@ -97,7 +97,6 @@ static constexpr u32 PageAlignSize(u32 size) {
 std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
                                                const FileSys::VfsFile& file, VAddr load_base,
                                                bool should_pass_arguments,
-                                               bool should_register_data_region,
                                                std::optional<FileSys::PatchManager> pm) {
     if (file.GetSize() < sizeof(NsoHeader))
         return {};
@@ -156,10 +155,6 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
     const u32 image_size{PageAlignSize(static_cast<u32>(program_image.size()) + bss_size)};
     program_image.resize(image_size);
 
-    if (should_register_data_region) {
-        process.VMManager().SetMainCodeRegion(load_base, load_base + program_image.size());
-    }
-
     // Apply patches if necessary
     if (pm && (pm->HasNSOPatch(nso_header.build_id) || Settings::values.dump_nso)) {
         std::vector<u8> pi_header(program_image.size() + 0x100);
@@ -176,7 +171,8 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
         const auto cheats = pm->CreateCheatList(nso_header.build_id);
         if (!cheats.empty()) {
             Core::System::GetInstance().RegisterCheatList(
-                cheats, Common::HexArrayToString(nso_header.build_id));
+                cheats, Common::HexArrayToString(nso_header.build_id), load_base,
+                load_base + program_image.size());
         }
     }
 
@@ -197,7 +193,7 @@ ResultStatus AppLoader_NSO::Load(Kernel::Process& process) {
 
     // Load module
     const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
-    if (!LoadModule(process, *file, base_address, true, true)) {
+    if (!LoadModule(process, *file, base_address, true)) {
         return ResultStatus::ErrorLoadingNSO;
     }
     LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", file->GetName(), base_address);

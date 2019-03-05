@@ -450,8 +450,10 @@ Tegra::DebugContext* System::GetGPUDebugContext() const {
 }
 
 void System::RegisterCheatList(const std::vector<FileSys::CheatList>& list,
-                               const std::string& build_id) {
-    impl->cheat_engine = std::make_unique<FileSys::CheatEngine>(list, build_id);
+                               const std::string& build_id, VAddr code_region_start,
+                               VAddr code_region_end) {
+    impl->cheat_engine =
+        std::make_unique<FileSys::CheatEngine>(list, build_id, code_region_start, code_region_end);
 }
 
 void System::SetFilesystem(std::shared_ptr<FileSys::VfsFilesystem> vfs) {

@@ -11,7 +11,7 @@
 #include "common/bit_field.h"
 #include "common/common_types.h"
 
-namespace CoreTiming {
+namespace Core::Timing {
 struct EventType;
 }
 
@@ -123,9 +123,9 @@ public:
     using ProgramSegment = std::vector<std::pair<std::string, Block>>;
 
     // (width in bytes, address, value)
-    using MemoryWriter = void (*)(u8, VAddr, u64);
+    using MemoryWriter = void (*)(u32, VAddr, u64);
     // (width in bytes, address) -> value
-    using MemoryReader = u64 (*)(u8, VAddr);
+    using MemoryReader = u64 (*)(u32, VAddr);
 
     void SetMemoryParameters(VAddr main_begin, VAddr heap_begin, VAddr main_end, VAddr heap_end,
                              MemoryWriter writer, MemoryReader reader);
@@ -212,13 +212,14 @@ private:
 // Class that encapsulates a CheatList and manages its interaction with memory and CoreTiming
 class CheatEngine final {
 public:
-    CheatEngine(std::vector<CheatList> cheats, const std::string& build_id);
+    CheatEngine(std::vector<CheatList> cheats, const std::string& build_id, VAddr code_region_start,
+                VAddr code_region_end);
     ~CheatEngine();
 
 private:
     void FrameCallback(u64 userdata, int cycles_late);
 
-    CoreTiming::EventType* event;
+    Core::Timing::EventType* event;
 
     std::vector<CheatList> cheats;
 };

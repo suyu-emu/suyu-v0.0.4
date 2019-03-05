@@ -786,23 +786,6 @@ u64 VMManager::GetNewMapRegionSize() const {
     return new_map_region_end - new_map_region_base;
 }
 
-void VMManager::SetMainCodeRegion(VAddr begin, VAddr end) {
-    main_code_region_base = begin;
-    main_code_region_end = end;
-}
-
-VAddr VMManager::GetMainCodeRegionBaseAddress() const {
-    return main_code_region_base;
-}
-
-VAddr VMManager::GetMainCodeRegionEndAddress() const {
-    return main_code_region_end;
-}
-
-u64 VMManager::GetMainCodeRegionSize() const {
-    return main_code_region_end - main_code_region_base;
-}
-
 VAddr VMManager::GetTLSIORegionBaseAddress() const {
     return tls_io_region_base;
 }

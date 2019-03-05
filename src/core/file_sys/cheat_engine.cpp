@@ -18,7 +18,7 @@
 
 namespace FileSys {
 
-constexpr u64 CHEAT_ENGINE_TICKS = CoreTiming::BASE_CLOCK_RATE / 60;
+constexpr u64 CHEAT_ENGINE_TICKS = Core::Timing::BASE_CLOCK_RATE / 60;
 constexpr u32 KEYPAD_BITMASK = 0x3FFFFFF;
 
 u64 Cheat::Address() const {
@@ -82,7 +82,7 @@ CheatList::CheatList(ProgramSegment master, ProgramSegment standard)
 
 bool CheatList::EvaluateConditional(const Cheat& cheat) const {
     using ComparisonFunction = bool (*)(u64, u64);
-    constexpr ComparisonFunction comparison_functions[] = {
+    constexpr std::array<ComparisonFunction, 6> comparison_functions{
         [](u64 a, u64 b) { return a > b; },  [](u64 a, u64 b) { return a >= b; },
         [](u64 a, u64 b) { return a < b; },  [](u64 a, u64 b) { return a <= b; },
         [](u64 a, u64 b) { return a == b; }, [](u64 a, u64 b) { return a != b; },
@@ -103,7 +103,7 @@ bool CheatList::EvaluateConditional(const Cheat& cheat) const {
         const auto press_state =
             applet_resource
                 ->GetController<Service::HID::Controller_NPad>(Service::HID::HidController::NPad)
-                .GetPressState();
+                .GetAndResetPressState();
         return ((press_state & cheat.KeypadValue()) & KEYPAD_BITMASK) != 0;
     }
 
@@ -112,7 +112,7 @@ bool CheatList::EvaluateConditional(const Cheat& cheat) const {
     const auto offset =
         cheat.memory_type == MemoryType::MainNSO ? main_region_begin : heap_region_begin;
     ASSERT(static_cast<u8>(cheat.comparison_op.Value()) < 6);
-    const auto* function = comparison_functions[static_cast<u8>(cheat.comparison_op.Value())];
+    auto* function = comparison_functions[static_cast<u8>(cheat.comparison_op.Value())];
     const auto addr = cheat.Address() + offset;
 
     return function(reader(cheat.width, SanitizeAddress(addr)), cheat.ValueWidth(8));
@@ -157,7 +157,7 @@ void CheatList::ProcessBlockPairs(const Block& block) {
 void CheatList::WriteImmediate(const Cheat& cheat) {
     const auto offset =
         cheat.memory_type == MemoryType::MainNSO ? main_region_begin : heap_region_begin;
-    auto& register_3 = scratch.at(cheat.register_3);
+    const auto& register_3 = scratch.at(cheat.register_3);
 
     const auto addr = cheat.Address() + offset + register_3;
     LOG_DEBUG(Common_Filesystem, "writing value={:016X} to addr={:016X}", addr,
@@ -166,11 +166,13 @@ void CheatList::WriteImmediate(const Cheat& cheat) {
 }
 
 void CheatList::BeginConditional(const Cheat& cheat) {
-    if (!EvaluateConditional(cheat)) {
-        const auto iter = block_pairs.find(current_index);
-        ASSERT(iter != block_pairs.end());
-        current_index = iter->second - 1;
+    if (EvaluateConditional(cheat)) {
+        return;
     }
+
+    const auto iter = block_pairs.find(current_index);
+    ASSERT(iter != block_pairs.end());
+    current_index = iter->second - 1;
 }
 
 void CheatList::EndConditional(const Cheat& cheat) {
@@ -218,7 +220,7 @@ void CheatList::LoadIndexed(const Cheat& cheat) {
 }
 
 void CheatList::StoreIndexed(const Cheat& cheat) {
-    auto& register_3 = scratch.at(cheat.register_3);
+    const auto& register_3 = scratch.at(cheat.register_3);
 
     const auto addr =
         register_3 + (cheat.add_additional_register.Value() ? scratch.at(cheat.register_6) : 0);
@@ -229,14 +231,14 @@ void CheatList::StoreIndexed(const Cheat& cheat) {
 
 void CheatList::RegisterArithmetic(const Cheat& cheat) {
     using ArithmeticFunction = u64 (*)(u64, u64);
-    constexpr ArithmeticFunction arithmetic_functions[] = {
+    constexpr std::array<ArithmeticFunction, 5> arithmetic_functions{
         [](u64 a, u64 b) { return a + b; },  [](u64 a, u64 b) { return a - b; },
         [](u64 a, u64 b) { return a * b; },  [](u64 a, u64 b) { return a << b; },
         [](u64 a, u64 b) { return a >> b; },
     };
 
     using ArithmeticOverflowCheck = bool (*)(u64, u64);
-    constexpr ArithmeticOverflowCheck arithmetic_overflow_checks[] = {
+    constexpr std::array<ArithmeticOverflowCheck, 5> arithmetic_overflow_checks{
         [](u64 a, u64 b) { return a > (std::numeric_limits<u64>::max() - b); },       // a + b
         [](u64 a, u64 b) { return a > (std::numeric_limits<u64>::max() + b); },       // a - b
         [](u64 a, u64 b) { return a > (std::numeric_limits<u64>::max() / b); },       // a * b
@@ -250,8 +252,8 @@ void CheatList::RegisterArithmetic(const Cheat& cheat) {
     auto& register_3 = scratch.at(cheat.register_3);
 
     ASSERT(static_cast<u8>(cheat.arithmetic_op.Value()) < 5);
-    const auto* function = arithmetic_functions[static_cast<u8>(cheat.arithmetic_op.Value())];
-    const auto* overflow_function =
+    auto* function = arithmetic_functions[static_cast<u8>(cheat.arithmetic_op.Value())];
+    auto* overflow_function =
         arithmetic_overflow_checks[static_cast<u8>(cheat.arithmetic_op.Value())];
     LOG_DEBUG(Common_Filesystem, "performing arithmetic with register={:01X}, value={:016X}",
               cheat.register_3, cheat.ValueWidth(4));
@@ -267,11 +269,12 @@ void CheatList::RegisterArithmetic(const Cheat& cheat) {
 }
 
 void CheatList::BeginConditionalInput(const Cheat& cheat) {
-    if (!EvaluateConditional(cheat)) {
-        const auto iter = block_pairs.find(current_index);
-        ASSERT(iter != block_pairs.end());
-        current_index = iter->second - 1;
-    }
+    if (EvaluateConditional(cheat))
+        return;
+
+    const auto iter = block_pairs.find(current_index);
+    ASSERT(iter != block_pairs.end());
+    current_index = iter->second - 1;
 }
 
 VAddr CheatList::SanitizeAddress(VAddr in) const {
@@ -290,7 +293,7 @@ VAddr CheatList::SanitizeAddress(VAddr in) const {
 
 void CheatList::ExecuteSingleCheat(const Cheat& cheat) {
     using CheatOperationFunction = void (CheatList::*)(const Cheat&);
-    constexpr CheatOperationFunction cheat_operation_functions[] = {
+    constexpr std::array<CheatOperationFunction, 9> cheat_operation_functions{
         &CheatList::WriteImmediate,        &CheatList::BeginConditional,
         &CheatList::EndConditional,        &CheatList::Loop,
         &CheatList::LoadImmediate,         &CheatList::LoadIndexed,
@@ -346,7 +349,7 @@ CheatList TextCheatParser::Parse(const std::vector<u8>& data) const {
         if (!line.empty() && (line[0] == '[' || line[0] == '{')) {
             const auto master = line[0] == '{';
             const auto begin = master ? line.find('{') : line.find('[');
-            const auto end = master ? line.find_last_of('}') : line.find_last_of(']');
+            const auto end = master ? line.rfind('}') : line.rfind(']');
 
             ASSERT(begin != std::string::npos && end != std::string::npos);
 
@@ -422,7 +425,7 @@ std::array<u8, 16> TextCheatParser::ParseSingleLineCheat(const std::string& line
     return out;
 }
 
-u64 MemoryReadImpl(u8 width, VAddr addr) {
+u64 MemoryReadImpl(u32 width, VAddr addr) {
     switch (width) {
     case 1:
         return Memory::Read8(addr);
@@ -438,7 +441,7 @@ u64 MemoryReadImpl(u8 width, VAddr addr) {
     }
 }
 
-void MemoryWriteImpl(u8 width, VAddr addr, u64 value) {
+void MemoryWriteImpl(u32 width, VAddr addr, u64 value) {
     switch (width) {
     case 1:
         Memory::Write8(addr, static_cast<u8>(value));
@@ -457,31 +460,34 @@ void MemoryWriteImpl(u8 width, VAddr addr, u64 value) {
     }
 }
 
-CheatEngine::CheatEngine(std::vector<CheatList> cheats, const std::string& build_id)
+CheatEngine::CheatEngine(std::vector<CheatList> cheats, const std::string& build_id,
+                         VAddr code_region_start, VAddr code_region_end)
     : cheats(std::move(cheats)) {
-    event = CoreTiming::RegisterEvent(
+    auto& core_timing{Core::System::GetInstance().CoreTiming()};
+    event = core_timing.RegisterEvent(
         "CheatEngine::FrameCallback::" + build_id,
         [this](u64 userdata, s64 cycles_late) { FrameCallback(userdata, cycles_late); });
-    CoreTiming::ScheduleEvent(CHEAT_ENGINE_TICKS, event);
+    core_timing.ScheduleEvent(CHEAT_ENGINE_TICKS, event);
 
     const auto& vm_manager = Core::System::GetInstance().CurrentProcess()->VMManager();
     for (auto& list : this->cheats) {
-        list.SetMemoryParameters(
-            vm_manager.GetMainCodeRegionBaseAddress(), vm_manager.GetHeapRegionBaseAddress(),
-            vm_manager.GetMainCodeRegionEndAddress(), vm_manager.GetHeapRegionEndAddress(),
-            &MemoryWriteImpl, &MemoryReadImpl);
+        list.SetMemoryParameters(code_region_start, vm_manager.GetHeapRegionBaseAddress(),
+                                 code_region_end, vm_manager.GetHeapRegionEndAddress(),
+                                 &MemoryWriteImpl, &MemoryReadImpl);
     }
 }
 
 CheatEngine::~CheatEngine() {
-    CoreTiming::UnscheduleEvent(event, 0);
+    auto& core_timing{Core::System::GetInstance().CoreTiming()};
+    core_timing.UnscheduleEvent(event, 0);
 }
 
 void CheatEngine::FrameCallback(u64 userdata, int cycles_late) {
     for (auto& list : cheats)
         list.Execute();
 
-    CoreTiming::ScheduleEvent(CHEAT_ENGINE_TICKS - cycles_late, event);
+    auto& core_timing{Core::System::GetInstance().CoreTiming()};
+    core_timing.ScheduleEvent(CHEAT_ENGINE_TICKS - cycles_late, event);
 }
 
 } // namespace FileSys
