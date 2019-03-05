@@ -9,6 +9,10 @@
 
 union ResultCode;
 
+namespace Core {
+class System;
+}
+
 namespace Kernel {
 
 class Thread;
@@ -27,7 +31,7 @@ public:
         ModifyByWaitingCountAndSignalIfEqual = 2,
     };
 
-    AddressArbiter();
+    explicit AddressArbiter(Core::System& system);
     ~AddressArbiter();
 
     AddressArbiter(const AddressArbiter&) = delete;
@@ -61,6 +65,8 @@ private:
 
     // Gets the threads waiting on an address.
     std::vector<SharedPtr<Thread>> GetThreadsWaitingOnAddress(VAddr address) const;
+
+    Core::System& system;
 };
 
 } // namespace Kernel

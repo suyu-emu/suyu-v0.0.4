@@ -39,7 +39,7 @@ void WakeThreads(const std::vector<SharedPtr<Thread>>& waiting_threads, s32 num_
 }
 } // Anonymous namespace
 
-AddressArbiter::AddressArbiter() = default;
+AddressArbiter::AddressArbiter(Core::System& system) : system{system} {}
 AddressArbiter::~AddressArbiter() = default;
 
 ResultCode AddressArbiter::SignalToAddress(VAddr address, s32 num_to_wake) {
@@ -134,22 +134,22 @@ ResultCode AddressArbiter::WaitForAddressIfEqual(VAddr address, s32 value, s64 t
 }
 
 ResultCode AddressArbiter::WaitForAddress(VAddr address, s64 timeout) {
-    SharedPtr<Thread> current_thread = GetCurrentThread();
+    SharedPtr<Thread> current_thread = system.CurrentScheduler().GetCurrentThread();
     current_thread->SetArbiterWaitAddress(address);
     current_thread->SetStatus(ThreadStatus::WaitArb);
     current_thread->InvalidateWakeupCallback();
 
     current_thread->WakeAfterDelay(timeout);
 
-    Core::System::GetInstance().CpuCore(current_thread->GetProcessorID()).PrepareReschedule();
+    system.CpuCore(current_thread->GetProcessorID()).PrepareReschedule();
     return RESULT_TIMEOUT;
 }
 
 std::vector<SharedPtr<Thread>> AddressArbiter::GetThreadsWaitingOnAddress(VAddr address) const {
-    const auto RetrieveWaitingThreads = [](std::size_t core_index,
-                                           std::vector<SharedPtr<Thread>>& waiting_threads,
-                                           VAddr arb_addr) {
-        const auto& scheduler = Core::System::GetInstance().Scheduler(core_index);
+    const auto RetrieveWaitingThreads = [this](std::size_t core_index,
+                                               std::vector<SharedPtr<Thread>>& waiting_threads,
+                                               VAddr arb_addr) {
+        const auto& scheduler = system.Scheduler(core_index);
         const auto& thread_list = scheduler.GetThreadList();
 
         for (const auto& thread : thread_list) {

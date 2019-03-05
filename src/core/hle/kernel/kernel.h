@@ -11,6 +11,10 @@
 template <typename T>
 class ResultVal;
 
+namespace Core {
+class System;
+}
+
 namespace Core::Timing {
 class CoreTiming;
 struct EventType;
@@ -31,7 +35,14 @@ private:
     using NamedPortTable = std::unordered_map<std::string, SharedPtr<ClientPort>>;
 
 public:
-    KernelCore();
+    /// Constructs an instance of the kernel using the given System
+    /// instance as a context for any necessary system-related state,
+    /// such as threads, CPU core state, etc.
+    ///
+    /// @post After execution of the constructor, the provided System
+    ///       object *must* outlive the kernel instance itself.
+    ///
+    explicit KernelCore(Core::System& system);
     ~KernelCore();
 
     KernelCore(const KernelCore&) = delete;
@@ -41,11 +52,7 @@ public:
     KernelCore& operator=(KernelCore&&) = delete;
 
     /// Resets the kernel to a clean slate for use.
-    ///
-    /// @param core_timing CoreTiming instance used to create any necessary
-    ///                    kernel-specific callback events.
-    ///
-    void Initialize(Core::Timing::CoreTiming& core_timing);
+    void Initialize();
 
     /// Clears all resources in use by the kernel instance.
     void Shutdown();

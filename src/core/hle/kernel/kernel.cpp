@@ -87,11 +87,13 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] int cycles_
 }
 
 struct KernelCore::Impl {
-    void Initialize(KernelCore& kernel, Core::Timing::CoreTiming& core_timing) {
+    explicit Impl(Core::System& system) : address_arbiter{system}, system{system} {}
+
+    void Initialize(KernelCore& kernel) {
         Shutdown();
 
         InitializeSystemResourceLimit(kernel);
-        InitializeThreads(core_timing);
+        InitializeThreads();
     }
 
     void Shutdown() {
@@ -123,9 +125,9 @@ struct KernelCore::Impl {
         ASSERT(system_resource_limit->SetLimitValue(ResourceType::Sessions, 900).IsSuccess());
     }
 
-    void InitializeThreads(Core::Timing::CoreTiming& core_timing) {
+    void InitializeThreads() {
         thread_wakeup_event_type =
-            core_timing.RegisterEvent("ThreadWakeupCallback", ThreadWakeupCallback);
+            system.CoreTiming().RegisterEvent("ThreadWakeupCallback", ThreadWakeupCallback);
     }
 
     std::atomic<u32> next_object_id{0};
@@ -148,15 +150,18 @@ struct KernelCore::Impl {
     /// Map of named ports managed by the kernel, which can be retrieved using
     /// the ConnectToPort SVC.
     NamedPortTable named_ports;
+
+    // System context
+    Core::System& system;
 };
 
-KernelCore::KernelCore() : impl{std::make_unique<Impl>()} {}
+KernelCore::KernelCore(Core::System& system) : impl{std::make_unique<Impl>(system)} {}
 KernelCore::~KernelCore() {
     Shutdown();
 }
 
-void KernelCore::Initialize(Core::Timing::CoreTiming& core_timing) {
-    impl->Initialize(*this, core_timing);
+void KernelCore::Initialize() {
+    impl->Initialize(*this);
 }
 
 void KernelCore::Shutdown() {
