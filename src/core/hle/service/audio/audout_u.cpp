@@ -18,16 +18,10 @@
 #include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/audio/audout_u.h"
+#include "core/hle/service/audio/errors.h"
 #include "core/memory.h"
 
 namespace Service::Audio {
-
-namespace ErrCodes {
-enum {
-    ErrorUnknown = 2,
-    BufferCountExceeded = 8,
-};
-}
 
 constexpr std::array<char, 10> DefaultDevice{{"DeviceOut"}};
 constexpr int DefaultSampleRate{48000};
@@ -100,7 +94,7 @@ private:
 
         if (stream->IsPlaying()) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultCode(ErrorModule::Audio, ErrCodes::ErrorUnknown));
+            rb.Push(ERR_OPERATION_FAILED);
             return;
         }
 
@@ -143,7 +137,7 @@ private:
 
         if (!audio_core.QueueBuffer(stream, tag, std::move(samples))) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultCode(ErrorModule::Audio, ErrCodes::BufferCountExceeded));
+            rb.Push(ERR_BUFFER_COUNT_EXCEEDED);
         }
 
         IPC::ResponseBuilder rb{ctx, 2};
