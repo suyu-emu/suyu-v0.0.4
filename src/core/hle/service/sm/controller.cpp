@@ -30,7 +30,7 @@ void Controller::DuplicateSession(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(RESULT_SUCCESS);
-    Kernel::SharedPtr<Kernel::ClientSession> session{ctx.Session()->parent->client};
+    Kernel::SharedPtr<Kernel::ClientSession> session{ctx.Session()->GetParent()->client};
     rb.PushMoveObjects(session);
 
     LOG_DEBUG(Service, "session={}", session->GetObjectId());

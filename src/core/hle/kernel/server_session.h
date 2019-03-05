@@ -46,6 +46,14 @@ public:
         return HANDLE_TYPE;
     }
 
+    Session* GetParent() {
+        return parent.get();
+    }
+
+    const Session* GetParent() const {
+        return parent.get();
+    }
+
     using SessionPair = std::tuple<SharedPtr<ServerSession>, SharedPtr<ClientSession>>;
 
     /**
@@ -78,23 +86,16 @@ public:
 
     void Acquire(Thread* thread) override;
 
-    std::string name;                ///< The name of this session (optional)
-    std::shared_ptr<Session> parent; ///< The parent session, which links to the client endpoint.
-    std::shared_ptr<SessionRequestHandler>
-        hle_handler; ///< This session's HLE request handler (applicable when not a domain)
+    /// Called when a client disconnection occurs.
+    void ClientDisconnected();
 
-    /// This is the list of domain request handlers (after conversion to a domain)
-    std::vector<std::shared_ptr<SessionRequestHandler>> domain_request_handlers;
+    /// Adds a new domain request handler to the collection of request handlers within
+    /// this ServerSession instance.
+    void AppendDomainRequestHandler(std::shared_ptr<SessionRequestHandler> handler);
 
-    /// List of threads that are pending a response after a sync request. This list is processed in
-    /// a LIFO manner, thus, the last request will be dispatched first.
-    /// TODO(Subv): Verify if this is indeed processed in LIFO using a hardware test.
-    std::vector<SharedPtr<Thread>> pending_requesting_threads;
-
-    /// Thread whose request is currently being handled. A request is considered "handled" when a
-    /// response is sent via svcReplyAndReceive.
-    /// TODO(Subv): Find a better name for this.
-    SharedPtr<Thread> currently_handling;
+    /// Retrieves the total number of domain request handlers that have been
+    /// appended to this ServerSession instance.
+    std::size_t NumDomainRequestHandlers() const;
 
     /// Returns true if the session has been converted to a domain, otherwise False
     bool IsDomain() const {
@@ -129,8 +130,30 @@ private:
     /// object handle.
     ResultCode HandleDomainSyncRequest(Kernel::HLERequestContext& context);
 
+    /// The parent session, which links to the client endpoint.
+    std::shared_ptr<Session> parent;
+
+    /// This session's HLE request handler (applicable when not a domain)
+    std::shared_ptr<SessionRequestHandler> hle_handler;
+
+    /// This is the list of domain request handlers (after conversion to a domain)
+    std::vector<std::shared_ptr<SessionRequestHandler>> domain_request_handlers;
+
+    /// List of threads that are pending a response after a sync request. This list is processed in
+    /// a LIFO manner, thus, the last request will be dispatched first.
+    /// TODO(Subv): Verify if this is indeed processed in LIFO using a hardware test.
+    std::vector<SharedPtr<Thread>> pending_requesting_threads;
+
+    /// Thread whose request is currently being handled. A request is considered "handled" when a
+    /// response is sent via svcReplyAndReceive.
+    /// TODO(Subv): Find a better name for this.
+    SharedPtr<Thread> currently_handling;
+
     /// When set to True, converts the session to a domain at the end of the command
     bool convert_to_domain{};
+
+    /// The name of this session (optional)
+    std::string name;
 };
 
 } // namespace Kernel
