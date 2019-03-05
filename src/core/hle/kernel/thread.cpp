@@ -184,8 +184,6 @@ ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name
         return ERR_INVALID_PROCESSOR_ID;
     }
 
-    // TODO(yuriks): Other checks, returning 0xD9001BEA
-
     if (!Memory::IsValidVirtualAddress(owner_process, entry_point)) {
         LOG_ERROR(Kernel_SVC, "(name={}): invalid entry {:016X}", name, entry_point);
         // TODO (bunnei): Find the correct error code to use here
