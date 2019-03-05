@@ -1495,13 +1495,14 @@ static ResultCode WaitForAddress(VAddr address, u32 type, s32 value, s64 timeout
         return ERR_INVALID_ADDRESS;
     }
 
+    auto& address_arbiter = Core::System::GetInstance().Kernel().AddressArbiter();
     switch (static_cast<AddressArbiter::ArbitrationType>(type)) {
     case AddressArbiter::ArbitrationType::WaitIfLessThan:
-        return AddressArbiter::WaitForAddressIfLessThan(address, value, timeout, false);
+        return address_arbiter.WaitForAddressIfLessThan(address, value, timeout, false);
     case AddressArbiter::ArbitrationType::DecrementAndWaitIfLessThan:
-        return AddressArbiter::WaitForAddressIfLessThan(address, value, timeout, true);
+        return address_arbiter.WaitForAddressIfLessThan(address, value, timeout, true);
     case AddressArbiter::ArbitrationType::WaitIfEqual:
-        return AddressArbiter::WaitForAddressIfEqual(address, value, timeout);
+        return address_arbiter.WaitForAddressIfEqual(address, value, timeout);
     default:
         LOG_ERROR(Kernel_SVC,
                   "Invalid arbitration type, expected WaitIfLessThan, DecrementAndWaitIfLessThan "
@@ -1526,13 +1527,14 @@ static ResultCode SignalToAddress(VAddr address, u32 type, s32 value, s32 num_to
         return ERR_INVALID_ADDRESS;
     }
 
+    auto& address_arbiter = Core::System::GetInstance().Kernel().AddressArbiter();
     switch (static_cast<AddressArbiter::SignalType>(type)) {
     case AddressArbiter::SignalType::Signal:
-        return AddressArbiter::SignalToAddress(address, num_to_wake);
+        return address_arbiter.SignalToAddress(address, num_to_wake);
     case AddressArbiter::SignalType::IncrementAndSignalIfEqual:
-        return AddressArbiter::IncrementAndSignalToAddressIfEqual(address, value, num_to_wake);
+        return address_arbiter.IncrementAndSignalToAddressIfEqual(address, value, num_to_wake);
     case AddressArbiter::SignalType::ModifyByWaitingCountAndSignalIfEqual:
-        return AddressArbiter::ModifyByWaitingCountAndSignalToAddressIfEqual(address, value,
+        return address_arbiter.ModifyByWaitingCountAndSignalToAddressIfEqual(address, value,
                                                                              num_to_wake);
     default:
         LOG_ERROR(Kernel_SVC,

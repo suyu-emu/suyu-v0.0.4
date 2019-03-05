@@ -12,6 +12,7 @@
 
 #include "core/core.h"
 #include "core/core_timing.h"
+#include "core/hle/kernel/address_arbiter.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/kernel.h"
@@ -135,6 +136,8 @@ struct KernelCore::Impl {
     std::vector<SharedPtr<Process>> process_list;
     Process* current_process = nullptr;
 
+    Kernel::AddressArbiter address_arbiter;
+
     SharedPtr<ResourceLimit> system_resource_limit;
 
     Core::Timing::EventType* thread_wakeup_event_type = nullptr;
@@ -182,6 +185,14 @@ Process* KernelCore::CurrentProcess() {
 
 const Process* KernelCore::CurrentProcess() const {
     return impl->current_process;
+}
+
+AddressArbiter& KernelCore::AddressArbiter() {
+    return impl->address_arbiter;
+}
+
+const AddressArbiter& KernelCore::AddressArbiter() const {
+    return impl->address_arbiter;
 }
 
 void KernelCore::AddNamedPort(std::string name, SharedPtr<ClientPort> port) {
