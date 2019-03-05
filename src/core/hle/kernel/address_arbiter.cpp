@@ -21,12 +21,13 @@
 namespace Kernel {
 namespace {
 // Wake up num_to_wake (or all) threads in a vector.
-void WakeThreads(std::vector<SharedPtr<Thread>>& waiting_threads, s32 num_to_wake) {
+void WakeThreads(const std::vector<SharedPtr<Thread>>& waiting_threads, s32 num_to_wake) {
     // Only process up to 'target' threads, unless 'target' is <= 0, in which case process
     // them all.
     std::size_t last = waiting_threads.size();
-    if (num_to_wake > 0)
+    if (num_to_wake > 0) {
         last = num_to_wake;
+    }
 
     // Signal the waiting threads.
     for (std::size_t i = 0; i < last; i++) {
@@ -42,8 +43,7 @@ AddressArbiter::AddressArbiter() = default;
 AddressArbiter::~AddressArbiter() = default;
 
 ResultCode AddressArbiter::SignalToAddress(VAddr address, s32 num_to_wake) {
-    std::vector<SharedPtr<Thread>> waiting_threads = GetThreadsWaitingOnAddress(address);
-
+    const std::vector<SharedPtr<Thread>> waiting_threads = GetThreadsWaitingOnAddress(address);
     WakeThreads(waiting_threads, num_to_wake);
     return RESULT_SUCCESS;
 }
@@ -55,12 +55,11 @@ ResultCode AddressArbiter::IncrementAndSignalToAddressIfEqual(VAddr address, s32
         return ERR_INVALID_ADDRESS_STATE;
     }
 
-    if (static_cast<s32>(Memory::Read32(address)) == value) {
-        Memory::Write32(address, static_cast<u32>(value + 1));
-    } else {
+    if (static_cast<s32>(Memory::Read32(address)) != value) {
         return ERR_INVALID_STATE;
     }
 
+    Memory::Write32(address, static_cast<u32>(value + 1));
     return SignalToAddress(address, num_to_wake);
 }
 
@@ -72,7 +71,7 @@ ResultCode AddressArbiter::ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr a
     }
 
     // Get threads waiting on the address.
-    std::vector<SharedPtr<Thread>> waiting_threads = GetThreadsWaitingOnAddress(address);
+    const std::vector<SharedPtr<Thread>> waiting_threads = GetThreadsWaitingOnAddress(address);
 
     // Determine the modified value depending on the waiting count.
     s32 updated_value;
@@ -84,12 +83,11 @@ ResultCode AddressArbiter::ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr a
         updated_value = value;
     }
 
-    if (static_cast<s32>(Memory::Read32(address)) == value) {
-        Memory::Write32(address, static_cast<u32>(updated_value));
-    } else {
+    if (static_cast<s32>(Memory::Read32(address)) != value) {
         return ERR_INVALID_STATE;
     }
 
+    Memory::Write32(address, static_cast<u32>(updated_value));
     WakeThreads(waiting_threads, num_to_wake);
     return RESULT_SUCCESS;
 }
@@ -101,14 +99,15 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
         return ERR_INVALID_ADDRESS_STATE;
     }
 
-    s32 cur_value = static_cast<s32>(Memory::Read32(address));
-    if (cur_value < value) {
-        if (should_decrement) {
-            Memory::Write32(address, static_cast<u32>(cur_value - 1));
-        }
-    } else {
+    const s32 cur_value = static_cast<s32>(Memory::Read32(address));
+    if (cur_value >= value) {
         return ERR_INVALID_STATE;
     }
+
+    if (should_decrement) {
+        Memory::Write32(address, static_cast<u32>(cur_value - 1));
+    }
+
     // Short-circuit without rescheduling, if timeout is zero.
     if (timeout == 0) {
         return RESULT_TIMEOUT;
@@ -154,8 +153,9 @@ std::vector<SharedPtr<Thread>> AddressArbiter::GetThreadsWaitingOnAddress(VAddr 
         const auto& thread_list = scheduler.GetThreadList();
 
         for (const auto& thread : thread_list) {
-            if (thread->GetArbiterWaitAddress() == arb_addr)
+            if (thread->GetArbiterWaitAddress() == arb_addr) {
                 waiting_threads.push_back(thread);
+            }
         }
     };
 
