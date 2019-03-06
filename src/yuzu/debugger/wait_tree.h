@@ -17,6 +17,7 @@
 class EmuThread;
 
 namespace Kernel {
+class HandleTable;
 class ReadableEvent;
 class WaitObject;
 class Thread;
@@ -72,7 +73,7 @@ public:
 class WaitTreeMutexInfo : public WaitTreeExpandableItem {
     Q_OBJECT
 public:
-    explicit WaitTreeMutexInfo(VAddr mutex_address);
+    explicit WaitTreeMutexInfo(VAddr mutex_address, const Kernel::HandleTable& handle_table);
     ~WaitTreeMutexInfo() override;
 
     QString GetText() const override;
