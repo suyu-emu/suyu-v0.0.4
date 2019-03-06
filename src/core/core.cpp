@@ -78,6 +78,7 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
     return vfs->OpenFile(path, FileSys::Mode::Read);
 }
 struct System::Impl {
+    explicit Impl(System& system) : kernel{system} {}
 
     Cpu& CurrentCpuCore() {
         return cpu_core_manager.GetCurrentCore();
@@ -95,7 +96,7 @@ struct System::Impl {
         LOG_DEBUG(HW_Memory, "initialized OK");
 
         core_timing.Initialize();
-        kernel.Initialize(core_timing);
+        kernel.Initialize();
 
         const auto current_time = std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::system_clock::now().time_since_epoch());
@@ -265,7 +266,7 @@ struct System::Impl {
     Core::FrameLimiter frame_limiter;
 };
 
-System::System() : impl{std::make_unique<Impl>()} {}
+System::System() : impl{std::make_unique<Impl>(*this)} {}
 System::~System() = default;
 
 Cpu& System::CurrentCpuCore() {

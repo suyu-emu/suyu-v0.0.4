@@ -12,6 +12,7 @@
 
 #include "core/core.h"
 #include "core/core_timing.h"
+#include "core/hle/kernel/address_arbiter.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/kernel.h"
@@ -86,11 +87,13 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] int cycles_
 }
 
 struct KernelCore::Impl {
-    void Initialize(KernelCore& kernel, Core::Timing::CoreTiming& core_timing) {
+    explicit Impl(Core::System& system) : address_arbiter{system}, system{system} {}
+
+    void Initialize(KernelCore& kernel) {
         Shutdown();
 
         InitializeSystemResourceLimit(kernel);
-        InitializeThreads(core_timing);
+        InitializeThreads();
     }
 
     void Shutdown() {
@@ -122,9 +125,9 @@ struct KernelCore::Impl {
         ASSERT(system_resource_limit->SetLimitValue(ResourceType::Sessions, 900).IsSuccess());
     }
 
-    void InitializeThreads(Core::Timing::CoreTiming& core_timing) {
+    void InitializeThreads() {
         thread_wakeup_event_type =
-            core_timing.RegisterEvent("ThreadWakeupCallback", ThreadWakeupCallback);
+            system.CoreTiming().RegisterEvent("ThreadWakeupCallback", ThreadWakeupCallback);
     }
 
     std::atomic<u32> next_object_id{0};
@@ -134,6 +137,8 @@ struct KernelCore::Impl {
     // Lists all processes that exist in the current session.
     std::vector<SharedPtr<Process>> process_list;
     Process* current_process = nullptr;
+
+    Kernel::AddressArbiter address_arbiter;
 
     SharedPtr<ResourceLimit> system_resource_limit;
 
@@ -145,15 +150,18 @@ struct KernelCore::Impl {
     /// Map of named ports managed by the kernel, which can be retrieved using
     /// the ConnectToPort SVC.
     NamedPortTable named_ports;
+
+    // System context
+    Core::System& system;
 };
 
-KernelCore::KernelCore() : impl{std::make_unique<Impl>()} {}
+KernelCore::KernelCore(Core::System& system) : impl{std::make_unique<Impl>(system)} {}
 KernelCore::~KernelCore() {
     Shutdown();
 }
 
-void KernelCore::Initialize(Core::Timing::CoreTiming& core_timing) {
-    impl->Initialize(*this, core_timing);
+void KernelCore::Initialize() {
+    impl->Initialize(*this);
 }
 
 void KernelCore::Shutdown() {
@@ -182,6 +190,14 @@ Process* KernelCore::CurrentProcess() {
 
 const Process* KernelCore::CurrentProcess() const {
     return impl->current_process;
+}
+
+AddressArbiter& KernelCore::AddressArbiter() {
+    return impl->address_arbiter;
+}
+
+const AddressArbiter& KernelCore::AddressArbiter() const {
+    return impl->address_arbiter;
 }
 
 void KernelCore::AddNamedPort(std::string name, SharedPtr<ClientPort> port) {

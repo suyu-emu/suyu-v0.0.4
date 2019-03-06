@@ -5,28 +5,68 @@
 #pragma once
 
 #include "common/common_types.h"
+#include "core/hle/kernel/address_arbiter.h"
 
 union ResultCode;
 
-namespace Kernel::AddressArbiter {
+namespace Core {
+class System;
+}
 
-enum class ArbitrationType {
-    WaitIfLessThan = 0,
-    DecrementAndWaitIfLessThan = 1,
-    WaitIfEqual = 2,
+namespace Kernel {
+
+class Thread;
+
+class AddressArbiter {
+public:
+    enum class ArbitrationType {
+        WaitIfLessThan = 0,
+        DecrementAndWaitIfLessThan = 1,
+        WaitIfEqual = 2,
+    };
+
+    enum class SignalType {
+        Signal = 0,
+        IncrementAndSignalIfEqual = 1,
+        ModifyByWaitingCountAndSignalIfEqual = 2,
+    };
+
+    explicit AddressArbiter(Core::System& system);
+    ~AddressArbiter();
+
+    AddressArbiter(const AddressArbiter&) = delete;
+    AddressArbiter& operator=(const AddressArbiter&) = delete;
+
+    AddressArbiter(AddressArbiter&&) = default;
+    AddressArbiter& operator=(AddressArbiter&&) = delete;
+
+    /// Signals an address being waited on.
+    ResultCode SignalToAddress(VAddr address, s32 num_to_wake);
+
+    /// Signals an address being waited on and increments its value if equal to the value argument.
+    ResultCode IncrementAndSignalToAddressIfEqual(VAddr address, s32 value, s32 num_to_wake);
+
+    /// Signals an address being waited on and modifies its value based on waiting thread count if
+    /// equal to the value argument.
+    ResultCode ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr address, s32 value,
+                                                             s32 num_to_wake);
+
+    /// Waits on an address if the value passed is less than the argument value,
+    /// optionally decrementing.
+    ResultCode WaitForAddressIfLessThan(VAddr address, s32 value, s64 timeout,
+                                        bool should_decrement);
+
+    /// Waits on an address if the value passed is equal to the argument value.
+    ResultCode WaitForAddressIfEqual(VAddr address, s32 value, s64 timeout);
+
+private:
+    // Waits on the given address with a timeout in nanoseconds
+    ResultCode WaitForAddress(VAddr address, s64 timeout);
+
+    // Gets the threads waiting on an address.
+    std::vector<SharedPtr<Thread>> GetThreadsWaitingOnAddress(VAddr address) const;
+
+    Core::System& system;
 };
 
-enum class SignalType {
-    Signal = 0,
-    IncrementAndSignalIfEqual = 1,
-    ModifyByWaitingCountAndSignalIfEqual = 2,
-};
-
-ResultCode SignalToAddress(VAddr address, s32 num_to_wake);
-ResultCode IncrementAndSignalToAddressIfEqual(VAddr address, s32 value, s32 num_to_wake);
-ResultCode ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr address, s32 value, s32 num_to_wake);
-
-ResultCode WaitForAddressIfLessThan(VAddr address, s32 value, s64 timeout, bool should_decrement);
-ResultCode WaitForAddressIfEqual(VAddr address, s32 value, s64 timeout);
-
-} // namespace Kernel::AddressArbiter
+} // namespace Kernel
