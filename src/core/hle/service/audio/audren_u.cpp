@@ -17,6 +17,7 @@
 #include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/audio/audren_u.h"
+#include "core/hle/service/audio/errors.h"
 
 namespace Service::Audio {
 
@@ -146,7 +147,7 @@ private:
         // code in this case.
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultCode{ErrorModule::Audio, 201});
+        rb.Push(ERR_NOT_SUPPORTED);
     }
 
     Kernel::EventPair system_event;
