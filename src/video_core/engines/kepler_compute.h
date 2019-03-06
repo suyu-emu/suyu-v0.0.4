@@ -5,8 +5,7 @@
 #pragma once
 
 #include <array>
-#include "common/assert.h"
-#include "common/bit_field.h"
+#include <cstddef>
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "video_core/gpu.h"

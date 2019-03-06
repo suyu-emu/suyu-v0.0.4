@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "common/assert.h"
+#include "common/logging/log.h"
 #include "core/core.h"
 #include "core/memory.h"
 #include "video_core/engines/maxwell_3d.h"

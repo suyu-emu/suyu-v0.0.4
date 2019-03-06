@@ -2,12 +2,11 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "core/core.h"
-#include "core/memory.h"
+#include "common/assert.h"
+#include "common/logging/log.h"
+#include "common/math_util.h"
 #include "video_core/engines/fermi_2d.h"
-#include "video_core/engines/maxwell_3d.h"
 #include "video_core/rasterizer_interface.h"
-#include "video_core/textures/decoders.h"
 
 namespace Tegra::Engines {
 

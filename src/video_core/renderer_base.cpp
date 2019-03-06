@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "common/logging/log.h"
 #include "core/frontend/emu_window.h"
 #include "core/settings.h"
 #include "video_core/renderer_base.h"
