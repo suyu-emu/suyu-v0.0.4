@@ -8,7 +8,7 @@
 #include <tuple>
 
 #include "common/alignment.h"
-#include "core/core.h"
+#include "common/assert.h"
 #include "core/memory.h"
 #include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
