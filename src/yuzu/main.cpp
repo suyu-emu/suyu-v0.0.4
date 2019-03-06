@@ -11,6 +11,7 @@
 #include "applets/profile_select.h"
 #include "applets/software_keyboard.h"
 #include "applets/web_browser.h"
+#include "configuration/configure_input.h"
 #include "configuration/configure_per_general.h"
 #include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_real.h"
@@ -522,6 +523,7 @@ void GMainWindow::InitializeHotkeys() {
                                    Qt::ApplicationShortcut);
     hotkey_registry.RegisterHotkey("Main Window", "Capture Screenshot",
                                    QKeySequence(QKeySequence::Print));
+    hotkey_registry.RegisterHotkey("Main Window", "Change Docked Mode", QKeySequence(Qt::Key_F10));
 
     hotkey_registry.LoadHotkeys();
 
@@ -590,6 +592,12 @@ void GMainWindow::InitializeHotkeys() {
                 if (emu_thread->IsRunning()) {
                     OnCaptureScreenshot();
                 }
+            });
+    connect(hotkey_registry.GetHotkey("Main Window", "Change Docked Mode", this),
+            &QShortcut::activated, this, [&] {
+                Settings::values.use_docked_mode = !Settings::values.use_docked_mode;
+                OnDockedModeChanged(!Settings::values.use_docked_mode,
+                                    Settings::values.use_docked_mode);
             });
 }
 
