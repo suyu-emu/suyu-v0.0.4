@@ -138,6 +138,7 @@ private:
         if (!audio_core.QueueBuffer(stream, tag, std::move(samples))) {
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERR_BUFFER_COUNT_EXCEEDED);
+            return;
         }
 
         IPC::ResponseBuilder rb{ctx, 2};
