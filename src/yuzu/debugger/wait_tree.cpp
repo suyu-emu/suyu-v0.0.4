@@ -81,9 +81,8 @@ QString WaitTreeText::GetText() const {
     return text;
 }
 
-WaitTreeMutexInfo::WaitTreeMutexInfo(VAddr mutex_address) : mutex_address(mutex_address) {
-    const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
-
+WaitTreeMutexInfo::WaitTreeMutexInfo(VAddr mutex_address, const Kernel::HandleTable& handle_table)
+    : mutex_address(mutex_address) {
     mutex_value = Memory::Read32(mutex_address);
     owner_handle = static_cast<Kernel::Handle>(mutex_value & Kernel::Mutex::MutexOwnerMask);
     owner = handle_table.Get<Kernel::Thread>(owner_handle);
@@ -316,7 +315,8 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
 
     const VAddr mutex_wait_address = thread.GetMutexWaitAddress();
     if (mutex_wait_address != 0) {
-        list.push_back(std::make_unique<WaitTreeMutexInfo>(mutex_wait_address));
+        const auto& handle_table = thread.GetOwnerProcess()->GetHandleTable();
+        list.push_back(std::make_unique<WaitTreeMutexInfo>(mutex_wait_address, handle_table));
     } else {
         list.push_back(std::make_unique<WaitTreeText>(tr("not waiting for mutex")));
     }
