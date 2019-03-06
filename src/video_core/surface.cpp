@@ -89,8 +89,6 @@ PixelFormat PixelFormatFromDepthFormat(Tegra::DepthFormat format) {
 
 PixelFormat PixelFormatFromRenderTargetFormat(Tegra::RenderTargetFormat format) {
     switch (format) {
-        // TODO (Hexagon12): Converting SRGBA to RGBA is a hack and doesn't completely correct the
-        // gamma.
     case Tegra::RenderTargetFormat::RGBA8_SRGB:
         return PixelFormat::RGBA8_SRGB;
     case Tegra::RenderTargetFormat::RGBA8_UNORM:
