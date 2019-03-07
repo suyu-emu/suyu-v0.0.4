@@ -42,7 +42,21 @@ void WakeThreads(const std::vector<SharedPtr<Thread>>& waiting_threads, s32 num_
 AddressArbiter::AddressArbiter(Core::System& system) : system{system} {}
 AddressArbiter::~AddressArbiter() = default;
 
-ResultCode AddressArbiter::SignalToAddress(VAddr address, s32 num_to_wake) {
+ResultCode AddressArbiter::SignalToAddress(VAddr address, SignalType type, s32 value,
+                                           s32 num_to_wake) {
+    switch (type) {
+    case SignalType::Signal:
+        return SignalToAddressOnly(address, num_to_wake);
+    case SignalType::IncrementAndSignalIfEqual:
+        return IncrementAndSignalToAddressIfEqual(address, value, num_to_wake);
+    case SignalType::ModifyByWaitingCountAndSignalIfEqual:
+        return ModifyByWaitingCountAndSignalToAddressIfEqual(address, value, num_to_wake);
+    default:
+        return ERR_INVALID_ENUM_VALUE;
+    }
+}
+
+ResultCode AddressArbiter::SignalToAddressOnly(VAddr address, s32 num_to_wake) {
     const std::vector<SharedPtr<Thread>> waiting_threads = GetThreadsWaitingOnAddress(address);
     WakeThreads(waiting_threads, num_to_wake);
     return RESULT_SUCCESS;
@@ -60,7 +74,7 @@ ResultCode AddressArbiter::IncrementAndSignalToAddressIfEqual(VAddr address, s32
     }
 
     Memory::Write32(address, static_cast<u32>(value + 1));
-    return SignalToAddress(address, num_to_wake);
+    return SignalToAddressOnly(address, num_to_wake);
 }
 
 ResultCode AddressArbiter::ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr address, s32 value,

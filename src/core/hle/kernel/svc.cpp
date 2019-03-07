@@ -1499,22 +1499,9 @@ static ResultCode SignalToAddress(VAddr address, u32 type, s32 value, s32 num_to
         return ERR_INVALID_ADDRESS;
     }
 
+    const auto signal_type = static_cast<AddressArbiter::SignalType>(type);
     auto& address_arbiter = Core::System::GetInstance().Kernel().AddressArbiter();
-    switch (static_cast<AddressArbiter::SignalType>(type)) {
-    case AddressArbiter::SignalType::Signal:
-        return address_arbiter.SignalToAddress(address, num_to_wake);
-    case AddressArbiter::SignalType::IncrementAndSignalIfEqual:
-        return address_arbiter.IncrementAndSignalToAddressIfEqual(address, value, num_to_wake);
-    case AddressArbiter::SignalType::ModifyByWaitingCountAndSignalIfEqual:
-        return address_arbiter.ModifyByWaitingCountAndSignalToAddressIfEqual(address, value,
-                                                                             num_to_wake);
-    default:
-        LOG_ERROR(Kernel_SVC,
-                  "Invalid signal type, expected Signal, IncrementAndSignalIfEqual "
-                  "or ModifyByWaitingCountAndSignalIfEqual but got {}",
-                  type);
-        return ERR_INVALID_ENUM_VALUE;
-    }
+    return address_arbiter.SignalToAddress(address, signal_type, value, num_to_wake);
 }
 
 /// This returns the total CPU ticks elapsed since the CPU was powered-on
