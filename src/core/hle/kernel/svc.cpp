@@ -1480,7 +1480,8 @@ static ResultCode WaitForAddress(VAddr address, u32 type, s32 value, s64 timeout
     }
 
     const auto arbitration_type = static_cast<AddressArbiter::ArbitrationType>(type);
-    auto& address_arbiter = Core::System::GetInstance().Kernel().AddressArbiter();
+    auto& address_arbiter =
+        Core::System::GetInstance().Kernel().CurrentProcess()->GetAddressArbiter();
     return address_arbiter.WaitForAddress(address, arbitration_type, value, timeout);
 }
 
@@ -1500,7 +1501,8 @@ static ResultCode SignalToAddress(VAddr address, u32 type, s32 value, s32 num_to
     }
 
     const auto signal_type = static_cast<AddressArbiter::SignalType>(type);
-    auto& address_arbiter = Core::System::GetInstance().Kernel().AddressArbiter();
+    auto& address_arbiter =
+        Core::System::GetInstance().Kernel().CurrentProcess()->GetAddressArbiter();
     return address_arbiter.SignalToAddress(address, signal_type, value, num_to_wake);
 }
 

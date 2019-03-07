@@ -53,9 +53,10 @@ void SetupMainThread(Process& owner_process, KernelCore& kernel, VAddr entry_poi
 CodeSet::CodeSet() = default;
 CodeSet::~CodeSet() = default;
 
-SharedPtr<Process> Process::Create(KernelCore& kernel, std::string&& name) {
-    SharedPtr<Process> process(new Process(kernel));
+SharedPtr<Process> Process::Create(Core::System& system, std::string&& name) {
+    auto& kernel = system.Kernel();
 
+    SharedPtr<Process> process(new Process(system));
     process->name = std::move(name);
     process->resource_limit = kernel.GetSystemResourceLimit();
     process->status = ProcessStatus::Created;
@@ -233,8 +234,8 @@ void Process::LoadModule(CodeSet module_, VAddr base_addr) {
     Core::System::GetInstance().ArmInterface(3).ClearInstructionCache();
 }
 
-Kernel::Process::Process(KernelCore& kernel) : WaitObject{kernel} {}
-Kernel::Process::~Process() {}
+Process::Process(Core::System& system) : WaitObject{system.Kernel()}, address_arbiter{system} {}
+Process::~Process() = default;
 
 void Process::Acquire(Thread* thread) {
     ASSERT_MSG(!ShouldWait(thread), "Object unavailable!");

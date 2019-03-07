@@ -75,12 +75,6 @@ public:
     /// Retrieves a const pointer to the current process.
     const Process* CurrentProcess() const;
 
-    /// Provides a reference to the kernel's address arbiter.
-    Kernel::AddressArbiter& AddressArbiter();
-
-    /// Provides a const reference to the kernel's address arbiter.
-    const Kernel::AddressArbiter& AddressArbiter() const;
-
     /// Adds a port to the named port table
     void AddNamedPort(std::string name, SharedPtr<ClientPort> port);
 

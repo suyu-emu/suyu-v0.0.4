@@ -87,7 +87,7 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] int cycles_
 }
 
 struct KernelCore::Impl {
-    explicit Impl(Core::System& system) : address_arbiter{system}, system{system} {}
+    explicit Impl(Core::System& system) : system{system} {}
 
     void Initialize(KernelCore& kernel) {
         Shutdown();
@@ -137,8 +137,6 @@ struct KernelCore::Impl {
     // Lists all processes that exist in the current session.
     std::vector<SharedPtr<Process>> process_list;
     Process* current_process = nullptr;
-
-    Kernel::AddressArbiter address_arbiter;
 
     SharedPtr<ResourceLimit> system_resource_limit;
 
@@ -190,14 +188,6 @@ Process* KernelCore::CurrentProcess() {
 
 const Process* KernelCore::CurrentProcess() const {
     return impl->current_process;
-}
-
-AddressArbiter& KernelCore::AddressArbiter() {
-    return impl->address_arbiter;
-}
-
-const AddressArbiter& KernelCore::AddressArbiter() const {
-    return impl->address_arbiter;
 }
 
 void KernelCore::AddNamedPort(std::string name, SharedPtr<ClientPort> port) {

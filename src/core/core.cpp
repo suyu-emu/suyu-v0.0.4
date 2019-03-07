@@ -116,7 +116,7 @@ struct System::Impl {
         if (web_browser == nullptr)
             web_browser = std::make_unique<Core::Frontend::DefaultWebBrowserApplet>();
 
-        auto main_process = Kernel::Process::Create(kernel, "main");
+        auto main_process = Kernel::Process::Create(system, "main");
         kernel.MakeCurrentProcess(main_process.get());
 
         telemetry_session = std::make_unique<Core::TelemetrySession>();
