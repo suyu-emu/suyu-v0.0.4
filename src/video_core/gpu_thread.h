@@ -127,10 +127,10 @@ private:
 
 private:
     SynchState state;
-    std::thread thread;
-    std::thread::id thread_id;
     VideoCore::RendererBase& renderer;
     Tegra::DmaPusher& dma_pusher;
+    std::thread thread;
+    std::thread::id thread_id;
 };
 
 } // namespace VideoCommon::GPUThread
