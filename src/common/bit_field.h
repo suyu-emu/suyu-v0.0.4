@@ -111,12 +111,6 @@
 template <std::size_t Position, std::size_t Bits, typename T>
 struct BitField {
 private:
-    // We hide the copy assigment operator here, because the default copy
-    // assignment would copy the full storage value, rather than just the bits
-    // relevant to this particular bit field.
-    // We don't delete it because we want BitField to be trivially copyable.
-    constexpr BitField& operator=(const BitField&) = default;
-
     // UnderlyingType is T for non-enum types and the underlying type of T if
     // T is an enumeration. Note that T is wrapped within an enable_if in the
     // former case to workaround compile errors which arise when using
@@ -163,9 +157,13 @@ public:
     BitField(T val) = delete;
     BitField& operator=(T val) = delete;
 
-    // Force default constructor to be created
-    // so that we can use this within unions
-    constexpr BitField() = default;
+    constexpr BitField() noexcept = default;
+
+    constexpr BitField(const BitField&) noexcept = default;
+    constexpr BitField& operator=(const BitField&) noexcept = default;
+
+    constexpr BitField(BitField&&) noexcept = default;
+    constexpr BitField& operator=(BitField&&) noexcept = default;
 
     constexpr FORCE_INLINE operator T() const {
         return Value();
