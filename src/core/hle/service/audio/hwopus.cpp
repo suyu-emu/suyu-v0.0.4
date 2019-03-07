@@ -23,6 +23,12 @@ struct OpusDeleter {
     }
 };
 
+struct OpusPacketHeader {
+    u32_be size;
+    INSERT_PADDING_WORDS(1);
+};
+static_assert(sizeof(OpusPacketHeader) == 0x8, "OpusHeader is an invalid size");
+
 class IHardwareOpusDecoderManager final : public ServiceFramework<IHardwareOpusDecoderManager> {
 public:
     IHardwareOpusDecoderManager(std::unique_ptr<OpusDecoder, OpusDeleter> decoder, u32 sample_rate,
@@ -113,23 +119,23 @@ private:
                                    std::vector<opus_int16>& output, u64* out_performance_time) {
         const auto start_time = std::chrono::high_resolution_clock::now();
         const std::size_t raw_output_sz = output.size() * sizeof(opus_int16);
-        if (sizeof(OpusHeader) > input.size()) {
+        if (sizeof(OpusPacketHeader) > input.size()) {
             LOG_ERROR(Audio, "Input is smaller than the header size, header_sz={}, input_sz={}",
-                      sizeof(OpusHeader), input.size());
+                      sizeof(OpusPacketHeader), input.size());
             return false;
         }
 
-        OpusHeader hdr{};
-        std::memcpy(&hdr, input.data(), sizeof(OpusHeader));
-        if (sizeof(OpusHeader) + static_cast<u32>(hdr.sz) > input.size()) {
+        OpusPacketHeader hdr{};
+        std::memcpy(&hdr, input.data(), sizeof(OpusPacketHeader));
+        if (sizeof(OpusPacketHeader) + static_cast<u32>(hdr.size) > input.size()) {
             LOG_ERROR(Audio, "Input does not fit in the opus header size. data_sz={}, input_sz={}",
-                      sizeof(OpusHeader) + static_cast<u32>(hdr.sz), input.size());
+                      sizeof(OpusPacketHeader) + static_cast<u32>(hdr.size), input.size());
             return false;
         }
 
-        const auto frame = input.data() + sizeof(OpusHeader);
+        const auto frame = input.data() + sizeof(OpusPacketHeader);
         const auto decoded_sample_count = opus_packet_get_nb_samples(
-            frame, static_cast<opus_int32>(input.size() - sizeof(OpusHeader)),
+            frame, static_cast<opus_int32>(input.size() - sizeof(OpusPacketHeader)),
             static_cast<opus_int32>(sample_rate));
         if (decoded_sample_count * channel_count * sizeof(u16) > raw_output_sz) {
             LOG_ERROR(
@@ -141,18 +147,18 @@ private:
 
         const int frame_size = (static_cast<int>(raw_output_sz / sizeof(s16) / channel_count));
         const auto out_sample_count =
-            opus_decode(decoder.get(), frame, hdr.sz, output.data(), frame_size, 0);
+            opus_decode(decoder.get(), frame, hdr.size, output.data(), frame_size, 0);
         if (out_sample_count < 0) {
             LOG_ERROR(Audio,
                       "Incorrect sample count received from opus_decode, "
                       "output_sample_count={}, frame_size={}, data_sz_from_hdr={}",
-                      out_sample_count, frame_size, static_cast<u32>(hdr.sz));
+                      out_sample_count, frame_size, static_cast<u32>(hdr.size));
             return false;
         }
 
         const auto end_time = std::chrono::high_resolution_clock::now() - start_time;
         sample_count = out_sample_count;
-        consumed = static_cast<u32>(sizeof(OpusHeader) + hdr.sz);
+        consumed = static_cast<u32>(sizeof(OpusPacketHeader) + hdr.size);
         if (out_performance_time != nullptr) {
             *out_performance_time =
                 std::chrono::duration_cast<std::chrono::milliseconds>(end_time).count();
@@ -166,12 +172,6 @@ private:
 
         opus_decoder_ctl(decoder.get(), OPUS_RESET_STATE);
     }
-
-    struct OpusHeader {
-        u32_be sz; // Needs to be BE for some odd reason
-        INSERT_PADDING_WORDS(1);
-    };
-    static_assert(sizeof(OpusHeader) == 0x8, "OpusHeader is an invalid size");
 
     std::unique_ptr<OpusDecoder, OpusDeleter> decoder;
     u32 sample_rate;
