@@ -15,6 +15,8 @@
 #include "core/hle/ipc.h"
 #include "core/hle/kernel/object.h"
 
+union ResultCode;
+
 namespace Service {
 class ServiceFrameworkBase;
 }
@@ -208,14 +210,12 @@ public:
 
     template <typename T>
     SharedPtr<T> GetCopyObject(std::size_t index) {
-        ASSERT(index < copy_objects.size());
-        return DynamicObjectCast<T>(copy_objects[index]);
+        return DynamicObjectCast<T>(copy_objects.at(index));
     }
 
     template <typename T>
     SharedPtr<T> GetMoveObject(std::size_t index) {
-        ASSERT(index < move_objects.size());
-        return DynamicObjectCast<T>(move_objects[index]);
+        return DynamicObjectCast<T>(move_objects.at(index));
     }
 
     void AddMoveObject(SharedPtr<Object> object) {
@@ -232,7 +232,7 @@ public:
 
     template <typename T>
     std::shared_ptr<T> GetDomainRequestHandler(std::size_t index) const {
-        return std::static_pointer_cast<T>(domain_request_handlers[index]);
+        return std::static_pointer_cast<T>(domain_request_handlers.at(index));
     }
 
     void SetDomainRequestHandlers(
