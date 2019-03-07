@@ -51,6 +51,10 @@ public:
     ResultCode ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr address, s32 value,
                                                              s32 num_to_wake);
 
+    /// Waits on an address with a particular arbitration type.
+    ResultCode WaitForAddress(VAddr address, ArbitrationType type, s32 value, s64 timeout_ns);
+
+private:
     /// Waits on an address if the value passed is less than the argument value,
     /// optionally decrementing.
     ResultCode WaitForAddressIfLessThan(VAddr address, s32 value, s64 timeout,
@@ -59,9 +63,8 @@ public:
     /// Waits on an address if the value passed is equal to the argument value.
     ResultCode WaitForAddressIfEqual(VAddr address, s32 value, s64 timeout);
 
-private:
     // Waits on the given address with a timeout in nanoseconds
-    ResultCode WaitForAddress(VAddr address, s64 timeout);
+    ResultCode WaitForAddressImpl(VAddr address, s64 timeout);
 
     // Gets the threads waiting on an address.
     std::vector<SharedPtr<Thread>> GetThreadsWaitingOnAddress(VAddr address) const;

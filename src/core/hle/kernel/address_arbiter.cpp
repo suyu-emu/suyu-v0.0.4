@@ -92,6 +92,20 @@ ResultCode AddressArbiter::ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr a
     return RESULT_SUCCESS;
 }
 
+ResultCode AddressArbiter::WaitForAddress(VAddr address, ArbitrationType type, s32 value,
+                                          s64 timeout_ns) {
+    switch (type) {
+    case ArbitrationType::WaitIfLessThan:
+        return WaitForAddressIfLessThan(address, value, timeout_ns, false);
+    case ArbitrationType::DecrementAndWaitIfLessThan:
+        return WaitForAddressIfLessThan(address, value, timeout_ns, true);
+    case ArbitrationType::WaitIfEqual:
+        return WaitForAddressIfEqual(address, value, timeout_ns);
+    default:
+        return ERR_INVALID_ENUM_VALUE;
+    }
+}
+
 ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s64 timeout,
                                                     bool should_decrement) {
     // Ensure that we can read the address.
@@ -113,7 +127,7 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
         return RESULT_TIMEOUT;
     }
 
-    return WaitForAddress(address, timeout);
+    return WaitForAddressImpl(address, timeout);
 }
 
 ResultCode AddressArbiter::WaitForAddressIfEqual(VAddr address, s32 value, s64 timeout) {
@@ -130,10 +144,10 @@ ResultCode AddressArbiter::WaitForAddressIfEqual(VAddr address, s32 value, s64 t
         return RESULT_TIMEOUT;
     }
 
-    return WaitForAddress(address, timeout);
+    return WaitForAddressImpl(address, timeout);
 }
 
-ResultCode AddressArbiter::WaitForAddress(VAddr address, s64 timeout) {
+ResultCode AddressArbiter::WaitForAddressImpl(VAddr address, s64 timeout) {
     SharedPtr<Thread> current_thread = system.CurrentScheduler().GetCurrentThread();
     current_thread->SetArbiterWaitAddress(address);
     current_thread->SetStatus(ThreadStatus::WaitArb);

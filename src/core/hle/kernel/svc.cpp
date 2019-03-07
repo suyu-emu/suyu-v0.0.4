@@ -1479,21 +1479,9 @@ static ResultCode WaitForAddress(VAddr address, u32 type, s32 value, s64 timeout
         return ERR_INVALID_ADDRESS;
     }
 
+    const auto arbitration_type = static_cast<AddressArbiter::ArbitrationType>(type);
     auto& address_arbiter = Core::System::GetInstance().Kernel().AddressArbiter();
-    switch (static_cast<AddressArbiter::ArbitrationType>(type)) {
-    case AddressArbiter::ArbitrationType::WaitIfLessThan:
-        return address_arbiter.WaitForAddressIfLessThan(address, value, timeout, false);
-    case AddressArbiter::ArbitrationType::DecrementAndWaitIfLessThan:
-        return address_arbiter.WaitForAddressIfLessThan(address, value, timeout, true);
-    case AddressArbiter::ArbitrationType::WaitIfEqual:
-        return address_arbiter.WaitForAddressIfEqual(address, value, timeout);
-    default:
-        LOG_ERROR(Kernel_SVC,
-                  "Invalid arbitration type, expected WaitIfLessThan, DecrementAndWaitIfLessThan "
-                  "or WaitIfEqual but got {}",
-                  type);
-        return ERR_INVALID_ENUM_VALUE;
-    }
+    return address_arbiter.WaitForAddress(address, arbitration_type, value, timeout);
 }
 
 // Signals to an address (via Address Arbiter)
