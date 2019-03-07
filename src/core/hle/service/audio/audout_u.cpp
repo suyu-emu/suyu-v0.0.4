@@ -107,7 +107,9 @@ private:
     void StopAudioOut(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_Audio, "called");
 
-        audio_core.StopStream(stream);
+        if (stream->IsPlaying()) {
+            audio_core.StopStream(stream);
+        }
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
