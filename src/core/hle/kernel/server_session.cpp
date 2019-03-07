@@ -63,6 +63,34 @@ void ServerSession::Acquire(Thread* thread) {
     pending_requesting_threads.pop_back();
 }
 
+void ServerSession::ClientDisconnected() {
+    // We keep a shared pointer to the hle handler to keep it alive throughout
+    // the call to ClientDisconnected, as ClientDisconnected invalidates the
+    // hle_handler member itself during the course of the function executing.
+    std::shared_ptr<SessionRequestHandler> handler = hle_handler;
+    if (handler) {
+        // Note that after this returns, this server session's hle_handler is
+        // invalidated (set to null).
+        handler->ClientDisconnected(this);
+    }
+
+    // TODO(Subv): Force a wake up of all the ServerSession's waiting threads and set
+    // their WaitSynchronization result to 0xC920181A.
+
+    // Clean up the list of client threads with pending requests, they are unneeded now that the
+    // client endpoint is closed.
+    pending_requesting_threads.clear();
+    currently_handling = nullptr;
+}
+
+void ServerSession::AppendDomainRequestHandler(std::shared_ptr<SessionRequestHandler> handler) {
+    domain_request_handlers.push_back(std::move(handler));
+}
+
+std::size_t ServerSession::NumDomainRequestHandlers() const {
+    return domain_request_handlers.size();
+}
+
 ResultCode ServerSession::HandleDomainSyncRequest(Kernel::HLERequestContext& context) {
     auto* const domain_message_header = context.GetDomainMessageHeader();
     if (domain_message_header) {

@@ -264,11 +264,11 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(Thread& thread) {
         // Write the domain objects to the command buffer, these go after the raw untranslated data.
         // TODO(Subv): This completely ignores C buffers.
         std::size_t domain_offset = size - domain_message_header->num_objects;
-        auto& request_handlers = server_session->domain_request_handlers;
 
-        for (auto& object : domain_objects) {
-            request_handlers.emplace_back(object);
-            dst_cmdbuf[domain_offset++] = static_cast<u32_le>(request_handlers.size());
+        for (const auto& object : domain_objects) {
+            server_session->AppendDomainRequestHandler(object);
+            dst_cmdbuf[domain_offset++] =
+                static_cast<u32_le>(server_session->NumDomainRequestHandlers());
         }
     }
 

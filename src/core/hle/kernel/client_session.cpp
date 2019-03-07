@@ -17,21 +17,11 @@ ClientSession::~ClientSession() {
     // This destructor will be called automatically when the last ClientSession handle is closed by
     // the emulated application.
 
-    // Local references to ServerSession and SessionRequestHandler are necessary to guarantee they
+    // A local reference to the ServerSession is necessary to guarantee it
     // will be kept alive until after ClientDisconnected() returns.
     SharedPtr<ServerSession> server = parent->server;
     if (server) {
-        std::shared_ptr<SessionRequestHandler> hle_handler = server->hle_handler;
-        if (hle_handler)
-            hle_handler->ClientDisconnected(server);
-
-        // TODO(Subv): Force a wake up of all the ServerSession's waiting threads and set
-        // their WaitSynchronization result to 0xC920181A.
-
-        // Clean up the list of client threads with pending requests, they are unneeded now that the
-        // client endpoint is closed.
-        server->pending_requesting_threads.clear();
-        server->currently_handling = nullptr;
+        server->ClientDisconnected();
     }
 
     parent->client = nullptr;
