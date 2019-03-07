@@ -94,6 +94,8 @@ add_library(video_core STATIC
     surface.h
     textures/astc.cpp
     textures/astc.h
+    textures/convert.cpp
+    textures/convert.h
     textures/decoders.cpp
     textures/decoders.h
     textures/texture.h

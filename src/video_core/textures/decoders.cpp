@@ -103,8 +103,8 @@ void FastProcessBlock(u8* const swizzled_data, u8* const unswizzled_data, const 
                 const u32 swizzle_offset{y_address + table[(xb / fast_swizzle_align) % 4]};
                 const u32 out_x = xb * out_bytes_per_pixel / bytes_per_pixel;
                 const u32 pixel_index{out_x + pixel_base};
-                data_ptrs[unswizzle] = swizzled_data + swizzle_offset;
-                data_ptrs[!unswizzle] = unswizzled_data + pixel_index;
+                data_ptrs[unswizzle ? 1 : 0] = swizzled_data + swizzle_offset;
+                data_ptrs[unswizzle ? 0 : 1] = unswizzled_data + pixel_index;
                 std::memcpy(data_ptrs[0], data_ptrs[1], fast_swizzle_align);
             }
             pixel_base += stride_x;
@@ -154,7 +154,7 @@ void SwizzledData(u8* const swizzled_data, u8* const unswizzled_data, const bool
             for (u32 xb = 0; xb < blocks_on_x; xb++) {
                 const u32 x_start = xb * block_x_elements;
                 const u32 x_end = std::min(width, x_start + block_x_elements);
-                if (fast) {
+                if constexpr (fast) {
                     FastProcessBlock(swizzled_data, unswizzled_data, unswizzle, x_start, y_start,
                                      z_start, x_end, y_end, z_end, tile_offset, xy_block_size,
                                      layer_z, stride_x, bytes_per_pixel, out_bytes_per_pixel);
