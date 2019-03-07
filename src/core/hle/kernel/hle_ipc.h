@@ -6,6 +6,7 @@
 
 #include <array>
 #include <memory>
+#include <optional>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -168,12 +169,12 @@ public:
         return buffer_c_desciptors;
     }
 
-    const IPC::DomainMessageHeader* GetDomainMessageHeader() const {
-        return domain_message_header.get();
+    const IPC::DomainMessageHeader& GetDomainMessageHeader() const {
+        return domain_message_header.value();
     }
 
     bool HasDomainMessageHeader() const {
-        return domain_message_header != nullptr;
+        return domain_message_header.has_value();
     }
 
     /// Helper function to read a buffer using the appropriate buffer descriptor
@@ -272,10 +273,10 @@ private:
     boost::container::small_vector<SharedPtr<Object>, 8> copy_objects;
     boost::container::small_vector<std::shared_ptr<SessionRequestHandler>, 8> domain_objects;
 
-    std::shared_ptr<IPC::CommandHeader> command_header;
-    std::shared_ptr<IPC::HandleDescriptorHeader> handle_descriptor_header;
-    std::shared_ptr<IPC::DataPayloadHeader> data_payload_header;
-    std::shared_ptr<IPC::DomainMessageHeader> domain_message_header;
+    std::optional<IPC::CommandHeader> command_header;
+    std::optional<IPC::HandleDescriptorHeader> handle_descriptor_header;
+    std::optional<IPC::DataPayloadHeader> data_payload_header;
+    std::optional<IPC::DomainMessageHeader> domain_message_header;
     std::vector<IPC::BufferDescriptorX> buffer_x_desciptors;
     std::vector<IPC::BufferDescriptorABW> buffer_a_desciptors;
     std::vector<IPC::BufferDescriptorABW> buffer_b_desciptors;

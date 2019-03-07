@@ -350,7 +350,7 @@ public:
     template <class T>
     std::shared_ptr<T> PopIpcInterface() {
         ASSERT(context->Session()->IsDomain());
-        ASSERT(context->GetDomainMessageHeader()->input_object_count > 0);
+        ASSERT(context->GetDomainMessageHeader().input_object_count > 0);
         return context->GetDomainRequestHandler<T>(Pop<u32>() - 1);
     }
 };

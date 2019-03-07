@@ -92,41 +92,42 @@ std::size_t ServerSession::NumDomainRequestHandlers() const {
 }
 
 ResultCode ServerSession::HandleDomainSyncRequest(Kernel::HLERequestContext& context) {
-    auto* const domain_message_header = context.GetDomainMessageHeader();
-    if (domain_message_header) {
-        // Set domain handlers in HLE context, used for domain objects (IPC interfaces) as inputs
-        context.SetDomainRequestHandlers(domain_request_handlers);
-
-        // If there is a DomainMessageHeader, then this is CommandType "Request"
-        const u32 object_id{context.GetDomainMessageHeader()->object_id};
-        switch (domain_message_header->command) {
-        case IPC::DomainMessageHeader::CommandType::SendMessage:
-            if (object_id > domain_request_handlers.size()) {
-                LOG_CRITICAL(IPC,
-                             "object_id {} is too big! This probably means a recent service call "
-                             "to {} needed to return a new interface!",
-                             object_id, name);
-                UNREACHABLE();
-                return RESULT_SUCCESS; // Ignore error if asserts are off
-            }
-            return domain_request_handlers[object_id - 1]->HandleSyncRequest(context);
-
-        case IPC::DomainMessageHeader::CommandType::CloseVirtualHandle: {
-            LOG_DEBUG(IPC, "CloseVirtualHandle, object_id=0x{:08X}", object_id);
-
-            domain_request_handlers[object_id - 1] = nullptr;
-
-            IPC::ResponseBuilder rb{context, 2};
-            rb.Push(RESULT_SUCCESS);
-            return RESULT_SUCCESS;
-        }
-        }
-
-        LOG_CRITICAL(IPC, "Unknown domain command={}",
-                     static_cast<int>(domain_message_header->command.Value()));
-        ASSERT(false);
+    if (!context.HasDomainMessageHeader()) {
+        return RESULT_SUCCESS;
     }
 
+    // Set domain handlers in HLE context, used for domain objects (IPC interfaces) as inputs
+    context.SetDomainRequestHandlers(domain_request_handlers);
+
+    // If there is a DomainMessageHeader, then this is CommandType "Request"
+    const auto& domain_message_header = context.GetDomainMessageHeader();
+    const u32 object_id{domain_message_header.object_id};
+    switch (domain_message_header.command) {
+    case IPC::DomainMessageHeader::CommandType::SendMessage:
+        if (object_id > domain_request_handlers.size()) {
+            LOG_CRITICAL(IPC,
+                         "object_id {} is too big! This probably means a recent service call "
+                         "to {} needed to return a new interface!",
+                         object_id, name);
+            UNREACHABLE();
+            return RESULT_SUCCESS; // Ignore error if asserts are off
+        }
+        return domain_request_handlers[object_id - 1]->HandleSyncRequest(context);
+
+    case IPC::DomainMessageHeader::CommandType::CloseVirtualHandle: {
+        LOG_DEBUG(IPC, "CloseVirtualHandle, object_id=0x{:08X}", object_id);
+
+        domain_request_handlers[object_id - 1] = nullptr;
+
+        IPC::ResponseBuilder rb{context, 2};
+        rb.Push(RESULT_SUCCESS);
+        return RESULT_SUCCESS;
+    }
+    }
+
+    LOG_CRITICAL(IPC, "Unknown domain command={}",
+                 static_cast<int>(domain_message_header.command.Value()));
+    ASSERT(false);
     return RESULT_SUCCESS;
 }
 
