@@ -293,10 +293,6 @@ inline ARM_Interface& CurrentArmInterface() {
     return System::GetInstance().CurrentArmInterface();
 }
 
-inline TelemetrySession& Telemetry() {
-    return System::GetInstance().TelemetrySession();
-}
-
 inline Kernel::Process* CurrentProcess() {
     return System::GetInstance().CurrentProcess();
 }

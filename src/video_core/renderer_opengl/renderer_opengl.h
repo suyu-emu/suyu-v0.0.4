@@ -60,6 +60,7 @@ public:
 
 private:
     void InitOpenGLObjects();
+    void AddTelemetryFields();
     void CreateRasterizer();
 
     void ConfigureFramebufferTexture(TextureInfo& texture,
