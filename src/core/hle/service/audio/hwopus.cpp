@@ -16,7 +16,7 @@
 #include "core/hle/service/audio/hwopus.h"
 
 namespace Service::Audio {
-
+namespace {
 struct OpusDeleter {
     void operator()(void* ptr) const {
         operator delete(ptr);
@@ -178,10 +178,11 @@ private:
     u32 channel_count;
 };
 
-static std::size_t WorkerBufferSize(u32 channel_count) {
+std::size_t WorkerBufferSize(u32 channel_count) {
     ASSERT_MSG(channel_count == 1 || channel_count == 2, "Invalid channel count");
     return opus_decoder_get_size(static_cast<int>(channel_count));
 }
+} // Anonymous namespace
 
 void HwOpus::GetWorkBufferSize(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
