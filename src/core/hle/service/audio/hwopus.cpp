@@ -9,7 +9,7 @@
 
 #include <opus.h>
 
-#include "common/common_funcs.h"
+#include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/hle_ipc.h"
@@ -24,8 +24,10 @@ struct OpusDeleter {
 };
 
 struct OpusPacketHeader {
+    // Packet size in bytes.
     u32_be size;
-    INSERT_PADDING_WORDS(1);
+    // Indicates the final range of the codec's entropy coder.
+    u32_be final_range;
 };
 static_assert(sizeof(OpusPacketHeader) == 0x8, "OpusHeader is an invalid size");
 
