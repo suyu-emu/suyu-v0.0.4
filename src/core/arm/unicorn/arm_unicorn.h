@@ -50,7 +50,7 @@ private:
     uc_engine* uc{};
     Timing::CoreTiming& core_timing;
     GDBStub::BreakpointAddress last_bkpt{};
-    bool last_bkpt_hit;
+    bool last_bkpt_hit = false;
 };
 
 } // namespace Core
