@@ -113,9 +113,6 @@ public:
     /// Notify rasterizer that any caches of the specified region should be flushed and invalidated
     void FlushAndInvalidateRegion(VAddr addr, u64 size);
 
-    /// Waits the caller until the GPU thread is idle, used for synchronization
-    void WaitForIdle();
-
 private:
     /// Pushes a command to be executed by the GPU thread
     void PushCommand(CommandData&& command_data, bool wait_for_idle, bool allow_on_cpu);
@@ -127,10 +124,10 @@ private:
 
 private:
     SynchState state;
-    std::thread thread;
-    std::thread::id thread_id;
     VideoCore::RendererBase& renderer;
     Tegra::DmaPusher& dma_pusher;
+    std::thread thread;
+    std::thread::id thread_id;
 };
 
 } // namespace VideoCommon::GPUThread
