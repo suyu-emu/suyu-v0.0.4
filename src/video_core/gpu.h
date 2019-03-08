@@ -123,7 +123,7 @@ class GPU {
 public:
     explicit GPU(Core::System& system, VideoCore::RendererBase& renderer);
 
-    ~GPU();
+    virtual ~GPU();
 
     struct MethodCall {
         u32 method{};

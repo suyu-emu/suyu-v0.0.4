@@ -21,7 +21,7 @@ class ThreadManager;
 class GPUAsynch : public Tegra::GPU {
 public:
     explicit GPUAsynch(Core::System& system, VideoCore::RendererBase& renderer);
-    ~GPUAsynch();
+    ~GPUAsynch() override;
 
     void PushGPUEntries(Tegra::CommandList&& entries) override;
     void SwapBuffers(

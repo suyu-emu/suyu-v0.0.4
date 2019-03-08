@@ -16,7 +16,7 @@ namespace VideoCommon {
 class GPUSynch : public Tegra::GPU {
 public:
     explicit GPUSynch(Core::System& system, VideoCore::RendererBase& renderer);
-    ~GPUSynch();
+    ~GPUSynch() override;
 
     void PushGPUEntries(Tegra::CommandList&& entries) override;
     void SwapBuffers(
