@@ -39,7 +39,7 @@ bool DmaPusher::Step() {
     }
 
     const CommandList& command_list{dma_pushbuffer.front()};
-    const CommandListHeader& command_list_header{command_list[dma_pushbuffer_subindex++]};
+    const CommandListHeader command_list_header{command_list[dma_pushbuffer_subindex++]};
     GPUVAddr dma_get = command_list_header.addr;
     GPUVAddr dma_put = dma_get + command_list_header.size * sizeof(u32);
     bool non_main = command_list_header.is_non_main;
