@@ -90,32 +90,44 @@ GPUVAddr MemoryManager::FindFreeRegion(GPUVAddr region_start, u64 size, u64 alig
     return std::max(base, vma_handle->second.base);
 }
 
-std::optional<VAddr> MemoryManager::GpuToCpuAddress(GPUVAddr gpu_addr) {
-    VAddr cpu_addr = page_table.backing_addr[gpu_addr >> page_bits];
+bool MemoryManager::IsAddressValid(GPUVAddr addr) const {
+    return (addr >> page_bits) < page_table.pointers.size();
+}
+
+std::optional<VAddr> MemoryManager::GpuToCpuAddress(GPUVAddr addr) {
+    if (!IsAddressValid(addr)) {
+        return {};
+    }
+
+    VAddr cpu_addr = page_table.backing_addr[addr >> page_bits];
     if (cpu_addr) {
-        return cpu_addr + (gpu_addr & page_mask);
+        return cpu_addr + (addr & page_mask);
     }
 
     return {};
 }
 
 template <typename T>
-T MemoryManager::Read(GPUVAddr vaddr) {
-    const u8* page_pointer = page_table.pointers[vaddr >> page_bits];
+T MemoryManager::Read(GPUVAddr addr) {
+    if (!IsAddressValid(addr)) {
+        return {};
+    }
+
+    const u8* page_pointer = page_table.pointers[addr >> page_bits];
     if (page_pointer) {
         // NOTE: Avoid adding any extra logic to this fast-path block
         T value;
-        std::memcpy(&value, &page_pointer[vaddr & page_mask], sizeof(T));
+        std::memcpy(&value, &page_pointer[addr & page_mask], sizeof(T));
         return value;
     }
 
-    Common::PageType type = page_table.attributes[vaddr >> page_bits];
+    Common::PageType type = page_table.attributes[addr >> page_bits];
     switch (type) {
     case Common::PageType::Unmapped:
-        LOG_ERROR(HW_GPU, "Unmapped Read{} @ 0x{:08X}", sizeof(T) * 8, vaddr);
+        LOG_ERROR(HW_GPU, "Unmapped Read{} @ 0x{:08X}", sizeof(T) * 8, addr);
         return 0;
     case Common::PageType::Memory:
-        ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
+        ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", addr);
         break;
     default:
         UNREACHABLE();
@@ -124,22 +136,26 @@ T MemoryManager::Read(GPUVAddr vaddr) {
 }
 
 template <typename T>
-void MemoryManager::Write(GPUVAddr vaddr, T data) {
-    u8* page_pointer = page_table.pointers[vaddr >> page_bits];
-    if (page_pointer) {
-        // NOTE: Avoid adding any extra logic to this fast-path block
-        std::memcpy(&page_pointer[vaddr & page_mask], &data, sizeof(T));
+void MemoryManager::Write(GPUVAddr addr, T data) {
+    if (!IsAddressValid(addr)) {
         return;
     }
 
-    Common::PageType type = page_table.attributes[vaddr >> page_bits];
+    u8* page_pointer = page_table.pointers[addr >> page_bits];
+    if (page_pointer) {
+        // NOTE: Avoid adding any extra logic to this fast-path block
+        std::memcpy(&page_pointer[addr & page_mask], &data, sizeof(T));
+        return;
+    }
+
+    Common::PageType type = page_table.attributes[addr >> page_bits];
     switch (type) {
     case Common::PageType::Unmapped:
         LOG_ERROR(HW_GPU, "Unmapped Write{} 0x{:08X} @ 0x{:016X}", sizeof(data) * 8,
-                  static_cast<u32>(data), vaddr);
+                  static_cast<u32>(data), addr);
         return;
     case Common::PageType::Memory:
-        ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
+        ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", addr);
         break;
     default:
         UNREACHABLE();
@@ -156,6 +172,10 @@ template void MemoryManager::Write<u32>(GPUVAddr addr, u32 data);
 template void MemoryManager::Write<u64>(GPUVAddr addr, u64 data);
 
 u8* MemoryManager::GetPointer(GPUVAddr addr) {
+    if (!IsAddressValid(addr)) {
+        return {};
+    }
+
     u8* page_pointer = page_table.pointers[addr >> page_bits];
     if (page_pointer) {
         return page_pointer + (addr & page_mask);

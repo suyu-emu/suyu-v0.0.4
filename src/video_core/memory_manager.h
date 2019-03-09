@@ -46,19 +46,19 @@ public:
     MemoryManager();
 
     GPUVAddr AllocateSpace(u64 size, u64 align);
-    GPUVAddr AllocateSpace(GPUVAddr gpu_addr, u64 size, u64 align);
+    GPUVAddr AllocateSpace(GPUVAddr addr, u64 size, u64 align);
     GPUVAddr MapBufferEx(GPUVAddr cpu_addr, u64 size);
-    GPUVAddr MapBufferEx(GPUVAddr cpu_addr, GPUVAddr gpu_addr, u64 size);
-    GPUVAddr UnmapBuffer(GPUVAddr gpu_addr, u64 size);
-    std::optional<VAddr> GpuToCpuAddress(GPUVAddr gpu_addr);
+    GPUVAddr MapBufferEx(GPUVAddr cpu_addr, GPUVAddr addr, u64 size);
+    GPUVAddr UnmapBuffer(GPUVAddr addr, u64 size);
+    std::optional<VAddr> GpuToCpuAddress(GPUVAddr addr);
 
     template <typename T>
-    T Read(GPUVAddr vaddr);
+    T Read(GPUVAddr addr);
 
     template <typename T>
-    void Write(GPUVAddr vaddr, T data);
+    void Write(GPUVAddr addr, T data);
 
-    u8* GetPointer(GPUVAddr vaddr);
+    u8* GetPointer(GPUVAddr addr);
 
     void ReadBlock(GPUVAddr src_addr, void* dest_buffer, std::size_t size);
     void WriteBlock(GPUVAddr dest_addr, const void* src_buffer, std::size_t size);
@@ -69,6 +69,7 @@ private:
     using VMAHandle = VMAMap::const_iterator;
     using VMAIter = VMAMap::iterator;
 
+    bool IsAddressValid(GPUVAddr addr) const;
     void MapPages(GPUVAddr base, u64 size, u8* memory, Common::PageType type,
                   VAddr backing_addr = 0);
     void MapMemoryRegion(GPUVAddr base, u64 size, u8* target, VAddr backing_addr);
