@@ -109,6 +109,11 @@ struct SurfaceParams {
         return size;
     }
 
+    /// Returns true if the parameters constitute a valid rasterizer surface.
+    bool IsValid() const {
+        return gpu_addr && host_ptr && height && width;
+    }
+
     /// Returns the exact size of the memory occupied by a layer in a texture in VRAM, including
     /// mipmaps.
     std::size_t LayerMemorySize() const {
