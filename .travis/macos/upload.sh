@@ -12,12 +12,12 @@ cp build/bin/yuzu-cmd "$REV_NAME"
 cp -r build/bin/yuzu.app "$REV_NAME"
 
 # move libs into folder for deployment
-dylibbundler -b -x "${REV_NAME}/yuzu.app/Contents/MacOS/yuzu" -cd -d "${REV_NAME}/yuzu.app/Contents/Frameworks/" -p "@executable_path/../Frameworks/" -of
+macpack "${REV_NAME}/yuzu.app/Contents/MacOS/yuzu" -d "../Frameworks"
 # move qt frameworks into app bundle for deployment
 $(brew --prefix)/opt/qt5/bin/macdeployqt "${REV_NAME}/yuzu.app" -executable="${REV_NAME}/yuzu.app/Contents/MacOS/yuzu"
 
 # move libs into folder for deployment
-dylibbundler -b -x "${REV_NAME}/yuzu-cmd" -cd -d "${REV_NAME}/libs" -p "@executable_path/libs/"
+macpack "${REV_NAME}/yuzu-cmd" -d "libs"
 
 # Make the yuzu.app application launch a debugging terminal.
 # Store away the actual binary
