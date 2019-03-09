@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include "common/assert.h"
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
@@ -293,7 +294,7 @@ struct TSCEntry {
     union {
         BitField<0, 2, TextureFilter> mag_filter;
         BitField<4, 2, TextureFilter> min_filter;
-        BitField<6, 2, TextureMipmapFilter> mip_filter;
+        BitField<6, 2, TextureMipmapFilter> mipmap_filter;
         BitField<9, 1, u32> cubemap_interface_filtering;
         BitField<12, 13, u32> mip_lod_bias;
     };
@@ -306,10 +307,33 @@ struct TSCEntry {
         BitField<12, 8, u32> srgb_border_color_g;
         BitField<20, 8, u32> srgb_border_color_b;
     };
-    float border_color_r;
-    float border_color_g;
-    float border_color_b;
-    float border_color_a;
+    std::array<f32, 4> border_color;
+
+    float GetMaxAnisotropy() const {
+        return static_cast<float>(1U << max_anisotropy);
+    }
+
+    float GetMinLod() const {
+        return static_cast<float>(min_lod_clamp) / 256.0f;
+    }
+
+    float GetMaxLod() const {
+        return static_cast<float>(max_lod_clamp) / 256.0f;
+    }
+
+    float GetLodBias() const {
+        // Sign extend the 13-bit value.
+        constexpr u32 mask = 1U << (13 - 1);
+        return static_cast<float>((mip_lod_bias ^ mask) - mask) / 256.0f;
+    }
+
+    std::array<float, 4> GetBorderColor() const {
+        if (srgb_conversion) {
+            return {srgb_border_color_r / 255.0f, srgb_border_color_g / 255.0f,
+                    srgb_border_color_b / 255.0f, border_color[3]};
+        }
+        return border_color;
+    }
 };
 static_assert(sizeof(TSCEntry) == 0x20, "TSCEntry has wrong size");
 
