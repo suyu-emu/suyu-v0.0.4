@@ -3,11 +3,70 @@
 // Refer to the license.txt file included.
 
 #include "common/logging/log.h"
+#include "core/file_sys/system_archive/system_version.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/client_port.h"
+#include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/set/set_sys.h"
 
 namespace Service::Set {
+
+void SET_SYS::GetFirmwareVersion(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_SET, "called");
+
+    ASSERT(ctx.GetWriteBufferSize() == 0x100,
+           "FirmwareVersion output buffer must be 0x100 bytes in size!");
+
+    // Instead of using the normal procedure of checking for the real system archive and if it
+    // doesn't exist, synthesizing one, I feel that that would lead to strange bugs because a used
+    // is using a really old or really new SystemVersion title. The synthesized one ensures
+    // consistence (currently reports as 5.1.0-0.0)
+    const auto archive = FileSys::SystemArchive::SystemVersion();
+
+    const auto early_exit_failure = [&ctx](const std::string& desc) {
+        LOG_ERROR(Service_SET, "General failure while attempting to resolve firmware version ({}).",
+                  desc.c_str());
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultCode(-1));
+    };
+
+    if (archive == nullptr) {
+        early_exit_failure("The system version archive couldn't be synthesized.");
+        return;
+    }
+
+    const auto ver_file = archive->GetFile("file");
+    if (ver_file == nullptr) {
+        early_exit_failure("The system version archive didn't contain the file 'file'.");
+        return;
+    }
+
+    auto data = ver_file->ReadAllBytes();
+    if (data.size() != 0x100) {
+        early_exit_failure("The system version file 'file' was not the correct size.");
+        return;
+    }
+
+    // If the command is GetFirmwareVersion (as opposed to GetFirmwareVersion2), hardware will zero
+    // out the REVISION_MAJOR and REVISION_MICRO fields, which are u8s at offsets 0x4 and 0x5,
+    // respectively. This if statement will only execute when the true intended command is
+    // GetFirmwareVersion, and allows removing duplicate code for the implementation of
+    // GetFirmwareVersion2.
+    if (ctx.GetCommand() == 3) {
+        data[0x4] = 0x0;
+        data[0x5] = 0x0;
+    }
+
+    ctx.WriteBuffer(data);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void SET_SYS::GetFirmwareVersion2(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_SET, "called - delegating to GetFirmwareVersion");
+    GetFirmwareVersion(ctx);
+}
 
 void SET_SYS::GetColorSetId(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
@@ -33,8 +92,8 @@ SET_SYS::SET_SYS() : ServiceFramework("set:sys") {
         {0, nullptr, "SetLanguageCode"},
         {1, nullptr, "SetNetworkSettings"},
         {2, nullptr, "GetNetworkSettings"},
-        {3, nullptr, "GetFirmwareVersion"},
-        {4, nullptr, "GetFirmwareVersion2"},
+        {3, &SET_SYS::GetFirmwareVersion, "GetFirmwareVersion"},
+        {4, &SET_SYS::GetFirmwareVersion2, "GetFirmwareVersion2"},
         {5, nullptr, "GetFirmwareVersionDigest"},
         {7, nullptr, "GetLockScreenFlag"},
         {8, nullptr, "SetLockScreenFlag"},
