@@ -346,7 +346,7 @@ void Config::ReadValues() {
 
     // Renderer
     Settings::values.resolution_factor =
-        (float)sdl2_config->GetReal("Renderer", "resolution_factor", 1.0);
+        static_cast<float>(sdl2_config->GetReal("Renderer", "resolution_factor", 1.0));
     Settings::values.use_frame_limit = sdl2_config->GetBoolean("Renderer", "use_frame_limit", true);
     Settings::values.frame_limit =
         static_cast<u16>(sdl2_config->GetInteger("Renderer", "frame_limit", 100));
@@ -357,16 +357,17 @@ void Config::ReadValues() {
     Settings::values.use_asynchronous_gpu_emulation =
         sdl2_config->GetBoolean("Renderer", "use_asynchronous_gpu_emulation", false);
 
-    Settings::values.bg_red = (float)sdl2_config->GetReal("Renderer", "bg_red", 0.0);
-    Settings::values.bg_green = (float)sdl2_config->GetReal("Renderer", "bg_green", 0.0);
-    Settings::values.bg_blue = (float)sdl2_config->GetReal("Renderer", "bg_blue", 0.0);
+    Settings::values.bg_red = static_cast<float>(sdl2_config->GetReal("Renderer", "bg_red", 0.0));
+    Settings::values.bg_green =
+        static_cast<float>(sdl2_config->GetReal("Renderer", "bg_green", 0.0));
+    Settings::values.bg_blue = static_cast<float>(sdl2_config->GetReal("Renderer", "bg_blue", 0.0));
 
     // Audio
     Settings::values.sink_id = sdl2_config->Get("Audio", "output_engine", "auto");
     Settings::values.enable_audio_stretching =
         sdl2_config->GetBoolean("Audio", "enable_audio_stretching", true);
     Settings::values.audio_device_id = sdl2_config->Get("Audio", "output_device", "auto");
-    Settings::values.volume = sdl2_config->GetReal("Audio", "volume", 1);
+    Settings::values.volume = static_cast<float>(sdl2_config->GetReal("Audio", "volume", 1));
 
     Settings::values.language_index = sdl2_config->GetInteger("System", "language_index", 1);
 
