@@ -13,13 +13,6 @@
 // All the constants in this file come from http://switchbrew.org/index.php?title=Error_codes
 
 /**
- * Detailed description of the error. Code 0 always means success.
- */
-enum class ErrorDescription : u32 {
-    Success = 0,
-};
-
-/**
  * Identifies the module which caused the error. Error codes can be propagated through a call
  * chain, meaning that this doesn't always correspond to the module where the API call made is
  * contained.
@@ -131,9 +124,6 @@ union ResultCode {
     BitField<31, 1, u32> is_error;
 
     constexpr explicit ResultCode(u32 raw) : raw(raw) {}
-
-    constexpr ResultCode(ErrorModule module, ErrorDescription description)
-        : ResultCode(module, static_cast<u32>(description)) {}
 
     constexpr ResultCode(ErrorModule module_, u32 description_)
         : raw(module.FormatValue(module_) | description.FormatValue(description_)) {}
