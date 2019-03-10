@@ -34,13 +34,13 @@ VirtualDir SystemVersion() {
     file->WriteObject(SystemVersionData::REVISION_MAJOR, 4);
     file->WriteObject(SystemVersionData::REVISION_MINOR, 5);
     file->WriteArray(SystemVersionData::PLATFORM_STRING,
-                     std::min(sizeof(SystemVersionData::PLATFORM_STRING), 0x20ull), 0x8);
+                     std::min<u64>(sizeof(SystemVersionData::PLATFORM_STRING), 0x20ull), 0x8);
     file->WriteArray(SystemVersionData::VERSION_HASH,
-                     std::min(sizeof(SystemVersionData::VERSION_HASH), 0x40ull), 0x28);
+                     std::min<u64>(sizeof(SystemVersionData::VERSION_HASH), 0x40ull), 0x28);
     file->WriteArray(SystemVersionData::DISPLAY_VERSION,
-                     std::min(sizeof(SystemVersionData::DISPLAY_VERSION), 0x18ull), 0x68);
+                     std::min<u64>(sizeof(SystemVersionData::DISPLAY_VERSION), 0x18ull), 0x68);
     file->WriteArray(SystemVersionData::DISPLAY_TITLE,
-                     std::min(sizeof(SystemVersionData::DISPLAY_TITLE), 0x80ull), 0x80);
+                     std::min<u64>(sizeof(SystemVersionData::DISPLAY_TITLE), 0x80ull), 0x80);
     return std::make_shared<VectorVfsDirectory>(std::vector<VirtualFile>{file},
                                                 std::vector<VirtualDir>{}, "data");
 }
