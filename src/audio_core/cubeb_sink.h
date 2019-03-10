@@ -26,7 +26,7 @@ private:
     cubeb_devid output_device{};
     std::vector<SinkStreamPtr> sink_streams;
 
-#ifdef _MSC_VER
+#ifdef _WIN32
     u32 com_init_result = 0;
 #endif
 };

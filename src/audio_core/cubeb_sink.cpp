@@ -12,7 +12,7 @@
 #include "common/ring_buffer.h"
 #include "core/settings.h"
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <objbase.h>
 #endif
 
@@ -113,7 +113,7 @@ private:
 
 CubebSink::CubebSink(std::string_view target_device_name) {
     // Cubeb requires COM to be initialized on the thread calling cubeb_init on Windows
-#ifdef _MSC_VER
+#ifdef _WIN32
     com_init_result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 #endif
 
@@ -152,7 +152,7 @@ CubebSink::~CubebSink() {
 
     cubeb_destroy(ctx);
 
-#ifdef _MSC_VER
+#ifdef _WIN32
     if (SUCCEEDED(com_init_result)) {
         CoUninitialize();
     }
