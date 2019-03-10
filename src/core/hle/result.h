@@ -128,11 +128,6 @@ union ResultCode {
     constexpr ResultCode(ErrorModule module_, u32 description_)
         : raw(module.FormatValue(module_) | description.FormatValue(description_)) {}
 
-    constexpr ResultCode& operator=(const ResultCode& o) {
-        raw = o.raw;
-        return *this;
-    }
-
     constexpr bool IsSuccess() const {
         return raw == 0;
     }
