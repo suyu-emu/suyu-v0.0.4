@@ -15,6 +15,10 @@ namespace Kernel {
 class Scheduler;
 }
 
+namespace Core {
+class System;
+}
+
 namespace Core::Timing {
 class CoreTiming;
 }
@@ -45,8 +49,8 @@ private:
 
 class Cpu {
 public:
-    Cpu(Timing::CoreTiming& core_timing, ExclusiveMonitor& exclusive_monitor,
-        CpuBarrier& cpu_barrier, std::size_t core_index);
+    Cpu(System& system, ExclusiveMonitor& exclusive_monitor, CpuBarrier& cpu_barrier,
+        std::size_t core_index);
     ~Cpu();
 
     void RunLoop(bool tight_loop = true);

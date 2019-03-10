@@ -13,7 +13,8 @@
 
 namespace Core {
 class ARM_Interface;
-}
+class System;
+} // namespace Core
 
 namespace Kernel {
 
@@ -21,7 +22,7 @@ class Process;
 
 class Scheduler final {
 public:
-    explicit Scheduler(Core::ARM_Interface& cpu_core);
+    explicit Scheduler(Core::System& system, Core::ARM_Interface& cpu_core);
     ~Scheduler();
 
     /// Returns whether there are any threads that are ready to run.
@@ -162,6 +163,7 @@ private:
     Core::ARM_Interface& cpu_core;
     u64 last_context_switch_time = 0;
 
+    Core::System& system;
     static std::mutex scheduler_mutex;
 };
 
