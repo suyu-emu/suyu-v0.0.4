@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/file_sys/system_archive/system_version.h"
 #include "core/hle/ipc_helpers.h"
@@ -11,50 +12,63 @@
 
 namespace Service::Set {
 
-void SET_SYS::GetFirmwareVersion(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_SET, "called");
+constexpr u64 SYSTEM_VERSION_FILE_MINOR_REVISION_OFFSET = 0x05;
 
-    ASSERT(ctx.GetWriteBufferSize() == 0x100,
-           "FirmwareVersion output buffer must be 0x100 bytes in size!");
+constexpr ResultCode ERROR_FAILED_MOUNT_ARCHIVE(ErrorModule::FS, 3223);
+constexpr ResultCode ERROR_READ_TOO_LARGE(ErrorModule::FS, 3005);
+constexpr ResultCode ERROR_INVALID_NAME(ErrorModule::FS, 6001);
+
+enum class GetFirmwareVersionType {
+    Version1,
+    Version2,
+};
+
+namespace {
+void GetFirmwareVersionImpl(Kernel::HLERequestContext& ctx, GetFirmwareVersionType type) {
+    LOG_WARNING(
+        Service_SET,
+        "called - Using hardcoded firmware version 'YuzuEmulated Firmware for NX 5.1.0-0.0'");
+
+    ASSERT_MSG(ctx.GetWriteBufferSize() == 0x100,
+               "FirmwareVersion output buffer must be 0x100 bytes in size!");
 
     // Instead of using the normal procedure of checking for the real system archive and if it
-    // doesn't exist, synthesizing one, I feel that that would lead to strange bugs because a used
-    // is using a really old or really new SystemVersion title. The synthesized one ensures
+    // doesn't exist, synthesizing one, I feel that that would lead to strange bugs because a
+    // used is using a really old or really new SystemVersion title. The synthesized one ensures
     // consistence (currently reports as 5.1.0-0.0)
     const auto archive = FileSys::SystemArchive::SystemVersion();
 
-    const auto early_exit_failure = [&ctx](const std::string& desc) {
+    const auto early_exit_failure = [&ctx](const std::string& desc, ResultCode code) {
         LOG_ERROR(Service_SET, "General failure while attempting to resolve firmware version ({}).",
                   desc.c_str());
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultCode(-1));
+        rb.Push(code);
     };
 
     if (archive == nullptr) {
-        early_exit_failure("The system version archive couldn't be synthesized.");
+        early_exit_failure("The system version archive couldn't be synthesized.",
+                           ERROR_FAILED_MOUNT_ARCHIVE);
         return;
     }
 
     const auto ver_file = archive->GetFile("file");
     if (ver_file == nullptr) {
-        early_exit_failure("The system version archive didn't contain the file 'file'.");
+        early_exit_failure("The system version archive didn't contain the file 'file'.",
+                           ERROR_INVALID_NAME);
         return;
     }
 
     auto data = ver_file->ReadAllBytes();
     if (data.size() != 0x100) {
-        early_exit_failure("The system version file 'file' was not the correct size.");
+        early_exit_failure("The system version file 'file' was not the correct size.",
+                           ERROR_READ_TOO_LARGE);
         return;
     }
 
-    // If the command is GetFirmwareVersion (as opposed to GetFirmwareVersion2), hardware will zero
-    // out the REVISION_MAJOR and REVISION_MICRO fields, which are u8s at offsets 0x4 and 0x5,
-    // respectively. This if statement will only execute when the true intended command is
-    // GetFirmwareVersion, and allows removing duplicate code for the implementation of
-    // GetFirmwareVersion2.
-    if (ctx.GetCommand() == 3) {
-        data[0x4] = 0x0;
-        data[0x5] = 0x0;
+    // If the command is GetFirmwareVersion (as opposed to GetFirmwareVersion2), hardware will
+    // zero out the REVISION_MINOR field.
+    if (type == GetFirmwareVersionType::Version1) {
+        data[SYSTEM_VERSION_FILE_MINOR_REVISION_OFFSET] = 0;
     }
 
     ctx.WriteBuffer(data);
@@ -62,10 +76,16 @@ void SET_SYS::GetFirmwareVersion(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
+} // namespace
+
+void SET_SYS::GetFirmwareVersion(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_SET, "called");
+    GetFirmwareVersionImpl(ctx, GetFirmwareVersionType::Version1);
+}
 
 void SET_SYS::GetFirmwareVersion2(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_SET, "called - delegating to GetFirmwareVersion");
-    GetFirmwareVersion(ctx);
+    LOG_DEBUG(Service_SET, "called");
+    GetFirmwareVersionImpl(ctx, GetFirmwareVersionType::Version2);
 }
 
 void SET_SYS::GetColorSetId(Kernel::HLERequestContext& ctx) {
