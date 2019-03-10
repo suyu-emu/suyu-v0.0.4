@@ -16,15 +16,19 @@ constexpr u8 VERSION_MAJOR = 5;
 constexpr u8 VERSION_MINOR = 1;
 constexpr u8 VERSION_MICRO = 0;
 
-constexpr u8 REVISION_MAJOR = 0;
+constexpr u8 REVISION_MAJOR = 3;
 constexpr u8 REVISION_MINOR = 0;
 
-constexpr char PLATFORM_STRING[] = "YUZU";
-constexpr char VERSION_HASH[] = "";
+constexpr char PLATFORM_STRING[] = "NX";
+constexpr char VERSION_HASH[] = "23f9df53e25709d756e0c76effcb2473bd3447dd";
 constexpr char DISPLAY_VERSION[] = "5.1.0";
-constexpr char DISPLAY_TITLE[] = "YuzuEmulated Firmware for NX 5.1.0-0.0";
+constexpr char DISPLAY_TITLE[] = "NintendoSDK Firmware for NX 5.1.0-3.0";
 
 } // namespace SystemVersionData
+
+std::string GetLongDisplayVersion() {
+    return SystemVersionData::DISPLAY_TITLE;
+}
 
 VirtualDir SystemVersion() {
     VirtualFile file = std::make_shared<VectorVfsFile>(std::vector<u8>(0x100), "file");
@@ -34,13 +38,13 @@ VirtualDir SystemVersion() {
     file->WriteObject(SystemVersionData::REVISION_MAJOR, 4);
     file->WriteObject(SystemVersionData::REVISION_MINOR, 5);
     file->WriteArray(SystemVersionData::PLATFORM_STRING,
-                     std::min<u64>(sizeof(SystemVersionData::PLATFORM_STRING), 0x20ull), 0x8);
+                     std::min<u64>(sizeof(SystemVersionData::PLATFORM_STRING), 0x20ULL), 0x8);
     file->WriteArray(SystemVersionData::VERSION_HASH,
-                     std::min<u64>(sizeof(SystemVersionData::VERSION_HASH), 0x40ull), 0x28);
+                     std::min<u64>(sizeof(SystemVersionData::VERSION_HASH), 0x40ULL), 0x28);
     file->WriteArray(SystemVersionData::DISPLAY_VERSION,
-                     std::min<u64>(sizeof(SystemVersionData::DISPLAY_VERSION), 0x18ull), 0x68);
+                     std::min<u64>(sizeof(SystemVersionData::DISPLAY_VERSION), 0x18ULL), 0x68);
     file->WriteArray(SystemVersionData::DISPLAY_TITLE,
-                     std::min<u64>(sizeof(SystemVersionData::DISPLAY_TITLE), 0x80ull), 0x80);
+                     std::min<u64>(sizeof(SystemVersionData::DISPLAY_TITLE), 0x80ULL), 0x80);
     return std::make_shared<VectorVfsDirectory>(std::vector<VirtualFile>{file},
                                                 std::vector<VirtualDir>{}, "data");
 }

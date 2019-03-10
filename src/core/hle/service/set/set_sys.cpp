@@ -4,6 +4,7 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "core/file_sys/errors.h"
 #include "core/file_sys/system_archive/system_version.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/client_port.h"
@@ -14,10 +15,6 @@ namespace Service::Set {
 
 constexpr u64 SYSTEM_VERSION_FILE_MINOR_REVISION_OFFSET = 0x05;
 
-constexpr ResultCode ERROR_FAILED_MOUNT_ARCHIVE(ErrorModule::FS, 3223);
-constexpr ResultCode ERROR_READ_TOO_LARGE(ErrorModule::FS, 3005);
-constexpr ResultCode ERROR_INVALID_NAME(ErrorModule::FS, 6001);
-
 enum class GetFirmwareVersionType {
     Version1,
     Version2,
@@ -25,9 +22,8 @@ enum class GetFirmwareVersionType {
 
 namespace {
 void GetFirmwareVersionImpl(Kernel::HLERequestContext& ctx, GetFirmwareVersionType type) {
-    LOG_WARNING(
-        Service_SET,
-        "called - Using hardcoded firmware version 'YuzuEmulated Firmware for NX 5.1.0-0.0'");
+    LOG_WARNING(Service_SET, "called - Using hardcoded firmware version '{}'",
+                FileSys::SystemArchive::GetLongDisplayVersion());
 
     ASSERT_MSG(ctx.GetWriteBufferSize() == 0x100,
                "FirmwareVersion output buffer must be 0x100 bytes in size!");
@@ -47,21 +43,21 @@ void GetFirmwareVersionImpl(Kernel::HLERequestContext& ctx, GetFirmwareVersionTy
 
     if (archive == nullptr) {
         early_exit_failure("The system version archive couldn't be synthesized.",
-                           ERROR_FAILED_MOUNT_ARCHIVE);
+                           FileSys::ERROR_FAILED_MOUNT_ARCHIVE);
         return;
     }
 
     const auto ver_file = archive->GetFile("file");
     if (ver_file == nullptr) {
         early_exit_failure("The system version archive didn't contain the file 'file'.",
-                           ERROR_INVALID_NAME);
+                           FileSys::ERROR_INVALID_ARGUMENT);
         return;
     }
 
     auto data = ver_file->ReadAllBytes();
     if (data.size() != 0x100) {
         early_exit_failure("The system version file 'file' was not the correct size.",
-                           ERROR_READ_TOO_LARGE);
+                           FileSys::ERROR_OUT_OF_BOUNDS);
         return;
     }
 
@@ -76,7 +72,7 @@ void GetFirmwareVersionImpl(Kernel::HLERequestContext& ctx, GetFirmwareVersionTy
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
-} // namespace
+} // Anonymous namespace
 
 void SET_SYS::GetFirmwareVersion(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
