@@ -112,7 +112,7 @@ enum class ErrorModule : u32 {
     ShopN = 811,
 };
 
-/// Encapsulates a CTR-OS error code, allowing it to be separated into its constituent fields.
+/// Encapsulates a Horizon OS error code, allowing it to be separated into its constituent fields.
 union ResultCode {
     u32 raw;
 
