@@ -118,7 +118,7 @@ RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window, Core::Syst
 
     glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uniform_buffer_alignment);
 
-    LOG_CRITICAL(Render_OpenGL, "Sync fixed function OpenGL state here!");
+    LOG_DEBUG(Render_OpenGL, "Sync fixed function OpenGL state here");
     CheckExtensions();
 }
 
@@ -177,7 +177,7 @@ GLuint RasterizerOpenGL::SetupVertexFormat() {
                 continue;
 
             const auto& buffer = regs.vertex_array[attrib.buffer];
-            LOG_TRACE(HW_GPU,
+            LOG_TRACE(Render_OpenGL,
                       "vertex attrib {}, count={}, size={}, type={}, offset={}, normalize={}",
                       index, attrib.ComponentCount(), attrib.SizeString(), attrib.TypeString(),
                       attrib.offset.Value(), attrib.IsNormalized());
@@ -343,9 +343,8 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
             shader_program_manager->UseProgrammableFragmentShader(program_handle);
             break;
         default:
-            LOG_CRITICAL(HW_GPU, "Unimplemented shader index={}, enable={}, offset=0x{:08X}", index,
-                         shader_config.enable.Value(), shader_config.offset);
-            UNREACHABLE();
+            UNIMPLEMENTED_MSG("Unimplemented shader index={}, enable={}, offset=0x{:08X}", index,
+                              shader_config.enable.Value(), shader_config.offset);
         }
 
         const auto stage_enum = static_cast<Maxwell::ShaderStage>(stage);
@@ -793,7 +792,10 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
         VideoCore::Surface::PixelFormatFromGPUPixelFormat(config.pixel_format)};
     ASSERT_MSG(params.width == config.width, "Framebuffer width is different");
     ASSERT_MSG(params.height == config.height, "Framebuffer height is different");
-    ASSERT_MSG(params.pixel_format == pixel_format, "Framebuffer pixel_format is different");
+
+    if (params.pixel_format != pixel_format) {
+        LOG_WARNING(Render_OpenGL, "Framebuffer pixel_format is different");
+    }
 
     screen_info.display_texture = surface->Texture().handle;
 
@@ -939,8 +941,8 @@ void RasterizerOpenGL::SetupConstBuffers(Tegra::Engines::Maxwell3D::Regs::Shader
             size = buffer.size;
 
             if (size > MaxConstbufferSize) {
-                LOG_CRITICAL(HW_GPU, "indirect constbuffer size {} exceeds maximum {}", size,
-                             MaxConstbufferSize);
+                LOG_WARNING(Render_OpenGL, "Indirect constbuffer size {} exceeds maximum {}", size,
+                            MaxConstbufferSize);
                 size = MaxConstbufferSize;
             }
         } else {
@@ -1235,11 +1237,7 @@ void RasterizerOpenGL::SyncScissorTest(OpenGLState& current_state) {
 
 void RasterizerOpenGL::SyncTransformFeedback() {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
-
-    if (regs.tfb_enabled != 0) {
-        LOG_CRITICAL(Render_OpenGL, "Transform feedbacks are not implemented");
-        UNREACHABLE();
-    }
+    UNIMPLEMENTED_IF_MSG(regs.tfb_enabled != 0, "Transform feedbacks are not implemented");
 }
 
 void RasterizerOpenGL::SyncPointState() {
@@ -1259,12 +1257,8 @@ void RasterizerOpenGL::SyncPolygonOffset() {
 
 void RasterizerOpenGL::CheckAlphaTests() {
     const auto& regs = Core::System::GetInstance().GPU().Maxwell3D().regs;
-
-    if (regs.alpha_test_enabled != 0 && regs.rt_control.count > 1) {
-        LOG_CRITICAL(Render_OpenGL, "Alpha Testing is enabled with Multiple Render Targets, "
-                                    "this behavior is undefined.");
-        UNREACHABLE();
-    }
+    UNIMPLEMENTED_IF_MSG(regs.alpha_test_enabled != 0 && regs.rt_control.count > 1,
+                         "Alpha Testing is enabled with more than one rendertarget");
 }
 
 } // namespace OpenGL
