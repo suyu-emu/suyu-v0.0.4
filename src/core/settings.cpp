@@ -91,7 +91,10 @@ void LogSettings() {
     LogSetting("Renderer_UseResolutionFactor", Settings::values.resolution_factor);
     LogSetting("Renderer_UseFrameLimit", Settings::values.use_frame_limit);
     LogSetting("Renderer_FrameLimit", Settings::values.frame_limit);
+    LogSetting("Renderer_UseDiskShaderCache", Settings::values.use_disk_shader_cache);
     LogSetting("Renderer_UseAccurateGpuEmulation", Settings::values.use_accurate_gpu_emulation);
+    LogSetting("Renderer_UseAsynchronousGpuEmulation",
+               Settings::values.use_asynchronous_gpu_emulation);
     LogSetting("Audio_OutputEngine", Settings::values.sink_id);
     LogSetting("Audio_EnableAudioStretching", Settings::values.enable_audio_stretching);
     LogSetting("Audio_OutputDevice", Settings::values.audio_device_id);
