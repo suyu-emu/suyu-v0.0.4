@@ -17,7 +17,6 @@
  */
 enum class ErrorDescription : u32 {
     Success = 0,
-    RemoteProcessDead = 301,
 };
 
 /**
