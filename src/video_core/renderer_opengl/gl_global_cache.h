@@ -70,7 +70,7 @@ public:
 private:
     GlobalRegion TryGetReservedGlobalRegion(VAddr addr, u32 size) const;
     GlobalRegion GetUncachedGlobalRegion(VAddr addr, u32 size);
-    void ReserveGlobalRegion(const GlobalRegion& region);
+    void ReserveGlobalRegion(GlobalRegion region);
 
     std::unordered_map<VAddr, GlobalRegion> reserve;
 };

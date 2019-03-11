@@ -57,8 +57,8 @@ GlobalRegion GlobalRegionCacheOpenGL::GetUncachedGlobalRegion(VAddr addr, u32 si
     return region;
 }
 
-void GlobalRegionCacheOpenGL::ReserveGlobalRegion(const GlobalRegion& region) {
-    reserve[region->GetAddr()] = region;
+void GlobalRegionCacheOpenGL::ReserveGlobalRegion(GlobalRegion region) {
+    reserve.insert_or_assign(region->GetAddr(), std::move(region));
 }
 
 GlobalRegionCacheOpenGL::GlobalRegionCacheOpenGL(RasterizerOpenGL& rasterizer)
