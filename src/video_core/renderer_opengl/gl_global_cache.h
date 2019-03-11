@@ -30,12 +30,12 @@ public:
     explicit CachedGlobalRegion(VAddr addr, u32 size);
 
     /// Gets the address of the shader in guest memory, required for cache management
-    VAddr GetAddr() const {
+    VAddr GetAddr() const override {
         return addr;
     }
 
     /// Gets the size of the shader in guest memory, required for cache management
-    std::size_t GetSizeInBytes() const {
+    std::size_t GetSizeInBytes() const override {
         return size;
     }
 
