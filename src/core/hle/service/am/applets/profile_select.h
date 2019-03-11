@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "common/common_funcs.h"
+#include "core/frontend/applets/software_keyboard.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/applets/applets.h"
 
@@ -28,7 +29,7 @@ static_assert(sizeof(UserSelectionOutput) == 0x18, "UserSelectionOutput has inco
 
 class ProfileSelect final : public Applet {
 public:
-    ProfileSelect();
+    ProfileSelect(const Core::Frontend::ProfileSelectApplet& frontend);
     ~ProfileSelect() override;
 
     void Initialize() override;
@@ -41,6 +42,8 @@ public:
     void SelectionComplete(std::optional<Account::UUID> uuid);
 
 private:
+    const Core::Frontend::ProfileSelectApplet& frontend;
+
     UserSelectionConfig config;
     bool complete = false;
     ResultCode status = RESULT_SUCCESS;
