@@ -24,8 +24,6 @@ void EmuThread::run() {
 
     MicroProfileOnThreadCreate("EmuThread");
 
-    stop_run = false;
-
     emit LoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
 
     Core::System::GetInstance().Renderer().Rasterizer().LoadDiskResources(
@@ -40,7 +38,7 @@ void EmuThread::run() {
         render_window->DoneCurrent();
     }
 
-    // holds whether the cpu was running during the last iteration,
+    // Holds whether the cpu was running during the last iteration,
     // so that the DebugModeLeft signal can be emitted before the
     // next execution step
     bool was_active = false;
