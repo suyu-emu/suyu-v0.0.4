@@ -13,6 +13,7 @@
 
 namespace Service::Set {
 
+namespace {
 constexpr u64 SYSTEM_VERSION_FILE_MINOR_REVISION_OFFSET = 0x05;
 
 enum class GetFirmwareVersionType {
@@ -20,7 +21,6 @@ enum class GetFirmwareVersionType {
     Version2,
 };
 
-namespace {
 void GetFirmwareVersionImpl(Kernel::HLERequestContext& ctx, GetFirmwareVersionType type) {
     LOG_WARNING(Service_SET, "called - Using hardcoded firmware version '{}'",
                 FileSys::SystemArchive::GetLongDisplayVersion());
