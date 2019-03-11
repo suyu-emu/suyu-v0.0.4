@@ -26,6 +26,10 @@ ResultVal<SharedPtr<ServerSession>> ServerPort::Accept() {
     return MakeResult(std::move(session));
 }
 
+void ServerPort::AppendPendingSession(SharedPtr<ServerSession> pending_session) {
+    pending_sessions.push_back(std::move(pending_session));
+}
+
 bool ServerPort::ShouldWait(Thread* thread) const {
     // If there are no pending sessions, we wait until a new one is added.
     return pending_sessions.empty();
