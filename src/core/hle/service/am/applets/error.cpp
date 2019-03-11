@@ -41,7 +41,7 @@ struct SystemErrorArg {
     std::array<char, 0x800> main_text;
     std::array<char, 0x800> detail_text;
 };
-static_assert(sizeof(SystemErrorArg) == 0x1018, "ApplicationErrorArg has incorrect size.");
+static_assert(sizeof(SystemErrorArg) == 0x1018, "SystemErrorArg has incorrect size.");
 
 struct ApplicationErrorArg {
     u8 mode;
@@ -77,7 +77,7 @@ ResultCode Decode64BitError(u64 error) {
     return {static_cast<ErrorModule>(module), static_cast<u32>(description)};
 }
 
-} // namespace
+} // Anonymous namespace
 
 Error::Error(const Core::Frontend::ErrorApplet& frontend) : frontend(frontend) {}
 

@@ -1589,6 +1589,11 @@ void GMainWindow::OnLoadComplete() {
     loading_screen->OnLoadComplete();
 }
 
+void GMainWindow::ErrorDisplayDisplayError(QString body) {
+    QMessageBox::critical(this, tr("Error Display"), body);
+    emit ErrorDisplayFinished();
+}
+
 void GMainWindow::OnMenuReportCompatibility() {
     if (!Settings::values.yuzu_token.empty() && !Settings::values.yuzu_username.empty()) {
         CompatDB compatdb{this};
