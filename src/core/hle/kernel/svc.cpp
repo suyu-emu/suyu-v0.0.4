@@ -1479,21 +1479,10 @@ static ResultCode WaitForAddress(VAddr address, u32 type, s32 value, s64 timeout
         return ERR_INVALID_ADDRESS;
     }
 
-    auto& address_arbiter = Core::System::GetInstance().Kernel().AddressArbiter();
-    switch (static_cast<AddressArbiter::ArbitrationType>(type)) {
-    case AddressArbiter::ArbitrationType::WaitIfLessThan:
-        return address_arbiter.WaitForAddressIfLessThan(address, value, timeout, false);
-    case AddressArbiter::ArbitrationType::DecrementAndWaitIfLessThan:
-        return address_arbiter.WaitForAddressIfLessThan(address, value, timeout, true);
-    case AddressArbiter::ArbitrationType::WaitIfEqual:
-        return address_arbiter.WaitForAddressIfEqual(address, value, timeout);
-    default:
-        LOG_ERROR(Kernel_SVC,
-                  "Invalid arbitration type, expected WaitIfLessThan, DecrementAndWaitIfLessThan "
-                  "or WaitIfEqual but got {}",
-                  type);
-        return ERR_INVALID_ENUM_VALUE;
-    }
+    const auto arbitration_type = static_cast<AddressArbiter::ArbitrationType>(type);
+    auto& address_arbiter =
+        Core::System::GetInstance().Kernel().CurrentProcess()->GetAddressArbiter();
+    return address_arbiter.WaitForAddress(address, arbitration_type, value, timeout);
 }
 
 // Signals to an address (via Address Arbiter)
@@ -1511,22 +1500,10 @@ static ResultCode SignalToAddress(VAddr address, u32 type, s32 value, s32 num_to
         return ERR_INVALID_ADDRESS;
     }
 
-    auto& address_arbiter = Core::System::GetInstance().Kernel().AddressArbiter();
-    switch (static_cast<AddressArbiter::SignalType>(type)) {
-    case AddressArbiter::SignalType::Signal:
-        return address_arbiter.SignalToAddress(address, num_to_wake);
-    case AddressArbiter::SignalType::IncrementAndSignalIfEqual:
-        return address_arbiter.IncrementAndSignalToAddressIfEqual(address, value, num_to_wake);
-    case AddressArbiter::SignalType::ModifyByWaitingCountAndSignalIfEqual:
-        return address_arbiter.ModifyByWaitingCountAndSignalToAddressIfEqual(address, value,
-                                                                             num_to_wake);
-    default:
-        LOG_ERROR(Kernel_SVC,
-                  "Invalid signal type, expected Signal, IncrementAndSignalIfEqual "
-                  "or ModifyByWaitingCountAndSignalIfEqual but got {}",
-                  type);
-        return ERR_INVALID_ENUM_VALUE;
-    }
+    const auto signal_type = static_cast<AddressArbiter::SignalType>(type);
+    auto& address_arbiter =
+        Core::System::GetInstance().Kernel().CurrentProcess()->GetAddressArbiter();
+    return address_arbiter.SignalToAddress(address, signal_type, value, num_to_wake);
 }
 
 /// This returns the total CPU ticks elapsed since the CPU was powered-on

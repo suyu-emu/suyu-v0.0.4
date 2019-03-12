@@ -12,11 +12,16 @@
 #include <vector>
 #include <boost/container/static_vector.hpp>
 #include "common/common_types.h"
+#include "core/hle/kernel/address_arbiter.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/process_capability.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/hle/kernel/wait_object.h"
 #include "core/hle/result.h"
+
+namespace Core {
+class System;
+}
 
 namespace FileSys {
 class ProgramMetadata;
@@ -116,7 +121,7 @@ public:
 
     static constexpr std::size_t RANDOM_ENTROPY_SIZE = 4;
 
-    static SharedPtr<Process> Create(KernelCore& kernel, std::string&& name);
+    static SharedPtr<Process> Create(Core::System& system, std::string&& name);
 
     std::string GetTypeName() const override {
         return "Process";
@@ -148,6 +153,16 @@ public:
     /// Gets a const reference to the process' handle table.
     const HandleTable& GetHandleTable() const {
         return handle_table;
+    }
+
+    /// Gets a reference to the process' address arbiter.
+    AddressArbiter& GetAddressArbiter() {
+        return address_arbiter;
+    }
+
+    /// Gets a const reference to the process' address arbiter.
+    const AddressArbiter& GetAddressArbiter() const {
+        return address_arbiter;
     }
 
     /// Gets the current status of the process
@@ -251,7 +266,7 @@ public:
     void FreeTLSSlot(VAddr tls_address);
 
 private:
-    explicit Process(KernelCore& kernel);
+    explicit Process(Core::System& kernel);
     ~Process() override;
 
     /// Checks if the specified thread should wait until this process is available.
@@ -308,6 +323,9 @@ private:
 
     /// Per-process handle table for storing created object handles in.
     HandleTable handle_table;
+
+    /// Per-process address arbiter.
+    AddressArbiter address_arbiter;
 
     /// Random values for svcGetInfo RandomEntropy
     std::array<u64, RANDOM_ENTROPY_SIZE> random_entropy;

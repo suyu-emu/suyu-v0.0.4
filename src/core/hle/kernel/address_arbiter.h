@@ -4,8 +4,10 @@
 
 #pragma once
 
+#include <vector>
+
 #include "common/common_types.h"
-#include "core/hle/kernel/address_arbiter.h"
+#include "core/hle/kernel/object.h"
 
 union ResultCode;
 
@@ -40,8 +42,15 @@ public:
     AddressArbiter(AddressArbiter&&) = default;
     AddressArbiter& operator=(AddressArbiter&&) = delete;
 
+    /// Signals an address being waited on with a particular signaling type.
+    ResultCode SignalToAddress(VAddr address, SignalType type, s32 value, s32 num_to_wake);
+
+    /// Waits on an address with a particular arbitration type.
+    ResultCode WaitForAddress(VAddr address, ArbitrationType type, s32 value, s64 timeout_ns);
+
+private:
     /// Signals an address being waited on.
-    ResultCode SignalToAddress(VAddr address, s32 num_to_wake);
+    ResultCode SignalToAddressOnly(VAddr address, s32 num_to_wake);
 
     /// Signals an address being waited on and increments its value if equal to the value argument.
     ResultCode IncrementAndSignalToAddressIfEqual(VAddr address, s32 value, s32 num_to_wake);
@@ -59,9 +68,8 @@ public:
     /// Waits on an address if the value passed is equal to the argument value.
     ResultCode WaitForAddressIfEqual(VAddr address, s32 value, s64 timeout);
 
-private:
     // Waits on the given address with a timeout in nanoseconds
-    ResultCode WaitForAddress(VAddr address, s64 timeout);
+    ResultCode WaitForAddressImpl(VAddr address, s64 timeout);
 
     // Gets the threads waiting on an address.
     std::vector<SharedPtr<Thread>> GetThreadsWaitingOnAddress(VAddr address) const;
