@@ -804,104 +804,87 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
 
 void RasterizerOpenGL::SamplerInfo::Create() {
     sampler.Create();
-    mag_filter = min_filter = Tegra::Texture::TextureFilter::Linear;
-    wrap_u = wrap_v = wrap_p = Tegra::Texture::WrapMode::Wrap;
-    uses_depth_compare = false;
+    mag_filter = Tegra::Texture::TextureFilter::Linear;
+    min_filter = Tegra::Texture::TextureFilter::Linear;
+    wrap_u = Tegra::Texture::WrapMode::Wrap;
+    wrap_v = Tegra::Texture::WrapMode::Wrap;
+    wrap_p = Tegra::Texture::WrapMode::Wrap;
+    use_depth_compare = false;
     depth_compare_func = Tegra::Texture::DepthCompareFunc::Never;
 
-    // default is GL_LINEAR_MIPMAP_LINEAR
+    // OpenGL's default is GL_LINEAR_MIPMAP_LINEAR
     glSamplerParameteri(sampler.handle, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    // Other attributes have correct defaults
     glSamplerParameteri(sampler.handle, GL_TEXTURE_COMPARE_FUNC, GL_NEVER);
+
+    // Other attributes have correct defaults
 }
 
 void RasterizerOpenGL::SamplerInfo::SyncWithConfig(const Tegra::Texture::TSCEntry& config) {
-    const GLuint s = sampler.handle;
+    const GLuint sampler_id = sampler.handle;
     if (mag_filter != config.mag_filter) {
         mag_filter = config.mag_filter;
         glSamplerParameteri(
-            s, GL_TEXTURE_MAG_FILTER,
+            sampler_id, GL_TEXTURE_MAG_FILTER,
             MaxwellToGL::TextureFilterMode(mag_filter, Tegra::Texture::TextureMipmapFilter::None));
     }
-    if (min_filter != config.min_filter || mip_filter != config.mip_filter) {
+    if (min_filter != config.min_filter || mipmap_filter != config.mipmap_filter) {
         min_filter = config.min_filter;
-        mip_filter = config.mip_filter;
-        glSamplerParameteri(s, GL_TEXTURE_MIN_FILTER,
-                            MaxwellToGL::TextureFilterMode(min_filter, mip_filter));
+        mipmap_filter = config.mipmap_filter;
+        glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER,
+                            MaxwellToGL::TextureFilterMode(min_filter, mipmap_filter));
     }
 
     if (wrap_u != config.wrap_u) {
         wrap_u = config.wrap_u;
-        glSamplerParameteri(s, GL_TEXTURE_WRAP_S, MaxwellToGL::WrapMode(wrap_u));
+        glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, MaxwellToGL::WrapMode(wrap_u));
     }
     if (wrap_v != config.wrap_v) {
         wrap_v = config.wrap_v;
-        glSamplerParameteri(s, GL_TEXTURE_WRAP_T, MaxwellToGL::WrapMode(wrap_v));
+        glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, MaxwellToGL::WrapMode(wrap_v));
     }
     if (wrap_p != config.wrap_p) {
         wrap_p = config.wrap_p;
-        glSamplerParameteri(s, GL_TEXTURE_WRAP_R, MaxwellToGL::WrapMode(wrap_p));
+        glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_R, MaxwellToGL::WrapMode(wrap_p));
     }
 
-    if (uses_depth_compare != (config.depth_compare_enabled == 1)) {
-        uses_depth_compare = (config.depth_compare_enabled == 1);
-        if (uses_depth_compare) {
-            glSamplerParameteri(s, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-        } else {
-            glSamplerParameteri(s, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-        }
+    if (const bool enabled = config.depth_compare_enabled == 1; use_depth_compare != enabled) {
+        use_depth_compare = enabled;
+        glSamplerParameteri(sampler_id, GL_TEXTURE_COMPARE_MODE,
+                            use_depth_compare ? GL_COMPARE_REF_TO_TEXTURE : GL_NONE);
     }
 
     if (depth_compare_func != config.depth_compare_func) {
         depth_compare_func = config.depth_compare_func;
-        glSamplerParameteri(s, GL_TEXTURE_COMPARE_FUNC,
+        glSamplerParameteri(sampler_id, GL_TEXTURE_COMPARE_FUNC,
                             MaxwellToGL::DepthCompareFunc(depth_compare_func));
     }
 
-    GLvec4 new_border_color;
-    if (config.srgb_conversion) {
-        new_border_color[0] = config.srgb_border_color_r / 255.0f;
-        new_border_color[1] = config.srgb_border_color_g / 255.0f;
-        new_border_color[2] = config.srgb_border_color_g / 255.0f;
-    } else {
-        new_border_color[0] = config.border_color_r;
-        new_border_color[1] = config.border_color_g;
-        new_border_color[2] = config.border_color_b;
-    }
-    new_border_color[3] = config.border_color_a;
-
-    if (border_color != new_border_color) {
+    if (const auto new_border_color = config.GetBorderColor(); border_color != new_border_color) {
         border_color = new_border_color;
-        glSamplerParameterfv(s, GL_TEXTURE_BORDER_COLOR, border_color.data());
+        glSamplerParameterfv(sampler_id, GL_TEXTURE_BORDER_COLOR, border_color.data());
     }
 
-    const float anisotropic_max = static_cast<float>(1 << config.max_anisotropy.Value());
-    if (anisotropic_max != max_anisotropic) {
-        max_anisotropic = anisotropic_max;
+    if (const float anisotropic = config.GetMaxAnisotropy(); max_anisotropic != anisotropic) {
+        max_anisotropic = anisotropic;
         if (GLAD_GL_ARB_texture_filter_anisotropic) {
-            glSamplerParameterf(s, GL_TEXTURE_MAX_ANISOTROPY, max_anisotropic);
+            glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_ANISOTROPY, max_anisotropic);
         } else if (GLAD_GL_EXT_texture_filter_anisotropic) {
-            glSamplerParameterf(s, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropic);
+            glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropic);
         }
     }
-    const float lod_min = static_cast<float>(config.min_lod_clamp.Value()) / 256.0f;
-    if (lod_min != min_lod) {
-        min_lod = lod_min;
-        glSamplerParameterf(s, GL_TEXTURE_MIN_LOD, min_lod);
+
+    if (const float min = config.GetMinLod(); min_lod != min) {
+        min_lod = min;
+        glSamplerParameterf(sampler_id, GL_TEXTURE_MIN_LOD, min_lod);
+    }
+    if (const float max = config.GetMaxLod(); max_lod != max) {
+        max_lod = max;
+        glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_LOD, max_lod);
     }
 
-    const float lod_max = static_cast<float>(config.max_lod_clamp.Value()) / 256.0f;
-    if (lod_max != max_lod) {
-        max_lod = lod_max;
-        glSamplerParameterf(s, GL_TEXTURE_MAX_LOD, max_lod);
-    }
-    const u32 bias = config.mip_lod_bias.Value();
-    // Sign extend the 13-bit value.
-    constexpr u32 mask = 1U << (13 - 1);
-    const float bias_lod = static_cast<s32>((bias ^ mask) - mask) / 256.f;
-    if (lod_bias != bias_lod) {
-        lod_bias = bias_lod;
-        glSamplerParameterf(s, GL_TEXTURE_LOD_BIAS, lod_bias);
+    if (const float bias = config.GetLodBias(); lod_bias != bias) {
+        lod_bias = bias;
+        glSamplerParameterf(sampler_id, GL_TEXTURE_LOD_BIAS, lod_bias);
     }
 }
 
