@@ -133,7 +133,7 @@ void Process::PrepareForTermination() {
             if (thread->GetOwnerProcess() != this)
                 continue;
 
-            if (thread == GetCurrentThread())
+            if (thread == system.CurrentScheduler().GetCurrentThread())
                 continue;
 
             // TODO(Subv): When are the other running/ready threads terminated?
@@ -145,7 +145,6 @@ void Process::PrepareForTermination() {
         }
     };
 
-    const auto& system = Core::System::GetInstance();
     stop_threads(system.Scheduler(0).GetThreadList());
     stop_threads(system.Scheduler(1).GetThreadList());
     stop_threads(system.Scheduler(2).GetThreadList());
@@ -228,13 +227,11 @@ void Process::LoadModule(CodeSet module_, VAddr base_addr) {
     MapSegment(module_.DataSegment(), VMAPermission::ReadWrite, MemoryState::CodeMutable);
 
     // Clear instruction cache in CPU JIT
-    Core::System::GetInstance().ArmInterface(0).ClearInstructionCache();
-    Core::System::GetInstance().ArmInterface(1).ClearInstructionCache();
-    Core::System::GetInstance().ArmInterface(2).ClearInstructionCache();
-    Core::System::GetInstance().ArmInterface(3).ClearInstructionCache();
+    system.InvalidateCpuInstructionCaches();
 }
 
-Process::Process(Core::System& system) : WaitObject{system.Kernel()}, address_arbiter{system} {}
+Process::Process(Core::System& system)
+    : WaitObject{system.Kernel()}, address_arbiter{system}, system{system} {}
 Process::~Process() = default;
 
 void Process::Acquire(Thread* thread) {
