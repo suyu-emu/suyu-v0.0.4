@@ -311,7 +311,7 @@ struct TSCEntry {
             };
             std::array<f32, 4> border_color;
         };
-        std::array<u32, 8> raw;
+        std::array<u8, 0x20> raw;
     };
 
     float GetMaxAnisotropy() const {
