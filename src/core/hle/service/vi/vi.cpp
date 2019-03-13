@@ -24,6 +24,7 @@
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
 #include "core/hle/service/nvflinger/nvflinger.h"
+#include "core/hle/service/service.h"
 #include "core/hle/service/vi/vi.h"
 #include "core/hle/service/vi/vi_m.h"
 #include "core/hle/service/vi/vi_s.h"
@@ -33,6 +34,7 @@
 namespace Service::VI {
 
 constexpr ResultCode ERR_OPERATION_FAILED{ErrorModule::VI, 1};
+constexpr ResultCode ERR_PERMISSION_DENIED{ErrorModule::VI, 5};
 constexpr ResultCode ERR_UNSUPPORTED{ErrorModule::VI, 6};
 constexpr ResultCode ERR_NOT_FOUND{ErrorModule::VI, 7};
 
@@ -1203,26 +1205,40 @@ IApplicationDisplayService::IApplicationDisplayService(
     RegisterHandlers(functions);
 }
 
-Module::Interface::Interface(std::shared_ptr<Module> module, const char* name,
-                             std::shared_ptr<NVFlinger::NVFlinger> nv_flinger)
-    : ServiceFramework(name), module(std::move(module)), nv_flinger(std::move(nv_flinger)) {}
+static bool IsValidServiceAccess(Permission permission, Policy policy) {
+    if (permission == Permission::User) {
+        return policy == Policy::User;
+    }
 
-Module::Interface::~Interface() = default;
+    if (permission == Permission::System || permission == Permission::Manager) {
+        return policy == Policy::User || policy == Policy::Compositor;
+    }
 
-void Module::Interface::GetDisplayService(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_VI, "(STUBBED) called");
+    return false;
+}
+
+void detail::GetDisplayServiceImpl(Kernel::HLERequestContext& ctx,
+                                   std::shared_ptr<NVFlinger::NVFlinger> nv_flinger,
+                                   Permission permission) {
+    IPC::RequestParser rp{ctx};
+    const auto policy = rp.PopEnum<Policy>();
+
+    if (!IsValidServiceAccess(permission, policy)) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ERR_PERMISSION_DENIED);
+        return;
+    }
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IApplicationDisplayService>(nv_flinger);
+    rb.PushIpcInterface<IApplicationDisplayService>(std::move(nv_flinger));
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager,
                        std::shared_ptr<NVFlinger::NVFlinger> nv_flinger) {
-    auto module = std::make_shared<Module>();
-    std::make_shared<VI_M>(module, nv_flinger)->InstallAsService(service_manager);
-    std::make_shared<VI_S>(module, nv_flinger)->InstallAsService(service_manager);
-    std::make_shared<VI_U>(module, nv_flinger)->InstallAsService(service_manager);
+    std::make_shared<VI_M>(nv_flinger)->InstallAsService(service_manager);
+    std::make_shared<VI_S>(nv_flinger)->InstallAsService(service_manager);
+    std::make_shared<VI_U>(nv_flinger)->InstallAsService(service_manager);
 }
 
 } // namespace Service::VI
