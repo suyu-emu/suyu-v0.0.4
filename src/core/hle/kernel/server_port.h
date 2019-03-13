@@ -22,6 +22,8 @@ class SessionRequestHandler;
 
 class ServerPort final : public WaitObject {
 public:
+    using HLEHandler = std::shared_ptr<SessionRequestHandler>;
+
     /**
      * Creates a pair of ServerPort and an associated ClientPort.
      *
@@ -51,22 +53,27 @@ public:
      */
     ResultVal<SharedPtr<ServerSession>> Accept();
 
+    /// Whether or not this server port has an HLE handler available.
+    bool HasHLEHandler() const {
+        return hle_handler != nullptr;
+    }
+
+    /// Gets the HLE handler for this port.
+    HLEHandler GetHLEHandler() const {
+        return hle_handler;
+    }
+
     /**
      * Sets the HLE handler template for the port. ServerSessions crated by connecting to this port
      * will inherit a reference to this handler.
      */
-    void SetHleHandler(std::shared_ptr<SessionRequestHandler> hle_handler_) {
+    void SetHleHandler(HLEHandler hle_handler_) {
         hle_handler = std::move(hle_handler_);
     }
 
-    std::string name; ///< Name of port (optional)
-
-    /// ServerSessions waiting to be accepted by the port
-    std::vector<SharedPtr<ServerSession>> pending_sessions;
-
-    /// This session's HLE request handler template (optional)
-    /// ServerSessions created from this port inherit a reference to this handler.
-    std::shared_ptr<SessionRequestHandler> hle_handler;
+    /// Appends a ServerSession to the collection of ServerSessions
+    /// waiting to be accepted by this port.
+    void AppendPendingSession(SharedPtr<ServerSession> pending_session);
 
     bool ShouldWait(Thread* thread) const override;
     void Acquire(Thread* thread) override;
@@ -74,6 +81,16 @@ public:
 private:
     explicit ServerPort(KernelCore& kernel);
     ~ServerPort() override;
+
+    /// ServerSessions waiting to be accepted by the port
+    std::vector<SharedPtr<ServerSession>> pending_sessions;
+
+    /// This session's HLE request handler template (optional)
+    /// ServerSessions created from this port inherit a reference to this handler.
+    HLEHandler hle_handler;
+
+    /// Name of the port (optional)
+    std::string name;
 };
 
 } // namespace Kernel

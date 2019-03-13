@@ -67,7 +67,7 @@ public:
         if (port == nullptr) {
             return nullptr;
         }
-        return std::static_pointer_cast<T>(port->hle_handler);
+        return std::static_pointer_cast<T>(port->GetHLEHandler());
     }
 
     void InvokeControlRequest(Kernel::HLERequestContext& context);
