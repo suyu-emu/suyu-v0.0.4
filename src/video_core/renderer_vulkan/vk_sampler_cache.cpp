@@ -35,7 +35,7 @@ std::size_t SamplerCacheKey::Hash() const {
 }
 
 bool SamplerCacheKey::operator==(const SamplerCacheKey& rhs) const {
-    return std::memcmp(raw.data(), rhs.raw.data(), sizeof(raw)) == 0;
+    return raw == rhs.raw;
 }
 
 VKSamplerCache::VKSamplerCache(const VKDevice& device) : device{device} {}
