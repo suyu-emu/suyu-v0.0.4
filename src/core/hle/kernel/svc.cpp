@@ -1394,10 +1394,10 @@ static ResultCode SignalProcessWideKey(VAddr condition_variable_addr, s32 target
     // them all.
     std::size_t last = waiting_threads.size();
     if (target != -1)
-        last = target;
+        last = std::min(waiting_threads.size(), static_cast<std::size_t>(target));
 
     // If there are no threads waiting on this condition variable, just exit
-    if (last > waiting_threads.size())
+    if (last == 0)
         return RESULT_SUCCESS;
 
     for (std::size_t index = 0; index < last; ++index) {
