@@ -446,7 +446,7 @@ void SwizzleFunc(const MortonSwizzleMode& mode, const SurfaceParams& params,
             MortonSwizzle(mode, params.pixel_format, params.MipWidth(mip_level),
                           params.MipBlockHeight(mip_level), params.MipHeight(mip_level),
                           params.MipBlockDepth(mip_level), 1, params.tile_width_spacing,
-                          gl_buffer.data() + offset_gl, gl_size, params.addr + offset);
+                          gl_buffer.data() + offset_gl, params.addr + offset);
             offset += layer_size;
             offset_gl += gl_size;
         }
@@ -455,7 +455,7 @@ void SwizzleFunc(const MortonSwizzleMode& mode, const SurfaceParams& params,
         MortonSwizzle(mode, params.pixel_format, params.MipWidth(mip_level),
                       params.MipBlockHeight(mip_level), params.MipHeight(mip_level),
                       params.MipBlockDepth(mip_level), depth, params.tile_width_spacing,
-                      gl_buffer.data(), gl_buffer.size(), params.addr + offset);
+                      gl_buffer.data(), params.addr + offset);
     }
 }
 
