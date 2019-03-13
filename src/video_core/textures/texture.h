@@ -324,7 +324,7 @@ struct TSCEntry {
     float GetLodBias() const {
         // Sign extend the 13-bit value.
         constexpr u32 mask = 1U << (13 - 1);
-        return static_cast<float>((mip_lod_bias ^ mask) - mask) / 256.0f;
+        return static_cast<s32>((mip_lod_bias ^ mask) - mask) / 256.0f;
     }
 
     std::array<float, 4> GetBorderColor() const {
