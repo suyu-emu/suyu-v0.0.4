@@ -287,8 +287,9 @@ void MortonSwizzle(MortonSwizzleMode mode, Surface::PixelFormat format, u32 stri
                                      tile_width_spacing, buffer, addr);
 }
 
-void MortonCopyPixels128(u32 width, u32 height, u32 bytes_per_pixel, u32 linear_bytes_per_pixel,
-                         u8* morton_data, u8* linear_data, bool morton_to_linear) {
+void MortonCopyPixels128(MortonSwizzleMode mode, u32 width, u32 height, u32 bytes_per_pixel,
+                         u32 linear_bytes_per_pixel, u8* morton_data, u8* linear_data) {
+    const bool morton_to_linear = mode == MortonSwizzleMode::MortonToLinear;
     u8* data_ptrs[2];
     for (u32 y = 0; y < height; ++y) {
         for (u32 x = 0; x < width; ++x) {

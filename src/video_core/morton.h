@@ -15,7 +15,7 @@ void MortonSwizzle(MortonSwizzleMode mode, VideoCore::Surface::PixelFormat forma
                    u32 block_height, u32 height, u32 block_depth, u32 depth, u32 tile_width_spacing,
                    u8* buffer, VAddr addr);
 
-void MortonCopyPixels128(u32 width, u32 height, u32 bytes_per_pixel, u32 linear_bytes_per_pixel,
-                         u8* morton_data, u8* linear_data, bool morton_to_linear);
+void MortonCopyPixels128(MortonSwizzleMode mode, u32 width, u32 height, u32 bytes_per_pixel,
+                         u32 linear_bytes_per_pixel, u8* morton_data, u8* linear_data);
 
 } // namespace VideoCore
