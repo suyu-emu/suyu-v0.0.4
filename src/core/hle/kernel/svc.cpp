@@ -32,6 +32,7 @@
 #include "core/hle/kernel/svc.h"
 #include "core/hle/kernel/svc_wrap.h"
 #include "core/hle/kernel/thread.h"
+#include "core/hle/kernel/transfer_memory.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
@@ -1577,11 +1578,15 @@ static ResultCode CreateTransferMemory(Handle* handle, VAddr addr, u64 size, u32
     }
 
     auto& kernel = Core::System::GetInstance().Kernel();
-    auto process = kernel.CurrentProcess();
-    auto& handle_table = process->GetHandleTable();
-    const auto shared_mem_handle = SharedMemory::Create(kernel, process, size, perms, perms, addr);
+    auto transfer_mem_handle = TransferMemory::Create(kernel, addr, size, perms);
 
-    CASCADE_RESULT(*handle, handle_table.Create(shared_mem_handle));
+    auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
+    const auto result = handle_table.Create(std::move(transfer_mem_handle));
+    if (result.Failed()) {
+        return result.Code();
+    }
+
+    *handle = *result;
     return RESULT_SUCCESS;
 }
 
