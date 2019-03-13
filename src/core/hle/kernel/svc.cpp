@@ -1350,7 +1350,7 @@ static ResultCode WaitProcessWideKeyAtomic(VAddr mutex_addr, VAddr condition_var
     current_thread->SetCondVarWaitAddress(condition_variable_addr);
     current_thread->SetMutexWaitAddress(mutex_addr);
     current_thread->SetWaitHandle(thread_handle);
-    current_thread->SetStatus(ThreadStatus::WaitMutex);
+    current_thread->SetStatus(ThreadStatus::WaitCondVar);
     current_thread->InvalidateWakeupCallback();
 
     current_thread->WakeAfterDelay(nano_seconds);
@@ -1456,7 +1456,7 @@ static ResultCode SignalProcessWideKey(VAddr condition_variable_addr, s32 target
             const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
             auto owner = handle_table.Get<Thread>(owner_handle);
             ASSERT(owner);
-            ASSERT(thread->GetStatus() == ThreadStatus::WaitMutex);
+            ASSERT(thread->GetStatus() == ThreadStatus::WaitCondVar);
             thread->InvalidateWakeupCallback();
 
             owner->AddMutexWaiter(thread);
