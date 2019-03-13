@@ -11,7 +11,6 @@
 #include "core/hle/ipc.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/client_port.h"
-#include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/server_port.h"
@@ -168,7 +167,7 @@ ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::HLERequestContext& co
     case IPC::CommandType::Close: {
         IPC::ResponseBuilder rb{context, 2};
         rb.Push(RESULT_SUCCESS);
-        return ResultCode(ErrorModule::HIPC, ErrorDescription::RemoteProcessDead);
+        return IPC::ERR_REMOTE_PROCESS_DEAD;
     }
     case IPC::CommandType::ControlWithContext:
     case IPC::CommandType::Control: {

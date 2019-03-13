@@ -19,8 +19,11 @@
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/server_session.h"
+#include "core/hle/result.h"
 
 namespace IPC {
+
+constexpr ResultCode ERR_REMOTE_PROCESS_DEAD{ErrorModule::HIPC, 301};
 
 class RequestHelperBase {
 protected:
