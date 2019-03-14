@@ -13,6 +13,7 @@
 #include "core/hle/kernel/mutex.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/result.h"
 #include "core/memory.h"
@@ -69,34 +70,36 @@ ResultCode Mutex::TryAcquire(VAddr address, Handle holding_thread_handle,
     }
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
+    Thread* const current_thread = system.CurrentScheduler().GetCurrentThread();
     SharedPtr<Thread> holding_thread = handle_table.Get<Thread>(holding_thread_handle);
     SharedPtr<Thread> requesting_thread = handle_table.Get<Thread>(requesting_thread_handle);
 
     // TODO(Subv): It is currently unknown if it is possible to lock a mutex in behalf of another
     // thread.
-    ASSERT(requesting_thread == GetCurrentThread());
+    ASSERT(requesting_thread == current_thread);
 
-    u32 addr_value = Memory::Read32(address);
+    const u32 addr_value = Memory::Read32(address);
 
     // If the mutex isn't being held, just return success.
     if (addr_value != (holding_thread_handle | Mutex::MutexHasWaitersFlag)) {
         return RESULT_SUCCESS;
     }
 
-    if (holding_thread == nullptr)
+    if (holding_thread == nullptr) {
         return ERR_INVALID_HANDLE;
+    }
 
     // Wait until the mutex is released
-    GetCurrentThread()->SetMutexWaitAddress(address);
-    GetCurrentThread()->SetWaitHandle(requesting_thread_handle);
+    current_thread->SetMutexWaitAddress(address);
+    current_thread->SetWaitHandle(requesting_thread_handle);
 
-    GetCurrentThread()->SetStatus(ThreadStatus::WaitMutex);
-    GetCurrentThread()->InvalidateWakeupCallback();
+    current_thread->SetStatus(ThreadStatus::WaitMutex);
+    current_thread->InvalidateWakeupCallback();
 
     // Update the lock holder thread's priority to prevent priority inversion.
-    holding_thread->AddMutexWaiter(GetCurrentThread());
+    holding_thread->AddMutexWaiter(current_thread);
 
-    Core::System::GetInstance().PrepareReschedule();
+    system.PrepareReschedule();
 
     return RESULT_SUCCESS;
 }
@@ -107,7 +110,8 @@ ResultCode Mutex::Release(VAddr address) {
         return ERR_INVALID_ADDRESS;
     }
 
-    auto [thread, num_waiters] = GetHighestPriorityMutexWaitingThread(GetCurrentThread(), address);
+    auto* const current_thread = system.CurrentScheduler().GetCurrentThread();
+    auto [thread, num_waiters] = GetHighestPriorityMutexWaitingThread(current_thread, address);
 
     // There are no more threads waiting for the mutex, release it completely.
     if (thread == nullptr) {
@@ -116,7 +120,7 @@ ResultCode Mutex::Release(VAddr address) {
     }
 
     // Transfer the ownership of the mutex from the previous owner to the new one.
-    TransferMutexOwnership(address, GetCurrentThread(), thread);
+    TransferMutexOwnership(address, current_thread, thread);
 
     u32 mutex_value = thread->GetWaitHandle();
 
