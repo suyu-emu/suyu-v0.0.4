@@ -924,27 +924,93 @@ private:
     }
 
     Id Branch(Operation operation) {
-        UNIMPLEMENTED();
+        const auto target = std::get_if<ImmediateNode>(operation[0]);
+        UNIMPLEMENTED_IF(!target);
+
+        Emit(OpStore(jmp_to, Constant(t_uint, target->GetValue())));
+        BranchingOp([&]() { Emit(OpBranch(continue_label)); });
         return {};
     }
 
     Id PushFlowStack(Operation operation) {
-        UNIMPLEMENTED();
+        const auto target = std::get_if<ImmediateNode>(operation[0]);
+        ASSERT(target);
+
+        const Id current = Emit(OpLoad(t_uint, flow_stack_top));
+        const Id next = Emit(OpIAdd(t_uint, current, Constant(t_uint, 1)));
+        const Id access = Emit(OpAccessChain(t_func_uint, flow_stack, current));
+
+        Emit(OpStore(access, Constant(t_uint, target->GetValue())));
+        Emit(OpStore(flow_stack_top, next));
         return {};
     }
 
     Id PopFlowStack(Operation operation) {
-        UNIMPLEMENTED();
+        const Id current = Emit(OpLoad(t_uint, flow_stack_top));
+        const Id previous = Emit(OpISub(t_uint, current, Constant(t_uint, 1)));
+        const Id access = Emit(OpAccessChain(t_func_uint, flow_stack, previous));
+        const Id target = Emit(OpLoad(t_uint, access));
+
+        Emit(OpStore(flow_stack_top, previous));
+        Emit(OpStore(jmp_to, target));
+        BranchingOp([&]() { Emit(OpBranch(continue_label)); });
         return {};
     }
 
     Id Exit(Operation operation) {
-        UNIMPLEMENTED();
+        switch (stage) {
+        case ShaderStage::Vertex: {
+            // TODO(Rodrigo): We should use VK_EXT_depth_range_unrestricted instead, but it doesn't
+            // seem to be working on Nvidia's drivers and Intel (mesa and blob) doesn't support it.
+            const Id position = AccessElement(t_float4, per_vertex, position_index);
+            Id depth = Emit(OpLoad(t_float, AccessElement(t_out_float, position, 2)));
+            depth = Emit(OpFAdd(t_float, depth, Constant(t_float, 1.0f)));
+            depth = Emit(OpFMul(t_float, depth, Constant(t_float, 0.5f)));
+            Emit(OpStore(AccessElement(t_out_float, position, 2), depth));
+            break;
+        }
+        case ShaderStage::Fragment: {
+            const auto SafeGetRegister = [&](u32 reg) {
+                // TODO(Rodrigo): Replace with contains once C++20 releases
+                if (const auto it = registers.find(reg); it != registers.end()) {
+                    return Emit(OpLoad(t_float, it->second));
+                }
+                return Constant(t_float, 0.0f);
+            };
+
+            UNIMPLEMENTED_IF_MSG(header.ps.omap.sample_mask != 0,
+                                 "Sample mask write is unimplemented");
+
+            // TODO(Rodrigo): Alpha testing
+
+            // Write the color outputs using the data in the shader registers, disabled
+            // rendertargets/components are skipped in the register assignment.
+            u32 current_reg = 0;
+            for (u32 rt = 0; rt < Maxwell::NumRenderTargets; ++rt) {
+                // TODO(Subv): Figure out how dual-source blending is configured in the Switch.
+                for (u32 component = 0; component < 4; ++component) {
+                    if (header.ps.IsColorComponentOutputEnabled(rt, component)) {
+                        Emit(OpStore(AccessElement(t_out_float, frag_colors.at(rt), component),
+                                     SafeGetRegister(current_reg)));
+                        ++current_reg;
+                    }
+                }
+            }
+            if (header.ps.omap.depth) {
+                // The depth output is always 2 registers after the last color output, and
+                // current_reg already contains one past the last color register.
+                Emit(OpStore(frag_depth, SafeGetRegister(current_reg + 1)));
+            }
+            break;
+        }
+        }
+
+        BranchingOp([&]() { Emit(OpReturn()); });
         return {};
     }
 
     Id Discard(Operation operation) {
-        UNIMPLEMENTED();
+        BranchingOp([&]() { Emit(OpKill()); });
         return {};
     }
 
@@ -1065,6 +1131,17 @@ private:
         }
         UNREACHABLE();
         return {};
+    }
+
+    void BranchingOp(std::function<void()> call) {
+        const Id true_label = OpLabel();
+        const Id skip_label = OpLabel();
+        Emit(OpSelectionMerge(skip_label, spv::SelectionControlMask::Flatten));
+        Emit(OpBranchConditional(v_true, true_label, skip_label, 1, 0));
+        Emit(true_label);
+        call();
+
+        Emit(skip_label);
     }
 
     static constexpr OperationDecompilersArray operation_decompilers = {
