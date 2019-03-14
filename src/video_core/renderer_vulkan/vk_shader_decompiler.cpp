@@ -86,6 +86,7 @@ public:
 
     void Decompile() {
         AllocateBindings();
+        AllocateLabels();
 
         DeclareVertex();
         DeclareGeometry();
@@ -100,7 +101,63 @@ public:
         DeclareGlobalBuffers();
         DeclareSamplers();
 
+        execute_function =
+            Emit(OpFunction(t_void, spv::FunctionControlMask::Inline, TypeFunction(t_void)));
+        Emit(OpLabel());
+
+        const u32 first_address = ir.GetBasicBlocks().begin()->first;
+        const Id loop_label = OpLabel("loop");
+        const Id merge_label = OpLabel("merge");
+        const Id dummy_label = OpLabel();
+        const Id jump_label = OpLabel();
+        continue_label = OpLabel("continue");
+
+        std::vector<Sirit::Literal> literals;
+        std::vector<Id> branch_labels;
+        for (const auto& pair : labels) {
+            const auto [literal, label] = pair;
+            literals.push_back(literal);
+            branch_labels.push_back(label);
+        }
+
+        // TODO(Rodrigo): Figure out the actual depth of the flow stack, for now it seems unlikely
+        // that shaders will use 20 nested SSYs and PBKs.
+        constexpr u32 FLOW_STACK_SIZE = 20;
+        const Id flow_stack_type = TypeArray(t_uint, Constant(t_uint, FLOW_STACK_SIZE));
+        jmp_to = Emit(OpVariable(TypePointer(spv::StorageClass::Function, t_uint),
+                                 spv::StorageClass::Function, Constant(t_uint, first_address)));
+        flow_stack = Emit(OpVariable(TypePointer(spv::StorageClass::Function, flow_stack_type),
+                                     spv::StorageClass::Function, ConstantNull(flow_stack_type)));
+        flow_stack_top =
+            Emit(OpVariable(t_func_uint, spv::StorageClass::Function, Constant(t_uint, 0)));
+
+        Name(jmp_to, "jmp_to");
+        Name(flow_stack, "flow_stack");
+        Name(flow_stack_top, "flow_stack_top");
+
+        Emit(OpBranch(loop_label));
+        Emit(loop_label);
+        Emit(OpLoopMerge(merge_label, continue_label, spv::LoopControlMask::Unroll));
+        Emit(OpBranch(dummy_label));
+
+        Emit(dummy_label);
+        const Id default_branch = OpLabel();
+        const Id jmp_to_load = Emit(OpLoad(t_uint, jmp_to));
+        Emit(OpSelectionMerge(jump_label, spv::SelectionControlMask::MaskNone));
+        Emit(OpSwitch(jmp_to_load, default_branch, literals, branch_labels));
+
+        Emit(default_branch);
+        Emit(OpReturn());
+
         UNIMPLEMENTED();
+
+        Emit(jump_label);
+        Emit(OpBranch(continue_label));
+        Emit(continue_label);
+        Emit(OpBranch(loop_label));
+        Emit(merge_label);
+        Emit(OpReturn());
+        Emit(OpFunctionEnd());
     }
 
     ShaderEntries GetShaderEntries() const {
@@ -146,6 +203,13 @@ private:
 
         ASSERT_MSG(binding_iterator - binding_base < STAGE_BINDING_STRIDE,
                    "Stage binding stride is too small");
+    }
+
+    void AllocateLabels() {
+        for (const auto& pair : ir.GetBasicBlocks()) {
+            const u32 address = pair.first;
+            labels.emplace(address, OpLabel(fmt::format("label_0x{:x}", address)));
+        }
     }
 
     void DeclareVertex() {
@@ -432,6 +496,8 @@ private:
     const Id t_prv_bool = Name(TypePointer(spv::StorageClass::Private, t_bool), "prv_bool");
     const Id t_prv_float = Name(TypePointer(spv::StorageClass::Private, t_float), "prv_float");
 
+    const Id t_func_uint = Name(TypePointer(spv::StorageClass::Function, t_uint), "func_uint");
+
     const Id t_in_bool = Name(TypePointer(spv::StorageClass::Input, t_bool), "in_bool");
     const Id t_in_uint = Name(TypePointer(spv::StorageClass::Input, t_uint), "in_uint");
     const Id t_in_float = Name(TypePointer(spv::StorageClass::Input, t_float), "in_float");
@@ -488,6 +554,11 @@ private:
     u32 samplers_base_binding{};
 
     Id execute_function{};
+    Id jmp_to{};
+    Id flow_stack_top{};
+    Id flow_stack{};
+    Id continue_label{};
+    std::map<u32, Id> labels;
 };
 
 DecompilerResult Decompile(const VideoCommon::Shader::ShaderIR& ir, Maxwell::ShaderStage stage) {
