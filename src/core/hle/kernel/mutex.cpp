@@ -2,7 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <map>
 #include <utility>
 #include <vector>
 
@@ -10,8 +9,10 @@
 #include "core/core.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/mutex.h"
 #include "core/hle/kernel/object.h"
+#include "core/hle/kernel/process.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/result.h"
 #include "core/memory.h"
@@ -57,13 +58,17 @@ static void TransferMutexOwnership(VAddr mutex_addr, SharedPtr<Thread> current_t
     }
 }
 
-ResultCode Mutex::TryAcquire(HandleTable& handle_table, VAddr address, Handle holding_thread_handle,
+Mutex::Mutex(Core::System& system) : system{system} {}
+Mutex::~Mutex() = default;
+
+ResultCode Mutex::TryAcquire(VAddr address, Handle holding_thread_handle,
                              Handle requesting_thread_handle) {
     // The mutex address must be 4-byte aligned
     if ((address % sizeof(u32)) != 0) {
         return ERR_INVALID_ADDRESS;
     }
 
+    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
     SharedPtr<Thread> holding_thread = handle_table.Get<Thread>(holding_thread_handle);
     SharedPtr<Thread> requesting_thread = handle_table.Get<Thread>(requesting_thread_handle);
 

@@ -14,6 +14,7 @@
 #include "common/common_types.h"
 #include "core/hle/kernel/address_arbiter.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/mutex.h"
 #include "core/hle/kernel/process_capability.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/hle/kernel/wait_object.h"
@@ -163,6 +164,16 @@ public:
     /// Gets a const reference to the process' address arbiter.
     const AddressArbiter& GetAddressArbiter() const {
         return address_arbiter;
+    }
+
+    /// Gets a reference to the process' mutex lock.
+    Mutex& GetMutex() {
+        return mutex;
+    }
+
+    /// Gets a const reference to the process' mutex lock
+    const Mutex& GetMutex() const {
+        return mutex;
     }
 
     /// Gets the current status of the process
@@ -326,6 +337,11 @@ private:
 
     /// Per-process address arbiter.
     AddressArbiter address_arbiter;
+
+    /// The per-process mutex lock instance used for handling various
+    /// forms of services, such as lock arbitration, and condition
+    /// variable related facilities.
+    Mutex mutex;
 
     /// Random values for svcGetInfo RandomEntropy
     std::array<u64, RANDOM_ENTROPY_SIZE> random_entropy;
