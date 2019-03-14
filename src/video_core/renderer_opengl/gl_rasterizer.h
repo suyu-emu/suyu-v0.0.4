@@ -215,6 +215,7 @@ private:
     GlobalRegionCacheOpenGL global_cache;
 
     Core::Frontend::EmuWindow& emu_window;
+    Core::System& system;
 
     ScreenInfo& screen_info;
 
