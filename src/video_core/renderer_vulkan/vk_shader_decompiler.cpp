@@ -804,6 +804,38 @@ private:
         return {};
     }
 
+    Id GetTextureSampler(Operation operation) {
+        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
+        const auto entry = sampler_images.at(static_cast<u32>(meta->sampler.GetIndex()));
+        return Emit(OpLoad(entry.sampled_image_type, entry.sampler));
+    }
+
+    Id GetTextureImage(Operation operation) {
+        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
+        const auto entry = sampler_images.at(static_cast<u32>(meta->sampler.GetIndex()));
+        return Emit(OpImage(entry.image_type, GetTextureSampler(operation)));
+    }
+
+    Id GetTextureCoordinates(Operation operation) {
+        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
+        std::vector<Id> coords;
+        for (std::size_t i = 0; i < operation.GetOperandsCount(); ++i) {
+            coords.push_back(Visit(operation[i]));
+        }
+        if (meta->sampler.IsArray()) {
+            const Id array_integer = BitcastTo<Type::Int>(Visit(meta->array));
+            coords.push_back(Emit(OpConvertSToF(t_float, array_integer)));
+        }
+        if (meta->sampler.IsShadow()) {
+            coords.push_back(Visit(meta->depth_compare));
+        }
+
+        const std::array<Id, 4> t_float_lut = {nullptr, t_float2, t_float3, t_float4};
+        return coords.size() == 1
+                   ? coords[0]
+                   : Emit(OpCompositeConstruct(t_float_lut.at(coords.size() - 1), coords));
+    }
+
     Id Texture(Operation operation) {
         UNIMPLEMENTED();
         return {};
