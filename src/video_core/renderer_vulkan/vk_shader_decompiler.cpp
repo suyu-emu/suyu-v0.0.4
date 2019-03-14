@@ -149,7 +149,16 @@ public:
         Emit(default_branch);
         Emit(OpReturn());
 
-        UNIMPLEMENTED();
+        for (const auto& pair : ir.GetBasicBlocks()) {
+            const auto& [address, bb] = pair;
+            Emit(labels.at(address));
+
+            VisitBasicBlock(bb);
+
+            const auto next_it = labels.lower_bound(address + 1);
+            const Id next_label = next_it != labels.end() ? next_it->second : default_branch;
+            Emit(OpBranch(next_label));
+        }
 
         Emit(jump_label);
         Emit(OpBranch(continue_label));
@@ -449,6 +458,46 @@ private:
         per_vertex = OpVariable(type_pointer, spv::StorageClass::Output);
         AddGlobalVariable(Name(per_vertex, "per_vertex"));
         interfaces.push_back(per_vertex);
+    }
+
+    void VisitBasicBlock(const NodeBlock& bb) {
+        for (const Node node : bb) {
+            static_cast<void>(Visit(node));
+        }
+    }
+
+    Id Visit(Node node) {
+        if (const auto operation = std::get_if<OperationNode>(node)) {
+            UNIMPLEMENTED();
+
+        } else if (const auto gpr = std::get_if<GprNode>(node)) {
+            UNIMPLEMENTED();
+
+        } else if (const auto immediate = std::get_if<ImmediateNode>(node)) {
+            UNIMPLEMENTED();
+
+        } else if (const auto predicate = std::get_if<PredicateNode>(node)) {
+            UNIMPLEMENTED();
+
+        } else if (const auto abuf = std::get_if<AbufNode>(node)) {
+            UNIMPLEMENTED();
+
+        } else if (const auto cbuf = std::get_if<CbufNode>(node)) {
+            UNIMPLEMENTED();
+
+        } else if (const auto gmem = std::get_if<GmemNode>(node)) {
+            UNIMPLEMENTED();
+
+        } else if (const auto conditional = std::get_if<ConditionalNode>(node)) {
+            UNIMPLEMENTED();
+
+        } else if (const auto comment = std::get_if<CommentNode>(node)) {
+            Name(Emit(OpUndef(t_void)), comment->GetText());
+            return {};
+        }
+
+        UNREACHABLE();
+        return {};
     }
 
     Id DeclareBuiltIn(spv::BuiltIn builtin, spv::StorageClass storage, Id type,
