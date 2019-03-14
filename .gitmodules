@@ -43,3 +43,6 @@
 [submodule "externals/zstd"]
     path = externals/zstd
     url = https://github.com/facebook/zstd
+[submodule "sirit"]
+    path = externals/sirit
+    url = https://github.com/ReinUsesLisp/sirit

@@ -72,6 +72,11 @@ if (USE_DISCORD_PRESENCE)
     target_include_directories(discord-rpc INTERFACE ./discord-rpc/include)
 endif()
 
+# Sirit
+if (ENABLE_VULKAN)
+    add_subdirectory(sirit)
+endif()
+
 if (ENABLE_WEB_SERVICE)
     # LibreSSL
     set(LIBRESSL_SKIP_INSTALL ON CACHE BOOL "")
