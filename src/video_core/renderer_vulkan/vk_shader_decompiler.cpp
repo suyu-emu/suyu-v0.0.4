@@ -836,24 +836,81 @@ private:
                    : Emit(OpCompositeConstruct(t_float_lut.at(coords.size() - 1), coords));
     }
 
+    Id GetTextureElement(Operation operation, Id sample_value) {
+        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
+        ASSERT(meta);
+        return Emit(OpCompositeExtract(t_float, sample_value, meta->element));
+    }
+
     Id Texture(Operation operation) {
-        UNIMPLEMENTED();
-        return {};
+        const Id texture = Emit(OpImageSampleImplicitLod(t_float4, GetTextureSampler(operation),
+                                                         GetTextureCoordinates(operation)));
+        return GetTextureElement(operation, texture);
     }
 
     Id TextureLod(Operation operation) {
-        UNIMPLEMENTED();
-        return {};
+        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
+        const Id texture = Emit(OpImageSampleExplicitLod(
+            t_float4, GetTextureSampler(operation), GetTextureCoordinates(operation),
+            spv::ImageOperandsMask::Lod, Visit(meta->lod)));
+        return GetTextureElement(operation, texture);
     }
 
     Id TextureGather(Operation operation) {
-        UNIMPLEMENTED();
-        return {};
+        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
+        const auto coords = GetTextureCoordinates(operation);
+
+        Id texture;
+        if (meta->sampler.IsShadow()) {
+            texture = Emit(OpImageDrefGather(t_float4, GetTextureSampler(operation), coords,
+                                             Visit(meta->component)));
+        } else {
+            u32 component_value = 0;
+            if (meta->component) {
+                const auto component = std::get_if<ImmediateNode>(meta->component);
+                ASSERT_MSG(component, "Component is not an immediate value");
+                component_value = component->GetValue();
+            }
+            texture = Emit(OpImageGather(t_float4, GetTextureSampler(operation), coords,
+                                         Constant(t_uint, component_value)));
+        }
+
+        return GetTextureElement(operation, texture);
     }
 
     Id TextureQueryDimensions(Operation operation) {
-        UNIMPLEMENTED();
-        return {};
+        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
+        const auto image_id = GetTextureImage(operation);
+        AddCapability(spv::Capability::ImageQuery);
+
+        if (meta->element == 3) {
+            return BitcastTo<Type::Float>(Emit(OpImageQueryLevels(t_int, image_id)));
+        }
+
+        const Id lod = VisitOperand<Type::Uint>(operation, 0);
+        const std::size_t coords_count = [&]() {
+            switch (const auto type = meta->sampler.GetType(); type) {
+            case Tegra::Shader::TextureType::Texture1D:
+                return 1;
+            case Tegra::Shader::TextureType::Texture2D:
+            case Tegra::Shader::TextureType::TextureCube:
+                return 2;
+            case Tegra::Shader::TextureType::Texture3D:
+                return 3;
+            default:
+                UNREACHABLE_MSG("Invalid texture type={}", static_cast<u32>(type));
+                return 2;
+            }
+        }();
+
+        if (meta->element >= coords_count) {
+            return Constant(t_float, 0.0f);
+        }
+
+        const std::array<Id, 3> types = {t_int, t_int2, t_int3};
+        const Id sizes = Emit(OpImageQuerySizeLod(types.at(coords_count - 1), image_id, lod));
+        const Id size = Emit(OpCompositeExtract(t_int, sizes, meta->element));
+        return BitcastTo<Type::Float>(size);
     }
 
     Id TextureQueryLod(Operation operation) {
