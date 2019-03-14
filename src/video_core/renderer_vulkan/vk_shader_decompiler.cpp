@@ -693,7 +693,49 @@ private:
     }
 
     Id Assign(Operation operation) {
-        UNIMPLEMENTED();
+        const Node dest = operation[0];
+        const Node src = operation[1];
+
+        Id target{};
+        if (const auto gpr = std::get_if<GprNode>(dest)) {
+            if (gpr->GetIndex() == Register::ZeroIndex) {
+                // Writing to Register::ZeroIndex is a no op
+                return {};
+            }
+            target = registers.at(gpr->GetIndex());
+
+        } else if (const auto abuf = std::get_if<AbufNode>(dest)) {
+            target = [&]() -> Id {
+                switch (const auto attribute = abuf->GetIndex(); attribute) {
+                case Attribute::Index::Position:
+                    return AccessElement(t_out_float, per_vertex, position_index,
+                                         abuf->GetElement());
+                case Attribute::Index::PointSize:
+                    return AccessElement(t_out_float, per_vertex, point_size_index);
+                case Attribute::Index::ClipDistances0123:
+                    return AccessElement(t_out_float, per_vertex, clip_distances_index,
+                                         abuf->GetElement());
+                case Attribute::Index::ClipDistances4567:
+                    return AccessElement(t_out_float, per_vertex, clip_distances_index,
+                                         abuf->GetElement() + 4);
+                default:
+                    if (IsGenericAttribute(attribute)) {
+                        return AccessElement(t_out_float, output_attributes.at(attribute),
+                                             abuf->GetElement());
+                    }
+                    UNIMPLEMENTED_MSG("Unhandled output attribute: {}",
+                                      static_cast<u32>(attribute));
+                    return {};
+                }
+            }();
+
+        } else if (const auto lmem = std::get_if<LmemNode>(dest)) {
+            Id address = BitcastTo<Type::Uint>(Visit(lmem->GetAddress()));
+            address = Emit(OpUDiv(t_uint, address, Constant(t_uint, 4)));
+            target = Emit(OpAccessChain(t_prv_float, local_memory, {address}));
+        }
+
+        Emit(OpStore(target, Visit(src)));
         return {};
     }
 
@@ -723,7 +765,27 @@ private:
     }
 
     Id LogicalAssign(Operation operation) {
-        UNIMPLEMENTED();
+        const Node dest = operation[0];
+        const Node src = operation[1];
+
+        Id target{};
+        if (const auto pred = std::get_if<PredicateNode>(dest)) {
+            ASSERT_MSG(!pred->IsNegated(), "Negating logical assignment");
+
+            const auto index = pred->GetIndex();
+            switch (index) {
+            case Tegra::Shader::Pred::NeverExecute:
+            case Tegra::Shader::Pred::UnusedIndex:
+                // Writing to these predicates is a no-op
+                return {};
+            }
+            target = predicates.at(index);
+
+        } else if (const auto flag = std::get_if<InternalFlagNode>(dest)) {
+            target = internal_flags.at(static_cast<u32>(flag->GetFlag()));
+        }
+
+        Emit(OpStore(target, Visit(src)));
         return {};
     }
 
