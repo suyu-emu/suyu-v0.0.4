@@ -167,9 +167,11 @@ void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuf
         Memory::RasterizerFlushVirtualRegion(framebuffer_addr, size_in_bytes,
                                              Memory::FlushMode::Flush);
 
-        VideoCore::MortonCopyPixels128(framebuffer.width, framebuffer.height, bytes_per_pixel, 4,
-                                       Memory::GetPointer(framebuffer_addr),
-                                       gl_framebuffer_data.data(), true);
+        constexpr u32 linear_bpp = 4;
+        VideoCore::MortonCopyPixels128(VideoCore::MortonSwizzleMode::MortonToLinear,
+                                       framebuffer.width, framebuffer.height, bytes_per_pixel,
+                                       linear_bpp, Memory::GetPointer(framebuffer_addr),
+                                       gl_framebuffer_data.data());
 
         glPixelStorei(GL_UNPACK_ROW_LENGTH, static_cast<GLint>(framebuffer.stride));
 

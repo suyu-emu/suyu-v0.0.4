@@ -16,12 +16,12 @@ namespace VideoCore {
 using Surface::GetBytesPerPixel;
 using Surface::PixelFormat;
 
-using MortonCopyFn = void (*)(u32, u32, u32, u32, u32, u32, u8*, std::size_t, VAddr);
+using MortonCopyFn = void (*)(u32, u32, u32, u32, u32, u32, u8*, VAddr);
 using ConversionArray = std::array<MortonCopyFn, Surface::MaxPixelFormat>;
 
 template <bool morton_to_linear, PixelFormat format>
 static void MortonCopy(u32 stride, u32 block_height, u32 height, u32 block_depth, u32 depth,
-                       u32 tile_width_spacing, u8* buffer, std::size_t buffer_size, VAddr addr) {
+                       u32 tile_width_spacing, u8* buffer, VAddr addr) {
     constexpr u32 bytes_per_pixel = GetBytesPerPixel(format);
 
     // With the BCn formats (DXT and DXN), each 4x4 tile is swizzled instead of just individual
@@ -42,142 +42,138 @@ static void MortonCopy(u32 stride, u32 block_height, u32 height, u32 block_depth
 }
 
 static constexpr ConversionArray morton_to_linear_fns = {
-    // clang-format off
-        MortonCopy<true, PixelFormat::ABGR8U>,
-        MortonCopy<true, PixelFormat::ABGR8S>,
-        MortonCopy<true, PixelFormat::ABGR8UI>,
-        MortonCopy<true, PixelFormat::B5G6R5U>,
-        MortonCopy<true, PixelFormat::A2B10G10R10U>,
-        MortonCopy<true, PixelFormat::A1B5G5R5U>,
-        MortonCopy<true, PixelFormat::R8U>,
-        MortonCopy<true, PixelFormat::R8UI>,
-        MortonCopy<true, PixelFormat::RGBA16F>,
-        MortonCopy<true, PixelFormat::RGBA16U>,
-        MortonCopy<true, PixelFormat::RGBA16UI>,
-        MortonCopy<true, PixelFormat::R11FG11FB10F>,
-        MortonCopy<true, PixelFormat::RGBA32UI>,
-        MortonCopy<true, PixelFormat::DXT1>,
-        MortonCopy<true, PixelFormat::DXT23>,
-        MortonCopy<true, PixelFormat::DXT45>,
-        MortonCopy<true, PixelFormat::DXN1>,
-        MortonCopy<true, PixelFormat::DXN2UNORM>,
-        MortonCopy<true, PixelFormat::DXN2SNORM>,
-        MortonCopy<true, PixelFormat::BC7U>,
-        MortonCopy<true, PixelFormat::BC6H_UF16>,
-        MortonCopy<true, PixelFormat::BC6H_SF16>,
-        MortonCopy<true, PixelFormat::ASTC_2D_4X4>,
-        MortonCopy<true, PixelFormat::BGRA8>,
-        MortonCopy<true, PixelFormat::RGBA32F>,
-        MortonCopy<true, PixelFormat::RG32F>,
-        MortonCopy<true, PixelFormat::R32F>,
-        MortonCopy<true, PixelFormat::R16F>,
-        MortonCopy<true, PixelFormat::R16U>,
-        MortonCopy<true, PixelFormat::R16S>,
-        MortonCopy<true, PixelFormat::R16UI>,
-        MortonCopy<true, PixelFormat::R16I>,
-        MortonCopy<true, PixelFormat::RG16>,
-        MortonCopy<true, PixelFormat::RG16F>,
-        MortonCopy<true, PixelFormat::RG16UI>,
-        MortonCopy<true, PixelFormat::RG16I>,
-        MortonCopy<true, PixelFormat::RG16S>,
-        MortonCopy<true, PixelFormat::RGB32F>,
-        MortonCopy<true, PixelFormat::RGBA8_SRGB>,
-        MortonCopy<true, PixelFormat::RG8U>,
-        MortonCopy<true, PixelFormat::RG8S>,
-        MortonCopy<true, PixelFormat::RG32UI>,
-        MortonCopy<true, PixelFormat::R32UI>,
-        MortonCopy<true, PixelFormat::ASTC_2D_8X8>,
-        MortonCopy<true, PixelFormat::ASTC_2D_8X5>,
-        MortonCopy<true, PixelFormat::ASTC_2D_5X4>,
-        MortonCopy<true, PixelFormat::BGRA8_SRGB>,
-        MortonCopy<true, PixelFormat::DXT1_SRGB>,
-        MortonCopy<true, PixelFormat::DXT23_SRGB>,
-        MortonCopy<true, PixelFormat::DXT45_SRGB>,
-        MortonCopy<true, PixelFormat::BC7U_SRGB>,
-        MortonCopy<true, PixelFormat::ASTC_2D_4X4_SRGB>,
-        MortonCopy<true, PixelFormat::ASTC_2D_8X8_SRGB>,
-        MortonCopy<true, PixelFormat::ASTC_2D_8X5_SRGB>,
-        MortonCopy<true, PixelFormat::ASTC_2D_5X4_SRGB>,
-        MortonCopy<true, PixelFormat::ASTC_2D_5X5>,
-        MortonCopy<true, PixelFormat::ASTC_2D_5X5_SRGB>,
-        MortonCopy<true, PixelFormat::ASTC_2D_10X8>,
-        MortonCopy<true, PixelFormat::ASTC_2D_10X8_SRGB>,
-        MortonCopy<true, PixelFormat::Z32F>,
-        MortonCopy<true, PixelFormat::Z16>,
-        MortonCopy<true, PixelFormat::Z24S8>,
-        MortonCopy<true, PixelFormat::S8Z24>,
-        MortonCopy<true, PixelFormat::Z32FS8>,
-    // clang-format on
+    MortonCopy<true, PixelFormat::ABGR8U>,
+    MortonCopy<true, PixelFormat::ABGR8S>,
+    MortonCopy<true, PixelFormat::ABGR8UI>,
+    MortonCopy<true, PixelFormat::B5G6R5U>,
+    MortonCopy<true, PixelFormat::A2B10G10R10U>,
+    MortonCopy<true, PixelFormat::A1B5G5R5U>,
+    MortonCopy<true, PixelFormat::R8U>,
+    MortonCopy<true, PixelFormat::R8UI>,
+    MortonCopy<true, PixelFormat::RGBA16F>,
+    MortonCopy<true, PixelFormat::RGBA16U>,
+    MortonCopy<true, PixelFormat::RGBA16UI>,
+    MortonCopy<true, PixelFormat::R11FG11FB10F>,
+    MortonCopy<true, PixelFormat::RGBA32UI>,
+    MortonCopy<true, PixelFormat::DXT1>,
+    MortonCopy<true, PixelFormat::DXT23>,
+    MortonCopy<true, PixelFormat::DXT45>,
+    MortonCopy<true, PixelFormat::DXN1>,
+    MortonCopy<true, PixelFormat::DXN2UNORM>,
+    MortonCopy<true, PixelFormat::DXN2SNORM>,
+    MortonCopy<true, PixelFormat::BC7U>,
+    MortonCopy<true, PixelFormat::BC6H_UF16>,
+    MortonCopy<true, PixelFormat::BC6H_SF16>,
+    MortonCopy<true, PixelFormat::ASTC_2D_4X4>,
+    MortonCopy<true, PixelFormat::BGRA8>,
+    MortonCopy<true, PixelFormat::RGBA32F>,
+    MortonCopy<true, PixelFormat::RG32F>,
+    MortonCopy<true, PixelFormat::R32F>,
+    MortonCopy<true, PixelFormat::R16F>,
+    MortonCopy<true, PixelFormat::R16U>,
+    MortonCopy<true, PixelFormat::R16S>,
+    MortonCopy<true, PixelFormat::R16UI>,
+    MortonCopy<true, PixelFormat::R16I>,
+    MortonCopy<true, PixelFormat::RG16>,
+    MortonCopy<true, PixelFormat::RG16F>,
+    MortonCopy<true, PixelFormat::RG16UI>,
+    MortonCopy<true, PixelFormat::RG16I>,
+    MortonCopy<true, PixelFormat::RG16S>,
+    MortonCopy<true, PixelFormat::RGB32F>,
+    MortonCopy<true, PixelFormat::RGBA8_SRGB>,
+    MortonCopy<true, PixelFormat::RG8U>,
+    MortonCopy<true, PixelFormat::RG8S>,
+    MortonCopy<true, PixelFormat::RG32UI>,
+    MortonCopy<true, PixelFormat::R32UI>,
+    MortonCopy<true, PixelFormat::ASTC_2D_8X8>,
+    MortonCopy<true, PixelFormat::ASTC_2D_8X5>,
+    MortonCopy<true, PixelFormat::ASTC_2D_5X4>,
+    MortonCopy<true, PixelFormat::BGRA8_SRGB>,
+    MortonCopy<true, PixelFormat::DXT1_SRGB>,
+    MortonCopy<true, PixelFormat::DXT23_SRGB>,
+    MortonCopy<true, PixelFormat::DXT45_SRGB>,
+    MortonCopy<true, PixelFormat::BC7U_SRGB>,
+    MortonCopy<true, PixelFormat::ASTC_2D_4X4_SRGB>,
+    MortonCopy<true, PixelFormat::ASTC_2D_8X8_SRGB>,
+    MortonCopy<true, PixelFormat::ASTC_2D_8X5_SRGB>,
+    MortonCopy<true, PixelFormat::ASTC_2D_5X4_SRGB>,
+    MortonCopy<true, PixelFormat::ASTC_2D_5X5>,
+    MortonCopy<true, PixelFormat::ASTC_2D_5X5_SRGB>,
+    MortonCopy<true, PixelFormat::ASTC_2D_10X8>,
+    MortonCopy<true, PixelFormat::ASTC_2D_10X8_SRGB>,
+    MortonCopy<true, PixelFormat::Z32F>,
+    MortonCopy<true, PixelFormat::Z16>,
+    MortonCopy<true, PixelFormat::Z24S8>,
+    MortonCopy<true, PixelFormat::S8Z24>,
+    MortonCopy<true, PixelFormat::Z32FS8>,
 };
 
 static constexpr ConversionArray linear_to_morton_fns = {
-    // clang-format off
-        MortonCopy<false, PixelFormat::ABGR8U>,
-        MortonCopy<false, PixelFormat::ABGR8S>,
-        MortonCopy<false, PixelFormat::ABGR8UI>,
-        MortonCopy<false, PixelFormat::B5G6R5U>,
-        MortonCopy<false, PixelFormat::A2B10G10R10U>,
-        MortonCopy<false, PixelFormat::A1B5G5R5U>,
-        MortonCopy<false, PixelFormat::R8U>,
-        MortonCopy<false, PixelFormat::R8UI>,
-        MortonCopy<false, PixelFormat::RGBA16F>,
-        MortonCopy<false, PixelFormat::RGBA16U>,
-        MortonCopy<false, PixelFormat::RGBA16UI>,
-        MortonCopy<false, PixelFormat::R11FG11FB10F>,
-        MortonCopy<false, PixelFormat::RGBA32UI>,
-        MortonCopy<false, PixelFormat::DXT1>,
-        MortonCopy<false, PixelFormat::DXT23>,
-        MortonCopy<false, PixelFormat::DXT45>,
-        MortonCopy<false, PixelFormat::DXN1>,
-        MortonCopy<false, PixelFormat::DXN2UNORM>,
-        MortonCopy<false, PixelFormat::DXN2SNORM>,
-        MortonCopy<false, PixelFormat::BC7U>,
-        MortonCopy<false, PixelFormat::BC6H_UF16>,
-        MortonCopy<false, PixelFormat::BC6H_SF16>,
-        // TODO(Subv): Swizzling ASTC formats are not supported
-        nullptr,
-        MortonCopy<false, PixelFormat::BGRA8>,
-        MortonCopy<false, PixelFormat::RGBA32F>,
-        MortonCopy<false, PixelFormat::RG32F>,
-        MortonCopy<false, PixelFormat::R32F>,
-        MortonCopy<false, PixelFormat::R16F>,
-        MortonCopy<false, PixelFormat::R16U>,
-        MortonCopy<false, PixelFormat::R16S>,
-        MortonCopy<false, PixelFormat::R16UI>,
-        MortonCopy<false, PixelFormat::R16I>,
-        MortonCopy<false, PixelFormat::RG16>,
-        MortonCopy<false, PixelFormat::RG16F>,
-        MortonCopy<false, PixelFormat::RG16UI>,
-        MortonCopy<false, PixelFormat::RG16I>,
-        MortonCopy<false, PixelFormat::RG16S>,
-        MortonCopy<false, PixelFormat::RGB32F>,
-        MortonCopy<false, PixelFormat::RGBA8_SRGB>,
-        MortonCopy<false, PixelFormat::RG8U>,
-        MortonCopy<false, PixelFormat::RG8S>,
-        MortonCopy<false, PixelFormat::RG32UI>,
-        MortonCopy<false, PixelFormat::R32UI>,
-        nullptr,
-        nullptr,
-        nullptr,
-        MortonCopy<false, PixelFormat::BGRA8_SRGB>,
-        MortonCopy<false, PixelFormat::DXT1_SRGB>,
-        MortonCopy<false, PixelFormat::DXT23_SRGB>,
-        MortonCopy<false, PixelFormat::DXT45_SRGB>,
-        MortonCopy<false, PixelFormat::BC7U_SRGB>,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        MortonCopy<false, PixelFormat::Z32F>,
-        MortonCopy<false, PixelFormat::Z16>,
-        MortonCopy<false, PixelFormat::Z24S8>,
-        MortonCopy<false, PixelFormat::S8Z24>,
-        MortonCopy<false, PixelFormat::Z32FS8>,
-    // clang-format on
+    MortonCopy<false, PixelFormat::ABGR8U>,
+    MortonCopy<false, PixelFormat::ABGR8S>,
+    MortonCopy<false, PixelFormat::ABGR8UI>,
+    MortonCopy<false, PixelFormat::B5G6R5U>,
+    MortonCopy<false, PixelFormat::A2B10G10R10U>,
+    MortonCopy<false, PixelFormat::A1B5G5R5U>,
+    MortonCopy<false, PixelFormat::R8U>,
+    MortonCopy<false, PixelFormat::R8UI>,
+    MortonCopy<false, PixelFormat::RGBA16F>,
+    MortonCopy<false, PixelFormat::RGBA16U>,
+    MortonCopy<false, PixelFormat::RGBA16UI>,
+    MortonCopy<false, PixelFormat::R11FG11FB10F>,
+    MortonCopy<false, PixelFormat::RGBA32UI>,
+    MortonCopy<false, PixelFormat::DXT1>,
+    MortonCopy<false, PixelFormat::DXT23>,
+    MortonCopy<false, PixelFormat::DXT45>,
+    MortonCopy<false, PixelFormat::DXN1>,
+    MortonCopy<false, PixelFormat::DXN2UNORM>,
+    MortonCopy<false, PixelFormat::DXN2SNORM>,
+    MortonCopy<false, PixelFormat::BC7U>,
+    MortonCopy<false, PixelFormat::BC6H_UF16>,
+    MortonCopy<false, PixelFormat::BC6H_SF16>,
+    // TODO(Subv): Swizzling ASTC formats are not supported
+    nullptr,
+    MortonCopy<false, PixelFormat::BGRA8>,
+    MortonCopy<false, PixelFormat::RGBA32F>,
+    MortonCopy<false, PixelFormat::RG32F>,
+    MortonCopy<false, PixelFormat::R32F>,
+    MortonCopy<false, PixelFormat::R16F>,
+    MortonCopy<false, PixelFormat::R16U>,
+    MortonCopy<false, PixelFormat::R16S>,
+    MortonCopy<false, PixelFormat::R16UI>,
+    MortonCopy<false, PixelFormat::R16I>,
+    MortonCopy<false, PixelFormat::RG16>,
+    MortonCopy<false, PixelFormat::RG16F>,
+    MortonCopy<false, PixelFormat::RG16UI>,
+    MortonCopy<false, PixelFormat::RG16I>,
+    MortonCopy<false, PixelFormat::RG16S>,
+    MortonCopy<false, PixelFormat::RGB32F>,
+    MortonCopy<false, PixelFormat::RGBA8_SRGB>,
+    MortonCopy<false, PixelFormat::RG8U>,
+    MortonCopy<false, PixelFormat::RG8S>,
+    MortonCopy<false, PixelFormat::RG32UI>,
+    MortonCopy<false, PixelFormat::R32UI>,
+    nullptr,
+    nullptr,
+    nullptr,
+    MortonCopy<false, PixelFormat::BGRA8_SRGB>,
+    MortonCopy<false, PixelFormat::DXT1_SRGB>,
+    MortonCopy<false, PixelFormat::DXT23_SRGB>,
+    MortonCopy<false, PixelFormat::DXT45_SRGB>,
+    MortonCopy<false, PixelFormat::BC7U_SRGB>,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    MortonCopy<false, PixelFormat::Z32F>,
+    MortonCopy<false, PixelFormat::Z16>,
+    MortonCopy<false, PixelFormat::Z24S8>,
+    MortonCopy<false, PixelFormat::S8Z24>,
+    MortonCopy<false, PixelFormat::Z32FS8>,
 };
 
 static MortonCopyFn GetSwizzleFunction(MortonSwizzleMode mode, Surface::PixelFormat format) {
@@ -189,45 +185,6 @@ static MortonCopyFn GetSwizzleFunction(MortonSwizzleMode mode, Surface::PixelFor
     }
     UNREACHABLE();
     return morton_to_linear_fns[static_cast<std::size_t>(format)];
-}
-
-/// 8x8 Z-Order coordinate from 2D coordinates
-static u32 MortonInterleave(u32 x, u32 y) {
-    static const u32 xlut[] = {0x00, 0x01, 0x04, 0x05, 0x10, 0x11, 0x14, 0x15};
-    static const u32 ylut[] = {0x00, 0x02, 0x08, 0x0a, 0x20, 0x22, 0x28, 0x2a};
-    return xlut[x % 8] + ylut[y % 8];
-}
-
-/// Calculates the offset of the position of the pixel in Morton order
-static u32 GetMortonOffset(u32 x, u32 y, u32 bytes_per_pixel) {
-    // Images are split into 8x8 tiles. Each tile is composed of four 4x4 subtiles each
-    // of which is composed of four 2x2 subtiles each of which is composed of four texels.
-    // Each structure is embedded into the next-bigger one in a diagonal pattern, e.g.
-    // texels are laid out in a 2x2 subtile like this:
-    // 2 3
-    // 0 1
-    //
-    // The full 8x8 tile has the texels arranged like this:
-    //
-    // 42 43 46 47 58 59 62 63
-    // 40 41 44 45 56 57 60 61
-    // 34 35 38 39 50 51 54 55
-    // 32 33 36 37 48 49 52 53
-    // 10 11 14 15 26 27 30 31
-    // 08 09 12 13 24 25 28 29
-    // 02 03 06 07 18 19 22 23
-    // 00 01 04 05 16 17 20 21
-    //
-    // This pattern is what's called Z-order curve, or Morton order.
-
-    const unsigned int block_height = 8;
-    const unsigned int coarse_x = x & ~7;
-
-    u32 i = MortonInterleave(x, y);
-
-    const unsigned int offset = coarse_x * block_height;
-
-    return (i + offset) * bytes_per_pixel;
 }
 
 static u32 MortonInterleave128(u32 x, u32 y) {
@@ -325,14 +282,14 @@ static u32 GetMortonOffset128(u32 x, u32 y, u32 bytes_per_pixel) {
 
 void MortonSwizzle(MortonSwizzleMode mode, Surface::PixelFormat format, u32 stride,
                    u32 block_height, u32 height, u32 block_depth, u32 depth, u32 tile_width_spacing,
-                   u8* buffer, std::size_t buffer_size, VAddr addr) {
-
+                   u8* buffer, VAddr addr) {
     GetSwizzleFunction(mode, format)(stride, block_height, height, block_depth, depth,
-                                     tile_width_spacing, buffer, buffer_size, addr);
+                                     tile_width_spacing, buffer, addr);
 }
 
-void MortonCopyPixels128(u32 width, u32 height, u32 bytes_per_pixel, u32 linear_bytes_per_pixel,
-                         u8* morton_data, u8* linear_data, bool morton_to_linear) {
+void MortonCopyPixels128(MortonSwizzleMode mode, u32 width, u32 height, u32 bytes_per_pixel,
+                         u32 linear_bytes_per_pixel, u8* morton_data, u8* linear_data) {
+    const bool morton_to_linear = mode == MortonSwizzleMode::MortonToLinear;
     u8* data_ptrs[2];
     for (u32 y = 0; y < height; ++y) {
         for (u32 x = 0; x < width; ++x) {
