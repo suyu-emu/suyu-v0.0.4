@@ -303,7 +303,9 @@ void Thread::RemoveMutexWaiter(SharedPtr<Thread> thread) {
 }
 
 void Thread::UpdatePriority() {
-    // Find the highest priority among all the threads that are waiting for this thread's lock
+    // If any of the threads waiting on the mutex have a higher priority
+    // (taking into account priority inheritance), then this thread inherits
+    // that thread's priority.
     u32 new_priority = nominal_priority;
     if (!wait_mutex_threads.empty()) {
         if (wait_mutex_threads.front()->current_priority < new_priority) {
