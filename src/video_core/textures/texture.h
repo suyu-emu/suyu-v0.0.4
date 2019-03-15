@@ -283,31 +283,36 @@ enum class TextureMipmapFilter : u32 {
 
 struct TSCEntry {
     union {
-        BitField<0, 3, WrapMode> wrap_u;
-        BitField<3, 3, WrapMode> wrap_v;
-        BitField<6, 3, WrapMode> wrap_p;
-        BitField<9, 1, u32> depth_compare_enabled;
-        BitField<10, 3, DepthCompareFunc> depth_compare_func;
-        BitField<13, 1, u32> srgb_conversion;
-        BitField<20, 3, u32> max_anisotropy;
+        struct {
+            union {
+                BitField<0, 3, WrapMode> wrap_u;
+                BitField<3, 3, WrapMode> wrap_v;
+                BitField<6, 3, WrapMode> wrap_p;
+                BitField<9, 1, u32> depth_compare_enabled;
+                BitField<10, 3, DepthCompareFunc> depth_compare_func;
+                BitField<13, 1, u32> srgb_conversion;
+                BitField<20, 3, u32> max_anisotropy;
+            };
+            union {
+                BitField<0, 2, TextureFilter> mag_filter;
+                BitField<4, 2, TextureFilter> min_filter;
+                BitField<6, 2, TextureMipmapFilter> mipmap_filter;
+                BitField<9, 1, u32> cubemap_interface_filtering;
+                BitField<12, 13, u32> mip_lod_bias;
+            };
+            union {
+                BitField<0, 12, u32> min_lod_clamp;
+                BitField<12, 12, u32> max_lod_clamp;
+                BitField<24, 8, u32> srgb_border_color_r;
+            };
+            union {
+                BitField<12, 8, u32> srgb_border_color_g;
+                BitField<20, 8, u32> srgb_border_color_b;
+            };
+            std::array<f32, 4> border_color;
+        };
+        std::array<u8, 0x20> raw;
     };
-    union {
-        BitField<0, 2, TextureFilter> mag_filter;
-        BitField<4, 2, TextureFilter> min_filter;
-        BitField<6, 2, TextureMipmapFilter> mipmap_filter;
-        BitField<9, 1, u32> cubemap_interface_filtering;
-        BitField<12, 13, u32> mip_lod_bias;
-    };
-    union {
-        BitField<0, 12, u32> min_lod_clamp;
-        BitField<12, 12, u32> max_lod_clamp;
-        BitField<24, 8, u32> srgb_border_color_r;
-    };
-    union {
-        BitField<12, 8, u32> srgb_border_color_g;
-        BitField<20, 8, u32> srgb_border_color_b;
-    };
-    std::array<f32, 4> border_color;
 
     float GetMaxAnisotropy() const {
         return static_cast<float>(1U << max_anisotropy);

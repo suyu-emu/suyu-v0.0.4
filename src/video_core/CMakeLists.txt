@@ -123,6 +123,8 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_memory_manager.h
         renderer_vulkan/vk_resource_manager.cpp
         renderer_vulkan/vk_resource_manager.h
+        renderer_vulkan/vk_sampler_cache.cpp
+        renderer_vulkan/vk_sampler_cache.h
         renderer_vulkan/vk_scheduler.cpp
         renderer_vulkan/vk_scheduler.h
         renderer_vulkan/vk_stream_buffer.cpp
