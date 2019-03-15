@@ -266,7 +266,7 @@ public:
     void FreeTLSSlot(VAddr tls_address);
 
 private:
-    explicit Process(Core::System& kernel);
+    explicit Process(Core::System& system);
     ~Process() override;
 
     /// Checks if the specified thread should wait until this process is available.
@@ -330,6 +330,10 @@ private:
     /// Random values for svcGetInfo RandomEntropy
     std::array<u64, RANDOM_ENTROPY_SIZE> random_entropy;
 
+    /// System context
+    Core::System& system;
+
+    /// Name of this process
     std::string name;
 };
 
