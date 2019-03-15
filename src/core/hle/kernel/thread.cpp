@@ -305,9 +305,9 @@ void Thread::RemoveMutexWaiter(SharedPtr<Thread> thread) {
 void Thread::UpdatePriority() {
     // Find the highest priority among all the threads that are waiting for this thread's lock
     u32 new_priority = nominal_priority;
-    for (const auto& thread : wait_mutex_threads) {
-        if (thread->nominal_priority < new_priority)
-            new_priority = thread->nominal_priority;
+    if (!wait_mutex_threads.empty()) {
+        if (wait_mutex_threads.front()->current_priority < new_priority)
+            new_priority = wait_mutex_threads.front()->current_priority;
     }
 
     if (new_priority == current_priority)
