@@ -1284,10 +1284,14 @@ static ResultCode StartThread(Handle thread_handle) {
 
 /// Called when a thread exits
 static void ExitThread() {
-    LOG_TRACE(Kernel_SVC, "called, pc=0x{:08X}", Core::CurrentArmInterface().GetPC());
+    auto& system = Core::System::GetInstance();
 
-    ExitCurrentThread();
-    Core::System::GetInstance().PrepareReschedule();
+    LOG_TRACE(Kernel_SVC, "called, pc=0x{:08X}", system.CurrentArmInterface().GetPC());
+
+    auto* const current_thread = system.CurrentScheduler().GetCurrentThread();
+    current_thread->Stop();
+    system.CurrentScheduler().RemoveThread(current_thread);
+    system.PrepareReschedule();
 }
 
 /// Sleep the current thread

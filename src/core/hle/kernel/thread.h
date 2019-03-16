@@ -463,9 +463,4 @@ private:
  */
 Thread* GetCurrentThread();
 
-/**
- * Stops the current thread and removes it from the thread_list
- */
-void ExitCurrentThread();
-
 } // namespace Kernel
