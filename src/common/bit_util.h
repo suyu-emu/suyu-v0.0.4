@@ -59,22 +59,43 @@ inline u64 CountLeadingZeroes64(u64 value) {
 }
 #endif
 
+
+#ifdef _MSC_VER
 inline u32 CountTrailingZeroes32(u32 value) {
-  u32 count = 0;
-  while (((value >> count) & 0xf) == 0 && count < 32)
-    count += 4;
-  while (((value >> count) & 1) == 0 && count < 32)
-    count++;
-  return count;
+    unsigned long trailing_zero = 0;
+
+    if (_BitScanForward(&trailing_zero, value) != 0) {
+        return trailing_zero;
+    }
+
+    return 32;
 }
 
 inline u64 CountTrailingZeroes64(u64 value) {
-  u64 count = 0;
-  while (((value >> count) & 0xf) == 0 && count < 64)
-    count += 4;
-  while (((value >> count) & 1) == 0 && count < 64)
-    count++;
-  return count;
+    unsigned long trailing_zero = 0;
+
+    if (_BitScanForward64(&trailing_zero, value) != 0) {
+        return trailing_zero;
+    }
+
+    return 64;
 }
+#else
+inline u32 CountTrailingZeroes32(u32 value) {
+    if (value == 0) {
+        return 32;
+    }
+
+    return __builtin_ctz(value);
+}
+
+inline u64 CountTrailingZeroes64(u64 value) {
+    if (value == 0) {
+        return 64;
+    }
+
+    return __builtin_ctzll(value);
+}
+#endif
 
 } // namespace Common
