@@ -58,4 +58,23 @@ inline u64 CountLeadingZeroes64(u64 value) {
     return __builtin_clzll(value);
 }
 #endif
+
+inline u32 CountTrailingZeroes32(u32 value) {
+  u32 count = 0;
+  while (((value >> count) & 0xf) == 0 && count < 32)
+    count += 4;
+  while (((value >> count) & 1) == 0 && count < 32)
+    count++;
+  return count;
+}
+
+inline u64 CountTrailingZeroes64(u64 value) {
+  u64 count = 0;
+  while (((value >> count) & 0xf) == 0 && count < 64)
+    count += 4;
+  while (((value >> count) & 1) == 0 && count < 64)
+    count++;
+  return count;
+}
+
 } // namespace Common
