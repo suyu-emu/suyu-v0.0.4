@@ -7,19 +7,16 @@ set_property(DIRECTORY APPEND PROPERTY
 
 # Set compilation flags
 if (MSVC)
-    # Silence "deprecation" warnings
-    add_definitions(/D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_DEPRECATE /D_SCL_SECURE_NO_WARNINGS)
-    # Avoid windows.h junk
-    add_definitions(/DNOMINMAX)
-    # Avoid windows.h from including some usually unused libs like winsocks.h, since this might cause some redefinition errors.
-    add_definitions(/DWIN32_LEAN_AND_MEAN)
-
     set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING "" FORCE)
 
-    # Tweak optimization settings
-    # As far as I can tell, there's no way to override the CMake defaults while leaving user
-    # changes intact, so we'll just clobber everything and say sorry.
-    message(STATUS "Cache compiler flags ignored, please edit CMakeLists.txt to change the flags.")
+    # Silence "deprecation" warnings
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS)
+
+    # Avoid windows.h junk
+    add_definitions(-DNOMINMAX)
+
+    # Avoid windows.h from including some usually unused libs like winsocks.h, since this might cause some redefinition errors.
+    add_definitions(-DWIN32_LEAN_AND_MEAN)
 
     # /W3 - Level 3 warnings
     # /MP - Multi-threaded compilation
@@ -29,22 +26,18 @@ if (MSVC)
     # /EHsc - C++-only exception handling semantics
     # /Zc:throwingNew - let codegen assume `operator new` will never return null
     # /Zc:inline - let codegen omit inline functions in object files
-    set(CMAKE_CXX_FLAGS "/W3 /MP /Zi /Zo /permissive- /EHsc /std:c++latest /Zc:throwingNew,inline" CACHE STRING "" FORCE)
+    add_compile_options(/W3 /MP /Zi /Zo /permissive- /EHsc /std:c++latest /Zc:throwingNew,inline)
 
-    # /O2 - Optimization level 2
     # /GS- - No stack buffer overflow checks
-    # /MD - Multi-threaded runtime DLL
-    set(CMAKE_C_FLAGS_RELEASE   "/O2 /GS- /MD" CACHE STRING "" FORCE)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}" CACHE STRING "" FORCE)
+    add_compile_options("$<$<CONFIG:Release>:/GS->")
 
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG   "/DEBUG /MANIFEST:NO" CACHE STRING "" FORCE)
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/DEBUG /MANIFEST:NO /INCREMENTAL:NO /OPT:REF,ICF" CACHE STRING "" FORCE)
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-attributes")
+    add_compile_options("-Wno-attributes")
 
     if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL Clang)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
+        add_compile_options("-stdlib=libc++")
     endif()
 
     # Set file offset size to 64 bits.
@@ -61,8 +54,7 @@ else()
 
         if (MINGW_STATIC_BUILD)
             add_definitions(-DQT_STATICPLUGIN)
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+            add_compile_options("-static")
         endif()
     endif()
 endif()
