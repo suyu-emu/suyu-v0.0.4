@@ -107,6 +107,9 @@ public:
         iterator_impl(const iterator_impl<false>& other)
             : mlq(other.mlq), it(other.it), current_priority(other.current_priority) {}
 
+        iterator_impl(const iterator_impl<true>& other)
+            : mlq(other.mlq), it(other.it), current_priority(other.current_priority) {}
+
         iterator_impl& operator=(const iterator_impl<false>& other) {
             mlq = other.mlq;
             it = other.it;
@@ -149,7 +152,7 @@ public:
     using iterator = iterator_impl<false>;
     using const_iterator = iterator_impl<true>;
 
-    void add(T& element, u32 priority, bool send_back = true) {
+    void add(const T& element, u32 priority, bool send_back = true) {
         if (send_back)
             levels[priority].push_back(element);
         else
@@ -158,23 +161,18 @@ public:
     }
 
     void remove(const T& element, u32 priority) {
-        levels[priority].erase(ListIterateTo(levels[priority], element));
+        auto it = ListIterateTo(levels[priority], element);
+        if (it == levels[priority].end())
+            return;
+        levels[priority].erase(it);
         if (levels[priority].empty()) {
             used_priorities &= ~(1ULL << priority);
         }
     }
 
     void adjust(const T& element, u32 old_priority, u32 new_priority, bool adjust_front = false) {
-        const auto new_next =
-            adjust_front ? levels[new_priority].cbegin() : levels[new_priority].cend();
-        ListSplice(levels[new_priority], new_next, levels[old_priority],
-                   ListIterateTo(levels[old_priority], element));
-
-        used_priorities |= 1ULL << new_priority;
-
-        if (levels[old_priority].empty()) {
-            used_priorities &= ~(1ULL << old_priority);
-        }
+        remove(element, old_priority);
+        add(element, new_priority, !adjust_front);
     }
     void adjust(const_iterator it, u32 old_priority, u32 new_priority, bool adjust_front = false) {
         adjust(*it, old_priority, new_priority, adjust_front);
