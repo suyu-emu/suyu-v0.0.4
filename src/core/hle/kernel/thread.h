@@ -383,6 +383,9 @@ public:
 
     void SetActivity(ThreadActivity value);
 
+    /// Sleeps this thread for the given amount of nanoseconds.
+    void Sleep(s64 nanoseconds);
+
 private:
     explicit Thread(KernelCore& kernel);
     ~Thread() override;
@@ -459,11 +462,6 @@ private:
  * Gets the current thread
  */
 Thread* GetCurrentThread();
-
-/**
- * Waits the current thread on a sleep
- */
-void WaitCurrentThread_Sleep();
 
 /**
  * Stops the current thread and removes it from the thread_list

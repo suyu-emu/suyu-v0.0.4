@@ -68,11 +68,6 @@ void Thread::Stop() {
     owner_process->FreeTLSSlot(tls_address);
 }
 
-void WaitCurrentThread_Sleep() {
-    Thread* thread = GetCurrentThread();
-    thread->SetStatus(ThreadStatus::WaitSleep);
-}
-
 void ExitCurrentThread() {
     Thread* thread = GetCurrentThread();
     thread->Stop();
@@ -389,6 +384,14 @@ void Thread::SetActivity(ThreadActivity value) {
         // Ready to reschedule
         ResumeFromWait();
     }
+}
+
+void Thread::Sleep(s64 nanoseconds) {
+    // Sleep current thread and check for next thread to schedule
+    SetStatus(ThreadStatus::WaitSleep);
+
+    // Create an event to wake the thread up after the specified nanosecond delay has passed
+    WakeAfterDelay(nanoseconds);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
