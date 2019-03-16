@@ -163,12 +163,6 @@ else()
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/DEBUG /MANIFEST:NO /INCREMENTAL:NO /OPT:REF,ICF" CACHE STRING "" FORCE)
 endif()
 
-# Fix GCC C++17 and Boost.ICL incompatibility (needed to build dynarmic)
-# See https://bugzilla.redhat.com/show_bug.cgi?id=1485641#c1
-if (CMAKE_COMPILER_IS_GNUCC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-new-ttp-matching")
-endif()
-
 # Set file offset size to 64 bits.
 #
 # On modern Unixes, this is typically already the case. The lone exception is
@@ -185,9 +179,9 @@ set_property(DIRECTORY APPEND PROPERTY
 # System imported libraries
 # ======================
 
-find_package(Boost 1.63.0 QUIET)
+find_package(Boost 1.64.0 QUIET)
 if (NOT Boost_FOUND)
-    message(STATUS "Boost 1.63.0 or newer not found, falling back to externals")
+    message(STATUS "Boost 1.64.0 or newer not found, falling back to externals")
 
     set(BOOST_ROOT "${PROJECT_SOURCE_DIR}/externals/boost")
     set(Boost_NO_SYSTEM_PATHS OFF)
