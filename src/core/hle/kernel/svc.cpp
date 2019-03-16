@@ -1284,10 +1284,14 @@ static ResultCode StartThread(Handle thread_handle) {
 
 /// Called when a thread exits
 static void ExitThread() {
-    LOG_TRACE(Kernel_SVC, "called, pc=0x{:08X}", Core::CurrentArmInterface().GetPC());
+    auto& system = Core::System::GetInstance();
 
-    ExitCurrentThread();
-    Core::System::GetInstance().PrepareReschedule();
+    LOG_TRACE(Kernel_SVC, "called, pc=0x{:08X}", system.CurrentArmInterface().GetPC());
+
+    auto* const current_thread = system.CurrentScheduler().GetCurrentThread();
+    current_thread->Stop();
+    system.CurrentScheduler().RemoveThread(current_thread);
+    system.PrepareReschedule();
 }
 
 /// Sleep the current thread
@@ -1300,32 +1304,32 @@ static void SleepThread(s64 nanoseconds) {
         YieldAndWaitForLoadBalancing = -2,
     };
 
+    auto& system = Core::System::GetInstance();
+    auto& scheduler = system.CurrentScheduler();
+    auto* const current_thread = scheduler.GetCurrentThread();
+
     if (nanoseconds <= 0) {
-        auto& scheduler{Core::System::GetInstance().CurrentScheduler()};
         switch (static_cast<SleepType>(nanoseconds)) {
         case SleepType::YieldWithoutLoadBalancing:
-            scheduler.YieldWithoutLoadBalancing(GetCurrentThread());
+            scheduler.YieldWithoutLoadBalancing(current_thread);
             break;
         case SleepType::YieldWithLoadBalancing:
-            scheduler.YieldWithLoadBalancing(GetCurrentThread());
+            scheduler.YieldWithLoadBalancing(current_thread);
             break;
         case SleepType::YieldAndWaitForLoadBalancing:
-            scheduler.YieldAndWaitForLoadBalancing(GetCurrentThread());
+            scheduler.YieldAndWaitForLoadBalancing(current_thread);
             break;
         default:
             UNREACHABLE_MSG("Unimplemented sleep yield type '{:016X}'!", nanoseconds);
         }
     } else {
-        // Sleep current thread and check for next thread to schedule
-        WaitCurrentThread_Sleep();
-
-        // Create an event to wake the thread up after the specified nanosecond delay has passed
-        GetCurrentThread()->WakeAfterDelay(nanoseconds);
+        current_thread->Sleep(nanoseconds);
     }
 
     // Reschedule all CPU cores
-    for (std::size_t i = 0; i < Core::NUM_CPU_CORES; ++i)
-        Core::System::GetInstance().CpuCore(i).PrepareReschedule();
+    for (std::size_t i = 0; i < Core::NUM_CPU_CORES; ++i) {
+        system.CpuCore(i).PrepareReschedule();
+    }
 }
 
 /// Wait process wide key atomic

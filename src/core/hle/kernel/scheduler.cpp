@@ -199,8 +199,7 @@ void Scheduler::YieldWithoutLoadBalancing(Thread* thread) {
     ASSERT(thread->GetPriority() < THREADPRIO_COUNT);
 
     // Yield this thread -- sleep for zero time and force reschedule to different thread
-    WaitCurrentThread_Sleep();
-    GetCurrentThread()->WakeAfterDelay(0);
+    GetCurrentThread()->Sleep(0);
 }
 
 void Scheduler::YieldWithLoadBalancing(Thread* thread) {
@@ -215,8 +214,7 @@ void Scheduler::YieldWithLoadBalancing(Thread* thread) {
     ASSERT(priority < THREADPRIO_COUNT);
 
     // Sleep for zero time to be able to force reschedule to different thread
-    WaitCurrentThread_Sleep();
-    GetCurrentThread()->WakeAfterDelay(0);
+    GetCurrentThread()->Sleep(0);
 
     Thread* suggested_thread = nullptr;
 
