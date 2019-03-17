@@ -179,9 +179,9 @@ set_property(DIRECTORY APPEND PROPERTY
 # System imported libraries
 # ======================
 
-find_package(Boost 1.64.0 QUIET)
+find_package(Boost 1.66.0 QUIET)
 if (NOT Boost_FOUND)
-    message(STATUS "Boost 1.64.0 or newer not found, falling back to externals")
+    message(STATUS "Boost 1.66.0 or newer not found, falling back to externals")
 
     set(BOOST_ROOT "${PROJECT_SOURCE_DIR}/externals/boost")
     set(Boost_NO_SYSTEM_PATHS OFF)
