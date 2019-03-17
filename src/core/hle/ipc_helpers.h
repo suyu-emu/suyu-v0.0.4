@@ -275,6 +275,20 @@ inline void ResponseBuilder::Push(u64 value) {
 }
 
 template <>
+inline void ResponseBuilder::Push(float value) {
+    u32 integral;
+    std::memcpy(&integral, &value, sizeof(u32));
+    Push(integral);
+}
+
+template <>
+inline void ResponseBuilder::Push(double value) {
+    u64 integral;
+    std::memcpy(&integral, &value, sizeof(u64));
+    Push(integral);
+}
+
+template <>
 inline void ResponseBuilder::Push(bool value) {
     Push(static_cast<u8>(value));
 }
@@ -413,6 +427,22 @@ inline s16 RequestParser::Pop() {
 template <>
 inline s64 RequestParser::Pop() {
     return static_cast<s64>(Pop<u64>());
+}
+
+template <>
+inline float RequestParser::Pop() {
+    const u32 value = Pop<u32>();
+    float real;
+    std::memcpy(&real, &value, sizeof(real));
+    return real;
+}
+
+template <>
+inline double RequestParser::Pop() {
+    const u64 value = Pop<u64>();
+    float real;
+    std::memcpy(&real, &value, sizeof(real));
+    return real;
 }
 
 template <>
