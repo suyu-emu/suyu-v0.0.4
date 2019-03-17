@@ -68,12 +68,6 @@ void Thread::Stop() {
     owner_process->FreeTLSSlot(tls_address);
 }
 
-void ExitCurrentThread() {
-    Thread* thread = GetCurrentThread();
-    thread->Stop();
-    Core::System::GetInstance().CurrentScheduler().RemoveThread(thread);
-}
-
 void Thread::WakeAfterDelay(s64 nanoseconds) {
     // Don't schedule a wakeup if the thread wants to wait forever
     if (nanoseconds == -1)
