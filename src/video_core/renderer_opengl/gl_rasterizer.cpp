@@ -749,11 +749,17 @@ void RasterizerOpenGL::FlushAll() {}
 
 void RasterizerOpenGL::FlushRegion(CacheAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
+    if (!addr || !size) {
+        return;
+    }
     res_cache.FlushRegion(addr, size);
 }
 
 void RasterizerOpenGL::InvalidateRegion(CacheAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
+    if (!addr || !size) {
+        return;
+    }
     res_cache.InvalidateRegion(addr, size);
     shader_cache.InvalidateRegion(addr, size);
     global_cache.InvalidateRegion(addr, size);
