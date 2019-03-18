@@ -32,6 +32,7 @@ private:
     void OpenPatchDataStorageByCurrentProcess(Kernel::HLERequestContext& ctx);
 
     FileSys::VirtualFile romfs;
+    u64 current_process_id = 0;
 };
 
 } // namespace Service::FileSystem
