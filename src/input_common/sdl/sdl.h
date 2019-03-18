@@ -34,7 +34,9 @@ public:
 
 class NullState : public State {
 public:
-    Pollers GetPollers(Polling::DeviceType type) override {}
+    Pollers GetPollers(Polling::DeviceType type) override {
+        return {};
+    }
 };
 
 std::unique_ptr<State> Init();

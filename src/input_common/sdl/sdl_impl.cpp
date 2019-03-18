@@ -652,6 +652,7 @@ private:
 
 SDLState::Pollers SDLState::GetPollers(InputCommon::Polling::DeviceType type) {
     Pollers pollers;
+
     switch (type) {
     case InputCommon::Polling::DeviceType::Analog:
         pollers.emplace_back(std::make_unique<Polling::SDLAnalogPoller>(*this));
@@ -659,8 +660,9 @@ SDLState::Pollers SDLState::GetPollers(InputCommon::Polling::DeviceType type) {
     case InputCommon::Polling::DeviceType::Button:
         pollers.emplace_back(std::make_unique<Polling::SDLButtonPoller>(*this));
         break;
-        return pollers;
     }
+
+    return pollers;
 }
 
 } // namespace SDL
