@@ -98,7 +98,7 @@ IAudioController::IAudioController() : ServiceFramework("IAudioController") {
         {0, &IAudioController::SetExpectedMasterVolume, "SetExpectedMasterVolume"},
         {1, &IAudioController::GetMainAppletExpectedMasterVolume, "GetMainAppletExpectedMasterVolume"},
         {2, &IAudioController::GetLibraryAppletExpectedMasterVolume, "GetLibraryAppletExpectedMasterVolume"},
-        {3, nullptr, "ChangeMainAppletMasterVolume"},
+        {3, &IAudioController::ChangeMainAppletMasterVolume, "ChangeMainAppletMasterVolume"},
         {4, &IAudioController::SetTransparentAudioRate, "SetTransparentVolumeRate"},
     };
     // clang-format on
@@ -137,6 +137,26 @@ void IAudioController::GetLibraryAppletExpectedMasterVolume(Kernel::HLERequestCo
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.Push(library_applet_volume);
+}
+
+void IAudioController::ChangeMainAppletMasterVolume(Kernel::HLERequestContext& ctx) {
+    struct Parameters {
+        float volume;
+        s64 fade_time_ns;
+    };
+    static_assert(sizeof(Parameters) == 16);
+
+    IPC::RequestParser rp{ctx};
+    const auto parameters = rp.PopRaw<Parameters>();
+
+    LOG_DEBUG(Service_AM, "called. volume={}, fade_time_ns={}", parameters.volume,
+              parameters.fade_time_ns);
+
+    main_applet_volume = std::clamp(parameters.volume, min_allowed_volume, max_allowed_volume);
+    fade_time_ns = std::chrono::nanoseconds{parameters.fade_time_ns};
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
 }
 
 void IAudioController::SetTransparentAudioRate(Kernel::HLERequestContext& ctx) {
