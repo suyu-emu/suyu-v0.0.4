@@ -733,7 +733,10 @@ FSP_SRV::FSP_SRV() : ServiceFramework("fsp-srv") {
 FSP_SRV::~FSP_SRV() = default;
 
 void FSP_SRV::SetCurrentProcess(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_FS, "(STUBBED) called");
+    IPC::RequestParser rp{ctx};
+    current_process_id = rp.Pop<u64>();
+
+    LOG_DEBUG(Service_FS, "called. current_process_id=0x{:016X}", current_process_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
