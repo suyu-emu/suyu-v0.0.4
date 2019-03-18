@@ -81,12 +81,14 @@ private:
     void SetExpectedMasterVolume(Kernel::HLERequestContext& ctx);
     void GetMainAppletExpectedMasterVolume(Kernel::HLERequestContext& ctx);
     void GetLibraryAppletExpectedMasterVolume(Kernel::HLERequestContext& ctx);
+    void SetTransparentAudioRate(Kernel::HLERequestContext& ctx);
 
     static constexpr float min_allowed_volume = 0.0f;
     static constexpr float max_allowed_volume = 1.0f;
 
     float main_applet_volume{0.25f};
     float library_applet_volume{max_allowed_volume};
+    float transparent_volume_rate{min_allowed_volume};
 };
 
 class IDisplayController final : public ServiceFramework<IDisplayController> {

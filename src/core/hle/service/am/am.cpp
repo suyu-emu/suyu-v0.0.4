@@ -99,7 +99,7 @@ IAudioController::IAudioController() : ServiceFramework("IAudioController") {
         {1, &IAudioController::GetMainAppletExpectedMasterVolume, "GetMainAppletExpectedMasterVolume"},
         {2, &IAudioController::GetLibraryAppletExpectedMasterVolume, "GetLibraryAppletExpectedMasterVolume"},
         {3, nullptr, "ChangeMainAppletMasterVolume"},
-        {4, nullptr, "SetTransparentVolumeRate"},
+        {4, &IAudioController::SetTransparentAudioRate, "SetTransparentVolumeRate"},
     };
     // clang-format on
 
@@ -137,6 +137,20 @@ void IAudioController::GetLibraryAppletExpectedMasterVolume(Kernel::HLERequestCo
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.Push(library_applet_volume);
+}
+
+void IAudioController::SetTransparentAudioRate(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const float transparent_volume_rate_tmp = rp.Pop<float>();
+
+    LOG_DEBUG(Service_AM, "called. transparent_volume_rate={}", transparent_volume_rate_tmp);
+
+    // Clamp volume range to 0-100%.
+    transparent_volume_rate =
+        std::clamp(transparent_volume_rate_tmp, min_allowed_volume, max_allowed_volume);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
 }
 
 IDisplayController::IDisplayController() : ServiceFramework("IDisplayController") {
