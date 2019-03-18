@@ -2,10 +2,10 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <array>
 #include <cinttypes>
 #include <cstring>
-#include <stack>
 #include "audio_core/audio_renderer.h"
 #include "core/core.h"
 #include "core/file_sys/savedata_factory.h"
@@ -93,38 +93,50 @@ void IWindowController::AcquireForegroundRights(Kernel::HLERequestContext& ctx) 
 }
 
 IAudioController::IAudioController() : ServiceFramework("IAudioController") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, &IAudioController::SetExpectedMasterVolume, "SetExpectedMasterVolume"},
-        {1, &IAudioController::GetMainAppletExpectedMasterVolume,
-         "GetMainAppletExpectedMasterVolume"},
-        {2, &IAudioController::GetLibraryAppletExpectedMasterVolume,
-         "GetLibraryAppletExpectedMasterVolume"},
+        {1, &IAudioController::GetMainAppletExpectedMasterVolume, "GetMainAppletExpectedMasterVolume"},
+        {2, &IAudioController::GetLibraryAppletExpectedMasterVolume, "GetLibraryAppletExpectedMasterVolume"},
         {3, nullptr, "ChangeMainAppletMasterVolume"},
         {4, nullptr, "SetTransparentVolumeRate"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 
 IAudioController::~IAudioController() = default;
 
 void IAudioController::SetExpectedMasterVolume(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+    IPC::RequestParser rp{ctx};
+    const float main_applet_volume_tmp = rp.Pop<float>();
+    const float library_applet_volume_tmp = rp.Pop<float>();
+
+    LOG_DEBUG(Service_AM, "called. main_applet_volume={}, library_applet_volume={}",
+              main_applet_volume_tmp, library_applet_volume_tmp);
+
+    // Ensure the volume values remain within the 0-100% range
+    main_applet_volume = std::clamp(main_applet_volume_tmp, min_allowed_volume, max_allowed_volume);
+    library_applet_volume =
+        std::clamp(library_applet_volume_tmp, min_allowed_volume, max_allowed_volume);
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
 
 void IAudioController::GetMainAppletExpectedMasterVolume(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+    LOG_DEBUG(Service_AM, "called. main_applet_volume={}", main_applet_volume);
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
-    rb.Push(volume);
+    rb.Push(main_applet_volume);
 }
 
 void IAudioController::GetLibraryAppletExpectedMasterVolume(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+    LOG_DEBUG(Service_AM, "called. library_applet_volume={}", library_applet_volume);
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
-    rb.Push(volume);
+    rb.Push(library_applet_volume);
 }
 
 IDisplayController::IDisplayController() : ServiceFramework("IDisplayController") {
