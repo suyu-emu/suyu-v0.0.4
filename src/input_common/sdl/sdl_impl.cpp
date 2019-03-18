@@ -650,9 +650,8 @@ private:
 };
 } // namespace Polling
 
-std::vector<std::unique_ptr<InputCommon::Polling::DevicePoller>> SDLState::GetPollers(
-    InputCommon::Polling::DeviceType type) {
-    std::vector<std::unique_ptr<InputCommon::Polling::DevicePoller>> pollers;
+SDLState::Pollers SDLState::GetPollers(InputCommon::Polling::DeviceType type) {
+    Pollers pollers;
     switch (type) {
     case InputCommon::Polling::DeviceType::Analog:
         pollers.emplace_back(std::make_unique<Polling::SDLAnalogPoller>(*this));
