@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <memory>
 #include <queue>
 #include "core/hle/kernel/writable_event.h"
@@ -81,8 +82,21 @@ private:
     void SetExpectedMasterVolume(Kernel::HLERequestContext& ctx);
     void GetMainAppletExpectedMasterVolume(Kernel::HLERequestContext& ctx);
     void GetLibraryAppletExpectedMasterVolume(Kernel::HLERequestContext& ctx);
+    void ChangeMainAppletMasterVolume(Kernel::HLERequestContext& ctx);
+    void SetTransparentAudioRate(Kernel::HLERequestContext& ctx);
 
-    u32 volume{100};
+    static constexpr float min_allowed_volume = 0.0f;
+    static constexpr float max_allowed_volume = 1.0f;
+
+    float main_applet_volume{0.25f};
+    float library_applet_volume{max_allowed_volume};
+    float transparent_volume_rate{min_allowed_volume};
+
+    // Volume transition fade time in nanoseconds.
+    // e.g. If the main applet volume was 0% and was changed to 50%
+    //      with a fade of 50ns, then over the course of 50ns,
+    //      the volume will gradually fade up to 50%
+    std::chrono::nanoseconds fade_time_ns{0};
 };
 
 class IDisplayController final : public ServiceFramework<IDisplayController> {
