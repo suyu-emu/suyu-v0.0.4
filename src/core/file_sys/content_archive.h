@@ -24,13 +24,26 @@ namespace FileSys {
 
 union NCASectionHeader;
 
+/// Describes the type of content within an NCA archive.
 enum class NCAContentType : u8 {
+    /// Executable-related data
     Program = 0,
+
+    /// Metadata.
     Meta = 1,
+
+    /// Access control data.
     Control = 2,
+
+    /// Information related to the game manual
+    /// e.g. Legal information, etc.
     Manual = 3,
+
+    /// System data.
     Data = 4,
-    Data_Unknown5 = 5, ///< Seems to be used on some system archives
+
+    /// Data that can be accessed by applications.
+    PublicData = 5,
 };
 
 enum class NCASectionCryptoType : u8 {

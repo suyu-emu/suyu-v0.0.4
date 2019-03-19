@@ -94,7 +94,7 @@ static ContentRecordType GetCRTypeFromNCAType(NCAContentType type) {
     case NCAContentType::Control:
         return ContentRecordType::Control;
     case NCAContentType::Data:
-    case NCAContentType::Data_Unknown5:
+    case NCAContentType::PublicData:
         return ContentRecordType::Data;
     case NCAContentType::Manual:
         // TODO(DarkLordZach): Peek at NCA contents to differentiate Manual and Legal.
