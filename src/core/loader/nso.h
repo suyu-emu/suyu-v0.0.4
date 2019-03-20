@@ -6,8 +6,8 @@
 
 #include <optional>
 #include "common/common_types.h"
+#include "common/swap.h"
 #include "core/file_sys/patch_manager.h"
-#include "core/loader/linker.h"
 #include "core/loader/loader.h"
 
 namespace Kernel {
@@ -26,7 +26,7 @@ struct NSOArgumentHeader {
 static_assert(sizeof(NSOArgumentHeader) == 0x20, "NSOArgumentHeader has incorrect size.");
 
 /// Loads an NSO file
-class AppLoader_NSO final : public AppLoader, Linker {
+class AppLoader_NSO final : public AppLoader {
 public:
     explicit AppLoader_NSO(FileSys::VirtualFile file);
 
