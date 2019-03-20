@@ -72,6 +72,9 @@ public:
     /// Retrieves a const pointer to the current process.
     const Process* CurrentProcess() const;
 
+    /// Retrieves the list of processes.
+    const std::vector<SharedPtr<Process>>& GetProcessList() const;
+
     /// Adds a port to the named port table
     void AddNamedPort(std::string name, SharedPtr<ClientPort> port);
 

@@ -1983,6 +1983,43 @@ static ResultCode SetResourceLimitLimitValue(Handle resource_limit, u32 resource
     return RESULT_SUCCESS;
 }
 
+static ResultCode GetProcessList(u32* out_num_processes, VAddr out_process_ids,
+                                 u32 out_process_ids_size) {
+    LOG_DEBUG(Kernel_SVC, "called. out_process_ids=0x{:016X}, out_process_ids_size={}",
+              out_process_ids, out_process_ids_size);
+
+    // If the supplied size is negative or greater than INT32_MAX / sizeof(u64), bail.
+    if ((out_process_ids_size & 0xF0000000) != 0) {
+        LOG_ERROR(Kernel_SVC,
+                  "Supplied size outside [0, 0x0FFFFFFF] range. out_process_ids_size={}",
+                  out_process_ids_size);
+        return ERR_OUT_OF_RANGE;
+    }
+
+    const auto& kernel = Core::System::GetInstance().Kernel();
+    const auto& vm_manager = kernel.CurrentProcess()->VMManager();
+    const auto total_copy_size = out_process_ids_size * sizeof(u64);
+
+    if (out_process_ids_size > 0 &&
+        !vm_manager.IsWithinAddressSpace(out_process_ids, total_copy_size)) {
+        LOG_ERROR(Kernel_SVC, "Address range outside address space. begin=0x{:016X}, end=0x{:016X}",
+                  out_process_ids, out_process_ids + total_copy_size);
+        return ERR_INVALID_ADDRESS_STATE;
+    }
+
+    const auto& process_list = kernel.GetProcessList();
+    const auto num_processes = process_list.size();
+    const auto copy_amount = std::min(std::size_t{out_process_ids_size}, num_processes);
+
+    for (std::size_t i = 0; i < copy_amount; ++i) {
+        Memory::Write64(out_process_ids, process_list[i]->GetProcessID());
+        out_process_ids += sizeof(u64);
+    }
+
+    *out_num_processes = static_cast<u32>(num_processes);
+    return RESULT_SUCCESS;
+}
+
 namespace {
 struct FunctionDef {
     using Func = void();
@@ -2095,7 +2132,7 @@ static const FunctionDef SVC_Table[] = {
     {0x62, nullptr, "TerminateDebugProcess"},
     {0x63, nullptr, "GetDebugEvent"},
     {0x64, nullptr, "ContinueDebugEvent"},
-    {0x65, nullptr, "GetProcessList"},
+    {0x65, SvcWrap<GetProcessList>, "GetProcessList"},
     {0x66, nullptr, "GetThreadList"},
     {0x67, nullptr, "GetDebugThreadContext"},
     {0x68, nullptr, "SetDebugThreadContext"},
