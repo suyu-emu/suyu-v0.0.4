@@ -7,6 +7,7 @@
 #include <array>
 #include <bitset>
 #include <cstddef>
+#include <list>
 #include <string>
 #include <vector>
 #include <boost/container/static_vector.hpp>
@@ -189,6 +190,19 @@ public:
     /// Retrieves the total physical memory used by this process in bytes.
     u64 GetTotalPhysicalMemoryUsed() const;
 
+    /// Gets the list of all threads created with this process as their owner.
+    const std::list<const Thread*>& GetThreadList() const {
+        return thread_list;
+    }
+
+    /// Registers a thread as being created under this process,
+    /// adding it to this process' thread list.
+    void RegisterThread(const Thread* thread);
+
+    /// Unregisters a thread from this process, removing it
+    /// from this process' thread list.
+    void UnregisterThread(const Thread* thread);
+
     /// Clears the signaled state of the process if and only if it's signaled.
     ///
     /// @pre The process must not be already terminated. If this is called on a
@@ -307,6 +321,9 @@ private:
 
     /// Random values for svcGetInfo RandomEntropy
     std::array<u64, RANDOM_ENTROPY_SIZE> random_entropy;
+
+    /// List of threads that are running with this process as their owner.
+    std::list<const Thread*> thread_list;
 
     /// System context
     Core::System& system;

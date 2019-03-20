@@ -80,6 +80,14 @@ u64 Process::GetTotalPhysicalMemoryUsed() const {
     return vm_manager.GetCurrentHeapSize() + main_thread_stack_size + code_memory_size;
 }
 
+void Process::RegisterThread(const Thread* thread) {
+    thread_list.push_back(thread);
+}
+
+void Process::UnregisterThread(const Thread* thread) {
+    thread_list.remove(thread);
+}
+
 ResultCode Process::ClearSignalState() {
     if (status == ProcessStatus::Exited) {
         LOG_ERROR(Kernel, "called on a terminated process instance.");
