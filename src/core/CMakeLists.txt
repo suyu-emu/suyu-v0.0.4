@@ -419,8 +419,6 @@ add_library(core STATIC
     loader/deconstructed_rom_directory.h
     loader/elf.cpp
     loader/elf.h
-    loader/linker.cpp
-    loader/linker.h
     loader/loader.cpp
     loader/loader.h
     loader/nax.cpp
