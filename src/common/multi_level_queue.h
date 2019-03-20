@@ -35,7 +35,11 @@ public:
         using difference_type = typename std::pointer_traits<pointer>::difference_type;
 
         friend bool operator==(const iterator_impl& lhs, const iterator_impl& rhs) {
-            return (lhs.IsEnd() && rhs.IsEnd()) || lhs.it == rhs.it;
+            if (lhs.IsEnd() && rhs.IsEnd())
+                return true;
+            if (lhs.current_priority == rhs.current_priority)
+                return lhs.it == rhs.it;
+            return false;
         }
 
         friend bool operator!=(const iterator_impl& lhs, const iterator_impl& rhs) {
