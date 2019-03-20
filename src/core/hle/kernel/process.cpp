@@ -210,7 +210,7 @@ void Process::FreeTLSSlot(VAddr tls_address) {
 }
 
 void Process::LoadModule(CodeSet module_, VAddr base_addr) {
-    const auto MapSegment = [&](CodeSet::Segment& segment, VMAPermission permissions,
+    const auto MapSegment = [&](const CodeSet::Segment& segment, VMAPermission permissions,
                                 MemoryState memory_state) {
         const auto vma = vm_manager
                              .MapMemoryBlock(segment.addr + base_addr, module_.memory,
