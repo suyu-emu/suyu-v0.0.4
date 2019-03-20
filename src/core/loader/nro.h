@@ -4,10 +4,10 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 #include "common/common_types.h"
-#include "core/loader/linker.h"
 #include "core/loader/loader.h"
 
 namespace FileSys {
@@ -21,7 +21,7 @@ class Process;
 namespace Loader {
 
 /// Loads an NRO file
-class AppLoader_NRO final : public AppLoader, Linker {
+class AppLoader_NRO final : public AppLoader {
 public:
     explicit AppLoader_NRO(FileSys::VirtualFile file);
     ~AppLoader_NRO() override;
