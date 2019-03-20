@@ -7,7 +7,6 @@
 #include <array>
 #include <bitset>
 #include <cstddef>
-#include <memory>
 #include <string>
 #include <vector>
 #include <boost/container/static_vector.hpp>
@@ -32,6 +31,8 @@ namespace Kernel {
 class KernelCore;
 class ResourceLimit;
 class Thread;
+
+struct CodeSet;
 
 struct AddressMapping {
     // Address and size must be page-aligned
@@ -63,46 +64,6 @@ enum class ProcessStatus {
     Exiting,
     Exited,
     DebugBreak,
-};
-
-struct CodeSet final {
-    struct Segment {
-        std::size_t offset = 0;
-        VAddr addr = 0;
-        u32 size = 0;
-    };
-
-    explicit CodeSet();
-    ~CodeSet();
-
-    Segment& CodeSegment() {
-        return segments[0];
-    }
-
-    const Segment& CodeSegment() const {
-        return segments[0];
-    }
-
-    Segment& RODataSegment() {
-        return segments[1];
-    }
-
-    const Segment& RODataSegment() const {
-        return segments[1];
-    }
-
-    Segment& DataSegment() {
-        return segments[2];
-    }
-
-    const Segment& DataSegment() const {
-        return segments[2];
-    }
-
-    std::shared_ptr<std::vector<u8>> memory;
-
-    std::array<Segment, 3> segments;
-    VAddr entrypoint = 0;
 };
 
 class Process final : public WaitObject {

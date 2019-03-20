@@ -9,6 +9,7 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/file_sys/program_metadata.h"
+#include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
@@ -49,9 +50,6 @@ void SetupMainThread(Process& owner_process, KernelCore& kernel, VAddr entry_poi
     thread->ResumeFromWait();
 }
 } // Anonymous namespace
-
-CodeSet::CodeSet() = default;
-CodeSet::~CodeSet() = default;
 
 SharedPtr<Process> Process::Create(Core::System& system, std::string&& name) {
     auto& kernel = system.Kernel();

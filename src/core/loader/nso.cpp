@@ -11,6 +11,7 @@
 #include "common/swap.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/gdbstub/gdbstub.h"
+#include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/loader/nso.h"
