@@ -11,7 +11,7 @@ namespace Common {
 
 TEST_CASE("MultiLevelQueue", "[common]") {
     std::array<f32, 8> values = {0.0, 5.0, 1.0, 9.0, 8.0, 2.0, 6.0, 7.0};
-    Common::MultiLevelQueue<f32,64> mlq;
+    Common::MultiLevelQueue<f32, 64> mlq;
     REQUIRE(mlq.empty());
     mlq.add(values[2], 2);
     mlq.add(values[7], 7);

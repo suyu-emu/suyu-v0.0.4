@@ -45,10 +45,10 @@ Thread* Scheduler::PopNextReadyThread() {
     Thread* next = nullptr;
     Thread* thread = GetCurrentThread();
 
-
     if (thread && thread->GetStatus() == ThreadStatus::Running) {
-        if (ready_queue.empty())
+        if (ready_queue.empty()) {
             return thread;
+        }
         // We have to do better than the current thread.
         // This call returns null when that's not possible.
         next = ready_queue.front();
@@ -56,8 +56,9 @@ Thread* Scheduler::PopNextReadyThread() {
             next = thread;
         }
     } else {
-        if (ready_queue.empty())
+        if (ready_queue.empty()) {
             return nullptr;
+        }
         next = ready_queue.front();
     }
 
@@ -176,8 +177,9 @@ void Scheduler::UnscheduleThread(Thread* thread, u32 priority) {
 
 void Scheduler::SetThreadPriority(Thread* thread, u32 priority) {
     std::lock_guard<std::mutex> lock(scheduler_mutex);
-    if (thread->GetPriority() == priority)
+    if (thread->GetPriority() == priority) {
         return;
+    }
 
     // If thread was ready, adjust queues
     if (thread->GetStatus() == ThreadStatus::Ready)
@@ -188,9 +190,10 @@ Thread* Scheduler::GetNextSuggestedThread(u32 core, u32 maximum_priority) const 
     std::lock_guard<std::mutex> lock(scheduler_mutex);
 
     const u32 mask = 1U << core;
-    for (auto& thread : ready_queue) {
-        if ((thread->GetAffinityMask() & mask) != 0 && thread->GetPriority() < maximum_priority)
+    for (auto* thread : ready_queue) {
+        if ((thread->GetAffinityMask() & mask) != 0 && thread->GetPriority() < maximum_priority) {
             return thread;
+        }
     }
     return nullptr;
 }

@@ -59,7 +59,6 @@ inline u64 CountLeadingZeroes64(u64 value) {
 }
 #endif
 
-
 #ifdef _MSC_VER
 inline u32 CountTrailingZeroes32(u32 value) {
     unsigned long trailing_zero = 0;

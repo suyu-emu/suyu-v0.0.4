@@ -7,12 +7,21 @@
 #include <array>
 #include <iterator>
 #include <list>
+#include <utility>
 
 #include "common/bit_util.h"
 #include "common/common_types.h"
 
 namespace Common {
 
+/**
+ * A MultiLevelQueue is a type of priority queue which has the following characteristics:
+ * - iteratable through each of its elements.
+ * - back can be obtained.
+ * - O(1) add, lookup (both front and back)
+ * - discrete priorities and a max of 64 priorities (limited domain)
+ * This type of priority queue is normaly used for managing threads within an scheduler
+ */
 template <typename T, std::size_t Depth>
 class MultiLevelQueue {
 public:
@@ -37,9 +46,7 @@ public:
         friend bool operator==(const iterator_impl& lhs, const iterator_impl& rhs) {
             if (lhs.IsEnd() && rhs.IsEnd())
                 return true;
-            if (lhs.current_priority == rhs.current_priority)
-                return lhs.it == rhs.it;
-            return false;
+            return std::tie(lhs.current_priority, lhs.it) == std::tie(rhs.current_priority, rhs.it);
         }
 
         friend bool operator!=(const iterator_impl& lhs, const iterator_impl& rhs) {
@@ -301,7 +308,6 @@ private:
     using const_list_iterator = typename std::list<T>::const_iterator;
 
     static void ListShiftForward(std::list<T>& list, const std::size_t shift = 1) {
-        // NOTE: May want to consider making this an assertion or something
         if (shift >= list.size()) {
             return;
         }
