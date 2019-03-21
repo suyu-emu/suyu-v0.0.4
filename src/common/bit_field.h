@@ -125,8 +125,6 @@ private:
     using StorageTypeWithEndian = typename AddEndian<StorageType, EndianTag>::type;
 
 public:
-    BitField& operator=(const BitField&) = default;
-
     /// Constants to allow limited introspection of fields if needed
     static constexpr std::size_t position = Position;
     static constexpr std::size_t bits = Bits;
