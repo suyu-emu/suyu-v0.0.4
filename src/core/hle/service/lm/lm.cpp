@@ -42,7 +42,7 @@ private:
         union {
             BitField<0, 16, Flags> flags;
             BitField<16, 8, Severity> severity;
-            BitField<24, 8, u32_le> verbosity;
+            BitField<24, 8, u32> verbosity;
         };
         u32_le payload_size;
 

@@ -39,13 +39,13 @@ public:
         union {
             u32_le raw{};
 
-            BitField<0, 1, u32_le> pro_controller;
-            BitField<1, 1, u32_le> handheld;
-            BitField<2, 1, u32_le> joycon_dual;
-            BitField<3, 1, u32_le> joycon_left;
-            BitField<4, 1, u32_le> joycon_right;
+            BitField<0, 1, u32> pro_controller;
+            BitField<1, 1, u32> handheld;
+            BitField<2, 1, u32> joycon_dual;
+            BitField<3, 1, u32> joycon_left;
+            BitField<4, 1, u32> joycon_right;
 
-            BitField<6, 1, u32_le> pokeball; // TODO(ogniK): Confirm when possible
+            BitField<6, 1, u32> pokeball; // TODO(ogniK): Confirm when possible
         };
     };
     static_assert(sizeof(NPadType) == 4, "NPadType is an invalid size");
@@ -150,43 +150,43 @@ private:
         union {
             u64_le raw{};
             // Button states
-            BitField<0, 1, u64_le> a;
-            BitField<1, 1, u64_le> b;
-            BitField<2, 1, u64_le> x;
-            BitField<3, 1, u64_le> y;
-            BitField<4, 1, u64_le> l_stick;
-            BitField<5, 1, u64_le> r_stick;
-            BitField<6, 1, u64_le> l;
-            BitField<7, 1, u64_le> r;
-            BitField<8, 1, u64_le> zl;
-            BitField<9, 1, u64_le> zr;
-            BitField<10, 1, u64_le> plus;
-            BitField<11, 1, u64_le> minus;
+            BitField<0, 1, u64> a;
+            BitField<1, 1, u64> b;
+            BitField<2, 1, u64> x;
+            BitField<3, 1, u64> y;
+            BitField<4, 1, u64> l_stick;
+            BitField<5, 1, u64> r_stick;
+            BitField<6, 1, u64> l;
+            BitField<7, 1, u64> r;
+            BitField<8, 1, u64> zl;
+            BitField<9, 1, u64> zr;
+            BitField<10, 1, u64> plus;
+            BitField<11, 1, u64> minus;
 
             // D-Pad
-            BitField<12, 1, u64_le> d_left;
-            BitField<13, 1, u64_le> d_up;
-            BitField<14, 1, u64_le> d_right;
-            BitField<15, 1, u64_le> d_down;
+            BitField<12, 1, u64> d_left;
+            BitField<13, 1, u64> d_up;
+            BitField<14, 1, u64> d_right;
+            BitField<15, 1, u64> d_down;
 
             // Left JoyStick
-            BitField<16, 1, u64_le> l_stick_left;
-            BitField<17, 1, u64_le> l_stick_up;
-            BitField<18, 1, u64_le> l_stick_right;
-            BitField<19, 1, u64_le> l_stick_down;
+            BitField<16, 1, u64> l_stick_left;
+            BitField<17, 1, u64> l_stick_up;
+            BitField<18, 1, u64> l_stick_right;
+            BitField<19, 1, u64> l_stick_down;
 
             // Right JoyStick
-            BitField<20, 1, u64_le> r_stick_left;
-            BitField<21, 1, u64_le> r_stick_up;
-            BitField<22, 1, u64_le> r_stick_right;
-            BitField<23, 1, u64_le> r_stick_down;
+            BitField<20, 1, u64> r_stick_left;
+            BitField<21, 1, u64> r_stick_up;
+            BitField<22, 1, u64> r_stick_right;
+            BitField<23, 1, u64> r_stick_down;
 
             // Not always active?
-            BitField<24, 1, u64_le> left_sl;
-            BitField<25, 1, u64_le> left_sr;
+            BitField<24, 1, u64> left_sl;
+            BitField<25, 1, u64> left_sr;
 
-            BitField<26, 1, u64_le> right_sl;
-            BitField<27, 1, u64_le> right_sr;
+            BitField<26, 1, u64> right_sl;
+            BitField<27, 1, u64> right_sr;
         };
     };
     static_assert(sizeof(ControllerPadState) == 8, "ControllerPadState is an invalid size");
@@ -200,12 +200,12 @@ private:
     struct ConnectionState {
         union {
             u32_le raw{};
-            BitField<0, 1, u32_le> IsConnected;
-            BitField<1, 1, u32_le> IsWired;
-            BitField<2, 1, u32_le> IsLeftJoyConnected;
-            BitField<3, 1, u32_le> IsLeftJoyWired;
-            BitField<4, 1, u32_le> IsRightJoyConnected;
-            BitField<5, 1, u32_le> IsRightJoyWired;
+            BitField<0, 1, u32> IsConnected;
+            BitField<1, 1, u32> IsWired;
+            BitField<2, 1, u32> IsLeftJoyConnected;
+            BitField<3, 1, u32> IsLeftJoyWired;
+            BitField<4, 1, u32> IsRightJoyConnected;
+            BitField<5, 1, u32> IsRightJoyWired;
         };
     };
     static_assert(sizeof(ConnectionState) == 4, "ConnectionState is an invalid size");
@@ -240,23 +240,23 @@ private:
     struct NPadProperties {
         union {
             s64_le raw{};
-            BitField<11, 1, s64_le> is_vertical;
-            BitField<12, 1, s64_le> is_horizontal;
-            BitField<13, 1, s64_le> use_plus;
-            BitField<14, 1, s64_le> use_minus;
+            BitField<11, 1, s64> is_vertical;
+            BitField<12, 1, s64> is_horizontal;
+            BitField<13, 1, s64> use_plus;
+            BitField<14, 1, s64> use_minus;
         };
     };
 
     struct NPadDevice {
         union {
             u32_le raw{};
-            BitField<0, 1, s32_le> pro_controller;
-            BitField<1, 1, s32_le> handheld;
-            BitField<2, 1, s32_le> handheld_left;
-            BitField<3, 1, s32_le> handheld_right;
-            BitField<4, 1, s32_le> joycon_left;
-            BitField<5, 1, s32_le> joycon_right;
-            BitField<6, 1, s32_le> pokeball;
+            BitField<0, 1, s32> pro_controller;
+            BitField<1, 1, s32> handheld;
+            BitField<2, 1, s32> handheld_left;
+            BitField<3, 1, s32> handheld_right;
+            BitField<4, 1, s32> joycon_left;
+            BitField<5, 1, s32> joycon_right;
+            BitField<6, 1, s32> pokeball;
         };
     };
 

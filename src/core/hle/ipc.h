@@ -39,10 +39,10 @@ struct CommandHeader {
     union {
         u32_le raw_low;
         BitField<0, 16, CommandType> type;
-        BitField<16, 4, u32_le> num_buf_x_descriptors;
-        BitField<20, 4, u32_le> num_buf_a_descriptors;
-        BitField<24, 4, u32_le> num_buf_b_descriptors;
-        BitField<28, 4, u32_le> num_buf_w_descriptors;
+        BitField<16, 4, u32> num_buf_x_descriptors;
+        BitField<20, 4, u32> num_buf_a_descriptors;
+        BitField<24, 4, u32> num_buf_b_descriptors;
+        BitField<28, 4, u32> num_buf_w_descriptors;
     };
 
     enum class BufferDescriptorCFlag : u32 {
@@ -53,28 +53,28 @@ struct CommandHeader {
 
     union {
         u32_le raw_high;
-        BitField<0, 10, u32_le> data_size;
+        BitField<0, 10, u32> data_size;
         BitField<10, 4, BufferDescriptorCFlag> buf_c_descriptor_flags;
-        BitField<31, 1, u32_le> enable_handle_descriptor;
+        BitField<31, 1, u32> enable_handle_descriptor;
     };
 };
 static_assert(sizeof(CommandHeader) == 8, "CommandHeader size is incorrect");
 
 union HandleDescriptorHeader {
     u32_le raw_high;
-    BitField<0, 1, u32_le> send_current_pid;
-    BitField<1, 4, u32_le> num_handles_to_copy;
-    BitField<5, 4, u32_le> num_handles_to_move;
+    BitField<0, 1, u32> send_current_pid;
+    BitField<1, 4, u32> num_handles_to_copy;
+    BitField<5, 4, u32> num_handles_to_move;
 };
 static_assert(sizeof(HandleDescriptorHeader) == 4, "HandleDescriptorHeader size is incorrect");
 
 struct BufferDescriptorX {
     union {
-        BitField<0, 6, u32_le> counter_bits_0_5;
-        BitField<6, 3, u32_le> address_bits_36_38;
-        BitField<9, 3, u32_le> counter_bits_9_11;
-        BitField<12, 4, u32_le> address_bits_32_35;
-        BitField<16, 16, u32_le> size;
+        BitField<0, 6, u32> counter_bits_0_5;
+        BitField<6, 3, u32> address_bits_36_38;
+        BitField<9, 3, u32> counter_bits_9_11;
+        BitField<12, 4, u32> address_bits_32_35;
+        BitField<16, 16, u32> size;
     };
 
     u32_le address_bits_0_31;
@@ -103,10 +103,10 @@ struct BufferDescriptorABW {
     u32_le address_bits_0_31;
 
     union {
-        BitField<0, 2, u32_le> flags;
-        BitField<2, 3, u32_le> address_bits_36_38;
-        BitField<24, 4, u32_le> size_bits_32_35;
-        BitField<28, 4, u32_le> address_bits_32_35;
+        BitField<0, 2, u32> flags;
+        BitField<2, 3, u32> address_bits_36_38;
+        BitField<24, 4, u32> size_bits_32_35;
+        BitField<28, 4, u32> address_bits_32_35;
     };
 
     VAddr Address() const {
@@ -128,8 +128,8 @@ struct BufferDescriptorC {
     u32_le address_bits_0_31;
 
     union {
-        BitField<0, 16, u32_le> address_bits_32_47;
-        BitField<16, 16, u32_le> size;
+        BitField<0, 16, u32> address_bits_32_47;
+        BitField<16, 16, u32> size;
     };
 
     VAddr Address() const {
@@ -167,8 +167,8 @@ struct DomainMessageHeader {
         struct {
             union {
                 BitField<0, 8, CommandType> command;
-                BitField<8, 8, u32_le> input_object_count;
-                BitField<16, 16, u32_le> size;
+                BitField<8, 8, u32> input_object_count;
+                BitField<16, 16, u32> size;
             };
             u32_le object_id;
             INSERT_PADDING_WORDS(2);

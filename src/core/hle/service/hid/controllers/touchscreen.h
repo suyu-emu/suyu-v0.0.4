@@ -33,8 +33,8 @@ private:
     struct Attributes {
         union {
             u32 raw{};
-            BitField<0, 1, u32_le> start_touch;
-            BitField<1, 1, u32_le> end_touch;
+            BitField<0, 1, u32> start_touch;
+            BitField<1, 1, u32> end_touch;
         };
     };
     static_assert(sizeof(Attributes) == 0x4, "Attributes is an invalid size");

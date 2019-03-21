@@ -41,20 +41,20 @@ private:
     struct PadState {
         union {
             u32_le raw{};
-            BitField<0, 1, u32_le> a;
-            BitField<1, 1, u32_le> b;
-            BitField<2, 1, u32_le> x;
-            BitField<3, 1, u32_le> y;
-            BitField<4, 1, u32_le> l;
-            BitField<5, 1, u32_le> r;
-            BitField<6, 1, u32_le> zl;
-            BitField<7, 1, u32_le> zr;
-            BitField<8, 1, u32_le> plus;
-            BitField<9, 1, u32_le> minus;
-            BitField<10, 1, u32_le> d_left;
-            BitField<11, 1, u32_le> d_up;
-            BitField<12, 1, u32_le> d_right;
-            BitField<13, 1, u32_le> d_down;
+            BitField<0, 1, u32> a;
+            BitField<1, 1, u32> b;
+            BitField<2, 1, u32> x;
+            BitField<3, 1, u32> y;
+            BitField<4, 1, u32> l;
+            BitField<5, 1, u32> r;
+            BitField<6, 1, u32> zl;
+            BitField<7, 1, u32> zr;
+            BitField<8, 1, u32> plus;
+            BitField<9, 1, u32> minus;
+            BitField<10, 1, u32> d_left;
+            BitField<11, 1, u32> d_up;
+            BitField<12, 1, u32> d_right;
+            BitField<13, 1, u32> d_down;
         };
     };
     static_assert(sizeof(PadState) == 0x4, "PadState is an invalid size");
@@ -62,7 +62,7 @@ private:
     struct Attributes {
         union {
             u32_le raw{};
-            BitField<0, 1, u32_le> connected;
+            BitField<0, 1, u32> connected;
         };
     };
     static_assert(sizeof(Attributes) == 0x4, "Attributes is an invalid size");
