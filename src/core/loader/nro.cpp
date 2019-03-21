@@ -14,6 +14,7 @@
 #include "core/file_sys/romfs_factory.h"
 #include "core/file_sys/vfs_offset.h"
 #include "core/gdbstub/gdbstub.h"
+#include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/hle/service/filesystem/filesystem.h"

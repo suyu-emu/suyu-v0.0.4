@@ -107,6 +107,8 @@ add_library(core STATIC
     hle/kernel/client_port.h
     hle/kernel/client_session.cpp
     hle/kernel/client_session.h
+    hle/kernel/code_set.cpp
+    hle/kernel/code_set.h
     hle/kernel/errors.h
     hle/kernel/handle_table.cpp
     hle/kernel/handle_table.h

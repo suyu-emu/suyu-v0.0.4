@@ -9,6 +9,7 @@
 #include "common/common_types.h"
 #include "common/file_util.h"
 #include "common/logging/log.h"
+#include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/loader/elf.h"
