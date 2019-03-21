@@ -25,7 +25,7 @@ public:
     /// Initializes and registers SDL device factories
     SDLState();
 
-    /// Unresisters SDL device factories and shut them down.
+    /// Unregisters SDL device factories and shut them down.
     ~SDLState() override;
 
     /// Handle SDL_Events for joysticks from SDL_PollEvent
@@ -35,8 +35,7 @@ public:
     std::shared_ptr<SDLJoystick> GetSDLJoystickByGUID(const std::string& guid, int port);
 
     /// Get all DevicePoller that use the SDL backend for a specific device type
-    std::vector<std::unique_ptr<InputCommon::Polling::DevicePoller>> GetPollers(
-        InputCommon::Polling::DeviceType type) override;
+    Pollers GetPollers(Polling::DeviceType type) override;
 
     /// Used by the Pollers during config
     std::atomic<bool> polling = false;
