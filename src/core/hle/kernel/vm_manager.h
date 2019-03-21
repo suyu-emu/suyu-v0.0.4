@@ -166,7 +166,7 @@ enum class MemoryState : u32 {
     Io                     = 0x01 | FlagMapped,
     Normal                 = 0x02 | FlagMapped | FlagQueryPhysicalAddressAllowed,
     CodeStatic             = 0x03 | CodeFlags  | FlagMapProcess,
-    CodeMutable            = 0x04 | CodeFlags  | FlagMapProcess | FlagCodeMemory,
+    CodeMutable            = 0x04 | DataFlags  | FlagMapProcess | FlagCodeMemory,
     Heap                   = 0x05 | DataFlags  | FlagCodeMemory,
     Shared                 = 0x06 | FlagMapped | FlagMemoryPoolAllocated,
     ModuleCodeStatic       = 0x08 | CodeFlags  | FlagModule | FlagMapProcess,
