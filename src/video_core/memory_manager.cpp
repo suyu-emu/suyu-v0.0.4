@@ -30,8 +30,7 @@ MemoryManager::MemoryManager() {
 
 GPUVAddr MemoryManager::AllocateSpace(u64 size, u64 align) {
     const u64 aligned_size{Common::AlignUp(size, page_size)};
-    const GPUVAddr gpu_addr{
-        FindFreeRegion(address_space_base, aligned_size, align, VirtualMemoryArea::Type::Unmapped)};
+    const GPUVAddr gpu_addr{FindFreeRegion(address_space_base, aligned_size)};
 
     AllocateMemory(gpu_addr, 0, aligned_size);
 
@@ -48,8 +47,7 @@ GPUVAddr MemoryManager::AllocateSpace(GPUVAddr gpu_addr, u64 size, u64 align) {
 
 GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, u64 size) {
     const u64 aligned_size{Common::AlignUp(size, page_size)};
-    const GPUVAddr gpu_addr{FindFreeRegion(address_space_base, aligned_size, page_size,
-                                           VirtualMemoryArea::Type::Unmapped)};
+    const GPUVAddr gpu_addr{FindFreeRegion(address_space_base, aligned_size)};
 
     MapBackingMemory(gpu_addr, Memory::GetPointer(cpu_addr), aligned_size, cpu_addr);
 
@@ -79,14 +77,10 @@ GPUVAddr MemoryManager::UnmapBuffer(GPUVAddr gpu_addr, u64 size) {
     return gpu_addr;
 }
 
-GPUVAddr MemoryManager::FindFreeRegion(GPUVAddr region_start, u64 size, u64 align,
-                                       VirtualMemoryArea::Type vma_type) {
-
-    align = (align + page_mask) & ~page_mask;
-
+GPUVAddr MemoryManager::FindFreeRegion(GPUVAddr region_start, u64 size) {
     // Find the first Free VMA.
     const VMAHandle vma_handle{std::find_if(vma_map.begin(), vma_map.end(), [&](const auto& vma) {
-        if (vma.second.type != vma_type) {
+        if (vma.second.type != VirtualMemoryArea::Type::Unmapped) {
             return false;
         }
 

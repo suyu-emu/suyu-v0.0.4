@@ -126,8 +126,8 @@ private:
     /// Updates the pages corresponding to this VMA so they match the VMA's attributes.
     void UpdatePageTableForVMA(const VirtualMemoryArea& vma);
 
-    GPUVAddr FindFreeRegion(GPUVAddr region_start, u64 size, u64 align,
-                            VirtualMemoryArea::Type vma_type);
+    /// Finds a free (unmapped region) of the specified size starting at the specified address.
+    GPUVAddr FindFreeRegion(GPUVAddr region_start, u64 size);
 
 private:
     static constexpr u64 page_bits{16};
