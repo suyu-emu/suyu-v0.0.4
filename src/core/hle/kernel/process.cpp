@@ -220,9 +220,9 @@ void Process::LoadModule(CodeSet module_, VAddr base_addr) {
     };
 
     // Map CodeSet segments
-    MapSegment(module_.CodeSegment(), VMAPermission::ReadExecute, MemoryState::CodeStatic);
-    MapSegment(module_.RODataSegment(), VMAPermission::Read, MemoryState::CodeMutable);
-    MapSegment(module_.DataSegment(), VMAPermission::ReadWrite, MemoryState::CodeMutable);
+    MapSegment(module_.CodeSegment(), VMAPermission::ReadExecute, MemoryState::Code);
+    MapSegment(module_.RODataSegment(), VMAPermission::Read, MemoryState::CodeData);
+    MapSegment(module_.DataSegment(), VMAPermission::ReadWrite, MemoryState::CodeData);
 
     // Clear instruction cache in CPU JIT
     system.InvalidateCpuInstructionCaches();
