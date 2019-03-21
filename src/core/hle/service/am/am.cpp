@@ -215,7 +215,21 @@ IDisplayController::IDisplayController() : ServiceFramework("IDisplayController"
 
 IDisplayController::~IDisplayController() = default;
 
-IDebugFunctions::IDebugFunctions() : ServiceFramework("IDebugFunctions") {}
+IDebugFunctions::IDebugFunctions() : ServiceFramework{"IDebugFunctions"} {
+    // clang-format off
+    static const FunctionInfo functions[] = {
+        {0, nullptr, "NotifyMessageToHomeMenuForDebug"},
+        {1, nullptr, "OpenMainApplication"},
+        {10, nullptr, "EmulateButtonEvent"},
+        {20, nullptr, "InvalidateTransitionLayer"},
+        {30, nullptr, "RequestLaunchApplicationWithUserAndArgumentForDebug"},
+        {40, nullptr, "GetAppletResourceUsageInfo"},
+    };
+    // clang-format on
+
+    RegisterHandlers(functions);
+}
+
 IDebugFunctions::~IDebugFunctions() = default;
 
 ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger)
