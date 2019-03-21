@@ -29,30 +29,39 @@ MemoryManager::MemoryManager() {
 }
 
 GPUVAddr MemoryManager::AllocateSpace(u64 size, u64 align) {
+    const u64 aligned_size{Common::AlignUp(size, page_size)};
     const GPUVAddr gpu_addr{
-        FindFreeRegion(address_space_base, size, align, VirtualMemoryArea::Type::Unmapped)};
-    AllocateMemory(gpu_addr, 0, size);
+        FindFreeRegion(address_space_base, aligned_size, align, VirtualMemoryArea::Type::Unmapped)};
+
+    AllocateMemory(gpu_addr, 0, aligned_size);
+
     return gpu_addr;
 }
 
 GPUVAddr MemoryManager::AllocateSpace(GPUVAddr gpu_addr, u64 size, u64 align) {
-    AllocateMemory(gpu_addr, 0, size);
+    const u64 aligned_size{Common::AlignUp(size, page_size)};
+
+    AllocateMemory(gpu_addr, 0, aligned_size);
+
     return gpu_addr;
 }
 
 GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, u64 size) {
-    const GPUVAddr gpu_addr{
-        FindFreeRegion(address_space_base, size, page_size, VirtualMemoryArea::Type::Unmapped)};
-    MapBackingMemory(gpu_addr, Memory::GetPointer(cpu_addr), ((size + page_mask) & ~page_mask),
-                     cpu_addr);
+    const u64 aligned_size{Common::AlignUp(size, page_size)};
+    const GPUVAddr gpu_addr{FindFreeRegion(address_space_base, aligned_size, page_size,
+                                           VirtualMemoryArea::Type::Unmapped)};
+
+    MapBackingMemory(gpu_addr, Memory::GetPointer(cpu_addr), aligned_size, cpu_addr);
+
     return gpu_addr;
 }
 
 GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, GPUVAddr gpu_addr, u64 size) {
     ASSERT((gpu_addr & page_mask) == 0);
 
-    MapBackingMemory(gpu_addr, Memory::GetPointer(cpu_addr), ((size + page_mask) & ~page_mask),
-                     cpu_addr);
+    const u64 aligned_size{Common::AlignUp(size, page_size)};
+
+    MapBackingMemory(gpu_addr, Memory::GetPointer(cpu_addr), aligned_size, cpu_addr);
 
     return gpu_addr;
 }
@@ -60,10 +69,12 @@ GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, GPUVAddr gpu_addr, u64 size)
 GPUVAddr MemoryManager::UnmapBuffer(GPUVAddr gpu_addr, u64 size) {
     ASSERT((gpu_addr & page_mask) == 0);
 
+    const u64 aligned_size{Common::AlignUp(size, page_size)};
     const CacheAddr cache_addr{ToCacheAddr(GetPointer(gpu_addr))};
-    Core::System::GetInstance().Renderer().Rasterizer().FlushAndInvalidateRegion(cache_addr, size);
 
-    UnmapRange(gpu_addr, ((size + page_mask) & ~page_mask));
+    Core::System::GetInstance().Renderer().Rasterizer().FlushAndInvalidateRegion(cache_addr,
+                                                                                 aligned_size);
+    UnmapRange(gpu_addr, aligned_size);
 
     return gpu_addr;
 }
