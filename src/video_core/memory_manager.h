@@ -47,8 +47,8 @@ public:
 
     GPUVAddr AllocateSpace(u64 size, u64 align);
     GPUVAddr AllocateSpace(GPUVAddr addr, u64 size, u64 align);
-    GPUVAddr MapBufferEx(GPUVAddr cpu_addr, u64 size);
-    GPUVAddr MapBufferEx(GPUVAddr cpu_addr, GPUVAddr addr, u64 size);
+    GPUVAddr MapBufferEx(VAddr cpu_addr, u64 size);
+    GPUVAddr MapBufferEx(VAddr cpu_addr, GPUVAddr addr, u64 size);
     GPUVAddr UnmapBuffer(GPUVAddr addr, u64 size);
     std::optional<VAddr> GpuToCpuAddress(GPUVAddr addr);
 
@@ -96,8 +96,8 @@ private:
     /// Converts a VMAHandle to a mutable VMAIter.
     VMAIter StripIterConstness(const VMAHandle& iter);
 
-    /// Unmaps the given VMA.
-    VMAIter Unmap(VMAIter vma);
+    /// Marks as the specfied VMA as allocated.
+    VMAIter Allocate(VMAIter vma);
 
     /**
      * Carves a VMA of a specific size at the specified address by splitting Free VMAs while doing
@@ -135,11 +135,11 @@ private:
     static constexpr u64 page_mask{page_size - 1};
 
     /// Address space in bits, this is fairly arbitrary but sufficiently large.
-    static constexpr u32 address_space_width = 39;
+    static constexpr u32 address_space_width{39};
     /// Start address for mapping, this is fairly arbitrary but must be non-zero.
-    static constexpr GPUVAddr address_space_base = 0x100000;
+    static constexpr GPUVAddr address_space_base{0x100000};
     /// End of address space, based on address space in bits.
-    static constexpr GPUVAddr address_space_end = 1ULL << address_space_width;
+    static constexpr GPUVAddr address_space_end{1ULL << address_space_width};
 
     Common::PageTable page_table{page_bits};
     VMAMap vma_map;

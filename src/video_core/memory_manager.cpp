@@ -40,7 +40,7 @@ GPUVAddr MemoryManager::AllocateSpace(GPUVAddr gpu_addr, u64 size, u64 align) {
     return gpu_addr;
 }
 
-GPUVAddr MemoryManager::MapBufferEx(GPUVAddr cpu_addr, u64 size) {
+GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, u64 size) {
     const GPUVAddr gpu_addr{
         FindFreeRegion(address_space_base, size, page_size, VirtualMemoryArea::Type::Unmapped)};
     MapBackingMemory(gpu_addr, Memory::GetPointer(cpu_addr), ((size + page_mask) & ~page_mask),
@@ -48,7 +48,7 @@ GPUVAddr MemoryManager::MapBufferEx(GPUVAddr cpu_addr, u64 size) {
     return gpu_addr;
 }
 
-GPUVAddr MemoryManager::MapBufferEx(GPUVAddr cpu_addr, GPUVAddr gpu_addr, u64 size) {
+GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, GPUVAddr gpu_addr, u64 size) {
     ASSERT((gpu_addr & page_mask) == 0);
 
     MapBackingMemory(gpu_addr, Memory::GetPointer(cpu_addr), ((size + page_mask) & ~page_mask),
@@ -74,20 +74,20 @@ GPUVAddr MemoryManager::FindFreeRegion(GPUVAddr region_start, u64 size, u64 alig
     align = (align + page_mask) & ~page_mask;
 
     // Find the first Free VMA.
-    const GPUVAddr base = region_start;
-    const VMAHandle vma_handle = std::find_if(vma_map.begin(), vma_map.end(), [&](const auto& vma) {
-        if (vma.second.type != vma_type)
+    const VMAHandle vma_handle{std::find_if(vma_map.begin(), vma_map.end(), [&](const auto& vma) {
+        if (vma.second.type != vma_type) {
             return false;
+        }
 
-        const VAddr vma_end = vma.second.base + vma.second.size;
-        return vma_end > base && vma_end >= base + size;
-    });
+        const VAddr vma_end{vma.second.base + vma.second.size};
+        return vma_end > region_start && vma_end >= region_start + size;
+    })};
 
     if (vma_handle == vma_map.end()) {
         return {};
     }
 
-    return std::max(base, vma_handle->second.base);
+    return std::max(region_start, vma_handle->second.base);
 }
 
 bool MemoryManager::IsAddressValid(GPUVAddr addr) const {
@@ -99,7 +99,7 @@ std::optional<VAddr> MemoryManager::GpuToCpuAddress(GPUVAddr addr) {
         return {};
     }
 
-    VAddr cpu_addr = page_table.backing_addr[addr >> page_bits];
+    VAddr cpu_addr{page_table.backing_addr[addr >> page_bits]};
     if (cpu_addr) {
         return cpu_addr + (addr & page_mask);
     }
@@ -113,7 +113,7 @@ T MemoryManager::Read(GPUVAddr addr) {
         return {};
     }
 
-    const u8* page_pointer = page_table.pointers[addr >> page_bits];
+    const u8* page_pointer{page_table.pointers[addr >> page_bits]};
     if (page_pointer) {
         // NOTE: Avoid adding any extra logic to this fast-path block
         T value;
@@ -121,8 +121,7 @@ T MemoryManager::Read(GPUVAddr addr) {
         return value;
     }
 
-    Common::PageType type = page_table.attributes[addr >> page_bits];
-    switch (type) {
+    switch (page_table.attributes[addr >> page_bits]) {
     case Common::PageType::Unmapped:
         LOG_ERROR(HW_GPU, "Unmapped Read{} @ 0x{:08X}", sizeof(T) * 8, addr);
         return 0;
@@ -141,15 +140,14 @@ void MemoryManager::Write(GPUVAddr addr, T data) {
         return;
     }
 
-    u8* page_pointer = page_table.pointers[addr >> page_bits];
+    u8* page_pointer{page_table.pointers[addr >> page_bits]};
     if (page_pointer) {
         // NOTE: Avoid adding any extra logic to this fast-path block
         std::memcpy(&page_pointer[addr & page_mask], &data, sizeof(T));
         return;
     }
 
-    Common::PageType type = page_table.attributes[addr >> page_bits];
-    switch (type) {
+    switch (page_table.attributes[addr >> page_bits]) {
     case Common::PageType::Unmapped:
         LOG_ERROR(HW_GPU, "Unmapped Write{} 0x{:08X} @ 0x{:016X}", sizeof(data) * 8,
                   static_cast<u32>(data), addr);
@@ -176,7 +174,7 @@ u8* MemoryManager::GetPointer(GPUVAddr addr) {
         return {};
     }
 
-    u8* page_pointer = page_table.pointers[addr >> page_bits];
+    u8* page_pointer{page_table.pointers[addr >> page_bits]};
     if (page_pointer) {
         return page_pointer + (addr & page_mask);
     }
@@ -201,7 +199,7 @@ void MemoryManager::MapPages(GPUVAddr base, u64 size, u8* memory, Common::PageTy
     LOG_DEBUG(HW_GPU, "Mapping {} onto {:016X}-{:016X}", fmt::ptr(memory), base * page_size,
               (base + size) * page_size);
 
-    VAddr end = base + size;
+    const VAddr end{base + size};
     ASSERT_MSG(end <= page_table.pointers.size(), "out of range mapping at {:016X}",
                base + page_table.pointers.size());
 
@@ -257,56 +255,58 @@ MemoryManager::VMAHandle MemoryManager::FindVMA(GPUVAddr target) const {
     }
 }
 
+MemoryManager::VMAIter MemoryManager::Allocate(VMAIter vma_handle) {
+    VirtualMemoryArea& vma{vma_handle->second};
+
+    vma.type = VirtualMemoryArea::Type::Allocated;
+    vma.backing_addr = 0;
+    vma.backing_memory = {};
+    UpdatePageTableForVMA(vma);
+
+    return MergeAdjacent(vma_handle);
+}
+
 MemoryManager::VMAHandle MemoryManager::AllocateMemory(GPUVAddr target, std::size_t offset,
                                                        u64 size) {
 
     // This is the appropriately sized VMA that will turn into our allocation.
-    VMAIter vma_handle = CarveVMA(target, size);
-    VirtualMemoryArea& final_vma = vma_handle->second;
-    ASSERT(final_vma.size == size);
+    VMAIter vma_handle{CarveVMA(target, size)};
+    VirtualMemoryArea& vma{vma_handle->second};
 
-    final_vma.type = VirtualMemoryArea::Type::Allocated;
-    final_vma.offset = offset;
-    UpdatePageTableForVMA(final_vma);
+    ASSERT(vma.size == size);
 
-    return MergeAdjacent(vma_handle);
+    vma.offset = offset;
+
+    return Allocate(vma_handle);
 }
 
 MemoryManager::VMAHandle MemoryManager::MapBackingMemory(GPUVAddr target, u8* memory, u64 size,
                                                          VAddr backing_addr) {
     // This is the appropriately sized VMA that will turn into our allocation.
-    VMAIter vma_handle = CarveVMA(target, size);
-    VirtualMemoryArea& final_vma = vma_handle->second;
-    ASSERT(final_vma.size == size);
+    VMAIter vma_handle{CarveVMA(target, size)};
+    VirtualMemoryArea& vma{vma_handle->second};
 
-    final_vma.type = VirtualMemoryArea::Type::Mapped;
-    final_vma.backing_memory = memory;
-    final_vma.backing_addr = backing_addr;
-    UpdatePageTableForVMA(final_vma);
+    ASSERT(vma.size == size);
 
-    return MergeAdjacent(vma_handle);
-}
-
-MemoryManager::VMAIter MemoryManager::Unmap(VMAIter vma_handle) {
-    VirtualMemoryArea& vma = vma_handle->second;
-    vma.type = VirtualMemoryArea::Type::Allocated;
-    vma.offset = 0;
-    vma.backing_memory = nullptr;
-
+    vma.type = VirtualMemoryArea::Type::Mapped;
+    vma.backing_memory = memory;
+    vma.backing_addr = backing_addr;
     UpdatePageTableForVMA(vma);
 
     return MergeAdjacent(vma_handle);
 }
 
 void MemoryManager::UnmapRange(GPUVAddr target, u64 size) {
-    VMAIter vma = CarveVMARange(target, size);
-    const VAddr target_end = target + size;
+    VMAIter vma{CarveVMARange(target, size)};
+    const VAddr target_end{target + size};
+    const VMAIter end{vma_map.end()};
 
-    const VMAIter end = vma_map.end();
     // The comparison against the end of the range must be done using addresses since VMAs can be
     // merged during this process, causing invalidation of the iterators.
     while (vma != end && vma->second.base < target_end) {
-        vma = std::next(Unmap(vma));
+        // Unmapped ranges return to allocated state and can be reused
+        // This behavior is used by Super Mario Odyssey, Sonic Forces, and likely other games
+        vma = std::next(Allocate(vma));
     }
 
     ASSERT(FindVMA(target)->second.size >= size);
@@ -319,25 +319,26 @@ MemoryManager::VMAIter MemoryManager::StripIterConstness(const VMAHandle& iter) 
 }
 
 MemoryManager::VMAIter MemoryManager::CarveVMA(GPUVAddr base, u64 size) {
-    ASSERT_MSG((size & Tegra::MemoryManager::page_mask) == 0, "non-page aligned size: 0x{:016X}",
-               size);
-    ASSERT_MSG((base & Tegra::MemoryManager::page_mask) == 0, "non-page aligned base: 0x{:016X}",
-               base);
+    ASSERT_MSG((size & page_mask) == 0, "non-page aligned size: 0x{:016X}", size);
+    ASSERT_MSG((base & page_mask) == 0, "non-page aligned base: 0x{:016X}", base);
 
-    VMAIter vma_handle = StripIterConstness(FindVMA(base));
+    VMAIter vma_handle{StripIterConstness(FindVMA(base))};
     if (vma_handle == vma_map.end()) {
-        // Target address is outside the range managed by the kernel
+        // Target address is outside the managed range
         return {};
     }
 
-    const VirtualMemoryArea& vma = vma_handle->second;
+    const VirtualMemoryArea& vma{vma_handle->second};
     if (vma.type == VirtualMemoryArea::Type::Mapped) {
         // Region is already allocated
         return {};
     }
 
-    const VAddr start_in_vma = base - vma.base;
-    const VAddr end_in_vma = start_in_vma + size;
+    const VAddr start_in_vma{base - vma.base};
+    const VAddr end_in_vma{start_in_vma + size};
+
+    ASSERT_MSG(end_in_vma <= vma.size, "region size 0x{:016X} is less than required size 0x{:016X}",
+               vma.size, end_in_vma);
 
     if (end_in_vma < vma.size) {
         // Split VMA at the end of the allocated region
@@ -352,17 +353,15 @@ MemoryManager::VMAIter MemoryManager::CarveVMA(GPUVAddr base, u64 size) {
 }
 
 MemoryManager::VMAIter MemoryManager::CarveVMARange(GPUVAddr target, u64 size) {
-    ASSERT_MSG((size & Tegra::MemoryManager::page_mask) == 0, "non-page aligned size: 0x{:016X}",
-               size);
-    ASSERT_MSG((target & Tegra::MemoryManager::page_mask) == 0, "non-page aligned base: 0x{:016X}",
-               target);
+    ASSERT_MSG((size & page_mask) == 0, "non-page aligned size: 0x{:016X}", size);
+    ASSERT_MSG((target & page_mask) == 0, "non-page aligned base: 0x{:016X}", target);
 
-    const VAddr target_end = target + size;
+    const VAddr target_end{target + size};
     ASSERT(target_end >= target);
     ASSERT(size > 0);
 
-    VMAIter begin_vma = StripIterConstness(FindVMA(target));
-    const VMAIter i_end = vma_map.lower_bound(target_end);
+    VMAIter begin_vma{StripIterConstness(FindVMA(target))};
+    const VMAIter i_end{vma_map.lower_bound(target_end)};
     if (std::any_of(begin_vma, i_end, [](const auto& entry) {
             return entry.second.type == VirtualMemoryArea::Type::Unmapped;
         })) {
@@ -373,7 +372,7 @@ MemoryManager::VMAIter MemoryManager::CarveVMARange(GPUVAddr target, u64 size) {
         begin_vma = SplitVMA(begin_vma, target - begin_vma->second.base);
     }
 
-    VMAIter end_vma = StripIterConstness(FindVMA(target_end));
+    VMAIter end_vma{StripIterConstness(FindVMA(target_end))};
     if (end_vma != vma_map.end() && target_end != end_vma->second.base) {
         end_vma = SplitVMA(end_vma, target_end - end_vma->second.base);
     }
@@ -382,8 +381,8 @@ MemoryManager::VMAIter MemoryManager::CarveVMARange(GPUVAddr target, u64 size) {
 }
 
 MemoryManager::VMAIter MemoryManager::SplitVMA(VMAIter vma_handle, u64 offset_in_vma) {
-    VirtualMemoryArea& old_vma = vma_handle->second;
-    VirtualMemoryArea new_vma = old_vma; // Make a copy of the VMA
+    VirtualMemoryArea& old_vma{vma_handle->second};
+    VirtualMemoryArea new_vma{old_vma}; // Make a copy of the VMA
 
     // For now, don't allow no-op VMA splits (trying to split at a boundary) because it's probably
     // a bug. This restriction might be removed later.
@@ -411,14 +410,14 @@ MemoryManager::VMAIter MemoryManager::SplitVMA(VMAIter vma_handle, u64 offset_in
 }
 
 MemoryManager::VMAIter MemoryManager::MergeAdjacent(VMAIter iter) {
-    const VMAIter next_vma = std::next(iter);
+    const VMAIter next_vma{std::next(iter)};
     if (next_vma != vma_map.end() && iter->second.CanBeMergedWith(next_vma->second)) {
         iter->second.size += next_vma->second.size;
         vma_map.erase(next_vma);
     }
 
     if (iter != vma_map.begin()) {
-        VMAIter prev_vma = std::prev(iter);
+        VMAIter prev_vma{std::prev(iter)};
         if (prev_vma->second.CanBeMergedWith(iter->second)) {
             prev_vma->second.size += iter->second.size;
             vma_map.erase(iter);
