@@ -34,20 +34,32 @@ struct NsoSegmentHeader {
 static_assert(sizeof(NsoSegmentHeader) == 0x10, "NsoSegmentHeader has incorrect size.");
 
 struct NsoHeader {
+    using SHA256Hash = std::array<u8, 0x20>;
+
+    struct RODataRelativeExtent {
+        u32 data_offset;
+        u32 size;
+    };
+
     u32_le magic;
     u32_le version;
-    INSERT_PADDING_WORDS(1);
-    u8 flags;
+    u32 reserved;
+    u32_le flags;
     std::array<NsoSegmentHeader, 3> segments; // Text, RoData, Data (in that order)
     std::array<u8, 0x20> build_id;
     std::array<u32_le, 3> segments_compressed_size;
+    std::array<u8, 0x1C> padding;
+    RODataRelativeExtent api_info_extent;
+    RODataRelativeExtent dynstr_extent;
+    RODataRelativeExtent dynsyn_extent;
+    std::array<SHA256Hash, 3> segment_hashes;
 
     bool IsSegmentCompressed(size_t segment_num) const {
         ASSERT_MSG(segment_num < 3, "Invalid segment {}", segment_num);
         return ((flags >> segment_num) & 1);
     }
 };
-static_assert(sizeof(NsoHeader) == 0x6c, "NsoHeader has incorrect size.");
+static_assert(sizeof(NsoHeader) == 0x100, "NsoHeader has incorrect size.");
 static_assert(std::is_trivially_copyable_v<NsoHeader>, "NsoHeader isn't trivially copyable.");
 
 struct ModHeader {
