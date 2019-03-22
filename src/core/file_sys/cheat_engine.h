@@ -7,13 +7,17 @@
 #include <map>
 #include <set>
 #include <vector>
-#include <queue>
 #include "common/bit_field.h"
 #include "common/common_types.h"
 
-namespace Core::Timing {
-struct EventType;
+namespace Core {
+class System;
 }
+
+namespace Core::Timing {
+class CoreTiming;
+struct EventType;
+} // namespace Core::Timing
 
 namespace FileSys {
 
@@ -133,7 +137,7 @@ public:
     void Execute();
 
 private:
-    CheatList(ProgramSegment master, ProgramSegment standard);
+    CheatList(const Core::System& system_, ProgramSegment master, ProgramSegment standard);
 
     void ProcessBlockPairs(const Block& block);
     void ExecuteSingleCheat(const Cheat& cheat);
@@ -183,6 +187,8 @@ private:
     std::map<u64, u64> block_pairs;
 
     std::set<u64> encountered_loops;
+
+    const Core::System* system;
 };
 
 // Intermediary class that parses a text file or other disk format for storing cheats into a
@@ -191,10 +197,10 @@ class CheatParser {
 public:
     virtual ~CheatParser();
 
-    virtual CheatList Parse(const std::vector<u8>& data) const = 0;
+    virtual CheatList Parse(const Core::System& system, const std::vector<u8>& data) const = 0;
 
 protected:
-    CheatList MakeCheatList(CheatList::ProgramSegment master,
+    CheatList MakeCheatList(const Core::System& system_, CheatList::ProgramSegment master,
                             CheatList::ProgramSegment standard) const;
 };
 
@@ -203,7 +209,7 @@ class TextCheatParser final : public CheatParser {
 public:
     ~TextCheatParser() override;
 
-    CheatList Parse(const std::vector<u8>& data) const override;
+    CheatList Parse(const Core::System& system, const std::vector<u8>& data) const override;
 
 private:
     std::array<u8, 16> ParseSingleLineCheat(const std::string& line) const;
@@ -212,16 +218,17 @@ private:
 // Class that encapsulates a CheatList and manages its interaction with memory and CoreTiming
 class CheatEngine final {
 public:
-    CheatEngine(std::vector<CheatList> cheats, const std::string& build_id, VAddr code_region_start,
-                VAddr code_region_end);
+    CheatEngine(Core::System& system_, std::vector<CheatList> cheats_, const std::string& build_id,
+                VAddr code_region_start, VAddr code_region_end);
     ~CheatEngine();
 
 private:
-    void FrameCallback(u64 userdata, int cycles_late);
-
-    Core::Timing::EventType* event;
+    void FrameCallback(u64 userdata, s64 cycles_late);
 
     std::vector<CheatList> cheats;
+
+    Core::Timing::EventType* event;
+    Core::Timing::CoreTiming& core_timing;
 };
 
 } // namespace FileSys

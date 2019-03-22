@@ -233,7 +233,7 @@ bool PatchManager::HasNSOPatch(const std::array<u8, 32>& build_id_) const {
     return !CollectPatches(patch_dirs, build_id).empty();
 }
 
-static std::optional<CheatList> ReadCheatFileFromFolder(u64 title_id,
+static std::optional<CheatList> ReadCheatFileFromFolder(const Core::System& system, u64 title_id,
                                                         const std::array<u8, 0x20>& build_id_,
                                                         const VirtualDir& base_path, bool upper) {
     const auto build_id_raw = Common::HexArrayToString(build_id_, upper);
@@ -254,28 +254,28 @@ static std::optional<CheatList> ReadCheatFileFromFolder(u64 title_id,
     }
 
     TextCheatParser parser;
-    return parser.Parse(data);
+    return parser.Parse(system, data);
 }
 
-std::vector<CheatList> PatchManager::CreateCheatList(const std::array<u8, 32>& build_id_) const {
-    std::vector<CheatList> out;
-
+std::vector<CheatList> PatchManager::CreateCheatList(const Core::System& system,
+                                                     const std::array<u8, 32>& build_id_) const {
     const auto load_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
     auto patch_dirs = load_dir->GetSubdirectories();
     std::sort(patch_dirs.begin(), patch_dirs.end(),
               [](const VirtualDir& l, const VirtualDir& r) { return l->GetName() < r->GetName(); });
 
+    std::vector<CheatList> out;
     out.reserve(patch_dirs.size());
     for (const auto& subdir : patch_dirs) {
         auto cheats_dir = subdir->GetSubdirectory("cheats");
         if (cheats_dir != nullptr) {
-            auto res = ReadCheatFileFromFolder(title_id, build_id_, cheats_dir, true);
+            auto res = ReadCheatFileFromFolder(system, title_id, build_id_, cheats_dir, true);
             if (res.has_value()) {
                 out.push_back(std::move(*res));
                 continue;
             }
 
-            res = ReadCheatFileFromFolder(title_id, build_id_, cheats_dir, false);
+            res = ReadCheatFileFromFolder(system, title_id, build_id_, cheats_dir, false);
             if (res.has_value())
                 out.push_back(std::move(*res));
         }

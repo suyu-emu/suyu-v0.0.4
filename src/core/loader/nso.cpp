@@ -169,11 +169,11 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
 
     // Apply cheats if they exist and the program has a valid title ID
     if (pm) {
-        const auto cheats = pm->CreateCheatList(nso_header.build_id);
+        auto& system = Core::System::GetInstance();
+        const auto cheats = pm->CreateCheatList(system, nso_header.build_id);
         if (!cheats.empty()) {
-            Core::System::GetInstance().RegisterCheatList(
-                cheats, Common::HexArrayToString(nso_header.build_id), load_base,
-                load_base + program_image.size());
+            system.RegisterCheatList(cheats, Common::HexArrayToString(nso_header.build_id),
+                                     load_base, load_base + program_image.size());
         }
     }
 

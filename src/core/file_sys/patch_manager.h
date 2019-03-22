@@ -12,6 +12,10 @@
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/vfs.h"
 
+namespace Core {
+class System;
+}
+
 namespace FileSys {
 
 class NCA;
@@ -47,7 +51,8 @@ public:
     bool HasNSOPatch(const std::array<u8, 0x20>& build_id) const;
 
     // Creates a CheatList object with all
-    std::vector<CheatList> CreateCheatList(const std::array<u8, 0x20>& build_id) const;
+    std::vector<CheatList> CreateCheatList(const Core::System& system,
+                                           const std::array<u8, 0x20>& build_id) const;
 
     // Currently tracked RomFS patches:
     // - Game Updates
