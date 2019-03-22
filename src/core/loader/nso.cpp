@@ -138,13 +138,15 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
 
     // Apply patches if necessary
     if (pm && (pm->HasNSOPatch(nso_header.build_id) || Settings::values.dump_nso)) {
-        std::vector<u8> pi_header(program_image.size() + 0x100);
-        std::memcpy(pi_header.data(), &nso_header, sizeof(NSOHeader));
-        std::memcpy(pi_header.data() + 0x100, program_image.data(), program_image.size());
+        std::vector<u8> pi_header(sizeof(NSOHeader) + program_image.size());
+        pi_header.insert(pi_header.begin(), reinterpret_cast<u8*>(&nso_header),
+                         reinterpret_cast<u8*>(&nso_header) + sizeof(NSOHeader));
+        pi_header.insert(pi_header.begin() + sizeof(NSOHeader), program_image.begin(),
+                         program_image.end());
 
         pi_header = pm->PatchNSO(pi_header);
 
-        std::memcpy(program_image.data(), pi_header.data() + 0x100, program_image.size());
+        std::copy(pi_header.begin() + sizeof(NSOHeader), pi_header.end(), program_image.begin());
     }
 
     // Apply cheats if they exist and the program has a valid title ID
