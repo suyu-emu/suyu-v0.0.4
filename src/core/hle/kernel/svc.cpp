@@ -551,9 +551,9 @@ static ResultCode ArbitrateLock(Handle holding_thread_handle, VAddr mutex_addr,
         return ERR_INVALID_ADDRESS;
     }
 
-    auto& handle_table = Core::CurrentProcess()->GetHandleTable();
-    return Mutex::TryAcquire(handle_table, mutex_addr, holding_thread_handle,
-                             requesting_thread_handle);
+    auto* const current_process = Core::System::GetInstance().Kernel().CurrentProcess();
+    return current_process->GetMutex().TryAcquire(mutex_addr, holding_thread_handle,
+                                                  requesting_thread_handle);
 }
 
 /// Unlock a mutex
@@ -571,7 +571,8 @@ static ResultCode ArbitrateUnlock(VAddr mutex_addr) {
         return ERR_INVALID_ADDRESS;
     }
 
-    return Mutex::Release(mutex_addr);
+    auto* const current_process = Core::System::GetInstance().Kernel().CurrentProcess();
+    return current_process->GetMutex().Release(mutex_addr);
 }
 
 enum class BreakType : u32 {
@@ -1340,11 +1341,15 @@ static ResultCode WaitProcessWideKeyAtomic(VAddr mutex_addr, VAddr condition_var
         "called mutex_addr={:X}, condition_variable_addr={:X}, thread_handle=0x{:08X}, timeout={}",
         mutex_addr, condition_variable_addr, thread_handle, nano_seconds);
 
-    const auto& handle_table = Core::CurrentProcess()->GetHandleTable();
+    auto* const current_process = Core::System::GetInstance().Kernel().CurrentProcess();
+    const auto& handle_table = current_process->GetHandleTable();
     SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
     ASSERT(thread);
 
-    CASCADE_CODE(Mutex::Release(mutex_addr));
+    const auto release_result = current_process->GetMutex().Release(mutex_addr);
+    if (release_result.IsError()) {
+        return release_result;
+    }
 
     SharedPtr<Thread> current_thread = GetCurrentThread();
     current_thread->SetCondVarWaitAddress(condition_variable_addr);

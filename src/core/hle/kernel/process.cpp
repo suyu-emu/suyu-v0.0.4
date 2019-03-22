@@ -229,7 +229,8 @@ void Process::LoadModule(CodeSet module_, VAddr base_addr) {
 }
 
 Process::Process(Core::System& system)
-    : WaitObject{system.Kernel()}, address_arbiter{system}, system{system} {}
+    : WaitObject{system.Kernel()}, address_arbiter{system}, mutex{system}, system{system} {}
+
 Process::~Process() = default;
 
 void Process::Acquire(Thread* thread) {
