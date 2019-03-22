@@ -22,47 +22,7 @@
 
 namespace Loader {
 
-struct NsoSegmentHeader {
-    u32_le offset;
-    u32_le location;
-    u32_le size;
-    union {
-        u32_le alignment;
-        u32_le bss_size;
-    };
-};
-static_assert(sizeof(NsoSegmentHeader) == 0x10, "NsoSegmentHeader has incorrect size.");
-
-struct NsoHeader {
-    using SHA256Hash = std::array<u8, 0x20>;
-
-    struct RODataRelativeExtent {
-        u32 data_offset;
-        u32 size;
-    };
-
-    u32_le magic;
-    u32_le version;
-    u32 reserved;
-    u32_le flags;
-    std::array<NsoSegmentHeader, 3> segments; // Text, RoData, Data (in that order)
-    std::array<u8, 0x20> build_id;
-    std::array<u32_le, 3> segments_compressed_size;
-    std::array<u8, 0x1C> padding;
-    RODataRelativeExtent api_info_extent;
-    RODataRelativeExtent dynstr_extent;
-    RODataRelativeExtent dynsyn_extent;
-    std::array<SHA256Hash, 3> segment_hashes;
-
-    bool IsSegmentCompressed(size_t segment_num) const {
-        ASSERT_MSG(segment_num < 3, "Invalid segment {}", segment_num);
-        return ((flags >> segment_num) & 1);
-    }
-};
-static_assert(sizeof(NsoHeader) == 0x100, "NsoHeader has incorrect size.");
-static_assert(std::is_trivially_copyable_v<NsoHeader>, "NsoHeader isn't trivially copyable.");
-
-struct ModHeader {
+struct MODHeader {
     u32_le magic;
     u32_le dynamic_offset;
     u32_le bss_start_offset;
@@ -71,7 +31,12 @@ struct ModHeader {
     u32_le eh_frame_hdr_end_offset;
     u32_le module_offset; // Offset to runtime-generated module object. typically equal to .bss base
 };
-static_assert(sizeof(ModHeader) == 0x1c, "ModHeader has incorrect size.");
+static_assert(sizeof(MODHeader) == 0x1c, "MODHeader has incorrect size.");
+
+bool NSOHeader::IsSegmentCompressed(size_t segment_num) const {
+    ASSERT_MSG(segment_num < 3, "Invalid segment {}", segment_num);
+    return ((flags >> segment_num) & 1) != 0;
+}
 
 AppLoader_NSO::AppLoader_NSO(FileSys::VirtualFile file) : AppLoader(std::move(file)) {}
 
@@ -89,7 +54,7 @@ FileType AppLoader_NSO::IdentifyType(const FileSys::VirtualFile& file) {
 }
 
 static std::vector<u8> DecompressSegment(const std::vector<u8>& compressed_data,
-                                         const NsoSegmentHeader& header) {
+                                         const NSOSegmentHeader& header) {
     std::vector<u8> uncompressed_data(header.size);
     const int bytes_uncompressed =
         LZ4_decompress_safe(reinterpret_cast<const char*>(compressed_data.data()),
@@ -111,15 +76,18 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
                                                const FileSys::VfsFile& file, VAddr load_base,
                                                bool should_pass_arguments,
                                                std::optional<FileSys::PatchManager> pm) {
-    if (file.GetSize() < sizeof(NsoHeader))
+    if (file.GetSize() < sizeof(NSOHeader)) {
         return {};
+    }
 
-    NsoHeader nso_header{};
-    if (sizeof(NsoHeader) != file.ReadObject(&nso_header))
+    NSOHeader nso_header{};
+    if (sizeof(NSOHeader) != file.ReadObject(&nso_header)) {
         return {};
+    }
 
-    if (nso_header.magic != Common::MakeMagic('N', 'S', 'O', '0'))
+    if (nso_header.magic != Common::MakeMagic('N', 'S', 'O', '0')) {
         return {};
+    }
 
     // Build program image
     Kernel::CodeSet codeset;
@@ -155,10 +123,10 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
     std::memcpy(&module_offset, program_image.data() + 4, sizeof(u32));
 
     // Read MOD header
-    ModHeader mod_header{};
+    MODHeader mod_header{};
     // Default .bss to size in segment header if MOD0 section doesn't exist
     u32 bss_size{PageAlignSize(nso_header.segments[2].bss_size)};
-    std::memcpy(&mod_header, program_image.data() + module_offset, sizeof(ModHeader));
+    std::memcpy(&mod_header, program_image.data() + module_offset, sizeof(MODHeader));
     const bool has_mod_header{mod_header.magic == Common::MakeMagic('M', 'O', 'D', '0')};
     if (has_mod_header) {
         // Resize program image to include .bss section and page align each section
@@ -171,7 +139,7 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
     // Apply patches if necessary
     if (pm && (pm->HasNSOPatch(nso_header.build_id) || Settings::values.dump_nso)) {
         std::vector<u8> pi_header(program_image.size() + 0x100);
-        std::memcpy(pi_header.data(), &nso_header, sizeof(NsoHeader));
+        std::memcpy(pi_header.data(), &nso_header, sizeof(NSOHeader));
         std::memcpy(pi_header.data() + 0x100, program_image.data(), program_image.size());
 
         pi_header = pm->PatchNSO(pi_header);

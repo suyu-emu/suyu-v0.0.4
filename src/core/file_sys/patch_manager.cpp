@@ -20,6 +20,7 @@
 #include "core/file_sys/vfs_vector.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
+#include "core/loader/nso.h"
 #include "core/settings.h"
 
 namespace FileSys {
@@ -31,14 +32,6 @@ constexpr std::array<const char*, 14> EXEFS_FILE_NAMES{
     "main",    "main.npdm", "rtld",    "sdk",     "subsdk0", "subsdk1", "subsdk2",
     "subsdk3", "subsdk4",   "subsdk5", "subsdk6", "subsdk7", "subsdk8", "subsdk9",
 };
-
-struct NSOBuildHeader {
-    u32_le magic;
-    INSERT_PADDING_BYTES(0x3C);
-    std::array<u8, 0x20> build_id;
-    INSERT_PADDING_BYTES(0xA0);
-};
-static_assert(sizeof(NSOBuildHeader) == 0x100, "NSOBuildHeader has incorrect size.");
 
 std::string FormatTitleVersion(u32 version, TitleVersionFormat format) {
     std::array<u8, sizeof(u32)> bytes{};
@@ -163,15 +156,16 @@ std::vector<VirtualFile> PatchManager::CollectPatches(const std::vector<VirtualD
 }
 
 std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso) const {
-    if (nso.size() < sizeof(NSOBuildHeader)) {
+    if (nso.size() < sizeof(Loader::NSOHeader)) {
         return nso;
     }
 
-    NSOBuildHeader header;
-    std::memcpy(&header, nso.data(), sizeof(NSOBuildHeader));
+    Loader::NSOHeader header;
+    std::memcpy(&header, nso.data(), sizeof(header));
 
-    if (header.magic != Common::MakeMagic('N', 'S', 'O', '0'))
+    if (header.magic != Common::MakeMagic('N', 'S', 'O', '0')) {
         return nso;
+    }
 
     const auto build_id_raw = Common::HexArrayToString(header.build_id);
     const auto build_id = build_id_raw.substr(0, build_id_raw.find_last_not_of('0') + 1);
@@ -214,11 +208,11 @@ std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso) const {
         }
     }
 
-    if (out.size() < sizeof(NSOBuildHeader)) {
+    if (out.size() < sizeof(Loader::NSOHeader)) {
         return nso;
     }
 
-    std::memcpy(out.data(), &header, sizeof(NSOBuildHeader));
+    std::memcpy(out.data(), &header, sizeof(header));
     return out;
 }
 
