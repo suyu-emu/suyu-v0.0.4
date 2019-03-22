@@ -21,7 +21,7 @@
 #include "core/settings.h"
 
 namespace Loader {
-
+namespace {
 struct MODHeader {
     u32_le magic;
     u32_le dynamic_offset;
@@ -32,6 +32,26 @@ struct MODHeader {
     u32_le module_offset; // Offset to runtime-generated module object. typically equal to .bss base
 };
 static_assert(sizeof(MODHeader) == 0x1c, "MODHeader has incorrect size.");
+
+std::vector<u8> DecompressSegment(const std::vector<u8>& compressed_data,
+                                  const NSOSegmentHeader& header) {
+    std::vector<u8> uncompressed_data(header.size);
+    const int bytes_uncompressed =
+        LZ4_decompress_safe(reinterpret_cast<const char*>(compressed_data.data()),
+                            reinterpret_cast<char*>(uncompressed_data.data()),
+                            static_cast<int>(compressed_data.size()), header.size);
+
+    ASSERT_MSG(bytes_uncompressed == static_cast<int>(header.size) &&
+                   bytes_uncompressed == static_cast<int>(uncompressed_data.size()),
+               "{} != {} != {}", bytes_uncompressed, header.size, uncompressed_data.size());
+
+    return uncompressed_data;
+}
+
+constexpr u32 PageAlignSize(u32 size) {
+    return (size + Memory::PAGE_MASK) & ~Memory::PAGE_MASK;
+}
+} // Anonymous namespace
 
 bool NSOHeader::IsSegmentCompressed(size_t segment_num) const {
     ASSERT_MSG(segment_num < 3, "Invalid segment {}", segment_num);
@@ -51,25 +71,6 @@ FileType AppLoader_NSO::IdentifyType(const FileSys::VirtualFile& file) {
     }
 
     return FileType::NSO;
-}
-
-static std::vector<u8> DecompressSegment(const std::vector<u8>& compressed_data,
-                                         const NSOSegmentHeader& header) {
-    std::vector<u8> uncompressed_data(header.size);
-    const int bytes_uncompressed =
-        LZ4_decompress_safe(reinterpret_cast<const char*>(compressed_data.data()),
-                            reinterpret_cast<char*>(uncompressed_data.data()),
-                            static_cast<int>(compressed_data.size()), header.size);
-
-    ASSERT_MSG(bytes_uncompressed == static_cast<int>(header.size) &&
-                   bytes_uncompressed == static_cast<int>(uncompressed_data.size()),
-               "{} != {} != {}", bytes_uncompressed, header.size, uncompressed_data.size());
-
-    return uncompressed_data;
-}
-
-static constexpr u32 PageAlignSize(u32 size) {
-    return (size + Memory::PAGE_MASK) & ~Memory::PAGE_MASK;
 }
 
 std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
