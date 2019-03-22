@@ -5,7 +5,6 @@
 #pragma once
 
 #include <cstddef>
-#include <memory>
 #include <vector>
 
 #include "common/common_types.h"
@@ -78,7 +77,7 @@ struct CodeSet final {
     }
 
     /// The overall data that backs this code set.
-    std::shared_ptr<std::vector<u8>> memory;
+    std::vector<u8> memory;
 
     /// The segments that comprise this code set.
     std::array<Segment, 3> segments;

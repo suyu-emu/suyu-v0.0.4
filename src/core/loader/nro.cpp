@@ -187,7 +187,7 @@ static bool LoadNroImpl(Kernel::Process& process, const std::vector<u8>& data,
     program_image.resize(static_cast<u32>(program_image.size()) + bss_size);
 
     // Load codeset for current process
-    codeset.memory = std::make_shared<std::vector<u8>>(std::move(program_image));
+    codeset.memory = std::move(program_image);
     process.LoadModule(std::move(codeset), load_base);
 
     // Register module with GDBStub

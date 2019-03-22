@@ -210,11 +210,13 @@ void Process::FreeTLSSlot(VAddr tls_address) {
 }
 
 void Process::LoadModule(CodeSet module_, VAddr base_addr) {
+    const auto memory = std::make_shared<std::vector<u8>>(std::move(module_.memory));
+
     const auto MapSegment = [&](const CodeSet::Segment& segment, VMAPermission permissions,
                                 MemoryState memory_state) {
         const auto vma = vm_manager
-                             .MapMemoryBlock(segment.addr + base_addr, module_.memory,
-                                             segment.offset, segment.size, memory_state)
+                             .MapMemoryBlock(segment.addr + base_addr, memory, segment.offset,
+                                             segment.size, memory_state)
                              .Unwrap();
         vm_manager.Reprotect(vma, permissions);
     };
