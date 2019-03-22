@@ -11,7 +11,6 @@
 #include "core/core_timing_util.h"
 #include "core/file_sys/cheat_engine.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/service/hid/controllers/controller_base.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/hid/hid.h"
 #include "core/hle/service/sm/sm.h"
@@ -77,8 +76,8 @@ void CheatList::Execute() {
     }
 }
 
-CheatList::CheatList(ProgramSegment master, ProgramSegment standard)
-    : master_list(master), standard_list(standard) {}
+CheatList::CheatList(const Core::System& system_, ProgramSegment master, ProgramSegment standard)
+    : master_list{std::move(master)}, standard_list{std::move(standard)}, system{&system_} {}
 
 bool CheatList::EvaluateConditional(const Cheat& cheat) const {
     using ComparisonFunction = bool (*)(u64, u64);
@@ -89,10 +88,8 @@ bool CheatList::EvaluateConditional(const Cheat& cheat) const {
     };
 
     if (cheat.type == CodeType::ConditionalInput) {
-        const auto applet_resource = Core::System::GetInstance()
-                                         .ServiceManager()
-                                         .GetService<Service::HID::Hid>("hid")
-                                         ->GetAppletResource();
+        const auto applet_resource =
+            system->ServiceManager().GetService<Service::HID::Hid>("hid")->GetAppletResource();
         if (applet_resource == nullptr) {
             LOG_WARNING(
                 Common_Filesystem,
@@ -320,14 +317,14 @@ void CheatList::ExecuteBlock(const Block& block) {
 
 CheatParser::~CheatParser() = default;
 
-CheatList CheatParser::MakeCheatList(CheatList::ProgramSegment master,
+CheatList CheatParser::MakeCheatList(const Core::System& system, CheatList::ProgramSegment master,
                                      CheatList::ProgramSegment standard) const {
-    return {master, standard};
+    return {system, std::move(master), std::move(standard)};
 }
 
 TextCheatParser::~TextCheatParser() = default;
 
-CheatList TextCheatParser::Parse(const std::vector<u8>& data) const {
+CheatList TextCheatParser::Parse(const Core::System& system, const std::vector<u8>& data) const {
     std::stringstream ss;
     ss.write(reinterpret_cast<const char*>(data.data()), data.size());
 
@@ -375,7 +372,7 @@ CheatList TextCheatParser::Parse(const std::vector<u8>& data) const {
         }
     }
 
-    return MakeCheatList(master_list, standard_list);
+    return MakeCheatList(system, master_list, standard_list);
 }
 
 std::array<u8, 16> TextCheatParser::ParseSingleLineCheat(const std::string& line) const {
@@ -460,16 +457,16 @@ void MemoryWriteImpl(u32 width, VAddr addr, u64 value) {
     }
 }
 
-CheatEngine::CheatEngine(std::vector<CheatList> cheats, const std::string& build_id,
-                         VAddr code_region_start, VAddr code_region_end)
-    : cheats(std::move(cheats)) {
-    auto& core_timing{Core::System::GetInstance().CoreTiming()};
+CheatEngine::CheatEngine(Core::System& system, std::vector<CheatList> cheats_,
+                         const std::string& build_id, VAddr code_region_start,
+                         VAddr code_region_end)
+    : cheats{std::move(cheats_)}, core_timing{system.CoreTiming()} {
     event = core_timing.RegisterEvent(
         "CheatEngine::FrameCallback::" + build_id,
         [this](u64 userdata, s64 cycles_late) { FrameCallback(userdata, cycles_late); });
     core_timing.ScheduleEvent(CHEAT_ENGINE_TICKS, event);
 
-    const auto& vm_manager = Core::System::GetInstance().CurrentProcess()->VMManager();
+    const auto& vm_manager = system.CurrentProcess()->VMManager();
     for (auto& list : this->cheats) {
         list.SetMemoryParameters(code_region_start, vm_manager.GetHeapRegionBaseAddress(),
                                  code_region_end, vm_manager.GetHeapRegionEndAddress(),
@@ -478,15 +475,14 @@ CheatEngine::CheatEngine(std::vector<CheatList> cheats, const std::string& build
 }
 
 CheatEngine::~CheatEngine() {
-    auto& core_timing{Core::System::GetInstance().CoreTiming()};
     core_timing.UnscheduleEvent(event, 0);
 }
 
 void CheatEngine::FrameCallback(u64 userdata, int cycles_late) {
-    for (auto& list : cheats)
+    for (auto& list : cheats) {
         list.Execute();
+    }
 
-    auto& core_timing{Core::System::GetInstance().CoreTiming()};
     core_timing.ScheduleEvent(CHEAT_ENGINE_TICKS - cycles_late, event);
 }
 
