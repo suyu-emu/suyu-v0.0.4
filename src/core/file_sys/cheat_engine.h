@@ -223,7 +223,7 @@ public:
     ~CheatEngine();
 
 private:
-    void FrameCallback(u64 userdata, int cycles_late);
+    void FrameCallback(u64 userdata, s64 cycles_late);
 
     std::vector<CheatList> cheats;
 

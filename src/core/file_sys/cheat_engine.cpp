@@ -17,7 +17,7 @@
 
 namespace FileSys {
 
-constexpr u64 CHEAT_ENGINE_TICKS = Core::Timing::BASE_CLOCK_RATE / 60;
+constexpr s64 CHEAT_ENGINE_TICKS = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 60);
 constexpr u32 KEYPAD_BITMASK = 0x3FFFFFF;
 
 u64 Cheat::Address() const {
@@ -185,8 +185,9 @@ void CheatList::Loop(const Cheat& cheat) {
     ASSERT(iter != block_pairs.end());
     ASSERT(iter->first < iter->second);
 
-    for (int i = cheat.Value(4, 4); i >= 0; --i) {
-        register_3 = i;
+    const s32 initial_value = static_cast<s32>(cheat.Value(4, sizeof(s32)));
+    for (s32 i = initial_value; i >= 0; --i) {
+        register_3 = static_cast<u64>(i);
         for (std::size_t c = iter->first + 1; c < iter->second; ++c) {
             current_index = c;
             ExecuteSingleCheat(
@@ -478,7 +479,7 @@ CheatEngine::~CheatEngine() {
     core_timing.UnscheduleEvent(event, 0);
 }
 
-void CheatEngine::FrameCallback(u64 userdata, int cycles_late) {
+void CheatEngine::FrameCallback(u64 userdata, s64 cycles_late) {
     for (auto& list : cheats) {
         list.Execute();
     }
