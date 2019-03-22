@@ -319,15 +319,14 @@ public:
         }
 
         ASSERT(vm_manager
-                   .MirrorMemory(*map_address, nro_addr, nro_size,
-                                 Kernel::MemoryState::ModuleCodeStatic)
+                   .MirrorMemory(*map_address, nro_addr, nro_size, Kernel::MemoryState::ModuleCode)
                    .IsSuccess());
         ASSERT(vm_manager.UnmapRange(nro_addr, nro_size).IsSuccess());
 
         if (bss_size > 0) {
             ASSERT(vm_manager
                        .MirrorMemory(*map_address + nro_size, bss_addr, bss_size,
-                                     Kernel::MemoryState::ModuleCodeStatic)
+                                     Kernel::MemoryState::ModuleCode)
                        .IsSuccess());
             ASSERT(vm_manager.UnmapRange(bss_addr, bss_size).IsSuccess());
         }
@@ -388,8 +387,7 @@ public:
         const auto& nro_size = iter->second.size;
 
         ASSERT(vm_manager
-                   .MirrorMemory(heap_addr, mapped_addr, nro_size,
-                                 Kernel::MemoryState::ModuleCodeStatic)
+                   .MirrorMemory(heap_addr, mapped_addr, nro_size, Kernel::MemoryState::ModuleCode)
                    .IsSuccess());
         ASSERT(vm_manager.UnmapRange(mapped_addr, nro_size).IsSuccess());
 

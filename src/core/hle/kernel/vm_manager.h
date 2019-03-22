@@ -165,12 +165,12 @@ enum class MemoryState : u32 {
     Unmapped               = 0x00,
     Io                     = 0x01 | FlagMapped,
     Normal                 = 0x02 | FlagMapped | FlagQueryPhysicalAddressAllowed,
-    CodeStatic             = 0x03 | CodeFlags  | FlagMapProcess,
-    CodeMutable            = 0x04 | CodeFlags  | FlagMapProcess | FlagCodeMemory,
+    Code                   = 0x03 | CodeFlags  | FlagMapProcess,
+    CodeData               = 0x04 | DataFlags  | FlagMapProcess | FlagCodeMemory,
     Heap                   = 0x05 | DataFlags  | FlagCodeMemory,
     Shared                 = 0x06 | FlagMapped | FlagMemoryPoolAllocated,
-    ModuleCodeStatic       = 0x08 | CodeFlags  | FlagModule | FlagMapProcess,
-    ModuleCodeMutable      = 0x09 | DataFlags  | FlagModule | FlagMapProcess | FlagCodeMemory,
+    ModuleCode             = 0x08 | CodeFlags  | FlagModule | FlagMapProcess,
+    ModuleCodeData         = 0x09 | DataFlags  | FlagModule | FlagMapProcess | FlagCodeMemory,
 
     IpcBuffer0             = 0x0A | FlagMapped | FlagQueryPhysicalAddressAllowed | FlagMemoryPoolAllocated |
                                     IPCFlags | FlagSharedDevice | FlagSharedDeviceAligned,

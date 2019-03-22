@@ -20,16 +20,16 @@ namespace Kernel {
 namespace {
 const char* GetMemoryStateName(MemoryState state) {
     static constexpr const char* names[] = {
-        "Unmapped",         "Io",
-        "Normal",           "CodeStatic",
-        "CodeMutable",      "Heap",
-        "Shared",           "Unknown1",
-        "ModuleCodeStatic", "ModuleCodeMutable",
-        "IpcBuffer0",       "Stack",
-        "ThreadLocal",      "TransferMemoryIsolated",
-        "TransferMemory",   "ProcessMemory",
-        "Inaccessible",     "IpcBuffer1",
-        "IpcBuffer3",       "KernelStack",
+        "Unmapped",       "Io",
+        "Normal",         "Code",
+        "CodeData",       "Heap",
+        "Shared",         "Unknown1",
+        "ModuleCode",     "ModuleCodeData",
+        "IpcBuffer0",     "Stack",
+        "ThreadLocal",    "TransferMemoryIsolated",
+        "TransferMemory", "ProcessMemory",
+        "Inaccessible",   "IpcBuffer1",
+        "IpcBuffer3",     "KernelStack",
     };
 
     return names[ToSvcMemoryState(state)];
