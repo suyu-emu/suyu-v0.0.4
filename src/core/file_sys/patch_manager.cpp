@@ -163,8 +163,9 @@ std::vector<VirtualFile> PatchManager::CollectPatches(const std::vector<VirtualD
 }
 
 std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso) const {
-    if (nso.size() < 0x100)
+    if (nso.size() < sizeof(NSOBuildHeader)) {
         return nso;
+    }
 
     NSOBuildHeader header;
     std::memcpy(&header, nso.data(), sizeof(NSOBuildHeader));
@@ -213,8 +214,10 @@ std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso) const {
         }
     }
 
-    if (out.size() < 0x100)
+    if (out.size() < sizeof(NSOBuildHeader)) {
         return nso;
+    }
+
     std::memcpy(out.data(), &header, sizeof(NSOBuildHeader));
     return out;
 }
