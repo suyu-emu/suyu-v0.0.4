@@ -21,36 +21,8 @@
 #include "core/settings.h"
 
 namespace Loader {
-
-struct NsoSegmentHeader {
-    u32_le offset;
-    u32_le location;
-    u32_le size;
-    union {
-        u32_le alignment;
-        u32_le bss_size;
-    };
-};
-static_assert(sizeof(NsoSegmentHeader) == 0x10, "NsoSegmentHeader has incorrect size.");
-
-struct NsoHeader {
-    u32_le magic;
-    u32_le version;
-    INSERT_PADDING_WORDS(1);
-    u8 flags;
-    std::array<NsoSegmentHeader, 3> segments; // Text, RoData, Data (in that order)
-    std::array<u8, 0x20> build_id;
-    std::array<u32_le, 3> segments_compressed_size;
-
-    bool IsSegmentCompressed(size_t segment_num) const {
-        ASSERT_MSG(segment_num < 3, "Invalid segment {}", segment_num);
-        return ((flags >> segment_num) & 1);
-    }
-};
-static_assert(sizeof(NsoHeader) == 0x6c, "NsoHeader has incorrect size.");
-static_assert(std::is_trivially_copyable_v<NsoHeader>, "NsoHeader isn't trivially copyable.");
-
-struct ModHeader {
+namespace {
+struct MODHeader {
     u32_le magic;
     u32_le dynamic_offset;
     u32_le bss_start_offset;
@@ -59,7 +31,32 @@ struct ModHeader {
     u32_le eh_frame_hdr_end_offset;
     u32_le module_offset; // Offset to runtime-generated module object. typically equal to .bss base
 };
-static_assert(sizeof(ModHeader) == 0x1c, "ModHeader has incorrect size.");
+static_assert(sizeof(MODHeader) == 0x1c, "MODHeader has incorrect size.");
+
+std::vector<u8> DecompressSegment(const std::vector<u8>& compressed_data,
+                                  const NSOSegmentHeader& header) {
+    std::vector<u8> uncompressed_data(header.size);
+    const int bytes_uncompressed =
+        LZ4_decompress_safe(reinterpret_cast<const char*>(compressed_data.data()),
+                            reinterpret_cast<char*>(uncompressed_data.data()),
+                            static_cast<int>(compressed_data.size()), header.size);
+
+    ASSERT_MSG(bytes_uncompressed == static_cast<int>(header.size) &&
+                   bytes_uncompressed == static_cast<int>(uncompressed_data.size()),
+               "{} != {} != {}", bytes_uncompressed, header.size, uncompressed_data.size());
+
+    return uncompressed_data;
+}
+
+constexpr u32 PageAlignSize(u32 size) {
+    return (size + Memory::PAGE_MASK) & ~Memory::PAGE_MASK;
+}
+} // Anonymous namespace
+
+bool NSOHeader::IsSegmentCompressed(size_t segment_num) const {
+    ASSERT_MSG(segment_num < 3, "Invalid segment {}", segment_num);
+    return ((flags >> segment_num) & 1) != 0;
+}
 
 AppLoader_NSO::AppLoader_NSO(FileSys::VirtualFile file) : AppLoader(std::move(file)) {}
 
@@ -76,38 +73,22 @@ FileType AppLoader_NSO::IdentifyType(const FileSys::VirtualFile& file) {
     return FileType::NSO;
 }
 
-static std::vector<u8> DecompressSegment(const std::vector<u8>& compressed_data,
-                                         const NsoSegmentHeader& header) {
-    std::vector<u8> uncompressed_data(header.size);
-    const int bytes_uncompressed =
-        LZ4_decompress_safe(reinterpret_cast<const char*>(compressed_data.data()),
-                            reinterpret_cast<char*>(uncompressed_data.data()),
-                            static_cast<int>(compressed_data.size()), header.size);
-
-    ASSERT_MSG(bytes_uncompressed == static_cast<int>(header.size) &&
-                   bytes_uncompressed == static_cast<int>(uncompressed_data.size()),
-               "{} != {} != {}", bytes_uncompressed, header.size, uncompressed_data.size());
-
-    return uncompressed_data;
-}
-
-static constexpr u32 PageAlignSize(u32 size) {
-    return (size + Memory::PAGE_MASK) & ~Memory::PAGE_MASK;
-}
-
 std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
                                                const FileSys::VfsFile& file, VAddr load_base,
                                                bool should_pass_arguments,
                                                std::optional<FileSys::PatchManager> pm) {
-    if (file.GetSize() < sizeof(NsoHeader))
+    if (file.GetSize() < sizeof(NSOHeader)) {
         return {};
+    }
 
-    NsoHeader nso_header{};
-    if (sizeof(NsoHeader) != file.ReadObject(&nso_header))
+    NSOHeader nso_header{};
+    if (sizeof(NSOHeader) != file.ReadObject(&nso_header)) {
         return {};
+    }
 
-    if (nso_header.magic != Common::MakeMagic('N', 'S', 'O', '0'))
+    if (nso_header.magic != Common::MakeMagic('N', 'S', 'O', '0')) {
         return {};
+    }
 
     // Build program image
     Kernel::CodeSet codeset;
@@ -143,10 +124,10 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
     std::memcpy(&module_offset, program_image.data() + 4, sizeof(u32));
 
     // Read MOD header
-    ModHeader mod_header{};
+    MODHeader mod_header{};
     // Default .bss to size in segment header if MOD0 section doesn't exist
     u32 bss_size{PageAlignSize(nso_header.segments[2].bss_size)};
-    std::memcpy(&mod_header, program_image.data() + module_offset, sizeof(ModHeader));
+    std::memcpy(&mod_header, program_image.data() + module_offset, sizeof(MODHeader));
     const bool has_mod_header{mod_header.magic == Common::MakeMagic('M', 'O', 'D', '0')};
     if (has_mod_header) {
         // Resize program image to include .bss section and page align each section
@@ -158,13 +139,15 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
 
     // Apply patches if necessary
     if (pm && (pm->HasNSOPatch(nso_header.build_id) || Settings::values.dump_nso)) {
-        std::vector<u8> pi_header(program_image.size() + 0x100);
-        std::memcpy(pi_header.data(), &nso_header, sizeof(NsoHeader));
-        std::memcpy(pi_header.data() + 0x100, program_image.data(), program_image.size());
+        std::vector<u8> pi_header(sizeof(NSOHeader) + program_image.size());
+        pi_header.insert(pi_header.begin(), reinterpret_cast<u8*>(&nso_header),
+                         reinterpret_cast<u8*>(&nso_header) + sizeof(NSOHeader));
+        pi_header.insert(pi_header.begin() + sizeof(NSOHeader), program_image.begin(),
+                         program_image.end());
 
         pi_header = pm->PatchNSO(pi_header);
 
-        std::memcpy(program_image.data(), pi_header.data() + 0x100, program_image.size());
+        std::copy(pi_header.begin() + sizeof(NSOHeader), pi_header.end(), program_image.begin());
     }
 
     // Apply cheats if they exist and the program has a valid title ID
