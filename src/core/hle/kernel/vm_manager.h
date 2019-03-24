@@ -418,9 +418,6 @@ public:
     /// Gets the total memory usage, used by svcGetInfo
     u64 GetTotalMemoryUsage() const;
 
-    /// Gets the total heap usage, used by svcGetInfo
-    u64 GetTotalHeapUsage() const;
-
     /// Gets the address space base address
     VAddr GetAddressSpaceBaseAddress() const;
 
@@ -639,8 +636,5 @@ private:
     // The end of the currently allocated heap. This is not an inclusive
     // end of the range. This is essentially 'base_address + current_size'.
     VAddr heap_end = 0;
-
-    // Indicates how many bytes from the current heap are currently used.
-    u64 heap_used = 0;
 };
 } // namespace Kernel

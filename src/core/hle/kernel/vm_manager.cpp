@@ -285,7 +285,6 @@ ResultVal<VAddr> VMManager::HeapAllocate(u64 size) {
         return mapping_result.Code();
     }
 
-    heap_used = size;
     return MakeResult<VAddr>(heap_region_base);
 }
 
@@ -303,7 +302,6 @@ ResultCode VMManager::HeapFree(VAddr target, u64 size) {
         return result;
     }
 
-    heap_used -= size;
     return RESULT_SUCCESS;
 }
 
@@ -596,6 +594,7 @@ void VMManager::InitializeMemoryRegionRanges(FileSys::ProgramAddressSpaceType ty
 
     heap_region_base = map_region_end;
     heap_region_end = heap_region_base + heap_region_size;
+    heap_end = heap_region_base;
 
     new_map_region_base = heap_region_end;
     new_map_region_end = new_map_region_base + new_map_region_size;
@@ -688,10 +687,6 @@ VMManager::CheckResults VMManager::CheckRangeState(VAddr address, u64 size, Memo
 u64 VMManager::GetTotalMemoryUsage() const {
     LOG_WARNING(Kernel, "(STUBBED) called");
     return 0xF8000000;
-}
-
-u64 VMManager::GetTotalHeapUsage() const {
-    return heap_used;
 }
 
 VAddr VMManager::GetAddressSpaceBaseAddress() const {

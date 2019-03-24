@@ -806,7 +806,7 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
             return RESULT_SUCCESS;
 
         case GetInfoType::TotalHeapUsage:
-            *result = process->VMManager().GetTotalHeapUsage();
+            *result = process->VMManager().GetCurrentHeapSize();
             return RESULT_SUCCESS;
 
         case GetInfoType::IsVirtualAddressMemoryEnabled:
