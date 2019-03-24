@@ -29,7 +29,7 @@ namespace Kernel {
  * @param thread_handle The handle of the thread that's been awoken
  * @param cycles_late The number of CPU cycles that have passed since the desired wakeup time
  */
-static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] int cycles_late) {
+static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_late) {
     const auto proper_handle = static_cast<Handle>(thread_handle);
     const auto& system = Core::System::GetInstance();
 

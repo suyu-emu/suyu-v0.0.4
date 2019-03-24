@@ -36,9 +36,9 @@ namespace Service::HID {
 
 // Updating period for each HID device.
 // TODO(ogniK): Find actual polling rate of hid
-constexpr u64 pad_update_ticks = Core::Timing::BASE_CLOCK_RATE / 66;
-constexpr u64 accelerometer_update_ticks = Core::Timing::BASE_CLOCK_RATE / 100;
-constexpr u64 gyroscope_update_ticks = Core::Timing::BASE_CLOCK_RATE / 100;
+constexpr s64 pad_update_ticks = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 66);
+constexpr s64 accelerometer_update_ticks = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 100);
+constexpr s64 gyroscope_update_ticks = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 100);
 constexpr std::size_t SHARED_MEMORY_SIZE = 0x40000;
 
 IAppletResource::IAppletResource() : ServiceFramework("IAppletResource") {
@@ -75,7 +75,7 @@ IAppletResource::IAppletResource() : ServiceFramework("IAppletResource") {
     // Register update callbacks
     auto& core_timing = Core::System::GetInstance().CoreTiming();
     pad_update_event =
-        core_timing.RegisterEvent("HID::UpdatePadCallback", [this](u64 userdata, int cycles_late) {
+        core_timing.RegisterEvent("HID::UpdatePadCallback", [this](u64 userdata, s64 cycles_late) {
             UpdateControllers(userdata, cycles_late);
         });
 
@@ -106,7 +106,7 @@ void IAppletResource::GetSharedMemoryHandle(Kernel::HLERequestContext& ctx) {
     rb.PushCopyObjects(shared_mem);
 }
 
-void IAppletResource::UpdateControllers(u64 userdata, int cycles_late) {
+void IAppletResource::UpdateControllers(u64 userdata, s64 cycles_late) {
     auto& core_timing = Core::System::GetInstance().CoreTiming();
 
     const bool should_reload = Settings::values.is_device_reload_pending.exchange(false);

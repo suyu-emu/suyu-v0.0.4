@@ -186,7 +186,7 @@ void CoreTiming::Advance() {
         Event evt = std::move(event_queue.front());
         std::pop_heap(event_queue.begin(), event_queue.end(), std::greater<>());
         event_queue.pop_back();
-        evt.type->callback(evt.userdata, static_cast<int>(global_timer - evt.time));
+        evt.type->callback(evt.userdata, global_timer - evt.time);
     }
 
     is_global_timer_sane = false;
