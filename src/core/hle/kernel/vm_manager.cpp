@@ -256,7 +256,7 @@ ResultCode VMManager::ReprotectRange(VAddr target, u64 size, VMAPermission new_p
     return RESULT_SUCCESS;
 }
 
-ResultVal<VAddr> VMManager::HeapAllocate(u64 size) {
+ResultVal<VAddr> VMManager::SetHeapSize(u64 size) {
     if (size > GetHeapRegionSize()) {
         return ERR_OUT_OF_MEMORY;
     }

@@ -175,8 +175,7 @@ static ResultCode SetHeapSize(VAddr* heap_addr, u64 heap_size) {
     }
 
     auto& vm_manager = Core::System::GetInstance().Kernel().CurrentProcess()->VMManager();
-    const auto alloc_result = vm_manager.HeapAllocate(heap_size);
-
+    const auto alloc_result = vm_manager.SetHeapSize(heap_size);
     if (alloc_result.Failed()) {
         return alloc_result.Code();
     }
