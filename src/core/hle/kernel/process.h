@@ -35,14 +35,6 @@ class Thread;
 
 struct CodeSet;
 
-struct AddressMapping {
-    // Address and size must be page-aligned
-    VAddr address;
-    u64 size;
-    bool read_only;
-    bool unk_flag;
-};
-
 enum class MemoryRegion : u16 {
     APPLICATION = 1,
     SYSTEM = 2,
