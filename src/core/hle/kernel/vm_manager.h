@@ -621,9 +621,6 @@ private:
     VAddr new_map_region_base = 0;
     VAddr new_map_region_end = 0;
 
-    VAddr main_code_region_base = 0;
-    VAddr main_code_region_end = 0;
-
     VAddr tls_io_region_base = 0;
     VAddr tls_io_region_end = 0;
 
