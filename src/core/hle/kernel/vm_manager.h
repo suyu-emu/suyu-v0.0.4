@@ -380,10 +380,40 @@ public:
     /// Changes the permissions of a range of addresses, splitting VMAs as necessary.
     ResultCode ReprotectRange(VAddr target, u64 size, VMAPermission new_perms);
 
-    ResultVal<VAddr> SetHeapSize(u64 size);
-    ResultCode HeapFree(VAddr target, u64 size);
-
     ResultCode MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size, MemoryState state);
+
+    /// Attempts to allocate a heap with the given size.
+    ///
+    /// @param size The size of the heap to allocate in bytes.
+    ///
+    /// @note If a heap is currently allocated, and this is called
+    ///       with a size that is equal to the size of the current heap,
+    ///       then this function will do nothing and return the current
+    ///       heap's starting address, as there's no need to perform
+    ///       any additional heap allocation work.
+    ///
+    /// @note If a heap is currently allocated, and this is called
+    ///       with a size less than the current heap's size, then
+    ///       this function will attempt to shrink the heap.
+    ///
+    /// @note If a heap is currently allocated, and this is called
+    ///       with a size larger than the current heap's size, then
+    ///       this function will attempt to extend the size of the heap.
+    ///
+    /// @returns A result indicating either success or failure.
+    ///          <p>
+    ///          If successful, this function will return a result
+    ///          containing the starting address to the allocated heap.
+    ///          <p>
+    ///          If unsuccessful, this function will return a result
+    ///          containing an error code.
+    ///
+    /// @pre The given size must lie within the allowable heap
+    ///      memory region managed by this VMManager instance.
+    ///      Failure to abide by this will result in ERR_OUT_OF_MEMORY
+    ///      being returned as the result.
+    ///
+    ResultVal<VAddr> SetHeapSize(u64 size);
 
     /// Queries the memory manager for information about the given address.
     ///

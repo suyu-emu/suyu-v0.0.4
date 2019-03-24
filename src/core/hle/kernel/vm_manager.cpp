@@ -274,14 +274,23 @@ ResultVal<VAddr> VMManager::SetHeapSize(u64 size) {
         UnmapRange(heap_region_base, GetCurrentHeapSize());
     }
 
-    // If necessary, expand backing vector to cover new heap extents.
-    if (size > GetCurrentHeapSize()) {
-        const u64 alloc_size = size - GetCurrentHeapSize();
+    // If necessary, expand backing vector to cover new heap extents in
+    // the case of allocating. Otherwise, shrink the backing memory,
+    // if a smaller heap has been requested.
+    const u64 old_heap_size = GetCurrentHeapSize();
+    if (size > old_heap_size) {
+        const u64 alloc_size = size - old_heap_size;
 
         heap_memory->insert(heap_memory->end(), alloc_size, 0);
-        heap_end = heap_region_base + size;
+        RefreshMemoryBlockMappings(heap_memory.get());
+    } else if (size < old_heap_size) {
+        heap_memory->resize(size);
+        heap_memory->shrink_to_fit();
+
         RefreshMemoryBlockMappings(heap_memory.get());
     }
+
+    heap_end = heap_region_base + size;
     ASSERT(GetCurrentHeapSize() == heap_memory->size());
 
     const auto mapping_result =
@@ -291,23 +300,6 @@ ResultVal<VAddr> VMManager::SetHeapSize(u64 size) {
     }
 
     return MakeResult<VAddr>(heap_region_base);
-}
-
-ResultCode VMManager::HeapFree(VAddr target, u64 size) {
-    if (!IsWithinHeapRegion(target, size)) {
-        return ERR_INVALID_ADDRESS;
-    }
-
-    if (size == 0) {
-        return RESULT_SUCCESS;
-    }
-
-    const ResultCode result = UnmapRange(target, size);
-    if (result.IsError()) {
-        return result;
-    }
-
-    return RESULT_SUCCESS;
 }
 
 MemoryInfo VMManager::QueryMemory(VAddr address) const {
