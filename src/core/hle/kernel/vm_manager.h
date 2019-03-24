@@ -380,7 +380,7 @@ public:
     /// Changes the permissions of a range of addresses, splitting VMAs as necessary.
     ResultCode ReprotectRange(VAddr target, u64 size, VMAPermission new_perms);
 
-    ResultVal<VAddr> HeapAllocate(VAddr target, u64 size, VMAPermission perms);
+    ResultVal<VAddr> HeapAllocate(u64 size);
     ResultCode HeapFree(VAddr target, u64 size);
 
     ResultCode MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size, MemoryState state);
@@ -468,6 +468,13 @@ public:
 
     /// Gets the total size of the heap region in bytes.
     u64 GetHeapRegionSize() const;
+
+    /// Gets the total size of the current heap in bytes.
+    ///
+    /// @note This is the current allocated heap size, not the size
+    ///       of the region it's allowed to exist within.
+    ///
+    u64 GetCurrentHeapSize() const;
 
     /// Determines whether or not the specified range is within the heap region.
     bool IsWithinHeapRegion(VAddr address, u64 size) const;
@@ -628,9 +635,12 @@ private:
     // This makes deallocation and reallocation of holes fast and keeps process memory contiguous
     // in the emulator address space, allowing Memory::GetPointer to be reasonably safe.
     std::shared_ptr<std::vector<u8>> heap_memory;
-    // The left/right bounds of the address space covered by heap_memory.
-    VAddr heap_start = 0;
+
+    // The end of the currently allocated heap. This is not an inclusive
+    // end of the range. This is essentially 'base_address + current_size'.
     VAddr heap_end = 0;
+
+    // Indicates how many bytes from the current heap are currently used.
     u64 heap_used = 0;
 };
 } // namespace Kernel

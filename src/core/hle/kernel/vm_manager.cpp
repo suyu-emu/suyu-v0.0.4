@@ -256,39 +256,37 @@ ResultCode VMManager::ReprotectRange(VAddr target, u64 size, VMAPermission new_p
     return RESULT_SUCCESS;
 }
 
-ResultVal<VAddr> VMManager::HeapAllocate(VAddr target, u64 size, VMAPermission perms) {
-    if (!IsWithinHeapRegion(target, size)) {
-        return ERR_INVALID_ADDRESS;
+ResultVal<VAddr> VMManager::HeapAllocate(u64 size) {
+    if (size > GetHeapRegionSize()) {
+        return ERR_OUT_OF_MEMORY;
     }
 
     if (heap_memory == nullptr) {
         // Initialize heap
-        heap_memory = std::make_shared<std::vector<u8>>();
-        heap_start = heap_end = target;
+        heap_memory = std::make_shared<std::vector<u8>>(size);
+        heap_end = heap_region_base + size;
     } else {
-        UnmapRange(heap_start, heap_end - heap_start);
+        UnmapRange(heap_region_base, GetCurrentHeapSize());
     }
 
     // If necessary, expand backing vector to cover new heap extents.
-    if (target < heap_start) {
-        heap_memory->insert(begin(*heap_memory), heap_start - target, 0);
-        heap_start = target;
-        RefreshMemoryBlockMappings(heap_memory.get());
-    }
-    if (target + size > heap_end) {
-        heap_memory->insert(end(*heap_memory), (target + size) - heap_end, 0);
-        heap_end = target + size;
-        RefreshMemoryBlockMappings(heap_memory.get());
-    }
-    ASSERT(heap_end - heap_start == heap_memory->size());
+    if (size > GetCurrentHeapSize()) {
+        const u64 alloc_size = size - GetCurrentHeapSize();
 
-    CASCADE_RESULT(auto vma, MapMemoryBlock(target, heap_memory, target - heap_start, size,
-                                            MemoryState::Heap));
-    Reprotect(vma, perms);
+        heap_memory->insert(heap_memory->end(), alloc_size, 0);
+        heap_end = heap_region_base + size;
+        RefreshMemoryBlockMappings(heap_memory.get());
+    }
+    ASSERT(GetCurrentHeapSize() == heap_memory->size());
+
+    const auto mapping_result =
+        MapMemoryBlock(heap_region_base, heap_memory, 0, size, MemoryState::Heap);
+    if (mapping_result.Failed()) {
+        return mapping_result.Code();
+    }
 
     heap_used = size;
-
-    return MakeResult<VAddr>(heap_end - size);
+    return MakeResult<VAddr>(heap_region_base);
 }
 
 ResultCode VMManager::HeapFree(VAddr target, u64 size) {
@@ -776,6 +774,10 @@ VAddr VMManager::GetHeapRegionEndAddress() const {
 
 u64 VMManager::GetHeapRegionSize() const {
     return heap_region_end - heap_region_base;
+}
+
+u64 VMManager::GetCurrentHeapSize() const {
+    return heap_end - heap_region_base;
 }
 
 bool VMManager::IsWithinHeapRegion(VAddr address, u64 size) const {
