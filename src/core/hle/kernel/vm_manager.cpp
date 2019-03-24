@@ -261,6 +261,11 @@ ResultVal<VAddr> VMManager::HeapAllocate(u64 size) {
         return ERR_OUT_OF_MEMORY;
     }
 
+    // No need to do any additional work if the heap is already the given size.
+    if (size == GetCurrentHeapSize()) {
+        return MakeResult(heap_region_base);
+    }
+
     if (heap_memory == nullptr) {
         // Initialize heap
         heap_memory = std::make_shared<std::vector<u8>>(size);
