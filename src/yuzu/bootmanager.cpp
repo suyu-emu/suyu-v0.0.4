@@ -122,9 +122,51 @@ public:
         parent->OnFramebufferSizeChanged();
     }
 
+    void keyPressEvent(QKeyEvent* event) override {
+        InputCommon::GetKeyboard()->PressKey(event->key());
+    }
+
+    void keyReleaseEvent(QKeyEvent* event) override {
+        InputCommon::GetKeyboard()->ReleaseKey(event->key());
+    }
+
+    void mousePressEvent(QMouseEvent* event) override {
+        if (event->source() == Qt::MouseEventSynthesizedBySystem)
+            return; // touch input is handled in TouchBeginEvent
+
+        const auto pos{event->pos()};
+        if (event->button() == Qt::LeftButton) {
+            const auto [x, y] = parent->ScaleTouch(pos);
+            parent->TouchPressed(x, y);
+        } else if (event->button() == Qt::RightButton) {
+            InputCommon::GetMotionEmu()->BeginTilt(pos.x(), pos.y());
+        }
+    }
+
+    void mouseMoveEvent(QMouseEvent* event) override {
+        if (event->source() == Qt::MouseEventSynthesizedBySystem)
+            return; // touch input is handled in TouchUpdateEvent
+
+        const auto pos{event->pos()};
+        const auto [x, y] = parent->ScaleTouch(pos);
+        parent->TouchMoved(x, y);
+        InputCommon::GetMotionEmu()->Tilt(pos.x(), pos.y());
+    }
+
+    void mouseReleaseEvent(QMouseEvent* event) override {
+        if (event->source() == Qt::MouseEventSynthesizedBySystem)
+            return; // touch input is handled in TouchEndEvent
+
+        if (event->button() == Qt::LeftButton)
+            parent->TouchReleased();
+        else if (event->button() == Qt::RightButton)
+            InputCommon::GetMotionEmu()->EndTilt();
+    }
+
     void DisablePainting() {
         do_painting = false;
     }
+
     void EnablePainting() {
         do_painting = true;
     }
@@ -196,10 +238,22 @@ void GRenderWindow::PollEvents() {}
 void GRenderWindow::OnFramebufferSizeChanged() {
     // Screen changes potentially incur a change in screen DPI, hence we should update the
     // framebuffer size
-    qreal pixelRatio = windowPixelRatio();
+    qreal pixelRatio = GetWindowPixelRatio();
     unsigned width = child->QPaintDevice::width() * pixelRatio;
     unsigned height = child->QPaintDevice::height() * pixelRatio;
     UpdateCurrentFramebufferLayout(width, height);
+}
+
+void GRenderWindow::ForwardKeyPressEvent(QKeyEvent* event) {
+    if (child) {
+        child->keyPressEvent(event);
+    }
+}
+
+void GRenderWindow::ForwardKeyReleaseEvent(QKeyEvent* event) {
+    if (child) {
+        child->keyReleaseEvent(event);
+    }
 }
 
 void GRenderWindow::BackupGeometry() {
@@ -226,13 +280,13 @@ QByteArray GRenderWindow::saveGeometry() {
         return geometry;
 }
 
-qreal GRenderWindow::windowPixelRatio() const {
+qreal GRenderWindow::GetWindowPixelRatio() const {
     // windowHandle() might not be accessible until the window is displayed to screen.
     return windowHandle() ? windowHandle()->screen()->devicePixelRatio() : 1.0f;
 }
 
 std::pair<unsigned, unsigned> GRenderWindow::ScaleTouch(const QPointF pos) const {
-    const qreal pixel_ratio = windowPixelRatio();
+    const qreal pixel_ratio = GetWindowPixelRatio();
     return {static_cast<unsigned>(std::max(std::round(pos.x() * pixel_ratio), qreal{0.0})),
             static_cast<unsigned>(std::max(std::round(pos.y() * pixel_ratio), qreal{0.0}))};
 }
@@ -240,47 +294,6 @@ std::pair<unsigned, unsigned> GRenderWindow::ScaleTouch(const QPointF pos) const
 void GRenderWindow::closeEvent(QCloseEvent* event) {
     emit Closed();
     QWidget::closeEvent(event);
-}
-
-void GRenderWindow::keyPressEvent(QKeyEvent* event) {
-    InputCommon::GetKeyboard()->PressKey(event->key());
-}
-
-void GRenderWindow::keyReleaseEvent(QKeyEvent* event) {
-    InputCommon::GetKeyboard()->ReleaseKey(event->key());
-}
-
-void GRenderWindow::mousePressEvent(QMouseEvent* event) {
-    if (event->source() == Qt::MouseEventSynthesizedBySystem)
-        return; // touch input is handled in TouchBeginEvent
-
-    auto pos = event->pos();
-    if (event->button() == Qt::LeftButton) {
-        const auto [x, y] = ScaleTouch(pos);
-        this->TouchPressed(x, y);
-    } else if (event->button() == Qt::RightButton) {
-        InputCommon::GetMotionEmu()->BeginTilt(pos.x(), pos.y());
-    }
-}
-
-void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
-    if (event->source() == Qt::MouseEventSynthesizedBySystem)
-        return; // touch input is handled in TouchUpdateEvent
-
-    auto pos = event->pos();
-    const auto [x, y] = ScaleTouch(pos);
-    this->TouchMoved(x, y);
-    InputCommon::GetMotionEmu()->Tilt(pos.x(), pos.y());
-}
-
-void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
-    if (event->source() == Qt::MouseEventSynthesizedBySystem)
-        return; // touch input is handled in TouchEndEvent
-
-    if (event->button() == Qt::LeftButton)
-        this->TouchReleased();
-    else if (event->button() == Qt::RightButton)
-        InputCommon::GetMotionEmu()->EndTilt();
 }
 
 void GRenderWindow::TouchBeginEvent(const QTouchEvent* event) {

@@ -119,24 +119,19 @@ public:
     void PollEvents() override;
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override;
 
+    void ForwardKeyPressEvent(QKeyEvent* event);
+    void ForwardKeyReleaseEvent(QKeyEvent* event);
+
     void BackupGeometry();
     void RestoreGeometry();
     void restoreGeometry(const QByteArray& geometry); // overridden
     QByteArray saveGeometry();                        // overridden
 
-    qreal windowPixelRatio() const;
+    qreal GetWindowPixelRatio() const;
+    std::pair<unsigned, unsigned> ScaleTouch(const QPointF pos) const;
 
     void closeEvent(QCloseEvent* event) override;
-
-    void keyPressEvent(QKeyEvent* event) override;
-    void keyReleaseEvent(QKeyEvent* event) override;
-
-    void mousePressEvent(QMouseEvent* event) override;
-    void mouseMoveEvent(QMouseEvent* event) override;
-    void mouseReleaseEvent(QMouseEvent* event) override;
-
     bool event(QEvent* event) override;
-
     void focusOutEvent(QFocusEvent* event) override;
 
     void OnClientAreaResized(unsigned width, unsigned height);
@@ -158,7 +153,6 @@ signals:
     void FirstFrameDisplayed();
 
 private:
-    std::pair<unsigned, unsigned> ScaleTouch(const QPointF pos) const;
     void TouchBeginEvent(const QTouchEvent* event);
     void TouchUpdateEvent(const QTouchEvent* event);
     void TouchEndEvent();
