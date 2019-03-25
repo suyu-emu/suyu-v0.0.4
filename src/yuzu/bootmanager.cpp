@@ -340,21 +340,16 @@ std::unique_ptr<Core::Frontend::GraphicsContext> GRenderWindow::CreateSharedCont
 }
 
 void GRenderWindow::InitRenderTarget() {
-    if (shared_context) {
-        shared_context.reset();
-    }
+    shared_context.reset();
+    context.reset();
 
-    if (context) {
-        context.reset();
-    }
+    delete child;
+    child = nullptr;
 
-    if (child) {
-        delete child;
-    }
+    delete container;
+    container = nullptr;
 
-    if (layout()) {
-        delete layout();
-    }
+    delete layout();
 
     first_frame = false;
 
@@ -375,7 +370,7 @@ void GRenderWindow::InitRenderTarget() {
     fmt.setSwapInterval(false);
 
     child = new GGLWidgetInternal(this, shared_context.get());
-    QWidget* container = QWidget::createWindowContainer(child, this);
+    container = QWidget::createWindowContainer(child, this);
     QBoxLayout* layout = new QHBoxLayout(this);
 
     resize(Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height);

@@ -166,7 +166,8 @@ private:
     void OnMinimalClientAreaChangeRequest(
         const std::pair<unsigned, unsigned>& minimal_size) override;
 
-    GGLWidgetInternal* child;
+    QWidget* container = nullptr;
+    GGLWidgetInternal* child = nullptr;
 
     QByteArray geometry;
 
