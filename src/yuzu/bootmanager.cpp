@@ -371,14 +371,23 @@ void GRenderWindow::InitRenderTarget() {
 
     child = new GGLWidgetInternal(this, shared_context.get());
     container = QWidget::createWindowContainer(child, this);
+
     QBoxLayout* layout = new QHBoxLayout(this);
+    layout->addWidget(container);
+    layout->setMargin(0);
+    setLayout(layout);
+
+    // Reset minimum size to avoid unwanted resizes when this function is called for a second time.
+    setMinimumSize(1, 1);
+
+    // Show causes the window to actually be created and the OpenGL context as well, but we don't
+    // want the widget to be shown yet, so immediately hide it.
+    show();
+    hide();
 
     resize(Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height);
     child->resize(Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height);
     container->resize(Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height);
-    layout->addWidget(container);
-    layout->setMargin(0);
-    setLayout(layout);
 
     OnMinimalClientAreaChangeRequest(GetActiveConfig().min_client_area_size);
 
@@ -386,10 +395,6 @@ void GRenderWindow::InitRenderTarget() {
     NotifyClientAreaSizeChanged(std::pair<unsigned, unsigned>(child->width(), child->height()));
 
     BackupGeometry();
-    // show causes the window to actually be created and the gl context as well
-    show();
-    // but we don't want the widget to be shown yet, so immediately hide it
-    hide();
 }
 
 void GRenderWindow::CaptureScreenshot(u16 res_scale, const QString& screenshot_path) {
