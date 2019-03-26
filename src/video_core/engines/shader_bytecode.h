@@ -1343,6 +1343,7 @@ public:
         TEX,
         TEX_B,  // Texture Load Bindless
         TXQ,    // Texture Query
+        TXQ_B,  // Texture Query Bindless
         TEXS,   // Texture Fetch with scalar/non-vec4 source/destinations
         TLDS,   // Texture Load with scalar/non-vec4 source/destinations
         TLD4,   // Texture Load 4
@@ -1612,6 +1613,7 @@ private:
             INST("110000----111---", Id::TEX, Type::Texture, "TEX"),
             INST("1101111010111---", Id::TEX_B, Type::Texture, "TEX_B"),
             INST("1101111101001---", Id::TXQ, Type::Texture, "TXQ"),
+            INST("1101111101010---", Id::TXQ_B, Type::Texture, "TXQ_B"),
             INST("1101-00---------", Id::TEXS, Type::Texture, "TEXS"),
             INST("1101101---------", Id::TLDS, Type::Texture, "TLDS"),
             INST("110010----111---", Id::TLD4, Type::Texture, "TLD4"),

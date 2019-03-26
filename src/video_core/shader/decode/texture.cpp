@@ -151,6 +151,8 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         WriteTexsInstructionFloat(bb, instr, values);
         break;
     }
+    case OpCode::Id::TXQ_B:
+        is_bindless = true;
     case OpCode::Id::TXQ: {
         if (instr.txq.UsesMiscMode(TextureMiscMode::NODEP)) {
             LOG_WARNING(HW_GPU, "TXQ.NODEP implementation is incomplete");
@@ -160,7 +162,10 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         // Sadly, not all texture instructions specify the type of texture their sampler
         // uses. This must be fixed at a later instance.
         const auto& sampler =
-            GetSampler(instr.sampler, Tegra::Shader::TextureType::Texture2D, false, false);
+            !is_bindless
+                ? GetSampler(instr.sampler, Tegra::Shader::TextureType::Texture2D, false, false)
+                : GetBindlessSampler(instr.gpr8, Tegra::Shader::TextureType::Texture2D, false,
+                                     false);
 
         u32 indexer = 0;
         switch (instr.txq.query_type) {
@@ -171,7 +176,8 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
                 }
                 MetaTexture meta{sampler, {}, {}, {}, {}, {}, {}, element};
                 const Node value =
-                    Operation(OperationCode::TextureQueryDimensions, meta, GetRegister(instr.gpr8));
+                    Operation(OperationCode::TextureQueryDimensions, meta,
+                              GetRegister(instr.gpr8.Value() + (is_bindless ? 1 : 0)));
                 SetTemporal(bb, indexer++, value);
             }
             for (u32 i = 0; i < indexer; ++i) {
