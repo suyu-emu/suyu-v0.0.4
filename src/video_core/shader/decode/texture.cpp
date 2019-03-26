@@ -57,6 +57,23 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
             GetTexCode(instr, texture_type, process_mode, depth_compare, is_array, is_aoffi));
         break;
     }
+    case OpCode::Id::TEX_B: {
+        UNIMPLEMENTED_IF_MSG(instr.tex.UsesMiscMode(TextureMiscMode::AOFFI),
+                             "AOFFI is not implemented");
+
+        if (instr.tex.UsesMiscMode(TextureMiscMode::NODEP)) {
+            LOG_WARNING(HW_GPU, "TEX.NODEP implementation is incomplete");
+        }
+
+        const TextureType texture_type{instr.tex.texture_type};
+        const bool is_array = instr.tex.array != 0;
+        const bool depth_compare = instr.tex.UsesMiscMode(TextureMiscMode::DC);
+        const auto process_mode = instr.tex.GetTextureProcessMode();
+        WriteTexInstructionFloat(bb, instr,
+                                 GetTexCode(instr, texture_type, process_mode, depth_compare,
+                                            is_array, true, instr.gpr20));
+        break;
+    }
     case OpCode::Id::TEXS: {
         const TextureType texture_type{instr.texs.GetTextureType()};
         const bool is_array{instr.texs.IsArrayTexture()};
@@ -250,8 +267,34 @@ const Sampler& ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler, Textu
 
     // Otherwise create a new mapping for this sampler
     const std::size_t next_index = used_samplers.size();
-    const Sampler entry{offset, next_index, type, is_array, is_shadow};
+    const Sampler entry{offset, next_index, type, is_array, is_shadow, false};
     return *used_samplers.emplace(entry).first;
+}
+
+const Sampler& ShaderIR::GetBindlessSampler(const Tegra::Shader::Register& reg,
+                                            TextureType type, bool is_array, bool is_shadow) {
+
+    const Node sampler_register = GetRegister(reg);
+    const Node base_sampler = TrackCbuf(sampler_register, global_code, static_cast<s64>(global_code.size()));
+    const auto cbuf = std::get_if<CbufNode>(base_sampler);
+    const auto cbuf_offset_imm = std::get_if<ImmediateNode>(cbuf->GetOffset());
+    ASSERT(cbuf_offset_imm != nullptr);
+    const auto cbuf_offset = cbuf_offset_imm->GetValue();
+    const auto cbuf_index = cbuf->GetIndex();
+    const std::pair<u32, u32> cbuf_pair = {cbuf_index, cbuf_offset};
+
+    // If this sampler has already been used, return the existing mapping.
+    if (used_bindless_samplers.count(cbuf_pair) > 0) {
+        const auto& sampler = used_bindless_samplers[cbuf_pair];
+        ASSERT(sampler.GetType() == type && sampler.IsArray() == is_array &&
+               sampler.IsShadow() == is_shadow);
+        return sampler;
+    }
+
+    // Otherwise create a new mapping for this sampler
+    const std::size_t next_index = used_bindless_samplers.size();
+    const Sampler entry{0, next_index, type, is_array, is_shadow, true};
+    return (*used_bindless_samplers.emplace(std::make_pair(cbuf_pair, entry)).first).second;
 }
 
 void ShaderIR::WriteTexInstructionFloat(NodeBlock& bb, Instruction instr, const Node4& components) {
@@ -325,8 +368,8 @@ void ShaderIR::WriteTexsInstructionHalfFloat(NodeBlock& bb, Instruction instr,
 
 Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
                                TextureProcessMode process_mode, std::vector<Node> coords,
-                               Node array, Node depth_compare, u32 bias_offset,
-                               std::vector<Node> aoffi) {
+                               Node array, Node depth_compare, u32 bias_offset, std::vector<Node> aoffi, bool is_bindless,
+                               Register bindless_reg) {
     const bool is_array = array;
     const bool is_shadow = depth_compare;
 
@@ -334,7 +377,9 @@ Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
                              (texture_type == TextureType::TextureCube && is_array && is_shadow),
                          "This method is not supported.");
 
-    const auto& sampler = GetSampler(instr.sampler, texture_type, is_array, is_shadow);
+    const auto& sampler = !is_bindless
+                              ? GetSampler(instr.sampler, texture_type, is_array, is_shadow)
+                              : GetBindlessSampler(bindless_reg, texture_type, is_array, is_shadow);
 
     const bool lod_needed = process_mode == TextureProcessMode::LZ ||
                             process_mode == TextureProcessMode::LL ||
@@ -384,7 +429,7 @@ Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
 
 Node4 ShaderIR::GetTexCode(Instruction instr, TextureType texture_type,
                            TextureProcessMode process_mode, bool depth_compare, bool is_array,
-                           bool is_aoffi) {
+                           bool is_aoffi, bool is_bindless, Register bindless_reg) {
     const bool lod_bias_enabled{
         (process_mode != TextureProcessMode::None && process_mode != TextureProcessMode::LZ)};
 
@@ -423,7 +468,8 @@ Node4 ShaderIR::GetTexCode(Instruction instr, TextureType texture_type,
         dc = GetRegister(parameter_register++);
     }
 
-    return GetTextureCode(instr, texture_type, process_mode, coords, array, dc, 0, aoffi);
+    return GetTextureCode(instr, texture_type, process_mode, coords, array, dc, 0, aoffi, is_bindless,
+                          bindless_reg);
 }
 
 Node4 ShaderIR::GetTexsCode(Instruction instr, TextureType texture_type,

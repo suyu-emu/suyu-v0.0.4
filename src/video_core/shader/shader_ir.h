@@ -196,9 +196,12 @@ enum class ExitMethod {
 
 class Sampler {
 public:
+    Sampler() = default;
     explicit Sampler(std::size_t offset, std::size_t index, Tegra::Shader::TextureType type,
-                     bool is_array, bool is_shadow)
-        : offset{offset}, index{index}, type{type}, is_array{is_array}, is_shadow{is_shadow} {}
+                     bool is_array, bool is_shadow, bool is_bindless)
+        : offset{offset}, index{index}, type{type}, is_array{is_array}, is_shadow{is_shadow}, is_bindless{is_bindless} {}
+
+    ~Sampler() = default;
 
     std::size_t GetOffset() const {
         return offset;
@@ -233,6 +236,7 @@ private:
     Tegra::Shader::TextureType type{}; ///< The type used to sample this texture (Texture2D, etc)
     bool is_array{};  ///< Whether the texture is being sampled as an array texture or not.
     bool is_shadow{}; ///< Whether the texture is being sampled as a depth texture or not.
+    bool is_bindless{}; ///< Whether this sampler belongs to a bindless texture or not.
 };
 
 class ConstBuffer {
@@ -730,6 +734,10 @@ private:
     const Sampler& GetSampler(const Tegra::Shader::Sampler& sampler,
                               Tegra::Shader::TextureType type, bool is_array, bool is_shadow);
 
+    // Accesses a texture sampler for a bindless texture.
+    const Sampler& GetBindlessSampler(const Tegra::Shader::Register& reg, Tegra::Shader::TextureType type,
+                                      bool is_array, bool is_shadow);
+
     /// Extracts a sequence of bits from a node
     Node BitfieldExtract(Node value, u32 offset, u32 bits);
 
@@ -741,9 +749,11 @@ private:
     void WriteTexsInstructionHalfFloat(NodeBlock& bb, Tegra::Shader::Instruction instr,
                                        const Node4& components);
 
-    Node4 GetTexCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
-                     Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
-                     bool is_array, bool is_aoffi);
+    Node4 GetTexCode(
+        Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
+        Tegra::Shader::TextureProcessMode process_mode, bool depth_compare, bool is_array,
+        bool is_aoffi, bool is_bindless = false,
+        Tegra::Shader::Register bindless_reg = static_cast<Tegra::Shader::Register>(0));
 
     Node4 GetTexsCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
                       Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
@@ -760,10 +770,12 @@ private:
         bool lod_bias_enabled, std::size_t max_coords, std::size_t max_inputs);
 
     std::vector<Node> GetAoffiCoordinates(Node aoffi_reg, std::size_t coord_count, bool is_tld4);
-
-    Node4 GetTextureCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
-                         Tegra::Shader::TextureProcessMode process_mode, std::vector<Node> coords,
-                         Node array, Node depth_compare, u32 bias_offset, std::vector<Node> aoffi);
+    
+    Node4 GetTextureCode(
+        Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
+        Tegra::Shader::TextureProcessMode process_mode, std::vector<Node> coords, Node array,
+        Node depth_compare, u32 bias_offset, std::vector<Node> aoffi, bool is_bindless = false,
+        Tegra::Shader::Register bindless_reg = static_cast<Tegra::Shader::Register>(0));
 
     Node GetVideoOperand(Node op, bool is_chunk, bool is_signed, Tegra::Shader::VideoType type,
                          u64 byte_height);
@@ -833,6 +845,7 @@ private:
     std::set<Tegra::Shader::Attribute::Index> used_output_attributes;
     std::map<u32, ConstBuffer> used_cbufs;
     std::set<Sampler> used_samplers;
+    std::map<std::pair<u32, u32>, Sampler> used_bindless_samplers;
     std::array<bool, Tegra::Engines::Maxwell3D::Regs::NumClipDistances> used_clip_distances{};
     std::set<GlobalMemoryBase> used_global_memory_bases;
 

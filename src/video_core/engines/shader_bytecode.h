@@ -1309,6 +1309,7 @@ public:
         LDG, // Load from global memory
         STG, // Store in global memory
         TEX,
+        TEX_B,  // Texture Load Bindless
         TXQ,    // Texture Query
         TEXS,   // Texture Fetch with scalar/non-vec4 source/destinations
         TLDS,   // Texture Load with scalar/non-vec4 source/destinations
@@ -1577,6 +1578,7 @@ private:
             INST("1110111011010---", Id::LDG, Type::Memory, "LDG"),
             INST("1110111011011---", Id::STG, Type::Memory, "STG"),
             INST("110000----111---", Id::TEX, Type::Texture, "TEX"),
+            INST("1101111010111---", Id::TEX_B, Type::Texture, "TEX_B"),
             INST("1101111101001---", Id::TXQ, Type::Texture, "TXQ"),
             INST("1101-00---------", Id::TEXS, Type::Texture, "TEXS"),
             INST("1101101---------", Id::TLDS, Type::Texture, "TLDS"),

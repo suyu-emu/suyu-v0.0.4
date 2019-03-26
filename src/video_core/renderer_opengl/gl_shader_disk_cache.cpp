@@ -328,7 +328,7 @@ std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEn
         }
         entry.entries.samplers.emplace_back(
             static_cast<std::size_t>(offset), static_cast<std::size_t>(index),
-            static_cast<Tegra::Shader::TextureType>(type), is_array != 0, is_shadow != 0);
+            static_cast<Tegra::Shader::TextureType>(type), is_array != 0, is_shadow != 0, false);
     }
 
     u32 global_memory_count{};
