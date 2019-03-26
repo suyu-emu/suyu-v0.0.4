@@ -423,6 +423,7 @@ std::array<u8, 16> TextCheatParser::ParseSingleLineCheat(const std::string& line
     return out;
 }
 
+namespace {
 u64 MemoryReadImpl(u32 width, VAddr addr) {
     switch (width) {
     case 1:
@@ -457,6 +458,7 @@ void MemoryWriteImpl(u32 width, VAddr addr, u64 value) {
         UNREACHABLE();
     }
 }
+} // Anonymous namespace
 
 CheatEngine::CheatEngine(Core::System& system, std::vector<CheatList> cheats_,
                          const std::string& build_id, VAddr code_region_start,
