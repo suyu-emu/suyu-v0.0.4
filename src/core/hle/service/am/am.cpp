@@ -239,8 +239,8 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
         {0, nullptr, "Exit"},
         {1, &ISelfController::LockExit, "LockExit"},
         {2, &ISelfController::UnlockExit, "UnlockExit"},
-        {3, nullptr, "EnterFatalSection"},
-        {4, nullptr, "LeaveFatalSection"},
+        {3, &ISelfController::EnterFatalSection, "EnterFatalSection"},
+        {4, &ISelfController::LeaveFatalSection, "LeaveFatalSection"},
         {9, &ISelfController::GetLibraryAppletLaunchableEvent, "GetLibraryAppletLaunchableEvent"},
         {10, &ISelfController::SetScreenShotPermission, "SetScreenShotPermission"},
         {11, &ISelfController::SetOperationModeChangedNotification, "SetOperationModeChangedNotification"},
@@ -294,6 +294,30 @@ void ISelfController::LockExit(Kernel::HLERequestContext& ctx) {
 
 void ISelfController::UnlockExit(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void ISelfController::EnterFatalSection(Kernel::HLERequestContext& ctx) {
+    ++num_fatal_sections_entered;
+    LOG_DEBUG(Service_AM, "called. Num fatal sections entered: {}", num_fatal_sections_entered);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void ISelfController::LeaveFatalSection(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_AM, "called.");
+
+    // Entry and exit of fatal sections must be balanced.
+    if (num_fatal_sections_entered == 0) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultCode{ErrorModule::AM, 512});
+        return;
+    }
+
+    --num_fatal_sections_entered;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);

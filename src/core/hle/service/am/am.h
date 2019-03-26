@@ -119,6 +119,8 @@ public:
 private:
     void LockExit(Kernel::HLERequestContext& ctx);
     void UnlockExit(Kernel::HLERequestContext& ctx);
+    void EnterFatalSection(Kernel::HLERequestContext& ctx);
+    void LeaveFatalSection(Kernel::HLERequestContext& ctx);
     void GetLibraryAppletLaunchableEvent(Kernel::HLERequestContext& ctx);
     void SetScreenShotPermission(Kernel::HLERequestContext& ctx);
     void SetOperationModeChangedNotification(Kernel::HLERequestContext& ctx);
@@ -135,6 +137,7 @@ private:
     std::shared_ptr<NVFlinger::NVFlinger> nvflinger;
     Kernel::EventPair launchable_event;
     u32 idle_time_detection_extension = 0;
+    u64 num_fatal_sections_entered = 0;
 };
 
 class ICommonStateGetter final : public ServiceFramework<ICommonStateGetter> {
