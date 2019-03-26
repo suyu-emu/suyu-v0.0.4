@@ -26,7 +26,7 @@
 namespace Service::NVFlinger {
 
 constexpr std::size_t SCREEN_REFRESH_RATE = 60;
-constexpr u64 frame_ticks = static_cast<u64>(Core::Timing::BASE_CLOCK_RATE / SCREEN_REFRESH_RATE);
+constexpr s64 frame_ticks = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / SCREEN_REFRESH_RATE);
 
 NVFlinger::NVFlinger(Core::Timing::CoreTiming& core_timing) : core_timing{core_timing} {
     displays.emplace_back(0, "Default");
@@ -37,7 +37,7 @@ NVFlinger::NVFlinger(Core::Timing::CoreTiming& core_timing) : core_timing{core_t
 
     // Schedule the screen composition events
     composition_event =
-        core_timing.RegisterEvent("ScreenComposition", [this](u64 userdata, int cycles_late) {
+        core_timing.RegisterEvent("ScreenComposition", [this](u64 userdata, s64 cycles_late) {
             Compose();
             this->core_timing.ScheduleEvent(frame_ticks - cycles_late, composition_event);
         });

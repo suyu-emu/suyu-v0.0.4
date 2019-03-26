@@ -15,7 +15,7 @@
 namespace Core::Timing {
 
 /// A callback that may be scheduled for a particular core timing event.
-using TimedCallback = std::function<void(u64 userdata, int cycles_late)>;
+using TimedCallback = std::function<void(u64 userdata, s64 cycles_late)>;
 
 /// Contains the characteristics of a particular event.
 struct EventType {

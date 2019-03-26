@@ -65,7 +65,7 @@ private:
     }
 
     void GetSharedMemoryHandle(Kernel::HLERequestContext& ctx);
-    void UpdateControllers(u64 userdata, int cycles_late);
+    void UpdateControllers(u64 userdata, s64 cycles_late);
 
     Kernel::SharedPtr<Kernel::SharedMemory> shared_mem;
 
