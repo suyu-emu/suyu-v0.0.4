@@ -196,12 +196,24 @@ enum class ExitMethod {
 
 class Sampler {
 public:
-    Sampler() = default;
+    // Use this constructor for binded Samplers
+    explicit Sampler(std::size_t offset, std::size_t index, Tegra::Shader::TextureType type,
+                     bool is_array, bool is_shadow)
+        : offset{offset}, index{index}, type{type}, is_array{is_array}, is_shadow{is_shadow},
+          is_bindless{false} {}
+
+    // Use this constructor for bindless Samplers
+    explicit Sampler(u32 cbuf_index, u32 cbuf_offset, std::size_t index,
+                     Tegra::Shader::TextureType type, bool is_array, bool is_shadow)
+        : offset{(static_cast<u64>(cbuf_index) << 32) | cbuf_offset}, index{index}, type{type}, is_array{is_array},
+          is_shadow{is_shadow}, is_bindless{true} {}
+
+    // Use this only for serialization/deserialization
     explicit Sampler(std::size_t offset, std::size_t index, Tegra::Shader::TextureType type,
                      bool is_array, bool is_shadow, bool is_bindless)
-        : offset{offset}, index{index}, type{type}, is_array{is_array}, is_shadow{is_shadow}, is_bindless{is_bindless} {}
+        : offset{offset}, index{index}, type{type}, is_array{is_array}, is_shadow{is_shadow},
+          is_bindless{is_bindless} {}
 
-    ~Sampler() = default;
 
     std::size_t GetOffset() const {
         return offset;
@@ -223,6 +235,14 @@ public:
         return is_shadow;
     }
 
+    bool IsBindless() const {
+        return is_bindless;
+    }
+
+    std::pair<u32, u32> GetBindlessCBuf() {
+        return {offset >> 32, offset & 0x00000000FFFFFFFFULL};
+    }
+
     bool operator<(const Sampler& rhs) const {
         return std::tie(offset, index, type, is_array, is_shadow) <
                std::tie(rhs.offset, rhs.index, rhs.type, rhs.is_array, rhs.is_shadow);
@@ -234,8 +254,8 @@ private:
     std::size_t offset{};
     std::size_t index{}; ///< Value used to index into the generated GLSL sampler array.
     Tegra::Shader::TextureType type{}; ///< The type used to sample this texture (Texture2D, etc)
-    bool is_array{};  ///< Whether the texture is being sampled as an array texture or not.
-    bool is_shadow{}; ///< Whether the texture is being sampled as a depth texture or not.
+    bool is_array{};    ///< Whether the texture is being sampled as an array texture or not.
+    bool is_shadow{};   ///< Whether the texture is being sampled as a depth texture or not.
     bool is_bindless{}; ///< Whether this sampler belongs to a bindless texture or not.
 };
 
@@ -735,8 +755,9 @@ private:
                               Tegra::Shader::TextureType type, bool is_array, bool is_shadow);
 
     // Accesses a texture sampler for a bindless texture.
-    const Sampler& GetBindlessSampler(const Tegra::Shader::Register& reg, Tegra::Shader::TextureType type,
-                                      bool is_array, bool is_shadow);
+    const Sampler& GetBindlessSampler(const Tegra::Shader::Register& reg,
+                                      Tegra::Shader::TextureType type, bool is_array,
+                                      bool is_shadow);
 
     /// Extracts a sequence of bits from a node
     Node BitfieldExtract(Node value, u32 offset, u32 bits);
@@ -845,7 +866,6 @@ private:
     std::set<Tegra::Shader::Attribute::Index> used_output_attributes;
     std::map<u32, ConstBuffer> used_cbufs;
     std::set<Sampler> used_samplers;
-    std::map<std::pair<u32, u32>, Sampler> used_bindless_samplers;
     std::array<bool, Tegra::Engines::Maxwell3D::Regs::NumClipDistances> used_clip_distances{};
     std::set<GlobalMemoryBase> used_global_memory_bases;
 

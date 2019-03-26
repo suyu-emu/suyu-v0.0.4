@@ -267,7 +267,7 @@ const Sampler& ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler, Textu
 
     // Otherwise create a new mapping for this sampler
     const std::size_t next_index = used_samplers.size();
-    const Sampler entry{offset, next_index, type, is_array, is_shadow, false};
+    const Sampler entry{offset, next_index, type, is_array, is_shadow};
     return *used_samplers.emplace(entry).first;
 }
 
@@ -281,20 +281,22 @@ const Sampler& ShaderIR::GetBindlessSampler(const Tegra::Shader::Register& reg,
     ASSERT(cbuf_offset_imm != nullptr);
     const auto cbuf_offset = cbuf_offset_imm->GetValue();
     const auto cbuf_index = cbuf->GetIndex();
-    const std::pair<u32, u32> cbuf_pair = {cbuf_index, cbuf_offset};
+    const u64 cbuf_key = (cbuf_index << 32) | cbuf_offset;
 
     // If this sampler has already been used, return the existing mapping.
-    if (used_bindless_samplers.count(cbuf_pair) > 0) {
-        const auto& sampler = used_bindless_samplers[cbuf_pair];
-        ASSERT(sampler.GetType() == type && sampler.IsArray() == is_array &&
-               sampler.IsShadow() == is_shadow);
-        return sampler;
+    const auto itr =
+        std::find_if(used_samplers.begin(), used_samplers.end(),
+                     [&](const Sampler& entry) { return entry.GetOffset() == cbuf_key; });
+    if (itr != used_samplers.end()) {
+        ASSERT(itr->GetType() == type && itr->IsArray() == is_array &&
+               itr->IsShadow() == is_shadow);
+        return *itr;
     }
 
     // Otherwise create a new mapping for this sampler
-    const std::size_t next_index = used_bindless_samplers.size();
-    const Sampler entry{0, next_index, type, is_array, is_shadow, true};
-    return (*used_bindless_samplers.emplace(std::make_pair(cbuf_pair, entry)).first).second;
+    const std::size_t next_index = used_samplers.size();
+    const Sampler entry{cbuf_index, cbuf_offset, next_index, type, is_array, is_shadow};
+    return *used_samplers.emplace(entry).first;
 }
 
 void ShaderIR::WriteTexInstructionFloat(NodeBlock& bb, Instruction instr, const Node4& components) {
