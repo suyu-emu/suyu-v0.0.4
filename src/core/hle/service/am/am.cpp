@@ -285,6 +285,57 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
 
 ISelfController::~ISelfController() = default;
 
+void ISelfController::LockExit(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void ISelfController::UnlockExit(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void ISelfController::GetLibraryAppletLaunchableEvent(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    launchable_event.writable->Signal();
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushCopyObjects(launchable_event.readable);
+}
+
+void ISelfController::SetScreenShotPermission(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void ISelfController::SetOperationModeChangedNotification(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    bool flag = rp.Pop<bool>();
+    LOG_WARNING(Service_AM, "(STUBBED) called flag={}", flag);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void ISelfController::SetPerformanceModeChangedNotification(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    bool flag = rp.Pop<bool>();
+    LOG_WARNING(Service_AM, "(STUBBED) called flag={}", flag);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
 void ISelfController::SetFocusHandlingMode(Kernel::HLERequestContext& ctx) {
     // Takes 3 input u8s with each field located immediately after the previous
     // u8, these are bool flags. No output.
@@ -310,33 +361,6 @@ void ISelfController::SetRestartMessageEnabled(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
 }
 
-void ISelfController::SetPerformanceModeChangedNotification(Kernel::HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
-    bool flag = rp.Pop<bool>();
-    LOG_WARNING(Service_AM, "(STUBBED) called flag={}", flag);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
-}
-
-void ISelfController::SetScreenShotPermission(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
-}
-
-void ISelfController::SetOperationModeChangedNotification(Kernel::HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
-    bool flag = rp.Pop<bool>();
-    LOG_WARNING(Service_AM, "(STUBBED) called flag={}", flag);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
-}
-
 void ISelfController::SetOutOfFocusSuspendingEnabled(Kernel::HLERequestContext& ctx) {
     // Takes 3 input u8s with each field located immediately after the previous
     // u8, these are bool flags. No output.
@@ -347,30 +371,6 @@ void ISelfController::SetOutOfFocusSuspendingEnabled(Kernel::HLERequestContext& 
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
-}
-
-void ISelfController::LockExit(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
-}
-
-void ISelfController::UnlockExit(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
-}
-
-void ISelfController::GetLibraryAppletLaunchableEvent(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
-
-    launchable_event.writable->Signal();
-
-    IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(launchable_event.readable);
 }
 
 void ISelfController::SetScreenShotImageOrientation(Kernel::HLERequestContext& ctx) {
