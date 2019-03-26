@@ -17,6 +17,7 @@
 #include <glad/glad.h>
 
 #include "common/common_types.h"
+#include "video_core/const_buffer_accessor.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/rasterizer_cache.h"
 #include "video_core/rasterizer_interface.h"
@@ -228,6 +229,8 @@ private:
     OGLBufferCache buffer_cache;
     PrimitiveAssembler primitive_assembler{buffer_cache};
     GLint uniform_buffer_alignment;
+
+    Tegra::ConstBufferAccessor const_buffer_accessor;
 
     std::size_t CalculateVertexArraysSize() const;
 
