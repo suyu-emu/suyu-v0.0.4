@@ -482,19 +482,8 @@ std::vector<Texture::FullTextureInfo> Maxwell3D::GetStageTextures(Regs::ShaderSt
     return textures;
 }
 
-Texture::FullTextureInfo Maxwell3D::GetStageTexture(Regs::ShaderStage stage,
-                                                    std::size_t offset) const {
-    auto& shader = state.shader_stages[static_cast<std::size_t>(stage)];
-    auto& tex_info_buffer = shader.const_buffers[regs.tex_cb_index];
-    ASSERT(tex_info_buffer.enabled && tex_info_buffer.address != 0);
-
-    const GPUVAddr tex_info_address =
-        tex_info_buffer.address + offset * sizeof(Texture::TextureHandle);
-
-    ASSERT(tex_info_address < tex_info_buffer.address + tex_info_buffer.size);
-
-    const Texture::TextureHandle tex_handle{memory_manager.Read<u32>(tex_info_address)};
-
+Texture::FullTextureInfo Maxwell3D::GetTextureInfo(const Texture::TextureHandle tex_handle,
+                                                   std::size_t offset) const {
     Texture::FullTextureInfo tex_info{};
     tex_info.index = static_cast<u32>(offset);
 
@@ -509,6 +498,22 @@ Texture::FullTextureInfo Maxwell3D::GetStageTexture(Regs::ShaderStage stage,
     std::memcpy(&tex_info.tsc, &tsc_entry, sizeof(tsc_entry));
 
     return tex_info;
+}
+
+Texture::FullTextureInfo Maxwell3D::GetStageTexture(Regs::ShaderStage stage,
+                                                    std::size_t offset) const {
+    auto& shader = state.shader_stages[static_cast<std::size_t>(stage)];
+    auto& tex_info_buffer = shader.const_buffers[regs.tex_cb_index];
+    ASSERT(tex_info_buffer.enabled && tex_info_buffer.address != 0);
+
+    const GPUVAddr tex_info_address =
+        tex_info_buffer.address + offset * sizeof(Texture::TextureHandle);
+
+    ASSERT(tex_info_address < tex_info_buffer.address + tex_info_buffer.size);
+
+    const Texture::TextureHandle tex_handle{memory_manager.Read<u32>(tex_info_address)};
+
+    return GetTextureInfo(tex_handle, offset);
 }
 
 u32 Maxwell3D::GetRegisterValue(u32 method) const {

@@ -205,15 +205,14 @@ public:
     // Use this constructor for bindless Samplers
     explicit Sampler(u32 cbuf_index, u32 cbuf_offset, std::size_t index,
                      Tegra::Shader::TextureType type, bool is_array, bool is_shadow)
-        : offset{(static_cast<u64>(cbuf_index) << 32) | cbuf_offset}, index{index}, type{type}, is_array{is_array},
-          is_shadow{is_shadow}, is_bindless{true} {}
+        : offset{(static_cast<u64>(cbuf_index) << 32) | cbuf_offset}, index{index}, type{type},
+          is_array{is_array}, is_shadow{is_shadow}, is_bindless{true} {}
 
     // Use this only for serialization/deserialization
     explicit Sampler(std::size_t offset, std::size_t index, Tegra::Shader::TextureType type,
                      bool is_array, bool is_shadow, bool is_bindless)
         : offset{offset}, index{index}, type{type}, is_array{is_array}, is_shadow{is_shadow},
           is_bindless{is_bindless} {}
-
 
     std::size_t GetOffset() const {
         return offset;
@@ -239,7 +238,7 @@ public:
         return is_bindless;
     }
 
-    std::pair<u32, u32> GetBindlessCBuf() {
+    std::pair<u32, u32> GetBindlessCBuf() const {
         return {offset >> 32, offset & 0x00000000FFFFFFFFULL};
     }
 

@@ -1131,6 +1131,10 @@ public:
     /// Write the value to the register identified by method.
     void CallMethod(const GPU::MethodCall& method_call);
 
+    /// Given a Texture Handle, returns the TSC and TIC entries.
+    Texture::FullTextureInfo GetTextureInfo(const Texture::TextureHandle tex_handle,
+                                            std::size_t offset) const;
+
     /// Returns a list of enabled textures for the specified shader stage.
     std::vector<Texture::FullTextureInfo> GetStageTextures(Regs::ShaderStage stage) const;
 

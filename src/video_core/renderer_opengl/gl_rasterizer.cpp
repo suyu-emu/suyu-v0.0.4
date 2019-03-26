@@ -985,7 +985,15 @@ void RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, const Shader& s
 
     for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
         const auto& entry = entries[bindpoint];
-        const auto texture = maxwell3d.GetStageTexture(stage, entry.GetOffset());
+        Tegra::Texture::FullTextureInfo texture;
+        if (!entry.IsBindless()) {
+            texture = maxwell3d.GetStageTexture(stage, entry.GetOffset());
+        } else {
+            const auto cbuf = entry.GetBindlessCBuf();
+            Tegra::Texture::TextureHandle tex_handle;
+            tex_handle.raw = const_buffer_accessor.access32(stage, cbuf.first, cbuf.second);
+            texture = maxwell3d.GetTextureInfo(tex_handle, entry.GetOffset());
+        }
         const u32 current_bindpoint = base_bindings.sampler + bindpoint;
 
         texture_samplers[current_bindpoint].SyncWithConfig(texture.tsc);
