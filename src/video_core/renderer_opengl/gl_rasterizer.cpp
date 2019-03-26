@@ -101,8 +101,7 @@ struct FramebufferCacheKey {
 RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window, Core::System& system,
                                    ScreenInfo& info)
     : res_cache{*this}, shader_cache{*this, system}, global_cache{*this}, system{system},
-      screen_info{info}, buffer_cache(*this, STREAM_BUFFER_SIZE),
-      const_buffer_accessor(system.GPU().Maxwell3D()) {
+      screen_info{info}, buffer_cache(*this, STREAM_BUFFER_SIZE), const_buffer_accessor() {
     // Create sampler objects
     for (std::size_t i = 0; i < texture_samplers.size(); ++i) {
         texture_samplers[i].Create();
