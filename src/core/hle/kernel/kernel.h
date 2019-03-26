@@ -8,9 +8,6 @@
 #include <unordered_map>
 #include "core/hle/kernel/object.h"
 
-template <typename T>
-class ResultVal;
-
 namespace Core {
 class System;
 }
