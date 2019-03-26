@@ -65,10 +65,10 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
             LOG_WARNING(HW_GPU, "TEX.NODEP implementation is incomplete");
         }
 
-        const TextureType texture_type{instr.tex.texture_type};
-        const bool is_array = instr.tex.array != 0;
-        const bool depth_compare = instr.tex.UsesMiscMode(TextureMiscMode::DC);
-        const auto process_mode = instr.tex.GetTextureProcessMode();
+        const TextureType texture_type{instr.tex_b.texture_type};
+        const bool is_array = instr.tex_b.array != 0;
+        const bool depth_compare = instr.tex_b.UsesMiscMode(TextureMiscMode::DC);
+        const auto process_mode = instr.tex_b.GetTextureProcessMode();
         WriteTexInstructionFloat(bb, instr,
                                  GetTexCode(instr, texture_type, process_mode, depth_compare,
                                             is_array, true, instr.gpr20));
@@ -462,6 +462,7 @@ Node4 ShaderIR::GetTexCode(Instruction instr, TextureType texture_type,
     if (is_aoffi) {
         aoffi = GetAoffiCoordinates(GetRegister(parameter_register++), coord_count, false);
     }
+    const u32 bindless_offset = (is_bindless ? 1 : 0);
 
     Node dc{};
     if (depth_compare) {

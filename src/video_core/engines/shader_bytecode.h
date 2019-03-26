@@ -967,6 +967,38 @@ union Instruction {
     } tex;
 
     union {
+        BitField<28, 1, u64> array;
+        BitField<29, 2, TextureType> texture_type;
+        BitField<31, 4, u64> component_mask;
+        BitField<49, 1, u64> nodep_flag;
+        BitField<50, 1, u64> dc_flag;
+        BitField<36, 1, u64> aoffi_flag;
+        BitField<37, 3, TextureProcessMode> process_mode;
+
+        bool IsComponentEnabled(std::size_t component) const {
+            return ((1ull << component) & component_mask) != 0;
+        }
+
+        TextureProcessMode GetTextureProcessMode() const {
+            return process_mode;
+        }
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::DC:
+                return dc_flag != 0;
+            case TextureMiscMode::NODEP:
+                return nodep_flag != 0;
+            case TextureMiscMode::AOFFI:
+                return aoffi_flag != 0;
+            default:
+                break;
+            }
+            return false;
+        }
+    } tex_b;
+
+    union {
         BitField<22, 6, TextureQueryType> query_type;
         BitField<31, 4, u64> component_mask;
         BitField<49, 1, u64> nodep_flag;
