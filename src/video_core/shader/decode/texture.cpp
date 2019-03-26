@@ -40,7 +40,7 @@ static std::size_t GetCoordCount(TextureType texture_type) {
 u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
-
+    bool is_bindless = false;
     switch (opcode->get().GetId()) {
     case OpCode::Id::TEX: {
         if (instr.tex.UsesMiscMode(TextureMiscMode::NODEP)) {
@@ -185,6 +185,8 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         }
         break;
     }
+    case OpCode::Id::TMML_B:
+        is_bindless = true;
     case OpCode::Id::TMML: {
         UNIMPLEMENTED_IF_MSG(instr.tmml.UsesMiscMode(Tegra::Shader::TextureMiscMode::NDV),
                              "NDV is not implemented");
@@ -195,7 +197,9 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
 
         auto texture_type = instr.tmml.texture_type.Value();
         const bool is_array = instr.tmml.array != 0;
-        const auto& sampler = GetSampler(instr.sampler, texture_type, is_array, false);
+        const auto& sampler = !is_bindless
+                                  ? GetSampler(instr.sampler, texture_type, is_array, false)
+                                  : GetBindlessSampler(instr.gpr20, texture_type, is_array, false);
 
         std::vector<Node> coords;
 
@@ -271,11 +275,12 @@ const Sampler& ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler, Textu
     return *used_samplers.emplace(entry).first;
 }
 
-const Sampler& ShaderIR::GetBindlessSampler(const Tegra::Shader::Register& reg,
-                                            TextureType type, bool is_array, bool is_shadow) {
+const Sampler& ShaderIR::GetBindlessSampler(const Tegra::Shader::Register& reg, TextureType type,
+                                            bool is_array, bool is_shadow) {
 
     const Node sampler_register = GetRegister(reg);
-    const Node base_sampler = TrackCbuf(sampler_register, global_code, static_cast<s64>(global_code.size()));
+    const Node base_sampler =
+        TrackCbuf(sampler_register, global_code, static_cast<s64>(global_code.size()));
     const auto cbuf = std::get_if<CbufNode>(base_sampler);
     const auto cbuf_offset_imm = std::get_if<ImmediateNode>(cbuf->GetOffset());
     ASSERT(cbuf_offset_imm != nullptr);
