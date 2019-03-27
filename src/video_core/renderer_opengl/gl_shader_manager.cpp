@@ -2,15 +2,13 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "core/core.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 
 namespace OpenGL::GLShader {
 
-void MaxwellUniformData::SetFromRegs(const Maxwell3D::State::ShaderStageInfo& shader_stage) {
-    const auto& gpu = Core::System::GetInstance().GPU().Maxwell3D();
-    const auto& regs = gpu.regs;
-    const auto& state = gpu.state;
+void MaxwellUniformData::SetFromRegs(const Maxwell3D& maxwell, std::size_t shader_stage) {
+    const auto& regs = maxwell.regs;
+    const auto& state = maxwell.state;
 
     // TODO(bunnei): Support more than one viewport
     viewport_flip[0] = regs.viewport_transform[0].scale_x < 0.0 ? -1.0f : 1.0f;
@@ -31,8 +29,9 @@ void MaxwellUniformData::SetFromRegs(const Maxwell3D::State::ShaderStageInfo& sh
 
     // Assign in which stage the position has to be flipped
     // (the last stage before the fragment shader).
-    if (gpu.regs.shader_config[static_cast<u32>(Maxwell3D::Regs::ShaderProgram::Geometry)].enable) {
-        flip_stage = static_cast<u32>(Maxwell3D::Regs::ShaderProgram::Geometry);
+    constexpr u32 geometry_index = static_cast<u32>(Maxwell3D::Regs::ShaderProgram::Geometry);
+    if (maxwell.regs.shader_config[geometry_index].enable) {
+        flip_stage = geometry_index;
     } else {
         flip_stage = static_cast<u32>(Maxwell3D::Regs::ShaderProgram::VertexB);
     }
