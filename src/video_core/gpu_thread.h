@@ -4,10 +4,8 @@
 
 #pragma once
 
-#include <array>
 #include <atomic>
 #include <condition_variable>
-#include <memory>
 #include <mutex>
 #include <optional>
 #include <thread>
@@ -177,7 +175,6 @@ private:
 private:
     SynchState state;
     VideoCore::RendererBase& renderer;
-    Tegra::DmaPusher& dma_pusher;
     std::thread thread;
     std::thread::id thread_id;
 };

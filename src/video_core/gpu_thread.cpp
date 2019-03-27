@@ -52,8 +52,8 @@ static void RunThread(VideoCore::RendererBase& renderer, Tegra::DmaPusher& dma_p
 }
 
 ThreadManager::ThreadManager(VideoCore::RendererBase& renderer, Tegra::DmaPusher& dma_pusher)
-    : renderer{renderer}, dma_pusher{dma_pusher}, thread{RunThread, std::ref(renderer),
-                                                         std::ref(dma_pusher), std::ref(state)} {}
+    : renderer{renderer}, thread{RunThread, std::ref(renderer), std::ref(dma_pusher),
+                                 std::ref(state)} {}
 
 ThreadManager::~ThreadManager() {
     // Notify GPU thread that a shutdown is pending
