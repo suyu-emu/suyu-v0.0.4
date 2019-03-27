@@ -6,6 +6,8 @@
 
 namespace OpenGL::GLShader {
 
+using Tegra::Engines::Maxwell3D;
+
 void MaxwellUniformData::SetFromRegs(const Maxwell3D& maxwell, std::size_t shader_stage) {
     const auto& regs = maxwell.regs;
     const auto& state = maxwell.state;
@@ -16,7 +18,7 @@ void MaxwellUniformData::SetFromRegs(const Maxwell3D& maxwell, std::size_t shade
 
     u32 func = static_cast<u32>(regs.alpha_test_func);
     // Normalize the gl variants of opCompare to be the same as the normal variants
-    u32 op_gl_variant_base = static_cast<u32>(Tegra::Engines::Maxwell3D::Regs::ComparisonOp::Never);
+    const u32 op_gl_variant_base = static_cast<u32>(Maxwell3D::Regs::ComparisonOp::Never);
     if (func >= op_gl_variant_base) {
         func = func - op_gl_variant_base + 1U;
     }
