@@ -15,7 +15,7 @@
 namespace OpenGL {
 
 CachedGlobalRegion::CachedGlobalRegion(VAddr cpu_addr, u32 size, u8* host_ptr)
-    : cpu_addr{cpu_addr}, size{size}, RasterizerCacheObject{host_ptr} {
+    : RasterizerCacheObject{host_ptr}, cpu_addr{cpu_addr}, size{size} {
     buffer.Create();
     // Bind and unbind the buffer so it gets allocated by the driver
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer.handle);
