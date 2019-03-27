@@ -54,7 +54,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         const auto process_mode = instr.tex.GetTextureProcessMode();
         WriteTexInstructionFloat(
             bb, instr,
-            GetTexCode(instr, texture_type, process_mode, depth_compare, is_array, is_aoffi));
+            GetTexCode(instr, texture_type, process_mode, depth_compare, is_array, is_aoffi, {}));
         break;
     }
     case OpCode::Id::TEX_B: {
@@ -69,9 +69,9 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         const bool is_array = instr.tex_b.array != 0;
         const bool depth_compare = instr.tex_b.UsesMiscMode(TextureMiscMode::DC);
         const auto process_mode = instr.tex_b.GetTextureProcessMode();
-        WriteTexInstructionFloat(bb, instr,
-                                 GetTexCode(instr, texture_type, process_mode, depth_compare,
-                                            is_array, true, instr.gpr20));
+        WriteTexInstructionFloat(
+            bb, instr,
+            GetTexCode(instr, texture_type, process_mode, depth_compare, is_array, {instr.gpr20}));
         break;
     }
     case OpCode::Id::TEXS: {
@@ -162,10 +162,10 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         // Sadly, not all texture instructions specify the type of texture their sampler
         // uses. This must be fixed at a later instance.
         const auto& sampler =
-            !is_bindless
-                ? GetSampler(instr.sampler, Tegra::Shader::TextureType::Texture2D, false, false)
-                : GetBindlessSampler(instr.gpr8, Tegra::Shader::TextureType::Texture2D, false,
-                                     false);
+            is_bindless
+                ? GetBindlessSampler(instr.gpr8, Tegra::Shader::TextureType::Texture2D, false,
+                                     false)
+                : GetSampler(instr.sampler, Tegra::Shader::TextureType::Texture2D, false, false);
 
         u32 indexer = 0;
         switch (instr.txq.query_type) {
@@ -203,9 +203,9 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
 
         auto texture_type = instr.tmml.texture_type.Value();
         const bool is_array = instr.tmml.array != 0;
-        const auto& sampler = !is_bindless
-                                  ? GetSampler(instr.sampler, texture_type, is_array, false)
-                                  : GetBindlessSampler(instr.gpr20, texture_type, is_array, false);
+        const auto& sampler = is_bindless
+                                  ? GetBindlessSampler(instr.gpr20, texture_type, is_array, false)
+                                  : GetSampler(instr.sampler, texture_type, is_array, false);
 
         std::vector<Node> coords;
 
@@ -381,25 +381,26 @@ void ShaderIR::WriteTexsInstructionHalfFloat(NodeBlock& bb, Instruction instr,
 
 Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
                                TextureProcessMode process_mode, std::vector<Node> coords,
-                               Node array, Node depth_compare, u32 bias_offset, std::vector<Node> aoffi, bool is_bindless,
-                               Register bindless_reg) {
+                               Node array, Node depth_compare, u32 bias_offset, std::vector<Node> aoffi, std::optional<Tegra::Shader::Register> bindless_reg) {
     const bool is_array = array;
     const bool is_shadow = depth_compare;
+    const bool is_bindless = bindless_reg.has_value();
 
     UNIMPLEMENTED_IF_MSG((texture_type == TextureType::Texture3D && (is_array || is_shadow)) ||
                              (texture_type == TextureType::TextureCube && is_array && is_shadow),
                          "This method is not supported.");
 
-    const auto& sampler = !is_bindless
-                              ? GetSampler(instr.sampler, texture_type, is_array, is_shadow)
-                              : GetBindlessSampler(bindless_reg, texture_type, is_array, is_shadow);
+    const auto& sampler = is_bindless
+                              ? GetBindlessSampler(*bindless_reg, texture_type, is_array, is_shadow)
+                              : GetSampler(instr.sampler, texture_type, is_array, is_shadow);
 
     const bool lod_needed = process_mode == TextureProcessMode::LZ ||
                             process_mode == TextureProcessMode::LL ||
                             process_mode == TextureProcessMode::LLA;
 
-    // LOD selection (either via bias or explicit textureLod) not supported in GL for
-    // sampler2DArrayShadow and samplerCubeArrayShadow.
+    // LOD selection (either via bias or explicit textureLod) not
+    // supported in GL for sampler2DArrayShadow and
+    // samplerCubeArrayShadow.
     const bool gl_lod_supported =
         !((texture_type == Tegra::Shader::TextureType::Texture2D && is_array && is_shadow) ||
           (texture_type == Tegra::Shader::TextureType::TextureCube && is_array && is_shadow));
@@ -417,8 +418,9 @@ Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
             lod = Immediate(0.0f);
             break;
         case TextureProcessMode::LB:
-            // If present, lod or bias are always stored in the register indexed by the gpr20
-            // field with an offset depending on the usage of the other registers
+            // If present, lod or bias are always stored in the register
+            // indexed by the gpr20 field with an offset depending on the
+            // usage of the other registers
             bias = GetRegister(instr.gpr20.Value() + bias_offset);
             break;
         case TextureProcessMode::LL:
@@ -442,7 +444,7 @@ Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
 
 Node4 ShaderIR::GetTexCode(Instruction instr, TextureType texture_type,
                            TextureProcessMode process_mode, bool depth_compare, bool is_array,
-                           bool is_aoffi, bool is_bindless, Register bindless_reg) {
+                           bool is_aoffi, std::optional<Tegra::Shader::Register> bindless_reg) {
     const bool lod_bias_enabled{
         (process_mode != TextureProcessMode::None && process_mode != TextureProcessMode::LZ)};
 
@@ -482,8 +484,7 @@ Node4 ShaderIR::GetTexCode(Instruction instr, TextureType texture_type,
         dc = GetRegister(parameter_register++);
     }
 
-    return GetTextureCode(instr, texture_type, process_mode, coords, array, dc, 0, aoffi, is_bindless,
-                          bindless_reg);
+    return GetTextureCode(instr, texture_type, process_mode, coords, array, dc, 0, aoffi, bindless_reg);
 }
 
 Node4 ShaderIR::GetTexsCode(Instruction instr, TextureType texture_type,

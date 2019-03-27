@@ -769,11 +769,10 @@ private:
     void WriteTexsInstructionHalfFloat(NodeBlock& bb, Tegra::Shader::Instruction instr,
                                        const Node4& components);
 
-    Node4 GetTexCode(
-        Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
-        Tegra::Shader::TextureProcessMode process_mode, bool depth_compare, bool is_array,
-        bool is_aoffi, bool is_bindless = false,
-        Tegra::Shader::Register bindless_reg = static_cast<Tegra::Shader::Register>(0));
+    Node4 GetTexCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
+                     Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
+                     bool is_array, bool is_aoffi,
+                     std::optional<Tegra::Shader::Register> bindless_reg);
 
     Node4 GetTexsCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
                       Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
@@ -790,12 +789,11 @@ private:
         bool lod_bias_enabled, std::size_t max_coords, std::size_t max_inputs);
 
     std::vector<Node> GetAoffiCoordinates(Node aoffi_reg, std::size_t coord_count, bool is_tld4);
-    
-    Node4 GetTextureCode(
-        Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
-        Tegra::Shader::TextureProcessMode process_mode, std::vector<Node> coords, Node array,
-        Node depth_compare, u32 bias_offset, std::vector<Node> aoffi, bool is_bindless = false,
-        Tegra::Shader::Register bindless_reg = static_cast<Tegra::Shader::Register>(0));
+
+    Node4 GetTextureCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
+                         Tegra::Shader::TextureProcessMode process_mode, std::vector<Node> coords,
+                         Node array, Node depth_compare, u32 bias_offset, std::vector<Node> aoffi,
+                         std::optional<Tegra::Shader::Register> bindless_reg);
 
     Node GetVideoOperand(Node op, bool is_chunk, bool is_signed, Tegra::Shader::VideoType type,
                          u64 byte_height);
