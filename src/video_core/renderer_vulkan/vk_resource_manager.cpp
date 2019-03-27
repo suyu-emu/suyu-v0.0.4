@@ -21,7 +21,7 @@ public:
     CommandBufferPool(const VKDevice& device)
         : VKFencedPool(COMMAND_BUFFER_POOL_SIZE), device{device} {}
 
-    void Allocate(std::size_t begin, std::size_t end) {
+    void Allocate(std::size_t begin, std::size_t end) override {
         const auto dev = device.GetLogical();
         const auto& dld = device.GetDispatchLoader();
         const u32 graphics_family = device.GetGraphicsFamily();

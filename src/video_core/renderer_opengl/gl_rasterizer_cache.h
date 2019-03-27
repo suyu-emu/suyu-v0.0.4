@@ -538,12 +538,12 @@ private:
         return nullptr;
     }
 
-    void Register(const Surface& object) {
+    void Register(const Surface& object) override {
         RasterizerCache<Surface>::Register(object);
     }
 
     /// Unregisters an object from the cache
-    void Unregister(const Surface& object) {
+    void Unregister(const Surface& object) override {
         if (object->IsReinterpreted()) {
             auto interval = GetReinterpretInterval(object);
             reinterpreted_surfaces.erase(interval);
