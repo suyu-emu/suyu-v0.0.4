@@ -156,7 +156,7 @@ std::vector<VirtualFile> PatchManager::CollectPatches(const std::vector<VirtualD
     return out;
 }
 
-std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso) const {
+std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso, const std::string& name) const {
     if (nso.size() < sizeof(Loader::NSOHeader)) {
         return nso;
     }
@@ -172,18 +172,19 @@ std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso) const {
     const auto build_id = build_id_raw.substr(0, build_id_raw.find_last_not_of('0') + 1);
 
     if (Settings::values.dump_nso) {
-        LOG_INFO(Loader, "Dumping NSO for build_id={}, title_id={:016X}", build_id, title_id);
+        LOG_INFO(Loader, "Dumping NSO for name={}, build_id={}, title_id={:016X}", name, build_id,
+                 title_id);
         const auto dump_dir = Service::FileSystem::GetModificationDumpRoot(title_id);
         if (dump_dir != nullptr) {
             const auto nso_dir = GetOrCreateDirectoryRelative(dump_dir, "/nso");
-            const auto file = nso_dir->CreateFile(fmt::format("{}.nso", build_id));
+            const auto file = nso_dir->CreateFile(fmt::format("{}-{}.nso", name, build_id));
 
             file->Resize(nso.size());
             file->WriteBytes(nso);
         }
     }
 
-    LOG_INFO(Loader, "Patching NSO for build_id={}", build_id);
+    LOG_INFO(Loader, "Patching NSO for name={}, build_id={}", name, build_id);
 
     const auto load_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
     auto patch_dirs = load_dir->GetSubdirectories();
