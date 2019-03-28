@@ -226,17 +226,19 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
             coords.push_back(GetRegister(instr.gpr8.Value() + 1));
             texture_type = TextureType::Texture2D;
         }
-
+        u32 indexer = 0;
         for (u32 element = 0; element < 2; ++element) {
+            if (!instr.tmml.IsComponentEnabled(element)) {
+                continue;
+            }
             auto params = coords;
             MetaTexture meta{sampler, {}, {}, {}, {}, {}, {}, element};
             const Node value = Operation(OperationCode::TextureQueryLod, meta, std::move(params));
-            SetTemporal(bb, element, value);
+            SetTemporal(bb, indexer++, value);
         }
-        for (u32 element = 0; element < 2; ++element) {
-            SetRegister(bb, instr.gpr0.Value() + element, GetTemporal(element));
+        for (u32 i = 0; i < indexer; ++i) {
+            SetRegister(bb, instr.gpr0.Value() + i, GetTemporal(i));
         }
-
         break;
     }
     case OpCode::Id::TLDS: {
