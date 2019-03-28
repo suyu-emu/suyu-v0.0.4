@@ -110,15 +110,15 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata) {
 
 void Process::Run(VAddr entry_point, s32 main_thread_priority, u64 stack_size) {
     // The kernel always ensures that the given stack size is page aligned.
-    stack_size = Common::AlignUp(stack_size, Memory::PAGE_SIZE);
+    main_thread_stack_size = Common::AlignUp(stack_size, Memory::PAGE_SIZE);
 
     // Allocate and map the main thread stack
     // TODO(bunnei): This is heap area that should be allocated by the kernel and not mapped as part
     // of the user address space.
+    const VAddr mapping_address = vm_manager.GetTLSIORegionEndAddress() - main_thread_stack_size;
     vm_manager
-        .MapMemoryBlock(vm_manager.GetTLSIORegionEndAddress() - stack_size,
-                        std::make_shared<std::vector<u8>>(stack_size, 0), 0, stack_size,
-                        MemoryState::Stack)
+        .MapMemoryBlock(mapping_address, std::make_shared<std::vector<u8>>(main_thread_stack_size),
+                        0, main_thread_stack_size, MemoryState::Stack)
         .Unwrap();
 
     vm_manager.LogLayout();

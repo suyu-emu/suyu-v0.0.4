@@ -247,6 +247,9 @@ private:
     /// Memory manager for this process.
     Kernel::VMManager vm_manager;
 
+    /// Size of the main thread's stack in bytes.
+    u64 main_thread_stack_size = 0;
+
     /// Current status of the process
     ProcessStatus status;
 
