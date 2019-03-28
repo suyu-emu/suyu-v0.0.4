@@ -97,7 +97,7 @@ private:
 class VKFenceWatch final : public VKResource {
 public:
     explicit VKFenceWatch();
-    ~VKFenceWatch();
+    ~VKFenceWatch() override;
 
     /// Waits for the fence to be released.
     void Wait();
