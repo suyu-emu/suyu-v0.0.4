@@ -250,6 +250,9 @@ private:
     /// Size of the main thread's stack in bytes.
     u64 main_thread_stack_size = 0;
 
+    /// Size of the loaded code memory in bytes.
+    u64 code_memory_size = 0;
+
     /// Current status of the process
     ProcessStatus status;
 

@@ -228,6 +228,8 @@ void Process::LoadModule(CodeSet module_, VAddr base_addr) {
     MapSegment(module_.RODataSegment(), VMAPermission::Read, MemoryState::CodeData);
     MapSegment(module_.DataSegment(), VMAPermission::ReadWrite, MemoryState::CodeData);
 
+    code_memory_size += module_.memory->size();
+
     // Clear instruction cache in CPU JIT
     system.InvalidateCpuInstructionCaches();
 }
