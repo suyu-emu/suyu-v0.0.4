@@ -19,6 +19,7 @@
 #include "core/core.h"
 #include "core/hle/kernel/process.h"
 #include "core/settings.h"
+#include "video_core/const_buffer_accessor.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
@@ -101,7 +102,7 @@ struct FramebufferCacheKey {
 RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window, Core::System& system,
                                    ScreenInfo& info)
     : res_cache{*this}, shader_cache{*this, system}, global_cache{*this}, system{system},
-      screen_info{info}, buffer_cache(*this, STREAM_BUFFER_SIZE), const_buffer_accessor() {
+      screen_info{info}, buffer_cache(*this, STREAM_BUFFER_SIZE) {
     // Create sampler objects
     for (std::size_t i = 0; i < texture_samplers.size(); ++i) {
         texture_samplers[i].Create();
@@ -990,7 +991,8 @@ void RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, const Shader& s
         } else {
             const auto cbuf = entry.GetBindlessCBuf();
             Tegra::Texture::TextureHandle tex_handle;
-            tex_handle.raw = const_buffer_accessor.access32(stage, cbuf.first, cbuf.second);
+            tex_handle.raw =
+                Tegra::ConstBufferAccessor::access<u32>(stage, cbuf.first, cbuf.second);
             texture = maxwell3d.GetTextureInfo(tex_handle, entry.GetOffset());
         }
         const u32 current_bindpoint = base_bindings.sampler + bindpoint;
