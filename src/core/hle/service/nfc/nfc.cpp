@@ -150,7 +150,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.PushRaw<u8>(Settings::values.enable_nfc);
+        rb.PushRaw<u8>(true);
     }
 
     void GetStateOld(Kernel::HLERequestContext& ctx) {

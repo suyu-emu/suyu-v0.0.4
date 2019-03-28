@@ -82,7 +82,6 @@ void LogSetting(const std::string& name, const T& value) {
 void LogSettings() {
     LOG_INFO(Config, "yuzu Configuration:");
     LogSetting("System_UseDockedMode", Settings::values.use_docked_mode);
-    LogSetting("System_EnableNfc", Settings::values.enable_nfc);
     LogSetting("System_RngSeed", Settings::values.rng_seed.value_or(0));
     LogSetting("System_CurrentUser", Settings::values.current_user);
     LogSetting("System_LanguageIndex", Settings::values.language_index);
