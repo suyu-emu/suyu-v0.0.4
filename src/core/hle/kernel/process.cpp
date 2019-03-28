@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <memory>
 #include <random>
+#include "common/alignment.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
@@ -108,6 +109,9 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata) {
 }
 
 void Process::Run(VAddr entry_point, s32 main_thread_priority, u32 stack_size) {
+    // The kernel always ensures that the given stack size is page aligned.
+    stack_size = Common::AlignUp(stack_size, Memory::PAGE_SIZE);
+
     // Allocate and map the main thread stack
     // TODO(bunnei): This is heap area that should be allocated by the kernel and not mapped as part
     // of the user address space.
