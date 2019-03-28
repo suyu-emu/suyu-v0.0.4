@@ -108,7 +108,7 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata) {
     return handle_table.SetSize(capabilities.GetHandleTableSize());
 }
 
-void Process::Run(VAddr entry_point, s32 main_thread_priority, u32 stack_size) {
+void Process::Run(VAddr entry_point, s32 main_thread_priority, u64 stack_size) {
     // The kernel always ensures that the given stack size is page aligned.
     stack_size = Common::AlignUp(stack_size, Memory::PAGE_SIZE);
 

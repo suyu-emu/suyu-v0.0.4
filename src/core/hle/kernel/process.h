@@ -210,7 +210,7 @@ public:
     /**
      * Applies address space changes and launches the process main thread.
      */
-    void Run(VAddr entry_point, s32 main_thread_priority, u32 stack_size);
+    void Run(VAddr entry_point, s32 main_thread_priority, u64 stack_size);
 
     /**
      * Prepares a process for termination by stopping all of its threads
