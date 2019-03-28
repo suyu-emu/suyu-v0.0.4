@@ -177,11 +177,11 @@ public:
                     u32 address_high;
                     u32 address_low;
 
-                    GPUVAddr SmaphoreAddress() const {
+                    GPUVAddr SemaphoreAddress() const {
                         return static_cast<GPUVAddr>((static_cast<GPUVAddr>(address_high) << 32) |
                                                      address_low);
                     }
-                } smaphore_address;
+                } semaphore_address;
 
                 u32 semaphore_sequence;
                 u32 semaphore_trigger;
@@ -263,7 +263,7 @@ private:
     static_assert(offsetof(GPU::Regs, field_name) == position * 4,                                 \
                   "Field " #field_name " has invalid position")
 
-ASSERT_REG_POSITION(smaphore_address, 0x4);
+ASSERT_REG_POSITION(semaphore_address, 0x4);
 ASSERT_REG_POSITION(semaphore_sequence, 0x6);
 ASSERT_REG_POSITION(semaphore_trigger, 0x7);
 ASSERT_REG_POSITION(reference_count, 0x14);

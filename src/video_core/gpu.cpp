@@ -286,9 +286,10 @@ void GPU::ProcessSemaphoreTriggerMethod() {
         // TODO(Kmather73): Generate a real GPU timestamp and write it here instead of
         // CoreTiming
         block.timestamp = Core::System::GetInstance().CoreTiming().GetTicks();
-        memory_manager->WriteBlock(regs.smaphore_address.SmaphoreAddress(), &block, sizeof(block));
+        memory_manager->WriteBlock(regs.semaphore_address.SemaphoreAddress(), &block,
+                                   sizeof(block));
     } else {
-        const u32 word{memory_manager->Read<u32>(regs.smaphore_address.SmaphoreAddress())};
+        const u32 word{memory_manager->Read<u32>(regs.semaphore_address.SemaphoreAddress())};
         if ((op == GpuSemaphoreOperation::AcquireEqual && word == regs.semaphore_sequence) ||
             (op == GpuSemaphoreOperation::AcquireGequal &&
              static_cast<s32>(word - regs.semaphore_sequence) > 0) ||
@@ -315,11 +316,11 @@ void GPU::ProcessSemaphoreTriggerMethod() {
 }
 
 void GPU::ProcessSemaphoreRelease() {
-    memory_manager->Write<u32>(regs.smaphore_address.SmaphoreAddress(), regs.semaphore_release);
+    memory_manager->Write<u32>(regs.semaphore_address.SemaphoreAddress(), regs.semaphore_release);
 }
 
 void GPU::ProcessSemaphoreAcquire() {
-    const u32 word = memory_manager->Read<u32>(regs.smaphore_address.SmaphoreAddress());
+    const u32 word = memory_manager->Read<u32>(regs.semaphore_address.SemaphoreAddress());
     const auto value = regs.semaphore_acquire;
     if (word != value) {
         regs.acquire_active = true;
