@@ -186,6 +186,9 @@ public:
         return random_entropy.at(index);
     }
 
+    /// Retrieves the total physical memory used by this process in bytes.
+    u64 GetTotalPhysicalMemoryUsed() const;
+
     /// Clears the signaled state of the process if and only if it's signaled.
     ///
     /// @pre The process must not be already terminated. If this is called on a

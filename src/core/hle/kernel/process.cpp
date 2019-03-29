@@ -76,6 +76,10 @@ SharedPtr<ResourceLimit> Process::GetResourceLimit() const {
     return resource_limit;
 }
 
+u64 Process::GetTotalPhysicalMemoryUsed() const {
+    return vm_manager.GetCurrentHeapSize() + main_thread_stack_size + code_memory_size;
+}
+
 ResultCode Process::ClearSignalState() {
     if (status == ProcessStatus::Exited) {
         LOG_ERROR(Kernel, "called on a terminated process instance.");

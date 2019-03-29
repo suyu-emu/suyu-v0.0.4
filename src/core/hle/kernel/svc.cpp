@@ -709,7 +709,7 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
         HeapRegionBaseAddr = 4,
         HeapRegionSize = 5,
         TotalMemoryUsage = 6,
-        TotalHeapUsage = 7,
+        TotalPhysicalMemoryUsed = 7,
         IsCurrentProcessBeingDebugged = 8,
         RegisterResourceLimit = 9,
         IdleTickCount = 10,
@@ -745,7 +745,7 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
     case GetInfoType::NewMapRegionBaseAddr:
     case GetInfoType::NewMapRegionSize:
     case GetInfoType::TotalMemoryUsage:
-    case GetInfoType::TotalHeapUsage:
+    case GetInfoType::TotalPhysicalMemoryUsed:
     case GetInfoType::IsVirtualAddressMemoryEnabled:
     case GetInfoType::PersonalMmHeapUsage:
     case GetInfoType::TitleId:
@@ -805,8 +805,8 @@ static ResultCode GetInfo(u64* result, u64 info_id, u64 handle, u64 info_sub_id)
             *result = process->VMManager().GetTotalMemoryUsage();
             return RESULT_SUCCESS;
 
-        case GetInfoType::TotalHeapUsage:
-            *result = process->VMManager().GetCurrentHeapSize();
+        case GetInfoType::TotalPhysicalMemoryUsed:
+            *result = process->GetTotalPhysicalMemoryUsed();
             return RESULT_SUCCESS;
 
         case GetInfoType::IsVirtualAddressMemoryEnabled:
