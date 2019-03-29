@@ -7,6 +7,7 @@
 #include <array>
 #include <cstring>
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <tuple>
@@ -772,6 +773,8 @@ private:
                               Node op_c, Node imm_lut, bool sets_cc);
 
     Node TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor);
+
+    std::optional<u32> TrackImmediate(Node tracked, const NodeBlock& code, s64 cursor);
 
     std::pair<Node, s64> TrackRegister(const GprNode* tracked, const NodeBlock& code, s64 cursor);
 
