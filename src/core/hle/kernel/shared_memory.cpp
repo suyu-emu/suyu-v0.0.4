@@ -9,7 +9,6 @@
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/shared_memory.h"
-#include "core/memory.h"
 
 namespace Kernel {
 
