@@ -144,7 +144,7 @@ static void ThrowFatalError(ResultCode error_code, FatalType fatal_type, const F
 void Module::Interface::ThrowFatal(Kernel::HLERequestContext& ctx) {
     LOG_ERROR(Service_Fatal, "called");
     IPC::RequestParser rp{ctx};
-    auto error_code = rp.Pop<ResultCode>();
+    const auto error_code = rp.Pop<ResultCode>();
 
     ThrowFatalError(error_code, FatalType::ErrorScreen, {});
     IPC::ResponseBuilder rb{ctx, 2};
@@ -154,8 +154,8 @@ void Module::Interface::ThrowFatal(Kernel::HLERequestContext& ctx) {
 void Module::Interface::ThrowFatalWithPolicy(Kernel::HLERequestContext& ctx) {
     LOG_ERROR(Service_Fatal, "called");
     IPC::RequestParser rp(ctx);
-    auto error_code = rp.Pop<ResultCode>();
-    auto fatal_type = rp.PopEnum<FatalType>();
+    const auto error_code = rp.Pop<ResultCode>();
+    const auto fatal_type = rp.PopEnum<FatalType>();
 
     ThrowFatalError(error_code, fatal_type, {}); // No info is passed with ThrowFatalWithPolicy
     IPC::ResponseBuilder rb{ctx, 2};
@@ -165,9 +165,9 @@ void Module::Interface::ThrowFatalWithPolicy(Kernel::HLERequestContext& ctx) {
 void Module::Interface::ThrowFatalWithCpuContext(Kernel::HLERequestContext& ctx) {
     LOG_ERROR(Service_Fatal, "called");
     IPC::RequestParser rp(ctx);
-    auto error_code = rp.Pop<ResultCode>();
-    auto fatal_type = rp.PopEnum<FatalType>();
-    auto fatal_info = ctx.ReadBuffer();
+    const auto error_code = rp.Pop<ResultCode>();
+    const auto fatal_type = rp.PopEnum<FatalType>();
+    const auto fatal_info = ctx.ReadBuffer();
     FatalInfo info{};
 
     ASSERT_MSG(fatal_info.size() == sizeof(FatalInfo), "Invalid fatal info buffer size!");
