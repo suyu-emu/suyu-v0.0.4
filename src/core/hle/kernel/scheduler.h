@@ -38,7 +38,7 @@ public:
     u64 GetLastContextSwitchTicks() const;
 
     /// Adds a new thread to the scheduler
-    void AddThread(SharedPtr<Thread> thread, u32 priority);
+    void AddThread(SharedPtr<Thread> thread);
 
     /// Removes a thread from the scheduler
     void RemoveThread(Thread* thread);

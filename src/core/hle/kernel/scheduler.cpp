@@ -148,7 +148,7 @@ void Scheduler::Reschedule() {
     SwitchContext(next);
 }
 
-void Scheduler::AddThread(SharedPtr<Thread> thread, u32 priority) {
+void Scheduler::AddThread(SharedPtr<Thread> thread) {
     std::lock_guard lock{scheduler_mutex};
 
     thread_list.push_back(std::move(thread));

@@ -199,7 +199,7 @@ ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name
     thread->callback_handle = kernel.ThreadWakeupCallbackHandleTable().Create(thread).Unwrap();
     thread->owner_process = &owner_process;
     thread->scheduler = &system.Scheduler(processor_id);
-    thread->scheduler->AddThread(thread, priority);
+    thread->scheduler->AddThread(thread);
     thread->tls_address = thread->owner_process->MarkNextAvailableTLSSlotAsUsed(*thread);
 
     // TODO(peachum): move to ScheduleThread() when scheduler is added so selected core is used
@@ -352,7 +352,7 @@ void Thread::ChangeScheduler() {
     if (*new_processor_id != processor_id) {
         // Remove thread from previous core's scheduler
         scheduler->RemoveThread(this);
-        next_scheduler.AddThread(this, current_priority);
+        next_scheduler.AddThread(this);
     }
 
     processor_id = *new_processor_id;
