@@ -29,7 +29,7 @@ Scheduler::~Scheduler() {
 }
 
 bool Scheduler::HaveReadyThreads() const {
-    std::lock_guard<std::mutex> lock(scheduler_mutex);
+    std::lock_guard lock{scheduler_mutex};
     return !ready_queue.empty();
 }
 
@@ -132,7 +132,7 @@ void Scheduler::UpdateLastContextSwitchTime(Thread* thread, Process* process) {
 }
 
 void Scheduler::Reschedule() {
-    std::lock_guard<std::mutex> lock(scheduler_mutex);
+    std::lock_guard lock{scheduler_mutex};
 
     Thread* cur = GetCurrentThread();
     Thread* next = PopNextReadyThread();
@@ -148,35 +148,35 @@ void Scheduler::Reschedule() {
     SwitchContext(next);
 }
 
-void Scheduler::AddThread(SharedPtr<Thread> thread, u32 priority) {
-    std::lock_guard<std::mutex> lock(scheduler_mutex);
+void Scheduler::AddThread(SharedPtr<Thread> thread) {
+    std::lock_guard lock{scheduler_mutex};
 
     thread_list.push_back(std::move(thread));
 }
 
 void Scheduler::RemoveThread(Thread* thread) {
-    std::lock_guard<std::mutex> lock(scheduler_mutex);
+    std::lock_guard lock{scheduler_mutex};
 
     thread_list.erase(std::remove(thread_list.begin(), thread_list.end(), thread),
                       thread_list.end());
 }
 
 void Scheduler::ScheduleThread(Thread* thread, u32 priority) {
-    std::lock_guard<std::mutex> lock(scheduler_mutex);
+    std::lock_guard lock{scheduler_mutex};
 
     ASSERT(thread->GetStatus() == ThreadStatus::Ready);
     ready_queue.add(thread, priority);
 }
 
 void Scheduler::UnscheduleThread(Thread* thread, u32 priority) {
-    std::lock_guard<std::mutex> lock(scheduler_mutex);
+    std::lock_guard lock{scheduler_mutex};
 
     ASSERT(thread->GetStatus() == ThreadStatus::Ready);
     ready_queue.remove(thread, priority);
 }
 
 void Scheduler::SetThreadPriority(Thread* thread, u32 priority) {
-    std::lock_guard<std::mutex> lock(scheduler_mutex);
+    std::lock_guard lock{scheduler_mutex};
     if (thread->GetPriority() == priority) {
         return;
     }
@@ -187,7 +187,7 @@ void Scheduler::SetThreadPriority(Thread* thread, u32 priority) {
 }
 
 Thread* Scheduler::GetNextSuggestedThread(u32 core, u32 maximum_priority) const {
-    std::lock_guard<std::mutex> lock(scheduler_mutex);
+    std::lock_guard lock{scheduler_mutex};
 
     const u32 mask = 1U << core;
     for (auto* thread : ready_queue) {
