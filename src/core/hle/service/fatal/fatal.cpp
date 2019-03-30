@@ -25,21 +25,34 @@ Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
 Module::Interface::~Interface() = default;
 
 struct FatalInfo {
-    std::array<u64_le, 31> registers{}; // TODO(ogniK): See if this actually is registers or
-                                        // not(find a game which has non zero valeus)
-    u64_le unk0{};
-    u64_le unk1{};
-    u64_le unk2{};
-    u64_le unk3{};
-    u64_le unk4{};
-    u64_le unk5{};
-    u64_le unk6{};
+    enum class Architecture : s32 {
+        AArch64,
+        AArch32,
+    };
+
+    const char* ArchAsString() const {
+        return arch == Architecture::AArch64 ? "AArch64" : "AArch32";
+    }
+
+    std::array<u64_le, 31> registers{};
+    u64_le sp{};
+    u64_le pc{};
+    u64_le pstate{};
+    u64_le afsr0{};
+    u64_le afsr1{};
+    u64_le esr{};
+    u64_le far{};
 
     std::array<u64_le, 32> backtrace{};
-    u64_le unk7{};
-    u64_le unk8{};
+    u64_le program_entry_point{};
+
+    // Bit flags that indicate which registers have been set with values
+    // for this context. The service itself uses these to determine which
+    // registers to specifically print out.
+    u64_le set_flags{};
+
     u32_le backtrace_size{};
-    u32_le unk9{};
+    Architecture arch{};
     u32_le unk10{}; // TODO(ogniK): Is this even used or is it just padding?
 };
 static_assert(sizeof(FatalInfo) == 0x250, "FatalInfo is an invalid size");
@@ -52,36 +65,36 @@ enum class FatalType : u32 {
 
 static void GenerateErrorReport(ResultCode error_code, const FatalInfo& info) {
     const auto title_id = Core::CurrentProcess()->GetTitleID();
-    std::string crash_report =
-        fmt::format("Yuzu {}-{} crash report\n"
-                    "Title ID:                        {:016x}\n"
-                    "Result:                          0x{:X} ({:04}-{:04d})\n"
-                    "\n",
-                    Common::g_scm_branch, Common::g_scm_desc, title_id, error_code.raw,
-                    2000 + static_cast<u32>(error_code.module.Value()),
-                    static_cast<u32>(error_code.description.Value()), info.unk8, info.unk7);
+    std::string crash_report = fmt::format(
+        "Yuzu {}-{} crash report\n"
+        "Title ID:                        {:016x}\n"
+        "Result:                          0x{:X} ({:04}-{:04d})\n"
+        "Set flags:                       0x{:16X}\n"
+        "Program entry point:             0x{:16X}\n"
+        "\n",
+        Common::g_scm_branch, Common::g_scm_desc, title_id, error_code.raw,
+        2000 + static_cast<u32>(error_code.module.Value()),
+        static_cast<u32>(error_code.description.Value()), info.set_flags, info.program_entry_point);
     if (info.backtrace_size != 0x0) {
         crash_report += "Registers:\n";
-        // TODO(ogniK): This is just a guess, find a game which actually has non zero values
         for (size_t i = 0; i < info.registers.size(); i++) {
             crash_report +=
                 fmt::format("    X[{:02d}]:                       {:016x}\n", i, info.registers[i]);
         }
-        crash_report += fmt::format("    Unknown 0:                   {:016x}\n", info.unk0);
-        crash_report += fmt::format("    Unknown 1:                   {:016x}\n", info.unk1);
-        crash_report += fmt::format("    Unknown 2:                   {:016x}\n", info.unk2);
-        crash_report += fmt::format("    Unknown 3:                   {:016x}\n", info.unk3);
-        crash_report += fmt::format("    Unknown 4:                   {:016x}\n", info.unk4);
-        crash_report += fmt::format("    Unknown 5:                   {:016x}\n", info.unk5);
-        crash_report += fmt::format("    Unknown 6:                   {:016x}\n", info.unk6);
+        crash_report += fmt::format("    SP:                          {:016x}\n", info.sp);
+        crash_report += fmt::format("    PC:                          {:016x}\n", info.pc);
+        crash_report += fmt::format("    PSTATE:                      {:016x}\n", info.pstate);
+        crash_report += fmt::format("    AFSR0:                       {:016x}\n", info.afsr0);
+        crash_report += fmt::format("    AFSR1:                       {:016x}\n", info.afsr1);
+        crash_report += fmt::format("    ESR:                         {:016x}\n", info.esr);
+        crash_report += fmt::format("    FAR:                         {:016x}\n", info.far);
         crash_report += "\nBacktrace:\n";
         for (size_t i = 0; i < info.backtrace_size; i++) {
             crash_report +=
                 fmt::format("    Backtrace[{:02d}]:               {:016x}\n", i, info.backtrace[i]);
         }
-        crash_report += fmt::format("\nUnknown 7:                       0x{:016x}\n", info.unk7);
-        crash_report += fmt::format("Unknown 8:                       0x{:016x}\n", info.unk8);
-        crash_report += fmt::format("Unknown 9:                       0x{:016x}\n", info.unk9);
+
+        crash_report += fmt::format("Architecture:                    {}\n", info.ArchAsString());
         crash_report += fmt::format("Unknown 10:                      0x{:016x}\n", info.unk10);
     }
 
@@ -125,13 +138,13 @@ static void ThrowFatalError(ResultCode error_code, FatalType fatal_type, const F
     case FatalType::ErrorReport:
         GenerateErrorReport(error_code, info);
         break;
-    };
+    }
 }
 
 void Module::Interface::ThrowFatal(Kernel::HLERequestContext& ctx) {
     LOG_ERROR(Service_Fatal, "called");
     IPC::RequestParser rp{ctx};
-    auto error_code = rp.Pop<ResultCode>();
+    const auto error_code = rp.Pop<ResultCode>();
 
     ThrowFatalError(error_code, FatalType::ErrorScreen, {});
     IPC::ResponseBuilder rb{ctx, 2};
@@ -141,8 +154,8 @@ void Module::Interface::ThrowFatal(Kernel::HLERequestContext& ctx) {
 void Module::Interface::ThrowFatalWithPolicy(Kernel::HLERequestContext& ctx) {
     LOG_ERROR(Service_Fatal, "called");
     IPC::RequestParser rp(ctx);
-    auto error_code = rp.Pop<ResultCode>();
-    auto fatal_type = rp.PopEnum<FatalType>();
+    const auto error_code = rp.Pop<ResultCode>();
+    const auto fatal_type = rp.PopEnum<FatalType>();
 
     ThrowFatalError(error_code, fatal_type, {}); // No info is passed with ThrowFatalWithPolicy
     IPC::ResponseBuilder rb{ctx, 2};
@@ -152,9 +165,9 @@ void Module::Interface::ThrowFatalWithPolicy(Kernel::HLERequestContext& ctx) {
 void Module::Interface::ThrowFatalWithCpuContext(Kernel::HLERequestContext& ctx) {
     LOG_ERROR(Service_Fatal, "called");
     IPC::RequestParser rp(ctx);
-    auto error_code = rp.Pop<ResultCode>();
-    auto fatal_type = rp.PopEnum<FatalType>();
-    auto fatal_info = ctx.ReadBuffer();
+    const auto error_code = rp.Pop<ResultCode>();
+    const auto fatal_type = rp.PopEnum<FatalType>();
+    const auto fatal_info = ctx.ReadBuffer();
     FatalInfo info{};
 
     ASSERT_MSG(fatal_info.size() == sizeof(FatalInfo), "Invalid fatal info buffer size!");
