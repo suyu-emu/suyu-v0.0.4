@@ -138,7 +138,7 @@ static void ThrowFatalError(ResultCode error_code, FatalType fatal_type, const F
     case FatalType::ErrorReport:
         GenerateErrorReport(error_code, info);
         break;
-    };
+    }
 }
 
 void Module::Interface::ThrowFatal(Kernel::HLERequestContext& ctx) {
