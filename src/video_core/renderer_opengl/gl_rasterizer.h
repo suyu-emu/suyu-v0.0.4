@@ -50,8 +50,7 @@ struct FramebufferCacheKey;
 
 class RasterizerOpenGL : public VideoCore::RasterizerInterface {
 public:
-    explicit RasterizerOpenGL(Core::Frontend::EmuWindow& window, Core::System& system,
-                              ScreenInfo& info);
+    explicit RasterizerOpenGL(Core::System& system, ScreenInfo& info);
     ~RasterizerOpenGL() override;
 
     void DrawArrays() override;
@@ -214,7 +213,6 @@ private:
     ShaderCacheOpenGL shader_cache;
     GlobalRegionCacheOpenGL global_cache;
 
-    Core::Frontend::EmuWindow& emu_window;
     Core::System& system;
 
     ScreenInfo& screen_info;

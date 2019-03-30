@@ -266,7 +266,7 @@ void RendererOpenGL::CreateRasterizer() {
     }
     // Initialize sRGB Usage
     OpenGLState::ClearsRGBUsed();
-    rasterizer = std::make_unique<RasterizerOpenGL>(render_window, system, screen_info);
+    rasterizer = std::make_unique<RasterizerOpenGL>(system, screen_info);
 }
 
 void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
