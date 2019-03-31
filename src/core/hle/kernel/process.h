@@ -186,6 +186,9 @@ public:
         return random_entropy.at(index);
     }
 
+    /// Retrieves the total physical memory used by this process in bytes.
+    u64 GetTotalPhysicalMemoryUsed() const;
+
     /// Clears the signaled state of the process if and only if it's signaled.
     ///
     /// @pre The process must not be already terminated. If this is called on a
@@ -210,7 +213,7 @@ public:
     /**
      * Applies address space changes and launches the process main thread.
      */
-    void Run(VAddr entry_point, s32 main_thread_priority, u32 stack_size);
+    void Run(VAddr entry_point, s32 main_thread_priority, u64 stack_size);
 
     /**
      * Prepares a process for termination by stopping all of its threads
@@ -246,6 +249,12 @@ private:
 
     /// Memory manager for this process.
     Kernel::VMManager vm_manager;
+
+    /// Size of the main thread's stack in bytes.
+    u64 main_thread_stack_size = 0;
+
+    /// Size of the loaded code memory in bytes.
+    u64 code_memory_size = 0;
 
     /// Current status of the process
     ProcessStatus status;

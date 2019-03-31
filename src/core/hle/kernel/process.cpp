@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <memory>
 #include <random>
+#include "common/alignment.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
@@ -75,6 +76,10 @@ SharedPtr<ResourceLimit> Process::GetResourceLimit() const {
     return resource_limit;
 }
 
+u64 Process::GetTotalPhysicalMemoryUsed() const {
+    return vm_manager.GetCurrentHeapSize() + main_thread_stack_size + code_memory_size;
+}
+
 ResultCode Process::ClearSignalState() {
     if (status == ProcessStatus::Exited) {
         LOG_ERROR(Kernel, "called on a terminated process instance.");
@@ -107,14 +112,17 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata) {
     return handle_table.SetSize(capabilities.GetHandleTableSize());
 }
 
-void Process::Run(VAddr entry_point, s32 main_thread_priority, u32 stack_size) {
+void Process::Run(VAddr entry_point, s32 main_thread_priority, u64 stack_size) {
+    // The kernel always ensures that the given stack size is page aligned.
+    main_thread_stack_size = Common::AlignUp(stack_size, Memory::PAGE_SIZE);
+
     // Allocate and map the main thread stack
     // TODO(bunnei): This is heap area that should be allocated by the kernel and not mapped as part
     // of the user address space.
+    const VAddr mapping_address = vm_manager.GetTLSIORegionEndAddress() - main_thread_stack_size;
     vm_manager
-        .MapMemoryBlock(vm_manager.GetTLSIORegionEndAddress() - stack_size,
-                        std::make_shared<std::vector<u8>>(stack_size, 0), 0, stack_size,
-                        MemoryState::Stack)
+        .MapMemoryBlock(mapping_address, std::make_shared<std::vector<u8>>(main_thread_stack_size),
+                        0, main_thread_stack_size, MemoryState::Stack)
         .Unwrap();
 
     vm_manager.LogLayout();
@@ -223,6 +231,8 @@ void Process::LoadModule(CodeSet module_, VAddr base_addr) {
     MapSegment(module_.CodeSegment(), VMAPermission::ReadExecute, MemoryState::Code);
     MapSegment(module_.RODataSegment(), VMAPermission::Read, MemoryState::CodeData);
     MapSegment(module_.DataSegment(), VMAPermission::ReadWrite, MemoryState::CodeData);
+
+    code_memory_size += module_.memory->size();
 
     // Clear instruction cache in CPU JIT
     system.InvalidateCpuInstructionCaches();
