@@ -21,6 +21,8 @@
 
 namespace OpenGL::GLShader {
 
+namespace {
+
 using Tegra::Shader::Attribute;
 using Tegra::Shader::AttributeUse;
 using Tegra::Shader::Header;
@@ -36,11 +38,9 @@ using Operation = const OperationNode&;
 
 enum class Type { Bool, Bool2, Float, Int, Uint, HalfFloat };
 
-namespace {
 struct TextureAoffi {};
 using TextureArgument = std::pair<Type, Node>;
 using TextureIR = std::variant<TextureAoffi, TextureArgument>;
-} // namespace
 
 enum : u32 { POSITION_VARYING_LOCATION = 0, GENERIC_VARYING_START_LOCATION = 1 };
 constexpr u32 MAX_CONSTBUFFER_ELEMENTS =
@@ -97,7 +97,7 @@ private:
 };
 
 /// Generates code to use for a swizzle operation.
-static std::string GetSwizzle(u32 elem) {
+std::string GetSwizzle(u32 elem) {
     ASSERT(elem <= 3);
     std::string swizzle = ".";
     swizzle += "xyzw"[elem];
@@ -105,7 +105,7 @@ static std::string GetSwizzle(u32 elem) {
 }
 
 /// Translate topology
-static std::string GetTopologyName(Tegra::Shader::OutputTopology topology) {
+std::string GetTopologyName(Tegra::Shader::OutputTopology topology) {
     switch (topology) {
     case Tegra::Shader::OutputTopology::PointList:
         return "points";
@@ -120,7 +120,7 @@ static std::string GetTopologyName(Tegra::Shader::OutputTopology topology) {
 }
 
 /// Returns true if an object has to be treated as precise
-static bool IsPrecise(Operation operand) {
+bool IsPrecise(Operation operand) {
     const auto& meta = operand.GetMeta();
 
     if (const auto arithmetic = std::get_if<MetaArithmetic>(&meta)) {
@@ -132,7 +132,7 @@ static bool IsPrecise(Operation operand) {
     return false;
 }
 
-static bool IsPrecise(Node node) {
+bool IsPrecise(Node node) {
     if (const auto operation = std::get_if<OperationNode>(node)) {
         return IsPrecise(*operation);
     }
@@ -1611,6 +1611,8 @@ private:
 
     ShaderWriter code;
 };
+
+} // Anonymous namespace
 
 std::string GetCommonDeclarations() {
     const auto cbuf = std::to_string(MAX_CONSTBUFFER_ELEMENTS);
