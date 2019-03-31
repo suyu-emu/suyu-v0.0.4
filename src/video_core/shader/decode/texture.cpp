@@ -564,7 +564,7 @@ std::vector<Node> ShaderIR::GetAoffiCoordinates(Node aoffi_reg, std::size_t coor
             return {{0, 4, 8}, 4, 8, 16};
         }
     }();
-    const u32 mask = (1 << size) - 1;
+    const u32 mask = (1U << size) - 1;
 
     std::vector<Node> aoffi;
     aoffi.reserve(coord_count);
