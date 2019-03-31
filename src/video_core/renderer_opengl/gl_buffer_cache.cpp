@@ -15,8 +15,8 @@ namespace OpenGL {
 
 CachedBufferEntry::CachedBufferEntry(VAddr cpu_addr, std::size_t size, GLintptr offset,
                                      std::size_t alignment, u8* host_ptr)
-    : cpu_addr{cpu_addr}, size{size}, offset{offset}, alignment{alignment}, RasterizerCacheObject{
-                                                                                host_ptr} {}
+    : RasterizerCacheObject{host_ptr}, cpu_addr{cpu_addr}, size{size}, offset{offset},
+      alignment{alignment} {}
 
 OGLBufferCache::OGLBufferCache(RasterizerOpenGL& rasterizer, std::size_t size)
     : RasterizerCache{rasterizer}, stream_buffer(size, true) {}

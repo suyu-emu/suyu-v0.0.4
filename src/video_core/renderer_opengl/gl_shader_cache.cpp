@@ -215,9 +215,9 @@ CachedShader::CachedShader(VAddr cpu_addr, u64 unique_identifier,
                            Maxwell::ShaderProgram program_type, ShaderDiskCacheOpenGL& disk_cache,
                            const PrecompiledPrograms& precompiled_programs,
                            ProgramCode&& program_code, ProgramCode&& program_code_b, u8* host_ptr)
-    : host_ptr{host_ptr}, cpu_addr{cpu_addr}, unique_identifier{unique_identifier},
-      program_type{program_type}, disk_cache{disk_cache},
-      precompiled_programs{precompiled_programs}, RasterizerCacheObject{host_ptr} {
+    : RasterizerCacheObject{host_ptr}, host_ptr{host_ptr}, cpu_addr{cpu_addr},
+      unique_identifier{unique_identifier}, program_type{program_type}, disk_cache{disk_cache},
+      precompiled_programs{precompiled_programs} {
 
     const std::size_t code_size = CalculateProgramSize(program_code);
     const std::size_t code_size_b =
@@ -245,9 +245,9 @@ CachedShader::CachedShader(VAddr cpu_addr, u64 unique_identifier,
                            Maxwell::ShaderProgram program_type, ShaderDiskCacheOpenGL& disk_cache,
                            const PrecompiledPrograms& precompiled_programs,
                            GLShader::ProgramResult result, u8* host_ptr)
-    : cpu_addr{cpu_addr}, unique_identifier{unique_identifier}, program_type{program_type},
-      disk_cache{disk_cache}, precompiled_programs{precompiled_programs}, RasterizerCacheObject{
-                                                                              host_ptr} {
+    : RasterizerCacheObject{host_ptr}, cpu_addr{cpu_addr}, unique_identifier{unique_identifier},
+      program_type{program_type}, disk_cache{disk_cache}, precompiled_programs{
+                                                              precompiled_programs} {
 
     code = std::move(result.first);
     entries = result.second;

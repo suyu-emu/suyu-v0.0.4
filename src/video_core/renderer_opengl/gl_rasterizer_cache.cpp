@@ -562,8 +562,8 @@ void RasterizerCacheOpenGL::CopySurface(const Surface& src_surface, const Surfac
 }
 
 CachedSurface::CachedSurface(const SurfaceParams& params)
-    : params{params}, gl_target{SurfaceTargetToGL(params.target)},
-      cached_size_in_bytes{params.size_in_bytes}, RasterizerCacheObject{params.host_ptr} {
+    : RasterizerCacheObject{params.host_ptr}, params{params},
+      gl_target{SurfaceTargetToGL(params.target)}, cached_size_in_bytes{params.size_in_bytes} {
 
     const auto optional_cpu_addr{
         Core::System::GetInstance().GPU().MemoryManager().GpuToCpuAddress(params.gpu_addr)};

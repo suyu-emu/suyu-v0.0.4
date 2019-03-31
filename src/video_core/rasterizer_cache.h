@@ -71,8 +71,8 @@ private:
     bool is_registered{};      ///< Whether the object is currently registered with the cache
     bool is_dirty{};           ///< Whether the object is dirty (out of sync with guest memory)
     u64 last_modified_ticks{}; ///< When the object was last modified, used for in-order flushing
-    CacheAddr cache_addr{};    ///< Cache address memory, unique from emulated virtual address space
     const u8* host_ptr{};      ///< Pointer to the memory backing this cached region
+    CacheAddr cache_addr{};    ///< Cache address memory, unique from emulated virtual address space
 };
 
 template <class T>
