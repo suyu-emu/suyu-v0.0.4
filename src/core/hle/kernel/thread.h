@@ -299,7 +299,7 @@ public:
     }
 
     /// Determines whether all the objects this thread is waiting on are ready.
-    bool AllWaitObjectsReady();
+    bool AllWaitObjectsReady() const;
 
     const MutexWaitingThreads& GetMutexWaitingThreads() const {
         return wait_mutex_threads;

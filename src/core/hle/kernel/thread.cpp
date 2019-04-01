@@ -367,7 +367,7 @@ void Thread::ChangeScheduler() {
     system.CpuCore(processor_id).PrepareReschedule();
 }
 
-bool Thread::AllWaitObjectsReady() {
+bool Thread::AllWaitObjectsReady() const {
     return std::none_of(
         wait_objects.begin(), wait_objects.end(),
         [this](const SharedPtr<WaitObject>& object) { return object->ShouldWait(this); });
