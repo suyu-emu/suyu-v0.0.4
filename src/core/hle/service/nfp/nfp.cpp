@@ -335,7 +335,7 @@ void Module::Interface::CreateUserInterface(Kernel::HLERequestContext& ctx) {
 }
 
 bool Module::Interface::LoadAmiibo(const std::vector<u8>& buffer) {
-    std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
+    std::lock_guard lock{HLE::g_hle_lock};
     if (buffer.size() < sizeof(AmiiboFile)) {
         return false;
     }

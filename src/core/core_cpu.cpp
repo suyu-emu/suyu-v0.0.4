@@ -22,7 +22,7 @@
 namespace Core {
 
 void CpuBarrier::NotifyEnd() {
-    std::unique_lock<std::mutex> lock(mutex);
+    std::unique_lock lock{mutex};
     end = true;
     condition.notify_all();
 }
@@ -34,7 +34,7 @@ bool CpuBarrier::Rendezvous() {
     }
 
     if (!end) {
-        std::unique_lock<std::mutex> lock(mutex);
+        std::unique_lock lock{mutex};
 
         --cores_waiting;
         if (!cores_waiting) {
@@ -131,7 +131,7 @@ void Cpu::Reschedule() {
 
     reschedule_pending = false;
     // Lock the global kernel mutex when we manipulate the HLE state
-    std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
+    std::lock_guard lock{HLE::g_hle_lock};
     scheduler->Reschedule();
 }
 

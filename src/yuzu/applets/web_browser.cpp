@@ -104,12 +104,12 @@ void QtWebBrowser::OpenPage(std::string_view url, std::function<void()> unpack_r
 
 void QtWebBrowser::MainWindowUnpackRomFS() {
     // Acquire the HLE mutex
-    std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
+    std::lock_guard lock{HLE::g_hle_lock};
     unpack_romfs_callback();
 }
 
 void QtWebBrowser::MainWindowFinishedBrowsing() {
     // Acquire the HLE mutex
-    std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
+    std::lock_guard lock{HLE::g_hle_lock};
     finished_callback();
 }

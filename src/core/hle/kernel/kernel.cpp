@@ -34,7 +34,7 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_
     const auto& system = Core::System::GetInstance();
 
     // Lock the global kernel mutex when we enter the kernel HLE.
-    std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
+    std::lock_guard lock{HLE::g_hle_lock};
 
     SharedPtr<Thread> thread =
         system.Kernel().RetrieveThreadFromWakeupCallbackHandleTable(proper_handle);

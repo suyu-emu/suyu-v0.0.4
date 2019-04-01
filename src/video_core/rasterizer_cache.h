@@ -84,7 +84,7 @@ public:
 
     /// Write any cached resources overlapping the specified region back to memory
     void FlushRegion(CacheAddr addr, std::size_t size) {
-        std::lock_guard<std::recursive_mutex> lock{mutex};
+        std::lock_guard lock{mutex};
 
         const auto& objects{GetSortedObjectsFromRegion(addr, size)};
         for (auto& object : objects) {
@@ -94,7 +94,7 @@ public:
 
     /// Mark the specified region as being invalidated
     void InvalidateRegion(CacheAddr addr, u64 size) {
-        std::lock_guard<std::recursive_mutex> lock{mutex};
+        std::lock_guard lock{mutex};
 
         const auto& objects{GetSortedObjectsFromRegion(addr, size)};
         for (auto& object : objects) {
@@ -108,7 +108,7 @@ public:
 
     /// Invalidates everything in the cache
     void InvalidateAll() {
-        std::lock_guard<std::recursive_mutex> lock{mutex};
+        std::lock_guard lock{mutex};
 
         while (interval_cache.begin() != interval_cache.end()) {
             Unregister(*interval_cache.begin()->second.begin());
@@ -133,7 +133,7 @@ protected:
 
     /// Register an object into the cache
     virtual void Register(const T& object) {
-        std::lock_guard<std::recursive_mutex> lock{mutex};
+        std::lock_guard lock{mutex};
 
         object->SetIsRegistered(true);
         interval_cache.add({GetInterval(object), ObjectSet{object}});
@@ -143,7 +143,7 @@ protected:
 
     /// Unregisters an object from the cache
     virtual void Unregister(const T& object) {
-        std::lock_guard<std::recursive_mutex> lock{mutex};
+        std::lock_guard lock{mutex};
 
         object->SetIsRegistered(false);
         rasterizer.UpdatePagesCachedCount(object->GetCpuAddr(), object->GetSizeInBytes(), -1);
@@ -153,14 +153,14 @@ protected:
 
     /// Returns a ticks counter used for tracking when cached objects were last modified
     u64 GetModifiedTicks() {
-        std::lock_guard<std::recursive_mutex> lock{mutex};
+        std::lock_guard lock{mutex};
 
         return ++modified_ticks;
     }
 
     /// Flushes the specified object, updating appropriate cache state as needed
     void FlushObject(const T& object) {
-        std::lock_guard<std::recursive_mutex> lock{mutex};
+        std::lock_guard lock{mutex};
 
         if (!object->IsDirty()) {
             return;

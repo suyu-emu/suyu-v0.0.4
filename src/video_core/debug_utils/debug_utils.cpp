@@ -10,7 +10,7 @@ namespace Tegra {
 
 void DebugContext::DoOnEvent(Event event, void* data) {
     {
-        std::unique_lock<std::mutex> lock(breakpoint_mutex);
+        std::unique_lock lock{breakpoint_mutex};
 
         // TODO(Subv): Commit the rasterizer's caches so framebuffers, render targets, etc. will
         // show on debug widgets
@@ -32,7 +32,7 @@ void DebugContext::DoOnEvent(Event event, void* data) {
 
 void DebugContext::Resume() {
     {
-        std::lock_guard<std::mutex> lock(breakpoint_mutex);
+        std::lock_guard lock{breakpoint_mutex};
 
         // Tell all observers that we are about to resume
         for (auto& breakpoint_observer : breakpoint_observers) {
