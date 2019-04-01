@@ -75,7 +75,7 @@ public:
     /// waiting to be accepted by this port.
     void AppendPendingSession(SharedPtr<ServerSession> pending_session);
 
-    bool ShouldWait(Thread* thread) const override;
+    bool ShouldWait(const Thread* thread) const override;
     void Acquire(Thread* thread) override;
 
 private:

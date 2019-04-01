@@ -14,7 +14,7 @@ namespace Kernel {
 ReadableEvent::ReadableEvent(KernelCore& kernel) : WaitObject{kernel} {}
 ReadableEvent::~ReadableEvent() = default;
 
-bool ReadableEvent::ShouldWait(Thread* thread) const {
+bool ReadableEvent::ShouldWait(const Thread* thread) const {
     return !signaled;
 }
 

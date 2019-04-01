@@ -28,7 +28,7 @@
 
 namespace Kernel {
 
-bool Thread::ShouldWait(Thread* thread) const {
+bool Thread::ShouldWait(const Thread* thread) const {
     return status != ThreadStatus::Dead;
 }
 
