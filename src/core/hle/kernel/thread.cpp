@@ -229,9 +229,9 @@ void Thread::SetWaitSynchronizationOutput(s32 output) {
     context.cpu_registers[1] = output;
 }
 
-s32 Thread::GetWaitObjectIndex(WaitObject* object) const {
+s32 Thread::GetWaitObjectIndex(const WaitObject* object) const {
     ASSERT_MSG(!wait_objects.empty(), "Thread is not waiting for anything");
-    auto match = std::find(wait_objects.rbegin(), wait_objects.rend(), object);
+    const auto match = std::find(wait_objects.rbegin(), wait_objects.rend(), object);
     return static_cast<s32>(std::distance(match, wait_objects.rend()) - 1);
 }
 
