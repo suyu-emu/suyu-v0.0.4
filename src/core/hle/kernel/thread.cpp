@@ -237,8 +237,8 @@ s32 Thread::GetWaitObjectIndex(const WaitObject* object) const {
 
 VAddr Thread::GetCommandBufferAddress() const {
     // Offset from the start of TLS at which the IPC command buffer begins.
-    static constexpr int CommandHeaderOffset = 0x80;
-    return GetTLSAddress() + CommandHeaderOffset;
+    constexpr u64 command_header_offset = 0x80;
+    return GetTLSAddress() + command_header_offset;
 }
 
 void Thread::SetStatus(ThreadStatus new_status) {
