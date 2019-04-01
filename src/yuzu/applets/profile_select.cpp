@@ -163,6 +163,6 @@ void QtProfileSelector::SelectProfile(
 
 void QtProfileSelector::MainWindowFinishedSelection(std::optional<Service::Account::UUID> uuid) {
     // Acquire the HLE mutex
-    std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
+    std::lock_guard lock{HLE::g_hle_lock};
     callback(uuid);
 }

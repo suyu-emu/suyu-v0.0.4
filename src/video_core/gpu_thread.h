@@ -95,13 +95,13 @@ struct SynchState final {
     std::condition_variable frames_condition;
 
     void IncrementFramesCounter() {
-        std::lock_guard<std::mutex> lock{frames_mutex};
+        std::lock_guard lock{frames_mutex};
         ++queued_frame_count;
     }
 
     void DecrementFramesCounter() {
         {
-            std::lock_guard<std::mutex> lock{frames_mutex};
+            std::lock_guard lock{frames_mutex};
             --queued_frame_count;
 
             if (queued_frame_count) {
@@ -113,7 +113,7 @@ struct SynchState final {
 
     void WaitForFrames() {
         {
-            std::lock_guard<std::mutex> lock{frames_mutex};
+            std::lock_guard lock{frames_mutex};
             if (!queued_frame_count) {
                 return;
             }
@@ -121,14 +121,14 @@ struct SynchState final {
 
         // Wait for the GPU to be idle (all commands to be executed)
         {
-            std::unique_lock<std::mutex> lock{frames_mutex};
+            std::unique_lock lock{frames_mutex};
             frames_condition.wait(lock, [this] { return !queued_frame_count; });
         }
     }
 
     void SignalCommands() {
         {
-            std::unique_lock<std::mutex> lock{commands_mutex};
+            std::unique_lock lock{commands_mutex};
             if (queue.Empty()) {
                 return;
             }
@@ -138,7 +138,7 @@ struct SynchState final {
     }
 
     void WaitForCommands() {
-        std::unique_lock<std::mutex> lock{commands_mutex};
+        std::unique_lock lock{commands_mutex};
         commands_condition.wait(lock, [this] { return !queue.Empty(); });
     }
 
