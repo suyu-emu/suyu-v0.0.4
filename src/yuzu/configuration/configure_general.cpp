@@ -33,7 +33,6 @@ void ConfigureGeneral::setConfiguration() {
     ui->toggle_user_on_boot->setChecked(UISettings::values.select_user_on_boot);
     ui->theme_combobox->setCurrentIndex(ui->theme_combobox->findData(UISettings::values.theme));
     ui->use_cpu_jit->setChecked(Settings::values.use_cpu_jit);
-    ui->enable_nfc->setChecked(Settings::values.enable_nfc);
 }
 
 void ConfigureGeneral::PopulateHotkeyList(const HotkeyRegistry& registry) {
@@ -48,5 +47,4 @@ void ConfigureGeneral::applyConfiguration() {
         ui->theme_combobox->itemData(ui->theme_combobox->currentIndex()).toString();
 
     Settings::values.use_cpu_jit = ui->use_cpu_jit->isChecked();
-    Settings::values.enable_nfc = ui->enable_nfc->isChecked();
 }

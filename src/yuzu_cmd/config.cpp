@@ -319,7 +319,6 @@ void Config::ReadValues() {
 
     // System
     Settings::values.use_docked_mode = sdl2_config->GetBoolean("System", "use_docked_mode", false);
-    Settings::values.enable_nfc = sdl2_config->GetBoolean("System", "enable_nfc", true);
     const auto size = sdl2_config->GetInteger("System", "users_size", 0);
 
     Settings::values.current_user = std::clamp<int>(

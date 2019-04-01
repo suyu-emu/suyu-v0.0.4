@@ -349,7 +349,6 @@ struct TouchscreenInput {
 struct Values {
     // System
     bool use_docked_mode;
-    bool enable_nfc;
     std::optional<u32> rng_seed;
     // Measured in seconds since epoch
     std::optional<std::chrono::seconds> custom_rtc;
