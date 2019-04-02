@@ -48,14 +48,12 @@ public:
     }
 
     void Schedule(u32 priority, u32 core, Thread* thread) {
-        ASSERT_MSG(thread->GetProcessorID() == core,
-                   "Thread must be assigned to this core.");
+        ASSERT_MSG(thread->GetProcessorID() == core, "Thread must be assigned to this core.");
         scheduled_queue[core].add(thread, priority);
     }
 
     void SchedulePrepend(u32 priority, u32 core, Thread* thread) {
-        ASSERT_MSG(thread->GetProcessorID() == core,
-                   "Thread must be assigned to this core.");
+        ASSERT_MSG(thread->GetProcessorID() == core, "Thread must be assigned to this core.");
         scheduled_queue[core].add(thread, priority, false);
     }
 
@@ -84,17 +82,47 @@ public:
             Suggest(priority, source_core, thread);
     }
 
+    /*
+     * UnloadThread selects a core and forces it to unload its current thread's context
+     */
     void UnloadThread(s32 core);
 
-    void SelectThreads();
+    /*
+     * SelectThread takes care of selecting the new scheduled thread.
+     * It does it in 3 steps:
+     * - First a thread is selected from the top of the priority queue. If no thread
+     * is obtained then we move to step two, else we are done.
+     * - Second we try to get a suggested thread that's not assigned to any core or
+     * that is not the top thread in that core.
+     * - Third is no suggested thread is found, we do a second pass and pick a running
+     * thread in another core and swap it with its current thread.
+     */
     void SelectThread(u32 core);
 
     bool HaveReadyThreads(u32 core_id) {
         return !scheduled_queue[core_id].empty();
     }
 
+    /*
+     * YieldThread takes a thread and moves it to the back of the it's priority list
+     * This operation can be redundant and no scheduling is changed if marked as so.
+     */
     void YieldThread(Thread* thread);
+
+    /*
+     * YieldThreadAndBalanceLoad takes a thread and moves it to the back of the it's priority list.
+     * Afterwards, tries to pick a suggested thread from the suggested queue that has worse time or
+     * a better priority than the next thread in the core.
+     * This operation can be redundant and no scheduling is changed if marked as so.
+     */
     void YieldThreadAndBalanceLoad(Thread* thread);
+
+    /*
+     * YieldThreadAndWaitForLoadBalancing takes a thread and moves it out of the scheduling queue
+     * and into the suggested queue. If no thread can be squeduled afterwards in that core,
+     * a suggested thread is obtained instead.
+     * This operation can be redundant and no scheduling is changed if marked as so.
+     */
     void YieldThreadAndWaitForLoadBalancing(Thread* thread);
 
     u32 CpuCoresCount() const {

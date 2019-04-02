@@ -19,6 +19,11 @@
 
 namespace Kernel {
 
+/*
+ * SelectThreads, Yield functions originally by TuxSH.
+ * licensed under GPLv2 or later under exception provided by the author.
+ */
+
 void GlobalScheduler::AddThread(SharedPtr<Thread> thread) {
     thread_list.push_back(std::move(thread));
 }
@@ -29,15 +34,23 @@ void GlobalScheduler::RemoveThread(Thread* thread) {
 }
 
 /*
- * SelectThreads, Yield functions originally by TuxSH.
- * licensed under GPLv2 or later under exception provided by the author.
+ * UnloadThread selects a core and forces it to unload its current thread's context
  */
-
 void GlobalScheduler::UnloadThread(s32 core) {
     Scheduler& sched = Core::System::GetInstance().Scheduler(core);
     sched.UnloadThread();
 }
 
+/*
+ * SelectThread takes care of selecting the new scheduled thread.
+ * It does it in 3 steps:
+ * - First a thread is selected from the top of the priority queue. If no thread
+ * is obtained then we move to step two, else we are done.
+ * - Second we try to get a suggested thread that's not assigned to any core or
+ * that is not the top thread in that core.
+ * - Third is no suggested thread is found, we do a second pass and pick a running
+ * thread in another core and swap it with its current thread.
+ */
 void GlobalScheduler::SelectThread(u32 core) {
     auto update_thread = [](Thread* thread, Scheduler& sched) {
         if (thread != sched.selected_thread) {
@@ -51,105 +64,58 @@ void GlobalScheduler::SelectThread(u32 core) {
     };
     Scheduler& sched = Core::System::GetInstance().Scheduler(core);
     Thread* current_thread = nullptr;
+    // Step 1: Get top thread in schedule queue.
     current_thread = scheduled_queue[core].empty() ? nullptr : scheduled_queue[core].front();
-    if (!current_thread) {
-        Thread* winner = nullptr;
-        std::set<s32> sug_cores;
-        for (auto thread : suggested_queue[core]) {
-            s32 this_core = thread->GetProcessorID();
-            Thread* thread_on_core = nullptr;
-            if (this_core >= 0) {
-                thread_on_core = scheduled_queue[this_core].front();
-            }
-            if (this_core < 0 || thread != thread_on_core) {
-                winner = thread;
-                break;
-            }
-            sug_cores.insert(this_core);
+    if (current_thread) {
+        update_thread(current_thread, sched);
+        return;
+    }
+    // Step 2: Try selecting a suggested thread.
+    Thread* winner = nullptr;
+    std::set<s32> sug_cores;
+    for (auto thread : suggested_queue[core]) {
+        s32 this_core = thread->GetProcessorID();
+        Thread* thread_on_core = nullptr;
+        if (this_core >= 0) {
+            thread_on_core = scheduled_queue[this_core].front();
         }
-        if (winner && winner->GetPriority() > 2) {
-            if (winner->IsRunning()) {
-                UnloadThread(winner->GetProcessorID());
+        if (this_core < 0 || thread != thread_on_core) {
+            winner = thread;
+            break;
+        }
+        sug_cores.insert(this_core);
+    }
+    // if we got a suggested thread, select it, else do a second pass.
+    if (winner && winner->GetPriority() > 2) {
+        if (winner->IsRunning()) {
+            UnloadThread(winner->GetProcessorID());
+        }
+        TransferToCore(winner->GetPriority(), core, winner);
+        update_thread(winner, sched);
+        return;
+    }
+    // Step 3: Select a suggested thread from another core
+    for (auto& src_core : sug_cores) {
+        auto it = scheduled_queue[src_core].begin();
+        it++;
+        if (it != scheduled_queue[src_core].end()) {
+            Thread* thread_on_core = scheduled_queue[src_core].front();
+            Thread* to_change = *it;
+            if (thread_on_core->IsRunning() || to_change->IsRunning()) {
+                UnloadThread(src_core);
             }
-            TransferToCore(winner->GetPriority(), core, winner);
-            current_thread = winner;
-        } else {
-            for (auto& src_core : sug_cores) {
-                auto it = scheduled_queue[src_core].begin();
-                it++;
-                if (it != scheduled_queue[src_core].end()) {
-                    Thread* thread_on_core = scheduled_queue[src_core].front();
-                    Thread* to_change = *it;
-                    if (thread_on_core->IsRunning() || to_change->IsRunning()) {
-                        UnloadThread(src_core);
-                    }
-                    TransferToCore(thread_on_core->GetPriority(), core, thread_on_core);
-                    current_thread = thread_on_core;
-                }
-            }
+            TransferToCore(thread_on_core->GetPriority(), core, thread_on_core);
+            current_thread = thread_on_core;
+            break;
         }
     }
     update_thread(current_thread, sched);
 }
 
-void GlobalScheduler::SelectThreads() {
-    auto update_thread = [](Thread* thread, Scheduler& sched) {
-        if (thread != sched.selected_thread) {
-            if (thread == nullptr) {
-                ++sched.idle_selection_count;
-            }
-            sched.selected_thread = thread;
-        }
-        sched.context_switch_pending = sched.selected_thread != sched.current_thread;
-        std::atomic_thread_fence(std::memory_order_seq_cst);
-    };
-
-    auto& system = Core::System::GetInstance();
-
-    std::unordered_set<Thread*> picked_threads;
-    // This maintain the "current thread is on front of queue" invariant
-    std::array<Thread*, NUM_CPU_CORES> current_threads;
-    for (u32 i = 0; i < NUM_CPU_CORES; i++) {
-        Scheduler& sched = system.Scheduler(i);
-        current_threads[i] = scheduled_queue[i].empty() ? nullptr : scheduled_queue[i].front();
-        if (current_threads[i])
-            picked_threads.insert(current_threads[i]);
-        update_thread(current_threads[i], sched);
-    }
-
-    // Do some load-balancing. Allow second pass.
-    std::array<Thread*, NUM_CPU_CORES> current_threads_2 = current_threads;
-    for (u32 i = 0; i < NUM_CPU_CORES; i++) {
-        if (!scheduled_queue[i].empty()) {
-            continue;
-        }
-        Thread* winner = nullptr;
-        for (auto thread : suggested_queue[i]) {
-            if (thread->GetProcessorID() < 0 || thread != current_threads[i]) {
-                if (picked_threads.count(thread) == 0 && !thread->IsRunning()) {
-                    winner = thread;
-                    break;
-                }
-            }
-        }
-        if (winner) {
-            TransferToCore(winner->GetPriority(), i, winner);
-            current_threads_2[i] = winner;
-            picked_threads.insert(winner);
-        }
-    }
-
-    // See which to-be-current threads have changed & update accordingly
-    for (u32 i = 0; i < NUM_CPU_CORES; i++) {
-        Scheduler& sched = system.Scheduler(i);
-        if (current_threads_2[i] != current_threads[i]) {
-            update_thread(current_threads_2[i], sched);
-        }
-    }
-
-    reselection_pending.store(false, std::memory_order_release);
-}
-
+/*
+ * YieldThread takes a thread and moves it to the back of the it's priority list
+ * This operation can be redundant and no scheduling is changed if marked as so.
+ */
 void GlobalScheduler::YieldThread(Thread* yielding_thread) {
     // Note: caller should use critical section, etc.
     u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
@@ -164,6 +130,12 @@ void GlobalScheduler::YieldThread(Thread* yielding_thread) {
     AskForReselectionOrMarkRedundant(yielding_thread, winner);
 }
 
+/*
+ * YieldThreadAndBalanceLoad takes a thread and moves it to the back of the it's priority list.
+ * Afterwards, tries to pick a suggested thread from the suggested queue that has worse time or
+ * a better priority than the next thread in the core.
+ * This operation can be redundant and no scheduling is changed if marked as so.
+ */
 void GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
     // Note: caller should check if !thread.IsSchedulerOperationRedundant and use critical section,
     // etc.
@@ -213,6 +185,12 @@ void GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
     AskForReselectionOrMarkRedundant(yielding_thread, winner);
 }
 
+/*
+ * YieldThreadAndWaitForLoadBalancing takes a thread and moves it out of the scheduling queue
+ * and into the suggested queue. If no thread can be squeduled afterwards in that core,
+ * a suggested thread is obtained instead.
+ * This operation can be redundant and no scheduling is changed if marked as so.
+ */
 void GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread) {
     // Note: caller should check if !thread.IsSchedulerOperationRedundant and use critical section,
     // etc.
@@ -256,8 +234,8 @@ void GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread
 
 void GlobalScheduler::AskForReselectionOrMarkRedundant(Thread* current_thread, Thread* winner) {
     if (current_thread == winner) {
-        // Nintendo (not us) has a nullderef bug on current_thread->owner, but which is never
-        // triggered.
+        // TODO(blinkhawk): manage redundant operations, this is not implemented.
+        // as its mostly an optimization.
         // current_thread->SetRedundantSchedulerOperation();
     } else {
         reselection_pending.store(true, std::memory_order_release);
