@@ -576,7 +576,17 @@ public:
                     u32 bind;
                 } macros;
 
-                INSERT_PADDING_WORDS(0x188);
+                INSERT_PADDING_WORDS(0x69);
+
+                struct {
+                    union {
+                        BitField<0, 16, u32> sync_point;
+                        BitField<16, 1, u32> unknown;
+                        BitField<20, 1, u32> increment;
+                    };
+                } sync_info;
+
+                INSERT_PADDING_WORDS(0x11E);
 
                 u32 tfb_enabled;
 
@@ -1180,6 +1190,9 @@ private:
     /// Handles a write to the QUERY_GET register.
     void ProcessQueryGet();
 
+    /// Handles writes to syncing register.
+    void ProcessSyncPoint();
+
     /// Handles a write to the CB_DATA[i] register.
     void ProcessCBData(u32 value);
 
@@ -1195,6 +1208,7 @@ private:
                   "Field " #field_name " has invalid position")
 
 ASSERT_REG_POSITION(macros, 0x45);
+ASSERT_REG_POSITION(sync_info, 0xB2);
 ASSERT_REG_POSITION(tfb_enabled, 0x1D1);
 ASSERT_REG_POSITION(rt, 0x200);
 ASSERT_REG_POSITION(viewport_transform, 0x280);
