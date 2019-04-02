@@ -115,7 +115,7 @@ struct KernelCore::Impl {
 
     // Creates the default system resource limit
     void InitializeSystemResourceLimit(KernelCore& kernel) {
-        system_resource_limit = ResourceLimit::Create(kernel, "System");
+        system_resource_limit = ResourceLimit::Create(kernel);
 
         // If setting the default system values fails, then something seriously wrong has occurred.
         ASSERT(system_resource_limit->SetLimitValue(ResourceType::PhysicalMemory, 0x200000000)
