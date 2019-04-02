@@ -97,8 +97,7 @@ void WaitObject::WakeupWaitingThread(SharedPtr<Thread> thread) {
     }
     if (resume) {
         thread->ResumeFromWait();
-        if (thread->GetProcessorID() >= 0)
-            Core::System::GetInstance().CpuCore(thread->GetProcessorID()).PrepareReschedule();
+        Core::System::GetInstance().PrepareReschedule(thread->GetProcessorID());
     }
 }
 

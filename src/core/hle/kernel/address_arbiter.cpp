@@ -37,8 +37,7 @@ void WakeThreads(const std::vector<SharedPtr<Thread>>& waiting_threads, s32 num_
         waiting_threads[i]->SetWaitSynchronizationResult(RESULT_SUCCESS);
         waiting_threads[i]->SetArbiterWaitAddress(0);
         waiting_threads[i]->ResumeFromWait();
-        if (waiting_threads[i]->GetProcessorID() >= 0)
-            system.CpuCore(waiting_threads[i]->GetProcessorID()).PrepareReschedule();
+        system.PrepareReschedule(waiting_threads[i]->GetProcessorID());
     }
 }
 } // Anonymous namespace
@@ -173,7 +172,7 @@ ResultCode AddressArbiter::WaitForAddressImpl(VAddr address, s64 timeout) {
 
     current_thread->WakeAfterDelay(timeout);
 
-    system.CpuCore(current_thread->GetProcessorID()).PrepareReschedule();
+    system.PrepareReschedule(current_thread->GetProcessorID());
     return RESULT_TIMEOUT;
 }
 

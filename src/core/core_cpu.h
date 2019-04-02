@@ -14,7 +14,7 @@
 namespace Kernel {
 class Scheduler;
 class GlobalScheduler;
-}
+} // namespace Kernel
 
 namespace Core {
 class System;
