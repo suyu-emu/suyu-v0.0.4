@@ -341,7 +341,7 @@ Kernel::CodeSet ElfReader::LoadInto(VAddr vaddr) {
     }
 
     codeset.entrypoint = base_addr + header->e_entry;
-    codeset.memory = std::make_shared<std::vector<u8>>(std::move(program_image));
+    codeset.memory = std::move(program_image);
 
     LOG_DEBUG(Loader, "Done loading.");
 

@@ -161,7 +161,7 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
     }
 
     // Load codeset for current process
-    codeset.memory = std::make_shared<std::vector<u8>>(std::move(program_image));
+    codeset.memory = std::move(program_image);
     process.LoadModule(std::move(codeset), load_base);
 
     // Register module with GDBStub
