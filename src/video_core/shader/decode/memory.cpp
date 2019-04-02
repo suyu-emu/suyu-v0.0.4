@@ -8,6 +8,7 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "common/logging/log.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/shader/shader_ir.h"
 
@@ -205,8 +206,8 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::ST_L: {
-        UNIMPLEMENTED_IF_MSG(instr.st_l.unknown == 0, "ST_L Unhandled mode: {}",
-                             static_cast<u32>(instr.st_l.unknown.Value()));
+        LOG_DEBUG(HW_GPU, "ST_L cache management mode: {}",
+                  static_cast<u64>(instr.st_l.cache_management.Value()));
 
         const auto GetLmemAddr = [&](s32 offset) {
             ASSERT(offset % 4 == 0);

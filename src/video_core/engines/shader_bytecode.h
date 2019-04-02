@@ -387,6 +387,13 @@ enum class IpaSampleMode : u64 {
     Offset = 2,
 };
 
+enum class LmemStoreCacheManagement : u64 {
+    Default = 0,
+    CG = 1,
+    CS = 2,
+    WT = 3,
+};
+
 struct IpaMode {
     IpaInterpMode interpolation_mode;
     IpaSampleMode sampling_mode;
@@ -782,7 +789,7 @@ union Instruction {
     } ld_l;
 
     union {
-        BitField<44, 2, u64> unknown;
+        BitField<44, 2, LmemStoreCacheManagement> cache_management;
     } st_l;
 
     union {
