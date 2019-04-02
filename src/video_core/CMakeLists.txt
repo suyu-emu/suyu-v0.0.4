@@ -67,6 +67,8 @@ add_library(video_core STATIC
     renderer_opengl/renderer_opengl.h
     renderer_opengl/utils.cpp
     renderer_opengl/utils.h
+    sampler_cache.cpp
+    sampler_cache.h
     shader/decode/arithmetic.cpp
     shader/decode/arithmetic_immediate.cpp
     shader/decode/bfe.cpp
