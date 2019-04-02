@@ -387,6 +387,13 @@ enum class IpaSampleMode : u64 {
     Offset = 2,
 };
 
+enum class LmemLoadCacheManagement : u64 {
+    Default = 0,
+    LU = 1,
+    CI = 2,
+    CV = 3,
+};
+
 enum class LmemStoreCacheManagement : u64 {
     Default = 0,
     CG = 1,

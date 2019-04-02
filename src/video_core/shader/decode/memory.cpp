@@ -86,8 +86,8 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::LD_L: {
-        UNIMPLEMENTED_IF_MSG(instr.ld_l.unknown == 1, "LD_L Unhandled mode: {}",
-                             static_cast<u32>(instr.ld_l.unknown.Value()));
+        LOG_DEBUG(HW_GPU, "LD_L cache management mode: {}",
+                  static_cast<u64>(instr.ld_l.unknown.Value()));
 
         const auto GetLmem = [&](s32 offset) {
             ASSERT(offset % 4 == 0);
