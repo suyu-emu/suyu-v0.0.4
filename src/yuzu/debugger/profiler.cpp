@@ -7,6 +7,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QString>
+#include <QTimer>
 #include "common/common_types.h"
 #include "common/microprofile.h"
 #include "yuzu/debugger/profiler.h"
