@@ -28,7 +28,7 @@
 
 namespace Kernel {
 
-bool Thread::ShouldWait(Thread* thread) const {
+bool Thread::ShouldWait(const Thread* thread) const {
     return status != ThreadStatus::Dead;
 }
 
@@ -233,16 +233,16 @@ void Thread::SetWaitSynchronizationOutput(s32 output) {
     context.cpu_registers[1] = output;
 }
 
-s32 Thread::GetWaitObjectIndex(WaitObject* object) const {
+s32 Thread::GetWaitObjectIndex(const WaitObject* object) const {
     ASSERT_MSG(!wait_objects.empty(), "Thread is not waiting for anything");
-    auto match = std::find(wait_objects.rbegin(), wait_objects.rend(), object);
+    const auto match = std::find(wait_objects.rbegin(), wait_objects.rend(), object);
     return static_cast<s32>(std::distance(match, wait_objects.rend()) - 1);
 }
 
 VAddr Thread::GetCommandBufferAddress() const {
     // Offset from the start of TLS at which the IPC command buffer begins.
-    static constexpr int CommandHeaderOffset = 0x80;
-    return GetTLSAddress() + CommandHeaderOffset;
+    constexpr u64 command_header_offset = 0x80;
+    return GetTLSAddress() + command_header_offset;
 }
 
 void Thread::SetStatus(ThreadStatus new_status) {
@@ -371,7 +371,7 @@ void Thread::ChangeScheduler() {
     system.CpuCore(processor_id).PrepareReschedule();
 }
 
-bool Thread::AllWaitObjectsReady() {
+bool Thread::AllWaitObjectsReady() const {
     return std::none_of(
         wait_objects.begin(), wait_objects.end(),
         [this](const SharedPtr<WaitObject>& object) { return object->ShouldWait(this); });

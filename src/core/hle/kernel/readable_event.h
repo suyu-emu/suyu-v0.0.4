@@ -36,7 +36,7 @@ public:
         return HANDLE_TYPE;
     }
 
-    bool ShouldWait(Thread* thread) const override;
+    bool ShouldWait(const Thread* thread) const override;
     void Acquire(Thread* thread) override;
 
     /// Unconditionally clears the readable event's state.

@@ -46,7 +46,7 @@ ResultVal<SharedPtr<ServerSession>> ServerSession::Create(KernelCore& kernel, st
     return MakeResult(std::move(server_session));
 }
 
-bool ServerSession::ShouldWait(Thread* thread) const {
+bool ServerSession::ShouldWait(const Thread* thread) const {
     // Closed sessions should never wait, an error will be returned from svcReplyAndReceive.
     if (parent->client == nullptr)
         return false;

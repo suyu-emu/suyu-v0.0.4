@@ -257,7 +257,7 @@ void Process::Acquire(Thread* thread) {
     ASSERT_MSG(!ShouldWait(thread), "Object unavailable!");
 }
 
-bool Process::ShouldWait(Thread* thread) const {
+bool Process::ShouldWait(const Thread* thread) const {
     return !is_signaled;
 }
 

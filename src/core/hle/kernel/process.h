@@ -251,7 +251,7 @@ private:
     ~Process() override;
 
     /// Checks if the specified thread should wait until this process is available.
-    bool ShouldWait(Thread* thread) const override;
+    bool ShouldWait(const Thread* thread) const override;
 
     /// Acquires/locks this process for the specified thread if it's available.
     void Acquire(Thread* thread) override;
