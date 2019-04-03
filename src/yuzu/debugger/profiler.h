@@ -4,10 +4,11 @@
 
 #pragma once
 
-#include <QAbstractItemModel>
-#include <QDockWidget>
-#include <QTimer>
-#include "common/microprofile.h"
+#include <QWidget>
+
+class QAction;
+class QHideEvent;
+class QShowEvent;
 
 class MicroProfileDialog : public QWidget {
     Q_OBJECT
