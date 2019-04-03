@@ -178,39 +178,44 @@ PixelFormat PixelFormatFromTextureFormat(Tegra::Texture::TextureFormat format,
             return PixelFormat::ABGR8S;
         case Tegra::Texture::ComponentType::UINT:
             return PixelFormat::ABGR8UI;
+        default:
+            break;
         }
-        LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}", static_cast<u32>(component_type));
-        UNREACHABLE();
+        break;
     case Tegra::Texture::TextureFormat::B5G6R5:
         switch (component_type) {
         case Tegra::Texture::ComponentType::UNORM:
             return PixelFormat::B5G6R5U;
+        default:
+            break;
         }
-        LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}", static_cast<u32>(component_type));
-        UNREACHABLE();
+        break;
     case Tegra::Texture::TextureFormat::A2B10G10R10:
         switch (component_type) {
         case Tegra::Texture::ComponentType::UNORM:
             return PixelFormat::A2B10G10R10U;
+        default:
+            break;
         }
-        LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}", static_cast<u32>(component_type));
-        UNREACHABLE();
+        break;
     case Tegra::Texture::TextureFormat::A1B5G5R5:
         switch (component_type) {
         case Tegra::Texture::ComponentType::UNORM:
             return PixelFormat::A1B5G5R5U;
+        default:
+            break;
         }
-        LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}", static_cast<u32>(component_type));
-        UNREACHABLE();
+        break;
     case Tegra::Texture::TextureFormat::R8:
         switch (component_type) {
         case Tegra::Texture::ComponentType::UNORM:
             return PixelFormat::R8U;
         case Tegra::Texture::ComponentType::UINT:
             return PixelFormat::R8UI;
+        default:
+            break;
         }
-        LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}", static_cast<u32>(component_type));
-        UNREACHABLE();
+        break;
     case Tegra::Texture::TextureFormat::G8R8:
         // TextureFormat::G8R8 is actually ordered red then green, as such we can use
         // PixelFormat::RG8U and PixelFormat::RG8S. This was tested with The Legend of Zelda: Breath
@@ -220,50 +225,55 @@ PixelFormat PixelFormatFromTextureFormat(Tegra::Texture::TextureFormat format,
             return PixelFormat::RG8U;
         case Tegra::Texture::ComponentType::SNORM:
             return PixelFormat::RG8S;
+        default:
+            break;
         }
-        LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}", static_cast<u32>(component_type));
-        UNREACHABLE();
+        break;
     case Tegra::Texture::TextureFormat::R16_G16_B16_A16:
         switch (component_type) {
         case Tegra::Texture::ComponentType::UNORM:
             return PixelFormat::RGBA16U;
         case Tegra::Texture::ComponentType::FLOAT:
             return PixelFormat::RGBA16F;
+        default:
+            break;
         }
-        LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}", static_cast<u32>(component_type));
-        UNREACHABLE();
+        break;
     case Tegra::Texture::TextureFormat::BF10GF11RF11:
         switch (component_type) {
         case Tegra::Texture::ComponentType::FLOAT:
             return PixelFormat::R11FG11FB10F;
+        default:
+            break;
         }
-        LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}", static_cast<u32>(component_type));
-        UNREACHABLE();
     case Tegra::Texture::TextureFormat::R32_G32_B32_A32:
         switch (component_type) {
         case Tegra::Texture::ComponentType::FLOAT:
             return PixelFormat::RGBA32F;
         case Tegra::Texture::ComponentType::UINT:
             return PixelFormat::RGBA32UI;
+        default:
+            break;
         }
-        LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}", static_cast<u32>(component_type));
-        UNREACHABLE();
+        break;
     case Tegra::Texture::TextureFormat::R32_G32:
         switch (component_type) {
         case Tegra::Texture::ComponentType::FLOAT:
             return PixelFormat::RG32F;
         case Tegra::Texture::ComponentType::UINT:
             return PixelFormat::RG32UI;
+        default:
+            break;
         }
-        LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}", static_cast<u32>(component_type));
-        UNREACHABLE();
+        break;
     case Tegra::Texture::TextureFormat::R32_G32_B32:
         switch (component_type) {
         case Tegra::Texture::ComponentType::FLOAT:
             return PixelFormat::RGB32F;
+        default:
+            break;
         }
-        LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}", static_cast<u32>(component_type));
-        UNREACHABLE();
+        break;
     case Tegra::Texture::TextureFormat::R16:
         switch (component_type) {
         case Tegra::Texture::ComponentType::FLOAT:
@@ -276,18 +286,20 @@ PixelFormat PixelFormatFromTextureFormat(Tegra::Texture::TextureFormat format,
             return PixelFormat::R16UI;
         case Tegra::Texture::ComponentType::SINT:
             return PixelFormat::R16I;
+        default:
+            break;
         }
-        LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}", static_cast<u32>(component_type));
-        UNREACHABLE();
+        break;
     case Tegra::Texture::TextureFormat::R32:
         switch (component_type) {
         case Tegra::Texture::ComponentType::FLOAT:
             return PixelFormat::R32F;
         case Tegra::Texture::ComponentType::UINT:
             return PixelFormat::R32UI;
+        default:
+            break;
         }
-        LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}", static_cast<u32>(component_type));
-        UNREACHABLE();
+        break;
     case Tegra::Texture::TextureFormat::ZF32:
         return PixelFormat::Z32F;
     case Tegra::Texture::TextureFormat::Z16:
@@ -310,9 +322,10 @@ PixelFormat PixelFormatFromTextureFormat(Tegra::Texture::TextureFormat format,
             return PixelFormat::DXN2UNORM;
         case Tegra::Texture::ComponentType::SNORM:
             return PixelFormat::DXN2SNORM;
+        default:
+            break;
         }
-        LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}", static_cast<u32>(component_type));
-        UNREACHABLE();
+        break;
     case Tegra::Texture::TextureFormat::BC7U:
         return is_srgb ? PixelFormat::BC7U_SRGB : PixelFormat::BC7U;
     case Tegra::Texture::TextureFormat::BC6H_UF16:
@@ -343,15 +356,17 @@ PixelFormat PixelFormatFromTextureFormat(Tegra::Texture::TextureFormat format,
             return PixelFormat::RG16UI;
         case Tegra::Texture::ComponentType::SINT:
             return PixelFormat::RG16I;
+        default:
+            break;
         }
-        LOG_CRITICAL(HW_GPU, "Unimplemented component_type={}", static_cast<u32>(component_type));
-        UNREACHABLE();
+        break;
     default:
-        LOG_CRITICAL(HW_GPU, "Unimplemented format={}, component_type={}", static_cast<u32>(format),
-                     static_cast<u32>(component_type));
-        UNREACHABLE();
-        return PixelFormat::ABGR8U;
+        break;
     }
+    LOG_CRITICAL(HW_GPU, "Unimplemented format={}, component_type={}", static_cast<u32>(format),
+                 static_cast<u32>(component_type));
+    UNREACHABLE();
+    return PixelFormat::ABGR8U;
 }
 
 ComponentType ComponentTypeFromTexture(Tegra::Texture::ComponentType type) {
@@ -513,8 +528,9 @@ bool IsFormatBCn(PixelFormat format) {
     case PixelFormat::DXT45_SRGB:
     case PixelFormat::BC7U_SRGB:
         return true;
+    default:
+        return false;
     }
-    return false;
 }
 
 } // namespace VideoCore::Surface

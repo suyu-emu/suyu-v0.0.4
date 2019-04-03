@@ -243,9 +243,10 @@ public:
                     return "10_10_10_2";
                 case Size::Size_11_11_10:
                     return "11_11_10";
+                default:
+                    UNREACHABLE();
+                    return {};
                 }
-                UNREACHABLE();
-                return {};
             }
 
             std::string TypeString() const {
