@@ -1140,7 +1140,7 @@ static ResultCode UnmapSharedMemory(Handle shared_memory_handle, VAddr addr, u64
         return ERR_INVALID_MEMORY_RANGE;
     }
 
-    return shared_memory->Unmap(*current_process, addr);
+    return shared_memory->Unmap(*current_process, addr, size);
 }
 
 static ResultCode QueryProcessMemory(VAddr memory_info_address, VAddr page_info_address,

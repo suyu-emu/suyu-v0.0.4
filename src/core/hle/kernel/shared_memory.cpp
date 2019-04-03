@@ -9,7 +9,6 @@
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/shared_memory.h"
-#include "core/memory.h"
 
 namespace Kernel {
 
@@ -119,7 +118,15 @@ ResultCode SharedMemory::Map(Process& target_process, VAddr address, MemoryPermi
                                                      ConvertPermissions(permissions));
 }
 
-ResultCode SharedMemory::Unmap(Process& target_process, VAddr address) {
+ResultCode SharedMemory::Unmap(Process& target_process, VAddr address, u64 unmap_size) {
+    if (unmap_size != size) {
+        LOG_ERROR(Kernel,
+                  "Invalid size passed to Unmap. Size must be equal to the size of the "
+                  "memory managed. Shared memory size=0x{:016X}, Unmap size=0x{:016X}",
+                  size, unmap_size);
+        return ERR_INVALID_SIZE;
+    }
+
     // TODO(Subv): Verify what happens if the application tries to unmap an address that is not
     // mapped to a SharedMemory.
     return target_process.VMManager().UnmapRange(address, size);
