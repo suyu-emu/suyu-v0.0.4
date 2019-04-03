@@ -62,6 +62,8 @@ void Thread::Stop() {
     }
     wait_objects.clear();
 
+    owner_process->UnregisterThread(this);
+
     // Mark the TLS slot in the thread's page as free.
     owner_process->FreeTLSSlot(tls_address);
 }
@@ -201,6 +203,8 @@ ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name
     thread->scheduler = &system.Scheduler(processor_id);
     thread->scheduler->AddThread(thread);
     thread->tls_address = thread->owner_process->MarkNextAvailableTLSSlotAsUsed(*thread);
+
+    thread->owner_process->RegisterThread(thread.get());
 
     // TODO(peachum): move to ScheduleThread() when scheduler is added so selected core is used
     // to initialize the context

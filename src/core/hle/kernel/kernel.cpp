@@ -191,6 +191,10 @@ const Process* KernelCore::CurrentProcess() const {
     return impl->current_process;
 }
 
+const std::vector<SharedPtr<Process>>& KernelCore::GetProcessList() const {
+    return impl->process_list;
+}
+
 void KernelCore::AddNamedPort(std::string name, SharedPtr<ClientPort> port) {
     impl->named_ports.emplace(std::move(name), std::move(port));
 }
