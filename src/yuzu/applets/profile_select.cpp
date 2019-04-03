@@ -58,10 +58,7 @@ QtProfileSelectionDialog::QtProfileSelectionDialog(QWidget* parent)
 
     scroll_area = new QScrollArea;
 
-    buttons = new QDialogButtonBox;
-    buttons->addButton(tr("Cancel"), QDialogButtonBox::RejectRole);
-    buttons->addButton(tr("OK"), QDialogButtonBox::AcceptRole);
-
+    buttons = new QDialogButtonBox(QDialogButtonBox::Cancel | QDialogButtonBox::Ok);
     connect(buttons, &QDialogButtonBox::accepted, this, &QtProfileSelectionDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, this, &QtProfileSelectionDialog::reject);
 

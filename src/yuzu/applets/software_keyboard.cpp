@@ -75,13 +75,13 @@ QtSoftwareKeyboardDialog::QtSoftwareKeyboardDialog(
         length_label->setText(QStringLiteral("%1/%2").arg(text.size()).arg(parameters.max_length));
     });
 
-    buttons = new QDialogButtonBox;
-    buttons->addButton(tr("Cancel"), QDialogButtonBox::RejectRole);
-    buttons->addButton(parameters.submit_text.empty()
-                           ? tr("OK")
-                           : QString::fromStdU16String(parameters.submit_text),
-                       QDialogButtonBox::AcceptRole);
-
+    buttons = new QDialogButtonBox(QDialogButtonBox::Cancel);
+    if (parameters.submit_text.empty()) {
+        buttons->addButton(QDialogButtonBox::Ok);
+    } else {
+        buttons->addButton(QString::fromStdU16String(parameters.submit_text),
+                           QDialogButtonBox::AcceptRole);
+    }
     connect(buttons, &QDialogButtonBox::accepted, this, &QtSoftwareKeyboardDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, this, &QtSoftwareKeyboardDialog::reject);
     layout->addWidget(header_label);
