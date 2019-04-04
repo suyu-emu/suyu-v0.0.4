@@ -13,7 +13,13 @@ class ServiceManager;
 
 namespace Service::Yuzu {
 
+struct TestResult {
+    u32 code;
+    std::string data;
+    std::string name;
+};
+
 void InstallInterfaces(SM::ServiceManager& sm, std::string data,
-                       std::function<void(u32, std::string)> finish_callback);
+                       std::function<void(std::vector<TestResult>)> finish_callback);
 
 } // namespace Service::Yuzu

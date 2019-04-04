@@ -11,20 +11,21 @@
 
 namespace Service::Yuzu {
 
-constexpr u64 SERVICE_VERSION = 1;
+constexpr u64 SERVICE_VERSION = 0x00000002;
 
 class YuzuTest final : public ServiceFramework<YuzuTest> {
 public:
-    explicit YuzuTest(std::string data, std::function<void(u32, std::string)> finish_callback)
+    explicit YuzuTest(std::string data,
+                      std::function<void(std::vector<TestResult>)> finish_callback)
         : ServiceFramework{"yuzutest"}, data(std::move(data)),
           finish_callback(std::move(finish_callback)) {
         static const FunctionInfo functions[] = {
             {0, &YuzuTest::Initialize, "Initialize"},
             {1, &YuzuTest::GetServiceVersion, "GetServiceVersion"},
             {2, &YuzuTest::GetData, "GetData"},
-            {3, &YuzuTest::SetResultCode, "SetResultCode"},
-            {4, &YuzuTest::SetResultData, "SetResultData"},
-            {5, &YuzuTest::Finish, "Finish"},
+            {10, &YuzuTest::StartIndividual, "StartIndividual"},
+            {20, &YuzuTest::FinishIndividual, "FinishIndividual"},
+            {100, &YuzuTest::ExitProgram, "ExitProgram"},
         };
 
         RegisterHandlers(functions);
@@ -55,49 +56,51 @@ private:
         rb.Push<u32>(write_size);
     }
 
-    void SetResultCode(Kernel::HLERequestContext& ctx) {
+    void StartIndividual(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Frontend, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void FinishIndividual(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
+
         const auto code = rp.PopRaw<u32>();
 
-        LOG_INFO(Frontend, "called with result_code={:08X}", code);
-        result_code = code;
+        const auto result_data_raw = ctx.ReadBuffer();
+        const auto test_name_raw = ctx.ReadBuffer(1);
+
+        const auto data = Common::StringFromFixedZeroTerminatedBuffer(
+            reinterpret_cast<const char*>(result_data_raw.data()), result_data_raw.size());
+        const auto test_name = Common::StringFromFixedZeroTerminatedBuffer(
+            reinterpret_cast<const char*>(test_name_raw.data()), test_name_raw.size());
+
+        LOG_INFO(Frontend, "called, result_code={:08X}, data={}, name={}", code, data, test_name);
+
+        results.push_back({code, data, test_name});
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 
-    void SetResultData(Kernel::HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const auto buffer = ctx.ReadBuffer();
-        std::string data = Common::StringFromFixedZeroTerminatedBuffer(
-            reinterpret_cast<const char*>(buffer.data()), buffer.size());
-
-        LOG_INFO(Frontend, "called with string={}", data);
-        result_string = data;
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
-    }
-
-    void Finish(Kernel::HLERequestContext& ctx) {
+    void ExitProgram(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Frontend, "called");
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
 
-        finish_callback(result_code, result_string);
+        finish_callback(results);
     }
 
     std::string data;
 
-    u32 result_code = 0;
-    std::string result_string;
-
-    std::function<void(u64, std::string)> finish_callback;
+    std::vector<TestResult> results;
+    std::function<void(std::vector<TestResult>)> finish_callback;
 };
 
 void InstallInterfaces(SM::ServiceManager& sm, std::string data,
-                       std::function<void(u32, std::string)> finish_callback) {
+                       std::function<void(std::vector<TestResult>)> finish_callback) {
     std::make_shared<YuzuTest>(data, finish_callback)->InstallAsService(sm);
 }
 

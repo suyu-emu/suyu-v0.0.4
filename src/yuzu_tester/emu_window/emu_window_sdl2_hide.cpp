@@ -63,13 +63,12 @@ EmuWindow_SDL2_Hide::EmuWindow_SDL2_Hide() {
 
     std::string window_title = fmt::format("yuzu-tester {} | {}-{}", Common::g_build_fullname,
                                            Common::g_scm_branch, Common::g_scm_desc);
-    render_window =
-        SDL_CreateWindow(window_title.c_str(),
-                         SDL_WINDOWPOS_UNDEFINED, // x position
-                         SDL_WINDOWPOS_UNDEFINED, // y position
-                         Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height,
-                         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    SDL_HideWindow(render_window);
+    render_window = SDL_CreateWindow(window_title.c_str(),
+                                     SDL_WINDOWPOS_UNDEFINED, // x position
+                                     SDL_WINDOWPOS_UNDEFINED, // y position
+                                     Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height,
+                                     SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
+                                         SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN);
 
     if (render_window == nullptr) {
         LOG_CRITICAL(Frontend, "Failed to create SDL2 window! {}", SDL_GetError());

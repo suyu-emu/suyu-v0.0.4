@@ -170,7 +170,7 @@ int main(int argc, char** argv) {
 
     bool finished = false;
     int return_value = 0;
-    const auto callback = [&finished, &return_value](u32 code, std::string string) {
+    const auto callback = [&finished, &return_value](std::vector<Service::Yuzu::TestResult>) {
         finished = true;
         return_value = code & 0xFF;
         const auto text = fmt::format("Test Finished [Result Code: {:08X}]\n{}", code, string);
