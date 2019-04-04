@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <memory>
+#include <vector>
+
 #include "core/hle/kernel/object.h"
 
 union ResultCode;
@@ -25,7 +28,7 @@ class TransferMemory final : public Object {
 public:
     static constexpr HandleType HANDLE_TYPE = HandleType::TransferMemory;
 
-    static SharedPtr<TransferMemory> Create(KernelCore& kernel, VAddr base_address, size_t size,
+    static SharedPtr<TransferMemory> Create(KernelCore& kernel, VAddr base_address, u64 size,
                                             MemoryPermission permissions);
 
     TransferMemory(const TransferMemory&) = delete;
@@ -46,6 +49,12 @@ public:
         return HANDLE_TYPE;
     }
 
+    /// Gets a pointer to the backing block of this instance.
+    const u8* GetPointer() const;
+
+    /// Gets the size of the memory backing this instance in bytes.
+    u64 GetSize() const;
+
     /// Attempts to map transfer memory with the given range and memory permissions.
     ///
     /// @param address     The base address to being mapping memory at.
@@ -56,7 +65,7 @@ public:
     ///      the same values that were given when creating the transfer memory
     ///      instance.
     ///
-    ResultCode MapMemory(VAddr address, size_t size, MemoryPermission permissions);
+    ResultCode MapMemory(VAddr address, u64 size, MemoryPermission permissions);
 
     /// Unmaps the transfer memory with the given range
     ///
@@ -66,17 +75,20 @@ public:
     /// @pre The given address and size must be the same as the ones used
     ///      to create the transfer memory instance.
     ///
-    ResultCode UnmapMemory(VAddr address, size_t size);
+    ResultCode UnmapMemory(VAddr address, u64 size);
 
 private:
     explicit TransferMemory(KernelCore& kernel);
     ~TransferMemory() override;
 
+    /// Memory block backing this instance.
+    std::shared_ptr<std::vector<u8>> backing_block;
+
     /// The base address for the memory managed by this instance.
     VAddr base_address = 0;
 
     /// Size of the memory, in bytes, that this instance manages.
-    size_t memory_size = 0;
+    u64 memory_size = 0;
 
     /// The memory permissions that are applied to this instance.
     MemoryPermission owner_permissions{};

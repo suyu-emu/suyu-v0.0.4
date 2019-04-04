@@ -13,7 +13,7 @@
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/shared_memory.h"
+#include "core/hle/kernel/transfer_memory.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/am.h"
@@ -931,19 +931,19 @@ void ILibraryAppletCreator::CreateTransferMemoryStorage(Kernel::HLERequestContex
     rp.SetCurrentOffset(3);
     const auto handle{rp.Pop<Kernel::Handle>()};
 
-    const auto shared_mem =
-        Core::System::GetInstance().CurrentProcess()->GetHandleTable().Get<Kernel::SharedMemory>(
+    const auto transfer_mem =
+        Core::System::GetInstance().CurrentProcess()->GetHandleTable().Get<Kernel::TransferMemory>(
             handle);
 
-    if (shared_mem == nullptr) {
+    if (transfer_mem == nullptr) {
         LOG_ERROR(Service_AM, "shared_mem is a nullpr for handle={:08X}", handle);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultCode(-1));
         return;
     }
 
-    const u8* mem_begin = shared_mem->GetPointer();
-    const u8* mem_end = mem_begin + shared_mem->GetSize();
+    const u8* const mem_begin = transfer_mem->GetPointer();
+    const u8* const mem_end = mem_begin + transfer_mem->GetSize();
     std::vector<u8> memory{mem_begin, mem_end};
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
