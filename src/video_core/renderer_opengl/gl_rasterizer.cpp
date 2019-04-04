@@ -318,7 +318,7 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
         const std::size_t stage{index == 0 ? 0 : index - 1}; // Stage indices are 0 - 5
 
         GLShader::MaxwellUniformData ubo{};
-        ubo.SetFromRegs(gpu.state.shader_stages[stage]);
+        ubo.SetFromRegs(gpu, stage);
         const GLintptr offset = buffer_cache.UploadHostMemory(
             &ubo, sizeof(ubo), static_cast<std::size_t>(uniform_buffer_alignment));
 

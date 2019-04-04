@@ -12,14 +12,13 @@
 
 namespace OpenGL::GLShader {
 
-using Tegra::Engines::Maxwell3D;
-
 /// Uniform structure for the Uniform Buffer Object, all vectors must be 16-byte aligned
-// NOTE: Always keep a vec4 at the end. The GL spec is not clear whether the alignment at
-//       the end of a uniform block is included in UNIFORM_BLOCK_DATA_SIZE or not.
-//       Not following that rule will cause problems on some AMD drivers.
+/// @note Always keep a vec4 at the end. The GL spec is not clear whether the alignment at
+///       the end of a uniform block is included in UNIFORM_BLOCK_DATA_SIZE or not.
+///       Not following that rule will cause problems on some AMD drivers.
 struct MaxwellUniformData {
-    void SetFromRegs(const Maxwell3D::State::ShaderStageInfo& shader_stage);
+    void SetFromRegs(const Tegra::Engines::Maxwell3D& maxwell, std::size_t shader_stage);
+
     alignas(16) GLvec4 viewport_flip;
     struct alignas(16) {
         GLuint instance_id;
