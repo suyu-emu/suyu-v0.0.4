@@ -1196,11 +1196,12 @@ private:
         switch (meta->element) {
         case 0:
         case 1:
-            return "textureSize(" + sampler + ", " + lod + ')' + GetSwizzle(meta->element);
+            return "itof(int(textureSize(" + sampler + ", " + lod + ')' +
+                   GetSwizzle(meta->element) + "))";
         case 2:
             return "0";
         case 3:
-            return "textureQueryLevels(" + sampler + ')';
+            return "itof(textureQueryLevels(" + sampler + "))";
         }
         UNREACHABLE();
         return "0";
