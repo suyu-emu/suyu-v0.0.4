@@ -12,7 +12,7 @@ namespace Service::AM::Applets {
 
 class WebBrowser final : public Applet {
 public:
-    WebBrowser(const Core::Frontend::WebBrowserApplet& frontend);
+    WebBrowser(Core::Frontend::WebBrowserApplet& frontend);
     ~WebBrowser() override;
 
     void Initialize() override;
@@ -32,7 +32,7 @@ public:
     void Finalize();
 
 private:
-    const Core::Frontend::WebBrowserApplet& frontend;
+    Core::Frontend::WebBrowserApplet& frontend;
 
     bool complete = false;
     bool unpacked = false;

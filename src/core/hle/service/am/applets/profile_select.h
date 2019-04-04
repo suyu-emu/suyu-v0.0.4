@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "common/common_funcs.h"
-#include "core/frontend/applets/software_keyboard.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/applets/applets.h"
 
@@ -29,7 +28,7 @@ static_assert(sizeof(UserSelectionOutput) == 0x18, "UserSelectionOutput has inco
 
 class ProfileSelect final : public Applet {
 public:
-    ProfileSelect(const Core::Frontend::ProfileSelectApplet& frontend);
+    explicit ProfileSelect(const Core::Frontend::ProfileSelectApplet& frontend);
     ~ProfileSelect() override;
 
     void Initialize() override;

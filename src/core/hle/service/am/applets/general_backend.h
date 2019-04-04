@@ -15,7 +15,7 @@ enum class PhotoViewerAppletMode : u8 {
 
 class PhotoViewer final : public Applet {
 public:
-    PhotoViewer(const Core::Frontend::PhotoViewerApplet& frontend);
+    explicit PhotoViewer(const Core::Frontend::PhotoViewerApplet& frontend);
     ~PhotoViewer() override;
 
     void Initialize() override;
@@ -28,8 +28,8 @@ public:
 
 private:
     const Core::Frontend::PhotoViewerApplet& frontend;
-    bool complete;
-    PhotoViewerAppletMode mode;
+    bool complete = false;
+    PhotoViewerAppletMode mode = PhotoViewerAppletMode::CurrentApp;
 };
 
 class StubApplet final : public Applet {

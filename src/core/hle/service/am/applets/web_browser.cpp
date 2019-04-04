@@ -95,7 +95,7 @@ static FileSys::VirtualFile GetManualRomFS() {
     return nullptr;
 }
 
-WebBrowser::WebBrowser(const Core::Frontend::WebBrowserApplet& frontend) : frontend(frontend) {}
+WebBrowser::WebBrowser(Core::Frontend::WebBrowserApplet& frontend) : frontend(frontend) {}
 
 WebBrowser::~WebBrowser() = default;
 

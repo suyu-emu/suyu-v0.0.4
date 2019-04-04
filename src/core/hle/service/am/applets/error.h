@@ -9,8 +9,6 @@
 
 namespace Service::AM::Applets {
 
-union ErrorArguments;
-
 enum class ErrorAppletMode : u8 {
     ShowError = 0,
     ShowSystemError = 1,
@@ -23,7 +21,7 @@ enum class ErrorAppletMode : u8 {
 
 class Error final : public Applet {
 public:
-    Error(const Core::Frontend::ErrorApplet& frontend);
+    explicit Error(const Core::Frontend::ErrorApplet& frontend);
     ~Error() override;
 
     void Initialize() override;
@@ -36,12 +34,14 @@ public:
     void DisplayCompleted();
 
 private:
+    union ErrorArguments;
+
     const Core::Frontend::ErrorApplet& frontend;
     ResultCode error_code = RESULT_SUCCESS;
-    ErrorAppletMode mode;
+    ErrorAppletMode mode = ErrorAppletMode::ShowError;
     std::unique_ptr<ErrorArguments> args;
 
-    bool complete;
+    bool complete = false;
 };
 
 } // namespace Service::AM::Applets

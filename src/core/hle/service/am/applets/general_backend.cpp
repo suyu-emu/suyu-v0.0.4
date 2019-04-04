@@ -4,6 +4,7 @@
 
 #include <string>
 
+#include "common/assert.h"
 #include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "core/core.h"

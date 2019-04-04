@@ -2,6 +2,10 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <array>
+#include <cstring>
+#include "common/assert.h"
+#include "common/logging/log.h"
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/frontend/applets/error.h"
@@ -54,7 +58,7 @@ struct ApplicationErrorArg {
 };
 static_assert(sizeof(ApplicationErrorArg) == 0x1014, "ApplicationErrorArg has incorrect size.");
 
-union ErrorArguments {
+union Error::ErrorArguments {
     ShowError error;
     ShowErrorRecord error_record;
     SystemErrorArg system_error;
@@ -107,6 +111,7 @@ void Error::Initialize() {
     case ErrorAppletMode::ShowSystemError:
         CopyArgumentData(data, args->system_error);
         error_code = ResultCode(Decode64BitError(args->system_error.error_code_64));
+        break;
     case ErrorAppletMode::ShowApplicationError:
         CopyArgumentData(data, args->application_error);
         error_code = ResultCode(args->application_error.error_code);
