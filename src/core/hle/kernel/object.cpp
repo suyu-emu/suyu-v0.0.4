@@ -24,7 +24,6 @@ bool Object::IsWaitable() const {
     case HandleType::WritableEvent:
     case HandleType::SharedMemory:
     case HandleType::TransferMemory:
-    case HandleType::AddressArbiter:
     case HandleType::ResourceLimit:
     case HandleType::ClientPort:
     case HandleType::ClientSession:
