@@ -1037,7 +1037,6 @@ private:
     void ListDisplays(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_VI, "(STUBBED) called");
 
-        IPC::RequestParser rp{ctx};
         DisplayInfo display_info;
         display_info.width *= static_cast<u64>(Settings::values.resolution_factor);
         display_info.height *= static_cast<u64>(Settings::values.resolution_factor);

@@ -10,6 +10,7 @@
 #include "common/alignment.h"
 #include "common/common_funcs.h"
 #include "common/logging/log.h"
+#include "common/string_util.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/hle_ipc.h"
@@ -184,7 +185,6 @@ public:
 private:
     void ListAudioDeviceName(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_Audio, "(STUBBED) called");
-        IPC::RequestParser rp{ctx};
 
         constexpr std::array<char, 15> audio_interface{{"AudioInterface"}};
         ctx.WriteBuffer(audio_interface);
@@ -195,13 +195,13 @@ private:
     }
 
     void SetAudioDeviceOutputVolume(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_Audio, "(STUBBED) called");
-
         IPC::RequestParser rp{ctx};
-        f32 volume = static_cast<f32>(rp.Pop<u32>());
+        const f32 volume = rp.Pop<f32>();
 
-        auto file_buffer = ctx.ReadBuffer();
-        auto end = std::find(file_buffer.begin(), file_buffer.end(), '\0');
+        const auto device_name_buffer = ctx.ReadBuffer();
+        const std::string name = Common::StringFromBuffer(device_name_buffer);
+
+        LOG_WARNING(Service_Audio, "(STUBBED) called. name={}, volume={}", name, volume);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
@@ -209,7 +209,6 @@ private:
 
     void GetActiveAudioDeviceName(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_Audio, "(STUBBED) called");
-        IPC::RequestParser rp{ctx};
 
         constexpr std::array<char, 12> audio_interface{{"AudioDevice"}};
         ctx.WriteBuffer(audio_interface);

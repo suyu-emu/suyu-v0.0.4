@@ -8,12 +8,20 @@
 namespace Service::Sockets {
 
 void SFDNSRES::GetAddrInfo(Kernel::HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        u8 use_nsd_resolve;
+        u32 unknown;
+        u64 process_id;
+    };
 
-    LOG_WARNING(Service, "(STUBBED) called");
+    IPC::RequestParser rp{ctx};
+    const auto parameters = rp.PopRaw<Parameters>();
+
+    LOG_WARNING(Service,
+                "(STUBBED) called. use_nsd_resolve={}, unknown=0x{:08X}, process_id=0x{:016X}",
+                parameters.use_nsd_resolve, parameters.unknown, parameters.process_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-
     rb.Push(RESULT_SUCCESS);
 }
 
