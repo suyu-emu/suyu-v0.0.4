@@ -498,7 +498,6 @@ public:
         };
         RegisterHandlers(functions);
     }
-    ~IHOSBinderDriver() = default;
 
 private:
     enum class TransactionId {
@@ -692,7 +691,6 @@ public:
         };
         RegisterHandlers(functions);
     }
-    ~ISystemDisplayService() = default;
 
 private:
     void SetLayerZ(Kernel::HLERequestContext& ctx) {
@@ -818,7 +816,6 @@ public:
         };
         RegisterHandlers(functions);
     }
-    ~IManagerDisplayService() = default;
 
 private:
     void CloseDisplay(Kernel::HLERequestContext& ctx) {
@@ -884,7 +881,6 @@ private:
 class IApplicationDisplayService final : public ServiceFramework<IApplicationDisplayService> {
 public:
     explicit IApplicationDisplayService(std::shared_ptr<NVFlinger::NVFlinger> nv_flinger);
-    ~IApplicationDisplayService() = default;
 
 private:
     enum class ConvertedScaleMode : u64 {

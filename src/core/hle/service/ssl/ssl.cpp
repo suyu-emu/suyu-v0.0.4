@@ -64,7 +64,6 @@ public:
         };
         RegisterHandlers(functions);
     }
-    ~ISslContext() = default;
 
 private:
     void SetOption(Kernel::HLERequestContext& ctx) {

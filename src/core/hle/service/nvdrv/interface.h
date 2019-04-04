@@ -17,7 +17,7 @@ namespace Service::Nvidia {
 class NVDRV final : public ServiceFramework<NVDRV> {
 public:
     NVDRV(std::shared_ptr<Module> nvdrv, const char* name);
-    ~NVDRV();
+    ~NVDRV() override;
 
 private:
     void Open(Kernel::HLERequestContext& ctx);

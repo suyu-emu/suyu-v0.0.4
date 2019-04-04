@@ -11,7 +11,7 @@ namespace Service::Set {
 class SET_CAL final : public ServiceFramework<SET_CAL> {
 public:
     explicit SET_CAL();
-    ~SET_CAL();
+    ~SET_CAL() override;
 };
 
 } // namespace Service::Set

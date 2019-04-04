@@ -29,7 +29,7 @@ class ARM_Dynarmic final : public ARM_Interface {
 public:
     ARM_Dynarmic(Timing::CoreTiming& core_timing, ExclusiveMonitor& exclusive_monitor,
                  std::size_t core_index);
-    ~ARM_Dynarmic();
+    ~ARM_Dynarmic() override;
 
     void MapBackingMemory(VAddr address, std::size_t size, u8* memory,
                           Kernel::VMAPermission perms) override;
@@ -76,7 +76,7 @@ private:
 class DynarmicExclusiveMonitor final : public ExclusiveMonitor {
 public:
     explicit DynarmicExclusiveMonitor(std::size_t core_count);
-    ~DynarmicExclusiveMonitor();
+    ~DynarmicExclusiveMonitor() override;
 
     void SetExclusive(std::size_t core_index, VAddr addr) override;
     void ClearExclusive() override;
