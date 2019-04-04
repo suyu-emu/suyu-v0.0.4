@@ -1094,7 +1094,7 @@ void GMainWindow::OnTransferableShaderCacheOpenFile(u64 program_id) {
 
     const QString transferable_shader_cache_file_path =
         tranferable_shader_cache_folder_path + DIR_SEP +
-        QString::fromStdString(fmt::format("{:016X}", program_id)) + ".bin";
+        QString::fromStdString(fmt::format("{:016X}.bin", program_id));
 
     if (!QFile::exists(transferable_shader_cache_file_path)) {
         QMessageBox::warning(this, tr("Error Opening %1 File").arg(open_target),
