@@ -13,7 +13,6 @@
 #include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/hle/kernel/process.h"
-#include "core/memory.h"
 #include "core/settings.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/morton.h"

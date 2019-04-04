@@ -17,7 +17,6 @@
 #include "common/microprofile.h"
 #include "common/scope_exit.h"
 #include "core/core.h"
-#include "core/frontend/emu_window.h"
 #include "core/hle/kernel/process.h"
 #include "core/settings.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -26,7 +25,6 @@
 #include "video_core/renderer_opengl/gl_shader_gen.h"
 #include "video_core/renderer_opengl/maxwell_to_gl.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
-#include "video_core/video_core.h"
 
 namespace OpenGL {
 

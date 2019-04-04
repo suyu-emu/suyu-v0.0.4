@@ -5,21 +5,20 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <memory>
 #include <set>
 #include <tuple>
 #include <unordered_map>
+#include <vector>
 
 #include <glad/glad.h>
 
-#include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/rasterizer_cache.h"
-#include "video_core/renderer_base.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_disk_cache.h"
-#include "video_core/renderer_opengl/gl_shader_gen.h"
 
 namespace Core {
 class System;

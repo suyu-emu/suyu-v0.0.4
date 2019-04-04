@@ -7,7 +7,6 @@
 
 #include "common/alignment.h"
 #include "core/core.h"
-#include "core/memory.h"
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 

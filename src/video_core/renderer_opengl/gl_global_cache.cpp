@@ -4,7 +4,6 @@
 
 #include <glad/glad.h>
 
-#include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "video_core/renderer_opengl/gl_global_cache.h"

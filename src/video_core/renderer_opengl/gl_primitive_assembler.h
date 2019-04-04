@@ -4,11 +4,9 @@
 
 #pragma once
 
-#include <vector>
 #include <glad/glad.h>
 
 #include "common/common_types.h"
-#include "video_core/memory_manager.h"
 
 namespace OpenGL {
 
