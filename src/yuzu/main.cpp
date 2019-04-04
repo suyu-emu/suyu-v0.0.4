@@ -1087,7 +1087,6 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
 void GMainWindow::OnTransferableShaderCacheOpenFile(u64 program_id) {
     ASSERT(program_id != 0);
 
-    const QString open_target = QStringLiteral("Transferable Shader Cache");
     const QString tranferable_shader_cache_folder_path =
         QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ShaderDir)) + "opengl" +
         DIR_SEP + "transferable";
@@ -1097,8 +1096,8 @@ void GMainWindow::OnTransferableShaderCacheOpenFile(u64 program_id) {
         QString::fromStdString(fmt::format("{:016X}.bin", program_id));
 
     if (!QFile::exists(transferable_shader_cache_file_path)) {
-        QMessageBox::warning(this, tr("Error Opening %1 File").arg(open_target),
-                             tr("File does not exist!"));
+        QMessageBox::warning(this, tr("Error Opening Transferable Shader Cache"),
+                             tr("A shader cache for this title does not exist."));
         return;
     }
 
