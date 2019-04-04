@@ -648,6 +648,8 @@ void GMainWindow::RestoreUIState() {
 void GMainWindow::ConnectWidgetEvents() {
     connect(game_list, &GameList::GameChosen, this, &GMainWindow::OnGameListLoadFile);
     connect(game_list, &GameList::OpenFolderRequested, this, &GMainWindow::OnGameListOpenFolder);
+    connect(game_list, &GameList::OpenTransferableShaderCacheRequested, this,
+            &GMainWindow::OnTransferableShaderCacheOpenFile);
     connect(game_list, &GameList::DumpRomFSRequested, this, &GMainWindow::OnGameListDumpRomFS);
     connect(game_list, &GameList::CopyTIDRequested, this, &GMainWindow::OnGameListCopyTID);
     connect(game_list, &GameList::NavigateToGamedbEntryRequested, this,
@@ -1080,6 +1082,42 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
     }
     LOG_INFO(Frontend, "Opening {} path for program_id={:016x}", open_target, program_id);
     QDesktopServices::openUrl(QUrl::fromLocalFile(qpath));
+}
+
+void GMainWindow::OnTransferableShaderCacheOpenFile(u64 program_id) {
+    ASSERT(program_id != 0);
+
+    constexpr char open_target[] = "Transferable Shader Cache";
+    const QString tranferable_shader_cache_folder_path =
+        QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ShaderDir)) + "opengl" +
+        DIR_SEP + "transferable";
+
+    const QString transferable_shader_cache_file_path =
+        tranferable_shader_cache_folder_path + DIR_SEP +
+        QString::fromStdString(fmt::format("{:016X}", program_id)) + ".bin";
+
+    if (!QFile(transferable_shader_cache_file_path).exists()) {
+        QMessageBox::warning(this,
+                             tr("Error Opening %1 File").arg(QString::fromStdString(open_target)),
+                             tr("File does not exist!"));
+        return;
+    }
+    LOG_INFO(Frontend, "Opening {} path for program_id={:016x}", open_target, program_id);
+
+    // Windows supports opening a folder with selecting a specified file in explorer. On every other
+    // OS we just open the transferable shader cache folder without preselecting the transferable
+    // shader cache file for the selected game.
+#if defined(Q_OS_WIN)
+    const QString explorer = "explorer";
+    QStringList param;
+    if (!QFileInfo(transferable_shader_cache_file_path).isDir()) {
+        param << QLatin1String("/select,");
+    }
+    param << QDir::toNativeSeparators(transferable_shader_cache_file_path);
+    QProcess::startDetached(explorer, param);
+#else
+    QDesktopServices::openUrl(QUrl::fromLocalFile(tranferable_shader_cache_folder_path));
+#endif
 }
 
 static std::size_t CalculateRomFSEntrySize(const FileSys::VirtualDir& dir, bool full) {

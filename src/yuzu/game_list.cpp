@@ -329,6 +329,8 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
     QMenu context_menu;
     QAction* open_save_location = context_menu.addAction(tr("Open Save Data Location"));
     QAction* open_lfs_location = context_menu.addAction(tr("Open Mod Data Location"));
+    QAction* open_transferable_shader_cache =
+        context_menu.addAction(tr("Open Transferable Shader Cache"));
     context_menu.addSeparator();
     QAction* dump_romfs = context_menu.addAction(tr("Dump RomFS"));
     QAction* copy_tid = context_menu.addAction(tr("Copy Title ID to Clipboard"));
@@ -344,6 +346,8 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
             [&]() { emit OpenFolderRequested(program_id, GameListOpenTarget::SaveData); });
     connect(open_lfs_location, &QAction::triggered,
             [&]() { emit OpenFolderRequested(program_id, GameListOpenTarget::ModData); });
+    connect(open_transferable_shader_cache, &QAction::triggered,
+            [&]() { emit OpenTransferableShaderCacheRequested(program_id); });
     connect(dump_romfs, &QAction::triggered, [&]() { emit DumpRomFSRequested(program_id, path); });
     connect(copy_tid, &QAction::triggered, [&]() { emit CopyTIDRequested(program_id); });
     connect(navigate_to_gamedb_entry, &QAction::triggered,
