@@ -69,10 +69,10 @@ public:
         shader_source += '\n';
     }
 
-    std::string GenerateTemporal() {
-        std::string temporal = "tmp";
-        temporal += std::to_string(temporal_index++);
-        return temporal;
+    std::string GenerateTemporary() {
+        std::string temporary = "tmp";
+        temporary += std::to_string(temporary_index++);
+        return temporary;
     }
 
     std::string GetResult() {
@@ -87,7 +87,7 @@ private:
     }
 
     std::string shader_source;
-    u32 temporal_index = 1;
+    u32 temporary_index = 1;
 };
 
 /// Generates code to use for a swizzle operation.
@@ -540,7 +540,7 @@ private:
 
             } else if (std::holds_alternative<OperationNode>(*offset)) {
                 // Indirect access
-                const std::string final_offset = code.GenerateTemporal();
+                const std::string final_offset = code.GenerateTemporary();
                 code.AddLine("uint " + final_offset + " = (ftou(" + Visit(offset) + ") / 4) & " +
                              std::to_string(MAX_CONSTBUFFER_ELEMENTS - 1) + ';');
                 return fmt::format("{}[{} / 4][{} % 4]", GetConstBuffer(cbuf->GetIndex()),
@@ -587,9 +587,9 @@ private:
         // There's a bug in NVidia's proprietary drivers that makes precise fail on fragment shaders
         const std::string precise = stage != ShaderStage::Fragment ? "precise " : "";
 
-        const std::string temporal = code.GenerateTemporal();
-        code.AddLine(precise + "float " + temporal + " = " + value + ';');
-        return temporal;
+        const std::string temporary = code.GenerateTemporary();
+        code.AddLine(precise + "float " + temporary + " = " + value + ';');
+        return temporary;
     }
 
     std::string VisitOperand(Operation operation, std::size_t operand_index) {
@@ -601,9 +601,9 @@ private:
             return Visit(operand);
         }
 
-        const std::string temporal = code.GenerateTemporal();
-        code.AddLine("float " + temporal + " = " + Visit(operand) + ';');
-        return temporal;
+        const std::string temporary = code.GenerateTemporary();
+        code.AddLine("float " + temporary + " = " + Visit(operand) + ';');
+        return temporary;
     }
 
     std::string VisitOperand(Operation operation, std::size_t operand_index, Type type) {
