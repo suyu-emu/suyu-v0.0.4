@@ -1339,6 +1339,20 @@ static ResultCode WaitProcessWideKeyAtomic(VAddr mutex_addr, VAddr condition_var
         "called mutex_addr={:X}, condition_variable_addr={:X}, thread_handle=0x{:08X}, timeout={}",
         mutex_addr, condition_variable_addr, thread_handle, nano_seconds);
 
+    if (Memory::IsKernelVirtualAddress(mutex_addr)) {
+        LOG_ERROR(
+            Kernel_SVC,
+            "Given mutex address must not be within the kernel address space. address=0x{:016X}",
+            mutex_addr);
+        return ERR_INVALID_ADDRESS_STATE;
+    }
+
+    if (!Common::IsWordAligned(mutex_addr)) {
+        LOG_ERROR(Kernel_SVC, "Given mutex address must be word-aligned. address=0x{:016X}",
+                  mutex_addr);
+        return ERR_INVALID_ADDRESS;
+    }
+
     auto* const current_process = Core::System::GetInstance().Kernel().CurrentProcess();
     const auto& handle_table = current_process->GetHandleTable();
     SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
