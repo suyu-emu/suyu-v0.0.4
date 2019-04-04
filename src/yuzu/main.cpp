@@ -1105,10 +1105,10 @@ void GMainWindow::OnTransferableShaderCacheOpenFile(u64 program_id) {
     // OS we just open the transferable shader cache folder without preselecting the transferable
     // shader cache file for the selected game.
 #if defined(Q_OS_WIN)
-    const QString explorer = "explorer";
+    const QString explorer = QStringLiteral("explorer");
     QStringList param;
     if (!QFileInfo(transferable_shader_cache_file_path).isDir()) {
-        param << QLatin1String("/select,");
+        param << QStringLiteral("/select,");
     }
     param << QDir::toNativeSeparators(transferable_shader_cache_file_path);
     QProcess::startDetached(explorer, param);
