@@ -31,6 +31,9 @@ void BindBuffersRangePushBuffer::Push(GLuint buffer, GLintptr offset, GLsizeiptr
 void BindBuffersRangePushBuffer::Bind() const {
     const std::size_t count{buffers.size()};
     DEBUG_ASSERT(count == offsets.size() && count == sizes.size());
+    if (count == 0) {
+        return;
+    }
     glBindBuffersRange(target, first, static_cast<GLsizei>(count), buffers.data(), offsets.data(),
                        sizes.data());
 }
