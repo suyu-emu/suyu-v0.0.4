@@ -29,9 +29,6 @@ enum class TitleType : u8 {
     DeltaTitle = 0x83,
 };
 
-bool operator>=(TitleType lhs, TitleType rhs);
-bool operator<=(TitleType lhs, TitleType rhs);
-
 enum class ContentRecordType : u8 {
     Meta = 0,
     Program = 1,
