@@ -32,12 +32,19 @@ enum class SaveDataType : u8 {
     CacheStorage = 5,
 };
 
+enum class SaveDataRank : u8 {
+    Primary,
+    Secondary,
+};
+
 struct SaveDataDescriptor {
     u64_le title_id;
     u128 user_id;
     u64_le save_id;
     SaveDataType type;
-    INSERT_PADDING_BYTES(7);
+    SaveDataRank rank;
+    u16_le index;
+    INSERT_PADDING_BYTES(4);
     u64_le zero_1;
     u64_le zero_2;
     u64_le zero_3;

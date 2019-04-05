@@ -16,8 +16,10 @@ namespace FileSys {
 constexpr char SAVE_DATA_SIZE_FILENAME[] = ".yuzu_save_size";
 
 std::string SaveDataDescriptor::DebugInfo() const {
-    return fmt::format("[type={:02X}, title_id={:016X}, user_id={:016X}{:016X}, save_id={:016X}]",
-                       static_cast<u8>(type), title_id, user_id[1], user_id[0], save_id);
+    return fmt::format("[type={:02X}, title_id={:016X}, user_id={:016X}{:016X}, save_id={:016X}, "
+                       "rank={}, index={}]",
+                       static_cast<u8>(type), title_id, user_id[1], user_id[0], save_id,
+                       static_cast<u8>(rank), index);
 }
 
 SaveDataFactory::SaveDataFactory(VirtualDir save_directory) : dir(std::move(save_directory)) {

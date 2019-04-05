@@ -616,7 +616,9 @@ private:
         u64_le save_id;
         u64_le title_id;
         u64_le save_image_size;
-        INSERT_PADDING_BYTES(0x28);
+        u16_le index;
+        FileSys::SaveDataRank rank;
+        INSERT_PADDING_BYTES(0x25);
     };
     static_assert(sizeof(SaveDataInfo) == 0x60, "SaveDataInfo has incorrect size.");
 
