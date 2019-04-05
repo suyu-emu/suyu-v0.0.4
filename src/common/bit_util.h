@@ -32,7 +32,7 @@ inline u32 CountLeadingZeroes32(u32 value) {
     return 32;
 }
 
-inline u64 CountLeadingZeroes64(u64 value) {
+inline u32 CountLeadingZeroes64(u64 value) {
     unsigned long leading_zero = 0;
 
     if (_BitScanReverse64(&leading_zero, value) != 0) {
@@ -47,15 +47,15 @@ inline u32 CountLeadingZeroes32(u32 value) {
         return 32;
     }
 
-    return __builtin_clz(value);
+    return static_cast<u32>(__builtin_clz(value));
 }
 
-inline u64 CountLeadingZeroes64(u64 value) {
+inline u32 CountLeadingZeroes64(u64 value) {
     if (value == 0) {
         return 64;
     }
 
-    return __builtin_clzll(value);
+    return static_cast<u32>(__builtin_clzll(value));
 }
 #endif
 
@@ -70,7 +70,7 @@ inline u32 CountTrailingZeroes32(u32 value) {
     return 32;
 }
 
-inline u64 CountTrailingZeroes64(u64 value) {
+inline u32 CountTrailingZeroes64(u64 value) {
     unsigned long trailing_zero = 0;
 
     if (_BitScanForward64(&trailing_zero, value) != 0) {
@@ -85,15 +85,15 @@ inline u32 CountTrailingZeroes32(u32 value) {
         return 32;
     }
 
-    return __builtin_ctz(value);
+    return static_cast<u32>(__builtin_ctz(value));
 }
 
-inline u64 CountTrailingZeroes64(u64 value) {
+inline u32 CountTrailingZeroes64(u64 value) {
     if (value == 0) {
         return 64;
     }
 
-    return __builtin_ctzll(value);
+    return static_cast<u32>(__builtin_ctzll(value));
 }
 #endif
 
