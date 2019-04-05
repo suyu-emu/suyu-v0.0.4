@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include <fmt/format.h>
-#include "common/assert.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
