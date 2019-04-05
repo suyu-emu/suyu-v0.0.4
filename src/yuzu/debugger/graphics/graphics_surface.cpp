@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QLabel>
+#include <QMessageBox>
 #include <QMouseEvent>
 #include <QPushButton>
 #include <QScrollArea>
@@ -477,9 +478,16 @@ void GraphicsSurfaceWidget::SaveSurface() {
         const QPixmap* const pixmap = surface_picture_label->pixmap();
         ASSERT_MSG(pixmap != nullptr, "No pixmap set");
 
-        QFile file(filename);
-        file.open(QIODevice::WriteOnly);
-        pixmap->save(&file, "PNG");
+        QFile file{filename};
+        if (!file.open(QIODevice::WriteOnly)) {
+            QMessageBox::warning(this, tr("Error"), tr("Failed to open file '%1'").arg(filename));
+            return;
+        }
+
+        if (!pixmap->save(&file, "PNG")) {
+            QMessageBox::warning(this, tr("Error"),
+                                 tr("Failed to save surface data to file '%1'").arg(filename));
+        }
     } else if (selected_filter == bin_filter) {
         auto& gpu = Core::System::GetInstance().GPU();
         const std::optional<VAddr> address = gpu.MemoryManager().GpuToCpuAddress(surface_address);
@@ -487,11 +495,21 @@ void GraphicsSurfaceWidget::SaveSurface() {
         const u8* const buffer = Memory::GetPointer(*address);
         ASSERT_MSG(buffer != nullptr, "Memory not accessible");
 
-        QFile file(filename);
-        file.open(QIODevice::WriteOnly);
-        const int size = surface_width * surface_height * Tegra::Texture::BytesPerPixel(surface_format);
+        QFile file{filename};
+        if (!file.open(QIODevice::WriteOnly)) {
+            QMessageBox::warning(this, tr("Error"), tr("Failed to open file '%1'").arg(filename));
+            return;
+        }
+
+        const int size =
+            surface_width * surface_height * Tegra::Texture::BytesPerPixel(surface_format);
         const QByteArray data(reinterpret_cast<const char*>(buffer), size);
-        file.write(data);
+        if (file.write(data) != data.size()) {
+            QMessageBox::warning(
+                this, tr("Error"),
+                tr("Failed to completely write surface data to file. The saved data will "
+                   "likely be corrupt."));
+        }
     } else {
         UNREACHABLE_MSG("Unhandled filter selected");
     }
