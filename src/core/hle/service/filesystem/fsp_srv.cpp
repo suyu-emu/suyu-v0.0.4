@@ -315,61 +315,53 @@ public:
     void CreateFile(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
 
-        auto file_buffer = ctx.ReadBuffer();
-        std::string name = Common::StringFromBuffer(file_buffer);
+        const auto file_buffer = ctx.ReadBuffer();
+        const std::string name = Common::StringFromBuffer(file_buffer);
 
-        u64 mode = rp.Pop<u64>();
-        u32 size = rp.Pop<u32>();
+        const u64 mode = rp.Pop<u64>();
+        const u32 size = rp.Pop<u32>();
 
-        LOG_DEBUG(Service_FS, "called file {} mode 0x{:X} size 0x{:08X}", name, mode, size);
+        LOG_DEBUG(Service_FS, "called. file={}, mode=0x{:X}, size=0x{:08X}", name, mode, size);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(backend.CreateFile(name, size));
     }
 
     void DeleteFile(Kernel::HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
+        const auto file_buffer = ctx.ReadBuffer();
+        const std::string name = Common::StringFromBuffer(file_buffer);
 
-        auto file_buffer = ctx.ReadBuffer();
-        std::string name = Common::StringFromBuffer(file_buffer);
-
-        LOG_DEBUG(Service_FS, "called file {}", name);
+        LOG_DEBUG(Service_FS, "called. file={}", name);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(backend.DeleteFile(name));
     }
 
     void CreateDirectory(Kernel::HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
+        const auto file_buffer = ctx.ReadBuffer();
+        const std::string name = Common::StringFromBuffer(file_buffer);
 
-        auto file_buffer = ctx.ReadBuffer();
-        std::string name = Common::StringFromBuffer(file_buffer);
-
-        LOG_DEBUG(Service_FS, "called directory {}", name);
+        LOG_DEBUG(Service_FS, "called. directory={}", name);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(backend.CreateDirectory(name));
     }
 
     void DeleteDirectory(Kernel::HLERequestContext& ctx) {
-        const IPC::RequestParser rp{ctx};
-
         const auto file_buffer = ctx.ReadBuffer();
-        std::string name = Common::StringFromBuffer(file_buffer);
+        const std::string name = Common::StringFromBuffer(file_buffer);
 
-        LOG_DEBUG(Service_FS, "called directory {}", name);
+        LOG_DEBUG(Service_FS, "called. directory={}", name);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(backend.DeleteDirectory(name));
     }
 
     void DeleteDirectoryRecursively(Kernel::HLERequestContext& ctx) {
-        const IPC::RequestParser rp{ctx};
-
         const auto file_buffer = ctx.ReadBuffer();
-        std::string name = Common::StringFromBuffer(file_buffer);
+        const std::string name = Common::StringFromBuffer(file_buffer);
 
-        LOG_DEBUG(Service_FS, "called directory {}", name);
+        LOG_DEBUG(Service_FS, "called. directory={}", name);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(backend.DeleteDirectoryRecursively(name));
@@ -386,18 +378,16 @@ public:
     }
 
     void RenameFile(Kernel::HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-
         std::vector<u8> buffer;
         buffer.resize(ctx.BufferDescriptorX()[0].Size());
         Memory::ReadBlock(ctx.BufferDescriptorX()[0].Address(), buffer.data(), buffer.size());
-        std::string src_name = Common::StringFromBuffer(buffer);
+        const std::string src_name = Common::StringFromBuffer(buffer);
 
         buffer.resize(ctx.BufferDescriptorX()[1].Size());
         Memory::ReadBlock(ctx.BufferDescriptorX()[1].Address(), buffer.data(), buffer.size());
-        std::string dst_name = Common::StringFromBuffer(buffer);
+        const std::string dst_name = Common::StringFromBuffer(buffer);
 
-        LOG_DEBUG(Service_FS, "called file '{}' to file '{}'", src_name, dst_name);
+        LOG_DEBUG(Service_FS, "called. file '{}' to file '{}'", src_name, dst_name);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(backend.RenameFile(src_name, dst_name));
@@ -406,12 +396,12 @@ public:
     void OpenFile(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
 
-        auto file_buffer = ctx.ReadBuffer();
-        std::string name = Common::StringFromBuffer(file_buffer);
+        const auto file_buffer = ctx.ReadBuffer();
+        const std::string name = Common::StringFromBuffer(file_buffer);
 
-        auto mode = static_cast<FileSys::Mode>(rp.Pop<u32>());
+        const auto mode = static_cast<FileSys::Mode>(rp.Pop<u32>());
 
-        LOG_DEBUG(Service_FS, "called file {} mode {}", name, static_cast<u32>(mode));
+        LOG_DEBUG(Service_FS, "called. file={}, mode={}", name, static_cast<u32>(mode));
 
         auto result = backend.OpenFile(name, mode);
         if (result.Failed()) {
@@ -430,13 +420,13 @@ public:
     void OpenDirectory(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
 
-        auto file_buffer = ctx.ReadBuffer();
-        std::string name = Common::StringFromBuffer(file_buffer);
+        const auto file_buffer = ctx.ReadBuffer();
+        const std::string name = Common::StringFromBuffer(file_buffer);
 
         // TODO(Subv): Implement this filter.
-        u32 filter_flags = rp.Pop<u32>();
+        const u32 filter_flags = rp.Pop<u32>();
 
-        LOG_DEBUG(Service_FS, "called directory {} filter {}", name, filter_flags);
+        LOG_DEBUG(Service_FS, "called. directory={}, filter={}", name, filter_flags);
 
         auto result = backend.OpenDirectory(name);
         if (result.Failed()) {
@@ -453,12 +443,10 @@ public:
     }
 
     void GetEntryType(Kernel::HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
+        const auto file_buffer = ctx.ReadBuffer();
+        const std::string name = Common::StringFromBuffer(file_buffer);
 
-        auto file_buffer = ctx.ReadBuffer();
-        std::string name = Common::StringFromBuffer(file_buffer);
-
-        LOG_DEBUG(Service_FS, "called file {}", name);
+        LOG_DEBUG(Service_FS, "called. file={}", name);
 
         auto result = backend.GetEntryType(name);
         if (result.Failed()) {

@@ -150,7 +150,6 @@ private:
     void GetReleasedAudioOutBufferImpl(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_Audio, "called {}", ctx.Description());
 
-        IPC::RequestParser rp{ctx};
         const u64 max_count{ctx.GetWriteBufferSize() / sizeof(u64)};
         const auto released_buffers{audio_core.GetTagsAndReleaseBuffers(stream, max_count)};
 
@@ -194,12 +193,9 @@ private:
 void AudOutU::ListAudioOutsImpl(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Audio, "called");
 
-    IPC::RequestParser rp{ctx};
-
     ctx.WriteBuffer(DefaultDevice);
 
     IPC::ResponseBuilder rb{ctx, 3};
-
     rb.Push(RESULT_SUCCESS);
     rb.Push<u32>(1); // Amount of audio devices
 }

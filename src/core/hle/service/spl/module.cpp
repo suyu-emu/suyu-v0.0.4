@@ -26,9 +26,7 @@ Module::Interface::~Interface() = default;
 void Module::Interface::GetRandomBytes(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SPL, "called");
 
-    IPC::RequestParser rp{ctx};
-
-    std::size_t size = ctx.GetWriteBufferSize();
+    const std::size_t size = ctx.GetWriteBufferSize();
 
     std::uniform_int_distribution<u16> distribution(0, std::numeric_limits<u8>::max());
     std::vector<u8> data(size);

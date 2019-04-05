@@ -363,8 +363,6 @@ void ISelfController::SetPerformanceModeChangedNotification(Kernel::HLERequestCo
 void ISelfController::SetFocusHandlingMode(Kernel::HLERequestContext& ctx) {
     // Takes 3 input u8s with each field located immediately after the previous
     // u8, these are bool flags. No output.
-    LOG_WARNING(Service_AM, "(STUBBED) called");
-
     IPC::RequestParser rp{ctx};
 
     struct FocusHandlingModeParams {
@@ -372,7 +370,10 @@ void ISelfController::SetFocusHandlingMode(Kernel::HLERequestContext& ctx) {
         u8 unknown1;
         u8 unknown2;
     };
-    auto flags = rp.PopRaw<FocusHandlingModeParams>();
+    const auto flags = rp.PopRaw<FocusHandlingModeParams>();
+
+    LOG_WARNING(Service_AM, "(STUBBED) called. unknown0={}, unknown1={}, unknown2={}",
+                flags.unknown0, flags.unknown1, flags.unknown2);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
