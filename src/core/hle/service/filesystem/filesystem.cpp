@@ -197,13 +197,16 @@ ResultCode VfsDirectoryServiceWrapper::RenameDirectory(const std::string& src_pa
 
 ResultVal<FileSys::VirtualFile> VfsDirectoryServiceWrapper::OpenFile(const std::string& path_,
                                                                      FileSys::Mode mode) const {
-    std::string path(FileUtil::SanitizePath(path_));
-    auto npath = path;
-    while (npath.size() > 0 && (npath[0] == '/' || npath[0] == '\\'))
-        npath = npath.substr(1);
+    const std::string path(FileUtil::SanitizePath(path_));
+    std::string_view npath = path;
+    while (!npath.empty() && (npath[0] == '/' || npath[0] == '\\')) {
+        npath.remove_prefix(1);
+    }
+
     auto file = backing->GetFileRelative(npath);
-    if (file == nullptr)
+    if (file == nullptr) {
         return FileSys::ERROR_PATH_NOT_FOUND;
+    }
 
     if (mode == FileSys::Mode::Append) {
         return MakeResult<FileSys::VirtualFile>(
