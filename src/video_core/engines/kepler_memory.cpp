@@ -15,7 +15,7 @@ namespace Tegra::Engines {
 
 KeplerMemory::KeplerMemory(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
                            MemoryManager& memory_manager)
-    : system{system}, memory_manager(memory_manager), rasterizer{rasterizer} {}
+    : system{system}, rasterizer{rasterizer}, memory_manager{memory_manager} {}
 
 KeplerMemory::~KeplerMemory() = default;
 

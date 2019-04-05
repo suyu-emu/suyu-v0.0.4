@@ -16,7 +16,7 @@ namespace Tegra::Engines {
 
 MaxwellDMA::MaxwellDMA(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
                        MemoryManager& memory_manager)
-    : memory_manager(memory_manager), system{system}, rasterizer{rasterizer} {}
+    : system{system}, rasterizer{rasterizer}, memory_manager{memory_manager} {}
 
 void MaxwellDMA::CallMethod(const GPU::MethodCall& method_call) {
     ASSERT_MSG(method_call.method < Regs::NUM_REGS,

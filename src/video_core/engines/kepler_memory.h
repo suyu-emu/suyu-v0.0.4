@@ -85,8 +85,8 @@ public:
 
 private:
     Core::System& system;
-    MemoryManager& memory_manager;
     VideoCore::RasterizerInterface& rasterizer;
+    MemoryManager& memory_manager;
 
     void ProcessData(u32 data);
 };

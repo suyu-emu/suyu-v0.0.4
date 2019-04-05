@@ -43,10 +43,11 @@ public:
     static_assert(sizeof(Regs) == Regs::NUM_REGS * sizeof(u32),
                   "KeplerCompute Regs has wrong size");
 
-    MemoryManager& memory_manager;
-
     /// Write the value to the register identified by method.
     void CallMethod(const GPU::MethodCall& method_call);
+
+private:
+    MemoryManager& memory_manager;
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \

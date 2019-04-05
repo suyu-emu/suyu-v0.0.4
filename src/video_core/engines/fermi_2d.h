@@ -118,10 +118,9 @@ public:
         };
     } regs{};
 
-    MemoryManager& memory_manager;
-
 private:
     VideoCore::RasterizerInterface& rasterizer;
+    MemoryManager& memory_manager;
 
     /// Performs the copy from the source surface to the destination surface as configured in the
     /// registers.

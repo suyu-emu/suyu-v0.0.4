@@ -1096,7 +1096,6 @@ public:
     };
 
     State state{};
-    MemoryManager& memory_manager;
 
     struct DirtyFlags {
         std::bitset<8> color_buffer{0xFF};
@@ -1143,6 +1142,8 @@ private:
     Core::System& system;
 
     VideoCore::RasterizerInterface& rasterizer;
+
+    MemoryManager& memory_manager;
 
     /// Start offsets of each macro in macro_memory
     std::unordered_map<u32, u32> macro_offsets;

@@ -142,12 +142,12 @@ public:
         };
     } regs{};
 
-    MemoryManager& memory_manager;
-
 private:
     Core::System& system;
 
     VideoCore::RasterizerInterface& rasterizer;
+
+    MemoryManager& memory_manager;
 
     /// Performs the copy from the source buffer to the destination buffer as configured in the
     /// registers.
