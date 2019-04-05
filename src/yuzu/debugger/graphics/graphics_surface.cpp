@@ -459,39 +459,38 @@ void GraphicsSurfaceWidget::OnUpdate() {
 }
 
 void GraphicsSurfaceWidget::SaveSurface() {
-    QString png_filter = tr("Portable Network Graphic (*.png)");
-    QString bin_filter = tr("Binary data (*.bin)");
+    const QString png_filter = tr("Portable Network Graphic (*.png)");
+    const QString bin_filter = tr("Binary data (*.bin)");
 
-    QString selectedFilter;
-    QString filename = QFileDialog::getSaveFileName(
+    QString selected_filter;
+    const QString filename = QFileDialog::getSaveFileName(
         this, tr("Save Surface"),
-        QString("texture-0x%1.png").arg(QString::number(surface_address, 16)),
-        QString("%1;;%2").arg(png_filter, bin_filter), &selectedFilter);
+        QStringLiteral("texture-0x%1.png").arg(QString::number(surface_address, 16)),
+        QStringLiteral("%1;;%2").arg(png_filter, bin_filter), &selected_filter);
 
     if (filename.isEmpty()) {
         // If the user canceled the dialog, don't save anything.
         return;
     }
 
-    if (selectedFilter == png_filter) {
-        const QPixmap* pixmap = surface_picture_label->pixmap();
+    if (selected_filter == png_filter) {
+        const QPixmap* const pixmap = surface_picture_label->pixmap();
         ASSERT_MSG(pixmap != nullptr, "No pixmap set");
 
         QFile file(filename);
         file.open(QIODevice::WriteOnly);
-        if (pixmap)
-            pixmap->save(&file, "PNG");
-    } else if (selectedFilter == bin_filter) {
+        pixmap->save(&file, "PNG");
+    } else if (selected_filter == bin_filter) {
         auto& gpu = Core::System::GetInstance().GPU();
-        std::optional<VAddr> address = gpu.MemoryManager().GpuToCpuAddress(surface_address);
+        const std::optional<VAddr> address = gpu.MemoryManager().GpuToCpuAddress(surface_address);
 
-        const u8* buffer = Memory::GetPointer(*address);
+        const u8* const buffer = Memory::GetPointer(*address);
         ASSERT_MSG(buffer != nullptr, "Memory not accessible");
 
         QFile file(filename);
         file.open(QIODevice::WriteOnly);
-        int size = surface_width * surface_height * Tegra::Texture::BytesPerPixel(surface_format);
-        QByteArray data(reinterpret_cast<const char*>(buffer), size);
+        const int size = surface_width * surface_height * Tegra::Texture::BytesPerPixel(surface_format);
+        const QByteArray data(reinterpret_cast<const char*>(buffer), size);
         file.write(data);
     } else {
         UNREACHABLE_MSG("Unhandled filter selected");
