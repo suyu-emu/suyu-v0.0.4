@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include <cstddef>
-#include <cstring>
 #include <vector>
 
 #include "common/logging/log.h"
@@ -17,28 +16,30 @@ ProgramMetadata::ProgramMetadata() = default;
 ProgramMetadata::~ProgramMetadata() = default;
 
 Loader::ResultStatus ProgramMetadata::Load(VirtualFile file) {
-    std::size_t total_size = static_cast<std::size_t>(file->GetSize());
-    if (total_size < sizeof(Header))
+    const std::size_t total_size = file->GetSize();
+    if (total_size < sizeof(Header)) {
         return Loader::ResultStatus::ErrorBadNPDMHeader;
+    }
 
-    // TODO(DarkLordZach): Use ReadObject when Header/AcidHeader becomes trivially copyable.
-    std::vector<u8> npdm_header_data = file->ReadBytes(sizeof(Header));
-    if (sizeof(Header) != npdm_header_data.size())
+    if (sizeof(Header) != file->ReadObject(&npdm_header)) {
         return Loader::ResultStatus::ErrorBadNPDMHeader;
-    std::memcpy(&npdm_header, npdm_header_data.data(), sizeof(Header));
+    }
 
-    std::vector<u8> acid_header_data = file->ReadBytes(sizeof(AcidHeader), npdm_header.acid_offset);
-    if (sizeof(AcidHeader) != acid_header_data.size())
+    if (sizeof(AcidHeader) != file->ReadObject(&acid_header, npdm_header.acid_offset)) {
         return Loader::ResultStatus::ErrorBadACIDHeader;
-    std::memcpy(&acid_header, acid_header_data.data(), sizeof(AcidHeader));
+    }
 
-    if (sizeof(AciHeader) != file->ReadObject(&aci_header, npdm_header.aci_offset))
+    if (sizeof(AciHeader) != file->ReadObject(&aci_header, npdm_header.aci_offset)) {
         return Loader::ResultStatus::ErrorBadACIHeader;
+    }
 
-    if (sizeof(FileAccessControl) != file->ReadObject(&acid_file_access, acid_header.fac_offset))
+    if (sizeof(FileAccessControl) != file->ReadObject(&acid_file_access, acid_header.fac_offset)) {
         return Loader::ResultStatus::ErrorBadFileAccessControl;
-    if (sizeof(FileAccessHeader) != file->ReadObject(&aci_file_access, aci_header.fah_offset))
+    }
+
+    if (sizeof(FileAccessHeader) != file->ReadObject(&aci_file_access, aci_header.fah_offset)) {
         return Loader::ResultStatus::ErrorBadFileAccessHeader;
+    }
 
     aci_kernel_capabilities.resize(aci_header.kac_size / sizeof(u32));
     const u64 read_size = aci_header.kac_size;
