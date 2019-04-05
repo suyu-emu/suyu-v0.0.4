@@ -37,14 +37,20 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <glad/glad.h>
 
 #define QT_NO_OPENGL
+#include <QClipboard>
+#include <QDesktopServices>
 #include <QDesktopWidget>
 #include <QDialogButtonBox>
 #include <QFile>
 #include <QFileDialog>
+#include <QInputDialog>
 #include <QMessageBox>
+#include <QProgressBar>
+#include <QProgressDialog>
+#include <QShortcut>
+#include <QStatusBar>
 #include <QtConcurrent/QtConcurrent>
-#include <QtGui>
-#include <QtWidgets>
+
 #include <fmt/format.h>
 #include "common/common_paths.h"
 #include "common/detached_tasks.h"
@@ -55,11 +61,9 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "common/microprofile.h"
 #include "common/scm_rev.h"
 #include "common/scope_exit.h"
-#include "common/string_util.h"
 #include "common/telemetry.h"
 #include "core/core.h"
 #include "core/crypto/key_manager.h"
-#include "core/file_sys/bis_factory.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
@@ -71,7 +75,6 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "core/frontend/applets/software_keyboard.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/service/filesystem/filesystem.h"
-#include "core/hle/service/filesystem/fsp_ldr.h"
 #include "core/hle/service/nfp/nfp.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/loader/loader.h"
