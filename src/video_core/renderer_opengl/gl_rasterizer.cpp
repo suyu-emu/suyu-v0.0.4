@@ -299,8 +299,9 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
     BaseBindings base_bindings;
     std::array<bool, Maxwell::NumClipDistances> clip_distances{};
 
-    // Prepare UBO bindings
+    // Prepare packed bindings
     bind_ubo_pushbuffer.Setup(base_bindings.cbuf);
+    bind_ssbo_pushbuffer.Setup(base_bindings.gmem);
 
     for (std::size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
         const auto& shader_config = gpu.regs.shader_config[index];
@@ -370,6 +371,7 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
     }
 
     bind_ubo_pushbuffer.Bind();
+    bind_ssbo_pushbuffer.Bind();
 
     SyncClipEnabled(clip_distances);
 
@@ -947,15 +949,12 @@ void RasterizerOpenGL::SetupConstBuffers(Tegra::Engines::Maxwell3D::Regs::Shader
 void RasterizerOpenGL::SetupGlobalRegions(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
                                           const Shader& shader, GLenum primitive_mode,
                                           BaseBindings base_bindings) {
-    // TODO(Rodrigo): Use ARB_multi_bind here
     const auto& entries = shader->GetShaderEntries().global_memory_entries;
-
-    for (u32 bindpoint = 0; bindpoint < static_cast<u32>(entries.size()); ++bindpoint) {
-        const auto& entry = entries[bindpoint];
-        const u32 current_bindpoint = base_bindings.gmem + bindpoint;
-        const auto& region = global_cache.GetGlobalRegion(entry, stage);
-
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, current_bindpoint, region->GetBufferHandle());
+    for (std::size_t bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
+        const auto& entry{entries[bindpoint]};
+        const auto& region{global_cache.GetGlobalRegion(entry, stage)};
+        bind_ssbo_pushbuffer.Push(region->GetBufferHandle(), 0,
+                                  static_cast<GLsizeiptr>(region->GetSizeInBytes()));
     }
 }
 

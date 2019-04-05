@@ -231,6 +231,7 @@ private:
     GLint uniform_buffer_alignment;
 
     BindBuffersRangePushBuffer bind_ubo_pushbuffer{GL_UNIFORM_BUFFER};
+    BindBuffersRangePushBuffer bind_ssbo_pushbuffer{GL_SHADER_STORAGE_BUFFER};
 
     std::size_t CalculateVertexArraysSize() const;
 
