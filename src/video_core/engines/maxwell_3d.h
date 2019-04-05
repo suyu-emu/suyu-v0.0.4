@@ -16,11 +16,14 @@
 #include "common/math_util.h"
 #include "video_core/gpu.h"
 #include "video_core/macro_interpreter.h"
-#include "video_core/memory_manager.h"
 #include "video_core/textures/texture.h"
 
 namespace Core {
 class System;
+}
+
+namespace Tegra {
+class MemoryManager;
 }
 
 namespace VideoCore {

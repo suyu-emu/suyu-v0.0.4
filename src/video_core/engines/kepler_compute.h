@@ -9,7 +9,10 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "video_core/gpu.h"
-#include "video_core/memory_manager.h"
+
+namespace Tegra {
+class MemoryManager;
+}
 
 namespace Tegra::Engines {
 

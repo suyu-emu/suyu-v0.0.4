@@ -6,6 +6,7 @@
 #include "common/logging/log.h"
 #include "common/math_util.h"
 #include "video_core/engines/fermi_2d.h"
+#include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 
 namespace Tegra::Engines {

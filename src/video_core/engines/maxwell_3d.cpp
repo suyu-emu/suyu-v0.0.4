@@ -7,11 +7,10 @@
 #include "common/assert.h"
 #include "core/core.h"
 #include "core/core_timing.h"
-#include "core/memory.h"
 #include "video_core/debug_utils/debug_utils.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
-#include "video_core/renderer_base.h"
 #include "video_core/textures/texture.h"
 
 namespace Tegra::Engines {
