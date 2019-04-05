@@ -99,8 +99,7 @@ struct FramebufferCacheKey {
     }
 };
 
-RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& window, Core::System& system,
-                                   ScreenInfo& info)
+RasterizerOpenGL::RasterizerOpenGL(Core::System& system, ScreenInfo& info)
     : res_cache{*this}, shader_cache{*this, system}, global_cache{*this}, system{system},
       screen_info{info}, buffer_cache(*this, STREAM_BUFFER_SIZE) {
     // Create sampler objects
