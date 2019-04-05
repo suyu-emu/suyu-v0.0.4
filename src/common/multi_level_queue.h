@@ -72,7 +72,7 @@ public:
                 u64 prios = mlq.used_priorities;
                 prios &= ~((1ULL << (current_priority + 1)) - 1);
                 if (prios == 0) {
-                    current_priority = mlq.depth();
+                    current_priority = static_cast<u32>(mlq.depth());
                 } else {
                     current_priority = CountTrailingZeroes64(prios);
                     it = GetBeginItForPrio();
