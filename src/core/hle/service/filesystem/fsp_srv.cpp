@@ -781,16 +781,17 @@ void FSP_SRV::CreateSaveDataFileSystem(Kernel::HLERequestContext& ctx) {
 }
 
 void FSP_SRV::OpenSaveDataFileSystem(Kernel::HLERequestContext& ctx) {
+    LOG_INFO(Service_FS, "called.");
+
+    struct Parameters {
+        FileSys::SaveDataSpaceId save_data_space_id;
+        FileSys::SaveDataDescriptor descriptor;
+    };
+
     IPC::RequestParser rp{ctx};
+    const auto parameters = rp.PopRaw<Parameters>();
 
-    auto space_id = rp.PopRaw<FileSys::SaveDataSpaceId>();
-    auto unk = rp.Pop<u32>();
-    LOG_INFO(Service_FS, "called with unknown={:08X}", unk);
-
-    auto save_struct = rp.PopRaw<FileSys::SaveDataDescriptor>();
-
-    auto dir = OpenSaveData(space_id, save_struct);
-
+    auto dir = OpenSaveData(parameters.save_data_space_id, parameters.descriptor);
     if (dir.Failed()) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 0};
         rb.Push(FileSys::ERROR_ENTITY_NOT_FOUND);
