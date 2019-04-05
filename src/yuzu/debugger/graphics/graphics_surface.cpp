@@ -198,22 +198,20 @@ GraphicsSurfaceWidget::GraphicsSurfaceWidget(std::shared_ptr<Tegra::DebugContext
 
     // Connections
     connect(this, &GraphicsSurfaceWidget::Update, this, &GraphicsSurfaceWidget::OnUpdate);
-    connect(surface_source_list,
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+    connect(surface_source_list, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &GraphicsSurfaceWidget::OnSurfaceSourceChanged);
     connect(surface_address_control, &CSpinBox::ValueChanged, this,
             &GraphicsSurfaceWidget::OnSurfaceAddressChanged);
-    connect(surface_width_control, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-            this, &GraphicsSurfaceWidget::OnSurfaceWidthChanged);
-    connect(surface_height_control, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-            this, &GraphicsSurfaceWidget::OnSurfaceHeightChanged);
-    connect(surface_format_control,
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+    connect(surface_width_control, qOverload<int>(&QSpinBox::valueChanged), this,
+            &GraphicsSurfaceWidget::OnSurfaceWidthChanged);
+    connect(surface_height_control, qOverload<int>(&QSpinBox::valueChanged), this,
+            &GraphicsSurfaceWidget::OnSurfaceHeightChanged);
+    connect(surface_format_control, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &GraphicsSurfaceWidget::OnSurfaceFormatChanged);
-    connect(surface_picker_x_control, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-            this, &GraphicsSurfaceWidget::OnSurfacePickerXChanged);
-    connect(surface_picker_y_control, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-            this, &GraphicsSurfaceWidget::OnSurfacePickerYChanged);
+    connect(surface_picker_x_control, qOverload<int>(&QSpinBox::valueChanged), this,
+            &GraphicsSurfaceWidget::OnSurfacePickerXChanged);
+    connect(surface_picker_y_control, qOverload<int>(&QSpinBox::valueChanged), this,
+            &GraphicsSurfaceWidget::OnSurfacePickerYChanged);
     connect(save_surface, &QPushButton::clicked, this, &GraphicsSurfaceWidget::SaveSurface);
 
     auto main_widget = new QWidget;
