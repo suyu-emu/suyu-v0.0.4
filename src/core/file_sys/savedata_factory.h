@@ -64,7 +64,7 @@ public:
     explicit SaveDataFactory(VirtualDir dir);
     ~SaveDataFactory();
 
-    ResultVal<VirtualDir> Open(SaveDataSpaceId space, SaveDataDescriptor meta);
+    ResultVal<VirtualDir> Open(SaveDataSpaceId space, const SaveDataDescriptor& meta);
 
     VirtualDir GetSaveDataSpaceDirectory(SaveDataSpaceId space) const;
 

@@ -30,7 +30,7 @@ SaveDataFactory::SaveDataFactory(VirtualDir save_directory) : dir(std::move(save
 
 SaveDataFactory::~SaveDataFactory() = default;
 
-ResultVal<VirtualDir> SaveDataFactory::Open(SaveDataSpaceId space, SaveDataDescriptor meta) {
+ResultVal<VirtualDir> SaveDataFactory::Open(SaveDataSpaceId space, const SaveDataDescriptor& meta) {
     if (meta.type == SaveDataType::SystemSaveData || meta.type == SaveDataType::SaveData) {
         if (meta.zero_1 != 0) {
             LOG_WARNING(Service_FS,

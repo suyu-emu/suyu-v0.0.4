@@ -319,15 +319,15 @@ ResultVal<FileSys::VirtualFile> OpenRomFS(u64 title_id, FileSys::StorageId stora
 }
 
 ResultVal<FileSys::VirtualDir> OpenSaveData(FileSys::SaveDataSpaceId space,
-                                            FileSys::SaveDataDescriptor save_struct) {
+                                            const FileSys::SaveDataDescriptor& descriptor) {
     LOG_TRACE(Service_FS, "Opening Save Data for space_id={:01X}, save_struct={}",
-              static_cast<u8>(space), save_struct.DebugInfo());
+              static_cast<u8>(space), descriptor.DebugInfo());
 
     if (save_data_factory == nullptr) {
         return FileSys::ERROR_ENTITY_NOT_FOUND;
     }
 
-    return save_data_factory->Open(space, save_struct);
+    return save_data_factory->Open(space, descriptor);
 }
 
 ResultVal<FileSys::VirtualDir> OpenSaveDataSpace(FileSys::SaveDataSpaceId space) {
