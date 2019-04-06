@@ -14,6 +14,7 @@
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/gdbstub/gdbstub.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc.h"
 #include "core/hle/kernel/vm_manager.h"
@@ -99,7 +100,7 @@ public:
     }
 
     void CallSVC(u32 swi) override {
-        Kernel::CallSVC(swi);
+        Kernel::CallSVC(parent.system, swi);
     }
 
     void AddTicks(u64 ticks) override {
@@ -112,14 +113,14 @@ public:
         // Always execute at least one tick.
         amortized_ticks = std::max<u64>(amortized_ticks, 1);
 
-        parent.core_timing.AddTicks(amortized_ticks);
+        parent.system.CoreTiming().AddTicks(amortized_ticks);
         num_interpreted_instructions = 0;
     }
     u64 GetTicksRemaining() override {
-        return std::max(parent.core_timing.GetDowncount(), 0);
+        return std::max(parent.system.CoreTiming().GetDowncount(), 0);
     }
     u64 GetCNTPCT() override {
-        return Timing::CpuCyclesToClockCycles(parent.core_timing.GetTicks());
+        return Timing::CpuCyclesToClockCycles(parent.system.CoreTiming().GetTicks());
     }
 
     ARM_Dynarmic& parent;
@@ -129,7 +130,7 @@ public:
 };
 
 std::unique_ptr<Dynarmic::A64::Jit> ARM_Dynarmic::MakeJit() const {
-    auto* current_process = Core::CurrentProcess();
+    auto* current_process = system.Kernel().CurrentProcess();
     auto** const page_table = current_process->VMManager().page_table.pointers.data();
 
     Dynarmic::A64::UserConfig config;
@@ -171,10 +172,10 @@ void ARM_Dynarmic::Step() {
     cb->InterpreterFallback(jit->GetPC(), 1);
 }
 
-ARM_Dynarmic::ARM_Dynarmic(Timing::CoreTiming& core_timing, ExclusiveMonitor& exclusive_monitor,
+ARM_Dynarmic::ARM_Dynarmic(System& system, ExclusiveMonitor& exclusive_monitor,
                            std::size_t core_index)
-    : cb(std::make_unique<ARM_Dynarmic_Callbacks>(*this)), inner_unicorn{core_timing},
-      core_index{core_index}, core_timing{core_timing},
+    : cb(std::make_unique<ARM_Dynarmic_Callbacks>(*this)), inner_unicorn{system},
+      core_index{core_index}, system{system},
       exclusive_monitor{dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor)} {
     ThreadContext ctx{};
     inner_unicorn.SaveContext(ctx);

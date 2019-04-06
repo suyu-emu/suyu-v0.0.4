@@ -55,13 +55,13 @@ Cpu::Cpu(System& system, ExclusiveMonitor& exclusive_monitor, CpuBarrier& cpu_ba
     : cpu_barrier{cpu_barrier}, core_timing{system.CoreTiming()}, core_index{core_index} {
     if (Settings::values.use_cpu_jit) {
 #ifdef ARCHITECTURE_x86_64
-        arm_interface = std::make_unique<ARM_Dynarmic>(core_timing, exclusive_monitor, core_index);
+        arm_interface = std::make_unique<ARM_Dynarmic>(system, exclusive_monitor, core_index);
 #else
-        arm_interface = std::make_unique<ARM_Unicorn>();
+        arm_interface = std::make_unique<ARM_Unicorn>(system);
         LOG_WARNING(Core, "CPU JIT requested, but Dynarmic not available");
 #endif
     } else {
-        arm_interface = std::make_unique<ARM_Unicorn>(core_timing);
+        arm_interface = std::make_unique<ARM_Unicorn>(system);
     }
 
     scheduler = std::make_unique<Kernel::Scheduler>(system, *arm_interface);
