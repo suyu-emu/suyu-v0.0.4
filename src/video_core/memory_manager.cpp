@@ -77,16 +77,17 @@ GPUVAddr MemoryManager::UnmapBuffer(GPUVAddr gpu_addr, u64 size) {
     return gpu_addr;
 }
 
-GPUVAddr MemoryManager::FindFreeRegion(GPUVAddr region_start, u64 size) {
+GPUVAddr MemoryManager::FindFreeRegion(GPUVAddr region_start, u64 size) const {
     // Find the first Free VMA.
-    const VMAHandle vma_handle{std::find_if(vma_map.begin(), vma_map.end(), [&](const auto& vma) {
-        if (vma.second.type != VirtualMemoryArea::Type::Unmapped) {
-            return false;
-        }
+    const VMAHandle vma_handle{
+        std::find_if(vma_map.begin(), vma_map.end(), [region_start, size](const auto& vma) {
+            if (vma.second.type != VirtualMemoryArea::Type::Unmapped) {
+                return false;
+            }
 
-        const VAddr vma_end{vma.second.base + vma.second.size};
-        return vma_end > region_start && vma_end >= region_start + size;
-    })};
+            const VAddr vma_end{vma.second.base + vma.second.size};
+            return vma_end > region_start && vma_end >= region_start + size;
+        })};
 
     if (vma_handle == vma_map.end()) {
         return {};

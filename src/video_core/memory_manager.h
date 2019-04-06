@@ -127,7 +127,7 @@ private:
     void UpdatePageTableForVMA(const VirtualMemoryArea& vma);
 
     /// Finds a free (unmapped region) of the specified size starting at the specified address.
-    GPUVAddr FindFreeRegion(GPUVAddr region_start, u64 size);
+    GPUVAddr FindFreeRegion(GPUVAddr region_start, u64 size) const;
 
 private:
     static constexpr u64 page_bits{16};
