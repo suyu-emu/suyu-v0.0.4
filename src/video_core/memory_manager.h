@@ -53,7 +53,7 @@ public:
     std::optional<VAddr> GpuToCpuAddress(GPUVAddr addr) const;
 
     template <typename T>
-    T Read(GPUVAddr addr);
+    T Read(GPUVAddr addr) const;
 
     template <typename T>
     void Write(GPUVAddr addr, T data);

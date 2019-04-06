@@ -114,7 +114,7 @@ std::optional<VAddr> MemoryManager::GpuToCpuAddress(GPUVAddr addr) const {
 }
 
 template <typename T>
-T MemoryManager::Read(GPUVAddr addr) {
+T MemoryManager::Read(GPUVAddr addr) const {
     if (!IsAddressValid(addr)) {
         return {};
     }
@@ -166,10 +166,10 @@ void MemoryManager::Write(GPUVAddr addr, T data) {
     }
 }
 
-template u8 MemoryManager::Read<u8>(GPUVAddr addr);
-template u16 MemoryManager::Read<u16>(GPUVAddr addr);
-template u32 MemoryManager::Read<u32>(GPUVAddr addr);
-template u64 MemoryManager::Read<u64>(GPUVAddr addr);
+template u8 MemoryManager::Read<u8>(GPUVAddr addr) const;
+template u16 MemoryManager::Read<u16>(GPUVAddr addr) const;
+template u32 MemoryManager::Read<u32>(GPUVAddr addr) const;
+template u64 MemoryManager::Read<u64>(GPUVAddr addr) const;
 template void MemoryManager::Write<u8>(GPUVAddr addr, u8 data);
 template void MemoryManager::Write<u16>(GPUVAddr addr, u16 data);
 template void MemoryManager::Write<u32>(GPUVAddr addr, u32 data);
