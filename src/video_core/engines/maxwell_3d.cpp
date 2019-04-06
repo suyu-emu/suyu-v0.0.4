@@ -249,6 +249,10 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
         ProcessQueryGet();
         break;
     }
+    case MAXWELL3D_REG_INDEX(sync_info): {
+        ProcessSyncPoint();
+        break;
+    }
     default:
         break;
     }
@@ -324,6 +328,14 @@ void Maxwell3D::ProcessQueryGet() {
         UNIMPLEMENTED_MSG("Query mode {} not implemented",
                           static_cast<u32>(regs.query.query_get.mode.Value()));
     }
+}
+
+void Maxwell3D::ProcessSyncPoint() {
+    const u32 sync_point = regs.sync_info.sync_point.Value();
+    const u32 increment = regs.sync_info.increment.Value();
+    const u32 cache_flush = regs.sync_info.unknown.Value();
+    UNIMPLEMENTED_MSG("Syncpoint Set {}, increment: {}, unk: {}", sync_point, increment,
+                      cache_flush);
 }
 
 void Maxwell3D::DrawArrays() {
