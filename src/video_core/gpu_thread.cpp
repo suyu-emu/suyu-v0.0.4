@@ -59,7 +59,7 @@ ThreadManager::ThreadManager(Core::System& system, VideoCore::RendererBase& rend
                              Tegra::DmaPusher& dma_pusher)
     : system{system}, thread{RunThread, std::ref(renderer), std::ref(dma_pusher), std::ref(state)} {
     synchronization_event = system.CoreTiming().RegisterEvent(
-        "GPUThreadSynch", [this](u64 fence, int) { state.WaitForSynchronization(fence); });
+        "GPUThreadSynch", [this](u64 fence, s64) { state.WaitForSynchronization(fence); });
 }
 
 ThreadManager::~ThreadManager() {
