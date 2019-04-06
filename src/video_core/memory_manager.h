@@ -50,7 +50,7 @@ public:
     GPUVAddr MapBufferEx(VAddr cpu_addr, u64 size);
     GPUVAddr MapBufferEx(VAddr cpu_addr, GPUVAddr addr, u64 size);
     GPUVAddr UnmapBuffer(GPUVAddr addr, u64 size);
-    std::optional<VAddr> GpuToCpuAddress(GPUVAddr addr);
+    std::optional<VAddr> GpuToCpuAddress(GPUVAddr addr) const;
 
     template <typename T>
     T Read(GPUVAddr addr);

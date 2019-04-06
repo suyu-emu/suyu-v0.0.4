@@ -99,12 +99,12 @@ bool MemoryManager::IsAddressValid(GPUVAddr addr) const {
     return (addr >> page_bits) < page_table.pointers.size();
 }
 
-std::optional<VAddr> MemoryManager::GpuToCpuAddress(GPUVAddr addr) {
+std::optional<VAddr> MemoryManager::GpuToCpuAddress(GPUVAddr addr) const {
     if (!IsAddressValid(addr)) {
         return {};
     }
 
-    VAddr cpu_addr{page_table.backing_addr[addr >> page_bits]};
+    const VAddr cpu_addr{page_table.backing_addr[addr >> page_bits]};
     if (cpu_addr) {
         return cpu_addr + (addr & page_mask);
     }
