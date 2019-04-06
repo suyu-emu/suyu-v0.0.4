@@ -5,7 +5,10 @@
 #pragma once
 
 #include "common/common_types.h"
-#include "video_core/surface.h"
+
+namespace VideoCore::Surface {
+enum class PixelFormat;
+}
 
 namespace Tegra::Texture {
 
