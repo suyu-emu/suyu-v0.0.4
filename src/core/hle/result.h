@@ -119,10 +119,6 @@ union ResultCode {
     BitField<0, 9, ErrorModule> module;
     BitField<9, 13, u32> description;
 
-    // The last bit of `level` is checked by apps and the kernel to determine if a result code is an
-    // error
-    BitField<31, 1, u32> is_error;
-
     constexpr explicit ResultCode(u32 raw) : raw(raw) {}
 
     constexpr ResultCode(ErrorModule module_, u32 description_)
