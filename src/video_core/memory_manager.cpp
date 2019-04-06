@@ -203,7 +203,7 @@ const u8* MemoryManager::GetPointer(GPUVAddr addr) const {
     return {};
 }
 
-void MemoryManager::ReadBlock(GPUVAddr src_addr, void* dest_buffer, std::size_t size) {
+void MemoryManager::ReadBlock(GPUVAddr src_addr, void* dest_buffer, std::size_t size) const {
     std::memcpy(dest_buffer, GetPointer(src_addr), size);
 }
 void MemoryManager::WriteBlock(GPUVAddr dest_addr, const void* src_buffer, std::size_t size) {

@@ -61,7 +61,7 @@ public:
     u8* GetPointer(GPUVAddr addr);
     const u8* GetPointer(GPUVAddr addr) const;
 
-    void ReadBlock(GPUVAddr src_addr, void* dest_buffer, std::size_t size);
+    void ReadBlock(GPUVAddr src_addr, void* dest_buffer, std::size_t size) const;
     void WriteBlock(GPUVAddr dest_addr, const void* src_buffer, std::size_t size);
     void CopyBlock(GPUVAddr dest_addr, GPUVAddr src_addr, std::size_t size);
 
