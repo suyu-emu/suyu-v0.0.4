@@ -228,22 +228,17 @@ u32 MacroInterpreter::FetchParameter() {
 }
 
 u32 MacroInterpreter::GetRegister(u32 register_id) const {
-    // Register 0 is supposed to always return 0.
-    if (register_id == 0)
-        return 0;
-
-    ASSERT(register_id < registers.size());
-    return registers[register_id];
+    return registers.at(register_id);
 }
 
 void MacroInterpreter::SetRegister(u32 register_id, u32 value) {
-    // Register 0 is supposed to always return 0. NOP is implemented as a store to the zero
-    // register.
-    if (register_id == 0)
+    // Register 0 is hardwired as the zero register.
+    // Ensure no writes to it actually occur.
+    if (register_id == 0) {
         return;
+    }
 
-    ASSERT(register_id < registers.size());
-    registers[register_id] = value;
+    registers.at(register_id) = value;
 }
 
 void MacroInterpreter::SetMethodAddress(u32 address) {
