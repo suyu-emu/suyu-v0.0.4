@@ -180,8 +180,22 @@ u8* MemoryManager::GetPointer(GPUVAddr addr) {
         return {};
     }
 
-    u8* page_pointer{page_table.pointers[addr >> page_bits]};
-    if (page_pointer) {
+    u8* const page_pointer{page_table.pointers[addr >> page_bits]};
+    if (page_pointer != nullptr) {
+        return page_pointer + (addr & page_mask);
+    }
+
+    LOG_ERROR(HW_GPU, "Unknown GetPointer @ 0x{:016X}", addr);
+    return {};
+}
+
+const u8* MemoryManager::GetPointer(GPUVAddr addr) const {
+    if (!IsAddressValid(addr)) {
+        return {};
+    }
+
+    const u8* const page_pointer{page_table.pointers[addr >> page_bits]};
+    if (page_pointer != nullptr) {
         return page_pointer + (addr & page_mask);
     }
 

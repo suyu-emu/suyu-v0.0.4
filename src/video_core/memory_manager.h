@@ -59,6 +59,7 @@ public:
     void Write(GPUVAddr addr, T data);
 
     u8* GetPointer(GPUVAddr addr);
+    const u8* GetPointer(GPUVAddr addr) const;
 
     void ReadBlock(GPUVAddr src_addr, void* dest_buffer, std::size_t size);
     void WriteBlock(GPUVAddr dest_addr, const void* src_buffer, std::size_t size);
