@@ -90,7 +90,7 @@ private:
                            Kernel::HLERequestContext& ctx);
 
     ServiceFrameworkBase(const char* service_name, u32 max_sessions, InvokerFn* handler_invoker);
-    ~ServiceFrameworkBase();
+    ~ServiceFrameworkBase() override;
 
     void RegisterHandlersBase(const FunctionInfoBase* functions, std::size_t n);
     void ReportUnimplementedFunction(Kernel::HLERequestContext& ctx, const FunctionInfoBase* info);

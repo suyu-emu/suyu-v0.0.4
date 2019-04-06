@@ -26,7 +26,6 @@ using Vector = Dynarmic::A64::Vector;
 class ARM_Dynarmic_Callbacks : public Dynarmic::A64::UserCallbacks {
 public:
     explicit ARM_Dynarmic_Callbacks(ARM_Dynarmic& parent) : parent(parent) {}
-    ~ARM_Dynarmic_Callbacks() = default;
 
     u8 MemoryRead8(u64 vaddr) override {
         return Memory::Read8(vaddr);

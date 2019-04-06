@@ -2,9 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "common/logging/log.h"
-#include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/service/audio/audrec_u.h"
 
 namespace Service::Audio {
@@ -30,7 +27,6 @@ public:
 
         RegisterHandlers(functions);
     }
-    ~IFinalOutputRecorder() = default;
 };
 
 AudRecU::AudRecU() : ServiceFramework("audrec:u") {

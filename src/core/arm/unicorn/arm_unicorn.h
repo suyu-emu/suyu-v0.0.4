@@ -18,7 +18,7 @@ namespace Core {
 class ARM_Unicorn final : public ARM_Interface {
 public:
     explicit ARM_Unicorn(Timing::CoreTiming& core_timing);
-    ~ARM_Unicorn();
+    ~ARM_Unicorn() override;
 
     void MapBackingMemory(VAddr address, std::size_t size, u8* memory,
                           Kernel::VMAPermission perms) override;

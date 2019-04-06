@@ -22,7 +22,7 @@ class AppLoader_NCA;
 class AppLoader_XCI final : public AppLoader {
 public:
     explicit AppLoader_XCI(FileSys::VirtualFile file);
-    ~AppLoader_XCI();
+    ~AppLoader_XCI() override;
 
     /**
      * Returns the type of the file
