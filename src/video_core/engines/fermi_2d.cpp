@@ -6,12 +6,13 @@
 #include "common/logging/log.h"
 #include "common/math_util.h"
 #include "video_core/engines/fermi_2d.h"
+#include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 
 namespace Tegra::Engines {
 
 Fermi2D::Fermi2D(VideoCore::RasterizerInterface& rasterizer, MemoryManager& memory_manager)
-    : memory_manager(memory_manager), rasterizer{rasterizer} {}
+    : rasterizer{rasterizer}, memory_manager{memory_manager} {}
 
 void Fermi2D::CallMethod(const GPU::MethodCall& method_call) {
     ASSERT_MSG(method_call.method < Regs::NUM_REGS,

@@ -9,7 +9,10 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "video_core/gpu.h"
-#include "video_core/memory_manager.h"
+
+namespace Tegra {
+class MemoryManager;
+}
 
 namespace Tegra::Engines {
 
@@ -40,10 +43,11 @@ public:
     static_assert(sizeof(Regs) == Regs::NUM_REGS * sizeof(u32),
                   "KeplerCompute Regs has wrong size");
 
-    MemoryManager& memory_manager;
-
     /// Write the value to the register identified by method.
     void CallMethod(const GPU::MethodCall& method_call);
+
+private:
+    MemoryManager& memory_manager;
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \

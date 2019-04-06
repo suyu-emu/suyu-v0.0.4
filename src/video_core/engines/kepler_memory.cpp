@@ -5,9 +5,9 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
-#include "core/memory.h"
 #include "video_core/engines/kepler_memory.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_base.h"
 
@@ -15,7 +15,7 @@ namespace Tegra::Engines {
 
 KeplerMemory::KeplerMemory(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
                            MemoryManager& memory_manager)
-    : system{system}, memory_manager(memory_manager), rasterizer{rasterizer} {}
+    : system{system}, rasterizer{rasterizer}, memory_manager{memory_manager} {}
 
 KeplerMemory::~KeplerMemory() = default;
 

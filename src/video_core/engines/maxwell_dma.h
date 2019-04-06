@@ -10,10 +10,13 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "video_core/gpu.h"
-#include "video_core/memory_manager.h"
 
 namespace Core {
 class System;
+}
+
+namespace Tegra {
+class MemoryManager;
 }
 
 namespace VideoCore {
@@ -139,12 +142,12 @@ public:
         };
     } regs{};
 
-    MemoryManager& memory_manager;
-
 private:
     Core::System& system;
 
     VideoCore::RasterizerInterface& rasterizer;
+
+    MemoryManager& memory_manager;
 
     /// Performs the copy from the source buffer to the destination buffer as configured in the
     /// registers.

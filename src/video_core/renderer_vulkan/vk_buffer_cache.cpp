@@ -10,6 +10,7 @@
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "core/memory.h"
+#include "video_core/memory_manager.h"
 #include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"

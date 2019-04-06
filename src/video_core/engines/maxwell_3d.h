@@ -16,11 +16,14 @@
 #include "common/math_util.h"
 #include "video_core/gpu.h"
 #include "video_core/macro_interpreter.h"
-#include "video_core/memory_manager.h"
 #include "video_core/textures/texture.h"
 
 namespace Core {
 class System;
+}
+
+namespace Tegra {
+class MemoryManager;
 }
 
 namespace VideoCore {
@@ -1093,7 +1096,6 @@ public:
     };
 
     State state{};
-    MemoryManager& memory_manager;
 
     struct DirtyFlags {
         std::bitset<8> color_buffer{0xFF};
@@ -1140,6 +1142,8 @@ private:
     Core::System& system;
 
     VideoCore::RasterizerInterface& rasterizer;
+
+    MemoryManager& memory_manager;
 
     /// Start offsets of each macro in macro_memory
     std::unordered_map<u32, u32> macro_offsets;

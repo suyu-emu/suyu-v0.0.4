@@ -7,11 +7,10 @@
 #include "common/assert.h"
 #include "core/core.h"
 #include "core/core_timing.h"
-#include "core/memory.h"
 #include "video_core/debug_utils/debug_utils.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
-#include "video_core/renderer_base.h"
 #include "video_core/textures/texture.h"
 
 namespace Tegra::Engines {
@@ -21,8 +20,8 @@ constexpr u32 MacroRegistersStart = 0xE00;
 
 Maxwell3D::Maxwell3D(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
                      MemoryManager& memory_manager)
-    : memory_manager(memory_manager), system{system}, rasterizer{rasterizer},
-      macro_interpreter(*this) {
+    : system{system}, rasterizer{rasterizer}, memory_manager{memory_manager}, macro_interpreter{
+                                                                                  *this} {
     InitializeRegisterDefaults();
 }
 
