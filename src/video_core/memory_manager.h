@@ -50,17 +50,18 @@ public:
     GPUVAddr MapBufferEx(VAddr cpu_addr, u64 size);
     GPUVAddr MapBufferEx(VAddr cpu_addr, GPUVAddr addr, u64 size);
     GPUVAddr UnmapBuffer(GPUVAddr addr, u64 size);
-    std::optional<VAddr> GpuToCpuAddress(GPUVAddr addr);
+    std::optional<VAddr> GpuToCpuAddress(GPUVAddr addr) const;
 
     template <typename T>
-    T Read(GPUVAddr addr);
+    T Read(GPUVAddr addr) const;
 
     template <typename T>
     void Write(GPUVAddr addr, T data);
 
     u8* GetPointer(GPUVAddr addr);
+    const u8* GetPointer(GPUVAddr addr) const;
 
-    void ReadBlock(GPUVAddr src_addr, void* dest_buffer, std::size_t size);
+    void ReadBlock(GPUVAddr src_addr, void* dest_buffer, std::size_t size) const;
     void WriteBlock(GPUVAddr dest_addr, const void* src_buffer, std::size_t size);
     void CopyBlock(GPUVAddr dest_addr, GPUVAddr src_addr, std::size_t size);
 
@@ -127,7 +128,7 @@ private:
     void UpdatePageTableForVMA(const VirtualMemoryArea& vma);
 
     /// Finds a free (unmapped region) of the specified size starting at the specified address.
-    GPUVAddr FindFreeRegion(GPUVAddr region_start, u64 size);
+    GPUVAddr FindFreeRegion(GPUVAddr region_start, u64 size) const;
 
 private:
     static constexpr u64 page_bits{16};

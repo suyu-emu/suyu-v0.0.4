@@ -77,16 +77,17 @@ GPUVAddr MemoryManager::UnmapBuffer(GPUVAddr gpu_addr, u64 size) {
     return gpu_addr;
 }
 
-GPUVAddr MemoryManager::FindFreeRegion(GPUVAddr region_start, u64 size) {
+GPUVAddr MemoryManager::FindFreeRegion(GPUVAddr region_start, u64 size) const {
     // Find the first Free VMA.
-    const VMAHandle vma_handle{std::find_if(vma_map.begin(), vma_map.end(), [&](const auto& vma) {
-        if (vma.second.type != VirtualMemoryArea::Type::Unmapped) {
-            return false;
-        }
+    const VMAHandle vma_handle{
+        std::find_if(vma_map.begin(), vma_map.end(), [region_start, size](const auto& vma) {
+            if (vma.second.type != VirtualMemoryArea::Type::Unmapped) {
+                return false;
+            }
 
-        const VAddr vma_end{vma.second.base + vma.second.size};
-        return vma_end > region_start && vma_end >= region_start + size;
-    })};
+            const VAddr vma_end{vma.second.base + vma.second.size};
+            return vma_end > region_start && vma_end >= region_start + size;
+        })};
 
     if (vma_handle == vma_map.end()) {
         return {};
@@ -99,12 +100,12 @@ bool MemoryManager::IsAddressValid(GPUVAddr addr) const {
     return (addr >> page_bits) < page_table.pointers.size();
 }
 
-std::optional<VAddr> MemoryManager::GpuToCpuAddress(GPUVAddr addr) {
+std::optional<VAddr> MemoryManager::GpuToCpuAddress(GPUVAddr addr) const {
     if (!IsAddressValid(addr)) {
         return {};
     }
 
-    VAddr cpu_addr{page_table.backing_addr[addr >> page_bits]};
+    const VAddr cpu_addr{page_table.backing_addr[addr >> page_bits]};
     if (cpu_addr) {
         return cpu_addr + (addr & page_mask);
     }
@@ -113,7 +114,7 @@ std::optional<VAddr> MemoryManager::GpuToCpuAddress(GPUVAddr addr) {
 }
 
 template <typename T>
-T MemoryManager::Read(GPUVAddr addr) {
+T MemoryManager::Read(GPUVAddr addr) const {
     if (!IsAddressValid(addr)) {
         return {};
     }
@@ -165,10 +166,10 @@ void MemoryManager::Write(GPUVAddr addr, T data) {
     }
 }
 
-template u8 MemoryManager::Read<u8>(GPUVAddr addr);
-template u16 MemoryManager::Read<u16>(GPUVAddr addr);
-template u32 MemoryManager::Read<u32>(GPUVAddr addr);
-template u64 MemoryManager::Read<u64>(GPUVAddr addr);
+template u8 MemoryManager::Read<u8>(GPUVAddr addr) const;
+template u16 MemoryManager::Read<u16>(GPUVAddr addr) const;
+template u32 MemoryManager::Read<u32>(GPUVAddr addr) const;
+template u64 MemoryManager::Read<u64>(GPUVAddr addr) const;
 template void MemoryManager::Write<u8>(GPUVAddr addr, u8 data);
 template void MemoryManager::Write<u16>(GPUVAddr addr, u16 data);
 template void MemoryManager::Write<u32>(GPUVAddr addr, u32 data);
@@ -179,8 +180,8 @@ u8* MemoryManager::GetPointer(GPUVAddr addr) {
         return {};
     }
 
-    u8* page_pointer{page_table.pointers[addr >> page_bits]};
-    if (page_pointer) {
+    u8* const page_pointer{page_table.pointers[addr >> page_bits]};
+    if (page_pointer != nullptr) {
         return page_pointer + (addr & page_mask);
     }
 
@@ -188,7 +189,21 @@ u8* MemoryManager::GetPointer(GPUVAddr addr) {
     return {};
 }
 
-void MemoryManager::ReadBlock(GPUVAddr src_addr, void* dest_buffer, std::size_t size) {
+const u8* MemoryManager::GetPointer(GPUVAddr addr) const {
+    if (!IsAddressValid(addr)) {
+        return {};
+    }
+
+    const u8* const page_pointer{page_table.pointers[addr >> page_bits]};
+    if (page_pointer != nullptr) {
+        return page_pointer + (addr & page_mask);
+    }
+
+    LOG_ERROR(HW_GPU, "Unknown GetPointer @ 0x{:016X}", addr);
+    return {};
+}
+
+void MemoryManager::ReadBlock(GPUVAddr src_addr, void* dest_buffer, std::size_t size) const {
     std::memcpy(dest_buffer, GetPointer(src_addr), size);
 }
 void MemoryManager::WriteBlock(GPUVAddr dest_addr, const void* src_buffer, std::size_t size) {
