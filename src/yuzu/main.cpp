@@ -90,7 +90,6 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/configuration/configure_dialog.h"
 #include "yuzu/debugger/console.h"
 #include "yuzu/debugger/graphics/graphics_breakpoints.h"
-#include "yuzu/debugger/graphics/graphics_surface.h"
 #include "yuzu/debugger/profiler.h"
 #include "yuzu/debugger/wait_tree.h"
 #include "yuzu/discord.h"
@@ -477,11 +476,6 @@ void GMainWindow::InitializeDebugWidgets() {
     addDockWidget(Qt::RightDockWidgetArea, graphicsBreakpointsWidget);
     graphicsBreakpointsWidget->hide();
     debug_menu->addAction(graphicsBreakpointsWidget->toggleViewAction());
-
-    graphicsSurfaceWidget = new GraphicsSurfaceWidget(debug_context, this);
-    addDockWidget(Qt::RightDockWidgetArea, graphicsSurfaceWidget);
-    graphicsSurfaceWidget->hide();
-    debug_menu->addAction(graphicsSurfaceWidget->toggleViewAction());
 
     waitTreeWidget = new WaitTreeWidget(this);
     addDockWidget(Qt::LeftDockWidgetArea, waitTreeWidget);

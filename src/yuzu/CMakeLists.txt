@@ -54,8 +54,6 @@ add_executable(yuzu
     debugger/graphics/graphics_breakpoints.cpp
     debugger/graphics/graphics_breakpoints.h
     debugger/graphics/graphics_breakpoints_p.h
-    debugger/graphics/graphics_surface.cpp
-    debugger/graphics/graphics_surface.h
     debugger/console.cpp
     debugger/console.h
     debugger/profiler.cpp
