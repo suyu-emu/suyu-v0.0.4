@@ -10,14 +10,6 @@
 
 namespace FileSys {
 
-bool operator>=(TitleType lhs, TitleType rhs) {
-    return static_cast<std::size_t>(lhs) >= static_cast<std::size_t>(rhs);
-}
-
-bool operator<=(TitleType lhs, TitleType rhs) {
-    return static_cast<std::size_t>(lhs) <= static_cast<std::size_t>(rhs);
-}
-
 CNMT::CNMT(VirtualFile file) {
     if (file->ReadObject(&header) != sizeof(CNMTHeader))
         return;
