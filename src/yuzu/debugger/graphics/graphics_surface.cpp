@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QLabel>
+#include <QMessageBox>
 #include <QMouseEvent>
 #include <QPushButton>
 #include <QScrollArea>
@@ -95,50 +96,91 @@ GraphicsSurfaceWidget::GraphicsSurfaceWidget(std::shared_ptr<Tegra::DebugContext
     surface_picker_y_control = new QSpinBox;
     surface_picker_y_control->setRange(0, max_dimension - 1);
 
-    surface_format_control = new QComboBox;
-
+    // clang-format off
     // Color formats sorted by Maxwell texture format index
-    surface_format_control->addItem(tr("None"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("A8R8G8B8"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("Unknown"));
-    surface_format_control->addItem(tr("DXT1"));
-    surface_format_control->addItem(tr("DXT23"));
-    surface_format_control->addItem(tr("DXT45"));
-    surface_format_control->addItem(tr("DXN1"));
-    surface_format_control->addItem(tr("DXN2"));
+    const QStringList surface_formats{
+        tr("None"),
+        QStringLiteral("R32_G32_B32_A32"),
+        QStringLiteral("R32_G32_B32"),
+        QStringLiteral("R16_G16_B16_A16"),
+        QStringLiteral("R32_G32"),
+        QStringLiteral("R32_B24G8"),
+        QStringLiteral("ETC2_RGB"),
+        QStringLiteral("X8B8G8R8"),
+        QStringLiteral("A8R8G8B8"),
+        QStringLiteral("A2B10G10R10"),
+        QStringLiteral("ETC2_RGB_PTA"),
+        QStringLiteral("ETC2_RGBA"),
+        QStringLiteral("R16_G16"),
+        QStringLiteral("G8R24"),
+        QStringLiteral("G24R8"),
+        QStringLiteral("R32"),
+        QStringLiteral("BC6H_SF16"),
+        QStringLiteral("BC6H_UF16"),
+        QStringLiteral("A4B4G4R4"),
+        QStringLiteral("A5B5G5R1"),
+        QStringLiteral("A1B5G5R5"),
+        QStringLiteral("B5G6R5"),
+        QStringLiteral("B6G5R5"),
+        QStringLiteral("BC7U"),
+        QStringLiteral("G8R8"),
+        QStringLiteral("EAC"),
+        QStringLiteral("EACX2"),
+        QStringLiteral("R16"),
+        QStringLiteral("Y8_VIDEO"),
+        QStringLiteral("R8"),
+        QStringLiteral("G4R4"),
+        QStringLiteral("R1"),
+        QStringLiteral("E5B9G9R9_SHAREDEXP"),
+        QStringLiteral("BF10GF11RF11"),
+        QStringLiteral("G8B8G8R8"),
+        QStringLiteral("B8G8R8G8"),
+        QStringLiteral("DXT1"),
+        QStringLiteral("DXT23"),
+        QStringLiteral("DXT45"),
+        QStringLiteral("DXN1"),
+        QStringLiteral("DXN2"),
+        QStringLiteral("Z24S8"),
+        QStringLiteral("X8Z24"),
+        QStringLiteral("S8Z24"),
+        QStringLiteral("X4V4Z24__COV4R4V"),
+        QStringLiteral("X4V4Z24__COV8R8V"),
+        QStringLiteral("V8Z24__COV4R12V"),
+        QStringLiteral("ZF32"),
+        QStringLiteral("ZF32_X24S8"),
+        QStringLiteral("X8Z24_X20V4S8__COV4R4V"),
+        QStringLiteral("X8Z24_X20V4S8__COV8R8V"),
+        QStringLiteral("ZF32_X20V4X8__COV4R4V"),
+        QStringLiteral("ZF32_X20V4X8__COV8R8V"),
+        QStringLiteral("ZF32_X20V4S8__COV4R4V"),
+        QStringLiteral("ZF32_X20V4S8__COV8R8V"),
+        QStringLiteral("X8Z24_X16V8S8__COV4R12V"),
+        QStringLiteral("ZF32_X16V8X8__COV4R12V"),
+        QStringLiteral("ZF32_X16V8S8__COV4R12V"),
+        QStringLiteral("Z16"),
+        QStringLiteral("V8Z24__COV8R24V"),
+        QStringLiteral("X8Z24_X16V8S8__COV8R24V"),
+        QStringLiteral("ZF32_X16V8X8__COV8R24V"),
+        QStringLiteral("ZF32_X16V8S8__COV8R24V"),
+        QStringLiteral("ASTC_2D_4X4"),
+        QStringLiteral("ASTC_2D_5X5"),
+        QStringLiteral("ASTC_2D_6X6"),
+        QStringLiteral("ASTC_2D_8X8"),
+        QStringLiteral("ASTC_2D_10X10"),
+        QStringLiteral("ASTC_2D_12X12"),
+        QStringLiteral("ASTC_2D_5X4"),
+        QStringLiteral("ASTC_2D_6X5"),
+        QStringLiteral("ASTC_2D_8X6"),
+        QStringLiteral("ASTC_2D_10X8"),
+        QStringLiteral("ASTC_2D_12X10"),
+        QStringLiteral("ASTC_2D_8X5"),
+        QStringLiteral("ASTC_2D_10X5"),
+        QStringLiteral("ASTC_2D_10X6"),
+    };
+    // clang-format on
+
+    surface_format_control = new QComboBox;
+    surface_format_control->addItems(surface_formats);
 
     surface_info_label = new QLabel();
     surface_info_label->setWordWrap(true);
@@ -157,22 +199,20 @@ GraphicsSurfaceWidget::GraphicsSurfaceWidget(std::shared_ptr<Tegra::DebugContext
 
     // Connections
     connect(this, &GraphicsSurfaceWidget::Update, this, &GraphicsSurfaceWidget::OnUpdate);
-    connect(surface_source_list,
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+    connect(surface_source_list, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &GraphicsSurfaceWidget::OnSurfaceSourceChanged);
     connect(surface_address_control, &CSpinBox::ValueChanged, this,
             &GraphicsSurfaceWidget::OnSurfaceAddressChanged);
-    connect(surface_width_control, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-            this, &GraphicsSurfaceWidget::OnSurfaceWidthChanged);
-    connect(surface_height_control, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-            this, &GraphicsSurfaceWidget::OnSurfaceHeightChanged);
-    connect(surface_format_control,
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+    connect(surface_width_control, qOverload<int>(&QSpinBox::valueChanged), this,
+            &GraphicsSurfaceWidget::OnSurfaceWidthChanged);
+    connect(surface_height_control, qOverload<int>(&QSpinBox::valueChanged), this,
+            &GraphicsSurfaceWidget::OnSurfaceHeightChanged);
+    connect(surface_format_control, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &GraphicsSurfaceWidget::OnSurfaceFormatChanged);
-    connect(surface_picker_x_control, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-            this, &GraphicsSurfaceWidget::OnSurfacePickerXChanged);
-    connect(surface_picker_y_control, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-            this, &GraphicsSurfaceWidget::OnSurfacePickerYChanged);
+    connect(surface_picker_x_control, qOverload<int>(&QSpinBox::valueChanged), this,
+            &GraphicsSurfaceWidget::OnSurfacePickerXChanged);
+    connect(surface_picker_y_control, qOverload<int>(&QSpinBox::valueChanged), this,
+            &GraphicsSurfaceWidget::OnSurfacePickerYChanged);
     connect(save_surface, &QPushButton::clicked, this, &GraphicsSurfaceWidget::SaveSurface);
 
     auto main_widget = new QWidget;
@@ -420,40 +460,56 @@ void GraphicsSurfaceWidget::OnUpdate() {
 }
 
 void GraphicsSurfaceWidget::SaveSurface() {
-    QString png_filter = tr("Portable Network Graphic (*.png)");
-    QString bin_filter = tr("Binary data (*.bin)");
+    const QString png_filter = tr("Portable Network Graphic (*.png)");
+    const QString bin_filter = tr("Binary data (*.bin)");
 
-    QString selectedFilter;
-    QString filename = QFileDialog::getSaveFileName(
+    QString selected_filter;
+    const QString filename = QFileDialog::getSaveFileName(
         this, tr("Save Surface"),
-        QString("texture-0x%1.png").arg(QString::number(surface_address, 16)),
-        QString("%1;;%2").arg(png_filter, bin_filter), &selectedFilter);
+        QStringLiteral("texture-0x%1.png").arg(QString::number(surface_address, 16)),
+        QStringLiteral("%1;;%2").arg(png_filter, bin_filter), &selected_filter);
 
     if (filename.isEmpty()) {
         // If the user canceled the dialog, don't save anything.
         return;
     }
 
-    if (selectedFilter == png_filter) {
-        const QPixmap* pixmap = surface_picture_label->pixmap();
+    if (selected_filter == png_filter) {
+        const QPixmap* const pixmap = surface_picture_label->pixmap();
         ASSERT_MSG(pixmap != nullptr, "No pixmap set");
 
-        QFile file(filename);
-        file.open(QIODevice::WriteOnly);
-        if (pixmap)
-            pixmap->save(&file, "PNG");
-    } else if (selectedFilter == bin_filter) {
-        auto& gpu = Core::System::GetInstance().GPU();
-        std::optional<VAddr> address = gpu.MemoryManager().GpuToCpuAddress(surface_address);
+        QFile file{filename};
+        if (!file.open(QIODevice::WriteOnly)) {
+            QMessageBox::warning(this, tr("Error"), tr("Failed to open file '%1'").arg(filename));
+            return;
+        }
 
-        const u8* buffer = Memory::GetPointer(*address);
+        if (!pixmap->save(&file, "PNG")) {
+            QMessageBox::warning(this, tr("Error"),
+                                 tr("Failed to save surface data to file '%1'").arg(filename));
+        }
+    } else if (selected_filter == bin_filter) {
+        auto& gpu = Core::System::GetInstance().GPU();
+        const std::optional<VAddr> address = gpu.MemoryManager().GpuToCpuAddress(surface_address);
+
+        const u8* const buffer = Memory::GetPointer(*address);
         ASSERT_MSG(buffer != nullptr, "Memory not accessible");
 
-        QFile file(filename);
-        file.open(QIODevice::WriteOnly);
-        int size = surface_width * surface_height * Tegra::Texture::BytesPerPixel(surface_format);
-        QByteArray data(reinterpret_cast<const char*>(buffer), size);
-        file.write(data);
+        QFile file{filename};
+        if (!file.open(QIODevice::WriteOnly)) {
+            QMessageBox::warning(this, tr("Error"), tr("Failed to open file '%1'").arg(filename));
+            return;
+        }
+
+        const int size =
+            surface_width * surface_height * Tegra::Texture::BytesPerPixel(surface_format);
+        const QByteArray data(reinterpret_cast<const char*>(buffer), size);
+        if (file.write(data) != data.size()) {
+            QMessageBox::warning(
+                this, tr("Error"),
+                tr("Failed to completely write surface data to file. The saved data will "
+                   "likely be corrupt."));
+        }
     } else {
         UNREACHABLE_MSG("Unhandled filter selected");
     }
