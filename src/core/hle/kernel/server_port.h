@@ -6,7 +6,7 @@
 
 #include <memory>
 #include <string>
-#include <tuple>
+#include <utility>
 #include <vector>
 #include "common/common_types.h"
 #include "core/hle/kernel/object.h"
@@ -23,6 +23,7 @@ class SessionRequestHandler;
 class ServerPort final : public WaitObject {
 public:
     using HLEHandler = std::shared_ptr<SessionRequestHandler>;
+    using PortPair = std::pair<SharedPtr<ServerPort>, SharedPtr<ClientPort>>;
 
     /**
      * Creates a pair of ServerPort and an associated ClientPort.
@@ -32,8 +33,8 @@ public:
      * @param name Optional name of the ports
      * @return The created port tuple
      */
-    static std::tuple<SharedPtr<ServerPort>, SharedPtr<ClientPort>> CreatePortPair(
-        KernelCore& kernel, u32 max_sessions, std::string name = "UnknownPort");
+    static PortPair CreatePortPair(KernelCore& kernel, u32 max_sessions,
+                                   std::string name = "UnknownPort");
 
     std::string GetTypeName() const override {
         return "ServerPort";

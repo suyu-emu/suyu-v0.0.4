@@ -39,9 +39,8 @@ void ServerPort::Acquire(Thread* thread) {
     ASSERT_MSG(!ShouldWait(thread), "object unavailable!");
 }
 
-std::tuple<SharedPtr<ServerPort>, SharedPtr<ClientPort>> ServerPort::CreatePortPair(
-    KernelCore& kernel, u32 max_sessions, std::string name) {
-
+ServerPort::PortPair ServerPort::CreatePortPair(KernelCore& kernel, u32 max_sessions,
+                                                std::string name) {
     SharedPtr<ServerPort> server_port(new ServerPort(kernel));
     SharedPtr<ClientPort> client_port(new ClientPort(kernel));
 
@@ -51,7 +50,7 @@ std::tuple<SharedPtr<ServerPort>, SharedPtr<ClientPort>> ServerPort::CreatePortP
     client_port->max_sessions = max_sessions;
     client_port->active_sessions = 0;
 
-    return std::make_tuple(std::move(server_port), std::move(client_port));
+    return std::make_pair(std::move(server_port), std::move(client_port));
 }
 
 } // namespace Kernel
