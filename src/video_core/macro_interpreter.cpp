@@ -223,8 +223,7 @@ void MacroInterpreter::ProcessResult(ResultOperation operation, u32 reg, u32 res
 }
 
 u32 MacroInterpreter::FetchParameter() {
-    ASSERT(next_parameter_index < parameters.size());
-    return parameters[next_parameter_index++];
+    return parameters.at(next_parameter_index++);
 }
 
 u32 MacroInterpreter::GetRegister(u32 register_id) const {
