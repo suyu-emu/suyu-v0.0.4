@@ -604,7 +604,9 @@ private:
         u64_le save_id;
         u64_le title_id;
         u64_le save_image_size;
-        INSERT_PADDING_BYTES(0x28);
+        u16_le index;
+        FileSys::SaveDataRank rank;
+        INSERT_PADDING_BYTES(0x25);
     };
     static_assert(sizeof(SaveDataInfo) == 0x60, "SaveDataInfo has incorrect size.");
 
@@ -767,16 +769,17 @@ void FSP_SRV::CreateSaveDataFileSystem(Kernel::HLERequestContext& ctx) {
 }
 
 void FSP_SRV::OpenSaveDataFileSystem(Kernel::HLERequestContext& ctx) {
+    LOG_INFO(Service_FS, "called.");
+
+    struct Parameters {
+        FileSys::SaveDataSpaceId save_data_space_id;
+        FileSys::SaveDataDescriptor descriptor;
+    };
+
     IPC::RequestParser rp{ctx};
+    const auto parameters = rp.PopRaw<Parameters>();
 
-    auto space_id = rp.PopRaw<FileSys::SaveDataSpaceId>();
-    auto unk = rp.Pop<u32>();
-    LOG_INFO(Service_FS, "called with unknown={:08X}", unk);
-
-    auto save_struct = rp.PopRaw<FileSys::SaveDataDescriptor>();
-
-    auto dir = OpenSaveData(space_id, save_struct);
-
+    auto dir = OpenSaveData(parameters.save_data_space_id, parameters.descriptor);
     if (dir.Failed()) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 0};
         rb.Push(FileSys::ERROR_ENTITY_NOT_FOUND);

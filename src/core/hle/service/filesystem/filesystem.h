@@ -46,7 +46,7 @@ ResultVal<FileSys::VirtualFile> OpenRomFSCurrentProcess();
 ResultVal<FileSys::VirtualFile> OpenRomFS(u64 title_id, FileSys::StorageId storage_id,
                                           FileSys::ContentRecordType type);
 ResultVal<FileSys::VirtualDir> OpenSaveData(FileSys::SaveDataSpaceId space,
-                                            FileSys::SaveDataDescriptor save_struct);
+                                            const FileSys::SaveDataDescriptor& descriptor);
 ResultVal<FileSys::VirtualDir> OpenSaveDataSpace(FileSys::SaveDataSpaceId space);
 ResultVal<FileSys::VirtualDir> OpenSDMC();
 
