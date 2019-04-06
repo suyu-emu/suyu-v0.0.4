@@ -1030,7 +1030,7 @@ static void Step() {
 
 /// Tell the CPU if we hit a memory breakpoint.
 bool IsMemoryBreak() {
-    if (IsConnected()) {
+    if (!IsConnected()) {
         return false;
     }
 

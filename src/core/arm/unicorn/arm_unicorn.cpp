@@ -192,12 +192,13 @@ void ARM_Unicorn::ExecuteInstructions(int num_instructions) {
     CHECKED(uc_emu_start(uc, GetPC(), 1ULL << 63, 0, num_instructions));
     core_timing.AddTicks(num_instructions);
     if (GDBStub::IsServerEnabled()) {
-        if (last_bkpt_hit) {
+        if (last_bkpt_hit && last_bkpt.type == GDBStub::BreakpointType::Execute) {
             uc_reg_write(uc, UC_ARM64_REG_PC, &last_bkpt.address);
         }
+
         Kernel::Thread* thread = Kernel::GetCurrentThread();
         SaveContext(thread->GetContext());
-        if (last_bkpt_hit || GDBStub::GetCpuStepFlag()) {
+        if (last_bkpt_hit || GDBStub::IsMemoryBreak() || GDBStub::GetCpuStepFlag()) {
             last_bkpt_hit = false;
             GDBStub::Break();
             GDBStub::SendTrap(thread, 5);
