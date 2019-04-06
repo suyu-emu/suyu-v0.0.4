@@ -204,6 +204,6 @@ ServerSession::SessionPair ServerSession::CreateSessionPair(KernelCore& kernel,
     client_session->parent = parent;
     server_session->parent = parent;
 
-    return std::make_tuple(std::move(server_session), std::move(client_session));
+    return std::make_pair(std::move(server_session), std::move(client_session));
 }
 } // namespace Kernel

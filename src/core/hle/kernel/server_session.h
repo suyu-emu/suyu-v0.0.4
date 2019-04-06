@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "core/hle/kernel/object.h"
@@ -58,7 +59,7 @@ public:
         return parent.get();
     }
 
-    using SessionPair = std::tuple<SharedPtr<ServerSession>, SharedPtr<ClientSession>>;
+    using SessionPair = std::pair<SharedPtr<ServerSession>, SharedPtr<ClientSession>>;
 
     /**
      * Creates a pair of ServerSession and an associated ClientSession.
