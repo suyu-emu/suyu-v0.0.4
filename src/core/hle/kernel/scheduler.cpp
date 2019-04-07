@@ -101,7 +101,6 @@ void Scheduler::SwitchContext(Thread* new_thread) {
         auto* const thread_owner_process = current_thread->GetOwnerProcess();
         if (previous_process != thread_owner_process) {
             system.Kernel().MakeCurrentProcess(thread_owner_process);
-            Memory::SetCurrentPageTable(&thread_owner_process->VMManager().page_table);
         }
 
         cpu_core.LoadContext(new_thread->GetContext());
