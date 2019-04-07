@@ -38,10 +38,6 @@ void SetCurrentPageTable(Common::PageTable* page_table) {
     }
 }
 
-Common::PageTable* GetCurrentPageTable() {
-    return current_page_table;
-}
-
 static void MapPages(Common::PageTable& page_table, VAddr base, u64 size, u8* memory,
                      Common::PageType type) {
     LOG_DEBUG(HW_Memory, "Mapping {} onto {:016X}-{:016X}", fmt::ptr(memory), base * PAGE_SIZE,
