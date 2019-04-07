@@ -334,8 +334,8 @@ void Maxwell3D::ProcessSyncPoint() {
     const u32 sync_point = regs.sync_info.sync_point.Value();
     const u32 increment = regs.sync_info.increment.Value();
     const u32 cache_flush = regs.sync_info.unknown.Value();
-    UNIMPLEMENTED_MSG("Syncpoint Set {}, increment: {}, unk: {}", sync_point, increment,
-                      cache_flush);
+    LOG_DEBUG(HW_GPU, "Syncpoint set {}, increment: {}, unk: {}", sync_point, increment,
+              cache_flush);
 }
 
 void Maxwell3D::DrawArrays() {
