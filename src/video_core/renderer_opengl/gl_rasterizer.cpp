@@ -19,7 +19,6 @@
 #include "core/core.h"
 #include "core/hle/kernel/process.h"
 #include "core/settings.h"
-#include "video_core/const_buffer_accessor.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
@@ -985,14 +984,13 @@ void RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, const Shader& s
     for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
         const auto& entry = entries[bindpoint];
         Tegra::Texture::FullTextureInfo texture;
-        if (!entry.IsBindless()) {
-            texture = maxwell3d.GetStageTexture(stage, entry.GetOffset());
-        } else {
+        if (entry.IsBindless()) {
             const auto cbuf = entry.GetBindlessCBuf();
             Tegra::Texture::TextureHandle tex_handle;
-            tex_handle.raw =
-                Tegra::ConstBufferAccessor::access<u32>(stage, cbuf.first, cbuf.second);
+            tex_handle.raw = maxwell3d.AccessConstBuffer32(stage, cbuf.first, cbuf.second);
             texture = maxwell3d.GetTextureInfo(tex_handle, entry.GetOffset());
+        } else {
+            texture = maxwell3d.GetStageTexture(stage, entry.GetOffset());
         }
         const u32 current_bindpoint = base_bindings.sampler + bindpoint;
 

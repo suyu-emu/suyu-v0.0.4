@@ -1,5 +1,4 @@
 add_library(video_core STATIC
-    const_buffer_accessor.h
     dma_pusher.cpp
     dma_pusher.h
     debug_utils/debug_utils.cpp

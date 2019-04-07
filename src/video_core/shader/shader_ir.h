@@ -196,7 +196,7 @@ enum class ExitMethod {
 
 class Sampler {
 public:
-    // Use this constructor for binded Samplers
+    // Use this constructor for bounded Samplers
     explicit Sampler(std::size_t offset, std::size_t index, Tegra::Shader::TextureType type,
                      bool is_array, bool is_shadow)
         : offset{offset}, index{index}, type{type}, is_array{is_array}, is_shadow{is_shadow},
@@ -239,7 +239,7 @@ public:
     }
 
     std::pair<u32, u32> GetBindlessCBuf() const {
-        return {offset >> 32, offset & 0x00000000FFFFFFFFULL};
+        return {static_cast<u32>(offset >> 32), static_cast<u32>(offset)};
     }
 
     bool operator<(const Sampler& rhs) const {

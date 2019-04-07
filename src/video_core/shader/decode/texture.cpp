@@ -153,6 +153,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
     }
     case OpCode::Id::TXQ_B:
         is_bindless = true;
+        [[fallthrough]];
     case OpCode::Id::TXQ: {
         if (instr.txq.UsesMiscMode(TextureMiscMode::NODEP)) {
             LOG_WARNING(HW_GPU, "TXQ.NODEP implementation is incomplete");
@@ -193,6 +194,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
     }
     case OpCode::Id::TMML_B:
         is_bindless = true;
+        [[fallthrough]];
     case OpCode::Id::TMML: {
         UNIMPLEMENTED_IF_MSG(instr.tmml.UsesMiscMode(Tegra::Shader::TextureMiscMode::NDV),
                              "NDV is not implemented");
@@ -285,7 +287,6 @@ const Sampler& ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler, Textu
 
 const Sampler& ShaderIR::GetBindlessSampler(const Tegra::Shader::Register& reg, TextureType type,
                                             bool is_array, bool is_shadow) {
-
     const Node sampler_register = GetRegister(reg);
     const Node base_sampler =
         TrackCbuf(sampler_register, global_code, static_cast<s64>(global_code.size()));

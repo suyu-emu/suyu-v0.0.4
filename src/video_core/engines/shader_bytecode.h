@@ -976,7 +976,7 @@ union Instruction {
         BitField<37, 3, TextureProcessMode> process_mode;
 
         bool IsComponentEnabled(std::size_t component) const {
-            return ((1ull << component) & component_mask) != 0;
+            return ((1ULL << component) & component_mask) != 0;
         }
 
         TextureProcessMode GetTextureProcessMode() const {

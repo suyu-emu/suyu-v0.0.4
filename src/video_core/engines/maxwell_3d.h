@@ -1141,6 +1141,8 @@ public:
     /// Returns the texture information for a specific texture in a specific shader stage.
     Texture::FullTextureInfo GetStageTexture(Regs::ShaderStage stage, std::size_t offset) const;
 
+    u32 AccessConstBuffer32(Regs::ShaderStage stage, u64 const_buffer, u64 offset) const;
+
     /// Memory for macro code - it's undetermined how big this is, however 1MB is much larger than
     /// we've seen used.
     using MacroMemory = std::array<u32, 0x40000>;

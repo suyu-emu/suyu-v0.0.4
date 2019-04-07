@@ -328,9 +328,10 @@ std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEn
             file.ReadBytes(&is_bindless, sizeof(u8)) != sizeof(u8)) {
             return {};
         }
-        entry.entries.samplers.emplace_back(
-            static_cast<std::size_t>(offset), static_cast<std::size_t>(index),
-            static_cast<Tegra::Shader::TextureType>(type), is_array != 0, is_shadow != 0, is_bindless != 0);
+        entry.entries.samplers.emplace_back(static_cast<std::size_t>(offset),
+                                            static_cast<std::size_t>(index),
+                                            static_cast<Tegra::Shader::TextureType>(type),
+                                            is_array != 0, is_shadow != 0, is_bindless != 0);
     }
 
     u32 global_memory_count{};

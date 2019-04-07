@@ -502,8 +502,8 @@ Texture::FullTextureInfo Maxwell3D::GetTextureInfo(const Texture::TextureHandle 
 
 Texture::FullTextureInfo Maxwell3D::GetStageTexture(Regs::ShaderStage stage,
                                                     std::size_t offset) const {
-    auto& shader = state.shader_stages[static_cast<std::size_t>(stage)];
-    auto& tex_info_buffer = shader.const_buffers[regs.tex_cb_index];
+    const auto& shader = state.shader_stages[static_cast<std::size_t>(stage)];
+    const auto& tex_info_buffer = shader.const_buffers[regs.tex_cb_index];
     ASSERT(tex_info_buffer.enabled && tex_info_buffer.address != 0);
 
     const GPUVAddr tex_info_address =
@@ -527,6 +527,14 @@ void Maxwell3D::ProcessClearBuffers() {
            regs.clear_buffers.R == regs.clear_buffers.A);
 
     rasterizer.Clear();
+}
+
+u32 Maxwell3D::AccessConstBuffer32(Regs::ShaderStage stage, u64 const_buffer, u64 offset) const {
+    const auto& shader_stage = state.shader_stages[static_cast<std::size_t>(stage)];
+    const auto& buffer = shader_stage.const_buffers[const_buffer];
+    u32 result;
+    std::memcpy(&result, memory_manager.GetPointer(buffer.address + offset), sizeof(u32));
+    return result;
 }
 
 } // namespace Tegra::Engines
