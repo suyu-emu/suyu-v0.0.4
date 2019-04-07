@@ -57,3 +57,21 @@ __declspec(noinline, noreturn)
 
 #define UNIMPLEMENTED_IF(cond) ASSERT_MSG(!(cond), "Unimplemented code!")
 #define UNIMPLEMENTED_IF_MSG(cond, ...) ASSERT_MSG(!(cond), __VA_ARGS__)
+
+// If the assert is ignored, execute _b_
+#define ASSERT_OR_EXECUTE(_a_, _b_)                                                                \
+    do {                                                                                           \
+        ASSERT(_a_);                                                                               \
+        if (!(_a_)) {                                                                              \
+            _b_                                                                                    \
+        }                                                                                          \
+    } while (0)
+
+// If the assert is ignored, execute _b_
+#define ASSERT_OR_EXECUTE_MSG(_a_, _b_, ...)                                                       \
+    do {                                                                                           \
+        ASSERT_MSG(_a_, __VA_ARGS__);                                                              \
+        if (!(_a_)) {                                                                              \
+            _b_                                                                                    \
+        }                                                                                          \
+    } while (0)

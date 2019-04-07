@@ -39,6 +39,10 @@ GPUVAddr GetShaderAddress(Maxwell::ShaderProgram program) {
 /// Gets the shader program code from memory for the specified address
 ProgramCode GetShaderCode(const u8* host_ptr) {
     ProgramCode program_code(VideoCommon::Shader::MAX_PROGRAM_LENGTH);
+    ASSERT_OR_EXECUTE(host_ptr != nullptr, {
+        std::fill(program_code.begin(), program_code.end(), 0);
+        return program_code;
+    });
     std::memcpy(program_code.data(), host_ptr, program_code.size() * sizeof(u64));
     return program_code;
 }
