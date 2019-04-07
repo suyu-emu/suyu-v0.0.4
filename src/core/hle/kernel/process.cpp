@@ -32,9 +32,6 @@ namespace {
  * @param priority The priority to give the main thread
  */
 void SetupMainThread(Process& owner_process, KernelCore& kernel, VAddr entry_point, u32 priority) {
-    // Setup page table so we can write to memory
-    Memory::SetCurrentPageTable(&owner_process.VMManager().page_table);
-
     // Initialize new "main" thread
     const VAddr stack_top = owner_process.VMManager().GetTLSIORegionEndAddress();
     auto thread_res = Thread::Create(kernel, "main", entry_point, priority, 0,

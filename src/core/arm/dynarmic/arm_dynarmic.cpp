@@ -163,7 +163,6 @@ MICROPROFILE_DEFINE(ARM_Jit_Dynarmic, "ARM JIT", "Dynarmic", MP_RGB(255, 64, 64)
 
 void ARM_Dynarmic::Run() {
     MICROPROFILE_SCOPE(ARM_Jit_Dynarmic);
-    ASSERT(Memory::GetCurrentPageTable() == current_page_table);
 
     jit->Run();
 }
@@ -278,7 +277,6 @@ void ARM_Dynarmic::ClearExclusiveState() {
 
 void ARM_Dynarmic::PageTableChanged() {
     jit = MakeJit();
-    current_page_table = Memory::GetCurrentPageTable();
 }
 
 DynarmicExclusiveMonitor::DynarmicExclusiveMonitor(std::size_t core_count) : monitor(core_count) {}

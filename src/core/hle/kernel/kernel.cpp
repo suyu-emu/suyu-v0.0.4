@@ -21,6 +21,7 @@
 #include "core/hle/kernel/thread.h"
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
+#include "core/memory.h"
 
 namespace Kernel {
 
@@ -181,6 +182,7 @@ void KernelCore::AppendNewProcess(SharedPtr<Process> process) {
 
 void KernelCore::MakeCurrentProcess(Process* process) {
     impl->current_process = process;
+    Memory::SetCurrentPageTable(&process->VMManager().page_table);
 }
 
 Process* KernelCore::CurrentProcess() {
