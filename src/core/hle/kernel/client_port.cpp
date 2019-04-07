@@ -2,8 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <tuple>
-
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/client_session.h"
 #include "core/hle/kernel/errors.h"
@@ -31,18 +29,18 @@ ResultVal<SharedPtr<ClientSession>> ClientPort::Connect() {
     active_sessions++;
 
     // Create a new session pair, let the created sessions inherit the parent port's HLE handler.
-    auto sessions = ServerSession::CreateSessionPair(kernel, server_port->GetName(), this);
+    auto [server, client] = ServerSession::CreateSessionPair(kernel, server_port->GetName(), this);
 
     if (server_port->HasHLEHandler()) {
-        server_port->GetHLEHandler()->ClientConnected(std::get<SharedPtr<ServerSession>>(sessions));
+        server_port->GetHLEHandler()->ClientConnected(server);
     } else {
-        server_port->AppendPendingSession(std::get<SharedPtr<ServerSession>>(sessions));
+        server_port->AppendPendingSession(server);
     }
 
     // Wake the threads waiting on the ServerPort
     server_port->WakeupAllWaitingThreads();
 
-    return MakeResult(std::get<SharedPtr<ClientSession>>(sessions));
+    return MakeResult(client);
 }
 
 void ClientPort::ConnectionClosed() {
