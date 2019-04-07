@@ -12,10 +12,6 @@
 #include "core/arm/exclusive_monitor.h"
 #include "core/arm/unicorn/arm_unicorn.h"
 
-namespace Common {
-struct PageTable;
-}
-
 namespace Core::Timing {
 class CoreTiming;
 }
@@ -69,8 +65,6 @@ private:
     std::size_t core_index;
     Timing::CoreTiming& core_timing;
     DynarmicExclusiveMonitor& exclusive_monitor;
-
-    Common::PageTable* current_page_table = nullptr;
 };
 
 class DynarmicExclusiveMonitor final : public ExclusiveMonitor {
