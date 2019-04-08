@@ -1662,7 +1662,7 @@ private:
             INST("0011011-11110---", Id::BFI_IMM_R, Type::Bfi, "BFI_IMM_R"),
             INST("0100110001000---", Id::LOP_C, Type::ArithmeticInteger, "LOP_C"),
             INST("0101110001000---", Id::LOP_R, Type::ArithmeticInteger, "LOP_R"),
-            INST("0011100001000---", Id::LOP_IMM, Type::ArithmeticInteger, "LOP_IMM"),
+            INST("0011100-01000---", Id::LOP_IMM, Type::ArithmeticInteger, "LOP_IMM"),
             INST("000001----------", Id::LOP32I, Type::ArithmeticIntegerImmediate, "LOP32I"),
             INST("0000001---------", Id::LOP3_C, Type::ArithmeticInteger, "LOP3_C"),
             INST("0101101111100---", Id::LOP3_R, Type::ArithmeticInteger, "LOP3_R"),
