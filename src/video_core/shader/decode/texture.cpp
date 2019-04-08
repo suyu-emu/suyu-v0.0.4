@@ -67,11 +67,12 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
 
         const TextureType texture_type{instr.tex_b.texture_type};
         const bool is_array = instr.tex_b.array != 0;
+        const bool is_aoffi = instr.tex.UsesMiscMode(TextureMiscMode::AOFFI);
         const bool depth_compare = instr.tex_b.UsesMiscMode(TextureMiscMode::DC);
         const auto process_mode = instr.tex_b.GetTextureProcessMode();
-        WriteTexInstructionFloat(
-            bb, instr,
-            GetTexCode(instr, texture_type, process_mode, depth_compare, is_array, {instr.gpr20}));
+        WriteTexInstructionFloat(bb, instr,
+                                 GetTexCode(instr, texture_type, process_mode, depth_compare,
+                                            is_array, is_aoffi, {instr.gpr20}));
         break;
     }
     case OpCode::Id::TEXS: {
@@ -384,7 +385,9 @@ void ShaderIR::WriteTexsInstructionHalfFloat(NodeBlock& bb, Instruction instr,
 
 Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
                                TextureProcessMode process_mode, std::vector<Node> coords,
-                               Node array, Node depth_compare, u32 bias_offset, std::vector<Node> aoffi, std::optional<Tegra::Shader::Register> bindless_reg) {
+                               Node array, Node depth_compare, u32 bias_offset,
+                               std::vector<Node> aoffi,
+                               std::optional<Tegra::Shader::Register> bindless_reg) {
     const bool is_array = array;
     const bool is_shadow = depth_compare;
     const bool is_bindless = bindless_reg.has_value();
@@ -451,7 +454,14 @@ Node4 ShaderIR::GetTexCode(Instruction instr, TextureType texture_type,
     const bool lod_bias_enabled{
         (process_mode != TextureProcessMode::None && process_mode != TextureProcessMode::LZ)};
 
+    const bool is_bindless = bindless_reg.has_value();
+
     u64 parameter_register = instr.gpr20.Value();
+    if (is_bindless) {
+        ++parameter_register;
+    }
+
+    const u32 bias_lod_offset = (is_bindless ? 1 : 0);
     if (lod_bias_enabled) {
         ++parameter_register;
     }
@@ -478,7 +488,6 @@ Node4 ShaderIR::GetTexCode(Instruction instr, TextureType texture_type,
     if (is_aoffi) {
         aoffi = GetAoffiCoordinates(GetRegister(parameter_register++), coord_count, false);
     }
-    const u32 bindless_offset = (is_bindless ? 1 : 0);
 
     Node dc{};
     if (depth_compare) {
@@ -487,7 +496,8 @@ Node4 ShaderIR::GetTexCode(Instruction instr, TextureType texture_type,
         dc = GetRegister(parameter_register++);
     }
 
-    return GetTextureCode(instr, texture_type, process_mode, coords, array, dc, 0, aoffi, bindless_reg);
+    return GetTextureCode(instr, texture_type, process_mode, coords, array, dc, bias_lod_offset,
+                          aoffi, bindless_reg);
 }
 
 Node4 ShaderIR::GetTexsCode(Instruction instr, TextureType texture_type,
@@ -523,7 +533,8 @@ Node4 ShaderIR::GetTexsCode(Instruction instr, TextureType texture_type,
         dc = GetRegister(depth_register);
     }
 
-    return GetTextureCode(instr, texture_type, process_mode, coords, array, dc, bias_offset, {});
+    return GetTextureCode(instr, texture_type, process_mode, coords, array, dc, bias_offset, {},
+                          {});
 }
 
 Node4 ShaderIR::GetTld4Code(Instruction instr, TextureType texture_type, bool depth_compare,
