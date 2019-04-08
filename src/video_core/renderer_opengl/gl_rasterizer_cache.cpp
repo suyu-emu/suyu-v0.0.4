@@ -661,8 +661,8 @@ void CachedSurface::FlushGLBuffer() {
     gl_buffer[0].resize(GetSizeInBytes());
 
     const FormatTuple& tuple = GetFormatTuple(params.pixel_format, params.component_type);
-    // Ensure no bad interactions with GL_UNPACK_ALIGNMENT
-    ASSERT(params.width * GetBytesPerPixel(params.pixel_format) % 4 == 0);
+    const u32 align = std::clamp(params.RowAlign(0), 1U, 8U);
+    glPixelStorei(GL_PACK_ALIGNMENT, align);
     glPixelStorei(GL_PACK_ROW_LENGTH, static_cast<GLint>(params.width));
     ASSERT(!tuple.compressed);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
@@ -707,8 +707,8 @@ void CachedSurface::UploadGLMipmapTexture(u32 mip_map, GLuint read_fb_handle,
 
     const FormatTuple& tuple = GetFormatTuple(params.pixel_format, params.component_type);
 
-    // Ensure no bad interactions with GL_UNPACK_ALIGNMENT
-    ASSERT(params.MipWidth(mip_map) * GetBytesPerPixel(params.pixel_format) % 4 == 0);
+    const u32 align = std::clamp(params.RowAlign(mip_map), 1U, 8U);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, align);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, static_cast<GLint>(params.MipWidth(mip_map)));
 
     const auto image_size = static_cast<GLsizei>(params.GetMipmapSizeGL(mip_map, false));
