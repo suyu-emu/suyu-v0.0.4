@@ -294,6 +294,8 @@ PixelFormat PixelFormatFromTextureFormat(Tegra::Texture::TextureFormat format,
         return PixelFormat::Z16;
     case Tegra::Texture::TextureFormat::Z24S8:
         return PixelFormat::Z24S8;
+    case Tegra::Texture::TextureFormat::ZF32_X24S8:
+        return PixelFormat::Z32FS8;
     case Tegra::Texture::TextureFormat::DXT1:
         return is_srgb ? PixelFormat::DXT1_SRGB : PixelFormat::DXT1;
     case Tegra::Texture::TextureFormat::DXT23:
