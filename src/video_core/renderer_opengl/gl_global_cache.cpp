@@ -6,6 +6,7 @@
 
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "video_core/memory_manager.h"
 #include "video_core/renderer_opengl/gl_global_cache.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"

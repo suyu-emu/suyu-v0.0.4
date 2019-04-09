@@ -10,6 +10,7 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
+#include "video_core/surface.h"
 #include "video_core/textures/astc.h"
 #include "video_core/textures/convert.h"
 

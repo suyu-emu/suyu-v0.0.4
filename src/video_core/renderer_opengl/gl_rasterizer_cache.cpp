@@ -15,6 +15,7 @@
 #include "core/hle/kernel/process.h"
 #include "core/settings.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/memory_manager.h"
 #include "video_core/morton.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_rasterizer_cache.h"

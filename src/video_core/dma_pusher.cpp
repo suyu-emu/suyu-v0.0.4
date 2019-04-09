@@ -8,6 +8,7 @@
 #include "video_core/dma_pusher.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/gpu.h"
+#include "video_core/memory_manager.h"
 
 namespace Tegra {
 
