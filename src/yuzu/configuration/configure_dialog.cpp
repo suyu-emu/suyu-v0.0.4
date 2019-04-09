@@ -12,7 +12,7 @@
 #include "yuzu/hotkeys.h"
 
 ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry)
-    : QDialog(parent), registry(registry), ui(new Ui::ConfigureDialog) {
+    : QDialog(parent), ui(new Ui::ConfigureDialog), registry(registry) {
     ui->setupUi(this);
     ui->hotkeysTab->Populate(registry);
     this->setConfiguration();
