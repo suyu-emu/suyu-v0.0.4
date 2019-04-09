@@ -617,13 +617,11 @@ private:
     }
 
     std::string VisitOperand(Operation operation, std::size_t operand_index, Type type) {
-        std::string value = VisitOperand(operation, operand_index);
+        const std::string value = VisitOperand(operation, operand_index);
         switch (type) {
         case Type::HalfFloat: {
             const auto half_meta = std::get_if<MetaHalfArithmetic>(&operation.GetMeta());
-            if (!half_meta) {
-                value = "toHalf2(" + value + ')';
-            }
+            ASSERT(half_meta);
 
             switch (half_meta->types.at(operand_index)) {
             case Tegra::Shader::HalfType::H0_H1:
@@ -1067,6 +1065,14 @@ private:
         return BitwiseCastResult(value, Type::HalfFloat);
     }
 
+    std::string HClamp(Operation operation) {
+        const std::string value = VisitOperand(operation, 0, Type::HalfFloat);
+        const std::string min = VisitOperand(operation, 1, Type::Float);
+        const std::string max = VisitOperand(operation, 2, Type::Float);
+        const std::string clamped = "clamp(" + value + ", vec2(" + min + "), vec2(" + max + "))";
+        return ApplyPrecise(operation, BitwiseCastResult(clamped, Type::HalfFloat));
+    }
+
     std::string HMergeF32(Operation operation) {
         return "float(toHalf2(" + Visit(operation[0]) + ")[0])";
     }
@@ -1501,6 +1507,7 @@ private:
         &GLSLDecompiler::Fma<Type::HalfFloat>,
         &GLSLDecompiler::Absolute<Type::HalfFloat>,
         &GLSLDecompiler::HNegate,
+        &GLSLDecompiler::HClamp,
         &GLSLDecompiler::HMergeF32,
         &GLSLDecompiler::HMergeH0,
         &GLSLDecompiler::HMergeH1,

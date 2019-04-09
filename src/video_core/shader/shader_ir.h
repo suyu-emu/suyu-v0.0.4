@@ -114,6 +114,7 @@ enum class OperationCode {
     HFma,      /// (MetaHalfArithmetic, f16vec2 a, f16vec2 b, f16vec2 c) -> f16vec2
     HAbsolute, /// (f16vec2 a) -> f16vec2
     HNegate,   /// (f16vec2 a, bool first, bool second) -> f16vec2
+    HClamp,    /// (f16vec2 src, float min, float max) -> f16vec2
     HMergeF32, /// (f16vec2 src) -> float
     HMergeH0,  /// (f16vec2 dest, f16vec2 src) -> f16vec2
     HMergeH1,  /// (f16vec2 dest, f16vec2 src) -> f16vec2
@@ -716,6 +717,8 @@ private:
     Node HalfMerge(Node dest, Node src, Tegra::Shader::HalfMerge merge);
     /// Conditionally absolute/negated half float pair. Absolute is applied first
     Node GetOperandAbsNegHalf(Node value, bool absolute, bool negate);
+    /// Conditionally saturates a half float pair
+    Node GetSaturatedHalfFloat(Node value, bool saturate = true);
 
     /// Returns a predicate comparing two floats
     Node GetPredicateComparisonFloat(Tegra::Shader::PredCondition condition, Node op_a, Node op_b);

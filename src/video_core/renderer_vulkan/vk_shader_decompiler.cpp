@@ -744,6 +744,11 @@ private:
         return {};
     }
 
+    Id HClamp(Operation operation) {
+        UNIMPLEMENTED();
+        return {};
+    }
+
     Id HMergeF32(Operation operation) {
         UNIMPLEMENTED();
         return {};
@@ -1216,6 +1221,7 @@ private:
         &SPIRVDecompiler::Ternary<&Module::OpFma, Type::HalfFloat>,
         &SPIRVDecompiler::Unary<&Module::OpFAbs, Type::HalfFloat>,
         &SPIRVDecompiler::HNegate,
+        &SPIRVDecompiler::HClamp,
         &SPIRVDecompiler::HMergeF32,
         &SPIRVDecompiler::HMergeH0,
         &SPIRVDecompiler::HMergeH1,

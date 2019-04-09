@@ -218,6 +218,15 @@ Node ShaderIR::GetOperandAbsNegHalf(Node value, bool absolute, bool negate) {
     return value;
 }
 
+Node ShaderIR::GetSaturatedHalfFloat(Node value, bool saturate) {
+    if (!saturate) {
+        return value;
+    }
+    const Node positive_zero = Immediate(std::copysignf(0, 1));
+    const Node positive_one = Immediate(1.0f);
+    return Operation(OperationCode::HClamp, HALF_NO_PRECISE, value, positive_zero, positive_one);
+}
+
 Node ShaderIR::GetPredicateComparisonFloat(PredCondition condition, Node op_a, Node op_b) {
     const std::unordered_map<PredCondition, OperationCode> PredicateComparisonTable = {
         {PredCondition::LessThan, OperationCode::LogicalFLessThan},

@@ -23,8 +23,6 @@ u32 ShaderIR::DecodeArithmeticHalfImmediate(NodeBlock& bb, u32 pc) {
     } else {
         UNIMPLEMENTED_IF(instr.alu_half_imm.precision != Tegra::Shader::HalfPrecision::None);
     }
-    UNIMPLEMENTED_IF_MSG(instr.alu_half_imm.saturate != 0,
-                         "Half float immediate saturation not implemented");
 
     Node op_a = GetRegister(instr.gpr8);
     op_a = GetOperandAbsNegHalf(op_a, instr.alu_half_imm.abs_a, instr.alu_half_imm.negate_a);
@@ -43,10 +41,10 @@ u32 ShaderIR::DecodeArithmeticHalfImmediate(NodeBlock& bb, u32 pc) {
             return Immediate(0);
         }
     }();
+
+    value = GetSaturatedHalfFloat(value, instr.alu_half_imm.saturate);
     value = HalfMerge(GetRegister(instr.gpr0), value, instr.alu_half_imm.merge);
-
     SetRegister(bb, instr.gpr0, value);
-
     return pc;
 }
 
