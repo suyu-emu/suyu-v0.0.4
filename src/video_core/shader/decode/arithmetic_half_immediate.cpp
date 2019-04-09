@@ -17,7 +17,9 @@ u32 ShaderIR::DecodeArithmeticHalfImmediate(NodeBlock& bb, u32 pc) {
     const auto opcode = OpCode::Decode(instr);
 
     if (opcode->get().GetId() == OpCode::Id::HADD2_IMM) {
-        UNIMPLEMENTED_IF(instr.alu_half_imm.ftz != 0);
+        if (instr.alu_half_imm.ftz != 0) {
+            LOG_WARNING(HW_GPU, "{} FTZ not implemented", opcode->get().GetName());
+        }
     } else {
         UNIMPLEMENTED_IF(instr.alu_half_imm.precision != Tegra::Shader::HalfPrecision::None);
     }

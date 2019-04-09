@@ -18,7 +18,9 @@ u32 ShaderIR::DecodeArithmeticHalf(NodeBlock& bb, u32 pc) {
 
     if (opcode->get().GetId() == OpCode::Id::HADD2_C ||
         opcode->get().GetId() == OpCode::Id::HADD2_R) {
-        UNIMPLEMENTED_IF(instr.alu_half.ftz != 0);
+        if (instr.alu_half.ftz != 0) {
+            LOG_WARNING(HW_GPU, "{} FTZ not implemented", opcode->get().GetName());
+        }
     }
     UNIMPLEMENTED_IF_MSG(instr.alu_half.saturate != 0, "Half float saturation not implemented");
 
