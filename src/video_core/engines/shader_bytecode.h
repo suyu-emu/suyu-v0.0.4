@@ -1238,13 +1238,16 @@ union Instruction {
 
     union {
         BitField<20, 16, u64> imm20_16;
+        BitField<35, 1, u64> high_b_rr; // used on RR
         BitField<36, 1, u64> product_shift_left;
         BitField<37, 1, u64> merge_37;
         BitField<48, 1, u64> sign_a;
         BitField<49, 1, u64> sign_b;
+        BitField<50, 2, XmadMode> mode_cbf; // used by CR, RC
         BitField<50, 3, XmadMode> mode;
         BitField<52, 1, u64> high_b;
         BitField<53, 1, u64> high_a;
+        BitField<55, 1, u64> product_shift_left_second; // used on CR
         BitField<56, 1, u64> merge_56;
     } xmad;
 
