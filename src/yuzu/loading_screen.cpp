@@ -192,7 +192,12 @@ void LoadingScreen::OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size
     }
 
     // update labels and progress bar
-    ui->stage->setText(stage_translations[stage].arg(value).arg(total));
+    if (stage == VideoCore::LoadCallbackStage::Decompile ||
+        stage == VideoCore::LoadCallbackStage::Build) {
+        ui->stage->setText(stage_translations[stage].arg(value).arg(total));
+    } else {
+        ui->stage->setText(stage_translations[stage]);
+    }
     ui->value->setText(estimate);
     ui->progress_bar->setValue(static_cast<int>(value));
     previous_time = now;
