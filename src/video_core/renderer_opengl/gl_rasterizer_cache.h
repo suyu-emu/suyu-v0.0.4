@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "common/alignment.h"
+#include "common/bit_util.h"
 #include "common/common_types.h"
 #include "common/hash.h"
 #include "common/math_util.h"
@@ -203,6 +204,13 @@ struct SurfaceParams {
         }
 
         return bd;
+    }
+
+    u32 RowAlign(u32 mip_level) const {
+        const u32 m_width = MipWidth(mip_level);
+        const u32 bytes_per_pixel = GetBytesPerPixel(pixel_format);
+        const u32 l2 = Common::CountTrailingZeroes32(m_width * bytes_per_pixel);
+        return (1U << l2);
     }
 
     /// Creates SurfaceParams from a texture configuration
