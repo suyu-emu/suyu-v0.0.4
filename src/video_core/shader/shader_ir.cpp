@@ -219,7 +219,7 @@ Node ShaderIR::GetOperandAbsNegHalf(Node value, bool absolute, bool negate) {
 }
 
 Node ShaderIR::GetPredicateComparisonFloat(PredCondition condition, Node op_a, Node op_b) {
-    static const std::unordered_map<PredCondition, OperationCode> PredicateComparisonTable = {
+    const std::unordered_map<PredCondition, OperationCode> PredicateComparisonTable = {
         {PredCondition::LessThan, OperationCode::LogicalFLessThan},
         {PredCondition::Equal, OperationCode::LogicalFEqual},
         {PredCondition::LessEqual, OperationCode::LogicalFLessEqual},
@@ -255,7 +255,7 @@ Node ShaderIR::GetPredicateComparisonFloat(PredCondition condition, Node op_a, N
 
 Node ShaderIR::GetPredicateComparisonInteger(PredCondition condition, bool is_signed, Node op_a,
                                              Node op_b) {
-    static const std::unordered_map<PredCondition, OperationCode> PredicateComparisonTable = {
+    const std::unordered_map<PredCondition, OperationCode> PredicateComparisonTable = {
         {PredCondition::LessThan, OperationCode::LogicalILessThan},
         {PredCondition::Equal, OperationCode::LogicalIEqual},
         {PredCondition::LessEqual, OperationCode::LogicalILessEqual},
@@ -285,7 +285,6 @@ Node ShaderIR::GetPredicateComparisonInteger(PredCondition condition, bool is_si
 
 Node ShaderIR::GetPredicateComparisonHalf(Tegra::Shader::PredCondition condition,
                                           const MetaHalfArithmetic& meta, Node op_a, Node op_b) {
-
     UNIMPLEMENTED_IF_MSG(condition == PredCondition::LessThanWithNan ||
                              condition == PredCondition::NotEqualWithNan ||
                              condition == PredCondition::LessEqualWithNan ||
@@ -293,7 +292,7 @@ Node ShaderIR::GetPredicateComparisonHalf(Tegra::Shader::PredCondition condition
                              condition == PredCondition::GreaterEqualWithNan,
                          "Unimplemented NaN comparison for half floats");
 
-    static const std::unordered_map<PredCondition, OperationCode> PredicateComparisonTable = {
+    const std::unordered_map<PredCondition, OperationCode> PredicateComparisonTable = {
         {PredCondition::LessThan, OperationCode::Logical2HLessThan},
         {PredCondition::Equal, OperationCode::Logical2HEqual},
         {PredCondition::LessEqual, OperationCode::Logical2HLessEqual},
@@ -316,7 +315,7 @@ Node ShaderIR::GetPredicateComparisonHalf(Tegra::Shader::PredCondition condition
 }
 
 OperationCode ShaderIR::GetPredicateCombiner(PredOperation operation) {
-    static const std::unordered_map<PredOperation, OperationCode> PredicateOperationTable = {
+    const std::unordered_map<PredOperation, OperationCode> PredicateOperationTable = {
         {PredOperation::And, OperationCode::LogicalAnd},
         {PredOperation::Or, OperationCode::LogicalOr},
         {PredOperation::Xor, OperationCode::LogicalXor},
