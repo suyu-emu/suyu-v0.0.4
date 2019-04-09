@@ -106,6 +106,8 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata) {
     is_64bit_process = metadata.Is64BitProgram();
 
     vm_manager.Reset(metadata.GetAddressSpaceType());
+    // Ensure that the potentially resized page table is seen by CPU backends.
+    Memory::SetCurrentPageTable(&vm_manager.page_table);
 
     const auto& caps = metadata.GetKernelCapabilities();
     const auto capability_init_result =
