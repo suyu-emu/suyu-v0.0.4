@@ -3,9 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <array>
-#include <map>
 #include <memory>
-#include <thread>
 #include <utility>
 
 #include "common/file_util.h"
@@ -38,8 +36,6 @@
 #include "frontend/applets/software_keyboard.h"
 #include "frontend/applets/web_browser.h"
 #include "video_core/debug_utils/debug_utils.h"
-#include "video_core/gpu_asynch.h"
-#include "video_core/gpu_synch.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 
@@ -135,13 +131,9 @@ struct System::Impl {
             return ResultStatus::ErrorVideoCore;
         }
 
-        is_powered_on = true;
+        gpu_core = VideoCore::CreateGPU(system);
 
-        if (Settings::values.use_asynchronous_gpu_emulation) {
-            gpu_core = std::make_unique<VideoCommon::GPUAsynch>(system, *renderer);
-        } else {
-            gpu_core = std::make_unique<VideoCommon::GPUSynch>(system, *renderer);
-        }
+        is_powered_on = true;
 
         LOG_DEBUG(Core, "Initialized OK");
 
@@ -188,7 +180,8 @@ struct System::Impl {
         }
 
         // Main process has been loaded and been made current.
-        // Begin CPU execution.
+        // Begin GPU and CPU execution.
+        gpu_core->Start();
         cpu_core_manager.StartThreads();
 
         status = ResultStatus::Success;
