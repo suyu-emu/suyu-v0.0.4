@@ -168,7 +168,7 @@ struct System::Impl {
         }
 
         auto main_process = Kernel::Process::Create(system, "main");
-        const Loader::ResultStatus load_result{app_loader->Load(*main_process)};
+        const auto [load_result, load_parameters] = app_loader->Load(*main_process);
         if (load_result != Loader::ResultStatus::Success) {
             LOG_CRITICAL(Core, "Failed to load ROM (Error {})!", static_cast<int>(load_result));
             Shutdown();
@@ -182,6 +182,10 @@ struct System::Impl {
         // Begin GPU and CPU execution.
         gpu_core->Start();
         cpu_core_manager.StartThreads();
+
+        // All threads are started, begin main process execution, now that we're in the clear.
+        main_process->Run(load_parameters->main_thread_priority,
+                          load_parameters->main_thread_stack_size);
 
         status = ResultStatus::Success;
         return status;
