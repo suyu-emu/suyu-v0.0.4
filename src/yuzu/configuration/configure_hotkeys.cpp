@@ -90,7 +90,7 @@ void ConfigureHotkeys::Configure(QModelIndex index) {
     }
 }
 
-bool ConfigureHotkeys::IsUsedKey(QKeySequence key_sequence) {
+bool ConfigureHotkeys::IsUsedKey(QKeySequence key_sequence) const {
     return GetUsedKeyList().contains(key_sequence);
 }
 
