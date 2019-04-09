@@ -117,9 +117,6 @@ struct System::Impl {
         if (web_browser == nullptr)
             web_browser = std::make_unique<Core::Frontend::DefaultWebBrowserApplet>();
 
-        auto main_process = Kernel::Process::Create(system, "main");
-        kernel.MakeCurrentProcess(main_process.get());
-
         telemetry_session = std::make_unique<Core::TelemetrySession>();
         service_manager = std::make_shared<Service::SM::ServiceManager>();
 
@@ -170,7 +167,8 @@ struct System::Impl {
             return init_result;
         }
 
-        const Loader::ResultStatus load_result{app_loader->Load(*kernel.CurrentProcess())};
+        auto main_process = Kernel::Process::Create(system, "main");
+        const Loader::ResultStatus load_result{app_loader->Load(*main_process)};
         if (load_result != Loader::ResultStatus::Success) {
             LOG_CRITICAL(Core, "Failed to load ROM (Error {})!", static_cast<int>(load_result));
             Shutdown();
@@ -178,6 +176,7 @@ struct System::Impl {
             return static_cast<ResultStatus>(static_cast<u32>(ResultStatus::ErrorLoader) +
                                              static_cast<u32>(load_result));
         }
+        kernel.MakeCurrentProcess(main_process.get());
 
         // Main process has been loaded and been made current.
         // Begin GPU and CPU execution.
