@@ -81,7 +81,7 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
     return vfs->OpenFile(path, FileSys::Mode::Read);
 }
 struct System::Impl {
-    explicit Impl(System& system) : kernel{system} {}
+    explicit Impl(System& system) : kernel{system}, cpu_core_manager{system} {}
 
     Cpu& CurrentCpuCore() {
         return cpu_core_manager.GetCurrentCore();
@@ -99,6 +99,7 @@ struct System::Impl {
         LOG_DEBUG(HW_Memory, "initialized OK");
 
         core_timing.Initialize();
+        cpu_core_manager.Initialize();
         kernel.Initialize();
 
         const auto current_time = std::chrono::duration_cast<std::chrono::seconds>(
@@ -141,8 +142,6 @@ struct System::Impl {
         } else {
             gpu_core = std::make_unique<VideoCommon::GPUSynch>(system, *renderer);
         }
-
-        cpu_core_manager.Initialize(system);
 
         LOG_DEBUG(Core, "Initialized OK");
 
@@ -187,6 +186,10 @@ struct System::Impl {
             return static_cast<ResultStatus>(static_cast<u32>(ResultStatus::ErrorLoader) +
                                              static_cast<u32>(load_result));
         }
+
+        // Main process has been loaded and been made current.
+        // Begin CPU execution.
+        cpu_core_manager.StartThreads();
 
         status = ResultStatus::Success;
         return status;

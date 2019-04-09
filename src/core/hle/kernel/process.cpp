@@ -107,7 +107,7 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata) {
 
     vm_manager.Reset(metadata.GetAddressSpaceType());
     // Ensure that the potentially resized page table is seen by CPU backends.
-    Memory::SetCurrentPageTable(&vm_manager.page_table);
+    Memory::SetCurrentPageTable(*this);
 
     const auto& caps = metadata.GetKernelCapabilities();
     const auto capability_init_result =
