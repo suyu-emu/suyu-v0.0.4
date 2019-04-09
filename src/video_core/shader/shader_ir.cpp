@@ -285,13 +285,6 @@ Node ShaderIR::GetPredicateComparisonInteger(PredCondition condition, bool is_si
 
 Node ShaderIR::GetPredicateComparisonHalf(Tegra::Shader::PredCondition condition,
                                           const MetaHalfArithmetic& meta, Node op_a, Node op_b) {
-    UNIMPLEMENTED_IF_MSG(condition == PredCondition::LessThanWithNan ||
-                             condition == PredCondition::NotEqualWithNan ||
-                             condition == PredCondition::LessEqualWithNan ||
-                             condition == PredCondition::GreaterThanWithNan ||
-                             condition == PredCondition::GreaterEqualWithNan,
-                         "Unimplemented NaN comparison for half floats");
-
     const std::unordered_map<PredCondition, OperationCode> PredicateComparisonTable = {
         {PredCondition::LessThan, OperationCode::Logical2HLessThan},
         {PredCondition::Equal, OperationCode::Logical2HEqual},
@@ -299,11 +292,11 @@ Node ShaderIR::GetPredicateComparisonHalf(Tegra::Shader::PredCondition condition
         {PredCondition::GreaterThan, OperationCode::Logical2HGreaterThan},
         {PredCondition::NotEqual, OperationCode::Logical2HNotEqual},
         {PredCondition::GreaterEqual, OperationCode::Logical2HGreaterEqual},
-        {PredCondition::LessThanWithNan, OperationCode::Logical2HLessThan},
-        {PredCondition::NotEqualWithNan, OperationCode::Logical2HNotEqual},
-        {PredCondition::LessEqualWithNan, OperationCode::Logical2HLessEqual},
-        {PredCondition::GreaterThanWithNan, OperationCode::Logical2HGreaterThan},
-        {PredCondition::GreaterEqualWithNan, OperationCode::Logical2HGreaterEqual}};
+        {PredCondition::LessThanWithNan, OperationCode::Logical2HLessThanWithNan},
+        {PredCondition::NotEqualWithNan, OperationCode::Logical2HNotEqualWithNan},
+        {PredCondition::LessEqualWithNan, OperationCode::Logical2HLessEqualWithNan},
+        {PredCondition::GreaterThanWithNan, OperationCode::Logical2HGreaterThanWithNan},
+        {PredCondition::GreaterEqualWithNan, OperationCode::Logical2HGreaterEqualWithNan}};
 
     const auto comparison{PredicateComparisonTable.find(condition)};
     UNIMPLEMENTED_IF_MSG(comparison == PredicateComparisonTable.end(),

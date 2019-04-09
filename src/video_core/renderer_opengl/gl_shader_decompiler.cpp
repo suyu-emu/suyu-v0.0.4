@@ -1173,34 +1173,46 @@ private:
         return GenerateUnary(operation, "any", Type::Bool, Type::Bool2);
     }
 
+    template <bool with_nan>
+    std::string GenerateHalfComparison(Operation operation, std::string compare_op) {
+        std::string comparison{GenerateBinaryCall(operation, compare_op, Type::Bool2,
+                                                  Type::HalfFloat, Type::HalfFloat)};
+        if constexpr (!with_nan) {
+            return comparison;
+        }
+        return "halfFloatNanComparison(" + comparison + ", " +
+               VisitOperand(operation, 0, Type::HalfFloat) + ", " +
+               VisitOperand(operation, 1, Type::HalfFloat) + ')';
+    }
+
+    template <bool with_nan>
     std::string Logical2HLessThan(Operation operation) {
-        return GenerateBinaryCall(operation, "lessThan", Type::Bool2, Type::HalfFloat,
-                                  Type::HalfFloat);
+        return GenerateHalfComparison<with_nan>(operation, "lessThan");
     }
 
+    template <bool with_nan>
     std::string Logical2HEqual(Operation operation) {
-        return GenerateBinaryCall(operation, "equal", Type::Bool2, Type::HalfFloat,
-                                  Type::HalfFloat);
+        return GenerateHalfComparison<with_nan>(operation, "equal");
     }
 
+    template <bool with_nan>
     std::string Logical2HLessEqual(Operation operation) {
-        return GenerateBinaryCall(operation, "lessThanEqual", Type::Bool2, Type::HalfFloat,
-                                  Type::HalfFloat);
+        return GenerateHalfComparison<with_nan>(operation, "lessThanEqual");
     }
 
+    template <bool with_nan>
     std::string Logical2HGreaterThan(Operation operation) {
-        return GenerateBinaryCall(operation, "greaterThan", Type::Bool2, Type::HalfFloat,
-                                  Type::HalfFloat);
+        return GenerateHalfComparison<with_nan>(operation, "greaterThan");
     }
 
+    template <bool with_nan>
     std::string Logical2HNotEqual(Operation operation) {
-        return GenerateBinaryCall(operation, "notEqual", Type::Bool2, Type::HalfFloat,
-                                  Type::HalfFloat);
+        return GenerateHalfComparison<with_nan>(operation, "notEqual");
     }
 
+    template <bool with_nan>
     std::string Logical2HGreaterEqual(Operation operation) {
-        return GenerateBinaryCall(operation, "greaterThanEqual", Type::Bool2, Type::HalfFloat,
-                                  Type::HalfFloat);
+        return GenerateHalfComparison<with_nan>(operation, "greaterThanEqual");
     }
 
     std::string Texture(Operation operation) {
@@ -1525,12 +1537,18 @@ private:
         &GLSLDecompiler::LogicalNotEqual<Type::Uint>,
         &GLSLDecompiler::LogicalGreaterEqual<Type::Uint>,
 
-        &GLSLDecompiler::Logical2HLessThan,
-        &GLSLDecompiler::Logical2HEqual,
-        &GLSLDecompiler::Logical2HLessEqual,
-        &GLSLDecompiler::Logical2HGreaterThan,
-        &GLSLDecompiler::Logical2HNotEqual,
-        &GLSLDecompiler::Logical2HGreaterEqual,
+        &GLSLDecompiler::Logical2HLessThan<false>,
+        &GLSLDecompiler::Logical2HEqual<false>,
+        &GLSLDecompiler::Logical2HLessEqual<false>,
+        &GLSLDecompiler::Logical2HGreaterThan<false>,
+        &GLSLDecompiler::Logical2HNotEqual<false>,
+        &GLSLDecompiler::Logical2HGreaterEqual<false>,
+        &GLSLDecompiler::Logical2HLessThan<true>,
+        &GLSLDecompiler::Logical2HEqual<true>,
+        &GLSLDecompiler::Logical2HLessEqual<true>,
+        &GLSLDecompiler::Logical2HGreaterThan<true>,
+        &GLSLDecompiler::Logical2HNotEqual<true>,
+        &GLSLDecompiler::Logical2HGreaterEqual<true>,
 
         &GLSLDecompiler::Texture,
         &GLSLDecompiler::TextureLod,
@@ -1633,6 +1651,12 @@ std::string GetCommonDeclarations() {
            "}\n\n"
            "vec2 toHalf2(float value) {\n"
            "    return unpackHalf2x16(ftou(value));\n"
+           "}\n\n"
+           "bvec2 halfFloatNanComparison(bvec2 comparison, vec2 pair1, vec2 pair2) {\n"
+           "    bvec2 is_nan1 = isnan(pair1);\n"
+           "    bvec2 is_nan2 = isnan(pair2);\n"
+           "    return bvec2(comparison.x || is_nan1.x || is_nan2.x, comparison.y || is_nan1.y || "
+           "is_nan2.y);\n"
            "}\n";
 }
 

@@ -150,12 +150,18 @@ enum class OperationCode {
     LogicalUNotEqual,     /// (uint a, uint b) -> bool
     LogicalUGreaterEqual, /// (uint a, uint b) -> bool
 
-    Logical2HLessThan,     /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
-    Logical2HEqual,        /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
-    Logical2HLessEqual,    /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
-    Logical2HGreaterThan,  /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
-    Logical2HNotEqual,     /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
-    Logical2HGreaterEqual, /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
+    Logical2HLessThan,            /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
+    Logical2HEqual,               /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
+    Logical2HLessEqual,           /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
+    Logical2HGreaterThan,         /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
+    Logical2HNotEqual,            /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
+    Logical2HGreaterEqual,        /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
+    Logical2HLessThanWithNan,     /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
+    Logical2HEqualWithNan,        /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
+    Logical2HLessEqualWithNan,    /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
+    Logical2HGreaterThanWithNan,  /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
+    Logical2HNotEqualWithNan,     /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
+    Logical2HGreaterEqualWithNan, /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
 
     Texture,                /// (MetaTexture, float[N] coords) -> float4
     TextureLod,             /// (MetaTexture, float[N] coords) -> float4
