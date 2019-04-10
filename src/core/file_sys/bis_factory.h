@@ -49,6 +49,8 @@ public:
     VirtualDir OpenPartition(BisPartitionId id) const;
     VirtualFile OpenPartitionStorage(BisPartitionId id) const;
 
+    VirtualDir GetImageDirectory() const;
+
 private:
     VirtualDir nand_root;
     VirtualDir load_root;

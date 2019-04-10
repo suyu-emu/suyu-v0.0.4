@@ -88,4 +88,8 @@ VirtualFile BISFactory::OpenPartitionStorage(BisPartitionId id) const {
     }
 }
 
+VirtualDir BISFactory::GetImageDirectory() const {
+    return GetOrCreateDirectoryRelative(nand_root, "/user/Album");
+}
+
 } // namespace FileSys
