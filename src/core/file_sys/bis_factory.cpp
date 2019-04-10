@@ -14,7 +14,11 @@ BISFactory::BISFactory(VirtualDir nand_root_, VirtualDir load_root_, VirtualDir 
       sysnand_cache(std::make_unique<RegisteredCache>(
           GetOrCreateDirectoryRelative(nand_root, "/system/Contents/registered"))),
       usrnand_cache(std::make_unique<RegisteredCache>(
-          GetOrCreateDirectoryRelative(nand_root, "/user/Contents/registered"))) {}
+          GetOrCreateDirectoryRelative(nand_root, "/user/Contents/registered"))),
+      sysnand_placeholder(std::make_unique<PlaceholderCache>(
+          GetOrCreateDirectoryRelative(nand_root, "/system/Contents/placehld"))),
+      usrnand_placeholder(std::make_unique<PlaceholderCache>(
+          GetOrCreateDirectoryRelative(nand_root, "/user/Contents/placehld"))) {}
 
 BISFactory::~BISFactory() = default;
 
@@ -32,6 +36,14 @@ RegisteredCache* BISFactory::GetSystemNANDContents() const {
 
 RegisteredCache* BISFactory::GetUserNANDContents() const {
     return usrnand_cache.get();
+}
+
+PlaceholderCache* BISFactory::GetSystemNANDPlaceholder() const {
+    return sysnand_placeholder.get();
+}
+
+PlaceholderCache* BISFactory::GetUserNANDPlaceholder() const {
+    return usrnand_placeholder.get();
 }
 
 VirtualDir BISFactory::GetModificationLoadRoot(u64 title_id) const {

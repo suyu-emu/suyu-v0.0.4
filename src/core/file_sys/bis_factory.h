@@ -28,6 +28,7 @@ enum class BisPartitionId : u32 {
 };
 
 class RegisteredCache;
+class PlaceholderCache;
 
 /// File system interface to the Built-In Storage
 /// This is currently missing accessors to BIS partitions, but seemed like a good place for the NAND
@@ -42,6 +43,9 @@ public:
 
     RegisteredCache* GetSystemNANDContents() const;
     RegisteredCache* GetUserNANDContents() const;
+
+    PlaceholderCache* GetSystemNANDPlaceholder() const;
+    PlaceholderCache* GetUserNANDPlaceholder() const;
 
     VirtualDir GetModificationLoadRoot(u64 title_id) const;
     VirtualDir GetModificationDumpRoot(u64 title_id) const;
@@ -58,6 +62,9 @@ private:
 
     std::unique_ptr<RegisteredCache> sysnand_cache;
     std::unique_ptr<RegisteredCache> usrnand_cache;
+
+    std::unique_ptr<PlaceholderCache> sysnand_placeholder;
+    std::unique_ptr<PlaceholderCache> usrnand_placeholder;
 };
 
 } // namespace FileSys
