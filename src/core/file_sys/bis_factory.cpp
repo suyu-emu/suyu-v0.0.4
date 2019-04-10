@@ -39,4 +39,45 @@ VirtualDir BISFactory::GetModificationDumpRoot(u64 title_id) const {
     return GetOrCreateDirectoryRelative(dump_root, fmt::format("/{:016X}", title_id));
 }
 
+VirtualDir BISFactory::OpenPartition(BisPartitionId id) const {
+    switch (id) {
+    case BisPartitionId::CalibrationFile:
+        return GetOrCreateDirectoryRelative(nand_root, "/prodinfof");
+    case BisPartitionId::SafeMode:
+        return GetOrCreateDirectoryRelative(nand_root, "/safe");
+    case BisPartitionId::System:
+        return GetOrCreateDirectoryRelative(nand_root, "/system");
+    case BisPartitionId::User:
+        return GetOrCreateDirectoryRelative(nand_root, "/user");
+    default:
+        return nullptr;
+    }
+}
+
+VirtualFile BISFactory::OpenPartitionStorage(BisPartitionId id) const {
+    Core::Crypto::KeyManager keys;
+    Core::Crypto::PartitionDataManager pdm{
+        Core::System::GetInstance().GetFilesystem()->OpenDirectory(
+            FileUtil::GetUserPath(FileUtil::UserPath::SysDataDir), Mode::Read)};
+    keys.PopulateFromPartitionData(pdm);
+
+    switch (id) {
+    case BisPartitionId::CalibrationBinary:
+        return pdm.GetDecryptedProdInfo();
+    case BisPartitionId::BootConfigAndPackage2Part1:
+    case BisPartitionId::BootConfigAndPackage2Part2:
+    case BisPartitionId::BootConfigAndPackage2Part3:
+    case BisPartitionId::BootConfigAndPackage2Part4:
+    case BisPartitionId::BootConfigAndPackage2Part5:
+    case BisPartitionId::BootConfigAndPackage2Part6: {
+        const auto new_id = static_cast<u8>(id) -
+                            static_cast<u8>(BisPartitionId::BootConfigAndPackage2Part1) +
+                            static_cast<u8>(Core::Crypto::Package2Type::NormalMain);
+        return pdm.GetPackage2Raw(static_cast<Core::Crypto::Package2Type>(new_id));
+    }
+    default:
+        return nullptr;
+    }
+}
+
 } // namespace FileSys
