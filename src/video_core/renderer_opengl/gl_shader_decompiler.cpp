@@ -552,8 +552,7 @@ private:
             } else if (std::holds_alternative<OperationNode>(*offset)) {
                 // Indirect access
                 const std::string final_offset = code.GenerateTemporary();
-                code.AddLine("uint " + final_offset + " = (ftou(" + Visit(offset) + ") / 4) & " +
-                             std::to_string(MAX_CONSTBUFFER_ELEMENTS - 1) + ';');
+                code.AddLine("uint " + final_offset + " = (ftou(" + Visit(offset) + ") / 4);");
                 return fmt::format("{}[{} / 4][{} % 4]", GetConstBuffer(cbuf->GetIndex()),
                                    final_offset, final_offset);
 
