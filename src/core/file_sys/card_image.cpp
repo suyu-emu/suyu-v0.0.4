@@ -175,6 +175,26 @@ VirtualDir XCI::GetParentDirectory() const {
     return file->GetContainingDirectory();
 }
 
+VirtualDir XCI::ConcatenatedPseudoDirectory() {
+    const auto out = std::make_shared<VectorVfsDirectory>();
+    for (const auto& part_id : {XCIPartition::Normal, XCIPartition::Logo, XCIPartition::Secure}) {
+        const auto& part = GetPartition(part_id);
+        if (part == nullptr)
+            continue;
+
+        for (const auto& file : part->GetFiles())
+            out->AddFile(file);
+    }
+
+    return out;
+}
+
+std::array<u8, 0x200> XCI::GetCertificate() const {
+    std::array<u8, 0x200> out;
+    file->Read(out.data(), out.size(), GAMECARD_CERTIFICATE_OFFSET);
+    return out;
+}
+
 Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
     const auto partition_index = static_cast<std::size_t>(part);
     const auto& partition = partitions[partition_index];
