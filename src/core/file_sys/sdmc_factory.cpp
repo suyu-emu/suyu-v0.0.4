@@ -22,6 +22,10 @@ ResultVal<VirtualDir> SDMCFactory::Open() {
     return MakeResult<VirtualDir>(dir);
 }
 
+VirtualDir SDMCFactory::GetSDMCContentDirectory() const {
+    return GetOrCreateDirectoryRelative(dir, "/Nintendo/Contents");
+}
+
 RegisteredCache* SDMCFactory::GetSDMCContents() const {
     return contents.get();
 }

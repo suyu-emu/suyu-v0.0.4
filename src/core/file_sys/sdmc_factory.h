@@ -19,6 +19,9 @@ public:
     ~SDMCFactory();
 
     ResultVal<VirtualDir> Open();
+
+    VirtualDir GetSDMCContentDirectory() const;
+
     RegisteredCache* GetSDMCContents() const;
 
 private:
