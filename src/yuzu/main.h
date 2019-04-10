@@ -23,7 +23,6 @@ class EmuThread;
 class GameList;
 class GImageInfo;
 class GraphicsBreakPointsWidget;
-class GraphicsSurfaceWidget;
 class GRenderWindow;
 class LoadingScreen;
 class MicroProfileDialog;
@@ -240,7 +239,6 @@ private:
     ProfilerWidget* profilerWidget;
     MicroProfileDialog* microProfileDialog;
     GraphicsBreakPointsWidget* graphicsBreakpointsWidget;
-    GraphicsSurfaceWidget* graphicsSurfaceWidget;
     WaitTreeWidget* waitTreeWidget;
 
     QAction* actions_recent_files[max_recent_files_item];
