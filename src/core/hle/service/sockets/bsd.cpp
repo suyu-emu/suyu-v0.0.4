@@ -73,6 +73,7 @@ void BSD::Close(Kernel::HLERequestContext& ctx) {
 }
 
 BSD::BSD(const char* name) : ServiceFramework(name) {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, &BSD::RegisterClient, "RegisterClient"},
         {1, &BSD::StartMonitoring, "StartMonitoring"},
@@ -105,7 +106,11 @@ BSD::BSD(const char* name) : ServiceFramework(name) {
         {28, nullptr, "GetResourceStatistics"},
         {29, nullptr, "RecvMMsg"},
         {30, nullptr, "SendMMsg"},
+        {31, nullptr, "EventFd"},
+        {32, nullptr, "RegisterResourceStatisticsName"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 

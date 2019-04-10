@@ -12,10 +12,10 @@ namespace Service::PCTL {
 class IParentalControlService final : public ServiceFramework<IParentalControlService> {
 public:
     IParentalControlService() : ServiceFramework("IParentalControlService") {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {1, &IParentalControlService::Initialize, "Initialize"},
-            {1001, &IParentalControlService::CheckFreeCommunicationPermission,
-             "CheckFreeCommunicationPermission"},
+            {1001, &IParentalControlService::CheckFreeCommunicationPermission, "CheckFreeCommunicationPermission"},
             {1002, nullptr, "ConfirmLaunchApplicationPermission"},
             {1003, nullptr, "ConfirmResumeApplicationPermission"},
             {1004, nullptr, "ConfirmSnsPostPermission"},
@@ -30,6 +30,7 @@ public:
             {1013, nullptr, "ConfirmStereoVisionPermission"},
             {1014, nullptr, "ConfirmPlayableApplicationVideoOld"},
             {1015, nullptr, "ConfirmPlayableApplicationVideo"},
+            {1016, nullptr, "ConfirmShowNewsPermission"},
             {1031, nullptr, "IsRestrictionEnabled"},
             {1032, nullptr, "GetSafetyLevel"},
             {1033, nullptr, "SetSafetyLevel"},
@@ -45,6 +46,7 @@ public:
             {1045, nullptr, "UpdateFreeCommunicationApplicationList"},
             {1046, nullptr, "DisableFeaturesForReset"},
             {1047, nullptr, "NotifyApplicationDownloadStarted"},
+            {1048, nullptr, "NotifyNetworkProfileCreated"},
             {1061, nullptr, "ConfirmStereoVisionRestrictionConfigurable"},
             {1062, nullptr, "GetStereoVisionRestriction"},
             {1063, nullptr, "SetStereoVisionRestriction"},
@@ -63,6 +65,7 @@ public:
             {1411, nullptr, "GetPairingAccountInfo"},
             {1421, nullptr, "GetAccountNickname"},
             {1424, nullptr, "GetAccountState"},
+            {1425, nullptr, "RequestPostEvents"},
             {1432, nullptr, "GetSynchronizationEvent"},
             {1451, nullptr, "StartPlayTimer"},
             {1452, nullptr, "StopPlayTimer"},

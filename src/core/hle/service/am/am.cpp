@@ -224,6 +224,7 @@ IDebugFunctions::IDebugFunctions() : ServiceFramework{"IDebugFunctions"} {
         {20, nullptr, "InvalidateTransitionLayer"},
         {30, nullptr, "RequestLaunchApplicationWithUserAndArgumentForDebug"},
         {40, nullptr, "GetAppletResourceUsageInfo"},
+        {41, nullptr, "SetCpuBoostModeForApplet"},
     };
     // clang-format on
 
@@ -256,6 +257,7 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
         {40, &ISelfController::CreateManagedDisplayLayer, "CreateManagedDisplayLayer"},
         {41, nullptr, "IsSystemBufferSharingEnabled"},
         {42, nullptr, "GetSystemSharedLayerHandle"},
+        {43, nullptr, "GetSystemSharedBufferHandle"},
         {50, &ISelfController::SetHandlesRequestToDisplay, "SetHandlesRequestToDisplay"},
         {51, nullptr, "ApproveToDisplay"},
         {60, nullptr, "OverrideAutoSleepTimeAndDimmingTime"},
@@ -269,9 +271,11 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
         {68, nullptr, "SetAutoSleepDisabled"},
         {69, nullptr, "IsAutoSleepDisabled"},
         {70, nullptr, "ReportMultimediaError"},
+        {71, nullptr, "GetCurrentIlluminanceEx"},
         {80, nullptr, "SetWirelessPriorityMode"},
         {90, nullptr, "GetAccumulatedSuspendedTickValue"},
         {91, nullptr, "GetAccumulatedSuspendedTickChangedEvent"},
+        {100, nullptr, "SetAlbumImageTakenNotificationEnabled"},
         {1000, nullptr, "GetDebugStorageChannel"},
     };
     // clang-format on
@@ -516,11 +520,20 @@ ICommonStateGetter::ICommonStateGetter(std::shared_ptr<AppletMessageQueue> msg_q
         {50, nullptr, "IsVrModeEnabled"},
         {51, nullptr, "SetVrModeEnabled"},
         {52, nullptr, "SwitchLcdBacklight"},
+        {53, nullptr, "BeginVrModeEx"},
+        {54, nullptr, "EndVrModeEx"},
         {55, nullptr, "IsInControllerFirmwareUpdateSection"},
         {60, &ICommonStateGetter::GetDefaultDisplayResolution, "GetDefaultDisplayResolution"},
         {61, &ICommonStateGetter::GetDefaultDisplayResolutionChangeEvent, "GetDefaultDisplayResolutionChangeEvent"},
         {62, nullptr, "GetHdcpAuthenticationState"},
         {63, nullptr, "GetHdcpAuthenticationStateChangeEvent"},
+        {64, nullptr, "SetTvPowerStateMatchingMode"},
+        {65, nullptr, "GetApplicationIdByContentActionName"},
+        {66, nullptr, "SetCpuBoostMode"},
+        {80, nullptr, "PerformSystemButtonPressingIfInFocus"},
+        {90, nullptr, "SetPerformanceConfigurationChangedNotification"},
+        {91, nullptr, "GetCurrentPerformanceConfiguration"},
+        {200, nullptr, "GetOperationModeSystemInfo"},
     };
     // clang-format on
 
@@ -960,6 +973,8 @@ IApplicationFunctions::IApplicationFunctions() : ServiceFramework("IApplicationF
         {11, nullptr, "CreateApplicationAndPushAndRequestToStartForQuest"},
         {12, nullptr, "CreateApplicationAndRequestToStart"},
         {13, &IApplicationFunctions::CreateApplicationAndRequestToStartForQuest, "CreateApplicationAndRequestToStartForQuest"},
+        {14, nullptr, "CreateApplicationWithAttributeAndPushAndRequestToStartForQuest"},
+        {15, nullptr, "CreateApplicationWithAttributeAndRequestToStartForQuest"},
         {20, &IApplicationFunctions::EnsureSaveData, "EnsureSaveData"},
         {21, &IApplicationFunctions::GetDesiredLanguage, "GetDesiredLanguage"},
         {22, &IApplicationFunctions::SetTerminateResult, "SetTerminateResult"},
@@ -1233,6 +1248,7 @@ IGlobalStateController::IGlobalStateController() : ServiceFramework("IGlobalStat
         {2, nullptr, "StartSleepSequence"},
         {3, nullptr, "StartShutdownSequence"},
         {4, nullptr, "StartRebootSequence"},
+        {9, nullptr, "IsAutoPowerDownRequested"},
         {10, nullptr, "LoadAndApplyIdlePolicySettings"},
         {11, nullptr, "NotifyCecSettingsChanged"},
         {12, nullptr, "SetDefaultHomeButtonLongPressTime"},

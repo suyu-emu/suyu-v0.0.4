@@ -8,6 +8,7 @@ namespace Service::Account {
 
 ACC_U0::ACC_U0(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> profile_manager)
     : Module::Interface(std::move(module), std::move(profile_manager), "acc:u0") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, &ACC_U0::GetUserCount, "GetUserCount"},
         {1, &ACC_U0::GetUserExistence, "GetUserExistence"},
@@ -19,6 +20,7 @@ ACC_U0::ACC_U0(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {50, &ACC_U0::IsUserRegistrationRequestPermitted, "IsUserRegistrationRequestPermitted"},
         {51, &ACC_U0::TrySelectUserWithoutInteraction, "TrySelectUserWithoutInteraction"},
         {60, nullptr, "ListOpenContextStoredUsers"},
+        {99, nullptr, "DebugActivateOpenContextRetention"},
         {100, &ACC_U0::InitializeApplicationInfo, "InitializeApplicationInfo"},
         {101, &ACC_U0::GetBaasAccountManagerForApplication, "GetBaasAccountManagerForApplication"},
         {102, nullptr, "AuthenticateApplicationAsync"},
@@ -27,7 +29,13 @@ ACC_U0::ACC_U0(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {111, nullptr, "ClearSaveDataThumbnail"},
         {120, nullptr, "CreateGuestLoginRequest"},
         {130, nullptr, "LoadOpenContext"},
+        {131, nullptr, "ListOpenContextStoredUsers"},
+        {140, nullptr, "InitializeApplicationInfo"},
+        {141, nullptr, "ListQualifiedUsers"},
+        {150, nullptr, "IsUserAccountSwitchLocked"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 

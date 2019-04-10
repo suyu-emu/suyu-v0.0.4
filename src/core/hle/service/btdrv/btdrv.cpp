@@ -154,7 +154,8 @@ public:
             {96, nullptr, "GetLeHidEventInfo"},
             {97, nullptr, "RegisterBleHidEvent"},
             {98, nullptr, "SetLeScanParameter"},
-            {256, nullptr, "GetIsManufacturingMode"}
+            {256, nullptr, "GetIsManufacturingMode"},
+            {257, nullptr, "EmulateBluetoothCrash"},
         };
         // clang-format on
 

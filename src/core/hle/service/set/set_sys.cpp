@@ -104,6 +104,7 @@ void SET_SYS::SetColorSetId(Kernel::HLERequestContext& ctx) {
 }
 
 SET_SYS::SET_SYS() : ServiceFramework("set:sys") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "SetLanguageCode"},
         {1, nullptr, "SetNetworkSettings"},
@@ -252,7 +253,33 @@ SET_SYS::SET_SYS() : ServiceFramework("set:sys") {
         {147, nullptr, "GetConsoleSixAxisSensorAngularAcceleration"},
         {148, nullptr, "SetConsoleSixAxisSensorAngularAcceleration"},
         {149, nullptr, "GetRebootlessSystemUpdateVersion"},
+        {150, nullptr, "GetDeviceTimeZoneLocationUpdatedTime"},
+        {151, nullptr, "SetDeviceTimeZoneLocationUpdatedTime"},
+        {152, nullptr, "GetUserSystemClockAutomaticCorrectionUpdatedTime"},
+        {153, nullptr, "SetUserSystemClockAutomaticCorrectionUpdatedTime"},
+        {154, nullptr, "GetAccountOnlineStorageSettings"},
+        {155, nullptr, "SetAccountOnlineStorageSettings"},
+        {156, nullptr, "GetPctlReadyFlag"},
+        {157, nullptr, "SetPctlReadyFlag"},
+        {162, nullptr, "GetPtmBatteryVersion"},
+        {163, nullptr, "SetPtmBatteryVersion"},
+        {164, nullptr, "GetUsb30HostEnableFlag"},
+        {165, nullptr, "SetUsb30HostEnableFlag"},
+        {166, nullptr, "GetUsb30DeviceEnableFlag"},
+        {167, nullptr, "SetUsb30DeviceEnableFlag"},
+        {168, nullptr, "GetThemeId"},
+        {169, nullptr, "SetThemeId"},
+        {170, nullptr, "GetChineseTraditionalInputMethod"},
+        {171, nullptr, "SetChineseTraditionalInputMethod"},
+        {172, nullptr, "GetPtmCycleCountReliability"},
+        {173, nullptr, "SetPtmCycleCountReliability"},
+        {175, nullptr, "GetThemeSettings"},
+        {176, nullptr, "SetThemeSettings"},
+        {177, nullptr, "GetThemeKey"},
+        {178, nullptr, "SetThemeKey"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 

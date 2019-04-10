@@ -12,6 +12,7 @@ namespace Service::Friend {
 class IFriendService final : public ServiceFramework<IFriendService> {
 public:
     IFriendService() : ServiceFramework("IFriendService") {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetCompletionEvent"},
             {1, nullptr, "Cancel"},
@@ -24,8 +25,7 @@ public:
             {10400, nullptr, "GetBlockedUserListIds"},
             {10500, nullptr, "GetProfileList"},
             {10600, nullptr, "DeclareOpenOnlinePlaySession"},
-            {10601, &IFriendService::DeclareCloseOnlinePlaySession,
-             "DeclareCloseOnlinePlaySession"},
+            {10601, &IFriendService::DeclareCloseOnlinePlaySession, "DeclareCloseOnlinePlaySession"},
             {10610, &IFriendService::UpdateUserPresence, "UpdateUserPresence"},
             {10700, nullptr, "GetPlayHistoryRegistrationKey"},
             {10701, nullptr, "GetPlayHistoryRegistrationKeyWithNetworkServiceAccountId"},
@@ -88,6 +88,7 @@ public:
             {30830, nullptr, "ClearPlayLog"},
             {49900, nullptr, "DeleteNetworkServiceAccountCache"},
         };
+        // clang-format on
 
         RegisterHandlers(functions);
     }

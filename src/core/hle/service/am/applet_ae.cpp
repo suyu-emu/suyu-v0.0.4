@@ -16,6 +16,7 @@ public:
                                  std::shared_ptr<AppletMessageQueue> msg_queue)
         : ServiceFramework("ILibraryAppletProxy"), nvflinger(std::move(nvflinger)),
           msg_queue(std::move(msg_queue)) {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, &ILibraryAppletProxy::GetCommonStateGetter, "GetCommonStateGetter"},
             {1, &ILibraryAppletProxy::GetSelfController, "GetSelfController"},
@@ -25,8 +26,11 @@ public:
             {10, &ILibraryAppletProxy::GetProcessWindingController, "GetProcessWindingController"},
             {11, &ILibraryAppletProxy::GetLibraryAppletCreator, "GetLibraryAppletCreator"},
             {20, &ILibraryAppletProxy::GetApplicationFunctions, "GetApplicationFunctions"},
+            {21, nullptr, "GetAppletCommonFunctions"},
             {1000, &ILibraryAppletProxy::GetDebugFunctions, "GetDebugFunctions"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
     }
 
@@ -113,6 +117,7 @@ public:
                                 std::shared_ptr<AppletMessageQueue> msg_queue)
         : ServiceFramework("ISystemAppletProxy"), nvflinger(std::move(nvflinger)),
           msg_queue(std::move(msg_queue)) {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, &ISystemAppletProxy::GetCommonStateGetter, "GetCommonStateGetter"},
             {1, &ISystemAppletProxy::GetSelfController, "GetSelfController"},
@@ -124,8 +129,11 @@ public:
             {20, &ISystemAppletProxy::GetHomeMenuFunctions, "GetHomeMenuFunctions"},
             {21, &ISystemAppletProxy::GetGlobalStateController, "GetGlobalStateController"},
             {22, &ISystemAppletProxy::GetApplicationCreator, "GetApplicationCreator"},
+            {23, nullptr, "GetAppletCommonFunctions"},
             {1000, &ISystemAppletProxy::GetDebugFunctions, "GetDebugFunctions"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
     }
 

@@ -116,6 +116,7 @@ void SET::GetLanguageCode(Kernel::HLERequestContext& ctx) {
 }
 
 SET::SET() : ServiceFramework("set") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, &SET::GetLanguageCode, "GetLanguageCode"},
         {1, &SET::GetAvailableLanguageCodes, "GetAvailableLanguageCodes"},
@@ -126,7 +127,10 @@ SET::SET() : ServiceFramework("set") {
         {6, &SET::GetAvailableLanguageCodeCount2, "GetAvailableLanguageCodeCount2"},
         {7, nullptr, "GetKeyCodeMap"},
         {8, nullptr, "GetQuestFlag"},
+        {9, nullptr, "GetKeyCodeMap2"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 

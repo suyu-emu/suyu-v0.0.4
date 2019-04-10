@@ -50,6 +50,7 @@ static std::vector<u64> AccumulateAOCTitleIDs() {
 }
 
 AOC_U::AOC_U() : ServiceFramework("aoc:u"), add_on_content(AccumulateAOCTitleIDs()) {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "CountAddOnContentByApplicationId"},
         {1, nullptr, "ListAddOnContentByApplicationId"},
@@ -60,7 +61,10 @@ AOC_U::AOC_U() : ServiceFramework("aoc:u"), add_on_content(AccumulateAOCTitleIDs
         {6, nullptr, "PrepareAddOnContentByApplicationId"},
         {7, &AOC_U::PrepareAddOnContent, "PrepareAddOnContent"},
         {8, &AOC_U::GetAddOnContentListChangedEvent, "GetAddOnContentListChangedEvent"},
+        {100, nullptr, "CreateEcPurchasedEventManager"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 
     auto& kernel = Core::System::GetInstance().Kernel();
