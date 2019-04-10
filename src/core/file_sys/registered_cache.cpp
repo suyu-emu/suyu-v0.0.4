@@ -127,6 +127,156 @@ std::vector<ContentProviderEntry> ContentProvider::ListEntries() const {
     return ListEntriesFilter(std::nullopt, std::nullopt, std::nullopt);
 }
 
+PlaceholderCache::PlaceholderCache(VirtualDir dir_) : dir(std::move(dir_)) {}
+
+bool PlaceholderCache::Create(const NcaID& id, u64 size) const {
+    const auto path = GetRelativePathFromNcaID(id, false, true, false);
+
+    if (dir->GetFileRelative(path) != nullptr) {
+        return false;
+    }
+
+    Core::Crypto::SHA256Hash hash{};
+    mbedtls_sha256(id.data(), id.size(), hash.data(), 0);
+    const auto dirname = fmt::format("000000{:02X}", hash[0]);
+
+    const auto dir2 = GetOrCreateDirectoryRelative(dir, dirname);
+
+    if (dir2 == nullptr)
+        return false;
+
+    const auto file = dir2->CreateFile(fmt::format("{}.nca", Common::HexArrayToString(id, false)));
+
+    if (file == nullptr)
+        return false;
+
+    return file->Resize(size);
+}
+
+bool PlaceholderCache::Delete(const NcaID& id) const {
+    const auto path = GetRelativePathFromNcaID(id, false, true, false);
+
+    if (dir->GetFileRelative(path) == nullptr) {
+        return false;
+    }
+
+    Core::Crypto::SHA256Hash hash{};
+    mbedtls_sha256(id.data(), id.size(), hash.data(), 0);
+    const auto dirname = fmt::format("000000{:02X}", hash[0]);
+
+    const auto dir2 = GetOrCreateDirectoryRelative(dir, dirname);
+
+    const auto res = dir2->DeleteFile(fmt::format("{}.nca", Common::HexArrayToString(id, false)));
+
+    return res;
+}
+
+bool PlaceholderCache::Exists(const NcaID& id) const {
+    const auto path = GetRelativePathFromNcaID(id, false, true, false);
+
+    return dir->GetFileRelative(path) != nullptr;
+}
+
+bool PlaceholderCache::Write(const NcaID& id, u64 offset, const std::vector<u8>& data) const {
+    const auto path = GetRelativePathFromNcaID(id, false, true, false);
+    const auto file = dir->GetFileRelative(path);
+
+    if (file == nullptr)
+        return false;
+
+    return file->WriteBytes(data, offset) == data.size();
+}
+
+bool PlaceholderCache::Register(RegisteredCache* cache, const NcaID& placeholder,
+                                const NcaID& install) const {
+    const auto path = GetRelativePathFromNcaID(placeholder, false, true, false);
+    const auto file = dir->GetFileRelative(path);
+
+    if (file == nullptr)
+        return false;
+
+    const auto res = cache->RawInstallNCA(NCA{file}, &VfsRawCopy, false, install);
+
+    if (res != InstallResult::Success)
+        return false;
+
+    return Delete(placeholder);
+}
+
+bool PlaceholderCache::CleanAll() const {
+    return dir->GetParentDirectory()->CleanSubdirectoryRecursive(dir->GetName());
+}
+
+std::optional<std::array<u8, 0x10>> PlaceholderCache::GetRightsID(const NcaID& id) const {
+    const auto path = GetRelativePathFromNcaID(id, false, true, false);
+    const auto file = dir->GetFileRelative(path);
+
+    if (file == nullptr)
+        return std::nullopt;
+
+    NCA nca{file};
+
+    if (nca.GetStatus() != Loader::ResultStatus::Success &&
+        nca.GetStatus() != Loader::ResultStatus::ErrorMissingBKTRBaseRomFS) {
+        return std::nullopt;
+    }
+
+    const auto rights_id = nca.GetRightsId();
+    if (rights_id == NcaID{})
+        return std::nullopt;
+
+    return rights_id;
+}
+
+u64 PlaceholderCache::Size(const NcaID& id) const {
+    const auto path = GetRelativePathFromNcaID(id, false, true, false);
+    const auto file = dir->GetFileRelative(path);
+
+    if (file == nullptr)
+        return 0;
+
+    return file->GetSize();
+}
+
+bool PlaceholderCache::SetSize(const NcaID& id, u64 new_size) const {
+    const auto path = GetRelativePathFromNcaID(id, false, true, false);
+    const auto file = dir->GetFileRelative(path);
+
+    if (file == nullptr)
+        return false;
+
+    return file->Resize(new_size);
+}
+
+std::vector<NcaID> PlaceholderCache::List() const {
+    std::vector<NcaID> out;
+    for (const auto& sdir : dir->GetSubdirectories()) {
+        for (const auto& file : sdir->GetFiles()) {
+            const auto name = file->GetName();
+            if (name.length() == 36 && name[32] == '.' && name[33] == 'n' && name[34] == 'c' &&
+                name[35] == 'a') {
+                out.push_back(Common::HexStringToArray<0x10>(name.substr(0, 32)));
+            }
+        }
+    }
+    return out;
+}
+
+NcaID PlaceholderCache::Generate() {
+    std::random_device device;
+    std::mt19937 gen(device());
+    std::uniform_int_distribution<u64> distribution(1, std::numeric_limits<u64>::max());
+
+    NcaID out{};
+
+    const auto v1 = distribution(gen);
+    const auto v2 = distribution(gen);
+    std::memcpy(out.data(), &v1, sizeof(u64));
+    std::memcpy(out.data() + sizeof(u64), &v2, sizeof(u64));
+
+    return out;
+}
+
 VirtualFile RegisteredCache::OpenFileOrDirectoryConcat(const VirtualDir& dir,
                                                        std::string_view path) const {
     const auto file = dir->GetFileRelative(path);
