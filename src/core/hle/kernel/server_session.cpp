@@ -28,11 +28,9 @@ ServerSession::~ServerSession() {
     // the emulated application.
 
     // Decrease the port's connection count.
-    if (parent->port)
+    if (parent->port) {
         parent->port->ConnectionClosed();
-
-    // TODO(Subv): Wake up all the ClientSession's waiting threads and set
-    // the SendSyncRequest result to 0xC920181A.
+    }
 
     parent->server = nullptr;
 }
@@ -73,9 +71,6 @@ void ServerSession::ClientDisconnected() {
         // invalidated (set to null).
         handler->ClientDisconnected(this);
     }
-
-    // TODO(Subv): Force a wake up of all the ServerSession's waiting threads and set
-    // their WaitSynchronization result to 0xC920181A.
 
     // Clean up the list of client threads with pending requests, they are unneeded now that the
     // client endpoint is closed.
