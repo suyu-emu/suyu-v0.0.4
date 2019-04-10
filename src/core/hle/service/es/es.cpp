@@ -2,16 +2,21 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "core/crypto/key_manager.h"
+#include "core/hle/ipc_helpers.h"
 #include "core/hle/service/service.h"
 
 namespace Service::ES {
+
+constexpr ResultCode ERROR_INVALID_ARGUMENT{ErrorModule::ETicket, 2};
+constexpr ResultCode ERROR_INVALID_RIGHTS_ID{ErrorModule::ETicket, 3};
 
 class ETicket final : public ServiceFramework<ETicket> {
 public:
     explicit ETicket() : ServiceFramework{"es"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {1, nullptr, "ImportTicket"},
+            {1, &ETicket::ImportTicket, "ImportTicket"},
             {2, nullptr, "ImportTicketCertificateSet"},
             {3, nullptr, "DeleteTicket"},
             {4, nullptr, "DeletePersonalizedTicket"},
@@ -52,6 +57,45 @@ public:
         // clang-format on
         RegisterHandlers(functions);
     }
+
+private:
+    bool CheckRightsId(Kernel::HLERequestContext& ctx, const u128& rights_id) {
+        if (rights_id == u128{}) {
+            LOG_ERROR(Service_ETicket, "The rights ID was invalid!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_RIGHTS_ID);
+            return false;
+        }
+
+        return true;
+    }
+
+    void ImportTicket(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto ticket = ctx.ReadBuffer();
+        const auto cert = ctx.ReadBuffer(1);
+
+        if (ticket.size() < sizeof(Core::Crypto::TicketRaw)) {
+            LOG_ERROR(Service_ETicket, "The input buffer is not large enough!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_ARGUMENT);
+            return;
+        }
+
+        Core::Crypto::TicketRaw raw;
+        std::memcpy(raw.data(), ticket.data(), sizeof(Core::Crypto::TicketRaw));
+
+        if (!keys.AddTicketPersonalized(raw)) {
+            LOG_ERROR(Service_ETicket, "The ticket could not be imported!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_ARGUMENT);
+            return;
+        }
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
 };
 
 void InstallInterfaces(SM::ServiceManager& service_manager) {
