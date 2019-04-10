@@ -30,7 +30,7 @@ public:
             {12, &ETicket::ListPersonalizedTicket, "ListPersonalizedTicket"},
             {13, nullptr, "ListMissingPersonalizedTicket"},
             {14, &ETicket::GetCommonTicketSize, "GetCommonTicketSize"},
-            {15, nullptr, "GetPersonalizedTicketSize"},
+            {15, &ETicket::GetPersonalizedTicketSize, "GetPersonalizedTicketSize"},
             {16, nullptr, "GetCommonTicketData"},
             {17, nullptr, "GetPersonalizedTicketData"},
             {18, nullptr, "OwnTicket"},
@@ -200,6 +200,22 @@ private:
             return;
 
         const auto ticket = keys.GetCommonTickets().at(rights_id);
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u64>(ticket.size());
+    }
+
+    void GetPersonalizedTicketSize(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto rights_id = rp.PopRaw<u128>();
+
+        LOG_DEBUG(Service_ETicket, "called, rights_id={:016X}{:016X}", rights_id[1], rights_id[0]);
+
+        if (!CheckRightsId(ctx, rights_id))
+            return;
+
+        const auto ticket = keys.GetPersonalizedTickets().at(rights_id);
 
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
