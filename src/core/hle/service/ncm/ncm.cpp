@@ -11,8 +11,45 @@
 namespace Service::NCM {
 
 class LocationResolver final : public ServiceFramework<LocationResolver> {
+class ILocationResolver final : public ServiceFramework<ILocationResolver> {
+public:
+    explicit ILocationResolver(FileSys::StorageId id)
+        : ServiceFramework{"ILocationResolver"}, storage(id) {
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "ResolveProgramPath"},
+            {1, nullptr, "RedirectProgramPath"},
+            {2, nullptr, "ResolveApplicationControlPath"},
+            {3, nullptr, "ResolveApplicationHtmlDocumentPath"},
+            {4, nullptr, "ResolveDataPath"},
+            {5, nullptr, "RedirectApplicationControlPath"},
+            {6, nullptr, "RedirectApplicationHtmlDocumentPath"},
+            {7, nullptr, "ResolveApplicationLegalInformationPath"},
+            {8, nullptr, "RedirectApplicationLegalInformationPath"},
+            {9, nullptr, "Refresh"},
+            {10, nullptr, "RedirectProgramPath2"},
+            {11, nullptr, "Refresh2"},
+            {12, nullptr, "DeleteProgramPath"},
+            {13, nullptr, "DeleteApplicationControlPath"},
+            {14, nullptr, "DeleteApplicationHtmlDocumentPath"},
+            {15, nullptr, "DeleteApplicationLegalInformationPath"},
+            {16, nullptr, ""},
+            {17, nullptr, ""},
+            {18, nullptr, ""},
+            {19, nullptr, ""},
+        };
+
+        RegisterHandlers(functions);
+    }
+
+private:
+    FileSys::StorageId storage;
+};
+
 public:
     explicit LocationResolver() : ServiceFramework{"lr"} {
+class LR final : public ServiceFramework<LR> {
+public:
+    explicit LR() : ServiceFramework{"lr"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "OpenLocationResolver"},
@@ -24,6 +61,19 @@ public:
 
         RegisterHandlers(functions);
     }
+
+private:
+    void OpenLocationResolver(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto id = rp.PopRaw<FileSys::StorageId>();
+
+        LOG_DEBUG(Service_NCM, "called, id={:02X}", static_cast<u8>(id));
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface(std::make_shared<ILocationResolver>(id));
+    }
+
 };
 
 class NCM final : public ServiceFramework<NCM> {
