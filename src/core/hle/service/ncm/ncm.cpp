@@ -45,6 +45,25 @@ private:
     FileSys::StorageId storage;
 };
 
+class IRegisteredLocationResolver final : public ServiceFramework<IRegisteredLocationResolver> {
+public:
+    explicit IRegisteredLocationResolver() : ServiceFramework{"IRegisteredLocationResolver"} {
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "ResolveProgramPath"},
+            {1, nullptr, "RegisterProgramPath"},
+            {2, nullptr, "UnregisterProgramPath"},
+            {3, nullptr, "RedirectProgramPath"},
+            {4, nullptr, "ResolveHtmlDocumentPath"},
+            {5, nullptr, "RegisterHtmlDocumentPath"},
+            {6, nullptr, "UnregisterHtmlDocumentPath"},
+            {7, nullptr, "RedirectHtmlDocumentPath"},
+            {8, nullptr, ""},
+        };
+
+        RegisterHandlers(functions);
+    }
+};
+
 public:
     explicit LocationResolver() : ServiceFramework{"lr"} {
 class LR final : public ServiceFramework<LR> {
@@ -72,6 +91,14 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface(std::make_shared<ILocationResolver>(id));
+    }
+
+    void OpenRegisteredLocationResolver(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NCM, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface(std::make_shared<IRegisteredLocationResolver>());
     }
 
 };
