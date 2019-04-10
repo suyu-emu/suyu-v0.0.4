@@ -408,6 +408,8 @@ static bool IsDirValidAndNonEmpty(const VirtualDir& dir) {
 
 std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNames(
     VirtualFile update_raw) const {
+    if (title_id == 0)
+        return {};
     std::map<std::string, std::string, std::less<>> out;
     const auto& installed = Core::System::GetInstance().GetContentProvider();
     const auto& disabled = Settings::values.disabled_addons[title_id];
