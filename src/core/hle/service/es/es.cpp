@@ -29,7 +29,7 @@ public:
             {11, &ETicket::ListCommonTicket, "ListCommonTicket"},
             {12, &ETicket::ListPersonalizedTicket, "ListPersonalizedTicket"},
             {13, nullptr, "ListMissingPersonalizedTicket"},
-            {14, nullptr, "GetCommonTicketSize"},
+            {14, &ETicket::GetCommonTicketSize, "GetCommonTicketSize"},
             {15, nullptr, "GetPersonalizedTicketSize"},
             {16, nullptr, "GetCommonTicketData"},
             {17, nullptr, "GetPersonalizedTicketData"},
@@ -188,6 +188,22 @@ private:
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(out_entries);
+    }
+
+    void GetCommonTicketSize(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto rights_id = rp.PopRaw<u128>();
+
+        LOG_DEBUG(Service_ETicket, "called, rights_id={:016X}{:016X}", rights_id[1], rights_id[0]);
+
+        if (!CheckRightsId(ctx, rights_id))
+            return;
+
+        const auto ticket = keys.GetCommonTickets().at(rights_id);
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u64>(ticket.size());
     }
 
 };
