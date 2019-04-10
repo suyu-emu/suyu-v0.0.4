@@ -43,6 +43,13 @@ struct RSAKeyPair {
     std::array<u8, 4> exponent;
 };
 
+template <size_t bit_size, size_t byte_size>
+bool operator==(const RSAKeyPair<bit_size, byte_size>& lhs,
+                const RSAKeyPair<bit_size, byte_size>& rhs) {
+    return std::tie(lhs.encryption_key, lhs.decryption_key, lhs.modulus, lhs.exponent) ==
+           std::tie(rhs.encryption_key, rhs.decryption_key, rhs.modulus, rhs.exponent);
+}
+
 enum class KeyCategory : u8 {
     Standard,
     Title,
