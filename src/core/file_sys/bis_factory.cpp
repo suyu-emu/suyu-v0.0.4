@@ -48,7 +48,7 @@ PlaceholderCache* BISFactory::GetUserNANDPlaceholder() const {
 
 VirtualDir BISFactory::GetModificationLoadRoot(u64 title_id) const {
     // LayeredFS doesn't work on updates and title id-less homebrew
-    if (title_id == 0 || (title_id & 0x800) > 0)
+    if (title_id == 0 || (title_id & 0xFFF) == 0x800)
         return nullptr;
     return GetOrCreateDirectoryRelative(load_root, fmt::format("/{:016X}", title_id));
 }
