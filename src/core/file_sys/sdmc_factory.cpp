@@ -36,4 +36,8 @@ PlaceholderCache* SDMCFactory::GetSDMCPlaceholder() const {
     return placeholder.get();
 }
 
+VirtualDir SDMCFactory::GetImageDirectory() const {
+    return GetOrCreateDirectoryRelative(dir, "/Nintendo/Album");
+}
+
 } // namespace FileSys

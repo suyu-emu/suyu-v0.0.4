@@ -26,6 +26,8 @@ public:
     RegisteredCache* GetSDMCContents() const;
     PlaceholderCache* GetSDMCPlaceholder() const;
 
+    VirtualDir GetImageDirectory() const;
+
 private:
     VirtualDir dir;
 
