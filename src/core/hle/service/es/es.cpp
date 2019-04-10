@@ -23,7 +23,7 @@ public:
             {5, nullptr, "DeleteAllCommonTicket"},
             {6, nullptr, "DeleteAllPersonalizedTicket"},
             {7, nullptr, "DeleteAllPersonalizedTicketEx"},
-            {8, nullptr, "GetTitleKey"},
+            {8, &ETicket::GetTitleKey, "GetTitleKey"},
             {9, nullptr, "CountCommonTicket"},
             {10, nullptr, "CountPersonalizedTicket"},
             {11, nullptr, "ListCommonTicket"},
@@ -91,6 +91,32 @@ private:
             rb.Push(ERROR_INVALID_ARGUMENT);
             return;
         }
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void GetTitleKey(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto rights_id = rp.PopRaw<u128>();
+
+        LOG_DEBUG(Service_ETicket, "called, rights_id={:016X}{:016X}", rights_id[1], rights_id[0]);
+
+        if (!CheckRightsId(ctx, rights_id))
+            return;
+
+        const auto key =
+            keys.GetKey(Core::Crypto::S128KeyType::Titlekey, rights_id[1], rights_id[0]);
+
+        if (key == Core::Crypto::Key128{}) {
+            LOG_ERROR(Service_ETicket,
+                      "The titlekey doesn't exist in the KeyManager or the rights ID was invalid!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_RIGHTS_ID);
+            return;
+        }
+
+        ctx.WriteBuffer(key.data(), key.size());
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
