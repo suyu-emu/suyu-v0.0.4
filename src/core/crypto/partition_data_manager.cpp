@@ -480,6 +480,10 @@ void PartitionDataManager::DecryptProdInfo(std::array<u8, 0x20> bis_key) {
     prodinfo_decrypted = std::make_shared<XTSEncryptionLayer>(prodinfo, bis_key);
 }
 
+FileSys::VirtualFile PartitionDataManager::GetDecryptedProdInfo() const {
+    return prodinfo_decrypted;
+}
+
 std::array<u8, 576> PartitionDataManager::GetETicketExtendedKek() const {
     std::array<u8, 0x240> out{};
     if (prodinfo_decrypted != nullptr)

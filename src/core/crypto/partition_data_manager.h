@@ -84,6 +84,7 @@ public:
     bool HasProdInfo() const;
     FileSys::VirtualFile GetProdInfoRaw() const;
     void DecryptProdInfo(std::array<u8, 0x20> bis_key);
+    FileSys::VirtualFile GetDecryptedProdInfo() const;
     std::array<u8, 0x240> GetETicketExtendedKek() const;
 
 private:
