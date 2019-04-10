@@ -248,7 +248,8 @@ void NSP::InitializeExeFSAndRomFS(const std::vector<VirtualFile>& files) {
 
 void NSP::ReadNCAs(const std::vector<VirtualFile>& files) {
     for (const auto& outer_file : files) {
-        if (outer_file->GetName().substr(outer_file->GetName().size() - 9) != ".cnmt.nca") {
+        if (outer_file->GetName().size() < 9 ||
+            outer_file->GetName().substr(outer_file->GetName().size() - 9) != ".cnmt.nca") {
             continue;
         }
 
