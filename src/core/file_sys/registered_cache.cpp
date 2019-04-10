@@ -48,19 +48,22 @@ static bool FollowsTwoDigitDirFormat(std::string_view name) {
 static bool FollowsNcaIdFormat(std::string_view name) {
     static const std::regex nca_id_regex("[0-9A-F]{32}\\.nca", std::regex_constants::ECMAScript |
                                                                    std::regex_constants::icase);
-    return name.size() == 36 && std::regex_match(name.begin(), name.end(), nca_id_regex);
+    static const std::regex nca_id_cnmt_regex(
+        "[0-9A-F]{32}\\.cnmt.nca", std::regex_constants::ECMAScript | std::regex_constants::icase);
+    return (name.size() == 36 && std::regex_match(name.begin(), name.end(), nca_id_regex)) ||
+           (name.size() == 41 && std::regex_match(name.begin(), name.end(), nca_id_cnmt_regex));
 }
 
 static std::string GetRelativePathFromNcaID(const std::array<u8, 16>& nca_id, bool second_hex_upper,
-                                            bool within_two_digit) {
-    if (!within_two_digit) {
-        return fmt::format("/{}.nca", Common::HexToString(nca_id, second_hex_upper));
-    }
+                                            bool within_two_digit, bool cnmt_suffix) {
+    if (!within_two_digit)
+        return fmt::format(cnmt_suffix ? "{}.cnmt.nca" : "/{}.nca",
+                           Common::HexArrayToString(nca_id, second_hex_upper));
 
     Core::Crypto::SHA256Hash hash{};
     mbedtls_sha256(nca_id.data(), nca_id.size(), hash.data(), 0);
-    return fmt::format("/000000{:02X}/{}.nca", hash[0],
-                       Common::HexToString(nca_id, second_hex_upper));
+    return fmt::format(cnmt_suffix ? "/000000{:02X}/{}.cnmt.nca" : "/000000{:02X}/{}.nca", hash[0],
+                       Common::HexArrayToString(nca_id, second_hex_upper));
 }
 
 static std::string GetCNMTName(TitleType type, u64 title_id) {
@@ -319,14 +322,18 @@ VirtualFile RegisteredCache::OpenFileOrDirectoryConcat(const VirtualDir& dir,
 
 VirtualFile RegisteredCache::GetFileAtID(NcaID id) const {
     VirtualFile file;
-    // Try all four modes of file storage:
-    // (bit 1 = uppercase/lower, bit 0 = within a two-digit dir)
-    // 00: /000000**/{:032X}.nca
-    // 01: /{:032X}.nca
-    // 10: /000000**/{:032x}.nca
-    // 11: /{:032x}.nca
-    for (u8 i = 0; i < 4; ++i) {
-        const auto path = GetRelativePathFromNcaID(id, (i & 0b10) == 0, (i & 0b01) == 0);
+    // Try all five relevant modes of file storage:
+    // (bit 2 = uppercase/lower, bit 1 = within a two-digit dir, bit 0 = .cnmt suffix)
+    // 000: /000000**/{:032X}.nca
+    // 010: /{:032X}.nca
+    // 100: /000000**/{:032x}.nca
+    // 110: /{:032x}.nca
+    // 111: /{:032x}.cnmt.nca
+    for (u8 i = 0; i < 8; ++i) {
+        if ((i % 2) == 1 && i != 7)
+            continue;
+        const auto path =
+            GetRelativePathFromNcaID(id, (i & 0b100) == 0, (i & 0b010) == 0, (i & 0b001) == 0b001);
         file = OpenFileOrDirectoryConcat(dir, path);
         if (file != nullptr)
             return file;
@@ -622,7 +629,7 @@ InstallResult RegisteredCache::RawInstallNCA(const NCA& nca, const VfsCopyFuncti
         memcpy(id.data(), hash.data(), 16);
     }
 
-    std::string path = GetRelativePathFromNcaID(id, false, true);
+    std::string path = GetRelativePathFromNcaID(id, false, true, false);
 
     if (GetFileAtID(id) != nullptr && !overwrite_if_exists) {
         LOG_WARNING(Loader, "Attempting to overwrite existing NCA. Skipping...");
