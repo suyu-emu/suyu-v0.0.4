@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include <glad/glad.h>
 
 #include "video_core/renderer_opengl/gl_resource_manager.h"
@@ -38,55 +40,48 @@ static_assert(sizeof(MaxwellUniformData) < 16384,
 
 class ProgramManager {
 public:
-    ProgramManager() {
-        pipeline.Create();
-    }
+    explicit ProgramManager();
+    ~ProgramManager();
+
+    void ApplyTo(OpenGLState& state);
 
     void UseProgrammableVertexShader(GLuint program) {
-        vs = program;
+        current_state.vertex_shader = program;
     }
 
     void UseProgrammableGeometryShader(GLuint program) {
-        gs = program;
+        current_state.geometry_shader = program;
     }
 
     void UseProgrammableFragmentShader(GLuint program) {
-        fs = program;
+        current_state.fragment_shader = program;
     }
 
     void UseTrivialGeometryShader() {
-        gs = 0;
-    }
-
-    void ApplyTo(OpenGLState& state) {
-        UpdatePipeline();
-        state.draw.shader_program = 0;
-        state.draw.program_pipeline = pipeline.handle;
+        current_state.geometry_shader = 0;
     }
 
 private:
-    void UpdatePipeline() {
-        // Avoid updating the pipeline when values have no changed
-        if (old_vs == vs && old_fs == fs && old_gs == gs)
-            return;
-        // Workaround for AMD bug
-        glUseProgramStages(pipeline.handle,
-                           GL_VERTEX_SHADER_BIT | GL_GEOMETRY_SHADER_BIT | GL_FRAGMENT_SHADER_BIT,
-                           0);
+    struct PipelineState {
+        bool operator==(const PipelineState& rhs) const {
+            return vertex_shader == rhs.vertex_shader && fragment_shader == rhs.fragment_shader &&
+                   geometry_shader == rhs.geometry_shader;
+        }
 
-        glUseProgramStages(pipeline.handle, GL_VERTEX_SHADER_BIT, vs);
-        glUseProgramStages(pipeline.handle, GL_GEOMETRY_SHADER_BIT, gs);
-        glUseProgramStages(pipeline.handle, GL_FRAGMENT_SHADER_BIT, fs);
+        bool operator!=(const PipelineState& rhs) const {
+            return !operator==(rhs);
+        }
 
-        // Update the old values
-        old_vs = vs;
-        old_fs = fs;
-        old_gs = gs;
-    }
+        GLuint vertex_shader{};
+        GLuint fragment_shader{};
+        GLuint geometry_shader{};
+    };
+
+    void UpdatePipeline();
 
     OGLPipeline pipeline;
-    GLuint vs{}, fs{}, gs{};
-    GLuint old_vs{}, old_fs{}, old_gs{};
+    PipelineState current_state;
+    PipelineState old_state;
 };
 
 } // namespace OpenGL::GLShader
