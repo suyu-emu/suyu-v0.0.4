@@ -252,10 +252,7 @@ private:
     u64 next_entry_index = 0;
 
     void Read(Kernel::HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const u64 unk = rp.Pop<u64>();
-
-        LOG_DEBUG(Service_FS, "called, unk=0x{:X}", unk);
+        LOG_DEBUG(Service_FS, "called.");
 
         // Calculate how many entries we can fit in the output buffer
         const u64 count_entries = ctx.GetWriteBufferSize() / sizeof(FileSys::Entry);
