@@ -31,7 +31,7 @@ public:
             {13, nullptr, "ListMissingPersonalizedTicket"},
             {14, &ETicket::GetCommonTicketSize, "GetCommonTicketSize"},
             {15, &ETicket::GetPersonalizedTicketSize, "GetPersonalizedTicketSize"},
-            {16, nullptr, "GetCommonTicketData"},
+            {16, &ETicket::GetCommonTicketData, "GetCommonTicketData"},
             {17, nullptr, "GetPersonalizedTicketData"},
             {18, nullptr, "OwnTicket"},
             {19, nullptr, "GetTicketInfo"},
@@ -220,6 +220,25 @@ private:
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u64>(ticket.size());
+    }
+
+    void GetCommonTicketData(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto rights_id = rp.PopRaw<u128>();
+
+        LOG_DEBUG(Service_ETicket, "called, rights_id={:016X}{:016X}", rights_id[1], rights_id[0]);
+
+        if (!CheckRightsId(ctx, rights_id))
+            return;
+
+        const auto ticket = keys.GetCommonTickets().at(rights_id);
+
+        const auto write_size = std::min(ticket.size(), ctx.GetWriteBufferSize());
+        ctx.WriteBuffer(ticket.data(), write_size);
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u64>(write_size);
     }
 
 };
