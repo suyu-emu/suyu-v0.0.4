@@ -21,6 +21,7 @@
 #include "video_core/rasterizer_cache.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
+#include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_global_cache.h"
 #include "video_core/renderer_opengl/gl_primitive_assembler.h"
 #include "video_core/renderer_opengl/gl_rasterizer_cache.h"
@@ -213,6 +214,8 @@ private:
 
     ScreenInfo& screen_info;
 
+    Device device;
+
     std::unique_ptr<GLShader::ProgramManager> shader_program_manager;
     std::map<std::array<Tegra::Engines::Maxwell3D::Regs::VertexAttribute,
                         Tegra::Engines::Maxwell3D::Regs::NumVertexAttributes>,
@@ -228,7 +231,6 @@ private:
     static constexpr std::size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;
     OGLBufferCache buffer_cache;
     PrimitiveAssembler primitive_assembler{buffer_cache};
-    GLint uniform_buffer_alignment;
 
     BindBuffersRangePushBuffer bind_ubo_pushbuffer{GL_UNIFORM_BUFFER};
     BindBuffersRangePushBuffer bind_ssbo_pushbuffer{GL_SHADER_STORAGE_BUFFER};
