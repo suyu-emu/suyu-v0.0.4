@@ -165,15 +165,27 @@ public:
     bool BaseDeriveNecessary() const;
     void DeriveBase();
     void DeriveETicket(PartitionDataManager& data);
+    void PopulateTickets();
 
     void PopulateFromPartitionData(PartitionDataManager& data);
+
+    const std::map<u128, TicketRaw>& GetCommonTickets() const;
+    const std::map<u128, TicketRaw>& GetPersonalizedTickets() const;
+
+    bool AddTicketCommon(TicketRaw raw);
+    bool AddTicketPersonalized(TicketRaw raw);
 
 private:
     std::map<KeyIndex<S128KeyType>, Key128> s128_keys;
     std::map<KeyIndex<S256KeyType>, Key256> s256_keys;
 
+    // Map from rights ID to ticket
+    std::map<u128, TicketRaw> common_tickets;
+    std::map<u128, TicketRaw> personal_tickets;
+
     std::array<std::array<u8, 0xB0>, 0x20> encrypted_keyblobs{};
     std::array<std::array<u8, 0x90>, 0x20> keyblobs{};
+    std::array<u8, 576> eticket_extended_kek{};
 
     bool dev_mode;
     void LoadFromFile(const std::string& filename, bool is_title_keys);
@@ -184,6 +196,8 @@ private:
                         const std::array<u8, Size>& key);
 
     void DeriveGeneralPurposeKeys(std::size_t crypto_revision);
+
+    RSAKeyPair<2048> GetETicketRSAKey();
 
     void SetKeyWrapped(S128KeyType id, Key128 key, u64 field1 = 0, u64 field2 = 0);
     void SetKeyWrapped(S256KeyType id, Key256 key, u64 field1 = 0, u64 field2 = 0);
