@@ -480,11 +480,10 @@ private:
     std::map<VAddr, NROInfo> nro;
     std::map<VAddr, std::vector<SHA256Hash>> nrr;
 
-    bool IsValidNROHash(const SHA256Hash& hash) {
-        return std::any_of(
-            nrr.begin(), nrr.end(), [&hash](const std::pair<VAddr, std::vector<SHA256Hash>>& p) {
-                return std::find(p.second.begin(), p.second.end(), hash) != p.second.end();
-            });
+    bool IsValidNROHash(const SHA256Hash& hash) const {
+        return std::any_of(nrr.begin(), nrr.end(), [&hash](const auto& p) {
+            return std::find(p.second.begin(), p.second.end(), hash) != p.second.end();
+        });
     }
 
     static bool IsValidNRO(const NROHeader& header, u64 nro_size, u64 bss_size) {
