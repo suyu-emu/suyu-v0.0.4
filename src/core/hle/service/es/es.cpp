@@ -25,7 +25,7 @@ public:
             {7, nullptr, "DeleteAllPersonalizedTicketEx"},
             {8, &ETicket::GetTitleKey, "GetTitleKey"},
             {9, &ETicket::CountCommonTicket, "CountCommonTicket"},
-            {10, nullptr, "CountPersonalizedTicket"},
+            {10, &ETicket::CountPersonalizedTicket, "CountPersonalizedTicket"},
             {11, nullptr, "ListCommonTicket"},
             {12, nullptr, "ListPersonalizedTicket"},
             {13, nullptr, "ListMissingPersonalizedTicket"},
@@ -127,6 +127,17 @@ private:
 
         keys.PopulateTickets();
         const auto count = keys.GetCommonTickets().size();
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(count);
+    }
+
+    void CountPersonalizedTicket(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_ETicket, "called");
+
+        keys.PopulateTickets();
+        const auto count = keys.GetPersonalizedTickets().size();
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
