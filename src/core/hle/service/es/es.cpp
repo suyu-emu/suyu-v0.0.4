@@ -32,7 +32,7 @@ public:
             {14, &ETicket::GetCommonTicketSize, "GetCommonTicketSize"},
             {15, &ETicket::GetPersonalizedTicketSize, "GetPersonalizedTicketSize"},
             {16, &ETicket::GetCommonTicketData, "GetCommonTicketData"},
-            {17, nullptr, "GetPersonalizedTicketData"},
+            {17, &ETicket::GetPersonalizedTicketData, "GetPersonalizedTicketData"},
             {18, nullptr, "OwnTicket"},
             {19, nullptr, "GetTicketInfo"},
             {20, nullptr, "ListLightTicketInfo"},
@@ -241,6 +241,26 @@ private:
         rb.Push<u64>(write_size);
     }
 
+    void GetPersonalizedTicketData(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto rights_id = rp.PopRaw<u128>();
+
+        LOG_DEBUG(Service_ETicket, "called, rights_id={:016X}{:016X}", rights_id[1], rights_id[0]);
+
+        if (!CheckRightsId(ctx, rights_id))
+            return;
+
+        const auto ticket = keys.GetPersonalizedTickets().at(rights_id);
+
+        const auto write_size = std::min(ticket.size(), ctx.GetWriteBufferSize());
+        ctx.WriteBuffer(ticket.data(), write_size);
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u64>(write_size);
+    }
+
+    Core::Crypto::KeyManager keys;
 };
 
 void InstallInterfaces(SM::ServiceManager& service_manager) {
