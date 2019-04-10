@@ -11,6 +11,7 @@
 namespace FileSys {
 
 class RegisteredCache;
+class PlaceholderCache;
 
 /// File system interface to the SDCard archive
 class SDMCFactory {
@@ -23,11 +24,13 @@ public:
     VirtualDir GetSDMCContentDirectory() const;
 
     RegisteredCache* GetSDMCContents() const;
+    PlaceholderCache* GetSDMCPlaceholder() const;
 
 private:
     VirtualDir dir;
 
     std::unique_ptr<RegisteredCache> contents;
+    std::unique_ptr<PlaceholderCache> placeholder;
 };
 
 } // namespace FileSys

@@ -14,7 +14,9 @@ SDMCFactory::SDMCFactory(VirtualDir dir_)
                                 GetOrCreateDirectoryRelative(dir, "/Nintendo/Contents/registered"),
                                 [](const VirtualFile& file, const NcaID& id) {
                                     return NAX{file, id}.GetDecrypted();
-                                })) {}
+                                })),
+      placeholder(std::make_unique<PlaceholderCache>(
+          GetOrCreateDirectoryRelative(dir, "/Nintendo/Contents/placehld"))) {}
 
 SDMCFactory::~SDMCFactory() = default;
 
@@ -28,6 +30,10 @@ VirtualDir SDMCFactory::GetSDMCContentDirectory() const {
 
 RegisteredCache* SDMCFactory::GetSDMCContents() const {
     return contents.get();
+}
+
+PlaceholderCache* SDMCFactory::GetSDMCPlaceholder() const {
+    return placeholder.get();
 }
 
 } // namespace FileSys
