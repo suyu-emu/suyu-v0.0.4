@@ -12,12 +12,16 @@
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/partition_filesystem.h"
+#include "core/file_sys/romfs.h"
 #include "core/file_sys/submission_package.h"
+#include "core/file_sys/vfs_concat.h"
 #include "core/file_sys/vfs_offset.h"
+#include "core/file_sys/vfs_vector.h"
 #include "core/loader/loader.h"
 
 namespace FileSys {
 
+constexpr u64 GAMECARD_CERTIFICATE_OFFSET = 0x7000;
 constexpr std::array partition_names{
     "update",
     "normal",

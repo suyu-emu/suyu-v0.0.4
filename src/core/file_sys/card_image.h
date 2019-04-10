@@ -108,6 +108,11 @@ public:
 
     VirtualDir GetParentDirectory() const override;
 
+    // Creates a directory that contains all the NCAs in the gamecard
+    VirtualDir ConcatenatedPseudoDirectory();
+
+    std::array<u8, 0x200> GetCertificate() const;
+
 private:
     Loader::ResultStatus AddNCAFromPartition(XCIPartition part);
 
