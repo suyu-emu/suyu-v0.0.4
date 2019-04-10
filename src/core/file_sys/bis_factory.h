@@ -37,6 +37,9 @@ public:
     explicit BISFactory(VirtualDir nand_root, VirtualDir load_root, VirtualDir dump_root);
     ~BISFactory();
 
+    VirtualDir GetSystemNANDContentDirectory() const;
+    VirtualDir GetUserNANDContentDirectory() const;
+
     RegisteredCache* GetSystemNANDContents() const;
     RegisteredCache* GetUserNANDContents() const;
 

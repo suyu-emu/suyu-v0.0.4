@@ -18,6 +18,14 @@ BISFactory::BISFactory(VirtualDir nand_root_, VirtualDir load_root_, VirtualDir 
 
 BISFactory::~BISFactory() = default;
 
+VirtualDir BISFactory::GetSystemNANDContentDirectory() const {
+    return GetOrCreateDirectoryRelative(nand_root, "/system/Contents");
+}
+
+VirtualDir BISFactory::GetUserNANDContentDirectory() const {
+    return GetOrCreateDirectoryRelative(nand_root, "/user/Contents");
+}
+
 RegisteredCache* BISFactory::GetSystemNANDContents() const {
     return sysnand_cache.get();
 }
