@@ -187,6 +187,11 @@ std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso, const std::st
     LOG_INFO(Loader, "Patching NSO for name={}, build_id={}", name, build_id);
 
     const auto load_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
+    if (load_dir == nullptr) {
+        LOG_ERROR(Loader, "Cannot load mods for invalid title_id={:016X}", title_id);
+        return nso;
+    }
+
     auto patch_dirs = load_dir->GetSubdirectories();
     std::sort(patch_dirs.begin(), patch_dirs.end(),
               [](const VirtualDir& l, const VirtualDir& r) { return l->GetName() < r->GetName(); });
@@ -225,6 +230,11 @@ bool PatchManager::HasNSOPatch(const std::array<u8, 32>& build_id_) const {
     LOG_INFO(Loader, "Querying NSO patch existence for build_id={}", build_id);
 
     const auto load_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
+    if (load_dir == nullptr) {
+        LOG_ERROR(Loader, "Cannot load mods for invalid title_id={:016X}", title_id);
+        return false;
+    }
+
     auto patch_dirs = load_dir->GetSubdirectories();
     std::sort(patch_dirs.begin(), patch_dirs.end(),
               [](const VirtualDir& l, const VirtualDir& r) { return l->GetName() < r->GetName(); });
@@ -259,6 +269,11 @@ static std::optional<CheatList> ReadCheatFileFromFolder(const Core::System& syst
 std::vector<CheatList> PatchManager::CreateCheatList(const Core::System& system,
                                                      const std::array<u8, 32>& build_id_) const {
     const auto load_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
+    if (load_dir == nullptr) {
+        LOG_ERROR(Loader, "Cannot load mods for invalid title_id={:016X}", title_id);
+        return {};
+    }
+
     auto patch_dirs = load_dir->GetSubdirectories();
     std::sort(patch_dirs.begin(), patch_dirs.end(),
               [](const VirtualDir& l, const VirtualDir& r) { return l->GetName() < r->GetName(); });
