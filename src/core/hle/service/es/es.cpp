@@ -26,7 +26,7 @@ public:
             {8, &ETicket::GetTitleKey, "GetTitleKey"},
             {9, &ETicket::CountCommonTicket, "CountCommonTicket"},
             {10, &ETicket::CountPersonalizedTicket, "CountPersonalizedTicket"},
-            {11, nullptr, "ListCommonTicket"},
+            {11, &ETicket::ListCommonTicket, "ListCommonTicket"},
             {12, nullptr, "ListPersonalizedTicket"},
             {13, nullptr, "ListMissingPersonalizedTicket"},
             {14, nullptr, "GetCommonTicketSize"},
@@ -142,6 +142,29 @@ private:
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(count);
+    }
+
+    void ListCommonTicket(Kernel::HLERequestContext& ctx) {
+        u32 out_entries;
+        if (keys.GetCommonTickets().empty())
+            out_entries = 0;
+        else
+            out_entries = ctx.GetWriteBufferSize() / sizeof(u128);
+
+        LOG_DEBUG(Service_ETicket, "called, entries={:016X}", out_entries);
+
+        keys.PopulateTickets();
+        const auto tickets = keys.GetCommonTickets();
+        std::vector<u128> ids;
+        std::transform(tickets.begin(), tickets.end(), std::back_inserter(ids),
+                       [](const auto& pair) { return pair.first; });
+
+        out_entries = std::min<u32>(ids.size(), out_entries);
+        ctx.WriteBuffer(ids.data(), out_entries * sizeof(u128));
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(out_entries);
     }
 
 };
