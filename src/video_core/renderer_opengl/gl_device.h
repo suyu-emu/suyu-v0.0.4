@@ -12,14 +12,19 @@ class Device {
 public:
     Device();
 
-    void Initialize();
-
     std::size_t GetUniformBufferAlignment() const {
         return uniform_buffer_alignment;
     }
 
+    bool HasVariableAoffi() const {
+        return has_variable_aoffi;
+    }
+
 private:
+    static bool TestVariableAoffi();
+
     std::size_t uniform_buffer_alignment{};
+    bool has_variable_aoffi{};
 };
 
 } // namespace OpenGL

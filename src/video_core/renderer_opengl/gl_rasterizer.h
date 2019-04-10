@@ -204,6 +204,7 @@ private:
     /// but are needed for correct emulation
     void CheckExtensions();
 
+    const Device device;
     OpenGLState state;
 
     RasterizerCacheOpenGL res_cache;
@@ -211,10 +212,7 @@ private:
     GlobalRegionCacheOpenGL global_cache;
 
     Core::System& system;
-
     ScreenInfo& screen_info;
-
-    Device device;
 
     std::unique_ptr<GLShader::ProgramManager> shader_program_manager;
     std::map<std::array<Tegra::Engines::Maxwell3D::Regs::VertexAttribute,

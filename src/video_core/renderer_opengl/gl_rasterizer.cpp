@@ -99,15 +99,13 @@ struct FramebufferCacheKey {
 };
 
 RasterizerOpenGL::RasterizerOpenGL(Core::System& system, ScreenInfo& info)
-    : res_cache{*this}, shader_cache{*this, system}, global_cache{*this}, system{system},
+    : res_cache{*this}, shader_cache{*this, system, device}, global_cache{*this}, system{system},
       screen_info{info}, buffer_cache(*this, STREAM_BUFFER_SIZE) {
     // Create sampler objects
     for (std::size_t i = 0; i < texture_samplers.size(); ++i) {
         texture_samplers[i].Create();
         state.texture_units[i].sampler = texture_samplers[i].sampler.handle;
     }
-
-    device.Initialize();
 
     OpenGLState::ApplyDefaultState();
 
