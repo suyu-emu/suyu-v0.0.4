@@ -20,6 +20,7 @@
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/gpu.h"
+#include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/surface.h"
 
@@ -42,6 +43,10 @@ public:
     std::size_t Hash() const;
 
     bool operator==(const HasheableSurfaceParams& rhs) const;
+
+    bool operator!=(const HasheableSurfaceParams& rhs) const {
+        return !operator==(rhs);
+    }
 
 protected:
     // Avoid creation outside of a managed environment.
@@ -167,11 +172,26 @@ public:
     /// Returns the offset in bytes in host memory (linear) of a given mipmap level.
     std::size_t GetHostMipmapLevelOffset(u32 level) const;
 
+    /// Returns the size in bytes in host memory (linear) of a given mipmap level.
+    std::size_t GetHostMipmapSize(u32 level) const;
+
     /// Returns the size of a layer in bytes in guest memory.
     std::size_t GetGuestLayerSize() const;
 
     /// Returns the size of a layer in bytes in host memory for a given mipmap level.
     std::size_t GetHostLayerSize(u32 level) const;
+
+    /// Returns the default block width.
+    u32 GetDefaultBlockWidth() const;
+
+    /// Returns the default block height.
+    u32 GetDefaultBlockHeight() const;
+
+    /// Returns the bits per pixel.
+    u32 GetBitsPerPixel() const;
+
+    /// Returns the bytes per pixel.
+    u32 GetBytesPerPixel() const;
 
     /// Returns true if another surface can be familiar with this. This is a loosely defined term
     /// that reflects the possibility of these two surface parameters potentially being part of a
@@ -370,6 +390,7 @@ private:
 template <typename TSurface, typename TView, typename TExecutionContext>
 class TextureCache {
     static_assert(std::is_trivially_copyable_v<TExecutionContext>);
+
     using ResultType = std::tuple<TView*, TExecutionContext>;
     using IntervalMap = boost::icl::interval_map<CacheAddr, std::set<TSurface*>>;
     using IntervalType = typename IntervalMap::interval_type;
@@ -581,6 +602,81 @@ private:
     /// previously been used. This is to prevent surfaces from being constantly created and
     /// destroyed when used with different surface parameters.
     std::unordered_map<SurfaceParams, std::list<std::unique_ptr<TSurface>>> surface_reserve;
+};
+
+struct DummyExecutionContext {};
+
+template <typename TSurface, typename TView>
+class TextureCacheContextless : protected TextureCache<TSurface, TView, DummyExecutionContext> {
+    using Base = TextureCache<TSurface, TView, DummyExecutionContext>;
+
+public:
+    void InvalidateRegion(CacheAddr addr, std::size_t size) {
+        Base::InvalidateRegion(addr, size);
+    }
+
+    TView* GetTextureSurface(const Tegra::Texture::FullTextureInfo& config) {
+        return RemoveContext(Base::GetTextureSurface({}, config));
+    }
+
+    TView* GetDepthBufferSurface(bool preserve_contents) {
+        return RemoveContext(Base::GetDepthBufferSurface({}, preserve_contents));
+    }
+
+    TView* GetColorBufferSurface(std::size_t index, bool preserve_contents) {
+        return RemoveContext(Base::GetColorBufferSurface({}, index, preserve_contents));
+    }
+
+    TView* GetFermiSurface(const Tegra::Engines::Fermi2D::Regs::Surface& config) {
+        return RemoveContext(Base::GetFermiSurface({}, config));
+    }
+
+    TSurface* TryFindFramebufferSurface(const u8* host_ptr) const {
+        return Base::TryFindFramebufferSurface(host_ptr);
+    }
+
+protected:
+    explicit TextureCacheContextless(Core::System& system,
+                                     VideoCore::RasterizerInterface& rasterizer)
+        : TextureCache<TSurface, TView, DummyExecutionContext>{system, rasterizer} {}
+
+    virtual TView* TryFastGetSurfaceView(VAddr cpu_addr, u8* host_ptr, const SurfaceParams& params,
+                                         bool preserve_contents,
+                                         const std::vector<TSurface*>& overlaps) = 0;
+
+private:
+    std::tuple<TView*, DummyExecutionContext> TryFastGetSurfaceView(
+        DummyExecutionContext, VAddr cpu_addr, u8* host_ptr, const SurfaceParams& params,
+        bool preserve_contents, const std::vector<TSurface*>& overlaps) {
+        return {TryFastGetSurfaceView(cpu_addr, host_ptr, params, preserve_contents, overlaps), {}};
+    }
+
+    TView* RemoveContext(std::tuple<TView*, DummyExecutionContext> return_value) {
+        const auto [view, exctx] = return_value;
+        return view;
+    }
+};
+
+template <typename TView>
+class SurfaceBaseContextless : public SurfaceBase<TView, DummyExecutionContext> {
+public:
+    DummyExecutionContext FlushBuffer(DummyExecutionContext) {
+        FlushBufferImpl();
+        return {};
+    }
+
+    DummyExecutionContext UploadTexture(DummyExecutionContext) {
+        UploadTextureImpl();
+        return {};
+    }
+
+protected:
+    explicit SurfaceBaseContextless(const SurfaceParams& params)
+        : SurfaceBase<TView, DummyExecutionContext>{params} {}
+
+    virtual void FlushBufferImpl() = 0;
+
+    virtual void UploadTextureImpl() = 0;
 };
 
 } // namespace VideoCommon

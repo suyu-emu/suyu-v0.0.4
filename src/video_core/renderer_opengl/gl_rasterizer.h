@@ -24,13 +24,13 @@
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_global_cache.h"
-#include "video_core/renderer_opengl/gl_rasterizer_cache.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_sampler_cache.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_state.h"
+#include "video_core/renderer_opengl/gl_texture_cache.h"
 #include "video_core/renderer_opengl/utils.h"
 
 namespace Core {
@@ -181,7 +181,7 @@ private:
     const Device device;
     OpenGLState state;
 
-    RasterizerCacheOpenGL res_cache;
+    TextureCacheOpenGL texture_cache;
     ShaderCacheOpenGL shader_cache;
     GlobalRegionCacheOpenGL global_cache;
     SamplerCacheOpenGL sampler_cache;
