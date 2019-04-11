@@ -213,7 +213,7 @@ GMainWindow::GMainWindow()
     OnReinitializeKeys(ReinitializeKeyBehavior::NoWarning);
 
     game_list->LoadCompatibilityList();
-    game_list->PopulateAsync(UISettings::values.gamedir, UISettings::values.gamedir_deepscan);
+    game_list->PopulateAsync(UISettings::values.game_directory_path, UISettings::values.game_directory_deepscan);
 
     // Show one-time "callout" messages to the user
     ShowTelemetryCallout();
@@ -1278,8 +1278,8 @@ void GMainWindow::OnGameListOpenPerGameProperties(const std::string& file) {
 
         const auto reload = UISettings::values.is_game_list_reload_pending.exchange(false);
         if (reload) {
-            game_list->PopulateAsync(UISettings::values.gamedir,
-                                     UISettings::values.gamedir_deepscan);
+            game_list->PopulateAsync(UISettings::values.game_directory_path,
+                                     UISettings::values.game_directory_deepscan);
         }
 
         config->Save();
@@ -1367,7 +1367,7 @@ void GMainWindow::OnMenuInstallToNAND() {
     const auto success = [this]() {
         QMessageBox::information(this, tr("Successfully Installed"),
                                  tr("The file was successfully installed."));
-        game_list->PopulateAsync(UISettings::values.gamedir, UISettings::values.gamedir_deepscan);
+        game_list->PopulateAsync(UISettings::values.game_directory_path, UISettings::values.game_directory_deepscan);
     };
 
     const auto failed = [this]() {
@@ -1494,8 +1494,8 @@ void GMainWindow::OnMenuInstallToNAND() {
 void GMainWindow::OnMenuSelectGameListRoot() {
     QString dir_path = QFileDialog::getExistingDirectory(this, tr("Select Directory"));
     if (!dir_path.isEmpty()) {
-        UISettings::values.gamedir = dir_path;
-        game_list->PopulateAsync(dir_path, UISettings::values.gamedir_deepscan);
+        UISettings::values.game_directory_path = dir_path;
+        game_list->PopulateAsync(dir_path, UISettings::values.game_directory_deepscan);
     }
 }
 
@@ -1517,7 +1517,7 @@ void GMainWindow::OnMenuSelectEmulatedDirectory(EmulatedDirectoryTarget target) 
                                                                       : FileUtil::UserPath::NANDDir,
                               dir_path.toStdString());
         Service::FileSystem::CreateFactories(*vfs);
-        game_list->PopulateAsync(UISettings::values.gamedir, UISettings::values.gamedir_deepscan);
+        game_list->PopulateAsync(UISettings::values.game_directory_path, UISettings::values.game_directory_deepscan);
     }
 }
 
@@ -1669,8 +1669,8 @@ void GMainWindow::OnConfigure() {
 
         const auto reload = UISettings::values.is_game_list_reload_pending.exchange(false);
         if (reload) {
-            game_list->PopulateAsync(UISettings::values.gamedir,
-                                     UISettings::values.gamedir_deepscan);
+            game_list->PopulateAsync(UISettings::values.game_directory_path,
+                                     UISettings::values.game_directory_deepscan);
         }
 
         config->Save();
@@ -1920,7 +1920,7 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
     Service::FileSystem::CreateFactories(*vfs);
 
     if (behavior == ReinitializeKeyBehavior::Warning) {
-        game_list->PopulateAsync(UISettings::values.gamedir, UISettings::values.gamedir_deepscan);
+        game_list->PopulateAsync(UISettings::values.game_directory_path, UISettings::values.game_directory_deepscan);
     }
 }
 

@@ -523,8 +523,8 @@ void Config::ReadValues() {
     qt_config->beginGroup("Paths");
     UISettings::values.roms_path = ReadSetting("romsPath").toString();
     UISettings::values.symbols_path = ReadSetting("symbolsPath").toString();
-    UISettings::values.gamedir = ReadSetting("gameListRootDir", ".").toString();
-    UISettings::values.gamedir_deepscan = ReadSetting("gameListDeepScan", false).toBool();
+    UISettings::values.game_directory_path = ReadSetting("gameListRootDir", ".").toString();
+    UISettings::values.game_directory_deepscan = ReadSetting("gameListDeepScan", false).toBool();
     UISettings::values.recent_files = ReadSetting("recentFiles").toStringList();
     qt_config->endGroup();
 
@@ -768,8 +768,8 @@ void Config::SaveValues() {
     WriteSetting("romsPath", UISettings::values.roms_path);
     WriteSetting("symbolsPath", UISettings::values.symbols_path);
     WriteSetting("screenshotPath", UISettings::values.screenshot_path);
-    WriteSetting("gameListRootDir", UISettings::values.gamedir, ".");
-    WriteSetting("gameListDeepScan", UISettings::values.gamedir_deepscan, false);
+    WriteSetting("gameListRootDir", UISettings::values.game_directory_path, ".");
+    WriteSetting("gameListDeepScan", UISettings::values.game_directory_deepscan, false);
     WriteSetting("recentFiles", UISettings::values.recent_files);
     qt_config->endGroup();
 

@@ -55,8 +55,8 @@ struct Values {
     QString roms_path;
     QString symbols_path;
     QString screenshot_path;
-    QString gamedir;
-    bool gamedir_deepscan;
+    QString game_directory_path;
+    bool game_directory_deepscan;
     QStringList recent_files;
 
     QString theme;
