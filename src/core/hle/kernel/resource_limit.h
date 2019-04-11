@@ -41,7 +41,7 @@ public:
         return GetTypeName();
     }
 
-    static const HandleType HANDLE_TYPE = HandleType::ResourceLimit;
+    static constexpr HandleType HANDLE_TYPE = HandleType::ResourceLimit;
     HandleType GetHandleType() const override {
         return HANDLE_TYPE;
     }
