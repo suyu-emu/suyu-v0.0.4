@@ -266,6 +266,10 @@ std::size_t SurfaceParams::InnerMemorySize(bool force_gl, bool layer_only,
     params.component_type = ComponentTypeFromRenderTarget(config.format);
     params.type = GetFormatType(params.pixel_format);
     params.width = config.width;
+    if (!params.is_tiled) {
+        const u32 bpp = params.GetFormatBpp() / 8;
+        params.pitch = config.width * bpp;
+    }
     params.height = config.height;
     params.unaligned_height = config.height;
     params.target = SurfaceTarget::Texture2D;
