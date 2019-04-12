@@ -441,6 +441,29 @@ public:
     ///
     ResultCode MapCodeMemory(VAddr dst_address, VAddr src_address, u64 size);
 
+    /// Unmaps a region of memory designated as code module memory.
+    ///
+    /// @param dst_address The base address of the memory region aliasing the source memory region.
+    /// @param src_address The base address of the memory region being aliased.
+    /// @param size        The size of the memory region to unmap in bytes.
+    ///
+    /// @pre Both memory ranges lie within the actual addressable address space.
+    ///
+    /// @pre The memory region being unmapped has been previously been mapped
+    ///      by a call to MapCodeMemory.
+    ///
+    /// @post After execution of the function, if successful. the aliasing memory region
+    ///       will be unmapped and the aliased region will have various traits about it
+    ///       restored to what they were prior to the original mapping call preceding
+    ///       this function call.
+    ///       <p>
+    ///       What this also entails is as follows:
+    ///           1. The state of the memory region will now indicate a general heap region.
+    ///           2. All memory attributes for the memory region are cleared.
+    ///           3. Memory permissions for the region are restored to user read/write.
+    ///
+    ResultCode UnmapCodeMemory(VAddr dst_address, VAddr src_address, u64 size);
+
     /// Queries the memory manager for information about the given address.
     ///
     /// @param address The address to query the memory manager about for information.
