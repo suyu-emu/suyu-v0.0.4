@@ -213,7 +213,8 @@ GMainWindow::GMainWindow()
     OnReinitializeKeys(ReinitializeKeyBehavior::NoWarning);
 
     game_list->LoadCompatibilityList();
-    game_list->PopulateAsync(UISettings::values.game_directory_path, UISettings::values.game_directory_deepscan);
+    game_list->PopulateAsync(UISettings::values.game_directory_path,
+                             UISettings::values.game_directory_deepscan);
 
     // Show one-time "callout" messages to the user
     ShowTelemetryCallout();
@@ -1367,7 +1368,8 @@ void GMainWindow::OnMenuInstallToNAND() {
     const auto success = [this]() {
         QMessageBox::information(this, tr("Successfully Installed"),
                                  tr("The file was successfully installed."));
-        game_list->PopulateAsync(UISettings::values.game_directory_path, UISettings::values.game_directory_deepscan);
+        game_list->PopulateAsync(UISettings::values.game_directory_path,
+                                 UISettings::values.game_directory_deepscan);
     };
 
     const auto failed = [this]() {
@@ -1517,7 +1519,8 @@ void GMainWindow::OnMenuSelectEmulatedDirectory(EmulatedDirectoryTarget target) 
                                                                       : FileUtil::UserPath::NANDDir,
                               dir_path.toStdString());
         Service::FileSystem::CreateFactories(*vfs);
-        game_list->PopulateAsync(UISettings::values.game_directory_path, UISettings::values.game_directory_deepscan);
+        game_list->PopulateAsync(UISettings::values.game_directory_path,
+                                 UISettings::values.game_directory_deepscan);
     }
 }
 
@@ -1920,7 +1923,8 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
     Service::FileSystem::CreateFactories(*vfs);
 
     if (behavior == ReinitializeKeyBehavior::Warning) {
-        game_list->PopulateAsync(UISettings::values.game_directory_path, UISettings::values.game_directory_deepscan);
+        game_list->PopulateAsync(UISettings::values.game_directory_path,
+                                 UISettings::values.game_directory_deepscan);
     }
 }
 

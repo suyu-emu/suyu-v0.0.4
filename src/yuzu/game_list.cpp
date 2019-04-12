@@ -470,6 +470,7 @@ void GameList::RefreshGameDirectory() {
     if (!UISettings::values.game_directory_path.isEmpty() && current_worker != nullptr) {
         LOG_INFO(Frontend, "Change detected in the games directory. Reloading game list.");
         search_field->clear();
-        PopulateAsync(UISettings::values.game_directory_path, UISettings::values.game_directory_deepscan);
+        PopulateAsync(UISettings::values.game_directory_path,
+                      UISettings::values.game_directory_deepscan);
     }
 }
