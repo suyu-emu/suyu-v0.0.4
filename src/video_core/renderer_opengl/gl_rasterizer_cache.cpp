@@ -1179,10 +1179,16 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& old_surface,
         return new_surface;
     }
 
+    const bool old_compressed =
+        GetFormatTuple(old_params.pixel_format, old_params.component_type).compressed;
+    const bool new_compressed =
+        GetFormatTuple(new_params.pixel_format, new_params.component_type).compressed;
+    const bool compatible_formats =
+        GetFormatBpp(old_params.pixel_format) == GetFormatBpp(new_params.pixel_format) &&
+        !(old_compressed || new_compressed);
     // For compatible surfaces, we can just do fast glCopyImageSubData based copy
-    if (old_params.target == new_params.target && old_params.type == new_params.type &&
-        old_params.depth == new_params.depth && old_params.depth == 1 &&
-        GetFormatBpp(old_params.pixel_format) == GetFormatBpp(new_params.pixel_format)) {
+    if (old_params.target == new_params.target && old_params.depth == new_params.depth &&
+        old_params.depth == 1 && compatible_formats) {
         FastCopySurface(old_surface, new_surface);
         return new_surface;
     }
@@ -1197,7 +1203,7 @@ Surface RasterizerCacheOpenGL::RecreateSurface(const Surface& old_surface,
     case SurfaceTarget::TextureCubemap:
     case SurfaceTarget::Texture2DArray:
     case SurfaceTarget::TextureCubeArray:
-        if (old_params.pixel_format == new_params.pixel_format)
+        if (compatible_formats)
             FastLayeredCopySurface(old_surface, new_surface);
         else {
             AccurateCopySurface(old_surface, new_surface);
