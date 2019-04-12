@@ -129,12 +129,14 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_sampler_cache.h
         renderer_vulkan/vk_scheduler.cpp
         renderer_vulkan/vk_scheduler.h
+        renderer_vulkan/vk_shader_decompiler.cpp
+        renderer_vulkan/vk_shader_decompiler.h
         renderer_vulkan/vk_stream_buffer.cpp
         renderer_vulkan/vk_stream_buffer.h
         renderer_vulkan/vk_swapchain.cpp
         renderer_vulkan/vk_swapchain.h)
 
-    target_include_directories(video_core PRIVATE ../../externals/Vulkan-Headers/include)
+    target_include_directories(video_core PRIVATE sirit ../../externals/Vulkan-Headers/include)
     target_compile_definitions(video_core PRIVATE HAS_VULKAN)
 endif()
 
@@ -142,3 +144,6 @@ create_target_directory_groups(video_core)
 
 target_link_libraries(video_core PUBLIC common core)
 target_link_libraries(video_core PRIVATE glad)
+if (ENABLE_VULKAN)
+    target_link_libraries(video_core PRIVATE sirit)
+endif()
