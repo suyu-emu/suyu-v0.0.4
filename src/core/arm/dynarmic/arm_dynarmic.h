@@ -12,19 +12,15 @@
 #include "core/arm/exclusive_monitor.h"
 #include "core/arm/unicorn/arm_unicorn.h"
 
-namespace Core::Timing {
-class CoreTiming;
-}
-
 namespace Core {
 
 class ARM_Dynarmic_Callbacks;
 class DynarmicExclusiveMonitor;
+class System;
 
 class ARM_Dynarmic final : public ARM_Interface {
 public:
-    ARM_Dynarmic(Timing::CoreTiming& core_timing, ExclusiveMonitor& exclusive_monitor,
-                 std::size_t core_index);
+    ARM_Dynarmic(System& system, ExclusiveMonitor& exclusive_monitor, std::size_t core_index);
     ~ARM_Dynarmic() override;
 
     void MapBackingMemory(VAddr address, std::size_t size, u8* memory,
@@ -63,7 +59,7 @@ private:
     ARM_Unicorn inner_unicorn;
 
     std::size_t core_index;
-    Timing::CoreTiming& core_timing;
+    System& system;
     DynarmicExclusiveMonitor& exclusive_monitor;
 };
 

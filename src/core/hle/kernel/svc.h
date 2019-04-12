@@ -6,8 +6,12 @@
 
 #include "common/common_types.h"
 
+namespace Core {
+class System;
+}
+
 namespace Kernel {
 
-void CallSVC(u32 immediate);
+void CallSVC(Core::System& system, u32 immediate);
 
 } // namespace Kernel

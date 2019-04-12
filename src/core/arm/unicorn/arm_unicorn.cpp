@@ -10,7 +10,6 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/hle/kernel/svc.h"
-#include "core/memory.h"
 
 namespace Core {
 
@@ -49,20 +48,6 @@ static void CodeHook(uc_engine* uc, uint64_t address, uint32_t size, void* user_
     }
 }
 
-static void InterruptHook(uc_engine* uc, u32 intNo, void* user_data) {
-    u32 esr{};
-    CHECKED(uc_reg_read(uc, UC_ARM64_REG_ESR, &esr));
-
-    auto ec = esr >> 26;
-    auto iss = esr & 0xFFFFFF;
-
-    switch (ec) {
-    case 0x15: // SVC
-        Kernel::CallSVC(iss);
-        break;
-    }
-}
-
 static bool UnmappedMemoryHook(uc_engine* uc, uc_mem_type type, u64 addr, int size, u64 value,
                                void* user_data) {
     ARM_Interface::ThreadContext ctx{};
@@ -72,7 +57,7 @@ static bool UnmappedMemoryHook(uc_engine* uc, uc_mem_type type, u64 addr, int si
     return {};
 }
 
-ARM_Unicorn::ARM_Unicorn(Timing::CoreTiming& core_timing) : core_timing{core_timing} {
+ARM_Unicorn::ARM_Unicorn(System& system) : system{system} {
     CHECKED(uc_open(UC_ARCH_ARM64, UC_MODE_ARM, &uc));
 
     auto fpv = 3 << 20;
@@ -177,7 +162,7 @@ void ARM_Unicorn::Run() {
     if (GDBStub::IsServerEnabled()) {
         ExecuteInstructions(std::max(4000000, 0));
     } else {
-        ExecuteInstructions(std::max(core_timing.GetDowncount(), 0));
+        ExecuteInstructions(std::max(system.CoreTiming().GetDowncount(), 0));
     }
 }
 
@@ -190,7 +175,7 @@ MICROPROFILE_DEFINE(ARM_Jit_Unicorn, "ARM JIT", "Unicorn", MP_RGB(255, 64, 64));
 void ARM_Unicorn::ExecuteInstructions(int num_instructions) {
     MICROPROFILE_SCOPE(ARM_Jit_Unicorn);
     CHECKED(uc_emu_start(uc, GetPC(), 1ULL << 63, 0, num_instructions));
-    core_timing.AddTicks(num_instructions);
+    system.CoreTiming().AddTicks(num_instructions);
     if (GDBStub::IsServerEnabled()) {
         if (last_bkpt_hit && last_bkpt.type == GDBStub::BreakpointType::Execute) {
             uc_reg_write(uc, UC_ARM64_REG_PC, &last_bkpt.address);
@@ -271,6 +256,22 @@ void ARM_Unicorn::ClearInstructionCache() {}
 void ARM_Unicorn::RecordBreak(GDBStub::BreakpointAddress bkpt) {
     last_bkpt = bkpt;
     last_bkpt_hit = true;
+}
+
+void ARM_Unicorn::InterruptHook(uc_engine* uc, u32 int_no, void* user_data) {
+    u32 esr{};
+    CHECKED(uc_reg_read(uc, UC_ARM64_REG_ESR, &esr));
+
+    const auto ec = esr >> 26;
+    const auto iss = esr & 0xFFFFFF;
+
+    auto* const arm_instance = static_cast<ARM_Unicorn*>(user_data);
+
+    switch (ec) {
+    case 0x15: // SVC
+        Kernel::CallSVC(arm_instance->system, iss);
+        break;
+    }
 }
 
 } // namespace Core
