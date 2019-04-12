@@ -302,6 +302,35 @@ ResultVal<VAddr> VMManager::SetHeapSize(u64 size) {
     return MakeResult<VAddr>(heap_region_base);
 }
 
+ResultCode VMManager::MapCodeMemory(VAddr dst_address, VAddr src_address, u64 size) {
+    constexpr auto ignore_attribute = MemoryAttribute::LockedForIPC | MemoryAttribute::DeviceMapped;
+    const auto src_check_result = CheckRangeState(
+        src_address, size, MemoryState::All, MemoryState::Heap, VMAPermission::All,
+        VMAPermission::ReadWrite, MemoryAttribute::Mask, MemoryAttribute::None, ignore_attribute);
+
+    if (src_check_result.Failed()) {
+        return src_check_result.Code();
+    }
+
+    const auto mirror_result =
+        MirrorMemory(dst_address, src_address, size, MemoryState::ModuleCode);
+    if (mirror_result.IsError()) {
+        return mirror_result;
+    }
+
+    // Ensure we lock the source memory region.
+    const auto src_vma_result = CarveVMARange(src_address, size);
+    if (src_vma_result.Failed()) {
+        return src_vma_result.Code();
+    }
+    auto src_vma_iter = *src_vma_result;
+    src_vma_iter->second.attribute = MemoryAttribute::Locked;
+    Reprotect(src_vma_iter, VMAPermission::Read);
+
+    // The destination memory region is fine as is, however we need to make it read-only.
+    return ReprotectRange(dst_address, size, VMAPermission::Read);
+}
+
 MemoryInfo VMManager::QueryMemory(VAddr address) const {
     const auto vma = FindVMA(address);
     MemoryInfo memory_info{};
