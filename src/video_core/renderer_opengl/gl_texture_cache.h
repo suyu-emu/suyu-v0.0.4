@@ -73,7 +73,8 @@ public:
     explicit CachedSurfaceView(CachedSurface& surface, ViewKey key);
     ~CachedSurfaceView();
 
-    GLuint GetTexture();
+    /// Attaches this texture view to the current bound GL_DRAW_FRAMEBUFFER
+    void Attach(GLenum attachment) const;
 
     GLuint GetTexture(Tegra::Shader::TextureType texture_type, bool is_array,
                       Tegra::Texture::SwizzleSource x_source,

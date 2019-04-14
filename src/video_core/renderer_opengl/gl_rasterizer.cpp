@@ -83,10 +83,10 @@ struct FramebufferCacheKey {
     bool stencil_enable = false;
 
     std::array<GLenum, Maxwell::NumRenderTargets> color_attachments{};
-    std::array<GLuint, Tegra::Engines::Maxwell3D::Regs::NumRenderTargets> colors{};
+    std::array<CachedSurfaceView*, Tegra::Engines::Maxwell3D::Regs::NumRenderTargets> colors{};
     u32 colors_count = 0;
 
-    GLuint zeta = 0;
+    CachedSurfaceView* zeta = nullptr;
 
     auto Tie() const {
         return std::tie(is_single_buffer, stencil_enable, color_attachments, colors, colors_count,
@@ -367,25 +367,21 @@ void RasterizerOpenGL::SetupCachedFramebuffer(const FramebufferCacheKey& fbkey,
 
     if (fbkey.is_single_buffer) {
         if (fbkey.color_attachments[0] != GL_NONE) {
-            glFramebufferTexture(GL_DRAW_FRAMEBUFFER, fbkey.color_attachments[0], fbkey.colors[0],
-                                 0);
+            fbkey.colors[0]->Attach(fbkey.color_attachments[0]);
         }
         glDrawBuffer(fbkey.color_attachments[0]);
     } else {
         for (std::size_t index = 0; index < Maxwell::NumRenderTargets; ++index) {
             if (fbkey.colors[index]) {
-                glFramebufferTexture(GL_DRAW_FRAMEBUFFER,
-                                     GL_COLOR_ATTACHMENT0 + static_cast<GLenum>(index),
-                                     fbkey.colors[index], 0);
+                fbkey.colors[index]->Attach(GL_COLOR_ATTACHMENT0 + static_cast<GLenum>(index));
             }
         }
         glDrawBuffers(fbkey.colors_count, fbkey.color_attachments.data());
     }
 
     if (fbkey.zeta) {
-        GLenum zeta_attachment =
-            fbkey.stencil_enable ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
-        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, zeta_attachment, fbkey.zeta, 0);
+        fbkey.zeta->Attach(fbkey.stencil_enable ? GL_DEPTH_STENCIL_ATTACHMENT
+                                                : GL_DEPTH_ATTACHMENT);
     }
 }
 
@@ -509,7 +505,7 @@ std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
             fbkey.is_single_buffer = true;
             fbkey.color_attachments[0] =
                 GL_COLOR_ATTACHMENT0 + static_cast<GLenum>(*single_color_target);
-            fbkey.colors[0] = color_surface != nullptr ? color_surface->GetTexture() : 0;
+            fbkey.colors[0] = color_surface;
         } else {
             // Multiple color attachments are enabled
             for (std::size_t index = 0; index < Maxwell::NumRenderTargets; ++index) {
@@ -529,7 +525,7 @@ std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
 
                 fbkey.color_attachments[index] =
                     GL_COLOR_ATTACHMENT0 + regs.rt_control.GetMap(index);
-                fbkey.colors[index] = color_surface != nullptr ? color_surface->GetTexture() : 0;
+                fbkey.colors[index] = color_surface;
             }
             fbkey.is_single_buffer = false;
             fbkey.colors_count = regs.rt_control.count;
@@ -544,7 +540,7 @@ std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
         // the shader doesn't actually write to it.
         depth_surface->MarkAsModified(true);
 
-        fbkey.zeta = depth_surface->GetTexture();
+        fbkey.zeta = depth_surface;
         fbkey.stencil_enable = regs.stencil_enable && depth_surface->GetSurfaceParams().GetType() ==
                                                           SurfaceType::DepthStencil;
     }

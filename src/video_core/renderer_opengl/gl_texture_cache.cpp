@@ -428,13 +428,28 @@ CachedSurfaceView::CachedSurfaceView(CachedSurface& surface, ViewKey key)
 
 CachedSurfaceView::~CachedSurfaceView() = default;
 
-GLuint CachedSurfaceView::GetTexture() {
-    // TODO(Rodrigo): Remove this entry and attach the super texture to the framebuffer through
-    // legacy API (also dropping Intel driver issues).
-    if (texture_view_2d.texture.handle == 0) {
-        texture_view_2d = CreateTextureView(GL_TEXTURE_2D);
+void CachedSurfaceView::Attach(GLenum attachment) const {
+    ASSERT(key.num_layers == 1 && key.num_levels == 1);
+
+    switch (params.GetTarget()) {
+    case SurfaceTarget::Texture1D:
+        glFramebufferTexture1D(GL_DRAW_FRAMEBUFFER, attachment, surface.GetTarget(),
+                               surface.GetTexture(), key.base_level);
+        break;
+    case SurfaceTarget::Texture2D:
+        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, surface.GetTarget(),
+                               surface.GetTexture(), key.base_level);
+        break;
+    case SurfaceTarget::Texture1DArray:
+    case SurfaceTarget::Texture2DArray:
+    case SurfaceTarget::TextureCubemap:
+    case SurfaceTarget::TextureCubeArray:
+        glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, attachment, surface.GetTexture(),
+                                  key.base_level, key.base_layer);
+        break;
+    default:
+        UNIMPLEMENTED();
     }
-    return texture_view_2d.texture.handle;
 }
 
 GLuint CachedSurfaceView::GetTexture(Tegra::Shader::TextureType texture_type, bool is_array,
