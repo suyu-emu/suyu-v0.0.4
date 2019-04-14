@@ -467,9 +467,10 @@ void GameList::LoadInterfaceLayout() {
 const QStringList GameList::supported_file_extensions = {"nso", "nro", "nca", "xci", "nsp"};
 
 void GameList::RefreshGameDirectory() {
-    if (!UISettings::values.gamedir.isEmpty() && current_worker != nullptr) {
+    if (!UISettings::values.game_directory_path.isEmpty() && current_worker != nullptr) {
         LOG_INFO(Frontend, "Change detected in the games directory. Reloading game list.");
         search_field->clear();
-        PopulateAsync(UISettings::values.gamedir, UISettings::values.gamedir_deepscan);
+        PopulateAsync(UISettings::values.game_directory_path,
+                      UISettings::values.game_directory_deepscan);
     }
 }
