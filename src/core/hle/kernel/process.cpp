@@ -40,9 +40,8 @@ void SetupMainThread(Process& owner_process, KernelCore& kernel, VAddr entry_poi
     SharedPtr<Thread> thread = std::move(thread_res).Unwrap();
 
     // Register 1 must be a handle to the main thread
-    const Handle guest_handle = owner_process.GetHandleTable().Create(thread).Unwrap();
-    thread->SetGuestHandle(guest_handle);
-    thread->GetContext().cpu_registers[1] = guest_handle;
+    const Handle thread_handle = owner_process.GetHandleTable().Create(thread).Unwrap();
+    thread->GetContext().cpu_registers[1] = thread_handle;
 
     // Threads by default are dormant, wake up the main thread so it runs when the scheduler fires
     thread->ResumeFromWait();
