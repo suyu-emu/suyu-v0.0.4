@@ -160,7 +160,7 @@ u32 SurfaceParams::GetMipBlockHeight(u32 level) const {
     // Auto block resizing algorithm from:
     // https://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv50/nv50_miptree.c
     if (level == 0) {
-        return block_height;
+        return this->block_height;
     }
     const u32 height{GetMipHeight(level)};
     const u32 default_block_height{GetDefaultBlockHeight()};
@@ -316,7 +316,7 @@ std::size_t SurfaceParams::GetInnerMemorySize(bool as_host_size, bool layer_only
         size += GetInnerMipmapMemorySize(level, as_host_size, layer_only, uncompressed);
     }
     if (is_tiled && !as_host_size) {
-        size = Common::AlignUp(size, Tegra::Texture::GetGOBSize() * block_height * block_depth);
+        //size = Common::AlignUp(size, Tegra::Texture::GetGOBSize() * block_height * block_depth);
     }
     return size;
 }

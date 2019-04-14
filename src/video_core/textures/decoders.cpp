@@ -359,8 +359,7 @@ std::size_t CalculateSize(bool tiled, u32 bytes_per_pixel, u32 width, u32 height
         const u32 aligned_width = Common::AlignUp(width * bytes_per_pixel, gob_size_x);
         const u32 aligned_height = Common::AlignUp(height, gob_size_y * block_height);
         const u32 aligned_depth = Common::AlignUp(depth, gob_size_z * block_depth);
-        const u32 size = aligned_width * aligned_height * aligned_depth;
-        return size;
+        return aligned_width * aligned_height * aligned_depth;
     } else {
         return width * height * depth * bytes_per_pixel;
     }

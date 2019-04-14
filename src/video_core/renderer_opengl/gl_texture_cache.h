@@ -38,6 +38,10 @@ public:
 
     void LoadBuffer();
 
+    GLenum GetTarget() const {
+        return target;
+    }
+
     GLuint GetTexture() const {
         return texture.handle;
     }
@@ -56,6 +60,7 @@ private:
     GLenum format{};
     GLenum type{};
     bool is_compressed{};
+    GLenum target{};
 
     OGLTexture texture;
 
@@ -126,6 +131,10 @@ protected:
                                              const std::vector<CachedSurface*>& overlaps);
 
     std::unique_ptr<CachedSurface> CreateSurface(const SurfaceParams& params);
+
+private:
+    CachedSurfaceView* SurfaceCopy(VAddr cpu_addr, u8* host_ptr, const SurfaceParams& new_params,
+                                   CachedSurface* old_surface, const SurfaceParams& old_params);
 };
 
 } // namespace OpenGL
