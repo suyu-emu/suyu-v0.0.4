@@ -112,11 +112,26 @@ std::size_t SurfaceParams::InnerMemorySize(bool force_gl, bool layer_only,
     params.pixel_format = PixelFormatFromTextureFormat(config.tic.format, config.tic.r_type.Value(),
                                                        params.srgb_conversion);
 
-    if (params.pixel_format == PixelFormat::R16U && config.tsc.depth_compare_enabled) {
+    if (config.tsc.depth_compare_enabled) {
         // Some titles create a 'R16U' (normalized 16-bit) texture with depth_compare enabled,
         // then attempt to sample from it via a shadow sampler. Convert format to Z16 (which also
         // causes GetFormatType to properly return 'Depth' below).
-        params.pixel_format = PixelFormat::Z16;
+        if (GetFormatType(params.pixel_format) == SurfaceType::ColorTexture) {
+            switch (params.pixel_format) {
+            case PixelFormat::R16S:
+            case PixelFormat::R16U:
+            case PixelFormat::R16F:
+                params.pixel_format = PixelFormat::Z16;
+                break;
+            case PixelFormat::R32F:
+                params.pixel_format = PixelFormat::Z32F;
+                break;
+            default:
+                LOG_WARNING(HW_GPU, "Color texture format being used with depth compare: {}",
+                            static_cast<u32>(params.pixel_format));
+                break;
+            }
+        }
     }
 
     params.component_type = ComponentTypeFromTexture(config.tic.r_type.Value());
