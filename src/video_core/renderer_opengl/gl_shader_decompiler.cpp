@@ -121,13 +121,9 @@ std::string GetTopologyName(Tegra::Shader::OutputTopology topology) {
 
 /// Returns true if an object has to be treated as precise
 bool IsPrecise(Operation operand) {
-    const auto& meta = operand.GetMeta();
-
+    const auto& meta{operand.GetMeta()};
     if (const auto arithmetic = std::get_if<MetaArithmetic>(&meta)) {
         return arithmetic->precise;
-    }
-    if (const auto half_arithmetic = std::get_if<MetaHalfArithmetic>(&meta)) {
-        return half_arithmetic->precise;
     }
     return false;
 }
@@ -617,26 +613,7 @@ private:
     }
 
     std::string VisitOperand(Operation operation, std::size_t operand_index, Type type) {
-        const std::string value = VisitOperand(operation, operand_index);
-        switch (type) {
-        case Type::HalfFloat: {
-            const auto half_meta = std::get_if<MetaHalfArithmetic>(&operation.GetMeta());
-            ASSERT(half_meta);
-
-            switch (half_meta->types.at(operand_index)) {
-            case Tegra::Shader::HalfType::H0_H1:
-                return "toHalf2(" + value + ')';
-            case Tegra::Shader::HalfType::F32:
-                return "vec2(" + value + ')';
-            case Tegra::Shader::HalfType::H0_H0:
-                return "vec2(toHalf2(" + value + ")[0])";
-            case Tegra::Shader::HalfType::H1_H1:
-                return "vec2(toHalf2(" + value + ")[1])";
-            }
-        }
-        default:
-            return CastOperand(value, type);
-        }
+        return CastOperand(VisitOperand(operation, operand_index), type);
     }
 
     std::string CastOperand(const std::string& value, Type type) const {
@@ -650,9 +627,7 @@ private:
         case Type::Uint:
             return "ftou(" + value + ')';
         case Type::HalfFloat:
-            // Can't be handled as a stand-alone value
-            UNREACHABLE();
-            return value;
+            return "toHalf2(" + value + ')';
         }
         UNREACHABLE();
         return value;
@@ -1071,6 +1046,25 @@ private:
         const std::string max = VisitOperand(operation, 2, Type::Float);
         const std::string clamped = "clamp(" + value + ", vec2(" + min + "), vec2(" + max + "))";
         return ApplyPrecise(operation, BitwiseCastResult(clamped, Type::HalfFloat));
+    }
+
+    std::string HUnpack(Operation operation) {
+        const std::string operand{VisitOperand(operation, 0, Type::HalfFloat)};
+        const auto value = [&]() -> std::string {
+            switch (std::get<Tegra::Shader::HalfType>(operation.GetMeta())) {
+            case Tegra::Shader::HalfType::H0_H1:
+                return operand;
+            case Tegra::Shader::HalfType::F32:
+                return "vec2(fromHalf2(" + operand + "))";
+            case Tegra::Shader::HalfType::H0_H0:
+                return "vec2(" + operand + "[0])";
+            case Tegra::Shader::HalfType::H1_H1:
+                return "vec2(" + operand + "[1])";
+            }
+            UNREACHABLE();
+            return "0";
+        }();
+        return "fromHalf2(" + value + ')';
     }
 
     std::string HMergeF32(Operation operation) {
@@ -1508,6 +1502,7 @@ private:
         &GLSLDecompiler::Absolute<Type::HalfFloat>,
         &GLSLDecompiler::HNegate,
         &GLSLDecompiler::HClamp,
+        &GLSLDecompiler::HUnpack,
         &GLSLDecompiler::HMergeF32,
         &GLSLDecompiler::HMergeH0,
         &GLSLDecompiler::HMergeH1,

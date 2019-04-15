@@ -189,7 +189,11 @@ Node ShaderIR::UnpackHalfImmediate(Instruction instr, bool has_negation) {
     const Node first_negate = GetPredicate(instr.half_imm.first_negate != 0);
     const Node second_negate = GetPredicate(instr.half_imm.second_negate != 0);
 
-    return Operation(OperationCode::HNegate, HALF_NO_PRECISE, value, first_negate, second_negate);
+    return Operation(OperationCode::HNegate, NO_PRECISE, value, first_negate, second_negate);
+}
+
+Node ShaderIR::UnpackHalfFloat(Node value, Tegra::Shader::HalfType type) {
+    return Operation(OperationCode::HUnpack, type, value);
 }
 
 Node ShaderIR::HalfMerge(Node dest, Node src, Tegra::Shader::HalfMerge merge) {
@@ -209,10 +213,10 @@ Node ShaderIR::HalfMerge(Node dest, Node src, Tegra::Shader::HalfMerge merge) {
 
 Node ShaderIR::GetOperandAbsNegHalf(Node value, bool absolute, bool negate) {
     if (absolute) {
-        value = Operation(OperationCode::HAbsolute, HALF_NO_PRECISE, value);
+        value = Operation(OperationCode::HAbsolute, NO_PRECISE, value);
     }
     if (negate) {
-        value = Operation(OperationCode::HNegate, HALF_NO_PRECISE, value, GetPredicate(true),
+        value = Operation(OperationCode::HNegate, NO_PRECISE, value, GetPredicate(true),
                           GetPredicate(true));
     }
     return value;
@@ -224,7 +228,7 @@ Node ShaderIR::GetSaturatedHalfFloat(Node value, bool saturate) {
     }
     const Node positive_zero = Immediate(std::copysignf(0, 1));
     const Node positive_one = Immediate(1.0f);
-    return Operation(OperationCode::HClamp, HALF_NO_PRECISE, value, positive_zero, positive_one);
+    return Operation(OperationCode::HClamp, NO_PRECISE, value, positive_zero, positive_one);
 }
 
 Node ShaderIR::GetPredicateComparisonFloat(PredCondition condition, Node op_a, Node op_b) {
@@ -292,8 +296,8 @@ Node ShaderIR::GetPredicateComparisonInteger(PredCondition condition, bool is_si
     return predicate;
 }
 
-Node ShaderIR::GetPredicateComparisonHalf(Tegra::Shader::PredCondition condition,
-                                          const MetaHalfArithmetic& meta, Node op_a, Node op_b) {
+Node ShaderIR::GetPredicateComparisonHalf(Tegra::Shader::PredCondition condition, Node op_a,
+                                          Node op_b) {
     const std::unordered_map<PredCondition, OperationCode> PredicateComparisonTable = {
         {PredCondition::LessThan, OperationCode::Logical2HLessThan},
         {PredCondition::Equal, OperationCode::Logical2HEqual},
@@ -311,7 +315,7 @@ Node ShaderIR::GetPredicateComparisonHalf(Tegra::Shader::PredCondition condition
     UNIMPLEMENTED_IF_MSG(comparison == PredicateComparisonTable.end(),
                          "Unknown predicate comparison operation");
 
-    const Node predicate = Operation(comparison->second, meta, op_a, op_b);
+    const Node predicate = Operation(comparison->second, NO_PRECISE, op_a, op_b);
 
     return predicate;
 }

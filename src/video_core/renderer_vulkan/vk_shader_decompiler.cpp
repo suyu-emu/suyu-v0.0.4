@@ -76,13 +76,9 @@ constexpr u32 GetGenericAttributeLocation(Attribute::Index attribute) {
 
 /// Returns true if an object has to be treated as precise
 bool IsPrecise(Operation operand) {
-    const auto& meta = operand.GetMeta();
-
+    const auto& meta{operand.GetMeta()};
     if (std::holds_alternative<MetaArithmetic>(meta)) {
         return std::get<MetaArithmetic>(meta).precise;
-    }
-    if (std::holds_alternative<MetaHalfArithmetic>(meta)) {
-        return std::get<MetaHalfArithmetic>(meta).precise;
     }
     return false;
 }
@@ -749,6 +745,11 @@ private:
         return {};
     }
 
+    Id HUnpack(Operation operation) {
+        UNIMPLEMENTED();
+        return {};
+    }
+
     Id HMergeF32(Operation operation) {
         UNIMPLEMENTED();
         return {};
@@ -1222,6 +1223,7 @@ private:
         &SPIRVDecompiler::Unary<&Module::OpFAbs, Type::HalfFloat>,
         &SPIRVDecompiler::HNegate,
         &SPIRVDecompiler::HClamp,
+        &SPIRVDecompiler::HUnpack,
         &SPIRVDecompiler::HMergeF32,
         &SPIRVDecompiler::HMergeH0,
         &SPIRVDecompiler::HMergeH1,
