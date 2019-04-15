@@ -1244,10 +1244,9 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
         return ERR_INVALID_THREAD_PRIORITY;
     }
 
-    const std::string name = fmt::format("thread-{:X}", entry_point);
     auto& kernel = system.Kernel();
     CASCADE_RESULT(SharedPtr<Thread> thread,
-                   Thread::Create(kernel, name, entry_point, priority, arg, processor_id, stack_top,
+                   Thread::Create(kernel, "", entry_point, priority, arg, processor_id, stack_top,
                                   *current_process));
 
     const auto new_thread_handle = current_process->GetHandleTable().Create(thread);
@@ -1257,6 +1256,10 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
         return new_thread_handle.Code();
     }
     *out_handle = *new_thread_handle;
+
+    // Set the thread name for debugging purposes.
+    thread->SetName(
+        fmt::format("thread[entry_point={:X}, handle={:X}]", entry_point, *new_thread_handle));
 
     system.CpuCore(thread->GetProcessorID()).PrepareReschedule();
 

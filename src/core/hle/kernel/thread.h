@@ -102,6 +102,11 @@ public:
     std::string GetName() const override {
         return name;
     }
+
+    void SetName(std::string new_name) {
+        name = std::move(new_name);
+    }
+
     std::string GetTypeName() const override {
         return "Thread";
     }
