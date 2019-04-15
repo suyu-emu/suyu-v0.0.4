@@ -90,6 +90,34 @@ public:
         return params;
     }
 
+    u32 GetWidth() const {
+        return params.GetMipWidth(GetBaseLevel());
+    }
+
+    u32 GetHeight() const {
+        return params.GetMipHeight(GetBaseLevel());
+    }
+
+    u32 GetDepth() const {
+        return params.GetMipDepth(GetBaseLevel());
+    }
+
+    u32 GetBaseLayer() const {
+        return key.base_layer;
+    }
+
+    u32 GetNumLayers() const {
+        return key.num_layers;
+    }
+
+    u32 GetBaseLevel() const {
+        return key.base_level;
+    }
+
+    u32 GetNumLevels() const {
+        return key.num_levels;
+    }
+
 private:
     struct TextureView {
         OGLTexture texture;
@@ -128,7 +156,8 @@ public:
 
 protected:
     CachedSurfaceView* TryFastGetSurfaceView(VAddr cpu_addr, u8* host_ptr,
-                                             const SurfaceParams& params, bool preserve_contents,
+                                             const SurfaceParams& new_params,
+                                             bool preserve_contents,
                                              const std::vector<CachedSurface*>& overlaps);
 
     std::unique_ptr<CachedSurface> CreateSurface(const SurfaceParams& params);
@@ -136,6 +165,9 @@ protected:
 private:
     CachedSurfaceView* SurfaceCopy(VAddr cpu_addr, u8* host_ptr, const SurfaceParams& new_params,
                                    CachedSurface* old_surface, const SurfaceParams& old_params);
+
+    CachedSurfaceView* TryCopyAsViews(VAddr cpu_addr, u8* host_ptr, const SurfaceParams& new_params,
+                                      const std::vector<CachedSurface*>& overlaps);
 };
 
 } // namespace OpenGL

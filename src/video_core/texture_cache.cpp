@@ -316,7 +316,7 @@ std::size_t SurfaceParams::GetInnerMemorySize(bool as_host_size, bool layer_only
         size += GetInnerMipmapMemorySize(level, as_host_size, layer_only, uncompressed);
     }
     if (is_tiled && !as_host_size) {
-        //size = Common::AlignUp(size, Tegra::Texture::GetGOBSize() * block_height * block_depth);
+        size = Common::AlignUp(size, Tegra::Texture::GetGOBSize() * block_height * block_depth);
     }
     return size;
 }

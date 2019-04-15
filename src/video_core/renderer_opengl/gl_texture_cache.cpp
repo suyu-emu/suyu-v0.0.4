@@ -518,16 +518,14 @@ TextureCacheOpenGL::TextureCacheOpenGL(Core::System& system,
 TextureCacheOpenGL::~TextureCacheOpenGL() = default;
 
 CachedSurfaceView* TextureCacheOpenGL::TryFastGetSurfaceView(
-    VAddr cpu_addr, u8* host_ptr, const SurfaceParams& params, bool preserve_contents,
+    VAddr cpu_addr, u8* host_ptr, const SurfaceParams& new_params, bool preserve_contents,
     const std::vector<CachedSurface*>& overlaps) {
     if (overlaps.size() > 1) {
-        return nullptr;
+        return TryCopyAsViews(cpu_addr, host_ptr, new_params, overlaps);
     }
 
     const auto& old_surface{overlaps[0]};
     const auto& old_params{old_surface->GetSurfaceParams()};
-    const auto& new_params{params};
-
     if (old_params.GetTarget() == new_params.GetTarget() &&
         old_params.GetDepth() == new_params.GetDepth() && old_params.GetDepth() == 1 &&
         old_params.GetNumLevels() == new_params.GetNumLevels() &&
@@ -559,6 +557,54 @@ CachedSurfaceView* TextureCacheOpenGL::SurfaceCopy(VAddr cpu_addr, u8* host_ptr,
         glCopyImageSubData(old_surface->GetTexture(), old_surface->GetTarget(), level, 0, 0, 0,
                            new_surface->GetTexture(), new_surface->GetTarget(), level, 0, 0, 0,
                            width, height, 1);
+    }
+
+    new_surface->MarkAsModified(true);
+
+    // TODO(Rodrigo): Add an entry to directly get the superview
+    return new_surface->GetView(cpu_addr, new_params);
+}
+
+CachedSurfaceView* TextureCacheOpenGL::TryCopyAsViews(VAddr cpu_addr, u8* host_ptr,
+                                                      const SurfaceParams& new_params,
+                                                      const std::vector<CachedSurface*>& overlaps) {
+    if (new_params.GetTarget() == SurfaceTarget::Texture1D ||
+        new_params.GetTarget() == SurfaceTarget::Texture1DArray ||
+        new_params.GetTarget() == SurfaceTarget::Texture3D) {
+        // Non-2D textures are not handled at the moment in this fast path.
+        return nullptr;
+    }
+
+    CachedSurface* const new_surface{GetUncachedSurface(new_params)};
+    // TODO(Rodrigo): Move this down
+    Register(new_surface, cpu_addr, host_ptr);
+
+    // TODO(Rodrigo): Find a way to avoid heap allocations here.
+    std::vector<CachedSurfaceView*> views;
+    views.reserve(overlaps.size());
+    for (const auto& overlap : overlaps) {
+        const auto view{
+            new_surface->TryGetView(overlap->GetCpuAddr(), overlap->GetSurfaceParams())};
+        if (!view) {
+            // TODO(Rodrigo): Remove this
+            Unregister(new_surface);
+            return nullptr;
+        }
+        views.push_back(view);
+    }
+
+    // TODO(Rodrigo): It's possible that these method leaves some unloaded textures if the data has
+    // been uploaded to guest memory but not used as a surface previously.
+    for (std::size_t i = 0; i < overlaps.size(); ++i) {
+        const auto& overlap{overlaps[i]};
+        const auto& view{views[i]};
+        for (u32 overlap_level = 0; overlap_level < view->GetNumLevels(); ++overlap_level) {
+            const u32 super_level{view->GetBaseLevel() + overlap_level};
+            glCopyImageSubData(overlap->GetTexture(), overlap->GetTarget(), overlap_level, 0, 0, 0,
+                               new_surface->GetTexture(), new_surface->GetTarget(), super_level, 0,
+                               0, view->GetBaseLayer(), view->GetWidth(), view->GetHeight(),
+                               view->GetNumLayers());
+        }
     }
 
     new_surface->MarkAsModified(true);
