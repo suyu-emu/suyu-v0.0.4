@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstddef>
+#include <vector>
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
@@ -51,7 +52,11 @@ public:
                     u32 address_high;
                     u32 address_low;
                     u32 pitch;
-                    u32 block_dimensions;
+                    union {
+                        BitField<0, 4, u32> block_width;
+                        BitField<4, 4, u32> block_height;
+                        BitField<8, 4, u32> block_depth;
+                    };
                     u32 width;
                     u32 height;
                     u32 depth;
@@ -62,6 +67,18 @@ public:
                     GPUVAddr Address() const {
                         return static_cast<GPUVAddr>((static_cast<GPUVAddr>(address_high) << 32) |
                                                      address_low);
+                    }
+
+                    u32 BlockWidth() const {
+                        return 1U << block_width.Value();
+                    }
+
+                    u32 BlockHeight() const {
+                        return 1U << block_height.Value();
+                    }
+
+                    u32 BlockDepth() const {
+                        return 1U << block_depth.Value();
                     }
                 } dest;
 
@@ -81,6 +98,8 @@ public:
 
     struct {
         u32 write_offset = 0;
+        u32 copy_size = 0;
+        std::vector<u8> inner_buffer;
     } state{};
 
 private:
@@ -88,7 +107,8 @@ private:
     VideoCore::RasterizerInterface& rasterizer;
     MemoryManager& memory_manager;
 
-    void ProcessData(u32 data);
+    void ProcessExec();
+    void ProcessData(u32 data, bool is_last_call);
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \
