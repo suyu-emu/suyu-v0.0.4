@@ -220,11 +220,6 @@ void Thread::SetPriority(u32 priority) {
     UpdatePriority();
 }
 
-void Thread::BoostPriority(u32 priority) {
-    scheduler->SetThreadPriority(this, priority);
-    current_priority = priority;
-}
-
 void Thread::SetWaitSynchronizationResult(ResultCode result) {
     context.cpu_registers[0] = result.raw;
 }

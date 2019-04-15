@@ -136,12 +136,6 @@ public:
      */
     void SetPriority(u32 priority);
 
-    /**
-     * Temporarily boosts the thread's priority until the next time it is scheduled
-     * @param priority The new priority
-     */
-    void BoostPriority(u32 priority);
-
     /// Adds a thread to the list of threads that are waiting for a lock held by this thread.
     void AddMutexWaiter(SharedPtr<Thread> thread);
 
