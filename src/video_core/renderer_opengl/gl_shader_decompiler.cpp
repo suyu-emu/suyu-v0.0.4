@@ -1078,8 +1078,8 @@ private:
     }
 
     std::string HMergeH0(Operation operation) {
-        return "fromHalf2(vec2(toHalf2(" + Visit(operation[0]) + ")[1], toHalf2(" +
-               Visit(operation[1]) + ")[0]))";
+        return "fromHalf2(vec2(toHalf2(" + Visit(operation[1]) + ")[0], toHalf2(" +
+               Visit(operation[0]) + ")[1]))";
     }
 
     std::string HMergeH1(Operation operation) {
