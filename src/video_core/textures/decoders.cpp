@@ -288,18 +288,20 @@ void UnswizzleSubrect(u32 subrect_width, u32 subrect_height, u32 dest_pitch, u32
     }
 }
 
-void SwizzleKepler(u32 width, u32 height, u32 dst_x, u32 dst_y, u32 block_height,
-                   std::size_t copy_size, u8* source_data, u8* swizzle_data) {
+void SwizzleKepler(const u32 width, const u32 height, const u32 dst_x, const u32 dst_y,
+                   const u32 block_height, const std::size_t copy_size, const u8* source_data,
+                   u8* swizzle_data) {
     const u32 image_width_in_gobs{(width + gob_size_x - 1) / gob_size_x};
     std::size_t count = 0;
-    for (u32 y = dst_y; y < height && count < copy_size; ++y) {
-        const u32 gob_address_y =
+    for (std::size_t y = dst_y; y < height && count < copy_size; ++y) {
+        const std::size_t gob_address_y =
             (y / (gob_size_y * block_height)) * gob_size * block_height * image_width_in_gobs +
             ((y % (gob_size_y * block_height)) / gob_size_y) * gob_size;
         const auto& table = legacy_swizzle_table[y % gob_size_y];
-        for (u32 x = dst_x; x < width && count < copy_size; ++x) {
-            const u32 gob_address = gob_address_y + (x / gob_size_x) * gob_size * block_height;
-            const u32 swizzled_offset = gob_address + table[x % gob_size_x];
+        for (std::size_t x = dst_x; x < width && count < copy_size; ++x) {
+            const std::size_t gob_address =
+                gob_address_y + (x / gob_size_x) * gob_size * block_height;
+            const std::size_t swizzled_offset = gob_address + table[x % gob_size_x];
             const u8* source_line = source_data + count;
             u8* dest_addr = swizzle_data + swizzled_offset;
             count++;
