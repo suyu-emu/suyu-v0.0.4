@@ -1208,7 +1208,7 @@ static void ExitProcess(Core::System& system) {
 /// Creates a new thread
 static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr entry_point, u64 arg,
                                VAddr stack_top, u32 priority, s32 processor_id) {
-    LOG_TRACE(Kernel_SVC,
+    LOG_DEBUG(Kernel_SVC,
               "called entrypoint=0x{:08X}, arg=0x{:08X}, stacktop=0x{:08X}, "
               "threadpriority=0x{:08X}, processorid=0x{:08X} : created handle=0x{:08X}",
               entry_point, arg, stack_top, priority, processor_id, *out_handle);
@@ -1266,7 +1266,7 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
 
 /// Starts the thread for the provided handle
 static ResultCode StartThread(Core::System& system, Handle thread_handle) {
-    LOG_TRACE(Kernel_SVC, "called thread=0x{:08X}", thread_handle);
+    LOG_DEBUG(Kernel_SVC, "called thread=0x{:08X}", thread_handle);
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
     const SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
@@ -1289,7 +1289,7 @@ static ResultCode StartThread(Core::System& system, Handle thread_handle) {
 
 /// Called when a thread exits
 static void ExitThread(Core::System& system) {
-    LOG_TRACE(Kernel_SVC, "called, pc=0x{:08X}", system.CurrentArmInterface().GetPC());
+    LOG_DEBUG(Kernel_SVC, "called, pc=0x{:08X}", system.CurrentArmInterface().GetPC());
 
     auto* const current_thread = system.CurrentScheduler().GetCurrentThread();
     current_thread->Stop();
@@ -1299,7 +1299,7 @@ static void ExitThread(Core::System& system) {
 
 /// Sleep the current thread
 static void SleepThread(Core::System& system, s64 nanoseconds) {
-    LOG_TRACE(Kernel_SVC, "called nanoseconds={}", nanoseconds);
+    LOG_DEBUG(Kernel_SVC, "called nanoseconds={}", nanoseconds);
 
     enum class SleepType : s64 {
         YieldWithoutLoadBalancing = 0,
