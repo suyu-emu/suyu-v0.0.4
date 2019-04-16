@@ -234,6 +234,7 @@ void MemoryManager::ReadBlockUnsafe(GPUVAddr src_addr, void* dest_buffer, std::s
     while (remaining_size > 0) {
         const std::size_t copy_amount{
             std::min(static_cast<std::size_t>(page_size) - page_offset, remaining_size)};
+        const u8* src_ptr{page_table.pointers[page_index] + page_offset};
         std::memcpy(dest_buffer, src_ptr, copy_amount);
         page_index++;
         page_offset = 0;
@@ -277,6 +278,7 @@ void MemoryManager::WriteBlockUnsafe(GPUVAddr dest_addr, const void* src_buffer,
     while (remaining_size > 0) {
         const std::size_t copy_amount{
             std::min(static_cast<std::size_t>(page_size) - page_offset, remaining_size)};
+        u8* dest_ptr{page_table.pointers[page_index] + page_offset};
         std::memcpy(dest_ptr, src_buffer, copy_amount);
         page_index++;
         page_offset = 0;
