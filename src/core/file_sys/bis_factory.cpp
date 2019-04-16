@@ -3,8 +3,12 @@
 // Refer to the license.txt file included.
 
 #include <fmt/format.h>
+#include "common/file_util.h"
+#include "core/core.h"
 #include "core/file_sys/bis_factory.h"
+#include "core/file_sys/mode.h"
 #include "core/file_sys/registered_cache.h"
+#include "core/settings.h"
 
 namespace FileSys {
 
@@ -102,6 +106,34 @@ VirtualFile BISFactory::OpenPartitionStorage(BisPartitionId id) const {
 
 VirtualDir BISFactory::GetImageDirectory() const {
     return GetOrCreateDirectoryRelative(nand_root, "/user/Album");
+}
+
+u64 BISFactory::GetSystemNANDFreeSpace() const {
+    const auto sys_dir = GetOrCreateDirectoryRelative(nand_root, "/system");
+    if (sys_dir == nullptr)
+        return 0;
+
+    return GetSystemNANDTotalSpace() - sys_dir->GetSize();
+}
+
+u64 BISFactory::GetSystemNANDTotalSpace() const {
+    return static_cast<u64>(Settings::values.nand_system_size);
+}
+
+u64 BISFactory::GetUserNANDFreeSpace() const {
+    const auto usr_dir = GetOrCreateDirectoryRelative(nand_root, "/user");
+    if (usr_dir == nullptr)
+        return 0;
+
+    return GetUserNANDTotalSpace() - usr_dir->GetSize();
+}
+
+u64 BISFactory::GetUserNANDTotalSpace() const {
+    return static_cast<u64>(Settings::values.nand_user_size);
+}
+
+u64 BISFactory::GetFullNANDTotalSpace() const {
+    return static_cast<u64>(Settings::values.nand_total_size);
 }
 
 } // namespace FileSys

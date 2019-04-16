@@ -55,6 +55,12 @@ public:
 
     VirtualDir GetImageDirectory() const;
 
+    u64 GetSystemNANDFreeSpace() const;
+    u64 GetSystemNANDTotalSpace() const;
+    u64 GetUserNANDFreeSpace() const;
+    u64 GetUserNANDTotalSpace() const;
+    u64 GetFullNANDTotalSpace() const;
+
 private:
     VirtualDir nand_root;
     VirtualDir load_root;
