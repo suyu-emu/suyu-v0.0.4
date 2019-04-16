@@ -6,6 +6,7 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/sdmc_factory.h"
 #include "core/file_sys/xts_archive.h"
+#include "core/settings.h"
 
 namespace FileSys {
 
@@ -38,6 +39,14 @@ PlaceholderCache* SDMCFactory::GetSDMCPlaceholder() const {
 
 VirtualDir SDMCFactory::GetImageDirectory() const {
     return GetOrCreateDirectoryRelative(dir, "/Nintendo/Album");
+}
+
+u64 SDMCFactory::GetSDMCFreeSpace() const {
+    return GetSDMCTotalSpace() - dir->GetSize();
+}
+
+u64 SDMCFactory::GetSDMCTotalSpace() const {
+    return static_cast<u64>(Settings::values.sdmc_size);
 }
 
 } // namespace FileSys

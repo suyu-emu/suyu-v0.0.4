@@ -28,6 +28,9 @@ public:
 
     VirtualDir GetImageDirectory() const;
 
+    u64 GetSDMCFreeSpace() const;
+    u64 GetSDMCTotalSpace() const;
+
 private:
     VirtualDir dir;
 
