@@ -62,7 +62,7 @@ bool VirtualMemoryArea::CanBeMergedWith(const VirtualMemoryArea& next) const {
     return true;
 }
 
-VMManager::VMManager() {
+VMManager::VMManager(Core::System& system) : system{system} {
     // Default to assuming a 39-bit address space. This way we have a sane
     // starting point with executables that don't provide metadata.
     Reset(FileSys::ProgramAddressSpaceType::Is39Bit);
@@ -111,7 +111,6 @@ ResultVal<VMManager::VMAHandle> VMManager::MapMemoryBlock(VAddr target,
     VirtualMemoryArea& final_vma = vma_handle->second;
     ASSERT(final_vma.size == size);
 
-    auto& system = Core::System::GetInstance();
     system.ArmInterface(0).MapBackingMemory(target, size, block->data() + offset,
                                             VMAPermission::ReadWriteExecute);
     system.ArmInterface(1).MapBackingMemory(target, size, block->data() + offset,
@@ -140,7 +139,6 @@ ResultVal<VMManager::VMAHandle> VMManager::MapBackingMemory(VAddr target, u8* me
     VirtualMemoryArea& final_vma = vma_handle->second;
     ASSERT(final_vma.size == size);
 
-    auto& system = Core::System::GetInstance();
     system.ArmInterface(0).MapBackingMemory(target, size, memory, VMAPermission::ReadWriteExecute);
     system.ArmInterface(1).MapBackingMemory(target, size, memory, VMAPermission::ReadWriteExecute);
     system.ArmInterface(2).MapBackingMemory(target, size, memory, VMAPermission::ReadWriteExecute);
@@ -223,7 +221,6 @@ ResultCode VMManager::UnmapRange(VAddr target, u64 size) {
 
     ASSERT(FindVMA(target)->second.size >= size);
 
-    auto& system = Core::System::GetInstance();
     system.ArmInterface(0).UnmapMemory(target, size);
     system.ArmInterface(1).UnmapMemory(target, size);
     system.ArmInterface(2).UnmapMemory(target, size);
@@ -376,7 +373,7 @@ ResultCode VMManager::UnmapCodeMemory(VAddr dst_address, VAddr src_address, u64 
     Reprotect(src_vma_iter, VMAPermission::ReadWrite);
 
     if (dst_memory_state == MemoryState::ModuleCode) {
-        Core::System::GetInstance().InvalidateCpuInstructionCaches();
+        system.InvalidateCpuInstructionCaches();
     }
 
     return unmap_result;
