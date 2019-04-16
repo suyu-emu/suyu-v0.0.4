@@ -1776,7 +1776,7 @@ static ResultCode SetThreadCoreMask(Core::System& system, Handle thread_handle, 
 
     if (core == OnlyChangeMask) {
         core = thread->GetIdealCore();
-    } else if (core >= Core::NUM_CPU_CORES && core != static_cast<u32>(-1)) {
+    } else if (core >= Core::NUM_CPU_CORES && core != static_cast<u32>(THREADPROCESSORID_DONT_UPDATE)) {
         LOG_ERROR(Kernel_SVC, "Invalid core specified, got {}", core);
         return ERR_INVALID_PROCESSOR_ID;
     }
