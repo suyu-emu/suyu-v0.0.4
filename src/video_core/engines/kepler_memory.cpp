@@ -10,7 +10,6 @@
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_base.h"
-#include "video_core/textures/convert.h"
 #include "video_core/textures/decoders.h"
 
 namespace Tegra::Engines {
@@ -47,13 +46,12 @@ void KeplerMemory::ProcessExec() {
 
 void KeplerMemory::ProcessData(u32 data, bool is_last_call) {
     const u32 sub_copy_size = std::min(4U, state.copy_size - state.write_offset);
-    std::memcpy(&state.inner_buffer[state.write_offset], &data, sub_copy_size);
+    std::memcpy(&state.inner_buffer[state.write_offset], &regs.data, sub_copy_size);
     state.write_offset += sub_copy_size;
     if (is_last_call) {
-        UNIMPLEMENTED_IF_MSG(regs.exec.linear == 0, "Block Linear Copy is not implemented");
+        const GPUVAddr address{regs.dest.Address()};
+        const auto host_ptr = memory_manager.GetPointer(address);
         if (regs.exec.linear != 0) {
-            const GPUVAddr address{regs.dest.Address()};
-            const auto host_ptr = memory_manager.GetPointer(address);
             // We have to invalidate the destination region to evict any outdated surfaces from the
             // cache. We do this before actually writing the new data because the destination
             // address might contain a dirty surface that will have to be written back to memory.
@@ -61,6 +59,17 @@ void KeplerMemory::ProcessData(u32 data, bool is_last_call) {
             rasterizer.InvalidateRegion(ToCacheAddr(host_ptr), state.copy_size);
             std::memcpy(host_ptr, state.inner_buffer.data(), state.copy_size);
             system.GPU().Maxwell3D().dirty_flags.OnMemoryWrite();
+        } else {
+            UNIMPLEMENTED_IF(regs.dest.z != 0);
+            UNIMPLEMENTED_IF(regs.dest.depth != 1);
+            UNIMPLEMENTED_IF(regs.dest.BlockWidth() != 1);
+            UNIMPLEMENTED_IF(regs.dest.BlockDepth() != 1);
+            const std::size_t dst_size = Tegra::Texture::CalculateSize(
+                true, 1, regs.dest.width, regs.dest.height, 1, regs.dest.BlockHeight(), 1);
+            rasterizer.InvalidateRegion(ToCacheAddr(host_ptr), dst_size);
+            Tegra::Texture::SwizzleKepler(regs.dest.width, regs.dest.height, regs.dest.x,
+                                          regs.dest.y, regs.dest.BlockHeight(), state.copy_size,
+                                          state.inner_buffer.data(), host_ptr);
         }
     }
 }
