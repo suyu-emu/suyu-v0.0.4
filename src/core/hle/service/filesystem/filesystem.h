@@ -216,12 +216,6 @@ public:
     ResultVal<FileSys::VirtualDir> OpenDirectory(const std::string& path);
 
     /**
-     * Get the free space
-     * @return The number of free bytes in the archive
-     */
-    u64 GetFreeSpaceSize() const;
-
-    /**
      * Get the type of the specified path
      * @return The type of the specified path or error code
      */

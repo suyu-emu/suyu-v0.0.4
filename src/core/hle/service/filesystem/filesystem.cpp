@@ -29,11 +29,6 @@
 
 namespace Service::FileSystem {
 
-// Size of emulated sd card free space, reported in bytes.
-// Just using 32GB because thats reasonable
-// TODO(DarkLordZach): Eventually make this configurable in settings.
-constexpr u64 EMULATED_SD_REPORTED_SIZE = 32000000000;
-
 // A default size for normal/journal save data size if application control metadata cannot be found.
 // This should be large enough to satisfy even the most extreme requirements (~4.2GB)
 constexpr u64 SUFFICIENT_SAVE_DATA_SIZE = 0xF0000000;
@@ -225,13 +220,6 @@ ResultVal<FileSys::VirtualDir> VfsDirectoryServiceWrapper::OpenDirectory(const s
         return FileSys::ERROR_PATH_NOT_FOUND;
     }
     return MakeResult(dir);
-}
-
-u64 VfsDirectoryServiceWrapper::GetFreeSpaceSize() const {
-    if (backing->IsWritable())
-        return EMULATED_SD_REPORTED_SIZE;
-
-    return 0;
 }
 
 ResultVal<FileSys::EntryType> VfsDirectoryServiceWrapper::GetEntryType(

@@ -30,6 +30,18 @@
 
 namespace Service::FileSystem {
 
+struct SizeGetter {
+    std::function<u64()> free;
+    std::function<u64()> total;
+
+    static SizeGetter FromStorageId(const FileSystemController& fsc, FileSys::StorageId id) {
+        return {
+            [&fsc, id] { return fsc.GetFreeSpaceSize(id); },
+            [&fsc, id] { return fsc.GetTotalSpaceSize(id); },
+        };
+    }
+};
+
 enum class FileSystemType : u8 {
     Invalid0 = 0,
     Invalid1 = 1,
@@ -289,8 +301,8 @@ private:
 
 class IFileSystem final : public ServiceFramework<IFileSystem> {
 public:
-    explicit IFileSystem(FileSys::VirtualDir backend)
-        : ServiceFramework("IFileSystem"), backend(std::move(backend)) {
+    explicit IFileSystem(FileSys::VirtualDir backend, SizeGetter size)
+        : ServiceFramework("IFileSystem"), backend(std::move(backend)), size(std::move(size)) {
         static const FunctionInfo functions[] = {
             {0, &IFileSystem::CreateFile, "CreateFile"},
             {1, &IFileSystem::DeleteFile, "DeleteFile"},
@@ -467,8 +479,25 @@ public:
         rb.Push(RESULT_SUCCESS);
     }
 
+    void GetFreeSpaceSize(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_FS, "called");
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(size.free());
+    }
+
+    void GetTotalSpaceSize(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_FS, "called");
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(size.total());
+    }
+
 private:
     VfsDirectoryServiceWrapper backend;
+    SizeGetter size;
 };
 
 class ISaveDataInfoReader final : public ServiceFramework<ISaveDataInfoReader> {
