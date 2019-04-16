@@ -75,15 +75,15 @@ private:
         const auto ticket = ctx.ReadBuffer();
         const auto cert = ctx.ReadBuffer(1);
 
-        if (ticket.size() < sizeof(Core::Crypto::TicketRaw)) {
+        if (ticket.size() < sizeof(Core::Crypto::Ticket)) {
             LOG_ERROR(Service_ETicket, "The input buffer is not large enough!");
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERROR_INVALID_ARGUMENT);
             return;
         }
 
-        Core::Crypto::TicketRaw raw;
-        std::memcpy(raw.data(), ticket.data(), sizeof(Core::Crypto::TicketRaw));
+        Core::Crypto::Ticket raw{};
+        std::memcpy(&raw, ticket.data(), sizeof(Core::Crypto::Ticket));
 
         if (!keys.AddTicketPersonalized(raw)) {
             LOG_ERROR(Service_ETicket, "The ticket could not be imported!");
@@ -203,7 +203,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u64>(ticket.size());
+        rb.Push<u64>(ticket.GetSize());
     }
 
     void GetPersonalizedTicketSize(Kernel::HLERequestContext& ctx) {
@@ -219,7 +219,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u64>(ticket.size());
+        rb.Push<u64>(ticket.GetSize());
     }
 
     void GetCommonTicketData(Kernel::HLERequestContext& ctx) {
@@ -233,8 +233,8 @@ private:
 
         const auto ticket = keys.GetCommonTickets().at(rights_id);
 
-        const auto write_size = std::min(ticket.size(), ctx.GetWriteBufferSize());
-        ctx.WriteBuffer(ticket.data(), write_size);
+        const auto write_size = std::min(ticket.GetSize(), ctx.GetWriteBufferSize());
+        ctx.WriteBuffer(&ticket, write_size);
 
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
@@ -252,8 +252,8 @@ private:
 
         const auto ticket = keys.GetPersonalizedTickets().at(rights_id);
 
-        const auto write_size = std::min(ticket.size(), ctx.GetWriteBufferSize());
-        ctx.WriteBuffer(ticket.data(), write_size);
+        const auto write_size = std::min(ticket.GetSize(), ctx.GetWriteBufferSize());
+        ctx.WriteBuffer(&ticket, write_size);
 
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
