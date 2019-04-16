@@ -65,7 +65,10 @@ public:
     u8* GetPointer(GPUVAddr addr);
     const u8* GetPointer(GPUVAddr addr) const;
 
-    /*
+    // Returns true if the block is continous in host memory, false otherwise
+    bool IsBlockContinous(const GPUVAddr start, const std::size_t size);
+
+    /**
      * ReadBlock and WriteBlock are full read and write operations over virtual
      * GPU Memory. It's important to use these when GPU memory may not be continous
      * in the Host Memory counterpart. Note: This functions cause Host GPU Memory
@@ -75,7 +78,7 @@ public:
     void WriteBlock(GPUVAddr dest_addr, const void* src_buffer, const std::size_t size);
     void CopyBlock(GPUVAddr dest_addr, GPUVAddr src_addr, const std::size_t size);
 
-    /*
+    /**
      * ReadBlockUnsafe and WriteBlockUnsafe are special versions of ReadBlock and
      * WriteBlock respectively. In this versions, no flushing or invalidation is actually
      * done and their performance is similar to a memcpy. This functions can be used
