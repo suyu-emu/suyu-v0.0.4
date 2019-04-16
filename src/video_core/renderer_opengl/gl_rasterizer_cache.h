@@ -371,10 +371,6 @@ public:
         return memory_size;
     }
 
-    void Flush() override {
-        FlushGLBuffer();
-    }
-
     const OGLTexture& Texture() const {
         return texture;
     }
@@ -472,6 +468,11 @@ public:
 
     void SignalPreDrawCall();
     void SignalPostDrawCall();
+
+protected:
+    void FlushObjectInner(const Surface& object) override {
+        object->FlushGLBuffer();
+    }
 
 private:
     void LoadSurface(const Surface& surface);
