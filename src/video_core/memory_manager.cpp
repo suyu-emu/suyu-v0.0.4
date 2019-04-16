@@ -226,6 +226,22 @@ void MemoryManager::ReadBlock(GPUVAddr src_addr, void* dest_buffer, std::size_t 
     }
 }
 
+void MemoryManager::ReadBlockUnsafe(GPUVAddr src_addr, void* dest_buffer, std::size_t size) const {
+    std::size_t remaining_size{size};
+    std::size_t page_index{src_addr >> page_bits};
+    std::size_t page_offset{src_addr & page_mask};
+
+    while (remaining_size > 0) {
+        const std::size_t copy_amount{
+            std::min(static_cast<std::size_t>(page_size) - page_offset, remaining_size)};
+        std::memcpy(dest_buffer, src_ptr, copy_amount);
+        page_index++;
+        page_offset = 0;
+        dest_buffer = static_cast<u8*>(dest_buffer) + copy_amount;
+        remaining_size -= copy_amount;
+    }
+}
+
 void MemoryManager::WriteBlock(GPUVAddr dest_addr, const void* src_buffer, std::size_t size) {
     std::size_t remaining_size{size};
     std::size_t page_index{dest_addr >> page_bits};
@@ -246,6 +262,22 @@ void MemoryManager::WriteBlock(GPUVAddr dest_addr, const void* src_buffer, std::
             UNREACHABLE();
         }
 
+        page_index++;
+        page_offset = 0;
+        src_buffer = static_cast<const u8*>(src_buffer) + copy_amount;
+        remaining_size -= copy_amount;
+    }
+}
+
+void MemoryManager::WriteBlockUnsafe(GPUVAddr dest_addr, const void* src_buffer, std::size_t size) {
+    std::size_t remaining_size{size};
+    std::size_t page_index{dest_addr >> page_bits};
+    std::size_t page_offset{dest_addr & page_mask};
+
+    while (remaining_size > 0) {
+        const std::size_t copy_amount{
+            std::min(static_cast<std::size_t>(page_size) - page_offset, remaining_size)};
+        std::memcpy(dest_ptr, src_buffer, copy_amount);
         page_index++;
         page_offset = 0;
         src_buffer = static_cast<const u8*>(src_buffer) + copy_amount;
