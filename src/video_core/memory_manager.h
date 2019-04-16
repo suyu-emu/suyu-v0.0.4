@@ -65,7 +65,6 @@ public:
     u8* GetPointer(GPUVAddr addr);
     const u8* GetPointer(GPUVAddr addr) const;
 
-
     /*
      * ReadBlock and WriteBlock are full read and write operations over virtual
      * GPU Memory. It's important to use these when GPU memory may not be continous
@@ -89,7 +88,6 @@ public:
     void ReadBlockUnsafe(GPUVAddr src_addr, void* dest_buffer, const std::size_t size) const;
     void WriteBlockUnsafe(GPUVAddr dest_addr, const void* src_buffer, const std::size_t size);
     void CopyBlockUnsafe(GPUVAddr dest_addr, GPUVAddr src_addr, const std::size_t size);
-
 
 private:
     using VMAMap = std::map<GPUVAddr, VirtualMemoryArea>;
