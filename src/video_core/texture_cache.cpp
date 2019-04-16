@@ -32,12 +32,13 @@ SurfaceParams SurfaceParams::CreateForTexture(Core::System& system,
                                               const Tegra::Texture::FullTextureInfo& config) {
     SurfaceParams params;
     params.is_tiled = config.tic.IsTiled();
+    params.srgb_conversion = config.tic.IsSrgbConversionEnabled();
     params.block_width = params.is_tiled ? config.tic.BlockWidth() : 0,
     params.block_height = params.is_tiled ? config.tic.BlockHeight() : 0,
     params.block_depth = params.is_tiled ? config.tic.BlockDepth() : 0,
     params.tile_width_spacing = params.is_tiled ? (1 << config.tic.tile_width_spacing.Value()) : 1;
-    params.pixel_format =
-        PixelFormatFromTextureFormat(config.tic.format, config.tic.r_type.Value(), false);
+    params.pixel_format = PixelFormatFromTextureFormat(config.tic.format, config.tic.r_type.Value(),
+                                                       params.srgb_conversion);
     params.component_type = ComponentTypeFromTexture(config.tic.r_type.Value());
     params.type = GetFormatType(params.pixel_format);
     params.target = SurfaceTargetFromTextureType(config.tic.texture_type);
@@ -62,6 +63,7 @@ SurfaceParams SurfaceParams::CreateForDepthBuffer(
     Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout type) {
     SurfaceParams params;
     params.is_tiled = type == Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout::BlockLinear;
+    params.srgb_conversion = false;
     params.block_width = 1 << std::min(block_width, 5U);
     params.block_height = 1 << std::min(block_height, 5U);
     params.block_depth = 1 << std::min(block_depth, 5U);
@@ -85,6 +87,8 @@ SurfaceParams SurfaceParams::CreateForFramebuffer(Core::System& system, std::siz
     SurfaceParams params;
     params.is_tiled =
         config.memory_layout.type == Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout::BlockLinear;
+    params.srgb_conversion = config.format == Tegra::RenderTargetFormat::BGRA8_SRGB ||
+                             config.format == Tegra::RenderTargetFormat::RGBA8_SRGB;
     params.block_width = 1 << config.memory_layout.block_width;
     params.block_height = 1 << config.memory_layout.block_height;
     params.block_depth = 1 << config.memory_layout.block_depth;
@@ -113,6 +117,8 @@ SurfaceParams SurfaceParams::CreateForFermiCopySurface(
     const Tegra::Engines::Fermi2D::Regs::Surface& config) {
     SurfaceParams params{};
     params.is_tiled = !config.linear;
+    params.srgb_conversion = config.format == Tegra::RenderTargetFormat::BGRA8_SRGB ||
+                             config.format == Tegra::RenderTargetFormat::RGBA8_SRGB;
     params.block_width = params.is_tiled ? std::min(config.BlockWidth(), 32U) : 0,
     params.block_height = params.is_tiled ? std::min(config.BlockHeight(), 32U) : 0,
     params.block_depth = params.is_tiled ? std::min(config.BlockDepth(), 32U) : 0,
@@ -162,6 +168,7 @@ u32 SurfaceParams::GetMipBlockHeight(u32 level) const {
     if (level == 0) {
         return this->block_height;
     }
+
     const u32 height{GetMipHeight(level)};
     const u32 default_block_height{GetDefaultBlockHeight()};
     const u32 blocks_in_y{(height + default_block_height - 1) / default_block_height};
@@ -173,10 +180,12 @@ u32 SurfaceParams::GetMipBlockHeight(u32 level) const {
 }
 
 u32 SurfaceParams::GetMipBlockDepth(u32 level) const {
-    if (level == 0)
-        return block_depth;
-    if (target != SurfaceTarget::Texture3D)
+    if (level == 0) {
+        return this->block_depth;
+    }
+    if (IsLayered()) {
         return 1;
+    }
 
     const u32 depth{GetMipDepth(level)};
     u32 block_depth = 32;
@@ -192,7 +201,7 @@ u32 SurfaceParams::GetMipBlockDepth(u32 level) const {
 std::size_t SurfaceParams::GetGuestMipmapLevelOffset(u32 level) const {
     std::size_t offset = 0;
     for (u32 i = 0; i < level; i++) {
-        offset += GetInnerMipmapMemorySize(i, false, IsLayered(), false);
+        offset += GetInnerMipmapMemorySize(i, false, false);
     }
     return offset;
 }
@@ -200,21 +209,33 @@ std::size_t SurfaceParams::GetGuestMipmapLevelOffset(u32 level) const {
 std::size_t SurfaceParams::GetHostMipmapLevelOffset(u32 level) const {
     std::size_t offset = 0;
     for (u32 i = 0; i < level; i++) {
-        offset += GetInnerMipmapMemorySize(i, true, false, false);
+        offset += GetInnerMipmapMemorySize(i, true, false) * GetNumLayers();
     }
     return offset;
 }
 
 std::size_t SurfaceParams::GetHostMipmapSize(u32 level) const {
-    return GetInnerMipmapMemorySize(level, true, true, false) * GetNumLayers();
+    return GetInnerMipmapMemorySize(level, true, false) * GetNumLayers();
 }
 
 std::size_t SurfaceParams::GetGuestLayerSize() const {
-    return GetInnerMemorySize(false, true, false);
+    return GetLayerSize(false, false);
+}
+
+std::size_t SurfaceParams::GetLayerSize(bool as_host_size, bool uncompressed) const {
+    std::size_t size = 0;
+    for (u32 level = 0; level < num_levels; ++level) {
+        size += GetInnerMipmapMemorySize(level, as_host_size, uncompressed);
+    }
+    if (is_tiled && IsLayered()) {
+        return Common::AlignUp(size, Tegra::Texture::GetGOBSize() * block_height * block_depth);
+    }
+    return size;
 }
 
 std::size_t SurfaceParams::GetHostLayerSize(u32 level) const {
-    return GetInnerMipmapMemorySize(level, true, IsLayered(), false);
+    ASSERT(target != SurfaceTarget::Texture3D);
+    return GetInnerMipmapMemorySize(level, true, false);
 }
 
 u32 SurfaceParams::GetDefaultBlockWidth() const {
@@ -273,15 +294,6 @@ bool SurfaceParams::IsPixelFormatZeta() const {
 }
 
 void SurfaceParams::CalculateCachedValues() {
-    guest_size_in_bytes = GetInnerMemorySize(false, false, false);
-
-    // ASTC is uncompressed in software, in emulated as RGBA8
-    if (IsPixelFormatASTC(pixel_format)) {
-        host_size_in_bytes = static_cast<std::size_t>(width * height * depth) * 4ULL;
-    } else {
-        host_size_in_bytes = GetInnerMemorySize(true, false, false);
-    }
-
     switch (target) {
     case SurfaceTarget::Texture1D:
     case SurfaceTarget::Texture2D:
@@ -297,28 +309,30 @@ void SurfaceParams::CalculateCachedValues() {
     default:
         UNREACHABLE();
     }
+
+    guest_size_in_bytes = GetInnerMemorySize(false, false, false);
+
+    // ASTC is uncompressed in software, in emulated as RGBA8
+    if (IsPixelFormatASTC(pixel_format)) {
+        host_size_in_bytes = static_cast<std::size_t>(width * height * depth * 4U);
+    } else {
+        host_size_in_bytes = GetInnerMemorySize(true, false, false);
+    }
 }
 
-std::size_t SurfaceParams::GetInnerMipmapMemorySize(u32 level, bool as_host_size, bool layer_only,
+std::size_t SurfaceParams::GetInnerMipmapMemorySize(u32 level, bool as_host_size,
                                                     bool uncompressed) const {
     const bool tiled{as_host_size ? false : is_tiled};
     const u32 width{GetMipmapSize(uncompressed, GetMipWidth(level), GetDefaultBlockWidth())};
     const u32 height{GetMipmapSize(uncompressed, GetMipHeight(level), GetDefaultBlockHeight())};
-    const u32 depth{layer_only ? 1U : GetMipDepth(level)};
+    const u32 depth{target == SurfaceTarget::Texture3D ? GetMipDepth(level) : 1U};
     return Tegra::Texture::CalculateSize(tiled, GetBytesPerPixel(), width, height, depth,
                                          GetMipBlockHeight(level), GetMipBlockDepth(level));
 }
 
 std::size_t SurfaceParams::GetInnerMemorySize(bool as_host_size, bool layer_only,
                                               bool uncompressed) const {
-    std::size_t size = 0;
-    for (u32 level = 0; level < num_levels; ++level) {
-        size += GetInnerMipmapMemorySize(level, as_host_size, layer_only, uncompressed);
-    }
-    if (is_tiled && !as_host_size) {
-        size = Common::AlignUp(size, Tegra::Texture::GetGOBSize() * block_height * block_depth);
-    }
-    return size;
+    return GetLayerSize(as_host_size, uncompressed) * (layer_only ? 1U : num_layers);
 }
 
 std::map<u64, std::pair<u32, u32>> SurfaceParams::CreateViewOffsetMap() const {

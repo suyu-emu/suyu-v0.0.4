@@ -498,8 +498,8 @@ std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
                 color_surface->MarkAsModified(true);
                 // Workaround for and issue in nvidia drivers
                 // https://devtalk.nvidia.com/default/topic/776591/opengl/gl_framebuffer_srgb-functions-incorrectly/
-                // state.framebuffer_srgb.enabled |=
-                // color_surface->GetSurfaceParams().srgb_conversion;
+                state.framebuffer_srgb.enabled |=
+                    color_surface->GetSurfaceParams().GetSrgbConversion();
             }
 
             fbkey.is_single_buffer = true;
@@ -519,8 +519,8 @@ std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
                     // Enable sRGB only for supported formats
                     // Workaround for and issue in nvidia drivers
                     // https://devtalk.nvidia.com/default/topic/776591/opengl/gl_framebuffer_srgb-functions-incorrectly/
-                    // state.framebuffer_srgb.enabled |=
-                    //     color_surface->GetSurfaceParams().srgb_conversion;
+                    state.framebuffer_srgb.enabled |=
+                        color_surface->GetSurfaceParams().GetSrgbConversion();
                 }
 
                 fbkey.color_attachments[index] =

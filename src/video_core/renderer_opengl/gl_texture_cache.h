@@ -27,6 +27,7 @@ using VideoCore::Surface::SurfaceType;
 class CachedSurfaceView;
 class CachedSurface;
 
+using Surface = std::shared_ptr<CachedSurface>;
 using TextureCacheBase = VideoCommon::TextureCacheContextless<CachedSurface, CachedSurfaceView>;
 
 class CachedSurface final : public VideoCommon::SurfaceBaseContextless<CachedSurfaceView> {
@@ -47,6 +48,8 @@ public:
     }
 
 protected:
+    void DecorateSurfaceName();
+
     std::unique_ptr<CachedSurfaceView> CreateView(const ViewKey& view_key);
 
     void FlushBufferImpl();
@@ -65,7 +68,6 @@ private:
     OGLTexture texture;
 
     std::vector<u8> staging_buffer;
-    u8* host_ptr{};
 };
 
 class CachedSurfaceView final {
@@ -155,19 +157,21 @@ public:
     ~TextureCacheOpenGL();
 
 protected:
-    CachedSurfaceView* TryFastGetSurfaceView(VAddr cpu_addr, u8* host_ptr,
+    CachedSurfaceView* TryFastGetSurfaceView(GPUVAddr gpu_addr, VAddr cpu_addr, u8* host_ptr,
                                              const SurfaceParams& new_params,
                                              bool preserve_contents,
-                                             const std::vector<CachedSurface*>& overlaps);
+                                             const std::vector<Surface>& overlaps);
 
-    std::unique_ptr<CachedSurface> CreateSurface(const SurfaceParams& params);
+    Surface CreateSurface(const SurfaceParams& params);
 
 private:
-    CachedSurfaceView* SurfaceCopy(VAddr cpu_addr, u8* host_ptr, const SurfaceParams& new_params,
-                                   CachedSurface* old_surface, const SurfaceParams& old_params);
+    CachedSurfaceView* SurfaceCopy(GPUVAddr gpu_addr, VAddr cpu_addr, u8* host_ptr,
+                                   const SurfaceParams& new_params, const Surface& old_surface,
+                                   const SurfaceParams& old_params);
 
-    CachedSurfaceView* TryCopyAsViews(VAddr cpu_addr, u8* host_ptr, const SurfaceParams& new_params,
-                                      const std::vector<CachedSurface*>& overlaps);
+    CachedSurfaceView* TryCopyAsViews(GPUVAddr gpu_addr, VAddr cpu_addr, u8* host_ptr,
+                                      const SurfaceParams& new_params,
+                                      const std::vector<Surface>& overlaps);
 };
 
 } // namespace OpenGL
