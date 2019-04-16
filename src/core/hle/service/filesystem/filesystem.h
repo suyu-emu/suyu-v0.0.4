@@ -14,10 +14,13 @@ namespace FileSys {
 class BISFactory;
 class RegisteredCache;
 class RegisteredCacheUnion;
+class PlaceholderCache;
 class RomFSFactory;
 class SaveDataFactory;
 class SDMCFactory;
+class XCI;
 
+enum class BisPartitionId : u32;
 enum class ContentRecordType : u8;
 enum class Mode : u32;
 enum class SaveDataSpaceId : u8;
@@ -36,36 +39,89 @@ class ServiceManager;
 
 namespace FileSystem {
 
-ResultCode RegisterRomFS(std::unique_ptr<FileSys::RomFSFactory>&& factory);
-ResultCode RegisterSaveData(std::unique_ptr<FileSys::SaveDataFactory>&& factory);
-ResultCode RegisterSDMC(std::unique_ptr<FileSys::SDMCFactory>&& factory);
-ResultCode RegisterBIS(std::unique_ptr<FileSys::BISFactory>&& factory);
+enum class ContentStorageId : u32 {
+    System,
+    User,
+    SdCard,
+};
 
-void SetPackedUpdate(FileSys::VirtualFile update_raw);
-ResultVal<FileSys::VirtualFile> OpenRomFSCurrentProcess();
-ResultVal<FileSys::VirtualFile> OpenRomFS(u64 title_id, FileSys::StorageId storage_id,
-                                          FileSys::ContentRecordType type);
-ResultVal<FileSys::VirtualDir> OpenSaveData(FileSys::SaveDataSpaceId space,
-                                            const FileSys::SaveDataDescriptor& descriptor);
-ResultVal<FileSys::VirtualDir> OpenSaveDataSpace(FileSys::SaveDataSpaceId space);
-ResultVal<FileSys::VirtualDir> OpenSDMC();
+enum class ImageDirectoryId : u32 {
+    NAND,
+    SdCard,
+};
 
-FileSys::SaveDataSize ReadSaveDataSize(FileSys::SaveDataType type, u64 title_id, u128 user_id);
-void WriteSaveDataSize(FileSys::SaveDataType type, u64 title_id, u128 user_id,
-                       FileSys::SaveDataSize new_value);
+class FileSystemController {
+public:
+    ResultCode RegisterRomFS(std::unique_ptr<FileSys::RomFSFactory>&& factory);
+    ResultCode RegisterSaveData(std::unique_ptr<FileSys::SaveDataFactory>&& factory);
+    ResultCode RegisterSDMC(std::unique_ptr<FileSys::SDMCFactory>&& factory);
+    ResultCode RegisterBIS(std::unique_ptr<FileSys::BISFactory>&& factory);
 
-FileSys::RegisteredCache* GetSystemNANDContents();
-FileSys::RegisteredCache* GetUserNANDContents();
-FileSys::RegisteredCache* GetSDMCContents();
+    void SetPackedUpdate(FileSys::VirtualFile update_raw);
+    ResultVal<FileSys::VirtualFile> OpenRomFSCurrentProcess();
+    ResultVal<FileSys::VirtualFile> OpenRomFS(u64 title_id, FileSys::StorageId storage_id,
+                                              FileSys::ContentRecordType type);
+    ResultVal<FileSys::VirtualDir> CreateSaveData(FileSys::SaveDataSpaceId space,
+                                                  const FileSys::SaveDataDescriptor& save_struct);
+    ResultVal<FileSys::VirtualDir> OpenSaveData(FileSys::SaveDataSpaceId space,
+                                                const FileSys::SaveDataDescriptor& save_struct);
+    ResultVal<FileSys::VirtualDir> OpenSaveDataSpace(FileSys::SaveDataSpaceId space);
+    ResultVal<FileSys::VirtualDir> OpenSDMC();
+    ResultVal<FileSys::VirtualDir> OpenBISPartition(FileSys::BisPartitionId id);
+    ResultVal<FileSys::VirtualFile> OpenBISPartitionStorage(FileSys::BisPartitionId id);
 
-FileSys::VirtualDir GetModificationLoadRoot(u64 title_id);
-FileSys::VirtualDir GetModificationDumpRoot(u64 title_id);
+    u64 GetFreeSpaceSize(FileSys::StorageId id) const;
+    u64 GetTotalSpaceSize(FileSys::StorageId id) const;
 
-// Creates the SaveData, SDMC, and BIS Factories. Should be called once and before any function
-// above is called.
-void CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite = true);
+    FileSys::SaveDataSize ReadSaveDataSize(FileSys::SaveDataType type, u64 title_id, u128 user_id);
+    void WriteSaveDataSize(FileSys::SaveDataType type, u64 title_id, u128 user_id,
+                           FileSys::SaveDataSize new_value);
 
-void InstallInterfaces(Core::System& system);
+    void SetGameCard(FileSys::VirtualFile file);
+    FileSys::XCI* GetGameCard();
+
+    FileSys::RegisteredCache* GetSystemNANDContents();
+    FileSys::RegisteredCache* GetUserNANDContents();
+    FileSys::RegisteredCache* GetSDMCContents();
+    FileSys::RegisteredCache* GetGameCardContents();
+
+    FileSys::PlaceholderCache* GetSystemNANDPlaceholder();
+    FileSys::PlaceholderCache* GetUserNANDPlaceholder();
+    FileSys::PlaceholderCache* GetSDMCPlaceholder();
+    FileSys::PlaceholderCache* GetGameCardPlaceholder();
+
+    FileSys::RegisteredCache* GetRegisteredCacheForStorage(FileSys::StorageId id);
+    FileSys::PlaceholderCache* GetPlaceholderCacheForStorage(FileSys::StorageId id);
+
+    FileSys::VirtualDir GetSystemNANDContentDirectory();
+    FileSys::VirtualDir GetUserNANDContentDirectory();
+    FileSys::VirtualDir GetSDMCContentDirectory();
+
+    FileSys::VirtualDir GetNANDImageDirectory();
+    FileSys::VirtualDir GetSDMCImageDirectory();
+
+    FileSys::VirtualDir GetContentDirectory(ContentStorageId id);
+    FileSys::VirtualDir GetImageDirectory(ImageDirectoryId id);
+
+    FileSys::VirtualDir GetModificationLoadRoot(u64 title_id);
+    FileSys::VirtualDir GetModificationDumpRoot(u64 title_id);
+
+    // Creates the SaveData, SDMC, and BIS Factories. Should be called once and before any function
+    // above is called.
+    void CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite = true);
+
+private:
+    std::unique_ptr<FileSys::RomFSFactory> romfs_factory;
+    std::unique_ptr<FileSys::SaveDataFactory> save_data_factory;
+    std::unique_ptr<FileSys::SDMCFactory> sdmc_factory;
+    std::unique_ptr<FileSys::BISFactory> bis_factory;
+
+    std::unique_ptr<FileSys::XCI> gamecard;
+    std::unique_ptr<FileSys::RegisteredCache> gamecard_registered;
+    std::unique_ptr<FileSys::PlaceholderCache> gamecard_placeholder;
+};
+
+void InstallInterfaces(SM::ServiceManager& service_manager, FileSystemController& controller);
 
 // A class that wraps a VfsDirectory with methods that return ResultVal and ResultCode instead of
 // pointers and booleans. This makes using a VfsDirectory with switch services much easier and

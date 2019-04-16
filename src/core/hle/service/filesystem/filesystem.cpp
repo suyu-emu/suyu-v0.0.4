@@ -8,6 +8,7 @@
 #include "common/file_util.h"
 #include "core/core.h"
 #include "core/file_sys/bis_factory.h"
+#include "core/file_sys/card_image.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/errors.h"
 #include "core/file_sys/mode.h"
@@ -251,44 +252,35 @@ ResultVal<FileSys::EntryType> VfsDirectoryServiceWrapper::GetEntryType(
     return FileSys::ERROR_PATH_NOT_FOUND;
 }
 
-/**
- * Map of registered file systems, identified by type. Once an file system is registered here, it
- * is never removed until UnregisterFileSystems is called.
- */
-static std::unique_ptr<FileSys::RomFSFactory> romfs_factory;
-static std::unique_ptr<FileSys::SaveDataFactory> save_data_factory;
-static std::unique_ptr<FileSys::SDMCFactory> sdmc_factory;
-static std::unique_ptr<FileSys::BISFactory> bis_factory;
-
-ResultCode RegisterRomFS(std::unique_ptr<FileSys::RomFSFactory>&& factory) {
-    ASSERT_MSG(romfs_factory == nullptr, "Tried to register a second RomFS");
+ResultCode FileSystemController::RegisterRomFS(std::unique_ptr<FileSys::RomFSFactory>&& factory) {
     romfs_factory = std::move(factory);
     LOG_DEBUG(Service_FS, "Registered RomFS");
     return RESULT_SUCCESS;
 }
 
-ResultCode RegisterSaveData(std::unique_ptr<FileSys::SaveDataFactory>&& factory) {
-    ASSERT_MSG(romfs_factory == nullptr, "Tried to register a second save data");
+ResultCode FileSystemController::RegisterSaveData(
+    std::unique_ptr<FileSys::SaveDataFactory>&& factory) {
+    ASSERT_MSG(save_data_factory == nullptr, "Tried to register a second save data");
     save_data_factory = std::move(factory);
     LOG_DEBUG(Service_FS, "Registered save data");
     return RESULT_SUCCESS;
 }
 
-ResultCode RegisterSDMC(std::unique_ptr<FileSys::SDMCFactory>&& factory) {
+ResultCode FileSystemController::RegisterSDMC(std::unique_ptr<FileSys::SDMCFactory>&& factory) {
     ASSERT_MSG(sdmc_factory == nullptr, "Tried to register a second SDMC");
     sdmc_factory = std::move(factory);
     LOG_DEBUG(Service_FS, "Registered SDMC");
     return RESULT_SUCCESS;
 }
 
-ResultCode RegisterBIS(std::unique_ptr<FileSys::BISFactory>&& factory) {
+ResultCode FileSystemController::RegisterBIS(std::unique_ptr<FileSys::BISFactory>&& factory) {
     ASSERT_MSG(bis_factory == nullptr, "Tried to register a second BIS");
     bis_factory = std::move(factory);
     LOG_DEBUG(Service_FS, "Registered BIS");
     return RESULT_SUCCESS;
 }
 
-void SetPackedUpdate(FileSys::VirtualFile update_raw) {
+void FileSystemController::SetPackedUpdate(FileSys::VirtualFile update_raw) {
     LOG_TRACE(Service_FS, "Setting packed update for romfs");
 
     if (romfs_factory == nullptr)
@@ -297,7 +289,7 @@ void SetPackedUpdate(FileSys::VirtualFile update_raw) {
     romfs_factory->SetPackedUpdate(std::move(update_raw));
 }
 
-ResultVal<FileSys::VirtualFile> OpenRomFSCurrentProcess() {
+ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFSCurrentProcess() {
     LOG_TRACE(Service_FS, "Opening RomFS for current process");
 
     if (romfs_factory == nullptr) {
@@ -308,8 +300,9 @@ ResultVal<FileSys::VirtualFile> OpenRomFSCurrentProcess() {
     return romfs_factory->OpenCurrentProcess();
 }
 
-ResultVal<FileSys::VirtualFile> OpenRomFS(u64 title_id, FileSys::StorageId storage_id,
-                                          FileSys::ContentRecordType type) {
+ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFS(u64 title_id,
+                                                                FileSys::StorageId storage_id,
+                                                                FileSys::ContentRecordType type) {
     LOG_TRACE(Service_FS, "Opening RomFS for title_id={:016X}, storage_id={:02X}, type={:02X}",
               title_id, static_cast<u8>(storage_id), static_cast<u8>(type));
 
@@ -321,8 +314,20 @@ ResultVal<FileSys::VirtualFile> OpenRomFS(u64 title_id, FileSys::StorageId stora
     return romfs_factory->Open(title_id, storage_id, type);
 }
 
-ResultVal<FileSys::VirtualDir> OpenSaveData(FileSys::SaveDataSpaceId space,
-                                            const FileSys::SaveDataDescriptor& descriptor) {
+ResultVal<FileSys::VirtualDir> FileSystemController::CreateSaveData(
+    FileSys::SaveDataSpaceId space, const FileSys::SaveDataDescriptor& save_struct) {
+    LOG_TRACE(Service_FS, "Creating Save Data for space_id={:01X}, save_struct={}",
+              static_cast<u8>(space), save_struct.DebugInfo());
+
+    if (save_data_factory == nullptr) {
+        return FileSys::ERROR_ENTITY_NOT_FOUND;
+    }
+
+    return save_data_factory->Create(space, save_struct);
+}
+
+ResultVal<FileSys::VirtualDir> FileSystemController::OpenSaveData(
+    FileSys::SaveDataSpaceId space, const FileSys::SaveDataDescriptor& descriptor) {
     LOG_TRACE(Service_FS, "Opening Save Data for space_id={:01X}, save_struct={}",
               static_cast<u8>(space), descriptor.DebugInfo());
 
@@ -333,7 +338,8 @@ ResultVal<FileSys::VirtualDir> OpenSaveData(FileSys::SaveDataSpaceId space,
     return save_data_factory->Open(space, descriptor);
 }
 
-ResultVal<FileSys::VirtualDir> OpenSaveDataSpace(FileSys::SaveDataSpaceId space) {
+ResultVal<FileSys::VirtualDir> FileSystemController::OpenSaveDataSpace(
+    FileSys::SaveDataSpaceId space) {
     LOG_TRACE(Service_FS, "Opening Save Data Space for space_id={:01X}", static_cast<u8>(space));
 
     if (save_data_factory == nullptr) {
@@ -343,7 +349,7 @@ ResultVal<FileSys::VirtualDir> OpenSaveDataSpace(FileSys::SaveDataSpaceId space)
     return MakeResult(save_data_factory->GetSaveDataSpaceDirectory(space));
 }
 
-ResultVal<FileSys::VirtualDir> OpenSDMC() {
+ResultVal<FileSys::VirtualDir> FileSystemController::OpenSDMC() {
     LOG_TRACE(Service_FS, "Opening SDMC");
 
     if (sdmc_factory == nullptr) {
@@ -353,7 +359,91 @@ ResultVal<FileSys::VirtualDir> OpenSDMC() {
     return sdmc_factory->Open();
 }
 
-FileSys::SaveDataSize ReadSaveDataSize(FileSys::SaveDataType type, u64 title_id, u128 user_id) {
+ResultVal<FileSys::VirtualDir> FileSystemController::OpenBISPartition(FileSys::BisPartitionId id) {
+    LOG_TRACE(Service_FS, "Opening BIS Partition with id={:08X}", static_cast<u32>(id));
+
+    if (bis_factory == nullptr) {
+        return FileSys::ERROR_ENTITY_NOT_FOUND;
+    }
+
+    auto part = bis_factory->OpenPartition(id);
+    if (part == nullptr) {
+        return FileSys::ERROR_INVALID_ARGUMENT;
+    }
+
+    return MakeResult<FileSys::VirtualDir>(std::move(part));
+}
+
+ResultVal<FileSys::VirtualFile> FileSystemController::OpenBISPartitionStorage(
+    FileSys::BisPartitionId id) {
+    LOG_TRACE(Service_FS, "Opening BIS Partition Storage with id={:08X}", static_cast<u32>(id));
+
+    if (bis_factory == nullptr) {
+        return FileSys::ERROR_ENTITY_NOT_FOUND;
+    }
+
+    auto part = bis_factory->OpenPartitionStorage(id);
+    if (part == nullptr) {
+        return FileSys::ERROR_INVALID_ARGUMENT;
+    }
+
+    return MakeResult<FileSys::VirtualFile>(std::move(part));
+}
+
+u64 FileSystemController::GetFreeSpaceSize(FileSys::StorageId id) const {
+    switch (id) {
+    case FileSys::StorageId::None:
+    case FileSys::StorageId::GameCard:
+        return 0;
+    case FileSys::StorageId::SdCard:
+        if (sdmc_factory == nullptr)
+            return 0;
+        return sdmc_factory->GetSDMCFreeSpace();
+    case FileSys::StorageId::Host:
+        if (bis_factory == nullptr)
+            return 0;
+        return bis_factory->GetSystemNANDFreeSpace() + bis_factory->GetUserNANDFreeSpace();
+    case FileSys::StorageId::NandSystem:
+        if (bis_factory == nullptr)
+            return 0;
+        return bis_factory->GetSystemNANDFreeSpace();
+    case FileSys::StorageId::NandUser:
+        if (bis_factory == nullptr)
+            return 0;
+        return bis_factory->GetUserNANDFreeSpace();
+    }
+
+    return 0;
+}
+
+u64 FileSystemController::GetTotalSpaceSize(FileSys::StorageId id) const {
+    switch (id) {
+    case FileSys::StorageId::None:
+    case FileSys::StorageId::GameCard:
+        return 0;
+    case FileSys::StorageId::SdCard:
+        if (sdmc_factory == nullptr)
+            return 0;
+        return sdmc_factory->GetSDMCTotalSpace();
+    case FileSys::StorageId::Host:
+        if (bis_factory == nullptr)
+            return 0;
+        return bis_factory->GetFullNANDTotalSpace();
+    case FileSys::StorageId::NandSystem:
+        if (bis_factory == nullptr)
+            return 0;
+        return bis_factory->GetSystemNANDTotalSpace();
+    case FileSys::StorageId::NandUser:
+        if (bis_factory == nullptr)
+            return 0;
+        return bis_factory->GetUserNANDTotalSpace();
+    }
+
+    return 0;
+}
+
+FileSys::SaveDataSize FileSystemController::ReadSaveDataSize(FileSys::SaveDataType type,
+                                                             u64 title_id, u128 user_id) {
     if (save_data_factory == nullptr) {
         return {0, 0};
     }
@@ -385,13 +475,32 @@ FileSys::SaveDataSize ReadSaveDataSize(FileSys::SaveDataType type, u64 title_id,
     return value;
 }
 
-void WriteSaveDataSize(FileSys::SaveDataType type, u64 title_id, u128 user_id,
-                       FileSys::SaveDataSize new_value) {
+void FileSystemController::WriteSaveDataSize(FileSys::SaveDataType type, u64 title_id, u128 user_id,
+                                             FileSys::SaveDataSize new_value) {
     if (save_data_factory != nullptr)
         save_data_factory->WriteSaveDataSize(type, title_id, user_id, new_value);
 }
 
-FileSys::RegisteredCache* GetSystemNANDContents() {
+void FileSystemController::SetGameCard(FileSys::VirtualFile file) {
+    gamecard = std::make_unique<FileSys::XCI>(file);
+    const auto dir = gamecard->ConcatenatedPseudoDirectory();
+    gamecard_registered = std::make_unique<FileSys::RegisteredCache>(dir);
+    gamecard_placeholder = std::make_unique<FileSys::PlaceholderCache>(dir);
+}
+
+FileSys::XCI* FileSystemController::GetGameCard() {
+    return gamecard.get();
+}
+
+FileSys::RegisteredCache* FileSystemController::GetGameCardContents() {
+    return gamecard_registered.get();
+}
+
+FileSys::PlaceholderCache* FileSystemController::GetGameCardPlaceholder() {
+    return gamecard_placeholder.get();
+}
+
+FileSys::RegisteredCache* FileSystemController::GetSystemNANDContents() {
     LOG_TRACE(Service_FS, "Opening System NAND Contents");
 
     if (bis_factory == nullptr)
@@ -400,7 +509,7 @@ FileSys::RegisteredCache* GetSystemNANDContents() {
     return bis_factory->GetSystemNANDContents();
 }
 
-FileSys::RegisteredCache* GetUserNANDContents() {
+FileSys::RegisteredCache* FileSystemController::GetUserNANDContents() {
     LOG_TRACE(Service_FS, "Opening User NAND Contents");
 
     if (bis_factory == nullptr)
@@ -409,7 +518,7 @@ FileSys::RegisteredCache* GetUserNANDContents() {
     return bis_factory->GetUserNANDContents();
 }
 
-FileSys::RegisteredCache* GetSDMCContents() {
+FileSys::RegisteredCache* FileSystemController::GetSDMCContents() {
     LOG_TRACE(Service_FS, "Opening SDMC Contents");
 
     if (sdmc_factory == nullptr)
@@ -418,7 +527,143 @@ FileSys::RegisteredCache* GetSDMCContents() {
     return sdmc_factory->GetSDMCContents();
 }
 
-FileSys::VirtualDir GetModificationLoadRoot(u64 title_id) {
+FileSys::PlaceholderCache* FileSystemController::GetSystemNANDPlaceholder() {
+    LOG_TRACE(Service_FS, "Opening System NAND Placeholder");
+
+    if (bis_factory == nullptr)
+        return nullptr;
+
+    return bis_factory->GetSystemNANDPlaceholder();
+}
+
+FileSys::PlaceholderCache* FileSystemController::GetUserNANDPlaceholder() {
+    LOG_TRACE(Service_FS, "Opening User NAND Placeholder");
+
+    if (bis_factory == nullptr)
+        return nullptr;
+
+    return bis_factory->GetUserNANDPlaceholder();
+}
+
+FileSys::PlaceholderCache* FileSystemController::GetSDMCPlaceholder() {
+    LOG_TRACE(Service_FS, "Opening SDMC Placeholder");
+
+    if (sdmc_factory == nullptr)
+        return nullptr;
+
+    return sdmc_factory->GetSDMCPlaceholder();
+}
+
+FileSys::RegisteredCache* FileSystemController::GetRegisteredCacheForStorage(
+    FileSys::StorageId id) {
+    switch (id) {
+    case FileSys::StorageId::None:
+    case FileSys::StorageId::Host:
+        UNIMPLEMENTED();
+        return nullptr;
+    case FileSys::StorageId::GameCard:
+        return GetGameCardContents();
+    case FileSys::StorageId::NandSystem:
+        return GetSystemNANDContents();
+    case FileSys::StorageId::NandUser:
+        return GetUserNANDContents();
+    case FileSys::StorageId::SdCard:
+        return GetSDMCContents();
+    }
+
+    return nullptr;
+}
+
+FileSys::PlaceholderCache* FileSystemController::GetPlaceholderCacheForStorage(
+    FileSys::StorageId id) {
+    switch (id) {
+    case FileSys::StorageId::None:
+    case FileSys::StorageId::Host:
+        UNIMPLEMENTED();
+        return nullptr;
+    case FileSys::StorageId::GameCard:
+        return GetGameCardPlaceholder();
+    case FileSys::StorageId::NandSystem:
+        return GetSystemNANDPlaceholder();
+    case FileSys::StorageId::NandUser:
+        return GetUserNANDPlaceholder();
+    case FileSys::StorageId::SdCard:
+        return GetSDMCPlaceholder();
+    }
+
+    return nullptr;
+}
+
+FileSys::VirtualDir FileSystemController::GetSystemNANDContentDirectory() {
+    LOG_TRACE(Service_FS, "Opening system NAND content directory");
+
+    if (bis_factory == nullptr)
+        return nullptr;
+
+    return bis_factory->GetSystemNANDContentDirectory();
+}
+
+FileSys::VirtualDir FileSystemController::GetUserNANDContentDirectory() {
+    LOG_TRACE(Service_FS, "Opening user NAND content directory");
+
+    if (bis_factory == nullptr)
+        return nullptr;
+
+    return bis_factory->GetUserNANDContentDirectory();
+}
+
+FileSys::VirtualDir FileSystemController::GetSDMCContentDirectory() {
+    LOG_TRACE(Service_FS, "Opening SDMC content directory");
+
+    if (sdmc_factory == nullptr)
+        return nullptr;
+
+    return sdmc_factory->GetSDMCContentDirectory();
+}
+
+FileSys::VirtualDir FileSystemController::GetNANDImageDirectory() {
+    LOG_TRACE(Service_FS, "Opening NAND image directory");
+
+    if (bis_factory == nullptr)
+        return nullptr;
+
+    return bis_factory->GetImageDirectory();
+}
+
+FileSys::VirtualDir FileSystemController::GetSDMCImageDirectory() {
+    LOG_TRACE(Service_FS, "Opening SDMC image directory");
+
+    if (sdmc_factory == nullptr)
+        return nullptr;
+
+    return sdmc_factory->GetImageDirectory();
+}
+
+FileSys::VirtualDir FileSystemController::GetContentDirectory(ContentStorageId id) {
+    switch (id) {
+    case ContentStorageId::System:
+        return GetSystemNANDContentDirectory();
+    case ContentStorageId::User:
+        return GetUserNANDContentDirectory();
+    case ContentStorageId::SdCard:
+        return GetSDMCContentDirectory();
+    }
+
+    return nullptr;
+}
+
+FileSys::VirtualDir FileSystemController::GetImageDirectory(ImageDirectoryId id) {
+    switch (id) {
+    case ImageDirectoryId::NAND:
+        return GetNANDImageDirectory();
+    case ImageDirectoryId::SdCard:
+        return GetSDMCImageDirectory();
+    }
+
+    return nullptr;
+}
+
+FileSys::VirtualDir FileSystemController::GetModificationLoadRoot(u64 title_id) {
     LOG_TRACE(Service_FS, "Opening mod load root for tid={:016X}", title_id);
 
     if (bis_factory == nullptr)
@@ -427,7 +672,7 @@ FileSys::VirtualDir GetModificationLoadRoot(u64 title_id) {
     return bis_factory->GetModificationLoadRoot(title_id);
 }
 
-FileSys::VirtualDir GetModificationDumpRoot(u64 title_id) {
+FileSys::VirtualDir FileSystemController::GetModificationDumpRoot(u64 title_id) {
     LOG_TRACE(Service_FS, "Opening mod dump root for tid={:016X}", title_id);
 
     if (bis_factory == nullptr)
@@ -436,7 +681,7 @@ FileSys::VirtualDir GetModificationDumpRoot(u64 title_id) {
     return bis_factory->GetModificationDumpRoot(title_id);
 }
 
-void CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite) {
+void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite) {
     if (overwrite) {
         bis_factory = nullptr;
         save_data_factory = nullptr;
