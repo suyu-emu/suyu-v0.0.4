@@ -66,7 +66,6 @@ public:
                                  Tegra::Engines::Maxwell3D::Regs::ShaderStage stage);
 
 protected:
-
     void FlushObjectInner(const GlobalRegion& object) override {
         object->Flush();
     }

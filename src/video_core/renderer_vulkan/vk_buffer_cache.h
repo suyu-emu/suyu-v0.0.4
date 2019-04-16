@@ -49,7 +49,6 @@ public:
         return alignment;
     }
 
-
 private:
     VAddr cpu_addr{};
     std::size_t size{};

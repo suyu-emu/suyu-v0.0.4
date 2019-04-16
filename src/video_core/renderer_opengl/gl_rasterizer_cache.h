@@ -355,6 +355,12 @@ namespace OpenGL {
 
 class RasterizerOpenGL;
 
+// This is used to store temporary big buffers,
+// instead of creating/destroying all the time
+struct RasterizerTemporaryMemory {
+    std::vector<std::vector<u8>> gl_buffer;
+};
+
 class CachedSurface final : public RasterizerCacheObject {
 public:
     explicit CachedSurface(const SurfaceParams& params);
@@ -393,11 +399,12 @@ public:
     }
 
     // Read/Write data in Switch memory to/from gl_buffer
-    void LoadGLBuffer();
-    void FlushGLBuffer();
+    void LoadGLBuffer(RasterizerTemporaryMemory& res_cache_tmp_mem);
+    void FlushGLBuffer(RasterizerTemporaryMemory& res_cache_tmp_mem);
 
     // Upload data in gl_buffer to this surface's texture
-    void UploadGLTexture(GLuint read_fb_handle, GLuint draw_fb_handle);
+    void UploadGLTexture(RasterizerTemporaryMemory& res_cache_tmp_mem, GLuint read_fb_handle,
+                         GLuint draw_fb_handle);
 
     void UpdateSwizzle(Tegra::Texture::SwizzleSource swizzle_x,
                        Tegra::Texture::SwizzleSource swizzle_y,
@@ -425,13 +432,13 @@ public:
     }
 
 private:
-    void UploadGLMipmapTexture(u32 mip_map, GLuint read_fb_handle, GLuint draw_fb_handle);
+    void UploadGLMipmapTexture(RasterizerTemporaryMemory& res_cache_tmp_mem, u32 mip_map,
+                               GLuint read_fb_handle, GLuint draw_fb_handle);
 
     void EnsureTextureDiscrepantView();
 
     OGLTexture texture;
     OGLTexture discrepant_view;
-    std::vector<std::vector<u8>> gl_buffer;
     SurfaceParams params{};
     GLenum gl_target{};
     GLenum gl_internal_format{};
@@ -471,7 +478,7 @@ public:
 
 protected:
     void FlushObjectInner(const Surface& object) override {
-        object->FlushGLBuffer();
+        object->FlushGLBuffer(temporal_memory);
     }
 
 private:
@@ -519,6 +526,8 @@ private:
     std::array<Surface, Maxwell::NumRenderTargets> last_color_buffers;
     std::array<Surface, Maxwell::NumRenderTargets> current_color_buffers;
     Surface last_depth_buffer;
+
+    RasterizerTemporaryMemory temporal_memory;
 
     using SurfaceIntervalCache = boost::icl::interval_map<CacheAddr, Surface>;
     using SurfaceInterval = typename SurfaceIntervalCache::interval_type;
