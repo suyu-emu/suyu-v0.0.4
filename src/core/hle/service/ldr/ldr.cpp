@@ -86,6 +86,7 @@ public:
             {2, &RelocatableObject::LoadNrr, "LoadNrr"},
             {3, &RelocatableObject::UnloadNrr, "UnloadNrr"},
             {4, &RelocatableObject::Initialize, "Initialize"},
+            {10, nullptr, "LoadNrrEx"},
         };
         // clang-format on
 

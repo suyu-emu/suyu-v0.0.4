@@ -137,6 +137,7 @@ private:
 class IManagerForApplication final : public ServiceFramework<IManagerForApplication> {
 public:
     IManagerForApplication() : ServiceFramework("IManagerForApplication") {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IManagerForApplication::CheckAvailability, "CheckAvailability"},
             {1, &IManagerForApplication::GetAccountId, "GetAccountId"},
@@ -145,7 +146,10 @@ public:
             {130, nullptr, "GetNintendoAccountUserResourceCacheForApplication"},
             {150, nullptr, "CreateAuthorizationRequest"},
             {160, nullptr, "StoreOpenContext"},
+            {170, nullptr, "LoadNetworkServiceLicenseKindAsync"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
     }
 

@@ -8,6 +8,7 @@ namespace Service::Account {
 
 ACC_SU::ACC_SU(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> profile_manager)
     : Module::Interface(std::move(module), std::move(profile_manager), "acc:su") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, &ACC_SU::GetUserCount, "GetUserCount"},
         {1, &ACC_SU::GetUserExistence, "GetUserExistence"},
@@ -19,6 +20,7 @@ ACC_SU::ACC_SU(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {50, &ACC_SU::IsUserRegistrationRequestPermitted, "IsUserRegistrationRequestPermitted"},
         {51, &ACC_SU::TrySelectUserWithoutInteraction, "TrySelectUserWithoutInteraction"},
         {60, nullptr, "ListOpenContextStoredUsers"},
+        {99, nullptr, "DebugActivateOpenContextRetention"},
         {100, nullptr, "GetUserRegistrationNotifier"},
         {101, nullptr, "GetUserStateChangeNotifier"},
         {102, nullptr, "GetBaasAccountManagerForSystemService"},
@@ -29,6 +31,8 @@ ACC_SU::ACC_SU(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {111, nullptr, "ClearSaveDataThumbnail"},
         {112, nullptr, "LoadSaveDataThumbnail"},
         {113, nullptr, "GetSaveDataThumbnailExistence"},
+        {130, nullptr, "ActivateOpenContextRetention"},
+        {140, nullptr, "ListQualifiedUsers"},
         {190, nullptr, "GetUserLastOpenedApplication"},
         {191, nullptr, "ActivateOpenContextHolder"},
         {200, nullptr, "BeginUserRegistration"},
@@ -48,6 +52,8 @@ ACC_SU::ACC_SU(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {998, nullptr, "DebugSetUserStateClose"},
         {999, nullptr, "DebugSetUserStateOpen"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 

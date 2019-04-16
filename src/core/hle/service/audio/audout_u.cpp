@@ -44,7 +44,7 @@ public:
               std::string&& unique_name)
         : ServiceFramework("IAudioOut"), audio_core(audio_core),
           device_name(std::move(device_name)), audio_params(audio_params) {
-
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IAudioOut::GetAudioOutState, "GetAudioOutState"},
             {1, &IAudioOut::StartAudioOut, "StartAudioOut"},
@@ -58,7 +58,10 @@ public:
             {9, &IAudioOut::GetAudioOutBufferCount, "GetAudioOutBufferCount"},
             {10, nullptr, "GetAudioOutPlayedSampleCount"},
             {11, nullptr, "FlushAudioOutBuffers"},
+            {12, nullptr, "SetAudioOutVolume"},
+            {13, nullptr, "GetAudioOutVolume"},
         };
+        // clang-format on
         RegisterHandlers(functions);
 
         // This is the event handle used to check if the audio buffer was released

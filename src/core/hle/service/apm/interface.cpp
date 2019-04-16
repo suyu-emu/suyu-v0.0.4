@@ -87,6 +87,8 @@ APM_Sys::APM_Sys() : ServiceFramework{"apm:sys"} {
         {3, nullptr, "GetLastThrottlingState"},
         {4, nullptr, "ClearLastThrottlingState"},
         {5, nullptr, "LoadAndApplySettings"},
+        {6, nullptr, "SetCpuBoostMode"},
+        {7, nullptr, "GetCurrentPerformanceConfiguration"},
     };
     // clang-format on
 

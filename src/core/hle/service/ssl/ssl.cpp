@@ -103,6 +103,8 @@ public:
             {4, nullptr, "DebugIoctl"},
             {5, &SSL::SetInterfaceVersion, "SetInterfaceVersion"},
             {6, nullptr, "FlushSessionCache"},
+            {7, nullptr, "SetDebugOption"},
+            {8, nullptr, "GetDebugOption"},
         };
         // clang-format on
 

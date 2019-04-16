@@ -25,6 +25,7 @@ public:
             {11, nullptr, "GetAudioInBufferCount"},
             {12, nullptr, "SetAudioInDeviceGain"},
             {13, nullptr, "GetAudioInDeviceGain"},
+            {14, nullptr, "FlushAudioInBuffers"},
         };
         // clang-format on
 

@@ -15,12 +15,16 @@ namespace Service::NIFM {
 class IScanRequest final : public ServiceFramework<IScanRequest> {
 public:
     explicit IScanRequest() : ServiceFramework("IScanRequest") {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Submit"},
             {1, nullptr, "IsProcessing"},
             {2, nullptr, "GetResult"},
             {3, nullptr, "GetSystemEventReadableHandle"},
+            {4, nullptr, "SetChannels"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
     }
 };

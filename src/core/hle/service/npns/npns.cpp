@@ -45,7 +45,7 @@ public:
             {114, nullptr, "AttachJid"},
             {115, nullptr, "DetachJid"},
             {201, nullptr, "RequestChangeStateForceTimed"},
-            {102, nullptr, "RequestChangeStateForceAsync"},
+            {202, nullptr, "RequestChangeStateForceAsync"},
         };
         // clang-format on
 
@@ -73,6 +73,7 @@ public:
             {103, nullptr, "GetState"},
             {104, nullptr, "GetStatistics"},
             {111, nullptr, "GetJid"},
+            {120, nullptr, "CreateNotificationReceiver"},
         };
         // clang-format on
 

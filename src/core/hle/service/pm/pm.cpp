@@ -42,15 +42,18 @@ private:
 class DebugMonitor final : public ServiceFramework<DebugMonitor> {
 public:
     explicit DebugMonitor() : ServiceFramework{"pm:dmnt"} {
+        // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "IsDebugMode"},
-            {1, nullptr, "GetDebugProcesses"},
-            {2, nullptr, "StartDebugProcess"},
-            {3, nullptr, "GetTitlePid"},
-            {4, nullptr, "EnableDebugForTitleId"},
-            {5, nullptr, "GetApplicationPid"},
-            {6, nullptr, "EnableDebugForApplication"},
+            {0, nullptr, "GetDebugProcesses"},
+            {1, nullptr, "StartDebugProcess"},
+            {2, nullptr, "GetTitlePid"},
+            {3, nullptr, "EnableDebugForTitleId"},
+            {4, nullptr, "GetApplicationPid"},
+            {5, nullptr, "EnableDebugForApplication"},
+            {6, nullptr, "DisableDebug"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
     }
 };
@@ -68,6 +71,7 @@ public:
 class Shell final : public ServiceFramework<Shell> {
 public:
     explicit Shell() : ServiceFramework{"pm:shell"} {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "LaunchProcess"},
             {1, nullptr, "TerminateProcessByPid"},
@@ -77,7 +81,10 @@ public:
             {5, nullptr, "NotifyBootFinished"},
             {6, nullptr, "GetApplicationPid"},
             {7, nullptr, "BoostSystemMemoryResourceLimit"},
+            {8, nullptr, "EnableAdditionalSystemThreads"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
     }
 };
