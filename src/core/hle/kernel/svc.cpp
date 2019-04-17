@@ -424,7 +424,7 @@ static ResultCode GetProcessId(Core::System& system, u64* process_id, Handle han
 /// Default thread wakeup callback for WaitSynchronization
 static bool DefaultThreadWakeupCallback(ThreadWakeupReason reason, SharedPtr<Thread> thread,
                                         SharedPtr<WaitObject> object, std::size_t index) {
-    ASSERT(thread->GetStatus() == ThreadStatus::WaitSynchAny);
+    ASSERT(thread->GetStatus() == ThreadStatus::WaitSynch);
 
     if (reason == ThreadWakeupReason::Timeout) {
         thread->SetWaitSynchronizationResult(RESULT_TIMEOUT);
@@ -502,7 +502,7 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
     }
 
     thread->SetWaitObjects(std::move(objects));
-    thread->SetStatus(ThreadStatus::WaitSynchAny);
+    thread->SetStatus(ThreadStatus::WaitSynch);
 
     // Create an event to wake the thread up after the specified nanosecond delay has passed
     thread->WakeAfterDelay(nano_seconds);

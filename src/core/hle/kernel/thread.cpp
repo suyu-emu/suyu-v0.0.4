@@ -101,8 +101,7 @@ void Thread::ResumeFromWait() {
     ASSERT_MSG(wait_objects.empty(), "Thread is waking up while waiting for objects");
 
     switch (status) {
-    case ThreadStatus::WaitSynchAll:
-    case ThreadStatus::WaitSynchAny:
+    case ThreadStatus::WaitSynch:
     case ThreadStatus::WaitHLEEvent:
     case ThreadStatus::WaitSleep:
     case ThreadStatus::WaitIPC:
@@ -143,7 +142,7 @@ void Thread::ResumeFromWait() {
 }
 
 void Thread::CancelWait() {
-    ASSERT(GetStatus() == ThreadStatus::WaitSynchAny);
+    ASSERT(GetStatus() == ThreadStatus::WaitSynch);
     SetWaitSynchronizationResult(ERR_SYNCHRONIZATION_CANCELED);
     ResumeFromWait();
 }
