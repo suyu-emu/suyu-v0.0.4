@@ -236,6 +236,7 @@ public:
     void DeriveBase();
     void DeriveETicket(PartitionDataManager& data);
     void PopulateTickets();
+    void SynthesizeTickets();
 
     void PopulateFromPartitionData(PartitionDataManager& data);
 

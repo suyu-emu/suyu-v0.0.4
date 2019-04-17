@@ -56,6 +56,9 @@ public:
         };
         // clang-format on
         RegisterHandlers(functions);
+
+        keys.PopulateTickets();
+        keys.SynthesizeTickets();
     }
 
 private:
@@ -125,7 +128,6 @@ private:
     void CountCommonTicket(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_ETicket, "called");
 
-        keys.PopulateTickets();
         const auto count = keys.GetCommonTickets().size();
 
         IPC::ResponseBuilder rb{ctx, 3};
@@ -136,7 +138,6 @@ private:
     void CountPersonalizedTicket(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_ETicket, "called");
 
-        keys.PopulateTickets();
         const auto count = keys.GetPersonalizedTickets().size();
 
         IPC::ResponseBuilder rb{ctx, 3};
