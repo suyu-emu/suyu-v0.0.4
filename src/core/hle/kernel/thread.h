@@ -164,10 +164,16 @@ public:
         return tls_memory;
     }
 
-    /**
-     * Resumes a thread from waiting
-     */
+    /// Resumes a thread from waiting
     void ResumeFromWait();
+
+    /// Cancels a waiting operation that this thread may or may not be within.
+    ///
+    /// When the thread is within a waiting state, this will set the thread's
+    /// waiting result to signal a canceled wait. The function will then resume
+    /// this thread.
+    ///
+    void CancelWait();
 
     /**
      * Schedules an event to wake up the specified thread after the specified delay

@@ -142,6 +142,12 @@ void Thread::ResumeFromWait() {
     ChangeScheduler();
 }
 
+void Thread::CancelWait() {
+    ASSERT(GetStatus() == ThreadStatus::WaitSynchAny);
+    SetWaitSynchronizationResult(ERR_SYNCHRONIZATION_CANCELED);
+    ResumeFromWait();
+}
+
 /**
  * Resets a thread context, making it ready to be scheduled and run by the CPU
  * @param context Thread context to reset

@@ -518,16 +518,14 @@ static ResultCode CancelSynchronization(Core::System& system, Handle thread_hand
     LOG_TRACE(Kernel_SVC, "called thread=0x{:X}", thread_handle);
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
+    SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, thread_handle=0x{:08X}",
                   thread_handle);
         return ERR_INVALID_HANDLE;
     }
 
-    ASSERT(thread->GetStatus() == ThreadStatus::WaitSynchAny);
-    thread->SetWaitSynchronizationResult(ERR_SYNCHRONIZATION_CANCELED);
-    thread->ResumeFromWait();
+    thread->CancelWait();
     return RESULT_SUCCESS;
 }
 
