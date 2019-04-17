@@ -91,8 +91,8 @@ void EmuThread::run() {
 
 class GGLContext : public Core::Frontend::GraphicsContext {
 public:
-    explicit GGLContext(QOpenGLContext* shared_context) : surface() {
-        context = std::make_unique<QOpenGLContext>(shared_context);
+    explicit GGLContext(QOpenGLContext* shared_context)
+        : context{std::make_unique<QOpenGLContext>(shared_context)} {
         surface.setFormat(shared_context->format());
         surface.create();
     }
