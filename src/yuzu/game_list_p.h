@@ -95,7 +95,7 @@ public:
             if (row2.isEmpty())
                 return row1;
 
-            return row1 + "\n    " + row2;
+            return QString(row1 + "\n    " + row2);
         }
 
         return GameListItem::data(role);

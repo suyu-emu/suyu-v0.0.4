@@ -151,6 +151,12 @@ target_link_libraries(yuzu PRIVATE common core input_common video_core)
 target_link_libraries(yuzu PRIVATE Boost::boost glad Qt5::OpenGL Qt5::Widgets)
 target_link_libraries(yuzu PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
+target_compile_definitions(yuzu PRIVATE
+    # Use QStringBuilder for string concatenation to reduce
+    # the overall number of temporary strings created.
+    -DQT_USE_QSTRINGBUILDER
+)
+
 if (YUZU_ENABLE_COMPATIBILITY_REPORTING)
     target_compile_definitions(yuzu PRIVATE -DYUZU_ENABLE_COMPATIBILITY_REPORTING)
 endif()
