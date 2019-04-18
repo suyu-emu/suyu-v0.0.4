@@ -1380,20 +1380,22 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
         return ERR_INVALID_THREAD_PRIORITY;
     }
 
-    const std::string name = fmt::format("thread-{:X}", entry_point);
     auto& kernel = system.Kernel();
     CASCADE_RESULT(SharedPtr<Thread> thread,
-                   Thread::Create(kernel, name, entry_point, priority, arg, processor_id, stack_top,
+                   Thread::Create(kernel, "", entry_point, priority, arg, processor_id, stack_top,
                                   *current_process));
 
-    const auto new_guest_handle = current_process->GetHandleTable().Create(thread);
-    if (new_guest_handle.Failed()) {
+    const auto new_thread_handle = current_process->GetHandleTable().Create(thread);
+    if (new_thread_handle.Failed()) {
         LOG_ERROR(Kernel_SVC, "Failed to create handle with error=0x{:X}",
-                  new_guest_handle.Code().raw);
-        return new_guest_handle.Code();
+                  new_thread_handle.Code().raw);
+        return new_thread_handle.Code();
     }
-    thread->SetGuestHandle(*new_guest_handle);
-    *out_handle = *new_guest_handle;
+    *out_handle = *new_thread_handle;
+
+    // Set the thread name for debugging purposes.
+    thread->SetName(
+        fmt::format("thread[entry_point={:X}, handle={:X}]", entry_point, *new_thread_handle));
 
     system.CpuCore(thread->GetProcessorID()).PrepareReschedule();
 
