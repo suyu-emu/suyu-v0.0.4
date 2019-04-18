@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "common/logging/log.h"
+#include "core/hle/ipc_helpers.h"
 #include "core/hle/service/audio/audctl.h"
 
 namespace Service::Audio {
@@ -11,8 +13,8 @@ AudCtl::AudCtl() : ServiceFramework{"audctl"} {
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetTargetVolume"},
         {1, nullptr, "SetTargetVolume"},
-        {2, nullptr, "GetTargetVolumeMin"},
-        {3, nullptr, "GetTargetVolumeMax"},
+        {2, &AudCtl::GetTargetVolumeMin, "GetTargetVolumeMin"},
+        {3, &AudCtl::GetTargetVolumeMax, "GetTargetVolumeMax"},
         {4, nullptr, "IsTargetMute"},
         {5, nullptr, "SetTargetMute"},
         {6, nullptr, "IsTargetConnected"},
@@ -43,5 +45,29 @@ AudCtl::AudCtl() : ServiceFramework{"audctl"} {
 }
 
 AudCtl::~AudCtl() = default;
+
+void AudCtl::GetTargetVolumeMin(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Audio, "called.");
+
+    // This service function is currently hardcoded on the
+    // actual console to this value (as of 6.0.0).
+    constexpr s32 target_min_volume = 0;
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push(target_min_volume);
+}
+
+void AudCtl::GetTargetVolumeMax(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Audio, "called.");
+
+    // This service function is currently hardcoded on the
+    // actual console to this value (as of 6.0.0).
+    constexpr s32 target_max_volume = 15;
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push(target_max_volume);
+}
 
 } // namespace Service::Audio
