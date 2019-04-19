@@ -2290,7 +2290,7 @@ static const FunctionDef SVC_Table[] = {
     {0x33, SvcWrap<GetThreadContext>, "GetThreadContext"},
     {0x34, SvcWrap<WaitForAddress>, "WaitForAddress"},
     {0x35, SvcWrap<SignalToAddress>, "SignalToAddress"},
-    {0x36, nullptr, "Unknown"},
+    {0x36, nullptr, "SynchronizePreemptionState"},
     {0x37, nullptr, "Unknown"},
     {0x38, nullptr, "Unknown"},
     {0x39, nullptr, "Unknown"},
