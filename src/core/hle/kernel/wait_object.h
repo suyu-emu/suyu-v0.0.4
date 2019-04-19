@@ -54,7 +54,7 @@ public:
     void WakeupWaitingThread(SharedPtr<Thread> thread);
 
     /// Obtains the highest priority thread that is ready to run from this object's waiting list.
-    SharedPtr<Thread> GetHighestPriorityReadyThread();
+    SharedPtr<Thread> GetHighestPriorityReadyThread() const;
 
     /// Get a const reference to the waiting threads list for debug use
     const std::vector<SharedPtr<Thread>>& GetWaitingThreads() const;
