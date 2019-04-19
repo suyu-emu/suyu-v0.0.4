@@ -10,7 +10,6 @@
 #include <QImage>
 #include <QThread>
 #include <QWidget>
-#include "common/thread.h"
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
 

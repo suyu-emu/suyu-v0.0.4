@@ -91,8 +91,8 @@ void EmuThread::run() {
 
 class GGLContext : public Core::Frontend::GraphicsContext {
 public:
-    explicit GGLContext(QOpenGLContext* shared_context) : surface() {
-        context = std::make_unique<QOpenGLContext>(shared_context);
+    explicit GGLContext(QOpenGLContext* shared_context)
+        : context{std::make_unique<QOpenGLContext>(shared_context)} {
         surface.setFormat(shared_context->format());
         surface.create();
     }
@@ -186,8 +186,7 @@ private:
 };
 
 GRenderWindow::GRenderWindow(QWidget* parent, EmuThread* emu_thread)
-    : QWidget(parent), child(nullptr), context(nullptr), emu_thread(emu_thread) {
-
+    : QWidget(parent), emu_thread(emu_thread) {
     setWindowTitle(QStringLiteral("yuzu %1 | %2-%3")
                        .arg(Common::g_build_name, Common::g_scm_branch, Common::g_scm_desc));
     setAttribute(Qt::WA_AcceptTouchEvents);
