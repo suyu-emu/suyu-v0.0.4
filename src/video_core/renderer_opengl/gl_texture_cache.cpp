@@ -235,8 +235,9 @@ void SwizzleFunc(MortonSwizzleMode mode, u8* memory, const SurfaceParams& params
 
 } // Anonymous namespace
 
-CachedSurface::CachedSurface(const SurfaceParams& params)
-    : VideoCommon::SurfaceBaseContextless<CachedSurfaceView>{params} {
+CachedSurface::CachedSurface(TextureCacheOpenGL& texture_cache, const SurfaceParams& params)
+    : VideoCommon::SurfaceBaseContextless<TextureCacheOpenGL, CachedSurfaceView>{texture_cache,
+                                                                                 params} {
     const auto& tuple{GetFormatTuple(params.GetPixelFormat(), params.GetComponentType())};
     internal_format = tuple.internal_format;
     format = tuple.format;

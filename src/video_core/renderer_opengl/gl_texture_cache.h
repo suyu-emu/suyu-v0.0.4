@@ -26,15 +26,17 @@ using VideoCore::Surface::SurfaceType;
 
 class CachedSurfaceView;
 class CachedSurface;
+class TextureCacheOpenGL;
 
 using Surface = std::shared_ptr<CachedSurface>;
 using TextureCacheBase = VideoCommon::TextureCacheContextless<CachedSurface, CachedSurfaceView>;
 
-class CachedSurface final : public VideoCommon::SurfaceBaseContextless<CachedSurfaceView> {
+class CachedSurface final
+    : public VideoCommon::SurfaceBaseContextless<TextureCacheOpenGL, CachedSurfaceView> {
     friend CachedSurfaceView;
 
 public:
-    explicit CachedSurface(const SurfaceParams& params);
+    explicit CachedSurface(TextureCacheOpenGL& texture_cache, const SurfaceParams& params);
     ~CachedSurface();
 
     void LoadBuffer();

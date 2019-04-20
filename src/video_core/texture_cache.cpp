@@ -154,8 +154,8 @@ bool SurfaceParams::IsLayered() const {
     switch (target) {
     case SurfaceTarget::Texture1DArray:
     case SurfaceTarget::Texture2DArray:
-    case SurfaceTarget::TextureCubeArray:
     case SurfaceTarget::TextureCubemap:
+    case SurfaceTarget::TextureCubeArray:
         return true;
     default:
         return false;
@@ -192,9 +192,11 @@ u32 SurfaceParams::GetMipBlockDepth(u32 level) const {
     while (block_depth > 1 && depth * 2 <= block_depth) {
         block_depth >>= 1;
     }
+
     if (block_depth == 32 && GetMipBlockHeight(level) >= 4) {
         return 16;
     }
+
     return block_depth;
 }
 
@@ -227,7 +229,7 @@ std::size_t SurfaceParams::GetLayerSize(bool as_host_size, bool uncompressed) co
     for (u32 level = 0; level < num_levels; ++level) {
         size += GetInnerMipmapMemorySize(level, as_host_size, uncompressed);
     }
-    if (is_tiled && IsLayered()) {
+    if (is_tiled && (IsLayered() || target == SurfaceTarget::Texture3D)) {
         return Common::AlignUp(size, Tegra::Texture::GetGOBSize() * block_height * block_depth);
     }
     return size;
@@ -312,9 +314,10 @@ void SurfaceParams::CalculateCachedValues() {
 
     guest_size_in_bytes = GetInnerMemorySize(false, false, false);
 
-    // ASTC is uncompressed in software, in emulated as RGBA8
     if (IsPixelFormatASTC(pixel_format)) {
-        host_size_in_bytes = static_cast<std::size_t>(width * height * depth * 4U);
+        // ASTC is uncompressed in software, in emulated as RGBA8
+        host_size_in_bytes = static_cast<std::size_t>(width) * static_cast<std::size_t>(height) *
+                             static_cast<std::size_t>(depth) * 4ULL;
     } else {
         host_size_in_bytes = GetInnerMemorySize(true, false, false);
     }
