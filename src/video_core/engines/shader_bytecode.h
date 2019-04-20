@@ -937,21 +937,34 @@ union Instruction {
     } iset;
 
     union {
-        BitField<8, 2, Register::Size> dest_size;
-        BitField<10, 2, Register::Size> src_size;
-        BitField<12, 1, u64> is_output_signed;
-        BitField<13, 1, u64> is_input_signed;
-        BitField<41, 2, u64> selector;
+        BitField<41, 2, u64> selector; // i2i and i2f only
         BitField<45, 1, u64> negate_a;
         BitField<49, 1, u64> abs_a;
+        BitField<10, 2, Register::Size> src_size;
+        BitField<13, 1, u64> is_input_signed;
+        BitField<8, 2, Register::Size> dst_size;
+        BitField<12, 1, u64> is_output_signed;
+
+        union {
+            BitField<39, 2, u64> tab5cb8_2;
+        } i2f;
 
         union {
             BitField<39, 2, F2iRoundingOp> rounding;
         } f2i;
 
         union {
-            BitField<39, 4, F2fRoundingOp> rounding;
+            BitField<8, 2, Register::Size> src_size;
+            BitField<10, 2, Register::Size> dst_size;
+            BitField<39, 4, u64> rounding;
+            // H0, H1 extract for F16 missing
+            BitField<41, 1, u64> selector; // Guessed as some games set it, TODO: reverse this value
+            F2fRoundingOp GetRoundingMode() const {
+                constexpr u64 rounding_mask = 0x0B;
+                return static_cast<F2fRoundingOp>(rounding.Value() & rounding_mask);
+            }
         } f2f;
+
     } conversion;
 
     union {
@@ -1734,7 +1747,7 @@ private:
             INST("0011100-00101---", Id::SHR_IMM, Type::Shift, "SHR_IMM"),
             INST("0100110011100---", Id::I2I_C, Type::Conversion, "I2I_C"),
             INST("0101110011100---", Id::I2I_R, Type::Conversion, "I2I_R"),
-            INST("01110001-1000---", Id::I2I_IMM, Type::Conversion, "I2I_IMM"),
+            INST("0011101-11100---", Id::I2I_IMM, Type::Conversion, "I2I_IMM"),
             INST("0100110010111---", Id::I2F_C, Type::Conversion, "I2F_C"),
             INST("0101110010111---", Id::I2F_R, Type::Conversion, "I2F_R"),
             INST("0011100-10111---", Id::I2F_IMM, Type::Conversion, "I2F_IMM"),

@@ -18,13 +18,29 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
     const auto opcode = OpCode::Decode(instr);
 
     switch (opcode->get().GetId()) {
-    case OpCode::Id::I2I_R: {
+    case OpCode::Id::I2I_R:
+    case OpCode::Id::I2I_C:
+    case OpCode::Id::I2I_IMM: {
         UNIMPLEMENTED_IF(instr.conversion.selector);
+        UNIMPLEMENTED_IF(instr.conversion.dst_size != Register::Size::Word);
+        UNIMPLEMENTED_IF(instr.alu.saturate_d);
 
         const bool input_signed = instr.conversion.is_input_signed;
         const bool output_signed = instr.conversion.is_output_signed;
 
-        Node value = GetRegister(instr.gpr20);
+        Node value = [&]() {
+            switch (opcode->get().GetId()) {
+            case OpCode::Id::I2I_R:
+                return GetRegister(instr.gpr20);
+            case OpCode::Id::I2I_C:
+                return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset());
+            case OpCode::Id::I2I_IMM:
+                return Immediate(instr.alu.GetSignedImm20_20());
+            default:
+                UNREACHABLE();
+                return Immediate(0);
+            }
+        }();
         value = ConvertIntegerSize(value, instr.conversion.src_size, input_signed);
 
         value = GetOperandAbsNegInteger(value, instr.conversion.abs_a, instr.conversion.negate_a,
@@ -38,17 +54,24 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::I2F_R:
-    case OpCode::Id::I2F_C: {
-        UNIMPLEMENTED_IF(instr.conversion.dest_size != Register::Size::Word);
+    case OpCode::Id::I2F_C:
+    case OpCode::Id::I2F_IMM: {
+        UNIMPLEMENTED_IF(instr.conversion.dst_size != Register::Size::Word);
         UNIMPLEMENTED_IF(instr.conversion.selector);
         UNIMPLEMENTED_IF_MSG(instr.generates_cc,
                              "Condition codes generation in I2F is not implemented");
 
         Node value = [&]() {
-            if (instr.is_b_gpr) {
+            switch (opcode->get().GetId()) {
+            case OpCode::Id::I2F_R:
                 return GetRegister(instr.gpr20);
-            } else {
+            case OpCode::Id::I2F_C:
                 return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset());
+            case OpCode::Id::I2F_IMM:
+                return Immediate(instr.alu.GetSignedImm20_20());
+            default:
+                UNREACHABLE();
+                return Immediate(0);
             }
         }();
         const bool input_signed = instr.conversion.is_input_signed;
@@ -62,24 +85,31 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::F2F_R:
-    case OpCode::Id::F2F_C: {
-        UNIMPLEMENTED_IF(instr.conversion.dest_size != Register::Size::Word);
-        UNIMPLEMENTED_IF(instr.conversion.src_size != Register::Size::Word);
+    case OpCode::Id::F2F_C:
+    case OpCode::Id::F2F_IMM: {
+        UNIMPLEMENTED_IF(instr.conversion.f2f.dst_size != Register::Size::Word);
+        UNIMPLEMENTED_IF(instr.conversion.f2f.src_size != Register::Size::Word);
         UNIMPLEMENTED_IF_MSG(instr.generates_cc,
                              "Condition codes generation in F2F is not implemented");
 
         Node value = [&]() {
-            if (instr.is_b_gpr) {
+            switch (opcode->get().GetId()) {
+            case OpCode::Id::F2F_R:
                 return GetRegister(instr.gpr20);
-            } else {
+            case OpCode::Id::F2F_C:
                 return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset());
+            case OpCode::Id::F2F_IMM:
+                return GetImmediate19(instr);
+            default:
+                UNREACHABLE();
+                return Immediate(0);
             }
         }();
 
         value = GetOperandAbsNegFloat(value, instr.conversion.abs_a, instr.conversion.negate_a);
 
         value = [&]() {
-            switch (instr.conversion.f2f.rounding) {
+            switch (instr.conversion.f2f.GetRoundingMode()) {
             case Tegra::Shader::F2fRoundingOp::None:
                 return value;
             case Tegra::Shader::F2fRoundingOp::Round:
@@ -102,15 +132,22 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::F2I_R:
-    case OpCode::Id::F2I_C: {
+    case OpCode::Id::F2I_C:
+    case OpCode::Id::F2I_IMM: {
         UNIMPLEMENTED_IF(instr.conversion.src_size != Register::Size::Word);
         UNIMPLEMENTED_IF_MSG(instr.generates_cc,
                              "Condition codes generation in F2I is not implemented");
         Node value = [&]() {
-            if (instr.is_b_gpr) {
+            switch (opcode->get().GetId()) {
+            case OpCode::Id::F2I_R:
                 return GetRegister(instr.gpr20);
-            } else {
+            case OpCode::Id::F2I_C:
                 return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset());
+            case OpCode::Id::F2I_IMM:
+                return GetImmediate19(instr);
+            default:
+                UNREACHABLE();
+                return Immediate(0);
             }
         }();
 
@@ -134,7 +171,7 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
         }();
         const bool is_signed = instr.conversion.is_output_signed;
         value = SignedOperation(OperationCode::ICastFloat, is_signed, PRECISE, value);
-        value = ConvertIntegerSize(value, instr.conversion.dest_size, is_signed);
+        value = ConvertIntegerSize(value, instr.conversion.dst_size, is_signed);
 
         SetRegister(bb, instr.gpr0, value);
         break;
