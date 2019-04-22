@@ -10,6 +10,7 @@
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_base.h"
+#include "video_core/textures/decoders.h"
 
 namespace Tegra::Engines {
 
@@ -27,30 +28,46 @@ void KeplerMemory::CallMethod(const GPU::MethodCall& method_call) {
 
     switch (method_call.method) {
     case KEPLERMEMORY_REG_INDEX(exec): {
-        state.write_offset = 0;
+        ProcessExec();
         break;
     }
     case KEPLERMEMORY_REG_INDEX(data): {
-        ProcessData(method_call.argument);
+        ProcessData(method_call.argument, method_call.IsLastCall());
         break;
     }
     }
 }
 
-void KeplerMemory::ProcessData(u32 data) {
-    ASSERT_MSG(regs.exec.linear, "Non-linear uploads are not supported");
-    ASSERT(regs.dest.x == 0 && regs.dest.y == 0 && regs.dest.z == 0);
+void KeplerMemory::ProcessExec() {
+    state.write_offset = 0;
+    state.copy_size = regs.line_length_in * regs.line_count;
+    state.inner_buffer.resize(state.copy_size);
+}
 
-    // We have to invalidate the destination region to evict any outdated surfaces from the cache.
-    // We do this before actually writing the new data because the destination address might
-    // contain a dirty surface that will have to be written back to memory.
-    const GPUVAddr address{regs.dest.Address() + state.write_offset * sizeof(u32)};
-    rasterizer.InvalidateRegion(ToCacheAddr(memory_manager.GetPointer(address)), sizeof(u32));
-    memory_manager.Write<u32>(address, data);
-
-    system.GPU().Maxwell3D().dirty_flags.OnMemoryWrite();
-
-    state.write_offset++;
+void KeplerMemory::ProcessData(u32 data, bool is_last_call) {
+    const u32 sub_copy_size = std::min(4U, state.copy_size - state.write_offset);
+    std::memcpy(&state.inner_buffer[state.write_offset], &regs.data, sub_copy_size);
+    state.write_offset += sub_copy_size;
+    if (is_last_call) {
+        const GPUVAddr address{regs.dest.Address()};
+        if (regs.exec.linear != 0) {
+            memory_manager.WriteBlock(address, state.inner_buffer.data(), state.copy_size);
+        } else {
+            UNIMPLEMENTED_IF(regs.dest.z != 0);
+            UNIMPLEMENTED_IF(regs.dest.depth != 1);
+            UNIMPLEMENTED_IF(regs.dest.BlockWidth() != 1);
+            UNIMPLEMENTED_IF(regs.dest.BlockDepth() != 1);
+            const std::size_t dst_size = Tegra::Texture::CalculateSize(
+                true, 1, regs.dest.width, regs.dest.height, 1, regs.dest.BlockHeight(), 1);
+            std::vector<u8> tmp_buffer(dst_size);
+            memory_manager.ReadBlock(address, tmp_buffer.data(), dst_size);
+            Tegra::Texture::SwizzleKepler(regs.dest.width, regs.dest.height, regs.dest.x,
+                                          regs.dest.y, regs.dest.BlockHeight(), state.copy_size,
+                                          state.inner_buffer.data(), tmp_buffer.data());
+            memory_manager.WriteBlock(address, tmp_buffer.data(), dst_size);
+        }
+        system.GPU().Maxwell3D().dirty_flags.OnMemoryWrite();
+    }
 }
 
 } // namespace Tegra::Engines
