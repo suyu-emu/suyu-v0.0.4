@@ -230,7 +230,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system) {
     Migration::InstallInterfaces(*sm);
     Mii::InstallInterfaces(*sm);
     MM::InstallInterfaces(*sm);
-    NCM::InstallInterfaces(*sm, fsc);
+    NCM::InstallInterfaces(*sm);
     NFC::InstallInterfaces(*sm);
     NFP::InstallInterfaces(*sm);
     NIFM::InstallInterfaces(*sm);

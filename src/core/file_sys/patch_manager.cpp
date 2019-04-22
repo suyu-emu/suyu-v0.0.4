@@ -63,7 +63,8 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
 
     if (Settings::values.dump_exefs) {
         LOG_INFO(Loader, "Dumping ExeFS for title_id={:016X}", title_id);
-        const auto dump_dir = Service::FileSystem::GetModificationDumpRoot(title_id);
+        const auto dump_dir =
+            Core::System::GetInstance().GetFileSystemController().GetModificationDumpRoot(title_id);
         if (dump_dir != nullptr) {
             const auto exefs_dir = GetOrCreateDirectoryRelative(dump_dir, "/exefs");
             VfsRawCopyD(exefs, exefs_dir);
@@ -88,7 +89,8 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
     }
 
     // LayeredExeFS
-    const auto load_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
+    const auto load_dir =
+        Core::System::GetInstance().GetFileSystemController().GetModificationLoadRoot(title_id);
     if (load_dir != nullptr && load_dir->GetSize() > 0) {
         auto patch_dirs = load_dir->GetSubdirectories();
         std::sort(
@@ -174,7 +176,8 @@ std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso, const std::st
     if (Settings::values.dump_nso) {
         LOG_INFO(Loader, "Dumping NSO for name={}, build_id={}, title_id={:016X}", name, build_id,
                  title_id);
-        const auto dump_dir = Service::FileSystem::GetModificationDumpRoot(title_id);
+        const auto dump_dir =
+            Core::System::GetInstance().GetFileSystemController().GetModificationDumpRoot(title_id);
         if (dump_dir != nullptr) {
             const auto nso_dir = GetOrCreateDirectoryRelative(dump_dir, "/nso");
             const auto file = nso_dir->CreateFile(fmt::format("{}-{}.nso", name, build_id));
@@ -186,7 +189,8 @@ std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso, const std::st
 
     LOG_INFO(Loader, "Patching NSO for name={}, build_id={}", name, build_id);
 
-    const auto load_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
+    const auto load_dir =
+        Core::System::GetInstance().GetFileSystemController().GetModificationLoadRoot(title_id);
     if (load_dir == nullptr) {
         LOG_ERROR(Loader, "Cannot load mods for invalid title_id={:016X}", title_id);
         return nso;
@@ -229,7 +233,8 @@ bool PatchManager::HasNSOPatch(const std::array<u8, 32>& build_id_) const {
 
     LOG_INFO(Loader, "Querying NSO patch existence for build_id={}", build_id);
 
-    const auto load_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
+    const auto load_dir =
+        Core::System::GetInstance().GetFileSystemController().GetModificationLoadRoot(title_id);
     if (load_dir == nullptr) {
         LOG_ERROR(Loader, "Cannot load mods for invalid title_id={:016X}", title_id);
         return false;
@@ -268,7 +273,8 @@ static std::optional<CheatList> ReadCheatFileFromFolder(const Core::System& syst
 
 std::vector<CheatList> PatchManager::CreateCheatList(const Core::System& system,
                                                      const std::array<u8, 32>& build_id_) const {
-    const auto load_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
+    const auto load_dir =
+        Core::System::GetInstance().GetFileSystemController().GetModificationLoadRoot(title_id);
     if (load_dir == nullptr) {
         LOG_ERROR(Loader, "Cannot load mods for invalid title_id={:016X}", title_id);
         return {};
@@ -299,7 +305,8 @@ std::vector<CheatList> PatchManager::CreateCheatList(const Core::System& system,
 }
 
 static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType type) {
-    const auto load_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
+    const auto load_dir =
+        Core::System::GetInstance().GetFileSystemController().GetModificationLoadRoot(title_id);
     if ((type != ContentRecordType::Program && type != ContentRecordType::Data) ||
         load_dir == nullptr || load_dir->GetSize() <= 0) {
         return;
@@ -440,7 +447,8 @@ std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNam
     }
 
     // General Mods (LayeredFS and IPS)
-    const auto mod_dir = Service::FileSystem::GetModificationLoadRoot(title_id);
+    const auto mod_dir =
+        Core::System::GetInstance().GetFileSystemController().GetModificationLoadRoot(title_id);
     if (mod_dir != nullptr && mod_dir->GetSize() > 0) {
         for (const auto& mod : mod_dir->GetSubdirectories()) {
             std::string types;

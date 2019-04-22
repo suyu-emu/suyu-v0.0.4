@@ -26,6 +26,7 @@
 #include "core/hle/service/filesystem/fsp_pr.h"
 #include "core/hle/service/filesystem/fsp_srv.h"
 #include "core/loader/loader.h"
+#include "core/settings.h"
 
 namespace Service::FileSystem {
 

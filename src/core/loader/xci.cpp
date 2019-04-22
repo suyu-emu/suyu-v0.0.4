@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "common/common_types.h"
+#include "core/core.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
@@ -72,7 +73,8 @@ AppLoader_XCI::LoadResult AppLoader_XCI::Load(Kernel::Process& process) {
 
     FileSys::VirtualFile update_raw;
     if (ReadUpdateRaw(update_raw) == ResultStatus::Success && update_raw != nullptr) {
-        Service::FileSystem::SetPackedUpdate(std::move(update_raw));
+        Core::System::GetInstance().GetFileSystemController().SetPackedUpdate(
+            std::move(update_raw));
     }
 
     is_loaded = true;

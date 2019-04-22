@@ -184,7 +184,7 @@ int main(int argc, char** argv) {
     Core::System& system{Core::System::GetInstance()};
     system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
     system.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
-    Service::FileSystem::CreateFactories(*system.GetFilesystem());
+    system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
 
     SCOPE_EXIT({ system.Shutdown(); });
 

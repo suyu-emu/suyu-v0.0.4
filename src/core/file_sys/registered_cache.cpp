@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <random>
 #include <regex>
 #include <mbedtls/sha256.h>
 #include "common/assert.h"
