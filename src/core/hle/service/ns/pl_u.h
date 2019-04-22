@@ -7,11 +7,17 @@
 #include <memory>
 #include "core/hle/service/service.h"
 
-namespace Service::NS {
+namespace Service {
+
+namespace FileSystem {
+class FileSystemController;
+} // namespace FileSystem
+
+namespace NS {
 
 class PL_U final : public ServiceFramework<PL_U> {
 public:
-    PL_U();
+    PL_U(FileSystem::FileSystemController& fsc);
     ~PL_U() override;
 
 private:
@@ -26,4 +32,6 @@ private:
     std::unique_ptr<Impl> impl;
 };
 
-} // namespace Service::NS
+} // namespace NS
+
+} // namespace Service

@@ -6,7 +6,13 @@
 
 #include "core/hle/service/service.h"
 
-namespace Service::NS {
+namespace Service {
+
+namespace FileSystem {
+class FileSystemController;
+} // namespace FileSystem
+
+namespace NS {
 
 class IAccountProxyInterface final : public ServiceFramework<IAccountProxyInterface> {
 public:
@@ -91,6 +97,8 @@ private:
 };
 
 /// Registers all NS services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& service_manager);
+void InstallInterfaces(SM::ServiceManager& service_manager, FileSystem::FileSystemController& fsc);
 
-} // namespace Service::NS
+} // namespace NS
+
+} // namespace Service

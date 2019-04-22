@@ -18,10 +18,6 @@ namespace Core {
 class System;
 }
 
-namespace FileSys {
-class VfsFilesystem;
-}
-
 namespace Kernel {
 class ClientPort;
 class ServerPort;
@@ -30,6 +26,10 @@ class HLERequestContext;
 } // namespace Kernel
 
 namespace Service {
+
+namespace FileSystem {
+class FileSystemController;
+} // namespace FileSystem
 
 namespace SM {
 class ServiceManager;

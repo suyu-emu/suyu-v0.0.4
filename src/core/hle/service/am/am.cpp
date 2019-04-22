@@ -1268,7 +1268,7 @@ void IApplicationFunctions::ExtendSaveData(Kernel::HLERequestContext& ctx) {
               "new_journal={:016X}",
               static_cast<u8>(type), user_id[1], user_id[0], new_normal_size, new_journal_size);
 
-    fsc.WriteSaveDataSize(type, Core::CurrentProcess()->GetTitleID(), user_id,
+    fsc.WriteSaveDataSize(type, system.CurrentProcess()->GetTitleID(), user_id,
                           {new_normal_size, new_journal_size});
 
     IPC::ResponseBuilder rb{ctx, 4};
@@ -1288,7 +1288,8 @@ void IApplicationFunctions::GetSaveDataSize(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called with type={:02X}, user_id={:016X}{:016X}", static_cast<u8>(type),
               user_id[1], user_id[0]);
 
-    const auto size = fsc.ReadSaveDataSize(type, Core::CurrentProcess()->GetTitleID(), user_id);
+    const auto size = system.FileSystemController().ReadSaveDataSize(
+        type, system.CurrentProcess()->GetTitleID(), user_id);
 
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(RESULT_SUCCESS);
