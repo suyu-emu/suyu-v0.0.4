@@ -459,6 +459,17 @@ void Config::ReadDataStorageValues() {
                     QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir)))
             .toString()
             .toStdString());
+    Settings::values.nand_total_size = static_cast<Settings::NANDTotalSize>(
+        ReadSetting(QStringLiteral("nand_total_size"), static_cast<u64>(Settings::NANDTotalSize::S29_1GB))
+            .toULongLong());
+    Settings::values.nand_user_size = static_cast<Settings::NANDUserSize>(
+        ReadSetting(QStringLiteral("nand_user_size"), static_cast<u64>(Settings::NANDUserSize::S26GB))
+            .toULongLong());
+    Settings::values.nand_system_size = static_cast<Settings::NANDSystemSize>(
+        ReadSetting(QStringLiteral("nand_system_size"), static_cast<u64>(Settings::NANDSystemSize::S2_5GB))
+            .toULongLong());
+    Settings::values.sdmc_size = static_cast<Settings::SDMCSize>(
+        ReadSetting(QStringLiteral("sdmc_size"), static_cast<u64>(Settings::SDMCSize::S16GB)).toULongLong());
 
     qt_config->endGroup();
 }
@@ -875,7 +886,14 @@ void Config::SaveDataStorageValues() {
     WriteSetting(QStringLiteral("sdmc_directory"),
                  QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir)),
                  QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir)));
-
+    WriteSetting(QStringLiteral("nand_total_size"), static_cast<u64>(Settings::values.nand_total_size),
+                 static_cast<u64>(Settings::NANDTotalSize::S29_1GB));
+    WriteSetting(QStringLiteral("nand_user_size"), static_cast<u64>(Settings::values.nand_user_size),
+                 static_cast<u64>(Settings::NANDUserSize::S26GB));
+    WriteSetting(QStringLiteral("nand_system_size"), static_cast<u64>(Settings::values.nand_system_size),
+                 static_cast<u64>(Settings::NANDSystemSize::S2_5GB));
+    WriteSetting(QStringLiteral("sdmc_size"), static_cast<u64>(Settings::values.sdmc_size),
+                 static_cast<u64>(Settings::SDMCSize::S16GB));
     qt_config->endGroup();
 }
 
