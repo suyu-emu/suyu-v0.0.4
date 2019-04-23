@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstddef>
+#include <vector>
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
@@ -155,6 +156,13 @@ public:
                     BitField<16, 2, u32> component_size;
                     BitField<20, 3, u32> src_num_components;
                     BitField<24, 3, u32> dst_num_components;
+
+                    u32 SrcBytePerPixel() const {
+                        return src_num_components.Value() * component_size.Value();
+                    }
+                    u32 DstBytePerPixel() const {
+                        return dst_num_components.Value() * component_size.Value();
+                    }
                 } swizzle_config;
 
                 Parameters dst_params;
@@ -175,6 +183,9 @@ private:
     VideoCore::RasterizerInterface& rasterizer;
 
     MemoryManager& memory_manager;
+
+    std::vector<u8> read_buffer;
+    std::vector<u8> write_buffer;
 
     /// Performs the copy from the source buffer to the destination buffer as configured in the
     /// registers.
