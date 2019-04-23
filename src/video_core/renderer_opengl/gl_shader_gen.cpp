@@ -58,6 +58,9 @@ void main() {
     }
 
     out += R"(
+
+    // Set Position Y direction
+    position.y *= utof(config_pack[2]);
     // Check if the flip stage is VertexB
     // Config pack's second value is flip_stage
     if (config_pack[1] == 1) {
