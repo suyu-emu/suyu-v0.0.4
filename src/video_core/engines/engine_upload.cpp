@@ -25,7 +25,7 @@ void State::ProcessData(const u32 data, const bool is_last_call) {
     write_offset += sub_copy_size;
     if (is_last_call) {
         const GPUVAddr address{regs.dest.Address()};
-        if (linear) {
+        if (is_linear) {
             memory_manager.WriteBlock(address, inner_buffer.data(), copy_size);
         } else {
             UNIMPLEMENTED_IF(regs.dest.z != 0);
