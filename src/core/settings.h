@@ -407,8 +407,9 @@ struct Values {
 
     // Data Storage
     bool use_virtual_sd;
-    std::string nand_dir;
-    std::string sdmc_dir;
+    bool gamecard_inserted;
+    bool gamecard_current_game;
+    std::string gamecard_path;
     NANDTotalSize nand_total_size;
     NANDSystemSize nand_system_size;
     NANDUserSize nand_user_size;
