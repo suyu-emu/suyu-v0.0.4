@@ -32,8 +32,8 @@
 namespace Service::FileSystem {
 
 struct SizeGetter {
-    std::function<u64()> free;
-    std::function<u64()> total;
+    std::function<u64()> get_free_size;
+    std::function<u64()> get_total_size;
 
     static SizeGetter FromStorageId(const FileSystemController& fsc, FileSys::StorageId id) {
         return {
@@ -485,7 +485,7 @@ public:
 
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
-        rb.Push(size.free());
+        rb.Push(size.get_free_size());
     }
 
     void GetTotalSpaceSize(Kernel::HLERequestContext& ctx) {
@@ -493,7 +493,7 @@ public:
 
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
-        rb.Push(size.total());
+        rb.Push(size.get_total_size());
     }
 
 private:

@@ -71,7 +71,7 @@ SaveDataFactory::SaveDataFactory(VirtualDir save_directory) : dir(std::move(save
 SaveDataFactory::~SaveDataFactory() = default;
 
 ResultVal<VirtualDir> SaveDataFactory::Create(SaveDataSpaceId space,
-                                              const SaveDataDescriptor& meta) {
+                                              const SaveDataDescriptor& meta) const {
     PrintSaveDataDescriptorWarnings(meta);
 
     const auto save_directory =
@@ -88,7 +88,8 @@ ResultVal<VirtualDir> SaveDataFactory::Create(SaveDataSpaceId space,
     return MakeResult<VirtualDir>(std::move(out));
 }
 
-ResultVal<VirtualDir> SaveDataFactory::Open(SaveDataSpaceId space, const SaveDataDescriptor& meta) {
+ResultVal<VirtualDir> SaveDataFactory::Open(SaveDataSpaceId space,
+                                            const SaveDataDescriptor& meta) const {
 
     const auto save_directory =
         GetFullPath(space, meta.type, meta.title_id, meta.user_id, meta.save_id);
@@ -165,7 +166,7 @@ SaveDataSize SaveDataFactory::ReadSaveDataSize(SaveDataType type, u64 title_id,
 }
 
 void SaveDataFactory::WriteSaveDataSize(SaveDataType type, u64 title_id, u128 user_id,
-                                        SaveDataSize new_value) {
+                                        SaveDataSize new_value) const {
     const auto path = GetFullPath(SaveDataSpaceId::NandUser, type, title_id, user_id, 0);
     const auto dir = GetOrCreateDirectoryRelative(this->dir, path);
 

@@ -19,7 +19,7 @@ public:
     explicit SDMCFactory(VirtualDir dir);
     ~SDMCFactory();
 
-    ResultVal<VirtualDir> Open();
+    ResultVal<VirtualDir> Open() const;
 
     VirtualDir GetSDMCContentDirectory() const;
 

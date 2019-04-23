@@ -35,7 +35,7 @@ void RomFSFactory::SetPackedUpdate(VirtualFile update_raw) {
     this->update_raw = std::move(update_raw);
 }
 
-ResultVal<VirtualFile> RomFSFactory::OpenCurrentProcess() {
+ResultVal<VirtualFile> RomFSFactory::OpenCurrentProcess() const {
     if (!updatable)
         return MakeResult<VirtualFile>(file);
 
@@ -44,7 +44,8 @@ ResultVal<VirtualFile> RomFSFactory::OpenCurrentProcess() {
         patch_manager.PatchRomFS(file, ivfc_offset, ContentRecordType::Program, update_raw));
 }
 
-ResultVal<VirtualFile> RomFSFactory::Open(u64 title_id, StorageId storage, ContentRecordType type) {
+ResultVal<VirtualFile> RomFSFactory::Open(u64 title_id, StorageId storage,
+                                          ContentRecordType type) const {
     std::shared_ptr<NCA> res;
 
     switch (storage) {

@@ -52,59 +52,63 @@ enum class ImageDirectoryId : u32 {
 
 class FileSystemController {
 public:
+    FileSystemController();
+    ~FileSystemController();
+
     ResultCode RegisterRomFS(std::unique_ptr<FileSys::RomFSFactory>&& factory);
     ResultCode RegisterSaveData(std::unique_ptr<FileSys::SaveDataFactory>&& factory);
     ResultCode RegisterSDMC(std::unique_ptr<FileSys::SDMCFactory>&& factory);
     ResultCode RegisterBIS(std::unique_ptr<FileSys::BISFactory>&& factory);
 
     void SetPackedUpdate(FileSys::VirtualFile update_raw);
-    ResultVal<FileSys::VirtualFile> OpenRomFSCurrentProcess();
+    ResultVal<FileSys::VirtualFile> OpenRomFSCurrentProcess() const;
     ResultVal<FileSys::VirtualFile> OpenRomFS(u64 title_id, FileSys::StorageId storage_id,
-                                              FileSys::ContentRecordType type);
-    ResultVal<FileSys::VirtualDir> CreateSaveData(FileSys::SaveDataSpaceId space,
-                                                  const FileSys::SaveDataDescriptor& save_struct);
-    ResultVal<FileSys::VirtualDir> OpenSaveData(FileSys::SaveDataSpaceId space,
-                                                const FileSys::SaveDataDescriptor& save_struct);
-    ResultVal<FileSys::VirtualDir> OpenSaveDataSpace(FileSys::SaveDataSpaceId space);
-    ResultVal<FileSys::VirtualDir> OpenSDMC();
-    ResultVal<FileSys::VirtualDir> OpenBISPartition(FileSys::BisPartitionId id);
-    ResultVal<FileSys::VirtualFile> OpenBISPartitionStorage(FileSys::BisPartitionId id);
+                                              FileSys::ContentRecordType type) const;
+    ResultVal<FileSys::VirtualDir> CreateSaveData(
+        FileSys::SaveDataSpaceId space, const FileSys::SaveDataDescriptor& save_struct) const;
+    ResultVal<FileSys::VirtualDir> OpenSaveData(
+        FileSys::SaveDataSpaceId space, const FileSys::SaveDataDescriptor& save_struct) const;
+    ResultVal<FileSys::VirtualDir> OpenSaveDataSpace(FileSys::SaveDataSpaceId space) const;
+    ResultVal<FileSys::VirtualDir> OpenSDMC() const;
+    ResultVal<FileSys::VirtualDir> OpenBISPartition(FileSys::BisPartitionId id) const;
+    ResultVal<FileSys::VirtualFile> OpenBISPartitionStorage(FileSys::BisPartitionId id) const;
 
     u64 GetFreeSpaceSize(FileSys::StorageId id) const;
     u64 GetTotalSpaceSize(FileSys::StorageId id) const;
 
-    FileSys::SaveDataSize ReadSaveDataSize(FileSys::SaveDataType type, u64 title_id, u128 user_id);
+    FileSys::SaveDataSize ReadSaveDataSize(FileSys::SaveDataType type, u64 title_id,
+                                           u128 user_id) const;
     void WriteSaveDataSize(FileSys::SaveDataType type, u64 title_id, u128 user_id,
-                           FileSys::SaveDataSize new_value);
+                           FileSys::SaveDataSize new_value) const;
 
     void SetGameCard(FileSys::VirtualFile file);
-    FileSys::XCI* GetGameCard();
+    FileSys::XCI* GetGameCard() const;
 
-    FileSys::RegisteredCache* GetSystemNANDContents();
-    FileSys::RegisteredCache* GetUserNANDContents();
-    FileSys::RegisteredCache* GetSDMCContents();
-    FileSys::RegisteredCache* GetGameCardContents();
+    FileSys::RegisteredCache* GetSystemNANDContents() const;
+    FileSys::RegisteredCache* GetUserNANDContents() const;
+    FileSys::RegisteredCache* GetSDMCContents() const;
+    FileSys::RegisteredCache* GetGameCardContents() const;
 
-    FileSys::PlaceholderCache* GetSystemNANDPlaceholder();
-    FileSys::PlaceholderCache* GetUserNANDPlaceholder();
-    FileSys::PlaceholderCache* GetSDMCPlaceholder();
-    FileSys::PlaceholderCache* GetGameCardPlaceholder();
+    FileSys::PlaceholderCache* GetSystemNANDPlaceholder() const;
+    FileSys::PlaceholderCache* GetUserNANDPlaceholder() const;
+    FileSys::PlaceholderCache* GetSDMCPlaceholder() const;
+    FileSys::PlaceholderCache* GetGameCardPlaceholder() const;
 
-    FileSys::RegisteredCache* GetRegisteredCacheForStorage(FileSys::StorageId id);
-    FileSys::PlaceholderCache* GetPlaceholderCacheForStorage(FileSys::StorageId id);
+    FileSys::RegisteredCache* GetRegisteredCacheForStorage(FileSys::StorageId id) const;
+    FileSys::PlaceholderCache* GetPlaceholderCacheForStorage(FileSys::StorageId id) const;
 
-    FileSys::VirtualDir GetSystemNANDContentDirectory();
-    FileSys::VirtualDir GetUserNANDContentDirectory();
-    FileSys::VirtualDir GetSDMCContentDirectory();
+    FileSys::VirtualDir GetSystemNANDContentDirectory() const;
+    FileSys::VirtualDir GetUserNANDContentDirectory() const;
+    FileSys::VirtualDir GetSDMCContentDirectory() const;
 
-    FileSys::VirtualDir GetNANDImageDirectory();
-    FileSys::VirtualDir GetSDMCImageDirectory();
+    FileSys::VirtualDir GetNANDImageDirectory() const;
+    FileSys::VirtualDir GetSDMCImageDirectory() const;
 
-    FileSys::VirtualDir GetContentDirectory(ContentStorageId id);
-    FileSys::VirtualDir GetImageDirectory(ImageDirectoryId id);
+    FileSys::VirtualDir GetContentDirectory(ContentStorageId id) const;
+    FileSys::VirtualDir GetImageDirectory(ImageDirectoryId id) const;
 
-    FileSys::VirtualDir GetModificationLoadRoot(u64 title_id);
-    FileSys::VirtualDir GetModificationDumpRoot(u64 title_id);
+    FileSys::VirtualDir GetModificationLoadRoot(u64 title_id) const;
+    FileSys::VirtualDir GetModificationDumpRoot(u64 title_id) const;
 
     // Creates the SaveData, SDMC, and BIS Factories. Should be called once and before any function
     // above is called.

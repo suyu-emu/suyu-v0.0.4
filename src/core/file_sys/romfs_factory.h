@@ -33,8 +33,8 @@ public:
     ~RomFSFactory();
 
     void SetPackedUpdate(VirtualFile update_raw);
-    ResultVal<VirtualFile> OpenCurrentProcess();
-    ResultVal<VirtualFile> Open(u64 title_id, StorageId storage, ContentRecordType type);
+    ResultVal<VirtualFile> OpenCurrentProcess() const;
+    ResultVal<VirtualFile> Open(u64 title_id, StorageId storage, ContentRecordType type) const;
 
 private:
     VirtualFile file;

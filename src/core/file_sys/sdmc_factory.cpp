@@ -21,7 +21,7 @@ SDMCFactory::SDMCFactory(VirtualDir dir_)
 
 SDMCFactory::~SDMCFactory() = default;
 
-ResultVal<VirtualDir> SDMCFactory::Open() {
+ResultVal<VirtualDir> SDMCFactory::Open() const {
     return MakeResult<VirtualDir>(dir);
 }
 
