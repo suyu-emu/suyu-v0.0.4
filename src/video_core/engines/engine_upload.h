@@ -56,7 +56,7 @@ struct Data {
 
 class State {
 public:
-    State(MemoryManager& memory_manager, Data& regs) : memory_manager(memory_manager), regs(regs) {}
+    State(MemoryManager& memory_manager, Data& regs);
     ~State() = default;
 
     void ProcessExec(const bool is_linear);
@@ -66,7 +66,7 @@ private:
     u32 write_offset = 0;
     u32 copy_size = 0;
     std::vector<u8> inner_buffer;
-    bool linear;
+    bool is_linear;
     Data& regs;
     MemoryManager& memory_manager;
 };

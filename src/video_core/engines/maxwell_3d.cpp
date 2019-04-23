@@ -258,7 +258,7 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
         break;
     }
     case MAXWELL3D_REG_INDEX(data_upload): {
-        bool is_last_call = method_call.IsLastCall();
+        const bool is_last_call = method_call.IsLastCall();
         upload_state.ProcessData(method_call.argument, is_last_call);
         if (is_last_call) {
             dirty_flags.OnMemoryWrite();

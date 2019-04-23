@@ -9,11 +9,14 @@
 
 namespace Tegra::Engines::Upload {
 
+State::State(MemoryManager& memory_manager, Data& regs)
+    : memory_manager(memory_manager), regs(regs) {}
+
 void State::ProcessExec(const bool is_linear) {
     write_offset = 0;
     copy_size = regs.line_length_in * regs.line_count;
     inner_buffer.resize(copy_size);
-    linear = is_linear;
+    this->is_linear = is_linear;
 }
 
 void State::ProcessData(const u32 data, const bool is_last_call) {
