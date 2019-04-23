@@ -23,6 +23,12 @@ class MemoryManager;
 
 namespace Tegra::Engines {
 
+/**
+ * This Engine is known as P2MF. Documentation can be found in:
+ * https://github.com/envytools/envytools/blob/master/rnndb/graph/gk104_p2mf.xml
+ * https://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nvc0/nve4_p2mf.xml.h
+ */
+
 #define KEPLERMEMORY_REG_INDEX(field_name)                                                         \
     (offsetof(Tegra::Engines::KeplerMemory::Regs, field_name) / sizeof(u32))
 

@@ -25,6 +25,11 @@ class RasterizerInterface;
 
 namespace Tegra::Engines {
 
+/**
+ * This Engine is known as GK104_Copy. Documentation can be found in:
+ * https://github.com/envytools/envytools/blob/master/rnndb/fifo/gk104_copy.xml
+ */
+
 class MaxwellDMA final {
 public:
     explicit MaxwellDMA(Core::System& system, VideoCore::RasterizerInterface& rasterizer,

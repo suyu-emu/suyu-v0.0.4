@@ -33,6 +33,12 @@ class RasterizerInterface;
 
 namespace Tegra::Engines {
 
+/**
+ * This Engine is known as GF100_3D. Documentation can be found in:
+ * https://github.com/envytools/envytools/blob/master/rnndb/graph/gf100_3d.xml
+ * https://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nvc0/nvc0_3d.xml.h
+ */
+
 #define MAXWELL3D_REG_INDEX(field_name)                                                            \
     (offsetof(Tegra::Engines::Maxwell3D::Regs, field_name) / sizeof(u32))
 

@@ -27,6 +27,12 @@ class RasterizerInterface;
 
 namespace Tegra::Engines {
 
+/**
+ * This Engine is known as GK104_Compute. Documentation can be found in:
+ * https://github.com/envytools/envytools/blob/master/rnndb/graph/gk104_compute.xml
+ * https://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nvc0/nve4_compute.xml.h
+ */
+
 #define KEPLER_COMPUTE_REG_INDEX(field_name)                                                       \
     (offsetof(Tegra::Engines::KeplerCompute::Regs, field_name) / sizeof(u32))
 
