@@ -471,8 +471,9 @@ void OpenGLState::ApplyTextures() const {
         const auto& texture_unit = texture_units[i];
         auto& cur_state_texture_unit = cur_state.texture_units[i];
         textures[i] = texture_unit.texture;
-        if (cur_state_texture_unit.texture == textures[i])
+        if (cur_state_texture_unit.texture == textures[i]) {
             continue;
+        }
         cur_state_texture_unit.texture = textures[i];
         if (!has_delta) {
             first = i;
@@ -493,10 +494,11 @@ void OpenGLState::ApplySamplers() const {
     std::array<GLuint, Maxwell::NumTextureSamplers> samplers;
 
     for (std::size_t i = 0; i < std::size(samplers); ++i) {
-        if (cur_state.texture_units[i].sampler == texture_units[i].sampler)
-            continue;
-        cur_state.texture_units[i].sampler = texture_units[i].sampler;
         samplers[i] = texture_units[i].sampler;
+        if (cur_state.texture_units[i].sampler == texture_units[i].sampler) {
+            continue;
+        }
+        cur_state.texture_units[i].sampler = texture_units[i].sampler;
         if (!has_delta) {
             first = i;
             has_delta = true;
