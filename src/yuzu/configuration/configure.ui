@@ -63,6 +63,11 @@
          <string>Profiles</string>
         </attribute>
        </widget>
+       <widget class="ConfigureFilesystem" name="filesystemTab">
+        <attribute name="title">
+         <string>Filesystem</string>
+        </attribute>
+       </widget>
        <widget class="ConfigureInputSimple" name="inputTab">
         <attribute name="title">
          <string>Input</string>
@@ -123,6 +128,12 @@
    <class>ConfigureProfileManager</class>
    <extends>QWidget</extends>
    <header>configuration/configure_profile_manager.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ConfigureFilesystem</class>
+   <extends>QWidget</extends>
+   <header>configuration/configure_filesystem.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
