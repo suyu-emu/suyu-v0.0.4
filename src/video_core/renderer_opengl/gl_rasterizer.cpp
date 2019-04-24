@@ -738,8 +738,9 @@ bool RasterizerOpenGL::AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Regs
                                              const Common::Rectangle<u32>& src_rect,
                                              const Common::Rectangle<u32>& dst_rect) {
     MICROPROFILE_SCOPE(OpenGL_Blits);
-    UNIMPLEMENTED();
-    // texture_cache.FermiCopySurface(src, dst, src_rect, dst_rect);
+    const auto src_surface{texture_cache.GetFermiSurface(src)};
+    const auto dst_surface{texture_cache.GetFermiSurface(dst)};
+    blitter.Blit(src_surface, dst_surface, src_rect, dst_rect);
     return true;
 }
 
