@@ -13,7 +13,7 @@
 
 #include "common/common_types.h"
 #include "video_core/engines/shader_bytecode.h"
-#include "video_core/texture_cache.h"
+#include "video_core/texture_cache/texture_cache_contextless.h"
 
 namespace OpenGL {
 

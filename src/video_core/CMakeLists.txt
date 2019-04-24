@@ -109,6 +109,13 @@ add_library(video_core STATIC
     shader/track.cpp
     surface.cpp
     surface.h
+    texture_cache/surface_base.cpp
+    texture_cache/surface_base.h
+    texture_cache/surface_params.cpp
+    texture_cache/surface_params.h
+    texture_cache/surface_view.cpp
+    texture_cache/surface_view.h
+    texture_cache/texture_cache.h
     textures/astc.cpp
     textures/astc.h
     textures/convert.cpp
@@ -116,8 +123,6 @@ add_library(video_core STATIC
     textures/decoders.cpp
     textures/decoders.h
     textures/texture.h
-    texture_cache.cpp
-    texture_cache.h
     video_core.cpp
     video_core.h
 )

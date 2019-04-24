@@ -9,7 +9,7 @@
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
 #include "video_core/renderer_opengl/utils.h"
-#include "video_core/texture_cache.h"
+#include "video_core/texture_cache/texture_cache_contextless.h"
 #include "video_core/textures/convert.h"
 #include "video_core/textures/texture.h"
 
