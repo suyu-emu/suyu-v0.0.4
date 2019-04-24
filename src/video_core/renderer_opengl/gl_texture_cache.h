@@ -39,8 +39,6 @@ public:
     explicit CachedSurface(TextureCacheOpenGL& texture_cache, const SurfaceParams& params);
     ~CachedSurface();
 
-    void LoadBuffer();
-
     GLenum GetTarget() const {
         return target;
     }
@@ -54,9 +52,8 @@ protected:
 
     std::unique_ptr<CachedSurfaceView> CreateView(const ViewKey& view_key);
 
-    void FlushBufferImpl();
-
     void UploadTextureImpl();
+    void DownloadTextureImpl();
 
 private:
     void UploadTextureMipmap(u32 level);
@@ -68,8 +65,6 @@ private:
     GLenum target{};
 
     OGLTexture texture;
-
-    std::vector<u8> staging_buffer;
 };
 
 class CachedSurfaceView final {

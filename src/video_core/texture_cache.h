@@ -273,37 +273,11 @@ struct hash<VideoCommon::ViewKey> {
 
 namespace VideoCommon {
 
-template <typename TTextureCache, typename TView, typename TExecutionContext>
-class SurfaceBase {
-    static_assert(std::is_trivially_copyable_v<TExecutionContext>);
-
+class SurfaceBaseImpl {
 public:
-    virtual void LoadBuffer() = 0;
+    void LoadBuffer();
 
-    virtual TExecutionContext FlushBuffer(TExecutionContext exctx) = 0;
-
-    virtual TExecutionContext UploadTexture(TExecutionContext exctx) = 0;
-
-    TView* TryGetView(GPUVAddr view_addr, const SurfaceParams& view_params) {
-        if (view_addr < gpu_addr || !params.IsFamiliar(view_params)) {
-            // It can't be a view if it's in a prior address.
-            return {};
-        }
-
-        const auto relative_offset{static_cast<u64>(view_addr - gpu_addr)};
-        const auto it{view_offset_map.find(relative_offset)};
-        if (it == view_offset_map.end()) {
-            // Couldn't find an aligned view.
-            return {};
-        }
-        const auto [layer, level] = it->second;
-
-        if (!params.IsViewValid(view_params, layer, level)) {
-            return {};
-        }
-
-        return GetView(layer, view_params.GetNumLayers(), level, view_params.GetNumLevels());
-    }
+    void FlushBuffer();
 
     GPUVAddr GetGpuAddr() const {
         ASSERT(is_registered);
@@ -325,25 +299,8 @@ public:
         return cache_addr;
     }
 
-    std::size_t GetSizeInBytes() const {
-        return params.GetGuestSizeInBytes();
-    }
-
-    void MarkAsModified(bool is_modified_) {
-        is_modified = is_modified_;
-        if (is_modified_) {
-            modification_tick = texture_cache.Tick();
-        }
-    }
-
     const SurfaceParams& GetSurfaceParams() const {
         return params;
-    }
-
-    TView* GetView(GPUVAddr view_addr, const SurfaceParams& view_params) {
-        TView* view{TryGetView(view_addr, view_params)};
-        ASSERT(view != nullptr);
-        return view;
     }
 
     void Register(GPUVAddr gpu_addr_, VAddr cpu_addr_, u8* host_ptr_) {
@@ -361,30 +318,95 @@ public:
         is_registered = false;
     }
 
-    u64 GetModificationTick() const {
-        return modification_tick;
-    }
-
     bool IsRegistered() const {
         return is_registered;
     }
 
-protected:
-    explicit SurfaceBase(TTextureCache& texture_cache, const SurfaceParams& params)
-        : params{params}, texture_cache{texture_cache}, view_offset_map{
-                                                            params.CreateViewOffsetMap()} {}
+    std::size_t GetSizeInBytes() const {
+        return params.GetGuestSizeInBytes();
+    }
 
-    ~SurfaceBase() = default;
+    u8* GetStagingBufferLevelData(u32 level) {
+        return staging_buffer.data() + params.GetHostMipmapLevelOffset(level);
+    }
+
+protected:
+    explicit SurfaceBaseImpl(const SurfaceParams& params);
+    ~SurfaceBaseImpl(); // non-virtual is intended
 
     virtual void DecorateSurfaceName() = 0;
 
-    virtual std::unique_ptr<TView> CreateView(const ViewKey& view_key) = 0;
+    const SurfaceParams params;
+
+private:
+    GPUVAddr gpu_addr{};
+    VAddr cpu_addr{};
+    u8* host_ptr{};
+    CacheAddr cache_addr{};
+    bool is_registered{};
+
+    std::vector<u8> staging_buffer;
+};
+
+template <typename TTextureCache, typename TView, typename TExecutionContext>
+class SurfaceBase : public SurfaceBaseImpl {
+    static_assert(std::is_trivially_copyable_v<TExecutionContext>);
+
+public:
+    virtual TExecutionContext UploadTexture(TExecutionContext exctx) = 0;
+
+    virtual TExecutionContext DownloadTexture(TExecutionContext exctx) = 0;
+
+    TView* TryGetView(GPUVAddr view_addr, const SurfaceParams& view_params) {
+        if (view_addr < GetGpuAddr() || !params.IsFamiliar(view_params)) {
+            // It can't be a view if it's in a prior address.
+            return {};
+        }
+
+        const auto relative_offset{static_cast<u64>(view_addr - GetGpuAddr())};
+        const auto it{view_offset_map.find(relative_offset)};
+        if (it == view_offset_map.end()) {
+            // Couldn't find an aligned view.
+            return {};
+        }
+        const auto [layer, level] = it->second;
+
+        if (!params.IsViewValid(view_params, layer, level)) {
+            return {};
+        }
+
+        return GetView(layer, view_params.GetNumLayers(), level, view_params.GetNumLevels());
+    }
+
+    void MarkAsModified(bool is_modified_) {
+        is_modified = is_modified_;
+        if (is_modified_) {
+            modification_tick = texture_cache.Tick();
+        }
+    }
+
+    TView* GetView(GPUVAddr view_addr, const SurfaceParams& view_params) {
+        TView* view{TryGetView(view_addr, view_params)};
+        ASSERT(view != nullptr);
+        return view;
+    }
 
     bool IsModified() const {
         return is_modified;
     }
 
-    const SurfaceParams params;
+    u64 GetModificationTick() const {
+        return modification_tick;
+    }
+
+protected:
+    explicit SurfaceBase(TTextureCache& texture_cache, const SurfaceParams& params)
+        : SurfaceBaseImpl{params}, texture_cache{texture_cache},
+          view_offset_map{params.CreateViewOffsetMap()} {}
+
+    ~SurfaceBase() = default;
+
+    virtual std::unique_ptr<TView> CreateView(const ViewKey& view_key) = 0;
 
 private:
     TView* GetView(u32 base_layer, u32 num_layers, u32 base_level, u32 num_levels) {
@@ -400,13 +422,8 @@ private:
     TTextureCache& texture_cache;
     const std::map<u64, std::pair<u32, u32>> view_offset_map;
 
-    GPUVAddr gpu_addr{};
-    VAddr cpu_addr{};
-    u8* host_ptr{};
-    CacheAddr cache_addr{};
-    u64 modification_tick{};
     bool is_modified{};
-    bool is_registered{};
+    u64 modification_tick{};
     std::unordered_map<ViewKey, std::unique_ptr<TView>> views;
 };
 
@@ -560,7 +577,7 @@ private:
             if (!fast_view) {
                 // Flush even when we don't care about the contents, to preserve memory not
                 // written by the new surface.
-                exctx = surface->FlushBuffer(exctx);
+                exctx = FlushSurface(exctx, surface);
             }
             Unregister(surface);
         }
@@ -587,6 +604,16 @@ private:
         surface->LoadBuffer();
         exctx = surface->UploadTexture(exctx);
         surface->MarkAsModified(false);
+        return exctx;
+    }
+
+    TExecutionContext FlushSurface(TExecutionContext exctx,
+                                   const std::shared_ptr<TSurface>& surface) {
+        if (!surface->IsModified()) {
+            return exctx;
+        }
+        exctx = surface->DownloadTexture(exctx);
+        surface->FlushBuffer();
         return exctx;
     }
 
@@ -701,8 +728,8 @@ private:
 template <typename TTextureCache, typename TView>
 class SurfaceBaseContextless : public SurfaceBase<TTextureCache, TView, DummyExecutionContext> {
 public:
-    DummyExecutionContext FlushBuffer(DummyExecutionContext) {
-        FlushBufferImpl();
+    DummyExecutionContext DownloadTexture(DummyExecutionContext) {
+        DownloadTextureImpl();
         return {};
     }
 
@@ -715,7 +742,7 @@ protected:
     explicit SurfaceBaseContextless(TTextureCache& texture_cache, const SurfaceParams& params)
         : SurfaceBase<TTextureCache, TView, DummyExecutionContext>{texture_cache, params} {}
 
-    virtual void FlushBufferImpl() = 0;
+    virtual void DownloadTextureImpl() = 0;
 
     virtual void UploadTextureImpl() = 0;
 };

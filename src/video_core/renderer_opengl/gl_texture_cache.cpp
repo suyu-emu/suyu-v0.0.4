@@ -15,7 +15,6 @@
 
 namespace OpenGL {
 
-using Tegra::Texture::ConvertFromGuestToHost;
 using Tegra::Texture::SwizzleSource;
 using VideoCore::MortonSwizzleMode;
 
@@ -207,32 +206,6 @@ OGLTexture CreateTexture(const SurfaceParams& params, GLenum target, GLenum inte
     return texture;
 }
 
-void SwizzleFunc(MortonSwizzleMode mode, u8* memory, const SurfaceParams& params, u8* buffer,
-                 u32 level) {
-    const u32 width{params.GetMipWidth(level)};
-    const u32 height{params.GetMipHeight(level)};
-    const u32 block_height{params.GetMipBlockHeight(level)};
-    const u32 block_depth{params.GetMipBlockDepth(level)};
-
-    std::size_t guest_offset{params.GetGuestMipmapLevelOffset(level)};
-    if (params.IsLayered()) {
-        std::size_t host_offset{0};
-        const std::size_t guest_stride = params.GetGuestLayerSize();
-        const std::size_t host_stride = params.GetHostLayerSize(level);
-        for (u32 layer = 0; layer < params.GetNumLayers(); layer++) {
-            MortonSwizzle(mode, params.GetPixelFormat(), width, block_height, height, block_depth,
-                          1, params.GetTileWidthSpacing(), buffer + host_offset,
-                          memory + guest_offset);
-            guest_offset += guest_stride;
-            host_offset += host_stride;
-        }
-    } else {
-        MortonSwizzle(mode, params.GetPixelFormat(), width, block_height, height, block_depth,
-                      params.GetMipDepth(level), params.GetTileWidthSpacing(), buffer,
-                      memory + guest_offset);
-    }
-}
-
 } // Anonymous namespace
 
 CachedSurface::CachedSurface(TextureCacheOpenGL& texture_cache, const SurfaceParams& params)
@@ -245,54 +218,11 @@ CachedSurface::CachedSurface(TextureCacheOpenGL& texture_cache, const SurfacePar
     is_compressed = tuple.compressed;
     target = GetTextureTarget(params);
     texture = CreateTexture(params, target, internal_format);
-    staging_buffer.resize(params.GetHostSizeInBytes());
 }
 
 CachedSurface::~CachedSurface() = default;
 
-void CachedSurface::LoadBuffer() {
-    if (params.IsTiled()) {
-        ASSERT_MSG(params.GetBlockWidth() == 1, "Block width is defined as {} on texture target {}",
-                   params.GetBlockWidth(), static_cast<u32>(params.GetTarget()));
-        for (u32 level = 0; level < params.GetNumLevels(); ++level) {
-            u8* const buffer{staging_buffer.data() + params.GetHostMipmapLevelOffset(level)};
-            SwizzleFunc(MortonSwizzleMode::MortonToLinear, GetHostPtr(), params, buffer, level);
-        }
-    } else {
-        ASSERT_MSG(params.GetNumLevels() == 1, "Linear mipmap loading is not implemented");
-        const u32 bpp{GetFormatBpp(params.GetPixelFormat()) / CHAR_BIT};
-        const u32 block_width{VideoCore::Surface::GetDefaultBlockWidth(params.GetPixelFormat())};
-        const u32 block_height{VideoCore::Surface::GetDefaultBlockHeight(params.GetPixelFormat())};
-        const u32 width{(params.GetWidth() + block_width - 1) / block_width};
-        const u32 height{(params.GetHeight() + block_height - 1) / block_height};
-        const u32 copy_size{width * bpp};
-        if (params.GetPitch() == copy_size) {
-            std::memcpy(staging_buffer.data(), GetHostPtr(), params.GetHostSizeInBytes());
-        } else {
-            const u8* start{GetHostPtr()};
-            u8* write_to{staging_buffer.data()};
-            for (u32 h = height; h > 0; --h) {
-                std::memcpy(write_to, start, copy_size);
-                start += params.GetPitch();
-                write_to += copy_size;
-            }
-        }
-    }
-
-    for (u32 level = 0; level < params.GetNumLevels(); ++level) {
-        ConvertFromGuestToHost(staging_buffer.data() + params.GetHostMipmapLevelOffset(level),
-                               params.GetPixelFormat(), params.GetMipWidth(level),
-                               params.GetMipHeight(level), params.GetMipDepth(level), true, true);
-    }
-}
-
-void CachedSurface::FlushBufferImpl() {
-    LOG_CRITICAL(Render_OpenGL, "Flushing");
-
-    if (!IsModified()) {
-        return;
-    }
-
+void CachedSurface::DownloadTextureImpl() {
     // TODO(Rodrigo): Optimize alignment
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     SCOPE_EXIT({ glPixelStorei(GL_PACK_ROW_LENGTH, 0); });
@@ -300,60 +230,30 @@ void CachedSurface::FlushBufferImpl() {
     for (u32 level = 0; level < params.GetNumLevels(); ++level) {
         glPixelStorei(GL_PACK_ROW_LENGTH, static_cast<GLint>(params.GetMipWidth(level)));
         if (is_compressed) {
-            glGetCompressedTextureImage(
-                texture.handle, level, static_cast<GLsizei>(params.GetHostMipmapSize(level)),
-                staging_buffer.data() + params.GetHostMipmapLevelOffset(level));
+            glGetCompressedTextureImage(texture.handle, level,
+                                        static_cast<GLsizei>(params.GetHostMipmapSize(level)),
+                                        GetStagingBufferLevelData(level));
         } else {
             glGetTextureImage(texture.handle, level, format, type,
                               static_cast<GLsizei>(params.GetHostMipmapSize(level)),
-                              staging_buffer.data() + params.GetHostMipmapLevelOffset(level));
+                              GetStagingBufferLevelData(level));
         }
-    }
-
-    if (params.IsTiled()) {
-        ASSERT_MSG(params.GetBlockWidth() == 1, "Block width is defined as {}",
-                   params.GetBlockWidth());
-        for (u32 level = 0; level < params.GetNumLevels(); ++level) {
-            u8* const buffer = staging_buffer.data() + params.GetHostMipmapLevelOffset(level);
-            SwizzleFunc(MortonSwizzleMode::LinearToMorton, GetHostPtr(), params, buffer, level);
-        }
-    } else {
-        UNIMPLEMENTED();
-        /*
-        ASSERT(params.GetTarget() == SurfaceTarget::Texture2D);
-        ASSERT(params.GetNumLevels() == 1);
-
-        const u32 bpp{params.GetFormatBpp() / 8};
-        const u32 copy_size{params.GetWidth() * bpp};
-        if (params.GetPitch() == copy_size) {
-            std::memcpy(host_ptr, staging_buffer.data(), GetSizeInBytes());
-        } else {
-            u8* start{host_ptr};
-            const u8* read_to{staging_buffer.data()};
-            for (u32 h = params.GetHeight(); h > 0; --h) {
-                std::memcpy(start, read_to, copy_size);
-                start += params.GetPitch();
-                read_to += copy_size;
-            }
-        }
-        */
     }
 }
 
 void CachedSurface::UploadTextureImpl() {
+    SCOPE_EXIT({ glPixelStorei(GL_UNPACK_ROW_LENGTH, 0); });
     for (u32 level = 0; level < params.GetNumLevels(); ++level) {
         UploadTextureMipmap(level);
     }
 }
 
 void CachedSurface::UploadTextureMipmap(u32 level) {
-    u8* buffer{staging_buffer.data() + params.GetHostMipmapLevelOffset(level)};
-
     // TODO(Rodrigo): Optimize alignment
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, static_cast<GLint>(params.GetMipWidth(level)));
-    SCOPE_EXIT({ glPixelStorei(GL_UNPACK_ROW_LENGTH, 0); });
 
+    u8* buffer{GetStagingBufferLevelData(level)};
     if (is_compressed) {
         const auto image_size{static_cast<GLsizei>(params.GetHostMipmapSize(level))};
         switch (params.GetTarget()) {
