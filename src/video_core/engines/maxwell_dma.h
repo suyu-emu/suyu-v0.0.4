@@ -70,13 +70,13 @@ public:
         static_assert(sizeof(Parameters) == 24, "Parameters has wrong size");
 
         enum class ComponentMode : u32 {
-            SRC0 = 0,
-            SRC1 = 1,
-            SRC2 = 2,
-            SRC3 = 3,
-            CONST0 = 4,
-            CONST1 = 5,
-            ZERO = 6,
+            Src0 = 0,
+            Src1 = 1,
+            Src2 = 2,
+            Src3 = 3,
+            Const0 = 4,
+            Const1 = 5,
+            Zero = 6,
         };
 
         enum class CopyMode : u32 {

@@ -16,7 +16,7 @@ class MemoryManager;
 
 namespace Tegra::Engines::Upload {
 
-struct Data {
+struct Registers {
     u32 line_length_in;
     u32 line_count;
 
@@ -56,7 +56,7 @@ struct Data {
 
 class State {
 public:
-    State(MemoryManager& memory_manager, Data& regs);
+    State(MemoryManager& memory_manager, Registers& regs);
     ~State() = default;
 
     void ProcessExec(const bool is_linear);
@@ -66,8 +66,9 @@ private:
     u32 write_offset = 0;
     u32 copy_size = 0;
     std::vector<u8> inner_buffer;
-    bool is_linear;
-    Data& regs;
+    std::vector<u8> tmp_buffer;
+    bool is_linear = false;
+    Registers& regs;
     MemoryManager& memory_manager;
 };
 

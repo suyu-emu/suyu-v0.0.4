@@ -9,7 +9,7 @@
 
 namespace Tegra::Engines::Upload {
 
-State::State(MemoryManager& memory_manager, Data& regs)
+State::State(MemoryManager& memory_manager, Registers& regs)
     : memory_manager(memory_manager), regs(regs) {}
 
 void State::ProcessExec(const bool is_linear) {
@@ -23,24 +23,25 @@ void State::ProcessData(const u32 data, const bool is_last_call) {
     const u32 sub_copy_size = std::min(4U, copy_size - write_offset);
     std::memcpy(&inner_buffer[write_offset], &data, sub_copy_size);
     write_offset += sub_copy_size;
-    if (is_last_call) {
-        const GPUVAddr address{regs.dest.Address()};
-        if (is_linear) {
-            memory_manager.WriteBlock(address, inner_buffer.data(), copy_size);
-        } else {
-            UNIMPLEMENTED_IF(regs.dest.z != 0);
-            UNIMPLEMENTED_IF(regs.dest.depth != 1);
-            UNIMPLEMENTED_IF(regs.dest.BlockWidth() != 1);
-            UNIMPLEMENTED_IF(regs.dest.BlockDepth() != 1);
-            const std::size_t dst_size = Tegra::Texture::CalculateSize(
-                true, 1, regs.dest.width, regs.dest.height, 1, regs.dest.BlockHeight(), 1);
-            std::vector<u8> tmp_buffer(dst_size);
-            memory_manager.ReadBlock(address, tmp_buffer.data(), dst_size);
-            Tegra::Texture::SwizzleKepler(regs.dest.width, regs.dest.height, regs.dest.x,
-                                          regs.dest.y, regs.dest.BlockHeight(), copy_size,
-                                          inner_buffer.data(), tmp_buffer.data());
-            memory_manager.WriteBlock(address, tmp_buffer.data(), dst_size);
-        }
+    if (!is_last_call) {
+        return;
+    }
+    const GPUVAddr address{regs.dest.Address()};
+    if (is_linear) {
+        memory_manager.WriteBlock(address, inner_buffer.data(), copy_size);
+    } else {
+        UNIMPLEMENTED_IF(regs.dest.z != 0);
+        UNIMPLEMENTED_IF(regs.dest.depth != 1);
+        UNIMPLEMENTED_IF(regs.dest.BlockWidth() != 1);
+        UNIMPLEMENTED_IF(regs.dest.BlockDepth() != 1);
+        const std::size_t dst_size = Tegra::Texture::CalculateSize(
+            true, 1, regs.dest.width, regs.dest.height, 1, regs.dest.BlockHeight(), 1);
+        tmp_buffer.resize(dst_size);
+        memory_manager.ReadBlock(address, tmp_buffer.data(), dst_size);
+        Tegra::Texture::SwizzleKepler(regs.dest.width, regs.dest.height, regs.dest.x, regs.dest.y,
+                                      regs.dest.BlockHeight(), copy_size, inner_buffer.data(),
+                                      tmp_buffer.data());
+        memory_manager.WriteBlock(address, tmp_buffer.data(), dst_size);
     }
 }
 

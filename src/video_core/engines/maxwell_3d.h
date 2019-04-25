@@ -588,7 +588,7 @@ public:
 
                 INSERT_PADDING_WORDS(0x17);
 
-                Upload::Data upload;
+                Upload::Registers upload;
                 struct {
                     union {
                         BitField<0, 1, u32> linear;

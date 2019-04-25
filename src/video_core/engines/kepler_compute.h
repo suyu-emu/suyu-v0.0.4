@@ -51,7 +51,7 @@ public:
             struct {
                 INSERT_PADDING_WORDS(0x60);
 
-                Upload::Data upload;
+                Upload::Registers upload;
 
                 struct {
                     union {
@@ -131,7 +131,6 @@ public:
         BitField<30, 1, u32> linked_tsc;
 
         BitField<0, 31, u32> grid_dim_x;
-
         union {
             BitField<0, 16, u32> grid_dim_y;
             BitField<16, 16, u32> grid_dim_z;
@@ -142,7 +141,6 @@ public:
         BitField<0, 16, u32> shared_alloc;
 
         BitField<0, 31, u32> block_dim_x;
-
         union {
             BitField<0, 16, u32> block_dim_y;
             BitField<16, 16, u32> block_dim_z;

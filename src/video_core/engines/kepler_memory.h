@@ -47,7 +47,7 @@ public:
             struct {
                 INSERT_PADDING_WORDS(0x60);
 
-                Upload::Data upload;
+                Upload::Registers upload;
 
                 struct {
                     union {
