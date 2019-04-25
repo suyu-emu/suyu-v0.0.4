@@ -18,7 +18,9 @@ namespace OpenGL {
 
 using Tegra::Shader::TextureType;
 using Tegra::Texture::SwizzleSource;
+
 using VideoCore::Surface::SurfaceTarget;
+using VideoCore::Surface::SurfaceType;
 
 BindBuffersRangePushBuffer::BindBuffersRangePushBuffer(GLenum target) : target{target} {}
 

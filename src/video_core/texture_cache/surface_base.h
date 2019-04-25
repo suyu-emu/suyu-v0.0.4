@@ -89,14 +89,12 @@ private:
     std::vector<u8> staging_buffer;
 };
 
-template <typename TTextureCache, typename TView, typename TExecutionContext>
+template <typename TTextureCache, typename TView>
 class SurfaceBase : public SurfaceBaseImpl {
-    static_assert(std::is_trivially_copyable_v<TExecutionContext>);
-
 public:
-    virtual TExecutionContext UploadTexture(TExecutionContext exctx) = 0;
+    virtual void UploadTexture() = 0;
 
-    virtual TExecutionContext DownloadTexture(TExecutionContext exctx) = 0;
+    virtual void DownloadTexture() = 0;
 
     TView* TryGetView(GPUVAddr view_addr, const SurfaceParams& view_params) {
         if (view_addr < GetGpuAddr() || !params.IsFamiliar(view_params)) {

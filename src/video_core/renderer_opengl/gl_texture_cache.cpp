@@ -9,7 +9,7 @@
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
 #include "video_core/renderer_opengl/utils.h"
-#include "video_core/texture_cache/texture_cache_contextless.h"
+#include "video_core/texture_cache/texture_cache.h"
 #include "video_core/textures/convert.h"
 #include "video_core/textures/texture.h"
 
@@ -17,6 +17,10 @@ namespace OpenGL {
 
 using Tegra::Texture::SwizzleSource;
 using VideoCore::MortonSwizzleMode;
+
+using VideoCore::Surface::ComponentType;
+using VideoCore::Surface::PixelFormat;
+using VideoCore::Surface::SurfaceTarget;
 
 namespace {
 
@@ -209,8 +213,7 @@ OGLTexture CreateTexture(const SurfaceParams& params, GLenum target, GLenum inte
 } // Anonymous namespace
 
 CachedSurface::CachedSurface(TextureCacheOpenGL& texture_cache, const SurfaceParams& params)
-    : VideoCommon::SurfaceBaseContextless<TextureCacheOpenGL, CachedSurfaceView>{texture_cache,
-                                                                                 params} {
+    : VideoCommon::SurfaceBase<TextureCacheOpenGL, CachedSurfaceView>{texture_cache, params} {
     const auto& tuple{GetFormatTuple(params.GetPixelFormat(), params.GetComponentType())};
     internal_format = tuple.internal_format;
     format = tuple.format;
@@ -222,7 +225,7 @@ CachedSurface::CachedSurface(TextureCacheOpenGL& texture_cache, const SurfacePar
 
 CachedSurface::~CachedSurface() = default;
 
-void CachedSurface::DownloadTextureImpl() {
+void CachedSurface::DownloadTexture() {
     // TODO(Rodrigo): Optimize alignment
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     SCOPE_EXIT({ glPixelStorei(GL_PACK_ROW_LENGTH, 0); });
@@ -241,7 +244,7 @@ void CachedSurface::DownloadTextureImpl() {
     }
 }
 
-void CachedSurface::UploadTextureImpl() {
+void CachedSurface::UploadTexture() {
     SCOPE_EXIT({ glPixelStorei(GL_UNPACK_ROW_LENGTH, 0); });
     for (u32 level = 0; level < params.GetNumLevels(); ++level) {
         UploadTextureMipmap(level);
@@ -321,7 +324,8 @@ void CachedSurface::UploadTextureMipmap(u32 level) {
 }
 
 void CachedSurface::DecorateSurfaceName() {
-    LabelGLObject(GL_TEXTURE, texture.handle, GetGpuAddr());
+    LabelGLObject(GL_TEXTURE, texture.handle, GetGpuAddr(),
+                  params.GetTarget() == SurfaceTarget::Texture3D ? "3D" : "");
 }
 
 std::unique_ptr<CachedSurfaceView> CachedSurface::CreateView(const ViewKey& view_key) {

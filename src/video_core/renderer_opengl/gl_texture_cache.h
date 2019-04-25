@@ -14,31 +14,29 @@
 #include "common/common_types.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
-#include "video_core/texture_cache/texture_cache_contextless.h"
+#include "video_core/texture_cache/texture_cache.h"
 
 namespace OpenGL {
 
 using VideoCommon::SurfaceParams;
 using VideoCommon::ViewKey;
-using VideoCore::Surface::ComponentType;
-using VideoCore::Surface::PixelFormat;
-using VideoCore::Surface::SurfaceTarget;
-using VideoCore::Surface::SurfaceType;
 
 class CachedSurfaceView;
 class CachedSurface;
 class TextureCacheOpenGL;
 
 using Surface = std::shared_ptr<CachedSurface>;
-using TextureCacheBase = VideoCommon::TextureCacheContextless<CachedSurface, CachedSurfaceView>;
+using TextureCacheBase = VideoCommon::TextureCache<CachedSurface, CachedSurfaceView>;
 
-class CachedSurface final
-    : public VideoCommon::SurfaceBaseContextless<TextureCacheOpenGL, CachedSurfaceView> {
+class CachedSurface final : public VideoCommon::SurfaceBase<TextureCacheOpenGL, CachedSurfaceView> {
     friend CachedSurfaceView;
 
 public:
     explicit CachedSurface(TextureCacheOpenGL& texture_cache, const SurfaceParams& params);
     ~CachedSurface();
+
+    void UploadTexture();
+    void DownloadTexture();
 
     GLenum GetTarget() const {
         return target;
@@ -52,9 +50,6 @@ protected:
     void DecorateSurfaceName();
 
     std::unique_ptr<CachedSurfaceView> CreateView(const ViewKey& view_key);
-
-    void UploadTextureImpl();
-    void DownloadTextureImpl();
 
 private:
     void UploadTextureMipmap(u32 level);

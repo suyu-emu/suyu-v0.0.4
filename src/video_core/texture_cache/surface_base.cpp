@@ -53,8 +53,8 @@ void SurfaceBaseImpl::LoadBuffer() {
         ASSERT_MSG(params.GetBlockWidth() == 1, "Block width is defined as {} on texture target {}",
                    params.GetBlockWidth(), static_cast<u32>(params.GetTarget()));
         for (u32 level = 0; level < params.GetNumLevels(); ++level) {
-            u8* const buffer{GetStagingBufferLevelData(level)};
-            SwizzleFunc(MortonSwizzleMode::MortonToLinear, host_ptr, params, buffer, level);
+            SwizzleFunc(MortonSwizzleMode::MortonToLinear, host_ptr, params,
+                        GetStagingBufferLevelData(level), level);
         }
     } else {
         ASSERT_MSG(params.GetNumLevels() == 1, "Linear mipmap loading is not implemented");
@@ -89,8 +89,8 @@ void SurfaceBaseImpl::FlushBuffer() {
         ASSERT_MSG(params.GetBlockWidth() == 1, "Block width is defined as {}",
                    params.GetBlockWidth());
         for (u32 level = 0; level < params.GetNumLevels(); ++level) {
-            u8* const buffer = GetStagingBufferLevelData(level);
-            SwizzleFunc(MortonSwizzleMode::LinearToMorton, GetHostPtr(), params, buffer, level);
+            SwizzleFunc(MortonSwizzleMode::LinearToMorton, GetHostPtr(), params,
+                        GetStagingBufferLevelData(level), level);
         }
     } else {
         UNIMPLEMENTED();
