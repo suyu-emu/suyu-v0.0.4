@@ -382,7 +382,8 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
     std::atomic_bool compilation_failed = false;
 
     const auto Worker = [&](Core::Frontend::GraphicsContext* context, std::size_t begin,
-                            std::size_t end) {
+                            std::size_t end, const std::vector<ShaderDiskCacheUsage>& shader_usages,
+                            const ShaderDumpsMap& dumps) {
         context->MakeCurrent();
         SCOPE_EXIT({ return context->DoneCurrent(); });
 
@@ -422,7 +423,7 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
         }
     };
 
-    const std::size_t num_workers{std::thread::hardware_concurrency() + 1};
+    const auto num_workers{static_cast<std::size_t>(std::thread::hardware_concurrency() + 1)};
     const std::size_t bucket_size{shader_usages.size() / num_workers};
     std::vector<std::unique_ptr<Core::Frontend::GraphicsContext>> contexts(num_workers);
     std::vector<std::thread> threads(num_workers);
@@ -433,7 +434,7 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
 
         // On some platforms the shared context has to be created from the GUI thread
         contexts[i] = emu_window.CreateSharedContext();
-        threads[i] = std::thread(Worker, contexts[i].get(), start, end);
+        threads[i] = std::thread(Worker, contexts[i].get(), start, end, shader_usages, dumps);
     }
     for (auto& thread : threads) {
         thread.join();
