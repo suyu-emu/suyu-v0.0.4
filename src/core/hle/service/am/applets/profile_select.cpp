@@ -53,7 +53,7 @@ void ProfileSelect::Execute() {
         return;
     }
 
-    frontend.SelectProfile([this](std::optional<Account::UUID> uuid) { SelectionComplete(uuid); });
+    frontend.SelectProfile([this](std::optional<Common::UUID> uuid) { SelectionComplete(uuid); });
 }
 
 void ProfileSelect::SelectionComplete(std::optional<Common::UUID> uuid) {

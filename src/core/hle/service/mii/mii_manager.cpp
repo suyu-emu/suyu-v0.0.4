@@ -403,7 +403,7 @@ MiiStoreData MiiManager::CreateMiiWithUniqueUUID() const {
 
     do {
         new_mii.uuid = Common::UUID::Generate();
-    } while (IndexOf(new_mii.uuid) == INVALID_INDEX);
+    } while (IndexOf(new_mii.uuid) != INVALID_INDEX);
 
     return new_mii;
 }
