@@ -32,17 +32,19 @@
 #include "yuzu_cmd/config.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2.h"
 
-#include <getopt.h>
 #include "core/file_sys/registered_cache.h"
-#ifndef _MSC_VER
-#include <unistd.h>
-#endif
 
 #ifdef _WIN32
 // windows.h needs to be included before shellapi.h
 #include <windows.h>
 
 #include <shellapi.h>
+#endif
+
+#undef _UNICODE
+#include <getopt.h>
+#ifndef _MSC_VER
+#include <unistd.h>
 #endif
 
 #ifdef _WIN32
