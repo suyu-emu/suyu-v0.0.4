@@ -19,18 +19,6 @@ $(brew --prefix)/opt/qt5/bin/macdeployqt "${REV_NAME}/yuzu.app" -executable="${R
 # move libs into folder for deployment
 macpack "${REV_NAME}/yuzu-cmd" -d "libs"
 
-# Make the yuzu.app application launch a debugging terminal.
-# Store away the actual binary
-mv ${REV_NAME}/yuzu.app/Contents/MacOS/yuzu ${REV_NAME}/yuzu.app/Contents/MacOS/yuzu-bin
-
-cat > ${REV_NAME}/yuzu.app/Contents/MacOS/yuzu <<EOL
-#!/usr/bin/env bash
-cd "\`dirname "\$0"\`"
-chmod +x yuzu-bin
-open yuzu-bin --args "\$@"
-EOL
-# Content that will serve as the launching script for yuzu (within the .app folder)
-
 # Make the launching script executable
 chmod +x ${REV_NAME}/yuzu.app/Contents/MacOS/yuzu
 
