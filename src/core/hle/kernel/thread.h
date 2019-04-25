@@ -49,8 +49,7 @@ enum class ThreadStatus {
     WaitHLEEvent, ///< Waiting for hle event to finish
     WaitSleep,    ///< Waiting due to a SleepThread SVC
     WaitIPC,      ///< Waiting for the reply from an IPC request
-    WaitSynchAny, ///< Waiting due to WaitSynch1 or WaitSynchN with wait_all = false
-    WaitSynchAll, ///< Waiting due to WaitSynchronizationN with wait_all = true
+    WaitSynch,    ///< Waiting due to WaitSynchronization
     WaitMutex,    ///< Waiting due to an ArbitrateLock svc
     WaitCondVar,  ///< Waiting due to an WaitProcessWideKey svc
     WaitArb,      ///< Waiting due to a SignalToAddress/WaitForAddress svc
@@ -169,10 +168,16 @@ public:
         return tls_memory;
     }
 
-    /**
-     * Resumes a thread from waiting
-     */
+    /// Resumes a thread from waiting
     void ResumeFromWait();
+
+    /// Cancels a waiting operation that this thread may or may not be within.
+    ///
+    /// When the thread is within a waiting state, this will set the thread's
+    /// waiting result to signal a canceled wait. The function will then resume
+    /// this thread.
+    ///
+    void CancelWait();
 
     /**
      * Schedules an event to wake up the specified thread after the specified delay
@@ -184,24 +189,27 @@ public:
     void CancelWakeupTimer();
 
     /**
-     * Sets the result after the thread awakens (from either WaitSynchronization SVC)
+     * Sets the result after the thread awakens (from svcWaitSynchronization)
      * @param result Value to set to the returned result
      */
     void SetWaitSynchronizationResult(ResultCode result);
 
     /**
-     * Sets the output parameter value after the thread awakens (from WaitSynchronizationN SVC only)
+     * Sets the output parameter value after the thread awakens (from svcWaitSynchronization)
      * @param output Value to set to the output parameter
      */
     void SetWaitSynchronizationOutput(s32 output);
 
     /**
      * Retrieves the index that this particular object occupies in the list of objects
-     * that the thread passed to WaitSynchronizationN, starting the search from the last element.
-     * It is used to set the output value of WaitSynchronizationN when the thread is awakened.
+     * that the thread passed to WaitSynchronization, starting the search from the last element.
+     *
+     * It is used to set the output index of WaitSynchronization when the thread is awakened.
+     *
      * When a thread wakes up due to an object signal, the kernel will use the index of the last
      * matching object in the wait objects list in case of having multiple instances of the same
      * object in the list.
+     *
      * @param object Object to query the index of.
      */
     s32 GetWaitObjectIndex(const WaitObject* object) const;
@@ -238,13 +246,9 @@ public:
      */
     VAddr GetCommandBufferAddress() const;
 
-    /**
-     * Returns whether this thread is waiting for all the objects in
-     * its wait list to become ready, as a result of a WaitSynchronizationN call
-     * with wait_all = true.
-     */
-    bool IsSleepingOnWaitAll() const {
-        return status == ThreadStatus::WaitSynchAll;
+    /// Returns whether this thread is waiting on objects from a WaitSynchronization call.
+    bool IsSleepingOnWait() const {
+        return status == ThreadStatus::WaitSynch;
     }
 
     ThreadContext& GetContext() {
@@ -418,7 +422,7 @@ private:
     Process* owner_process;
 
     /// Objects that the thread is waiting on, in the same order as they were
-    /// passed to WaitSynchronization1/N.
+    /// passed to WaitSynchronization.
     ThreadWaitObjects wait_objects;
 
     /// List of threads that are waiting for a mutex that is held by this thread.
@@ -441,7 +445,7 @@ private:
     Handle callback_handle = 0;
 
     /// Callback that will be invoked when the thread is resumed from a waiting state. If the thread
-    /// was waiting via WaitSynchronizationN then the object will be the last object that became
+    /// was waiting via WaitSynchronization then the object will be the last object that became
     /// available. In case of a timeout, the object will be nullptr.
     WakeupCallback wakeup_callback;
 

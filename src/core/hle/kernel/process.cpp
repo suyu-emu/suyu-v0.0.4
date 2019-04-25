@@ -147,8 +147,7 @@ void Process::PrepareForTermination() {
                 continue;
 
             // TODO(Subv): When are the other running/ready threads terminated?
-            ASSERT_MSG(thread->GetStatus() == ThreadStatus::WaitSynchAny ||
-                           thread->GetStatus() == ThreadStatus::WaitSynchAll,
+            ASSERT_MSG(thread->GetStatus() == ThreadStatus::WaitSynch,
                        "Exiting processes with non-waiting threads is currently unimplemented");
 
             thread->Stop();

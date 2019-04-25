@@ -227,8 +227,7 @@ QString WaitTreeThread::GetText() const {
     case Kernel::ThreadStatus::WaitIPC:
         status = tr("waiting for IPC reply");
         break;
-    case Kernel::ThreadStatus::WaitSynchAll:
-    case Kernel::ThreadStatus::WaitSynchAny:
+    case Kernel::ThreadStatus::WaitSynch:
         status = tr("waiting for objects");
         break;
     case Kernel::ThreadStatus::WaitMutex:
@@ -269,8 +268,7 @@ QColor WaitTreeThread::GetColor() const {
         return QColor(Qt::GlobalColor::darkRed);
     case Kernel::ThreadStatus::WaitSleep:
         return QColor(Qt::GlobalColor::darkYellow);
-    case Kernel::ThreadStatus::WaitSynchAll:
-    case Kernel::ThreadStatus::WaitSynchAny:
+    case Kernel::ThreadStatus::WaitSynch:
     case Kernel::ThreadStatus::WaitMutex:
     case Kernel::ThreadStatus::WaitCondVar:
     case Kernel::ThreadStatus::WaitArb:
@@ -325,10 +323,9 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
         list.push_back(std::make_unique<WaitTreeText>(tr("not waiting for mutex")));
     }
 
-    if (thread.GetStatus() == Kernel::ThreadStatus::WaitSynchAny ||
-        thread.GetStatus() == Kernel::ThreadStatus::WaitSynchAll) {
+    if (thread.GetStatus() == Kernel::ThreadStatus::WaitSynch) {
         list.push_back(std::make_unique<WaitTreeObjectList>(thread.GetWaitObjects(),
-                                                            thread.IsSleepingOnWaitAll()));
+                                                            thread.IsSleepingOnWait()));
     }
 
     list.push_back(std::make_unique<WaitTreeCallstack>(thread));

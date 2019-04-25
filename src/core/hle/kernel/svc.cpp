@@ -424,7 +424,7 @@ static ResultCode GetProcessId(Core::System& system, u64* process_id, Handle han
 /// Default thread wakeup callback for WaitSynchronization
 static bool DefaultThreadWakeupCallback(ThreadWakeupReason reason, SharedPtr<Thread> thread,
                                         SharedPtr<WaitObject> object, std::size_t index) {
-    ASSERT(thread->GetStatus() == ThreadStatus::WaitSynchAny);
+    ASSERT(thread->GetStatus() == ThreadStatus::WaitSynch);
 
     if (reason == ThreadWakeupReason::Timeout) {
         thread->SetWaitSynchronizationResult(RESULT_TIMEOUT);
@@ -502,7 +502,7 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
     }
 
     thread->SetWaitObjects(std::move(objects));
-    thread->SetStatus(ThreadStatus::WaitSynchAny);
+    thread->SetStatus(ThreadStatus::WaitSynch);
 
     // Create an event to wake the thread up after the specified nanosecond delay has passed
     thread->WakeAfterDelay(nano_seconds);
@@ -518,16 +518,14 @@ static ResultCode CancelSynchronization(Core::System& system, Handle thread_hand
     LOG_TRACE(Kernel_SVC, "called thread=0x{:X}", thread_handle);
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
+    SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, thread_handle=0x{:08X}",
                   thread_handle);
         return ERR_INVALID_HANDLE;
     }
 
-    ASSERT(thread->GetStatus() == ThreadStatus::WaitSynchAny);
-    thread->SetWaitSynchronizationResult(ERR_SYNCHRONIZATION_CANCELED);
-    thread->ResumeFromWait();
+    thread->CancelWait();
     return RESULT_SUCCESS;
 }
 

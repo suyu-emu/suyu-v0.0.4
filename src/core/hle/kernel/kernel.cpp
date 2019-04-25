@@ -46,8 +46,7 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_
 
     bool resume = true;
 
-    if (thread->GetStatus() == ThreadStatus::WaitSynchAny ||
-        thread->GetStatus() == ThreadStatus::WaitSynchAll ||
+    if (thread->GetStatus() == ThreadStatus::WaitSynch ||
         thread->GetStatus() == ThreadStatus::WaitHLEEvent) {
         // Remove the thread from each of its waiting objects' waitlists
         for (const auto& object : thread->GetWaitObjects()) {
