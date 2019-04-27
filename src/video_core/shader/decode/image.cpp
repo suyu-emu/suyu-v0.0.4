@@ -55,8 +55,9 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
             coords.push_back(GetRegister(instr.gpr8.Value() + i));
         }
 
-        ASSERT(instr.sust.is_immediate);
-        const auto& image{GetImage(instr.image, instr.sust.image_type)};
+        const auto type{instr.sust.image_type};
+        const auto& image{instr.sust.is_immediate ? GetImage(instr.image, type)
+                                                  : GetBindlessImage(instr.gpr39, type)};
         MetaImage meta{image, values};
         const Node store{Operation(OperationCode::ImageStore, meta, std::move(coords))};
         bb.push_back(store);
@@ -83,6 +84,31 @@ const Image& ShaderIR::GetImage(Tegra::Shader::Image image, Tegra::Shader::Image
     // Otherwise create a new mapping for this image.
     const std::size_t next_index{used_images.size()};
     const Image entry{offset, next_index, type};
+    return *used_images.emplace(entry).first;
+}
+
+const Image& ShaderIR::GetBindlessImage(Tegra::Shader::Register reg,
+                                        Tegra::Shader::ImageType type) {
+    const Node image_register{GetRegister(reg)};
+    const Node base_image{
+        TrackCbuf(image_register, global_code, static_cast<s64>(global_code.size()))};
+    const auto cbuf{std::get_if<CbufNode>(base_image)};
+    const auto cbuf_offset_imm{std::get_if<ImmediateNode>(cbuf->GetOffset())};
+    const auto cbuf_offset{cbuf_offset_imm->GetValue()};
+    const auto cbuf_index{cbuf->GetIndex()};
+    const auto cbuf_key{(static_cast<u64>(cbuf_index) << 32) | static_cast<u64>(cbuf_offset)};
+
+    // If this image has already been used, return the existing mapping.
+    const auto itr{std::find_if(used_images.begin(), used_images.end(),
+                                [=](const Image& entry) { return entry.GetOffset() == cbuf_key; })};
+    if (itr != used_images.end()) {
+        ASSERT(itr->GetType() == type);
+        return *itr;
+    }
+
+    // Otherwise create a new mapping for this image.
+    const std::size_t next_index{used_images.size()};
+    const Image entry{cbuf_index, cbuf_offset, next_index, type};
     return *used_images.emplace(entry).first;
 }
 

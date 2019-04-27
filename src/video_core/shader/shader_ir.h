@@ -262,6 +262,9 @@ private:
     /// Accesses an image.
     const Image& GetImage(Tegra::Shader::Image image, Tegra::Shader::ImageType type);
 
+    /// Access a bindless image sampler.
+    const Image& GetBindlessImage(Tegra::Shader::Register reg, Tegra::Shader::ImageType type);
+
     /// Extracts a sequence of bits from a node
     Node BitfieldExtract(Node value, u32 offset, u32 bits);
 

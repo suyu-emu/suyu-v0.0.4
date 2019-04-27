@@ -270,6 +270,15 @@ public:
     explicit Image(std::size_t offset, std::size_t index, Tegra::Shader::ImageType type)
         : offset{offset}, index{index}, type{type}, is_bindless{false} {}
 
+    explicit Image(u32 cbuf_index, u32 cbuf_offset, std::size_t index,
+                   Tegra::Shader::ImageType type)
+        : offset{(static_cast<u64>(cbuf_index) << 32) | cbuf_offset}, index{index}, type{type},
+          is_bindless{true} {}
+
+    explicit Image(std::size_t offset, std::size_t index, Tegra::Shader::ImageType type,
+                   bool is_bindless)
+        : offset{offset}, index{index}, type{type}, is_bindless{is_bindless} {}
+
     std::size_t GetOffset() const {
         return offset;
     }
