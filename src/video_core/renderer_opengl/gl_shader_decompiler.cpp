@@ -180,6 +180,7 @@ public:
         DeclareGlobalMemory();
         DeclareSamplers();
         DeclarePhysicalAttributeReader();
+        DeclareImages();
 
         code.AddLine("void execute_{}() {{", suffix);
         ++code.scope;
@@ -529,6 +530,36 @@ private:
         --code.scope;
         code.AddLine("}}");
         code.AddNewLine();
+    }
+
+    void DeclareImages() {
+        const auto& images{ir.GetImages()};
+        for (const auto& image : images) {
+            const std::string image_type = [&]() {
+                switch (image.GetType()) {
+                case Tegra::Shader::ImageType::Texture1D:
+                    return "image1D";
+                case Tegra::Shader::ImageType::TextureBuffer:
+                    return "bufferImage";
+                case Tegra::Shader::ImageType::Texture1DArray:
+                    return "image1DArray";
+                case Tegra::Shader::ImageType::Texture2D:
+                    return "image2D";
+                case Tegra::Shader::ImageType::Texture2DArray:
+                    return "image2DArray";
+                case Tegra::Shader::ImageType::Texture3D:
+                    return "image3D";
+                default:
+                    UNREACHABLE();
+                    return "image1D";
+                }
+            }();
+            code.AddLine("layout (binding = IMAGE_BINDING_" + std::to_string(image.GetIndex()) +
+                         ") coherent volatile writeonly uniform " + image_type + ' ' +
+                         GetImage(image) + ';');
+        }
+        if (!images.empty())
+            code.AddNewLine();
     }
 
     void VisitBlock(const NodeBlock& bb) {
@@ -1478,6 +1509,39 @@ private:
         return tmp;
     }
 
+    std::string ImageStore(Operation operation) {
+        constexpr std::array<const char*, 4> constructors{"int(", "ivec2(", "ivec3(", "ivec4("};
+        const auto meta{std::get<MetaImage>(operation.GetMeta())};
+
+        std::string expr = "imageStore(";
+        expr += GetImage(meta.image);
+        expr += ", ";
+
+        const std::size_t coords_count{operation.GetOperandsCount()};
+        expr += constructors.at(coords_count - 1);
+        for (std::size_t i = 0; i < coords_count; ++i) {
+            expr += VisitOperand(operation, i, Type::Int);
+            if (i + 1 < coords_count) {
+                expr += ", ";
+            }
+        }
+        expr += "), ";
+
+        const std::size_t values_count{meta.values.size()};
+        UNIMPLEMENTED_IF(values_count != 4);
+        expr += "vec4(";
+        for (std::size_t i = 0; i < values_count; ++i) {
+            expr += Visit(meta.values.at(i));
+            if (i + 1 < values_count) {
+                expr += ", ";
+            }
+        }
+        expr += "));";
+
+        code.AddLine(expr);
+        return {};
+    }
+
     std::string Branch(Operation operation) {
         const auto target = std::get_if<ImmediateNode>(&*operation[0]);
         UNIMPLEMENTED_IF(!target);
@@ -1718,6 +1782,8 @@ private:
         &GLSLDecompiler::TextureQueryLod,
         &GLSLDecompiler::TexelFetch,
 
+        &GLSLDecompiler::ImageStore,
+
         &GLSLDecompiler::Branch,
         &GLSLDecompiler::PushFlowStack,
         &GLSLDecompiler::PopFlowStack,
@@ -1784,6 +1850,10 @@ private:
 
     std::string GetSampler(const Sampler& sampler) const {
         return GetDeclarationWithSuffix(static_cast<u32>(sampler.GetIndex()), "sampler");
+    }
+
+    std::string GetImage(const Image& image) const {
+        return GetDeclarationWithSuffix(static_cast<u32>(image.GetIndex()), "image");
     }
 
     void EmitIfdefIsBuffer(const Sampler& sampler) {

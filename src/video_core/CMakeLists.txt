@@ -90,6 +90,7 @@ add_library(video_core STATIC
     shader/decode/conversion.cpp
     shader/decode/memory.cpp
     shader/decode/texture.cpp
+    shader/decode/image.cpp
     shader/decode/float_set_predicate.cpp
     shader/decode/integer_set_predicate.cpp
     shader/decode/half_set_predicate.cpp

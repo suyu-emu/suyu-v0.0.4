@@ -146,6 +146,8 @@ enum class OperationCode {
     TextureQueryLod,        /// (MetaTexture, float[N] coords) -> float4
     TexelFetch,             /// (MetaTexture, int[N], int) -> float4
 
+    ImageStore, /// (MetaImage, float[N] coords) -> void
+
     Branch,        /// (uint branch_target) -> void
     PushFlowStack, /// (uint branch_target) -> void
     PopFlowStack,  /// () -> void
@@ -263,6 +265,39 @@ private:
     bool is_bindless{}; ///< Whether this sampler belongs to a bindless texture or not.
 };
 
+class Image {
+public:
+    explicit Image(std::size_t offset, std::size_t index, Tegra::Shader::ImageType type)
+        : offset{offset}, index{index}, type{type}, is_bindless{false} {}
+
+    std::size_t GetOffset() const {
+        return offset;
+    }
+
+    std::size_t GetIndex() const {
+        return index;
+    }
+
+    Tegra::Shader::ImageType GetType() const {
+        return type;
+    }
+
+    bool IsBindless() const {
+        return is_bindless;
+    }
+
+    bool operator<(const Image& rhs) const {
+        return std::tie(offset, index, type, is_bindless) <
+               std::tie(rhs.offset, rhs.index, rhs.type, rhs.is_bindless);
+    }
+
+private:
+    std::size_t offset{};
+    std::size_t index{};
+    Tegra::Shader::ImageType type{};
+    bool is_bindless{};
+};
+
 struct GlobalMemoryBase {
     u32 cbuf_index{};
     u32 cbuf_offset{};
@@ -289,8 +324,13 @@ struct MetaTexture {
     u32 element{};
 };
 
+struct MetaImage {
+    const Image& image;
+    std::vector<Node> values;
+};
+
 /// Parameters that modify an operation but are not part of any particular operand
-using Meta = std::variant<MetaArithmetic, MetaTexture, MetaStackClass, Tegra::Shader::HalfType>;
+using Meta = std::variant<MetaArithmetic, MetaTexture, MetaImage, MetaStackClass, Tegra::Shader::HalfType>;
 
 /// Holds any kind of operation that can be done in the IR
 class OperationNode final {
