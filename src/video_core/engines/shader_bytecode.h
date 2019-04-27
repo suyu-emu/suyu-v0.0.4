@@ -1232,6 +1232,20 @@ union Instruction {
     } texs;
 
     union {
+        BitField<28, 1, u64> is_array;
+        BitField<29, 2, TextureType> texture_type;
+        BitField<35, 1, u64> aoffi;
+        BitField<49, 1, u64> nodep_flag;
+        BitField<50, 1, u64> ms; // Multisample?
+        BitField<54, 1, u64> cl;
+        BitField<55, 1, u64> process_mode;
+
+        TextureProcessMode GetTextureProcessMode() const {
+            return process_mode == 0 ? TextureProcessMode::LZ : TextureProcessMode::LL;
+        }
+    } tld;
+
+    union {
         BitField<49, 1, u64> nodep_flag;
         BitField<53, 4, u64> texture_info;
 
@@ -1408,6 +1422,7 @@ public:
         TXQ,    // Texture Query
         TXQ_B,  // Texture Query Bindless
         TEXS,   // Texture Fetch with scalar/non-vec4 source/destinations
+        TLD,    // Texture Load
         TLDS,   // Texture Load with scalar/non-vec4 source/destinations
         TLD4,   // Texture Load 4
         TLD4S,  // Texture Load 4 with scalar / non - vec4 source / destinations
@@ -1682,6 +1697,7 @@ private:
             INST("1101111101001---", Id::TXQ, Type::Texture, "TXQ"),
             INST("1101111101010---", Id::TXQ_B, Type::Texture, "TXQ_B"),
             INST("1101-00---------", Id::TEXS, Type::Texture, "TEXS"),
+            INST("11011100--11----", Id::TLD, Type::Texture, "TLD"),
             INST("1101101---------", Id::TLDS, Type::Texture, "TLDS"),
             INST("110010----111---", Id::TLD4, Type::Texture, "TLD4"),
             INST("1101111100------", Id::TLD4S, Type::Texture, "TLD4S"),

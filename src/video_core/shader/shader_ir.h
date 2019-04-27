@@ -277,6 +277,8 @@ private:
     Node4 GetTld4Code(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
                       bool depth_compare, bool is_array, bool is_aoffi);
 
+    Node4 GetTldCode(Tegra::Shader::Instruction instr);
+
     Node4 GetTldsCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
                       bool is_array);
 
