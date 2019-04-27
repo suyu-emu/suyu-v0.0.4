@@ -190,6 +190,10 @@ CachedProgram SpecializeShader(const std::string& code, const GLShader::ShaderEn
         source += fmt::format("#define SAMPLER_BINDING_{} {}\n", sampler.GetIndex(),
                               base_bindings.sampler++);
     }
+    for (const auto& image : entries.images) {
+        source +=
+            fmt::format("#define IMAGE_BINDING_{} {}\n", image.GetIndex(), base_bindings.image++);
+    }
 
     // Transform 1D textures to texture samplers by declaring its preprocessor macros.
     for (std::size_t i = 0; i < texture_buffer_usage.size(); ++i) {

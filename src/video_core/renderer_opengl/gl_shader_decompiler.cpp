@@ -235,6 +235,9 @@ public:
         for (const auto& sampler : ir.GetSamplers()) {
             entries.samplers.emplace_back(sampler);
         }
+        for (const auto& image : ir.GetImages()) {
+            entries.images.emplace_back(image);
+        }
         for (const auto& gmem_pair : ir.GetGlobalMemory()) {
             const auto& [base, usage] = gmem_pair;
             entries.global_memory_entries.emplace_back(base.cbuf_index, base.cbuf_offset,
