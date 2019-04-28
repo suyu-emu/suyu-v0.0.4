@@ -40,6 +40,64 @@ void Module::Interface::CreateBcatService(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IBcatService>(*backend);
+class IDeliveryCacheStorageService final : public ServiceFramework<IDeliveryCacheStorageService> {
+public:
+    IDeliveryCacheStorageService(FileSys::VirtualDir root_)
+        : ServiceFramework{"IDeliveryCacheStorageService"}, root(std::move(root_)) {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &IDeliveryCacheStorageService::CreateFileService, "CreateFileService"},
+            {1, &IDeliveryCacheStorageService::CreateDirectoryService, "CreateDirectoryService"},
+            {10, &IDeliveryCacheStorageService::EnumerateDeliveryCacheDirectory, "EnumerateDeliveryCacheDirectory"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+
+        for (const auto& subdir : root->GetSubdirectories()) {
+            DirectoryName name{};
+            std::memcpy(name.data(), subdir->GetName().data(),
+                        std::min(sizeof(DirectoryName) - 1, subdir->GetName().size()));
+            entries.push_back(name);
+        }
+    }
+
+private:
+    void CreateFileService(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_BCAT, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<IDeliveryCacheFileService>(root);
+    }
+
+    void CreateDirectoryService(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_BCAT, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<IDeliveryCacheDirectoryService>(root);
+    }
+
+    void EnumerateDeliveryCacheDirectory(Kernel::HLERequestContext& ctx) {
+        auto size = ctx.GetWriteBufferSize() / sizeof(DirectoryName);
+
+        LOG_DEBUG(Service_BCAT, "called, size={:016X}", size);
+
+        size = std::min(size, entries.size() - next_read_index);
+        ctx.WriteBuffer(entries.data() + next_read_index, size * sizeof(DirectoryName));
+        next_read_index += size;
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(size);
+    }
+
+    FileSys::VirtualDir root;
+    std::vector<DirectoryName> entries;
+    u64 next_read_index = 0;
+};
+
 void Module::Interface::CreateDeliveryCacheStorageService(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_BCAT, "called");
 
