@@ -8,6 +8,8 @@
 
 namespace Service::BCAT {
 
+class Backend;
+
 class Module final {
 public:
     class Interface : public ServiceFramework<Interface> {
@@ -19,6 +21,7 @@ public:
 
     protected:
         std::shared_ptr<Module> module;
+        std::unique_ptr<Backend> backend;
     };
 };
 

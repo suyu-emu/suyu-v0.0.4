@@ -38,10 +38,22 @@ void Module::Interface::CreateBcatService(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IBcatService>();
+namespace {
+std::unique_ptr<Backend> CreateBackendFromSettings(DirectoryGetter getter) {
+    const auto backend = Settings::values.bcat_backend;
+
+#ifdef YUZU_ENABLE_BOXCAT
+    if (backend == "boxcat")
+        return std::make_unique<Boxcat>(std::move(getter));
+#endif
+
+    return std::make_unique<NullBackend>(std::move(getter));
 }
+} // Anonymous namespace
 
 Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
-    : ServiceFramework(name), module(std::move(module)) {}
+    : ServiceFramework(name), module(std::move(module)),
+      backend(CreateBackendFromSettings(&Service::FileSystem::GetBCATDirectory)) {}
 
 Module::Interface::~Interface() = default;
 
