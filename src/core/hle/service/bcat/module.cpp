@@ -40,6 +40,105 @@ void Module::Interface::CreateBcatService(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IBcatService>(*backend);
+class IDeliveryCacheDirectoryService final
+    : public ServiceFramework<IDeliveryCacheDirectoryService> {
+public:
+    IDeliveryCacheDirectoryService(FileSys::VirtualDir root_)
+        : ServiceFramework{"IDeliveryCacheDirectoryService"}, root(std::move(root_)) {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &IDeliveryCacheDirectoryService::Open, "Open"},
+            {1, &IDeliveryCacheDirectoryService::Read, "Read"},
+            {2, &IDeliveryCacheDirectoryService::GetCount, "GetCount"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+
+private:
+    void Open(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto name_raw = rp.PopRaw<DirectoryName>();
+        const auto name =
+            Common::StringFromFixedZeroTerminatedBuffer(name_raw.data(), name_raw.size());
+
+        LOG_DEBUG(Service_BCAT, "called, name={}", name);
+
+        if (!VerifyNameValidDir(ctx, name_raw))
+            return;
+
+        if (current_dir != nullptr) {
+            LOG_ERROR(Service_BCAT, "A file has already been opened on this interface!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_ENTITY_ALREADY_OPEN);
+            return;
+        }
+
+        current_dir = root->GetSubdirectory(name);
+
+        if (current_dir == nullptr) {
+            LOG_ERROR(Service_BCAT, "Failed to open the directory name={}!", name);
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_FAILED_OPEN_ENTITY);
+            return;
+        }
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void Read(Kernel::HLERequestContext& ctx) {
+        auto write_size = ctx.GetWriteBufferSize() / sizeof(DeliveryCacheDirectoryEntry);
+
+        LOG_DEBUG(Service_BCAT, "called, write_size={:016X}", write_size);
+
+        if (current_dir == nullptr) {
+            LOG_ERROR(Service_BCAT, "There is no open directory!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_NO_OPEN_ENTITY);
+            return;
+        }
+
+        const auto files = current_dir->GetFiles();
+        write_size = std::min(write_size, files.size());
+        std::vector<DeliveryCacheDirectoryEntry> entries(write_size);
+        std::transform(
+            files.begin(), files.begin() + write_size, entries.begin(), [](const auto& file) {
+                FileName name{};
+                std::memcpy(name.data(), file->GetName().data(),
+                            std::min(file->GetName().size(), name.size()));
+                return DeliveryCacheDirectoryEntry{name, file->GetSize(), DigestFile(file)};
+            });
+
+        ctx.WriteBuffer(entries);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(write_size * sizeof(DeliveryCacheDirectoryEntry));
+    }
+
+    void GetCount(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_BCAT, "called");
+
+        if (current_dir == nullptr) {
+            LOG_ERROR(Service_BCAT, "There is no open directory!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_NO_OPEN_ENTITY);
+            return;
+        }
+
+        const auto files = current_dir->GetFiles();
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(files.size());
+    }
+
+    FileSys::VirtualDir root;
+    FileSys::VirtualDir current_dir;
+};
+
 class IDeliveryCacheStorageService final : public ServiceFramework<IDeliveryCacheStorageService> {
 public:
     IDeliveryCacheStorageService(FileSys::VirtualDir root_)
