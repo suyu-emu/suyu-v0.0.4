@@ -140,7 +140,7 @@ std::size_t SurfaceParams::InnerMemorySize(bool force_gl, bool layer_only,
 
     params.width = Common::AlignUp(config.tic.Width(), GetCompressionFactor(params.pixel_format));
     params.height = Common::AlignUp(config.tic.Height(), GetCompressionFactor(params.pixel_format));
-    if (!params.is_tiled) {
+    if (config.tic.IsLineal()) {
         params.pitch = config.tic.Pitch();
     }
     params.unaligned_height = config.tic.Height();

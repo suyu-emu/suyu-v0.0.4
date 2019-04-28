@@ -172,12 +172,16 @@ struct TICEntry {
         BitField<26, 1, u32> use_header_opt_control;
         BitField<27, 1, u32> depth_texture;
         BitField<28, 4, u32> max_mip_level;
+
+        BitField<0, 16, u32> buffer_high_width_minus_one;
     };
     union {
         BitField<0, 16, u32> width_minus_1;
         BitField<22, 1, u32> srgb_conversion;
         BitField<23, 4, TextureType> texture_type;
         BitField<29, 3, u32> border_size;
+
+        BitField<0, 16, u32> buffer_low_width_minus_one;
     };
     union {
         BitField<0, 16, u32> height_minus_1;
@@ -206,7 +210,10 @@ struct TICEntry {
     }
 
     u32 Width() const {
-        return width_minus_1 + 1;
+        if (header_version != TICHeaderVersion::OneDBuffer) {
+            return width_minus_1 + 1;
+        }
+        return (buffer_high_width_minus_one << 16) | buffer_low_width_minus_one;
     }
 
     u32 Height() const {
@@ -235,6 +242,15 @@ struct TICEntry {
     bool IsTiled() const {
         return header_version == TICHeaderVersion::BlockLinear ||
                header_version == TICHeaderVersion::BlockLinearColorKey;
+    }
+
+    bool IsLineal() const {
+        return header_version == TICHeaderVersion::Pitch ||
+               header_version == TICHeaderVersion::PitchColorKey;
+    }
+
+    bool IsBuffer() const {
+        return header_version == TICHeaderVersion::OneDBuffer;
     }
 
     bool IsSrgbConversionEnabled() const {

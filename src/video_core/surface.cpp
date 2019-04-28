@@ -12,6 +12,8 @@ SurfaceTarget SurfaceTargetFromTextureType(Tegra::Texture::TextureType texture_t
     switch (texture_type) {
     case Tegra::Texture::TextureType::Texture1D:
         return SurfaceTarget::Texture1D;
+    case Tegra::Texture::TextureType::Texture1DBuffer:
+        return SurfaceTarget::Texture1D; // Fixme
     case Tegra::Texture::TextureType::Texture2D:
     case Tegra::Texture::TextureType::Texture2DNoMipmap:
         return SurfaceTarget::Texture2D;
