@@ -145,8 +145,8 @@ public:
     IBcatService(Backend& backend) : ServiceFramework("IBcatService"), backend(backend) {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {10100, nullptr, "RequestSyncDeliveryCache"},
-            {10101, nullptr, "RequestSyncDeliveryCacheWithDirectoryName"},
+            {10100, &IBcatService::RequestSyncDeliveryCache, "RequestSyncDeliveryCache"},
+            {10101, &IBcatService::RequestSyncDeliveryCacheWithDirectoryName, "RequestSyncDeliveryCacheWithDirectoryName"},
             {10200, nullptr, "CancelSyncDeliveryCacheRequest"},
             {20100, nullptr, "RequestSyncDeliveryCacheWithApplicationId"},
             {20101, nullptr, "RequestSyncDeliveryCacheWithApplicationIdAndDirectoryName"},
@@ -162,7 +162,74 @@ public:
         };
         // clang-format on
         RegisterHandlers(functions);
+
+        auto& kernel{Core::System::GetInstance().Kernel()};
+        progress.at(static_cast<std::size_t>(SyncType::Normal)).event =
+            Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Sticky,
+                                                   "BCAT::IDeliveryCacheProgressEvent");
+        progress.at(static_cast<std::size_t>(SyncType::Directory)).event =
+            Kernel::WritableEvent::CreateEventPair(
+                kernel, Kernel::ResetType::OneShot,
+                "BCAT::IDeliveryCacheProgressEvent::DirectoryName");
     }
+
+private:
+    enum class SyncType {
+        Normal,
+        Directory,
+        Count,
+    };
+
+    std::function<void(bool)> CreateCallback(SyncType type) {
+        return [this, type](bool success) {
+            auto& pair{progress.at(static_cast<std::size_t>(type))};
+            pair.impl.status = DeliveryCacheProgressImpl::Status::Complete;
+            pair.event.writable->Signal();
+        };
+    }
+
+    std::shared_ptr<IDeliveryCacheProgressService> CreateProgressService(SyncType type) {
+        const auto& pair{progress.at(static_cast<std::size_t>(type))};
+        return std::make_shared<IDeliveryCacheProgressService>(pair.event.readable, pair.impl);
+    }
+
+    void RequestSyncDeliveryCache(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_BCAT, "called");
+
+        backend.Synchronize({Core::CurrentProcess()->GetTitleID(), GetCurrentBuildID()},
+                            CreateCallback(SyncType::Normal));
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface(CreateProgressService(SyncType::Normal));
+    }
+
+    void RequestSyncDeliveryCacheWithDirectoryName(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto name_raw = rp.PopRaw<DirectoryName>();
+        const auto name =
+            Common::StringFromFixedZeroTerminatedBuffer(name_raw.data(), name_raw.size());
+
+        LOG_DEBUG(Service_BCAT, "called, name={}", name);
+
+        backend.SynchronizeDirectory({Core::CurrentProcess()->GetTitleID(), GetCurrentBuildID()},
+                                     name, CreateCallback(SyncType::Directory));
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface(CreateProgressService(SyncType::Directory));
+    }
+
+    }
+
+    Backend& backend;
+
+    struct ProgressPair {
+        Kernel::EventPair event;
+        DeliveryCacheProgressImpl impl;
+    };
+
+    std::array<ProgressPair, static_cast<std::size_t>(SyncType::Count)> progress{};
 };
 
 void Module::Interface::CreateBcatService(Kernel::HLERequestContext& ctx) {
@@ -171,6 +238,7 @@ void Module::Interface::CreateBcatService(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IBcatService>(*backend);
+}
 
 class IDeliveryCacheFileService final : public ServiceFramework<IDeliveryCacheFileService> {
 public:
