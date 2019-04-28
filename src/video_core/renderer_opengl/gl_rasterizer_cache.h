@@ -250,6 +250,8 @@ struct SurfaceParams {
         switch (target) {
         case SurfaceTarget::Texture1D:
             return "1D";
+        case SurfaceTarget::TextureBuffer:
+            return "Buffer";
         case SurfaceTarget::Texture2D:
             return "2D";
         case SurfaceTarget::Texture3D:
@@ -439,6 +441,7 @@ private:
 
     OGLTexture texture;
     OGLTexture discrepant_view;
+    OGLBuffer texture_buffer;
     SurfaceParams params{};
     GLenum gl_target{};
     GLenum gl_internal_format{};

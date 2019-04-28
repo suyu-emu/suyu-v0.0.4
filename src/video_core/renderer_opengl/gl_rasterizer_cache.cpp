@@ -149,6 +149,7 @@ std::size_t SurfaceParams::InnerMemorySize(bool force_gl, bool layer_only,
 
     switch (params.target) {
     case SurfaceTarget::Texture1D:
+    case SurfaceTarget::TextureBuffer:
     case SurfaceTarget::Texture2D:
         params.depth = 1;
         break;
@@ -389,6 +390,8 @@ static GLenum SurfaceTargetToGL(SurfaceTarget target) {
     switch (target) {
     case SurfaceTarget::Texture1D:
         return GL_TEXTURE_1D;
+    case SurfaceTarget::TextureBuffer:
+        return GL_TEXTURE_BUFFER;
     case SurfaceTarget::Texture2D:
         return GL_TEXTURE_2D;
     case SurfaceTarget::Texture3D:
@@ -600,29 +603,35 @@ CachedSurface::CachedSurface(const SurfaceParams& params)
 
     switch (params.target) {
     case SurfaceTarget::Texture1D:
-        glTextureStorage1D(texture.handle, params.max_mip_level, format_tuple.internal_format,
-                           width);
+        glTextureStorage1D(texture.handle, params.max_mip_level, gl_internal_format, width);
+        break;
+    case SurfaceTarget::TextureBuffer:
+        texture_buffer.Create();
+        glNamedBufferStorage(texture_buffer.handle,
+                             params.width * GetBytesPerPixel(params.pixel_format), nullptr,
+                             GL_DYNAMIC_STORAGE_BIT);
+        glTextureBuffer(texture.handle, gl_internal_format, texture_buffer.handle);
         break;
     case SurfaceTarget::Texture2D:
     case SurfaceTarget::TextureCubemap:
-        glTextureStorage2D(texture.handle, params.max_mip_level, format_tuple.internal_format,
-                           width, height);
+        glTextureStorage2D(texture.handle, params.max_mip_level, gl_internal_format, width, height);
         break;
     case SurfaceTarget::Texture3D:
     case SurfaceTarget::Texture2DArray:
     case SurfaceTarget::TextureCubeArray:
-        glTextureStorage3D(texture.handle, params.max_mip_level, format_tuple.internal_format,
-                           width, height, params.depth);
+        glTextureStorage3D(texture.handle, params.max_mip_level, gl_internal_format, width, height,
+                           params.depth);
         break;
     default:
         LOG_CRITICAL(Render_OpenGL, "Unimplemented surface target={}",
                      static_cast<u32>(params.target));
         UNREACHABLE();
-        glTextureStorage2D(texture.handle, params.max_mip_level, format_tuple.internal_format,
-                           width, height);
+        glTextureStorage2D(texture.handle, params.max_mip_level, gl_internal_format, width, height);
     }
 
-    ApplyTextureDefaults(texture.handle, params.max_mip_level);
+    if (params.target != SurfaceTarget::TextureBuffer) {
+        ApplyTextureDefaults(texture.handle, params.max_mip_level);
+    }
 
     OpenGL::LabelGLObject(GL_TEXTURE, texture.handle, params.gpu_addr, params.IdentityString());
 }
@@ -785,6 +794,13 @@ void CachedSurface::UploadGLMipmapTexture(RasterizerTemporaryMemory& res_cache_t
             glTextureSubImage1D(texture.handle, mip_map, x0, static_cast<GLsizei>(rect.GetWidth()),
                                 tuple.format, tuple.type, &gl_buffer[mip_map][buffer_offset]);
             break;
+        case SurfaceTarget::TextureBuffer:
+            ASSERT(mip_map == 0);
+            glNamedBufferSubData(texture_buffer.handle, x0,
+                                 static_cast<GLsizeiptr>(rect.GetWidth()) *
+                                     GetBytesPerPixel(params.pixel_format),
+                                 &gl_buffer[mip_map][buffer_offset]);
+            break;
         case SurfaceTarget::Texture2D:
             glTextureSubImage2D(texture.handle, mip_map, x0, y0,
                                 static_cast<GLsizei>(rect.GetWidth()),
@@ -860,6 +876,9 @@ void CachedSurface::UpdateSwizzle(Tegra::Texture::SwizzleSource swizzle_x,
                                   Tegra::Texture::SwizzleSource swizzle_y,
                                   Tegra::Texture::SwizzleSource swizzle_z,
                                   Tegra::Texture::SwizzleSource swizzle_w) {
+    if (params.target == SurfaceTarget::TextureBuffer) {
+        return;
+    }
     const GLenum new_x = MaxwellToGL::SwizzleSource(swizzle_x);
     const GLenum new_y = MaxwellToGL::SwizzleSource(swizzle_y);
     const GLenum new_z = MaxwellToGL::SwizzleSource(swizzle_z);
