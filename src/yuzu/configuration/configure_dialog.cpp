@@ -44,6 +44,7 @@ void ConfigureDialog::ApplyConfiguration() {
     ui->audioTab->ApplyConfiguration();
     ui->debugTab->ApplyConfiguration();
     ui->webTab->ApplyConfiguration();
+    ui->serviceTab->ApplyConfiguration();
     Settings::Apply();
     Settings::LogSettings();
 }
