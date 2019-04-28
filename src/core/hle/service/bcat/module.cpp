@@ -11,7 +11,8 @@ namespace Service::BCAT {
 
 class IBcatService final : public ServiceFramework<IBcatService> {
 public:
-    IBcatService() : ServiceFramework("IBcatService") {
+    IBcatService(Backend& backend) : ServiceFramework("IBcatService"), backend(backend) {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {10100, nullptr, "RequestSyncDeliveryCache"},
             {10101, nullptr, "RequestSyncDeliveryCacheWithDirectoryName"},
@@ -28,6 +29,7 @@ public:
             {90201, nullptr, "ClearDeliveryCacheStorage"},
             {90300, nullptr, "GetPushNotificationLog"},
         };
+        // clang-format on
         RegisterHandlers(functions);
     }
 };
@@ -37,7 +39,29 @@ void Module::Interface::CreateBcatService(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IBcatService>();
+    rb.PushIpcInterface<IBcatService>(*backend);
+void Module::Interface::CreateDeliveryCacheStorageService(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_BCAT, "called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface<IDeliveryCacheStorageService>(
+        Service::FileSystem::GetBCATDirectory(Core::CurrentProcess()->GetTitleID()));
+}
+
+void Module::Interface::CreateDeliveryCacheStorageServiceWithApplicationId(
+    Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto title_id = rp.PopRaw<u64>();
+
+    LOG_DEBUG(Service_BCAT, "called, title_id={:016X}", title_id);
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface<IDeliveryCacheStorageService>(
+        Service::FileSystem::GetBCATDirectory(title_id));
+}
+
 namespace {
 std::unique_ptr<Backend> CreateBackendFromSettings(DirectoryGetter getter) {
     const auto backend = Settings::values.bcat_backend;

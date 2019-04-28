@@ -18,6 +18,8 @@ public:
         ~Interface() override;
 
         void CreateBcatService(Kernel::HLERequestContext& ctx);
+        void CreateDeliveryCacheStorageService(Kernel::HLERequestContext& ctx);
+        void CreateDeliveryCacheStorageServiceWithApplicationId(Kernel::HLERequestContext& ctx);
 
     protected:
         std::shared_ptr<Module> module;
