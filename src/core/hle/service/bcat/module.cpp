@@ -157,7 +157,7 @@ public:
             {30203, nullptr, "UnblockDeliveryTask"},
             {90100, nullptr, "EnumerateBackgroundDeliveryTask"},
             {90200, nullptr, "GetDeliveryList"},
-            {90201, nullptr, "ClearDeliveryCacheStorage"},
+            {90201, &IBcatService::ClearDeliveryCacheStorage, "ClearDeliveryCacheStorage"},
             {90300, nullptr, "GetPushNotificationLog"},
         };
         // clang-format on
@@ -252,6 +252,28 @@ private:
         rb.Push(RESULT_SUCCESS);
     }
 
+    void ClearDeliveryCacheStorage(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto title_id = rp.PopRaw<u64>();
+
+        LOG_DEBUG(Service_BCAT, "called, title_id={:016X}", title_id);
+
+        if (title_id == 0) {
+            LOG_ERROR(Service_BCAT, "Invalid title ID!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_ARGUMENT);
+            return;
+        }
+
+        if (!backend.Clear(title_id)) {
+            LOG_ERROR(Service_BCAT, "Could not clear the directory successfully!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_FAILED_CLEAR_CACHE);
+            return;
+        }
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
     }
 
     Backend& backend;
