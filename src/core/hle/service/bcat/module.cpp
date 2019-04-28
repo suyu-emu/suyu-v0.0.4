@@ -40,6 +40,123 @@ void Module::Interface::CreateBcatService(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IBcatService>(*backend);
+
+class IDeliveryCacheFileService final : public ServiceFramework<IDeliveryCacheFileService> {
+public:
+    IDeliveryCacheFileService(FileSys::VirtualDir root_)
+        : ServiceFramework{"IDeliveryCacheFileService"}, root(std::move(root_)) {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &IDeliveryCacheFileService::Open, "Open"},
+            {1, &IDeliveryCacheFileService::Read, "Read"},
+            {2, &IDeliveryCacheFileService::GetSize, "GetSize"},
+            {3, &IDeliveryCacheFileService::GetDigest, "GetDigest"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+
+private:
+    void Open(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto dir_name_raw = rp.PopRaw<DirectoryName>();
+        const auto file_name_raw = rp.PopRaw<FileName>();
+
+        const auto dir_name =
+            Common::StringFromFixedZeroTerminatedBuffer(dir_name_raw.data(), dir_name_raw.size());
+        const auto file_name =
+            Common::StringFromFixedZeroTerminatedBuffer(file_name_raw.data(), file_name_raw.size());
+
+        LOG_DEBUG(Service_BCAT, "called, dir_name={}, file_name={}", dir_name, file_name);
+
+        if (!VerifyNameValidDir(ctx, dir_name_raw) || !VerifyNameValidFile(ctx, file_name_raw))
+            return;
+
+        if (current_file != nullptr) {
+            LOG_ERROR(Service_BCAT, "A file has already been opened on this interface!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_ENTITY_ALREADY_OPEN);
+            return;
+        }
+
+        const auto dir = root->GetSubdirectory(dir_name);
+
+        if (dir == nullptr) {
+            LOG_ERROR(Service_BCAT, "The directory of name={} couldn't be opened!", dir_name);
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_FAILED_OPEN_ENTITY);
+            return;
+        }
+
+        current_file = dir->GetFile(file_name);
+
+        if (current_file == nullptr) {
+            LOG_ERROR(Service_BCAT, "The file of name={} couldn't be opened!", file_name);
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_FAILED_OPEN_ENTITY);
+            return;
+        }
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void Read(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto offset{rp.PopRaw<u64>()};
+
+        auto size = ctx.GetWriteBufferSize();
+
+        LOG_DEBUG(Service_BCAT, "called, offset={:016X}, size={:016X}", offset, size);
+
+        if (current_file == nullptr) {
+            LOG_ERROR(Service_BCAT, "There is no file currently open!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_NO_OPEN_ENTITY);
+        }
+
+        size = std::min(current_file->GetSize() - offset, size);
+        const auto buffer = current_file->ReadBytes(size, offset);
+        ctx.WriteBuffer(buffer);
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u64>(buffer.size());
+    }
+
+    void GetSize(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_BCAT, "called");
+
+        if (current_file == nullptr) {
+            LOG_ERROR(Service_BCAT, "There is no file currently open!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_NO_OPEN_ENTITY);
+        }
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u64>(current_file->GetSize());
+    }
+
+    void GetDigest(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_BCAT, "called");
+
+        if (current_file == nullptr) {
+            LOG_ERROR(Service_BCAT, "There is no file currently open!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_NO_OPEN_ENTITY);
+        }
+
+        IPC::ResponseBuilder rb{ctx, 6};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushRaw(DigestFile(current_file));
+    }
+
+    FileSys::VirtualDir root;
+    FileSys::VirtualFile current_file;
+};
+
 class IDeliveryCacheDirectoryService final
     : public ServiceFramework<IDeliveryCacheDirectoryService> {
 public:
