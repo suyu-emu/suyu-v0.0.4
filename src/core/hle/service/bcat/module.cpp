@@ -2,12 +2,143 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cctype>
+#include <mbedtls/md5.h>
+#include "backend/boxcat.h"
+#include "common/hex_util.h"
 #include "common/logging/log.h"
+#include "common/string_util.h"
+#include "core/file_sys/vfs.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/process.h"
+#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/writable_event.h"
+#include "core/hle/service/bcat/backend/backend.h"
 #include "core/hle/service/bcat/bcat.h"
 #include "core/hle/service/bcat/module.h"
+#include "core/hle/service/filesystem/filesystem.h"
+#include "core/settings.h"
 
 namespace Service::BCAT {
+
+constexpr ResultCode ERROR_INVALID_ARGUMENT{ErrorModule::BCAT, 1};
+constexpr ResultCode ERROR_FAILED_OPEN_ENTITY{ErrorModule::BCAT, 2};
+constexpr ResultCode ERROR_ENTITY_ALREADY_OPEN{ErrorModule::BCAT, 6};
+constexpr ResultCode ERROR_NO_OPEN_ENTITY{ErrorModule::BCAT, 7};
+
+// The command to clear the delivery cache just calls fs IFileSystem DeleteFile on all of the files
+// and if any of them have a non-zero result it just forwards that result. This is the FS error code
+// for permission denied, which is the closest approximation of this scenario.
+constexpr ResultCode ERROR_FAILED_CLEAR_CACHE{ErrorModule::FS, 6400};
+
+using BCATDigest = std::array<u8, 0x10>;
+
+struct DeliveryCacheProgressImpl {
+    enum class Status : u8 {
+        Incomplete = 0x1,
+        Complete = 0x9,
+    };
+
+    Status status = Status::Incomplete;
+    INSERT_PADDING_BYTES(
+        0x1FF); ///< TODO(DarkLordZach): RE this structure. It just seems to convey info about the
+                ///< progress of the BCAT sync, but for us just setting completion works.
+};
+static_assert(sizeof(DeliveryCacheProgressImpl) == 0x200,
+              "DeliveryCacheProgressImpl has incorrect size.");
+
+namespace {
+
+u64 GetCurrentBuildID() {
+    const auto& id = Core::System::GetInstance().GetCurrentProcessBuildID();
+    u64 out{};
+    std::memcpy(&out, id.data(), sizeof(u64));
+    return out;
+}
+
+// The digest is only used to determine if a file is unique compared to others of the same name.
+// Since the algorithm isn't ever checked in game, MD5 is safe.
+BCATDigest DigestFile(const FileSys::VirtualFile& file) {
+    BCATDigest out{};
+    const auto bytes = file->ReadAllBytes();
+    mbedtls_md5(bytes.data(), bytes.size(), out.data());
+    return out;
+}
+
+// For a name to be valid it must be non-empty, must have a null terminating character as the final
+// char, can only contain numbers, letters, underscores and a hyphen if directory and a period if
+// file.
+bool VerifyNameValidInternal(Kernel::HLERequestContext& ctx, std::array<char, 0x20> name,
+                             char match_char) {
+    const auto null_chars = std::count(name.begin(), name.end(), 0);
+    const auto bad_chars = std::count_if(name.begin(), name.end(), [match_char](char c) {
+        return !std::isalnum(static_cast<u8>(c)) && c != '_' && c != match_char && c != '\0';
+    });
+    if (null_chars == 0x20 || null_chars == 0 || bad_chars != 0 || name[0x1F] != '\0') {
+        LOG_ERROR(Service_BCAT, "Name passed was invalid!");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ERROR_INVALID_ARGUMENT);
+        return false;
+    }
+
+    return true;
+}
+
+bool VerifyNameValidDir(Kernel::HLERequestContext& ctx, std::array<char, 0x20> name) {
+    return VerifyNameValidInternal(ctx, name, '-');
+}
+
+bool VerifyNameValidFile(Kernel::HLERequestContext& ctx, std::array<char, 0x20> name) {
+    return VerifyNameValidInternal(ctx, name, '.');
+}
+
+} // Anonymous namespace
+
+using DirectoryName = std::array<char, 0x20>;
+using FileName = std::array<char, 0x20>;
+
+struct DeliveryCacheDirectoryEntry {
+    FileName name;
+    u64 size;
+    BCATDigest digest;
+};
+
+class IDeliveryCacheProgressService final : public ServiceFramework<IDeliveryCacheProgressService> {
+public:
+    IDeliveryCacheProgressService(Kernel::SharedPtr<Kernel::ReadableEvent> event,
+                                  const DeliveryCacheProgressImpl& impl)
+        : ServiceFramework{"IDeliveryCacheProgressService"}, event(std::move(event)), impl(impl) {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &IDeliveryCacheProgressService::GetEvent, "GetEvent"},
+            {1, &IDeliveryCacheProgressService::GetImpl, "GetImpl"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+
+private:
+    void GetEvent(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_BCAT, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushCopyObjects(event);
+    }
+
+    void GetImpl(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_BCAT, "called");
+
+        ctx.WriteBuffer(&impl, sizeof(DeliveryCacheProgressImpl));
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    Kernel::SharedPtr<Kernel::ReadableEvent> event;
+    const DeliveryCacheProgressImpl& impl;
+};
 
 class IBcatService final : public ServiceFramework<IBcatService> {
 public:
