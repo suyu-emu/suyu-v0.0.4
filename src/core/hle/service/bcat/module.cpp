@@ -150,7 +150,7 @@ public:
             {10200, nullptr, "CancelSyncDeliveryCacheRequest"},
             {20100, nullptr, "RequestSyncDeliveryCacheWithApplicationId"},
             {20101, nullptr, "RequestSyncDeliveryCacheWithApplicationIdAndDirectoryName"},
-            {30100, nullptr, "SetPassphrase"},
+            {30100, &IBcatService::SetPassphrase, "SetPassphrase"},
             {30200, nullptr, "RegisterBackgroundDeliveryTask"},
             {30201, nullptr, "UnregisterBackgroundDeliveryTask"},
             {30202, nullptr, "BlockDeliveryTask"},
@@ -218,6 +218,38 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface(CreateProgressService(SyncType::Directory));
+    }
+
+    void SetPassphrase(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto title_id = rp.PopRaw<u64>();
+
+        const auto passphrase_raw = ctx.ReadBuffer();
+
+        LOG_DEBUG(Service_BCAT, "called, title_id={:016X}, passphrase={}", title_id,
+                  Common::HexVectorToString(passphrase_raw));
+
+        if (title_id == 0) {
+            LOG_ERROR(Service_BCAT, "Invalid title ID!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_ARGUMENT);
+        }
+
+        if (passphrase_raw.size() > 0x40) {
+            LOG_ERROR(Service_BCAT, "Passphrase too large!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_INVALID_ARGUMENT);
+            return;
+        }
+
+        Passphrase passphrase{};
+        std::memcpy(passphrase.data(), passphrase_raw.data(),
+                    std::min(passphrase.size(), passphrase_raw.size()));
+
+        backend.SetPassphrase(title_id, passphrase);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
     }
 
     }
