@@ -8,6 +8,7 @@
 
 #include "audio_core/audio_renderer.h"
 #include "common/alignment.h"
+#include "common/bit_util.h"
 #include "common/common_funcs.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
@@ -263,63 +264,227 @@ void AudRenU::OpenAudioRenderer(Kernel::HLERequestContext& ctx) {
 }
 
 void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    auto params = rp.PopRaw<AudioCore::AudioRendererParameter>();
     LOG_DEBUG(Service_Audio, "called");
 
-    u64 buffer_sz = Common::AlignUp(4 * params.mix_buffer_count, 0x40);
-    buffer_sz += params.submix_count * 1024;
-    buffer_sz += 0x940 * (params.submix_count + 1);
-    buffer_sz += 0x3F0 * params.voice_count;
-    buffer_sz += Common::AlignUp(8 * (params.submix_count + 1), 0x10);
-    buffer_sz += Common::AlignUp(8 * params.voice_count, 0x10);
-    buffer_sz += Common::AlignUp(
-        (0x3C0 * (params.sink_count + params.submix_count) + 4 * params.sample_count) *
-            (params.mix_buffer_count + 6),
-        0x40);
+    IPC::RequestParser rp{ctx};
+    const auto params = rp.PopRaw<AudioCore::AudioRendererParameter>();
 
-    if (IsFeatureSupported(AudioFeatures::Splitter, params.revision)) {
-        const u32 count = params.submix_count + 1;
-        u64 node_count = Common::AlignUp(count, 0x40);
-        const u64 node_state_buffer_sz =
-            4 * (node_count * node_count) + 0xC * node_count + 2 * (node_count / 8);
-        u64 edge_matrix_buffer_sz = 0;
-        node_count = Common::AlignUp(count * count, 0x40);
-        if (node_count >> 31 != 0) {
-            edge_matrix_buffer_sz = (node_count | 7) / 8;
-        } else {
-            edge_matrix_buffer_sz = node_count / 8;
+    // Several calculations below align the sizes being calculated
+    // onto a 64 byte boundary.
+    static constexpr u64 buffer_alignment_size = 64;
+
+    // Some calculations that calculate portions of the buffer
+    // that will contain information, on the other hand, align
+    // the result of some of their calcularions on a 16 byte boundary.
+    static constexpr u64 info_field_alignment_size = 16;
+
+    // Size of the data structure representing the bulk of the voice-related state.
+    static constexpr u64 voice_state_size = 0x100;
+
+    // Size of the upsampler manager data structure
+    constexpr u64 upsampler_manager_size = 0x48;
+
+    // Calculates the part of the size that relates to mix buffers.
+    const auto calculate_mix_buffer_sizes = [](const AudioCore::AudioRendererParameter& params) {
+        // As of 8.0.0 this is the maximum on voice channels.
+        constexpr u64 max_voice_channels = 6;
+
+        // The service expects the sample_count member of the parameters to either be
+        // a value of 160 or 240, so the maximum sample count is assumed in order
+        // to adequately handle all values at runtime.
+        constexpr u64 default_max_sample_count = 240;
+
+        const u64 total_mix_buffers = params.mix_buffer_count + max_voice_channels;
+
+        u64 size = 0;
+        size += total_mix_buffers * (sizeof(s32) * params.sample_count);
+        size += total_mix_buffers * (sizeof(s32) * default_max_sample_count);
+        size += u64{params.submix_count} + params.sink_count;
+        size = Common::AlignUp(size, buffer_alignment_size);
+        size += Common::AlignUp(params.unknown_30, buffer_alignment_size);
+        size += Common::AlignUp(sizeof(s32) * params.mix_buffer_count, buffer_alignment_size);
+        return size;
+    };
+
+    // Calculates the portion of the size related to the mix data (and the sorting thereof).
+    const auto calculate_mix_info_size = [this](const AudioCore::AudioRendererParameter& params) {
+        // The size of the mixing info data structure.
+        constexpr u64 mix_info_size = 0x940;
+
+        // Consists of total submixes with the final mix included.
+        const u64 total_mix_count = u64{params.submix_count} + 1;
+
+        // The total number of effects that may be available to the audio renderer at any time.
+        constexpr u64 max_effects = 256;
+
+        // Calculates the part of the size related to the audio node state.
+        // This will only be used if the audio revision supports the splitter.
+        const auto calculate_node_state_size = [](std::size_t num_nodes) {
+            // Internally within a nodestate, it appears to use a data structure
+            // similar to a std::bitset<64> twice.
+            constexpr u64 bit_size = Common::BitSize<u64>();
+            constexpr u64 num_bitsets = 2;
+
+            // Node state instances have three states internally for performing
+            // depth-first searches of nodes. Initialized, Found, and Done Sorting.
+            constexpr u64 num_states = 3;
+
+            u64 size = 0;
+            size += (num_nodes * num_nodes) * sizeof(s32);
+            size += num_states * (num_nodes * sizeof(s32));
+            size += num_bitsets * (Common::AlignUp(num_nodes, bit_size) / Common::BitSize<u8>());
+            return size;
+        };
+
+        // Calculates the part of the size related to the adjacency (aka edge) matrix.
+        const auto calculate_edge_matrix_size = [](std::size_t num_nodes) {
+            return (num_nodes * num_nodes) * sizeof(s32);
+        };
+
+        u64 size = 0;
+        size += Common::AlignUp(sizeof(void*) * total_mix_count, info_field_alignment_size);
+        size += Common::AlignUp(mix_info_size * total_mix_count, info_field_alignment_size);
+        size += Common::AlignUp(sizeof(s32) * max_effects * params.submix_count,
+                                info_field_alignment_size);
+
+        if (IsFeatureSupported(AudioFeatures::Splitter, params.revision)) {
+            size += Common::AlignUp(calculate_node_state_size(total_mix_count) +
+                                        calculate_edge_matrix_size(total_mix_count),
+                                    info_field_alignment_size);
         }
-        buffer_sz += Common::AlignUp(node_state_buffer_sz + edge_matrix_buffer_sz, 0x10);
-    }
 
-    buffer_sz += 0x20 * (params.effect_count + 4 * params.voice_count) + 0x50;
-    if (IsFeatureSupported(AudioFeatures::Splitter, params.revision)) {
-        buffer_sz += 0xE0 * params.num_splitter_send_channels;
-        buffer_sz += 0x20 * params.splitter_count;
-        buffer_sz += Common::AlignUp(4 * params.num_splitter_send_channels, 0x10);
-    }
-    buffer_sz = Common::AlignUp(buffer_sz, 0x40) + 0x170 * params.sink_count;
-    u64 output_sz = buffer_sz + 0x280 * params.sink_count + 0x4B0 * params.effect_count +
-                    ((params.voice_count * 256) | 0x40);
+        return size;
+    };
 
-    if (params.performance_frame_count >= 1) {
-        output_sz = Common::AlignUp(((16 * params.sink_count + 16 * params.effect_count +
-                                      16 * params.voice_count + 16) +
-                                     0x658) *
-                                            (params.performance_frame_count + 1) +
-                                        0xc0,
-                                    0x40) +
-                    output_sz;
-    }
-    output_sz = Common::AlignUp(output_sz + 0x1807e, 0x1000);
+    // Calculates the part of the size related to voice channel info.
+    const auto calculate_voice_info_size = [](const AudioCore::AudioRendererParameter& params) {
+        constexpr u64 voice_info_size = 0x220;
+        constexpr u64 voice_resource_size = 0xD0;
+
+        u64 size = 0;
+        size += Common::AlignUp(sizeof(void*) * params.voice_count, info_field_alignment_size);
+        size += Common::AlignUp(voice_info_size * params.voice_count, info_field_alignment_size);
+        size +=
+            Common::AlignUp(voice_resource_size * params.voice_count, info_field_alignment_size);
+        size += Common::AlignUp(voice_state_size * params.voice_count, info_field_alignment_size);
+        return size;
+    };
+
+    // Calculates the part of the size related to memory pools.
+    const auto calculate_memory_pools_size = [](const AudioCore::AudioRendererParameter& params) {
+        const u64 num_memory_pools = sizeof(s32) * (u64{params.effect_count} + params.voice_count);
+        const u64 memory_pool_info_size = 0x20;
+        return Common::AlignUp(num_memory_pools * memory_pool_info_size, info_field_alignment_size);
+    };
+
+    // Calculates the part of the size related to the splitter context.
+    const auto calculate_splitter_context_size =
+        [this](const AudioCore::AudioRendererParameter& params) -> u64 {
+        if (!IsFeatureSupported(AudioFeatures::Splitter, params.revision)) {
+            return 0;
+        }
+
+        constexpr u64 splitter_info_size = 0x20;
+        constexpr u64 splitter_destination_data_size = 0xE0;
+
+        u64 size = 0;
+        size += params.num_splitter_send_channels;
+        size +=
+            Common::AlignUp(splitter_info_size * params.splitter_count, info_field_alignment_size);
+        size += Common::AlignUp(splitter_destination_data_size * params.num_splitter_send_channels,
+                                info_field_alignment_size);
+
+        return size;
+    };
+
+    // Calculates the part of the size related to the upsampler info.
+    const auto calculate_upsampler_info_size = [](const AudioCore::AudioRendererParameter& params) {
+        constexpr u64 upsampler_info_size = 0x280;
+        // Yes, using the buffer size over info alignment size is intentional here.
+        return Common::AlignUp(upsampler_info_size * (u64{params.submix_count} + params.sink_count),
+                               buffer_alignment_size);
+    };
+
+    // Calculates the part of the size related to effect info.
+    const auto calculate_effect_info_size = [](const AudioCore::AudioRendererParameter& params) {
+        constexpr u64 effect_info_size = 0x2B0;
+        return Common::AlignUp(effect_info_size * params.effect_count, info_field_alignment_size);
+    };
+
+    // Calculates the part of the size related to audio sink info.
+    const auto calculate_sink_info_size = [](const AudioCore::AudioRendererParameter& params) {
+        const u64 sink_info_size = 0x170;
+        return Common::AlignUp(sink_info_size * params.sink_count, info_field_alignment_size);
+    };
+
+    // Calculates the part of the size related to voice state info.
+    const auto calculate_voice_state_size = [](const AudioCore::AudioRendererParameter& params) {
+        const u64 voice_state_size = 0x100;
+        const u64 additional_size = buffer_alignment_size - 1;
+        return Common::AlignUp(voice_state_size * params.voice_count + additional_size,
+                               info_field_alignment_size);
+    };
+
+    // Calculates the part of the size related to performance statistics.
+    const auto calculate_performance_size = [](const AudioCore::AudioRendererParameter& params) {
+        // Extra size value appended to the end of the calculation.
+        constexpr u64 appended = 128;
+
+        // Data structure sizes
+        constexpr u64 perf_statistics_size = 0x0C;
+        constexpr u64 header_size = 0x18;
+        constexpr u64 entry_size = 0x10;
+        constexpr u64 detail_size = 0x10;
+
+        constexpr u64 max_detail_entries = 100;
+
+        // + 1 to include the final mix, similar to calculating mix info.
+        const u64 entry_count = u64{params.effect_count} + params.submix_count + params.sink_count +
+                                params.voice_count + 1;
+
+        const u64 size_per_frame =
+            header_size + (entry_size * entry_count) + (detail_size * max_detail_entries);
+
+        u64 size = 0;
+        size += Common::AlignUp(size_per_frame * params.performance_frame_count + 1,
+                                buffer_alignment_size);
+        size += Common::AlignUp(perf_statistics_size, buffer_alignment_size);
+        size += appended;
+        return size;
+    };
+
+    // Calculates the part of the size that relates to the audio command buffer.
+    const auto calculate_command_buffer_size = [] {
+        constexpr u64 command_buffer_size = 0x18000;
+        constexpr u64 alignment = (buffer_alignment_size - 1) * 2;
+        return command_buffer_size + alignment;
+    };
+
+    u64 size = 0;
+    size += calculate_mix_buffer_sizes(params);
+    size += calculate_mix_info_size(params);
+    size += calculate_voice_info_size(params);
+    size += upsampler_manager_size;
+    size += calculate_memory_pools_size(params);
+    size += calculate_splitter_context_size(params);
+
+    size = Common::AlignUp(size, buffer_alignment_size);
+
+    size += calculate_upsampler_info_size(params);
+    size += calculate_effect_info_size(params);
+    size += calculate_sink_info_size(params);
+    size += calculate_voice_state_size(params);
+    size += calculate_performance_size(params);
+    size += calculate_command_buffer_size();
+
+    // finally, 4KB page align the size, and we're done.
+    size = Common::AlignUp(size, 4096);
 
     IPC::ResponseBuilder rb{ctx, 4};
-
     rb.Push(RESULT_SUCCESS);
-    rb.Push<u64>(output_sz);
+    rb.Push<u64>(size);
 
-    LOG_DEBUG(Service_Audio, "buffer_size=0x{:X}", output_sz);
+    LOG_DEBUG(Service_Audio, "buffer_size=0x{:X}", size);
 }
 
 void AudRenU::GetAudioDeviceService(Kernel::HLERequestContext& ctx) {
