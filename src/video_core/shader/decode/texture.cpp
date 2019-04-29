@@ -296,7 +296,7 @@ const Sampler& ShaderIR::GetBindlessSampler(const Tegra::Shader::Register& reg, 
     ASSERT(cbuf_offset_imm != nullptr);
     const auto cbuf_offset = cbuf_offset_imm->GetValue();
     const auto cbuf_index = cbuf->GetIndex();
-    const u64 cbuf_key = (cbuf_index << 32) | cbuf_offset;
+    const auto cbuf_key = (static_cast<u64>(cbuf_index) << 32) | static_cast<u64>(cbuf_offset);
 
     // If this sampler has already been used, return the existing mapping.
     const auto itr =
