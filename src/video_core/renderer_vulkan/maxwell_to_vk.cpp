@@ -62,9 +62,10 @@ vk::SamplerAddressMode WrapMode(Tegra::Texture::WrapMode wrap_mode) {
     case Tegra::Texture::WrapMode::MirrorOnceBorder:
         UNIMPLEMENTED();
         return vk::SamplerAddressMode::eMirrorClampToEdge;
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented wrap mode={}", static_cast<u32>(wrap_mode));
+        return {};
     }
-    UNIMPLEMENTED_MSG("Unimplemented wrap mode={}", static_cast<u32>(wrap_mode));
-    return {};
 }
 
 vk::CompareOp DepthCompareFunction(Tegra::Texture::DepthCompareFunc depth_compare_func) {
@@ -225,9 +226,10 @@ vk::PrimitiveTopology PrimitiveTopology(Maxwell::PrimitiveTopology topology) {
         return vk::PrimitiveTopology::eTriangleList;
     case Maxwell::PrimitiveTopology::TriangleStrip:
         return vk::PrimitiveTopology::eTriangleStrip;
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented topology={}", static_cast<u32>(topology));
+        return {};
     }
-    UNIMPLEMENTED_MSG("Unimplemented topology={}", static_cast<u32>(topology));
-    return {};
 }
 
 vk::Format VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttribute::Size size) {

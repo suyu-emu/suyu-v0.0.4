@@ -105,6 +105,8 @@ bool DmaPusher::Step() {
                 dma_state.non_incrementing = false;
                 dma_increment_once = true;
                 break;
+            default:
+                break;
             }
         }
     }

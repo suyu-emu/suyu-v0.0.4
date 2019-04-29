@@ -116,6 +116,8 @@ ExitMethod ShaderIR::Scan(u32 begin, u32 end, std::set<u32>& labels) {
             // Continue scanning for an exit method.
             break;
         }
+        default:
+            break;
         }
     }
     return exit_method = ExitMethod::AlwaysReturn;

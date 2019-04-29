@@ -439,11 +439,14 @@ Node ShaderIR::BitfieldExtract(Node value, u32 offset, u32 bits) {
         return OperationCode::LogicalUGreaterEqual;
     case OperationCode::INegate:
         UNREACHABLE_MSG("Can't negate an unsigned integer");
+        return {};
     case OperationCode::IAbsolute:
         UNREACHABLE_MSG("Can't apply absolute to an unsigned integer");
+        return {};
+    default:
+        UNREACHABLE_MSG("Unknown signed operation with code={}", static_cast<u32>(operation_code));
+        return {};
     }
-    UNREACHABLE_MSG("Unknown signed operation with code={}", static_cast<u32>(operation_code));
-    return {};
 }
 
 } // namespace VideoCommon::Shader

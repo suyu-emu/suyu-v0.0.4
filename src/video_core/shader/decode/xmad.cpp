@@ -56,9 +56,10 @@ u32 ShaderIR::DecodeXmad(NodeBlock& bb, u32 pc) {
                     instr.xmad.mode,
                     Immediate(static_cast<u32>(instr.xmad.imm20_16)),
                     GetRegister(instr.gpr39)};
+        default:
+            UNIMPLEMENTED_MSG("Unhandled XMAD instruction: {}", opcode->get().GetName());
+            return {false, false, false, Tegra::Shader::XmadMode::None, Immediate(0), Immediate(0)};
         }
-        UNIMPLEMENTED_MSG("Unhandled XMAD instruction: {}", opcode->get().GetName());
-        return {false, false, false, Tegra::Shader::XmadMode::None, Immediate(0), Immediate(0)};
     }();
 
     op_a = BitfieldExtract(op_a, instr.xmad.high_a ? 16 : 0, 16);
