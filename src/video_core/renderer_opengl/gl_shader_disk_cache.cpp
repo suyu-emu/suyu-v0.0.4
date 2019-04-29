@@ -34,11 +34,11 @@ enum class PrecompiledEntryKind : u32 {
     Dump,
 };
 
-constexpr u32 NativeVersion = 1;
+constexpr u32 NativeVersion = 2;
 
 // Making sure sizes doesn't change by accident
 static_assert(sizeof(BaseBindings) == 12);
-static_assert(sizeof(ShaderDiskCacheUsage) == 24);
+static_assert(sizeof(ShaderDiskCacheUsage) == 32);
 
 namespace {
 

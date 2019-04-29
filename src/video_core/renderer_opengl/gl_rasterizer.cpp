@@ -29,8 +29,10 @@
 namespace OpenGL {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
-using PixelFormat = VideoCore::Surface::PixelFormat;
-using SurfaceType = VideoCore::Surface::SurfaceType;
+
+using VideoCore::Surface::PixelFormat;
+using VideoCore::Surface::SurfaceTarget;
+using VideoCore::Surface::SurfaceType;
 
 MICROPROFILE_DEFINE(OpenGL_VAO, "OpenGL", "Vertex Format Setup", MP_RGB(128, 128, 192));
 MICROPROFILE_DEFINE(OpenGL_VB, "OpenGL", "Vertex Buffer Setup", MP_RGB(128, 128, 192));
@@ -281,8 +283,14 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
                                  static_cast<GLsizeiptr>(sizeof(ubo)));
 
         Shader shader{shader_cache.GetStageProgram(program)};
-        const auto [program_handle, next_bindings] =
-            shader->GetProgramHandle(primitive_mode, base_bindings);
+
+        const auto stage_enum{static_cast<Maxwell::ShaderStage>(stage)};
+        SetupDrawConstBuffers(stage_enum, shader);
+        SetupGlobalRegions(stage_enum, shader);
+        const auto texture_buffer_usage{SetupTextures(stage_enum, shader, base_bindings)};
+
+        const ProgramVariant variant{base_bindings, primitive_mode, texture_buffer_usage};
+        const auto [program_handle, next_bindings] = shader->GetProgramHandle(variant);
 
         switch (program) {
         case Maxwell::ShaderProgram::VertexA:
@@ -299,11 +307,6 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
             UNIMPLEMENTED_MSG("Unimplemented shader index={}, enable={}, offset=0x{:08X}", index,
                               shader_config.enable.Value(), shader_config.offset);
         }
-
-        const auto stage_enum = static_cast<Maxwell::ShaderStage>(stage);
-        SetupDrawConstBuffers(stage_enum, shader);
-        SetupGlobalRegions(stage_enum, shader);
-        SetupTextures(stage_enum, shader, base_bindings);
 
         // Workaround for Intel drivers.
         // When a clip distance is enabled but not set in the shader it crops parts of the screen
@@ -791,8 +794,8 @@ void RasterizerOpenGL::SetupGlobalRegions(Tegra::Engines::Maxwell3D::Regs::Shade
     }
 }
 
-void RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, const Shader& shader,
-                                     BaseBindings base_bindings) {
+TextureBufferUsage RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, const Shader& shader,
+                                                   BaseBindings base_bindings) {
     MICROPROFILE_SCOPE(OpenGL_Texture);
     const auto& gpu = system.GPU();
     const auto& maxwell3d = gpu.Maxwell3D();
@@ -800,6 +803,8 @@ void RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, const Shader& s
 
     ASSERT_MSG(base_bindings.sampler + entries.size() <= std::size(state.texture_units),
                "Exceeded the number of active textures.");
+
+    TextureBufferUsage texture_buffer_usage{0};
 
     for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
         const auto& entry = entries[bindpoint];
@@ -814,7 +819,8 @@ void RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, const Shader& s
         }
         const u32 current_bindpoint = base_bindings.sampler + bindpoint;
 
-        state.texture_units[current_bindpoint].sampler = sampler_cache.GetSampler(texture.tsc);
+        auto& unit{state.texture_units[current_bindpoint]};
+        unit.sampler = sampler_cache.GetSampler(texture.tsc);
 
         if (const auto view{texture_cache.GetTextureSurface(texture, entry)}; view) {
             view->ApplySwizzle(texture.tic.x_source, texture.tic.y_source, texture.tic.z_source,
@@ -822,9 +828,11 @@ void RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, const Shader& s
             state.texture_units[current_bindpoint].texture = view->GetTexture();
         } else {
             // Can occur when texture addr is null or its memory is unmapped/invalid
-            state.texture_units[current_bindpoint].texture = 0;
+            unit.texture = 0;
         }
     }
+
+    return texture_buffer_usage;
 }
 
 void RasterizerOpenGL::SyncViewport(OpenGLState& current_state) {
