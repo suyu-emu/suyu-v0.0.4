@@ -426,15 +426,19 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
     };
 
     // Calculates the part of the size related to performance statistics.
-    const auto calculate_performance_size = [](const AudioCore::AudioRendererParameter& params) {
+    const auto calculate_perf_size = [this](const AudioCore::AudioRendererParameter& params) {
         // Extra size value appended to the end of the calculation.
         constexpr u64 appended = 128;
 
+        // Whether or not we assume the newer version of performance metrics data structures.
+        const bool is_v2 =
+            IsFeatureSupported(AudioFeatures::PerformanceMetricsVersion2, params.revision);
+
         // Data structure sizes
         constexpr u64 perf_statistics_size = 0x0C;
-        constexpr u64 header_size = 0x18;
-        constexpr u64 entry_size = 0x10;
-        constexpr u64 detail_size = 0x10;
+        const u64 header_size = is_v2 ? 0x30 : 0x18;
+        const u64 entry_size = is_v2 ? 0x18 : 0x10;
+        const u64 detail_size = is_v2 ? 0x18 : 0x10;
 
         constexpr u64 max_detail_entries = 100;
 
@@ -474,7 +478,7 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
     size += calculate_effect_info_size(params);
     size += calculate_sink_info_size(params);
     size += calculate_voice_state_size(params);
-    size += calculate_performance_size(params);
+    size += calculate_perf_size(params);
     size += calculate_command_buffer_size();
 
     // finally, 4KB page align the size, and we're done.
@@ -525,7 +529,9 @@ bool AudRenU::IsFeatureSupported(AudioFeatures feature, u32_le revision) const {
     u32_be version_num = (revision - Common::MakeMagic('R', 'E', 'V', '0')); // Byte swap
     switch (feature) {
     case AudioFeatures::Splitter:
-        return version_num >= 2u;
+        return version_num >= 2U;
+    case AudioFeatures::PerformanceMetricsVersion2:
+        return version_num >= 5U;
     default:
         return false;
     }
