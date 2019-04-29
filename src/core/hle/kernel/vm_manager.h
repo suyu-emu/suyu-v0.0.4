@@ -14,6 +14,10 @@
 #include "core/hle/result.h"
 #include "core/memory.h"
 
+namespace Core {
+class System;
+}
+
 namespace FileSys {
 enum class ProgramAddressSpaceType : u8;
 }
@@ -321,7 +325,7 @@ class VMManager final {
 public:
     using VMAHandle = VMAMap::const_iterator;
 
-    VMManager();
+    explicit VMManager(Core::System& system);
     ~VMManager();
 
     /// Clears the address space map, re-initializing with a single free area.
@@ -712,5 +716,7 @@ private:
     // The end of the currently allocated heap. This is not an inclusive
     // end of the range. This is essentially 'base_address + current_size'.
     VAddr heap_end = 0;
+
+    Core::System& system;
 };
 } // namespace Kernel
