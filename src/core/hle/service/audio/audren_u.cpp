@@ -263,11 +263,14 @@ void AudRenU::OpenAudioRenderer(Kernel::HLERequestContext& ctx) {
     OpenAudioRendererImpl(ctx);
 }
 
+static u64 CalculateNumPerformanceEntries(const AudioCore::AudioRendererParameter& params) {
+    // +1 represents the final mix.
+    return u64{params.effect_count} + params.submix_count + params.sink_count + params.voice_count +
+           1;
+}
+
 void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Audio, "called");
-
-    IPC::RequestParser rp{ctx};
-    const auto params = rp.PopRaw<AudioCore::AudioRendererParameter>();
 
     // Several calculations below align the sizes being calculated
     // onto a 64 byte boundary.
@@ -277,6 +280,10 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
     // that will contain information, on the other hand, align
     // the result of some of their calcularions on a 16 byte boundary.
     static constexpr u64 info_field_alignment_size = 16;
+
+    // Maximum detail entries that may exist at one time for performance
+    // frame statistics.
+    static constexpr u64 max_perf_detail_entries = 100;
 
     // Size of the data structure representing the bulk of the voice-related state.
     static constexpr u64 voice_state_size = 0x100;
@@ -440,14 +447,9 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
         const u64 entry_size = is_v2 ? 0x18 : 0x10;
         const u64 detail_size = is_v2 ? 0x18 : 0x10;
 
-        constexpr u64 max_detail_entries = 100;
-
-        // + 1 to include the final mix, similar to calculating mix info.
-        const u64 entry_count = u64{params.effect_count} + params.submix_count + params.sink_count +
-                                params.voice_count + 1;
-
+        const u64 entry_count = CalculateNumPerformanceEntries(params);
         const u64 size_per_frame =
-            header_size + (entry_size * entry_count) + (detail_size * max_detail_entries);
+            header_size + (entry_size * entry_count) + (detail_size * max_perf_detail_entries);
 
         u64 size = 0;
         size += Common::AlignUp(size_per_frame * params.performance_frame_count + 1,
@@ -458,11 +460,81 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
     };
 
     // Calculates the part of the size that relates to the audio command buffer.
-    const auto calculate_command_buffer_size = [] {
-        constexpr u64 command_buffer_size = 0x18000;
-        constexpr u64 alignment = (buffer_alignment_size - 1) * 2;
-        return command_buffer_size + alignment;
-    };
+    const auto calculate_command_buffer_size =
+        [this](const AudioCore::AudioRendererParameter& params) {
+            constexpr u64 alignment = (buffer_alignment_size - 1) * 2;
+
+            if (!IsFeatureSupported(AudioFeatures::VariadicCommandBuffer, params.revision)) {
+                constexpr u64 command_buffer_size = 0x18000;
+
+                return command_buffer_size + alignment;
+            }
+
+            // When the variadic command buffer is supported, this means
+            // the command generator for the audio renderer can issue commands
+            // that are (as one would expect), variable in size. So what we need to do
+            // is determine the maximum possible size for a few command data structures
+            // then multiply them by the amount of present commands indicated by the given
+            // respective audio parameters.
+
+            constexpr u64 max_biquad_filters = 2;
+            constexpr u64 max_mix_buffers = 24;
+
+            constexpr u64 biquad_filter_command_size = 0x2C;
+
+            constexpr u64 depop_mix_command_size = 0x24;
+            constexpr u64 depop_setup_command_size = 0x50;
+
+            constexpr u64 effect_command_max_size = 0x540;
+
+            constexpr u64 mix_command_size = 0x1C;
+            constexpr u64 mix_ramp_command_size = 0x24;
+            constexpr u64 mix_ramp_grouped_command_size = 0x13C;
+
+            constexpr u64 perf_command_size = 0x28;
+
+            constexpr u64 sink_command_size = 0x130;
+
+            constexpr u64 submix_command_max_size =
+                depop_mix_command_size + (mix_command_size * max_mix_buffers) * max_mix_buffers;
+
+            constexpr u64 volume_command_size = 0x1C;
+            constexpr u64 volume_ramp_command_size = 0x20;
+
+            constexpr u64 voice_biquad_filter_command_size =
+                biquad_filter_command_size * max_biquad_filters;
+            constexpr u64 voice_data_command_size = 0x9C;
+            const u64 voice_command_max_size =
+                (params.splitter_count * depop_setup_command_size) +
+                (voice_data_command_size + voice_biquad_filter_command_size +
+                 volume_ramp_command_size + mix_ramp_grouped_command_size);
+
+            // Now calculate the individual elements that comprise the size and add them together.
+            const u64 effect_commands_size = params.effect_count * effect_command_max_size;
+
+            const u64 final_mix_commands_size =
+                depop_mix_command_size + volume_command_size * max_mix_buffers;
+
+            const u64 perf_commands_size =
+                perf_command_size *
+                (CalculateNumPerformanceEntries(params) + max_perf_detail_entries);
+
+            const u64 sink_commands_size = params.sink_count * sink_command_size;
+
+            const u64 splitter_commands_size =
+                params.num_splitter_send_channels * max_mix_buffers * mix_ramp_command_size;
+
+            const u64 submix_commands_size = params.submix_count * submix_command_max_size;
+
+            const u64 voice_commands_size = params.voice_count * voice_command_max_size;
+
+            return effect_commands_size + final_mix_commands_size + perf_commands_size +
+                   sink_commands_size + splitter_commands_size + submix_commands_size +
+                   voice_commands_size + alignment;
+        };
+
+    IPC::RequestParser rp{ctx};
+    const auto params = rp.PopRaw<AudioCore::AudioRendererParameter>();
 
     u64 size = 0;
     size += calculate_mix_buffer_sizes(params);
@@ -479,7 +551,7 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
     size += calculate_sink_info_size(params);
     size += calculate_voice_state_size(params);
     size += calculate_perf_size(params);
-    size += calculate_command_buffer_size();
+    size += calculate_command_buffer_size(params);
 
     // finally, 4KB page align the size, and we're done.
     size = Common::AlignUp(size, 4096);
@@ -526,11 +598,14 @@ void AudRenU::OpenAudioRendererImpl(Kernel::HLERequestContext& ctx) {
 }
 
 bool AudRenU::IsFeatureSupported(AudioFeatures feature, u32_le revision) const {
-    u32_be version_num = (revision - Common::MakeMagic('R', 'E', 'V', '0')); // Byte swap
+    // Byte swap
+    const u32_be version_num = revision - Common::MakeMagic('R', 'E', 'V', '0');
+
     switch (feature) {
     case AudioFeatures::Splitter:
         return version_num >= 2U;
     case AudioFeatures::PerformanceMetricsVersion2:
+    case AudioFeatures::VariadicCommandBuffer:
         return version_num >= 5U;
     default:
         return false;

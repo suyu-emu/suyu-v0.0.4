@@ -29,6 +29,7 @@ private:
     enum class AudioFeatures : u32 {
         Splitter,
         PerformanceMetricsVersion2,
+        VariadicCommandBuffer,
     };
 
     bool IsFeatureSupported(AudioFeatures feature, u32_le revision) const;
