@@ -316,53 +316,83 @@ private:
     }
 
     void DeclareInputAttributes() {
+        if (ir.HasPhysicalAttributes()) {
+            const u32 num_inputs{stage == ShaderStage::Vertex ? GetNumPhysicalAttributes()
+                                                              : GetNumPhysicalVaryings()};
+            for (u32 i = 0; i < num_inputs; ++i) {
+                constexpr auto generic_base{static_cast<u32>(Attribute::Index::Attribute_0)};
+                const auto index{static_cast<Attribute::Index>(generic_base + i)};
+                DeclareInputAttribute(index);
+            }
+            code.AddNewLine();
+            return;
+        }
+
         const auto& attributes = ir.GetInputAttributes();
         for (const auto index : attributes) {
             if (index < Attribute::Index::Attribute_0 || index > Attribute::Index::Attribute_31) {
                 // Skip when it's not a generic attribute
                 continue;
             }
-
-            // TODO(bunnei): Use proper number of elements for these
-            u32 idx = static_cast<u32>(index) - static_cast<u32>(Attribute::Index::Attribute_0);
-            if (stage != ShaderStage::Vertex) {
-                // If inputs are varyings, add an offset
-                idx += GENERIC_VARYING_START_LOCATION;
-            }
-
-            std::string attr = GetInputAttribute(index);
-            if (stage == ShaderStage::Geometry) {
-                attr = "gs_" + attr + "[]";
-            }
-            std::string suffix;
-            if (stage == ShaderStage::Fragment) {
-                const auto input_mode =
-                    header.ps.GetAttributeUse(idx - GENERIC_VARYING_START_LOCATION);
-                suffix = GetInputFlags(input_mode);
-            }
-            code.AddLine("layout (location = " + std::to_string(idx) + ") " + suffix + "in vec4 " +
-                         attr + ';');
+            DeclareInputAttribute(index);
         }
         if (!attributes.empty())
             code.AddNewLine();
     }
 
+    void DeclareInputAttribute(Attribute::Index index) {
+        const u32 generic_index{static_cast<u32>(index) -
+                                static_cast<u32>(Attribute::Index::Attribute_0)};
+
+        std::string name{GetInputAttribute(index)};
+        if (stage == ShaderStage::Geometry) {
+            name = "gs_" + name + "[]";
+        }
+        std::string suffix;
+        if (stage == ShaderStage::Fragment) {
+            const auto input_mode{header.ps.GetAttributeUse(generic_index)};
+            suffix = GetInputFlags(input_mode);
+        }
+
+        u32 location = generic_index;
+        if (stage != ShaderStage::Vertex) {
+            // If inputs are varyings, add an offset
+            location += GENERIC_VARYING_START_LOCATION;
+        }
+
+        code.AddLine("layout (location = " + std::to_string(location) + ") " + suffix + "in vec4 " +
+                     name + ';');
+    }
+
     void DeclareOutputAttributes() {
+        if (ir.HasPhysicalAttributes()) {
+            for (u32 i = 0; i < GetNumPhysicalVaryings(); ++i) {
+                constexpr auto generic_base{static_cast<u32>(Attribute::Index::Attribute_0)};
+                const auto index{static_cast<Attribute::Index>(generic_base + i)};
+                DeclareOutputAttribute(index);
+            }
+            code.AddNewLine();
+            return;
+        }
+
         const auto& attributes = ir.GetOutputAttributes();
         for (const auto index : attributes) {
             if (index < Attribute::Index::Attribute_0 || index > Attribute::Index::Attribute_31) {
                 // Skip when it's not a generic attribute
                 continue;
             }
-            // TODO(bunnei): Use proper number of elements for these
-            const auto idx = static_cast<u32>(index) -
-                             static_cast<u32>(Attribute::Index::Attribute_0) +
-                             GENERIC_VARYING_START_LOCATION;
-            code.AddLine("layout (location = " + std::to_string(idx) + ") out vec4 " +
-                         GetOutputAttribute(index) + ';');
+            DeclareOutputAttribute(index);
         }
         if (!attributes.empty())
             code.AddNewLine();
+    }
+
+    void DeclareOutputAttribute(Attribute::Index index) {
+        const auto location{static_cast<u32>(index) -
+                            static_cast<u32>(Attribute::Index::Attribute_0) +
+                            GENERIC_VARYING_START_LOCATION};
+        code.AddLine("layout (location = " + std::to_string(location) + ") out vec4 " +
+                     GetOutputAttribute(index) + ';');
     }
 
     void DeclareConstantBuffers() {
@@ -1648,6 +1678,15 @@ private:
 
     std::string GetDeclarationWithSuffix(u32 index, const std::string& name) const {
         return name + '_' + std::to_string(index) + '_' + suffix;
+    }
+
+    u32 GetNumPhysicalAttributes() const {
+        return std::min<u32>(device.GetMaxVertexAttributes(), Maxwell::NumVertexAttributes);
+    }
+
+    u32 GetNumPhysicalVaryings() const {
+        return std::min<u32>(device.GetMaxVaryings() - GENERIC_VARYING_START_LOCATION,
+                             Maxwell::NumVaryings);
     }
 
     const Device& device;
