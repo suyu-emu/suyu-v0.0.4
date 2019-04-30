@@ -134,6 +134,19 @@ bool IsPrecise(Node node) {
     return false;
 }
 
+constexpr bool IsGenericAttribute(Attribute::Index index) {
+    return index >= Attribute::Index::Attribute_0 && index <= Attribute::Index::Attribute_31;
+}
+
+constexpr Attribute::Index ToGenericAttribute(u32 value) {
+    return static_cast<Attribute::Index>(value + static_cast<u32>(Attribute::Index::Attribute_0));
+}
+
+u32 GetGenericAttributeIndex(Attribute::Index index) {
+    ASSERT(IsGenericAttribute(index));
+    return static_cast<u32>(index) - static_cast<u32>(Attribute::Index::Attribute_0);
+}
+
 class GLSLDecompiler final {
 public:
     explicit GLSLDecompiler(const Device& device, const ShaderIR& ir, ShaderStage stage,
@@ -320,9 +333,7 @@ private:
             const u32 num_inputs{stage == ShaderStage::Vertex ? GetNumPhysicalAttributes()
                                                               : GetNumPhysicalVaryings()};
             for (u32 i = 0; i < num_inputs; ++i) {
-                constexpr auto generic_base{static_cast<u32>(Attribute::Index::Attribute_0)};
-                const auto index{static_cast<Attribute::Index>(generic_base + i)};
-                DeclareInputAttribute(index);
+                DeclareInputAttribute(ToGenericAttribute(i));
             }
             code.AddNewLine();
             return;
@@ -330,24 +341,22 @@ private:
 
         const auto& attributes = ir.GetInputAttributes();
         for (const auto index : attributes) {
-            if (index < Attribute::Index::Attribute_0 || index > Attribute::Index::Attribute_31) {
-                // Skip when it's not a generic attribute
-                continue;
+            if (IsGenericAttribute(index)) {
+                DeclareInputAttribute(index);
             }
-            DeclareInputAttribute(index);
         }
         if (!attributes.empty())
             code.AddNewLine();
     }
 
     void DeclareInputAttribute(Attribute::Index index) {
-        const u32 generic_index{static_cast<u32>(index) -
-                                static_cast<u32>(Attribute::Index::Attribute_0)};
+        const u32 generic_index{GetGenericAttributeIndex(index)};
 
         std::string name{GetInputAttribute(index)};
         if (stage == ShaderStage::Geometry) {
             name = "gs_" + name + "[]";
         }
+
         std::string suffix;
         if (stage == ShaderStage::Fragment) {
             const auto input_mode{header.ps.GetAttributeUse(generic_index)};
@@ -367,9 +376,7 @@ private:
     void DeclareOutputAttributes() {
         if (ir.HasPhysicalAttributes()) {
             for (u32 i = 0; i < GetNumPhysicalVaryings(); ++i) {
-                constexpr auto generic_base{static_cast<u32>(Attribute::Index::Attribute_0)};
-                const auto index{static_cast<Attribute::Index>(generic_base + i)};
-                DeclareOutputAttribute(index);
+                DeclareOutputAttribute(ToGenericAttribute(i));
             }
             code.AddNewLine();
             return;
@@ -377,20 +384,16 @@ private:
 
         const auto& attributes = ir.GetOutputAttributes();
         for (const auto index : attributes) {
-            if (index < Attribute::Index::Attribute_0 || index > Attribute::Index::Attribute_31) {
-                // Skip when it's not a generic attribute
-                continue;
+            if (IsGenericAttribute(index)) {
+                DeclareOutputAttribute(index);
             }
-            DeclareOutputAttribute(index);
         }
         if (!attributes.empty())
             code.AddNewLine();
     }
 
     void DeclareOutputAttribute(Attribute::Index index) {
-        const auto location{static_cast<u32>(index) -
-                            static_cast<u32>(Attribute::Index::Attribute_0) +
-                            GENERIC_VARYING_START_LOCATION};
+        const u32 location{GetGenericAttributeIndex(index) + GENERIC_VARYING_START_LOCATION};
         code.AddLine("layout (location = " + std::to_string(location) + ") out vec4 " +
                      GetOutputAttribute(index) + ';');
     }
@@ -569,8 +572,7 @@ private:
                 UNIMPLEMENTED_MSG("Unmanaged FrontFacing element={}", element);
                 return "0";
             default:
-                if (attribute >= Attribute::Index::Attribute_0 &&
-                    attribute <= Attribute::Index::Attribute_31) {
+                if (IsGenericAttribute(attribute)) {
                     return GeometryPass(GetInputAttribute(attribute)) + GetSwizzle(element);
                 }
                 break;
@@ -873,8 +875,7 @@ private:
                 case Attribute::Index::ClipDistances4567:
                     return "gl_ClipDistance[" + std::to_string(abuf->GetElement() + 4) + ']';
                 default:
-                    if (attribute >= Attribute::Index::Attribute_0 &&
-                        attribute <= Attribute::Index::Attribute_31) {
+                    if (IsGenericAttribute(attribute)) {
                         return GetOutputAttribute(attribute) + GetSwizzle(abuf->GetElement());
                     }
                     UNIMPLEMENTED_MSG("Unhandled output attribute: {}",
@@ -1631,15 +1632,11 @@ private:
     }
 
     std::string GetInputAttribute(Attribute::Index attribute) const {
-        const auto index{static_cast<u32>(attribute) -
-                         static_cast<u32>(Attribute::Index::Attribute_0)};
-        return GetDeclarationWithSuffix(index, "input_attr");
+        return GetDeclarationWithSuffix(GetGenericAttributeIndex(attribute), "input_attr");
     }
 
     std::string GetOutputAttribute(Attribute::Index attribute) const {
-        const auto index{static_cast<u32>(attribute) -
-                         static_cast<u32>(Attribute::Index::Attribute_0)};
-        return GetDeclarationWithSuffix(index, "output_attr");
+        return GetDeclarationWithSuffix(GetGenericAttributeIndex(attribute), "output_attr");
     }
 
     std::string GetConstBuffer(u32 index) const {
