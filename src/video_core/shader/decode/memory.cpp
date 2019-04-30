@@ -12,6 +12,8 @@
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/shader/shader_ir.h"
 
+#pragma optimize("", off)
+
 namespace VideoCommon::Shader {
 
 using Tegra::Shader::Attribute;
@@ -237,6 +239,21 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
             UNIMPLEMENTED_MSG("ST_L Unhandled type: {}",
                               static_cast<u32>(instr.ldst_sl.type.Value()));
         }
+        break;
+    }
+    case OpCode::Id::AL2P: {
+        // Ignore al2p.direction since we don't care about it.
+
+        // Calculate emulation fake physical address.
+        const Node fixed_address{Immediate(static_cast<u32>(instr.al2p.address))};
+        const Node reg{GetRegister(instr.gpr8)};
+        const Node fake_address{Operation(OperationCode::IAdd, NO_PRECISE, reg, fixed_address)};
+
+        // Set the fake address to target register.
+        SetRegister(bb, instr.gpr0, fake_address);
+
+        // Signal the shader IR to declare all possible attributes and varyings
+        use_physical_attributes = true;
         break;
     }
     default:

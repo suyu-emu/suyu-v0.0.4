@@ -615,6 +615,10 @@ public:
         return static_cast<std::size_t>(coverage_end * sizeof(u64));
     }
 
+    bool HasPhysicalAttributes() const {
+        return use_physical_attributes;
+    }
+
     const Tegra::Shader::Header& GetHeader() const {
         return header;
     }
@@ -879,6 +883,7 @@ private:
     std::set<Sampler> used_samplers;
     std::array<bool, Tegra::Engines::Maxwell3D::Regs::NumClipDistances> used_clip_distances{};
     std::map<GlobalMemoryBase, GlobalMemoryUsage> used_global_memory;
+    bool use_physical_attributes = true; // Shader uses AL2P
 
     Tegra::Shader::Header header;
 };
