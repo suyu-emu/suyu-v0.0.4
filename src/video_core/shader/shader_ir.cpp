@@ -95,7 +95,7 @@ Node ShaderIR::GetInputAttribute(Attribute::Index index, u64 element, Node buffe
 }
 
 Node ShaderIR::GetPhysicalInputAttribute(Tegra::Shader::Register physical_address, Node buffer) {
-    use_physical_attributes = true;
+    uses_physical_attributes = true;
     return StoreNode(AbufNode(GetRegister(physical_address), buffer));
 }
 

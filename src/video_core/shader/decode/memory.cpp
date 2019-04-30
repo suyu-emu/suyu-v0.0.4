@@ -253,7 +253,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, fake_address);
 
         // Signal the shader IR to declare all possible attributes and varyings
-        use_physical_attributes = true;
+        uses_physical_attributes = true;
         break;
     }
     default:

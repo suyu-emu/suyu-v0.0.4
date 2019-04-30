@@ -465,10 +465,12 @@ private:
 /// Attribute buffer memory (known as attributes or varyings in GLSL terms)
 class AbufNode final {
 public:
+    // Initialize for standard attributes (index is explicit).
     explicit constexpr AbufNode(Tegra::Shader::Attribute::Index index, u32 element,
                                 Node buffer = {})
         : buffer{buffer}, index{index}, element{element} {}
 
+    // Initialize for physical attributes (index is a variable value).
     explicit constexpr AbufNode(Node physical_address, Node buffer = {})
         : physical_address{physical_address}, buffer{buffer} {}
 
@@ -618,7 +620,7 @@ public:
     }
 
     bool HasPhysicalAttributes() const {
-        return use_physical_attributes;
+        return uses_physical_attributes;
     }
 
     const Tegra::Shader::Header& GetHeader() const {
@@ -885,7 +887,7 @@ private:
     std::set<Sampler> used_samplers;
     std::array<bool, Tegra::Engines::Maxwell3D::Regs::NumClipDistances> used_clip_distances{};
     std::map<GlobalMemoryBase, GlobalMemoryUsage> used_global_memory;
-    bool use_physical_attributes{}; // Shader uses AL2P or physical attribute read/writes
+    bool uses_physical_attributes{}; // Shader uses AL2P or physical attribute read/writes
 
     Tegra::Shader::Header header;
 };

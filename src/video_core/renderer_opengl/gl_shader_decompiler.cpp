@@ -895,6 +895,8 @@ private:
             target = GetRegister(gpr->GetIndex());
 
         } else if (const auto abuf = std::get_if<AbufNode>(dest)) {
+            UNIMPLEMENTED_IF(abuf->IsPhysicalBuffer());
+
             target = [&]() -> std::string {
                 switch (const auto attribute = abuf->GetIndex(); abuf->GetIndex()) {
                 case Attribute::Index::Position:
