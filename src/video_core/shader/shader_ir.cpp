@@ -94,6 +94,11 @@ Node ShaderIR::GetInputAttribute(Attribute::Index index, u64 element, Node buffe
     return StoreNode(AbufNode(index, static_cast<u32>(element), buffer));
 }
 
+Node ShaderIR::GetPhysicalInputAttribute(Tegra::Shader::Register physical_address, Node buffer) {
+    use_physical_attributes = true;
+    return StoreNode(AbufNode(GetRegister(physical_address), buffer));
+}
+
 Node ShaderIR::GetOutputAttribute(Attribute::Index index, u64 element, Node buffer) {
     if (index == Attribute::Index::ClipDistances0123 ||
         index == Attribute::Index::ClipDistances4567) {

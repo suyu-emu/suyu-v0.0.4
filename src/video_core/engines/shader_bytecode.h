@@ -98,6 +98,10 @@ union Attribute {
         BitField<22, 2, u64> element;
         BitField<24, 6, Index> index;
         BitField<47, 3, AttributeSize> size;
+
+        bool IsPhysical() const {
+            return element == 0 && static_cast<u64>(index.Value()) == 0;
+        }
     } fmt20;
 
     union {

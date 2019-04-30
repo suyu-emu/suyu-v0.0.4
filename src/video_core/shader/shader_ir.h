@@ -469,6 +469,9 @@ public:
                                 Node buffer = {})
         : buffer{buffer}, index{index}, element{element} {}
 
+    explicit constexpr AbufNode(Node physical_address, Node buffer = {})
+        : physical_address{physical_address}, buffer{buffer} {}
+
     Tegra::Shader::Attribute::Index GetIndex() const {
         return index;
     }
@@ -481,10 +484,19 @@ public:
         return buffer;
     }
 
+    bool IsPhysicalBuffer() const {
+        return physical_address != nullptr;
+    }
+
+    Node GetPhysicalAddress() const {
+        return physical_address;
+    }
+
 private:
-    const Node buffer;
-    const Tegra::Shader::Attribute::Index index;
-    const u32 element;
+    Node physical_address{};
+    Node buffer{};
+    Tegra::Shader::Attribute::Index index{};
+    u32 element{};
 };
 
 /// Constant buffer node, usually mapped to uniform buffers in GLSL
@@ -691,6 +703,8 @@ private:
     Node GetPredicate(bool immediate);
     /// Generates a node representing an input attribute. Keeps track of used attributes.
     Node GetInputAttribute(Tegra::Shader::Attribute::Index index, u64 element, Node buffer = {});
+    /// Generates a node representing a physical input attribute.
+    Node GetPhysicalInputAttribute(Tegra::Shader::Register physical_address, Node buffer = {});
     /// Generates a node representing an output attribute. Keeps track of used attributes.
     Node GetOutputAttribute(Tegra::Shader::Attribute::Index index, u64 element, Node buffer);
     /// Generates a node representing an internal flag
