@@ -49,6 +49,9 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
                              "Indirect attribute loads are not supported");
         UNIMPLEMENTED_IF_MSG((instr.attribute.fmt20.immediate.Value() % sizeof(u32)) != 0,
                              "Unaligned attribute loads are not supported");
+        UNIMPLEMENTED_IF_MSG(instr.attribute.fmt20.IsPhysical() &&
+                                 instr.attribute.fmt20.size != Tegra::Shader::AttributeSize::Word,
+                             "Non-32 bits PHYS reads are not implemented");
 
         const Node buffer{GetRegister(instr.gpr39)};
 
