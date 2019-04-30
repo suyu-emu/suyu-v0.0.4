@@ -317,8 +317,7 @@ private:
 
     void DeclareInputAttributes() {
         const auto& attributes = ir.GetInputAttributes();
-        for (const auto element : attributes) {
-            const Attribute::Index index = element.first;
+        for (const auto index : attributes) {
             if (index < Attribute::Index::Attribute_0 || index > Attribute::Index::Attribute_31) {
                 // Skip when it's not a generic attribute
                 continue;

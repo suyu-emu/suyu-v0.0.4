@@ -134,7 +134,7 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
         const Tegra::Shader::IpaMode input_mode{instr.ipa.interp_mode.Value(),
                                                 instr.ipa.sample_mode.Value()};
 
-        const Node attr = GetInputAttribute(attribute.index, attribute.element, input_mode);
+        const Node attr = GetInputAttribute(attribute.index, attribute.element);
         Node value = attr;
         const Tegra::Shader::Attribute::Index index = attribute.index.Value();
         if (index >= Tegra::Shader::Attribute::Index::Attribute_0 &&

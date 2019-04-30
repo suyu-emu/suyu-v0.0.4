@@ -50,16 +50,13 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         UNIMPLEMENTED_IF_MSG((instr.attribute.fmt20.immediate.Value() % sizeof(u32)) != 0,
                              "Unaligned attribute loads are not supported");
 
-        Tegra::Shader::IpaMode input_mode{Tegra::Shader::IpaInterpMode::Pass,
-                                          Tegra::Shader::IpaSampleMode::Default};
-
         u64 next_element = instr.attribute.fmt20.element;
         auto next_index = static_cast<u64>(instr.attribute.fmt20.index.Value());
 
         const auto LoadNextElement = [&](u32 reg_offset) {
             const Node buffer = GetRegister(instr.gpr39);
-            const Node attribute = GetInputAttribute(static_cast<Attribute::Index>(next_index),
-                                                     next_element, input_mode, buffer);
+            const Node attribute =
+                GetInputAttribute(static_cast<Attribute::Index>(next_index), next_element, buffer);
 
             SetRegister(bb, instr.gpr0.Value() + reg_offset, attribute);
 

@@ -466,16 +466,8 @@ private:
 class AbufNode final {
 public:
     explicit constexpr AbufNode(Tegra::Shader::Attribute::Index index, u32 element,
-                                const Tegra::Shader::IpaMode& input_mode, Node buffer = {})
-        : input_mode{input_mode}, buffer{buffer}, index{index}, element{element} {}
-
-    explicit constexpr AbufNode(Tegra::Shader::Attribute::Index index, u32 element,
                                 Node buffer = {})
-        : input_mode{}, buffer{buffer}, index{index}, element{element} {}
-
-    Tegra::Shader::IpaMode GetInputMode() const {
-        return input_mode;
-    }
+        : buffer{buffer}, index{index}, element{element} {}
 
     Tegra::Shader::Attribute::Index GetIndex() const {
         return index;
@@ -490,7 +482,6 @@ public:
     }
 
 private:
-    const Tegra::Shader::IpaMode input_mode;
     const Node buffer;
     const Tegra::Shader::Attribute::Index index;
     const u32 element;
@@ -585,8 +576,7 @@ public:
         return used_predicates;
     }
 
-    const std::map<Tegra::Shader::Attribute::Index, std::set<Tegra::Shader::IpaMode>>&
-    GetInputAttributes() const {
+    const std::set<Tegra::Shader::Attribute::Index>& GetInputAttributes() const {
         return used_input_attributes;
     }
 
@@ -700,8 +690,7 @@ private:
     /// Generates a predicate node for an immediate true or false value
     Node GetPredicate(bool immediate);
     /// Generates a node representing an input attribute. Keeps track of used attributes.
-    Node GetInputAttribute(Tegra::Shader::Attribute::Index index, u64 element,
-                           const Tegra::Shader::IpaMode& input_mode, Node buffer = {});
+    Node GetInputAttribute(Tegra::Shader::Attribute::Index index, u64 element, Node buffer = {});
     /// Generates a node representing an output attribute. Keeps track of used attributes.
     Node GetOutputAttribute(Tegra::Shader::Attribute::Index index, u64 element, Node buffer);
     /// Generates a node representing an internal flag
@@ -876,8 +865,7 @@ private:
 
     std::set<u32> used_registers;
     std::set<Tegra::Shader::Pred> used_predicates;
-    std::map<Tegra::Shader::Attribute::Index, std::set<Tegra::Shader::IpaMode>>
-        used_input_attributes;
+    std::set<Tegra::Shader::Attribute::Index> used_input_attributes;
     std::set<Tegra::Shader::Attribute::Index> used_output_attributes;
     std::map<u32, ConstBuffer> used_cbufs;
     std::set<Sampler> used_samplers;
