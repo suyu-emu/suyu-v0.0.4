@@ -165,6 +165,7 @@ public:
         DeclareConstantBuffers();
         DeclareGlobalMemory();
         DeclareSamplers();
+        DeclarePhysicalAttributeReader();
 
         code.AddLine("void execute_" + suffix + "() {");
         ++code.scope;
@@ -330,8 +331,7 @@ private:
 
     void DeclareInputAttributes() {
         if (ir.HasPhysicalAttributes()) {
-            const u32 num_inputs{stage == ShaderStage::Vertex ? GetNumPhysicalAttributes()
-                                                              : GetNumPhysicalVaryings()};
+            const u32 num_inputs{GetNumPhysicalInputAttributes()};
             for (u32 i = 0; i < num_inputs; ++i) {
                 DeclareInputAttribute(ToGenericAttribute(i));
             }
@@ -374,7 +374,7 @@ private:
     }
 
     void DeclareOutputAttributes() {
-        if (ir.HasPhysicalAttributes()) {
+        if (ir.HasPhysicalAttributes() && stage != ShaderStage::Fragment) {
             for (u32 i = 0; i < GetNumPhysicalVaryings(); ++i) {
                 DeclareOutputAttribute(ToGenericAttribute(i));
             }
@@ -461,6 +461,31 @@ private:
             code.AddNewLine();
     }
 
+    void DeclarePhysicalAttributeReader() {
+        if (!ir.HasPhysicalAttributes()) {
+            return;
+        }
+        code.AddLine("float readPhysicalAttribute(uint physical_address) {");
+        ++code.scope;
+        code.AddLine("switch (physical_address) {");
+
+        // Just declare generic attributes for now.
+        const auto num_attributes{static_cast<u32>(GetNumPhysicalAttributes())};
+        for (u32 index = 0; index < num_attributes; ++index) {
+            for (u32 element = 0; element < 4; ++element) {
+                code.AddLine(fmt::format("case 0x{:x}: return {};", 0x80 + index * 16 + element * 4,
+                                         ReadAttribute(ToGenericAttribute(index), element)));
+            }
+        }
+
+        code.AddLine("default: return 0;");
+
+        code.AddLine('}');
+        --code.scope;
+        code.AddLine('}');
+        code.AddNewLine();
+    }
+
     void VisitBlock(const NodeBlock& bb) {
         for (const Node node : bb) {
             if (const std::string expr = Visit(node); !expr.empty()) {
@@ -515,69 +540,12 @@ private:
             return value;
 
         } else if (const auto abuf = std::get_if<AbufNode>(node)) {
-            const auto attribute = abuf->GetIndex();
-            const auto element = abuf->GetElement();
-
-            const auto GeometryPass = [&](const std::string& name) {
-                if (stage == ShaderStage::Geometry && abuf->GetBuffer()) {
-                    // TODO(Rodrigo): Guard geometry inputs against out of bound reads. Some games
-                    // set an 0x80000000 index for those and the shader fails to build. Find out why
-                    // this happens and what's its intent.
-                    return "gs_" + name + "[ftou(" + Visit(abuf->GetBuffer()) +
-                           ") % MAX_VERTEX_INPUT]";
-                }
-                return name;
-            };
-
-            switch (attribute) {
-            case Attribute::Index::Position:
-                if (stage != ShaderStage::Fragment) {
-                    return GeometryPass("position") + GetSwizzle(element);
-                } else {
-                    return element == 3 ? "1.0f" : "gl_FragCoord" + GetSwizzle(element);
-                }
-            case Attribute::Index::PointCoord:
-                switch (element) {
-                case 0:
-                    return "gl_PointCoord.x";
-                case 1:
-                    return "gl_PointCoord.y";
-                case 2:
-                case 3:
-                    return "0";
-                }
-                UNREACHABLE();
-                return "0";
-            case Attribute::Index::TessCoordInstanceIDVertexID:
-                // TODO(Subv): Find out what the values are for the first two elements when inside a
-                // vertex shader, and what's the value of the fourth element when inside a Tess Eval
-                // shader.
-                ASSERT(stage == ShaderStage::Vertex);
-                switch (element) {
-                case 2:
-                    // Config pack's first value is instance_id.
-                    return "uintBitsToFloat(config_pack[0])";
-                case 3:
-                    return "uintBitsToFloat(gl_VertexID)";
-                }
-                UNIMPLEMENTED_MSG("Unmanaged TessCoordInstanceIDVertexID element={}", element);
-                return "0";
-            case Attribute::Index::FrontFacing:
-                // TODO(Subv): Find out what the values are for the other elements.
-                ASSERT(stage == ShaderStage::Fragment);
-                switch (element) {
-                case 3:
-                    return "itof(gl_FrontFacing ? -1 : 0)";
-                }
-                UNIMPLEMENTED_MSG("Unmanaged FrontFacing element={}", element);
-                return "0";
-            default:
-                if (IsGenericAttribute(attribute)) {
-                    return GeometryPass(GetInputAttribute(attribute)) + GetSwizzle(element);
-                }
-                break;
+            UNIMPLEMENTED_IF_MSG(abuf->IsPhysicalBuffer() && stage == ShaderStage::Geometry,
+                                 "Physical attributes in geometry shaders are not implemented");
+            if (abuf->IsPhysicalBuffer()) {
+                return "readPhysicalAttribute(ftou(" + Visit(abuf->GetPhysicalAddress()) + "))";
             }
-            UNIMPLEMENTED_MSG("Unhandled input attribute: {}", static_cast<u32>(attribute));
+            return ReadAttribute(abuf->GetIndex(), abuf->GetElement(), abuf->GetBuffer());
 
         } else if (const auto cbuf = std::get_if<CbufNode>(node)) {
             const Node offset = cbuf->GetOffset();
@@ -627,6 +595,69 @@ private:
         }
         UNREACHABLE();
         return {};
+    }
+
+    std::string ReadAttribute(Attribute::Index attribute, u32 element, Node buffer = {}) {
+        const auto GeometryPass = [&](std::string name) {
+            if (stage == ShaderStage::Geometry && buffer) {
+                // TODO(Rodrigo): Guard geometry inputs against out of bound reads. Some games
+                // set an 0x80000000 index for those and the shader fails to build. Find out why
+                // this happens and what's its intent.
+                return "gs_" + std::move(name) + "[ftou(" + Visit(buffer) + ") % MAX_VERTEX_INPUT]";
+            }
+            return name;
+        };
+
+        switch (attribute) {
+        case Attribute::Index::Position:
+            if (stage != ShaderStage::Fragment) {
+                return GeometryPass("position") + GetSwizzle(element);
+            } else {
+                return element == 3 ? "1.0f" : "gl_FragCoord" + GetSwizzle(element);
+            }
+        case Attribute::Index::PointCoord:
+            switch (element) {
+            case 0:
+                return "gl_PointCoord.x";
+            case 1:
+                return "gl_PointCoord.y";
+            case 2:
+            case 3:
+                return "0";
+            }
+            UNREACHABLE();
+            return "0";
+        case Attribute::Index::TessCoordInstanceIDVertexID:
+            // TODO(Subv): Find out what the values are for the first two elements when inside a
+            // vertex shader, and what's the value of the fourth element when inside a Tess Eval
+            // shader.
+            ASSERT(stage == ShaderStage::Vertex);
+            switch (element) {
+            case 2:
+                // Config pack's first value is instance_id.
+                return "uintBitsToFloat(config_pack[0])";
+            case 3:
+                return "uintBitsToFloat(gl_VertexID)";
+            }
+            UNIMPLEMENTED_MSG("Unmanaged TessCoordInstanceIDVertexID element={}", element);
+            return "0";
+        case Attribute::Index::FrontFacing:
+            // TODO(Subv): Find out what the values are for the other elements.
+            ASSERT(stage == ShaderStage::Fragment);
+            switch (element) {
+            case 3:
+                return "itof(gl_FrontFacing ? -1 : 0)";
+            }
+            UNIMPLEMENTED_MSG("Unmanaged FrontFacing element={}", element);
+            return "0";
+        default:
+            if (IsGenericAttribute(attribute)) {
+                return GeometryPass(GetInputAttribute(attribute)) + GetSwizzle(element);
+            }
+            break;
+        }
+        UNIMPLEMENTED_MSG("Unhandled input attribute: {}", static_cast<u32>(attribute));
+        return "0";
     }
 
     std::string ApplyPrecise(Operation operation, const std::string& value) {
@@ -1675,6 +1706,10 @@ private:
 
     std::string GetDeclarationWithSuffix(u32 index, const std::string& name) const {
         return name + '_' + std::to_string(index) + '_' + suffix;
+    }
+
+    u32 GetNumPhysicalInputAttributes() const {
+        return stage == ShaderStage::Vertex ? GetNumPhysicalAttributes() : GetNumPhysicalVaryings();
     }
 
     u32 GetNumPhysicalAttributes() const {

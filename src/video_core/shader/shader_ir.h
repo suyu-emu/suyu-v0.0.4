@@ -885,7 +885,7 @@ private:
     std::set<Sampler> used_samplers;
     std::array<bool, Tegra::Engines::Maxwell3D::Regs::NumClipDistances> used_clip_distances{};
     std::map<GlobalMemoryBase, GlobalMemoryUsage> used_global_memory;
-    bool use_physical_attributes = true; // Shader uses AL2P
+    bool use_physical_attributes{}; // Shader uses AL2P or physical attribute read/writes
 
     Tegra::Shader::Header header;
 };
