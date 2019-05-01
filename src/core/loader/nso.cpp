@@ -21,8 +21,6 @@
 #include "core/memory.h"
 #include "core/settings.h"
 
-#pragma optimize("", off)
-
 namespace Loader {
 namespace {
 struct MODHeader {
