@@ -5,6 +5,7 @@
 #pragma once
 
 #include <functional>
+#include <optional>
 #include "common/common_types.h"
 #include "core/file_sys/vfs_types.h"
 
@@ -32,6 +33,8 @@ public:
 
     virtual void SetPassphrase(u64 title_id, const Passphrase& passphrase) = 0;
 
+    virtual std::optional<std::vector<u8>> GetLaunchParameter(TitleIDVersion title) = 0;
+
 protected:
     DirectoryGetter dir_getter;
 };
@@ -48,6 +51,8 @@ public:
     bool Clear(u64 title_id) override;
 
     void SetPassphrase(u64 title_id, const Passphrase& passphrase) override;
+
+    std::optional<std::vector<u8>> GetLaunchParameter(TitleIDVersion title) override;
 };
 
 std::unique_ptr<Backend> CreateBackendFromSettings(DirectoryGetter getter);

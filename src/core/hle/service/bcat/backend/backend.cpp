@@ -44,4 +44,10 @@ void NullBackend::SetPassphrase(u64 title_id, const Passphrase& passphrase) {
               Common::HexArrayToString(passphrase));
 }
 
+std::optional<std::vector<u8>> NullBackend::GetLaunchParameter(TitleIDVersion title) {
+    LOG_DEBUG(Service_BCAT, "called, title_id={:016X}, build_id={:016X}", title.title_id,
+              title.build_id);
+    return std::nullopt;
+}
+
 } // namespace Service::BCAT
