@@ -25,13 +25,16 @@ constexpr char BOXCAT_HOSTNAME[] = "api.yuzu-emu.org";
 
 // Formatted using fmt with arg[0] = hex title id
 constexpr char BOXCAT_PATHNAME_DATA[] = "/boxcat/titles/{:016X}/data";
+constexpr char BOXCAT_PATHNAME_LAUNCHPARAM[] = "/boxcat/titles/{:016X}/launchparam";
 
 constexpr char BOXCAT_PATHNAME_EVENTS[] = "/boxcat/events";
 
 constexpr char BOXCAT_API_VERSION[] = "1";
+constexpr char BOXCAT_CLIENT_TYPE[] = "yuzu";
 
 // HTTP status codes for Boxcat
 enum class ResponseStatus {
+    Ok = 200,               ///< Operation completed successfully.
     BadClientVersion = 301, ///< The Boxcat-Client-Version doesn't match the server.
     NoUpdate = 304,         ///< The digest provided would match the new data, no need to update.
     NoMatchTitleId = 404,   ///< The title ID provided doesn't have a boxcat implementation.
@@ -74,6 +77,11 @@ constexpr u64 VFS_COPY_BLOCK_SIZE = 1ull << 24; // 4MB
 
 namespace {
 
+std::string GetBINFilePath(u64 title_id) {
+    return fmt::format("{}bcat/{:016X}/launchparam.bin",
+                       FileUtil::GetUserPath(FileUtil::UserPath::CacheDir), title_id);
+}
+
 std::string GetZIPFilePath(u64 title_id) {
     return fmt::format("{}bcat/{:016X}/data.zip",
                        FileUtil::GetUserPath(FileUtil::UserPath::CacheDir), title_id);
@@ -98,27 +106,40 @@ void HandleDownloadDisplayResult(DownloadResult res) {
 
 class Boxcat::Client {
 public:
-    Client(std::string zip_path, u64 title_id, u64 build_id)
-        : zip_path(std::move(zip_path)), title_id(title_id), build_id(build_id) {}
+    Client(std::string path, u64 title_id, u64 build_id)
+        : path(std::move(path)), title_id(title_id), build_id(build_id) {}
 
-    DownloadResult Download() {
-        const auto resolved_path = fmt::format(BOXCAT_PATHNAME_DATA, title_id);
+    DownloadResult DownloadDataZip() {
+        return DownloadInternal(fmt::format(BOXCAT_PATHNAME_DATA, title_id), TIMEOUT_SECONDS,
+                                "Boxcat-Data-Digest", "application/zip");
+    }
+
+    DownloadResult DownloadLaunchParam() {
+        return DownloadInternal(fmt::format(BOXCAT_PATHNAME_LAUNCHPARAM, title_id),
+                                TIMEOUT_SECONDS / 3, "Boxcat-LaunchParam-Digest",
+                                "application/octet-stream");
+    }
+
+private:
+    DownloadResult DownloadInternal(const std::string& resolved_path, u32 timeout_seconds,
+                                    const std::string& digest_header_name,
+                                    const std::string& content_type_name) {
         if (client == nullptr) {
-            client = std::make_unique<httplib::SSLClient>(BOXCAT_HOSTNAME, PORT, TIMEOUT_SECONDS);
+            client = std::make_unique<httplib::SSLClient>(BOXCAT_HOSTNAME, PORT, timeout_seconds);
         }
 
         httplib::Headers headers{
             {std::string("Boxcat-Client-Version"), std::string(BOXCAT_API_VERSION)},
+            {std::string("Boxcat-Client-Type"), std::string(BOXCAT_CLIENT_TYPE)},
             {std::string("Boxcat-Build-Id"), fmt::format("{:016X}", build_id)},
         };
 
-        if (FileUtil::Exists(zip_path)) {
-            FileUtil::IOFile file{zip_path, "rb"};
+        if (FileUtil::Exists(path)) {
+            FileUtil::IOFile file{path, "rb"};
             std::vector<u8> bytes(file.GetSize());
             file.ReadBytes(bytes.data(), bytes.size());
             const auto digest = DigestFile(bytes);
-            headers.insert({std::string("Boxcat-Current-Zip-Digest"),
-                            Common::HexArrayToString(digest, false)});
+            headers.insert({digest_header_name, Common::HexArrayToString(digest, false)});
         }
 
         const auto response = client->Get(resolved_path.c_str(), headers);
@@ -133,17 +154,17 @@ public:
             return DownloadResult::NoMatchTitleId;
         if (response->status == static_cast<int>(ResponseStatus::NoMatchBuildId))
             return DownloadResult::NoMatchBuildId;
-        if (response->status >= 400)
+        if (response->status != static_cast<int>(ResponseStatus::Ok))
             return DownloadResult::GeneralWebError;
 
         const auto content_type = response->headers.find("content-type");
         if (content_type == response->headers.end() ||
-            content_type->second.find("application/zip") == std::string::npos) {
+            content_type->second.find(content_type_name) == std::string::npos) {
             return DownloadResult::InvalidContentType;
         }
 
-        FileUtil::CreateFullPath(zip_path);
-        FileUtil::IOFile file{zip_path, "wb"};
+        FileUtil::CreateFullPath(path);
+        FileUtil::IOFile file{path, "wb"};
         if (!file.IsOpen())
             return DownloadResult::GeneralFSError;
         if (!file.Resize(response->body.size()))
@@ -154,7 +175,6 @@ public:
         return DownloadResult::Success;
     }
 
-private:
     using Digest = std::array<u8, 0x20>;
     static Digest DigestFile(std::vector<u8> bytes) {
         Digest out{};
@@ -163,7 +183,7 @@ private:
     }
 
     std::unique_ptr<httplib::Client> client;
-    std::string zip_path;
+    std::string path;
     u64 title_id;
     u64 build_id;
 };
@@ -191,9 +211,14 @@ void SynchronizeInternal(DirectoryGetter dir_getter, TitleIDVersion title,
     const auto zip_path{GetZIPFilePath(title.title_id)};
     Boxcat::Client client{zip_path, title.title_id, title.build_id};
 
-    const auto res = client.Download();
+    const auto res = client.DownloadDataZip();
     if (res != DownloadResult::Success) {
         LOG_ERROR(Service_BCAT, "Boxcat synchronization failed with error '{}'!", res);
+
+        if (res == DownloadResult::NoMatchBuildId || res == DownloadResult::NoMatchTitleId) {
+            FileUtil::Delete(zip_path);
+        }
+
         HandleDownloadDisplayResult(res);
         failure();
         return;
@@ -286,6 +311,39 @@ void Boxcat::SetPassphrase(u64 title_id, const Passphrase& passphrase) {
               Common::HexArrayToString(passphrase));
 }
 
+std::optional<std::vector<u8>> Boxcat::GetLaunchParameter(TitleIDVersion title) {
+    const auto path{GetBINFilePath(title.title_id)};
+
+    if (Settings::values.bcat_boxcat_local) {
+        LOG_INFO(Service_BCAT, "Boxcat using local data by override, skipping download.");
+    } else {
+        Boxcat::Client client{path, title.title_id, title.build_id};
+
+        const auto res = client.DownloadLaunchParam();
+        if (res != DownloadResult::Success) {
+            LOG_ERROR(Service_BCAT, "Boxcat synchronization failed with error '{}'!", res);
+
+            if (res == DownloadResult::NoMatchBuildId || res == DownloadResult::NoMatchTitleId) {
+                FileUtil::Delete(path);
+            }
+
+            HandleDownloadDisplayResult(res);
+            return std::nullopt;
+        }
+    }
+
+    FileUtil::IOFile bin{path, "rb"};
+    const auto size = bin.GetSize();
+    std::vector<u8> bytes(size);
+    if (size == 0 || bin.ReadBytes(bytes.data(), bytes.size()) != bytes.size()) {
+        LOG_ERROR(Service_BCAT, "Boxcat failed to read launch parameter binary at path '{}'!",
+                  path);
+        return std::nullopt;
+    }
+
+    return bytes;
+}
+
 Boxcat::StatusResult Boxcat::GetStatus(std::optional<std::string>& global,
                                        std::map<std::string, EventStatus>& games) {
     httplib::SSLClient client{BOXCAT_HOSTNAME, static_cast<int>(PORT),
@@ -293,6 +351,7 @@ Boxcat::StatusResult Boxcat::GetStatus(std::optional<std::string>& global,
 
     httplib::Headers headers{
         {std::string("Boxcat-Client-Version"), std::string(BOXCAT_API_VERSION)},
+        {std::string("Boxcat-Client-Type"), std::string(BOXCAT_CLIENT_TYPE)},
     };
 
     const auto response = client.Get(BOXCAT_PATHNAME_EVENTS, headers);

@@ -36,6 +36,8 @@ public:
 
     void SetPassphrase(u64 title_id, const Passphrase& passphrase) override;
 
+    std::optional<std::vector<u8>> GetLaunchParameter(TitleIDVersion title) override;
+
     enum class StatusResult {
         Success,
         Offline,
