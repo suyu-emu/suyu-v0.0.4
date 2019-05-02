@@ -50,4 +50,6 @@ public:
     void SetPassphrase(u64 title_id, const Passphrase& passphrase) override;
 };
 
+std::unique_ptr<Backend> CreateBackendFromSettings(DirectoryGetter getter);
+
 } // namespace Service::BCAT

@@ -589,7 +589,6 @@ void Module::Interface::CreateDeliveryCacheStorageServiceWithApplicationId(
         Service::FileSystem::GetBCATDirectory(title_id));
 }
 
-namespace {
 std::unique_ptr<Backend> CreateBackendFromSettings(DirectoryGetter getter) {
     const auto backend = Settings::values.bcat_backend;
 
@@ -600,7 +599,6 @@ std::unique_ptr<Backend> CreateBackendFromSettings(DirectoryGetter getter) {
 
     return std::make_unique<NullBackend>(std::move(getter));
 }
-} // Anonymous namespace
 
 Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
     : ServiceFramework(name), module(std::move(module)),
