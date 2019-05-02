@@ -310,30 +310,28 @@ private:
     }
 
     std::string GetInputFlags(AttributeUse attribute) {
-        std::string out;
-
         switch (attribute) {
-        case AttributeUse::Constant:
-            out += "flat ";
-            break;
-        case AttributeUse::ScreenLinear:
-            out += "noperspective ";
-            break;
         case AttributeUse::Perspective:
             // Default, Smooth
-            break;
+            return {};
+        case AttributeUse::Constant:
+            return "flat ";
+        case AttributeUse::ScreenLinear:
+            return "noperspective ";
         default:
-            LOG_CRITICAL(HW_GPU, "Unused attribute being fetched");
-            UNREACHABLE();
+        case AttributeUse::Unused:
+            UNREACHABLE_MSG("Unused attribute being fetched");
+            return {};
+            UNIMPLEMENTED_MSG("Unknown attribute usage index={}", static_cast<u32>(attribute));
+            return {};
         }
-        return out;
     }
 
     void DeclareInputAttributes() {
         if (ir.HasPhysicalAttributes()) {
             const u32 num_inputs{GetNumPhysicalInputAttributes()};
             for (u32 i = 0; i < num_inputs; ++i) {
-                DeclareInputAttribute(ToGenericAttribute(i));
+                DeclareInputAttribute(ToGenericAttribute(i), true);
             }
             code.AddNewLine();
             return;
@@ -342,14 +340,14 @@ private:
         const auto& attributes = ir.GetInputAttributes();
         for (const auto index : attributes) {
             if (IsGenericAttribute(index)) {
-                DeclareInputAttribute(index);
+                DeclareInputAttribute(index, false);
             }
         }
         if (!attributes.empty())
             code.AddNewLine();
     }
 
-    void DeclareInputAttribute(Attribute::Index index) {
+    void DeclareInputAttribute(Attribute::Index index, bool skip_unused) {
         const u32 generic_index{GetGenericAttributeIndex(index)};
 
         std::string name{GetInputAttribute(index)};
@@ -360,6 +358,9 @@ private:
         std::string suffix;
         if (stage == ShaderStage::Fragment) {
             const auto input_mode{header.ps.GetAttributeUse(generic_index)};
+            if (skip_unused && input_mode == AttributeUse::Unused) {
+                return;
+            }
             suffix = GetInputFlags(input_mode);
         }
 
@@ -470,11 +471,19 @@ private:
         code.AddLine("switch (physical_address) {");
 
         // Just declare generic attributes for now.
-        const auto num_attributes{static_cast<u32>(GetNumPhysicalAttributes())};
+        const auto num_attributes{static_cast<u32>(GetNumPhysicalInputAttributes())};
         for (u32 index = 0; index < num_attributes; ++index) {
+            const auto attribute{ToGenericAttribute(index)};
             for (u32 element = 0; element < 4; ++element) {
-                code.AddLine(fmt::format("case 0x{:x}: return {};", 0x80 + index * 16 + element * 4,
-                                         ReadAttribute(ToGenericAttribute(index), element)));
+                constexpr u32 generic_base{0x80};
+                constexpr u32 generic_stride{16};
+                constexpr u32 element_stride{4};
+                const u32 address{generic_base + index * generic_stride + element * element_stride};
+
+                const bool declared{stage != ShaderStage::Fragment ||
+                                    header.ps.GetAttributeUse(index) != AttributeUse::Unused};
+                const std::string value{declared ? ReadAttribute(attribute, element) : "0"};
+                code.AddLine(fmt::format("case 0x{:x}: return {};", address, value));
             }
         }
 
