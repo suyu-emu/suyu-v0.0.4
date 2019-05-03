@@ -31,6 +31,8 @@ using Tegra::Shader::IpaInterpMode;
 using Tegra::Shader::IpaMode;
 using Tegra::Shader::IpaSampleMode;
 using Tegra::Shader::Register;
+
+using namespace std::string_literals;
 using namespace VideoCommon::Shader;
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
@@ -96,11 +98,9 @@ private:
 };
 
 /// Generates code to use for a swizzle operation.
-std::string GetSwizzle(u32 elem) {
-    ASSERT(elem <= 3);
-    std::string swizzle = ".";
-    swizzle += "xyzw"[elem];
-    return swizzle;
+constexpr const char* GetSwizzle(u32 element) {
+    constexpr std::array<const char*, 4> swizzle = {".x", ".y", ".z", ".w"};
+    return swizzle.at(element);
 }
 
 /// Translate topology
@@ -622,7 +622,7 @@ private:
             if (stage != ShaderStage::Fragment) {
                 return GeometryPass("position") + GetSwizzle(element);
             } else {
-                return element == 3 ? "1.0f" : "gl_FragCoord" + GetSwizzle(element);
+                return element == 3 ? "1.0f" : ("gl_FragCoord"s + GetSwizzle(element));
             }
         case Attribute::Index::PointCoord:
             switch (element) {
@@ -909,7 +909,7 @@ private:
             target = [&]() -> std::string {
                 switch (const auto attribute = abuf->GetIndex(); abuf->GetIndex()) {
                 case Attribute::Index::Position:
-                    return "position" + GetSwizzle(abuf->GetElement());
+                    return "position"s + GetSwizzle(abuf->GetElement());
                 case Attribute::Index::PointSize:
                     return "gl_PointSize";
                 case Attribute::Index::ClipDistances0123:
