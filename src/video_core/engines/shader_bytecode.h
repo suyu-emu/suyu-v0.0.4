@@ -596,6 +596,7 @@ union Instruction {
     } alu;
 
     union {
+        BitField<38, 1, u64> idx;
         BitField<51, 1, u64> saturate;
         BitField<52, 2, IpaSampleMode> sample_mode;
         BitField<54, 2, IpaInterpMode> interp_mode;
