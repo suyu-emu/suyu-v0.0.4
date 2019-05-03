@@ -1513,6 +1513,16 @@ private:
         return "uintBitsToFloat(config_pack[2])";
     }
 
+    template <u32 element>
+    std::string LocalInvocationId(Operation) {
+        return "utof(gl_LocalInvocationID"s + GetSwizzle(element) + ')';
+    }
+
+    template <u32 element>
+    std::string WorkGroupId(Operation) {
+        return "utof(gl_WorkGroupID"s + GetSwizzle(element) + ')';
+    }
+
     static constexpr OperationDecompilersArray operation_decompilers = {
         &GLSLDecompiler::Assign,
 
@@ -1652,6 +1662,12 @@ private:
         &GLSLDecompiler::EndPrimitive,
 
         &GLSLDecompiler::YNegate,
+        &GLSLDecompiler::LocalInvocationId<0>,
+        &GLSLDecompiler::LocalInvocationId<1>,
+        &GLSLDecompiler::LocalInvocationId<2>,
+        &GLSLDecompiler::WorkGroupId<0>,
+        &GLSLDecompiler::WorkGroupId<1>,
+        &GLSLDecompiler::WorkGroupId<2>,
     };
 
     std::string GetRegister(u32 index) const {
