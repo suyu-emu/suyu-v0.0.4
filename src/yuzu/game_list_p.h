@@ -220,12 +220,14 @@ public:
         UISettings::GameDir* game_dir = &directory;
         setData(QVariant::fromValue(game_dir), GameDirRole);
 
-        int icon_size = UISettings::values.icon_size;
+        const int icon_size = UISettings::values.icon_size;
         switch (dir_type) {
         case GameListItemType::InstalledDir:
-            setData(QIcon::fromTheme("sd_card").pixmap(icon_size).scaled(
-                        icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-                    Qt::DecorationRole);
+            setData(
+                QIcon::fromTheme(QStringLiteral("sd_card"))
+                    .pixmap(icon_size)
+                    .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
+                Qt::DecorationRole);
             setData("Installed Titles", Qt::DisplayRole);
             break;
         case GameListItemType::SystemDir:
@@ -235,7 +237,9 @@ public:
             setData("System Titles", Qt::DisplayRole);
             break;
         case GameListItemType::CustomDir:
-            QString icon_name = QFileInfo::exists(game_dir->path) ? "folder" : "bad_folder";
+            const QString icon_name = QFileInfo::exists(game_dir->path)
+                                          ? QStringLiteral("folder")
+                                          : QStringLiteral("bad_folder");
             setData(QIcon::fromTheme(icon_name).pixmap(icon_size).scaled(
                         icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
                     Qt::DecorationRole);
@@ -257,9 +261,10 @@ public:
     explicit GameListAddDir() {
         setData(type(), TypeRole);
 
-        int icon_size = UISettings::values.icon_size;
-        setData(QIcon::fromTheme("plus").pixmap(icon_size).scaled(
-                    icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
+        const int icon_size = UISettings::values.icon_size;
+        setData(QIcon::fromTheme(QStringLiteral("plus"))
+                    .pixmap(icon_size)
+                    .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
                 Qt::DecorationRole);
         setData("Add New Game Directory", Qt::DisplayRole);
     }

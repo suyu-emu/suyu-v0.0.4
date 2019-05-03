@@ -80,7 +80,7 @@ signals:
     void NavigateToGamedbEntryRequested(u64 program_id,
                                         const CompatibilityList& compatibility_list);
     void OpenPerGameGeneralRequested(const std::string& file);
-    void OpenDirectory(QString directory);
+    void OpenDirectory(const QString& directory);
     void AddDirectory();
     void ShowList(bool show);
 

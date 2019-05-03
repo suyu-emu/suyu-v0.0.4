@@ -354,16 +354,16 @@ void GameListWorker::run() {
 
     for (UISettings::GameDir& game_dir : game_dirs) {
         if (game_dir.path == "INSTALLED") {
-            GameListDir* game_list_dir = new GameListDir(game_dir, GameListItemType::InstalledDir);
+            auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::InstalledDir);
             emit DirEntryReady({game_list_dir});
             AddTitlesToGameList(game_list_dir);
         } else if (game_dir.path == "SYSTEM") {
-            GameListDir* game_list_dir = new GameListDir(game_dir, GameListItemType::SystemDir);
+            auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SystemDir);
             emit DirEntryReady({game_list_dir});
             AddTitlesToGameList(game_list_dir);
         } else {
             watch_list.append(game_dir.path);
-            GameListDir* game_list_dir = new GameListDir(game_dir);
+            auto* const game_list_dir = new GameListDir(game_dir);
             emit DirEntryReady({game_list_dir});
             provider->ClearAllEntries();
             ScanFileSystem(ScanTarget::FillManualContentProvider, game_dir.path.toStdString(), 2,

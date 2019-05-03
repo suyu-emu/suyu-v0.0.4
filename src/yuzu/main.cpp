@@ -1309,11 +1309,11 @@ void GMainWindow::OnGameListNavigateToGamedbEntry(u64 program_id,
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://yuzu-emu.org/game/") + directory));
 }
 
-void GMainWindow::OnGameListOpenDirectory(QString directory) {
+void GMainWindow::OnGameListOpenDirectory(const QString& directory) {
     QString path;
     if (directory == QStringLiteral("INSTALLED")) {
         // TODO: Find a better solution when installing files to the SD card gets implemented
-        path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir).c_str() +
+        path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
                                       std::string("user/Contents/registered"));
     } else if (directory == QStringLiteral("SYSTEM")) {
         path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir).c_str() +
@@ -1329,7 +1329,7 @@ void GMainWindow::OnGameListOpenDirectory(QString directory) {
 }
 
 void GMainWindow::OnGameListAddDirectory() {
-    QString dir_path = QFileDialog::getExistingDirectory(this, tr("Select Directory"));
+    const QString dir_path = QFileDialog::getExistingDirectory(this, tr("Select Directory"));
     if (dir_path.isEmpty())
         return;
     UISettings::GameDir game_dir{dir_path, false, true};
