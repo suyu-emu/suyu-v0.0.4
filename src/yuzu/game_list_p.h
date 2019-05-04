@@ -228,13 +228,13 @@ public:
                     .pixmap(icon_size)
                     .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
                 Qt::DecorationRole);
-            setData("Installed Titles", Qt::DisplayRole);
+            setData(QObject::tr("Installed Titles"), Qt::DisplayRole);
             break;
         case GameListItemType::SystemDir:
             setData(QIcon::fromTheme("chip").pixmap(icon_size).scaled(
                         icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
                     Qt::DecorationRole);
-            setData("System Titles", Qt::DisplayRole);
+            setData(QObject::tr("System Titles"), Qt::DisplayRole);
             break;
         case GameListItemType::CustomDir:
             const QString icon_name = QFileInfo::exists(game_dir->path)
@@ -266,7 +266,7 @@ public:
                     .pixmap(icon_size)
                     .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
                 Qt::DecorationRole);
-        setData("Add New Game Directory", Qt::DisplayRole);
+        setData(QObject::tr("Add New Game Directory"), Qt::DisplayRole);
     }
 
     int type() const override {
@@ -292,9 +292,6 @@ public:
     void clear();
     void setFocus();
 
-    int visible;
-    int total;
-
 private:
     class KeyReleaseEater : public QObject {
     public:
@@ -308,6 +305,9 @@ private:
         // EventFilter in order to process systemkeys while editing the searchfield
         bool eventFilter(QObject* obj, QEvent* event) override;
     };
+    int visible;
+    int total;
+
     QHBoxLayout* layout_filter = nullptr;
     QTreeView* tree_view = nullptr;
     QLabel* label_filter = nullptr;

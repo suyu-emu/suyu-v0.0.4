@@ -1314,10 +1314,10 @@ void GMainWindow::OnGameListOpenDirectory(const QString& directory) {
     if (directory == QStringLiteral("INSTALLED")) {
         // TODO: Find a better solution when installing files to the SD card gets implemented
         path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
-                                      std::string("user/Contents/registered"));
+                                      "user/Contents/registered");
     } else if (directory == QStringLiteral("SYSTEM")) {
-        path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir).c_str() +
-                                      std::string("system/Contents/registered"));
+        path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
+                                      "system/Contents/registered");
     } else {
         path = directory;
     }

@@ -8,6 +8,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QList>
 #include <QModelIndex>
 #include <QSettings>
 #include <QStandardItem>
@@ -24,8 +25,6 @@
 
 class GameListWorker;
 class GameListSearchField;
-template <typename>
-class QList;
 class GameListDir;
 class GMainWindow;
 
@@ -56,11 +55,11 @@ public:
                       FileSys::ManualContentProvider* provider, GMainWindow* parent = nullptr);
     ~GameList() override;
 
-    QString getLastFilterResultItem();
+    QString getLastFilterResultItem() const;
     void clearFilter();
     void setFilterFocus();
     void setFilterVisible(bool visibility);
-    bool isEmpty();
+    bool isEmpty() const;
 
     void LoadCompatibilityList();
     void PopulateAsync(QList<UISettings::GameDir>& game_dirs);
@@ -135,7 +134,6 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent* event) override;
 
 private:
-    GMainWindow* main_window = nullptr;
     QVBoxLayout* layout = nullptr;
     QLabel* image = nullptr;
     QLabel* text = nullptr;

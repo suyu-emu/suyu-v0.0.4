@@ -83,7 +83,7 @@ void GameListSearchField::setFilterResult(int visible, int total) {
     label_filter_result->setText(tr("%1 of %n result(s)", "", total).arg(visible));
 }
 
-QString GameList::getLastFilterResultItem() {
+QString GameList::getLastFilterResultItem() const {
     QStandardItem* folder;
     QStandardItem* child;
     QString file_path;
@@ -389,7 +389,7 @@ void GameList::ValidateEntry(const QModelIndex& item) {
     }
 }
 
-bool GameList::isEmpty() {
+bool GameList::isEmpty() const {
     for (int i = 0; i < item_model->rowCount(); i++) {
         const QStandardItem* child = item_model->invisibleRootItem()->child(i);
         const auto type = static_cast<GameListItemType>(child->type());
@@ -426,10 +426,7 @@ void GameList::DonePopulating(QStringList watch_list) {
     const int folder_count = tree_view->model()->rowCount();
     int children_total = 0;
     for (int i = 0; i < folder_count; ++i) {
-        int children_count = item_model->item(i, 0)->rowCount();
-        for (int j = 0; j < children_count; ++j) {
-            ++children_total;
-        }
+        children_total += item_model->item(i, 0)->rowCount();
     }
     search_field->setFilterResult(children_total, children_total);
     if (children_total > 0) {
@@ -546,7 +543,7 @@ void GameList::AddPermDirPopup(QMenu& context_menu, QModelIndex selected) {
         // find the indices of the items in settings and swap them
         UISettings::values.game_dirs.swap(
             UISettings::values.game_dirs.indexOf(game_dir),
-            UISettings::values.game_dirs.indexOf(*selected.sibling(selected.row() + 1, 0)
+            UISettings::values.game_dirs.indexOf(*selected.sibling(row + 1, 0)
                                                       .data(GameListDir::GameDirRole)
                                                       .value<UISettings::GameDir*>()));
         // move the treeview items
@@ -673,9 +670,7 @@ void GameList::RefreshGameDirectory() {
 }
 
 GameListPlaceholder::GameListPlaceholder(GMainWindow* parent) : QWidget{parent} {
-    this->main_window = parent;
-
-    connect(main_window, &GMainWindow::UpdateThemedIcons, this,
+    connect(parent, &GMainWindow::UpdateThemedIcons, this,
             &GameListPlaceholder::onUpdateThemedIcons);
 
     layout = new QVBoxLayout;
@@ -684,7 +679,7 @@ GameListPlaceholder::GameListPlaceholder(GMainWindow* parent) : QWidget{parent} 
     layout->setAlignment(Qt::AlignCenter);
     image->setPixmap(QIcon::fromTheme(QStringLiteral("plus_folder")).pixmap(200));
 
-    text->setText(tr("Double-click to add a new folder to the game list "));
+    text->setText(tr("Double-click to add a new folder to the game list"));
     QFont font = text->font();
     font.setPointSize(20);
     text->setFont(font);
