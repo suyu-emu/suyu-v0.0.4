@@ -19,6 +19,8 @@ namespace Core::Frontend {
  */
 class GraphicsContext {
 public:
+    virtual ~GraphicsContext();
+
     /// Makes the graphics context current for the caller thread
     virtual void MakeCurrent() = 0;
 
