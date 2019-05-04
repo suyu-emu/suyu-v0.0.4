@@ -922,8 +922,8 @@ void RasterizerOpenGL::SyncViewport(OpenGLState& current_state) {
         viewport.y = viewport_rect.bottom;
         viewport.width = viewport_rect.GetWidth();
         viewport.height = viewport_rect.GetHeight();
-        viewport.depth_range_far = regs.viewports[i].depth_range_far;
-        viewport.depth_range_near = regs.viewports[i].depth_range_near;
+        viewport.depth_range_far = src.depth_range_far;
+        viewport.depth_range_near = src.depth_range_near;
     }
     state.depth_clamp.far_plane = regs.view_volume_clip_control.depth_clamp_far != 0;
     state.depth_clamp.near_plane = regs.view_volume_clip_control.depth_clamp_near != 0;
