@@ -535,10 +535,12 @@ void Config::ReadPathValues() {
     // also carries over old game list settings if present
     if (UISettings::values.game_dirs.isEmpty()) {
         UISettings::GameDir game_dir;
-        game_dir.path = QStringLiteral("INSTALLED");
+        game_dir.path = QStringLiteral("SDMC");
         game_dir.expanded = true;
         UISettings::values.game_dirs.append(game_dir);
-        game_dir.path = QStringLiteral("SYSTEM");
+        game_dir.path = QStringLiteral("UserNAND");
+        UISettings::values.game_dirs.append(game_dir);
+        game_dir.path = QStringLiteral("SysNAND");
         UISettings::values.game_dirs.append(game_dir);
         if (UISettings::values.game_dir_deprecated != QStringLiteral(".")) {
             game_dir.path = UISettings::values.game_dir_deprecated;

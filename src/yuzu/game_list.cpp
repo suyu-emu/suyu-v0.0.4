@@ -161,8 +161,8 @@ static bool ContainsAllWords(const QString& haystack, const QString& userinput) 
 // Syncs the expanded state of Game Directories with settings to persist across sessions
 void GameList::onItemExpanded(const QModelIndex& item) {
     const auto type = item.data(GameListItem::TypeRole).value<GameListItemType>();
-    if (type == GameListItemType::CustomDir || type == GameListItemType::InstalledDir ||
-        type == GameListItemType::SystemDir)
+    if (type == GameListItemType::CustomDir || type == GameListItemType::SdmcDir ||
+        type == GameListItemType::UserNandDir || type == GameListItemType::SysNandDir)
         item.data(GameListDir::GameDirRole).value<UISettings::GameDir*>()->expanded =
             tree_view->isExpanded(item);
 }
@@ -232,14 +232,21 @@ void GameList::onUpdateThemedIcons() {
 
         const int icon_size = UISettings::values.icon_size;
         switch (child->data(GameListItem::TypeRole).value<GameListItemType>()) {
-        case GameListItemType::InstalledDir:
+        case GameListItemType::SdmcDir:
             child->setData(
                 QIcon::fromTheme(QStringLiteral("sd_card"))
                     .pixmap(icon_size)
                     .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
                 Qt::DecorationRole);
             break;
-        case GameListItemType::SystemDir:
+        case GameListItemType::UserNandDir:
+            child->setData(
+                QIcon::fromTheme(QStringLiteral("chip"))
+                    .pixmap(icon_size)
+                    .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
+                Qt::DecorationRole);
+            break;
+        case GameListItemType::SysNandDir:
             child->setData(
                 QIcon::fromTheme(QStringLiteral("chip"))
                     .pixmap(icon_size)
@@ -394,7 +401,8 @@ bool GameList::isEmpty() const {
         const QStandardItem* child = item_model->invisibleRootItem()->child(i);
         const auto type = static_cast<GameListItemType>(child->type());
         if (!child->hasChildren() &&
-            (type == GameListItemType::InstalledDir || type == GameListItemType::SystemDir)) {
+            (type == GameListItemType::SdmcDir || type == GameListItemType::UserNandDir ||
+             type == GameListItemType::SysNandDir)) {
             item_model->invisibleRootItem()->removeRow(child->row());
             i--;
         };
@@ -450,8 +458,9 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
         AddPermDirPopup(context_menu, selected);
         AddCustomDirPopup(context_menu, selected);
         break;
-    case GameListItemType::InstalledDir:
-    case GameListItemType::SystemDir:
+    case GameListItemType::SdmcDir:
+    case GameListItemType::UserNandDir:
+    case GameListItemType::SysNandDir:
         AddPermDirPopup(context_menu, selected);
         break;
     }

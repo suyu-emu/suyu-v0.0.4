@@ -26,9 +26,10 @@
 enum class GameListItemType {
     Game = QStandardItem::UserType + 1,
     CustomDir = QStandardItem::UserType + 2,
-    InstalledDir = QStandardItem::UserType + 3,
-    SystemDir = QStandardItem::UserType + 4,
-    AddDir = QStandardItem::UserType + 5
+    SdmcDir = QStandardItem::UserType + 3,
+    UserNandDir = QStandardItem::UserType + 4,
+    SysNandDir = QStandardItem::UserType + 5,
+    AddDir = QStandardItem::UserType + 6
 };
 
 Q_DECLARE_METATYPE(GameListItemType);
@@ -222,18 +223,28 @@ public:
 
         const int icon_size = UISettings::values.icon_size;
         switch (dir_type) {
-        case GameListItemType::InstalledDir:
+        case GameListItemType::SdmcDir:
             setData(
                 QIcon::fromTheme(QStringLiteral("sd_card"))
                     .pixmap(icon_size)
                     .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
                 Qt::DecorationRole);
-            setData(QObject::tr("Installed Titles"), Qt::DisplayRole);
+            setData(QObject::tr("Installed SD Titles"), Qt::DisplayRole);
             break;
-        case GameListItemType::SystemDir:
-            setData(QIcon::fromTheme("chip").pixmap(icon_size).scaled(
-                        icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-                    Qt::DecorationRole);
+        case GameListItemType::UserNandDir:
+            setData(
+                QIcon::fromTheme(QStringLiteral("chip"))
+                    .pixmap(icon_size)
+                    .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
+                Qt::DecorationRole);
+            setData(QObject::tr("Installed NAND Titles"), Qt::DisplayRole);
+            break;
+        case GameListItemType::SysNandDir:
+            setData(
+                QIcon::fromTheme(QStringLiteral("chip"))
+                    .pixmap(icon_size)
+                    .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
+                Qt::DecorationRole);
             setData(QObject::tr("System Titles"), Qt::DisplayRole);
             break;
         case GameListItemType::CustomDir:

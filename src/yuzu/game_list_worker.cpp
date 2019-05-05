@@ -240,15 +240,14 @@ void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
     std::vector<std::pair<ContentProviderUnionSlot, ContentProviderEntry>> installed_games;
     installed_games = cache.ListEntriesFilterOrigin(std::nullopt, TitleType::Application,
                                                     ContentRecordType::Program);
-    if (parent_dir->type() == static_cast<int>(GameListItemType::InstalledDir)) {
+
+    if (parent_dir->type() == static_cast<int>(GameListItemType::SdmcDir)) {
+        installed_games = cache.ListEntriesFilterOrigin(
+            ContentProviderUnionSlot::SDMC, TitleType::Application, ContentRecordType::Program);
+    } else if (parent_dir->type() == static_cast<int>(GameListItemType::UserNandDir)) {
         installed_games = cache.ListEntriesFilterOrigin(
             ContentProviderUnionSlot::UserNAND, TitleType::Application, ContentRecordType::Program);
-        auto installed_sdmc_games = cache.ListEntriesFilterOrigin(
-            ContentProviderUnionSlot::SDMC, TitleType::Application, ContentRecordType::Program);
-
-        installed_games.insert(installed_games.end(), installed_sdmc_games.begin(),
-                               installed_sdmc_games.end());
-    } else if (parent_dir->type() == static_cast<int>(GameListItemType::SystemDir)) {
+    } else if (parent_dir->type() == static_cast<int>(GameListItemType::SysNandDir)) {
         installed_games = cache.ListEntriesFilterOrigin(
             ContentProviderUnionSlot::SysNAND, TitleType::Application, ContentRecordType::Program);
     }
@@ -353,12 +352,16 @@ void GameListWorker::run() {
     stop_processing = false;
 
     for (UISettings::GameDir& game_dir : game_dirs) {
-        if (game_dir.path == "INSTALLED") {
-            auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::InstalledDir);
+        if (game_dir.path == QStringLiteral("SDMC")) {
+            auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SdmcDir);
             emit DirEntryReady({game_list_dir});
             AddTitlesToGameList(game_list_dir);
-        } else if (game_dir.path == "SYSTEM") {
-            auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SystemDir);
+        } else if (game_dir.path == QStringLiteral("UserNAND")) {
+            auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::UserNandDir);
+            emit DirEntryReady({game_list_dir});
+            AddTitlesToGameList(game_list_dir);
+        } else if (game_dir.path == QStringLiteral("SysNAND")) {
+            auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SysNandDir);
             emit DirEntryReady({game_list_dir});
             AddTitlesToGameList(game_list_dir);
         } else {

@@ -1311,11 +1311,13 @@ void GMainWindow::OnGameListNavigateToGamedbEntry(u64 program_id,
 
 void GMainWindow::OnGameListOpenDirectory(const QString& directory) {
     QString path;
-    if (directory == QStringLiteral("INSTALLED")) {
-        // TODO: Find a better solution when installing files to the SD card gets implemented
+    if (directory == QStringLiteral("SDMC")) {
+        path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir) +
+                                      "Nintendo/Contents/registered");
+    } else if (directory == QStringLiteral("UserNAND")) {
         path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
                                       "user/Contents/registered");
-    } else if (directory == QStringLiteral("SYSTEM")) {
+    } else if (directory == QStringLiteral("SysNAND")) {
         path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
                                       "system/Contents/registered");
     } else {
