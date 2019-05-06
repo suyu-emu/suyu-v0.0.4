@@ -15,25 +15,25 @@ VirtualDir ExtractZIP(VirtualFile file) {
     zip_error_t error{};
 
     const auto data = file->ReadAllBytes();
-    const auto src = zip_source_buffer_create(data.data(), data.size(), 0, &error);
+    std::unique_ptr<zip_source_t, decltype(&zip_source_free)> src{
+        zip_source_buffer_create(data.data(), data.size(), 0, &error), zip_source_free};
     if (src == nullptr)
         return nullptr;
 
-    const auto zip = zip_open_from_source(src, 0, &error);
+    std::unique_ptr<zip_t, decltype(&zip_discard)> zip{zip_open_from_source(src.get(), 0, &error),
+                                                       zip_discard};
     if (zip == nullptr)
         return nullptr;
 
     std::shared_ptr<VectorVfsDirectory> out = std::make_shared<VectorVfsDirectory>();
 
-    const auto num_entries = zip_get_num_entries(zip, 0);
-    if (num_entries == -1)
-        return nullptr;
+    const auto num_entries = zip_get_num_entries(zip.get(), 0);
 
     zip_stat_t stat{};
     zip_stat_init(&stat);
 
     for (std::size_t i = 0; i < num_entries; ++i) {
-        const auto stat_res = zip_stat_index(zip, i, 0, &stat);
+        const auto stat_res = zip_stat_index(zip.get(), i, 0, &stat);
         if (stat_res == -1)
             return nullptr;
 
@@ -41,14 +41,13 @@ VirtualDir ExtractZIP(VirtualFile file) {
         if (name.empty())
             continue;
 
-        if (name[name.size() - 1] != '/') {
-            const auto file = zip_fopen_index(zip, i, 0);
+        if (name.back() != '/') {
+            std::unique_ptr<zip_file_t, decltype(&zip_fclose)> file{
+                zip_fopen_index(zip.get(), i, 0), zip_fclose};
 
             std::vector<u8> buf(stat.size);
-            if (zip_fread(file, buf.data(), buf.size()) != buf.size())
+            if (zip_fread(file.get(), buf.data(), buf.size()) != buf.size())
                 return nullptr;
-
-            zip_fclose(file);
 
             const auto parts = FileUtil::SplitPathComponents(stat.name);
             const auto new_file = std::make_shared<VectorVfsFile>(buf, parts.back());
@@ -73,9 +72,6 @@ VirtualDir ExtractZIP(VirtualFile file) {
             dtrv->AddFile(new_file);
         }
     }
-
-    zip_source_close(src);
-    zip_close(zip);
 
     return out;
 }

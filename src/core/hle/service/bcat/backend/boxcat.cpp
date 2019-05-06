@@ -111,18 +111,16 @@ public:
 
     DownloadResult DownloadDataZip() {
         return DownloadInternal(fmt::format(BOXCAT_PATHNAME_DATA, title_id), TIMEOUT_SECONDS,
-                                "Boxcat-Data-Digest", "application/zip");
+                                "application/zip");
     }
 
     DownloadResult DownloadLaunchParam() {
         return DownloadInternal(fmt::format(BOXCAT_PATHNAME_LAUNCHPARAM, title_id),
-                                TIMEOUT_SECONDS / 3, "Boxcat-LaunchParam-Digest",
-                                "application/octet-stream");
+                                TIMEOUT_SECONDS / 3, "application/octet-stream");
     }
 
 private:
     DownloadResult DownloadInternal(const std::string& resolved_path, u32 timeout_seconds,
-                                    const std::string& digest_header_name,
                                     const std::string& content_type_name) {
         if (client == nullptr) {
             client = std::make_unique<httplib::SSLClient>(BOXCAT_HOSTNAME, PORT, timeout_seconds);
@@ -136,10 +134,13 @@ private:
 
         if (FileUtil::Exists(path)) {
             FileUtil::IOFile file{path, "rb"};
-            std::vector<u8> bytes(file.GetSize());
-            file.ReadBytes(bytes.data(), bytes.size());
-            const auto digest = DigestFile(bytes);
-            headers.insert({digest_header_name, Common::HexArrayToString(digest, false)});
+            if (file.IsOpen()) {
+                std::vector<u8> bytes(file.GetSize());
+                file.ReadBytes(bytes.data(), bytes.size());
+                const auto digest = DigestFile(bytes);
+                headers.insert(
+                    {std::string("If-None-Match"), Common::HexArrayToString(digest, false)});
+            }
         }
 
         const auto response = client->Get(resolved_path.c_str(), headers);
@@ -227,7 +228,7 @@ void SynchronizeInternal(DirectoryGetter dir_getter, TitleIDVersion title,
     FileUtil::IOFile zip{zip_path, "rb"};
     const auto size = zip.GetSize();
     std::vector<u8> bytes(size);
-    if (size == 0 || zip.ReadBytes(bytes.data(), bytes.size()) != bytes.size()) {
+    if (!zip.IsOpen() || size == 0 || zip.ReadBytes(bytes.data(), bytes.size()) != bytes.size()) {
         LOG_ERROR(Service_BCAT, "Boxcat failed to read ZIP file at path '{}'!", zip_path);
         failure();
         return;
@@ -335,7 +336,7 @@ std::optional<std::vector<u8>> Boxcat::GetLaunchParameter(TitleIDVersion title) 
     FileUtil::IOFile bin{path, "rb"};
     const auto size = bin.GetSize();
     std::vector<u8> bytes(size);
-    if (size == 0 || bin.ReadBytes(bytes.data(), bytes.size()) != bytes.size()) {
+    if (!bin.IsOpen() || size == 0 || bin.ReadBytes(bytes.data(), bytes.size()) != bytes.size()) {
         LOG_ERROR(Service_BCAT, "Boxcat failed to read launch parameter binary at path '{}'!",
                   path);
         return std::nullopt;
