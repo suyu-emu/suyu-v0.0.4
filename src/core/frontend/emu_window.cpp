@@ -10,6 +10,8 @@
 
 namespace Core::Frontend {
 
+GraphicsContext::~GraphicsContext() = default;
+
 class EmuWindow::TouchState : public Input::Factory<Input::TouchDevice>,
                               public std::enable_shared_from_this<TouchState> {
 public:
