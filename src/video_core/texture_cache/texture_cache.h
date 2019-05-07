@@ -284,7 +284,7 @@ private:
                                              const SurfaceParams& params) {
         const auto gpu_addr = current_surface->GetGpuAddr();
         TSurface new_surface = GetUncachedSurface(gpu_addr, params);
-        std::vector<CopyParams> bricks = current_surface->BreakDown();
+        std::vector<CopyParams> bricks = current_surface->BreakDown(params);
         for (auto& brick : bricks) {
             ImageCopy(current_surface, new_surface, brick);
         }
@@ -370,11 +370,16 @@ private:
 
         if (overlaps.size() == 1) {
             TSurface current_surface = overlaps[0];
-            if (current_surface->MatchesStructure(params) &&
+            MatchStructureResult s_result = current_surface->MatchesStructure(params);
+            if (s_result != MatchStructureResult::None &&
                 current_surface->GetGpuAddr() == gpu_addr &&
                 (params.target != SurfaceTarget::Texture3D ||
                  current_surface->MatchTarget(params.target))) {
-                return ManageStructuralMatch(current_surface, params);
+                if (s_result == MatchStructureResult::FullMatch) {
+                    return ManageStructuralMatch(current_surface, params);
+                } else {
+                    return RebuildMirage(current_surface, params);
+                }
             }
             if (current_surface->GetSizeInBytes() <= candidate_size) {
                 return RecycleSurface(overlaps, params, gpu_addr, host_ptr, preserve_contents,

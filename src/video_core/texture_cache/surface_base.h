@@ -16,9 +16,8 @@
 #include "video_core/texture_cache/surface_params.h"
 #include "video_core/texture_cache/surface_view.h"
 
-template<class ForwardIt, class T, class Compare=std::less<>>
-ForwardIt binary_find(ForwardIt first, ForwardIt last, const T& value, Compare comp={})
-{
+template <class ForwardIt, class T, class Compare = std::less<>>
+ForwardIt binary_find(ForwardIt first, ForwardIt last, const T& value, Compare comp = {}) {
     // Note: BOTH type T and the type after ForwardIt is dereferenced
     // must be implicitly convertible to BOTH Type1 and Type2, used in Compare.
     // This is stricter than lower_bound requirement (see above)
@@ -33,8 +32,14 @@ class MemoryManager;
 
 namespace VideoCommon {
 
-using VideoCore::Surface::SurfaceTarget;
 using VideoCore::MortonSwizzleMode;
+using VideoCore::Surface::SurfaceTarget;
+
+enum class MatchStructureResult : u32 {
+    FullMatch = 0,
+    SemiMatch = 1,
+    None = 2,
+};
 
 class SurfaceBaseImpl {
 public:
@@ -106,17 +111,26 @@ public:
         return std::tie(src_bpp, params.is_tiled) == std::tie(dst_bpp, rhs.is_tiled);
     }
 
-    bool MatchesStructure(const SurfaceParams& rhs) const {
+    MatchStructureResult MatchesStructure(const SurfaceParams& rhs) const {
         if (params.is_tiled) {
-            const u32 a_width1 = params.GetBlockAlignedWidth();
-            const u32 a_width2 = rhs.GetBlockAlignedWidth();
-            return std::tie(a_width1, params.height, params.depth, params.block_width,
-                            params.block_height, params.block_depth, params.tile_width_spacing) ==
-                   std::tie(a_width2, rhs.height, rhs.depth, rhs.block_width, rhs.block_height,
-                            rhs.block_depth, rhs.tile_width_spacing);
+            if (std::tie(params.height, params.depth, params.block_width, params.block_height,
+                         params.block_depth, params.tile_width_spacing) ==
+                std::tie(rhs.height, rhs.depth, rhs.block_width, rhs.block_height, rhs.block_depth,
+                         rhs.tile_width_spacing)) {
+                if (params.width == rhs.width) {
+                    return MatchStructureResult::FullMatch;
+                }
+                if (params.GetBlockAlignedWidth() == rhs.GetBlockAlignedWidth()) {
+                    return MatchStructureResult::SemiMatch;
+                }
+            }
+            return MatchStructureResult::None;
         } else {
-            return std::tie(params.width, params.height, params.pitch) ==
-                   std::tie(rhs.width, rhs.height, rhs.pitch);
+            if (std::tie(params.width, params.height, params.pitch) ==
+                std::tie(rhs.width, rhs.height, rhs.pitch)) {
+                return MatchStructureResult::FullMatch;
+            }
+            return MatchStructureResult::None;
         }
     }
 
@@ -126,15 +140,16 @@ public:
         const GPUVAddr relative_address = candidate_gpu_addr - gpu_addr;
         const u32 layer = relative_address / layer_size;
         const GPUVAddr mipmap_address = relative_address - layer_size * layer;
-        const auto mipmap_it = binary_find(mipmap_offsets.begin(), mipmap_offsets.end(), mipmap_address);
+        const auto mipmap_it =
+            binary_find(mipmap_offsets.begin(), mipmap_offsets.end(), mipmap_address);
         if (mipmap_it != mipmap_offsets.end()) {
             return {{layer, std::distance(mipmap_offsets.begin(), mipmap_it)}};
         }
         return {};
     }
 
-    std::vector<CopyParams> BreakDown() const {
-        auto set_up_copy = [](CopyParams& cp, const SurfaceParams& params, const u32 depth,
+    std::vector<CopyParams> BreakDown(const SurfaceParams& in_params) const {
+        auto set_up_copy = [](CopyParams& cp, const u32 width, const u32 height, const u32 depth,
                               const u32 level) {
             cp.source_x = 0;
             cp.source_y = 0;
@@ -144,8 +159,8 @@ public:
             cp.dest_z = 0;
             cp.source_level = level;
             cp.dest_level = level;
-            cp.width = params.GetMipWidth(level);
-            cp.height = params.GetMipHeight(level);
+            cp.width = width;
+            cp.height = height;
             cp.depth = depth;
         };
         const u32 layers = params.depth;
@@ -156,7 +171,11 @@ public:
                 const u32 layer_offset = layer * mipmaps;
                 for (std::size_t level = 0; level < mipmaps; level++) {
                     CopyParams& cp = result[layer_offset + level];
-                    set_up_copy(cp, params, layer, level);
+                    const u32 width =
+                        std::min(params.GetMipWidth(level), in_params.GetMipWidth(level));
+                    const u32 height =
+                        std::min(params.GetMipHeight(level), in_params.GetMipHeight(level));
+                    set_up_copy(cp, width, height, layer, level);
                 }
             }
             return result;
@@ -164,7 +183,11 @@ public:
             std::vector<CopyParams> result{mipmaps};
             for (std::size_t level = 0; level < mipmaps; level++) {
                 CopyParams& cp = result[level];
-                set_up_copy(cp, params, params.GetMipDepth(level), level);
+                const u32 width = std::min(params.GetMipWidth(level), in_params.GetMipWidth(level));
+                const u32 height =
+                    std::min(params.GetMipHeight(level), in_params.GetMipHeight(level));
+                const u32 depth = std::min(params.GetMipDepth(level), in_params.GetMipDepth(level));
+                set_up_copy(cp, width, height, depth, level);
             }
             return result;
         }
@@ -254,7 +277,8 @@ public:
     std::optional<TView> EmplaceView(const SurfaceParams& view_params, const GPUVAddr view_addr) {
         if (view_addr < gpu_addr)
             return {};
-        if (params.target == SurfaceTarget::Texture3D || view_params.target == SurfaceTarget::Texture3D) {
+        if (params.target == SurfaceTarget::Texture3D ||
+            view_params.target == SurfaceTarget::Texture3D) {
             return {};
         }
         const std::size_t size = view_params.GetGuestSizeInBytes();
