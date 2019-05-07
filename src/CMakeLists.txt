@@ -21,14 +21,15 @@ if (MSVC)
     # Ensure that projects build with Unicode support.
     add_definitions(-DUNICODE -D_UNICODE)
 
-    # /W3             - Level 3 warnings
-    # /MP             - Multi-threaded compilation
-    # /Zi             - Output debugging information
-    # /Zo             - Enhanced debug info for optimized builds
-    # /permissive-    - Enables stricter C++ standards conformance checks
-    # /EHsc           - C++-only exception handling semantics
-    # /Zc:inline      - Let codegen omit inline functions in object files
-    # /Zc:throwingNew - Let codegen assume `operator new` (without std::nothrow) will never return null
+    # /W3                 - Level 3 warnings
+    # /MP                 - Multi-threaded compilation
+    # /Zi                 - Output debugging information
+    # /Zo                 - Enhanced debug info for optimized builds
+    # /permissive-        - Enables stricter C++ standards conformance checks
+    # /EHsc               - C++-only exception handling semantics
+    # /Zc:externConstexpr - Allow extern constexpr variables to have external linkage, like the standard mandates
+    # /Zc:inline          - Let codegen omit inline functions in object files
+    # /Zc:throwingNew     - Let codegen assume `operator new` (without std::nothrow) will never return null
     add_compile_options(
         /W3
         /MP
@@ -37,6 +38,7 @@ if (MSVC)
         /permissive-
         /EHsc
         /std:c++latest
+        /Zc:externConstexpr
         /Zc:inline
         /Zc:throwingNew
     )
