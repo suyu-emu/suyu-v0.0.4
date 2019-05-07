@@ -45,40 +45,40 @@ class SurfaceBaseImpl {
 public:
     void LoadBuffer(Tegra::MemoryManager& memory_manager, std::vector<u8>& staging_buffer);
 
-    void FlushBuffer(std::vector<u8>& staging_buffer);
+    void FlushBuffer(Tegra::MemoryManager& memory_manager, std::vector<u8>& staging_buffer);
 
     GPUVAddr GetGpuAddr() const {
         return gpu_addr;
     }
 
-    GPUVAddr GetGpuAddrEnd() const {
-        return gpu_addr_end;
-    }
-
-    bool Overlaps(const GPUVAddr start, const GPUVAddr end) const {
-        return (gpu_addr < end) && (gpu_addr_end > start);
+    bool Overlaps(const CacheAddr start, const CacheAddr end) const {
+        return (cache_addr < end) && (cache_addr_end > start);
     }
 
     // Use only when recycling a surface
     void SetGpuAddr(const GPUVAddr new_addr) {
         gpu_addr = new_addr;
-        gpu_addr_end = new_addr + memory_size;
     }
 
     VAddr GetCpuAddr() const {
-        return gpu_addr;
+        return cpu_addr;
     }
 
     void SetCpuAddr(const VAddr new_addr) {
         cpu_addr = new_addr;
     }
 
-    u8* GetHostPtr() const {
-        return host_ptr;
+    CacheAddr GetCacheAddr() const {
+        return cache_addr;
     }
 
-    void SetHostPtr(u8* new_addr) {
-        host_ptr = new_addr;
+    CacheAddr GetCacheAddrEnd() const {
+        return cache_addr_end;
+    }
+
+    void SetCacheAddr(const CacheAddr new_addr) {
+        cache_addr = new_addr;
+        cache_addr_end = new_addr + memory_size;
     }
 
     const SurfaceParams& GetSurfaceParams() const {
@@ -201,13 +201,13 @@ protected:
 
     const SurfaceParams params;
     GPUVAddr gpu_addr{};
-    GPUVAddr gpu_addr_end{};
     std::vector<u32> mipmap_sizes;
     std::vector<u32> mipmap_offsets;
     const std::size_t layer_size;
     const std::size_t memory_size;
     const std::size_t host_memory_size;
-    u8* host_ptr;
+    CacheAddr cache_addr;
+    CacheAddr cache_addr_end{};
     VAddr cpu_addr;
 
 private:

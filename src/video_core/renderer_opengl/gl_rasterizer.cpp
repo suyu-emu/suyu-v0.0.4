@@ -737,25 +737,9 @@ void RasterizerOpenGL::InvalidateRegion(CacheAddr addr, u64 size) {
     buffer_cache.InvalidateRegion(addr, size);
 }
 
-void RasterizerOpenGL::InvalidateRegionEx(GPUVAddr gpu_addr, CacheAddr addr, u64 size) {
-    MICROPROFILE_SCOPE(OpenGL_CacheManagement);
-    if (!addr || !size) {
-        return;
-    }
-    texture_cache.InvalidateRegionEx(gpu_addr, size);
-    shader_cache.InvalidateRegion(addr, size);
-    global_cache.InvalidateRegion(addr, size);
-    buffer_cache.InvalidateRegion(addr, size);
-}
-
 void RasterizerOpenGL::FlushAndInvalidateRegion(CacheAddr addr, u64 size) {
     FlushRegion(addr, size);
     InvalidateRegion(addr, size);
-}
-
-void RasterizerOpenGL::FlushAndInvalidateRegionEx(GPUVAddr gpu_addr, CacheAddr addr, u64 size) {
-    FlushRegion(addr, size);
-    InvalidateRegionEx(gpu_addr, addr, size);
 }
 
 bool RasterizerOpenGL::AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Regs::Surface& src,

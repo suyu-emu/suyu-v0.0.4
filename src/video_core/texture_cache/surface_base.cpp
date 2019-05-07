@@ -25,7 +25,6 @@ SurfaceBaseImpl::SurfaceBaseImpl(const GPUVAddr gpu_vaddr, const SurfaceParams& 
     u32 offset = 0;
     mipmap_offsets.resize(params.num_levels);
     mipmap_sizes.resize(params.num_levels);
-    gpu_addr_end = gpu_addr + memory_size;
     for (u32 i = 0; i < params.num_levels; i++) {
         mipmap_offsets[i] = offset;
         mipmap_sizes[i] = params.GetGuestMipmapSize(i);
@@ -99,8 +98,10 @@ void SurfaceBaseImpl::LoadBuffer(Tegra::MemoryManager& memory_manager,
     }
 }
 
-void SurfaceBaseImpl::FlushBuffer(std::vector<u8>& staging_buffer) {
+void SurfaceBaseImpl::FlushBuffer(Tegra::MemoryManager& memory_manager,
+                                  std::vector<u8>& staging_buffer) {
     MICROPROFILE_SCOPE(GPU_Flush_Texture);
+    auto host_ptr = memory_manager.GetPointer(gpu_addr);
     if (params.is_tiled) {
         ASSERT_MSG(params.block_width == 1, "Block width is defined as {}", params.block_width);
         for (u32 level = 0; level < params.num_levels; ++level) {

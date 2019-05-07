@@ -49,10 +49,6 @@ public:
     /// and invalidated
     virtual void FlushAndInvalidateRegion(CacheAddr addr, u64 size) = 0;
 
-    /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
-    /// and invalidated
-    virtual void FlushAndInvalidateRegionEx(GPUVAddr gpu_addr, CacheAddr addr, u64 size) = 0;
-
     /// Attempt to use a faster method to perform a surface copy
     virtual bool AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Regs::Surface& src,
                                        const Tegra::Engines::Fermi2D::Regs::Surface& dst,

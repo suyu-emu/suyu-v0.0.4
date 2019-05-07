@@ -64,9 +64,7 @@ public:
     void FlushAll() override;
     void FlushRegion(CacheAddr addr, u64 size) override;
     void InvalidateRegion(CacheAddr addr, u64 size) override;
-    void InvalidateRegionEx(GPUVAddr gpu_addr, CacheAddr addr, u64 size);
     void FlushAndInvalidateRegion(CacheAddr addr, u64 size) override;
-    void FlushAndInvalidateRegionEx(GPUVAddr gpu_addr, CacheAddr addr, u64 size) override;
     bool AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Regs::Surface& src,
                                const Tegra::Engines::Fermi2D::Regs::Surface& dst,
                                const Common::Rectangle<u32>& src_rect,
