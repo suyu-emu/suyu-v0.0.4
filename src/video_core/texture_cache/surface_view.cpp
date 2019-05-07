@@ -9,15 +9,15 @@
 
 namespace VideoCommon {
 
-std::size_t ViewKey::Hash() const {
+std::size_t ViewParams::Hash() const {
     return static_cast<std::size_t>(base_layer) ^ static_cast<std::size_t>(num_layers << 16) ^
-           (static_cast<std::size_t>(base_level) << 32) ^
-           (static_cast<std::size_t>(num_levels) << 48);
+           (static_cast<std::size_t>(base_level) << 24) ^
+           (static_cast<std::size_t>(num_levels) << 32) ^ (static_cast<std::size_t>(target) << 36);
 }
 
-bool ViewKey::operator==(const ViewKey& rhs) const {
-    return std::tie(base_layer, num_layers, base_level, num_levels) ==
-           std::tie(rhs.base_layer, rhs.num_layers, rhs.base_level, rhs.num_levels);
+bool ViewParams::operator==(const ViewParams& rhs) const {
+    return std::tie(base_layer, num_layers, base_level, num_levels, target) ==
+           std::tie(rhs.base_layer, rhs.num_layers, rhs.base_level, rhs.num_levels, rhs.target);
 }
 
 } // namespace VideoCommon

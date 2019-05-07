@@ -4,166 +4,309 @@
 
 #pragma once
 
+#include <algorithm>
 #include <unordered_map>
+#include <vector>
 
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/gpu.h"
+#include "video_core/morton.h"
+#include "video_core/texture_cache/copy_params.h"
 #include "video_core/texture_cache/surface_params.h"
 #include "video_core/texture_cache/surface_view.h"
 
+template<class ForwardIt, class T, class Compare=std::less<>>
+ForwardIt binary_find(ForwardIt first, ForwardIt last, const T& value, Compare comp={})
+{
+    // Note: BOTH type T and the type after ForwardIt is dereferenced
+    // must be implicitly convertible to BOTH Type1 and Type2, used in Compare.
+    // This is stricter than lower_bound requirement (see above)
+
+    first = std::lower_bound(first, last, value, comp);
+    return first != last && !comp(value, *first) ? first : last;
+}
+
+namespace Tegra {
+class MemoryManager;
+}
+
 namespace VideoCommon {
+
+using VideoCore::Surface::SurfaceTarget;
+using VideoCore::MortonSwizzleMode;
 
 class SurfaceBaseImpl {
 public:
-    void LoadBuffer();
+    void LoadBuffer(Tegra::MemoryManager& memory_manager, std::vector<u8>& staging_buffer);
 
-    void FlushBuffer();
+    void FlushBuffer(std::vector<u8>& staging_buffer);
 
     GPUVAddr GetGpuAddr() const {
-        ASSERT(is_registered);
         return gpu_addr;
     }
 
+    GPUVAddr GetGpuAddrEnd() const {
+        return gpu_addr_end;
+    }
+
+    bool Overlaps(const GPUVAddr start, const GPUVAddr end) const {
+        return (gpu_addr < end) && (gpu_addr_end > start);
+    }
+
+    // Use only when recycling a surface
+    void SetGpuAddr(const GPUVAddr new_addr) {
+        gpu_addr = new_addr;
+        gpu_addr_end = new_addr + memory_size;
+    }
+
     VAddr GetCpuAddr() const {
-        ASSERT(is_registered);
-        return cpu_addr;
+        return gpu_addr;
+    }
+
+    void SetCpuAddr(const VAddr new_addr) {
+        cpu_addr = new_addr;
     }
 
     u8* GetHostPtr() const {
-        ASSERT(is_registered);
         return host_ptr;
     }
 
-    CacheAddr GetCacheAddr() const {
-        ASSERT(is_registered);
-        return cache_addr;
+    void SetHostPtr(u8* new_addr) {
+        host_ptr = new_addr;
     }
 
     const SurfaceParams& GetSurfaceParams() const {
         return params;
     }
 
-    void Register(GPUVAddr gpu_addr_, VAddr cpu_addr_, u8* host_ptr_) {
-        ASSERT(!is_registered);
-        is_registered = true;
-        gpu_addr = gpu_addr_;
-        cpu_addr = cpu_addr_;
-        host_ptr = host_ptr_;
-        cache_addr = ToCacheAddr(host_ptr_);
-        DecorateSurfaceName();
-    }
-
-    void Unregister() {
-        ASSERT(is_registered);
-        is_registered = false;
-    }
-
-    bool IsRegistered() const {
-        return is_registered;
-    }
-
     std::size_t GetSizeInBytes() const {
-        return params.GetGuestSizeInBytes();
+        return memory_size;
     }
 
-    u8* GetStagingBufferLevelData(u32 level) {
-        return staging_buffer.data() + params.GetHostMipmapLevelOffset(level);
+    std::size_t GetHostSizeInBytes() const {
+        return host_memory_size;
+    }
+
+    std::size_t GetMipmapSize(const u32 level) const {
+        return mipmap_sizes[level];
+    }
+
+    bool MatchFormat(VideoCore::Surface::PixelFormat pixel_format) const {
+        return params.pixel_format == pixel_format;
+    }
+
+    bool MatchTarget(VideoCore::Surface::SurfaceTarget target) const {
+        return params.target == target;
+    }
+
+    bool MatchesTopology(const SurfaceParams& rhs) const {
+        const u32 src_bpp = params.GetBytesPerPixel();
+        const u32 dst_bpp = rhs.GetBytesPerPixel();
+        return std::tie(src_bpp, params.is_tiled) == std::tie(dst_bpp, rhs.is_tiled);
+    }
+
+    bool MatchesStructure(const SurfaceParams& rhs) const {
+        if (params.is_tiled) {
+            const u32 a_width1 = params.GetBlockAlignedWidth();
+            const u32 a_width2 = rhs.GetBlockAlignedWidth();
+            return std::tie(a_width1, params.height, params.depth, params.block_width,
+                            params.block_height, params.block_depth, params.tile_width_spacing) ==
+                   std::tie(a_width2, rhs.height, rhs.depth, rhs.block_width, rhs.block_height,
+                            rhs.block_depth, rhs.tile_width_spacing);
+        } else {
+            return std::tie(params.width, params.height, params.pitch) ==
+                   std::tie(rhs.width, rhs.height, rhs.pitch);
+        }
+    }
+
+    std::optional<std::pair<u32, u32>> GetLayerMipmap(const GPUVAddr candidate_gpu_addr) const {
+        if (candidate_gpu_addr < gpu_addr)
+            return {};
+        const GPUVAddr relative_address = candidate_gpu_addr - gpu_addr;
+        const u32 layer = relative_address / layer_size;
+        const GPUVAddr mipmap_address = relative_address - layer_size * layer;
+        const auto mipmap_it = binary_find(mipmap_offsets.begin(), mipmap_offsets.end(), mipmap_address);
+        if (mipmap_it != mipmap_offsets.end()) {
+            return {{layer, std::distance(mipmap_offsets.begin(), mipmap_it)}};
+        }
+        return {};
+    }
+
+    std::vector<CopyParams> BreakDown() const {
+        auto set_up_copy = [](CopyParams& cp, const SurfaceParams& params, const u32 depth,
+                              const u32 level) {
+            cp.source_x = 0;
+            cp.source_y = 0;
+            cp.source_z = 0;
+            cp.dest_x = 0;
+            cp.dest_y = 0;
+            cp.dest_z = 0;
+            cp.source_level = level;
+            cp.dest_level = level;
+            cp.width = params.GetMipWidth(level);
+            cp.height = params.GetMipHeight(level);
+            cp.depth = depth;
+        };
+        const u32 layers = params.depth;
+        const u32 mipmaps = params.num_levels;
+        if (params.is_layered) {
+            std::vector<CopyParams> result{layers * mipmaps};
+            for (std::size_t layer = 0; layer < layers; layer++) {
+                const u32 layer_offset = layer * mipmaps;
+                for (std::size_t level = 0; level < mipmaps; level++) {
+                    CopyParams& cp = result[layer_offset + level];
+                    set_up_copy(cp, params, layer, level);
+                }
+            }
+            return result;
+        } else {
+            std::vector<CopyParams> result{mipmaps};
+            for (std::size_t level = 0; level < mipmaps; level++) {
+                CopyParams& cp = result[level];
+                set_up_copy(cp, params, params.GetMipDepth(level), level);
+            }
+            return result;
+        }
     }
 
 protected:
-    explicit SurfaceBaseImpl(const SurfaceParams& params);
-    ~SurfaceBaseImpl(); // non-virtual is intended
+    explicit SurfaceBaseImpl(const GPUVAddr gpu_vaddr, const SurfaceParams& params);
+    ~SurfaceBaseImpl() = default;
 
     virtual void DecorateSurfaceName() = 0;
 
     const SurfaceParams params;
+    GPUVAddr gpu_addr{};
+    GPUVAddr gpu_addr_end{};
+    std::vector<u32> mipmap_sizes;
+    std::vector<u32> mipmap_offsets;
+    const std::size_t layer_size;
+    const std::size_t memory_size;
+    const std::size_t host_memory_size;
+    u8* host_ptr;
+    VAddr cpu_addr;
 
 private:
-    GPUVAddr gpu_addr{};
-    VAddr cpu_addr{};
-    u8* host_ptr{};
-    CacheAddr cache_addr{};
-    bool is_registered{};
-
-    std::vector<u8> staging_buffer;
+    void SwizzleFunc(MortonSwizzleMode mode, u8* memory, const SurfaceParams& params, u8* buffer,
+                     u32 level);
 };
 
-template <typename TTextureCache, typename TView>
+template <typename TView>
 class SurfaceBase : public SurfaceBaseImpl {
 public:
-    virtual void UploadTexture() = 0;
+    virtual void UploadTexture(std::vector<u8>& staging_buffer) = 0;
 
-    virtual void DownloadTexture() = 0;
+    virtual void DownloadTexture(std::vector<u8>& staging_buffer) = 0;
 
-    TView* TryGetView(GPUVAddr view_addr, const SurfaceParams& view_params) {
-        if (view_addr < GetGpuAddr() || !params.IsFamiliar(view_params)) {
-            // It can't be a view if it's in a prior address.
-            return {};
-        }
-
-        const auto relative_offset{static_cast<u64>(view_addr - GetGpuAddr())};
-        const auto it{view_offset_map.find(relative_offset)};
-        if (it == view_offset_map.end()) {
-            // Couldn't find an aligned view.
-            return {};
-        }
-        const auto [layer, level] = it->second;
-
-        if (!params.IsViewValid(view_params, layer, level)) {
-            return {};
-        }
-
-        return GetView(layer, view_params.GetNumLayers(), level, view_params.GetNumLevels());
+    void MarkAsModified(const bool is_modified_, const u64 tick) {
+        is_modified = is_modified_ || is_protected;
+        modification_tick = tick;
     }
 
-    void MarkAsModified(bool is_modified_) {
-        is_modified = is_modified_;
-        if (is_modified_) {
-            modification_tick = texture_cache.Tick();
-        }
+    void MarkAsProtected(const bool is_protected) {
+        this->is_protected = is_protected;
     }
 
-    TView* GetView(GPUVAddr view_addr, const SurfaceParams& view_params) {
-        TView* view{TryGetView(view_addr, view_params)};
-        ASSERT(view != nullptr);
-        return view;
+    void MarkAsPicked(const bool is_picked) {
+        this->is_picked = is_picked;
     }
 
     bool IsModified() const {
         return is_modified;
     }
 
+    bool IsProtected() const {
+        return is_protected;
+    }
+
+    bool IsRegistered() const {
+        return is_registered;
+    }
+
+    bool IsPicked() const {
+        return is_picked;
+    }
+
+    void MarkAsRegistered(bool is_reg) {
+        is_registered = is_reg;
+    }
+
     u64 GetModificationTick() const {
         return modification_tick;
     }
 
+    TView EmplaceOverview(const SurfaceParams& overview_params) {
+        ViewParams vp{};
+        vp.base_level = 0;
+        vp.num_levels = params.num_levels;
+        vp.target = overview_params.target;
+        if (params.is_layered && !overview_params.is_layered) {
+            vp.base_layer = 0;
+            vp.num_layers = 1;
+        } else {
+            vp.base_layer = 0;
+            vp.num_layers = params.depth;
+        }
+        return GetView(vp);
+    }
+
+    std::optional<TView> EmplaceView(const SurfaceParams& view_params, const GPUVAddr view_addr) {
+        if (view_addr < gpu_addr)
+            return {};
+        if (params.target == SurfaceTarget::Texture3D || view_params.target == SurfaceTarget::Texture3D) {
+            return {};
+        }
+        const std::size_t size = view_params.GetGuestSizeInBytes();
+        const GPUVAddr relative_address = view_addr - gpu_addr;
+        auto layer_mipmap = GetLayerMipmap(relative_address);
+        if (!layer_mipmap) {
+            return {};
+        }
+        const u32 layer = (*layer_mipmap).first;
+        const u32 mipmap = (*layer_mipmap).second;
+        if (GetMipmapSize(mipmap) != size) {
+            // TODO: the view may cover many mimaps, this case can still go on
+            return {};
+        }
+        ViewParams vp{};
+        vp.base_layer = layer;
+        vp.num_layers = 1;
+        vp.base_level = mipmap;
+        vp.num_levels = 1;
+        vp.target = params.target;
+        return {GetView(vp)};
+    }
+
+    TView GetMainView() const {
+        return main_view;
+    }
+
 protected:
-    explicit SurfaceBase(TTextureCache& texture_cache, const SurfaceParams& params)
-        : SurfaceBaseImpl{params}, texture_cache{texture_cache},
-          view_offset_map{params.CreateViewOffsetMap()} {}
+    explicit SurfaceBase(const GPUVAddr gpu_addr, const SurfaceParams& params)
+        : SurfaceBaseImpl(gpu_addr, params) {}
 
     ~SurfaceBase() = default;
 
-    virtual std::unique_ptr<TView> CreateView(const ViewKey& view_key) = 0;
+    virtual TView CreateView(const ViewParams& view_key) = 0;
+
+    std::unordered_map<ViewParams, TView> views;
+    TView main_view;
 
 private:
-    TView* GetView(u32 base_layer, u32 num_layers, u32 base_level, u32 num_levels) {
-        const ViewKey key{base_layer, num_layers, base_level, num_levels};
+    TView GetView(const ViewParams& key) {
         const auto [entry, is_cache_miss] = views.try_emplace(key);
         auto& view{entry->second};
         if (is_cache_miss) {
             view = CreateView(key);
         }
-        return view.get();
+        return view;
     }
 
-    TTextureCache& texture_cache;
-    const std::map<u64, std::pair<u32, u32>> view_offset_map;
-
-    std::unordered_map<ViewKey, std::unique_ptr<TView>> views;
-
     bool is_modified{};
+    bool is_protected{};
+    bool is_registered{};
+    bool is_picked{};
     u64 modification_tick{};
 };
 
