@@ -282,8 +282,7 @@ public:
             return {};
         }
         const std::size_t size = view_params.GetGuestSizeInBytes();
-        const GPUVAddr relative_address = view_addr - gpu_addr;
-        auto layer_mipmap = GetLayerMipmap(relative_address);
+        auto layer_mipmap = GetLayerMipmap(view_addr);
         if (!layer_mipmap) {
             return {};
         }
@@ -298,7 +297,7 @@ public:
         vp.num_layers = 1;
         vp.base_level = mipmap;
         vp.num_levels = 1;
-        vp.target = params.target;
+        vp.target = view_params.target;
         return {GetView(vp)};
     }
 

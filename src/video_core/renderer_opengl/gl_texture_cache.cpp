@@ -233,7 +233,8 @@ CachedSurface::CachedSurface(const GPUVAddr gpu_addr, const SurfaceParams& param
     main.num_layers = params.is_layered ? params.depth : 1;
     main.target = params.target;
     main_view = CreateView(main);
-    main_view->DecorateViewName(gpu_addr, params.TargetName() + "V:" + std::to_string(view_count++));
+    main_view->DecorateViewName(gpu_addr,
+                                params.TargetName() + "V:" + std::to_string(view_count++));
 }
 
 CachedSurface::~CachedSurface() {
@@ -350,7 +351,7 @@ void CachedSurface::DecorateSurfaceName() {
 }
 
 void CachedSurfaceView::DecorateViewName(GPUVAddr gpu_addr, std::string prefix) {
-    LabelGLObject(GL_TEXTURE, texture_view.texture.handle, gpu_addr, prefix);
+    LabelGLObject(GL_TEXTURE, texture_view.handle, gpu_addr, prefix);
 }
 
 View CachedSurface::CreateView(const ViewParams& view_key) {
@@ -364,6 +365,7 @@ CachedSurfaceView::CachedSurfaceView(CachedSurface& surface, const ViewParams& p
     : VideoCommon::ViewBase(params), surface{surface} {
     target = GetTextureTarget(params.target);
     texture_view = CreateTextureView();
+    swizzle = EncodeSwizzle(SwizzleSource::R, SwizzleSource::G, SwizzleSource::B, SwizzleSource::A);
 }
 
 CachedSurfaceView::~CachedSurfaceView() = default;
@@ -371,20 +373,24 @@ CachedSurfaceView::~CachedSurfaceView() = default;
 void CachedSurfaceView::Attach(GLenum attachment) const {
     ASSERT(params.num_layers == 1 && params.num_levels == 1);
 
-    switch (params.target) {
+    const auto& owner_params = surface.GetSurfaceParams();
+
+    switch (owner_params.target) {
     case SurfaceTarget::Texture1D:
-        glFramebufferTexture1D(GL_DRAW_FRAMEBUFFER, attachment, target,
-                               surface.GetTexture(), params.base_level);
+        glFramebufferTexture1D(GL_DRAW_FRAMEBUFFER, attachment, surface.GetTarget(),
+                               surface.GetTexture(),
+                               params.base_level);
         break;
     case SurfaceTarget::Texture2D:
-        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, target,
-                               surface.GetTexture(), params.base_level);
+        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, surface.GetTarget(),
+                               surface.GetTexture(),
+                               params.base_level);
         break;
     case SurfaceTarget::Texture1DArray:
     case SurfaceTarget::Texture2DArray:
     case SurfaceTarget::TextureCubemap:
     case SurfaceTarget::TextureCubeArray:
-        glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, attachment, target,
+        glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, attachment, surface.GetTexture(),
                                   params.base_level, params.base_layer);
         break;
     default:
@@ -394,22 +400,22 @@ void CachedSurfaceView::Attach(GLenum attachment) const {
 
 void CachedSurfaceView::ApplySwizzle(SwizzleSource x_source, SwizzleSource y_source,
                                      SwizzleSource z_source, SwizzleSource w_source) {
-    u32 swizzle = EncodeSwizzle(x_source, y_source, z_source, w_source);
-    if (swizzle == texture_view.swizzle)
+    u32 new_swizzle = EncodeSwizzle(x_source, y_source, z_source, w_source);
+    if (new_swizzle == swizzle)
         return;
+    swizzle = new_swizzle;
     const std::array<GLint, 4> gl_swizzle = {GetSwizzleSource(x_source), GetSwizzleSource(y_source),
                                              GetSwizzleSource(z_source),
                                              GetSwizzleSource(w_source)};
-    glTextureParameteriv(texture_view.texture.handle, GL_TEXTURE_SWIZZLE_RGBA, gl_swizzle.data());
-    texture_view.swizzle = swizzle;
+    glTextureParameteriv(texture_view.handle, GL_TEXTURE_SWIZZLE_RGBA, gl_swizzle.data());
 }
 
-CachedSurfaceView::TextureView CachedSurfaceView::CreateTextureView() const {
+OGLTextureView CachedSurfaceView::CreateTextureView() const {
     const auto& owner_params = surface.GetSurfaceParams();
-    TextureView texture_view;
-    texture_view.texture.Create();
+    OGLTextureView tv;
+    tv.Create();
 
-    const GLuint handle{texture_view.texture.handle};
+    const GLuint handle{tv.handle};
     const FormatTuple& tuple{
         GetFormatTuple(owner_params.pixel_format, owner_params.component_type)};
 
@@ -418,11 +424,7 @@ CachedSurfaceView::TextureView CachedSurfaceView::CreateTextureView() const {
 
     ApplyTextureDefaults(owner_params, handle);
 
-    u32 swizzle =
-        EncodeSwizzle(SwizzleSource::R, SwizzleSource::G, SwizzleSource::B, SwizzleSource::A);
-    texture_view.swizzle = swizzle;
-
-    return texture_view;
+    return tv;
 }
 
 TextureCacheOpenGL::TextureCacheOpenGL(Core::System& system,

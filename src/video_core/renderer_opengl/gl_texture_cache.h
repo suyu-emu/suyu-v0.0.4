@@ -74,7 +74,7 @@ public:
     void Attach(GLenum attachment) const;
 
     GLuint GetTexture() {
-        return texture_view.texture.handle;
+        return texture_view.handle;
     }
 
     const SurfaceParams& GetSurfaceParams() const {
@@ -104,11 +104,6 @@ public:
     void DecorateViewName(GPUVAddr gpu_addr, std::string prefix);
 
 private:
-    struct TextureView {
-        OGLTextureView texture;
-        u32 swizzle;
-    };
-
     u32 EncodeSwizzle(Tegra::Texture::SwizzleSource x_source,
                       Tegra::Texture::SwizzleSource y_source,
                       Tegra::Texture::SwizzleSource z_source,
@@ -117,12 +112,13 @@ private:
                (static_cast<u32>(z_source) << 8) | static_cast<u32>(w_source);
     }
 
-    TextureView CreateTextureView() const;
+    OGLTextureView CreateTextureView() const;
 
     CachedSurface& surface;
     GLenum target{};
 
-    TextureView texture_view;
+    OGLTextureView texture_view;
+    u32 swizzle;
 };
 
 class TextureCacheOpenGL final : public TextureCacheBase {
