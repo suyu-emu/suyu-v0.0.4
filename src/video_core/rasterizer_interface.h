@@ -10,6 +10,10 @@
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/gpu.h"
 
+namespace Tegra {
+class MemoryManager;
+}
+
 namespace VideoCore {
 
 enum class LoadCallbackStage {
@@ -23,6 +27,8 @@ using DiskResourceLoadCallback = std::function<void(LoadCallbackStage, std::size
 class RasterizerInterface {
 public:
     virtual ~RasterizerInterface() {}
+
+    virtual void InitMemoryMananger(Tegra::MemoryManager& memory_manager) = 0;
 
     /// Draw the current batch of vertex arrays
     virtual void DrawArrays() = 0;
@@ -42,6 +48,10 @@ public:
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
     /// and invalidated
     virtual void FlushAndInvalidateRegion(CacheAddr addr, u64 size) = 0;
+
+    /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
+    /// and invalidated
+    virtual void FlushAndInvalidateRegionEx(GPUVAddr gpu_addr, CacheAddr addr, u64 size) = 0;
 
     /// Attempt to use a faster method to perform a surface copy
     virtual bool AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Regs::Surface& src,

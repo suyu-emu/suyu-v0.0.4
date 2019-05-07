@@ -69,7 +69,7 @@ GPUVAddr MemoryManager::UnmapBuffer(GPUVAddr gpu_addr, u64 size) {
     const u64 aligned_size{Common::AlignUp(size, page_size)};
     const CacheAddr cache_addr{ToCacheAddr(GetPointer(gpu_addr))};
 
-    rasterizer.FlushAndInvalidateRegion(cache_addr, aligned_size);
+    rasterizer.FlushAndInvalidateRegionEx(gpu_addr, cache_addr, aligned_size);
     UnmapRange(gpu_addr, aligned_size);
 
     return gpu_addr;
