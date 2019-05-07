@@ -19,24 +19,25 @@
 namespace OpenGL {
 
 using VideoCommon::SurfaceParams;
-using VideoCommon::ViewKey;
+using VideoCommon::ViewParams;
 
 class CachedSurfaceView;
 class CachedSurface;
 class TextureCacheOpenGL;
 
 using Surface = std::shared_ptr<CachedSurface>;
-using TextureCacheBase = VideoCommon::TextureCache<CachedSurface, CachedSurfaceView>;
+using View = std::shared_ptr<CachedSurfaceView>;
+using TextureCacheBase = VideoCommon::TextureCache<Surface, View>;
 
-class CachedSurface final : public VideoCommon::SurfaceBase<TextureCacheOpenGL, CachedSurfaceView> {
+class CachedSurface final : public VideoCommon::SurfaceBase<View> {
     friend CachedSurfaceView;
 
 public:
-    explicit CachedSurface(TextureCacheOpenGL& texture_cache, const SurfaceParams& params);
+    explicit CachedSurface(const GPUVAddr gpu_addr, const SurfaceParams& params);
     ~CachedSurface();
 
-    void UploadTexture();
-    void DownloadTexture();
+    void UploadTexture(std::vector<u8>& staging_buffer) override;
+    void DownloadTexture(std::vector<u8>& staging_buffer) override;
 
     GLenum GetTarget() const {
         return target;
@@ -49,99 +50,79 @@ public:
 protected:
     void DecorateSurfaceName();
 
-    std::unique_ptr<CachedSurfaceView> CreateView(const ViewKey& view_key);
+    View CreateView(const ViewParams& view_key) override;
 
 private:
-    void UploadTextureMipmap(u32 level);
+    void UploadTextureMipmap(u32 level, std::vector<u8>& staging_buffer);
 
     GLenum internal_format{};
     GLenum format{};
     GLenum type{};
     bool is_compressed{};
     GLenum target{};
+    u32 view_count{};
 
     OGLTexture texture;
 };
 
-class CachedSurfaceView final {
+class CachedSurfaceView final : public VideoCommon::ViewBase {
 public:
-    explicit CachedSurfaceView(CachedSurface& surface, ViewKey key);
+    explicit CachedSurfaceView(CachedSurface& surface, const ViewParams& params);
     ~CachedSurfaceView();
 
     /// Attaches this texture view to the current bound GL_DRAW_FRAMEBUFFER
     void Attach(GLenum attachment) const;
 
-    GLuint GetTexture(Tegra::Shader::TextureType texture_type, bool is_array,
-                      Tegra::Texture::SwizzleSource x_source,
-                      Tegra::Texture::SwizzleSource y_source,
-                      Tegra::Texture::SwizzleSource z_source,
-                      Tegra::Texture::SwizzleSource w_source);
-
-    void MarkAsModified(bool is_modified) {
-        surface.MarkAsModified(is_modified);
+    GLuint GetTexture() {
+        return texture_view.texture.handle;
     }
 
     const SurfaceParams& GetSurfaceParams() const {
-        return params;
+        return surface.GetSurfaceParams();
     }
 
     u32 GetWidth() const {
-        return params.GetMipWidth(GetBaseLevel());
+        const auto owner_params = GetSurfaceParams();
+        return owner_params.GetMipWidth(params.base_level);
     }
 
     u32 GetHeight() const {
-        return params.GetMipHeight(GetBaseLevel());
+        const auto owner_params = GetSurfaceParams();
+        return owner_params.GetMipHeight(params.base_level);
     }
 
     u32 GetDepth() const {
-        return params.GetMipDepth(GetBaseLevel());
+        const auto owner_params = GetSurfaceParams();
+        return owner_params.GetMipDepth(params.base_level);
     }
 
-    u32 GetBaseLayer() const {
-        return key.base_layer;
-    }
-
-    u32 GetNumLayers() const {
-        return key.num_layers;
-    }
-
-    u32 GetBaseLevel() const {
-        return key.base_level;
-    }
-
-    u32 GetNumLevels() const {
-        return key.num_levels;
-    }
-
-private:
-    struct TextureView {
-        OGLTexture texture;
-        std::array<Tegra::Texture::SwizzleSource, 4> swizzle{
-            Tegra::Texture::SwizzleSource::R, Tegra::Texture::SwizzleSource::G,
-            Tegra::Texture::SwizzleSource::B, Tegra::Texture::SwizzleSource::A};
-    };
-
-    void ApplySwizzle(TextureView& texture_view, Tegra::Texture::SwizzleSource x_source,
+    void ApplySwizzle(Tegra::Texture::SwizzleSource x_source,
                       Tegra::Texture::SwizzleSource y_source,
                       Tegra::Texture::SwizzleSource z_source,
                       Tegra::Texture::SwizzleSource w_source);
 
-    TextureView CreateTextureView(GLenum target) const;
+    void DecorateViewName(GPUVAddr gpu_addr, std::string prefix);
 
-    std::pair<std::reference_wrapper<TextureView>, GLenum> GetTextureView(
-        Tegra::Shader::TextureType texture_type, bool is_array);
+private:
+    struct TextureView {
+        OGLTextureView texture;
+        u32 swizzle;
+    };
+
+    u32 EncodeSwizzle(Tegra::Texture::SwizzleSource x_source,
+                      Tegra::Texture::SwizzleSource y_source,
+                      Tegra::Texture::SwizzleSource z_source,
+                      Tegra::Texture::SwizzleSource w_source) const {
+        return (static_cast<u32>(x_source) << 24) | (static_cast<u32>(y_source) << 16) |
+               (static_cast<u32>(z_source) << 8) | static_cast<u32>(w_source);
+    }
+
+    TextureView CreateTextureView() const;
 
     CachedSurface& surface;
-    const ViewKey key;
-    const SurfaceParams params;
+    GLenum target{};
 
-    TextureView texture_view_1d;
-    TextureView texture_view_1d_array;
-    TextureView texture_view_2d;
-    TextureView texture_view_2d_array;
-    TextureView texture_view_3d;
-    TextureView texture_view_cube;
-    TextureView texture_view_cube_array;
+    TextureView texture_view;
 };
 
 class TextureCacheOpenGL final : public TextureCacheBase {
@@ -150,21 +131,9 @@ public:
     ~TextureCacheOpenGL();
 
 protected:
-    CachedSurfaceView* TryFastGetSurfaceView(GPUVAddr gpu_addr, VAddr cpu_addr, u8* host_ptr,
-                                             const SurfaceParams& new_params,
-                                             bool preserve_contents,
-                                             const std::vector<Surface>& overlaps);
-
-    Surface CreateSurface(const SurfaceParams& params);
-
-private:
-    CachedSurfaceView* SurfaceCopy(GPUVAddr gpu_addr, VAddr cpu_addr, u8* host_ptr,
-                                   const SurfaceParams& new_params, const Surface& old_surface,
-                                   const SurfaceParams& old_params);
-
-    CachedSurfaceView* TryCopyAsViews(GPUVAddr gpu_addr, VAddr cpu_addr, u8* host_ptr,
-                                      const SurfaceParams& new_params,
-                                      const std::vector<Surface>& overlaps);
+    Surface CreateSurface(GPUVAddr gpu_addr, const SurfaceParams& params) override;
+    void ImageCopy(Surface src_surface, Surface dst_surface,
+                   const VideoCommon::CopyParams& copy_params) override;
 };
 
 } // namespace OpenGL

@@ -39,8 +39,8 @@ public:
     explicit SurfaceBlitter();
     ~SurfaceBlitter();
 
-    void Blit(CachedSurfaceView* src, CachedSurfaceView* dst,
-              const Common::Rectangle<u32>& src_rect, const Common::Rectangle<u32>& dst_rect) const;
+    void Blit(View src, View dst, const Common::Rectangle<u32>& src_rect,
+              const Common::Rectangle<u32>& dst_rect) const;
 
 private:
     OGLFramebuffer src_framebuffer;

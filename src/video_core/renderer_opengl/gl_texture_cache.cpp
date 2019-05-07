@@ -4,7 +4,9 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "common/microprofile.h"
 #include "common/scope_exit.h"
+#include "core/core.h"
 #include "video_core/morton.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
@@ -21,6 +23,9 @@ using VideoCore::MortonSwizzleMode;
 using VideoCore::Surface::ComponentType;
 using VideoCore::Surface::PixelFormat;
 using VideoCore::Surface::SurfaceTarget;
+
+MICROPROFILE_DEFINE(OpenGL_Texture_Upload, "OpenGL", "Texture Upload", MP_RGB(128, 192, 128));
+MICROPROFILE_DEFINE(OpenGL_Texture_Download, "OpenGL", "Texture Download", MP_RGB(128, 192, 128));
 
 namespace {
 
@@ -129,8 +134,8 @@ const FormatTuple& GetFormatTuple(PixelFormat pixel_format, ComponentType compon
     return format;
 }
 
-GLenum GetTextureTarget(const SurfaceParams& params) {
-    switch (params.GetTarget()) {
+GLenum GetTextureTarget(const SurfaceTarget& target) {
+    switch (target) {
     case SurfaceTarget::Texture1D:
         return GL_TEXTURE_1D;
     case SurfaceTarget::Texture2D:
@@ -175,8 +180,8 @@ void ApplyTextureDefaults(const SurfaceParams& params, GLuint texture) {
     glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(texture, GL_TEXTURE_MAX_LEVEL, params.GetNumLevels() - 1);
-    if (params.GetNumLevels() == 1) {
+    glTextureParameteri(texture, GL_TEXTURE_MAX_LEVEL, params.num_levels - 1);
+    if (params.num_levels == 1) {
         glTextureParameterf(texture, GL_TEXTURE_LOD_BIAS, 1000.0f);
     }
 }
@@ -185,21 +190,20 @@ OGLTexture CreateTexture(const SurfaceParams& params, GLenum target, GLenum inte
     OGLTexture texture;
     texture.Create(target);
 
-    switch (params.GetTarget()) {
+    switch (params.target) {
     case SurfaceTarget::Texture1D:
-        glTextureStorage1D(texture.handle, params.GetNumLevels(), internal_format,
-                           params.GetWidth());
+        glTextureStorage1D(texture.handle, params.num_levels, internal_format, params.width);
         break;
     case SurfaceTarget::Texture2D:
     case SurfaceTarget::TextureCubemap:
-        glTextureStorage2D(texture.handle, params.GetNumLevels(), internal_format,
-                           params.GetWidth(), params.GetHeight());
+        glTextureStorage2D(texture.handle, params.num_levels, internal_format, params.width,
+                           params.height);
         break;
     case SurfaceTarget::Texture3D:
     case SurfaceTarget::Texture2DArray:
     case SurfaceTarget::TextureCubeArray:
-        glTextureStorage3D(texture.handle, params.GetNumLevels(), internal_format,
-                           params.GetWidth(), params.GetHeight(), params.GetDepth());
+        glTextureStorage3D(texture.handle, params.num_levels, internal_format, params.width,
+                           params.height, params.depth);
         break;
     default:
         UNREACHABLE();
@@ -212,54 +216,72 @@ OGLTexture CreateTexture(const SurfaceParams& params, GLenum target, GLenum inte
 
 } // Anonymous namespace
 
-CachedSurface::CachedSurface(TextureCacheOpenGL& texture_cache, const SurfaceParams& params)
-    : VideoCommon::SurfaceBase<TextureCacheOpenGL, CachedSurfaceView>{texture_cache, params} {
-    const auto& tuple{GetFormatTuple(params.GetPixelFormat(), params.GetComponentType())};
+CachedSurface::CachedSurface(const GPUVAddr gpu_addr, const SurfaceParams& params)
+    : VideoCommon::SurfaceBase<View>(gpu_addr, params) {
+    const auto& tuple{GetFormatTuple(params.pixel_format, params.component_type)};
     internal_format = tuple.internal_format;
     format = tuple.format;
     type = tuple.type;
     is_compressed = tuple.compressed;
-    target = GetTextureTarget(params);
+    target = GetTextureTarget(params.target);
     texture = CreateTexture(params, target, internal_format);
+    DecorateSurfaceName();
+    ViewParams main{};
+    main.num_levels = params.num_levels;
+    main.base_level = 0;
+    main.base_layer = 0;
+    main.num_layers = params.is_layered ? params.depth : 1;
+    main.target = params.target;
+    main_view = CreateView(main);
+    main_view->DecorateViewName(gpu_addr, params.TargetName() + "V:" + std::to_string(view_count++));
 }
 
-CachedSurface::~CachedSurface() = default;
+CachedSurface::~CachedSurface() {
+    views.clear();
+    main_view = nullptr;
+}
 
-void CachedSurface::DownloadTexture() {
+void CachedSurface::DownloadTexture(std::vector<u8>& staging_buffer) {
+    LOG_CRITICAL(Render_OpenGL, "Flushing");
+    MICROPROFILE_SCOPE(OpenGL_Texture_Download);
+
     // TODO(Rodrigo): Optimize alignment
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     SCOPE_EXIT({ glPixelStorei(GL_PACK_ROW_LENGTH, 0); });
 
-    for (u32 level = 0; level < params.GetNumLevels(); ++level) {
+    for (u32 level = 0; level < params.num_levels; ++level) {
         glPixelStorei(GL_PACK_ROW_LENGTH, static_cast<GLint>(params.GetMipWidth(level)));
+        const std::size_t mip_offset = params.GetHostMipmapLevelOffset(level);
         if (is_compressed) {
             glGetCompressedTextureImage(texture.handle, level,
                                         static_cast<GLsizei>(params.GetHostMipmapSize(level)),
-                                        GetStagingBufferLevelData(level));
+                                        staging_buffer.data() + mip_offset);
         } else {
             glGetTextureImage(texture.handle, level, format, type,
                               static_cast<GLsizei>(params.GetHostMipmapSize(level)),
-                              GetStagingBufferLevelData(level));
+                              staging_buffer.data() + mip_offset);
         }
     }
 }
 
-void CachedSurface::UploadTexture() {
+void CachedSurface::UploadTexture(std::vector<u8>& staging_buffer) {
+    MICROPROFILE_SCOPE(OpenGL_Texture_Upload);
     SCOPE_EXIT({ glPixelStorei(GL_UNPACK_ROW_LENGTH, 0); });
-    for (u32 level = 0; level < params.GetNumLevels(); ++level) {
-        UploadTextureMipmap(level);
+    for (u32 level = 0; level < params.num_levels; ++level) {
+        UploadTextureMipmap(level, staging_buffer);
     }
 }
 
-void CachedSurface::UploadTextureMipmap(u32 level) {
+void CachedSurface::UploadTextureMipmap(u32 level, std::vector<u8>& staging_buffer) {
     // TODO(Rodrigo): Optimize alignment
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, static_cast<GLint>(params.GetMipWidth(level)));
 
-    u8* buffer{GetStagingBufferLevelData(level)};
+    const std::size_t mip_offset = params.GetHostMipmapLevelOffset(level);
+    u8* buffer{staging_buffer.data() + mip_offset};
     if (is_compressed) {
         const auto image_size{static_cast<GLsizei>(params.GetHostMipmapSize(level))};
-        switch (params.GetTarget()) {
+        switch (params.target) {
         case SurfaceTarget::Texture2D:
             glCompressedTextureSubImage2D(texture.handle, level, 0, 0,
                                           static_cast<GLsizei>(params.GetMipWidth(level)),
@@ -277,7 +299,7 @@ void CachedSurface::UploadTextureMipmap(u32 level) {
             break;
         case SurfaceTarget::TextureCubemap: {
             const std::size_t layer_size{params.GetHostLayerSize(level)};
-            for (std::size_t face = 0; face < params.GetDepth(); ++face) {
+            for (std::size_t face = 0; face < params.depth; ++face) {
                 glCompressedTextureSubImage3D(texture.handle, level, 0, 0, static_cast<GLint>(face),
                                               static_cast<GLsizei>(params.GetMipWidth(level)),
                                               static_cast<GLsizei>(params.GetMipHeight(level)), 1,
@@ -291,7 +313,7 @@ void CachedSurface::UploadTextureMipmap(u32 level) {
             UNREACHABLE();
         }
     } else {
-        switch (params.GetTarget()) {
+        switch (params.target) {
         case SurfaceTarget::Texture1D:
             glTextureSubImage1D(texture.handle, level, 0, params.GetMipWidth(level), format, type,
                                 buffer);
@@ -310,7 +332,7 @@ void CachedSurface::UploadTextureMipmap(u32 level) {
                 static_cast<GLsizei>(params.GetMipDepth(level)), format, type, buffer);
             break;
         case SurfaceTarget::TextureCubemap:
-            for (std::size_t face = 0; face < params.GetDepth(); ++face) {
+            for (std::size_t face = 0; face < params.depth; ++face) {
                 glTextureSubImage3D(texture.handle, level, 0, 0, static_cast<GLint>(face),
                                     params.GetMipWidth(level), params.GetMipHeight(level), 1,
                                     format, type, buffer);
@@ -324,61 +346,57 @@ void CachedSurface::UploadTextureMipmap(u32 level) {
 }
 
 void CachedSurface::DecorateSurfaceName() {
-    LabelGLObject(GL_TEXTURE, texture.handle, GetGpuAddr(),
-                  params.GetTarget() == SurfaceTarget::Texture3D ? "3D" : "");
+    LabelGLObject(GL_TEXTURE, texture.handle, GetGpuAddr(), params.TargetName());
 }
 
-std::unique_ptr<CachedSurfaceView> CachedSurface::CreateView(const ViewKey& view_key) {
-    return std::make_unique<CachedSurfaceView>(*this, view_key);
+void CachedSurfaceView::DecorateViewName(GPUVAddr gpu_addr, std::string prefix) {
+    LabelGLObject(GL_TEXTURE, texture_view.texture.handle, gpu_addr, prefix);
 }
 
-CachedSurfaceView::CachedSurfaceView(CachedSurface& surface, ViewKey key)
-    : surface{surface}, key{key}, params{surface.GetSurfaceParams()} {}
+View CachedSurface::CreateView(const ViewParams& view_key) {
+    auto view = std::make_shared<CachedSurfaceView>(*this, view_key);
+    views[view_key] = view;
+    view->DecorateViewName(gpu_addr, params.TargetName() + "V:" + std::to_string(view_count++));
+    return view;
+}
+
+CachedSurfaceView::CachedSurfaceView(CachedSurface& surface, const ViewParams& params)
+    : VideoCommon::ViewBase(params), surface{surface} {
+    target = GetTextureTarget(params.target);
+    texture_view = CreateTextureView();
+}
 
 CachedSurfaceView::~CachedSurfaceView() = default;
 
 void CachedSurfaceView::Attach(GLenum attachment) const {
-    ASSERT(key.num_layers == 1 && key.num_levels == 1);
+    ASSERT(params.num_layers == 1 && params.num_levels == 1);
 
-    switch (params.GetTarget()) {
+    switch (params.target) {
     case SurfaceTarget::Texture1D:
-        glFramebufferTexture1D(GL_DRAW_FRAMEBUFFER, attachment, surface.GetTarget(),
-                               surface.GetTexture(), key.base_level);
+        glFramebufferTexture1D(GL_DRAW_FRAMEBUFFER, attachment, target,
+                               surface.GetTexture(), params.base_level);
         break;
     case SurfaceTarget::Texture2D:
-        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, surface.GetTarget(),
-                               surface.GetTexture(), key.base_level);
+        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, target,
+                               surface.GetTexture(), params.base_level);
         break;
     case SurfaceTarget::Texture1DArray:
     case SurfaceTarget::Texture2DArray:
     case SurfaceTarget::TextureCubemap:
     case SurfaceTarget::TextureCubeArray:
-        glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, attachment, surface.GetTexture(),
-                                  key.base_level, key.base_layer);
+        glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, attachment, target,
+                                  params.base_level, params.base_layer);
         break;
     default:
         UNIMPLEMENTED();
     }
 }
 
-GLuint CachedSurfaceView::GetTexture(Tegra::Shader::TextureType texture_type, bool is_array,
-                                     SwizzleSource x_source, SwizzleSource y_source,
+void CachedSurfaceView::ApplySwizzle(SwizzleSource x_source, SwizzleSource y_source,
                                      SwizzleSource z_source, SwizzleSource w_source) {
-    const auto [texture_view, target] = GetTextureView(texture_type, is_array);
-    if (texture_view.get().texture.handle == 0) {
-        texture_view.get() = std::move(CreateTextureView(target));
-    }
-    ApplySwizzle(texture_view, x_source, y_source, z_source, w_source);
-    return texture_view.get().texture.handle;
-}
-
-void CachedSurfaceView::ApplySwizzle(TextureView& texture_view, SwizzleSource x_source,
-                                     SwizzleSource y_source, SwizzleSource z_source,
-                                     SwizzleSource w_source) {
-    const std::array<SwizzleSource, 4> swizzle = {x_source, y_source, z_source, w_source};
-    if (swizzle == texture_view.swizzle) {
+    u32 swizzle = EncodeSwizzle(x_source, y_source, z_source, w_source);
+    if (swizzle == texture_view.swizzle)
         return;
-    }
     const std::array<GLint, 4> gl_swizzle = {GetSwizzleSource(x_source), GetSwizzleSource(y_source),
                                              GetSwizzleSource(z_source),
                                              GetSwizzleSource(w_source)};
@@ -386,38 +404,25 @@ void CachedSurfaceView::ApplySwizzle(TextureView& texture_view, SwizzleSource x_
     texture_view.swizzle = swizzle;
 }
 
-CachedSurfaceView::TextureView CachedSurfaceView::CreateTextureView(GLenum target) const {
+CachedSurfaceView::TextureView CachedSurfaceView::CreateTextureView() const {
+    const auto& owner_params = surface.GetSurfaceParams();
     TextureView texture_view;
-    glGenTextures(1, &texture_view.texture.handle);
+    texture_view.texture.Create();
 
     const GLuint handle{texture_view.texture.handle};
-    const FormatTuple& tuple{GetFormatTuple(params.GetPixelFormat(), params.GetComponentType())};
+    const FormatTuple& tuple{
+        GetFormatTuple(owner_params.pixel_format, owner_params.component_type)};
 
-    glTextureView(handle, target, surface.texture.handle, tuple.internal_format, key.base_level,
-                  key.num_levels, key.base_layer, key.num_layers);
-    ApplyTextureDefaults(params, handle);
+    glTextureView(handle, target, surface.texture.handle, tuple.internal_format, params.base_level,
+                  params.num_levels, params.base_layer, params.num_layers);
+
+    ApplyTextureDefaults(owner_params, handle);
+
+    u32 swizzle =
+        EncodeSwizzle(SwizzleSource::R, SwizzleSource::G, SwizzleSource::B, SwizzleSource::A);
+    texture_view.swizzle = swizzle;
 
     return texture_view;
-}
-
-std::pair<std::reference_wrapper<CachedSurfaceView::TextureView>, GLenum>
-CachedSurfaceView::GetTextureView(Tegra::Shader::TextureType texture_type, bool is_array) {
-    using Pair = std::pair<std::reference_wrapper<TextureView>, GLenum>;
-    switch (texture_type) {
-    case Tegra::Shader::TextureType::Texture1D:
-        return is_array ? Pair{texture_view_1d_array, GL_TEXTURE_1D_ARRAY}
-                        : Pair{texture_view_1d, GL_TEXTURE_1D};
-    case Tegra::Shader::TextureType::Texture2D:
-        return is_array ? Pair{texture_view_2d_array, GL_TEXTURE_2D_ARRAY}
-                        : Pair{texture_view_2d, GL_TEXTURE_2D};
-    case Tegra::Shader::TextureType::Texture3D:
-        ASSERT(!is_array);
-        return {texture_view_3d, GL_TEXTURE_3D};
-    case Tegra::Shader::TextureType::TextureCube:
-        return is_array ? Pair{texture_view_cube_array, GL_TEXTURE_CUBE_MAP_ARRAY}
-                        : Pair{texture_view_cube, GL_TEXTURE_CUBE_MAP};
-    }
-    UNREACHABLE();
 }
 
 TextureCacheOpenGL::TextureCacheOpenGL(Core::System& system,
@@ -426,106 +431,21 @@ TextureCacheOpenGL::TextureCacheOpenGL(Core::System& system,
 
 TextureCacheOpenGL::~TextureCacheOpenGL() = default;
 
-CachedSurfaceView* TextureCacheOpenGL::TryFastGetSurfaceView(GPUVAddr gpu_addr, VAddr cpu_addr,
-                                                             u8* host_ptr,
-                                                             const SurfaceParams& new_params,
-                                                             bool preserve_contents,
-                                                             const std::vector<Surface>& overlaps) {
-    if (overlaps.size() > 1) {
-        return TryCopyAsViews(gpu_addr, cpu_addr, host_ptr, new_params, overlaps);
-    }
-
-    const auto& old_surface{overlaps[0]};
-    const auto& old_params{old_surface->GetSurfaceParams()};
-    if (old_params.GetTarget() == new_params.GetTarget() &&
-        old_params.GetDepth() == new_params.GetDepth() && old_params.GetDepth() == 1 &&
-        old_params.GetNumLevels() == new_params.GetNumLevels() &&
-        old_params.GetPixelFormat() == new_params.GetPixelFormat()) {
-        return SurfaceCopy(gpu_addr, cpu_addr, host_ptr, new_params, old_surface, old_params);
-    }
-
-    return nullptr;
+Surface TextureCacheOpenGL::CreateSurface(GPUVAddr gpu_addr, const SurfaceParams& params) {
+    return std::make_shared<CachedSurface>(gpu_addr, params);
 }
 
-CachedSurfaceView* TextureCacheOpenGL::SurfaceCopy(GPUVAddr gpu_addr, VAddr cpu_addr, u8* host_ptr,
-                                                   const SurfaceParams& new_params,
-                                                   const Surface& old_surface,
-                                                   const SurfaceParams& old_params) {
-    const auto new_surface{GetUncachedSurface(new_params)};
-    Register(new_surface, gpu_addr, cpu_addr, host_ptr);
-
-    const u32 min_width{
-        std::max(old_params.GetDefaultBlockWidth(), new_params.GetDefaultBlockWidth())};
-    const u32 min_height{
-        std::max(old_params.GetDefaultBlockHeight(), new_params.GetDefaultBlockHeight())};
-    for (u32 level = 0; level < old_params.GetNumLevels(); ++level) {
-        const u32 width{std::min(old_params.GetMipWidth(level), new_params.GetMipWidth(level))};
-        const u32 height{std::min(old_params.GetMipHeight(level), new_params.GetMipHeight(level))};
-        if (width < min_width || height < min_height) {
-            // Avoid copies that are too small to be handled in OpenGL
-            break;
-        }
-        glCopyImageSubData(old_surface->GetTexture(), old_surface->GetTarget(), level, 0, 0, 0,
-                           new_surface->GetTexture(), new_surface->GetTarget(), level, 0, 0, 0,
-                           width, height, 1);
-    }
-
-    new_surface->MarkAsModified(true);
-
-    // TODO(Rodrigo): Add an entry to directly get the superview
-    return new_surface->GetView(gpu_addr, new_params);
-}
-
-CachedSurfaceView* TextureCacheOpenGL::TryCopyAsViews(GPUVAddr gpu_addr, VAddr cpu_addr,
-                                                      u8* host_ptr, const SurfaceParams& new_params,
-                                                      const std::vector<Surface>& overlaps) {
-    if (new_params.GetTarget() == SurfaceTarget::Texture1D ||
-        new_params.GetTarget() == SurfaceTarget::Texture1DArray ||
-        new_params.GetTarget() == SurfaceTarget::Texture3D) {
-        // Non-2D textures are not handled at the moment in this fast path.
-        return nullptr;
-    }
-
-    const auto new_surface{GetUncachedSurface(new_params)};
-    // TODO(Rodrigo): Move this down
-    Register(new_surface, gpu_addr, cpu_addr, host_ptr);
-
-    // TODO(Rodrigo): Find a way to avoid heap allocations here.
-    std::vector<CachedSurfaceView*> views;
-    views.reserve(overlaps.size());
-    for (const auto& overlap : overlaps) {
-        const auto view{
-            new_surface->TryGetView(overlap->GetGpuAddr(), overlap->GetSurfaceParams())};
-        if (!view) {
-            // TODO(Rodrigo): Remove this
-            Unregister(new_surface);
-            return nullptr;
-        }
-        views.push_back(view);
-    }
-
-    // TODO(Rodrigo): It's possible that these method leaves some unloaded textures if the data has
-    // been uploaded to guest memory but not used as a surface previously.
-    for (std::size_t i = 0; i < overlaps.size(); ++i) {
-        const auto& overlap{overlaps[i]};
-        const auto& view{views[i]};
-        for (u32 overlap_level = 0; overlap_level < view->GetNumLevels(); ++overlap_level) {
-            const u32 super_level{view->GetBaseLevel() + overlap_level};
-            glCopyImageSubData(overlap->GetTexture(), overlap->GetTarget(), overlap_level, 0, 0, 0,
-                               new_surface->GetTexture(), new_surface->GetTarget(), super_level, 0,
-                               0, view->GetBaseLayer(), view->GetWidth(), view->GetHeight(),
-                               view->GetNumLayers());
-        }
-    }
-
-    new_surface->MarkAsModified(true);
-
-    // TODO(Rodrigo): Add an entry to directly get the superview
-    return new_surface->GetView(gpu_addr, new_params);
-}
-
-Surface TextureCacheOpenGL::CreateSurface(const SurfaceParams& params) {
-    return std::make_unique<CachedSurface>(*this, params);
+void TextureCacheOpenGL::ImageCopy(Surface src_surface, Surface dst_surface,
+                                   const VideoCommon::CopyParams& copy_params) {
+    const auto src_handle = src_surface->GetTexture();
+    const auto src_target = src_surface->GetTarget();
+    const auto dst_handle = dst_surface->GetTexture();
+    const auto dst_target = dst_surface->GetTarget();
+    glCopyImageSubData(src_handle, src_target, copy_params.source_level, copy_params.source_x,
+                       copy_params.source_y, copy_params.source_z, dst_handle, dst_target,
+                       copy_params.dest_level, copy_params.dest_x, copy_params.dest_y,
+                       copy_params.dest_z, copy_params.width, copy_params.height,
+                       copy_params.depth);
 }
 
 } // namespace OpenGL

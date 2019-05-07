@@ -56,8 +56,7 @@ SurfaceBlitter::SurfaceBlitter() {
 
 SurfaceBlitter::~SurfaceBlitter() = default;
 
-void SurfaceBlitter::Blit(CachedSurfaceView* src, CachedSurfaceView* dst,
-                          const Common::Rectangle<u32>& src_rect,
+void SurfaceBlitter::Blit(View src, View dst, const Common::Rectangle<u32>& src_rect,
                           const Common::Rectangle<u32>& dst_rect) const {
     const auto& src_params{src->GetSurfaceParams()};
     const auto& dst_params{dst->GetSurfaceParams()};
@@ -72,17 +71,13 @@ void SurfaceBlitter::Blit(CachedSurfaceView* src, CachedSurfaceView* dst,
 
     u32 buffers{};
 
-    UNIMPLEMENTED_IF(src_params.GetTarget() != SurfaceTarget::Texture2D);
-    UNIMPLEMENTED_IF(dst_params.GetTarget() != SurfaceTarget::Texture2D);
+    UNIMPLEMENTED_IF(src_params.target != SurfaceTarget::Texture2D);
+    UNIMPLEMENTED_IF(dst_params.target != SurfaceTarget::Texture2D);
 
-    const auto GetTexture = [](CachedSurfaceView* view) {
-        return view->GetTexture(TextureType::Texture2D, false, SwizzleSource::R, SwizzleSource::G,
-                                SwizzleSource::B, SwizzleSource::A);
-    };
-    const GLuint src_texture{GetTexture(src)};
-    const GLuint dst_texture{GetTexture(dst)};
+    const GLuint src_texture{src->GetTexture()};
+    const GLuint dst_texture{dst->GetTexture()};
 
-    if (src_params.GetType() == SurfaceType::ColorTexture) {
+    if (src_params.type == SurfaceType::ColorTexture) {
         glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
                                src_texture, 0);
         glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0,
@@ -94,7 +89,7 @@ void SurfaceBlitter::Blit(CachedSurfaceView* src, CachedSurfaceView* dst,
                                0);
 
         buffers = GL_COLOR_BUFFER_BIT;
-    } else if (src_params.GetType() == SurfaceType::Depth) {
+    } else if (src_params.type == SurfaceType::Depth) {
         glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
         glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, src_texture,
                                0);
@@ -106,7 +101,7 @@ void SurfaceBlitter::Blit(CachedSurfaceView* src, CachedSurfaceView* dst,
         glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
 
         buffers = GL_DEPTH_BUFFER_BIT;
-    } else if (src_params.GetType() == SurfaceType::DepthStencil) {
+    } else if (src_params.type == SurfaceType::DepthStencil) {
         glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
         glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D,
                                src_texture, 0);
