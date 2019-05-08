@@ -149,45 +149,32 @@ public:
     }
 
     std::vector<CopyParams> BreakDown(const SurfaceParams& in_params) const {
-        auto set_up_copy = [](CopyParams& cp, const u32 width, const u32 height, const u32 depth,
-                              const u32 level) {
-            cp.source_x = 0;
-            cp.source_y = 0;
-            cp.source_z = 0;
-            cp.dest_x = 0;
-            cp.dest_y = 0;
-            cp.dest_z = 0;
-            cp.source_level = level;
-            cp.dest_level = level;
-            cp.width = width;
-            cp.height = height;
-            cp.depth = depth;
-        };
-        const u32 layers = params.depth;
-        const u32 mipmaps = params.num_levels;
+        std::vector<CopyParams> result;
+        const u32 layers{params.depth};
+        const u32 mipmaps{params.num_levels};
+
         if (params.is_layered) {
-            std::vector<CopyParams> result{layers * mipmaps};
-            for (std::size_t layer = 0; layer < layers; layer++) {
-                const u32 layer_offset = layer * mipmaps;
-                for (std::size_t level = 0; level < mipmaps; level++) {
-                    CopyParams& cp = result[layer_offset + level];
-                    const u32 width =
-                        std::min(params.GetMipWidth(level), in_params.GetMipWidth(level));
-                    const u32 height =
-                        std::min(params.GetMipHeight(level), in_params.GetMipHeight(level));
-                    set_up_copy(cp, width, height, layer, level);
+            result.reserve(static_cast<std::size_t>(layers) * static_cast<std::size_t>(mipmaps));
+            for (u32 layer = 0; layer < layers; layer++) {
+                const u32 layer_offset{layer * mipmaps};
+                for (u32 level = 0; level < mipmaps; level++) {
+                    const u32 width{
+                        std::min(params.GetMipWidth(level), in_params.GetMipWidth(level))};
+                    const u32 height{
+                        std::min(params.GetMipHeight(level), in_params.GetMipHeight(level))};
+                    result.emplace_back(width, height, layer, level);
                 }
             }
             return result;
+
         } else {
-            std::vector<CopyParams> result{mipmaps};
+            result.reserve(mipmaps);
             for (std::size_t level = 0; level < mipmaps; level++) {
-                CopyParams& cp = result[level];
-                const u32 width = std::min(params.GetMipWidth(level), in_params.GetMipWidth(level));
-                const u32 height =
-                    std::min(params.GetMipHeight(level), in_params.GetMipHeight(level));
-                const u32 depth = std::min(params.GetMipDepth(level), in_params.GetMipDepth(level));
-                set_up_copy(cp, width, height, depth, level);
+                const u32 width{std::min(params.GetMipWidth(level), in_params.GetMipWidth(level))};
+                const u32 height{
+                    std::min(params.GetMipHeight(level), in_params.GetMipHeight(level))};
+                const u32 depth{std::min(params.GetMipDepth(level), in_params.GetMipDepth(level))};
+                result.emplace_back(width, height, depth, level);
             }
             return result;
         }

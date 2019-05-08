@@ -283,7 +283,7 @@ private:
     }
 
     std::pair<TSurface, TView> RebuildSurface(TSurface current_surface,
-                                             const SurfaceParams& params) {
+                                              const SurfaceParams& params) {
         const auto gpu_addr = current_surface->GetGpuAddr();
         TSurface new_surface = GetUncachedSurface(gpu_addr, params);
         std::vector<CopyParams> bricks = current_surface->BreakDown(params);
@@ -323,26 +323,21 @@ private:
                 return {};
             }
             const std::size_t candidate_size = src_params.GetGuestSizeInBytes();
-            auto mipmap_layer = new_surface->GetLayerMipmap(surface->GetGpuAddr());
+            auto mipmap_layer{new_surface->GetLayerMipmap(surface->GetGpuAddr())};
             if (!mipmap_layer) {
                 return {};
             }
-            const u32 layer = (*mipmap_layer).first;
-            const u32 mipmap = (*mipmap_layer).second;
+            const u32 layer{mipmap_layer->first};
+            const u32 mipmap{mipmap_layer->second};
             if (new_surface->GetMipmapSize(mipmap) != candidate_size) {
                 return {};
             }
             // Now we got all the data set up
-            CopyParams copy_params{};
-            const u32 dst_width = params.GetMipWidth(mipmap);
-            const u32 dst_height = params.GetMipHeight(mipmap);
-            copy_params.width = std::min(src_params.width, dst_width);
-            copy_params.height = std::min(src_params.height, dst_height);
-            copy_params.depth = 1;
-            copy_params.source_level = 0;
-            copy_params.dest_level = mipmap;
-            copy_params.source_z = 0;
-            copy_params.dest_z = layer;
+            const u32 dst_width{params.GetMipWidth(mipmap)};
+            const u32 dst_height{params.GetMipHeight(mipmap)};
+            const CopyParams copy_params(0, 0, 0, 0, 0, layer, 0, mipmap,
+                                         std::min(src_params.width, dst_width),
+                                         std::min(src_params.height, dst_height), 1);
             ImageCopy(surface, new_surface, copy_params);
         }
         for (auto surface : overlaps) {
