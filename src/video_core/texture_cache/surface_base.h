@@ -9,22 +9,13 @@
 #include <vector>
 
 #include "common/assert.h"
+#include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "video_core/gpu.h"
 #include "video_core/morton.h"
 #include "video_core/texture_cache/copy_params.h"
 #include "video_core/texture_cache/surface_params.h"
 #include "video_core/texture_cache/surface_view.h"
-
-template <class ForwardIt, class T, class Compare = std::less<>>
-ForwardIt binary_find(ForwardIt first, ForwardIt last, const T& value, Compare comp = {}) {
-    // Note: BOTH type T and the type after ForwardIt is dereferenced
-    // must be implicitly convertible to BOTH Type1 and Type2, used in Compare.
-    // This is stricter than lower_bound requirement (see above)
-
-    first = std::lower_bound(first, last, value, comp);
-    return first != last && !comp(value, *first) ? first : last;
-}
 
 namespace Tegra {
 class MemoryManager;
@@ -153,7 +144,7 @@ public:
         const auto layer{static_cast<u32>(relative_address / layer_size)};
         const GPUVAddr mipmap_address = relative_address - layer_size * layer;
         const auto mipmap_it =
-            binary_find(mipmap_offsets.begin(), mipmap_offsets.end(), mipmap_address);
+            Common::BinaryFind(mipmap_offsets.begin(), mipmap_offsets.end(), mipmap_address);
         if (mipmap_it == mipmap_offsets.end()) {
             return {};
         }
@@ -172,8 +163,8 @@ protected:
     virtual void DecorateSurfaceName() = 0;
 
     const SurfaceParams params;
-    const std::size_t layer_size;
-    const std::size_t guest_memory_size;
+    std::size_t layer_size;
+    std::size_t guest_memory_size;
     const std::size_t host_memory_size;
     GPUVAddr gpu_addr{};
     CacheAddr cache_addr{};
@@ -268,9 +259,11 @@ public:
         return GetView(ViewParams(overview_params.target, 0, num_layers, 0, params.num_levels));
     }
 
-    std::optional<TView> EmplaceView(const SurfaceParams& view_params, const GPUVAddr view_addr) {
-        if (view_addr < gpu_addr || params.target == SurfaceTarget::Texture3D ||
-            params.num_levels == 1 || view_params.target == SurfaceTarget::Texture3D) {
+    std::optional<TView> EmplaceView(const SurfaceParams& view_params, const GPUVAddr view_addr,
+                                     const std::size_t candidate_size) {
+        if (params.target == SurfaceTarget::Texture3D ||
+            (params.num_levels == 1 && !params.is_layered) ||
+            view_params.target == SurfaceTarget::Texture3D) {
             return {};
         }
         const auto layer_mipmap{GetLayerMipmap(view_addr)};
@@ -279,8 +272,7 @@ public:
         }
         const u32 layer{layer_mipmap->first};
         const u32 mipmap{layer_mipmap->second};
-        const std::size_t size{view_params.GetGuestSizeInBytes()};
-        if (GetMipmapSize(mipmap) != size) {
+        if (GetMipmapSize(mipmap) != candidate_size) {
             // TODO: The view may cover many mimaps, this case can still go on.
             // This edge-case can be safely be ignored since it will just result in worse
             // performance.

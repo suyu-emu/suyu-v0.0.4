@@ -133,7 +133,7 @@ protected:
                    const VideoCommon::CopyParams& copy_params) override;
 
     void ImageBlit(Surface src_surface, Surface dst_surface, const Common::Rectangle<u32>& src_rect,
-                           const Common::Rectangle<u32>& dst_rect) override;
+                   const Common::Rectangle<u32>& dst_rect) override;
 
 private:
     OGLFramebuffer src_framebuffer;

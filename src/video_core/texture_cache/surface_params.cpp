@@ -4,13 +4,12 @@
 
 #include <map>
 
-#include "common/cityhash.h"
 #include "common/alignment.h"
+#include "common/cityhash.h"
 #include "core/core.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/surface.h"
 #include "video_core/texture_cache/surface_params.h"
-#include "video_core/textures/decoders.h"
 
 namespace VideoCommon {
 
@@ -169,18 +168,6 @@ SurfaceParams SurfaceParams::CreateForFermiCopySurface(
     return params;
 }
 
-u32 SurfaceParams::GetMipWidth(u32 level) const {
-    return std::max(1U, width >> level);
-}
-
-u32 SurfaceParams::GetMipHeight(u32 level) const {
-    return std::max(1U, height >> level);
-}
-
-u32 SurfaceParams::GetMipDepth(u32 level) const {
-    return is_layered ? depth : std::max(1U, depth >> level);
-}
-
 bool SurfaceParams::IsLayered() const {
     switch (target) {
     case SurfaceTarget::Texture1DArray:
@@ -273,22 +260,6 @@ std::size_t SurfaceParams::GetLayerSize(bool as_host_size, bool uncompressed) co
 std::size_t SurfaceParams::GetHostLayerSize(u32 level) const {
     ASSERT(target != SurfaceTarget::Texture3D);
     return GetInnerMipmapMemorySize(level, true, false);
-}
-
-u32 SurfaceParams::GetDefaultBlockWidth() const {
-    return VideoCore::Surface::GetDefaultBlockWidth(pixel_format);
-}
-
-u32 SurfaceParams::GetDefaultBlockHeight() const {
-    return VideoCore::Surface::GetDefaultBlockHeight(pixel_format);
-}
-
-u32 SurfaceParams::GetBitsPerPixel() const {
-    return VideoCore::Surface::GetFormatBpp(pixel_format);
-}
-
-u32 SurfaceParams::GetBytesPerPixel() const {
-    return VideoCore::Surface::GetBytesPerPixel(pixel_format);
 }
 
 bool SurfaceParams::IsPixelFormatZeta() const {

@@ -19,18 +19,26 @@ using Tegra::Texture::ConvertFromGuestToHost;
 using VideoCore::MortonSwizzleMode;
 
 SurfaceBaseImpl::SurfaceBaseImpl(GPUVAddr gpu_addr, const SurfaceParams& params)
-    : params{params}, gpu_addr{gpu_addr}, layer_size{params.GetGuestLayerSize()},
-      guest_memory_size{params.GetGuestSizeInBytes()}, host_memory_size{
-                                                           params.GetHostSizeInBytes()} {
-    mipmap_offsets.reserve(params.num_levels);
-    mipmap_sizes.reserve(params.num_levels);
+    : params{params}, mipmap_sizes(params.num_levels),
+      mipmap_offsets(params.num_levels), gpu_addr{gpu_addr}, host_memory_size{
+                                                                 params.GetHostSizeInBytes()} {
 
     std::size_t offset = 0;
     for (u32 level = 0; level < params.num_levels; ++level) {
         const std::size_t mipmap_size{params.GetGuestMipmapSize(level)};
-        mipmap_sizes.push_back(mipmap_size);
-        mipmap_offsets.push_back(offset);
+        mipmap_sizes[level] = mipmap_size;
+        mipmap_offsets[level] = offset;
         offset += mipmap_size;
+    }
+    layer_size = offset;
+    if (params.is_layered) {
+        if (params.is_tiled) {
+            layer_size =
+                SurfaceParams::AlignLayered(layer_size, params.block_height, params.block_depth);
+        }
+        guest_memory_size = layer_size * params.depth;
+    } else {
+        guest_memory_size = layer_size;
     }
 }
 

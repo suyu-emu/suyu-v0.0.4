@@ -120,10 +120,6 @@ public:
             return {};
         }
 
-        if (regs.color_mask[index].raw == 0) {
-            return {};
-        }
-
         auto surface_view = GetSurface(gpu_addr, SurfaceParams::CreateForFramebuffer(system, index),
                                        preserve_contents);
         if (render_targets[index].target)
@@ -165,7 +161,9 @@ public:
                      const Tegra::Engines::Fermi2D::Regs::Surface& dst_config,
                      const Common::Rectangle<u32>& src_rect,
                      const Common::Rectangle<u32>& dst_rect) {
-        ImageBlit(GetFermiSurface(src_config), GetFermiSurface(dst_config), src_rect, dst_rect);
+        TSurface dst_surface = GetFermiSurface(dst_config);
+        ImageBlit(GetFermiSurface(src_config), dst_surface, src_rect, dst_rect);
+        dst_surface->MarkAsModified(true, Tick());
     }
 
     TSurface TryFindFramebufferSurface(const u8* host_ptr) {
@@ -270,10 +268,6 @@ private:
 
     RecycleStrategy PickStrategy(std::vector<TSurface>& overlaps, const SurfaceParams& params,
                                  const GPUVAddr gpu_addr, const bool untopological) {
-        // Untopological decision
-        if (untopological) {
-            return RecycleStrategy::Ignore;
-        }
         // 3D Textures decision
         if (params.block_depth > 1 || params.target == SurfaceTarget::Texture3D) {
             return RecycleStrategy::Flush;
@@ -284,12 +278,16 @@ private:
                 return RecycleStrategy::Flush;
             }
         }
+        // Untopological decision
+        if (untopological) {
+            return RecycleStrategy::Ignore;
+        }
         return RecycleStrategy::Ignore;
     }
 
     std::pair<TSurface, TView> RecycleSurface(std::vector<TSurface>& overlaps,
                                               const SurfaceParams& params, const GPUVAddr gpu_addr,
-                                              const u8* host_ptr, const bool preserve_contents,
+                                              const bool preserve_contents,
                                               const bool untopological) {
         for (auto surface : overlaps) {
             Unregister(surface);
@@ -328,6 +326,7 @@ private:
         }
         Unregister(current_surface);
         Register(new_surface);
+        new_surface->MarkAsModified(current_surface->IsModified(), Tick());
         return {new_surface, new_surface->GetMainView()};
     }
 
@@ -351,6 +350,7 @@ private:
         if (params.target == SurfaceTarget::Texture3D) {
             return {};
         }
+        bool modified = false;
         TSurface new_surface = GetUncachedSurface(gpu_addr, params);
         for (auto surface : overlaps) {
             const SurfaceParams& src_params = surface->GetSurfaceParams();
@@ -358,7 +358,7 @@ private:
                 // We send this cases to recycle as they are more complex to handle
                 return {};
             }
-            const std::size_t candidate_size = src_params.GetGuestSizeInBytes();
+            const std::size_t candidate_size = surface->GetSizeInBytes();
             auto mipmap_layer{new_surface->GetLayerMipmap(surface->GetGpuAddr())};
             if (!mipmap_layer) {
                 return {};
@@ -368,6 +368,7 @@ private:
             if (new_surface->GetMipmapSize(mipmap) != candidate_size) {
                 return {};
             }
+            modified |= surface->IsModified();
             // Now we got all the data set up
             const u32 dst_width{params.GetMipWidth(mipmap)};
             const u32 dst_height{params.GetMipHeight(mipmap)};
@@ -381,6 +382,7 @@ private:
             force_reconfiguration |= surface->IsProtected();
             Unregister(surface, true);
         }
+        new_surface->MarkAsModified(modified, Tick());
         Register(new_surface);
         return {{new_surface, new_surface->GetMainView()}};
     }
@@ -399,8 +401,7 @@ private:
 
         for (auto surface : overlaps) {
             if (!surface->MatchesTopology(params)) {
-                return RecycleSurface(overlaps, params, gpu_addr, host_ptr, preserve_contents,
-                                      true);
+                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, true);
             }
         }
 
@@ -418,27 +419,26 @@ private:
                 }
             }
             if (!current_surface->IsInside(gpu_addr, gpu_addr + candidate_size)) {
-                return RecycleSurface(overlaps, params, gpu_addr, host_ptr, preserve_contents,
-                                      false);
+                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, false);
             }
-            std::optional<TView> view = current_surface->EmplaceView(params, gpu_addr);
+            std::optional<TView> view =
+                current_surface->EmplaceView(params, gpu_addr, candidate_size);
             if (view.has_value()) {
                 const bool is_mirage = !current_surface->MatchFormat(params.pixel_format);
                 if (is_mirage) {
                     LOG_CRITICAL(HW_GPU, "Mirage View Unsupported");
-                    return RecycleSurface(overlaps, params, gpu_addr, host_ptr, preserve_contents,
-                                          false);
+                    return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, false);
                 }
                 return {current_surface, *view};
             }
-            return RecycleSurface(overlaps, params, gpu_addr, host_ptr, preserve_contents, false);
+            return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, false);
         } else {
             std::optional<std::pair<TSurface, TView>> view =
                 ReconstructSurface(overlaps, params, gpu_addr, host_ptr);
             if (view.has_value()) {
                 return *view;
             }
-            return RecycleSurface(overlaps, params, gpu_addr, host_ptr, preserve_contents, false);
+            return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, false);
         }
     }
 

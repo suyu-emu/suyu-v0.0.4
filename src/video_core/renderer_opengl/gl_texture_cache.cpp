@@ -240,7 +240,6 @@ CachedSurface::~CachedSurface() {
 }
 
 void CachedSurface::DownloadTexture(std::vector<u8>& staging_buffer) {
-    LOG_CRITICAL(Render_OpenGL, "Flushing");
     MICROPROFILE_SCOPE(OpenGL_Texture_Download);
 
     // TODO(Rodrigo): Optimize alignment
