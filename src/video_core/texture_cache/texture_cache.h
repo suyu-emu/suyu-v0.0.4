@@ -323,7 +323,7 @@ private:
                                                                  const SurfaceParams& params,
                                                                  const GPUVAddr gpu_addr,
                                                                  const u8* host_ptr) {
-        if (!params.is_layered || params.target == SurfaceTarget::Texture3D) {
+        if (params.target == SurfaceTarget::Texture3D) {
             return {};
         }
         TSurface new_surface = GetUncachedSurface(gpu_addr, params);

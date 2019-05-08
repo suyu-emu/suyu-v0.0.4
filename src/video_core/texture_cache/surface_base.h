@@ -262,20 +262,20 @@ public:
             view_params.target == SurfaceTarget::Texture3D) {
             return {};
         }
-        const std::size_t size{view_params.GetGuestSizeInBytes()};
         const auto layer_mipmap{GetLayerMipmap(view_addr)};
         if (!layer_mipmap) {
             return {};
         }
         const u32 layer{layer_mipmap->first};
         const u32 mipmap{layer_mipmap->second};
+        const std::size_t size{view_params.GetGuestSizeInBytes()};
         if (GetMipmapSize(mipmap) != size) {
             // TODO: The view may cover many mimaps, this case can still go on.
             // This edge-case can be safely be ignored since it will just result in worse
             // performance.
             return {};
         }
-        return GetView(ViewParams(params.target, layer, 1, mipmap, 1));
+        return GetView(ViewParams(view_params.target, layer, 1, mipmap, 1));
     }
 
     TView GetMainView() const {
