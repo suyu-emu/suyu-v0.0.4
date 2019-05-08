@@ -61,6 +61,20 @@ public:
         }
     }
 
+    void FlushRegion(CacheAddr addr, std::size_t size) {
+        auto surfaces = GetSurfacesInRegion(addr, size);
+        if (surfaces.empty()) {
+            return;
+        }
+        std::sort(surfaces.begin(), surfaces.end(),
+                  [](const TSurface& a, const TSurface& b) -> bool {
+                      return a->GetModificationTick() < b->GetModificationTick();
+                  });
+        for (const auto& surface : surfaces) {
+            FlushSurface(surface);
+        }
+    }
+
     TView GetTextureSurface(const Tegra::Texture::FullTextureInfo& config,
                             const VideoCommon::Shader::Sampler& entry) {
         const auto gpu_addr{config.tic.Address()};

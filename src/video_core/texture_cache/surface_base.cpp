@@ -63,6 +63,9 @@ void SurfaceBaseImpl::LoadBuffer(Tegra::MemoryManager& memory_manager,
                                  std::vector<u8>& staging_buffer) {
     MICROPROFILE_SCOPE(GPU_Load_Texture);
     const auto host_ptr{memory_manager.GetPointer(gpu_addr)};
+    if (!host_ptr) {
+        return;
+    }
     if (params.is_tiled) {
         ASSERT_MSG(params.block_width == 1, "Block width is defined as {} on texture target {}",
                    params.block_width, static_cast<u32>(params.target));
@@ -103,7 +106,10 @@ void SurfaceBaseImpl::LoadBuffer(Tegra::MemoryManager& memory_manager,
 void SurfaceBaseImpl::FlushBuffer(Tegra::MemoryManager& memory_manager,
                                   std::vector<u8>& staging_buffer) {
     MICROPROFILE_SCOPE(GPU_Flush_Texture);
-    auto host_ptr = memory_manager.GetPointer(gpu_addr);
+    const auto host_ptr{memory_manager.GetPointer(gpu_addr)};
+    if (!host_ptr) {
+        return;
+    }
     if (params.is_tiled) {
         ASSERT_MSG(params.block_width == 1, "Block width is defined as {}", params.block_width);
         for (u32 level = 0; level < params.num_levels; ++level) {
@@ -112,25 +118,22 @@ void SurfaceBaseImpl::FlushBuffer(Tegra::MemoryManager& memory_manager,
                         staging_buffer.data() + host_offset, level);
         }
     } else {
-        UNIMPLEMENTED();
-        /*
         ASSERT(params.target == SurfaceTarget::Texture2D);
         ASSERT(params.num_levels == 1);
 
-        const u32 bpp{params.GetFormatBpp() / 8};
+        const u32 bpp{params.GetBytesPerPixel()};
         const u32 copy_size{params.width * bpp};
         if (params.pitch == copy_size) {
-            std::memcpy(host_ptr, staging_buffer.data(), memory_size);
+            std::memcpy(host_ptr, staging_buffer.data(), guest_memory_size);
         } else {
             u8* start{host_ptr};
             const u8* read_to{staging_buffer.data()};
-            for (u32 h = params.GetHeight(); h > 0; --h) {
+            for (u32 h = params.height; h > 0; --h) {
                 std::memcpy(start, read_to, copy_size);
-                start += params.GetPitch();
+                start += params.pitch;
                 read_to += copy_size;
             }
         }
-        */
     }
 }
 

@@ -722,7 +722,7 @@ void RasterizerOpenGL::FlushRegion(CacheAddr addr, u64 size) {
     if (!addr || !size) {
         return;
     }
-    // texture_cache.FlushRegion(addr, size);
+    texture_cache.FlushRegion(addr, size);
     global_cache.FlushRegion(addr, size);
 }
 
@@ -738,7 +738,9 @@ void RasterizerOpenGL::InvalidateRegion(CacheAddr addr, u64 size) {
 }
 
 void RasterizerOpenGL::FlushAndInvalidateRegion(CacheAddr addr, u64 size) {
-    FlushRegion(addr, size);
+    if (Settings::values.use_accurate_gpu_emulation) {
+        FlushRegion(addr, size);
+    }
     InvalidateRegion(addr, size);
 }
 
