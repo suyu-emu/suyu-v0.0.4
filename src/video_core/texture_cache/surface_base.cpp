@@ -18,17 +18,19 @@ MICROPROFILE_DEFINE(GPU_Flush_Texture, "GPU", "Texture Flush", MP_RGB(128, 192, 
 using Tegra::Texture::ConvertFromGuestToHost;
 using VideoCore::MortonSwizzleMode;
 
-SurfaceBaseImpl::SurfaceBaseImpl(const GPUVAddr gpu_vaddr, const SurfaceParams& params)
-    : gpu_addr{gpu_vaddr}, params{params}, mipmap_sizes{params.num_levels},
-      mipmap_offsets{params.num_levels}, layer_size{params.GetGuestLayerSize()},
-      memory_size{params.GetGuestSizeInBytes()}, host_memory_size{params.GetHostSizeInBytes()} {
-    u32 offset = 0;
-    mipmap_offsets.resize(params.num_levels);
-    mipmap_sizes.resize(params.num_levels);
-    for (u32 i = 0; i < params.num_levels; i++) {
-        mipmap_offsets[i] = offset;
-        mipmap_sizes[i] = params.GetGuestMipmapSize(i);
-        offset += mipmap_sizes[i];
+SurfaceBaseImpl::SurfaceBaseImpl(GPUVAddr gpu_addr, const SurfaceParams& params)
+    : params{params}, gpu_addr{gpu_addr}, layer_size{params.GetGuestLayerSize()},
+      guest_memory_size{params.GetGuestSizeInBytes()}, host_memory_size{
+                                                           params.GetHostSizeInBytes()} {
+    mipmap_offsets.reserve(params.num_levels);
+    mipmap_sizes.reserve(params.num_levels);
+
+    std::size_t offset = 0;
+    for (u32 level = 0; level < params.num_levels; ++level) {
+        const std::size_t mipmap_size{params.GetGuestMipmapSize(level)};
+        mipmap_sizes.push_back(mipmap_size);
+        mipmap_offsets.push_back(offset);
+        offset += mipmap_size;
     }
 }
 
@@ -44,7 +46,7 @@ void SurfaceBaseImpl::SwizzleFunc(MortonSwizzleMode mode, u8* memory, const Surf
         std::size_t host_offset{0};
         const std::size_t guest_stride = layer_size;
         const std::size_t host_stride = params.GetHostLayerSize(level);
-        for (u32 layer = 0; layer < params.depth; layer++) {
+        for (u32 layer = 0; layer < params.depth; ++layer) {
             MortonSwizzle(mode, params.pixel_format, width, block_height, height, block_depth, 1,
                           params.tile_width_spacing, buffer + host_offset, memory + guest_offset);
             guest_offset += guest_stride;
@@ -60,12 +62,12 @@ void SurfaceBaseImpl::SwizzleFunc(MortonSwizzleMode mode, u8* memory, const Surf
 void SurfaceBaseImpl::LoadBuffer(Tegra::MemoryManager& memory_manager,
                                  std::vector<u8>& staging_buffer) {
     MICROPROFILE_SCOPE(GPU_Load_Texture);
-    auto host_ptr = memory_manager.GetPointer(gpu_addr);
+    const auto host_ptr{memory_manager.GetPointer(gpu_addr)};
     if (params.is_tiled) {
         ASSERT_MSG(params.block_width == 1, "Block width is defined as {} on texture target {}",
                    params.block_width, static_cast<u32>(params.target));
         for (u32 level = 0; level < params.num_levels; ++level) {
-            const u32 host_offset = params.GetHostMipmapLevelOffset(level);
+            const std::size_t host_offset{params.GetHostMipmapLevelOffset(level)};
             SwizzleFunc(MortonSwizzleMode::MortonToLinear, host_ptr, params,
                         staging_buffer.data() + host_offset, level);
         }
@@ -91,7 +93,7 @@ void SurfaceBaseImpl::LoadBuffer(Tegra::MemoryManager& memory_manager,
     }
 
     for (u32 level = 0; level < params.num_levels; ++level) {
-        const u32 host_offset = params.GetHostMipmapLevelOffset(level);
+        const std::size_t host_offset{params.GetHostMipmapLevelOffset(level)};
         ConvertFromGuestToHost(staging_buffer.data() + host_offset, params.pixel_format,
                                params.GetMipWidth(level), params.GetMipHeight(level),
                                params.GetMipDepth(level), true, true);
@@ -105,7 +107,7 @@ void SurfaceBaseImpl::FlushBuffer(Tegra::MemoryManager& memory_manager,
     if (params.is_tiled) {
         ASSERT_MSG(params.block_width == 1, "Block width is defined as {}", params.block_width);
         for (u32 level = 0; level < params.num_levels; ++level) {
-            const u32 host_offset = params.GetHostMipmapLevelOffset(level);
+            const std::size_t host_offset{params.GetHostMipmapLevelOffset(level)};
             SwizzleFunc(MortonSwizzleMode::LinearToMorton, host_ptr, params,
                         staging_buffer.data() + host_offset, level);
         }

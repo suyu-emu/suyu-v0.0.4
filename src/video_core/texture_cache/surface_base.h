@@ -78,7 +78,7 @@ public:
 
     void SetCacheAddr(const CacheAddr new_addr) {
         cache_addr = new_addr;
-        cache_addr_end = new_addr + memory_size;
+        cache_addr_end = new_addr + guest_memory_size;
     }
 
     const SurfaceParams& GetSurfaceParams() const {
@@ -86,7 +86,7 @@ public:
     }
 
     std::size_t GetSizeInBytes() const {
-        return memory_size;
+        return guest_memory_size;
     }
 
     std::size_t GetHostSizeInBytes() const {
@@ -135,17 +135,19 @@ public:
     }
 
     std::optional<std::pair<u32, u32>> GetLayerMipmap(const GPUVAddr candidate_gpu_addr) const {
-        if (candidate_gpu_addr < gpu_addr)
+        if (candidate_gpu_addr < gpu_addr) {
             return {};
-        const GPUVAddr relative_address = candidate_gpu_addr - gpu_addr;
-        const u32 layer = relative_address / layer_size;
+        }
+        const auto relative_address{static_cast<GPUVAddr>(candidate_gpu_addr - gpu_addr)};
+        const auto layer{static_cast<u32>(relative_address / layer_size)};
         const GPUVAddr mipmap_address = relative_address - layer_size * layer;
         const auto mipmap_it =
             binary_find(mipmap_offsets.begin(), mipmap_offsets.end(), mipmap_address);
-        if (mipmap_it != mipmap_offsets.end()) {
-            return {{layer, std::distance(mipmap_offsets.begin(), mipmap_it)}};
+        if (mipmap_it == mipmap_offsets.end()) {
+            return {};
         }
-        return {};
+        const auto level{static_cast<u32>(std::distance(mipmap_offsets.begin(), mipmap_it))};
+        return std::make_pair(layer, level);
     }
 
     std::vector<CopyParams> BreakDown(const SurfaceParams& in_params) const {
@@ -169,7 +171,7 @@ public:
 
         } else {
             result.reserve(mipmaps);
-            for (std::size_t level = 0; level < mipmaps; level++) {
+            for (u32 level = 0; level < mipmaps; level++) {
                 const u32 width{std::min(params.GetMipWidth(level), in_params.GetMipWidth(level))};
                 const u32 height{
                     std::min(params.GetMipHeight(level), in_params.GetMipHeight(level))};
@@ -181,21 +183,22 @@ public:
     }
 
 protected:
-    explicit SurfaceBaseImpl(const GPUVAddr gpu_vaddr, const SurfaceParams& params);
+    explicit SurfaceBaseImpl(GPUVAddr gpu_addr, const SurfaceParams& params);
     ~SurfaceBaseImpl() = default;
 
     virtual void DecorateSurfaceName() = 0;
 
     const SurfaceParams params;
-    GPUVAddr gpu_addr{};
-    std::vector<u32> mipmap_sizes;
-    std::vector<u32> mipmap_offsets;
     const std::size_t layer_size;
-    const std::size_t memory_size;
+    const std::size_t guest_memory_size;
     const std::size_t host_memory_size;
-    CacheAddr cache_addr;
+    GPUVAddr gpu_addr{};
+    CacheAddr cache_addr{};
     CacheAddr cache_addr_end{};
-    VAddr cpu_addr;
+    VAddr cpu_addr{};
+
+    std::vector<std::size_t> mipmap_sizes;
+    std::vector<std::size_t> mipmap_offsets;
 
 private:
     void SwizzleFunc(MortonSwizzleMode mode, u8* memory, const SurfaceParams& params, u8* buffer,
