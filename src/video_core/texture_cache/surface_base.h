@@ -106,32 +106,32 @@ public:
     }
 
     bool MatchesTopology(const SurfaceParams& rhs) const {
-        const u32 src_bpp = params.GetBytesPerPixel();
-        const u32 dst_bpp = rhs.GetBytesPerPixel();
+        const u32 src_bpp{params.GetBytesPerPixel()};
+        const u32 dst_bpp{rhs.GetBytesPerPixel()};
         return std::tie(src_bpp, params.is_tiled) == std::tie(dst_bpp, rhs.is_tiled);
     }
 
     MatchStructureResult MatchesStructure(const SurfaceParams& rhs) const {
-        if (params.is_tiled) {
-            if (std::tie(params.height, params.depth, params.block_width, params.block_height,
-                         params.block_depth, params.tile_width_spacing) ==
-                std::tie(rhs.height, rhs.depth, rhs.block_width, rhs.block_height, rhs.block_depth,
-                         rhs.tile_width_spacing)) {
-                if (params.width == rhs.width) {
-                    return MatchStructureResult::FullMatch;
-                }
-                if (params.GetBlockAlignedWidth() == rhs.GetBlockAlignedWidth()) {
-                    return MatchStructureResult::SemiMatch;
-                }
-            }
-            return MatchStructureResult::None;
-        } else {
+        if (!params.is_tiled) {
             if (std::tie(params.width, params.height, params.pitch) ==
                 std::tie(rhs.width, rhs.height, rhs.pitch)) {
                 return MatchStructureResult::FullMatch;
             }
             return MatchStructureResult::None;
         }
+        // Tiled surface
+        if (std::tie(params.height, params.depth, params.block_width, params.block_height,
+                     params.block_depth, params.tile_width_spacing) ==
+            std::tie(rhs.height, rhs.depth, rhs.block_width, rhs.block_height, rhs.block_depth,
+                     rhs.tile_width_spacing)) {
+            if (params.width == rhs.width) {
+                return MatchStructureResult::FullMatch;
+            }
+            if (params.GetBlockAlignedWidth() == rhs.GetBlockAlignedWidth()) {
+                return MatchStructureResult::SemiMatch;
+            }
+        }
+        return MatchStructureResult::None;
     }
 
     std::optional<std::pair<u32, u32>> GetLayerMipmap(const GPUVAddr candidate_gpu_addr) const {
@@ -151,35 +151,7 @@ public:
     }
 
     std::vector<CopyParams> BreakDown(const SurfaceParams& in_params) const {
-        std::vector<CopyParams> result;
-        const u32 layers{params.depth};
-        const u32 mipmaps{params.num_levels};
-
-        if (params.is_layered) {
-            result.reserve(static_cast<std::size_t>(layers) * static_cast<std::size_t>(mipmaps));
-            for (u32 layer = 0; layer < layers; layer++) {
-                const u32 layer_offset{layer * mipmaps};
-                for (u32 level = 0; level < mipmaps; level++) {
-                    const u32 width{
-                        std::min(params.GetMipWidth(level), in_params.GetMipWidth(level))};
-                    const u32 height{
-                        std::min(params.GetMipHeight(level), in_params.GetMipHeight(level))};
-                    result.emplace_back(width, height, layer, level);
-                }
-            }
-            return result;
-
-        } else {
-            result.reserve(mipmaps);
-            for (u32 level = 0; level < mipmaps; level++) {
-                const u32 width{std::min(params.GetMipWidth(level), in_params.GetMipWidth(level))};
-                const u32 height{
-                    std::min(params.GetMipHeight(level), in_params.GetMipHeight(level))};
-                const u32 depth{std::min(params.GetMipDepth(level), in_params.GetMipDepth(level))};
-                result.emplace_back(width, height, depth, level);
-            }
-            return result;
-        }
+        return params.is_layered ? BreakDownLayered(in_params) : BreakDownNonLayered(in_params);
     }
 
 protected:
@@ -203,6 +175,37 @@ protected:
 private:
     void SwizzleFunc(MortonSwizzleMode mode, u8* memory, const SurfaceParams& params, u8* buffer,
                      u32 level);
+
+    std::vector<CopyParams> BreakDownLayered(const SurfaceParams& in_params) const {
+        const u32 layers{params.depth};
+        const u32 mipmaps{params.num_levels};
+        std::vector<CopyParams> result;
+        result.reserve(static_cast<std::size_t>(layers) * static_cast<std::size_t>(mipmaps));
+
+        for (u32 layer = 0; layer < layers; layer++) {
+            for (u32 level = 0; level < mipmaps; level++) {
+                const u32 width{std::min(params.GetMipWidth(level), in_params.GetMipWidth(level))};
+                const u32 height{
+                    std::min(params.GetMipHeight(level), in_params.GetMipHeight(level))};
+                result.emplace_back(width, height, layer, level);
+            }
+        }
+        return result;
+    }
+
+    std::vector<CopyParams> BreakDownNonLayered(const SurfaceParams& in_params) const {
+        const u32 mipmaps{params.num_levels};
+        std::vector<CopyParams> result;
+        result.reserve(mipmaps);
+
+        for (u32 level = 0; level < mipmaps; level++) {
+            const u32 width{std::min(params.GetMipWidth(level), in_params.GetMipWidth(level))};
+            const u32 height{std::min(params.GetMipHeight(level), in_params.GetMipHeight(level))};
+            const u32 depth{std::min(params.GetMipDepth(level), in_params.GetMipDepth(level))};
+            result.emplace_back(width, height, depth, level);
+        }
+        return result;
+    }
 };
 
 template <typename TView>
