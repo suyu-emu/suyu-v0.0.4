@@ -253,45 +253,30 @@ public:
     }
 
     TView EmplaceOverview(const SurfaceParams& overview_params) {
-        ViewParams vp{};
-        vp.base_level = 0;
-        vp.num_levels = params.num_levels;
-        vp.target = overview_params.target;
-        if (params.is_layered && !overview_params.is_layered) {
-            vp.base_layer = 0;
-            vp.num_layers = 1;
-        } else {
-            vp.base_layer = 0;
-            vp.num_layers = params.depth;
-        }
-        return GetView(vp);
+        const u32 num_layers{params.is_layered && !overview_params.is_layered ? 1 : params.depth};
+        const ViewParams view_params(overview_params.target, 0, num_layers, 0, params.num_levels);
+        return GetView(view_params);
     }
 
     std::optional<TView> EmplaceView(const SurfaceParams& view_params, const GPUVAddr view_addr) {
-        if (view_addr < gpu_addr)
-            return {};
-        if (params.target == SurfaceTarget::Texture3D ||
+        if (view_addr < gpu_addr || params.target == SurfaceTarget::Texture3D ||
             view_params.target == SurfaceTarget::Texture3D) {
             return {};
         }
-        const std::size_t size = view_params.GetGuestSizeInBytes();
-        auto layer_mipmap = GetLayerMipmap(view_addr);
+        const std::size_t size{view_params.GetGuestSizeInBytes()};
+        const auto layer_mipmap{GetLayerMipmap(view_addr)};
         if (!layer_mipmap) {
             return {};
         }
-        const u32 layer = (*layer_mipmap).first;
-        const u32 mipmap = (*layer_mipmap).second;
+        const u32 layer{layer_mipmap->first};
+        const u32 mipmap{layer_mipmap->second};
         if (GetMipmapSize(mipmap) != size) {
-            // TODO: the view may cover many mimaps, this case can still go on
+            // TODO: The view may cover many mimaps, this case can still go on.
+            // This edge-case can be safely be ignored since it will just result in worse
+            // performance.
             return {};
         }
-        ViewParams vp{};
-        vp.base_layer = layer;
-        vp.num_layers = 1;
-        vp.base_level = mipmap;
-        vp.num_levels = 1;
-        vp.target = view_params.target;
-        return {GetView(vp)};
+        return GetView(ViewParams(params.target, layer, 1, mipmap, 1));
     }
 
     TView GetMainView() const {

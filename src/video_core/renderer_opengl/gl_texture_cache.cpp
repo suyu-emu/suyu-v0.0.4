@@ -226,13 +226,8 @@ CachedSurface::CachedSurface(const GPUVAddr gpu_addr, const SurfaceParams& param
     target = GetTextureTarget(params.target);
     texture = CreateTexture(params, target, internal_format);
     DecorateSurfaceName();
-    ViewParams main{};
-    main.num_levels = params.num_levels;
-    main.base_level = 0;
-    main.base_layer = 0;
-    main.num_layers = params.is_layered ? params.depth : 1;
-    main.target = params.target;
-    main_view = CreateView(main);
+    main_view = CreateView(
+        ViewParams(params.target, 0, params.is_layered ? params.depth : 1, 0, params.num_levels));
     main_view->DecorateViewName(gpu_addr,
                                 params.TargetName() + "V:" + std::to_string(view_count++));
 }
@@ -378,13 +373,11 @@ void CachedSurfaceView::Attach(GLenum attachment) const {
     switch (owner_params.target) {
     case SurfaceTarget::Texture1D:
         glFramebufferTexture1D(GL_DRAW_FRAMEBUFFER, attachment, surface.GetTarget(),
-                               surface.GetTexture(),
-                               params.base_level);
+                               surface.GetTexture(), params.base_level);
         break;
     case SurfaceTarget::Texture2D:
         glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, surface.GetTarget(),
-                               surface.GetTexture(),
-                               params.base_level);
+                               surface.GetTexture(), params.base_level);
         break;
     case SurfaceTarget::Texture1DArray:
     case SurfaceTarget::Texture2DArray:

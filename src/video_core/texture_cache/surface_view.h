@@ -13,15 +13,21 @@
 namespace VideoCommon {
 
 struct ViewParams {
+    ViewParams(VideoCore::Surface::SurfaceTarget target, u32 base_layer, u32 num_layers,
+               u32 base_level, u32 num_levels)
+        : target{target}, base_layer{base_layer}, num_layers{num_layers}, base_level{base_level},
+          num_levels{num_levels} {}
+
     std::size_t Hash() const;
 
     bool operator==(const ViewParams& rhs) const;
 
+    VideoCore::Surface::SurfaceTarget target{};
     u32 base_layer{};
     u32 num_layers{};
     u32 base_level{};
     u32 num_levels{};
-    VideoCore::Surface::SurfaceTarget target;
+
     bool IsLayered() const {
         switch (target) {
         case VideoCore::Surface::SurfaceTarget::Texture1DArray:
