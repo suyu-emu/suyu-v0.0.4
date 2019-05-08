@@ -55,6 +55,11 @@ public:
         return (cache_addr < end) && (cache_addr_end > start);
     }
 
+    bool IsInside(const GPUVAddr other_start, const GPUVAddr other_end) {
+        const GPUVAddr gpu_addr_end = gpu_addr + guest_memory_size;
+        return (gpu_addr <= other_start && other_end <= gpu_addr_end);
+    }
+
     // Use only when recycling a surface
     void SetGpuAddr(const GPUVAddr new_addr) {
         gpu_addr = new_addr;
@@ -105,6 +110,12 @@ public:
         return params.target == target;
     }
 
+    bool MatchesSubTexture(const SurfaceParams& rhs, const GPUVAddr other_gpu_addr) const {
+        return std::tie(gpu_addr, params.target, params.num_levels) ==
+                   std::tie(other_gpu_addr, rhs.target, rhs.num_levels) &&
+               params.target == SurfaceTarget::Texture2D && params.num_levels == 1;
+    }
+
     bool MatchesTopology(const SurfaceParams& rhs) const {
         const u32 src_bpp{params.GetBytesPerPixel()};
         const u32 dst_bpp{rhs.GetBytesPerPixel()};
@@ -121,9 +132,9 @@ public:
         }
         // Tiled surface
         if (std::tie(params.height, params.depth, params.block_width, params.block_height,
-                     params.block_depth, params.tile_width_spacing) ==
+                     params.block_depth, params.tile_width_spacing, params.num_levels) ==
             std::tie(rhs.height, rhs.depth, rhs.block_width, rhs.block_height, rhs.block_depth,
-                     rhs.tile_width_spacing)) {
+                     rhs.tile_width_spacing, rhs.num_levels)) {
             if (params.width == rhs.width) {
                 return MatchStructureResult::FullMatch;
             }
@@ -259,7 +270,7 @@ public:
 
     std::optional<TView> EmplaceView(const SurfaceParams& view_params, const GPUVAddr view_addr) {
         if (view_addr < gpu_addr || params.target == SurfaceTarget::Texture3D ||
-            view_params.target == SurfaceTarget::Texture3D) {
+            params.num_levels == 1 || view_params.target == SurfaceTarget::Texture3D) {
             return {};
         }
         const auto layer_mipmap{GetLayerMipmap(view_addr)};

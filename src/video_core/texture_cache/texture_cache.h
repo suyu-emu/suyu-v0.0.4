@@ -120,6 +120,10 @@ public:
             return {};
         }
 
+        if (regs.color_mask[index].raw == 0) {
+            return {};
+        }
+
         auto surface_view = GetSurface(gpu_addr, SurfaceParams::CreateForFramebuffer(system, index),
                                        preserve_contents);
         if (render_targets[index].target)
@@ -183,6 +187,12 @@ public:
         return ++ticks;
     }
 
+    bool ConsumeReconfigurationFlag() {
+        const bool result = force_reconfiguration;
+        force_reconfiguration = false;
+        return result;
+    }
+
 protected:
     TextureCache(Core::System& system, VideoCore::RasterizerInterface& rasterizer)
         : system{system}, rasterizer{rasterizer} {
@@ -219,9 +229,10 @@ protected:
         rasterizer.UpdatePagesCachedCount(*cpu_addr, size, 1);
     }
 
-    void Unregister(TSurface surface) {
-        if (surface->IsProtected())
+    void Unregister(TSurface surface, const bool force_unregister = false) {
+        if (surface->IsProtected() && !force_unregister) {
             return;
+        }
         const GPUVAddr gpu_addr = surface->GetGpuAddr();
         const CacheAddr cache_ptr = surface->GetCacheAddr();
         const std::size_t size = surface->GetSizeInBytes();
@@ -365,8 +376,10 @@ private:
                                          std::min(src_params.height, dst_height), 1);
             ImageCopy(surface, new_surface, copy_params);
         }
+        force_reconfiguration = false;
         for (auto surface : overlaps) {
-            Unregister(surface);
+            force_reconfiguration |= surface->IsProtected();
+            Unregister(surface, true);
         }
         Register(new_surface);
         return {{new_surface, new_surface->GetMainView()}};
@@ -379,6 +392,7 @@ private:
         const auto cache_addr{ToCacheAddr(host_ptr)};
         const std::size_t candidate_size = params.GetGuestSizeInBytes();
         auto overlaps{GetSurfacesInRegion(cache_addr, candidate_size)};
+
         if (overlaps.empty()) {
             return InitializeSurface(gpu_addr, params, preserve_contents);
         }
@@ -403,7 +417,7 @@ private:
                     return RebuildSurface(current_surface, params);
                 }
             }
-            if (current_surface->GetSizeInBytes() <= candidate_size) {
+            if (!current_surface->IsInside(gpu_addr, gpu_addr + candidate_size)) {
                 return RecycleSurface(overlaps, params, gpu_addr, host_ptr, preserve_contents,
                                       false);
             }
@@ -529,6 +543,10 @@ private:
     Tegra::MemoryManager* memory_manager;
 
     u64 ticks{};
+
+    // Sometimes Setup Textures can hit a surface that's on the render target, when this happens
+    // we force a reconfiguration of the frame buffer after setup.
+    bool force_reconfiguration;
 
     // The internal Cache is different for the Texture Cache. It's based on buckets
     // of 1MB. This fits better for the purpose of this cache as textures are normaly

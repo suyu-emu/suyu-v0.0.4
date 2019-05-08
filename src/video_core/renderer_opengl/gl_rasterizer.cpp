@@ -461,15 +461,15 @@ void RasterizerOpenGL::LoadDiskResources(const std::atomic_bool& stop_loading,
 }
 
 std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
-    OpenGLState& current_state, bool using_color_fb, bool using_depth_fb, bool preserve_contents,
-    std::optional<std::size_t> single_color_target) {
+    OpenGLState& current_state, bool must_reconfigure, bool using_color_fb, bool using_depth_fb,
+    bool preserve_contents, std::optional<std::size_t> single_color_target) {
     MICROPROFILE_SCOPE(OpenGL_Framebuffer);
     auto& gpu = system.GPU().Maxwell3D();
     const auto& regs = gpu.regs;
 
     const FramebufferConfigState fb_config_state{using_color_fb, using_depth_fb, preserve_contents,
                                                  single_color_target};
-    if (fb_config_state == current_framebuffer_config_state &&
+    if (!must_reconfigure && fb_config_state == current_framebuffer_config_state &&
         gpu.dirty_flags.color_buffer.none() && !gpu.dirty_flags.zeta_buffer) {
         // Only skip if the previous ConfigureFramebuffers call was from the same kind (multiple or
         // single color targets). This is done because the guest registers may not change but the
@@ -622,8 +622,9 @@ void RasterizerOpenGL::Clear() {
         return;
     }
 
-    const auto [clear_depth, clear_stencil] = ConfigureFramebuffers(
-        clear_state, use_color, use_depth || use_stencil, false, regs.clear_buffers.RT.Value());
+    const auto [clear_depth, clear_stencil] =
+        ConfigureFramebuffers(clear_state, false, use_color, use_depth || use_stencil, false,
+                              regs.clear_buffers.RT.Value());
     if (regs.clear_flags.scissor) {
         SyncScissorTest(clear_state);
     }
@@ -704,6 +705,10 @@ void RasterizerOpenGL::DrawArrays() {
 
     DrawParameters params = SetupDraw();
     SetupShaders(params.primitive_mode);
+
+    if (texture_cache.ConsumeReconfigurationFlag()) {
+        ConfigureFramebuffers(state, true);
+    }
 
     buffer_cache.Unmap();
 
