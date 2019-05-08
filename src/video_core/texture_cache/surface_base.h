@@ -253,9 +253,8 @@ public:
     }
 
     TView EmplaceOverview(const SurfaceParams& overview_params) {
-        const u32 num_layers{params.is_layered && !overview_params.is_layered ? 1 : params.depth};
-        const ViewParams view_params(overview_params.target, 0, num_layers, 0, params.num_levels);
-        return GetView(view_params);
+        const u32 num_layers{(params.is_layered && !overview_params.is_layered) ? 1 : params.depth};
+        return GetView(ViewParams(overview_params.target, 0, num_layers, 0, params.num_levels));
     }
 
     std::optional<TView> EmplaceView(const SurfaceParams& view_params, const GPUVAddr view_addr) {
