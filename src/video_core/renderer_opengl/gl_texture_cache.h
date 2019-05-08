@@ -128,8 +128,16 @@ public:
 
 protected:
     Surface CreateSurface(GPUVAddr gpu_addr, const SurfaceParams& params) override;
+
     void ImageCopy(Surface src_surface, Surface dst_surface,
                    const VideoCommon::CopyParams& copy_params) override;
+
+    void ImageBlit(Surface src_surface, Surface dst_surface, const Common::Rectangle<u32>& src_rect,
+                           const Common::Rectangle<u32>& dst_rect) override;
+
+private:
+    OGLFramebuffer src_framebuffer;
+    OGLFramebuffer dst_framebuffer;
 };
 
 } // namespace OpenGL

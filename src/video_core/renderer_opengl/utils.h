@@ -34,19 +34,6 @@ private:
     std::vector<GLsizeiptr> sizes;
 };
 
-class SurfaceBlitter {
-public:
-    explicit SurfaceBlitter();
-    ~SurfaceBlitter();
-
-    void Blit(View src, View dst, const Common::Rectangle<u32>& src_rect,
-              const Common::Rectangle<u32>& dst_rect) const;
-
-private:
-    OGLFramebuffer src_framebuffer;
-    OGLFramebuffer dst_framebuffer;
-};
-
 void LabelGLObject(GLenum identifier, GLuint handle, VAddr addr, std::string_view extra_info = {});
 
 } // namespace OpenGL

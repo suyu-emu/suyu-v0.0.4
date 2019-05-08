@@ -15,6 +15,7 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "common/math_util.h"
 #include "core/memory.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -142,10 +143,11 @@ public:
         }
     }
 
-    TView GetFermiSurface(const Tegra::Engines::Fermi2D::Regs::Surface& config) {
-        SurfaceParams params = SurfaceParams::CreateForFermiCopySurface(config);
-        const GPUVAddr gpu_addr = config.Address();
-        return GetSurface(gpu_addr, params, true).second;
+    void DoFermiCopy(const Tegra::Engines::Fermi2D::Regs::Surface& src_config,
+                     const Tegra::Engines::Fermi2D::Regs::Surface& dst_config,
+                     const Common::Rectangle<u32>& src_rect,
+                     const Common::Rectangle<u32>& dst_rect) {
+        ImageBlit(GetFermiSurface(src_config), GetFermiSurface(dst_config), src_rect, dst_rect);
     }
 
     TSurface TryFindFramebufferSurface(const u8* host_ptr) {
@@ -182,6 +184,9 @@ protected:
 
     virtual void ImageCopy(TSurface src_surface, TSurface dst_surface,
                            const CopyParams& copy_params) = 0;
+
+    virtual void ImageBlit(TSurface src, TSurface dst, const Common::Rectangle<u32>& src_rect,
+                           const Common::Rectangle<u32>& dst_rect) = 0;
 
     void Register(TSurface surface) {
         const GPUVAddr gpu_addr = surface->GetGpuAddr();
@@ -221,6 +226,12 @@ protected:
         // No reserved surface available, create a new one and reserve it
         auto new_surface{CreateSurface(gpu_addr, params)};
         return new_surface;
+    }
+
+    TSurface GetFermiSurface(const Tegra::Engines::Fermi2D::Regs::Surface& config) {
+        SurfaceParams params = SurfaceParams::CreateForFermiCopySurface(config);
+        const GPUVAddr gpu_addr = config.Address();
+        return GetSurface(gpu_addr, params, true).first;
     }
 
     Core::System& system;
