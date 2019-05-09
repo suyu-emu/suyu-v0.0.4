@@ -72,15 +72,6 @@ u8* GetPointer(VAddr vaddr);
 
 std::string ReadCString(VAddr vaddr, std::size_t max_length);
 
-enum class FlushMode {
-    /// Write back modified surfaces to RAM
-    Flush,
-    /// Remove region from the cache
-    Invalidate,
-    /// Write back modified surfaces to RAM, and also remove them from the cache
-    FlushAndInvalidate,
-};
-
 /**
  * Mark each page touching the region as cached.
  */
