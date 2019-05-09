@@ -17,8 +17,12 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry)
     ui->hotkeysTab->Populate(registry);
     this->setConfiguration();
     this->PopulateSelectionList();
+
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
     connect(ui->selectorList, &QListWidget::itemSelectionChanged, this,
             &ConfigureDialog::UpdateVisibleTabs);
+
     adjustSize();
     ui->selectorList->setCurrentRow(0);
 
