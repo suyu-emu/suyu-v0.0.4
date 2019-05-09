@@ -65,12 +65,12 @@ public:
     u8* GetPointer(GPUVAddr addr);
     const u8* GetPointer(GPUVAddr addr) const;
 
-    // Returns true if the block is continous in host memory, false otherwise
+    // Returns true if the block is continuous in host memory, false otherwise
     bool IsBlockContinous(GPUVAddr start, std::size_t size);
 
     /**
      * ReadBlock and WriteBlock are full read and write operations over virtual
-     * GPU Memory. It's important to use these when GPU memory may not be continous
+     * GPU Memory. It's important to use these when GPU memory may not be continuous
      * in the Host Memory counterpart. Note: This functions cause Host GPU Memory
      * Flushes and Invalidations, respectively to each operation.
      */
@@ -111,10 +111,10 @@ private:
     /**
      * Maps an unmanaged host memory pointer at a given address.
      *
-     * @param target The guest address to start the mapping at.
-     * @param memory The memory to be mapped.
-     * @param size Size of the mapping.
-     * @param state MemoryState tag to attach to the VMA.
+     * @param target       The guest address to start the mapping at.
+     * @param memory       The memory to be mapped.
+     * @param size         Size of the mapping in bytes.
+     * @param backing_addr The base address of the range to back this mapping.
      */
     VMAHandle MapBackingMemory(GPUVAddr target, u8* memory, u64 size, VAddr backing_addr);
 
@@ -124,7 +124,7 @@ private:
     /// Converts a VMAHandle to a mutable VMAIter.
     VMAIter StripIterConstness(const VMAHandle& iter);
 
-    /// Marks as the specfied VMA as allocated.
+    /// Marks as the specified VMA as allocated.
     VMAIter Allocate(VMAIter vma);
 
     /**
