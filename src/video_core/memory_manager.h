@@ -66,8 +66,8 @@ public:
     u8* GetPointer(GPUVAddr addr);
     const u8* GetPointer(GPUVAddr addr) const;
 
-    // Returns true if the block is continuous in host memory, false otherwise
-    bool IsBlockContinous(GPUVAddr start, std::size_t size);
+    /// Returns true if the block is continuous in host memory, false otherwise
+    bool IsBlockContinuous(GPUVAddr start, std::size_t size) const;
 
     /**
      * ReadBlock and WriteBlock are full read and write operations over virtual
