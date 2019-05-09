@@ -44,7 +44,7 @@ static void RunThread(VideoCore::RendererBase& renderer, Tegra::DmaPusher& dma_p
                 renderer.Rasterizer().FlushRegion(data->addr, data->size);
             } else if (const auto data = std::get_if<InvalidateRegionCommand>(&next.data)) {
                 renderer.Rasterizer().InvalidateRegion(data->addr, data->size);
-            } else if (const auto data = std::get_if<EndProcessingCommand>(&next.data)) {
+            } else if (std::holds_alternative<EndProcessingCommand>(next.data)) {
                 return;
             } else {
                 UNREACHABLE();
