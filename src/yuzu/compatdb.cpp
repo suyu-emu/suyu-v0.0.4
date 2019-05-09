@@ -58,7 +58,7 @@ void CompatDB::Submit() {
 
         button(NextButton)->setEnabled(false);
         button(NextButton)->setText(tr("Submitting"));
-        button(QWizard::CancelButton)->setVisible(false);
+        button(CancelButton)->setVisible(false);
 
         testcase_watcher.setFuture(QtConcurrent::run(
             [] { return Core::System::GetInstance().TelemetrySession().SubmitTestcase(); }));
@@ -74,12 +74,12 @@ void CompatDB::OnTestcaseSubmitted() {
                               tr("An error occured while sending the Testcase"));
         button(NextButton)->setEnabled(true);
         button(NextButton)->setText(tr("Next"));
-        button(QWizard::CancelButton)->setVisible(true);
+        button(CancelButton)->setVisible(true);
     } else {
         next();
         // older versions of QT don't support the "NoCancelButtonOnLastPage" option, this is a
         // workaround
-        button(QWizard::CancelButton)->setVisible(false);
+        button(CancelButton)->setVisible(false);
     }
 }
 
