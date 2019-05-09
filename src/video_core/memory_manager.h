@@ -47,7 +47,7 @@ struct VirtualMemoryArea {
 
 class MemoryManager final {
 public:
-    MemoryManager(VideoCore::RasterizerInterface& rasterizer);
+    explicit MemoryManager(VideoCore::RasterizerInterface& rasterizer);
     ~MemoryManager();
 
     GPUVAddr AllocateSpace(u64 size, u64 align);
