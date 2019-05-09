@@ -25,6 +25,8 @@ MemoryManager::MemoryManager(VideoCore::RasterizerInterface& rasterizer) : raste
     UpdatePageTableForVMA(initial_vma);
 }
 
+MemoryManager::~MemoryManager() = default;
+
 GPUVAddr MemoryManager::AllocateSpace(u64 size, u64 align) {
     const u64 aligned_size{Common::AlignUp(size, page_size)};
     const GPUVAddr gpu_addr{FindFreeRegion(address_space_base, aligned_size)};
