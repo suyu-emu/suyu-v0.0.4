@@ -37,11 +37,45 @@ private:
     void ReadTouchscreenValues();
     void ApplyDefaultProfileIfInputInvalid();
 
+    // Read functions bases off the respective config section names.
+    void ReadAudioValues();
+    void ReadControlValues();
+    void ReadCoreValues();
+    void ReadDataStorageValues();
+    void ReadDebuggingValues();
+    void ReadDisabledAddOnValues();
+    void ReadMiscellaneousValues();
+    void ReadPathValues();
+    void ReadRendererValues();
+    void ReadShortcutValues();
+    void ReadSystemValues();
+    void ReadUIValues();
+    void ReadUIGamelistValues();
+    void ReadUILayoutValues();
+    void ReadWebServiceValues();
+
     void SaveValues();
     void SavePlayerValues();
     void SaveDebugValues();
     void SaveMouseValues();
     void SaveTouchscreenValues();
+
+    // Save functions based off the respective config section names.
+    void SaveAudioValues();
+    void SaveControlValues();
+    void SaveCoreValues();
+    void SaveDataStorageValues();
+    void SaveDebuggingValues();
+    void SaveDisabledAddOnValues();
+    void SaveMiscellaneousValues();
+    void SavePathValues();
+    void SaveRendererValues();
+    void SaveShortcutValues();
+    void SaveSystemValues();
+    void SaveUIValues();
+    void SaveUIGamelistValues();
+    void SaveUILayoutValues();
+    void SaveWebServiceValues();
 
     QVariant ReadSetting(const QString& name) const;
     QVariant ReadSetting(const QString& name, const QVariant& default_value) const;
