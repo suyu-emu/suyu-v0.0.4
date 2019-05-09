@@ -198,11 +198,11 @@ GMainWindow::GMainWindow()
 
     ConnectMenuEvents();
     ConnectWidgetEvents();
+
     LOG_INFO(Frontend, "yuzu Version: {} | {}-{}", Common::g_build_fullname, Common::g_scm_branch,
              Common::g_scm_desc);
+    UpdateWindowTitle();
 
-    setWindowTitle(QString("yuzu %1| %2-%3")
-                       .arg(Common::g_build_fullname, Common::g_scm_branch, Common::g_scm_desc));
     show();
 
     Core::System::GetInstance().SetContentProvider(
@@ -936,9 +936,7 @@ void GMainWindow::BootGame(const QString& filename) {
             title_name = FileUtil::GetFilename(filename.toStdString());
     }
 
-    setWindowTitle(QString("yuzu %1| %4 | %2-%3")
-                       .arg(Common::g_build_fullname, Common::g_scm_branch, Common::g_scm_desc,
-                            QString::fromStdString(title_name)));
+    UpdateWindowTitle(QString::fromStdString(title_name));
 
     loading_screen->Prepare(Core::System::GetInstance().GetAppLoader());
     loading_screen->show();
@@ -979,8 +977,8 @@ void GMainWindow::ShutdownGame() {
     loading_screen->Clear();
     game_list->show();
     game_list->setFilterFocus();
-    setWindowTitle(QString("yuzu %1| %2-%3")
-                       .arg(Common::g_build_fullname, Common::g_scm_branch, Common::g_scm_desc));
+
+    UpdateWindowTitle();
 
     // Disable status bar updates
     status_bar_update_timer.stop();
@@ -1765,6 +1763,19 @@ void GMainWindow::OnCaptureScreenshot() {
         }
     }
     OnStartGame();
+}
+
+void GMainWindow::UpdateWindowTitle(const QString& title_name) {
+    const QString full_name = QString::fromUtf8(Common::g_build_fullname);
+    const QString branch_name = QString::fromUtf8(Common::g_scm_branch);
+    const QString description = QString::fromUtf8(Common::g_scm_desc);
+
+    if (title_name.isEmpty()) {
+        setWindowTitle(QStringLiteral("yuzu %1| %2-%3").arg(full_name, branch_name, description));
+    } else {
+        setWindowTitle(QStringLiteral("yuzu %1| %4 | %2-%3")
+                           .arg(full_name, branch_name, description, title_name));
+    }
 }
 
 void GMainWindow::UpdateStatusBar() {
