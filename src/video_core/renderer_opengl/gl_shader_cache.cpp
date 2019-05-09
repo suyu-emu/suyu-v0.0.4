@@ -345,7 +345,7 @@ ShaderDiskCacheUsage CachedShader::GetUsage(GLenum primitive_mode,
 
 ShaderCacheOpenGL::ShaderCacheOpenGL(RasterizerOpenGL& rasterizer, Core::System& system,
                                      const Device& device)
-    : RasterizerCache{rasterizer}, disk_cache{system}, device{device} {}
+    : RasterizerCache{rasterizer}, device{device}, disk_cache{system} {}
 
 void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
                                       const VideoCore::DiskResourceLoadCallback& callback) {
