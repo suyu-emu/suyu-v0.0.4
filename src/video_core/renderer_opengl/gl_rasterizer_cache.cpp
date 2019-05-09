@@ -801,7 +801,6 @@ void CachedSurface::UploadGLMipmapTexture(u32 mip_map, GLuint read_fb_handle,
                                 tuple.type, &gl_buffer[mip_map][buffer_offset]);
             break;
         case SurfaceTarget::TextureCubemap: {
-            std::size_t start = buffer_offset;
             for (std::size_t face = 0; face < params.depth; ++face) {
                 glTextureSubImage3D(texture.handle, mip_map, x0, y0, static_cast<GLint>(face),
                                     static_cast<GLsizei>(rect.GetWidth()),
