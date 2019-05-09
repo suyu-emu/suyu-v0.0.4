@@ -50,7 +50,7 @@ void AudCtl::GetTargetVolumeMin(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Audio, "called.");
 
     // This service function is currently hardcoded on the
-    // actual console to this value (as of 6.0.0).
+    // actual console to this value (as of 8.0.0).
     constexpr s32 target_min_volume = 0;
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -62,7 +62,7 @@ void AudCtl::GetTargetVolumeMax(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Audio, "called.");
 
     // This service function is currently hardcoded on the
-    // actual console to this value (as of 6.0.0).
+    // actual console to this value (as of 8.0.0).
     constexpr s32 target_max_volume = 15;
 
     IPC::ResponseBuilder rb{ctx, 3};
