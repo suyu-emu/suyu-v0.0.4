@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include <list>
 #include <memory>
 #include <set>
 #include <tuple>
 #include <unordered_map>
+#include <vector>
 
 #include <boost/icl/interval_map.hpp>
 #include <boost/range/iterator_range.hpp>
@@ -172,7 +172,7 @@ public:
             return nullptr;
         }
         const CacheAddr page = cache_addr >> registry_page_bits;
-        std::list<TSurface>& list = registry[page];
+        std::vector<TSurface>& list = registry[page];
         for (auto& s : list) {
             if (s->GetCacheAddr() == cache_addr) {
                 return s;
@@ -482,7 +482,8 @@ private:
         CacheAddr start = surface->GetCacheAddr() >> registry_page_bits;
         const CacheAddr end = (surface->GetCacheAddrEnd() - 1) >> registry_page_bits;
         while (start <= end) {
-            registry[start].remove(surface);
+            auto& reg{registry[start]};
+            reg.erase(std::find(reg.begin(), reg.end(), surface));
             start++;
         }
     }
@@ -496,7 +497,7 @@ private:
         const CacheAddr end = (cache_addr_end - 1) >> registry_page_bits;
         std::vector<TSurface> surfaces;
         while (start <= end) {
-            std::list<TSurface>& list = registry[start];
+            std::vector<TSurface>& list = registry[start];
             for (auto& s : list) {
                 if (!s->IsPicked() && s->Overlaps(cache_addr, cache_addr_end)) {
                     s->MarkAsPicked(true);
@@ -553,12 +554,12 @@ private:
     // large in size.
     static constexpr u64 registry_page_bits{20};
     static constexpr u64 registry_page_size{1 << registry_page_bits};
-    std::unordered_map<CacheAddr, std::list<TSurface>> registry;
+    std::unordered_map<CacheAddr, std::vector<TSurface>> registry;
 
     /// The surface reserve is a "backup" cache, this is where we put unique surfaces that have
     /// previously been used. This is to prevent surfaces from being constantly created and
     /// destroyed when used with different surface parameters.
-    std::unordered_map<SurfaceParams, std::list<TSurface>> surface_reserve;
+    std::unordered_map<SurfaceParams, std::vector<TSurface>> surface_reserve;
     std::array<RenderInfo, Tegra::Engines::Maxwell3D::Regs::NumRenderTargets> render_targets;
     DepthBufferInfo depth_buffer;
 
