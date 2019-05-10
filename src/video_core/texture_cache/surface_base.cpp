@@ -22,7 +22,6 @@ SurfaceBaseImpl::SurfaceBaseImpl(GPUVAddr gpu_addr, const SurfaceParams& params)
     : params{params}, mipmap_sizes(params.num_levels),
       mipmap_offsets(params.num_levels), gpu_addr{gpu_addr}, host_memory_size{
                                                                  params.GetHostSizeInBytes()} {
-
     std::size_t offset = 0;
     for (u32 level = 0; level < params.num_levels; ++level) {
         const std::size_t mipmap_size{params.GetGuestMipmapSize(level)};
@@ -75,7 +74,7 @@ void SurfaceBaseImpl::LoadBuffer(Tegra::MemoryManager& memory_manager,
         return;
     }
     if (params.is_tiled) {
-        ASSERT_MSG(params.block_width == 1, "Block width is defined as {} on texture target {}",
+        ASSERT_MSG(params.block_width == 0, "Block width is defined as {} on texture target {}",
                    params.block_width, static_cast<u32>(params.target));
         for (u32 level = 0; level < params.num_levels; ++level) {
             const std::size_t host_offset{params.GetHostMipmapLevelOffset(level)};

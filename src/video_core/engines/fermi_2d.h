@@ -63,18 +63,15 @@ public:
             }
 
             u32 BlockWidth() const {
-                // The block width is stored in log2 format.
-                return 1 << block_width;
+                return block_width;
             }
 
             u32 BlockHeight() const {
-                // The block height is stored in log2 format.
-                return 1 << block_height;
+                return block_height;
             }
 
             u32 BlockDepth() const {
-                // The block depth is stored in log2 format.
-                return 1 << block_depth;
+                return block_depth;
             }
         };
         static_assert(sizeof(Surface) == 0x28, "Surface has incorrect size");

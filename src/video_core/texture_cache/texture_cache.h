@@ -81,6 +81,9 @@ public:
         if (!gpu_addr) {
             return {};
         }
+        if (gpu_addr == 0x1b7ec0000) {
+            // __debugbreak();
+        }
         const auto params{SurfaceParams::CreateForTexture(system, config, entry)};
         return GetSurface(gpu_addr, params, true).second;
     }

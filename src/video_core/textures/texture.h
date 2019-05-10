@@ -219,20 +219,17 @@ struct TICEntry {
 
     u32 BlockWidth() const {
         ASSERT(IsTiled());
-        // The block height is stored in log2 format.
-        return 1 << block_width;
+        return block_width;
     }
 
     u32 BlockHeight() const {
         ASSERT(IsTiled());
-        // The block height is stored in log2 format.
-        return 1 << block_height;
+        return block_height;
     }
 
     u32 BlockDepth() const {
         ASSERT(IsTiled());
-        // The block height is stored in log2 format.
-        return 1 << block_depth;
+        return block_depth;
     }
 
     bool IsTiled() const {

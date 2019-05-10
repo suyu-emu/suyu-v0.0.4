@@ -20,6 +20,11 @@ constexpr T AlignDown(T value, std::size_t size) {
 }
 
 template <typename T>
+constexpr T AlignBits(T value, T align) {
+    return (value + ((1 << align) - 1)) >> align << align;
+}
+
+template <typename T>
 constexpr bool Is4KBAligned(T value) {
     static_assert(std::is_unsigned_v<T>, "T must be an unsigned value.");
     return (value & 0xFFF) == 0;

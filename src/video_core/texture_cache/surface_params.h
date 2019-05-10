@@ -54,12 +54,12 @@ public:
             constexpr std::size_t rgb8_bpp = 4ULL;
             // ASTC is uncompressed in software, in emulated as RGBA8
             host_size_in_bytes = 0;
-            for (std::size_t level = 0; level < num_levels; level++) {
+            for (u32 level = 0; level < num_levels; ++level) {
                 const std::size_t width =
                     Common::AlignUp(GetMipWidth(level), GetDefaultBlockWidth());
                 const std::size_t height =
                     Common::AlignUp(GetMipHeight(level), GetDefaultBlockHeight());
-                const std::size_t depth = is_layered ? depth : GetMipDepth(level);
+                const std::size_t depth = is_layered ? this->depth : GetMipDepth(level);
                 host_size_in_bytes += width * height * depth * rgb8_bpp;
             }
         } else {
@@ -96,7 +96,8 @@ public:
     // Helper used for out of class size calculations
     static std::size_t AlignLayered(const std::size_t out_size, const u32 block_height,
                                     const u32 block_depth) {
-        return Common::AlignUp(out_size, Tegra::Texture::GetGOBSize() * block_height * block_depth);
+        return Common::AlignBits(out_size,
+                                 Tegra::Texture::GetGOBSizeShift() + block_height + block_depth);
     }
 
     /// Returns the offset in bytes in guest memory of a given mipmap level.

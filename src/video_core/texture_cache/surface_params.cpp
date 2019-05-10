@@ -96,9 +96,9 @@ SurfaceParams SurfaceParams::CreateForDepthBuffer(
     SurfaceParams params;
     params.is_tiled = type == Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout::BlockLinear;
     params.srgb_conversion = false;
-    params.block_width = 1 << std::min(block_width, 5U);
-    params.block_height = 1 << std::min(block_height, 5U);
-    params.block_depth = 1 << std::min(block_depth, 5U);
+    params.block_width = std::min(block_width, 5U);
+    params.block_height = std::min(block_height, 5U);
+    params.block_depth = std::min(block_depth, 5U);
     params.tile_width_spacing = 1;
     params.pixel_format = PixelFormatFromDepthFormat(format);
     params.component_type = ComponentTypeFromDepthFormat(format);
@@ -120,9 +120,9 @@ SurfaceParams SurfaceParams::CreateForFramebuffer(Core::System& system, std::siz
         config.memory_layout.type == Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout::BlockLinear;
     params.srgb_conversion = config.format == Tegra::RenderTargetFormat::BGRA8_SRGB ||
                              config.format == Tegra::RenderTargetFormat::RGBA8_SRGB;
-    params.block_width = 1 << config.memory_layout.block_width;
-    params.block_height = 1 << config.memory_layout.block_height;
-    params.block_depth = 1 << config.memory_layout.block_depth;
+    params.block_width = config.memory_layout.block_width;
+    params.block_height = config.memory_layout.block_height;
+    params.block_depth = config.memory_layout.block_depth;
     params.tile_width_spacing = 1;
     params.pixel_format = PixelFormatFromRenderTargetFormat(config.format);
     params.component_type = ComponentTypeFromRenderTarget(config.format);
@@ -149,9 +149,9 @@ SurfaceParams SurfaceParams::CreateForFermiCopySurface(
     params.is_tiled = !config.linear;
     params.srgb_conversion = config.format == Tegra::RenderTargetFormat::BGRA8_SRGB ||
                              config.format == Tegra::RenderTargetFormat::RGBA8_SRGB;
-    params.block_width = params.is_tiled ? std::min(config.BlockWidth(), 32U) : 0,
-    params.block_height = params.is_tiled ? std::min(config.BlockHeight(), 32U) : 0,
-    params.block_depth = params.is_tiled ? std::min(config.BlockDepth(), 32U) : 0,
+    params.block_width = params.is_tiled ? std::min(config.BlockWidth(), 5U) : 0,
+    params.block_height = params.is_tiled ? std::min(config.BlockHeight(), 5U) : 0,
+    params.block_depth = params.is_tiled ? std::min(config.BlockDepth(), 5U) : 0,
     params.tile_width_spacing = 1;
     params.pixel_format = PixelFormatFromRenderTargetFormat(config.format);
     params.component_type = ComponentTypeFromRenderTarget(config.format);
@@ -190,9 +190,9 @@ u32 SurfaceParams::GetMipBlockHeight(u32 level) const {
     const u32 height{GetMipHeight(level)};
     const u32 default_block_height{GetDefaultBlockHeight()};
     const u32 blocks_in_y{(height + default_block_height - 1) / default_block_height};
-    u32 block_height = 16;
-    while (block_height > 1 && blocks_in_y <= block_height * 4) {
-        block_height >>= 1;
+    u32 block_height = 4;
+    while (block_height > 0 && blocks_in_y <= (1U << block_height) * 4) {
+        --block_height;
     }
     return block_height;
 }
@@ -202,17 +202,17 @@ u32 SurfaceParams::GetMipBlockDepth(u32 level) const {
         return this->block_depth;
     }
     if (is_layered) {
-        return 1;
+        return 0;
     }
 
     const u32 depth{GetMipDepth(level)};
-    u32 block_depth = 32;
-    while (block_depth > 1 && depth * 2 <= block_depth) {
-        block_depth >>= 1;
+    u32 block_depth = 5;
+    while (block_depth > 0 && depth * 2 <= (1U << block_depth)) {
+        --block_depth;
     }
 
-    if (block_depth == 32 && GetMipBlockHeight(level) >= 4) {
-        return 16;
+    if (block_depth == 5 && GetMipBlockHeight(level) >= 2) {
+        return 4;
     }
 
     return block_depth;
@@ -252,7 +252,8 @@ std::size_t SurfaceParams::GetLayerSize(bool as_host_size, bool uncompressed) co
         size += GetInnerMipmapMemorySize(level, as_host_size, uncompressed);
     }
     if (is_tiled && is_layered) {
-        return Common::AlignUp(size, Tegra::Texture::GetGOBSize() * block_height * block_depth);
+        return Common::AlignBits(size,
+                                 Tegra::Texture::GetGOBSizeShift() + block_height + block_depth);
     }
     return size;
 }
