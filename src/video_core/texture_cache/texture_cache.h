@@ -395,6 +395,26 @@ private:
 
         const auto host_ptr{memory_manager->GetPointer(gpu_addr)};
         const auto cache_addr{ToCacheAddr(host_ptr)};
+
+        if (l1_cache.count(cache_addr) > 0) {
+            TSurface current_surface = l1_cache[cache_addr];
+            if (!current_surface->MatchesTopology(params)) {
+                std::vector<TSurface> overlaps{current_surface};
+                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, true);
+            }
+            MatchStructureResult s_result = current_surface->MatchesStructure(params);
+            if (s_result != MatchStructureResult::None &&
+                current_surface->GetGpuAddr() == gpu_addr &&
+                (params.target != SurfaceTarget::Texture3D ||
+                 current_surface->MatchTarget(params.target))) {
+                if (s_result == MatchStructureResult::FullMatch) {
+                    return ManageStructuralMatch(current_surface, params);
+                } else {
+                    return RebuildSurface(current_surface, params);
+                }
+            }
+        }
+
         const std::size_t candidate_size = params.GetGuestSizeInBytes();
         auto overlaps{GetSurfacesInRegion(cache_addr, candidate_size)};
 
@@ -410,17 +430,6 @@ private:
 
         if (overlaps.size() == 1) {
             TSurface current_surface = overlaps[0];
-            MatchStructureResult s_result = current_surface->MatchesStructure(params);
-            if (s_result != MatchStructureResult::None &&
-                current_surface->GetGpuAddr() == gpu_addr &&
-                (params.target != SurfaceTarget::Texture3D ||
-                 current_surface->MatchTarget(params.target))) {
-                if (s_result == MatchStructureResult::FullMatch) {
-                    return ManageStructuralMatch(current_surface, params);
-                } else {
-                    return RebuildSurface(current_surface, params);
-                }
-            }
             if (!current_surface->IsInside(gpu_addr, gpu_addr + candidate_size)) {
                 return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, false);
             }
@@ -473,8 +482,10 @@ private:
     }
 
     void RegisterInnerCache(TSurface& surface) {
-        CacheAddr start = surface->GetCacheAddr() >> registry_page_bits;
+        const CacheAddr cache_addr = surface->GetCacheAddr();
+        CacheAddr start = cache_addr >> registry_page_bits;
         const CacheAddr end = (surface->GetCacheAddrEnd() - 1) >> registry_page_bits;
+        l1_cache[cache_addr] = surface;
         while (start <= end) {
             registry[start].push_back(surface);
             start++;
@@ -482,8 +493,10 @@ private:
     }
 
     void UnregisterInnerCache(TSurface& surface) {
-        CacheAddr start = surface->GetCacheAddr() >> registry_page_bits;
+        const CacheAddr cache_addr = surface->GetCacheAddr();
+        CacheAddr start = cache_addr >> registry_page_bits;
         const CacheAddr end = (surface->GetCacheAddrEnd() - 1) >> registry_page_bits;
+        l1_cache.erase(cache_addr);
         while (start <= end) {
             auto& reg{registry[start]};
             reg.erase(std::find(reg.begin(), reg.end(), surface));
@@ -558,6 +571,10 @@ private:
     static constexpr u64 registry_page_bits{20};
     static constexpr u64 registry_page_size{1 << registry_page_bits};
     std::unordered_map<CacheAddr, std::vector<TSurface>> registry;
+
+    // The L1 Cache is used for fast texture lookup before checking the overlaps
+    // This avoids calculating size and other stuffs.
+    std::unordered_map<CacheAddr, TSurface> l1_cache;
 
     /// The surface reserve is a "backup" cache, this is where we put unique surfaces that have
     /// previously been used. This is to prevent surfaces from being constantly created and
