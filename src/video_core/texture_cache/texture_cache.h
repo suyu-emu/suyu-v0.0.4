@@ -133,7 +133,7 @@ public:
             return {};
         }
 
-        if (regs.color_mask[index].raw != 0) {
+        if (regs.color_mask[index].raw == 0) {
             SetEmptyColorBuffer(index);
             return {};
         }

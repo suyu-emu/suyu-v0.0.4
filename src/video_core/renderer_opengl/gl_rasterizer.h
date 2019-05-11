@@ -23,6 +23,7 @@
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_device.h"
+#include "video_core/renderer_opengl/gl_framebuffer_cache.h"
 #include "video_core/renderer_opengl/gl_global_cache.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_sampler_cache.h"
@@ -49,7 +50,6 @@ namespace OpenGL {
 
 struct ScreenInfo;
 struct DrawParameters;
-struct FramebufferCacheKey;
 
 class RasterizerOpenGL : public VideoCore::RasterizerInterface {
 public:
@@ -193,6 +193,7 @@ private:
     ShaderCacheOpenGL shader_cache;
     GlobalRegionCacheOpenGL global_cache;
     SamplerCacheOpenGL sampler_cache;
+    FramebufferCacheOpenGL framebuffer_cache;
 
     Core::System& system;
     ScreenInfo& screen_info;
@@ -203,7 +204,6 @@ private:
              OGLVertexArray>
         vertex_array_cache;
 
-    std::map<FramebufferCacheKey, OGLFramebuffer> framebuffer_cache;
     FramebufferConfigState current_framebuffer_config_state;
     std::pair<bool, bool> current_depth_stencil_usage{};
 
@@ -225,8 +225,6 @@ private:
     DrawParameters SetupDraw();
 
     void SetupShaders(GLenum primitive_mode);
-
-    void SetupCachedFramebuffer(const FramebufferCacheKey& fbkey, OpenGLState& current_state);
 
     enum class AccelDraw { Disabled, Arrays, Indexed };
     AccelDraw accelerate_draw = AccelDraw::Disabled;
