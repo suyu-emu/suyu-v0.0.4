@@ -81,17 +81,22 @@ public:
         if (!gpu_addr) {
             return {};
         }
-        if (gpu_addr == 0x1b7ec0000) {
-            // __debugbreak();
-        }
         const auto params{SurfaceParams::CreateForTexture(system, config, entry)};
         return GetSurface(gpu_addr, params, true).second;
     }
 
     TView GetDepthBufferSurface(bool preserve_contents) {
-        const auto& regs{system.GPU().Maxwell3D().regs};
+        auto& maxwell3d = system.GPU().Maxwell3D();
+
+        if (!maxwell3d.dirty_flags.zeta_buffer) {
+            return depth_buffer.view;
+        }
+        maxwell3d.dirty_flags.zeta_buffer = false;
+
+        const auto& regs{maxwell3d.regs};
         const auto gpu_addr{regs.zeta.Address()};
         if (!gpu_addr || !regs.zeta_enable) {
+            SetEmptyDepthBuffer();
             return {};
         }
         const auto depth_params{SurfaceParams::CreateForDepthBuffer(
@@ -101,6 +106,8 @@ public:
         auto surface_view = GetSurface(gpu_addr, depth_params, preserve_contents);
         if (depth_buffer.target)
             depth_buffer.target->MarkAsProtected(false);
+        depth_buffer.target = surface_view.first;
+        depth_buffer.view = surface_view.second;
         if (depth_buffer.target)
             depth_buffer.target->MarkAsProtected(true);
         return surface_view.second;
@@ -108,8 +115,13 @@ public:
 
     TView GetColorBufferSurface(std::size_t index, bool preserve_contents) {
         ASSERT(index < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets);
+        auto& maxwell3d = system.GPU().Maxwell3D();
+        if (!maxwell3d.dirty_flags.color_buffer[index]) {
+            return render_targets[index].view;
+        }
+        maxwell3d.dirty_flags.color_buffer.reset(index);
 
-        const auto& regs{system.GPU().Maxwell3D().regs};
+        const auto& regs{maxwell3d.regs};
         if (index >= regs.rt_control.count || regs.rt[index].Address() == 0 ||
             regs.rt[index].format == Tegra::RenderTargetFormat::NONE) {
             SetEmptyColorBuffer(index);
@@ -128,6 +140,7 @@ public:
         if (render_targets[index].target)
             render_targets[index].target->MarkAsProtected(false);
         render_targets[index].target = surface_view.first;
+        render_targets[index].view = surface_view.second;
         if (render_targets[index].target)
             render_targets[index].target->MarkAsProtected(true);
         return surface_view.second;
@@ -154,7 +167,6 @@ public:
     void SetEmptyColorBuffer(std::size_t index) {
         if (render_targets[index].target != nullptr) {
             render_targets[index].target->MarkAsProtected(false);
-            std::memset(&render_targets[index].config, sizeof(RenderTargetConfig), 0);
             render_targets[index].target = nullptr;
             render_targets[index].view = nullptr;
         }
@@ -545,13 +557,7 @@ private:
         return {};
     }
 
-    struct RenderInfo {
-        RenderTargetConfig config;
-        TSurface target;
-        TView view;
-    };
-
-    struct DepthBufferInfo {
+    struct FramebufferTargetInfo {
         TSurface target;
         TView view;
     };
@@ -580,8 +586,9 @@ private:
     /// previously been used. This is to prevent surfaces from being constantly created and
     /// destroyed when used with different surface parameters.
     std::unordered_map<SurfaceParams, std::vector<TSurface>> surface_reserve;
-    std::array<RenderInfo, Tegra::Engines::Maxwell3D::Regs::NumRenderTargets> render_targets;
-    DepthBufferInfo depth_buffer;
+    std::array<FramebufferTargetInfo, Tegra::Engines::Maxwell3D::Regs::NumRenderTargets>
+        render_targets;
+    FramebufferTargetInfo depth_buffer;
 
     std::vector<u8> staging_buffer;
 };
