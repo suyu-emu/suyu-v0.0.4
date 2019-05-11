@@ -218,12 +218,12 @@ public:
     virtual void DownloadTexture(std::vector<u8>& staging_buffer) = 0;
 
     void MarkAsModified(const bool is_modified_, const u64 tick) {
-        is_modified = is_modified_ || is_protected;
+        is_modified = is_modified_ || is_target;
         modification_tick = tick;
     }
 
-    void MarkAsProtected(const bool is_protected) {
-        this->is_protected = is_protected;
+    void MarkAsRenderTarget(const bool is_target) {
+        this->is_target = is_target;
     }
 
     void MarkAsPicked(const bool is_picked) {
@@ -235,7 +235,12 @@ public:
     }
 
     bool IsProtected() const {
-        return is_protected;
+        // Only 3D Slices are to be protected
+        return is_target && params.block_depth > 0;
+    }
+
+    bool IsRenderTarget() const {
+        return is_target;
     }
 
     bool IsRegistered() const {
@@ -307,7 +312,7 @@ private:
     }
 
     bool is_modified{};
-    bool is_protected{};
+    bool is_target{};
     bool is_registered{};
     bool is_picked{};
     u64 modification_tick{};

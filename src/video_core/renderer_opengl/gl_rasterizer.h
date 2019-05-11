@@ -111,9 +111,8 @@ private:
      * (requires using_depth_fb to be true)
      */
     std::pair<bool, bool> ConfigureFramebuffers(
-        OpenGLState& current_state, bool must_reconfigure = false, bool use_color_fb = true,
-        bool using_depth_fb = true, bool preserve_contents = true,
-        std::optional<std::size_t> single_color_target = {});
+        OpenGLState& current_state, bool use_color_fb = true, bool using_depth_fb = true,
+        bool preserve_contents = true, std::optional<std::size_t> single_color_target = {});
 
     /// Configures the current constbuffers to use for the draw command.
     void SetupDrawConstBuffers(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,

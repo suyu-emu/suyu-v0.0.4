@@ -105,11 +105,11 @@ public:
             regs.zeta.memory_layout.block_depth, regs.zeta.memory_layout.type)};
         auto surface_view = GetSurface(gpu_addr, depth_params, preserve_contents);
         if (depth_buffer.target)
-            depth_buffer.target->MarkAsProtected(false);
+            depth_buffer.target->MarkAsRenderTarget(false);
         depth_buffer.target = surface_view.first;
         depth_buffer.view = surface_view.second;
         if (depth_buffer.target)
-            depth_buffer.target->MarkAsProtected(true);
+            depth_buffer.target->MarkAsRenderTarget(true);
         return surface_view.second;
     }
 
@@ -138,11 +138,11 @@ public:
         auto surface_view = GetSurface(gpu_addr, SurfaceParams::CreateForFramebuffer(system, index),
                                        preserve_contents);
         if (render_targets[index].target)
-            render_targets[index].target->MarkAsProtected(false);
+            render_targets[index].target->MarkAsRenderTarget(false);
         render_targets[index].target = surface_view.first;
         render_targets[index].view = surface_view.second;
         if (render_targets[index].target)
-            render_targets[index].target->MarkAsProtected(true);
+            render_targets[index].target->MarkAsRenderTarget(true);
         return surface_view.second;
     }
 
@@ -158,7 +158,7 @@ public:
 
     void SetEmptyDepthBuffer() {
         if (depth_buffer.target != nullptr) {
-            depth_buffer.target->MarkAsProtected(false);
+            depth_buffer.target->MarkAsRenderTarget(false);
             depth_buffer.target = nullptr;
             depth_buffer.view = nullptr;
         }
@@ -166,7 +166,7 @@ public:
 
     void SetEmptyColorBuffer(std::size_t index) {
         if (render_targets[index].target != nullptr) {
-            render_targets[index].target->MarkAsProtected(false);
+            render_targets[index].target->MarkAsRenderTarget(false);
             render_targets[index].target = nullptr;
             render_targets[index].view = nullptr;
         }
@@ -198,12 +198,6 @@ public:
 
     u64 Tick() {
         return ++ticks;
-    }
-
-    bool ConsumeReconfigurationFlag() {
-        const bool result = force_reconfiguration;
-        force_reconfiguration = false;
-        return result;
     }
 
 protected:
@@ -242,8 +236,8 @@ protected:
         rasterizer.UpdatePagesCachedCount(*cpu_addr, size, 1);
     }
 
-    void Unregister(TSurface surface, const bool force_unregister = false) {
-        if (surface->IsProtected() && !force_unregister) {
+    void Unregister(TSurface surface) {
+        if (surface->IsProtected()) {
             return;
         }
         const GPUVAddr gpu_addr = surface->GetGpuAddr();
@@ -392,10 +386,8 @@ private:
                                          std::min(src_params.height, dst_height), 1);
             ImageCopy(surface, new_surface, copy_params);
         }
-        force_reconfiguration = false;
         for (auto surface : overlaps) {
-            force_reconfiguration |= surface->IsProtected();
-            Unregister(surface, true);
+            Unregister(surface);
         }
         new_surface->MarkAsModified(modified, Tick());
         Register(new_surface);
@@ -566,10 +558,6 @@ private:
     Tegra::MemoryManager* memory_manager;
 
     u64 ticks{};
-
-    // Sometimes Setup Textures can hit a surface that's on the render target, when this happens
-    // we force a reconfiguration of the frame buffer after setup.
-    bool force_reconfiguration;
 
     // The internal Cache is different for the Texture Cache. It's based on buckets
     // of 1MB. This fits better for the purpose of this cache as textures are normaly
