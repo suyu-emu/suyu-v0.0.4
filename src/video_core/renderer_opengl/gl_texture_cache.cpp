@@ -228,10 +228,9 @@ CachedSurface::CachedSurface(const GPUVAddr gpu_addr, const SurfaceParams& param
     target = GetTextureTarget(params.target);
     texture = CreateTexture(params, target, internal_format);
     DecorateSurfaceName();
-    main_view = CreateView(
-        ViewParams(params.target, 0, params.is_layered ? params.depth : 1, 0, params.num_levels));
-    main_view->DecorateViewName(gpu_addr,
-                                params.TargetName() + "V:" + std::to_string(view_count++));
+    main_view = CreateViewInner(
+        ViewParams(params.target, 0, params.is_layered ? params.depth : 1, 0, params.num_levels),
+        true);
 }
 
 CachedSurface::~CachedSurface() {
@@ -351,16 +350,24 @@ void CachedSurfaceView::DecorateViewName(GPUVAddr gpu_addr, std::string prefix) 
 }
 
 View CachedSurface::CreateView(const ViewParams& view_key) {
-    auto view = std::make_shared<CachedSurfaceView>(*this, view_key);
+    return CreateViewInner(view_key, false);
+}
+
+View CachedSurface::CreateViewInner(const ViewParams& view_key, const bool is_proxy) {
+    auto view = std::make_shared<CachedSurfaceView>(*this, view_key, is_proxy);
     views[view_key] = view;
-    view->DecorateViewName(gpu_addr, params.TargetName() + "V:" + std::to_string(view_count++));
+    if (!is_proxy)
+        view->DecorateViewName(gpu_addr, params.TargetName() + "V:" + std::to_string(view_count++));
     return view;
 }
 
-CachedSurfaceView::CachedSurfaceView(CachedSurface& surface, const ViewParams& params)
-    : VideoCommon::ViewBase(params), surface{surface} {
+CachedSurfaceView::CachedSurfaceView(CachedSurface& surface, const ViewParams& params,
+                                     const bool is_proxy)
+    : VideoCommon::ViewBase(params), surface{surface}, is_proxy{is_proxy} {
     target = GetTextureTarget(params.target);
-    texture_view = CreateTextureView();
+    if (!is_proxy) {
+        texture_view = CreateTextureView();
+    }
     swizzle = EncodeSwizzle(SwizzleSource::R, SwizzleSource::G, SwizzleSource::B, SwizzleSource::A);
 }
 
@@ -401,7 +408,8 @@ void CachedSurfaceView::ApplySwizzle(SwizzleSource x_source, SwizzleSource y_sou
     const std::array<GLint, 4> gl_swizzle = {GetSwizzleSource(x_source), GetSwizzleSource(y_source),
                                              GetSwizzleSource(z_source),
                                              GetSwizzleSource(w_source)};
-    glTextureParameteriv(texture_view.handle, GL_TEXTURE_SWIZZLE_RGBA, gl_swizzle.data());
+    const GLuint handle = GetTexture();
+    glTextureParameteriv(handle, GL_TEXTURE_SWIZZLE_RGBA, gl_swizzle.data());
 }
 
 OGLTextureView CachedSurfaceView::CreateTextureView() const {

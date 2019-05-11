@@ -51,6 +51,7 @@ protected:
     void DecorateSurfaceName();
 
     View CreateView(const ViewParams& view_key) override;
+    View CreateViewInner(const ViewParams& view_key, const bool is_proxy);
 
 private:
     void UploadTextureMipmap(u32 level, std::vector<u8>& staging_buffer);
@@ -67,13 +68,17 @@ private:
 
 class CachedSurfaceView final : public VideoCommon::ViewBase {
 public:
-    explicit CachedSurfaceView(CachedSurface& surface, const ViewParams& params);
+    explicit CachedSurfaceView(CachedSurface& surface, const ViewParams& params,
+                               const bool is_proxy);
     ~CachedSurfaceView();
 
     /// Attaches this texture view to the current bound GL_DRAW_FRAMEBUFFER
     void Attach(GLenum attachment) const;
 
     GLuint GetTexture() {
+        if (is_proxy) {
+            return surface.GetTexture();
+        }
         return texture_view.handle;
     }
 
@@ -119,6 +124,7 @@ private:
 
     OGLTextureView texture_view;
     u32 swizzle;
+    bool is_proxy;
 };
 
 class TextureCacheOpenGL final : public TextureCacheBase {
