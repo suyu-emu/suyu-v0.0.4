@@ -5,6 +5,7 @@
 #include <map>
 
 #include "common/alignment.h"
+#include "common/bit_util.h"
 #include "common/cityhash.h"
 #include "core/core.h"
 #include "video_core/engines/shader_bytecode.h"
@@ -190,11 +191,8 @@ u32 SurfaceParams::GetMipBlockHeight(u32 level) const {
     const u32 height{GetMipHeight(level)};
     const u32 default_block_height{GetDefaultBlockHeight()};
     const u32 blocks_in_y{(height + default_block_height - 1) / default_block_height};
-    u32 block_height = 4;
-    while (block_height > 0 && blocks_in_y <= (1U << block_height) * 4) {
-        --block_height;
-    }
-    return block_height;
+    const u32 block_height = Common::Log2Ceil32(blocks_in_y);
+    return std::clamp(block_height, 3U, 8U) - 3U;
 }
 
 u32 SurfaceParams::GetMipBlockDepth(u32 level) const {
@@ -206,15 +204,10 @@ u32 SurfaceParams::GetMipBlockDepth(u32 level) const {
     }
 
     const u32 depth{GetMipDepth(level)};
-    u32 block_depth = 5;
-    while (block_depth > 0 && depth * 2 <= (1U << block_depth)) {
-        --block_depth;
+    const u32 block_depth = Common::Log2Ceil32(depth);
+    if (block_depth > 4) {
+        return 5 - (GetMipBlockHeight(level) >= 2);
     }
-
-    if (block_depth == 5 && GetMipBlockHeight(level) >= 2) {
-        return 4;
-    }
-
     return block_depth;
 }
 
