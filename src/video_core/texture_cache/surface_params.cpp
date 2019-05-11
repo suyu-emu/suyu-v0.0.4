@@ -76,8 +76,10 @@ SurfaceParams SurfaceParams::CreateForTexture(Core::System& system,
     params.type = GetFormatType(params.pixel_format);
     // TODO: on 1DBuffer we should use the tic info.
     params.target = TextureType2SurfaceTarget(entry.GetType(), entry.IsArray());
-    params.width = Common::AlignUp(config.tic.Width(), GetCompressionFactor(params.pixel_format));
-    params.height = Common::AlignUp(config.tic.Height(), GetCompressionFactor(params.pixel_format));
+    params.width =
+        Common::AlignBits(config.tic.Width(), GetCompressionFactorShift(params.pixel_format));
+    params.height =
+        Common::AlignBits(config.tic.Height(), GetCompressionFactorShift(params.pixel_format));
     params.depth = config.tic.Depth();
     if (params.target == SurfaceTarget::TextureCubemap ||
         params.target == SurfaceTarget::TextureCubeArray) {
