@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <set>
 #include <tuple>
 #include <unordered_map>
@@ -56,12 +57,16 @@ public:
     }
 
     void InvalidateRegion(CacheAddr addr, std::size_t size) {
+        std::lock_guard lock{mutex};
+
         for (const auto& surface : GetSurfacesInRegion(addr, size)) {
             Unregister(surface);
         }
     }
 
     void FlushRegion(CacheAddr addr, std::size_t size) {
+        std::lock_guard lock{mutex};
+
         auto surfaces = GetSurfacesInRegion(addr, size);
         if (surfaces.empty()) {
             return;
@@ -220,6 +225,8 @@ protected:
                            const Common::Rectangle<u32>& dst_rect) = 0;
 
     void Register(TSurface surface) {
+        std::lock_guard lock{mutex};
+
         const GPUVAddr gpu_addr = surface->GetGpuAddr();
         const CacheAddr cache_ptr = ToCacheAddr(memory_manager->GetPointer(gpu_addr));
         const std::size_t size = surface->GetSizeInBytes();
@@ -237,6 +244,8 @@ protected:
     }
 
     void Unregister(TSurface surface) {
+        std::lock_guard lock{mutex};
+
         if (surface->IsProtected()) {
             return;
         }
@@ -579,6 +588,7 @@ private:
     FramebufferTargetInfo depth_buffer;
 
     std::vector<u8> staging_buffer;
+    std::recursive_mutex mutex;
 };
 
 } // namespace VideoCommon
