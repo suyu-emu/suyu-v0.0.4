@@ -133,6 +133,11 @@ public:
             return {};
         }
 
+        if (regs.color_mask[index].raw != 0) {
+            SetEmptyColorBuffer(index);
+            return {};
+        }
+
         const auto& config{regs.rt[index]};
         const auto gpu_addr{config.Address()};
         if (!gpu_addr) {

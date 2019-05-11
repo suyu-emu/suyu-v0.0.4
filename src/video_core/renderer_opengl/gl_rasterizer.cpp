@@ -370,10 +370,12 @@ void RasterizerOpenGL::SetupCachedFramebuffer(const FramebufferCacheKey& fbkey,
         return;
 
     if (fbkey.is_single_buffer) {
-        if (fbkey.color_attachments[0] != GL_NONE) {
+        if (fbkey.color_attachments[0] != GL_NONE && fbkey.colors[0]) {
             fbkey.colors[0]->Attach(fbkey.color_attachments[0]);
+            glDrawBuffer(fbkey.color_attachments[0]);
+        } else {
+            glDrawBuffer(GL_NONE);
         }
-        glDrawBuffer(fbkey.color_attachments[0]);
     } else {
         for (std::size_t index = 0; index < Maxwell::NumRenderTargets; ++index) {
             if (fbkey.colors[index]) {
