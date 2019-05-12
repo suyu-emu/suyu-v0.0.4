@@ -111,6 +111,7 @@ SurfaceParams SurfaceParams::CreateForDepthBuffer(
     params.unaligned_height = zeta_height;
     params.target = SurfaceTarget::Texture2D;
     params.depth = 1;
+    params.pitch = 0;
     params.num_levels = 1;
     params.is_layered = false;
     return params;
@@ -131,6 +132,7 @@ SurfaceParams SurfaceParams::CreateForFramebuffer(Core::System& system, std::siz
     params.component_type = ComponentTypeFromRenderTarget(config.format);
     params.type = GetFormatType(params.pixel_format);
     if (params.is_tiled) {
+        params.pitch = 0;
         params.width = config.width;
     } else {
         const u32 bpp = GetFormatBpp(params.pixel_format) / CHAR_BIT;
