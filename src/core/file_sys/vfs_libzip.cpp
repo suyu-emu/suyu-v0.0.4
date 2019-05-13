@@ -15,13 +15,13 @@ VirtualDir ExtractZIP(VirtualFile file) {
     zip_error_t error{};
 
     const auto data = file->ReadAllBytes();
-    std::unique_ptr<zip_source_t, decltype(&zip_source_free)> src{
-        zip_source_buffer_create(data.data(), data.size(), 0, &error), zip_source_free};
+    std::unique_ptr<zip_source_t, decltype(&zip_source_close)> src{
+        zip_source_buffer_create(data.data(), data.size(), 0, &error), zip_source_close};
     if (src == nullptr)
         return nullptr;
 
-    std::unique_ptr<zip_t, decltype(&zip_discard)> zip{zip_open_from_source(src.get(), 0, &error),
-                                                       zip_discard};
+    std::unique_ptr<zip_t, decltype(&zip_close)> zip{zip_open_from_source(src.get(), 0, &error),
+                                                     zip_close};
     if (zip == nullptr)
         return nullptr;
 

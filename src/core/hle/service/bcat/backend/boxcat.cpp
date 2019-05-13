@@ -14,12 +14,27 @@
 #include "core/file_sys/vfs_libzip.h"
 #include "core/file_sys/vfs_vector.h"
 #include "core/frontend/applets/error.h"
-#include "core/hle/lock.h"
 #include "core/hle/service/am/applets/applets.h"
 #include "core/hle/service/bcat/backend/boxcat.h"
 #include "core/settings.h"
 
+namespace {
+
+// Prevents conflicts with windows macro called CreateFile
+FileSys::VirtualFile VfsCreateFileWrap(FileSys::VirtualDir dir, std::string_view name) {
+    return dir->CreateFile(name);
+}
+
+// Prevents conflicts with windows macro called DeleteFile
+bool VfsDeleteFileWrap(FileSys::VirtualDir dir, std::string_view name) {
+    return dir->DeleteFile(name);
+}
+
+} // Anonymous namespace
+
 namespace Service::BCAT {
+
+constexpr ResultCode ERROR_GENERAL_BCAT_FAILURE{ErrorModule::BCAT, 1};
 
 constexpr char BOXCAT_HOSTNAME[] = "api.yuzu-emu.org";
 
@@ -102,7 +117,68 @@ void HandleDownloadDisplayResult(DownloadResult res) {
         DOWNLOAD_RESULT_LOG_MESSAGES[static_cast<std::size_t>(res)], [] {});
 }
 
-} // namespace
+bool VfsRawCopyProgress(FileSys::VirtualFile src, FileSys::VirtualFile dest,
+                        std::string_view dir_name, ProgressServiceBackend& progress,
+                        std::size_t block_size = 0x1000) {
+    if (src == nullptr || dest == nullptr || !src->IsReadable() || !dest->IsWritable())
+        return false;
+    if (!dest->Resize(src->GetSize()))
+        return false;
+
+    progress.StartDownloadingFile(dir_name, src->GetName(), src->GetSize());
+
+    std::vector<u8> temp(std::min(block_size, src->GetSize()));
+    for (std::size_t i = 0; i < src->GetSize(); i += block_size) {
+        const auto read = std::min(block_size, src->GetSize() - i);
+
+        if (src->Read(temp.data(), read, i) != read) {
+            return false;
+        }
+
+        if (dest->Write(temp.data(), read, i) != read) {
+            return false;
+        }
+
+        progress.UpdateFileProgress(i);
+    }
+
+    progress.FinishDownloadingFile();
+
+    return true;
+}
+
+bool VfsRawCopyDProgressSingle(FileSys::VirtualDir src, FileSys::VirtualDir dest,
+                               ProgressServiceBackend& progress, std::size_t block_size = 0x1000) {
+    if (src == nullptr || dest == nullptr || !src->IsReadable() || !dest->IsWritable())
+        return false;
+
+    for (const auto& file : src->GetFiles()) {
+        const auto out_file = VfsCreateFileWrap(dest, file->GetName());
+        if (!VfsRawCopyProgress(file, out_file, src->GetName(), progress, block_size)) {
+            return false;
+        }
+    }
+    progress.CommitDirectory(src->GetName());
+
+    return true;
+}
+
+bool VfsRawCopyDProgress(FileSys::VirtualDir src, FileSys::VirtualDir dest,
+                         ProgressServiceBackend& progress, std::size_t block_size = 0x1000) {
+    if (src == nullptr || dest == nullptr || !src->IsReadable() || !dest->IsWritable())
+        return false;
+
+    for (const auto& dir : src->GetSubdirectories()) {
+        const auto out = dest->CreateSubdirectory(dir->GetName());
+        if (!VfsRawCopyDProgressSingle(dir, out, progress, block_size)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+} // Anonymous namespace
 
 class Boxcat::Client {
 public:
@@ -194,23 +270,23 @@ Boxcat::Boxcat(DirectoryGetter getter) : Backend(std::move(getter)) {}
 Boxcat::~Boxcat() = default;
 
 void SynchronizeInternal(DirectoryGetter dir_getter, TitleIDVersion title,
-                         CompletionCallback callback, std::optional<std::string> dir_name = {}) {
-    const auto failure = [&callback] {
-        // Acquire the HLE mutex
-        std::lock_guard lock{HLE::g_hle_lock};
-        callback(false);
-    };
+                         ProgressServiceBackend& progress,
+                         std::optional<std::string> dir_name = {}) {
+    progress.SetNeedHLELock(true);
 
     if (Settings::values.bcat_boxcat_local) {
         LOG_INFO(Service_BCAT, "Boxcat using local data by override, skipping download.");
-        // Acquire the HLE mutex
-        std::lock_guard lock{HLE::g_hle_lock};
-        callback(true);
+        const auto dir = dir_getter(title.title_id);
+        if (dir)
+            progress.SetTotalSize(dir->GetSize());
+        progress.FinishDownload(RESULT_SUCCESS);
         return;
     }
 
     const auto zip_path{GetZIPFilePath(title.title_id)};
     Boxcat::Client client{zip_path, title.title_id, title.build_id};
+
+    progress.StartConnecting();
 
     const auto res = client.DownloadDataZip();
     if (res != DownloadResult::Success) {
@@ -221,68 +297,85 @@ void SynchronizeInternal(DirectoryGetter dir_getter, TitleIDVersion title,
         }
 
         HandleDownloadDisplayResult(res);
-        failure();
+        progress.FinishDownload(ERROR_GENERAL_BCAT_FAILURE);
         return;
     }
+
+    progress.StartProcessingDataList();
 
     FileUtil::IOFile zip{zip_path, "rb"};
     const auto size = zip.GetSize();
     std::vector<u8> bytes(size);
     if (!zip.IsOpen() || size == 0 || zip.ReadBytes(bytes.data(), bytes.size()) != bytes.size()) {
         LOG_ERROR(Service_BCAT, "Boxcat failed to read ZIP file at path '{}'!", zip_path);
-        failure();
+        progress.FinishDownload(ERROR_GENERAL_BCAT_FAILURE);
         return;
     }
 
     const auto extracted = FileSys::ExtractZIP(std::make_shared<FileSys::VectorVfsFile>(bytes));
     if (extracted == nullptr) {
         LOG_ERROR(Service_BCAT, "Boxcat failed to extract ZIP file!");
-        failure();
+        progress.FinishDownload(ERROR_GENERAL_BCAT_FAILURE);
         return;
     }
 
     if (dir_name == std::nullopt) {
+        progress.SetTotalSize(extracted->GetSize());
+
         const auto target_dir = dir_getter(title.title_id);
-        if (target_dir == nullptr ||
-            !FileSys::VfsRawCopyD(extracted, target_dir, VFS_COPY_BLOCK_SIZE)) {
+        if (target_dir == nullptr || !VfsRawCopyDProgress(extracted, target_dir, progress)) {
             LOG_ERROR(Service_BCAT, "Boxcat failed to copy extracted ZIP to target directory!");
-            failure();
+            progress.FinishDownload(ERROR_GENERAL_BCAT_FAILURE);
             return;
         }
     } else {
         const auto target_dir = dir_getter(title.title_id);
         if (target_dir == nullptr) {
             LOG_ERROR(Service_BCAT, "Boxcat failed to get directory for title ID!");
-            failure();
+            progress.FinishDownload(ERROR_GENERAL_BCAT_FAILURE);
             return;
         }
 
         const auto target_sub = target_dir->GetSubdirectory(*dir_name);
         const auto source_sub = extracted->GetSubdirectory(*dir_name);
 
+        progress.SetTotalSize(source_sub->GetSize());
+
+        std::vector<std::string> filenames;
+        {
+            const auto files = target_sub->GetFiles();
+            std::transform(files.begin(), files.end(), std::back_inserter(filenames),
+                           [](const auto& vfile) { return vfile->GetName(); });
+        }
+
+        for (const auto& filename : filenames) {
+            VfsDeleteFileWrap(target_sub, filename);
+        }
+
         if (target_sub == nullptr || source_sub == nullptr ||
-            !FileSys::VfsRawCopyD(source_sub, target_sub, VFS_COPY_BLOCK_SIZE)) {
+            !VfsRawCopyDProgressSingle(source_sub, target_sub, progress)) {
             LOG_ERROR(Service_BCAT, "Boxcat failed to copy extracted ZIP to target directory!");
-            failure();
+            progress.FinishDownload(ERROR_GENERAL_BCAT_FAILURE);
             return;
         }
     }
 
-    // Acquire the HLE mutex
-    std::lock_guard lock{HLE::g_hle_lock};
-    callback(true);
+    progress.FinishDownload(RESULT_SUCCESS);
 }
 
-bool Boxcat::Synchronize(TitleIDVersion title, CompletionCallback callback) {
+bool Boxcat::Synchronize(TitleIDVersion title, ProgressServiceBackend& progress) {
     is_syncing.exchange(true);
-    std::thread(&SynchronizeInternal, dir_getter, title, callback, std::nullopt).detach();
+    std::thread([this, title, &progress] { SynchronizeInternal(dir_getter, title, progress); })
+        .detach();
     return true;
 }
 
 bool Boxcat::SynchronizeDirectory(TitleIDVersion title, std::string name,
-                                  CompletionCallback callback) {
+                                  ProgressServiceBackend& progress) {
     is_syncing.exchange(true);
-    std::thread(&SynchronizeInternal, dir_getter, title, callback, name).detach();
+    std::thread(
+        [this, title, name, &progress] { SynchronizeInternal(dir_getter, title, progress, name); })
+        .detach();
     return true;
 }
 

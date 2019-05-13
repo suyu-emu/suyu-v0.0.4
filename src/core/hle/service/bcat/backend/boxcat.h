@@ -21,16 +21,16 @@ struct EventStatus {
 /// doesn't require a switch or nintendo account. The content is controlled by the yuzu team.
 class Boxcat final : public Backend {
     friend void SynchronizeInternal(DirectoryGetter dir_getter, TitleIDVersion title,
-                                    CompletionCallback callback,
+                                    ProgressServiceBackend& progress,
                                     std::optional<std::string> dir_name);
 
 public:
     explicit Boxcat(DirectoryGetter getter);
     ~Boxcat() override;
 
-    bool Synchronize(TitleIDVersion title, CompletionCallback callback) override;
+    bool Synchronize(TitleIDVersion title, ProgressServiceBackend& progress) override;
     bool SynchronizeDirectory(TitleIDVersion title, std::string name,
-                              CompletionCallback callback) override;
+                              ProgressServiceBackend& progress) override;
 
     bool Clear(u64 title_id) override;
 

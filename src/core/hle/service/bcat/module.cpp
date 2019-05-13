@@ -33,20 +33,6 @@ constexpr ResultCode ERROR_FAILED_CLEAR_CACHE{ErrorModule::FS, 6400};
 
 using BCATDigest = std::array<u8, 0x10>;
 
-struct DeliveryCacheProgressImpl {
-    enum class Status : u8 {
-        Incomplete = 0x1,
-        Complete = 0x9,
-    };
-
-    Status status = Status::Incomplete;
-    INSERT_PADDING_BYTES(
-        0x1FF); ///< TODO(DarkLordZach): RE this structure. It just seems to convey info about the
-                ///< progress of the BCAT sync, but for us just setting completion works.
-};
-static_assert(sizeof(DeliveryCacheProgressImpl) == 0x200,
-              "DeliveryCacheProgressImpl has incorrect size.");
-
 namespace {
 
 u64 GetCurrentBuildID() {
@@ -84,18 +70,15 @@ bool VerifyNameValidInternal(Kernel::HLERequestContext& ctx, std::array<char, 0x
     return true;
 }
 
-bool VerifyNameValidDir(Kernel::HLERequestContext& ctx, std::array<char, 0x20> name) {
+bool VerifyNameValidDir(Kernel::HLERequestContext& ctx, DirectoryName name) {
     return VerifyNameValidInternal(ctx, name, '-');
 }
 
-bool VerifyNameValidFile(Kernel::HLERequestContext& ctx, std::array<char, 0x20> name) {
+bool VerifyNameValidFile(Kernel::HLERequestContext& ctx, FileName name) {
     return VerifyNameValidInternal(ctx, name, '.');
 }
 
 } // Anonymous namespace
-
-using DirectoryName = std::array<char, 0x20>;
-using FileName = std::array<char, 0x20>;
 
 struct DeliveryCacheDirectoryEntry {
     FileName name;
@@ -162,15 +145,6 @@ public:
         };
         // clang-format on
         RegisterHandlers(functions);
-
-        auto& kernel{Core::System::GetInstance().Kernel()};
-        progress.at(static_cast<std::size_t>(SyncType::Normal)).event =
-            Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Sticky,
-                                                   "BCAT::IDeliveryCacheProgressEvent");
-        progress.at(static_cast<std::size_t>(SyncType::Directory)).event =
-            Kernel::WritableEvent::CreateEventPair(
-                kernel, Kernel::ResetType::OneShot,
-                "BCAT::IDeliveryCacheProgressEvent::DirectoryName");
     }
 
 private:
@@ -180,24 +154,17 @@ private:
         Count,
     };
 
-    std::function<void(bool)> CreateCallback(SyncType type) {
-        return [this, type](bool success) {
-            auto& pair{progress.at(static_cast<std::size_t>(type))};
-            pair.impl.status = DeliveryCacheProgressImpl::Status::Complete;
-            pair.event.writable->Signal();
-        };
-    }
-
     std::shared_ptr<IDeliveryCacheProgressService> CreateProgressService(SyncType type) {
-        const auto& pair{progress.at(static_cast<std::size_t>(type))};
-        return std::make_shared<IDeliveryCacheProgressService>(pair.event.readable, pair.impl);
+        auto& backend{progress.at(static_cast<std::size_t>(type))};
+        return std::make_shared<IDeliveryCacheProgressService>(backend.GetEvent(),
+                                                               backend.GetImpl());
     }
 
     void RequestSyncDeliveryCache(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_BCAT, "called");
 
         backend.Synchronize({Core::CurrentProcess()->GetTitleID(), GetCurrentBuildID()},
-                            CreateCallback(SyncType::Normal));
+                            progress.at(static_cast<std::size_t>(SyncType::Normal)));
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
@@ -213,7 +180,8 @@ private:
         LOG_DEBUG(Service_BCAT, "called, name={}", name);
 
         backend.SynchronizeDirectory({Core::CurrentProcess()->GetTitleID(), GetCurrentBuildID()},
-                                     name, CreateCallback(SyncType::Directory));
+                                     name,
+                                     progress.at(static_cast<std::size_t>(SyncType::Directory)));
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
@@ -278,12 +246,10 @@ private:
 
     Backend& backend;
 
-    struct ProgressPair {
-        Kernel::EventPair event;
-        DeliveryCacheProgressImpl impl;
+    std::array<ProgressServiceBackend, static_cast<std::size_t>(SyncType::Count)> progress{
+        ProgressServiceBackend{"Normal"},
+        ProgressServiceBackend{"Directory"},
     };
-
-    std::array<ProgressPair, static_cast<std::size_t>(SyncType::Count)> progress{};
 };
 
 void Module::Interface::CreateBcatService(Kernel::HLERequestContext& ctx) {
