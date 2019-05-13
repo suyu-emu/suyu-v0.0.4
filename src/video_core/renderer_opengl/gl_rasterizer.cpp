@@ -424,6 +424,8 @@ std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
     }
     current_framebuffer_config_state = fb_config_state;
 
+    texture_cache.Guard(true);
+
     View depth_surface{};
     if (using_depth_fb) {
         depth_surface = texture_cache.GetDepthBufferSurface(preserve_contents);
@@ -499,6 +501,8 @@ std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
         fbkey.stencil_enable = regs.stencil_enable &&
                                depth_surface->GetSurfaceParams().type == SurfaceType::DepthStencil;
     }
+
+    texture_cache.Guard(false);
 
     current_state.draw.draw_framebuffer = framebuffer_cache.GetFramebuffer(fbkey);
     SyncViewport(current_state);

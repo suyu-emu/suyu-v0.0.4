@@ -64,6 +64,10 @@ public:
         }
     }
 
+    void Guard(bool new_guard) {
+        guard_cache = new_guard;
+    }
+
     void FlushRegion(CacheAddr addr, std::size_t size) {
         std::lock_guard lock{mutex};
 
@@ -251,7 +255,7 @@ protected:
     void Unregister(TSurface surface) {
         std::lock_guard lock{mutex};
 
-        if (surface->IsProtected()) {
+        if (guard_cache && surface->IsProtected()) {
             return;
         }
         const GPUVAddr gpu_addr = surface->GetGpuAddr();
@@ -572,6 +576,9 @@ private:
     Tegra::MemoryManager* memory_manager;
 
     u64 ticks{};
+
+    // Guards the cache for protection conflicts.
+    bool guard_cache{};
 
     // The internal Cache is different for the Texture Cache. It's based on buckets
     // of 1MB. This fits better for the purpose of this cache as textures are normaly
