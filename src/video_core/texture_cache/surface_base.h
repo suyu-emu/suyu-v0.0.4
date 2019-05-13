@@ -93,6 +93,10 @@ public:
         return mipmap_sizes[level];
     }
 
+    bool IsLinear() const {
+        return !params.is_tiled;
+    }
+
     bool MatchFormat(VideoCore::Surface::PixelFormat pixel_format) const {
         return params.pixel_format == pixel_format;
     }

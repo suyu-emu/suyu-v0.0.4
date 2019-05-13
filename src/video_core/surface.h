@@ -197,7 +197,7 @@ inline constexpr std::array<u32, MaxPixelFormat> compression_factor_shift_table 
  */
 inline constexpr u32 GetCompressionFactorShift(PixelFormat format) {
     DEBUG_ASSERT(format != PixelFormat::Invalid);
-    DEBUG_ASSERT(static_cast<std::size_t>(format) < compression_factor_table.size());
+    DEBUG_ASSERT(static_cast<std::size_t>(format) < compression_factor_shift_table.size());
     return compression_factor_shift_table[static_cast<std::size_t>(format)];
 }
 
@@ -436,6 +436,88 @@ static constexpr u32 GetBytesPerPixel(PixelFormat pixel_format) {
         return 0;
     }
     return GetFormatBpp(pixel_format) / CHAR_BIT;
+}
+
+enum class SurfaceCompression : u8 {
+    None = 0,
+    Compressed = 1,
+    Converted = 2,
+    Rearranged = 3,
+};
+
+inline constexpr std::array<SurfaceCompression, MaxPixelFormat> compression_type_table = {{
+    SurfaceCompression::None,           // ABGR8U
+    SurfaceCompression::None,           // ABGR8S
+    SurfaceCompression::None,           // ABGR8UI
+    SurfaceCompression::None,           // B5G6R5U
+    SurfaceCompression::None,           // A2B10G10R10U
+    SurfaceCompression::None,           // A1B5G5R5U
+    SurfaceCompression::None,           // R8U
+    SurfaceCompression::None,           // R8UI
+    SurfaceCompression::None,           // RGBA16F
+    SurfaceCompression::None,           // RGBA16U
+    SurfaceCompression::None,           // RGBA16UI
+    SurfaceCompression::None,           // R11FG11FB10F
+    SurfaceCompression::None,           // RGBA32UI
+    SurfaceCompression::Compressed,     // DXT1
+    SurfaceCompression::Compressed,     // DXT23
+    SurfaceCompression::Compressed,     // DXT45
+    SurfaceCompression::Compressed,     // DXN1
+    SurfaceCompression::Compressed,     // DXN2UNORM
+    SurfaceCompression::Compressed,     // DXN2SNORM
+    SurfaceCompression::Compressed,     // BC7U
+    SurfaceCompression::Compressed,     // BC6H_UF16
+    SurfaceCompression::Compressed,     // BC6H_SF16
+    SurfaceCompression::Converted,      // ASTC_2D_4X4
+    SurfaceCompression::None,           // BGRA8
+    SurfaceCompression::None,           // RGBA32F
+    SurfaceCompression::None,           // RG32F
+    SurfaceCompression::None,           // R32F
+    SurfaceCompression::None,           // R16F
+    SurfaceCompression::None,           // R16U
+    SurfaceCompression::None,           // R16S
+    SurfaceCompression::None,           // R16UI
+    SurfaceCompression::None,           // R16I
+    SurfaceCompression::None,           // RG16
+    SurfaceCompression::None,           // RG16F
+    SurfaceCompression::None,           // RG16UI
+    SurfaceCompression::None,           // RG16I
+    SurfaceCompression::None,           // RG16S
+    SurfaceCompression::None,           // RGB32F
+    SurfaceCompression::None,           // RGBA8_SRGB
+    SurfaceCompression::None,           // RG8U
+    SurfaceCompression::None,           // RG8S
+    SurfaceCompression::None,           // RG32UI
+    SurfaceCompression::None,           // R32UI
+    SurfaceCompression::Converted,      // ASTC_2D_8X8
+    SurfaceCompression::Converted,      // ASTC_2D_8X5
+    SurfaceCompression::Converted,      // ASTC_2D_5X4
+    SurfaceCompression::None,           // BGRA8_SRGB
+    SurfaceCompression::Compressed,     // DXT1_SRGB
+    SurfaceCompression::Compressed,     // DXT23_SRGB
+    SurfaceCompression::Compressed,     // DXT45_SRGB
+    SurfaceCompression::Compressed,     // BC7U_SRGB
+    SurfaceCompression::Converted,      // ASTC_2D_4X4_SRGB
+    SurfaceCompression::Converted,      // ASTC_2D_8X8_SRGB
+    SurfaceCompression::Converted,      // ASTC_2D_8X5_SRGB
+    SurfaceCompression::Converted,      // ASTC_2D_5X4_SRGB
+    SurfaceCompression::Converted,      // ASTC_2D_5X5
+    SurfaceCompression::Converted,      // ASTC_2D_5X5_SRGB
+    SurfaceCompression::Converted,      // ASTC_2D_10X8
+    SurfaceCompression::Converted,      // ASTC_2D_10X8_SRGB
+    SurfaceCompression::None,           // Z32F
+    SurfaceCompression::None,           // Z16
+    SurfaceCompression::None,           // Z24S8
+    SurfaceCompression::Rearranged,     // S8Z24
+    SurfaceCompression::None,           // Z32FS8
+}};
+
+static constexpr SurfaceCompression GetFormatCompressionType(PixelFormat format) {
+    if (format == PixelFormat::Invalid)
+        return SurfaceCompression::None;
+
+    ASSERT(static_cast<std::size_t>(format) < compression_type_table.size());
+    return compression_type_table[static_cast<std::size_t>(format)];
 }
 
 SurfaceTarget SurfaceTargetFromTextureType(Tegra::Texture::TextureType texture_type);

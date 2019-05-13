@@ -76,17 +76,14 @@ SurfaceParams SurfaceParams::CreateForTexture(Core::System& system,
     params.type = GetFormatType(params.pixel_format);
     // TODO: on 1DBuffer we should use the tic info.
     params.target = TextureType2SurfaceTarget(entry.GetType(), entry.IsArray());
-    params.width =
-        Common::AlignBits(config.tic.Width(), GetCompressionFactorShift(params.pixel_format));
-    params.height =
-        Common::AlignBits(config.tic.Height(), GetCompressionFactorShift(params.pixel_format));
+    params.width = config.tic.Width();
+    params.height = config.tic.Height();
     params.depth = config.tic.Depth();
     if (params.target == SurfaceTarget::TextureCubemap ||
         params.target == SurfaceTarget::TextureCubeArray) {
         params.depth *= 6;
     }
     params.pitch = params.is_tiled ? 0 : config.tic.Pitch();
-    params.unaligned_height = config.tic.Height();
     params.num_levels = config.tic.max_mip_level + 1;
     params.is_layered = params.IsLayered();
     return params;
@@ -108,7 +105,6 @@ SurfaceParams SurfaceParams::CreateForDepthBuffer(
     params.type = GetFormatType(params.pixel_format);
     params.width = zeta_width;
     params.height = zeta_height;
-    params.unaligned_height = zeta_height;
     params.target = SurfaceTarget::Texture2D;
     params.depth = 1;
     params.pitch = 0;
@@ -141,7 +137,6 @@ SurfaceParams SurfaceParams::CreateForFramebuffer(Core::System& system, std::siz
     }
     params.height = config.height;
     params.depth = 1;
-    params.unaligned_height = config.height;
     params.target = SurfaceTarget::Texture2D;
     params.num_levels = 1;
     params.is_layered = false;
@@ -164,7 +159,6 @@ SurfaceParams SurfaceParams::CreateForFermiCopySurface(
     params.width = config.width;
     params.height = config.height;
     params.pitch = config.pitch;
-    params.unaligned_height = config.height;
     // TODO(Rodrigo): Try to guess the surface target from depth and layer parameters
     params.target = SurfaceTarget::Texture2D;
     params.depth = 1;
@@ -185,18 +179,18 @@ bool SurfaceParams::IsLayered() const {
     }
 }
 
+// Auto block resizing algorithm from:
+// https://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv50/nv50_miptree.c
 u32 SurfaceParams::GetMipBlockHeight(u32 level) const {
-    // Auto block resizing algorithm from:
-    // https://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv50/nv50_miptree.c
     if (level == 0) {
         return this->block_height;
     }
 
-    const u32 height{GetMipHeight(level)};
+    const u32 height_new{GetMipHeight(level)};
     const u32 default_block_height{GetDefaultBlockHeight()};
-    const u32 blocks_in_y{(height + default_block_height - 1) / default_block_height};
-    const u32 block_height = Common::Log2Ceil32(blocks_in_y);
-    return std::clamp(block_height, 3U, 8U) - 3U;
+    const u32 blocks_in_y{(height_new + default_block_height - 1) / default_block_height};
+    const u32 block_height_new = Common::Log2Ceil32(blocks_in_y);
+    return std::clamp(block_height_new, 3U, 7U) - 3U;
 }
 
 u32 SurfaceParams::GetMipBlockDepth(u32 level) const {
@@ -207,12 +201,12 @@ u32 SurfaceParams::GetMipBlockDepth(u32 level) const {
         return 0;
     }
 
-    const u32 depth{GetMipDepth(level)};
-    const u32 block_depth = Common::Log2Ceil32(depth);
-    if (block_depth > 4) {
+    const u32 depth_new{GetMipDepth(level)};
+    const u32 block_depth_new = Common::Log2Ceil32(depth_new);
+    if (block_depth_new > 4) {
         return 5 - (GetMipBlockHeight(level) >= 2);
     }
-    return block_depth;
+    return block_depth_new;
 }
 
 std::size_t SurfaceParams::GetGuestMipmapLevelOffset(u32 level) const {
@@ -231,12 +225,28 @@ std::size_t SurfaceParams::GetHostMipmapLevelOffset(u32 level) const {
     return offset;
 }
 
+std::size_t SurfaceParams::GetConvertedMipmapOffset(u32 level) const {
+    std::size_t offset = 0;
+    for (u32 i = 0; i < level; i++) {
+        offset += GetConvertedMipmapSize(i);
+    }
+    return offset;
+}
+
 std::size_t SurfaceParams::GetGuestMipmapSize(u32 level) const {
     return GetInnerMipmapMemorySize(level, false, false);
 }
 
 std::size_t SurfaceParams::GetHostMipmapSize(u32 level) const {
     return GetInnerMipmapMemorySize(level, true, false) * GetNumLayers();
+}
+
+std::size_t SurfaceParams::GetConvertedMipmapSize(u32 level) const {
+    constexpr std::size_t rgb8_bpp = 4ULL;
+    const std::size_t width_t = GetMipWidth(level);
+    const std::size_t height_t = GetMipHeight(level);
+    const std::size_t depth_t = is_layered ? depth : GetMipDepth(level);
+    return width_t * height_t * depth_t * rgb8_bpp;
 }
 
 std::size_t SurfaceParams::GetGuestLayerSize() const {
@@ -287,12 +297,10 @@ std::size_t SurfaceParams::Hash() const {
 
 bool SurfaceParams::operator==(const SurfaceParams& rhs) const {
     return std::tie(is_tiled, block_width, block_height, block_depth, tile_width_spacing, width,
-                    height, depth, pitch, unaligned_height, num_levels, pixel_format,
-                    component_type, type, target) ==
+                    height, depth, pitch, num_levels, pixel_format, component_type, type, target) ==
            std::tie(rhs.is_tiled, rhs.block_width, rhs.block_height, rhs.block_depth,
                     rhs.tile_width_spacing, rhs.width, rhs.height, rhs.depth, rhs.pitch,
-                    rhs.unaligned_height, rhs.num_levels, rhs.pixel_format, rhs.component_type,
-                    rhs.type, rhs.target);
+                    rhs.num_levels, rhs.pixel_format, rhs.component_type, rhs.type, rhs.target);
 }
 
 std::string SurfaceParams::TargetName() const {

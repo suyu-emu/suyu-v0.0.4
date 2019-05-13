@@ -23,6 +23,7 @@ using VideoCore::MortonSwizzleMode;
 
 using VideoCore::Surface::ComponentType;
 using VideoCore::Surface::PixelFormat;
+using VideoCore::Surface::SurfaceCompression;
 using VideoCore::Surface::SurfaceTarget;
 using VideoCore::Surface::SurfaceType;
 
@@ -242,10 +243,10 @@ void CachedSurface::DownloadTexture(std::vector<u8>& staging_buffer) {
     MICROPROFILE_SCOPE(OpenGL_Texture_Download);
 
     // TODO(Rodrigo): Optimize alignment
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
     SCOPE_EXIT({ glPixelStorei(GL_PACK_ROW_LENGTH, 0); });
 
     for (u32 level = 0; level < params.num_levels; ++level) {
+        glPixelStorei(GL_PACK_ALIGNMENT, std::min(8U, params.GetRowAlignment(level)));
         glPixelStorei(GL_PACK_ROW_LENGTH, static_cast<GLint>(params.GetMipWidth(level)));
         const std::size_t mip_offset = params.GetHostMipmapLevelOffset(level);
         if (is_compressed) {
@@ -270,10 +271,14 @@ void CachedSurface::UploadTexture(std::vector<u8>& staging_buffer) {
 
 void CachedSurface::UploadTextureMipmap(u32 level, std::vector<u8>& staging_buffer) {
     // TODO(Rodrigo): Optimize alignment
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, std::min(8U, params.GetRowAlignment(level)));
     glPixelStorei(GL_UNPACK_ROW_LENGTH, static_cast<GLint>(params.GetMipWidth(level)));
 
-    const std::size_t mip_offset = params.GetHostMipmapLevelOffset(level);
+    auto compression_type = params.GetCompressionType();
+
+    const std::size_t mip_offset = compression_type == SurfaceCompression::Converted
+                                       ? params.GetConvertedMipmapOffset(level)
+                                       : params.GetHostMipmapLevelOffset(level);
     u8* buffer{staging_buffer.data() + mip_offset};
     if (is_compressed) {
         const auto image_size{static_cast<GLsizei>(params.GetHostMipmapSize(level))};

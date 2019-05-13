@@ -17,6 +17,7 @@ MICROPROFILE_DEFINE(GPU_Flush_Texture, "GPU", "Texture Flush", MP_RGB(128, 192, 
 
 using Tegra::Texture::ConvertFromGuestToHost;
 using VideoCore::MortonSwizzleMode;
+using VideoCore::Surface::SurfaceCompression;
 
 SurfaceBaseImpl::SurfaceBaseImpl(GPUVAddr gpu_addr, const SurfaceParams& params)
     : params{params}, mipmap_sizes(params.num_levels),
@@ -102,9 +103,20 @@ void SurfaceBaseImpl::LoadBuffer(Tegra::MemoryManager& memory_manager,
         }
     }
 
-    for (u32 level = 0; level < params.num_levels; ++level) {
-        const std::size_t host_offset{params.GetHostMipmapLevelOffset(level)};
-        ConvertFromGuestToHost(staging_buffer.data() + host_offset, params.pixel_format,
+    auto compression_type = params.GetCompressionType();
+    if (compression_type == SurfaceCompression::None ||
+        compression_type == SurfaceCompression::Compressed)
+        return;
+
+    for (u32 level_up = params.num_levels; level_up > 0; --level_up) {
+        const u32 level = level_up - 1;
+        const std::size_t in_host_offset{params.GetHostMipmapLevelOffset(level)};
+        const std::size_t out_host_offset = compression_type == SurfaceCompression::Rearranged
+                                                ? in_host_offset
+                                                : params.GetConvertedMipmapOffset(level);
+        u8* in_buffer = staging_buffer.data() + in_host_offset;
+        u8* out_buffer = staging_buffer.data() + out_host_offset;
+        ConvertFromGuestToHost(in_buffer, out_buffer, params.pixel_format,
                                params.GetMipWidth(level), params.GetMipHeight(level),
                                params.GetMipDepth(level), true, true);
     }

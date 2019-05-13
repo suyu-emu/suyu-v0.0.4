@@ -7,6 +7,7 @@
 #include <map>
 
 #include "common/alignment.h"
+#include "common/bit_util.h"
 #include "common/common_types.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -15,6 +16,8 @@
 #include "video_core/textures/decoders.h"
 
 namespace VideoCommon {
+
+using VideoCore::Surface::SurfaceCompression;
 
 class SurfaceParams {
 public:
@@ -50,17 +53,12 @@ public:
 
     std::size_t GetHostSizeInBytes() const {
         std::size_t host_size_in_bytes;
-        if (IsPixelFormatASTC(pixel_format)) {
+        if (GetCompressionType() == SurfaceCompression::Converted) {
             constexpr std::size_t rgb8_bpp = 4ULL;
             // ASTC is uncompressed in software, in emulated as RGBA8
             host_size_in_bytes = 0;
             for (u32 level = 0; level < num_levels; ++level) {
-                const std::size_t width =
-                    Common::AlignUp(GetMipWidth(level), GetDefaultBlockWidth());
-                const std::size_t height =
-                    Common::AlignUp(GetMipHeight(level), GetDefaultBlockHeight());
-                const std::size_t depth = is_layered ? this->depth : GetMipDepth(level);
-                host_size_in_bytes += width * height * depth * rgb8_bpp;
+                host_size_in_bytes += GetConvertedMipmapSize(level);
             }
         } else {
             host_size_in_bytes = GetInnerMemorySize(true, false, false);
@@ -93,6 +91,12 @@ public:
     /// Returns the block depth of a given mipmap level.
     u32 GetMipBlockDepth(u32 level) const;
 
+    u32 GetRowAlignment(u32 level) const {
+        const u32 bpp =
+            GetCompressionType() == SurfaceCompression::Converted ? 4 : GetBytesPerPixel();
+        return 1U << Common::CountTrailingZeroes32(GetMipWidth(level) * bpp);
+    }
+
     // Helper used for out of class size calculations
     static std::size_t AlignLayered(const std::size_t out_size, const u32 block_height,
                                     const u32 block_depth) {
@@ -106,11 +110,15 @@ public:
     /// Returns the offset in bytes in host memory (linear) of a given mipmap level.
     std::size_t GetHostMipmapLevelOffset(u32 level) const;
 
+    std::size_t GetConvertedMipmapOffset(u32 level) const;
+
     /// Returns the size in bytes in guest memory of a given mipmap level.
     std::size_t GetGuestMipmapSize(u32 level) const;
 
     /// Returns the size in bytes in host memory (linear) of a given mipmap level.
     std::size_t GetHostMipmapSize(u32 level) const;
+
+    std::size_t GetConvertedMipmapSize(u32 level) const;
 
     /// Returns the size of a layer in bytes in guest memory.
     std::size_t GetGuestLayerSize() const;
@@ -141,6 +149,10 @@ public:
     /// Returns true if the pixel format is a depth and/or stencil format.
     bool IsPixelFormatZeta() const;
 
+    SurfaceCompression GetCompressionType() const {
+        return VideoCore::Surface::GetFormatCompressionType(pixel_format);
+    }
+
     std::string TargetName() const;
 
     bool is_tiled;
@@ -154,7 +166,6 @@ public:
     u32 height;
     u32 depth;
     u32 pitch;
-    u32 unaligned_height;
     u32 num_levels;
     VideoCore::Surface::PixelFormat pixel_format;
     VideoCore::Surface::ComponentType component_type;
