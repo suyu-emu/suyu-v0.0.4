@@ -25,6 +25,8 @@ MemoryManager::MemoryManager(VideoCore::RasterizerInterface& rasterizer) : raste
     UpdatePageTableForVMA(initial_vma);
 }
 
+MemoryManager::~MemoryManager() = default;
+
 GPUVAddr MemoryManager::AllocateSpace(u64 size, u64 align) {
     const u64 aligned_size{Common::AlignUp(size, page_size)};
     const GPUVAddr gpu_addr{FindFreeRegion(address_space_base, aligned_size)};
@@ -199,11 +201,11 @@ const u8* MemoryManager::GetPointer(GPUVAddr addr) const {
     return {};
 }
 
-bool MemoryManager::IsBlockContinous(const GPUVAddr start, const std::size_t size) {
+bool MemoryManager::IsBlockContinuous(const GPUVAddr start, const std::size_t size) const {
     const GPUVAddr end = start + size;
     const auto host_ptr_start = reinterpret_cast<std::uintptr_t>(GetPointer(start));
     const auto host_ptr_end = reinterpret_cast<std::uintptr_t>(GetPointer(end));
-    const std::size_t range = static_cast<std::size_t>(host_ptr_end - host_ptr_start);
+    const auto range = static_cast<std::size_t>(host_ptr_end - host_ptr_start);
     return range == size;
 }
 

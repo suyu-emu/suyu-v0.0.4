@@ -47,7 +47,8 @@ struct VirtualMemoryArea {
 
 class MemoryManager final {
 public:
-    MemoryManager(VideoCore::RasterizerInterface& rasterizer);
+    explicit MemoryManager(VideoCore::RasterizerInterface& rasterizer);
+    ~MemoryManager();
 
     GPUVAddr AllocateSpace(u64 size, u64 align);
     GPUVAddr AllocateSpace(GPUVAddr addr, u64 size, u64 align);
@@ -65,18 +66,18 @@ public:
     u8* GetPointer(GPUVAddr addr);
     const u8* GetPointer(GPUVAddr addr) const;
 
-    // Returns true if the block is continous in host memory, false otherwise
-    bool IsBlockContinous(const GPUVAddr start, const std::size_t size);
+    /// Returns true if the block is continuous in host memory, false otherwise
+    bool IsBlockContinuous(GPUVAddr start, std::size_t size) const;
 
     /**
      * ReadBlock and WriteBlock are full read and write operations over virtual
-     * GPU Memory. It's important to use these when GPU memory may not be continous
+     * GPU Memory. It's important to use these when GPU memory may not be continuous
      * in the Host Memory counterpart. Note: This functions cause Host GPU Memory
      * Flushes and Invalidations, respectively to each operation.
      */
-    void ReadBlock(GPUVAddr src_addr, void* dest_buffer, const std::size_t size) const;
-    void WriteBlock(GPUVAddr dest_addr, const void* src_buffer, const std::size_t size);
-    void CopyBlock(GPUVAddr dest_addr, GPUVAddr src_addr, const std::size_t size);
+    void ReadBlock(GPUVAddr src_addr, void* dest_buffer, std::size_t size) const;
+    void WriteBlock(GPUVAddr dest_addr, const void* src_buffer, std::size_t size);
+    void CopyBlock(GPUVAddr dest_addr, GPUVAddr src_addr, std::size_t size);
 
     /**
      * ReadBlockUnsafe and WriteBlockUnsafe are special versions of ReadBlock and
@@ -88,9 +89,9 @@ public:
      * WriteBlockUnsafe instead of WriteBlock since it shouldn't invalidate the texture
      * being flushed.
      */
-    void ReadBlockUnsafe(GPUVAddr src_addr, void* dest_buffer, const std::size_t size) const;
-    void WriteBlockUnsafe(GPUVAddr dest_addr, const void* src_buffer, const std::size_t size);
-    void CopyBlockUnsafe(GPUVAddr dest_addr, GPUVAddr src_addr, const std::size_t size);
+    void ReadBlockUnsafe(GPUVAddr src_addr, void* dest_buffer, std::size_t size) const;
+    void WriteBlockUnsafe(GPUVAddr dest_addr, const void* src_buffer, std::size_t size);
+    void CopyBlockUnsafe(GPUVAddr dest_addr, GPUVAddr src_addr, std::size_t size);
 
 private:
     using VMAMap = std::map<GPUVAddr, VirtualMemoryArea>;
@@ -111,10 +112,10 @@ private:
     /**
      * Maps an unmanaged host memory pointer at a given address.
      *
-     * @param target The guest address to start the mapping at.
-     * @param memory The memory to be mapped.
-     * @param size Size of the mapping.
-     * @param state MemoryState tag to attach to the VMA.
+     * @param target       The guest address to start the mapping at.
+     * @param memory       The memory to be mapped.
+     * @param size         Size of the mapping in bytes.
+     * @param backing_addr The base address of the range to back this mapping.
      */
     VMAHandle MapBackingMemory(GPUVAddr target, u8* memory, u64 size, VAddr backing_addr);
 
@@ -124,7 +125,7 @@ private:
     /// Converts a VMAHandle to a mutable VMAIter.
     VMAIter StripIterConstness(const VMAHandle& iter);
 
-    /// Marks as the specfied VMA as allocated.
+    /// Marks as the specified VMA as allocated.
     VMAIter Allocate(VMAIter vma);
 
     /**
