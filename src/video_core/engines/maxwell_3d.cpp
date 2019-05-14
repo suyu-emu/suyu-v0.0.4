@@ -178,13 +178,13 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
 
         // Vertex buffer
         if (method >= MAXWELL3D_REG_INDEX(vertex_array) &&
-            method < MAXWELL3D_REG_INDEX(vertex_array) + 4 * 32) {
+            method < MAXWELL3D_REG_INDEX(vertex_array) + 4 * Regs::NumVertexArrays) {
             dirty_flags.vertex_array.set((method - MAXWELL3D_REG_INDEX(vertex_array)) >> 2);
         } else if (method >= MAXWELL3D_REG_INDEX(vertex_array_limit) &&
-                   method < MAXWELL3D_REG_INDEX(vertex_array_limit) + 2 * 32) {
+                   method < MAXWELL3D_REG_INDEX(vertex_array_limit) + 2 * Regs::NumVertexArrays) {
             dirty_flags.vertex_array.set((method - MAXWELL3D_REG_INDEX(vertex_array_limit)) >> 1);
         } else if (method >= MAXWELL3D_REG_INDEX(instanced_arrays) &&
-                   method < MAXWELL3D_REG_INDEX(instanced_arrays) + 32) {
+                   method < MAXWELL3D_REG_INDEX(instanced_arrays) + Regs::NumVertexArrays) {
             dirty_flags.vertex_array.set(method - MAXWELL3D_REG_INDEX(instanced_arrays));
         }
     }
