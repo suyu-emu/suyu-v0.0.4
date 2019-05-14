@@ -12,7 +12,7 @@
 namespace Tegra::Engines::Upload {
 
 State::State(MemoryManager& memory_manager, Registers& regs)
-    : memory_manager(memory_manager), regs(regs) {}
+    : regs{regs}, memory_manager{memory_manager} {}
 
 State::~State() = default;
 
