@@ -23,17 +23,33 @@ u32 ShaderIR::DecodeHalfSetPredicate(NodeBlock& bb, u32 pc) {
     Node op_a = UnpackHalfFloat(GetRegister(instr.gpr8), instr.hsetp2.type_a);
     op_a = GetOperandAbsNegHalf(op_a, instr.hsetp2.abs_a, instr.hsetp2.negate_a);
 
-    Node op_b = [&]() {
-        switch (opcode->get().GetId()) {
-        case OpCode::Id::HSETP2_R:
-            return GetOperandAbsNegHalf(GetRegister(instr.gpr20), instr.hsetp2.abs_a,
-                                        instr.hsetp2.negate_b);
-        default:
-            UNREACHABLE();
-            return Immediate(0);
-        }
-    }();
-    op_b = UnpackHalfFloat(op_b, instr.hsetp2.type_b);
+    Tegra::Shader::PredCondition cond{};
+    bool h_and{};
+    Node op_b{};
+    switch (opcode->get().GetId()) {
+    case OpCode::Id::HSETP2_C:
+        cond = instr.hsetp2.cbuf_and_imm.cond;
+        h_and = instr.hsetp2.cbuf_and_imm.h_and;
+        op_b = GetOperandAbsNegHalf(GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset),
+                                    instr.hsetp2.cbuf.abs_b, instr.hsetp2.cbuf.negate_b);
+        break;
+    case OpCode::Id::HSETP2_IMM:
+        cond = instr.hsetp2.cbuf_and_imm.cond;
+        h_and = instr.hsetp2.cbuf_and_imm.h_and;
+        op_b = UnpackHalfImmediate(instr, true);
+        break;
+    case OpCode::Id::HSETP2_R:
+        cond = instr.hsetp2.reg.cond;
+        h_and = instr.hsetp2.reg.h_and;
+        op_b =
+            UnpackHalfFloat(GetOperandAbsNegHalf(GetRegister(instr.gpr20), instr.hsetp2.reg.abs_b,
+                                                 instr.hsetp2.reg.negate_b),
+                            instr.hsetp2.reg.type_b);
+        break;
+    default:
+        UNREACHABLE();
+        op_b = Immediate(0);
+    }
 
     // We can't use the constant predicate as destination.
     ASSERT(instr.hsetp2.pred3 != static_cast<u64>(Pred::UnusedIndex));
@@ -42,9 +58,9 @@ u32 ShaderIR::DecodeHalfSetPredicate(NodeBlock& bb, u32 pc) {
 
     const OperationCode combiner = GetPredicateCombiner(instr.hsetp2.op);
     const OperationCode pair_combiner =
-        instr.hsetp2.h_and ? OperationCode::LogicalAll2 : OperationCode::LogicalAny2;
+        h_and ? OperationCode::LogicalAll2 : OperationCode::LogicalAny2;
 
-    const Node comparison = GetPredicateComparisonHalf(instr.hsetp2.cond, op_a, op_b);
+    const Node comparison = GetPredicateComparisonHalf(cond, op_a, op_b);
     const Node first_pred = Operation(pair_combiner, comparison);
 
     // Set the primary predicate to the result of Predicate OP SecondPredicate
