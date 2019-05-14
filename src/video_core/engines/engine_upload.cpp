@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cstring>
+
 #include "common/assert.h"
 #include "video_core/engines/engine_upload.h"
 #include "video_core/memory_manager.h"
