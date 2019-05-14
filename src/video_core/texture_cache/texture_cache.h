@@ -425,6 +425,7 @@ private:
         }
         bool modified = false;
         TSurface new_surface = GetUncachedSurface(gpu_addr, params);
+        u32 passed_tests = 0;
         for (auto surface : overlaps) {
             const SurfaceParams& src_params = surface->GetSurfaceParams();
             if (src_params.is_layered || src_params.num_levels > 1) {
@@ -434,12 +435,12 @@ private:
             const std::size_t candidate_size = surface->GetSizeInBytes();
             auto mipmap_layer{new_surface->GetLayerMipmap(surface->GetGpuAddr())};
             if (!mipmap_layer) {
-                return {};
+                continue;
             }
             const u32 layer{mipmap_layer->first};
             const u32 mipmap{mipmap_layer->second};
             if (new_surface->GetMipmapSize(mipmap) != candidate_size) {
-                return {};
+                continue;
             }
             modified |= surface->IsModified();
             // Now we got all the data set up
@@ -448,7 +449,14 @@ private:
             const CopyParams copy_params(0, 0, 0, 0, 0, layer, 0, mipmap,
                                          std::min(src_params.width, dst_width),
                                          std::min(src_params.height, dst_height), 1);
+            passed_tests++;
             ImageCopy(surface, new_surface, copy_params);
+        }
+        if (passed_tests == 0) {
+            return {};
+            // In Accurate GPU all test should pass, else we recycle
+        } else if (Settings::values.use_accurate_gpu_emulation && passed_tests != overlaps.size()) {
+            return {};
         }
         for (auto surface : overlaps) {
             Unregister(surface);
@@ -547,6 +555,14 @@ private:
                     return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, false);
                 }
                 return {current_surface, *view};
+            }
+            // The next case is unsafe, so if we r in accurate GPU, just skip it
+            if (Settings::values.use_accurate_gpu_emulation) {
+                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, false);
+            }
+            // This is the case the texture is a part of the parent.
+            if (current_surface->MatchesSubTexture(params, gpu_addr)) {
+                return RebuildSurface(current_surface, params);
             }
         } else {
             // If there are many overlaps, odds are they are subtextures of the candidate

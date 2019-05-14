@@ -130,7 +130,7 @@ void SurfaceBaseImpl::FlushBuffer(Tegra::MemoryManager& memory_manager,
         return;
     }
     if (params.is_tiled) {
-        ASSERT_MSG(params.block_width == 1, "Block width is defined as {}", params.block_width);
+        ASSERT_MSG(params.block_width == 0, "Block width is defined as {}", params.block_width);
         for (u32 level = 0; level < params.num_levels; ++level) {
             const std::size_t host_offset{params.GetHostMipmapLevelOffset(level)};
             SwizzleFunc(MortonSwizzleMode::LinearToMorton, host_ptr, params,
