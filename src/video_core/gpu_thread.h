@@ -109,7 +109,7 @@ struct SynchState final {
 
     void TrySynchronize() {
         if (IsSynchronized()) {
-            std::lock_guard<std::mutex> lock{synchronization_mutex};
+            std::lock_guard lock{synchronization_mutex};
             synchronization_condition.notify_one();
         }
     }

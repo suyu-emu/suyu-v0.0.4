@@ -118,7 +118,7 @@ void SynchState::WaitForSynchronization(u64 fence) {
     // Wait for the GPU to be idle (all commands to be executed)
     {
         MICROPROFILE_SCOPE(GPU_wait);
-        std::unique_lock<std::mutex> lock{synchronization_mutex};
+        std::unique_lock lock{synchronization_mutex};
         synchronization_condition.wait(lock, [this, fence] { return signaled_fence >= fence; });
     }
 }
