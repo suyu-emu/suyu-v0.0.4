@@ -81,12 +81,6 @@ struct CommandDataContainer {
     CommandDataContainer(CommandData&& data, u64 next_fence)
         : data{std::move(data)}, fence{next_fence} {}
 
-    CommandDataContainer& operator=(const CommandDataContainer& t) {
-        data = std::move(t.data);
-        fence = t.fence;
-        return *this;
-    }
-
     CommandData data;
     u64 fence{};
 };
