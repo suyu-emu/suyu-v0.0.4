@@ -74,9 +74,7 @@ public:
     }
 
     std::string GenerateTemporary() {
-        std::string temporary = "tmp";
-        temporary += std::to_string(temporary_index++);
-        return temporary;
+        return fmt::format("tmp{}", temporary_index++);
     }
 
     std::string GetResult() {
@@ -1748,24 +1746,25 @@ private:
 } // Anonymous namespace
 
 std::string GetCommonDeclarations() {
-    const auto cbuf = std::to_string(MAX_CONSTBUFFER_ELEMENTS);
-    return "#define MAX_CONSTBUFFER_ELEMENTS " + cbuf + "\n" +
-           "#define ftoi floatBitsToInt\n"
-           "#define ftou floatBitsToUint\n"
-           "#define itof intBitsToFloat\n"
-           "#define utof uintBitsToFloat\n\n"
-           "float fromHalf2(vec2 pair) {\n"
-           "    return utof(packHalf2x16(pair));\n"
-           "}\n\n"
-           "vec2 toHalf2(float value) {\n"
-           "    return unpackHalf2x16(ftou(value));\n"
-           "}\n\n"
-           "bvec2 halfFloatNanComparison(bvec2 comparison, vec2 pair1, vec2 pair2) {\n"
-           "    bvec2 is_nan1 = isnan(pair1);\n"
-           "    bvec2 is_nan2 = isnan(pair2);\n"
-           "    return bvec2(comparison.x || is_nan1.x || is_nan2.x, comparison.y || is_nan1.y || "
-           "is_nan2.y);\n"
-           "}\n";
+    return fmt::format(
+        "#define MAX_CONSTBUFFER_ELEMENTS {}\n"
+        "#define ftoi floatBitsToInt\n"
+        "#define ftou floatBitsToUint\n"
+        "#define itof intBitsToFloat\n"
+        "#define utof uintBitsToFloat\n\n"
+        "float fromHalf2(vec2 pair) {{\n"
+        "    return utof(packHalf2x16(pair));\n"
+        "}}\n\n"
+        "vec2 toHalf2(float value) {{\n"
+        "    return unpackHalf2x16(ftou(value));\n"
+        "}}\n\n"
+        "bvec2 halfFloatNanComparison(bvec2 comparison, vec2 pair1, vec2 pair2) {{\n"
+        "    bvec2 is_nan1 = isnan(pair1);\n"
+        "    bvec2 is_nan2 = isnan(pair2);\n"
+        "    return bvec2(comparison.x || is_nan1.x || is_nan2.x, comparison.y || is_nan1.y || "
+        "is_nan2.y);\n"
+        "}}\n",
+        MAX_CONSTBUFFER_ELEMENTS);
 }
 
 ProgramResult Decompile(const Device& device, const ShaderIR& ir, Maxwell::ShaderStage stage,
