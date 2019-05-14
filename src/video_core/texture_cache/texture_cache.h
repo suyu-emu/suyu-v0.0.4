@@ -295,6 +295,9 @@ private:
 
     RecycleStrategy PickStrategy(std::vector<TSurface>& overlaps, const SurfaceParams& params,
                                  const GPUVAddr gpu_addr, const bool untopological) {
+        if (Settings::values.use_accurate_gpu_emulation) {
+            return RecycleStrategy::Flush;
+        }
         // 3D Textures decision
         if (params.block_depth > 1 || params.target == SurfaceTarget::Texture3D) {
             return RecycleStrategy::Flush;
@@ -319,10 +322,7 @@ private:
         for (auto surface : overlaps) {
             Unregister(surface);
         }
-        RecycleStrategy strategy = !Settings::values.use_accurate_gpu_emulation
-                                       ? PickStrategy(overlaps, params, gpu_addr, untopological)
-                                       : RecycleStrategy::Flush;
-        switch (strategy) {
+        switch (PickStrategy(overlaps, params, gpu_addr, untopological)) {
         case RecycleStrategy::Ignore: {
             return InitializeSurface(gpu_addr, params, preserve_contents);
         }
@@ -453,6 +453,13 @@ private:
         if (overlaps.size() == 1) {
             TSurface current_surface = overlaps[0];
             if (!current_surface->IsInside(gpu_addr, gpu_addr + candidate_size)) {
+                if (current_surface->GetGpuAddr() == gpu_addr) {
+                    std::optional<std::pair<TSurface, TView>> view =
+                        ReconstructSurface(overlaps, params, gpu_addr, host_ptr);
+                    if (view.has_value()) {
+                        return *view;
+                    }
+                }
                 return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, false);
             }
             std::optional<TView> view =
