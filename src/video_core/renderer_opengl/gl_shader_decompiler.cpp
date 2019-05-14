@@ -57,19 +57,7 @@ public:
         shader_source += text;
     }
 
-    void AddLine(std::string_view text) {
-        AddExpression(text);
-        AddNewLine();
-    }
-
-    void AddLine(char character) {
-        DEBUG_ASSERT(scope >= 0);
-        AppendIndentation();
-        shader_source += character;
-        AddNewLine();
-    }
-
-    // Overload the forwards all arguments directly to libfmt.
+    // Forwards all arguments directly to libfmt.
     // Note that all formatting requirements for fmt must be
     // obeyed when using this function. (e.g. {{ must be used
     // printing the character '{' is desirable. Ditto for }} and '}',
@@ -191,10 +179,10 @@ public:
         code.AddLine("uint flow_stack[{}];", FLOW_STACK_SIZE);
         code.AddLine("uint flow_stack_top = 0u;");
 
-        code.AddLine("while (true) {");
+        code.AddLine("while (true) {{");
         ++code.scope;
 
-        code.AddLine("switch (jmp_to) {");
+        code.AddLine("switch (jmp_to) {{");
 
         for (const auto& pair : ir.GetBasicBlocks()) {
             const auto [address, bb] = pair;
@@ -204,15 +192,15 @@ public:
             VisitBlock(bb);
 
             --code.scope;
-            code.AddLine('}');
+            code.AddLine("}}");
         }
 
         code.AddLine("default: return;");
-        code.AddLine('}');
+        code.AddLine("}}");
 
         for (std::size_t i = 0; i < 2; ++i) {
             --code.scope;
-            code.AddLine('}');
+            code.AddLine("}}");
         }
     }
 
@@ -267,7 +255,7 @@ private:
     void DeclareVertexRedeclarations() {
         bool clip_distances_declared = false;
 
-        code.AddLine("out gl_PerVertex {");
+        code.AddLine("out gl_PerVertex {{");
         ++code.scope;
 
         code.AddLine("vec4 gl_Position;");
@@ -283,7 +271,7 @@ private:
         }
 
         --code.scope;
-        code.AddLine("};");
+        code.AddLine("}};");
         code.AddNewLine();
     }
 
@@ -419,7 +407,7 @@ private:
             code.AddLine("layout (std140, binding = CBUF_BINDING_{}) uniform {} {{", index,
                          GetConstBufferBlock(index));
             code.AddLine("    vec4 {}[MAX_CONSTBUFFER_ELEMENTS];", GetConstBuffer(index));
-            code.AddLine("};");
+            code.AddLine("}};");
             code.AddNewLine();
         }
     }
@@ -440,7 +428,7 @@ private:
             code.AddLine("layout (std430, binding = GMEM_BINDING_{}_{}) {} buffer {} {{",
                          base.cbuf_index, base.cbuf_offset, qualifier, GetGlobalMemoryBlock(base));
             code.AddLine("    float {}[];", GetGlobalMemory(base));
-            code.AddLine("};");
+            code.AddLine("}};");
             code.AddNewLine();
         }
     }
@@ -622,7 +610,7 @@ private:
             VisitBlock(conditional->GetCode());
 
             --code.scope;
-            code.AddLine('}');
+            code.AddLine("}}");
             return {};
         }
 
@@ -1461,7 +1449,7 @@ private:
 
         UNIMPLEMENTED_IF_MSG(header.ps.omap.sample_mask != 0, "Sample mask write is unimplemented");
 
-        code.AddLine("if (alpha_test[0] != 0) {");
+        code.AddLine("if (alpha_test[0] != 0) {{");
         ++code.scope;
         // We start on the register containing the alpha value in the first RT.
         u32 current_reg = 3;
@@ -1477,7 +1465,7 @@ private:
             }
         }
         --code.scope;
-        code.AddLine('}');
+        code.AddLine("}}");
 
         // Write the color outputs using the data in the shader registers, disabled
         // rendertargets/components are skipped in the register assignment.
@@ -1496,7 +1484,7 @@ private:
         if (header.ps.omap.depth) {
             // The depth output is always 2 registers after the last color output, and current_reg
             // already contains one past the last color register.
-            code.AddLine("gl_FragDepth = " + SafeGetRegister(current_reg + 1) + ';');
+            code.AddLine("gl_FragDepth = {};", SafeGetRegister(current_reg + 1));
         }
 
         code.AddLine("return;");
@@ -1506,11 +1494,11 @@ private:
     std::string Discard(Operation operation) {
         // Enclose "discard" in a conditional, so that GLSL compilation does not complain
         // about unexecuted instructions that may follow this.
-        code.AddLine("if (true) {");
+        code.AddLine("if (true) {{");
         ++code.scope;
         code.AddLine("discard;");
         --code.scope;
-        code.AddLine("}");
+        code.AddLine("}}");
         return {};
     }
 
