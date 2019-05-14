@@ -14,6 +14,8 @@ namespace Tegra::Engines::Upload {
 State::State(MemoryManager& memory_manager, Registers& regs)
     : memory_manager(memory_manager), regs(regs) {}
 
+State::~State() = default;
+
 void State::ProcessExec(const bool is_linear) {
     write_offset = 0;
     copy_size = regs.line_length_in * regs.line_count;

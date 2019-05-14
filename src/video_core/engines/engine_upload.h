@@ -55,7 +55,7 @@ struct Registers {
 class State {
 public:
     State(MemoryManager& memory_manager, Registers& regs);
-    ~State() = default;
+    ~State();
 
     void ProcessExec(bool is_linear);
     void ProcessData(u32 data, bool is_last_call);
