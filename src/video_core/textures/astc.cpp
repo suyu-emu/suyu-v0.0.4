@@ -25,8 +25,8 @@
 
 class InputBitStream {
 public:
-    explicit InputBitStream(const unsigned char* ptr, int nBits = 0, int start_offset = 0)
-        : m_NumBits(nBits), m_CurByte(ptr), m_NextBit(start_offset % 8) {}
+    explicit InputBitStream(const unsigned char* ptr, int start_offset = 0)
+        : m_CurByte(ptr), m_NextBit(start_offset % 8) {}
 
     ~InputBitStream() = default;
 
@@ -55,12 +55,9 @@ public:
     }
 
 private:
-    const int m_NumBits;
     const unsigned char* m_CurByte;
     int m_NextBit = 0;
     int m_BitsRead = 0;
-
-    bool done = false;
 };
 
 class OutputBitStream {
@@ -114,7 +111,6 @@ private:
     const int m_NumBits;
     unsigned char* m_CurByte;
     int m_NextBit = 0;
-    int m_BitsRead = 0;
 
     bool done = false;
 };

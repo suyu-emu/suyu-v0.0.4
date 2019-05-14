@@ -871,17 +871,6 @@ private:
         return {};
     }
 
-    std::string Composite(Operation operation) {
-        std::string value = "vec4(";
-        for (std::size_t i = 0; i < 4; ++i) {
-            value += Visit(operation[i]);
-            if (i < 3)
-                value += ", ";
-        }
-        value += ')';
-        return value;
-    }
-
     template <Type type>
     std::string Add(Operation operation) {
         return GenerateBinaryInfix(operation, "+", type, type, type);

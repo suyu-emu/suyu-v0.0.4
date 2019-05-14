@@ -540,7 +540,6 @@ Node4 ShaderIR::GetTexsCode(Instruction instr, TextureType texture_type,
 Node4 ShaderIR::GetTld4Code(Instruction instr, TextureType texture_type, bool depth_compare,
                             bool is_array, bool is_aoffi) {
     const std::size_t coord_count = GetCoordCount(texture_type);
-    const std::size_t total_coord_count = coord_count + (is_array ? 1 : 0);
 
     // If enabled arrays index is always stored in the gpr8 field
     const u64 array_register = instr.gpr8.Value();

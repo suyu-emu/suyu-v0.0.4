@@ -315,7 +315,6 @@ private:
         constexpr std::array<const char*, INTERNAL_FLAGS_COUNT> names = {"zero", "sign", "carry",
                                                                          "overflow"};
         for (std::size_t flag = 0; flag < INTERNAL_FLAGS_COUNT; ++flag) {
-            const auto flag_code = static_cast<InternalFlag>(flag);
             const Id id = OpVariable(t_prv_bool, spv::StorageClass::Private, v_false);
             internal_flags[flag] = AddGlobalVariable(Name(id, names[flag]));
         }
