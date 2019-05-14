@@ -69,6 +69,17 @@ public:
         AddNewLine();
     }
 
+    // Overload the forwards all arguments directly to libfmt.
+    // Note that all formatting requirements for fmt must be
+    // obeyed when using this function. (e.g. {{ must be used
+    // printing the character '{' is desirable. Ditto for }} and '}',
+    // etc).
+    template <typename... Args>
+    void AddLine(std::string_view text, Args&&... args) {
+        AddExpression(fmt::format(text, std::forward<Args>(args)...));
+        AddNewLine();
+    }
+
     void AddNewLine() {
         DEBUG_ASSERT(scope >= 0);
         shader_source += '\n';
