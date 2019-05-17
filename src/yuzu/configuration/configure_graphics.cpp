@@ -69,16 +69,20 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
 ConfigureGraphics::~ConfigureGraphics() = default;
 
 void ConfigureGraphics::setConfiguration() {
+    const bool runtime_lock = !Core::System::GetInstance().IsPoweredOn();
+
     ui->resolution_factor_combobox->setCurrentIndex(
         static_cast<int>(FromResolutionFactor(Settings::values.resolution_factor)));
     ui->toggle_frame_limit->setChecked(Settings::values.use_frame_limit);
     ui->frame_limit->setValue(Settings::values.frame_limit);
+    ui->use_compatibility_profile->setEnabled(runtime_lock);
     ui->use_compatibility_profile->setChecked(Settings::values.use_compatibility_profile);
+    ui->use_disk_shader_cache->setEnabled(runtime_lock);
     ui->use_disk_shader_cache->setChecked(Settings::values.use_disk_shader_cache);
     ui->use_accurate_gpu_emulation->setChecked(Settings::values.use_accurate_gpu_emulation);
-    ui->use_asynchronous_gpu_emulation->setEnabled(!Core::System::GetInstance().IsPoweredOn());
+    ui->use_asynchronous_gpu_emulation->setEnabled(runtime_lock);
     ui->use_asynchronous_gpu_emulation->setChecked(Settings::values.use_asynchronous_gpu_emulation);
-    ui->force_30fps_mode->setEnabled(!Core::System::GetInstance().IsPoweredOn());
+    ui->force_30fps_mode->setEnabled(runtime_lock);
     ui->force_30fps_mode->setChecked(Settings::values.force_30fps_mode);
     UpdateBackgroundColorButton(QColor::fromRgbF(Settings::values.bg_red, Settings::values.bg_green,
                                                  Settings::values.bg_blue));
