@@ -209,6 +209,7 @@ private slots:
 
 private:
     std::optional<u64> SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id);
+    void UpdateWindowTitle(const QString& title_name = {});
     void UpdateStatusBar();
 
     Ui::MainWindow ui;
