@@ -261,8 +261,8 @@ DrawParameters RasterizerOpenGL::SetupDraw() {
             // MakeQuadArray always generates u32 indexes
             params.index_format = GL_UNSIGNED_INT;
             params.count = (regs.vertex_buffer.count / 4) * 6;
-            params.index_buffer_offset =
-                primitive_assembler.MakeQuadArray(regs.vertex_buffer.first, params.count);
+            params.index_buffer_offset = primitive_assembler.MakeQuadArray(
+                regs.vertex_buffer.first, regs.vertex_buffer.count);
         }
         return params;
     }
