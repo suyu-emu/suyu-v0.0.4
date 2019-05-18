@@ -148,12 +148,25 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         }
         break;
     }
+    case OpCode::Id::LD:
     case OpCode::Id::LDG: {
-        const auto [real_address_base, base_address, descriptor] =
-            TrackAndGetGlobalMemory(bb, GetRegister(instr.gpr8),
-                                    static_cast<u32>(instr.ldg.immediate_offset.Value()), false);
+        const auto type = [instr, &opcode]() -> Tegra::Shader::UniformType {
+            switch (opcode->get().GetId()) {
+            case OpCode::Id::LD:
+                UNIMPLEMENTED_IF_MSG(!instr.generic.extended, "Unextended LD is not implemented");
+                return instr.generic.type;
+            case OpCode::Id::LDG:
+                return instr.ldg.type;
+            default:
+                UNREACHABLE();
+                return {};
+            }
+        }();
 
-        const u32 count = GetUniformTypeElementsCount(instr.ldg.type);
+        const auto [real_address_base, base_address, descriptor] =
+            TrackAndGetGlobalMemory(bb, instr, false);
+
+        const u32 count = GetUniformTypeElementsCount(type);
         for (u32 i = 0; i < count; ++i) {
             const Node it_offset = Immediate(i * 4);
             const Node real_address =
@@ -169,8 +182,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
     }
     case OpCode::Id::STG: {
         const auto [real_address_base, base_address, descriptor] =
-            TrackAndGetGlobalMemory(bb, GetRegister(instr.gpr8),
-                                    static_cast<u32>(instr.stg.immediate_offset.Value()), true);
+            TrackAndGetGlobalMemory(bb, instr, true);
 
         // Encode in temporary registers like this: real_base_address, {registers_to_be_written...}
         SetTemporal(bb, 0, real_address_base);
@@ -267,9 +279,11 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
 }
 
 std::tuple<Node, Node, GlobalMemoryBase> ShaderIR::TrackAndGetGlobalMemory(NodeBlock& bb,
-                                                                           Node addr_register,
-                                                                           u32 immediate_offset,
+                                                                           Instruction instr,
                                                                            bool is_write) {
+    const auto addr_register{GetRegister(instr.gmem.gpr)};
+    const auto immediate_offset{static_cast<u32>(instr.gmem.offset)};
+
     const Node base_address{
         TrackCbuf(addr_register, global_code, static_cast<s64>(global_code.size()))};
     const auto cbuf = std::get_if<CbufNode>(base_address);
