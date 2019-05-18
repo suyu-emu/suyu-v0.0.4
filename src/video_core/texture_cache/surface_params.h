@@ -126,6 +126,20 @@ public:
     /// Returns the size of a layer in bytes in host memory for a given mipmap level.
     std::size_t GetHostLayerSize(u32 level) const;
 
+    static u32 ConvertWidth(u32 width, VideoCore::Surface::PixelFormat pixel_format_from,
+                            VideoCore::Surface::PixelFormat pixel_format_to) {
+        const u32 bw1 = VideoCore::Surface::GetDefaultBlockWidth(pixel_format_from);
+        const u32 bw2 = VideoCore::Surface::GetDefaultBlockWidth(pixel_format_to);
+        return (width * bw2 + bw1 - 1) / bw1;
+    }
+
+    static u32 ConvertHeight(u32 height, VideoCore::Surface::PixelFormat pixel_format_from,
+                             VideoCore::Surface::PixelFormat pixel_format_to) {
+        const u32 bh1 = VideoCore::Surface::GetDefaultBlockHeight(pixel_format_from);
+        const u32 bh2 = VideoCore::Surface::GetDefaultBlockHeight(pixel_format_to);
+        return (height * bh2 + bh1 - 1) / bh1;
+    }
+
     /// Returns the default block width.
     u32 GetDefaultBlockWidth() const {
         return VideoCore::Surface::GetDefaultBlockWidth(pixel_format);

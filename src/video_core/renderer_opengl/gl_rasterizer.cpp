@@ -696,10 +696,9 @@ void RasterizerOpenGL::FlushAndInvalidateRegion(CacheAddr addr, u64 size) {
 
 bool RasterizerOpenGL::AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Regs::Surface& src,
                                              const Tegra::Engines::Fermi2D::Regs::Surface& dst,
-                                             const Common::Rectangle<u32>& src_rect,
-                                             const Common::Rectangle<u32>& dst_rect) {
+                                             const Tegra::Engines::Fermi2D::Config& copy_config) {
     MICROPROFILE_SCOPE(OpenGL_Blits);
-    texture_cache.DoFermiCopy(src, dst, src_rect, dst_rect);
+    texture_cache.DoFermiCopy(src, dst, copy_config);
     return true;
 }
 

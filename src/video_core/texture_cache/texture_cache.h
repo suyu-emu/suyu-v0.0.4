@@ -141,11 +141,6 @@ public:
             return {};
         }
 
-        if (regs.color_mask[index].raw == 0) {
-            SetEmptyColorBuffer(index);
-            return {};
-        }
-
         const auto& config{regs.rt[index]};
         const auto gpu_addr{config.Address()};
         if (!gpu_addr) {
@@ -192,11 +187,11 @@ public:
 
     void DoFermiCopy(const Tegra::Engines::Fermi2D::Regs::Surface& src_config,
                      const Tegra::Engines::Fermi2D::Regs::Surface& dst_config,
-                     const Common::Rectangle<u32>& src_rect,
-                     const Common::Rectangle<u32>& dst_rect) {
-        TSurface dst_surface = GetFermiSurface(dst_config);
-        ImageBlit(GetFermiSurface(src_config), dst_surface, src_rect, dst_rect);
-        dst_surface->MarkAsModified(true, Tick());
+                     const Tegra::Engines::Fermi2D::Config& copy_config) {
+        std::pair<TSurface, TView> dst_surface = GetFermiSurface(dst_config);
+        std::pair<TSurface, TView> src_surface = GetFermiSurface(src_config);
+        ImageBlit(src_surface.second, dst_surface.second, copy_config);
+        dst_surface.first->MarkAsModified(true, Tick());
     }
 
     TSurface TryFindFramebufferSurface(const u8* host_ptr) {
@@ -234,8 +229,8 @@ protected:
     virtual void ImageCopy(TSurface src_surface, TSurface dst_surface,
                            const CopyParams& copy_params) = 0;
 
-    virtual void ImageBlit(TSurface src, TSurface dst, const Common::Rectangle<u32>& src_rect,
-                           const Common::Rectangle<u32>& dst_rect) = 0;
+    virtual void ImageBlit(TView src_view, TView dst_view,
+                           const Tegra::Engines::Fermi2D::Config& copy_config) = 0;
 
     void Register(TSurface surface) {
         std::lock_guard lock{mutex};
@@ -282,10 +277,11 @@ protected:
         return new_surface;
     }
 
-    TSurface GetFermiSurface(const Tegra::Engines::Fermi2D::Regs::Surface& config) {
+    std::pair<TSurface, TView> GetFermiSurface(
+        const Tegra::Engines::Fermi2D::Regs::Surface& config) {
         SurfaceParams params = SurfaceParams::CreateForFermiCopySurface(config);
         const GPUVAddr gpu_addr = config.Address();
-        return GetSurface(gpu_addr, params, true).first;
+        return GetSurface(gpu_addr, params, true);
     }
 
     Core::System& system;
@@ -551,7 +547,21 @@ private:
             if (view.has_value()) {
                 const bool is_mirage = !current_surface->MatchFormat(params.pixel_format);
                 if (is_mirage) {
-                    LOG_CRITICAL(HW_GPU, "Mirage View Unsupported");
+                    // On a mirage view, we need to recreate the surface under this new view
+                    // and then obtain a view again.
+                    SurfaceParams new_params = current_surface->GetSurfaceParams();
+                    const u32 wh = SurfaceParams::ConvertWidth(
+                        new_params.width, new_params.pixel_format, params.pixel_format);
+                    const u32 hh = SurfaceParams::ConvertHeight(
+                        new_params.height, new_params.pixel_format, params.pixel_format);
+                    new_params.width = wh;
+                    new_params.height = hh;
+                    new_params.pixel_format = params.pixel_format;
+                    std::pair<TSurface, TView> pair = RebuildSurface(current_surface, new_params);
+                    std::optional<TView> mirage_view =
+                        pair.first->EmplaceView(params, gpu_addr, candidate_size);
+                    if (mirage_view)
+                        return {pair.first, *mirage_view};
                     return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, false);
                 }
                 return {current_surface, *view};

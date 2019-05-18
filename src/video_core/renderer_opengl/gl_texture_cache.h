@@ -73,7 +73,7 @@ public:
     ~CachedSurfaceView();
 
     /// Attaches this texture view to the current bound GL_DRAW_FRAMEBUFFER
-    void Attach(GLenum attachment) const;
+    void Attach(GLenum attachment, GLenum target) const;
 
     GLuint GetTexture() {
         if (is_proxy) {
@@ -138,8 +138,8 @@ protected:
     void ImageCopy(Surface src_surface, Surface dst_surface,
                    const VideoCommon::CopyParams& copy_params) override;
 
-    void ImageBlit(Surface src_surface, Surface dst_surface, const Common::Rectangle<u32>& src_rect,
-                   const Common::Rectangle<u32>& dst_rect) override;
+    void ImageBlit(View src_view, View dst_view,
+                   const Tegra::Engines::Fermi2D::Config& copy_config) override;
 
 private:
     OGLFramebuffer src_framebuffer;

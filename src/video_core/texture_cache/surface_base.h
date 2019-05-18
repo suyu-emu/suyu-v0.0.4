@@ -126,14 +126,19 @@ public:
             return MatchStructureResult::None;
         }
         // Tiled surface
-        if (std::tie(params.height, params.depth, params.block_width, params.block_height,
-                     params.block_depth, params.tile_width_spacing, params.num_levels) ==
-            std::tie(rhs.height, rhs.depth, rhs.block_width, rhs.block_height, rhs.block_depth,
+        if (std::tie(params.depth, params.block_width, params.block_height, params.block_depth,
+                     params.tile_width_spacing, params.num_levels) ==
+            std::tie(rhs.depth, rhs.block_width, rhs.block_height, rhs.block_depth,
                      rhs.tile_width_spacing, rhs.num_levels)) {
-            if (params.width == rhs.width) {
+            if (std::tie(params.width, params.height) == std::tie(rhs.width, rhs.height)) {
                 return MatchStructureResult::FullMatch;
             }
-            if (params.GetBlockAlignedWidth() == rhs.GetBlockAlignedWidth()) {
+            const u32 ws = SurfaceParams::ConvertWidth(rhs.GetBlockAlignedWidth(),
+                                                       params.pixel_format, rhs.pixel_format);
+            const u32 hs =
+                SurfaceParams::ConvertHeight(rhs.height, params.pixel_format, rhs.pixel_format);
+            const u32 w1 = params.GetBlockAlignedWidth();
+            if (std::tie(w1, params.height) == std::tie(ws, hs)) {
                 return MatchStructureResult::SemiMatch;
             }
         }

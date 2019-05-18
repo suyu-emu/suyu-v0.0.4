@@ -67,8 +67,7 @@ public:
     void FlushAndInvalidateRegion(CacheAddr addr, u64 size) override;
     bool AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Regs::Surface& src,
                                const Tegra::Engines::Fermi2D::Regs::Surface& dst,
-                               const Common::Rectangle<u32>& src_rect,
-                               const Common::Rectangle<u32>& dst_rect) override;
+                               const Tegra::Engines::Fermi2D::Config& copy_config) override;
     bool AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr,
                            u32 pixel_stride) override;
     bool AccelerateDrawBatch(bool is_indexed) override;

@@ -4,7 +4,6 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
-#include "common/math_util.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
@@ -35,7 +34,7 @@ void Fermi2D::HandleSurfaceCopy() {
                 static_cast<u32>(regs.operation));
 
     // TODO(Subv): Only raw copies are implemented.
-    ASSERT(regs.operation == Regs::Operation::SrcCopy);
+    ASSERT(regs.operation == Operation::SrcCopy);
 
     const u32 src_blit_x1{static_cast<u32>(regs.blit_src_x >> 32)};
     const u32 src_blit_y1{static_cast<u32>(regs.blit_src_y >> 32)};
@@ -48,8 +47,13 @@ void Fermi2D::HandleSurfaceCopy() {
     const Common::Rectangle<u32> dst_rect{regs.blit_dst_x, regs.blit_dst_y,
                                           regs.blit_dst_x + regs.blit_dst_width,
                                           regs.blit_dst_y + regs.blit_dst_height};
+    Config copy_config;
+    copy_config.operation = regs.operation;
+    copy_config.filter = regs.blit_control.filter;
+    copy_config.src_rect = src_rect;
+    copy_config.dst_rect = dst_rect;
 
-    if (!rasterizer.AccelerateSurfaceCopy(regs.src, regs.dst, src_rect, dst_rect)) {
+    if (!rasterizer.AccelerateSurfaceCopy(regs.src, regs.dst, copy_config)) {
         UNIMPLEMENTED();
     }
 }

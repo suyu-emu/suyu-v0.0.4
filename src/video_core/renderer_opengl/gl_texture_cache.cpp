@@ -378,26 +378,26 @@ CachedSurfaceView::CachedSurfaceView(CachedSurface& surface, const ViewParams& p
 
 CachedSurfaceView::~CachedSurfaceView() = default;
 
-void CachedSurfaceView::Attach(GLenum attachment) const {
+void CachedSurfaceView::Attach(GLenum attachment, GLenum target) const {
     ASSERT(params.num_layers == 1 && params.num_levels == 1);
 
     const auto& owner_params = surface.GetSurfaceParams();
 
     switch (owner_params.target) {
     case SurfaceTarget::Texture1D:
-        glFramebufferTexture1D(GL_DRAW_FRAMEBUFFER, attachment, surface.GetTarget(),
-                               surface.GetTexture(), params.base_level);
+        glFramebufferTexture1D(target, attachment, surface.GetTarget(), surface.GetTexture(),
+                               params.base_level);
         break;
     case SurfaceTarget::Texture2D:
-        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, surface.GetTarget(),
-                               surface.GetTexture(), params.base_level);
+        glFramebufferTexture2D(target, attachment, surface.GetTarget(), surface.GetTexture(),
+                               params.base_level);
         break;
     case SurfaceTarget::Texture1DArray:
     case SurfaceTarget::Texture2DArray:
     case SurfaceTarget::TextureCubemap:
     case SurfaceTarget::TextureCubeArray:
-        glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, attachment, surface.GetTexture(),
-                                  params.base_level, params.base_layer);
+        glFramebufferTextureLayer(target, attachment, surface.GetTexture(), params.base_level,
+                                  params.base_layer);
         break;
     default:
         UNIMPLEMENTED();
@@ -460,11 +460,10 @@ void TextureCacheOpenGL::ImageCopy(Surface src_surface, Surface dst_surface,
                        copy_params.depth);
 }
 
-void TextureCacheOpenGL::ImageBlit(Surface src_surface, Surface dst_surface,
-                                   const Common::Rectangle<u32>& src_rect,
-                                   const Common::Rectangle<u32>& dst_rect) {
-    const auto& src_params{src_surface->GetSurfaceParams()};
-    const auto& dst_params{dst_surface->GetSurfaceParams()};
+void TextureCacheOpenGL::ImageBlit(View src_view, View dst_view,
+                                   const Tegra::Engines::Fermi2D::Config& copy_config) {
+    const auto& src_params{src_view->GetSurfaceParams()};
+    const auto& dst_params{dst_view->GetSurfaceParams()};
 
     OpenGLState prev_state{OpenGLState::GetCurState()};
     SCOPE_EXIT({ prev_state.Apply(); });
@@ -476,51 +475,46 @@ void TextureCacheOpenGL::ImageBlit(Surface src_surface, Surface dst_surface,
 
     u32 buffers{};
 
-    UNIMPLEMENTED_IF(src_params.target != SurfaceTarget::Texture2D);
-    UNIMPLEMENTED_IF(dst_params.target != SurfaceTarget::Texture2D);
-
-    const GLuint src_texture{src_surface->GetTexture()};
-    const GLuint dst_texture{dst_surface->GetTexture()};
+    UNIMPLEMENTED_IF(src_params.target == SurfaceTarget::Texture3D);
+    UNIMPLEMENTED_IF(dst_params.target == SurfaceTarget::Texture3D);
 
     if (src_params.type == SurfaceType::ColorTexture) {
-        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                               src_texture, 0);
+        src_view->Attach(GL_COLOR_ATTACHMENT0, GL_READ_FRAMEBUFFER);
         glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0,
                                0);
 
-        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                               dst_texture, 0);
+        dst_view->Attach(GL_COLOR_ATTACHMENT0, GL_DRAW_FRAMEBUFFER);
         glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0,
                                0);
 
         buffers = GL_COLOR_BUFFER_BIT;
     } else if (src_params.type == SurfaceType::Depth) {
         glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
-        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, src_texture,
-                               0);
+        src_view->Attach(GL_DEPTH_ATTACHMENT, GL_READ_FRAMEBUFFER);
         glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
 
         glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
-        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, dst_texture,
-                               0);
+        dst_view->Attach(GL_DEPTH_ATTACHMENT, GL_DRAW_FRAMEBUFFER);
         glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
 
         buffers = GL_DEPTH_BUFFER_BIT;
     } else if (src_params.type == SurfaceType::DepthStencil) {
         glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
-        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D,
-                               src_texture, 0);
+        src_view->Attach(GL_DEPTH_STENCIL_ATTACHMENT, GL_READ_FRAMEBUFFER);
 
         glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
-        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D,
-                               dst_texture, 0);
+        dst_view->Attach(GL_DEPTH_STENCIL_ATTACHMENT, GL_DRAW_FRAMEBUFFER);
 
         buffers = GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
     }
 
+    const Common::Rectangle<u32>& src_rect = copy_config.src_rect;
+    const Common::Rectangle<u32>& dst_rect = copy_config.dst_rect;
+    const bool is_linear = copy_config.filter == Tegra::Engines::Fermi2D::Filter::Linear;
+
     glBlitFramebuffer(src_rect.left, src_rect.top, src_rect.right, src_rect.bottom, dst_rect.left,
                       dst_rect.top, dst_rect.right, dst_rect.bottom, buffers,
-                      buffers == GL_COLOR_BUFFER_BIT ? GL_LINEAR : GL_NEAREST);
+                      is_linear ? GL_LINEAR : GL_NEAREST);
 }
 
 } // namespace OpenGL
