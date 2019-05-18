@@ -1255,8 +1255,8 @@ static ResultCode MapProcessCodeMemory(Core::System& system, Handle process_hand
     return vm_manager.MapCodeMemory(dst_address, src_address, size);
 }
 
-ResultCode UnmapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst_address,
-                                  u64 src_address, u64 size) {
+static ResultCode UnmapProcessCodeMemory(Core::System& system, Handle process_handle,
+                                         u64 dst_address, u64 src_address, u64 size) {
     LOG_DEBUG(Kernel_SVC,
               "called. process_handle=0x{:08X}, dst_address=0x{:016X}, src_address=0x{:016X}, "
               "size=0x{:016X}",
@@ -2183,8 +2183,8 @@ static ResultCode GetProcessList(Core::System& system, u32* out_num_processes,
     return RESULT_SUCCESS;
 }
 
-ResultCode GetThreadList(Core::System& system, u32* out_num_threads, VAddr out_thread_ids,
-                         u32 out_thread_ids_size, Handle debug_handle) {
+static ResultCode GetThreadList(Core::System& system, u32* out_num_threads, VAddr out_thread_ids,
+                                u32 out_thread_ids_size, Handle debug_handle) {
     // TODO: Handle this case when debug events are supported.
     UNIMPLEMENTED_IF(debug_handle != InvalidHandle);
 
