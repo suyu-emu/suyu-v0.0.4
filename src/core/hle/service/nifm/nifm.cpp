@@ -62,9 +62,9 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = Core::System::GetInstance().Kernel();
-        event1 = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::OneShot,
+        event1 = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Automatic,
                                                         "IRequest:Event1");
-        event2 = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::OneShot,
+        event2 = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Automatic,
                                                         "IRequest:Event2");
     }
 

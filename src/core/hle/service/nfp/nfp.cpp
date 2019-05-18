@@ -26,7 +26,7 @@ constexpr ResultCode ERR_NO_APPLICATION_AREA(ErrorModule::NFP, 152);
 Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
     : ServiceFramework(name), module(std::move(module)) {
     auto& kernel = Core::System::GetInstance().Kernel();
-    nfc_tag_load = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::OneShot,
+    nfc_tag_load = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Automatic,
                                                           "IUser:NFCTagDetected");
 }
 
@@ -67,9 +67,9 @@ public:
 
         auto& kernel = Core::System::GetInstance().Kernel();
         deactivate_event = Kernel::WritableEvent::CreateEventPair(
-            kernel, Kernel::ResetType::OneShot, "IUser:DeactivateEvent");
+            kernel, Kernel::ResetType::Automatic, "IUser:DeactivateEvent");
         availability_change_event = Kernel::WritableEvent::CreateEventPair(
-            kernel, Kernel::ResetType::OneShot, "IUser:AvailabilityChangeEvent");
+            kernel, Kernel::ResetType::Automatic, "IUser:AvailabilityChangeEvent");
     }
 
 private:

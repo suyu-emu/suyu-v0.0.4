@@ -129,7 +129,7 @@ NVDRV::NVDRV(std::shared_ptr<Module> nvdrv, const char* name)
     RegisterHandlers(functions);
 
     auto& kernel = Core::System::GetInstance().Kernel();
-    query_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::OneShot,
+    query_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Automatic,
                                                          "NVDRV::query_event");
 }
 

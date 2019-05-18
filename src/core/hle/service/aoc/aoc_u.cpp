@@ -68,7 +68,7 @@ AOC_U::AOC_U() : ServiceFramework("aoc:u"), add_on_content(AccumulateAOCTitleIDs
     RegisterHandlers(functions);
 
     auto& kernel = Core::System::GetInstance().Kernel();
-    aoc_change_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Sticky,
+    aoc_change_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Manual,
                                                               "GetAddOnContentListChanged:Event");
 }
 

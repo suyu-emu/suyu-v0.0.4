@@ -33,8 +33,8 @@ enum class HandleType : u32 {
 };
 
 enum class ResetType {
-    OneShot, ///< Reset automatically on object acquisition
-    Sticky,  ///< Never reset automatically
+    Automatic, ///< Reset automatically on object acquisition
+    Manual,    ///< Never reset automatically
 };
 
 class Object : NonCopyable {

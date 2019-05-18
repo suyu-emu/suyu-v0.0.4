@@ -170,7 +170,7 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
 void Controller_NPad::OnInit() {
     auto& kernel = Core::System::GetInstance().Kernel();
     styleset_changed_event = Kernel::WritableEvent::CreateEventPair(
-        kernel, Kernel::ResetType::OneShot, "npad:NpadStyleSetChanged");
+        kernel, Kernel::ResetType::Automatic, "npad:NpadStyleSetChanged");
 
     if (!IsControllerActivated()) {
         return;

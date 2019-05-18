@@ -276,7 +276,7 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
     RegisterHandlers(functions);
 
     auto& kernel = Core::System::GetInstance().Kernel();
-    launchable_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Sticky,
+    launchable_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Manual,
                                                               "ISelfController:LaunchableEvent");
 }
 
@@ -442,10 +442,10 @@ void ISelfController::GetIdleTimeDetectionExtension(Kernel::HLERequestContext& c
 
 AppletMessageQueue::AppletMessageQueue() {
     auto& kernel = Core::System::GetInstance().Kernel();
-    on_new_message = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Sticky,
+    on_new_message = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Manual,
                                                             "AMMessageQueue:OnMessageRecieved");
     on_operation_mode_changed = Kernel::WritableEvent::CreateEventPair(
-        kernel, Kernel::ResetType::OneShot, "AMMessageQueue:OperationModeChanged");
+        kernel, Kernel::ResetType::Automatic, "AMMessageQueue:OperationModeChanged");
 }
 
 AppletMessageQueue::~AppletMessageQueue() = default;
