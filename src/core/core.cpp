@@ -270,6 +270,8 @@ struct System::Impl {
     /// Telemetry session for this emulation session
     std::unique_ptr<Core::TelemetrySession> telemetry_session;
 
+    std::map<VAddr, std::string, std::greater<>> modules;
+
     ResultStatus status = ResultStatus::Success;
     std::string status_details = "";
 
@@ -507,6 +509,14 @@ void System::RegisterContentProvider(FileSys::ContentProviderUnionSlot slot,
 
 void System::ClearContentProvider(FileSys::ContentProviderUnionSlot slot) {
     impl->content_provider->ClearSlot(slot);
+}
+
+void System::RegisterNSOModule(std::string name, VAddr start_address) {
+    impl->modules.insert_or_assign(start_address, name);
+}
+
+const std::map<VAddr, std::string, std::greater<>>& System::GetRegisteredNSOModules() const {
+    return impl->modules;
 }
 
 System::ResultStatus System::Init(Frontend::EmuWindow& emu_window) {

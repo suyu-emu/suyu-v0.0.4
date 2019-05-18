@@ -164,6 +164,9 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
     // Register module with GDBStub
     GDBStub::RegisterModule(file.GetName(), load_base, load_base);
 
+    // Register module for ARMInterface with System
+    Core::System::GetInstance().RegisterNSOModule(file.GetName(), load_base);
+
     return load_base + image_size;
 }
 

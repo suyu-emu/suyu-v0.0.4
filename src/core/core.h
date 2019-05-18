@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 
+#include <map>
 #include "common/common_types.h"
 #include "core/file_sys/vfs_types.h"
 #include "core/hle/kernel/object.h"
@@ -284,6 +285,10 @@ public:
                                  FileSys::ContentProvider* provider);
 
     void ClearContentProvider(FileSys::ContentProviderUnionSlot slot);
+
+    void RegisterNSOModule(std::string name, VAddr start_address);
+
+    const std::map<VAddr, std::string, std::greater<>>& GetRegisteredNSOModules() const;
 
 private:
     System();
