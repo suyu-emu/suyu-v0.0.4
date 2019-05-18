@@ -1673,6 +1673,7 @@ private:
             INST("1110111111110---", Id::ST_A, Type::Memory, "ST_A"),
             INST("1110111101011---", Id::ST_S, Type::Memory, "ST_S"),
             INST("1110111101010---", Id::ST_L, Type::Memory, "ST_L"),
+            INST("101-------------", Id::ST, Type::Memory, "ST"),
             INST("1110111011011---", Id::STG, Type::Memory, "STG"),
             INST("1110111110100---", Id::AL2P, Type::Memory, "AL2P"),
             INST("110000----111---", Id::TEX, Type::Texture, "TEX"),
