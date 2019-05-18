@@ -35,6 +35,7 @@ void ConfigureDebug::setConfiguration() {
     ui->homebrew_args_edit->setText(QString::fromStdString(Settings::values.program_args));
     ui->dump_exefs->setChecked(Settings::values.dump_exefs);
     ui->dump_decompressed_nso->setChecked(Settings::values.dump_nso);
+    ui->reporting_services->setChecked(Settings::values.reporting_services);
 }
 
 void ConfigureDebug::applyConfiguration() {
@@ -45,6 +46,7 @@ void ConfigureDebug::applyConfiguration() {
     Settings::values.program_args = ui->homebrew_args_edit->text().toStdString();
     Settings::values.dump_exefs = ui->dump_exefs->isChecked();
     Settings::values.dump_nso = ui->dump_decompressed_nso->isChecked();
+    Settings::values.reporting_services = ui->reporting_services->isChecked();
     Debugger::ToggleConsole();
     Log::Filter filter;
     filter.ParseFilterString(Settings::values.log_filter);
