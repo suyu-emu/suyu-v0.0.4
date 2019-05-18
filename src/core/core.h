@@ -69,6 +69,7 @@ class Cpu;
 class ExclusiveMonitor;
 class FrameLimiter;
 class PerfStats;
+class Reporter;
 class TelemetrySession;
 
 struct PerfStatsResults;
@@ -289,6 +290,8 @@ public:
     void RegisterNSOModule(std::string name, VAddr start_address);
 
     const std::map<VAddr, std::string, std::greater<>>& GetRegisteredNSOModules() const;
+
+    const Reporter& GetReporter() const;
 
 private:
     System();

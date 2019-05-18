@@ -34,6 +34,7 @@
 #include "core/hle/service/sm/sm.h"
 #include "core/loader/loader.h"
 #include "core/perf_stats.h"
+#include "core/reporter.h"
 #include "core/settings.h"
 #include "core/telemetry_session.h"
 #include "file_sys/cheat_engine.h"
@@ -271,6 +272,7 @@ struct System::Impl {
     std::unique_ptr<Core::TelemetrySession> telemetry_session;
 
     std::map<VAddr, std::string, std::greater<>> modules;
+    Reporter reporter;
 
     ResultStatus status = ResultStatus::Success;
     std::string status_details = "";
@@ -517,6 +519,10 @@ void System::RegisterNSOModule(std::string name, VAddr start_address) {
 
 const std::map<VAddr, std::string, std::greater<>>& System::GetRegisteredNSOModules() const {
     return impl->modules;
+}
+
+const Reporter& System::GetReporter() const {
+    return impl->reporter;
 }
 
 System::ResultStatus System::Init(Frontend::EmuWindow& emu_window) {
