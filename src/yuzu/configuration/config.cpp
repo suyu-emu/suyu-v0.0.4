@@ -465,16 +465,16 @@ void Config::ReadDataStorageValues() {
 }
 
 void Config::ReadDebuggingValues() {
-    qt_config->beginGroup(QStringLiteral("Debugging"));
+	qt_config->beginGroup(QStringLiteral("Debugging"));
 
-    Settings::values.use_gdbstub = ReadSetting(QStringLiteral("use_gdbstub"), false).toBool();
-    Settings::values.gdbstub_port = ReadSetting(QStringLiteral("gdbstub_port"), 24689).toInt();
-    Settings::values.program_args =
-        ReadSetting(QStringLiteral("program_args"), QStringLiteral("")).toString().toStdString();
-    Settings::values.dump_exefs = ReadSetting(QStringLiteral("dump_exefs"), false).toBool();
-    Settings::values.dump_nso = ReadSetting(QStringLiteral("dump_nso"), false).toBool();
-
-    qt_config->endGroup();
+	Settings::values.use_gdbstub = ReadSetting(QStringLiteral("use_gdbstub"), false).toBool();
+	Settings::values.gdbstub_port = ReadSetting(QStringLiteral("gdbstub_port"), 24689).toInt();
+	Settings::values.program_args =
+		ReadSetting(QStringLiteral("program_args"), QStringLiteral("")).toString().toStdString();
+	Settings::values.dump_exefs = ReadSetting(QStringLiteral("dump_exefs"), false).toBool();
+	Settings::values.dump_nso = ReadSetting(QStringLiteral("dump_nso"), false).toBool();
+	Settings::values.reporting_services = ReadSetting("reporting_services", false).toBool();
+	qt_config->endGroup();
 }
 
 void Config::ReadDisabledAddOnValues() {
