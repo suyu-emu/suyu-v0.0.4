@@ -70,14 +70,14 @@ namespace std {
 
 template <>
 struct hash<OpenGL::BaseBindings> {
-    std::size_t operator()(const OpenGL::BaseBindings& bindings) const {
+    std::size_t operator()(const OpenGL::BaseBindings& bindings) const noexcept {
         return bindings.cbuf | bindings.gmem << 8 | bindings.sampler << 16;
     }
 };
 
 template <>
 struct hash<OpenGL::ShaderDiskCacheUsage> {
-    std::size_t operator()(const OpenGL::ShaderDiskCacheUsage& usage) const {
+    std::size_t operator()(const OpenGL::ShaderDiskCacheUsage& usage) const noexcept {
         return static_cast<std::size_t>(usage.unique_identifier) ^
                std::hash<OpenGL::BaseBindings>()(usage.bindings) ^ usage.primitive << 16;
     }
