@@ -238,38 +238,42 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
     analog_map_stick = {ui->buttonLStickAnalog, ui->buttonRStickAnalog};
 
     for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; button_id++) {
-        if (!button_map[button_id])
+        auto* const button = button_map[button_id];
+        if (button == nullptr) {
             continue;
-        button_map[button_id]->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(button_map[button_id], &QPushButton::released, [=]() {
+        }
+
+        button->setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(button, &QPushButton::released, [=] {
             handleClick(
                 button_map[button_id],
                 [=](const Common::ParamPackage& params) { buttons_param[button_id] = params; },
                 InputCommon::Polling::DeviceType::Button);
         });
-        connect(button_map[button_id], &QPushButton::customContextMenuRequested,
-                [=](const QPoint& menu_location) {
-                    QMenu context_menu;
-                    context_menu.addAction(tr("Clear"), [&] {
-                        buttons_param[button_id].Clear();
-                        button_map[button_id]->setText(tr("[not set]"));
-                    });
-                    context_menu.addAction(tr("Restore Default"), [&] {
-                        buttons_param[button_id] = Common::ParamPackage{
-                            InputCommon::GenerateKeyboardParam(Config::default_buttons[button_id])};
-                        button_map[button_id]->setText(ButtonToText(buttons_param[button_id]));
-                    });
-                    context_menu.exec(button_map[button_id]->mapToGlobal(menu_location));
-                });
+        connect(button, &QPushButton::customContextMenuRequested, [=](const QPoint& menu_location) {
+            QMenu context_menu;
+            context_menu.addAction(tr("Clear"), [&] {
+                buttons_param[button_id].Clear();
+                button_map[button_id]->setText(tr("[not set]"));
+            });
+            context_menu.addAction(tr("Restore Default"), [&] {
+                buttons_param[button_id] = Common::ParamPackage{
+                    InputCommon::GenerateKeyboardParam(Config::default_buttons[button_id])};
+                button_map[button_id]->setText(ButtonToText(buttons_param[button_id]));
+            });
+            context_menu.exec(button_map[button_id]->mapToGlobal(menu_location));
+        });
     }
 
     for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; analog_id++) {
         for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM; sub_button_id++) {
-            if (!analog_map_buttons[analog_id][sub_button_id])
+            auto* const analog_button = analog_map_buttons[analog_id][sub_button_id];
+            if (analog_button == nullptr) {
                 continue;
-            analog_map_buttons[analog_id][sub_button_id]->setContextMenuPolicy(
-                Qt::CustomContextMenu);
-            connect(analog_map_buttons[analog_id][sub_button_id], &QPushButton::released, [=]() {
+            }
+
+            analog_button->setContextMenuPolicy(Qt::CustomContextMenu);
+            connect(analog_button, &QPushButton::released, [=]() {
                 handleClick(analog_map_buttons[analog_id][sub_button_id],
                             [=](const Common::ParamPackage& params) {
                                 SetAnalogButton(params, analogs_param[analog_id],
@@ -277,8 +281,8 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                             },
                             InputCommon::Polling::DeviceType::Button);
             });
-            connect(analog_map_buttons[analog_id][sub_button_id],
-                    &QPushButton::customContextMenuRequested, [=](const QPoint& menu_location) {
+            connect(analog_button, &QPushButton::customContextMenuRequested,
+                    [=](const QPoint& menu_location) {
                         QMenu context_menu;
                         context_menu.addAction(tr("Clear"), [&] {
                             analogs_param[analog_id].Erase(analog_sub_buttons[sub_button_id]);
@@ -296,7 +300,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                             menu_location));
                     });
         }
-        connect(analog_map_stick[analog_id], &QPushButton::released, [=]() {
+        connect(analog_map_stick[analog_id], &QPushButton::released, [=] {
             QMessageBox::information(this, tr("Information"),
                                      tr("After pressing OK, first move your joystick horizontally, "
                                         "and then vertically."));
@@ -435,14 +439,22 @@ void ConfigureInputPlayer::restoreDefaults() {
 
 void ConfigureInputPlayer::ClearAll() {
     for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; button_id++) {
-        if (button_map[button_id] && button_map[button_id]->isEnabled())
-            buttons_param[button_id].Clear();
+        const auto* const button = button_map[button_id];
+        if (button == nullptr || !button->isEnabled()) {
+            continue;
+        }
+
+        buttons_param[button_id].Clear();
     }
+
     for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; analog_id++) {
         for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM; sub_button_id++) {
-            if (analog_map_buttons[analog_id][sub_button_id] &&
-                analog_map_buttons[analog_id][sub_button_id]->isEnabled())
-                analogs_param[analog_id].Erase(analog_sub_buttons[sub_button_id]);
+            const auto* const analog_button = analog_map_buttons[analog_id][sub_button_id];
+            if (analog_button == nullptr || !analog_button->isEnabled()) {
+                continue;
+            }
+
+            analogs_param[analog_id].Erase(analog_sub_buttons[sub_button_id]);
         }
     }
 
@@ -456,10 +468,14 @@ void ConfigureInputPlayer::updateButtonLabels() {
 
     for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; analog_id++) {
         for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM; sub_button_id++) {
-            if (analog_map_buttons[analog_id][sub_button_id]) {
-                analog_map_buttons[analog_id][sub_button_id]->setText(
-                    AnalogToText(analogs_param[analog_id], analog_sub_buttons[sub_button_id]));
+            auto* const analog_button = analog_map_buttons[analog_id][sub_button_id];
+
+            if (analog_button == nullptr) {
+                continue;
             }
+
+            analog_button->setText(
+                AnalogToText(analogs_param[analog_id], analog_sub_buttons[sub_button_id]));
         }
         analog_map_stick[analog_id]->setText(tr("Set Analog Stick"));
     }
