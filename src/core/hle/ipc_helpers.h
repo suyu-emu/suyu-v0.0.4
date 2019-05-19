@@ -438,7 +438,7 @@ inline float RequestParser::Pop() {
 template <>
 inline double RequestParser::Pop() {
     const u64 value = Pop<u64>();
-    float real;
+    double real;
     std::memcpy(&real, &value, sizeof(real));
     return real;
 }
