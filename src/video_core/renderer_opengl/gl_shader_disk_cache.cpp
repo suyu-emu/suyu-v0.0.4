@@ -243,7 +243,7 @@ ShaderDiskCacheOpenGL::LoadPrecompiledFile(FileUtil::IOFile& file) {
                 return {};
             }
 
-            const auto entry = LoadDecompiledEntry();
+            auto entry = LoadDecompiledEntry();
             if (!entry) {
                 return {};
             }
