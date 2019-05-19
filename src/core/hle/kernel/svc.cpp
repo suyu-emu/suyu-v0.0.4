@@ -1342,7 +1342,7 @@ static void ExitProcess(Core::System& system) {
 /// Creates a new thread
 static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr entry_point, u64 arg,
                                VAddr stack_top, u32 priority, s32 processor_id) {
-    LOG_TRACE(Kernel_SVC,
+    LOG_DEBUG(Kernel_SVC,
               "called entrypoint=0x{:08X}, arg=0x{:08X}, stacktop=0x{:08X}, "
               "threadpriority=0x{:08X}, processorid=0x{:08X} : created handle=0x{:08X}",
               entry_point, arg, stack_top, priority, processor_id, *out_handle);
@@ -1402,7 +1402,7 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
 
 /// Starts the thread for the provided handle
 static ResultCode StartThread(Core::System& system, Handle thread_handle) {
-    LOG_TRACE(Kernel_SVC, "called thread=0x{:08X}", thread_handle);
+    LOG_DEBUG(Kernel_SVC, "called thread=0x{:08X}", thread_handle);
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
     const SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
@@ -1425,7 +1425,7 @@ static ResultCode StartThread(Core::System& system, Handle thread_handle) {
 
 /// Called when a thread exits
 static void ExitThread(Core::System& system) {
-    LOG_TRACE(Kernel_SVC, "called, pc=0x{:08X}", system.CurrentArmInterface().GetPC());
+    LOG_DEBUG(Kernel_SVC, "called, pc=0x{:08X}", system.CurrentArmInterface().GetPC());
 
     auto* const current_thread = system.CurrentScheduler().GetCurrentThread();
     current_thread->Stop();
@@ -1435,7 +1435,7 @@ static void ExitThread(Core::System& system) {
 
 /// Sleep the current thread
 static void SleepThread(Core::System& system, s64 nanoseconds) {
-    LOG_TRACE(Kernel_SVC, "called nanoseconds={}", nanoseconds);
+    LOG_DEBUG(Kernel_SVC, "called nanoseconds={}", nanoseconds);
 
     enum class SleepType : s64 {
         YieldWithoutLoadBalancing = 0,
@@ -1880,11 +1880,51 @@ static ResultCode GetThreadCoreMask(Core::System& system, Handle thread_handle, 
 }
 
 static ResultCode SetThreadCoreMask(Core::System& system, Handle thread_handle, u32 core,
-                                    u64 mask) {
-    LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, mask=0x{:016X}, core=0x{:X}", thread_handle,
-              mask, core);
+                                    u64 affinity_mask) {
+    LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, core=0x{:X}, affinity_mask=0x{:016X}",
+              thread_handle, core, affinity_mask);
 
-    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
+    const auto* const current_process = system.Kernel().CurrentProcess();
+
+    if (core == static_cast<u32>(THREADPROCESSORID_IDEAL)) {
+        const u8 ideal_cpu_core = current_process->GetIdealCore();
+
+        ASSERT(ideal_cpu_core != static_cast<u8>(THREADPROCESSORID_IDEAL));
+
+        // Set the target CPU to the ideal core specified by the process.
+        core = ideal_cpu_core;
+        affinity_mask = 1ULL << core;
+    } else {
+        const u64 core_mask = current_process->GetCoreMask();
+
+        if ((core_mask | affinity_mask) != core_mask) {
+            LOG_ERROR(
+                Kernel_SVC,
+                "Invalid processor ID specified (core_mask=0x{:08X}, affinity_mask=0x{:016X})",
+                core_mask, affinity_mask);
+            return ERR_INVALID_PROCESSOR_ID;
+        }
+
+        if (affinity_mask == 0) {
+            LOG_ERROR(Kernel_SVC, "Specfified affinity mask is zero.");
+            return ERR_INVALID_COMBINATION;
+        }
+
+        if (core < Core::NUM_CPU_CORES) {
+            if ((affinity_mask & (1ULL << core)) == 0) {
+                LOG_ERROR(Kernel_SVC,
+                          "Core is not enabled for the current mask, core={}, mask={:016X}", core,
+                          affinity_mask);
+                return ERR_INVALID_COMBINATION;
+            }
+        } else if (core != static_cast<u32>(THREADPROCESSORID_DONT_CARE) &&
+                   core != static_cast<u32>(THREADPROCESSORID_DONT_UPDATE)) {
+            LOG_ERROR(Kernel_SVC, "Invalid processor ID specified (core={}).", core);
+            return ERR_INVALID_PROCESSOR_ID;
+        }
+    }
+
+    const auto& handle_table = current_process->GetHandleTable();
     const SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, thread_handle=0x{:08X}",
@@ -1892,40 +1932,7 @@ static ResultCode SetThreadCoreMask(Core::System& system, Handle thread_handle, 
         return ERR_INVALID_HANDLE;
     }
 
-    if (core == static_cast<u32>(THREADPROCESSORID_IDEAL)) {
-        const u8 ideal_cpu_core = thread->GetOwnerProcess()->GetIdealCore();
-
-        ASSERT(ideal_cpu_core != static_cast<u8>(THREADPROCESSORID_IDEAL));
-
-        // Set the target CPU to the ideal core specified by the process.
-        core = ideal_cpu_core;
-        mask = 1ULL << core;
-    }
-
-    if (mask == 0) {
-        LOG_ERROR(Kernel_SVC, "Mask is 0");
-        return ERR_INVALID_COMBINATION;
-    }
-
-    /// This value is used to only change the affinity mask without changing the current ideal core.
-    static constexpr u32 OnlyChangeMask = static_cast<u32>(-3);
-
-    if (core == OnlyChangeMask) {
-        core = thread->GetIdealCore();
-    } else if (core >= Core::NUM_CPU_CORES && core != static_cast<u32>(-1)) {
-        LOG_ERROR(Kernel_SVC, "Invalid core specified, got {}", core);
-        return ERR_INVALID_PROCESSOR_ID;
-    }
-
-    // Error out if the input core isn't enabled in the input mask.
-    if (core < Core::NUM_CPU_CORES && (mask & (1ull << core)) == 0) {
-        LOG_ERROR(Kernel_SVC, "Core is not enabled for the current mask, core={}, mask={:016X}",
-                  core, mask);
-        return ERR_INVALID_COMBINATION;
-    }
-
-    thread->ChangeCore(core, mask);
-
+    thread->ChangeCore(core, affinity_mask);
     return RESULT_SUCCESS;
 }
 
