@@ -328,40 +328,31 @@ struct MetaTexture {
     u32 element{};
 };
 
-inline constexpr MetaArithmetic PRECISE = {true};
-inline constexpr MetaArithmetic NO_PRECISE = {false};
+constexpr MetaArithmetic PRECISE = {true};
+constexpr MetaArithmetic NO_PRECISE = {false};
 
 using Meta = std::variant<MetaArithmetic, MetaTexture, Tegra::Shader::HalfType>;
 
 /// Holds any kind of operation that can be done in the IR
 class OperationNode final {
 public:
-    template <typename... T>
-    explicit constexpr OperationNode(OperationCode code) : code{code}, meta{} {}
+    explicit OperationNode(OperationCode code) : code{code} {}
+
+    explicit OperationNode(OperationCode code, Meta&& meta) : code{code}, meta{std::move(meta)} {}
 
     template <typename... T>
-    explicit constexpr OperationNode(OperationCode code, Meta&& meta)
-        : code{code}, meta{std::move(meta)} {}
-
-    template <typename... T>
-    explicit constexpr OperationNode(OperationCode code, const T*... operands)
+    explicit OperationNode(OperationCode code, const T*... operands)
         : OperationNode(code, {}, operands...) {}
 
     template <typename... T>
-    explicit constexpr OperationNode(OperationCode code, Meta&& meta, const T*... operands_)
-        : code{code}, meta{std::move(meta)} {
-
-        auto operands_list = {operands_...};
-        for (auto& operand : operands_list) {
-            operands.push_back(operand);
-        }
-    }
+    explicit OperationNode(OperationCode code, Meta&& meta, const T*... operands_)
+        : code{code}, meta{std::move(meta)}, operands{operands_...} {}
 
     explicit OperationNode(OperationCode code, Meta&& meta, std::vector<Node>&& operands)
         : code{code}, meta{meta}, operands{std::move(operands)} {}
 
     explicit OperationNode(OperationCode code, std::vector<Node>&& operands)
-        : code{code}, meta{}, operands{std::move(operands)} {}
+        : code{code}, operands{std::move(operands)} {}
 
     OperationCode GetCode() const {
         return code;
@@ -567,11 +558,8 @@ private:
 
 class ShaderIR final {
 public:
-    explicit ShaderIR(const ProgramCode& program_code, u32 main_offset)
-        : program_code{program_code}, main_offset{main_offset} {
-
-        Decode();
-    }
+    explicit ShaderIR(const ProgramCode& program_code, u32 main_offset);
+    ~ShaderIR();
 
     const std::map<u32, NodeBlock>& GetBasicBlocks() const {
         return basic_blocks;
@@ -814,11 +802,12 @@ private:
     void WriteLop3Instruction(NodeBlock& bb, Tegra::Shader::Register dest, Node op_a, Node op_b,
                               Node op_c, Node imm_lut, bool sets_cc);
 
-    Node TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor);
+    Node TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) const;
 
-    std::optional<u32> TrackImmediate(Node tracked, const NodeBlock& code, s64 cursor);
+    std::optional<u32> TrackImmediate(Node tracked, const NodeBlock& code, s64 cursor) const;
 
-    std::pair<Node, s64> TrackRegister(const GprNode* tracked, const NodeBlock& code, s64 cursor);
+    std::pair<Node, s64> TrackRegister(const GprNode* tracked, const NodeBlock& code,
+                                       s64 cursor) const;
 
     std::tuple<Node, Node, GlobalMemoryBase> TrackAndGetGlobalMemory(NodeBlock& bb,
                                                                      Node addr_register,
@@ -835,12 +824,10 @@ private:
         return StoreNode(OperationNode(code, std::move(meta), operands...));
     }
 
-    template <typename... T>
     Node Operation(OperationCode code, std::vector<Node>&& operands) {
         return StoreNode(OperationNode(code, std::move(operands)));
     }
 
-    template <typename... T>
     Node Operation(OperationCode code, Meta&& meta, std::vector<Node>&& operands) {
         return StoreNode(OperationNode(code, std::move(meta), std::move(operands)));
     }
