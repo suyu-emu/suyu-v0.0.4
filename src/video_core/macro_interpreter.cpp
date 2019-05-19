@@ -120,7 +120,9 @@ bool MacroInterpreter::Step(u32 offset, bool is_delay_slot) {
 
     // An instruction with the Exit flag will not actually
     // cause an exit if it's executed inside a delay slot.
-    if (opcode.is_exit && !is_delay_slot) {
+    // TODO(Blinkhawk): Reversed to always exit. The behavior explained above requires further
+    // testing on the MME code.
+    if (opcode.is_exit) {
         // Exit has a delay slot, execute the next instruction
         Step(offset, true);
         return false;
