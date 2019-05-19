@@ -100,13 +100,15 @@ void ConfigureGameList::RetranslateUI() {
 
 void ConfigureGameList::InitializeIconSizeComboBox() {
     for (const auto& size : default_icon_sizes) {
-        ui->icon_size_combobox->addItem(size.second, size.first);
+        ui->icon_size_combobox->addItem(QString::fromUtf8(size.second), size.first);
     }
 }
 
 void ConfigureGameList::InitializeRowComboBoxes() {
     for (std::size_t i = 0; i < row_text_names.size(); ++i) {
-        ui->row_1_text_combobox->addItem(row_text_names[i], QVariant::fromValue(i));
-        ui->row_2_text_combobox->addItem(row_text_names[i], QVariant::fromValue(i));
+        const QString row_text_name = QString::fromUtf8(row_text_names[i]);
+
+        ui->row_1_text_combobox->addItem(row_text_name, QVariant::fromValue(i));
+        ui->row_2_text_combobox->addItem(row_text_name, QVariant::fromValue(i));
     }
 }
