@@ -259,12 +259,28 @@ private:
         return SaveArrayToPrecompiled(&object, 1);
     }
 
+    bool SaveObjectToPrecompiled(bool object) {
+        const auto value = static_cast<u8>(object);
+        return SaveArrayToPrecompiled(&value, 1);
+    }
+
     template <typename T>
     bool LoadObjectFromPrecompiled(T& object) {
         return LoadArrayFromPrecompiled(&object, 1);
     }
 
-    // Copre system
+    bool LoadObjectFromPrecompiled(bool& object) {
+        u8 value;
+        const bool read_ok = LoadArrayFromPrecompiled(&value, 1);
+        if (!read_ok) {
+            return false;
+        }
+
+        object = value != 0;
+        return true;
+    }
+
+    // Core system
     Core::System& system;
     // Stored transferable shaders
     std::map<u64, std::unordered_set<ShaderDiskCacheUsage>> transferable;
