@@ -16,7 +16,7 @@ namespace Service::NVFlinger {
 
 BufferQueue::BufferQueue(u32 id, u64 layer_id) : id(id), layer_id(layer_id) {
     auto& kernel = Core::System::GetInstance().Kernel();
-    buffer_wait_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Sticky,
+    buffer_wait_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Manual,
                                                                "BufferQueue NativeHandle");
 }
 

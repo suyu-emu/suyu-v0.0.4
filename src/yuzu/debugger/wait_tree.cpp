@@ -174,10 +174,10 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeWaitObject::GetChildren() con
 
 QString WaitTreeWaitObject::GetResetTypeQString(Kernel::ResetType reset_type) {
     switch (reset_type) {
-    case Kernel::ResetType::OneShot:
-        return tr("one shot");
-    case Kernel::ResetType::Sticky:
-        return tr("sticky");
+    case Kernel::ResetType::Automatic:
+        return tr("automatic reset");
+    case Kernel::ResetType::Manual:
+        return tr("manual reset");
     }
     UNREACHABLE();
     return {};

@@ -34,8 +34,8 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = Core::System::GetInstance().Kernel();
-        register_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::OneShot,
-                                                                "BT:RegisterEvent");
+        register_event = Kernel::WritableEvent::CreateEventPair(
+            kernel, Kernel::ResetType::Automatic, "BT:RegisterEvent");
     }
 
 private:
