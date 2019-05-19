@@ -118,10 +118,10 @@ bool MacroInterpreter::Step(u32 offset, bool is_delay_slot) {
                           static_cast<u32>(opcode.operation.Value()));
     }
 
-    if (opcode.is_exit) {
+    // An instruction with the Exit flag will not actually
+    // cause an exit if it's executed inside a delay slot.
+    if (opcode.is_exit && !is_delay_slot) {
         // Exit has a delay slot, execute the next instruction
-        // Note: Executing an exit during a branch delay slot will cause the instruction at the
-        // branch target to be executed before exiting.
         Step(offset, true);
         return false;
     }
