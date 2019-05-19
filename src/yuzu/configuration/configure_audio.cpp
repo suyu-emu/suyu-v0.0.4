@@ -28,8 +28,9 @@ ConfigureAudio::ConfigureAudio(QWidget* parent)
     connect(ui->output_sink_combo_box, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &ConfigureAudio::updateAudioDevices);
 
-    ui->output_sink_combo_box->setEnabled(!Core::System::GetInstance().IsPoweredOn());
-    ui->audio_device_combo_box->setEnabled(!Core::System::GetInstance().IsPoweredOn());
+    const bool is_powered_on = Core::System::GetInstance().IsPoweredOn();
+    ui->output_sink_combo_box->setEnabled(!is_powered_on);
+    ui->audio_device_combo_box->setEnabled(!is_powered_on);
 }
 
 ConfigureAudio::~ConfigureAudio() = default;
