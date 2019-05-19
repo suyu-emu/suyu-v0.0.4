@@ -2,16 +2,15 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <chrono>
 #include "common/logging/log.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/client_port.h"
-#include "core/hle/kernel/client_session.h"
 #include "core/hle/service/set/set.h"
 #include "core/settings.h"
 
 namespace Service::Set {
-
+namespace {
 constexpr std::array<LanguageCode, 17> available_language_codes = {{
     LanguageCode::JA,
     LanguageCode::EN_US,
@@ -32,41 +31,35 @@ constexpr std::array<LanguageCode, 17> available_language_codes = {{
     LanguageCode::ZH_HANT,
 }};
 
-constexpr std::size_t pre4_0_0_max_entries = 0xF;
-constexpr std::size_t post4_0_0_max_entries = 0x40;
+constexpr std::size_t pre4_0_0_max_entries = 15;
+constexpr std::size_t post4_0_0_max_entries = 17;
 
 constexpr ResultCode ERR_INVALID_LANGUAGE{ErrorModule::Settings, 625};
+
+void PushResponseLanguageCode(Kernel::HLERequestContext& ctx, std::size_t num_language_codes) {
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push(static_cast<u32>(num_language_codes));
+}
+
+void GetAvailableLanguageCodesImpl(Kernel::HLERequestContext& ctx, std::size_t max_size) {
+    const std::size_t requested_amount = ctx.GetWriteBufferSize() / sizeof(LanguageCode);
+    const std::size_t copy_amount = std::min(requested_amount, max_size);
+    const std::size_t copy_size = copy_amount * sizeof(LanguageCode);
+
+    ctx.WriteBuffer(available_language_codes.data(), copy_size);
+    PushResponseLanguageCode(ctx, copy_amount);
+}
+} // Anonymous namespace
 
 LanguageCode GetLanguageCodeFromIndex(std::size_t index) {
     return available_language_codes.at(index);
 }
 
-template <std::size_t size>
-static std::array<LanguageCode, size> MakeLanguageCodeSubset() {
-    std::array<LanguageCode, size> arr;
-    std::copy_n(available_language_codes.begin(), size, arr.begin());
-    return arr;
-}
-
-static void PushResponseLanguageCode(Kernel::HLERequestContext& ctx, std::size_t max_size) {
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
-    if (available_language_codes.size() > max_size) {
-        rb.Push(static_cast<u32>(max_size));
-    } else {
-        rb.Push(static_cast<u32>(available_language_codes.size()));
-    }
-}
-
 void SET::GetAvailableLanguageCodes(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
-    if (available_language_codes.size() > pre4_0_0_max_entries) {
-        ctx.WriteBuffer(MakeLanguageCodeSubset<pre4_0_0_max_entries>());
-    } else {
-        ctx.WriteBuffer(available_language_codes);
-    }
-    PushResponseLanguageCode(ctx, pre4_0_0_max_entries);
+    GetAvailableLanguageCodesImpl(ctx, pre4_0_0_max_entries);
 }
 
 void SET::MakeLanguageCode(Kernel::HLERequestContext& ctx) {
@@ -87,12 +80,7 @@ void SET::MakeLanguageCode(Kernel::HLERequestContext& ctx) {
 void SET::GetAvailableLanguageCodes2(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
-    if (available_language_codes.size() > post4_0_0_max_entries) {
-        ctx.WriteBuffer(MakeLanguageCodeSubset<post4_0_0_max_entries>());
-    } else {
-        ctx.WriteBuffer(available_language_codes);
-    }
-    PushResponseLanguageCode(ctx, post4_0_0_max_entries);
+    GetAvailableLanguageCodesImpl(ctx, post4_0_0_max_entries);
 }
 
 void SET::GetAvailableLanguageCodeCount(Kernel::HLERequestContext& ctx) {
@@ -102,9 +90,9 @@ void SET::GetAvailableLanguageCodeCount(Kernel::HLERequestContext& ctx) {
 }
 
 void SET::GetAvailableLanguageCodeCount2(Kernel::HLERequestContext& ctx) {
-    PushResponseLanguageCode(ctx, post4_0_0_max_entries);
-
     LOG_DEBUG(Service_SET, "called");
+
+    PushResponseLanguageCode(ctx, post4_0_0_max_entries);
 }
 
 void SET::GetLanguageCode(Kernel::HLERequestContext& ctx) {
