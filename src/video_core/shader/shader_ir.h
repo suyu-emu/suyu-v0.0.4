@@ -328,8 +328,8 @@ struct MetaTexture {
     u32 element{};
 };
 
-inline constexpr MetaArithmetic PRECISE = {true};
-inline constexpr MetaArithmetic NO_PRECISE = {false};
+constexpr MetaArithmetic PRECISE = {true};
+constexpr MetaArithmetic NO_PRECISE = {false};
 
 using Meta = std::variant<MetaArithmetic, MetaTexture, Tegra::Shader::HalfType>;
 
