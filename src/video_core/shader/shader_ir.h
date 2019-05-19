@@ -567,11 +567,8 @@ private:
 
 class ShaderIR final {
 public:
-    explicit ShaderIR(const ProgramCode& program_code, u32 main_offset)
-        : program_code{program_code}, main_offset{main_offset} {
-
-        Decode();
-    }
+    explicit ShaderIR(const ProgramCode& program_code, u32 main_offset);
+    ~ShaderIR();
 
     const std::map<u32, NodeBlock>& GetBasicBlocks() const {
         return basic_blocks;
