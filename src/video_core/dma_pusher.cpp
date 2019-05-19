@@ -40,6 +40,13 @@ bool DmaPusher::Step() {
     }
 
     const CommandList& command_list{dma_pushbuffer.front()};
+    ASSERT_OR_EXECUTE(!command_list.empty(), {
+        // Somehow the command_list is empty, in order to avoid a crash
+        // We ignore it and assume its size is 0.
+        dma_pushbuffer.pop();
+        dma_pushbuffer_subindex = 0;
+        return true;
+    });
     const CommandListHeader command_list_header{command_list[dma_pushbuffer_subindex++]};
     GPUVAddr dma_get = command_list_header.addr;
     GPUVAddr dma_put = dma_get + command_list_header.size * sizeof(u32);
