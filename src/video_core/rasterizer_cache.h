@@ -144,8 +144,9 @@ protected:
 
         object->SetIsRegistered(false);
         rasterizer.UpdatePagesCachedCount(object->GetCpuAddr(), object->GetSizeInBytes(), -1);
+        const CacheAddr addr = object->GetCacheAddr();
         interval_cache.subtract({GetInterval(object), ObjectSet{object}});
-        map_cache.erase(object->GetCacheAddr());
+        map_cache.erase(addr);
     }
 
     /// Returns a ticks counter used for tracking when cached objects were last modified
