@@ -84,10 +84,10 @@ QtProfileSelectionDialog::QtProfileSelectionDialog(QWidget* parent)
     tree_view->setContextMenuPolicy(Qt::NoContextMenu);
 
     item_model->insertColumns(0, 1);
-    item_model->setHeaderData(0, Qt::Horizontal, "Users");
+    item_model->setHeaderData(0, Qt::Horizontal, tr("Users"));
 
     // We must register all custom types with the Qt Automoc system so that we are able to use it
-    // with signals/slots. In this case, QList falls under the umbrells of custom types.
+    // with signals/slots. In this case, QList falls under the umbrella of custom types.
     qRegisterMetaType<QList<QStandardItem*>>("QList<QStandardItem*>");
 
     layout->setContentsMargins(0, 0, 0, 0);
