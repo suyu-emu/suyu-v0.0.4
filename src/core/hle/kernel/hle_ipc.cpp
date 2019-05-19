@@ -78,7 +78,7 @@ SharedPtr<WritableEvent> HLERequestContext::SleepClientThread(
 
 HLERequestContext::HLERequestContext(SharedPtr<Kernel::ServerSession> server_session,
                                      SharedPtr<Thread> thread)
-    : server_session(std::move(server_session)), thread(thread) {
+    : server_session(std::move(server_session)), thread(std::move(thread)) {
     cmd_buf[0] = 0;
 }
 
