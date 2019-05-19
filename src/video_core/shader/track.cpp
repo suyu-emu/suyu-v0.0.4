@@ -17,22 +17,24 @@ std::pair<Node, s64> FindOperation(const NodeBlock& code, s64 cursor,
     for (; cursor >= 0; --cursor) {
         const Node node = code.at(cursor);
         if (const auto operation = std::get_if<OperationNode>(node)) {
-            if (operation->GetCode() == operation_code)
+            if (operation->GetCode() == operation_code) {
                 return {node, cursor};
+            }
         }
         if (const auto conditional = std::get_if<ConditionalNode>(node)) {
             const auto& conditional_code = conditional->GetCode();
             const auto [found, internal_cursor] = FindOperation(
                 conditional_code, static_cast<s64>(conditional_code.size() - 1), operation_code);
-            if (found)
+            if (found) {
                 return {found, cursor};
+            }
         }
     }
     return {};
 }
 } // namespace
 
-Node ShaderIR::TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) {
+Node ShaderIR::TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) const {
     if (const auto cbuf = std::get_if<CbufNode>(tracked)) {
         // Cbuf found, but it has to be immediate
         return std::holds_alternative<ImmediateNode>(*cbuf->GetOffset()) ? tracked : nullptr;
@@ -65,7 +67,7 @@ Node ShaderIR::TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) {
     return nullptr;
 }
 
-std::optional<u32> ShaderIR::TrackImmediate(Node tracked, const NodeBlock& code, s64 cursor) {
+std::optional<u32> ShaderIR::TrackImmediate(Node tracked, const NodeBlock& code, s64 cursor) const {
     // Reduce the cursor in one to avoid infinite loops when the instruction sets the same register
     // that it uses as operand
     const auto [found, found_cursor] =
@@ -80,7 +82,7 @@ std::optional<u32> ShaderIR::TrackImmediate(Node tracked, const NodeBlock& code,
 }
 
 std::pair<Node, s64> ShaderIR::TrackRegister(const GprNode* tracked, const NodeBlock& code,
-                                             s64 cursor) {
+                                             s64 cursor) const {
     for (; cursor >= 0; --cursor) {
         const auto [found_node, new_cursor] = FindOperation(code, cursor, OperationCode::Assign);
         if (!found_node) {
