@@ -835,6 +835,7 @@ void IStorageAccessor::Write(Kernel::HLERequestContext& ctx) {
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ERR_SIZE_OUT_OF_BOUNDS);
+        return;
     }
 
     std::memcpy(backing.buffer.data() + offset, data.data(), data.size());
@@ -857,6 +858,7 @@ void IStorageAccessor::Read(Kernel::HLERequestContext& ctx) {
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ERR_SIZE_OUT_OF_BOUNDS);
+        return;
     }
 
     ctx.WriteBuffer(backing.buffer.data() + offset, size);
