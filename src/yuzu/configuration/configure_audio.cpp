@@ -25,8 +25,7 @@ ConfigureAudio::ConfigureAudio(QWidget* parent)
             &ConfigureAudio::setVolumeIndicatorText);
 
     this->setConfiguration();
-    connect(ui->output_sink_combo_box,
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+    connect(ui->output_sink_combo_box, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &ConfigureAudio::updateAudioDevices);
 
     ui->output_sink_combo_box->setEnabled(!Core::System::GetInstance().IsPoweredOn());
