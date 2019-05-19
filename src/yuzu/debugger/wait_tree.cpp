@@ -91,19 +91,19 @@ WaitTreeMutexInfo::WaitTreeMutexInfo(VAddr mutex_address, const Kernel::HandleTa
 WaitTreeMutexInfo::~WaitTreeMutexInfo() = default;
 
 QString WaitTreeMutexInfo::GetText() const {
-    return tr("waiting for mutex 0x%1").arg(mutex_address, 16, 16, QLatin1Char('0'));
+    return tr("waiting for mutex 0x%1").arg(mutex_address, 16, 16, QLatin1Char{'0'});
 }
 
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeMutexInfo::GetChildren() const {
+    const bool has_waiters = (mutex_value & Kernel::Mutex::MutexHasWaitersFlag) != 0;
+
     std::vector<std::unique_ptr<WaitTreeItem>> list;
-
-    bool has_waiters = (mutex_value & Kernel::Mutex::MutexHasWaitersFlag) != 0;
-
     list.push_back(std::make_unique<WaitTreeText>(tr("has waiters: %1").arg(has_waiters)));
     list.push_back(std::make_unique<WaitTreeText>(
-        tr("owner handle: 0x%1").arg(owner_handle, 8, 16, QLatin1Char('0'))));
-    if (owner != nullptr)
+        tr("owner handle: 0x%1").arg(owner_handle, 8, 16, QLatin1Char{'0'})));
+    if (owner != nullptr) {
         list.push_back(std::make_unique<WaitTreeThread>(*owner));
+    }
     return list;
 }
 
@@ -121,11 +121,14 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeCallstack::GetChildren() cons
     u64 base_pointer = thread.GetContext().cpu_registers[BaseRegister];
 
     while (base_pointer != 0) {
-        u64 lr = Memory::Read64(base_pointer + sizeof(u64));
-        if (lr == 0)
+        const u64 lr = Memory::Read64(base_pointer + sizeof(u64));
+        if (lr == 0) {
             break;
-        list.push_back(
-            std::make_unique<WaitTreeText>(tr("0x%1").arg(lr - sizeof(u32), 16, 16, QChar('0'))));
+        }
+
+        list.push_back(std::make_unique<WaitTreeText>(
+            tr("0x%1").arg(lr - sizeof(u32), 16, 16, QLatin1Char{'0'})));
+
         base_pointer = Memory::Read64(base_pointer);
     }
 
@@ -249,9 +252,9 @@ QString WaitTreeThread::GetText() const {
 
     const auto& context = thread.GetContext();
     const QString pc_info = tr(" PC = 0x%1 LR = 0x%2")
-                                .arg(context.pc, 8, 16, QLatin1Char('0'))
-                                .arg(context.cpu_registers[30], 8, 16, QLatin1Char('0'));
-    return WaitTreeWaitObject::GetText() + pc_info + " (" + status + ") ";
+                                .arg(context.pc, 8, 16, QLatin1Char{'0'})
+                                .arg(context.cpu_registers[30], 8, 16, QLatin1Char{'0'});
+    return QStringLiteral("%1%2 (%3) ").arg(WaitTreeWaitObject::GetText(), pc_info, status);
 }
 
 QColor WaitTreeThread::GetColor() const {
@@ -424,7 +427,7 @@ void WaitTreeModel::InitItems() {
 }
 
 WaitTreeWidget::WaitTreeWidget(QWidget* parent) : QDockWidget(tr("Wait Tree"), parent) {
-    setObjectName("WaitTreeWidget");
+    setObjectName(QStringLiteral("WaitTreeWidget"));
     view = new QTreeView(this);
     view->setHeaderHidden(true);
     setWidget(view);
