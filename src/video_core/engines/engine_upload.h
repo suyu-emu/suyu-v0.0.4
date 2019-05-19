@@ -4,10 +4,8 @@
 
 #pragma once
 
-#include <cstddef>
 #include <vector>
 #include "common/bit_field.h"
-#include "common/common_funcs.h"
 #include "common/common_types.h"
 
 namespace Tegra {
@@ -57,10 +55,10 @@ struct Registers {
 class State {
 public:
     State(MemoryManager& memory_manager, Registers& regs);
-    ~State() = default;
+    ~State();
 
-    void ProcessExec(const bool is_linear);
-    void ProcessData(const u32 data, const bool is_last_call);
+    void ProcessExec(bool is_linear);
+    void ProcessData(u32 data, bool is_last_call);
 
 private:
     u32 write_offset = 0;

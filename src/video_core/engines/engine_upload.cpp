@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cstring>
+
 #include "common/assert.h"
 #include "video_core/engines/engine_upload.h"
 #include "video_core/memory_manager.h"
@@ -10,7 +12,9 @@
 namespace Tegra::Engines::Upload {
 
 State::State(MemoryManager& memory_manager, Registers& regs)
-    : memory_manager(memory_manager), regs(regs) {}
+    : regs{regs}, memory_manager{memory_manager} {}
+
+State::~State() = default;
 
 void State::ProcessExec(const bool is_linear) {
     write_offset = 0;
