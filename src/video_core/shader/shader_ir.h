@@ -833,12 +833,10 @@ private:
         return StoreNode(OperationNode(code, std::move(meta), operands...));
     }
 
-    template <typename... T>
     Node Operation(OperationCode code, std::vector<Node>&& operands) {
         return StoreNode(OperationNode(code, std::move(operands)));
     }
 
-    template <typename... T>
     Node Operation(OperationCode code, Meta&& meta, std::vector<Node>&& operands) {
         return StoreNode(OperationNode(code, std::move(meta), std::move(operands)));
     }
