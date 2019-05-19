@@ -336,32 +336,23 @@ using Meta = std::variant<MetaArithmetic, MetaTexture, Tegra::Shader::HalfType>;
 /// Holds any kind of operation that can be done in the IR
 class OperationNode final {
 public:
-    template <typename... T>
-    explicit constexpr OperationNode(OperationCode code) : code{code}, meta{} {}
+    explicit OperationNode(OperationCode code) : code{code} {}
+
+    explicit OperationNode(OperationCode code, Meta&& meta) : code{code}, meta{std::move(meta)} {}
 
     template <typename... T>
-    explicit constexpr OperationNode(OperationCode code, Meta&& meta)
-        : code{code}, meta{std::move(meta)} {}
-
-    template <typename... T>
-    explicit constexpr OperationNode(OperationCode code, const T*... operands)
+    explicit OperationNode(OperationCode code, const T*... operands)
         : OperationNode(code, {}, operands...) {}
 
     template <typename... T>
-    explicit constexpr OperationNode(OperationCode code, Meta&& meta, const T*... operands_)
-        : code{code}, meta{std::move(meta)} {
-
-        auto operands_list = {operands_...};
-        for (auto& operand : operands_list) {
-            operands.push_back(operand);
-        }
-    }
+    explicit OperationNode(OperationCode code, Meta&& meta, const T*... operands_)
+        : code{code}, meta{std::move(meta)}, operands{operands_...} {}
 
     explicit OperationNode(OperationCode code, Meta&& meta, std::vector<Node>&& operands)
         : code{code}, meta{meta}, operands{std::move(operands)} {}
 
     explicit OperationNode(OperationCode code, std::vector<Node>&& operands)
-        : code{code}, meta{}, operands{std::move(operands)} {}
+        : code{code}, operands{std::move(operands)} {}
 
     OperationCode GetCode() const {
         return code;
