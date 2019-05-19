@@ -34,9 +34,9 @@ void Maxwell3D::InitializeRegisterDefaults() {
 
     // Depth range near/far is not always set, but is expected to be the default 0.0f, 1.0f. This is
     // needed for ARMS.
-    for (std::size_t viewport{}; viewport < Regs::NumViewports; ++viewport) {
-        regs.viewports[viewport].depth_range_near = 0.0f;
-        regs.viewports[viewport].depth_range_far = 1.0f;
+    for (auto& viewport : regs.viewports) {
+        viewport.depth_range_near = 0.0f;
+        viewport.depth_range_far = 1.0f;
     }
 
     // Doom and Bomberman seems to use the uninitialized registers and just enable blend
@@ -47,13 +47,13 @@ void Maxwell3D::InitializeRegisterDefaults() {
     regs.blend.equation_a = Regs::Blend::Equation::Add;
     regs.blend.factor_source_a = Regs::Blend::Factor::One;
     regs.blend.factor_dest_a = Regs::Blend::Factor::Zero;
-    for (std::size_t blend_index = 0; blend_index < Regs::NumRenderTargets; blend_index++) {
-        regs.independent_blend[blend_index].equation_rgb = Regs::Blend::Equation::Add;
-        regs.independent_blend[blend_index].factor_source_rgb = Regs::Blend::Factor::One;
-        regs.independent_blend[blend_index].factor_dest_rgb = Regs::Blend::Factor::Zero;
-        regs.independent_blend[blend_index].equation_a = Regs::Blend::Equation::Add;
-        regs.independent_blend[blend_index].factor_source_a = Regs::Blend::Factor::One;
-        regs.independent_blend[blend_index].factor_dest_a = Regs::Blend::Factor::Zero;
+    for (auto& blend : regs.independent_blend) {
+        blend.equation_rgb = Regs::Blend::Equation::Add;
+        blend.factor_source_rgb = Regs::Blend::Factor::One;
+        blend.factor_dest_rgb = Regs::Blend::Factor::Zero;
+        blend.equation_a = Regs::Blend::Equation::Add;
+        blend.factor_source_a = Regs::Blend::Factor::One;
+        blend.factor_dest_a = Regs::Blend::Factor::Zero;
     }
     regs.stencil_front_op_fail = Regs::StencilOp::Keep;
     regs.stencil_front_op_zfail = Regs::StencilOp::Keep;
@@ -75,11 +75,11 @@ void Maxwell3D::InitializeRegisterDefaults() {
 
     // TODO(bunnei): Some games do not initialize the color masks (e.g. Sonic Mania). Assuming a
     // default of enabled fixes rendering here.
-    for (std::size_t color_mask = 0; color_mask < Regs::NumRenderTargets; color_mask++) {
-        regs.color_mask[color_mask].R.Assign(1);
-        regs.color_mask[color_mask].G.Assign(1);
-        regs.color_mask[color_mask].B.Assign(1);
-        regs.color_mask[color_mask].A.Assign(1);
+    for (auto& color_mask : regs.color_mask) {
+        color_mask.R.Assign(1);
+        color_mask.G.Assign(1);
+        color_mask.B.Assign(1);
+        color_mask.A.Assign(1);
     }
 
     // Commercial games seem to assume this value is enabled and nouveau sets this value manually.
@@ -178,13 +178,13 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
 
         // Vertex buffer
         if (method >= MAXWELL3D_REG_INDEX(vertex_array) &&
-            method < MAXWELL3D_REG_INDEX(vertex_array) + 4 * 32) {
+            method < MAXWELL3D_REG_INDEX(vertex_array) + 4 * Regs::NumVertexArrays) {
             dirty_flags.vertex_array.set((method - MAXWELL3D_REG_INDEX(vertex_array)) >> 2);
         } else if (method >= MAXWELL3D_REG_INDEX(vertex_array_limit) &&
-                   method < MAXWELL3D_REG_INDEX(vertex_array_limit) + 2 * 32) {
+                   method < MAXWELL3D_REG_INDEX(vertex_array_limit) + 2 * Regs::NumVertexArrays) {
             dirty_flags.vertex_array.set((method - MAXWELL3D_REG_INDEX(vertex_array_limit)) >> 1);
         } else if (method >= MAXWELL3D_REG_INDEX(instanced_arrays) &&
-                   method < MAXWELL3D_REG_INDEX(instanced_arrays) + 32) {
+                   method < MAXWELL3D_REG_INDEX(instanced_arrays) + Regs::NumVertexArrays) {
             dirty_flags.vertex_array.set(method - MAXWELL3D_REG_INDEX(instanced_arrays));
         }
     }
