@@ -75,8 +75,8 @@ ConfigureInput::ConfigureInput(QWidget* parent)
     };
 
     for (auto* controller_box : players_controller) {
-        controller_box->addItems({"None", "Pro Controller", "Dual Joycons", "Single Right Joycon",
-                                  "Single Left Joycon"});
+        controller_box->addItems({tr("None"), tr("Pro Controller"), tr("Dual Joycons"),
+                                  tr("Single Right Joycon"), tr("Single Left Joycon")});
     }
 
     this->loadConfiguration();
@@ -85,9 +85,10 @@ ConfigureInput::ConfigureInput(QWidget* parent)
     connect(ui->restore_defaults_button, &QPushButton::pressed, this,
             &ConfigureInput::restoreDefaults);
 
-    for (auto* enabled : players_controller)
+    for (auto* enabled : players_controller) {
         connect(enabled, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
                 &ConfigureInput::updateUIEnabled);
+    }
     connect(ui->use_docked_mode, &QCheckBox::stateChanged, this, &ConfigureInput::updateUIEnabled);
     connect(ui->handheld_connected, &QCheckBox::stateChanged, this,
             &ConfigureInput::updateUIEnabled);
@@ -147,10 +148,12 @@ void ConfigureInput::updateUIEnabled() {
     bool hit_disabled = false;
     for (auto* player : players_controller) {
         player->setDisabled(hit_disabled);
-        if (hit_disabled)
+        if (hit_disabled) {
             player->setCurrentIndex(0);
-        if (!hit_disabled && player->currentIndex() == 0)
+        }
+        if (!hit_disabled && player->currentIndex() == 0) {
             hit_disabled = true;
+        }
     }
 
     for (std::size_t i = 0; i < players_controller.size(); ++i) {
