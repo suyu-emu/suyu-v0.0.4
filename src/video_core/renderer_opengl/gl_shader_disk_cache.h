@@ -70,14 +70,14 @@ namespace std {
 
 template <>
 struct hash<OpenGL::BaseBindings> {
-    std::size_t operator()(const OpenGL::BaseBindings& bindings) const {
+    std::size_t operator()(const OpenGL::BaseBindings& bindings) const noexcept {
         return bindings.cbuf | bindings.gmem << 8 | bindings.sampler << 16;
     }
 };
 
 template <>
 struct hash<OpenGL::ShaderDiskCacheUsage> {
-    std::size_t operator()(const OpenGL::ShaderDiskCacheUsage& usage) const {
+    std::size_t operator()(const OpenGL::ShaderDiskCacheUsage& usage) const noexcept {
         return static_cast<std::size_t>(usage.unique_identifier) ^
                std::hash<OpenGL::BaseBindings>()(usage.bindings) ^ usage.primitive << 16;
     }
@@ -162,6 +162,7 @@ struct ShaderDiskCacheDump {
 class ShaderDiskCacheOpenGL {
 public:
     explicit ShaderDiskCacheOpenGL(Core::System& system);
+    ~ShaderDiskCacheOpenGL();
 
     /// Loads transferable cache. If file has a old version or on failure, it deletes the file.
     std::optional<std::pair<std::vector<ShaderDiskCacheRaw>, std::vector<ShaderDiskCacheUsage>>>
@@ -259,20 +260,35 @@ private:
         return SaveArrayToPrecompiled(&object, 1);
     }
 
+    bool SaveObjectToPrecompiled(bool object) {
+        const auto value = static_cast<u8>(object);
+        return SaveArrayToPrecompiled(&value, 1);
+    }
+
     template <typename T>
     bool LoadObjectFromPrecompiled(T& object) {
         return LoadArrayFromPrecompiled(&object, 1);
     }
 
-    // Copre system
+    bool LoadObjectFromPrecompiled(bool& object) {
+        u8 value;
+        const bool read_ok = LoadArrayFromPrecompiled(&value, 1);
+        if (!read_ok) {
+            return false;
+        }
+
+        object = value != 0;
+        return true;
+    }
+
+    // Core system
     Core::System& system;
     // Stored transferable shaders
     std::map<u64, std::unordered_set<ShaderDiskCacheUsage>> transferable;
-    // Stores whole precompiled cache which will be read from or saved to the precompiled chache
-    // file
+    // Stores whole precompiled cache which will be read from/saved to the precompiled cache file
     FileSys::VectorVfsFile precompiled_cache_virtual_file;
     // Stores the current offset of the precompiled cache file for IO purposes
-    std::size_t precompiled_cache_virtual_file_offset;
+    std::size_t precompiled_cache_virtual_file_offset = 0;
 
     // The cache has been loaded at boot
     bool tried_to_load{};

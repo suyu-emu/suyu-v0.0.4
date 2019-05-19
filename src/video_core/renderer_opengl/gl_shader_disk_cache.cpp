@@ -104,8 +104,9 @@ bool ShaderDiskCacheRaw::Save(FileUtil::IOFile& file) const {
     return true;
 }
 
-ShaderDiskCacheOpenGL::ShaderDiskCacheOpenGL(Core::System& system)
-    : system{system}, precompiled_cache_virtual_file_offset{0} {}
+ShaderDiskCacheOpenGL::ShaderDiskCacheOpenGL(Core::System& system) : system{system} {}
+
+ShaderDiskCacheOpenGL::~ShaderDiskCacheOpenGL() = default;
 
 std::optional<std::pair<std::vector<ShaderDiskCacheRaw>, std::vector<ShaderDiskCacheUsage>>>
 ShaderDiskCacheOpenGL::LoadTransferable() {
@@ -243,7 +244,7 @@ ShaderDiskCacheOpenGL::LoadPrecompiledFile(FileUtil::IOFile& file) {
                 return {};
             }
 
-            const auto entry = LoadDecompiledEntry();
+            auto entry = LoadDecompiledEntry();
             if (!entry) {
                 return {};
             }
@@ -287,13 +288,13 @@ std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEn
         return {};
     }
 
-    std::vector<u8> code(code_size);
+    std::string code(code_size, '\0');
     if (!LoadArrayFromPrecompiled(code.data(), code.size())) {
         return {};
     }
 
     ShaderDiskCacheDecompiled entry;
-    entry.code = std::string(reinterpret_cast<const char*>(code.data()), code_size);
+    entry.code = std::move(code);
 
     u32 const_buffers_count{};
     if (!LoadObjectFromPrecompiled(const_buffers_count)) {
@@ -303,12 +304,12 @@ std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEn
     for (u32 i = 0; i < const_buffers_count; ++i) {
         u32 max_offset{};
         u32 index{};
-        u8 is_indirect{};
+        bool is_indirect{};
         if (!LoadObjectFromPrecompiled(max_offset) || !LoadObjectFromPrecompiled(index) ||
             !LoadObjectFromPrecompiled(is_indirect)) {
             return {};
         }
-        entry.entries.const_buffers.emplace_back(max_offset, is_indirect != 0, index);
+        entry.entries.const_buffers.emplace_back(max_offset, is_indirect, index);
     }
 
     u32 samplers_count{};
@@ -320,18 +321,17 @@ std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEn
         u64 offset{};
         u64 index{};
         u32 type{};
-        u8 is_array{};
-        u8 is_shadow{};
-        u8 is_bindless{};
+        bool is_array{};
+        bool is_shadow{};
+        bool is_bindless{};
         if (!LoadObjectFromPrecompiled(offset) || !LoadObjectFromPrecompiled(index) ||
             !LoadObjectFromPrecompiled(type) || !LoadObjectFromPrecompiled(is_array) ||
             !LoadObjectFromPrecompiled(is_shadow) || !LoadObjectFromPrecompiled(is_bindless)) {
             return {};
         }
-        entry.entries.samplers.emplace_back(static_cast<std::size_t>(offset),
-                                            static_cast<std::size_t>(index),
-                                            static_cast<Tegra::Shader::TextureType>(type),
-                                            is_array != 0, is_shadow != 0, is_bindless != 0);
+        entry.entries.samplers.emplace_back(
+            static_cast<std::size_t>(offset), static_cast<std::size_t>(index),
+            static_cast<Tegra::Shader::TextureType>(type), is_array, is_shadow, is_bindless);
     }
 
     u32 global_memory_count{};
@@ -342,21 +342,20 @@ std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEn
     for (u32 i = 0; i < global_memory_count; ++i) {
         u32 cbuf_index{};
         u32 cbuf_offset{};
-        u8 is_read{};
-        u8 is_written{};
+        bool is_read{};
+        bool is_written{};
         if (!LoadObjectFromPrecompiled(cbuf_index) || !LoadObjectFromPrecompiled(cbuf_offset) ||
             !LoadObjectFromPrecompiled(is_read) || !LoadObjectFromPrecompiled(is_written)) {
             return {};
         }
-        entry.entries.global_memory_entries.emplace_back(cbuf_index, cbuf_offset, is_read != 0,
-                                                         is_written != 0);
+        entry.entries.global_memory_entries.emplace_back(cbuf_index, cbuf_offset, is_read,
+                                                         is_written);
     }
 
     for (auto& clip_distance : entry.entries.clip_distances) {
-        u8 clip_distance_raw{};
-        if (!LoadObjectFromPrecompiled(clip_distance_raw))
+        if (!LoadObjectFromPrecompiled(clip_distance)) {
             return {};
-        clip_distance = clip_distance_raw != 0;
+        }
     }
 
     u64 shader_length{};
@@ -384,7 +383,7 @@ bool ShaderDiskCacheOpenGL::SaveDecompiledFile(u64 unique_identifier, const std:
     for (const auto& cbuf : entries.const_buffers) {
         if (!SaveObjectToPrecompiled(static_cast<u32>(cbuf.GetMaxOffset())) ||
             !SaveObjectToPrecompiled(static_cast<u32>(cbuf.GetIndex())) ||
-            !SaveObjectToPrecompiled(static_cast<u8>(cbuf.IsIndirect() ? 1 : 0))) {
+            !SaveObjectToPrecompiled(cbuf.IsIndirect())) {
             return false;
         }
     }
@@ -396,9 +395,9 @@ bool ShaderDiskCacheOpenGL::SaveDecompiledFile(u64 unique_identifier, const std:
         if (!SaveObjectToPrecompiled(static_cast<u64>(sampler.GetOffset())) ||
             !SaveObjectToPrecompiled(static_cast<u64>(sampler.GetIndex())) ||
             !SaveObjectToPrecompiled(static_cast<u32>(sampler.GetType())) ||
-            !SaveObjectToPrecompiled(static_cast<u8>(sampler.IsArray() ? 1 : 0)) ||
-            !SaveObjectToPrecompiled(static_cast<u8>(sampler.IsShadow() ? 1 : 0)) ||
-            !SaveObjectToPrecompiled(static_cast<u8>(sampler.IsBindless() ? 1 : 0))) {
+            !SaveObjectToPrecompiled(sampler.IsArray()) ||
+            !SaveObjectToPrecompiled(sampler.IsShadow()) ||
+            !SaveObjectToPrecompiled(sampler.IsBindless())) {
             return false;
         }
     }
@@ -409,14 +408,13 @@ bool ShaderDiskCacheOpenGL::SaveDecompiledFile(u64 unique_identifier, const std:
     for (const auto& gmem : entries.global_memory_entries) {
         if (!SaveObjectToPrecompiled(static_cast<u32>(gmem.GetCbufIndex())) ||
             !SaveObjectToPrecompiled(static_cast<u32>(gmem.GetCbufOffset())) ||
-            !SaveObjectToPrecompiled(static_cast<u8>(gmem.IsRead() ? 1 : 0)) ||
-            !SaveObjectToPrecompiled(static_cast<u8>(gmem.IsWritten() ? 1 : 0))) {
+            !SaveObjectToPrecompiled(gmem.IsRead()) || !SaveObjectToPrecompiled(gmem.IsWritten())) {
             return false;
         }
     }
 
     for (const bool clip_distance : entries.clip_distances) {
-        if (!SaveObjectToPrecompiled(static_cast<u8>(clip_distance ? 1 : 0))) {
+        if (!SaveObjectToPrecompiled(clip_distance)) {
             return false;
         }
     }
