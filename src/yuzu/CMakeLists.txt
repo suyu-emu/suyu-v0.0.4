@@ -82,8 +82,6 @@ add_executable(yuzu
     util/limitable_input_dialog.h
     util/sequence_dialog/sequence_dialog.cpp
     util/sequence_dialog/sequence_dialog.h
-    util/spinbox.cpp
-    util/spinbox.h
     util/util.cpp
     util/util.h
     compatdb.cpp
