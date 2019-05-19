@@ -135,7 +135,7 @@ GraphicsBreakPointsWidget::GraphicsBreakPointsWidget(
     std::shared_ptr<Tegra::DebugContext> debug_context, QWidget* parent)
     : QDockWidget(tr("Maxwell Breakpoints"), parent), Tegra::DebugContext::BreakPointObserver(
                                                           debug_context) {
-    setObjectName("TegraBreakPointsWidget");
+    setObjectName(QStringLiteral("TegraBreakPointsWidget"));
 
     status_text = new QLabel(tr("Emulation running"));
     resume_button = new QPushButton(tr("Resume"));
