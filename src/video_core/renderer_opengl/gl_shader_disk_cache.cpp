@@ -104,8 +104,7 @@ bool ShaderDiskCacheRaw::Save(FileUtil::IOFile& file) const {
     return true;
 }
 
-ShaderDiskCacheOpenGL::ShaderDiskCacheOpenGL(Core::System& system)
-    : system{system}, precompiled_cache_virtual_file_offset{0} {}
+ShaderDiskCacheOpenGL::ShaderDiskCacheOpenGL(Core::System& system) : system{system} {}
 
 ShaderDiskCacheOpenGL::~ShaderDiskCacheOpenGL() = default;
 

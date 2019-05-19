@@ -285,11 +285,10 @@ private:
     Core::System& system;
     // Stored transferable shaders
     std::map<u64, std::unordered_set<ShaderDiskCacheUsage>> transferable;
-    // Stores whole precompiled cache which will be read from or saved to the precompiled chache
-    // file
+    // Stores whole precompiled cache which will be read from/saved to the precompiled cache file
     FileSys::VectorVfsFile precompiled_cache_virtual_file;
     // Stores the current offset of the precompiled cache file for IO purposes
-    std::size_t precompiled_cache_virtual_file_offset;
+    std::size_t precompiled_cache_virtual_file_offset = 0;
 
     // The cache has been loaded at boot
     bool tried_to_load{};
