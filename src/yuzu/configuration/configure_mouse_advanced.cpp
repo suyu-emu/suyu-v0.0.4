@@ -77,30 +77,31 @@ ConfigureMouseAdvanced::ConfigureMouseAdvanced(QWidget* parent)
     };
 
     for (int button_id = 0; button_id < Settings::NativeMouseButton::NumMouseButtons; button_id++) {
-        if (!button_map[button_id])
+        auto* const button = button_map[button_id];
+        if (button == nullptr) {
             continue;
-        button_map[button_id]->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(button_map[button_id], &QPushButton::released, [=]() {
+        }
+
+        button->setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(button, &QPushButton::released, [=] {
             handleClick(
                 button_map[button_id],
                 [=](const Common::ParamPackage& params) { buttons_param[button_id] = params; },
                 InputCommon::Polling::DeviceType::Button);
         });
-        connect(button_map[button_id], &QPushButton::customContextMenuRequested,
-                [=](const QPoint& menu_location) {
-                    QMenu context_menu;
-                    context_menu.addAction(tr("Clear"), [&] {
-                        buttons_param[button_id].Clear();
-                        button_map[button_id]->setText(tr("[not set]"));
-                    });
-                    context_menu.addAction(tr("Restore Default"), [&] {
-                        buttons_param[button_id] =
-                            Common::ParamPackage{InputCommon::GenerateKeyboardParam(
-                                Config::default_mouse_buttons[button_id])};
-                        button_map[button_id]->setText(ButtonToText(buttons_param[button_id]));
-                    });
-                    context_menu.exec(button_map[button_id]->mapToGlobal(menu_location));
-                });
+        connect(button, &QPushButton::customContextMenuRequested, [=](const QPoint& menu_location) {
+            QMenu context_menu;
+            context_menu.addAction(tr("Clear"), [&] {
+                buttons_param[button_id].Clear();
+                button_map[button_id]->setText(tr("[not set]"));
+            });
+            context_menu.addAction(tr("Restore Default"), [&] {
+                buttons_param[button_id] = Common::ParamPackage{
+                    InputCommon::GenerateKeyboardParam(Config::default_mouse_buttons[button_id])};
+                button_map[button_id]->setText(ButtonToText(buttons_param[button_id]));
+            });
+            context_menu.exec(button_map[button_id]->mapToGlobal(menu_location));
+        });
     }
 
     connect(ui->buttonClearAll, &QPushButton::released, [this] { ClearAll(); });
@@ -150,8 +151,10 @@ void ConfigureMouseAdvanced::restoreDefaults() {
 
 void ConfigureMouseAdvanced::ClearAll() {
     for (int i = 0; i < Settings::NativeMouseButton::NumMouseButtons; ++i) {
-        if (button_map[i] && button_map[i]->isEnabled())
+        const auto* const button = button_map[i];
+        if (button != nullptr && button->isEnabled()) {
             buttons_param[i].Clear();
+        }
     }
 
     updateButtonLabels();
