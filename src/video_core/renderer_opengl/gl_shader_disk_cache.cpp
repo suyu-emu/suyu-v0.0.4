@@ -107,6 +107,8 @@ bool ShaderDiskCacheRaw::Save(FileUtil::IOFile& file) const {
 ShaderDiskCacheOpenGL::ShaderDiskCacheOpenGL(Core::System& system)
     : system{system}, precompiled_cache_virtual_file_offset{0} {}
 
+ShaderDiskCacheOpenGL::~ShaderDiskCacheOpenGL() = default;
+
 std::optional<std::pair<std::vector<ShaderDiskCacheRaw>, std::vector<ShaderDiskCacheUsage>>>
 ShaderDiskCacheOpenGL::LoadTransferable() {
     // Skip games without title id

@@ -162,6 +162,7 @@ struct ShaderDiskCacheDump {
 class ShaderDiskCacheOpenGL {
 public:
     explicit ShaderDiskCacheOpenGL(Core::System& system);
+    ~ShaderDiskCacheOpenGL();
 
     /// Loads transferable cache. If file has a old version or on failure, it deletes the file.
     std::optional<std::pair<std::vector<ShaderDiskCacheRaw>, std::vector<ShaderDiskCacheUsage>>>
