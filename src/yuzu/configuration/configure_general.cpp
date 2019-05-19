@@ -14,7 +14,8 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
     ui->setupUi(this);
 
     for (const auto& theme : UISettings::themes) {
-        ui->theme_combobox->addItem(theme.first, theme.second);
+        ui->theme_combobox->addItem(QString::fromUtf8(theme.first),
+                                    QString::fromUtf8(theme.second));
     }
 
     this->setConfiguration();
