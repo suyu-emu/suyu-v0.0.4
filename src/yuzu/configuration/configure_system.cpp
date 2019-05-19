@@ -66,8 +66,9 @@ void ConfigureSystem::setConfiguration() {
     ui->rng_seed_checkbox->setChecked(Settings::values.rng_seed.has_value());
     ui->rng_seed_edit->setEnabled(Settings::values.rng_seed.has_value());
 
-    const auto rng_seed =
-        QString("%1").arg(Settings::values.rng_seed.value_or(0), 8, 16, QLatin1Char{'0'}).toUpper();
+    const auto rng_seed = QStringLiteral("%1")
+                              .arg(Settings::values.rng_seed.value_or(0), 8, 16, QLatin1Char{'0'})
+                              .toUpper();
     ui->rng_seed_edit->setText(rng_seed);
 
     ui->custom_rtc_checkbox->setChecked(Settings::values.custom_rtc.has_value());
