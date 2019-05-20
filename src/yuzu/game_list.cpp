@@ -14,7 +14,6 @@
 #include <QMenu>
 #include <QThreadPool>
 #include <fmt/format.h>
-#include "common/common_paths.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/file_sys/patch_manager.h"
@@ -48,7 +47,7 @@ bool GameListSearchField::KeyReleaseEater::eventFilter(QObject* obj, QEvent* eve
                 return QObject::eventFilter(obj, event);
             } else {
                 gamelist->search_field->edit_filter->clear();
-                edit_filter_text = "";
+                edit_filter_text.clear();
             }
             break;
         }
@@ -71,9 +70,9 @@ bool GameListSearchField::KeyReleaseEater::eventFilter(QObject* obj, QEvent* eve
             }
             if (resultCount == 1) {
                 // To avoid loading error dialog loops while confirming them using enter
-                // Also users usually want to run a diffrent game after closing one
-                gamelist->search_field->edit_filter->setText("");
-                edit_filter_text = "";
+                // Also users usually want to run a different game after closing one
+                gamelist->search_field->edit_filter->clear();
+                edit_filter_text.clear();
                 emit gamelist->GameChosen(file_path);
             } else {
                 return QObject::eventFilter(obj, event);
@@ -93,7 +92,7 @@ void GameListSearchField::setFilterResult(int visible, int total) {
 }
 
 void GameListSearchField::clear() {
-    edit_filter->setText("");
+    edit_filter->clear();
 }
 
 void GameListSearchField::setFocus() {
@@ -103,25 +102,26 @@ void GameListSearchField::setFocus() {
 }
 
 GameListSearchField::GameListSearchField(GameList* parent) : QWidget{parent} {
-    KeyReleaseEater* keyReleaseEater = new KeyReleaseEater(parent);
+    auto* const key_release_eater = new KeyReleaseEater(parent);
     layout_filter = new QHBoxLayout;
     layout_filter->setMargin(8);
     label_filter = new QLabel;
     label_filter->setText(tr("Filter:"));
     edit_filter = new QLineEdit;
-    edit_filter->setText("");
+    edit_filter->clear();
     edit_filter->setPlaceholderText(tr("Enter pattern to filter"));
-    edit_filter->installEventFilter(keyReleaseEater);
+    edit_filter->installEventFilter(key_release_eater);
     edit_filter->setClearButtonEnabled(true);
     connect(edit_filter, &QLineEdit::textChanged, parent, &GameList::onTextChanged);
     label_filter_result = new QLabel;
     button_filter_close = new QToolButton(this);
-    button_filter_close->setText("X");
+    button_filter_close->setText(QStringLiteral("X"));
     button_filter_close->setCursor(Qt::ArrowCursor);
-    button_filter_close->setStyleSheet("QToolButton{ border: none; padding: 0px; color: "
-                                       "#000000; font-weight: bold; background: #F0F0F0; }"
-                                       "QToolButton:hover{ border: none; padding: 0px; color: "
-                                       "#EEEEEE; font-weight: bold; background: #E81123}");
+    button_filter_close->setStyleSheet(
+        QStringLiteral("QToolButton{ border: none; padding: 0px; color: "
+                       "#000000; font-weight: bold; background: #F0F0F0; }"
+                       "QToolButton:hover{ border: none; padding: 0px; color: "
+                       "#EEEEEE; font-weight: bold; background: #E81123}"));
     connect(button_filter_close, &QToolButton::clicked, parent, &GameList::onFilterCloseClicked);
     layout_filter->setSpacing(10);
     layout_filter->addWidget(label_filter);
@@ -141,36 +141,34 @@ GameListSearchField::GameListSearchField(GameList* parent) : QWidget{parent} {
  */
 static bool ContainsAllWords(const QString& haystack, const QString& userinput) {
     const QStringList userinput_split =
-        userinput.split(' ', QString::SplitBehavior::SkipEmptyParts);
+        userinput.split(QLatin1Char{' '}, QString::SplitBehavior::SkipEmptyParts);
 
     return std::all_of(userinput_split.begin(), userinput_split.end(),
                        [&haystack](const QString& s) { return haystack.contains(s); });
 }
 
 // Event in order to filter the gamelist after editing the searchfield
-void GameList::onTextChanged(const QString& newText) {
-    int rowCount = tree_view->model()->rowCount();
-    QString edit_filter_text = newText.toLower();
-
-    QModelIndex root_index = item_model->invisibleRootItem()->index();
+void GameList::onTextChanged(const QString& new_text) {
+    const int row_count = tree_view->model()->rowCount();
+    const QString edit_filter_text = new_text.toLower();
+    const QModelIndex root_index = item_model->invisibleRootItem()->index();
 
     // If the searchfield is empty every item is visible
     // Otherwise the filter gets applied
     if (edit_filter_text.isEmpty()) {
-        for (int i = 0; i < rowCount; ++i) {
+        for (int i = 0; i < row_count; ++i) {
             tree_view->setRowHidden(i, root_index, false);
         }
-        search_field->setFilterResult(rowCount, rowCount);
+        search_field->setFilterResult(row_count, row_count);
     } else {
         int result_count = 0;
-        for (int i = 0; i < rowCount; ++i) {
+        for (int i = 0; i < row_count; ++i) {
             const QStandardItem* child_file = item_model->item(i, 0);
             const QString file_path =
                 child_file->data(GameListItemPath::FullPathRole).toString().toLower();
-            QString file_name = file_path.mid(file_path.lastIndexOf('/') + 1);
             const QString file_title =
                 child_file->data(GameListItemPath::TitleRole).toString().toLower();
-            const QString file_programmid =
+            const QString file_program_id =
                 child_file->data(GameListItemPath::ProgramIdRole).toString().toLower();
 
             // Only items which filename in combination with its title contains all words
@@ -178,14 +176,16 @@ void GameList::onTextChanged(const QString& newText) {
             // The search is case insensitive because of toLower()
             // I decided not to use Qt::CaseInsensitive in containsAllWords to prevent
             // multiple conversions of edit_filter_text for each game in the gamelist
-            if (ContainsAllWords(file_name.append(' ').append(file_title), edit_filter_text) ||
-                (file_programmid.count() == 16 && edit_filter_text.contains(file_programmid))) {
+            const QString file_name = file_path.mid(file_path.lastIndexOf(QLatin1Char{'/'}) + 1) +
+                                      QLatin1Char{' '} + file_title;
+            if (ContainsAllWords(file_name, edit_filter_text) ||
+                (file_program_id.count() == 16 && edit_filter_text.contains(file_program_id))) {
                 tree_view->setRowHidden(i, root_index, false);
                 ++result_count;
             } else {
                 tree_view->setRowHidden(i, root_index, true);
             }
-            search_field->setFilterResult(result_count, rowCount);
+            search_field->setFilterResult(result_count, row_count);
         }
     }
 }
@@ -216,7 +216,7 @@ GameList::GameList(FileSys::VirtualFilesystem vfs, FileSys::ManualContentProvide
     tree_view->setEditTriggers(QHeaderView::NoEditTriggers);
     tree_view->setUniformRowHeights(true);
     tree_view->setContextMenuPolicy(Qt::CustomContextMenu);
-    tree_view->setStyleSheet("QTreeView{ border: none; }");
+    tree_view->setStyleSheet(QStringLiteral("QTreeView{ border: none; }"));
 
     item_model->insertColumns(0, UISettings::values.show_add_ons ? COLUMN_COUNT : COLUMN_COUNT - 1);
     item_model->setHeaderData(COLUMN_NAME, Qt::Horizontal, tr("Name"));
@@ -282,9 +282,9 @@ void GameList::ValidateEntry(const QModelIndex& item) {
     const QFileInfo file_info{file_path};
     if (file_info.isDir()) {
         const QDir dir{file_path};
-        const QStringList matching_main = dir.entryList(QStringList("main"), QDir::Files);
+        const QStringList matching_main = dir.entryList({QStringLiteral("main")}, QDir::Files);
         if (matching_main.size() == 1) {
-            emit GameChosen(dir.path() + DIR_SEP + matching_main[0]);
+            emit GameChosen(dir.path() + QDir::separator() + matching_main[0]);
         }
         return;
     }
@@ -360,7 +360,7 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
 }
 
 void GameList::LoadCompatibilityList() {
-    QFile compat_list{":compatibility_list/compatibility_list.json"};
+    QFile compat_list{QStringLiteral(":compatibility_list/compatibility_list.json")};
 
     if (!compat_list.open(QFile::ReadOnly | QFile::Text)) {
         LOG_ERROR(Frontend, "Unable to open game compatibility list");
@@ -378,25 +378,27 @@ void GameList::LoadCompatibilityList() {
         return;
     }
 
-    const QString string_content = content;
-    QJsonDocument json = QJsonDocument::fromJson(string_content.toUtf8());
-    QJsonArray arr = json.array();
+    const QJsonDocument json = QJsonDocument::fromJson(content);
+    const QJsonArray arr = json.array();
 
-    for (const QJsonValueRef value : arr) {
-        QJsonObject game = value.toObject();
+    for (const QJsonValue value : arr) {
+        const QJsonObject game = value.toObject();
+        const QString compatibility_key = QStringLiteral("compatibility");
 
-        if (game.contains("compatibility") && game["compatibility"].isDouble()) {
-            int compatibility = game["compatibility"].toInt();
-            QString directory = game["directory"].toString();
-            QJsonArray ids = game["releases"].toArray();
+        if (!game.contains(compatibility_key) || !game[compatibility_key].isDouble()) {
+            continue;
+        }
 
-            for (const QJsonValueRef id_ref : ids) {
-                QJsonObject id_object = id_ref.toObject();
-                QString id = id_object["id"].toString();
-                compatibility_list.emplace(
-                    id.toUpper().toStdString(),
-                    std::make_pair(QString::number(compatibility), directory));
-            }
+        const int compatibility = game[compatibility_key].toInt();
+        const QString directory = game[QStringLiteral("directory")].toString();
+        const QJsonArray ids = game[QStringLiteral("releases")].toArray();
+
+        for (const QJsonValue id_ref : ids) {
+            const QJsonObject id_object = id_ref.toObject();
+            const QString id = id_object[QStringLiteral("id")].toString();
+
+            compatibility_list.emplace(id.toUpper().toStdString(),
+                                       std::make_pair(QString::number(compatibility), directory));
         }
     }
 }
@@ -464,7 +466,10 @@ void GameList::LoadInterfaceLayout() {
     item_model->sort(header->sortIndicatorSection(), header->sortIndicatorOrder());
 }
 
-const QStringList GameList::supported_file_extensions = {"nso", "nro", "nca", "xci", "nsp"};
+const QStringList GameList::supported_file_extensions = {
+    QStringLiteral("nso"), QStringLiteral("nro"), QStringLiteral("nca"),
+    QStringLiteral("xci"), QStringLiteral("nsp"),
+};
 
 void GameList::RefreshGameDirectory() {
     if (!UISettings::values.game_directory_path.isEmpty() && current_worker != nullptr) {

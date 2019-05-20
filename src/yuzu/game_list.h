@@ -76,7 +76,7 @@ signals:
     void OpenPerGameGeneralRequested(const std::string& file);
 
 private slots:
-    void onTextChanged(const QString& newText);
+    void onTextChanged(const QString& new_text);
     void onFilterCloseClicked();
 
 private:
