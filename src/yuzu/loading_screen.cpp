@@ -30,11 +30,11 @@
 #include <QMovie>
 #endif
 
-constexpr const char PROGRESSBAR_STYLE_PREPARE[] = R"(
+constexpr char PROGRESSBAR_STYLE_PREPARE[] = R"(
 QProgressBar {}
 QProgressBar::chunk {})";
 
-constexpr const char PROGRESSBAR_STYLE_DECOMPILE[] = R"(
+constexpr char PROGRESSBAR_STYLE_DECOMPILE[] = R"(
 QProgressBar {
   background-color: black;
   border: 2px solid white;
@@ -46,7 +46,7 @@ QProgressBar::chunk {
   width: 1px;
 })";
 
-constexpr const char PROGRESSBAR_STYLE_BUILD[] = R"(
+constexpr char PROGRESSBAR_STYLE_BUILD[] = R"(
 QProgressBar {
   background-color: black;
   border: 2px solid white;
@@ -58,7 +58,7 @@ QProgressBar::chunk {
   width: 1px;
 })";
 
-constexpr const char PROGRESSBAR_STYLE_COMPLETE[] = R"(
+constexpr char PROGRESSBAR_STYLE_COMPLETE[] = R"(
 QProgressBar {
   background-color: #0ab9e6;
   border: 2px solid white;
@@ -149,10 +149,10 @@ void LoadingScreen::OnLoadComplete() {
 void LoadingScreen::OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size_t value,
                                    std::size_t total) {
     using namespace std::chrono;
-    auto now = high_resolution_clock::now();
+    const auto now = high_resolution_clock::now();
     // reset the timer if the stage changes
     if (stage != previous_stage) {
-        ui->progress_bar->setStyleSheet(progressbar_style[stage]);
+        ui->progress_bar->setStyleSheet(QString::fromUtf8(progressbar_style[stage]));
         // Hide the progress bar during the prepare stage
         if (stage == VideoCore::LoadCallbackStage::Prepare) {
             ui->progress_bar->hide();
@@ -178,16 +178,16 @@ void LoadingScreen::OnLoadProgress(VideoCore::LoadCallbackStage stage, std::size
             slow_shader_first_value = value;
         }
         // only calculate an estimate time after a second has passed since stage change
-        auto diff = duration_cast<milliseconds>(now - slow_shader_start);
+        const auto diff = duration_cast<milliseconds>(now - slow_shader_start);
         if (diff > seconds{1}) {
-            auto eta_mseconds =
+            const auto eta_mseconds =
                 static_cast<long>(static_cast<double>(total - slow_shader_first_value) /
                                   (value - slow_shader_first_value) * diff.count());
             estimate =
                 tr("Estimated Time %1")
                     .arg(QTime(0, 0, 0, 0)
                              .addMSecs(std::max<long>(eta_mseconds - diff.count() + 1000, 1000))
-                             .toString("mm:ss"));
+                             .toString(QStringLiteral("mm:ss")));
         }
     }
 
