@@ -23,8 +23,8 @@
 #include "yuzu/util/util.h"
 
 /**
- * Gets the default icon (for games without valid SMDH)
- * @param large If true, returns large icon (48x48), otherwise returns small icon (24x24)
+ * Gets the default icon (for games without valid title metadata)
+ * @param size The desired width and height of the default icon.
  * @return QPixmap default icon
  */
 static QPixmap GetDefaultIcon(u32 size) {
@@ -44,7 +44,7 @@ public:
  * A specialization of GameListItem for path values.
  * This class ensures that for every full path value it holds, a correct string representation
  * of just the filename (with no extension) will be displayed to the user.
- * If this class receives valid SMDH data, it will also display game icons and titles.
+ * If this class receives valid title metadata, it will also display game icons and titles.
  */
 class GameListItemPath : public GameListItem {
 public:
