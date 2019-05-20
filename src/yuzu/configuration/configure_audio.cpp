@@ -16,21 +16,21 @@ ConfigureAudio::ConfigureAudio(QWidget* parent)
     ui->setupUi(this);
 
     ui->output_sink_combo_box->clear();
-    ui->output_sink_combo_box->addItem("auto");
+    ui->output_sink_combo_box->addItem(QString::fromUtf8(AudioCore::auto_device_name));
     for (const char* id : AudioCore::GetSinkIDs()) {
-        ui->output_sink_combo_box->addItem(id);
+        ui->output_sink_combo_box->addItem(QString::fromUtf8(id));
     }
 
     connect(ui->volume_slider, &QSlider::valueChanged, this,
             &ConfigureAudio::setVolumeIndicatorText);
 
     this->setConfiguration();
-    connect(ui->output_sink_combo_box,
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+    connect(ui->output_sink_combo_box, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &ConfigureAudio::updateAudioDevices);
 
-    ui->output_sink_combo_box->setEnabled(!Core::System::GetInstance().IsPoweredOn());
-    ui->audio_device_combo_box->setEnabled(!Core::System::GetInstance().IsPoweredOn());
+    const bool is_powered_on = Core::System::GetInstance().IsPoweredOn();
+    ui->output_sink_combo_box->setEnabled(!is_powered_on);
+    ui->audio_device_combo_box->setEnabled(!is_powered_on);
 }
 
 ConfigureAudio::~ConfigureAudio() = default;
@@ -94,7 +94,7 @@ void ConfigureAudio::applyConfiguration() {
 
 void ConfigureAudio::updateAudioDevices(int sink_index) {
     ui->audio_device_combo_box->clear();
-    ui->audio_device_combo_box->addItem(AudioCore::auto_device_name);
+    ui->audio_device_combo_box->addItem(QString::fromUtf8(AudioCore::auto_device_name));
 
     const std::string sink_id = ui->output_sink_combo_box->itemText(sink_index).toStdString();
     for (const auto& device : AudioCore::GetDeviceListForSink(sink_id)) {

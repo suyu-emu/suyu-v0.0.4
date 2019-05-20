@@ -88,15 +88,15 @@ void ConfigurePerGameGeneral::loadFromFile(FileSys::VirtualFile file) {
 }
 
 void ConfigurePerGameGeneral::loadConfiguration() {
-    if (file == nullptr)
+    if (file == nullptr) {
         return;
+    }
 
-    const auto loader = Loader::GetLoader(file);
-
-    ui->display_title_id->setText(fmt::format("{:016X}", title_id).c_str());
+    ui->display_title_id->setText(QString::fromStdString(fmt::format("{:016X}", title_id)));
 
     FileSys::PatchManager pm{title_id};
     const auto control = pm.GetControlMetadata();
+    const auto loader = Loader::GetLoader(file);
 
     if (control.first != nullptr) {
         ui->display_version->setText(QString::fromStdString(control.first->GetVersionString()));
@@ -142,8 +142,10 @@ void ConfigurePerGameGeneral::loadConfiguration() {
     const auto& disabled = Settings::values.disabled_addons[title_id];
 
     for (const auto& patch : pm.GetPatchVersionNames(update_raw)) {
-        QStandardItem* first_item = new QStandardItem;
-        const auto name = QString::fromStdString(patch.first).replace("[D] ", "");
+        const auto name =
+            QString::fromStdString(patch.first).replace(QStringLiteral("[D] "), QString{});
+
+        auto* const first_item = new QStandardItem;
         first_item->setText(name);
         first_item->setCheckable(true);
 
