@@ -188,7 +188,9 @@ private:
 GRenderWindow::GRenderWindow(QWidget* parent, EmuThread* emu_thread)
     : QWidget(parent), emu_thread(emu_thread) {
     setWindowTitle(QStringLiteral("yuzu %1 | %2-%3")
-                       .arg(Common::g_build_name, Common::g_scm_branch, Common::g_scm_desc));
+                       .arg(QString::fromUtf8(Common::g_build_name),
+                            QString::fromUtf8(Common::g_scm_branch),
+                            QString::fromUtf8(Common::g_scm_desc)));
     setAttribute(Qt::WA_AcceptTouchEvents);
 
     InputCommon::Init();
@@ -217,7 +219,7 @@ void GRenderWindow::SwapBuffers() {
     // However:
     // - The Qt debug runtime prints a bogus warning on the console if `makeCurrent` wasn't called
     // since the last time `swapBuffers` was executed;
-    // - On macOS, if `makeCurrent` isn't called explicitely, resizing the buffer breaks.
+    // - On macOS, if `makeCurrent` isn't called explicitly, resizing the buffer breaks.
     context->makeCurrent(child);
 
     context->swapBuffers(child);
