@@ -291,7 +291,7 @@ std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEn
     }
 
     ShaderDiskCacheDecompiled entry;
-    entry.code = std::move(code);
+    entry.code = std::string(reinterpret_cast<const char*>(code.data()), code_size);
 
     u32 const_buffers_count{};
     if (!LoadObjectFromPrecompiled(const_buffers_count)) {

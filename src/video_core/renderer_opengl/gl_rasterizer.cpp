@@ -822,8 +822,14 @@ TextureBufferUsage RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, c
         unit.sampler = sampler_cache.GetSampler(texture.tsc);
 
         if (const auto view{texture_cache.GetTextureSurface(texture, entry)}; view) {
-            view->ApplySwizzle(texture.tic.x_source, texture.tic.y_source, texture.tic.z_source,
-                               texture.tic.w_source);
+            if (view->GetSurfaceParams().IsBuffer()) {
+                // Record that this texture is a texture buffer.
+                texture_buffer_usage.set(bindpoint);
+            } else {
+                // Apply swizzle to textures that are not buffers.
+                view->ApplySwizzle(texture.tic.x_source, texture.tic.y_source, texture.tic.z_source,
+                                   texture.tic.w_source);
+            }
             state.texture_units[current_bindpoint].texture = view->GetTexture();
         } else {
             // Can occur when texture addr is null or its memory is unmapped/invalid

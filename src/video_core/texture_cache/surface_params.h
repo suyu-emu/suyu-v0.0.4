@@ -167,6 +167,10 @@ public:
         return VideoCore::Surface::GetFormatCompressionType(pixel_format);
     }
 
+    bool IsBuffer() const {
+        return target == VideoCore::Surface::SurfaceTarget::TextureBuffer;
+    }
+
     std::string TargetName() const;
 
     bool is_tiled;
