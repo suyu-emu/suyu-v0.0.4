@@ -128,6 +128,8 @@ inline GLenum PrimitiveTopology(Maxwell::PrimitiveTopology topology) {
         return GL_TRIANGLE_STRIP;
     case Maxwell::PrimitiveTopology::TriangleFan:
         return GL_TRIANGLE_FAN;
+    case Maxwell::PrimitiveTopology::Quads:
+        return GL_QUADS;
     default:
         LOG_CRITICAL(Render_OpenGL, "Unimplemented topology={}", static_cast<u32>(topology));
         UNREACHABLE();

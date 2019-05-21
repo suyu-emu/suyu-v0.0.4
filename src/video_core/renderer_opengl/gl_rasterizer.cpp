@@ -246,29 +246,6 @@ DrawParameters RasterizerOpenGL::SetupDraw() {
     DrawParameters params{};
     params.current_instance = gpu.state.current_instance;
 
-    if (regs.draw.topology == Maxwell::PrimitiveTopology::Quads) {
-        MICROPROFILE_SCOPE(OpenGL_PrimitiveAssembly);
-
-        params.use_indexed = true;
-        params.primitive_mode = GL_TRIANGLES;
-
-        if (is_indexed) {
-            params.index_format = MaxwellToGL::IndexFormat(regs.index_array.format);
-            params.count = (regs.index_array.count / 4) * 6;
-            params.index_buffer_offset = primitive_assembler.MakeQuadIndexed(
-                regs.index_array.IndexStart(), regs.index_array.FormatSizeInBytes(),
-                regs.index_array.count);
-            params.base_vertex = static_cast<GLint>(regs.vb_element_base);
-        } else {
-            // MakeQuadArray always generates u32 indexes
-            params.index_format = GL_UNSIGNED_INT;
-            params.count = (regs.vertex_buffer.count / 4) * 6;
-            params.index_buffer_offset = primitive_assembler.MakeQuadArray(
-                regs.vertex_buffer.first, regs.vertex_buffer.count);
-        }
-        return params;
-    }
-
     params.use_indexed = is_indexed;
     params.primitive_mode = MaxwellToGL::PrimitiveTopology(regs.draw.topology);
 
@@ -699,17 +676,9 @@ void RasterizerOpenGL::DrawArrays() {
 
     std::size_t buffer_size = CalculateVertexArraysSize();
 
-    // Add space for index buffer (keeping in mind non-core primitives)
-    switch (regs.draw.topology) {
-    case Maxwell::PrimitiveTopology::Quads:
-        buffer_size = Common::AlignUp(buffer_size, 4) +
-                      primitive_assembler.CalculateQuadSize(regs.vertex_buffer.count);
-        break;
-    default:
-        if (is_indexed) {
-            buffer_size = Common::AlignUp(buffer_size, 4) + CalculateIndexBufferSize();
-        }
-        break;
+    // Add space for index buffer
+    if (is_indexed) {
+        buffer_size = Common::AlignUp(buffer_size, 4) + CalculateIndexBufferSize();
     }
 
     // Uniform space for the 5 shader stages
