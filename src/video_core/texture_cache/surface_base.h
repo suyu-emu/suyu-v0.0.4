@@ -114,10 +114,23 @@ public:
     bool MatchesTopology(const SurfaceParams& rhs) const {
         const u32 src_bpp{params.GetBytesPerPixel()};
         const u32 dst_bpp{rhs.GetBytesPerPixel()};
-        return std::tie(src_bpp, params.is_tiled) == std::tie(dst_bpp, rhs.is_tiled);
+        const bool ib1 = params.IsBuffer();
+        const bool ib2 = rhs.IsBuffer();
+        return std::tie(src_bpp, params.is_tiled, ib1) == std::tie(dst_bpp, rhs.is_tiled, ib2);
     }
 
     MatchStructureResult MatchesStructure(const SurfaceParams& rhs) const {
+        // Buffer surface Check
+        if (params.IsBuffer()) {
+            const std::size_t wd1 = params.width*params.GetBytesPerPixel();
+            const std::size_t wd2 = rhs.width*rhs.GetBytesPerPixel();
+            if (wd1 == wd2) {
+                return MatchStructureResult::FullMatch;
+            }
+            return MatchStructureResult::None;
+        }
+
+        // Linear Surface check
         if (!params.is_tiled) {
             if (std::tie(params.width, params.height, params.pitch) ==
                 std::tie(rhs.width, rhs.height, rhs.pitch)) {
@@ -125,7 +138,8 @@ public:
             }
             return MatchStructureResult::None;
         }
-        // Tiled surface
+
+        // Tiled Surface check
         if (std::tie(params.depth, params.block_width, params.block_height, params.block_depth,
                      params.tile_width_spacing, params.num_levels) ==
             std::tie(rhs.depth, rhs.block_width, rhs.block_height, rhs.block_depth,
