@@ -175,11 +175,8 @@ inline GLenum WrapMode(Tegra::Texture::WrapMode wrap_mode) {
         return GL_CLAMP_TO_EDGE;
     case Tegra::Texture::WrapMode::Border:
         return GL_CLAMP_TO_BORDER;
-    case Tegra::Texture::WrapMode::ClampOGL:
-        // TODO(Subv): GL_CLAMP was removed as of OpenGL 3.1, to implement GL_CLAMP, we can use
-        // GL_CLAMP_TO_BORDER to get the border color of the texture, and then sample the edge to
-        // manually mix them. However the shader part of this is not yet implemented.
-        return GL_CLAMP_TO_BORDER;
+    case Tegra::Texture::WrapMode::Clamp:
+        return GL_CLAMP;
     case Tegra::Texture::WrapMode::MirrorOnceClampToEdge:
         return GL_MIRROR_CLAMP_TO_EDGE;
     case Tegra::Texture::WrapMode::MirrorOnceBorder:
