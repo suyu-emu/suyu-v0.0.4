@@ -220,6 +220,7 @@ protected:
             SetEmptyColorBuffer(i);
         }
         SetEmptyDepthBuffer();
+        staging_cache.SetSize(2);
     }
 
     ~TextureCache() = default;
@@ -244,6 +245,8 @@ protected:
                          gpu_addr);
             return;
         }
+        bool continuouty = memory_manager->IsBlockContinuous(gpu_addr, size);
+        surface->MarkAsContinuous(continuouty);
         surface->SetCacheAddr(cache_ptr);
         surface->SetCpuAddr(*cpu_addr);
         RegisterInnerCache(surface);
@@ -611,9 +614,9 @@ private:
     }
 
     void LoadSurface(const TSurface& surface) {
-        staging_buffer.resize(surface->GetHostSizeInBytes());
-        surface->LoadBuffer(*memory_manager, staging_buffer);
-        surface->UploadTexture(staging_buffer);
+        staging_cache.GetBuffer(0).resize(surface->GetHostSizeInBytes());
+        surface->LoadBuffer(*memory_manager, staging_cache);
+        surface->UploadTexture(staging_cache.GetBuffer(0));
         surface->MarkAsModified(false, Tick());
     }
 
@@ -621,9 +624,9 @@ private:
         if (!surface->IsModified()) {
             return;
         }
-        staging_buffer.resize(surface->GetHostSizeInBytes());
-        surface->DownloadTexture(staging_buffer);
-        surface->FlushBuffer(*memory_manager, staging_buffer);
+        staging_cache.GetBuffer(0).resize(surface->GetHostSizeInBytes());
+        surface->DownloadTexture(staging_cache.GetBuffer(0));
+        surface->FlushBuffer(*memory_manager, staging_cache);
         surface->MarkAsModified(false, Tick());
     }
 
@@ -723,7 +726,7 @@ private:
         render_targets;
     FramebufferTargetInfo depth_buffer;
 
-    std::vector<u8> staging_buffer;
+    StagingCache staging_cache;
     std::recursive_mutex mutex;
 };
 

@@ -68,12 +68,27 @@ void SurfaceBaseImpl::SwizzleFunc(MortonSwizzleMode mode, u8* memory, const Surf
 }
 
 void SurfaceBaseImpl::LoadBuffer(Tegra::MemoryManager& memory_manager,
-                                 std::vector<u8>& staging_buffer) {
+                                 StagingCache& staging_cache) {
     MICROPROFILE_SCOPE(GPU_Load_Texture);
-    const auto host_ptr{memory_manager.GetPointer(gpu_addr)};
-    if (!host_ptr) {
-        return;
+    auto& staging_buffer = staging_cache.GetBuffer(0);
+    u8* host_ptr;
+    is_continuous = memory_manager.IsBlockContinuous(gpu_addr, guest_memory_size);
+
+    // Handle continuouty
+    if (is_continuous) {
+        // Use physical memory directly
+        host_ptr = memory_manager.GetPointer(gpu_addr);
+        if (!host_ptr) {
+            return;
+        }
+    } else {
+        // Use an extra temporal buffer
+        auto& tmp_buffer = staging_cache.GetBuffer(1);
+        tmp_buffer.resize(guest_memory_size);
+        host_ptr = tmp_buffer.data();
+        memory_manager.ReadBlockUnsafe(gpu_addr, host_ptr, guest_memory_size);
     }
+
     if (params.is_tiled) {
         ASSERT_MSG(params.block_width == 0, "Block width is defined as {} on texture target {}",
                    params.block_width, static_cast<u32>(params.target));
@@ -123,12 +138,25 @@ void SurfaceBaseImpl::LoadBuffer(Tegra::MemoryManager& memory_manager,
 }
 
 void SurfaceBaseImpl::FlushBuffer(Tegra::MemoryManager& memory_manager,
-                                  std::vector<u8>& staging_buffer) {
+                                  StagingCache& staging_cache) {
     MICROPROFILE_SCOPE(GPU_Flush_Texture);
-    const auto host_ptr{memory_manager.GetPointer(gpu_addr)};
-    if (!host_ptr) {
-        return;
+    auto& staging_buffer = staging_cache.GetBuffer(0);
+    u8* host_ptr;
+
+    // Handle continuouty
+    if (is_continuous) {
+        // Use physical memory directly
+        host_ptr = memory_manager.GetPointer(gpu_addr);
+        if (!host_ptr) {
+            return;
+        }
+    } else {
+        // Use an extra temporal buffer
+        auto& tmp_buffer = staging_cache.GetBuffer(1);
+        tmp_buffer.resize(guest_memory_size);
+        host_ptr = tmp_buffer.data();
     }
+
     if (params.is_tiled) {
         ASSERT_MSG(params.block_width == 0, "Block width is defined as {}", params.block_width);
         for (u32 level = 0; level < params.num_levels; ++level) {
@@ -153,6 +181,9 @@ void SurfaceBaseImpl::FlushBuffer(Tegra::MemoryManager& memory_manager,
                 read_to += copy_size;
             }
         }
+    }
+    if (!is_continuous) {
+        memory_manager.WriteBlockUnsafe(gpu_addr, host_ptr, guest_memory_size);
     }
 }
 

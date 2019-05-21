@@ -32,11 +32,28 @@ enum class MatchStructureResult : u32 {
     None = 2,
 };
 
+class StagingCache {
+public:
+    StagingCache() {}
+    ~StagingCache() = default;
+
+    std::vector<u8>& GetBuffer(std::size_t index) {
+        return staging_buffer[index];
+    }
+
+    void SetSize(std::size_t size) {
+        staging_buffer.resize(size);
+    }
+
+private:
+    std::vector<std::vector<u8>> staging_buffer;
+};
+
 class SurfaceBaseImpl {
 public:
-    void LoadBuffer(Tegra::MemoryManager& memory_manager, std::vector<u8>& staging_buffer);
+    void LoadBuffer(Tegra::MemoryManager& memory_manager, StagingCache& staging_cache);
 
-    void FlushBuffer(Tegra::MemoryManager& memory_manager, std::vector<u8>& staging_buffer);
+    void FlushBuffer(Tegra::MemoryManager& memory_manager, StagingCache& staging_cache);
 
     GPUVAddr GetGpuAddr() const {
         return gpu_addr;
@@ -93,6 +110,14 @@ public:
         return mipmap_sizes[level];
     }
 
+    void MarkAsContinuous(const bool is_continuous) {
+        this->is_continuous = is_continuous;
+    }
+
+    bool IsContinuous() const {
+        return is_continuous;
+    }
+
     bool IsLinear() const {
         return !params.is_tiled;
     }
@@ -122,8 +147,8 @@ public:
     MatchStructureResult MatchesStructure(const SurfaceParams& rhs) const {
         // Buffer surface Check
         if (params.IsBuffer()) {
-            const std::size_t wd1 = params.width*params.GetBytesPerPixel();
-            const std::size_t wd2 = rhs.width*rhs.GetBytesPerPixel();
+            const std::size_t wd1 = params.width * params.GetBytesPerPixel();
+            const std::size_t wd2 = rhs.width * rhs.GetBytesPerPixel();
             if (wd1 == wd2) {
                 return MatchStructureResult::FullMatch;
             }
@@ -193,6 +218,7 @@ protected:
     CacheAddr cache_addr{};
     CacheAddr cache_addr_end{};
     VAddr cpu_addr{};
+    bool is_continuous{};
 
     std::vector<std::size_t> mipmap_sizes;
     std::vector<std::size_t> mipmap_offsets;
