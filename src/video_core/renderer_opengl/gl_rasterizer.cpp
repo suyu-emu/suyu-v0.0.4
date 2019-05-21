@@ -663,13 +663,10 @@ void RasterizerOpenGL::DrawArrays() {
     SyncCullMode();
     SyncPrimitiveRestart();
     SyncScissorTest(state);
-    // Alpha Testing is synced on shaders.
     SyncTransformFeedback();
     SyncPointState();
-    CheckAlphaTests();
     SyncPolygonOffset();
-    // TODO(bunnei): Sync framebuffer_scale uniform here
-    // TODO(bunnei): Sync scissorbox uniform(s) here
+    SyncAlphaTest();
 
     // Draw the vertex batch
     const bool is_indexed = accelerate_draw == AccelDraw::Indexed;
@@ -1121,10 +1118,17 @@ void RasterizerOpenGL::SyncPolygonOffset() {
     state.polygon_offset.clamp = regs.polygon_offset_clamp;
 }
 
-void RasterizerOpenGL::CheckAlphaTests() {
+void RasterizerOpenGL::SyncAlphaTest() {
     const auto& regs = system.GPU().Maxwell3D().regs;
     UNIMPLEMENTED_IF_MSG(regs.alpha_test_enabled != 0 && regs.rt_control.count > 1,
                          "Alpha Testing is enabled with more than one rendertarget");
+
+    state.alpha_test.enabled = regs.alpha_test_enabled;
+    if (!state.alpha_test.enabled) {
+        return;
+    }
+    state.alpha_test.func = MaxwellToGL::ComparisonOp(regs.alpha_test_func);
+    state.alpha_test.ref = regs.alpha_test_ref;
 }
 
 } // namespace OpenGL

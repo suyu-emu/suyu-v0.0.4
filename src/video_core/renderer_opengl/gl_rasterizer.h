@@ -166,8 +166,8 @@ private:
     /// Syncs the polygon offsets
     void SyncPolygonOffset();
 
-    /// Check asserts for alpha testing.
-    void CheckAlphaTests();
+    /// Syncs the alpha test state to match the guest state
+    void SyncAlphaTest();
 
     /// Check for extension that are not strictly required
     /// but are needed for correct emulation
