@@ -206,25 +206,28 @@ const std::array<int, Settings::NativeKeyboard::NumKeyboardMods> Config::default
 };
 
 // This shouldn't have anything except static initializers (no functions). So
-// QKeySequnce(...).toString() is NOT ALLOWED HERE.
+// QKeySequence(...).toString() is NOT ALLOWED HERE.
 // This must be in alphabetical order according to action name as it must have the same order as
 // UISetting::values.shortcuts, which is alphabetically ordered.
-const std::array<UISettings::Shortcut, 15> Config::default_hotkeys{
-    {{"Capture Screenshot", "Main Window", {"Ctrl+P", Qt::ApplicationShortcut}},
-     {"Continue/Pause Emulation", "Main Window", {"F4", Qt::WindowShortcut}},
-     {"Decrease Speed Limit", "Main Window", {"-", Qt::ApplicationShortcut}},
-     {"Exit yuzu", "Main Window", {"Ctrl+Q", Qt::WindowShortcut}},
-     {"Exit Fullscreen", "Main Window", {"Esc", Qt::WindowShortcut}},
-     {"Fullscreen", "Main Window", {"F11", Qt::WindowShortcut}},
-     {"Increase Speed Limit", "Main Window", {"+", Qt::ApplicationShortcut}},
-     {"Load Amiibo", "Main Window", {"F2", Qt::ApplicationShortcut}},
-     {"Load File", "Main Window", {"Ctrl+O", Qt::WindowShortcut}},
-     {"Restart Emulation", "Main Window", {"F6", Qt::WindowShortcut}},
-     {"Stop Emulation", "Main Window", {"F5", Qt::WindowShortcut}},
-     {"Toggle Filter Bar", "Main Window", {"Ctrl+F", Qt::WindowShortcut}},
-     {"Toggle Speed Limit", "Main Window", {"Ctrl+Z", Qt::ApplicationShortcut}},
-     {"Toggle Status Bar", "Main Window", {"Ctrl+S", Qt::WindowShortcut}},
-     {"Change Docked Mode", "Main Window", {"F10", Qt::ApplicationShortcut}}}};
+// clang-format off
+const std::array<UISettings::Shortcut, 15> Config::default_hotkeys{{
+    {QStringLiteral("Capture Screenshot"),       QStringLiteral("Main Window"), {QStringLiteral("Ctrl+P"), Qt::ApplicationShortcut}},
+    {QStringLiteral("Continue/Pause Emulation"), QStringLiteral("Main Window"), {QStringLiteral("F4"), Qt::WindowShortcut}},
+    {QStringLiteral("Decrease Speed Limit"),     QStringLiteral("Main Window"), {QStringLiteral("-"), Qt::ApplicationShortcut}},
+    {QStringLiteral("Exit yuzu"),                QStringLiteral("Main Window"), {QStringLiteral("Ctrl+Q"), Qt::WindowShortcut}},
+    {QStringLiteral("Exit Fullscreen"),          QStringLiteral("Main Window"), {QStringLiteral("Esc"), Qt::WindowShortcut}},
+    {QStringLiteral("Fullscreen"),               QStringLiteral("Main Window"), {QStringLiteral("F11"), Qt::WindowShortcut}},
+    {QStringLiteral("Increase Speed Limit"),     QStringLiteral("Main Window"), {QStringLiteral("+"), Qt::ApplicationShortcut}},
+    {QStringLiteral("Load Amiibo"),              QStringLiteral("Main Window"), {QStringLiteral("F2"), Qt::ApplicationShortcut}},
+    {QStringLiteral("Load File"),                QStringLiteral("Main Window"), {QStringLiteral("Ctrl+O"), Qt::WindowShortcut}},
+    {QStringLiteral("Restart Emulation"),        QStringLiteral("Main Window"), {QStringLiteral("F6"), Qt::WindowShortcut}},
+    {QStringLiteral("Stop Emulation"),           QStringLiteral("Main Window"), {QStringLiteral("F5"), Qt::WindowShortcut}},
+    {QStringLiteral("Toggle Filter Bar"),        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+F"), Qt::WindowShortcut}},
+    {QStringLiteral("Toggle Speed Limit"),       QStringLiteral("Main Window"), {QStringLiteral("Ctrl+Z"), Qt::ApplicationShortcut}},
+    {QStringLiteral("Toggle Status Bar"),        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+S"), Qt::WindowShortcut}},
+    {QStringLiteral("Change Docked Mode"),       QStringLiteral("Main Window"), {QStringLiteral("F10"), Qt::ApplicationShortcut}},
+}};
+// clang-format on
 
 void Config::ReadPlayerValues() {
     for (std::size_t p = 0; p < Settings::values.players.size(); ++p) {
@@ -370,14 +373,21 @@ void Config::ReadMouseValues() {
 }
 
 void Config::ReadTouchscreenValues() {
-    Settings::values.touchscreen.enabled = ReadSetting("touchscreen_enabled", true).toBool();
+    Settings::values.touchscreen.enabled =
+        ReadSetting(QStringLiteral("touchscreen_enabled"), true).toBool();
     Settings::values.touchscreen.device =
-        ReadSetting("touchscreen_device", "engine:emu_window").toString().toStdString();
+        ReadSetting(QStringLiteral("touchscreen_device"), QStringLiteral("engine:emu_window"))
+            .toString()
+            .toStdString();
 
-    Settings::values.touchscreen.finger = ReadSetting("touchscreen_finger", 0).toUInt();
-    Settings::values.touchscreen.rotation_angle = ReadSetting("touchscreen_angle", 0).toUInt();
-    Settings::values.touchscreen.diameter_x = ReadSetting("touchscreen_diameter_x", 15).toUInt();
-    Settings::values.touchscreen.diameter_y = ReadSetting("touchscreen_diameter_y", 15).toUInt();
+    Settings::values.touchscreen.finger =
+        ReadSetting(QStringLiteral("touchscreen_finger"), 0).toUInt();
+    Settings::values.touchscreen.rotation_angle =
+        ReadSetting(QStringLiteral("touchscreen_angle"), 0).toUInt();
+    Settings::values.touchscreen.diameter_x =
+        ReadSetting(QStringLiteral("touchscreen_diameter_x"), 15).toUInt();
+    Settings::values.touchscreen.diameter_y =
+        ReadSetting(QStringLiteral("touchscreen_diameter_y"), 15).toUInt();
 }
 
 void Config::ApplyDefaultProfileIfInputInvalid() {
@@ -541,8 +551,8 @@ void Config::ReadRendererValues() {
 void Config::ReadShortcutValues() {
     qt_config->beginGroup(QStringLiteral("Shortcuts"));
 
-    for (auto [name, group, shortcut] : default_hotkeys) {
-        auto [keyseq, context] = shortcut;
+    for (const auto& [name, group, shortcut] : default_hotkeys) {
+        const auto& [keyseq, context] = shortcut;
         qt_config->beginGroup(group);
         qt_config->beginGroup(name);
         UISettings::values.shortcuts.push_back(
@@ -591,7 +601,8 @@ void Config::ReadUIValues() {
     qt_config->beginGroup(QStringLiteral("UI"));
 
     UISettings::values.theme =
-        ReadSetting(QStringLiteral("theme"), UISettings::themes[0].second).toString();
+        ReadSetting(QStringLiteral("theme"), QString::fromUtf8(UISettings::themes[0].second))
+            .toString();
     UISettings::values.enable_discord_presence =
         ReadSetting(QStringLiteral("enable_discord_presence"), true).toBool();
     UISettings::values.screenshot_resolution_factor =
@@ -626,7 +637,7 @@ void Config::ReadUIValues() {
 }
 
 void Config::ReadUIGamelistValues() {
-    qt_config->beginGroup("UIGameList");
+    qt_config->beginGroup(QStringLiteral("UIGameList"));
 
     UISettings::values.show_unknown = ReadSetting(QStringLiteral("show_unknown"), true).toBool();
     UISettings::values.show_add_ons = ReadSetting(QStringLiteral("show_add_ons"), true).toBool();
@@ -723,7 +734,7 @@ void Config::SavePlayerValues() {
 }
 
 void Config::SaveDebugValues() {
-    WriteSetting("debug_pad_enabled", Settings::values.debug_pad_enabled, false);
+    WriteSetting(QStringLiteral("debug_pad_enabled"), Settings::values.debug_pad_enabled, false);
     for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
         const std::string default_param = InputCommon::GenerateKeyboardParam(default_buttons[i]);
         WriteSetting(QStringLiteral("debug_pad_") +
@@ -924,7 +935,7 @@ void Config::SaveShortcutValues() {
     // Lengths of UISettings::values.shortcuts & default_hotkeys are same.
     // However, their ordering must also be the same.
     for (std::size_t i = 0; i < default_hotkeys.size(); i++) {
-        const auto [name, group, shortcut] = UISettings::values.shortcuts[i];
+        const auto& [name, group, shortcut] = UISettings::values.shortcuts[i];
         const auto& default_hotkey = default_hotkeys[i].shortcut;
 
         qt_config->beginGroup(group);
@@ -961,7 +972,8 @@ void Config::SaveSystemValues() {
 void Config::SaveUIValues() {
     qt_config->beginGroup(QStringLiteral("UI"));
 
-    WriteSetting(QStringLiteral("theme"), UISettings::values.theme, UISettings::themes[0].second);
+    WriteSetting(QStringLiteral("theme"), UISettings::values.theme,
+                 QString::fromUtf8(UISettings::themes[0].second));
     WriteSetting(QStringLiteral("enable_discord_presence"),
                  UISettings::values.enable_discord_presence, true);
     WriteSetting(QStringLiteral("screenshot_resolution_factor"),
