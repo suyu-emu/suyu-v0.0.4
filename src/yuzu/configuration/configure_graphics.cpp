@@ -75,8 +75,6 @@ void ConfigureGraphics::setConfiguration() {
         static_cast<int>(FromResolutionFactor(Settings::values.resolution_factor)));
     ui->toggle_frame_limit->setChecked(Settings::values.use_frame_limit);
     ui->frame_limit->setValue(Settings::values.frame_limit);
-    ui->use_compatibility_profile->setEnabled(runtime_lock);
-    ui->use_compatibility_profile->setChecked(Settings::values.use_compatibility_profile);
     ui->use_disk_shader_cache->setEnabled(runtime_lock);
     ui->use_disk_shader_cache->setChecked(Settings::values.use_disk_shader_cache);
     ui->use_accurate_gpu_emulation->setChecked(Settings::values.use_accurate_gpu_emulation);
@@ -93,7 +91,6 @@ void ConfigureGraphics::applyConfiguration() {
         ToResolutionFactor(static_cast<Resolution>(ui->resolution_factor_combobox->currentIndex()));
     Settings::values.use_frame_limit = ui->toggle_frame_limit->isChecked();
     Settings::values.frame_limit = ui->frame_limit->value();
-    Settings::values.use_compatibility_profile = ui->use_compatibility_profile->isChecked();
     Settings::values.use_disk_shader_cache = ui->use_disk_shader_cache->isChecked();
     Settings::values.use_accurate_gpu_emulation = ui->use_accurate_gpu_emulation->isChecked();
     Settings::values.use_asynchronous_gpu_emulation =
