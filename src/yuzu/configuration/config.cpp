@@ -11,6 +11,7 @@
 #include "core/hle/service/hid/controllers/npad.h"
 #include "input_common/main.h"
 #include "yuzu/configuration/config.h"
+#include "yuzu/ui_settings.h"
 
 Config::Config() {
     // TODO: Don't hardcode the path; let the frontend decide where to put the config files.
@@ -210,7 +211,7 @@ const std::array<int, Settings::NativeKeyboard::NumKeyboardMods> Config::default
 // This must be in alphabetical order according to action name as it must have the same order as
 // UISetting::values.shortcuts, which is alphabetically ordered.
 // clang-format off
-const std::array<UISettings::Shortcut, 15> Config::default_hotkeys{{
+const std::array<UISettings::Shortcut, 15> default_hotkeys{{
     {QStringLiteral("Capture Screenshot"),       QStringLiteral("Main Window"), {QStringLiteral("Ctrl+P"), Qt::ApplicationShortcut}},
     {QStringLiteral("Continue/Pause Emulation"), QStringLiteral("Main Window"), {QStringLiteral("F4"), Qt::WindowShortcut}},
     {QStringLiteral("Decrease Speed Limit"),     QStringLiteral("Main Window"), {QStringLiteral("-"), Qt::ApplicationShortcut}},
