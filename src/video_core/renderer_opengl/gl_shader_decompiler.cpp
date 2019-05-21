@@ -371,7 +371,7 @@ private:
             location += GENERIC_VARYING_START_LOCATION;
         }
 
-        code.AddLine("layout (location = {}) {} in vec4 {};", name, location, suffix, name);
+        code.AddLine("layout (location = {}) {} in vec4 {};", location, suffix, name);
     }
 
     void DeclareOutputAttributes() {
