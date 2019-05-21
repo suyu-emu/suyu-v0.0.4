@@ -483,6 +483,18 @@ private:
         const auto host_ptr{memory_manager->GetPointer(gpu_addr)};
         const auto cache_addr{ToCacheAddr(host_ptr)};
 
+        // Step 0: guarantee a valid surface
+        if (!cache_addr) {
+            // Return a null surface if it's invalid
+            SurfaceParams new_params = params;
+            new_params.width = 1;
+            new_params.height = 1;
+            new_params.depth = 1;
+            new_params.block_height = 0;
+            new_params.block_depth = 0;
+            return InitializeSurface(gpu_addr, new_params, false);
+        }
+
         // Step 1
         // Check Level 1 Cache for a fast structural match. If candidate surface
         // matches at certain level we are pretty much done.
