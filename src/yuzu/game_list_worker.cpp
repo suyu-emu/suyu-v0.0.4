@@ -45,7 +45,7 @@ bool HasSupportedFileExtension(const std::string& file_name) {
 }
 
 bool IsExtractedNCAMain(const std::string& file_name) {
-    return QFileInfo(QString::fromStdString(file_name)).fileName() == "main";
+    return QFileInfo(QString::fromStdString(file_name)).fileName() == QStringLiteral("main");
 }
 
 QString FormatGameName(const std::string& physical_name) {
@@ -97,7 +97,7 @@ QList<QStandardItem*> MakeGameListEntry(const std::string& path, const std::stri
     const auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
 
     // The game list uses this as compatibility number for untested games
-    QString compatibility{"99"};
+    QString compatibility{QStringLiteral("99")};
     if (it != compatibility_list.end()) {
         compatibility = it->second.first;
     }
