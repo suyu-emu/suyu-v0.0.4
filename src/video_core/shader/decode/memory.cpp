@@ -12,8 +12,6 @@
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/shader/shader_ir.h"
 
-#pragma optimize("", off)
-
 namespace VideoCommon::Shader {
 
 using Tegra::Shader::Attribute;
