@@ -342,12 +342,13 @@ private:
                                               const SurfaceParams& params, const GPUVAddr gpu_addr,
                                               const bool preserve_contents,
                                               const bool untopological) {
+        const bool do_load = Settings::values.use_accurate_gpu_emulation && preserve_contents;
         for (auto surface : overlaps) {
             Unregister(surface);
         }
         switch (PickStrategy(overlaps, params, gpu_addr, untopological)) {
         case RecycleStrategy::Ignore: {
-            return InitializeSurface(gpu_addr, params, preserve_contents);
+            return InitializeSurface(gpu_addr, params, do_load);
         }
         case RecycleStrategy::Flush: {
             std::sort(overlaps.begin(), overlaps.end(),
@@ -361,7 +362,7 @@ private:
         }
         default: {
             UNIMPLEMENTED_MSG("Unimplemented Texture Cache Recycling Strategy!");
-            return InitializeSurface(gpu_addr, params, preserve_contents);
+            return InitializeSurface(gpu_addr, params, do_load);
         }
         }
     }
