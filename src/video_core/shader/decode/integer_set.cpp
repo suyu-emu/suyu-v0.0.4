@@ -2,7 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/shader/shader_ir.h"
