@@ -663,7 +663,7 @@ private:
     /// Creates a conditional node
     Node Conditional(Node condition, std::vector<Node>&& code);
     /// Creates a commentary
-    Node Comment(const std::string& text);
+    Node Comment(std::string text);
     /// Creates an u32 immediate
     Node Immediate(u32 value);
     /// Creates a s32 immediate

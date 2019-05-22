@@ -39,8 +39,8 @@ Node ShaderIR::Conditional(Node condition, std::vector<Node>&& code) {
     return StoreNode(ConditionalNode(condition, std::move(code)));
 }
 
-Node ShaderIR::Comment(const std::string& text) {
-    return StoreNode(CommentNode(text));
+Node ShaderIR::Comment(std::string text) {
+    return StoreNode(CommentNode(std::move(text)));
 }
 
 Node ShaderIR::Immediate(u32 value) {
