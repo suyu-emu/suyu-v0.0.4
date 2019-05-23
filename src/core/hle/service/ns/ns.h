@@ -73,7 +73,7 @@ private:
         rb.PushIpcInterface<T>();
     }
 
-    template<typename T>
+    template <typename T>
     std::shared_ptr<T> GetInterface() {
         static_assert(std::is_base_of_v<Kernel::SessionRequestHandler, T>,
                       "Not a base of ServiceFrameworkBase");

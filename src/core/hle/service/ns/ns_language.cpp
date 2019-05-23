@@ -276,7 +276,8 @@ constexpr ApplicationLanguagePriorityList priority_list_simplified_chinese = {{
     ApplicationLanguage::Korean,
 }};
 
-const ApplicationLanguagePriorityList* GetApplicationLanguagePriorityList(ApplicationLanguage lang) {
+const ApplicationLanguagePriorityList* GetApplicationLanguagePriorityList(
+    ApplicationLanguage lang) {
     switch (lang) {
     case ApplicationLanguage::AmericanEnglish:
         return &priority_list_american_english;

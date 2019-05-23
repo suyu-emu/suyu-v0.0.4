@@ -9,33 +9,34 @@
 #include "core/hle/service/set/set.h"
 
 namespace Service::NS {
-    /// This is nn::ns::detail::ApplicationLanguage
-    enum class ApplicationLanguage : u8 {
-        AmericanEnglish = 0,
-        BritishEnglish,
-        Japanese,
-        French,
-        German,
-        LatinAmericanSpanish,
-        Spanish,
-        Italian,
-        Dutch,
-        CanadianFrench,
-        Portuguese,
-        Russian,
-        Korean,
-        TraditionalChinese,
-        SimplifiedChinese,
-        Count
-    };
-    using ApplicationLanguagePriorityList = const std::array<ApplicationLanguage, static_cast<std::size_t>(ApplicationLanguage::Count)>;
+/// This is nn::ns::detail::ApplicationLanguage
+enum class ApplicationLanguage : u8 {
+    AmericanEnglish = 0,
+    BritishEnglish,
+    Japanese,
+    French,
+    German,
+    LatinAmericanSpanish,
+    Spanish,
+    Italian,
+    Dutch,
+    CanadianFrench,
+    Portuguese,
+    Russian,
+    Korean,
+    TraditionalChinese,
+    SimplifiedChinese,
+    Count
+};
+using ApplicationLanguagePriorityList =
+    const std::array<ApplicationLanguage, static_cast<std::size_t>(ApplicationLanguage::Count)>;
 
-    constexpr u32 GetSupportedLanguageFlag(const ApplicationLanguage lang) {
-        return 1u << static_cast<u32>(lang);
-    }
-
-
-    const ApplicationLanguagePriorityList* GetApplicationLanguagePriorityList(ApplicationLanguage lang);
-    std::optional<ApplicationLanguage> ConvertToApplicationLanguage(Service::Set::LanguageCode language_code);
-    std::optional<Service::Set::LanguageCode> ConvertToLanguageCode(ApplicationLanguage lang);
+constexpr u32 GetSupportedLanguageFlag(const ApplicationLanguage lang) {
+    return 1u << static_cast<u32>(lang);
 }
+
+const ApplicationLanguagePriorityList* GetApplicationLanguagePriorityList(ApplicationLanguage lang);
+std::optional<ApplicationLanguage> ConvertToApplicationLanguage(
+    Service::Set::LanguageCode language_code);
+std::optional<Service::Set::LanguageCode> ConvertToLanguageCode(ApplicationLanguage lang);
+} // namespace Service::NS

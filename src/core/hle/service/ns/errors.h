@@ -9,5 +9,4 @@
 namespace Service::NS {
 
 constexpr ResultCode ERR_APPLICATION_LANGUAGE_NOT_FOUND{ErrorModule::NS, 300};
-
 }
