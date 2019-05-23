@@ -344,8 +344,7 @@ ResultVal<u8> IApplicationManagerInterface::GetApplicationDesiredLanguage(
     // Try to find a valid language.
     for (const auto lang : *priority_list) {
         const auto supported_flag = GetSupportedLanguageFlag(lang);
-        if (supported_languages == 0 ||
-            (supported_languages & supported_flag) == supported_languages) {
+        if (supported_languages == 0 || (supported_languages & supported_flag) == supported_flag) {
             return MakeResult(static_cast<u8>(lang));
         }
     }
