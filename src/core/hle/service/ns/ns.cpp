@@ -9,8 +9,9 @@
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/service/ns/errors.h"
 #include "core/hle/service/ns/ns.h"
-#include "core/hle/service/ns/ns_language.h"
+#include "core/hle/service/ns/language.h"
 #include "core/hle/service/ns/pl_u.h"
+#include "core/hle/service/set/set.h"
 #include "core/settings.h"
 
 namespace Service::NS {
@@ -24,6 +25,8 @@ IAccountProxyInterface::IAccountProxyInterface() : ServiceFramework{"IAccountPro
 
     RegisterHandlers(functions);
 }
+
+IAccountProxyInterface::~IAccountProxyInterface() = default;
 
 IApplicationManagerInterface::IApplicationManagerInterface()
     : ServiceFramework{"IApplicationManagerInterface"} {
@@ -246,6 +249,8 @@ IApplicationManagerInterface::IApplicationManagerInterface()
     RegisterHandlers(functions);
 }
 
+IApplicationManagerInterface::~IApplicationManagerInterface() = default;
+
 void IApplicationManagerInterface::GetApplicationControlData(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto flag = rp.PopRaw<u64>();
@@ -325,7 +330,7 @@ ResultVal<u8> IApplicationManagerInterface::GetApplicationDesiredLanguage(
 
     // Get language code from settings
     const auto language_code =
-        Service::Set::GetLanguageCodeFromIndex(Settings::values.language_index);
+        Set::GetLanguageCodeFromIndex(Settings::values.language_index);
 
     // Convert to application language, get priority list
     const auto application_language = ConvertToApplicationLanguage(language_code);
@@ -342,7 +347,7 @@ ResultVal<u8> IApplicationManagerInterface::GetApplicationDesiredLanguage(
         const auto supported_flag = GetSupportedLanguageFlag(lang);
         if (supported_languages == 0 ||
             (supported_languages & supported_flag) == supported_languages) {
-            return ResultVal<u8>::WithCode(RESULT_SUCCESS, static_cast<u8>(lang));
+            return MakeResult(static_cast<u8>(lang));
         }
     }
 
@@ -373,7 +378,7 @@ ResultVal<u64> IApplicationManagerInterface::ConvertApplicationLanguageToLanguag
         return ERR_APPLICATION_LANGUAGE_NOT_FOUND;
     }
 
-    return ResultVal<u64>::WithCode(RESULT_SUCCESS, static_cast<u64>(*language_code));
+    return MakeResult(static_cast<u64>(*language_code));
 }
 
 IApplicationVersionInterface::IApplicationVersionInterface()
@@ -395,6 +400,8 @@ IApplicationVersionInterface::IApplicationVersionInterface()
     RegisterHandlers(functions);
 }
 
+IApplicationVersionInterface::~IApplicationVersionInterface() = default;
+
 IContentManagerInterface::IContentManagerInterface()
     : ServiceFramework{"IContentManagerInterface"} {
     // clang-format off
@@ -413,6 +420,8 @@ IContentManagerInterface::IContentManagerInterface()
     RegisterHandlers(functions);
 }
 
+IContentManagerInterface::~IContentManagerInterface() = default;
+
 IDocumentInterface::IDocumentInterface() : ServiceFramework{"IDocumentInterface"} {
     // clang-format off
     static const FunctionInfo functions[] = {
@@ -424,6 +433,8 @@ IDocumentInterface::IDocumentInterface() : ServiceFramework{"IDocumentInterface"
 
     RegisterHandlers(functions);
 }
+
+IDocumentInterface::~IDocumentInterface() = default;
 
 IDownloadTaskInterface::IDownloadTaskInterface() : ServiceFramework{"IDownloadTaskInterface"} {
     // clang-format off
@@ -443,6 +454,8 @@ IDownloadTaskInterface::IDownloadTaskInterface() : ServiceFramework{"IDownloadTa
     RegisterHandlers(functions);
 }
 
+IDownloadTaskInterface::~IDownloadTaskInterface() = default;
+
 IECommerceInterface::IECommerceInterface() : ServiceFramework{"IECommerceInterface"} {
     // clang-format off
     static const FunctionInfo functions[] = {
@@ -458,6 +471,8 @@ IECommerceInterface::IECommerceInterface() : ServiceFramework{"IECommerceInterfa
     RegisterHandlers(functions);
 }
 
+IECommerceInterface::~IECommerceInterface() = default;
+
 IFactoryResetInterface::IFactoryResetInterface::IFactoryResetInterface()
     : ServiceFramework{"IFactoryResetInterface"} {
     // clang-format off
@@ -470,6 +485,8 @@ IFactoryResetInterface::IFactoryResetInterface::IFactoryResetInterface()
 
     RegisterHandlers(functions);
 }
+
+IFactoryResetInterface::~IFactoryResetInterface() = default;
 
 NS::NS(const char* name) : ServiceFramework{name} {
     // clang-format off
@@ -488,7 +505,9 @@ NS::NS(const char* name) : ServiceFramework{name} {
     RegisterHandlers(functions);
 }
 
-std::shared_ptr<IApplicationManagerInterface> NS::GetApplicationManagerInterface() {
+NS::~NS() = default;
+
+std::shared_ptr<IApplicationManagerInterface> NS::GetApplicationManagerInterface() const {
     return GetInterface<IApplicationManagerInterface>();
 }
 

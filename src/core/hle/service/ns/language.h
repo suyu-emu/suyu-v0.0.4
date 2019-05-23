@@ -3,10 +3,14 @@
 // Refer to the license.txt file included.
 
 #pragma once
+
 #include <optional>
 #include <string>
 #include "common/common_types.h"
-#include "core/hle/service/set/set.h"
+
+namespace Service::Set {
+enum class LanguageCode : u64;
+}
 
 namespace Service::NS {
 /// This is nn::ns::detail::ApplicationLanguage
@@ -36,7 +40,6 @@ constexpr u32 GetSupportedLanguageFlag(const ApplicationLanguage lang) {
 }
 
 const ApplicationLanguagePriorityList* GetApplicationLanguagePriorityList(ApplicationLanguage lang);
-std::optional<ApplicationLanguage> ConvertToApplicationLanguage(
-    Service::Set::LanguageCode language_code);
-std::optional<Service::Set::LanguageCode> ConvertToLanguageCode(ApplicationLanguage lang);
+std::optional<ApplicationLanguage> ConvertToApplicationLanguage(Set::LanguageCode language_code);
+std::optional<Set::LanguageCode> ConvertToLanguageCode(ApplicationLanguage lang);
 } // namespace Service::NS

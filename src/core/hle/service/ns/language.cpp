@@ -1,8 +1,9 @@
-// Copyright 2018 yuzu emulator team
+// Copyright 2019 yuzu emulator team
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "core/hle/service/ns/ns_language.h"
+#include "core/hle/service/ns/language.h"
+#include "core/hle/service/set/set.h"
 
 namespace Service::NS {
 
@@ -277,7 +278,7 @@ constexpr ApplicationLanguagePriorityList priority_list_simplified_chinese = {{
 }};
 
 const ApplicationLanguagePriorityList* GetApplicationLanguagePriorityList(
-    ApplicationLanguage lang) {
+    const ApplicationLanguage lang) {
     switch (lang) {
     case ApplicationLanguage::AmericanEnglish:
         return &priority_list_american_english;
@@ -315,75 +316,75 @@ const ApplicationLanguagePriorityList* GetApplicationLanguagePriorityList(
 }
 
 std::optional<ApplicationLanguage> ConvertToApplicationLanguage(
-    const Service::Set::LanguageCode language_code) {
+    const Set::LanguageCode language_code) {
     switch (language_code) {
-    case Service::Set::LanguageCode::EN_US:
+    case Set::LanguageCode::EN_US:
         return ApplicationLanguage::AmericanEnglish;
-    case Service::Set::LanguageCode::EN_GB:
+    case Set::LanguageCode::EN_GB:
         return ApplicationLanguage::BritishEnglish;
-    case Service::Set::LanguageCode::JA:
+    case Set::LanguageCode::JA:
         return ApplicationLanguage::Japanese;
-    case Service::Set::LanguageCode::FR:
+    case Set::LanguageCode::FR:
         return ApplicationLanguage::French;
-    case Service::Set::LanguageCode::DE:
+    case Set::LanguageCode::DE:
         return ApplicationLanguage::German;
-    case Service::Set::LanguageCode::ES_419:
+    case Set::LanguageCode::ES_419:
         return ApplicationLanguage::LatinAmericanSpanish;
-    case Service::Set::LanguageCode::ES:
+    case Set::LanguageCode::ES:
         return ApplicationLanguage::Spanish;
-    case Service::Set::LanguageCode::IT:
+    case Set::LanguageCode::IT:
         return ApplicationLanguage::Italian;
-    case Service::Set::LanguageCode::NL:
+    case Set::LanguageCode::NL:
         return ApplicationLanguage::Dutch;
-    case Service::Set::LanguageCode::FR_CA:
+    case Set::LanguageCode::FR_CA:
         return ApplicationLanguage::CanadianFrench;
-    case Service::Set::LanguageCode::PT:
+    case Set::LanguageCode::PT:
         return ApplicationLanguage::Portuguese;
-    case Service::Set::LanguageCode::RU:
+    case Set::LanguageCode::RU:
         return ApplicationLanguage::Russian;
-    case Service::Set::LanguageCode::KO:
+    case Set::LanguageCode::KO:
         return ApplicationLanguage::Korean;
-    case Service::Set::LanguageCode::ZH_HANT:
+    case Set::LanguageCode::ZH_HANT:
         return ApplicationLanguage::TraditionalChinese;
-    case Service::Set::LanguageCode::ZH_HANS:
+    case Set::LanguageCode::ZH_HANS:
         return ApplicationLanguage::SimplifiedChinese;
     default:
         return std::nullopt;
     }
 }
 
-std::optional<Service::Set::LanguageCode> ConvertToLanguageCode(const ApplicationLanguage lang) {
+std::optional<Set::LanguageCode> ConvertToLanguageCode(const ApplicationLanguage lang) {
     switch (lang) {
     case ApplicationLanguage::AmericanEnglish:
-        return Service::Set::LanguageCode::EN_US;
+        return Set::LanguageCode::EN_US;
     case ApplicationLanguage::BritishEnglish:
-        return Service::Set::LanguageCode::EN_GB;
+        return Set::LanguageCode::EN_GB;
     case ApplicationLanguage::Japanese:
-        return Service::Set::LanguageCode::JA;
+        return Set::LanguageCode::JA;
     case ApplicationLanguage::French:
-        return Service::Set::LanguageCode::FR;
+        return Set::LanguageCode::FR;
     case ApplicationLanguage::German:
-        return Service::Set::LanguageCode::DE;
+        return Set::LanguageCode::DE;
     case ApplicationLanguage::LatinAmericanSpanish:
-        return Service::Set::LanguageCode::ES_419;
+        return Set::LanguageCode::ES_419;
     case ApplicationLanguage::Spanish:
-        return Service::Set::LanguageCode::ES;
+        return Set::LanguageCode::ES;
     case ApplicationLanguage::Italian:
-        return Service::Set::LanguageCode::IT;
+        return Set::LanguageCode::IT;
     case ApplicationLanguage::Dutch:
-        return Service::Set::LanguageCode::NL;
+        return Set::LanguageCode::NL;
     case ApplicationLanguage::CanadianFrench:
-        return Service::Set::LanguageCode::FR_CA;
+        return Set::LanguageCode::FR_CA;
     case ApplicationLanguage::Portuguese:
-        return Service::Set::LanguageCode::PT;
+        return Set::LanguageCode::PT;
     case ApplicationLanguage::Russian:
-        return Service::Set::LanguageCode::RU;
+        return Set::LanguageCode::RU;
     case ApplicationLanguage::Korean:
-        return Service::Set::LanguageCode::KO;
+        return Set::LanguageCode::KO;
     case ApplicationLanguage::TraditionalChinese:
-        return Service::Set::LanguageCode::ZH_HANT;
+        return Set::LanguageCode::ZH_HANT;
     case ApplicationLanguage::SimplifiedChinese:
-        return Service::Set::LanguageCode::ZH_HANS;
+        return Set::LanguageCode::ZH_HANS;
     default:
         return std::nullopt;
     }
