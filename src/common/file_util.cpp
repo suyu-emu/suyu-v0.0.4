@@ -78,13 +78,15 @@ namespace FileUtil {
 // Remove any ending forward slashes from directory paths
 // Modifies argument.
 static void StripTailDirSlashes(std::string& fname) {
-    if (fname.length() > 1) {
-        std::size_t i = fname.length();
-        while (i > 0 && fname[i - 1] == DIR_SEP_CHR)
-            --i;
-        fname.resize(i);
+    if (fname.length() <= 1) {
+        return;
     }
-    return;
+
+    std::size_t i = fname.length();
+    while (i > 0 && fname[i - 1] == DIR_SEP_CHR) {
+        --i;
+    }
+    fname.resize(i);
 }
 
 bool Exists(const std::string& filename) {
