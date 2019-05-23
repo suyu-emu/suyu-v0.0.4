@@ -9,7 +9,6 @@
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/nca_metadata.h"
-#include "core/file_sys/partition_filesystem.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/ipc_helpers.h"
@@ -18,7 +17,6 @@
 #include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/aoc/aoc_u.h"
-#include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
 #include "core/settings.h"
 
