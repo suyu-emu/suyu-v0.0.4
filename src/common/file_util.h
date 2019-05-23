@@ -257,8 +257,8 @@ public:
         return WriteArray(&object, 1);
     }
 
-    std::size_t WriteString(const std::string& str) {
-        return WriteArray(str.c_str(), str.length());
+    std::size_t WriteString(std::string_view str) {
+        return WriteArray(str.data(), str.length());
     }
 
     bool IsOpen() const {
