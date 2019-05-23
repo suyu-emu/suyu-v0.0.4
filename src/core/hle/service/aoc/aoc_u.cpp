@@ -116,15 +116,15 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
     const auto current = Core::System::GetInstance().CurrentProcess()->GetTitleID();
 
     std::vector<u32> out;
-    for (size_t i = 0; i < add_on_content.size(); ++i) {
-        if ((add_on_content[i] & DLC_BASE_TITLE_ID_MASK) == current) {
-            out.push_back(static_cast<u32>(add_on_content[i] & 0x7FF));
-        }
-    }
-
     const auto& disabled = Settings::values.disabled_addons[current];
-    if (std::find(disabled.begin(), disabled.end(), "DLC") != disabled.end()) {
-        out = {};
+    if (std::find(disabled.begin(), disabled.end(), "DLC") == disabled.end()) {
+        for (u64 content_id : add_on_content) {
+            if ((content_id & DLC_BASE_TITLE_ID_MASK) != current) {
+                continue;
+            }
+
+            out.push_back(static_cast<u32>(content_id & 0x7FF));
+        }
     }
 
     if (out.size() < offset) {
