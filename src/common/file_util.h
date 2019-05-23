@@ -146,9 +146,9 @@ const std::string& GetExeDirectory();
 std::string AppDataRoamingDirectory();
 #endif
 
-std::size_t WriteStringToFile(bool text_file, const std::string& str, const char* filename);
+std::size_t WriteStringToFile(bool text_file, const std::string& filename, std::string_view str);
 
-std::size_t ReadFileToString(bool text_file, const char* filename, std::string& str);
+std::size_t ReadFileToString(bool text_file, const std::string& filename, std::string& str);
 
 /**
  * Splits the filename into 8.3 format

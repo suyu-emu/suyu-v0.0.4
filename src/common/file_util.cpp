@@ -762,11 +762,11 @@ std::string GetNANDRegistrationDir(bool system) {
     return GetUserPath(UserPath::NANDDir) + "user/Contents/registered/";
 }
 
-std::size_t WriteStringToFile(bool text_file, const std::string& str, const char* filename) {
-    return FileUtil::IOFile(filename, text_file ? "w" : "wb").WriteBytes(str.data(), str.size());
+std::size_t WriteStringToFile(bool text_file, const std::string& filename, std::string_view str) {
+    return IOFile(filename, text_file ? "w" : "wb").WriteString(str);
 }
 
-std::size_t ReadFileToString(bool text_file, const char* filename, std::string& str) {
+std::size_t ReadFileToString(bool text_file, const std::string& filename, std::string& str) {
     IOFile file(filename, text_file ? "r" : "rb");
 
     if (!file.IsOpen())
