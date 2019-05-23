@@ -8,8 +8,8 @@
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/service/ns/errors.h"
-#include "core/hle/service/ns/ns.h"
 #include "core/hle/service/ns/language.h"
+#include "core/hle/service/ns/ns.h"
 #include "core/hle/service/ns/pl_u.h"
 #include "core/hle/service/set/set.h"
 #include "core/settings.h"
@@ -329,8 +329,7 @@ ResultVal<u8> IApplicationManagerInterface::GetApplicationDesiredLanguage(
     LOG_DEBUG(Service_NS, "called with supported_languages={:08X}", supported_languages);
 
     // Get language code from settings
-    const auto language_code =
-        Set::GetLanguageCodeFromIndex(Settings::values.language_index);
+    const auto language_code = Set::GetLanguageCodeFromIndex(Settings::values.language_index);
 
     // Convert to application language, get priority list
     const auto application_language = ConvertToApplicationLanguage(language_code);
