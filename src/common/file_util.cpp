@@ -525,7 +525,7 @@ void CopyDir(const std::string& source_path, const std::string& dest_path) {
 #endif
 }
 
-std::string GetCurrentDir() {
+std::optional<std::string> GetCurrentDir() {
 // Get the current working directory (getcwd uses malloc)
 #ifdef _WIN32
     wchar_t* dir;
@@ -535,7 +535,7 @@ std::string GetCurrentDir() {
     if (!(dir = getcwd(nullptr, 0))) {
 #endif
         LOG_ERROR(Common_Filesystem, "GetCurrentDirectory failed: {}", GetLastErrorMsg());
-        return nullptr;
+        return {};
     }
 #ifdef _WIN32
     std::string strDir = Common::UTF16ToUTF8(dir);

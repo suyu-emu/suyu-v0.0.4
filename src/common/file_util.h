@@ -9,6 +9,7 @@
 #include <fstream>
 #include <functional>
 #include <limits>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -118,7 +119,7 @@ u64 ScanDirectoryTree(const std::string& directory, FSTEntry& parent_entry,
 bool DeleteDirRecursively(const std::string& directory, unsigned int recursion = 256);
 
 // Returns the current directory
-std::string GetCurrentDir();
+std::optional<std::string> GetCurrentDir();
 
 // Create directory and copy contents (does not overwrite existing files)
 void CopyDir(const std::string& source_path, const std::string& dest_path);
