@@ -444,11 +444,9 @@ private:
             }
             modified |= surface->IsModified();
             // Now we got all the data set up
-            const u32 dst_width{params.GetMipWidth(mipmap)};
-            const u32 dst_height{params.GetMipHeight(mipmap)};
-            const CopyParams copy_params(0, 0, 0, 0, 0, layer, 0, mipmap,
-                                         std::min(src_params.width, dst_width),
-                                         std::min(src_params.height, dst_height), 1);
+            const u32 width = SurfaceParams::IntersectWidth(src_params, params, 0, mipmap);
+            const u32 height = SurfaceParams::IntersectHeight(src_params, params, 0, mipmap);
+            const CopyParams copy_params(0, 0, 0, 0, 0, layer, 0, mipmap, width, height, 1);
             passed_tests++;
             ImageCopy(surface, new_surface, copy_params);
         }

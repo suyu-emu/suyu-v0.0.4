@@ -140,6 +140,26 @@ public:
         return (height * bh2 + bh1 - 1) / bh1;
     }
 
+    // this finds the maximun possible width between 2 2D layers of different formats
+    static u32 IntersectWidth(const SurfaceParams& src_params, const SurfaceParams& dst_params,
+                              const u32 src_level, const u32 dst_level) {
+        const u32 bw1 = src_params.GetDefaultBlockWidth();
+        const u32 bw2 = dst_params.GetDefaultBlockWidth();
+        const u32 t_src_width = (src_params.GetMipWidth(src_level) * bw2 + bw1 - 1) / bw1;
+        const u32 t_dst_width = (dst_params.GetMipWidth(dst_level) * bw1 + bw2 - 1) / bw2;
+        return std::min(t_src_width, t_dst_width);
+    }
+
+    // this finds the maximun possible height between 2 2D layers of different formats
+    static u32 IntersectHeight(const SurfaceParams& src_params, const SurfaceParams& dst_params,
+                               const u32 src_level, const u32 dst_level) {
+        const u32 bh1 = src_params.GetDefaultBlockHeight();
+        const u32 bh2 = dst_params.GetDefaultBlockHeight();
+        const u32 t_src_height = (src_params.GetMipHeight(src_level) * bh2 + bh1 - 1) / bh1;
+        const u32 t_dst_height = (dst_params.GetMipHeight(dst_level) * bh1 + bh2 - 1) / bh2;
+        return std::min(t_src_height, t_dst_height);
+    }
+
     /// Returns the default block width.
     u32 GetDefaultBlockWidth() const {
         return VideoCore::Surface::GetDefaultBlockWidth(pixel_format);

@@ -235,9 +235,8 @@ private:
 
         for (u32 layer = 0; layer < layers; layer++) {
             for (u32 level = 0; level < mipmaps; level++) {
-                const u32 width{std::min(params.GetMipWidth(level), in_params.GetMipWidth(level))};
-                const u32 height{
-                    std::min(params.GetMipHeight(level), in_params.GetMipHeight(level))};
+                const u32 width = SurfaceParams::IntersectWidth(params, in_params, level, level);
+                const u32 height = SurfaceParams::IntersectHeight(params, in_params, level, level);
                 result.emplace_back(width, height, layer, level);
             }
         }
@@ -250,8 +249,8 @@ private:
         result.reserve(mipmaps);
 
         for (u32 level = 0; level < mipmaps; level++) {
-            const u32 width{std::min(params.GetMipWidth(level), in_params.GetMipWidth(level))};
-            const u32 height{std::min(params.GetMipHeight(level), in_params.GetMipHeight(level))};
+            const u32 width = SurfaceParams::IntersectWidth(params, in_params, level, level);
+            const u32 height = SurfaceParams::IntersectHeight(params, in_params, level, level);
             const u32 depth{std::min(params.GetMipDepth(level), in_params.GetMipDepth(level))};
             result.emplace_back(width, height, depth, level);
         }
