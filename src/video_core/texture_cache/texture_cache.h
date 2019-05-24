@@ -305,7 +305,7 @@ private:
      * due to topological reasons.
      **/
     RecycleStrategy PickStrategy(std::vector<TSurface>& overlaps, const SurfaceParams& params,
-                                 const GPUVAddr gpu_addr, const bool untopological) {
+                                 const GPUVAddr gpu_addr, const MatchTopologyResult untopological) {
         if (Settings::values.use_accurate_gpu_emulation) {
             return RecycleStrategy::Flush;
         }
@@ -320,8 +320,8 @@ private:
             }
         }
         // Untopological decision
-        if (untopological) {
-            return RecycleStrategy::Ignore;
+        if (untopological == MatchTopologyResult::CompressUnmatch) {
+            return RecycleStrategy::Flush;
         }
         return RecycleStrategy::Ignore;
     }
@@ -341,7 +341,7 @@ private:
     std::pair<TSurface, TView> RecycleSurface(std::vector<TSurface>& overlaps,
                                               const SurfaceParams& params, const GPUVAddr gpu_addr,
                                               const bool preserve_contents,
-                                              const bool untopological) {
+                                              const MatchTopologyResult untopological) {
         const bool do_load = Settings::values.use_accurate_gpu_emulation && preserve_contents;
         for (auto surface : overlaps) {
             Unregister(surface);
@@ -502,9 +502,10 @@ private:
         // matches at certain level we are pretty much done.
         if (l1_cache.count(cache_addr) > 0) {
             TSurface current_surface = l1_cache[cache_addr];
-            if (!current_surface->MatchesTopology(params)) {
+            auto topological_result = current_surface->MatchesTopology(params);
+            if (topological_result != MatchTopologyResult::FullMatch) {
                 std::vector<TSurface> overlaps{current_surface};
-                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, true);
+                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, topological_result);
             }
             MatchStructureResult s_result = current_surface->MatchesStructure(params);
             if (s_result != MatchStructureResult::None &&
@@ -534,8 +535,9 @@ private:
         // we do a topological test to ensure we can find some relationship. If it fails
         // inmediatly recycle the texture
         for (auto surface : overlaps) {
-            if (!surface->MatchesTopology(params)) {
-                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, true);
+            auto topological_result = surface->MatchesTopology(params);
+            if (topological_result != MatchTopologyResult::FullMatch) {
+                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, topological_result);
             }
         }
 
@@ -553,7 +555,7 @@ private:
                         return *view;
                     }
                 }
-                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, false);
+                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, MatchTopologyResult::FullMatch);
             }
             // Now we check if the candidate is a mipmap/layer of the overlap
             std::optional<TView> view =
@@ -576,13 +578,13 @@ private:
                         pair.first->EmplaceView(params, gpu_addr, candidate_size);
                     if (mirage_view)
                         return {pair.first, *mirage_view};
-                    return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, false);
+                    return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, MatchTopologyResult::FullMatch);
                 }
                 return {current_surface, *view};
             }
             // The next case is unsafe, so if we r in accurate GPU, just skip it
             if (Settings::values.use_accurate_gpu_emulation) {
-                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, false);
+                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, MatchTopologyResult::FullMatch);
             }
             // This is the case the texture is a part of the parent.
             if (current_surface->MatchesSubTexture(params, gpu_addr)) {
@@ -599,7 +601,7 @@ private:
             }
         }
         // We failed all the tests, recycle the overlaps into a new texture.
-        return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, false);
+        return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, MatchTopologyResult::FullMatch);
     }
 
     std::pair<TSurface, TView> InitializeSurface(GPUVAddr gpu_addr, const SurfaceParams& params,

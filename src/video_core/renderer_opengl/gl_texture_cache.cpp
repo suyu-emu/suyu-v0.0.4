@@ -195,17 +195,17 @@ OGLTexture CreateTexture(const SurfaceParams& params, GLenum target, GLenum inte
 
     switch (params.target) {
     case SurfaceTarget::Texture1D:
-        glTextureStorage1D(texture.handle, params.num_levels, internal_format, params.width);
+        glTextureStorage1D(texture.handle, params.emulated_levels, internal_format, params.width);
         break;
     case SurfaceTarget::Texture2D:
     case SurfaceTarget::TextureCubemap:
-        glTextureStorage2D(texture.handle, params.num_levels, internal_format, params.width,
+        glTextureStorage2D(texture.handle, params.emulated_levels, internal_format, params.width,
                            params.height);
         break;
     case SurfaceTarget::Texture3D:
     case SurfaceTarget::Texture2DArray:
     case SurfaceTarget::TextureCubeArray:
-        glTextureStorage3D(texture.handle, params.num_levels, internal_format, params.width,
+        glTextureStorage3D(texture.handle, params.emulated_levels, internal_format, params.width,
                            params.height, params.depth);
         break;
     default:
@@ -245,7 +245,7 @@ void CachedSurface::DownloadTexture(std::vector<u8>& staging_buffer) {
     // TODO(Rodrigo): Optimize alignment
     SCOPE_EXIT({ glPixelStorei(GL_PACK_ROW_LENGTH, 0); });
 
-    for (u32 level = 0; level < params.num_levels; ++level) {
+    for (u32 level = 0; level < params.emulated_levels; ++level) {
         glPixelStorei(GL_PACK_ALIGNMENT, std::min(8U, params.GetRowAlignment(level)));
         glPixelStorei(GL_PACK_ROW_LENGTH, static_cast<GLint>(params.GetMipWidth(level)));
         const std::size_t mip_offset = params.GetHostMipmapLevelOffset(level);
@@ -264,7 +264,7 @@ void CachedSurface::DownloadTexture(std::vector<u8>& staging_buffer) {
 void CachedSurface::UploadTexture(std::vector<u8>& staging_buffer) {
     MICROPROFILE_SCOPE(OpenGL_Texture_Upload);
     SCOPE_EXIT({ glPixelStorei(GL_UNPACK_ROW_LENGTH, 0); });
-    for (u32 level = 0; level < params.num_levels; ++level) {
+    for (u32 level = 0; level < params.emulated_levels; ++level) {
         UploadTextureMipmap(level, staging_buffer);
     }
 }

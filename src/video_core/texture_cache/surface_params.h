@@ -160,6 +160,19 @@ public:
         return std::min(t_src_height, t_dst_height);
     }
 
+    u32 MaxPossibleMipmap() const {
+        const u32 max_mipmap_w = Common::Log2Ceil32(width) + 1U;
+        const u32 max_mipmap_h = Common::Log2Ceil32(height) + 1U;
+        const u32 max_mipmap = std::max(max_mipmap_w, max_mipmap_h);
+        if (target != VideoCore::Surface::SurfaceTarget::Texture3D)
+            return max_mipmap;
+        return std::max(max_mipmap, Common::Log2Ceil32(depth) + 1U);
+    }
+
+    bool IsCompressed() const {
+        return GetDefaultBlockHeight() > 1 || GetDefaultBlockWidth() > 1;
+    }
+
     /// Returns the default block width.
     u32 GetDefaultBlockWidth() const {
         return VideoCore::Surface::GetDefaultBlockWidth(pixel_format);
@@ -205,6 +218,7 @@ public:
     u32 depth;
     u32 pitch;
     u32 num_levels;
+    u32 emulated_levels;
     VideoCore::Surface::PixelFormat pixel_format;
     VideoCore::Surface::ComponentType component_type;
     VideoCore::Surface::SurfaceType type;

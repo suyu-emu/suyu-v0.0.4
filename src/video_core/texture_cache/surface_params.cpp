@@ -85,6 +85,7 @@ SurfaceParams SurfaceParams::CreateForTexture(Core::System& system,
     }
     params.pitch = params.is_tiled ? 0 : config.tic.Pitch();
     params.num_levels = config.tic.max_mip_level + 1;
+    params.emulated_levels = std::min(params.num_levels, params.MaxPossibleMipmap());
     params.is_layered = params.IsLayered();
     return params;
 }
@@ -109,6 +110,7 @@ SurfaceParams SurfaceParams::CreateForDepthBuffer(
     params.depth = 1;
     params.pitch = 0;
     params.num_levels = 1;
+    params.emulated_levels = 1;
     params.is_layered = false;
     return params;
 }
@@ -139,6 +141,7 @@ SurfaceParams SurfaceParams::CreateForFramebuffer(Core::System& system, std::siz
     params.depth = 1;
     params.target = SurfaceTarget::Texture2D;
     params.num_levels = 1;
+    params.emulated_levels = 1;
     params.is_layered = false;
     return params;
 }
@@ -163,6 +166,7 @@ SurfaceParams SurfaceParams::CreateForFermiCopySurface(
     params.target = SurfaceTarget::Texture2D;
     params.depth = 1;
     params.num_levels = 1;
+    params.emulated_levels = 1;
     params.is_layered = params.IsLayered();
     return params;
 }

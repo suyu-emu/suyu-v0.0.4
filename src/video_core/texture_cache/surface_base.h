@@ -32,6 +32,12 @@ enum class MatchStructureResult : u32 {
     None = 2,
 };
 
+enum class MatchTopologyResult : u32 {
+    FullMatch = 0,
+    CompressUnmatch = 1,
+    None = 2,
+};
+
 class StagingCache {
 public:
     StagingCache() {}
@@ -136,12 +142,20 @@ public:
                params.target == SurfaceTarget::Texture2D && params.num_levels == 1;
     }
 
-    bool MatchesTopology(const SurfaceParams& rhs) const {
+    MatchTopologyResult MatchesTopology(const SurfaceParams& rhs) const {
         const u32 src_bpp{params.GetBytesPerPixel()};
         const u32 dst_bpp{rhs.GetBytesPerPixel()};
         const bool ib1 = params.IsBuffer();
         const bool ib2 = rhs.IsBuffer();
-        return std::tie(src_bpp, params.is_tiled, ib1) == std::tie(dst_bpp, rhs.is_tiled, ib2);
+        if (std::tie(src_bpp, params.is_tiled, ib1) == std::tie(dst_bpp, rhs.is_tiled, ib2)) {
+            const bool cb1 = params.IsCompressed();
+            const bool cb2 = rhs.IsCompressed();
+            if (cb1 == cb2) {
+                return MatchTopologyResult::FullMatch;
+            }
+            return MatchTopologyResult::CompressUnmatch;
+        }
+        return MatchTopologyResult::None;
     }
 
     MatchStructureResult MatchesStructure(const SurfaceParams& rhs) const {
