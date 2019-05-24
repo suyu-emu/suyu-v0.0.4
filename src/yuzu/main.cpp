@@ -281,7 +281,7 @@ void GMainWindow::SoftwareKeyboardInvokeCheckDialog(std::u16string error_message
 void GMainWindow::WebBrowserOpenPage(std::string_view filename, std::string_view additional_args) {
     NXInputWebEngineView web_browser_view(this);
 
-    // Scope to contain the QProgressDialog for initalization
+    // Scope to contain the QProgressDialog for initialization
     {
         QProgressDialog progress(this);
         progress.setMinimumDuration(200);
@@ -301,7 +301,7 @@ void GMainWindow::WebBrowserOpenPage(std::string_view filename, std::string_view
         QWebEngineScript nx_shim;
         nx_shim.setSourceCode(GetNXShimInjectionScript());
         nx_shim.setWorldId(QWebEngineScript::MainWorld);
-        nx_shim.setName("nx_inject.js");
+        nx_shim.setName(QStringLiteral("nx_inject.js"));
         nx_shim.setInjectionPoint(QWebEngineScript::DocumentCreation);
         nx_shim.setRunsOnSubFrames(true);
         web_browser_view.page()->profile()->scripts()->insert(nx_shim);
@@ -347,7 +347,7 @@ void GMainWindow::WebBrowserOpenPage(std::string_view filename, std::string_view
     const auto fire_js_keypress = [&web_browser_view](u32 key_code) {
         web_browser_view.page()->runJavaScript(
             QStringLiteral("document.dispatchEvent(new KeyboardEvent('keydown', {'key': %1}));")
-                .arg(QString::fromStdString(std::to_string(key_code))));
+                .arg(key_code));
     };
 
     QMessageBox::information(
@@ -468,7 +468,7 @@ void GMainWindow::InitializeWidgets() {
         statusBar()->addPermanentWidget(label, 0);
     }
     statusBar()->setVisible(true);
-    setStyleSheet("QStatusBar::item{border: none;}");
+    setStyleSheet(QStringLiteral("QStatusBar::item{border: none;}"));
 }
 
 void GMainWindow::InitializeDebugWidgets() {
@@ -518,58 +518,67 @@ void GMainWindow::InitializeRecentFileMenuActions() {
 void GMainWindow::InitializeHotkeys() {
     hotkey_registry.LoadHotkeys();
 
-    ui.action_Load_File->setShortcut(hotkey_registry.GetKeySequence("Main Window", "Load File"));
+    const QString main_window = QStringLiteral("Main Window");
+    const QString load_file = QStringLiteral("Load File");
+    const QString exit_yuzu = QStringLiteral("Exit yuzu");
+    const QString stop_emulation = QStringLiteral("Stop Emulation");
+    const QString toggle_filter_bar = QStringLiteral("Toggle Filter Bar");
+    const QString toggle_status_bar = QStringLiteral("Toggle Status Bar");
+    const QString fullscreen = QStringLiteral("Fullscreen");
+
+    ui.action_Load_File->setShortcut(hotkey_registry.GetKeySequence(main_window, load_file));
     ui.action_Load_File->setShortcutContext(
-        hotkey_registry.GetShortcutContext("Main Window", "Load File"));
+        hotkey_registry.GetShortcutContext(main_window, load_file));
 
-    ui.action_Exit->setShortcut(hotkey_registry.GetKeySequence("Main Window", "Exit yuzu"));
-    ui.action_Exit->setShortcutContext(
-        hotkey_registry.GetShortcutContext("Main Window", "Exit yuzu"));
+    ui.action_Exit->setShortcut(hotkey_registry.GetKeySequence(main_window, exit_yuzu));
+    ui.action_Exit->setShortcutContext(hotkey_registry.GetShortcutContext(main_window, exit_yuzu));
 
-    ui.action_Stop->setShortcut(hotkey_registry.GetKeySequence("Main Window", "Stop Emulation"));
+    ui.action_Stop->setShortcut(hotkey_registry.GetKeySequence(main_window, stop_emulation));
     ui.action_Stop->setShortcutContext(
-        hotkey_registry.GetShortcutContext("Main Window", "Stop Emulation"));
+        hotkey_registry.GetShortcutContext(main_window, stop_emulation));
 
     ui.action_Show_Filter_Bar->setShortcut(
-        hotkey_registry.GetKeySequence("Main Window", "Toggle Filter Bar"));
+        hotkey_registry.GetKeySequence(main_window, toggle_filter_bar));
     ui.action_Show_Filter_Bar->setShortcutContext(
-        hotkey_registry.GetShortcutContext("Main Window", "Toggle Filter Bar"));
+        hotkey_registry.GetShortcutContext(main_window, toggle_filter_bar));
 
     ui.action_Show_Status_Bar->setShortcut(
-        hotkey_registry.GetKeySequence("Main Window", "Toggle Status Bar"));
+        hotkey_registry.GetKeySequence(main_window, toggle_status_bar));
     ui.action_Show_Status_Bar->setShortcutContext(
-        hotkey_registry.GetShortcutContext("Main Window", "Toggle Status Bar"));
+        hotkey_registry.GetShortcutContext(main_window, toggle_status_bar));
 
-    connect(hotkey_registry.GetHotkey("Main Window", "Load File", this), &QShortcut::activated,
-            this, &GMainWindow::OnMenuLoadFile);
-    connect(hotkey_registry.GetHotkey("Main Window", "Continue/Pause Emulation", this),
-            &QShortcut::activated, this, [&] {
-                if (emulation_running) {
-                    if (emu_thread->IsRunning()) {
-                        OnPauseGame();
-                    } else {
-                        OnStartGame();
-                    }
+    connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Load File"), this),
+            &QShortcut::activated, this, &GMainWindow::OnMenuLoadFile);
+    connect(
+        hotkey_registry.GetHotkey(main_window, QStringLiteral("Continue/Pause Emulation"), this),
+        &QShortcut::activated, this, [&] {
+            if (emulation_running) {
+                if (emu_thread->IsRunning()) {
+                    OnPauseGame();
+                } else {
+                    OnStartGame();
                 }
-            });
-    connect(hotkey_registry.GetHotkey("Main Window", "Restart Emulation", this),
+            }
+        });
+    connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Restart Emulation"), this),
             &QShortcut::activated, this, [this] {
-                if (!Core::System::GetInstance().IsPoweredOn())
+                if (!Core::System::GetInstance().IsPoweredOn()) {
                     return;
-                BootGame(QString(game_path));
+                }
+                BootGame(game_path);
             });
-    connect(hotkey_registry.GetHotkey("Main Window", "Fullscreen", render_window),
+    connect(hotkey_registry.GetHotkey(main_window, fullscreen, render_window),
             &QShortcut::activated, ui.action_Fullscreen, &QAction::trigger);
-    connect(hotkey_registry.GetHotkey("Main Window", "Fullscreen", render_window),
+    connect(hotkey_registry.GetHotkey(main_window, fullscreen, render_window),
             &QShortcut::activatedAmbiguously, ui.action_Fullscreen, &QAction::trigger);
-    connect(hotkey_registry.GetHotkey("Main Window", "Exit Fullscreen", this),
+    connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Exit Fullscreen"), this),
             &QShortcut::activated, this, [&] {
                 if (emulation_running) {
                     ui.action_Fullscreen->setChecked(false);
                     ToggleFullscreen();
                 }
             });
-    connect(hotkey_registry.GetHotkey("Main Window", "Toggle Speed Limit", this),
+    connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Toggle Speed Limit"), this),
             &QShortcut::activated, this, [&] {
                 Settings::values.use_frame_limit = !Settings::values.use_frame_limit;
                 UpdateStatusBar();
@@ -578,33 +587,33 @@ void GMainWindow::InitializeHotkeys() {
     // MSVC occurs and we make it a requirement (see:
     // https://developercommunity.visualstudio.com/content/problem/93922/constexprs-are-trying-to-be-captured-in-lambda-fun.html)
     static constexpr u16 SPEED_LIMIT_STEP = 5;
-    connect(hotkey_registry.GetHotkey("Main Window", "Increase Speed Limit", this),
+    connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Increase Speed Limit"), this),
             &QShortcut::activated, this, [&] {
                 if (Settings::values.frame_limit < 9999 - SPEED_LIMIT_STEP) {
                     Settings::values.frame_limit += SPEED_LIMIT_STEP;
                     UpdateStatusBar();
                 }
             });
-    connect(hotkey_registry.GetHotkey("Main Window", "Decrease Speed Limit", this),
+    connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Decrease Speed Limit"), this),
             &QShortcut::activated, this, [&] {
                 if (Settings::values.frame_limit > SPEED_LIMIT_STEP) {
                     Settings::values.frame_limit -= SPEED_LIMIT_STEP;
                     UpdateStatusBar();
                 }
             });
-    connect(hotkey_registry.GetHotkey("Main Window", "Load Amiibo", this), &QShortcut::activated,
-            this, [&] {
+    connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Load Amiibo"), this),
+            &QShortcut::activated, this, [&] {
                 if (ui.action_Load_Amiibo->isEnabled()) {
                     OnLoadAmiibo();
                 }
             });
-    connect(hotkey_registry.GetHotkey("Main Window", "Capture Screenshot", this),
+    connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Capture Screenshot"), this),
             &QShortcut::activated, this, [&] {
                 if (emu_thread->IsRunning()) {
                     OnCaptureScreenshot();
                 }
             });
-    connect(hotkey_registry.GetHotkey("Main Window", "Change Docked Mode", this),
+    connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Change Docked Mode"), this),
             &QShortcut::activated, this, [&] {
                 Settings::values.use_docked_mode = !Settings::values.use_docked_mode;
                 OnDockedModeChanged(!Settings::values.use_docked_mode,
@@ -705,7 +714,9 @@ void GMainWindow::ConnectMenuEvents() {
 
     // Fullscreen
     ui.action_Fullscreen->setShortcut(
-        hotkey_registry.GetHotkey("Main Window", "Fullscreen", this)->key());
+        hotkey_registry
+            .GetHotkey(QStringLiteral("Main Window"), QStringLiteral("Fullscreen"), this)
+            ->key());
     connect(ui.action_Fullscreen, &QAction::triggered, this, &GMainWindow::ToggleFullscreen);
 
     // Movie
@@ -742,25 +753,33 @@ void GMainWindow::OnDisplayTitleBars(bool show) {
 QStringList GMainWindow::GetUnsupportedGLExtensions() {
     QStringList unsupported_ext;
 
-    if (!GLAD_GL_ARB_direct_state_access)
-        unsupported_ext.append("ARB_direct_state_access");
-    if (!GLAD_GL_ARB_vertex_type_10f_11f_11f_rev)
-        unsupported_ext.append("ARB_vertex_type_10f_11f_11f_rev");
-    if (!GLAD_GL_ARB_texture_mirror_clamp_to_edge)
-        unsupported_ext.append("ARB_texture_mirror_clamp_to_edge");
-    if (!GLAD_GL_ARB_multi_bind)
-        unsupported_ext.append("ARB_multi_bind");
+    if (!GLAD_GL_ARB_direct_state_access) {
+        unsupported_ext.append(QStringLiteral("ARB_direct_state_access"));
+    }
+    if (!GLAD_GL_ARB_vertex_type_10f_11f_11f_rev) {
+        unsupported_ext.append(QStringLiteral("ARB_vertex_type_10f_11f_11f_rev"));
+    }
+    if (!GLAD_GL_ARB_texture_mirror_clamp_to_edge) {
+        unsupported_ext.append(QStringLiteral("ARB_texture_mirror_clamp_to_edge"));
+    }
+    if (!GLAD_GL_ARB_multi_bind) {
+        unsupported_ext.append(QStringLiteral("ARB_multi_bind"));
+    }
 
     // Extensions required to support some texture formats.
-    if (!GLAD_GL_EXT_texture_compression_s3tc)
-        unsupported_ext.append("EXT_texture_compression_s3tc");
-    if (!GLAD_GL_ARB_texture_compression_rgtc)
-        unsupported_ext.append("ARB_texture_compression_rgtc");
-    if (!GLAD_GL_ARB_depth_buffer_float)
-        unsupported_ext.append("ARB_depth_buffer_float");
+    if (!GLAD_GL_EXT_texture_compression_s3tc) {
+        unsupported_ext.append(QStringLiteral("EXT_texture_compression_s3tc"));
+    }
+    if (!GLAD_GL_ARB_texture_compression_rgtc) {
+        unsupported_ext.append(QStringLiteral("ARB_texture_compression_rgtc"));
+    }
+    if (!GLAD_GL_ARB_depth_buffer_float) {
+        unsupported_ext.append(QStringLiteral("ARB_depth_buffer_float"));
+    }
 
-    for (const QString& ext : unsupported_ext)
+    for (const QString& ext : unsupported_ext) {
         LOG_CRITICAL(Frontend, "Unsupported GL extension: {}", ext.toStdString());
+    }
 
     return unsupported_ext;
 }
@@ -782,13 +801,13 @@ bool GMainWindow::LoadROM(const QString& filename) {
         }
     }
 
-    QStringList unsupported_gl_extensions = GetUnsupportedGLExtensions();
+    const QStringList unsupported_gl_extensions = GetUnsupportedGLExtensions();
     if (!unsupported_gl_extensions.empty()) {
         QMessageBox::critical(this, tr("Error while initializing OpenGL Core!"),
                               tr("Your GPU may not support one or more required OpenGL"
                                  "extensions. Please ensure you have the latest graphics "
                                  "driver.<br><br>Unsupported extensions:<br>") +
-                                  unsupported_gl_extensions.join("<br>"));
+                                  unsupported_gl_extensions.join(QStringLiteral("<br>")));
         return false;
     }
 
@@ -1007,7 +1026,7 @@ void GMainWindow::UpdateRecentFiles() {
         std::min(UISettings::values.recent_files.size(), max_recent_files_item);
 
     for (int i = 0; i < num_recent_files; i++) {
-        const QString text = QString("&%1. %2").arg(i + 1).arg(
+        const QString text = QStringLiteral("&%1. %2").arg(i + 1).arg(
             QFileInfo(UISettings::values.recent_files[i]).fileName());
         actions_recent_files[i]->setText(text);
         actions_recent_files[i]->setData(UISettings::values.recent_files[i]);
@@ -1029,10 +1048,10 @@ void GMainWindow::OnGameListLoadFile(QString game_path) {
 
 void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target) {
     std::string path;
-    std::string open_target;
+    QString open_target;
     switch (target) {
     case GameListOpenTarget::SaveData: {
-        open_target = "Save Data";
+        open_target = tr("Save Data");
         const std::string nand_dir = FileUtil::GetUserPath(FileUtil::UserPath::NANDDir);
         ASSERT(program_id != 0);
 
@@ -1069,7 +1088,7 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
         break;
     }
     case GameListOpenTarget::ModData: {
-        open_target = "Mod Data";
+        open_target = tr("Mod Data");
         const auto load_dir = FileUtil::GetUserPath(FileUtil::UserPath::LoadDir);
         path = fmt::format("{}{:016X}", load_dir, program_id);
         break;
@@ -1079,27 +1098,26 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
     }
 
     const QString qpath = QString::fromStdString(path);
-
     const QDir dir(qpath);
     if (!dir.exists()) {
-        QMessageBox::warning(this,
-                             tr("Error Opening %1 Folder").arg(QString::fromStdString(open_target)),
+        QMessageBox::warning(this, tr("Error Opening %1 Folder").arg(open_target),
                              tr("Folder does not exist!"));
         return;
     }
-    LOG_INFO(Frontend, "Opening {} path for program_id={:016x}", open_target, program_id);
+    LOG_INFO(Frontend, "Opening {} path for program_id={:016x}", open_target.toStdString(),
+             program_id);
     QDesktopServices::openUrl(QUrl::fromLocalFile(qpath));
 }
 
 void GMainWindow::OnTransferableShaderCacheOpenFile(u64 program_id) {
     ASSERT(program_id != 0);
 
+    const QString shader_dir =
+        QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ShaderDir));
     const QString tranferable_shader_cache_folder_path =
-        QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ShaderDir)) + "opengl" +
-        DIR_SEP + "transferable";
-
+        shader_dir + QStringLiteral("opengl") + QDir::separator() + QStringLiteral("transferable");
     const QString transferable_shader_cache_file_path =
-        tranferable_shader_cache_folder_path + DIR_SEP +
+        tranferable_shader_cache_folder_path + QDir::separator() +
         QString::fromStdString(fmt::format("{:016X}.bin", program_id));
 
     if (!QFile::exists(transferable_shader_cache_file_path)) {
@@ -1216,20 +1234,21 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
         return;
     }
 
-    bool ok;
+    bool ok = false;
+    const QStringList selections{tr("Full"), tr("Skeleton")};
     const auto res = QInputDialog::getItem(
         this, tr("Select RomFS Dump Mode"),
         tr("Please select the how you would like the RomFS dumped.<br>Full will copy all of the "
            "files into the new directory while <br>skeleton will only create the directory "
            "structure."),
-        {"Full", "Skeleton"}, 0, false, &ok);
+        selections, 0, false, &ok);
     if (!ok) {
         failed();
         vfs->DeleteDirectory(path);
         return;
     }
 
-    const auto full = res == "Full";
+    const auto full = res == selections.constFirst();
     const auto entry_size = CalculateRomFSEntrySize(extracted, full);
 
     QProgressDialog progress(tr("Extracting RomFS..."), tr("Cancel"), 0,
@@ -1259,10 +1278,11 @@ void GMainWindow::OnGameListNavigateToGamedbEntry(u64 program_id,
     const auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
 
     QString directory;
-    if (it != compatibility_list.end())
+    if (it != compatibility_list.end()) {
         directory = it->second.second;
+    }
 
-    QDesktopServices::openUrl(QUrl("https://yuzu-emu.org/game/" + directory));
+    QDesktopServices::openUrl(QUrl(QStringLiteral("https://yuzu-emu.org/game/") + directory));
 }
 
 void GMainWindow::OnGameListOpenPerGameProperties(const std::string& file) {
@@ -1293,7 +1313,9 @@ void GMainWindow::OnGameListOpenPerGameProperties(const std::string& file) {
 
 void GMainWindow::OnMenuLoadFile() {
     const QString extensions =
-        QString("*.").append(GameList::supported_file_extensions.join(" *.")).append(" main");
+        QStringLiteral("*.")
+            .append(GameList::supported_file_extensions.join(QStringLiteral(" *.")))
+            .append(QStringLiteral(" main"));
     const QString file_filter = tr("Switch Executable (%1);;All Files (*.*)",
                                    "%1 is an identifier for the Switch executable file extensions.")
                                     .arg(extensions);
@@ -1317,9 +1339,9 @@ void GMainWindow::OnMenuLoadFolder() {
     }
 
     const QDir dir{dir_path};
-    const QStringList matching_main = dir.entryList(QStringList("main"), QDir::Files);
+    const QStringList matching_main = dir.entryList({QStringLiteral("main")}, QDir::Files);
     if (matching_main.size() == 1) {
-        BootGame(dir.path() + DIR_SEP + matching_main[0]);
+        BootGame(dir.path() + QDir::separator() + matching_main[0]);
     } else {
         QMessageBox::warning(this, tr("Invalid Directory Selected"),
                              tr("The directory you have selected does not contain a 'main' file."));
@@ -1391,11 +1413,10 @@ void GMainWindow::OnMenuInstallToNAND() {
                QMessageBox::Yes;
     };
 
-    if (filename.endsWith("xci", Qt::CaseInsensitive) ||
-        filename.endsWith("nsp", Qt::CaseInsensitive)) {
-
+    if (filename.endsWith(QStringLiteral("xci"), Qt::CaseInsensitive) ||
+        filename.endsWith(QStringLiteral("nsp"), Qt::CaseInsensitive)) {
         std::shared_ptr<FileSys::NSP> nsp;
-        if (filename.endsWith("nsp", Qt::CaseInsensitive)) {
+        if (filename.endsWith(QStringLiteral("nsp"), Qt::CaseInsensitive)) {
             nsp = std::make_shared<FileSys::NSP>(
                 vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
             if (nsp->IsExtractedType())
@@ -1690,9 +1711,9 @@ void GMainWindow::OnConfigure() {
 }
 
 void GMainWindow::OnLoadAmiibo() {
-    const QString extensions{"*.bin"};
+    const QString extensions{QStringLiteral("*.bin")};
     const QString file_filter = tr("Amiibo File (%1);; All Files (*.*)").arg(extensions);
-    const QString filename = QFileDialog::getOpenFileName(this, tr("Load Amiibo"), "", file_filter);
+    const QString filename = QFileDialog::getOpenFileName(this, tr("Load Amiibo"), {}, file_filter);
 
     if (filename.isEmpty()) {
         return;
@@ -1754,7 +1775,7 @@ void GMainWindow::OnCaptureScreenshot() {
     QFileDialog png_dialog(this, tr("Capture Screenshot"), UISettings::values.screenshot_path,
                            tr("PNG Image (*.png)"));
     png_dialog.setAcceptMode(QFileDialog::AcceptSave);
-    png_dialog.setDefaultSuffix("png");
+    png_dialog.setDefaultSuffix(QStringLiteral("png"));
     if (png_dialog.exec()) {
         const QString path = png_dialog.selectedFiles().first();
         if (!path.isEmpty()) {
@@ -1817,17 +1838,17 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
            "data, or other bugs.");
     switch (result) {
     case Core::System::ResultStatus::ErrorSystemFiles: {
-        QString message = "yuzu was unable to locate a Switch system archive";
+        QString message = tr("yuzu was unable to locate a Switch system archive");
         if (!details.empty()) {
-            message.append(tr(": %1. ").arg(details.c_str()));
+            message.append(tr(": %1. ").arg(QString::fromStdString(details)));
         } else {
-            message.append(". ");
+            message.append(tr(". "));
         }
         message.append(common_message);
 
         answer = QMessageBox::question(this, tr("System Archive Not Found"), message,
                                        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-        status_message = "System Archive Missing";
+        status_message = tr("System Archive Missing");
         break;
     }
 
@@ -1836,7 +1857,7 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
         message.append(common_message);
         answer = QMessageBox::question(this, tr("Shared Fonts Not Found"), message,
                                        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-        status_message = "Shared Font Missing";
+        status_message = tr("Shared Font Missing");
         break;
     }
 
@@ -1852,7 +1873,7 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
                "Continuing emulation may result in crashes, corrupted save data, or other "
                "bugs."),
             QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-        status_message = "Fatal Error encountered";
+        status_message = tr("Fatal Error encountered");
         break;
     }
 
@@ -1903,18 +1924,19 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
         };
 
         QString errors;
-
-        if (!pdm.HasFuses())
+        if (!pdm.HasFuses()) {
             errors += tr("- Missing fuses - Cannot derive SBK\n");
-        if (!pdm.HasBoot0())
+        }
+        if (!pdm.HasBoot0()) {
             errors += tr("- Missing BOOT0 - Cannot derive master keys\n");
-        if (!pdm.HasPackage2())
+        }
+        if (!pdm.HasPackage2()) {
             errors += tr("- Missing BCPKG2-1-Normal-Main - Cannot derive general keys\n");
-        if (!pdm.HasProdInfo())
+        }
+        if (!pdm.HasProdInfo()) {
             errors += tr("- Missing PRODINFO - Cannot derive title keys\n");
-
+        }
         if (!errors.isEmpty()) {
-
             QMessageBox::warning(
                 this, tr("Warning Missing Derivation Components"),
                 tr("The following are missing from your configuration that may hinder key "
@@ -1964,13 +1986,15 @@ std::optional<u64> GMainWindow::SelectRomFSDumpTarget(const FileSys::ContentProv
 
     std::vector<u64> romfs_tids;
     romfs_tids.push_back(program_id);
-    for (const auto& entry : dlc_match)
+    for (const auto& entry : dlc_match) {
         romfs_tids.push_back(entry.title_id);
+    }
 
     if (romfs_tids.size() > 1) {
-        QStringList list{"Base"};
-        for (std::size_t i = 1; i < romfs_tids.size(); ++i)
+        QStringList list{QStringLiteral("Base")};
+        for (std::size_t i = 1; i < romfs_tids.size(); ++i) {
             list.push_back(QStringLiteral("DLC %1").arg(romfs_tids[i] & 0x7FF));
+        }
 
         bool ok;
         const auto res = QInputDialog::getItem(
@@ -2082,26 +2106,32 @@ void GMainWindow::filterBarSetChecked(bool state) {
 }
 
 void GMainWindow::UpdateUITheme() {
+    const QString default_icons = QStringLiteral(":/icons/default");
+    const QString& current_theme = UISettings::values.theme;
+    const bool is_default_theme = current_theme == QString::fromUtf8(UISettings::themes[0].second);
     QStringList theme_paths(default_theme_paths);
-    if (UISettings::values.theme != UISettings::themes[0].second &&
-        !UISettings::values.theme.isEmpty()) {
-        const QString theme_uri(":" + UISettings::values.theme + "/style.qss");
+
+    if (is_default_theme || current_theme.isEmpty()) {
+        qApp->setStyleSheet({});
+        setStyleSheet({});
+        theme_paths.append(default_icons);
+        QIcon::setThemeName(default_icons);
+    } else {
+        const QString theme_uri(QLatin1Char{':'} + current_theme + QStringLiteral("/style.qss"));
         QFile f(theme_uri);
         if (f.open(QFile::ReadOnly | QFile::Text)) {
             QTextStream ts(&f);
             qApp->setStyleSheet(ts.readAll());
-            GMainWindow::setStyleSheet(ts.readAll());
+            setStyleSheet(ts.readAll());
         } else {
             LOG_ERROR(Frontend, "Unable to set style, stylesheet file not found");
         }
-        theme_paths.append(QStringList{":/icons/default", ":/icons/" + UISettings::values.theme});
-        QIcon::setThemeName(":/icons/" + UISettings::values.theme);
-    } else {
-        qApp->setStyleSheet("");
-        GMainWindow::setStyleSheet("");
-        theme_paths.append(QStringList{":/icons/default"});
-        QIcon::setThemeName(":/icons/default");
+
+        const QString theme_name = QStringLiteral(":/icons/") + current_theme;
+        theme_paths.append({default_icons, theme_name});
+        QIcon::setThemeName(theme_name);
     }
+
     QIcon::setThemeSearchPaths(theme_paths);
     emit UpdateThemedIcons();
 }
@@ -2129,8 +2159,8 @@ int main(int argc, char* argv[]) {
     SCOPE_EXIT({ MicroProfileShutdown(); });
 
     // Init settings params
-    QCoreApplication::setOrganizationName("yuzu team");
-    QCoreApplication::setApplicationName("yuzu");
+    QCoreApplication::setOrganizationName(QStringLiteral("yuzu team"));
+    QCoreApplication::setApplicationName(QStringLiteral("yuzu"));
 
     // Enables the core to make the qt created contexts current on std::threads
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
