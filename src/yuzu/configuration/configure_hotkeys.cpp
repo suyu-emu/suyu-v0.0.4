@@ -31,10 +31,6 @@ ConfigureHotkeys::ConfigureHotkeys(QWidget* parent)
 
 ConfigureHotkeys::~ConfigureHotkeys() = default;
 
-void ConfigureHotkeys::EmitHotkeysChanged() {
-    emit HotkeysChanged(GetUsedKeyList());
-}
-
 QList<QKeySequence> ConfigureHotkeys::GetUsedKeyList() const {
     QList<QKeySequence> list;
     for (int r = 0; r < model->rowCount(); r++) {
@@ -87,7 +83,6 @@ void ConfigureHotkeys::Configure(QModelIndex index) {
                               tr("You're using a key that's already bound."));
     } else {
         model->setData(index, key_sequence.toString(QKeySequence::NativeText));
-        EmitHotkeysChanged();
     }
 }
 

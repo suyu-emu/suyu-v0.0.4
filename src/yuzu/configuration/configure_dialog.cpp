@@ -25,9 +25,6 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry)
 
     adjustSize();
     ui->selectorList->setCurrentRow(0);
-
-    // Synchronise lists upon initialisation
-    ui->hotkeysTab->EmitHotkeysChanged();
 }
 
 ConfigureDialog::~ConfigureDialog() = default;
