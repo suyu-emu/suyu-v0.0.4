@@ -18,23 +18,30 @@ QtSoftwareKeyboardValidator::QtSoftwareKeyboardValidator(
     : parameters(std::move(parameters)) {}
 
 QValidator::State QtSoftwareKeyboardValidator::validate(QString& input, int& pos) const {
-    if (input.size() > parameters.max_length)
+    if (input.size() > parameters.max_length) {
         return Invalid;
-    if (parameters.disable_space && input.contains(' '))
+    }
+    if (parameters.disable_space && input.contains(QLatin1Char{' '})) {
         return Invalid;
-    if (parameters.disable_address && input.contains('@'))
+    }
+    if (parameters.disable_address && input.contains(QLatin1Char{'@'})) {
         return Invalid;
-    if (parameters.disable_percent && input.contains('%'))
+    }
+    if (parameters.disable_percent && input.contains(QLatin1Char{'%'})) {
         return Invalid;
-    if (parameters.disable_slash && (input.contains('/') || input.contains('\\')))
+    }
+    if (parameters.disable_slash &&
+        (input.contains(QLatin1Char{'/'}) || input.contains(QLatin1Char{'\\'}))) {
         return Invalid;
+    }
     if (parameters.disable_number &&
         std::any_of(input.begin(), input.end(), [](QChar c) { return c.isDigit(); })) {
         return Invalid;
     }
 
-    if (parameters.disable_download_code &&
-        std::any_of(input.begin(), input.end(), [](QChar c) { return c == 'O' || c == 'I'; })) {
+    if (parameters.disable_download_code && std::any_of(input.begin(), input.end(), [](QChar c) {
+            return c == QLatin1Char{'O'} || c == QLatin1Char{'I'};
+        })) {
         return Invalid;
     }
 
