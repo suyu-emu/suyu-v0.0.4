@@ -18,7 +18,7 @@ QtSoftwareKeyboardValidator::QtSoftwareKeyboardValidator(
     : parameters(std::move(parameters)) {}
 
 QValidator::State QtSoftwareKeyboardValidator::validate(QString& input, int& pos) const {
-    if (input.size() > parameters.max_length) {
+    if (input.size() > static_cast<s64>(parameters.max_length)) {
         return Invalid;
     }
     if (parameters.disable_space && input.contains(QLatin1Char{' '})) {
