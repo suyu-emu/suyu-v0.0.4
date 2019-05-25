@@ -155,6 +155,10 @@ target_compile_definitions(yuzu PRIVATE
     # Use QStringBuilder for string concatenation to reduce
     # the overall number of temporary strings created.
     -DQT_USE_QSTRINGBUILDER
+
+    # Disable implicit conversions from/to C strings
+    -DQT_NO_CAST_FROM_ASCII
+    -DQT_NO_CAST_TO_ASCII
 )
 
 if (YUZU_ENABLE_COMPATIBILITY_REPORTING)

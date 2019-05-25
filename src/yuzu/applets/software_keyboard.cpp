@@ -18,23 +18,30 @@ QtSoftwareKeyboardValidator::QtSoftwareKeyboardValidator(
     : parameters(std::move(parameters)) {}
 
 QValidator::State QtSoftwareKeyboardValidator::validate(QString& input, int& pos) const {
-    if (input.size() > parameters.max_length)
+    if (input.size() > static_cast<s64>(parameters.max_length)) {
         return Invalid;
-    if (parameters.disable_space && input.contains(' '))
+    }
+    if (parameters.disable_space && input.contains(QLatin1Char{' '})) {
         return Invalid;
-    if (parameters.disable_address && input.contains('@'))
+    }
+    if (parameters.disable_address && input.contains(QLatin1Char{'@'})) {
         return Invalid;
-    if (parameters.disable_percent && input.contains('%'))
+    }
+    if (parameters.disable_percent && input.contains(QLatin1Char{'%'})) {
         return Invalid;
-    if (parameters.disable_slash && (input.contains('/') || input.contains('\\')))
+    }
+    if (parameters.disable_slash &&
+        (input.contains(QLatin1Char{'/'}) || input.contains(QLatin1Char{'\\'}))) {
         return Invalid;
+    }
     if (parameters.disable_number &&
         std::any_of(input.begin(), input.end(), [](QChar c) { return c.isDigit(); })) {
         return Invalid;
     }
 
-    if (parameters.disable_download_code &&
-        std::any_of(input.begin(), input.end(), [](QChar c) { return c == 'O' || c == 'I'; })) {
+    if (parameters.disable_download_code && std::any_of(input.begin(), input.end(), [](QChar c) {
+            return c == QLatin1Char{'O'} || c == QLatin1Char{'I'};
+        })) {
         return Invalid;
     }
 
@@ -142,7 +149,7 @@ void QtSoftwareKeyboard::SendTextCheckDialog(std::u16string error_message,
 void QtSoftwareKeyboard::MainWindowFinishedText(std::optional<std::u16string> text) {
     // Acquire the HLE mutex
     std::lock_guard lock{HLE::g_hle_lock};
-    text_output(text);
+    text_output(std::move(text));
 }
 
 void QtSoftwareKeyboard::MainWindowFinishedCheckDialog() {
