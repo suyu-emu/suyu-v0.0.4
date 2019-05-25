@@ -149,7 +149,7 @@ void QtSoftwareKeyboard::SendTextCheckDialog(std::u16string error_message,
 void QtSoftwareKeyboard::MainWindowFinishedText(std::optional<std::u16string> text) {
     // Acquire the HLE mutex
     std::lock_guard lock{HLE::g_hle_lock};
-    text_output(text);
+    text_output(std::move(text));
 }
 
 void QtSoftwareKeyboard::MainWindowFinishedCheckDialog() {
