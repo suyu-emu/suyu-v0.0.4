@@ -172,7 +172,6 @@ void EmuWindow_SDL2::PollEvents() {
     }
 }
 
-void EmuWindow_SDL2::OnMinimalClientAreaChangeRequest(
-    const std::pair<unsigned, unsigned>& minimal_size) {
+void EmuWindow_SDL2::OnMinimalClientAreaChangeRequest(std::pair<unsigned, unsigned> minimal_size) {
     SDL_SetWindowMinimumSize(render_window, minimal_size.first, minimal_size.second);
 }

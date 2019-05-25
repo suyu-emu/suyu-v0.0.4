@@ -162,8 +162,7 @@ private:
     void TouchUpdateEvent(const QTouchEvent* event);
     void TouchEndEvent();
 
-    void OnMinimalClientAreaChangeRequest(
-        const std::pair<unsigned, unsigned>& minimal_size) override;
+    void OnMinimalClientAreaChangeRequest(std::pair<unsigned, unsigned> minimal_size) override;
 
     QWidget* container = nullptr;
     GGLWidgetInternal* child = nullptr;

@@ -169,8 +169,7 @@ private:
      * For the request to be honored, EmuWindow implementations will usually reimplement this
      * function.
      */
-    virtual void OnMinimalClientAreaChangeRequest(
-        const std::pair<unsigned, unsigned>& minimal_size) {
+    virtual void OnMinimalClientAreaChangeRequest(std::pair<unsigned, unsigned>) {
         // By default, ignore this request and do nothing.
     }
 
