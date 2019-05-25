@@ -32,8 +32,9 @@ void QtErrorDisplay::ShowErrorWithTimestamp(ResultCode error, std::chrono::secon
     emit MainWindowDisplayError(
         tr("An error occured on %1 at %2.\nPlease try again or contact the "
            "developer of the software.\n\nError Code: %3-%4 (0x%5)")
-            .arg(QDateTime::fromSecsSinceEpoch(time.count()).toString("dddd, MMMM d, yyyy"))
-            .arg(QDateTime::fromSecsSinceEpoch(time.count()).toString("h:mm:ss A"))
+            .arg(QDateTime::fromSecsSinceEpoch(time.count())
+                     .toString(QStringLiteral("dddd, MMMM d, yyyy")))
+            .arg(QDateTime::fromSecsSinceEpoch(time.count()).toString(QStringLiteral("h:mm:ss A")))
             .arg(static_cast<u32>(error.module.Value()) + 2000, 4, 10, QChar::fromLatin1('0'))
             .arg(error.description, 4, 10, QChar::fromLatin1('0'))
             .arg(error.raw, 8, 16, QChar::fromLatin1('0')));
