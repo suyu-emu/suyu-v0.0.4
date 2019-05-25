@@ -34,7 +34,6 @@ public:
 private:
     void Configure(QModelIndex index);
     bool IsUsedKey(QKeySequence key_sequence) const;
-    QList<QKeySequence> GetUsedKeyList() const;
 
     std::unique_ptr<Ui::ConfigureHotkeys> ui;
 

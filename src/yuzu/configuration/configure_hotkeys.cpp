@@ -31,18 +31,6 @@ ConfigureHotkeys::ConfigureHotkeys(QWidget* parent)
 
 ConfigureHotkeys::~ConfigureHotkeys() = default;
 
-QList<QKeySequence> ConfigureHotkeys::GetUsedKeyList() const {
-    QList<QKeySequence> list;
-    for (int r = 0; r < model->rowCount(); r++) {
-        const QStandardItem* parent = model->item(r, 0);
-        for (int r2 = 0; r2 < parent->rowCount(); r2++) {
-            const QStandardItem* keyseq = parent->child(r2, 1);
-            list << QKeySequence::fromString(keyseq->text(), QKeySequence::NativeText);
-        }
-    }
-    return list;
-}
-
 void ConfigureHotkeys::Populate(const HotkeyRegistry& registry) {
     for (const auto& group : registry.hotkey_groups) {
         auto* parent_item = new QStandardItem(group.first);
@@ -87,7 +75,21 @@ void ConfigureHotkeys::Configure(QModelIndex index) {
 }
 
 bool ConfigureHotkeys::IsUsedKey(QKeySequence key_sequence) const {
-    return GetUsedKeyList().contains(key_sequence);
+    for (int r = 0; r < model->rowCount(); r++) {
+        const QStandardItem* const parent = model->item(r, 0);
+
+        for (int r2 = 0; r2 < parent->rowCount(); r2++) {
+            const QStandardItem* const key_seq_item = parent->child(r2, 1);
+            const auto key_seq_str = key_seq_item->text();
+            const auto key_seq = QKeySequence::fromString(key_seq_str, QKeySequence::NativeText);
+
+            if (key_sequence == key_seq) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 void ConfigureHotkeys::applyConfiguration(HotkeyRegistry& registry) {
