@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <string>
+#include <string_view>
 #include <vector>
 #include <glad/glad.h>
 #include "common/common_types.h"
@@ -30,6 +30,6 @@ private:
     std::vector<GLsizeiptr> sizes;
 };
 
-void LabelGLObject(GLenum identifier, GLuint handle, VAddr addr, std::string extra_info = "");
+void LabelGLObject(GLenum identifier, GLuint handle, VAddr addr, std::string_view extra_info = {});
 
 } // namespace OpenGL
