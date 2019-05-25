@@ -31,6 +31,7 @@
 #include "video_core/renderer_base.h"
 #include "yuzu_cmd/config.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2.h"
+#include "yuzu_cmd/emu_window/emu_window_sdl2_gl.h"
 
 #include "core/file_sys/registered_cache.h"
 
@@ -173,7 +174,7 @@ int main(int argc, char** argv) {
     Settings::values.use_gdbstub = use_gdbstub;
     Settings::Apply();
 
-    std::unique_ptr<EmuWindow_SDL2> emu_window{std::make_unique<EmuWindow_SDL2>(fullscreen)};
+    std::unique_ptr<EmuWindow_SDL2> emu_window{std::make_unique<EmuWindow_SDL2_GL>(fullscreen)};
 
     if (!Settings::values.use_multi_core) {
         // Single core mode must acquire OpenGL context for entire emulation session

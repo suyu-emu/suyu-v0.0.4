@@ -4,6 +4,8 @@ add_executable(yuzu-cmd
     config.cpp
     config.h
     default_ini.h
+    emu_window/emu_window_sdl2_gl.cpp
+    emu_window/emu_window_sdl2_gl.h
     emu_window/emu_window_sdl2.cpp
     emu_window/emu_window_sdl2.h
     resource.h
