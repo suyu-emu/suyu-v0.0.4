@@ -14,11 +14,11 @@ namespace Core::Timing {
 constexpr u64 MAX_VALUE_TO_MULTIPLY = std::numeric_limits<s64>::max() / BASE_CLOCK_RATE;
 
 s64 usToCycles(s64 us) {
-    if (us / 1000000 > MAX_VALUE_TO_MULTIPLY) {
+    if (static_cast<u64>(us / 1000000) > MAX_VALUE_TO_MULTIPLY) {
         LOG_ERROR(Core_Timing, "Integer overflow, use max value");
         return std::numeric_limits<s64>::max();
     }
-    if (us > MAX_VALUE_TO_MULTIPLY) {
+    if (static_cast<u64>(us) > MAX_VALUE_TO_MULTIPLY) {
         LOG_DEBUG(Core_Timing, "Time very big, do rounding");
         return BASE_CLOCK_RATE * (us / 1000000);
     }
@@ -38,11 +38,11 @@ s64 usToCycles(u64 us) {
 }
 
 s64 nsToCycles(s64 ns) {
-    if (ns / 1000000000 > MAX_VALUE_TO_MULTIPLY) {
+    if (static_cast<u64>(ns / 1000000000) > MAX_VALUE_TO_MULTIPLY) {
         LOG_ERROR(Core_Timing, "Integer overflow, use max value");
         return std::numeric_limits<s64>::max();
     }
-    if (ns > MAX_VALUE_TO_MULTIPLY) {
+    if (static_cast<u64>(ns) > MAX_VALUE_TO_MULTIPLY) {
         LOG_DEBUG(Core_Timing, "Time very big, do rounding");
         return BASE_CLOCK_RATE * (ns / 1000000000);
     }
