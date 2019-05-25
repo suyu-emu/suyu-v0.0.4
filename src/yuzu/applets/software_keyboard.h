@@ -6,7 +6,6 @@
 
 #include <QDialog>
 #include <QValidator>
-#include "common/assert.h"
 #include "core/frontend/applets/software_keyboard.h"
 
 class GMainWindow;
