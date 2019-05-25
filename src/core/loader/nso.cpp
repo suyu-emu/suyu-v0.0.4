@@ -39,7 +39,7 @@ std::vector<u8> DecompressSegment(const std::vector<u8>& compressed_data,
     const std::vector<u8> uncompressed_data =
         Common::Compression::DecompressDataLZ4(compressed_data, header.size);
 
-    ASSERT_MSG(uncompressed_data.size() == static_cast<int>(header.size), "{} != {}", header.size,
+    ASSERT_MSG(uncompressed_data.size() == header.size, "{} != {}", header.size,
                uncompressed_data.size());
 
     return uncompressed_data;
