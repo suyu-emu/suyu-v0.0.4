@@ -78,16 +78,17 @@ namespace FileUtil {
 // Remove any ending forward slashes from directory paths
 // Modifies argument.
 static void StripTailDirSlashes(std::string& fname) {
-    if (fname.length() > 1) {
-        std::size_t i = fname.length();
-        while (i > 0 && fname[i - 1] == DIR_SEP_CHR)
-            --i;
-        fname.resize(i);
+    if (fname.length() <= 1) {
+        return;
     }
-    return;
+
+    std::size_t i = fname.length();
+    while (i > 0 && fname[i - 1] == DIR_SEP_CHR) {
+        --i;
+    }
+    fname.resize(i);
 }
 
-// Returns true if file filename exists
 bool Exists(const std::string& filename) {
     struct stat file_info;
 
@@ -107,7 +108,6 @@ bool Exists(const std::string& filename) {
     return (result == 0);
 }
 
-// Returns true if filename is a directory
 bool IsDirectory(const std::string& filename) {
     struct stat file_info;
 
@@ -132,8 +132,6 @@ bool IsDirectory(const std::string& filename) {
     return S_ISDIR(file_info.st_mode);
 }
 
-// Deletes a given filename, return true on success
-// Doesn't supports deleting a directory
 bool Delete(const std::string& filename) {
     LOG_TRACE(Common_Filesystem, "file {}", filename);
 
@@ -165,7 +163,6 @@ bool Delete(const std::string& filename) {
     return true;
 }
 
-// Returns true if successful, or path already exists.
 bool CreateDir(const std::string& path) {
     LOG_TRACE(Common_Filesystem, "directory {}", path);
 #ifdef _WIN32
@@ -194,7 +191,6 @@ bool CreateDir(const std::string& path) {
 #endif
 }
 
-// Creates the full path of fullPath returns true on success
 bool CreateFullPath(const std::string& fullPath) {
     int panicCounter = 100;
     LOG_TRACE(Common_Filesystem, "path {}", fullPath);
@@ -230,7 +226,6 @@ bool CreateFullPath(const std::string& fullPath) {
     }
 }
 
-// Deletes a directory filename, returns true on success
 bool DeleteDir(const std::string& filename) {
     LOG_TRACE(Common_Filesystem, "directory {}", filename);
 
@@ -252,7 +247,6 @@ bool DeleteDir(const std::string& filename) {
     return false;
 }
 
-// renames file srcFilename to destFilename, returns true on success
 bool Rename(const std::string& srcFilename, const std::string& destFilename) {
     LOG_TRACE(Common_Filesystem, "{} --> {}", srcFilename, destFilename);
 #ifdef _WIN32
@@ -268,7 +262,6 @@ bool Rename(const std::string& srcFilename, const std::string& destFilename) {
     return false;
 }
 
-// copies file srcFilename to destFilename, returns true on success
 bool Copy(const std::string& srcFilename, const std::string& destFilename) {
     LOG_TRACE(Common_Filesystem, "{} --> {}", srcFilename, destFilename);
 #ifdef _WIN32
@@ -324,7 +317,6 @@ bool Copy(const std::string& srcFilename, const std::string& destFilename) {
 #endif
 }
 
-// Returns the size of filename (64bit)
 u64 GetSize(const std::string& filename) {
     if (!Exists(filename)) {
         LOG_ERROR(Common_Filesystem, "failed {}: No such file", filename);
@@ -351,7 +343,6 @@ u64 GetSize(const std::string& filename) {
     return 0;
 }
 
-// Overloaded GetSize, accepts file descriptor
 u64 GetSize(const int fd) {
     struct stat buf;
     if (fstat(fd, &buf) != 0) {
@@ -361,7 +352,6 @@ u64 GetSize(const int fd) {
     return buf.st_size;
 }
 
-// Overloaded GetSize, accepts FILE*
 u64 GetSize(FILE* f) {
     // can't use off_t here because it can be 32-bit
     u64 pos = ftello(f);
@@ -377,7 +367,6 @@ u64 GetSize(FILE* f) {
     return size;
 }
 
-// creates an empty file filename, returns true on success
 bool CreateEmptyFile(const std::string& filename) {
     LOG_TRACE(Common_Filesystem, "{}", filename);
 
@@ -502,7 +491,6 @@ bool DeleteDirRecursively(const std::string& directory, unsigned int recursion) 
     return true;
 }
 
-// Create directory and copy contents (does not overwrite existing files)
 void CopyDir(const std::string& source_path, const std::string& dest_path) {
 #ifndef _WIN32
     if (source_path == dest_path)
@@ -539,8 +527,7 @@ void CopyDir(const std::string& source_path, const std::string& dest_path) {
 #endif
 }
 
-// Returns the current directory
-std::string GetCurrentDir() {
+std::optional<std::string> GetCurrentDir() {
 // Get the current working directory (getcwd uses malloc)
 #ifdef _WIN32
     wchar_t* dir;
@@ -550,7 +537,7 @@ std::string GetCurrentDir() {
     if (!(dir = getcwd(nullptr, 0))) {
 #endif
         LOG_ERROR(Common_Filesystem, "GetCurrentDirectory failed: {}", GetLastErrorMsg());
-        return nullptr;
+        return {};
     }
 #ifdef _WIN32
     std::string strDir = Common::UTF16ToUTF8(dir);
@@ -561,7 +548,6 @@ std::string GetCurrentDir() {
     return strDir;
 }
 
-// Sets the current directory to the given directory
 bool SetCurrentDir(const std::string& directory) {
 #ifdef _WIN32
     return _wchdir(Common::UTF8ToUTF16W(directory).c_str()) == 0;
@@ -673,8 +659,6 @@ std::string GetSysDirectory() {
     return sysDir;
 }
 
-// Returns a string with a yuzu data dir or file in the user's home
-// directory. To be used in "multi-user" mode (that is, installed).
 const std::string& GetUserPath(UserPath path, const std::string& new_path) {
     static std::unordered_map<UserPath, std::string> paths;
     auto& user_path = paths[UserPath::UserDir];
@@ -762,11 +746,11 @@ std::string GetNANDRegistrationDir(bool system) {
     return GetUserPath(UserPath::NANDDir) + "user/Contents/registered/";
 }
 
-std::size_t WriteStringToFile(bool text_file, const std::string& str, const char* filename) {
-    return FileUtil::IOFile(filename, text_file ? "w" : "wb").WriteBytes(str.data(), str.size());
+std::size_t WriteStringToFile(bool text_file, const std::string& filename, std::string_view str) {
+    return IOFile(filename, text_file ? "w" : "wb").WriteString(str);
 }
 
-std::size_t ReadFileToString(bool text_file, const char* filename, std::string& str) {
+std::size_t ReadFileToString(bool text_file, const std::string& filename, std::string& str) {
     IOFile file(filename, text_file ? "r" : "rb");
 
     if (!file.IsOpen())
@@ -776,13 +760,6 @@ std::size_t ReadFileToString(bool text_file, const char* filename, std::string& 
     return file.ReadArray(&str[0], str.size());
 }
 
-/**
- * Splits the filename into 8.3 format
- * Loosely implemented following https://en.wikipedia.org/wiki/8.3_filename
- * @param filename The normal filename to use
- * @param short_name A 9-char array in which the short name will be written
- * @param extension A 4-char array in which the extension will be written
- */
 void SplitFilename83(const std::string& filename, std::array<char, 9>& short_name,
                      std::array<char, 4>& extension) {
     const std::string forbidden_characters = ".\"/\\[]:;=, ";
