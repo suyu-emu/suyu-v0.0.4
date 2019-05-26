@@ -39,11 +39,12 @@ T GetGameListCachedObject(const std::string& filename, const std::string& ext,
 template <>
 QString GetGameListCachedObject(const std::string& filename, const std::string& ext,
                                 const std::function<QString()>& generator) {
-    if (!UISettings::values.cache_game_list || filename == "0000000000000000")
+    if (!UISettings::values.cache_game_list || filename == "0000000000000000") {
         return generator();
+    }
 
-    const auto& path = FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) + DIR_SEP + "game_list" +
-                       DIR_SEP + filename + "." + ext;
+    const auto path = FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) + DIR_SEP + "game_list" +
+                      DIR_SEP + filename + '.' + ext;
 
     FileUtil::CreateFullPath(path);
 
@@ -51,10 +52,10 @@ QString GetGameListCachedObject(const std::string& filename, const std::string& 
         const auto str = generator();
 
         std::ofstream stream(path);
-        if (stream)
+        if (stream) {
             stream << str.toStdString();
+        }
 
-        stream.close();
         return str;
     }
 
@@ -63,7 +64,6 @@ QString GetGameListCachedObject(const std::string& filename, const std::string& 
     if (stream) {
         const std::string out(std::istreambuf_iterator<char>{stream},
                               std::istreambuf_iterator<char>{});
-        stream.close();
         return QString::fromStdString(out);
     }
 
@@ -74,13 +74,14 @@ template <>
 std::pair<std::vector<u8>, std::string> GetGameListCachedObject(
     const std::string& filename, const std::string& ext,
     const std::function<std::pair<std::vector<u8>, std::string>()>& generator) {
-    if (!UISettings::values.cache_game_list || filename == "0000000000000000")
+    if (!UISettings::values.cache_game_list || filename == "0000000000000000") {
         return generator();
+    }
 
-    const auto& path1 = FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) + DIR_SEP +
-                        "game_list" + DIR_SEP + filename + ".jpeg";
-    const auto& path2 = FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) + DIR_SEP +
-                        "game_list" + DIR_SEP + filename + ".appname.txt";
+    const auto path1 = FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) + DIR_SEP + "game_list" +
+                       DIR_SEP + filename + ".jpeg";
+    const auto path2 = FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) + DIR_SEP + "game_list" +
+                       DIR_SEP + filename + ".appname.txt";
 
     FileUtil::CreateFullPath(path1);
 
@@ -88,20 +89,41 @@ std::pair<std::vector<u8>, std::string> GetGameListCachedObject(
         const auto [icon, nacp] = generator();
 
         FileUtil::IOFile file1(path1, "wb");
-        file1.Resize(icon.size());
-        file1.WriteBytes(icon.data(), icon.size());
+        if (!file1.IsOpen()) {
+            LOG_ERROR(Frontend, "Failed to open cache file.");
+            return generator();
+        }
+
+        if (!file1.Resize(icon.size())) {
+            LOG_ERROR(Frontend, "Failed to resize cache file to necessary size.");
+            return generator();
+        }
+
+        if (file1.WriteBytes(icon.data(), icon.size()) != icon.size()) {
+            LOG_ERROR(Frontend, "Failed to write data to cache file.");
+            return generator();
+        }
 
         std::ofstream stream2(path2, std::ios::out);
-        if (stream2)
+        if (stream2) {
             stream2 << nacp;
+        }
 
-        file1.Close();
-        stream2.close();
         return std::make_pair(icon, nacp);
     }
 
     FileUtil::IOFile file1(path1, "rb");
     std::ifstream stream2(path2);
+
+    if (!file1.IsOpen()) {
+        LOG_ERROR(Frontend, "Failed to open cache file for reading.");
+        return generator();
+    }
+
+    if (!stream2) {
+        LOG_ERROR(Frontend, "Failed to open cache file for reading.");
+        return generator();
+    }
 
     std::vector<u8> vec(file1.GetSize());
     file1.ReadBytes(vec.data(), vec.size());
@@ -109,7 +131,6 @@ std::pair<std::vector<u8>, std::string> GetGameListCachedObject(
     if (stream2 && !vec.empty()) {
         const std::string out(std::istreambuf_iterator<char>{stream2},
                               std::istreambuf_iterator<char>{});
-        stream2.close();
         return std::make_pair(vec, out);
     }
 
@@ -118,14 +139,11 @@ std::pair<std::vector<u8>, std::string> GetGameListCachedObject(
 
 void GetMetadataFromControlNCA(const FileSys::PatchManager& patch_manager, const FileSys::NCA& nca,
                                std::vector<u8>& icon, std::string& name) {
-    auto res = GetGameListCachedObject<std::pair<std::vector<u8>, std::string>>(
+    std::tie(icon, name) = GetGameListCachedObject<std::pair<std::vector<u8>, std::string>>(
         fmt::format("{:016X}", patch_manager.GetTitleID()), {}, [&patch_manager, &nca] {
             const auto [nacp, icon_f] = patch_manager.ParseControlNCA(nca);
             return std::make_pair(icon_f->ReadAllBytes(), nacp->GetApplicationName());
         });
-
-    icon = std::move(res.first);
-    name = std::move(res.second);
 }
 
 bool HasSupportedFileExtension(const std::string& file_name) {
