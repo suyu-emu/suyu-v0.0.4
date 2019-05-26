@@ -38,27 +38,27 @@ void BindBuffersRangePushBuffer::Bind() const {
                        sizes.data());
 }
 
-void LabelGLObject(GLenum identifier, GLuint handle, VAddr addr, std::string extra_info) {
+void LabelGLObject(GLenum identifier, GLuint handle, VAddr addr, std::string_view extra_info) {
     if (!GLAD_GL_KHR_debug) {
-        return; // We don't need to throw an error as this is just for debugging
+        // We don't need to throw an error as this is just for debugging
+        return;
     }
-    const std::string nice_addr = fmt::format("0x{:016x}", addr);
-    std::string object_label;
 
+    std::string object_label;
     if (extra_info.empty()) {
         switch (identifier) {
         case GL_TEXTURE:
-            object_label = "Texture@" + nice_addr;
+            object_label = fmt::format("Texture@0x{:016X}", addr);
             break;
         case GL_PROGRAM:
-            object_label = "Shader@" + nice_addr;
+            object_label = fmt::format("Shader@0x{:016X}", addr);
             break;
         default:
-            object_label = fmt::format("Object(0x{:x})@{}", identifier, nice_addr);
+            object_label = fmt::format("Object(0x{:X})@0x{:016X}", identifier, addr);
             break;
         }
     } else {
-        object_label = extra_info + '@' + nice_addr;
+        object_label = fmt::format("{}@0x{:016X}", extra_info, addr);
     }
     glObjectLabel(identifier, handle, -1, static_cast<const GLchar*>(object_label.c_str()));
 }
