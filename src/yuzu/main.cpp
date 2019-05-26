@@ -1294,10 +1294,10 @@ void GMainWindow::OnGameListOpenPerGameProperties(const std::string& file) {
     }
 
     ConfigurePerGameGeneral dialog(this, title_id);
-    dialog.loadFromFile(v_file);
+    dialog.LoadFromFile(v_file);
     auto result = dialog.exec();
     if (result == QDialog::Accepted) {
-        dialog.applyConfiguration();
+        dialog.ApplyConfiguration();
 
         const auto reload = UISettings::values.is_game_list_reload_pending.exchange(false);
         if (reload) {
@@ -1688,26 +1688,31 @@ void GMainWindow::ToggleWindowMode() {
 }
 
 void GMainWindow::OnConfigure() {
-    ConfigureDialog configureDialog(this, hotkey_registry);
-    auto old_theme = UISettings::values.theme;
+    const auto old_theme = UISettings::values.theme;
     const bool old_discord_presence = UISettings::values.enable_discord_presence;
-    auto result = configureDialog.exec();
-    if (result == QDialog::Accepted) {
-        configureDialog.applyConfiguration();
-        InitializeHotkeys();
-        if (UISettings::values.theme != old_theme)
-            UpdateUITheme();
-        if (UISettings::values.enable_discord_presence != old_discord_presence)
-            SetDiscordEnabled(UISettings::values.enable_discord_presence);
 
-        const auto reload = UISettings::values.is_game_list_reload_pending.exchange(false);
-        if (reload) {
-            game_list->PopulateAsync(UISettings::values.game_directory_path,
-                                     UISettings::values.game_directory_deepscan);
-        }
-
-        config->Save();
+    ConfigureDialog configure_dialog(this, hotkey_registry);
+    const auto result = configure_dialog.exec();
+    if (result != QDialog::Accepted) {
+        return;
     }
+
+    configure_dialog.ApplyConfiguration();
+    InitializeHotkeys();
+    if (UISettings::values.theme != old_theme) {
+        UpdateUITheme();
+    }
+    if (UISettings::values.enable_discord_presence != old_discord_presence) {
+        SetDiscordEnabled(UISettings::values.enable_discord_presence);
+    }
+
+    const auto reload = UISettings::values.is_game_list_reload_pending.exchange(false);
+    if (reload) {
+        game_list->PopulateAsync(UISettings::values.game_directory_path,
+                                 UISettings::values.game_directory_deepscan);
+    }
+
+    config->Save();
 }
 
 void GMainWindow::OnLoadAmiibo() {

@@ -18,10 +18,10 @@ public:
     explicit ConfigureGraphics(QWidget* parent = nullptr);
     ~ConfigureGraphics() override;
 
-    void applyConfiguration();
+    void ApplyConfiguration();
 
 private:
-    void setConfiguration();
+    void SetConfiguration();
 
     void UpdateBackgroundColorButton(QColor color);
 

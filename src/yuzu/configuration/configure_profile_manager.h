@@ -30,10 +30,11 @@ public:
     explicit ConfigureProfileManager(QWidget* parent = nullptr);
     ~ConfigureProfileManager() override;
 
-    void applyConfiguration();
-    void setConfiguration();
+    void ApplyConfiguration();
 
 private:
+    void SetConfiguration();
+
     void PopulateUserList();
     void UpdateCurrentUser();
 

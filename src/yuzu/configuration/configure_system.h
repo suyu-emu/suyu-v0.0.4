@@ -20,10 +20,11 @@ public:
     explicit ConfigureSystem(QWidget* parent = nullptr);
     ~ConfigureSystem() override;
 
-    void applyConfiguration();
-    void setConfiguration();
+    void ApplyConfiguration();
 
 private:
+    void SetConfiguration();
+
     void ReadSystemSettings();
 
     void RefreshConsoleID();

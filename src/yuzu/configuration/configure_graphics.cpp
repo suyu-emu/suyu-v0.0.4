@@ -52,7 +52,8 @@ Resolution FromResolutionFactor(float factor) {
 ConfigureGraphics::ConfigureGraphics(QWidget* parent)
     : QWidget(parent), ui(new Ui::ConfigureGraphics) {
     ui->setupUi(this);
-    setConfiguration();
+
+    SetConfiguration();
 
     connect(ui->toggle_frame_limit, &QCheckBox::toggled, ui->frame_limit, &QSpinBox::setEnabled);
     connect(ui->bg_button, &QPushButton::clicked, this, [this] {
@@ -66,7 +67,7 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
 
 ConfigureGraphics::~ConfigureGraphics() = default;
 
-void ConfigureGraphics::setConfiguration() {
+void ConfigureGraphics::SetConfiguration() {
     const bool runtime_lock = !Core::System::GetInstance().IsPoweredOn();
 
     ui->resolution_factor_combobox->setCurrentIndex(
@@ -87,7 +88,7 @@ void ConfigureGraphics::setConfiguration() {
                                                  Settings::values.bg_blue));
 }
 
-void ConfigureGraphics::applyConfiguration() {
+void ConfigureGraphics::ApplyConfiguration() {
     Settings::values.resolution_factor =
         ToResolutionFactor(static_cast<Resolution>(ui->resolution_factor_combobox->currentIndex()));
     Settings::values.use_frame_limit = ui->toggle_frame_limit->isChecked();

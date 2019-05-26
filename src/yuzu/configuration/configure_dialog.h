@@ -20,10 +20,10 @@ public:
     explicit ConfigureDialog(QWidget* parent, HotkeyRegistry& registry);
     ~ConfigureDialog() override;
 
-    void applyConfiguration();
+    void ApplyConfiguration();
 
 private:
-    void setConfiguration();
+    void SetConfiguration();
     void UpdateVisibleTabs();
     void PopulateSelectionList();
 

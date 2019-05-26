@@ -50,12 +50,12 @@ void OnDockedModeChanged(bool last_state, bool new_state) {
 namespace {
 template <typename Dialog, typename... Args>
 void CallConfigureDialog(ConfigureInput& parent, Args&&... args) {
-    parent.applyConfiguration();
+    parent.ApplyConfiguration();
     Dialog dialog(&parent, std::forward<Args>(args)...);
 
     const auto res = dialog.exec();
     if (res == QDialog::Accepted) {
-        dialog.applyConfiguration();
+        dialog.ApplyConfiguration();
     }
 }
 } // Anonymous namespace
@@ -79,24 +79,24 @@ ConfigureInput::ConfigureInput(QWidget* parent)
                                   tr("Single Right Joycon"), tr("Single Left Joycon")});
     }
 
-    this->loadConfiguration();
-    updateUIEnabled();
+    LoadConfiguration();
+    UpdateUIEnabled();
 
     connect(ui->restore_defaults_button, &QPushButton::pressed, this,
-            &ConfigureInput::restoreDefaults);
+            &ConfigureInput::RestoreDefaults);
 
     for (auto* enabled : players_controller) {
         connect(enabled, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-                &ConfigureInput::updateUIEnabled);
+                &ConfigureInput::UpdateUIEnabled);
     }
-    connect(ui->use_docked_mode, &QCheckBox::stateChanged, this, &ConfigureInput::updateUIEnabled);
+    connect(ui->use_docked_mode, &QCheckBox::stateChanged, this, &ConfigureInput::UpdateUIEnabled);
     connect(ui->handheld_connected, &QCheckBox::stateChanged, this,
-            &ConfigureInput::updateUIEnabled);
-    connect(ui->mouse_enabled, &QCheckBox::stateChanged, this, &ConfigureInput::updateUIEnabled);
-    connect(ui->keyboard_enabled, &QCheckBox::stateChanged, this, &ConfigureInput::updateUIEnabled);
-    connect(ui->debug_enabled, &QCheckBox::stateChanged, this, &ConfigureInput::updateUIEnabled);
+            &ConfigureInput::UpdateUIEnabled);
+    connect(ui->mouse_enabled, &QCheckBox::stateChanged, this, &ConfigureInput::UpdateUIEnabled);
+    connect(ui->keyboard_enabled, &QCheckBox::stateChanged, this, &ConfigureInput::UpdateUIEnabled);
+    connect(ui->debug_enabled, &QCheckBox::stateChanged, this, &ConfigureInput::UpdateUIEnabled);
     connect(ui->touchscreen_enabled, &QCheckBox::stateChanged, this,
-            &ConfigureInput::updateUIEnabled);
+            &ConfigureInput::UpdateUIEnabled);
 
     for (std::size_t i = 0; i < players_configure.size(); ++i) {
         connect(players_configure[i], &QPushButton::pressed, this,
@@ -118,7 +118,7 @@ ConfigureInput::ConfigureInput(QWidget* parent)
 
 ConfigureInput::~ConfigureInput() = default;
 
-void ConfigureInput::applyConfiguration() {
+void ConfigureInput::ApplyConfiguration() {
     for (std::size_t i = 0; i < players_controller.size(); ++i) {
         const auto controller_type_index = players_controller[i]->currentIndex();
 
@@ -144,7 +144,7 @@ void ConfigureInput::applyConfiguration() {
     Settings::values.touchscreen.enabled = ui->touchscreen_enabled->isChecked();
 }
 
-void ConfigureInput::updateUIEnabled() {
+void ConfigureInput::UpdateUIEnabled() {
     bool hit_disabled = false;
     for (auto* player : players_controller) {
         player->setDisabled(hit_disabled);
@@ -168,7 +168,7 @@ void ConfigureInput::updateUIEnabled() {
     ui->touchscreen_advanced->setEnabled(ui->touchscreen_enabled->isChecked());
 }
 
-void ConfigureInput::loadConfiguration() {
+void ConfigureInput::LoadConfiguration() {
     std::stable_partition(
         Settings::values.players.begin(),
         Settings::values.players.begin() +
@@ -191,10 +191,10 @@ void ConfigureInput::loadConfiguration() {
     ui->keyboard_enabled->setChecked(Settings::values.keyboard_enabled);
     ui->touchscreen_enabled->setChecked(Settings::values.touchscreen.enabled);
 
-    updateUIEnabled();
+    UpdateUIEnabled();
 }
 
-void ConfigureInput::restoreDefaults() {
+void ConfigureInput::RestoreDefaults() {
     players_controller[0]->setCurrentIndex(2);
 
     for (std::size_t i = 1; i < players_controller.size(); ++i) {
@@ -207,5 +207,5 @@ void ConfigureInput::restoreDefaults() {
     ui->keyboard_enabled->setCheckState(Qt::Unchecked);
     ui->debug_enabled->setCheckState(Qt::Unchecked);
     ui->touchscreen_enabled->setCheckState(Qt::Checked);
-    updateUIEnabled();
+    UpdateUIEnabled();
 }

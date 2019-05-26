@@ -15,10 +15,10 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry)
     : QDialog(parent), ui(new Ui::ConfigureDialog), registry(registry) {
     ui->setupUi(this);
     ui->hotkeysTab->Populate(registry);
-    this->setConfiguration();
-    this->PopulateSelectionList();
-
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
+    SetConfiguration();
+    PopulateSelectionList();
 
     connect(ui->selectorList, &QListWidget::itemSelectionChanged, this,
             &ConfigureDialog::UpdateVisibleTabs);
@@ -29,19 +29,19 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry)
 
 ConfigureDialog::~ConfigureDialog() = default;
 
-void ConfigureDialog::setConfiguration() {}
+void ConfigureDialog::SetConfiguration() {}
 
-void ConfigureDialog::applyConfiguration() {
-    ui->generalTab->applyConfiguration();
-    ui->gameListTab->applyConfiguration();
-    ui->systemTab->applyConfiguration();
-    ui->profileManagerTab->applyConfiguration();
-    ui->inputTab->applyConfiguration();
-    ui->hotkeysTab->applyConfiguration(registry);
-    ui->graphicsTab->applyConfiguration();
-    ui->audioTab->applyConfiguration();
-    ui->debugTab->applyConfiguration();
-    ui->webTab->applyConfiguration();
+void ConfigureDialog::ApplyConfiguration() {
+    ui->generalTab->ApplyConfiguration();
+    ui->gameListTab->ApplyConfiguration();
+    ui->systemTab->ApplyConfiguration();
+    ui->profileManagerTab->ApplyConfiguration();
+    ui->inputTab->ApplyConfiguration();
+    ui->hotkeysTab->ApplyConfiguration(registry);
+    ui->graphicsTab->ApplyConfiguration();
+    ui->audioTab->ApplyConfiguration();
+    ui->debugTab->ApplyConfiguration();
+    ui->webTab->ApplyConfiguration();
     Settings::Apply();
     Settings::LogSettings();
 }
