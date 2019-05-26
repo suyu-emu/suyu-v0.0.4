@@ -34,7 +34,7 @@ private:
 
 class StubApplet final : public Applet {
 public:
-    StubApplet(AppletId id);
+    explicit StubApplet(AppletId id);
     ~StubApplet() override;
 
     void Initialize() override;

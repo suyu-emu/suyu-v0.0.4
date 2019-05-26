@@ -11,6 +11,7 @@
 #include "core/core.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/result.h"
 #include "core/reporter.h"
 #include "core/settings.h"
 #include "fmt/time.h"
@@ -30,12 +31,12 @@ std::string GetTimestamp() {
 using namespace nlohmann;
 
 void SaveToFile(const json& json, const std::string& filename) {
-    FileUtil::CreateFullPath(filename);
+    if (!FileUtil::CreateFullPath(filename))
+        LOG_ERROR(Core, "Failed to create path for '{}' to save report!", filename);
+
     std::ofstream file(
         FileUtil::SanitizePath(filename, FileUtil::DirectorySeparator::PlatformDefault));
     file << std::setw(4) << json << std::endl;
-    file.flush();
-    file.close();
 }
 
 json GetYuzuVersionData() {
@@ -62,7 +63,7 @@ json GetReportCommonData(u64 title_id, ResultCode result, const std::string& tim
     };
     if (user_id.has_value())
         out["user_id"] = fmt::format("{:016X}{:016X}", (*user_id)[1], (*user_id)[0]);
-    return std::move(out);
+    return out;
 }
 
 json GetProcessorStateData(const std::string& architecture, u64 entry_point, u64 sp, u64 pc,
@@ -91,13 +92,13 @@ json GetProcessorStateData(const std::string& architecture, u64 entry_point, u64
         out["backtrace"] = std::move(backtrace_out);
     }
 
-    return std::move(out);
+    return out;
 }
 
-json GetProcessorStateDataAuto() {
-    const auto* process{Core::CurrentProcess()};
+json GetProcessorStateDataAuto(Core::System& system) {
+    const auto* process{system.CurrentProcess()};
     const auto& vm_manager{process->VMManager()};
-    auto& arm{Core::CurrentArmInterface()};
+    auto& arm{system.CurrentArmInterface()};
 
     Core::ARM_Interface::ThreadContext context{};
     arm.SaveContext(context);
@@ -107,9 +108,9 @@ json GetProcessorStateDataAuto() {
                                  context.pstate, context.cpu_registers);
 }
 
-json GetBacktraceData() {
+json GetBacktraceData(Core::System& system) {
     auto out = json::array();
-    const auto& backtrace{Core::CurrentArmInterface().GetBacktrace()};
+    const auto& backtrace{system.CurrentArmInterface().GetBacktrace()};
     for (const auto& entry : backtrace) {
         out.push_back({
             {"module", entry.module},
@@ -120,18 +121,18 @@ json GetBacktraceData() {
         });
     }
 
-    return std::move(out);
+    return out;
 }
 
-json GetFullDataAuto(const std::string& timestamp, u64 title_id) {
+json GetFullDataAuto(const std::string& timestamp, u64 title_id, Core::System& system) {
     json out;
 
     out["yuzu_version"] = GetYuzuVersionData();
     out["report_common"] = GetReportCommonData(title_id, RESULT_SUCCESS, timestamp);
-    out["processor_state"] = GetProcessorStateDataAuto();
-    out["backtrace"] = GetBacktraceData();
+    out["processor_state"] = GetProcessorStateDataAuto(system);
+    out["backtrace"] = GetBacktraceData(system);
 
-    return std::move(out);
+    return out;
 }
 
 template <bool read_value, typename DescriptorType>
@@ -152,7 +153,7 @@ json GetHLEBufferDescriptorData(const std::vector<DescriptorType>& buffer) {
         buffer_out.push_back(std::move(entry));
     }
 
-    return std::move(buffer_out);
+    return buffer_out;
 }
 
 json GetHLERequestContextData(Kernel::HLERequestContext& ctx) {
@@ -177,7 +178,7 @@ json GetHLERequestContextData(Kernel::HLERequestContext& ctx) {
 
 namespace Core {
 
-Reporter::Reporter() = default;
+Reporter::Reporter(Core::System& system) : system(system) {}
 
 Reporter::~Reporter() = default;
 
@@ -189,7 +190,7 @@ void Reporter::SaveCrashReport(u64 title_id, ResultCode result, u64 set_flags, u
     if (!IsReportingEnabled())
         return;
 
-    const auto timestamp{GetTimestamp()};
+    const auto timestamp = GetTimestamp();
     json out;
 
     out["yuzu_version"] = GetYuzuVersionData();
@@ -214,9 +215,9 @@ void Reporter::SaveSvcBreakReport(u32 type, bool signal_debugger, u64 info1, u64
     if (!IsReportingEnabled())
         return;
 
-    const auto timestamp{GetTimestamp()};
-    const auto title_id{Core::CurrentProcess()->GetTitleID()};
-    auto out = GetFullDataAuto(timestamp, title_id);
+    const auto timestamp = GetTimestamp();
+    const auto title_id = system.CurrentProcess()->GetTitleID();
+    auto out = GetFullDataAuto(timestamp, title_id, system);
 
     auto break_out = json{
         {"type", fmt::format("{:08X}", type)},
@@ -240,9 +241,9 @@ void Reporter::SaveUnimplementedFunctionReport(Kernel::HLERequestContext& ctx, u
     if (!IsReportingEnabled())
         return;
 
-    const auto timestamp{GetTimestamp()};
-    const auto title_id{Core::CurrentProcess()->GetTitleID()};
-    auto out = GetFullDataAuto(timestamp, title_id);
+    const auto timestamp = GetTimestamp();
+    const auto title_id = system.CurrentProcess()->GetTitleID();
+    auto out = GetFullDataAuto(timestamp, title_id, system);
 
     auto function_out = GetHLERequestContextData(ctx);
     function_out["command_id"] = command_id;
@@ -261,9 +262,9 @@ void Reporter::SaveUnimplementedAppletReport(
     if (!IsReportingEnabled())
         return;
 
-    const auto timestamp{GetTimestamp()};
-    const auto title_id{Core::CurrentProcess()->GetTitleID()};
-    auto out = GetFullDataAuto(timestamp, title_id);
+    const auto timestamp = GetTimestamp();
+    const auto title_id = system.CurrentProcess()->GetTitleID();
+    auto out = GetFullDataAuto(timestamp, title_id, system);
 
     out["applet_common_args"] = {
         {"applet_id", fmt::format("{:02X}", applet_id)},
@@ -290,12 +291,12 @@ void Reporter::SaveUnimplementedAppletReport(
     SaveToFile(std::move(out), GetPath("unimpl_applet_report", title_id, timestamp));
 }
 
-void Reporter::SavePlayReport(u64 title_id, u64 unk1, std::vector<std::vector<u8>> data,
+void Reporter::SavePlayReport(u64 title_id, u64 process_id, std::vector<std::vector<u8>> data,
                               std::optional<u128> user_id) const {
     if (!IsReportingEnabled())
         return;
 
-    const auto timestamp{GetTimestamp()};
+    const auto timestamp = GetTimestamp();
     json out;
 
     out["yuzu_version"] = GetYuzuVersionData();
@@ -306,7 +307,7 @@ void Reporter::SavePlayReport(u64 title_id, u64 unk1, std::vector<std::vector<u8
         data_out.push_back(Common::HexVectorToString(d));
     }
 
-    out["play_report_unk1"] = fmt::format("{:016X}", unk1);
+    out["play_report_process_id"] = fmt::format("{:016X}", process_id);
     out["play_report_data"] = std::move(data_out);
 
     SaveToFile(std::move(out), GetPath("play_report", title_id, timestamp));
@@ -318,13 +319,13 @@ void Reporter::SaveErrorReport(u64 title_id, ResultCode result,
     if (!IsReportingEnabled())
         return;
 
-    const auto timestamp{GetTimestamp()};
+    const auto timestamp = GetTimestamp();
     json out;
 
     out["yuzu_version"] = GetYuzuVersionData();
     out["report_common"] = GetReportCommonData(title_id, result, timestamp);
-    out["processor_state"] = GetProcessorStateDataAuto();
-    out["backtrace"] = GetBacktraceData();
+    out["processor_state"] = GetProcessorStateDataAuto(system);
+    out["backtrace"] = GetBacktraceData(system);
 
     out["error_custom_text"] = {
         {"main", *custom_text_main},
@@ -338,10 +339,11 @@ void Reporter::SaveUserReport() const {
     if (!IsReportingEnabled())
         return;
 
-    const auto timestamp{GetTimestamp()};
-    const auto title_id{Core::CurrentProcess()->GetTitleID()};
+    const auto timestamp = GetTimestamp();
+    const auto title_id = system.CurrentProcess()->GetTitleID();
 
-    SaveToFile(GetFullDataAuto(timestamp, title_id), GetPath("user_report", title_id, timestamp));
+    SaveToFile(GetFullDataAuto(timestamp, title_id, system),
+               GetPath("user_report", title_id, timestamp));
 }
 
 bool Reporter::IsReportingEnabled() const {

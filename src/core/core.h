@@ -287,10 +287,6 @@ public:
 
     void ClearContentProvider(FileSys::ContentProviderUnionSlot slot);
 
-    void RegisterNSOModule(std::string name, VAddr start_address);
-
-    const std::map<VAddr, std::string, std::greater<>>& GetRegisteredNSOModules() const;
-
     const Reporter& GetReporter() const;
 
 private:

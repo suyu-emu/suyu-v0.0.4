@@ -37,17 +37,18 @@ AppletDataBroker::~AppletDataBroker() = default;
 
 AppletDataBroker::RawChannelData AppletDataBroker::PeekDataToAppletForDebug() const {
     std::vector<std::vector<u8>> out_normal;
-    std::vector<std::vector<u8>> out_interactive;
 
     for (const auto& storage : in_channel) {
         out_normal.push_back(storage->GetData());
     }
 
+    std::vector<std::vector<u8>> out_interactive;
+
     for (const auto& storage : in_interactive_channel) {
         out_interactive.push_back(storage->GetData());
     }
 
-    return {out_normal, out_interactive};
+    return {std::move(out_normal), std::move(out_interactive)};
 }
 
 std::unique_ptr<IStorage> AppletDataBroker::PopNormalDataToGame() {

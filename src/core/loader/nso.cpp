@@ -164,9 +164,6 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
     // Register module with GDBStub
     GDBStub::RegisterModule(file.GetName(), load_base, load_base);
 
-    // Register module for ARMInterface with System
-    Core::System::GetInstance().RegisterNSOModule(file.GetName(), load_base);
-
     return load_base + image_size;
 }
 
@@ -175,16 +172,25 @@ AppLoader_NSO::LoadResult AppLoader_NSO::Load(Kernel::Process& process) {
         return {ResultStatus::ErrorAlreadyLoaded, {}};
     }
 
+    modules.clear();
+
     // Load module
     const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
     if (!LoadModule(process, *file, base_address, true)) {
         return {ResultStatus::ErrorLoadingNSO, {}};
     }
+
+    modules.insert_or_assign(base_address, file->GetName());
     LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", file->GetName(), base_address);
 
     is_loaded = true;
     return {ResultStatus::Success,
             LoadParameters{Kernel::THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE}};
+}
+
+ResultStatus AppLoader_NSO::ReadNSOModules(Modules& modules) {
+    modules = this->modules;
+    return ResultStatus::Success;
 }
 
 } // namespace Loader

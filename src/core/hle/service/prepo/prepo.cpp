@@ -50,7 +50,7 @@ private:
     void SaveReportWithUserOld(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto user_id = rp.PopRaw<u128>();
-        const auto unk1 = rp.PopRaw<u64>();
+        const auto process_id = rp.PopRaw<u64>();
 
         const auto data1 = ctx.ReadBuffer(0);
         const auto data2 = ctx.ReadBuffer(1);
@@ -58,10 +58,10 @@ private:
         LOG_DEBUG(
             Service_PREPO,
             "called, user_id={:016X}{:016X}, unk1={:016X}, data1_size={:016X}, data2_size={:016X}",
-            user_id[1], user_id[0], unk1, data1.size(), data2.size());
+            user_id[1], user_id[0], process_id, data1.size(), data2.size());
 
         const auto& reporter{Core::System::GetInstance().GetReporter()};
-        reporter.SavePlayReport(Core::CurrentProcess()->GetTitleID(), unk1, {data1, data2},
+        reporter.SavePlayReport(Core::CurrentProcess()->GetTitleID(), process_id, {data1, data2},
                                 user_id);
 
         IPC::ResponseBuilder rb{ctx, 2};

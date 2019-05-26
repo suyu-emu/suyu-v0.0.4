@@ -9,6 +9,7 @@
 #include "common/logging/log.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
+#include "core/loader/loader.h"
 #include "core/memory.h"
 
 namespace Core {
@@ -80,15 +81,17 @@ Symbols GetSymbols(VAddr text_offset) {
         const auto value = Memory::Read64(dynamic_index + 0x8);
         dynamic_index += 0x10;
 
-        if (tag == ELF_DYNAMIC_TAG_NULL)
+        if (tag == ELF_DYNAMIC_TAG_NULL) {
             break;
+        }
 
-        if (tag == ELF_DYNAMIC_TAG_STRTAB)
+        if (tag == ELF_DYNAMIC_TAG_STRTAB) {
             string_table_offset = value;
-        else if (tag == ELF_DYNAMIC_TAG_SYMTAB)
+        } else if (tag == ELF_DYNAMIC_TAG_SYMTAB) {
             symbol_table_offset = value;
-        else if (tag == ELF_DYNAMIC_TAG_SYMENT)
+        } else if (tag == ELF_DYNAMIC_TAG_SYMENT) {
             symbol_entry_size = value;
+        }
     }
 
     if (string_table_offset == 0 || symbol_table_offset == 0 || symbol_entry_size == 0) {
@@ -126,8 +129,10 @@ std::optional<std::string> GetSymbolName(const Symbols& symbols, VAddr func_addr
             return func_address >= symbol.value && func_address < end_address;
         });
 
-    if (iter == symbols.end())
+    if (iter == symbols.end()) {
         return std::nullopt;
+    }
+
     return iter->second;
 }
 
@@ -150,7 +155,12 @@ std::vector<ARM_Interface::BacktraceEntry> ARM_Interface::GetBacktrace() const {
         fp = Memory::Read64(fp);
     }
 
-    const auto& modules{System::GetInstance().GetRegisteredNSOModules()};
+    std::map<VAddr, std::string> modules;
+    auto& loader{System::GetInstance().GetAppLoader()};
+    if (loader.ReadNSOModules(modules) != Loader::ResultStatus::Success) {
+        return {};
+    }
+
     std::map<std::string, Symbols> symbols;
     for (const auto& module : modules) {
         symbols.insert_or_assign(module.second, GetSymbols(module.first));
@@ -158,7 +168,8 @@ std::vector<ARM_Interface::BacktraceEntry> ARM_Interface::GetBacktrace() const {
 
     for (auto& entry : out) {
         VAddr base = 0;
-        for (const auto& module : modules) {
+        for (auto iter = modules.rbegin(); iter != modules.rend(); ++iter) {
+            const auto& module{*iter};
             if (entry.original_address >= module.first) {
                 entry.module = module.second;
                 base = module.first;
@@ -191,7 +202,7 @@ void ARM_Interface::LogBacktrace() const {
     LOG_ERROR(Core_ARM, "Backtrace, sp={:016X}, pc={:016X}", sp, pc);
     LOG_ERROR(Core_ARM, "{:20}{:20}{:20}{:20}{}", "Module Name", "Address", "Original Address",
               "Offset", "Symbol");
-    LOG_ERROR(Core_ARM, "{}", std::string(100, '-'));
+    LOG_ERROR(Core_ARM, "");
 
     const auto backtrace = GetBacktrace();
     for (const auto& entry : backtrace) {

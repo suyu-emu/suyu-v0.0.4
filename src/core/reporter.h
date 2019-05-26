@@ -7,7 +7,8 @@
 #include <optional>
 #include <vector>
 #include "common/common_types.h"
-#include "core/hle/result.h"
+
+union ResultCode;
 
 namespace Kernel {
 class HLERequestContext;
@@ -17,7 +18,7 @@ namespace Core {
 
 class Reporter {
 public:
-    Reporter();
+    explicit Reporter(Core::System& system);
     ~Reporter();
 
     void SaveCrashReport(u64 title_id, ResultCode result, u64 set_flags, u64 entry_point, u64 sp,
@@ -37,7 +38,7 @@ public:
                                        std::vector<std::vector<u8>> normal_channel,
                                        std::vector<std::vector<u8>> interactive_channel) const;
 
-    void SavePlayReport(u64 title_id, u64 unk1, std::vector<std::vector<u8>> data,
+    void SavePlayReport(u64 title_id, u64 process_id, std::vector<std::vector<u8>> data,
                         std::optional<u128> user_id = {}) const;
 
     void SaveErrorReport(u64 title_id, ResultCode result,
@@ -48,6 +49,8 @@ public:
 
 private:
     bool IsReportingEnabled() const;
+
+    Core::System& system;
 };
 
 } // namespace Core

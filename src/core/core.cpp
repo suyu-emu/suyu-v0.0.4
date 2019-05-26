@@ -83,7 +83,7 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
     return vfs->OpenFile(path, FileSys::Mode::Read);
 }
 struct System::Impl {
-    explicit Impl(System& system) : kernel{system}, cpu_core_manager{system} {}
+    explicit Impl(System& system) : kernel{system}, cpu_core_manager{system}, reporter{system} {}
 
     Cpu& CurrentCpuCore() {
         return cpu_core_manager.GetCurrentCore();
@@ -271,7 +271,6 @@ struct System::Impl {
     /// Telemetry session for this emulation session
     std::unique_ptr<Core::TelemetrySession> telemetry_session;
 
-    std::map<VAddr, std::string, std::greater<>> modules;
     Reporter reporter;
 
     ResultStatus status = ResultStatus::Success;
@@ -511,14 +510,6 @@ void System::RegisterContentProvider(FileSys::ContentProviderUnionSlot slot,
 
 void System::ClearContentProvider(FileSys::ContentProviderUnionSlot slot) {
     impl->content_provider->ClearSlot(slot);
-}
-
-void System::RegisterNSOModule(std::string name, VAddr start_address) {
-    impl->modules.insert_or_assign(start_address, name);
-}
-
-const std::map<VAddr, std::string, std::greater<>>& System::GetRegisteredNSOModules() const {
-    return impl->modules;
 }
 
 const Reporter& System::GetReporter() const {
