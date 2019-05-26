@@ -136,7 +136,7 @@ void ConfigureFilesystem::SetDirectory(DirectoryTarget target, QLineEdit* edit) 
     QString str;
     if (target == DirectoryTarget::Gamecard) {
         str = QFileDialog::getOpenFileName(this, caption, QFileInfo(edit->text()).dir().path(),
-                                           "NX Gamecard;*.xci");
+                                           QStringLiteral("NX Gamecard;*.xci"));
     } else {
         str = QFileDialog::getExistingDirectory(this, caption, edit->text());
     }
@@ -148,8 +148,12 @@ void ConfigureFilesystem::SetDirectory(DirectoryTarget target, QLineEdit* edit) 
 }
 
 void ConfigureFilesystem::ResetMetadata() {
-    if (FileUtil::DeleteDirRecursively(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) +
-                                       DIR_SEP + "game_list")) {
+    if (!FileUtil::Exists(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) + DIR_SEP +
+                          "game_list")) {
+        QMessageBox::information(this, tr("Reset Metadata Cache"),
+                                 tr("The metadata cache is already empty."));
+    } else if (FileUtil::DeleteDirRecursively(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) +
+                                              DIR_SEP + "game_list")) {
         QMessageBox::information(this, tr("Reset Metadata Cache"),
                                  tr("The operation completed successfully."));
         UISettings::values.is_game_list_reload_pending.exchange(true);

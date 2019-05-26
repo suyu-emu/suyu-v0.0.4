@@ -130,31 +130,6 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_4">
-     <property name="title">
-      <string>Dump</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_6">
-      <item>
-       <widget class="QCheckBox" name="dump_decompressed_nso">
-        <property name="whatsThis">
-         <string>When checked, any NSO yuzu tries to load or patch will be copied decompressed to the yuzu/dump directory.</string>
-        </property>
-        <property name="text">
-         <string>Dump Decompressed NSOs</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="dump_exefs">
-        <property name="whatsThis">
-         <string>When checked, any game that yuzu loads will have its ExeFS dumped to the yuzu/dump directory.</string>
-        </property>
-        <property name="text">
-         <string>Dump ExeFS</string>
-        </property>
-       </widget>
-      </item>
       <item>
        <widget class="QCheckBox" name="reporting_services">
         <property name="text">
@@ -197,6 +172,11 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="title">
+      <string>Dump</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_6">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
