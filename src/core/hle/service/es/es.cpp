@@ -234,7 +234,7 @@ private:
 
         const auto ticket = keys.GetCommonTickets().at(rights_id);
 
-        const auto write_size = std::min(ticket.GetSize(), ctx.GetWriteBufferSize());
+        const auto write_size = std::min<u64>(ticket.GetSize(), ctx.GetWriteBufferSize());
         ctx.WriteBuffer(&ticket, write_size);
 
         IPC::ResponseBuilder rb{ctx, 4};
@@ -253,7 +253,7 @@ private:
 
         const auto ticket = keys.GetPersonalizedTickets().at(rights_id);
 
-        const auto write_size = std::min(ticket.GetSize(), ctx.GetWriteBufferSize());
+        const auto write_size = std::min<u64>(ticket.GetSize(), ctx.GetWriteBufferSize());
         ctx.WriteBuffer(&ticket, write_size);
 
         IPC::ResponseBuilder rb{ctx, 4};

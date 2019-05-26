@@ -9,6 +9,7 @@
 #include <optional>
 #include <string>
 
+#include <variant>
 #include <boost/container/flat_map.hpp>
 #include <fmt/format.h>
 #include "common/common_funcs.h"
@@ -73,33 +74,36 @@ struct TicketData {
 };
 static_assert(sizeof(TicketData) == 0x2C0, "TicketData has incorrect size.");
 
-struct Ticket {
+struct RSA4096Ticket {
     SignatureType sig_type;
-    union {
-        struct {
-            std::array<u8, 0x200> sig_data;
-            INSERT_PADDING_BYTES(0x3C);
-            TicketData data;
-        } rsa_4096;
+    std::array<u8, 0x200> sig_data;
+    INSERT_PADDING_BYTES(0x3C);
+    TicketData data;
+};
 
-        struct {
-            std::array<u8, 0x100> sig_data;
-            INSERT_PADDING_BYTES(0x3C);
-            TicketData data;
-        } rsa_2048;
+struct RSA2048Ticket {
+    SignatureType sig_type;
+    std::array<u8, 0x100> sig_data;
+    INSERT_PADDING_BYTES(0x3C);
+    TicketData data;
+};
 
-        struct {
-            std::array<u8, 0x3C> sig_data;
-            INSERT_PADDING_BYTES(0x40);
-            TicketData data;
-        } ecdsa;
-    };
+struct ECDSATicket {
+    SignatureType sig_type;
+    std::array<u8, 0x3C> sig_data;
+    INSERT_PADDING_BYTES(0x40);
+    TicketData data;
+};
 
+struct Ticket {
+    std::variant<RSA4096Ticket, RSA2048Ticket, ECDSATicket> data;
+
+    SignatureType GetSignatureType() const;
     TicketData& GetData();
     const TicketData& GetData() const;
     u64 GetSize() const;
 
-    static Ticket SynthesizeCommon(Key128 title_key, std::array<u8, 0x10> rights_id);
+    static Ticket SynthesizeCommon(Key128 title_key, const std::array<u8, 0x10>& rights_id);
 };
 
 static_assert(sizeof(Key128) == 16, "Key128 must be 128 bytes big.");
@@ -118,6 +122,12 @@ bool operator==(const RSAKeyPair<bit_size, byte_size>& lhs,
                 const RSAKeyPair<bit_size, byte_size>& rhs) {
     return std::tie(lhs.encryption_key, lhs.decryption_key, lhs.modulus, lhs.exponent) ==
            std::tie(rhs.encryption_key, rhs.decryption_key, rhs.modulus, rhs.exponent);
+}
+
+template <size_t bit_size, size_t byte_size>
+bool operator!=(const RSAKeyPair<bit_size, byte_size>& lhs,
+                const RSAKeyPair<bit_size, byte_size>& rhs) {
+    return !(lhs == rhs);
 }
 
 enum class KeyCategory : u8 {
@@ -268,7 +278,7 @@ private:
 
     void DeriveGeneralPurposeKeys(std::size_t crypto_revision);
 
-    RSAKeyPair<2048> GetETicketRSAKey();
+    RSAKeyPair<2048> GetETicketRSAKey() const;
 
     void SetKeyWrapped(S128KeyType id, Key128 key, u64 field1 = 0, u64 field2 = 0);
     void SetKeyWrapped(S256KeyType id, Key256 key, u64 field1 = 0, u64 field2 = 0);

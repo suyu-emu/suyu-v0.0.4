@@ -56,6 +56,13 @@ const std::map<std::pair<S128KeyType, u64>, std::string> KEYS_VARIABLE_LENGTH{
     {{S128KeyType::KeyblobMAC, 0}, "keyblob_mac_key_"},
 };
 
+namespace {
+template <std::size_t Size>
+bool IsAllZeroArray(const std::array<u8, Size>& array) {
+    return std::all_of(array.begin(), array.end(), [](const auto& elem) { return elem == 0; });
+}
+} // namespace
+
 u64 GetSignatureTypeDataSize(SignatureType type) {
     switch (type) {
     case SignatureType::RSA_4096_SHA1:
@@ -85,47 +92,61 @@ u64 GetSignatureTypePaddingSize(SignatureType type) {
     UNREACHABLE();
 }
 
-TicketData& Ticket::GetData() {
-    switch (sig_type) {
-    case SignatureType::RSA_4096_SHA1:
-    case SignatureType::RSA_4096_SHA256:
-        return rsa_4096.data;
-    case SignatureType::RSA_2048_SHA1:
-    case SignatureType::RSA_2048_SHA256:
-        return rsa_2048.data;
-    case SignatureType::ECDSA_SHA1:
-    case SignatureType::ECDSA_SHA256:
-        return ecdsa.data;
+SignatureType Ticket::GetSignatureType() const {
+    if (auto ticket = std::get_if<RSA4096Ticket>(&data)) {
+        return ticket->sig_type;
     }
+    if (auto ticket = std::get_if<RSA2048Ticket>(&data)) {
+        return ticket->sig_type;
+    }
+    if (auto ticket = std::get_if<ECDSATicket>(&data)) {
+        return ticket->sig_type;
+    }
+
+    UNREACHABLE();
+}
+
+TicketData& Ticket::GetData() {
+    if (auto ticket = std::get_if<RSA4096Ticket>(&data)) {
+        return ticket->data;
+    }
+    if (auto ticket = std::get_if<RSA2048Ticket>(&data)) {
+        return ticket->data;
+    }
+    if (auto ticket = std::get_if<ECDSATicket>(&data)) {
+        return ticket->data;
+    }
+
     UNREACHABLE();
 }
 
 const TicketData& Ticket::GetData() const {
-    switch (sig_type) {
-    case SignatureType::RSA_4096_SHA1:
-    case SignatureType::RSA_4096_SHA256:
-        return rsa_4096.data;
-    case SignatureType::RSA_2048_SHA1:
-    case SignatureType::RSA_2048_SHA256:
-        return rsa_2048.data;
-    case SignatureType::ECDSA_SHA1:
-    case SignatureType::ECDSA_SHA256:
-        return ecdsa.data;
+    if (auto ticket = std::get_if<RSA4096Ticket>(&data)) {
+        return ticket->data;
     }
+    if (auto ticket = std::get_if<RSA2048Ticket>(&data)) {
+        return ticket->data;
+    }
+    if (auto ticket = std::get_if<ECDSATicket>(&data)) {
+        return ticket->data;
+    }
+
     UNREACHABLE();
 }
 
 u64 Ticket::GetSize() const {
+    const auto sig_type = GetSignatureType();
+
     return sizeof(SignatureType) + GetSignatureTypeDataSize(sig_type) +
            GetSignatureTypePaddingSize(sig_type) + sizeof(TicketData);
 }
 
-Ticket Ticket::SynthesizeCommon(Key128 title_key, std::array<u8, 16> rights_id) {
-    Ticket out{};
+Ticket Ticket::SynthesizeCommon(Key128 title_key, const std::array<u8, 16>& rights_id) {
+    RSA2048Ticket out{};
     out.sig_type = SignatureType::RSA_2048_SHA256;
-    out.GetData().rights_id = rights_id;
-    out.GetData().title_key_common = title_key;
-    return out;
+    out.data.rights_id = rights_id;
+    out.data.title_key_common = title_key;
+    return Ticket{out};
 }
 
 Key128 GenerateKeyEncryptionKey(Key128 source, Key128 master, Key128 kek_seed, Key128 key_seed) {
@@ -208,14 +229,13 @@ void KeyManager::DeriveGeneralPurposeKeys(std::size_t crypto_revision) {
     }
 }
 
-RSAKeyPair<2048> KeyManager::GetETicketRSAKey() {
-    if (eticket_extended_kek == std::array<u8, 576>{} || !HasKey(S128KeyType::ETicketRSAKek))
+RSAKeyPair<2048> KeyManager::GetETicketRSAKey() const {
+    if (IsAllZeroArray(eticket_extended_kek) || !HasKey(S128KeyType::ETicketRSAKek))
         return {};
 
     const auto eticket_final = GetKey(S128KeyType::ETicketRSAKek);
 
-    std::vector<u8> extended_iv(0x10);
-    std::memcpy(extended_iv.data(), eticket_extended_kek.data(), extended_iv.size());
+    std::vector<u8> extended_iv(eticket_extended_kek.begin(), eticket_extended_kek.begin() + 0x10);
     std::array<u8, 0x230> extended_dec{};
     AESCipher<Key128> rsa_1(eticket_final, Mode::CTR);
     rsa_1.SetIV(extended_iv);
@@ -1001,13 +1021,14 @@ void KeyManager::PopulateTickets() {
 
 void KeyManager::SynthesizeTickets() {
     for (const auto& key : s128_keys) {
-        if (key.first.type == S128KeyType::Titlekey) {
-            u128 rights_id{key.first.field1, key.first.field2};
-            Key128 rights_id_2;
-            std::memcpy(rights_id_2.data(), rights_id.data(), rights_id_2.size());
-            const auto ticket = Ticket::SynthesizeCommon(key.second, rights_id_2);
-            common_tickets.insert_or_assign(rights_id, ticket);
+        if (key.first.type != S128KeyType::Titlekey) {
+            continue;
         }
+        u128 rights_id{key.first.field1, key.first.field2};
+        Key128 rights_id_2;
+        std::memcpy(rights_id_2.data(), rights_id.data(), rights_id_2.size());
+        const auto ticket = Ticket::SynthesizeCommon(key.second, rights_id_2);
+        common_tickets.insert_or_assign(rights_id, ticket);
     }
 }
 
