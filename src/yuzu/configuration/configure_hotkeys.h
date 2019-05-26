@@ -24,8 +24,6 @@ public:
     void applyConfiguration(HotkeyRegistry& registry);
     void retranslateUi();
 
-    void EmitHotkeysChanged();
-
     /**
      * Populates the hotkey list widget using data from the provided registry.
      * Called everytime the Configure dialog is opened.
@@ -33,13 +31,9 @@ public:
      */
     void Populate(const HotkeyRegistry& registry);
 
-signals:
-    void HotkeysChanged(QList<QKeySequence> new_key_list);
-
 private:
     void Configure(QModelIndex index);
     bool IsUsedKey(QKeySequence key_sequence) const;
-    QList<QKeySequence> GetUsedKeyList() const;
 
     std::unique_ptr<Ui::ConfigureHotkeys> ui;
 
