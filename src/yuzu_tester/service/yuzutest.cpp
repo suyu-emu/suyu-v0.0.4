@@ -57,7 +57,12 @@ private:
     }
 
     void StartIndividual(Kernel::HLERequestContext& ctx) {
-        LOG_DEBUG(Frontend, "called");
+        const auto name_raw = ctx.ReadBuffer();
+
+        const auto name = Common::StringFromFixedZeroTerminatedBuffer(
+            reinterpret_cast<const char*>(name_raw.data()), name_raw.size());
+
+        LOG_DEBUG(Frontend, "called, name={}", name);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);

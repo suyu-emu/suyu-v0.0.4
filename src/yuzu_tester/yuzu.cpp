@@ -32,16 +32,17 @@
 #include "yuzu_tester/emu_window/emu_window_sdl2_hide.h"
 #include "yuzu_tester/service/yuzutest.h"
 
-#include <getopt.h>
-#ifndef _MSC_VER
-#include <unistd.h>
-#endif
-
 #ifdef _WIN32
 // windows.h needs to be included before shellapi.h
 #include <windows.h>
 
 #include <shellapi.h>
+#endif
+
+#undef _UNICODE
+#include <getopt.h>
+#ifndef _MSC_VER
+#include <unistd.h>
 #endif
 
 #ifdef _WIN32
@@ -170,12 +171,45 @@ int main(int argc, char** argv) {
 
     bool finished = false;
     int return_value = 0;
-    const auto callback = [&finished, &return_value](std::vector<Service::Yuzu::TestResult>) {
+    const auto callback = [&finished,
+                           &return_value](std::vector<Service::Yuzu::TestResult> results) {
         finished = true;
-        return_value = code & 0xFF;
-        const auto text = fmt::format("Test Finished [Result Code: {:08X}]\n{}", code, string);
-        LOG_INFO(Frontend, text.c_str());
-        std::cout << text << std::endl;
+        return_value = 0;
+
+        const auto len =
+            std::max<u64>(std::max_element(results.begin(), results.end(),
+                                           [](const auto& lhs, const auto& rhs) {
+                                               return lhs.name.size() < rhs.name.size();
+                                           })
+                              ->name.size(),
+                          9ull);
+
+        std::size_t passed = 0;
+        std::size_t failed = 0;
+
+        std::cout << fmt::format("Result [Res Code] | {:<{}} | Extra Data", "Test Name", len)
+                  << std::endl;
+
+        for (const auto& res : results) {
+            const auto main_res = res.code == 0 ? "PASSED" : "FAILED";
+            if (res.code == 0)
+                ++passed;
+            else
+                ++failed;
+            std::cout << fmt::format("{} [{:08X}] | {:<{}} | {}", main_res, res.code, res.name, len,
+                                     res.data)
+                      << std::endl;
+        }
+
+        std::cout << std::endl
+                  << fmt::format("{:4d} Passed | {:4d} Failed | {:4d} Total | {:2.2f} Passed Ratio",
+                                 passed, failed, passed + failed,
+                                 static_cast<float>(passed) / (passed + failed))
+                  << std::endl
+                  << (failed == 0 ? "PASSED" : "FAILED") << std::endl;
+
+        if (failed > 0)
+            return_value = -1;
     };
 
     Core::System& system{Core::System::GetInstance()};
