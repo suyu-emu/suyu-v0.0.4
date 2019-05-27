@@ -655,7 +655,7 @@ void RasterizerOpenGL::DrawArrays() {
     SetupVertexBuffer(vertex_array);
     const GLintptr index_buffer_offset = SetupIndexBuffer();
 
-    DrawParameters params = SetupDraw(index_buffer_offset);
+    const DrawParameters params = SetupDraw(index_buffer_offset);
     texture_cache.GuardSamplers(true);
     SetupShaders(params.primitive_mode);
     texture_cache.GuardSamplers(false);
