@@ -4,17 +4,19 @@
 
 #include <memory>
 
+#include "core/file_sys/romfs_factory.h"
+#include "core/hle/ipc_helpers.h"
 #include "core/hle/service/ncm/ncm.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
 
 namespace Service::NCM {
 
-class LocationResolver final : public ServiceFramework<LocationResolver> {
 class ILocationResolver final : public ServiceFramework<ILocationResolver> {
 public:
     explicit ILocationResolver(FileSys::StorageId id)
         : ServiceFramework{"ILocationResolver"}, storage(id) {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "ResolveProgramPath"},
             {1, nullptr, "RedirectProgramPath"},
@@ -37,6 +39,7 @@ public:
             {18, nullptr, ""},
             {19, nullptr, ""},
         };
+        // clang-format on
 
         RegisterHandlers(functions);
     }
@@ -48,6 +51,7 @@ private:
 class IRegisteredLocationResolver final : public ServiceFramework<IRegisteredLocationResolver> {
 public:
     explicit IRegisteredLocationResolver() : ServiceFramework{"IRegisteredLocationResolver"} {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "ResolveProgramPath"},
             {1, nullptr, "RegisterProgramPath"},
@@ -59,13 +63,27 @@ public:
             {7, nullptr, "RedirectHtmlDocumentPath"},
             {8, nullptr, ""},
         };
+        // clang-format on
 
         RegisterHandlers(functions);
     }
 };
 
+class IAddOnContentLocationResolver final : public ServiceFramework<IAddOnContentLocationResolver> {
 public:
-    explicit LocationResolver() : ServiceFramework{"lr"} {
+    explicit IAddOnContentLocationResolver() : ServiceFramework{"IAddOnContentLocationResolver"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "ResolveAddOnContentPath"},
+            {1, nullptr, "RegisterAddOnContentStorage"},
+            {2, nullptr, "UnregisterAllAddOnContentPath"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
 class LR final : public ServiceFramework<LR> {
 public:
     explicit LR() : ServiceFramework{"lr"} {
@@ -80,27 +98,6 @@ public:
 
         RegisterHandlers(functions);
     }
-
-private:
-    void OpenLocationResolver(Kernel::HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const auto id = rp.PopRaw<FileSys::StorageId>();
-
-        LOG_DEBUG(Service_NCM, "called, id={:02X}", static_cast<u8>(id));
-
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface(std::make_shared<ILocationResolver>(id));
-    }
-
-    void OpenRegisteredLocationResolver(Kernel::HLERequestContext& ctx) {
-        LOG_DEBUG(Service_NCM, "called");
-
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface(std::make_shared<IRegisteredLocationResolver>());
-    }
-
 };
 
 class NCM final : public ServiceFramework<NCM> {
@@ -129,7 +126,7 @@ public:
 };
 
 void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<LocationResolver>()->InstallAsService(sm);
+    std::make_shared<LR>()->InstallAsService(sm);
     std::make_shared<NCM>()->InstallAsService(sm);
 }
 
