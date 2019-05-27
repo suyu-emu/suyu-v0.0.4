@@ -650,12 +650,17 @@ void RasterizerOpenGL::DrawArrays() {
         gpu.dirty_flags.vertex_array.set();
     }
 
+    // Prepare vertex array format.
     const GLuint vertex_array = SetupVertexFormat();
 
+    // Upload vertex and index data.
     SetupVertexBuffer(vertex_array);
     const GLintptr index_buffer_offset = SetupIndexBuffer();
 
+    // Setup draw parameters. It will automatically choose what glDraw* method to use.
     const DrawParameters params = SetupDraw(index_buffer_offset);
+
+    // Setup shaders and their used resources.
     texture_cache.GuardSamplers(true);
     SetupShaders(params.primitive_mode);
     texture_cache.GuardSamplers(false);
