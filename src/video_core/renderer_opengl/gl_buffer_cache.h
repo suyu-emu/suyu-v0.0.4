@@ -20,8 +20,8 @@ class RasterizerOpenGL;
 
 class CachedBufferEntry final : public RasterizerCacheObject {
 public:
-    explicit CachedBufferEntry(VAddr cpu_addr, std::size_t size, GLintptr offset,
-                               std::size_t alignment, u8* host_ptr);
+    explicit CachedBufferEntry(VAddr cpu_addr, u8* host_ptr, std::size_t size,
+                               std::size_t alignment, GLuint buffer, GLintptr offset);
 
     VAddr GetCpuAddr() const override {
         return cpu_addr;
@@ -35,19 +35,25 @@ public:
         return size;
     }
 
-    GLintptr GetOffset() const {
-        return offset;
-    }
-
     std::size_t GetAlignment() const {
         return alignment;
+    }
+
+    GLuint GetBuffer() const {
+        return buffer;
+    }
+
+    GLintptr GetOffset() const {
+        return offset;
     }
 
 private:
     VAddr cpu_addr{};
     std::size_t size{};
-    GLintptr offset{};
     std::size_t alignment{};
+
+    GLuint buffer{};
+    GLintptr offset{};
 };
 
 class OGLBufferCache final : public RasterizerCache<std::shared_ptr<CachedBufferEntry>> {

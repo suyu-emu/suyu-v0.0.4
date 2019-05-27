@@ -14,10 +14,10 @@
 
 namespace OpenGL {
 
-CachedBufferEntry::CachedBufferEntry(VAddr cpu_addr, std::size_t size, GLintptr offset,
-                                     std::size_t alignment, u8* host_ptr)
-    : RasterizerCacheObject{host_ptr}, cpu_addr{cpu_addr}, size{size}, offset{offset},
-      alignment{alignment} {}
+CachedBufferEntry::CachedBufferEntry(VAddr cpu_addr, u8* host_ptr, std::size_t size,
+                                     std::size_t alignment, GLuint buffer, GLintptr offset)
+    : RasterizerCacheObject{host_ptr}, cpu_addr{cpu_addr}, size{size}, alignment{alignment},
+      buffer{buffer}, offset{offset} {}
 
 OGLBufferCache::OGLBufferCache(RasterizerOpenGL& rasterizer, std::size_t size)
     : RasterizerCache{rasterizer}, stream_buffer(size, true) {}
@@ -28,16 +28,20 @@ std::pair<GLuint, GLintptr> OGLBufferCache::UploadMemory(GPUVAddr gpu_addr, std:
 
     auto& memory_manager = Core::System::GetInstance().GPU().MemoryManager();
 
+    const auto& host_ptr{memory_manager.GetPointer(gpu_addr)};
+    if (!host_ptr) {
+        // Return a dummy buffer when host_ptr is invalid.
+        return {0, 0};
+    }
+
     // Cache management is a big overhead, so only cache entries with a given size.
     // TODO: Figure out which size is the best for given games.
     cache &= size >= 2048;
 
-    const auto& host_ptr{memory_manager.GetPointer(gpu_addr)};
     if (cache) {
-        auto entry = TryGet(host_ptr);
-        if (entry) {
+        if (auto entry = TryGet(host_ptr); entry) {
             if (entry->GetSize() >= size && entry->GetAlignment() == alignment) {
-                return {stream_buffer.GetHandle(), entry->GetOffset()};
+                return {entry->GetBuffer(), entry->GetOffset()};
             }
             Unregister(entry);
         }
@@ -46,21 +50,18 @@ std::pair<GLuint, GLintptr> OGLBufferCache::UploadMemory(GPUVAddr gpu_addr, std:
     AlignBuffer(alignment);
     const GLintptr uploaded_offset = buffer_offset;
 
-    if (!host_ptr) {
-        return {stream_buffer.GetHandle(), uploaded_offset};
-    }
-
     std::memcpy(buffer_ptr, host_ptr, size);
     buffer_ptr += size;
     buffer_offset += size;
 
+    const GLuint buffer = stream_buffer.GetHandle();
     if (cache) {
-        auto entry = std::make_shared<CachedBufferEntry>(
-            *memory_manager.GpuToCpuAddress(gpu_addr), size, uploaded_offset, alignment, host_ptr);
-        Register(entry);
+        const VAddr cpu_addr = *memory_manager.GpuToCpuAddress(gpu_addr);
+        Register(std::make_shared<CachedBufferEntry>(cpu_addr, host_ptr, size, alignment, buffer,
+                                                     uploaded_offset));
     }
 
-    return {stream_buffer.GetHandle(), uploaded_offset};
+    return {buffer, uploaded_offset};
 }
 
 std::pair<GLuint, GLintptr> OGLBufferCache::UploadHostMemory(const void* raw_pointer,
