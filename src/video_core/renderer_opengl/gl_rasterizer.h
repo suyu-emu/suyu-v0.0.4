@@ -220,7 +220,9 @@ private:
 
     void SetupVertexBuffer(GLuint vao);
 
-    DrawParameters SetupDraw();
+    GLintptr SetupIndexBuffer();
+
+    DrawParameters SetupDraw(GLintptr index_buffer_offset);
 
     void SetupShaders(GLenum primitive_mode);
 

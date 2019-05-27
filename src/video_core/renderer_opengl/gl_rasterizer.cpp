@@ -215,7 +215,15 @@ void RasterizerOpenGL::SetupVertexBuffer(GLuint vao) {
     gpu.dirty_flags.vertex_array.reset();
 }
 
-DrawParameters RasterizerOpenGL::SetupDraw() {
+GLintptr RasterizerOpenGL::SetupIndexBuffer() {
+    if (accelerate_draw != AccelDraw::Indexed) {
+        return 0;
+    }
+    const auto& regs = system.GPU().Maxwell3D().regs;
+    return buffer_cache.UploadMemory(regs.index_array.IndexStart(), CalculateIndexBufferSize());
+}
+
+DrawParameters RasterizerOpenGL::SetupDraw(GLintptr index_buffer_offset) {
     const auto& gpu = system.GPU().Maxwell3D();
     const auto& regs = gpu.regs;
     const bool is_indexed = accelerate_draw == AccelDraw::Indexed;
@@ -230,8 +238,7 @@ DrawParameters RasterizerOpenGL::SetupDraw() {
         MICROPROFILE_SCOPE(OpenGL_Index);
         params.index_format = MaxwellToGL::IndexFormat(regs.index_array.format);
         params.count = regs.index_array.count;
-        params.index_buffer_offset =
-            buffer_cache.UploadMemory(regs.index_array.IndexStart(), CalculateIndexBufferSize());
+        params.index_buffer_offset = index_buffer_offset;
         params.base_vertex = static_cast<GLint>(regs.vb_element_base);
     } else {
         params.count = regs.vertex_buffer.count;
@@ -643,10 +650,12 @@ void RasterizerOpenGL::DrawArrays() {
         gpu.dirty_flags.vertex_array.set();
     }
 
-    const GLuint vao = SetupVertexFormat();
-    SetupVertexBuffer(vao);
+    const GLuint vertex_array = SetupVertexFormat();
 
-    DrawParameters params = SetupDraw();
+    SetupVertexBuffer(vertex_array);
+    const GLintptr index_buffer_offset = SetupIndexBuffer();
+
+    DrawParameters params = SetupDraw(index_buffer_offset);
     texture_cache.GuardSamplers(true);
     SetupShaders(params.primitive_mode);
     texture_cache.GuardSamplers(false);
