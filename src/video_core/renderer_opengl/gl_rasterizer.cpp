@@ -129,8 +129,6 @@ GLuint RasterizerOpenGL::SetupVertexFormat() {
         state.draw.vertex_array = vao;
         state.ApplyVertexArrayState();
 
-        glVertexArrayElementBuffer(vao, buffer_cache.GetHandle());
-
         // Use the vertex array as-is, assumes that the data is formatted correctly for OpenGL.
         // Enables the first 16 vertex attributes always, as we don't know which ones are actually
         // used until shader time. Note, Tegra technically supports 32, but we're capping this to 16
@@ -197,10 +195,10 @@ void RasterizerOpenGL::SetupVertexBuffer(GLuint vao) {
 
         ASSERT(end > start);
         const u64 size = end - start + 1;
-        const GLintptr vertex_buffer_offset = buffer_cache.UploadMemory(start, size);
+        const auto [vertex_buffer, vertex_buffer_offset] = buffer_cache.UploadMemory(start, size);
 
         // Bind the vertex array to the buffer at the current offset.
-        glVertexArrayVertexBuffer(vao, index, buffer_cache.GetHandle(), vertex_buffer_offset,
+        glVertexArrayVertexBuffer(vao, index, vertex_buffer, vertex_buffer_offset,
                                   vertex_array.stride);
 
         if (regs.instanced_arrays.IsInstancingEnabled(index) && vertex_array.divisor != 0) {
@@ -215,12 +213,16 @@ void RasterizerOpenGL::SetupVertexBuffer(GLuint vao) {
     gpu.dirty_flags.vertex_array.reset();
 }
 
-GLintptr RasterizerOpenGL::SetupIndexBuffer() {
+GLintptr RasterizerOpenGL::SetupIndexBuffer(GLuint vao) {
     if (accelerate_draw != AccelDraw::Indexed) {
         return 0;
     }
+    MICROPROFILE_SCOPE(OpenGL_Index);
     const auto& regs = system.GPU().Maxwell3D().regs;
-    return buffer_cache.UploadMemory(regs.index_array.IndexStart(), CalculateIndexBufferSize());
+    const std::size_t size = CalculateIndexBufferSize();
+    const auto [buffer, offset] = buffer_cache.UploadMemory(regs.index_array.IndexStart(), size);
+    glVertexArrayElementBuffer(vao, buffer);
+    return offset;
 }
 
 DrawParameters RasterizerOpenGL::SetupDraw(GLintptr index_buffer_offset) {
@@ -235,7 +237,6 @@ DrawParameters RasterizerOpenGL::SetupDraw(GLintptr index_buffer_offset) {
     params.primitive_mode = MaxwellToGL::PrimitiveTopology(regs.draw.topology);
 
     if (is_indexed) {
-        MICROPROFILE_SCOPE(OpenGL_Index);
         params.index_format = MaxwellToGL::IndexFormat(regs.index_array.format);
         params.count = regs.index_array.count;
         params.index_buffer_offset = index_buffer_offset;
@@ -278,12 +279,11 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
 
         GLShader::MaxwellUniformData ubo{};
         ubo.SetFromRegs(gpu, stage);
-        const GLintptr offset =
+        const auto [buffer, offset] =
             buffer_cache.UploadHostMemory(&ubo, sizeof(ubo), device.GetUniformBufferAlignment());
 
         // Bind the emulation info buffer
-        bind_ubo_pushbuffer.Push(buffer_cache.GetHandle(), offset,
-                                 static_cast<GLsizeiptr>(sizeof(ubo)));
+        bind_ubo_pushbuffer.Push(buffer, offset, static_cast<GLsizeiptr>(sizeof(ubo)));
 
         Shader shader{shader_cache.GetStageProgram(program)};
 
@@ -651,11 +651,11 @@ void RasterizerOpenGL::DrawArrays() {
     }
 
     // Prepare vertex array format.
-    const GLuint vertex_array = SetupVertexFormat();
+    const GLuint vao = SetupVertexFormat();
 
     // Upload vertex and index data.
-    SetupVertexBuffer(vertex_array);
-    const GLintptr index_buffer_offset = SetupIndexBuffer();
+    SetupVertexBuffer(vao);
+    const GLintptr index_buffer_offset = SetupIndexBuffer(vao);
 
     // Setup draw parameters. It will automatically choose what glDraw* method to use.
     const DrawParameters params = SetupDraw(index_buffer_offset);
@@ -791,8 +791,8 @@ void RasterizerOpenGL::SetupConstBuffer(const Tegra::Engines::ConstBufferInfo& b
     ASSERT_MSG(size <= MaxConstbufferSize, "Constant buffer is too big");
 
     const std::size_t alignment = device.GetUniformBufferAlignment();
-    const GLintptr offset = buffer_cache.UploadMemory(buffer.address, size, alignment);
-    bind_ubo_pushbuffer.Push(buffer_cache.GetHandle(), offset, size);
+    const auto [cbuf, offset] = buffer_cache.UploadMemory(buffer.address, size, alignment);
+    bind_ubo_pushbuffer.Push(cbuf, offset, size);
 }
 
 void RasterizerOpenGL::SetupGlobalRegions(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,

@@ -220,7 +220,7 @@ private:
 
     void SetupVertexBuffer(GLuint vao);
 
-    GLintptr SetupIndexBuffer();
+    GLintptr SetupIndexBuffer(GLuint vao);
 
     DrawParameters SetupDraw(GLintptr index_buffer_offset);
 

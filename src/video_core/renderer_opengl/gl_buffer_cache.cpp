@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include <memory>
+#include <utility>
 
 #include "common/alignment.h"
 #include "core/core.h"
@@ -21,9 +22,10 @@ CachedBufferEntry::CachedBufferEntry(VAddr cpu_addr, std::size_t size, GLintptr 
 OGLBufferCache::OGLBufferCache(RasterizerOpenGL& rasterizer, std::size_t size)
     : RasterizerCache{rasterizer}, stream_buffer(size, true) {}
 
-GLintptr OGLBufferCache::UploadMemory(GPUVAddr gpu_addr, std::size_t size, std::size_t alignment,
-                                      bool cache) {
+std::pair<GLuint, GLintptr> OGLBufferCache::UploadMemory(GPUVAddr gpu_addr, std::size_t size,
+                                                         std::size_t alignment, bool cache) {
     std::lock_guard lock{mutex};
+
     auto& memory_manager = Core::System::GetInstance().GPU().MemoryManager();
 
     // Cache management is a big overhead, so only cache entries with a given size.
@@ -35,7 +37,7 @@ GLintptr OGLBufferCache::UploadMemory(GPUVAddr gpu_addr, std::size_t size, std::
         auto entry = TryGet(host_ptr);
         if (entry) {
             if (entry->GetSize() >= size && entry->GetAlignment() == alignment) {
-                return entry->GetOffset();
+                return {stream_buffer.GetHandle(), entry->GetOffset()};
             }
             Unregister(entry);
         }
@@ -45,7 +47,7 @@ GLintptr OGLBufferCache::UploadMemory(GPUVAddr gpu_addr, std::size_t size, std::
     const GLintptr uploaded_offset = buffer_offset;
 
     if (!host_ptr) {
-        return uploaded_offset;
+        return {stream_buffer.GetHandle(), uploaded_offset};
     }
 
     std::memcpy(buffer_ptr, host_ptr, size);
@@ -58,11 +60,12 @@ GLintptr OGLBufferCache::UploadMemory(GPUVAddr gpu_addr, std::size_t size, std::
         Register(entry);
     }
 
-    return uploaded_offset;
+    return {stream_buffer.GetHandle(), uploaded_offset};
 }
 
-GLintptr OGLBufferCache::UploadHostMemory(const void* raw_pointer, std::size_t size,
-                                          std::size_t alignment) {
+std::pair<GLuint, GLintptr> OGLBufferCache::UploadHostMemory(const void* raw_pointer,
+                                                             std::size_t size,
+                                                             std::size_t alignment) {
     std::lock_guard lock{mutex};
     AlignBuffer(alignment);
     std::memcpy(buffer_ptr, raw_pointer, size);
@@ -70,7 +73,7 @@ GLintptr OGLBufferCache::UploadHostMemory(const void* raw_pointer, std::size_t s
 
     buffer_ptr += size;
     buffer_offset += size;
-    return uploaded_offset;
+    return {stream_buffer.GetHandle(), uploaded_offset};
 }
 
 bool OGLBufferCache::Map(std::size_t max_size) {
@@ -87,10 +90,6 @@ bool OGLBufferCache::Map(std::size_t max_size) {
 
 void OGLBufferCache::Unmap() {
     stream_buffer.Unmap(buffer_offset - buffer_offset_base);
-}
-
-GLuint OGLBufferCache::GetHandle() const {
-    return stream_buffer.GetHandle();
 }
 
 void OGLBufferCache::AlignBuffer(std::size_t alignment) {
