@@ -26,14 +26,11 @@ public:
 private:
     void ReadSystemSettings();
 
-    void UpdateBirthdayComboBox(int birthmonth_index);
     void RefreshConsoleID();
 
     std::unique_ptr<Ui::ConfigureSystem> ui;
     bool enabled = false;
 
-    int birthmonth = 0;
-    int birthday = 0;
     int language_index = 0;
     int sound_index = 0;
 };
