@@ -440,8 +440,7 @@ void GRenderWindow::CaptureScreenshot(u16 res_scale, const QString& screenshot_p
                                layout);
 }
 
-void GRenderWindow::OnMinimalClientAreaChangeRequest(
-    const std::pair<unsigned, unsigned>& minimal_size) {
+void GRenderWindow::OnMinimalClientAreaChangeRequest(std::pair<unsigned, unsigned> minimal_size) {
     setMinimumSize(minimal_size.first, minimal_size.second);
 }
 

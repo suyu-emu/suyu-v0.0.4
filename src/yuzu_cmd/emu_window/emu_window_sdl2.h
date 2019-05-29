@@ -15,24 +15,13 @@ public:
     explicit EmuWindow_SDL2(bool fullscreen);
     ~EmuWindow_SDL2();
 
-    /// Swap buffers to display the next frame
-    void SwapBuffers() override;
-
     /// Polls window events
     void PollEvents() override;
-
-    /// Makes the graphics context current for the caller thread
-    void MakeCurrent() override;
-
-    /// Releases the GL context from the caller thread
-    void DoneCurrent() override;
-
-    std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override;
 
     /// Whether the window is still open, and a close request hasn't yet been sent
     bool IsOpen() const;
 
-private:
+protected:
     /// Called by PollEvents when a key is pressed or released.
     void OnKeyEvent(int key, u8 state);
 
@@ -60,20 +49,15 @@ private:
     /// Called when user passes the fullscreen parameter flag
     void Fullscreen();
 
-    /// Whether the GPU and driver supports the OpenGL extension required
-    bool SupportsRequiredGLExtensions();
-
     /// Called when a configuration change affects the minimal size of the window
-    void OnMinimalClientAreaChangeRequest(
-        const std::pair<unsigned, unsigned>& minimal_size) override;
+    void OnMinimalClientAreaChangeRequest(std::pair<unsigned, unsigned> minimal_size) override;
 
     /// Is the window still open?
     bool is_open = true;
 
+    /// Is the window being shown?
+    bool is_shown = true;
+
     /// Internal SDL2 render window
     SDL_Window* render_window;
-
-    using SDL_GLContext = void*;
-    /// The OpenGL context associated with the window
-    SDL_GLContext gl_context;
 };
