@@ -266,7 +266,7 @@ void GRenderWindow::ForwardKeyReleaseEvent(QKeyEvent* event) {
 }
 
 void GRenderWindow::BackupGeometry() {
-    geometry = ((QWidget*)this)->saveGeometry();
+    geometry = QWidget::saveGeometry();
 }
 
 void GRenderWindow::RestoreGeometry() {
@@ -283,10 +283,11 @@ void GRenderWindow::restoreGeometry(const QByteArray& geometry) {
 QByteArray GRenderWindow::saveGeometry() {
     // If we are a top-level widget, store the current geometry
     // otherwise, store the last backup
-    if (parent() == nullptr)
-        return ((QWidget*)this)->saveGeometry();
-    else
-        return geometry;
+    if (parent() == nullptr) {
+        return QWidget::saveGeometry();
+    }
+
+    return geometry;
 }
 
 qreal GRenderWindow::GetWindowPixelRatio() const {
