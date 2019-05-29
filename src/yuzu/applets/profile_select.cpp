@@ -136,7 +136,7 @@ bool QtProfileSelectionDialog::GetStatus() const {
     return ok;
 }
 
-u32 QtProfileSelectionDialog::GetIndex() const {
+int QtProfileSelectionDialog::GetIndex() const {
     return user_index;
 }
 

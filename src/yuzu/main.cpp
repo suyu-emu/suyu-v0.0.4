@@ -246,7 +246,7 @@ void GMainWindow::ProfileSelectorSelectProfile() {
     }
 
     Service::Account::ProfileManager manager;
-    const auto uuid = manager.GetUser(dialog.GetIndex());
+    const auto uuid = manager.GetUser(static_cast<std::size_t>(dialog.GetIndex()));
     if (!uuid.has_value()) {
         emit ProfileSelectorFinishedSelection(std::nullopt);
         return;
@@ -904,7 +904,7 @@ void GMainWindow::SelectAndSetCurrentUser() {
     dialog.exec();
 
     if (dialog.GetStatus()) {
-        Settings::values.current_user = static_cast<s32>(dialog.GetIndex());
+        Settings::values.current_user = dialog.GetIndex();
     }
 }
 
@@ -1055,7 +1055,7 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
         const std::string nand_dir = FileUtil::GetUserPath(FileUtil::UserPath::NANDDir);
         ASSERT(program_id != 0);
 
-        const auto select_profile = [this]() -> s32 {
+        const auto select_profile = [this] {
             QtProfileSelectionDialog dialog(this);
             dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
                                   Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
@@ -1070,11 +1070,12 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
         };
 
         const auto index = select_profile();
-        if (index == -1)
+        if (index == -1) {
             return;
+        }
 
         Service::Account::ProfileManager manager;
-        const auto user_id = manager.GetUser(index);
+        const auto user_id = manager.GetUser(static_cast<std::size_t>(index));
         ASSERT(user_id);
         path = nand_dir + FileSys::SaveDataFactory::GetFullPath(FileSys::SaveDataSpaceId::NandUser,
                                                                 FileSys::SaveDataType::SaveData,

@@ -30,11 +30,11 @@ public:
     void reject() override;
 
     bool GetStatus() const;
-    u32 GetIndex() const;
+    int GetIndex() const;
 
 private:
     bool ok = false;
-    u32 user_index = 0;
+    int user_index = 0;
 
     void SelectUser(const QModelIndex& index);
 
