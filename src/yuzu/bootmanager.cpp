@@ -435,12 +435,17 @@ void GRenderWindow::CaptureScreenshot(u32 res_scale, const QString& screenshot_p
 
     const Layout::FramebufferLayout layout{Layout::FrameLayoutFromResolutionScale(res_scale)};
     screenshot_image = QImage(QSize(layout.width, layout.height), QImage::Format_RGB32);
-    renderer.RequestScreenshot(screenshot_image.bits(),
-                               [=] {
-                                   screenshot_image.mirrored(false, true).save(screenshot_path);
-                                   LOG_INFO(Frontend, "The screenshot is saved.");
-                               },
-                               layout);
+    renderer.RequestScreenshot(
+        screenshot_image.bits(),
+        [=] {
+            const std::string std_screenshot_path = screenshot_path.toStdString();
+            if (screenshot_image.mirrored(false, true).save(screenshot_path)) {
+                LOG_INFO(Frontend, "Screenshot saved to \"{}\"", std_screenshot_path);
+            } else {
+                LOG_ERROR(Frontend, "Failed to save screenshot to \"{}\"", std_screenshot_path);
+            }
+        },
+        layout);
 }
 
 void GRenderWindow::OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) {
