@@ -148,15 +148,6 @@ struct System::Impl {
             LOG_CRITICAL(Core, "Failed to obtain loader for {}!", filepath);
             return ResultStatus::ErrorGetLoader;
         }
-        std::pair<std::optional<u32>, Loader::ResultStatus> system_mode =
-            app_loader->LoadKernelSystemMode();
-
-        if (system_mode.second != Loader::ResultStatus::Success) {
-            LOG_CRITICAL(Core, "Failed to determine system mode (Error {})!",
-                         static_cast<int>(system_mode.second));
-
-            return ResultStatus::ErrorSystemMode;
-        }
 
         ResultStatus init_result{Init(system, emu_window)};
         if (init_result != ResultStatus::Success) {

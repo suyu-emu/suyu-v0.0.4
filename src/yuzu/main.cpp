@@ -850,11 +850,6 @@ bool GMainWindow::LoadROM(const QString& filename) {
             QMessageBox::critical(this, tr("Error while loading ROM!"),
                                   tr("The ROM format is not supported."));
             break;
-        case Core::System::ResultStatus::ErrorSystemMode:
-            LOG_CRITICAL(Frontend, "Failed to load ROM!");
-            QMessageBox::critical(this, tr("Error while loading ROM!"),
-                                  tr("Could not determine the system mode."));
-            break;
         case Core::System::ResultStatus::ErrorVideoCore:
             QMessageBox::critical(
                 this, tr("An error occurred initializing the video core."),

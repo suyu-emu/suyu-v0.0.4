@@ -199,9 +199,6 @@ int main(int argc, char** argv) {
     case Core::System::ResultStatus::ErrorNotInitialized:
         LOG_CRITICAL(Frontend, "CPUCore not initialized");
         return -1;
-    case Core::System::ResultStatus::ErrorSystemMode:
-        LOG_CRITICAL(Frontend, "Failed to determine system mode!");
-        return -1;
     case Core::System::ResultStatus::ErrorVideoCore:
         LOG_CRITICAL(Frontend, "Failed to initialize VideoCore!");
         return -1;
