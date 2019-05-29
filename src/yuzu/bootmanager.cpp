@@ -185,7 +185,7 @@ private:
     bool do_painting;
 };
 
-GRenderWindow::GRenderWindow(QWidget* parent, EmuThread* emu_thread)
+GRenderWindow::GRenderWindow(GMainWindow* parent, EmuThread* emu_thread)
     : QWidget(parent), emu_thread(emu_thread) {
     setWindowTitle(QStringLiteral("yuzu %1 | %2-%3")
                        .arg(QString::fromUtf8(Common::g_build_name),
@@ -194,8 +194,7 @@ GRenderWindow::GRenderWindow(QWidget* parent, EmuThread* emu_thread)
     setAttribute(Qt::WA_AcceptTouchEvents);
 
     InputCommon::Init();
-    connect(this, &GRenderWindow::FirstFrameDisplayed, static_cast<GMainWindow*>(parent),
-            &GMainWindow::OnLoadComplete);
+    connect(this, &GRenderWindow::FirstFrameDisplayed, parent, &GMainWindow::OnLoadComplete);
 }
 
 GRenderWindow::~GRenderWindow() {

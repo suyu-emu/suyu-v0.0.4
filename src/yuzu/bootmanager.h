@@ -114,7 +114,7 @@ class GRenderWindow : public QWidget, public Core::Frontend::EmuWindow {
     Q_OBJECT
 
 public:
-    GRenderWindow(QWidget* parent, EmuThread* emu_thread);
+    GRenderWindow(GMainWindow* parent, EmuThread* emu_thread);
     ~GRenderWindow() override;
 
     // EmuWindow implementation
