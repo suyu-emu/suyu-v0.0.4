@@ -191,7 +191,7 @@ int main(int argc, char** argv) {
 
     switch (load_result) {
     case Core::System::ResultStatus::ErrorGetLoader:
-        LOG_CRITICAL(Frontend, "Failed to obtain loader for %s!", filepath.c_str());
+        LOG_CRITICAL(Frontend, "Failed to obtain loader for {}!", filepath);
         return -1;
     case Core::System::ResultStatus::ErrorLoader:
         LOG_CRITICAL(Frontend, "Failed to load ROM!");
