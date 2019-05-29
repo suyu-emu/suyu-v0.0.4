@@ -121,6 +121,21 @@ void Applet::Initialize() {
     initialized = true;
 }
 
+AppletFrontendSet::AppletFrontendSet() = default;
+
+AppletFrontendSet::AppletFrontendSet(ErrorApplet error, PhotoViewer photo_viewer,
+                                     ProfileSelect profile_select,
+                                     SoftwareKeyboard software_keyboard, WebBrowser web_browser)
+    : error{std::move(error)}, photo_viewer{std::move(photo_viewer)}, profile_select{std::move(
+                                                                          profile_select)},
+      software_keyboard{std::move(software_keyboard)}, web_browser{std::move(web_browser)} {}
+
+AppletFrontendSet::~AppletFrontendSet() = default;
+
+AppletFrontendSet::AppletFrontendSet(AppletFrontendSet&&) noexcept = default;
+
+AppletFrontendSet& AppletFrontendSet::operator=(AppletFrontendSet&&) noexcept = default;
+
 AppletManager::AppletManager() = default;
 
 AppletManager::~AppletManager() = default;
