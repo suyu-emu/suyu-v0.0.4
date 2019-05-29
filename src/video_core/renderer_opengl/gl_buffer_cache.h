@@ -82,7 +82,7 @@ public:
     /// Uploads data from a guest GPU address. Returns the OpenGL buffer where it's located and its
     /// offset.
     BufferInfo UploadMemory(GPUVAddr gpu_addr, std::size_t size, std::size_t alignment = 4,
-                            bool internalize = false);
+                            bool internalize = false, bool is_written = false);
 
     /// Uploads from a host memory. Returns the OpenGL buffer where it's located and its offset.
     BufferInfo UploadHostMemory(const void* raw_pointer, std::size_t size,
@@ -99,7 +99,7 @@ private:
     BufferInfo StreamBufferUpload(const void* raw_pointer, std::size_t size, std::size_t alignment);
 
     BufferInfo FixedBufferUpload(GPUVAddr gpu_addr, u8* host_ptr, std::size_t size,
-                                 bool internalize);
+                                 bool internalize, bool is_written);
 
     void GrowBuffer(std::shared_ptr<CachedBufferEntry>& entry, std::size_t new_size);
 

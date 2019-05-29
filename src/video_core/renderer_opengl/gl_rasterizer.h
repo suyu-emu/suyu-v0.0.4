@@ -24,7 +24,6 @@
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_framebuffer_cache.h"
-#include "video_core/renderer_opengl/gl_global_cache.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_sampler_cache.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
@@ -189,7 +188,6 @@ private:
 
     TextureCacheOpenGL texture_cache;
     ShaderCacheOpenGL shader_cache;
-    GlobalRegionCacheOpenGL global_cache;
     SamplerCacheOpenGL sampler_cache;
     FramebufferCacheOpenGL framebuffer_cache;
 

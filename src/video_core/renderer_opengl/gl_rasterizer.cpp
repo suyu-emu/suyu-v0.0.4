@@ -20,6 +20,7 @@
 #include "core/hle/kernel/process.h"
 #include "core/settings.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/memory_manager.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
@@ -82,8 +83,8 @@ struct DrawParameters {
 
 RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
                                    ScreenInfo& info)
-    : texture_cache{system, *this, device}, shader_cache{*this, system, emu_window, device},
-      global_cache{*this}, system{system}, screen_info{info},
+    : texture_cache{system, *this, device},
+      shader_cache{*this, system, emu_window, device}, system{system}, screen_info{info},
       buffer_cache(*this, STREAM_BUFFER_SIZE) {
     OpenGLState::ApplyDefaultState();
 
@@ -689,7 +690,7 @@ void RasterizerOpenGL::FlushRegion(CacheAddr addr, u64 size) {
         return;
     }
     texture_cache.FlushRegion(addr, size);
-    global_cache.FlushRegion(addr, size);
+    buffer_cache.FlushRegion(addr, size);
 }
 
 void RasterizerOpenGL::InvalidateRegion(CacheAddr addr, u64 size) {
@@ -699,7 +700,6 @@ void RasterizerOpenGL::InvalidateRegion(CacheAddr addr, u64 size) {
     }
     texture_cache.InvalidateRegion(addr, size);
     shader_cache.InvalidateRegion(addr, size);
-    global_cache.InvalidateRegion(addr, size);
     buffer_cache.InvalidateRegion(addr, size);
 }
 
@@ -797,15 +797,22 @@ void RasterizerOpenGL::SetupConstBuffer(const Tegra::Engines::ConstBufferInfo& b
 
 void RasterizerOpenGL::SetupGlobalRegions(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
                                           const Shader& shader) {
+    auto& gpu{system.GPU()};
+    auto& memory_manager{gpu.MemoryManager()};
+    const auto cbufs{gpu.Maxwell3D().state.shader_stages[static_cast<std::size_t>(stage)]};
+    const auto alignment{device.GetShaderStorageBufferAlignment()};
+
     const auto& entries = shader->GetShaderEntries().global_memory_entries;
     for (std::size_t bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
         const auto& entry{entries[bindpoint]};
-        const auto& region{global_cache.GetGlobalRegion(entry, stage)};
-        if (entry.IsWritten()) {
-            region->MarkAsModified(true, global_cache);
-        }
-        bind_ssbo_pushbuffer.Push(region->GetBufferHandle(), 0,
-                                  static_cast<GLsizeiptr>(region->GetSizeInBytes()));
+
+        const auto addr{cbufs.const_buffers[entry.GetCbufIndex()].address + entry.GetCbufOffset()};
+        const auto actual_addr{memory_manager.Read<u64>(addr)};
+        const auto size{memory_manager.Read<u32>(addr + 8)};
+
+        const auto [ssbo, buffer_offset] =
+            buffer_cache.UploadMemory(actual_addr, size, alignment, true, entry.IsWritten());
+        bind_ssbo_pushbuffer.Push(ssbo, buffer_offset, static_cast<GLsizeiptr>(size));
     }
 }
 
