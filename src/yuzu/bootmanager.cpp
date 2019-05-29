@@ -246,9 +246,9 @@ void GRenderWindow::PollEvents() {}
 void GRenderWindow::OnFramebufferSizeChanged() {
     // Screen changes potentially incur a change in screen DPI, hence we should update the
     // framebuffer size
-    qreal pixelRatio = GetWindowPixelRatio();
-    unsigned width = child->QPaintDevice::width() * pixelRatio;
-    unsigned height = child->QPaintDevice::height() * pixelRatio;
+    const qreal pixel_ratio = GetWindowPixelRatio();
+    const u32 width = child->QPaintDevice::width() * pixel_ratio;
+    const u32 height = child->QPaintDevice::height() * pixel_ratio;
     UpdateCurrentFramebufferLayout(width, height);
 }
 
@@ -294,10 +294,10 @@ qreal GRenderWindow::GetWindowPixelRatio() const {
     return windowHandle() ? windowHandle()->screen()->devicePixelRatio() : 1.0f;
 }
 
-std::pair<unsigned, unsigned> GRenderWindow::ScaleTouch(const QPointF pos) const {
+std::pair<u32, u32> GRenderWindow::ScaleTouch(const QPointF pos) const {
     const qreal pixel_ratio = GetWindowPixelRatio();
-    return {static_cast<unsigned>(std::max(std::round(pos.x() * pixel_ratio), qreal{0.0})),
-            static_cast<unsigned>(std::max(std::round(pos.y() * pixel_ratio), qreal{0.0}))};
+    return {static_cast<u32>(std::max(std::round(pos.x() * pixel_ratio), qreal{0.0})),
+            static_cast<u32>(std::max(std::round(pos.y() * pixel_ratio), qreal{0.0}))};
 }
 
 void GRenderWindow::closeEvent(QCloseEvent* event) {
@@ -353,7 +353,7 @@ void GRenderWindow::focusOutEvent(QFocusEvent* event) {
     InputCommon::GetKeyboard()->ReleaseAllKeys();
 }
 
-void GRenderWindow::OnClientAreaResized(unsigned width, unsigned height) {
+void GRenderWindow::OnClientAreaResized(u32 width, u32 height) {
     NotifyClientAreaSizeChanged(std::make_pair(width, height));
 }
 
@@ -440,7 +440,7 @@ void GRenderWindow::CaptureScreenshot(u16 res_scale, const QString& screenshot_p
                                layout);
 }
 
-void GRenderWindow::OnMinimalClientAreaChangeRequest(std::pair<unsigned, unsigned> minimal_size) {
+void GRenderWindow::OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) {
     setMinimumSize(minimal_size.first, minimal_size.second);
 }
 

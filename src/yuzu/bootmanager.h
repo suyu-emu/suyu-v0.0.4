@@ -133,13 +133,13 @@ public:
     QByteArray saveGeometry();                        // overridden
 
     qreal GetWindowPixelRatio() const;
-    std::pair<unsigned, unsigned> ScaleTouch(const QPointF pos) const;
+    std::pair<u32, u32> ScaleTouch(QPointF pos) const;
 
     void closeEvent(QCloseEvent* event) override;
     bool event(QEvent* event) override;
     void focusOutEvent(QFocusEvent* event) override;
 
-    void OnClientAreaResized(unsigned width, unsigned height);
+    void OnClientAreaResized(u32 width, u32 height);
 
     void InitRenderTarget();
 
@@ -162,7 +162,7 @@ private:
     void TouchUpdateEvent(const QTouchEvent* event);
     void TouchEndEvent();
 
-    void OnMinimalClientAreaChangeRequest(std::pair<unsigned, unsigned> minimal_size) override;
+    void OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) override;
 
     QWidget* container = nullptr;
     GGLWidgetInternal* child = nullptr;
