@@ -36,10 +36,8 @@ public:
     void reject() override;
 
     std::u16string GetText() const;
-    bool GetStatus() const;
 
 private:
-    bool ok = false;
     std::u16string text;
 
     QDialogButtonBox* buttons;

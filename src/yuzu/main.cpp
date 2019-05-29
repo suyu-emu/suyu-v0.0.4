@@ -259,9 +259,8 @@ void GMainWindow::SoftwareKeyboardGetText(
     dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
                           Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
     dialog.setWindowModality(Qt::WindowModal);
-    dialog.exec();
 
-    if (!dialog.GetStatus()) {
+    if (dialog.exec() == QDialog::Rejected) {
         emit SoftwareKeyboardFinishedText(std::nullopt);
         return;
     }
