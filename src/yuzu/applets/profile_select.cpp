@@ -122,18 +122,12 @@ QtProfileSelectionDialog::QtProfileSelectionDialog(QWidget* parent)
 QtProfileSelectionDialog::~QtProfileSelectionDialog() = default;
 
 void QtProfileSelectionDialog::accept() {
-    ok = true;
     QDialog::accept();
 }
 
 void QtProfileSelectionDialog::reject() {
-    ok = false;
     user_index = 0;
     QDialog::reject();
-}
-
-bool QtProfileSelectionDialog::GetStatus() const {
-    return ok;
 }
 
 int QtProfileSelectionDialog::GetIndex() const {

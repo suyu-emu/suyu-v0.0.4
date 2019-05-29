@@ -238,9 +238,7 @@ void GMainWindow::ProfileSelectorSelectProfile() {
     dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
                           Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
     dialog.setWindowModality(Qt::WindowModal);
-    dialog.exec();
-
-    if (!dialog.GetStatus()) {
+    if (dialog.exec() == QDialog::Rejected) {
         emit ProfileSelectorFinishedSelection(std::nullopt);
         return;
     }
@@ -901,11 +899,12 @@ void GMainWindow::SelectAndSetCurrentUser() {
     dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
                           Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
     dialog.setWindowModality(Qt::WindowModal);
-    dialog.exec();
 
-    if (dialog.GetStatus()) {
-        Settings::values.current_user = dialog.GetIndex();
+    if (dialog.exec() == QDialog::Rejected) {
+        return;
     }
+
+    Settings::values.current_user = dialog.GetIndex();
 }
 
 void GMainWindow::BootGame(const QString& filename) {
@@ -1060,9 +1059,8 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
             dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
                                   Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
             dialog.setWindowModality(Qt::WindowModal);
-            dialog.exec();
 
-            if (!dialog.GetStatus()) {
+            if (dialog.exec() == QDialog::Rejected) {
                 return -1;
             }
 

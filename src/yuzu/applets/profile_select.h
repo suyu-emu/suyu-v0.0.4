@@ -29,14 +29,12 @@ public:
     void accept() override;
     void reject() override;
 
-    bool GetStatus() const;
     int GetIndex() const;
 
 private:
-    bool ok = false;
-    int user_index = 0;
-
     void SelectUser(const QModelIndex& index);
+
+    int user_index = 0;
 
     QVBoxLayout* layout;
     QTreeView* tree_view;
