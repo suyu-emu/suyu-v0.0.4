@@ -26,6 +26,8 @@
 
 EmuThread::EmuThread(GRenderWindow* render_window) : render_window(render_window) {}
 
+EmuThread::~EmuThread() = default;
+
 void EmuThread::run() {
     render_window->MakeCurrent();
 

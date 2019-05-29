@@ -27,11 +27,12 @@ namespace VideoCore {
 enum class LoadCallbackStage;
 }
 
-class EmuThread : public QThread {
+class EmuThread final : public QThread {
     Q_OBJECT
 
 public:
     explicit EmuThread(GRenderWindow* render_window);
+    ~EmuThread() override;
 
     /**
      * Start emulation (on new thread)
