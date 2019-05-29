@@ -20,7 +20,7 @@ static Common::Rectangle<T> MaxRectangle(Common::Rectangle<T> window_area,
                                 static_cast<T>(std::round(scale * screen_aspect_ratio))};
 }
 
-FramebufferLayout DefaultFrameLayout(unsigned width, unsigned height) {
+FramebufferLayout DefaultFrameLayout(u32 width, u32 height) {
     ASSERT(width > 0);
     ASSERT(height > 0);
     // The drawing code needs at least somewhat valid values for both screens
@@ -29,22 +29,23 @@ FramebufferLayout DefaultFrameLayout(unsigned width, unsigned height) {
 
     const float emulation_aspect_ratio{static_cast<float>(ScreenUndocked::Height) /
                                        ScreenUndocked::Width};
-    Common::Rectangle<unsigned> screen_window_area{0, 0, width, height};
-    Common::Rectangle<unsigned> screen = MaxRectangle(screen_window_area, emulation_aspect_ratio);
+    const auto window_aspect_ratio = static_cast<float>(height) / width;
 
-    float window_aspect_ratio = static_cast<float>(height) / width;
+    const Common::Rectangle<u32> screen_window_area{0, 0, width, height};
+    Common::Rectangle<u32> screen = MaxRectangle(screen_window_area, emulation_aspect_ratio);
 
     if (window_aspect_ratio < emulation_aspect_ratio) {
         screen = screen.TranslateX((screen_window_area.GetWidth() - screen.GetWidth()) / 2);
     } else {
         screen = screen.TranslateY((height - screen.GetHeight()) / 2);
     }
+
     res.screen = screen;
     return res;
 }
 
-FramebufferLayout FrameLayoutFromResolutionScale(u16 res_scale) {
-    int width, height;
+FramebufferLayout FrameLayoutFromResolutionScale(u32 res_scale) {
+    u32 width, height;
 
     if (Settings::values.use_docked_mode) {
         width = ScreenDocked::WidthDocked * res_scale;

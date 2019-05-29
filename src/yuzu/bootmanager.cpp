@@ -426,11 +426,12 @@ void GRenderWindow::InitRenderTarget() {
     BackupGeometry();
 }
 
-void GRenderWindow::CaptureScreenshot(u16 res_scale, const QString& screenshot_path) {
+void GRenderWindow::CaptureScreenshot(u32 res_scale, const QString& screenshot_path) {
     auto& renderer = Core::System::GetInstance().Renderer();
 
-    if (!res_scale)
+    if (res_scale == 0) {
         res_scale = VideoCore::GetResolutionScaleFactor(renderer);
+    }
 
     const Layout::FramebufferLayout layout{Layout::FrameLayoutFromResolutionScale(res_scale)};
     screenshot_image = QImage(QSize(layout.width, layout.height), QImage::Format_RGB32);

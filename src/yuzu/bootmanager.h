@@ -144,7 +144,7 @@ public:
 
     void InitRenderTarget();
 
-    void CaptureScreenshot(u16 res_scale, const QString& screenshot_path);
+    void CaptureScreenshot(u32 res_scale, const QString& screenshot_path);
 
 public slots:
     void moveContext(); // overridden
