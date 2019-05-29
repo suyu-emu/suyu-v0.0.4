@@ -144,7 +144,6 @@ struct System::Impl {
     ResultStatus Load(System& system, Frontend::EmuWindow& emu_window,
                       const std::string& filepath) {
         app_loader = Loader::GetLoader(GetGameFileFromPath(virtual_filesystem, filepath));
-
         if (!app_loader) {
             LOG_CRITICAL(Core, "Failed to obtain loader for {}!", filepath);
             return ResultStatus::ErrorGetLoader;
@@ -167,6 +166,7 @@ struct System::Impl {
             return init_result;
         }
 
+        telemetry_session->AddInitialInfo(*app_loader);
         auto main_process = Kernel::Process::Create(system, "main");
         const auto [load_result, load_parameters] = app_loader->Load(*main_process);
         if (load_result != Loader::ResultStatus::Success) {
