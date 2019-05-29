@@ -394,7 +394,7 @@ void GRenderWindow::InitRenderTarget() {
     context->setShareContext(shared_context.get());
     context->setFormat(fmt);
     context->create();
-    fmt.setSwapInterval(false);
+    fmt.setSwapInterval(0);
 
     child = new GGLWidgetInternal(this, shared_context.get());
     container = QWidget::createWindowContainer(child, this);
