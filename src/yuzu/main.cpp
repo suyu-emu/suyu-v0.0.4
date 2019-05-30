@@ -1396,6 +1396,8 @@ void GMainWindow::OnMenuInstallToNAND() {
                                  tr("The file was successfully installed."));
         game_list->PopulateAsync(UISettings::values.game_directory_path,
                                  UISettings::values.game_directory_deepscan);
+        FileUtil::DeleteDirRecursively(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) +
+                                       DIR_SEP + "game_list");
     };
 
     const auto failed = [this]() {
