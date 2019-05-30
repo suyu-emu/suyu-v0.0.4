@@ -33,6 +33,10 @@ public:
         return size;
     }
 
+    u8* GetWritableHostPtr() const {
+        return host_ptr;
+    }
+
     std::size_t GetSize() const {
         return size;
     }
@@ -63,6 +67,7 @@ public:
     }
 
 private:
+    u8* host_ptr{};
     VAddr cpu_addr{};
     std::size_t size{};
     std::size_t capacity{};
@@ -93,7 +98,7 @@ public:
 
 protected:
     // We do not have to flush this cache as things in it are never modified by us.
-    void FlushObjectInner(const std::shared_ptr<CachedBufferEntry>& object) override {}
+    void FlushObjectInner(const std::shared_ptr<CachedBufferEntry>& entry) override;
 
 private:
     BufferInfo StreamBufferUpload(const void* raw_pointer, std::size_t size, std::size_t alignment);

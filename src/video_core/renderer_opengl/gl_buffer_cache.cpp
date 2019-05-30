@@ -31,7 +31,7 @@ OGLBuffer CreateBuffer(std::size_t size, GLenum usage) {
 } // Anonymous namespace
 
 CachedBufferEntry::CachedBufferEntry(VAddr cpu_addr, u8* host_ptr)
-    : RasterizerCacheObject{host_ptr}, cpu_addr{cpu_addr} {}
+    : RasterizerCacheObject{host_ptr}, host_ptr{host_ptr}, cpu_addr{cpu_addr} {}
 
 OGLBufferCache::OGLBufferCache(RasterizerOpenGL& rasterizer, std::size_t size)
     : RasterizerCache{rasterizer}, stream_buffer(size, true) {}
@@ -98,6 +98,10 @@ bool OGLBufferCache::Map(std::size_t max_size) {
 
 void OGLBufferCache::Unmap() {
     stream_buffer.Unmap(buffer_offset - buffer_offset_base);
+}
+
+void OGLBufferCache::FlushObjectInner(const std::shared_ptr<CachedBufferEntry>& entry) {
+    glGetNamedBufferSubData(entry->GetBuffer(), 0, entry->GetSize(), entry->GetWritableHostPtr());
 }
 
 OGLBufferCache::BufferInfo OGLBufferCache::StreamBufferUpload(const void* raw_pointer,
