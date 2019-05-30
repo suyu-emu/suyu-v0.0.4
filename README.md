@@ -7,7 +7,7 @@ yuzu is an experimental open-source emulator for the Nintendo Switch from the cr
 
 It is written in C++ with portability in mind, with builds actively maintained for Windows, Linux and macOS. The emulator is currently only useful for homebrew development and research purposes.
 
-yuzu only emulates a subset of Switch hardware and therefore is generally only useful for running/debugging homebrew applications. At this time, yuzu cannot play any commercial games without major problems. yuzu can boot some games, to varying degrees of success.
+yuzu only emulates a subset of Switch hardware and therefore is generally only useful for running/debugging homebrew applications. yuzu can boot some games, to varying degrees of success.
 
 yuzu is licensed under the GPLv2 (or any later version). Refer to the license.txt file included.
 
