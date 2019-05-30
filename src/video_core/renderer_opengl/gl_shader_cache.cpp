@@ -573,9 +573,11 @@ Shader ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
     const VAddr cpu_addr{*memory_manager.GpuToCpuAddress(program_addr)};
     const auto found = precompiled_shaders.find(unique_identifier);
     if (found != precompiled_shaders.end()) {
+        // Create a shader from the cache
         shader = std::make_shared<CachedShader>(cpu_addr, unique_identifier, program, disk_cache,
                                                 precompiled_programs, found->second, host_ptr);
     } else {
+        // Create a shader from guest memory
         shader = std::make_shared<CachedShader>(
             device, cpu_addr, unique_identifier, program, disk_cache, precompiled_programs,
             std::move(program_code), std::move(program_code_b), host_ptr);
