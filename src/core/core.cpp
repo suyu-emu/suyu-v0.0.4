@@ -205,6 +205,11 @@ struct System::Impl {
         gpu_core->Start();
         cpu_core_manager.StartThreads();
 
+        // Initialize cheat engine
+        if (cheat_engine) {
+            cheat_engine->Initialize();
+        }
+
         // All threads are started, begin main process execution, now that we're in the clear.
         main_process->Run(load_parameters->main_thread_priority,
                           load_parameters->main_thread_stack_size);
