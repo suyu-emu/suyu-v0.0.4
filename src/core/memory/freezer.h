@@ -4,14 +4,16 @@
 
 #pragma once
 
+#include <atomic>
+#include <mutex>
 #include <optional>
 #include <vector>
 #include "common/common_types.h"
-#include "core/core_timing.h"
 
-namespace Core {
-class System;
-} // namespace Core
+namespace Core::Timing {
+class CoreTiming;
+struct EventType;
+} // namespace Core::Timing
 
 namespace Memory {
 
@@ -20,27 +22,42 @@ class Freezer {
 public:
     struct Entry {
         VAddr address;
-        u8 width;
+        u32 width;
         u64 value;
     };
 
-    Freezer(Core::Timing::CoreTiming& core_timing);
+    explicit Freezer(Core::Timing::CoreTiming& core_timing);
     ~Freezer();
 
+    // Enables or disables the entire memory freezer.
     void SetActive(bool active);
+
+    // Returns whether or not the freezer is active.
     bool IsActive() const;
 
+    // Removes all entries from the freezer.
     void Clear();
 
-    u64 Freeze(VAddr address, u8 width);
+    // Freezes a value to its current memory address. The value the memory is kept at will be the
+    // value that is read during this function. Width can be 1, 2, 4, or 8 (in bytes).
+    u64 Freeze(VAddr address, u32 width);
+
+    // Unfreezes the memory value at address. If the address isn't frozen, this is a no-op.
     void Unfreeze(VAddr address);
 
-    bool IsFrozen(VAddr address);
+    // Returns whether or not the address is frozen.
+    bool IsFrozen(VAddr address) const;
+
+    // Sets the value that address should be frozen to. This doesn't change the width set by using
+    // Freeze(). If the value isn't frozen, this will not freeze it and is thus a no-op.
     void SetFrozenValue(VAddr address, u64 value);
 
-    std::optional<Entry> GetEntry(VAddr address);
+    // Returns the entry corresponding to the address if the address is frozen, otherwise
+    // std::nullopt.
+    std::optional<Entry> GetEntry(VAddr address) const;
 
-    std::vector<Entry> GetEntries();
+    // Returns all the entries in the freezer, an empty vector means nothing is frozen.
+    std::vector<Entry> GetEntries() const;
 
 private:
     void FrameCallback(u64 userdata, s64 cycles_late);
@@ -48,7 +65,7 @@ private:
 
     std::atomic_bool active{false};
 
-    std::recursive_mutex entries_mutex;
+    mutable std::mutex entries_mutex;
     std::vector<Entry> entries;
 
     Core::Timing::EventType* event;

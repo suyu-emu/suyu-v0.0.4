@@ -3,18 +3,20 @@
 // Refer to the license.txt file included.
 
 #include "common/assert.h"
+#include "common/logging/log.h"
 #include "core/core.h"
+#include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/memory.h"
 #include "core/memory/freezer.h"
 
 namespace Memory {
 
-constexpr s64 MEMORY_FREEZER_TICKS = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 60);
-
 namespace {
 
-u64 MemoryReadWidth(u8 width, VAddr addr) {
+constexpr s64 MEMORY_FREEZER_TICKS = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 60);
+
+u64 MemoryReadWidth(u32 width, VAddr addr) {
     switch (width) {
     case 1:
         return Read8(addr);
@@ -30,7 +32,7 @@ u64 MemoryReadWidth(u8 width, VAddr addr) {
     }
 }
 
-void MemoryWriteWidth(u8 width, VAddr addr, u64 value) {
+void MemoryWriteWidth(u32 width, VAddr addr, u64 value) {
     switch (width) {
     case 1:
         Write8(addr, static_cast<u8>(value));
@@ -73,19 +75,19 @@ void Freezer::SetActive(bool active) {
 }
 
 bool Freezer::IsActive() const {
-    return active.load();
+    return active.load(std::memory_order_relaxed);
 }
 
 void Freezer::Clear() {
-    std::lock_guard<std::recursive_mutex> lock(entries_mutex);
+    std::lock_guard lock{entries_mutex};
 
     LOG_DEBUG(Common_Memory, "Clearing all frozen memory values.");
 
     entries.clear();
 }
 
-u64 Freezer::Freeze(VAddr address, u8 width) {
-    std::lock_guard<std::recursive_mutex> lock(entries_mutex);
+u64 Freezer::Freeze(VAddr address, u32 width) {
+    std::lock_guard lock{entries_mutex};
 
     const auto current_value = MemoryReadWidth(width, address);
     entries.push_back({address, width, current_value});
@@ -98,7 +100,7 @@ u64 Freezer::Freeze(VAddr address, u8 width) {
 }
 
 void Freezer::Unfreeze(VAddr address) {
-    std::lock_guard<std::recursive_mutex> lock(entries_mutex);
+    std::lock_guard lock{entries_mutex};
 
     LOG_DEBUG(Common_Memory, "Unfreezing memory for address={:016X}", address);
 
@@ -108,8 +110,8 @@ void Freezer::Unfreeze(VAddr address) {
         entries.end());
 }
 
-bool Freezer::IsFrozen(VAddr address) {
-    std::lock_guard<std::recursive_mutex> lock(entries_mutex);
+bool Freezer::IsFrozen(VAddr address) const {
+    std::lock_guard lock{entries_mutex};
 
     return std::find_if(entries.begin(), entries.end(), [&address](const Entry& entry) {
                return entry.address == address;
@@ -117,7 +119,7 @@ bool Freezer::IsFrozen(VAddr address) {
 }
 
 void Freezer::SetFrozenValue(VAddr address, u64 value) {
-    std::lock_guard<std::recursive_mutex> lock(entries_mutex);
+    std::lock_guard lock{entries_mutex};
 
     const auto iter = std::find_if(entries.begin(), entries.end(), [&address](const Entry& entry) {
         return entry.address == address;
@@ -135,8 +137,8 @@ void Freezer::SetFrozenValue(VAddr address, u64 value) {
     iter->value = value;
 }
 
-std::optional<Freezer::Entry> Freezer::GetEntry(VAddr address) {
-    std::lock_guard<std::recursive_mutex> lock(entries_mutex);
+std::optional<Freezer::Entry> Freezer::GetEntry(VAddr address) const {
+    std::lock_guard lock{entries_mutex};
 
     const auto iter = std::find_if(entries.begin(), entries.end(), [&address](const Entry& entry) {
         return entry.address == address;
@@ -149,19 +151,19 @@ std::optional<Freezer::Entry> Freezer::GetEntry(VAddr address) {
     return *iter;
 }
 
-std::vector<Freezer::Entry> Freezer::GetEntries() {
-    std::lock_guard<std::recursive_mutex> lock(entries_mutex);
+std::vector<Freezer::Entry> Freezer::GetEntries() const {
+    std::lock_guard lock{entries_mutex};
 
     return entries;
 }
 
 void Freezer::FrameCallback(u64 userdata, s64 cycles_late) {
-    if (!active.load()) {
+    if (!IsActive()) {
         LOG_DEBUG(Common_Memory, "Memory freezer has been deactivated, ending callback events.");
         return;
     }
 
-    std::lock_guard<std::recursive_mutex> lock(entries_mutex);
+    std::lock_guard lock{entries_mutex};
 
     for (const auto& entry : entries) {
         LOG_DEBUG(Common_Memory,
@@ -174,7 +176,7 @@ void Freezer::FrameCallback(u64 userdata, s64 cycles_late) {
 }
 
 void Freezer::FillEntryReads() {
-    std::lock_guard<std::recursive_mutex> lock(entries_mutex);
+    std::lock_guard lock{entries_mutex};
 
     LOG_DEBUG(Common_Memory, "Updating memory freeze entries to current values.");
 
