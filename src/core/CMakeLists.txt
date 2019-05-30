@@ -454,6 +454,8 @@ add_library(core STATIC
     loader/nsp.h
     loader/xci.cpp
     loader/xci.h
+    memory/freezer.cpp
+    memory/freezer.h
     memory.cpp
     memory.h
     memory_setup.h
