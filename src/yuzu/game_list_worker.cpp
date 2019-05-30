@@ -32,11 +32,6 @@
 
 namespace {
 
-template <typename T>
-T GetGameListCachedObject(const std::string& filename, const std::string& ext,
-                          const std::function<T()>& generator);
-
-template <>
 QString GetGameListCachedObject(const std::string& filename, const std::string& ext,
                                 const std::function<QString()>& generator) {
     if (!UISettings::values.cache_game_list || filename == "0000000000000000") {
@@ -70,7 +65,6 @@ QString GetGameListCachedObject(const std::string& filename, const std::string& 
     return generator();
 }
 
-template <>
 std::pair<std::vector<u8>, std::string> GetGameListCachedObject(
     const std::string& filename, const std::string& ext,
     const std::function<std::pair<std::vector<u8>, std::string>()>& generator) {
@@ -139,7 +133,7 @@ std::pair<std::vector<u8>, std::string> GetGameListCachedObject(
 
 void GetMetadataFromControlNCA(const FileSys::PatchManager& patch_manager, const FileSys::NCA& nca,
                                std::vector<u8>& icon, std::string& name) {
-    std::tie(icon, name) = GetGameListCachedObject<std::pair<std::vector<u8>, std::string>>(
+    std::tie(icon, name) = GetGameListCachedObject(
         fmt::format("{:016X}", patch_manager.GetTitleID()), {}, [&patch_manager, &nca] {
             const auto [nacp, icon_f] = patch_manager.ParseControlNCA(nca);
             return std::make_pair(icon_f->ReadAllBytes(), nacp->GetApplicationName());
@@ -221,7 +215,7 @@ QList<QStandardItem*> MakeGameListEntry(const std::string& path, const std::stri
     };
 
     if (UISettings::values.show_add_ons) {
-        const auto patch_versions = GetGameListCachedObject<QString>(
+        const auto patch_versions = GetGameListCachedObject(
             fmt::format("{:016X}", patch.GetTitleID()), "pv.txt", [&patch, &loader] {
                 return FormatPatchNameVersions(patch, loader, loader.IsRomFSUpdatable());
             });
