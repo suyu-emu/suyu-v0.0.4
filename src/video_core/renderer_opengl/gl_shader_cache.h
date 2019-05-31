@@ -41,17 +41,27 @@ using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 using PrecompiledPrograms = std::unordered_map<ShaderDiskCacheUsage, CachedProgram>;
 using PrecompiledShaders = std::unordered_map<u64, GLShader::ProgramResult>;
 
+struct ShaderParameters {
+    ShaderDiskCacheOpenGL& disk_cache;
+    const PrecompiledPrograms& precompiled_programs;
+    const Device& device;
+    VAddr cpu_addr;
+    u8* host_ptr;
+    u64 unique_identifier;
+};
+
 class CachedShader final : public RasterizerCacheObject {
 public:
-    explicit CachedShader(const Device& device, VAddr cpu_addr, u64 unique_identifier,
-                          Maxwell::ShaderProgram program_type, ShaderDiskCacheOpenGL& disk_cache,
-                          const PrecompiledPrograms& precompiled_programs,
-                          ProgramCode&& program_code, ProgramCode&& program_code_b, u8* host_ptr);
+    explicit CachedShader(const ShaderParameters& params, Maxwell::ShaderProgram program_type,
+                          GLShader::ProgramResult result);
 
-    explicit CachedShader(VAddr cpu_addr, u64 unique_identifier,
-                          Maxwell::ShaderProgram program_type, ShaderDiskCacheOpenGL& disk_cache,
-                          const PrecompiledPrograms& precompiled_programs,
-                          GLShader::ProgramResult result, u8* host_ptr);
+    static Shader CreateStageFromMemory(const ShaderParameters& params,
+                                        Maxwell::ShaderProgram program_type,
+                                        ProgramCode&& program_code, ProgramCode&& program_code_b);
+
+    static Shader CreateStageFromCache(const ShaderParameters& params,
+                                       Maxwell::ShaderProgram program_type,
+                                       GLShader::ProgramResult result);
 
     VAddr GetCpuAddr() const override {
         return cpu_addr;
@@ -99,10 +109,9 @@ private:
     ShaderDiskCacheOpenGL& disk_cache;
     const PrecompiledPrograms& precompiled_programs;
 
-    std::size_t shader_length{};
     GLShader::ShaderEntries entries;
-
     std::string code;
+    std::size_t shader_length{};
 
     std::unordered_map<BaseBindings, CachedProgram> programs;
     std::unordered_map<BaseBindings, GeometryPrograms> geometry_programs;
