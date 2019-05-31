@@ -61,7 +61,16 @@ Node ShaderIR::GetConstBufferIndirect(u64 index_, u64 offset_, Node node) {
     const auto [entry, is_new] = used_cbufs.try_emplace(index);
     entry->second.MarkAsUsedIndirect();
 
-    const Node final_offset = Operation(OperationCode::UAdd, NO_PRECISE, node, Immediate(offset));
+    const Node final_offset = [&]() {
+        // Attempt to inline constant buffer without a variable offset. This is done to allow
+        // tracking LDC calls.
+        if (const auto gpr = std::get_if<GprNode>(&*node)) {
+            if (gpr->GetIndex() == Register::ZeroIndex) {
+                return Immediate(offset);
+            }
+        }
+        return Operation(OperationCode::UAdd, NO_PRECISE, node, Immediate(offset));
+    }();
     return MakeNode<CbufNode>(index, final_offset);
 }
 

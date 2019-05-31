@@ -308,13 +308,9 @@ const Sampler& ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler, Textu
 const Sampler& ShaderIR::GetBindlessSampler(const Tegra::Shader::Register& reg, TextureType type,
                                             bool is_array, bool is_shadow) {
     const Node sampler_register = GetRegister(reg);
-    const Node base_sampler =
+    const auto [base_sampler, cbuf_index, cbuf_offset] =
         TrackCbuf(sampler_register, global_code, static_cast<s64>(global_code.size()));
-    const auto cbuf = std::get_if<CbufNode>(&*base_sampler);
-    const auto cbuf_offset_imm = std::get_if<ImmediateNode>(&*cbuf->GetOffset());
-    ASSERT(cbuf_offset_imm != nullptr);
-    const auto cbuf_offset = cbuf_offset_imm->GetValue();
-    const auto cbuf_index = cbuf->GetIndex();
+    ASSERT(base_sampler != nullptr);
     const auto cbuf_key = (static_cast<u64>(cbuf_index) << 32) | static_cast<u64>(cbuf_offset);
 
     // If this sampler has already been used, return the existing mapping.

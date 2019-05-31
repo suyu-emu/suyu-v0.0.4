@@ -95,12 +95,8 @@ const Image& ShaderIR::GetImage(Tegra::Shader::Image image, Tegra::Shader::Image
 const Image& ShaderIR::GetBindlessImage(Tegra::Shader::Register reg,
                                         Tegra::Shader::ImageType type) {
     const Node image_register{GetRegister(reg)};
-    const Node base_image{
+    const auto [base_image, cbuf_index, cbuf_offset]{
         TrackCbuf(image_register, global_code, static_cast<s64>(global_code.size()))};
-    const auto cbuf{std::get_if<CbufNode>(&*base_image)};
-    const auto cbuf_offset_imm{std::get_if<ImmediateNode>(&*cbuf->GetOffset())};
-    const auto cbuf_offset{cbuf_offset_imm->GetValue()};
-    const auto cbuf_index{cbuf->GetIndex()};
     const auto cbuf_key{(static_cast<u64>(cbuf_index) << 32) | static_cast<u64>(cbuf_offset)};
 
     // If this image has already been used, return the existing mapping.
