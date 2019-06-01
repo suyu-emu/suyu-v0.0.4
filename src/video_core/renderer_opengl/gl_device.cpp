@@ -28,6 +28,7 @@ Device::Device() {
     max_varyings = GetInteger<u32>(GL_MAX_VARYING_VECTORS);
     has_variable_aoffi = TestVariableAoffi();
     has_component_indexing_bug = TestComponentIndexingBug();
+    is_turing_plus = GLAD_GL_NV_mesh_shader;
 }
 
 Device::Device(std::nullptr_t) {

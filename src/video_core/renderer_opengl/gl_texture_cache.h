@@ -13,6 +13,7 @@
 
 #include "common/common_types.h"
 #include "video_core/engines/shader_bytecode.h"
+#include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/texture_cache/texture_cache.h"
 
@@ -129,7 +130,8 @@ private:
 
 class TextureCacheOpenGL final : public TextureCacheBase {
 public:
-    explicit TextureCacheOpenGL(Core::System& system, VideoCore::RasterizerInterface& rasterizer);
+    explicit TextureCacheOpenGL(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
+                                const Device& device);
     ~TextureCacheOpenGL();
 
 protected:
@@ -141,9 +143,14 @@ protected:
     void ImageBlit(View src_view, View dst_view,
                    const Tegra::Engines::Fermi2D::Config& copy_config) override;
 
+    void BufferCopy(Surface src_surface, Surface dst_surface) override;
+
 private:
+    GLuint FetchPBO(std::size_t buffer_size);
+
     OGLFramebuffer src_framebuffer;
     OGLFramebuffer dst_framebuffer;
+    std::unordered_map<u32, OGLBuffer> copy_pbo_cache;
 };
 
 } // namespace OpenGL

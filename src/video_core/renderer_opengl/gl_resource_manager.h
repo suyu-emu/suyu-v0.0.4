@@ -186,6 +186,9 @@ public:
     /// Deletes the internal OpenGL resource
     void Release();
 
+    // Converts the buffer into a persistant storage buffer
+    void MakePersistant(std::size_t buffer_size);
+
     GLuint handle = 0;
 };
 

@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "common/assert.h"
+#include "common/bit_util.h"
 #include "common/common_types.h"
 #include "common/microprofile.h"
 #include "common/scope_exit.h"
@@ -435,8 +436,10 @@ OGLTextureView CachedSurfaceView::CreateTextureView() const {
 }
 
 TextureCacheOpenGL::TextureCacheOpenGL(Core::System& system,
-                                       VideoCore::RasterizerInterface& rasterizer)
+                                       VideoCore::RasterizerInterface& rasterizer,
+                                       const Device& device)
     : TextureCacheBase{system, rasterizer} {
+    support_info.depth_color_image_copies = !device.IsTuringGPU();
     src_framebuffer.Create();
     dst_framebuffer.Create();
 }
@@ -449,6 +452,14 @@ Surface TextureCacheOpenGL::CreateSurface(GPUVAddr gpu_addr, const SurfaceParams
 
 void TextureCacheOpenGL::ImageCopy(Surface src_surface, Surface dst_surface,
                                    const VideoCommon::CopyParams& copy_params) {
+    if (!support_info.depth_color_image_copies) {
+        const auto& src_params = src_surface->GetSurfaceParams();
+        const auto& dst_params = dst_surface->GetSurfaceParams();
+        if (src_params.type != dst_params.type) {
+            // A fallback is needed
+            return;
+        }
+    }
     const auto src_handle = src_surface->GetTexture();
     const auto src_target = src_surface->GetTarget();
     const auto dst_handle = dst_surface->GetTexture();
@@ -515,6 +526,85 @@ void TextureCacheOpenGL::ImageBlit(View src_view, View dst_view,
     glBlitFramebuffer(src_rect.left, src_rect.top, src_rect.right, src_rect.bottom, dst_rect.left,
                       dst_rect.top, dst_rect.right, dst_rect.bottom, buffers,
                       is_linear ? GL_LINEAR : GL_NEAREST);
+}
+
+void TextureCacheOpenGL::BufferCopy(Surface src_surface, Surface dst_surface) {
+    const auto& src_params = src_surface->GetSurfaceParams();
+    const auto& dst_params = dst_surface->GetSurfaceParams();
+
+    const auto source_format = GetFormatTuple(src_params.pixel_format, src_params.component_type);
+    const auto dest_format = GetFormatTuple(dst_params.pixel_format, dst_params.component_type);
+
+    const std::size_t source_size = src_surface->GetHostSizeInBytes();
+    const std::size_t dest_size = dst_surface->GetHostSizeInBytes();
+
+    const std::size_t buffer_size = std::max(source_size, dest_size);
+
+    GLuint copy_pbo_handle = FetchPBO(buffer_size);
+
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, copy_pbo_handle);
+
+    if (source_format.compressed) {
+        glGetCompressedTextureImage(src_surface->GetTexture(), 0, static_cast<GLsizei>(source_size),
+                                    nullptr);
+    } else {
+        glGetTextureImage(src_surface->GetTexture(), 0, source_format.format, source_format.type,
+                          static_cast<GLsizei>(source_size), nullptr);
+    }
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, copy_pbo_handle);
+
+    const GLsizei width = static_cast<GLsizei>(dst_params.width);
+    const GLsizei height = static_cast<GLsizei>(dst_params.height);
+    const GLsizei depth = static_cast<GLsizei>(dst_params.depth);
+    if (dest_format.compressed) {
+        LOG_CRITICAL(HW_GPU, "Compressed buffer copy is unimplemented!");
+        UNREACHABLE();
+    } else {
+        switch (dst_params.target) {
+        case SurfaceTarget::Texture1D:
+            glTextureSubImage1D(dst_surface->GetTexture(), 0, 0, width, dest_format.format,
+                                dest_format.type, nullptr);
+            break;
+        case SurfaceTarget::Texture2D:
+            glTextureSubImage2D(dst_surface->GetTexture(), 0, 0, 0, width, height,
+                                dest_format.format, dest_format.type, nullptr);
+            break;
+        case SurfaceTarget::Texture3D:
+        case SurfaceTarget::Texture2DArray:
+        case SurfaceTarget::TextureCubeArray:
+            glTextureSubImage3D(dst_surface->GetTexture(), 0, 0, 0, 0, width, height, depth,
+                                dest_format.format, dest_format.type, nullptr);
+            break;
+        case SurfaceTarget::TextureCubemap:
+            glTextureSubImage3D(dst_surface->GetTexture(), 0, 0, 0, 0, width, height, depth,
+                                dest_format.format, dest_format.type, nullptr);
+            break;
+        default:
+            LOG_CRITICAL(Render_OpenGL, "Unimplemented surface target={}",
+                         static_cast<u32>(dst_params.target));
+            UNREACHABLE();
+        }
+    }
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+    glTextureBarrier();
+}
+
+GLuint TextureCacheOpenGL::FetchPBO(std::size_t buffer_size) {
+    if (buffer_size < 0) {
+        UNREACHABLE();
+        return 0;
+    }
+    const u32 l2 = Common::Log2Ceil64(static_cast<u64>(buffer_size));
+    OGLBuffer& cp = copy_pbo_cache[l2];
+    if (cp.handle == 0) {
+        const std::size_t ceil_size = 1ULL << l2;
+        cp.Create();
+        cp.MakePersistant(ceil_size);
+    }
+    return cp.handle;
 }
 
 } // namespace OpenGL

@@ -214,6 +214,13 @@ public:
     }
 
 protected:
+    // This structure is used for communicating with the backend, on which behaviors
+    // it supports and what not, to avoid assuming certain things about hardware.
+    // The backend is RESPONSIBLE for filling this settings on creation.
+    struct Support {
+        bool depth_color_image_copies;
+    } support_info;
+
     TextureCache(Core::System& system, VideoCore::RasterizerInterface& rasterizer)
         : system{system}, rasterizer{rasterizer} {
         for (std::size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
@@ -232,6 +239,10 @@ protected:
 
     virtual void ImageBlit(TView src_view, TView dst_view,
                            const Tegra::Engines::Fermi2D::Config& copy_config) = 0;
+
+    // Depending on the backend, a buffer copy can be slow as it means deoptimizing the texture
+    // and reading it from a sepparate buffer.
+    virtual void BufferCopy(TSurface src_surface, TSurface dst_surface) = 0;
 
     void Register(TSurface surface) {
         std::lock_guard lock{mutex};
@@ -377,9 +388,14 @@ private:
                                               const SurfaceParams& params) {
         const auto gpu_addr = current_surface->GetGpuAddr();
         TSurface new_surface = GetUncachedSurface(gpu_addr, params);
-        std::vector<CopyParams> bricks = current_surface->BreakDown(params);
-        for (auto& brick : bricks) {
-            ImageCopy(current_surface, new_surface, brick);
+        const auto& cr_params = current_surface->GetSurfaceParams();
+        if (!support_info.depth_color_image_copies && cr_params.type != params.type) {
+            BufferCopy(current_surface, new_surface);
+        } else {
+            std::vector<CopyParams> bricks = current_surface->BreakDown(params);
+            for (auto& brick : bricks) {
+                ImageCopy(current_surface, new_surface, brick);
+            }
         }
         Unregister(current_surface);
         Register(new_surface);
@@ -505,7 +521,8 @@ private:
             auto topological_result = current_surface->MatchesTopology(params);
             if (topological_result != MatchTopologyResult::FullMatch) {
                 std::vector<TSurface> overlaps{current_surface};
-                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, topological_result);
+                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
+                                      topological_result);
             }
             MatchStructureResult s_result = current_surface->MatchesStructure(params);
             if (s_result != MatchStructureResult::None &&
@@ -537,7 +554,8 @@ private:
         for (auto surface : overlaps) {
             auto topological_result = surface->MatchesTopology(params);
             if (topological_result != MatchTopologyResult::FullMatch) {
-                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, topological_result);
+                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
+                                      topological_result);
             }
         }
 
@@ -555,7 +573,8 @@ private:
                         return *view;
                     }
                 }
-                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, MatchTopologyResult::FullMatch);
+                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
+                                      MatchTopologyResult::FullMatch);
             }
             // Now we check if the candidate is a mipmap/layer of the overlap
             std::optional<TView> view =
@@ -578,13 +597,15 @@ private:
                         pair.first->EmplaceView(params, gpu_addr, candidate_size);
                     if (mirage_view)
                         return {pair.first, *mirage_view};
-                    return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, MatchTopologyResult::FullMatch);
+                    return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
+                                          MatchTopologyResult::FullMatch);
                 }
                 return {current_surface, *view};
             }
             // The next case is unsafe, so if we r in accurate GPU, just skip it
             if (Settings::values.use_accurate_gpu_emulation) {
-                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, MatchTopologyResult::FullMatch);
+                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
+                                      MatchTopologyResult::FullMatch);
             }
             // This is the case the texture is a part of the parent.
             if (current_surface->MatchesSubTexture(params, gpu_addr)) {
@@ -601,7 +622,8 @@ private:
             }
         }
         // We failed all the tests, recycle the overlaps into a new texture.
-        return RecycleSurface(overlaps, params, gpu_addr, preserve_contents, MatchTopologyResult::FullMatch);
+        return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
+                              MatchTopologyResult::FullMatch);
     }
 
     std::pair<TSurface, TView> InitializeSurface(GPUVAddr gpu_addr, const SurfaceParams& params,

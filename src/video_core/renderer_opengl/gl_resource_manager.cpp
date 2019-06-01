@@ -148,6 +148,14 @@ void OGLBuffer::Release() {
     handle = 0;
 }
 
+void OGLBuffer::MakePersistant(std::size_t buffer_size) {
+    if (handle == 0 || buffer_size == 0)
+        return;
+
+    const GLbitfield flags = GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT | GL_MAP_READ_BIT;
+    glNamedBufferStorage(handle, static_cast<GLsizeiptr>(buffer_size), nullptr, flags);
+}
+
 void OGLSync::Create() {
     if (handle != 0)
         return;
