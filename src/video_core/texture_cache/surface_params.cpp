@@ -6,7 +6,6 @@
 
 #include "common/alignment.h"
 #include "common/bit_util.h"
-#include "common/cityhash.h"
 #include "core/core.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/surface.h"
@@ -237,24 +236,12 @@ std::size_t SurfaceParams::GetConvertedMipmapOffset(u32 level) const {
     return offset;
 }
 
-std::size_t SurfaceParams::GetGuestMipmapSize(u32 level) const {
-    return GetInnerMipmapMemorySize(level, false, false);
-}
-
-std::size_t SurfaceParams::GetHostMipmapSize(u32 level) const {
-    return GetInnerMipmapMemorySize(level, true, false) * GetNumLayers();
-}
-
 std::size_t SurfaceParams::GetConvertedMipmapSize(u32 level) const {
     constexpr std::size_t rgb8_bpp = 4ULL;
     const std::size_t width_t = GetMipWidth(level);
     const std::size_t height_t = GetMipHeight(level);
     const std::size_t depth_t = is_layered ? depth : GetMipDepth(level);
     return width_t * height_t * depth_t * rgb8_bpp;
-}
-
-std::size_t SurfaceParams::GetGuestLayerSize() const {
-    return GetLayerSize(false, false);
 }
 
 std::size_t SurfaceParams::GetLayerSize(bool as_host_size, bool uncompressed) const {
@@ -269,16 +256,6 @@ std::size_t SurfaceParams::GetLayerSize(bool as_host_size, bool uncompressed) co
     return size;
 }
 
-std::size_t SurfaceParams::GetHostLayerSize(u32 level) const {
-    ASSERT(target != SurfaceTarget::Texture3D);
-    return GetInnerMipmapMemorySize(level, true, false);
-}
-
-bool SurfaceParams::IsPixelFormatZeta() const {
-    return pixel_format >= VideoCore::Surface::PixelFormat::MaxColorFormat &&
-           pixel_format < VideoCore::Surface::PixelFormat::MaxDepthStencilFormat;
-}
-
 std::size_t SurfaceParams::GetInnerMipmapMemorySize(u32 level, bool as_host_size,
                                                     bool uncompressed) const {
     const bool tiled{as_host_size ? false : is_tiled};
@@ -287,16 +264,6 @@ std::size_t SurfaceParams::GetInnerMipmapMemorySize(u32 level, bool as_host_size
     const u32 depth{is_layered ? 1U : GetMipDepth(level)};
     return Tegra::Texture::CalculateSize(tiled, GetBytesPerPixel(), width, height, depth,
                                          GetMipBlockHeight(level), GetMipBlockDepth(level));
-}
-
-std::size_t SurfaceParams::GetInnerMemorySize(bool as_host_size, bool layer_only,
-                                              bool uncompressed) const {
-    return GetLayerSize(as_host_size, uncompressed) * (layer_only ? 1U : depth);
-}
-
-std::size_t SurfaceParams::Hash() const {
-    return static_cast<std::size_t>(
-        Common::CityHash64(reinterpret_cast<const char*>(this), sizeof(*this)));
 }
 
 bool SurfaceParams::operator==(const SurfaceParams& rhs) const {

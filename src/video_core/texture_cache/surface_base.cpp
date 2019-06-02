@@ -42,6 +42,109 @@ SurfaceBaseImpl::SurfaceBaseImpl(GPUVAddr gpu_addr, const SurfaceParams& params)
     }
 }
 
+MatchTopologyResult SurfaceBaseImpl::MatchesTopology(const SurfaceParams& rhs) const {
+    const u32 src_bpp{params.GetBytesPerPixel()};
+    const u32 dst_bpp{rhs.GetBytesPerPixel()};
+    const bool ib1 = params.IsBuffer();
+    const bool ib2 = rhs.IsBuffer();
+    if (std::tie(src_bpp, params.is_tiled, ib1) == std::tie(dst_bpp, rhs.is_tiled, ib2)) {
+        const bool cb1 = params.IsCompressed();
+        const bool cb2 = rhs.IsCompressed();
+        if (cb1 == cb2) {
+            return MatchTopologyResult::FullMatch;
+        }
+        return MatchTopologyResult::CompressUnmatch;
+    }
+    return MatchTopologyResult::None;
+}
+
+MatchStructureResult SurfaceBaseImpl::MatchesStructure(const SurfaceParams& rhs) const {
+    // Buffer surface Check
+    if (params.IsBuffer()) {
+        const std::size_t wd1 = params.width * params.GetBytesPerPixel();
+        const std::size_t wd2 = rhs.width * rhs.GetBytesPerPixel();
+        if (wd1 == wd2) {
+            return MatchStructureResult::FullMatch;
+        }
+        return MatchStructureResult::None;
+    }
+
+    // Linear Surface check
+    if (!params.is_tiled) {
+        if (std::tie(params.width, params.height, params.pitch) ==
+            std::tie(rhs.width, rhs.height, rhs.pitch)) {
+            return MatchStructureResult::FullMatch;
+        }
+        return MatchStructureResult::None;
+    }
+
+    // Tiled Surface check
+    if (std::tie(params.depth, params.block_width, params.block_height, params.block_depth,
+                 params.tile_width_spacing, params.num_levels) ==
+        std::tie(rhs.depth, rhs.block_width, rhs.block_height, rhs.block_depth,
+                 rhs.tile_width_spacing, rhs.num_levels)) {
+        if (std::tie(params.width, params.height) == std::tie(rhs.width, rhs.height)) {
+            return MatchStructureResult::FullMatch;
+        }
+        const u32 ws = SurfaceParams::ConvertWidth(rhs.GetBlockAlignedWidth(), params.pixel_format,
+                                                   rhs.pixel_format);
+        const u32 hs =
+            SurfaceParams::ConvertHeight(rhs.height, params.pixel_format, rhs.pixel_format);
+        const u32 w1 = params.GetBlockAlignedWidth();
+        if (std::tie(w1, params.height) == std::tie(ws, hs)) {
+            return MatchStructureResult::SemiMatch;
+        }
+    }
+    return MatchStructureResult::None;
+}
+
+std::optional<std::pair<u32, u32>> SurfaceBaseImpl::GetLayerMipmap(
+    const GPUVAddr candidate_gpu_addr) const {
+    if (candidate_gpu_addr < gpu_addr) {
+        return {};
+    }
+    const auto relative_address{static_cast<GPUVAddr>(candidate_gpu_addr - gpu_addr)};
+    const auto layer{static_cast<u32>(relative_address / layer_size)};
+    const GPUVAddr mipmap_address = relative_address - layer_size * layer;
+    const auto mipmap_it =
+        Common::BinaryFind(mipmap_offsets.begin(), mipmap_offsets.end(), mipmap_address);
+    if (mipmap_it == mipmap_offsets.end()) {
+        return {};
+    }
+    const auto level{static_cast<u32>(std::distance(mipmap_offsets.begin(), mipmap_it))};
+    return std::make_pair(layer, level);
+}
+
+std::vector<CopyParams> SurfaceBaseImpl::BreakDownLayered(const SurfaceParams& in_params) const {
+    const u32 layers{params.depth};
+    const u32 mipmaps{params.num_levels};
+    std::vector<CopyParams> result;
+    result.reserve(static_cast<std::size_t>(layers) * static_cast<std::size_t>(mipmaps));
+
+    for (u32 layer = 0; layer < layers; layer++) {
+        for (u32 level = 0; level < mipmaps; level++) {
+            const u32 width = SurfaceParams::IntersectWidth(params, in_params, level, level);
+            const u32 height = SurfaceParams::IntersectHeight(params, in_params, level, level);
+            result.emplace_back(width, height, layer, level);
+        }
+    }
+    return result;
+}
+
+std::vector<CopyParams> SurfaceBaseImpl::BreakDownNonLayered(const SurfaceParams& in_params) const {
+    const u32 mipmaps{params.num_levels};
+    std::vector<CopyParams> result;
+    result.reserve(mipmaps);
+
+    for (u32 level = 0; level < mipmaps; level++) {
+        const u32 width = SurfaceParams::IntersectWidth(params, in_params, level, level);
+        const u32 height = SurfaceParams::IntersectHeight(params, in_params, level, level);
+        const u32 depth{std::min(params.GetMipDepth(level), in_params.GetMipDepth(level))};
+        result.emplace_back(width, height, depth, level);
+    }
+    return result;
+}
+
 void SurfaceBaseImpl::SwizzleFunc(MortonSwizzleMode mode, u8* memory, const SurfaceParams& params,
                                   u8* buffer, u32 level) {
     const u32 width{params.GetMipWidth(level)};

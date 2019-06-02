@@ -8,6 +8,7 @@
 
 #include "common/alignment.h"
 #include "common/bit_util.h"
+#include "common/cityhash.h"
 #include "common/common_types.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -39,7 +40,10 @@ public:
     static SurfaceParams CreateForFermiCopySurface(
         const Tegra::Engines::Fermi2D::Regs::Surface& config);
 
-    std::size_t Hash() const;
+    std::size_t Hash() const {
+        return static_cast<std::size_t>(
+            Common::CityHash64(reinterpret_cast<const char*>(this), sizeof(*this)));
+    }
 
     bool operator==(const SurfaceParams& rhs) const;
 
@@ -113,18 +117,27 @@ public:
     std::size_t GetConvertedMipmapOffset(u32 level) const;
 
     /// Returns the size in bytes in guest memory of a given mipmap level.
-    std::size_t GetGuestMipmapSize(u32 level) const;
+    std::size_t GetGuestMipmapSize(u32 level) const {
+        return GetInnerMipmapMemorySize(level, false, false);
+    }
 
     /// Returns the size in bytes in host memory (linear) of a given mipmap level.
-    std::size_t GetHostMipmapSize(u32 level) const;
+    std::size_t GetHostMipmapSize(u32 level) const {
+        return GetInnerMipmapMemorySize(level, true, false) * GetNumLayers();
+    }
 
     std::size_t GetConvertedMipmapSize(u32 level) const;
 
     /// Returns the size of a layer in bytes in guest memory.
-    std::size_t GetGuestLayerSize() const;
+    std::size_t GetGuestLayerSize() const {
+        return GetLayerSize(false, false);
+    }
 
     /// Returns the size of a layer in bytes in host memory for a given mipmap level.
-    std::size_t GetHostLayerSize(u32 level) const;
+    std::size_t GetHostLayerSize(u32 level) const {
+        ASSERT(target != VideoCore::Surface::SurfaceTarget::Texture3D);
+        return GetInnerMipmapMemorySize(level, true, false);
+    }
 
     static u32 ConvertWidth(u32 width, VideoCore::Surface::PixelFormat pixel_format_from,
                             VideoCore::Surface::PixelFormat pixel_format_to) {
@@ -194,7 +207,10 @@ public:
     }
 
     /// Returns true if the pixel format is a depth and/or stencil format.
-    bool IsPixelFormatZeta() const;
+    bool IsPixelFormatZeta() const {
+        return pixel_format >= VideoCore::Surface::PixelFormat::MaxColorFormat &&
+               pixel_format < VideoCore::Surface::PixelFormat::MaxDepthStencilFormat;
+    }
 
     SurfaceCompression GetCompressionType() const {
         return VideoCore::Surface::GetFormatCompressionType(pixel_format);
@@ -229,7 +245,9 @@ private:
     std::size_t GetInnerMipmapMemorySize(u32 level, bool as_host_size, bool uncompressed) const;
 
     /// Returns the size of all mipmap levels and aligns as needed.
-    std::size_t GetInnerMemorySize(bool as_host_size, bool layer_only, bool uncompressed) const;
+    std::size_t GetInnerMemorySize(bool as_host_size, bool layer_only, bool uncompressed) const {
+        return GetLayerSize(as_host_size, uncompressed) * (layer_only ? 1U : depth);
+    }
 
     /// Returns the size of a layer
     std::size_t GetLayerSize(bool as_host_size, bool uncompressed) const;
