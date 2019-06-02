@@ -234,15 +234,15 @@ protected:
 
     virtual TSurface CreateSurface(GPUVAddr gpu_addr, const SurfaceParams& params) = 0;
 
-    virtual void ImageCopy(TSurface src_surface, TSurface dst_surface,
+    virtual void ImageCopy(TSurface& src_surface, TSurface& dst_surface,
                            const CopyParams& copy_params) = 0;
 
-    virtual void ImageBlit(TView src_view, TView dst_view,
+    virtual void ImageBlit(TView& src_view, TView& dst_view,
                            const Tegra::Engines::Fermi2D::Config& copy_config) = 0;
 
     // Depending on the backend, a buffer copy can be slow as it means deoptimizing the texture
     // and reading it from a sepparate buffer.
-    virtual void BufferCopy(TSurface src_surface, TSurface dst_surface) = 0;
+    virtual void BufferCopy(TSurface& src_surface, TSurface& dst_surface) = 0;
 
     void Register(TSurface surface) {
         std::lock_guard lock{mutex};
@@ -516,8 +516,9 @@ private:
         // Step 1
         // Check Level 1 Cache for a fast structural match. If candidate surface
         // matches at certain level we are pretty much done.
-        if (l1_cache.count(cache_addr) > 0) {
-            TSurface current_surface = l1_cache[cache_addr];
+        auto iter = l1_cache.find(cache_addr);
+        if (iter != l1_cache.end()) {
+            TSurface& current_surface = iter->second;
             auto topological_result = current_surface->MatchesTopology(params);
             if (topological_result != MatchTopologyResult::FullMatch) {
                 std::vector<TSurface> overlaps{current_surface};
@@ -526,7 +527,6 @@ private:
             }
             MatchStructureResult s_result = current_surface->MatchesStructure(params);
             if (s_result != MatchStructureResult::None &&
-                current_surface->GetGpuAddr() == gpu_addr &&
                 (params.target != SurfaceTarget::Texture3D ||
                  current_surface->MatchTarget(params.target))) {
                 if (s_result == MatchStructureResult::FullMatch) {

@@ -137,13 +137,13 @@ public:
 protected:
     Surface CreateSurface(GPUVAddr gpu_addr, const SurfaceParams& params) override;
 
-    void ImageCopy(Surface src_surface, Surface dst_surface,
+    void ImageCopy(Surface& src_surface, Surface& dst_surface,
                    const VideoCommon::CopyParams& copy_params) override;
 
-    void ImageBlit(View src_view, View dst_view,
+    void ImageBlit(View& src_view, View& dst_view,
                    const Tegra::Engines::Fermi2D::Config& copy_config) override;
 
-    void BufferCopy(Surface src_surface, Surface dst_surface) override;
+    void BufferCopy(Surface& src_surface, Surface& dst_surface) override;
 
 private:
     GLuint FetchPBO(std::size_t buffer_size);

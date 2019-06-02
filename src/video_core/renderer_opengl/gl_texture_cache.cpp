@@ -450,7 +450,7 @@ Surface TextureCacheOpenGL::CreateSurface(GPUVAddr gpu_addr, const SurfaceParams
     return std::make_shared<CachedSurface>(gpu_addr, params);
 }
 
-void TextureCacheOpenGL::ImageCopy(Surface src_surface, Surface dst_surface,
+void TextureCacheOpenGL::ImageCopy(Surface& src_surface, Surface& dst_surface,
                                    const VideoCommon::CopyParams& copy_params) {
     if (!support_info.depth_color_image_copies) {
         const auto& src_params = src_surface->GetSurfaceParams();
@@ -471,7 +471,7 @@ void TextureCacheOpenGL::ImageCopy(Surface src_surface, Surface dst_surface,
                        copy_params.depth);
 }
 
-void TextureCacheOpenGL::ImageBlit(View src_view, View dst_view,
+void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
                                    const Tegra::Engines::Fermi2D::Config& copy_config) {
     const auto& src_params{src_view->GetSurfaceParams()};
     const auto& dst_params{dst_view->GetSurfaceParams()};
@@ -528,7 +528,7 @@ void TextureCacheOpenGL::ImageBlit(View src_view, View dst_view,
                       is_linear ? GL_LINEAR : GL_NEAREST);
 }
 
-void TextureCacheOpenGL::BufferCopy(Surface src_surface, Surface dst_surface) {
+void TextureCacheOpenGL::BufferCopy(Surface& src_surface, Surface& dst_surface) {
     const auto& src_params = src_surface->GetSurfaceParams();
     const auto& dst_params = dst_surface->GetSurfaceParams();
 
