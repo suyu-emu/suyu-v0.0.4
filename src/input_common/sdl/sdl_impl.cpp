@@ -6,7 +6,6 @@
 #include <atomic>
 #include <cmath>
 #include <functional>
-#include <iterator>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -15,7 +14,6 @@
 #include <utility>
 #include <vector>
 #include <SDL.h>
-#include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/math_util.h"
 #include "common/param_package.h"

@@ -6,7 +6,10 @@
 
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <thread>
+#include <unordered_map>
+#include "common/common_types.h"
 #include "common/threadsafe_queue.h"
 #include "input_common/sdl/sdl.h"
 
@@ -16,9 +19,9 @@ using SDL_JoystickID = s32;
 
 namespace InputCommon::SDL {
 
-class SDLJoystick;
-class SDLButtonFactory;
 class SDLAnalogFactory;
+class SDLButtonFactory;
+class SDLJoystick;
 
 class SDLState : public State {
 public:
