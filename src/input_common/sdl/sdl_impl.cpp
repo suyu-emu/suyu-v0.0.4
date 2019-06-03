@@ -24,7 +24,7 @@
 namespace InputCommon::SDL {
 
 static std::string GetGUID(SDL_Joystick* joystick) {
-    SDL_JoystickGUID guid = SDL_JoystickGetGUID(joystick);
+    const SDL_JoystickGUID guid = SDL_JoystickGetGUID(joystick);
     char guid_str[33];
     SDL_JoystickGetGUIDString(guid, guid_str, sizeof(guid_str));
     return guid_str;
@@ -158,7 +158,7 @@ std::shared_ptr<SDLJoystick> SDLState::GetSDLJoystickBySDLID(SDL_JoystickID sdl_
     const std::string guid = GetGUID(sdl_joystick);
 
     std::lock_guard lock{joystick_map_mutex};
-    auto map_it = joystick_map.find(guid);
+    const auto map_it = joystick_map.find(guid);
     if (map_it != joystick_map.end()) {
         const auto vec_it =
             std::find_if(map_it->second.begin(), map_it->second.end(),
@@ -320,9 +320,10 @@ public:
           trigger_if_greater(trigger_if_greater_) {}
 
     bool GetStatus() const override {
-        float axis_value = joystick->GetAxis(axis);
-        if (trigger_if_greater)
+        const float axis_value = joystick->GetAxis(axis);
+        if (trigger_if_greater) {
             return axis_value > threshold;
+        }
         return axis_value < threshold;
     }
 
@@ -447,7 +448,7 @@ public:
         const int port = params.Get("port", 0);
         const int axis_x = params.Get("axis_x", 0);
         const int axis_y = params.Get("axis_y", 1);
-        float deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, .99f);
+        const float deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, .99f);
 
         auto joystick = state.GetSDLJoystickByGUID(guid, port);
 
@@ -515,7 +516,7 @@ static Common::ParamPackage SDLEventToButtonParamPackage(SDLState& state, const 
 
     switch (event.type) {
     case SDL_JOYAXISMOTION: {
-        auto joystick = state.GetSDLJoystickBySDLID(event.jaxis.which);
+        const auto joystick = state.GetSDLJoystickBySDLID(event.jaxis.which);
         params.Set("port", joystick->GetPort());
         params.Set("guid", joystick->GetGUID());
         params.Set("axis", event.jaxis.axis);
@@ -529,14 +530,14 @@ static Common::ParamPackage SDLEventToButtonParamPackage(SDLState& state, const 
         break;
     }
     case SDL_JOYBUTTONUP: {
-        auto joystick = state.GetSDLJoystickBySDLID(event.jbutton.which);
+        const auto joystick = state.GetSDLJoystickBySDLID(event.jbutton.which);
         params.Set("port", joystick->GetPort());
         params.Set("guid", joystick->GetGUID());
         params.Set("button", event.jbutton.button);
         break;
     }
     case SDL_JOYHATMOTION: {
-        auto joystick = state.GetSDLJoystickBySDLID(event.jhat.which);
+        const auto joystick = state.GetSDLJoystickBySDLID(event.jhat.which);
         params.Set("port", joystick->GetPort());
         params.Set("guid", joystick->GetGUID());
         params.Set("hat", event.jhat.hat);
@@ -623,7 +624,7 @@ public:
             }
             // An analog device needs two axes, so we need to store the axis for later and wait for
             // a second SDL event. The axes also must be from the same joystick.
-            int axis = event.jaxis.axis;
+            const int axis = event.jaxis.axis;
             if (analog_xaxis == -1) {
                 analog_xaxis = axis;
                 analog_axes_joystick = event.jaxis.which;
@@ -634,7 +635,7 @@ public:
         }
         Common::ParamPackage params;
         if (analog_xaxis != -1 && analog_yaxis != -1) {
-            auto joystick = state.GetSDLJoystickBySDLID(event.jaxis.which);
+            const auto joystick = state.GetSDLJoystickBySDLID(event.jaxis.which);
             params.Set("engine", "sdl");
             params.Set("port", joystick->GetPort());
             params.Set("guid", joystick->GetGUID());
