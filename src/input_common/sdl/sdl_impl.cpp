@@ -467,7 +467,7 @@ SDLState::SDLState() {
         return;
     }
     if (SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1") == SDL_FALSE) {
-        LOG_ERROR(Input, "Failed to set Hint for background events", SDL_GetError());
+        LOG_ERROR(Input, "Failed to set hint for background events with: {}", SDL_GetError());
     }
 
     SDL_AddEventWatch(&SDLEventWatcher, this);
