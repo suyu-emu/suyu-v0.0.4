@@ -23,9 +23,7 @@
 #include "core/frontend/input.h"
 #include "input_common/sdl/sdl_impl.h"
 
-namespace InputCommon {
-
-namespace SDL {
+namespace InputCommon::SDL {
 
 static std::string GetGUID(SDL_Joystick* joystick) {
     SDL_JoystickGUID guid = SDL_JoystickGetGUID(joystick);
@@ -667,5 +665,4 @@ SDLState::Pollers SDLState::GetPollers(InputCommon::Polling::DeviceType type) {
     return pollers;
 }
 
-} // namespace SDL
-} // namespace InputCommon
+} // namespace InputCommon::SDL
