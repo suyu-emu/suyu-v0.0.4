@@ -510,7 +510,7 @@ SDLState::~SDLState() {
     }
 }
 
-Common::ParamPackage SDLEventToButtonParamPackage(SDLState& state, const SDL_Event& event) {
+static Common::ParamPackage SDLEventToButtonParamPackage(SDLState& state, const SDL_Event& event) {
     Common::ParamPackage params({{"engine", "sdl"}});
 
     switch (event.type) {
