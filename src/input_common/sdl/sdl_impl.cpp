@@ -611,8 +611,8 @@ public:
         SDLPoller::Start();
 
         // Reset stored axes
-        analog_xaxis = -1;
-        analog_yaxis = -1;
+        analog_x_axis = -1;
+        analog_y_axis = -1;
         analog_axes_joystick = -1;
     }
 
@@ -625,24 +625,24 @@ public:
             // An analog device needs two axes, so we need to store the axis for later and wait for
             // a second SDL event. The axes also must be from the same joystick.
             const int axis = event.jaxis.axis;
-            if (analog_xaxis == -1) {
-                analog_xaxis = axis;
+            if (analog_x_axis == -1) {
+                analog_x_axis = axis;
                 analog_axes_joystick = event.jaxis.which;
-            } else if (analog_yaxis == -1 && analog_xaxis != axis &&
+            } else if (analog_y_axis == -1 && analog_x_axis != axis &&
                        analog_axes_joystick == event.jaxis.which) {
-                analog_yaxis = axis;
+                analog_y_axis = axis;
             }
         }
         Common::ParamPackage params;
-        if (analog_xaxis != -1 && analog_yaxis != -1) {
+        if (analog_x_axis != -1 && analog_y_axis != -1) {
             const auto joystick = state.GetSDLJoystickBySDLID(event.jaxis.which);
             params.Set("engine", "sdl");
             params.Set("port", joystick->GetPort());
             params.Set("guid", joystick->GetGUID());
-            params.Set("axis_x", analog_xaxis);
-            params.Set("axis_y", analog_yaxis);
-            analog_xaxis = -1;
-            analog_yaxis = -1;
+            params.Set("axis_x", analog_x_axis);
+            params.Set("axis_y", analog_y_axis);
+            analog_x_axis = -1;
+            analog_y_axis = -1;
             analog_axes_joystick = -1;
             return params;
         }
@@ -650,8 +650,8 @@ public:
     }
 
 private:
-    int analog_xaxis = -1;
-    int analog_yaxis = -1;
+    int analog_x_axis = -1;
+    int analog_y_axis = -1;
     SDL_JoystickID analog_axes_joystick = -1;
 };
 } // namespace Polling
