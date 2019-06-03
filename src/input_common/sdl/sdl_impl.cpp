@@ -161,30 +161,35 @@ std::shared_ptr<SDLJoystick> SDLState::GetSDLJoystickBySDLID(SDL_JoystickID sdl_
     std::lock_guard lock{joystick_map_mutex};
     auto map_it = joystick_map.find(guid);
     if (map_it != joystick_map.end()) {
-        auto vec_it = std::find_if(map_it->second.begin(), map_it->second.end(),
-                                   [&sdl_joystick](const std::shared_ptr<SDLJoystick>& joystick) {
-                                       return sdl_joystick == joystick->GetSDLJoystick();
-                                   });
+        const auto vec_it =
+            std::find_if(map_it->second.begin(), map_it->second.end(),
+                         [&sdl_joystick](const std::shared_ptr<SDLJoystick>& joystick) {
+                             return sdl_joystick == joystick->GetSDLJoystick();
+                         });
         if (vec_it != map_it->second.end()) {
             // This is the common case: There is already an existing SDL_Joystick maped to a
             // SDLJoystick. return the SDLJoystick
             return *vec_it;
         }
+
         // Search for a SDLJoystick without a mapped SDL_Joystick...
-        auto nullptr_it = std::find_if(map_it->second.begin(), map_it->second.end(),
-                                       [](const std::shared_ptr<SDLJoystick>& joystick) {
-                                           return !joystick->GetSDLJoystick();
-                                       });
+        const auto nullptr_it = std::find_if(map_it->second.begin(), map_it->second.end(),
+                                             [](const std::shared_ptr<SDLJoystick>& joystick) {
+                                                 return !joystick->GetSDLJoystick();
+                                             });
         if (nullptr_it != map_it->second.end()) {
             // ... and map it
             (*nullptr_it)->SetSDLJoystick(sdl_joystick);
             return *nullptr_it;
         }
+
         // There is no SDLJoystick without a mapped SDL_Joystick
         // Create a new SDLJoystick
-        auto joystick = std::make_shared<SDLJoystick>(guid, map_it->second.size(), sdl_joystick);
+        const int port = static_cast<int>(map_it->second.size());
+        auto joystick = std::make_shared<SDLJoystick>(guid, port, sdl_joystick);
         return map_it->second.emplace_back(std::move(joystick));
     }
+
     auto joystick = std::make_shared<SDLJoystick>(guid, 0, sdl_joystick);
     return joystick_map[guid].emplace_back(std::move(joystick));
 }
@@ -211,7 +216,8 @@ void SDLState::InitJoystick(int joystick_index) {
         (*it)->SetSDLJoystick(sdl_joystick);
         return;
     }
-    auto joystick = std::make_shared<SDLJoystick>(guid, joystick_guid_list.size(), sdl_joystick);
+    const int port = static_cast<int>(joystick_guid_list.size());
+    auto joystick = std::make_shared<SDLJoystick>(guid, port, sdl_joystick);
     joystick_guid_list.emplace_back(std::move(joystick));
 }
 
