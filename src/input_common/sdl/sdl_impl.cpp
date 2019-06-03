@@ -51,7 +51,7 @@ public:
 
     void SetButton(int button, bool value) {
         std::lock_guard lock{mutex};
-        state.buttons[button] = value;
+        state.buttons.insert_or_assign(button, value);
     }
 
     bool GetButton(int button) const {
@@ -61,7 +61,7 @@ public:
 
     void SetAxis(int axis, Sint16 value) {
         std::lock_guard lock{mutex};
-        state.axes[axis] = value;
+        state.axes.insert_or_assign(axis, value);
     }
 
     float GetAxis(int axis) const {
@@ -88,7 +88,7 @@ public:
 
     void SetHat(int hat, Uint8 direction) {
         std::lock_guard lock{mutex};
-        state.hats[hat] = direction;
+        state.hats.insert_or_assign(hat, direction);
     }
 
     bool GetHatDirection(int hat, Uint8 direction) const {
