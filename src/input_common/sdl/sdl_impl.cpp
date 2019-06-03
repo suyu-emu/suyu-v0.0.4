@@ -33,14 +33,16 @@ static std::string GetGUID(SDL_Joystick* joystick) {
 /// Creates a ParamPackage from an SDL_Event that can directly be used to create a ButtonDevice
 static Common::ParamPackage SDLEventToButtonParamPackage(SDLState& state, const SDL_Event& event);
 
-static int SDLEventWatcher(void* userdata, SDL_Event* event) {
-    SDLState* sdl_state = reinterpret_cast<SDLState*>(userdata);
+static int SDLEventWatcher(void* user_data, SDL_Event* event) {
+    auto* const sdl_state = static_cast<SDLState*>(user_data);
+
     // Don't handle the event if we are configuring
     if (sdl_state->polling) {
         sdl_state->event_queue.Push(*event);
     } else {
         sdl_state->HandleGameControllerEvent(*event);
     }
+
     return 0;
 }
 
