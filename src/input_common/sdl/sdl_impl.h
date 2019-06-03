@@ -34,7 +34,13 @@ public:
     /// Handle SDL_Events for joysticks from SDL_PollEvent
     void HandleGameControllerEvent(const SDL_Event& event);
 
+    /// Get the nth joystick with the corresponding GUID
     std::shared_ptr<SDLJoystick> GetSDLJoystickBySDLID(SDL_JoystickID sdl_id);
+
+    /**
+     * Check how many identical joysticks (by guid) were connected before the one with sdl_id and so
+     * tie it to a SDLJoystick with the same guid and that port
+     */
     std::shared_ptr<SDLJoystick> GetSDLJoystickByGUID(const std::string& guid, int port);
 
     /// Get all DevicePoller that use the SDL backend for a specific device type

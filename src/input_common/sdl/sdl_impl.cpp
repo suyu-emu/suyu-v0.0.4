@@ -131,9 +131,6 @@ private:
     mutable std::mutex mutex;
 };
 
-/**
- * Get the nth joystick with the corresponding GUID
- */
 std::shared_ptr<SDLJoystick> SDLState::GetSDLJoystickByGUID(const std::string& guid, int port) {
     std::lock_guard lock{joystick_map_mutex};
     const auto it = joystick_map.find(guid);
@@ -149,10 +146,6 @@ std::shared_ptr<SDLJoystick> SDLState::GetSDLJoystickByGUID(const std::string& g
     return joystick_map[guid].emplace_back(std::move(joystick));
 }
 
-/**
- * Check how many identical joysticks (by guid) were connected before the one with sdl_id and so tie
- * it to a SDLJoystick with the same guid and that port
- */
 std::shared_ptr<SDLJoystick> SDLState::GetSDLJoystickBySDLID(SDL_JoystickID sdl_id) {
     auto sdl_joystick = SDL_JoystickFromInstanceID(sdl_id);
     const std::string guid = GetGUID(sdl_joystick);
