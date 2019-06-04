@@ -57,7 +57,9 @@ Stream::State Stream::GetState() const {
 
 s64 Stream::GetBufferReleaseCycles(const Buffer& buffer) const {
     const std::size_t num_samples{buffer.GetSamples().size() / GetNumChannels()};
-    return Core::Timing::usToCycles((static_cast<u64>(num_samples) * 1000000) / sample_rate);
+    const auto us =
+        std::chrono::microseconds((static_cast<u64>(num_samples) * 1000000) / sample_rate);
+    return Core::Timing::usToCycles(us);
 }
 
 static void VolumeAdjustSamples(std::vector<s16>& samples) {

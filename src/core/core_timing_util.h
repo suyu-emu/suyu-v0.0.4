@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <chrono>
 #include "common/common_types.h"
 
 namespace Core::Timing {
@@ -13,22 +14,20 @@ namespace Core::Timing {
 constexpr u64 BASE_CLOCK_RATE = 1019215872; // Switch clock speed is 1020MHz un/docked
 constexpr u64 CNTFREQ = 19200000;           // Value from fusee.
 
-s64 usToCycles(s64 us);
-s64 usToCycles(u64 us);
+s64 msToCycles(std::chrono::milliseconds ms);
+s64 usToCycles(std::chrono::microseconds us);
+s64 nsToCycles(std::chrono::nanoseconds ns);
 
-s64 nsToCycles(s64 ns);
-s64 nsToCycles(u64 ns);
-
-inline u64 cyclesToNs(s64 cycles) {
-    return cycles * 1000000000 / BASE_CLOCK_RATE;
+inline std::chrono::milliseconds cyclesToMs(s64 cycles) {
+    return std::chrono::milliseconds(cycles * 1000 / BASE_CLOCK_RATE);
 }
 
-inline s64 cyclesToUs(s64 cycles) {
-    return cycles * 1000000 / BASE_CLOCK_RATE;
+inline std::chrono::nanoseconds cyclesToNs(s64 cycles) {
+    return std::chrono::nanoseconds(cycles * 1000000000 / BASE_CLOCK_RATE);
 }
 
-inline u64 cyclesToMs(s64 cycles) {
-    return cycles * 1000 / BASE_CLOCK_RATE;
+inline std::chrono::microseconds cyclesToUs(s64 cycles) {
+    return std::chrono::microseconds(cycles * 1000000 / BASE_CLOCK_RATE);
 }
 
 u64 CpuCyclesToClockCycles(u64 ticks);

@@ -75,7 +75,7 @@ void ThreadManager::StartThread(VideoCore::RendererBase& renderer, Tegra::DmaPus
 
 void ThreadManager::SubmitList(Tegra::CommandList&& entries) {
     const u64 fence{PushCommand(SubmitListCommand(std::move(entries)))};
-    const s64 synchronization_ticks{Core::Timing::usToCycles(9000)};
+    const s64 synchronization_ticks{Core::Timing::usToCycles(std::chrono::microseconds{9000})};
     system.CoreTiming().ScheduleEvent(synchronization_ticks, synchronization_event, fence);
 }
 
