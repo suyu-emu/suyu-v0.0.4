@@ -26,15 +26,7 @@ s64 usToCycles(s64 us) {
 }
 
 s64 usToCycles(u64 us) {
-    if (us / 1000000 > MAX_VALUE_TO_MULTIPLY) {
-        LOG_ERROR(Core_Timing, "Integer overflow, use max value");
-        return std::numeric_limits<s64>::max();
-    }
-    if (us > MAX_VALUE_TO_MULTIPLY) {
-        LOG_DEBUG(Core_Timing, "Time very big, do rounding");
-        return BASE_CLOCK_RATE * static_cast<s64>(us / 1000000);
-    }
-    return (BASE_CLOCK_RATE * static_cast<s64>(us)) / 1000000;
+    return usToCycles(static_cast<s64>(us));
 }
 
 s64 nsToCycles(s64 ns) {
@@ -50,15 +42,7 @@ s64 nsToCycles(s64 ns) {
 }
 
 s64 nsToCycles(u64 ns) {
-    if (ns / 1000000000 > MAX_VALUE_TO_MULTIPLY) {
-        LOG_ERROR(Core_Timing, "Integer overflow, use max value");
-        return std::numeric_limits<s64>::max();
-    }
-    if (ns > MAX_VALUE_TO_MULTIPLY) {
-        LOG_DEBUG(Core_Timing, "Time very big, do rounding");
-        return BASE_CLOCK_RATE * (static_cast<s64>(ns) / 1000000000);
-    }
-    return (BASE_CLOCK_RATE * static_cast<s64>(ns)) / 1000000000;
+    return nsToCycles(static_cast<s64>(ns));
 }
 
 u64 CpuCyclesToClockCycles(u64 ticks) {
