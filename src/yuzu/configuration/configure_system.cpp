@@ -16,28 +16,8 @@
 #include "ui_configure_system.h"
 #include "yuzu/configuration/configure_system.h"
 
-namespace {
-constexpr std::array<int, 12> days_in_month = {{
-    31,
-    29,
-    31,
-    30,
-    31,
-    30,
-    31,
-    31,
-    30,
-    31,
-    30,
-    31,
-}};
-} // Anonymous namespace
-
 ConfigureSystem::ConfigureSystem(QWidget* parent) : QWidget(parent), ui(new Ui::ConfigureSystem) {
     ui->setupUi(this);
-    connect(ui->combo_birthmonth,
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
-            &ConfigureSystem::UpdateBirthdayComboBox);
     connect(ui->button_regenerate_console_id, &QPushButton::clicked, this,
             &ConfigureSystem::RefreshConsoleID);
 
@@ -99,31 +79,6 @@ void ConfigureSystem::applyConfiguration() {
         Settings::values.custom_rtc = std::nullopt;
 
     Settings::Apply();
-}
-
-void ConfigureSystem::UpdateBirthdayComboBox(int birthmonth_index) {
-    if (birthmonth_index < 0 || birthmonth_index >= 12)
-        return;
-
-    // store current day selection
-    int birthday_index = ui->combo_birthday->currentIndex();
-
-    // get number of days in the new selected month
-    int days = days_in_month[birthmonth_index];
-
-    // if the selected day is out of range,
-    // reset it to 1st
-    if (birthday_index < 0 || birthday_index >= days)
-        birthday_index = 0;
-
-    // update the day combo box
-    ui->combo_birthday->clear();
-    for (int i = 1; i <= days; ++i) {
-        ui->combo_birthday->addItem(QString::number(i));
-    }
-
-    // restore the day selection
-    ui->combo_birthday->setCurrentIndex(birthday_index);
 }
 
 void ConfigureSystem::RefreshConsoleID() {
