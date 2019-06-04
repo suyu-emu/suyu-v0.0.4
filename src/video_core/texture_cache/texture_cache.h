@@ -389,7 +389,8 @@ private:
         const auto gpu_addr = current_surface->GetGpuAddr();
         TSurface new_surface = GetUncachedSurface(gpu_addr, params);
         const auto& cr_params = current_surface->GetSurfaceParams();
-        if (!support_info.depth_color_image_copies && cr_params.type != params.type) {
+        if (cr_params.type != params.type && (!support_info.depth_color_image_copies ||
+                                              cr_params.component_type != params.component_type)) {
             BufferCopy(current_surface, new_surface);
         } else {
             std::vector<CopyParams> bricks = current_surface->BreakDown(params);
