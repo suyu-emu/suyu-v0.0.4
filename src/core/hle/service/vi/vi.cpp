@@ -418,7 +418,8 @@ public:
         s32_le scaling_mode;
         NVFlinger::BufferQueue::BufferTransformFlags transform;
         u32_le sticky_transform;
-        INSERT_PADDING_WORDS(2);
+        INSERT_PADDING_WORDS(1);
+        u32_le swap_interval;
         u32_le fence_is_valid;
         std::array<Fence, 2> fences;
 
@@ -582,7 +583,7 @@ private:
             IGBPQueueBufferRequestParcel request{ctx.ReadBuffer()};
 
             buffer_queue.QueueBuffer(request.data.slot, request.data.transform,
-                                     request.data.GetCropRect());
+                                     request.data.GetCropRect(), request.data.swap_interval);
 
             IGBPQueueBufferResponseParcel response{1280, 720};
             ctx.WriteBuffer(response.Serialize());

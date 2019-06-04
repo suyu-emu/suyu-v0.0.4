@@ -68,13 +68,14 @@ public:
         IGBPBuffer igbp_buffer;
         BufferTransformFlags transform;
         Common::Rectangle<int> crop_rect;
+        u32 swap_interval;
     };
 
     void SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer);
     std::optional<u32> DequeueBuffer(u32 width, u32 height);
     const IGBPBuffer& RequestBuffer(u32 slot) const;
     void QueueBuffer(u32 slot, BufferTransformFlags transform,
-                     const Common::Rectangle<int>& crop_rect);
+                     const Common::Rectangle<int>& crop_rect, u32 swap_interval);
     std::optional<std::reference_wrapper<const Buffer>> AcquireBuffer();
     void ReleaseBuffer(u32 slot);
     u32 Query(QueryType type);

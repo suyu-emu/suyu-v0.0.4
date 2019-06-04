@@ -63,7 +63,7 @@ const IGBPBuffer& BufferQueue::RequestBuffer(u32 slot) const {
 }
 
 void BufferQueue::QueueBuffer(u32 slot, BufferTransformFlags transform,
-                              const Common::Rectangle<int>& crop_rect) {
+                              const Common::Rectangle<int>& crop_rect, u32 swap_interval) {
     auto itr = std::find_if(queue.begin(), queue.end(),
                             [&](const Buffer& buffer) { return buffer.slot == slot; });
     ASSERT(itr != queue.end());
@@ -71,6 +71,7 @@ void BufferQueue::QueueBuffer(u32 slot, BufferTransformFlags transform,
     itr->status = Buffer::Status::Queued;
     itr->transform = transform;
     itr->crop_rect = crop_rect;
+    itr->swap_interval = swap_interval;
 }
 
 std::optional<std::reference_wrapper<const BufferQueue::Buffer>> BufferQueue::AcquireBuffer() {
