@@ -20,10 +20,13 @@ namespace VideoCommon::Shader {
 class ShaderIR;
 }
 
+namespace Vulkan {
+class VKDevice;
+}
+
 namespace Vulkan::VKShader {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
-
 using SamplerEntry = VideoCommon::Shader::Sampler;
 
 constexpr u32 DESCRIPTOR_SET = 0;
@@ -75,6 +78,7 @@ struct ShaderEntries {
 
 using DecompilerResult = std::pair<std::unique_ptr<Sirit::Module>, ShaderEntries>;
 
-DecompilerResult Decompile(const VideoCommon::Shader::ShaderIR& ir, Maxwell::ShaderStage stage);
+DecompilerResult Decompile(const VKDevice& device, const VideoCommon::Shader::ShaderIR& ir,
+                           Maxwell::ShaderStage stage);
 
 } // namespace Vulkan::VKShader

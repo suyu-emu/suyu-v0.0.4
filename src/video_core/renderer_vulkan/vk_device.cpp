@@ -18,6 +18,7 @@ constexpr std::array<vk::Format, 3> Depth24UnormS8Uint = {
     vk::Format::eD32SfloatS8Uint, vk::Format::eD16UnormS8Uint, {}};
 constexpr std::array<vk::Format, 3> Depth16UnormS8Uint = {
     vk::Format::eD24UnormS8Uint, vk::Format::eD32SfloatS8Uint, {}};
+constexpr std::array<vk::Format, 2> Astc = {vk::Format::eA8B8G8R8UnormPack32, {}};
 
 } // namespace Alternatives
 
@@ -51,15 +52,19 @@ VKDevice::VKDevice(const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDevice phy
     : physical{physical}, format_properties{GetFormatProperties(dldi, physical)} {
     SetupFamilies(dldi, surface);
     SetupProperties(dldi);
+    SetupFeatures(dldi);
 }
 
 VKDevice::~VKDevice() = default;
 
 bool VKDevice::Create(const vk::DispatchLoaderDynamic& dldi, vk::Instance instance) {
-    const auto queue_cis = GetDeviceQueueCreateInfos();
-    vk::PhysicalDeviceFeatures device_features{};
+    vk::PhysicalDeviceFeatures device_features;
+    device_features.vertexPipelineStoresAndAtomics = true;
+    device_features.independentBlend = true;
+    device_features.textureCompressionASTC_LDR = is_optimal_astc_supported;
 
-    const std::vector<const char*> extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    const auto queue_cis = GetDeviceQueueCreateInfos();
+    const std::vector<const char*> extensions = LoadExtensions(dldi);
     const vk::DeviceCreateInfo device_ci({}, static_cast<u32>(queue_cis.size()), queue_cis.data(),
                                          0, nullptr, static_cast<u32>(extensions.size()),
                                          extensions.data(), &device_features);
@@ -90,7 +95,7 @@ vk::Format VKDevice::GetSupportedFormat(vk::Format wanted_format,
         LOG_CRITICAL(Render_Vulkan,
                      "Format={} with usage={} and type={} has no defined alternatives and host "
                      "hardware does not support it",
-                     static_cast<u32>(wanted_format), static_cast<u32>(wanted_usage),
+                     vk::to_string(wanted_format), vk::to_string(wanted_usage),
                      static_cast<u32>(format_type));
         UNREACHABLE();
         return wanted_format;
@@ -118,6 +123,30 @@ vk::Format VKDevice::GetSupportedFormat(vk::Format wanted_format,
     return wanted_format;
 }
 
+bool VKDevice::IsOptimalAstcSupported(const vk::PhysicalDeviceFeatures& features,
+                                      const vk::DispatchLoaderDynamic& dldi) const {
+    if (!features.textureCompressionASTC_LDR) {
+        return false;
+    }
+    const auto format_feature_usage{
+        vk::FormatFeatureFlagBits::eSampledImage | vk::FormatFeatureFlagBits::eBlitSrc |
+        vk::FormatFeatureFlagBits::eBlitDst | vk::FormatFeatureFlagBits::eTransferSrc |
+        vk::FormatFeatureFlagBits::eTransferDst};
+    constexpr std::array<vk::Format, 9> astc_formats = {
+        vk::Format::eAstc4x4UnormBlock, vk::Format::eAstc4x4SrgbBlock,
+        vk::Format::eAstc8x8SrgbBlock,  vk::Format::eAstc8x6SrgbBlock,
+        vk::Format::eAstc5x4SrgbBlock,  vk::Format::eAstc5x5UnormBlock,
+        vk::Format::eAstc5x5SrgbBlock,  vk::Format::eAstc10x8UnormBlock,
+        vk::Format::eAstc10x8SrgbBlock};
+    for (const auto format : astc_formats) {
+        const auto format_properties{physical.getFormatProperties(format, dldi)};
+        if (!(format_properties.optimalTilingFeatures & format_feature_usage)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool VKDevice::IsFormatSupported(vk::Format wanted_format, vk::FormatFeatureFlags wanted_usage,
                                  FormatType format_type) const {
     const auto it = format_properties.find(wanted_format);
@@ -132,11 +161,9 @@ bool VKDevice::IsFormatSupported(vk::Format wanted_format, vk::FormatFeatureFlag
 
 bool VKDevice::IsSuitable(const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDevice physical,
                           vk::SurfaceKHR surface) {
-    const std::string swapchain_extension = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
-
     bool has_swapchain{};
     for (const auto& prop : physical.enumerateDeviceExtensionProperties(nullptr, dldi)) {
-        has_swapchain |= prop.extensionName == swapchain_extension;
+        has_swapchain |= prop.extensionName == std::string(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
     if (!has_swapchain) {
         // The device doesn't support creating swapchains.
@@ -160,13 +187,43 @@ bool VKDevice::IsSuitable(const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDev
     }
 
     // TODO(Rodrigo): Check if the device matches all requeriments.
-    const vk::PhysicalDeviceProperties props = physical.getProperties(dldi);
-    if (props.limits.maxUniformBufferRange < 65536) {
+    const auto properties{physical.getProperties(dldi)};
+    const auto limits{properties.limits};
+    if (limits.maxUniformBufferRange < 65536) {
+        return false;
+    }
+
+    const vk::PhysicalDeviceFeatures features{physical.getFeatures(dldi)};
+    if (!features.vertexPipelineStoresAndAtomics || !features.independentBlend) {
         return false;
     }
 
     // Device is suitable.
     return true;
+}
+
+std::vector<const char*> VKDevice::LoadExtensions(const vk::DispatchLoaderDynamic& dldi) {
+    std::vector<const char*> extensions;
+    extensions.reserve(2);
+    extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+
+    const auto Test = [&](const vk::ExtensionProperties& extension,
+                          std::optional<std::reference_wrapper<bool>> status, const char* name,
+                          u32 revision) {
+        if (extension.extensionName != std::string(name)) {
+            return;
+        }
+        extensions.push_back(name);
+        if (status) {
+            status->get() = true;
+        }
+    };
+
+    for (const auto& extension : physical.enumerateDeviceExtensionProperties(nullptr, dldi)) {
+        Test(extension, ext_scalar_block_layout, VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME, 1);
+    }
+
+    return extensions;
 }
 
 void VKDevice::SetupFamilies(const vk::DispatchLoaderDynamic& dldi, vk::SurfaceKHR surface) {
@@ -196,10 +253,16 @@ void VKDevice::SetupProperties(const vk::DispatchLoaderDynamic& dldi) {
     const vk::PhysicalDeviceProperties props = physical.getProperties(dldi);
     device_type = props.deviceType;
     uniform_buffer_alignment = static_cast<u64>(props.limits.minUniformBufferOffsetAlignment);
+    max_storage_buffer_range = static_cast<u64>(props.limits.maxStorageBufferRange);
+}
+
+void VKDevice::SetupFeatures(const vk::DispatchLoaderDynamic& dldi) {
+    const auto supported_features{physical.getFeatures(dldi)};
+    is_optimal_astc_supported = IsOptimalAstcSupported(supported_features, dldi);
 }
 
 std::vector<vk::DeviceQueueCreateInfo> VKDevice::GetDeviceQueueCreateInfos() const {
-    static const float QUEUE_PRIORITY = 1.f;
+    static const float QUEUE_PRIORITY = 1.0f;
 
     std::set<u32> unique_queue_families = {graphics_family, present_family};
     std::vector<vk::DeviceQueueCreateInfo> queue_cis;
@@ -212,26 +275,43 @@ std::vector<vk::DeviceQueueCreateInfo> VKDevice::GetDeviceQueueCreateInfos() con
 
 std::map<vk::Format, vk::FormatProperties> VKDevice::GetFormatProperties(
     const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDevice physical) {
+    static constexpr std::array formats{vk::Format::eA8B8G8R8UnormPack32,
+                                        vk::Format::eB5G6R5UnormPack16,
+                                        vk::Format::eA2B10G10R10UnormPack32,
+                                        vk::Format::eR32G32B32A32Sfloat,
+                                        vk::Format::eR16G16Unorm,
+                                        vk::Format::eR16G16Snorm,
+                                        vk::Format::eR8G8B8A8Srgb,
+                                        vk::Format::eR8Unorm,
+                                        vk::Format::eB10G11R11UfloatPack32,
+                                        vk::Format::eR32Sfloat,
+                                        vk::Format::eR16Sfloat,
+                                        vk::Format::eR16G16B16A16Sfloat,
+                                        vk::Format::eD32Sfloat,
+                                        vk::Format::eD16Unorm,
+                                        vk::Format::eD16UnormS8Uint,
+                                        vk::Format::eD24UnormS8Uint,
+                                        vk::Format::eD32SfloatS8Uint,
+                                        vk::Format::eBc1RgbaUnormBlock,
+                                        vk::Format::eBc2UnormBlock,
+                                        vk::Format::eBc3UnormBlock,
+                                        vk::Format::eBc4UnormBlock,
+                                        vk::Format::eBc5UnormBlock,
+                                        vk::Format::eBc5SnormBlock,
+                                        vk::Format::eBc7UnormBlock,
+                                        vk::Format::eAstc4x4UnormBlock,
+                                        vk::Format::eAstc4x4SrgbBlock,
+                                        vk::Format::eAstc8x8SrgbBlock,
+                                        vk::Format::eAstc8x6SrgbBlock,
+                                        vk::Format::eAstc5x4SrgbBlock,
+                                        vk::Format::eAstc5x5UnormBlock,
+                                        vk::Format::eAstc5x5SrgbBlock,
+                                        vk::Format::eAstc10x8UnormBlock,
+                                        vk::Format::eAstc10x8SrgbBlock};
     std::map<vk::Format, vk::FormatProperties> format_properties;
-
-    const auto AddFormatQuery = [&format_properties, &dldi, physical](vk::Format format) {
+    for (const auto format : formats) {
         format_properties.emplace(format, physical.getFormatProperties(format, dldi));
-    };
-    AddFormatQuery(vk::Format::eA8B8G8R8UnormPack32);
-    AddFormatQuery(vk::Format::eB5G6R5UnormPack16);
-    AddFormatQuery(vk::Format::eA2B10G10R10UnormPack32);
-    AddFormatQuery(vk::Format::eR8G8B8A8Srgb);
-    AddFormatQuery(vk::Format::eR8Unorm);
-    AddFormatQuery(vk::Format::eD32Sfloat);
-    AddFormatQuery(vk::Format::eD16Unorm);
-    AddFormatQuery(vk::Format::eD16UnormS8Uint);
-    AddFormatQuery(vk::Format::eD24UnormS8Uint);
-    AddFormatQuery(vk::Format::eD32SfloatS8Uint);
-    AddFormatQuery(vk::Format::eBc1RgbaUnormBlock);
-    AddFormatQuery(vk::Format::eBc2UnormBlock);
-    AddFormatQuery(vk::Format::eBc3UnormBlock);
-    AddFormatQuery(vk::Format::eBc4UnormBlock);
-
+    }
     return format_properties;
 }
 

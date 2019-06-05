@@ -17,6 +17,7 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/engines/shader_header.h"
+#include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
 #include "video_core/shader/shader_ir.h"
 
@@ -33,7 +34,8 @@ using ShaderStage = Tegra::Engines::Maxwell3D::Regs::ShaderStage;
 using Operation = const OperationNode&;
 
 // TODO(Rodrigo): Use rasterizer's value
-constexpr u32 MAX_CONSTBUFFER_ELEMENTS = 0x1000;
+constexpr u32 MAX_CONSTBUFFER_FLOATS = 0x4000;
+constexpr u32 MAX_CONSTBUFFER_ELEMENTS = MAX_CONSTBUFFER_FLOATS / 4;
 constexpr u32 STAGE_BINDING_STRIDE = 0x100;
 
 enum class Type { Bool, Bool2, Float, Int, Uint, HalfFloat };
@@ -87,8 +89,8 @@ bool IsPrecise(Operation operand) {
 
 class SPIRVDecompiler : public Sirit::Module {
 public:
-    explicit SPIRVDecompiler(const ShaderIR& ir, ShaderStage stage)
-        : Module(0x00010300), ir{ir}, stage{stage}, header{ir.GetHeader()} {
+    explicit SPIRVDecompiler(const VKDevice& device, const ShaderIR& ir, ShaderStage stage)
+        : Module(0x00010300), device{device}, ir{ir}, stage{stage}, header{ir.GetHeader()} {
         AddCapability(spv::Capability::Shader);
         AddExtension("SPV_KHR_storage_buffer_storage_class");
         AddExtension("SPV_KHR_variable_pointers");
@@ -195,7 +197,9 @@ public:
             entries.samplers.emplace_back(sampler);
         }
         for (const auto& attribute : ir.GetInputAttributes()) {
-            entries.attributes.insert(GetGenericAttributeLocation(attribute));
+            if (IsGenericAttribute(attribute)) {
+                entries.attributes.insert(GetGenericAttributeLocation(attribute));
+            }
         }
         entries.clip_distances = ir.GetClipDistances();
         entries.shader_length = ir.GetLength();
@@ -210,7 +214,6 @@ private:
         std::array<OperationDecompilerFn, static_cast<std::size_t>(OperationCode::Amount)>;
 
     static constexpr auto INTERNAL_FLAGS_COUNT = static_cast<std::size_t>(InternalFlag::Amount);
-    static constexpr u32 CBUF_STRIDE = 16;
 
     void AllocateBindings() {
         const u32 binding_base = static_cast<u32>(stage) * STAGE_BINDING_STRIDE;
@@ -315,6 +318,7 @@ private:
         constexpr std::array<const char*, INTERNAL_FLAGS_COUNT> names = {"zero", "sign", "carry",
                                                                          "overflow"};
         for (std::size_t flag = 0; flag < INTERNAL_FLAGS_COUNT; ++flag) {
+            const auto flag_code = static_cast<InternalFlag>(flag);
             const Id id = OpVariable(t_prv_bool, spv::StorageClass::Private, v_false);
             internal_flags[flag] = AddGlobalVariable(Name(id, names[flag]));
         }
@@ -374,7 +378,9 @@ private:
         u32 binding = const_buffers_base_binding;
         for (const auto& entry : ir.GetConstantBuffers()) {
             const auto [index, size] = entry;
-            const Id id = OpVariable(t_cbuf_ubo, spv::StorageClass::Uniform);
+            const Id type =
+                device.IsExtScalarBlockLayoutSupported() ? t_cbuf_scalar_ubo : t_cbuf_std140_ubo;
+            const Id id = OpVariable(type, spv::StorageClass::Uniform);
             AddGlobalVariable(Name(id, fmt::format("cbuf_{}", index)));
 
             Decorate(id, spv::Decoration::Binding, binding++);
@@ -569,33 +575,35 @@ private:
             const Node offset = cbuf->GetOffset();
             const Id buffer_id = constant_buffers.at(cbuf->GetIndex());
 
-            Id buffer_index{};
-            Id buffer_element{};
-
-            if (const auto immediate = std::get_if<ImmediateNode>(offset)) {
-                // Direct access
-                const u32 offset_imm = immediate->GetValue();
-                ASSERT(offset_imm % 4 == 0);
-                buffer_index = Constant(t_uint, offset_imm / 16);
-                buffer_element = Constant(t_uint, (offset_imm / 4) % 4);
-
-            } else if (std::holds_alternative<OperationNode>(*offset)) {
-                // Indirect access
-                // TODO(Rodrigo): Use a uniform buffer stride of 4 and drop this slow math (which
-                // emits sub-optimal code on GLSL from my testing).
-                const Id offset_id = BitcastTo<Type::Uint>(Visit(offset));
-                const Id unsafe_offset = Emit(OpUDiv(t_uint, offset_id, Constant(t_uint, 4)));
-                const Id final_offset = Emit(
-                    OpUMod(t_uint, unsafe_offset, Constant(t_uint, MAX_CONSTBUFFER_ELEMENTS - 1)));
-                buffer_index = Emit(OpUDiv(t_uint, final_offset, Constant(t_uint, 4)));
-                buffer_element = Emit(OpUMod(t_uint, final_offset, Constant(t_uint, 4)));
-
+            Id pointer{};
+            if (device.IsExtScalarBlockLayoutSupported()) {
+                const Id buffer_offset = Emit(OpShiftRightLogical(
+                    t_uint, BitcastTo<Type::Uint>(Visit(offset)), Constant(t_uint, 2u)));
+                pointer = Emit(
+                    OpAccessChain(t_cbuf_float, buffer_id, Constant(t_uint, 0u), buffer_offset));
             } else {
-                UNREACHABLE_MSG("Unmanaged offset node type");
+                Id buffer_index{};
+                Id buffer_element{};
+                if (const auto immediate = std::get_if<ImmediateNode>(offset)) {
+                    // Direct access
+                    const u32 offset_imm = immediate->GetValue();
+                    ASSERT(offset_imm % 4 == 0);
+                    buffer_index = Constant(t_uint, offset_imm / 16);
+                    buffer_element = Constant(t_uint, (offset_imm / 4) % 4);
+                } else if (std::holds_alternative<OperationNode>(*offset)) {
+                    // Indirect access
+                    const Id offset_id = BitcastTo<Type::Uint>(Visit(offset));
+                    const Id unsafe_offset = Emit(OpUDiv(t_uint, offset_id, Constant(t_uint, 4)));
+                    const Id final_offset = Emit(OpUMod(
+                        t_uint, unsafe_offset, Constant(t_uint, MAX_CONSTBUFFER_ELEMENTS - 1)));
+                    buffer_index = Emit(OpUDiv(t_uint, final_offset, Constant(t_uint, 4)));
+                    buffer_element = Emit(OpUMod(t_uint, final_offset, Constant(t_uint, 4)));
+                } else {
+                    UNREACHABLE_MSG("Unmanaged offset node type");
+                }
+                pointer = Emit(OpAccessChain(t_cbuf_float, buffer_id, Constant(t_uint, 0),
+                                             buffer_index, buffer_element));
             }
-
-            const Id pointer = Emit(OpAccessChain(t_cbuf_float, buffer_id, Constant(t_uint, 0),
-                                                  buffer_index, buffer_element));
             return Emit(OpLoad(t_float, pointer));
 
         } else if (const auto gmem = std::get_if<GmemNode>(node)) {
@@ -612,7 +620,9 @@ private:
             // It's invalid to call conditional on nested nodes, use an operation instead
             const Id true_label = OpLabel();
             const Id skip_label = OpLabel();
-            Emit(OpBranchConditional(Visit(conditional->GetCondition()), true_label, skip_label));
+            const Id condition = Visit(conditional->GetCondition());
+            Emit(OpSelectionMerge(skip_label, spv::SelectionControlMask::MaskNone));
+            Emit(OpBranchConditional(condition, true_label, skip_label));
             Emit(true_label);
 
             VisitBasicBlock(conditional->GetCode());
@@ -968,11 +978,11 @@ private:
         case ShaderStage::Vertex: {
             // TODO(Rodrigo): We should use VK_EXT_depth_range_unrestricted instead, but it doesn't
             // seem to be working on Nvidia's drivers and Intel (mesa and blob) doesn't support it.
-            const Id position = AccessElement(t_float4, per_vertex, position_index);
-            Id depth = Emit(OpLoad(t_float, AccessElement(t_out_float, position, 2)));
+            const Id z_pointer = AccessElement(t_out_float, per_vertex, position_index, 2u);
+            Id depth = Emit(OpLoad(t_float, z_pointer));
             depth = Emit(OpFAdd(t_float, depth, Constant(t_float, 1.0f)));
             depth = Emit(OpFMul(t_float, depth, Constant(t_float, 0.5f)));
-            Emit(OpStore(AccessElement(t_out_float, position, 2), depth));
+            Emit(OpStore(z_pointer, depth));
             break;
         }
         case ShaderStage::Fragment: {
@@ -1311,6 +1321,7 @@ private:
         &SPIRVDecompiler::WorkGroupId<2>,
     };
 
+    const VKDevice& device;
     const ShaderIR& ir;
     const ShaderStage stage;
     const Tegra::Shader::Header header;
@@ -1349,12 +1360,18 @@ private:
     const Id t_out_float4 = Name(TypePointer(spv::StorageClass::Output, t_float4), "out_float4");
 
     const Id t_cbuf_float = TypePointer(spv::StorageClass::Uniform, t_float);
-    const Id t_cbuf_array =
-        Decorate(Name(TypeArray(t_float4, Constant(t_uint, MAX_CONSTBUFFER_ELEMENTS)), "CbufArray"),
-                 spv::Decoration::ArrayStride, CBUF_STRIDE);
-    const Id t_cbuf_struct = MemberDecorate(
-        Decorate(TypeStruct(t_cbuf_array), spv::Decoration::Block), 0, spv::Decoration::Offset, 0);
-    const Id t_cbuf_ubo = TypePointer(spv::StorageClass::Uniform, t_cbuf_struct);
+    const Id t_cbuf_std140 = Decorate(
+        Name(TypeArray(t_float4, Constant(t_uint, MAX_CONSTBUFFER_ELEMENTS)), "CbufStd140Array"),
+        spv::Decoration::ArrayStride, 16u);
+    const Id t_cbuf_scalar = Decorate(
+        Name(TypeArray(t_float, Constant(t_uint, MAX_CONSTBUFFER_FLOATS)), "CbufScalarArray"),
+        spv::Decoration::ArrayStride, 4u);
+    const Id t_cbuf_std140_struct = MemberDecorate(
+        Decorate(TypeStruct(t_cbuf_std140), spv::Decoration::Block), 0, spv::Decoration::Offset, 0);
+    const Id t_cbuf_scalar_struct = MemberDecorate(
+        Decorate(TypeStruct(t_cbuf_scalar), spv::Decoration::Block), 0, spv::Decoration::Offset, 0);
+    const Id t_cbuf_std140_ubo = TypePointer(spv::StorageClass::Uniform, t_cbuf_std140_struct);
+    const Id t_cbuf_scalar_ubo = TypePointer(spv::StorageClass::Uniform, t_cbuf_scalar_struct);
 
     const Id t_gmem_float = TypePointer(spv::StorageClass::StorageBuffer, t_float);
     const Id t_gmem_array =
@@ -1403,8 +1420,9 @@ private:
     std::map<u32, Id> labels;
 };
 
-DecompilerResult Decompile(const VideoCommon::Shader::ShaderIR& ir, Maxwell::ShaderStage stage) {
-    auto decompiler = std::make_unique<SPIRVDecompiler>(ir, stage);
+DecompilerResult Decompile(const VKDevice& device, const VideoCommon::Shader::ShaderIR& ir,
+                           Maxwell::ShaderStage stage) {
+    auto decompiler = std::make_unique<SPIRVDecompiler>(device, ir, stage);
     decompiler->Decompile();
     return {std::move(decompiler), decompiler->GetShaderEntries()};
 }
