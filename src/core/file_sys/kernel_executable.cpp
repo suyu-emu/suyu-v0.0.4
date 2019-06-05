@@ -144,7 +144,7 @@ bool KIP::IsService() const {
 }
 
 std::vector<u32> KIP::GetKernelCapabilities() const {
-    return std::vector(header.capabilities.begin(), header.capabilities.end());
+    return std::vector<u32>(header.capabilities.begin(), header.capabilities.end());
 }
 
 s32 KIP::GetMainThreadPriority() const {
