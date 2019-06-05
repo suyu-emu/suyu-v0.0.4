@@ -27,11 +27,12 @@ namespace VideoCore {
 enum class LoadCallbackStage;
 }
 
-class EmuThread : public QThread {
+class EmuThread final : public QThread {
     Q_OBJECT
 
 public:
     explicit EmuThread(GRenderWindow* render_window);
+    ~EmuThread() override;
 
     /**
      * Start emulation (on new thread)
@@ -114,7 +115,7 @@ class GRenderWindow : public QWidget, public Core::Frontend::EmuWindow {
     Q_OBJECT
 
 public:
-    GRenderWindow(QWidget* parent, EmuThread* emu_thread);
+    GRenderWindow(GMainWindow* parent, EmuThread* emu_thread);
     ~GRenderWindow() override;
 
     // EmuWindow implementation
@@ -133,17 +134,17 @@ public:
     QByteArray saveGeometry();                        // overridden
 
     qreal GetWindowPixelRatio() const;
-    std::pair<unsigned, unsigned> ScaleTouch(const QPointF pos) const;
+    std::pair<u32, u32> ScaleTouch(QPointF pos) const;
 
     void closeEvent(QCloseEvent* event) override;
     bool event(QEvent* event) override;
     void focusOutEvent(QFocusEvent* event) override;
 
-    void OnClientAreaResized(unsigned width, unsigned height);
+    void OnClientAreaResized(u32 width, u32 height);
 
     void InitRenderTarget();
 
-    void CaptureScreenshot(u16 res_scale, const QString& screenshot_path);
+    void CaptureScreenshot(u32 res_scale, const QString& screenshot_path);
 
 public slots:
     void moveContext(); // overridden
@@ -162,7 +163,7 @@ private:
     void TouchUpdateEvent(const QTouchEvent* event);
     void TouchEndEvent();
 
-    void OnMinimalClientAreaChangeRequest(std::pair<unsigned, unsigned> minimal_size) override;
+    void OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) override;
 
     QWidget* container = nullptr;
     GGLWidgetInternal* child = nullptr;

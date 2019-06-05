@@ -8,15 +8,22 @@
 
 namespace Layout {
 
-enum ScreenUndocked : unsigned { Width = 1280, Height = 720 };
-enum ScreenDocked : unsigned { WidthDocked = 1920, HeightDocked = 1080 };
+enum ScreenUndocked : u32 {
+    Width = 1280,
+    Height = 720,
+};
+
+enum ScreenDocked : u32 {
+    WidthDocked = 1920,
+    HeightDocked = 1080,
+};
 
 /// Describes the layout of the window framebuffer
 struct FramebufferLayout {
-    unsigned width{ScreenUndocked::Width};
-    unsigned height{ScreenUndocked::Height};
+    u32 width{ScreenUndocked::Width};
+    u32 height{ScreenUndocked::Height};
 
-    Common::Rectangle<unsigned> screen;
+    Common::Rectangle<u32> screen;
 
     /**
      * Returns the ration of pixel size of the screen, compared to the native size of the undocked
@@ -33,12 +40,12 @@ struct FramebufferLayout {
  * @param height Window framebuffer height in pixels
  * @return Newly created FramebufferLayout object with default screen regions initialized
  */
-FramebufferLayout DefaultFrameLayout(unsigned width, unsigned height);
+FramebufferLayout DefaultFrameLayout(u32 width, u32 height);
 
 /**
  * Convenience method to get frame layout by resolution scale
  * @param res_scale resolution scale factor
  */
-FramebufferLayout FrameLayoutFromResolutionScale(u16 res_scale);
+FramebufferLayout FrameLayoutFromResolutionScale(u32 res_scale);
 
 } // namespace Layout
