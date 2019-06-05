@@ -10,6 +10,9 @@
 
 namespace Service::AM::Applets {
 
+enum class ShimKind : u32;
+enum class WebArgTLVType : u16;
+
 class WebBrowser final : public Applet {
 public:
     WebBrowser(Core::Frontend::WebBrowserApplet& frontend);
@@ -38,7 +41,9 @@ private:
     bool unpacked = false;
     ResultCode status = RESULT_SUCCESS;
 
-    FileSys::VirtualFile manual_romfs;
+    ShimKind kind;
+    std::map<WebArgTLVType, std::vector<u8>> args;
+
     std::string temporary_dir;
     std::string filename;
 };
