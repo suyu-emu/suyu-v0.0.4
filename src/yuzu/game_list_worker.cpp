@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QSettings>
 
@@ -32,11 +33,6 @@
 
 namespace {
 
-template <typename T>
-T GetGameListCachedObject(const std::string& filename, const std::string& ext,
-                          const std::function<T()>& generator);
-
-template <>
 QString GetGameListCachedObject(const std::string& filename, const std::string& ext,
                                 const std::function<QString()>& generator) {
     if (!UISettings::values.cache_game_list || filename == "0000000000000000") {
@@ -51,26 +47,22 @@ QString GetGameListCachedObject(const std::string& filename, const std::string& 
     if (!FileUtil::Exists(path)) {
         const auto str = generator();
 
-        std::ofstream stream(path);
-        if (stream) {
-            stream << str.toStdString();
+        QFile file{QString::fromStdString(path)};
+        if (file.open(QFile::WriteOnly)) {
+            file.write(str.toUtf8());
         }
 
         return str;
     }
 
-    std::ifstream stream(path);
-
-    if (stream) {
-        const std::string out(std::istreambuf_iterator<char>{stream},
-                              std::istreambuf_iterator<char>{});
-        return QString::fromStdString(out);
+    QFile file{QString::fromStdString(path)};
+    if (file.open(QFile::ReadOnly)) {
+        return QString::fromUtf8(file.readAll());
     }
 
     return generator();
 }
 
-template <>
 std::pair<std::vector<u8>, std::string> GetGameListCachedObject(
     const std::string& filename, const std::string& ext,
     const std::function<std::pair<std::vector<u8>, std::string>()>& generator) {
@@ -88,58 +80,56 @@ std::pair<std::vector<u8>, std::string> GetGameListCachedObject(
     if (!FileUtil::Exists(path1) || !FileUtil::Exists(path2)) {
         const auto [icon, nacp] = generator();
 
-        FileUtil::IOFile file1(path1, "wb");
-        if (!file1.IsOpen()) {
+        QFile file1{QString::fromStdString(path1)};
+        if (!file1.open(QFile::WriteOnly)) {
             LOG_ERROR(Frontend, "Failed to open cache file.");
             return generator();
         }
 
-        if (!file1.Resize(icon.size())) {
+        if (!file1.resize(icon.size())) {
             LOG_ERROR(Frontend, "Failed to resize cache file to necessary size.");
             return generator();
         }
 
-        if (file1.WriteBytes(icon.data(), icon.size()) != icon.size()) {
+        if (file1.write(reinterpret_cast<const char*>(icon.data()), icon.size()) != icon.size()) {
             LOG_ERROR(Frontend, "Failed to write data to cache file.");
             return generator();
         }
 
-        std::ofstream stream2(path2, std::ios::out);
-        if (stream2) {
-            stream2 << nacp;
+        QFile file2{QString::fromStdString(path2)};
+        if (file2.open(QFile::WriteOnly)) {
+            file2.write(nacp.data(), nacp.size());
         }
 
         return std::make_pair(icon, nacp);
     }
 
-    FileUtil::IOFile file1(path1, "rb");
-    std::ifstream stream2(path2);
+    QFile file1(QString::fromStdString(path1));
+    QFile file2(QString::fromStdString(path2));
 
-    if (!file1.IsOpen()) {
+    if (!file1.open(QFile::ReadOnly)) {
         LOG_ERROR(Frontend, "Failed to open cache file for reading.");
         return generator();
     }
 
-    if (!stream2) {
+    if (!file2.open(QFile::ReadOnly)) {
         LOG_ERROR(Frontend, "Failed to open cache file for reading.");
         return generator();
     }
 
-    std::vector<u8> vec(file1.GetSize());
-    file1.ReadBytes(vec.data(), vec.size());
-
-    if (stream2 && !vec.empty()) {
-        const std::string out(std::istreambuf_iterator<char>{stream2},
-                              std::istreambuf_iterator<char>{});
-        return std::make_pair(vec, out);
+    std::vector<u8> vec(file1.size());
+    if (file1.read(reinterpret_cast<char*>(vec.data()), vec.size()) !=
+        static_cast<s64>(vec.size())) {
+        return generator();
     }
 
-    return generator();
+    const auto data = file2.readAll();
+    return std::make_pair(vec, data.toStdString());
 }
 
 void GetMetadataFromControlNCA(const FileSys::PatchManager& patch_manager, const FileSys::NCA& nca,
                                std::vector<u8>& icon, std::string& name) {
-    std::tie(icon, name) = GetGameListCachedObject<std::pair<std::vector<u8>, std::string>>(
+    std::tie(icon, name) = GetGameListCachedObject(
         fmt::format("{:016X}", patch_manager.GetTitleID()), {}, [&patch_manager, &nca] {
             const auto [nacp, icon_f] = patch_manager.ParseControlNCA(nca);
             return std::make_pair(icon_f->ReadAllBytes(), nacp->GetApplicationName());
@@ -221,7 +211,7 @@ QList<QStandardItem*> MakeGameListEntry(const std::string& path, const std::stri
     };
 
     if (UISettings::values.show_add_ons) {
-        const auto patch_versions = GetGameListCachedObject<QString>(
+        const auto patch_versions = GetGameListCachedObject(
             fmt::format("{:016X}", patch.GetTitleID()), "pv.txt", [&patch, &loader] {
                 return FormatPatchNameVersions(patch, loader, loader.IsRomFSUpdatable());
             });
