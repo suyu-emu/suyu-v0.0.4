@@ -18,15 +18,15 @@ s64 msToCycles(std::chrono::milliseconds ms);
 s64 usToCycles(std::chrono::microseconds us);
 s64 nsToCycles(std::chrono::nanoseconds ns);
 
-inline std::chrono::milliseconds cyclesToMs(s64 cycles) {
+inline std::chrono::milliseconds CyclesToMs(s64 cycles) {
     return std::chrono::milliseconds(cycles * 1000 / BASE_CLOCK_RATE);
 }
 
-inline std::chrono::nanoseconds cyclesToNs(s64 cycles) {
+inline std::chrono::nanoseconds CyclesToNs(s64 cycles) {
     return std::chrono::nanoseconds(cycles * 1000000000 / BASE_CLOCK_RATE);
 }
 
-inline std::chrono::microseconds cyclesToUs(s64 cycles) {
+inline std::chrono::microseconds CyclesToUs(s64 cycles) {
     return std::chrono::microseconds(cycles * 1000000 / BASE_CLOCK_RATE);
 }
 
