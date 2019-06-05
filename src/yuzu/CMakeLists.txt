@@ -159,6 +159,9 @@ target_compile_definitions(yuzu PRIVATE
     # Disable implicit conversions from/to C strings
     -DQT_NO_CAST_FROM_ASCII
     -DQT_NO_CAST_TO_ASCII
+
+    # Disable implicit type narrowing in signal/slot connect() calls.
+    -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT
 )
 
 if (YUZU_ENABLE_COMPATIBILITY_REPORTING)
