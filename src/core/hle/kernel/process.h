@@ -290,7 +290,7 @@ private:
     u64 code_memory_size = 0;
 
     /// Current status of the process
-    ProcessStatus status;
+    ProcessStatus status{};
 
     /// The ID of this process
     u64 process_id = 0;
@@ -339,7 +339,7 @@ private:
     Mutex mutex;
 
     /// Random values for svcGetInfo RandomEntropy
-    std::array<u64, RANDOM_ENTROPY_SIZE> random_entropy;
+    std::array<u64, RANDOM_ENTROPY_SIZE> random_entropy{};
 
     /// List of threads that are running with this process as their owner.
     std::list<const Thread*> thread_list;
