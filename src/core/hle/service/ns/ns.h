@@ -11,13 +11,13 @@ namespace Service::NS {
 class IAccountProxyInterface final : public ServiceFramework<IAccountProxyInterface> {
 public:
     explicit IAccountProxyInterface();
-    ~IAccountProxyInterface();
+    ~IAccountProxyInterface() override;
 };
 
 class IApplicationManagerInterface final : public ServiceFramework<IApplicationManagerInterface> {
 public:
     explicit IApplicationManagerInterface();
-    ~IApplicationManagerInterface();
+    ~IApplicationManagerInterface() override;
 
     ResultVal<u8> GetApplicationDesiredLanguage(u32 supported_languages);
     ResultVal<u64> ConvertApplicationLanguageToLanguageCode(u8 application_language);
@@ -31,43 +31,43 @@ private:
 class IApplicationVersionInterface final : public ServiceFramework<IApplicationVersionInterface> {
 public:
     explicit IApplicationVersionInterface();
-    ~IApplicationVersionInterface();
+    ~IApplicationVersionInterface() override;
 };
 
 class IContentManagerInterface final : public ServiceFramework<IContentManagerInterface> {
 public:
     explicit IContentManagerInterface();
-    ~IContentManagerInterface();
+    ~IContentManagerInterface() override;
 };
 
 class IDocumentInterface final : public ServiceFramework<IDocumentInterface> {
 public:
     explicit IDocumentInterface();
-    ~IDocumentInterface();
+    ~IDocumentInterface() override;
 };
 
 class IDownloadTaskInterface final : public ServiceFramework<IDownloadTaskInterface> {
 public:
     explicit IDownloadTaskInterface();
-    ~IDownloadTaskInterface();
+    ~IDownloadTaskInterface() override;
 };
 
 class IECommerceInterface final : public ServiceFramework<IECommerceInterface> {
 public:
     explicit IECommerceInterface();
-    ~IECommerceInterface();
+    ~IECommerceInterface() override;
 };
 
 class IFactoryResetInterface final : public ServiceFramework<IFactoryResetInterface> {
 public:
     explicit IFactoryResetInterface();
-    ~IFactoryResetInterface();
+    ~IFactoryResetInterface() override;
 };
 
 class NS final : public ServiceFramework<NS> {
 public:
     explicit NS(const char* name);
-    ~NS();
+    ~NS() override;
 
     std::shared_ptr<IApplicationManagerInterface> GetApplicationManagerInterface() const;
 
