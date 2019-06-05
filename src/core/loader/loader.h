@@ -37,6 +37,7 @@ enum class FileType {
     NSP,
     XCI,
     NAX,
+    KIP,
     DeconstructedRomDirectory,
 };
 

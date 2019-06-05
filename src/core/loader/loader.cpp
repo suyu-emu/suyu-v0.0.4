@@ -11,6 +11,7 @@
 #include "core/hle/kernel/process.h"
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/elf.h"
+#include "core/loader/kip.h"
 #include "core/loader/nax.h"
 #include "core/loader/nca.h"
 #include "core/loader/nro.h"
@@ -36,6 +37,7 @@ FileType IdentifyFile(FileSys::VirtualFile file) {
     CHECK_TYPE(XCI)
     CHECK_TYPE(NAX)
     CHECK_TYPE(NSP)
+    CHECK_TYPE(KIP)
 
 #undef CHECK_TYPE
 
@@ -63,6 +65,8 @@ FileType GuessFromFilename(const std::string& name) {
         return FileType::XCI;
     if (extension == "nsp")
         return FileType::NSP;
+    if (extension == "kip")
+        return FileType::KIP;
 
     return FileType::Unknown;
 }
@@ -83,6 +87,8 @@ std::string GetFileTypeString(FileType type) {
         return "NAX";
     case FileType::NSP:
         return "NSP";
+    case FileType::KIP:
+        return "KIP";
     case FileType::DeconstructedRomDirectory:
         return "Directory";
     case FileType::Error:
@@ -208,6 +214,10 @@ static std::unique_ptr<AppLoader> GetFileLoader(FileSys::VirtualFile file, FileT
     // NX NSP (Nintendo Submission Package) file format
     case FileType::NSP:
         return std::make_unique<AppLoader_NSP>(std::move(file));
+
+    // NX KIP (Kernel Internal Process) file format
+    case FileType::KIP:
+        return std::make_unique<AppLoader_KIP>(std::move(file));
 
     // NX deconstructed ROM directory.
     case FileType::DeconstructedRomDirectory:
