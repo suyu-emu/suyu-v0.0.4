@@ -104,23 +104,17 @@ QtSoftwareKeyboardDialog::QtSoftwareKeyboardDialog(
 QtSoftwareKeyboardDialog::~QtSoftwareKeyboardDialog() = default;
 
 void QtSoftwareKeyboardDialog::accept() {
-    ok = true;
     text = line_edit->text().toStdU16String();
     QDialog::accept();
 }
 
 void QtSoftwareKeyboardDialog::reject() {
-    ok = false;
     text.clear();
     QDialog::reject();
 }
 
 std::u16string QtSoftwareKeyboardDialog::GetText() const {
     return text;
-}
-
-bool QtSoftwareKeyboardDialog::GetStatus() const {
-    return ok;
 }
 
 QtSoftwareKeyboard::QtSoftwareKeyboard(GMainWindow& main_window) {
