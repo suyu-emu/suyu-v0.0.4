@@ -93,7 +93,7 @@ std::string GetFileTypeString(FileType type) {
     return "unknown";
 }
 
-constexpr std::array<const char*, 62> RESULT_MESSAGES{
+constexpr std::array<const char*, 66> RESULT_MESSAGES{
     "The operation completed successfully.",
     "The loader requested to load is already loaded.",
     "The operation is not implemented.",
@@ -156,6 +156,10 @@ constexpr std::array<const char*, 62> RESULT_MESSAGES{
     "The BKTR-type NCA has a bad Subsection bucket.",
     "The BKTR-type NCA is missing the base RomFS.",
     "The NSP or XCI does not contain an update in addition to the base game.",
+    "The KIP file has a bad header.",
+    "The KIP BLZ decompression of the section failed unexpectedly.",
+    "The INI file has a bad header.",
+    "The INI file contains more than the maximum allowable number of KIP files.",
 };
 
 std::ostream& operator<<(std::ostream& os, ResultStatus status) {
