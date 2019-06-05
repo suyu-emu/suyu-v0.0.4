@@ -45,7 +45,6 @@ struct TextureAoffi {};
 using TextureArgument = std::pair<Type, Node>;
 using TextureIR = std::variant<TextureAoffi, TextureArgument>;
 
-enum : u32 { POSITION_VARYING_LOCATION = 0, GENERIC_VARYING_START_LOCATION = 1 };
 constexpr u32 MAX_CONSTBUFFER_ELEMENTS =
     static_cast<u32>(RasterizerOpenGL::MaxConstbufferSize) / (4 * sizeof(float));
 
@@ -247,6 +246,12 @@ private:
         code.AddLine("layout ({}, max_vertices = {}) out;", topology, max_vertices);
         code.AddNewLine();
 
+        code.AddLine("in gl_PerVertex {{");
+        ++code.scope;
+        code.AddLine("vec4 gl_Position;");
+        --code.scope;
+        code.AddLine("}} gl_in[];");
+
         DeclareVertexRedeclarations();
     }
 
@@ -349,7 +354,7 @@ private:
     }
 
     void DeclareInputAttribute(Attribute::Index index, bool skip_unused) {
-        const u32 generic_index{GetGenericAttributeIndex(index)};
+        const u32 location{GetGenericAttributeIndex(index)};
 
         std::string name{GetInputAttribute(index)};
         if (stage == ShaderStage::Geometry) {
@@ -358,17 +363,11 @@ private:
 
         std::string suffix;
         if (stage == ShaderStage::Fragment) {
-            const auto input_mode{header.ps.GetAttributeUse(generic_index)};
+            const auto input_mode{header.ps.GetAttributeUse(location)};
             if (skip_unused && input_mode == AttributeUse::Unused) {
                 return;
             }
             suffix = GetInputFlags(input_mode);
-        }
-
-        u32 location = generic_index;
-        if (stage != ShaderStage::Vertex) {
-            // If inputs are varyings, add an offset
-            location += GENERIC_VARYING_START_LOCATION;
         }
 
         code.AddLine("layout (location = {}) {} in vec4 {};", location, suffix, name);
@@ -395,7 +394,7 @@ private:
     }
 
     void DeclareOutputAttribute(Attribute::Index index) {
-        const u32 location{GetGenericAttributeIndex(index) + GENERIC_VARYING_START_LOCATION};
+        const u32 location{GetGenericAttributeIndex(index)};
         code.AddLine("layout (location = {}) out vec4 {};", location, GetOutputAttribute(index));
     }
 
@@ -650,10 +649,14 @@ private:
 
         switch (attribute) {
         case Attribute::Index::Position:
-            if (stage != ShaderStage::Fragment) {
-                return GeometryPass("position") + GetSwizzle(element);
-            } else {
+            switch (stage) {
+            case ShaderStage::Geometry:
+                return fmt::format("gl_in[ftou({})].gl_Position{}", Visit(buffer),
+                                   GetSwizzle(element));
+            case ShaderStage::Fragment:
                 return element == 3 ? "1.0f" : ("gl_FragCoord"s + GetSwizzle(element));
+            default:
+                UNREACHABLE();
             }
         case Attribute::Index::PointCoord:
             switch (element) {
@@ -938,7 +941,7 @@ private:
             target = [&]() -> std::string {
                 switch (const auto attribute = abuf->GetIndex(); abuf->GetIndex()) {
                 case Attribute::Index::Position:
-                    return "position"s + GetSwizzle(abuf->GetElement());
+                    return "gl_Position"s + GetSwizzle(abuf->GetElement());
                 case Attribute::Index::PointSize:
                     return "gl_PointSize";
                 case Attribute::Index::ClipDistances0123:
@@ -1523,9 +1526,7 @@ private:
 
         // If a geometry shader is attached, it will always flip (it's the last stage before
         // fragment). For more info about flipping, refer to gl_shader_gen.cpp.
-        code.AddLine("position.xy *= viewport_flip.xy;");
-        code.AddLine("gl_Position = position;");
-        code.AddLine("position.w = 1.0;");
+        code.AddLine("gl_Position.xy *= viewport_flip.xy;");
         code.AddLine("EmitVertex();");
         return {};
     }
@@ -1763,8 +1764,7 @@ private:
     }
 
     u32 GetNumPhysicalVaryings() const {
-        return std::min<u32>(device.GetMaxVaryings() - GENERIC_VARYING_START_LOCATION,
-                             Maxwell::NumVaryings);
+        return std::min<u32>(device.GetMaxVaryings(), Maxwell::NumVaryings);
     }
 
     const Device& device;

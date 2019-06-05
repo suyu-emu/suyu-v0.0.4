@@ -23,8 +23,6 @@ ProgramResult GenerateVertexShader(const Device& device, const ShaderSetup& setu
     out += GetCommonDeclarations();
 
     out += R"(
-layout (location = 0) out vec4 position;
-
 layout (std140, binding = EMULATION_UBO_BINDING) uniform vs_config {
     vec4 viewport_flip;
     uvec4 config_pack; // instance_id, flip_stage, y_direction, padding
@@ -48,7 +46,6 @@ layout (std140, binding = EMULATION_UBO_BINDING) uniform vs_config {
 
     out += R"(
 void main() {
-    position = vec4(0.0, 0.0, 0.0, 0.0);
     execute_vertex();
 )";
 
@@ -59,19 +56,12 @@ void main() {
     out += R"(
 
     // Set Position Y direction
-    position.y *= utof(config_pack[2]);
+    gl_Position.y *= utof(config_pack[2]);
     // Check if the flip stage is VertexB
     // Config pack's second value is flip_stage
     if (config_pack[1] == 1) {
         // Viewport can be flipped, which is unsupported by glViewport
-        position.xy *= viewport_flip.xy;
-    }
-    gl_Position = position;
-
-    // TODO(bunnei): This is likely a hack, position.w should be interpolated as 1.0
-    // For now, this is here to bring order in lieu of proper emulation
-    if (config_pack[1] == 1) {
-        position.w = 1.0;
+        gl_Position.xy *= viewport_flip.xy;
     }
 })";
 
@@ -85,9 +75,6 @@ ProgramResult GenerateGeometryShader(const Device& device, const ShaderSetup& se
     out += GetCommonDeclarations();
 
     out += R"(
-layout (location = 0) in vec4 gs_position[];
-layout (location = 0) out vec4 position;
-
 layout (std140, binding = EMULATION_UBO_BINDING) uniform gs_config {
     vec4 viewport_flip;
     uvec4 config_pack; // instance_id, flip_stage, y_direction, padding
@@ -123,8 +110,6 @@ layout (location = 4) out vec4 FragColor4;
 layout (location = 5) out vec4 FragColor5;
 layout (location = 6) out vec4 FragColor6;
 layout (location = 7) out vec4 FragColor7;
-
-layout (location = 0) in noperspective vec4 position;
 
 layout (std140, binding = EMULATION_UBO_BINDING) uniform fs_config {
     vec4 viewport_flip;
