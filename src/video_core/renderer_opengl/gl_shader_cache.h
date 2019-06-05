@@ -137,6 +137,7 @@ private:
     CachedProgram GeneratePrecompiledProgram(const ShaderDiskCacheDump& dump,
                                              const std::set<GLenum>& supported_formats);
 
+    Core::System& system;
     Core::Frontend::EmuWindow& emu_window;
     const Device& device;
     ShaderDiskCacheOpenGL disk_cache;
