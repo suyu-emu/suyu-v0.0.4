@@ -17,7 +17,7 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QGroupBox" name="gridGroupBox">
+      <widget class="QGroupBox" name="gridGroupBox_1">
        <property name="title">
         <string>Players</string>
        </property>
@@ -260,7 +260,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="gridGroupBox">
+      <widget class="QGroupBox" name="gridGroupBox_2">
        <property name="title">
         <string>Handheld</string>
        </property>
@@ -332,7 +332,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="gridGroupBox">
+      <widget class="QGroupBox" name="gridGroupBox_3">
        <property name="title">
         <string>Other</string>
        </property>
