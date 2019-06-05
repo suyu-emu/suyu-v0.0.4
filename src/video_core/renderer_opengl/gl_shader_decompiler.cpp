@@ -123,8 +123,8 @@ bool IsPrecise(Operation operand) {
     return false;
 }
 
-bool IsPrecise(Node node) {
-    if (const auto operation = std::get_if<OperationNode>(node)) {
+bool IsPrecise(const Node& node) {
+    if (const auto operation = std::get_if<OperationNode>(&*node)) {
         return IsPrecise(*operation);
     }
     return false;
@@ -497,15 +497,15 @@ private:
     }
 
     void VisitBlock(const NodeBlock& bb) {
-        for (const Node node : bb) {
+        for (const auto& node : bb) {
             if (const std::string expr = Visit(node); !expr.empty()) {
                 code.AddLine(expr);
             }
         }
     }
 
-    std::string Visit(Node node) {
-        if (const auto operation = std::get_if<OperationNode>(node)) {
+    std::string Visit(const Node& node) {
+        if (const auto operation = std::get_if<OperationNode>(&*node)) {
             const auto operation_index = static_cast<std::size_t>(operation->GetCode());
             if (operation_index >= operation_decompilers.size()) {
                 UNREACHABLE_MSG("Out of bounds operation: {}", operation_index);
@@ -519,7 +519,7 @@ private:
             return (this->*decompiler)(*operation);
         }
 
-        if (const auto gpr = std::get_if<GprNode>(node)) {
+        if (const auto gpr = std::get_if<GprNode>(&*node)) {
             const u32 index = gpr->GetIndex();
             if (index == Register::ZeroIndex) {
                 return "0";
@@ -527,7 +527,7 @@ private:
             return GetRegister(index);
         }
 
-        if (const auto immediate = std::get_if<ImmediateNode>(node)) {
+        if (const auto immediate = std::get_if<ImmediateNode>(&*node)) {
             const u32 value = immediate->GetValue();
             if (value < 10) {
                 // For eyecandy avoid using hex numbers on single digits
@@ -536,7 +536,7 @@ private:
             return fmt::format("utof(0x{:x}u)", immediate->GetValue());
         }
 
-        if (const auto predicate = std::get_if<PredicateNode>(node)) {
+        if (const auto predicate = std::get_if<PredicateNode>(&*node)) {
             const auto value = [&]() -> std::string {
                 switch (const auto index = predicate->GetIndex(); index) {
                 case Tegra::Shader::Pred::UnusedIndex:
@@ -553,7 +553,7 @@ private:
             return value;
         }
 
-        if (const auto abuf = std::get_if<AbufNode>(node)) {
+        if (const auto abuf = std::get_if<AbufNode>(&*node)) {
             UNIMPLEMENTED_IF_MSG(abuf->IsPhysicalBuffer() && stage == ShaderStage::Geometry,
                                  "Physical attributes in geometry shaders are not implemented");
             if (abuf->IsPhysicalBuffer()) {
@@ -563,9 +563,9 @@ private:
             return ReadAttribute(abuf->GetIndex(), abuf->GetElement(), abuf->GetBuffer());
         }
 
-        if (const auto cbuf = std::get_if<CbufNode>(node)) {
+        if (const auto cbuf = std::get_if<CbufNode>(&*node)) {
             const Node offset = cbuf->GetOffset();
-            if (const auto immediate = std::get_if<ImmediateNode>(offset)) {
+            if (const auto immediate = std::get_if<ImmediateNode>(&*offset)) {
                 // Direct access
                 const u32 offset_imm = immediate->GetValue();
                 ASSERT_MSG(offset_imm % 4 == 0, "Unaligned cbuf direct access");
@@ -601,22 +601,22 @@ private:
             UNREACHABLE_MSG("Unmanaged offset node type");
         }
 
-        if (const auto gmem = std::get_if<GmemNode>(node)) {
+        if (const auto gmem = std::get_if<GmemNode>(&*node)) {
             const std::string real = Visit(gmem->GetRealAddress());
             const std::string base = Visit(gmem->GetBaseAddress());
             const std::string final_offset = fmt::format("(ftou({}) - ftou({})) / 4", real, base);
             return fmt::format("{}[{}]", GetGlobalMemory(gmem->GetDescriptor()), final_offset);
         }
 
-        if (const auto lmem = std::get_if<LmemNode>(node)) {
+        if (const auto lmem = std::get_if<LmemNode>(&*node)) {
             return fmt::format("{}[ftou({}) / 4]", GetLocalMemory(), Visit(lmem->GetAddress()));
         }
 
-        if (const auto internal_flag = std::get_if<InternalFlagNode>(node)) {
+        if (const auto internal_flag = std::get_if<InternalFlagNode>(&*node)) {
             return GetInternalFlag(internal_flag->GetFlag());
         }
 
-        if (const auto conditional = std::get_if<ConditionalNode>(node)) {
+        if (const auto conditional = std::get_if<ConditionalNode>(&*node)) {
             // It's invalid to call conditional on nested nodes, use an operation instead
             code.AddLine("if ({}) {{", Visit(conditional->GetCondition()));
             ++code.scope;
@@ -628,7 +628,7 @@ private:
             return {};
         }
 
-        if (const auto comment = std::get_if<CommentNode>(node)) {
+        if (const auto comment = std::get_if<CommentNode>(&*node)) {
             return "// " + comment->GetText();
         }
 
@@ -636,7 +636,7 @@ private:
         return {};
     }
 
-    std::string ReadAttribute(Attribute::Index attribute, u32 element, Node buffer = {}) {
+    std::string ReadAttribute(Attribute::Index attribute, u32 element, const Node& buffer = {}) {
         const auto GeometryPass = [&](std::string_view name) {
             if (stage == ShaderStage::Geometry && buffer) {
                 // TODO(Rodrigo): Guard geometry inputs against out of bound reads. Some games
@@ -872,7 +872,7 @@ private:
         std::string expr = ", ";
         switch (type) {
         case Type::Int:
-            if (const auto immediate = std::get_if<ImmediateNode>(operand)) {
+            if (const auto immediate = std::get_if<ImmediateNode>(&*operand)) {
                 // Inline the string as an immediate integer in GLSL (some extra arguments are
                 // required to be constant)
                 expr += std::to_string(static_cast<s32>(immediate->GetValue()));
@@ -904,7 +904,7 @@ private:
 
         for (std::size_t index = 0; index < aoffi.size(); ++index) {
             const auto operand{aoffi.at(index)};
-            if (const auto immediate = std::get_if<ImmediateNode>(operand)) {
+            if (const auto immediate = std::get_if<ImmediateNode>(&*operand)) {
                 // Inline the string as an immediate integer in GLSL (AOFFI arguments are required
                 // to be constant by the standard).
                 expr += std::to_string(static_cast<s32>(immediate->GetValue()));
@@ -925,17 +925,17 @@ private:
     }
 
     std::string Assign(Operation operation) {
-        const Node dest = operation[0];
-        const Node src = operation[1];
+        const Node& dest = operation[0];
+        const Node& src = operation[1];
 
         std::string target;
-        if (const auto gpr = std::get_if<GprNode>(dest)) {
+        if (const auto gpr = std::get_if<GprNode>(&*dest)) {
             if (gpr->GetIndex() == Register::ZeroIndex) {
                 // Writing to Register::ZeroIndex is a no op
                 return {};
             }
             target = GetRegister(gpr->GetIndex());
-        } else if (const auto abuf = std::get_if<AbufNode>(dest)) {
+        } else if (const auto abuf = std::get_if<AbufNode>(&*dest)) {
             UNIMPLEMENTED_IF(abuf->IsPhysicalBuffer());
 
             target = [&]() -> std::string {
@@ -957,9 +957,9 @@ private:
                     return "0";
                 }
             }();
-        } else if (const auto lmem = std::get_if<LmemNode>(dest)) {
+        } else if (const auto lmem = std::get_if<LmemNode>(&*dest)) {
             target = fmt::format("{}[ftou({}) / 4]", GetLocalMemory(), Visit(lmem->GetAddress()));
-        } else if (const auto gmem = std::get_if<GmemNode>(dest)) {
+        } else if (const auto gmem = std::get_if<GmemNode>(&*dest)) {
             const std::string real = Visit(gmem->GetRealAddress());
             const std::string base = Visit(gmem->GetBaseAddress());
             const std::string final_offset = fmt::format("(ftou({}) - ftou({})) / 4", real, base);
@@ -1236,12 +1236,12 @@ private:
     }
 
     std::string LogicalAssign(Operation operation) {
-        const Node dest = operation[0];
-        const Node src = operation[1];
+        const Node& dest = operation[0];
+        const Node& src = operation[1];
 
         std::string target;
 
-        if (const auto pred = std::get_if<PredicateNode>(dest)) {
+        if (const auto pred = std::get_if<PredicateNode>(&*dest)) {
             ASSERT_MSG(!pred->IsNegated(), "Negating logical assignment");
 
             const auto index = pred->GetIndex();
@@ -1252,7 +1252,7 @@ private:
                 return {};
             }
             target = GetPredicate(index);
-        } else if (const auto flag = std::get_if<InternalFlagNode>(dest)) {
+        } else if (const auto flag = std::get_if<InternalFlagNode>(&*dest)) {
             target = GetInternalFlag(flag->GetFlag());
         }
 
@@ -1429,7 +1429,7 @@ private:
     }
 
     std::string Branch(Operation operation) {
-        const auto target = std::get_if<ImmediateNode>(operation[0]);
+        const auto target = std::get_if<ImmediateNode>(&*operation[0]);
         UNIMPLEMENTED_IF(!target);
 
         code.AddLine("jmp_to = 0x{:x}u;", target->GetValue());
@@ -1438,7 +1438,7 @@ private:
     }
 
     std::string PushFlowStack(Operation operation) {
-        const auto target = std::get_if<ImmediateNode>(operation[0]);
+        const auto target = std::get_if<ImmediateNode>(&*operation[0]);
         UNIMPLEMENTED_IF(!target);
 
         code.AddLine("flow_stack[flow_stack_top++] = 0x{:x}u;", target->GetValue());

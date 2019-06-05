@@ -38,7 +38,7 @@ using ProgramCode = std::vector<u64>;
 using NodeData =
     std::variant<OperationNode, ConditionalNode, GprNode, ImmediateNode, InternalFlagNode,
                  PredicateNode, AbufNode, CbufNode, LmemNode, GmemNode, CommentNode>;
-using Node = const NodeData*;
+using Node = std::shared_ptr<NodeData>;
 using Node4 = std::array<Node, 4>;
 using NodeBlock = std::vector<Node>;
 
@@ -342,23 +342,20 @@ using Meta = std::variant<MetaArithmetic, MetaTexture, Tegra::Shader::HalfType>;
 /// Holds any kind of operation that can be done in the IR
 class OperationNode final {
 public:
-    explicit OperationNode(OperationCode code) : code{code} {}
+    explicit OperationNode(OperationCode code) : OperationNode(code, Meta{}) {}
 
-    explicit OperationNode(OperationCode code, Meta&& meta) : code{code}, meta{std::move(meta)} {}
+    explicit OperationNode(OperationCode code, Meta meta)
+        : OperationNode(code, meta, std::vector<Node>{}) {}
 
-    template <typename... T>
-    explicit OperationNode(OperationCode code, const T*... operands)
-        : OperationNode(code, {}, operands...) {}
+    explicit OperationNode(OperationCode code, std::vector<Node> operands)
+        : OperationNode(code, Meta{}, std::move(operands)) {}
 
-    template <typename... T>
-    explicit OperationNode(OperationCode code, Meta&& meta, const T*... operands_)
-        : code{code}, meta{std::move(meta)}, operands{operands_...} {}
+    explicit OperationNode(OperationCode code, Meta meta, std::vector<Node> operands)
+        : code{code}, meta{std::move(meta)}, operands{std::move(operands)} {}
 
-    explicit OperationNode(OperationCode code, Meta&& meta, std::vector<Node>&& operands)
-        : code{code}, meta{meta}, operands{std::move(operands)} {}
-
-    explicit OperationNode(OperationCode code, std::vector<Node>&& operands)
-        : code{code}, operands{std::move(operands)} {}
+    template <typename... Args>
+    explicit OperationNode(OperationCode code, Meta meta, Args&&... operands)
+        : code{code}, meta{std::move(meta)}, operands{operands...} {}
 
     OperationCode GetCode() const {
         return code;
@@ -372,13 +369,13 @@ public:
         return operands.size();
     }
 
-    Node operator[](std::size_t operand_index) const {
+    const Node& operator[](std::size_t operand_index) const {
         return operands.at(operand_index);
     }
 
 private:
-    const OperationCode code;
-    const Meta meta;
+    OperationCode code{};
+    Meta meta{};
     std::vector<Node> operands;
 };
 
@@ -463,13 +460,12 @@ private:
 class AbufNode final {
 public:
     // Initialize for standard attributes (index is explicit).
-    explicit constexpr AbufNode(Tegra::Shader::Attribute::Index index, u32 element,
-                                Node buffer = {})
-        : buffer{buffer}, index{index}, element{element} {}
+    explicit AbufNode(Tegra::Shader::Attribute::Index index, u32 element, Node buffer = {})
+        : buffer{std::move(buffer)}, index{index}, element{element} {}
 
     // Initialize for physical attributes (index is a variable value).
-    explicit constexpr AbufNode(Node physical_address, Node buffer = {})
-        : physical_address{physical_address}, buffer{buffer} {}
+    explicit AbufNode(Node physical_address, Node buffer = {})
+        : physical_address{physical_address}, buffer{std::move(buffer)} {}
 
     Tegra::Shader::Attribute::Index GetIndex() const {
         return index;
@@ -484,16 +480,16 @@ public:
     }
 
     bool IsPhysicalBuffer() const {
-        return physical_address != nullptr;
+        return static_cast<bool>(physical_address);
     }
 
-    Node GetPhysicalAddress() const {
+    const Node& GetPhysicalAddress() const {
         return physical_address;
     }
 
 private:
-    Node physical_address{};
-    Node buffer{};
+    Node physical_address;
+    Node buffer;
     Tegra::Shader::Attribute::Index index{};
     u32 element{};
 };
@@ -501,7 +497,7 @@ private:
 /// Constant buffer node, usually mapped to uniform buffers in GLSL
 class CbufNode final {
 public:
-    explicit constexpr CbufNode(u32 index, Node offset) : index{index}, offset{offset} {}
+    explicit CbufNode(u32 index, Node offset) : index{index}, offset{offset} {}
 
     u32 GetIndex() const {
         return index;
@@ -519,7 +515,7 @@ private:
 /// Local memory node
 class LmemNode final {
 public:
-    explicit constexpr LmemNode(Node address) : address{address} {}
+    explicit LmemNode(Node address) : address{address} {}
 
     Node GetAddress() const {
         return address;
@@ -532,8 +528,7 @@ private:
 /// Global memory node
 class GmemNode final {
 public:
-    explicit constexpr GmemNode(Node real_address, Node base_address,
-                                const GlobalMemoryBase& descriptor)
+    explicit GmemNode(Node real_address, Node base_address, const GlobalMemoryBase& descriptor)
         : real_address{real_address}, base_address{base_address}, descriptor{descriptor} {}
 
     Node GetRealAddress() const {
@@ -662,26 +657,6 @@ private:
     u32 DecodeVideo(NodeBlock& bb, u32 pc);
     u32 DecodeXmad(NodeBlock& bb, u32 pc);
     u32 DecodeOther(NodeBlock& bb, u32 pc);
-
-    /// Internalizes node's data and returns a managed pointer to a clone of that node
-    Node StoreNode(NodeData&& node_data);
-
-    /// Creates a conditional node
-    Node Conditional(Node condition, std::vector<Node>&& code);
-    /// Creates a commentary
-    Node Comment(std::string text);
-    /// Creates an u32 immediate
-    Node Immediate(u32 value);
-    /// Creates a s32 immediate
-    Node Immediate(s32 value) {
-        return Immediate(static_cast<u32>(value));
-    }
-    /// Creates a f32 immediate
-    Node Immediate(f32 value) {
-        u32 integral;
-        std::memcpy(&integral, &value, sizeof(u32));
-        return Immediate(integral);
-    }
 
     /// Generates a node for a passed register.
     Node GetRegister(Tegra::Shader::Register reg);
@@ -827,37 +802,6 @@ private:
     std::tuple<Node, Node, GlobalMemoryBase> TrackAndGetGlobalMemory(
         NodeBlock& bb, Tegra::Shader::Instruction instr, bool is_write);
 
-    template <typename... T>
-    Node Operation(OperationCode code, const T*... operands) {
-        return StoreNode(OperationNode(code, operands...));
-    }
-
-    template <typename... T>
-    Node Operation(OperationCode code, Meta&& meta, const T*... operands) {
-        return StoreNode(OperationNode(code, std::move(meta), operands...));
-    }
-
-    Node Operation(OperationCode code, std::vector<Node>&& operands) {
-        return StoreNode(OperationNode(code, std::move(operands)));
-    }
-
-    Node Operation(OperationCode code, Meta&& meta, std::vector<Node>&& operands) {
-        return StoreNode(OperationNode(code, std::move(meta), std::move(operands)));
-    }
-
-    template <typename... T>
-    Node SignedOperation(OperationCode code, bool is_signed, const T*... operands) {
-        return StoreNode(OperationNode(SignedToUnsignedCode(code, is_signed), operands...));
-    }
-
-    template <typename... T>
-    Node SignedOperation(OperationCode code, bool is_signed, Meta&& meta, const T*... operands) {
-        return StoreNode(
-            OperationNode(SignedToUnsignedCode(code, is_signed), std::move(meta), operands...));
-    }
-
-    static OperationCode SignedToUnsignedCode(OperationCode operation_code, bool is_signed);
-
     const ProgramCode& program_code;
     const u32 main_offset;
 
@@ -867,8 +811,6 @@ private:
 
     std::map<u32, NodeBlock> basic_blocks;
     NodeBlock global_code;
-
-    std::vector<std::unique_ptr<NodeData>> stored_nodes;
 
     std::set<u32> used_registers;
     std::set<Tegra::Shader::Pred> used_predicates;

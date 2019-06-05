@@ -16,12 +16,12 @@ std::pair<Node, s64> FindOperation(const NodeBlock& code, s64 cursor,
                                    OperationCode operation_code) {
     for (; cursor >= 0; --cursor) {
         const Node node = code.at(cursor);
-        if (const auto operation = std::get_if<OperationNode>(node)) {
+        if (const auto operation = std::get_if<OperationNode>(&*node)) {
             if (operation->GetCode() == operation_code) {
                 return {node, cursor};
             }
         }
-        if (const auto conditional = std::get_if<ConditionalNode>(node)) {
+        if (const auto conditional = std::get_if<ConditionalNode>(&*node)) {
             const auto& conditional_code = conditional->GetCode();
             const auto [found, internal_cursor] = FindOperation(
                 conditional_code, static_cast<s64>(conditional_code.size() - 1), operation_code);
@@ -35,11 +35,11 @@ std::pair<Node, s64> FindOperation(const NodeBlock& code, s64 cursor,
 } // namespace
 
 Node ShaderIR::TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) const {
-    if (const auto cbuf = std::get_if<CbufNode>(tracked)) {
+    if (const auto cbuf = std::get_if<CbufNode>(&*tracked)) {
         // Cbuf found, but it has to be immediate
         return std::holds_alternative<ImmediateNode>(*cbuf->GetOffset()) ? tracked : nullptr;
     }
-    if (const auto gpr = std::get_if<GprNode>(tracked)) {
+    if (const auto gpr = std::get_if<GprNode>(&*tracked)) {
         if (gpr->GetIndex() == Tegra::Shader::Register::ZeroIndex) {
             return nullptr;
         }
@@ -51,7 +51,7 @@ Node ShaderIR::TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) const 
         }
         return TrackCbuf(source, code, new_cursor);
     }
-    if (const auto operation = std::get_if<OperationNode>(tracked)) {
+    if (const auto operation = std::get_if<OperationNode>(&*tracked)) {
         for (std::size_t i = 0; i < operation->GetOperandsCount(); ++i) {
             if (const auto found = TrackCbuf((*operation)[i], code, cursor)) {
                 // Cbuf found in operand
@@ -60,7 +60,7 @@ Node ShaderIR::TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) const 
         }
         return nullptr;
     }
-    if (const auto conditional = std::get_if<ConditionalNode>(tracked)) {
+    if (const auto conditional = std::get_if<ConditionalNode>(&*tracked)) {
         const auto& conditional_code = conditional->GetCode();
         return TrackCbuf(tracked, conditional_code, static_cast<s64>(conditional_code.size()));
     }
@@ -75,7 +75,7 @@ std::optional<u32> ShaderIR::TrackImmediate(Node tracked, const NodeBlock& code,
     if (!found) {
         return {};
     }
-    if (const auto immediate = std::get_if<ImmediateNode>(found)) {
+    if (const auto immediate = std::get_if<ImmediateNode>(&*found)) {
         return immediate->GetValue();
     }
     return {};
@@ -88,11 +88,11 @@ std::pair<Node, s64> ShaderIR::TrackRegister(const GprNode* tracked, const NodeB
         if (!found_node) {
             return {};
         }
-        const auto operation = std::get_if<OperationNode>(found_node);
+        const auto operation = std::get_if<OperationNode>(&*found_node);
         ASSERT(operation);
 
         const auto& target = (*operation)[0];
-        if (const auto gpr_target = std::get_if<GprNode>(target)) {
+        if (const auto gpr_target = std::get_if<GprNode>(&*target)) {
             if (gpr_target->GetIndex() == tracked->GetIndex()) {
                 return {(*operation)[1], new_cursor};
             }
