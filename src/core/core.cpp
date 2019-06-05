@@ -18,11 +18,6 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/vfs_concat.h"
 #include "core/file_sys/vfs_real.h"
-#include "core/frontend/applets/error.h"
-#include "core/frontend/applets/general_frontend.h"
-#include "core/frontend/applets/profile_select.h"
-#include "core/frontend/applets/software_keyboard.h"
-#include "core/frontend/applets/web_browser.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/kernel.h"
@@ -37,9 +32,6 @@
 #include "core/settings.h"
 #include "core/telemetry_session.h"
 #include "file_sys/cheat_engine.h"
-#include "frontend/applets/profile_select.h"
-#include "frontend/applets/software_keyboard.h"
-#include "frontend/applets/web_browser.h"
 #include "video_core/debug_utils/debug_utils.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
@@ -144,19 +136,9 @@ struct System::Impl {
     ResultStatus Load(System& system, Frontend::EmuWindow& emu_window,
                       const std::string& filepath) {
         app_loader = Loader::GetLoader(GetGameFileFromPath(virtual_filesystem, filepath));
-
         if (!app_loader) {
             LOG_CRITICAL(Core, "Failed to obtain loader for {}!", filepath);
             return ResultStatus::ErrorGetLoader;
-        }
-        std::pair<std::optional<u32>, Loader::ResultStatus> system_mode =
-            app_loader->LoadKernelSystemMode();
-
-        if (system_mode.second != Loader::ResultStatus::Success) {
-            LOG_CRITICAL(Core, "Failed to determine system mode (Error {})!",
-                         static_cast<int>(system_mode.second));
-
-            return ResultStatus::ErrorSystemMode;
         }
 
         ResultStatus init_result{Init(system, emu_window)};
@@ -167,6 +149,7 @@ struct System::Impl {
             return init_result;
         }
 
+        telemetry_session->AddInitialInfo(*app_loader);
         auto main_process = Kernel::Process::Create(system, "main");
         const auto [load_result, load_parameters] = app_loader->Load(*main_process);
         if (load_result != Loader::ResultStatus::Success) {

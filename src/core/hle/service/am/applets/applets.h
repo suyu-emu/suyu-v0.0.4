@@ -137,11 +137,28 @@ protected:
 };
 
 struct AppletFrontendSet {
-    std::unique_ptr<Core::Frontend::ErrorApplet> error;
-    std::unique_ptr<Core::Frontend::PhotoViewerApplet> photo_viewer;
-    std::unique_ptr<Core::Frontend::ProfileSelectApplet> profile_select;
-    std::unique_ptr<Core::Frontend::SoftwareKeyboardApplet> software_keyboard;
-    std::unique_ptr<Core::Frontend::WebBrowserApplet> web_browser;
+    using ErrorApplet = std::unique_ptr<Core::Frontend::ErrorApplet>;
+    using PhotoViewer = std::unique_ptr<Core::Frontend::PhotoViewerApplet>;
+    using ProfileSelect = std::unique_ptr<Core::Frontend::ProfileSelectApplet>;
+    using SoftwareKeyboard = std::unique_ptr<Core::Frontend::SoftwareKeyboardApplet>;
+    using WebBrowser = std::unique_ptr<Core::Frontend::WebBrowserApplet>;
+
+    AppletFrontendSet();
+    AppletFrontendSet(ErrorApplet error, PhotoViewer photo_viewer, ProfileSelect profile_select,
+                      SoftwareKeyboard software_keyboard, WebBrowser web_browser);
+    ~AppletFrontendSet();
+
+    AppletFrontendSet(const AppletFrontendSet&) = delete;
+    AppletFrontendSet& operator=(const AppletFrontendSet&) = delete;
+
+    AppletFrontendSet(AppletFrontendSet&&) noexcept;
+    AppletFrontendSet& operator=(AppletFrontendSet&&) noexcept;
+
+    ErrorApplet error;
+    PhotoViewer photo_viewer;
+    ProfileSelect profile_select;
+    SoftwareKeyboard software_keyboard;
+    WebBrowser web_browser;
 };
 
 class AppletManager {

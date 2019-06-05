@@ -98,7 +98,6 @@ public:
         Success,             ///< Succeeded
         ErrorNotInitialized, ///< Error trying to use core prior to initialization
         ErrorGetLoader,      ///< Error finding the correct application loader
-        ErrorSystemMode,     ///< Error determining the system mode
         ErrorSystemFiles,    ///< Error in finding system files
         ErrorSharedFont,     ///< Error in finding shared font
         ErrorVideoCore,      ///< Error in the video core

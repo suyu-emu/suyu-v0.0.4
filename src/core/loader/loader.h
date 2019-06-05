@@ -154,17 +154,6 @@ public:
     virtual LoadResult Load(Kernel::Process& process) = 0;
 
     /**
-     * Loads the system mode that this application needs.
-     * This function defaults to 2 (96MB allocated to the application) if it can't read the
-     * information.
-     * @returns A pair with the optional system mode, and and the status.
-     */
-    virtual std::pair<std::optional<u32>, ResultStatus> LoadKernelSystemMode() {
-        // 96MB allocated to the application.
-        return std::make_pair(2, ResultStatus::Success);
-    }
-
-    /**
      * Get the code (typically .code section) of the application
      * @param buffer Reference to buffer to store data
      * @return ResultStatus result of function
