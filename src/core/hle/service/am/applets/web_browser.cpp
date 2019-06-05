@@ -246,24 +246,25 @@ void WebBrowser::ExecuteInteractive() {
 }
 
 void WebBrowser::Execute() {
-    if (complete)
+    if (complete) {
         return;
+    }
 
     if (status != RESULT_SUCCESS) {
         complete = true;
         return;
     }
 
-    frontend.OpenPage(filename, [this] { UnpackRomFS(); }, [this] { Finalize(); });
+    ExecuteInternal();
 }
 
 void WebBrowser::UnpackRomFS() {
     if (unpacked)
         return;
 
-    ASSERT(manual_romfs != nullptr);
+    ASSERT(offline_romfs != nullptr);
     const auto dir =
-        FileSys::ExtractRomFS(manual_romfs, FileSys::RomFSExtractionType::SingleDiscard);
+        FileSys::ExtractRomFS(offline_romfs, FileSys::RomFSExtractionType::SingleDiscard);
     const auto& vfs{Core::System::GetInstance().GetFilesystem()};
     const auto temp_dir = vfs->CreateDirectory(temporary_dir, FileSys::Mode::ReadWrite);
     FileSys::VfsRawCopyD(dir, temp_dir);
@@ -274,17 +275,273 @@ void WebBrowser::UnpackRomFS() {
 void WebBrowser::Finalize() {
     complete = true;
 
-    WebArgumentResult out{};
+    WebCommonReturnValue out{};
     out.result_code = 0;
     out.last_url_size = 0;
 
-    std::vector<u8> data(sizeof(WebArgumentResult));
-    std::memcpy(data.data(), &out, sizeof(WebArgumentResult));
+    std::vector<u8> data(sizeof(WebCommonReturnValue));
+    std::memcpy(data.data(), &out, sizeof(WebCommonReturnValue));
 
     broker.PushNormalDataFromApplet(IStorage{data});
     broker.SignalStateChanged();
 
     FileUtil::DeleteDirRecursively(temporary_dir);
+}
+
+void WebBrowser::InitializeInternal() {
+    using WebAppletInitializer = void (WebBrowser::*)();
+
+    constexpr std::array<WebAppletInitializer, SHIM_KIND_COUNT> functions{
+        nullptr, &WebBrowser::InitializeShop,
+        nullptr, &WebBrowser::InitializeOffline,
+        nullptr, nullptr,
+        nullptr, nullptr,
+    };
+
+    const auto index = static_cast<u32>(kind);
+
+    if (index > functions.size() || functions[index] == nullptr) {
+        LOG_ERROR(Service_AM, "Invalid shim_kind={:08X}", index);
+        return;
+    }
+
+    const auto function = functions[index];
+    (this->*function)();
+}
+
+void WebBrowser::ExecuteInternal() {
+    using WebAppletExecutor = void (WebBrowser::*)();
+
+    constexpr std::array<WebAppletExecutor, SHIM_KIND_COUNT> functions{
+        nullptr, &WebBrowser::ExecuteShop,
+        nullptr, &WebBrowser::ExecuteOffline,
+        nullptr, nullptr,
+        nullptr, nullptr,
+    };
+
+    const auto index = static_cast<u32>(kind);
+
+    if (index > functions.size() || functions[index] == nullptr) {
+        LOG_ERROR(Service_AM, "Invalid shim_kind={:08X}", index);
+        return;
+    }
+
+    const auto function = functions[index];
+    (this->*function)();
+}
+
+void WebBrowser::InitializeShop() {
+    if (frontend_e_commerce == nullptr) {
+        LOG_ERROR(Service_AM, "Missing ECommerce Applet frontend!");
+        status = ResultCode(-1);
+        return;
+    }
+
+    const auto user_id_data = args.find(WebArgTLVType::UserID);
+
+    user_id = std::nullopt;
+    if (user_id_data != args.end()) {
+        user_id = u128{};
+        std::memcpy(user_id->data(), user_id_data->second.data(), sizeof(u128));
+    }
+
+    const auto url = args.find(WebArgTLVType::ShopArgumentsURL);
+
+    if (url == args.end()) {
+        LOG_ERROR(Service_AM, "Missing EShop Arguments URL for initialization!");
+        status = ResultCode(-1);
+        return;
+    }
+
+    std::vector<std::string> split_query;
+    Common::SplitString(Common::StringFromFixedZeroTerminatedBuffer(
+                            reinterpret_cast<const char*>(url->second.data()), url->second.size()),
+                        '?', split_query);
+
+    // 2 -> Main URL '?' Query Parameters
+    // Less is missing info, More is malformed
+    if (split_query.size() != 2) {
+        LOG_ERROR(Service_AM, "EShop Arguments has more than one question mark, malformed");
+        status = ResultCode(-1);
+        return;
+    }
+
+    std::vector<std::string> queries;
+    Common::SplitString(split_query[1], '&', queries);
+
+    const auto split_single_query =
+        [](const std::string& in) -> std::pair<std::string, std::string> {
+        const auto index = in.find('=');
+        if (index == std::string::npos || index == in.size() - 1) {
+            return {in, ""};
+        }
+
+        return {in.substr(0, index), in.substr(index + 1)};
+    };
+
+    std::transform(queries.begin(), queries.end(),
+                   std::inserter(shop_query, std::next(shop_query.begin())), split_single_query);
+
+    const auto scene = shop_query.find("scene");
+
+    if (scene == shop_query.end()) {
+        LOG_ERROR(Service_AM, "No scene parameter was passed via shop query!");
+        status = ResultCode(-1);
+        return;
+    }
+
+    const std::map<std::string, ShopWebTarget> target_map{
+        {"product_detail", ShopWebTarget::ApplicationInfo},
+        {"aocs", ShopWebTarget::AddOnContentList},
+        {"subscriptions", ShopWebTarget::SubscriptionList},
+        {"consumption", ShopWebTarget::ConsumableItemList},
+        {"settings", ShopWebTarget::Settings},
+        {"top", ShopWebTarget::Home},
+    };
+
+    const auto target = target_map.find(scene->second);
+    if (target == target_map.end()) {
+        LOG_ERROR(Service_AM, "Scene for shop query is invalid! (scene={})", scene->second);
+        status = ResultCode(-1);
+        return;
+    }
+
+    shop_web_target = target->second;
+
+    const auto title_id_data = shop_query.find("dst_app_id");
+    if (title_id_data != shop_query.end()) {
+        title_id = std::stoull(title_id_data->second, nullptr, 0x10);
+    }
+
+    const auto mode_data = shop_query.find("mode");
+    if (mode_data != shop_query.end()) {
+        shop_full_display = mode_data->second == "full";
+    }
+}
+
+void WebBrowser::InitializeOffline() {
+    if (args.find(WebArgTLVType::DocumentPath) == args.end() ||
+        args.find(WebArgTLVType::DocumentKind) == args.end() ||
+        args.find(WebArgTLVType::ApplicationID) == args.end()) {
+        status = ResultCode(-1);
+        LOG_ERROR(Service_AM, "Missing necessary parameters for initialization!");
+    }
+
+    const auto url_data = args[WebArgTLVType::DocumentPath];
+    filename = Common::StringFromFixedZeroTerminatedBuffer(
+        reinterpret_cast<const char*>(url_data.data()), url_data.size());
+
+    OfflineWebSource source;
+    ASSERT(args[WebArgTLVType::DocumentKind].size() >= 4);
+    std::memcpy(&source, args[WebArgTLVType::DocumentKind].data(), sizeof(OfflineWebSource));
+
+    constexpr std::array<const char*, 3> WEB_SOURCE_NAMES{
+        "manual",
+        "legal",
+        "system",
+    };
+
+    temporary_dir =
+        FileUtil::SanitizePath(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) + "web_applet_" +
+                                   WEB_SOURCE_NAMES[static_cast<u32>(source) - 1],
+                               FileUtil::DirectorySeparator::PlatformDefault);
+    FileUtil::DeleteDirRecursively(temporary_dir);
+
+    u64 title_id = 0; // 0 corresponds to current process
+    ASSERT(args[WebArgTLVType::ApplicationID].size() >= 0x8);
+    std::memcpy(&title_id, args[WebArgTLVType::ApplicationID].data(), sizeof(u64));
+    FileSys::ContentRecordType type = FileSys::ContentRecordType::Data;
+
+    switch (source) {
+    case OfflineWebSource::OfflineHtmlPage:
+        // While there is an AppID TLV field, in official SW this is always ignored.
+        title_id = 0;
+        type = FileSys::ContentRecordType::Manual;
+        break;
+    case OfflineWebSource::ApplicationLegalInformation:
+        type = FileSys::ContentRecordType::Legal;
+        break;
+    case OfflineWebSource::SystemDataPage:
+        type = FileSys::ContentRecordType::Data;
+        break;
+    }
+
+    if (title_id == 0) {
+        title_id = Core::System::GetInstance().CurrentProcess()->GetTitleID();
+    }
+
+    offline_romfs = GetApplicationRomFS(title_id, type);
+    if (offline_romfs == nullptr) {
+        status = ResultCode(-1);
+        LOG_ERROR(Service_AM, "Failed to find offline data for request!");
+    }
+
+    std::string path_additional_directory;
+    if (source == OfflineWebSource::OfflineHtmlPage) {
+        path_additional_directory = std::string(DIR_SEP) + "html-document";
+    }
+
+    filename =
+        FileUtil::SanitizePath(temporary_dir + path_additional_directory + DIR_SEP + filename,
+                               FileUtil::DirectorySeparator::PlatformDefault);
+}
+
+void WebBrowser::ExecuteShop() {
+    const auto callback = [this]() { Finalize(); };
+
+    const auto check_optional_parameter = [this](const auto& p) {
+        if (!p.has_value()) {
+            LOG_ERROR(Service_AM, "Missing one or more necessary parameters for execution!");
+            status = ResultCode(-1);
+            return false;
+        }
+
+        return true;
+    };
+
+    switch (shop_web_target) {
+    case ShopWebTarget::ApplicationInfo:
+        if (!check_optional_parameter(title_id))
+            return;
+        frontend_e_commerce->ShowApplicationInformation(callback, *title_id, user_id,
+                                                        shop_full_display, shop_extra_parameter);
+        break;
+    case ShopWebTarget::AddOnContentList:
+        if (!check_optional_parameter(title_id))
+            return;
+        frontend_e_commerce->ShowAddOnContentList(callback, *title_id, user_id, shop_full_display);
+        break;
+    case ShopWebTarget::ConsumableItemList:
+        if (!check_optional_parameter(title_id))
+            return;
+        frontend_e_commerce->ShowConsumableItemList(callback, *title_id, user_id);
+        break;
+    case ShopWebTarget::Home:
+        if (!check_optional_parameter(user_id))
+            return;
+        if (!check_optional_parameter(shop_full_display))
+            return;
+        frontend_e_commerce->ShowShopHome(callback, *user_id, *shop_full_display);
+        break;
+    case ShopWebTarget::Settings:
+        if (!check_optional_parameter(user_id))
+            return;
+        if (!check_optional_parameter(shop_full_display))
+            return;
+        frontend_e_commerce->ShowSettings(callback, *user_id, *shop_full_display);
+        break;
+    case ShopWebTarget::SubscriptionList:
+        if (!check_optional_parameter(title_id))
+            return;
+        frontend_e_commerce->ShowSubscriptionList(callback, *title_id, user_id);
+        break;
+    default:
+        UNREACHABLE();
+    }
+}
+
+void WebBrowser::ExecuteOffline() {
+    frontend.OpenPageLocal(filename, [this] { UnpackRomFS(); }, [this] { Finalize(); });
 }
 
 } // namespace Service::AM::Applets
