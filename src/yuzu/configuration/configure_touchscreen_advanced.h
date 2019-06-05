@@ -18,13 +18,13 @@ public:
     explicit ConfigureTouchscreenAdvanced(QWidget* parent);
     ~ConfigureTouchscreenAdvanced() override;
 
-    void applyConfiguration();
+    void ApplyConfiguration();
 
 private:
     /// Load configuration settings.
-    void loadConfiguration();
+    void LoadConfiguration();
     /// Restore all buttons to their default values.
-    void restoreDefaults();
+    void RestoreDefaults();
 
     std::unique_ptr<Ui::ConfigureTouchscreenAdvanced> ui;
 };

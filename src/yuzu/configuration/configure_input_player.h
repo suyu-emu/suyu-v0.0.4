@@ -38,28 +38,28 @@ public:
     ~ConfigureInputPlayer() override;
 
     /// Save all button configurations to settings file
-    void applyConfiguration();
+    void ApplyConfiguration();
 
 private:
     void OnControllerButtonClick(int i);
 
     /// Load configuration settings.
-    void loadConfiguration();
+    void LoadConfiguration();
     /// Restore all buttons to their default values.
-    void restoreDefaults();
+    void RestoreDefaults();
     /// Clear all input configuration
     void ClearAll();
 
     /// Update UI to reflect current configuration.
-    void updateButtonLabels();
+    void UpdateButtonLabels();
 
     /// Called when the button was pressed.
-    void handleClick(QPushButton* button,
+    void HandleClick(QPushButton* button,
                      std::function<void(const Common::ParamPackage&)> new_input_setter,
                      InputCommon::Polling::DeviceType type);
 
     /// Finish polling and configure input using the input_setter
-    void setPollingResult(const Common::ParamPackage& params, bool abort);
+    void SetPollingResult(const Common::ParamPackage& params, bool abort);
 
     /// Handle key press events.
     void keyPressEvent(QKeyEvent* event) override;

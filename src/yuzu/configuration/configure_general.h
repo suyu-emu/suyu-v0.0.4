@@ -20,10 +20,10 @@ public:
     explicit ConfigureGeneral(QWidget* parent = nullptr);
     ~ConfigureGeneral() override;
 
-    void applyConfiguration();
+    void ApplyConfiguration();
 
 private:
-    void setConfiguration();
+    void SetConfiguration();
 
     std::unique_ptr<Ui::ConfigureGeneral> ui;
 };

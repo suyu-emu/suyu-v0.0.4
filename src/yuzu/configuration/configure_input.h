@@ -30,15 +30,15 @@ public:
     ~ConfigureInput() override;
 
     /// Save all button configurations to settings file
-    void applyConfiguration();
+    void ApplyConfiguration();
 
 private:
-    void updateUIEnabled();
+    void UpdateUIEnabled();
 
     /// Load configuration settings.
-    void loadConfiguration();
+    void LoadConfiguration();
     /// Restore all buttons to their default values.
-    void restoreDefaults();
+    void RestoreDefaults();
 
     std::unique_ptr<Ui::ConfigureInput> ui;
 

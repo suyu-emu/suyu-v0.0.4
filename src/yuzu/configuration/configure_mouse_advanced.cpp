@@ -84,7 +84,7 @@ ConfigureMouseAdvanced::ConfigureMouseAdvanced(QWidget* parent)
 
         button->setContextMenuPolicy(Qt::CustomContextMenu);
         connect(button, &QPushButton::released, [=] {
-            handleClick(
+            HandleClick(
                 button_map[button_id],
                 [=](const Common::ParamPackage& params) { buttons_param[button_id] = params; },
                 InputCommon::Polling::DeviceType::Button);
@@ -105,48 +105,48 @@ ConfigureMouseAdvanced::ConfigureMouseAdvanced(QWidget* parent)
     }
 
     connect(ui->buttonClearAll, &QPushButton::released, [this] { ClearAll(); });
-    connect(ui->buttonRestoreDefaults, &QPushButton::released, [this]() { restoreDefaults(); });
+    connect(ui->buttonRestoreDefaults, &QPushButton::released, [this] { RestoreDefaults(); });
 
     timeout_timer->setSingleShot(true);
-    connect(timeout_timer.get(), &QTimer::timeout, [this]() { setPollingResult({}, true); });
+    connect(timeout_timer.get(), &QTimer::timeout, [this] { SetPollingResult({}, true); });
 
-    connect(poll_timer.get(), &QTimer::timeout, [this]() {
+    connect(poll_timer.get(), &QTimer::timeout, [this] {
         Common::ParamPackage params;
         for (auto& poller : device_pollers) {
             params = poller->GetNextInput();
             if (params.Has("engine")) {
-                setPollingResult(params, false);
+                SetPollingResult(params, false);
                 return;
             }
         }
     });
 
-    loadConfiguration();
+    LoadConfiguration();
     resize(0, 0);
 }
 
 ConfigureMouseAdvanced::~ConfigureMouseAdvanced() = default;
 
-void ConfigureMouseAdvanced::applyConfiguration() {
+void ConfigureMouseAdvanced::ApplyConfiguration() {
     std::transform(buttons_param.begin(), buttons_param.end(),
                    Settings::values.mouse_buttons.begin(),
                    [](const Common::ParamPackage& param) { return param.Serialize(); });
 }
 
-void ConfigureMouseAdvanced::loadConfiguration() {
+void ConfigureMouseAdvanced::LoadConfiguration() {
     std::transform(Settings::values.mouse_buttons.begin(), Settings::values.mouse_buttons.end(),
                    buttons_param.begin(),
                    [](const std::string& str) { return Common::ParamPackage(str); });
-    updateButtonLabels();
+    UpdateButtonLabels();
 }
 
-void ConfigureMouseAdvanced::restoreDefaults() {
+void ConfigureMouseAdvanced::RestoreDefaults() {
     for (int button_id = 0; button_id < Settings::NativeMouseButton::NumMouseButtons; button_id++) {
         buttons_param[button_id] = Common::ParamPackage{
             InputCommon::GenerateKeyboardParam(Config::default_mouse_buttons[button_id])};
     }
 
-    updateButtonLabels();
+    UpdateButtonLabels();
 }
 
 void ConfigureMouseAdvanced::ClearAll() {
@@ -157,16 +157,16 @@ void ConfigureMouseAdvanced::ClearAll() {
         }
     }
 
-    updateButtonLabels();
+    UpdateButtonLabels();
 }
 
-void ConfigureMouseAdvanced::updateButtonLabels() {
+void ConfigureMouseAdvanced::UpdateButtonLabels() {
     for (int button = 0; button < Settings::NativeMouseButton::NumMouseButtons; button++) {
         button_map[button]->setText(ButtonToText(buttons_param[button]));
     }
 }
 
-void ConfigureMouseAdvanced::handleClick(
+void ConfigureMouseAdvanced::HandleClick(
     QPushButton* button, std::function<void(const Common::ParamPackage&)> new_input_setter,
     InputCommon::Polling::DeviceType type) {
     button->setText(tr("[press key]"));
@@ -194,7 +194,7 @@ void ConfigureMouseAdvanced::handleClick(
     poll_timer->start(200);     // Check for new inputs every 200ms
 }
 
-void ConfigureMouseAdvanced::setPollingResult(const Common::ParamPackage& params, bool abort) {
+void ConfigureMouseAdvanced::SetPollingResult(const Common::ParamPackage& params, bool abort) {
     releaseKeyboard();
     releaseMouse();
     timeout_timer->stop();
@@ -207,22 +207,23 @@ void ConfigureMouseAdvanced::setPollingResult(const Common::ParamPackage& params
         (*input_setter)(params);
     }
 
-    updateButtonLabels();
+    UpdateButtonLabels();
     input_setter = std::nullopt;
 }
 
 void ConfigureMouseAdvanced::keyPressEvent(QKeyEvent* event) {
-    if (!input_setter || !event)
+    if (!input_setter || !event) {
         return;
+    }
 
     if (event->key() != Qt::Key_Escape) {
         if (want_keyboard_keys) {
-            setPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->key())},
+            SetPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->key())},
                              false);
         } else {
             // Escape key wasn't pressed and we don't want any keyboard keys, so don't stop polling
             return;
         }
     }
-    setPollingResult({}, true);
+    SetPollingResult({}, true);
 }

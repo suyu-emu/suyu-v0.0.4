@@ -18,7 +18,7 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
                                     QString::fromUtf8(theme.second));
     }
 
-    this->setConfiguration();
+    SetConfiguration();
 
     connect(ui->toggle_deepscan, &QCheckBox::stateChanged, this,
             [] { UISettings::values.is_game_list_reload_pending.exchange(true); });
@@ -28,7 +28,7 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
 
 ConfigureGeneral::~ConfigureGeneral() = default;
 
-void ConfigureGeneral::setConfiguration() {
+void ConfigureGeneral::SetConfiguration() {
     ui->toggle_deepscan->setChecked(UISettings::values.game_directory_deepscan);
     ui->toggle_check_exit->setChecked(UISettings::values.confirm_before_closing);
     ui->toggle_user_on_boot->setChecked(UISettings::values.select_user_on_boot);
@@ -36,7 +36,7 @@ void ConfigureGeneral::setConfiguration() {
     ui->use_cpu_jit->setChecked(Settings::values.use_cpu_jit);
 }
 
-void ConfigureGeneral::applyConfiguration() {
+void ConfigureGeneral::ApplyConfiguration() {
     UISettings::values.game_directory_deepscan = ui->toggle_deepscan->isChecked();
     UISettings::values.confirm_before_closing = ui->toggle_check_exit->isChecked();
     UISettings::values.select_user_on_boot = ui->toggle_user_on_boot->isChecked();

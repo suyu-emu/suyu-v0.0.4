@@ -30,11 +30,13 @@ public:
     ~ConfigurePerGameGeneral() override;
 
     /// Save all button configurations to settings file
-    void applyConfiguration();
+    void ApplyConfiguration();
 
-    void loadFromFile(FileSys::VirtualFile file);
+    void LoadFromFile(FileSys::VirtualFile file);
 
 private:
+    void LoadConfiguration();
+
     std::unique_ptr<Ui::ConfigurePerGameGeneral> ui;
     FileSys::VirtualFile file;
     u64 title_id;
@@ -45,6 +47,4 @@ private:
     QGraphicsScene* scene;
 
     std::vector<QList<QStandardItem*>> list_items;
-
-    void loadConfiguration();
 };

@@ -119,12 +119,12 @@ ConfigureProfileManager ::ConfigureProfileManager(QWidget* parent)
     scene = new QGraphicsScene;
     ui->current_user_icon->setScene(scene);
 
-    this->setConfiguration();
+    SetConfiguration();
 }
 
 ConfigureProfileManager::~ConfigureProfileManager() = default;
 
-void ConfigureProfileManager::setConfiguration() {
+void ConfigureProfileManager::SetConfiguration() {
     enabled = !Core::System::GetInstance().IsPoweredOn();
     item_model->removeRows(0, item_model->rowCount());
     list_items.clear();
@@ -164,9 +164,10 @@ void ConfigureProfileManager::UpdateCurrentUser() {
     ui->current_user_username->setText(username);
 }
 
-void ConfigureProfileManager::applyConfiguration() {
-    if (!enabled)
+void ConfigureProfileManager::ApplyConfiguration() {
+    if (!enabled) {
         return;
+    }
 
     Settings::Apply();
 }

@@ -18,16 +18,16 @@ public:
     explicit ConfigureAudio(QWidget* parent = nullptr);
     ~ConfigureAudio() override;
 
-    void applyConfiguration();
-    void retranslateUi();
+    void ApplyConfiguration();
+    void RetranslateUI();
 
 private:
-    void updateAudioDevices(int sink_index);
+    void UpdateAudioDevices(int sink_index);
 
-    void setConfiguration();
-    void setOutputSinkFromSinkID();
-    void setAudioDeviceFromDeviceID();
-    void setVolumeIndicatorText(int percentage);
+    void SetConfiguration();
+    void SetOutputSinkFromSinkID();
+    void SetAudioDeviceFromDeviceID();
+    void SetVolumeIndicatorText(int percentage);
 
     std::unique_ptr<Ui::ConfigureAudio> ui;
 };

@@ -21,8 +21,8 @@ public:
     explicit ConfigureHotkeys(QWidget* parent = nullptr);
     ~ConfigureHotkeys() override;
 
-    void applyConfiguration(HotkeyRegistry& registry);
-    void retranslateUi();
+    void ApplyConfiguration(HotkeyRegistry& registry);
+    void RetranslateUI();
 
     /**
      * Populates the hotkey list widget using data from the provided registry.

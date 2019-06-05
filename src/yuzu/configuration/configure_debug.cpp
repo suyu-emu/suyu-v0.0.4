@@ -16,7 +16,8 @@
 
 ConfigureDebug::ConfigureDebug(QWidget* parent) : QWidget(parent), ui(new Ui::ConfigureDebug) {
     ui->setupUi(this);
-    this->setConfiguration();
+    SetConfiguration();
+
     connect(ui->open_log_button, &QPushButton::pressed, []() {
         QString path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::LogDir));
         QDesktopServices::openUrl(QUrl::fromLocalFile(path));
@@ -25,7 +26,7 @@ ConfigureDebug::ConfigureDebug(QWidget* parent) : QWidget(parent), ui(new Ui::Co
 
 ConfigureDebug::~ConfigureDebug() = default;
 
-void ConfigureDebug::setConfiguration() {
+void ConfigureDebug::SetConfiguration() {
     ui->toggle_gdbstub->setChecked(Settings::values.use_gdbstub);
     ui->gdbport_spinbox->setEnabled(Settings::values.use_gdbstub);
     ui->gdbport_spinbox->setValue(Settings::values.gdbstub_port);
@@ -37,7 +38,7 @@ void ConfigureDebug::setConfiguration() {
     ui->dump_decompressed_nso->setChecked(Settings::values.dump_nso);
 }
 
-void ConfigureDebug::applyConfiguration() {
+void ConfigureDebug::ApplyConfiguration() {
     Settings::values.use_gdbstub = ui->toggle_gdbstub->isChecked();
     Settings::values.gdbstub_port = ui->gdbport_spinbox->value();
     UISettings::values.show_console = ui->toggle_console->isChecked();

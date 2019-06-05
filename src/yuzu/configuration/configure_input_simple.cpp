@@ -15,12 +15,12 @@ namespace {
 
 template <typename Dialog, typename... Args>
 void CallConfigureDialog(ConfigureInputSimple* caller, Args&&... args) {
-    caller->applyConfiguration();
+    caller->ApplyConfiguration();
     Dialog dialog(caller, std::forward<Args>(args)...);
 
     const auto res = dialog.exec();
     if (res == QDialog::Accepted) {
-        dialog.applyConfiguration();
+        dialog.ApplyConfiguration();
     }
 }
 
@@ -103,27 +103,29 @@ ConfigureInputSimple::ConfigureInputSimple(QWidget* parent)
             &ConfigureInputSimple::OnSelectProfile);
     connect(ui->profile_configure, &QPushButton::pressed, this, &ConfigureInputSimple::OnConfigure);
 
-    this->loadConfiguration();
+    LoadConfiguration();
 }
 
 ConfigureInputSimple::~ConfigureInputSimple() = default;
 
-void ConfigureInputSimple::applyConfiguration() {
+void ConfigureInputSimple::ApplyConfiguration() {
     auto index = ui->profile_combobox->currentIndex();
     // Make the stored index for "Custom" very large so that if new profiles are added it
     // doesn't change.
-    if (index >= static_cast<int>(INPUT_PROFILES.size() - 1))
+    if (index >= static_cast<int>(INPUT_PROFILES.size() - 1)) {
         index = std::numeric_limits<int>::max();
+    }
 
     UISettings::values.profile_index = index;
 }
 
-void ConfigureInputSimple::loadConfiguration() {
+void ConfigureInputSimple::LoadConfiguration() {
     const auto index = UISettings::values.profile_index;
-    if (index >= static_cast<int>(INPUT_PROFILES.size()) || index < 0)
+    if (index >= static_cast<int>(INPUT_PROFILES.size()) || index < 0) {
         ui->profile_combobox->setCurrentIndex(static_cast<int>(INPUT_PROFILES.size() - 1));
-    else
+    } else {
         ui->profile_combobox->setCurrentIndex(index);
+    }
 }
 
 void ConfigureInputSimple::OnSelectProfile(int index) {

@@ -23,22 +23,24 @@ ConfigureSystem::ConfigureSystem(QWidget* parent) : QWidget(parent), ui(new Ui::
 
     connect(ui->rng_seed_checkbox, &QCheckBox::stateChanged, this, [this](bool checked) {
         ui->rng_seed_edit->setEnabled(checked);
-        if (!checked)
+        if (!checked) {
             ui->rng_seed_edit->setText(QStringLiteral("00000000"));
+        }
     });
 
     connect(ui->custom_rtc_checkbox, &QCheckBox::stateChanged, this, [this](bool checked) {
         ui->custom_rtc_edit->setEnabled(checked);
-        if (!checked)
+        if (!checked) {
             ui->custom_rtc_edit->setDateTime(QDateTime::currentDateTime());
+        }
     });
 
-    this->setConfiguration();
+    SetConfiguration();
 }
 
 ConfigureSystem::~ConfigureSystem() = default;
 
-void ConfigureSystem::setConfiguration() {
+void ConfigureSystem::SetConfiguration() {
     enabled = !Core::System::GetInstance().IsPoweredOn();
 
     ui->combo_language->setCurrentIndex(Settings::values.language_index);
@@ -61,22 +63,25 @@ void ConfigureSystem::setConfiguration() {
 
 void ConfigureSystem::ReadSystemSettings() {}
 
-void ConfigureSystem::applyConfiguration() {
-    if (!enabled)
+void ConfigureSystem::ApplyConfiguration() {
+    if (!enabled) {
         return;
+    }
 
     Settings::values.language_index = ui->combo_language->currentIndex();
 
-    if (ui->rng_seed_checkbox->isChecked())
+    if (ui->rng_seed_checkbox->isChecked()) {
         Settings::values.rng_seed = ui->rng_seed_edit->text().toULongLong(nullptr, 16);
-    else
+    } else {
         Settings::values.rng_seed = std::nullopt;
+    }
 
-    if (ui->custom_rtc_checkbox->isChecked())
+    if (ui->custom_rtc_checkbox->isChecked()) {
         Settings::values.custom_rtc =
             std::chrono::seconds(ui->custom_rtc_edit->dateTime().toSecsSinceEpoch());
-    else
+    } else {
         Settings::values.custom_rtc = std::nullopt;
+    }
 
     Settings::Apply();
 }
@@ -89,8 +94,10 @@ void ConfigureSystem::RefreshConsoleID() {
                               "if you use an outdated config savegame. Continue?");
     reply = QMessageBox::critical(this, tr("Warning"), warning_text,
                                   QMessageBox::No | QMessageBox::Yes);
-    if (reply == QMessageBox::No)
+    if (reply == QMessageBox::No) {
         return;
+    }
+
     u64 console_id{};
     ui->label_console_id->setText(
         tr("Console ID: 0x%1").arg(QString::number(console_id, 16).toUpper()));

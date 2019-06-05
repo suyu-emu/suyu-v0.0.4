@@ -67,12 +67,12 @@ ConfigurePerGameGeneral::ConfigurePerGameGeneral(QWidget* parent, u64 title_id)
     connect(item_model, &QStandardItemModel::itemChanged,
             [] { UISettings::values.is_game_list_reload_pending.exchange(true); });
 
-    this->loadConfiguration();
+    LoadConfiguration();
 }
 
 ConfigurePerGameGeneral::~ConfigurePerGameGeneral() = default;
 
-void ConfigurePerGameGeneral::applyConfiguration() {
+void ConfigurePerGameGeneral::ApplyConfiguration() {
     std::vector<std::string> disabled_addons;
 
     for (const auto& item : list_items) {
@@ -92,12 +92,12 @@ void ConfigurePerGameGeneral::applyConfiguration() {
     Settings::values.disabled_addons[title_id] = disabled_addons;
 }
 
-void ConfigurePerGameGeneral::loadFromFile(FileSys::VirtualFile file) {
+void ConfigurePerGameGeneral::LoadFromFile(FileSys::VirtualFile file) {
     this->file = std::move(file);
-    this->loadConfiguration();
+    LoadConfiguration();
 }
 
-void ConfigurePerGameGeneral::loadConfiguration() {
+void ConfigurePerGameGeneral::LoadConfiguration() {
     if (file == nullptr) {
         return;
     }

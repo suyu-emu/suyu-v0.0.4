@@ -27,11 +27,11 @@ public:
     ~ConfigureInputSimple() override;
 
     /// Save all button configurations to settings file
-    void applyConfiguration();
+    void ApplyConfiguration();
 
 private:
     /// Load configuration settings.
-    void loadConfiguration();
+    void LoadConfiguration();
 
     void OnSelectProfile(int index);
     void OnConfigure();

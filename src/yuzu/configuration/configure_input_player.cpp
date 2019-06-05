@@ -245,7 +245,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
 
         button->setContextMenuPolicy(Qt::CustomContextMenu);
         connect(button, &QPushButton::released, [=] {
-            handleClick(
+            HandleClick(
                 button_map[button_id],
                 [=](const Common::ParamPackage& params) { buttons_param[button_id] = params; },
                 InputCommon::Polling::DeviceType::Button);
@@ -274,7 +274,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
 
             analog_button->setContextMenuPolicy(Qt::CustomContextMenu);
             connect(analog_button, &QPushButton::released, [=]() {
-                handleClick(analog_map_buttons[analog_id][sub_button_id],
+                HandleClick(analog_map_buttons[analog_id][sub_button_id],
                             [=](const Common::ParamPackage& params) {
                                 SetAnalogButton(params, analogs_param[analog_id],
                                                 analog_sub_buttons[sub_button_id]);
@@ -304,7 +304,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
             QMessageBox::information(this, tr("Information"),
                                      tr("After pressing OK, first move your joystick horizontally, "
                                         "and then vertically."));
-            handleClick(
+            HandleClick(
                 analog_map_stick[analog_id],
                 [=](const Common::ParamPackage& params) { analogs_param[analog_id] = params; },
                 InputCommon::Polling::DeviceType::Analog);
@@ -312,17 +312,17 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
     }
 
     connect(ui->buttonClearAll, &QPushButton::released, [this] { ClearAll(); });
-    connect(ui->buttonRestoreDefaults, &QPushButton::released, [this]() { restoreDefaults(); });
+    connect(ui->buttonRestoreDefaults, &QPushButton::released, [this] { RestoreDefaults(); });
 
     timeout_timer->setSingleShot(true);
-    connect(timeout_timer.get(), &QTimer::timeout, [this]() { setPollingResult({}, true); });
+    connect(timeout_timer.get(), &QTimer::timeout, [this] { SetPollingResult({}, true); });
 
-    connect(poll_timer.get(), &QTimer::timeout, [this]() {
+    connect(poll_timer.get(), &QTimer::timeout, [this] {
         Common::ParamPackage params;
         for (auto& poller : device_pollers) {
             params = poller->GetNextInput();
             if (params.Has("engine")) {
-                setPollingResult(params, false);
+                SetPollingResult(params, false);
                 return;
             }
         }
@@ -340,8 +340,8 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                 [this, i] { OnControllerButtonClick(static_cast<int>(i)); });
     }
 
-    this->loadConfiguration();
-    this->resize(0, 0);
+    LoadConfiguration();
+    resize(0, 0);
 
     // TODO(wwylele): enable this when we actually emulate it
     ui->buttonHome->setEnabled(false);
@@ -349,7 +349,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
 
 ConfigureInputPlayer::~ConfigureInputPlayer() = default;
 
-void ConfigureInputPlayer::applyConfiguration() {
+void ConfigureInputPlayer::ApplyConfiguration() {
     auto& buttons =
         debug ? Settings::values.debug_pad_buttons : Settings::values.players[player_index].buttons;
     auto& analogs =
@@ -382,7 +382,7 @@ void ConfigureInputPlayer::OnControllerButtonClick(int i) {
         QStringLiteral("QPushButton { background-color: %1 }").arg(controller_colors[i].name()));
 }
 
-void ConfigureInputPlayer::loadConfiguration() {
+void ConfigureInputPlayer::LoadConfiguration() {
     if (debug) {
         std::transform(Settings::values.debug_pad_buttons.begin(),
                        Settings::values.debug_pad_buttons.end(), buttons_param.begin(),
@@ -399,7 +399,7 @@ void ConfigureInputPlayer::loadConfiguration() {
                        [](const std::string& str) { return Common::ParamPackage(str); });
     }
 
-    updateButtonLabels();
+    UpdateButtonLabels();
 
     if (debug)
         return;
@@ -421,7 +421,7 @@ void ConfigureInputPlayer::loadConfiguration() {
     }
 }
 
-void ConfigureInputPlayer::restoreDefaults() {
+void ConfigureInputPlayer::RestoreDefaults() {
     for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; button_id++) {
         buttons_param[button_id] = Common::ParamPackage{
             InputCommon::GenerateKeyboardParam(Config::default_buttons[button_id])};
@@ -434,7 +434,7 @@ void ConfigureInputPlayer::restoreDefaults() {
             SetAnalogButton(params, analogs_param[analog_id], analog_sub_buttons[sub_button_id]);
         }
     }
-    updateButtonLabels();
+    UpdateButtonLabels();
 }
 
 void ConfigureInputPlayer::ClearAll() {
@@ -458,10 +458,10 @@ void ConfigureInputPlayer::ClearAll() {
         }
     }
 
-    updateButtonLabels();
+    UpdateButtonLabels();
 }
 
-void ConfigureInputPlayer::updateButtonLabels() {
+void ConfigureInputPlayer::UpdateButtonLabels() {
     for (int button = 0; button < Settings::NativeButton::NumButtons; button++) {
         button_map[button]->setText(ButtonToText(buttons_param[button]));
     }
@@ -481,7 +481,7 @@ void ConfigureInputPlayer::updateButtonLabels() {
     }
 }
 
-void ConfigureInputPlayer::handleClick(
+void ConfigureInputPlayer::HandleClick(
     QPushButton* button, std::function<void(const Common::ParamPackage&)> new_input_setter,
     InputCommon::Polling::DeviceType type) {
     button->setText(tr("[press key]"));
@@ -509,7 +509,7 @@ void ConfigureInputPlayer::handleClick(
     poll_timer->start(200);     // Check for new inputs every 200ms
 }
 
-void ConfigureInputPlayer::setPollingResult(const Common::ParamPackage& params, bool abort) {
+void ConfigureInputPlayer::SetPollingResult(const Common::ParamPackage& params, bool abort) {
     releaseKeyboard();
     releaseMouse();
     timeout_timer->stop();
@@ -522,22 +522,23 @@ void ConfigureInputPlayer::setPollingResult(const Common::ParamPackage& params, 
         (*input_setter)(params);
     }
 
-    updateButtonLabels();
+    UpdateButtonLabels();
     input_setter = std::nullopt;
 }
 
 void ConfigureInputPlayer::keyPressEvent(QKeyEvent* event) {
-    if (!input_setter || !event)
+    if (!input_setter || !event) {
         return;
+    }
 
     if (event->key() != Qt::Key_Escape) {
         if (want_keyboard_keys) {
-            setPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->key())},
+            SetPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->key())},
                              false);
         } else {
             // Escape key wasn't pressed and we don't want any keyboard keys, so don't stop polling
             return;
         }
     }
-    setPollingResult({}, true);
+    SetPollingResult({}, true);
 }

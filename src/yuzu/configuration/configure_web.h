@@ -19,8 +19,8 @@ public:
     explicit ConfigureWeb(QWidget* parent = nullptr);
     ~ConfigureWeb() override;
 
-    void applyConfiguration();
-    void retranslateUi();
+    void ApplyConfiguration();
+    void RetranslateUI();
 
 private:
     void RefreshTelemetryID();
@@ -28,7 +28,7 @@ private:
     void VerifyLogin();
     void OnLoginVerified();
 
-    void setConfiguration();
+    void SetConfiguration();
 
     bool user_verified = true;
     QFutureWatcher<bool> verify_watcher;

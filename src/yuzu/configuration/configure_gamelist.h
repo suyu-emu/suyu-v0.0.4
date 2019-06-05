@@ -18,12 +18,12 @@ public:
     explicit ConfigureGameList(QWidget* parent = nullptr);
     ~ConfigureGameList() override;
 
-    void applyConfiguration();
+    void ApplyConfiguration();
 
 private:
     void RequestGameListUpdate();
 
-    void setConfiguration();
+    void SetConfiguration();
 
     void changeEvent(QEvent*) override;
     void RetranslateUI();
