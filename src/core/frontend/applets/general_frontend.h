@@ -5,6 +5,7 @@
 #pragma once
 
 #include <functional>
+#include <optional>
 #include "common/common_types.h"
 
 namespace Core::Frontend {
@@ -45,6 +46,43 @@ public:
 
     void ShowPhotosForApplication(u64 title_id, std::function<void()> finished) const override;
     void ShowAllPhotos(std::function<void()> finished) const override;
+};
+
+class ECommerceApplet {
+public:
+    virtual ~ECommerceApplet();
+
+    virtual void ShowApplicationInformation(std::function<void()> finished, u64 title_id,
+                                            std::optional<u128> user_id = {},
+                                            std::optional<bool> full_display = {},
+                                            std::optional<std::string> extra_parameter = {}) = 0;
+    virtual void ShowAddOnContentList(std::function<void()> finished, u64 title_id,
+                                      std::optional<u128> user_id = {},
+                                      std::optional<bool> full_display = {}) = 0;
+    virtual void ShowSubscriptionList(std::function<void()> finished, u64 title_id,
+                                      std::optional<u128> user_id = {}) = 0;
+    virtual void ShowConsumableItemList(std::function<void()> finished, u64 title_id,
+                                        std::optional<u128> user_id = {}) = 0;
+    virtual void ShowShopHome(std::function<void()> finished, u128 user_id, bool full_display) = 0;
+    virtual void ShowSettings(std::function<void()> finished, u128 user_id, bool full_display) = 0;
+};
+
+class DefaultECommerceApplet : public ECommerceApplet {
+public:
+    ~DefaultECommerceApplet() override;
+
+    void ShowApplicationInformation(std::function<void()> finished, u64 title_id,
+                                    std::optional<u128> user_id, std::optional<bool> full_display,
+                                    std::optional<std::string> extra_parameter) override;
+    void ShowAddOnContentList(std::function<void()> finished, u64 title_id,
+                              std::optional<u128> user_id,
+                              std::optional<bool> full_display) override;
+    void ShowSubscriptionList(std::function<void()> finished, u64 title_id,
+                              std::optional<u128> user_id) override;
+    void ShowConsumableItemList(std::function<void()> finished, u64 title_id,
+                                std::optional<u128> user_id) override;
+    void ShowShopHome(std::function<void()> finished, u128 user_id, bool full_display) override;
+    void ShowSettings(std::function<void()> finished, u128 user_id, bool full_display) override;
 };
 
 } // namespace Core::Frontend
