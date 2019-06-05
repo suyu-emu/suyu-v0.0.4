@@ -17,7 +17,9 @@ enum class WebArgTLVType : u16;
 
 class WebBrowser final : public Applet {
 public:
-    WebBrowser(Core::Frontend::WebBrowserApplet& frontend);
+    WebBrowser(Core::Frontend::WebBrowserApplet& frontend,
+               Core::Frontend::ECommerceApplet* frontend_e_commerce = nullptr);
+
     ~WebBrowser() override;
 
     void Initialize() override;
@@ -49,6 +51,9 @@ private:
     void ExecuteOffline();
 
     Core::Frontend::WebBrowserApplet& frontend;
+
+    // Extra frontends for specialized functions
+    Core::Frontend::ECommerceApplet* frontend_e_commerce;
 
     bool complete = false;
     bool unpacked = false;
