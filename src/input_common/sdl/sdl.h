@@ -6,14 +6,7 @@
 
 #include <memory>
 #include <vector>
-#include "core/frontend/input.h"
 #include "input_common/main.h"
-
-union SDL_Event;
-
-namespace Common {
-class ParamPackage;
-} // namespace Common
 
 namespace InputCommon::Polling {
 class DevicePoller;

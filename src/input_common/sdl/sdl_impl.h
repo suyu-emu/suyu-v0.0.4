@@ -6,7 +6,10 @@
 
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <thread>
+#include <unordered_map>
+#include "common/common_types.h"
 #include "common/threadsafe_queue.h"
 #include "input_common/sdl/sdl.h"
 
@@ -16,9 +19,9 @@ using SDL_JoystickID = s32;
 
 namespace InputCommon::SDL {
 
-class SDLJoystick;
-class SDLButtonFactory;
 class SDLAnalogFactory;
+class SDLButtonFactory;
+class SDLJoystick;
 
 class SDLState : public State {
 public:
@@ -31,7 +34,13 @@ public:
     /// Handle SDL_Events for joysticks from SDL_PollEvent
     void HandleGameControllerEvent(const SDL_Event& event);
 
+    /// Get the nth joystick with the corresponding GUID
     std::shared_ptr<SDLJoystick> GetSDLJoystickBySDLID(SDL_JoystickID sdl_id);
+
+    /**
+     * Check how many identical joysticks (by guid) were connected before the one with sdl_id and so
+     * tie it to a SDLJoystick with the same guid and that port
+     */
     std::shared_ptr<SDLJoystick> GetSDLJoystickByGUID(const std::string& guid, int port);
 
     /// Get all DevicePoller that use the SDL backend for a specific device type
