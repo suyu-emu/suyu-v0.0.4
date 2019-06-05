@@ -13,52 +13,40 @@ namespace Core::Timing {
 
 constexpr u64 MAX_VALUE_TO_MULTIPLY = std::numeric_limits<s64>::max() / BASE_CLOCK_RATE;
 
-s64 usToCycles(s64 us) {
-    if (static_cast<u64>(us / 1000000) > MAX_VALUE_TO_MULTIPLY) {
+s64 msToCycles(std::chrono::milliseconds ms) {
+    if (static_cast<u64>(ms.count() / 1000) > MAX_VALUE_TO_MULTIPLY) {
         LOG_ERROR(Core_Timing, "Integer overflow, use max value");
         return std::numeric_limits<s64>::max();
     }
-    if (static_cast<u64>(us) > MAX_VALUE_TO_MULTIPLY) {
+    if (static_cast<u64>(ms.count()) > MAX_VALUE_TO_MULTIPLY) {
         LOG_DEBUG(Core_Timing, "Time very big, do rounding");
-        return BASE_CLOCK_RATE * (us / 1000000);
+        return BASE_CLOCK_RATE * (ms.count() / 1000);
     }
-    return (BASE_CLOCK_RATE * us) / 1000000;
+    return (BASE_CLOCK_RATE * ms.count()) / 1000;
 }
 
-s64 usToCycles(u64 us) {
-    if (us / 1000000 > MAX_VALUE_TO_MULTIPLY) {
+s64 usToCycles(std::chrono::microseconds us) {
+    if (static_cast<u64>(us.count() / 1000000) > MAX_VALUE_TO_MULTIPLY) {
         LOG_ERROR(Core_Timing, "Integer overflow, use max value");
         return std::numeric_limits<s64>::max();
     }
-    if (us > MAX_VALUE_TO_MULTIPLY) {
+    if (static_cast<u64>(us.count()) > MAX_VALUE_TO_MULTIPLY) {
         LOG_DEBUG(Core_Timing, "Time very big, do rounding");
-        return BASE_CLOCK_RATE * static_cast<s64>(us / 1000000);
+        return BASE_CLOCK_RATE * (us.count() / 1000000);
     }
-    return (BASE_CLOCK_RATE * static_cast<s64>(us)) / 1000000;
+    return (BASE_CLOCK_RATE * us.count()) / 1000000;
 }
 
-s64 nsToCycles(s64 ns) {
-    if (static_cast<u64>(ns / 1000000000) > MAX_VALUE_TO_MULTIPLY) {
+s64 nsToCycles(std::chrono::nanoseconds ns) {
+    if (static_cast<u64>(ns.count() / 1000000000) > MAX_VALUE_TO_MULTIPLY) {
         LOG_ERROR(Core_Timing, "Integer overflow, use max value");
         return std::numeric_limits<s64>::max();
     }
-    if (static_cast<u64>(ns) > MAX_VALUE_TO_MULTIPLY) {
+    if (static_cast<u64>(ns.count()) > MAX_VALUE_TO_MULTIPLY) {
         LOG_DEBUG(Core_Timing, "Time very big, do rounding");
-        return BASE_CLOCK_RATE * (ns / 1000000000);
+        return BASE_CLOCK_RATE * (ns.count() / 1000000000);
     }
-    return (BASE_CLOCK_RATE * ns) / 1000000000;
-}
-
-s64 nsToCycles(u64 ns) {
-    if (ns / 1000000000 > MAX_VALUE_TO_MULTIPLY) {
-        LOG_ERROR(Core_Timing, "Integer overflow, use max value");
-        return std::numeric_limits<s64>::max();
-    }
-    if (ns > MAX_VALUE_TO_MULTIPLY) {
-        LOG_DEBUG(Core_Timing, "Time very big, do rounding");
-        return BASE_CLOCK_RATE * (static_cast<s64>(ns) / 1000000000);
-    }
-    return (BASE_CLOCK_RATE * static_cast<s64>(ns)) / 1000000000;
+    return (BASE_CLOCK_RATE * ns.count()) / 1000000000;
 }
 
 u64 CpuCyclesToClockCycles(u64 ticks) {

@@ -185,7 +185,8 @@ u32 nvhost_ctrl_gpu::GetGpuTime(const std::vector<u8>& input, std::vector<u8>& o
 
     IoctlGetGpuTime params{};
     std::memcpy(&params, input.data(), input.size());
-    params.gpu_time = Core::Timing::cyclesToNs(Core::System::GetInstance().CoreTiming().GetTicks());
+    const auto ns = Core::Timing::CyclesToNs(Core::System::GetInstance().CoreTiming().GetTicks());
+    params.gpu_time = static_cast<u64_le>(ns.count());
     std::memcpy(output.data(), &params, output.size());
     return 0;
 }

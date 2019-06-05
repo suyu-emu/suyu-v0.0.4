@@ -108,8 +108,9 @@ private:
         LOG_DEBUG(Service_Time, "called");
 
         const auto& core_timing = Core::System::GetInstance().CoreTiming();
-        const SteadyClockTimePoint steady_clock_time_point{
-            Core::Timing::cyclesToMs(core_timing.GetTicks()) / 1000};
+        const auto ms = Core::Timing::CyclesToMs(core_timing.GetTicks());
+        const SteadyClockTimePoint steady_clock_time_point{static_cast<u64_le>(ms.count() / 1000),
+                                                           {}};
         IPC::ResponseBuilder rb{ctx, (sizeof(SteadyClockTimePoint) / 4) + 2};
         rb.Push(RESULT_SUCCESS);
         rb.PushRaw(steady_clock_time_point);
@@ -284,8 +285,8 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
     }
 
     const auto& core_timing = Core::System::GetInstance().CoreTiming();
-    const SteadyClockTimePoint steady_clock_time_point{
-        Core::Timing::cyclesToMs(core_timing.GetTicks()) / 1000, {}};
+    const auto ms = Core::Timing::CyclesToMs(core_timing.GetTicks());
+    const SteadyClockTimePoint steady_clock_time_point{static_cast<u64_le>(ms.count() / 1000), {}};
 
     CalendarTime calendar_time{};
     calendar_time.year = tm->tm_year + 1900;
