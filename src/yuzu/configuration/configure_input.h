@@ -33,10 +33,16 @@ public:
     void ApplyConfiguration();
 
 private:
+    void changeEvent(QEvent* event) override;
+    void RetranslateUI();
+    void RetranslateControllerComboBoxes();
+
     void UpdateUIEnabled();
 
     /// Load configuration settings.
     void LoadConfiguration();
+    void LoadPlayerControllerIndices();
+
     /// Restore all buttons to their default values.
     void RestoreDefaults();
 

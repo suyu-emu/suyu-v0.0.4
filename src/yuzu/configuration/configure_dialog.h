@@ -23,6 +23,10 @@ public:
     void ApplyConfiguration();
 
 private:
+    void changeEvent(QEvent* event) override;
+
+    void RetranslateUI();
+
     void SetConfiguration();
     void UpdateVisibleTabs();
     void PopulateSelectionList();

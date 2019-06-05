@@ -19,9 +19,14 @@ public:
     ~ConfigureAudio() override;
 
     void ApplyConfiguration();
-    void RetranslateUI();
 
 private:
+    void changeEvent(QEvent* event) override;
+
+    void InitializeAudioOutputSinkComboBox();
+
+    void RetranslateUI();
+
     void UpdateAudioDevices(int sink_index);
 
     void SetConfiguration();

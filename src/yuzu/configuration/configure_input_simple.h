@@ -30,6 +30,9 @@ public:
     void ApplyConfiguration();
 
 private:
+    void changeEvent(QEvent* event) override;
+    void RetranslateUI();
+
     /// Load configuration settings.
     void LoadConfiguration();
 

@@ -4,6 +4,7 @@
 
 #include <QHash>
 #include <QListWidgetItem>
+#include <QSignalBlocker>
 #include "core/settings.h"
 #include "ui_configure.h"
 #include "yuzu/configuration/config.h"
@@ -46,13 +47,38 @@ void ConfigureDialog::ApplyConfiguration() {
     Settings::LogSettings();
 }
 
+void ConfigureDialog::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::LanguageChange) {
+        RetranslateUI();
+    }
+
+    QDialog::changeEvent(event);
+}
+
+void ConfigureDialog::RetranslateUI() {
+    const int old_row = ui->selectorList->currentRow();
+    const int old_index = ui->tabWidget->currentIndex();
+
+    ui->retranslateUi(this);
+
+    PopulateSelectionList();
+    ui->selectorList->setCurrentRow(old_row);
+
+    UpdateVisibleTabs();
+    ui->tabWidget->setCurrentIndex(old_index);
+}
+
 void ConfigureDialog::PopulateSelectionList() {
     const std::array<std::pair<QString, QStringList>, 4> items{
         {{tr("General"), {tr("General"), tr("Web"), tr("Debug"), tr("Game List")}},
          {tr("System"), {tr("System"), tr("Profiles"), tr("Audio")}},
          {tr("Graphics"), {tr("Graphics")}},
-         {tr("Controls"), {tr("Input"), tr("Hotkeys")}}}};
+         {tr("Controls"), {tr("Input"), tr("Hotkeys")}}},
+    };
 
+    [[maybe_unused]] const QSignalBlocker blocker(ui->selectorList);
+
+    ui->selectorList->clear();
     for (const auto& entry : items) {
         auto* const item = new QListWidgetItem(entry.first);
         item->setData(Qt::UserRole, entry.second);
@@ -63,24 +89,28 @@ void ConfigureDialog::PopulateSelectionList() {
 
 void ConfigureDialog::UpdateVisibleTabs() {
     const auto items = ui->selectorList->selectedItems();
-    if (items.isEmpty())
+    if (items.isEmpty()) {
         return;
+    }
 
-    const std::map<QString, QWidget*> widgets = {{tr("General"), ui->generalTab},
-                                                 {tr("System"), ui->systemTab},
-                                                 {tr("Profiles"), ui->profileManagerTab},
-                                                 {tr("Input"), ui->inputTab},
-                                                 {tr("Hotkeys"), ui->hotkeysTab},
-                                                 {tr("Graphics"), ui->graphicsTab},
-                                                 {tr("Audio"), ui->audioTab},
-                                                 {tr("Debug"), ui->debugTab},
-                                                 {tr("Web"), ui->webTab},
-                                                 {tr("Game List"), ui->gameListTab}};
+    const std::map<QString, QWidget*> widgets = {
+        {tr("General"), ui->generalTab},
+        {tr("System"), ui->systemTab},
+        {tr("Profiles"), ui->profileManagerTab},
+        {tr("Input"), ui->inputTab},
+        {tr("Hotkeys"), ui->hotkeysTab},
+        {tr("Graphics"), ui->graphicsTab},
+        {tr("Audio"), ui->audioTab},
+        {tr("Debug"), ui->debugTab},
+        {tr("Web"), ui->webTab},
+        {tr("Game List"), ui->gameListTab},
+    };
+
+    [[maybe_unused]] const QSignalBlocker blocker(ui->tabWidget);
 
     ui->tabWidget->clear();
-
     const QStringList tabs = items[0]->data(Qt::UserRole).toStringList();
-
-    for (const auto& tab : tabs)
+    for (const auto& tab : tabs) {
         ui->tabWidget->addTab(widgets.find(tab)->second, tab);
+    }
 }

@@ -373,6 +373,19 @@ void ConfigureInputPlayer::ApplyConfiguration() {
     Settings::values.players[player_index].button_color_right = colors[3];
 }
 
+void ConfigureInputPlayer::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::LanguageChange) {
+        RetranslateUI();
+    }
+
+    QDialog::changeEvent(event);
+}
+
+void ConfigureInputPlayer::RetranslateUI() {
+    ui->retranslateUi(this);
+    UpdateButtonLabels();
+}
+
 void ConfigureInputPlayer::OnControllerButtonClick(int i) {
     const QColor new_bg_color = QColorDialog::getColor(controller_colors[i]);
     if (!new_bg_color.isValid())

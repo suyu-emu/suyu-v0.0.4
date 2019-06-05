@@ -17,7 +17,6 @@ ConfigureHotkeys::ConfigureHotkeys(QWidget* parent)
 
     model = new QStandardItemModel(this);
     model->setColumnCount(3);
-    model->setHorizontalHeaderLabels({tr("Action"), tr("Hotkey"), tr("Context")});
 
     connect(ui->hotkey_list, &QTreeView::doubleClicked, this, &ConfigureHotkeys::Configure);
     ui->hotkey_list->setModel(model);
@@ -27,6 +26,8 @@ ConfigureHotkeys::ConfigureHotkeys(QWidget* parent)
 
     ui->hotkey_list->setColumnWidth(0, 200);
     ui->hotkey_list->resizeColumnToContents(1);
+
+    RetranslateUI();
 }
 
 ConfigureHotkeys::~ConfigureHotkeys() = default;
@@ -47,6 +48,20 @@ void ConfigureHotkeys::Populate(const HotkeyRegistry& registry) {
     }
 
     ui->hotkey_list->expandAll();
+}
+
+void ConfigureHotkeys::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::LanguageChange) {
+        RetranslateUI();
+    }
+
+    QWidget::changeEvent(event);
+}
+
+void ConfigureHotkeys::RetranslateUI() {
+    ui->retranslateUi(this);
+
+    model->setHorizontalHeaderLabels({tr("Action"), tr("Hotkey"), tr("Context")});
 }
 
 void ConfigureHotkeys::Configure(QModelIndex index) {
@@ -111,8 +126,4 @@ void ConfigureHotkeys::ApplyConfiguration(HotkeyRegistry& registry) {
     }
 
     registry.SaveHotkeys();
-}
-
-void ConfigureHotkeys::RetranslateUI() {
-    ui->retranslateUi(this);
 }

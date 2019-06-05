@@ -21,6 +21,9 @@ public:
     void ApplyConfiguration();
 
 private:
+    void changeEvent(QEvent* event) override;
+    void RetranslateUI();
+
     void SetConfiguration();
 
     void UpdateBackgroundColorButton(QColor color);
