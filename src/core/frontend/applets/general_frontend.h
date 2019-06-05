@@ -9,6 +9,28 @@
 
 namespace Core::Frontend {
 
+class ParentalControlsApplet {
+public:
+    virtual ~ParentalControlsApplet();
+
+    virtual void VerifyPIN(std::function<void(bool)> finished,
+                           bool suspend_future_verification_temporarily) = 0;
+    virtual void VerifyPINForSettings(std::function<void(bool)> finished) = 0;
+    virtual void RegisterPIN(std::function<void()> finished) = 0;
+    virtual void ChangePIN(std::function<void()> finished) = 0;
+};
+
+class DefaultParentalControlsApplet final : public ParentalControlsApplet {
+public:
+    ~DefaultParentalControlsApplet() override;
+
+    void VerifyPIN(std::function<void(bool)> finished,
+                   bool suspend_future_verification_temporarily) override;
+    void VerifyPINForSettings(std::function<void(bool)> finished) override;
+    void RegisterPIN(std::function<void()> finished) override;
+    void ChangePIN(std::function<void()> finished) override;
+};
+
 class PhotoViewerApplet {
 public:
     virtual ~PhotoViewerApplet();
