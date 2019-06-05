@@ -4,15 +4,89 @@
 
 #include <memory>
 
+#include "core/file_sys/romfs_factory.h"
+#include "core/hle/ipc_helpers.h"
 #include "core/hle/service/ncm/ncm.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
 
 namespace Service::NCM {
 
-class LocationResolver final : public ServiceFramework<LocationResolver> {
+class ILocationResolver final : public ServiceFramework<ILocationResolver> {
 public:
-    explicit LocationResolver() : ServiceFramework{"lr"} {
+    explicit ILocationResolver(FileSys::StorageId id)
+        : ServiceFramework{"ILocationResolver"}, storage(id) {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "ResolveProgramPath"},
+            {1, nullptr, "RedirectProgramPath"},
+            {2, nullptr, "ResolveApplicationControlPath"},
+            {3, nullptr, "ResolveApplicationHtmlDocumentPath"},
+            {4, nullptr, "ResolveDataPath"},
+            {5, nullptr, "RedirectApplicationControlPath"},
+            {6, nullptr, "RedirectApplicationHtmlDocumentPath"},
+            {7, nullptr, "ResolveApplicationLegalInformationPath"},
+            {8, nullptr, "RedirectApplicationLegalInformationPath"},
+            {9, nullptr, "Refresh"},
+            {10, nullptr, "RedirectProgramPath2"},
+            {11, nullptr, "Refresh2"},
+            {12, nullptr, "DeleteProgramPath"},
+            {13, nullptr, "DeleteApplicationControlPath"},
+            {14, nullptr, "DeleteApplicationHtmlDocumentPath"},
+            {15, nullptr, "DeleteApplicationLegalInformationPath"},
+            {16, nullptr, ""},
+            {17, nullptr, ""},
+            {18, nullptr, ""},
+            {19, nullptr, ""},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+
+private:
+    FileSys::StorageId storage;
+};
+
+class IRegisteredLocationResolver final : public ServiceFramework<IRegisteredLocationResolver> {
+public:
+    explicit IRegisteredLocationResolver() : ServiceFramework{"IRegisteredLocationResolver"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "ResolveProgramPath"},
+            {1, nullptr, "RegisterProgramPath"},
+            {2, nullptr, "UnregisterProgramPath"},
+            {3, nullptr, "RedirectProgramPath"},
+            {4, nullptr, "ResolveHtmlDocumentPath"},
+            {5, nullptr, "RegisterHtmlDocumentPath"},
+            {6, nullptr, "UnregisterHtmlDocumentPath"},
+            {7, nullptr, "RedirectHtmlDocumentPath"},
+            {8, nullptr, ""},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+class IAddOnContentLocationResolver final : public ServiceFramework<IAddOnContentLocationResolver> {
+public:
+    explicit IAddOnContentLocationResolver() : ServiceFramework{"IAddOnContentLocationResolver"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "ResolveAddOnContentPath"},
+            {1, nullptr, "RegisterAddOnContentStorage"},
+            {2, nullptr, "UnregisterAllAddOnContentPath"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+class LR final : public ServiceFramework<LR> {
+public:
+    explicit LR() : ServiceFramework{"lr"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "OpenLocationResolver"},
@@ -52,7 +126,7 @@ public:
 };
 
 void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<LocationResolver>()->InstallAsService(sm);
+    std::make_shared<LR>()->InstallAsService(sm);
     std::make_shared<NCM>()->InstallAsService(sm);
 }
 
