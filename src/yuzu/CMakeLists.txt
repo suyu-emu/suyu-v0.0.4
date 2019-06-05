@@ -162,6 +162,9 @@ target_compile_definitions(yuzu PRIVATE
 
     # Disable implicit type narrowing in signal/slot connect() calls.
     -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT
+
+    # Disable unsafe overloads of QProcess' start() function.
+    -DQT_NO_PROCESS_COMBINED_ARGUMENT_START
 )
 
 if (YUZU_ENABLE_COMPATIBILITY_REPORTING)
