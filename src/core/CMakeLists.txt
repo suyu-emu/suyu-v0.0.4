@@ -43,6 +43,8 @@ add_library(core STATIC
     file_sys/fsmitm_romfsbuild.h
     file_sys/ips_layer.cpp
     file_sys/ips_layer.h
+    file_sys/kernel_executable.cpp
+    file_sys/kernel_executable.h
     file_sys/mode.h
     file_sys/nca_metadata.cpp
     file_sys/nca_metadata.h
