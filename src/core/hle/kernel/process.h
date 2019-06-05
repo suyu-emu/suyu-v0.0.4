@@ -5,7 +5,6 @@
 #pragma once
 
 #include <array>
-#include <bitset>
 #include <cstddef>
 #include <list>
 #include <string>
@@ -32,6 +31,7 @@ namespace Kernel {
 class KernelCore;
 class ResourceLimit;
 class Thread;
+class TLSPage;
 
 struct CodeSet;
 
@@ -260,10 +260,10 @@ public:
     // Thread-local storage management
 
     // Marks the next available region as used and returns the address of the slot.
-    VAddr MarkNextAvailableTLSSlotAsUsed(Thread& thread);
+    [[nodiscard]] VAddr CreateTLSRegion();
 
     // Frees a used TLS slot identified by the given address
-    void FreeTLSSlot(VAddr tls_address);
+    void FreeTLSRegion(VAddr tls_address);
 
 private:
     explicit Process(Core::System& system);
@@ -310,7 +310,7 @@ private:
     /// holds the TLS for a specific thread. This vector contains which parts are in use for each
     /// page as a bitmask.
     /// This vector will grow as more pages are allocated for new threads.
-    std::vector<std::bitset<8>> tls_slots;
+    std::vector<TLSPage> tls_pages;
 
     /// Contains the parsed process capability descriptors.
     ProcessCapabilities capabilities;
