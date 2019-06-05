@@ -152,22 +152,33 @@ ResultVal<VMManager::VMAHandle> VMManager::MapBackingMemory(VAddr target, u8* me
 }
 
 ResultVal<VAddr> VMManager::FindFreeRegion(u64 size) const {
-    // Find the first Free VMA.
-    const VAddr base = GetASLRRegionBaseAddress();
-    const VMAHandle vma_handle = std::find_if(vma_map.begin(), vma_map.end(), [&](const auto& vma) {
-        if (vma.second.type != VMAType::Free)
-            return false;
+    return FindFreeRegion(GetASLRRegionBaseAddress(), GetASLRRegionEndAddress(), size);
+}
 
-        const VAddr vma_end = vma.second.base + vma.second.size;
-        return vma_end > base && vma_end >= base + size;
-    });
+ResultVal<VAddr> VMManager::FindFreeRegion(VAddr begin, VAddr end, u64 size) const {
+    ASSERT(begin < end);
+    ASSERT(size <= end - begin);
 
-    if (vma_handle == vma_map.end()) {
+    const VMAHandle vma_handle =
+        std::find_if(vma_map.begin(), vma_map.end(), [begin, end, size](const auto& vma) {
+            if (vma.second.type != VMAType::Free) {
+                return false;
+            }
+            const VAddr vma_base = vma.second.base;
+            const VAddr vma_end = vma_base + vma.second.size;
+            const VAddr assumed_base = (begin < vma_base) ? vma_base : begin;
+            const VAddr used_range = assumed_base + size;
+
+            return vma_base <= assumed_base && assumed_base < used_range && used_range < end &&
+                   used_range <= vma_end;
+        });
+
+    if (vma_handle == vma_map.cend()) {
         // TODO(Subv): Find the correct error code here.
         return ResultCode(-1);
     }
 
-    const VAddr target = std::max(base, vma_handle->second.base);
+    const VAddr target = std::max(begin, vma_handle->second.base);
     return MakeResult<VAddr>(target);
 }
 
