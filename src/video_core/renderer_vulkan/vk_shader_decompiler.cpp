@@ -481,13 +481,13 @@ private:
     }
 
     void VisitBasicBlock(const NodeBlock& bb) {
-        for (const Node node : bb) {
+        for (const auto& node : bb) {
             static_cast<void>(Visit(node));
         }
     }
 
-    Id Visit(Node node) {
-        if (const auto operation = std::get_if<OperationNode>(node)) {
+    Id Visit(const Node& node) {
+        if (const auto operation = std::get_if<OperationNode>(&*node)) {
             const auto operation_index = static_cast<std::size_t>(operation->GetCode());
             const auto decompiler = operation_decompilers[operation_index];
             if (decompiler == nullptr) {
@@ -495,17 +495,17 @@ private:
             }
             return (this->*decompiler)(*operation);
 
-        } else if (const auto gpr = std::get_if<GprNode>(node)) {
+        } else if (const auto gpr = std::get_if<GprNode>(&*node)) {
             const u32 index = gpr->GetIndex();
             if (index == Register::ZeroIndex) {
                 return Constant(t_float, 0.0f);
             }
             return Emit(OpLoad(t_float, registers.at(index)));
 
-        } else if (const auto immediate = std::get_if<ImmediateNode>(node)) {
+        } else if (const auto immediate = std::get_if<ImmediateNode>(&*node)) {
             return BitcastTo<Type::Float>(Constant(t_uint, immediate->GetValue()));
 
-        } else if (const auto predicate = std::get_if<PredicateNode>(node)) {
+        } else if (const auto predicate = std::get_if<PredicateNode>(&*node)) {
             const auto value = [&]() -> Id {
                 switch (const auto index = predicate->GetIndex(); index) {
                 case Tegra::Shader::Pred::UnusedIndex:
@@ -521,7 +521,7 @@ private:
             }
             return value;
 
-        } else if (const auto abuf = std::get_if<AbufNode>(node)) {
+        } else if (const auto abuf = std::get_if<AbufNode>(&*node)) {
             const auto attribute = abuf->GetIndex();
             const auto element = abuf->GetElement();
 
@@ -571,8 +571,8 @@ private:
             }
             UNIMPLEMENTED_MSG("Unhandled input attribute: {}", static_cast<u32>(attribute));
 
-        } else if (const auto cbuf = std::get_if<CbufNode>(node)) {
-            const Node offset = cbuf->GetOffset();
+        } else if (const auto cbuf = std::get_if<CbufNode>(&*node)) {
+            const Node& offset = cbuf->GetOffset();
             const Id buffer_id = constant_buffers.at(cbuf->GetIndex());
 
             Id pointer{};
@@ -584,7 +584,7 @@ private:
             } else {
                 Id buffer_index{};
                 Id buffer_element{};
-                if (const auto immediate = std::get_if<ImmediateNode>(offset)) {
+                if (const auto immediate = std::get_if<ImmediateNode>(&*offset)) {
                     // Direct access
                     const u32 offset_imm = immediate->GetValue();
                     ASSERT(offset_imm % 4 == 0);
@@ -606,7 +606,7 @@ private:
             }
             return Emit(OpLoad(t_float, pointer));
 
-        } else if (const auto gmem = std::get_if<GmemNode>(node)) {
+        } else if (const auto gmem = std::get_if<GmemNode>(&*node)) {
             const Id gmem_buffer = global_buffers.at(gmem->GetDescriptor());
             const Id real = BitcastTo<Type::Uint>(Visit(gmem->GetRealAddress()));
             const Id base = BitcastTo<Type::Uint>(Visit(gmem->GetBaseAddress()));
@@ -616,7 +616,7 @@ private:
             return Emit(OpLoad(t_float, Emit(OpAccessChain(t_gmem_float, gmem_buffer,
                                                            Constant(t_uint, 0u), offset))));
 
-        } else if (const auto conditional = std::get_if<ConditionalNode>(node)) {
+        } else if (const auto conditional = std::get_if<ConditionalNode>(&*node)) {
             // It's invalid to call conditional on nested nodes, use an operation instead
             const Id true_label = OpLabel();
             const Id skip_label = OpLabel();
@@ -631,7 +631,7 @@ private:
             Emit(skip_label);
             return {};
 
-        } else if (const auto comment = std::get_if<CommentNode>(node)) {
+        } else if (const auto comment = std::get_if<CommentNode>(&*node)) {
             Name(Emit(OpUndef(t_void)), comment->GetText());
             return {};
         }
@@ -699,18 +699,18 @@ private:
     }
 
     Id Assign(Operation operation) {
-        const Node dest = operation[0];
-        const Node src = operation[1];
+        const Node& dest = operation[0];
+        const Node& src = operation[1];
 
         Id target{};
-        if (const auto gpr = std::get_if<GprNode>(dest)) {
+        if (const auto gpr = std::get_if<GprNode>(&*dest)) {
             if (gpr->GetIndex() == Register::ZeroIndex) {
                 // Writing to Register::ZeroIndex is a no op
                 return {};
             }
             target = registers.at(gpr->GetIndex());
 
-        } else if (const auto abuf = std::get_if<AbufNode>(dest)) {
+        } else if (const auto abuf = std::get_if<AbufNode>(&*dest)) {
             target = [&]() -> Id {
                 switch (const auto attribute = abuf->GetIndex(); attribute) {
                 case Attribute::Index::Position:
@@ -735,7 +735,7 @@ private:
                 }
             }();
 
-        } else if (const auto lmem = std::get_if<LmemNode>(dest)) {
+        } else if (const auto lmem = std::get_if<LmemNode>(&*dest)) {
             Id address = BitcastTo<Type::Uint>(Visit(lmem->GetAddress()));
             address = Emit(OpUDiv(t_uint, address, Constant(t_uint, 4)));
             target = Emit(OpAccessChain(t_prv_float, local_memory, {address}));
@@ -781,11 +781,11 @@ private:
     }
 
     Id LogicalAssign(Operation operation) {
-        const Node dest = operation[0];
-        const Node src = operation[1];
+        const Node& dest = operation[0];
+        const Node& src = operation[1];
 
         Id target{};
-        if (const auto pred = std::get_if<PredicateNode>(dest)) {
+        if (const auto pred = std::get_if<PredicateNode>(&*dest)) {
             ASSERT_MSG(!pred->IsNegated(), "Negating logical assignment");
 
             const auto index = pred->GetIndex();
@@ -797,7 +797,7 @@ private:
             }
             target = predicates.at(index);
 
-        } else if (const auto flag = std::get_if<InternalFlagNode>(dest)) {
+        } else if (const auto flag = std::get_if<InternalFlagNode>(&*dest)) {
             target = internal_flags.at(static_cast<u32>(flag->GetFlag()));
         }
 
@@ -883,7 +883,7 @@ private:
         } else {
             u32 component_value = 0;
             if (meta->component) {
-                const auto component = std::get_if<ImmediateNode>(meta->component);
+                const auto component = std::get_if<ImmediateNode>(&*meta->component);
                 ASSERT_MSG(component, "Component is not an immediate value");
                 component_value = component->GetValue();
             }
@@ -940,7 +940,7 @@ private:
     }
 
     Id Branch(Operation operation) {
-        const auto target = std::get_if<ImmediateNode>(operation[0]);
+        const auto target = std::get_if<ImmediateNode>(&*operation[0]);
         UNIMPLEMENTED_IF(!target);
 
         Emit(OpStore(jmp_to, Constant(t_uint, target->GetValue())));
@@ -949,7 +949,7 @@ private:
     }
 
     Id PushFlowStack(Operation operation) {
-        const auto target = std::get_if<ImmediateNode>(operation[0]);
+        const auto target = std::get_if<ImmediateNode>(&*operation[0]);
         ASSERT(target);
 
         const Id current = Emit(OpLoad(t_uint, flow_stack_top));

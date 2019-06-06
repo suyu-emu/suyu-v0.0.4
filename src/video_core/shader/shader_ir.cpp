@@ -9,6 +9,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "video_core/engines/shader_bytecode.h"
+#include "video_core/shader/node_helper.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace VideoCommon::Shader {
@@ -28,30 +29,11 @@ ShaderIR::ShaderIR(const ProgramCode& program_code, u32 main_offset)
 
 ShaderIR::~ShaderIR() = default;
 
-Node ShaderIR::StoreNode(NodeData&& node_data) {
-    auto store = std::make_unique<NodeData>(node_data);
-    const Node node = store.get();
-    stored_nodes.push_back(std::move(store));
-    return node;
-}
-
-Node ShaderIR::Conditional(Node condition, std::vector<Node>&& code) {
-    return StoreNode(ConditionalNode(condition, std::move(code)));
-}
-
-Node ShaderIR::Comment(std::string text) {
-    return StoreNode(CommentNode(std::move(text)));
-}
-
-Node ShaderIR::Immediate(u32 value) {
-    return StoreNode(ImmediateNode(value));
-}
-
 Node ShaderIR::GetRegister(Register reg) {
     if (reg != Register::ZeroIndex) {
         used_registers.insert(static_cast<u32>(reg));
     }
-    return StoreNode(GprNode(reg));
+    return MakeNode<GprNode>(reg);
 }
 
 Node ShaderIR::GetImmediate19(Instruction instr) {
@@ -69,7 +51,7 @@ Node ShaderIR::GetConstBuffer(u64 index_, u64 offset_) {
     const auto [entry, is_new] = used_cbufs.try_emplace(index);
     entry->second.MarkAsUsed(offset);
 
-    return StoreNode(CbufNode(index, Immediate(offset)));
+    return MakeNode<CbufNode>(index, Immediate(offset));
 }
 
 Node ShaderIR::GetConstBufferIndirect(u64 index_, u64 offset_, Node node) {
@@ -80,7 +62,7 @@ Node ShaderIR::GetConstBufferIndirect(u64 index_, u64 offset_, Node node) {
     entry->second.MarkAsUsedIndirect();
 
     const Node final_offset = Operation(OperationCode::UAdd, NO_PRECISE, node, Immediate(offset));
-    return StoreNode(CbufNode(index, final_offset));
+    return MakeNode<CbufNode>(index, final_offset);
 }
 
 Node ShaderIR::GetPredicate(u64 pred_, bool negated) {
@@ -89,7 +71,7 @@ Node ShaderIR::GetPredicate(u64 pred_, bool negated) {
         used_predicates.insert(pred);
     }
 
-    return StoreNode(PredicateNode(pred, negated));
+    return MakeNode<PredicateNode>(pred, negated);
 }
 
 Node ShaderIR::GetPredicate(bool immediate) {
@@ -98,12 +80,12 @@ Node ShaderIR::GetPredicate(bool immediate) {
 
 Node ShaderIR::GetInputAttribute(Attribute::Index index, u64 element, Node buffer) {
     used_input_attributes.emplace(index);
-    return StoreNode(AbufNode(index, static_cast<u32>(element), buffer));
+    return MakeNode<AbufNode>(index, static_cast<u32>(element), buffer);
 }
 
 Node ShaderIR::GetPhysicalInputAttribute(Tegra::Shader::Register physical_address, Node buffer) {
     uses_physical_attributes = true;
-    return StoreNode(AbufNode(GetRegister(physical_address), buffer));
+    return MakeNode<AbufNode>(GetRegister(physical_address), buffer);
 }
 
 Node ShaderIR::GetOutputAttribute(Attribute::Index index, u64 element, Node buffer) {
@@ -115,11 +97,11 @@ Node ShaderIR::GetOutputAttribute(Attribute::Index index, u64 element, Node buff
     }
     used_output_attributes.insert(index);
 
-    return StoreNode(AbufNode(index, static_cast<u32>(element), buffer));
+    return MakeNode<AbufNode>(index, static_cast<u32>(element), buffer);
 }
 
 Node ShaderIR::GetInternalFlag(InternalFlag flag, bool negated) {
-    const Node node = StoreNode(InternalFlagNode(flag));
+    const Node node = MakeNode<InternalFlagNode>(flag);
     if (negated) {
         return Operation(OperationCode::LogicalNegate, node);
     }
@@ -127,7 +109,7 @@ Node ShaderIR::GetInternalFlag(InternalFlag flag, bool negated) {
 }
 
 Node ShaderIR::GetLocalMemory(Node address) {
-    return StoreNode(LmemNode(address));
+    return MakeNode<LmemNode>(address);
 }
 
 Node ShaderIR::GetTemporal(u32 id) {
@@ -391,70 +373,6 @@ void ShaderIR::SetInternalFlagsFromInteger(NodeBlock& bb, Node value, bool sets_
 Node ShaderIR::BitfieldExtract(Node value, u32 offset, u32 bits) {
     return Operation(OperationCode::UBitfieldExtract, NO_PRECISE, value, Immediate(offset),
                      Immediate(bits));
-}
-
-/*static*/ OperationCode ShaderIR::SignedToUnsignedCode(OperationCode operation_code,
-                                                        bool is_signed) {
-    if (is_signed) {
-        return operation_code;
-    }
-    switch (operation_code) {
-    case OperationCode::FCastInteger:
-        return OperationCode::FCastUInteger;
-    case OperationCode::IAdd:
-        return OperationCode::UAdd;
-    case OperationCode::IMul:
-        return OperationCode::UMul;
-    case OperationCode::IDiv:
-        return OperationCode::UDiv;
-    case OperationCode::IMin:
-        return OperationCode::UMin;
-    case OperationCode::IMax:
-        return OperationCode::UMax;
-    case OperationCode::ICastFloat:
-        return OperationCode::UCastFloat;
-    case OperationCode::ICastUnsigned:
-        return OperationCode::UCastSigned;
-    case OperationCode::ILogicalShiftLeft:
-        return OperationCode::ULogicalShiftLeft;
-    case OperationCode::ILogicalShiftRight:
-        return OperationCode::ULogicalShiftRight;
-    case OperationCode::IArithmeticShiftRight:
-        return OperationCode::UArithmeticShiftRight;
-    case OperationCode::IBitwiseAnd:
-        return OperationCode::UBitwiseAnd;
-    case OperationCode::IBitwiseOr:
-        return OperationCode::UBitwiseOr;
-    case OperationCode::IBitwiseXor:
-        return OperationCode::UBitwiseXor;
-    case OperationCode::IBitwiseNot:
-        return OperationCode::UBitwiseNot;
-    case OperationCode::IBitfieldInsert:
-        return OperationCode::UBitfieldInsert;
-    case OperationCode::IBitCount:
-        return OperationCode::UBitCount;
-    case OperationCode::LogicalILessThan:
-        return OperationCode::LogicalULessThan;
-    case OperationCode::LogicalIEqual:
-        return OperationCode::LogicalUEqual;
-    case OperationCode::LogicalILessEqual:
-        return OperationCode::LogicalULessEqual;
-    case OperationCode::LogicalIGreaterThan:
-        return OperationCode::LogicalUGreaterThan;
-    case OperationCode::LogicalINotEqual:
-        return OperationCode::LogicalUNotEqual;
-    case OperationCode::LogicalIGreaterEqual:
-        return OperationCode::LogicalUGreaterEqual;
-    case OperationCode::INegate:
-        UNREACHABLE_MSG("Can't negate an unsigned integer");
-        return {};
-    case OperationCode::IAbsolute:
-        UNREACHABLE_MSG("Can't apply absolute to an unsigned integer");
-        return {};
-    default:
-        UNREACHABLE_MSG("Unknown signed operation with code={}", static_cast<u32>(operation_code));
-        return {};
-    }
 }
 
 } // namespace VideoCommon::Shader

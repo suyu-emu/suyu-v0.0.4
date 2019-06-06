@@ -11,6 +11,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "video_core/engines/shader_bytecode.h"
+#include "video_core/shader/node_helper.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace VideoCommon::Shader {
@@ -291,8 +292,8 @@ const Sampler& ShaderIR::GetBindlessSampler(const Tegra::Shader::Register& reg, 
     const Node sampler_register = GetRegister(reg);
     const Node base_sampler =
         TrackCbuf(sampler_register, global_code, static_cast<s64>(global_code.size()));
-    const auto cbuf = std::get_if<CbufNode>(base_sampler);
-    const auto cbuf_offset_imm = std::get_if<ImmediateNode>(cbuf->GetOffset());
+    const auto cbuf = std::get_if<CbufNode>(&*base_sampler);
+    const auto cbuf_offset_imm = std::get_if<ImmediateNode>(&*cbuf->GetOffset());
     ASSERT(cbuf_offset_imm != nullptr);
     const auto cbuf_offset = cbuf_offset_imm->GetValue();
     const auto cbuf_index = cbuf->GetIndex();
@@ -388,8 +389,8 @@ Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
                                Node array, Node depth_compare, u32 bias_offset,
                                std::vector<Node> aoffi,
                                std::optional<Tegra::Shader::Register> bindless_reg) {
-    const bool is_array = array;
-    const bool is_shadow = depth_compare;
+    const auto is_array = static_cast<bool>(array);
+    const auto is_shadow = static_cast<bool>(depth_compare);
     const bool is_bindless = bindless_reg.has_value();
 
     UNIMPLEMENTED_IF_MSG((texture_type == TextureType::Texture3D && (is_array || is_shadow)) ||

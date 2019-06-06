@@ -10,6 +10,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "video_core/engines/shader_bytecode.h"
+#include "video_core/shader/node_helper.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace VideoCommon::Shader {
@@ -169,7 +170,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
             const Node it_offset = Immediate(i * 4);
             const Node real_address =
                 Operation(OperationCode::UAdd, NO_PRECISE, real_address_base, it_offset);
-            const Node gmem = StoreNode(GmemNode(real_address, base_address, descriptor));
+            const Node gmem = MakeNode<GmemNode>(real_address, base_address, descriptor);
 
             SetTemporal(bb, i, gmem);
         }
@@ -262,7 +263,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
             const Node it_offset = Immediate(i * 4);
             const Node real_address =
                 Operation(OperationCode::UAdd, NO_PRECISE, real_address_base, it_offset);
-            const Node gmem = StoreNode(GmemNode(real_address, base_address, descriptor));
+            const Node gmem = MakeNode<GmemNode>(real_address, base_address, descriptor);
 
             bb.push_back(Operation(OperationCode::Assign, gmem, GetTemporal(i + 1)));
         }
@@ -298,9 +299,9 @@ std::tuple<Node, Node, GlobalMemoryBase> ShaderIR::TrackAndGetGlobalMemory(NodeB
 
     const Node base_address{
         TrackCbuf(addr_register, global_code, static_cast<s64>(global_code.size()))};
-    const auto cbuf = std::get_if<CbufNode>(base_address);
+    const auto cbuf = std::get_if<CbufNode>(&*base_address);
     ASSERT(cbuf != nullptr);
-    const auto cbuf_offset_imm = std::get_if<ImmediateNode>(cbuf->GetOffset());
+    const auto cbuf_offset_imm = std::get_if<ImmediateNode>(&*cbuf->GetOffset());
     ASSERT(cbuf_offset_imm != nullptr);
     const auto cbuf_offset = cbuf_offset_imm->GetValue();
 

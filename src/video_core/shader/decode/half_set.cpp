@@ -8,6 +8,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "video_core/engines/shader_bytecode.h"
+#include "video_core/shader/node_helper.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace VideoCommon::Shader {
