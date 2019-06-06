@@ -12,9 +12,14 @@
 #include <vector>
 
 #include "common/common_types.h"
-#include "video_core/shader/shader_ir.h"
+#include "video_core/shader/node.h"
 
 namespace VideoCommon::Shader {
+
+/// This arithmetic operation cannot be constraint
+inline constexpr MetaArithmetic PRECISE = {true};
+/// This arithmetic operation can be optimized away
+inline constexpr MetaArithmetic NO_PRECISE = {false};
 
 /// Creates a conditional node
 Node Conditional(Node condition, std::vector<Node> code);
