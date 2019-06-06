@@ -285,7 +285,9 @@ void WebBrowser::Finalize() {
     broker.PushNormalDataFromApplet(IStorage{data});
     broker.SignalStateChanged();
 
-    FileUtil::DeleteDirRecursively(temporary_dir);
+    if (!temporary_dir.empty() && FileUtil::IsDirectory(temporary_dir)) {
+        FileUtil::DeleteDirRecursively(temporary_dir);
+    }
 }
 
 void WebBrowser::InitializeInternal() {
