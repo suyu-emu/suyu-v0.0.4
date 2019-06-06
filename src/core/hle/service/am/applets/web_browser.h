@@ -17,7 +17,7 @@ enum class WebArgTLVType : u16;
 
 class WebBrowser final : public Applet {
 public:
-    WebBrowser(Core::Frontend::WebBrowserApplet& frontend,
+    WebBrowser(Core::Frontend::WebBrowserApplet& frontend, u64 current_process_title_id,
                Core::Frontend::ECommerceApplet* frontend_e_commerce = nullptr);
 
     ~WebBrowser() override;
@@ -58,6 +58,8 @@ private:
     bool complete = false;
     bool unpacked = false;
     ResultCode status = RESULT_SUCCESS;
+
+    u64 current_process_title_id;
 
     ShimKind kind;
     std::map<WebArgTLVType, std::vector<u8>> args;

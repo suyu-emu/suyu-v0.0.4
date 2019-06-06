@@ -207,9 +207,10 @@ FileSys::VirtualFile GetApplicationRomFS(u64 title_id, FileSys::ContentRecordTyp
 
 } // Anonymous namespace
 
-WebBrowser::WebBrowser(Core::Frontend::WebBrowserApplet& frontend,
+WebBrowser::WebBrowser(Core::Frontend::WebBrowserApplet& frontend, u64 current_process_title_id,
                        Core::Frontend::ECommerceApplet* frontend_e_commerce)
-    : frontend(frontend), frontend_e_commerce(frontend_e_commerce) {}
+    : frontend(frontend), frontend_e_commerce(frontend_e_commerce),
+      current_process_title_id(current_process_title_id) {}
 
 WebBrowser::~WebBrowser() = default;
 
@@ -469,7 +470,7 @@ void WebBrowser::InitializeOffline() {
     }
 
     if (title_id == 0) {
-        title_id = Core::System::GetInstance().CurrentProcess()->GetTitleID();
+        title_id = current_process_title_id;
     }
 
     offline_romfs = GetApplicationRomFS(title_id, type);

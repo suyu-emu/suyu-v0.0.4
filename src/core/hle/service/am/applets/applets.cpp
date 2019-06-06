@@ -139,12 +139,14 @@ void Applet::Initialize() {
 
 AppletFrontendSet::AppletFrontendSet() = default;
 
-AppletFrontendSet::AppletFrontendSet(ErrorApplet error, PhotoViewer photo_viewer,
-                                     ProfileSelect profile_select,
-                                     SoftwareKeyboard software_keyboard, WebBrowser web_browser)
-    : error{std::move(error)}, photo_viewer{std::move(photo_viewer)}, profile_select{std::move(
-                                                                          profile_select)},
-      software_keyboard{std::move(software_keyboard)}, web_browser{std::move(web_browser)} {}
+AppletFrontendSet::AppletFrontendSet(ParentalControlsApplet parental_controls, ErrorApplet error,
+                                     PhotoViewer photo_viewer, ProfileSelect profile_select,
+                                     SoftwareKeyboard software_keyboard, WebBrowser web_browser,
+                                     ECommerceApplet e_commerce)
+    : parental_controls{std::move(parental_controls)}, error{std::move(error)},
+      photo_viewer{std::move(photo_viewer)}, profile_select{std::move(profile_select)},
+      software_keyboard{std::move(software_keyboard)}, web_browser{std::move(web_browser)},
+      e_commerce{std::move(e_commerce)} {}
 
 AppletFrontendSet::~AppletFrontendSet() = default;
 
@@ -214,7 +216,7 @@ void AppletManager::ClearAll() {
     frontend = {};
 }
 
-std::shared_ptr<Applet> AppletManager::GetApplet(AppletId id) const {
+std::shared_ptr<Applet> AppletManager::GetApplet(AppletId id, u64 current_process_title_id) const {
     switch (id) {
     case AppletId::Auth:
         return std::make_shared<Auth>(*frontend.parental_controls);
@@ -227,9 +229,10 @@ std::shared_ptr<Applet> AppletManager::GetApplet(AppletId id) const {
     case AppletId::PhotoViewer:
         return std::make_shared<PhotoViewer>(*frontend.photo_viewer);
     case AppletId::LibAppletShop:
-        return std::make_shared<WebBrowser>(*frontend.web_browser, frontend.e_commerce.get());
+        return std::make_shared<WebBrowser>(*frontend.web_browser, current_process_title_id,
+                                            frontend.e_commerce.get());
     case AppletId::LibAppletOff:
-        return std::make_shared<WebBrowser>(*frontend.web_browser);
+        return std::make_shared<WebBrowser>(*frontend.web_browser, current_process_title_id);
     default:
         UNIMPLEMENTED_MSG(
             "No backend implementation exists for applet_id={:02X}! Falling back to stub applet.",

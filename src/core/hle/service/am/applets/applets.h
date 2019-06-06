@@ -187,7 +187,7 @@ public:
     void SetDefaultAppletsIfMissing();
     void ClearAll();
 
-    std::shared_ptr<Applet> GetApplet(AppletId id) const;
+    std::shared_ptr<Applet> GetApplet(AppletId id, u64 current_process_title_id) const;
 
 private:
     AppletFrontendSet frontend;
