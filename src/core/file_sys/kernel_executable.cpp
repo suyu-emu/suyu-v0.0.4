@@ -34,7 +34,7 @@ bool DecompressBLZ(std::vector<u8>& data) {
         --index;
         auto control = data[index + start_offset];
         for (size_t i = 0; i < 8; ++i) {
-            if ((control & 0x80) > 0) {
+            if (((control << i) & 0x80) > 0) {
                 if (index < 2) {
                     return false;
                 }
@@ -70,9 +70,8 @@ bool DecompressBLZ(std::vector<u8>& data) {
                 data[out_index + start_offset] = data[index + start_offset];
             }
 
-            control <<= 1;
             if (out_index == 0)
-                return true;
+                break;
         }
     }
 
@@ -132,15 +131,15 @@ std::vector<u8> KIP::GetSectionDecompressed(u8 index) const {
 }
 
 bool KIP::Is64Bit() const {
-    return header.flags & 0x8;
+    return (header.flags & 0x8) != 0;
 }
 
 bool KIP::Is39BitAddressSpace() const {
-    return header.flags & 0x10;
+    return (header.flags & 0x10) != 0;
 }
 
 bool KIP::IsService() const {
-    return header.flags & 0x20;
+    return (header.flags & 0x20) != 0;
 }
 
 std::vector<u32> KIP::GetKernelCapabilities() const {

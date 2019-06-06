@@ -53,10 +53,14 @@ AppLoader::LoadResult AppLoader_KIP::Load(Kernel::Process& process) {
         return {kip->GetStatus(), {}};
     }
 
-    const auto address_space =
-        kip->Is64Bit() ? (kip->Is39BitAddressSpace() ? FileSys::ProgramAddressSpaceType::Is39Bit
-                                                     : FileSys::ProgramAddressSpaceType::Is36Bit)
-                       : FileSys::ProgramAddressSpaceType::Is32Bit;
+    const auto get_kip_address_space_type = [](const auto& kip) {
+        return kip.Is64Bit()
+                   ? (kip.Is39BitAddressSpace() ? FileSys::ProgramAddressSpaceType::Is39Bit
+                                                : FileSys::ProgramAddressSpaceType::Is36Bit)
+                   : FileSys::ProgramAddressSpaceType::Is32Bit;
+    };
+
+    const auto address_space = get_kip_address_space_type(*kip);
 
     FileSys::ProgramMetadata metadata;
     metadata.LoadManual(kip->Is64Bit(), address_space, kip->GetMainThreadPriority(),
