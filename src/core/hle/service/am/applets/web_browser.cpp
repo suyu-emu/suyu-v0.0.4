@@ -103,6 +103,17 @@ enum class ShimKind : u32 {
     Lobby = 7,
 };
 
+enum class ShopWebTarget {
+    ApplicationInfo,
+    AddOnContentList,
+    SubscriptionList,
+    ConsumableItemList,
+    Home,
+    Settings,
+};
+
+namespace {
+
 constexpr std::size_t SHIM_KIND_COUNT = 0x8;
 
 struct WebArgHeader {
@@ -148,31 +159,20 @@ enum class OfflineWebSource : u32 {
     SystemDataPage = 0x3,
 };
 
-enum class ShopWebTarget {
-    ApplicationInfo,
-    AddOnContentList,
-    SubscriptionList,
-    ConsumableItemList,
-    Home,
-    Settings,
-};
-
-namespace {
-
 std::map<WebArgTLVType, std::vector<u8>> GetWebArguments(const std::vector<u8>& arg) {
-    WebArgHeader header{};
     if (arg.size() < sizeof(WebArgHeader))
         return {};
 
+    WebArgHeader header{};
     std::memcpy(&header, arg.data(), sizeof(WebArgHeader));
 
     std::map<WebArgTLVType, std::vector<u8>> out;
     u64 offset = sizeof(WebArgHeader);
     for (std::size_t i = 0; i < header.count; ++i) {
-        WebArgTLV tlv{};
         if (arg.size() < (offset + sizeof(WebArgTLV)))
             return out;
 
+        WebArgTLV tlv{};
         std::memcpy(&tlv, arg.data() + offset, sizeof(WebArgTLV));
         offset += sizeof(WebArgTLV);
 
@@ -392,7 +392,7 @@ void WebBrowser::InitializeShop() {
         return;
     }
 
-    const std::map<std::string, ShopWebTarget> target_map{
+    const std::map<std::string, ShopWebTarget, std::less<>> target_map{
         {"product_detail", ShopWebTarget::ApplicationInfo},
         {"aocs", ShopWebTarget::AddOnContentList},
         {"subscriptions", ShopWebTarget::SubscriptionList},
@@ -480,7 +480,7 @@ void WebBrowser::InitializeOffline() {
 
     std::string path_additional_directory;
     if (source == OfflineWebSource::OfflineHtmlPage) {
-        path_additional_directory = std::string(DIR_SEP) + "html-document";
+        path_additional_directory = std::string(DIR_SEP).append("html-document");
     }
 
     filename =

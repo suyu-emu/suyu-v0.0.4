@@ -60,10 +60,11 @@ DefaultECommerceApplet::~DefaultECommerceApplet() = default;
 void DefaultECommerceApplet::ShowApplicationInformation(
     std::function<void()> finished, u64 title_id, std::optional<u128> user_id,
     std::optional<bool> full_display, std::optional<std::string> extra_parameter) {
+    const auto value = user_id.value_or(u128{});
     LOG_INFO(Service_AM,
              "Application requested frontend show application information for EShop, "
              "title_id={:016X}, user_id={:016X}{:016X}, full_display={}, extra_parameter={}",
-             title_id, user_id.value_or(u128{})[1], user_id.value_or(u128{})[0],
+             title_id, value[1], value[0],
              full_display.has_value() ? fmt::format("{}", *full_display) : "null",
              extra_parameter.value_or("null"));
     finished();
@@ -72,30 +73,33 @@ void DefaultECommerceApplet::ShowApplicationInformation(
 void DefaultECommerceApplet::ShowAddOnContentList(std::function<void()> finished, u64 title_id,
                                                   std::optional<u128> user_id,
                                                   std::optional<bool> full_display) {
+    const auto value = user_id.value_or(u128{});
     LOG_INFO(Service_AM,
              "Application requested frontend show add on content list for EShop, "
              "title_id={:016X}, user_id={:016X}{:016X}, full_display={}",
-             title_id, user_id.value_or(u128{})[1], user_id.value_or(u128{})[0],
+             title_id, value[1], value[0],
              full_display.has_value() ? fmt::format("{}", *full_display) : "null");
     finished();
 }
 
 void DefaultECommerceApplet::ShowSubscriptionList(std::function<void()> finished, u64 title_id,
                                                   std::optional<u128> user_id) {
+    const auto value = user_id.value_or(u128{});
     LOG_INFO(Service_AM,
              "Application requested frontend show subscription list for EShop, title_id={:016X}, "
              "user_id={:016X}{:016X}",
-             title_id, user_id.value_or(u128{})[1], user_id.value_or(u128{})[0]);
+             title_id, value[1], value[0]);
     finished();
 }
 
 void DefaultECommerceApplet::ShowConsumableItemList(std::function<void()> finished, u64 title_id,
                                                     std::optional<u128> user_id) {
+    const auto value = user_id.value_or(u128{});
     LOG_INFO(
         Service_AM,
         "Application requested frontend show consumable item list for EShop, title_id={:016X}, "
         "user_id={:016X}{:016X}",
-        title_id, user_id.value_or(u128{})[1], user_id.value_or(u128{})[0]);
+        title_id, value[1], value[0]);
     finished();
 }
 

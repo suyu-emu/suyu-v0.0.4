@@ -67,7 +67,7 @@ private:
     std::string filename;
 
     ShopWebTarget shop_web_target;
-    std::map<std::string, std::string> shop_query;
+    std::map<std::string, std::string, std::less<>> shop_query;
     std::optional<u64> title_id = 0;
     std::optional<u128> user_id;
     std::optional<bool> shop_full_display;
