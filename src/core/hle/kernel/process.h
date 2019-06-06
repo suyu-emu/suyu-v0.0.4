@@ -10,7 +10,6 @@
 #include <list>
 #include <string>
 #include <vector>
-#include <boost/container/static_vector.hpp>
 #include "common/common_types.h"
 #include "core/hle/kernel/address_arbiter.h"
 #include "core/hle/kernel/handle_table.h"
