@@ -159,6 +159,15 @@ target_compile_definitions(yuzu PRIVATE
     # Disable implicit conversions from/to C strings
     -DQT_NO_CAST_FROM_ASCII
     -DQT_NO_CAST_TO_ASCII
+
+    # Disable implicit type narrowing in signal/slot connect() calls.
+    -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT
+
+    # Disable unsafe overloads of QProcess' start() function.
+    -DQT_NO_PROCESS_COMBINED_ARGUMENT_START
+
+    # Disable implicit QString->QUrl conversions to enforce use of proper resolving functions.
+    -DQT_NO_URL_CAST_FROM_STRING
 )
 
 if (YUZU_ENABLE_COMPATIBILITY_REPORTING)
