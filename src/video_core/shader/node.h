@@ -18,25 +18,6 @@
 
 namespace VideoCommon::Shader {
 
-class OperationNode;
-class ConditionalNode;
-class GprNode;
-class ImmediateNode;
-class InternalFlagNode;
-class PredicateNode;
-class AbufNode; ///< Attribute buffer
-class CbufNode; ///< Constant buffer
-class LmemNode; ///< Local memory
-class GmemNode; ///< Global memory
-class CommentNode;
-
-using NodeData =
-    std::variant<OperationNode, ConditionalNode, GprNode, ImmediateNode, InternalFlagNode,
-                 PredicateNode, AbufNode, CbufNode, LmemNode, GmemNode, CommentNode>;
-using Node = std::shared_ptr<NodeData>;
-using Node4 = std::array<Node, 4>;
-using NodeBlock = std::vector<Node>;
-
 enum class OperationCode {
     Assign, /// (float& dest, float src) -> void
 
@@ -193,21 +174,40 @@ enum class InternalFlag {
     Amount = 4,
 };
 
+class OperationNode;
+class ConditionalNode;
+class GprNode;
+class ImmediateNode;
+class InternalFlagNode;
+class PredicateNode;
+class AbufNode;
+class CbufNode;
+class LmemNode;
+class GmemNode;
+class CommentNode;
+
+using NodeData =
+    std::variant<OperationNode, ConditionalNode, GprNode, ImmediateNode, InternalFlagNode,
+                 PredicateNode, AbufNode, CbufNode, LmemNode, GmemNode, CommentNode>;
+using Node = std::shared_ptr<NodeData>;
+using Node4 = std::array<Node, 4>;
+using NodeBlock = std::vector<Node>;
+
 class Sampler {
 public:
-    // Use this constructor for bounded Samplers
+    /// This constructor is for bound samplers
     explicit Sampler(std::size_t offset, std::size_t index, Tegra::Shader::TextureType type,
                      bool is_array, bool is_shadow)
         : offset{offset}, index{index}, type{type}, is_array{is_array}, is_shadow{is_shadow},
           is_bindless{false} {}
 
-    // Use this constructor for bindless Samplers
+    /// This constructor is for bindless samplers
     explicit Sampler(u32 cbuf_index, u32 cbuf_offset, std::size_t index,
                      Tegra::Shader::TextureType type, bool is_array, bool is_shadow)
         : offset{(static_cast<u64>(cbuf_index) << 32) | cbuf_offset}, index{index}, type{type},
           is_array{is_array}, is_shadow{is_shadow}, is_bindless{true} {}
 
-    // Use this only for serialization/deserialization
+    /// This constructor is for serialization/deserialization
     explicit Sampler(std::size_t offset, std::size_t index, Tegra::Shader::TextureType type,
                      bool is_array, bool is_shadow, bool is_bindless)
         : offset{offset}, index{index}, type{type}, is_array{is_array}, is_shadow{is_shadow},
@@ -267,21 +267,24 @@ struct GlobalMemoryBase {
     }
 };
 
+/// Parameters describing an arithmetic operation
 struct MetaArithmetic {
-    bool precise{};
+    bool precise{}; ///< Whether the operation can be constraint or not
 };
 
+/// Parameters describing a texture sampler
 struct MetaTexture {
     const Sampler& sampler;
-    Node array{};
-    Node depth_compare{};
+    Node array;
+    Node depth_compare;
     std::vector<Node> aoffi;
-    Node bias{};
-    Node lod{};
+    Node bias;
+    Node lod;
     Node component{};
     u32 element{};
 };
 
+/// Parameters that modify an operation but are not part of any particular operand
 using Meta = std::variant<MetaArithmetic, MetaTexture, Tegra::Shader::HalfType>;
 
 /// Holds any kind of operation that can be done in the IR
@@ -328,9 +331,9 @@ private:
 class ConditionalNode final {
 public:
     explicit ConditionalNode(Node condition, std::vector<Node>&& code)
-        : condition{condition}, code{std::move(code)} {}
+        : condition{std::move(condition)}, code{std::move(code)} {}
 
-    Node GetCondition() const {
+    const Node& GetCondition() const {
         return condition;
     }
 
@@ -339,7 +342,7 @@ public:
     }
 
 private:
-    const Node condition;   ///< Condition to be satisfied
+    Node condition;         ///< Condition to be satisfied
     std::vector<Node> code; ///< Code to execute
 };
 
@@ -353,7 +356,7 @@ public:
     }
 
 private:
-    const Tegra::Shader::Register index;
+    Tegra::Shader::Register index{};
 };
 
 /// A 32-bits value that represents an immediate value
@@ -366,7 +369,7 @@ public:
     }
 
 private:
-    const u32 value;
+    u32 value{};
 };
 
 /// One of Maxwell's internal flags
@@ -379,7 +382,7 @@ public:
     }
 
 private:
-    const InternalFlag flag;
+    InternalFlag flag{};
 };
 
 /// A predicate register, it can be negated without additional nodes
@@ -397,8 +400,8 @@ public:
     }
 
 private:
-    const Tegra::Shader::Pred index;
-    const bool negated;
+    Tegra::Shader::Pred index{};
+    bool negated{};
 };
 
 /// Attribute buffer memory (known as attributes or varyings in GLSL terms)
@@ -410,7 +413,7 @@ public:
 
     // Initialize for physical attributes (index is a variable value).
     explicit AbufNode(Node physical_address, Node buffer = {})
-        : physical_address{physical_address}, buffer{std::move(buffer)} {}
+        : physical_address{std::move(physical_address)}, buffer{std::move(buffer)} {}
 
     Tegra::Shader::Attribute::Index GetIndex() const {
         return index;
@@ -420,7 +423,7 @@ public:
         return element;
     }
 
-    Node GetBuffer() const {
+    const Node& GetBuffer() const {
         return buffer;
     }
 
@@ -442,45 +445,46 @@ private:
 /// Constant buffer node, usually mapped to uniform buffers in GLSL
 class CbufNode final {
 public:
-    explicit CbufNode(u32 index, Node offset) : index{index}, offset{offset} {}
+    explicit CbufNode(u32 index, Node offset) : index{index}, offset{std::move(offset)} {}
 
     u32 GetIndex() const {
         return index;
     }
 
-    Node GetOffset() const {
+    const Node& GetOffset() const {
         return offset;
     }
 
 private:
-    const u32 index;
-    const Node offset;
+    u32 index{};
+    Node offset;
 };
 
 /// Local memory node
 class LmemNode final {
 public:
-    explicit LmemNode(Node address) : address{address} {}
+    explicit LmemNode(Node address) : address{std::move(address)} {}
 
-    Node GetAddress() const {
+    const Node& GetAddress() const {
         return address;
     }
 
 private:
-    const Node address;
+    Node address;
 };
 
 /// Global memory node
 class GmemNode final {
 public:
     explicit GmemNode(Node real_address, Node base_address, const GlobalMemoryBase& descriptor)
-        : real_address{real_address}, base_address{base_address}, descriptor{descriptor} {}
+        : real_address{std::move(real_address)}, base_address{std::move(base_address)},
+          descriptor{descriptor} {}
 
-    Node GetRealAddress() const {
+    const Node& GetRealAddress() const {
         return real_address;
     }
 
-    Node GetBaseAddress() const {
+    const Node& GetBaseAddress() const {
         return base_address;
     }
 
@@ -489,9 +493,9 @@ public:
     }
 
 private:
-    const Node real_address;
-    const Node base_address;
-    const GlobalMemoryBase descriptor;
+    Node real_address;
+    Node base_address;
+    GlobalMemoryBase descriptor;
 };
 
 /// Commentary, can be dropped
