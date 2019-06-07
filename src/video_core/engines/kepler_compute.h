@@ -140,7 +140,7 @@ public:
 
         BitField<0, 16, u32> shared_alloc;
 
-        BitField<0, 31, u32> block_dim_x;
+        BitField<16, 16, u32> block_dim_x;
         union {
             BitField<0, 16, u32> block_dim_y;
             BitField<16, 16, u32> block_dim_z;
