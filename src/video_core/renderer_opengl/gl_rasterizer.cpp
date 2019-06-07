@@ -323,8 +323,8 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
 
         const auto stage_enum = static_cast<Maxwell::ShaderStage>(stage);
         SetupDrawConstBuffers(stage_enum, shader);
-        SetupGlobalRegions(stage_enum, shader, primitive_mode, base_bindings);
-        SetupTextures(stage_enum, shader, program_handle, base_bindings);
+        SetupGlobalRegions(stage_enum, shader);
+        SetupTextures(stage_enum, shader, base_bindings);
 
         // Workaround for Intel drivers.
         // When a clip distance is enabled but not set in the shader it crops parts of the screen
@@ -824,8 +824,7 @@ void RasterizerOpenGL::SetupConstBuffer(const Tegra::Engines::ConstBufferInfo& b
 }
 
 void RasterizerOpenGL::SetupGlobalRegions(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
-                                          const Shader& shader, GLenum primitive_mode,
-                                          BaseBindings base_bindings) {
+                                          const Shader& shader) {
     const auto& entries = shader->GetShaderEntries().global_memory_entries;
     for (std::size_t bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
         const auto& entry{entries[bindpoint]};
@@ -839,7 +838,7 @@ void RasterizerOpenGL::SetupGlobalRegions(Tegra::Engines::Maxwell3D::Regs::Shade
 }
 
 void RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, const Shader& shader,
-                                     GLuint program_handle, BaseBindings base_bindings) {
+                                     BaseBindings base_bindings) {
     MICROPROFILE_SCOPE(OpenGL_Texture);
     const auto& gpu = system.GPU();
     const auto& maxwell3d = gpu.Maxwell3D();
