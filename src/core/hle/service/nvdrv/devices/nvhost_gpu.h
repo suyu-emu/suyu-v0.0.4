@@ -113,11 +113,11 @@ private:
     static_assert(sizeof(IoctlGetErrorNotification) == 16,
                   "IoctlGetErrorNotification is incorrect size");
 
-    struct IoctlFence {
+    struct Fence {
         u32_le id;
         u32_le value;
     };
-    static_assert(sizeof(IoctlFence) == 8, "IoctlFence is incorrect size");
+    static_assert(sizeof(Fence) == 8, "Fence is incorrect size");
 
     struct IoctlAllocGpfifoEx {
         u32_le num_entries;
@@ -132,13 +132,13 @@ private:
     static_assert(sizeof(IoctlAllocGpfifoEx) == 32, "IoctlAllocGpfifoEx is incorrect size");
 
     struct IoctlAllocGpfifoEx2 {
-        u32_le num_entries;   // in
-        u32_le flags;         // in
-        u32_le unk0;          // in (1 works)
-        IoctlFence fence_out; // out
-        u32_le unk1;          // in
-        u32_le unk2;          // in
-        u32_le unk3;          // in
+        u32_le num_entries; // in
+        u32_le flags;       // in
+        u32_le unk0;        // in (1 works)
+        Fence fence_out;    // out
+        u32_le unk1;        // in
+        u32_le unk2;        // in
+        u32_le unk3;        // in
     };
     static_assert(sizeof(IoctlAllocGpfifoEx2) == 32, "IoctlAllocGpfifoEx2 is incorrect size");
 
@@ -154,9 +154,9 @@ private:
         u64_le address;     // pointer to gpfifo entry structs
         u32_le num_entries; // number of fence objects being submitted
         u32_le flags;
-        IoctlFence fence_out; // returned new fence object for others to wait on
+        Fence fence_out; // returned new fence object for others to wait on
     };
-    static_assert(sizeof(IoctlSubmitGpfifo) == 16 + sizeof(IoctlFence),
+    static_assert(sizeof(IoctlSubmitGpfifo) == 16 + sizeof(Fence),
                   "IoctlSubmitGpfifo is incorrect size");
 
     struct IoctlGetWaitbase {

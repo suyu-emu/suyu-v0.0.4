@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 #include "common/common_types.h"
+#include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/service.h"
 
 namespace Service::NVFlinger {
@@ -19,13 +20,6 @@ namespace Service::Nvidia {
 namespace Devices {
 class nvdevice;
 }
-
-struct IoctlFence {
-    u32 id;
-    u32 value;
-};
-
-static_assert(sizeof(IoctlFence) == 8, "IoctlFence has wrong size");
 
 class Module final {
 public:

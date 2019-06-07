@@ -34,7 +34,8 @@ void BufferQueue::SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer)
     buffer_wait_event.writable->Signal();
 }
 
-std::optional<u32> BufferQueue::DequeueBuffer(u32 width, u32 height) {
+std::optional<std::pair<u32, Service::Nvidia::MultiFence*>> BufferQueue::DequeueBuffer(u32 width,
+                                                                                       u32 height) {
     auto itr = std::find_if(queue.begin(), queue.end(), [&](const Buffer& buffer) {
         // Only consider free buffers. Buffers become free once again after they've been Acquired
         // and Released by the compositor, see the NVFlinger::Compose method.
@@ -51,7 +52,7 @@ std::optional<u32> BufferQueue::DequeueBuffer(u32 width, u32 height) {
     }
 
     itr->status = Buffer::Status::Dequeued;
-    return itr->slot;
+    return {{itr->slot, &itr->multi_fence}};
 }
 
 const IGBPBuffer& BufferQueue::RequestBuffer(u32 slot) const {
@@ -63,7 +64,8 @@ const IGBPBuffer& BufferQueue::RequestBuffer(u32 slot) const {
 }
 
 void BufferQueue::QueueBuffer(u32 slot, BufferTransformFlags transform,
-                              const Common::Rectangle<int>& crop_rect, u32 swap_interval) {
+                              const Common::Rectangle<int>& crop_rect, u32 swap_interval,
+                              Service::Nvidia::MultiFence& multi_fence) {
     auto itr = std::find_if(queue.begin(), queue.end(),
                             [&](const Buffer& buffer) { return buffer.slot == slot; });
     ASSERT(itr != queue.end());
@@ -72,6 +74,7 @@ void BufferQueue::QueueBuffer(u32 slot, BufferTransformFlags transform,
     itr->transform = transform;
     itr->crop_rect = crop_rect;
     itr->swap_interval = swap_interval;
+    itr->multi_fence = multi_fence;
 }
 
 std::optional<std::reference_wrapper<const BufferQueue::Buffer>> BufferQueue::AcquireBuffer() {

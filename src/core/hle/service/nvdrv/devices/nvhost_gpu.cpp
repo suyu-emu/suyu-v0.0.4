@@ -155,8 +155,8 @@ u32 nvhost_gpu::SubmitGPFIFO(const std::vector<u8>& input, std::vector<u8>& outp
 
     Core::System::GetInstance().GPU().PushGPUEntries(std::move(entries));
 
-    params.fence_out.id = 0;
-    params.fence_out.value = 0;
+    // TODO(Blinkhawk): Figure how thoios fence is set
+    // params.fence_out.value = 0;
     std::memcpy(output.data(), &params, sizeof(IoctlSubmitGpfifo));
     return 0;
 }
@@ -176,8 +176,8 @@ u32 nvhost_gpu::KickoffPB(const std::vector<u8>& input, std::vector<u8>& output)
 
     Core::System::GetInstance().GPU().PushGPUEntries(std::move(entries));
 
-    params.fence_out.id = 0;
-    params.fence_out.value = 0;
+    // TODO(Blinkhawk): Figure how thoios fence is set
+    // params.fence_out.value = 0;
     std::memcpy(output.data(), &params, output.size());
     return 0;
 }
