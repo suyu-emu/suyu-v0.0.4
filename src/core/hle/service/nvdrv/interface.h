@@ -19,6 +19,8 @@ public:
     NVDRV(std::shared_ptr<Module> nvdrv, const char* name);
     ~NVDRV() override;
 
+    void SignalGPUInterrupt(const u32 event_id);
+
 private:
     void Open(Kernel::HLERequestContext& ctx);
     void Ioctl(Kernel::HLERequestContext& ctx);

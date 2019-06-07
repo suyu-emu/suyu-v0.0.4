@@ -8,12 +8,13 @@
 #include <vector>
 #include "common/common_types.h"
 #include "core/hle/service/nvdrv/devices/nvdevice.h"
+#include "core/hle/service/nvdrv/nvdrv.h"
 
 namespace Service::Nvidia::Devices {
 
 class nvhost_ctrl final : public nvdevice {
 public:
-    nvhost_ctrl();
+    nvhost_ctrl(EventsInterface& events_interface);
     ~nvhost_ctrl() override;
 
     u32 ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) override;
@@ -135,6 +136,10 @@ private:
     u32 IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>& output, bool is_async);
 
     u32 IocCtrlEventRegister(const std::vector<u8>& input, std::vector<u8>& output);
+
+    u32 IocCtrlEventUnregister(const std::vector<u8>& input, std::vector<u8>& output);
+
+    EventsInterface& events_interface;
 };
 
 } // namespace Service::Nvidia::Devices

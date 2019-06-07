@@ -10,9 +10,14 @@
 #include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nvdrv/interface.h"
+#include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 
 namespace Service::Nvidia {
+
+void NVDRV::SignalGPUInterrupt(const u32 event_id) {
+    nvdrv->SignalEvent(event_id);
+}
 
 void NVDRV::Open(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_NVDRV, "called");
@@ -66,13 +71,19 @@ void NVDRV::Initialize(Kernel::HLERequestContext& ctx) {
 void NVDRV::QueryEvent(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     u32 fd = rp.Pop<u32>();
-    u32 event_id = rp.Pop<u32>();
+    // TODO(Blinkhawk): Figure the meaning of the flag at bit 16
+    u32 event_id = rp.Pop<u32>() & 0x000000FF;
     LOG_WARNING(Service_NVDRV, "(STUBBED) called, fd={:X}, event_id={:X}", fd, event_id);
 
     IPC::ResponseBuilder rb{ctx, 3, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(query_event.readable);
-    rb.Push<u32>(0);
+    if (event_id < 64) {
+        rb.PushCopyObjects(nvdrv->GetEvent(event_id));
+        rb.Push<u32>(NvResult::Success);
+    } else {
+        rb.Push<u32>(0);
+        rb.Push<u32>(NvResult::BadParameter);
+    }
 }
 
 void NVDRV::SetClientPID(Kernel::HLERequestContext& ctx) {

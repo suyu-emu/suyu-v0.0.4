@@ -7,11 +7,15 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "core/core.h"
+#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nvdrv/devices/nvhost_ctrl.h"
+#include "video_core/gpu.h"
 
 namespace Service::Nvidia::Devices {
 
-nvhost_ctrl::nvhost_ctrl() = default;
+nvhost_ctrl::nvhost_ctrl(EventsInterface& events_interface) : events_interface{events_interface} {}
 nvhost_ctrl::~nvhost_ctrl() = default;
 
 u32 nvhost_ctrl::ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) {
@@ -27,6 +31,8 @@ u32 nvhost_ctrl::ioctl(Ioctl command, const std::vector<u8>& input, std::vector<
         return IocCtrlEventWait(input, output, true);
     case IoctlCommand::IocCtrlEventRegisterCommand:
         return IocCtrlEventRegister(input, output);
+    case IoctlCommand::IocCtrlEventUnregisterCommand:
+        return IocCtrlEventUnregister(input, output);
     }
     UNIMPLEMENTED_MSG("Unimplemented ioctl");
     return 0;
@@ -44,20 +50,85 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
                                   bool is_async) {
     IocCtrlEventWaitParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
-    LOG_WARNING(Service_NVDRV,
-                "(STUBBED) called, syncpt_id={}, threshold={}, timeout={}, is_async={}",
-                params.syncpt_id, params.threshold, params.timeout, is_async);
+    LOG_DEBUG(Service_NVDRV, "syncpt_id={}, threshold={}, timeout={}, is_async={}",
+              params.syncpt_id, params.threshold, params.timeout, is_async);
 
-    // TODO(Subv): Implement actual syncpt waiting.
-    params.value = 0;
+    if (params.syncpt_id >= MaxSyncPoints) {
+        return NvResult::BadParameter;
+    }
+
+    auto& gpu = Core::System::GetInstance().GPU();
+    u32 current_syncpoint_value = gpu.GetSyncpointValue(params.syncpt_id);
+    if (current_syncpoint_value >= params.threshold) {
+        params.value = current_syncpoint_value;
+        std::memcpy(output.data(), &params, sizeof(params));
+        return NvResult::Success;
+    }
+
+    if (!is_async) {
+        params.value = 0;
+    }
+
+    if (params.timeout == 0) {
+        std::memcpy(output.data(), &params, sizeof(params));
+        return NvResult::Timeout;
+    }
+
+    u32 event_index;
+    if (is_async) {
+        event_index = params.value;
+        if (event_index >= 64) {
+            std::memcpy(output.data(), &params, sizeof(params));
+            return NvResult::BadParameter;
+        }
+    } else {
+        event_index = events_interface.GetFreeEvent();
+    }
+
+    EventState status = events_interface.status[event_index];
+    if (event_index < MaxNvEvents || status == EventState::Free ||
+        status == EventState::Registered) {
+        events_interface.SetEventStatus(event_index, EventState::Waiting);
+        events_interface.assigned_syncpt[event_index] = params.syncpt_id;
+        events_interface.assigned_value[event_index] = params.threshold;
+        if (is_async) {
+            params.value = params.syncpt_id << 4;
+        } else {
+            params.value = ((params.syncpt_id & 0xfff) << 16) | 0x10000000;
+        }
+        params.value |= event_index;
+        gpu.RegisterEvent(event_index, params.syncpt_id, params.threshold);
+        std::memcpy(output.data(), &params, sizeof(params));
+        return NvResult::Timeout;
+    }
     std::memcpy(output.data(), &params, sizeof(params));
-    return 0;
+    return NvResult::BadParameter;
 }
 
 u32 nvhost_ctrl::IocCtrlEventRegister(const std::vector<u8>& input, std::vector<u8>& output) {
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called");
-    // TODO(bunnei): Implement this.
-    return 0;
+    IocCtrlEventRegisterParams params{};
+    std::memcpy(&params, input.data(), sizeof(params));
+    if (params.user_event_id >= MaxNvEvents) {
+        return NvResult::BadParameter;
+    }
+    if (events_interface.registered[params.user_event_id]) {
+        return NvResult::BadParameter;
+    }
+    events_interface.RegisterEvent(params.user_event_id);
+    return NvResult::Success;
+}
+
+u32 nvhost_ctrl::IocCtrlEventUnregister(const std::vector<u8>& input, std::vector<u8>& output) {
+    IocCtrlEventUnregisterParams params{};
+    std::memcpy(&params, input.data(), sizeof(params));
+    if (params.user_event_id >= MaxNvEvents) {
+        return NvResult::BadParameter;
+    }
+    if (!events_interface.registered[params.user_event_id]) {
+        return NvResult::BadParameter;
+    }
+    events_interface.UnregisterEvent(params.user_event_id);
+    return NvResult::Success;
 }
 
 } // namespace Service::Nvidia::Devices

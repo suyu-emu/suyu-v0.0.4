@@ -4,7 +4,10 @@
 
 #include <utility>
 
+#include <fmt/format.h>
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nvdrv/devices/nvdevice.h"
 #include "core/hle/service/nvdrv/devices/nvdisp_disp0.h"
 #include "core/hle/service/nvdrv/devices/nvhost_as_gpu.h"
@@ -33,13 +36,21 @@ void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger
 }
 
 Module::Module() {
+    auto& kernel = Core::System::GetInstance().Kernel();
+    for (u32 i = 0; i < MaxNvEvents; i++) {
+        std::string event_label = fmt::format("NVDRV::NvEvent_{}", i);
+        events_interface.events[i] = Kernel::WritableEvent::CreateEventPair(
+            kernel, Kernel::ResetType::Automatic, event_label);
+        events_interface.status[i] = EventState::Free;
+        events_interface.registered[i] = false;
+    }
     auto nvmap_dev = std::make_shared<Devices::nvmap>();
     devices["/dev/nvhost-as-gpu"] = std::make_shared<Devices::nvhost_as_gpu>(nvmap_dev);
     devices["/dev/nvhost-gpu"] = std::make_shared<Devices::nvhost_gpu>(nvmap_dev);
     devices["/dev/nvhost-ctrl-gpu"] = std::make_shared<Devices::nvhost_ctrl_gpu>();
     devices["/dev/nvmap"] = nvmap_dev;
     devices["/dev/nvdisp_disp0"] = std::make_shared<Devices::nvdisp_disp0>(nvmap_dev);
-    devices["/dev/nvhost-ctrl"] = std::make_shared<Devices::nvhost_ctrl>();
+    devices["/dev/nvhost-ctrl"] = std::make_shared<Devices::nvhost_ctrl>(events_interface);
     devices["/dev/nvhost-nvdec"] = std::make_shared<Devices::nvhost_nvdec>();
     devices["/dev/nvhost-nvjpg"] = std::make_shared<Devices::nvhost_nvjpg>();
     devices["/dev/nvhost-vic"] = std::make_shared<Devices::nvhost_vic>();
@@ -75,6 +86,19 @@ ResultCode Module::Close(u32 fd) {
 
     // TODO(flerovium): return correct result code if operation failed.
     return RESULT_SUCCESS;
+}
+
+void Module::SignalEvent(const u32 event_id) {
+    if (event_id >= 64) {
+        LOG_ERROR(Service_NVDRV, "Unexpected Event signalled!");
+        return;
+    }
+    events_interface.LiberateEvent(event_id);
+    events_interface.events[event_id].writable->Signal();
+}
+
+Kernel::SharedPtr<Kernel::ReadableEvent> Module::GetEvent(const u32 event_id) {
+    return events_interface.events[event_id].readable;
 }
 
 } // namespace Service::Nvidia

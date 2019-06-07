@@ -6,6 +6,7 @@
 namespace Service::Nvidia {
 
 constexpr u32 MaxSyncPoints = 192;
+constexpr u32 MaxNvEvents = 64;
 
 struct Fence {
     s32 id;
@@ -19,9 +20,18 @@ struct MultiFence {
     std::array<Fence, 4> fences;
 };
 
-enum class NvResult : u32 {
+enum NvResult : u32 {
     Success = 0,
-    TryAgain = 11,
+    BadParameter = 4,
+    Timeout = 5,
+    ResourceError = 15,
+};
+
+enum class EventState {
+    Free = 0,
+    Registered = 1,
+    Waiting = 2,
+    Busy = 3,
 };
 
 } // namespace Service::Nvidia

@@ -15,11 +15,57 @@ namespace Service::NVFlinger {
 class NVFlinger;
 }
 
+namespace Kernel {
+class WritableEvent;
+}
+
 namespace Service::Nvidia {
 
 namespace Devices {
 class nvdevice;
 }
+
+struct EventsInterface {
+    u64 events_mask;
+    std::array<Kernel::EventPair, MaxNvEvents> events;
+    std::array<EventState, MaxNvEvents> status;
+    std::array<bool, MaxNvEvents> registered;
+    std::array<u32, MaxNvEvents> assigned_syncpt;
+    std::array<u32, MaxNvEvents> assigned_value;
+    u32 GetFreeEvent() {
+        u64 mask = events_mask;
+        for (u32 i = 0; i < MaxNvEvents; i++) {
+            if (mask & 0x1) {
+                if (status[i] == EventState::Registered || status[i] == EventState::Free) {
+                    return i;
+                }
+            }
+            mask = mask >> 1;
+        }
+        return 0xFFFFFFFF;
+    }
+    void SetEventStatus(const u32 event_id, EventState new_status) {
+        status[event_id] = new_status;
+        if (new_status == EventState::Registered) {
+            registered[event_id] = true;
+        }
+    }
+    void RegisterEvent(const u32 event_id) {
+        registered[event_id] = true;
+        if (status[event_id] == EventState::Free) {
+            status[event_id] = EventState::Registered;
+        }
+    }
+    void UnregisterEvent(const u32 event_id) {
+        registered[event_id] = false;
+        if (status[event_id] == EventState::Registered) {
+            status[event_id] = EventState::Free;
+        }
+    }
+    void LiberateEvent(const u32 event_id) {
+        status[event_id] = registered[event_id] ? EventState::Registered : EventState::Free;
+    }
+};
 
 class Module final {
 public:
@@ -42,6 +88,10 @@ public:
     /// Closes a device file descriptor and returns operation success.
     ResultCode Close(u32 fd);
 
+    void SignalEvent(const u32 event_id);
+
+    Kernel::SharedPtr<Kernel::ReadableEvent> GetEvent(const u32 event_id);
+
 private:
     /// Id to use for the next open file descriptor.
     u32 next_fd = 1;
@@ -51,6 +101,8 @@ private:
 
     /// Mapping of device node names to their implementation.
     std::unordered_map<std::string, std::shared_ptr<Devices::nvdevice>> devices;
+
+    EventsInterface events_interface;
 };
 
 /// Registers all NVDRV services with the specified service manager.
