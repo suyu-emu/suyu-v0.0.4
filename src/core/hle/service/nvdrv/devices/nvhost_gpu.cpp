@@ -119,8 +119,10 @@ u32 nvhost_gpu::AllocGPFIFOEx2(const std::vector<u8>& input, std::vector<u8>& ou
                 params.num_entries, params.flags, params.unk0, params.unk1, params.unk2,
                 params.unk3);
 
-    params.fence_out.id = 0;
-    params.fence_out.value = 0;
+    auto& gpu = Core::System::GetInstance().GPU();
+    params.fence_out.id = channels;
+    params.fence_out.value = gpu.GetSyncpointValue(channels);
+    channels++;
     std::memcpy(output.data(), &params, output.size());
     return 0;
 }
