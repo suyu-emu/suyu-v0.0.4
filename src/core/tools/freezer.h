@@ -15,7 +15,7 @@ class CoreTiming;
 struct EventType;
 } // namespace Core::Timing
 
-namespace Memory {
+namespace Tools {
 
 // A class that will effectively freeze memory values.
 class Freezer {
@@ -72,4 +72,4 @@ private:
     Core::Timing::CoreTiming& core_timing;
 };
 
-} // namespace Memory
+} // namespace Tools

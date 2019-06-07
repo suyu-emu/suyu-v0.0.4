@@ -8,9 +8,9 @@
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/memory.h"
-#include "core/memory/freezer.h"
+#include "core/tools/freezer.h"
 
-namespace Memory {
+namespace Tools {
 
 namespace {
 
@@ -19,13 +19,13 @@ constexpr s64 MEMORY_FREEZER_TICKS = static_cast<s64>(Core::Timing::BASE_CLOCK_R
 u64 MemoryReadWidth(u32 width, VAddr addr) {
     switch (width) {
     case 1:
-        return Read8(addr);
+        return Memory::Read8(addr);
     case 2:
-        return Read16(addr);
+        return Memory::Read16(addr);
     case 4:
-        return Read32(addr);
+        return Memory::Read32(addr);
     case 8:
-        return Read64(addr);
+        return Memory::Read64(addr);
     default:
         UNREACHABLE();
         return 0;
@@ -35,16 +35,16 @@ u64 MemoryReadWidth(u32 width, VAddr addr) {
 void MemoryWriteWidth(u32 width, VAddr addr, u64 value) {
     switch (width) {
     case 1:
-        Write8(addr, static_cast<u8>(value));
+        Memory::Write8(addr, static_cast<u8>(value));
         break;
     case 2:
-        Write16(addr, static_cast<u16>(value));
+        Memory::Write16(addr, static_cast<u16>(value));
         break;
     case 4:
-        Write32(addr, static_cast<u32>(value));
+        Memory::Write32(addr, static_cast<u32>(value));
         break;
     case 8:
-        Write64(addr, value);
+        Memory::Write64(addr, value);
         break;
     default:
         UNREACHABLE();
@@ -185,4 +185,4 @@ void Freezer::FillEntryReads() {
     }
 }
 
-} // namespace Memory
+} // namespace Tools

@@ -28,10 +28,10 @@
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/loader/loader.h"
-#include "core/memory/freezer.h"
 #include "core/perf_stats.h"
 #include "core/settings.h"
 #include "core/telemetry_session.h"
+#include "core/tools/freezer.h"
 #include "file_sys/cheat_engine.h"
 #include "video_core/debug_utils/debug_utils.h"
 #include "video_core/renderer_base.h"
@@ -244,7 +244,7 @@ struct System::Impl {
     bool is_powered_on = false;
 
     std::unique_ptr<FileSys::CheatEngine> cheat_engine;
-    std::unique_ptr<Memory::Freezer> memory_freezer;
+    std::unique_ptr<Tools::Freezer> memory_freezer;
 
     /// Frontend applets
     Service::AM::Applets::AppletManager applet_manager;

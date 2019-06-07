@@ -454,8 +454,6 @@ add_library(core STATIC
     loader/nsp.h
     loader/xci.cpp
     loader/xci.h
-    memory/freezer.cpp
-    memory/freezer.h
     memory.cpp
     memory.h
     memory_setup.h
@@ -465,6 +463,8 @@ add_library(core STATIC
     settings.h
     telemetry_session.cpp
     telemetry_session.h
+    tools/freezer.cpp
+    tools/freezer.h
 )
 
 create_target_directory_groups(core)
