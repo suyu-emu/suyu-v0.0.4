@@ -224,7 +224,7 @@ QList<QStandardItem*> MakeGameListEntry(const std::string& path, const std::stri
 
 GameListWorker::GameListWorker(FileSys::VirtualFilesystem vfs,
                                FileSys::ManualContentProvider* provider,
-                               QList<UISettings::GameDir>& game_dirs,
+                               QVector<UISettings::GameDir>& game_dirs,
                                const CompatibilityList& compatibility_list)
     : vfs(std::move(vfs)), provider(provider), game_dirs(game_dirs),
       compatibility_list(compatibility_list) {}

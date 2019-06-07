@@ -537,11 +537,11 @@ void GameList::AddPermDirPopup(QMenu& context_menu, QModelIndex selected) {
 
     connect(move_up, &QAction::triggered, [this, selected, row, &game_dir] {
         // find the indices of the items in settings and swap them
-        UISettings::values.game_dirs.swap(
-            UISettings::values.game_dirs.indexOf(game_dir),
-            UISettings::values.game_dirs.indexOf(*selected.sibling(row - 1, 0)
-                                                      .data(GameListDir::GameDirRole)
-                                                      .value<UISettings::GameDir*>()));
+        std::swap(UISettings::values.game_dirs[UISettings::values.game_dirs.indexOf(game_dir)],
+                  UISettings::values.game_dirs[UISettings::values.game_dirs.indexOf(
+                      *selected.sibling(row - 1, 0)
+                           .data(GameListDir::GameDirRole)
+                           .value<UISettings::GameDir*>())]);
         // move the treeview items
         QList<QStandardItem*> item = item_model->takeRow(row);
         item_model->invisibleRootItem()->insertRow(row - 1, item);
@@ -550,11 +550,11 @@ void GameList::AddPermDirPopup(QMenu& context_menu, QModelIndex selected) {
 
     connect(move_down, &QAction::triggered, [this, selected, row, &game_dir] {
         // find the indices of the items in settings and swap them
-        UISettings::values.game_dirs.swap(
-            UISettings::values.game_dirs.indexOf(game_dir),
-            UISettings::values.game_dirs.indexOf(*selected.sibling(row + 1, 0)
-                                                      .data(GameListDir::GameDirRole)
-                                                      .value<UISettings::GameDir*>()));
+        std::swap(UISettings::values.game_dirs[UISettings::values.game_dirs.indexOf(game_dir)],
+                  UISettings::values.game_dirs[UISettings::values.game_dirs.indexOf(
+                      *selected.sibling(row + 1, 0)
+                           .data(GameListDir::GameDirRole)
+                           .value<UISettings::GameDir*>())]);
         // move the treeview items
         const QList<QStandardItem*> item = item_model->takeRow(row);
         item_model->invisibleRootItem()->insertRow(row + 1, item);
@@ -609,7 +609,7 @@ void GameList::LoadCompatibilityList() {
     }
 }
 
-void GameList::PopulateAsync(QList<UISettings::GameDir>& game_dirs) {
+void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
     tree_view->setEnabled(false);
 
     // Update the columns in case UISettings has changed

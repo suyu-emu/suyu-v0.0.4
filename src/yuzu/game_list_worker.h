@@ -14,6 +14,7 @@
 #include <QObject>
 #include <QRunnable>
 #include <QString>
+#include <QVector>
 
 #include "common/common_types.h"
 #include "yuzu/compatibility_list.h"
@@ -35,7 +36,7 @@ class GameListWorker : public QObject, public QRunnable {
 public:
     explicit GameListWorker(std::shared_ptr<FileSys::VfsFilesystem> vfs,
                             FileSys::ManualContentProvider* provider,
-                            QList<UISettings::GameDir>& game_dirs,
+                            QVector<UISettings::GameDir>& game_dirs,
                             const CompatibilityList& compatibility_list);
     ~GameListWorker() override;
 
@@ -76,6 +77,6 @@ private:
     FileSys::ManualContentProvider* provider;
     QStringList watch_list;
     const CompatibilityList& compatibility_list;
-    QList<UISettings::GameDir>& game_dirs;
+    QVector<UISettings::GameDir>& game_dirs;
     std::atomic_bool stop_processing;
 };

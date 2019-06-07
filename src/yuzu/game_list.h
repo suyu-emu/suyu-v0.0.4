@@ -17,6 +17,7 @@
 #include <QToolButton>
 #include <QTreeView>
 #include <QVBoxLayout>
+#include <QVector>
 #include <QWidget>
 
 #include "common/common_types.h"
@@ -62,7 +63,7 @@ public:
     bool isEmpty() const;
 
     void LoadCompatibilityList();
-    void PopulateAsync(QList<UISettings::GameDir>& game_dirs);
+    void PopulateAsync(QVector<UISettings::GameDir>& game_dirs);
 
     void SaveInterfaceLayout();
     void LoadInterfaceLayout();
