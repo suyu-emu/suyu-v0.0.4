@@ -104,6 +104,7 @@ add_library(video_core STATIC
     shader/decode.cpp
     shader/node_helper.cpp
     shader/node_helper.h
+    shader/node.h
     shader/shader_ir.cpp
     shader/shader_ir.h
     shader/track.cpp
