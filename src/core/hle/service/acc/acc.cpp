@@ -10,6 +10,7 @@
 #include "common/logging/log.h"
 #include "common/string_util.h"
 #include "common/swap.h"
+#include "core/constants.h"
 #include "core/core_timing.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/service/acc/acc.h"
@@ -20,19 +21,6 @@
 #include "core/hle/service/acc/profile_manager.h"
 
 namespace Service::Account {
-
-// Smallest JPEG https://github.com/mathiasbynens/small/blob/master/jpeg.jpg
-// used as a backup should the one on disk not exist
-constexpr u32 backup_jpeg_size = 107;
-constexpr std::array<u8, backup_jpeg_size> backup_jpeg{{
-    0xff, 0xd8, 0xff, 0xdb, 0x00, 0x43, 0x00, 0x03, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x02, 0x02,
-    0x02, 0x03, 0x03, 0x03, 0x03, 0x04, 0x06, 0x04, 0x04, 0x04, 0x04, 0x04, 0x08, 0x06, 0x06, 0x05,
-    0x06, 0x09, 0x08, 0x0a, 0x0a, 0x09, 0x08, 0x09, 0x09, 0x0a, 0x0c, 0x0f, 0x0c, 0x0a, 0x0b, 0x0e,
-    0x0b, 0x09, 0x09, 0x0d, 0x11, 0x0d, 0x0e, 0x0f, 0x10, 0x10, 0x11, 0x10, 0x0a, 0x0c, 0x12, 0x13,
-    0x12, 0x10, 0x13, 0x0f, 0x10, 0x10, 0x10, 0xff, 0xc9, 0x00, 0x0b, 0x08, 0x00, 0x01, 0x00, 0x01,
-    0x01, 0x01, 0x11, 0x00, 0xff, 0xcc, 0x00, 0x06, 0x00, 0x10, 0x10, 0x05, 0xff, 0xda, 0x00, 0x08,
-    0x01, 0x01, 0x00, 0x00, 0x3f, 0x00, 0xd2, 0xcf, 0x20, 0xff, 0xd9,
-}};
 
 static std::string GetImagePath(Common::UUID uuid) {
     return FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
@@ -101,8 +89,8 @@ private:
         if (!image.IsOpen()) {
             LOG_WARNING(Service_ACC,
                         "Failed to load user provided image! Falling back to built-in backup...");
-            ctx.WriteBuffer(backup_jpeg);
-            rb.Push<u32>(backup_jpeg_size);
+            ctx.WriteBuffer(Core::Constants::ACCOUNT_BACKUP_JPEG);
+            rb.Push<u32>(Core::Constants::ACCOUNT_BACKUP_JPEG.size());
             return;
         }
 
@@ -124,7 +112,7 @@ private:
         if (!image.IsOpen()) {
             LOG_WARNING(Service_ACC,
                         "Failed to load user provided image! Falling back to built-in backup...");
-            rb.Push<u32>(backup_jpeg_size);
+            rb.Push<u32>(Core::Constants::ACCOUNT_BACKUP_JPEG.size());
         } else {
             rb.Push<u32>(SanitizeJPEGSize(image.GetSize()));
         }
