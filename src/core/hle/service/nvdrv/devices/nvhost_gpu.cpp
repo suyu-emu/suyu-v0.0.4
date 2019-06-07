@@ -143,7 +143,7 @@ u32 nvhost_gpu::SubmitGPFIFO(const std::vector<u8>& input, std::vector<u8>& outp
     IoctlSubmitGpfifo params{};
     std::memcpy(&params, input.data(), sizeof(IoctlSubmitGpfifo));
     LOG_WARNING(Service_NVDRV, "(STUBBED) called, gpfifo={:X}, num_entries={:X}, flags={:X}",
-                params.address, params.num_entries, params.flags);
+                params.address, params.num_entries, params.flags.raw);
 
     ASSERT_MSG(input.size() == sizeof(IoctlSubmitGpfifo) +
                                    params.num_entries * sizeof(Tegra::CommandListHeader),
@@ -153,7 +153,17 @@ u32 nvhost_gpu::SubmitGPFIFO(const std::vector<u8>& input, std::vector<u8>& outp
     std::memcpy(entries.data(), &input[sizeof(IoctlSubmitGpfifo)],
                 params.num_entries * sizeof(Tegra::CommandListHeader));
 
-    Core::System::GetInstance().GPU().PushGPUEntries(std::move(entries));
+    UNIMPLEMENTED_IF(params.flags.add_wait.Value() != 0);
+    UNIMPLEMENTED_IF(params.flags.add_increment.Value() != 0);
+
+    auto& gpu = Core::System::GetInstance().GPU();
+    u32 current_syncpoint_value = gpu.GetSyncpointValue(params.fence_out.id);
+    if (params.flags.increment.Value()) {
+        params.fence_out.value += current_syncpoint_value;
+    } else {
+        params.fence_out.value = current_syncpoint_value;
+    }
+    gpu.PushGPUEntries(std::move(entries));
 
     // TODO(Blinkhawk): Figure how thoios fence is set
     // params.fence_out.value = 0;
@@ -168,16 +178,24 @@ u32 nvhost_gpu::KickoffPB(const std::vector<u8>& input, std::vector<u8>& output)
     IoctlSubmitGpfifo params{};
     std::memcpy(&params, input.data(), sizeof(IoctlSubmitGpfifo));
     LOG_WARNING(Service_NVDRV, "(STUBBED) called, gpfifo={:X}, num_entries={:X}, flags={:X}",
-                params.address, params.num_entries, params.flags);
+                params.address, params.num_entries, params.flags.raw);
 
     Tegra::CommandList entries(params.num_entries);
     Memory::ReadBlock(params.address, entries.data(),
                       params.num_entries * sizeof(Tegra::CommandListHeader));
 
-    Core::System::GetInstance().GPU().PushGPUEntries(std::move(entries));
+    UNIMPLEMENTED_IF(params.flags.add_wait.Value() != 0);
+    UNIMPLEMENTED_IF(params.flags.add_increment.Value() != 0);
 
-    // TODO(Blinkhawk): Figure how thoios fence is set
-    // params.fence_out.value = 0;
+    auto& gpu = Core::System::GetInstance().GPU();
+    u32 current_syncpoint_value = gpu.GetSyncpointValue(params.fence_out.id);
+    if (params.flags.increment.Value()) {
+        params.fence_out.value += current_syncpoint_value;
+    } else {
+        params.fence_out.value = current_syncpoint_value;
+    }
+    gpu.PushGPUEntries(std::move(entries));
+
     std::memcpy(output.data(), &params, output.size());
     return 0;
 }

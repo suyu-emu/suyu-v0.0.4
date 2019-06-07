@@ -5,8 +5,11 @@
 #pragma once
 
 #include <array>
+#include <atomic>
+#include <list>
 #include <memory>
 #include "common/common_types.h"
+#include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
 #include "video_core/dma_pusher.h"
 
@@ -164,6 +167,12 @@ public:
     /// Returns a reference to the GPU DMA pusher.
     Tegra::DmaPusher& DmaPusher();
 
+    void IncrementSyncPoint(const u32 syncpoint_id);
+
+    u32 GetSyncpointValue(const u32 syncpoint_id) const;
+
+    void RegisterEvent(const u32 event_id, const u32 sync_point_id, const u32 value);
+
     /// Returns a const reference to the GPU DMA pusher.
     const Tegra::DmaPusher& DmaPusher() const;
 
@@ -228,6 +237,11 @@ public:
     /// Notify rasterizer that any caches of the specified region should be flushed and invalidated
     virtual void FlushAndInvalidateRegion(CacheAddr addr, u64 size) = 0;
 
+protected:
+    virtual void TriggerCpuInterrupt(const u32 event_id) const {
+        // Todo implement this
+    }
+
 private:
     void ProcessBindMethod(const MethodCall& method_call);
     void ProcessSemaphoreTriggerMethod();
@@ -262,6 +276,16 @@ private:
     std::unique_ptr<Engines::MaxwellDMA> maxwell_dma;
     /// Inline memory engine
     std::unique_ptr<Engines::KeplerMemory> kepler_memory;
+
+    std::array<std::atomic<u32>, Service::Nvidia::MaxSyncPoints> syncpoints{};
+
+    struct Event {
+        Event(const u32 event_id, const u32 value) : event_id(event_id), value(value) {}
+        u32 event_id;
+        u32 value;
+    };
+
+    std::array<std::list<Event>, Service::Nvidia::MaxSyncPoints> events;
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \

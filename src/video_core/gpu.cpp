@@ -66,6 +66,30 @@ const DmaPusher& GPU::DmaPusher() const {
     return *dma_pusher;
 }
 
+void GPU::IncrementSyncPoint(const u32 syncpoint_id) {
+    syncpoints[syncpoint_id]++;
+    if (!events[syncpoint_id].empty()) {
+        u32 value = syncpoints[syncpoint_id].load();
+        auto it = events[syncpoint_id].begin();
+        while (it != events[syncpoint_id].end()) {
+            if (value >= it->value) {
+                TriggerCpuInterrupt(it->event_id);
+                it = events[syncpoint_id].erase(it);
+                continue;
+            }
+            it++;
+        }
+    }
+}
+
+u32 GPU::GetSyncpointValue(const u32 syncpoint_id) const {
+    return syncpoints[syncpoint_id].load();
+}
+
+void GPU::RegisterEvent(const u32 event_id, const u32 syncpoint_id, const u32 value) {
+    events[syncpoint_id].emplace_back(event_id, value);
+}
+
 u32 RenderTargetBytesPerPixel(RenderTargetFormat format) {
     ASSERT(format != RenderTargetFormat::NONE);
 

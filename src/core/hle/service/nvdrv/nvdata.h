@@ -5,6 +5,8 @@
 
 namespace Service::Nvidia {
 
+constexpr u32 MaxSyncPoints = 192;
+
 struct Fence {
     s32 id;
     u32 value;

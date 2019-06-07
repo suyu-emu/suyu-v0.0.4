@@ -153,7 +153,13 @@ private:
     struct IoctlSubmitGpfifo {
         u64_le address;     // pointer to gpfifo entry structs
         u32_le num_entries; // number of fence objects being submitted
-        u32_le flags;
+        union {
+            u32_le raw;
+            BitField<0, 1, u32_le> add_wait;      // append a wait sync_point to the list
+            BitField<1, 1, u32_le> add_increment; // append an increment to the list
+            BitField<2, 1, u32_le> new_hw_format; // Mostly ignored
+            BitField<8, 1, u32_le> increment;     // increment the returned fence
+        } flags;
         Fence fence_out; // returned new fence object for others to wait on
     };
     static_assert(sizeof(IoctlSubmitGpfifo) == 16 + sizeof(Fence),
