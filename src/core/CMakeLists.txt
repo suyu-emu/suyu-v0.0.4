@@ -5,6 +5,8 @@ add_library(core STATIC
     arm/exclusive_monitor.h
     arm/unicorn/arm_unicorn.cpp
     arm/unicorn/arm_unicorn.h
+    constants.cpp
+    constants.h
     core.cpp
     core.h
     core_cpu.cpp
