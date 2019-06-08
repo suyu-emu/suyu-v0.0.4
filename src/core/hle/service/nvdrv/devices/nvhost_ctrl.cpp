@@ -102,6 +102,7 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
             params.value = ((params.syncpt_id & 0xfff) << 16) | 0x10000000;
         }
         params.value |= event_id;
+        events_interface.events[event_id].writable->Clear();
         gpu.RegisterEvent(event_id, params.syncpt_id, params.threshold);
         std::memcpy(output.data(), &params, sizeof(params));
         gpu.Guard(false);
@@ -115,26 +116,29 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
 u32 nvhost_ctrl::IocCtrlEventRegister(const std::vector<u8>& input, std::vector<u8>& output) {
     IocCtrlEventRegisterParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
-    if (params.user_event_id >= MaxNvEvents) {
+    const u32 event_id = params.user_event_id & 0x00FF;
+    if (event_id >= MaxNvEvents) {
         return NvResult::BadParameter;
     }
-    if (events_interface.registered[params.user_event_id]) {
+    if (events_interface.registered[event_id]) {
         return NvResult::BadParameter;
     }
-    events_interface.RegisterEvent(params.user_event_id);
+    events_interface.RegisterEvent(event_id);
+    events_interface.events[event_id].writable->Signal();
     return NvResult::Success;
 }
 
 u32 nvhost_ctrl::IocCtrlEventUnregister(const std::vector<u8>& input, std::vector<u8>& output) {
     IocCtrlEventUnregisterParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
-    if (params.user_event_id >= MaxNvEvents) {
+    const u32 event_id = params.user_event_id & 0x00FF;
+    if (event_id >= MaxNvEvents) {
         return NvResult::BadParameter;
     }
-    if (!events_interface.registered[params.user_event_id]) {
+    if (!events_interface.registered[event_id]) {
         return NvResult::BadParameter;
     }
-    events_interface.UnregisterEvent(params.user_event_id);
+    events_interface.UnregisterEvent(event_id);
     return NvResult::Success;
 }
 
@@ -142,7 +146,7 @@ u32 nvhost_ctrl::IocCtrlEventSignal(const std::vector<u8>& input, std::vector<u8
     IocCtrlEventSignalParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
     // TODO(Blinkhawk): This is normally called when an NvEvents timeout on WaitSynchronization
-    // It is believed to cancel the GPU Event. However, better research is required
+    // It is believed from RE to cancel the GPU Event. However, better research is required
     u32 event_id = params.user_event_id & 0x00FF;
     LOG_WARNING(Service_NVDRV, "(STUBBED) called, user_event_id: {:X}", event_id);
     if (event_id >= MaxNvEvents) {
