@@ -140,7 +140,7 @@ public:
 
         BitField<0, 16, u32> shared_alloc;
 
-        BitField<0, 31, u32> block_dim_x;
+        BitField<16, 16, u32> block_dim_x;
         union {
             BitField<0, 16, u32> block_dim_y;
             BitField<16, 16, u32> block_dim_z;
@@ -153,7 +153,7 @@ public:
 
         INSERT_PADDING_WORDS(0x8);
 
-        struct {
+        struct ConstBufferConfig {
             u32 address_low;
             union {
                 BitField<0, 8, u32> address_high;
@@ -163,7 +163,8 @@ public:
                 return static_cast<GPUVAddr>((static_cast<GPUVAddr>(address_high.Value()) << 32) |
                                              address_low);
             }
-        } const_buffer_config[8];
+        };
+        std::array<ConstBufferConfig, NumConstBuffers> const_buffer_config;
 
         union {
             BitField<0, 20, u32> local_pos_alloc;
