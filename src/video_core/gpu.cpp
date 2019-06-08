@@ -69,7 +69,7 @@ const DmaPusher& GPU::DmaPusher() const {
 
 void GPU::IncrementSyncPoint(const u32 syncpoint_id) {
     syncpoints[syncpoint_id]++;
-    sync_guard.lock();
+    sync_mutex.lock();
     if (!events[syncpoint_id].empty()) {
         u32 value = syncpoints[syncpoint_id].load();
         auto it = events[syncpoint_id].begin();
@@ -82,7 +82,7 @@ void GPU::IncrementSyncPoint(const u32 syncpoint_id) {
             it++;
         }
     }
-    sync_guard.unlock();
+    sync_mutex.unlock();
 }
 
 u32 GPU::GetSyncpointValue(const u32 syncpoint_id) const {

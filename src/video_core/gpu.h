@@ -8,11 +8,11 @@
 #include <atomic>
 #include <list>
 #include <memory>
+#include <mutex>
 #include "common/common_types.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
 #include "video_core/dma_pusher.h"
-#include "common/spin_lock.h"
 
 using CacheAddr = std::uintptr_t;
 inline CacheAddr ToCacheAddr(const void* host_ptr) {
@@ -178,9 +178,9 @@ public:
 
     void Guard(bool guard_set) {
         if (guard_set) {
-            sync_guard.lock();
+            sync_mutex.lock();
         } else {
-            sync_guard.unlock();
+            sync_mutex.unlock();
         }
     }
 
@@ -297,7 +297,7 @@ private:
 
     std::array<std::list<Event>, Service::Nvidia::MaxSyncPoints> events;
 
-    Common::SpinLock sync_guard{};
+    std::mutex sync_mutex;
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \
