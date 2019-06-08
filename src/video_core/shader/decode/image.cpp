@@ -3,10 +3,15 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <vector>
+#include <fmt/format.h>
 
 #include "common/assert.h"
+#include "common/bit_field.h"
 #include "common/common_types.h"
+#include "common/logging/log.h"
 #include "video_core/engines/shader_bytecode.h"
+#include "video_core/shader/node_helper.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace VideoCommon::Shader {
@@ -92,8 +97,8 @@ const Image& ShaderIR::GetBindlessImage(Tegra::Shader::Register reg,
     const Node image_register{GetRegister(reg)};
     const Node base_image{
         TrackCbuf(image_register, global_code, static_cast<s64>(global_code.size()))};
-    const auto cbuf{std::get_if<CbufNode>(base_image)};
-    const auto cbuf_offset_imm{std::get_if<ImmediateNode>(cbuf->GetOffset())};
+    const auto cbuf{std::get_if<CbufNode>(&*base_image)};
+    const auto cbuf_offset_imm{std::get_if<ImmediateNode>(&*cbuf->GetOffset())};
     const auto cbuf_offset{cbuf_offset_imm->GetValue()};
     const auto cbuf_index{cbuf->GetIndex()};
     const auto cbuf_key{(static_cast<u64>(cbuf_index) << 32) | static_cast<u64>(cbuf_offset)};
