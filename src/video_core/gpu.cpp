@@ -95,6 +95,17 @@ void GPU::RegisterEvent(const u32 event_id, const u32 syncpoint_id, const u32 va
     events[syncpoint_id].emplace_back(event_id, value);
 }
 
+void GPU::CancelEvent(const u32 event_id, const u32 syncpoint_id, const u32 value) {
+    auto it = events[syncpoint_id].begin();
+    while (it != events[syncpoint_id].end()) {
+        if (value == it->value) {
+            it = events[syncpoint_id].erase(it);
+            return;
+        }
+        it++;
+    }
+}
+
 u32 RenderTargetBytesPerPixel(RenderTargetFormat format) {
     ASSERT(format != RenderTargetFormat::NONE);
 

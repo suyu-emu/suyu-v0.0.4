@@ -171,7 +171,9 @@ public:
 
     u32 GetSyncpointValue(const u32 syncpoint_id) const;
 
-    void RegisterEvent(const u32 event_id, const u32 sync_point_id, const u32 value);
+    void RegisterEvent(const u32 event_id, const u32 syncpoint_id, const u32 value);
+
+    void CancelEvent(const u32 event_id, const u32 syncpoint_id, const u32 value);
 
     /// Returns a const reference to the GPU DMA pusher.
     const Tegra::DmaPusher& DmaPusher() const;

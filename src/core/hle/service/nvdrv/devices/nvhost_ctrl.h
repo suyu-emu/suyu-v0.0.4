@@ -139,6 +139,8 @@ private:
 
     u32 IocCtrlEventUnregister(const std::vector<u8>& input, std::vector<u8>& output);
 
+    u32 IocCtrlEventSignal(const std::vector<u8>& input, std::vector<u8>& output);
+
     EventsInterface& events_interface;
 };
 

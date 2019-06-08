@@ -33,6 +33,8 @@ u32 nvhost_ctrl::ioctl(Ioctl command, const std::vector<u8>& input, std::vector<
         return IocCtrlEventRegister(input, output);
     case IoctlCommand::IocCtrlEventUnregisterCommand:
         return IocCtrlEventUnregister(input, output);
+    case IoctlCommand::IocCtrlEventSignalCommand:
+        return IocCtrlEventSignal(input, output);
     }
     UNIMPLEMENTED_MSG("Unimplemented ioctl");
     return 0;
@@ -74,30 +76,29 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
         return NvResult::Timeout;
     }
 
-    u32 event_index;
+    u32 event_id;
     if (is_async) {
-        event_index = params.value;
-        if (event_index >= 64) {
+        event_id = params.value & 0x00FF;
+        if (event_id >= 64) {
             std::memcpy(output.data(), &params, sizeof(params));
             return NvResult::BadParameter;
         }
     } else {
-        event_index = events_interface.GetFreeEvent();
+        event_id = events_interface.GetFreeEvent();
     }
 
-    EventState status = events_interface.status[event_index];
-    if (event_index < MaxNvEvents || status == EventState::Free ||
-        status == EventState::Registered) {
-        events_interface.SetEventStatus(event_index, EventState::Waiting);
-        events_interface.assigned_syncpt[event_index] = params.syncpt_id;
-        events_interface.assigned_value[event_index] = params.threshold;
+    EventState status = events_interface.status[event_id];
+    if (event_id < MaxNvEvents || status == EventState::Free || status == EventState::Registered) {
+        events_interface.SetEventStatus(event_id, EventState::Waiting);
+        events_interface.assigned_syncpt[event_id] = params.syncpt_id;
+        events_interface.assigned_value[event_id] = params.threshold;
         if (is_async) {
             params.value = params.syncpt_id << 4;
         } else {
             params.value = ((params.syncpt_id & 0xfff) << 16) | 0x10000000;
         }
-        params.value |= event_index;
-        gpu.RegisterEvent(event_index, params.syncpt_id, params.threshold);
+        params.value |= event_id;
+        gpu.RegisterEvent(event_id, params.syncpt_id, params.threshold);
         std::memcpy(output.data(), &params, sizeof(params));
         return NvResult::Timeout;
     }
@@ -128,6 +129,25 @@ u32 nvhost_ctrl::IocCtrlEventUnregister(const std::vector<u8>& input, std::vecto
         return NvResult::BadParameter;
     }
     events_interface.UnregisterEvent(params.user_event_id);
+    return NvResult::Success;
+}
+
+u32 nvhost_ctrl::IocCtrlEventSignal(const std::vector<u8>& input, std::vector<u8>& output) {
+    IocCtrlEventSignalParams params{};
+    std::memcpy(&params, input.data(), sizeof(params));
+    // TODO(Blinkhawk): This is normally called when an NvEvents timeout on WaitSynchronization
+    // It is believed to cancel the GPU Event. However, better research is required
+    u32 event_id = params.user_event_id & 0x00FF;
+    LOG_WARNING(Service_NVDRV, "(STUBBED) called, user_event_id: {:X}", event_id);
+    if (event_id >= MaxNvEvents) {
+        return NvResult::BadParameter;
+    }
+    if (events_interface.status[event_id] == EventState::Waiting) {
+        auto& gpu = Core::System::GetInstance().GPU();
+        gpu.CancelEvent(event_id, events_interface.assigned_syncpt[event_id],
+                        events_interface.assigned_value[event_id]);
+        events_interface.LiberateEvent(event_id);
+    }
     return NvResult::Success;
 }
 
