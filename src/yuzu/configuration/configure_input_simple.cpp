@@ -119,6 +119,18 @@ void ConfigureInputSimple::ApplyConfiguration() {
     UISettings::values.profile_index = index;
 }
 
+void ConfigureInputSimple::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::LanguageChange) {
+        RetranslateUI();
+    }
+
+    QWidget::changeEvent(event);
+}
+
+void ConfigureInputSimple::RetranslateUI() {
+    ui->retranslateUi(this);
+}
+
 void ConfigureInputSimple::LoadConfiguration() {
     const auto index = UISettings::values.profile_index;
     if (index >= static_cast<int>(INPUT_PROFILES.size()) || index < 0) {

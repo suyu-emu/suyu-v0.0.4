@@ -20,9 +20,11 @@ public:
     ~ConfigureWeb() override;
 
     void ApplyConfiguration();
-    void RetranslateUI();
 
 private:
+    void changeEvent(QEvent* event) override;
+    void RetranslateUI();
+
     void RefreshTelemetryID();
     void OnLoginChanged();
     void VerifyLogin();

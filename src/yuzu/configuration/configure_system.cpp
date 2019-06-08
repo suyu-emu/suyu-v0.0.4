@@ -40,6 +40,18 @@ ConfigureSystem::ConfigureSystem(QWidget* parent) : QWidget(parent), ui(new Ui::
 
 ConfigureSystem::~ConfigureSystem() = default;
 
+void ConfigureSystem::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::LanguageChange) {
+        RetranslateUI();
+    }
+
+    QWidget::changeEvent(event);
+}
+
+void ConfigureSystem::RetranslateUI() {
+    ui->retranslateUi(this);
+}
+
 void ConfigureSystem::SetConfiguration() {
     enabled = !Core::System::GetInstance().IsPoweredOn();
 

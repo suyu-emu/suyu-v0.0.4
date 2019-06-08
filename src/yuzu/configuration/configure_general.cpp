@@ -45,3 +45,15 @@ void ConfigureGeneral::ApplyConfiguration() {
 
     Settings::values.use_cpu_jit = ui->use_cpu_jit->isChecked();
 }
+
+void ConfigureGeneral::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::LanguageChange) {
+        RetranslateUI();
+    }
+
+    QWidget::changeEvent(event);
+}
+
+void ConfigureGeneral::RetranslateUI() {
+    ui->retranslateUi(this);
+}

@@ -80,11 +80,10 @@ ConfigureProfileManager ::ConfigureProfileManager(QWidget* parent)
       profile_manager(std::make_unique<Service::Account::ProfileManager>()) {
     ui->setupUi(this);
 
-    layout = new QVBoxLayout;
     tree_view = new QTreeView;
     item_model = new QStandardItemModel(tree_view);
+    item_model->insertColumns(0, 1);
     tree_view->setModel(item_model);
-
     tree_view->setAlternatingRowColors(true);
     tree_view->setSelectionMode(QHeaderView::SingleSelection);
     tree_view->setSelectionBehavior(QHeaderView::SelectRows);
@@ -96,13 +95,11 @@ ConfigureProfileManager ::ConfigureProfileManager(QWidget* parent)
     tree_view->setIconSize({64, 64});
     tree_view->setContextMenuPolicy(Qt::NoContextMenu);
 
-    item_model->insertColumns(0, 1);
-    item_model->setHeaderData(0, Qt::Horizontal, tr("Users"));
-
     // We must register all custom types with the Qt Automoc system so that we are able to use it
     // with signals/slots. In this case, QList falls under the umbrells of custom types.
     qRegisterMetaType<QList<QStandardItem*>>("QList<QStandardItem*>");
 
+    layout = new QVBoxLayout;
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
     layout->addWidget(tree_view);
@@ -120,9 +117,23 @@ ConfigureProfileManager ::ConfigureProfileManager(QWidget* parent)
     ui->current_user_icon->setScene(scene);
 
     SetConfiguration();
+    RetranslateUI();
 }
 
 ConfigureProfileManager::~ConfigureProfileManager() = default;
+
+void ConfigureProfileManager::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::LanguageChange) {
+        RetranslateUI();
+    }
+
+    QWidget::changeEvent(event);
+}
+
+void ConfigureProfileManager::RetranslateUI() {
+    ui->retranslateUi(this);
+    item_model->setHeaderData(0, Qt::Horizontal, tr("Users"));
+}
 
 void ConfigureProfileManager::SetConfiguration() {
     enabled = !Core::System::GetInstance().IsPoweredOn();

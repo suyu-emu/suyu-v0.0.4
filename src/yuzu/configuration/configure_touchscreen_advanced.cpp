@@ -20,6 +20,18 @@ ConfigureTouchscreenAdvanced::ConfigureTouchscreenAdvanced(QWidget* parent)
 
 ConfigureTouchscreenAdvanced::~ConfigureTouchscreenAdvanced() = default;
 
+void ConfigureTouchscreenAdvanced::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::LanguageChange) {
+        RetranslateUI();
+    }
+
+    QDialog::changeEvent(event);
+}
+
+void ConfigureTouchscreenAdvanced::RetranslateUI() {
+    ui->retranslateUi(this);
+}
+
 void ConfigureTouchscreenAdvanced::ApplyConfiguration() {
     Settings::values.touchscreen.finger = ui->finger_box->value();
     Settings::values.touchscreen.diameter_x = ui->diameter_x_box->value();

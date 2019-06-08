@@ -101,6 +101,18 @@ void ConfigureGraphics::ApplyConfiguration() {
     Settings::values.bg_blue = static_cast<float>(bg_color.blueF());
 }
 
+void ConfigureGraphics::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::LanguageChange) {
+        RetranslateUI();
+    }
+
+    QWidget::changeEvent(event);
+}
+
+void ConfigureGraphics::RetranslateUI() {
+    ui->retranslateUi(this);
+}
+
 void ConfigureGraphics::UpdateBackgroundColorButton(QColor color) {
     bg_color = color;
 

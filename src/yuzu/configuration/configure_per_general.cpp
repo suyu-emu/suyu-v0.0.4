@@ -92,6 +92,18 @@ void ConfigurePerGameGeneral::ApplyConfiguration() {
     Settings::values.disabled_addons[title_id] = disabled_addons;
 }
 
+void ConfigurePerGameGeneral::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::LanguageChange) {
+        RetranslateUI();
+    }
+
+    QDialog::changeEvent(event);
+}
+
+void ConfigurePerGameGeneral::RetranslateUI() {
+    ui->retranslateUi(this);
+}
+
 void ConfigurePerGameGeneral::LoadFromFile(FileSys::VirtualFile file) {
     this->file = std::move(file);
     LoadConfiguration();

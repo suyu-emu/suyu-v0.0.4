@@ -77,7 +77,6 @@ void ConfigureGameList::SetConfiguration() {
 void ConfigureGameList::changeEvent(QEvent* event) {
     if (event->type() == QEvent::LanguageChange) {
         RetranslateUI();
-        return;
     }
 
     QWidget::changeEvent(event);

@@ -22,35 +22,55 @@ ConfigureWeb::ConfigureWeb(QWidget* parent)
 #ifndef USE_DISCORD_PRESENCE
     ui->discord_group->setVisible(false);
 #endif
+
     SetConfiguration();
+    RetranslateUI();
 }
 
 ConfigureWeb::~ConfigureWeb() = default;
 
-void ConfigureWeb::SetConfiguration() {
-    ui->web_credentials_disclaimer->setWordWrap(true);
-    ui->telemetry_learn_more->setOpenExternalLinks(true);
+void ConfigureWeb::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::LanguageChange) {
+        RetranslateUI();
+    }
+
+    QWidget::changeEvent(event);
+}
+
+void ConfigureWeb::RetranslateUI() {
+    ui->retranslateUi(this);
+
     ui->telemetry_learn_more->setText(
         tr("<a href='https://yuzu-emu.org/help/feature/telemetry/'><span style=\"text-decoration: "
            "underline; color:#039be5;\">Learn more</span></a>"));
 
-    ui->web_signup_link->setOpenExternalLinks(true);
     ui->web_signup_link->setText(
         tr("<a href='https://profile.yuzu-emu.org/'><span style=\"text-decoration: underline; "
            "color:#039be5;\">Sign up</span></a>"));
-    ui->web_token_info_link->setOpenExternalLinks(true);
+
     ui->web_token_info_link->setText(
         tr("<a href='https://yuzu-emu.org/wiki/yuzu-web-service/'><span style=\"text-decoration: "
            "underline; color:#039be5;\">What is my token?</span></a>"));
 
+    ui->label_telemetry_id->setText(
+        tr("Telemetry ID: 0x%1").arg(QString::number(Core::GetTelemetryId(), 16).toUpper()));
+}
+
+void ConfigureWeb::SetConfiguration() {
+    ui->web_credentials_disclaimer->setWordWrap(true);
+
+    ui->telemetry_learn_more->setOpenExternalLinks(true);
+    ui->web_signup_link->setOpenExternalLinks(true);
+    ui->web_token_info_link->setOpenExternalLinks(true);
+
     ui->toggle_telemetry->setChecked(Settings::values.enable_telemetry);
     ui->edit_username->setText(QString::fromStdString(Settings::values.yuzu_username));
     ui->edit_token->setText(QString::fromStdString(Settings::values.yuzu_token));
+
     // Connect after setting the values, to avoid calling OnLoginChanged now
     connect(ui->edit_token, &QLineEdit::textChanged, this, &ConfigureWeb::OnLoginChanged);
     connect(ui->edit_username, &QLineEdit::textChanged, this, &ConfigureWeb::OnLoginChanged);
-    ui->label_telemetry_id->setText(
-        tr("Telemetry ID: 0x%1").arg(QString::number(Core::GetTelemetryId(), 16).toUpper()));
+
     user_verified = true;
 
     ui->toggle_discordrpc->setChecked(UISettings::values.enable_discord_presence);
@@ -119,8 +139,4 @@ void ConfigureWeb::OnLoginVerified() {
             tr("Verification failed. Check that you have entered your username and token "
                "correctly, and that your internet connection is working."));
     }
-}
-
-void ConfigureWeb::RetranslateUI() {
-    ui->retranslateUi(this);
 }

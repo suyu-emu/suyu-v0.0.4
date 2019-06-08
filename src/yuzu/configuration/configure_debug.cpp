@@ -51,3 +51,15 @@ void ConfigureDebug::ApplyConfiguration() {
     filter.ParseFilterString(Settings::values.log_filter);
     Log::SetGlobalFilter(filter);
 }
+
+void ConfigureDebug::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::LanguageChange) {
+        RetranslateUI();
+    }
+
+    QWidget::changeEvent(event);
+}
+
+void ConfigureDebug::RetranslateUI() {
+    ui->retranslateUi(this);
+}

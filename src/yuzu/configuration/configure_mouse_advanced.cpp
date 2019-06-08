@@ -140,6 +140,18 @@ void ConfigureMouseAdvanced::LoadConfiguration() {
     UpdateButtonLabels();
 }
 
+void ConfigureMouseAdvanced::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::LanguageChange) {
+        RetranslateUI();
+    }
+
+    QDialog::changeEvent(event);
+}
+
+void ConfigureMouseAdvanced::RetranslateUI() {
+    ui->retranslateUi(this);
+}
+
 void ConfigureMouseAdvanced::RestoreDefaults() {
     for (int button_id = 0; button_id < Settings::NativeMouseButton::NumMouseButtons; button_id++) {
         buttons_param[button_id] = Common::ParamPackage{

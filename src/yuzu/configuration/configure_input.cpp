@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <memory>
 
+#include <QSignalBlocker>
 #include <QTimer>
 
 #include "configuration/configure_touchscreen_advanced.h"
@@ -74,11 +75,7 @@ ConfigureInput::ConfigureInput(QWidget* parent)
         ui->player5_configure, ui->player6_configure, ui->player7_configure, ui->player8_configure,
     };
 
-    for (auto* controller_box : players_controller) {
-        controller_box->addItems({tr("None"), tr("Pro Controller"), tr("Dual Joycons"),
-                                  tr("Single Right Joycon"), tr("Single Left Joycon")});
-    }
-
+    RetranslateUI();
     LoadConfiguration();
     UpdateUIEnabled();
 
@@ -144,6 +141,31 @@ void ConfigureInput::ApplyConfiguration() {
     Settings::values.touchscreen.enabled = ui->touchscreen_enabled->isChecked();
 }
 
+void ConfigureInput::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::LanguageChange) {
+        RetranslateUI();
+    }
+
+    QDialog::changeEvent(event);
+}
+
+void ConfigureInput::RetranslateUI() {
+    ui->retranslateUi(this);
+    RetranslateControllerComboBoxes();
+}
+
+void ConfigureInput::RetranslateControllerComboBoxes() {
+    for (auto* controller_box : players_controller) {
+        [[maybe_unused]] const QSignalBlocker blocker(controller_box);
+
+        controller_box->clear();
+        controller_box->addItems({tr("None"), tr("Pro Controller"), tr("Dual Joycons"),
+                                  tr("Single Right Joycon"), tr("Single Left Joycon")});
+    }
+
+    LoadPlayerControllerIndices();
+}
+
 void ConfigureInput::UpdateUIEnabled() {
     bool hit_disabled = false;
     for (auto* player : players_controller) {
@@ -175,11 +197,7 @@ void ConfigureInput::LoadConfiguration() {
             Service::HID::Controller_NPad::NPadIdToIndex(Service::HID::NPAD_HANDHELD),
         [](const auto& player) { return player.connected; });
 
-    for (std::size_t i = 0; i < players_controller.size(); ++i) {
-        const auto connected = Settings::values.players[i].connected;
-        players_controller[i]->setCurrentIndex(
-            connected ? static_cast<u8>(Settings::values.players[i].type) + 1 : 0);
-    }
+    LoadPlayerControllerIndices();
 
     ui->use_docked_mode->setChecked(Settings::values.use_docked_mode);
     ui->handheld_connected->setChecked(
@@ -192,6 +210,14 @@ void ConfigureInput::LoadConfiguration() {
     ui->touchscreen_enabled->setChecked(Settings::values.touchscreen.enabled);
 
     UpdateUIEnabled();
+}
+
+void ConfigureInput::LoadPlayerControllerIndices() {
+    for (std::size_t i = 0; i < players_controller.size(); ++i) {
+        const auto connected = Settings::values.players[i].connected;
+        players_controller[i]->setCurrentIndex(
+            connected ? static_cast<u8>(Settings::values.players[i].type) + 1 : 0);
+    }
 }
 
 void ConfigureInput::RestoreDefaults() {

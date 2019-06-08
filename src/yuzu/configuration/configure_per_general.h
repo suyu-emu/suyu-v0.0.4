@@ -35,6 +35,9 @@ public:
     void LoadFromFile(FileSys::VirtualFile file);
 
 private:
+    void changeEvent(QEvent* event) override;
+    void RetranslateUI();
+
     void LoadConfiguration();
 
     std::unique_ptr<Ui::ConfigurePerGameGeneral> ui;

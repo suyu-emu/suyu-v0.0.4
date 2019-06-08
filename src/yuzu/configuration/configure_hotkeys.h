@@ -22,7 +22,6 @@ public:
     ~ConfigureHotkeys() override;
 
     void ApplyConfiguration(HotkeyRegistry& registry);
-    void RetranslateUI();
 
     /**
      * Populates the hotkey list widget using data from the provided registry.
@@ -32,6 +31,9 @@ public:
     void Populate(const HotkeyRegistry& registry);
 
 private:
+    void changeEvent(QEvent* event) override;
+    void RetranslateUI();
+
     void Configure(QModelIndex index);
     bool IsUsedKey(QKeySequence key_sequence) const;
 
