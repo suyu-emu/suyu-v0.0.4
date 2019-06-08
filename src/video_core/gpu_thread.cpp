@@ -89,12 +89,7 @@ void ThreadManager::FlushRegion(CacheAddr addr, u64 size) {
 }
 
 void ThreadManager::InvalidateRegion(CacheAddr addr, u64 size) {
-    if (state.queue.Empty()) {
-        // It's quicker to invalidate a single region on the CPU if the queue is already empty
-        system.Renderer().Rasterizer().InvalidateRegion(addr, size);
-    } else {
-        PushCommand(InvalidateRegionCommand(addr, size));
-    }
+    system.Renderer().Rasterizer().InvalidateRegion(addr, size);
 }
 
 void ThreadManager::FlushAndInvalidateRegion(CacheAddr addr, u64 size) {
