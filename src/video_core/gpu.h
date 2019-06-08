@@ -12,6 +12,7 @@
 #include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
 #include "video_core/dma_pusher.h"
+#include "common/spin_lock.h"
 
 using CacheAddr = std::uintptr_t;
 inline CacheAddr ToCacheAddr(const void* host_ptr) {
@@ -175,6 +176,14 @@ public:
 
     void CancelEvent(const u32 event_id, const u32 syncpoint_id, const u32 value);
 
+    void Guard(bool guard_set) {
+        if (guard_set) {
+            sync_guard.lock();
+        } else {
+            sync_guard.unlock();
+        }
+    }
+
     /// Returns a const reference to the GPU DMA pusher.
     const Tegra::DmaPusher& DmaPusher() const;
 
@@ -287,6 +296,8 @@ private:
     };
 
     std::array<std::list<Event>, Service::Nvidia::MaxSyncPoints> events;
+
+    Common::SpinLock sync_guard{};
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \

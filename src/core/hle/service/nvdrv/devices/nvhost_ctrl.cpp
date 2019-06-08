@@ -60,10 +60,12 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
     }
 
     auto& gpu = Core::System::GetInstance().GPU();
+    gpu.Guard(true);
     u32 current_syncpoint_value = gpu.GetSyncpointValue(params.syncpt_id);
     if (current_syncpoint_value >= params.threshold) {
         params.value = current_syncpoint_value;
         std::memcpy(output.data(), &params, sizeof(params));
+        gpu.Guard(false);
         return NvResult::Success;
     }
 
@@ -73,6 +75,7 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
 
     if (params.timeout == 0) {
         std::memcpy(output.data(), &params, sizeof(params));
+        gpu.Guard(false);
         return NvResult::Timeout;
     }
 
@@ -81,6 +84,7 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
         event_id = params.value & 0x00FF;
         if (event_id >= 64) {
             std::memcpy(output.data(), &params, sizeof(params));
+            gpu.Guard(false);
             return NvResult::BadParameter;
         }
     } else {
@@ -100,9 +104,11 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
         params.value |= event_id;
         gpu.RegisterEvent(event_id, params.syncpt_id, params.threshold);
         std::memcpy(output.data(), &params, sizeof(params));
+        gpu.Guard(false);
         return NvResult::Timeout;
     }
     std::memcpy(output.data(), &params, sizeof(params));
+    gpu.Guard(false);
     return NvResult::BadParameter;
 }
 
