@@ -238,9 +238,7 @@ public:
     virtual void FlushAndInvalidateRegion(CacheAddr addr, u64 size) = 0;
 
 protected:
-    virtual void TriggerCpuInterrupt(const u32 event_id) const {
-        // Todo implement this
-    }
+    virtual void TriggerCpuInterrupt(const u32 event_id) const = 0;
 
 private:
     void ProcessBindMethod(const MethodCall& method_call);
@@ -260,6 +258,7 @@ private:
 protected:
     std::unique_ptr<Tegra::DmaPusher> dma_pusher;
     VideoCore::RendererBase& renderer;
+    Core::System& system;
 
 private:
     std::unique_ptr<Tegra::MemoryManager> memory_manager;

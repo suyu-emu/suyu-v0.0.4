@@ -27,6 +27,9 @@ public:
     void InvalidateRegion(CacheAddr addr, u64 size) override;
     void FlushAndInvalidateRegion(CacheAddr addr, u64 size) override;
 
+protected:
+    void TriggerCpuInterrupt(const u32 event_id) const override;
+
 private:
     GPUThread::ThreadManager gpu_thread;
 };

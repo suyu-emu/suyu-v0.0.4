@@ -35,8 +35,6 @@ private:
     std::shared_ptr<Module> nvdrv;
 
     u64 pid{};
-
-    Kernel::EventPair query_event;
 };
 
 } // namespace Service::Nvidia

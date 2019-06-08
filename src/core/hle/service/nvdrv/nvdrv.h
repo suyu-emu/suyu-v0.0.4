@@ -8,15 +8,12 @@
 #include <unordered_map>
 #include <vector>
 #include "common/common_types.h"
+#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/service.h"
 
 namespace Service::NVFlinger {
 class NVFlinger;
-}
-
-namespace Kernel {
-class WritableEvent;
 }
 
 namespace Service::Nvidia {

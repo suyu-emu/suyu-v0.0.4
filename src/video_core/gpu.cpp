@@ -29,7 +29,8 @@ u32 FramebufferConfig::BytesPerPixel(PixelFormat format) {
     UNREACHABLE();
 }
 
-GPU::GPU(Core::System& system, VideoCore::RendererBase& renderer) : renderer{renderer} {
+GPU::GPU(Core::System& system, VideoCore::RendererBase& renderer)
+    : system{system}, renderer{renderer} {
     auto& rasterizer{renderer.Rasterizer()};
     memory_manager = std::make_unique<Tegra::MemoryManager>(rasterizer);
     dma_pusher = std::make_unique<Tegra::DmaPusher>(*this);
@@ -87,6 +88,10 @@ u32 GPU::GetSyncpointValue(const u32 syncpoint_id) const {
 }
 
 void GPU::RegisterEvent(const u32 event_id, const u32 syncpoint_id, const u32 value) {
+    for (auto& ev : events[syncpoint_id]) {
+        if (ev.event_id == event_id && ev.value == value)
+            return;
+    }
     events[syncpoint_id].emplace_back(event_id, value);
 }
 

@@ -111,6 +111,8 @@ add_library(core STATIC
     frontend/scope_acquire_window_context.h
     gdbstub/gdbstub.cpp
     gdbstub/gdbstub.h
+    hardware_interrupt_manager.cpp
+    hardware_interrupt_manager.h
     hle/ipc.h
     hle/ipc_helpers.h
     hle/kernel/address_arbiter.cpp
