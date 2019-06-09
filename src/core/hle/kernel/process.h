@@ -75,7 +75,7 @@ public:
 
     static constexpr std::size_t RANDOM_ENTROPY_SIZE = 4;
 
-    static SharedPtr<Process> Create(Core::System& system, std::string&& name);
+    static SharedPtr<Process> Create(Core::System& system, std::string name);
 
     std::string GetTypeName() const override {
         return "Process";
