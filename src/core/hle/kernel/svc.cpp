@@ -716,7 +716,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         RegisterResourceLimit = 9,
         IdleTickCount = 10,
         RandomEntropy = 11,
-        PerformanceCounter = 0xF0000002,
+        ThreadTickCount = 0xF0000002,
         // 2.0.0+
         ASLRRegionBaseAddr = 12,
         ASLRRegionSize = 13,
@@ -730,7 +730,6 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         PrivilegedProcessId = 19,
         // 5.0.0+
         UserExceptionContextAddr = 20,
-        ThreadTickCount = 0xF0000002,
     };
 
     const auto info_id_type = static_cast<GetInfoType>(info_id);
