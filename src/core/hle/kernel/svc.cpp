@@ -710,7 +710,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         MapRegionSize = 3,
         HeapRegionBaseAddr = 4,
         HeapRegionSize = 5,
-        TotalMemoryUsage = 6,
+        TotalPhysicalMemoryAvailable = 6,
         TotalPhysicalMemoryUsed = 7,
         IsCurrentProcessBeingDebugged = 8,
         RegisterResourceLimit = 9,
@@ -745,7 +745,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
     case GetInfoType::ASLRRegionSize:
     case GetInfoType::NewMapRegionBaseAddr:
     case GetInfoType::NewMapRegionSize:
-    case GetInfoType::TotalMemoryUsage:
+    case GetInfoType::TotalPhysicalMemoryAvailable:
     case GetInfoType::TotalPhysicalMemoryUsed:
     case GetInfoType::IsVirtualAddressMemoryEnabled:
     case GetInfoType::PersonalMmHeapUsage:
@@ -803,8 +803,8 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
             *result = process->VMManager().GetNewMapRegionSize();
             return RESULT_SUCCESS;
 
-        case GetInfoType::TotalMemoryUsage:
-            *result = process->VMManager().GetTotalMemoryUsage();
+        case GetInfoType::TotalPhysicalMemoryAvailable:
+            *result = process->VMManager().GetTotalPhysicalMemoryAvailable();
             return RESULT_SUCCESS;
 
         case GetInfoType::TotalPhysicalMemoryUsed:

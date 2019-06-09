@@ -499,7 +499,7 @@ public:
     void LogLayout() const;
 
     /// Gets the total memory usage, used by svcGetInfo
-    u64 GetTotalMemoryUsage() const;
+    u64 GetTotalPhysicalMemoryAvailable() const;
 
     /// Gets the address space base address
     VAddr GetAddressSpaceBaseAddress() const;
