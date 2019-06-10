@@ -85,12 +85,29 @@ Loader::ResultStatus NSP::GetProgramStatus(u64 title_id) const {
 }
 
 u64 NSP::GetFirstTitleID() const {
+    if (IsExtractedType()) {
+        return GetProgramTitleID();
+    }
+
     if (program_status.empty())
         return 0;
     return program_status.begin()->first;
 }
 
 u64 NSP::GetProgramTitleID() const {
+    if (IsExtractedType()) {
+        if (GetExeFS() == nullptr || !IsDirectoryExeFS(GetExeFS())) {
+            return 0;
+        }
+
+        ProgramMetadata meta;
+        if (meta.Load(GetExeFS()->GetFile("main.npdm")) == Loader::ResultStatus::Success) {
+            return meta.GetTitleID();
+        } else {
+            return 0;
+        }
+    }
+
     const auto out = GetFirstTitleID();
     if ((out & 0x800) == 0)
         return out;
@@ -102,6 +119,10 @@ u64 NSP::GetProgramTitleID() const {
 }
 
 std::vector<u64> NSP::GetTitleIDs() const {
+    if (IsExtractedType()) {
+        return {GetProgramTitleID()};
+    }
+
     std::vector<u64> out;
     out.reserve(ncas.size());
     for (const auto& kv : ncas)

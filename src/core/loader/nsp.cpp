@@ -77,7 +77,7 @@ AppLoader_NSP::LoadResult AppLoader_NSP::Load(Kernel::Process& process) {
         return {ResultStatus::ErrorAlreadyLoaded, {}};
     }
 
-    if (title_id == 0) {
+    if (!nsp->IsExtractedType() && title_id == 0) {
         return {ResultStatus::ErrorNSPMissingProgramNCA, {}};
     }
 
