@@ -176,7 +176,10 @@ int main(int argc, char** argv) {
         finished = true;
         return_value = 0;
 
-        const auto len =
+        // Find the minimum length needed to fully enclose all test names (and the header field) in
+        // the fmt::format column by first finding the maximum size of any test name and comparing
+        // that to 9, the string length of 'Test Name'
+        const auto needed_length_name =
             std::max<u64>(std::max_element(results.begin(), results.end(),
                                            [](const auto& lhs, const auto& rhs) {
                                                return lhs.name.size() < rhs.name.size();
@@ -187,7 +190,8 @@ int main(int argc, char** argv) {
         std::size_t passed = 0;
         std::size_t failed = 0;
 
-        std::cout << fmt::format("Result [Res Code] | {:<{}} | Extra Data", "Test Name", len)
+        std::cout << fmt::format("Result [Res Code] | {:<{}} | Extra Data", "Test Name",
+                                 needed_length_name)
                   << std::endl;
 
         for (const auto& res : results) {
@@ -196,8 +200,8 @@ int main(int argc, char** argv) {
                 ++passed;
             else
                 ++failed;
-            std::cout << fmt::format("{} [{:08X}] | {:<{}} | {}", main_res, res.code, res.name, len,
-                                     res.data)
+            std::cout << fmt::format("{} [{:08X}] | {:<{}} | {}", main_res, res.code, res.name,
+                                     needed_length_name, res.data)
                       << std::endl;
         }
 
@@ -229,9 +233,6 @@ int main(int argc, char** argv) {
         return -1;
     case Core::System::ResultStatus::ErrorNotInitialized:
         LOG_CRITICAL(Frontend, "CPUCore not initialized");
-        return -1;
-    case Core::System::ResultStatus::ErrorSystemMode:
-        LOG_CRITICAL(Frontend, "Failed to determine system mode!");
         return -1;
     case Core::System::ResultStatus::ErrorVideoCore:
         LOG_CRITICAL(Frontend, "Failed to initialize VideoCore!");

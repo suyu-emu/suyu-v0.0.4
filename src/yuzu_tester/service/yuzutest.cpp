@@ -95,7 +95,7 @@ private:
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
 
-        finish_callback(results);
+        finish_callback(std::move(results));
     }
 
     std::string data;
