@@ -758,7 +758,7 @@ VMManager::CheckResults VMManager::CheckRangeState(VAddr address, u64 size, Memo
         std::make_tuple(initial_state, initial_permissions, initial_attributes & ~ignore_mask));
 }
 
-u64 VMManager::GetTotalMemoryUsage() const {
+u64 VMManager::GetTotalPhysicalMemoryAvailable() const {
     LOG_WARNING(Kernel, "(STUBBED) called");
     return 0xF8000000;
 }

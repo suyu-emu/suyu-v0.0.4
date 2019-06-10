@@ -186,8 +186,19 @@ public:
         return random_entropy.at(index);
     }
 
+    /// Retrieves the total physical memory available to this process in bytes.
+    u64 GetTotalPhysicalMemoryAvailable() const;
+
+    /// Retrieves the total physical memory available to this process in bytes,
+    /// without the size of the personal heap added to it.
+    u64 GetTotalPhysicalMemoryAvailableWithoutMmHeap() const;
+
     /// Retrieves the total physical memory used by this process in bytes.
     u64 GetTotalPhysicalMemoryUsed() const;
+
+    /// Retrieves the total physical memory used by this process in bytes,
+    /// without the size of the personal heap added to it.
+    u64 GetTotalPhysicalMemoryUsedWithoutMmHeap() const;
 
     /// Gets the list of all threads created with this process as their owner.
     const std::list<const Thread*>& GetThreadList() const {

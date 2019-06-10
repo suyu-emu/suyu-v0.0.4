@@ -710,13 +710,13 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         MapRegionSize = 3,
         HeapRegionBaseAddr = 4,
         HeapRegionSize = 5,
-        TotalMemoryUsage = 6,
+        TotalPhysicalMemoryAvailable = 6,
         TotalPhysicalMemoryUsed = 7,
         IsCurrentProcessBeingDebugged = 8,
         RegisterResourceLimit = 9,
         IdleTickCount = 10,
         RandomEntropy = 11,
-        PerformanceCounter = 0xF0000002,
+        ThreadTickCount = 0xF0000002,
         // 2.0.0+
         ASLRRegionBaseAddr = 12,
         ASLRRegionSize = 13,
@@ -730,7 +730,9 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         PrivilegedProcessId = 19,
         // 5.0.0+
         UserExceptionContextAddr = 20,
-        ThreadTickCount = 0xF0000002,
+        // 6.0.0+
+        TotalPhysicalMemoryAvailableWithoutMmHeap = 21,
+        TotalPhysicalMemoryUsedWithoutMmHeap = 22,
     };
 
     const auto info_id_type = static_cast<GetInfoType>(info_id);
@@ -746,12 +748,14 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
     case GetInfoType::ASLRRegionSize:
     case GetInfoType::NewMapRegionBaseAddr:
     case GetInfoType::NewMapRegionSize:
-    case GetInfoType::TotalMemoryUsage:
+    case GetInfoType::TotalPhysicalMemoryAvailable:
     case GetInfoType::TotalPhysicalMemoryUsed:
     case GetInfoType::IsVirtualAddressMemoryEnabled:
     case GetInfoType::PersonalMmHeapUsage:
     case GetInfoType::TitleId:
-    case GetInfoType::UserExceptionContextAddr: {
+    case GetInfoType::UserExceptionContextAddr:
+    case GetInfoType::TotalPhysicalMemoryAvailableWithoutMmHeap:
+    case GetInfoType::TotalPhysicalMemoryUsedWithoutMmHeap: {
         if (info_sub_id != 0) {
             return ERR_INVALID_ENUM_VALUE;
         }
@@ -804,8 +808,8 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
             *result = process->VMManager().GetNewMapRegionSize();
             return RESULT_SUCCESS;
 
-        case GetInfoType::TotalMemoryUsage:
-            *result = process->VMManager().GetTotalMemoryUsage();
+        case GetInfoType::TotalPhysicalMemoryAvailable:
+            *result = process->GetTotalPhysicalMemoryAvailable();
             return RESULT_SUCCESS;
 
         case GetInfoType::TotalPhysicalMemoryUsed:
@@ -824,6 +828,14 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
             LOG_WARNING(Kernel_SVC,
                         "(STUBBED) Attempted to query user exception context address, returned 0");
             *result = 0;
+            return RESULT_SUCCESS;
+
+        case GetInfoType::TotalPhysicalMemoryAvailableWithoutMmHeap:
+            *result = process->GetTotalPhysicalMemoryAvailable();
+            return RESULT_SUCCESS;
+
+        case GetInfoType::TotalPhysicalMemoryUsedWithoutMmHeap:
+            *result = process->GetTotalPhysicalMemoryUsedWithoutMmHeap();
             return RESULT_SUCCESS;
 
         default:
