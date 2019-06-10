@@ -48,7 +48,7 @@ void SetupMainThread(Process& owner_process, KernelCore& kernel, u32 priority) {
 }
 } // Anonymous namespace
 
-SharedPtr<Process> Process::Create(Core::System& system, std::string&& name) {
+SharedPtr<Process> Process::Create(Core::System& system, std::string name) {
     auto& kernel = system.Kernel();
 
     SharedPtr<Process> process(new Process(system));
