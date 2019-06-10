@@ -17,7 +17,14 @@ struct EventType;
 
 namespace Tools {
 
-// A class that will effectively freeze memory values.
+/**
+ * This class allows the user to prevent an application from writing new values to certain memory
+ * locations. This has a variety of uses when attempting to reverse a game.
+ *
+ * One example could be a cheat to prevent Mario from taking damage in SMO. One could freeze the
+ * memory address that the game uses to store Mario's health so when he takes damage (and the game
+ * tries to write the new health value to memory), the value won't change.
+ */
 class Freezer {
 public:
     struct Entry {
