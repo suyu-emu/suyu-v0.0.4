@@ -96,7 +96,10 @@ private:
     u32 CreateNewObjectID();
 
     /// Creates a new process ID, incrementing the internal process ID counter;
-    u64 CreateNewProcessID();
+    u64 CreateNewKernelProcessID();
+
+    /// Creates a new process ID, incrementing the internal process ID counter;
+    u64 CreateNewUserProcessID();
 
     /// Creates a new thread ID, incrementing the internal thread ID counter.
     u64 CreateNewThreadID();

@@ -48,7 +48,8 @@ void SetupMainThread(Process& owner_process, KernelCore& kernel, u32 priority) {
 }
 } // Anonymous namespace
 
-SharedPtr<Process> Process::Create(Core::System& system, std::string name) {
+SharedPtr<Process> Process::Create(Core::System& system, std::string name,
+                                   Process::ProcessType type) {
     auto& kernel = system.Kernel();
 
     SharedPtr<Process> process(new Process(system));
@@ -56,7 +57,8 @@ SharedPtr<Process> Process::Create(Core::System& system, std::string name) {
     process->resource_limit = kernel.GetSystemResourceLimit();
     process->status = ProcessStatus::Created;
     process->program_id = 0;
-    process->process_id = kernel.CreateNewProcessID();
+    process->process_id = type == ProcessType::KernelInternal ? kernel.CreateNewKernelProcessID()
+                                                              : kernel.CreateNewUserProcessID();
     process->capabilities.InitializeForMetadatalessProcess();
 
     std::mt19937 rng(Settings::values.rng_seed.value_or(0));

@@ -73,9 +73,15 @@ public:
         ProcessIDMax = 0xFFFFFFFFFFFFFFFF,
     };
 
+    // Used to determine how process IDs are assigned.
+    enum class ProcessType {
+        KernelInternal,
+        Userland,
+    };
+
     static constexpr std::size_t RANDOM_ENTROPY_SIZE = 4;
 
-    static SharedPtr<Process> Create(Core::System& system, std::string name);
+    static SharedPtr<Process> Create(Core::System& system, std::string name, ProcessType type);
 
     std::string GetTypeName() const override {
         return "Process";
