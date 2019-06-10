@@ -15,7 +15,8 @@
 
 namespace Service::Nvidia::Devices {
 
-nvhost_ctrl::nvhost_ctrl(EventsInterface& events_interface) : events_interface{events_interface} {}
+nvhost_ctrl::nvhost_ctrl(Core::System& system, EventsInterface& events_interface)
+    : nvdevice(system), events_interface{events_interface} {}
 nvhost_ctrl::~nvhost_ctrl() = default;
 
 u32 nvhost_ctrl::ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) {
@@ -59,7 +60,7 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
         return NvResult::BadParameter;
     }
 
-    auto& gpu = Core::System::GetInstance().GPU();
+    auto& gpu = system.GPU();
     // This is mostly to take into account unimplemented features. As synced
     // gpu is always synced.
     if (!gpu.IsAsync()) {
@@ -158,7 +159,7 @@ u32 nvhost_ctrl::IocCtrlEventSignal(const std::vector<u8>& input, std::vector<u8
         return NvResult::BadParameter;
     }
     if (events_interface.status[event_id] == EventState::Waiting) {
-        auto& gpu = Core::System::GetInstance().GPU();
+        auto& gpu = system.GPU();
         gpu.CancelEvent(event_id, events_interface.assigned_syncpt[event_id],
                         events_interface.assigned_value[event_id]);
         events_interface.LiberateEvent(event_id);

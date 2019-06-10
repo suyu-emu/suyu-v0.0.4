@@ -25,8 +25,9 @@
 
 namespace Service::Nvidia {
 
-void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger& nvflinger) {
-    auto module_ = std::make_shared<Module>();
+void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger& nvflinger,
+                       Core::System& system) {
+    auto module_ = std::make_shared<Module>(system);
     std::make_shared<NVDRV>(module_, "nvdrv")->InstallAsService(service_manager);
     std::make_shared<NVDRV>(module_, "nvdrv:a")->InstallAsService(service_manager);
     std::make_shared<NVDRV>(module_, "nvdrv:s")->InstallAsService(service_manager);
@@ -35,25 +36,25 @@ void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger
     nvflinger.SetNVDrvInstance(module_);
 }
 
-Module::Module() {
-    auto& kernel = Core::System::GetInstance().Kernel();
+Module::Module(Core::System& system) {
+    auto& kernel = system.Kernel();
     for (u32 i = 0; i < MaxNvEvents; i++) {
         std::string event_label = fmt::format("NVDRV::NvEvent_{}", i);
-        events_interface.events[i] = Kernel::WritableEvent::CreateEventPair(
-            kernel, Kernel::ResetType::Manual, event_label);
+        events_interface.events[i] =
+            Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Manual, event_label);
         events_interface.status[i] = EventState::Free;
         events_interface.registered[i] = false;
     }
-    auto nvmap_dev = std::make_shared<Devices::nvmap>();
-    devices["/dev/nvhost-as-gpu"] = std::make_shared<Devices::nvhost_as_gpu>(nvmap_dev);
-    devices["/dev/nvhost-gpu"] = std::make_shared<Devices::nvhost_gpu>(nvmap_dev);
-    devices["/dev/nvhost-ctrl-gpu"] = std::make_shared<Devices::nvhost_ctrl_gpu>();
+    auto nvmap_dev = std::make_shared<Devices::nvmap>(system);
+    devices["/dev/nvhost-as-gpu"] = std::make_shared<Devices::nvhost_as_gpu>(system, nvmap_dev);
+    devices["/dev/nvhost-gpu"] = std::make_shared<Devices::nvhost_gpu>(system, nvmap_dev);
+    devices["/dev/nvhost-ctrl-gpu"] = std::make_shared<Devices::nvhost_ctrl_gpu>(system);
     devices["/dev/nvmap"] = nvmap_dev;
-    devices["/dev/nvdisp_disp0"] = std::make_shared<Devices::nvdisp_disp0>(nvmap_dev);
-    devices["/dev/nvhost-ctrl"] = std::make_shared<Devices::nvhost_ctrl>(events_interface);
-    devices["/dev/nvhost-nvdec"] = std::make_shared<Devices::nvhost_nvdec>();
-    devices["/dev/nvhost-nvjpg"] = std::make_shared<Devices::nvhost_nvjpg>();
-    devices["/dev/nvhost-vic"] = std::make_shared<Devices::nvhost_vic>();
+    devices["/dev/nvdisp_disp0"] = std::make_shared<Devices::nvdisp_disp0>(system, nvmap_dev);
+    devices["/dev/nvhost-ctrl"] = std::make_shared<Devices::nvhost_ctrl>(system, events_interface);
+    devices["/dev/nvhost-nvdec"] = std::make_shared<Devices::nvhost_nvdec>(system);
+    devices["/dev/nvhost-nvjpg"] = std::make_shared<Devices::nvhost_nvjpg>(system);
+    devices["/dev/nvhost-vic"] = std::make_shared<Devices::nvhost_vic>(system);
 }
 
 Module::~Module() = default;

@@ -9,13 +9,17 @@
 #include "common/common_types.h"
 #include "common/swap.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::Nvidia::Devices {
 
 /// Represents an abstract nvidia device node. It is to be subclassed by concrete device nodes to
 /// implement the ioctl interface.
 class nvdevice {
 public:
-    nvdevice() = default;
+    nvdevice(Core::System& system) : system{system} {};
     virtual ~nvdevice() = default;
     union Ioctl {
         u32_le raw;
@@ -34,6 +38,9 @@ public:
      * @returns The result code of the ioctl.
      */
     virtual u32 ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) = 0;
+
+protected:
+    Core::System& system;
 };
 
 } // namespace Service::Nvidia::Devices

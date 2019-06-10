@@ -13,7 +13,8 @@
 
 namespace Service::Nvidia::Devices {
 
-nvhost_gpu::nvhost_gpu(std::shared_ptr<nvmap> nvmap_dev) : nvmap_dev(std::move(nvmap_dev)) {}
+nvhost_gpu::nvhost_gpu(Core::System& system, std::shared_ptr<nvmap> nvmap_dev)
+    : nvdevice(system), nvmap_dev(std::move(nvmap_dev)) {}
 nvhost_gpu::~nvhost_gpu() = default;
 
 u32 nvhost_gpu::ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) {
@@ -119,7 +120,7 @@ u32 nvhost_gpu::AllocGPFIFOEx2(const std::vector<u8>& input, std::vector<u8>& ou
                 params.num_entries, params.flags, params.unk0, params.unk1, params.unk2,
                 params.unk3);
 
-    auto& gpu = Core::System::GetInstance().GPU();
+    auto& gpu = system.GPU();
     params.fence_out.id = channels;
     params.fence_out.value = gpu.GetSyncpointValue(channels);
     channels++;
@@ -158,7 +159,7 @@ u32 nvhost_gpu::SubmitGPFIFO(const std::vector<u8>& input, std::vector<u8>& outp
     UNIMPLEMENTED_IF(params.flags.add_wait.Value() != 0);
     UNIMPLEMENTED_IF(params.flags.add_increment.Value() != 0);
 
-    auto& gpu = Core::System::GetInstance().GPU();
+    auto& gpu = system.GPU();
     u32 current_syncpoint_value = gpu.GetSyncpointValue(params.fence_out.id);
     if (params.flags.increment.Value()) {
         params.fence_out.value += current_syncpoint_value;
@@ -189,7 +190,7 @@ u32 nvhost_gpu::KickoffPB(const std::vector<u8>& input, std::vector<u8>& output)
     UNIMPLEMENTED_IF(params.flags.add_wait.Value() != 0);
     UNIMPLEMENTED_IF(params.flags.add_increment.Value() != 0);
 
-    auto& gpu = Core::System::GetInstance().GPU();
+    auto& gpu = system.GPU();
     u32 current_syncpoint_value = gpu.GetSyncpointValue(params.fence_out.id);
     if (params.flags.increment.Value()) {
         params.fence_out.value += current_syncpoint_value;

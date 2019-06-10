@@ -20,7 +20,7 @@ constexpr u32 NVGPU_IOCTL_CHANNEL_KICKOFF_PB(0x1b);
 
 class nvhost_gpu final : public nvdevice {
 public:
-    explicit nvhost_gpu(std::shared_ptr<nvmap> nvmap_dev);
+    explicit nvhost_gpu(Core::System& system, std::shared_ptr<nvmap> nvmap_dev);
     ~nvhost_gpu() override;
 
     u32 ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) override;

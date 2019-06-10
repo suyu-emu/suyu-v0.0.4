@@ -16,7 +16,7 @@ namespace Service::Nvidia::Devices {
 
 class nvmap final : public nvdevice {
 public:
-    nvmap();
+    nvmap(Core::System& system);
     ~nvmap() override;
 
     /// Returns the allocated address of an nvmap object given its handle.

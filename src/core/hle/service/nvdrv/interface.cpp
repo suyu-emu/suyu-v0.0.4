@@ -138,8 +138,6 @@ NVDRV::NVDRV(std::shared_ptr<Module> nvdrv, const char* name)
         {13, &NVDRV::FinishInitialize, "FinishInitialize"},
     };
     RegisterHandlers(functions);
-
-    auto& kernel = Core::System::GetInstance().Kernel();
 }
 
 NVDRV::~NVDRV() = default;

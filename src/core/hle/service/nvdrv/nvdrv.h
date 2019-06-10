@@ -12,6 +12,10 @@
 #include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::NVFlinger {
 class NVFlinger;
 }
@@ -66,7 +70,7 @@ struct EventsInterface {
 
 class Module final {
 public:
-    Module();
+    Module(Core::System& system);
     ~Module();
 
     /// Returns a pointer to one of the available devices, identified by its name.
@@ -103,6 +107,7 @@ private:
 };
 
 /// Registers all NVDRV services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger& nvflinger);
+void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger& nvflinger,
+                       Core::System& system);
 
 } // namespace Service::Nvidia
