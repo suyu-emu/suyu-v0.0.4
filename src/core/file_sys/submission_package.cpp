@@ -14,6 +14,7 @@
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/partition_filesystem.h"
+#include "core/file_sys/program_metadata.h"
 #include "core/file_sys/submission_package.h"
 #include "core/loader/loader.h"
 
@@ -78,6 +79,10 @@ Loader::ResultStatus NSP::GetStatus() const {
 }
 
 Loader::ResultStatus NSP::GetProgramStatus(u64 title_id) const {
+    if (IsExtractedType() && GetExeFS() != nullptr && FileSys::IsDirectoryExeFS(GetExeFS())) {
+        return Loader::ResultStatus::Success;
+    }
+
     const auto iter = program_status.find(title_id);
     if (iter == program_status.end())
         return Loader::ResultStatus::ErrorNSPMissingProgramNCA;
