@@ -90,6 +90,7 @@ public:
 
     TView GetTextureSurface(const Tegra::Texture::FullTextureInfo& config,
                             const VideoCommon::Shader::Sampler& entry) {
+        std::lock_guard lock{mutex};
         const auto gpu_addr{config.tic.Address()};
         if (!gpu_addr) {
             return {};
@@ -99,6 +100,7 @@ public:
     }
 
     TView GetDepthBufferSurface(bool preserve_contents) {
+        std::lock_guard lock{mutex};
         auto& maxwell3d = system.GPU().Maxwell3D();
 
         if (!maxwell3d.dirty_flags.zeta_buffer) {
@@ -127,6 +129,7 @@ public:
     }
 
     TView GetColorBufferSurface(std::size_t index, bool preserve_contents) {
+        std::lock_guard lock{mutex};
         ASSERT(index < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets);
         auto& maxwell3d = system.GPU().Maxwell3D();
         if (!maxwell3d.dirty_flags.color_buffer[index]) {
@@ -188,6 +191,7 @@ public:
     void DoFermiCopy(const Tegra::Engines::Fermi2D::Regs::Surface& src_config,
                      const Tegra::Engines::Fermi2D::Regs::Surface& dst_config,
                      const Tegra::Engines::Fermi2D::Config& copy_config) {
+        std::lock_guard lock{mutex};
         std::pair<TSurface, TView> dst_surface = GetFermiSurface(dst_config);
         std::pair<TSurface, TView> src_surface = GetFermiSurface(src_config);
         ImageBlit(src_surface.second, dst_surface.second, copy_config);
@@ -245,8 +249,6 @@ protected:
     virtual void BufferCopy(TSurface& src_surface, TSurface& dst_surface) = 0;
 
     void Register(TSurface surface) {
-        std::lock_guard lock{mutex};
-
         const GPUVAddr gpu_addr = surface->GetGpuAddr();
         const CacheAddr cache_ptr = ToCacheAddr(memory_manager->GetPointer(gpu_addr));
         const std::size_t size = surface->GetSizeInBytes();
@@ -266,8 +268,6 @@ protected:
     }
 
     void Unregister(TSurface surface) {
-        std::lock_guard lock{mutex};
-
         if (guard_cache && surface->IsProtected()) {
             return;
         }
