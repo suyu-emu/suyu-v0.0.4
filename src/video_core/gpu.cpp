@@ -29,8 +29,8 @@ u32 FramebufferConfig::BytesPerPixel(PixelFormat format) {
     UNREACHABLE();
 }
 
-GPU::GPU(Core::System& system, VideoCore::RendererBase& renderer)
-    : system{system}, renderer{renderer} {
+GPU::GPU(Core::System& system, VideoCore::RendererBase& renderer, bool is_async)
+    : system{system}, renderer{renderer}, is_async{is_async} {
     auto& rasterizer{renderer.Rasterizer()};
     memory_manager = std::make_unique<Tegra::MemoryManager>(rasterizer);
     dma_pusher = std::make_unique<Tegra::DmaPusher>(*this);

@@ -131,7 +131,7 @@ class MemoryManager;
 
 class GPU {
 public:
-    explicit GPU(Core::System& system, VideoCore::RendererBase& renderer);
+    explicit GPU(Core::System& system, VideoCore::RendererBase& renderer, bool is_async);
 
     virtual ~GPU();
 
@@ -182,6 +182,10 @@ public:
         } else {
             sync_mutex.unlock();
         }
+    }
+
+    bool IsAsync() const {
+        return is_async;
     }
 
     /// Returns a const reference to the GPU DMA pusher.
@@ -298,6 +302,8 @@ private:
     std::array<std::list<Event>, Service::Nvidia::MaxSyncPoints> events;
 
     std::mutex sync_mutex;
+
+    const bool is_async;
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \

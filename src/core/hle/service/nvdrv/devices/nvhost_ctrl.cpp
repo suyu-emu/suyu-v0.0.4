@@ -60,6 +60,11 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
     }
 
     auto& gpu = Core::System::GetInstance().GPU();
+    // This is mostly to take into account unimplemented features. As synced
+    // gpu is always synced.
+    if (!gpu.IsAsync()) {
+        return NvResult::Success;
+    }
     gpu.Guard(true);
     u32 current_syncpoint_value = gpu.GetSyncpointValue(params.syncpt_id);
     if (current_syncpoint_value >= params.threshold) {

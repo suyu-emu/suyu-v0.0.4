@@ -11,7 +11,7 @@
 namespace VideoCommon {
 
 GPUAsynch::GPUAsynch(Core::System& system, VideoCore::RendererBase& renderer)
-    : GPU(system, renderer), gpu_thread{system} {}
+    : GPU(system, renderer, true), gpu_thread{system} {}
 
 GPUAsynch::~GPUAsynch() = default;
 
