@@ -257,6 +257,9 @@ void ARM_Dynarmic::LoadContext(const ThreadContext& ctx) {
 }
 
 void ARM_Dynarmic::PrepareReschedule() {
+    if (jit == nullptr)
+        return;
+
     jit->HaltExecution();
 }
 
