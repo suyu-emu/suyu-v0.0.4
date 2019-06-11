@@ -27,16 +27,17 @@ class nvdevice;
 }
 
 struct EventsInterface {
-    u64 events_mask;
+    u64 events_mask{};
     std::array<Kernel::EventPair, MaxNvEvents> events;
-    std::array<EventState, MaxNvEvents> status;
-    std::array<bool, MaxNvEvents> registered;
-    std::array<u32, MaxNvEvents> assigned_syncpt;
-    std::array<u32, MaxNvEvents> assigned_value;
+    std::array<EventState, MaxNvEvents> status{};
+    std::array<bool, MaxNvEvents> registered{};
+    std::array<u32, MaxNvEvents> assigned_syncpt{};
+    std::array<u32, MaxNvEvents> assigned_value{};
     u32 GetFreeEvent() {
         u64 mask = events_mask;
         for (u32 i = 0; i < MaxNvEvents; i++) {
-            if (mask & 0x1) {
+            const bool is_free = (mask & 0x1) == 0;
+            if (is_free) {
                 if (status[i] == EventState::Registered || status[i] == EventState::Free) {
                     return i;
                 }
@@ -46,9 +47,15 @@ struct EventsInterface {
         return 0xFFFFFFFF;
     }
     void SetEventStatus(const u32 event_id, EventState new_status) {
+        EventState old_status = status[event_id];
+        if (old_status == new_status)
+            return;
         status[event_id] = new_status;
         if (new_status == EventState::Registered) {
             registered[event_id] = true;
+        }
+        if (new_status == EventState::Waiting || new_status == EventState::Busy) {
+            events_mask |= (1 << event_id);
         }
     }
     void RegisterEvent(const u32 event_id) {
@@ -65,6 +72,7 @@ struct EventsInterface {
     }
     void LiberateEvent(const u32 event_id) {
         status[event_id] = registered[event_id] ? EventState::Registered : EventState::Free;
+        events_mask &= ~(1 << event_id);
     }
 };
 
