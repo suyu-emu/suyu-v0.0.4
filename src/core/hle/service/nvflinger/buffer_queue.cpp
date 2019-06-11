@@ -75,12 +75,18 @@ void BufferQueue::QueueBuffer(u32 slot, BufferTransformFlags transform,
     itr->crop_rect = crop_rect;
     itr->swap_interval = swap_interval;
     itr->multi_fence = multi_fence;
+    queue_sequence.push_back(slot);
 }
 
 std::optional<std::reference_wrapper<const BufferQueue::Buffer>> BufferQueue::AcquireBuffer() {
-    auto itr = std::find_if(queue.begin(), queue.end(), [](const Buffer& buffer) {
-        return buffer.status == Buffer::Status::Queued;
-    });
+    std::vector<Buffer>::iterator itr = queue.end();
+    while (itr == queue.end() && !queue_sequence.empty()) {
+        u32 slot = queue_sequence.front();
+        itr = std::find_if(queue.begin(), queue.end(), [&slot](const Buffer& buffer) {
+            return buffer.status == Buffer::Status::Queued && buffer.slot == slot;
+        });
+        queue_sequence.pop_front();
+    }
     if (itr == queue.end())
         return {};
     itr->status = Buffer::Status::Acquired;

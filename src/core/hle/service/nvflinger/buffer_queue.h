@@ -6,6 +6,7 @@
 
 #include <optional>
 #include <vector>
+#include <list>
 
 #include "common/common_funcs.h"
 #include "common/math_util.h"
@@ -97,6 +98,7 @@ private:
     u64 layer_id;
 
     std::vector<Buffer> queue;
+    std::list<u32> queue_sequence;
     Kernel::EventPair buffer_wait_event;
 };
 
