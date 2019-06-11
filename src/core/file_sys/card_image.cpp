@@ -59,9 +59,7 @@ XCI::XCI(VirtualFile file_)
     secure_partition = std::make_shared<NSP>(
         main_hfs.GetFile(partition_names[static_cast<std::size_t>(XCIPartition::Secure)]));
 
-    const auto secure_ncas = secure_partition->GetNCAsCollapsed();
-    std::copy(secure_ncas.begin(), secure_ncas.end(), std::back_inserter(ncas));
-
+    ncas = secure_partition->GetNCAsCollapsed();
     program =
         secure_partition->GetNCA(secure_partition->GetProgramTitleID(), ContentRecordType::Program);
     program_nca_status = secure_partition->GetProgramStatus(secure_partition->GetProgramTitleID());
