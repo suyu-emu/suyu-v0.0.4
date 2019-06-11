@@ -18,7 +18,12 @@
 
 namespace FileSys {
 
-constexpr std::array<const char*, 0x4> partition_names = {"update", "normal", "secure", "logo"};
+constexpr std::array partition_names{
+    "update",
+    "normal",
+    "secure",
+    "logo",
+};
 
 XCI::XCI(VirtualFile file_)
     : file(std::move(file_)), program_nca_status{Loader::ResultStatus::ErrorXCIMissingProgramNCA},
