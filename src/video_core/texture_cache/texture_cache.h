@@ -218,12 +218,6 @@ public:
     }
 
 protected:
-    // This structure is used for communicating with the backend, on which behaviors
-    // it supports and what not, to avoid assuming certain things about hardware.
-    // The backend is RESPONSIBLE for filling this settings on creation.
-    struct Support {
-        bool depth_color_image_copies;
-    } support_info;
 
     TextureCache(Core::System& system, VideoCore::RasterizerInterface& rasterizer)
         : system{system}, rasterizer{rasterizer} {
@@ -389,8 +383,7 @@ private:
         const auto gpu_addr = current_surface->GetGpuAddr();
         TSurface new_surface = GetUncachedSurface(gpu_addr, params);
         const auto& cr_params = current_surface->GetSurfaceParams();
-        if (cr_params.type != params.type && (!support_info.depth_color_image_copies ||
-                                              cr_params.component_type != params.component_type)) {
+        if (cr_params.type != params.type || (cr_params.component_type != params.component_type)) {
             BufferCopy(current_surface, new_surface);
         } else {
             std::vector<CopyParams> bricks = current_surface->BreakDown(params);

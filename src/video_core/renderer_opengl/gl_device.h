@@ -34,10 +34,6 @@ public:
         return has_component_indexing_bug;
     }
 
-    bool IsTuringGPU() const {
-        return is_turing_plus;
-    }
-
 private:
     static bool TestVariableAoffi();
     static bool TestComponentIndexingBug();
@@ -47,7 +43,6 @@ private:
     u32 max_varyings{};
     bool has_variable_aoffi{};
     bool has_component_indexing_bug{};
-    bool is_turing_plus{};
 };
 
 } // namespace OpenGL

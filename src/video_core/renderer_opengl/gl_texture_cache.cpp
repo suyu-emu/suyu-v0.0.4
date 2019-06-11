@@ -439,7 +439,6 @@ TextureCacheOpenGL::TextureCacheOpenGL(Core::System& system,
                                        VideoCore::RasterizerInterface& rasterizer,
                                        const Device& device)
     : TextureCacheBase{system, rasterizer} {
-    support_info.depth_color_image_copies = !device.IsTuringGPU();
     src_framebuffer.Create();
     dst_framebuffer.Create();
 }
@@ -452,13 +451,11 @@ Surface TextureCacheOpenGL::CreateSurface(GPUVAddr gpu_addr, const SurfaceParams
 
 void TextureCacheOpenGL::ImageCopy(Surface& src_surface, Surface& dst_surface,
                                    const VideoCommon::CopyParams& copy_params) {
-    if (!support_info.depth_color_image_copies) {
-        const auto& src_params = src_surface->GetSurfaceParams();
-        const auto& dst_params = dst_surface->GetSurfaceParams();
-        if (src_params.type != dst_params.type) {
-            // A fallback is needed
-            return;
-        }
+    const auto& src_params = src_surface->GetSurfaceParams();
+    const auto& dst_params = dst_surface->GetSurfaceParams();
+    if (src_params.type != dst_params.type) {
+        // A fallback is needed
+        return;
     }
     const auto src_handle = src_surface->GetTexture();
     const auto src_target = src_surface->GetTarget();
