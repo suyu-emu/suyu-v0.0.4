@@ -42,7 +42,7 @@ NVFlinger::NVFlinger(Core::Timing::CoreTiming& core_timing) : core_timing{core_t
     composition_event = core_timing.RegisterEvent(
         "ScreenComposition", [this](u64 userdata, s64 cycles_late) {
             Compose();
-            const auto ticks = GetNextTicks();
+            const auto ticks = Settings::values.force_30fps_mode ? frame_ticks_30fps : GetNextTicks();
             this->core_timing.ScheduleEvent(std::max(0LL,ticks - cycles_late), composition_event);
         });
 
