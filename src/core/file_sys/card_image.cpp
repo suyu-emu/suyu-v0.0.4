@@ -63,8 +63,9 @@ XCI::XCI(VirtualFile file_)
     program =
         secure_partition->GetNCA(secure_partition->GetProgramTitleID(), ContentRecordType::Program);
     program_nca_status = secure_partition->GetProgramStatus(secure_partition->GetProgramTitleID());
-    if (program_nca_status == Loader::ResultStatus::ErrorNSPMissingProgramNCA)
+    if (program_nca_status == Loader::ResultStatus::ErrorNSPMissingProgramNCA) {
         program_nca_status = Loader::ResultStatus::ErrorXCIMissingProgramNCA;
+    }
 
     auto result = AddNCAFromPartition(XCIPartition::Update);
     if (result != Loader::ResultStatus::Success) {
@@ -152,8 +153,9 @@ std::shared_ptr<NCA> XCI::GetNCAByType(NCAContentType type) const {
 
 VirtualFile XCI::GetNCAFileByType(NCAContentType type) const {
     auto nca = GetNCAByType(type);
-    if (nca != nullptr)
+    if (nca != nullptr) {
         return nca->GetBaseFile();
+    }
     return nullptr;
 }
 
@@ -179,12 +181,14 @@ Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
     }
 
     for (const VirtualFile& file : partitions[static_cast<std::size_t>(part)]->GetFiles()) {
-        if (file->GetExtension() != "nca")
+        if (file->GetExtension() != "nca") {
             continue;
+        }
         auto nca = std::make_shared<NCA>(file, nullptr, 0, keys);
         // TODO(DarkLordZach): Add proper Rev1+ Support
-        if (nca->IsUpdate())
+        if (nca->IsUpdate()) {
             continue;
+        }
         if (nca->GetType() == NCAContentType::Program) {
             program_nca_status = nca->GetStatus();
         }
