@@ -48,10 +48,12 @@ XCI::XCI(VirtualFile file_)
 
     for (XCIPartition partition :
          {XCIPartition::Update, XCIPartition::Normal, XCIPartition::Secure, XCIPartition::Logo}) {
-        auto raw = main_hfs.GetFile(partition_names[static_cast<std::size_t>(partition)]);
-        if (raw != nullptr)
-            partitions[static_cast<std::size_t>(partition)] =
-                std::make_shared<PartitionFilesystem>(raw);
+        const auto partition_idx = static_cast<std::size_t>(partition);
+        auto raw = main_hfs.GetFile(partition_names[partition_idx]);
+
+        if (raw != nullptr) {
+            partitions[partition_idx] = std::make_shared<PartitionFilesystem>(std::move(raw));
+        }
     }
 
     secure_partition = std::make_shared<NSP>(
