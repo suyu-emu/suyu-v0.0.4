@@ -176,11 +176,14 @@ VirtualDir XCI::GetParentDirectory() const {
 }
 
 Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
-    if (partitions[static_cast<std::size_t>(part)] == nullptr) {
+    const auto partition_index = static_cast<std::size_t>(part);
+    const auto& partition = partitions[partition_index];
+
+    if (partition == nullptr) {
         return Loader::ResultStatus::ErrorXCIMissingPartition;
     }
 
-    for (const VirtualFile& file : partitions[static_cast<std::size_t>(part)]->GetFiles()) {
+    for (const VirtualFile& file : partition->GetFiles()) {
         if (file->GetExtension() != "nca") {
             continue;
         }
@@ -197,7 +200,7 @@ Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
         } else {
             const u16 error_id = static_cast<u16>(nca->GetStatus());
             LOG_CRITICAL(Loader, "Could not load NCA {}/{}, failed with error code {:04X} ({})",
-                         partition_names[static_cast<std::size_t>(part)], nca->GetName(), error_id,
+                         partition_names[partition_index], nca->GetName(), error_id,
                          nca->GetStatus());
         }
     }
