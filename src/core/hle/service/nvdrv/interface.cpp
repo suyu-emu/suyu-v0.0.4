@@ -15,8 +15,8 @@
 
 namespace Service::Nvidia {
 
-void NVDRV::SignalGPUInterrupt(const u32 event_id) {
-    nvdrv->SignalEvent(event_id);
+void NVDRV::SignalGPUInterruptSyncpt(const u32 syncpoint_id, const u32 value) {
+    nvdrv->SignalSyncpt(syncpoint_id, value);
 }
 
 void NVDRV::Open(Kernel::HLERequestContext& ctx) {

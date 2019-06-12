@@ -70,13 +70,13 @@ const DmaPusher& GPU::DmaPusher() const {
 void GPU::IncrementSyncPoint(const u32 syncpoint_id) {
     syncpoints[syncpoint_id]++;
     sync_mutex.lock();
-    if (!events[syncpoint_id].empty()) {
+    if (!syncpt_interrupts[syncpoint_id].empty()) {
         u32 value = syncpoints[syncpoint_id].load();
-        auto it = events[syncpoint_id].begin();
-        while (it != events[syncpoint_id].end()) {
-            if (value >= it->value) {
-                TriggerCpuInterrupt(it->event_id);
-                it = events[syncpoint_id].erase(it);
+        auto it = syncpt_interrupts[syncpoint_id].begin();
+        while (it != syncpt_interrupts[syncpoint_id].end()) {
+            if (value >= *it) {
+                TriggerCpuInterrupt(syncpoint_id, *it);
+                it = syncpt_interrupts[syncpoint_id].erase(it);
                 continue;
             }
             it++;
@@ -89,19 +89,19 @@ u32 GPU::GetSyncpointValue(const u32 syncpoint_id) const {
     return syncpoints[syncpoint_id].load();
 }
 
-void GPU::RegisterEvent(const u32 event_id, const u32 syncpoint_id, const u32 value) {
-    for (auto& ev : events[syncpoint_id]) {
-        if (ev.event_id == event_id && ev.value == value)
+void GPU::RegisterSyncptInterrupt(const u32 syncpoint_id, const u32 value) {
+    for (u32 in_value : syncpt_interrupts[syncpoint_id]) {
+        if (in_value == value)
             return;
     }
-    events[syncpoint_id].emplace_back(event_id, value);
+    syncpt_interrupts[syncpoint_id].emplace_back(value);
 }
 
-void GPU::CancelEvent(const u32 event_id, const u32 syncpoint_id, const u32 value) {
-    auto it = events[syncpoint_id].begin();
-    while (it != events[syncpoint_id].end()) {
-        if (value == it->value) {
-            it = events[syncpoint_id].erase(it);
+void GPU::CancelSyncptInterrupt(const u32 syncpoint_id, const u32 value) {
+    auto it = syncpt_interrupts[syncpoint_id].begin();
+    while (it != syncpt_interrupts[syncpoint_id].end()) {
+        if (value == *it) {
+            it = syncpt_interrupts[syncpoint_id].erase(it);
             return;
         }
         it++;

@@ -73,6 +73,8 @@ struct EventsInterface {
     void LiberateEvent(const u32 event_id) {
         status[event_id] = registered[event_id] ? EventState::Registered : EventState::Free;
         events_mask &= ~(1 << event_id);
+        assigned_syncpt[event_id] = 0xFFFFFFFF;
+        assigned_value[event_id] = 0;
     }
 };
 
@@ -97,7 +99,7 @@ public:
     /// Closes a device file descriptor and returns operation success.
     ResultCode Close(u32 fd);
 
-    void SignalEvent(const u32 event_id);
+    void SignalSyncpt(const u32 syncpoint_id, const u32 value);
 
     Kernel::SharedPtr<Kernel::ReadableEvent> GetEvent(const u32 event_id);
 

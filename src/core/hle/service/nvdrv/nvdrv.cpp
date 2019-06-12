@@ -89,13 +89,14 @@ ResultCode Module::Close(u32 fd) {
     return RESULT_SUCCESS;
 }
 
-void Module::SignalEvent(const u32 event_id) {
-    if (event_id >= 64) {
-        LOG_ERROR(Service_NVDRV, "Unexpected Event signalled!");
-        return;
+void Module::SignalSyncpt(const u32 syncpoint_id, const u32 value) {
+    for (u32 i = 0; i < MaxNvEvents; i++) {
+        if (events_interface.assigned_syncpt[i] == syncpoint_id &&
+            events_interface.assigned_value[i] == value) {
+            events_interface.LiberateEvent(i);
+            events_interface.events[i].writable->Signal();
+        }
     }
-    events_interface.LiberateEvent(event_id);
-    events_interface.events[event_id].writable->Signal();
 }
 
 Kernel::SharedPtr<Kernel::ReadableEvent> Module::GetEvent(const u32 event_id) {

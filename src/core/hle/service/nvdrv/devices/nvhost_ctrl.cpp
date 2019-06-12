@@ -109,7 +109,7 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
         }
         params.value |= event_id;
         events_interface.events[event_id].writable->Clear();
-        gpu.RegisterEvent(event_id, params.syncpt_id, params.threshold);
+        gpu.RegisterSyncptInterrupt(params.syncpt_id, params.threshold);
         std::memcpy(output.data(), &params, sizeof(params));
         gpu.Guard(false);
         return NvResult::Timeout;
@@ -159,9 +159,6 @@ u32 nvhost_ctrl::IocCtrlEventSignal(const std::vector<u8>& input, std::vector<u8
         return NvResult::BadParameter;
     }
     if (events_interface.status[event_id] == EventState::Waiting) {
-        auto& gpu = system.GPU();
-        gpu.CancelEvent(event_id, events_interface.assigned_syncpt[event_id],
-                        events_interface.assigned_value[event_id]);
         events_interface.LiberateEvent(event_id);
     }
     return NvResult::Success;

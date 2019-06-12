@@ -14,7 +14,7 @@ public:
     InterruptManager(Core::System& system);
     ~InterruptManager() = default;
 
-    void InterruptGPU(const u32 event_index);
+    void GPUInterruptSyncpt(const u32 syncpoint_id, const u32 value);
 
 private:
     Core::System& system;

@@ -172,9 +172,9 @@ public:
 
     u32 GetSyncpointValue(const u32 syncpoint_id) const;
 
-    void RegisterEvent(const u32 event_id, const u32 syncpoint_id, const u32 value);
+    void RegisterSyncptInterrupt(const u32 syncpoint_id, const u32 value);
 
-    void CancelEvent(const u32 event_id, const u32 syncpoint_id, const u32 value);
+    void CancelSyncptInterrupt(const u32 syncpoint_id, const u32 value);
 
     void Guard(bool guard_set) {
         if (guard_set) {
@@ -253,7 +253,7 @@ public:
     virtual void FlushAndInvalidateRegion(CacheAddr addr, u64 size) = 0;
 
 protected:
-    virtual void TriggerCpuInterrupt(const u32 event_id) const = 0;
+    virtual void TriggerCpuInterrupt(const u32 syncpoint_id, const u32 value) const = 0;
 
 private:
     void ProcessBindMethod(const MethodCall& method_call);
@@ -293,13 +293,7 @@ private:
 
     std::array<std::atomic<u32>, Service::Nvidia::MaxSyncPoints> syncpoints{};
 
-    struct Event {
-        Event(const u32 event_id, const u32 value) : event_id(event_id), value(value) {}
-        u32 event_id;
-        u32 value;
-    };
-
-    std::array<std::list<Event>, Service::Nvidia::MaxSyncPoints> events;
+    std::array<std::list<u32>, Service::Nvidia::MaxSyncPoints> syncpt_interrupts;
 
     std::mutex sync_mutex;
 

@@ -19,7 +19,7 @@ public:
     NVDRV(std::shared_ptr<Module> nvdrv, const char* name);
     ~NVDRV() override;
 
-    void SignalGPUInterrupt(const u32 event_id);
+    void SignalGPUInterruptSyncpt(const u32 syncpoint_id, const u32 value);
 
 private:
     void Open(Kernel::HLERequestContext& ctx);

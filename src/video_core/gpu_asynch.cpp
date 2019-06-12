@@ -40,9 +40,9 @@ void GPUAsynch::FlushAndInvalidateRegion(CacheAddr addr, u64 size) {
     gpu_thread.FlushAndInvalidateRegion(addr, size);
 }
 
-void GPUAsynch::TriggerCpuInterrupt(const u32 event_id) const {
+void GPUAsynch::TriggerCpuInterrupt(const u32 syncpoint_id, const u32 value) const {
     auto& interrupt_manager = system.InterruptManager();
-    interrupt_manager.InterruptGPU(event_id);
+    interrupt_manager.GPUInterruptSyncpt(syncpoint_id, value);
 }
 
 } // namespace VideoCommon
