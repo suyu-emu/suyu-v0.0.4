@@ -18,11 +18,16 @@
 
 namespace FileSys {
 
-constexpr std::array<const char*, 0x4> partition_names = {"update", "normal", "secure", "logo"};
+constexpr std::array partition_names{
+    "update",
+    "normal",
+    "secure",
+    "logo",
+};
 
 XCI::XCI(VirtualFile file_)
     : file(std::move(file_)), program_nca_status{Loader::ResultStatus::ErrorXCIMissingProgramNCA},
-      partitions(0x4) {
+      partitions(partition_names.size()) {
     if (file->ReadObject(&header) != sizeof(GamecardHeader)) {
         status = Loader::ResultStatus::ErrorBadXCIHeader;
         return;
@@ -43,23 +48,24 @@ XCI::XCI(VirtualFile file_)
 
     for (XCIPartition partition :
          {XCIPartition::Update, XCIPartition::Normal, XCIPartition::Secure, XCIPartition::Logo}) {
-        auto raw = main_hfs.GetFile(partition_names[static_cast<std::size_t>(partition)]);
-        if (raw != nullptr)
-            partitions[static_cast<std::size_t>(partition)] =
-                std::make_shared<PartitionFilesystem>(raw);
+        const auto partition_idx = static_cast<std::size_t>(partition);
+        auto raw = main_hfs.GetFile(partition_names[partition_idx]);
+
+        if (raw != nullptr) {
+            partitions[partition_idx] = std::make_shared<PartitionFilesystem>(std::move(raw));
+        }
     }
 
     secure_partition = std::make_shared<NSP>(
         main_hfs.GetFile(partition_names[static_cast<std::size_t>(XCIPartition::Secure)]));
 
-    const auto secure_ncas = secure_partition->GetNCAsCollapsed();
-    std::copy(secure_ncas.begin(), secure_ncas.end(), std::back_inserter(ncas));
-
+    ncas = secure_partition->GetNCAsCollapsed();
     program =
         secure_partition->GetNCA(secure_partition->GetProgramTitleID(), ContentRecordType::Program);
     program_nca_status = secure_partition->GetProgramStatus(secure_partition->GetProgramTitleID());
-    if (program_nca_status == Loader::ResultStatus::ErrorNSPMissingProgramNCA)
+    if (program_nca_status == Loader::ResultStatus::ErrorNSPMissingProgramNCA) {
         program_nca_status = Loader::ResultStatus::ErrorXCIMissingProgramNCA;
+    }
 
     auto result = AddNCAFromPartition(XCIPartition::Update);
     if (result != Loader::ResultStatus::Success) {
@@ -147,8 +153,9 @@ std::shared_ptr<NCA> XCI::GetNCAByType(NCAContentType type) const {
 
 VirtualFile XCI::GetNCAFileByType(NCAContentType type) const {
     auto nca = GetNCAByType(type);
-    if (nca != nullptr)
+    if (nca != nullptr) {
         return nca->GetBaseFile();
+    }
     return nullptr;
 }
 
@@ -169,17 +176,22 @@ VirtualDir XCI::GetParentDirectory() const {
 }
 
 Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
-    if (partitions[static_cast<std::size_t>(part)] == nullptr) {
+    const auto partition_index = static_cast<std::size_t>(part);
+    const auto& partition = partitions[partition_index];
+
+    if (partition == nullptr) {
         return Loader::ResultStatus::ErrorXCIMissingPartition;
     }
 
-    for (const VirtualFile& file : partitions[static_cast<std::size_t>(part)]->GetFiles()) {
-        if (file->GetExtension() != "nca")
+    for (const VirtualFile& file : partition->GetFiles()) {
+        if (file->GetExtension() != "nca") {
             continue;
+        }
+
         auto nca = std::make_shared<NCA>(file, nullptr, 0, keys);
-        // TODO(DarkLordZach): Add proper Rev1+ Support
-        if (nca->IsUpdate())
+        if (nca->IsUpdate()) {
             continue;
+        }
         if (nca->GetType() == NCAContentType::Program) {
             program_nca_status = nca->GetStatus();
         }
@@ -188,7 +200,7 @@ Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
         } else {
             const u16 error_id = static_cast<u16>(nca->GetStatus());
             LOG_CRITICAL(Loader, "Could not load NCA {}/{}, failed with error code {:04X} ({})",
-                         partition_names[static_cast<std::size_t>(part)], nca->GetName(), error_id,
+                         partition_names[partition_index], nca->GetName(), error_id,
                          nca->GetStatus());
         }
     }
