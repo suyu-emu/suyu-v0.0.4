@@ -38,11 +38,16 @@ void Fermi2D::HandleSurfaceCopy() {
 
     const u32 src_blit_x1{static_cast<u32>(regs.blit_src_x >> 32)};
     const u32 src_blit_y1{static_cast<u32>(regs.blit_src_y >> 32)};
-    const u32 src_blit_x2{
-        static_cast<u32>((regs.blit_src_x + (regs.blit_dst_width * regs.blit_du_dx)) >> 32)};
-    const u32 src_blit_y2{
-        static_cast<u32>((regs.blit_src_y + (regs.blit_dst_height * regs.blit_dv_dy)) >> 32)};
-
+    u32 src_blit_x2, src_blit_y2;
+    if (regs.blit_control.origin == Origin::Corner) {
+        src_blit_x2 =
+            static_cast<u32>((regs.blit_src_x + (regs.blit_du_dx * regs.blit_dst_width)) >> 32);
+        src_blit_y2 =
+            static_cast<u32>((regs.blit_src_y + (regs.blit_dv_dy * regs.blit_dst_height)) >> 32);
+    } else {
+        src_blit_x2 = static_cast<u32>((regs.blit_src_x >> 32) + regs.blit_dst_width);
+        src_blit_y2 = static_cast<u32>((regs.blit_src_y >> 32) + regs.blit_dst_height);
+    }
     const Common::Rectangle<u32> src_rect{src_blit_x1, src_blit_y1, src_blit_x2, src_blit_y2};
     const Common::Rectangle<u32> dst_rect{regs.blit_dst_x, regs.blit_dst_y,
                                           regs.blit_dst_x + regs.blit_dst_width,
