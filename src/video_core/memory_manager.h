@@ -163,8 +163,8 @@ private:
     static constexpr u64 page_size{1 << page_bits};
     static constexpr u64 page_mask{page_size - 1};
 
-    /// Address space in bits, this is fairly arbitrary but sufficiently large.
-    static constexpr u32 address_space_width{39};
+    /// Address space in bits, according to Tegra X1 TRM
+    static constexpr u32 address_space_width{40};
     /// Start address for mapping, this is fairly arbitrary but must be non-zero.
     static constexpr GPUVAddr address_space_base{0x100000};
     /// End of address space, based on address space in bits.
