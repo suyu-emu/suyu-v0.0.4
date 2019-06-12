@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <memory>
 #include <vector>
 #include "common/common_funcs.h"
@@ -69,11 +70,15 @@ struct CNMTHeader {
     u64_le title_id;
     u32_le title_version;
     TitleType type;
-    INSERT_PADDING_BYTES(1);
+    u8 reserved;
     u16_le table_offset;
     u16_le number_content_entries;
     u16_le number_meta_entries;
-    INSERT_PADDING_BYTES(12);
+    u8 attributes;
+    std::array<u8, 2> reserved2;
+    u8 is_committed;
+    u32_le required_download_system_version;
+    std::array<u8, 4> reserved3;
 };
 static_assert(sizeof(CNMTHeader) == 0x20, "CNMTHeader has incorrect size.");
 
