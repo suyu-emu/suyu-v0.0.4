@@ -142,7 +142,7 @@ std::vector<VirtualFile> PatchManager::CollectPatches(const std::vector<VirtualD
                     if (!compiler.IsValid())
                         continue;
 
-                    auto this_build_id = Common::HexArrayToString(compiler.GetBuildID());
+                    auto this_build_id = Common::HexToString(compiler.GetBuildID());
                     this_build_id =
                         this_build_id.substr(0, this_build_id.find_last_not_of('0') + 1);
 
@@ -168,7 +168,7 @@ std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso, const std::st
         return nso;
     }
 
-    const auto build_id_raw = Common::HexArrayToString(header.build_id);
+    const auto build_id_raw = Common::HexToString(header.build_id);
     const auto build_id = build_id_raw.substr(0, build_id_raw.find_last_not_of('0') + 1);
 
     if (Settings::values.dump_nso) {
@@ -219,7 +219,7 @@ std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso, const std::st
 }
 
 bool PatchManager::HasNSOPatch(const std::array<u8, 32>& build_id_) const {
-    const auto build_id_raw = Common::HexArrayToString(build_id_);
+    const auto build_id_raw = Common::HexToString(build_id_);
     const auto build_id = build_id_raw.substr(0, build_id_raw.find_last_not_of('0') + 1);
 
     LOG_INFO(Loader, "Querying NSO patch existence for build_id={}", build_id);
@@ -235,7 +235,7 @@ bool PatchManager::HasNSOPatch(const std::array<u8, 32>& build_id_) const {
 static std::optional<CheatList> ReadCheatFileFromFolder(const Core::System& system, u64 title_id,
                                                         const std::array<u8, 0x20>& build_id_,
                                                         const VirtualDir& base_path, bool upper) {
-    const auto build_id_raw = Common::HexArrayToString(build_id_, upper);
+    const auto build_id_raw = Common::HexToString(build_id_, upper);
     const auto build_id = build_id_raw.substr(0, sizeof(u64) * 2);
     const auto file = base_path->GetFile(fmt::format("{}.txt", build_id));
 

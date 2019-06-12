@@ -572,7 +572,7 @@ void KeyManager::WriteKeyToFile(KeyCategory category, std::string_view keyname,
             << "# If you are experiencing issues involving keys, it may help to delete this file\n";
     }
 
-    file << fmt::format("\n{} = {}", keyname, Common::HexArrayToString(key));
+    file << fmt::format("\n{} = {}", keyname, Common::HexToString(key));
     AttemptLoadKeyFile(yuzu_keys_dir, yuzu_keys_dir, filename, category == KeyCategory::Title);
 }
 
@@ -583,7 +583,7 @@ void KeyManager::SetKey(S128KeyType id, Key128 key, u64 field1, u64 field2) {
         Key128 rights_id;
         std::memcpy(rights_id.data(), &field2, sizeof(u64));
         std::memcpy(rights_id.data() + sizeof(u64), &field1, sizeof(u64));
-        WriteKeyToFile(KeyCategory::Title, Common::HexArrayToString(rights_id), key);
+        WriteKeyToFile(KeyCategory::Title, Common::HexToString(rights_id), key);
     }
 
     auto category = KeyCategory::Standard;

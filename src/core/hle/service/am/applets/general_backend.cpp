@@ -2,7 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <string>
+#include <string_view>
 
 #include "common/assert.h"
 #include "common/hex_util.h"
@@ -16,21 +16,21 @@
 
 namespace Service::AM::Applets {
 
-static void LogCurrentStorage(AppletDataBroker& broker, std::string prefix) {
+static void LogCurrentStorage(AppletDataBroker& broker, std::string_view prefix) {
     std::unique_ptr<IStorage> storage = broker.PopNormalDataToApplet();
     for (; storage != nullptr; storage = broker.PopNormalDataToApplet()) {
         const auto data = storage->GetData();
         LOG_INFO(Service_AM,
-                 "called (STUBBED), during {} recieved normal data with size={:08X}, data={}",
-                 prefix, data.size(), Common::HexVectorToString(data));
+                 "called (STUBBED), during {} received normal data with size={:08X}, data={}",
+                 prefix, data.size(), Common::HexToString(data));
     }
 
     storage = broker.PopInteractiveDataToApplet();
     for (; storage != nullptr; storage = broker.PopInteractiveDataToApplet()) {
         const auto data = storage->GetData();
         LOG_INFO(Service_AM,
-                 "called (STUBBED), during {} recieved interactive data with size={:08X}, data={}",
-                 prefix, data.size(), Common::HexVectorToString(data));
+                 "called (STUBBED), during {} received interactive data with size={:08X}, data={}",
+                 prefix, data.size(), Common::HexToString(data));
     }
 }
 

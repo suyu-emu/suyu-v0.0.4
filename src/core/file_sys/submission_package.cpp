@@ -235,16 +235,18 @@ void NSP::ReadNCAs(const std::vector<VirtualFile>& files) {
         const auto section0 = nca->GetSubdirectories()[0];
 
         for (const auto& inner_file : section0->GetFiles()) {
-            if (inner_file->GetExtension() != "cnmt")
+            if (inner_file->GetExtension() != "cnmt") {
                 continue;
+            }
 
             const CNMT cnmt(inner_file);
             auto& ncas_title = ncas[cnmt.GetTitleID()];
 
             ncas_title[{cnmt.GetType(), ContentRecordType::Meta}] = nca;
             for (const auto& rec : cnmt.GetContentRecords()) {
-                const auto id_string = Common::HexArrayToString(rec.nca_id, false);
-                const auto next_file = pfs->GetFile(fmt::format("{}.nca", id_string));
+                const auto id_string = Common::HexToString(rec.nca_id, false);
+                auto next_file = pfs->GetFile(fmt::format("{}.nca", id_string));
+
                 if (next_file == nullptr) {
                     LOG_WARNING(Service_FS,
                                 "NCA with ID {}.nca is listed in content metadata, but cannot "
@@ -253,9 +255,10 @@ void NSP::ReadNCAs(const std::vector<VirtualFile>& files) {
                     continue;
                 }
 
-                auto next_nca = std::make_shared<NCA>(next_file, nullptr, 0, keys);
-                if (next_nca->GetType() == NCAContentType::Program)
+                auto next_nca = std::make_shared<NCA>(std::move(next_file), nullptr, 0, keys);
+                if (next_nca->GetType() == NCAContentType::Program) {
                     program_status[cnmt.GetTitleID()] = next_nca->GetStatus();
+                }
                 if (next_nca->GetStatus() == Loader::ResultStatus::Success ||
                     (next_nca->GetStatus() == Loader::ResultStatus::ErrorMissingBKTRBaseRomFS &&
                      (cnmt.GetTitleID() & 0x800) != 0)) {
