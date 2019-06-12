@@ -287,7 +287,6 @@ void IPSwitchCompiler::Parse() {
                 } else {
                     // hex replacement
                     const auto value = patch_line.substr(9);
-                    replace.reserve(value.size() / 2);
                     replace = Common::HexStringToVector(value, is_little_endian);
                 }
 
