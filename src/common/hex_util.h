@@ -36,10 +36,15 @@ std::string HexToString(const ContiguousContainer& data, bool upper = true) {
     static_assert(std::is_same_v<typename ContiguousContainer::value_type, u8>,
                   "Underlying type within the contiguous container must be u8.");
 
+    constexpr std::size_t pad_width = 2;
+
     std::string out;
+    out.reserve(std::size(data) * pad_width);
+
     for (const u8 c : data) {
         out += fmt::format(upper ? "{:02X}" : "{:02x}", c);
     }
+
     return out;
 }
 
