@@ -68,9 +68,7 @@ VMManager::VMManager(Core::System& system) : system{system} {
     Reset(FileSys::ProgramAddressSpaceType::Is39Bit);
 }
 
-VMManager::~VMManager() {
-    Reset(FileSys::ProgramAddressSpaceType::Is39Bit);
-}
+VMManager::~VMManager() = default;
 
 void VMManager::Reset(FileSys::ProgramAddressSpaceType type) {
     Clear();
