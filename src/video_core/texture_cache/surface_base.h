@@ -132,6 +132,10 @@ public:
         return params.pixel_format == pixel_format;
     }
 
+    VideoCore::Surface::PixelFormat GetFormat() const {
+        return params.pixel_format;
+    }
+
     bool MatchTarget(VideoCore::Surface::SurfaceTarget target) const {
         return params.target == target;
     }

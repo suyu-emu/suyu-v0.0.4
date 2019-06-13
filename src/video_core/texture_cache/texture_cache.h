@@ -43,6 +43,8 @@ class RasterizerInterface;
 
 namespace VideoCommon {
 
+using VideoCore::Surface::PixelFormat;
+
 using VideoCore::Surface::SurfaceTarget;
 using RenderTargetConfig = Tegra::Engines::Maxwell3D::Regs::RenderTargetConfig;
 
@@ -96,7 +98,7 @@ public:
             return {};
         }
         const auto params{SurfaceParams::CreateForTexture(system, config, entry)};
-        return GetSurface(gpu_addr, params, true).second;
+        return GetSurface(gpu_addr, params, true, false).second;
     }
 
     TView GetDepthBufferSurface(bool preserve_contents) {
@@ -118,7 +120,7 @@ public:
             system, regs.zeta_width, regs.zeta_height, regs.zeta.format,
             regs.zeta.memory_layout.block_width, regs.zeta.memory_layout.block_height,
             regs.zeta.memory_layout.block_depth, regs.zeta.memory_layout.type)};
-        auto surface_view = GetSurface(gpu_addr, depth_params, preserve_contents);
+        auto surface_view = GetSurface(gpu_addr, depth_params, preserve_contents, true);
         if (depth_buffer.target)
             depth_buffer.target->MarkAsRenderTarget(false);
         depth_buffer.target = surface_view.first;
@@ -152,7 +154,7 @@ public:
         }
 
         auto surface_view = GetSurface(gpu_addr, SurfaceParams::CreateForFramebuffer(system, index),
-                                       preserve_contents);
+                                       preserve_contents, true);
         if (render_targets[index].target)
             render_targets[index].target->MarkAsRenderTarget(false);
         render_targets[index].target = surface_view.first;
@@ -226,6 +228,11 @@ protected:
         }
         SetEmptyDepthBuffer();
         staging_cache.SetSize(2);
+        siblings_table[PixelFormat::Z16] = PixelFormat::R16F;
+        siblings_table[PixelFormat::Z32F] = PixelFormat::R32F;
+        siblings_table[PixelFormat::Z32FS8] = PixelFormat::RG32F;
+        siblings_table[PixelFormat::R16F] = PixelFormat::Z16;
+        siblings_table[PixelFormat::R32F] = PixelFormat::Z32F;
     }
 
     ~TextureCache() = default;
@@ -289,7 +296,7 @@ protected:
         const Tegra::Engines::Fermi2D::Regs::Surface& config) {
         SurfaceParams params = SurfaceParams::CreateForFermiCopySurface(config);
         const GPUVAddr gpu_addr = config.Address();
-        return GetSurface(gpu_addr, params, true);
+        return GetSurface(gpu_addr, params, true, false);
     }
 
     Core::System& system;
@@ -406,16 +413,22 @@ private:
      * @param params, the new surface params which we want to check.
      **/
     std::pair<TSurface, TView> ManageStructuralMatch(TSurface current_surface,
-                                                     const SurfaceParams& params) {
+                                                     const SurfaceParams& params, bool is_render) {
         const bool is_mirage = !current_surface->MatchFormat(params.pixel_format);
+        const bool matches_target = current_surface->MatchTarget(params.target);
+        auto match_check = ([&]() -> std::pair<TSurface, TView> {
+            if (matches_target) {
+                return {current_surface, current_surface->GetMainView()};
+            }
+            return {current_surface, current_surface->EmplaceOverview(params)};
+        });
         if (is_mirage) {
+            if (!is_render && siblings_table[current_surface->GetFormat()] == params.pixel_format) {
+                return match_check();
+            }
             return RebuildSurface(current_surface, params);
         }
-        const bool matches_target = current_surface->MatchTarget(params.target);
-        if (matches_target) {
-            return {current_surface, current_surface->GetMainView()};
-        }
-        return {current_surface, current_surface->EmplaceOverview(params)};
+        return match_check();
     }
 
     /**
@@ -490,7 +503,7 @@ private:
      * @param preserve_contents, tells if the new surface should be loaded from meory or left blank.
      **/
     std::pair<TSurface, TView> GetSurface(const GPUVAddr gpu_addr, const SurfaceParams& params,
-                                          bool preserve_contents) {
+                                          bool preserve_contents, bool is_render) {
 
         const auto host_ptr{memory_manager->GetPointer(gpu_addr)};
         const auto cache_addr{ToCacheAddr(host_ptr)};
@@ -524,7 +537,7 @@ private:
                 (params.target != SurfaceTarget::Texture3D ||
                  current_surface->MatchTarget(params.target))) {
                 if (s_result == MatchStructureResult::FullMatch) {
-                    return ManageStructuralMatch(current_surface, params);
+                    return ManageStructuralMatch(current_surface, params, is_render);
                 } else {
                     return RebuildSurface(current_surface, params);
                 }
@@ -723,6 +736,8 @@ private:
 
     // Guards the cache for protection conflicts.
     bool guard_cache{};
+
+    std::unordered_map<PixelFormat, PixelFormat> siblings_table;
 
     // The internal Cache is different for the Texture Cache. It's based on buckets
     // of 1MB. This fits better for the purpose of this cache as textures are normaly
