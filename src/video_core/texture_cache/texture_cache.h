@@ -220,7 +220,6 @@ public:
     }
 
 protected:
-
     TextureCache(Core::System& system, VideoCore::RasterizerInterface& rasterizer)
         : system{system}, rasterizer{rasterizer} {
         for (std::size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
@@ -233,6 +232,7 @@ protected:
         siblings_table[PixelFormat::Z32FS8] = PixelFormat::RG32F;
         siblings_table[PixelFormat::R16F] = PixelFormat::Z16;
         siblings_table[PixelFormat::R32F] = PixelFormat::Z32F;
+        siblings_table[PixelFormat::RG32F] = PixelFormat::Z32FS8;
     }
 
     ~TextureCache() = default;
@@ -385,15 +385,27 @@ private:
      * @param current_surface, the registered surface in the cache which we want to convert.
      * @param params, the new surface params which we'll use to recreate the surface.
      **/
-    std::pair<TSurface, TView> RebuildSurface(TSurface current_surface,
-                                              const SurfaceParams& params) {
+    std::pair<TSurface, TView> RebuildSurface(TSurface current_surface, const SurfaceParams& params,
+                                              bool is_render) {
         const auto gpu_addr = current_surface->GetGpuAddr();
-        TSurface new_surface = GetUncachedSurface(gpu_addr, params);
         const auto& cr_params = current_surface->GetSurfaceParams();
-        if (cr_params.type != params.type || (cr_params.component_type != params.component_type)) {
+        TSurface new_surface;
+        if (cr_params.pixel_format != params.pixel_format && !is_render &&
+            siblings_table[cr_params.pixel_format] == params.pixel_format) {
+            SurfaceParams new_params = params;
+            new_params.pixel_format = cr_params.pixel_format;
+            new_params.component_type = cr_params.component_type;
+            new_params.type = cr_params.type;
+            new_surface = GetUncachedSurface(gpu_addr, new_params);
+        } else {
+            new_surface = GetUncachedSurface(gpu_addr, params);
+        }
+        const auto& final_params = new_surface->GetSurfaceParams();
+        if (cr_params.type != final_params.type ||
+            (cr_params.component_type != final_params.component_type)) {
             BufferCopy(current_surface, new_surface);
         } else {
-            std::vector<CopyParams> bricks = current_surface->BreakDown(params);
+            std::vector<CopyParams> bricks = current_surface->BreakDown(final_params);
             for (auto& brick : bricks) {
                 ImageCopy(current_surface, new_surface, brick);
             }
@@ -426,7 +438,7 @@ private:
             if (!is_render && siblings_table[current_surface->GetFormat()] == params.pixel_format) {
                 return match_check();
             }
-            return RebuildSurface(current_surface, params);
+            return RebuildSurface(current_surface, params, is_render);
         }
         return match_check();
     }
@@ -539,7 +551,7 @@ private:
                 if (s_result == MatchStructureResult::FullMatch) {
                     return ManageStructuralMatch(current_surface, params, is_render);
                 } else {
-                    return RebuildSurface(current_surface, params);
+                    return RebuildSurface(current_surface, params, is_render);
                 }
             }
         }
@@ -599,7 +611,8 @@ private:
                     new_params.width = wh;
                     new_params.height = hh;
                     new_params.pixel_format = params.pixel_format;
-                    std::pair<TSurface, TView> pair = RebuildSurface(current_surface, new_params);
+                    std::pair<TSurface, TView> pair =
+                        RebuildSurface(current_surface, new_params, is_render);
                     std::optional<TView> mirage_view =
                         pair.first->EmplaceView(params, gpu_addr, candidate_size);
                     if (mirage_view)
@@ -616,7 +629,7 @@ private:
             }
             // This is the case the texture is a part of the parent.
             if (current_surface->MatchesSubTexture(params, gpu_addr)) {
-                return RebuildSurface(current_surface, params);
+                return RebuildSurface(current_surface, params, is_render);
             }
         } else {
             // If there are many overlaps, odds are they are subtextures of the candidate

@@ -522,7 +522,7 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
 
     glBlitFramebuffer(src_rect.left, src_rect.top, src_rect.right, src_rect.bottom, dst_rect.left,
                       dst_rect.top, dst_rect.right, dst_rect.bottom, buffers,
-                      is_linear ? GL_LINEAR : GL_NEAREST);
+                      is_linear && (buffers == GL_COLOR_BUFFER_BIT) ? GL_LINEAR : GL_NEAREST);
 }
 
 void TextureCacheOpenGL::BufferCopy(Surface& src_surface, Surface& dst_surface) {
