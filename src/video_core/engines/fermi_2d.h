@@ -84,15 +84,15 @@ public:
             }
 
             u32 BlockWidth() const {
-                return block_width;
+                return block_width.Value();
             }
 
             u32 BlockHeight() const {
-                return block_height;
+                return block_height.Value();
             }
 
             u32 BlockDepth() const {
-                return block_depth;
+                return block_depth.Value();
             }
         };
         static_assert(sizeof(Surface) == 0x28, "Surface has incorrect size");

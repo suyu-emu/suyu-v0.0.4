@@ -111,7 +111,7 @@ void MaxwellDMA::HandleCopy() {
 
         memory_manager.WriteBlock(dest, write_buffer.data(), dst_size);
     } else {
-        ASSERT(regs.dst_params.BlockDepth() == 0);
+        ASSERT(regs.dst_params.BlockDepth() == 1);
 
         const u32 src_bytes_per_pixel = regs.src_pitch / regs.x_count;
 

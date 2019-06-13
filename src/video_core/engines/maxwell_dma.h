@@ -59,11 +59,11 @@ public:
             };
 
             u32 BlockHeight() const {
-                return block_height;
+                return block_height.Value();
             }
 
             u32 BlockDepth() const {
-                return block_depth;
+                return block_depth.Value();
             }
         };
 

@@ -335,6 +335,9 @@ private:
         if (untopological == MatchTopologyResult::CompressUnmatch) {
             return RecycleStrategy::Flush;
         }
+        if (untopological == MatchTopologyResult::FullMatch && !params.is_tiled) {
+            return RecycleStrategy::Flush;
+        }
         return RecycleStrategy::Ignore;
     }
 
@@ -371,6 +374,11 @@ private:
                 FlushSurface(surface);
             }
             return InitializeSurface(gpu_addr, params, preserve_contents);
+        }
+        case RecycleStrategy::BufferCopy: {
+            auto new_surface = GetUncachedSurface(gpu_addr, params);
+            BufferCopy(overlaps[0], new_surface);
+            return {new_surface, new_surface->GetMainView()};
         }
         default: {
             UNIMPLEMENTED_MSG("Unimplemented Texture Cache Recycling Strategy!");
@@ -520,6 +528,10 @@ private:
         const auto host_ptr{memory_manager->GetPointer(gpu_addr)};
         const auto cache_addr{ToCacheAddr(host_ptr)};
 
+        if (gpu_addr == 0x00000001682F0000ULL) {
+            LOG_CRITICAL(HW_GPU, "Here's the texture!");
+        }
+
         // Step 0: guarantee a valid surface
         if (!cache_addr) {
             // Return a null surface if it's invalid
@@ -566,6 +578,10 @@ private:
             return InitializeSurface(gpu_addr, params, preserve_contents);
         }
 
+        if (!params.is_tiled) {
+            return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
+                                  MatchTopologyResult::FullMatch);
+        }
         // Step 3
         // Now we need to figure the relationship between the texture and its overlaps
         // we do a topological test to ensure we can find some relationship. If it fails
