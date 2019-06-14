@@ -100,6 +100,9 @@ MatchStructureResult SurfaceBaseImpl::MatchesStructure(const SurfaceParams& rhs)
 
 std::optional<std::pair<u32, u32>> SurfaceBaseImpl::GetLayerMipmap(
     const GPUVAddr candidate_gpu_addr) const {
+    if (gpu_addr == candidate_gpu_addr) {
+        return {{0,0}};
+    }
     if (candidate_gpu_addr < gpu_addr) {
         return {};
     }

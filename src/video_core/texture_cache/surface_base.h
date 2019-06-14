@@ -238,6 +238,26 @@ public:
         return GetView(ViewParams(overview_params.target, 0, num_layers, 0, params.num_levels));
     }
 
+    std::optional<TView> EmplaceIrregularView(const SurfaceParams& view_params,
+                                              const GPUVAddr view_addr,
+                                              const std::size_t candidate_size, const u32 mipmap,
+                                              const u32 layer) {
+        const auto layer_mipmap{GetLayerMipmap(view_addr + candidate_size)};
+        if (!layer_mipmap) {
+            return {};
+        }
+        const u32 end_layer{layer_mipmap->first};
+        const u32 end_mipmap{layer_mipmap->second};
+        if (layer != end_layer) {
+            if (mipmap == 0 && end_mipmap == 0) {
+                return GetView(ViewParams(view_params.target, layer, end_layer - layer + 1, 0, 1));
+            }
+            return {};
+        } else {
+            return GetView(ViewParams(view_params.target, layer, 1, mipmap, end_mipmap - mipmap + 1));
+        }
+    }
+
     std::optional<TView> EmplaceView(const SurfaceParams& view_params, const GPUVAddr view_addr,
                                      const std::size_t candidate_size) {
         if (params.target == SurfaceTarget::Texture3D ||
@@ -252,10 +272,7 @@ public:
         const u32 layer{layer_mipmap->first};
         const u32 mipmap{layer_mipmap->second};
         if (GetMipmapSize(mipmap) != candidate_size) {
-            // TODO: The view may cover many mimaps, this case can still go on.
-            // This edge-case can be safely be ignored since it will just result in worse
-            // performance.
-            return {};
+            return EmplaceIrregularView(view_params, view_addr, candidate_size, mipmap, layer);
         }
         return GetView(ViewParams(view_params.target, layer, 1, mipmap, 1));
     }
