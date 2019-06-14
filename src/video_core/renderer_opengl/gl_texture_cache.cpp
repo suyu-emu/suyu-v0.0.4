@@ -599,7 +599,7 @@ GLuint TextureCacheOpenGL::FetchPBO(std::size_t buffer_size) {
     if (cp.handle == 0) {
         const std::size_t ceil_size = 1ULL << l2;
         cp.Create();
-        cp.MakePersistant(ceil_size);
+        cp.MakeStreamCopy(ceil_size);
     }
     return cp.handle;
 }

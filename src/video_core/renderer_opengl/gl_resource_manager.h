@@ -187,7 +187,7 @@ public:
     void Release();
 
     // Converts the buffer into a persistant storage buffer
-    void MakePersistant(std::size_t buffer_size);
+    void MakeStreamCopy(std::size_t buffer_size);
 
     GLuint handle = 0;
 };
