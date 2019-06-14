@@ -227,12 +227,18 @@ protected:
         }
         SetEmptyDepthBuffer();
         staging_cache.SetSize(2);
-        siblings_table[PixelFormat::Z16] = PixelFormat::R16F;
-        siblings_table[PixelFormat::Z32F] = PixelFormat::R32F;
-        siblings_table[PixelFormat::Z32FS8] = PixelFormat::RG32F;
-        siblings_table[PixelFormat::R16F] = PixelFormat::Z16;
-        siblings_table[PixelFormat::R32F] = PixelFormat::Z32F;
-        siblings_table[PixelFormat::RG32F] = PixelFormat::Z32FS8;
+        auto make_siblings = ([this](PixelFormat a, PixelFormat b) {
+            siblings_table[a] = b;
+            siblings_table[b] = a;
+        });
+        const u32 max_formats = static_cast<u32>(PixelFormat::Max);
+        siblings_table.reserve(max_formats);
+        for (u32 i = 0; i < max_formats; i++) {
+            siblings_table[static_cast<PixelFormat>(i)] = PixelFormat::Invalid;
+        }
+        make_siblings(PixelFormat::Z16, PixelFormat::R16F);
+        make_siblings(PixelFormat::Z32F, PixelFormat::R32F);
+        make_siblings(PixelFormat::Z32FS8, PixelFormat::RG32F);
     }
 
     ~TextureCache() = default;
@@ -766,6 +772,9 @@ private:
     // Guards the cache for protection conflicts.
     bool guard_cache{};
 
+    // The siblings table is for formats that can inter exchange with one another
+    // without causing issues. This is only valid when a conflict occurs on a non
+    // rendering use.
     std::unordered_map<PixelFormat, PixelFormat> siblings_table;
 
     // The internal Cache is different for the Texture Cache. It's based on buckets
