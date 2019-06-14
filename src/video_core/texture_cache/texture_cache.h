@@ -534,10 +534,6 @@ private:
         const auto host_ptr{memory_manager->GetPointer(gpu_addr)};
         const auto cache_addr{ToCacheAddr(host_ptr)};
 
-        if (gpu_addr == 0x00000001682F0000ULL) {
-            LOG_CRITICAL(HW_GPU, "Here's the texture!");
-        }
-
         // Step 0: guarantee a valid surface
         if (!cache_addr) {
             // Return a null surface if it's invalid
