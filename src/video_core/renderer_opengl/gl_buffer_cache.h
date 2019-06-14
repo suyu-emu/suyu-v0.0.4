@@ -17,6 +17,10 @@
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_stream_buffer.h"
 
+namespace Core {
+class System;
+}
+
 namespace OpenGL {
 
 class RasterizerOpenGL;
@@ -79,7 +83,7 @@ class OGLBufferCache final : public RasterizerCache<std::shared_ptr<CachedBuffer
     using BufferInfo = std::pair<GLuint, GLintptr>;
 
 public:
-    explicit OGLBufferCache(RasterizerOpenGL& rasterizer, std::size_t size);
+    explicit OGLBufferCache(RasterizerOpenGL& rasterizer, Core::System& system, std::size_t size);
     ~OGLBufferCache();
 
     void Unregister(const std::shared_ptr<CachedBufferEntry>& entry) override;
@@ -115,6 +119,8 @@ private:
     void ReserveBuffer(std::shared_ptr<CachedBufferEntry> entry);
 
     void AlignBuffer(std::size_t alignment);
+
+    Core::System& system;
 
     u8* buffer_ptr = nullptr;
     GLintptr buffer_offset = 0;

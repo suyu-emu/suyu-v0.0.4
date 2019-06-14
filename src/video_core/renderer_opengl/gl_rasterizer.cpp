@@ -83,9 +83,8 @@ struct DrawParameters {
 
 RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
                                    ScreenInfo& info)
-    : texture_cache{system, *this, device},
-      shader_cache{*this, system, emu_window, device}, system{system}, screen_info{info},
-      buffer_cache(*this, STREAM_BUFFER_SIZE) {
+    : texture_cache{system, *this, device}, shader_cache{*this, system, emu_window, device},
+      system{system}, screen_info{info}, buffer_cache{*this, system, STREAM_BUFFER_SIZE} {
     OpenGLState::ApplyDefaultState();
 
     shader_program_manager = std::make_unique<GLShader::ProgramManager>();

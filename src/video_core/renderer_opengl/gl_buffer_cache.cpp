@@ -33,8 +33,8 @@ OGLBuffer CreateBuffer(std::size_t size, GLenum usage) {
 CachedBufferEntry::CachedBufferEntry(VAddr cpu_addr, u8* host_ptr)
     : RasterizerCacheObject{host_ptr}, host_ptr{host_ptr}, cpu_addr{cpu_addr} {}
 
-OGLBufferCache::OGLBufferCache(RasterizerOpenGL& rasterizer, std::size_t size)
-    : RasterizerCache{rasterizer}, stream_buffer(size, true) {}
+OGLBufferCache::OGLBufferCache(RasterizerOpenGL& rasterizer, Core::System& system, std::size_t size)
+    : RasterizerCache{rasterizer}, system{system}, stream_buffer(size, true) {}
 
 OGLBufferCache::~OGLBufferCache() = default;
 
@@ -53,7 +53,7 @@ OGLBufferCache::BufferInfo OGLBufferCache::UploadMemory(GPUVAddr gpu_addr, std::
                                                         bool is_written) {
     std::lock_guard lock{mutex};
 
-    auto& memory_manager = Core::System::GetInstance().GPU().MemoryManager();
+    auto& memory_manager = system.GPU().MemoryManager();
     const auto host_ptr{memory_manager.GetPointer(gpu_addr)};
     const auto cache_addr{ToCacheAddr(host_ptr)};
     if (!host_ptr) {
@@ -119,7 +119,7 @@ OGLBufferCache::BufferInfo OGLBufferCache::StreamBufferUpload(const void* raw_po
 OGLBufferCache::BufferInfo OGLBufferCache::FixedBufferUpload(GPUVAddr gpu_addr, u8* host_ptr,
                                                              std::size_t size, bool internalize,
                                                              bool is_written) {
-    auto& memory_manager = Core::System::GetInstance().GPU().MemoryManager();
+    auto& memory_manager = system.GPU().MemoryManager();
     const auto cpu_addr = *memory_manager.GpuToCpuAddress(gpu_addr);
     auto entry = GetUncachedBuffer(cpu_addr, host_ptr);
     entry->SetSize(size);
@@ -161,7 +161,7 @@ void OGLBufferCache::GrowBuffer(std::shared_ptr<CachedBufferEntry>& entry, std::
 }
 
 std::shared_ptr<CachedBufferEntry> OGLBufferCache::GetUncachedBuffer(VAddr cpu_addr, u8* host_ptr) {
-    if (auto entry = TryGetReservedBuffer(host_ptr); entry) {
+    if (auto entry = TryGetReservedBuffer(host_ptr)) {
         return entry;
     }
     return std::make_shared<CachedBufferEntry>(cpu_addr, host_ptr);
