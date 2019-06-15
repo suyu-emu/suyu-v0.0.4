@@ -310,7 +310,7 @@ public:
         if (!IsValidNROHash(hash)) {
             LOG_ERROR(Service_LDR,
                       "NRO hash is not present in any currently loaded NRRs (hash={})!",
-                      Common::HexArrayToString(hash));
+                      Common::HexToString(hash));
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERROR_MISSING_NRR_HASH);
             return;

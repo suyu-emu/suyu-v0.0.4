@@ -7,6 +7,7 @@
 #include <array>
 #include <cstddef>
 #include <string>
+#include <type_traits>
 #include <vector>
 #include <fmt/format.h>
 #include "common/common_types.h"
@@ -30,13 +31,20 @@ std::array<u8, Size> HexStringToArray(std::string_view str) {
     return out;
 }
 
-std::string HexVectorToString(const std::vector<u8>& vector, bool upper = true);
+template <typename ContiguousContainer>
+std::string HexToString(const ContiguousContainer& data, bool upper = true) {
+    static_assert(std::is_same_v<typename ContiguousContainer::value_type, u8>,
+                  "Underlying type within the contiguous container must be u8.");
 
-template <std::size_t Size>
-std::string HexArrayToString(std::array<u8, Size> array, bool upper = true) {
+    constexpr std::size_t pad_width = 2;
+
     std::string out;
-    for (u8 c : array)
+    out.reserve(std::size(data) * pad_width);
+
+    for (const u8 c : data) {
         out += fmt::format(upper ? "{:02X}" : "{:02x}", c);
+    }
+
     return out;
 }
 

@@ -53,13 +53,14 @@ static bool FollowsNcaIdFormat(std::string_view name) {
 
 static std::string GetRelativePathFromNcaID(const std::array<u8, 16>& nca_id, bool second_hex_upper,
                                             bool within_two_digit) {
-    if (!within_two_digit)
-        return fmt::format("/{}.nca", Common::HexArrayToString(nca_id, second_hex_upper));
+    if (!within_two_digit) {
+        return fmt::format("/{}.nca", Common::HexToString(nca_id, second_hex_upper));
+    }
 
     Core::Crypto::SHA256Hash hash{};
     mbedtls_sha256(nca_id.data(), nca_id.size(), hash.data(), 0);
     return fmt::format("/000000{:02X}/{}.nca", hash[0],
-                       Common::HexArrayToString(nca_id, second_hex_upper));
+                       Common::HexToString(nca_id, second_hex_upper));
 }
 
 static std::string GetCNMTName(TitleType type, u64 title_id) {
@@ -376,10 +377,11 @@ std::vector<ContentProviderEntry> RegisteredCache::ListEntriesFilter(
 }
 
 static std::shared_ptr<NCA> GetNCAFromNSPForID(const NSP& nsp, const NcaID& id) {
-    const auto file = nsp.GetFile(fmt::format("{}.nca", Common::HexArrayToString(id, false)));
-    if (file == nullptr)
+    auto file = nsp.GetFile(fmt::format("{}.nca", Common::HexToString(id, false)));
+    if (file == nullptr) {
         return nullptr;
-    return std::make_shared<NCA>(file);
+    }
+    return std::make_shared<NCA>(std::move(file));
 }
 
 InstallResult RegisteredCache::InstallEntry(const XCI& xci, bool overwrite_if_exists,

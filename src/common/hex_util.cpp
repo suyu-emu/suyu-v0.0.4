@@ -30,13 +30,6 @@ std::vector<u8> HexStringToVector(std::string_view str, bool little_endian) {
     return out;
 }
 
-std::string HexVectorToString(const std::vector<u8>& vector, bool upper) {
-    std::string out;
-    for (u8 c : vector)
-        out += fmt::format(upper ? "{:02X}" : "{:02x}", c);
-    return out;
-}
-
 std::array<u8, 16> operator""_array16(const char* str, std::size_t len) {
     if (len != 32) {
         LOG_ERROR(Common,

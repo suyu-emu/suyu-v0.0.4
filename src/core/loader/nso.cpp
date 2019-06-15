@@ -152,8 +152,8 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
         auto& system = Core::System::GetInstance();
         const auto cheats = pm->CreateCheatList(system, nso_header.build_id);
         if (!cheats.empty()) {
-            system.RegisterCheatList(cheats, Common::HexArrayToString(nso_header.build_id),
-                                     load_base, load_base + program_image.size());
+            system.RegisterCheatList(cheats, Common::HexToString(nso_header.build_id), load_base,
+                                     load_base + program_image.size());
         }
     }
 
