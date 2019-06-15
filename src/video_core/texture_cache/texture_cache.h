@@ -70,8 +70,12 @@ public:
      * `Guard` guarantees that rendertargets don't unregister themselves if the
      * collide. Protection is currently only done on 3D slices.
      **/
-    void Guard(bool new_guard) {
-        guard_cache = new_guard;
+    void GuardRenderTargets(bool new_guard) {
+        guard_render_targets = new_guard;
+    }
+
+    void GuardSamplers(bool new_guard) {
+        guard_samplers = new_guard;
     }
 
     void FlushRegion(CacheAddr addr, std::size_t size) {
@@ -98,7 +102,25 @@ public:
             return {};
         }
         const auto params{SurfaceParams::CreateForTexture(system, config, entry)};
-        return GetSurface(gpu_addr, params, true, false).second;
+        auto pair = GetSurface(gpu_addr, params, true, false);
+        if (guard_samplers) {
+            if (sampled_textures_stack_pointer == sampled_textures_stack.size()) {
+                sampled_textures_stack.resize(sampled_textures_stack.size() * 2);
+            }
+            sampled_textures_stack[sampled_textures_stack_pointer] = pair.first;
+            sampled_textures_stack_pointer++;
+        }
+        return pair.second;
+    }
+
+    bool TextureBarrier() {
+        bool must_do = false;
+        for (u32 i = 0; i < sampled_textures_stack_pointer; i++) {
+            must_do |= sampled_textures_stack[i]->IsRenderTarget();
+            sampled_textures_stack[i] = nullptr;
+        }
+        sampled_textures_stack_pointer = 0;
+        return must_do;
     }
 
     TView GetDepthBufferSurface(bool preserve_contents) {
@@ -239,6 +261,7 @@ protected:
         make_siblings(PixelFormat::Z16, PixelFormat::R16F);
         make_siblings(PixelFormat::Z32F, PixelFormat::R32F);
         make_siblings(PixelFormat::Z32FS8, PixelFormat::RG32F);
+        sampled_textures_stack.resize(64);
     }
 
     ~TextureCache() = default;
@@ -275,7 +298,7 @@ protected:
     }
 
     void Unregister(TSurface surface) {
-        if (guard_cache && surface->IsProtected()) {
+        if (guard_render_targets && surface->IsProtected()) {
             return;
         }
         const GPUVAddr gpu_addr = surface->GetGpuAddr();
@@ -766,7 +789,8 @@ private:
     u64 ticks{};
 
     // Guards the cache for protection conflicts.
-    bool guard_cache{};
+    bool guard_render_targets{};
+    bool guard_samplers{};
 
     // The siblings table is for formats that can inter exchange with one another
     // without causing issues. This is only valid when a conflict occurs on a non
@@ -791,6 +815,9 @@ private:
     std::array<FramebufferTargetInfo, Tegra::Engines::Maxwell3D::Regs::NumRenderTargets>
         render_targets;
     FramebufferTargetInfo depth_buffer;
+
+    std::vector<TSurface> sampled_textures_stack{};
+    u32 sampled_textures_stack_pointer{};
 
     StagingCache staging_cache;
     std::recursive_mutex mutex;

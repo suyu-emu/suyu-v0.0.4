@@ -422,7 +422,7 @@ std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
     }
     current_framebuffer_config_state = fb_config_state;
 
-    texture_cache.Guard(true);
+    texture_cache.GuardRenderTargets(true);
 
     View depth_surface{};
     if (using_depth_fb) {
@@ -500,7 +500,7 @@ std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
                                depth_surface->GetSurfaceParams().type == SurfaceType::DepthStencil;
     }
 
-    texture_cache.Guard(false);
+    texture_cache.GuardRenderTargets(false);
 
     current_state.draw.draw_framebuffer = framebuffer_cache.GetFramebuffer(fbkey);
     SyncViewport(current_state);
@@ -651,7 +651,9 @@ void RasterizerOpenGL::DrawArrays() {
     SetupVertexBuffer(vao);
 
     DrawParameters params = SetupDraw();
+    texture_cache.GuardSamplers(true);
     SetupShaders(params.primitive_mode);
+    texture_cache.GuardSamplers(false);
 
     ConfigureFramebuffers(state);
 
@@ -659,6 +661,10 @@ void RasterizerOpenGL::DrawArrays() {
 
     shader_program_manager->ApplyTo(state);
     state.Apply();
+
+    if (texture_cache.TextureBarrier()) {
+        glTextureBarrier();
+    }
 
     params.DispatchDraw();
 
