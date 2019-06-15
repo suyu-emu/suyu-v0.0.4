@@ -16,11 +16,13 @@ namespace VideoCommon {
 using VideoCore::Surface::ComponentTypeFromDepthFormat;
 using VideoCore::Surface::ComponentTypeFromRenderTarget;
 using VideoCore::Surface::ComponentTypeFromTexture;
+using VideoCore::Surface::PixelFormat;
 using VideoCore::Surface::PixelFormatFromDepthFormat;
 using VideoCore::Surface::PixelFormatFromRenderTargetFormat;
 using VideoCore::Surface::PixelFormatFromTextureFormat;
 using VideoCore::Surface::SurfaceTarget;
 using VideoCore::Surface::SurfaceTargetFromTextureType;
+using VideoCore::Surface::SurfaceType;
 
 SurfaceTarget TextureType2SurfaceTarget(Tegra::Shader::TextureType type, bool is_array) {
     switch (type) {
@@ -71,6 +73,24 @@ SurfaceParams SurfaceParams::CreateForTexture(Core::System& system,
     params.tile_width_spacing = params.is_tiled ? (1 << config.tic.tile_width_spacing.Value()) : 1;
     params.pixel_format = PixelFormatFromTextureFormat(config.tic.format, config.tic.r_type.Value(),
                                                        params.srgb_conversion);
+    params.type = GetFormatType(params.pixel_format);
+    if (entry.IsShadow() && params.type == SurfaceType::ColorTexture) {
+        switch (params.pixel_format) {
+        case PixelFormat::R16F: {
+            params.pixel_format = PixelFormat::Z16;
+            break;
+        }
+        case PixelFormat::R32F: {
+            params.pixel_format = PixelFormat::Z32F;
+            break;
+        }
+        default: {
+            UNIMPLEMENTED_MSG("Unimplemented shadow convert format: {}",
+                              static_cast<u32>(params.pixel_format));
+        }
+        }
+        params.type = GetFormatType(params.pixel_format);
+    }
     params.component_type = ComponentTypeFromTexture(config.tic.r_type.Value());
     params.type = GetFormatType(params.pixel_format);
     // TODO: on 1DBuffer we should use the tic info.
@@ -79,20 +99,24 @@ SurfaceParams SurfaceParams::CreateForTexture(Core::System& system,
         params.width = config.tic.Width();
         params.height = config.tic.Height();
         params.depth = config.tic.Depth();
+        params.pitch = params.is_tiled ? 0 : config.tic.Pitch();
+        if (params.target == SurfaceTarget::TextureCubemap ||
+            params.target == SurfaceTarget::TextureCubeArray) {
+            params.depth *= 6;
+        }
+        params.num_levels = config.tic.max_mip_level + 1;
+        params.emulated_levels = std::min(params.num_levels, params.MaxPossibleMipmap());
+        params.is_layered = params.IsLayered();
     } else {
         params.target = SurfaceTarget::TextureBuffer;
         params.width = config.tic.Width();
-        params.height = 0;
-        params.depth = 0;
+        params.pitch = params.width * params.GetBytesPerPixel();
+        params.height = 1;
+        params.depth = 1;
+        params.num_levels = 1;
+        params.emulated_levels = 1;
+        params.is_layered = false;
     }
-    if (params.target == SurfaceTarget::TextureCubemap ||
-        params.target == SurfaceTarget::TextureCubeArray) {
-        params.depth *= 6;
-    }
-    params.pitch = params.is_tiled ? 0 : config.tic.Pitch();
-    params.num_levels = config.tic.max_mip_level + 1;
-    params.emulated_levels = std::min(params.num_levels, params.MaxPossibleMipmap());
-    params.is_layered = params.IsLayered();
     return params;
 }
 
