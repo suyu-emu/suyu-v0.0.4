@@ -23,7 +23,8 @@ public:
     explicit nvhost_gpu(Core::System& system, std::shared_ptr<nvmap> nvmap_dev);
     ~nvhost_gpu() override;
 
-    u32 ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) override;
+    u32 ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
+              IoctlCtrl& ctrl) override;
 
 private:
     enum class IoctlCommand : u32_le {

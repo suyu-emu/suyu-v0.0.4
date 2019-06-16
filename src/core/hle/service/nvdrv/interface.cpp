@@ -8,6 +8,7 @@
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nvdrv/interface.h"
 #include "core/hle/service/nvdrv/nvdata.h"
@@ -41,11 +42,36 @@ void NVDRV::Ioctl(Kernel::HLERequestContext& ctx) {
 
     std::vector<u8> output(ctx.GetWriteBufferSize());
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
-    rb.Push(nvdrv->Ioctl(fd, command, ctx.ReadBuffer(), output));
+    IoctlCtrl ctrl{};
 
-    ctx.WriteBuffer(output);
+    u32 result = nvdrv->Ioctl(fd, command, ctx.ReadBuffer(), output, ctrl);
+
+    if (!ctrl.must_delay) {
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(result);
+
+        ctx.WriteBuffer(output);
+        return;
+    }
+    ctrl.fresh_call = false;
+    ctx.SleepClientThread(
+        "NVServices::DelayedResponse", ctrl.timeout,
+        [this, ctrl = ctrl](Kernel::SharedPtr<Kernel::Thread> thread, Kernel::HLERequestContext& ctx,
+                      Kernel::ThreadWakeupReason reason) {
+            IPC::RequestParser rp{ctx};
+            u32 fd = rp.Pop<u32>();
+            u32 command = rp.Pop<u32>();
+            std::vector<u8> output(ctx.GetWriteBufferSize());
+            IoctlCtrl ctrl2{ctrl};
+            u32 result = nvdrv->Ioctl(fd, command, ctx.ReadBuffer(), output, ctrl2);
+            IPC::ResponseBuilder rb{ctx, 3};
+            rb.Push(RESULT_SUCCESS);
+            rb.Push(result);
+
+            ctx.WriteBuffer(output);
+        },
+        nvdrv->GetEventWriteable(ctrl.event_id));
 }
 
 void NVDRV::Close(Kernel::HLERequestContext& ctx) {

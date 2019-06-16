@@ -16,7 +16,8 @@ public:
     nvhost_nvdec(Core::System& system);
     ~nvhost_nvdec() override;
 
-    u32 ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) override;
+    u32 ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
+              IoctlCtrl& ctrl) override;
 
 private:
     enum class IoctlCommand : u32_le {

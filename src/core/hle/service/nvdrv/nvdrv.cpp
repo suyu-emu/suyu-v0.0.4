@@ -71,12 +71,13 @@ u32 Module::Open(const std::string& device_name) {
     return fd;
 }
 
-u32 Module::Ioctl(u32 fd, u32 command, const std::vector<u8>& input, std::vector<u8>& output) {
+u32 Module::Ioctl(u32 fd, u32 command, const std::vector<u8>& input, std::vector<u8>& output,
+                  IoctlCtrl& ctrl) {
     auto itr = open_files.find(fd);
     ASSERT_MSG(itr != open_files.end(), "Tried to talk to an invalid device");
 
     auto& device = itr->second;
-    return device->ioctl({command}, input, output);
+    return device->ioctl({command}, input, output, ctrl);
 }
 
 ResultCode Module::Close(u32 fd) {
@@ -101,6 +102,10 @@ void Module::SignalSyncpt(const u32 syncpoint_id, const u32 value) {
 
 Kernel::SharedPtr<Kernel::ReadableEvent> Module::GetEvent(const u32 event_id) {
     return events_interface.events[event_id].readable;
+}
+
+Kernel::SharedPtr<Kernel::WritableEvent> Module::GetEventWriteable(const u32 event_id) {
+    return events_interface.events[event_id].writable;
 }
 
 } // namespace Service::Nvidia

@@ -19,7 +19,8 @@ nvhost_ctrl::nvhost_ctrl(Core::System& system, EventsInterface& events_interface
     : nvdevice(system), events_interface{events_interface} {}
 nvhost_ctrl::~nvhost_ctrl() = default;
 
-u32 nvhost_ctrl::ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) {
+u32 nvhost_ctrl::ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
+                       IoctlCtrl& ctrl) {
     LOG_DEBUG(Service_NVDRV, "called, command=0x{:08X}, input_size=0x{:X}, output_size=0x{:X}",
               command.raw, input.size(), output.size());
 
@@ -27,9 +28,9 @@ u32 nvhost_ctrl::ioctl(Ioctl command, const std::vector<u8>& input, std::vector<
     case IoctlCommand::IocGetConfigCommand:
         return NvOsGetConfigU32(input, output);
     case IoctlCommand::IocCtrlEventWaitCommand:
-        return IocCtrlEventWait(input, output, false);
+        return IocCtrlEventWait(input, output, false, ctrl);
     case IoctlCommand::IocCtrlEventWaitAsyncCommand:
-        return IocCtrlEventWait(input, output, true);
+        return IocCtrlEventWait(input, output, true, ctrl);
     case IoctlCommand::IocCtrlEventRegisterCommand:
         return IocCtrlEventRegister(input, output);
     case IoctlCommand::IocCtrlEventUnregisterCommand:
@@ -50,7 +51,7 @@ u32 nvhost_ctrl::NvOsGetConfigU32(const std::vector<u8>& input, std::vector<u8>&
 }
 
 u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>& output,
-                                  bool is_async) {
+                                  bool is_async, IoctlCtrl& ctrl) {
     IocCtrlEventWaitParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
     LOG_DEBUG(Service_NVDRV, "syncpt_id={}, threshold={}, timeout={}, is_async={}",
@@ -94,7 +95,11 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
             return NvResult::BadParameter;
         }
     } else {
-        event_id = events_interface.GetFreeEvent();
+        if (ctrl.fresh_call) {
+            event_id = events_interface.GetFreeEvent();
+        } else {
+            event_id = ctrl.event_id;
+        }
     }
 
     EventState status = events_interface.status[event_id];
@@ -110,6 +115,13 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
         params.value |= event_id;
         events_interface.events[event_id].writable->Clear();
         gpu.RegisterSyncptInterrupt(params.syncpt_id, params.threshold);
+        if (!is_async && ctrl.fresh_call) {
+            ctrl.must_delay = true;
+            ctrl.timeout = params.timeout;
+            ctrl.event_id = event_id;
+            gpu.Guard(false);
+            return NvResult::Timeout;
+        }
         std::memcpy(output.data(), &params, sizeof(params));
         gpu.Guard(false);
         return NvResult::Timeout;

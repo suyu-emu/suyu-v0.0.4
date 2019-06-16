@@ -17,7 +17,8 @@ public:
     nvhost_ctrl(Core::System& system, EventsInterface& events_interface);
     ~nvhost_ctrl() override;
 
-    u32 ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) override;
+    u32 ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
+              IoctlCtrl& ctrl) override;
 
 private:
     enum class IoctlCommand : u32_le {
@@ -133,7 +134,8 @@ private:
 
     u32 NvOsGetConfigU32(const std::vector<u8>& input, std::vector<u8>& output);
 
-    u32 IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>& output, bool is_async);
+    u32 IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>& output, bool is_async,
+                         IoctlCtrl& ctrl);
 
     u32 IocCtrlEventRegister(const std::vector<u8>& input, std::vector<u8>& output);
 

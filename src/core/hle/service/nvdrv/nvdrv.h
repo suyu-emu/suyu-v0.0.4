@@ -95,13 +95,16 @@ public:
     /// Opens a device node and returns a file descriptor to it.
     u32 Open(const std::string& device_name);
     /// Sends an ioctl command to the specified file descriptor.
-    u32 Ioctl(u32 fd, u32 command, const std::vector<u8>& input, std::vector<u8>& output);
+    u32 Ioctl(u32 fd, u32 command, const std::vector<u8>& input, std::vector<u8>& output,
+              IoctlCtrl& ctrl);
     /// Closes a device file descriptor and returns operation success.
     ResultCode Close(u32 fd);
 
     void SignalSyncpt(const u32 syncpoint_id, const u32 value);
 
     Kernel::SharedPtr<Kernel::ReadableEvent> GetEvent(const u32 event_id);
+
+    Kernel::SharedPtr<Kernel::WritableEvent> GetEventWriteable(const u32 event_id);
 
 private:
     /// Id to use for the next open file descriptor.

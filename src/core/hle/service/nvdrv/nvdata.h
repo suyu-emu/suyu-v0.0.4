@@ -34,4 +34,11 @@ enum class EventState {
     Busy = 3,
 };
 
+struct IoctlCtrl {
+    bool fresh_call{true};
+    bool must_delay{};
+    s64 timeout{};
+    s32 event_id{-1};
+};
+
 } // namespace Service::Nvidia
