@@ -6,8 +6,9 @@
 
 namespace Service::Account {
 
-ACC_U1::ACC_U1(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> profile_manager)
-    : Module::Interface(std::move(module), std::move(profile_manager), "acc:u1") {
+ACC_U1::ACC_U1(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> profile_manager,
+               Core::System& system)
+    : Module::Interface(std::move(module), std::move(profile_manager), system, "acc:u1") {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &ACC_U1::GetUserCount, "GetUserCount"},

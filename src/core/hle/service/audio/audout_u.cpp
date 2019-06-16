@@ -185,7 +185,7 @@ private:
 
     void SetAudioOutVolume(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-        float volume = rp.PopRaw<float>();
+        const float volume = rp.Pop<float>();
         LOG_DEBUG(Service_Audio, "called, volume={}", volume);
 
         stream->SetVolume(volume);
@@ -199,7 +199,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.PushRaw<float>(stream->GetVolume());
+        rb.Push(stream->GetVolume());
     }
 
     AudioCore::AudioOut& audio_core;

@@ -233,13 +233,13 @@ void Module::Interface::GetBaasAccountManagerForApplication(Kernel::HLERequestCo
 void Module::Interface::IsUserAccountSwitchLocked(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_ACC, "called");
     FileSys::NACP nacp;
-    const auto res = Core::System::GetInstance().GetAppLoader().ReadControlData(nacp);
+    const auto res = system.GetAppLoader().ReadControlData(nacp);
 
     bool is_locked = false;
 
     if (res != Loader::ResultStatus::Success) {
-        FileSys::PatchManager pm{Core::CurrentProcess()->GetTitleID()};
-        auto [nacp_unique, discard] = pm.GetControlMetadata();
+        FileSys::PatchManager pm{system.CurrentProcess()->GetTitleID()};
+        auto nacp_unique = pm.GetControlMetadata().first;
 
         if (nacp_unique != nullptr) {
             is_locked = nacp_unique->GetUserAccountSwitchLock();
@@ -250,7 +250,7 @@ void Module::Interface::IsUserAccountSwitchLocked(Kernel::HLERequestContext& ctx
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
-    rb.PushRaw<u8>(is_locked);
+    rb.Push(is_locked);
 }
 
 void Module::Interface::TrySelectUserWithoutInteraction(Kernel::HLERequestContext& ctx) {
@@ -278,19 +278,22 @@ void Module::Interface::TrySelectUserWithoutInteraction(Kernel::HLERequestContex
 }
 
 Module::Interface::Interface(std::shared_ptr<Module> module,
-                             std::shared_ptr<ProfileManager> profile_manager, const char* name)
+                             std::shared_ptr<ProfileManager> profile_manager, Core::System& system,
+                             const char* name)
     : ServiceFramework(name), module(std::move(module)),
-      profile_manager(std::move(profile_manager)) {}
+      profile_manager(std::move(profile_manager)), system(system) {}
 
 Module::Interface::~Interface() = default;
 
 void InstallInterfaces(SM::ServiceManager& service_manager) {
     auto module = std::make_shared<Module>();
     auto profile_manager = std::make_shared<ProfileManager>();
-    std::make_shared<ACC_AA>(module, profile_manager)->InstallAsService(service_manager);
-    std::make_shared<ACC_SU>(module, profile_manager)->InstallAsService(service_manager);
-    std::make_shared<ACC_U0>(module, profile_manager)->InstallAsService(service_manager);
-    std::make_shared<ACC_U1>(module, profile_manager)->InstallAsService(service_manager);
+    Core::System& system = Core::System::GetInstance();
+
+    std::make_shared<ACC_AA>(module, profile_manager, system)->InstallAsService(service_manager);
+    std::make_shared<ACC_SU>(module, profile_manager, system)->InstallAsService(service_manager);
+    std::make_shared<ACC_U0>(module, profile_manager, system)->InstallAsService(service_manager);
+    std::make_shared<ACC_U1>(module, profile_manager, system)->InstallAsService(service_manager);
 }
 
 } // namespace Service::Account

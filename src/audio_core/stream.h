@@ -100,6 +100,7 @@ private:
 
     u32 sample_rate;                          ///< Sample rate of the stream
     Format format;                            ///< Format of the stream
+    float game_volume = 1.0f;                 ///< The volume the game currently has set
     ReleaseCallback release_callback;         ///< Buffer release callback for the stream
     State state{State::Stopped};              ///< Playback state of the stream
     Core::Timing::EventType* release_event{}; ///< Core timing release event for the stream
@@ -109,7 +110,6 @@ private:
     SinkStream& sink_stream;                  ///< Output sink for the stream
     Core::Timing::CoreTiming& core_timing;    ///< Core timing instance.
     std::string name;                         ///< Name of the stream, must be unique
-    float game_volume = 1.0f;                 ///< The volume the game currently has set
 };
 
 using StreamPtr = std::shared_ptr<Stream>;

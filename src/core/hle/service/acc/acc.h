@@ -15,7 +15,8 @@ public:
     class Interface : public ServiceFramework<Interface> {
     public:
         explicit Interface(std::shared_ptr<Module> module,
-                           std::shared_ptr<ProfileManager> profile_manager, const char* name);
+                           std::shared_ptr<ProfileManager> profile_manager, Core::System& system,
+                           const char* name);
         ~Interface() override;
 
         void GetUserCount(Kernel::HLERequestContext& ctx);
@@ -33,6 +34,7 @@ public:
     protected:
         std::shared_ptr<Module> module;
         std::shared_ptr<ProfileManager> profile_manager;
+        Core::System& system;
     };
 };
 
