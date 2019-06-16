@@ -286,6 +286,7 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
     // TODO(ogniK): Figure out where, when and why this event gets signalled
     accumulated_suspended_tick_changed_event = Kernel::WritableEvent::CreateEventPair(
         kernel, Kernel::ResetType::Manual, "ISelfController:AccumulatedSuspendedTickChangedEvent");
+    accumulated_suspended_tick_changed_event.writable->Signal(); //	Is signalled on creation
 }
 
 ISelfController::~ISelfController() = default;
