@@ -61,6 +61,12 @@ public:
     /// Returns a vector of recently released buffers specified by tag
     std::vector<Buffer::Tag> GetTagsAndReleaseBuffers(std::size_t max_count);
 
+    void SetVolume(float volume);
+
+    float GetVolume() const {
+        return game_volume;
+    }
+
     /// Returns true if the stream is currently playing
     bool IsPlaying() const {
         return state == State::Playing;
@@ -103,6 +109,7 @@ private:
     SinkStream& sink_stream;                  ///< Output sink for the stream
     Core::Timing::CoreTiming& core_timing;    ///< Core timing instance.
     std::string name;                         ///< Name of the stream, must be unique
+    float game_volume = 1.0f;                 ///< The volume the game currently has set
 };
 
 using StreamPtr = std::shared_ptr<Stream>;

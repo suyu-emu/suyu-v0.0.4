@@ -51,6 +51,10 @@ void Stream::Stop() {
     UNIMPLEMENTED();
 }
 
+void Stream::SetVolume(float volume) {
+    game_volume = volume;
+}
+
 Stream::State Stream::GetState() const {
     return state;
 }
@@ -62,8 +66,8 @@ s64 Stream::GetBufferReleaseCycles(const Buffer& buffer) const {
     return Core::Timing::usToCycles(us);
 }
 
-static void VolumeAdjustSamples(std::vector<s16>& samples) {
-    const float volume{std::clamp(Settings::values.volume, 0.0f, 1.0f)};
+static void VolumeAdjustSamples(std::vector<s16>& samples, float game_volume) {
+    const float volume{std::clamp(Settings::values.volume - (1.0f - game_volume), 0.0f, 1.0f)};
 
     if (volume == 1.0f) {
         return;
@@ -97,7 +101,7 @@ void Stream::PlayNextBuffer() {
     active_buffer = queued_buffers.front();
     queued_buffers.pop();
 
-    VolumeAdjustSamples(active_buffer->GetSamples());
+    VolumeAdjustSamples(active_buffer->GetSamples(), game_volume);
 
     sink_stream.EnqueueSamples(GetNumChannels(), active_buffer->GetSamples());
 

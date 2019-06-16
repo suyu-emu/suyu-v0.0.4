@@ -133,9 +133,12 @@ private:
     void SetHandlesRequestToDisplay(Kernel::HLERequestContext& ctx);
     void SetIdleTimeDetectionExtension(Kernel::HLERequestContext& ctx);
     void GetIdleTimeDetectionExtension(Kernel::HLERequestContext& ctx);
+    void GetAccumulatedSuspendedTickChangedEvent(Kernel::HLERequestContext& ctx);
 
     std::shared_ptr<NVFlinger::NVFlinger> nvflinger;
     Kernel::EventPair launchable_event;
+    Kernel::EventPair accumulated_suspended_tick_changed_event;
+
     u32 idle_time_detection_extension = 0;
     u64 num_fatal_sections_entered = 0;
 };

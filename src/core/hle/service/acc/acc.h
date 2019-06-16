@@ -24,10 +24,11 @@ public:
         void ListOpenUsers(Kernel::HLERequestContext& ctx);
         void GetLastOpenedUser(Kernel::HLERequestContext& ctx);
         void GetProfile(Kernel::HLERequestContext& ctx);
-        void InitializeApplicationInfo(Kernel::HLERequestContext& ctx);
+        void InitializeApplicationInfoOld(Kernel::HLERequestContext& ctx);
         void GetBaasAccountManagerForApplication(Kernel::HLERequestContext& ctx);
         void IsUserRegistrationRequestPermitted(Kernel::HLERequestContext& ctx);
         void TrySelectUserWithoutInteraction(Kernel::HLERequestContext& ctx);
+        void IsUserAccountSwitchLocked(Kernel::HLERequestContext& ctx);
 
     protected:
         std::shared_ptr<Module> module;
