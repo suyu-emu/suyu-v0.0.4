@@ -39,6 +39,6 @@ public:
 };
 
 /// Registers all ACC services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& service_manager);
+void InstallInterfaces(Core::System& system);
 
 } // namespace Service::Account

@@ -243,6 +243,8 @@ void Module::Interface::IsUserAccountSwitchLocked(Kernel::HLERequestContext& ctx
 
         if (nacp_unique != nullptr) {
             is_locked = nacp_unique->GetUserAccountSwitchLock();
+        } else {
+            LOG_ERROR(Service_ACC, "nacp_unique is null!");
         }
     } else {
         is_locked = nacp.GetUserAccountSwitchLock();
@@ -285,15 +287,18 @@ Module::Interface::Interface(std::shared_ptr<Module> module,
 
 Module::Interface::~Interface() = default;
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
+void InstallInterfaces(Core::System& system) {
     auto module = std::make_shared<Module>();
     auto profile_manager = std::make_shared<ProfileManager>();
-    Core::System& system = Core::System::GetInstance();
 
-    std::make_shared<ACC_AA>(module, profile_manager, system)->InstallAsService(service_manager);
-    std::make_shared<ACC_SU>(module, profile_manager, system)->InstallAsService(service_manager);
-    std::make_shared<ACC_U0>(module, profile_manager, system)->InstallAsService(service_manager);
-    std::make_shared<ACC_U1>(module, profile_manager, system)->InstallAsService(service_manager);
+    std::make_shared<ACC_AA>(module, profile_manager, system)
+        ->InstallAsService(system.ServiceManager());
+    std::make_shared<ACC_SU>(module, profile_manager, system)
+        ->InstallAsService(system.ServiceManager());
+    std::make_shared<ACC_U0>(module, profile_manager, system)
+        ->InstallAsService(system.ServiceManager());
+    std::make_shared<ACC_U1>(module, profile_manager, system)
+        ->InstallAsService(system.ServiceManager());
 }
 
 } // namespace Service::Account
