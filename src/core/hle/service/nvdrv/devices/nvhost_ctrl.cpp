@@ -142,7 +142,6 @@ u32 nvhost_ctrl::IocCtrlEventRegister(const std::vector<u8>& input, std::vector<
         return NvResult::BadParameter;
     }
     events_interface.RegisterEvent(event_id);
-    events_interface.events[event_id].writable->Signal();
     return NvResult::Success;
 }
 
@@ -171,7 +170,11 @@ u32 nvhost_ctrl::IocCtrlEventSignal(const std::vector<u8>& input, std::vector<u8
         return NvResult::BadParameter;
     }
     if (events_interface.status[event_id] == EventState::Waiting) {
-        events_interface.LiberateEvent(event_id);
+        auto& gpu = system.GPU();
+        if (gpu.CancelSyncptInterrupt(events_interface.assigned_syncpt[event_id],
+                                      events_interface.assigned_value[event_id])) {
+            events_interface.LiberateEvent(event_id);
+        }
     }
     return NvResult::Success;
 }

@@ -174,7 +174,7 @@ public:
 
     void RegisterSyncptInterrupt(const u32 syncpoint_id, const u32 value);
 
-    void CancelSyncptInterrupt(const u32 syncpoint_id, const u32 value);
+    bool CancelSyncptInterrupt(const u32 syncpoint_id, const u32 value);
 
     void Guard(bool guard_set) {
         if (guard_set) {
