@@ -76,6 +76,7 @@ SurfaceParams SurfaceParams::CreateForTexture(Core::System& system,
     params.type = GetFormatType(params.pixel_format);
     if (entry.IsShadow() && params.type == SurfaceType::ColorTexture) {
         switch (params.pixel_format) {
+        case PixelFormat::R16U:
         case PixelFormat::R16F: {
             params.pixel_format = PixelFormat::Z16;
             break;

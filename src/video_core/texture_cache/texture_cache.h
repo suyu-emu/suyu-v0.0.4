@@ -258,7 +258,7 @@ protected:
         for (u32 i = 0; i < max_formats; i++) {
             siblings_table[static_cast<PixelFormat>(i)] = PixelFormat::Invalid;
         }
-        make_siblings(PixelFormat::Z16, PixelFormat::R16F);
+        make_siblings(PixelFormat::Z16, PixelFormat::R16U);
         make_siblings(PixelFormat::Z32F, PixelFormat::R32F);
         make_siblings(PixelFormat::Z32FS8, PixelFormat::RG32F);
         sampled_textures_stack.resize(64);
