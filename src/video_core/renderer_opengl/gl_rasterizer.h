@@ -17,6 +17,7 @@
 #include <glad/glad.h>
 
 #include "common/common_types.h"
+#include "video_core/engines/const_buffer_info.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/rasterizer_cache.h"
 #include "video_core/rasterizer_interface.h"
@@ -27,6 +28,7 @@
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_sampler_cache.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
+#include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_state.h"
 #include "video_core/renderer_opengl/utils.h"
@@ -105,17 +107,20 @@ private:
         bool preserve_contents = true, std::optional<std::size_t> single_color_target = {});
 
     /// Configures the current constbuffers to use for the draw command.
-    void SetupConstBuffers(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage, const Shader& shader,
-                           GLuint program_handle, BaseBindings base_bindings);
+    void SetupDrawConstBuffers(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
+                               const Shader& shader);
+
+    /// Configures a constant buffer.
+    void SetupConstBuffer(const Tegra::Engines::ConstBufferInfo& buffer,
+                          const GLShader::ConstBufferEntry& entry);
 
     /// Configures the current global memory entries to use for the draw command.
     void SetupGlobalRegions(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
-                            const Shader& shader, GLenum primitive_mode,
-                            BaseBindings base_bindings);
+                            const Shader& shader);
 
     /// Configures the current textures to use for the draw command.
     void SetupTextures(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage, const Shader& shader,
-                       GLuint program_handle, BaseBindings base_bindings);
+                       BaseBindings base_bindings);
 
     /// Syncs the viewport and depth range to match the guest state
     void SyncViewport(OpenGLState& current_state);

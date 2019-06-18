@@ -15,6 +15,7 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/math_util.h"
+#include "video_core/engines/const_buffer_info.h"
 #include "video_core/engines/engine_upload.h"
 #include "video_core/gpu.h"
 #include "video_core/macro_interpreter.h"
@@ -1112,13 +1113,6 @@ public:
     static_assert(std::is_trivially_copyable_v<Regs>, "Maxwell3D Regs must be trivially copyable");
 
     struct State {
-        struct ConstBufferInfo {
-            GPUVAddr address;
-            u32 index;
-            u32 size;
-            bool enabled;
-        };
-
         struct ShaderStageInfo {
             std::array<ConstBufferInfo, Regs::MaxConstBuffers> const_buffers;
         };

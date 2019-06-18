@@ -3,6 +3,7 @@ add_library(video_core STATIC
     dma_pusher.h
     debug_utils/debug_utils.cpp
     debug_utils/debug_utils.h
+    engines/const_buffer_info.h
     engines/engine_upload.cpp
     engines/engine_upload.h
     engines/fermi_2d.cpp

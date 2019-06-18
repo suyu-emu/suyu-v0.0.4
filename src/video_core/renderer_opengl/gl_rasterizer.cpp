@@ -322,9 +322,9 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
         }
 
         const auto stage_enum = static_cast<Maxwell::ShaderStage>(stage);
-        SetupConstBuffers(stage_enum, shader, program_handle, base_bindings);
-        SetupGlobalRegions(stage_enum, shader, program_handle, base_bindings);
-        SetupTextures(stage_enum, shader, program_handle, base_bindings);
+        SetupDrawConstBuffers(stage_enum, shader);
+        SetupGlobalRegions(stage_enum, shader);
+        SetupTextures(stage_enum, shader, base_bindings);
 
         // Workaround for Intel drivers.
         // When a clip distance is enabled but not set in the shader it crops parts of the screen
@@ -776,57 +776,55 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     return true;
 }
 
-void RasterizerOpenGL::SetupConstBuffers(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
-                                         const Shader& shader, GLuint program_handle,
-                                         BaseBindings base_bindings) {
+void RasterizerOpenGL::SetupDrawConstBuffers(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
+                                             const Shader& shader) {
     MICROPROFILE_SCOPE(OpenGL_UBO);
-    const auto& gpu = system.GPU();
-    const auto& maxwell3d = gpu.Maxwell3D();
-    const auto& shader_stage = maxwell3d.state.shader_stages[static_cast<std::size_t>(stage)];
+    const auto stage_index = static_cast<std::size_t>(stage);
+    const auto& shader_stage = system.GPU().Maxwell3D().state.shader_stages[stage_index];
     const auto& entries = shader->GetShaderEntries().const_buffers;
 
     // Upload only the enabled buffers from the 16 constbuffers of each shader stage
     for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
-        const auto& used_buffer = entries[bindpoint];
-        const auto& buffer = shader_stage.const_buffers[used_buffer.GetIndex()];
-
-        if (!buffer.enabled) {
-            // Set values to zero to unbind buffers
-            bind_ubo_pushbuffer.Push(0, 0, 0);
-            continue;
-        }
-
-        std::size_t size = 0;
-
-        if (used_buffer.IsIndirect()) {
-            // Buffer is accessed indirectly, so upload the entire thing
-            size = buffer.size;
-
-            if (size > MaxConstbufferSize) {
-                LOG_WARNING(Render_OpenGL, "Indirect constbuffer size {} exceeds maximum {}", size,
-                            MaxConstbufferSize);
-                size = MaxConstbufferSize;
-            }
-        } else {
-            // Buffer is accessed directly, upload just what we use
-            size = used_buffer.GetSize();
-        }
-
-        // Align the actual size so it ends up being a multiple of vec4 to meet the OpenGL std140
-        // UBO alignment requirements.
-        size = Common::AlignUp(size, sizeof(GLvec4));
-        ASSERT_MSG(size <= MaxConstbufferSize, "Constbuffer too big");
-
-        const GLintptr const_buffer_offset =
-            buffer_cache.UploadMemory(buffer.address, size, device.GetUniformBufferAlignment());
-
-        bind_ubo_pushbuffer.Push(buffer_cache.GetHandle(), const_buffer_offset, size);
+        const auto& entry = entries[bindpoint];
+        SetupConstBuffer(shader_stage.const_buffers[entry.GetIndex()], entry);
     }
 }
 
+void RasterizerOpenGL::SetupConstBuffer(const Tegra::Engines::ConstBufferInfo& buffer,
+                                        const GLShader::ConstBufferEntry& entry) {
+    if (!buffer.enabled) {
+        // Set values to zero to unbind buffers
+        bind_ubo_pushbuffer.Push(0, 0, 0);
+        return;
+    }
+
+    std::size_t size;
+    if (entry.IsIndirect()) {
+        // Buffer is accessed indirectly, so upload the entire thing
+        size = buffer.size;
+
+        if (size > MaxConstbufferSize) {
+            LOG_WARNING(Render_OpenGL, "Indirect constbuffer size {} exceeds maximum {}", size,
+                        MaxConstbufferSize);
+            size = MaxConstbufferSize;
+        }
+    } else {
+        // Buffer is accessed directly, upload just what we use
+        size = entry.GetSize();
+    }
+
+    // Align the actual size so it ends up being a multiple of vec4 to meet the OpenGL std140
+    // UBO alignment requirements.
+    size = Common::AlignUp(size, sizeof(GLvec4));
+    ASSERT_MSG(size <= MaxConstbufferSize, "Constant buffer is too big");
+
+    const std::size_t alignment = device.GetUniformBufferAlignment();
+    const GLintptr offset = buffer_cache.UploadMemory(buffer.address, size, alignment);
+    bind_ubo_pushbuffer.Push(buffer_cache.GetHandle(), offset, size);
+}
+
 void RasterizerOpenGL::SetupGlobalRegions(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
-                                          const Shader& shader, GLenum primitive_mode,
-                                          BaseBindings base_bindings) {
+                                          const Shader& shader) {
     const auto& entries = shader->GetShaderEntries().global_memory_entries;
     for (std::size_t bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
         const auto& entry{entries[bindpoint]};
@@ -840,7 +838,7 @@ void RasterizerOpenGL::SetupGlobalRegions(Tegra::Engines::Maxwell3D::Regs::Shade
 }
 
 void RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, const Shader& shader,
-                                     GLuint program_handle, BaseBindings base_bindings) {
+                                     BaseBindings base_bindings) {
     MICROPROFILE_SCOPE(OpenGL_Texture);
     const auto& gpu = system.GPU();
     const auto& maxwell3d = gpu.Maxwell3D();

@@ -396,12 +396,10 @@ void Maxwell3D::ProcessCBBind(Regs::ShaderStage stage) {
     auto& shader = state.shader_stages[static_cast<std::size_t>(stage)];
     auto& bind_data = regs.cb_bind[static_cast<std::size_t>(stage)];
 
+    ASSERT(bind_data.index < Regs::MaxConstBuffers);
     auto& buffer = shader.const_buffers[bind_data.index];
 
-    ASSERT(bind_data.index < Regs::MaxConstBuffers);
-
     buffer.enabled = bind_data.valid.Value() != 0;
-    buffer.index = bind_data.index;
     buffer.address = regs.const_buffer.BufferAddress();
     buffer.size = regs.const_buffer.cb_size;
 }
