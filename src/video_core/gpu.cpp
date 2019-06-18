@@ -69,7 +69,7 @@ const DmaPusher& GPU::DmaPusher() const {
 
 void GPU::IncrementSyncPoint(const u32 syncpoint_id) {
     syncpoints[syncpoint_id]++;
-    sync_mutex.lock();
+    std::lock_guard lock{sync_mutex};
     if (!syncpt_interrupts[syncpoint_id].empty()) {
         u32 value = syncpoints[syncpoint_id].load();
         auto it = syncpt_interrupts[syncpoint_id].begin();
@@ -82,7 +82,6 @@ void GPU::IncrementSyncPoint(const u32 syncpoint_id) {
             it++;
         }
     }
-    sync_mutex.unlock();
 }
 
 u32 GPU::GetSyncpointValue(const u32 syncpoint_id) const {
@@ -98,7 +97,7 @@ void GPU::RegisterSyncptInterrupt(const u32 syncpoint_id, const u32 value) {
 }
 
 bool GPU::CancelSyncptInterrupt(const u32 syncpoint_id, const u32 value) {
-    sync_mutex.lock();
+    std::lock_guard lock{sync_mutex};
     auto it = syncpt_interrupts[syncpoint_id].begin();
     while (it != syncpt_interrupts[syncpoint_id].end()) {
         if (value == *it) {
@@ -108,7 +107,6 @@ bool GPU::CancelSyncptInterrupt(const u32 syncpoint_id, const u32 value) {
         it++;
     }
     return false;
-    sync_mutex.unlock();
 }
 
 u32 RenderTargetBytesPerPixel(RenderTargetFormat format) {

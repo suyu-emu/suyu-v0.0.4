@@ -191,7 +191,7 @@ private:
     u32 ChannelSetTimeout(const std::vector<u8>& input, std::vector<u8>& output);
 
     std::shared_ptr<nvmap> nvmap_dev;
-    u32 channels{};
+    u32 assigned_syncpoints{};
 };
 
 } // namespace Service::Nvidia::Devices

@@ -21,7 +21,8 @@ static void RunThread(VideoCore::RendererBase& renderer, Tegra::DmaPusher& dma_p
     MicroProfileOnThreadCreate("GpuThread");
 
     // Wait for first GPU command before acquiring the window context
-    while (state.queue.Empty());
+    while (state.queue.Empty())
+        ;
 
     // If emulation was stopped during disk shader loading, abort before trying to acquire context
     if (!state.is_running) {
@@ -103,7 +104,8 @@ u64 ThreadManager::PushCommand(CommandData&& command_data) {
 
 MICROPROFILE_DEFINE(GPU_wait, "GPU", "Wait for the GPU", MP_RGB(128, 128, 192));
 void SynchState::WaitForSynchronization(u64 fence) {
-    while (signaled_fence.load() < fence);
+    while (signaled_fence.load() < fence)
+        ;
 }
 
 } // namespace VideoCommon::GPUThread

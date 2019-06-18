@@ -122,9 +122,9 @@ u32 nvhost_gpu::AllocGPFIFOEx2(const std::vector<u8>& input, std::vector<u8>& ou
                 params.unk3);
 
     auto& gpu = system.GPU();
-    params.fence_out.id = channels;
-    params.fence_out.value = gpu.GetSyncpointValue(channels);
-    channels++;
+    params.fence_out.id = assigned_syncpoints;
+    params.fence_out.value = gpu.GetSyncpointValue(assigned_syncpoints);
+    assigned_syncpoints++;
     std::memcpy(output.data(), &params, output.size());
     return 0;
 }
@@ -169,8 +169,6 @@ u32 nvhost_gpu::SubmitGPFIFO(const std::vector<u8>& input, std::vector<u8>& outp
     }
     gpu.PushGPUEntries(std::move(entries));
 
-    // TODO(Blinkhawk): Figure how thoios fence is set
-    // params.fence_out.value = 0;
     std::memcpy(output.data(), &params, sizeof(IoctlSubmitGpfifo));
     return 0;
 }

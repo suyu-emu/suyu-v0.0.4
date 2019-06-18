@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include <list>
 #include <optional>
 #include <vector>
-#include <list>
 
 #include "common/common_funcs.h"
 #include "common/math_util.h"

@@ -174,6 +174,7 @@ u32 nvhost_ctrl::IocCtrlEventSignal(const std::vector<u8>& input, std::vector<u8
         if (gpu.CancelSyncptInterrupt(events_interface.assigned_syncpt[event_id],
                                       events_interface.assigned_value[event_id])) {
             events_interface.LiberateEvent(event_id);
+            events_interface.events[event_id].writable->Signal();
         }
     }
     return NvResult::Success;

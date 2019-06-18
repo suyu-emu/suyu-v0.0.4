@@ -57,8 +57,8 @@ void NVDRV::Ioctl(Kernel::HLERequestContext& ctx) {
     ctrl.fresh_call = false;
     ctx.SleepClientThread(
         "NVServices::DelayedResponse", ctrl.timeout,
-        [this, ctrl = ctrl](Kernel::SharedPtr<Kernel::Thread> thread, Kernel::HLERequestContext& ctx,
-                      Kernel::ThreadWakeupReason reason) {
+        [this, ctrl = ctrl](Kernel::SharedPtr<Kernel::Thread> thread,
+                            Kernel::HLERequestContext& ctx, Kernel::ThreadWakeupReason reason) {
             IPC::RequestParser rp{ctx};
             u32 fd = rp.Pop<u32>();
             u32 command = rp.Pop<u32>();
