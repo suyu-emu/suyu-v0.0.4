@@ -18,7 +18,6 @@
 #include "core/perf_stats.h"
 #include "core/settings.h"
 #include "core/telemetry_session.h"
-#include "core/tracer/recorder.h"
 #include "video_core/morton.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"

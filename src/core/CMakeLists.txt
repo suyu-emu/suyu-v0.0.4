@@ -463,9 +463,6 @@ add_library(core STATIC
     settings.h
     telemetry_session.cpp
     telemetry_session.h
-    tracer/citrace.h
-    tracer/recorder.cpp
-    tracer/recorder.h
 )
 
 create_target_directory_groups(core)
