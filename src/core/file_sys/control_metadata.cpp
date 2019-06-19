@@ -87,6 +87,10 @@ u64 NACP::GetDefaultJournalSaveSize() const {
     return raw.user_account_save_data_journal_size;
 }
 
+bool NACP::GetUserAccountSwitchLock() const {
+    return raw.user_account_switch_lock != 0;
+}
+
 u32 NACP::GetSupportedLanguages() const {
     return raw.supported_languages;
 }

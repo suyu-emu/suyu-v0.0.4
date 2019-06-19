@@ -30,7 +30,8 @@ struct RawNACP {
     std::array<LanguageEntry, 16> language_entries;
     std::array<u8, 0x25> isbn;
     u8 startup_user_account;
-    INSERT_PADDING_BYTES(2);
+    u8 user_account_switch_lock;
+    u8 addon_content_registration_type;
     u32_le application_attribute;
     u32_le supported_languages;
     u32_le parental_control;
@@ -111,6 +112,7 @@ public:
     u64 GetDefaultJournalSaveSize() const;
     u32 GetSupportedLanguages() const;
     std::vector<u8> GetRawBytes() const;
+    bool GetUserAccountSwitchLock() const;
 
 private:
     RawNACP raw{};

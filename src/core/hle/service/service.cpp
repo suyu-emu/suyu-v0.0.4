@@ -200,7 +200,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system,
 
     SM::ServiceManager::InstallInterfaces(sm);
 
-    Account::InstallInterfaces(*sm);
+    Account::InstallInterfaces(system);
     AM::InstallInterfaces(*sm, nv_flinger);
     AOC::InstallInterfaces(*sm);
     APM::InstallInterfaces(*sm);

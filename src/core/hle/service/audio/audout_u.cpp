@@ -58,8 +58,8 @@ public:
             {9, &IAudioOut::GetAudioOutBufferCount, "GetAudioOutBufferCount"},
             {10, nullptr, "GetAudioOutPlayedSampleCount"},
             {11, nullptr, "FlushAudioOutBuffers"},
-            {12, nullptr, "SetAudioOutVolume"},
-            {13, nullptr, "GetAudioOutVolume"},
+            {12, &IAudioOut::SetAudioOutVolume, "SetAudioOutVolume"},
+            {13, &IAudioOut::GetAudioOutVolume, "GetAudioOutVolume"},
         };
         // clang-format on
         RegisterHandlers(functions);
@@ -181,6 +181,25 @@ private:
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push(static_cast<u32>(stream->GetQueueSize()));
+    }
+
+    void SetAudioOutVolume(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const float volume = rp.Pop<float>();
+        LOG_DEBUG(Service_Audio, "called, volume={}", volume);
+
+        stream->SetVolume(volume);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void GetAudioOutVolume(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_Audio, "called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(stream->GetVolume());
     }
 
     AudioCore::AudioOut& audio_core;

@@ -12,13 +12,17 @@
 #include "common/swap.h"
 #include "core/constants.h"
 #include "core/core_timing.h"
+#include "core/file_sys/control_metadata.h"
+#include "core/file_sys/patch_manager.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/process.h"
 #include "core/hle/service/acc/acc.h"
 #include "core/hle/service/acc/acc_aa.h"
 #include "core/hle/service/acc/acc_su.h"
 #include "core/hle/service/acc/acc_u0.h"
 #include "core/hle/service/acc/acc_u1.h"
 #include "core/hle/service/acc/profile_manager.h"
+#include "core/loader/loader.h"
 
 namespace Service::Account {
 
@@ -213,7 +217,7 @@ void Module::Interface::IsUserRegistrationRequestPermitted(Kernel::HLERequestCon
     rb.Push(profile_manager->CanSystemRegisterUser());
 }
 
-void Module::Interface::InitializeApplicationInfo(Kernel::HLERequestContext& ctx) {
+void Module::Interface::InitializeApplicationInfoOld(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_ACC, "(STUBBED) called");
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
@@ -224,6 +228,31 @@ void Module::Interface::GetBaasAccountManagerForApplication(Kernel::HLERequestCo
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IManagerForApplication>();
+}
+
+void Module::Interface::IsUserAccountSwitchLocked(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_ACC, "called");
+    FileSys::NACP nacp;
+    const auto res = system.GetAppLoader().ReadControlData(nacp);
+
+    bool is_locked = false;
+
+    if (res != Loader::ResultStatus::Success) {
+        FileSys::PatchManager pm{system.CurrentProcess()->GetTitleID()};
+        auto nacp_unique = pm.GetControlMetadata().first;
+
+        if (nacp_unique != nullptr) {
+            is_locked = nacp_unique->GetUserAccountSwitchLock();
+        } else {
+            LOG_ERROR(Service_ACC, "nacp_unique is null!");
+        }
+    } else {
+        is_locked = nacp.GetUserAccountSwitchLock();
+    }
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push(is_locked);
 }
 
 void Module::Interface::TrySelectUserWithoutInteraction(Kernel::HLERequestContext& ctx) {
@@ -251,19 +280,25 @@ void Module::Interface::TrySelectUserWithoutInteraction(Kernel::HLERequestContex
 }
 
 Module::Interface::Interface(std::shared_ptr<Module> module,
-                             std::shared_ptr<ProfileManager> profile_manager, const char* name)
+                             std::shared_ptr<ProfileManager> profile_manager, Core::System& system,
+                             const char* name)
     : ServiceFramework(name), module(std::move(module)),
-      profile_manager(std::move(profile_manager)) {}
+      profile_manager(std::move(profile_manager)), system(system) {}
 
 Module::Interface::~Interface() = default;
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
+void InstallInterfaces(Core::System& system) {
     auto module = std::make_shared<Module>();
     auto profile_manager = std::make_shared<ProfileManager>();
-    std::make_shared<ACC_AA>(module, profile_manager)->InstallAsService(service_manager);
-    std::make_shared<ACC_SU>(module, profile_manager)->InstallAsService(service_manager);
-    std::make_shared<ACC_U0>(module, profile_manager)->InstallAsService(service_manager);
-    std::make_shared<ACC_U1>(module, profile_manager)->InstallAsService(service_manager);
+
+    std::make_shared<ACC_AA>(module, profile_manager, system)
+        ->InstallAsService(system.ServiceManager());
+    std::make_shared<ACC_SU>(module, profile_manager, system)
+        ->InstallAsService(system.ServiceManager());
+    std::make_shared<ACC_U0>(module, profile_manager, system)
+        ->InstallAsService(system.ServiceManager());
+    std::make_shared<ACC_U1>(module, profile_manager, system)
+        ->InstallAsService(system.ServiceManager());
 }
 
 } // namespace Service::Account

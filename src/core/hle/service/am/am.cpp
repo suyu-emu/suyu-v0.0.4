@@ -271,7 +271,7 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
         {71, nullptr, "GetCurrentIlluminanceEx"},
         {80, nullptr, "SetWirelessPriorityMode"},
         {90, nullptr, "GetAccumulatedSuspendedTickValue"},
-        {91, nullptr, "GetAccumulatedSuspendedTickChangedEvent"},
+        {91, &ISelfController::GetAccumulatedSuspendedTickChangedEvent, "GetAccumulatedSuspendedTickChangedEvent"},
         {100, nullptr, "SetAlbumImageTakenNotificationEnabled"},
         {1000, nullptr, "GetDebugStorageChannel"},
     };
@@ -282,6 +282,11 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
     auto& kernel = Core::System::GetInstance().Kernel();
     launchable_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Manual,
                                                               "ISelfController:LaunchableEvent");
+
+    // TODO(ogniK): Figure out where, when and why this event gets signalled
+    accumulated_suspended_tick_changed_event = Kernel::WritableEvent::CreateEventPair(
+        kernel, Kernel::ResetType::Manual, "ISelfController:AccumulatedSuspendedTickChangedEvent");
+    accumulated_suspended_tick_changed_event.writable->Signal(); //	Is signalled on creation
 }
 
 ISelfController::~ISelfController() = default;
@@ -442,6 +447,17 @@ void ISelfController::GetIdleTimeDetectionExtension(Kernel::HLERequestContext& c
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.Push<u32>(idle_time_detection_extension);
+}
+
+void ISelfController::GetAccumulatedSuspendedTickChangedEvent(Kernel::HLERequestContext& ctx) {
+    // The implementation of this function is fine as is, the reason we're labelling it as stubbed
+    // is because we're currently unsure when and where accumulated_suspended_tick_changed_event is
+    // actually signalled for the time being.
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushCopyObjects(accumulated_suspended_tick_changed_event.readable);
 }
 
 AppletMessageQueue::AppletMessageQueue() {

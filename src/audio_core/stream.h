@@ -61,6 +61,12 @@ public:
     /// Returns a vector of recently released buffers specified by tag
     std::vector<Buffer::Tag> GetTagsAndReleaseBuffers(std::size_t max_count);
 
+    void SetVolume(float volume);
+
+    float GetVolume() const {
+        return game_volume;
+    }
+
     /// Returns true if the stream is currently playing
     bool IsPlaying() const {
         return state == State::Playing;
@@ -94,6 +100,7 @@ private:
 
     u32 sample_rate;                          ///< Sample rate of the stream
     Format format;                            ///< Format of the stream
+    float game_volume = 1.0f;                 ///< The volume the game currently has set
     ReleaseCallback release_callback;         ///< Buffer release callback for the stream
     State state{State::Stopped};              ///< Playback state of the stream
     Core::Timing::EventType* release_event{}; ///< Core timing release event for the stream

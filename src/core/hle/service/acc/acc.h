@@ -15,7 +15,8 @@ public:
     class Interface : public ServiceFramework<Interface> {
     public:
         explicit Interface(std::shared_ptr<Module> module,
-                           std::shared_ptr<ProfileManager> profile_manager, const char* name);
+                           std::shared_ptr<ProfileManager> profile_manager, Core::System& system,
+                           const char* name);
         ~Interface() override;
 
         void GetUserCount(Kernel::HLERequestContext& ctx);
@@ -24,18 +25,20 @@ public:
         void ListOpenUsers(Kernel::HLERequestContext& ctx);
         void GetLastOpenedUser(Kernel::HLERequestContext& ctx);
         void GetProfile(Kernel::HLERequestContext& ctx);
-        void InitializeApplicationInfo(Kernel::HLERequestContext& ctx);
+        void InitializeApplicationInfoOld(Kernel::HLERequestContext& ctx);
         void GetBaasAccountManagerForApplication(Kernel::HLERequestContext& ctx);
         void IsUserRegistrationRequestPermitted(Kernel::HLERequestContext& ctx);
         void TrySelectUserWithoutInteraction(Kernel::HLERequestContext& ctx);
+        void IsUserAccountSwitchLocked(Kernel::HLERequestContext& ctx);
 
     protected:
         std::shared_ptr<Module> module;
         std::shared_ptr<ProfileManager> profile_manager;
+        Core::System& system;
     };
 };
 
 /// Registers all ACC services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& service_manager);
+void InstallInterfaces(Core::System& system);
 
 } // namespace Service::Account
