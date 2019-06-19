@@ -12,8 +12,8 @@
 #include "common/common_types.h"
 
 namespace Kernel {
-class Scheduler;
 class GlobalScheduler;
+class Scheduler;
 } // namespace Kernel
 
 namespace Core {

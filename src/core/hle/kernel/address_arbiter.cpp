@@ -22,7 +22,6 @@ namespace Kernel {
 namespace {
 // Wake up num_to_wake (or all) threads in a vector.
 void WakeThreads(const std::vector<SharedPtr<Thread>>& waiting_threads, s32 num_to_wake) {
-
     auto& system = Core::System::GetInstance();
     // Only process up to 'target' threads, unless 'target' is <= 0, in which case process
     // them all.

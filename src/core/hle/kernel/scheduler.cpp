@@ -1,6 +1,9 @@
 // Copyright 2018 yuzu emulator team
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
+//
+// SelectThreads, Yield functions originally by TuxSH.
+// licensed under GPLv2 or later under exception provided by the author.
 
 #include <algorithm>
 #include <set>
@@ -19,16 +22,15 @@
 
 namespace Kernel {
 
-/*
- * SelectThreads, Yield functions originally by TuxSH.
- * licensed under GPLv2 or later under exception provided by the author.
- */
+GlobalScheduler::GlobalScheduler(Core::System& system) : system{system} {
+    reselection_pending = false;
+}
 
 void GlobalScheduler::AddThread(SharedPtr<Thread> thread) {
     thread_list.push_back(std::move(thread));
 }
 
-void GlobalScheduler::RemoveThread(Thread* thread) {
+void GlobalScheduler::RemoveThread(const Thread* thread) {
     thread_list.erase(std::remove(thread_list.begin(), thread_list.end(), thread),
                       thread_list.end());
 }
@@ -37,7 +39,7 @@ void GlobalScheduler::RemoveThread(Thread* thread) {
  * UnloadThread selects a core and forces it to unload its current thread's context
  */
 void GlobalScheduler::UnloadThread(s32 core) {
-    Scheduler& sched = Core::System::GetInstance().Scheduler(core);
+    Scheduler& sched = system.Scheduler(core);
     sched.UnloadThread();
 }
 
@@ -52,7 +54,7 @@ void GlobalScheduler::UnloadThread(s32 core) {
  * thread in another core and swap it with its current thread.
  */
 void GlobalScheduler::SelectThread(u32 core) {
-    auto update_thread = [](Thread* thread, Scheduler& sched) {
+    const auto update_thread = [](Thread* thread, Scheduler& sched) {
         if (thread != sched.selected_thread) {
             if (thread == nullptr) {
                 ++sched.idle_selection_count;
@@ -62,7 +64,7 @@ void GlobalScheduler::SelectThread(u32 core) {
         sched.context_switch_pending = sched.selected_thread != sched.current_thread;
         std::atomic_thread_fence(std::memory_order_seq_cst);
     };
-    Scheduler& sched = Core::System::GetInstance().Scheduler(core);
+    Scheduler& sched = system.Scheduler(core);
     Thread* current_thread = nullptr;
     // Step 1: Get top thread in schedule queue.
     current_thread = scheduled_queue[core].empty() ? nullptr : scheduled_queue[core].front();
@@ -118,8 +120,8 @@ void GlobalScheduler::SelectThread(u32 core) {
  */
 void GlobalScheduler::YieldThread(Thread* yielding_thread) {
     // Note: caller should use critical section, etc.
-    u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
-    u32 priority = yielding_thread->GetPriority();
+    const u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
+    const u32 priority = yielding_thread->GetPriority();
 
     // Yield the thread
     ASSERT_MSG(yielding_thread == scheduled_queue[core_id].front(priority),
@@ -139,8 +141,8 @@ void GlobalScheduler::YieldThread(Thread* yielding_thread) {
 void GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
     // Note: caller should check if !thread.IsSchedulerOperationRedundant and use critical section,
     // etc.
-    u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
-    u32 priority = yielding_thread->GetPriority();
+    const u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
+    const u32 priority = yielding_thread->GetPriority();
 
     // Yield the thread
     ASSERT_MSG(yielding_thread == scheduled_queue[core_id].front(priority),
@@ -155,12 +157,13 @@ void GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
     Thread* next_thread = scheduled_queue[core_id].front(priority);
     Thread* winner = nullptr;
     for (auto& thread : suggested_queue[core_id]) {
-        s32 source_core = thread->GetProcessorID();
+        const s32 source_core = thread->GetProcessorID();
         if (source_core >= 0) {
             if (current_threads[source_core] != nullptr) {
                 if (thread == current_threads[source_core] ||
-                    current_threads[source_core]->GetPriority() < min_regular_priority)
+                    current_threads[source_core]->GetPriority() < min_regular_priority) {
                     continue;
+                }
             }
             if (next_thread->GetLastRunningTicks() >= thread->GetLastRunningTicks() ||
                 next_thread->GetPriority() < thread->GetPriority()) {
@@ -174,8 +177,9 @@ void GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
 
     if (winner != nullptr) {
         if (winner != yielding_thread) {
-            if (winner->IsRunning())
+            if (winner->IsRunning()) {
                 UnloadThread(winner->GetProcessorID());
+            }
             TransferToCore(winner->GetPriority(), core_id, winner);
         }
     } else {
@@ -195,7 +199,7 @@ void GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread
     // Note: caller should check if !thread.IsSchedulerOperationRedundant and use critical section,
     // etc.
     Thread* winner = nullptr;
-    u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
+    const u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
 
     // Remove the thread from its scheduled mlq, put it on the corresponding "suggested" one instead
     TransferToCore(yielding_thread->GetPriority(), -1, yielding_thread);
@@ -209,9 +213,10 @@ void GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread
             current_threads[i] = scheduled_queue[i].empty() ? nullptr : scheduled_queue[i].front();
         }
         for (auto& thread : suggested_queue[core_id]) {
-            s32 source_core = thread->GetProcessorID();
-            if (source_core < 0 || thread == current_threads[source_core])
+            const s32 source_core = thread->GetProcessorID();
+            if (source_core < 0 || thread == current_threads[source_core]) {
                 continue;
+            }
             if (current_threads[source_core] == nullptr ||
                 current_threads[source_core]->GetPriority() >= min_regular_priority) {
                 winner = thread;
@@ -220,8 +225,9 @@ void GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread
         }
         if (winner != nullptr) {
             if (winner != yielding_thread) {
-                if (winner->IsRunning())
+                if (winner->IsRunning()) {
                     UnloadThread(winner->GetProcessorID());
+                }
                 TransferToCore(winner->GetPriority(), core_id, winner);
             }
         } else {
@@ -230,6 +236,16 @@ void GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread
     }
 
     AskForReselectionOrMarkRedundant(yielding_thread, winner);
+}
+
+void GlobalScheduler::Schedule(u32 priority, u32 core, Thread* thread) {
+    ASSERT_MSG(thread->GetProcessorID() == core, "Thread must be assigned to this core.");
+    scheduled_queue[core].add(thread, priority);
+}
+
+void GlobalScheduler::SchedulePrepend(u32 priority, u32 core, Thread* thread) {
+    ASSERT_MSG(thread->GetProcessorID() == core, "Thread must be assigned to this core.");
+    scheduled_queue[core].add(thread, priority, false);
 }
 
 void GlobalScheduler::AskForReselectionOrMarkRedundant(Thread* current_thread, Thread* winner) {
@@ -244,13 +260,13 @@ void GlobalScheduler::AskForReselectionOrMarkRedundant(Thread* current_thread, T
 
 GlobalScheduler::~GlobalScheduler() = default;
 
-Scheduler::Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, u32 id)
-    : system(system), cpu_core(cpu_core), id(id) {}
+Scheduler::Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, u32 core_id)
+    : system(system), cpu_core(cpu_core), core_id(core_id) {}
 
-Scheduler::~Scheduler() {}
+Scheduler::~Scheduler() = default;
 
 bool Scheduler::HaveReadyThreads() const {
-    return system.GlobalScheduler().HaveReadyThreads(id);
+    return system.GlobalScheduler().HaveReadyThreads(core_id);
 }
 
 Thread* Scheduler::GetCurrentThread() const {
@@ -262,7 +278,7 @@ Thread* Scheduler::GetSelectedThread() const {
 }
 
 void Scheduler::SelectThreads() {
-    system.GlobalScheduler().SelectThread(id);
+    system.GlobalScheduler().SelectThread(core_id);
 }
 
 u64 Scheduler::GetLastContextSwitchTicks() const {
@@ -270,13 +286,14 @@ u64 Scheduler::GetLastContextSwitchTicks() const {
 }
 
 void Scheduler::TryDoContextSwitch() {
-    if (context_switch_pending)
+    if (context_switch_pending) {
         SwitchContext();
+    }
 }
 
 void Scheduler::UnloadThread() {
     Thread* const previous_thread = GetCurrentThread();
-    Process* const previous_process = Core::CurrentProcess();
+    Process* const previous_process = system.Kernel().CurrentProcess();
 
     UpdateLastContextSwitchTime(previous_thread, previous_process);
 
@@ -301,10 +318,11 @@ void Scheduler::SwitchContext() {
     Thread* const new_thread = GetSelectedThread();
 
     context_switch_pending = false;
-    if (new_thread == previous_thread)
+    if (new_thread == previous_thread) {
         return;
+    }
 
-    Process* const previous_process = Core::CurrentProcess();
+    Process* const previous_process = system.Kernel().CurrentProcess();
 
     UpdateLastContextSwitchTime(previous_thread, previous_process);
 
@@ -324,7 +342,7 @@ void Scheduler::SwitchContext() {
 
     // Load context of new thread
     if (new_thread) {
-        ASSERT_MSG(new_thread->GetProcessorID() == this->id,
+        ASSERT_MSG(new_thread->GetProcessorID() == this->core_id,
                    "Thread must be assigned to this core.");
         ASSERT_MSG(new_thread->GetStatus() == ThreadStatus::Ready,
                    "Thread must be ready to become running.");
@@ -353,7 +371,7 @@ void Scheduler::SwitchContext() {
 
 void Scheduler::UpdateLastContextSwitchTime(Thread* thread, Process* process) {
     const u64 prev_switch_ticks = last_context_switch_time;
-    const u64 most_recent_switch_ticks = Core::System::GetInstance().CoreTiming().GetTicks();
+    const u64 most_recent_switch_ticks = system.CoreTiming().GetTicks();
     const u64 update_ticks = most_recent_switch_ticks - prev_switch_ticks;
 
     if (thread != nullptr) {

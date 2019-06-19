@@ -89,7 +89,7 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_
 }
 
 struct KernelCore::Impl {
-    explicit Impl(Core::System& system) : system{system} {}
+    explicit Impl(Core::System& system) : system{system}, global_scheduler{system} {}
 
     void Initialize(KernelCore& kernel) {
         Shutdown();

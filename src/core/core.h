@@ -24,10 +24,10 @@ class VfsFilesystem;
 } // namespace FileSys
 
 namespace Kernel {
+class GlobalScheduler;
 class KernelCore;
 class Process;
 class Scheduler;
-class GlobalScheduler;
 } // namespace Kernel
 
 namespace Loader {
@@ -186,7 +186,7 @@ public:
     void PrepareReschedule();
 
     /// Prepare the core emulation for a reschedule
-    void PrepareReschedule(s32 core_index);
+    void PrepareReschedule(u32 core_index);
 
     /// Gets and resets core performance statistics
     PerfStatsResults GetAndResetPerfStats();

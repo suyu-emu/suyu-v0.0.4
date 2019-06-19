@@ -404,9 +404,10 @@ void System::PrepareReschedule() {
     CurrentCpuCore().PrepareReschedule();
 }
 
-void System::PrepareReschedule(s32 core_index) {
-    if (core_index >= 0)
+void System::PrepareReschedule(const u32 core_index) {
+    if (core_index < GlobalScheduler().CpuCoresCount()) {
         CpuCore(core_index).PrepareReschedule();
+    }
 }
 
 PerfStatsResults System::GetAndResetPerfStats() {

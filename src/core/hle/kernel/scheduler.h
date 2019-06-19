@@ -24,62 +24,70 @@ class GlobalScheduler final {
 public:
     static constexpr u32 NUM_CPU_CORES = 4;
 
-    GlobalScheduler() {
-        reselection_pending = false;
-    }
+    explicit GlobalScheduler(Core::System& system);
     ~GlobalScheduler();
     /// Adds a new thread to the scheduler
     void AddThread(SharedPtr<Thread> thread);
 
     /// Removes a thread from the scheduler
-    void RemoveThread(Thread* thread);
+    void RemoveThread(const Thread* thread);
 
     /// Returns a list of all threads managed by the scheduler
     const std::vector<SharedPtr<Thread>>& GetThreadList() const {
         return thread_list;
     }
 
+    // Add a thread to the suggested queue of a cpu core. Suggested threads may be
+    // picked if no thread is scheduled to run on the core.
     void Suggest(u32 priority, u32 core, Thread* thread) {
         suggested_queue[core].add(thread, priority);
     }
 
+    // Remove a thread to the suggested queue of a cpu core. Suggested threads may be
+    // picked if no thread is scheduled to run on the core.
     void Unsuggest(u32 priority, u32 core, Thread* thread) {
         suggested_queue[core].remove(thread, priority);
     }
 
-    void Schedule(u32 priority, u32 core, Thread* thread) {
-        ASSERT_MSG(thread->GetProcessorID() == core, "Thread must be assigned to this core.");
-        scheduled_queue[core].add(thread, priority);
-    }
+    // Add a thread to the scheduling queue of a cpu core. The thread is added at the
+    // back the queue in its priority level
+    void Schedule(u32 priority, u32 core, Thread* thread);
 
-    void SchedulePrepend(u32 priority, u32 core, Thread* thread) {
-        ASSERT_MSG(thread->GetProcessorID() == core, "Thread must be assigned to this core.");
-        scheduled_queue[core].add(thread, priority, false);
-    }
+    // Add a thread to the scheduling queue of a cpu core. The thread is added at the
+    // front the queue in its priority level
+    void SchedulePrepend(u32 priority, u32 core, Thread* thread);
 
+    // Reschedule an already scheduled thread based on a new priority
     void Reschedule(u32 priority, u32 core, Thread* thread) {
         scheduled_queue[core].remove(thread, priority);
         scheduled_queue[core].add(thread, priority);
     }
 
+    // Unschedule a thread.
     void Unschedule(u32 priority, u32 core, Thread* thread) {
         scheduled_queue[core].remove(thread, priority);
     }
 
+    // Transfers a thread into an specific core. If the destination_core is -1
+    // it will be unscheduled from its source code and added into its suggested
+    // queue.
     void TransferToCore(u32 priority, s32 destination_core, Thread* thread) {
-        bool schedulable = thread->GetPriority() < THREADPRIO_COUNT;
-        s32 source_core = thread->GetProcessorID();
-        if (source_core == destination_core || !schedulable)
+        const bool schedulable = thread->GetPriority() < THREADPRIO_COUNT;
+        const s32 source_core = thread->GetProcessorID();
+        if (source_core == destination_core || !schedulable) {
             return;
+        }
         thread->SetProcessorID(destination_core);
-        if (source_core >= 0)
+        if (source_core >= 0) {
             Unschedule(priority, source_core, thread);
+        }
         if (destination_core >= 0) {
             Unsuggest(priority, destination_core, thread);
             Schedule(priority, destination_core, thread);
         }
-        if (source_core >= 0)
+        if (source_core >= 0) {
             Suggest(priority, source_core, thread);
+        }
     }
 
     /*
@@ -99,7 +107,7 @@ public:
      */
     void SelectThread(u32 core);
 
-    bool HaveReadyThreads(u32 core_id) {
+    bool HaveReadyThreads(u32 core_id) const {
         return !scheduled_queue[core_id].empty();
     }
 
@@ -133,8 +141,8 @@ public:
         reselection_pending.store(true, std::memory_order_release);
     }
 
-    bool IsReselectionPending() {
-        return reselection_pending.load(std::memory_order_acquire);
+    bool IsReselectionPending() const {
+        return reselection_pending.load();
     }
 
 private:
@@ -147,11 +155,12 @@ private:
 
     /// Lists all thread ids that aren't deleted/etc.
     std::vector<SharedPtr<Thread>> thread_list;
+    Core::System& system;
 };
 
 class Scheduler final {
 public:
-    explicit Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, const u32 id);
+    explicit Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, const u32 core_id);
     ~Scheduler();
 
     /// Returns whether there are any threads that are ready to run.
@@ -204,7 +213,7 @@ private:
     Core::ARM_Interface& cpu_core;
     u64 last_context_switch_time = 0;
     u64 idle_selection_count = 0;
-    const u32 id;
+    const u32 core_id;
 
     bool context_switch_pending = false;
 };

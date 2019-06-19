@@ -75,7 +75,12 @@ enum class ThreadActivity : u32 {
     Paused = 1,
 };
 
-enum class ThreadSchedStatus : u32 { None = 0, Paused = 1, Runnable = 2, Exited = 3 };
+enum class ThreadSchedStatus : u32 {
+    None = 0,
+    Paused = 1,
+    Runnable = 2,
+    Exited = 3,
+};
 
 enum ThreadSchedFlags : u32 {
     ProcessPauseFlag = 1 << 4,
@@ -403,15 +408,15 @@ public:
     void Sleep(s64 nanoseconds);
 
     /// Yields this thread without rebalancing loads.
-    void YieldType0();
+    void YieldSimple();
 
     /// Yields this thread and does a load rebalancing.
-    void YieldType1();
+    void YieldAndBalanceLoad();
 
     /// Yields this thread and if the core is left idle, loads are rebalanced
-    void YieldType2();
+    void YieldAndWaitForLoadBalancing();
 
-    ThreadSchedStatus GetSchedulingStatus() {
+    ThreadSchedStatus GetSchedulingStatus() const {
         return static_cast<ThreadSchedStatus>(scheduling_state & ThreadSchedMasks::LowMask);
     }
 

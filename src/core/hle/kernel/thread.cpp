@@ -373,43 +373,44 @@ void Thread::Sleep(s64 nanoseconds) {
     WakeAfterDelay(nanoseconds);
 }
 
-void Thread::YieldType0() {
+void Thread::YieldSimple() {
     auto& scheduler = kernel.GlobalScheduler();
     scheduler.YieldThread(this);
 }
 
-void Thread::YieldType1() {
+void Thread::YieldAndBalanceLoad() {
     auto& scheduler = kernel.GlobalScheduler();
     scheduler.YieldThreadAndBalanceLoad(this);
 }
 
-void Thread::YieldType2() {
+void Thread::YieldAndWaitForLoadBalancing() {
     auto& scheduler = kernel.GlobalScheduler();
     scheduler.YieldThreadAndWaitForLoadBalancing(this);
 }
 
 void Thread::SetSchedulingStatus(ThreadSchedStatus new_status) {
-    u32 old_flags = scheduling_state;
+    const u32 old_flags = scheduling_state;
     scheduling_state =
         (scheduling_state & ThreadSchedMasks::HighMask) | static_cast<u32>(new_status);
     AdjustSchedulingOnStatus(old_flags);
 }
 
 void Thread::SetCurrentPriority(u32 new_priority) {
-    u32 old_priority = current_priority;
-    current_priority = new_priority;
+    u32 old_priority = std::exchange(current_priority, new_priority);
     AdjustSchedulingOnPriority(old_priority);
 }
 
 ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
-    auto HighestSetCore = [](u64 mask, u32 max_cores) {
+    const auto HighestSetCore = [](u64 mask, u32 max_cores) {
         for (s32 core = max_cores - 1; core >= 0; core--) {
-            if (((mask >> core) & 1) != 0)
+            if (((mask >> core) & 1) != 0) {
                 return core;
+            }
         }
         return -1;
     };
-    bool use_override = affinity_override_count != 0;
+
+    const bool use_override = affinity_override_count != 0;
     // The value -3 is "do not change the ideal core".
     if (new_core == -3) {
         new_core = use_override ? ideal_core_override : ideal_core;
@@ -421,11 +422,10 @@ ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
         ideal_core_override = new_core;
         affinity_mask_override = new_affinity_mask;
     } else {
-        u64 old_affinity_mask = affinity_mask;
+        const u64 old_affinity_mask = std::exchange(affinity_mask, new_affinity_mask);
         ideal_core = new_core;
-        affinity_mask = new_affinity_mask;
         if (old_affinity_mask != new_affinity_mask) {
-            s32 old_core = processor_id;
+            const s32 old_core = processor_id;
             if (processor_id >= 0 && ((affinity_mask >> processor_id) & 1) == 0) {
                 if (ideal_core < 0) {
                     processor_id = HighestSetCore(affinity_mask, GlobalScheduler::NUM_CPU_CORES);
@@ -440,28 +440,33 @@ ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
 }
 
 void Thread::AdjustSchedulingOnStatus(u32 old_flags) {
-    if (old_flags == scheduling_state)
+    if (old_flags == scheduling_state) {
         return;
+    }
 
     auto& scheduler = kernel.GlobalScheduler();
     if (static_cast<ThreadSchedStatus>(old_flags & ThreadSchedMasks::LowMask) ==
         ThreadSchedStatus::Runnable) {
         // In this case the thread was running, now it's pausing/exitting
-        if (processor_id >= 0)
+        if (processor_id >= 0) {
             scheduler.Unschedule(current_priority, processor_id, this);
+        }
 
-        for (s32 core = 0; core < GlobalScheduler::NUM_CPU_CORES; core++) {
-            if (core != processor_id && ((affinity_mask >> core) & 1) != 0)
+        for (u32 core = 0; core < GlobalScheduler::NUM_CPU_CORES; core++) {
+            if (core != processor_id && ((affinity_mask >> core) & 1) != 0) {
                 scheduler.Unsuggest(current_priority, core, this);
+            }
         }
     } else if (GetSchedulingStatus() == ThreadSchedStatus::Runnable) {
         // The thread is now set to running from being stopped
-        if (processor_id >= 0)
+        if (processor_id >= 0) {
             scheduler.Schedule(current_priority, processor_id, this);
+        }
 
-        for (s32 core = 0; core < GlobalScheduler::NUM_CPU_CORES; core++) {
-            if (core != processor_id && ((affinity_mask >> core) & 1) != 0)
+        for (u32 core = 0; core < GlobalScheduler::NUM_CPU_CORES; core++) {
+            if (core != processor_id && ((affinity_mask >> core) & 1) != 0) {
                 scheduler.Suggest(current_priority, core, this);
+            }
         }
     }
 
@@ -477,7 +482,7 @@ void Thread::AdjustSchedulingOnPriority(u32 old_priority) {
         scheduler.Unschedule(old_priority, processor_id, this);
     }
 
-    for (s32 core = 0; core < GlobalScheduler::NUM_CPU_CORES; core++) {
+    for (u32 core = 0; core < GlobalScheduler::NUM_CPU_CORES; core++) {
         if (core != processor_id && ((affinity_mask >> core) & 1) != 0) {
             scheduler.Unsuggest(old_priority, core, this);
         }
@@ -494,7 +499,7 @@ void Thread::AdjustSchedulingOnPriority(u32 old_priority) {
         }
     }
 
-    for (s32 core = 0; core < GlobalScheduler::NUM_CPU_CORES; core++) {
+    for (u32 core = 0; core < GlobalScheduler::NUM_CPU_CORES; core++) {
         if (core != processor_id && ((affinity_mask >> core) & 1) != 0) {
             scheduler.Suggest(current_priority, core, this);
         }
@@ -506,10 +511,11 @@ void Thread::AdjustSchedulingOnPriority(u32 old_priority) {
 void Thread::AdjustSchedulingOnAffinity(u64 old_affinity_mask, s32 old_core) {
     auto& scheduler = Core::System::GetInstance().GlobalScheduler();
     if (GetSchedulingStatus() != ThreadSchedStatus::Runnable ||
-        current_priority >= THREADPRIO_COUNT)
+        current_priority >= THREADPRIO_COUNT) {
         return;
+    }
 
-    for (s32 core = 0; core < GlobalScheduler::NUM_CPU_CORES; core++) {
+    for (u32 core = 0; core < GlobalScheduler::NUM_CPU_CORES; core++) {
         if (((old_affinity_mask >> core) & 1) != 0) {
             if (core == old_core) {
                 scheduler.Unschedule(current_priority, core, this);
@@ -519,7 +525,7 @@ void Thread::AdjustSchedulingOnAffinity(u64 old_affinity_mask, s32 old_core) {
         }
     }
 
-    for (s32 core = 0; core < GlobalScheduler::NUM_CPU_CORES; core++) {
+    for (u32 core = 0; core < GlobalScheduler::NUM_CPU_CORES; core++) {
         if (((affinity_mask >> core) & 1) != 0) {
             if (core == processor_id) {
                 scheduler.Schedule(current_priority, core, this);

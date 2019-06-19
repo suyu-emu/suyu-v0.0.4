@@ -1560,13 +1560,13 @@ static void SleepThread(Core::System& system, s64 nanoseconds) {
     if (nanoseconds <= 0) {
         switch (static_cast<SleepType>(nanoseconds)) {
         case SleepType::YieldWithoutLoadBalancing:
-            current_thread->YieldType0();
+            current_thread->YieldSimple();
             break;
         case SleepType::YieldWithLoadBalancing:
-            current_thread->YieldType1();
+            current_thread->YieldAndBalanceLoad();
             break;
         case SleepType::YieldAndWaitForLoadBalancing:
-            current_thread->YieldType2();
+            current_thread->YieldAndWaitForLoadBalancing();
             break;
         default:
             UNREACHABLE_MSG("Unimplemented sleep yield type '{:016X}'!", nanoseconds);
@@ -1638,8 +1638,9 @@ static ResultCode SignalProcessWideKey(Core::System& system, VAddr condition_var
     const auto& thread_list = scheduler.GetThreadList();
 
     for (const auto& thread : thread_list) {
-        if (thread->GetCondVarWaitAddress() == condition_variable_addr)
+        if (thread->GetCondVarWaitAddress() == condition_variable_addr) {
             waiting_threads.push_back(thread);
+        }
     }
 
     // Sort them by priority, such that the highest priority ones come first.
@@ -1747,9 +1748,11 @@ static ResultCode WaitForAddress(Core::System& system, VAddr address, u32 type, 
 
     const auto arbitration_type = static_cast<AddressArbiter::ArbitrationType>(type);
     auto& address_arbiter = system.Kernel().CurrentProcess()->GetAddressArbiter();
-    ResultCode result = address_arbiter.WaitForAddress(address, arbitration_type, value, timeout);
-    if (result == RESULT_SUCCESS)
+    const ResultCode result =
+        address_arbiter.WaitForAddress(address, arbitration_type, value, timeout);
+    if (result == RESULT_SUCCESS) {
         system.PrepareReschedule();
+    }
     return result;
 }
 

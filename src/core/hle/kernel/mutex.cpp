@@ -140,7 +140,7 @@ ResultCode Mutex::Release(VAddr address) {
     thread->SetMutexWaitAddress(0);
     thread->SetWaitHandle(0);
 
-    Core::System::GetInstance().PrepareReschedule();
+    system.PrepareReschedule();
 
     return RESULT_SUCCESS;
 }

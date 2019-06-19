@@ -111,7 +111,7 @@ void Cpu::PrepareReschedule() {
 
 void Cpu::Reschedule() {
     // Lock the global kernel mutex when we manipulate the HLE state
-    std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
+    std::lock_guard lock(HLE::g_hle_lock);
 
     global_scheduler.SelectThread(core_index);
     scheduler->TryDoContextSwitch();
