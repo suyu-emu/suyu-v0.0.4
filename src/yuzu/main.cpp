@@ -1944,7 +1944,7 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
                     errors +
                     tr("<br><br>You can get all of these and dump all of your games easily by "
                        "following <a href='https://yuzu-emu.org/help/quickstart/'>the "
-                       "quickstart guide</a>. Alternatively, you can use another method of dumping"
+                       "quickstart guide</a>. Alternatively, you can use another method of dumping "
                        "to obtain all of your keys."));
         }
 
