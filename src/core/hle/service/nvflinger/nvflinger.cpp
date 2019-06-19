@@ -37,8 +37,6 @@ NVFlinger::NVFlinger(Core::Timing::CoreTiming& core_timing) : core_timing{core_t
     displays.emplace_back(4, "Null");
 
     // Schedule the screen composition events
-    // const auto ticks = Settings::values.force_30fps_mode ? frame_ticks_30fps : frame_ticks;
-
     composition_event = core_timing.RegisterEvent("ScreenComposition", [this](u64 userdata,
                                                                               s64 cycles_late) {
         Compose();
@@ -212,8 +210,9 @@ void NVFlinger::Compose() {
     }
 }
 
-s64 NVFlinger::GetNextTicks() {
-    return (Core::Timing::BASE_CLOCK_RATE * (1LL << swap_interval)) / 120;
+s64 NVFlinger::GetNextTicks() const {
+    constexpr s64 max_hertz = 120LL;
+    return (Core::Timing::BASE_CLOCK_RATE * (1LL << swap_interval)) / max_hertz;
 }
 
 } // namespace Service::NVFlinger

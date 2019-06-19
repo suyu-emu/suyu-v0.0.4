@@ -74,7 +74,7 @@ public:
     /// finished.
     void Compose();
 
-    s64 GetNextTicks();
+    s64 GetNextTicks() const;
 
 private:
     /// Finds the display identified by the specified ID.

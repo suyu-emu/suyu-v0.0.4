@@ -100,11 +100,11 @@ void Module::SignalSyncpt(const u32 syncpoint_id, const u32 value) {
     }
 }
 
-Kernel::SharedPtr<Kernel::ReadableEvent> Module::GetEvent(const u32 event_id) {
+Kernel::SharedPtr<Kernel::ReadableEvent> Module::GetEvent(const u32 event_id) const {
     return events_interface.events[event_id].readable;
 }
 
-Kernel::SharedPtr<Kernel::WritableEvent> Module::GetEventWriteable(const u32 event_id) {
+Kernel::SharedPtr<Kernel::WritableEvent> Module::GetEventWriteable(const u32 event_id) const {
     return events_interface.events[event_id].writable;
 }
 

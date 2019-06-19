@@ -79,7 +79,7 @@ void BufferQueue::QueueBuffer(u32 slot, BufferTransformFlags transform,
 }
 
 std::optional<std::reference_wrapper<const BufferQueue::Buffer>> BufferQueue::AcquireBuffer() {
-    std::vector<Buffer>::iterator itr = queue.end();
+    auto itr = queue.end();
     while (itr == queue.end() && !queue_sequence.empty()) {
         u32 slot = queue_sequence.front();
         itr = std::find_if(queue.begin(), queue.end(), [&slot](const Buffer& buffer) {

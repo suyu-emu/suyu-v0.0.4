@@ -26,14 +26,15 @@ namespace Devices {
 class nvdevice;
 }
 
-struct EventsInterface {
+struct EventInterface {
     u64 events_mask{};
     std::array<Kernel::EventPair, MaxNvEvents> events;
     std::array<EventState, MaxNvEvents> status{};
     std::array<bool, MaxNvEvents> registered{};
     std::array<u32, MaxNvEvents> assigned_syncpt{};
     std::array<u32, MaxNvEvents> assigned_value{};
-    u32 GetFreeEvent() {
+    static constexpr u32 null_event = 0xFFFFFFFF;
+    u32 GetFreeEvent() const {
         u64 mask = events_mask;
         for (u32 i = 0; i < MaxNvEvents; i++) {
             const bool is_free = (mask & 0x1) == 0;
@@ -44,12 +45,13 @@ struct EventsInterface {
             }
             mask = mask >> 1;
         }
-        return 0xFFFFFFFF;
+        return null_event;
     }
     void SetEventStatus(const u32 event_id, EventState new_status) {
         EventState old_status = status[event_id];
-        if (old_status == new_status)
+        if (old_status == new_status) {
             return;
+        }
         status[event_id] = new_status;
         if (new_status == EventState::Registered) {
             registered[event_id] = true;
@@ -102,9 +104,9 @@ public:
 
     void SignalSyncpt(const u32 syncpoint_id, const u32 value);
 
-    Kernel::SharedPtr<Kernel::ReadableEvent> GetEvent(const u32 event_id);
+    Kernel::SharedPtr<Kernel::ReadableEvent> GetEvent(u32 event_id) const;
 
-    Kernel::SharedPtr<Kernel::WritableEvent> GetEventWriteable(const u32 event_id);
+    Kernel::SharedPtr<Kernel::WritableEvent> GetEventWriteable(u32 event_id) const;
 
 private:
     /// Id to use for the next open file descriptor.
@@ -116,7 +118,7 @@ private:
     /// Mapping of device node names to their implementation.
     std::unordered_map<std::string, std::shared_ptr<Devices::nvdevice>> devices;
 
-    EventsInterface events_interface;
+    EventInterface events_interface;
 };
 
 /// Registers all NVDRV services with the specified service manager.

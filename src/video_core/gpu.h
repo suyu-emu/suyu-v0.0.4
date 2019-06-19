@@ -168,20 +168,16 @@ public:
     /// Returns a reference to the GPU DMA pusher.
     Tegra::DmaPusher& DmaPusher();
 
-    void IncrementSyncPoint(const u32 syncpoint_id);
+    void IncrementSyncPoint(u32 syncpoint_id);
 
-    u32 GetSyncpointValue(const u32 syncpoint_id) const;
+    u32 GetSyncpointValue(u32 syncpoint_id) const;
 
-    void RegisterSyncptInterrupt(const u32 syncpoint_id, const u32 value);
+    void RegisterSyncptInterrupt(u32 syncpoint_id, u32 value);
 
-    bool CancelSyncptInterrupt(const u32 syncpoint_id, const u32 value);
+    bool CancelSyncptInterrupt(u32 syncpoint_id, u32 value);
 
-    void Guard(bool guard_set) {
-        if (guard_set) {
-            sync_mutex.lock();
-        } else {
-            sync_mutex.unlock();
-        }
+    std::unique_lock<std::mutex> LockSync() {
+        return std::unique_lock{sync_mutex};
     }
 
     bool IsAsync() const {
@@ -253,7 +249,7 @@ public:
     virtual void FlushAndInvalidateRegion(CacheAddr addr, u64 size) = 0;
 
 protected:
-    virtual void TriggerCpuInterrupt(const u32 syncpoint_id, const u32 value) const = 0;
+    virtual void TriggerCpuInterrupt(u32 syncpoint_id, u32 value) const = 0;
 
 private:
     void ProcessBindMethod(const MethodCall& method_call);

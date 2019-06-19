@@ -89,24 +89,27 @@ u32 GPU::GetSyncpointValue(const u32 syncpoint_id) const {
 }
 
 void GPU::RegisterSyncptInterrupt(const u32 syncpoint_id, const u32 value) {
-    for (u32 in_value : syncpt_interrupts[syncpoint_id]) {
-        if (in_value == value)
-            return;
+    auto& interrupt = syncpt_interrupts[syncpoint_id];
+    bool contains = std::any_of(interrupt.begin(), interrupt.end(),
+                                [value](u32 in_value) { return in_value == value; });
+    if (contains) {
+        return;
     }
     syncpt_interrupts[syncpoint_id].emplace_back(value);
 }
 
 bool GPU::CancelSyncptInterrupt(const u32 syncpoint_id, const u32 value) {
     std::lock_guard lock{sync_mutex};
-    auto it = syncpt_interrupts[syncpoint_id].begin();
-    while (it != syncpt_interrupts[syncpoint_id].end()) {
-        if (value == *it) {
-            it = syncpt_interrupts[syncpoint_id].erase(it);
-            return true;
-        }
-        it++;
+    auto& interrupt = syncpt_interrupts[syncpoint_id];
+    const auto iter =
+        std::find_if(interrupt.begin(), interrupt.end(),
+                     [value](u32 interrupt_value) { return value == interrupt_value; });
+
+    if (iter == interrupt.end()) {
+        return false;
     }
-    return false;
+    interrupt.erase(iter);
+    return true;
 }
 
 u32 RenderTargetBytesPerPixel(RenderTargetFormat format) {

@@ -14,7 +14,7 @@ namespace Service::Nvidia::Devices {
 
 class nvhost_ctrl final : public nvdevice {
 public:
-    nvhost_ctrl(Core::System& system, EventsInterface& events_interface);
+    explicit nvhost_ctrl(Core::System& system, EventInterface& events_interface);
     ~nvhost_ctrl() override;
 
     u32 ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
@@ -143,7 +143,7 @@ private:
 
     u32 IocCtrlEventSignal(const std::vector<u8>& input, std::vector<u8>& output);
 
-    EventsInterface& events_interface;
+    EventInterface& events_interface;
 };
 
 } // namespace Service::Nvidia::Devices

@@ -18,7 +18,7 @@ enum {
 };
 }
 
-nvmap::nvmap(Core::System& system) : nvdevice(system){};
+nvmap::nvmap(Core::System& system) : nvdevice(system) {}
 nvmap::~nvmap() = default;
 
 VAddr nvmap::GetObjectAddress(u32 handle) const {

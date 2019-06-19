@@ -1,5 +1,9 @@
+// Copyright 2019 Yuzu Emulator Project
+// Licensed under GPLv2 or any later version
+// Refer to the license.txt file included.
 
 #include "core/core.h"
+#include "core/core_timing.h"
 #include "core/hardware_interrupt_manager.h"
 #include "core/hle/service/nvdrv/interface.h"
 #include "core/hle/service/sm/sm.h"
@@ -11,10 +15,12 @@ InterruptManager::InterruptManager(Core::System& system_in) : system(system_in) 
         system.CoreTiming().RegisterEvent("GPUInterrupt", [this](u64 message, s64) {
             auto nvdrv = system.ServiceManager().GetService<Service::Nvidia::NVDRV>("nvdrv");
             const u32 syncpt = static_cast<u32>(message >> 32);
-            const u32 value = static_cast<u32>(message & 0x00000000FFFFFFFFULL);
+            const u32 value = static_cast<u32>(message);
             nvdrv->SignalGPUInterruptSyncpt(syncpt, value);
         });
 }
+
+InterruptManager::~InterruptManager() = default;
 
 void InterruptManager::GPUInterruptSyncpt(const u32 syncpoint_id, const u32 value) {
     const u64 msg = (static_cast<u64>(syncpoint_id) << 32ULL) | value;

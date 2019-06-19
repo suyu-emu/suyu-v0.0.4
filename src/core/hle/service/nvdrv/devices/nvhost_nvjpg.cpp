@@ -10,7 +10,7 @@
 
 namespace Service::Nvidia::Devices {
 
-nvhost_nvjpg::nvhost_nvjpg(Core::System& system) : nvdevice(system){};
+nvhost_nvjpg::nvhost_nvjpg(Core::System& system) : nvdevice(system) {}
 nvhost_nvjpg::~nvhost_nvjpg() = default;
 
 u32 nvhost_nvjpg::ioctl(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,

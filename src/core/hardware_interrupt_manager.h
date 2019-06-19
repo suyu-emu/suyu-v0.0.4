@@ -1,20 +1,27 @@
+// Copyright 2019 Yuzu Emulator Project
+// Licensed under GPLv2 or any later version
+// Refer to the license.txt file included.
+
 #pragma once
 
 #include "common/common_types.h"
-#include "core/core_timing.h"
 
 namespace Core {
 class System;
+}
+
+namespace Core::Timing {
+struct EventType;
 }
 
 namespace Core::Hardware {
 
 class InterruptManager {
 public:
-    InterruptManager(Core::System& system);
-    ~InterruptManager() = default;
+    explicit InterruptManager(Core::System& system);
+    ~InterruptManager();
 
-    void GPUInterruptSyncpt(const u32 syncpoint_id, const u32 value);
+    void GPUInterruptSyncpt(u32 syncpoint_id, u32 value);
 
 private:
     Core::System& system;
