@@ -103,13 +103,18 @@ constexpr std::tuple<const char*, const char*, u32> GetPrimitiveDescription(GLen
 /// Calculates the size of a program stream
 std::size_t CalculateProgramSize(const GLShader::ProgramCode& program) {
     constexpr std::size_t start_offset = 10;
+    constexpr u64 key = 0xE2400FFFFF07000FULL;
+    constexpr u64 mask =0xFFFFFFFFFF7FFFFFULL;
     std::size_t offset = start_offset;
     std::size_t size = start_offset * sizeof(u64);
     while (offset < program.size()) {
         const u64 instruction = program[offset];
         if (!IsSchedInstruction(offset, start_offset)) {
-            if (instruction == 0 || (instruction >> 52) == 0x50b) {
+            if ((instruction & mask) == key) {
                 // End on Maxwell's "nop" instruction
+                break;
+            }
+            if (instruction == 0) {
                 break;
             }
         }

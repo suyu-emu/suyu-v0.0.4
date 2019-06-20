@@ -34,7 +34,7 @@ enum class PrecompiledEntryKind : u32 {
     Dump,
 };
 
-constexpr u32 NativeVersion = 3;
+constexpr u32 NativeVersion = 4;
 
 // Making sure sizes doesn't change by accident
 static_assert(sizeof(BaseBindings) == 16);
