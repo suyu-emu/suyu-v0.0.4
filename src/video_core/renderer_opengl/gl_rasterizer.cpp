@@ -198,7 +198,8 @@ void RasterizerOpenGL::SetupVertexBuffer(GLuint vao) {
         const auto [vertex_buffer, vertex_buffer_offset] = buffer_cache.UploadMemory(start, size);
 
         // Bind the vertex array to the buffer at the current offset.
-        glVertexArrayVertexBuffer(vao, index, vertex_buffer, vertex_buffer_offset,
+        // FIXME(Rodrigo): This dereferenced pointer might be invalidated in future uploads.
+        glVertexArrayVertexBuffer(vao, index, *vertex_buffer, vertex_buffer_offset,
                                   vertex_array.stride);
 
         if (regs.instanced_arrays.IsInstancingEnabled(index) && vertex_array.divisor != 0) {
@@ -221,7 +222,8 @@ GLintptr RasterizerOpenGL::SetupIndexBuffer(GLuint vao) {
     const auto& regs = system.GPU().Maxwell3D().regs;
     const std::size_t size = CalculateIndexBufferSize();
     const auto [buffer, offset] = buffer_cache.UploadMemory(regs.index_array.IndexStart(), size);
-    glVertexArrayElementBuffer(vao, buffer);
+    // FIXME(Rodrigo): This dereferenced pointer might be invalidated in future uploads.
+    glVertexArrayElementBuffer(vao, *buffer);
     return offset;
 }
 
@@ -254,10 +256,6 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
 
     BaseBindings base_bindings;
     std::array<bool, Maxwell::NumClipDistances> clip_distances{};
-
-    // Prepare packed bindings
-    bind_ubo_pushbuffer.Setup(base_bindings.cbuf);
-    bind_ssbo_pushbuffer.Setup(base_bindings.gmem);
 
     for (std::size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
         const auto& shader_config = gpu.regs.shader_config[index];
@@ -327,9 +325,6 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
 
         base_bindings = next_bindings;
     }
-
-    bind_ubo_pushbuffer.Bind();
-    bind_ssbo_pushbuffer.Bind();
 
     SyncClipEnabled(clip_distances);
 
@@ -644,11 +639,8 @@ void RasterizerOpenGL::DrawArrays() {
     buffer_size +=
         Maxwell::MaxConstBuffers * (MaxConstbufferSize + device.GetUniformBufferAlignment());
 
-    const bool invalidate = buffer_cache.Map(buffer_size);
-    if (invalidate) {
-        // As all cached buffers are invalidated, we need to recheck their state.
-        gpu.dirty_flags.vertex_array.set();
-    }
+    // Prepare the vertex array.
+    buffer_cache.Map(buffer_size);
 
     // Prepare vertex array format.
     const GLuint vao = SetupVertexFormat();
@@ -660,6 +652,10 @@ void RasterizerOpenGL::DrawArrays() {
     // Setup draw parameters. It will automatically choose what glDraw* method to use.
     const DrawParameters params = SetupDraw(index_buffer_offset);
 
+    // Prepare packed bindings.
+    bind_ubo_pushbuffer.Setup(0);
+    bind_ssbo_pushbuffer.Setup(0);
+
     // Setup shaders and their used resources.
     texture_cache.GuardSamplers(true);
     SetupShaders(params.primitive_mode);
@@ -667,7 +663,17 @@ void RasterizerOpenGL::DrawArrays() {
 
     ConfigureFramebuffers(state);
 
-    buffer_cache.Unmap();
+    // Signal the buffer cache that we are not going to upload more things.
+    const bool invalidate = buffer_cache.Unmap();
+
+    // Now that we are no longer uploading data, we can safely bind the buffers to OpenGL.
+    bind_ubo_pushbuffer.Bind();
+    bind_ssbo_pushbuffer.Bind();
+
+    if (invalidate) {
+        // As all cached buffers are invalidated, we need to recheck their state.
+        gpu.dirty_flags.vertex_array.set();
+    }
 
     shader_program_manager->ApplyTo(state);
     state.Apply();
@@ -707,6 +713,10 @@ void RasterizerOpenGL::FlushAndInvalidateRegion(CacheAddr addr, u64 size) {
         FlushRegion(addr, size);
     }
     InvalidateRegion(addr, size);
+}
+
+void RasterizerOpenGL::TickFrame() {
+    buffer_cache.TickFrame();
 }
 
 bool RasterizerOpenGL::AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Regs::Surface& src,

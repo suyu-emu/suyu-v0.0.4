@@ -19,23 +19,30 @@ BindBuffersRangePushBuffer::~BindBuffersRangePushBuffer() = default;
 
 void BindBuffersRangePushBuffer::Setup(GLuint first_) {
     first = first_;
-    buffers.clear();
+    buffer_pointers.clear();
     offsets.clear();
     sizes.clear();
 }
 
-void BindBuffersRangePushBuffer::Push(GLuint buffer, GLintptr offset, GLsizeiptr size) {
-    buffers.push_back(buffer);
+void BindBuffersRangePushBuffer::Push(const GLuint* buffer, GLintptr offset, GLsizeiptr size) {
+    buffer_pointers.push_back(buffer);
     offsets.push_back(offset);
     sizes.push_back(size);
 }
 
-void BindBuffersRangePushBuffer::Bind() const {
-    const std::size_t count{buffers.size()};
+void BindBuffersRangePushBuffer::Bind() {
+    // Ensure sizes are valid.
+    const std::size_t count{buffer_pointers.size()};
     DEBUG_ASSERT(count == offsets.size() && count == sizes.size());
     if (count == 0) {
         return;
     }
+
+    // Dereference buffers.
+    buffers.resize(count);
+    std::transform(buffer_pointers.begin(), buffer_pointers.end(), buffers.begin(),
+                   [](const GLuint* pointer) { return *pointer; });
+
     glBindBuffersRange(target, first, static_cast<GLsizei>(count), buffers.data(), offsets.data(),
                        sizes.data());
 }
