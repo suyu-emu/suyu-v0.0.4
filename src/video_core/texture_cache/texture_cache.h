@@ -603,10 +603,6 @@ private:
             return InitializeSurface(gpu_addr, params, preserve_contents);
         }
 
-        if (!params.is_tiled) {
-            return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
-                                  MatchTopologyResult::FullMatch);
-        }
         // Step 3
         // Now we need to figure the relationship between the texture and its overlaps
         // we do a topological test to ensure we can find some relationship. If it fails
