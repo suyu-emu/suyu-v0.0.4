@@ -207,6 +207,7 @@ private:
     static constexpr std::size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;
     OGLBufferCache buffer_cache;
 
+    VertexArrayPushBuffer vertex_array_pushbuffer;
     BindBuffersRangePushBuffer bind_ubo_pushbuffer{GL_UNIFORM_BUFFER};
     BindBuffersRangePushBuffer bind_ssbo_pushbuffer{GL_SHADER_STORAGE_BUFFER};
 
@@ -219,7 +220,7 @@ private:
 
     void SetupVertexBuffer(GLuint vao);
 
-    GLintptr SetupIndexBuffer(GLuint vao);
+    GLintptr SetupIndexBuffer();
 
     DrawParameters SetupDraw(GLintptr index_buffer_offset);
 

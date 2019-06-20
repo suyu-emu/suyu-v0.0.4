@@ -198,9 +198,8 @@ void RasterizerOpenGL::SetupVertexBuffer(GLuint vao) {
         const auto [vertex_buffer, vertex_buffer_offset] = buffer_cache.UploadMemory(start, size);
 
         // Bind the vertex array to the buffer at the current offset.
-        // FIXME(Rodrigo): This dereferenced pointer might be invalidated in future uploads.
-        glVertexArrayVertexBuffer(vao, index, *vertex_buffer, vertex_buffer_offset,
-                                  vertex_array.stride);
+        vertex_array_pushbuffer.SetVertexBuffer(index, vertex_buffer, vertex_buffer_offset,
+                                                vertex_array.stride);
 
         if (regs.instanced_arrays.IsInstancingEnabled(index) && vertex_array.divisor != 0) {
             // Enable vertex buffer instancing with the specified divisor.
@@ -214,7 +213,7 @@ void RasterizerOpenGL::SetupVertexBuffer(GLuint vao) {
     gpu.dirty_flags.vertex_array.reset();
 }
 
-GLintptr RasterizerOpenGL::SetupIndexBuffer(GLuint vao) {
+GLintptr RasterizerOpenGL::SetupIndexBuffer() {
     if (accelerate_draw != AccelDraw::Indexed) {
         return 0;
     }
@@ -222,8 +221,7 @@ GLintptr RasterizerOpenGL::SetupIndexBuffer(GLuint vao) {
     const auto& regs = system.GPU().Maxwell3D().regs;
     const std::size_t size = CalculateIndexBufferSize();
     const auto [buffer, offset] = buffer_cache.UploadMemory(regs.index_array.IndexStart(), size);
-    // FIXME(Rodrigo): This dereferenced pointer might be invalidated in future uploads.
-    glVertexArrayElementBuffer(vao, *buffer);
+    vertex_array_pushbuffer.SetIndexBuffer(buffer);
     return offset;
 }
 
@@ -644,10 +642,11 @@ void RasterizerOpenGL::DrawArrays() {
 
     // Prepare vertex array format.
     const GLuint vao = SetupVertexFormat();
+    vertex_array_pushbuffer.Setup(vao);
 
     // Upload vertex and index data.
     SetupVertexBuffer(vao);
-    const GLintptr index_buffer_offset = SetupIndexBuffer(vao);
+    const GLintptr index_buffer_offset = SetupIndexBuffer();
 
     // Setup draw parameters. It will automatically choose what glDraw* method to use.
     const DrawParameters params = SetupDraw(index_buffer_offset);
@@ -667,6 +666,7 @@ void RasterizerOpenGL::DrawArrays() {
     const bool invalidate = buffer_cache.Unmap();
 
     // Now that we are no longer uploading data, we can safely bind the buffers to OpenGL.
+    vertex_array_pushbuffer.Bind();
     bind_ubo_pushbuffer.Bind();
     bind_ssbo_pushbuffer.Bind();
 

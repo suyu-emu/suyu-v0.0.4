@@ -11,6 +11,33 @@
 
 namespace OpenGL {
 
+class VertexArrayPushBuffer final {
+public:
+    explicit VertexArrayPushBuffer();
+    ~VertexArrayPushBuffer();
+
+    void Setup(GLuint vao_);
+
+    void SetIndexBuffer(const GLuint* buffer);
+
+    void SetVertexBuffer(GLuint binding_index, const GLuint* buffer, GLintptr offset,
+                         GLsizei stride);
+
+    void Bind();
+
+private:
+    struct Entry {
+        GLuint binding_index{};
+        const GLuint* buffer{};
+        GLintptr offset{};
+        GLsizei stride{};
+    };
+
+    GLuint vao{};
+    const GLuint* index_buffer{};
+    std::vector<Entry> vertex_buffers;
+};
+
 class BindBuffersRangePushBuffer final {
 public:
     explicit BindBuffersRangePushBuffer(GLenum target);

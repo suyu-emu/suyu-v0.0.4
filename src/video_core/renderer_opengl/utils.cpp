@@ -13,6 +13,37 @@
 
 namespace OpenGL {
 
+VertexArrayPushBuffer::VertexArrayPushBuffer() = default;
+
+VertexArrayPushBuffer::~VertexArrayPushBuffer() = default;
+
+void VertexArrayPushBuffer::Setup(GLuint vao_) {
+    vao = vao_;
+    index_buffer = nullptr;
+    vertex_buffers.clear();
+}
+
+void VertexArrayPushBuffer::SetIndexBuffer(const GLuint* buffer) {
+    index_buffer = buffer;
+}
+
+void VertexArrayPushBuffer::SetVertexBuffer(GLuint binding_index, const GLuint* buffer,
+                                            GLintptr offset, GLsizei stride) {
+    vertex_buffers.push_back(Entry{binding_index, buffer, offset, stride});
+}
+
+void VertexArrayPushBuffer::Bind() {
+    if (index_buffer) {
+        glVertexArrayElementBuffer(vao, *index_buffer);
+    }
+
+    // TODO(Rodrigo): Find a way to ARB_multi_bind this
+    for (const auto& entry : vertex_buffers) {
+        glVertexArrayVertexBuffer(vao, entry.binding_index, *entry.buffer, entry.offset,
+                                  entry.stride);
+    }
+}
+
 BindBuffersRangePushBuffer::BindBuffersRangePushBuffer(GLenum target) : target{target} {}
 
 BindBuffersRangePushBuffer::~BindBuffersRangePushBuffer() = default;
