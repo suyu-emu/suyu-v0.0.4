@@ -18,6 +18,7 @@
 #include "common/common_types.h"
 #include "common/math_util.h"
 #include "core/memory.h"
+#include "core/settings.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/gpu.h"

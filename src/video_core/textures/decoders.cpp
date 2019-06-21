@@ -256,7 +256,8 @@ std::vector<u8> UnswizzleTexture(u8* address, u32 tile_size_x, u32 tile_size_y, 
 }
 
 void SwizzleSubrect(u32 subrect_width, u32 subrect_height, u32 source_pitch, u32 swizzled_width,
-                    u32 bytes_per_pixel, u8* swizzled_data, u8* unswizzled_data, u32 block_height_bit) {
+                    u32 bytes_per_pixel, u8* swizzled_data, u8* unswizzled_data,
+                    u32 block_height_bit) {
     const u32 block_height = 1U << block_height_bit;
     const u32 image_width_in_gobs{(swizzled_width * bytes_per_pixel + (gob_size_x - 1)) /
                                   gob_size_x};
@@ -278,8 +279,8 @@ void SwizzleSubrect(u32 subrect_width, u32 subrect_height, u32 source_pitch, u32
 }
 
 void UnswizzleSubrect(u32 subrect_width, u32 subrect_height, u32 dest_pitch, u32 swizzled_width,
-                      u32 bytes_per_pixel, u8* swizzled_data, u8* unswizzled_data, u32 block_height_bit,
-                      u32 offset_x, u32 offset_y) {
+                      u32 bytes_per_pixel, u8* swizzled_data, u8* unswizzled_data,
+                      u32 block_height_bit, u32 offset_x, u32 offset_y) {
     const u32 block_height = 1U << block_height_bit;
     for (u32 line = 0; line < subrect_height; ++line) {
         const u32 y2 = line + offset_y;

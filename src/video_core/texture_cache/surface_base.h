@@ -254,7 +254,8 @@ public:
             }
             return {};
         } else {
-            return GetView(ViewParams(view_params.target, layer, 1, mipmap, end_mipmap - mipmap + 1));
+            return GetView(
+                ViewParams(view_params.target, layer, 1, mipmap, end_mipmap - mipmap + 1));
         }
     }
 

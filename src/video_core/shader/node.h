@@ -339,7 +339,8 @@ struct MetaImage {
 };
 
 /// Parameters that modify an operation but are not part of any particular operand
-using Meta = std::variant<MetaArithmetic, MetaTexture, MetaImage, MetaStackClass, Tegra::Shader::HalfType>;
+using Meta =
+    std::variant<MetaArithmetic, MetaTexture, MetaImage, MetaStackClass, Tegra::Shader::HalfType>;
 
 /// Holds any kind of operation that can be done in the IR
 class OperationNode final {
