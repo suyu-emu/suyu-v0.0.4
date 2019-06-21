@@ -415,6 +415,7 @@ struct Values {
     std::string program_args;
     bool dump_exefs;
     bool dump_nso;
+    bool reporting_services;
 
     // WebService
     bool enable_telemetry;
