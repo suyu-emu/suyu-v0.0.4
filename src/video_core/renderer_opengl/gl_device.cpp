@@ -43,8 +43,9 @@ bool Device::TestVariableAoffi() {
 // This is a unit test, please ignore me on apitrace bug reports.
 uniform sampler2D tex;
 uniform ivec2 variable_offset;
+out vec4 output_attribute;
 void main() {
-    gl_Position = textureOffset(tex, vec2(0), variable_offset);
+    output_attribute = textureOffset(tex, vec2(0), variable_offset);
 }
 )";
     const GLuint shader{glCreateShaderProgramv(GL_VERTEX_SHADER, 1, &AOFFI_TEST)};
