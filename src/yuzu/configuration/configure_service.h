@@ -19,11 +19,11 @@ public:
     explicit ConfigureService(QWidget* parent = nullptr);
     ~ConfigureService() override;
 
-    void applyConfiguration();
-    void retranslateUi();
+    void ApplyConfiguration();
+    void RetranslateUi();
 
 private:
-    void setConfiguration();
+    void SetConfiguration();
 
     std::pair<QString, QString> BCATDownloadEvents();
     void OnBCATImplChanged();

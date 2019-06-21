@@ -195,7 +195,7 @@ private:
         const auto passphrase_raw = ctx.ReadBuffer();
 
         LOG_DEBUG(Service_BCAT, "called, title_id={:016X}, passphrase={}", title_id,
-                  Common::HexVectorToString(passphrase_raw));
+                  Common::HexToString(passphrase_raw));
 
         if (title_id == 0) {
             LOG_ERROR(Service_BCAT, "Invalid title ID!");
@@ -335,7 +335,7 @@ private:
             rb.Push(ERROR_NO_OPEN_ENTITY);
         }
 
-        size = std::min(current_file->GetSize() - offset, size);
+        size = std::min<u64>(current_file->GetSize() - offset, size);
         const auto buffer = current_file->ReadBytes(size, offset);
         ctx.WriteBuffer(buffer);
 
@@ -437,7 +437,7 @@ private:
         }
 
         const auto files = current_dir->GetFiles();
-        write_size = std::min(write_size, files.size());
+        write_size = std::min<u64>(write_size, files.size());
         std::vector<DeliveryCacheDirectoryEntry> entries(write_size);
         std::transform(
             files.begin(), files.begin() + write_size, entries.begin(), [](const auto& file) {
@@ -519,7 +519,7 @@ private:
 
         LOG_DEBUG(Service_BCAT, "called, size={:016X}", size);
 
-        size = std::min(size, entries.size() - next_read_index);
+        size = std::min<u64>(size, entries.size() - next_read_index);
         ctx.WriteBuffer(entries.data() + next_read_index, size * sizeof(DirectoryName));
         next_read_index += size;
 

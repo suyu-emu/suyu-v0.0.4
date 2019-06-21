@@ -48,20 +48,20 @@ ConfigureService::ConfigureService(QWidget* parent)
     connect(ui->bcat_source, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             &ConfigureService::OnBCATImplChanged);
 
-    this->setConfiguration();
+    this->SetConfiguration();
 }
 
 ConfigureService::~ConfigureService() = default;
 
-void ConfigureService::applyConfiguration() {
+void ConfigureService::ApplyConfiguration() {
     Settings::values.bcat_backend = ui->bcat_source->currentText().toLower().toStdString();
 }
 
-void ConfigureService::retranslateUi() {
+void ConfigureService::RetranslateUi() {
     ui->retranslateUi(this);
 }
 
-void ConfigureService::setConfiguration() {
+void ConfigureService::SetConfiguration() {
     int index = ui->bcat_source->findData(QString::fromStdString(Settings::values.bcat_backend));
     ui->bcat_source->setCurrentIndex(index == -1 ? 0 : index);
 }
@@ -73,13 +73,14 @@ std::pair<QString, QString> ConfigureService::BCATDownloadEvents() {
 
     switch (res) {
     case Service::BCAT::Boxcat::StatusResult::Offline:
-        return {"", tr("The boxcat service is offline or you are not connected to the internet.")};
+        return {QStringLiteral(""),
+                tr("The boxcat service is offline or you are not connected to the internet.")};
     case Service::BCAT::Boxcat::StatusResult::ParseError:
-        return {"",
+        return {QStringLiteral(""),
                 tr("There was an error while processing the boxcat event data. Contact the yuzu "
                    "developers.")};
     case Service::BCAT::Boxcat::StatusResult::BadClientVersion:
-        return {"",
+        return {QStringLiteral(""),
                 tr("The version of yuzu you are using is either too new or too old for the server. "
                    "Try updating to the latest official release of yuzu.")};
     }
@@ -90,9 +91,14 @@ std::pair<QString, QString> ConfigureService::BCATDownloadEvents() {
     }
 
     QString out;
+
+    if (global.has_value()) {
+        out += QStringLiteral("%1<br>").arg(QString::fromStdString(*global));
+    }
+
     for (const auto& [key, value] : map) {
         out += QStringLiteral("%1<b>%2</b><br>%3")
-                   .arg(out.isEmpty() ? "" : "<br>")
+                   .arg(out.isEmpty() ? QStringLiteral("") : QStringLiteral("<br>"))
                    .arg(QString::fromStdString(key))
                    .arg(FormatEventStatusString(value));
     }
@@ -104,7 +110,7 @@ void ConfigureService::OnBCATImplChanged() {
     const auto boxcat = ui->bcat_source->currentText() == QStringLiteral("Boxcat");
     ui->bcat_empty_header->setHidden(!boxcat);
     ui->bcat_empty_label->setHidden(!boxcat);
-    ui->bcat_empty_header->setText("");
+    ui->bcat_empty_header->setText(QStringLiteral(""));
     ui->bcat_empty_label->setText(tr("Yuzu is retrieving the latest boxcat status..."));
 
     if (!boxcat)

@@ -13,7 +13,7 @@ namespace Service::BCAT {
 ProgressServiceBackend::ProgressServiceBackend(std::string event_name) : impl{} {
     auto& kernel{Core::System::GetInstance().Kernel()};
     event = Kernel::WritableEvent::CreateEventPair(
-        kernel, Kernel::ResetType::OneShot, "ProgressServiceBackend:UpdateEvent:" + event_name);
+        kernel, Kernel::ResetType::Automatic, "ProgressServiceBackend:UpdateEvent:" + event_name);
 }
 
 Kernel::SharedPtr<Kernel::ReadableEvent> ProgressServiceBackend::GetEvent() {
@@ -48,8 +48,10 @@ void ProgressServiceBackend::StartDownloadingFile(std::string_view dir_name,
     impl.status = DeliveryCacheProgressImpl::Status::Downloading;
     impl.current_downloaded_bytes = 0;
     impl.current_total_bytes = file_size;
-    std::memcpy(impl.current_directory.data(), dir_name.data(), std::min(dir_name.size(), 0x31ull));
-    std::memcpy(impl.current_file.data(), file_name.data(), std::min(file_name.size(), 0x31ull));
+    std::memcpy(impl.current_directory.data(), dir_name.data(),
+                std::min<u64>(dir_name.size(), 0x31ull));
+    std::memcpy(impl.current_file.data(), file_name.data(),
+                std::min<u64>(file_name.size(), 0x31ull));
     SignalUpdate();
 }
 
@@ -68,7 +70,8 @@ void ProgressServiceBackend::CommitDirectory(std::string_view dir_name) {
     impl.current_file.fill(0);
     impl.current_downloaded_bytes = 0;
     impl.current_total_bytes = 0;
-    std::memcpy(impl.current_directory.data(), dir_name.data(), std::min(dir_name.size(), 0x31ull));
+    std::memcpy(impl.current_directory.data(), dir_name.data(),
+                std::min<u64>(dir_name.size(), 0x31ull));
     SignalUpdate();
 }
 
@@ -121,7 +124,7 @@ bool NullBackend::Clear(u64 title_id) {
 
 void NullBackend::SetPassphrase(u64 title_id, const Passphrase& passphrase) {
     LOG_DEBUG(Service_BCAT, "called, title_id={:016X}, passphrase = {}", title_id,
-              Common::HexArrayToString(passphrase));
+              Common::HexToString(passphrase));
 }
 
 std::optional<std::vector<u8>> NullBackend::GetLaunchParameter(TitleIDVersion title) {
