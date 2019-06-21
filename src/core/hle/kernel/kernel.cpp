@@ -99,7 +99,8 @@ struct KernelCore::Impl {
 
     void Shutdown() {
         next_object_id = 0;
-        next_process_id = Process::ProcessIDMin;
+        next_kernel_process_id = Process::InitialKIPIDMin;
+        next_user_process_id = Process::ProcessIDMin;
         next_thread_id = 1;
 
         process_list.clear();
@@ -132,7 +133,8 @@ struct KernelCore::Impl {
     }
 
     std::atomic<u32> next_object_id{0};
-    std::atomic<u64> next_process_id{Process::ProcessIDMin};
+    std::atomic<u64> next_kernel_process_id{Process::InitialKIPIDMin};
+    std::atomic<u64> next_user_process_id{Process::ProcessIDMin};
     std::atomic<u64> next_thread_id{1};
 
     // Lists all processes that exist in the current session.
@@ -226,8 +228,12 @@ u64 KernelCore::CreateNewThreadID() {
     return impl->next_thread_id++;
 }
 
-u64 KernelCore::CreateNewProcessID() {
-    return impl->next_process_id++;
+u64 KernelCore::CreateNewKernelProcessID() {
+    return impl->next_kernel_process_id++;
+}
+
+u64 KernelCore::CreateNewUserProcessID() {
+    return impl->next_user_process_id++;
 }
 
 Core::Timing::EventType* KernelCore::ThreadWakeupCallbackEventType() const {
