@@ -94,7 +94,7 @@ private:
             LOG_WARNING(Service_ACC,
                         "Failed to load user provided image! Falling back to built-in backup...");
             ctx.WriteBuffer(Core::Constants::ACCOUNT_BACKUP_JPEG);
-            rb.Push<u32>(Core::Constants::ACCOUNT_BACKUP_JPEG.size());
+            rb.Push(SanitizeJPEGSize(Core::Constants::ACCOUNT_BACKUP_JPEG.size()));
             return;
         }
 
@@ -116,9 +116,9 @@ private:
         if (!image.IsOpen()) {
             LOG_WARNING(Service_ACC,
                         "Failed to load user provided image! Falling back to built-in backup...");
-            rb.Push<u32>(Core::Constants::ACCOUNT_BACKUP_JPEG.size());
+            rb.Push(SanitizeJPEGSize(Core::Constants::ACCOUNT_BACKUP_JPEG.size()));
         } else {
-            rb.Push<u32>(SanitizeJPEGSize(image.GetSize()));
+            rb.Push(SanitizeJPEGSize(image.GetSize()));
         }
     }
 
