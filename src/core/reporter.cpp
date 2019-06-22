@@ -147,7 +147,7 @@ json GetHLEBufferDescriptorData(const std::vector<DescriptorType>& buffer) {
         if constexpr (read_value) {
             std::vector<u8> data(desc.Size());
             Memory::ReadBlock(desc.Address(), data.data(), desc.Size());
-            entry["data"] = Common::HexVectorToString(data);
+            entry["data"] = Common::HexToString(data);
         }
 
         buffer_out.push_back(std::move(entry));
@@ -227,7 +227,7 @@ void Reporter::SaveSvcBreakReport(u32 type, bool signal_debugger, u64 info1, u64
     };
 
     if (resolved_buffer.has_value()) {
-        break_out["debug_buffer"] = Common::HexVectorToString(*resolved_buffer);
+        break_out["debug_buffer"] = Common::HexToString(*resolved_buffer);
     }
 
     out["svc_break"] = std::move(break_out);
@@ -277,12 +277,12 @@ void Reporter::SaveUnimplementedAppletReport(
 
     auto normal_out = json::array();
     for (const auto& data : normal_channel) {
-        normal_out.push_back(Common::HexVectorToString(data));
+        normal_out.push_back(Common::HexToString(data));
     }
 
     auto interactive_out = json::array();
     for (const auto& data : interactive_channel) {
-        interactive_out.push_back(Common::HexVectorToString(data));
+        interactive_out.push_back(Common::HexToString(data));
     }
 
     out["applet_normal_data"] = std::move(normal_out);
@@ -304,7 +304,7 @@ void Reporter::SavePlayReport(u64 title_id, u64 process_id, std::vector<std::vec
 
     auto data_out = json::array();
     for (const auto& d : data) {
-        data_out.push_back(Common::HexVectorToString(d));
+        data_out.push_back(Common::HexToString(d));
     }
 
     out["play_report_process_id"] = fmt::format("{:016X}", process_id);
