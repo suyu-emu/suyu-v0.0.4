@@ -199,6 +199,9 @@ public:
         std::optional<TitleType> title_type = {}, std::optional<ContentRecordType> record_type = {},
         std::optional<u64> title_id = {}) const;
 
+    std::optional<ContentProviderUnionSlot> GetSlotForEntry(u64 title_id,
+                                                            ContentRecordType type) const;
+
 private:
     std::map<ContentProviderUnionSlot, ContentProvider*> providers;
 };
