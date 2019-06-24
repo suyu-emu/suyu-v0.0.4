@@ -66,8 +66,10 @@ public:
     std::map<std::string, std::string, std::less<>> GetPatchVersionNames(
         VirtualFile update_raw = nullptr) const;
 
-    // Given title_id of the program, attempts to get the control data of the update and parse it,
-    // falling back to the base control data.
+    std::optional<u32> GetGameVersion() const;
+
+    // Given title_id of the program, attempts to get the control data of the update and parse
+    // it, falling back to the base control data.
     std::pair<std::unique_ptr<NACP>, VirtualFile> GetControlMetadata() const;
 
     // Version of GetControlMetadata that takes an arbitrary NCA

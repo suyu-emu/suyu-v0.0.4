@@ -493,6 +493,16 @@ std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNam
     return out;
 }
 
+std::optional<u32> PatchManager::GetGameVersion() const {
+    const auto& installed = Core::System::GetInstance().GetContentProvider();
+    const auto update_tid = GetUpdateTitleID(title_id);
+    if (installed.HasEntry(update_tid, ContentRecordType::Program)) {
+        return installed.GetEntryVersion(update_tid);
+    }
+
+    return installed.GetEntryVersion(title_id);
+}
+
 std::pair<std::unique_ptr<NACP>, VirtualFile> PatchManager::GetControlMetadata() const {
     const auto& installed = Core::System::GetInstance().GetContentProvider();
 
