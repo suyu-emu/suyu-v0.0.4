@@ -276,6 +276,8 @@ add_library(core STATIC
     hle/service/friend/friend.h
     hle/service/friend/interface.cpp
     hle/service/friend/interface.h
+    hle/service/glue/manager.cpp
+    hle/service/glue/manager.h
     hle/service/grc/grc.cpp
     hle/service/grc/grc.h
     hle/service/hid/hid.cpp
