@@ -44,7 +44,6 @@ struct ViewParams {
 class ViewBase {
 public:
     ViewBase(const ViewParams& params) : params{params} {}
-    ~ViewBase() = default;
 
     const ViewParams& GetViewParams() const {
         return params;
