@@ -123,7 +123,7 @@ enum class SurfaceTarget {
     TextureCubeArray,
 };
 
-inline constexpr std::array<u32, MaxPixelFormat> compression_factor_shift_table = {{
+constexpr std::array<u32, MaxPixelFormat> compression_factor_shift_table = {{
     0, // ABGR8U
     0, // ABGR8S
     0, // ABGR8UI
@@ -446,7 +446,7 @@ enum class SurfaceCompression : u8 {
     Rearranged = 3,
 };
 
-inline constexpr std::array<SurfaceCompression, MaxPixelFormat> compression_type_table = {{
+constexpr std::array<SurfaceCompression, MaxPixelFormat> compression_type_table = {{
     SurfaceCompression::None,       // ABGR8U
     SurfaceCompression::None,       // ABGR8S
     SurfaceCompression::None,       // ABGR8UI
