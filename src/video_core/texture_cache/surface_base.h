@@ -40,10 +40,14 @@ enum class MatchTopologyResult : u32 {
 
 class StagingCache {
 public:
-    StagingCache() {}
-    ~StagingCache() = default;
+    explicit StagingCache();
+    ~StagingCache();
 
     std::vector<u8>& GetBuffer(std::size_t index) {
+        return staging_buffer[index];
+    }
+
+    const std::vector<u8>& GetBuffer(std::size_t index) const {
         return staging_buffer[index];
     }
 
