@@ -459,7 +459,7 @@ private:
         for (const auto& sampler : samplers) {
             const std::string name{GetSampler(sampler)};
             const std::string description{"layout (binding = SAMPLER_BINDING_" +
-                                          std::to_string(sampler.GetIndex()) + ") uniform "};
+                                          std::to_string(sampler.GetIndex()) + ") uniform"};
             std::string sampler_type = [&]() {
                 switch (sampler.GetType()) {
                 case Tegra::Shader::TextureType::Texture1D:
@@ -488,13 +488,13 @@ private:
                 // preprocessor flag and use one or the other from the GPU state. This has to be
                 // done because shaders don't have enough information to determine the texture type.
                 EmitIfdefIsBuffer(sampler);
-                code.AddLine(description + "samplerBuffer " + name + ';');
+                code.AddLine("{} samplerBuffer {};", description, name);
                 code.AddLine("#else");
-                code.AddLine(description + sampler_type + ' ' + name + ';');
+                code.AddLine("{} {} {};", description, sampler_type, name);
                 code.AddLine("#endif");
             } else {
                 // The other texture types (2D, 3D and cubes) don't have this issue.
-                code.AddLine(description + sampler_type + ' ' + name + ';');
+                code.AddLine("{} {} {};", description, sampler_type, name);
             }
         }
         if (!samplers.empty()) {
@@ -557,12 +557,13 @@ private:
                     return "image1D";
                 }
             }();
-            code.AddLine("layout (binding = IMAGE_BINDING_" + std::to_string(image.GetIndex()) +
-                         ") coherent volatile writeonly uniform " + image_type + ' ' +
-                         GetImage(image) + ';');
+            code.AddLine("layout (binding = IMAGE_BINDING_{}) coherent volatile writeonly uniform "
+                         "{} {};",
+                         image.GetIndex(), image_type, GetImage(image));
         }
-        if (!images.empty())
+        if (!images.empty()) {
             code.AddNewLine();
+        }
     }
 
     void VisitBlock(const NodeBlock& bb) {
@@ -1504,9 +1505,9 @@ private:
 
         const std::string tmp{code.GenerateTemporary()};
         EmitIfdefIsBuffer(meta->sampler);
-        code.AddLine("float " + tmp + " = " + expr_buffer + ';');
+        code.AddLine("float {} = {};", tmp, expr_buffer);
         code.AddLine("#else");
-        code.AddLine("float " + tmp + " = " + expr + ';');
+        code.AddLine("float {} = {};", tmp, expr);
         code.AddLine("#endif");
 
         return tmp;
@@ -1860,7 +1861,7 @@ private:
     }
 
     void EmitIfdefIsBuffer(const Sampler& sampler) {
-        code.AddLine(fmt::format("#ifdef SAMPLER_{}_IS_BUFFER", sampler.GetIndex()));
+        code.AddLine("#ifdef SAMPLER_{}_IS_BUFFER", sampler.GetIndex());
     }
 
     std::string GetDeclarationWithSuffix(u32 index, const std::string& name) const {
