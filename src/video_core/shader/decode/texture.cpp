@@ -597,6 +597,7 @@ Node4 ShaderIR::GetTldCode(Tegra::Shader::Instruction instr) {
     const Node array_register{is_array ? GetRegister(gpr8_cursor++) : nullptr};
 
     std::vector<Node> coords;
+    coords.reserve(coord_count);
     for (std::size_t i = 0; i < coord_count; ++i) {
         coords.push_back(GetRegister(gpr8_cursor++));
     }
