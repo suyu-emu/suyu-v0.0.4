@@ -11,6 +11,7 @@
 #include "common/common_types.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/engines/shader_header.h"
+#include "video_core/shader/control_flow.h"
 #include "video_core/shader/node_helper.h"
 #include "video_core/shader/shader_ir.h"
 
@@ -51,25 +52,31 @@ constexpr bool IsSchedInstruction(u32 offset, u32 main_offset) {
 void ShaderIR::Decode() {
     std::memcpy(&header, program_code.data(), sizeof(Tegra::Shader::Header));
 
-    std::set<u32> labels;
-    const ExitMethod exit_method = Scan(main_offset, MAX_PROGRAM_LENGTH, labels);
-    if (exit_method != ExitMethod::AlwaysEnd) {
-        UNREACHABLE_MSG("Program does not always end");
-    }
-
-    if (labels.empty()) {
-        basic_blocks.insert({main_offset, DecodeRange(main_offset, MAX_PROGRAM_LENGTH)});
+    ShaderCharacteristics shader_info{};
+    bool can_proceed = ScanFlow(program_code, MAX_PROGRAM_LENGTH, main_offset, shader_info);
+    if (can_proceed) {
+        coverage_begin = shader_info.start;
+        coverage_end = shader_info.end;
+        if (shader_info.decompilable) {
+            return;
+        }
+        // we can't decompile it, fallback to standard method
+        for (const auto& block : shader_info.blocks) {
+            basic_blocks.insert({block.start, DecodeRange(block.start, block.end + 1)});
+        }
         return;
     }
+    LOG_CRITICAL(HW_GPU, "Flow Analysis failed, falling back to brute force compiling");
 
-    labels.insert(main_offset);
-
-    for (const u32 label : labels) {
-        const auto next_it = labels.lower_bound(label + 1);
-        const u32 next_label = next_it == labels.end() ? MAX_PROGRAM_LENGTH : *next_it;
-
-        basic_blocks.insert({label, DecodeRange(label, next_label)});
+    // Now we need to deal with an undecompilable shader. We need to brute force
+    // a shader that captures every position.
+    coverage_begin = shader_info.start;
+    const u32 shader_end = static_cast<u32>(MAX_PROGRAM_LENGTH);
+    coverage_end = shader_end;
+    for (u32 label = main_offset; label < shader_end; label++) {
+        basic_blocks.insert({label, DecodeRange(label, label + 1)});
     }
+    return;
 }
 
 ExitMethod ShaderIR::Scan(u32 begin, u32 end, std::set<u32>& labels) {
