@@ -6,6 +6,8 @@
 
 #include <array>
 #include <functional>
+#include <memory>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -34,7 +36,7 @@ class CachedSurface final : public VideoCommon::SurfaceBase<View> {
     friend CachedSurfaceView;
 
 public:
-    explicit CachedSurface(const GPUVAddr gpu_addr, const SurfaceParams& params);
+    explicit CachedSurface(GPUVAddr gpu_addr, const SurfaceParams& params);
     ~CachedSurface();
 
     void UploadTexture(std::vector<u8>& staging_buffer) override;
@@ -52,7 +54,7 @@ protected:
     void DecorateSurfaceName();
 
     View CreateView(const ViewParams& view_key) override;
-    View CreateViewInner(const ViewParams& view_key, const bool is_proxy);
+    View CreateViewInner(const ViewParams& view_key, bool is_proxy);
 
 private:
     void UploadTextureMipmap(u32 level, std::vector<u8>& staging_buffer);
