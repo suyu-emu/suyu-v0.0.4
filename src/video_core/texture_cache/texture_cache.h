@@ -17,6 +17,7 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/math_util.h"
+#include "core/core.h"
 #include "core/memory.h"
 #include "core/settings.h"
 #include "video_core/engines/fermi_2d.h"
@@ -29,10 +30,6 @@
 #include "video_core/texture_cache/surface_base.h"
 #include "video_core/texture_cache/surface_params.h"
 #include "video_core/texture_cache/surface_view.h"
-
-namespace Core {
-class System;
-}
 
 namespace Tegra::Texture {
 struct FullTextureInfo;
