@@ -13,6 +13,7 @@
 #include "video_core/renderer_opengl/gl_state.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
 #include "video_core/renderer_opengl/utils.h"
+#include "video_core/texture_cache/surface_base.h"
 #include "video_core/texture_cache/texture_cache.h"
 #include "video_core/textures/convert.h"
 #include "video_core/textures/texture.h"
