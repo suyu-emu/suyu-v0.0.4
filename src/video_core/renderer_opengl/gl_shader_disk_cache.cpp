@@ -285,18 +285,20 @@ std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEn
     if (!LoadObjectFromPrecompiled(code_size)) {
         return {};
     }
-    std::vector<u8> code(code_size);
+
+    std::string code(code_size, '\0');
     if (!LoadArrayFromPrecompiled(code.data(), code.size())) {
         return {};
     }
 
     ShaderDiskCacheDecompiled entry;
-    entry.code = std::string(reinterpret_cast<const char*>(code.data()), code_size);
+    entry.code = std::move(code);
 
     u32 const_buffers_count{};
     if (!LoadObjectFromPrecompiled(const_buffers_count)) {
         return {};
     }
+
     for (u32 i = 0; i < const_buffers_count; ++i) {
         u32 max_offset{};
         u32 index{};
@@ -312,6 +314,7 @@ std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEn
     if (!LoadObjectFromPrecompiled(samplers_count)) {
         return {};
     }
+
     for (u32 i = 0; i < samplers_count; ++i) {
         u64 offset{};
         u64 index{};

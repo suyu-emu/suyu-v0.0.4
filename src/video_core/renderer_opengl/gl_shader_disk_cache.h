@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <bitset>
 #include <optional>
 #include <string>
 #include <tuple>
@@ -93,7 +94,7 @@ namespace std {
 
 template <>
 struct hash<OpenGL::BaseBindings> {
-    std::size_t operator()(const OpenGL::BaseBindings& bindings) const {
+    std::size_t operator()(const OpenGL::BaseBindings& bindings) const noexcept {
         return static_cast<std::size_t>(bindings.cbuf) ^
                (static_cast<std::size_t>(bindings.gmem) << 8) ^
                (static_cast<std::size_t>(bindings.sampler) << 16) ^
@@ -103,7 +104,7 @@ struct hash<OpenGL::BaseBindings> {
 
 template <>
 struct hash<OpenGL::ProgramVariant> {
-    std::size_t operator()(const OpenGL::ProgramVariant& variant) const {
+    std::size_t operator()(const OpenGL::ProgramVariant& variant) const noexcept {
         return std::hash<OpenGL::BaseBindings>()(variant.base_bindings) ^
                std::hash<OpenGL::TextureBufferUsage>()(variant.texture_buffer_usage) ^
                (static_cast<std::size_t>(variant.primitive_mode) << 6);
