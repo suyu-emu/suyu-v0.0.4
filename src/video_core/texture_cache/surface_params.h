@@ -95,17 +95,11 @@ public:
     /// Returns the block depth of a given mipmap level.
     u32 GetMipBlockDepth(u32 level) const;
 
+    /// returns the best possible row/pitch alignment for the surface.
     u32 GetRowAlignment(u32 level) const {
         const u32 bpp =
             GetCompressionType() == SurfaceCompression::Converted ? 4 : GetBytesPerPixel();
         return 1U << Common::CountTrailingZeroes32(GetMipWidth(level) * bpp);
-    }
-
-    // Helper used for out of class size calculations
-    static std::size_t AlignLayered(const std::size_t out_size, const u32 block_height,
-                                    const u32 block_depth) {
-        return Common::AlignBits(out_size,
-                                 Tegra::Texture::GetGOBSizeShift() + block_height + block_depth);
     }
 
     /// Returns the offset in bytes in guest memory of a given mipmap level.
@@ -114,6 +108,8 @@ public:
     /// Returns the offset in bytes in host memory (linear) of a given mipmap level.
     std::size_t GetHostMipmapLevelOffset(u32 level) const;
 
+    /// Returns the offset in bytes in host memory (linear) of a given mipmap level
+    // for a texture that is converted in host gpu.
     std::size_t GetConvertedMipmapOffset(u32 level) const;
 
     /// Returns the size in bytes in guest memory of a given mipmap level.
@@ -139,40 +135,7 @@ public:
         return GetInnerMipmapMemorySize(level, true, false);
     }
 
-    static u32 ConvertWidth(u32 width, VideoCore::Surface::PixelFormat pixel_format_from,
-                            VideoCore::Surface::PixelFormat pixel_format_to) {
-        const u32 bw1 = VideoCore::Surface::GetDefaultBlockWidth(pixel_format_from);
-        const u32 bw2 = VideoCore::Surface::GetDefaultBlockWidth(pixel_format_to);
-        return (width * bw2 + bw1 - 1) / bw1;
-    }
-
-    static u32 ConvertHeight(u32 height, VideoCore::Surface::PixelFormat pixel_format_from,
-                             VideoCore::Surface::PixelFormat pixel_format_to) {
-        const u32 bh1 = VideoCore::Surface::GetDefaultBlockHeight(pixel_format_from);
-        const u32 bh2 = VideoCore::Surface::GetDefaultBlockHeight(pixel_format_to);
-        return (height * bh2 + bh1 - 1) / bh1;
-    }
-
-    // this finds the maximun possible width between 2 2D layers of different formats
-    static u32 IntersectWidth(const SurfaceParams& src_params, const SurfaceParams& dst_params,
-                              const u32 src_level, const u32 dst_level) {
-        const u32 bw1 = src_params.GetDefaultBlockWidth();
-        const u32 bw2 = dst_params.GetDefaultBlockWidth();
-        const u32 t_src_width = (src_params.GetMipWidth(src_level) * bw2 + bw1 - 1) / bw1;
-        const u32 t_dst_width = (dst_params.GetMipWidth(dst_level) * bw1 + bw2 - 1) / bw2;
-        return std::min(t_src_width, t_dst_width);
-    }
-
-    // this finds the maximun possible height between 2 2D layers of different formats
-    static u32 IntersectHeight(const SurfaceParams& src_params, const SurfaceParams& dst_params,
-                               const u32 src_level, const u32 dst_level) {
-        const u32 bh1 = src_params.GetDefaultBlockHeight();
-        const u32 bh2 = dst_params.GetDefaultBlockHeight();
-        const u32 t_src_height = (src_params.GetMipHeight(src_level) * bh2 + bh1 - 1) / bh1;
-        const u32 t_dst_height = (dst_params.GetMipHeight(dst_level) * bh1 + bh2 - 1) / bh2;
-        return std::min(t_src_height, t_dst_height);
-    }
-
+    /// Returns the max possible mipmap that the texture can have in host gpu
     u32 MaxPossibleMipmap() const {
         const u32 max_mipmap_w = Common::Log2Ceil32(width) + 1U;
         const u32 max_mipmap_h = Common::Log2Ceil32(height) + 1U;
@@ -182,6 +145,7 @@ public:
         return std::max(max_mipmap, Common::Log2Ceil32(depth) + 1U);
     }
 
+    /// Returns if the guest surface is a compressed surface.
     bool IsCompressed() const {
         return GetDefaultBlockHeight() > 1 || GetDefaultBlockWidth() > 1;
     }
@@ -212,15 +176,66 @@ public:
                pixel_format < VideoCore::Surface::PixelFormat::MaxDepthStencilFormat;
     }
 
+    /// Returns how the compression should be handled for this texture. Values
+    /// are: None(no compression), Compressed(texture is compressed),
+    /// Converted(texture is converted before upload/ after download),
+    /// Rearranged(texture is swizzled before upload/after download).
     SurfaceCompression GetCompressionType() const {
         return VideoCore::Surface::GetFormatCompressionType(pixel_format);
     }
 
+    /// Returns is the surface is a TextureBuffer type of surface.
     bool IsBuffer() const {
         return target == VideoCore::Surface::SurfaceTarget::TextureBuffer;
     }
 
+    /// Returns the debug name of the texture for use in graphic debuggers.
     std::string TargetName() const;
+
+    // Helper used for out of class size calculations
+    static std::size_t AlignLayered(const std::size_t out_size, const u32 block_height,
+                                    const u32 block_depth) {
+        return Common::AlignBits(out_size,
+                                 Tegra::Texture::GetGOBSizeShift() + block_height + block_depth);
+    }
+
+    /// Converts a width from a type of surface into another. This helps represent the
+    /// equivalent value between compressed/non-compressed textures.
+    static u32 ConvertWidth(u32 width, VideoCore::Surface::PixelFormat pixel_format_from,
+                            VideoCore::Surface::PixelFormat pixel_format_to) {
+        const u32 bw1 = VideoCore::Surface::GetDefaultBlockWidth(pixel_format_from);
+        const u32 bw2 = VideoCore::Surface::GetDefaultBlockWidth(pixel_format_to);
+        return (width * bw2 + bw1 - 1) / bw1;
+    }
+
+    /// Converts a height from a type of surface into another. This helps represent the
+    /// equivalent value between compressed/non-compressed textures.
+    static u32 ConvertHeight(u32 height, VideoCore::Surface::PixelFormat pixel_format_from,
+                             VideoCore::Surface::PixelFormat pixel_format_to) {
+        const u32 bh1 = VideoCore::Surface::GetDefaultBlockHeight(pixel_format_from);
+        const u32 bh2 = VideoCore::Surface::GetDefaultBlockHeight(pixel_format_to);
+        return (height * bh2 + bh1 - 1) / bh1;
+    }
+
+    // Finds the maximun possible width between 2 2D layers of different formats
+    static u32 IntersectWidth(const SurfaceParams& src_params, const SurfaceParams& dst_params,
+                              const u32 src_level, const u32 dst_level) {
+        const u32 bw1 = src_params.GetDefaultBlockWidth();
+        const u32 bw2 = dst_params.GetDefaultBlockWidth();
+        const u32 t_src_width = (src_params.GetMipWidth(src_level) * bw2 + bw1 - 1) / bw1;
+        const u32 t_dst_width = (dst_params.GetMipWidth(dst_level) * bw1 + bw2 - 1) / bw2;
+        return std::min(t_src_width, t_dst_width);
+    }
+
+    // Finds the maximun possible height between 2 2D layers of different formats
+    static u32 IntersectHeight(const SurfaceParams& src_params, const SurfaceParams& dst_params,
+                               const u32 src_level, const u32 dst_level) {
+        const u32 bh1 = src_params.GetDefaultBlockHeight();
+        const u32 bh2 = dst_params.GetDefaultBlockHeight();
+        const u32 t_src_height = (src_params.GetMipHeight(src_level) * bh2 + bh1 - 1) / bh1;
+        const u32 t_dst_height = (dst_params.GetMipHeight(dst_level) * bh1 + bh2 - 1) / bh2;
+        return std::min(t_src_height, t_dst_height);
+    }
 
     bool is_tiled;
     bool srgb_conversion;

@@ -269,11 +269,11 @@ std::size_t SurfaceParams::GetConvertedMipmapOffset(u32 level) const {
 }
 
 std::size_t SurfaceParams::GetConvertedMipmapSize(u32 level) const {
-    constexpr std::size_t rgb8_bpp = 4ULL;
+    constexpr std::size_t rgba8_bpp = 4ULL;
     const std::size_t width_t = GetMipWidth(level);
     const std::size_t height_t = GetMipHeight(level);
     const std::size_t depth_t = is_layered ? depth : GetMipDepth(level);
-    return width_t * height_t * depth_t * rgb8_bpp;
+    return width_t * height_t * depth_t * rgba8_bpp;
 }
 
 std::size_t SurfaceParams::GetLayerSize(bool as_host_size, bool uncompressed) const {
