@@ -123,10 +123,15 @@ public:
         return header;
     }
 
+    bool IsFlowStackDisabled() const {
+        return disable_flow_stack;
+    }
+
 private:
     void Decode();
 
     NodeBlock DecodeRange(u32 begin, u32 end);
+    void DecodeRangeInner(NodeBlock& bb, u32 begin, u32 end);
     void InsertControlFlow(NodeBlock& bb, const ShaderBlock& block);
 
     /**
@@ -320,6 +325,7 @@ private:
     const ProgramCode& program_code;
     const u32 main_offset;
     const std::size_t program_size;
+    bool disable_flow_stack{};
 
     u32 coverage_begin{};
     u32 coverage_end{};

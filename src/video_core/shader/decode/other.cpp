@@ -98,9 +98,10 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
         } else {
             const u32 target = pc + 1;
             const Node op_a = GetConstBuffer(instr.cbuf36.index, instr.cbuf36.GetOffset());
-            const Node convert = SignedOperation(OperationCode::IArithmeticShiftRight,
-                                               true, PRECISE, op_a, Immediate(3));
-            const Node operand = Operation(OperationCode::IAdd, PRECISE, convert, Immediate(target));
+            const Node convert = SignedOperation(OperationCode::IArithmeticShiftRight, true,
+                                                 PRECISE, op_a, Immediate(3));
+            const Node operand =
+                Operation(OperationCode::IAdd, PRECISE, convert, Immediate(target));
             branch = Operation(OperationCode::BranchIndirect, convert);
         }
 
@@ -119,14 +120,14 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
             const Node index = GetRegister(instr.gpr8);
             const Node op_a =
                 GetConstBufferIndirect(instr.cbuf36.index, instr.cbuf36.GetOffset() + 0, index);
-            const Node convert = SignedOperation(OperationCode::IArithmeticShiftRight,
-                                               true, PRECISE, op_a, Immediate(3));
+            const Node convert = SignedOperation(OperationCode::IArithmeticShiftRight, true,
+                                                 PRECISE, op_a, Immediate(3));
             operand = Operation(OperationCode::IAdd, PRECISE, convert, Immediate(target));
         } else {
             const s32 target = pc + instr.brx.GetBranchExtend();
             const Node op_a = GetRegister(instr.gpr8);
-            const Node convert = SignedOperation(OperationCode::IArithmeticShiftRight,
-                                               true, PRECISE, op_a, Immediate(3));
+            const Node convert = SignedOperation(OperationCode::IArithmeticShiftRight, true,
+                                                 PRECISE, op_a, Immediate(3));
             operand = Operation(OperationCode::IAdd, PRECISE, convert, Immediate(target));
         }
         const Node branch = Operation(OperationCode::BranchIndirect, operand);
@@ -143,6 +144,10 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
         UNIMPLEMENTED_IF_MSG(instr.bra.constant_buffer != 0,
                              "Constant buffer flow is not supported");
 
+        if (disable_flow_stack) {
+            break;
+        }
+
         // The SSY opcode tells the GPU where to re-converge divergent execution paths with SYNC.
         const u32 target = pc + instr.bra.GetBranchTarget();
         bb.push_back(
@@ -152,6 +157,10 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
     case OpCode::Id::PBK: {
         UNIMPLEMENTED_IF_MSG(instr.bra.constant_buffer != 0,
                              "Constant buffer PBK is not supported");
+
+        if (disable_flow_stack) {
+            break;
+        }
 
         // PBK pushes to a stack the address where BRK will jump to.
         const u32 target = pc + instr.bra.GetBranchTarget();
@@ -164,6 +173,10 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
         UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ConditionCode::T, "SYNC condition code used: {}",
                              static_cast<u32>(cc));
 
+        if (disable_flow_stack) {
+            break;
+        }
+
         // The SYNC opcode jumps to the address previously set by the SSY opcode
         bb.push_back(Operation(OperationCode::PopFlowStack, MetaStackClass::Ssy));
         break;
@@ -172,6 +185,9 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
         const Tegra::Shader::ConditionCode cc = instr.flow_condition_code;
         UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ConditionCode::T, "BRK condition code used: {}",
                              static_cast<u32>(cc));
+        if (disable_flow_stack) {
+            break;
+        }
 
         // The BRK opcode jumps to the address previously set by the PBK opcode
         bb.push_back(Operation(OperationCode::PopFlowStack, MetaStackClass::Pbk));

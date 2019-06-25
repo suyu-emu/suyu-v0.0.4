@@ -38,32 +38,47 @@ constexpr bool IsSchedInstruction(u32 offset, u32 main_offset) {
 void ShaderIR::Decode() {
     std::memcpy(&header, program_code.data(), sizeof(Tegra::Shader::Header));
 
+    disable_flow_stack = false;
     ShaderCharacteristics shader_info{};
     bool can_proceed = ScanFlow(program_code, program_code.size(), main_offset, shader_info);
     if (can_proceed) {
         coverage_begin = shader_info.start;
         coverage_end = shader_info.end;
         if (shader_info.decompilable) {
-            std::list<ShaderBlock>& blocks = shader_info.blocks;
-            for (auto& block : blocks) {
-                NodeBlock nodes;
-                if (!block.ignore_branch) {
-                    nodes = DecodeRange(block.start, block.end);
-                    InsertControlFlow(nodes, block);
-                } else {
-                    nodes = DecodeRange(block.start, block.end + 1);
+            disable_flow_stack = true;
+            auto insert_block = ([this](NodeBlock& nodes, u32 label) {
+                if (label == exit_branch) {
+                    return;
                 }
-                basic_blocks.insert({block.start, nodes});
+                basic_blocks.insert({label, nodes});
+            });
+            std::list<ShaderBlock>& blocks = shader_info.blocks;
+            NodeBlock current_block;
+            u32 current_label = exit_branch;
+            for (auto& block : blocks) {
+                if (shader_info.labels.count(block.start) != 0) {
+                    insert_block(current_block, current_label);
+                    current_block.clear();
+                    current_label = block.start;
+                }
+                if (!block.ignore_branch) {
+                    DecodeRangeInner(current_block, block.start, block.end);
+                    InsertControlFlow(current_block, block);
+                } else {
+                    DecodeRangeInner(current_block, block.start, block.end + 1);
+                }
             }
+            insert_block(current_block, current_label);
             return;
         }
+        LOG_WARNING(HW_GPU, "Flow Stack Removing Failed! Falling back to old method");
         // we can't decompile it, fallback to standard method
         for (const auto& block : shader_info.blocks) {
             basic_blocks.insert({block.start, DecodeRange(block.start, block.end + 1)});
         }
         return;
     }
-    LOG_WARNING(HW_GPU, "Flow Analysis failed, falling back to brute force compiling");
+    LOG_WARNING(HW_GPU, "Flow Analysis Failed! Falling back to brute force compiling");
 
     // Now we need to deal with an undecompilable shader. We need to brute force
     // a shader that captures every position.
@@ -78,10 +93,14 @@ void ShaderIR::Decode() {
 
 NodeBlock ShaderIR::DecodeRange(u32 begin, u32 end) {
     NodeBlock basic_block;
-    for (u32 pc = begin; pc < (begin > end ? MAX_PROGRAM_LENGTH : end);) {
-        pc = DecodeInstr(basic_block, pc);
-    }
+    DecodeRangeInner(basic_block, begin, end);
     return basic_block;
+}
+
+void ShaderIR::DecodeRangeInner(NodeBlock& bb, u32 begin, u32 end) {
+    for (u32 pc = begin; pc < (begin > end ? MAX_PROGRAM_LENGTH : end);) {
+        pc = DecodeInstr(bb, pc);
+    }
 }
 
 void ShaderIR::InsertControlFlow(NodeBlock& bb, const ShaderBlock& block) {

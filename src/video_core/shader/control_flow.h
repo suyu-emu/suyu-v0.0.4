@@ -3,7 +3,7 @@
 #include <cstring>
 #include <list>
 #include <optional>
-#include <vector>
+#include <unordered_set>
 
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/shader/shader_ir.h"
@@ -48,6 +48,7 @@ struct ShaderCharacteristics {
     bool decompilable{};
     u32 start;
     u32 end;
+    std::unordered_set<u32> labels{};
 };
 
 bool ScanFlow(const ProgramCode& program_code, u32 program_size, u32 start_address,

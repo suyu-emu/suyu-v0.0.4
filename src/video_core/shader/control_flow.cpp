@@ -1,5 +1,6 @@
 
 #include <list>
+#include <map>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -104,28 +105,6 @@ struct BlockInfo {
     }
 };
 
-struct Stamp {
-    Stamp() = default;
-    Stamp(u32 address, u32 target) : address{address}, target{target} {}
-    u32 address{};
-    u32 target{};
-    bool operator==(const Stamp& sb) const {
-        return std::tie(address, target) == std::tie(sb.address, sb.target);
-    }
-    bool operator<(const Stamp& sb) const {
-        return address < sb.address;
-    }
-    bool operator>(const Stamp& sb) const {
-        return address > sb.address;
-    }
-    bool operator<=(const Stamp& sb) const {
-        return address <= sb.address;
-    }
-    bool operator>=(const Stamp& sb) const {
-        return address >= sb.address;
-    }
-};
-
 struct CFGRebuildState {
     explicit CFGRebuildState(const ProgramCode& program_code, const std::size_t program_size)
         : program_code{program_code}, program_size{program_size} {
@@ -144,8 +123,8 @@ struct CFGRebuildState {
     std::list<Query> queries{};
     std::unordered_map<u32, u32> registered{};
     std::unordered_set<u32> labels{};
-    std::set<Stamp> ssy_labels;
-    std::set<Stamp> pbk_labels;
+    std::map<u32, u32> ssy_labels;
+    std::map<u32, u32> pbk_labels;
     std::unordered_map<u32, BlockStack> stacks{};
     const ProgramCode& program_code;
     const std::size_t program_size;
@@ -393,7 +372,7 @@ bool TryInspectAddress(CFGRebuildState& state) {
     }
     case BlockCollision::Inside: {
         // This case is the tricky one:
-        // We need to Split the block in 2 sepprate blocks
+        // We need to Split the block in 2 sepparate blocks
         auto it = search_result.second;
         block_info = CreateBlockInfo(state, address, it->end);
         it->end = address - 1;
@@ -428,13 +407,11 @@ bool TryInspectAddress(CFGRebuildState& state) {
 }
 
 bool TryQuery(CFGRebuildState& state) {
-    auto gather_labels = ([](ControlStack& cc, std::set<Stamp> labels, BlockInfo& block) {
-        Stamp start{block.start, 0};
-        Stamp end{block.end, 0};
-        auto gather_start = labels.lower_bound(start);
-        auto gather_end = labels.upper_bound(end);
+    auto gather_labels = ([](ControlStack& cc, std::map<u32, u32>& labels, BlockInfo& block) {
+        auto gather_start = labels.lower_bound(block.start);
+        auto gather_end = labels.upper_bound(block.end);
         while (gather_start != gather_end) {
-            cc.Push(gather_start->target);
+            cc.Push(gather_start->second);
             gather_start++;
         }
     });
@@ -444,9 +421,13 @@ bool TryQuery(CFGRebuildState& state) {
     Query& q = state.queries.front();
     u32 block_index = state.registered[q.address];
     BlockInfo& block = state.block_info[block_index];
+    // If the block is visted, check if the stacks match, else gather the ssy/pbk
+    // labels into the current stack and look if the branch at the end of the block
+    // consumes a label. Schedule new queries accordingly
     if (block.visited) {
         BlockStack& stack = state.stacks[q.address];
-        bool all_okay = q.ssy_stack.Compare(stack.ssy_stack) && q.pbk_stack.Compare(stack.pbk_stack);
+        bool all_okay = (stack.ssy_stack.Size() == 0 || q.ssy_stack.Compare(stack.ssy_stack)) &&
+                        (stack.pbk_stack.Size() == 0 || q.pbk_stack.Compare(stack.pbk_stack));
         state.queries.pop_front();
         return all_okay;
     }
@@ -523,8 +504,10 @@ bool ScanFlow(const ProgramCode& program_code, u32 program_size, u32 start_addre
         result_out.blocks.push_back(new_block);
     }
     if (result_out.decompilable) {
+        result_out.labels = std::move(state.labels);
         return true;
     }
+    // If it's not decompilable, merge the unlabelled blocks together
     auto back = result_out.blocks.begin();
     auto next = std::next(back);
     while (next != result_out.blocks.end()) {
