@@ -28,8 +28,6 @@ class RasterizerInterface {
 public:
     virtual ~RasterizerInterface() {}
 
-    virtual void InitMemoryMananger(Tegra::MemoryManager& memory_manager) = 0;
-
     /// Draw the current batch of vertex arrays
     virtual void DrawArrays() = 0;
 

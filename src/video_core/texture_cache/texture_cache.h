@@ -52,10 +52,6 @@ class TextureCache {
     using IntervalType = typename IntervalMap::interval_type;
 
 public:
-    void InitMemoryMananger(Tegra::MemoryManager& memory_manager) {
-        this->memory_manager = &memory_manager;
-    }
-
     void InvalidateRegion(CacheAddr addr, std::size_t size) {
         std::lock_guard lock{mutex};
 
@@ -278,15 +274,16 @@ protected:
 
     void Register(TSurface surface) {
         const GPUVAddr gpu_addr = surface->GetGpuAddr();
-        const CacheAddr cache_ptr = ToCacheAddr(memory_manager->GetPointer(gpu_addr));
+        const CacheAddr cache_ptr = ToCacheAddr(system.GPU().MemoryManager().GetPointer(gpu_addr));
         const std::size_t size = surface->GetSizeInBytes();
-        const std::optional<VAddr> cpu_addr = memory_manager->GpuToCpuAddress(gpu_addr);
+        const std::optional<VAddr> cpu_addr =
+            system.GPU().MemoryManager().GpuToCpuAddress(gpu_addr);
         if (!cache_ptr || !cpu_addr) {
             LOG_CRITICAL(HW_GPU, "Failed to register surface with unmapped gpu_address 0x{:016x}",
                          gpu_addr);
             return;
         }
-        bool continuouty = memory_manager->IsBlockContinuous(gpu_addr, size);
+        bool continuouty = system.GPU().MemoryManager().IsBlockContinuous(gpu_addr, size);
         surface->MarkAsContinuous(continuouty);
         surface->SetCacheAddr(cache_ptr);
         surface->SetCpuAddr(*cpu_addr);
@@ -552,7 +549,7 @@ private:
     std::pair<TSurface, TView> GetSurface(const GPUVAddr gpu_addr, const SurfaceParams& params,
                                           bool preserve_contents, bool is_render) {
 
-        const auto host_ptr{memory_manager->GetPointer(gpu_addr)};
+        const auto host_ptr{system.GPU().MemoryManager().GetPointer(gpu_addr)};
         const auto cache_addr{ToCacheAddr(host_ptr)};
 
         // Step 0: guarantee a valid surface
@@ -693,7 +690,7 @@ private:
 
     void LoadSurface(const TSurface& surface) {
         staging_cache.GetBuffer(0).resize(surface->GetHostSizeInBytes());
-        surface->LoadBuffer(*memory_manager, staging_cache);
+        surface->LoadBuffer(system.GPU().MemoryManager(), staging_cache);
         surface->UploadTexture(staging_cache.GetBuffer(0));
         surface->MarkAsModified(false, Tick());
     }
@@ -704,7 +701,7 @@ private:
         }
         staging_cache.GetBuffer(0).resize(surface->GetHostSizeInBytes());
         surface->DownloadTexture(staging_cache.GetBuffer(0));
-        surface->FlushBuffer(*memory_manager, staging_cache);
+        surface->FlushBuffer(system.GPU().MemoryManager(), staging_cache);
         surface->MarkAsModified(false, Tick());
     }
 
@@ -778,7 +775,6 @@ private:
     };
 
     VideoCore::RasterizerInterface& rasterizer;
-    Tegra::MemoryManager* memory_manager;
 
     u64 ticks{};
 

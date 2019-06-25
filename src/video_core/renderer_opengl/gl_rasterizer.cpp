@@ -97,10 +97,6 @@ RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWind
 
 RasterizerOpenGL::~RasterizerOpenGL() {}
 
-void RasterizerOpenGL::InitMemoryMananger(Tegra::MemoryManager& memory_manager) {
-    texture_cache.InitMemoryMananger(memory_manager);
-}
-
 void RasterizerOpenGL::CheckExtensions() {
     if (!GLAD_GL_ARB_texture_filter_anisotropic && !GLAD_GL_EXT_texture_filter_anisotropic) {
         LOG_WARNING(

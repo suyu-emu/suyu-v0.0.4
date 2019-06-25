@@ -57,8 +57,6 @@ public:
                               ScreenInfo& info);
     ~RasterizerOpenGL() override;
 
-    void InitMemoryMananger(Tegra::MemoryManager& memory_manager) override;
-
     void DrawArrays() override;
     void Clear() override;
     void FlushAll() override;
