@@ -149,8 +149,7 @@ void OGLBuffer::Release() {
 }
 
 void OGLBuffer::MakeStreamCopy(std::size_t buffer_size) {
-    if (handle == 0 || buffer_size == 0)
-        return;
+    ASSERT_OR_EXECUTE((handle == 0 || buffer_size == 0), { return; });
 
     glNamedBufferData(handle, buffer_size, nullptr, GL_STREAM_COPY);
 }
