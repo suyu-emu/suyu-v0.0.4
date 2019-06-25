@@ -198,8 +198,10 @@ private:
         NotificationTypes notification_type;
         INSERT_PADDING_WORDS(
             1); // TODO(ogniK): This doesn't seem to be used within any IPC returns as of now
-        Common::UUID user_uuid;
+        u64_le account_id;
     };
+    static_assert(sizeof(SizedNotificationInfo) == 0x10,
+                  "SizedNotificationInfo is an incorrect size");
 
     struct States {
         bool has_updated_friends;
