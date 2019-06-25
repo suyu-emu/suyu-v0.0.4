@@ -60,10 +60,10 @@ public:
         }
     }
 
-    /**
+    /***
      * `Guard` guarantees that rendertargets don't unregister themselves if the
      * collide. Protection is currently only done on 3D slices.
-     **/
+     ***/
     void GuardRenderTargets(bool new_guard) {
         guard_render_targets = new_guard;
     }
@@ -191,19 +191,21 @@ public:
     }
 
     void SetEmptyDepthBuffer() {
-        if (depth_buffer.target != nullptr) {
-            depth_buffer.target->MarkAsRenderTarget(false);
-            depth_buffer.target = nullptr;
-            depth_buffer.view = nullptr;
+        if (depth_buffer.target == nullptr) {
+            return;
         }
+        depth_buffer.target->MarkAsRenderTarget(false);
+        depth_buffer.target = nullptr;
+        depth_buffer.view = nullptr;
     }
 
     void SetEmptyColorBuffer(std::size_t index) {
-        if (render_targets[index].target != nullptr) {
-            render_targets[index].target->MarkAsRenderTarget(false);
-            render_targets[index].target = nullptr;
-            render_targets[index].view = nullptr;
+        if (render_targets[index].target == nullptr) {
+            return;
         }
+        render_targets[index].target->MarkAsRenderTarget(false);
+        render_targets[index].target = nullptr;
+        render_targets[index].view = nullptr;
     }
 
     void DoFermiCopy(const Tegra::Engines::Fermi2D::Regs::Surface& src_config,
@@ -283,8 +285,8 @@ protected:
                          gpu_addr);
             return;
         }
-        bool continuouty = system.GPU().MemoryManager().IsBlockContinuous(gpu_addr, size);
-        surface->MarkAsContinuous(continuouty);
+        const bool continuous = system.GPU().MemoryManager().IsBlockContinuous(gpu_addr, size);
+        surface->MarkAsContinuous(continuous);
         surface->SetCacheAddr(cache_ptr);
         surface->SetCpuAddr(*cpu_addr);
         RegisterInnerCache(surface);
@@ -381,8 +383,8 @@ private:
                                               const SurfaceParams& params, const GPUVAddr gpu_addr,
                                               const bool preserve_contents,
                                               const MatchTopologyResult untopological) {
-        const bool do_load = Settings::values.use_accurate_gpu_emulation && preserve_contents;
-        for (auto surface : overlaps) {
+        const bool do_load = preserve_contents && Settings::values.use_accurate_gpu_emulation;
+        for (auto& surface : overlaps) {
             Unregister(surface);
         }
         switch (PickStrategy(overlaps, params, gpu_addr, untopological)) {
@@ -394,7 +396,7 @@ private:
                       [](const TSurface& a, const TSurface& b) -> bool {
                           return a->GetModificationTick() < b->GetModificationTick();
                       });
-            for (auto surface : overlaps) {
+            for (auto& surface : overlaps) {
                 FlushSurface(surface);
             }
             return InitializeSurface(gpu_addr, params, preserve_contents);
@@ -460,19 +462,19 @@ private:
                                                      const SurfaceParams& params, bool is_render) {
         const bool is_mirage = !current_surface->MatchFormat(params.pixel_format);
         const bool matches_target = current_surface->MatchTarget(params.target);
-        auto match_check = ([&]() -> std::pair<TSurface, TView> {
+        const auto match_check = ([&]() -> std::pair<TSurface, TView> {
             if (matches_target) {
                 return {current_surface, current_surface->GetMainView()};
             }
             return {current_surface, current_surface->EmplaceOverview(params)};
         });
-        if (is_mirage) {
-            if (!is_render && siblings_table[current_surface->GetFormat()] == params.pixel_format) {
-                return match_check();
-            }
-            return RebuildSurface(current_surface, params, is_render);
+        if (!is_mirage) {
+            return match_check();
         }
-        return match_check();
+        if (!is_render && siblings_table[current_surface->GetFormat()] == params.pixel_format) {
+            return match_check();
+        }
+        return RebuildSurface(current_surface, params, is_render);
     }
 
     /**
@@ -493,7 +495,7 @@ private:
         bool modified = false;
         TSurface new_surface = GetUncachedSurface(gpu_addr, params);
         u32 passed_tests = 0;
-        for (auto surface : overlaps) {
+        for (auto& surface : overlaps) {
             const SurfaceParams& src_params = surface->GetSurfaceParams();
             if (src_params.is_layered || src_params.num_levels > 1) {
                 // We send this cases to recycle as they are more complex to handle
@@ -504,8 +506,7 @@ private:
             if (!mipmap_layer) {
                 continue;
             }
-            const u32 layer{mipmap_layer->first};
-            const u32 mipmap{mipmap_layer->second};
+            const auto [layer, mipmap] = *mipmap_layer;
             if (new_surface->GetMipmapSize(mipmap) != candidate_size) {
                 continue;
             }
@@ -519,7 +520,7 @@ private:
         }
         if (passed_tests == 0) {
             return {};
-            // In Accurate GPU all test should pass, else we recycle
+            // In Accurate GPU all tests should pass, else we recycle
         } else if (Settings::values.use_accurate_gpu_emulation && passed_tests != overlaps.size()) {
             return {};
         }
@@ -548,7 +549,6 @@ private:
      **/
     std::pair<TSurface, TView> GetSurface(const GPUVAddr gpu_addr, const SurfaceParams& params,
                                           bool preserve_contents, bool is_render) {
-
         const auto host_ptr{system.GPU().MemoryManager().GetPointer(gpu_addr)};
         const auto cache_addr{ToCacheAddr(host_ptr)};
 
@@ -570,17 +570,17 @@ private:
         auto iter = l1_cache.find(cache_addr);
         if (iter != l1_cache.end()) {
             TSurface& current_surface = iter->second;
-            auto topological_result = current_surface->MatchesTopology(params);
+            const auto topological_result = current_surface->MatchesTopology(params);
             if (topological_result != MatchTopologyResult::FullMatch) {
                 std::vector<TSurface> overlaps{current_surface};
                 return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
                                       topological_result);
             }
-            MatchStructureResult s_result = current_surface->MatchesStructure(params);
-            if (s_result != MatchStructureResult::None &&
+            const auto struct_result = current_surface->MatchesStructure(params);
+            if (struct_result != MatchStructureResult::None &&
                 (params.target != SurfaceTarget::Texture3D ||
                  current_surface->MatchTarget(params.target))) {
-                if (s_result == MatchStructureResult::FullMatch) {
+                if (struct_result == MatchStructureResult::FullMatch) {
                     return ManageStructuralMatch(current_surface, params, is_render);
                 } else {
                     return RebuildSurface(current_surface, params, is_render);
@@ -602,8 +602,8 @@ private:
         // Now we need to figure the relationship between the texture and its overlaps
         // we do a topological test to ensure we can find some relationship. If it fails
         // inmediatly recycle the texture
-        for (auto surface : overlaps) {
-            auto topological_result = surface->MatchesTopology(params);
+        for (const auto& surface : overlaps) {
+            const auto topological_result = surface->MatchesTopology(params);
             if (topological_result != MatchTopologyResult::FullMatch) {
                 return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
                                       topological_result);
@@ -620,7 +620,7 @@ private:
                 if (current_surface->GetGpuAddr() == gpu_addr) {
                     std::optional<std::pair<TSurface, TView>> view =
                         TryReconstructSurface(overlaps, params, gpu_addr);
-                    if (view.has_value()) {
+                    if (view) {
                         return *view;
                     }
                 }
@@ -630,7 +630,7 @@ private:
             // Now we check if the candidate is a mipmap/layer of the overlap
             std::optional<TView> view =
                 current_surface->EmplaceView(params, gpu_addr, candidate_size);
-            if (view.has_value()) {
+            if (view) {
                 const bool is_mirage = !current_surface->MatchFormat(params.pixel_format);
                 if (is_mirage) {
                     // On a mirage view, we need to recreate the surface under this new view
@@ -669,7 +669,7 @@ private:
             // using the overlaps. If a single overlap fails, this will fail.
             std::optional<std::pair<TSurface, TView>> view =
                 TryReconstructSurface(overlaps, params, gpu_addr);
-            if (view.has_value()) {
+            if (view) {
                 return *view;
             }
         }
@@ -738,16 +738,16 @@ private:
         std::vector<TSurface> surfaces;
         while (start <= end) {
             std::vector<TSurface>& list = registry[start];
-            for (auto& s : list) {
-                if (!s->IsPicked() && s->Overlaps(cache_addr, cache_addr_end)) {
-                    s->MarkAsPicked(true);
-                    surfaces.push_back(s);
+            for (auto& surface : list) {
+                if (!surface->IsPicked() && surface->Overlaps(cache_addr, cache_addr_end)) {
+                    surface->MarkAsPicked(true);
+                    surfaces.push_back(surface);
                 }
             }
             start++;
         }
-        for (auto& s : surfaces) {
-            s->MarkAsPicked(false);
+        for (auto& surface : surfaces) {
+            surface->MarkAsPicked(false);
         }
         return surfaces;
     }
