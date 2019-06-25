@@ -39,7 +39,7 @@ void ShaderIR::Decode() {
     std::memcpy(&header, program_code.data(), sizeof(Tegra::Shader::Header));
 
     ShaderCharacteristics shader_info{};
-    bool can_proceed = ScanFlow(program_code, MAX_PROGRAM_LENGTH, main_offset, shader_info);
+    bool can_proceed = ScanFlow(program_code, program_code.size(), main_offset, shader_info);
     if (can_proceed) {
         coverage_begin = shader_info.start;
         coverage_end = shader_info.end;
@@ -52,12 +52,12 @@ void ShaderIR::Decode() {
         }
         return;
     }
-    LOG_CRITICAL(HW_GPU, "Flow Analysis failed, falling back to brute force compiling");
+    LOG_WARNING(HW_GPU, "Flow Analysis failed, falling back to brute force compiling");
 
     // Now we need to deal with an undecompilable shader. We need to brute force
     // a shader that captures every position.
     coverage_begin = shader_info.start;
-    const u32 shader_end = static_cast<u32>(MAX_PROGRAM_LENGTH);
+    const u32 shader_end = static_cast<u32>(program_size / sizeof(u64));
     coverage_end = shader_end;
     for (u32 label = main_offset; label < shader_end; label++) {
         basic_blocks.insert({label, DecodeRange(label, label + 1)});

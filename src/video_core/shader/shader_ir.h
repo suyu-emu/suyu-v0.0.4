@@ -65,7 +65,7 @@ struct GlobalMemoryUsage {
 
 class ShaderIR final {
 public:
-    explicit ShaderIR(const ProgramCode& program_code, u32 main_offset);
+    explicit ShaderIR(const ProgramCode& program_code, u32 main_offset, std::size_t size);
     ~ShaderIR();
 
     const std::map<u32, NodeBlock>& GetBasicBlocks() const {
@@ -316,6 +316,7 @@ private:
 
     const ProgramCode& program_code;
     const u32 main_offset;
+    const std::size_t program_size;
 
     u32 coverage_begin{};
     u32 coverage_end{};
