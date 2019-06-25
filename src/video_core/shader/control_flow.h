@@ -29,6 +29,7 @@ struct ShaderBlock {
     ShaderBlock(const ShaderBlock& sb) = default;
     u32 start{};
     u32 end{};
+    bool ignore_branch{};
     struct Branch {
         Condition cond{};
         bool kills{};

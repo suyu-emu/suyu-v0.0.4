@@ -44,6 +44,17 @@ void ShaderIR::Decode() {
         coverage_begin = shader_info.start;
         coverage_end = shader_info.end;
         if (shader_info.decompilable) {
+            std::list<ShaderBlock>& blocks = shader_info.blocks;
+            for (auto& block : blocks) {
+                NodeBlock nodes;
+                if (!block.ignore_branch) {
+                    nodes = DecodeRange(block.start, block.end);
+                    InsertControlFlow(nodes, block);
+                } else {
+                    nodes = DecodeRange(block.start, block.end + 1);
+                }
+                basic_blocks.insert({block.start, nodes});
+            }
             return;
         }
         // we can't decompile it, fallback to standard method
@@ -71,6 +82,41 @@ NodeBlock ShaderIR::DecodeRange(u32 begin, u32 end) {
         pc = DecodeInstr(basic_block, pc);
     }
     return basic_block;
+}
+
+void ShaderIR::InsertControlFlow(NodeBlock& bb, const ShaderBlock& block) {
+    auto apply_conditions = ([&](const Condition& cond, Node n) -> Node {
+        Node result = n;
+        if (cond.cc != ConditionCode::T) {
+            result = Conditional(GetConditionCode(cond.cc), {result});
+        }
+        if (cond.predicate != Pred::UnusedIndex) {
+            u32 pred = static_cast<u32>(cond.predicate);
+            bool is_neg = pred > 7;
+            if (is_neg)
+                pred -= 8;
+            result = Conditional(GetPredicate(pred, is_neg), {result});
+        }
+        return result;
+    });
+    if (block.branch.address < 0) {
+        if (block.branch.kills) {
+            Node n = Operation(OperationCode::Discard);
+            n = apply_conditions(block.branch.cond, n);
+            bb.push_back(n);
+            global_code.push_back(n);
+            return;
+        }
+        Node n = Operation(OperationCode::Exit);
+        n = apply_conditions(block.branch.cond, n);
+        bb.push_back(n);
+        global_code.push_back(n);
+        return;
+    }
+    Node n = Operation(OperationCode::Branch, Immediate(block.branch.address));
+    n = apply_conditions(block.branch.cond, n);
+    bb.push_back(n);
+    global_code.push_back(n);
 }
 
 u32 ShaderIR::DecodeInstr(NodeBlock& bb, u32 pc) {

@@ -22,6 +22,8 @@
 
 namespace VideoCommon::Shader {
 
+struct ShaderBlock;
+
 using ProgramCode = std::vector<u64>;
 
 constexpr u32 MAX_PROGRAM_LENGTH = 0x1000;
@@ -125,6 +127,7 @@ private:
     void Decode();
 
     NodeBlock DecodeRange(u32 begin, u32 end);
+    void InsertControlFlow(NodeBlock& bb, const ShaderBlock& block);
 
     /**
      * Decodes a single instruction from Tegra to IR.

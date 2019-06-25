@@ -1,6 +1,6 @@
 
 #include <list>
-#include <map>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -16,12 +16,80 @@ using Tegra::Shader::OpCode;
 
 constexpr s32 unassigned_branch = -2;
 
+struct ControlStack {
+    std::array<u32, 20> stack;
+    u32 index{};
+
+    ControlStack() {}
+
+    ControlStack(const ControlStack& cp) {
+        index = cp.index;
+        std::memcpy(stack.data(), cp.stack.data(), index * sizeof(u32));
+    }
+
+    bool Compare(const ControlStack& cs) const {
+        if (index != cs.index) {
+            return false;
+        }
+        return std::memcmp(stack.data(), cs.stack.data(), index * sizeof(u32)) == 0;
+    }
+
+    bool SoftCompare(const ControlStack& cs) const {
+        if (index == 0 || cs.index == 0) {
+            return index == cs.index;
+        }
+        return Top() == cs.Top();
+    }
+
+    u32 Size() const {
+        return index;
+    }
+
+    u32 Top() const {
+        return stack[index - 1];
+    }
+
+    bool Push(u32 address) {
+        if (index >= 20) {
+            return false;
+        }
+        stack[index] = address;
+        index++;
+        return true;
+    }
+
+    bool Pop() {
+        if (index == 0) {
+            return false;
+        }
+        index--;
+        return true;
+    }
+};
+
+struct Query {
+    Query() {}
+    Query(const Query& q) : address{q.address}, ssy_stack{q.ssy_stack}, pbk_stack{q.pbk_stack} {}
+    u32 address;
+    ControlStack ssy_stack{};
+    ControlStack pbk_stack{};
+};
+
+struct BlockStack {
+    BlockStack() = default;
+    BlockStack(const BlockStack& b) : ssy_stack{b.ssy_stack}, pbk_stack{b.pbk_stack} {}
+    BlockStack(const Query& q) : ssy_stack{q.ssy_stack}, pbk_stack{q.pbk_stack} {}
+    ControlStack ssy_stack{};
+    ControlStack pbk_stack{};
+};
+
 struct BlockBranchInfo {
     Condition condition{};
     s32 address{exit_branch};
     bool kill{};
     bool is_sync{};
     bool is_brk{};
+    bool ignore{};
 };
 
 struct BlockInfo {
@@ -64,19 +132,21 @@ struct CFGRebuildState {
         // queries.clear();
         block_info.clear();
         labels.clear();
-        visited_address.clear();
+        registered.clear();
         ssy_labels.clear();
         pbk_labels.clear();
         inspect_queries.clear();
+        queries.clear();
     }
 
     std::vector<BlockInfo> block_info{};
     std::list<u32> inspect_queries{};
-    // std::list<Query> queries{};
-    std::unordered_set<u32> visited_address{};
+    std::list<Query> queries{};
+    std::unordered_map<u32, u32> registered{};
     std::unordered_set<u32> labels{};
     std::set<Stamp> ssy_labels;
     std::set<Stamp> pbk_labels;
+    std::unordered_map<u32, BlockStack> stacks{};
     const ProgramCode& program_code;
     const std::size_t program_size;
 };
@@ -107,7 +177,8 @@ BlockInfo* CreateBlockInfo(CFGRebuildState& state, u32 start, u32 end) {
     auto& it = state.block_info.emplace_back();
     it.start = start;
     it.end = end;
-    state.visited_address.insert(start);
+    u32 index = state.block_info.size() - 1;
+    state.registered.insert({start, index});
     return &it;
 }
 
@@ -136,10 +207,12 @@ ParseResult ParseCode(CFGRebuildState& state, u32 address, ParseInfo& parse_info
     while (true) {
         if (offset >= end_address) {
             parse_info.branch_info.address = exit_branch;
+            parse_info.branch_info.ignore = false;
             break;
         }
-        if (state.visited_address.count(offset) != 0) {
+        if (state.registered.count(offset) != 0) {
             parse_info.branch_info.address = offset;
+            parse_info.branch_info.ignore = true;
             break;
         }
         const Instruction instr = {state.program_code[offset]};
@@ -168,6 +241,7 @@ ParseResult ParseCode(CFGRebuildState& state, u32 address, ParseInfo& parse_info
             parse_info.branch_info.kill = false;
             parse_info.branch_info.is_sync = false;
             parse_info.branch_info.is_brk = false;
+            parse_info.branch_info.ignore = false;
             parse_info.end_address = offset;
 
             return ParseResult::ControlCaught;
@@ -199,6 +273,7 @@ ParseResult ParseCode(CFGRebuildState& state, u32 address, ParseInfo& parse_info
             parse_info.branch_info.kill = false;
             parse_info.branch_info.is_sync = false;
             parse_info.branch_info.is_brk = false;
+            parse_info.branch_info.ignore = false;
             parse_info.end_address = offset;
 
             return ParseResult::ControlCaught;
@@ -222,6 +297,7 @@ ParseResult ParseCode(CFGRebuildState& state, u32 address, ParseInfo& parse_info
             parse_info.branch_info.kill = false;
             parse_info.branch_info.is_sync = true;
             parse_info.branch_info.is_brk = false;
+            parse_info.branch_info.ignore = false;
             parse_info.end_address = offset;
 
             return ParseResult::ControlCaught;
@@ -245,6 +321,7 @@ ParseResult ParseCode(CFGRebuildState& state, u32 address, ParseInfo& parse_info
             parse_info.branch_info.kill = false;
             parse_info.branch_info.is_sync = false;
             parse_info.branch_info.is_brk = true;
+            parse_info.branch_info.ignore = false;
             parse_info.end_address = offset;
 
             return ParseResult::ControlCaught;
@@ -268,6 +345,7 @@ ParseResult ParseCode(CFGRebuildState& state, u32 address, ParseInfo& parse_info
             parse_info.branch_info.kill = true;
             parse_info.branch_info.is_sync = false;
             parse_info.branch_info.is_brk = false;
+            parse_info.branch_info.ignore = false;
             parse_info.end_address = offset;
 
             return ParseResult::ControlCaught;
@@ -322,6 +400,7 @@ bool TryInspectAddress(CFGRebuildState& state) {
         block_info->branch = it->branch;
         BlockBranchInfo forward_branch{};
         forward_branch.address = address;
+        forward_branch.ignore = true;
         it->branch = forward_branch;
         return true;
         break;
@@ -348,6 +427,58 @@ bool TryInspectAddress(CFGRebuildState& state) {
     return true;
 }
 
+bool TryQuery(CFGRebuildState& state) {
+    auto gather_labels = ([](ControlStack& cc, std::set<Stamp> labels, BlockInfo& block) {
+        Stamp start{block.start, 0};
+        Stamp end{block.end, 0};
+        auto gather_start = labels.lower_bound(start);
+        auto gather_end = labels.upper_bound(end);
+        while (gather_start != gather_end) {
+            cc.Push(gather_start->target);
+            gather_start++;
+        }
+    });
+    if (state.queries.empty()) {
+        return false;
+    }
+    Query& q = state.queries.front();
+    u32 block_index = state.registered[q.address];
+    BlockInfo& block = state.block_info[block_index];
+    if (block.visited) {
+        BlockStack& stack = state.stacks[q.address];
+        bool all_okay = q.ssy_stack.Compare(stack.ssy_stack) && q.pbk_stack.Compare(stack.pbk_stack);
+        state.queries.pop_front();
+        return all_okay;
+    }
+    block.visited = true;
+    BlockStack bs{q};
+    state.stacks[q.address] = bs;
+    Query q2(q);
+    state.queries.pop_front();
+    gather_labels(q2.ssy_stack, state.ssy_labels, block);
+    gather_labels(q2.pbk_stack, state.pbk_labels, block);
+    if (!block.branch.condition.IsUnconditional()) {
+        q2.address = block.end + 1;
+        state.queries.push_back(q2);
+    }
+    Query conditional_query{q2};
+    if (block.branch.is_sync) {
+        if (block.branch.address == unassigned_branch) {
+            block.branch.address = conditional_query.ssy_stack.Top();
+        }
+        conditional_query.ssy_stack.Pop();
+    }
+    if (block.branch.is_brk) {
+        if (block.branch.address == unassigned_branch) {
+            block.branch.address = conditional_query.pbk_stack.Top();
+        }
+        conditional_query.pbk_stack.Pop();
+    }
+    conditional_query.address = block.branch.address;
+    state.queries.push_back(conditional_query);
+    return true;
+}
+
 bool ScanFlow(const ProgramCode& program_code, u32 program_size, u32 start_address,
               ShaderCharacteristics& result_out) {
     CFGRebuildState state{program_code, program_size};
@@ -360,20 +491,34 @@ bool ScanFlow(const ProgramCode& program_code, u32 program_size, u32 start_addre
             return false;
         }
     }
+    // Decompile Stacks
+    Query start_query{};
+    start_query.address = start_address;
+    state.queries.push_back(start_query);
+    bool decompiled = true;
+    while (!state.queries.empty()) {
+        if (!TryQuery(state)) {
+            decompiled = false;
+            break;
+        }
+    }
+    // Sort and organize results
     std::sort(state.block_info.begin(), state.block_info.end(),
               [](const BlockInfo& a, const BlockInfo& b) -> bool { return a.start < b.start; });
-    // Remove unvisited blocks
     result_out.blocks.clear();
-    result_out.decompilable = false;
+    result_out.decompilable = decompiled;
     result_out.start = start_address;
     result_out.end = start_address;
     for (auto& block : state.block_info) {
         ShaderBlock new_block{};
         new_block.start = block.start;
         new_block.end = block.end;
-        new_block.branch.cond = block.branch.condition;
-        new_block.branch.kills = block.branch.kill;
-        new_block.branch.address = block.branch.address;
+        new_block.ignore_branch = block.branch.ignore;
+        if (!new_block.ignore_branch) {
+            new_block.branch.cond = block.branch.condition;
+            new_block.branch.kills = block.branch.kill;
+            new_block.branch.address = block.branch.address;
+        }
         result_out.end = std::max(result_out.end, block.end);
         result_out.blocks.push_back(new_block);
     }
