@@ -26,14 +26,6 @@ using ProgramCode = std::vector<u64>;
 
 constexpr u32 MAX_PROGRAM_LENGTH = 0x1000;
 
-/// Describes the behaviour of code path of a given entry point and a return point.
-enum class ExitMethod {
-    Undetermined, ///< Internal value. Only occur when analyzing JMP loop.
-    AlwaysReturn, ///< All code paths reach the return point.
-    Conditional,  ///< Code path reaches the return point or an END instruction conditionally.
-    AlwaysEnd,    ///< All code paths reach a END instruction.
-};
-
 class ConstBuffer {
 public:
     explicit ConstBuffer(u32 max_offset, bool is_indirect)
@@ -131,8 +123,6 @@ public:
 
 private:
     void Decode();
-
-    ExitMethod Scan(u32 begin, u32 end, std::set<u32>& labels);
 
     NodeBlock DecodeRange(u32 begin, u32 end);
 
@@ -329,7 +319,6 @@ private:
 
     u32 coverage_begin{};
     u32 coverage_end{};
-    std::map<std::pair<u32, u32>, ExitMethod> exit_method_map;
 
     std::map<u32, NodeBlock> basic_blocks;
     NodeBlock global_code;

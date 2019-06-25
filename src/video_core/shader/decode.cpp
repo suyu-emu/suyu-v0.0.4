@@ -22,20 +22,6 @@ using Tegra::Shader::OpCode;
 
 namespace {
 
-/// Merges exit method of two parallel branches.
-constexpr ExitMethod ParallelExit(ExitMethod a, ExitMethod b) {
-    if (a == ExitMethod::Undetermined) {
-        return b;
-    }
-    if (b == ExitMethod::Undetermined) {
-        return a;
-    }
-    if (a == b) {
-        return a;
-    }
-    return ExitMethod::Conditional;
-}
-
 /**
  * Returns whether the instruction at the specified offset is a 'sched' instruction.
  * Sched instructions always appear before a sequence of 3 instructions.
@@ -77,58 +63,6 @@ void ShaderIR::Decode() {
         basic_blocks.insert({label, DecodeRange(label, label + 1)});
     }
     return;
-}
-
-ExitMethod ShaderIR::Scan(u32 begin, u32 end, std::set<u32>& labels) {
-    const auto [iter, inserted] =
-        exit_method_map.emplace(std::make_pair(begin, end), ExitMethod::Undetermined);
-    ExitMethod& exit_method = iter->second;
-    if (!inserted)
-        return exit_method;
-
-    for (u32 offset = begin; offset != end && offset != MAX_PROGRAM_LENGTH; ++offset) {
-        coverage_begin = std::min(coverage_begin, offset);
-        coverage_end = std::max(coverage_end, offset + 1);
-
-        const Instruction instr = {program_code[offset]};
-        const auto opcode = OpCode::Decode(instr);
-        if (!opcode)
-            continue;
-        switch (opcode->get().GetId()) {
-        case OpCode::Id::EXIT: {
-            // The EXIT instruction can be predicated, which means that the shader can conditionally
-            // end on this instruction. We have to consider the case where the condition is not met
-            // and check the exit method of that other basic block.
-            using Tegra::Shader::Pred;
-            if (instr.pred.pred_index == static_cast<u64>(Pred::UnusedIndex)) {
-                return exit_method = ExitMethod::AlwaysEnd;
-            } else {
-                const ExitMethod not_met = Scan(offset + 1, end, labels);
-                return exit_method = ParallelExit(ExitMethod::AlwaysEnd, not_met);
-            }
-        }
-        case OpCode::Id::BRA: {
-            const u32 target = offset + instr.bra.GetBranchTarget();
-            labels.insert(target);
-            const ExitMethod no_jmp = Scan(offset + 1, end, labels);
-            const ExitMethod jmp = Scan(target, end, labels);
-            return exit_method = ParallelExit(no_jmp, jmp);
-        }
-        case OpCode::Id::SSY:
-        case OpCode::Id::PBK: {
-            // The SSY and PBK use a similar encoding as the BRA instruction.
-            UNIMPLEMENTED_IF_MSG(instr.bra.constant_buffer != 0,
-                                 "Constant buffer branching is not supported");
-            const u32 target = offset + instr.bra.GetBranchTarget();
-            labels.insert(target);
-            // Continue scanning for an exit method.
-            break;
-        }
-        default:
-            break;
-        }
-    }
-    return exit_method = ExitMethod::AlwaysReturn;
 }
 
 NodeBlock ShaderIR::DecodeRange(u32 begin, u32 end) {
