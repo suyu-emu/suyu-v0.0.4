@@ -590,7 +590,7 @@ void TextureCacheOpenGL::BufferCopy(Surface& src_surface, Surface& dst_surface) 
 }
 
 GLuint TextureCacheOpenGL::FetchPBO(std::size_t buffer_size) {
-    ASSERT_OR_EXECUTE(buffer_size <= 0, { return 0; });
+    ASSERT_OR_EXECUTE(buffer_size > 0, { return 0; });
     const u32 l2 = Common::Log2Ceil64(static_cast<u64>(buffer_size));
     OGLBuffer& cp = copy_pbo_cache[l2];
     if (cp.handle == 0) {
