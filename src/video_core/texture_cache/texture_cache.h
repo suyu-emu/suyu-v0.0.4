@@ -225,9 +225,9 @@ public:
         }
         const CacheAddr page = cache_addr >> registry_page_bits;
         std::vector<TSurface>& list = registry[page];
-        for (auto& s : list) {
-            if (s->GetCacheAddr() == cache_addr) {
-                return s;
+        for (auto& surface : list) {
+            if (surface->GetCacheAddr() == cache_addr) {
+                return surface;
             }
         }
         return nullptr;
