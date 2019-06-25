@@ -151,7 +151,7 @@ private:
         while (!notifications.empty()) {
             notifications.pop();
         }
-        states.has_recieved_friend_request = false;
+        states.has_received_friend_request = false;
         states.has_updated_friends = false;
 
         IPC::ResponseBuilder rb{ctx, 2};
@@ -160,13 +160,14 @@ private:
 
     void Pop(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_ACC, "called");
-        IPC::ResponseBuilder rb{ctx, 2};
 
         if (notifications.empty()) {
             LOG_ERROR(Service_ACC, "No notifications in queue!");
+            IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERR_NO_NOTIFICATIONS);
             return;
         }
+        IPC::ResponseBuilder rb{ctx, 6};
 
         auto notification = notifications.front();
         notifications.pop();
@@ -175,8 +176,8 @@ private:
         case NotificationTypes::HasUpdatedFriendsList:
             states.has_updated_friends = false;
             break;
-        case NotificationTypes::HasRecievedFriendRequest:
-            states.has_recieved_friend_request = false;
+        case NotificationTypes::HasReceivedFriendRequest:
+            states.has_received_friend_request = false;
             break;
         default:
             // HOS seems not have an error case for an unknown notification
@@ -185,11 +186,12 @@ private:
             break;
         }
         rb.Push(RESULT_SUCCESS);
+        rb.PushRaw<SizedNotificationInfo>(notification);
     }
 
     enum class NotificationTypes : u32_le {
         HasUpdatedFriendsList = 0x65,
-        HasRecievedFriendRequest = 0x1
+        HasReceivedFriendRequest = 0x1
     };
 
     struct SizedNotificationInfo {
@@ -201,7 +203,7 @@ private:
 
     struct States {
         bool has_updated_friends;
-        bool has_recieved_friend_request;
+        bool has_received_friend_request;
     };
 
     Common::UUID uuid{};
