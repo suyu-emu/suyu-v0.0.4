@@ -244,7 +244,6 @@ CachedSurface::~CachedSurface() {
 void CachedSurface::DownloadTexture(std::vector<u8>& staging_buffer) {
     MICROPROFILE_SCOPE(OpenGL_Texture_Download);
 
-    // TODO(Rodrigo): Optimize alignment
     SCOPE_EXIT({ glPixelStorei(GL_PACK_ROW_LENGTH, 0); });
 
     for (u32 level = 0; level < params.emulated_levels; ++level) {
@@ -272,7 +271,6 @@ void CachedSurface::UploadTexture(std::vector<u8>& staging_buffer) {
 }
 
 void CachedSurface::UploadTextureMipmap(u32 level, std::vector<u8>& staging_buffer) {
-    // TODO(Rodrigo): Optimize alignment
     glPixelStorei(GL_UNPACK_ALIGNMENT, std::min(8U, params.GetRowAlignment(level)));
     glPixelStorei(GL_UNPACK_ROW_LENGTH, static_cast<GLint>(params.GetMipWidth(level)));
 
@@ -421,10 +419,10 @@ void CachedSurfaceView::ApplySwizzle(SwizzleSource x_source, SwizzleSource y_sou
 
 OGLTextureView CachedSurfaceView::CreateTextureView() const {
     const auto& owner_params = surface.GetSurfaceParams();
-    OGLTextureView tv;
-    tv.Create();
+    OGLTextureView texture_view;
+    texture_view.Create();
 
-    const GLuint handle{tv.handle};
+    const GLuint handle{texture_view.handle};
     const FormatTuple& tuple{
         GetFormatTuple(owner_params.pixel_format, owner_params.component_type)};
 
@@ -433,7 +431,7 @@ OGLTextureView CachedSurfaceView::CreateTextureView() const {
 
     ApplyTextureDefaults(owner_params, handle);
 
-    return tv;
+    return texture_view;
 }
 
 TextureCacheOpenGL::TextureCacheOpenGL(Core::System& system,
@@ -529,6 +527,7 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
 void TextureCacheOpenGL::BufferCopy(Surface& src_surface, Surface& dst_surface) {
     const auto& src_params = src_surface->GetSurfaceParams();
     const auto& dst_params = dst_surface->GetSurfaceParams();
+    UNIMPLEMENTED_IF(src_params.num_levels > 1 || dst_params.num_levels > 1);
 
     const auto source_format = GetFormatTuple(src_params.pixel_format, src_params.component_type);
     const auto dest_format = GetFormatTuple(dst_params.pixel_format, dst_params.component_type);
@@ -591,10 +590,7 @@ void TextureCacheOpenGL::BufferCopy(Surface& src_surface, Surface& dst_surface) 
 }
 
 GLuint TextureCacheOpenGL::FetchPBO(std::size_t buffer_size) {
-    if (buffer_size < 0) {
-        UNREACHABLE();
-        return 0;
-    }
+    ASSERT_OR_EXECUTE(buffer_size <= 0, { return 0; });
     const u32 l2 = Common::Log2Ceil64(static_cast<u64>(buffer_size));
     OGLBuffer& cp = copy_pbo_cache[l2];
     if (cp.handle == 0) {
