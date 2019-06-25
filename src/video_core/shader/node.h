@@ -149,6 +149,7 @@ enum class OperationCode {
     ImageStore, /// (MetaImage, float[N] coords) -> void
 
     Branch,        /// (uint branch_target) -> void
+    BranchIndirect,/// (uint branch_target) -> void
     PushFlowStack, /// (uint branch_target) -> void
     PopFlowStack,  /// () -> void
     Exit,          /// () -> void

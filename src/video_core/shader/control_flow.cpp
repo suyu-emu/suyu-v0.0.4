@@ -284,6 +284,9 @@ ParseResult ParseCode(CFGRebuildState& state, u32 address, ParseInfo& parse_info
             state.pbk_labels.emplace(offset, target);
             break;
         }
+        case OpCode::Id::BRX: {
+            return ParseResult::AbnormalFlow;
+        }
         default:
             break;
         }
