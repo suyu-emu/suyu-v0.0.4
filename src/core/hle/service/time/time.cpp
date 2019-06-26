@@ -418,7 +418,8 @@ void InstallInterfaces(Core::System& system) {
 
     std::make_shared<Time>(time, shared_mem, "time:a")->InstallAsService(system.ServiceManager());
     std::make_shared<Time>(time, shared_mem, "time:s")->InstallAsService(system.ServiceManager());
-    std::make_shared<Time>(time, shared_mem, "time:u")->InstallAsService(system.ServiceManager());
+    std::make_shared<Time>(std::move(time), shared_mem, "time:u")
+        ->InstallAsService(system.ServiceManager());
 }
 
 } // namespace Service::Time

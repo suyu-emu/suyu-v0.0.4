@@ -9,6 +9,7 @@
 #include "core/hle/service/service.h"
 
 namespace Service::Time {
+
 class SharedMemory;
 
 struct LocationName {
