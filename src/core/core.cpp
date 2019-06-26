@@ -25,6 +25,7 @@
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/glue/manager.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/loader/loader.h"
@@ -33,11 +34,36 @@
 #include "core/settings.h"
 #include "core/telemetry_session.h"
 #include "file_sys/cheat_engine.h"
+#include "file_sys/patch_manager.h"
 #include "video_core/debug_utils/debug_utils.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 
 namespace Core {
+
+namespace {
+
+FileSys::StorageId GetStorageIdForFrontendSlot(
+    std::optional<FileSys::ContentProviderUnionSlot> slot) {
+    if (!slot.has_value()) {
+        return FileSys::StorageId::None;
+    }
+
+    switch (*slot) {
+    case FileSys::ContentProviderUnionSlot::UserNAND:
+        return FileSys::StorageId::NandUser;
+    case FileSys::ContentProviderUnionSlot::SysNAND:
+        return FileSys::StorageId::NandSystem;
+    case FileSys::ContentProviderUnionSlot::SDMC:
+        return FileSys::StorageId::SdCard;
+    case FileSys::ContentProviderUnionSlot::FrontendManual:
+        return FileSys::StorageId::Host;
+    default:
+        return FileSys::StorageId::None;
+    }
+}
+
+} // Anonymous namespace
 
 /*static*/ System System::s_instance;
 
@@ -110,6 +136,9 @@ struct System::Impl {
         /// Create default implementations of applets if one is not provided.
         applet_manager.SetDefaultAppletsIfMissing();
 
+        /// Reset all glue registrations
+        arp_manager.ResetAll();
+
         telemetry_session = std::make_unique<Core::TelemetrySession>();
         service_manager = std::make_shared<Service::SM::ServiceManager>();
 
@@ -161,6 +190,7 @@ struct System::Impl {
             return static_cast<ResultStatus>(static_cast<u32>(ResultStatus::ErrorLoader) +
                                              static_cast<u32>(load_result));
         }
+        AddGlueRegistrationForProcess(*app_loader, *main_process);
         kernel.MakeCurrentProcess(main_process.get());
 
         // Main process has been loaded and been made current.
@@ -219,6 +249,31 @@ struct System::Impl {
         return app_loader->ReadTitle(out);
     }
 
+    void AddGlueRegistrationForProcess(Loader::AppLoader& loader, Kernel::Process& process) {
+        std::vector<u8> nacp_data;
+        FileSys::NACP nacp;
+        if (loader.ReadControlData(nacp) == Loader::ResultStatus::Success) {
+            nacp_data = nacp.GetRawBytes();
+        } else {
+            nacp_data.resize(sizeof(FileSys::RawNACP));
+        }
+
+        Service::Glue::ApplicationLaunchProperty launch{};
+        launch.title_id = process.GetTitleID();
+
+        FileSys::PatchManager pm{launch.title_id};
+        launch.version = pm.GetGameVersion().value_or(0);
+
+        // TODO(DarkLordZach): When FSController/Game Card Support is added, if
+        // current_process_game_card use correct StorageId
+        launch.base_game_storage_id = GetStorageIdForFrontendSlot(content_provider->GetSlotForEntry(
+            launch.title_id, FileSys::ContentRecordType::Program));
+        launch.update_storage_id = GetStorageIdForFrontendSlot(content_provider->GetSlotForEntry(
+            FileSys::GetUpdateTitleID(launch.title_id), FileSys::ContentRecordType::Program));
+
+        arp_manager.Register(launch.title_id, launch, std::move(nacp_data));
+    }
+
     void SetStatus(ResultStatus new_status, const char* details = nullptr) {
         status = new_status;
         if (details) {
@@ -248,6 +303,9 @@ struct System::Impl {
 
     /// Frontend applets
     Service::AM::Applets::AppletManager applet_manager;
+
+    /// Glue services
+    Service::Glue::ARPManager arp_manager;
 
     /// Service manager
     std::shared_ptr<Service::SM::ServiceManager> service_manager;
@@ -498,6 +556,14 @@ void System::ClearContentProvider(FileSys::ContentProviderUnionSlot slot) {
 
 const Reporter& System::GetReporter() const {
     return impl->reporter;
+}
+
+Service::Glue::ARPManager& System::GetARPManager() {
+    return impl->arp_manager;
+}
+
+const Service::Glue::ARPManager& System::GetARPManager() const {
+    return impl->arp_manager;
 }
 
 System::ResultStatus System::Init(Frontend::EmuWindow& emu_window) {
