@@ -39,7 +39,7 @@ void ShaderIR::Decode() {
     std::memcpy(&header, program_code.data(), sizeof(Tegra::Shader::Header));
 
     disable_flow_stack = false;
-    const auto info = ScanFlow(program_code, program_size, main_offset);
+    const auto info = ScanFlow(program_code, MAX_PROGRAM_LENGTH * sizeof(u64), main_offset);
     if (info) {
         const auto& shader_info = *info;
         coverage_begin = shader_info.start;

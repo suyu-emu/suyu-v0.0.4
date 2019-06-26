@@ -20,10 +20,10 @@ using Tegra::Shader::OpCode;
 
 constexpr s32 unassigned_branch = -2;
 
-/***
+/**
  * 'ControlStack' represents a static stack of control jumps such as SSY and PBK
  * stacks in Maxwell.
- ***/
+ **/
 struct ControlStack {
     static constexpr std::size_t stack_fixed_size = 20;
     std::array<u32, stack_fixed_size> stack{};
@@ -105,9 +105,11 @@ struct BlockInfo {
 };
 
 struct CFGRebuildState {
-    explicit CFGRebuildState(const ProgramCode& program_code, const std::size_t program_size)
-        : program_code{program_code}, program_size{program_size} {}
+    explicit CFGRebuildState(const ProgramCode& program_code, const std::size_t program_size,
+                             const u32 start)
+        : program_code{program_code}, program_size{program_size}, start{start} {}
 
+    u32 start{};
     std::vector<BlockInfo> block_info{};
     std::list<u32> inspect_queries{};
     std::list<Query> queries{};
@@ -120,7 +122,7 @@ struct CFGRebuildState {
     const std::size_t program_size;
 };
 
-enum class BlockCollision : u32 { None = 0, Found = 1, Inside = 2 };
+enum class BlockCollision : u32 { None, Found, Inside };
 
 std::pair<BlockCollision, std::vector<BlockInfo>::iterator> TryGetBlock(CFGRebuildState& state,
                                                                         u32 address) {
@@ -155,15 +157,26 @@ Pred GetPredicate(u32 index, bool negated) {
     return static_cast<Pred>(index + (negated ? 8 : 0));
 }
 
+/**
+ * Returns whether the instruction at the specified offset is a 'sched' instruction.
+ * Sched instructions always appear before a sequence of 3 instructions.
+ */
+constexpr bool IsSchedInstruction(u32 offset, u32 main_offset) {
+    constexpr u32 SchedPeriod = 4;
+    u32 absolute_offset = offset - main_offset;
+
+    return (absolute_offset % SchedPeriod) == 0;
+}
+
 enum class ParseResult : u32 {
-    ControlCaught = 0,
-    BlockEnd = 1,
-    AbnormalFlow = 2,
+    ControlCaught,
+    BlockEnd,
+    AbnormalFlow,
 };
 
 ParseResult ParseCode(CFGRebuildState& state, u32 address, ParseInfo& parse_info) {
     u32 offset = static_cast<u32>(address);
-    const u32 end_address = static_cast<u32>(state.program_size / 8U);
+    const u32 end_address = static_cast<u32>(state.program_size / sizeof(Instruction));
 
     const auto insert_label = ([](CFGRebuildState& state, u32 address) {
         auto pair = state.labels.emplace(address);
@@ -182,6 +195,10 @@ ParseResult ParseCode(CFGRebuildState& state, u32 address, ParseInfo& parse_info
             parse_info.branch_info.address = offset;
             parse_info.branch_info.ignore = true;
             break;
+        }
+        if (IsSchedInstruction(offset, state.start)) {
+            offset++;
+            continue;
         }
         const Instruction instr = {state.program_code[offset]};
         const auto opcode = OpCode::Decode(instr);
@@ -447,11 +464,11 @@ bool TryQuery(CFGRebuildState& state) {
 
 std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u32 program_size,
                                               u32 start_address) {
-    CFGRebuildState state{program_code, program_size};
+    CFGRebuildState state{program_code, program_size, start_address};
     // Inspect Code and generate blocks
     state.labels.clear();
     state.labels.emplace(start_address);
-    state.inspect_queries.push_back(start_address);
+    state.inspect_queries.push_back(state.start);
     while (!state.inspect_queries.empty()) {
         if (!TryInspectAddress(state)) {
             return {};
@@ -459,7 +476,7 @@ std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u
     }
     // Decompile Stacks
     Query start_query{};
-    start_query.address = start_address;
+    start_query.address = state.start;
     state.queries.push_back(start_query);
     bool decompiled = true;
     while (!state.queries.empty()) {
