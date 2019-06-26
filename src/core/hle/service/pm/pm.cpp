@@ -3,6 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/process.h"
 #include "core/hle/service/pm/pm.h"
 #include "core/hle/service/service.h"
 
@@ -61,12 +63,13 @@ private:
 
 class DebugMonitor final : public ServiceFramework<DebugMonitor> {
 public:
-    explicit DebugMonitor() : ServiceFramework{"pm:dmnt"} {
+    explicit DebugMonitor(const Kernel::KernelCore& kernel)
+        : ServiceFramework{"pm:dmnt"}, kernel(kernel) {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetDebugProcesses"},
             {1, nullptr, "StartDebugProcess"},
-            {2, nullptr, "GetTitlePid"},
+            {2, &DebugMonitor::GetTitlePid, "GetTitlePid"},
             {3, nullptr, "EnableDebugForTitleId"},
             {4, nullptr, "GetApplicationPid"},
             {5, nullptr, "EnableDebugForApplication"},
@@ -76,6 +79,31 @@ public:
 
         RegisterHandlers(functions);
     }
+
+private:
+    void GetTitlePid(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto title_id = rp.PopRaw<u64>();
+
+        LOG_DEBUG(Service_PM, "called, title_id={:016X}", title_id);
+
+        const auto process =
+            SearchProcessList(kernel.GetProcessList(), [title_id](const auto& process) {
+                return process->GetTitleID() == title_id;
+            });
+
+        if (!process.has_value()) {
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_PROCESS_NOT_FOUND);
+            return;
+        }
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push((*process)->GetProcessID());
+    }
+
+    const Kernel::KernelCore& kernel;
 };
 
 class Info final : public ServiceFramework<Info> {
@@ -134,11 +162,12 @@ public:
     }
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<BootMode>()->InstallAsService(sm);
-    std::make_shared<DebugMonitor>()->InstallAsService(sm);
-    std::make_shared<Info>()->InstallAsService(sm);
-    std::make_shared<Shell>()->InstallAsService(sm);
+void InstallInterfaces(Core::System& system) {
+    std::make_shared<BootMode>()->InstallAsService(system.ServiceManager());
+    std::make_shared<DebugMonitor>(system.Kernel())->InstallAsService(system.ServiceManager());
+    std::make_shared<Info>(system.Kernel().GetProcessList())
+        ->InstallAsService(system.ServiceManager());
+    std::make_shared<Shell>(system.Kernel())->InstallAsService(system.ServiceManager());
 }
 
 } // namespace Service::PM
