@@ -163,7 +163,7 @@ enum class ParseResult : u32 {
 
 ParseResult ParseCode(CFGRebuildState& state, u32 address, ParseInfo& parse_info) {
     u32 offset = static_cast<u32>(address);
-    const u32 end_address = static_cast<u32>(state.program_size - 10U) * 8U;
+    const u32 end_address = static_cast<u32>(state.program_size / 8U);
 
     const auto insert_label = ([](CFGRebuildState& state, u32 address) {
         auto pair = state.labels.emplace(address);
