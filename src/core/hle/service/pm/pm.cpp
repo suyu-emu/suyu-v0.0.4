@@ -8,6 +8,26 @@
 
 namespace Service::PM {
 
+namespace {
+
+constexpr ResultCode ERROR_PROCESS_NOT_FOUND{ErrorModule::PM, 1};
+
+constexpr u64 NO_PROCESS_FOUND_PID{0};
+
+std::optional<Kernel::SharedPtr<Kernel::Process>> SearchProcessList(
+    const std::vector<Kernel::SharedPtr<Kernel::Process>>& process_list,
+    std::function<bool(const Kernel::SharedPtr<Kernel::Process>&)> predicate) {
+    const auto iter = std::find_if(process_list.begin(), process_list.end(), predicate);
+
+    if (iter == process_list.end()) {
+        return std::nullopt;
+    }
+
+    return *iter;
+}
+
+} // Anonymous namespace
+
 class BootMode final : public ServiceFramework<BootMode> {
 public:
     explicit BootMode() : ServiceFramework{"pm:bm"} {
@@ -60,12 +80,37 @@ public:
 
 class Info final : public ServiceFramework<Info> {
 public:
-    explicit Info() : ServiceFramework{"pm:info"} {
+    explicit Info(const std::vector<Kernel::SharedPtr<Kernel::Process>>& process_list)
+        : ServiceFramework{"pm:info"}, process_list(process_list) {
         static const FunctionInfo functions[] = {
-            {0, nullptr, "GetTitleId"},
+            {0, &Info::GetTitleId, "GetTitleId"},
         };
         RegisterHandlers(functions);
     }
+
+private:
+    void GetTitleId(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto process_id = rp.PopRaw<u64>();
+
+        LOG_DEBUG(Service_PM, "called, process_id={:016X}", process_id);
+
+        const auto process = SearchProcessList(process_list, [process_id](const auto& process) {
+            return process->GetProcessID() == process_id;
+        });
+
+        if (!process.has_value()) {
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_PROCESS_NOT_FOUND);
+            return;
+        }
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push((*process)->GetTitleID());
+    }
+
+    const std::vector<Kernel::SharedPtr<Kernel::Process>>& process_list;
 };
 
 class Shell final : public ServiceFramework<Shell> {
