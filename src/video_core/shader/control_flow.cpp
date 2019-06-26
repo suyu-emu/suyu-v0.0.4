@@ -139,6 +139,8 @@ std::pair<ParseResult, ParseInfo> ParseCode(CFGRebuildState& state, u32 address)
 
     while (true) {
         if (offset >= end_address) {
+            // ASSERT_OR_EXECUTE can't be used, as it ignores the break
+            ASSERT_MSG(false, "Shader passed the current limit!");
             parse_info.branch_info.address = exit_branch;
             parse_info.branch_info.ignore = false;
             break;
