@@ -32,8 +32,6 @@ struct Condition {
 };
 
 struct ShaderBlock {
-    ShaderBlock() = default;
-    ShaderBlock(const ShaderBlock& sb) = default;
     u32 start{};
     u32 end{};
     bool ignore_branch{};
@@ -44,7 +42,7 @@ struct ShaderBlock {
         bool operator==(const Branch& b) const {
             return std::tie(cond, kills, address) == std::tie(b.cond, b.kills, b.address);
         }
-    } branch;
+    } branch{};
     bool operator==(const ShaderBlock& sb) const {
         return std::tie(start, end, ignore_branch, branch) ==
                std::tie(sb.start, sb.end, sb.ignore_branch, sb.branch);
@@ -52,14 +50,14 @@ struct ShaderBlock {
 };
 
 struct ShaderCharacteristics {
-    std::list<ShaderBlock> blocks;
+    std::list<ShaderBlock> blocks{};
     bool decompilable{};
-    u32 start;
-    u32 end;
+    u32 start{};
+    u32 end{};
     std::unordered_set<u32> labels{};
 };
 
-bool ScanFlow(const ProgramCode& program_code, u32 program_size, u32 start_address,
-              ShaderCharacteristics& result_out);
+std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u32 program_size,
+                                              u32 start_address);
 
 } // namespace VideoCommon::Shader

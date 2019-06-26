@@ -29,10 +29,6 @@ struct ControlStack {
     std::array<u32, stack_fixed_size> stack{};
     u32 index{};
 
-    ControlStack() {}
-
-    ControlStack(const ControlStack& cp) = default;
-
     bool Compare(const ControlStack& cs) const {
         if (index != cs.index) {
             return false;
@@ -75,8 +71,6 @@ struct ControlStack {
 };
 
 struct Query {
-    Query() {}
-    Query(const Query& q) = default;
     u32 address{};
     ControlStack ssy_stack{};
     ControlStack pbk_stack{};
@@ -91,8 +85,6 @@ struct BlockStack {
 };
 
 struct BlockBranchInfo {
-    BlockBranchInfo() = default;
-    BlockBranchInfo(const BlockBranchInfo& b) = default;
     Condition condition{};
     s32 address{exit_branch};
     bool kill{};
@@ -102,7 +94,6 @@ struct BlockBranchInfo {
 };
 
 struct BlockInfo {
-    BlockInfo() = default;
     u32 start{};
     u32 end{};
     bool visited{};
@@ -454,8 +445,8 @@ bool TryQuery(CFGRebuildState& state) {
     return true;
 }
 
-bool ScanFlow(const ProgramCode& program_code, u32 program_size, u32 start_address,
-              ShaderCharacteristics& result_out) {
+std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u32 program_size,
+                                              u32 start_address) {
     CFGRebuildState state{program_code, program_size};
     // Inspect Code and generate blocks
     state.labels.clear();
@@ -463,7 +454,7 @@ bool ScanFlow(const ProgramCode& program_code, u32 program_size, u32 start_addre
     state.inspect_queries.push_back(start_address);
     while (!state.inspect_queries.empty()) {
         if (!TryInspectAddress(state)) {
-            return false;
+            return {};
         }
     }
     // Decompile Stacks
@@ -480,7 +471,7 @@ bool ScanFlow(const ProgramCode& program_code, u32 program_size, u32 start_addre
     // Sort and organize results
     std::sort(state.block_info.begin(), state.block_info.end(),
               [](const BlockInfo& a, const BlockInfo& b) -> bool { return a.start < b.start; });
-    result_out.blocks.clear();
+    ShaderCharacteristics result_out{};
     result_out.decompilable = decompiled;
     result_out.start = start_address;
     result_out.end = start_address;
@@ -499,7 +490,7 @@ bool ScanFlow(const ProgramCode& program_code, u32 program_size, u32 start_addre
     }
     if (result_out.decompilable) {
         result_out.labels = std::move(state.labels);
-        return true;
+        return {result_out};
     }
     // If it's not decompilable, merge the unlabelled blocks together
     auto back = result_out.blocks.begin();
@@ -513,6 +504,6 @@ bool ScanFlow(const ProgramCode& program_code, u32 program_size, u32 start_addre
         back = next;
         next++;
     }
-    return true;
+    return {result_out};
 }
 } // namespace VideoCommon::Shader

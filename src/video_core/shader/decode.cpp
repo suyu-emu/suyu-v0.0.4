@@ -39,9 +39,9 @@ void ShaderIR::Decode() {
     std::memcpy(&header, program_code.data(), sizeof(Tegra::Shader::Header));
 
     disable_flow_stack = false;
-    ShaderCharacteristics shader_info{};
-    bool can_proceed = ScanFlow(program_code, program_code.size(), main_offset, shader_info);
-    if (can_proceed) {
+    const auto info = ScanFlow(program_code, program_code.size(), main_offset);
+    if (info) {
+        const auto& shader_info = *info;
         coverage_begin = shader_info.start;
         coverage_end = shader_info.end;
         if (shader_info.decompilable) {
@@ -52,7 +52,7 @@ void ShaderIR::Decode() {
                 }
                 basic_blocks.insert({label, nodes});
             });
-            std::list<ShaderBlock>& blocks = shader_info.blocks;
+            const auto& blocks = shader_info.blocks;
             NodeBlock current_block;
             u32 current_label = exit_branch;
             for (auto& block : blocks) {
@@ -82,7 +82,7 @@ void ShaderIR::Decode() {
 
     // Now we need to deal with an undecompilable shader. We need to brute force
     // a shader that captures every position.
-    coverage_begin = shader_info.start;
+    coverage_begin = main_offset;
     const u32 shader_end = static_cast<u32>(program_size / sizeof(u64));
     coverage_end = shader_end;
     for (u32 label = main_offset; label < shader_end; label++) {
