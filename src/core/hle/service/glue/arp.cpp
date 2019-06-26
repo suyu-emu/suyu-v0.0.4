@@ -58,7 +58,8 @@ void ARP_R::GetApplicationLaunchProperty(Kernel::HLERequestContext& ctx) {
     if (!title_id.has_value()) {
         LOG_ERROR(Service_ARP, "Failed to get title ID for process ID!");
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ERR_NONEXISTENT);
+        rb.Push(ERR_NOT_REGISTERED);
+        return;
     }
 
     const auto res = manager.GetLaunchProperty(*title_id);
@@ -67,6 +68,7 @@ void ARP_R::GetApplicationLaunchProperty(Kernel::HLERequestContext& ctx) {
         LOG_ERROR(Service_ARP, "Failed to get launch property!");
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(res.Code());
+        return;
     }
 
     IPC::ResponseBuilder rb{ctx, 6};
@@ -86,6 +88,7 @@ void ARP_R::GetApplicationLaunchPropertyWithApplicationId(Kernel::HLERequestCont
         LOG_ERROR(Service_ARP, "Failed to get launch property!");
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(res.Code());
+        return;
     }
 
     IPC::ResponseBuilder rb{ctx, 6};
@@ -103,7 +106,8 @@ void ARP_R::GetApplicationControlProperty(Kernel::HLERequestContext& ctx) {
     if (!title_id.has_value()) {
         LOG_ERROR(Service_ARP, "Failed to get title ID for process ID!");
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ERR_NONEXISTENT);
+        rb.Push(ERR_NOT_REGISTERED);
+        return;
     }
 
     const auto res = manager.GetControlProperty(*title_id);
@@ -112,6 +116,7 @@ void ARP_R::GetApplicationControlProperty(Kernel::HLERequestContext& ctx) {
         LOG_ERROR(Service_ARP, "Failed to get control property!");
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(res.Code());
+        return;
     }
 
     ctx.WriteBuffer(*res);
@@ -132,6 +137,7 @@ void ARP_R::GetApplicationControlPropertyWithApplicationId(Kernel::HLERequestCon
         LOG_ERROR(Service_ARP, "Failed to get control property!");
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(res.Code());
+        return;
     }
 
     ctx.WriteBuffer(*res);
@@ -168,14 +174,16 @@ private:
         if (process_id == 0) {
             LOG_ERROR(Service_ARP, "Must have non-zero process ID!");
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERR_PROCESS_ID_ZERO);
+            rb.Push(ERR_INVALID_PROCESS_ID);
+            return;
         }
 
         if (issued) {
             LOG_ERROR(Service_ARP,
                       "Attempted to issue registrar, but registrar is already issued!");
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERR_ALREADY_ISSUED);
+            rb.Push(ERR_INVALID_ACCESS);
+            return;
         }
 
         issue_process_id(process_id, launch, std::move(control));
@@ -193,7 +201,8 @@ private:
                 Service_ARP,
                 "Attempted to set application launch property, but registrar is already issued!");
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERR_ALREADY_ISSUED);
+            rb.Push(ERR_INVALID_ACCESS);
+            return;
         }
 
         IPC::RequestParser rp{ctx};
@@ -211,7 +220,8 @@ private:
                 Service_ARP,
                 "Attempted to set application control property, but registrar is already issued!");
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERR_ALREADY_ISSUED);
+            rb.Push(ERR_INVALID_ACCESS);
+            return;
         }
 
         control = ctx.ReadBuffer();
@@ -247,7 +257,7 @@ void ARP_W::AcquireRegistrar(Kernel::HLERequestContext& ctx) {
         [this](u64 process_id, ApplicationLaunchProperty launch, std::vector<u8> control) {
             const auto res = GetTitleIDForProcessID(system, process_id);
             if (!res.has_value()) {
-                return ERR_NONEXISTENT;
+                return ERR_NOT_REGISTERED;
             }
 
             return manager.Register(*res, launch, std::move(control));
@@ -267,7 +277,8 @@ void ARP_W::DeleteProperties(Kernel::HLERequestContext& ctx) {
     if (process_id == 0) {
         LOG_ERROR(Service_ARP, "Must have non-zero process ID!");
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ERR_PROCESS_ID_ZERO);
+        rb.Push(ERR_INVALID_PROCESS_ID);
+        return;
     }
 
     const auto title_id = GetTitleIDForProcessID(system, process_id);
@@ -275,7 +286,8 @@ void ARP_W::DeleteProperties(Kernel::HLERequestContext& ctx) {
     if (!title_id.has_value()) {
         LOG_ERROR(Service_ARP, "No title ID for process ID!");
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ERR_NONEXISTENT);
+        rb.Push(ERR_NOT_REGISTERED);
+        return;
     }
 
     IPC::ResponseBuilder rb{ctx, 2};

@@ -647,16 +647,16 @@ ContentProviderUnion::ListEntriesFilterOrigin(std::optional<ContentProviderUnion
 
 std::optional<ContentProviderUnionSlot> ContentProviderUnion::GetSlotForEntry(
     u64 title_id, ContentRecordType type) const {
-    for (const auto& [slot, provider] : providers) {
-        if (provider == nullptr)
-            continue;
+    const auto iter =
+        std::find_if(providers.begin(), providers.end(), [title_id, type](const auto& provider) {
+            return provider.second != nullptr && provider.second->HasEntry(title_id, type);
+        });
 
-        if (provider->HasEntry(title_id, type)) {
-            return slot;
-        }
+    if (iter == providers.end()) {
+        return std::nullopt;
     }
 
-    return std::nullopt;
+    return iter->first;
 }
 
 ManualContentProvider::~ManualContentProvider() = default;

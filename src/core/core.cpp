@@ -61,8 +61,6 @@ FileSys::StorageId GetStorageIdForFrontendSlot(
     default:
         return FileSys::StorageId::None;
     }
-
-    UNREACHABLE();
 }
 
 } // Anonymous namespace

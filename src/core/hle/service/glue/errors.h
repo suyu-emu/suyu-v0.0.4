@@ -8,10 +8,9 @@
 
 namespace Service::Glue {
 
-constexpr ResultCode ERR_OUTPUT_TOO_SMALL{0x3C9D};
-constexpr ResultCode ERR_PROCESS_ID_ZERO{0x3E9D};
-constexpr ResultCode ERR_TITLE_ID_ZERO{0x3E9D};
-constexpr ResultCode ERR_ALREADY_ISSUED{0x549D};
-constexpr ResultCode ERR_NONEXISTENT{0xCC9D};
+constexpr ResultCode ERR_INVALID_RESOURCE{ErrorModule::ARP, 0x1E};
+constexpr ResultCode ERR_INVALID_PROCESS_ID{ErrorModule::ARP, 0x1F};
+constexpr ResultCode ERR_INVALID_ACCESS{ErrorModule::ARP, 0x2A};
+constexpr ResultCode ERR_NOT_REGISTERED{ErrorModule::ARP, 0x66};
 
 } // namespace Service::Glue
