@@ -28,6 +28,17 @@ std::optional<Kernel::SharedPtr<Kernel::Process>> SearchProcessList(
     return *iter;
 }
 
+void GetApplicationPidGeneric(Kernel::HLERequestContext& ctx,
+                              const std::vector<Kernel::SharedPtr<Kernel::Process>>& process_list) {
+    const auto process = SearchProcessList(process_list, [](const auto& process) {
+        return process->GetProcessID() == Kernel::Process::ProcessIDMin;
+    });
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push(process.has_value() ? (*process)->GetProcessID() : NO_PROCESS_FOUND_PID);
+}
+
 } // Anonymous namespace
 
 class BootMode final : public ServiceFramework<BootMode> {
@@ -71,7 +82,7 @@ public:
             {1, nullptr, "StartDebugProcess"},
             {2, &DebugMonitor::GetTitlePid, "GetTitlePid"},
             {3, nullptr, "EnableDebugForTitleId"},
-            {4, nullptr, "GetApplicationPid"},
+            {4, &DebugMonitor::GetApplicationPid, "GetApplicationPid"},
             {5, nullptr, "EnableDebugForApplication"},
             {6, nullptr, "DisableDebug"},
         };
@@ -101,6 +112,11 @@ private:
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
         rb.Push((*process)->GetProcessID());
+    }
+
+    void GetApplicationPid(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_PM, "called");
+        GetApplicationPidGeneric(ctx, kernel.GetProcessList());
     }
 
     const Kernel::KernelCore& kernel;
@@ -143,7 +159,8 @@ private:
 
 class Shell final : public ServiceFramework<Shell> {
 public:
-    explicit Shell() : ServiceFramework{"pm:shell"} {
+    explicit Shell(const Kernel::KernelCore& kernel)
+        : ServiceFramework{"pm:shell"}, kernel(kernel) {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "LaunchProcess"},
@@ -152,14 +169,23 @@ public:
             {3, nullptr, "GetProcessEventWaiter"},
             {4, nullptr, "GetProcessEventType"},
             {5, nullptr, "NotifyBootFinished"},
-            {6, nullptr, "GetApplicationPid"},
+            {6, &Shell::GetApplicationPid, "GetApplicationPid"},
             {7, nullptr, "BoostSystemMemoryResourceLimit"},
             {8, nullptr, "EnableAdditionalSystemThreads"},
+            {9, nullptr, "GetUnimplementedEventHandle"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
     }
+
+private:
+    void GetApplicationPid(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_PM, "called");
+        GetApplicationPidGeneric(ctx, kernel.GetProcessList());
+    }
+
+    const Kernel::KernelCore& kernel;
 };
 
 void InstallInterfaces(Core::System& system) {
