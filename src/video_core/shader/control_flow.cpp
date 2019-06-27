@@ -4,13 +4,14 @@
 
 #include <list>
 #include <map>
+#include <set>
 #include <stack>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "video_core/shader/ast.h"
 #include "video_core/shader/control_flow.h"
 #include "video_core/shader/shader_ir.h"
 
@@ -64,7 +65,7 @@ struct CFGRebuildState {
     std::list<u32> inspect_queries{};
     std::list<Query> queries{};
     std::unordered_map<u32, u32> registered{};
-    std::unordered_set<u32> labels{};
+    std::set<u32> labels{};
     std::map<u32, u32> ssy_labels{};
     std::map<u32, u32> pbk_labels{};
     std::unordered_map<u32, BlockStack> stacks{};
@@ -415,6 +416,54 @@ bool TryQuery(CFGRebuildState& state) {
 }
 } // Anonymous namespace
 
+void InsertBranch(ASTManager& mm, const BlockBranchInfo& branch) {
+    const auto get_expr = ([&](const Condition& cond) -> Expr {
+        Expr result{};
+        if (cond.cc != ConditionCode::T) {
+            result = MakeExpr<ExprCondCode>(cond.cc);
+        }
+        if (cond.predicate != Pred::UnusedIndex) {
+            Expr extra = MakeExpr<ExprPredicate>(cond.predicate);
+            if (result) {
+                return MakeExpr<ExprAnd>(extra, result);
+            }
+            return extra;
+        }
+        if (result) {
+            return result;
+        }
+        return MakeExpr<ExprBoolean>(true);
+    });
+    if (branch.address < 0) {
+        if (branch.kill) {
+            mm.InsertReturn(get_expr(branch.condition), true);
+            return;
+        }
+        mm.InsertReturn(get_expr(branch.condition), false);
+        return;
+    }
+    mm.InsertGoto(get_expr(branch.condition), branch.address);
+}
+
+void DecompileShader(CFGRebuildState& state) {
+    ASTManager manager{};
+    for (auto label : state.labels) {
+        manager.DeclareLabel(label);
+    }
+    for (auto& block : state.block_info) {
+        if (state.labels.count(block.start) != 0) {
+            manager.InsertLabel(block.start);
+        }
+        u32 end = block.branch.ignore ? block.end + 1 : block.end;
+        manager.InsertBlock(block.start, end);
+        if (!block.branch.ignore) {
+            InsertBranch(manager, block.branch);
+        }
+    }
+    manager.Decompile();
+    LOG_CRITICAL(HW_GPU, "Decompiled Shader:\n{} \n", manager.Print());
+}
+
 std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
                                               std::size_t program_size, u32 start_address) {
     CFGRebuildState state{program_code, program_size, start_address};
@@ -441,7 +490,10 @@ std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
 
     // Sort and organize results
     std::sort(state.block_info.begin(), state.block_info.end(),
-              [](const BlockInfo& a, const BlockInfo& b) { return a.start < b.start; });
+              [](const BlockInfo& a, const BlockInfo& b) -> bool { return a.start < b.start; });
+    if (decompiled) {
+        DecompileShader(state);
+    }
     ShaderCharacteristics result_out{};
     result_out.decompilable = decompiled;
     result_out.start = start_address;

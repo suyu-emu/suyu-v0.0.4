@@ -6,7 +6,7 @@
 
 #include <list>
 #include <optional>
-#include <unordered_set>
+#include <set>
 
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/shader/shader_ir.h"
@@ -70,7 +70,7 @@ struct ShaderCharacteristics {
     bool decompilable{};
     u32 start{};
     u32 end{};
-    std::unordered_set<u32> labels{};
+    std::set<u32> labels{};
 };
 
 std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
