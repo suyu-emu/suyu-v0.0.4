@@ -18,32 +18,71 @@ namespace VideoCommon::Shader {
 
 class ASTBase;
 class ASTProgram;
-class ASTIf;
+class ASTIfThen;
+class ASTIfElse;
 class ASTBlockEncoded;
 class ASTVarSet;
 class ASTGoto;
 class ASTLabel;
 class ASTDoWhile;
 class ASTReturn;
+class ASTBreak;
 
-using ASTData = std::variant<ASTProgram, ASTIf, ASTBlockEncoded, ASTVarSet, ASTGoto, ASTLabel,
-                             ASTDoWhile, ASTReturn>;
+using ASTData = std::variant<ASTProgram, ASTIfThen, ASTIfElse, ASTBlockEncoded, ASTVarSet, ASTGoto,
+                             ASTLabel, ASTDoWhile, ASTReturn, ASTBreak>;
 
 using ASTNode = std::shared_ptr<ASTBase>;
 
-class ASTProgram {
-public:
-    ASTProgram() = default;
-    std::list<ASTNode> nodes;
+enum class ASTZipperType : u32 {
+    Program,
+    IfThen,
+    IfElse,
+    Loop,
 };
 
-class ASTIf {
+class ASTZipper final {
 public:
-    ASTIf(Expr condition, std::list<ASTNode> then_nodes, std::list<ASTNode> else_nodes)
-        : condition(condition), then_nodes{then_nodes}, else_nodes{then_nodes} {}
+    ASTZipper();
+    ASTZipper(ASTNode first);
+
+    ASTNode GetFirst() {
+        return first;
+    }
+
+    ASTNode GetLast() {
+        return last;
+    }
+
+    void PushBack(ASTNode new_node);
+    void PushFront(ASTNode new_node);
+    void InsertAfter(ASTNode new_node, ASTNode at_node);
+    void SetParent(ASTNode new_parent);
+    void DetachTail(ASTNode node);
+    void DetachSingle(ASTNode node);
+    void DetachSegment(ASTNode start, ASTNode end);
+    void Remove(ASTNode node);
+
+    ASTNode first{};
+    ASTNode last{};
+};
+
+class ASTProgram {
+public:
+    ASTProgram() : nodes{} {};
+    ASTZipper nodes;
+};
+
+class ASTIfThen {
+public:
+    ASTIfThen(Expr condition, ASTZipper nodes) : condition(condition), nodes{nodes} {}
     Expr condition;
-    std::list<ASTNode> then_nodes;
-    std::list<ASTNode> else_nodes;
+    ASTZipper nodes;
+};
+
+class ASTIfElse {
+public:
+    ASTIfElse(ASTZipper nodes) : nodes{nodes} {}
+    ASTZipper nodes;
 };
 
 class ASTBlockEncoded {
@@ -75,10 +114,9 @@ public:
 
 class ASTDoWhile {
 public:
-    ASTDoWhile(Expr condition, std::list<ASTNode> loop_nodes)
-        : condition(condition), loop_nodes{loop_nodes} {}
+    ASTDoWhile(Expr condition, ASTZipper nodes) : condition(condition), nodes{nodes} {}
     Expr condition;
-    std::list<ASTNode> loop_nodes;
+    ASTZipper nodes;
 };
 
 class ASTReturn {
@@ -86,6 +124,12 @@ public:
     ASTReturn(Expr condition, bool kills) : condition{condition}, kills{kills} {}
     Expr condition;
     bool kills;
+};
+
+class ASTBreak {
+public:
+    ASTBreak(Expr condition) : condition{condition} {}
+    Expr condition;
 };
 
 class ASTBase {
@@ -111,9 +155,9 @@ public:
 
     u32 GetLevel() const {
         u32 level = 0;
-        auto next = parent;
-        while (next) {
-            next = next->GetParent();
+        auto next_parent = parent;
+        while (next_parent) {
+            next_parent = next_parent->GetParent();
             level++;
         }
         return level;
@@ -123,15 +167,83 @@ public:
         return &data;
     }
 
+    ASTNode GetNext() {
+        return next;
+    }
+
+    ASTNode GetPrevious() {
+        return previous;
+    }
+
+    ASTZipper& GetManager() {
+        return *manager;
+    }
+
+    u32 GetGotoLabel() const {
+        auto inner = std::get_if<ASTGoto>(&data);
+        if (inner) {
+            return inner->label;
+        }
+        return -1;
+    }
+
+    Expr GetGotoCondition() const {
+        auto inner = std::get_if<ASTGoto>(&data);
+        if (inner) {
+            return inner->condition;
+        }
+        return nullptr;
+    }
+
+    void SetGotoCondition(Expr new_condition) {
+        auto inner = std::get_if<ASTGoto>(&data);
+        if (inner) {
+            inner->condition = new_condition;
+        }
+    }
+
+    bool IsIfThen() const {
+        return std::holds_alternative<ASTIfThen>(data);
+    }
+
+    bool IsIfElse() const {
+        return std::holds_alternative<ASTIfElse>(data);
+    }
+
+    bool IsLoop() const {
+        return std::holds_alternative<ASTDoWhile>(data);
+    }
+
+    ASTZipper* GetSubNodes() {
+        if (std::holds_alternative<ASTProgram>(data)) {
+            return &std::get_if<ASTProgram>(&data)->nodes;
+        }
+        if (std::holds_alternative<ASTIfThen>(data)) {
+            return &std::get_if<ASTIfThen>(&data)->nodes;
+        }
+        if (std::holds_alternative<ASTIfElse>(data)) {
+            return &std::get_if<ASTIfElse>(&data)->nodes;
+        }
+        if (std::holds_alternative<ASTDoWhile>(data)) {
+            return &std::get_if<ASTDoWhile>(&data)->nodes;
+        }
+        return nullptr;
+    }
+
 private:
+    friend class ASTZipper;
+
     ASTData data;
     ASTNode parent;
+    ASTNode next{};
+    ASTNode previous{};
+    ASTZipper* manager{};
 };
 
 class ASTManager final {
 public:
     explicit ASTManager() {
-        main_node = ASTBase::Make<ASTProgram>(nullptr);
+        main_node = ASTBase::Make<ASTProgram>(ASTNode{});
         program = std::get_if<ASTProgram>(main_node->GetInnerData());
     }
 
@@ -147,31 +259,49 @@ public:
         u32 index = labels_map[address];
         ASTNode label = ASTBase::Make<ASTLabel>(main_node, index);
         labels[index] = label;
-        program->nodes.push_back(label);
+        program->nodes.PushBack(label);
     }
 
     void InsertGoto(Expr condition, u32 address) {
         u32 index = labels_map[address];
         ASTNode goto_node = ASTBase::Make<ASTGoto>(main_node, condition, index);
         gotos.push_back(goto_node);
-        program->nodes.push_back(goto_node);
+        program->nodes.PushBack(goto_node);
     }
 
     void InsertBlock(u32 start_address, u32 end_address) {
         ASTNode block = ASTBase::Make<ASTBlockEncoded>(main_node, start_address, end_address);
-        program->nodes.push_back(block);
+        program->nodes.PushBack(block);
     }
 
     void InsertReturn(Expr condition, bool kills) {
         ASTNode node = ASTBase::Make<ASTReturn>(main_node, condition, kills);
-        program->nodes.push_back(node);
+        program->nodes.PushBack(node);
     }
 
     std::string Print();
 
-    void Decompile() {}
+    void Decompile();
+
+
 
 private:
+    bool IndirectlyRelated(ASTNode first, ASTNode second);
+
+    bool DirectlyRelated(ASTNode first, ASTNode second);
+
+    void EncloseDoWhile(ASTNode goto_node, ASTNode label);
+
+    void EncloseIfThen(ASTNode goto_node, ASTNode label);
+
+    void MoveOutward(ASTNode goto_node) ;
+
+    u32 NewVariable() {
+        u32 new_var = variables;
+        variables++;
+        return new_var;
+    }
+
     std::unordered_map<u32, u32> labels_map{};
     u32 labels_count{};
     std::vector<ASTNode> labels{};
