@@ -75,19 +75,17 @@ struct CFGRebuildState {
 
 enum class BlockCollision : u32 { None, Found, Inside };
 
-std::pair<BlockCollision, std::vector<BlockInfo>::iterator> TryGetBlock(CFGRebuildState& state,
-                                                                        u32 address) {
-    auto it = state.block_info.begin();
-    while (it != state.block_info.end()) {
-        if (it->start == address) {
-            return {BlockCollision::Found, it};
+std::pair<BlockCollision, u32> TryGetBlock(CFGRebuildState& state, u32 address) {
+    const auto& blocks = state.block_info;
+    for (u32 index = 0; index < blocks.size(); index++) {
+        if (blocks[index].start == address) {
+            return {BlockCollision::Found, index};
         }
-        if (it->IsInside(address)) {
-            return {BlockCollision::Inside, it};
+        if (blocks[index].IsInside(address)) {
+            return {BlockCollision::Inside, index};
         }
-        it++;
     }
-    return {BlockCollision::None, it};
+    return {BlockCollision::None, -1};
 }
 
 struct ParseInfo {
@@ -318,24 +316,26 @@ bool TryInspectAddress(CFGRebuildState& state) {
     if (state.inspect_queries.empty()) {
         return false;
     }
+
     const u32 address = state.inspect_queries.front();
     state.inspect_queries.pop_front();
-    const auto search_result = TryGetBlock(state, address);
-    switch (search_result.first) {
+    const auto [result, block_index] = TryGetBlock(state, address);
+    switch (result) {
     case BlockCollision::Found: {
         return true;
     }
     case BlockCollision::Inside: {
         // This case is the tricky one:
         // We need to Split the block in 2 sepparate blocks
-        const auto it = search_result.second;
-        BlockInfo& block_info = CreateBlockInfo(state, address, it->end);
-        it->end = address - 1;
-        block_info.branch = it->branch;
+        const u32 end = state.block_info[block_index].end;
+        BlockInfo& new_block = CreateBlockInfo(state, address, end);
+        BlockInfo& current_block = state.block_info[block_index];
+        current_block.end = address - 1;
+        new_block.branch = current_block.branch;
         BlockBranchInfo forward_branch{};
         forward_branch.address = address;
         forward_branch.ignore = true;
-        it->branch = forward_branch;
+        current_block.branch = forward_branch;
         return true;
     }
     default:
