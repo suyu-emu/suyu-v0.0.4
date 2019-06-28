@@ -135,15 +135,13 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
 
-        if (is_event_created) {
-            rb.PushCopyObjects(notification_event.readable);
-        } else {
+        if (!is_event_created) {
             auto& kernel = Core::System::GetInstance().Kernel();
             notification_event = Kernel::WritableEvent::CreateEventPair(
                 kernel, Kernel::ResetType::Manual, "INotificationService:NotifyEvent");
             is_event_created = true;
-            rb.PushCopyObjects(notification_event.readable);
         }
+        rb.PushCopyObjects(notification_event.readable);
     }
 
     void Clear(Kernel::HLERequestContext& ctx) {
@@ -151,8 +149,7 @@ private:
         while (!notifications.empty()) {
             notifications.pop();
         }
-        states.has_received_friend_request = false;
-        states.has_updated_friends = false;
+        std::memset(&states, 0, sizeof(States));
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
@@ -167,9 +164,8 @@ private:
             rb.Push(ERR_NO_NOTIFICATIONS);
             return;
         }
-        IPC::ResponseBuilder rb{ctx, 6};
 
-        auto notification = notifications.front();
+        const auto notification = notifications.front();
         notifications.pop();
 
         switch (notification.notification_type) {
@@ -185,11 +181,13 @@ private:
                         static_cast<u32>(notification.notification_type));
             break;
         }
+
+        IPC::ResponseBuilder rb{ctx, 6};
         rb.Push(RESULT_SUCCESS);
         rb.PushRaw<SizedNotificationInfo>(notification);
     }
 
-    enum class NotificationTypes : u32_le {
+    enum class NotificationTypes : u32 {
         HasUpdatedFriendsList = 0x65,
         HasReceivedFriendRequest = 0x1
     };
@@ -208,10 +206,10 @@ private:
         bool has_received_friend_request;
     };
 
-    Common::UUID uuid{};
+    Common::UUID uuid;
     bool is_event_created = false;
     Kernel::EventPair notification_event;
-    std::queue<SizedNotificationInfo> notifications{};
+    std::queue<SizedNotificationInfo> notifications;
     States states{};
 };
 
@@ -226,10 +224,11 @@ void Module::Interface::CreateNotificationService(Kernel::HLERequestContext& ctx
     IPC::RequestParser rp{ctx};
     auto uuid = rp.PopRaw<Common::UUID>();
 
+    LOG_DEBUG(Service_ACC, "called, uuid={}", uuid.Format());
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<INotificationService>(uuid);
-    LOG_DEBUG(Service_ACC, "called");
 }
 
 Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
