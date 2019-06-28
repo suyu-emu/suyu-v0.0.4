@@ -237,27 +237,18 @@ void Module::Interface::InitializeApplicationInfoRestricted(Kernel::HLERequestCo
 
     LOG_WARNING(Service_ACC, "(Partial implementation) called, process_id={}", pid);
 
-    const auto res = InitializeApplicationInfoBase(pid);
-
     // TODO(ogniK): We require checking if the user actually owns the title and what not. As of
-    // currently, we assume the user owns the title.
+    // currently, we assume the user owns the title. InitializeApplicationInfoBase SHOULD be called
+    // first then we do extra checks if the game is a digital copy.
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
+    rb.Push(InitializeApplicationInfoBase(pid));
 }
 
 ResultCode Module::Interface::InitializeApplicationInfoBase(u64 process_id) {
     if (application_info) {
+        LOG_ERROR(Service_ACC, "Application already initialized");
         return ERR_ACCOUNTINFO_ALREADY_INITIALIZED;
-    }
-
-    Service::SM::ServiceManager& sm = system.ServiceManager();
-    std::shared_ptr<Service::Glue::ARP_R> arp_r = sm.GetService<Service::Glue::ARP_R>("arp:r");
-    if (arp_r == nullptr) {
-        LOG_ERROR(Service_ACC, "Failed to get arp:r service");
-        application_info.application_type = ApplicationType::Unknown;
-
-        return ResultCode(ERR_ACCOUNTINFO_BAD_APPLICATION);
     }
 
     const auto& list = system.Kernel().GetProcessList();
@@ -266,16 +257,17 @@ ResultCode Module::Interface::InitializeApplicationInfoBase(u64 process_id) {
     });
 
     if (iter == list.end()) {
-        // Failed to find process ID
+        LOG_ERROR(Service_ACC, "Failed to find process ID");
         application_info.application_type = ApplicationType::Unknown;
 
-        return ResultCode(ERR_ACCOUNTINFO_BAD_APPLICATION);
+        return ERR_ACCOUNTINFO_BAD_APPLICATION;
     }
 
     const auto launch_property = system.GetARPManager().GetLaunchProperty((*iter)->GetTitleID());
 
     if (launch_property.Failed()) {
-        return ResultCode(ERR_ACCOUNTINFO_BAD_APPLICATION);
+        LOG_ERROR(Service_ACC, "Failed to get launch property");
+        return ERR_ACCOUNTINFO_BAD_APPLICATION;
     }
 
     switch (launch_property->base_game_storage_id) {
@@ -288,7 +280,8 @@ ResultCode Module::Interface::InitializeApplicationInfoBase(u64 process_id) {
         application_info.application_type = ApplicationType::Digital;
         break;
     default:
-        return ResultCode(ERR_ACCOUNTINFO_BAD_APPLICATION);
+        LOG_ERROR(Service_ACC, "Invalid game storage ID");
+        return ERR_ACCOUNTINFO_BAD_APPLICATION;
     }
 
     LOG_WARNING(Service_ACC, "ApplicationInfo init required");
