@@ -37,6 +37,7 @@ void ConfigureDebug::SetConfiguration() {
     ui->dump_exefs->setChecked(Settings::values.dump_exefs);
     ui->dump_decompressed_nso->setChecked(Settings::values.dump_nso);
     ui->reporting_services->setChecked(Settings::values.reporting_services);
+    ui->quest_flag->setChecked(Settings::values.quest_flag);
 }
 
 void ConfigureDebug::ApplyConfiguration() {
@@ -48,6 +49,7 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.dump_exefs = ui->dump_exefs->isChecked();
     Settings::values.dump_nso = ui->dump_decompressed_nso->isChecked();
     Settings::values.reporting_services = ui->reporting_services->isChecked();
+    Settings::values.quest_flag = ui->quest_flag->isChecked();
     Debugger::ToggleConsole();
     Log::Filter filter;
     filter.ParseFilterString(Settings::values.log_filter);

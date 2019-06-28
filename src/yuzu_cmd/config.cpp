@@ -383,6 +383,7 @@ void Config::ReadValues() {
     Settings::values.dump_nso = sdl2_config->GetBoolean("Debugging", "dump_nso", false);
     Settings::values.reporting_services =
         sdl2_config->GetBoolean("Debugging", "reporting_services", false);
+    Settings::values.quest_flag = sdl2_config->GetBoolean("Debugging", "quest_flag", false);
 
     const auto title_list = sdl2_config->Get("AddOns", "title_ids", "");
     std::stringstream ss(title_list);
