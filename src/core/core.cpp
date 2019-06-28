@@ -33,6 +33,7 @@
 #include "core/reporter.h"
 #include "core/settings.h"
 #include "core/telemetry_session.h"
+#include "core/tools/freezer.h"
 #include "file_sys/cheat_engine.h"
 #include "file_sys/patch_manager.h"
 #include "video_core/debug_utils/debug_utils.h"
@@ -300,6 +301,7 @@ struct System::Impl {
     bool is_powered_on = false;
 
     std::unique_ptr<FileSys::CheatEngine> cheat_engine;
+    std::unique_ptr<Tools::Freezer> memory_freezer;
 
     /// Frontend applets
     Service::AM::Applets::AppletManager applet_manager;

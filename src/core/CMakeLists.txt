@@ -476,6 +476,8 @@ add_library(core STATIC
     settings.h
     telemetry_session.cpp
     telemetry_session.h
+    tools/freezer.cpp
+    tools/freezer.h
 )
 
 create_target_directory_groups(core)
