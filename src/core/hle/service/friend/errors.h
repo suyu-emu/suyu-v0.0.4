@@ -9,5 +9,4 @@
 namespace Service::Friend {
 
 constexpr ResultCode ERR_NO_NOTIFICATIONS{ErrorModule::Account, 15};
-
 }
