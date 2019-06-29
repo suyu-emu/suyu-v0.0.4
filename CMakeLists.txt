@@ -7,18 +7,6 @@ include(CMakeDependentOption)
 
 project(yuzu)
 
-# Get Git submodule dependencies
-find_package(Git QUIET)
-if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
-    execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                    RESULT_VARIABLE GIT_SUBMOD_RESULT)
-    if(NOT GIT_SUBMOD_RESULT EQUAL "0")
-        message(FATAL_ERROR "git submodule update --init --recursive failed with ${GIT_SUBMOD_RESULT}, "
-                "please checkout submodules manually with \"git submodule update --init --recursive\"")
-    endif()
-endif()
-
 # Set bundled sdl2/qt as dependent options.
 # OFF by default, but if ENABLE_SDL2 and MSVC are true then ON
 option(ENABLE_SDL2 "Enable the SDL2 frontend" ON)
@@ -44,6 +32,22 @@ if(NOT EXISTS ${PROJECT_SOURCE_DIR}/.git/hooks/pre-commit)
     file(COPY hooks/pre-commit
         DESTINATION ${PROJECT_SOURCE_DIR}/.git/hooks)
 endif()
+
+# Sanity check : Check that all submodules are present
+# =======================================================================
+
+function(check_submodules_present)
+    file(READ "${PROJECT_SOURCE_DIR}/.gitmodules" gitmodules)
+    string(REGEX MATCHALL "path *= *[^ \t\r\n]*" gitmodules ${gitmodules})
+    foreach(module ${gitmodules})
+        string(REGEX REPLACE "path *= *" "" module ${module})
+        if (NOT EXISTS "${PROJECT_SOURCE_DIR}/${module}/.git")
+            message(FATAL_ERROR "Git submodule ${module} not found. "
+                    "Please run: git submodule update --init --recursive")
+        endif()
+    endforeach()
+endfunction()
+check_submodules_present()
 
 configure_file(${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.qrc
                ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
