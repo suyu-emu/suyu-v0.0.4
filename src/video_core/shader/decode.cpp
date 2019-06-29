@@ -35,10 +35,73 @@ constexpr bool IsSchedInstruction(u32 offset, u32 main_offset) {
 
 } // namespace
 
+class ASTDecoder {
+public:
+    ASTDecoder(ShaderIR& ir) : ir(ir) {}
+
+    void operator()(ASTProgram& ast) {
+        ASTNode current = ast.nodes.GetFirst();
+        while (current) {
+            Visit(current);
+            current = current->GetNext();
+        }
+    }
+
+    void operator()(ASTIfThen& ast) {
+        ASTNode current = ast.nodes.GetFirst();
+        while (current) {
+            Visit(current);
+            current = current->GetNext();
+        }
+    }
+
+    void operator()(ASTIfElse& ast) {
+        ASTNode current = ast.nodes.GetFirst();
+        while (current) {
+            Visit(current);
+            current = current->GetNext();
+        }
+    }
+
+    void operator()(ASTBlockEncoded& ast) {}
+
+    void operator()(ASTBlockDecoded& ast) {}
+
+    void operator()(ASTVarSet& ast) {}
+
+    void operator()(ASTLabel& ast) {}
+
+    void operator()(ASTGoto& ast) {}
+
+    void operator()(ASTDoWhile& ast) {
+        ASTNode current = ast.nodes.GetFirst();
+        while (current) {
+            Visit(current);
+            current = current->GetNext();
+        }
+    }
+
+    void operator()(ASTReturn& ast) {}
+
+    void operator()(ASTBreak& ast) {}
+
+    void Visit(ASTNode& node) {
+        std::visit(*this, *node->GetInnerData());
+        if (node->IsBlockEncoded()) {
+            auto block = std::get_if<ASTBlockEncoded>(node->GetInnerData());
+            NodeBlock bb = ir.DecodeRange(block->start, block->end);
+            node->TransformBlockEncoded(bb);
+        }
+    }
+
+private:
+    ShaderIR& ir;
+};
+
 void ShaderIR::Decode() {
     std::memcpy(&header, program_code.data(), sizeof(Tegra::Shader::Header));
 
-    disable_flow_stack = false;
+    decompiled = false;
     const auto info =
         ScanFlow(program_code, program_size, main_offset, program_manager);
     if (info) {
@@ -46,7 +109,10 @@ void ShaderIR::Decode() {
         coverage_begin = shader_info.start;
         coverage_end = shader_info.end;
         if (shader_info.decompiled) {
-            disable_flow_stack = true;
+            decompiled = true;
+            ASTDecoder decoder{*this};
+            ASTNode program = GetASTProgram();
+            decoder.Visit(program);
             return;
         }
         LOG_WARNING(HW_GPU, "Flow Stack Removing Failed! Falling back to old method");

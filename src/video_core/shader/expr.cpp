@@ -72,4 +72,11 @@ bool ExprAreOpposite(Expr first, Expr second) {
     return false;
 }
 
+bool ExprIsTrue(Expr first) {
+    if (ExprIsBoolean(first)) {
+        return ExprBooleanGet(first);
+    }
+    return false;
+}
+
 } // namespace VideoCommon::Shader

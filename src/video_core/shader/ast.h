@@ -141,8 +141,6 @@ public:
     Expr condition;
 };
 
-using TransformCallback = std::function<NodeBlock(u32 start, u32 end)>;
-
 class ASTBase {
 public:
     explicit ASTBase(ASTNode parent, ASTData data) : parent{parent}, data{data} {}
@@ -233,11 +231,7 @@ public:
         return std::holds_alternative<ASTBlockEncoded>(data);
     }
 
-    void TransformBlockEncoded(TransformCallback& callback) {
-        auto block = std::get_if<ASTBlockEncoded>(&data);
-        const u32 start = block->start;
-        const u32 end = block->end;
-        NodeBlock nodes = callback(start, end);
+    void TransformBlockEncoded(NodeBlock& nodes) {
         data = ASTBlockDecoded(nodes);
     }
 
@@ -309,15 +303,19 @@ public:
 
     void SanityCheck();
 
-    bool IsFullyDecompiled() {
+    bool IsFullyDecompiled() const {
         return gotos.size() == 0;
     }
 
-    ASTNode GetProgram() {
+    ASTNode GetProgram() const {
         return main_node;
     }
 
     void Clear();
+
+    u32 GetVariables() const {
+        return variables;
+    }
 
 private:
     bool IndirectlyRelated(ASTNode first, ASTNode second);
@@ -343,7 +341,7 @@ private:
     u32 variables{};
     ASTProgram* program{};
     ASTNode main_node{};
-    Expr true_condition{};
+    Expr false_condition{};
 };
 
 } // namespace VideoCommon::Shader

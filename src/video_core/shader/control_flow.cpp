@@ -425,7 +425,7 @@ void InsertBranch(ASTManager& mm, const BlockBranchInfo& branch) {
         }
         if (cond.predicate != Pred::UnusedIndex) {
             u32 pred = static_cast<u32>(cond.predicate);
-            bool negate;
+            bool negate = false;
             if (pred > 7) {
                 negate = true;
                 pred -= 8;

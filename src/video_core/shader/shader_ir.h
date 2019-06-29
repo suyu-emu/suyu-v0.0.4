@@ -15,8 +15,8 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/engines/shader_header.h"
-#include "video_core/shader/node.h"
 #include "video_core/shader/ast.h"
+#include "video_core/shader/node.h"
 
 namespace VideoCommon::Shader {
 
@@ -141,15 +141,27 @@ public:
         return header;
     }
 
-    bool IsFlowStackDisabled() const {
-        return disable_flow_stack;
+    bool IsDecompiled() const {
+        return decompiled;
+    }
+
+    ASTNode GetASTProgram() const {
+        return program_manager.GetProgram();
+    }
+
+    u32 GetASTNumVariables() const {
+        return program_manager.GetVariables();
     }
 
     u32 ConvertAddressToNvidiaSpace(const u32 address) const {
         return (address - main_offset) * sizeof(Tegra::Shader::Instruction);
     }
 
+    /// Returns a condition code evaluated from internal flags
+    Node GetConditionCode(Tegra::Shader::ConditionCode cc) const;
+
 private:
+    friend class ASTDecoder;
     void Decode();
 
     NodeBlock DecodeRange(u32 begin, u32 end);
@@ -214,7 +226,7 @@ private:
     /// Generates a node representing an output attribute. Keeps track of used attributes.
     Node GetOutputAttribute(Tegra::Shader::Attribute::Index index, u64 element, Node buffer);
     /// Generates a node representing an internal flag
-    Node GetInternalFlag(InternalFlag flag, bool negated = false);
+    Node GetInternalFlag(InternalFlag flag, bool negated = false) const;
     /// Generates a node representing a local memory address
     Node GetLocalMemory(Node address);
     /// Generates a node representing a shared memory address
@@ -271,9 +283,6 @@ private:
 
     /// Returns a predicate combiner operation
     OperationCode GetPredicateCombiner(Tegra::Shader::PredOperation operation);
-
-    /// Returns a condition code evaluated from internal flags
-    Node GetConditionCode(Tegra::Shader::ConditionCode cc);
 
     /// Accesses a texture sampler
     const Sampler& GetSampler(const Tegra::Shader::Sampler& sampler,
@@ -358,7 +367,7 @@ private:
     const ProgramCode& program_code;
     const u32 main_offset;
     const std::size_t program_size;
-    bool disable_flow_stack{};
+    bool decompiled{};
 
     u32 coverage_begin{};
     u32 coverage_end{};

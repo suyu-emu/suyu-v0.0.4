@@ -115,4 +115,6 @@ Expr MakeExprAnd(Expr first, Expr second);
 
 Expr MakeExprOr(Expr first, Expr second);
 
+bool ExprIsTrue(Expr first);
+
 } // namespace VideoCommon::Shader

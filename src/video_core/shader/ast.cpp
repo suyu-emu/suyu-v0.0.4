@@ -372,13 +372,13 @@ ASTManager::~ASTManager() {
 void ASTManager::Init() {
     main_node = ASTBase::Make<ASTProgram>(ASTNode{});
     program = std::get_if<ASTProgram>(main_node->GetInnerData());
-    true_condition = MakeExpr<ExprBoolean>(true);
+    false_condition = MakeExpr<ExprBoolean>(false);
 }
 
 ASTManager::ASTManager(ASTManager&& other)
     : labels_map(std::move(other.labels_map)), labels_count{other.labels_count},
       gotos(std::move(other.gotos)), labels(std::move(other.labels)), variables{other.variables},
-      program{other.program}, main_node{other.main_node}, true_condition{other.true_condition} {
+      program{other.program}, main_node{other.main_node}, false_condition{other.false_condition} {
     other.main_node.reset();
 }
 
@@ -390,7 +390,7 @@ ASTManager& ASTManager::operator=(ASTManager&& other) {
     variables = other.variables;
     program = other.program;
     main_node = other.main_node;
-    true_condition = other.true_condition;
+    false_condition = other.false_condition;
 
     other.main_node.reset();
     return *this;
@@ -594,7 +594,7 @@ void ASTManager::MoveOutward(ASTNode goto_node) {
         u32 var_index = NewVariable();
         Expr var_condition = MakeExpr<ExprVar>(var_index);
         ASTNode var_node = ASTBase::Make<ASTVarSet>(parent, var_index, condition);
-        ASTNode var_node_init = ASTBase::Make<ASTVarSet>(parent, var_index, true_condition);
+        ASTNode var_node_init = ASTBase::Make<ASTVarSet>(parent, var_index, false_condition);
         zipper2.InsertBefore(var_node_init, parent);
         zipper.InsertAfter(var_node, prev);
         goto_node->SetGotoCondition(var_condition);
@@ -605,7 +605,7 @@ void ASTManager::MoveOutward(ASTNode goto_node) {
             u32 var_index = NewVariable();
             Expr var_condition = MakeExpr<ExprVar>(var_index);
             ASTNode var_node = ASTBase::Make<ASTVarSet>(parent, var_index, condition);
-            ASTNode var_node_init = ASTBase::Make<ASTVarSet>(parent, var_index, true_condition);
+            ASTNode var_node_init = ASTBase::Make<ASTVarSet>(parent, var_index, false_condition);
             if (is_if) {
                 zipper2.InsertBefore(var_node_init, parent);
             } else {

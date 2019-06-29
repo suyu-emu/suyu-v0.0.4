@@ -137,7 +137,7 @@ Node ShaderIR::GetOutputAttribute(Attribute::Index index, u64 element, Node buff
     return MakeNode<AbufNode>(index, static_cast<u32>(element), std::move(buffer));
 }
 
-Node ShaderIR::GetInternalFlag(InternalFlag flag, bool negated) {
+Node ShaderIR::GetInternalFlag(InternalFlag flag, bool negated) const {
     const Node node = MakeNode<InternalFlagNode>(flag);
     if (negated) {
         return Operation(OperationCode::LogicalNegate, node);
@@ -367,13 +367,13 @@ OperationCode ShaderIR::GetPredicateCombiner(PredOperation operation) {
     return op->second;
 }
 
-Node ShaderIR::GetConditionCode(Tegra::Shader::ConditionCode cc) {
+Node ShaderIR::GetConditionCode(Tegra::Shader::ConditionCode cc) const {
     switch (cc) {
     case Tegra::Shader::ConditionCode::NEU:
         return GetInternalFlag(InternalFlag::Zero, true);
     default:
         UNIMPLEMENTED_MSG("Unimplemented condition code: {}", static_cast<u32>(cc));
-        return GetPredicate(static_cast<u64>(Pred::NeverExecute));
+        return MakeNode<PredicateNode>(Pred::NeverExecute, false);
     }
 }
 
