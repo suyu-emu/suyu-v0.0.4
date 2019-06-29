@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <algorithm>
+#include <array>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -244,20 +246,19 @@ protected:
         for (std::size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
             SetEmptyColorBuffer(i);
         }
+
         SetEmptyDepthBuffer();
         staging_cache.SetSize(2);
+
         const auto make_siblings = [this](PixelFormat a, PixelFormat b) {
-            siblings_table[a] = b;
-            siblings_table[b] = a;
+            siblings_table[static_cast<std::size_t>(a)] = b;
+            siblings_table[static_cast<std::size_t>(b)] = a;
         };
-        const auto max_formats = static_cast<u32>(PixelFormat::Max);
-        siblings_table.reserve(max_formats);
-        for (u32 i = 0; i < max_formats; i++) {
-            siblings_table[static_cast<PixelFormat>(i)] = PixelFormat::Invalid;
-        }
+        std::fill(siblings_table.begin(), siblings_table.end(), PixelFormat::Invalid);
         make_siblings(PixelFormat::Z16, PixelFormat::R16U);
         make_siblings(PixelFormat::Z32F, PixelFormat::R32F);
         make_siblings(PixelFormat::Z32FS8, PixelFormat::RG32F);
+
         sampled_textures_stack.resize(64);
     }
 
@@ -426,7 +427,8 @@ private:
         const auto& cr_params = current_surface->GetSurfaceParams();
         TSurface new_surface;
         if (cr_params.pixel_format != params.pixel_format && !is_render &&
-            siblings_table[cr_params.pixel_format] == params.pixel_format) {
+            siblings_table[static_cast<std::size_t>(cr_params.pixel_format)] ==
+                params.pixel_format) {
             SurfaceParams new_params = params;
             new_params.pixel_format = cr_params.pixel_format;
             new_params.component_type = cr_params.component_type;
@@ -472,7 +474,8 @@ private:
         if (!is_mirage) {
             return match_check();
         }
-        if (!is_render && siblings_table[current_surface->GetFormat()] == params.pixel_format) {
+        if (!is_render && siblings_table[static_cast<std::size_t>(current_surface->GetFormat())] ==
+                              params.pixel_format) {
             return match_check();
         }
         return RebuildSurface(current_surface, params, is_render);
@@ -786,7 +789,7 @@ private:
     // The siblings table is for formats that can inter exchange with one another
     // without causing issues. This is only valid when a conflict occurs on a non
     // rendering use.
-    std::unordered_map<PixelFormat, PixelFormat> siblings_table;
+    std::array<PixelFormat, static_cast<std::size_t>(PixelFormat::Max)> siblings_table;
 
     // The internal Cache is different for the Texture Cache. It's based on buckets
     // of 1MB. This fits better for the purpose of this cache as textures are normaly
