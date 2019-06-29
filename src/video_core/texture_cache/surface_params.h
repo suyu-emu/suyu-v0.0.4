@@ -95,7 +95,7 @@ public:
     /// Returns the block depth of a given mipmap level.
     u32 GetMipBlockDepth(u32 level) const;
 
-    /// returns the best possible row/pitch alignment for the surface.
+    /// Returns the best possible row/pitch alignment for the surface.
     u32 GetRowAlignment(u32 level) const {
         const u32 bpp =
             GetCompressionType() == SurfaceCompression::Converted ? 4 : GetBytesPerPixel();
@@ -109,7 +109,7 @@ public:
     std::size_t GetHostMipmapLevelOffset(u32 level) const;
 
     /// Returns the offset in bytes in host memory (linear) of a given mipmap level
-    // for a texture that is converted in host gpu.
+    /// for a texture that is converted in host gpu.
     std::size_t GetConvertedMipmapOffset(u32 level) const;
 
     /// Returns the size in bytes in guest memory of a given mipmap level.
@@ -176,10 +176,7 @@ public:
                pixel_format < VideoCore::Surface::PixelFormat::MaxDepthStencilFormat;
     }
 
-    /// Returns how the compression should be handled for this texture. Values
-    /// are: None(no compression), Compressed(texture is compressed),
-    /// Converted(texture is converted before upload/ after download),
-    /// Rearranged(texture is swizzled before upload/after download).
+    /// Returns how the compression should be handled for this texture.
     SurfaceCompression GetCompressionType() const {
         return VideoCore::Surface::GetFormatCompressionType(pixel_format);
     }

@@ -439,11 +439,11 @@ static constexpr u32 GetBytesPerPixel(PixelFormat pixel_format) {
     return GetFormatBpp(pixel_format) / CHAR_BIT;
 }
 
-enum class SurfaceCompression : u8 {
-    None = 0,
-    Compressed = 1,
-    Converted = 2,
-    Rearranged = 3,
+enum class SurfaceCompression {
+    None,       // Not compressed
+    Compressed, // Texture is compressed
+    Converted,  // Texture is converted before upload or after download
+    Rearranged, // Texture is swizzled before upload or after download
 };
 
 constexpr std::array<SurfaceCompression, MaxPixelFormat> compression_type_table = {{
@@ -513,11 +513,11 @@ constexpr std::array<SurfaceCompression, MaxPixelFormat> compression_type_table 
     SurfaceCompression::None,       // Z32FS8
 }};
 
-static constexpr SurfaceCompression GetFormatCompressionType(PixelFormat format) {
-    if (format == PixelFormat::Invalid)
+constexpr SurfaceCompression GetFormatCompressionType(PixelFormat format) {
+    if (format == PixelFormat::Invalid) {
         return SurfaceCompression::None;
-
-    ASSERT(static_cast<std::size_t>(format) < compression_type_table.size());
+    }
+    DEBUG_ASSERT(static_cast<std::size_t>(format) < compression_type_table.size());
     return compression_type_table[static_cast<std::size_t>(format)];
 }
 

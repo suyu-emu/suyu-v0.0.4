@@ -571,8 +571,7 @@ private:
         // Step 1
         // Check Level 1 Cache for a fast structural match. If candidate surface
         // matches at certain level we are pretty much done.
-        auto iter = l1_cache.find(cache_addr);
-        if (iter != l1_cache.end()) {
+        if (const auto iter = l1_cache.find(cache_addr); iter != l1_cache.end()) {
             TSurface& current_surface = iter->second;
             const auto topological_result = current_surface->MatchesTopology(params);
             if (topological_result != MatchTopologyResult::FullMatch) {
