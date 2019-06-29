@@ -421,8 +421,7 @@ private:
         const auto& cr_params = current_surface->GetSurfaceParams();
         TSurface new_surface;
         if (cr_params.pixel_format != params.pixel_format && !is_render &&
-            siblings_table[static_cast<std::size_t>(cr_params.pixel_format)] ==
-                params.pixel_format) {
+            GetSiblingFormat(cr_params.pixel_format) == params.pixel_format) {
             SurfaceParams new_params = params;
             new_params.pixel_format = cr_params.pixel_format;
             new_params.component_type = cr_params.component_type;
@@ -459,17 +458,16 @@ private:
                                                      const SurfaceParams& params, bool is_render) {
         const bool is_mirage = !current_surface->MatchFormat(params.pixel_format);
         const bool matches_target = current_surface->MatchTarget(params.target);
-        const auto match_check = ([&]() -> std::pair<TSurface, TView> {
+        const auto match_check = [&]() -> std::pair<TSurface, TView> {
             if (matches_target) {
                 return {current_surface, current_surface->GetMainView()};
             }
             return {current_surface, current_surface->EmplaceOverview(params)};
-        });
+        };
         if (!is_mirage) {
             return match_check();
         }
-        if (!is_render && siblings_table[static_cast<std::size_t>(current_surface->GetFormat())] ==
-                              params.pixel_format) {
+        if (!is_render && GetSiblingFormat(current_surface->GetFormat()) == params.pixel_format) {
             return match_check();
         }
         return RebuildSurface(current_surface, params, is_render);
@@ -764,6 +762,10 @@ private:
             }
         }
         return {};
+    }
+
+    constexpr PixelFormat GetSiblingFormat(PixelFormat format) const {
+        return siblings_table[static_cast<std::size_t>(format)];
     }
 
     struct FramebufferTargetInfo {
