@@ -6,8 +6,10 @@
 #include <string>
 
 #include "common/logging/log.h"
+#include "common/scope_exit.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/service/lm/lm.h"
+#include "core/hle/service/lm/manager.h"
 #include "core/hle/service/service.h"
 #include "core/memory.h"
 
@@ -194,31 +196,30 @@ private:
 
 class LM final : public ServiceFramework<LM> {
 public:
-    explicit LM() : ServiceFramework{"lm"} {
+    explicit LM(Manager& manager) : ServiceFramework{"lm"}, manager(manager) {
+        // clang-format off
         static const FunctionInfo functions[] = {
-            {0x00000000, &LM::OpenLogger, "OpenLogger"},
+            {0, &LM::OpenLogger, "OpenLogger"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
     }
 
-    /**
-     * LM::OpenLogger service function
-     *  Inputs:
-     *      0: 0x00000000
-     *  Outputs:
-     *      0: ResultCode
-     */
+private:
     void OpenLogger(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_LM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<ILogger>();
+        rb.PushIpcInterface<ILogger>(manager);
     }
+
+    Manager& manager;
 };
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
-    std::make_shared<LM>()->InstallAsService(service_manager);
+void InstallInterfaces(Core::System& system) {
+    std::make_shared<LM>(system.GetLogManager())->InstallAsService(system.ServiceManager());
 }
 
 } // namespace Service::LM
