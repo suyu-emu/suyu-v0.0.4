@@ -49,10 +49,12 @@ private:
     void OpenDataStorageByDataId(Kernel::HLERequestContext& ctx);
     void OpenPatchDataStorageByCurrentProcess(Kernel::HLERequestContext& ctx);
     void OutputAccessLogToSdCard(Kernel::HLERequestContext& ctx);
+    void GetAccessLogVersionInfo(Kernel::HLERequestContext& ctx);
 
     FileSys::VirtualFile romfs;
     u64 current_process_id = 0;
-    LogMode log_mode;
+    u32 access_log_program_index = 0;
+    LogMode log_mode = LogMode::LogToSdCard;
 
     const Core::Reporter& reporter;
 };

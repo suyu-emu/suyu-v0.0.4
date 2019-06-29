@@ -718,7 +718,7 @@ FSP_SRV::FSP_SRV(const Core::Reporter& reporter) : ServiceFramework("fsp-srv"), 
         {1008, nullptr, "OpenRegisteredUpdatePartition"},
         {1009, nullptr, "GetAndClearMemoryReportInfo"},
         {1010, nullptr, "SetDataStorageRedirectTarget"},
-        {1011, nullptr, "OutputAccessLogToSdCard2"},
+        {1011, &FSP_SRV::GetAccessLogVersionInfo, "GetAccessLogVersionInfo"},
         {1100, nullptr, "OverrideSaveDataTransferTokenSignVerificationKey"},
         {1110, nullptr, "CorruptSaveDataFileSystemBySaveDataSpaceId2"},
         {1200, nullptr, "OpenMultiCommitManager"},
@@ -826,7 +826,7 @@ void FSP_SRV::SetGlobalAccessLogMode(Kernel::HLERequestContext& ctx) {
 }
 
 void FSP_SRV::GetGlobalAccessLogMode(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_FS, "called");
+    LOG_DEBUG(Service_FS, "called");
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
@@ -915,6 +915,15 @@ void FSP_SRV::OutputAccessLogToSdCard(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
+}
+
+void FSP_SRV::GetAccessLogVersionInfo(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_FS, "called");
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushEnum(AccessLogVersion::Latest);
+    rb.Push(access_log_program_index);
 }
 
 } // namespace Service::FileSystem
