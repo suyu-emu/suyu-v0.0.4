@@ -30,6 +30,8 @@ class ExprAnd final {
 public:
     ExprAnd(Expr a, Expr b) : operand1{a}, operand2{b} {}
 
+    bool operator==(const ExprAnd& b) const;
+
     Expr operand1;
     Expr operand2;
 };
@@ -37,6 +39,8 @@ public:
 class ExprOr final {
 public:
     ExprOr(Expr a, Expr b) : operand1{a}, operand2{b} {}
+
+    bool operator==(const ExprOr& b) const;
 
     Expr operand1;
     Expr operand2;
@@ -46,6 +50,8 @@ class ExprNot final {
 public:
     ExprNot(Expr a) : operand1{a} {}
 
+    bool operator==(const ExprNot& b) const;
+
     Expr operand1;
 };
 
@@ -53,19 +59,31 @@ class ExprVar final {
 public:
     ExprVar(u32 index) : var_index{index} {}
 
+    bool operator==(const ExprVar& b) const {
+        return var_index == b.var_index;
+    }
+
     u32 var_index;
 };
 
 class ExprPredicate final {
 public:
-    ExprPredicate(Pred predicate) : predicate{predicate} {}
+    ExprPredicate(u32 predicate) : predicate{predicate} {}
 
-    Pred predicate;
+    bool operator==(const ExprPredicate& b) const {
+        return predicate == b.predicate;
+    }
+
+    u32 predicate;
 };
 
 class ExprCondCode final {
 public:
     ExprCondCode(ConditionCode cc) : cc{cc} {}
+
+    bool operator==(const ExprCondCode& b) const {
+        return cc == b.cc;
+    }
 
     ConditionCode cc;
 };
@@ -73,6 +91,10 @@ public:
 class ExprBoolean final {
 public:
     ExprBoolean(bool val) : value{val} {}
+
+    bool operator==(const ExprBoolean& b) const {
+        return value == b.value;
+    }
 
     bool value;
 };
@@ -82,5 +104,15 @@ Expr MakeExpr(Args&&... args) {
     static_assert(std::is_convertible_v<T, ExprData>);
     return std::make_shared<ExprData>(T(std::forward<Args>(args)...));
 }
+
+bool ExprAreEqual(Expr first, Expr second);
+
+bool ExprAreOpposite(Expr first, Expr second);
+
+Expr MakeExprNot(Expr first);
+
+Expr MakeExprAnd(Expr first, Expr second);
+
+Expr MakeExprOr(Expr first, Expr second);
 
 } // namespace VideoCommon::Shader

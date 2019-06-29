@@ -423,7 +423,16 @@ void InsertBranch(ASTManager& mm, const BlockBranchInfo& branch) {
             result = MakeExpr<ExprCondCode>(cond.cc);
         }
         if (cond.predicate != Pred::UnusedIndex) {
-            Expr extra = MakeExpr<ExprPredicate>(cond.predicate);
+            u32 pred = static_cast<u32>(cond.predicate);
+            bool negate;
+            if (pred > 7) {
+                negate = true;
+                pred -= 8;
+            }
+            Expr extra = MakeExpr<ExprPredicate>(pred);
+            if (negate) {
+                extra = MakeExpr<ExprNot>(extra);
+            }
             if (result) {
                 return MakeExpr<ExprAnd>(extra, result);
             }
@@ -460,8 +469,9 @@ void DecompileShader(CFGRebuildState& state) {
             InsertBranch(manager, block.branch);
         }
     }
+    //manager.ShowCurrentState("Before Decompiling");
     manager.Decompile();
-    LOG_CRITICAL(HW_GPU, "Decompiled Shader:\n{} \n", manager.Print());
+    //manager.ShowCurrentState("After Decompiling");
 }
 
 std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,

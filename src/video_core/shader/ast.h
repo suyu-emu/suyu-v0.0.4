@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <list>
 #include <memory>
 #include <optional>
@@ -21,6 +22,7 @@ class ASTProgram;
 class ASTIfThen;
 class ASTIfElse;
 class ASTBlockEncoded;
+class ASTBlockDecoded;
 class ASTVarSet;
 class ASTGoto;
 class ASTLabel;
@@ -28,7 +30,7 @@ class ASTDoWhile;
 class ASTReturn;
 class ASTBreak;
 
-using ASTData = std::variant<ASTProgram, ASTIfThen, ASTIfElse, ASTBlockEncoded, ASTVarSet, ASTGoto,
+using ASTData = std::variant<ASTProgram, ASTIfThen, ASTIfElse, ASTBlockEncoded, ASTBlockDecoded, ASTVarSet, ASTGoto,
                              ASTLabel, ASTDoWhile, ASTReturn, ASTBreak>;
 
 using ASTNode = std::shared_ptr<ASTBase>;
@@ -43,7 +45,8 @@ enum class ASTZipperType : u32 {
 class ASTZipper final {
 public:
     ASTZipper();
-    ASTZipper(ASTNode first);
+
+    void Init(ASTNode first, ASTNode parent);
 
     ASTNode GetFirst() {
         return first;
@@ -56,7 +59,7 @@ public:
     void PushBack(ASTNode new_node);
     void PushFront(ASTNode new_node);
     void InsertAfter(ASTNode new_node, ASTNode at_node);
-    void SetParent(ASTNode new_parent);
+    void InsertBefore(ASTNode new_node, ASTNode at_node);
     void DetachTail(ASTNode node);
     void DetachSingle(ASTNode node);
     void DetachSegment(ASTNode start, ASTNode end);
@@ -74,14 +77,14 @@ public:
 
 class ASTIfThen {
 public:
-    ASTIfThen(Expr condition, ASTZipper nodes) : condition(condition), nodes{nodes} {}
+    ASTIfThen(Expr condition) : condition(condition), nodes{} {}
     Expr condition;
     ASTZipper nodes;
 };
 
 class ASTIfElse {
 public:
-    ASTIfElse(ASTZipper nodes) : nodes{nodes} {}
+    ASTIfElse() : nodes{} {}
     ASTZipper nodes;
 };
 
@@ -90,6 +93,12 @@ public:
     ASTBlockEncoded(u32 start, u32 end) : start{start}, end{end} {}
     u32 start;
     u32 end;
+};
+
+class ASTBlockDecoded {
+public:
+    ASTBlockDecoded(NodeBlock& new_nodes) : nodes(std::move(new_nodes)) {}
+    NodeBlock nodes;
 };
 
 class ASTVarSet {
@@ -114,7 +123,7 @@ public:
 
 class ASTDoWhile {
 public:
-    ASTDoWhile(Expr condition, ASTZipper nodes) : condition(condition), nodes{nodes} {}
+    ASTDoWhile(Expr condition) : condition(condition), nodes{} {}
     Expr condition;
     ASTZipper nodes;
 };
@@ -131,6 +140,8 @@ public:
     ASTBreak(Expr condition) : condition{condition} {}
     Expr condition;
 };
+
+using TransformCallback = std::function<NodeBlock(u32 start, u32 end)>;
 
 class ASTBase {
 public:
@@ -195,6 +206,14 @@ public:
         return nullptr;
     }
 
+    Expr GetIfCondition() const {
+        auto inner = std::get_if<ASTIfThen>(&data);
+        if (inner) {
+            return inner->condition;
+        }
+        return nullptr;
+    }
+
     void SetGotoCondition(Expr new_condition) {
         auto inner = std::get_if<ASTGoto>(&data);
         if (inner) {
@@ -208,6 +227,18 @@ public:
 
     bool IsIfElse() const {
         return std::holds_alternative<ASTIfElse>(data);
+    }
+
+    bool IsBlockEncoded() const {
+        return std::holds_alternative<ASTBlockEncoded>(data);
+    }
+
+    void TransformBlockEncoded(TransformCallback& callback) {
+        auto block = std::get_if<ASTBlockEncoded>(&data);
+        const u32 start = block->start;
+        const u32 end = block->end;
+        NodeBlock nodes = callback(start, end);
+        data = ASTBlockDecoded(nodes);
     }
 
     bool IsLoop() const {
@@ -245,6 +276,7 @@ public:
     explicit ASTManager() {
         main_node = ASTBase::Make<ASTProgram>(ASTNode{});
         program = std::get_if<ASTProgram>(main_node->GetInnerData());
+        true_condition = MakeExpr<ExprBoolean>(true);
     }
 
     void DeclareLabel(u32 address) {
@@ -283,7 +315,13 @@ public:
 
     void Decompile();
 
+    void ShowCurrentState(std::string state);
 
+    void SanityCheck();
+
+    bool IsFullyDecompiled() {
+        return gotos.size() == 0;
+    }
 
 private:
     bool IndirectlyRelated(ASTNode first, ASTNode second);
@@ -309,6 +347,9 @@ private:
     u32 variables{};
     ASTProgram* program;
     ASTNode main_node;
+    Expr true_condition;
+    u32 outward_count{};
+    u32 enclose_count{};
 };
 
 } // namespace VideoCommon::Shader

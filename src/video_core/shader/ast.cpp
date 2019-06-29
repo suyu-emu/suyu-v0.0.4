@@ -12,18 +12,22 @@
 namespace VideoCommon::Shader {
 
 ASTZipper::ASTZipper() = default;
-ASTZipper::ASTZipper(ASTNode new_first) : first{}, last{} {
+
+void ASTZipper::Init(ASTNode new_first, ASTNode parent) {
+    ASSERT(new_first->manager == nullptr);
     first = new_first;
     last = new_first;
     ASTNode current = first;
     while (current) {
         current->manager = this;
+        current->parent = parent;
         last = current;
         current = current->next;
     }
 }
 
 void ASTZipper::PushBack(ASTNode new_node) {
+    ASSERT(new_node->manager == nullptr);
     new_node->previous = last;
     if (last) {
         last->next = new_node;
@@ -37,38 +41,55 @@ void ASTZipper::PushBack(ASTNode new_node) {
 }
 
 void ASTZipper::PushFront(ASTNode new_node) {
+    ASSERT(new_node->manager == nullptr);
     new_node->previous.reset();
     new_node->next = first;
     if (first) {
-        first->previous = first;
+        first->previous = new_node;
     }
-    first = new_node;
-    if (!last) {
+    if (last == first) {
         last = new_node;
     }
+    first = new_node;
     new_node->manager = this;
 }
 
 void ASTZipper::InsertAfter(ASTNode new_node, ASTNode at_node) {
+    ASSERT(new_node->manager == nullptr);
     if (!at_node) {
         PushFront(new_node);
         return;
+    }
+    ASTNode next = at_node->next;
+    if (next) {
+        next->previous = new_node;
     }
     new_node->previous = at_node;
     if (at_node == last) {
         last = new_node;
     }
-    new_node->next = at_node->next;
+    new_node->next = next;
     at_node->next = new_node;
     new_node->manager = this;
 }
 
-void ASTZipper::SetParent(ASTNode new_parent) {
-    ASTNode current = first;
-    while (current) {
-        current->parent = new_parent;
-        current = current->next;
+void ASTZipper::InsertBefore(ASTNode new_node, ASTNode at_node) {
+    ASSERT(new_node->manager == nullptr);
+    if (!at_node) {
+        PushBack(new_node);
+        return;
     }
+    ASTNode previous = at_node->previous;
+    if (previous) {
+        previous->next = new_node;
+    }
+    new_node->next = at_node;
+    if (at_node == first) {
+        first = new_node;
+    }
+    new_node->previous = previous;
+    at_node->previous = new_node;
+    new_node->manager = this;
 }
 
 void ASTZipper::DetachTail(ASTNode node) {
@@ -80,11 +101,22 @@ void ASTZipper::DetachTail(ASTNode node) {
     }
 
     last = node->previous;
+    last->next.reset();
     node->previous.reset();
+    ASTNode current = node;
+    while (current) {
+        current->manager = nullptr;
+        current->parent.reset();
+        current = current->next;
+    }
 }
 
 void ASTZipper::DetachSegment(ASTNode start, ASTNode end) {
     ASSERT(start->manager == this && end->manager == this);
+    if (start == end) {
+        DetachSingle(start);
+        return;
+    }
     ASTNode prev = start->previous;
     ASTNode post = end->next;
     if (!prev) {
@@ -130,7 +162,6 @@ void ASTZipper::DetachSingle(ASTNode node) {
     node->manager = nullptr;
     node->parent.reset();
 }
-
 
 void ASTZipper::Remove(ASTNode node) {
     ASSERT(node->manager == this);
@@ -178,12 +209,7 @@ public:
     }
 
     void operator()(ExprPredicate const& expr) {
-        u32 pred = static_cast<u32>(expr.predicate);
-        if (pred > 7) {
-            inner += "!";
-            pred -= 8;
-        }
-        inner += "P" + std::to_string(pred);
+        inner += "P" + std::to_string(expr.predicate);
     }
 
     void operator()(ExprCondCode const& expr) {
@@ -253,6 +279,10 @@ public:
                  ");\n";
     }
 
+    void operator()(ASTBlockDecoded& ast) {
+        inner += Ident() + "Block;\n";
+    }
+
     void operator()(ASTVarSet& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
@@ -282,7 +312,7 @@ public:
             current = current->GetNext();
         }
         scope--;
-        inner += Ident() + "} while (" + expr_parser.GetResult() + ")\n";
+        inner += Ident() + "} while (" + expr_parser.GetResult() + ");\n";
     }
 
     void operator()(ASTReturn& ast) {
@@ -333,8 +363,6 @@ std::string ASTManager::Print() {
     return printer.GetResult();
 }
 
-#pragma optimize("", off)
-
 void ASTManager::Decompile() {
     auto it = gotos.begin();
     while (it != gotos.end()) {
@@ -348,11 +376,12 @@ void ASTManager::Decompile() {
         }
         if (DirectlyRelated(goto_node, label)) {
             u32 goto_level = goto_node->GetLevel();
-            u32 label_level = goto_node->GetLevel();
-            while (label_level > goto_level) {
+            u32 label_level = label->GetLevel();
+            while (label_level < goto_level) {
                 MoveOutward(goto_node);
-                goto_level++;
+                goto_level--;
             }
+            // TODO(Blinkhawk): Implement Lifting and Inward Movements
         }
         if (label->GetParent() == goto_node->GetParent()) {
             bool is_loop = false;
@@ -375,13 +404,11 @@ void ASTManager::Decompile() {
         }
         it++;
     }
-    /*
     for (ASTNode label : labels) {
         auto& manager = label->GetManager();
         manager.Remove(label);
     }
     labels.clear();
-    */
 }
 
 bool ASTManager::IndirectlyRelated(ASTNode first, ASTNode second) {
@@ -410,87 +437,149 @@ bool ASTManager::DirectlyRelated(ASTNode first, ASTNode second) {
         max = second;
     }
 
-    while (min_level < max_level) {
-        min_level++;
-        min = min->GetParent();
+    while (max_level > min_level) {
+        max_level--;
+        max = max->GetParent();
     }
 
     return (min->GetParent() == max->GetParent());
 }
 
+void ASTManager::ShowCurrentState(std::string state) {
+    LOG_CRITICAL(HW_GPU, "\nState {}:\n\n{}\n", state, Print());
+    SanityCheck();
+}
+
+void ASTManager::SanityCheck() {
+    for (auto label : labels) {
+        if (!label->GetParent()) {
+            LOG_CRITICAL(HW_GPU, "Sanity Check Failed");
+        }
+    }
+}
+
 void ASTManager::EncloseDoWhile(ASTNode goto_node, ASTNode label) {
+    // ShowCurrentState("Before DoWhile Enclose");
+    enclose_count++;
     ASTZipper& zipper = goto_node->GetManager();
     ASTNode loop_start = label->GetNext();
     if (loop_start == goto_node) {
         zipper.Remove(goto_node);
+        // ShowCurrentState("Ignore DoWhile Enclose");
         return;
     }
     ASTNode parent = label->GetParent();
     Expr condition = goto_node->GetGotoCondition();
     zipper.DetachSegment(loop_start, goto_node);
-    ASTNode do_while_node = ASTBase::Make<ASTDoWhile>(parent, condition, ASTZipper(loop_start));
-    zipper.InsertAfter(do_while_node, label);
+    ASTNode do_while_node = ASTBase::Make<ASTDoWhile>(parent, condition);
     ASTZipper* sub_zipper = do_while_node->GetSubNodes();
-    sub_zipper->SetParent(do_while_node);
+    sub_zipper->Init(loop_start, do_while_node);
+    zipper.InsertAfter(do_while_node, label);
     sub_zipper->Remove(goto_node);
+    // ShowCurrentState("After DoWhile Enclose");
 }
 
 void ASTManager::EncloseIfThen(ASTNode goto_node, ASTNode label) {
+    // ShowCurrentState("Before IfThen Enclose");
+    enclose_count++;
     ASTZipper& zipper = goto_node->GetManager();
     ASTNode if_end = label->GetPrevious();
     if (if_end == goto_node) {
         zipper.Remove(goto_node);
+        // ShowCurrentState("Ignore IfThen Enclose");
         return;
     }
     ASTNode prev = goto_node->GetPrevious();
-    ASTNode parent = label->GetParent();
     Expr condition = goto_node->GetGotoCondition();
-    Expr neg_condition = MakeExpr<ExprNot>(condition);
+    bool do_else = false;
+    if (prev->IsIfThen()) {
+        Expr if_condition = prev->GetIfCondition();
+        do_else = ExprAreEqual(if_condition, condition);
+    }
+    ASTNode parent = label->GetParent();
     zipper.DetachSegment(goto_node, if_end);
-    ASTNode if_node = ASTBase::Make<ASTIfThen>(parent, condition, ASTZipper(goto_node));
-    zipper.InsertAfter(if_node, prev);
+    ASTNode if_node;
+    if (do_else) {
+        if_node = ASTBase::Make<ASTIfElse>(parent);
+    } else {
+        Expr neg_condition = MakeExprNot(condition);
+        if_node = ASTBase::Make<ASTIfThen>(parent, neg_condition);
+    }
     ASTZipper* sub_zipper = if_node->GetSubNodes();
-    sub_zipper->SetParent(if_node);
+    sub_zipper->Init(goto_node, if_node);
+    zipper.InsertAfter(if_node, prev);
     sub_zipper->Remove(goto_node);
+    // ShowCurrentState("After IfThen Enclose");
 }
 
 void ASTManager::MoveOutward(ASTNode goto_node) {
+    // ShowCurrentState("Before MoveOutward");
+    outward_count++;
     ASTZipper& zipper = goto_node->GetManager();
     ASTNode parent = goto_node->GetParent();
+    ASTZipper& zipper2 = parent->GetManager();
+    ASTNode grandpa = parent->GetParent();
     bool is_loop = parent->IsLoop();
-    bool is_if = parent->IsIfThen() || parent->IsIfElse();
+    bool is_else = parent->IsIfElse();
+    bool is_if = parent->IsIfThen();
 
     ASTNode prev = goto_node->GetPrevious();
+    ASTNode post = goto_node->GetNext();
 
     Expr condition = goto_node->GetGotoCondition();
-    u32 var_index = NewVariable();
-    Expr var_condition = MakeExpr<ExprVar>(var_index);
-    ASTNode var_node = ASTBase::Make<ASTVarSet>(parent, var_index, condition);
     zipper.DetachSingle(goto_node);
-    zipper.InsertAfter(var_node, prev);
-    goto_node->SetGotoCondition(var_condition);
     if (is_loop) {
+        u32 var_index = NewVariable();
+        Expr var_condition = MakeExpr<ExprVar>(var_index);
+        ASTNode var_node = ASTBase::Make<ASTVarSet>(parent, var_index, condition);
+        ASTNode var_node_init = ASTBase::Make<ASTVarSet>(parent, var_index, true_condition);
+        zipper2.InsertBefore(var_node_init, parent);
+        zipper.InsertAfter(var_node, prev);
+        goto_node->SetGotoCondition(var_condition);
         ASTNode break_node = ASTBase::Make<ASTBreak>(parent, var_condition);
         zipper.InsertAfter(break_node, var_node);
-    } else if (is_if) {
-        ASTNode post = var_node->GetNext();
+    } else if (is_if || is_else) {
         if (post) {
+            u32 var_index = NewVariable();
+            Expr var_condition = MakeExpr<ExprVar>(var_index);
+            ASTNode var_node = ASTBase::Make<ASTVarSet>(parent, var_index, condition);
+            ASTNode var_node_init = ASTBase::Make<ASTVarSet>(parent, var_index, true_condition);
+            if (is_if) {
+                zipper2.InsertBefore(var_node_init, parent);
+            } else {
+                zipper2.InsertBefore(var_node_init, parent->GetPrevious());
+            }
+            zipper.InsertAfter(var_node, prev);
+            goto_node->SetGotoCondition(var_condition);
             zipper.DetachTail(post);
-            ASTNode if_node = ASTBase::Make<ASTIfThen>(parent, var_condition, ASTZipper(post));
-            zipper.InsertAfter(if_node, var_node);
+            ASTNode if_node = ASTBase::Make<ASTIfThen>(parent, MakeExprNot(var_condition));
             ASTZipper* sub_zipper = if_node->GetSubNodes();
-            sub_zipper->SetParent(if_node);
+            sub_zipper->Init(post, if_node);
+            zipper.InsertAfter(if_node, var_node);
+        } else {
+            Expr if_condition;
+            if (is_if) {
+                if_condition = parent->GetIfCondition();
+            } else {
+                ASTNode if_node = parent->GetPrevious();
+                if_condition = MakeExprNot(if_node->GetIfCondition());
+            }
+            Expr new_condition = MakeExprAnd(if_condition, condition);
+            goto_node->SetGotoCondition(new_condition);
         }
     } else {
         UNREACHABLE();
     }
-    ASTZipper& zipper2 = parent->GetManager();
     ASTNode next = parent->GetNext();
     if (is_if && next && next->IsIfElse()) {
         zipper2.InsertAfter(goto_node, next);
+        goto_node->SetParent(grandpa);
+        // ShowCurrentState("After MoveOutward");
         return;
     }
     zipper2.InsertAfter(goto_node, parent);
+    goto_node->SetParent(grandpa);
+    // ShowCurrentState("After MoveOutward");
 }
 
 } // namespace VideoCommon::Shader
