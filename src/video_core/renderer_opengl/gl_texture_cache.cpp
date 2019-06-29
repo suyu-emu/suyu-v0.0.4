@@ -236,10 +236,7 @@ CachedSurface::CachedSurface(const GPUVAddr gpu_addr, const SurfaceParams& param
         true);
 }
 
-CachedSurface::~CachedSurface() {
-    views.clear();
-    main_view = nullptr;
-}
+CachedSurface::~CachedSurface() = default;
 
 void CachedSurface::DownloadTexture(std::vector<u8>& staging_buffer) {
     MICROPROFILE_SCOPE(OpenGL_Texture_Download);

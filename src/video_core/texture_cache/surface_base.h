@@ -294,8 +294,8 @@ protected:
 
     virtual TView CreateView(const ViewParams& view_key) = 0;
 
-    std::unordered_map<ViewParams, TView> views;
     TView main_view;
+    std::unordered_map<ViewParams, TView> views;
 
 private:
     TView GetView(const ViewParams& key) {

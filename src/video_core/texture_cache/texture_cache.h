@@ -79,10 +79,9 @@ public:
         if (surfaces.empty()) {
             return;
         }
-        std::sort(surfaces.begin(), surfaces.end(),
-                  [](const TSurface& a, const TSurface& b) -> bool {
-                      return a->GetModificationTick() < b->GetModificationTick();
-                  });
+        std::sort(surfaces.begin(), surfaces.end(), [](const TSurface& a, const TSurface& b) {
+            return a->GetModificationTick() < b->GetModificationTick();
+        });
         for (const auto& surface : surfaces) {
             FlushSurface(surface);
         }
@@ -181,13 +180,15 @@ public:
     }
 
     void MarkColorBufferInUse(std::size_t index) {
-        if (render_targets[index].target)
-            render_targets[index].target->MarkAsModified(true, Tick());
+        if (auto& render_target = render_targets[index].target) {
+            render_target->MarkAsModified(true, Tick());
+        }
     }
 
     void MarkDepthBufferInUse() {
-        if (depth_buffer.target)
+        if (depth_buffer.target) {
             depth_buffer.target->MarkAsModified(true, Tick());
+        }
     }
 
     void SetEmptyDepthBuffer() {
@@ -245,11 +246,11 @@ protected:
         }
         SetEmptyDepthBuffer();
         staging_cache.SetSize(2);
-        auto make_siblings = ([this](PixelFormat a, PixelFormat b) {
+        const auto make_siblings = [this](PixelFormat a, PixelFormat b) {
             siblings_table[a] = b;
             siblings_table[b] = a;
-        });
-        const u32 max_formats = static_cast<u32>(PixelFormat::Max);
+        };
+        const auto max_formats = static_cast<u32>(PixelFormat::Max);
         siblings_table.reserve(max_formats);
         for (u32 i = 0; i < max_formats; i++) {
             siblings_table[static_cast<PixelFormat>(i)] = PixelFormat::Invalid;

@@ -89,21 +89,6 @@ public:
         return surface.GetSurfaceParams();
     }
 
-    u32 GetWidth() const {
-        const auto& owner_params = GetSurfaceParams();
-        return owner_params.GetMipWidth(params.base_level);
-    }
-
-    u32 GetHeight() const {
-        const auto& owner_params = GetSurfaceParams();
-        return owner_params.GetMipHeight(params.base_level);
-    }
-
-    u32 GetDepth() const {
-        const auto& owner_params = GetSurfaceParams();
-        return owner_params.GetMipDepth(params.base_level);
-    }
-
     void ApplySwizzle(Tegra::Texture::SwizzleSource x_source,
                       Tegra::Texture::SwizzleSource y_source,
                       Tegra::Texture::SwizzleSource z_source,
