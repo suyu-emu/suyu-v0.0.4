@@ -30,8 +30,8 @@ class ASTDoWhile;
 class ASTReturn;
 class ASTBreak;
 
-using ASTData = std::variant<ASTProgram, ASTIfThen, ASTIfElse, ASTBlockEncoded, ASTBlockDecoded, ASTVarSet, ASTGoto,
-                             ASTLabel, ASTDoWhile, ASTReturn, ASTBreak>;
+using ASTData = std::variant<ASTProgram, ASTIfThen, ASTIfElse, ASTBlockEncoded, ASTBlockDecoded,
+                             ASTVarSet, ASTGoto, ASTLabel, ASTDoWhile, ASTReturn, ASTBreak>;
 
 using ASTNode = std::shared_ptr<ASTBase>;
 
@@ -261,6 +261,13 @@ public:
         return nullptr;
     }
 
+    void Clear() {
+        next.reset();
+        previous.reset();
+        parent.reset();
+        manager = nullptr;
+    }
+
 private:
     friend class ASTZipper;
 
@@ -273,43 +280,26 @@ private:
 
 class ASTManager final {
 public:
-    explicit ASTManager() {
-        main_node = ASTBase::Make<ASTProgram>(ASTNode{});
-        program = std::get_if<ASTProgram>(main_node->GetInnerData());
-        true_condition = MakeExpr<ExprBoolean>(true);
-    }
+    ASTManager();
+    ~ASTManager();
 
-    void DeclareLabel(u32 address) {
-        const auto pair = labels_map.emplace(address, labels_count);
-        if (pair.second) {
-            labels_count++;
-            labels.resize(labels_count);
-        }
-    }
+    ASTManager(const ASTManager& o) = delete;
+    ASTManager& operator=(const ASTManager& other) = delete;
 
-    void InsertLabel(u32 address) {
-        u32 index = labels_map[address];
-        ASTNode label = ASTBase::Make<ASTLabel>(main_node, index);
-        labels[index] = label;
-        program->nodes.PushBack(label);
-    }
+    ASTManager(ASTManager&& other);
+    ASTManager& operator=(ASTManager&& other);
 
-    void InsertGoto(Expr condition, u32 address) {
-        u32 index = labels_map[address];
-        ASTNode goto_node = ASTBase::Make<ASTGoto>(main_node, condition, index);
-        gotos.push_back(goto_node);
-        program->nodes.PushBack(goto_node);
-    }
+    void Init();
 
-    void InsertBlock(u32 start_address, u32 end_address) {
-        ASTNode block = ASTBase::Make<ASTBlockEncoded>(main_node, start_address, end_address);
-        program->nodes.PushBack(block);
-    }
+    void DeclareLabel(u32 address);
 
-    void InsertReturn(Expr condition, bool kills) {
-        ASTNode node = ASTBase::Make<ASTReturn>(main_node, condition, kills);
-        program->nodes.PushBack(node);
-    }
+    void InsertLabel(u32 address);
+
+    void InsertGoto(Expr condition, u32 address);
+
+    void InsertBlock(u32 start_address, u32 end_address);
+
+    void InsertReturn(Expr condition, bool kills);
 
     std::string Print();
 
@@ -323,6 +313,12 @@ public:
         return gotos.size() == 0;
     }
 
+    ASTNode GetProgram() {
+        return main_node;
+    }
+
+    void Clear();
+
 private:
     bool IndirectlyRelated(ASTNode first, ASTNode second);
 
@@ -332,7 +328,7 @@ private:
 
     void EncloseIfThen(ASTNode goto_node, ASTNode label);
 
-    void MoveOutward(ASTNode goto_node) ;
+    void MoveOutward(ASTNode goto_node);
 
     u32 NewVariable() {
         u32 new_var = variables;
@@ -345,11 +341,9 @@ private:
     std::vector<ASTNode> labels{};
     std::list<ASTNode> gotos{};
     u32 variables{};
-    ASTProgram* program;
-    ASTNode main_node;
-    Expr true_condition;
-    u32 outward_count{};
-    u32 enclose_count{};
+    ASTProgram* program{};
+    ASTNode main_node{};
+    Expr true_condition{};
 };
 
 } // namespace VideoCommon::Shader

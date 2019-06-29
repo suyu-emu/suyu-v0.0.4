@@ -39,36 +39,14 @@ void ShaderIR::Decode() {
     std::memcpy(&header, program_code.data(), sizeof(Tegra::Shader::Header));
 
     disable_flow_stack = false;
-    const auto info = ScanFlow(program_code, program_size, main_offset);
+    const auto info =
+        ScanFlow(program_code, program_size, main_offset, program_manager);
     if (info) {
         const auto& shader_info = *info;
         coverage_begin = shader_info.start;
         coverage_end = shader_info.end;
-        if (shader_info.decompilable) {
+        if (shader_info.decompiled) {
             disable_flow_stack = true;
-            const auto insert_block = [this](NodeBlock& nodes, u32 label) {
-                if (label == static_cast<u32>(exit_branch)) {
-                    return;
-                }
-                basic_blocks.insert({label, nodes});
-            };
-            const auto& blocks = shader_info.blocks;
-            NodeBlock current_block;
-            u32 current_label = static_cast<u32>(exit_branch);
-            for (auto& block : blocks) {
-                if (shader_info.labels.count(block.start) != 0) {
-                    insert_block(current_block, current_label);
-                    current_block.clear();
-                    current_label = block.start;
-                }
-                if (!block.ignore_branch) {
-                    DecodeRangeInner(current_block, block.start, block.end);
-                    InsertControlFlow(current_block, block);
-                } else {
-                    DecodeRangeInner(current_block, block.start, block.end + 1);
-                }
-            }
-            insert_block(current_block, current_label);
             return;
         }
         LOG_WARNING(HW_GPU, "Flow Stack Removing Failed! Falling back to old method");

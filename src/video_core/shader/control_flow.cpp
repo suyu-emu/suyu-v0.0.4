@@ -57,8 +57,8 @@ struct BlockInfo {
 
 struct CFGRebuildState {
     explicit CFGRebuildState(const ProgramCode& program_code, const std::size_t program_size,
-                             const u32 start)
-        : start{start}, program_code{program_code}, program_size{program_size} {}
+                             const u32 start, ASTManager& manager)
+        : program_code{program_code}, program_size{program_size}, start{start}, manager{manager} {}
 
     u32 start{};
     std::vector<BlockInfo> block_info{};
@@ -71,6 +71,7 @@ struct CFGRebuildState {
     std::unordered_map<u32, BlockStack> stacks{};
     const ProgramCode& program_code;
     const std::size_t program_size;
+    ASTManager& manager;
 };
 
 enum class BlockCollision : u32 { None, Found, Inside };
@@ -455,29 +456,28 @@ void InsertBranch(ASTManager& mm, const BlockBranchInfo& branch) {
 }
 
 void DecompileShader(CFGRebuildState& state) {
-    ASTManager manager{};
+    state.manager.Init();
     for (auto label : state.labels) {
-        manager.DeclareLabel(label);
+        state.manager.DeclareLabel(label);
     }
     for (auto& block : state.block_info) {
         if (state.labels.count(block.start) != 0) {
-            manager.InsertLabel(block.start);
+            state.manager.InsertLabel(block.start);
         }
         u32 end = block.branch.ignore ? block.end + 1 : block.end;
-        manager.InsertBlock(block.start, end);
+        state.manager.InsertBlock(block.start, end);
         if (!block.branch.ignore) {
-            InsertBranch(manager, block.branch);
+            InsertBranch(state.manager, block.branch);
         }
     }
-    //manager.ShowCurrentState("Before Decompiling");
-    manager.Decompile();
-    //manager.ShowCurrentState("After Decompiling");
+    // state.manager.ShowCurrentState("Before Decompiling");
+    state.manager.Decompile();
+    // state.manager.ShowCurrentState("After Decompiling");
 }
 
-std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
-                                              std::size_t program_size, u32 start_address) {
-    CFGRebuildState state{program_code, program_size, start_address};
-
+std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u32 program_size,
+                                                u32 start_address, ASTManager& manager) {
+    CFGRebuildState state{program_code, program_size, start_address, manager};
     // Inspect Code and generate blocks
     state.labels.clear();
     state.labels.emplace(start_address);
@@ -503,12 +503,21 @@ std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
               [](const BlockInfo& a, const BlockInfo& b) -> bool { return a.start < b.start; });
     if (decompiled) {
         DecompileShader(state);
+        decompiled = state.manager.IsFullyDecompiled();
+        if (!decompiled) {
+            LOG_CRITICAL(HW_GPU, "Failed to remove all the gotos!:");
+            state.manager.ShowCurrentState("Of Shader");
+            state.manager.Clear();
+        }
     }
-    ShaderCharacteristics result_out{};
-    result_out.decompilable = decompiled;
-    result_out.start = start_address;
-    result_out.end = start_address;
-    for (const auto& block : state.block_info) {
+    auto result_out = std::make_unique<ShaderCharacteristics>();
+    result_out->decompiled = decompiled;
+    result_out->start = start_address;
+    if (decompiled) {
+        result_out->end = state.block_info.back().end + 1;
+        return std::move(result_out);
+    }
+    for (auto& block : state.block_info) {
         ShaderBlock new_block{};
         new_block.start = block.start;
         new_block.end = block.end;
@@ -518,26 +527,20 @@ std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
             new_block.branch.kills = block.branch.kill;
             new_block.branch.address = block.branch.address;
         }
-        result_out.end = std::max(result_out.end, block.end);
-        result_out.blocks.push_back(new_block);
+        result_out->end = std::max(result_out->end, block.end);
+        result_out->blocks.push_back(new_block);
     }
-    if (result_out.decompilable) {
-        result_out.labels = std::move(state.labels);
-        return {std::move(result_out)};
-    }
-
-    // If it's not decompilable, merge the unlabelled blocks together
-    auto back = result_out.blocks.begin();
+    auto back = result_out->blocks.begin();
     auto next = std::next(back);
-    while (next != result_out.blocks.end()) {
+    while (next != result_out->blocks.end()) {
         if (state.labels.count(next->start) == 0 && next->start == back->end + 1) {
             back->end = next->end;
-            next = result_out.blocks.erase(next);
+            next = result_out->blocks.erase(next);
             continue;
         }
         back = next;
         ++next;
     }
-    return {std::move(result_out)};
+    return std::move(result_out);
 }
 } // namespace VideoCommon::Shader

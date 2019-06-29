@@ -10,6 +10,7 @@
 
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/shader/shader_ir.h"
+#include "video_core/shader/ast.h"
 
 namespace VideoCommon::Shader {
 
@@ -67,13 +68,12 @@ struct ShaderBlock {
 
 struct ShaderCharacteristics {
     std::list<ShaderBlock> blocks{};
-    bool decompilable{};
+    bool decompiled{};
     u32 start{};
     u32 end{};
-    std::set<u32> labels{};
 };
 
-std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
-                                              std::size_t program_size, u32 start_address);
+std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u32 program_size,
+                                              u32 start_address, ASTManager& manager);
 
 } // namespace VideoCommon::Shader

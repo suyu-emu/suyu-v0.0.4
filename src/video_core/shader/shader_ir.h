@@ -16,6 +16,7 @@
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/engines/shader_header.h"
 #include "video_core/shader/node.h"
+#include "video_core/shader/ast.h"
 
 namespace VideoCommon::Shader {
 
@@ -364,6 +365,7 @@ private:
 
     std::map<u32, NodeBlock> basic_blocks;
     NodeBlock global_code;
+    ASTManager program_manager;
 
     std::set<u32> used_registers;
     std::set<Tegra::Shader::Pred> used_predicates;

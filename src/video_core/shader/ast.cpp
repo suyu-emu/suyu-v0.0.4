@@ -363,6 +363,71 @@ std::string ASTManager::Print() {
     return printer.GetResult();
 }
 
+ASTManager::ASTManager() = default;
+
+ASTManager::~ASTManager() {
+    Clear();
+}
+
+void ASTManager::Init() {
+    main_node = ASTBase::Make<ASTProgram>(ASTNode{});
+    program = std::get_if<ASTProgram>(main_node->GetInnerData());
+    true_condition = MakeExpr<ExprBoolean>(true);
+}
+
+ASTManager::ASTManager(ASTManager&& other)
+    : labels_map(std::move(other.labels_map)), labels_count{other.labels_count},
+      gotos(std::move(other.gotos)), labels(std::move(other.labels)), variables{other.variables},
+      program{other.program}, main_node{other.main_node}, true_condition{other.true_condition} {
+    other.main_node.reset();
+}
+
+ASTManager& ASTManager::operator=(ASTManager&& other) {
+    labels_map = std::move(other.labels_map);
+    labels_count = other.labels_count;
+    gotos = std::move(other.gotos);
+    labels = std::move(other.labels);
+    variables = other.variables;
+    program = other.program;
+    main_node = other.main_node;
+    true_condition = other.true_condition;
+
+    other.main_node.reset();
+    return *this;
+}
+
+void ASTManager::DeclareLabel(u32 address) {
+    const auto pair = labels_map.emplace(address, labels_count);
+    if (pair.second) {
+        labels_count++;
+        labels.resize(labels_count);
+    }
+}
+
+void ASTManager::InsertLabel(u32 address) {
+    u32 index = labels_map[address];
+    ASTNode label = ASTBase::Make<ASTLabel>(main_node, index);
+    labels[index] = label;
+    program->nodes.PushBack(label);
+}
+
+void ASTManager::InsertGoto(Expr condition, u32 address) {
+    u32 index = labels_map[address];
+    ASTNode goto_node = ASTBase::Make<ASTGoto>(main_node, condition, index);
+    gotos.push_back(goto_node);
+    program->nodes.PushBack(goto_node);
+}
+
+void ASTManager::InsertBlock(u32 start_address, u32 end_address) {
+    ASTNode block = ASTBase::Make<ASTBlockEncoded>(main_node, start_address, end_address);
+    program->nodes.PushBack(block);
+}
+
+void ASTManager::InsertReturn(Expr condition, bool kills) {
+    ASTNode node = ASTBase::Make<ASTReturn>(main_node, condition, kills);
+    program->nodes.PushBack(node);
+}
+
 void ASTManager::Decompile() {
     auto it = gotos.begin();
     while (it != gotos.end()) {
@@ -460,7 +525,6 @@ void ASTManager::SanityCheck() {
 
 void ASTManager::EncloseDoWhile(ASTNode goto_node, ASTNode label) {
     // ShowCurrentState("Before DoWhile Enclose");
-    enclose_count++;
     ASTZipper& zipper = goto_node->GetManager();
     ASTNode loop_start = label->GetNext();
     if (loop_start == goto_node) {
@@ -481,7 +545,6 @@ void ASTManager::EncloseDoWhile(ASTNode goto_node, ASTNode label) {
 
 void ASTManager::EncloseIfThen(ASTNode goto_node, ASTNode label) {
     // ShowCurrentState("Before IfThen Enclose");
-    enclose_count++;
     ASTZipper& zipper = goto_node->GetManager();
     ASTNode if_end = label->GetPrevious();
     if (if_end == goto_node) {
@@ -514,7 +577,6 @@ void ASTManager::EncloseIfThen(ASTNode goto_node, ASTNode label) {
 
 void ASTManager::MoveOutward(ASTNode goto_node) {
     // ShowCurrentState("Before MoveOutward");
-    outward_count++;
     ASTZipper& zipper = goto_node->GetManager();
     ASTNode parent = goto_node->GetParent();
     ASTZipper& zipper2 = parent->GetManager();
@@ -580,6 +642,77 @@ void ASTManager::MoveOutward(ASTNode goto_node) {
     zipper2.InsertAfter(goto_node, parent);
     goto_node->SetParent(grandpa);
     // ShowCurrentState("After MoveOutward");
+}
+
+class ASTClearer {
+public:
+    ASTClearer() = default;
+
+    void operator()(ASTProgram& ast) {
+        ASTNode current = ast.nodes.GetFirst();
+        while (current) {
+            Visit(current);
+            current = current->GetNext();
+        }
+    }
+
+    void operator()(ASTIfThen& ast) {
+        ASTNode current = ast.nodes.GetFirst();
+        while (current) {
+            Visit(current);
+            current = current->GetNext();
+        }
+    }
+
+    void operator()(ASTIfElse& ast) {
+        ASTNode current = ast.nodes.GetFirst();
+        while (current) {
+            Visit(current);
+            current = current->GetNext();
+        }
+    }
+
+    void operator()(ASTBlockEncoded& ast) {}
+
+    void operator()(ASTBlockDecoded& ast) {
+        ast.nodes.clear();
+    }
+
+    void operator()(ASTVarSet& ast) {}
+
+    void operator()(ASTLabel& ast) {}
+
+    void operator()(ASTGoto& ast) {}
+
+    void operator()(ASTDoWhile& ast) {
+        ASTNode current = ast.nodes.GetFirst();
+        while (current) {
+            Visit(current);
+            current = current->GetNext();
+        }
+    }
+
+    void operator()(ASTReturn& ast) {}
+
+    void operator()(ASTBreak& ast) {}
+
+    void Visit(ASTNode& node) {
+        std::visit(*this, *node->GetInnerData());
+        node->Clear();
+    }
+};
+
+void ASTManager::Clear() {
+    if (!main_node) {
+        return;
+    }
+    ASTClearer clearer{};
+    clearer.Visit(main_node);
+    main_node.reset();
+    program = nullptr;
+    labels_map.clear();
+    labels.clear();
+    gotos.clear();
 }
 
 } // namespace VideoCommon::Shader
