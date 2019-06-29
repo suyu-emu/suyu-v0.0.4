@@ -97,25 +97,19 @@ public:
             return {};
         }
         const auto params{SurfaceParams::CreateForTexture(system, config, entry)};
-        auto pair = GetSurface(gpu_addr, params, true, false);
+        const auto [surface, view] = GetSurface(gpu_addr, params, true, false);
         if (guard_samplers) {
-            if (sampled_textures_stack_pointer == sampled_textures_stack.size()) {
-                sampled_textures_stack.resize(sampled_textures_stack.size() * 2);
-            }
-            sampled_textures_stack[sampled_textures_stack_pointer] = pair.first;
-            sampled_textures_stack_pointer++;
+            sampled_textures.push_back(surface);
         }
-        return pair.second;
+        return view;
     }
 
     bool TextureBarrier() {
-        bool must_do = false;
-        for (u32 i = 0; i < sampled_textures_stack_pointer; i++) {
-            must_do |= sampled_textures_stack[i]->IsRenderTarget();
-            sampled_textures_stack[i] = nullptr;
-        }
-        sampled_textures_stack_pointer = 0;
-        return must_do;
+        const bool any_rt =
+            std::any_of(sampled_textures.begin(), sampled_textures.end(),
+                        [](const auto& surface) { return surface->IsRenderTarget(); });
+        sampled_textures.clear();
+        return any_rt;
     }
 
     TView GetDepthBufferSurface(bool preserve_contents) {
@@ -259,7 +253,7 @@ protected:
         make_siblings(PixelFormat::Z32F, PixelFormat::R32F);
         make_siblings(PixelFormat::Z32FS8, PixelFormat::RG32F);
 
-        sampled_textures_stack.resize(64);
+        sampled_textures.reserve(64);
     }
 
     ~TextureCache() = default;
@@ -809,8 +803,7 @@ private:
         render_targets;
     FramebufferTargetInfo depth_buffer;
 
-    std::vector<TSurface> sampled_textures_stack{};
-    u32 sampled_textures_stack_pointer{};
+    std::vector<TSurface> sampled_textures;
 
     StagingCache staging_cache;
     std::recursive_mutex mutex;
