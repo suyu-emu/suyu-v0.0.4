@@ -104,6 +104,18 @@ void APM_Sys::GetPerformanceEvent(Kernel::HLERequestContext& ctx) {
     rb.PushIpcInterface<ISession>(controller);
 }
 
+void APM_Sys::SetCpuBoostMode(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto mode = rp.PopEnum<CpuBoostMode>();
+
+    LOG_DEBUG(Service_APM, "called, mode={:08X}", static_cast<u32>(mode));
+
+    controller.SetFromCpuBoostMode(mode);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
 void APM_Sys::GetCurrentPerformanceConfiguration(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_APM, "called");
 

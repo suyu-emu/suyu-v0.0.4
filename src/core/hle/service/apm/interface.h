@@ -29,6 +29,8 @@ public:
     explicit APM_Sys(Controller& controller);
     ~APM_Sys() override;
 
+    void SetCpuBoostMode(Kernel::HLERequestContext& ctx);
+
 private:
     void GetPerformanceEvent(Kernel::HLERequestContext& ctx);
     void GetCurrentPerformanceConfiguration(Kernel::HLERequestContext& ctx);
