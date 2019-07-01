@@ -415,6 +415,9 @@ InstallResult RegisteredCache::InstallEntry(const NSP& nsp, bool overwrite_if_ex
     const auto cnmt_file = section0->GetFiles()[0];
     const CNMT cnmt(cnmt_file);
     for (const auto& record : cnmt.GetContentRecords()) {
+        // Ignore DeltaFragments, they are not useful to us
+        if (record.type == ContentRecordType::DeltaFragment)
+            continue;
         const auto nca = GetNCAFromNSPForID(nsp, record.nca_id);
         if (nca == nullptr)
             return InstallResult::ErrorCopyFailed;
