@@ -10,6 +10,7 @@
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "core/hle/service/nvdrv/devices/nvdevice.h"
+#include "core/hle/service/nvdrv/nvdata.h"
 
 namespace Service::Nvidia::Devices {
 
@@ -114,10 +115,6 @@ private:
     static_assert(sizeof(IoctlGetErrorNotification) == 16,
                   "IoctlGetErrorNotification is incorrect size");
 
-    struct Fence {
-        u32_le id;
-        u32_le value;
-    };
     static_assert(sizeof(Fence) == 8, "Fence is incorrect size");
 
     struct IoctlAllocGpfifoEx {

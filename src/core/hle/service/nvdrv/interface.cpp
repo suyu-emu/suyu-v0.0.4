@@ -103,7 +103,7 @@ void NVDRV::QueryEvent(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3, 1};
     rb.Push(RESULT_SUCCESS);
-    if (event_id < 64) {
+    if (event_id < MaxNvEvents) {
         rb.PushCopyObjects(nvdrv->GetEvent(event_id));
         rb.Push<u32>(NvResult::Success);
     } else {

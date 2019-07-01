@@ -536,7 +536,7 @@ private:
 
             if (result) {
                 // Buffer is available
-                IGBPDequeueBufferResponseParcel response{(*result).first, *(*result).second};
+                IGBPDequeueBufferResponseParcel response{result->first, *result->second};
                 ctx.WriteBuffer(response.Serialize());
             } else {
                 // Wait the current thread until a buffer becomes available
@@ -549,8 +549,7 @@ private:
                         auto result = buffer_queue.DequeueBuffer(width, height);
                         ASSERT_MSG(result != std::nullopt, "Could not dequeue buffer.");
 
-                        IGBPDequeueBufferResponseParcel response{(*result).first,
-                                                                 *(*result).second};
+                        IGBPDequeueBufferResponseParcel response{result->first, *result->second};
                         ctx.WriteBuffer(response.Serialize());
                         IPC::ResponseBuilder rb{ctx, 2};
                         rb.Push(RESULT_SUCCESS);

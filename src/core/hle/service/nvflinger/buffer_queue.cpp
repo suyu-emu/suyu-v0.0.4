@@ -80,6 +80,7 @@ void BufferQueue::QueueBuffer(u32 slot, BufferTransformFlags transform,
 
 std::optional<std::reference_wrapper<const BufferQueue::Buffer>> BufferQueue::AcquireBuffer() {
     auto itr = queue.end();
+    // Iterate to find a queued buffer matching the requested slot.
     while (itr == queue.end() && !queue_sequence.empty()) {
         u32 slot = queue_sequence.front();
         itr = std::find_if(queue.begin(), queue.end(), [&slot](const Buffer& buffer) {

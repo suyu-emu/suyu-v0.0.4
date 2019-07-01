@@ -27,25 +27,34 @@ class nvdevice;
 }
 
 struct EventInterface {
+    // Mask representing currently busy events
     u64 events_mask{};
+    // Each kernel event associated to an NV event
     std::array<Kernel::EventPair, MaxNvEvents> events;
+    // The status of the current NVEvent
     std::array<EventState, MaxNvEvents> status{};
+    // Tells if an NVEvent is registered or not
     std::array<bool, MaxNvEvents> registered{};
+    // When an NVEvent is waiting on GPU interrupt, this is the sync_point
+    // associated with it.
     std::array<u32, MaxNvEvents> assigned_syncpt{};
+    // This is the value of the GPU interrupt for which the NVEvent is waiting
+    // for.
     std::array<u32, MaxNvEvents> assigned_value{};
-    static constexpr u32 null_event = 0xFFFFFFFF;
-    u32 GetFreeEvent() const {
+    // Constant to denote an unasigned syncpoint.
+    static constexpr u32 unassigned_syncpt = 0xFFFFFFFF;
+    std::optional<u32> GetFreeEvent() const {
         u64 mask = events_mask;
         for (u32 i = 0; i < MaxNvEvents; i++) {
             const bool is_free = (mask & 0x1) == 0;
             if (is_free) {
                 if (status[i] == EventState::Registered || status[i] == EventState::Free) {
-                    return i;
+                    return {i};
                 }
             }
             mask = mask >> 1;
         }
-        return null_event;
+        return {};
     }
     void SetEventStatus(const u32 event_id, EventState new_status) {
         EventState old_status = status[event_id];
@@ -57,7 +66,7 @@ struct EventInterface {
             registered[event_id] = true;
         }
         if (new_status == EventState::Waiting || new_status == EventState::Busy) {
-            events_mask |= (1 << event_id);
+            events_mask |= (1ULL << event_id);
         }
     }
     void RegisterEvent(const u32 event_id) {
@@ -74,8 +83,8 @@ struct EventInterface {
     }
     void LiberateEvent(const u32 event_id) {
         status[event_id] = registered[event_id] ? EventState::Registered : EventState::Free;
-        events_mask &= ~(1 << event_id);
-        assigned_syncpt[event_id] = 0xFFFFFFFF;
+        events_mask &= ~(1ULL << event_id);
+        assigned_syncpt[event_id] = unassigned_syncpt;
         assigned_value[event_id] = 0;
     }
 };

@@ -87,13 +87,19 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
     u32 event_id;
     if (is_async) {
         event_id = params.value & 0x00FF;
-        if (event_id >= 64) {
+        if (event_id >= MaxNvEvents) {
             std::memcpy(output.data(), &params, sizeof(params));
             return NvResult::BadParameter;
         }
     } else {
         if (ctrl.fresh_call) {
-            event_id = events_interface.GetFreeEvent();
+            const auto result = events_interface.GetFreeEvent();
+            if (result) {
+                event_id = *result;
+            } else {
+                LOG_CRITICAL(Service_NVDRV, "No Free Events available!");
+                event_id = params.value & 0x00FF;
+            }
         } else {
             event_id = ctrl.event_id;
         }
@@ -129,6 +135,7 @@ u32 nvhost_ctrl::IocCtrlEventRegister(const std::vector<u8>& input, std::vector<
     IocCtrlEventRegisterParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
     const u32 event_id = params.user_event_id & 0x00FF;
+    LOG_DEBUG(Service_NVDRV, " called, user_event_id: {:X}", event_id);
     if (event_id >= MaxNvEvents) {
         return NvResult::BadParameter;
     }
@@ -143,6 +150,7 @@ u32 nvhost_ctrl::IocCtrlEventUnregister(const std::vector<u8>& input, std::vecto
     IocCtrlEventUnregisterParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
     const u32 event_id = params.user_event_id & 0x00FF;
+    LOG_DEBUG(Service_NVDRV, " called, user_event_id: {:X}", event_id);
     if (event_id >= MaxNvEvents) {
         return NvResult::BadParameter;
     }
@@ -159,7 +167,7 @@ u32 nvhost_ctrl::IocCtrlEventSignal(const std::vector<u8>& input, std::vector<u8
     // TODO(Blinkhawk): This is normally called when an NvEvents timeout on WaitSynchronization
     // It is believed from RE to cancel the GPU Event. However, better research is required
     u32 event_id = params.user_event_id & 0x00FF;
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called, user_event_id: {:X}", event_id);
+    LOG_DEBUG(Service_NVDRV, " called, user_event_id: {:X}", event_id);
     if (event_id >= MaxNvEvents) {
         return NvResult::BadParameter;
     }
