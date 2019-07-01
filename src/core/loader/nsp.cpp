@@ -168,7 +168,8 @@ ResultStatus AppLoader_NSP::ReadControlData(FileSys::NACP& nacp) {
 }
 
 ResultStatus AppLoader_NSP::ReadManualRomFS(FileSys::VirtualFile& file) {
-    const auto nca = nsp->GetNCA(nsp->GetProgramTitleID(), FileSys::ContentRecordType::Manual);
+    const auto nca =
+        nsp->GetNCA(nsp->GetProgramTitleID(), FileSys::ContentRecordType::HtmlDocument);
     if (nsp->GetStatus() != ResultStatus::Success || nca == nullptr)
         return ResultStatus::ErrorNoRomFS;
     file = nca->GetRomFS();
