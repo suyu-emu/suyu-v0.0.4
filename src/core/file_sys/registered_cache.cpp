@@ -397,8 +397,8 @@ InstallResult RegisteredCache::InstallEntry(const NSP& nsp, bool overwrite_if_ex
     });
 
     if (meta_iter == ncas.end()) {
-        LOG_ERROR(Loader, "The XCI you are attempting to install does not have a metadata NCA and "
-                          "is therefore malformed. Double check your encryption keys.");
+        LOG_ERROR(Loader, "The file you are attempting to install does not have a metadata NCA and "
+                          "is therefore malformed. Check your encryption keys.");
         return InstallResult::ErrorMetaFailed;
     }
 
