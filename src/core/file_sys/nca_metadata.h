@@ -37,7 +37,7 @@ enum class ContentRecordType : u8 {
     Control = 3,
     Manual = 4,
     Legal = 5,
-    Patch = 6,
+    DeltaFragment = 6,
 };
 
 struct ContentRecord {
