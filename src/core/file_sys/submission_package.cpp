@@ -248,10 +248,13 @@ void NSP::ReadNCAs(const std::vector<VirtualFile>& files) {
                 auto next_file = pfs->GetFile(fmt::format("{}.nca", id_string));
 
                 if (next_file == nullptr) {
-                    LOG_WARNING(Service_FS,
-                                "NCA with ID {}.nca is listed in content metadata, but cannot "
-                                "be found in PFS. NSP appears to be corrupted.",
-                                id_string);
+                    if (rec.type != ContentRecordType::DeltaFragment) {
+                        LOG_WARNING(Service_FS,
+                                    "NCA with ID {}.nca is listed in content metadata, but cannot "
+                                    "be found in PFS. NSP appears to be corrupted.",
+                                    id_string);
+                    }
+
                     continue;
                 }
 

@@ -134,7 +134,7 @@ ResultStatus AppLoader_XCI::ReadControlData(FileSys::NACP& control) {
 
 ResultStatus AppLoader_XCI::ReadManualRomFS(FileSys::VirtualFile& file) {
     const auto nca = xci->GetSecurePartitionNSP()->GetNCA(xci->GetProgramTitleID(),
-                                                          FileSys::ContentRecordType::Manual);
+                                                          FileSys::ContentRecordType::HtmlDocument);
     if (xci->GetStatus() != ResultStatus::Success || nca == nullptr)
         return ResultStatus::ErrorXCIMissingPartition;
     file = nca->GetRomFS();

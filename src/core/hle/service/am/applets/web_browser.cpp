@@ -459,10 +459,10 @@ void WebBrowser::InitializeOffline() {
     case OfflineWebSource::OfflineHtmlPage:
         // While there is an AppID TLV field, in official SW this is always ignored.
         title_id = 0;
-        type = FileSys::ContentRecordType::Manual;
+        type = FileSys::ContentRecordType::HtmlDocument;
         break;
     case OfflineWebSource::ApplicationLegalInformation:
-        type = FileSys::ContentRecordType::Legal;
+        type = FileSys::ContentRecordType::LegalInformation;
         break;
     case OfflineWebSource::SystemDataPage:
         type = FileSys::ContentRecordType::Data;

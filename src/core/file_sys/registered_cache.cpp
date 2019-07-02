@@ -99,7 +99,7 @@ ContentRecordType GetCRTypeFromNCAType(NCAContentType type) {
         return ContentRecordType::Data;
     case NCAContentType::Manual:
         // TODO(DarkLordZach): Peek at NCA contents to differentiate Manual and Legal.
-        return ContentRecordType::Manual;
+        return ContentRecordType::HtmlDocument;
     default:
         UNREACHABLE_MSG("Invalid NCAContentType={:02X}", static_cast<u8>(type));
     }
@@ -397,8 +397,8 @@ InstallResult RegisteredCache::InstallEntry(const NSP& nsp, bool overwrite_if_ex
     });
 
     if (meta_iter == ncas.end()) {
-        LOG_ERROR(Loader, "The XCI you are attempting to install does not have a metadata NCA and "
-                          "is therefore malformed. Double check your encryption keys.");
+        LOG_ERROR(Loader, "The file you are attempting to install does not have a metadata NCA and "
+                          "is therefore malformed. Check your encryption keys.");
         return InstallResult::ErrorMetaFailed;
     }
 
@@ -415,6 +415,9 @@ InstallResult RegisteredCache::InstallEntry(const NSP& nsp, bool overwrite_if_ex
     const auto cnmt_file = section0->GetFiles()[0];
     const CNMT cnmt(cnmt_file);
     for (const auto& record : cnmt.GetContentRecords()) {
+        // Ignore DeltaFragments, they are not useful to us
+        if (record.type == ContentRecordType::DeltaFragment)
+            continue;
         const auto nca = GetNCAFromNSPForID(nsp, record.nca_id);
         if (nca == nullptr)
             return InstallResult::ErrorCopyFailed;
