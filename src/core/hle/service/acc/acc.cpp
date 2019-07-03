@@ -36,20 +36,31 @@ static constexpr u32 SanitizeJPEGSize(std::size_t size) {
     return static_cast<u32>(std::min(size, max_jpeg_image_size));
 }
 
-class IProfile final : public ServiceFramework<IProfile> {
+class IProfileCommon : public ServiceFramework<IProfileCommon> {
 public:
-    explicit IProfile(Common::UUID user_id, ProfileManager& profile_manager)
-        : ServiceFramework("IProfile"), profile_manager(profile_manager), user_id(user_id) {
+    explicit IProfileCommon(const char* name, bool editor_commands, Common::UUID user_id,
+                            ProfileManager& profile_manager)
+        : ServiceFramework(name), profile_manager(profile_manager), user_id(user_id) {
         static const FunctionInfo functions[] = {
-            {0, &IProfile::Get, "Get"},
-            {1, &IProfile::GetBase, "GetBase"},
-            {10, &IProfile::GetImageSize, "GetImageSize"},
-            {11, &IProfile::LoadImage, "LoadImage"},
+            {0, &IProfileCommon::Get, "Get"},
+            {1, &IProfileCommon::GetBase, "GetBase"},
+            {10, &IProfileCommon::GetImageSize, "GetImageSize"},
+            {11, &IProfileCommon::LoadImage, "LoadImage"},
         };
+
         RegisterHandlers(functions);
+
+        if (editor_commands) {
+            static const FunctionInfo editor_functions[] = {
+                {100, &IProfileCommon::Store, "Store"},
+                {101, &IProfileCommon::StoreWithImage, "StoreWithImage"},
+            };
+
+            RegisterHandlers(editor_functions);
+        }
     }
 
-private:
+protected:
     void Get(Kernel::HLERequestContext& ctx) {
         LOG_INFO(Service_ACC, "called user_id={}", user_id.Format());
         ProfileBase profile_base{};
@@ -124,6 +135,18 @@ private:
 
     const ProfileManager& profile_manager;
     Common::UUID user_id; ///< The user id this profile refers to.
+};
+
+class IProfile final : public IProfileCommon {
+public:
+    IProfile(Common::UUID user_id, ProfileManager& profile_manager)
+        : IProfileCommon("IProfile", false, user_id, profile_manager) {}
+};
+
+class IProfileEditor final : public IProfileCommon {
+public:
+    IProfileEditor(Common::UUID user_id, ProfileManager& profile_manager)
+        : IProfileCommon("IProfileEditor", true, user_id, profile_manager) {}
 };
 
 class IManagerForApplication final : public ServiceFramework<IManagerForApplication> {
