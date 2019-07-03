@@ -26,6 +26,9 @@
 
 namespace Service::Account {
 
+constexpr ResultCode ERR_INVALID_BUFFER_SIZE{ErrorModule::Account, 30};
+constexpr ResultCode ERR_FAILED_SAVE_DATA{ErrorModule::Account, 100};
+
 static std::string GetImagePath(Common::UUID uuid) {
     return FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
            "/system/save/8000000000000010/su/avators/" + uuid.FormatSwitch() + ".jpg";
@@ -133,7 +136,76 @@ protected:
         }
     }
 
-    const ProfileManager& profile_manager;
+    void Store(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto base = rp.PopRaw<ProfileBase>();
+
+        const auto user_data = ctx.ReadBuffer();
+
+        LOG_DEBUG(Service_ACC, "called, username='{}', timestamp={:016X}, uuid={}",
+                  Common::StringFromFixedZeroTerminatedBuffer(
+                      reinterpret_cast<const char*>(base.username.data()), base.username.size()),
+                  base.timestamp, base.user_uuid.Format());
+
+        if (user_data.size() < sizeof(ProfileData)) {
+            LOG_ERROR(Service_ACC, "ProfileData buffer too small!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERR_INVALID_BUFFER_SIZE);
+            return;
+        }
+
+        ProfileData data;
+        std::memcpy(&data, user_data.data(), sizeof(ProfileData));
+
+        if (!profile_manager.SetProfileBaseAndData(user_id, base, data)) {
+            LOG_ERROR(Service_ACC, "Failed to update profile data and base!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERR_FAILED_SAVE_DATA);
+            return;
+        }
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void StoreWithImage(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto base = rp.PopRaw<ProfileBase>();
+
+        const auto user_data = ctx.ReadBuffer();
+        const auto image_data = ctx.ReadBuffer(1);
+
+        LOG_DEBUG(Service_ACC, "called, username='{}', timestamp={:016X}, uuid={}",
+                  Common::StringFromFixedZeroTerminatedBuffer(
+                      reinterpret_cast<const char*>(base.username.data()), base.username.size()),
+                  base.timestamp, base.user_uuid.Format());
+
+        if (user_data.size() < sizeof(ProfileData)) {
+            LOG_ERROR(Service_ACC, "ProfileData buffer too small!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERR_INVALID_BUFFER_SIZE);
+            return;
+        }
+
+        ProfileData data;
+        std::memcpy(&data, user_data.data(), sizeof(ProfileData));
+
+        FileUtil::IOFile image(GetImagePath(user_id), "wb");
+
+        if (!image.IsOpen() || !image.Resize(image_data.size()) ||
+            image.WriteBytes(image_data.data(), image_data.size()) != image_data.size() ||
+            !profile_manager.SetProfileBaseAndData(user_id, base, data)) {
+            LOG_ERROR(Service_ACC, "Failed to update profile data, base, and image!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERR_FAILED_SAVE_DATA);
+            return;
+        }
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    ProfileManager& profile_manager;
     Common::UUID user_id; ///< The user id this profile refers to.
 };
 
