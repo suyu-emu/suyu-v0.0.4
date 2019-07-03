@@ -30,6 +30,7 @@ public:
         void IsUserRegistrationRequestPermitted(Kernel::HLERequestContext& ctx);
         void TrySelectUserWithoutInteraction(Kernel::HLERequestContext& ctx);
         void IsUserAccountSwitchLocked(Kernel::HLERequestContext& ctx);
+        void GetProfileEditor(Kernel::HLERequestContext& ctx);
 
     protected:
         std::shared_ptr<Module> module;

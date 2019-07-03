@@ -350,6 +350,17 @@ void Module::Interface::IsUserAccountSwitchLocked(Kernel::HLERequestContext& ctx
     rb.Push(is_locked);
 }
 
+void Module::Interface::GetProfileEditor(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    Common::UUID user_id = rp.PopRaw<Common::UUID>();
+
+    LOG_DEBUG(Service_ACC, "called, user_id={}", user_id.Format());
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface<IProfileEditor>(user_id, *profile_manager);
+}
+
 void Module::Interface::TrySelectUserWithoutInteraction(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_ACC, "called");
     // A u8 is passed into this function which we can safely ignore. It's to determine if we have
