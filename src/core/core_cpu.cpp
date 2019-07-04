@@ -53,7 +53,7 @@ bool CpuBarrier::Rendezvous() {
 Cpu::Cpu(System& system, ExclusiveMonitor& exclusive_monitor, CpuBarrier& cpu_barrier,
          std::size_t core_index)
     : cpu_barrier{cpu_barrier}, core_timing{system.CoreTiming()}, core_index{core_index} {
-    if (Settings::values.use_cpu_jit) {
+    if (Settings::values.cpu_jit_enabled) {
 #ifdef ARCHITECTURE_x86_64
         arm_interface = std::make_unique<ARM_Dynarmic>(system, exclusive_monitor, core_index);
 #else
@@ -70,7 +70,7 @@ Cpu::Cpu(System& system, ExclusiveMonitor& exclusive_monitor, CpuBarrier& cpu_ba
 Cpu::~Cpu() = default;
 
 std::unique_ptr<ExclusiveMonitor> Cpu::MakeExclusiveMonitor(std::size_t num_cores) {
-    if (Settings::values.use_cpu_jit) {
+    if (Settings::values.cpu_jit_enabled) {
 #ifdef ARCHITECTURE_x86_64
         return std::make_unique<DynarmicExclusiveMonitor>(num_cores);
 #else

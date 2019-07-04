@@ -378,7 +378,7 @@ struct Values {
     std::atomic_bool is_device_reload_pending{true};
 
     // Core
-    bool use_cpu_jit;
+    bool cpu_jit_enabled;
     bool use_multi_core;
 
     // Data Storage

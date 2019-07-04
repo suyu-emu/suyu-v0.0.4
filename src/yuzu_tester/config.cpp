@@ -114,7 +114,7 @@ void Config::ReadValues() {
     }
 
     // Core
-    Settings::values.use_cpu_jit = sdl2_config->GetBoolean("Core", "use_cpu_jit", true);
+    Settings::values.cpu_jit_enabled = sdl2_config->GetBoolean("Core", "cpu_jit_enabled", true);
     Settings::values.use_multi_core = sdl2_config->GetBoolean("Core", "use_multi_core", false);
 
     // Renderer

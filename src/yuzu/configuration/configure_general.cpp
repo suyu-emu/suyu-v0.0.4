@@ -22,8 +22,6 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
 
     connect(ui->toggle_deepscan, &QCheckBox::stateChanged, this,
             [] { UISettings::values.is_game_list_reload_pending.exchange(true); });
-
-    ui->use_cpu_jit->setEnabled(!Core::System::GetInstance().IsPoweredOn());
 }
 
 ConfigureGeneral::~ConfigureGeneral() = default;
@@ -33,7 +31,6 @@ void ConfigureGeneral::SetConfiguration() {
     ui->toggle_check_exit->setChecked(UISettings::values.confirm_before_closing);
     ui->toggle_user_on_boot->setChecked(UISettings::values.select_user_on_boot);
     ui->theme_combobox->setCurrentIndex(ui->theme_combobox->findData(UISettings::values.theme));
-    ui->use_cpu_jit->setChecked(Settings::values.use_cpu_jit);
 }
 
 void ConfigureGeneral::ApplyConfiguration() {
@@ -42,8 +39,6 @@ void ConfigureGeneral::ApplyConfiguration() {
     UISettings::values.select_user_on_boot = ui->toggle_user_on_boot->isChecked();
     UISettings::values.theme =
         ui->theme_combobox->itemData(ui->theme_combobox->currentIndex()).toString();
-
-    Settings::values.use_cpu_jit = ui->use_cpu_jit->isChecked();
 }
 
 void ConfigureGeneral::changeEvent(QEvent* event) {

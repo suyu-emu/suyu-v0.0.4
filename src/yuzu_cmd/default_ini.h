@@ -78,7 +78,7 @@ touch_device=
 [Core]
 # Whether to use the Just-In-Time (JIT) compiler for CPU emulation
 # 0: Interpreter (slow), 1 (default): JIT (fast)
-use_cpu_jit =
+cpu_jit_enabled =
 
 # Whether to use multi-core for CPU emulation
 # 0 (default): Disabled, 1: Enabled
