@@ -68,12 +68,14 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
         return NvResult::Success;
     }
     auto lock = gpu.LockSync();
-    u32 current_syncpoint_value = gpu.GetSyncpointValue(params.syncpt_id);
-    if (current_syncpoint_value >= params.threshold) {
+    const u32 current_syncpoint_value = gpu.GetSyncpointValue(params.syncpt_id);
+    const s32 diff = current_syncpoint_value - params.threshold;
+    if (diff >= 0) {
         params.value = current_syncpoint_value;
         std::memcpy(output.data(), &params, sizeof(params));
         return NvResult::Success;
     }
+    const u32 target_value = current_syncpoint_value - diff;
 
     if (!is_async) {
         params.value = 0;
@@ -109,7 +111,7 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
     if (event_id < MaxNvEvents || status == EventState::Free || status == EventState::Registered) {
         events_interface.SetEventStatus(event_id, EventState::Waiting);
         events_interface.assigned_syncpt[event_id] = params.syncpt_id;
-        events_interface.assigned_value[event_id] = params.threshold;
+        events_interface.assigned_value[event_id] = target_value;
         if (is_async) {
             params.value = params.syncpt_id << 4;
         } else {
@@ -117,7 +119,7 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
         }
         params.value |= event_id;
         events_interface.events[event_id].writable->Clear();
-        gpu.RegisterSyncptInterrupt(params.syncpt_id, params.threshold);
+        gpu.RegisterSyncptInterrupt(params.syncpt_id, target_value);
         if (!is_async && ctrl.fresh_call) {
             ctrl.must_delay = true;
             ctrl.timeout = params.timeout;
@@ -167,7 +169,7 @@ u32 nvhost_ctrl::IocCtrlEventSignal(const std::vector<u8>& input, std::vector<u8
     // TODO(Blinkhawk): This is normally called when an NvEvents timeout on WaitSynchronization
     // It is believed from RE to cancel the GPU Event. However, better research is required
     u32 event_id = params.user_event_id & 0x00FF;
-    LOG_DEBUG(Service_NVDRV, " called, user_event_id: {:X}", event_id);
+    LOG_WARNING(Service_NVDRV, "(STUBBED) called, user_event_id: {:X}", event_id);
     if (event_id >= MaxNvEvents) {
         return NvResult::BadParameter;
     }
