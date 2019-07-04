@@ -46,32 +46,27 @@ void NVDRV::Ioctl(Kernel::HLERequestContext& ctx) {
 
     u32 result = nvdrv->Ioctl(fd, command, ctx.ReadBuffer(), output, ctrl);
 
-    if (!ctrl.must_delay) {
-        IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
-        rb.Push(result);
-
+    if (ctrl.must_delay) {
+        ctrl.fresh_call = false;
+        ctx.SleepClientThread(
+            "NVServices::DelayedResponse", ctrl.timeout,
+            [=](Kernel::SharedPtr<Kernel::Thread> thread, Kernel::HLERequestContext& ctx,
+                Kernel::ThreadWakeupReason reason) {
+                IoctlCtrl ctrl2{ctrl};
+                std::vector<u8> output2 = output;
+                u32 result = nvdrv->Ioctl(fd, command, ctx.ReadBuffer(), output2, ctrl2);
+                ctx.WriteBuffer(output2);
+                IPC::ResponseBuilder rb{ctx, 3};
+                rb.Push(RESULT_SUCCESS);
+                rb.Push(result);
+            },
+            nvdrv->GetEventWriteable(ctrl.event_id));
+    } else {
         ctx.WriteBuffer(output);
-        return;
     }
-    ctrl.fresh_call = false;
-    ctx.SleepClientThread(
-        "NVServices::DelayedResponse", ctrl.timeout,
-        [this, ctrl = ctrl](Kernel::SharedPtr<Kernel::Thread> thread,
-                            Kernel::HLERequestContext& ctx, Kernel::ThreadWakeupReason reason) {
-            IPC::RequestParser rp{ctx};
-            u32 fd = rp.Pop<u32>();
-            u32 command = rp.Pop<u32>();
-            std::vector<u8> output(ctx.GetWriteBufferSize());
-            IoctlCtrl ctrl2{ctrl};
-            u32 result = nvdrv->Ioctl(fd, command, ctx.ReadBuffer(), output, ctrl2);
-            IPC::ResponseBuilder rb{ctx, 3};
-            rb.Push(RESULT_SUCCESS);
-            rb.Push(result);
-
-            ctx.WriteBuffer(output);
-        },
-        nvdrv->GetEventWriteable(ctrl.event_id));
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push(result);
 }
 
 void NVDRV::Close(Kernel::HLERequestContext& ctx) {
