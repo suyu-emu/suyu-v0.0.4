@@ -245,13 +245,13 @@ Shader CachedShader::CreateStageFromMemory(const ShaderParameters& params,
         static_cast<u32>(code_size_b / sizeof(u64)), std::move(program_code),
         std::move(program_code_b)));
 
-    return std::make_shared<CachedShader>(params, program_type, std::move(result));
+    return std::shared_ptr<CachedShader>(new CachedShader(params, program_type, std::move(result)));
 }
 
 Shader CachedShader::CreateStageFromCache(const ShaderParameters& params,
                                           Maxwell::ShaderProgram program_type,
                                           GLShader::ProgramResult result) {
-    return std::make_shared<CachedShader>(params, program_type, std::move(result));
+    return std::shared_ptr<CachedShader>(new CachedShader(params, program_type, std::move(result)));
 }
 
 std::tuple<GLuint, BaseBindings> CachedShader::GetProgramHandle(GLenum primitive_mode,
