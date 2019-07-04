@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <bitset>
 #include <memory>
 #include <random>
 #include "common/alignment.h"
@@ -48,8 +49,58 @@ void SetupMainThread(Process& owner_process, KernelCore& kernel, u32 priority) {
 }
 } // Anonymous namespace
 
-SharedPtr<Process> Process::Create(Core::System& system, std::string name,
-                                   Process::ProcessType type) {
+// Represents a page used for thread-local storage.
+//
+// Each TLS page contains slots that may be used by processes and threads.
+// Every process and thread is created with a slot in some arbitrary page
+// (whichever page happens to have an available slot).
+class TLSPage {
+public:
+    static constexpr std::size_t num_slot_entries = Memory::PAGE_SIZE / Memory::TLS_ENTRY_SIZE;
+
+    explicit TLSPage(VAddr address) : base_address{address} {}
+
+    bool HasAvailableSlots() const {
+        return !is_slot_used.all();
+    }
+
+    VAddr GetBaseAddress() const {
+        return base_address;
+    }
+
+    std::optional<VAddr> ReserveSlot() {
+        for (std::size_t i = 0; i < is_slot_used.size(); i++) {
+            if (is_slot_used[i]) {
+                continue;
+            }
+
+            is_slot_used[i] = true;
+            return base_address + (i * Memory::TLS_ENTRY_SIZE);
+        }
+
+        return std::nullopt;
+    }
+
+    void ReleaseSlot(VAddr address) {
+        // Ensure that all given addresses are consistent with how TLS pages
+        // are intended to be used when releasing slots.
+        ASSERT(IsWithinPage(address));
+        ASSERT((address % Memory::TLS_ENTRY_SIZE) == 0);
+
+        const std::size_t index = (address - base_address) / Memory::TLS_ENTRY_SIZE;
+        is_slot_used[index] = false;
+    }
+
+private:
+    bool IsWithinPage(VAddr address) const {
+        return base_address <= address && address < base_address + Memory::PAGE_SIZE;
+    }
+
+    VAddr base_address;
+    std::bitset<num_slot_entries> is_slot_used;
+};
+
+SharedPtr<Process> Process::Create(Core::System& system, std::string name, ProcessType type) {
     auto& kernel = system.Kernel();
 
     SharedPtr<Process> process(new Process(system));
@@ -181,61 +232,55 @@ void Process::PrepareForTermination() {
 }
 
 /**
- * Finds a free location for the TLS section of a thread.
- * @param tls_slots The TLS page array of the thread's owner process.
- * Returns a tuple of (page, slot, alloc_needed) where:
- * page: The index of the first allocated TLS page that has free slots.
- * slot: The index of the first free slot in the indicated page.
- * alloc_needed: Whether there's a need to allocate a new TLS page (All pages are full).
+ * Attempts to find a TLS page that contains a free slot for
+ * use by a thread.
+ *
+ * @returns If a page with an available slot is found, then an iterator
+ *          pointing to the page is returned. Otherwise the end iterator
+ *          is returned instead.
  */
-static std::tuple<std::size_t, std::size_t, bool> FindFreeThreadLocalSlot(
-    const std::vector<std::bitset<8>>& tls_slots) {
-    // Iterate over all the allocated pages, and try to find one where not all slots are used.
-    for (std::size_t page = 0; page < tls_slots.size(); ++page) {
-        const auto& page_tls_slots = tls_slots[page];
-        if (!page_tls_slots.all()) {
-            // We found a page with at least one free slot, find which slot it is
-            for (std::size_t slot = 0; slot < page_tls_slots.size(); ++slot) {
-                if (!page_tls_slots.test(slot)) {
-                    return std::make_tuple(page, slot, false);
-                }
-            }
-        }
-    }
-
-    return std::make_tuple(0, 0, true);
+static auto FindTLSPageWithAvailableSlots(std::vector<TLSPage>& tls_pages) {
+    return std::find_if(tls_pages.begin(), tls_pages.end(),
+                        [](const auto& page) { return page.HasAvailableSlots(); });
 }
 
-VAddr Process::MarkNextAvailableTLSSlotAsUsed(Thread& thread) {
-    auto [available_page, available_slot, needs_allocation] = FindFreeThreadLocalSlot(tls_slots);
-    const VAddr tls_begin = vm_manager.GetTLSIORegionBaseAddress();
+VAddr Process::CreateTLSRegion() {
+    auto tls_page_iter = FindTLSPageWithAvailableSlots(tls_pages);
 
-    if (needs_allocation) {
-        tls_slots.emplace_back(0); // The page is completely available at the start
-        available_page = tls_slots.size() - 1;
-        available_slot = 0; // Use the first slot in the new page
+    if (tls_page_iter == tls_pages.cend()) {
+        const auto region_address =
+            vm_manager.FindFreeRegion(vm_manager.GetTLSIORegionBaseAddress(),
+                                      vm_manager.GetTLSIORegionEndAddress(), Memory::PAGE_SIZE);
+        ASSERT(region_address.Succeeded());
 
-        // Allocate some memory from the end of the linear heap for this region.
-        auto& tls_memory = thread.GetTLSMemory();
-        tls_memory->insert(tls_memory->end(), Memory::PAGE_SIZE, 0);
+        const auto map_result = vm_manager.MapMemoryBlock(
+            *region_address, std::make_shared<std::vector<u8>>(Memory::PAGE_SIZE), 0,
+            Memory::PAGE_SIZE, MemoryState::ThreadLocal);
+        ASSERT(map_result.Succeeded());
 
-        vm_manager.RefreshMemoryBlockMappings(tls_memory.get());
+        tls_pages.emplace_back(*region_address);
 
-        vm_manager.MapMemoryBlock(tls_begin + available_page * Memory::PAGE_SIZE, tls_memory, 0,
-                                  Memory::PAGE_SIZE, MemoryState::ThreadLocal);
+        const auto reserve_result = tls_pages.back().ReserveSlot();
+        ASSERT(reserve_result.has_value());
+
+        return *reserve_result;
     }
 
-    tls_slots[available_page].set(available_slot);
-
-    return tls_begin + available_page * Memory::PAGE_SIZE + available_slot * Memory::TLS_ENTRY_SIZE;
+    return *tls_page_iter->ReserveSlot();
 }
 
-void Process::FreeTLSSlot(VAddr tls_address) {
-    const VAddr tls_base = tls_address - vm_manager.GetTLSIORegionBaseAddress();
-    const VAddr tls_page = tls_base / Memory::PAGE_SIZE;
-    const VAddr tls_slot = (tls_base % Memory::PAGE_SIZE) / Memory::TLS_ENTRY_SIZE;
+void Process::FreeTLSRegion(VAddr tls_address) {
+    const VAddr aligned_address = Common::AlignDown(tls_address, Memory::PAGE_SIZE);
+    auto iter =
+        std::find_if(tls_pages.begin(), tls_pages.end(), [aligned_address](const auto& page) {
+            return page.GetBaseAddress() == aligned_address;
+        });
 
-    tls_slots[tls_page].reset(tls_slot);
+    // Something has gone very wrong if we're freeing a region
+    // with no actual page available.
+    ASSERT(iter != tls_pages.cend());
+
+    iter->ReleaseSlot(tls_address);
 }
 
 void Process::LoadModule(CodeSet module_, VAddr base_addr) {

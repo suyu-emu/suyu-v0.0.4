@@ -5,7 +5,6 @@
 #pragma once
 
 #include <functional>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -78,9 +77,6 @@ enum class ThreadActivity : u32 {
 
 class Thread final : public WaitObject {
 public:
-    using TLSMemory = std::vector<u8>;
-    using TLSMemoryPtr = std::shared_ptr<TLSMemory>;
-
     using MutexWaitingThreads = std::vector<SharedPtr<Thread>>;
 
     using ThreadContext = Core::ARM_Interface::ThreadContext;
@@ -167,14 +163,6 @@ public:
      */
     u64 GetThreadID() const {
         return thread_id;
-    }
-
-    TLSMemoryPtr& GetTLSMemory() {
-        return tls_memory;
-    }
-
-    const TLSMemoryPtr& GetTLSMemory() const {
-        return tls_memory;
     }
 
     /// Resumes a thread from waiting
@@ -463,11 +451,9 @@ private:
     u32 ideal_core{0xFFFFFFFF};
     u64 affinity_mask{0x1};
 
-    TLSMemoryPtr tls_memory = std::make_shared<TLSMemory>();
+    ThreadActivity activity = ThreadActivity::Normal;
 
     std::string name;
-
-    ThreadActivity activity = ThreadActivity::Normal;
 };
 
 /**

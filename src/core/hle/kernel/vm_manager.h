@@ -362,12 +362,37 @@ public:
     ResultVal<VMAHandle> MapBackingMemory(VAddr target, u8* memory, u64 size, MemoryState state);
 
     /**
-     * Finds the first free address that can hold a region of the desired size.
+     * Finds the first free memory region of the given size within
+     * the user-addressable ASLR memory region.
      *
-     * @param size Size of the desired region.
-     * @return The found free address.
+     * @param size The size of the desired region in bytes.
+     *
+     * @returns If successful, the base address of the free region with
+     *          the given size.
      */
     ResultVal<VAddr> FindFreeRegion(u64 size) const;
+
+    /**
+     * Finds the first free address range that can hold a region of the desired size
+     *
+     * @param begin The starting address of the range.
+     *              This is treated as an inclusive beginning address.
+     *
+     * @param end   The ending address of the range.
+     *              This is treated as an exclusive ending address.
+     *
+     * @param size  The size of the free region to attempt to locate,
+     *              in bytes.
+     *
+     * @returns If successful, the base address of the free region with
+     *          the given size.
+     *
+     * @returns If unsuccessful, a result containing an error code.
+     *
+     * @pre The starting address must be less than the ending address.
+     * @pre The size must not exceed the address range itself.
+     */
+    ResultVal<VAddr> FindFreeRegion(VAddr begin, VAddr end, u64 size) const;
 
     /**
      * Maps a memory-mapped IO region at a given address.

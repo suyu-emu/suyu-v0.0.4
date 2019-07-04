@@ -65,7 +65,7 @@ void Thread::Stop() {
     owner_process->UnregisterThread(this);
 
     // Mark the TLS slot in the thread's page as free.
-    owner_process->FreeTLSSlot(tls_address);
+    owner_process->FreeTLSRegion(tls_address);
 }
 
 void Thread::WakeAfterDelay(s64 nanoseconds) {
@@ -205,9 +205,9 @@ ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name
     thread->name = std::move(name);
     thread->callback_handle = kernel.ThreadWakeupCallbackHandleTable().Create(thread).Unwrap();
     thread->owner_process = &owner_process;
+    thread->tls_address = thread->owner_process->CreateTLSRegion();
     thread->scheduler = &system.Scheduler(processor_id);
     thread->scheduler->AddThread(thread);
-    thread->tls_address = thread->owner_process->MarkNextAvailableTLSSlotAsUsed(*thread);
 
     thread->owner_process->RegisterThread(thread.get());
 
