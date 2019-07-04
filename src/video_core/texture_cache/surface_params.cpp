@@ -310,6 +310,8 @@ std::string SurfaceParams::TargetName() const {
     switch (target) {
     case SurfaceTarget::Texture1D:
         return "1D";
+    case SurfaceTarget::TextureBuffer:
+        return "TexBuffer";
     case SurfaceTarget::Texture2D:
         return "2D";
     case SurfaceTarget::Texture3D:

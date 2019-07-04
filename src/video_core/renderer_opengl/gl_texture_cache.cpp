@@ -141,6 +141,8 @@ const FormatTuple& GetFormatTuple(PixelFormat pixel_format, ComponentType compon
 
 GLenum GetTextureTarget(const SurfaceTarget& target) {
     switch (target) {
+    case SurfaceTarget::TextureBuffer:
+        return GL_TEXTURE_BUFFER;
     case SurfaceTarget::Texture1D:
         return GL_TEXTURE_1D;
     case SurfaceTarget::Texture2D:
@@ -191,7 +193,8 @@ void ApplyTextureDefaults(const SurfaceParams& params, GLuint texture) {
     }
 }
 
-OGLTexture CreateTexture(const SurfaceParams& params, GLenum target, GLenum internal_format) {
+OGLTexture CreateTexture(const SurfaceParams& params, GLenum target, GLenum internal_format,
+                         OGLBuffer& texture_buffer) {
     OGLTexture texture;
     texture.Create(target);
 
@@ -199,6 +202,11 @@ OGLTexture CreateTexture(const SurfaceParams& params, GLenum target, GLenum inte
     case SurfaceTarget::Texture1D:
         glTextureStorage1D(texture.handle, params.emulated_levels, internal_format, params.width);
         break;
+    case SurfaceTarget::TextureBuffer:
+        texture_buffer.Create();
+        glNamedBufferStorage(texture_buffer.handle, params.width * params.GetBytesPerPixel(),
+                             nullptr, GL_DYNAMIC_STORAGE_BIT);
+        glTextureBuffer(texture.handle, internal_format, texture_buffer.handle);
     case SurfaceTarget::Texture2D:
     case SurfaceTarget::TextureCubemap:
         glTextureStorage2D(texture.handle, params.emulated_levels, internal_format, params.width,
@@ -229,7 +237,7 @@ CachedSurface::CachedSurface(const GPUVAddr gpu_addr, const SurfaceParams& param
     type = tuple.type;
     is_compressed = tuple.compressed;
     target = GetTextureTarget(params.target);
-    texture = CreateTexture(params, target, internal_format);
+    texture = CreateTexture(params, target, internal_format, texture_buffer);
     DecorateSurfaceName();
     main_view = CreateViewInner(
         ViewParams(params.target, 0, params.is_layered ? params.depth : 1, 0, params.num_levels),
@@ -315,6 +323,11 @@ void CachedSurface::UploadTextureMipmap(u32 level, std::vector<u8>& staging_buff
         case SurfaceTarget::Texture1D:
             glTextureSubImage1D(texture.handle, level, 0, params.GetMipWidth(level), format, type,
                                 buffer);
+            break;
+        case SurfaceTarget::TextureBuffer:
+            ASSERT(level == 0);
+            glNamedBufferSubData(texture_buffer.handle, 0,
+                                 params.GetMipWidth(level) * params.GetBytesPerPixel(), buffer);
             break;
         case SurfaceTarget::Texture1DArray:
         case SurfaceTarget::Texture2D:

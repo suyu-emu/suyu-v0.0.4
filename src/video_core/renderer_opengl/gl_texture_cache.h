@@ -67,6 +67,7 @@ private:
     u32 view_count{};
 
     OGLTexture texture;
+    OGLBuffer texture_buffer;
 };
 
 class CachedSurfaceView final : public VideoCommon::ViewBase {
