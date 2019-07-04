@@ -224,6 +224,9 @@ gdbstub_port=24689
 dump_exefs=false
 # Determines whether or not yuzu will dump all NSOs it attempts to load while loading them
 dump_nso=false
+# Determines whether or not yuzu will report to the game that the emulated console is in Kiosk Mode
+# false: Retail/Normal Mode (default), true: Kiosk Mode
+quest_flag =
 
 [WebService]
 # Whether or not to enable telemetry

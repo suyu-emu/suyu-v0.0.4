@@ -475,6 +475,7 @@ void Config::ReadDebuggingValues() {
     Settings::values.dump_nso = ReadSetting(QStringLiteral("dump_nso"), false).toBool();
     Settings::values.reporting_services =
         ReadSetting(QStringLiteral("reporting_services"), false).toBool();
+    Settings::values.quest_flag = ReadSetting(QStringLiteral("quest_flag"), false).toBool();
 
     qt_config->endGroup();
 }
@@ -858,6 +859,7 @@ void Config::SaveDebuggingValues() {
                  QString::fromStdString(Settings::values.program_args), QStringLiteral(""));
     WriteSetting(QStringLiteral("dump_exefs"), Settings::values.dump_exefs, false);
     WriteSetting(QStringLiteral("dump_nso"), Settings::values.dump_nso, false);
+    WriteSetting(QStringLiteral("quest_flag"), Settings::values.quest_flag, false);
 
     qt_config->endGroup();
 }

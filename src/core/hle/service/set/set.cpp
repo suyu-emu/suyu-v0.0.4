@@ -95,6 +95,14 @@ void SET::GetAvailableLanguageCodeCount2(Kernel::HLERequestContext& ctx) {
     PushResponseLanguageCode(ctx, post4_0_0_max_entries);
 }
 
+void SET::GetQuestFlag(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_SET, "called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push(static_cast<u32>(Settings::values.quest_flag));
+}
+
 void SET::GetLanguageCode(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called {}", Settings::values.language_index);
 
@@ -114,7 +122,7 @@ SET::SET() : ServiceFramework("set") {
         {5, &SET::GetAvailableLanguageCodes2, "GetAvailableLanguageCodes2"},
         {6, &SET::GetAvailableLanguageCodeCount2, "GetAvailableLanguageCodeCount2"},
         {7, nullptr, "GetKeyCodeMap"},
-        {8, nullptr, "GetQuestFlag"},
+        {8, &SET::GetQuestFlag, "GetQuestFlag"},
         {9, nullptr, "GetKeyCodeMap2"},
     };
     // clang-format on
