@@ -221,44 +221,37 @@ std::set<GLenum> GetSupportedFormats() {
 
 } // Anonymous namespace
 
-CachedShader::CachedShader(const Device& device, VAddr cpu_addr, u64 unique_identifier,
-                           Maxwell::ShaderProgram program_type, ShaderDiskCacheOpenGL& disk_cache,
-                           const PrecompiledPrograms& precompiled_programs,
-                           ProgramCode&& program_code, ProgramCode&& program_code_b, u8* host_ptr)
-    : RasterizerCacheObject{host_ptr}, host_ptr{host_ptr}, cpu_addr{cpu_addr},
-      unique_identifier{unique_identifier}, program_type{program_type}, disk_cache{disk_cache},
-      precompiled_programs{precompiled_programs} {
-    const std::size_t code_size{CalculateProgramSize(program_code)};
-    const std::size_t code_size_b{program_code_b.empty() ? 0
-                                                         : CalculateProgramSize(program_code_b)};
-    GLShader::ProgramResult program_result{
-        CreateProgram(device, program_type, program_code, program_code_b)};
-    if (program_result.first.empty()) {
+CachedShader::CachedShader(const ShaderParameters& params, Maxwell::ShaderProgram program_type,
+                           GLShader::ProgramResult result)
+    : RasterizerCacheObject{params.host_ptr}, host_ptr{params.host_ptr}, cpu_addr{params.cpu_addr},
+      unique_identifier{params.unique_identifier}, program_type{program_type},
+      disk_cache{params.disk_cache}, precompiled_programs{params.precompiled_programs},
+      entries{result.second}, code{std::move(result.first)}, shader_length{entries.shader_length} {}
+
+Shader CachedShader::CreateStageFromMemory(const ShaderParameters& params,
+                                           Maxwell::ShaderProgram program_type,
+                                           ProgramCode&& program_code,
+                                           ProgramCode&& program_code_b) {
+    const auto code_size{CalculateProgramSize(program_code)};
+    const auto code_size_b{CalculateProgramSize(program_code_b)};
+    auto result{CreateProgram(params.device, program_type, program_code, program_code_b)};
+    if (result.first.empty()) {
         // TODO(Rodrigo): Unimplemented shader stages hit here, avoid using these for now
-        return;
+        return {};
     }
 
-    code = program_result.first;
-    entries = program_result.second;
-    shader_length = entries.shader_length;
+    params.disk_cache.SaveRaw(ShaderDiskCacheRaw(
+        params.unique_identifier, program_type, static_cast<u32>(code_size / sizeof(u64)),
+        static_cast<u32>(code_size_b / sizeof(u64)), std::move(program_code),
+        std::move(program_code_b)));
 
-    const ShaderDiskCacheRaw raw(unique_identifier, program_type,
-                                 static_cast<u32>(code_size / sizeof(u64)),
-                                 static_cast<u32>(code_size_b / sizeof(u64)),
-                                 std::move(program_code), std::move(program_code_b));
-    disk_cache.SaveRaw(raw);
+    return std::make_shared<CachedShader>(params, program_type, std::move(result));
 }
 
-CachedShader::CachedShader(VAddr cpu_addr, u64 unique_identifier,
-                           Maxwell::ShaderProgram program_type, ShaderDiskCacheOpenGL& disk_cache,
-                           const PrecompiledPrograms& precompiled_programs,
-                           GLShader::ProgramResult result, u8* host_ptr)
-    : RasterizerCacheObject{host_ptr}, cpu_addr{cpu_addr}, unique_identifier{unique_identifier},
-      program_type{program_type}, disk_cache{disk_cache}, precompiled_programs{
-                                                              precompiled_programs} {
-    code = std::move(result.first);
-    entries = result.second;
-    shader_length = entries.shader_length;
+Shader CachedShader::CreateStageFromCache(const ShaderParameters& params,
+                                          Maxwell::ShaderProgram program_type,
+                                          GLShader::ProgramResult result) {
+    return std::make_shared<CachedShader>(params, program_type, std::move(result));
 }
 
 std::tuple<GLuint, BaseBindings> CachedShader::GetProgramHandle(GLenum primitive_mode,
@@ -570,18 +563,17 @@ Shader ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
                                        memory_manager.GetPointer(program_addr_b));
     }
 
-    const u64 unique_identifier = GetUniqueIdentifier(program, program_code, program_code_b);
-    const VAddr cpu_addr{*memory_manager.GpuToCpuAddress(program_addr)};
+    const auto unique_identifier = GetUniqueIdentifier(program, program_code, program_code_b);
+    const auto cpu_addr{*memory_manager.GpuToCpuAddress(program_addr)};
+    const ShaderParameters params{disk_cache, precompiled_programs, device, cpu_addr,
+                                  host_ptr,   unique_identifier};
+
     const auto found = precompiled_shaders.find(unique_identifier);
-    if (found != precompiled_shaders.end()) {
-        // Create a shader from the cache
-        shader = std::make_shared<CachedShader>(cpu_addr, unique_identifier, program, disk_cache,
-                                                precompiled_programs, found->second, host_ptr);
+    if (found == precompiled_shaders.end()) {
+        shader = CachedShader::CreateStageFromMemory(params, program, std::move(program_code),
+                                                     std::move(program_code_b));
     } else {
-        // Create a shader from guest memory
-        shader = std::make_shared<CachedShader>(
-            device, cpu_addr, unique_identifier, program, disk_cache, precompiled_programs,
-            std::move(program_code), std::move(program_code_b), host_ptr);
+        shader = CachedShader::CreateStageFromCache(params, program, found->second);
     }
     Register(shader);
 
