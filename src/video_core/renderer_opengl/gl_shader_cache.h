@@ -52,9 +52,6 @@ struct ShaderParameters {
 
 class CachedShader final : public RasterizerCacheObject {
 public:
-    explicit CachedShader(const ShaderParameters& params, Maxwell::ShaderProgram program_type,
-                          GLShader::ProgramResult result);
-
     static Shader CreateStageFromMemory(const ShaderParameters& params,
                                         Maxwell::ShaderProgram program_type,
                                         ProgramCode&& program_code, ProgramCode&& program_code_b);
@@ -81,6 +78,9 @@ public:
                                                       BaseBindings base_bindings);
 
 private:
+    explicit CachedShader(const ShaderParameters& params, Maxwell::ShaderProgram program_type,
+                          GLShader::ProgramResult result);
+
     // Geometry programs. These are needed because GLSL needs an input topology but it's not
     // declared by the hardware. Workaround this issue by generating a different shader per input
     // topology class.
