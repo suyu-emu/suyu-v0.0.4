@@ -74,10 +74,24 @@ add_library(core STATIC
     file_sys/sdmc_factory.h
     file_sys/submission_package.cpp
     file_sys/submission_package.h
+    file_sys/system_archive/data/font_chinese_simplified.cpp
+    file_sys/system_archive/data/font_chinese_simplified.h
+    file_sys/system_archive/data/font_chinese_traditional.cpp
+    file_sys/system_archive/data/font_chinese_traditional.h
+    file_sys/system_archive/data/font_extended_chinese_simplified.cpp
+    file_sys/system_archive/data/font_extended_chinese_simplified.h
+    file_sys/system_archive/data/font_korean.cpp
+    file_sys/system_archive/data/font_korean.h
+    file_sys/system_archive/data/font_nintendo_extended.cpp
+    file_sys/system_archive/data/font_nintendo_extended.h
+    file_sys/system_archive/data/font_standard.cpp
+    file_sys/system_archive/data/font_standard.h
     file_sys/system_archive/mii_model.cpp
     file_sys/system_archive/mii_model.h
     file_sys/system_archive/ng_word.cpp
     file_sys/system_archive/ng_word.h
+    file_sys/system_archive/shared_font.cpp
+    file_sys/system_archive/shared_font.h
     file_sys/system_archive/system_archive.cpp
     file_sys/system_archive/system_archive.h
     file_sys/system_archive/system_version.cpp
@@ -511,7 +525,7 @@ add_library(core STATIC
 create_target_directory_groups(core)
 
 target_link_libraries(core PUBLIC common PRIVATE audio_core video_core)
-target_link_libraries(core PUBLIC Boost::boost PRIVATE fmt json-headers mbedtls opus unicorn open_source_archives)
+target_link_libraries(core PUBLIC Boost::boost PRIVATE fmt json-headers mbedtls opus unicorn)
 
 if (YUZU_ENABLE_BOXCAT)
     get_directory_property(OPENSSL_LIBS
