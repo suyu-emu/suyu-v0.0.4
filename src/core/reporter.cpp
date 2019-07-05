@@ -176,7 +176,7 @@ json GetHLERequestContextData(Kernel::HLERequestContext& ctx) {
     out["buffer_descriptor_c"] = GetHLEBufferDescriptorData<false>(ctx.BufferDescriptorC());
     out["buffer_descriptor_x"] = GetHLEBufferDescriptorData<true>(ctx.BufferDescriptorX());
 
-    return std::move(out);
+    return out;
 }
 
 } // Anonymous namespace
