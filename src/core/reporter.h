@@ -18,7 +18,7 @@ namespace Core {
 
 class Reporter {
 public:
-    explicit Reporter(Core::System& system);
+    explicit Reporter(System& system);
     ~Reporter();
 
     void SaveCrashReport(u64 title_id, ResultCode result, u64 set_flags, u64 entry_point, u64 sp,
@@ -50,7 +50,7 @@ public:
 private:
     bool IsReportingEnabled() const;
 
-    Core::System& system;
+    System& system;
 };
 
 } // namespace Core

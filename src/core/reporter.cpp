@@ -183,7 +183,7 @@ json GetHLERequestContextData(Kernel::HLERequestContext& ctx) {
 
 namespace Core {
 
-Reporter::Reporter(Core::System& system) : system(system) {}
+Reporter::Reporter(System& system) : system(system) {}
 
 Reporter::~Reporter() = default;
 
