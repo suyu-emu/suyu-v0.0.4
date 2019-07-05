@@ -31,8 +31,10 @@ std::string GetTimestamp() {
 using namespace nlohmann;
 
 void SaveToFile(const json& json, const std::string& filename) {
-    if (!FileUtil::CreateFullPath(filename))
+    if (!FileUtil::CreateFullPath(filename)) {
         LOG_ERROR(Core, "Failed to create path for '{}' to save report!", filename);
+        return;
+    }
 
     std::ofstream file(
         FileUtil::SanitizePath(filename, FileUtil::DirectorySeparator::PlatformDefault));
