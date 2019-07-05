@@ -127,6 +127,10 @@ public:
         return disable_flow_stack;
     }
 
+    u32 ConvertAddressToNvidiaSpace(const u32 address) const {
+        return (address - main_offset) * sizeof(Tegra::Shader::Instruction);
+    }
+
 private:
     void Decode();
 

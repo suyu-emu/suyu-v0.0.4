@@ -146,15 +146,18 @@ u32 ShaderIR::DecodeInstr(NodeBlock& bb, u32 pc) {
 
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
+    const u32 nv_address = ConvertAddressToNvidiaSpace(pc);
 
     // Decoding failure
     if (!opcode) {
         UNIMPLEMENTED_MSG("Unhandled instruction: {0:x}", instr.value);
+        bb.push_back(Comment(fmt::format("{:05x} Unimplemented Shader instruction (0x{:016x})",
+                                         nv_address, instr.value)));
         return pc + 1;
     }
 
-    bb.push_back(
-        Comment(fmt::format("{}: {} (0x{:016x})", pc, opcode->get().GetName(), instr.value)));
+    bb.push_back(Comment(
+        fmt::format("{:05x} {} (0x{:016x})", nv_address, opcode->get().GetName(), instr.value)));
 
     using Tegra::Shader::Pred;
     UNIMPLEMENTED_IF_MSG(instr.pred.full_pred == Pred::NeverExecute,
