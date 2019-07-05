@@ -267,7 +267,7 @@ void CachedSurface::DownloadTexture(std::vector<u8>& staging_buffer) {
     }
 }
 
-void CachedSurface::UploadTexture(std::vector<u8>& staging_buffer) {
+void CachedSurface::UploadTexture(const std::vector<u8>& staging_buffer) {
     MICROPROFILE_SCOPE(OpenGL_Texture_Upload);
     SCOPE_EXIT({ glPixelStorei(GL_UNPACK_ROW_LENGTH, 0); });
     for (u32 level = 0; level < params.emulated_levels; ++level) {
@@ -275,7 +275,7 @@ void CachedSurface::UploadTexture(std::vector<u8>& staging_buffer) {
     }
 }
 
-void CachedSurface::UploadTextureMipmap(u32 level, std::vector<u8>& staging_buffer) {
+void CachedSurface::UploadTextureMipmap(u32 level, const std::vector<u8>& staging_buffer) {
     glPixelStorei(GL_UNPACK_ALIGNMENT, std::min(8U, params.GetRowAlignment(level)));
     glPixelStorei(GL_UNPACK_ROW_LENGTH, static_cast<GLint>(params.GetMipWidth(level)));
 
@@ -284,7 +284,7 @@ void CachedSurface::UploadTextureMipmap(u32 level, std::vector<u8>& staging_buff
     const std::size_t mip_offset = compression_type == SurfaceCompression::Converted
                                        ? params.GetConvertedMipmapOffset(level)
                                        : params.GetHostMipmapLevelOffset(level);
-    u8* buffer{staging_buffer.data() + mip_offset};
+    const u8* buffer{staging_buffer.data() + mip_offset};
     if (is_compressed) {
         const auto image_size{static_cast<GLsizei>(params.GetHostMipmapSize(level))};
         switch (params.target) {

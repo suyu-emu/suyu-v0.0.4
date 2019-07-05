@@ -103,14 +103,16 @@ constexpr std::tuple<const char*, const char*, u32> GetPrimitiveDescription(GLen
 /// Calculates the size of a program stream
 std::size_t CalculateProgramSize(const GLShader::ProgramCode& program) {
     constexpr std::size_t start_offset = 10;
-    constexpr u64 key = 0xE2400FFFFF07000FULL;
+    // This is the encoded version of BRA that jumps to itself. All Nvidia
+    // shaders end with one.
+    constexpr u64 self_jumping_branch = 0xE2400FFFFF07000FULL;
     constexpr u64 mask = 0xFFFFFFFFFF7FFFFFULL;
     std::size_t offset = start_offset;
     std::size_t size = start_offset * sizeof(u64);
     while (offset < program.size()) {
         const u64 instruction = program[offset];
         if (!IsSchedInstruction(offset, start_offset)) {
-            if ((instruction & mask) == key) {
+            if ((instruction & mask) == self_jumping_branch) {
                 // End on Maxwell's "nop" instruction
                 break;
             }

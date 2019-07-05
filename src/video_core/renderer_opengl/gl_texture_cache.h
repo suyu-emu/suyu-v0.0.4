@@ -39,7 +39,7 @@ public:
     explicit CachedSurface(GPUVAddr gpu_addr, const SurfaceParams& params);
     ~CachedSurface();
 
-    void UploadTexture(std::vector<u8>& staging_buffer) override;
+    void UploadTexture(const std::vector<u8>& staging_buffer) override;
     void DownloadTexture(std::vector<u8>& staging_buffer) override;
 
     GLenum GetTarget() const {
@@ -57,7 +57,7 @@ protected:
     View CreateViewInner(const ViewParams& view_key, bool is_proxy);
 
 private:
-    void UploadTextureMipmap(u32 level, std::vector<u8>& staging_buffer);
+    void UploadTextureMipmap(u32 level, const std::vector<u8>& staging_buffer);
 
     GLenum internal_format{};
     GLenum format{};
@@ -72,14 +72,13 @@ private:
 
 class CachedSurfaceView final : public VideoCommon::ViewBase {
 public:
-    explicit CachedSurfaceView(CachedSurface& surface, const ViewParams& params,
-                               const bool is_proxy);
+    explicit CachedSurfaceView(CachedSurface& surface, const ViewParams& params, bool is_proxy);
     ~CachedSurfaceView();
 
     /// Attaches this texture view to the current bound GL_DRAW_FRAMEBUFFER
     void Attach(GLenum attachment, GLenum target) const;
 
-    GLuint GetTexture() {
+    GLuint GetTexture() const {
         if (is_proxy) {
             return surface.GetTexture();
         }

@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "common/assert.h"
-#include "common/common_funcs.h"
+#include "common/binary_find.h"
 #include "common/common_types.h"
 #include "video_core/gpu.h"
 #include "video_core/morton.h"
@@ -191,7 +191,7 @@ private:
 template <typename TView>
 class SurfaceBase : public SurfaceBaseImpl {
 public:
-    virtual void UploadTexture(std::vector<u8>& staging_buffer) = 0;
+    virtual void UploadTexture(const std::vector<u8>& staging_buffer) = 0;
 
     virtual void DownloadTexture(std::vector<u8>& staging_buffer) = 0;
 
