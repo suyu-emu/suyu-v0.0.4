@@ -6,13 +6,6 @@
 #include <cstring>
 #include <vector>
 
-#include <FontChineseSimplified.h>
-#include <FontChineseTraditional.h>
-#include <FontExtendedChineseSimplified.h>
-#include <FontKorean.h>
-#include <FontNintendoExtended.h>
-#include <FontStandard.h>
-
 #include "common/assert.h"
 #include "common/common_paths.h"
 #include "common/common_types.h"
@@ -96,13 +89,18 @@ static void DecryptSharedFont(const std::vector<u32>& input, Kernel::PhysicalMem
 
 static void EncryptSharedFont(const std::vector<u8>& input, Kernel::PhysicalMemory& output,
                               std::size_t& offset) {
-    ASSERT_MSG(offset + input.size() + 8 < SHARED_FONT_MEM_SIZE, "Shared fonts exceeds 17mb!");
-    const u32 KEY = EXPECTED_MAGIC ^ EXPECTED_RESULT;
-    std::memcpy(output.data() + offset, &EXPECTED_RESULT, sizeof(u32)); // Magic header
-    const u32 ENC_SIZE = static_cast<u32>(input.size()) ^ KEY;
-    std::memcpy(output.data() + offset + sizeof(u32), &ENC_SIZE, sizeof(u32));
-    std::memcpy(output.data() + offset + (sizeof(u32) * 2), input.data(), input.size());
-    offset += input.size() + (sizeof(u32) * 2);
+    ASSERT_MSG(offset + (input.size() * sizeof(u32)) < SHARED_FONT_MEM_SIZE,
+               "Shared fonts exceeds 17mb!");
+
+    const auto key = Common::swap32(EXPECTED_RESULT ^ EXPECTED_MAGIC);
+    std::vector<u32> transformed_font(input.size() + 2);
+    transformed_font[0] = Common::swap32(EXPECTED_MAGIC);
+    transformed_font[1] = Common::swap32(input.size() * sizeof(u32)) ^ key;
+    std::transform(input.begin(), input.end(), transformed_font.begin() + 2,
+                   [key](u32 in) { return in ^ key; });
+    std::memcpy(output.data() + offset, transformed_font.data(),
+                transformed_font.size() * sizeof(u32));
+    offset += transformed_font.size() * sizeof(u32);
 }
 
 // Helper function to make BuildSharedFontsRawRegions a bit nicer
