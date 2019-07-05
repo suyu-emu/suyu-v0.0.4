@@ -2,8 +2,13 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <ctime>
 #include <fstream>
+
+#include <fmt/format.h>
+#include <fmt/time.h>
 #include <json.hpp>
+
 #include "common/file_util.h"
 #include "common/hex_util.h"
 #include "common/scm_rev.h"
@@ -14,7 +19,6 @@
 #include "core/hle/result.h"
 #include "core/reporter.h"
 #include "core/settings.h"
-#include "fmt/time.h"
 
 namespace {
 

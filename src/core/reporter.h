@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <array>
 #include <optional>
+#include <string>
 #include <vector>
 #include "common/common_types.h"
 
@@ -15,6 +17,8 @@ class HLERequestContext;
 } // namespace Kernel
 
 namespace Core {
+
+class System;
 
 class Reporter {
 public:
