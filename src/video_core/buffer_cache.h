@@ -162,6 +162,8 @@ public:
         return std::exchange(invalidated, false);
     }
 
+    virtual const BufferType* GetEmptyBuffer(std::size_t size) = 0;
+
 protected:
     void FlushObjectInner(const Buffer& entry) override {
         DownloadBufferData(entry->GetBuffer(), 0, entry->GetSize(), entry->GetWritableHostPtr());
@@ -170,8 +172,6 @@ protected:
     virtual BufferStorageType CreateBuffer(std::size_t size) = 0;
 
     virtual const BufferType* ToHandle(const BufferStorageType& storage) = 0;
-
-    virtual const BufferType* GetEmptyBuffer(std::size_t size) = 0;
 
     virtual void UploadBufferData(const BufferStorageType& buffer, std::size_t offset,
                                   std::size_t size, const u8* data) = 0;

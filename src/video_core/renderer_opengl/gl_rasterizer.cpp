@@ -788,7 +788,7 @@ void RasterizerOpenGL::SetupConstBuffer(const Tegra::Engines::ConstBufferInfo& b
                                         const GLShader::ConstBufferEntry& entry) {
     if (!buffer.enabled) {
         // Set values to zero to unbind buffers
-        bind_ubo_pushbuffer.Push(0, 0, 0);
+        bind_ubo_pushbuffer.Push(buffer_cache.GetEmptyBuffer(sizeof(float)), 0, sizeof(float));
         return;
     }
 

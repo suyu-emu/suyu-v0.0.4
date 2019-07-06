@@ -27,12 +27,12 @@ public:
                             std::size_t stream_size);
     ~OGLBufferCache();
 
+    const GLuint* GetEmptyBuffer(std::size_t) override;
+
 protected:
     OGLBuffer CreateBuffer(std::size_t size) override;
 
     const GLuint* ToHandle(const OGLBuffer& buffer) override;
-
-    const GLuint* GetEmptyBuffer(std::size_t) override;
 
     void UploadBufferData(const OGLBuffer& buffer, std::size_t offset, std::size_t size,
                           const u8* data) override;
