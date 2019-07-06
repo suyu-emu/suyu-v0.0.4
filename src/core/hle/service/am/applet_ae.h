@@ -19,6 +19,8 @@ class NVFlinger;
 
 namespace AM {
 
+class AppletMessageQueue;
+
 class AppletAE final : public ServiceFramework<AppletAE> {
 public:
     explicit AppletAE(std::shared_ptr<NVFlinger::NVFlinger> nvflinger,

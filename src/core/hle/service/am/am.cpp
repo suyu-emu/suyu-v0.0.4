@@ -232,12 +232,12 @@ IDebugFunctions::IDebugFunctions() : ServiceFramework{"IDebugFunctions"} {
 
 IDebugFunctions::~IDebugFunctions() = default;
 
-ISelfController::ISelfController(Core::System& system_,
-                                 std::shared_ptr<NVFlinger::NVFlinger> nvflinger_)
-    : ServiceFramework("ISelfController"), nvflinger(std::move(nvflinger_)) {
+ISelfController::ISelfController(Core::System& system,
+                                 std::shared_ptr<NVFlinger::NVFlinger> nvflinger)
+    : ServiceFramework("ISelfController"), system(system), nvflinger(std::move(nvflinger)) {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, nullptr, "Exit"},
+        {0, &ISelfController::Exit, "Exit"},
         {1, &ISelfController::LockExit, "LockExit"},
         {2, &ISelfController::UnlockExit, "UnlockExit"},
         {3, &ISelfController::EnterFatalSection, "EnterFatalSection"},
@@ -297,6 +297,15 @@ ISelfController::ISelfController(Core::System& system_,
 }
 
 ISelfController::~ISelfController() = default;
+
+void ISelfController::Exit(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_AM, "called");
+
+    system.Shutdown();
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
 
 void ISelfController::LockExit(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
