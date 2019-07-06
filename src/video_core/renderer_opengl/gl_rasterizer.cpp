@@ -81,6 +81,21 @@ struct DrawParameters {
     }
 };
 
+static std::size_t GetConstBufferSize(const Tegra::Engines::ConstBufferInfo& buffer,
+                                      const GLShader::ConstBufferEntry& entry) {
+    if (!entry.IsIndirect()) {
+        return entry.GetSize();
+    }
+
+    if (buffer.size > Maxwell::MaxConstBufferSize) {
+        LOG_WARNING(Render_OpenGL, "Indirect constbuffer size {} exceeds maximum {}", buffer.size,
+                    Maxwell::MaxConstBufferSize);
+        return Maxwell::MaxConstBufferSize;
+    }
+
+    return buffer.size;
+}
+
 RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
                                    ScreenInfo& info)
     : texture_cache{system, *this, device}, shader_cache{*this, system, emu_window, device},
@@ -634,8 +649,8 @@ void RasterizerOpenGL::DrawArrays() {
                       Maxwell::MaxShaderStage;
 
     // Add space for at least 18 constant buffers
-    buffer_size +=
-        Maxwell::MaxConstBuffers * (MaxConstbufferSize + device.GetUniformBufferAlignment());
+    buffer_size += Maxwell::MaxConstBuffers *
+                   (Maxwell::MaxConstBufferSize + device.GetUniformBufferAlignment());
 
     // Prepare the vertex array.
     buffer_cache.Map(buffer_size);
@@ -762,11 +777,9 @@ void RasterizerOpenGL::SetupDrawConstBuffers(Tegra::Engines::Maxwell3D::Regs::Sh
     MICROPROFILE_SCOPE(OpenGL_UBO);
     const auto stage_index = static_cast<std::size_t>(stage);
     const auto& shader_stage = system.GPU().Maxwell3D().state.shader_stages[stage_index];
-    const auto& entries = shader->GetShaderEntries().const_buffers;
 
     // Upload only the enabled buffers from the 16 constbuffers of each shader stage
-    for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
-        const auto& entry = entries[bindpoint];
+    for (const auto& entry : shader->GetShaderEntries().const_buffers) {
         SetupConstBuffer(shader_stage.const_buffers[entry.GetIndex()], entry);
     }
 }
@@ -779,25 +792,9 @@ void RasterizerOpenGL::SetupConstBuffer(const Tegra::Engines::ConstBufferInfo& b
         return;
     }
 
-    std::size_t size;
-    if (entry.IsIndirect()) {
-        // Buffer is accessed indirectly, so upload the entire thing
-        size = buffer.size;
-
-        if (size > MaxConstbufferSize) {
-            LOG_WARNING(Render_OpenGL, "Indirect constbuffer size {} exceeds maximum {}", size,
-                        MaxConstbufferSize);
-            size = MaxConstbufferSize;
-        }
-    } else {
-        // Buffer is accessed directly, upload just what we use
-        size = entry.GetSize();
-    }
-
     // Align the actual size so it ends up being a multiple of vec4 to meet the OpenGL std140
     // UBO alignment requirements.
-    size = Common::AlignUp(size, sizeof(GLvec4));
-    ASSERT_MSG(size <= MaxConstbufferSize, "Constant buffer is too big");
+    const std::size_t size = Common::AlignUp(GetConstBufferSize(buffer, entry), sizeof(GLvec4));
 
     const auto alignment = device.GetUniformBufferAlignment();
     const auto [cbuf, offset] = buffer_cache.UploadMemory(buffer.address, size, alignment);
@@ -811,10 +808,7 @@ void RasterizerOpenGL::SetupGlobalRegions(Tegra::Engines::Maxwell3D::Regs::Shade
     const auto cbufs{gpu.Maxwell3D().state.shader_stages[static_cast<std::size_t>(stage)]};
     const auto alignment{device.GetShaderStorageBufferAlignment()};
 
-    const auto& entries = shader->GetShaderEntries().global_memory_entries;
-    for (std::size_t bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
-        const auto& entry{entries[bindpoint]};
-
+    for (const auto& entry : shader->GetShaderEntries().global_memory_entries) {
         const auto addr{cbufs.const_buffers[entry.GetCbufIndex()].address + entry.GetCbufOffset()};
         const auto actual_addr{memory_manager.Read<u64>(addr)};
         const auto size{memory_manager.Read<u32>(addr + 8)};

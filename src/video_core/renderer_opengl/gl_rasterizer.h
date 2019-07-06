@@ -73,11 +73,6 @@ public:
     void LoadDiskResources(const std::atomic_bool& stop_loading,
                            const VideoCore::DiskResourceLoadCallback& callback) override;
 
-    /// Maximum supported size that a constbuffer can have in bytes.
-    static constexpr std::size_t MaxConstbufferSize = 0x10000;
-    static_assert(MaxConstbufferSize % sizeof(GLvec4) == 0,
-                  "The maximum size of a constbuffer must be a multiple of the size of GLvec4");
-
 private:
     struct FramebufferConfigState {
         bool using_color_fb{};
