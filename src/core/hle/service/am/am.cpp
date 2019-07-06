@@ -283,10 +283,11 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
     launchable_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Manual,
                                                               "ISelfController:LaunchableEvent");
 
-    // This event is created by AM on the first time GetAccumulatedSuspendedTickChangedEvent() is called.
-    // Yuzu can just create it unconditionally, since it doesn't need to support multiple ISelfControllers.
-    // The event is signaled on creation, and on transition from suspended -> not suspended if the event has
-    // previously been created by a call to GetAccumulatedSuspendedTickChangedEvent.
+    // This event is created by AM on the first time GetAccumulatedSuspendedTickChangedEvent() is
+    // called. Yuzu can just create it unconditionally, since it doesn't need to support multiple
+    // ISelfControllers. The event is signaled on creation, and on transition from suspended -> not
+    // suspended if the event has previously been created by a call to
+    // GetAccumulatedSuspendedTickChangedEvent.
     accumulated_suspended_tick_changed_event = Kernel::WritableEvent::CreateEventPair(
         kernel, Kernel::ResetType::Manual, "ISelfController:AccumulatedSuspendedTickChangedEvent");
     accumulated_suspended_tick_changed_event.writable->Signal();
