@@ -596,17 +596,17 @@ public:
     /// Determines whether or not the specified range is within the map region.
     bool IsWithinMapRegion(VAddr address, u64 size) const;
 
-    /// Gets the base address of the new map region.
-    VAddr GetNewMapRegionBaseAddress() const;
+    /// Gets the base address of the stack region.
+    VAddr GetStackRegionBaseAddress() const;
 
-    /// Gets the end address of the new map region.
-    VAddr GetNewMapRegionEndAddress() const;
+    /// Gets the end address of the stack region.
+    VAddr GetStackRegionEndAddress() const;
 
-    /// Gets the total size of the new map region in bytes.
-    u64 GetNewMapRegionSize() const;
+    /// Gets the total size of the stack region in bytes.
+    u64 GetStackRegionSize() const;
 
-    /// Determines whether or not the given address range is within the new map region
-    bool IsWithinNewMapRegion(VAddr address, u64 size) const;
+    /// Determines whether or not the given address range is within the stack region
+    bool IsWithinStackRegion(VAddr address, u64 size) const;
 
     /// Gets the base address of the TLS IO region.
     VAddr GetTLSIORegionBaseAddress() const;
@@ -726,8 +726,8 @@ private:
     VAddr map_region_base = 0;
     VAddr map_region_end = 0;
 
-    VAddr new_map_region_base = 0;
-    VAddr new_map_region_end = 0;
+    VAddr stack_region_base = 0;
+    VAddr stack_region_end = 0;
 
     VAddr tls_io_region_base = 0;
     VAddr tls_io_region_end = 0;
