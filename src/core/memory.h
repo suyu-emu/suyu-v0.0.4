@@ -8,10 +8,6 @@
 #include <string>
 #include "common/common_types.h"
 
-namespace Common {
-struct PageTable;
-}
-
 namespace Kernel {
 class Process;
 }
