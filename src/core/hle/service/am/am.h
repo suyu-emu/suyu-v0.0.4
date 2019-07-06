@@ -133,6 +133,7 @@ private:
     void SetHandlesRequestToDisplay(Kernel::HLERequestContext& ctx);
     void SetIdleTimeDetectionExtension(Kernel::HLERequestContext& ctx);
     void GetIdleTimeDetectionExtension(Kernel::HLERequestContext& ctx);
+    void GetAccumulatedSuspendedTickValue(Kernel::HLERequestContext& ctx);
     void GetAccumulatedSuspendedTickChangedEvent(Kernel::HLERequestContext& ctx);
 
     std::shared_ptr<NVFlinger::NVFlinger> nvflinger;
