@@ -250,7 +250,7 @@ private:
         if (auto entry = TryGetReservedBuffer(host_ptr)) {
             return entry;
         }
-        return std::make_shared<Buffer::element_type>(cpu_addr, host_ptr);
+        return std::make_shared<CachedBuffer<BufferStorageType>>(cpu_addr, host_ptr);
     }
 
     Buffer TryGetReservedBuffer(u8* host_ptr) {
