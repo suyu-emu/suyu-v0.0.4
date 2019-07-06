@@ -110,9 +110,8 @@ public:
         MarkedForDestruction().clear();
     }
 
-    [[nodiscard]] BufferInfo UploadMemory(GPUVAddr gpu_addr, std::size_t size,
-                                          std::size_t alignment = 4, bool internalize = false,
-                                          bool is_written = false) {
+    BufferInfo UploadMemory(GPUVAddr gpu_addr, std::size_t size, std::size_t alignment = 4,
+                            bool internalize = false, bool is_written = false) {
         std::lock_guard lock{RasterizerCache<Buffer>::mutex};
 
         auto& memory_manager = system.GPU().MemoryManager();
@@ -145,8 +144,8 @@ public:
     }
 
     /// Uploads from a host memory. Returns the OpenGL buffer where it's located and its offset.
-    [[nodiscard]] BufferInfo UploadHostMemory(const void* raw_pointer, std::size_t size,
-                                              std::size_t alignment = 4) {
+    BufferInfo UploadHostMemory(const void* raw_pointer, std::size_t size,
+                                std::size_t alignment = 4) {
         std::lock_guard lock{RasterizerCache<Buffer>::mutex};
         return StreamBufferUpload(raw_pointer, size, alignment);
     }
