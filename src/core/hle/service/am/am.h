@@ -45,6 +45,7 @@ class AppletMessageQueue {
 public:
     enum class AppletMessage : u32 {
         NoMessage = 0,
+        ExitRequested = 4,
         FocusStateChanged = 15,
         OperationModeChanged = 30,
         PerformanceModeChanged = 31,
@@ -59,6 +60,7 @@ public:
     AppletMessage PopMessage();
     std::size_t GetMessageCount() const;
     void OperationModeChanged();
+    void RequestExit();
 
 private:
     std::queue<AppletMessage> messages;
