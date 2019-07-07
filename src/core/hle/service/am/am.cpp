@@ -270,7 +270,7 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
         {70, nullptr, "ReportMultimediaError"},
         {71, nullptr, "GetCurrentIlluminanceEx"},
         {80, nullptr, "SetWirelessPriorityMode"},
-        {90, nullptr, "GetAccumulatedSuspendedTickValue"},
+        {90, &ISelfController::GetAccumulatedSuspendedTickValue, "GetAccumulatedSuspendedTickValue"},
         {91, &ISelfController::GetAccumulatedSuspendedTickChangedEvent, "GetAccumulatedSuspendedTickChangedEvent"},
         {100, nullptr, "SetAlbumImageTakenNotificationEnabled"},
         {1000, nullptr, "GetDebugStorageChannel"},
@@ -283,10 +283,14 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
     launchable_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Manual,
                                                               "ISelfController:LaunchableEvent");
 
-    // TODO(ogniK): Figure out where, when and why this event gets signalled
+    // This event is created by AM on the first time GetAccumulatedSuspendedTickChangedEvent() is
+    // called. Yuzu can just create it unconditionally, since it doesn't need to support multiple
+    // ISelfControllers. The event is signaled on creation, and on transition from suspended -> not
+    // suspended if the event has previously been created by a call to
+    // GetAccumulatedSuspendedTickChangedEvent.
     accumulated_suspended_tick_changed_event = Kernel::WritableEvent::CreateEventPair(
         kernel, Kernel::ResetType::Manual, "ISelfController:AccumulatedSuspendedTickChangedEvent");
-    accumulated_suspended_tick_changed_event.writable->Signal(); //	Is signalled on creation
+    accumulated_suspended_tick_changed_event.writable->Signal();
 }
 
 ISelfController::~ISelfController() = default;
@@ -449,11 +453,19 @@ void ISelfController::GetIdleTimeDetectionExtension(Kernel::HLERequestContext& c
     rb.Push<u32>(idle_time_detection_extension);
 }
 
+void ISelfController::GetAccumulatedSuspendedTickValue(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_AM, "called.");
+
+    // This command returns the total number of system ticks since ISelfController creation
+    // where the game was suspended. Since Yuzu doesn't implement game suspension, this command
+    // can just always return 0 ticks.
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push<u64>(0);
+}
+
 void ISelfController::GetAccumulatedSuspendedTickChangedEvent(Kernel::HLERequestContext& ctx) {
-    // The implementation of this function is fine as is, the reason we're labelling it as stubbed
-    // is because we're currently unsure when and where accumulated_suspended_tick_changed_event is
-    // actually signalled for the time being.
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+    LOG_DEBUG(Service_AM, "called.");
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
