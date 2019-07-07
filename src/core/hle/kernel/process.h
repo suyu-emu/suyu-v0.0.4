@@ -168,8 +168,9 @@ public:
         return capabilities.GetPriorityMask();
     }
 
-    u32 IsVirtualMemoryEnabled() const {
-        return is_virtual_address_memory_enabled;
+    /// Gets the amount of secure memory to allocate for memory management.
+    u32 GetSystemResourceSize() const {
+        return system_resource_size;
     }
 
     /// Whether this process is an AArch64 or AArch32 process.
@@ -298,12 +299,16 @@ private:
     /// Title ID corresponding to the process
     u64 program_id = 0;
 
+    /// Specifies additional memory to be reserved for the process's memory management by the
+    /// system. When this is non-zero, secure memory is allocated and used for page table allocation
+    /// instead of using the normal global page tables/memory block management.
+    u32 system_resource_size = 0;
+
     /// Resource limit descriptor for this process
     SharedPtr<ResourceLimit> resource_limit;
 
     /// The ideal CPU core for this process, threads are scheduled on this core by default.
     u8 ideal_core = 0;
-    u32 is_virtual_address_memory_enabled = 0;
 
     /// The Thread Local Storage area is allocated as processes create threads,
     /// each TLS area is 0x200 bytes, so one page (0x1000) is split up in 8 parts, and each part

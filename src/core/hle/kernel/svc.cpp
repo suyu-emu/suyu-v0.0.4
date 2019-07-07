@@ -729,8 +729,8 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         StackRegionBaseAddr = 14,
         StackRegionSize = 15,
         // 3.0.0+
-        IsVirtualAddressMemoryEnabled = 16,
-        PersonalMmHeapUsage = 17,
+        SystemResourceSize = 16,
+        SystemResourceUsage = 17,
         TitleId = 18,
         // 4.0.0+
         PrivilegedProcessId = 19,
@@ -756,8 +756,8 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
     case GetInfoType::StackRegionSize:
     case GetInfoType::TotalPhysicalMemoryAvailable:
     case GetInfoType::TotalPhysicalMemoryUsed:
-    case GetInfoType::IsVirtualAddressMemoryEnabled:
-    case GetInfoType::PersonalMmHeapUsage:
+    case GetInfoType::SystemResourceSize:
+    case GetInfoType::SystemResourceUsage:
     case GetInfoType::TitleId:
     case GetInfoType::UserExceptionContextAddr:
     case GetInfoType::TotalPhysicalMemoryAvailableWithoutMmHeap:
@@ -822,8 +822,22 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
             *result = process->GetTotalPhysicalMemoryUsed();
             return RESULT_SUCCESS;
 
-        case GetInfoType::IsVirtualAddressMemoryEnabled:
-            *result = process->IsVirtualMemoryEnabled();
+        case GetInfoType::SystemResourceSize:
+            *result = process->GetSystemResourceSize();
+            return RESULT_SUCCESS;
+
+        case GetInfoType::SystemResourceUsage:
+            // On hardware, this returns the amount of system resource memory that has
+            // been used by the kernel. This is problematic for Yuzu to emulate, because
+            // system resource memory is used for page tables -- and yuzu doesn't really
+            // have a way to calculate how much memory is required for page tables for
+            // the current process at any given time.
+            // TODO: Is this even worth implementing? No game should ever use it, since
+            // the amount of remaining page table space should never be relevant except
+            // for diagnostics. Is returning a value other than zero wise?
+            LOG_WARNING(Kernel_SVC,
+                        "(STUBBED) Attempted to query system resource usage, returned 0");
+            *result = 0;
             return RESULT_SUCCESS;
 
         case GetInfoType::TitleId:
@@ -944,6 +958,86 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         LOG_WARNING(Kernel_SVC, "(STUBBED) Unimplemented svcGetInfo id=0x{:016X}", info_id);
         return ERR_INVALID_ENUM_VALUE;
     }
+}
+
+/// Maps memory at a desired address
+static ResultCode MapPhysicalMemory(Core::System& system, VAddr addr, u64 size) {
+    LOG_DEBUG(Kernel_SVC, "called, addr=0x{:016X}, size=0x{:X}", addr, size);
+
+    if (!Common::Is4KBAligned(addr)) {
+        LOG_ERROR(Kernel_SVC, "Address is not aligned to 4KB, 0x{:016X}", addr);
+        return ERR_INVALID_ADDRESS;
+    }
+
+    if (!Common::Is4KBAligned(size)) {
+        LOG_ERROR(Kernel_SVC, "Size is not aligned to 4KB, 0x{:X}", size);
+        return ERR_INVALID_SIZE;
+    }
+
+    if (size == 0) {
+        LOG_ERROR(Kernel_SVC, "Size is zero");
+        return ERR_INVALID_SIZE;
+    }
+
+    if (!(addr < addr + size)) {
+        LOG_ERROR(Kernel_SVC, "Size causes 64-bit overflow of address");
+        return ERR_INVALID_MEMORY_RANGE;
+    }
+
+    auto* const current_process = Core::CurrentProcess();
+    auto& vm_manager = current_process->VMManager();
+
+    if (current_process->GetSystemResourceSize() == 0) {
+        LOG_ERROR(Kernel_SVC, "System Resource Size is zero");
+        return ERR_INVALID_STATE;
+    }
+
+    if (!vm_manager.IsWithinMapRegion(addr, size)) {
+        LOG_ERROR(Kernel_SVC, "Range not within map region");
+        return ERR_INVALID_MEMORY_RANGE;
+    }
+
+    return vm_manager.MapPhysicalMemory(addr, size);
+}
+
+/// Unmaps memory previously mapped via MapPhysicalMemory
+static ResultCode UnmapPhysicalMemory(Core::System& system, VAddr addr, u64 size) {
+    LOG_DEBUG(Kernel_SVC, "called, addr=0x{:016X}, size=0x{:X}", addr, size);
+
+    if (!Common::Is4KBAligned(addr)) {
+        LOG_ERROR(Kernel_SVC, "Address is not aligned to 4KB, 0x{:016X}", addr);
+        return ERR_INVALID_ADDRESS;
+    }
+
+    if (!Common::Is4KBAligned(size)) {
+        LOG_ERROR(Kernel_SVC, "Size is not aligned to 4KB, 0x{:X}", size);
+        return ERR_INVALID_SIZE;
+    }
+
+    if (size == 0) {
+        LOG_ERROR(Kernel_SVC, "Size is zero");
+        return ERR_INVALID_SIZE;
+    }
+
+    if (!(addr < addr + size)) {
+        LOG_ERROR(Kernel_SVC, "Size causes 64-bit overflow of address");
+        return ERR_INVALID_MEMORY_RANGE;
+    }
+
+    auto* const current_process = Core::CurrentProcess();
+    auto& vm_manager = current_process->VMManager();
+
+    if (current_process->GetSystemResourceSize() == 0) {
+        LOG_ERROR(Kernel_SVC, "System Resource Size is zero");
+        return ERR_INVALID_STATE;
+    }
+
+    if (!vm_manager.IsWithinMapRegion(addr, size)) {
+        LOG_ERROR(Kernel_SVC, "Range not within map region");
+        return ERR_INVALID_MEMORY_RANGE;
+    }
+
+    return vm_manager.UnmapPhysicalMemory(addr, size);
 }
 
 /// Sets the thread activity
@@ -2303,8 +2397,8 @@ static const FunctionDef SVC_Table[] = {
     {0x29, SvcWrap<GetInfo>, "GetInfo"},
     {0x2A, nullptr, "FlushEntireDataCache"},
     {0x2B, nullptr, "FlushDataCache"},
-    {0x2C, nullptr, "MapPhysicalMemory"},
-    {0x2D, nullptr, "UnmapPhysicalMemory"},
+    {0x2C, SvcWrap<MapPhysicalMemory>, "MapPhysicalMemory"},
+    {0x2D, SvcWrap<UnmapPhysicalMemory>, "UnmapPhysicalMemory"},
     {0x2E, nullptr, "GetFutureThreadInfo"},
     {0x2F, nullptr, "GetLastThreadInfo"},
     {0x30, SvcWrap<GetResourceLimitLimitValue>, "GetResourceLimitLimitValue"},

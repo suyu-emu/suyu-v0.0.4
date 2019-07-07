@@ -12,6 +12,8 @@
 #include "core/core.h"
 #include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/errors.h"
+#include "core/hle/kernel/process.h"
+#include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/memory.h"
 #include "core/memory_setup.h"
@@ -49,9 +51,8 @@ bool VirtualMemoryArea::CanBeMergedWith(const VirtualMemoryArea& next) const {
         type != next.type) {
         return false;
     }
-    if (type == VMAType::AllocatedMemoryBlock &&
-        (backing_block != next.backing_block || offset + size != next.offset)) {
-        return false;
+    if (type == VMAType::AllocatedMemoryBlock) {
+        return true;
     }
     if (type == VMAType::BackingMemory && backing_memory + size != next.backing_memory) {
         return false;
@@ -100,7 +101,7 @@ bool VMManager::IsValidHandle(VMAHandle handle) const {
 ResultVal<VMManager::VMAHandle> VMManager::MapMemoryBlock(VAddr target,
                                                           std::shared_ptr<std::vector<u8>> block,
                                                           std::size_t offset, u64 size,
-                                                          MemoryState state) {
+                                                          MemoryState state, VMAPermission perm) {
     ASSERT(block != nullptr);
     ASSERT(offset + size <= block->size());
 
@@ -119,7 +120,7 @@ ResultVal<VMManager::VMAHandle> VMManager::MapMemoryBlock(VAddr target,
                                             VMAPermission::ReadWriteExecute);
 
     final_vma.type = VMAType::AllocatedMemoryBlock;
-    final_vma.permissions = VMAPermission::ReadWrite;
+    final_vma.permissions = perm;
     final_vma.state = state;
     final_vma.backing_block = std::move(block);
     final_vma.offset = offset;
@@ -308,6 +309,258 @@ ResultVal<VAddr> VMManager::SetHeapSize(u64 size) {
     return MakeResult<VAddr>(heap_region_base);
 }
 
+ResultCode VMManager::MapPhysicalMemory(VAddr target, u64 size) {
+    const auto last_addr = target + size - 1;
+    VAddr cur_addr = target;
+    std::size_t mapped_size = 0;
+
+    ResultCode result = RESULT_SUCCESS;
+
+    // Check whether we've already mapped the desired memory.
+    {
+        auto vma = FindVMA(target);
+        ASSERT_MSG(vma != vma_map.end(), "MapPhysicalMemory vma != end");
+
+        while (true) {
+            const auto vma_start = vma->second.base;
+            const auto vma_size = vma->second.size;
+            const auto state = vma->second.state;
+
+            // Handle last block.
+            if (last_addr <= (vma_start + vma_size - 1)) {
+                if (state != MemoryState::Unmapped) {
+                    mapped_size += last_addr - cur_addr + 1;
+                }
+                break;
+            }
+
+            if (state != MemoryState::Unmapped) {
+                mapped_size += vma_start + vma_size - cur_addr;
+            }
+            cur_addr = vma_start + vma_size;
+            vma++;
+            ASSERT_MSG(vma != vma_map.end(), "MapPhysicalMemory vma != end");
+        }
+
+        // If we already have the desired amount mapped, we're done.
+        if (mapped_size == size) {
+            return RESULT_SUCCESS;
+        }
+    }
+
+    // Check that we can map the memory we want.
+    const auto res_limit = Core::CurrentProcess()->GetResourceLimit();
+    const u64 physmem_remaining = res_limit->GetMaxResourceValue(ResourceType::PhysicalMemory) -
+                                  res_limit->GetCurrentResourceValue(ResourceType::PhysicalMemory);
+    if (physmem_remaining < (size - mapped_size)) {
+        return ERR_RESOURCE_LIMIT_EXCEEDED;
+    }
+
+    // Keep track of the memory regions we unmap.
+    std::vector<std::pair<u64, u64>> mapped_regions;
+
+    // Iterate, trying to map memory.
+    // Map initially with VMAPermission::None.
+    {
+        cur_addr = target;
+
+        auto vma = FindVMA(target);
+        ASSERT_MSG(vma != vma_map.end(), "MapPhysicalMemory vma != end");
+
+        while (true) {
+            const auto vma_start = vma->second.base;
+            const auto vma_size = vma->second.size;
+            const auto state = vma->second.state;
+
+            // Handle last block.
+            if (last_addr <= (vma_start + vma_size - 1)) {
+                if (state == MemoryState::Unmapped) {
+                    const auto map_res = MapMemoryBlock(
+                        cur_addr, std::make_shared<std::vector<u8>>(last_addr - cur_addr + 1, 0), 0,
+                        last_addr - cur_addr + 1, MemoryState::Heap, VMAPermission::None);
+                    result = map_res.Code();
+                    if (result.IsSuccess()) {
+                        mapped_regions.push_back(
+                            std::make_pair(cur_addr, last_addr - cur_addr + 1));
+                    }
+                }
+                break;
+            }
+
+            if (state == MemoryState::Unmapped) {
+                const auto map_res = MapMemoryBlock(
+                    cur_addr, std::make_shared<std::vector<u8>>(vma_start + vma_size - cur_addr, 0),
+                    0, vma_start + vma_size - cur_addr, MemoryState::Heap, VMAPermission::None);
+                result = map_res.Code();
+                if (result.IsSuccess()) {
+                    mapped_regions.push_back(
+                        std::make_pair(cur_addr, vma_start + vma_size - cur_addr));
+                } else {
+                    break;
+                }
+            }
+            cur_addr = vma_start + vma_size;
+            vma = FindVMA(cur_addr);
+            ASSERT_MSG(vma != vma_map.end(), "MapPhysicalMemory vma != end");
+        }
+    }
+
+    // If we failed, unmap memory.
+    if (result.IsError()) {
+        for (const auto& it : mapped_regions) {
+            const auto unmap_res = UnmapRange(it.first, it.second);
+            ASSERT_MSG(unmap_res.IsSuccess(), "MapPhysicalMemory un-map on error");
+        }
+
+        return result;
+    }
+
+    // We didn't fail, so reprotect all the memory to ReadWrite.
+    {
+        cur_addr = target;
+
+        auto vma = FindVMA(target);
+        ASSERT_MSG(vma != vma_map.end(), "MapPhysicalMemory vma != end");
+
+        while (true) {
+            const auto vma_start = vma->second.base;
+            const auto vma_size = vma->second.size;
+            const auto state = vma->second.state;
+            const auto perm = vma->second.permissions;
+
+            // Handle last block.
+            if (last_addr <= (vma_start + vma_size - 1)) {
+                if (state == MemoryState::Heap && perm == VMAPermission::None) {
+                    ASSERT_MSG(
+                        ReprotectRange(cur_addr, last_addr - cur_addr + 1, VMAPermission::ReadWrite)
+                            .IsSuccess(),
+                        "MapPhysicalMemory reprotect");
+                }
+                break;
+            }
+
+            if (state == MemoryState::Heap && perm == VMAPermission::None) {
+                ASSERT_MSG(ReprotectRange(cur_addr, vma_start + vma_size - cur_addr,
+                                          VMAPermission::ReadWrite)
+                               .IsSuccess(),
+                           "MapPhysicalMemory reprotect");
+            }
+            cur_addr = vma_start + vma_size;
+            vma = FindVMA(cur_addr);
+            ASSERT_MSG(vma != vma_map.end(), "MapPhysicalMemory vma != end");
+        }
+    }
+
+    // Update amount of mapped physical memory.
+    physical_memory_mapped += size - mapped_size;
+
+    return RESULT_SUCCESS;
+}
+
+ResultCode VMManager::UnmapPhysicalMemory(VAddr target, u64 size) {
+    auto last_addr = target + size - 1;
+    VAddr cur_addr = target;
+    std::size_t mapped_size = 0;
+
+    ResultCode result = RESULT_SUCCESS;
+
+    // Check how much of the memory is currently mapped.
+    {
+        auto vma = FindVMA(target);
+        ASSERT_MSG(vma != vma_map.end(), "UnmapPhysicalMemory vma != end");
+
+        while (true) {
+            const auto vma_start = vma->second.base;
+            const auto vma_size = vma->second.size;
+            const auto state = vma->second.state;
+            const auto attr = vma->second.attribute;
+
+            // Memory within region must be free or mapped heap.
+            if (!((state == MemoryState::Heap && attr == MemoryAttribute::None) ||
+                  (state == MemoryState::Unmapped))) {
+                return ERR_INVALID_ADDRESS_STATE;
+            }
+
+            // If this is the last block and it's mapped, update mapped size.
+            if (last_addr <= (vma_start + vma_size - 1)) {
+                if (state == MemoryState::Heap) {
+                    mapped_size += last_addr - cur_addr + 1;
+                }
+                break;
+            }
+
+            if (state == MemoryState::Heap) {
+                mapped_size += vma_start + vma_size - cur_addr;
+            }
+            cur_addr = vma_start + vma_size;
+            vma++;
+            ASSERT_MSG(vma != vma_map.end(), "UnmapPhysicalMemory vma != end");
+        }
+
+        // If memory is already unmapped, we're done.
+        if (mapped_size == 0) {
+            return RESULT_SUCCESS;
+        }
+    }
+
+    // Keep track of the memory regions we unmap.
+    std::vector<std::pair<u64, u64>> unmapped_regions;
+
+    // Try to unmap regions.
+    {
+        cur_addr = target;
+
+        auto vma = FindVMA(target);
+        ASSERT_MSG(vma != vma_map.end(), "UnmapPhysicalMemory vma != end");
+
+        while (true) {
+            const auto vma_start = vma->second.base;
+            const auto vma_size = vma->second.size;
+            const auto state = vma->second.state;
+            const auto perm = vma->second.permissions;
+
+            // Handle last block.
+            if (last_addr <= (vma_start + vma_size - 1)) {
+                if (state == MemoryState::Heap) {
+                    result = UnmapRange(cur_addr, last_addr - cur_addr + 1);
+                    if (result.IsSuccess()) {
+                        unmapped_regions.push_back(
+                            std::make_pair(cur_addr, last_addr - cur_addr + 1));
+                    }
+                }
+                break;
+            }
+
+            if (state == MemoryState::Heap) {
+                result = UnmapRange(cur_addr, vma_start + vma_size - cur_addr);
+                if (result.IsSuccess()) {
+                    unmapped_regions.push_back(
+                        std::make_pair(cur_addr, vma_start + vma_size - cur_addr));
+                } else {
+                    break;
+                }
+            }
+
+            cur_addr = vma_start + vma_size;
+            vma = FindVMA(cur_addr);
+            ASSERT_MSG(vma != vma_map.end(), "UnmapPhysicalMemory vma != end");
+        }
+    }
+
+    // If we failed, re-map regions.
+    // TODO: Preserve memory contents?
+    if (result.IsError()) {
+        for (const auto& it : unmapped_regions) {
+            const auto remap_res =
+                MapMemoryBlock(it.first, std::make_shared<std::vector<u8>>(it.second, 0), 0,
+                               it.second, MemoryState::Heap, VMAPermission::None);
+            ASSERT_MSG(remap_res.Succeeded(), "UnmapPhysicalMemory re-map on error");
+        }
+    }
+
+    return RESULT_SUCCESS;
+}
+
 ResultCode VMManager::MapCodeMemory(VAddr dst_address, VAddr src_address, u64 size) {
     constexpr auto ignore_attribute = MemoryAttribute::LockedForIPC | MemoryAttribute::DeviceMapped;
     const auto src_check_result = CheckRangeState(
@@ -455,7 +708,7 @@ ResultCode VMManager::MirrorMemory(VAddr dst_addr, VAddr src_addr, u64 size, Mem
     // Protect mirror with permissions from old region
     Reprotect(new_vma, vma->second.permissions);
     // Remove permissions from old region
-    Reprotect(vma, VMAPermission::None);
+    ReprotectRange(src_addr, size, VMAPermission::None);
 
     return RESULT_SUCCESS;
 }
@@ -588,20 +841,71 @@ VMManager::VMAIter VMManager::SplitVMA(VMAIter vma_handle, u64 offset_in_vma) {
 VMManager::VMAIter VMManager::MergeAdjacent(VMAIter iter) {
     const VMAIter next_vma = std::next(iter);
     if (next_vma != vma_map.end() && iter->second.CanBeMergedWith(next_vma->second)) {
-        iter->second.size += next_vma->second.size;
+        MergeAdjacentVMA(iter->second, next_vma->second);
         vma_map.erase(next_vma);
     }
 
     if (iter != vma_map.begin()) {
         VMAIter prev_vma = std::prev(iter);
         if (prev_vma->second.CanBeMergedWith(iter->second)) {
-            prev_vma->second.size += iter->second.size;
+            MergeAdjacentVMA(prev_vma->second, iter->second);
             vma_map.erase(iter);
             iter = prev_vma;
         }
     }
 
     return iter;
+}
+
+void VMManager::MergeAdjacentVMA(VirtualMemoryArea& left, const VirtualMemoryArea& right) {
+    ASSERT(left.CanBeMergedWith(right));
+
+    // Always merge allocated memory blocks, even when they don't share the same backing block.
+    if (left.type == VMAType::AllocatedMemoryBlock &&
+        (left.backing_block != right.backing_block || left.offset + left.size != right.offset)) {
+        // Check if we can save work.
+        if (left.offset == 0 && left.size == left.backing_block->size()) {
+            // Fast case: left is an entire backing block.
+            left.backing_block->insert(left.backing_block->end(),
+                                       right.backing_block->begin() + right.offset,
+                                       right.backing_block->begin() + right.offset + right.size);
+        } else {
+            // Slow case: make a new memory block for left and right.
+            auto new_memory = std::make_shared<std::vector<u8>>();
+            new_memory->insert(new_memory->end(), left.backing_block->begin() + left.offset,
+                               left.backing_block->begin() + left.offset + left.size);
+            new_memory->insert(new_memory->end(), right.backing_block->begin() + right.offset,
+                               right.backing_block->begin() + right.offset + right.size);
+            left.backing_block = new_memory;
+            left.offset = 0;
+        }
+
+        // Page table update is needed, because backing memory changed.
+        left.size += right.size;
+        UpdatePageTableForVMA(left);
+
+        // Update mappings for unicorn.
+        system.ArmInterface(0).UnmapMemory(left.base, left.size);
+        system.ArmInterface(1).UnmapMemory(left.base, left.size);
+        system.ArmInterface(2).UnmapMemory(left.base, left.size);
+        system.ArmInterface(3).UnmapMemory(left.base, left.size);
+
+        system.ArmInterface(0).MapBackingMemory(left.base, left.size,
+                                                left.backing_block->data() + left.offset,
+                                                VMAPermission::ReadWriteExecute);
+        system.ArmInterface(1).MapBackingMemory(left.base, left.size,
+                                                left.backing_block->data() + left.offset,
+                                                VMAPermission::ReadWriteExecute);
+        system.ArmInterface(2).MapBackingMemory(left.base, left.size,
+                                                left.backing_block->data() + left.offset,
+                                                VMAPermission::ReadWriteExecute);
+        system.ArmInterface(3).MapBackingMemory(left.base, left.size,
+                                                left.backing_block->data() + left.offset,
+                                                VMAPermission::ReadWriteExecute);
+    } else {
+        // Just update the size.
+        left.size += right.size;
+    }
 }
 
 void VMManager::UpdatePageTableForVMA(const VirtualMemoryArea& vma) {
