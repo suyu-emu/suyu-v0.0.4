@@ -303,15 +303,6 @@ struct VirtualMemoryArea {
     PAddr paddr = 0;
     Common::MemoryHookPointer mmio_handler = nullptr;
 
-    /// If the address lies within this VMA, returns the size left before the
-    /// end of this VMA. If the given address doesn't lie within the VMA, then
-    /// an empty optional value is returned.
-    ///
-    /// For example, given a VMA 100 bytes long. If '10' was given as the
-    /// start address, then this would return 90.
-    ///
-    std::optional<u64> SizeRemainingFromAddress(VAddr address) const;
-
     /// Tests if this area can be merged to the right with `next`.
     bool CanBeMergedWith(const VirtualMemoryArea& next) const;
 };
