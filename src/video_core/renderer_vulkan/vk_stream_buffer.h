@@ -37,7 +37,7 @@ public:
     std::tuple<u8*, u64, bool> Reserve(u64 size);
 
     /// Ensures that "size" bytes of memory are available to the GPU, potentially recording a copy.
-    [[nodiscard]] VKExecutionContext Send(VKExecutionContext exctx, u64 size);
+    void Send(u64 size);
 
     vk::Buffer GetBuffer() const {
         return *buffer;

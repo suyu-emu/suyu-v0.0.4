@@ -46,12 +46,12 @@ std::tuple<u8*, u64, bool> VKStreamBuffer::Reserve(u64 size) {
     return {mapped_pointer + offset, offset, invalidation_mark.has_value()};
 }
 
-VKExecutionContext VKStreamBuffer::Send(VKExecutionContext exctx, u64 size) {
+void VKStreamBuffer::Send(u64 size) {
     ASSERT_MSG(size <= mapped_size, "Reserved size is too small");
 
     if (invalidation_mark) {
         // TODO(Rodrigo): Find a better way to invalidate than waiting for all watches to finish.
-        exctx = scheduler.Flush();
+        scheduler.Flush();
         std::for_each(watches.begin(), watches.begin() + *invalidation_mark,
                       [&](auto& resource) { resource->Wait(); });
         invalidation_mark = std::nullopt;
@@ -62,11 +62,9 @@ VKExecutionContext VKStreamBuffer::Send(VKExecutionContext exctx, u64 size) {
         ReserveWatches(WATCHES_RESERVE_CHUNK);
     }
     // Add a watch for this allocation.
-    watches[used_watches++]->Watch(exctx.GetFence());
+    watches[used_watches++]->Watch(scheduler.GetFence());
 
     offset += size;
-
-    return exctx;
 }
 
 void VKStreamBuffer::CreateBuffers(VKMemoryManager& memory_manager, vk::BufferUsageFlags usage) {
