@@ -173,6 +173,21 @@ public:
         return system_resource_size;
     }
 
+    /// Gets the amount of secure memory currently in use for memory management.
+    u32 GetSystemResourceUsage() const {
+        // On hardware, this returns the amount of system resource memory that has
+        // been used by the kernel. This is problematic for Yuzu to emulate, because
+        // system resource memory is used for page tables -- and yuzu doesn't really
+        // have a way to calculate how much memory is required for page tables for
+        // the current process at any given time.
+        // TODO: Is this even worth implementing? Games may retrieve this value via
+        // an SDK function that gets used + available system resource size for debug
+        // or diagnostic purposes. However, it seems unlikely that a game would make
+        // decisions based on how much system memory is dedicated to its page tables.
+        // Is returning a value other than zero wise?
+        return 0;
+    }
+
     /// Whether this process is an AArch64 or AArch32 process.
     bool Is64BitProcess() const {
         return is_64bit_process;
@@ -197,15 +212,15 @@ public:
     u64 GetTotalPhysicalMemoryAvailable() const;
 
     /// Retrieves the total physical memory available to this process in bytes,
-    /// without the size of the personal heap added to it.
-    u64 GetTotalPhysicalMemoryAvailableWithoutMmHeap() const;
+    /// without the size of the personal system resource heap added to it.
+    u64 GetTotalPhysicalMemoryAvailableWithoutSystemResource() const;
 
     /// Retrieves the total physical memory used by this process in bytes.
     u64 GetTotalPhysicalMemoryUsed() const;
 
     /// Retrieves the total physical memory used by this process in bytes,
-    /// without the size of the personal heap added to it.
-    u64 GetTotalPhysicalMemoryUsedWithoutMmHeap() const;
+    /// without the size of the personal system resource heap added to it.
+    u64 GetTotalPhysicalMemoryUsedWithoutSystemResource() const;
 
     /// Gets the list of all threads created with this process as their owner.
     const std::list<const Thread*>& GetThreadList() const {

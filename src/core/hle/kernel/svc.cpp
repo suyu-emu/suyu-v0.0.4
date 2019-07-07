@@ -737,8 +737,8 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         // 5.0.0+
         UserExceptionContextAddr = 20,
         // 6.0.0+
-        TotalPhysicalMemoryAvailableWithoutMmHeap = 21,
-        TotalPhysicalMemoryUsedWithoutMmHeap = 22,
+        TotalPhysicalMemoryAvailableWithoutSystemResource = 21,
+        TotalPhysicalMemoryUsedWithoutSystemResource = 22,
     };
 
     const auto info_id_type = static_cast<GetInfoType>(info_id);
@@ -760,8 +760,8 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
     case GetInfoType::SystemResourceUsage:
     case GetInfoType::TitleId:
     case GetInfoType::UserExceptionContextAddr:
-    case GetInfoType::TotalPhysicalMemoryAvailableWithoutMmHeap:
-    case GetInfoType::TotalPhysicalMemoryUsedWithoutMmHeap: {
+    case GetInfoType::TotalPhysicalMemoryAvailableWithoutSystemResource:
+    case GetInfoType::TotalPhysicalMemoryUsedWithoutSystemResource: {
         if (info_sub_id != 0) {
             return ERR_INVALID_ENUM_VALUE;
         }
@@ -827,17 +827,9 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
             return RESULT_SUCCESS;
 
         case GetInfoType::SystemResourceUsage:
-            // On hardware, this returns the amount of system resource memory that has
-            // been used by the kernel. This is problematic for Yuzu to emulate, because
-            // system resource memory is used for page tables -- and yuzu doesn't really
-            // have a way to calculate how much memory is required for page tables for
-            // the current process at any given time.
-            // TODO: Is this even worth implementing? No game should ever use it, since
-            // the amount of remaining page table space should never be relevant except
-            // for diagnostics. Is returning a value other than zero wise?
             LOG_WARNING(Kernel_SVC,
-                        "(STUBBED) Attempted to query system resource usage, returned 0");
-            *result = 0;
+                        "(STUBBED) Attempted to query system resource usage");
+            *result = process->GetSystemResourceUsage();
             return RESULT_SUCCESS;
 
         case GetInfoType::TitleId:
@@ -850,12 +842,12 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
             *result = 0;
             return RESULT_SUCCESS;
 
-        case GetInfoType::TotalPhysicalMemoryAvailableWithoutMmHeap:
-            *result = process->GetTotalPhysicalMemoryAvailable();
+        case GetInfoType::TotalPhysicalMemoryAvailableWithoutSystemResource:
+            *result = process->GetTotalPhysicalMemoryAvailableWithoutSystemResource();
             return RESULT_SUCCESS;
 
-        case GetInfoType::TotalPhysicalMemoryUsedWithoutMmHeap:
-            *result = process->GetTotalPhysicalMemoryUsedWithoutMmHeap();
+        case GetInfoType::TotalPhysicalMemoryUsedWithoutSystemResource:
+            *result = process->GetTotalPhysicalMemoryUsedWithoutSystemResource();
             return RESULT_SUCCESS;
 
         default:
@@ -984,7 +976,7 @@ static ResultCode MapPhysicalMemory(Core::System& system, VAddr addr, u64 size) 
         return ERR_INVALID_MEMORY_RANGE;
     }
 
-    auto* const current_process = Core::CurrentProcess();
+    Process* const current_process = system.Kernel().CurrentProcess();
     auto& vm_manager = current_process->VMManager();
 
     if (current_process->GetSystemResourceSize() == 0) {
@@ -1024,7 +1016,7 @@ static ResultCode UnmapPhysicalMemory(Core::System& system, VAddr addr, u64 size
         return ERR_INVALID_MEMORY_RANGE;
     }
 
-    auto* const current_process = Core::CurrentProcess();
+    Process* const current_process = system.Kernel().CurrentProcess();
     auto& vm_manager = current_process->VMManager();
 
     if (current_process->GetSystemResourceSize() == 0) {

@@ -129,20 +129,16 @@ u64 Process::GetTotalPhysicalMemoryAvailable() const {
     return vm_manager.GetTotalPhysicalMemoryAvailable();
 }
 
-u64 Process::GetTotalPhysicalMemoryAvailableWithoutMmHeap() const {
-    // TODO: Subtract the personal heap size from this when the
-    //       personal heap is implemented.
-    return GetTotalPhysicalMemoryAvailable();
+u64 Process::GetTotalPhysicalMemoryAvailableWithoutSystemResource() const {
+    return GetTotalPhysicalMemoryAvailable() - GetSystemResourceSize();
 }
 
 u64 Process::GetTotalPhysicalMemoryUsed() const {
-    return vm_manager.GetCurrentHeapSize() + main_thread_stack_size + code_memory_size;
+    return vm_manager.GetCurrentHeapSize() + main_thread_stack_size + code_memory_size + GetSystemResourceUsage();
 }
 
-u64 Process::GetTotalPhysicalMemoryUsedWithoutMmHeap() const {
-    // TODO: Subtract the personal heap size from this when the
-    //       personal heap is implemented.
-    return GetTotalPhysicalMemoryUsed();
+u64 Process::GetTotalPhysicalMemoryUsedWithoutSystemResource() const {
+    return GetTotalPhysicalMemoryUsed() - GetSystemResourceUsage();
 }
 
 void Process::RegisterThread(const Thread* thread) {

@@ -349,7 +349,7 @@ ResultCode VMManager::MapPhysicalMemory(VAddr target, u64 size) {
     }
 
     // Check that we can map the memory we want.
-    const auto res_limit = Core::CurrentProcess()->GetResourceLimit();
+    const auto res_limit = system.CurrentProcess()->GetResourceLimit();
     const u64 physmem_remaining = res_limit->GetMaxResourceValue(ResourceType::PhysicalMemory) -
                                   res_limit->GetCurrentResourceValue(ResourceType::PhysicalMemory);
     if (physmem_remaining < (size - mapped_size)) {
@@ -557,6 +557,9 @@ ResultCode VMManager::UnmapPhysicalMemory(VAddr target, u64 size) {
             ASSERT_MSG(remap_res.Succeeded(), "UnmapPhysicalMemory re-map on error");
         }
     }
+
+    // Update mapped amount
+    physical_memory_mapped -= mapped_size;
 
     return RESULT_SUCCESS;
 }

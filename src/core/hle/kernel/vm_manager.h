@@ -458,7 +458,7 @@ public:
     ///
     /// @note The destination address must lie within the Map region.
     ///
-    /// @note This function requires SystemResourceSize is non-zero,
+    /// @note This function requires that SystemResourceSize be non-zero,
     ///       however, this is just because if it were not then the
     ///       resulting page tables could be exploited on hardware by
     ///       a malicious program. SystemResource usage does not need
@@ -472,7 +472,7 @@ public:
     ///
     /// @note The destination address must lie within the Map region.
     ///
-    /// @note This function requires SystemResourceSize is non-zero,
+    /// @note This function requires that SystemResourceSize be non-zero,
     ///       however, this is just because if it were not then the
     ///       resulting page tables could be exploited on hardware by
     ///       a malicious program. SystemResource usage does not need
