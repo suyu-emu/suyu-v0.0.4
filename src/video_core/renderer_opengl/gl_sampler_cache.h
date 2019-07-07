@@ -17,9 +17,9 @@ public:
     ~SamplerCacheOpenGL();
 
 protected:
-    OGLSampler CreateSampler(const Tegra::Texture::TSCEntry& tsc) const;
+    OGLSampler CreateSampler(const Tegra::Texture::TSCEntry& tsc) const override;
 
-    GLuint ToSamplerType(const OGLSampler& sampler) const;
+    GLuint ToSamplerType(const OGLSampler& sampler) const override;
 };
 
 } // namespace OpenGL

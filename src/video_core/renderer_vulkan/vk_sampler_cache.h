@@ -21,9 +21,9 @@ public:
     ~VKSamplerCache();
 
 protected:
-    UniqueSampler CreateSampler(const Tegra::Texture::TSCEntry& tsc) const;
+    UniqueSampler CreateSampler(const Tegra::Texture::TSCEntry& tsc) const override;
 
-    vk::Sampler ToSamplerType(const UniqueSampler& sampler) const;
+    vk::Sampler ToSamplerType(const UniqueSampler& sampler) const override;
 
 private:
     const VKDevice& device;
