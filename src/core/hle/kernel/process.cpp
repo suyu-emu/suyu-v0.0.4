@@ -134,7 +134,8 @@ u64 Process::GetTotalPhysicalMemoryAvailableWithoutSystemResource() const {
 }
 
 u64 Process::GetTotalPhysicalMemoryUsed() const {
-    return vm_manager.GetCurrentHeapSize() + main_thread_stack_size + code_memory_size + GetSystemResourceUsage();
+    return vm_manager.GetCurrentHeapSize() + main_thread_stack_size + code_memory_size +
+           GetSystemResourceUsage();
 }
 
 u64 Process::GetTotalPhysicalMemoryUsedWithoutSystemResource() const {

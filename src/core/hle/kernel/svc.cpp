@@ -827,8 +827,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
             return RESULT_SUCCESS;
 
         case GetInfoType::SystemResourceUsage:
-            LOG_WARNING(Kernel_SVC,
-                        "(STUBBED) Attempted to query system resource usage");
+            LOG_WARNING(Kernel_SVC, "(STUBBED) Attempted to query system resource usage");
             *result = process->GetSystemResourceUsage();
             return RESULT_SUCCESS;
 
