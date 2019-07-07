@@ -280,6 +280,9 @@ private:
     /// a process signal.
     void ChangeStatus(ProcessStatus new_status);
 
+    /// Allocates the main thread stack for the process, given the stack size in bytes.
+    void AllocateMainThreadStack(u64 stack_size);
+
     /// Memory manager for this process.
     Kernel::VMManager vm_manager;
 
