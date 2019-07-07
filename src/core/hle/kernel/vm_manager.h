@@ -303,6 +303,15 @@ struct VirtualMemoryArea {
     PAddr paddr = 0;
     Common::MemoryHookPointer mmio_handler = nullptr;
 
+    /// If the address lies within this VMA, returns the size left before the
+    /// end of this VMA. If the given address doesn't lie within the VMA, then
+    /// an empty optional value is returned.
+    ///
+    /// For example, given a VMA 100 bytes long. If '10' was given as the
+    /// start address, then this would return 90.
+    ///
+    std::optional<u64> SizeRemainingFromAddress(VAddr address) const;
+
     /// Tests if this area can be merged to the right with `next`.
     bool CanBeMergedWith(const VirtualMemoryArea& next) const;
 };
@@ -734,6 +743,13 @@ private:
                                  VMAPermission permission_mask, VMAPermission permissions,
                                  MemoryAttribute attribute_mask, MemoryAttribute attribute,
                                  MemoryAttribute ignore_mask) const;
+
+    /// Gets the amount of memory currently mapped (state != Unmapped) in a range.
+    ResultVal<std::size_t> SizeOfAllocatedVMAsInRange(VAddr address, std::size_t size) const;
+
+    /// Gets the amount of memory unmappable by UnmapPhysicalMemory in a range.
+    ResultVal<std::size_t> SizeOfUnmappablePhysicalMemoryInRange(VAddr address,
+                                                                 std::size_t size) const;
 
     /**
      * A map covering the entirety of the managed address space, keyed by the `base` field of each
