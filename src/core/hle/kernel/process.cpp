@@ -187,6 +187,8 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata) {
 
 void Process::Run(s32 main_thread_priority, u64 stack_size) {
     AllocateMainThreadStack(stack_size);
+    tls_region_address = CreateTLSRegion();
+
     vm_manager.LogLayout();
 
     ChangeStatus(ProcessStatus::Running);
@@ -217,6 +219,9 @@ void Process::PrepareForTermination() {
     stop_threads(system.Scheduler(1).GetThreadList());
     stop_threads(system.Scheduler(2).GetThreadList());
     stop_threads(system.Scheduler(3).GetThreadList());
+
+    FreeTLSRegion(tls_region_address);
+    tls_region_address = 0;
 
     ChangeStatus(ProcessStatus::Exited);
 }

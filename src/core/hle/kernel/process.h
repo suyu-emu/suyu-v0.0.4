@@ -135,6 +135,11 @@ public:
         return mutex;
     }
 
+    /// Gets the address to the process' dedicated TLS region.
+    VAddr GetTLSRegionAddress() const {
+        return tls_region_address;
+    }
+
     /// Gets the current status of the process
     ProcessStatus GetStatus() const {
         return status;
@@ -340,6 +345,9 @@ private:
     /// forms of services, such as lock arbitration, and condition
     /// variable related facilities.
     Mutex mutex;
+
+    /// Address indicating the location of the process' dedicated TLS region.
+    VAddr tls_region_address = 0;
 
     /// Random values for svcGetInfo RandomEntropy
     std::array<u64, RANDOM_ENTROPY_SIZE> random_entropy{};
