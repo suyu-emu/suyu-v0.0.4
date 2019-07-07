@@ -2,8 +2,13 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <ctime>
 #include <fstream>
+
+#include <fmt/format.h>
+#include <fmt/time.h>
 #include <json.hpp>
+
 #include "common/file_util.h"
 #include "common/hex_util.h"
 #include "common/scm_rev.h"
@@ -14,7 +19,6 @@
 #include "core/hle/result.h"
 #include "core/reporter.h"
 #include "core/settings.h"
-#include "fmt/time.h"
 
 namespace {
 
@@ -30,9 +34,11 @@ std::string GetTimestamp() {
 
 using namespace nlohmann;
 
-void SaveToFile(const json& json, const std::string& filename) {
-    if (!FileUtil::CreateFullPath(filename))
+void SaveToFile(json json, const std::string& filename) {
+    if (!FileUtil::CreateFullPath(filename)) {
         LOG_ERROR(Core, "Failed to create path for '{}' to save report!", filename);
+        return;
+    }
 
     std::ofstream file(
         FileUtil::SanitizePath(filename, FileUtil::DirectorySeparator::PlatformDefault));
@@ -61,8 +67,11 @@ json GetReportCommonData(u64 title_id, ResultCode result, const std::string& tim
         {"result_description", fmt::format("{:08X}", result.description.Value())},
         {"timestamp", timestamp},
     };
-    if (user_id.has_value())
+
+    if (user_id.has_value()) {
         out["user_id"] = fmt::format("{:016X}{:016X}", (*user_id)[1], (*user_id)[0]);
+    }
+
     return out;
 }
 
@@ -171,14 +180,14 @@ json GetHLERequestContextData(Kernel::HLERequestContext& ctx) {
     out["buffer_descriptor_c"] = GetHLEBufferDescriptorData<false>(ctx.BufferDescriptorC());
     out["buffer_descriptor_x"] = GetHLEBufferDescriptorData<true>(ctx.BufferDescriptorX());
 
-    return std::move(out);
+    return out;
 }
 
 } // Anonymous namespace
 
 namespace Core {
 
-Reporter::Reporter(Core::System& system) : system(system) {}
+Reporter::Reporter(System& system) : system(system) {}
 
 Reporter::~Reporter() = default;
 
@@ -187,8 +196,9 @@ void Reporter::SaveCrashReport(u64 title_id, ResultCode result, u64 set_flags, u
                                const std::array<u64, 31>& registers,
                                const std::array<u64, 32>& backtrace, u32 backtrace_size,
                                const std::string& arch, u32 unk10) const {
-    if (!IsReportingEnabled())
+    if (!IsReportingEnabled()) {
         return;
+    }
 
     const auto timestamp = GetTimestamp();
     json out;
@@ -212,8 +222,9 @@ void Reporter::SaveCrashReport(u64 title_id, ResultCode result, u64 set_flags, u
 
 void Reporter::SaveSvcBreakReport(u32 type, bool signal_debugger, u64 info1, u64 info2,
                                   std::optional<std::vector<u8>> resolved_buffer) const {
-    if (!IsReportingEnabled())
+    if (!IsReportingEnabled()) {
         return;
+    }
 
     const auto timestamp = GetTimestamp();
     const auto title_id = system.CurrentProcess()->GetTitleID();
@@ -238,8 +249,9 @@ void Reporter::SaveSvcBreakReport(u32 type, bool signal_debugger, u64 info1, u64
 void Reporter::SaveUnimplementedFunctionReport(Kernel::HLERequestContext& ctx, u32 command_id,
                                                const std::string& name,
                                                const std::string& service_name) const {
-    if (!IsReportingEnabled())
+    if (!IsReportingEnabled()) {
         return;
+    }
 
     const auto timestamp = GetTimestamp();
     const auto title_id = system.CurrentProcess()->GetTitleID();
@@ -259,8 +271,9 @@ void Reporter::SaveUnimplementedAppletReport(
     u32 applet_id, u32 common_args_version, u32 library_version, u32 theme_color,
     bool startup_sound, u64 system_tick, std::vector<std::vector<u8>> normal_channel,
     std::vector<std::vector<u8>> interactive_channel) const {
-    if (!IsReportingEnabled())
+    if (!IsReportingEnabled()) {
         return;
+    }
 
     const auto timestamp = GetTimestamp();
     const auto title_id = system.CurrentProcess()->GetTitleID();
@@ -293,8 +306,9 @@ void Reporter::SaveUnimplementedAppletReport(
 
 void Reporter::SavePlayReport(u64 title_id, u64 process_id, std::vector<std::vector<u8>> data,
                               std::optional<u128> user_id) const {
-    if (!IsReportingEnabled())
+    if (!IsReportingEnabled()) {
         return;
+    }
 
     const auto timestamp = GetTimestamp();
     json out;
@@ -316,8 +330,9 @@ void Reporter::SavePlayReport(u64 title_id, u64 process_id, std::vector<std::vec
 void Reporter::SaveErrorReport(u64 title_id, ResultCode result,
                                std::optional<std::string> custom_text_main,
                                std::optional<std::string> custom_text_detail) const {
-    if (!IsReportingEnabled())
+    if (!IsReportingEnabled()) {
         return;
+    }
 
     const auto timestamp = GetTimestamp();
     json out;
@@ -336,8 +351,9 @@ void Reporter::SaveErrorReport(u64 title_id, ResultCode result,
 }
 
 void Reporter::SaveUserReport() const {
-    if (!IsReportingEnabled())
+    if (!IsReportingEnabled()) {
         return;
+    }
 
     const auto timestamp = GetTimestamp();
     const auto title_id = system.CurrentProcess()->GetTitleID();
