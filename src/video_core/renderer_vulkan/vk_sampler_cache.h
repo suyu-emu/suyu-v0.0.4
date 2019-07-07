@@ -4,9 +4,6 @@
 
 #pragma once
 
-#include <unordered_map>
-
-#include "common/common_types.h"
 #include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/sampler_cache.h"
 #include "video_core/textures/texture.h"
