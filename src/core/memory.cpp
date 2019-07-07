@@ -16,11 +16,9 @@
 #include "core/core.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/vm_manager.h"
-#include "core/hle/lock.h"
 #include "core/memory.h"
 #include "core/memory_setup.h"
 #include "video_core/gpu.h"
-#include "video_core/renderer_base.h"
 
 namespace Memory {
 

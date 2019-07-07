@@ -625,8 +625,10 @@ void VMManager::UpdatePageTableForVMA(const VirtualMemoryArea& vma) {
 void VMManager::InitializeMemoryRegionRanges(FileSys::ProgramAddressSpaceType type) {
     u64 map_region_size = 0;
     u64 heap_region_size = 0;
-    u64 new_map_region_size = 0;
+    u64 stack_region_size = 0;
     u64 tls_io_region_size = 0;
+
+    u64 stack_and_tls_io_end = 0;
 
     switch (type) {
     case FileSys::ProgramAddressSpaceType::Is32Bit:
@@ -643,6 +645,7 @@ void VMManager::InitializeMemoryRegionRanges(FileSys::ProgramAddressSpaceType ty
             map_region_size = 0;
             heap_region_size = 0x80000000;
         }
+        stack_and_tls_io_end = 0x40000000;
         break;
     case FileSys::ProgramAddressSpaceType::Is36Bit:
         address_space_width = 36;
@@ -652,6 +655,7 @@ void VMManager::InitializeMemoryRegionRanges(FileSys::ProgramAddressSpaceType ty
         aslr_region_end = aslr_region_base + 0xFF8000000;
         map_region_size = 0x180000000;
         heap_region_size = 0x180000000;
+        stack_and_tls_io_end = 0x80000000;
         break;
     case FileSys::ProgramAddressSpaceType::Is39Bit:
         address_space_width = 39;
@@ -661,13 +665,15 @@ void VMManager::InitializeMemoryRegionRanges(FileSys::ProgramAddressSpaceType ty
         aslr_region_end = aslr_region_base + 0x7FF8000000;
         map_region_size = 0x1000000000;
         heap_region_size = 0x180000000;
-        new_map_region_size = 0x80000000;
+        stack_region_size = 0x80000000;
         tls_io_region_size = 0x1000000000;
         break;
     default:
         UNREACHABLE_MSG("Invalid address space type specified: {}", static_cast<u32>(type));
         return;
     }
+
+    const u64 stack_and_tls_io_begin = aslr_region_base;
 
     address_space_base = 0;
     address_space_end = 1ULL << address_space_width;
@@ -679,15 +685,20 @@ void VMManager::InitializeMemoryRegionRanges(FileSys::ProgramAddressSpaceType ty
     heap_region_end = heap_region_base + heap_region_size;
     heap_end = heap_region_base;
 
-    new_map_region_base = heap_region_end;
-    new_map_region_end = new_map_region_base + new_map_region_size;
+    stack_region_base = heap_region_end;
+    stack_region_end = stack_region_base + stack_region_size;
 
-    tls_io_region_base = new_map_region_end;
+    tls_io_region_base = stack_region_end;
     tls_io_region_end = tls_io_region_base + tls_io_region_size;
 
-    if (new_map_region_size == 0) {
-        new_map_region_base = address_space_base;
-        new_map_region_end = address_space_end;
+    if (stack_region_size == 0) {
+        stack_region_base = stack_and_tls_io_begin;
+        stack_region_end = stack_and_tls_io_end;
+    }
+
+    if (tls_io_region_size == 0) {
+        tls_io_region_base = stack_and_tls_io_begin;
+        tls_io_region_end = stack_and_tls_io_end;
     }
 }
 
@@ -879,21 +890,21 @@ bool VMManager::IsWithinMapRegion(VAddr address, u64 size) const {
     return IsInsideAddressRange(address, size, GetMapRegionBaseAddress(), GetMapRegionEndAddress());
 }
 
-VAddr VMManager::GetNewMapRegionBaseAddress() const {
-    return new_map_region_base;
+VAddr VMManager::GetStackRegionBaseAddress() const {
+    return stack_region_base;
 }
 
-VAddr VMManager::GetNewMapRegionEndAddress() const {
-    return new_map_region_end;
+VAddr VMManager::GetStackRegionEndAddress() const {
+    return stack_region_end;
 }
 
-u64 VMManager::GetNewMapRegionSize() const {
-    return new_map_region_end - new_map_region_base;
+u64 VMManager::GetStackRegionSize() const {
+    return stack_region_end - stack_region_base;
 }
 
-bool VMManager::IsWithinNewMapRegion(VAddr address, u64 size) const {
-    return IsInsideAddressRange(address, size, GetNewMapRegionBaseAddress(),
-                                GetNewMapRegionEndAddress());
+bool VMManager::IsWithinStackRegion(VAddr address, u64 size) const {
+    return IsInsideAddressRange(address, size, GetStackRegionBaseAddress(),
+                                GetStackRegionEndAddress());
 }
 
 VAddr VMManager::GetTLSIORegionBaseAddress() const {

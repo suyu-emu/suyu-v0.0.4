@@ -98,9 +98,9 @@ ResultCode MapUnmapMemorySanityChecks(const VMManager& vm_manager, VAddr dst_add
         return ERR_INVALID_ADDRESS_STATE;
     }
 
-    if (!vm_manager.IsWithinNewMapRegion(dst_addr, size)) {
+    if (!vm_manager.IsWithinStackRegion(dst_addr, size)) {
         LOG_ERROR(Kernel_SVC,
-                  "Destination is not within the new map region, addr=0x{:016X}, size=0x{:016X}",
+                  "Destination is not within the stack region, addr=0x{:016X}, size=0x{:016X}",
                   dst_addr, size);
         return ERR_INVALID_MEMORY_RANGE;
     }
@@ -726,8 +726,8 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         // 2.0.0+
         ASLRRegionBaseAddr = 12,
         ASLRRegionSize = 13,
-        NewMapRegionBaseAddr = 14,
-        NewMapRegionSize = 15,
+        StackRegionBaseAddr = 14,
+        StackRegionSize = 15,
         // 3.0.0+
         IsVirtualAddressMemoryEnabled = 16,
         PersonalMmHeapUsage = 17,
@@ -752,8 +752,8 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
     case GetInfoType::HeapRegionSize:
     case GetInfoType::ASLRRegionBaseAddr:
     case GetInfoType::ASLRRegionSize:
-    case GetInfoType::NewMapRegionBaseAddr:
-    case GetInfoType::NewMapRegionSize:
+    case GetInfoType::StackRegionBaseAddr:
+    case GetInfoType::StackRegionSize:
     case GetInfoType::TotalPhysicalMemoryAvailable:
     case GetInfoType::TotalPhysicalMemoryUsed:
     case GetInfoType::IsVirtualAddressMemoryEnabled:
@@ -806,12 +806,12 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
             *result = process->VMManager().GetASLRRegionSize();
             return RESULT_SUCCESS;
 
-        case GetInfoType::NewMapRegionBaseAddr:
-            *result = process->VMManager().GetNewMapRegionBaseAddress();
+        case GetInfoType::StackRegionBaseAddr:
+            *result = process->VMManager().GetStackRegionBaseAddress();
             return RESULT_SUCCESS;
 
-        case GetInfoType::NewMapRegionSize:
-            *result = process->VMManager().GetNewMapRegionSize();
+        case GetInfoType::StackRegionSize:
+            *result = process->VMManager().GetStackRegionSize();
             return RESULT_SUCCESS;
 
         case GetInfoType::TotalPhysicalMemoryAvailable:
