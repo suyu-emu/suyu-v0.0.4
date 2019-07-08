@@ -563,17 +563,18 @@ bool Controller_NPad::SwapNpadAssignment(u32 npad_id_1, u32 npad_id_2) {
         npad_id_2 == NPAD_UNKNOWN) {
         return true;
     }
+    const auto npad_index_1 = NPadIdToIndex(npad_id_1);
+    const auto npad_index_2 = NPadIdToIndex(npad_id_2);
 
-    if (!IsControllerSupported(connected_controllers[NPadIdToIndex(npad_id_1)].type) ||
-        !IsControllerSupported(connected_controllers[NPadIdToIndex(npad_id_2)].type)) {
+    if (!IsControllerSupported(connected_controllers[npad_index_1].type) ||
+        !IsControllerSupported(connected_controllers[npad_index_2].type)) {
         return false;
     }
 
-    std::swap(connected_controllers[NPadIdToIndex(npad_id_1)].type,
-              connected_controllers[NPadIdToIndex(npad_id_2)].type);
+    std::swap(connected_controllers[npad_index_1].type, connected_controllers[npad_index_2].type);
 
-    InitNewlyAddedControler(NPadIdToIndex(npad_id_1));
-    InitNewlyAddedControler(NPadIdToIndex(npad_id_2));
+    InitNewlyAddedControler(npad_index_1);
+    InitNewlyAddedControler(npad_index_2);
 
     return true;
 }
