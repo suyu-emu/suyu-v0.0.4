@@ -548,6 +548,37 @@ void Controller_NPad::DisconnectNPad(u32 npad_id) {
     connected_controllers[NPadIdToIndex(npad_id)].is_connected = false;
 }
 
+void Controller_NPad::StartLRAssignmentMode() {
+    // Nothing internally is used for lr assignment mode. Since we have the ability to set the
+    // controller types from boot, it doesn't really matter about showing a selection screen
+    is_in_lr_assignment_mode = true;
+}
+
+void Controller_NPad::StopLRAssignmentMode() {
+    is_in_lr_assignment_mode = false;
+}
+
+bool Controller_NPad::SwapNpadAssignment(u32 npad_id_1, u32 npad_id_2) {
+    if (npad_id_1 == NPAD_HANDHELD || npad_id_2 == NPAD_HANDHELD || npad_id_1 == NPAD_UNKNOWN ||
+        npad_id_2 == NPAD_UNKNOWN) {
+        return true;
+    }
+    const auto npad_index_1 = NPadIdToIndex(npad_id_1);
+    const auto npad_index_2 = NPadIdToIndex(npad_id_2);
+
+    if (!IsControllerSupported(connected_controllers[npad_index_1].type) ||
+        !IsControllerSupported(connected_controllers[npad_index_2].type)) {
+        return false;
+    }
+
+    std::swap(connected_controllers[npad_index_1].type, connected_controllers[npad_index_2].type);
+
+    InitNewlyAddedControler(npad_index_1);
+    InitNewlyAddedControler(npad_index_2);
+
+    return true;
+}
+
 bool Controller_NPad::IsControllerSupported(NPadControllerType controller) {
     if (controller == NPadControllerType::Handheld) {
         // Handheld is not even a supported type, lets stop here
