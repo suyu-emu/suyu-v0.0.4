@@ -98,17 +98,19 @@ private:
 
     /**
      * Configures the color and depth framebuffer states.
-     * @param must_reconfigure If true, tells the framebuffer to skip the cache and reconfigure
-     * again. Used by the texture cache to solve texception conflicts
-     * @param use_color_fb If true, configure color framebuffers.
-     * @param using_depth_fb If true, configure the depth/stencil framebuffer.
-     * @param preserve_contents If true, tries to preserve data from a previously used framebuffer.
+     *
+     * @param current_state       The current OpenGL state.
+     * @param using_color_fb      If true, configure color framebuffers.
+     * @param using_depth_fb      If true, configure the depth/stencil framebuffer.
+     * @param preserve_contents   If true, tries to preserve data from a previously used
+     *                            framebuffer.
      * @param single_color_target Specifies if a single color buffer target should be used.
+     *
      * @returns If depth (first) or stencil (second) are being stored in the bound zeta texture
-     * (requires using_depth_fb to be true)
+     *          (requires using_depth_fb to be true)
      */
     std::pair<bool, bool> ConfigureFramebuffers(
-        OpenGLState& current_state, bool use_color_fb = true, bool using_depth_fb = true,
+        OpenGLState& current_state, bool using_color_fb = true, bool using_depth_fb = true,
         bool preserve_contents = true, std::optional<std::size_t> single_color_target = {});
 
     /// Configures the current constbuffers to use for the draw command.
