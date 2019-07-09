@@ -51,6 +51,11 @@ bool VirtualMemoryArea::CanBeMergedWith(const VirtualMemoryArea& next) const {
         type != next.type) {
         return false;
     }
+    if ((attribute & MemoryAttribute::DeviceMapped) == MemoryAttribute::DeviceMapped) {
+        // TODO: Can device mapped memory be merged sanely?
+        // Not merging it may cause inaccuracies versus hardware when memory layout is queried.
+        return false;
+    }
     if (type == VMAType::AllocatedMemoryBlock) {
         return true;
     }

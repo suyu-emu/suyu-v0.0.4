@@ -5,6 +5,9 @@
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "core/core.h"
+#include "core/hle/kernel/process.h"
+#include "core/hle/kernel/vm_manager.h"
 #include "core/memory.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
@@ -49,6 +52,12 @@ GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, u64 size) {
     const GPUVAddr gpu_addr{FindFreeRegion(address_space_base, aligned_size)};
 
     MapBackingMemory(gpu_addr, Memory::GetPointer(cpu_addr), aligned_size, cpu_addr);
+    ASSERT(Core::System::GetInstance()
+               .CurrentProcess()
+               ->VMManager()
+               .SetMemoryAttribute(cpu_addr, size, Kernel::MemoryAttribute::DeviceMapped,
+                                   Kernel::MemoryAttribute::DeviceMapped)
+               .IsSuccess());
 
     return gpu_addr;
 }
@@ -59,7 +68,12 @@ GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, GPUVAddr gpu_addr, u64 size)
     const u64 aligned_size{Common::AlignUp(size, page_size)};
 
     MapBackingMemory(gpu_addr, Memory::GetPointer(cpu_addr), aligned_size, cpu_addr);
-
+    ASSERT(Core::System::GetInstance()
+               .CurrentProcess()
+               ->VMManager()
+               .SetMemoryAttribute(cpu_addr, size, Kernel::MemoryAttribute::DeviceMapped,
+                                   Kernel::MemoryAttribute::DeviceMapped)
+               .IsSuccess());
     return gpu_addr;
 }
 
@@ -68,9 +82,17 @@ GPUVAddr MemoryManager::UnmapBuffer(GPUVAddr gpu_addr, u64 size) {
 
     const u64 aligned_size{Common::AlignUp(size, page_size)};
     const CacheAddr cache_addr{ToCacheAddr(GetPointer(gpu_addr))};
+    const auto cpu_addr = GpuToCpuAddress(gpu_addr);
+    ASSERT(cpu_addr);
 
     rasterizer.FlushAndInvalidateRegion(cache_addr, aligned_size);
     UnmapRange(gpu_addr, aligned_size);
+    ASSERT(Core::System::GetInstance()
+               .CurrentProcess()
+               ->VMManager()
+               .SetMemoryAttribute(cpu_addr.value(), size, Kernel::MemoryAttribute::DeviceMapped,
+                                   Kernel::MemoryAttribute::None)
+               .IsSuccess());
 
     return gpu_addr;
 }
