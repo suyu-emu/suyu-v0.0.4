@@ -22,7 +22,7 @@ public:
             {0, nullptr, "GetCompletionEvent"},
             {1, nullptr, "Cancel"},
             {10100, nullptr, "GetFriendListIds"},
-            {10101, nullptr, "GetFriendList"},
+            {10101, &IFriendService::GetFriendList, "GetFriendList"},
             {10102, nullptr, "UpdateFriendInfo"},
             {10110, nullptr, "GetFriendProfileImage"},
             {10200, nullptr, "SendFriendRequestForApplication"},
@@ -99,6 +99,23 @@ public:
     }
 
 private:
+    enum class PresenceFilter : u32 {
+        None = 0,
+        Online = 1,
+        OnlinePlay = 2,
+        OnlineOrOnlinePlay = 3,
+    };
+
+    struct SizedFriendFilter {
+        PresenceFilter presence;
+        u8 is_favorite;
+        u8 same_app;
+        u8 same_app_played;
+        u8 arbitary_app_played;
+        u64 group_id;
+    };
+    static_assert(sizeof(SizedFriendFilter) == 0x10, "SizedFriendFilter is an invalid size");
+
     void DeclareCloseOnlinePlaySession(Kernel::HLERequestContext& ctx) {
         // Stub used by Splatoon 2
         LOG_WARNING(Service_ACC, "(STUBBED) called");
@@ -111,6 +128,22 @@ private:
         LOG_WARNING(Service_ACC, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
+    }
+
+    void GetFriendList(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto friend_offset = rp.Pop<u32>();
+        const auto uuid = rp.PopRaw<Common::UUID>();
+        [[maybe_unused]] const auto filter = rp.PopRaw<SizedFriendFilter>();
+        const auto pid = rp.Pop<u64>();
+        LOG_WARNING(Service_ACC, "(STUBBED) called, offset={}, uuid={}, pid={}", friend_offset,
+                    uuid.Format(), pid);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+
+        rb.Push<u32>(0); // Friend count
+        // TODO(ogniK): Return a buffer of u64s which are the "NetworkServiceAccountId"
     }
 };
 
