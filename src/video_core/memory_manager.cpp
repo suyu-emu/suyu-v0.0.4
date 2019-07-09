@@ -14,7 +14,8 @@
 
 namespace Tegra {
 
-MemoryManager::MemoryManager(VideoCore::RasterizerInterface& rasterizer) : rasterizer{rasterizer} {
+MemoryManager::MemoryManager(Core::System& system, VideoCore::RasterizerInterface& rasterizer)
+    : rasterizer{rasterizer}, system{system} {
     std::fill(page_table.pointers.begin(), page_table.pointers.end(), nullptr);
     std::fill(page_table.attributes.begin(), page_table.attributes.end(),
               Common::PageType::Unmapped);
@@ -52,8 +53,7 @@ GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, u64 size) {
     const GPUVAddr gpu_addr{FindFreeRegion(address_space_base, aligned_size)};
 
     MapBackingMemory(gpu_addr, Memory::GetPointer(cpu_addr), aligned_size, cpu_addr);
-    ASSERT(Core::System::GetInstance()
-               .CurrentProcess()
+    ASSERT(system.CurrentProcess()
                ->VMManager()
                .SetMemoryAttribute(cpu_addr, size, Kernel::MemoryAttribute::DeviceMapped,
                                    Kernel::MemoryAttribute::DeviceMapped)
@@ -68,8 +68,7 @@ GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, GPUVAddr gpu_addr, u64 size)
     const u64 aligned_size{Common::AlignUp(size, page_size)};
 
     MapBackingMemory(gpu_addr, Memory::GetPointer(cpu_addr), aligned_size, cpu_addr);
-    ASSERT(Core::System::GetInstance()
-               .CurrentProcess()
+    ASSERT(system.CurrentProcess()
                ->VMManager()
                .SetMemoryAttribute(cpu_addr, size, Kernel::MemoryAttribute::DeviceMapped,
                                    Kernel::MemoryAttribute::DeviceMapped)
@@ -87,8 +86,7 @@ GPUVAddr MemoryManager::UnmapBuffer(GPUVAddr gpu_addr, u64 size) {
 
     rasterizer.FlushAndInvalidateRegion(cache_addr, aligned_size);
     UnmapRange(gpu_addr, aligned_size);
-    ASSERT(Core::System::GetInstance()
-               .CurrentProcess()
+    ASSERT(system.CurrentProcess()
                ->VMManager()
                .SetMemoryAttribute(cpu_addr.value(), size, Kernel::MemoryAttribute::DeviceMapped,
                                    Kernel::MemoryAttribute::None)
