@@ -75,9 +75,12 @@ MatchStructureResult SurfaceBaseImpl::MatchesStructure(const SurfaceParams& rhs)
 
     // Linear Surface check
     if (!params.is_tiled) {
-        if (std::tie(params.width, params.height, params.pitch) ==
-            std::tie(rhs.width, rhs.height, rhs.pitch)) {
-            return MatchStructureResult::FullMatch;
+        if (std::tie(params.height, params.pitch) == std::tie(rhs.height, rhs.pitch)) {
+            if (params.width == rhs.width) {
+                return MatchStructureResult::FullMatch;
+            } else {
+                return MatchStructureResult::SemiMatch;
+            }
         }
         return MatchStructureResult::None;
     }
