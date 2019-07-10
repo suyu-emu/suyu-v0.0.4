@@ -22,6 +22,7 @@ Maxwell3D::Maxwell3D(Core::System& system, VideoCore::RasterizerInterface& raste
                      MemoryManager& memory_manager)
     : system{system}, rasterizer{rasterizer}, memory_manager{memory_manager},
       macro_interpreter{*this}, upload_state{memory_manager, regs.upload} {
+    InitDirtySettings();
     InitializeRegisterDefaults();
 }
 
@@ -86,6 +87,80 @@ void Maxwell3D::InitializeRegisterDefaults() {
     regs.rt_separate_frag_data = 1;
 }
 
+#define DIRTY_REGS_POS(field_name) (offsetof(Maxwell3D::DirtyRegs, field_name))
+
+void Maxwell3D::InitDirtySettings() {
+    const auto set_block = [this](const u32 start, const u32 range, const u8 position) {
+        const u32 end = start + range;
+        for (std::size_t i = start; i < end; i++) {
+            dirty_pointers[i] = position;
+        }
+    };
+    for (std::size_t i = 0; i < DirtyRegs::NUM_REGS; i++) {
+        dirty.regs[i] = true;
+    }
+
+    // Init Render Targets
+    constexpr u32 registers_per_rt = sizeof(regs.rt[0]) / sizeof(u32);
+    constexpr u32 rt_start_reg = MAXWELL3D_REG_INDEX(rt);
+    constexpr u32 rt_end_reg = rt_start_reg + registers_per_rt * 8;
+    u32 rt_dirty_reg = DIRTY_REGS_POS(render_target);
+    for (u32 rt_reg = rt_start_reg; rt_reg < rt_end_reg; rt_reg += registers_per_rt) {
+        set_block(rt_reg, registers_per_rt, rt_dirty_reg);
+        rt_dirty_reg++;
+    }
+    constexpr u32 depth_buffer_flag = DIRTY_REGS_POS(depth_buffer);
+    dirty_pointers[MAXWELL3D_REG_INDEX(zeta_enable)] = depth_buffer_flag;
+    dirty_pointers[MAXWELL3D_REG_INDEX(zeta_width)] = depth_buffer_flag;
+    dirty_pointers[MAXWELL3D_REG_INDEX(zeta_height)] = depth_buffer_flag;
+    constexpr u32 registers_in_zeta = sizeof(regs.zeta) / sizeof(u32);
+    constexpr u32 zeta_reg = MAXWELL3D_REG_INDEX(zeta);
+    set_block(zeta_reg, registers_in_zeta, depth_buffer_flag);
+
+    // Init Vertex Arrays
+    constexpr u32 vertex_array_start = MAXWELL3D_REG_INDEX(vertex_array);
+    constexpr u32 vertex_array_size = sizeof(regs.vertex_array[0]) / sizeof(u32);
+    constexpr u32 vertex_array_end = vertex_array_start + vertex_array_size * Regs::NumVertexArrays;
+    u32 va_reg = DIRTY_REGS_POS(vertex_array);
+    u32 vi_reg = DIRTY_REGS_POS(vertex_instance);
+    for (u32 vertex_reg = vertex_array_start; vertex_reg < vertex_array_end;
+         vertex_reg += vertex_array_size) {
+        set_block(vertex_reg, 3, va_reg);
+        // The divisor concerns vertex array instances
+        dirty_pointers[vertex_reg + 3] = vi_reg;
+        va_reg++;
+        vi_reg++;
+    }
+    constexpr u32 vertex_limit_start = MAXWELL3D_REG_INDEX(vertex_array_limit);
+    constexpr u32 vertex_limit_size = sizeof(regs.vertex_array_limit[0]) / sizeof(u32);
+    constexpr u32 vertex_limit_end = vertex_limit_start + vertex_limit_size * Regs::NumVertexArrays;
+    va_reg = DIRTY_REGS_POS(vertex_array);
+    for (u32 vertex_reg = vertex_limit_start; vertex_reg < vertex_limit_end;
+         vertex_reg += vertex_limit_size) {
+        set_block(vertex_reg, vertex_limit_size, va_reg);
+        va_reg++;
+    }
+    constexpr u32 vertex_instance_start = MAXWELL3D_REG_INDEX(instanced_arrays);
+    constexpr u32 vertex_instance_size =
+        sizeof(regs.instanced_arrays.is_instanced[0]) / sizeof(u32);
+    constexpr u32 vertex_instance_end =
+        vertex_instance_start + vertex_instance_size * Regs::NumVertexArrays;
+    vi_reg = DIRTY_REGS_POS(vertex_instance);
+    for (u32 vertex_reg = vertex_instance_start; vertex_reg < vertex_instance_end;
+         vertex_reg += vertex_instance_size) {
+        set_block(vertex_reg, vertex_instance_size, vi_reg);
+        vi_reg++;
+    }
+    set_block(MAXWELL3D_REG_INDEX(vertex_attrib_format), regs.vertex_attrib_format.size(),
+              DIRTY_REGS_POS(vertex_attrib_format));
+
+    // Init Shaders
+    constexpr u32 shader_registers_count =
+        sizeof(regs.shader_config[0]) * Regs::MaxShaderProgram / sizeof(u32);
+    set_block(MAXWELL3D_REG_INDEX(shader_config[0]), shader_registers_count,
+              DIRTY_REGS_POS(shaders));
+}
+
 void Maxwell3D::CallMacroMethod(u32 method, std::vector<u32> parameters) {
     // Reset the current macro.
     executing_macro = 0;
@@ -143,49 +218,19 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
 
     if (regs.reg_array[method] != method_call.argument) {
         regs.reg_array[method] = method_call.argument;
-        // Color buffers
-        constexpr u32 first_rt_reg = MAXWELL3D_REG_INDEX(rt);
-        constexpr u32 registers_per_rt = sizeof(regs.rt[0]) / sizeof(u32);
-        if (method >= first_rt_reg &&
-            method < first_rt_reg + registers_per_rt * Regs::NumRenderTargets) {
-            const std::size_t rt_index = (method - first_rt_reg) / registers_per_rt;
-            dirty_flags.color_buffer.set(rt_index);
-        }
-
-        // Zeta buffer
-        constexpr u32 registers_in_zeta = sizeof(regs.zeta) / sizeof(u32);
-        if (method == MAXWELL3D_REG_INDEX(zeta_enable) ||
-            method == MAXWELL3D_REG_INDEX(zeta_width) ||
-            method == MAXWELL3D_REG_INDEX(zeta_height) ||
-            (method >= MAXWELL3D_REG_INDEX(zeta) &&
-             method < MAXWELL3D_REG_INDEX(zeta) + registers_in_zeta)) {
-            dirty_flags.zeta_buffer = true;
-        }
-
-        // Shader
-        constexpr u32 shader_registers_count =
-            sizeof(regs.shader_config[0]) * Regs::MaxShaderProgram / sizeof(u32);
-        if (method >= MAXWELL3D_REG_INDEX(shader_config[0]) &&
-            method < MAXWELL3D_REG_INDEX(shader_config[0]) + shader_registers_count) {
-            dirty_flags.shaders = true;
-        }
-
-        // Vertex format
-        if (method >= MAXWELL3D_REG_INDEX(vertex_attrib_format) &&
-            method < MAXWELL3D_REG_INDEX(vertex_attrib_format) + regs.vertex_attrib_format.size()) {
-            dirty_flags.vertex_attrib_format = true;
-        }
-
-        // Vertex buffer
-        if (method >= MAXWELL3D_REG_INDEX(vertex_array) &&
-            method < MAXWELL3D_REG_INDEX(vertex_array) + 4 * Regs::NumVertexArrays) {
-            dirty_flags.vertex_array.set((method - MAXWELL3D_REG_INDEX(vertex_array)) >> 2);
-        } else if (method >= MAXWELL3D_REG_INDEX(vertex_array_limit) &&
-                   method < MAXWELL3D_REG_INDEX(vertex_array_limit) + 2 * Regs::NumVertexArrays) {
-            dirty_flags.vertex_array.set((method - MAXWELL3D_REG_INDEX(vertex_array_limit)) >> 1);
-        } else if (method >= MAXWELL3D_REG_INDEX(instanced_arrays) &&
-                   method < MAXWELL3D_REG_INDEX(instanced_arrays) + Regs::NumVertexArrays) {
-            dirty_flags.vertex_array.set(method - MAXWELL3D_REG_INDEX(instanced_arrays));
+        std::size_t dirty_reg = dirty_pointers[method];
+        if (dirty_reg) {
+            dirty.regs[dirty_reg] = true;
+            if (dirty_reg >= DIRTY_REGS_POS(vertex_array) &&
+                dirty_reg < DIRTY_REGS_POS(vertex_array_buffers)) {
+                dirty.vertex_array_buffers = true;
+            } else if (dirty_reg >= DIRTY_REGS_POS(vertex_instance) &&
+                       dirty_reg < DIRTY_REGS_POS(vertex_instances)) {
+                dirty.vertex_instances = true;
+            } else if (dirty_reg >= DIRTY_REGS_POS(render_target) &&
+                       dirty_reg < DIRTY_REGS_POS(render_settings)) {
+                dirty.render_settings = true;
+            }
         }
     }
 
@@ -261,7 +306,7 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
         const bool is_last_call = method_call.IsLastCall();
         upload_state.ProcessData(method_call.argument, is_last_call);
         if (is_last_call) {
-            dirty_flags.OnMemoryWrite();
+            dirty.OnMemoryWrite();
         }
         break;
     }
@@ -333,7 +378,6 @@ void Maxwell3D::ProcessQueryGet() {
             query_result.timestamp = system.CoreTiming().GetTicks();
             memory_manager.WriteBlock(sequence_address, &query_result, sizeof(query_result));
         }
-        dirty_flags.OnMemoryWrite();
         break;
     }
     default:
@@ -417,8 +461,6 @@ void Maxwell3D::ProcessCBData(u32 value) {
     u8* ptr{memory_manager.GetPointer(address)};
     rasterizer.InvalidateRegion(ToCacheAddr(ptr), sizeof(u32));
     memory_manager.Write<u32>(address, value);
-
-    dirty_flags.OnMemoryWrite();
 
     // Increment the current buffer position.
     regs.const_buffer.cb_pos = regs.const_buffer.cb_pos + 4;

@@ -124,10 +124,10 @@ GLuint RasterizerOpenGL::SetupVertexFormat() {
     auto& gpu = system.GPU().Maxwell3D();
     const auto& regs = gpu.regs;
 
-    if (!gpu.dirty_flags.vertex_attrib_format) {
+    if (!gpu.dirty.vertex_attrib_format) {
         return state.draw.vertex_array;
     }
-    gpu.dirty_flags.vertex_attrib_format = false;
+    gpu.dirty.vertex_attrib_format = false;
 
     MICROPROFILE_SCOPE(OpenGL_VAO);
 
@@ -181,7 +181,7 @@ GLuint RasterizerOpenGL::SetupVertexFormat() {
     }
 
     // Rebinding the VAO invalidates the vertex buffer bindings.
-    gpu.dirty_flags.vertex_array.set();
+    gpu.dirty.ResetVertexArrays();
 
     state.draw.vertex_array = vao_entry.handle;
     return vao_entry.handle;
@@ -189,17 +189,20 @@ GLuint RasterizerOpenGL::SetupVertexFormat() {
 
 void RasterizerOpenGL::SetupVertexBuffer(GLuint vao) {
     auto& gpu = system.GPU().Maxwell3D();
-    const auto& regs = gpu.regs;
-
-    if (gpu.dirty_flags.vertex_array.none())
+    if (!gpu.dirty.vertex_array_buffers)
         return;
+    gpu.dirty.vertex_array_buffers = false;
+
+    const auto& regs = gpu.regs;
 
     MICROPROFILE_SCOPE(OpenGL_VB);
 
     // Upload all guest vertex arrays sequentially to our buffer
     for (u32 index = 0; index < Maxwell::NumVertexArrays; ++index) {
-        if (!gpu.dirty_flags.vertex_array[index])
+        if (!gpu.dirty.vertex_array[index])
             continue;
+        gpu.dirty.vertex_array[index] = false;
+        gpu.dirty.vertex_instance[index] = false;
 
         const auto& vertex_array = regs.vertex_array[index];
         if (!vertex_array.IsEnabled())
@@ -224,8 +227,32 @@ void RasterizerOpenGL::SetupVertexBuffer(GLuint vao) {
             glVertexArrayBindingDivisor(vao, index, 0);
         }
     }
+}
 
-    gpu.dirty_flags.vertex_array.reset();
+void RasterizerOpenGL::SetupVertexInstances(GLuint vao) {
+    auto& gpu = system.GPU().Maxwell3D();
+
+    if (!gpu.dirty.vertex_instances)
+        return;
+    gpu.dirty.vertex_instances = false;
+
+    const auto& regs = gpu.regs;
+    // Upload all guest vertex arrays sequentially to our buffer
+    for (u32 index = 0; index < Maxwell::NumVertexArrays; ++index) {
+        if (!gpu.dirty.vertex_instance[index])
+            continue;
+
+        gpu.dirty.vertex_instance[index] = false;
+
+        if (regs.instanced_arrays.IsInstancingEnabled(index) &&
+            regs.vertex_array[index].divisor != 0) {
+            // Enable vertex buffer instancing with the specified divisor.
+            glVertexArrayBindingDivisor(vao, index, regs.vertex_array[index].divisor);
+        } else {
+            // Disable the vertex buffer instancing.
+            glVertexArrayBindingDivisor(vao, index, 0);
+        }
+    }
 }
 
 GLintptr RasterizerOpenGL::SetupIndexBuffer() {
@@ -341,7 +368,7 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
 
     SyncClipEnabled(clip_distances);
 
-    gpu.dirty_flags.shaders = false;
+    gpu.dirty.shaders = false;
 }
 
 std::size_t RasterizerOpenGL::CalculateVertexArraysSize() const {
@@ -424,13 +451,13 @@ std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
 
     const FramebufferConfigState fb_config_state{using_color_fb, using_depth_fb, preserve_contents,
                                                  single_color_target};
-    if (fb_config_state == current_framebuffer_config_state &&
-        gpu.dirty_flags.color_buffer.none() && !gpu.dirty_flags.zeta_buffer) {
+    if (fb_config_state == current_framebuffer_config_state && !gpu.dirty.render_settings) {
         // Only skip if the previous ConfigureFramebuffers call was from the same kind (multiple or
         // single color targets). This is done because the guest registers may not change but the
         // host framebuffer may contain different attachments
         return current_depth_stencil_usage;
     }
+    gpu.dirty.render_settings = false;
     current_framebuffer_config_state = fb_config_state;
 
     texture_cache.GuardRenderTargets(true);
@@ -661,6 +688,7 @@ void RasterizerOpenGL::DrawArrays() {
 
     // Upload vertex and index data.
     SetupVertexBuffer(vao);
+    SetupVertexInstances(vao);
     const GLintptr index_buffer_offset = SetupIndexBuffer();
 
     // Setup draw parameters. It will automatically choose what glDraw* method to use.
@@ -687,7 +715,7 @@ void RasterizerOpenGL::DrawArrays() {
 
     if (invalidate) {
         // As all cached buffers are invalidated, we need to recheck their state.
-        gpu.dirty_flags.vertex_array.set();
+        gpu.dirty.ResetVertexArrays();
     }
 
     shader_program_manager->ApplyTo(state);
@@ -700,6 +728,7 @@ void RasterizerOpenGL::DrawArrays() {
     params.DispatchDraw();
 
     accelerate_draw = AccelDraw::Disabled;
+    gpu.dirty.memory_general = false;
 }
 
 void RasterizerOpenGL::FlushAll() {}

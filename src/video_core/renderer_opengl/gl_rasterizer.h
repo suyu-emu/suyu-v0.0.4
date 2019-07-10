@@ -216,6 +216,7 @@ private:
     GLuint SetupVertexFormat();
 
     void SetupVertexBuffer(GLuint vao);
+    void SetupVertexInstances(GLuint vao);
 
     GLintptr SetupIndexBuffer();
 

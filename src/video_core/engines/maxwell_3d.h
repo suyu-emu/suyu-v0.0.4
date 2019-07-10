@@ -1124,23 +1124,73 @@ public:
 
     State state{};
 
-    struct DirtyFlags {
-        std::bitset<8> color_buffer{0xFF};
-        std::bitset<32> vertex_array{0xFFFFFFFF};
+    struct DirtyRegs {
+        static constexpr std::size_t NUM_REGS = 256;
+        union {
+            struct {
+                bool null_dirty;
+                // Vertex Attributes
+                bool vertex_attrib_format;
+                // Vertex Arrays
+                std::array<bool, 32> vertex_array;
 
-        bool vertex_attrib_format = true;
-        bool zeta_buffer = true;
-        bool shaders = true;
+                bool vertex_array_buffers;
+                // Vertex Instances
+                std::array<bool, 32> vertex_instance;
+
+                bool vertex_instances;
+                // Render Targets
+                std::array<bool, 8> render_target;
+                bool depth_buffer;
+
+                bool render_settings;
+                // Shaders
+                bool shaders;
+                // State
+                bool viewport;
+                bool clip_enabled;
+                bool clip_coefficient;
+                bool cull_mode;
+                bool primitive_restart;
+                bool depth_test;
+                bool stencil_test;
+                bool blend_state;
+                bool logic_op;
+                bool fragment_color_clamp;
+                bool multi_sample;
+                bool scissor_test;
+                bool transform_feedback;
+                bool point;
+                bool color_mask;
+                bool polygon_offset;
+                bool alpha_test;
+
+                bool memory_general;
+            };
+            std::array<bool, NUM_REGS> regs;
+        };
+
+        void ResetVertexArrays() {
+            std::fill(vertex_array.begin(), vertex_array.end(), true);
+            vertex_array_buffers = true;
+        }
+
+        void ResetRenderTargets() {
+            depth_buffer = true;
+            std::fill(render_target.begin(), render_target.end(), true);
+            render_settings = true;
+        }
 
         void OnMemoryWrite() {
-            zeta_buffer = true;
             shaders = true;
-            color_buffer.set();
-            vertex_array.set();
+            memory_general = true;
+            ResetRenderTargets();
+            ResetVertexArrays();
         }
-    };
 
-    DirtyFlags dirty_flags;
+    } dirty{};
+
+    std::array<u8, Regs::NUM_REGS> dirty_pointers{};
 
     /// Reads a register value located at the input method address
     u32 GetRegisterValue(u32 method) const;
@@ -1199,6 +1249,8 @@ private:
 
     /// Retrieves information about a specific TSC entry from the TSC buffer.
     Texture::TSCEntry GetTSCEntry(u32 tsc_index) const;
+
+    void InitDirtySettings();
 
     /**
      * Call a macro on this engine.
