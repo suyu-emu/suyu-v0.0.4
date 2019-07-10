@@ -10,9 +10,42 @@
 namespace Vulkan {
 
 class VKDevice;
-class VKExecutionContext;
 class VKFence;
 class VKResourceManager;
+
+class VKFenceView {
+public:
+    VKFenceView() = default;
+    VKFenceView(VKFence* const& fence) : fence{fence} {}
+
+    VKFence* operator->() const noexcept {
+        return fence;
+    }
+
+    operator VKFence&() const noexcept {
+        return *fence;
+    }
+
+private:
+    VKFence* const& fence;
+};
+
+class VKCommandBufferView {
+public:
+    VKCommandBufferView() = default;
+    VKCommandBufferView(const vk::CommandBuffer& cmdbuf) : cmdbuf{cmdbuf} {}
+
+    const vk::CommandBuffer* operator->() const noexcept {
+        return &cmdbuf;
+    }
+
+    operator vk::CommandBuffer() const noexcept {
+        return cmdbuf;
+    }
+
+private:
+    const vk::CommandBuffer& cmdbuf;
+};
 
 /// The scheduler abstracts command buffer and fence management with an interface that's able to do
 /// OpenGL-like operations on Vulkan command buffers.
@@ -21,16 +54,21 @@ public:
     explicit VKScheduler(const VKDevice& device, VKResourceManager& resource_manager);
     ~VKScheduler();
 
-    /// Gets the current execution context.
-    [[nodiscard]] VKExecutionContext GetExecutionContext() const;
+    /// Gets a reference to the current fence.
+    VKFenceView GetFence() const {
+        return current_fence;
+    }
 
-    /// Sends the current execution context to the GPU. It invalidates the current execution context
-    /// and returns a new one.
-    VKExecutionContext Flush(vk::Semaphore semaphore = nullptr);
+    /// Gets a reference to the current command buffer.
+    VKCommandBufferView GetCommandBuffer() const {
+        return current_cmdbuf;
+    }
 
-    /// Sends the current execution context to the GPU and waits for it to complete. It invalidates
-    /// the current execution context and returns a new one.
-    VKExecutionContext Finish(vk::Semaphore semaphore = nullptr);
+    /// Sends the current execution context to the GPU.
+    void Flush(bool release_fence = true, vk::Semaphore semaphore = nullptr);
+
+    /// Sends the current execution context to the GPU and waits for it to complete.
+    void Finish(bool release_fence = true, vk::Semaphore semaphore = nullptr);
 
 private:
     void SubmitExecution(vk::Semaphore semaphore);
@@ -42,28 +80,6 @@ private:
     vk::CommandBuffer current_cmdbuf;
     VKFence* current_fence = nullptr;
     VKFence* next_fence = nullptr;
-};
-
-class VKExecutionContext {
-    friend class VKScheduler;
-
-public:
-    VKExecutionContext() = default;
-
-    VKFence& GetFence() const {
-        return *fence;
-    }
-
-    vk::CommandBuffer GetCommandBuffer() const {
-        return cmdbuf;
-    }
-
-private:
-    explicit VKExecutionContext(VKFence* fence, vk::CommandBuffer cmdbuf)
-        : fence{fence}, cmdbuf{cmdbuf} {}
-
-    VKFence* fence{};
-    vk::CommandBuffer cmdbuf;
 };
 
 } // namespace Vulkan

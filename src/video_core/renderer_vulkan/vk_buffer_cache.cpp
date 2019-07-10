@@ -109,8 +109,8 @@ void VKBufferCache::Reserve(std::size_t max_size) {
     }
 }
 
-VKExecutionContext VKBufferCache::Send(VKExecutionContext exctx) {
-    return stream_buffer->Send(exctx, buffer_offset - buffer_offset_base);
+void VKBufferCache::Send() {
+    stream_buffer->Send(buffer_offset - buffer_offset_base);
 }
 
 void VKBufferCache::AlignBuffer(std::size_t alignment) {

@@ -77,7 +77,7 @@ public:
     void Reserve(std::size_t max_size);
 
     /// Ensures that the set data is sent to the device.
-    [[nodiscard]] VKExecutionContext Send(VKExecutionContext exctx);
+    void Send();
 
     /// Returns the buffer cache handle.
     vk::Buffer GetBuffer() const {
