@@ -266,8 +266,8 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
         {65, nullptr, "ReportUserIsActive"},
         {66, nullptr, "GetCurrentIlluminance"},
         {67, nullptr, "IsIlluminanceAvailable"},
-        {68, nullptr, "SetAutoSleepDisabled"},
-        {69, nullptr, "IsAutoSleepDisabled"},
+        {68, &ISelfController::SetAutoSleepDisabled, "SetAutoSleepDisabled"},
+        {69, &ISelfController::IsAutoSleepDisabled, "IsAutoSleepDisabled"},
         {70, nullptr, "ReportMultimediaError"},
         {71, nullptr, "GetCurrentIlluminanceEx"},
         {80, nullptr, "SetWirelessPriorityMode"},
@@ -452,6 +452,34 @@ void ISelfController::GetIdleTimeDetectionExtension(Kernel::HLERequestContext& c
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.Push<u32>(idle_time_detection_extension);
+}
+
+void ISelfController::SetAutoSleepDisabled(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    is_auto_sleep_disabled = rp.Pop<bool>();
+
+    // On the system itself, if the previous state of is_auto_sleep_disabled
+    // differed from the current value passed in, it'd signify the internal
+    // window manager to update (and also increment some statistics like update counts)
+    //
+    // It'd also indicate this change to an idle handling context.
+    //
+    // However, given we're emulating this behavior, most of this can be ignored
+    // and it's sufficient to simply set the member variable for querying via
+    // IsAutoSleepDisabled().
+
+    LOG_DEBUG(Service_AM, "called. is_auto_sleep_disabled={}", is_auto_sleep_disabled);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void ISelfController::IsAutoSleepDisabled(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_AM, "called.");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push(is_auto_sleep_disabled);
 }
 
 void ISelfController::GetAccumulatedSuspendedTickValue(Kernel::HLERequestContext& ctx) {

@@ -133,6 +133,8 @@ private:
     void SetHandlesRequestToDisplay(Kernel::HLERequestContext& ctx);
     void SetIdleTimeDetectionExtension(Kernel::HLERequestContext& ctx);
     void GetIdleTimeDetectionExtension(Kernel::HLERequestContext& ctx);
+    void SetAutoSleepDisabled(Kernel::HLERequestContext& ctx);
+    void IsAutoSleepDisabled(Kernel::HLERequestContext& ctx);
     void GetAccumulatedSuspendedTickValue(Kernel::HLERequestContext& ctx);
     void GetAccumulatedSuspendedTickChangedEvent(Kernel::HLERequestContext& ctx);
 
@@ -142,6 +144,7 @@ private:
 
     u32 idle_time_detection_extension = 0;
     u64 num_fatal_sections_entered = 0;
+    bool is_auto_sleep_disabled = false;
 };
 
 class ICommonStateGetter final : public ServiceFramework<ICommonStateGetter> {
