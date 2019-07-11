@@ -133,11 +133,11 @@ public:
             regs.zeta.memory_layout.block_depth, regs.zeta.memory_layout.type)};
         auto surface_view = GetSurface(gpu_addr, depth_params, preserve_contents, true);
         if (depth_buffer.target)
-            depth_buffer.target->MarkAsRenderTarget(false);
+            depth_buffer.target->MarkAsRenderTarget(false, -1);
         depth_buffer.target = surface_view.first;
         depth_buffer.view = surface_view.second;
         if (depth_buffer.target)
-            depth_buffer.target->MarkAsRenderTarget(true);
+            depth_buffer.target->MarkAsRenderTarget(true, 8);
         return surface_view.second;
     }
 
@@ -167,11 +167,11 @@ public:
         auto surface_view = GetSurface(gpu_addr, SurfaceParams::CreateForFramebuffer(system, index),
                                        preserve_contents, true);
         if (render_targets[index].target)
-            render_targets[index].target->MarkAsRenderTarget(false);
+            render_targets[index].target->MarkAsRenderTarget(false, -1);
         render_targets[index].target = surface_view.first;
         render_targets[index].view = surface_view.second;
         if (render_targets[index].target)
-            render_targets[index].target->MarkAsRenderTarget(true);
+            render_targets[index].target->MarkAsRenderTarget(true, static_cast<u32>(index));
         return surface_view.second;
     }
 
@@ -191,7 +191,7 @@ public:
         if (depth_buffer.target == nullptr) {
             return;
         }
-        depth_buffer.target->MarkAsRenderTarget(false);
+        depth_buffer.target->MarkAsRenderTarget(false, -1);
         depth_buffer.target = nullptr;
         depth_buffer.view = nullptr;
     }
@@ -200,7 +200,7 @@ public:
         if (render_targets[index].target == nullptr) {
             return;
         }
-        render_targets[index].target->MarkAsRenderTarget(false);
+        render_targets[index].target->MarkAsRenderTarget(false, -1);
         render_targets[index].target = nullptr;
         render_targets[index].view = nullptr;
     }
@@ -270,6 +270,16 @@ protected:
     // and reading it from a sepparate buffer.
     virtual void BufferCopy(TSurface& src_surface, TSurface& dst_surface) = 0;
 
+    void ManageRenderTargetUnregister(TSurface& surface) {
+        auto& maxwell3d = system.GPU().Maxwell3D();
+        u32 index = surface->GetRenderTarget();
+        if (index == 8) {
+            maxwell3d.dirty_flags.zeta_buffer = true;
+        } else {
+            maxwell3d.dirty_flags.color_buffer.set(index, true);
+        }
+    }
+
     void Register(TSurface surface) {
         const GPUVAddr gpu_addr = surface->GetGpuAddr();
         const CacheAddr cache_ptr = ToCacheAddr(system.GPU().MemoryManager().GetPointer(gpu_addr));
@@ -293,6 +303,9 @@ protected:
     void Unregister(TSurface surface) {
         if (guard_render_targets && surface->IsProtected()) {
             return;
+        }
+        if (!guard_render_targets && surface->IsRenderTarget()) {
+            ManageRenderTargetUnregister(surface);
         }
         const GPUVAddr gpu_addr = surface->GetGpuAddr();
         const CacheAddr cache_ptr = surface->GetCacheAddr();
