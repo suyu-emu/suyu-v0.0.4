@@ -230,7 +230,7 @@ void GameList::onUpdateThemedIcons() {
     for (int i = 0; i < item_model->invisibleRootItem()->rowCount(); i++) {
         QStandardItem* child = item_model->invisibleRootItem()->child(i);
 
-        const int icon_size = UISettings::values.icon_size;
+        const int icon_size = std::min(static_cast<int>(UISettings::values.icon_size), 64);
         switch (child->data(GameListItem::TypeRole).value<GameListItemType>()) {
         case GameListItemType::SdmcDir:
             child->setData(
@@ -300,7 +300,6 @@ GameList::GameList(FileSys::VirtualFilesystem vfs, FileSys::ManualContentProvide
     tree_view->setHorizontalScrollMode(QHeaderView::ScrollPerPixel);
     tree_view->setSortingEnabled(true);
     tree_view->setEditTriggers(QHeaderView::NoEditTriggers);
-    tree_view->setUniformRowHeights(true);
     tree_view->setContextMenuPolicy(Qt::CustomContextMenu);
     tree_view->setStyleSheet(QStringLiteral("QTreeView{ border: none; }"));
 

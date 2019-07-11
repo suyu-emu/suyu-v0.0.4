@@ -221,7 +221,7 @@ public:
         UISettings::GameDir* game_dir = &directory;
         setData(QVariant::fromValue(game_dir), GameDirRole);
 
-        const int icon_size = UISettings::values.icon_size;
+        const int icon_size = std::min(static_cast<int>(UISettings::values.icon_size), 64);
         switch (dir_type) {
         case GameListItemType::SdmcDir:
             setData(
@@ -272,7 +272,7 @@ public:
     explicit GameListAddDir() {
         setData(type(), TypeRole);
 
-        const int icon_size = UISettings::values.icon_size;
+        const int icon_size = std::min(static_cast<int>(UISettings::values.icon_size), 64);
         setData(QIcon::fromTheme(QStringLiteral("plus"))
                     .pixmap(icon_size)
                     .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
