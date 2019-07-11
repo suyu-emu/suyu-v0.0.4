@@ -267,7 +267,7 @@ ISelfController::ISelfController(std::shared_ptr<NVFlinger::NVFlinger> nvflinger
         {66, nullptr, "GetCurrentIlluminance"},
         {67, nullptr, "IsIlluminanceAvailable"},
         {68, &ISelfController::SetAutoSleepDisabled, "SetAutoSleepDisabled"},
-        {69, nullptr, "IsAutoSleepDisabled"},
+        {69, &ISelfController::IsAutoSleepDisabled, "IsAutoSleepDisabled"},
         {70, nullptr, "ReportMultimediaError"},
         {71, nullptr, "GetCurrentIlluminanceEx"},
         {80, nullptr, "SetWirelessPriorityMode"},
@@ -472,6 +472,14 @@ void ISelfController::SetAutoSleepDisabled(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
+}
+
+void ISelfController::IsAutoSleepDisabled(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_AM, "called.");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push(is_auto_sleep_disabled);
 }
 
 void ISelfController::GetAccumulatedSuspendedTickValue(Kernel::HLERequestContext& ctx) {

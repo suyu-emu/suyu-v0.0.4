@@ -134,6 +134,7 @@ private:
     void SetIdleTimeDetectionExtension(Kernel::HLERequestContext& ctx);
     void GetIdleTimeDetectionExtension(Kernel::HLERequestContext& ctx);
     void SetAutoSleepDisabled(Kernel::HLERequestContext& ctx);
+    void IsAutoSleepDisabled(Kernel::HLERequestContext& ctx);
     void GetAccumulatedSuspendedTickValue(Kernel::HLERequestContext& ctx);
     void GetAccumulatedSuspendedTickChangedEvent(Kernel::HLERequestContext& ctx);
 
