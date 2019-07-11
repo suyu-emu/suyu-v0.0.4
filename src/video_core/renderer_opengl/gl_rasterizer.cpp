@@ -991,7 +991,7 @@ TextureBufferUsage RasterizerOpenGL::SetupDrawTextures(Maxwell::ShaderStage stag
     const auto& maxwell3d = gpu.Maxwell3D();
     const auto& entries = shader->GetShaderEntries().samplers;
 
-    ASSERT_MSG(base_bindings.sampler + entries.size() <= std::size(state.texture_units),
+    ASSERT_MSG(base_bindings.sampler + entries.size() <= std::size(state.textures),
                "Exceeded the number of active textures.");
 
     TextureBufferUsage texture_buffer_usage{0};
@@ -1019,16 +1019,15 @@ TextureBufferUsage RasterizerOpenGL::SetupDrawTextures(Maxwell::ShaderStage stag
 bool RasterizerOpenGL::SetupTexture(const Shader& shader, u32 binding,
                                     const Tegra::Texture::FullTextureInfo& texture,
                                     const GLShader::SamplerEntry& entry) {
-    auto& unit{state.texture_units[binding]};
-    unit.sampler = sampler_cache.GetSampler(texture.tsc);
+    state.samplers[binding] = sampler_cache.GetSampler(texture.tsc);
 
     const auto view = texture_cache.GetTextureSurface(texture.tic, entry);
     if (!view) {
         // Can occur when texture addr is null or its memory is unmapped/invalid
-        unit.texture = 0;
+        state.textures[binding] = 0;
         return false;
     }
-    unit.texture = view->GetTexture();
+    state.textures[binding] = view->GetTexture();
 
     if (view->GetSurfaceParams().IsBuffer()) {
         return true;
