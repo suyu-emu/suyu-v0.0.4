@@ -53,16 +53,12 @@ bool CpuBarrier::Rendezvous() {
 Cpu::Cpu(System& system, ExclusiveMonitor& exclusive_monitor, CpuBarrier& cpu_barrier,
          std::size_t core_index)
     : cpu_barrier{cpu_barrier}, core_timing{system.CoreTiming()}, core_index{core_index} {
-    if (Settings::values.cpu_jit_enabled) {
 #ifdef ARCHITECTURE_x86_64
-        arm_interface = std::make_unique<ARM_Dynarmic>(system, exclusive_monitor, core_index);
+    arm_interface = std::make_unique<ARM_Dynarmic>(system, exclusive_monitor, core_index);
 #else
-        arm_interface = std::make_unique<ARM_Unicorn>(system);
-        LOG_WARNING(Core, "CPU JIT requested, but Dynarmic not available");
+    arm_interface = std::make_unique<ARM_Unicorn>(system);
+    LOG_WARNING(Core, "CPU JIT requested, but Dynarmic not available");
 #endif
-    } else {
-        arm_interface = std::make_unique<ARM_Unicorn>(system);
-    }
 
     scheduler = std::make_unique<Kernel::Scheduler>(system, *arm_interface);
 }
@@ -70,15 +66,12 @@ Cpu::Cpu(System& system, ExclusiveMonitor& exclusive_monitor, CpuBarrier& cpu_ba
 Cpu::~Cpu() = default;
 
 std::unique_ptr<ExclusiveMonitor> Cpu::MakeExclusiveMonitor(std::size_t num_cores) {
-    if (Settings::values.cpu_jit_enabled) {
 #ifdef ARCHITECTURE_x86_64
-        return std::make_unique<DynarmicExclusiveMonitor>(num_cores);
+    return std::make_unique<DynarmicExclusiveMonitor>(num_cores);
 #else
-        return nullptr; // TODO(merry): Passthrough exclusive monitor
+    // TODO(merry): Passthrough exclusive monitor
+    return nullptr;
 #endif
-    } else {
-        return nullptr; // TODO(merry): Passthrough exclusive monitor
-    }
 }
 
 void Cpu::RunLoop(bool tight_loop) {

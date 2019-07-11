@@ -436,8 +436,6 @@ void Config::ReadControlValues() {
 void Config::ReadCoreValues() {
     qt_config->beginGroup(QStringLiteral("Core"));
 
-    Settings::values.cpu_jit_enabled =
-        ReadSetting(QStringLiteral("cpu_jit_enabled"), true).toBool();
     Settings::values.use_multi_core = ReadSetting(QStringLiteral("use_multi_core"), false).toBool();
 
     qt_config->endGroup();
@@ -831,7 +829,6 @@ void Config::SaveControlValues() {
 void Config::SaveCoreValues() {
     qt_config->beginGroup(QStringLiteral("Core"));
 
-    WriteSetting(QStringLiteral("cpu_jit_enabled"), Settings::values.cpu_jit_enabled, true);
     WriteSetting(QStringLiteral("use_multi_core"), Settings::values.use_multi_core, false);
 
     qt_config->endGroup();

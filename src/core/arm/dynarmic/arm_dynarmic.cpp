@@ -177,15 +177,6 @@ ARM_Dynarmic::ARM_Dynarmic(System& system, ExclusiveMonitor& exclusive_monitor,
 
 ARM_Dynarmic::~ARM_Dynarmic() = default;
 
-void ARM_Dynarmic::MapBackingMemory(u64 address, std::size_t size, u8* memory,
-                                    Kernel::VMAPermission perms) {
-    inner_unicorn.MapBackingMemory(address, size, memory, perms);
-}
-
-void ARM_Dynarmic::UnmapMemory(u64 address, std::size_t size) {
-    inner_unicorn.UnmapMemory(address, size);
-}
-
 void ARM_Dynarmic::SetPC(u64 pc) {
     jit->SetPC(pc);
 }
