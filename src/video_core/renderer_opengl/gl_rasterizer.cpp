@@ -331,7 +331,7 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
         const auto stage_enum = static_cast<Maxwell::ShaderStage>(stage);
         SetupDrawConstBuffers(stage_enum, shader);
         SetupDrawGlobalMemory(stage_enum, shader);
-        const auto texture_buffer_usage{SetupTextures(stage_enum, shader, base_bindings)};
+        const auto texture_buffer_usage{SetupDrawTextures(stage_enum, shader, base_bindings)};
 
         const ProgramVariant variant{base_bindings, primitive_mode, texture_buffer_usage};
         const auto [program_handle, next_bindings] = shader->GetProgramHandle(variant);
@@ -981,8 +981,9 @@ void RasterizerOpenGL::SetupGlobalMemory(const GLShader::GlobalMemoryEntry& entr
     bind_ssbo_pushbuffer.Push(ssbo, buffer_offset, static_cast<GLsizeiptr>(size));
 }
 
-TextureBufferUsage RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, const Shader& shader,
-                                                   BaseBindings base_bindings) {
+TextureBufferUsage RasterizerOpenGL::SetupDrawTextures(Maxwell::ShaderStage stage,
+                                                       const Shader& shader,
+                                                       BaseBindings base_bindings) {
     MICROPROFILE_SCOPE(OpenGL_Texture);
     const auto& gpu = system.GPU();
     const auto& maxwell3d = gpu.Maxwell3D();
@@ -1004,28 +1005,37 @@ TextureBufferUsage RasterizerOpenGL::SetupTextures(Maxwell::ShaderStage stage, c
         } else {
             texture = maxwell3d.GetStageTexture(stage, entry.GetOffset());
         }
-        const u32 current_bindpoint = base_bindings.sampler + bindpoint;
 
-        auto& unit{state.texture_units[current_bindpoint]};
-        unit.sampler = sampler_cache.GetSampler(texture.tsc);
-
-        if (const auto view{texture_cache.GetTextureSurface(texture, entry)}; view) {
-            if (view->GetSurfaceParams().IsBuffer()) {
-                // Record that this texture is a texture buffer.
-                texture_buffer_usage.set(bindpoint);
-            } else {
-                // Apply swizzle to textures that are not buffers.
-                view->ApplySwizzle(texture.tic.x_source, texture.tic.y_source, texture.tic.z_source,
-                                   texture.tic.w_source);
-            }
-            state.texture_units[current_bindpoint].texture = view->GetTexture();
-        } else {
-            // Can occur when texture addr is null or its memory is unmapped/invalid
-            unit.texture = 0;
+        if (SetupTexture(shader, base_bindings.sampler + bindpoint, texture, entry)) {
+            texture_buffer_usage.set(bindpoint);
         }
     }
 
     return texture_buffer_usage;
+}
+
+bool RasterizerOpenGL::SetupTexture(const Shader& shader, u32 binding,
+                                    const Tegra::Texture::FullTextureInfo& texture,
+                                    const GLShader::SamplerEntry& entry) {
+    auto& unit{state.texture_units[binding]};
+    unit.sampler = sampler_cache.GetSampler(texture.tsc);
+
+    const auto view = texture_cache.GetTextureSurface(texture, entry);
+    if (!view) {
+        // Can occur when texture addr is null or its memory is unmapped/invalid
+        unit.texture = 0;
+        return false;
+    }
+    unit.texture = view->GetTexture();
+
+    if (view->GetSurfaceParams().IsBuffer()) {
+        return true;
+    }
+
+    // Apply swizzle to textures that are not buffers.
+    view->ApplySwizzle(texture.tic.x_source, texture.tic.y_source, texture.tic.z_source,
+                       texture.tic.w_source);
+    return false;
 }
 
 void RasterizerOpenGL::SyncViewport(OpenGLState& current_state) {

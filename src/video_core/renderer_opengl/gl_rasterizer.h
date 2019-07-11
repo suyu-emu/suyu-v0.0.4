@@ -32,6 +32,7 @@
 #include "video_core/renderer_opengl/gl_state.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
 #include "video_core/renderer_opengl/utils.h"
+#include "video_core/textures/texture.h"
 
 namespace Core {
 class System;
@@ -137,8 +138,13 @@ private:
 
     /// Configures the current textures to use for the draw command. Returns shaders texture buffer
     /// usage.
-    TextureBufferUsage SetupTextures(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
-                                     const Shader& shader, BaseBindings base_bindings);
+    TextureBufferUsage SetupDrawTextures(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
+                                         const Shader& shader, BaseBindings base_bindings);
+
+    /// Configures a texture. Returns true when the texture is a texture buffer.
+    bool SetupTexture(const Shader& shader, u32 binding,
+                      const Tegra::Texture::FullTextureInfo& texture,
+                      const GLShader::SamplerEntry& entry);
 
     /// Syncs the viewport and depth range to match the guest state
     void SyncViewport(OpenGLState& current_state);
