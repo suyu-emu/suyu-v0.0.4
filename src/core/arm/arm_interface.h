@@ -44,13 +44,6 @@ public:
     /// Step CPU by one instruction
     virtual void Step() = 0;
 
-    /// Maps a backing memory region for the CPU
-    virtual void MapBackingMemory(VAddr address, std::size_t size, u8* memory,
-                                  Kernel::VMAPermission perms) = 0;
-
-    /// Unmaps a region of memory that was previously mapped using MapBackingMemory
-    virtual void UnmapMemory(VAddr address, std::size_t size) = 0;
-
     /// Clear all instruction cache
     virtual void ClearInstructionCache() = 0;
 
