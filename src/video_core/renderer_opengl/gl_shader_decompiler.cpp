@@ -246,7 +246,7 @@ public:
         }
         entries.clip_distances = ir.GetClipDistances();
         entries.shader_viewport_layer_array =
-            stage == ShaderStage::Vertex && (ir.UsesLayer() || ir.UsesPointSize());
+            stage == ShaderStage::Vertex && (ir.UsesLayer() || ir.UsesViewportIndex());
         entries.shader_length = ir.GetLength();
         return entries;
     }
@@ -302,7 +302,8 @@ private:
             if (ir.UsesViewportIndex()) {
                 code.AddLine("int gl_ViewportIndex;");
             }
-        } else if (stage == ShaderStage::Vertex && !device.HasVertexViewportLayer()) {
+        } else if ((ir.UsesLayer() || ir.UsesViewportIndex()) && stage == ShaderStage::Vertex &&
+                   !device.HasVertexViewportLayer()) {
             LOG_ERROR(
                 Render_OpenGL,
                 "GL_ARB_shader_viewport_layer_array is not available and its required by a shader");
