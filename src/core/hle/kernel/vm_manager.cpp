@@ -796,25 +796,6 @@ void VMManager::MergeAdjacentVMA(VirtualMemoryArea& left, const VirtualMemoryAre
         // Page table update is needed, because backing memory changed.
         left.size += right.size;
         UpdatePageTableForVMA(left);
-
-        // Update mappings for unicorn.
-        system.ArmInterface(0).UnmapMemory(left.base, left.size);
-        system.ArmInterface(1).UnmapMemory(left.base, left.size);
-        system.ArmInterface(2).UnmapMemory(left.base, left.size);
-        system.ArmInterface(3).UnmapMemory(left.base, left.size);
-
-        system.ArmInterface(0).MapBackingMemory(left.base, left.size,
-                                                left.backing_block->data() + left.offset,
-                                                VMAPermission::ReadWriteExecute);
-        system.ArmInterface(1).MapBackingMemory(left.base, left.size,
-                                                left.backing_block->data() + left.offset,
-                                                VMAPermission::ReadWriteExecute);
-        system.ArmInterface(2).MapBackingMemory(left.base, left.size,
-                                                left.backing_block->data() + left.offset,
-                                                VMAPermission::ReadWriteExecute);
-        system.ArmInterface(3).MapBackingMemory(left.base, left.size,
-                                                left.backing_block->data() + left.offset,
-                                                VMAPermission::ReadWriteExecute);
     } else {
         // Just update the size.
         left.size += right.size;
