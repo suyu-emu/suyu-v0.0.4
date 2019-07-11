@@ -310,7 +310,7 @@ private:
         }
 
         if (ir.UsesPointSize()) {
-            code.AddLine("int gl_PointSize;");
+            code.AddLine("float gl_PointSize;");
         }
 
         --code.scope;
