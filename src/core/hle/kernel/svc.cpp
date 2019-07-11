@@ -318,7 +318,14 @@ static ResultCode UnmapMemory(Core::System& system, VAddr dst_addr, VAddr src_ad
         return result;
     }
 
-    return vm_manager.UnmapRange(dst_addr, size);
+    const auto unmap_res = vm_manager.UnmapRange(dst_addr, size);
+
+    // Reprotect the source mapping on success
+    if (unmap_res.IsSuccess()) {
+        ASSERT(vm_manager.ReprotectRange(src_addr, size, VMAPermission::ReadWrite).IsSuccess());
+    }
+
+    return unmap_res;
 }
 
 /// Connect to an OS service given the port name, returns the handle to the port to out

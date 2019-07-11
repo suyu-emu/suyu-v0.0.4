@@ -345,14 +345,16 @@ public:
             vm_manager
                 .MirrorMemory(*map_address, nro_address, nro_size, Kernel::MemoryState::ModuleCode)
                 .IsSuccess());
-        ASSERT(vm_manager.UnmapRange(nro_address, nro_size).IsSuccess());
+        ASSERT(vm_manager.ReprotectRange(nro_address, nro_size, Kernel::VMAPermission::None)
+                   .IsSuccess());
 
         if (bss_size > 0) {
             ASSERT(vm_manager
                        .MirrorMemory(*map_address + nro_size, bss_address, bss_size,
                                      Kernel::MemoryState::ModuleCode)
                        .IsSuccess());
-            ASSERT(vm_manager.UnmapRange(bss_address, bss_size).IsSuccess());
+            ASSERT(vm_manager.ReprotectRange(bss_address, bss_size, Kernel::VMAPermission::None)
+                       .IsSuccess());
         }
 
         vm_manager.ReprotectRange(*map_address, header.text_size,
@@ -364,7 +366,8 @@ public:
 
         Core::System::GetInstance().InvalidateCpuInstructionCaches();
 
-        nro.insert_or_assign(*map_address, NROInfo{hash, nro_size + bss_size});
+        nro.insert_or_assign(*map_address,
+                             NROInfo{hash, nro_address, nro_size, bss_address, bss_size});
 
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
@@ -409,9 +412,23 @@ public:
         }
 
         auto& vm_manager = Core::CurrentProcess()->VMManager();
-        const auto& nro_size = iter->second.size;
+        const auto& nro_info = iter->second;
 
-        ASSERT(vm_manager.UnmapRange(nro_address, nro_size).IsSuccess());
+        // Unmap the mirrored memory
+        ASSERT(
+            vm_manager.UnmapRange(nro_address, nro_info.nro_size + nro_info.bss_size).IsSuccess());
+
+        // Reprotect the source memory
+        ASSERT(vm_manager
+                   .ReprotectRange(nro_info.nro_address, nro_info.nro_size,
+                                   Kernel::VMAPermission::ReadWrite)
+                   .IsSuccess());
+        if (nro_info.bss_size > 0) {
+            ASSERT(vm_manager
+                       .ReprotectRange(nro_info.bss_address, nro_info.bss_size,
+                                       Kernel::VMAPermission::ReadWrite)
+                       .IsSuccess());
+        }
 
         Core::System::GetInstance().InvalidateCpuInstructionCaches();
 
@@ -473,7 +490,10 @@ private:
 
     struct NROInfo {
         SHA256Hash hash;
-        u64 size;
+        VAddr nro_address;
+        u64 nro_size;
+        VAddr bss_address;
+        u64 bss_size;
     };
 
     bool initialized = false;
