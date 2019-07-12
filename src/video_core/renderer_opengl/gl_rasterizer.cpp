@@ -1022,7 +1022,7 @@ bool RasterizerOpenGL::SetupTexture(const Shader& shader, u32 binding,
     auto& unit{state.texture_units[binding]};
     unit.sampler = sampler_cache.GetSampler(texture.tsc);
 
-    const auto view = texture_cache.GetImageSurface(texture.tic, entry);
+    const auto view = texture_cache.GetTextureSurface(texture.tic, entry);
     if (!view) {
         // Can occur when texture addr is null or its memory is unmapped/invalid
         unit.texture = 0;
@@ -1054,7 +1054,12 @@ void RasterizerOpenGL::SetupComputeImages(const Shader& shader) {
             tex_handle.raw = compute.AccessConstBuffer32(cbuf.first, cbuf.second);
             return compute.GetTextureInfo(tex_handle, entry.GetOffset());
         }();
-        UNIMPLEMENTED();
+        const auto view = texture_cache.GetImageSurface(texture.tic, entry);
+        if (!view) {
+            state.images[bindpoint] = 0;
+            continue;
+        }
+        state.images[bindpoint] = view->GetTexture();
     }
 }
 
