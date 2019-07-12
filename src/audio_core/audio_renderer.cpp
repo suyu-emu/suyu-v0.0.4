@@ -80,7 +80,8 @@ AudioRenderer::AudioRenderer(Core::Timing::CoreTiming& core_timing, AudioRendere
 
     audio_out = std::make_unique<AudioCore::AudioOut>();
     stream = audio_out->OpenStream(core_timing, STREAM_SAMPLE_RATE, STREAM_NUM_CHANNELS,
-                                   fmt::format("AudioRenderer-Instance{}", instance_number), [=]() { buffer_event->Signal(); });
+                                   fmt::format("AudioRenderer-Instance{}", instance_number),
+                                   [=]() { buffer_event->Signal(); });
     audio_out->StartStream(stream);
 
     QueueMixedBuffer(0);

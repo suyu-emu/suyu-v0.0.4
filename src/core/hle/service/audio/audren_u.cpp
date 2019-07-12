@@ -25,7 +25,8 @@ namespace Service::Audio {
 
 class IAudioRenderer final : public ServiceFramework<IAudioRenderer> {
 public:
-    explicit IAudioRenderer(AudioCore::AudioRendererParameter audren_params, const std::size_t instance_number)
+    explicit IAudioRenderer(AudioCore::AudioRendererParameter audren_params,
+                            const std::size_t instance_number)
         : ServiceFramework("IAudioRenderer") {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -48,7 +49,8 @@ public:
         auto& system = Core::System::GetInstance();
         system_event = Kernel::WritableEvent::CreateEventPair(
             system.Kernel(), Kernel::ResetType::Manual, "IAudioRenderer:SystemEvent");
-        renderer = std::make_unique<AudioCore::AudioRenderer>(system.CoreTiming(), audren_params, system_event.writable, instance_number);
+        renderer = std::make_unique<AudioCore::AudioRenderer>(
+            system.CoreTiming(), audren_params, system_event.writable, instance_number);
     }
 
 private:
