@@ -134,6 +134,8 @@ public:
     };
     std::array<TextureUnit, Tegra::Engines::Maxwell3D::Regs::NumTextureSamplers> texture_units;
 
+    std::array<GLuint, Tegra::Engines::Maxwell3D::Regs::NumImages> images{};
+
     struct {
         GLuint read_framebuffer; // GL_READ_FRAMEBUFFER_BINDING
         GLuint draw_framebuffer; // GL_DRAW_FRAMEBUFFER_BINDING
@@ -220,6 +222,7 @@ public:
     void ApplyLogicOp() const;
     void ApplyTextures() const;
     void ApplySamplers() const;
+    void ApplyImages() const;
     void ApplyDepthClamp() const;
     void ApplyPolygonOffset() const;
     void ApplyAlphaTest() const;

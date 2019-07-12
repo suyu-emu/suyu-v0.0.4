@@ -545,6 +545,26 @@ void OpenGLState::ApplySamplers() const {
     }
 }
 
+void OpenGLState::ApplyImages() const {
+    bool has_delta{};
+    std::size_t first{};
+    std::size_t last{};
+    for (std::size_t i = 0; i < std::size(images); ++i) {
+        if (!UpdateValue(cur_state.images[i], images[i])) {
+            continue;
+        }
+        if (!has_delta) {
+            first = i;
+            has_delta = true;
+        }
+        last = i;
+    }
+    if (has_delta) {
+        glBindImageTextures(static_cast<GLuint>(first), static_cast<GLsizei>(last - first + 1),
+                            images.data() + first);
+    }
+}
+
 void OpenGLState::Apply() {
     MICROPROFILE_SCOPE(OpenGL_State);
     ApplyFramebufferState();
@@ -576,6 +596,7 @@ void OpenGLState::Apply() {
     ApplyLogicOp();
     ApplyTextures();
     ApplySamplers();
+    ApplyImages();
     if (dirty.polygon_offset) {
         ApplyPolygonOffset();
         dirty.polygon_offset = false;
