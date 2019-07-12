@@ -998,17 +998,17 @@ TextureBufferUsage RasterizerOpenGL::SetupDrawTextures(Maxwell::ShaderStage stag
 
     for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
         const auto& entry = entries[bindpoint];
-        Tegra::Texture::FullTextureInfo texture;
-        if (entry.IsBindless()) {
+        const auto texture = [&]() {
+            if (!entry.IsBindless()) {
+                return maxwell3d.GetStageTexture(stage, entry.GetOffset());
+            }
             const auto cbuf = entry.GetBindlessCBuf();
             Tegra::Texture::TextureHandle tex_handle;
             tex_handle.raw = maxwell3d.AccessConstBuffer32(stage, cbuf.first, cbuf.second);
-            texture = maxwell3d.GetTextureInfo(tex_handle, entry.GetOffset());
-        } else {
-            texture = maxwell3d.GetStageTexture(stage, entry.GetOffset());
-        }
+            return maxwell3d.GetTextureInfo(tex_handle, entry.GetOffset());
+        }();
 
-        if (SetupTexture(shader, base_bindings.sampler + bindpoint, texture, entry)) {
+        if (SetupTexture(base_bindings.sampler + bindpoint, texture, entry)) {
             texture_buffer_usage.set(bindpoint);
         }
     }
@@ -1016,8 +1016,7 @@ TextureBufferUsage RasterizerOpenGL::SetupDrawTextures(Maxwell::ShaderStage stag
     return texture_buffer_usage;
 }
 
-bool RasterizerOpenGL::SetupTexture(const Shader& shader, u32 binding,
-                                    const Tegra::Texture::FullTextureInfo& texture,
+bool RasterizerOpenGL::SetupTexture(u32 binding, const Tegra::Texture::FullTextureInfo& texture,
                                     const GLShader::SamplerEntry& entry) {
     state.samplers[binding] = sampler_cache.GetSampler(texture.tsc);
 
@@ -1044,22 +1043,30 @@ void RasterizerOpenGL::SetupComputeImages(const Shader& shader) {
     const auto& entries = shader->GetShaderEntries().images;
     for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
         const auto& entry = entries[bindpoint];
-        const auto texture = [&]() {
+        const auto tic = [&]() {
             if (!entry.IsBindless()) {
-                return compute.GetTexture(entry.GetOffset());
+                return compute.GetTexture(entry.GetOffset()).tic;
             }
             const auto cbuf = entry.GetBindlessCBuf();
             Tegra::Texture::TextureHandle tex_handle;
             tex_handle.raw = compute.AccessConstBuffer32(cbuf.first, cbuf.second);
-            return compute.GetTextureInfo(tex_handle, entry.GetOffset());
+            return compute.GetTextureInfo(tex_handle, entry.GetOffset()).tic;
         }();
-        const auto view = texture_cache.GetImageSurface(texture.tic, entry);
-        if (!view) {
-            state.images[bindpoint] = 0;
-            continue;
-        }
-        state.images[bindpoint] = view->GetTexture();
+        SetupImage(bindpoint, tic, entry);
     }
+}
+
+void RasterizerOpenGL::SetupImage(u32 binding, const Tegra::Texture::TICEntry& tic,
+                                  const GLShader::ImageEntry& entry) {
+    const auto view = texture_cache.GetImageSurface(tic, entry);
+    if (!view) {
+        state.images[binding] = 0;
+        return;
+    }
+    if (!tic.IsBuffer()) {
+        view->ApplySwizzle(tic.x_source, tic.y_source, tic.z_source, tic.w_source);
+    }
+    state.images[binding] = view->GetTexture();
 }
 
 void RasterizerOpenGL::SyncViewport(OpenGLState& current_state) {

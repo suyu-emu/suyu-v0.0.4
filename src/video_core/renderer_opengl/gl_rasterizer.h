@@ -142,11 +142,15 @@ private:
                                          const Shader& shader, BaseBindings base_bindings);
 
     /// Configures a texture. Returns true when the texture is a texture buffer.
-    bool SetupTexture(const Shader& shader, u32 binding,
-                      const Tegra::Texture::FullTextureInfo& texture,
+    bool SetupTexture(u32 binding, const Tegra::Texture::FullTextureInfo& texture,
                       const GLShader::SamplerEntry& entry);
 
+    /// Configures images in a compute shader.
     void SetupComputeImages(const Shader& shader);
+
+    /// Configures an image.
+    void SetupImage(u32 binding, const Tegra::Texture::TICEntry& tic,
+                    const GLShader::ImageEntry& entry);
 
     /// Syncs the viewport and depth range to match the guest state
     void SyncViewport(OpenGLState& current_state);
