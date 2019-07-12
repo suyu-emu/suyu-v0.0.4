@@ -183,6 +183,14 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
 
     const u32 method = method_call.method;
 
+    if (method == cb_data_state.current) {
+        regs.reg_array[method] = method_call.argument;
+        ProcessCBData(method_call.argument);
+        return;
+    } else if (cb_data_state.current != null_cb_data) {
+        FinishCBData();
+    }
+
     // It is an error to write to a register other than the current macro's ARG register before it
     // has finished execution.
     if (executing_macro != 0) {
@@ -259,7 +267,7 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
     case MAXWELL3D_REG_INDEX(const_buffer.cb_data[13]):
     case MAXWELL3D_REG_INDEX(const_buffer.cb_data[14]):
     case MAXWELL3D_REG_INDEX(const_buffer.cb_data[15]): {
-        ProcessCBData(method_call.argument);
+        StartCBData(method);
         break;
     }
     case MAXWELL3D_REG_INDEX(cb_bind[0].raw_config): {
@@ -449,21 +457,39 @@ void Maxwell3D::ProcessCBBind(Regs::ShaderStage stage) {
 }
 
 void Maxwell3D::ProcessCBData(u32 value) {
+    const u32 id = cb_data_state.id;
+    cb_data_state.buff[id][cb_data_state.counter] = value;
+    // Increment the current buffer position.
+    regs.const_buffer.cb_pos = regs.const_buffer.cb_pos + 4;
+    cb_data_state.counter++;
+}
+
+void Maxwell3D::StartCBData(u32 method) {
+    constexpr u32 first_cb_data = MAXWELL3D_REG_INDEX(const_buffer.cb_data[0]);
+    cb_data_state.start_pos = regs.const_buffer.cb_pos;
+    cb_data_state.id = method - first_cb_data;
+    cb_data_state.current = method;
+    cb_data_state.counter = 0;
+    ProcessCBData(regs.const_buffer.cb_data[cb_data_state.id]);
+}
+
+void Maxwell3D::FinishCBData() {
     // Write the input value to the current const buffer at the current position.
     const GPUVAddr buffer_address = regs.const_buffer.BufferAddress();
     ASSERT(buffer_address != 0);
 
     // Don't allow writing past the end of the buffer.
-    ASSERT(regs.const_buffer.cb_pos + sizeof(u32) <= regs.const_buffer.cb_size);
+    ASSERT(regs.const_buffer.cb_pos <= regs.const_buffer.cb_size);
 
-    const GPUVAddr address{buffer_address + regs.const_buffer.cb_pos};
+    const GPUVAddr address{buffer_address + cb_data_state.start_pos};
+    const std::size_t size = regs.const_buffer.cb_pos - cb_data_state.start_pos;
 
-    u8* ptr{memory_manager.GetPointer(address)};
-    rasterizer.InvalidateRegion(ToCacheAddr(ptr), sizeof(u32));
-    memory_manager.Write<u32>(address, value);
+    const u32 id = cb_data_state.id;
+    memory_manager.WriteBlock(address, cb_data_state.buff[id].data(), size);
+    dirty.ResetRenderTargets();
 
-    // Increment the current buffer position.
-    regs.const_buffer.cb_pos = regs.const_buffer.cb_pos + 4;
+    cb_data_state.id = null_cb_data;
+    cb_data_state.current = null_cb_data;
 }
 
 Texture::TICEntry Maxwell3D::GetTICEntry(u32 tic_index) const {
