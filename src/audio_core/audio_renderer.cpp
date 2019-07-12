@@ -74,7 +74,7 @@ private:
 };
 AudioRenderer::AudioRenderer(Core::Timing::CoreTiming& core_timing, AudioRendererParameter params,
                              Kernel::SharedPtr<Kernel::WritableEvent> buffer_event,
-                             const std::size_t instance_number)
+                             std::size_t instance_number)
     : worker_params{params}, buffer_event{buffer_event}, voices(params.voice_count),
       effects(params.effect_count) {
 
