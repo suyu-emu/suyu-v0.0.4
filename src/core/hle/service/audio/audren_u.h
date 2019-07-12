@@ -33,6 +33,7 @@ private:
     };
 
     bool IsFeatureSupported(AudioFeatures feature, u32_le revision) const;
+    std::size_t audren_instance_count = 0;
 };
 
 } // namespace Service::Audio
