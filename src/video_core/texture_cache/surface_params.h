@@ -23,9 +23,8 @@ using VideoCore::Surface::SurfaceCompression;
 class SurfaceParams {
 public:
     /// Creates SurfaceCachedParams from a texture configuration.
-    static SurfaceParams CreateForTexture(Core::System& system,
-                                          const Tegra::Texture::FullTextureInfo& config,
-                                          const VideoCommon::Shader::Sampler& entry);
+    static SurfaceParams CreateForImage(const Tegra::Texture::TICEntry& tic,
+                                        const VideoCommon::Shader::Sampler& entry);
 
     /// Creates SurfaceCachedParams for a depth buffer configuration.
     static SurfaceParams CreateForDepthBuffer(

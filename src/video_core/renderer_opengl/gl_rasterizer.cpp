@@ -1022,7 +1022,7 @@ bool RasterizerOpenGL::SetupTexture(const Shader& shader, u32 binding,
     auto& unit{state.texture_units[binding]};
     unit.sampler = sampler_cache.GetSampler(texture.tsc);
 
-    const auto view = texture_cache.GetTextureSurface(texture, entry);
+    const auto view = texture_cache.GetImageSurface(texture.tic, entry);
     if (!view) {
         // Can occur when texture addr is null or its memory is unmapped/invalid
         unit.texture = 0;
