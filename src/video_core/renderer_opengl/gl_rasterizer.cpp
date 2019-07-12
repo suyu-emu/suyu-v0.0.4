@@ -801,6 +801,8 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     }
 
     auto kernel = shader_cache.GetComputeKernel(code_addr);
+    SetupComputeImages(kernel);
+
     const auto [program, next_bindings] = kernel->GetProgramHandle({});
     state.draw.shader_program = program;
     state.draw.program_pipeline = 0;
@@ -922,7 +924,7 @@ void RasterizerOpenGL::SetupComputeConstBuffers(const Shader& kernel) {
     const auto& launch_desc = system.GPU().KeplerCompute().launch_description;
     for (const auto& entry : kernel->GetShaderEntries().const_buffers) {
         const auto& config = launch_desc.const_buffer_config[entry.GetIndex()];
-        const std::bitset<8> mask = launch_desc.memory_config.const_buffer_enable_mask.Value();
+        const std::bitset<8> mask = launch_desc.const_buffer_enable_mask.Value();
         Tegra::Engines::ConstBufferInfo buffer;
         buffer.address = config.Address();
         buffer.size = config.size;
@@ -1036,6 +1038,24 @@ bool RasterizerOpenGL::SetupTexture(const Shader& shader, u32 binding,
     view->ApplySwizzle(texture.tic.x_source, texture.tic.y_source, texture.tic.z_source,
                        texture.tic.w_source);
     return false;
+}
+
+void RasterizerOpenGL::SetupComputeImages(const Shader& shader) {
+    const auto& compute = system.GPU().KeplerCompute();
+    const auto& entries = shader->GetShaderEntries().images;
+    for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
+        const auto& entry = entries[bindpoint];
+        const auto texture = [&]() {
+            if (!entry.IsBindless()) {
+                return compute.GetTexture(entry.GetOffset());
+            }
+            const auto cbuf = entry.GetBindlessCBuf();
+            Tegra::Texture::TextureHandle tex_handle;
+            tex_handle.raw = compute.AccessConstBuffer32(cbuf.first, cbuf.second);
+            return compute.GetTextureInfo(tex_handle, entry.GetOffset());
+        }();
+        UNIMPLEMENTED();
+    }
 }
 
 void RasterizerOpenGL::SyncViewport(OpenGLState& current_state) {
