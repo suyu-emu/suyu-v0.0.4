@@ -159,6 +159,88 @@ void Maxwell3D::InitDirtySettings() {
         sizeof(regs.shader_config[0]) * Regs::MaxShaderProgram / sizeof(u32);
     set_block(MAXWELL3D_REG_INDEX(shader_config[0]), shader_registers_count,
               DIRTY_REGS_POS(shaders));
+
+    // State
+
+    // Viewport
+    constexpr u32 viewport_dirty_reg = DIRTY_REGS_POS(viewport);
+    constexpr u32 viewport_start = MAXWELL3D_REG_INDEX(viewports);
+    constexpr u32 viewport_size = sizeof(regs.viewports) / sizeof(u32);
+    set_block(viewport_start, viewport_size, viewport_dirty_reg);
+    constexpr u32 view_volume_start = MAXWELL3D_REG_INDEX(view_volume_clip_control);
+    constexpr u32 view_volume_size = sizeof(regs.view_volume_clip_control) / sizeof(u32);
+    set_block(view_volume_start, view_volume_size, viewport_dirty_reg);
+
+    // Viewport transformation
+    constexpr u32 viewport_trans_start = MAXWELL3D_REG_INDEX(viewport_transform);
+    constexpr u32 viewport_trans_size = sizeof(regs.viewport_transform) / sizeof(u32);
+    set_block(viewport_trans_start, viewport_trans_size, DIRTY_REGS_POS(viewport_transform));
+
+    // Cullmode
+    constexpr u32 cull_mode_start = MAXWELL3D_REG_INDEX(cull);
+    constexpr u32 cull_mode_size = sizeof(regs.cull) / sizeof(u32);
+    set_block(cull_mode_start, cull_mode_size, DIRTY_REGS_POS(cull_mode));
+
+    // Screen y control
+    dirty_pointers[MAXWELL3D_REG_INDEX(screen_y_control)] = DIRTY_REGS_POS(screen_y_control);
+
+    // Primitive Restart
+    constexpr u32 primitive_restart_start = MAXWELL3D_REG_INDEX(primitive_restart);
+    constexpr u32 primitive_restart_size = sizeof(regs.primitive_restart) / sizeof(u32);
+    set_block(primitive_restart_start, primitive_restart_size, DIRTY_REGS_POS(primitive_restart));
+
+    // Depth Test
+    constexpr u32 depth_test_dirty_reg = DIRTY_REGS_POS(depth_test);
+    dirty_pointers[MAXWELL3D_REG_INDEX(depth_test_enable)] = depth_test_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(depth_write_enabled)] = depth_test_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(depth_test_func)] = depth_test_dirty_reg;
+
+    // Stencil Test
+    constexpr u32 stencil_test_dirty_reg = DIRTY_REGS_POS(stencil_test);
+    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_enable)] = stencil_test_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_front_func_func)] = stencil_test_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_front_func_ref)] = stencil_test_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_front_func_mask)] = stencil_test_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_front_op_fail)] = stencil_test_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_front_op_zfail)] = stencil_test_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_front_op_zpass)] = stencil_test_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_front_mask)] = stencil_test_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_two_side_enable)] = stencil_test_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_back_func_func)] = stencil_test_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_back_func_ref)] = stencil_test_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_back_func_mask)] = stencil_test_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_back_op_fail)] = stencil_test_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_back_op_zfail)] = stencil_test_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_back_op_zpass)] = stencil_test_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_back_mask)] = stencil_test_dirty_reg;
+
+    // Color Mask
+    constexpr u32 color_mask_dirty_reg = DIRTY_REGS_POS(color_mask);
+    dirty_pointers[MAXWELL3D_REG_INDEX(color_mask_common)] = color_mask_dirty_reg;
+    set_block(MAXWELL3D_REG_INDEX(color_mask), sizeof(regs.color_mask) / sizeof(u32),
+              color_mask_dirty_reg);
+    // Blend State
+    constexpr u32 blend_state_dirty_reg = DIRTY_REGS_POS(blend_state);
+    set_block(MAXWELL3D_REG_INDEX(blend_color), sizeof(regs.blend_color) / sizeof(u32),
+              blend_state_dirty_reg);
+    dirty_pointers[MAXWELL3D_REG_INDEX(independent_blend_enable)] = blend_state_dirty_reg;
+    set_block(MAXWELL3D_REG_INDEX(blend), sizeof(regs.blend) / sizeof(u32), blend_state_dirty_reg);
+    set_block(MAXWELL3D_REG_INDEX(independent_blend), sizeof(regs.independent_blend) / sizeof(u32),
+              blend_state_dirty_reg);
+
+    // Scissor State
+    constexpr u32 scissor_test_dirty_reg = DIRTY_REGS_POS(scissor_test);
+    set_block(MAXWELL3D_REG_INDEX(scissor_test), sizeof(regs.scissor_test) / sizeof(u32),
+              scissor_test_dirty_reg);
+
+    // Polygon Offset
+    constexpr u32 polygon_offset_dirty_reg = DIRTY_REGS_POS(polygon_offset);
+    dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_fill_enable)] = polygon_offset_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_line_enable)] = polygon_offset_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_point_enable)] = polygon_offset_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_units)] = polygon_offset_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_factor)] = polygon_offset_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_clamp)] = polygon_offset_dirty_reg;
 }
 
 void Maxwell3D::CallMacroMethod(u32 method, std::vector<u32> parameters) {

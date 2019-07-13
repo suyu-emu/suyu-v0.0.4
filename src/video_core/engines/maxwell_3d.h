@@ -1148,22 +1148,20 @@ public:
                 bool shaders;
                 // State
                 bool viewport;
-                bool clip_enabled;
                 bool clip_coefficient;
                 bool cull_mode;
                 bool primitive_restart;
                 bool depth_test;
                 bool stencil_test;
                 bool blend_state;
-                bool logic_op;
-                bool fragment_color_clamp;
-                bool multi_sample;
                 bool scissor_test;
                 bool transform_feedback;
-                bool point;
                 bool color_mask;
                 bool polygon_offset;
-                bool alpha_test;
+
+                // Complementary
+                bool viewport_transform;
+                bool screen_y_control;
 
                 bool memory_general;
             };

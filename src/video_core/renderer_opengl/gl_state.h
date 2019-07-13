@@ -196,7 +196,7 @@ public:
     }
 
     /// Apply this state as the current OpenGL state
-    void Apply() const;
+    void Apply();
 
     void ApplyFramebufferState() const;
     void ApplyVertexArrayState() const;
@@ -237,11 +237,46 @@ public:
     /// Viewport does not affects glClearBuffer so emulate viewport using scissor test
     void EmulateViewportWithScissor();
 
+    void MarkDirtyBlendState(const bool is_dirty) {
+        dirty.blend_state = is_dirty;
+    }
+
+    void MarkDirtyStencilState(const bool is_dirty) {
+        dirty.stencil_state = is_dirty;
+    }
+
+    void MarkDirtyViewportState(const bool is_dirty) {
+        dirty.viewport_state = is_dirty;
+    }
+
+    void MarkDirtyPolygonOffset(const bool is_dirty) {
+        dirty.polygon_offset = is_dirty;
+    }
+
+    void MarkDirtyColorMask(const bool is_dirty) {
+        dirty.color_mask = is_dirty;
+    }
+
+    void AllDirty() {
+        dirty.blend_state = true;
+        dirty.stencil_state = true;
+        dirty.viewport_state = true;
+        dirty.polygon_offset = true;
+        dirty.color_mask = true;
+    }
+
 private:
     static OpenGLState cur_state;
 
     // Workaround for sRGB problems caused by QT not supporting srgb output
     static bool s_rgb_used;
+    struct {
+        bool blend_state;
+        bool stencil_state;
+        bool viewport_state;
+        bool polygon_offset;
+        bool color_mask;
+    } dirty{};
 };
 
 } // namespace OpenGL

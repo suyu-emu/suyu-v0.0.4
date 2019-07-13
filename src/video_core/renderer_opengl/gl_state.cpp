@@ -526,7 +526,7 @@ void OpenGLState::ApplySamplers() const {
     }
 }
 
-void OpenGLState::Apply() const {
+void OpenGLState::Apply() {
     MICROPROFILE_SCOPE(OpenGL_State);
     ApplyFramebufferState();
     ApplyVertexArrayState();
@@ -536,19 +536,31 @@ void OpenGLState::Apply() const {
     ApplyPointSize();
     ApplyFragmentColorClamp();
     ApplyMultisample();
+    if (dirty.color_mask) {
+        ApplyColorMask();
+        dirty.color_mask = false;
+    }
     ApplyDepthClamp();
-    ApplyColorMask();
     ApplyViewport();
-    ApplyStencilTest();
+    if (dirty.stencil_state) {
+        ApplyStencilTest();
+        dirty.stencil_state = false;
+    }
     ApplySRgb();
     ApplyCulling();
     ApplyDepth();
     ApplyPrimitiveRestart();
-    ApplyBlending();
+    if (dirty.blend_state) {
+        ApplyBlending();
+        dirty.blend_state = false;
+    }
     ApplyLogicOp();
     ApplyTextures();
     ApplySamplers();
-    ApplyPolygonOffset();
+    if (dirty.polygon_offset) {
+        ApplyPolygonOffset();
+        dirty.polygon_offset = false;
+    }
     ApplyAlphaTest();
 }
 

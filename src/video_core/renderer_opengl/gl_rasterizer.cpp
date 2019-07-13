@@ -936,56 +936,53 @@ void RasterizerOpenGL::SyncClipCoef() {
 }
 
 void RasterizerOpenGL::SyncCullMode() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    auto& maxwell3d = system.GPU().Maxwell3D();
+
+    const auto& regs = maxwell3d.regs;
 
     state.cull.enabled = regs.cull.enabled != 0;
+    state.cull.front_face = MaxwellToGL::FrontFace(regs.cull.front_face);
+    state.cull.mode = MaxwellToGL::CullFace(regs.cull.cull_face);
 
-    if (state.cull.enabled) {
-        state.cull.front_face = MaxwellToGL::FrontFace(regs.cull.front_face);
-        state.cull.mode = MaxwellToGL::CullFace(regs.cull.cull_face);
+    const bool flip_triangles{regs.screen_y_control.triangle_rast_flip == 0 ||
+                              regs.viewport_transform[0].scale_y < 0.0f};
 
-        const bool flip_triangles{regs.screen_y_control.triangle_rast_flip == 0 ||
-                                  regs.viewport_transform[0].scale_y < 0.0f};
-
-        // If the GPU is configured to flip the rasterized triangles, then we need to flip the
-        // notion of front and back. Note: We flip the triangles when the value of the register is 0
-        // because OpenGL already does it for us.
-        if (flip_triangles) {
-            if (state.cull.front_face == GL_CCW)
-                state.cull.front_face = GL_CW;
-            else if (state.cull.front_face == GL_CW)
-                state.cull.front_face = GL_CCW;
-        }
+    // If the GPU is configured to flip the rasterized triangles, then we need to flip the
+    // notion of front and back. Note: We flip the triangles when the value of the register is 0
+    // because OpenGL already does it for us.
+    if (flip_triangles) {
+        if (state.cull.front_face == GL_CCW)
+            state.cull.front_face = GL_CW;
+        else if (state.cull.front_face == GL_CW)
+            state.cull.front_face = GL_CCW;
     }
 }
 
 void RasterizerOpenGL::SyncPrimitiveRestart() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    auto& maxwell3d = system.GPU().Maxwell3D();
+    const auto& regs = maxwell3d.regs;
 
     state.primitive_restart.enabled = regs.primitive_restart.enabled;
     state.primitive_restart.index = regs.primitive_restart.index;
 }
 
 void RasterizerOpenGL::SyncDepthTestState() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    auto& maxwell3d = system.GPU().Maxwell3D();
+    const auto& regs = maxwell3d.regs;
 
     state.depth.test_enabled = regs.depth_test_enable != 0;
     state.depth.write_mask = regs.depth_write_enabled ? GL_TRUE : GL_FALSE;
-
-    if (!state.depth.test_enabled)
-        return;
-
     state.depth.test_func = MaxwellToGL::ComparisonOp(regs.depth_test_func);
 }
 
 void RasterizerOpenGL::SyncStencilTestState() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
-    state.stencil.test_enabled = regs.stencil_enable != 0;
-
-    if (!regs.stencil_enable) {
+    auto& maxwell3d = system.GPU().Maxwell3D();
+    if (!maxwell3d.dirty.stencil_test) {
         return;
     }
+    const auto& regs = maxwell3d.regs;
 
+    state.stencil.test_enabled = regs.stencil_enable != 0;
     state.stencil.front.test_func = MaxwellToGL::ComparisonOp(regs.stencil_front_func_func);
     state.stencil.front.test_ref = regs.stencil_front_func_ref;
     state.stencil.front.test_mask = regs.stencil_front_func_mask;
@@ -1010,10 +1007,17 @@ void RasterizerOpenGL::SyncStencilTestState() {
         state.stencil.back.action_depth_fail = GL_KEEP;
         state.stencil.back.action_depth_pass = GL_KEEP;
     }
+    state.MarkDirtyStencilState(true);
+    maxwell3d.dirty.stencil_test = false;
 }
 
 void RasterizerOpenGL::SyncColorMask() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    auto& maxwell3d = system.GPU().Maxwell3D();
+    if (!maxwell3d.dirty.color_mask) {
+        return;
+    }
+    const auto& regs = maxwell3d.regs;
+
     const std::size_t count =
         regs.independent_blend_enable ? Tegra::Engines::Maxwell3D::Regs::NumRenderTargets : 1;
     for (std::size_t i = 0; i < count; i++) {
@@ -1024,6 +1028,9 @@ void RasterizerOpenGL::SyncColorMask() {
         dest.blue_enabled = (source.B == 0) ? GL_FALSE : GL_TRUE;
         dest.alpha_enabled = (source.A == 0) ? GL_FALSE : GL_TRUE;
     }
+
+    state.MarkDirtyColorMask(true);
+    maxwell3d.dirty.color_mask = false;
 }
 
 void RasterizerOpenGL::SyncMultiSampleState() {
@@ -1038,7 +1045,11 @@ void RasterizerOpenGL::SyncFragmentColorClampState() {
 }
 
 void RasterizerOpenGL::SyncBlendState() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    auto& maxwell3d = system.GPU().Maxwell3D();
+    if (!maxwell3d.dirty.blend_state) {
+        return;
+    }
+    const auto& regs = maxwell3d.regs;
 
     state.blend_color.red = regs.blend_color.r;
     state.blend_color.green = regs.blend_color.g;
@@ -1061,6 +1072,8 @@ void RasterizerOpenGL::SyncBlendState() {
         for (std::size_t i = 1; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
             state.blend[i].enabled = false;
         }
+        maxwell3d.dirty.blend_state = false;
+        state.MarkDirtyBlendState(true);
         return;
     }
 
@@ -1077,6 +1090,9 @@ void RasterizerOpenGL::SyncBlendState() {
         blend.src_a_func = MaxwellToGL::BlendFunc(src.factor_source_a);
         blend.dst_a_func = MaxwellToGL::BlendFunc(src.factor_dest_a);
     }
+
+    state.MarkDirtyBlendState(true);
+    maxwell3d.dirty.blend_state = false;
 }
 
 void RasterizerOpenGL::SyncLogicOpState() {
@@ -1128,13 +1144,21 @@ void RasterizerOpenGL::SyncPointState() {
 }
 
 void RasterizerOpenGL::SyncPolygonOffset() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    auto& maxwell3d = system.GPU().Maxwell3D();
+    if (!maxwell3d.dirty.polygon_offset) {
+        return;
+    }
+    const auto& regs = maxwell3d.regs;
+
     state.polygon_offset.fill_enable = regs.polygon_offset_fill_enable != 0;
     state.polygon_offset.line_enable = regs.polygon_offset_line_enable != 0;
     state.polygon_offset.point_enable = regs.polygon_offset_point_enable != 0;
     state.polygon_offset.units = regs.polygon_offset_units;
     state.polygon_offset.factor = regs.polygon_offset_factor;
     state.polygon_offset.clamp = regs.polygon_offset_clamp;
+
+    state.MarkDirtyPolygonOffset(true);
+    maxwell3d.dirty.polygon_offset = false;
 }
 
 void RasterizerOpenGL::SyncAlphaTest() {
