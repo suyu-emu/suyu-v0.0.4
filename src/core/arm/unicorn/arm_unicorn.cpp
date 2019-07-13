@@ -50,11 +50,14 @@ static void CodeHook(uc_engine* uc, uint64_t address, uint32_t size, void* user_
 
 static bool UnmappedMemoryHook(uc_engine* uc, uc_mem_type type, u64 addr, int size, u64 value,
                                void* user_data) {
+    auto* const system = static_cast<System*>(user_data);
+
     ARM_Interface::ThreadContext ctx{};
-    Core::CurrentArmInterface().SaveContext(ctx);
+    system->CurrentArmInterface().SaveContext(ctx);
     ASSERT_MSG(false, "Attempted to read from unmapped memory: 0x{:X}, pc=0x{:X}, lr=0x{:X}", addr,
                ctx.pc, ctx.cpu_registers[30]);
-    return {};
+
+    return false;
 }
 
 ARM_Unicorn::ARM_Unicorn(System& system) : system{system} {
@@ -65,7 +68,7 @@ ARM_Unicorn::ARM_Unicorn(System& system) : system{system} {
 
     uc_hook hook{};
     CHECKED(uc_hook_add(uc, &hook, UC_HOOK_INTR, (void*)InterruptHook, this, 0, -1));
-    CHECKED(uc_hook_add(uc, &hook, UC_HOOK_MEM_INVALID, (void*)UnmappedMemoryHook, this, 0, -1));
+    CHECKED(uc_hook_add(uc, &hook, UC_HOOK_MEM_INVALID, (void*)UnmappedMemoryHook, &system, 0, -1));
     if (GDBStub::IsServerEnabled()) {
         CHECKED(uc_hook_add(uc, &hook, UC_HOOK_CODE, (void*)CodeHook, this, 0, -1));
         last_bkpt_hit = false;
