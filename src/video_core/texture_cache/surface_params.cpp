@@ -297,12 +297,11 @@ std::size_t SurfaceParams::GetInnerMipmapMemorySize(u32 level, bool as_host_size
         return Tegra::Texture::CalculateSize(!as_host_size, GetBytesPerPixel(), width, height,
                                              depth, GetMipBlockHeight(level),
                                              GetMipBlockDepth(level));
+    } else if (as_host_size || IsBuffer()) {
+        return GetBytesPerPixel() * width * height * depth;
     } else {
-        if (as_host_size || IsBuffer()) {
-            return GetBytesPerPixel() * width * height * depth;
-        } else {
-            return pitch * height * depth;
-        }
+        // Linear Texture Case
+        return pitch * height * depth;
     }
 }
 

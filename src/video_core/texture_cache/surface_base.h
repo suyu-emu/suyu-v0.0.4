@@ -312,11 +312,13 @@ private:
         return view;
     }
 
+    static constexpr u32 NO_RT = 0xFFFFFFFF;
+
     bool is_modified{};
     bool is_target{};
     bool is_registered{};
     bool is_picked{};
-    u32 index{0xFFFFFFFF};
+    u32 index{NO_RT};
     u64 modification_tick{};
 };
 
