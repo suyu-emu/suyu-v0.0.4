@@ -568,7 +568,6 @@ void Maxwell3D::FinishCBData() {
 
     const u32 id = cb_data_state.id;
     memory_manager.WriteBlock(address, cb_data_state.buff[id].data(), size);
-    dirty.ResetRenderTargets();
 
     cb_data_state.id = null_cb_data;
     cb_data_state.current = null_cb_data;

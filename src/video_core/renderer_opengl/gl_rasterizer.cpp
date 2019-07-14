@@ -105,6 +105,7 @@ RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWind
     shader_program_manager = std::make_unique<GLShader::ProgramManager>();
     state.draw.shader_program = 0;
     state.Apply();
+    clear_framebuffer.Create();
 
     LOG_DEBUG(Render_OpenGL, "Sync fixed function OpenGL state here");
     CheckExtensions();
@@ -546,11 +547,62 @@ std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
     return current_depth_stencil_usage = {static_cast<bool>(depth_surface), fbkey.stencil_enable};
 }
 
+void RasterizerOpenGL::ConfigureClearFramebuffer(OpenGLState& current_state, bool using_color_fb,
+                                                 bool using_depth_fb, bool using_stencil_fb) {
+    auto& gpu = system.GPU().Maxwell3D();
+    const auto& regs = gpu.regs;
+
+    texture_cache.GuardRenderTargets(true);
+    View color_surface{};
+    if (using_color_fb) {
+        color_surface = texture_cache.GetColorBufferSurface(regs.clear_buffers.RT, false);
+    }
+    View depth_surface{};
+    if (using_depth_fb || using_stencil_fb) {
+        depth_surface = texture_cache.GetDepthBufferSurface(false);
+    }
+    texture_cache.GuardRenderTargets(false);
+
+    current_state.draw.draw_framebuffer = clear_framebuffer.handle;
+    current_state.ApplyFramebufferState();
+
+    if (color_surface) {
+        color_surface->Attach(GL_COLOR_ATTACHMENT0, GL_DRAW_FRAMEBUFFER);
+    } else {
+        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
+    }
+
+    if (depth_surface) {
+        const auto& params = depth_surface->GetSurfaceParams();
+        switch (params.type) {
+        case VideoCore::Surface::SurfaceType::Depth: {
+            depth_surface->Attach(GL_DEPTH_ATTACHMENT, GL_DRAW_FRAMEBUFFER);
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
+            break;
+        }
+        case VideoCore::Surface::SurfaceType::DepthStencil: {
+            depth_surface->Attach(GL_DEPTH_ATTACHMENT, GL_DRAW_FRAMEBUFFER);
+            break;
+        }
+        default: { UNIMPLEMENTED(); }
+        }
+    } else {
+        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0,
+                               0);
+    }
+}
+
 void RasterizerOpenGL::Clear() {
     const auto& regs = system.GPU().Maxwell3D().regs;
     bool use_color{};
     bool use_depth{};
     bool use_stencil{};
+
+    OpenGLState prev_state{OpenGLState::GetCurState()};
+    SCOPE_EXIT({
+        prev_state.AllDirty();
+        prev_state.Apply();
+    });
 
     OpenGLState clear_state;
     if (regs.clear_buffers.R || regs.clear_buffers.G || regs.clear_buffers.B ||
@@ -608,8 +660,8 @@ void RasterizerOpenGL::Clear() {
         return;
     }
 
-    const auto [clear_depth, clear_stencil] = ConfigureFramebuffers(
-        clear_state, use_color, use_depth || use_stencil, false, regs.clear_buffers.RT.Value());
+    ConfigureClearFramebuffer(clear_state, use_color, use_depth, use_stencil);
+    SyncViewport(clear_state);
     if (regs.clear_flags.scissor) {
         SyncScissorTest(clear_state);
     }
@@ -625,14 +677,14 @@ void RasterizerOpenGL::Clear() {
     clear_state.ApplyFramebufferState();
 
     if (use_color) {
-        glClearBufferfv(GL_COLOR, regs.clear_buffers.RT, regs.clear_color);
+        glClearBufferfv(GL_COLOR, 0, regs.clear_color);
     }
 
-    if (clear_depth && clear_stencil) {
+    if (use_depth && use_stencil) {
         glClearBufferfi(GL_DEPTH_STENCIL, 0, regs.clear_depth, regs.clear_stencil);
-    } else if (clear_depth) {
+    } else if (use_depth) {
         glClearBufferfv(GL_DEPTH, 0, &regs.clear_depth);
-    } else if (clear_stencil) {
+    } else if (use_stencil) {
         glClearBufferiv(GL_STENCIL, 0, &regs.clear_stencil);
     }
 }
