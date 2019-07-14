@@ -662,15 +662,6 @@ private:
                 }
                 return {current_surface, *view};
             }
-            // The next case is unsafe, so if we r in accurate GPU, just skip it
-            if (Settings::values.use_accurate_gpu_emulation) {
-                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
-                                      MatchTopologyResult::FullMatch);
-            }
-            // This is the case the texture is a part of the parent.
-            if (current_surface->MatchesSubTexture(params, gpu_addr)) {
-                return RebuildSurface(current_surface, params, is_render);
-            }
         } else {
             // If there are many overlaps, odds are they are subtextures of the candidate
             // surface. We try to construct a new surface based on the candidate parameters,

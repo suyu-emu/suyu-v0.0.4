@@ -294,13 +294,14 @@ std::size_t SurfaceParams::GetInnerMipmapMemorySize(u32 level, bool as_host_size
     const u32 height{GetMipmapSize(uncompressed, GetMipHeight(level), GetDefaultBlockHeight())};
     const u32 depth{is_layered ? 1U : GetMipDepth(level)};
     if (is_tiled) {
-        return Tegra::Texture::CalculateSize(!as_host_size, GetBytesPerPixel(), width, height, depth,
-                                             GetMipBlockHeight(level), GetMipBlockDepth(level));
+        return Tegra::Texture::CalculateSize(!as_host_size, GetBytesPerPixel(), width, height,
+                                             depth, GetMipBlockHeight(level),
+                                             GetMipBlockDepth(level));
     } else {
         if (as_host_size || IsBuffer()) {
-            return GetBytesPerPixel()*width*height*depth;
+            return GetBytesPerPixel() * width * height * depth;
         } else {
-            return pitch*height*depth;
+            return pitch * height * depth;
         }
     }
 }
