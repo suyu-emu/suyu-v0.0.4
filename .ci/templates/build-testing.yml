@@ -1,0 +1,30 @@
+jobs:
+- job: build_test
+  displayName: 'testing'
+  pool:
+    vmImage: ubuntu-latest
+  strategy: 
+    maxParallel: 10
+    matrix:
+      windows:
+        BuildSuffix: 'windows-testing'
+        ScriptFolder: 'windows'
+  steps:
+  - task: PythonScript@0
+    condition: eq(variables['Build.Reason'], 'PullRequest')
+    displayName: 'Determine Testing Status'
+    inputs:
+      scriptSource: 'filePath'
+      scriptPath: '../scripts/merge/check-label-presence.py'
+      arguments: '$(System.PullRequest.PullRequestNumber) create-testing-build'
+  - ${{ if eq(variables.enabletesting, 'true') }}:
+    - template: ./sync-source.yml
+      parameters:
+        artifactSource: $(parameters.artifactSource)
+        needSubmodules: 'true'
+    - template: ./mergebot.yml
+      parameters:
+        matchLabel: 'testing-merge'
+    - template: ./build-single.yml
+      parameters:
+        artifactSource: 'false'
