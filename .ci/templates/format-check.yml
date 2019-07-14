@@ -1,0 +1,14 @@
+parameters:
+  artifactSource: 'true'
+
+steps:
+- template: ./sync-source.yml
+  parameters:
+    artifactSource: $(parameters.artifactSource)
+    needSubmodules: 'false'
+- task: DockerInstaller@0
+  displayName: 'Prepare Environment'
+  inputs:
+    dockerVersion: '17.09.0-ce'
+- script: chmod a+x ./.ci/scripts/format/exec.sh && ./.ci/scripts/format/exec.sh
+  displayName: 'Verify Formatting'

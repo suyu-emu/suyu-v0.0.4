@@ -1,0 +1,29 @@
+steps:
+  - task: DownloadPipelineArtifact@2
+    displayName: 'Download Windows Release'
+    inputs:
+      artifactName: 'yuzu-$(BuildName)-windows-mingw'
+      buildType: 'current'
+      targetPath: '$(Build.ArtifactStagingDirectory)'
+  - task: DownloadPipelineArtifact@2
+    displayName: 'Download Linux Release'
+    inputs:
+      artifactName: 'yuzu-$(BuildName)-linux'
+      buildType: 'current'
+      targetPath: '$(Build.ArtifactStagingDirectory)'
+  - task: DownloadPipelineArtifact@2
+    displayName: 'Download Release Point'
+    inputs:
+      artifactName: 'yuzu-$(BuildName)-release-point'
+      buildType: 'current'
+      targetPath: '$(Build.ArtifactStagingDirectory)'
+  - script: echo '##vso[task.setvariable variable=tagcommit]' && cat $(Build.ArtifactStagingDirectory)/tag-commit.sha
+    displayName: 'Calculate Release Point'
+  - task: GitHubRelease@0
+    inputs:
+      gitHubConnection: $(GitHubReleaseConnectionName)
+      repositoryName: '$(GitHubReleaseRepoName)'
+      action: 'create'
+      target: $(variables.tagcommit)
+      title: 'yuzu $(BuildName) #$(Build.BuildId)'
+      assets: '$(Build.ArtifactStagingDirectory)/*'

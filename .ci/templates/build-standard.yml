@@ -1,0 +1,22 @@
+jobs:
+- job: build
+  displayName: 'standard'
+  pool:
+    vmImage: ubuntu-latest
+  strategy: 
+    maxParallel: 10
+    matrix:
+      windows:
+        BuildSuffix: 'windows-mingw'
+        ScriptFolder: 'windows'
+      linux:
+        BuildSuffix: 'linux'
+        ScriptFolder: 'linux'
+  steps:
+  - template: ./sync-source.yml
+    parameters:
+      artifactSource: $(parameters.artifactSource)
+      needSubmodules: 'true'
+  - template: ./build-single.yml
+    parameters:
+      artifactSource: 'false'

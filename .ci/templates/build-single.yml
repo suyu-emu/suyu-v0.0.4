@@ -1,0 +1,21 @@
+parameters:
+  artifactSource: 'true'
+
+steps:
+- task: DockerInstaller@0
+  displayName: 'Prepare Environment'
+  inputs:
+    dockerVersion: '17.09.0-ce'
+- task: CacheBeta@0
+  displayName: 'Cache Build System'
+  inputs:
+    key: yuzu-v1-$(BuildName)-$(BuildSuffix)-$(CacheSuffix)
+    path: $(System.DefaultWorkingDirectory)/ccache
+    cacheHitVar: CACHE_RESTORED
+- script: chmod a+x ./.ci/scripts/$(ScriptFolder)/exec.sh && ./.ci/scripts/$(ScriptFolder)/exec.sh
+  displayName: 'Build'
+- script: chmod a+x ./.ci/scripts/$(ScriptFolder)/upload.sh && ./.ci/scripts/$(ScriptFolder)/upload.sh
+  displayName: 'Package Artifacts'
+- publish: artifacts
+  artifact: 'yuzu-$(BuildName)-$(BuildSuffix)'
+  displayName: 'Upload Artifacts'

@@ -1,0 +1,11 @@
+parameters:
+  needSubmodules: 'true'
+
+steps:
+- checkout: self
+  displayName: 'Checkout Recursive'
+  submodules: recursive
+#  condition: eq(parameters.needSubmodules, 'true')
+#- checkout: self
+#  displayName: 'Checkout Fast'
+#  condition: ne(parameters.needSubmodules, 'true')

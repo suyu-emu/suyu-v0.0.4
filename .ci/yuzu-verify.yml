@@ -1,13 +1,5 @@
-trigger:
-- master
-
 stages:
-- stage: merge
-  displayName: 'merge'
-  jobs:
-  - template: ./templates/merge.yml
 - stage: format
-  dependsOn: merge
   displayName: 'format'
   jobs:
   - job: format
@@ -16,8 +8,11 @@ stages:
       vmImage: ubuntu-latest
     steps:
     - template: ./templates/format-check.yml
+      parameters:
+        artifactSource: 'false'
 - stage: build
   displayName: 'build'
   dependsOn: format
   jobs:
   - template: ./templates/build-standard.yml
+  - template: ./templates/build-testing.yml
