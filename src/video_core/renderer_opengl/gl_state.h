@@ -195,6 +195,7 @@ public:
         s_rgb_used = false;
     }
 
+    void DefaultViewports();
     /// Apply this state as the current OpenGL state
     void Apply();
 
@@ -245,10 +246,6 @@ public:
         dirty.stencil_state = is_dirty;
     }
 
-    void MarkDirtyViewportState(const bool is_dirty) {
-        dirty.viewport_state = is_dirty;
-    }
-
     void MarkDirtyPolygonOffset(const bool is_dirty) {
         dirty.polygon_offset = is_dirty;
     }
@@ -260,7 +257,6 @@ public:
     void AllDirty() {
         dirty.blend_state = true;
         dirty.stencil_state = true;
-        dirty.viewport_state = true;
         dirty.polygon_offset = true;
         dirty.color_mask = true;
     }

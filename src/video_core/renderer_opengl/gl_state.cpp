@@ -165,6 +165,26 @@ OpenGLState::OpenGLState() {
     alpha_test.ref = 0.0f;
 }
 
+void OpenGLState::DefaultViewports() {
+    for (auto& item : viewports) {
+        item.x = 0;
+        item.y = 0;
+        item.width = 0;
+        item.height = 0;
+        item.depth_range_near = 0.0f;
+        item.depth_range_far = 1.0f;
+        item.scissor.enabled = false;
+        item.scissor.x = 0;
+        item.scissor.y = 0;
+        item.scissor.width = 0;
+        item.scissor.height = 0;
+    }
+
+    depth_clamp.far_plane = false;
+    depth_clamp.near_plane = false;
+
+}
+
 void OpenGLState::ApplyDefaultState() {
     glEnable(GL_BLEND);
     glDisable(GL_FRAMEBUFFER_SRGB);

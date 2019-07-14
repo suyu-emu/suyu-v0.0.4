@@ -604,7 +604,8 @@ void RasterizerOpenGL::Clear() {
         prev_state.Apply();
     });
 
-    OpenGLState clear_state;
+    OpenGLState clear_state{OpenGLState::GetCurState()};
+    clear_state.DefaultViewports();
     if (regs.clear_buffers.R || regs.clear_buffers.G || regs.clear_buffers.B ||
         regs.clear_buffers.A) {
         use_color = true;
@@ -624,6 +625,7 @@ void RasterizerOpenGL::Clear() {
         // true.
         clear_state.depth.test_enabled = true;
         clear_state.depth.test_func = GL_ALWAYS;
+        clear_state.depth.write_mask = GL_TRUE;
     }
     if (regs.clear_buffers.S) {
         ASSERT_MSG(regs.zeta_enable != 0, "Tried to clear stencil but buffer is not enabled!");
@@ -661,6 +663,7 @@ void RasterizerOpenGL::Clear() {
     }
 
     ConfigureClearFramebuffer(clear_state, use_color, use_depth, use_stencil);
+
     SyncViewport(clear_state);
     if (regs.clear_flags.scissor) {
         SyncScissorTest(clear_state);
@@ -670,11 +673,8 @@ void RasterizerOpenGL::Clear() {
         clear_state.EmulateViewportWithScissor();
     }
 
-    clear_state.ApplyColorMask();
-    clear_state.ApplyDepth();
-    clear_state.ApplyStencilTest();
-    clear_state.ApplyViewport();
-    clear_state.ApplyFramebufferState();
+    clear_state.AllDirty();
+    clear_state.Apply();
 
     if (use_color) {
         glClearBufferfv(GL_COLOR, 0, regs.clear_color);
