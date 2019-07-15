@@ -31,6 +31,8 @@ using VideoCore::Surface::SurfaceType;
 
 MICROPROFILE_DEFINE(OpenGL_Texture_Upload, "OpenGL", "Texture Upload", MP_RGB(128, 192, 128));
 MICROPROFILE_DEFINE(OpenGL_Texture_Download, "OpenGL", "Texture Download", MP_RGB(128, 192, 128));
+MICROPROFILE_DEFINE(OpenGL_Texture_Buffer_Copy, "OpenGL", "Texture Buffer Copy",
+                    MP_RGB(128, 192, 128));
 
 namespace {
 
@@ -535,6 +537,7 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
 }
 
 void TextureCacheOpenGL::BufferCopy(Surface& src_surface, Surface& dst_surface) {
+    MICROPROFILE_SCOPE(OpenGL_Texture_Buffer_Copy);
     const auto& src_params = src_surface->GetSurfaceParams();
     const auto& dst_params = dst_surface->GetSurfaceParams();
     UNIMPLEMENTED_IF(src_params.num_levels > 1 || dst_params.num_levels > 1);

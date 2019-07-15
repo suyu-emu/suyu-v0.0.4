@@ -200,8 +200,9 @@ public:
         modification_tick = tick;
     }
 
-    void MarkAsRenderTarget(const bool is_target) {
+    void MarkAsRenderTarget(const bool is_target, const u32 index) {
         this->is_target = is_target;
+        this->index = index;
     }
 
     void MarkAsPicked(const bool is_picked) {
@@ -219,6 +220,10 @@ public:
 
     bool IsRenderTarget() const {
         return is_target;
+    }
+
+    u32 GetRenderTarget() const {
+        return index;
     }
 
     bool IsRegistered() const {
@@ -307,10 +312,13 @@ private:
         return view;
     }
 
+    static constexpr u32 NO_RT = 0xFFFFFFFF;
+
     bool is_modified{};
     bool is_target{};
     bool is_registered{};
     bool is_picked{};
+    u32 index{NO_RT};
     u64 modification_tick{};
 };
 

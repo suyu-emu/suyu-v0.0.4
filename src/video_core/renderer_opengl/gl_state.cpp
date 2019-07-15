@@ -6,7 +6,10 @@
 #include <glad/glad.h>
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "common/microprofile.h"
 #include "video_core/renderer_opengl/gl_state.h"
+
+MICROPROFILE_DEFINE(OpenGL_State, "OpenGL", "State Change", MP_RGB(192, 128, 128));
 
 namespace OpenGL {
 
@@ -524,6 +527,7 @@ void OpenGLState::ApplySamplers() const {
 }
 
 void OpenGLState::Apply() const {
+    MICROPROFILE_SCOPE(OpenGL_State);
     ApplyFramebufferState();
     ApplyVertexArrayState();
     ApplyShaderProgram();

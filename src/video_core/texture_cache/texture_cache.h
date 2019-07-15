@@ -133,11 +133,11 @@ public:
             regs.zeta.memory_layout.block_depth, regs.zeta.memory_layout.type)};
         auto surface_view = GetSurface(gpu_addr, depth_params, preserve_contents, true);
         if (depth_buffer.target)
-            depth_buffer.target->MarkAsRenderTarget(false);
+            depth_buffer.target->MarkAsRenderTarget(false, NO_RT);
         depth_buffer.target = surface_view.first;
         depth_buffer.view = surface_view.second;
         if (depth_buffer.target)
-            depth_buffer.target->MarkAsRenderTarget(true);
+            depth_buffer.target->MarkAsRenderTarget(true, DEPTH_RT);
         return surface_view.second;
     }
 
@@ -167,11 +167,11 @@ public:
         auto surface_view = GetSurface(gpu_addr, SurfaceParams::CreateForFramebuffer(system, index),
                                        preserve_contents, true);
         if (render_targets[index].target)
-            render_targets[index].target->MarkAsRenderTarget(false);
+            render_targets[index].target->MarkAsRenderTarget(false, NO_RT);
         render_targets[index].target = surface_view.first;
         render_targets[index].view = surface_view.second;
         if (render_targets[index].target)
-            render_targets[index].target->MarkAsRenderTarget(true);
+            render_targets[index].target->MarkAsRenderTarget(true, static_cast<u32>(index));
         return surface_view.second;
     }
 
@@ -191,7 +191,7 @@ public:
         if (depth_buffer.target == nullptr) {
             return;
         }
-        depth_buffer.target->MarkAsRenderTarget(false);
+        depth_buffer.target->MarkAsRenderTarget(false, NO_RT);
         depth_buffer.target = nullptr;
         depth_buffer.view = nullptr;
     }
@@ -200,7 +200,7 @@ public:
         if (render_targets[index].target == nullptr) {
             return;
         }
-        render_targets[index].target->MarkAsRenderTarget(false);
+        render_targets[index].target->MarkAsRenderTarget(false, NO_RT);
         render_targets[index].target = nullptr;
         render_targets[index].view = nullptr;
     }
@@ -270,6 +270,16 @@ protected:
     // and reading it from a sepparate buffer.
     virtual void BufferCopy(TSurface& src_surface, TSurface& dst_surface) = 0;
 
+    void ManageRenderTargetUnregister(TSurface& surface) {
+        auto& maxwell3d = system.GPU().Maxwell3D();
+        const u32 index = surface->GetRenderTarget();
+        if (index == DEPTH_RT) {
+            maxwell3d.dirty_flags.zeta_buffer = true;
+        } else {
+            maxwell3d.dirty_flags.color_buffer.set(index, true);
+        }
+    }
+
     void Register(TSurface surface) {
         const GPUVAddr gpu_addr = surface->GetGpuAddr();
         const CacheAddr cache_ptr = ToCacheAddr(system.GPU().MemoryManager().GetPointer(gpu_addr));
@@ -293,6 +303,9 @@ protected:
     void Unregister(TSurface surface) {
         if (guard_render_targets && surface->IsProtected()) {
             return;
+        }
+        if (!guard_render_targets && surface->IsRenderTarget()) {
+            ManageRenderTargetUnregister(surface);
         }
         const GPUVAddr gpu_addr = surface->GetGpuAddr();
         const CacheAddr cache_ptr = surface->GetCacheAddr();
@@ -649,15 +662,6 @@ private:
                 }
                 return {current_surface, *view};
             }
-            // The next case is unsafe, so if we r in accurate GPU, just skip it
-            if (Settings::values.use_accurate_gpu_emulation) {
-                return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
-                                      MatchTopologyResult::FullMatch);
-            }
-            // This is the case the texture is a part of the parent.
-            if (current_surface->MatchesSubTexture(params, gpu_addr)) {
-                return RebuildSurface(current_surface, params, is_render);
-            }
         } else {
             // If there are many overlaps, odds are they are subtextures of the candidate
             // surface. We try to construct a new surface based on the candidate parameters,
@@ -792,6 +796,9 @@ private:
     static constexpr u64 registry_page_bits{20};
     static constexpr u64 registry_page_size{1 << registry_page_bits};
     std::unordered_map<CacheAddr, std::vector<TSurface>> registry;
+
+    static constexpr u32 DEPTH_RT = 8;
+    static constexpr u32 NO_RT = 0xFFFFFFFF;
 
     // The L1 Cache is used for fast texture lookup before checking the overlaps
     // This avoids calculating size and other stuffs.
