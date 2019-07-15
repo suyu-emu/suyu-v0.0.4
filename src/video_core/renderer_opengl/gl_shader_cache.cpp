@@ -323,8 +323,7 @@ Shader CachedShader::CreateStageFromCache(const ShaderParameters& params,
         new CachedShader(params, GetProgramType(program_type), std::move(result)));
 }
 
-Shader CachedShader::CreateKernelFromMemory(const ShaderParameters& params,
-                                            ProgramCode&& code) {
+Shader CachedShader::CreateKernelFromMemory(const ShaderParameters& params, ProgramCode&& code) {
     auto result{CreateProgram(params.device, ProgramType::Compute, code, {})};
 
     const auto code_size{CalculateProgramSize(code)};

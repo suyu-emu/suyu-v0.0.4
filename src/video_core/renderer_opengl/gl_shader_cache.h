@@ -55,8 +55,7 @@ class CachedShader final : public RasterizerCacheObject {
 public:
     static Shader CreateStageFromMemory(const ShaderParameters& params,
                                         Maxwell::ShaderProgram program_type,
-                                        ProgramCode&& program_code,
-                                        ProgramCode&& program_code_b);
+                                        ProgramCode&& program_code, ProgramCode&& program_code_b);
 
     static Shader CreateStageFromCache(const ShaderParameters& params,
                                        Maxwell::ShaderProgram program_type,
