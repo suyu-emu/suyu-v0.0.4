@@ -344,14 +344,16 @@ private:
     }
 
     void DeclareLocalMemory() {
-        if (stage == ProgramType::Compute) {
+        // TODO(Rodrigo): Unstub kernel local memory size and pass it from a register at
+        // specialization time.
+        const u64 local_memory_size =
+            stage == ProgramType::Compute ? 0x400 : header.GetLocalMemorySize();
+        if (local_memory_size == 0) {
             return;
         }
-        if (const u64 local_memory_size = header.GetLocalMemorySize(); local_memory_size > 0) {
-            const auto element_count = Common::AlignUp(local_memory_size, 4) / 4;
-            code.AddLine("float {}[{}];", GetLocalMemory(), element_count);
-            code.AddNewLine();
-        }
+        const auto element_count = Common::AlignUp(local_memory_size, 4) / 4;
+        code.AddLine("float {}[{}];", GetLocalMemory(), element_count);
+        code.AddNewLine();
     }
 
     void DeclareInternalFlags() {
@@ -703,7 +705,9 @@ private:
         }
 
         if (const auto lmem = std::get_if<LmemNode>(&*node)) {
-            UNIMPLEMENTED_IF(stage == ProgramType::Compute);
+            if (stage == ProgramType::Compute) {
+                LOG_WARNING(Render_OpenGL, "Local memory is stubbed on compute shaders");
+            }
             return fmt::format("{}[ftou({}) / 4]", GetLocalMemory(), Visit(lmem->GetAddress()));
         }
 
@@ -1080,7 +1084,9 @@ private:
             target = result->first;
             is_integer = result->second;
         } else if (const auto lmem = std::get_if<LmemNode>(&*dest)) {
-            UNIMPLEMENTED_IF(stage == ProgramType::Compute);
+            if (stage == ProgramType::Compute) {
+                LOG_WARNING(Render_OpenGL, "Local memory is stubbed on compute shaders");
+            }
             target = fmt::format("{}[ftou({}) / 4]", GetLocalMemory(), Visit(lmem->GetAddress()));
         } else if (const auto gmem = std::get_if<GmemNode>(&*dest)) {
             const std::string real = Visit(gmem->GetRealAddress());
