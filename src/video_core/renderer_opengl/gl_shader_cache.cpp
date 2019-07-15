@@ -102,7 +102,7 @@ constexpr std::tuple<const char*, const char*, u32> GetPrimitiveDescription(GLen
     }
 }
 
-constexpr ProgramType GetProgramType(Maxwell::ShaderProgram program) {
+ProgramType GetProgramType(Maxwell::ShaderProgram program) {
     switch (program) {
     case Maxwell::ShaderProgram::VertexA:
         return ProgramType::VertexA;
@@ -118,6 +118,7 @@ constexpr ProgramType GetProgramType(Maxwell::ShaderProgram program) {
         return ProgramType::Fragment;
     }
     UNREACHABLE();
+    return {};
 }
 
 /// Calculates the size of a program stream

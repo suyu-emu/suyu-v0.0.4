@@ -81,8 +81,7 @@ layout (std140, binding = EMULATION_UBO_BINDING) uniform gs_config {
 )";
 
     const ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET, setup.program.size_a);
-    ProgramResult program =
-        Decompile(device, program_ir, ProgramType::Geometry, "geometry");
+    ProgramResult program = Decompile(device, program_ir, ProgramType::Geometry, "geometry");
     out += program.first;
 
     out += R"(
