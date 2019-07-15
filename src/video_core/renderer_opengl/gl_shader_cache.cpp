@@ -123,9 +123,6 @@ ProgramType GetProgramType(Maxwell::ShaderProgram program) {
 
 /// Calculates the size of a program stream
 std::size_t CalculateProgramSize(const GLShader::ProgramCode& program) {
-    if (program.empty()) {
-        return 0;
-    }
     constexpr std::size_t start_offset = 10;
     // This is the encoded version of BRA that jumps to itself. All Nvidia
     // shaders end with one.
@@ -299,8 +296,8 @@ CachedShader::CachedShader(const ShaderParameters& params, ProgramType program_t
 
 Shader CachedShader::CreateStageFromMemory(const ShaderParameters& params,
                                            Maxwell::ShaderProgram program_type,
-                                           const ProgramCode& program_code,
-                                           const ProgramCode& program_code_b) {
+                                           ProgramCode&& program_code,
+                                           ProgramCode&& program_code_b) {
     const auto code_size{CalculateProgramSize(program_code)};
     const auto code_size_b{CalculateProgramSize(program_code_b)};
     auto result{
@@ -327,7 +324,7 @@ Shader CachedShader::CreateStageFromCache(const ShaderParameters& params,
 }
 
 Shader CachedShader::CreateKernelFromMemory(const ShaderParameters& params,
-                                            const ProgramCode& code) {
+                                            ProgramCode&& code) {
     auto result{CreateProgram(params.device, ProgramType::Compute, code, {})};
 
     const auto code_size{CalculateProgramSize(code)};
@@ -683,7 +680,7 @@ Shader ShaderCacheOpenGL::GetComputeKernel(GPUVAddr code_addr) {
     }
 
     // No kernel found - create a new one
-    const auto code{GetShaderCode(memory_manager, code_addr, host_ptr)};
+    auto code{GetShaderCode(memory_manager, code_addr, host_ptr)};
     const auto unique_identifier{GetUniqueIdentifier(ProgramType::Compute, code, {})};
     const auto cpu_addr{*memory_manager.GpuToCpuAddress(code_addr)};
     const ShaderParameters params{disk_cache, precompiled_programs, device, cpu_addr,

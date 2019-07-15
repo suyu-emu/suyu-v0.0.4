@@ -727,6 +727,8 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     SetupComputeConstBuffers(kernel);
     SetupComputeGlobalMemory(kernel);
 
+    // TODO(Rodrigo): Bind images and samplers
+
     buffer_cache.Unmap();
 
     bind_ubo_pushbuffer.Bind();

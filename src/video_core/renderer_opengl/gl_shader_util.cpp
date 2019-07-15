@@ -11,7 +11,7 @@
 namespace OpenGL::GLShader {
 
 namespace {
-constexpr const char* GetStageDebugName(GLenum type) {
+const char* GetStageDebugName(GLenum type) {
     switch (type) {
     case GL_VERTEX_SHADER:
         return "vertex";
@@ -21,9 +21,9 @@ constexpr const char* GetStageDebugName(GLenum type) {
         return "fragment";
     case GL_COMPUTE_SHADER:
         return "compute";
-    default:
-        UNREACHABLE();
     }
+    UNIMPLEMENTED();
+    return "unknown";
 }
 } // Anonymous namespace
 
