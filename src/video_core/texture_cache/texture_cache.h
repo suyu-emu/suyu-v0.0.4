@@ -272,15 +272,9 @@ protected:
 
     void ManageRenderTargetUnregister(TSurface& surface) {
         auto& maxwell3d = system.GPU().Maxwell3D();
-<<<<<<< HEAD
         const u32 index = surface->GetRenderTarget();
         if (index == DEPTH_RT) {
-            maxwell3d.dirty_flags.zeta_buffer = true;
-=======
-        u32 index = surface->GetRenderTarget();
-        if (index == 8) {
             maxwell3d.dirty.depth_buffer = true;
->>>>>>> Maxwell3D: Rework the dirty system to be more consistant and scaleable
         } else {
             maxwell3d.dirty.render_target[index] = true;
         }
