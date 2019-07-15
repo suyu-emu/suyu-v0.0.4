@@ -55,11 +55,17 @@ class CachedShader final : public RasterizerCacheObject {
 public:
     static Shader CreateStageFromMemory(const ShaderParameters& params,
                                         Maxwell::ShaderProgram program_type,
-                                        ProgramCode&& program_code, ProgramCode&& program_code_b);
+                                        const ProgramCode& program_code,
+                                        const ProgramCode& program_code_b);
 
     static Shader CreateStageFromCache(const ShaderParameters& params,
                                        Maxwell::ShaderProgram program_type,
                                        GLShader::ProgramResult result);
+
+    static Shader CreateKernelFromMemory(const ShaderParameters& params, const ProgramCode& code);
+
+    static Shader CreateKernelFromCache(const ShaderParameters& params,
+                                        GLShader::ProgramResult result);
 
     VAddr GetCpuAddr() const override {
         return cpu_addr;
@@ -78,7 +84,7 @@ public:
     std::tuple<GLuint, BaseBindings> GetProgramHandle(const ProgramVariant& variant);
 
 private:
-    explicit CachedShader(const ShaderParameters& params, Maxwell::ShaderProgram program_type,
+    explicit CachedShader(const ShaderParameters& params, ProgramType program_type,
                           GLShader::ProgramResult result);
 
     // Geometry programs. These are needed because GLSL needs an input topology but it's not
@@ -104,7 +110,7 @@ private:
     u8* host_ptr{};
     VAddr cpu_addr{};
     u64 unique_identifier{};
-    Maxwell::ShaderProgram program_type{};
+    ProgramType program_type{};
     ShaderDiskCacheOpenGL& disk_cache;
     const PrecompiledPrograms& precompiled_programs;
 
@@ -131,6 +137,9 @@ public:
 
     /// Gets the current specified shader stage program
     Shader GetStageProgram(Maxwell::ShaderProgram program);
+
+    /// Gets a compute kernel in the passed address
+    Shader GetComputeKernel(GPUVAddr code_addr);
 
 protected:
     // We do not have to flush this cache as things in it are never modified by us.
