@@ -1169,13 +1169,13 @@ public:
         };
 
         void ResetVertexArrays() {
-            std::fill(vertex_array.begin(), vertex_array.end(), true);
+            vertex_array.fill(true);
             vertex_array_buffers = true;
         }
 
         void ResetRenderTargets() {
             depth_buffer = true;
-            std::fill(render_target.begin(), render_target.end(), true);
+            render_target.fill(true);
             render_settings = true;
         }
 
@@ -1244,7 +1244,7 @@ private:
 
     static constexpr u32 null_cb_data = 0xFFFFFFFF;
     struct {
-        std::array<std::array<u32, 0x4000>, 16> buff;
+        std::array<std::array<u32, 0x4000>, 16> buffer;
         u32 current{null_cb_data};
         u32 id{null_cb_data};
         u32 start_pos{};

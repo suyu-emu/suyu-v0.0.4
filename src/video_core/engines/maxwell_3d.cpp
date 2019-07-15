@@ -91,14 +91,11 @@ void Maxwell3D::InitializeRegisterDefaults() {
 
 void Maxwell3D::InitDirtySettings() {
     const auto set_block = [this](const u32 start, const u32 range, const u8 position) {
-        const u32 end = start + range;
-        for (std::size_t i = start; i < end; i++) {
-            dirty_pointers[i] = position;
-        }
+        const auto start_itr = dirty_pointers.begin() + start;
+        const auto end_itr = start_itr + range;
+        std::fill(start_itr, end_itr, position);
     };
-    for (std::size_t i = 0; i < DirtyRegs::NUM_REGS; i++) {
-        dirty.regs[i] = true;
-    }
+    dirty.regs.fill(true);
 
     // Init Render Targets
     constexpr u32 registers_per_rt = sizeof(regs.rt[0]) / sizeof(u32);
@@ -308,7 +305,7 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
 
     if (regs.reg_array[method] != method_call.argument) {
         regs.reg_array[method] = method_call.argument;
-        std::size_t dirty_reg = dirty_pointers[method];
+        const std::size_t dirty_reg = dirty_pointers[method];
         if (dirty_reg) {
             dirty.regs[dirty_reg] = true;
             if (dirty_reg >= DIRTY_REGS_POS(vertex_array) &&
@@ -540,7 +537,7 @@ void Maxwell3D::ProcessCBBind(Regs::ShaderStage stage) {
 
 void Maxwell3D::ProcessCBData(u32 value) {
     const u32 id = cb_data_state.id;
-    cb_data_state.buff[id][cb_data_state.counter] = value;
+    cb_data_state.buffer[id][cb_data_state.counter] = value;
     // Increment the current buffer position.
     regs.const_buffer.cb_pos = regs.const_buffer.cb_pos + 4;
     cb_data_state.counter++;
@@ -567,7 +564,7 @@ void Maxwell3D::FinishCBData() {
     const std::size_t size = regs.const_buffer.cb_pos - cb_data_state.start_pos;
 
     const u32 id = cb_data_state.id;
-    memory_manager.WriteBlock(address, cb_data_state.buff[id].data(), size);
+    memory_manager.WriteBlock(address, cb_data_state.buffer[id].data(), size);
     dirty.OnMemoryWrite();
 
     cb_data_state.id = null_cb_data;

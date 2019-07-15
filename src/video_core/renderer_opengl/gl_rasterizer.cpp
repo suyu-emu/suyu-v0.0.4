@@ -605,7 +605,7 @@ void RasterizerOpenGL::Clear() {
     });
 
     OpenGLState clear_state{OpenGLState::GetCurState()};
-    clear_state.DefaultViewports();
+    clear_state.SetDefaultViewports();
     if (regs.clear_buffers.R || regs.clear_buffers.G || regs.clear_buffers.B ||
         regs.clear_buffers.A) {
         use_color = true;

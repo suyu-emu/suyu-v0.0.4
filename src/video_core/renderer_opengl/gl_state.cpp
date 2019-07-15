@@ -165,7 +165,7 @@ OpenGLState::OpenGLState() {
     alpha_test.ref = 0.0f;
 }
 
-void OpenGLState::DefaultViewports() {
+void OpenGLState::SetDefaultViewports() {
     for (auto& item : viewports) {
         item.x = 0;
         item.y = 0;
@@ -182,7 +182,6 @@ void OpenGLState::DefaultViewports() {
 
     depth_clamp.far_plane = false;
     depth_clamp.near_plane = false;
-
 }
 
 void OpenGLState::ApplyDefaultState() {

@@ -195,7 +195,7 @@ public:
         s_rgb_used = false;
     }
 
-    void DefaultViewports();
+    void SetDefaultViewports();
     /// Apply this state as the current OpenGL state
     void Apply();
 
