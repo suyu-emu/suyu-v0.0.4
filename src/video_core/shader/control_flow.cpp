@@ -413,8 +413,8 @@ bool TryQuery(CFGRebuildState& state) {
 }
 } // Anonymous namespace
 
-std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u32 program_size,
-                                              u32 start_address) {
+std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
+                                              std::size_t program_size, u32 start_address) {
     CFGRebuildState state{program_code, program_size, start_address};
     // Inspect Code and generate blocks
     state.labels.clear();
