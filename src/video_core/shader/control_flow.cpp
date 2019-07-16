@@ -84,7 +84,7 @@ std::pair<BlockCollision, u32> TryGetBlock(CFGRebuildState& state, u32 address) 
             return {BlockCollision::Inside, index};
         }
     }
-    return {BlockCollision::None, -1};
+    return {BlockCollision::None, 0xFFFFFFFF};
 }
 
 struct ParseInfo {
