@@ -24,9 +24,8 @@ StagingCache::StagingCache() = default;
 StagingCache::~StagingCache() = default;
 
 SurfaceBaseImpl::SurfaceBaseImpl(GPUVAddr gpu_addr, const SurfaceParams& params)
-    : params{params}, mipmap_sizes(params.num_levels),
-      mipmap_offsets(params.num_levels), gpu_addr{gpu_addr}, host_memory_size{
-                                                                 params.GetHostSizeInBytes()} {
+    : params{params}, host_memory_size{params.GetHostSizeInBytes()}, gpu_addr{gpu_addr},
+      mipmap_sizes(params.num_levels), mipmap_offsets(params.num_levels) {
     std::size_t offset = 0;
     for (u32 level = 0; level < params.num_levels; ++level) {
         const std::size_t mipmap_size{params.GetGuestMipmapSize(level)};
