@@ -379,8 +379,8 @@ bool TryQuery(CFGRebuildState& state) {
     // consumes a label. Schedule new queries accordingly
     if (block.visited) {
         BlockStack& stack = state.stacks[q.address];
-        const bool all_okay = (stack.ssy_stack.size() == 0 || q.ssy_stack == stack.ssy_stack) &&
-                              (stack.pbk_stack.size() == 0 || q.pbk_stack == stack.pbk_stack);
+        const bool all_okay = (stack.ssy_stack.empty() || q.ssy_stack == stack.ssy_stack) &&
+                              (stack.pbk_stack.empty() || q.pbk_stack == stack.pbk_stack);
         state.queries.pop_front();
         return all_okay;
     }
