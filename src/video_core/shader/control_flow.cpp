@@ -15,7 +15,7 @@
 #include "video_core/shader/shader_ir.h"
 
 namespace VideoCommon::Shader {
-
+namespace {
 using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
 
@@ -411,6 +411,7 @@ bool TryQuery(CFGRebuildState& state) {
     state.queries.push_back(conditional_query);
     return true;
 }
+} // Anonymous namespace
 
 std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u32 program_size,
                                               u32 start_address) {
