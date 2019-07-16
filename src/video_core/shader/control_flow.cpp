@@ -365,7 +365,7 @@ bool TryQuery(CFGRebuildState& state) {
         const auto gather_end = labels.upper_bound(block.end);
         while (gather_start != gather_end) {
             cc.push(gather_start->second);
-            gather_start++;
+            ++gather_start;
         }
     };
     if (state.queries.empty()) {
@@ -470,7 +470,7 @@ std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
             continue;
         }
         back = next;
-        next++;
+        ++next;
     }
     return {result_out};
 }
