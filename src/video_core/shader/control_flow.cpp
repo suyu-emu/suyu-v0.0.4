@@ -371,10 +371,11 @@ bool TryQuery(CFGRebuildState& state) {
     if (state.queries.empty()) {
         return false;
     }
+
     Query& q = state.queries.front();
     const u32 block_index = state.registered[q.address];
     BlockInfo& block = state.block_info[block_index];
-    // If the block is visted, check if the stacks match, else gather the ssy/pbk
+    // If the block is visited, check if the stacks match, else gather the ssy/pbk
     // labels into the current stack and look if the branch at the end of the block
     // consumes a label. Schedule new queries accordingly
     if (block.visited) {
@@ -385,7 +386,8 @@ bool TryQuery(CFGRebuildState& state) {
         return all_okay;
     }
     block.visited = true;
-    state.stacks[q.address] = BlockStack{q};
+    state.stacks.insert_or_assign(q.address, BlockStack{q});
+
     Query q2(q);
     state.queries.pop_front();
     gather_labels(q2.ssy_stack, state.ssy_labels, block);
@@ -394,6 +396,7 @@ bool TryQuery(CFGRebuildState& state) {
         q2.address = block.end + 1;
         state.queries.push_back(q2);
     }
+
     Query conditional_query{q2};
     if (block.branch.is_sync) {
         if (block.branch.address == unassigned_branch) {
@@ -408,7 +411,7 @@ bool TryQuery(CFGRebuildState& state) {
         conditional_query.pbk_stack.pop();
     }
     conditional_query.address = block.branch.address;
-    state.queries.push_back(conditional_query);
+    state.queries.push_back(std::move(conditional_query));
     return true;
 }
 } // Anonymous namespace
@@ -416,6 +419,7 @@ bool TryQuery(CFGRebuildState& state) {
 std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
                                               std::size_t program_size, u32 start_address) {
     CFGRebuildState state{program_code, program_size, start_address};
+
     // Inspect Code and generate blocks
     state.labels.clear();
     state.labels.emplace(start_address);
@@ -425,10 +429,9 @@ std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
             return {};
         }
     }
+
     // Decompile Stacks
-    Query start_query{};
-    start_query.address = state.start;
-    state.queries.push_back(start_query);
+    state.queries.push_back(Query{state.start, {}, {}});
     bool decompiled = true;
     while (!state.queries.empty()) {
         if (!TryQuery(state)) {
@@ -436,14 +439,15 @@ std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
             break;
         }
     }
+
     // Sort and organize results
     std::sort(state.block_info.begin(), state.block_info.end(),
-              [](const BlockInfo& a, const BlockInfo& b) -> bool { return a.start < b.start; });
+              [](const BlockInfo& a, const BlockInfo& b) { return a.start < b.start; });
     ShaderCharacteristics result_out{};
     result_out.decompilable = decompiled;
     result_out.start = start_address;
     result_out.end = start_address;
-    for (auto& block : state.block_info) {
+    for (const auto& block : state.block_info) {
         ShaderBlock new_block{};
         new_block.start = block.start;
         new_block.end = block.end;
@@ -458,8 +462,9 @@ std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
     }
     if (result_out.decompilable) {
         result_out.labels = std::move(state.labels);
-        return {result_out};
+        return {std::move(result_out)};
     }
+
     // If it's not decompilable, merge the unlabelled blocks together
     auto back = result_out.blocks.begin();
     auto next = std::next(back);
@@ -472,6 +477,6 @@ std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
         back = next;
         ++next;
     }
-    return {result_out};
+    return {std::move(result_out)};
 }
 } // namespace VideoCommon::Shader
