@@ -137,7 +137,7 @@ Node ShaderIR::GetLocalMemory(Node address) {
     return MakeNode<LmemNode>(address);
 }
 
-Node ShaderIR::GetTemporal(u32 id) {
+Node ShaderIR::GetTemporary(u32 id) {
     return GetRegister(Register::ZeroIndex + 1 + id);
 }
 
@@ -373,7 +373,7 @@ void ShaderIR::SetLocalMemory(NodeBlock& bb, Node address, Node value) {
     bb.push_back(Operation(OperationCode::Assign, GetLocalMemory(address), value));
 }
 
-void ShaderIR::SetTemporal(NodeBlock& bb, u32 id, Node value) {
+void ShaderIR::SetTemporary(NodeBlock& bb, u32 id, Node value) {
     SetRegister(bb, Register::ZeroIndex + 1 + id, value);
 }
 
