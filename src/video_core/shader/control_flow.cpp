@@ -29,8 +29,7 @@ struct Query {
 
 struct BlockStack {
     BlockStack() = default;
-    BlockStack(const BlockStack& b) = default;
-    BlockStack(const Query& q) : ssy_stack{q.ssy_stack}, pbk_stack{q.pbk_stack} {}
+    explicit BlockStack(const Query& q) : ssy_stack{q.ssy_stack}, pbk_stack{q.pbk_stack} {}
     std::stack<u32> ssy_stack{};
     std::stack<u32> pbk_stack{};
 };
