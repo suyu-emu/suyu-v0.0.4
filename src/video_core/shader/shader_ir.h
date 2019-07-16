@@ -328,7 +328,7 @@ private:
     void WriteLop3Instruction(NodeBlock& bb, Tegra::Shader::Register dest, Node op_a, Node op_b,
                               Node op_c, Node imm_lut, bool sets_cc);
 
-    Node TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) const;
+    std::tuple<Node, u32, u32> TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) const;
 
     std::optional<u32> TrackImmediate(Node tracked, const NodeBlock& code, s64 cursor) const;
 

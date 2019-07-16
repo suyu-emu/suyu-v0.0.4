@@ -297,18 +297,13 @@ std::tuple<Node, Node, GlobalMemoryBase> ShaderIR::TrackAndGetGlobalMemory(NodeB
     const auto addr_register{GetRegister(instr.gmem.gpr)};
     const auto immediate_offset{static_cast<u32>(instr.gmem.offset)};
 
-    const Node base_address{
-        TrackCbuf(addr_register, global_code, static_cast<s64>(global_code.size()))};
-    const auto cbuf = std::get_if<CbufNode>(&*base_address);
-    ASSERT(cbuf != nullptr);
-    const auto cbuf_offset_imm = std::get_if<ImmediateNode>(&*cbuf->GetOffset());
-    ASSERT(cbuf_offset_imm != nullptr);
-    const auto cbuf_offset = cbuf_offset_imm->GetValue();
+    const auto [base_address, index, offset] =
+        TrackCbuf(addr_register, global_code, static_cast<s64>(global_code.size()));
+    ASSERT(base_address != nullptr);
 
-    bb.push_back(
-        Comment(fmt::format("Base address is c[0x{:x}][0x{:x}]", cbuf->GetIndex(), cbuf_offset)));
+    bb.push_back(Comment(fmt::format("Base address is c[0x{:x}][0x{:x}]", index, offset)));
 
-    const GlobalMemoryBase descriptor{cbuf->GetIndex(), cbuf_offset};
+    const GlobalMemoryBase descriptor{index, offset};
     const auto& [entry, is_new] = used_global_memory.try_emplace(descriptor);
     auto& usage = entry->second;
     if (is_write) {

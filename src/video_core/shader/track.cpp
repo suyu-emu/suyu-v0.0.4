@@ -32,39 +32,44 @@ std::pair<Node, s64> FindOperation(const NodeBlock& code, s64 cursor,
     }
     return {};
 }
-} // namespace
+} // Anonymous namespace
 
-Node ShaderIR::TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) const {
+std::tuple<Node, u32, u32> ShaderIR::TrackCbuf(Node tracked, const NodeBlock& code,
+                                               s64 cursor) const {
     if (const auto cbuf = std::get_if<CbufNode>(&*tracked)) {
-        // Cbuf found, but it has to be immediate
-        return std::holds_alternative<ImmediateNode>(*cbuf->GetOffset()) ? tracked : nullptr;
+        // Constant buffer found, test if it's an immediate
+        const auto offset = cbuf->GetOffset();
+        if (const auto immediate = std::get_if<ImmediateNode>(&*offset)) {
+            return {tracked, cbuf->GetIndex(), immediate->GetValue()};
+        }
+        return {};
     }
     if (const auto gpr = std::get_if<GprNode>(&*tracked)) {
         if (gpr->GetIndex() == Tegra::Shader::Register::ZeroIndex) {
-            return nullptr;
+            return {};
         }
         // Reduce the cursor in one to avoid infinite loops when the instruction sets the same
         // register that it uses as operand
         const auto [source, new_cursor] = TrackRegister(gpr, code, cursor - 1);
         if (!source) {
-            return nullptr;
+            return {};
         }
         return TrackCbuf(source, code, new_cursor);
     }
     if (const auto operation = std::get_if<OperationNode>(&*tracked)) {
         for (std::size_t i = 0; i < operation->GetOperandsCount(); ++i) {
-            if (const auto found = TrackCbuf((*operation)[i], code, cursor)) {
-                // Cbuf found in operand
+            if (auto found = TrackCbuf((*operation)[i], code, cursor); std::get<0>(found)) {
+                // Cbuf found in operand.
                 return found;
             }
         }
-        return nullptr;
+        return {};
     }
     if (const auto conditional = std::get_if<ConditionalNode>(&*tracked)) {
         const auto& conditional_code = conditional->GetCode();
         return TrackCbuf(tracked, conditional_code, static_cast<s64>(conditional_code.size()));
     }
-    return nullptr;
+    return {};
 }
 
 std::optional<u32> ShaderIR::TrackImmediate(Node tracked, const NodeBlock& code, s64 cursor) const {
