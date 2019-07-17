@@ -102,7 +102,7 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
                                                  PRECISE, op_a, Immediate(3));
             const Node operand =
                 Operation(OperationCode::IAdd, PRECISE, convert, Immediate(target));
-            branch = Operation(OperationCode::BranchIndirect, convert);
+            branch = Operation(OperationCode::BranchIndirect, operand);
         }
 
         const Tegra::Shader::ConditionCode cc = instr.flow_condition_code;
