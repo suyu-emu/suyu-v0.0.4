@@ -238,20 +238,20 @@ public:
     /// Viewport does not affects glClearBuffer so emulate viewport using scissor test
     void EmulateViewportWithScissor();
 
-    void MarkDirtyBlendState(const bool is_dirty) {
-        dirty.blend_state = is_dirty;
+    void MarkDirtyBlendState() {
+        dirty.blend_state = true;
     }
 
-    void MarkDirtyStencilState(const bool is_dirty) {
-        dirty.stencil_state = is_dirty;
+    void MarkDirtyStencilState() {
+        dirty.stencil_state = true;
     }
 
-    void MarkDirtyPolygonOffset(const bool is_dirty) {
-        dirty.polygon_offset = is_dirty;
+    void MarkDirtyPolygonOffset() {
+        dirty.polygon_offset = true;
     }
 
-    void MarkDirtyColorMask(const bool is_dirty) {
-        dirty.color_mask = is_dirty;
+    void MarkDirtyColorMask() {
+        dirty.color_mask = true;
     }
 
     void AllDirty() {

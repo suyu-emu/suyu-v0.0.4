@@ -1059,7 +1059,7 @@ void RasterizerOpenGL::SyncStencilTestState() {
         state.stencil.back.action_depth_fail = GL_KEEP;
         state.stencil.back.action_depth_pass = GL_KEEP;
     }
-    state.MarkDirtyStencilState(true);
+    state.MarkDirtyStencilState();
     maxwell3d.dirty.stencil_test = false;
 }
 
@@ -1081,7 +1081,7 @@ void RasterizerOpenGL::SyncColorMask() {
         dest.alpha_enabled = (source.A == 0) ? GL_FALSE : GL_TRUE;
     }
 
-    state.MarkDirtyColorMask(true);
+    state.MarkDirtyColorMask();
     maxwell3d.dirty.color_mask = false;
 }
 
@@ -1125,7 +1125,7 @@ void RasterizerOpenGL::SyncBlendState() {
             state.blend[i].enabled = false;
         }
         maxwell3d.dirty.blend_state = false;
-        state.MarkDirtyBlendState(true);
+        state.MarkDirtyBlendState();
         return;
     }
 
@@ -1143,7 +1143,7 @@ void RasterizerOpenGL::SyncBlendState() {
         blend.dst_a_func = MaxwellToGL::BlendFunc(src.factor_dest_a);
     }
 
-    state.MarkDirtyBlendState(true);
+    state.MarkDirtyBlendState();
     maxwell3d.dirty.blend_state = false;
 }
 
@@ -1209,7 +1209,7 @@ void RasterizerOpenGL::SyncPolygonOffset() {
     state.polygon_offset.factor = regs.polygon_offset_factor;
     state.polygon_offset.clamp = regs.polygon_offset_clamp;
 
-    state.MarkDirtyPolygonOffset(true);
+    state.MarkDirtyPolygonOffset();
     maxwell3d.dirty.polygon_offset = false;
 }
 

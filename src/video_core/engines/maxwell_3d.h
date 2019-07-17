@@ -1129,24 +1129,30 @@ public:
         union {
             struct {
                 bool null_dirty;
+
                 // Vertex Attributes
                 bool vertex_attrib_format;
+
                 // Vertex Arrays
                 std::array<bool, 32> vertex_array;
 
                 bool vertex_array_buffers;
+
                 // Vertex Instances
                 std::array<bool, 32> vertex_instance;
 
                 bool vertex_instances;
+
                 // Render Targets
                 std::array<bool, 8> render_target;
                 bool depth_buffer;
 
                 bool render_settings;
+
                 // Shaders
                 bool shaders;
-                // State
+
+                // Rasterizer State
                 bool viewport;
                 bool clip_coefficient;
                 bool cull_mode;
