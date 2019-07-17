@@ -1246,8 +1246,6 @@ private:
     /// Interpreter for the macro codes uploaded to the GPU.
     MacroInterpreter macro_interpreter;
 
-    Upload::State upload_state;
-
     static constexpr u32 null_cb_data = 0xFFFFFFFF;
     struct {
         std::array<std::array<u32, 0x4000>, 16> buffer;
@@ -1256,6 +1254,8 @@ private:
         u32 start_pos{};
         u32 counter{};
     } cb_data_state;
+
+    Upload::State upload_state;
 
     /// Retrieves information about a specific TIC entry from the TIC buffer.
     Texture::TICEntry GetTICEntry(u32 tic_index) const;

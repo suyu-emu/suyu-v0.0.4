@@ -993,37 +993,42 @@ void RasterizerOpenGL::SyncCullMode() {
     const auto& regs = maxwell3d.regs;
 
     state.cull.enabled = regs.cull.enabled != 0;
-    state.cull.front_face = MaxwellToGL::FrontFace(regs.cull.front_face);
-    state.cull.mode = MaxwellToGL::CullFace(regs.cull.cull_face);
+    if (state.cull.enabled) {
+        state.cull.front_face = MaxwellToGL::FrontFace(regs.cull.front_face);
+        state.cull.mode = MaxwellToGL::CullFace(regs.cull.cull_face);
 
-    const bool flip_triangles{regs.screen_y_control.triangle_rast_flip == 0 ||
-                              regs.viewport_transform[0].scale_y < 0.0f};
+        const bool flip_triangles{regs.screen_y_control.triangle_rast_flip == 0 ||
+                                  regs.viewport_transform[0].scale_y < 0.0f};
 
-    // If the GPU is configured to flip the rasterized triangles, then we need to flip the
-    // notion of front and back. Note: We flip the triangles when the value of the register is 0
-    // because OpenGL already does it for us.
-    if (flip_triangles) {
-        if (state.cull.front_face == GL_CCW)
-            state.cull.front_face = GL_CW;
-        else if (state.cull.front_face == GL_CW)
-            state.cull.front_face = GL_CCW;
+        // If the GPU is configured to flip the rasterized triangles, then we need to flip the
+        // notion of front and back. Note: We flip the triangles when the value of the register is 0
+        // because OpenGL already does it for us.
+        if (flip_triangles) {
+            if (state.cull.front_face == GL_CCW)
+                state.cull.front_face = GL_CW;
+            else if (state.cull.front_face == GL_CW)
+                state.cull.front_face = GL_CCW;
+        }
     }
 }
 
 void RasterizerOpenGL::SyncPrimitiveRestart() {
-    auto& maxwell3d = system.GPU().Maxwell3D();
-    const auto& regs = maxwell3d.regs;
+    const auto& regs = system.GPU().Maxwell3D().regs;
 
     state.primitive_restart.enabled = regs.primitive_restart.enabled;
     state.primitive_restart.index = regs.primitive_restart.index;
 }
 
 void RasterizerOpenGL::SyncDepthTestState() {
-    auto& maxwell3d = system.GPU().Maxwell3D();
-    const auto& regs = maxwell3d.regs;
+    const auto& regs = system.GPU().Maxwell3D().regs;
 
     state.depth.test_enabled = regs.depth_test_enable != 0;
     state.depth.write_mask = regs.depth_write_enabled ? GL_TRUE : GL_FALSE;
+
+    if (!state.depth.test_enabled) {
+        return;
+    }
+
     state.depth.test_func = MaxwellToGL::ComparisonOp(regs.depth_test_func);
 }
 
@@ -1035,6 +1040,10 @@ void RasterizerOpenGL::SyncStencilTestState() {
     const auto& regs = maxwell3d.regs;
 
     state.stencil.test_enabled = regs.stencil_enable != 0;
+    if (!regs.stencil_enable) {
+        return;
+    }
+
     state.stencil.front.test_func = MaxwellToGL::ComparisonOp(regs.stencil_front_func_func);
     state.stencil.front.test_ref = regs.stencil_front_func_ref;
     state.stencil.front.test_mask = regs.stencil_front_func_mask;
