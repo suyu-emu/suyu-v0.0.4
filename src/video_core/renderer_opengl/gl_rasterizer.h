@@ -141,6 +141,9 @@ private:
     TextureBufferUsage SetupDrawTextures(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
                                          const Shader& shader, BaseBindings base_bindings);
 
+    /// Configures the textures used in a compute shader. Returns texture buffer usage.
+    TextureBufferUsage SetupComputeTextures(const Shader& kernel);
+
     /// Configures a texture. Returns true when the texture is a texture buffer.
     bool SetupTexture(u32 binding, const Tegra::Texture::FullTextureInfo& texture,
                       const GLShader::SamplerEntry& entry);

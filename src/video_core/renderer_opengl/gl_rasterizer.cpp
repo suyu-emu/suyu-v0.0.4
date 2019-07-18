@@ -801,9 +801,11 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     }
 
     auto kernel = shader_cache.GetComputeKernel(code_addr);
+    ProgramVariant variant;
+    variant.texture_buffer_usage = SetupComputeTextures(kernel);
     SetupComputeImages(kernel);
 
-    const auto [program, next_bindings] = kernel->GetProgramHandle({});
+    const auto [program, next_bindings] = kernel->GetProgramHandle(variant);
     state.draw.shader_program = program;
     state.draw.program_pipeline = 0;
 
@@ -817,8 +819,6 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
 
     SetupComputeConstBuffers(kernel);
     SetupComputeGlobalMemory(kernel);
-
-    // TODO(Rodrigo): Bind images and samplers
 
     buffer_cache.Unmap();
 
@@ -1009,6 +1009,36 @@ TextureBufferUsage RasterizerOpenGL::SetupDrawTextures(Maxwell::ShaderStage stag
         }();
 
         if (SetupTexture(base_bindings.sampler + bindpoint, texture, entry)) {
+            texture_buffer_usage.set(bindpoint);
+        }
+    }
+
+    return texture_buffer_usage;
+}
+
+TextureBufferUsage RasterizerOpenGL::SetupComputeTextures(const Shader& kernel) {
+    MICROPROFILE_SCOPE(OpenGL_Texture);
+    const auto& compute = system.GPU().KeplerCompute();
+    const auto& entries = kernel->GetShaderEntries().samplers;
+
+    ASSERT_MSG(entries.size() <= std::size(state.textures),
+               "Exceeded the number of active textures.");
+
+    TextureBufferUsage texture_buffer_usage{0};
+
+    for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
+        const auto& entry = entries[bindpoint];
+        const auto texture = [&]() {
+            if (!entry.IsBindless()) {
+                return compute.GetTexture(entry.GetOffset());
+            }
+            const auto cbuf = entry.GetBindlessCBuf();
+            Tegra::Texture::TextureHandle tex_handle;
+            tex_handle.raw = compute.AccessConstBuffer32(cbuf.first, cbuf.second);
+            return compute.GetTextureInfo(tex_handle, entry.GetOffset());
+        }();
+
+        if (SetupTexture(bindpoint, texture, entry)) {
             texture_buffer_usage.set(bindpoint);
         }
     }
