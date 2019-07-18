@@ -38,7 +38,7 @@ void MaxwellDMA::CallMethod(const GPU::MethodCall& method_call) {
 }
 
 void MaxwellDMA::HandleCopy() {
-    LOG_WARNING(HW_GPU, "Requested a DMA copy");
+    LOG_TRACE(HW_GPU, "Requested a DMA copy");
 
     const GPUVAddr source = regs.src_address.Address();
     const GPUVAddr dest = regs.dst_address.Address();
