@@ -19,9 +19,9 @@ u32 ShaderIR::DecodeFfma(NodeBlock& bb, u32 pc) {
 
     UNIMPLEMENTED_IF_MSG(instr.ffma.cc != 0, "FFMA cc not implemented");
     DEBUG_ASSERT_MSG(instr.ffma.tab5980_0 == 1, "FFMA tab5980_0({}) not implemented",
-                         instr.ffma.tab5980_0.Value()); // Seems to be 1 by default based on SMO
+                     instr.ffma.tab5980_0.Value()); // Seems to be 1 by default based on SMO
     DEBUG_ASSERT_MSG(instr.ffma.tab5980_1 == 0, "FFMA tab5980_1({}) not implemented",
-                         instr.ffma.tab5980_1.Value());
+                     instr.ffma.tab5980_1.Value());
 
     const Node op_a = GetRegister(instr.gpr8);
 
