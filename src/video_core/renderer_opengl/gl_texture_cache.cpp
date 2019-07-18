@@ -137,7 +137,6 @@ constexpr std::array<FormatTuple, VideoCore::Surface::MaxPixelFormat> tex_format
 const FormatTuple& GetFormatTuple(PixelFormat pixel_format, ComponentType component_type) {
     ASSERT(static_cast<std::size_t>(pixel_format) < tex_format_tuples.size());
     const auto& format{tex_format_tuples[static_cast<std::size_t>(pixel_format)]};
-    ASSERT(component_type == format.component_type);
     return format;
 }
 
