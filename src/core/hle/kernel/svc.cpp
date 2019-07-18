@@ -1739,8 +1739,8 @@ static ResultCode SignalProcessWideKey(Core::System& system, VAddr condition_var
 // Wait for an address (via Address Arbiter)
 static ResultCode WaitForAddress(Core::System& system, VAddr address, u32 type, s32 value,
                                  s64 timeout) {
-    LOG_WARNING(Kernel_SVC, "called, address=0x{:X}, type=0x{:X}, value=0x{:X}, timeout={}",
-                address, type, value, timeout);
+    LOG_TRACE(Kernel_SVC, "called, address=0x{:X}, type=0x{:X}, value=0x{:X}, timeout={}", address,
+              type, value, timeout);
 
     // If the passed address is a kernel virtual address, return invalid memory state.
     if (Memory::IsKernelVirtualAddress(address)) {
@@ -1762,8 +1762,8 @@ static ResultCode WaitForAddress(Core::System& system, VAddr address, u32 type, 
 // Signals to an address (via Address Arbiter)
 static ResultCode SignalToAddress(Core::System& system, VAddr address, u32 type, s32 value,
                                   s32 num_to_wake) {
-    LOG_WARNING(Kernel_SVC, "called, address=0x{:X}, type=0x{:X}, value=0x{:X}, num_to_wake=0x{:X}",
-                address, type, value, num_to_wake);
+    LOG_TRACE(Kernel_SVC, "called, address=0x{:X}, type=0x{:X}, value=0x{:X}, num_to_wake=0x{:X}",
+              address, type, value, num_to_wake);
 
     // If the passed address is a kernel virtual address, return invalid memory state.
     if (Memory::IsKernelVirtualAddress(address)) {
