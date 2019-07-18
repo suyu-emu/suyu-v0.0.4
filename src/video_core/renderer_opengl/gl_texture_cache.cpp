@@ -185,6 +185,9 @@ GLint GetSwizzleSource(SwizzleSource source) {
 }
 
 void ApplyTextureDefaults(const SurfaceParams& params, GLuint texture) {
+    if (params.IsBuffer()) {
+        return;
+    }
     glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
