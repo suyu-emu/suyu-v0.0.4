@@ -194,7 +194,12 @@ public:
 
                 u32 semaphore_acquire;
                 u32 semaphore_release;
-                INSERT_PADDING_WORDS(0xE4);
+                u32 fence_value;
+                union {
+                    BitField<4, 4, u32> operation;
+                    BitField<8, 8, u32> id;
+                } fence_action;
+                INSERT_PADDING_WORDS(0xE2);
 
                 // Puller state
                 u32 acquire_mode;
@@ -274,6 +279,8 @@ ASSERT_REG_POSITION(semaphore_trigger, 0x7);
 ASSERT_REG_POSITION(reference_count, 0x14);
 ASSERT_REG_POSITION(semaphore_acquire, 0x1A);
 ASSERT_REG_POSITION(semaphore_release, 0x1B);
+ASSERT_REG_POSITION(fence_value, 0x1C);
+ASSERT_REG_POSITION(fence_action, 0x1D);
 
 ASSERT_REG_POSITION(acquire_mode, 0x100);
 ASSERT_REG_POSITION(acquire_source, 0x101);
