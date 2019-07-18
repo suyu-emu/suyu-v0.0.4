@@ -23,7 +23,7 @@ u32 ShaderIR::DecodeArithmeticHalfImmediate(NodeBlock& bb, u32 pc) {
             LOG_WARNING(HW_GPU, "{} FTZ not implemented", opcode->get().GetName());
         }
     } else {
-        UNIMPLEMENTED_IF(instr.alu_half_imm.precision != Tegra::Shader::HalfPrecision::None);
+        DEBUG_ASSERT(instr.alu_half_imm.precision == Tegra::Shader::HalfPrecision::None);
     }
 
     Node op_a = UnpackHalfFloat(GetRegister(instr.gpr8), instr.alu_half_imm.type_a);
