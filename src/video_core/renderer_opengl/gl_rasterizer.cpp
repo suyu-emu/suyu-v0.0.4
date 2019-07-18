@@ -825,6 +825,8 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     bind_ubo_pushbuffer.Bind();
     bind_ssbo_pushbuffer.Bind();
 
+    state.ApplyTextures();
+    state.ApplyImages();
     state.ApplyShaderProgram();
     state.ApplyProgramPipeline();
 
