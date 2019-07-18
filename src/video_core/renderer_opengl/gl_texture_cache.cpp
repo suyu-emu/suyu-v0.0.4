@@ -209,6 +209,7 @@ OGLTexture CreateTexture(const SurfaceParams& params, GLenum target, GLenum inte
         glNamedBufferStorage(texture_buffer.handle, params.width * params.GetBytesPerPixel(),
                              nullptr, GL_DYNAMIC_STORAGE_BIT);
         glTextureBuffer(texture.handle, internal_format, texture_buffer.handle);
+        break;
     case SurfaceTarget::Texture2D:
     case SurfaceTarget::TextureCubemap:
         glTextureStorage2D(texture.handle, params.emulated_levels, internal_format, params.width,
