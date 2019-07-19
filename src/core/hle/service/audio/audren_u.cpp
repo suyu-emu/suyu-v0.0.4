@@ -160,7 +160,8 @@ private:
 
 class IAudioDevice final : public ServiceFramework<IAudioDevice> {
 public:
-    explicit IAudioDevice(Core::System& system) : ServiceFramework("IAudioDevice") {
+    explicit IAudioDevice(Core::System& system, u32_le revision_num)
+        : ServiceFramework("IAudioDevice"), revision{revision_num} {
         static const FunctionInfo functions[] = {
             {0, &IAudioDevice::ListAudioDeviceName, "ListAudioDeviceName"},
             {1, &IAudioDevice::SetAudioDeviceOutputVolume, "SetAudioDeviceOutputVolume"},
@@ -196,25 +197,40 @@ private:
         "AudioTvOutput",
         "AudioUsbDeviceOutput",
     }};
+    enum class DeviceType {
+        AHUBHeadphones,
+        AHUBSpeakers,
+        HDA,
+        USBOutput,
+    };
 
     void ListAudioDeviceName(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_Audio, "(STUBBED) called");
+        LOG_DEBUG(Service_Audio, "called");
 
-        const std::size_t num_names_requested = ctx.GetWriteBufferSize() / sizeof(AudioDeviceName);
-        const std::size_t num_to_copy = std::min(num_names_requested, audio_device_names.size());
-        std::vector<AudioDeviceName> name_buffer(num_to_copy);
+        const bool usb_output_supported =
+            IsFeatureSupported(AudioFeatures::AudioUSBDeviceOutput, revision);
+        const std::size_t count = ctx.GetWriteBufferSize() / sizeof(AudioDeviceName);
 
-        for (std::size_t i = 0; i < num_to_copy; i++) {
+        std::vector<AudioDeviceName> name_buffer;
+        name_buffer.reserve(audio_device_names.size());
+
+        for (std::size_t i = 0; i < count && i < audio_device_names.size(); i++) {
+            const auto type = static_cast<DeviceType>(i);
+
+            if (!usb_output_supported && type == DeviceType::USBOutput) {
+                continue;
+            }
+
             const auto& device_name = audio_device_names[i];
-
-            device_name.copy(name_buffer[i].data(), device_name.size());
+            auto& entry = name_buffer.emplace_back();
+            device_name.copy(entry.data(), device_name.size());
         }
 
         ctx.WriteBuffer(name_buffer);
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.Push(static_cast<u32>(num_to_copy));
+        rb.Push(static_cast<u32>(name_buffer.size()));
     }
 
     void SetAudioDeviceOutputVolume(Kernel::HLERequestContext& ctx) {
@@ -271,6 +287,7 @@ private:
         rb.PushCopyObjects(audio_output_device_switch_event.readable);
     }
 
+    u32_le revision = 0;
     Kernel::EventPair buffer_event;
     Kernel::EventPair audio_output_device_switch_event;
 
@@ -597,12 +614,16 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
 }
 
 void AudRenU::GetAudioDeviceService(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Audio, "called");
+    IPC::RequestParser rp{ctx};
+    const u64 aruid = rp.Pop<u64>();
 
+    LOG_DEBUG(Service_Audio, "called. aruid={:016X}", aruid);
+
+    // Revisionless variant of GetAudioDeviceServiceWithRevisionInfo that
+    // always assumes the initial release revision (REV1).
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IAudioDevice>(system);
+    rb.PushIpcInterface<IAudioDevice>(system, Common::MakeMagic('R', 'E', 'V', '1'));
 }
 
 void AudRenU::OpenAudioRendererAuto(Kernel::HLERequestContext& ctx) {
@@ -612,14 +633,19 @@ void AudRenU::OpenAudioRendererAuto(Kernel::HLERequestContext& ctx) {
 }
 
 void AudRenU::GetAudioDeviceServiceWithRevisionInfo(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_Audio, "(STUBBED) called");
+    struct Parameters {
+        u32 revision;
+        u64 aruid;
+    };
+
+    IPC::RequestParser rp{ctx};
+    const auto [revision, aruid] = rp.PopRaw<Parameters>();
+
+    LOG_DEBUG(Service_Audio, "called. revision={:08X}, aruid={:016X}", revision, aruid);
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-
-    // TODO(ogniK): Figure out what is different based on the current revision
-
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IAudioDevice>(system);
+    rb.PushIpcInterface<IAudioDevice>(system, revision);
 }
 
 void AudRenU::OpenAudioRendererImpl(Kernel::HLERequestContext& ctx) {
@@ -636,6 +662,8 @@ bool IsFeatureSupported(AudioFeatures feature, u32_le revision) {
     const u32_be version_num = revision - Common::MakeMagic('R', 'E', 'V', '0');
 
     switch (feature) {
+    case AudioFeatures::AudioUSBDeviceOutput:
+        return version_num >= 4U;
     case AudioFeatures::Splitter:
         return version_num >= 2U;
     case AudioFeatures::PerformanceMetricsVersion2:

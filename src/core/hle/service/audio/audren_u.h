@@ -36,6 +36,7 @@ private:
 
 // Describes a particular audio feature that may be supported in a particular revision.
 enum class AudioFeatures : u32 {
+    AudioUSBDeviceOutput,
     Splitter,
     PerformanceMetricsVersion2,
     VariadicCommandBuffer,
