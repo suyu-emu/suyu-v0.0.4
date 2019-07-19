@@ -242,9 +242,8 @@ private:
 
         ctx.WriteBuffer(out_device_name);
 
-        IPC::ResponseBuilder rb{ctx, 3};
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u32>(1);
     }
 
     void QueryAudioDeviceSystemEvent(Kernel::HLERequestContext& ctx) {
