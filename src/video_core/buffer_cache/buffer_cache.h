@@ -15,8 +15,8 @@
 #include "common/alignment.h"
 #include "common/common_types.h"
 #include "core/core.h"
-#include "video_core/buffer_cache/map_interval.h"
 #include "video_core/buffer_cache/buffer_block.h"
+#include "video_core/buffer_cache/map_interval.h"
 #include "video_core/memory_manager.h"
 
 namespace VideoCore {
@@ -42,7 +42,7 @@ public:
         const auto cache_addr = ToCacheAddr(host_ptr);
 
         auto block = GetBlock(cache_addr, size);
-        MapAddress(block, gpu_addr, cache_addr, size, is_written);
+        MapAddress(block, gpu_addr, cache_addr, size);
 
         const u64 offset = static_cast<u64>(block->GetOffset(cache_addr));
 
@@ -149,86 +149,56 @@ protected:
 
 private:
     void MapAddress(const TBuffer& block, const GPUVAddr gpu_addr, const CacheAddr cache_addr,
-                    const std::size_t size, bool is_written) {
+                    const std::size_t size) {
 
         std::vector<MapInterval> overlaps = GetMapsInRange(cache_addr, size);
         if (overlaps.empty()) {
             const CacheAddr cache_addr_end = cache_addr + size;
             MapInterval new_interval{cache_addr, cache_addr_end};
-            if (!is_written) {
-                u8* host_ptr = FromCacheAddr(cache_addr);
-                UploadBlockData(block, block->GetOffset(cache_addr), size, host_ptr);
-            }
+            u8* host_ptr = FromCacheAddr(cache_addr);
+            UploadBlockData(block, block->GetOffset(cache_addr), size, host_ptr);
             Register(new_interval, gpu_addr);
             return;
         }
 
+        const CacheAddr cache_addr_end = cache_addr + size;
         if (overlaps.size() == 1) {
-            MapInterval current_map = overlaps[0];
-            const CacheAddr cache_addr_end = cache_addr + size;
+            const MapInterval& current_map = overlaps[0];
             if (current_map.IsInside(cache_addr, cache_addr_end)) {
                 return;
             }
-            const CacheAddr new_start = std::min(cache_addr, current_map.start);
-            const CacheAddr new_end = std::max(cache_addr_end, current_map.end);
-            const GPUVAddr new_gpu_addr = gpu_addr + new_start - cache_addr;
-            const std::size_t new_size = static_cast<std::size_t>(new_end - new_start);
-            MapInterval new_interval{new_start, new_end};
-            const std::size_t offset = current_map.start - new_start;
-            const std::size_t size = current_map.end - current_map.start;
-            // Upload the remaining data
-            if (!is_written) {
-                u8* host_ptr = FromCacheAddr(new_start);
-                if (new_start == cache_addr && new_end == cache_addr_end) {
-                    std::size_t first_size = current_map.start - new_start;
-                    if (first_size > 0) {
-                        UploadBlockData(block, block->GetOffset(new_start), first_size, host_ptr);
-                    }
+        }
+        CacheAddr new_start = cache_addr;
+        CacheAddr new_end = cache_addr_end;
+        // Calculate new buffer parameters
+        for (auto& overlap : overlaps) {
+            new_start = std::min(overlap.start, new_start);
+            new_end = std::max(overlap.end, new_end);
+        }
+        GPUVAddr new_gpu_addr = gpu_addr + new_start - cache_addr;
+        for (auto& overlap : overlaps) {
+            Unregister(overlap);
+        }
+        UpdateBlock(block, new_start, new_end, overlaps);
+        MapInterval new_interval{new_start, new_end};
+        Register(new_interval, new_gpu_addr);
+    }
 
-                    std::size_t second_size = new_end - current_map.end;
-                    if (second_size > 0) {
-                        u8* host_ptr2 = FromCacheAddr(current_map.end);
-                        UploadBlockData(block, block->GetOffset(current_map.end), second_size,
-                                         host_ptr2);
-                    }
-                } else {
-                    if (new_start == cache_addr) {
-                        std::size_t second_size = new_end - current_map.end;
-                        if (second_size > 0) {
-                            u8* host_ptr2 = FromCacheAddr(current_map.end);
-                            UploadBlockData(block, block->GetOffset(current_map.end), second_size,
-                                             host_ptr2);
-                        }
-                    } else {
-                        std::size_t first_size = current_map.start - new_start;
-                        if (first_size > 0) {
-                            UploadBlockData(block, block->GetOffset(new_start), first_size, host_ptr);
-                        }
-                    }
-                }
+    void UpdateBlock(const TBuffer& block, CacheAddr start, CacheAddr end,
+                     std::vector<MapInterval>& overlaps) {
+        const IntervalType base_interval{start, end};
+        IntervalCache interval_set{};
+        interval_set.add(base_interval);
+        for (auto& overlap : overlaps) {
+            const IntervalType subtract{overlap.start, overlap.end};
+            interval_set.subtract(subtract);
+        }
+        for (auto& interval : interval_set) {
+            std::size_t size = interval.upper() - interval.lower();
+            if (size > 0) {
+                u8* host_ptr = FromCacheAddr(interval.lower());
+                UploadBlockData(block, block->GetOffset(interval.lower()), size, host_ptr);
             }
-            Unregister(current_map);
-            Register(new_interval, new_gpu_addr);
-        } else {
-            // Calculate new buffer parameters
-            GPUVAddr new_gpu_addr = gpu_addr;
-            CacheAddr start = cache_addr;
-            CacheAddr end = cache_addr + size;
-            for (auto& overlap : overlaps) {
-                start = std::min(overlap.start, start);
-                end = std::max(overlap.end, end);
-            }
-            new_gpu_addr = gpu_addr + start - cache_addr;
-            MapInterval new_interval{start, end};
-            for (auto& overlap : overlaps) {
-                Unregister(overlap);
-            }
-            std::size_t new_size = end - start;
-            if (!is_written) {
-                u8* host_ptr = FromCacheAddr(start);
-                UploadBlockData(block, block->GetOffset(start), new_size, host_ptr);
-            }
-            Register(new_interval, new_gpu_addr);
         }
     }
 

@@ -14,7 +14,7 @@ struct MapInterval {
     MapInterval(const CacheAddr start, const CacheAddr end) : start{start}, end{end} {}
     CacheAddr start;
     CacheAddr end;
-    bool IsInside(const CacheAddr other_start, const CacheAddr other_end) {
+    bool IsInside(const CacheAddr other_start, const CacheAddr other_end) const {
         return (start <= other_start && other_end <= end);
     }
 
