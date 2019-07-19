@@ -349,7 +349,7 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
     };
 
     // Calculates the portion of the size related to the mix data (and the sorting thereof).
-    const auto calculate_mix_info_size = [this](const AudioCore::AudioRendererParameter& params) {
+    const auto calculate_mix_info_size = [](const AudioCore::AudioRendererParameter& params) {
         // The size of the mixing info data structure.
         constexpr u64 mix_info_size = 0x940;
 
@@ -421,7 +421,7 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
 
     // Calculates the part of the size related to the splitter context.
     const auto calculate_splitter_context_size =
-        [this](const AudioCore::AudioRendererParameter& params) -> u64 {
+        [](const AudioCore::AudioRendererParameter& params) -> u64 {
         if (!IsFeatureSupported(AudioFeatures::Splitter, params.revision)) {
             return 0;
         }
@@ -468,7 +468,7 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
     };
 
     // Calculates the part of the size related to performance statistics.
-    const auto calculate_perf_size = [this](const AudioCore::AudioRendererParameter& params) {
+    const auto calculate_perf_size = [](const AudioCore::AudioRendererParameter& params) {
         // Extra size value appended to the end of the calculation.
         constexpr u64 appended = 128;
 
@@ -495,78 +495,76 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
     };
 
     // Calculates the part of the size that relates to the audio command buffer.
-    const auto calculate_command_buffer_size =
-        [this](const AudioCore::AudioRendererParameter& params) {
-            constexpr u64 alignment = (buffer_alignment_size - 1) * 2;
+    const auto calculate_command_buffer_size = [](const AudioCore::AudioRendererParameter& params) {
+        constexpr u64 alignment = (buffer_alignment_size - 1) * 2;
 
-            if (!IsFeatureSupported(AudioFeatures::VariadicCommandBuffer, params.revision)) {
-                constexpr u64 command_buffer_size = 0x18000;
+        if (!IsFeatureSupported(AudioFeatures::VariadicCommandBuffer, params.revision)) {
+            constexpr u64 command_buffer_size = 0x18000;
 
-                return command_buffer_size + alignment;
-            }
+            return command_buffer_size + alignment;
+        }
 
-            // When the variadic command buffer is supported, this means
-            // the command generator for the audio renderer can issue commands
-            // that are (as one would expect), variable in size. So what we need to do
-            // is determine the maximum possible size for a few command data structures
-            // then multiply them by the amount of present commands indicated by the given
-            // respective audio parameters.
+        // When the variadic command buffer is supported, this means
+        // the command generator for the audio renderer can issue commands
+        // that are (as one would expect), variable in size. So what we need to do
+        // is determine the maximum possible size for a few command data structures
+        // then multiply them by the amount of present commands indicated by the given
+        // respective audio parameters.
 
-            constexpr u64 max_biquad_filters = 2;
-            constexpr u64 max_mix_buffers = 24;
+        constexpr u64 max_biquad_filters = 2;
+        constexpr u64 max_mix_buffers = 24;
 
-            constexpr u64 biquad_filter_command_size = 0x2C;
+        constexpr u64 biquad_filter_command_size = 0x2C;
 
-            constexpr u64 depop_mix_command_size = 0x24;
-            constexpr u64 depop_setup_command_size = 0x50;
+        constexpr u64 depop_mix_command_size = 0x24;
+        constexpr u64 depop_setup_command_size = 0x50;
 
-            constexpr u64 effect_command_max_size = 0x540;
+        constexpr u64 effect_command_max_size = 0x540;
 
-            constexpr u64 mix_command_size = 0x1C;
-            constexpr u64 mix_ramp_command_size = 0x24;
-            constexpr u64 mix_ramp_grouped_command_size = 0x13C;
+        constexpr u64 mix_command_size = 0x1C;
+        constexpr u64 mix_ramp_command_size = 0x24;
+        constexpr u64 mix_ramp_grouped_command_size = 0x13C;
 
-            constexpr u64 perf_command_size = 0x28;
+        constexpr u64 perf_command_size = 0x28;
 
-            constexpr u64 sink_command_size = 0x130;
+        constexpr u64 sink_command_size = 0x130;
 
-            constexpr u64 submix_command_max_size =
-                depop_mix_command_size + (mix_command_size * max_mix_buffers) * max_mix_buffers;
+        constexpr u64 submix_command_max_size =
+            depop_mix_command_size + (mix_command_size * max_mix_buffers) * max_mix_buffers;
 
-            constexpr u64 volume_command_size = 0x1C;
-            constexpr u64 volume_ramp_command_size = 0x20;
+        constexpr u64 volume_command_size = 0x1C;
+        constexpr u64 volume_ramp_command_size = 0x20;
 
-            constexpr u64 voice_biquad_filter_command_size =
-                biquad_filter_command_size * max_biquad_filters;
-            constexpr u64 voice_data_command_size = 0x9C;
-            const u64 voice_command_max_size =
-                (params.splitter_count * depop_setup_command_size) +
-                (voice_data_command_size + voice_biquad_filter_command_size +
-                 volume_ramp_command_size + mix_ramp_grouped_command_size);
+        constexpr u64 voice_biquad_filter_command_size =
+            biquad_filter_command_size * max_biquad_filters;
+        constexpr u64 voice_data_command_size = 0x9C;
+        const u64 voice_command_max_size =
+            (params.splitter_count * depop_setup_command_size) +
+            (voice_data_command_size + voice_biquad_filter_command_size + volume_ramp_command_size +
+             mix_ramp_grouped_command_size);
 
-            // Now calculate the individual elements that comprise the size and add them together.
-            const u64 effect_commands_size = params.effect_count * effect_command_max_size;
+        // Now calculate the individual elements that comprise the size and add them together.
+        const u64 effect_commands_size = params.effect_count * effect_command_max_size;
 
-            const u64 final_mix_commands_size =
-                depop_mix_command_size + volume_command_size * max_mix_buffers;
+        const u64 final_mix_commands_size =
+            depop_mix_command_size + volume_command_size * max_mix_buffers;
 
-            const u64 perf_commands_size =
-                perf_command_size *
-                (CalculateNumPerformanceEntries(params) + max_perf_detail_entries);
+        const u64 perf_commands_size =
+            perf_command_size * (CalculateNumPerformanceEntries(params) + max_perf_detail_entries);
 
-            const u64 sink_commands_size = params.sink_count * sink_command_size;
+        const u64 sink_commands_size = params.sink_count * sink_command_size;
 
-            const u64 splitter_commands_size =
-                params.num_splitter_send_channels * max_mix_buffers * mix_ramp_command_size;
+        const u64 splitter_commands_size =
+            params.num_splitter_send_channels * max_mix_buffers * mix_ramp_command_size;
 
-            const u64 submix_commands_size = params.submix_count * submix_command_max_size;
+        const u64 submix_commands_size = params.submix_count * submix_command_max_size;
 
-            const u64 voice_commands_size = params.voice_count * voice_command_max_size;
+        const u64 voice_commands_size = params.voice_count * voice_command_max_size;
 
-            return effect_commands_size + final_mix_commands_size + perf_commands_size +
-                   sink_commands_size + splitter_commands_size + submix_commands_size +
-                   voice_commands_size + alignment;
-        };
+        return effect_commands_size + final_mix_commands_size + perf_commands_size +
+               sink_commands_size + splitter_commands_size + submix_commands_size +
+               voice_commands_size + alignment;
+    };
 
     IPC::RequestParser rp{ctx};
     const auto params = rp.PopRaw<AudioCore::AudioRendererParameter>();
@@ -633,7 +631,7 @@ void AudRenU::OpenAudioRendererImpl(Kernel::HLERequestContext& ctx) {
     rb.PushIpcInterface<IAudioRenderer>(system, params, audren_instance_count++);
 }
 
-bool AudRenU::IsFeatureSupported(AudioFeatures feature, u32_le revision) const {
+bool IsFeatureSupported(AudioFeatures feature, u32_le revision) {
     // Byte swap
     const u32_be version_num = revision - Common::MakeMagic('R', 'E', 'V', '0');
 
