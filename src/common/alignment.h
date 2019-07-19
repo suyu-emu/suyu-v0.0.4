@@ -3,10 +3,8 @@
 #pragma once
 
 #include <cstddef>
-#include <cstdlib>
+#include <memory>
 #include <type_traits>
-#include <malloc.h>
-#include <stdlib.h>
 
 namespace Common {
 
@@ -43,59 +41,43 @@ constexpr bool IsWordAligned(T value) {
 template <typename T, std::size_t Align = 16>
 class AlignmentAllocator {
 public:
-    typedef T value_type;
-    typedef std::size_t size_type;
-    typedef std::ptrdiff_t difference_type;
+    using value_type = T;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
 
-    typedef T* pointer;
-    typedef const T* const_pointer;
+    using pointer = T*;
+    using const_pointer = const T*;
 
-    typedef T& reference;
-    typedef const T& const_reference;
+    using reference = T&;
+    using const_reference = const T&;
 
 public:
-    inline AlignmentAllocator() throw() {}
 
-    template <typename T2>
-    inline AlignmentAllocator(const AlignmentAllocator<T2, Align>&) throw() {}
-
-    inline ~AlignmentAllocator() throw() {}
-
-    inline pointer adress(reference r) {
-        return &r;
+    pointer address(reference r) {
+        return std::addressof(r);
     }
 
-    inline const_pointer adress(const_reference r) const {
-        return &r;
+    const_pointer address(const_reference r) const {
+        return std::addressof(r);
     }
 
-#if (defined _MSC_VER)
-    inline pointer allocate(size_type n) {
-        return (pointer)_aligned_malloc(n * sizeof(value_type), Align);
+    pointer allocate(size_type n) {
+        return static_cast<pointer>(::operator new(n, std::align_val_t{Align}));
     }
 
-    inline void deallocate(pointer p, size_type) {
-        _aligned_free(p);
-    }
-#else
-    inline pointer allocate(size_type n) {
-        return (pointer)std::aligned_alloc(Align, n * sizeof(value_type));
+    void deallocate(pointer p, size_type) {
+        ::operator delete(p, std::align_val_t{Align});
     }
 
-    inline void deallocate(pointer p, size_type) {
-        std::free(p);
-    }
-#endif
-
-    inline void construct(pointer p, const value_type& wert) {
+    void construct(pointer p, const value_type& wert) {
         new (p) value_type(wert);
     }
 
-    inline void destroy(pointer p) {
+    void destroy(pointer p) {
         p->~value_type();
     }
 
-    inline size_type max_size() const throw() {
+    size_type max_size() const noexcept {
         return size_type(-1) / sizeof(value_type);
     }
 
