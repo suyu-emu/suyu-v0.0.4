@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <memory>
+#include <string_view>
 
 #include "audio_core/audio_renderer.h"
 #include "common/alignment.h"
@@ -160,7 +161,7 @@ private:
 
 class IAudioDevice final : public ServiceFramework<IAudioDevice> {
 public:
-    IAudioDevice() : ServiceFramework("IAudioDevice") {
+    explicit IAudioDevice() : ServiceFramework("IAudioDevice") {
         static const FunctionInfo functions[] = {
             {0, &IAudioDevice::ListAudioDeviceName, "ListAudioDeviceName"},
             {1, &IAudioDevice::SetAudioDeviceOutputVolume, "SetAudioDeviceOutputVolume"},
@@ -189,15 +190,32 @@ public:
     }
 
 private:
+    using AudioDeviceName = std::array<char, 256>;
+    static constexpr std::array<std::string_view, 4> audio_device_names{{
+        "AudioStereoJackOutput",
+        "AudioBuiltInSpeakerOutput",
+        "AudioTvOutput",
+        "AudioUsbDeviceOutput",
+    }};
+
     void ListAudioDeviceName(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_Audio, "(STUBBED) called");
 
-        constexpr std::array<char, 15> audio_interface{{"AudioInterface"}};
-        ctx.WriteBuffer(audio_interface);
+        const std::size_t num_names_requested = ctx.GetWriteBufferSize() / sizeof(AudioDeviceName);
+        const std::size_t num_to_copy = std::min(num_names_requested, audio_device_names.size());
+        std::vector<AudioDeviceName> name_buffer(num_to_copy);
+
+        for (std::size_t i = 0; i < num_to_copy; i++) {
+            const auto& device_name = audio_device_names[i];
+
+            device_name.copy(name_buffer[i].data(), device_name.size());
+        }
+
+        ctx.WriteBuffer(name_buffer);
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u32>(1);
+        rb.Push(static_cast<u32>(num_to_copy));
     }
 
     void SetAudioDeviceOutputVolume(Kernel::HLERequestContext& ctx) {
@@ -216,8 +234,13 @@ private:
     void GetActiveAudioDeviceName(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_Audio, "(STUBBED) called");
 
-        constexpr std::array<char, 12> audio_interface{{"AudioDevice"}};
-        ctx.WriteBuffer(audio_interface);
+        // Currently set to always be TV audio output.
+        const auto& device_name = audio_device_names[2];
+
+        AudioDeviceName out_device_name{};
+        device_name.copy(out_device_name.data(), device_name.size());
+
+        ctx.WriteBuffer(out_device_name);
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
