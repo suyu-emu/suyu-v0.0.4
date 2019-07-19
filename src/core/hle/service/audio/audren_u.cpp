@@ -26,7 +26,7 @@ namespace Service::Audio {
 
 class IAudioRenderer final : public ServiceFramework<IAudioRenderer> {
 public:
-    explicit IAudioRenderer(AudioCore::AudioRendererParameter audren_params,
+    explicit IAudioRenderer(Core::System& system, AudioCore::AudioRendererParameter audren_params,
                             const std::size_t instance_number)
         : ServiceFramework("IAudioRenderer") {
         // clang-format off
@@ -47,7 +47,6 @@ public:
         // clang-format on
         RegisterHandlers(functions);
 
-        auto& system = Core::System::GetInstance();
         system_event = Kernel::WritableEvent::CreateEventPair(
             system.Kernel(), Kernel::ResetType::Manual, "IAudioRenderer:SystemEvent");
         renderer = std::make_unique<AudioCore::AudioRenderer>(
@@ -161,7 +160,7 @@ private:
 
 class IAudioDevice final : public ServiceFramework<IAudioDevice> {
 public:
-    explicit IAudioDevice() : ServiceFramework("IAudioDevice") {
+    explicit IAudioDevice(Core::System& system) : ServiceFramework("IAudioDevice") {
         static const FunctionInfo functions[] = {
             {0, &IAudioDevice::ListAudioDeviceName, "ListAudioDeviceName"},
             {1, &IAudioDevice::SetAudioDeviceOutputVolume, "SetAudioDeviceOutputVolume"},
@@ -179,7 +178,7 @@ public:
         };
         RegisterHandlers(functions);
 
-        auto& kernel = Core::System::GetInstance().Kernel();
+        auto& kernel = system.Kernel();
         buffer_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Automatic,
                                                               "IAudioOutBufferReleasedEvent");
 
@@ -277,7 +276,7 @@ private:
 
 }; // namespace Audio
 
-AudRenU::AudRenU() : ServiceFramework("audren:u") {
+AudRenU::AudRenU(Core::System& system_) : ServiceFramework("audren:u"), system{system_} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &AudRenU::OpenAudioRenderer, "OpenAudioRenderer"},
@@ -605,7 +604,7 @@ void AudRenU::GetAudioDeviceService(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<Audio::IAudioDevice>();
+    rb.PushIpcInterface<IAudioDevice>(system);
 }
 
 void AudRenU::OpenAudioRendererAuto(Kernel::HLERequestContext& ctx) {
@@ -619,9 +618,10 @@ void AudRenU::GetAudioDeviceServiceWithRevisionInfo(Kernel::HLERequestContext& c
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
+    // TODO(ogniK): Figure out what is different based on the current revision
+
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<Audio::IAudioDevice>(); // TODO(ogniK): Figure out what is different
-                                                // based on the current revision
+    rb.PushIpcInterface<IAudioDevice>(system);
 }
 
 void AudRenU::OpenAudioRendererImpl(Kernel::HLERequestContext& ctx) {
@@ -630,7 +630,7 @@ void AudRenU::OpenAudioRendererImpl(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IAudioRenderer>(params, audren_instance_count++);
+    rb.PushIpcInterface<IAudioRenderer>(system, params, audren_instance_count++);
 }
 
 bool AudRenU::IsFeatureSupported(AudioFeatures feature, u32_le revision) const {

@@ -6,6 +6,10 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Kernel {
 class HLERequestContext;
 }
@@ -14,7 +18,7 @@ namespace Service::Audio {
 
 class AudRenU final : public ServiceFramework<AudRenU> {
 public:
-    explicit AudRenU();
+    explicit AudRenU(Core::System& system_);
     ~AudRenU() override;
 
 private:
@@ -33,7 +37,9 @@ private:
     };
 
     bool IsFeatureSupported(AudioFeatures feature, u32_le revision) const;
+
     std::size_t audren_instance_count = 0;
+    Core::System& system;
 };
 
 } // namespace Service::Audio
