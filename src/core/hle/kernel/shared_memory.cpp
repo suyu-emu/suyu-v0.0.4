@@ -59,8 +59,8 @@ SharedPtr<SharedMemory> SharedMemory::Create(KernelCore& kernel, Process* owner_
 }
 
 SharedPtr<SharedMemory> SharedMemory::CreateForApplet(
-    KernelCore& kernel, std::shared_ptr<Kernel::PhysicalMemory> heap_block, std::size_t offset, u64 size,
-    MemoryPermission permissions, MemoryPermission other_permissions, std::string name) {
+    KernelCore& kernel, std::shared_ptr<Kernel::PhysicalMemory> heap_block, std::size_t offset,
+    u64 size, MemoryPermission permissions, MemoryPermission other_permissions, std::string name) {
     SharedPtr<SharedMemory> shared_memory(new SharedMemory(kernel));
 
     shared_memory->owner_process = nullptr;

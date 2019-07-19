@@ -52,7 +52,6 @@ public:
     using const_reference = const T&;
 
 public:
-
     pointer address(reference r) {
         return std::addressof(r);
     }
@@ -62,11 +61,11 @@ public:
     }
 
     pointer allocate(size_type n) {
-        return static_cast<pointer>(::operator new(n, std::align_val_t{Align}));
+        return static_cast<pointer>(::operator new (n, std::align_val_t{Align}));
     }
 
     void deallocate(pointer p, size_type) {
-        ::operator delete(p, std::align_val_t{Align});
+        ::operator delete (p, std::align_val_t{Align});
     }
 
     void construct(pointer p, const value_type& wert) {
