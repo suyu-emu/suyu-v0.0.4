@@ -51,26 +51,23 @@ u32 ShaderIR::DecodeHalfSetPredicate(NodeBlock& bb, u32 pc) {
         op_b = Immediate(0);
     }
 
-    // We can't use the constant predicate as destination.
-    ASSERT(instr.hsetp2.pred3 != static_cast<u64>(Pred::UnusedIndex));
-
-    const Node second_pred = GetPredicate(instr.hsetp2.pred39, instr.hsetp2.neg_pred != 0);
-
     const OperationCode combiner = GetPredicateCombiner(instr.hsetp2.op);
-    const OperationCode pair_combiner =
-        h_and ? OperationCode::LogicalAll2 : OperationCode::LogicalAny2;
+    const Node pred39 = GetPredicate(instr.hsetp2.pred39, instr.hsetp2.neg_pred);
+
+    const auto Write = [&](u64 dest, Node src) {
+        SetPredicate(bb, dest, Operation(combiner, std::move(src), pred39));
+    };
 
     const Node comparison = GetPredicateComparisonHalf(cond, op_a, op_b);
-    const Node first_pred = Operation(pair_combiner, comparison);
-
-    // Set the primary predicate to the result of Predicate OP SecondPredicate
-    const Node value = Operation(combiner, first_pred, second_pred);
-    SetPredicate(bb, instr.hsetp2.pred3, value);
-
-    if (instr.hsetp2.pred0 != static_cast<u64>(Pred::UnusedIndex)) {
-        // Set the secondary predicate to the result of !Predicate OP SecondPredicate, if enabled
-        const Node negated_pred = Operation(OperationCode::LogicalNegate, first_pred);
-        SetPredicate(bb, instr.hsetp2.pred0, Operation(combiner, negated_pred, second_pred));
+    const u64 first = instr.hsetp2.pred0;
+    const u64 second = instr.hsetp2.pred3;
+    if (h_and) {
+        const Node joined = Operation(OperationCode::LogicalAnd2, comparison);
+        Write(first, joined);
+        Write(second, Operation(OperationCode::LogicalNegate, joined));
+    } else {
+        Write(first, Operation(OperationCode::LogicalPick2, comparison, Immediate(0u)));
+        Write(second, Operation(OperationCode::LogicalPick2, comparison, Immediate(1u)));
     }
 
     return pc;
