@@ -52,11 +52,11 @@ public:
     using const_reference = const T&;
 
 public:
-    pointer address(reference r) {
+    pointer address(reference r) noexcept {
         return std::addressof(r);
     }
 
-    const_pointer address(const_reference r) const {
+    const_pointer address(const_reference r) const noexcept {
         return std::addressof(r);
     }
 
@@ -82,17 +82,17 @@ public:
 
     template <typename T2>
     struct rebind {
-        typedef AlignmentAllocator<T2, Align> other;
+        using other = AlignmentAllocator<T2, Align>;
     };
 
-    bool operator!=(const AlignmentAllocator<T, Align>& other) const {
+    bool operator!=(const AlignmentAllocator<T, Align>& other) const noexcept {
         return !(*this == other);
     }
 
     // Returns true if and only if storage allocated from *this
     // can be deallocated from other, and vice versa.
     // Always returns true for stateless allocators.
-    bool operator==(const AlignmentAllocator<T, Align>& other) const {
+    bool operator==(const AlignmentAllocator<T, Align>& other) const noexcept {
         return true;
     }
 };
