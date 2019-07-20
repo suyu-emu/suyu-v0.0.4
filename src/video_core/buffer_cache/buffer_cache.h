@@ -25,6 +25,8 @@ class RasterizerInterface;
 
 namespace VideoCommon {
 
+using MapInterval = std::shared_ptr<MapIntervalBase>;
+
 template <typename TBuffer, typename TBufferType, typename StreamBuffer>
 class BufferCache {
 public:
@@ -90,7 +92,9 @@ public:
 
         std::vector<MapInterval> objects = GetMapsInRange(addr, size);
         for (auto& object : objects) {
-            Unregister(object);
+            if (object->IsRegistered()) {
+                Unregister(object);
+            }
         }
     }
 
@@ -120,51 +124,54 @@ protected:
                            std::size_t dst_offset, std::size_t size) = 0;
 
     /// Register an object into the cache
-    void Register(const MapInterval& new_interval, const GPUVAddr gpu_addr) {
-        const CacheAddr cache_ptr = new_interval.start;
-        const std::size_t size = new_interval.end - new_interval.start;
+    void Register(const MapInterval& new_map) {
+        const CacheAddr cache_ptr = new_map->GetStart();
         const std::optional<VAddr> cpu_addr =
-            system.GPU().MemoryManager().GpuToCpuAddress(gpu_addr);
+            system.GPU().MemoryManager().GpuToCpuAddress(new_map->GetGpuAddress());
         if (!cache_ptr || !cpu_addr) {
             LOG_CRITICAL(HW_GPU, "Failed to register buffer with unmapped gpu_address 0x{:016x}",
-                         gpu_addr);
+                         new_map->GetGpuAddress());
             return;
         }
-        const IntervalType interval{new_interval.start, new_interval.end};
-        mapped_addresses.insert(interval);
-        map_storage[new_interval] = MapInfo{gpu_addr, *cpu_addr};
-
+        const std::size_t size = new_map->GetEnd() - new_map->GetStart();
+        new_map->SetCpuAddress(*cpu_addr);
+        new_map->MarkAsRegistered(true);
+        const IntervalType interval{new_map->GetStart(), new_map->GetEnd()};
+        mapped_addresses.insert({interval, new_map});
         rasterizer.UpdatePagesCachedCount(*cpu_addr, size, 1);
     }
 
     /// Unregisters an object from the cache
-    void Unregister(const MapInterval& interval) {
-        const MapInfo info = map_storage[interval];
-        const std::size_t size = interval.end - interval.start;
-        rasterizer.UpdatePagesCachedCount(info.cpu_addr, size, -1);
-        const IntervalType delete_interval{interval.start, interval.end};
+    void Unregister(MapInterval& map) {
+        const std::size_t size = map->GetEnd() - map->GetStart();
+        rasterizer.UpdatePagesCachedCount(map->GetCpuAddress(), size, -1);
+        map->MarkAsRegistered(false);
+        const IntervalType delete_interval{map->GetStart(), map->GetEnd()};
         mapped_addresses.erase(delete_interval);
-        map_storage.erase(interval);
     }
 
 private:
+    MapInterval CreateMap(const CacheAddr start, const CacheAddr end, const GPUVAddr gpu_addr) {
+        return std::make_shared<MapIntervalBase>(start, end, gpu_addr);
+    }
+
     void MapAddress(const TBuffer& block, const GPUVAddr gpu_addr, const CacheAddr cache_addr,
                     const std::size_t size) {
 
         std::vector<MapInterval> overlaps = GetMapsInRange(cache_addr, size);
         if (overlaps.empty()) {
             const CacheAddr cache_addr_end = cache_addr + size;
-            MapInterval new_interval{cache_addr, cache_addr_end};
+            MapInterval new_map = CreateMap(cache_addr, cache_addr_end, gpu_addr);
             u8* host_ptr = FromCacheAddr(cache_addr);
             UploadBlockData(block, block->GetOffset(cache_addr), size, host_ptr);
-            Register(new_interval, gpu_addr);
+            Register(new_map);
             return;
         }
 
         const CacheAddr cache_addr_end = cache_addr + size;
         if (overlaps.size() == 1) {
             const MapInterval& current_map = overlaps[0];
-            if (current_map.IsInside(cache_addr, cache_addr_end)) {
+            if (current_map->IsInside(cache_addr, cache_addr_end)) {
                 return;
             }
         }
@@ -172,25 +179,25 @@ private:
         CacheAddr new_end = cache_addr_end;
         // Calculate new buffer parameters
         for (auto& overlap : overlaps) {
-            new_start = std::min(overlap.start, new_start);
-            new_end = std::max(overlap.end, new_end);
+            new_start = std::min(overlap->GetStart(), new_start);
+            new_end = std::max(overlap->GetEnd(), new_end);
         }
         GPUVAddr new_gpu_addr = gpu_addr + new_start - cache_addr;
         for (auto& overlap : overlaps) {
             Unregister(overlap);
         }
         UpdateBlock(block, new_start, new_end, overlaps);
-        MapInterval new_interval{new_start, new_end};
-        Register(new_interval, new_gpu_addr);
+        MapInterval new_map = CreateMap(new_start, new_end, new_gpu_addr);
+        Register(new_map);
     }
 
     void UpdateBlock(const TBuffer& block, CacheAddr start, CacheAddr end,
                      std::vector<MapInterval>& overlaps) {
         const IntervalType base_interval{start, end};
-        IntervalCache interval_set{};
+        IntervalSet interval_set{};
         interval_set.add(base_interval);
         for (auto& overlap : overlaps) {
-            const IntervalType subtract{overlap.start, overlap.end};
+            const IntervalType subtract{overlap->GetStart(), overlap->GetEnd()};
             interval_set.subtract(subtract);
         }
         for (auto& interval : interval_set) {
@@ -210,7 +217,7 @@ private:
         std::vector<MapInterval> objects{};
         const IntervalType interval{addr, addr + size};
         for (auto& pair : boost::make_iterator_range(mapped_addresses.equal_range(interval))) {
-            objects.emplace_back(pair.lower(), pair.upper());
+            objects.push_back(pair.second);
         }
 
         return objects;
@@ -322,10 +329,10 @@ private:
     u64 buffer_offset = 0;
     u64 buffer_offset_base = 0;
 
-    using IntervalCache = boost::icl::interval_set<CacheAddr>;
+    using IntervalSet = boost::icl::interval_set<CacheAddr>;
+    using IntervalCache = boost::icl::interval_map<CacheAddr, MapInterval>;
     using IntervalType = typename IntervalCache::interval_type;
     IntervalCache mapped_addresses{};
-    std::unordered_map<MapInterval, MapInfo> map_storage;
 
     static constexpr u64 block_page_bits{24};
     static constexpr u64 block_page_size{1 << block_page_bits};

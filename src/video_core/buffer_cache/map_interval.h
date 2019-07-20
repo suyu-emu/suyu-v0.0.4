@@ -4,45 +4,65 @@
 
 #pragma once
 
-#include <boost/functional/hash.hpp>
 #include "common/common_types.h"
 #include "video_core/gpu.h"
 
 namespace VideoCommon {
 
-struct MapInterval {
-    MapInterval(const CacheAddr start, const CacheAddr end) : start{start}, end{end} {}
-    CacheAddr start;
-    CacheAddr end;
+class MapIntervalBase {
+public:
+    MapIntervalBase(const CacheAddr start, const CacheAddr end, const GPUVAddr gpu_addr)
+        : start{start}, end{end}, gpu_addr{gpu_addr} {}
+
+    void SetCpuAddress(VAddr new_cpu_addr) {
+        cpu_addr = new_cpu_addr;
+    }
+
+    VAddr GetCpuAddress() const {
+        return cpu_addr;
+    }
+
+    GPUVAddr GetGpuAddress() const {
+        return gpu_addr;
+    }
+
     bool IsInside(const CacheAddr other_start, const CacheAddr other_end) const {
         return (start <= other_start && other_end <= end);
     }
 
-    bool operator==(const MapInterval& rhs) const {
+    bool operator==(const MapIntervalBase& rhs) const {
         return std::tie(start, end) == std::tie(rhs.start, rhs.end);
     }
 
-    bool operator!=(const MapInterval& rhs) const {
+    bool operator!=(const MapIntervalBase& rhs) const {
         return !operator==(rhs);
     }
-};
 
-struct MapInfo {
+    void MarkAsRegistered(const bool registered) {
+        is_registered = registered;
+    }
+
+    bool IsRegistered() const {
+        return is_registered;
+    }
+
+    CacheAddr GetStart() const {
+        return start;
+    }
+
+    CacheAddr GetEnd() const {
+        return end;
+    }
+
+private:
+    CacheAddr start;
+    CacheAddr end;
     GPUVAddr gpu_addr;
-    VAddr cpu_addr;
+    VAddr cpu_addr{};
+    bool is_write{};
+    bool is_modified{};
+    bool is_registered{};
+    u64 ticks{};
 };
 
 } // namespace VideoCommon
-
-namespace std {
-
-template <>
-struct hash<VideoCommon::MapInterval> {
-    std::size_t operator()(const VideoCommon::MapInterval& k) const noexcept {
-        std::size_t a = std::hash<CacheAddr>()(k.start);
-        boost::hash_combine(a, std::hash<CacheAddr>()(k.end));
-        return a;
-    }
-};
-
-} // namespace std
