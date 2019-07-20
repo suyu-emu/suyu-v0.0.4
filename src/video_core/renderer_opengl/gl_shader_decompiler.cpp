@@ -1122,6 +1122,16 @@ private:
                                Type::Float);
     }
 
+    std::string FCastHalf0(Operation operation) {
+        const std::string op_a = VisitOperand(operation, 0, Type::HalfFloat);
+        return fmt::format("({})[0]", op_a);
+    }
+
+    std::string FCastHalf1(Operation operation) {
+        const std::string op_a = VisitOperand(operation, 0, Type::HalfFloat);
+        return fmt::format("({})[1]", op_a);
+    }
+
     template <Type type>
     std::string Min(Operation operation) {
         return GenerateBinaryCall(operation, "min", type, type, type);
@@ -1276,6 +1286,11 @@ private:
         const std::string clamped = fmt::format("clamp({}, vec2({}), vec2({}))", value, min, max);
 
         return ApplyPrecise(operation, BitwiseCastResult(clamped, Type::HalfFloat));
+    }
+
+    std::string HCastFloat(Operation operation) {
+        const std::string op_a = VisitOperand(operation, 0, Type::Float);
+        return fmt::format("fromHalf2(vec2({}, 0.0f))", op_a);
     }
 
     std::string HUnpack(Operation operation) {
@@ -1718,6 +1733,8 @@ private:
         &GLSLDecompiler::Negate<Type::Float>,
         &GLSLDecompiler::Absolute<Type::Float>,
         &GLSLDecompiler::FClamp,
+        &GLSLDecompiler::FCastHalf0,
+        &GLSLDecompiler::FCastHalf1,
         &GLSLDecompiler::Min<Type::Float>,
         &GLSLDecompiler::Max<Type::Float>,
         &GLSLDecompiler::FCos,
@@ -1778,6 +1795,7 @@ private:
         &GLSLDecompiler::Absolute<Type::HalfFloat>,
         &GLSLDecompiler::HNegate,
         &GLSLDecompiler::HClamp,
+        &GLSLDecompiler::HCastFloat,
         &GLSLDecompiler::HUnpack,
         &GLSLDecompiler::HMergeF32,
         &GLSLDecompiler::HMergeH0,
