@@ -60,6 +60,10 @@ public:
                 map->MarkAsWritten(true);
                 MarkRegionAsWritten(map->GetStart(), map->GetEnd() - 1);
             }
+        } else {
+            if (map->IsWritten()) {
+                WriteBarrier();
+            }
         }
 
         const u64 offset = static_cast<u64>(block->GetOffset(cache_addr));
