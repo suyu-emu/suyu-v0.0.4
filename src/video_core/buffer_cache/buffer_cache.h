@@ -43,8 +43,24 @@ public:
         }
         const auto cache_addr = ToCacheAddr(host_ptr);
 
+        // Cache management is a big overhead, so only cache entries with a given size.
+        // TODO: Figure out which size is the best for given games.
+        constexpr std::size_t max_stream_size = 0x800;
+        if (size < max_stream_size) {
+            if (!is_written && !IsRegionWritten(cache_addr, cache_addr + size - 1)) {
+                return StreamBufferUpload(host_ptr, size, alignment);
+            }
+        }
+
         auto block = GetBlock(cache_addr, size);
-        MapAddress(block, gpu_addr, cache_addr, size);
+        auto map = MapAddress(block, gpu_addr, cache_addr, size);
+        if (is_written) {
+            map->MarkAsModified(true, GetModifiedTicks());
+            if (!map->IsWritten()) {
+                map->MarkAsWritten(true);
+                MarkRegionAsWritten(map->GetStart(), map->GetEnd() - 1);
+            }
+        }
 
         const u64 offset = static_cast<u64>(block->GetOffset(cache_addr));
 
@@ -124,7 +140,7 @@ protected:
                            std::size_t dst_offset, std::size_t size) = 0;
 
     /// Register an object into the cache
-    void Register(const MapInterval& new_map) {
+    void Register(const MapInterval& new_map, bool inherit_written = false) {
         const CacheAddr cache_ptr = new_map->GetStart();
         const std::optional<VAddr> cpu_addr =
             system.GPU().MemoryManager().GpuToCpuAddress(new_map->GetGpuAddress());
@@ -139,6 +155,10 @@ protected:
         const IntervalType interval{new_map->GetStart(), new_map->GetEnd()};
         mapped_addresses.insert({interval, new_map});
         rasterizer.UpdatePagesCachedCount(*cpu_addr, size, 1);
+        if (inherit_written) {
+            MarkRegionAsWritten(new_map->GetStart(), new_map->GetEnd() - 1);
+            new_map->MarkAsWritten(true);
+        }
     }
 
     /// Unregisters an object from the cache
@@ -146,6 +166,9 @@ protected:
         const std::size_t size = map->GetEnd() - map->GetStart();
         rasterizer.UpdatePagesCachedCount(map->GetCpuAddress(), size, -1);
         map->MarkAsRegistered(false);
+        if (map->IsWritten()) {
+            UnmarkRegionAsWritten(map->GetStart(), map->GetEnd() - 1);
+        }
         const IntervalType delete_interval{map->GetStart(), map->GetEnd()};
         mapped_addresses.erase(delete_interval);
     }
@@ -155,8 +178,8 @@ private:
         return std::make_shared<MapIntervalBase>(start, end, gpu_addr);
     }
 
-    void MapAddress(const TBuffer& block, const GPUVAddr gpu_addr, const CacheAddr cache_addr,
-                    const std::size_t size) {
+    MapInterval MapAddress(const TBuffer& block, const GPUVAddr gpu_addr,
+                           const CacheAddr cache_addr, const std::size_t size) {
 
         std::vector<MapInterval> overlaps = GetMapsInRange(cache_addr, size);
         if (overlaps.empty()) {
@@ -165,22 +188,24 @@ private:
             u8* host_ptr = FromCacheAddr(cache_addr);
             UploadBlockData(block, block->GetOffset(cache_addr), size, host_ptr);
             Register(new_map);
-            return;
+            return new_map;
         }
 
         const CacheAddr cache_addr_end = cache_addr + size;
         if (overlaps.size() == 1) {
-            const MapInterval& current_map = overlaps[0];
+            MapInterval& current_map = overlaps[0];
             if (current_map->IsInside(cache_addr, cache_addr_end)) {
-                return;
+                return current_map;
             }
         }
         CacheAddr new_start = cache_addr;
         CacheAddr new_end = cache_addr_end;
+        bool write_inheritance = false;
         // Calculate new buffer parameters
         for (auto& overlap : overlaps) {
             new_start = std::min(overlap->GetStart(), new_start);
             new_end = std::max(overlap->GetEnd(), new_end);
+            write_inheritance |= overlap->IsWritten();
         }
         GPUVAddr new_gpu_addr = gpu_addr + new_start - cache_addr;
         for (auto& overlap : overlaps) {
@@ -188,7 +213,8 @@ private:
         }
         UpdateBlock(block, new_start, new_end, overlaps);
         MapInterval new_map = CreateMap(new_start, new_end, new_gpu_addr);
-        Register(new_map);
+        Register(new_map, write_inheritance);
+        return new_map;
     }
 
     void UpdateBlock(const TBuffer& block, CacheAddr start, CacheAddr end,
@@ -320,6 +346,48 @@ private:
         return found;
     }
 
+    void MarkRegionAsWritten(const CacheAddr start, const CacheAddr end) {
+        u64 page_start = start >> write_page_bit;
+        const u64 page_end = end >> write_page_bit;
+        while (page_start <= page_end) {
+            auto it = written_pages.find(page_start);
+            if (it != written_pages.end()) {
+                it->second = it->second + 1;
+            } else {
+                written_pages[page_start] = 1;
+            }
+            page_start++;
+        }
+    }
+
+    void UnmarkRegionAsWritten(const CacheAddr start, const CacheAddr end) {
+        u64 page_start = start >> write_page_bit;
+        const u64 page_end = end >> write_page_bit;
+        while (page_start <= page_end) {
+            auto it = written_pages.find(page_start);
+            if (it != written_pages.end()) {
+                if (it->second > 1) {
+                    it->second = it->second - 1;
+                } else {
+                    written_pages.erase(it);
+                }
+            }
+            page_start++;
+        }
+    }
+
+    bool IsRegionWritten(const CacheAddr start, const CacheAddr end) const {
+        u64 page_start = start >> write_page_bit;
+        const u64 page_end = end >> write_page_bit;
+        while (page_start <= page_end) {
+            if (written_pages.count(page_start) > 0) {
+                return true;
+            }
+            page_start++;
+        }
+        return false;
+    }
+
     std::unique_ptr<StreamBuffer> stream_buffer;
     TBufferType stream_buffer_handle{};
 
@@ -334,11 +402,14 @@ private:
     using IntervalType = typename IntervalCache::interval_type;
     IntervalCache mapped_addresses{};
 
-    static constexpr u64 block_page_bits{24};
-    static constexpr u64 block_page_size{1 << block_page_bits};
-    std::unordered_map<u64, TBuffer> blocks;
+    static constexpr u64 write_page_bit{11};
+    std::unordered_map<u64, u32> written_pages{};
 
-    std::list<TBuffer> pending_destruction;
+    static constexpr u64 block_page_bits{21};
+    static constexpr u64 block_page_size{1 << block_page_bits};
+    std::unordered_map<u64, TBuffer> blocks{};
+
+    std::list<TBuffer> pending_destruction{};
     u64 epoch{};
     u64 modified_ticks{};
     VideoCore::RasterizerInterface& rasterizer;

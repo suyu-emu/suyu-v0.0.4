@@ -54,12 +54,33 @@ public:
         return end;
     }
 
+    void MarkAsModified(const bool is_modified_, const u64 tick) {
+        is_modified = is_modified_;
+        ticks = tick;
+    }
+
+    bool IsModified() const {
+        return is_modified;
+    }
+
+    u64 GetModificationTick() const {
+        return ticks;
+    }
+
+    void MarkAsWritten(const bool is_written_) {
+        is_written = is_written_;
+    }
+
+    bool IsWritten() const {
+        return is_written;
+    }
+
 private:
     CacheAddr start;
     CacheAddr end;
     GPUVAddr gpu_addr;
     VAddr cpu_addr{};
-    bool is_write{};
+    bool is_written{};
     bool is_modified{};
     bool is_registered{};
     u64 ticks{};
