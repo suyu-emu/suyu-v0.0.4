@@ -7,11 +7,14 @@
 #include <glad/glad.h>
 
 #include "common/assert.h"
+#include "common/microprofile.h"
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 
 namespace OpenGL {
+
+MICROPROFILE_DEFINE(OpenGL_Buffer_Download, "OpenGL", "Buffer Download", MP_RGB(192, 192, 128));
 
 CachedBufferBlock::CachedBufferBlock(CacheAddr cache_addr, const std::size_t size)
     : VideoCommon::BufferBlock{cache_addr, size} {
@@ -53,6 +56,7 @@ void OGLBufferCache::UploadBlockData(const Buffer& buffer, std::size_t offset, s
 
 void OGLBufferCache::DownloadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
                                        u8* data) {
+    MICROPROFILE_SCOPE(OpenGL_Buffer_Download);
     glGetNamedBufferSubData(*buffer->GetHandle(), static_cast<GLintptr>(offset),
                             static_cast<GLsizeiptr>(size), data);
 }

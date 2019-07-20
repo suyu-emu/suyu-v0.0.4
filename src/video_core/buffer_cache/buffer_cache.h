@@ -79,12 +79,16 @@ public:
     }
 
     void Map(std::size_t max_size) {
+        std::lock_guard lock{mutex};
+
         std::tie(buffer_ptr, buffer_offset_base, invalidated) = stream_buffer->Map(max_size, 4);
         buffer_offset = buffer_offset_base;
     }
 
     /// Finishes the upload stream, returns true on bindings invalidation.
     bool Unmap() {
+        std::lock_guard lock{mutex};
+
         stream_buffer->Unmap(buffer_offset - buffer_offset_base);
         return std::exchange(invalidated, false);
     }
@@ -103,7 +107,15 @@ public:
     void FlushRegion(CacheAddr addr, std::size_t size) {
         std::lock_guard lock{mutex};
 
-        // TODO
+        std::vector<MapInterval> objects = GetMapsInRange(addr, size);
+        std::sort(objects.begin(), objects.end(), [](const MapInterval& a, const MapInterval& b) {
+            return a->GetModificationTick() < b->GetModificationTick();
+        });
+        for (auto& object : objects) {
+            if (object->IsModified() && object->IsRegistered()) {
+                FlushMap(object);
+            }
+        }
     }
 
     /// Mark the specified region as being invalidated
@@ -205,11 +217,13 @@ private:
         CacheAddr new_start = cache_addr;
         CacheAddr new_end = cache_addr_end;
         bool write_inheritance = false;
+        bool modified_inheritance = false;
         // Calculate new buffer parameters
         for (auto& overlap : overlaps) {
             new_start = std::min(overlap->GetStart(), new_start);
             new_end = std::max(overlap->GetEnd(), new_end);
             write_inheritance |= overlap->IsWritten();
+            modified_inheritance |= overlap->IsModified();
         }
         GPUVAddr new_gpu_addr = gpu_addr + new_start - cache_addr;
         for (auto& overlap : overlaps) {
@@ -217,6 +231,9 @@ private:
         }
         UpdateBlock(block, new_start, new_end, overlaps);
         MapInterval new_map = CreateMap(new_start, new_end, new_gpu_addr);
+        if (modified_inheritance) {
+            new_map->MarkAsModified(true, GetModifiedTicks());
+        }
         Register(new_map, write_inheritance);
         return new_map;
     }
@@ -256,6 +273,14 @@ private:
     /// Returns a ticks counter used for tracking when cached objects were last modified
     u64 GetModifiedTicks() {
         return ++modified_ticks;
+    }
+
+    void FlushMap(MapInterval map) {
+        std::size_t size = map->GetEnd() - map->GetStart();
+        TBuffer block = blocks[map->GetStart() >> block_page_bits];
+        u8* host_ptr = FromCacheAddr(map->GetStart());
+        DownloadBlockData(block, block->GetOffset(map->GetStart()), size, host_ptr);
+        map->MarkAsModified(false, 0);
     }
 
     BufferInfo StreamBufferUpload(const void* raw_pointer, std::size_t size,
