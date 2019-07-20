@@ -3,7 +3,7 @@ jobs:
   displayName: 'standard'
   pool:
     vmImage: ubuntu-latest
-  strategy: 
+  strategy:
     maxParallel: 10
     matrix:
       windows:
