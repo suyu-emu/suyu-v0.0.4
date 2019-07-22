@@ -83,7 +83,7 @@ ConfigureMouseAdvanced::ConfigureMouseAdvanced(QWidget* parent)
         }
 
         button->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(button, &QPushButton::released, [=] {
+        connect(button, &QPushButton::clicked, [=] {
             HandleClick(
                 button_map[button_id],
                 [=](const Common::ParamPackage& params) { buttons_param[button_id] = params; },
@@ -104,8 +104,8 @@ ConfigureMouseAdvanced::ConfigureMouseAdvanced(QWidget* parent)
         });
     }
 
-    connect(ui->buttonClearAll, &QPushButton::released, [this] { ClearAll(); });
-    connect(ui->buttonRestoreDefaults, &QPushButton::released, [this] { RestoreDefaults(); });
+    connect(ui->buttonClearAll, &QPushButton::clicked, [this] { ClearAll(); });
+    connect(ui->buttonRestoreDefaults, &QPushButton::clicked, [this] { RestoreDefaults(); });
 
     timeout_timer->setSingleShot(true);
     connect(timeout_timer.get(), &QTimer::timeout, [this] { SetPollingResult({}, true); });

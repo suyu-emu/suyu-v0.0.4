@@ -108,10 +108,10 @@ ConfigureProfileManager ::ConfigureProfileManager(QWidget* parent)
 
     connect(tree_view, &QTreeView::clicked, this, &ConfigureProfileManager::SelectUser);
 
-    connect(ui->pm_add, &QPushButton::pressed, this, &ConfigureProfileManager::AddUser);
-    connect(ui->pm_rename, &QPushButton::pressed, this, &ConfigureProfileManager::RenameUser);
-    connect(ui->pm_remove, &QPushButton::pressed, this, &ConfigureProfileManager::DeleteUser);
-    connect(ui->pm_set_image, &QPushButton::pressed, this, &ConfigureProfileManager::SetUserImage);
+    connect(ui->pm_add, &QPushButton::clicked, this, &ConfigureProfileManager::AddUser);
+    connect(ui->pm_rename, &QPushButton::clicked, this, &ConfigureProfileManager::RenameUser);
+    connect(ui->pm_remove, &QPushButton::clicked, this, &ConfigureProfileManager::DeleteUser);
+    connect(ui->pm_set_image, &QPushButton::clicked, this, &ConfigureProfileManager::SetUserImage);
 
     scene = new QGraphicsScene;
     ui->current_user_icon->setScene(scene);

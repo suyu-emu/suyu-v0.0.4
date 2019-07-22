@@ -101,7 +101,7 @@ ConfigureInputSimple::ConfigureInputSimple(QWidget* parent)
 
     connect(ui->profile_combobox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             &ConfigureInputSimple::OnSelectProfile);
-    connect(ui->profile_configure, &QPushButton::pressed, this, &ConfigureInputSimple::OnConfigure);
+    connect(ui->profile_configure, &QPushButton::clicked, this, &ConfigureInputSimple::OnConfigure);
 
     LoadConfiguration();
 }
