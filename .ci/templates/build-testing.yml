@@ -4,18 +4,20 @@ jobs:
   pool:
     vmImage: ubuntu-latest
   strategy:
-    maxParallel: 10
+    maxParallel: 5
     matrix:
       windows:
         BuildSuffix: 'windows-testing'
         ScriptFolder: 'windows'
   steps:
+  - script: pip install requests urllib3
+    displayName: 'Prepare Environment'
   - task: PythonScript@0
     condition: eq(variables['Build.Reason'], 'PullRequest')
     displayName: 'Determine Testing Status'
     inputs:
       scriptSource: 'filePath'
-      scriptPath: '../scripts/merge/check-label-presence.py'
+      scriptPath: '.ci/scripts/merge/check-label-presence.py'
       arguments: '$(System.PullRequest.PullRequestNumber) create-testing-build'
   - ${{ if eq(variables.enabletesting, 'true') }}:
     - template: ./sync-source.yml
