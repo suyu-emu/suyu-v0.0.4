@@ -447,6 +447,8 @@ ResultCode VMManager::UnmapPhysicalMemory(VAddr target, u64 size) {
                                map_size, MemoryState::Heap, VMAPermission::None);
             ASSERT_MSG(remap_res.Succeeded(), "Failed to remap a memory block.");
         }
+
+        return result;
     }
 
     // Update mapped amount
