@@ -330,7 +330,7 @@ ResultCode VMManager::MapPhysicalMemory(VAddr target, u64 size) {
         cur_addr = target;
 
         auto iter = FindVMA(target);
-        ASSERT_MSG(iter != vma_map.end(), "MapPhysicalMemory iter != end");
+        ASSERT(iter != vma_map.end());
 
         while (true) {
             const auto& vma = iter->second;
@@ -360,7 +360,7 @@ ResultCode VMManager::MapPhysicalMemory(VAddr target, u64 size) {
             // Advance to the next block.
             cur_addr = vma_end;
             iter = FindVMA(cur_addr);
-            ASSERT_MSG(iter != vma_map.end(), "MapPhysicalMemory iter != end");
+            ASSERT(iter != vma_map.end());
         }
     }
 
@@ -368,7 +368,7 @@ ResultCode VMManager::MapPhysicalMemory(VAddr target, u64 size) {
     if (result.IsError()) {
         for (const auto [unmap_address, unmap_size] : mapped_regions) {
             ASSERT_MSG(UnmapRange(unmap_address, unmap_size).IsSuccess(),
-                       "MapPhysicalMemory un-map on error");
+                       "Failed to unmap memory range.");
         }
 
         return result;
@@ -407,7 +407,7 @@ ResultCode VMManager::UnmapPhysicalMemory(VAddr target, u64 size) {
         cur_addr = target;
 
         auto iter = FindVMA(target);
-        ASSERT_MSG(iter != vma_map.end(), "UnmapPhysicalMemory iter != end");
+        ASSERT(iter != vma_map.end());
 
         while (true) {
             const auto& vma = iter->second;
@@ -434,7 +434,7 @@ ResultCode VMManager::UnmapPhysicalMemory(VAddr target, u64 size) {
             // Advance to the next block.
             cur_addr = vma_end;
             iter = FindVMA(cur_addr);
-            ASSERT_MSG(iter != vma_map.end(), "UnmapPhysicalMemory iter != end");
+            ASSERT(iter != vma_map.end());
         }
     }
 
@@ -445,7 +445,7 @@ ResultCode VMManager::UnmapPhysicalMemory(VAddr target, u64 size) {
             const auto remap_res =
                 MapMemoryBlock(map_address, std::make_shared<PhysicalMemory>(map_size, 0), 0,
                                map_size, MemoryState::Heap, VMAPermission::None);
-            ASSERT_MSG(remap_res.Succeeded(), "UnmapPhysicalMemory re-map on error");
+            ASSERT_MSG(remap_res.Succeeded(), "Failed to remap a memory block.");
         }
     }
 
@@ -965,7 +965,7 @@ ResultVal<std::size_t> VMManager::SizeOfAllocatedVMAsInRange(VAddr address,
 
     VAddr cur_addr = address;
     auto iter = FindVMA(cur_addr);
-    ASSERT_MSG(iter != vma_map.end(), "SizeOfAllocatedVMAsInRange iter != end");
+    ASSERT(iter != vma_map.end());
 
     while (true) {
         const auto& vma = iter->second;
@@ -986,7 +986,7 @@ ResultVal<std::size_t> VMManager::SizeOfAllocatedVMAsInRange(VAddr address,
         // Advance to the next block.
         cur_addr = vma_end;
         iter = std::next(iter);
-        ASSERT_MSG(iter != vma_map.end(), "SizeOfAllocatedVMAsInRange iter != end");
+        ASSERT(iter != vma_map.end());
     }
 
     return MakeResult(mapped_size);
@@ -1000,7 +1000,7 @@ ResultVal<std::size_t> VMManager::SizeOfUnmappablePhysicalMemoryInRange(VAddr ad
 
     VAddr cur_addr = address;
     auto iter = FindVMA(cur_addr);
-    ASSERT_MSG(iter != vma_map.end(), "SizeOfUnmappablePhysicalMemoryInRange iter != end");
+    ASSERT(iter != vma_map.end());
 
     while (true) {
         const auto& vma = iter->second;
@@ -1029,7 +1029,7 @@ ResultVal<std::size_t> VMManager::SizeOfUnmappablePhysicalMemoryInRange(VAddr ad
         // Advance to the next block.
         cur_addr = vma_end;
         iter = std::next(iter);
-        ASSERT_MSG(iter != vma_map.end(), "SizeOfUnmappablePhysicalMemoryInRange iter != end");
+        ASSERT(iter != vma_map.end());
     }
 
     return MakeResult(mapped_size);
