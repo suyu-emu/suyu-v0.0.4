@@ -757,19 +757,22 @@ void VMManager::MergeAdjacentVMA(VirtualMemoryArea& left, const VirtualMemoryAre
     // Always merge allocated memory blocks, even when they don't share the same backing block.
     if (left.type == VMAType::AllocatedMemoryBlock &&
         (left.backing_block != right.backing_block || left.offset + left.size != right.offset)) {
+        const auto right_begin = right.backing_block->begin() + right.offset;
+        const auto right_end = right_begin + right.size;
+
         // Check if we can save work.
         if (left.offset == 0 && left.size == left.backing_block->size()) {
             // Fast case: left is an entire backing block.
-            left.backing_block->insert(left.backing_block->end(),
-                                       right.backing_block->begin() + right.offset,
-                                       right.backing_block->begin() + right.offset + right.size);
+            left.backing_block->insert(left.backing_block->end(), right_begin, right_end);
         } else {
+            const auto left_begin = left.backing_block->begin() + left.offset;
+            const auto left_end = left_begin + left.size;
+
             // Slow case: make a new memory block for left and right.
             auto new_memory = std::make_shared<PhysicalMemory>();
-            new_memory->insert(new_memory->end(), left.backing_block->begin() + left.offset,
-                               left.backing_block->begin() + left.offset + left.size);
-            new_memory->insert(new_memory->end(), right.backing_block->begin() + right.offset,
-                               right.backing_block->begin() + right.offset + right.size);
+            new_memory->insert(new_memory->end(), left_begin, left_end);
+            new_memory->insert(new_memory->end(), right_begin, right_end);
+
             left.backing_block = new_memory;
             left.offset = 0;
         }
