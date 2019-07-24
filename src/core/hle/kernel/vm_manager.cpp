@@ -342,7 +342,7 @@ ResultCode VMManager::MapPhysicalMemory(VAddr target, u64 size) {
             const auto map_size = std::min(end_addr - cur_addr, vma_end - cur_addr);
             if (vma.state == MemoryState::Unmapped) {
                 const auto map_res =
-                    MapMemoryBlock(cur_addr, std::make_shared<PhysicalMemory>(map_size, 0), 0,
+                    MapMemoryBlock(cur_addr, std::make_shared<PhysicalMemory>(map_size), 0,
                                    map_size, MemoryState::Heap, VMAPermission::ReadWrite);
                 result = map_res.Code();
                 if (result.IsError()) {
@@ -443,7 +443,7 @@ ResultCode VMManager::UnmapPhysicalMemory(VAddr target, u64 size) {
     if (result.IsError()) {
         for (const auto [map_address, map_size] : unmapped_regions) {
             const auto remap_res =
-                MapMemoryBlock(map_address, std::make_shared<PhysicalMemory>(map_size, 0), 0,
+                MapMemoryBlock(map_address, std::make_shared<PhysicalMemory>(map_size), 0,
                                map_size, MemoryState::Heap, VMAPermission::None);
             ASSERT_MSG(remap_res.Succeeded(), "Failed to remap a memory block.");
         }
