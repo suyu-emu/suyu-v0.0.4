@@ -296,12 +296,6 @@ ResultVal<VAddr> VMManager::SetHeapSize(u64 size) {
 }
 
 ResultCode VMManager::MapPhysicalMemory(VAddr target, u64 size) {
-    const auto end_addr = target + size;
-    const auto last_addr = end_addr - 1;
-    VAddr cur_addr = target;
-
-    ResultCode result = RESULT_SUCCESS;
-
     // Check how much memory we've already mapped.
     const auto mapped_size_result = SizeOfAllocatedVMAsInRange(target, size);
     if (mapped_size_result.Failed()) {
@@ -324,10 +318,13 @@ ResultCode VMManager::MapPhysicalMemory(VAddr target, u64 size) {
 
     // Keep track of the memory regions we unmap.
     std::vector<std::pair<u64, u64>> mapped_regions;
+    ResultCode result = RESULT_SUCCESS;
 
     // Iterate, trying to map memory.
     {
-        cur_addr = target;
+        const auto end_addr = target + size;
+        const auto last_addr = end_addr - 1;
+        VAddr cur_addr = target;
 
         auto iter = FindVMA(target);
         ASSERT(iter != vma_map.end());
@@ -381,12 +378,6 @@ ResultCode VMManager::MapPhysicalMemory(VAddr target, u64 size) {
 }
 
 ResultCode VMManager::UnmapPhysicalMemory(VAddr target, u64 size) {
-    const auto end_addr = target + size;
-    const auto last_addr = end_addr - 1;
-    VAddr cur_addr = target;
-
-    ResultCode result = RESULT_SUCCESS;
-
     // Check how much memory is currently mapped.
     const auto mapped_size_result = SizeOfUnmappablePhysicalMemoryInRange(target, size);
     if (mapped_size_result.Failed()) {
@@ -401,10 +392,13 @@ ResultCode VMManager::UnmapPhysicalMemory(VAddr target, u64 size) {
 
     // Keep track of the memory regions we unmap.
     std::vector<std::pair<u64, u64>> unmapped_regions;
+    ResultCode result = RESULT_SUCCESS;
 
     // Try to unmap regions.
     {
-        cur_addr = target;
+        const auto end_addr = target + size;
+        const auto last_addr = end_addr - 1;
+        VAddr cur_addr = target;
 
         auto iter = FindVMA(target);
         ASSERT(iter != vma_map.end());
@@ -443,8 +437,8 @@ ResultCode VMManager::UnmapPhysicalMemory(VAddr target, u64 size) {
     if (result.IsError()) {
         for (const auto [map_address, map_size] : unmapped_regions) {
             const auto remap_res =
-                MapMemoryBlock(map_address, std::make_shared<PhysicalMemory>(map_size), 0,
-                               map_size, MemoryState::Heap, VMAPermission::None);
+                MapMemoryBlock(map_address, std::make_shared<PhysicalMemory>(map_size), 0, map_size,
+                               MemoryState::Heap, VMAPermission::None);
             ASSERT_MSG(remap_res.Succeeded(), "Failed to remap a memory block.");
         }
 
