@@ -773,7 +773,7 @@ void VMManager::MergeAdjacentVMA(VirtualMemoryArea& left, const VirtualMemoryAre
             new_memory->insert(new_memory->end(), left_begin, left_end);
             new_memory->insert(new_memory->end(), right_begin, right_end);
 
-            left.backing_block = new_memory;
+            left.backing_block = std::move(new_memory);
             left.offset = 0;
         }
 
