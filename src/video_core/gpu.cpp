@@ -151,12 +151,12 @@ enum class BufferMethods {
     NotifyIntr = 0x8,
     WrcacheFlush = 0x9,
     Unk28 = 0xA,
-    Unk2c = 0xB,
+    UnkCacheFlush = 0xB,
     RefCnt = 0x14,
     SemaphoreAcquire = 0x1A,
     SemaphoreRelease = 0x1B,
-    Unk70 = 0x1C,
-    Unk74 = 0x1D,
+    FenceValue = 0x1C,
+    FenceAction = 0x1D,
     Unk78 = 0x1E,
     Unk7c = 0x1F,
     Yield = 0x20,
@@ -202,6 +202,10 @@ void GPU::CallPullerMethod(const MethodCall& method_call) {
     case BufferMethods::SemaphoreAddressLow:
     case BufferMethods::SemaphoreSequence:
     case BufferMethods::RefCnt:
+    case BufferMethods::UnkCacheFlush:
+    case BufferMethods::WrcacheFlush:
+    case BufferMethods::FenceValue:
+    case BufferMethods::FenceAction:
         break;
     case BufferMethods::SemaphoreTrigger: {
         ProcessSemaphoreTriggerMethod();
@@ -212,19 +216,9 @@ void GPU::CallPullerMethod(const MethodCall& method_call) {
         LOG_ERROR(HW_GPU, "Special puller engine method NotifyIntr not implemented");
         break;
     }
-    case BufferMethods::WrcacheFlush: {
-        // TODO(Kmather73): Research and implement this method.
-        LOG_ERROR(HW_GPU, "Special puller engine method WrcacheFlush not implemented");
-        break;
-    }
     case BufferMethods::Unk28: {
         // TODO(Kmather73): Research and implement this method.
         LOG_ERROR(HW_GPU, "Special puller engine method Unk28 not implemented");
-        break;
-    }
-    case BufferMethods::Unk2c: {
-        // TODO(Kmather73): Research and implement this method.
-        LOG_ERROR(HW_GPU, "Special puller engine method Unk2c not implemented");
         break;
     }
     case BufferMethods::SemaphoreAcquire: {

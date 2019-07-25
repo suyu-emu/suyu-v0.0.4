@@ -18,7 +18,7 @@ u32 ShaderIR::DecodeHalfSetPredicate(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
-    UNIMPLEMENTED_IF(instr.hsetp2.ftz != 0);
+    DEBUG_ASSERT(instr.hsetp2.ftz == 0);
 
     Node op_a = UnpackHalfFloat(GetRegister(instr.gpr8), instr.hsetp2.type_a);
     op_a = GetOperandAbsNegHalf(op_a, instr.hsetp2.abs_a, instr.hsetp2.negate_a);

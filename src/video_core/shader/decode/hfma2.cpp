@@ -22,9 +22,9 @@ u32 ShaderIR::DecodeHfma2(NodeBlock& bb, u32 pc) {
     const auto opcode = OpCode::Decode(instr);
 
     if (opcode->get().GetId() == OpCode::Id::HFMA2_RR) {
-        UNIMPLEMENTED_IF(instr.hfma2.rr.precision != HalfPrecision::None);
+        DEBUG_ASSERT(instr.hfma2.rr.precision == HalfPrecision::None);
     } else {
-        UNIMPLEMENTED_IF(instr.hfma2.precision != HalfPrecision::None);
+        DEBUG_ASSERT(instr.hfma2.precision == HalfPrecision::None);
     }
 
     constexpr auto identity = HalfType::H0_H1;

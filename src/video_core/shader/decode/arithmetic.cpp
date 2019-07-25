@@ -42,11 +42,14 @@ u32 ShaderIR::DecodeArithmetic(NodeBlock& bb, u32 pc) {
     case OpCode::Id::FMUL_R:
     case OpCode::Id::FMUL_IMM: {
         // FMUL does not have 'abs' bits and only the second operand has a 'neg' bit.
-        UNIMPLEMENTED_IF_MSG(instr.fmul.tab5cb8_2 != 0, "FMUL tab5cb8_2({}) is not implemented",
-                             instr.fmul.tab5cb8_2.Value());
-        UNIMPLEMENTED_IF_MSG(
-            instr.fmul.tab5c68_0 != 1, "FMUL tab5cb8_0({}) is not implemented",
-            instr.fmul.tab5c68_0.Value()); // SMO typical sends 1 here which seems to be the default
+        if (instr.fmul.tab5cb8_2 != 0) {
+            LOG_WARNING(HW_GPU, "FMUL tab5cb8_2({}) is not implemented",
+                        instr.fmul.tab5cb8_2.Value());
+        }
+        if (instr.fmul.tab5c68_0 != 1) {
+            LOG_WARNING(HW_GPU, "FMUL tab5cb8_0({}) is not implemented",
+                        instr.fmul.tab5c68_0.Value());
+        }
 
         op_b = GetOperandAbsNegFloat(op_b, false, instr.fmul.negate_b);
 
