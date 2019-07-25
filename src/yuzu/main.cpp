@@ -1843,13 +1843,14 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
            "data, or other bugs.");
     switch (result) {
     case Core::System::ResultStatus::ErrorSystemFiles: {
-        QString message = tr("yuzu was unable to locate a Switch system archive");
-        if (!details.empty()) {
-            message.append(tr(": %1. ").arg(QString::fromStdString(details)));
+        QString message;
+        if (details.empty()) {
+            message =
+                tr("yuzu was unable to locate a Switch system archive. %1").arg(common_message);
         } else {
-            message.append(tr(". "));
+            message = tr("yuzu was unable to locate a Switch system archive: %1. %2")
+                          .arg(QString::fromStdString(details), common_message);
         }
-        message.append(common_message);
 
         answer = QMessageBox::question(this, tr("System Archive Not Found"), message,
                                        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
@@ -1858,8 +1859,8 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
     }
 
     case Core::System::ResultStatus::ErrorSharedFont: {
-        QString message = tr("yuzu was unable to locate the Switch shared fonts. ");
-        message.append(common_message);
+        const QString message =
+            tr("yuzu was unable to locate the Switch shared fonts. %1").arg(common_message);
         answer = QMessageBox::question(this, tr("Shared Fonts Not Found"), message,
                                        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
         status_message = tr("Shared Font Missing");
