@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <cstring>
 #include <list>
 #include <optional>
 #include <unordered_set>
@@ -26,26 +25,43 @@ struct Condition {
     bool IsUnconditional() const {
         return predicate == Pred::UnusedIndex && cc == ConditionCode::T;
     }
+
     bool operator==(const Condition& other) const {
         return std::tie(predicate, cc) == std::tie(other.predicate, other.cc);
+    }
+
+    bool operator!=(const Condition& other) const {
+        return !operator==(other);
     }
 };
 
 struct ShaderBlock {
-    u32 start{};
-    u32 end{};
-    bool ignore_branch{};
     struct Branch {
         Condition cond{};
         bool kills{};
         s32 address{};
+
         bool operator==(const Branch& b) const {
             return std::tie(cond, kills, address) == std::tie(b.cond, b.kills, b.address);
         }
-    } branch{};
+
+        bool operator!=(const Branch& b) const {
+            return !operator==(b);
+        }
+    };
+
+    u32 start{};
+    u32 end{};
+    bool ignore_branch{};
+    Branch branch{};
+
     bool operator==(const ShaderBlock& sb) const {
         return std::tie(start, end, ignore_branch, branch) ==
                std::tie(sb.start, sb.end, sb.ignore_branch, sb.branch);
+    }
+
+    bool operator!=(const ShaderBlock& sb) const {
+        return !operator==(sb);
     }
 };
 
@@ -57,7 +73,7 @@ struct ShaderCharacteristics {
     std::unordered_set<u32> labels{};
 };
 
-std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u32 program_size,
-                                              u32 start_address);
+std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
+                                              std::size_t program_size, u32 start_address);
 
 } // namespace VideoCommon::Shader
