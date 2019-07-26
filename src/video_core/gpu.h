@@ -153,6 +153,8 @@ public:
     /// Calls a GPU method.
     void CallMethod(const MethodCall& method_call);
 
+    void FlushCommands();
+
     /// Returns a reference to the Maxwell3D GPU engine.
     Engines::Maxwell3D& Maxwell3D();
 
