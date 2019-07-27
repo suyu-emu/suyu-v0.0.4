@@ -24,6 +24,7 @@
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_framebuffer_cache.h"
+#include "video_core/renderer_opengl/gl_query_cache.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_sampler_cache.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
@@ -61,6 +62,8 @@ public:
     bool DrawMultiBatch(bool is_indexed) override;
     void Clear() override;
     void DispatchCompute(GPUVAddr code_addr) override;
+    void ResetCounter(VideoCore::QueryType type) override;
+    u64 Query(VideoCore::QueryType type) override;
     void FlushAll() override;
     void FlushRegion(CacheAddr addr, u64 size) override;
     void InvalidateRegion(CacheAddr addr, u64 size) override;
@@ -221,6 +224,8 @@ private:
     GLintptr SetupIndexBuffer();
 
     void SetupShaders(GLenum primitive_mode);
+
+    HostCounter samples_passed{GL_SAMPLES_PASSED};
 };
 
 } // namespace OpenGL

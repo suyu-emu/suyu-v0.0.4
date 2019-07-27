@@ -74,6 +74,8 @@ add_library(video_core STATIC
     renderer_opengl/gl_stream_buffer.h
     renderer_opengl/gl_texture_cache.cpp
     renderer_opengl/gl_texture_cache.h
+    renderer_opengl/gl_query_cache.cpp
+    renderer_opengl/gl_query_cache.h
     renderer_opengl/maxwell_to_gl.h
     renderer_opengl/renderer_opengl.cpp
     renderer_opengl/renderer_opengl.h

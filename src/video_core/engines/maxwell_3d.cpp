@@ -400,6 +400,10 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
         ProcessQueryCondition();
         break;
     }
+    case MAXWELL3D_REG_INDEX(counter_reset): {
+        ProcessCounterReset();
+        break;
+    }
     case MAXWELL3D_REG_INDEX(sync_info): {
         ProcessSyncPoint();
         break;
@@ -544,22 +548,22 @@ void Maxwell3D::ProcessQueryGet() {
                "Units other than CROP are unimplemented");
 
     switch (regs.query.query_get.operation) {
-    case Regs::QueryOperation::Release: {
-        const u64 result = regs.query.query_sequence;
-        StampQueryResult(result, regs.query.query_get.short_query == 0);
+    case Regs::QueryOperation::Release:
+        StampQueryResult(regs.query.query_sequence, regs.query.query_get.short_query == 0);
         break;
-    }
-    case Regs::QueryOperation::Acquire: {
-        // Todo(Blinkhawk): Under this operation, the GPU waits for the CPU
-        // to write a value that matches the current payload.
+    case Regs::QueryOperation::Acquire:
+        // TODO(Blinkhawk): Under this operation, the GPU waits for the CPU to write a value that
+        // matches the current payload.
         UNIMPLEMENTED_MSG("Unimplemented query operation ACQUIRE");
         break;
-    }
     case Regs::QueryOperation::Counter: {
-        u64 result{};
+        u64 result;
         switch (regs.query.query_get.select) {
         case Regs::QuerySelect::Zero:
             result = 0;
+            break;
+        case Regs::QuerySelect::SamplesPassed:
+            result = rasterizer.Query(VideoCore::QueryType::SamplesPassed);
             break;
         default:
             result = 1;
@@ -569,14 +573,12 @@ void Maxwell3D::ProcessQueryGet() {
         StampQueryResult(result, regs.query.query_get.short_query == 0);
         break;
     }
-    case Regs::QueryOperation::Trap: {
+    case Regs::QueryOperation::Trap:
         UNIMPLEMENTED_MSG("Unimplemented query operation TRAP");
         break;
-    }
-    default: {
+    default:
         UNIMPLEMENTED_MSG("Unknown query operation");
         break;
-    }
     }
 }
 
@@ -616,6 +618,17 @@ void Maxwell3D::ProcessQueryCondition() {
         execute_on = true;
         break;
     }
+    }
+}
+
+void Maxwell3D::ProcessCounterReset() {
+    switch (regs.counter_reset) {
+    case Regs::CounterReset::SampleCnt:
+        rasterizer.ResetCounter(VideoCore::QueryType::SamplesPassed);
+        break;
+    default:
+        UNIMPLEMENTED_MSG("counter_reset={}", static_cast<u32>(regs.counter_reset));
+        break;
     }
 }
 

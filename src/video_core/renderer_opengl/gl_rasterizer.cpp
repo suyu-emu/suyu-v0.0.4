@@ -547,6 +547,9 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     MICROPROFILE_SCOPE(OpenGL_Drawing);
     auto& gpu = system.GPU().Maxwell3D();
 
+    const auto& regs = gpu.regs;
+    samples_passed.UpdateState(regs.samplecnt_enable);
+
     SyncRasterizeEnable(state);
     SyncColorMask();
     SyncFragmentColorClampState();
@@ -707,6 +710,27 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     state.ApplyProgramPipeline();
 
     glDispatchCompute(launch_desc.grid_dim_x, launch_desc.grid_dim_y, launch_desc.grid_dim_z);
+}
+
+void RasterizerOpenGL::ResetCounter(VideoCore::QueryType type) {
+    switch (type) {
+    case VideoCore::QueryType::SamplesPassed:
+        samples_passed.Reset();
+        break;
+    default:
+        UNIMPLEMENTED_MSG("type={}", static_cast<u32>(type));
+        break;
+    }
+}
+
+u64 RasterizerOpenGL::Query(VideoCore::QueryType type) {
+    switch (type) {
+    case VideoCore::QueryType::SamplesPassed:
+        return samples_passed.Query();
+    default:
+        UNIMPLEMENTED_MSG("type={}", static_cast<u32>(type));
+        return 1;
+    }
 }
 
 void RasterizerOpenGL::FlushAll() {}

@@ -17,6 +17,10 @@ class MemoryManager;
 
 namespace VideoCore {
 
+enum class QueryType {
+    SamplesPassed,
+};
+
 enum class LoadCallbackStage {
     Prepare,
     Decompile,
@@ -40,6 +44,12 @@ public:
 
     /// Dispatches a compute shader invocation
     virtual void DispatchCompute(GPUVAddr code_addr) = 0;
+
+    /// Resets the counter of a query
+    virtual void ResetCounter(QueryType type) = 0;
+
+    /// Returns the value of a GPU query
+    virtual u64 Query(QueryType type) = 0;
 
     /// Notify rasterizer that all caches should be flushed to Switch memory
     virtual void FlushAll() = 0;
