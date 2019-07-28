@@ -20,3 +20,4 @@ jobs:
   - template: ./build-single.yml
     parameters:
       artifactSource: 'false'
+      cache: $(parameters.cache)

@@ -30,3 +30,4 @@ jobs:
     - template: ./build-single.yml
       parameters:
         artifactSource: 'false'
+        cache: 'false'
