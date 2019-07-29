@@ -11,7 +11,7 @@
 #include "core/hle/service/hid/controllers/npad.h"
 #include "input_common/main.h"
 #include "yuzu/configuration/config.h"
-#include "yuzu/ui_settings.h"
+#include "yuzu/uisettings.h"
 
 Config::Config() {
     // TODO: Don't hardcode the path; let the frontend decide where to put the config files.

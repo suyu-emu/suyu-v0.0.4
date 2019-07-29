@@ -6,7 +6,7 @@
 #include "core/settings.h"
 #include "ui_configure_general.h"
 #include "yuzu/configuration/configure_general.h"
-#include "yuzu/ui_settings.h"
+#include "yuzu/uisettings.h"
 
 ConfigureGeneral::ConfigureGeneral(QWidget* parent)
     : QWidget(parent), ui(new Ui::ConfigureGeneral) {

@@ -9,7 +9,7 @@
 #include "yuzu/configuration/configure_input.h"
 #include "yuzu/configuration/configure_input_player.h"
 #include "yuzu/configuration/configure_input_simple.h"
-#include "yuzu/ui_settings.h"
+#include "yuzu/uisettings.h"
 
 namespace {
 

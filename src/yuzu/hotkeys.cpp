@@ -7,7 +7,7 @@
 #include <QTreeWidgetItem>
 #include <QtGlobal>
 #include "yuzu/hotkeys.h"
-#include "yuzu/ui_settings.h"
+#include "yuzu/uisettings.h"
 
 HotkeyRegistry::HotkeyRegistry() = default;
 HotkeyRegistry::~HotkeyRegistry() = default;

@@ -1,5 +1,6 @@
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/CMakeModules)
 
@@ -7,6 +8,7 @@ add_executable(yuzu
     Info.plist
     about_dialog.cpp
     about_dialog.h
+    aboutdialog.ui
     applets/error.cpp
     applets/error.h
     applets/profile_select.cpp
@@ -17,42 +19,59 @@ add_executable(yuzu
     applets/web_browser.h
     bootmanager.cpp
     bootmanager.h
+    compatdb.ui
     compatibility_list.cpp
     compatibility_list.h
     configuration/config.cpp
     configuration/config.h
+    configuration/configure.ui
     configuration/configure_audio.cpp
     configuration/configure_audio.h
+    configuration/configure_audio.ui
     configuration/configure_debug.cpp
     configuration/configure_debug.h
+    configuration/configure_debug.ui
     configuration/configure_dialog.cpp
     configuration/configure_dialog.h
     configuration/configure_gamelist.cpp
     configuration/configure_gamelist.h
+    configuration/configure_gamelist.ui
     configuration/configure_general.cpp
     configuration/configure_general.h
+    configuration/configure_general.ui
     configuration/configure_graphics.cpp
     configuration/configure_graphics.h
+    configuration/configure_graphics.ui
     configuration/configure_hotkeys.cpp
     configuration/configure_hotkeys.h
+    configuration/configure_hotkeys.ui
     configuration/configure_input.cpp
     configuration/configure_input.h
+    configuration/configure_input.ui
     configuration/configure_input_player.cpp
     configuration/configure_input_player.h
+    configuration/configure_input_player.ui
     configuration/configure_input_simple.cpp
     configuration/configure_input_simple.h
+    configuration/configure_input_simple.ui
     configuration/configure_mouse_advanced.cpp
     configuration/configure_mouse_advanced.h
-    configuration/configure_profile_manager.cpp
-    configuration/configure_profile_manager.h
-    configuration/configure_system.cpp
-    configuration/configure_system.h
+    configuration/configure_mouse_advanced.ui
     configuration/configure_per_general.cpp
     configuration/configure_per_general.h
+    configuration/configure_per_general.ui
+    configuration/configure_profile_manager.cpp
+    configuration/configure_profile_manager.h
+    configuration/configure_profile_manager.ui
+    configuration/configure_system.cpp
+    configuration/configure_system.h
+    configuration/configure_system.ui
     configuration/configure_touchscreen_advanced.cpp
     configuration/configure_touchscreen_advanced.h
+    configuration/configure_touchscreen_advanced.ui
     configuration/configure_web.cpp
     configuration/configure_web.h
+    configuration/configure_web.ui
     debugger/graphics/graphics_breakpoint_observer.cpp
     debugger/graphics/graphics_breakpoint_observer.h
     debugger/graphics/graphics_breakpoints.cpp
@@ -72,12 +91,14 @@ add_executable(yuzu
     game_list_worker.h
     loading_screen.cpp
     loading_screen.h
+    loading_screen.ui
     hotkeys.cpp
     hotkeys.h
     main.cpp
     main.h
-    ui_settings.cpp
-    ui_settings.h
+    main.ui
+    uisettings.cpp
+    uisettings.h
     util/limitable_input_dialog.cpp
     util/limitable_input_dialog.h
     util/sequence_dialog/sequence_dialog.cpp
@@ -89,44 +110,18 @@ add_executable(yuzu
     yuzu.rc
 )
 
-set(UIS
-    aboutdialog.ui
-    configuration/configure.ui
-    configuration/configure_audio.ui
-    configuration/configure_debug.ui
-    configuration/configure_gamelist.ui
-    configuration/configure_general.ui
-    configuration/configure_graphics.ui
-    configuration/configure_hotkeys.ui
-    configuration/configure_input.ui
-    configuration/configure_input_player.ui
-    configuration/configure_input_simple.ui
-    configuration/configure_mouse_advanced.ui
-    configuration/configure_per_general.ui
-    configuration/configure_profile_manager.ui
-    configuration/configure_system.ui
-    configuration/configure_touchscreen_advanced.ui
-    configuration/configure_web.ui
-    compatdb.ui
-    loading_screen.ui
-    main.ui
-)
-
 file(GLOB COMPAT_LIST
      ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
      ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
 file(GLOB_RECURSE ICONS ${PROJECT_SOURCE_DIR}/dist/icons/*)
 file(GLOB_RECURSE THEMES ${PROJECT_SOURCE_DIR}/dist/qt_themes/*)
 
-qt5_wrap_ui(UI_HDRS ${UIS})
 
 target_sources(yuzu
     PRIVATE
         ${COMPAT_LIST}
         ${ICONS}
         ${THEMES}
-        ${UI_HDRS}
-        ${UIS}
 )
 
 if (APPLE)

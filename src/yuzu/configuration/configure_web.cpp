@@ -9,7 +9,7 @@
 #include "core/telemetry_session.h"
 #include "ui_configure_web.h"
 #include "yuzu/configuration/configure_web.h"
-#include "yuzu/ui_settings.h"
+#include "yuzu/uisettings.h"
 
 ConfigureWeb::ConfigureWeb(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureWeb>()) {
