@@ -10,7 +10,7 @@ jobs:
         BuildSuffix: 'windows-testing'
         ScriptFolder: 'windows'
   steps:
-  - script: pip install requests urllib3
+  - script: sudo apt upgrade python3-pip && pip install requests urllib3
     displayName: 'Prepare Environment'
   - task: PythonScript@0
     condition: eq(variables['Build.Reason'], 'PullRequest')
@@ -30,3 +30,4 @@ jobs:
     - template: ./build-single.yml
       parameters:
         artifactSource: 'false'
+        cache: 'false'

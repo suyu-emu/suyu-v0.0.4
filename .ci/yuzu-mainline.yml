@@ -21,3 +21,5 @@ stages:
   dependsOn: format
   jobs:
   - template: ./templates/build-standard.yml
+    parameters:
+      cache: 'true'

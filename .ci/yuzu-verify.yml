@@ -15,4 +15,6 @@ stages:
   dependsOn: format
   jobs:
   - template: ./templates/build-standard.yml
+    parameters:
+      cache: 'false'
   - template: ./templates/build-testing.yml
