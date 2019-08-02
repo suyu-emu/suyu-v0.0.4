@@ -7,7 +7,7 @@ steps:
   displayName: 'Prepare Environment'
   inputs:
     dockerVersion: '17.09.0-ce'
-- ${{ if eq(parameterscache, 'true') }}:
+- ${{ if eq(parameters.cache, 'true') }}:
   - task: CacheBeta@0
     displayName: 'Cache Build System'
     inputs:
