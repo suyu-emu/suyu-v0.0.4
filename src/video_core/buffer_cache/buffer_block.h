@@ -19,8 +19,8 @@ public:
         return (cache_addr < end) && (cache_addr_end > start);
     }
 
-    bool IsInside(const CacheAddr other_start, const CacheAddr other_end) {
-        return (cache_addr <= other_start && other_end <= cache_addr_end);
+    bool IsInside(const CacheAddr other_start, const CacheAddr other_end) const {
+        return cache_addr <= other_start && other_end <= cache_addr_end;
     }
 
     u8* GetWritableHostPtr() const {
@@ -61,8 +61,7 @@ public:
     }
 
 protected:
-    explicit BufferBlock(CacheAddr cache_addr,const std::size_t size)
-        : size{size} {
+    explicit BufferBlock(CacheAddr cache_addr, const std::size_t size) : size{size} {
         SetCacheAddr(cache_addr);
     }
     ~BufferBlock() = default;

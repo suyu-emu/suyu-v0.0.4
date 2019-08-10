@@ -54,13 +54,13 @@ protected:
     const GLuint* ToHandle(const Buffer& buffer) override;
 
     void UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
-                          const u8* data) override;
+                         const u8* data) override;
 
     void DownloadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
-                            u8* data) override;
+                           u8* data) override;
 
     void CopyBlock(const Buffer& src, const Buffer& dst, std::size_t src_offset,
-                        std::size_t dst_offset, std::size_t size) override;
+                   std::size_t dst_offset, std::size_t size) override;
 };
 
 } // namespace OpenGL
