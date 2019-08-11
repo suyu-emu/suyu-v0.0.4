@@ -6,6 +6,7 @@
 #include <clocale>
 #include <memory>
 #include <thread>
+#include <unistd.h>
 
 // VFS includes must be before glad as they will conflict with Windows file api, which uses defines.
 #include "applets/error.h"
@@ -2167,6 +2168,11 @@ int main(int argc, char* argv[]) {
     // Init settings params
     QCoreApplication::setOrganizationName(QStringLiteral("yuzu team"));
     QCoreApplication::setApplicationName(QStringLiteral("yuzu"));
+
+#ifdef __APPLE__
+    std::string bin_path = FileUtil::GetBundleDirectory() + DIR_SEP + "..";
+    chdir(bin_path.c_str());
+#endif
 
     // Enables the core to make the qt created contexts current on std::threads
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
