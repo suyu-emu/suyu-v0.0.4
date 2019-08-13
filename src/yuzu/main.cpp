@@ -6,7 +6,9 @@
 #include <clocale>
 #include <memory>
 #include <thread>
-#include <unistd.h>
+#ifdef __APPLE__
+#include <unistd.h> // for chdir
+#endif
 
 // VFS includes must be before glad as they will conflict with Windows file api, which uses defines.
 #include "applets/error.h"
