@@ -57,8 +57,8 @@ struct BlockInfo {
 
 struct CFGRebuildState {
     explicit CFGRebuildState(const ProgramCode& program_code, const std::size_t program_size,
-                             const u32 start, ASTManager& manager)
-        : program_code{program_code}, program_size{program_size}, start{start}, manager{manager} {}
+                             const u32 start)
+        : program_code{program_code}, program_size{program_size}, start{start} {}
 
     u32 start{};
     std::vector<BlockInfo> block_info{};
@@ -71,7 +71,7 @@ struct CFGRebuildState {
     std::unordered_map<u32, BlockStack> stacks{};
     const ProgramCode& program_code;
     const std::size_t program_size;
-    ASTManager& manager;
+    ASTManager* manager;
 };
 
 enum class BlockCollision : u32 { None, Found, Inside };
@@ -456,67 +456,91 @@ void InsertBranch(ASTManager& mm, const BlockBranchInfo& branch) {
 }
 
 void DecompileShader(CFGRebuildState& state) {
-    state.manager.Init();
+    state.manager->Init();
     for (auto label : state.labels) {
-        state.manager.DeclareLabel(label);
+        state.manager->DeclareLabel(label);
     }
     for (auto& block : state.block_info) {
         if (state.labels.count(block.start) != 0) {
-            state.manager.InsertLabel(block.start);
+            state.manager->InsertLabel(block.start);
         }
         u32 end = block.branch.ignore ? block.end + 1 : block.end;
-        state.manager.InsertBlock(block.start, end);
+        state.manager->InsertBlock(block.start, end);
         if (!block.branch.ignore) {
-            InsertBranch(state.manager, block.branch);
+            InsertBranch(*state.manager, block.branch);
         }
     }
-    // state.manager.ShowCurrentState("Before Decompiling");
-    state.manager.Decompile();
-    // state.manager.ShowCurrentState("After Decompiling");
+    state.manager->Decompile();
 }
 
 std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u32 program_size,
-                                                u32 start_address, ASTManager& manager) {
-    CFGRebuildState state{program_code, program_size, start_address, manager};
+                                                u32 start_address,
+                                                const CompilerSettings& settings) {
+    auto result_out = std::make_unique<ShaderCharacteristics>();
+    if (settings.depth == CompileDepth::BruteForce) {
+        result_out->settings.depth = CompileDepth::BruteForce;
+        return std::move(result_out);
+    }
+
+    CFGRebuildState state{program_code, program_size, start_address};
     // Inspect Code and generate blocks
     state.labels.clear();
     state.labels.emplace(start_address);
     state.inspect_queries.push_back(state.start);
     while (!state.inspect_queries.empty()) {
         if (!TryInspectAddress(state)) {
-            return {};
+            result_out->settings.depth = CompileDepth::BruteForce;
+            return std::move(result_out);
         }
     }
 
-    // Decompile Stacks
-    state.queries.push_back(Query{state.start, {}, {}});
-    bool decompiled = true;
-    while (!state.queries.empty()) {
-        if (!TryQuery(state)) {
-            decompiled = false;
-            break;
+    bool use_flow_stack = true;
+
+    bool decompiled = false;
+
+    if (settings.depth != CompileDepth::FlowStack) {
+        // Decompile Stacks
+        state.queries.push_back(Query{state.start, {}, {}});
+        decompiled = true;
+        while (!state.queries.empty()) {
+            if (!TryQuery(state)) {
+                decompiled = false;
+                break;
+            }
         }
     }
+
+    use_flow_stack = !decompiled;
 
     // Sort and organize results
     std::sort(state.block_info.begin(), state.block_info.end(),
               [](const BlockInfo& a, const BlockInfo& b) -> bool { return a.start < b.start; });
-    if (decompiled) {
+    if (decompiled && settings.depth != CompileDepth::NoFlowStack) {
+        ASTManager manager{settings.depth != CompileDepth::DecompileBackwards};
+        state.manager = &manager;
         DecompileShader(state);
-        decompiled = state.manager.IsFullyDecompiled();
+        decompiled = state.manager->IsFullyDecompiled();
         if (!decompiled) {
-            LOG_CRITICAL(HW_GPU, "Failed to remove all the gotos!:");
-            state.manager.ShowCurrentState("Of Shader");
-            state.manager.Clear();
+            if (settings.depth == CompileDepth::FullDecompile) {
+                LOG_CRITICAL(HW_GPU, "Failed to remove all the gotos!:");
+            } else {
+                LOG_CRITICAL(HW_GPU, "Failed to remove all backward gotos!:");
+            }
+            state.manager->ShowCurrentState("Of Shader");
+            state.manager->Clear();
+        } else {
+            auto result_out = std::make_unique<ShaderCharacteristics>();
+            result_out->start = start_address;
+            result_out->settings.depth = settings.depth;
+            result_out->manager = std::move(manager);
+            result_out->end = state.block_info.back().end + 1;
+            return std::move(result_out);
         }
     }
-    auto result_out = std::make_unique<ShaderCharacteristics>();
-    result_out->decompiled = decompiled;
     result_out->start = start_address;
-    if (decompiled) {
-        result_out->end = state.block_info.back().end + 1;
-        return std::move(result_out);
-    }
+    result_out->settings.depth =
+        use_flow_stack ? CompileDepth::FlowStack : CompileDepth::NoFlowStack;
+    result_out->blocks.clear();
     for (auto& block : state.block_info) {
         ShaderBlock new_block{};
         new_block.start = block.start;
@@ -529,6 +553,10 @@ std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
         }
         result_out->end = std::max(result_out->end, block.end);
         result_out->blocks.push_back(new_block);
+    }
+    if (!use_flow_stack) {
+        result_out->labels = std::move(state.labels);
+        return std::move(result_out);
     }
     auto back = result_out->blocks.begin();
     auto next = std::next(back);

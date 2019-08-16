@@ -352,9 +352,11 @@ public:
         // TODO(Subv): Figure out the actual depth of the flow stack, for now it seems
         // unlikely that shaders will use 20 nested SSYs and PBKs.
         constexpr u32 FLOW_STACK_SIZE = 20;
-        for (const auto stack : std::array{MetaStackClass::Ssy, MetaStackClass::Pbk}) {
-            code.AddLine("uint {}[{}];", FlowStackName(stack), FLOW_STACK_SIZE);
-            code.AddLine("uint {} = 0u;", FlowStackTopName(stack));
+        if (!ir.IsFlowStackDisabled()) {
+            for (const auto stack : std::array{MetaStackClass::Ssy, MetaStackClass::Pbk}) {
+                code.AddLine("uint {}[{}];", FlowStackName(stack), FLOW_STACK_SIZE);
+                code.AddLine("uint {} = 0u;", FlowStackTopName(stack));
+            }
         }
 
         code.AddLine("while (true) {{");

@@ -9,8 +9,9 @@
 #include <set>
 
 #include "video_core/engines/shader_bytecode.h"
-#include "video_core/shader/shader_ir.h"
 #include "video_core/shader/ast.h"
+#include "video_core/shader/compiler_settings.h"
+#include "video_core/shader/shader_ir.h"
 
 namespace VideoCommon::Shader {
 
@@ -68,12 +69,15 @@ struct ShaderBlock {
 
 struct ShaderCharacteristics {
     std::list<ShaderBlock> blocks{};
-    bool decompiled{};
+    std::set<u32> labels{};
     u32 start{};
     u32 end{};
+    ASTManager manager{true};
+    CompilerSettings settings{};
 };
 
 std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u32 program_size,
-                                                u32 start_address, ASTManager& manager);
+                                                u32 start_address,
+                                                const CompilerSettings& settings);
 
 } // namespace VideoCommon::Shader

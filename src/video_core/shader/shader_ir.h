@@ -16,6 +16,7 @@
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/engines/shader_header.h"
 #include "video_core/shader/ast.h"
+#include "video_core/shader/compiler_settings.h"
 #include "video_core/shader/node.h"
 
 namespace VideoCommon::Shader {
@@ -65,7 +66,8 @@ struct GlobalMemoryUsage {
 
 class ShaderIR final {
 public:
-    explicit ShaderIR(const ProgramCode& program_code, u32 main_offset, std::size_t size);
+    explicit ShaderIR(const ProgramCode& program_code, u32 main_offset, std::size_t size,
+                      CompilerSettings settings);
     ~ShaderIR();
 
     const std::map<u32, NodeBlock>& GetBasicBlocks() const {
@@ -139,6 +141,10 @@ public:
 
     const Tegra::Shader::Header& GetHeader() const {
         return header;
+    }
+
+    bool IsFlowStackDisabled() const {
+        return disable_flow_stack;
     }
 
     bool IsDecompiled() const {
@@ -368,6 +374,7 @@ private:
     const u32 main_offset;
     const std::size_t program_size;
     bool decompiled{};
+    bool disable_flow_stack{};
 
     u32 coverage_begin{};
     u32 coverage_end{};
@@ -375,6 +382,7 @@ private:
     std::map<u32, NodeBlock> basic_blocks;
     NodeBlock global_code;
     ASTManager program_manager;
+    CompilerSettings settings{};
 
     std::set<u32> used_registers;
     std::set<Tegra::Shader::Pred> used_predicates;

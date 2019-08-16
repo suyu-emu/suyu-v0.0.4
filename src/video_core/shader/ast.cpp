@@ -363,7 +363,7 @@ std::string ASTManager::Print() {
     return printer.GetResult();
 }
 
-ASTManager::ASTManager() = default;
+ASTManager::ASTManager(bool full_decompile) : full_decompile{full_decompile} {};
 
 ASTManager::~ASTManager() {
     Clear();
@@ -383,6 +383,7 @@ ASTManager::ASTManager(ASTManager&& other)
 }
 
 ASTManager& ASTManager::operator=(ASTManager&& other) {
+    full_decompile = other.full_decompile;
     labels_map = std::move(other.labels_map);
     labels_count = other.labels_count;
     gotos = std::move(other.gotos);
@@ -434,6 +435,13 @@ void ASTManager::Decompile() {
         ASTNode goto_node = *it;
         u32 label_index = goto_node->GetGotoLabel();
         ASTNode label = labels[label_index];
+        if (!full_decompile) {
+            // We only decompile backward jumps
+            if (!IsBackwardsJump(goto_node, label)) {
+                it++;
+                continue;
+            }
+        }
         if (IndirectlyRelated(goto_node, label)) {
             while (!DirectlyRelated(goto_node, label)) {
                 MoveOutward(goto_node);
@@ -469,11 +477,91 @@ void ASTManager::Decompile() {
         }
         it++;
     }
-    for (ASTNode label : labels) {
-        auto& manager = label->GetManager();
-        manager.Remove(label);
+    if (full_decompile) {
+        for (ASTNode label : labels) {
+            auto& manager = label->GetManager();
+            manager.Remove(label);
+        }
+        labels.clear();
+    } else {
+        auto it = labels.begin();
+        while (it != labels.end()) {
+            bool can_remove = true;
+            ASTNode label = *it;
+            for (ASTNode goto_node : gotos) {
+                u32 label_index = goto_node->GetGotoLabel();
+                ASTNode glabel = labels[label_index];
+                if (glabel == label) {
+                    can_remove = false;
+                    break;
+                }
+            }
+            if (can_remove) {
+                auto& manager = label->GetManager();
+                manager.Remove(label);
+                labels.erase(it);
+            }
+        }
     }
-    labels.clear();
+}
+
+bool ASTManager::IsBackwardsJump(ASTNode goto_node, ASTNode label_node) const {
+    u32 goto_level = goto_node->GetLevel();
+    u32 label_level = label_node->GetLevel();
+    while (goto_level > label_level) {
+        goto_level--;
+        goto_node = goto_node->GetParent();
+    }
+    while (label_level > goto_level) {
+        label_level--;
+        label_node = label_node->GetParent();
+    }
+    while (goto_node->GetParent() != label_node->GetParent()) {
+        goto_node = goto_node->GetParent();
+        label_node = label_node->GetParent();
+    }
+    ASTNode current = goto_node->GetPrevious();
+    while (current) {
+        if (current == label_node) {
+            return true;
+        }
+        current = current->GetPrevious();
+    }
+    return false;
+}
+
+ASTNode CommonParent(ASTNode first, ASTNode second) {
+    if (first->GetParent() == second->GetParent()) {
+        return first->GetParent();
+    }
+    u32 first_level = first->GetLevel();
+    u32 second_level = second->GetLevel();
+    u32 min_level;
+    u32 max_level;
+    ASTNode max;
+    ASTNode min;
+    if (first_level > second_level) {
+        min_level = second_level;
+        min = second;
+        max_level = first_level;
+        max = first;
+    } else {
+        min_level = first_level;
+        min = first;
+        max_level = second_level;
+        max = second;
+    }
+
+    while (max_level > min_level) {
+        max_level--;
+        max = max->GetParent();
+    }
+
+    while (min->GetParent() != max->GetParent()) {
+        min = min->GetParent();
+        max = max->GetParent();
+    }
+    return min->GetParent();
 }
 
 bool ASTManager::IndirectlyRelated(ASTNode first, ASTNode second) {

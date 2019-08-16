@@ -109,6 +109,8 @@ add_library(video_core STATIC
     shader/ast.h
     shader/control_flow.cpp
     shader/control_flow.h
+    shader/compiler_settings.cpp
+    shader/compiler_settings.h
     shader/decode.cpp
     shader/expr.cpp
     shader/expr.h

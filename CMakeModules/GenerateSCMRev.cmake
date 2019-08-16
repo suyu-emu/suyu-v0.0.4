@@ -87,6 +87,8 @@ set(HASH_FILES
     "${VIDEO_CORE}/shader/ast.h"
     "${VIDEO_CORE}/shader/control_flow.cpp"
     "${VIDEO_CORE}/shader/control_flow.h"
+    "${VIDEO_CORE}/shader/compiler_settings.cpp"
+    "${VIDEO_CORE}/shader/compiler_settings.h"
     "${VIDEO_CORE}/shader/decode.cpp"
     "${VIDEO_CORE}/shader/expr.cpp"
     "${VIDEO_CORE}/shader/expr.h"

@@ -274,7 +274,7 @@ private:
 
 class ASTManager final {
 public:
-    ASTManager();
+    ASTManager(bool full_decompile);
     ~ASTManager();
 
     ASTManager(const ASTManager& o) = delete;
@@ -304,7 +304,18 @@ public:
     void SanityCheck();
 
     bool IsFullyDecompiled() const {
-        return gotos.size() == 0;
+        if (full_decompile) {
+            return gotos.size() == 0;
+        } else {
+            for (ASTNode goto_node : gotos) {
+                u32 label_index = goto_node->GetGotoLabel();
+                ASTNode glabel = labels[label_index];
+                if (IsBackwardsJump(goto_node, glabel)) {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 
     ASTNode GetProgram() const {
@@ -318,6 +329,10 @@ public:
     }
 
 private:
+    bool IsBackwardsJump(ASTNode goto_node, ASTNode label_node) const;
+
+    ASTNode CommonParent(ASTNode first, ASTNode second);
+
     bool IndirectlyRelated(ASTNode first, ASTNode second);
 
     bool DirectlyRelated(ASTNode first, ASTNode second);
@@ -334,6 +349,7 @@ private:
         return new_var;
     }
 
+    bool full_decompile{};
     std::unordered_map<u32, u32> labels_map{};
     u32 labels_count{};
     std::vector<ASTNode> labels{};
