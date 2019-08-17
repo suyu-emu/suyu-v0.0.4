@@ -9,7 +9,7 @@
 #include "core/core.h"
 #include "core/loader/loader.h"
 #include "yuzu/discord_impl.h"
-#include "yuzu/ui_settings.h"
+#include "yuzu/uisettings.h"
 
 namespace DiscordRPC {
 
