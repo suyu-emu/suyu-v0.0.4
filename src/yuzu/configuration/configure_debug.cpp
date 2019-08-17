@@ -12,7 +12,7 @@
 #include "ui_configure_debug.h"
 #include "yuzu/configuration/configure_debug.h"
 #include "yuzu/debugger/console.h"
-#include "yuzu/ui_settings.h"
+#include "yuzu/uisettings.h"
 
 ConfigureDebug::ConfigureDebug(QWidget* parent) : QWidget(parent), ui(new Ui::ConfigureDebug) {
     ui->setupUi(this);

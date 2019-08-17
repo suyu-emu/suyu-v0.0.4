@@ -23,7 +23,7 @@
 #include "yuzu/game_list_p.h"
 #include "yuzu/game_list_worker.h"
 #include "yuzu/main.h"
-#include "yuzu/ui_settings.h"
+#include "yuzu/uisettings.h"
 
 GameListSearchField::KeyReleaseEater::KeyReleaseEater(GameList* gamelist) : gamelist{gamelist} {}
 

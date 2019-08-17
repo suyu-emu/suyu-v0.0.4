@@ -9,7 +9,7 @@
 #include "core/settings.h"
 #include "ui_configure_gamelist.h"
 #include "yuzu/configuration/configure_gamelist.h"
-#include "yuzu/ui_settings.h"
+#include "yuzu/uisettings.h"
 
 namespace {
 constexpr std::array default_icon_sizes{

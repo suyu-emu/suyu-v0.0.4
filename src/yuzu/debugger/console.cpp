@@ -10,7 +10,7 @@
 
 #include "common/logging/backend.h"
 #include "yuzu/debugger/console.h"
-#include "yuzu/ui_settings.h"
+#include "yuzu/uisettings.h"
 
 namespace Debugger {
 void ToggleConsole() {

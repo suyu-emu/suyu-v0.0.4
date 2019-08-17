@@ -23,7 +23,7 @@
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_input.h"
 #include "yuzu/configuration/configure_per_general.h"
-#include "yuzu/ui_settings.h"
+#include "yuzu/uisettings.h"
 #include "yuzu/util/util.h"
 
 ConfigurePerGameGeneral::ConfigurePerGameGeneral(QWidget* parent, u64 title_id)

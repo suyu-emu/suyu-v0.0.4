@@ -100,7 +100,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/hotkeys.h"
 #include "yuzu/loading_screen.h"
 #include "yuzu/main.h"
-#include "yuzu/ui_settings.h"
+#include "yuzu/uisettings.h"
 
 #ifdef USE_DISCORD_PRESENCE
 #include "yuzu/discord_impl.h"

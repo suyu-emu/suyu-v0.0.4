@@ -19,7 +19,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
-#include "yuzu/ui_settings.h"
+#include "yuzu/uisettings.h"
 #include "yuzu/util/util.h"
 
 /**
