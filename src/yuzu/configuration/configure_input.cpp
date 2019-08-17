@@ -79,7 +79,7 @@ ConfigureInput::ConfigureInput(QWidget* parent)
     LoadConfiguration();
     UpdateUIEnabled();
 
-    connect(ui->restore_defaults_button, &QPushButton::pressed, this,
+    connect(ui->restore_defaults_button, &QPushButton::clicked, this,
             &ConfigureInput::RestoreDefaults);
 
     for (auto* enabled : players_controller) {
@@ -96,20 +96,20 @@ ConfigureInput::ConfigureInput(QWidget* parent)
             &ConfigureInput::UpdateUIEnabled);
 
     for (std::size_t i = 0; i < players_configure.size(); ++i) {
-        connect(players_configure[i], &QPushButton::pressed, this,
+        connect(players_configure[i], &QPushButton::clicked, this,
                 [this, i] { CallConfigureDialog<ConfigureInputPlayer>(*this, i, false); });
     }
 
-    connect(ui->handheld_configure, &QPushButton::pressed, this,
+    connect(ui->handheld_configure, &QPushButton::clicked, this,
             [this] { CallConfigureDialog<ConfigureInputPlayer>(*this, 8, false); });
 
-    connect(ui->debug_configure, &QPushButton::pressed, this,
+    connect(ui->debug_configure, &QPushButton::clicked, this,
             [this] { CallConfigureDialog<ConfigureInputPlayer>(*this, 9, true); });
 
-    connect(ui->mouse_advanced, &QPushButton::pressed, this,
+    connect(ui->mouse_advanced, &QPushButton::clicked, this,
             [this] { CallConfigureDialog<ConfigureMouseAdvanced>(*this); });
 
-    connect(ui->touchscreen_advanced, &QPushButton::pressed, this,
+    connect(ui->touchscreen_advanced, &QPushButton::clicked, this,
             [this] { CallConfigureDialog<ConfigureTouchscreenAdvanced>(*this); });
 }
 

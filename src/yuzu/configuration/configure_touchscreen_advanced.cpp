@@ -11,7 +11,7 @@ ConfigureTouchscreenAdvanced::ConfigureTouchscreenAdvanced(QWidget* parent)
     : QDialog(parent), ui(std::make_unique<Ui::ConfigureTouchscreenAdvanced>()) {
     ui->setupUi(this);
 
-    connect(ui->restore_defaults_button, &QPushButton::pressed, this,
+    connect(ui->restore_defaults_button, &QPushButton::clicked, this,
             &ConfigureTouchscreenAdvanced::RestoreDefaults);
 
     LoadConfiguration();
