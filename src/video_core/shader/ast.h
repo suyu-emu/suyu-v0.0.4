@@ -112,6 +112,7 @@ class ASTLabel {
 public:
     ASTLabel(u32 index) : index{index} {}
     u32 index;
+    bool unused{};
 };
 
 class ASTGoto {
@@ -202,6 +203,13 @@ public:
             return inner->condition;
         }
         return nullptr;
+    }
+
+    void MarkLabelUnused() const {
+        auto inner = std::get_if<ASTLabel>(&data);
+        if (inner) {
+            inner->unused = true;
+        }
     }
 
     Expr GetIfCondition() const {

@@ -497,9 +497,7 @@ void ASTManager::Decompile() {
                 }
             }
             if (can_remove) {
-                auto& manager = label->GetManager();
-                manager.Remove(label);
-                labels.erase(it);
+                label->MarkLabelUnused();
             }
         }
     }
