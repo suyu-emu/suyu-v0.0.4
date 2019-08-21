@@ -247,8 +247,7 @@ public:
     virtual void PushGPUEntries(Tegra::CommandList&& entries) = 0;
 
     /// Swap buffers (render frame)
-    virtual void SwapBuffers(
-        std::optional<std::reference_wrapper<const Tegra::FramebufferConfig>> framebuffer) = 0;
+    virtual void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) = 0;
 
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
     virtual void FlushRegion(CacheAddr addr, u64 size) = 0;

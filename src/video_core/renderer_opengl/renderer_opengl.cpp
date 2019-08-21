@@ -101,9 +101,7 @@ RendererOpenGL::RendererOpenGL(Core::Frontend::EmuWindow& emu_window, Core::Syst
 
 RendererOpenGL::~RendererOpenGL() = default;
 
-void RendererOpenGL::SwapBuffers(
-    std::optional<std::reference_wrapper<const Tegra::FramebufferConfig>> framebuffer) {
-
+void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     system.GetPerfStats().EndSystemFrame();
 
     // Maintain the rasterizer's state as a priority
@@ -113,9 +111,9 @@ void RendererOpenGL::SwapBuffers(
 
     if (framebuffer) {
         // If framebuffer is provided, reload it from memory to a texture
-        if (screen_info.texture.width != (GLsizei)framebuffer->get().width ||
-            screen_info.texture.height != (GLsizei)framebuffer->get().height ||
-            screen_info.texture.pixel_format != framebuffer->get().pixel_format) {
+        if (screen_info.texture.width != static_cast<GLsizei>(framebuffer->width) ||
+            screen_info.texture.height != static_cast<GLsizei>(framebuffer->height) ||
+            screen_info.texture.pixel_format != framebuffer->pixel_format) {
             // Reallocate texture if the framebuffer size has changed.
             // This is expected to not happen very often and hence should not be a
             // performance problem.
