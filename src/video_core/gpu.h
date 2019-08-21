@@ -94,11 +94,6 @@ struct FramebufferConfig {
         BGRA8 = 5,
     };
 
-    /**
-     * Returns the number of bytes per pixel.
-     */
-    static u32 BytesPerPixel(PixelFormat format);
-
     VAddr address;
     u32 offset;
     u32 width;

@@ -147,7 +147,9 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
  * Loads framebuffer from emulated memory into the active OpenGL texture.
  */
 void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuffer) {
-    const u32 bytes_per_pixel{Tegra::FramebufferConfig::BytesPerPixel(framebuffer.pixel_format)};
+    const auto pixel_format{
+        VideoCore::Surface::PixelFormatFromGPUPixelFormat(framebuffer.pixel_format)};
+    const u32 bytes_per_pixel{VideoCore::Surface::GetBytesPerPixel(pixel_format)};
     const u64 size_in_bytes{framebuffer.stride * framebuffer.height * bytes_per_pixel};
     const VAddr framebuffer_addr{framebuffer.address + framebuffer.offset};
 
@@ -274,22 +276,25 @@ void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
     texture.height = framebuffer.height;
     texture.pixel_format = framebuffer.pixel_format;
 
+    const auto pixel_format{
+        VideoCore::Surface::PixelFormatFromGPUPixelFormat(framebuffer.pixel_format)};
+    const u32 bytes_per_pixel{VideoCore::Surface::GetBytesPerPixel(pixel_format)};
+    gl_framebuffer_data.resize(texture.width * texture.height * bytes_per_pixel);
+
     GLint internal_format;
     switch (framebuffer.pixel_format) {
     case Tegra::FramebufferConfig::PixelFormat::ABGR8:
         internal_format = GL_RGBA8;
         texture.gl_format = GL_RGBA;
         texture.gl_type = GL_UNSIGNED_INT_8_8_8_8_REV;
-        gl_framebuffer_data.resize(texture.width * texture.height * 4);
+
         break;
     default:
         internal_format = GL_RGBA8;
         texture.gl_format = GL_RGBA;
         texture.gl_type = GL_UNSIGNED_INT_8_8_8_8_REV;
-        gl_framebuffer_data.resize(texture.width * texture.height * 4);
-        LOG_CRITICAL(Render_OpenGL, "Unknown framebuffer pixel format: {}",
-                     static_cast<u32>(framebuffer.pixel_format));
-        UNREACHABLE();
+        UNIMPLEMENTED_MSG("Unknown framebuffer pixel format: {}",
+                          static_cast<u32>(framebuffer.pixel_format));
     }
 
     texture.resource.Release();
