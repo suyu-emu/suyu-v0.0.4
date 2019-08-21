@@ -863,6 +863,10 @@ void RasterizerOpenGL::FlushAndInvalidateRegion(CacheAddr addr, u64 size) {
     InvalidateRegion(addr, size);
 }
 
+void RasterizerOpenGL::FlushCommands() {
+    glFlush();
+}
+
 void RasterizerOpenGL::TickFrame() {
     buffer_cache.TickFrame();
 }

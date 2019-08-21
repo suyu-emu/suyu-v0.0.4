@@ -120,6 +120,10 @@ bool GPU::CancelSyncptInterrupt(const u32 syncpoint_id, const u32 value) {
     return true;
 }
 
+void GPU::FlushCommands() {
+    renderer.Rasterizer().FlushCommands();
+}
+
 u32 RenderTargetBytesPerPixel(RenderTargetFormat format) {
     ASSERT(format != RenderTargetFormat::NONE);
 

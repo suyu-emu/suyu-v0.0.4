@@ -31,6 +31,7 @@ void DmaPusher::DispatchCalls() {
             break;
         }
     }
+    gpu.FlushCommands();
 }
 
 bool DmaPusher::Step() {
