@@ -285,7 +285,11 @@ void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
         internal_format = GL_RGBA8;
         texture.gl_format = GL_RGBA;
         texture.gl_type = GL_UNSIGNED_INT_8_8_8_8_REV;
-
+        break;
+    case Tegra::FramebufferConfig::PixelFormat::RGB565:
+        internal_format = GL_RGB565;
+        texture.gl_format = GL_RGB;
+        texture.gl_type = GL_UNSIGNED_SHORT_5_6_5;
         break;
     default:
         internal_format = GL_RGBA8;
