@@ -147,45 +147,43 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
  * Loads framebuffer from emulated memory into the active OpenGL texture.
  */
 void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuffer) {
-    const auto pixel_format{
-        VideoCore::Surface::PixelFormatFromGPUPixelFormat(framebuffer.pixel_format)};
-    const u32 bytes_per_pixel{VideoCore::Surface::GetBytesPerPixel(pixel_format)};
-    const u64 size_in_bytes{framebuffer.stride * framebuffer.height * bytes_per_pixel};
-    const VAddr framebuffer_addr{framebuffer.address + framebuffer.offset};
-
     // Framebuffer orientation handling
     framebuffer_transform_flags = framebuffer.transform_flags;
     framebuffer_crop_rect = framebuffer.crop_rect;
 
-    // Ensure no bad interactions with GL_UNPACK_ALIGNMENT, which by default
-    // only allows rows to have a memory alignement of 4.
-    ASSERT(framebuffer.stride % 4 == 0);
-
-    if (!rasterizer->AccelerateDisplay(framebuffer, framebuffer_addr, framebuffer.stride)) {
-        // Reset the screen info's display texture to its own permanent texture
-        screen_info.display_texture = screen_info.texture.resource.handle;
-
-        rasterizer->FlushRegion(ToCacheAddr(Memory::GetPointer(framebuffer_addr)), size_in_bytes);
-
-        constexpr u32 linear_bpp = 4;
-        VideoCore::MortonCopyPixels128(VideoCore::MortonSwizzleMode::MortonToLinear,
-                                       framebuffer.width, framebuffer.height, bytes_per_pixel,
-                                       linear_bpp, Memory::GetPointer(framebuffer_addr),
-                                       gl_framebuffer_data.data());
-
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, static_cast<GLint>(framebuffer.stride));
-
-        // Update existing texture
-        // TODO: Test what happens on hardware when you change the framebuffer dimensions so that
-        //       they differ from the LCD resolution.
-        // TODO: Applications could theoretically crash yuzu here by specifying too large
-        //       framebuffer sizes. We should make sure that this cannot happen.
-        glTextureSubImage2D(screen_info.texture.resource.handle, 0, 0, 0, framebuffer.width,
-                            framebuffer.height, screen_info.texture.gl_format,
-                            screen_info.texture.gl_type, gl_framebuffer_data.data());
-
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    const VAddr framebuffer_addr{framebuffer.address + framebuffer.offset};
+    if (rasterizer->AccelerateDisplay(framebuffer, framebuffer_addr, framebuffer.stride)) {
+        return;
     }
+
+    // Reset the screen info's display texture to its own permanent texture
+    screen_info.display_texture = screen_info.texture.resource.handle;
+
+    const auto pixel_format{
+        VideoCore::Surface::PixelFormatFromGPUPixelFormat(framebuffer.pixel_format)};
+    const u32 bytes_per_pixel{VideoCore::Surface::GetBytesPerPixel(pixel_format)};
+    const u64 size_in_bytes{framebuffer.stride * framebuffer.height * bytes_per_pixel};
+    const auto host_ptr{Memory::GetPointer(framebuffer_addr)};
+    rasterizer->FlushRegion(ToCacheAddr(host_ptr), size_in_bytes);
+
+    // TODO(Rodrigo): Read this from HLE
+    constexpr u32 block_height_log2 = 4;
+    VideoCore::MortonSwizzle(VideoCore::MortonSwizzleMode::MortonToLinear, pixel_format,
+                             framebuffer.stride, block_height_log2, framebuffer.height, 0, 1, 1,
+                             gl_framebuffer_data.data(), host_ptr);
+
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, static_cast<GLint>(framebuffer.stride));
+
+    // Update existing texture
+    // TODO: Test what happens on hardware when you change the framebuffer dimensions so that
+    //       they differ from the LCD resolution.
+    // TODO: Applications could theoretically crash yuzu here by specifying too large
+    //       framebuffer sizes. We should make sure that this cannot happen.
+    glTextureSubImage2D(screen_info.texture.resource.handle, 0, 0, 0, framebuffer.width,
+                        framebuffer.height, screen_info.texture.gl_format,
+                        screen_info.texture.gl_type, gl_framebuffer_data.data());
+
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 }
 
 /**
