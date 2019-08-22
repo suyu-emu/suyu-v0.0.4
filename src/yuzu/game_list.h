@@ -21,7 +21,7 @@
 #include <QWidget>
 
 #include "common/common_types.h"
-#include "ui_settings.h"
+#include "uisettings.h"
 #include "yuzu/compatibility_list.h"
 
 class GameListWorker;
