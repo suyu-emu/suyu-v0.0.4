@@ -401,6 +401,9 @@ struct Values {
     std::string motion_device;
     TouchscreenInput touchscreen;
     std::atomic_bool is_device_reload_pending{true};
+    std::string udp_input_address;
+    u16 udp_input_port;
+    u8 udp_pad_index;
 
     // Core
     bool use_multi_core;

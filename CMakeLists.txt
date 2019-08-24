@@ -350,6 +350,13 @@ function(create_target_directory_groups target_name)
     endforeach()
 endfunction()
 
+# Prevent boost from linking against libs when building
+add_definitions(-DBOOST_ERROR_CODE_HEADER_ONLY
+    -DBOOST_SYSTEM_NO_LIB
+    -DBOOST_DATE_TIME_NO_LIB
+    -DBOOST_REGEX_NO_LIB
+)
+
 enable_testing()
 add_subdirectory(externals)
 add_subdirectory(src)
