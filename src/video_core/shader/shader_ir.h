@@ -151,6 +151,10 @@ public:
         return decompiled;
     }
 
+    const ASTManager& GetASTManager() const {
+        return program_manager;
+    }
+
     ASTNode GetASTProgram() const {
         return program_manager.GetProgram();
     }

@@ -205,11 +205,27 @@ public:
         return nullptr;
     }
 
-    void MarkLabelUnused() const {
+    void MarkLabelUnused() {
         auto inner = std::get_if<ASTLabel>(&data);
         if (inner) {
             inner->unused = true;
         }
+    }
+
+    bool IsLabelUnused() const {
+        auto inner = std::get_if<ASTLabel>(&data);
+        if (inner) {
+            return inner->unused;
+        }
+        return true;
+    }
+
+    u32 GetLabelIndex() const {
+        auto inner = std::get_if<ASTLabel>(&data);
+        if (inner) {
+            return inner->index;
+        }
+        return -1;
     }
 
     Expr GetIfCondition() const {
@@ -334,6 +350,10 @@ public:
 
     u32 GetVariables() const {
         return variables;
+    }
+
+    const std::vector<ASTNode>& GetLabels() const {
+        return labels;
     }
 
 private:
