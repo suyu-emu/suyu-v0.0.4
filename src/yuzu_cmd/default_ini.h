@@ -213,6 +213,8 @@ region_value =
 log_filter = *:Trace
 
 [Debugging]
+# Record frame time data, can be found in the log directory. Boolean value
+record_frame_times =
 # Port for listening to GDB connections.
 use_gdbstub=false
 gdbstub_port=24689

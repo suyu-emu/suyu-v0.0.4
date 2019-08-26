@@ -160,10 +160,6 @@ struct System::Impl {
 
         LOG_DEBUG(Core, "Initialized OK");
 
-        // Reset counters and set time origin to current frame
-        GetAndResetPerfStats();
-        perf_stats.BeginSystemFrame();
-
         return ResultStatus::Success;
     }
 
@@ -206,6 +202,16 @@ struct System::Impl {
         main_process->Run(load_parameters->main_thread_priority,
                           load_parameters->main_thread_stack_size);
 
+        u64 title_id{0};
+        if (app_loader->ReadProgramId(title_id) != Loader::ResultStatus::Success) {
+            LOG_ERROR(Core, "Failed to find title id for ROM (Error {})",
+                      static_cast<u32>(load_result));
+        }
+        perf_stats = std::make_unique<PerfStats>(title_id);
+        // Reset counters and set time origin to current frame
+        GetAndResetPerfStats();
+        perf_stats->BeginSystemFrame();
+
         status = ResultStatus::Success;
         return status;
     }
@@ -219,6 +225,8 @@ struct System::Impl {
                                     perf_results.game_fps);
         telemetry_session->AddField(Telemetry::FieldType::Performance, "Shutdown_Frametime",
                                     perf_results.frametime * 1000.0);
+        telemetry_session->AddField(Telemetry::FieldType::Performance, "Mean_Frametime_MS",
+                                    perf_stats->GetMeanFrametime());
 
         is_powered_on = false;
 
@@ -229,6 +237,7 @@ struct System::Impl {
         service_manager.reset();
         cheat_engine.reset();
         telemetry_session.reset();
+        perf_stats.reset();
         gpu_core.reset();
 
         // Close all CPU/threading state
@@ -286,7 +295,7 @@ struct System::Impl {
     }
 
     PerfStatsResults GetAndResetPerfStats() {
-        return perf_stats.GetAndResetStats(core_timing.GetGlobalTimeUs());
+        return perf_stats->GetAndResetStats(core_timing.GetGlobalTimeUs());
     }
 
     Timing::CoreTiming core_timing;
@@ -327,7 +336,7 @@ struct System::Impl {
     ResultStatus status = ResultStatus::Success;
     std::string status_details = "";
 
-    Core::PerfStats perf_stats;
+    std::unique_ptr<Core::PerfStats> perf_stats;
     Core::FrameLimiter frame_limiter;
 };
 
@@ -480,11 +489,11 @@ const Timing::CoreTiming& System::CoreTiming() const {
 }
 
 Core::PerfStats& System::GetPerfStats() {
-    return impl->perf_stats;
+    return *impl->perf_stats;
 }
 
 const Core::PerfStats& System::GetPerfStats() const {
-    return impl->perf_stats;
+    return *impl->perf_stats;
 }
 
 Core::FrameLimiter& System::FrameLimiter() {
