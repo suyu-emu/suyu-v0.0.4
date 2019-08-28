@@ -22,7 +22,7 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
     case OpCode::Id::I2I_R:
     case OpCode::Id::I2I_C:
     case OpCode::Id::I2I_IMM: {
-        UNIMPLEMENTED_IF(instr.conversion.selector);
+        UNIMPLEMENTED_IF(instr.conversion.selector.Value());
         UNIMPLEMENTED_IF(instr.conversion.dst_size != Register::Size::Word);
         UNIMPLEMENTED_IF(instr.alu.saturate_d);
 
@@ -57,8 +57,8 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
     case OpCode::Id::I2F_R:
     case OpCode::Id::I2F_C:
     case OpCode::Id::I2F_IMM: {
+        UNIMPLEMENTED_IF(instr.conversion.selector.Value());
         UNIMPLEMENTED_IF(instr.conversion.dst_size == Register::Size::Long);
-        UNIMPLEMENTED_IF(instr.conversion.selector);
         UNIMPLEMENTED_IF_MSG(instr.generates_cc,
                              "Condition codes generation in I2F is not implemented");
 
@@ -93,6 +93,7 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
     case OpCode::Id::F2F_R:
     case OpCode::Id::F2F_C:
     case OpCode::Id::F2F_IMM: {
+        UNIMPLEMENTED_IF(instr.conversion.selector.Value());
         UNIMPLEMENTED_IF(instr.conversion.dst_size == Register::Size::Long);
         UNIMPLEMENTED_IF(instr.conversion.src_size == Register::Size::Long);
         UNIMPLEMENTED_IF_MSG(instr.generates_cc,
@@ -169,8 +170,19 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
         }();
 
         if (instr.conversion.src_size == Register::Size::Short) {
-            // TODO: figure where extract is sey in the encoding
-            value = Operation(OperationCode::FCastHalf0, PRECISE, value);
+            const OperationCode cast = [instr] {
+                switch (instr.conversion.selector) {
+                case 0:
+                    return OperationCode::FCastHalf0;
+                case 1:
+                    return OperationCode::FCastHalf1;
+                default:
+                    UNREACHABLE_MSG("Invalid selector={}",
+                                    static_cast<u32>(instr.conversion.selector));
+                    return OperationCode::FCastHalf0;
+                }
+            }();
+            value = Operation(cast, NO_PRECISE, std::move(value));
         }
 
         value = GetOperandAbsNegFloat(value, instr.conversion.abs_a, instr.conversion.negate_a);
