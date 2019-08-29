@@ -249,20 +249,24 @@ CachedProgram SpecializeShader(const std::string& code, const GLShader::ShaderEn
         if (!texture_buffer_usage.test(i)) {
             continue;
         }
-        source += fmt::format("#define SAMPLER_{}_IS_BUFFER", i);
+        source += fmt::format("#define SAMPLER_{}_IS_BUFFER\n", i);
+    }
+    if (texture_buffer_usage.any()) {
+        source += '\n';
     }
 
     if (program_type == ProgramType::Geometry) {
         const auto [glsl_topology, debug_name, max_vertices] =
             GetPrimitiveDescription(primitive_mode);
 
-        source += "layout (" + std::string(glsl_topology) + ") in;\n";
+        source += "layout (" + std::string(glsl_topology) + ") in;\n\n";
         source += "#define MAX_VERTEX_INPUT " + std::to_string(max_vertices) + '\n';
     }
     if (program_type == ProgramType::Compute) {
         source += "layout (local_size_variable) in;\n";
     }
 
+    source += '\n';
     source += code;
 
     OGLShader shader;
