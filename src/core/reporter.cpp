@@ -5,8 +5,8 @@
 #include <ctime>
 #include <fstream>
 
-#include <fmt/format.h>
 #include <fmt/chrono.h>
+#include <fmt/format.h>
 #include <json.hpp>
 
 #include "common/file_util.h"
