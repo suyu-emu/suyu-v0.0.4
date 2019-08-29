@@ -5,7 +5,7 @@
 #include <array>
 #include <cstring>
 #include <ctime>
-#include <fmt/time.h>
+#include <fmt/chrono.h>
 #include "common/file_util.h"
 #include "common/logging/log.h"
 #include "common/scm_rev.h"

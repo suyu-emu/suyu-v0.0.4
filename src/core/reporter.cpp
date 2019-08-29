@@ -6,7 +6,7 @@
 #include <fstream>
 
 #include <fmt/format.h>
-#include <fmt/time.h>
+#include <fmt/chrono.h>
 #include <json.hpp>
 
 #include "common/file_util.h"
