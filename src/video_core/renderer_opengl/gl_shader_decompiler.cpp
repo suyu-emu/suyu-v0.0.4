@@ -830,7 +830,7 @@ private:
                              final_offset);
 
                 const std::string result = code.GenerateTemporary();
-                code.AddLine("float {};", result);
+                code.AddLine("uint {};", result);
                 for (u32 swizzle = 0; swizzle < 4; ++swizzle) {
                     code.AddLine("if (({} & 3) == {}) {} = {}{};", final_offset, swizzle, result,
                                  pack, GetSwizzle(swizzle));
