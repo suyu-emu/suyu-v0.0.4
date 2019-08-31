@@ -957,8 +957,15 @@ private:
         if (!IsPrecise(operation)) {
             return {std::move(value), type};
         }
+        // Old Nvidia drivers have a bug with precise and texture sampling. These are more likely to
+        // be found in fragment shaders, so we disable precise there. There are vertex shaders that
+        // also fail to build but nobody seems to care about those.
+        // Note: Only bugged drivers will skip precise.
+        const bool disable_precise = device.HasPreciseBug() && stage == ProgramType::Fragment;
+
         std::string temporary = code.GenerateTemporary();
-        code.AddLine("precise {} {} = {};", GetTypeString(type), temporary, value);
+        code.AddLine("{}{} {} = {};", disable_precise ? "" : "precise ", GetTypeString(type),
+                     temporary, value);
         return {std::move(temporary), type};
     }
 
