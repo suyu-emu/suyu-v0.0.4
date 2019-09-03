@@ -485,15 +485,6 @@ std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
             View color_surface{
                 texture_cache.GetColorBufferSurface(*single_color_target, preserve_contents)};
 
-            if (color_surface) {
-                // Assume that a surface will be written to if it is used as a framebuffer, even if
-                // the shader doesn't actually write to it.
-                texture_cache.MarkColorBufferInUse(*single_color_target);
-                // Workaround for and issue in nvidia drivers
-                // https://devtalk.nvidia.com/default/topic/776591/opengl/gl_framebuffer_srgb-functions-incorrectly/
-                state.framebuffer_srgb.enabled |= color_surface->GetSurfaceParams().srgb_conversion;
-            }
-
             fbkey.is_single_buffer = true;
             fbkey.color_attachments[0] =
                 GL_COLOR_ATTACHMENT0 + static_cast<GLenum>(*single_color_target);
@@ -507,17 +498,6 @@ std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
             // Multiple color attachments are enabled
             for (std::size_t index = 0; index < Maxwell::NumRenderTargets; ++index) {
                 View color_surface{texture_cache.GetColorBufferSurface(index, preserve_contents)};
-
-                if (color_surface) {
-                    // Assume that a surface will be written to if it is used as a framebuffer, even
-                    // if the shader doesn't actually write to it.
-                    texture_cache.MarkColorBufferInUse(index);
-                    // Enable sRGB only for supported formats
-                    // Workaround for and issue in nvidia drivers
-                    // https://devtalk.nvidia.com/default/topic/776591/opengl/gl_framebuffer_srgb-functions-incorrectly/
-                    state.framebuffer_srgb.enabled |=
-                        color_surface->GetSurfaceParams().srgb_conversion;
-                }
 
                 fbkey.color_attachments[index] =
                     GL_COLOR_ATTACHMENT0 + regs.rt_control.GetMap(index);
@@ -906,6 +886,7 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     }
 
     screen_info.display_texture = surface->GetTexture();
+    screen_info.display_srgb = surface->GetSurfaceParams().srgb_conversion;
 
     return true;
 }
