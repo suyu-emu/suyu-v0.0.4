@@ -1057,6 +1057,7 @@ IApplicationFunctions::IApplicationFunctions() : ServiceFramework("IApplicationF
         {120, nullptr, "ExecuteProgram"},
         {121, nullptr, "ClearUserChannel"},
         {122, nullptr, "UnpopToUserChannel"},
+        {130, &IApplicationFunctions::GetGpuErrorDetectedSystemEvent, "GetGpuErrorDetectedSystemEvent"},
         {500, nullptr, "StartContinuousRecordingFlushForDebug"},
         {1000, nullptr, "CreateMovieMaker"},
         {1001, nullptr, "PrepareForJit"},
@@ -1064,6 +1065,10 @@ IApplicationFunctions::IApplicationFunctions() : ServiceFramework("IApplicationF
     // clang-format on
 
     RegisterHandlers(functions);
+
+    auto& kernel = Core::System::GetInstance().Kernel();
+    gpu_error_detected_event = Kernel::WritableEvent::CreateEventPair(
+        kernel, Kernel::ResetType::Manual, "IApplicationFunctions:GpuErrorDetectedSystemEvent");
 }
 
 IApplicationFunctions::~IApplicationFunctions() = default;
@@ -1283,6 +1288,14 @@ void IApplicationFunctions::GetSaveDataSize(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
     rb.Push(size.normal);
     rb.Push(size.journal);
+}
+
+void IApplicationFunctions::GetGpuErrorDetectedSystemEvent(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushCopyObjects(gpu_error_detected_event.readable);
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager,

@@ -242,6 +242,9 @@ private:
     void BeginBlockingHomeButton(Kernel::HLERequestContext& ctx);
     void EndBlockingHomeButton(Kernel::HLERequestContext& ctx);
     void EnableApplicationCrashReport(Kernel::HLERequestContext& ctx);
+    void GetGpuErrorDetectedSystemEvent(Kernel::HLERequestContext& ctx);
+
+    Kernel::EventPair gpu_error_detected_event;
 };
 
 class IHomeMenuFunctions final : public ServiceFramework<IHomeMenuFunctions> {
