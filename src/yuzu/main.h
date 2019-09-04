@@ -130,6 +130,9 @@ private:
     void ConnectWidgetEvents();
     void ConnectMenuEvents();
 
+    void PreventOSSleep();
+    void AllowOSSleep();
+
     QStringList GetUnsupportedGLExtensions();
     bool LoadROM(const QString& filename);
     void BootGame(const QString& filename);

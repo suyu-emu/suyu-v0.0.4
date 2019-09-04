@@ -119,6 +119,7 @@ Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 #endif
 
 #ifdef _WIN32
+#include <windows.h>
 extern "C" {
 // tells Nvidia and AMD drivers to use the dedicated GPU by default on laptops with switchable
 // graphics
@@ -747,6 +748,18 @@ void GMainWindow::OnDisplayTitleBars(bool show) {
     }
 }
 
+void GMainWindow::PreventOSSleep() {
+#ifdef _WIN32
+    SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
+#endif
+}
+
+void GMainWindow::AllowOSSleep() {
+#ifdef _WIN32
+    SetThreadExecutionState(ES_CONTINUOUS);
+#endif
+}
+
 QStringList GMainWindow::GetUnsupportedGLExtensions() {
     QStringList unsupported_ext;
 
@@ -966,6 +979,8 @@ void GMainWindow::BootGame(const QString& filename) {
 }
 
 void GMainWindow::ShutdownGame() {
+    AllowOSSleep();
+
     discord_rpc->Pause();
     emu_thread->RequestStop();
 
@@ -1567,6 +1582,8 @@ void GMainWindow::OnMenuRecentFile() {
 }
 
 void GMainWindow::OnStartGame() {
+    PreventOSSleep();
+
     emu_thread->SetRunning(true);
 
     qRegisterMetaType<Core::Frontend::SoftwareKeyboardParameters>(
@@ -1598,6 +1615,8 @@ void GMainWindow::OnPauseGame() {
     ui.action_Pause->setEnabled(false);
     ui.action_Stop->setEnabled(true);
     ui.action_Capture_Screenshot->setEnabled(false);
+
+    AllowOSSleep();
 }
 
 void GMainWindow::OnStopGame() {
