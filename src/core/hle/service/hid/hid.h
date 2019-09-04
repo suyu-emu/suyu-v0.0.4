@@ -114,6 +114,8 @@ private:
     void SetNpadHandheldActivationMode(Kernel::HLERequestContext& ctx);
     void GetVibrationDeviceInfo(Kernel::HLERequestContext& ctx);
     void CreateActiveVibrationDeviceList(Kernel::HLERequestContext& ctx);
+    void PermitVibration(Kernel::HLERequestContext& ctx);
+    void IsVibrationPermitted(Kernel::HLERequestContext& ctx);
     void ActivateConsoleSixAxisSensor(Kernel::HLERequestContext& ctx);
     void StartConsoleSixAxisSensor(Kernel::HLERequestContext& ctx);
     void StopSixAxisSensor(Kernel::HLERequestContext& ctx);
