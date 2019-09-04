@@ -173,7 +173,7 @@ public:
             {7, &IAudioDevice::SetAudioDeviceOutputVolume, "SetAudioDeviceOutputVolumeAuto"},
             {8, nullptr, "GetAudioDeviceOutputVolumeAuto"},
             {10, &IAudioDevice::GetActiveAudioDeviceName, "GetActiveAudioDeviceNameAuto"},
-            {11, nullptr, "QueryAudioDeviceInputEvent"},
+            {11, &IAudioDevice::QueryAudioDeviceInputEvent, "QueryAudioDeviceInputEvent"},
             {12, &IAudioDevice::QueryAudioDeviceOutputEvent, "QueryAudioDeviceOutputEvent"},
             {13, nullptr, "GetAudioSystemMasterVolumeSetting"},
         };
@@ -182,6 +182,10 @@ public:
         auto& kernel = system.Kernel();
         buffer_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Automatic,
                                                               "IAudioOutBufferReleasedEvent");
+
+        // Should be similar to audio_output_device_switch_event
+        audio_input_device_switch_event = Kernel::WritableEvent::CreateEventPair(
+            kernel, Kernel::ResetType::Automatic, "IAudioDevice:AudioInputDeviceSwitchedEvent");
 
         // Should only be signalled when an audio output device has been changed, example: speaker
         // to headset
@@ -277,6 +281,15 @@ private:
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(1);
+    }
+
+    // Should be similar to QueryAudioDeviceOutputEvent
+    void QueryAudioDeviceInputEvent(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_Audio, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushCopyObjects(audio_input_device_switch_event.readable);
     }
 
     void QueryAudioDeviceOutputEvent(Kernel::HLERequestContext& ctx) {
