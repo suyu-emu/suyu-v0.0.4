@@ -175,6 +175,10 @@ MiiStoreData ConvertInfoToStoreData(const MiiInfo& info) {
 } // namespace
 
 std::ostream& operator<<(std::ostream& os, Source source) {
+    if (static_cast<std::size_t>(source) >= SOURCE_NAMES.size()) {
+        return os << "[UNKNOWN SOURCE]";
+    }
+
     os << SOURCE_NAMES.at(static_cast<std::size_t>(source));
     return os;
 }
