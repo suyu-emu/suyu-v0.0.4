@@ -1270,7 +1270,7 @@ private:
     MemoryManager& memory_manager;
 
     /// Start offsets of each macro in macro_memory
-    std::unordered_map<u32, u32> macro_offsets;
+    std::array<u32, 0x80> macro_positions = {};
 
     /// Memory for macro code
     MacroMemory macro_memory;

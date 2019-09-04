@@ -249,16 +249,10 @@ void Maxwell3D::CallMacroMethod(u32 method, std::vector<u32> parameters) {
     executing_macro = 0;
 
     // Lookup the macro offset
-    const u32 entry{(method - MacroRegistersStart) >> 1};
-    const auto& search{macro_offsets.find(entry)};
-    if (search == macro_offsets.end()) {
-        LOG_CRITICAL(HW_GPU, "macro not found for method 0x{:X}!", method);
-        UNREACHABLE();
-        return;
-    }
+    const u32 entry = ((method - MacroRegistersStart) >> 1) % macro_positions.size();
 
     // Execute the current macro.
-    macro_interpreter.Execute(search->second, std::move(parameters));
+    macro_interpreter.Execute(macro_positions[entry], std::move(parameters));
 }
 
 void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
@@ -421,7 +415,7 @@ void Maxwell3D::ProcessMacroUpload(u32 data) {
 }
 
 void Maxwell3D::ProcessMacroBind(u32 data) {
-    macro_offsets[regs.macros.entry] = data;
+    macro_positions[regs.macros.entry++] = data;
 }
 
 void Maxwell3D::ProcessQueryGet() {
