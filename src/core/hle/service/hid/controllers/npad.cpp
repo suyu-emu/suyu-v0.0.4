@@ -636,8 +636,13 @@ Controller_NPad::LedPattern Controller_NPad::GetLedPattern(u32 npad_id) {
         return LedPattern{0, 0, 0, 0};
     };
 }
+
 void Controller_NPad::SetVibrationEnabled(bool can_vibrate) {
     can_controllers_vibrate = can_vibrate;
+}
+
+bool Controller_NPad::IsVibrationEnabled() const {
+    return can_controllers_vibrate;
 }
 
 void Controller_NPad::ClearAllConnectedControllers() {
@@ -648,6 +653,7 @@ void Controller_NPad::ClearAllConnectedControllers() {
         }
     }
 }
+
 void Controller_NPad::DisconnectAllConnectedControllers() {
     std::for_each(connected_controllers.begin(), connected_controllers.end(),
                   [](ControllerHolder& controller) { controller.is_connected = false; });
