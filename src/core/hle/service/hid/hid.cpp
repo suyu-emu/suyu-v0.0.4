@@ -696,8 +696,8 @@ void Hid::IsVibrationPermitted(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
-    rb.Push(applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .IsVibrationEnabled());
+    rb.Push(
+        applet_resource->GetController<Controller_NPad>(HidController::NPad).IsVibrationEnabled());
 }
 
 void Hid::ActivateConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
