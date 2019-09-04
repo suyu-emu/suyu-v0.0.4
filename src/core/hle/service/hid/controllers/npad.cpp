@@ -641,7 +641,7 @@ void Controller_NPad::SetVibrationEnabled(bool can_vibrate) {
     can_controllers_vibrate = can_vibrate;
 }
 
-bool Controller_NPad::IsVibrationEnabled() {
+bool Controller_NPad::IsVibrationEnabled() const {
     return can_controllers_vibrate;
 }
 
