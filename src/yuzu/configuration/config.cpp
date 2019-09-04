@@ -516,6 +516,7 @@ void Config::ReadPathValues() {
 
     UISettings::values.roms_path = ReadSetting(QStringLiteral("romsPath")).toString();
     UISettings::values.symbols_path = ReadSetting(QStringLiteral("symbolsPath")).toString();
+    UISettings::values.screenshot_path = ReadSetting(QStringLiteral("screenshotPath")).toString();
     UISettings::values.game_directory_path =
         ReadSetting(QStringLiteral("gameListRootDir"), QStringLiteral(".")).toString();
     UISettings::values.game_directory_deepscan =
