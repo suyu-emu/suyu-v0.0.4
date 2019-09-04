@@ -256,7 +256,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u32>(1);
+        rb.Push<f32>(1);
     }
 
     void GetActiveAudioDeviceName(Kernel::HLERequestContext& ctx) {
