@@ -165,13 +165,13 @@ public:
         static const FunctionInfo functions[] = {
             {0, &IAudioDevice::ListAudioDeviceName, "ListAudioDeviceName"},
             {1, &IAudioDevice::SetAudioDeviceOutputVolume, "SetAudioDeviceOutputVolume"},
-            {2, nullptr, "GetAudioDeviceOutputVolume"},
+            {2, &IAudioDevice::GetAudioDeviceOutputVolume, "GetAudioDeviceOutputVolume"},
             {3, &IAudioDevice::GetActiveAudioDeviceName, "GetActiveAudioDeviceName"},
             {4, &IAudioDevice::QueryAudioDeviceSystemEvent, "QueryAudioDeviceSystemEvent"},
             {5, &IAudioDevice::GetActiveChannelCount, "GetActiveChannelCount"},
             {6, &IAudioDevice::ListAudioDeviceName, "ListAudioDeviceNameAuto"},
             {7, &IAudioDevice::SetAudioDeviceOutputVolume, "SetAudioDeviceOutputVolumeAuto"},
-            {8, nullptr, "GetAudioDeviceOutputVolumeAuto"},
+            {8, &IAudioDevice::GetAudioDeviceOutputVolume, "GetAudioDeviceOutputVolumeAuto"},
             {10, &IAudioDevice::GetActiveAudioDeviceName, "GetActiveAudioDeviceNameAuto"},
             {11, nullptr, "QueryAudioDeviceInputEvent"},
             {12, &IAudioDevice::QueryAudioDeviceOutputEvent, "QueryAudioDeviceOutputEvent"},
@@ -244,6 +244,19 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
+    }
+
+    void GetAudioDeviceOutputVolume(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        const auto device_name_buffer = ctx.ReadBuffer();
+        const std::string name = Common::StringFromBuffer(device_name_buffer);
+
+        LOG_WARNING(Service_Audio, "(STUBBED) called. name={}", name);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(1.0f);
     }
 
     void GetActiveAudioDeviceName(Kernel::HLERequestContext& ctx) {
