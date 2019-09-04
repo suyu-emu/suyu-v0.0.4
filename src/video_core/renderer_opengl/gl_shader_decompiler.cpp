@@ -826,7 +826,7 @@ private:
                 // AMD's proprietary GLSL compiler emits ill code for variable component access.
                 // To bypass this driver bug generate 4 ifs, one per each component.
                 const std::string pack = code.GenerateTemporary();
-                code.AddLine("vec4 {} = {}[{} >> 2];", pack, GetConstBuffer(cbuf->GetIndex()),
+                code.AddLine("uvec4 {} = {}[{} >> 2];", pack, GetConstBuffer(cbuf->GetIndex()),
                              final_offset);
 
                 const std::string result = code.GenerateTemporary();
