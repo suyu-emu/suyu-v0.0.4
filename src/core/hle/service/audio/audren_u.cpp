@@ -302,6 +302,7 @@ private:
 
     u32_le revision = 0;
     Kernel::EventPair buffer_event;
+    Kernel::EventPair audio_input_device_switch_event;
     Kernel::EventPair audio_output_device_switch_event;
 
 }; // namespace Audio
