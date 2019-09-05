@@ -2172,7 +2172,10 @@ int main(int argc, char* argv[]) {
     QCoreApplication::setApplicationName(QStringLiteral("yuzu"));
 
 #ifdef __APPLE__
-    std::string bin_path = FileUtil::GetBundleDirectory() + DIR_SEP + "..";
+    // If you start a bundle (binary) on OSX without the Terminal, the working directory is "/".
+    // But since we require the working directory to be the executable path for the location of the
+    // user folder in the Qt Frontend, we need to cd into that working directory
+    const std::string bin_path = FileUtil::GetBundleDirectory() + DIR_SEP + "..";
     chdir(bin_path.c_str());
 #endif
 
