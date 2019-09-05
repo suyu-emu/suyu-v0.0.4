@@ -6,6 +6,9 @@
 #include <clocale>
 #include <memory>
 #include <thread>
+#ifdef __APPLE__
+#include <unistd.h> // for chdir
+#endif
 
 // VFS includes must be before glad as they will conflict with Windows file api, which uses defines.
 #include "applets/error.h"
@@ -2225,6 +2228,14 @@ int main(int argc, char* argv[]) {
     // Init settings params
     QCoreApplication::setOrganizationName(QStringLiteral("yuzu team"));
     QCoreApplication::setApplicationName(QStringLiteral("yuzu"));
+
+#ifdef __APPLE__
+    // If you start a bundle (binary) on OSX without the Terminal, the working directory is "/".
+    // But since we require the working directory to be the executable path for the location of the
+    // user folder in the Qt Frontend, we need to cd into that working directory
+    const std::string bin_path = FileUtil::GetBundleDirectory() + DIR_SEP + "..";
+    chdir(bin_path.c_str());
+#endif
 
     // Enables the core to make the qt created contexts current on std::threads
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
