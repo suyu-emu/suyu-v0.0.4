@@ -68,12 +68,14 @@ void ConfigureDialog::RetranslateUI() {
     ui->tabWidget->setCurrentIndex(old_index);
 }
 
+Q_DECLARE_METATYPE(QList<QWidget*>);
+
 void ConfigureDialog::PopulateSelectionList() {
-    const std::array<std::pair<QString, QStringList>, 4> items{
-        {{tr("General"), {tr("General"), tr("Web"), tr("Debug"), tr("Game List")}},
-         {tr("System"), {tr("System"), tr("Profiles"), tr("Audio")}},
-         {tr("Graphics"), {tr("Graphics")}},
-         {tr("Controls"), {tr("Input"), tr("Hotkeys")}}},
+    const std::array<std::pair<QString, QList<QWidget*>>, 4> items{
+        {{tr("General"), {ui->generalTab, ui->webTab, ui->debugTab, ui->gameListTab}},
+         {tr("System"), {ui->systemTab, ui->profileManagerTab, ui->audioTab}},
+         {tr("Graphics"), {ui->graphicsTab}},
+         {tr("Controls"), {ui->inputTab, ui->hotkeysTab}}},
     };
 
     [[maybe_unused]] const QSignalBlocker blocker(ui->selectorList);
@@ -81,7 +83,7 @@ void ConfigureDialog::PopulateSelectionList() {
     ui->selectorList->clear();
     for (const auto& entry : items) {
         auto* const item = new QListWidgetItem(entry.first);
-        item->setData(Qt::UserRole, entry.second);
+        item->setData(Qt::UserRole, QVariant::fromValue(entry.second));
 
         ui->selectorList->addItem(item);
     }
@@ -93,24 +95,26 @@ void ConfigureDialog::UpdateVisibleTabs() {
         return;
     }
 
-    const std::map<QString, QWidget*> widgets = {
-        {tr("General"), ui->generalTab},
-        {tr("System"), ui->systemTab},
-        {tr("Profiles"), ui->profileManagerTab},
-        {tr("Input"), ui->inputTab},
-        {tr("Hotkeys"), ui->hotkeysTab},
-        {tr("Graphics"), ui->graphicsTab},
-        {tr("Audio"), ui->audioTab},
-        {tr("Debug"), ui->debugTab},
-        {tr("Web"), ui->webTab},
-        {tr("Game List"), ui->gameListTab},
+    const std::map<QWidget*, QString> widgets = {
+        {ui->generalTab, tr("General")},
+        {ui->systemTab, tr("System")},
+        {ui->profileManagerTab, tr("Profiles")},
+        {ui->inputTab, tr("Input")},
+        {ui->hotkeysTab, tr("Hotkeys")},
+        {ui->graphicsTab, tr("Graphics")},
+        {ui->audioTab, tr("Audio")},
+        {ui->debugTab, tr("Debug")},
+        {ui->webTab, tr("Web")},
+        {ui->gameListTab, tr("Game List")},
     };
 
     [[maybe_unused]] const QSignalBlocker blocker(ui->tabWidget);
 
     ui->tabWidget->clear();
-    const QStringList tabs = items[0]->data(Qt::UserRole).toStringList();
-    for (const auto& tab : tabs) {
-        ui->tabWidget->addTab(widgets.find(tab)->second, tab);
+
+    const QList<QWidget*> tabs = qvariant_cast<QList<QWidget*>>(items[0]->data(Qt::UserRole));
+
+    for (const auto tab : tabs) {
+        ui->tabWidget->addTab(tab, widgets.at(tab));
     }
 }
