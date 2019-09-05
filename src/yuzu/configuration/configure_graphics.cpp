@@ -55,7 +55,6 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
 
     SetConfiguration();
 
-    connect(ui->toggle_frame_limit, &QCheckBox::toggled, ui->frame_limit, &QSpinBox::setEnabled);
     connect(ui->bg_button, &QPushButton::clicked, this, [this] {
         const QColor new_bg_color = QColorDialog::getColor(bg_color);
         if (!new_bg_color.isValid()) {
@@ -72,9 +71,6 @@ void ConfigureGraphics::SetConfiguration() {
 
     ui->resolution_factor_combobox->setCurrentIndex(
         static_cast<int>(FromResolutionFactor(Settings::values.resolution_factor)));
-    ui->toggle_frame_limit->setChecked(Settings::values.use_frame_limit);
-    ui->frame_limit->setEnabled(ui->toggle_frame_limit->isChecked());
-    ui->frame_limit->setValue(Settings::values.frame_limit);
     ui->use_disk_shader_cache->setEnabled(runtime_lock);
     ui->use_disk_shader_cache->setChecked(Settings::values.use_disk_shader_cache);
     ui->use_accurate_gpu_emulation->setChecked(Settings::values.use_accurate_gpu_emulation);
@@ -89,8 +85,6 @@ void ConfigureGraphics::SetConfiguration() {
 void ConfigureGraphics::ApplyConfiguration() {
     Settings::values.resolution_factor =
         ToResolutionFactor(static_cast<Resolution>(ui->resolution_factor_combobox->currentIndex()));
-    Settings::values.use_frame_limit = ui->toggle_frame_limit->isChecked();
-    Settings::values.frame_limit = ui->frame_limit->value();
     Settings::values.use_disk_shader_cache = ui->use_disk_shader_cache->isChecked();
     Settings::values.use_accurate_gpu_emulation = ui->use_accurate_gpu_emulation->isChecked();
     Settings::values.use_asynchronous_gpu_emulation =
