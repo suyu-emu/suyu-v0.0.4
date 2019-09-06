@@ -1098,6 +1098,9 @@ void RasterizerOpenGL::SetupImage(u32 binding, const Tegra::Texture::TICEntry& t
     if (!tic.IsBuffer()) {
         view->ApplySwizzle(tic.x_source, tic.y_source, tic.z_source, tic.w_source);
     }
+    if (entry.IsWritten()) {
+        view->MarkAsModified(texture_cache.Tick());
+    }
     state.images[binding] = view->GetTexture();
 }
 
