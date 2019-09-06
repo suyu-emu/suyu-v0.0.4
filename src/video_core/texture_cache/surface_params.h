@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <map>
-
 #include "common/alignment.h"
 #include "common/bit_util.h"
 #include "common/cityhash.h"
