@@ -485,6 +485,12 @@ std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
             View color_surface{
                 texture_cache.GetColorBufferSurface(*single_color_target, preserve_contents)};
 
+            if (color_surface) {
+                // Assume that a surface will be written to if it is used as a framebuffer, even if
+                // the shader doesn't actually write to it.
+                texture_cache.MarkColorBufferInUse(*single_color_target);
+            }
+
             fbkey.is_single_buffer = true;
             fbkey.color_attachments[0] =
                 GL_COLOR_ATTACHMENT0 + static_cast<GLenum>(*single_color_target);
@@ -498,6 +504,12 @@ std::pair<bool, bool> RasterizerOpenGL::ConfigureFramebuffers(
             // Multiple color attachments are enabled
             for (std::size_t index = 0; index < Maxwell::NumRenderTargets; ++index) {
                 View color_surface{texture_cache.GetColorBufferSurface(index, preserve_contents)};
+
+                if (color_surface) {
+                    // Assume that a surface will be written to if it is used as a framebuffer, even
+                    // if the shader doesn't actually write to it.
+                    texture_cache.MarkColorBufferInUse(index);
+                }
 
                 fbkey.color_attachments[index] =
                     GL_COLOR_ATTACHMENT0 + regs.rt_control.GetMap(index);
