@@ -43,6 +43,7 @@ public:
     ResultStatus ReadProgramId(u64& out_program_id) override;
     ResultStatus ReadRomFS(FileSys::VirtualFile& dir) override;
     ResultStatus ReadTitle(std::string& title) override;
+    ResultStatus ReadControlData(FileSys::NACP& control) override;
     bool IsRomFSUpdatable() const override;
 
 private:

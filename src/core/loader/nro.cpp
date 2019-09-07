@@ -258,6 +258,15 @@ ResultStatus AppLoader_NRO::ReadTitle(std::string& title) {
     return ResultStatus::Success;
 }
 
+ResultStatus AppLoader_NRO::ReadControlData(FileSys::NACP& control) {
+    if (nacp == nullptr) {
+        return ResultStatus::ErrorNoControl;
+    }
+
+    control = *nacp;
+    return ResultStatus::Success;
+}
+
 bool AppLoader_NRO::IsRomFSUpdatable() const {
     return false;
 }
