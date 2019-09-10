@@ -85,24 +85,16 @@ void Cpu::RunLoop(bool tight_loop) {
     // instead advance to the next event and try to yield to the next thread
     if (Kernel::GetCurrentThread() == nullptr) {
         LOG_TRACE(Core, "Core-{} idling", core_index);
-
-        if (IsMainCore()) {
-            // TODO(Subv): Only let CoreTiming idle if all 4 cores are idling.
-            core_timing.Idle();
-            core_timing.Advance();
-        }
-
+        core_timing.Idle();
+        core_timing.Advance();
         PrepareReschedule();
     } else {
-        if (IsMainCore()) {
-            core_timing.Advance();
-        }
-
         if (tight_loop) {
             arm_interface->Run();
         } else {
             arm_interface->Step();
         }
+        core_timing.Advance();
     }
 
     Reschedule();

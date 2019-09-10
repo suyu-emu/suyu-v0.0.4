@@ -156,7 +156,7 @@ void ARM_Unicorn::Run() {
     if (GDBStub::IsServerEnabled()) {
         ExecuteInstructions(std::max(4000000, 0));
     } else {
-        ExecuteInstructions(std::max(system.CoreTiming().GetDowncount(), 0));
+        ExecuteInstructions(std::max<s64>(system.CoreTiming().GetDowncount(), 0LL));
     }
 }
 
