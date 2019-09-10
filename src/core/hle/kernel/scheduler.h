@@ -133,6 +133,8 @@ public:
      */
     bool YieldThreadAndWaitForLoadBalancing(Thread* thread);
 
+    void PreemptThreads();
+
     u32 CpuCoresCount() const {
         return NUM_CPU_CORES;
     }
@@ -152,6 +154,8 @@ private:
     std::array<Common::MultiLevelQueue<Thread*, THREADPRIO_COUNT>, NUM_CPU_CORES> scheduled_queue;
     std::array<Common::MultiLevelQueue<Thread*, THREADPRIO_COUNT>, NUM_CPU_CORES> suggested_queue;
     std::atomic<bool> reselection_pending;
+
+    std::array<u64, NUM_CPU_CORES> preemption_priorities = {59, 59, 59, 62};
 
     /// Lists all thread ids that aren't deleted/etc.
     std::vector<SharedPtr<Thread>> thread_list;

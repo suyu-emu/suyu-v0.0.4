@@ -238,6 +238,16 @@ bool GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread
     return AskForReselectionOrMarkRedundant(yielding_thread, winner);
 }
 
+void GlobalScheduler::PreemptThreads() {
+    for (std::size_t core_id = 0; core_id < NUM_CPU_CORES; core_id++) {
+        const u64 priority = preemption_priorities[core_id];
+        if (scheduled_queue[core_id].size(priority) > 1) {
+            scheduled_queue[core_id].yield(priority);
+            reselection_pending.store(true, std::memory_order_release);
+        }
+    }
+}
+
 void GlobalScheduler::Schedule(u32 priority, u32 core, Thread* thread) {
     ASSERT_MSG(thread->GetProcessorID() == core, "Thread must be assigned to this core.");
     scheduled_queue[core].add(thread, priority);
