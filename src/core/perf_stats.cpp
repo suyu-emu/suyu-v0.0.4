@@ -9,8 +9,8 @@
 #include <numeric>
 #include <sstream>
 #include <thread>
+#include <fmt/chrono.h>
 #include <fmt/format.h>
-#include <fmt/time.h>
 #include "common/file_util.h"
 #include "common/math_util.h"
 #include "core/perf_stats.h"
@@ -34,13 +34,13 @@ PerfStats::~PerfStats() {
         return;
     }
 
-    std::time_t t = std::time(nullptr);
+    const std::time_t t = std::time(nullptr);
     std::ostringstream stream;
     std::copy(perf_history.begin() + IgnoreFrames, perf_history.begin() + current_index,
               std::ostream_iterator<double>(stream, "\n"));
-    std::string path = FileUtil::GetUserPath(FileUtil::UserPath::LogDir);
+    const std::string& path = FileUtil::GetUserPath(FileUtil::UserPath::LogDir);
     // %F Date format expanded is "%Y-%m-%d"
-    std::string filename =
+    const std::string filename =
         fmt::format("{}/{:%F-%H-%M}_{:016X}.csv", path, *std::localtime(&t), title_id);
     FileUtil::IOFile file(filename, "w");
     file.WriteString(stream.str());
@@ -75,11 +75,13 @@ void PerfStats::EndGameFrame() {
 }
 
 double PerfStats::GetMeanFrametime() {
+    std::lock_guard lock{object_mutex};
+
     if (current_index <= IgnoreFrames) {
         return 0;
     }
-    double sum = std::accumulate(perf_history.begin() + IgnoreFrames,
-                                 perf_history.begin() + current_index, 0);
+    const double sum = std::accumulate(perf_history.begin() + IgnoreFrames,
+                                       perf_history.begin() + current_index, 0);
     return sum / (current_index - IgnoreFrames);
 }
 
