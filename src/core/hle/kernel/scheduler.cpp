@@ -165,12 +165,12 @@ bool GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
                     continue;
                 }
             }
-            if (next_thread->GetLastRunningTicks() >= thread->GetLastRunningTicks() ||
-                next_thread->GetPriority() < thread->GetPriority()) {
-                if (thread->GetPriority() <= priority) {
-                    winner = thread;
-                    break;
-                }
+        }
+        if (next_thread->GetLastRunningTicks() >= thread->GetLastRunningTicks() ||
+            next_thread->GetPriority() < thread->GetPriority()) {
+            if (thread->GetPriority() <= priority) {
+                winner = thread;
+                break;
             }
         }
     }
@@ -240,7 +240,7 @@ bool GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread
 
 void GlobalScheduler::PreemptThreads() {
     for (std::size_t core_id = 0; core_id < NUM_CPU_CORES; core_id++) {
-        const u64 priority = preemption_priorities[core_id];
+        const u32 priority = preemption_priorities[core_id];
         if (scheduled_queue[core_id].size(priority) > 1) {
             scheduled_queue[core_id].yield(priority);
             reselection_pending.store(true, std::memory_order_release);
