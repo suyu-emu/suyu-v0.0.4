@@ -408,13 +408,13 @@ public:
     void Sleep(s64 nanoseconds);
 
     /// Yields this thread without rebalancing loads.
-    void YieldSimple();
+    bool YieldSimple();
 
     /// Yields this thread and does a load rebalancing.
-    void YieldAndBalanceLoad();
+    bool YieldAndBalanceLoad();
 
     /// Yields this thread and if the core is left idle, loads are rebalanced
-    void YieldAndWaitForLoadBalancing();
+    bool YieldAndWaitForLoadBalancing();
 
     ThreadSchedStatus GetSchedulingStatus() const {
         return static_cast<ThreadSchedStatus>(scheduling_state & ThreadSchedMasks::LowMask);

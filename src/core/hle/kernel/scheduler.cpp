@@ -118,7 +118,7 @@ void GlobalScheduler::SelectThread(u32 core) {
  * YieldThread takes a thread and moves it to the back of the it's priority list
  * This operation can be redundant and no scheduling is changed if marked as so.
  */
-void GlobalScheduler::YieldThread(Thread* yielding_thread) {
+bool GlobalScheduler::YieldThread(Thread* yielding_thread) {
     // Note: caller should use critical section, etc.
     const u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
     const u32 priority = yielding_thread->GetPriority();
@@ -129,7 +129,7 @@ void GlobalScheduler::YieldThread(Thread* yielding_thread) {
     scheduled_queue[core_id].yield(priority);
 
     Thread* winner = scheduled_queue[core_id].front(priority);
-    AskForReselectionOrMarkRedundant(yielding_thread, winner);
+    return AskForReselectionOrMarkRedundant(yielding_thread, winner);
 }
 
 /*
@@ -138,7 +138,7 @@ void GlobalScheduler::YieldThread(Thread* yielding_thread) {
  * a better priority than the next thread in the core.
  * This operation can be redundant and no scheduling is changed if marked as so.
  */
-void GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
+bool GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
     // Note: caller should check if !thread.IsSchedulerOperationRedundant and use critical section,
     // etc.
     const u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
@@ -186,7 +186,7 @@ void GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
         winner = next_thread;
     }
 
-    AskForReselectionOrMarkRedundant(yielding_thread, winner);
+    return AskForReselectionOrMarkRedundant(yielding_thread, winner);
 }
 
 /*
@@ -195,7 +195,7 @@ void GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
  * a suggested thread is obtained instead.
  * This operation can be redundant and no scheduling is changed if marked as so.
  */
-void GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread) {
+bool GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread) {
     // Note: caller should check if !thread.IsSchedulerOperationRedundant and use critical section,
     // etc.
     Thread* winner = nullptr;
@@ -235,7 +235,7 @@ void GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread
         }
     }
 
-    AskForReselectionOrMarkRedundant(yielding_thread, winner);
+    return AskForReselectionOrMarkRedundant(yielding_thread, winner);
 }
 
 void GlobalScheduler::Schedule(u32 priority, u32 core, Thread* thread) {
@@ -248,13 +248,15 @@ void GlobalScheduler::SchedulePrepend(u32 priority, u32 core, Thread* thread) {
     scheduled_queue[core].add(thread, priority, false);
 }
 
-void GlobalScheduler::AskForReselectionOrMarkRedundant(Thread* current_thread, Thread* winner) {
+bool GlobalScheduler::AskForReselectionOrMarkRedundant(Thread* current_thread, Thread* winner) {
     if (current_thread == winner) {
         // TODO(blinkhawk): manage redundant operations, this is not implemented.
         // as its mostly an optimization.
         // current_thread->SetRedundantSchedulerOperation();
+        return true;
     } else {
         reselection_pending.store(true, std::memory_order_release);
+        return false;
     }
 }
 

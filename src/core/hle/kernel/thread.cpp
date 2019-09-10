@@ -373,19 +373,19 @@ void Thread::Sleep(s64 nanoseconds) {
     WakeAfterDelay(nanoseconds);
 }
 
-void Thread::YieldSimple() {
+bool Thread::YieldSimple() {
     auto& scheduler = kernel.GlobalScheduler();
-    scheduler.YieldThread(this);
+    return scheduler.YieldThread(this);
 }
 
-void Thread::YieldAndBalanceLoad() {
+bool Thread::YieldAndBalanceLoad() {
     auto& scheduler = kernel.GlobalScheduler();
-    scheduler.YieldThreadAndBalanceLoad(this);
+    return scheduler.YieldThreadAndBalanceLoad(this);
 }
 
-void Thread::YieldAndWaitForLoadBalancing() {
+bool Thread::YieldAndWaitForLoadBalancing() {
     auto& scheduler = kernel.GlobalScheduler();
-    scheduler.YieldThreadAndWaitForLoadBalancing(this);
+    return scheduler.YieldThreadAndWaitForLoadBalancing(this);
 }
 
 void Thread::SetSchedulingStatus(ThreadSchedStatus new_status) {

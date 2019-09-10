@@ -1556,17 +1556,18 @@ static void SleepThread(Core::System& system, s64 nanoseconds) {
 
     auto& scheduler = system.CurrentScheduler();
     auto* const current_thread = scheduler.GetCurrentThread();
+    bool redundant = false;
 
     if (nanoseconds <= 0) {
         switch (static_cast<SleepType>(nanoseconds)) {
         case SleepType::YieldWithoutLoadBalancing:
-            current_thread->YieldSimple();
+            redundant = current_thread->YieldSimple();
             break;
         case SleepType::YieldWithLoadBalancing:
-            current_thread->YieldAndBalanceLoad();
+            redundant = current_thread->YieldAndBalanceLoad();
             break;
         case SleepType::YieldAndWaitForLoadBalancing:
-            current_thread->YieldAndWaitForLoadBalancing();
+            redundant = current_thread->YieldAndWaitForLoadBalancing();
             break;
         default:
             UNREACHABLE_MSG("Unimplemented sleep yield type '{:016X}'!", nanoseconds);
@@ -1575,7 +1576,11 @@ static void SleepThread(Core::System& system, s64 nanoseconds) {
         current_thread->Sleep(nanoseconds);
     }
 
-    system.PrepareReschedule(current_thread->GetProcessorID());
+    if (redundant) {
+        system.CoreTiming().Idle();
+    } else {
+        system.PrepareReschedule(current_thread->GetProcessorID());
+    }
 }
 
 /// Wait process wide key atomic
