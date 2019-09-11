@@ -229,6 +229,14 @@ const Kernel::GlobalScheduler& KernelCore::GlobalScheduler() const {
     return impl->global_scheduler;
 }
 
+Core::System& KernelCore::System() {
+    return impl->system;
+}
+
+const Core::System& KernelCore::System() const {
+    return impl->system;
+}
+
 void KernelCore::AddNamedPort(std::string name, SharedPtr<ClientPort> port) {
     impl->named_ports.emplace(std::move(name), std::move(port));
 }

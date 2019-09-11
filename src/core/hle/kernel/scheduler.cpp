@@ -287,7 +287,7 @@ void GlobalScheduler::PreemptThreads() {
         if (current_thread != nullptr && current_thread->GetPriority() > priority) {
             for (auto& thread : suggested_queue[core_id]) {
                 const s32 source_core = thread->GetProcessorID();
-                if (thread->GetPriority() > priority) {
+                if (thread->GetPriority() < priority) {
                     continue;
                 }
                 if (source_core >= 0) {
