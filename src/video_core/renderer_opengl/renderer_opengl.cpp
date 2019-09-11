@@ -341,7 +341,7 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
         ScreenRectVertex(x + w, y + h, texcoords.bottom * scale_u, right * scale_v),
     }};
 
-    state.textures[0].texture = screen_info.display_texture;
+    state.textures[0] = screen_info.display_texture;
     state.framebuffer_srgb.enabled = screen_info.display_srgb;
     state.AllDirty();
     state.Apply();
