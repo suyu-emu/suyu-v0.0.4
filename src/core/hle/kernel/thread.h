@@ -416,6 +416,14 @@ public:
     /// Yields this thread and if the core is left idle, loads are rebalanced
     bool YieldAndWaitForLoadBalancing();
 
+    void IncrementYieldCount() {
+        yield_count++;
+    }
+
+    u64 GetYieldCount() const {
+        return yield_count;
+    }
+
     ThreadSchedStatus GetSchedulingStatus() const {
         return static_cast<ThreadSchedStatus>(scheduling_state & ThreadSchedMasks::LowMask);
     }
@@ -460,6 +468,7 @@ private:
 
     u64 total_cpu_time_ticks = 0; ///< Total CPU running ticks.
     u64 last_running_ticks = 0;   ///< CPU tick when thread was last running
+    u64 yield_count = 0; ///< Number of innecessaries yields occured.
 
     s32 processor_id = 0;
 

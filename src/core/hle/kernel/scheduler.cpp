@@ -241,10 +241,83 @@ bool GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread
 void GlobalScheduler::PreemptThreads() {
     for (std::size_t core_id = 0; core_id < NUM_CPU_CORES; core_id++) {
         const u32 priority = preemption_priorities[core_id];
-        if (scheduled_queue[core_id].size(priority) > 1) {
+
+        if (scheduled_queue[core_id].size(priority) > 0) {
+            scheduled_queue[core_id].front(priority)->IncrementYieldCount();
             scheduled_queue[core_id].yield(priority);
-            reselection_pending.store(true, std::memory_order_release);
+            if (scheduled_queue[core_id].size(priority) > 1) {
+                scheduled_queue[core_id].front(priority)->IncrementYieldCount();
+            }
         }
+
+        Thread* current_thread =
+            scheduled_queue[core_id].empty() ? nullptr : scheduled_queue[core_id].front();
+        Thread* winner = nullptr;
+        for (auto& thread : suggested_queue[core_id]) {
+            const s32 source_core = thread->GetProcessorID();
+            if (thread->GetPriority() != priority) {
+                continue;
+            }
+            if (source_core >= 0) {
+                Thread* next_thread = scheduled_queue[source_core].empty()
+                                          ? nullptr
+                                          : scheduled_queue[source_core].front();
+                if (next_thread != nullptr && next_thread->GetPriority() < 2) {
+                    break;
+                }
+                if (next_thread == thread) {
+                    continue;
+                }
+            }
+            if (current_thread != nullptr &&
+                current_thread->GetLastRunningTicks() >= thread->GetLastRunningTicks()) {
+                winner = thread;
+                break;
+            }
+        }
+
+        if (winner != nullptr) {
+            if (winner->IsRunning()) {
+                UnloadThread(winner->GetProcessorID());
+            }
+            TransferToCore(winner->GetPriority(), core_id, winner);
+            current_thread = winner->GetPriority() <= current_thread->GetPriority() ? winner : current_thread;
+        }
+
+        if (current_thread != nullptr && current_thread->GetPriority() > priority) {
+            for (auto& thread : suggested_queue[core_id]) {
+                const s32 source_core = thread->GetProcessorID();
+                if (thread->GetPriority() > priority) {
+                    continue;
+                }
+                if (source_core >= 0) {
+                    Thread* next_thread = scheduled_queue[source_core].empty()
+                                              ? nullptr
+                                              : scheduled_queue[source_core].front();
+                    if (next_thread != nullptr && next_thread->GetPriority() < 2) {
+                        break;
+                    }
+                    if (next_thread == thread) {
+                        continue;
+                    }
+                }
+                if (current_thread != nullptr &&
+                    current_thread->GetLastRunningTicks() >= thread->GetLastRunningTicks()) {
+                    winner = thread;
+                    break;
+                }
+            }
+
+            if (winner != nullptr) {
+                if (winner->IsRunning()) {
+                    UnloadThread(winner->GetProcessorID());
+                }
+                TransferToCore(winner->GetPriority(), core_id, winner);
+                current_thread = winner;
+            }
+        }
+
+        reselection_pending.store(true, std::memory_order_release);
     }
 }
 
@@ -260,9 +333,7 @@ void GlobalScheduler::SchedulePrepend(u32 priority, u32 core, Thread* thread) {
 
 bool GlobalScheduler::AskForReselectionOrMarkRedundant(Thread* current_thread, Thread* winner) {
     if (current_thread == winner) {
-        // TODO(blinkhawk): manage redundant operations, this is not implemented.
-        // as its mostly an optimization.
-        // current_thread->SetRedundantSchedulerOperation();
+        current_thread->IncrementYieldCount();
         return true;
     } else {
         reselection_pending.store(true, std::memory_order_release);
