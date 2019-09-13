@@ -547,6 +547,8 @@ SurfaceType GetFormatType(PixelFormat pixel_format);
 
 bool IsPixelFormatASTC(PixelFormat format);
 
+bool IsPixelFormatSRGB(PixelFormat format);
+
 std::pair<u32, u32> GetASTCBlockSize(PixelFormat format);
 
 /// Returns true if the specified PixelFormat is a BCn format, e.g. DXT or DXN
