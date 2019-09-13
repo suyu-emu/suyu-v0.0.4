@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include "common/common_types.h"
 #include "video_core/renderer_vulkan/declarations.h"
@@ -69,14 +69,24 @@ public:
         return present_family;
     }
 
-    /// Returns if the device is integrated with the host CPU.
+    /// Returns true if the device is integrated with the host CPU.
     bool IsIntegrated() const {
         return device_type == vk::PhysicalDeviceType::eIntegratedGpu;
+    }
+
+    /// Returns the driver ID.
+    vk::DriverIdKHR GetDriverID() const {
+        return driver_id;
     }
 
     /// Returns uniform buffer alignment requeriment.
     u64 GetUniformBufferAlignment() const {
         return uniform_buffer_alignment;
+    }
+
+    /// Returns storage alignment requeriment.
+    u64 GetStorageBufferAlignment() const {
+        return storage_buffer_alignment;
     }
 
     /// Returns the maximum range for storage buffers.
@@ -89,9 +99,19 @@ public:
         return is_optimal_astc_supported;
     }
 
+    /// Returns true if the device supports float16 natively
+    bool IsFloat16Supported() const {
+        return is_float16_supported;
+    }
+
     /// Returns true if the device supports VK_EXT_scalar_block_layout.
-    bool IsExtScalarBlockLayoutSupported() const {
-        return ext_scalar_block_layout;
+    bool IsKhrUniformBufferStandardLayoutSupported() const {
+        return khr_uniform_buffer_standard_layout;
+    }
+
+    /// Returns true if the device supports VK_EXT_index_type_uint8.
+    bool IsExtIndexTypeUint8Supported() const {
+        return ext_index_type_uint8;
     }
 
     /// Checks if the physical device is suitable.
@@ -123,22 +143,28 @@ private:
                            FormatType format_type) const;
 
     /// Returns the device properties for Vulkan formats.
-    static std::map<vk::Format, vk::FormatProperties> GetFormatProperties(
+    static std::unordered_map<vk::Format, vk::FormatProperties> GetFormatProperties(
         const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDevice physical);
 
-    const vk::PhysicalDevice physical;  ///< Physical device.
-    vk::DispatchLoaderDynamic dld;      ///< Device function pointers.
-    UniqueDevice logical;               ///< Logical device.
-    vk::Queue graphics_queue;           ///< Main graphics queue.
-    vk::Queue present_queue;            ///< Main present queue.
-    u32 graphics_family{};              ///< Main graphics queue family index.
-    u32 present_family{};               ///< Main present queue family index.
-    vk::PhysicalDeviceType device_type; ///< Physical device type.
-    u64 uniform_buffer_alignment{};     ///< Uniform buffer alignment requeriment.
-    u64 max_storage_buffer_range{};     ///< Max storage buffer size.
-    bool is_optimal_astc_supported{};   ///< Support for native ASTC.
-    bool ext_scalar_block_layout{};     ///< Support for VK_EXT_scalar_block_layout.
-    std::map<vk::Format, vk::FormatProperties> format_properties; ///< Format properties dictionary.
+    const vk::PhysicalDevice physical;         ///< Physical device.
+    vk::DispatchLoaderDynamic dld;             ///< Device function pointers.
+    UniqueDevice logical;                      ///< Logical device.
+    vk::Queue graphics_queue;                  ///< Main graphics queue.
+    vk::Queue present_queue;                   ///< Main present queue.
+    u32 graphics_family{};                     ///< Main graphics queue family index.
+    u32 present_family{};                      ///< Main present queue family index.
+    vk::PhysicalDeviceType device_type;        ///< Physical device type.
+    vk::DriverIdKHR driver_id{};               ///< Driver ID.
+    u64 uniform_buffer_alignment{};            ///< Uniform buffer alignment requeriment.
+    u64 storage_buffer_alignment{};            ///< Storage buffer alignment requeriment.
+    u64 max_storage_buffer_range{};            ///< Max storage buffer size.
+    bool is_optimal_astc_supported{};          ///< Support for native ASTC.
+    bool is_float16_supported{};               ///< Support for float16 arithmetics.
+    bool khr_uniform_buffer_standard_layout{}; ///< Support for std430 on UBOs.
+    bool ext_index_type_uint8{};               ///< Support for VK_EXT_index_type_uint8.
+    bool khr_driver_properties{};              ///< Support for VK_KHR_driver_properties.
+    std::unordered_map<vk::Format, vk::FormatProperties>
+        format_properties; ///< Format properties dictionary.
 };
 
 } // namespace Vulkan
