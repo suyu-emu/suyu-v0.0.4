@@ -513,6 +513,26 @@ bool IsPixelFormatASTC(PixelFormat format) {
     }
 }
 
+bool IsPixelFormatSRGB(PixelFormat format) {
+    switch (format) {
+    case PixelFormat::RGBA8_SRGB:
+    case PixelFormat::BGRA8_SRGB:
+    case PixelFormat::DXT1_SRGB:
+    case PixelFormat::DXT23_SRGB:
+    case PixelFormat::DXT45_SRGB:
+    case PixelFormat::BC7U_SRGB:
+    case PixelFormat::ASTC_2D_4X4_SRGB:
+    case PixelFormat::ASTC_2D_8X8_SRGB:
+    case PixelFormat::ASTC_2D_8X5_SRGB:
+    case PixelFormat::ASTC_2D_5X4_SRGB:
+    case PixelFormat::ASTC_2D_5X5_SRGB:
+    case PixelFormat::ASTC_2D_10X8_SRGB:
+        return true;
+    default:
+        return false;
+    }
+}
+
 std::pair<u32, u32> GetASTCBlockSize(PixelFormat format) {
     return {GetDefaultBlockWidth(format), GetDefaultBlockHeight(format)};
 }
