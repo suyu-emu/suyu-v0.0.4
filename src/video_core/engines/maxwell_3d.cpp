@@ -329,6 +329,10 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
         ProcessMacroBind(method_call.argument);
         break;
     }
+    case MAXWELL3D_REG_INDEX(firmware[4]): {
+        ProcessFirmwareCall4();
+        break;
+    }
     case MAXWELL3D_REG_INDEX(const_buffer.cb_data[0]):
     case MAXWELL3D_REG_INDEX(const_buffer.cb_data[1]):
     case MAXWELL3D_REG_INDEX(const_buffer.cb_data[2]):
@@ -417,6 +421,14 @@ void Maxwell3D::ProcessMacroUpload(u32 data) {
 
 void Maxwell3D::ProcessMacroBind(u32 data) {
     macro_positions[regs.macros.entry++] = data;
+}
+
+void Maxwell3D::ProcessFirmwareCall4() {
+    LOG_WARNING(HW_GPU, "(STUBBED) called");
+
+    // Firmware call 4 is a blob that changes some registers depending on its parameters.
+    // These registers don't affect emulation and so are stubbed by setting 0xd00 to 1.
+    regs.reg_array[0xd00] = 1;
 }
 
 void Maxwell3D::ProcessQueryGet() {
