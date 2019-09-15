@@ -1277,8 +1277,11 @@ public:
 
     struct MMEDrawState {
         MMMEDrawMode current_mode{MMMEDrawMode::Undefined};
-        u32 current_count;
-        u32 instance_count;
+        u32 current_count{};
+        u32 instance_count{};
+        bool instance_mode{};
+        bool gl_begin_consume{};
+        u32 gl_end_count{};
     } mme_draw;
 
 private:

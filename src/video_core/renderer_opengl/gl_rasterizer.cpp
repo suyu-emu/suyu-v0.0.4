@@ -788,13 +788,13 @@ void RasterizerOpenGL::DrawArrays() {
     DrawPrelude();
 
     auto& maxwell3d = system.GPU().Maxwell3D();
-    auto& regs = maxwell3d.regs;
-    auto current_instance = maxwell3d.state.current_instance;
-    auto primitive_mode = MaxwellToGL::PrimitiveTopology(regs.draw.topology);
+    const auto& regs = maxwell3d.regs;
+    const auto current_instance = maxwell3d.state.current_instance;
+    const auto primitive_mode = MaxwellToGL::PrimitiveTopology(regs.draw.topology);
     if (accelerate_draw == AccelDraw::Indexed) {
-        auto index_format = MaxwellToGL::IndexFormat(regs.index_array.format);
-        auto count = regs.index_array.count;
-        auto base_vertex = static_cast<GLint>(regs.vb_element_base);
+        const auto index_format = MaxwellToGL::IndexFormat(regs.index_array.format);
+        const auto count = regs.index_array.count;
+        const auto base_vertex = static_cast<GLint>(regs.vb_element_base);
         const auto index_buffer_ptr = reinterpret_cast<const void*>(index_buffer_offset);
         if (current_instance > 0) {
             glDrawElementsInstancedBaseVertexBaseInstance(primitive_mode, count, index_format,
@@ -805,8 +805,8 @@ void RasterizerOpenGL::DrawArrays() {
                                      base_vertex);
         }
     } else {
-        auto count = regs.vertex_buffer.count;
-        auto vertex_first = regs.vertex_buffer.first;
+        const auto count = regs.vertex_buffer.count;
+        const auto vertex_first = regs.vertex_buffer.first;
         if (current_instance > 0) {
             glDrawArraysInstancedBaseInstance(primitive_mode, vertex_first, count, 1,
                                               current_instance);
@@ -819,21 +819,19 @@ void RasterizerOpenGL::DrawArrays() {
     maxwell3d.dirty.memory_general = false;
 }
 
-#pragma optimize("", off)
-
 void RasterizerOpenGL::DrawMultiArrays() {
     DrawPrelude();
 
     auto& maxwell3d = system.GPU().Maxwell3D();
-    auto& regs = maxwell3d.regs;
-    auto& draw_setup = maxwell3d.mme_draw;
-    auto num_instances = draw_setup.instance_count;
-    auto base_instance = static_cast<GLint>(regs.vb_base_instance);
-    auto primitive_mode = MaxwellToGL::PrimitiveTopology(regs.draw.topology);
+    const auto& regs = maxwell3d.regs;
+    const auto& draw_setup = maxwell3d.mme_draw;
+    const auto num_instances = draw_setup.instance_count;
+    const auto base_instance = static_cast<GLint>(regs.vb_base_instance);
+    const auto primitive_mode = MaxwellToGL::PrimitiveTopology(regs.draw.topology);
     if (draw_setup.current_mode == Tegra::Engines::Maxwell3D::MMMEDrawMode::Indexed) {
-        auto index_format = MaxwellToGL::IndexFormat(regs.index_array.format);
-        auto count = regs.index_array.count;
-        auto base_vertex = static_cast<GLint>(regs.vb_element_base);
+        const auto index_format = MaxwellToGL::IndexFormat(regs.index_array.format);
+        const auto count = regs.index_array.count;
+        const auto base_vertex = static_cast<GLint>(regs.vb_element_base);
         const auto index_buffer_ptr = reinterpret_cast<const void*>(index_buffer_offset);
         if (num_instances > 1) {
             glDrawElementsInstancedBaseVertexBaseInstance(primitive_mode, count, index_format,
@@ -844,8 +842,8 @@ void RasterizerOpenGL::DrawMultiArrays() {
                                      base_vertex);
         }
     } else {
-        auto count = regs.vertex_buffer.count;
-        auto vertex_first = regs.vertex_buffer.first;
+        const auto count = regs.vertex_buffer.count;
+        const auto vertex_first = regs.vertex_buffer.first;
         if (num_instances > 1) {
             glDrawArraysInstancedBaseInstance(primitive_mode, vertex_first, count, num_instances,
                                               base_instance);
