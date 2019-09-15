@@ -964,7 +964,7 @@ private:
             switch (element) {
             case 2:
                 // Config pack's first value is instance_id.
-                return {"config_pack[0]", Type::Uint};
+                return {"gl_InstanceID", Type::Uint};
             case 3:
                 return {"gl_VertexID", Type::Int};
             }
