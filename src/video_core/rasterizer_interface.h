@@ -31,7 +31,7 @@ public:
     /// Draw the current batch of vertex arrays
     virtual void DrawArrays() = 0;
 
-    /// Draw the current batch of vertex arrays
+    /// Draw the current batch of multiple instasnces of vertex arrays
     virtual void DrawMultiArrays() = 0;
 
     /// Clear the current framebuffer

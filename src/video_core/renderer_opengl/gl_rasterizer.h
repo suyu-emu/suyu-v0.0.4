@@ -138,6 +138,7 @@ private:
     void SetupGlobalMemory(const GLShader::GlobalMemoryEntry& entry, GPUVAddr gpu_addr,
                            std::size_t size);
 
+    /// Syncs all the state, shaders, render targets and textures setting before a draw call.
     void DrawPrelude();
 
     /// Configures the current textures to use for the draw command. Returns shaders texture buffer
@@ -253,8 +254,6 @@ private:
     void SetupVertexInstances(GLuint vao);
 
     GLintptr SetupIndexBuffer();
-
-    DrawParameters SetupDraw(GLintptr index_buffer_offset);
 
     GLintptr index_buffer_offset;
 
