@@ -544,7 +544,7 @@ enum class VoteOperation : u64 {
     Eq = 2,  // allThreadsEqualNV
 };
 
-enum class ImageAtomicSize : u64 {
+enum class ImageAtomicOperationType : u64 {
     U32 = 0,
     S32 = 1,
     U64 = 2,
@@ -1431,7 +1431,7 @@ union Instruction {
 
     union {
         BitField<28, 1, u64> is_ba;
-        BitField<51, 3, ImageAtomicSize> size;
+        BitField<51, 3, ImageAtomicOperationType> operation_type;
         BitField<33, 3, ImageType> image_type;
         BitField<29, 4, ImageAtomicOperation> operation;
         BitField<49, 2, OutOfBoundsStore> out_of_bounds_store;

@@ -955,16 +955,6 @@ private:
         return {};
     }
 
-    Id AtomicImageMin(Operation operation) {
-        UNIMPLEMENTED();
-        return {};
-    }
-
-    Id AtomicImageMax(Operation operation) {
-        UNIMPLEMENTED();
-        return {};
-    }
-
     Id AtomicImageAnd(Operation operation) {
         UNIMPLEMENTED();
         return {};
@@ -1449,8 +1439,6 @@ private:
         &SPIRVDecompiler::ImageLoad,
         &SPIRVDecompiler::ImageStore,
         &SPIRVDecompiler::AtomicImageAdd,
-        &SPIRVDecompiler::AtomicImageMin,
-        &SPIRVDecompiler::AtomicImageMax,
         &SPIRVDecompiler::AtomicImageAnd,
         &SPIRVDecompiler::AtomicImageOr,
         &SPIRVDecompiler::AtomicImageXor,

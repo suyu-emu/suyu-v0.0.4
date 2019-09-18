@@ -101,32 +101,35 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
         UNIMPLEMENTED_IF(instr.suatom_d.is_ba != 0);
 
         const OperationCode operation_code = [instr] {
-            switch (instr.suatom_d.operation) {
-            case Tegra::Shader::ImageAtomicOperation::Add:
-                return OperationCode::AtomicImageAdd;
-            case Tegra::Shader::ImageAtomicOperation::Min:
-                return OperationCode::AtomicImageMin;
-            case Tegra::Shader::ImageAtomicOperation::Max:
-                return OperationCode::AtomicImageMax;
-            case Tegra::Shader::ImageAtomicOperation::And:
-                return OperationCode::AtomicImageAnd;
-            case Tegra::Shader::ImageAtomicOperation::Or:
-                return OperationCode::AtomicImageOr;
-            case Tegra::Shader::ImageAtomicOperation::Xor:
-                return OperationCode::AtomicImageXor;
-            case Tegra::Shader::ImageAtomicOperation::Exch:
-                return OperationCode::AtomicImageExchange;
+            switch (instr.suatom_d.operation_type) {
+            case Tegra::Shader::ImageAtomicOperationType::S32:
+            case Tegra::Shader::ImageAtomicOperationType::U32:
+                switch (instr.suatom_d.operation) {
+                case Tegra::Shader::ImageAtomicOperation::Add:
+                    return OperationCode::AtomicImageAdd;
+                case Tegra::Shader::ImageAtomicOperation::And:
+                    return OperationCode::AtomicImageAnd;
+                case Tegra::Shader::ImageAtomicOperation::Or:
+                    return OperationCode::AtomicImageOr;
+                case Tegra::Shader::ImageAtomicOperation::Xor:
+                    return OperationCode::AtomicImageXor;
+                case Tegra::Shader::ImageAtomicOperation::Exch:
+                    return OperationCode::AtomicImageExchange;
+                }
             default:
-                UNIMPLEMENTED_MSG("Unimplemented operation={}",
-                                  static_cast<u32>(instr.suatom_d.operation.Value()));
-                return OperationCode::AtomicImageAdd;
+                break;
             }
+            UNIMPLEMENTED_MSG("Unimplemented operation={} type={}",
+                              static_cast<u64>(instr.suatom_d.operation.Value()),
+                              static_cast<u64>(instr.suatom_d.operation_type.Value()));
+            return OperationCode::AtomicImageAdd;
         }();
 
         Node value = GetRegister(instr.gpr0);
 
         const auto type = instr.suatom_d.image_type;
-        const auto& image{GetImage(instr.image, type, instr.suatom_d.size)};
+        auto& image = GetImage(instr.image, type);
+        image.MarkAtomic();
 
         MetaImage meta{image, {std::move(value)}};
         SetRegister(bb, instr.gpr0, Operation(operation_code, meta, GetCoordinates(type)));
@@ -139,35 +142,32 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
     return pc;
 }
 
-Image& ShaderIR::GetImage(Tegra::Shader::Image image, Tegra::Shader::ImageType type,
-                          std::optional<Tegra::Shader::ImageAtomicSize> size) {
+Image& ShaderIR::GetImage(Tegra::Shader::Image image, Tegra::Shader::ImageType type) {
     const auto offset{static_cast<std::size_t>(image.index.Value())};
-    if (const auto image = TryUseExistingImage(offset, type, size)) {
+    if (const auto image = TryUseExistingImage(offset, type)) {
         return *image;
     }
 
     const std::size_t next_index{used_images.size()};
-    return used_images.emplace(offset, Image{offset, next_index, type, size}).first->second;
+    return used_images.emplace(offset, Image{offset, next_index, type}).first->second;
 }
 
-Image& ShaderIR::GetBindlessImage(Tegra::Shader::Register reg, Tegra::Shader::ImageType type,
-                                  std::optional<Tegra::Shader::ImageAtomicSize> size) {
+Image& ShaderIR::GetBindlessImage(Tegra::Shader::Register reg, Tegra::Shader::ImageType type) {
     const Node image_register{GetRegister(reg)};
     const auto [base_image, cbuf_index, cbuf_offset]{
         TrackCbuf(image_register, global_code, static_cast<s64>(global_code.size()))};
     const auto cbuf_key{(static_cast<u64>(cbuf_index) << 32) | static_cast<u64>(cbuf_offset)};
 
-    if (const auto image = TryUseExistingImage(cbuf_key, type, size)) {
+    if (const auto image = TryUseExistingImage(cbuf_key, type)) {
         return *image;
     }
 
     const std::size_t next_index{used_images.size()};
-    return used_images.emplace(cbuf_key, Image{cbuf_index, cbuf_offset, next_index, type, size})
+    return used_images.emplace(cbuf_key, Image{cbuf_index, cbuf_offset, next_index, type})
         .first->second;
 }
 
-Image* ShaderIR::TryUseExistingImage(u64 offset, Tegra::Shader::ImageType type,
-                                     std::optional<Tegra::Shader::ImageAtomicSize> size) {
+Image* ShaderIR::TryUseExistingImage(u64 offset, Tegra::Shader::ImageType type) {
     auto it = used_images.find(offset);
     if (it == used_images.end()) {
         return nullptr;
@@ -175,14 +175,6 @@ Image* ShaderIR::TryUseExistingImage(u64 offset, Tegra::Shader::ImageType type,
     auto& image = it->second;
     ASSERT(image.GetType() == type);
 
-    if (size) {
-        // We know the size, if it's known it has to be the same as before, otherwise we can set it.
-        if (image.IsSizeKnown()) {
-            ASSERT(image.GetSize() == size);
-        } else {
-            image.SetSize(*size);
-        }
-    }
     return &image;
 }
 

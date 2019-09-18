@@ -716,36 +716,20 @@ private:
             const char* image_type = [&] {
                 switch (image.GetType()) {
                 case Tegra::Shader::ImageType::Texture1D:
-                    return "image1D";
+                    return "1D";
                 case Tegra::Shader::ImageType::TextureBuffer:
-                    return "imageBuffer";
+                    return "Buffer";
                 case Tegra::Shader::ImageType::Texture1DArray:
-                    return "image1DArray";
+                    return "1DArray";
                 case Tegra::Shader::ImageType::Texture2D:
-                    return "image2D";
+                    return "2D";
                 case Tegra::Shader::ImageType::Texture2DArray:
-                    return "image2DArray";
+                    return "2DArray";
                 case Tegra::Shader::ImageType::Texture3D:
-                    return "image3D";
+                    return "3D";
                 default:
                     UNREACHABLE();
-                    return "image1D";
-                }
-            }();
-
-            const auto [type_prefix, format] = [&]() -> std::pair<const char*, const char*> {
-                if (!image.IsSizeKnown()) {
-                    return {"", ""};
-                }
-                switch (image.GetSize()) {
-                case Tegra::Shader::ImageAtomicSize::U32:
-                    return {"u", "r32ui, "};
-                case Tegra::Shader::ImageAtomicSize::S32:
-                    return {"i", "r32i, "};
-                default:
-                    UNIMPLEMENTED_MSG("Unimplemented atomic size={}",
-                                      static_cast<u32>(image.GetSize()));
-                    return {"", ""};
+                    return "1D";
                 }
             }();
 
@@ -756,8 +740,12 @@ private:
                 qualifier += " writeonly";
             }
 
-            code.AddLine("layout (binding = IMAGE_BINDING_{}) {} uniform "
-                         "{} {};",
+            std::string format;
+            if (image.IsAtomic()) {
+                format = "r32ui, ";
+            }
+
+            code.AddLine("layout ({}binding = IMAGE_BINDING_{}) {} uniform uimage{} {};", format,
                          image.GetIndex(), qualifier, image_type, GetImage(image));
         }
         if (!images.empty()) {
@@ -1225,57 +1213,19 @@ private:
     }
 
     std::string BuildImageValues(Operation operation) {
+        constexpr std::array constructors{"uint", "uvec2", "uvec3", "uvec4"};
         const auto meta{std::get<MetaImage>(operation.GetMeta())};
-        const auto [constructors, type] = [&]() -> std::pair<std::array<const char*, 4>, Type> {
-            constexpr std::array float_constructors{"float", "vec2", "vec3", "vec4"};
-            if (!meta.image.IsSizeKnown()) {
-                return {float_constructors, Type::Float};
-            }
-            switch (meta.image.GetSize()) {
-            case Tegra::Shader::ImageAtomicSize::U32:
-                return {{"uint", "uvec2", "uvec3", "uvec4"}, Type::Uint};
-            case Tegra::Shader::ImageAtomicSize::S32:
-                return {{"int", "ivec2", "ivec3", "ivec4"}, Type::Uint};
-            default:
-                UNIMPLEMENTED_MSG("Unimplemented image size={}",
-                                  static_cast<u32>(meta.image.GetSize()));
-                return {float_constructors, Type::Float};
-            }
-        }();
 
         const std::size_t values_count{meta.values.size()};
         std::string expr = fmt::format("{}(", constructors.at(values_count - 1));
         for (std::size_t i = 0; i < values_count; ++i) {
-            expr += Visit(meta.values.at(i)).As(type);
+            expr += Visit(meta.values.at(i)).AsUint();
             if (i + 1 < values_count) {
                 expr += ", ";
             }
         }
         expr += ')';
         return expr;
-    }
-
-    Expression AtomicImage(Operation operation, const char* opname) {
-        constexpr std::array constructors{"int(", "ivec2(", "ivec3(", "ivec4("};
-        const auto meta{std::get<MetaImage>(operation.GetMeta())};
-        ASSERT(meta.values.size() == 1);
-        ASSERT(meta.image.IsSizeKnown());
-
-        const auto type = [&]() {
-            switch (const auto size = meta.image.GetSize()) {
-            case Tegra::Shader::ImageAtomicSize::U32:
-                return Type::Uint;
-            case Tegra::Shader::ImageAtomicSize::S32:
-                return Type::Int;
-            default:
-                UNIMPLEMENTED_MSG("Unimplemented image size={}", static_cast<u32>(size));
-                return Type::Uint;
-            }
-        }();
-
-        return {fmt::format("{}({}, {}, {})", opname, GetImage(meta.image),
-                            BuildIntegerCoordinates(operation), Visit(meta.values[0]).As(type)),
-                type};
     }
 
     Expression Assign(Operation operation) {
@@ -1810,7 +1760,7 @@ private:
         const auto meta{std::get<MetaImage>(operation.GetMeta())};
         return {fmt::format("imageLoad({}, {}){}", GetImage(meta.image),
                             BuildIntegerCoordinates(operation), GetSwizzle(meta.element)),
-                Type::Float};
+                Type::Uint};
     }
 
     Expression ImageStore(Operation operation) {
@@ -1820,31 +1770,14 @@ private:
         return {};
     }
 
-    Expression AtomicImageAdd(Operation operation) {
-        return AtomicImage(operation, "imageAtomicAdd");
-    }
+    template <const std::string_view& opname>
+    Expression AtomicImage(Operation operation) {
+        const auto meta{std::get<MetaImage>(operation.GetMeta())};
+        ASSERT(meta.values.size() == 1);
 
-    Expression AtomicImageMin(Operation operation) {
-        return AtomicImage(operation, "imageAtomicMin");
-    }
-
-    Expression AtomicImageMax(Operation operation) {
-        return AtomicImage(operation, "imageAtomicMax");
-    }
-    Expression AtomicImageAnd(Operation operation) {
-        return AtomicImage(operation, "imageAtomicAnd");
-    }
-
-    Expression AtomicImageOr(Operation operation) {
-        return AtomicImage(operation, "imageAtomicOr");
-    }
-
-    Expression AtomicImageXor(Operation operation) {
-        return AtomicImage(operation, "imageAtomicXor");
-    }
-
-    Expression AtomicImageExchange(Operation operation) {
-        return AtomicImage(operation, "imageAtomicExchange");
+        return {fmt::format("imageAtomic{}({}, {}, {})", opname, GetImage(meta.image),
+                            BuildIntegerCoordinates(operation), Visit(meta.values[0]).AsUint()),
+                Type::Uint};
     }
 
     Expression Branch(Operation operation) {
@@ -2039,6 +1972,12 @@ private:
         Func() = delete;
         ~Func() = delete;
 
+        static constexpr std::string_view Add = "Add";
+        static constexpr std::string_view And = "And";
+        static constexpr std::string_view Or = "Or";
+        static constexpr std::string_view Xor = "Xor";
+        static constexpr std::string_view Exchange = "Exchange";
+
         static constexpr std::string_view ShuffleIndexed = "shuffleNV";
         static constexpr std::string_view ShuffleUp = "shuffleUpNV";
         static constexpr std::string_view ShuffleDown = "shuffleDownNV";
@@ -2178,13 +2117,12 @@ private:
 
         &GLSLDecompiler::ImageLoad,
         &GLSLDecompiler::ImageStore,
-        &GLSLDecompiler::AtomicImageAdd,
-        &GLSLDecompiler::AtomicImageMin,
-        &GLSLDecompiler::AtomicImageMax,
-        &GLSLDecompiler::AtomicImageAnd,
-        &GLSLDecompiler::AtomicImageOr,
-        &GLSLDecompiler::AtomicImageXor,
-        &GLSLDecompiler::AtomicImageExchange,
+
+        &GLSLDecompiler::AtomicImage<Func::Add>,
+        &GLSLDecompiler::AtomicImage<Func::And>,
+        &GLSLDecompiler::AtomicImage<Func::Or>,
+        &GLSLDecompiler::AtomicImage<Func::Xor>,
+        &GLSLDecompiler::AtomicImage<Func::Exchange>,
 
         &GLSLDecompiler::Branch,
         &GLSLDecompiler::BranchIndirect,
