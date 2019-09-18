@@ -41,11 +41,46 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
+    const auto GetCoordinates = [this, instr](Tegra::Shader::ImageType image_type) {
+        std::vector<Node> coords;
+        const std::size_t num_coords{GetImageTypeNumCoordinates(image_type)};
+        coords.reserve(num_coords);
+        for (std::size_t i = 0; i < num_coords; ++i) {
+            coords.push_back(GetRegister(instr.gpr8.Value() + i));
+        }
+        return coords;
+    };
+
     switch (opcode->get().GetId()) {
+    case OpCode::Id::SULD: {
+        UNIMPLEMENTED_IF(instr.suldst.mode != Tegra::Shader::SurfaceDataMode::P);
+        UNIMPLEMENTED_IF(instr.suldst.out_of_bounds_store !=
+                         Tegra::Shader::OutOfBoundsStore::Ignore);
+
+        const auto type{instr.suldst.image_type};
+        auto& image{instr.suldst.is_immediate ? GetImage(instr.image, type)
+                                              : GetBindlessImage(instr.gpr39, type)};
+        image.MarkRead();
+
+        u32 indexer = 0;
+        for (u32 element = 0; element < 4; ++element) {
+            if (!instr.suldst.IsComponentEnabled(element)) {
+                continue;
+            }
+            MetaImage meta{image, {}, element};
+            Node value = Operation(OperationCode::ImageLoad, meta, GetCoordinates(type));
+            SetTemporary(bb, indexer++, std::move(value));
+        }
+        for (u32 i = 0; i < indexer; ++i) {
+            SetRegister(bb, instr.gpr0.Value() + i, GetTemporary(i));
+        }
+        break;
+    }
     case OpCode::Id::SUST: {
-        UNIMPLEMENTED_IF(instr.sust.mode != Tegra::Shader::SurfaceDataMode::P);
-        UNIMPLEMENTED_IF(instr.sust.out_of_bounds_store != Tegra::Shader::OutOfBoundsStore::Ignore);
-        UNIMPLEMENTED_IF(instr.sust.component_mask_selector != 0xf); // Ensure we have an RGBA store
+        UNIMPLEMENTED_IF(instr.suldst.mode != Tegra::Shader::SurfaceDataMode::P);
+        UNIMPLEMENTED_IF(instr.suldst.out_of_bounds_store !=
+                         Tegra::Shader::OutOfBoundsStore::Ignore);
+        UNIMPLEMENTED_IF(instr.suldst.component_mask_selector != 0xf); // Ensure we have RGBA
 
         std::vector<Node> values;
         constexpr std::size_t hardcoded_size{4};
@@ -53,31 +88,17 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
             values.push_back(GetRegister(instr.gpr0.Value() + i));
         }
 
-        std::vector<Node> coords;
-        const std::size_t num_coords{GetImageTypeNumCoordinates(instr.sust.image_type)};
-        for (std::size_t i = 0; i < num_coords; ++i) {
-            coords.push_back(GetRegister(instr.gpr8.Value() + i));
-        }
-
-        const auto type{instr.sust.image_type};
-        auto& image{instr.sust.is_immediate ? GetImage(instr.image, type)
-                                            : GetBindlessImage(instr.gpr39, type)};
+        const auto type{instr.suldst.image_type};
+        auto& image{instr.suldst.is_immediate ? GetImage(instr.image, type)
+                                              : GetBindlessImage(instr.gpr39, type)};
         image.MarkWrite();
 
-        MetaImage meta{image, values};
-        bb.push_back(Operation(OperationCode::ImageStore, meta, std::move(coords)));
+        MetaImage meta{image, std::move(values)};
+        bb.push_back(Operation(OperationCode::ImageStore, meta, GetCoordinates(type)));
         break;
     }
     case OpCode::Id::SUATOM: {
         UNIMPLEMENTED_IF(instr.suatom_d.is_ba != 0);
-
-        Node value = GetRegister(instr.gpr0);
-
-        std::vector<Node> coords;
-        const std::size_t num_coords{GetImageTypeNumCoordinates(instr.sust.image_type)};
-        for (std::size_t i = 0; i < num_coords; ++i) {
-            coords.push_back(GetRegister(instr.gpr8.Value() + i));
-        }
 
         const OperationCode operation_code = [instr] {
             switch (instr.suatom_d.operation) {
@@ -102,9 +123,13 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
             }
         }();
 
-        const auto& image{GetImage(instr.image, instr.suatom_d.image_type, instr.suatom_d.size)};
+        Node value = GetRegister(instr.gpr0);
+
+        const auto type = instr.suatom_d.image_type;
+        const auto& image{GetImage(instr.image, type, instr.suatom_d.size)};
+
         MetaImage meta{image, {std::move(value)}};
-        SetRegister(bb, instr.gpr0, Operation(operation_code, meta, std::move(coords)));
+        SetRegister(bb, instr.gpr0, Operation(operation_code, meta, GetCoordinates(type)));
         break;
     }
     default:

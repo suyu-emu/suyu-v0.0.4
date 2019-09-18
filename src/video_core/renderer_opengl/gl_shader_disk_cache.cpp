@@ -382,12 +382,6 @@ std::optional<ShaderDiskCacheDecompiled> ShaderDiskCacheOpenGL::LoadDecompiledEn
         }
     }
 
-    bool shader_viewport_layer_array{};
-    if (!LoadObjectFromPrecompiled(shader_viewport_layer_array)) {
-        return {};
-    }
-    entry.entries.shader_viewport_layer_array = shader_viewport_layer_array;
-
     u64 shader_length{};
     if (!LoadObjectFromPrecompiled(shader_length)) {
         return {};
@@ -462,10 +456,6 @@ bool ShaderDiskCacheOpenGL::SaveDecompiledFile(u64 unique_identifier, const std:
         if (!SaveObjectToPrecompiled(clip_distance)) {
             return false;
         }
-    }
-
-    if (!SaveObjectToPrecompiled(entries.shader_viewport_layer_array)) {
-        return false;
     }
 
     if (!SaveObjectToPrecompiled(static_cast<u64>(entries.shader_length))) {

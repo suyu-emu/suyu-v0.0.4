@@ -19,6 +19,7 @@
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
+#include "video_core/shader/node.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace OpenGL::GLShader {
@@ -398,8 +399,6 @@ public:
                                                        usage.is_read, usage.is_written);
         }
         entries.clip_distances = ir.GetClipDistances();
-        entries.shader_viewport_layer_array =
-            IsVertexShader(stage) && (ir.UsesLayer() || ir.UsesViewportIndex());
         entries.shader_length = ir.GetLength();
         return entries;
     }
@@ -1801,6 +1800,19 @@ private:
         return {tmp, Type::Float};
     }
 
+    Expression ImageLoad(Operation operation) {
+        if (!device.HasImageLoadFormatted()) {
+            LOG_ERROR(Render_OpenGL,
+                      "Device lacks GL_EXT_shader_image_load_formatted, stubbing image load");
+            return {"0", Type::Int};
+        }
+
+        const auto meta{std::get<MetaImage>(operation.GetMeta())};
+        return {fmt::format("imageLoad({}, {}){}", GetImage(meta.image),
+                            BuildIntegerCoordinates(operation), GetSwizzle(meta.element)),
+                Type::Float};
+    }
+
     Expression ImageStore(Operation operation) {
         const auto meta{std::get<MetaImage>(operation.GetMeta())};
         code.AddLine("imageStore({}, {}, {});", GetImage(meta.image),
@@ -2164,6 +2176,7 @@ private:
         &GLSLDecompiler::TextureQueryLod,
         &GLSLDecompiler::TexelFetch,
 
+        &GLSLDecompiler::ImageLoad,
         &GLSLDecompiler::ImageStore,
         &GLSLDecompiler::AtomicImageAdd,
         &GLSLDecompiler::AtomicImageMin,

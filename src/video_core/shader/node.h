@@ -149,7 +149,8 @@ enum class OperationCode {
     TextureQueryLod,        /// (MetaTexture, float[N] coords) -> float4
     TexelFetch,             /// (MetaTexture, int[N], int) -> float4
 
-    ImageStore,          /// (MetaImage, int[N] values) -> void
+    ImageLoad,           /// (MetaImage, int[N] coords) -> void
+    ImageStore,          /// (MetaImage, int[N] coords) -> void
     AtomicImageAdd,      /// (MetaImage, int[N] coords) -> void
     AtomicImageMin,      /// (MetaImage, int[N] coords) -> void
     AtomicImageMax,      /// (MetaImage, int[N] coords) -> void
@@ -402,6 +403,7 @@ struct MetaTexture {
 struct MetaImage {
     const Image& image;
     std::vector<Node> values;
+    u32 element{};
 };
 
 /// Parameters that modify an operation but are not part of any particular operand
