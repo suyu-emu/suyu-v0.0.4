@@ -728,19 +728,19 @@ void RasterizerOpenGL::DrawPrelude() {
 }
 
 struct DrawParams {
-    bool is_indexed;
-    bool is_instanced;
-    GLenum primitive_mode;
-    GLint count;
-    GLint base_vertex;
+    bool is_indexed{};
+    bool is_instanced{};
+    GLenum primitive_mode{};
+    GLint count{};
+    GLint base_vertex{};
 
     // Indexed settings
-    GLenum index_format;
-    GLintptr index_buffer_offset;
+    GLenum index_format{};
+    GLintptr index_buffer_offset{};
 
     // Instanced setting
-    GLint num_instances;
-    GLint base_instance;
+    GLint num_instances{};
+    GLint base_instance{};
 
     void DispatchDraw() {
         if (is_indexed) {
@@ -770,7 +770,7 @@ void RasterizerOpenGL::DrawArrays() {
     auto& maxwell3d = system.GPU().Maxwell3D();
     const auto& regs = maxwell3d.regs;
     const auto current_instance = maxwell3d.state.current_instance;
-    DrawParams draw_call;
+    DrawParams draw_call{};
     draw_call.is_indexed = accelerate_draw == AccelDraw::Indexed;
     draw_call.num_instances = static_cast<GLint>(1);
     draw_call.base_instance = static_cast<GLint>(current_instance);
@@ -797,7 +797,7 @@ void RasterizerOpenGL::DrawMultiArrays() {
     auto& maxwell3d = system.GPU().Maxwell3D();
     const auto& regs = maxwell3d.regs;
     const auto& draw_setup = maxwell3d.mme_draw;
-    DrawParams draw_call;
+    DrawParams draw_call{};
     draw_call.is_indexed =
         draw_setup.current_mode == Tegra::Engines::Maxwell3D::MMMEDrawMode::Indexed;
     draw_call.num_instances = static_cast<GLint>(draw_setup.instance_count);
