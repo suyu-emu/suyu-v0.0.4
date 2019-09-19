@@ -506,7 +506,6 @@ Kernel::SharedPtr<Kernel::ReadableEvent> Controller_NPad::GetStyleSetChangedEven
     u32 npad_id) const {
     // TODO(ogniK): Figure out the best time to signal this event. This event seems that it should
     // be signalled at least once, and signaled after a new controller is connected?
-    // styleset_changed_event.writable->Signal();
     const auto& styleset_event = styleset_changed_events[NPadIdToIndex(npad_id)];
     styleset_event.writable->Signal();
     return styleset_event.readable;
