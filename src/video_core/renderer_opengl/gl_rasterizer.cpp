@@ -342,18 +342,6 @@ std::size_t RasterizerOpenGL::CalculateIndexBufferSize() const {
            static_cast<std::size_t>(regs.index_array.FormatSizeInBytes());
 }
 
-bool RasterizerOpenGL::AccelerateDrawBatch(bool is_indexed) {
-    accelerate_draw = is_indexed ? AccelDraw::Indexed : AccelDraw::Arrays;
-    DrawArrays();
-    return true;
-}
-
-bool RasterizerOpenGL::AccelerateDrawMultiBatch(bool is_indexed) {
-    accelerate_draw = is_indexed ? AccelDraw::Indexed : AccelDraw::Arrays;
-    DrawMultiArrays();
-    return true;
-}
-
 template <typename Map, typename Interval>
 static constexpr auto RangeFromInterval(Map& map, const Interval& interval) {
     return boost::make_iterator_range(map.equal_range(interval));
@@ -764,14 +752,15 @@ struct DrawParams {
     }
 };
 
-void RasterizerOpenGL::DrawArrays() {
+bool RasterizerOpenGL::DrawBatch(bool is_indexed) {
+    accelerate_draw = is_indexed ? AccelDraw::Indexed : AccelDraw::Arrays;
     DrawPrelude();
 
     auto& maxwell3d = system.GPU().Maxwell3D();
     const auto& regs = maxwell3d.regs;
     const auto current_instance = maxwell3d.state.current_instance;
     DrawParams draw_call{};
-    draw_call.is_indexed = accelerate_draw == AccelDraw::Indexed;
+    draw_call.is_indexed = is_indexed;
     draw_call.num_instances = static_cast<GLint>(1);
     draw_call.base_instance = static_cast<GLint>(current_instance);
     draw_call.is_instanced = current_instance > 0;
@@ -787,19 +776,20 @@ void RasterizerOpenGL::DrawArrays() {
     }
     draw_call.DispatchDraw();
 
-    accelerate_draw = AccelDraw::Disabled;
     maxwell3d.dirty.memory_general = false;
+    accelerate_draw = AccelDraw::Disabled;
+    return true;
 }
 
-void RasterizerOpenGL::DrawMultiArrays() {
+bool RasterizerOpenGL::DrawMultiBatch(bool is_indexed) {
+    accelerate_draw = is_indexed ? AccelDraw::Indexed : AccelDraw::Arrays;
     DrawPrelude();
 
     auto& maxwell3d = system.GPU().Maxwell3D();
     const auto& regs = maxwell3d.regs;
     const auto& draw_setup = maxwell3d.mme_draw;
     DrawParams draw_call{};
-    draw_call.is_indexed =
-        draw_setup.current_mode == Tegra::Engines::Maxwell3D::MMMEDrawMode::Indexed;
+    draw_call.is_indexed = is_indexed;
     draw_call.num_instances = static_cast<GLint>(draw_setup.instance_count);
     draw_call.base_instance = static_cast<GLint>(regs.vb_base_instance);
     draw_call.is_instanced = draw_setup.instance_count > 1;
@@ -815,8 +805,9 @@ void RasterizerOpenGL::DrawMultiArrays() {
     }
     draw_call.DispatchDraw();
 
-    accelerate_draw = AccelDraw::Disabled;
     maxwell3d.dirty.memory_general = false;
+    accelerate_draw = AccelDraw::Disabled;
+    return true;
 }
 
 void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {

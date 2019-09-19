@@ -486,7 +486,7 @@ void Maxwell3D::FlushMMEInlineDraw() {
                "Illegal combination of instancing parameters");
 
     const bool is_indexed = mme_draw.current_mode == MMMEDrawMode::Indexed;
-    rasterizer.AccelerateDrawMultiBatch(is_indexed);
+    rasterizer.DrawMultiBatch(is_indexed);
 
     if (debug_context) {
         debug_context->OnEvent(Tegra::DebugContext::Event::FinishedPrimitiveBatch, nullptr);
@@ -657,7 +657,7 @@ void Maxwell3D::DrawArrays() {
     }
 
     const bool is_indexed{regs.index_array.count && !regs.vertex_buffer.count};
-    rasterizer.AccelerateDrawBatch(is_indexed);
+    rasterizer.DrawBatch(is_indexed);
 
     if (debug_context) {
         debug_context->OnEvent(Tegra::DebugContext::Event::FinishedPrimitiveBatch, nullptr);

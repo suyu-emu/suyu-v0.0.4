@@ -57,8 +57,8 @@ public:
                               ScreenInfo& info);
     ~RasterizerOpenGL() override;
 
-    void DrawArrays() override;
-    void DrawMultiArrays() override;
+    bool DrawBatch(bool is_indexed) override;
+    bool DrawMultiBatch(bool is_indexed) override;
     void Clear() override;
     void DispatchCompute(GPUVAddr code_addr) override;
     void FlushAll() override;
@@ -72,8 +72,6 @@ public:
                                const Tegra::Engines::Fermi2D::Config& copy_config) override;
     bool AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr,
                            u32 pixel_stride) override;
-    bool AccelerateDrawBatch(bool is_indexed) override;
-    bool AccelerateDrawMultiBatch(bool is_indexed) override;
     void UpdatePagesCachedCount(VAddr addr, u64 size, int delta) override;
     void LoadDiskResources(const std::atomic_bool& stop_loading,
                            const VideoCore::DiskResourceLoadCallback& callback) override;
