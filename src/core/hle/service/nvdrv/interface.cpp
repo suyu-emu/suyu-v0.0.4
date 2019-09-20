@@ -60,6 +60,7 @@ void NVDRV::IoctlBase(Kernel::HLERequestContext& ctx, IoctlVersion version) {
 
     if (ctrl.must_delay) {
         ctrl.fresh_call = false;
+        // clang-format off
         ctx.SleepClientThread(
             "NVServices::DelayedResponse", ctrl.timeout,
             [=](Kernel::SharedPtr<Kernel::Thread> thread, Kernel::HLERequestContext& ctx,
@@ -78,6 +79,7 @@ void NVDRV::IoctlBase(Kernel::HLERequestContext& ctx, IoctlVersion version) {
                 rb.Push(result);
             },
             nvdrv->GetEventWriteable(ctrl.event_id));
+        // clang-format on
     } else {
         ctx.WriteBuffer(output);
         if (version == IoctlVersion::Version3) {
