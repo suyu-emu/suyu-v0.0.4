@@ -1636,6 +1636,7 @@ public:
         ICMP_RC,
         ICMP_R,
         ICMP_CR,
+        ICMP_IMM,
         MUFU,  // Multi-Function Operator
         RRO_C, // Range Reduction Operator
         RRO_R,
@@ -1903,6 +1904,7 @@ private:
             INST("010100110100----", Id::ICMP_RC, Type::ArithmeticInteger, "ICMP_RC"),
             INST("010110110100----", Id::ICMP_R, Type::ArithmeticInteger, "ICMP_R"),
             INST("010010110100----", Id::ICMP_CR, Type::ArithmeticInteger, "ICMP_CR"),
+            INST("0011011-0100----", Id::ICMP_IMM, Type::ArithmeticInteger, "ICMP_IMM"),
             INST("0101101111011---", Id::LEA_R2, Type::ArithmeticInteger, "LEA_R2"),
             INST("0101101111010---", Id::LEA_R1, Type::ArithmeticInteger, "LEA_R1"),
             INST("001101101101----", Id::LEA_IMM, Type::ArithmeticInteger, "LEA_IMM"),

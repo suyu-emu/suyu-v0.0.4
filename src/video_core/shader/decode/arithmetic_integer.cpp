@@ -140,11 +140,11 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
     }
     case OpCode::Id::ICMP_CR:
     case OpCode::Id::ICMP_R:
-    case OpCode::Id::ICMP_RC: {
-        UNIMPLEMENTED_IF(instr.icmp.is_signed != 0);
+    case OpCode::Id::ICMP_RC:
+    case OpCode::Id::ICMP_IMM: {
         const Node zero = Immediate(0);
 
-        const auto [op_a, op_b] = [&]() -> std::tuple<Node, Node> {
+        const auto [op_b, test] = [&]() -> std::pair<Node, Node> {
             switch (opcode->get().GetId()) {
             case OpCode::Id::ICMP_CR:
                 return {GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset),
@@ -154,13 +154,16 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
             case OpCode::Id::ICMP_RC:
                 return {GetRegister(instr.gpr39),
                         GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset)};
+            case OpCode::Id::ICMP_IMM:
+                return {Immediate(instr.alu.GetSignedImm20_20()), GetRegister(instr.gpr39)};
             default:
-                UNIMPLEMENTED();
+                UNREACHABLE();
                 return {zero, zero};
             }
         }();
-        const Node test = GetRegister(instr.gpr8);
-        const Node comparison = GetPredicateComparisonInteger(instr.icmp.cond, false, test, zero);
+        const Node op_a = GetRegister(instr.gpr8);
+        const Node comparison =
+            GetPredicateComparisonInteger(instr.icmp.cond, instr.icmp.is_signed != 0, test, zero);
         SetRegister(bb, instr.gpr0, Operation(OperationCode::Select, comparison, op_a, op_b));
         break;
     }
