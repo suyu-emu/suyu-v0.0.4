@@ -626,15 +626,7 @@ void RasterizerOpenGL::Clear() {
 }
 
 void RasterizerOpenGL::DrawPrelude() {
-    if (accelerate_draw == AccelDraw::Disabled)
-        return;
-
-    MICROPROFILE_SCOPE(OpenGL_Drawing);
     auto& gpu = system.GPU().Maxwell3D();
-
-    if (!gpu.ShouldExecute()) {
-        return;
-    }
 
     SyncColorMask();
     SyncFragmentColorClampState();
@@ -754,9 +746,16 @@ struct DrawParams {
 
 bool RasterizerOpenGL::DrawBatch(bool is_indexed) {
     accelerate_draw = is_indexed ? AccelDraw::Indexed : AccelDraw::Arrays;
-    DrawPrelude();
+
+    MICROPROFILE_SCOPE(OpenGL_Drawing);
 
     auto& maxwell3d = system.GPU().Maxwell3D();
+    if (!maxwell3d.ShouldExecute()) {
+        return false;
+    }
+
+    DrawPrelude();
+
     const auto& regs = maxwell3d.regs;
     const auto current_instance = maxwell3d.state.current_instance;
     DrawParams draw_call{};
@@ -783,9 +782,16 @@ bool RasterizerOpenGL::DrawBatch(bool is_indexed) {
 
 bool RasterizerOpenGL::DrawMultiBatch(bool is_indexed) {
     accelerate_draw = is_indexed ? AccelDraw::Indexed : AccelDraw::Arrays;
-    DrawPrelude();
+
+    MICROPROFILE_SCOPE(OpenGL_Drawing);
 
     auto& maxwell3d = system.GPU().Maxwell3D();
+    if (!maxwell3d.ShouldExecute()) {
+        return false;
+    }
+
+    DrawPrelude();
+
     const auto& regs = maxwell3d.regs;
     const auto& draw_setup = maxwell3d.mme_draw;
     DrawParams draw_call{};
