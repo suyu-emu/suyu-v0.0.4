@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <variant>
 #include <memory>
+#include <variant>
 
 #include "video_core/engines/shader_bytecode.h"
 
