@@ -1714,6 +1714,7 @@ public:
             Visit(current);
             current = current->GetNext();
         }
+        decomp.Emit(decomp.OpBranch(endif_label));
         decomp.Emit(endif_label);
     }
 
@@ -1749,6 +1750,7 @@ public:
         const Id loop_start_block = decomp.OpLabel();
         const Id loop_end_block = decomp.OpLabel();
         current_loop_exit = endloop_label;
+        decomp.Emit(decomp.OpBranch(loop_label));
         decomp.Emit(loop_label);
         decomp.Emit(
             decomp.OpLoopMerge(endloop_label, loop_end_block, spv::LoopControlMask::MaskNone));
@@ -1759,8 +1761,6 @@ public:
             Visit(current);
             current = current->GetNext();
         }
-        decomp.Emit(decomp.OpBranch(loop_end_block));
-        decomp.Emit(loop_end_block);
         ExprDecompiler expr_parser{decomp};
         const Id condition = expr_parser.Visit(ast.condition);
         decomp.Emit(decomp.OpBranchConditional(condition, loop_label, endloop_label));
@@ -1785,7 +1785,9 @@ public:
             }
             decomp.Emit(endif_label);
         } else {
-            decomp.Emit(decomp.OpLabel());
+            const Id next_block = decomp.OpLabel();
+            decomp.Emit(decomp.OpBranch(next_block));
+            decomp.Emit(next_block);
             if (ast.kills) {
                 decomp.Emit(decomp.OpKill());
             } else {
@@ -1809,7 +1811,9 @@ public:
             decomp.Emit(decomp.OpBranch(current_loop_exit));
             decomp.Emit(endif_label);
         } else {
-            decomp.Emit(decomp.OpLabel());
+            const Id next_block = decomp.OpLabel();
+            decomp.Emit(decomp.OpBranch(next_block));
+            decomp.Emit(next_block);
             decomp.Emit(decomp.OpBranch(current_loop_exit));
             decomp.Emit(decomp.OpLabel());
         }
@@ -1834,6 +1838,9 @@ void SPIRVDecompiler::DecompileAST() {
     ASTDecompiler decompiler{*this};
     VideoCommon::Shader::ASTNode program = ir.GetASTProgram();
     decompiler.Visit(program);
+    const Id next_block = OpLabel();
+    Emit(OpBranch(next_block));
+    Emit(next_block);
 }
 
 DecompilerResult Decompile(const VKDevice& device, const VideoCommon::Shader::ShaderIR& ir,
