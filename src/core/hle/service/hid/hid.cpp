@@ -1061,7 +1061,7 @@ void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system
     std::make_shared<HidSys>()->InstallAsService(service_manager);
     std::make_shared<HidTmp>()->InstallAsService(service_manager);
 
-    std::make_shared<IRS>()->InstallAsService(service_manager);
+    std::make_shared<IRS>(system)->InstallAsService(service_manager);
     std::make_shared<IRS_SYS>()->InstallAsService(service_manager);
 
     std::make_shared<XCD_SYS>()->InstallAsService(service_manager);

@@ -11,7 +11,7 @@
 
 namespace Service::HID {
 
-IRS::IRS() : ServiceFramework{"irs"} {
+IRS::IRS(Core::System& system) : ServiceFramework{"irs"}, system(system) {
     // clang-format off
     static const FunctionInfo functions[] = {
         {302, &IRS::ActivateIrsensor, "ActivateIrsensor"},
@@ -37,7 +37,7 @@ IRS::IRS() : ServiceFramework{"irs"} {
 
     RegisterHandlers(functions);
 
-    auto& kernel = Core::System::GetInstance().Kernel();
+    auto& kernel = system.Kernel();
     shared_mem = Kernel::SharedMemory::Create(
         kernel, nullptr, 0x8000, Kernel::MemoryPermission::ReadWrite,
         Kernel::MemoryPermission::Read, 0, Kernel::MemoryRegion::BASE, "IRS:SharedMemory");
@@ -98,7 +98,7 @@ void IRS::GetImageTransferProcessorState(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 5};
     rb.Push(RESULT_SUCCESS);
-    rb.PushRaw<u64>(Core::System::GetInstance().CoreTiming().GetTicks());
+    rb.PushRaw<u64>(system.CoreTiming().GetTicks());
     rb.PushRaw<u32>(0);
 }
 

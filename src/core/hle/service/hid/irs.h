@@ -15,7 +15,7 @@ namespace Service::HID {
 
 class IRS final : public ServiceFramework<IRS> {
 public:
-    explicit IRS();
+    explicit IRS(Core::System& system);
     ~IRS() override;
 
 private:
@@ -39,6 +39,7 @@ private:
     void ActivateIrsensorWithFunctionLevel(Kernel::HLERequestContext& ctx);
     Kernel::SharedPtr<Kernel::SharedMemory> shared_mem;
     const u32 device_handle{0xABCD};
+    Core::System& system;
 };
 
 class IRS_SYS final : public ServiceFramework<IRS_SYS> {
