@@ -78,7 +78,7 @@ public:
 
 class RelocatableObject final : public ServiceFramework<RelocatableObject> {
 public:
-    explicit RelocatableObject() : ServiceFramework{"ldr:ro"} {
+    explicit RelocatableObject(Core::System& system) : ServiceFramework{"ldr:ro"}, system(system) {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &RelocatableObject::LoadNro, "LoadNro"},
@@ -364,7 +364,7 @@ public:
         vm_manager.ReprotectRange(*map_address + header.rw_offset, header.rw_size,
                                   Kernel::VMAPermission::ReadWrite);
 
-        Core::System::GetInstance().InvalidateCpuInstructionCaches();
+        system.InvalidateCpuInstructionCaches();
 
         nro.insert_or_assign(*map_address,
                              NROInfo{hash, nro_address, nro_size, bss_address, bss_size});
@@ -430,7 +430,7 @@ public:
                        .IsSuccess());
         }
 
-        Core::System::GetInstance().InvalidateCpuInstructionCaches();
+        system.InvalidateCpuInstructionCaches();
 
         nro.erase(iter);
         IPC::ResponseBuilder rb{ctx, 2};
@@ -516,13 +516,14 @@ private:
                Common::Is4KBAligned(header.text_size) && Common::Is4KBAligned(header.ro_size) &&
                Common::Is4KBAligned(header.rw_size);
     }
+    Core::System& system;
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
     std::make_shared<DebugMonitor>()->InstallAsService(sm);
     std::make_shared<ProcessManager>()->InstallAsService(sm);
     std::make_shared<Shell>()->InstallAsService(sm);
-    std::make_shared<RelocatableObject>()->InstallAsService(sm);
+    std::make_shared<RelocatableObject>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::LDR
