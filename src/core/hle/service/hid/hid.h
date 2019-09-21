@@ -99,6 +99,7 @@ private:
     void GetSupportedNpadStyleSet(Kernel::HLERequestContext& ctx);
     void SetSupportedNpadIdType(Kernel::HLERequestContext& ctx);
     void ActivateNpad(Kernel::HLERequestContext& ctx);
+    void DeactivateNpad(Kernel::HLERequestContext& ctx);
     void AcquireNpadStyleSetUpdateEventHandle(Kernel::HLERequestContext& ctx);
     void DisconnectNpad(Kernel::HLERequestContext& ctx);
     void GetPlayerLedPattern(Kernel::HLERequestContext& ctx);
