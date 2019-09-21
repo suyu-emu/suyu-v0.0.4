@@ -29,7 +29,8 @@ namespace Service::NVFlinger {
 constexpr s64 frame_ticks = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 60);
 constexpr s64 frame_ticks_30fps = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 30);
 
-NVFlinger::NVFlinger(Core::Timing::CoreTiming& core_timing) : core_timing{core_timing} {
+NVFlinger::NVFlinger(Core::Timing::CoreTiming& core_timing, Core::System& system)
+    : core_timing{core_timing}, system(system) {
     displays.emplace_back(0, "Default");
     displays.emplace_back(1, "External");
     displays.emplace_back(2, "Edid");
@@ -185,11 +186,9 @@ void NVFlinger::Compose() {
         MicroProfileFlip();
 
         if (!buffer) {
-            auto& system_instance = Core::System::GetInstance();
-
             // There was no queued buffer to draw, render previous frame
-            system_instance.GetPerfStats().EndGameFrame();
-            system_instance.GPU().SwapBuffers({});
+            system.GetPerfStats().EndGameFrame();
+            system.GPU().SwapBuffers({});
             continue;
         }
 
