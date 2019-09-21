@@ -31,11 +31,11 @@ constexpr s64 frame_ticks_30fps = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE
 
 NVFlinger::NVFlinger(Core::Timing::CoreTiming& core_timing, Core::System& system)
     : core_timing{core_timing}, system(system) {
-    displays.emplace_back(0, "Default");
-    displays.emplace_back(1, "External");
-    displays.emplace_back(2, "Edid");
-    displays.emplace_back(3, "Internal");
-    displays.emplace_back(4, "Null");
+    displays.emplace_back(0, "Default", system);
+    displays.emplace_back(1, "External", system);
+    displays.emplace_back(2, "Edid", system);
+    displays.emplace_back(3, "Internal", system);
+    displays.emplace_back(4, "Null", system);
 
     // Schedule the screen composition events
     composition_event = core_timing.RegisterEvent("ScreenComposition", [this](u64 userdata,
