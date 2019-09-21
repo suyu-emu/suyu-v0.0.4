@@ -11,6 +11,10 @@ namespace Core::Timing {
 class CoreTiming;
 }
 
+namespace Core {
+class System;
+}
+
 namespace Service::HID {
 class ControllerBase {
 public:
@@ -18,7 +22,7 @@ public:
     virtual ~ControllerBase();
 
     // Called when the controller is initialized
-    virtual void OnInit() = 0;
+    virtual void OnInit(Core::System& system) = 0;
 
     // When the controller is released
     virtual void OnRelease() = 0;
@@ -30,7 +34,7 @@ public:
     // Called when input devices should be loaded
     virtual void OnLoadInputDevices() = 0;
 
-    void ActivateController();
+    void ActivateController(Core::System& system);
 
     void DeactivateController();
 

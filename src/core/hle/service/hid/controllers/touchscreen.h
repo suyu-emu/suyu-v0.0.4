@@ -18,7 +18,7 @@ public:
     ~Controller_Touchscreen() override;
 
     // Called when the controller is initialized
-    void OnInit() override;
+    void OnInit(Core::System& system) override;
 
     // When the controller is released
     void OnRelease() override;

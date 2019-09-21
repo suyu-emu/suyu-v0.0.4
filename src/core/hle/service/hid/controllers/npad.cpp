@@ -167,8 +167,8 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
     controller.battery_level[2] = BATTERY_FULL;
 }
 
-void Controller_NPad::OnInit() {
-    auto& kernel = Core::System::GetInstance().Kernel();
+void Controller_NPad::OnInit(Core::System& system) {
+    auto& kernel = system.Kernel();
     styleset_changed_event = Kernel::WritableEvent::CreateEventPair(
         kernel, Kernel::ResetType::Automatic, "npad:NpadStyleSetChanged");
 

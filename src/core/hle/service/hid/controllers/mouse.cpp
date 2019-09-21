@@ -14,7 +14,7 @@ constexpr std::size_t SHARED_MEMORY_OFFSET = 0x3400;
 Controller_Mouse::Controller_Mouse() = default;
 Controller_Mouse::~Controller_Mouse() = default;
 
-void Controller_Mouse::OnInit() {}
+void Controller_Mouse::OnInit(Core::System& system) {}
 void Controller_Mouse::OnRelease() {}
 
 void Controller_Mouse::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* data,

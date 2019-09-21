@@ -42,13 +42,14 @@ constexpr s64 accelerometer_update_ticks = static_cast<s64>(Core::Timing::BASE_C
 constexpr s64 gyroscope_update_ticks = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 100);
 constexpr std::size_t SHARED_MEMORY_SIZE = 0x40000;
 
-IAppletResource::IAppletResource() : ServiceFramework("IAppletResource") {
+IAppletResource::IAppletResource(Core::System& system)
+    : ServiceFramework("IAppletResource"), system(system) {
     static const FunctionInfo functions[] = {
         {0, &IAppletResource::GetSharedMemoryHandle, "GetSharedMemoryHandle"},
     };
     RegisterHandlers(functions);
 
-    auto& kernel = Core::System::GetInstance().Kernel();
+    auto& kernel = system.Kernel();
     shared_mem = Kernel::SharedMemory::Create(
         kernel, nullptr, SHARED_MEMORY_SIZE, Kernel::MemoryPermission::ReadWrite,
         Kernel::MemoryPermission::Read, 0, Kernel::MemoryRegion::BASE, "HID:SharedMemory");
@@ -66,15 +67,15 @@ IAppletResource::IAppletResource() : ServiceFramework("IAppletResource") {
     MakeController<Controller_Gesture>(HidController::Gesture);
 
     // Homebrew doesn't try to activate some controllers, so we activate them by default
-    GetController<Controller_NPad>(HidController::NPad).ActivateController();
-    GetController<Controller_Touchscreen>(HidController::Touchscreen).ActivateController();
+    GetController<Controller_NPad>(HidController::NPad).ActivateController(system);
+    GetController<Controller_Touchscreen>(HidController::Touchscreen).ActivateController(system);
 
     GetController<Controller_Stubbed>(HidController::Unknown1).SetCommonHeaderOffset(0x4c00);
     GetController<Controller_Stubbed>(HidController::Unknown2).SetCommonHeaderOffset(0x4e00);
     GetController<Controller_Stubbed>(HidController::Unknown3).SetCommonHeaderOffset(0x5000);
 
     // Register update callbacks
-    auto& core_timing = Core::System::GetInstance().CoreTiming();
+    auto& core_timing = system.CoreTiming();
     pad_update_event =
         core_timing.RegisterEvent("HID::UpdatePadCallback", [this](u64 userdata, s64 cycles_late) {
             UpdateControllers(userdata, cycles_late);
@@ -88,7 +89,7 @@ IAppletResource::IAppletResource() : ServiceFramework("IAppletResource") {
 }
 
 void IAppletResource::ActivateController(HidController controller) {
-    controllers[static_cast<size_t>(controller)]->ActivateController();
+    controllers[static_cast<size_t>(controller)]->ActivateController(system);
 }
 
 void IAppletResource::DeactivateController(HidController controller) {
@@ -96,7 +97,7 @@ void IAppletResource::DeactivateController(HidController controller) {
 }
 
 IAppletResource ::~IAppletResource() {
-    Core::System::GetInstance().CoreTiming().UnscheduleEvent(pad_update_event, 0);
+    system.CoreTiming().UnscheduleEvent(pad_update_event, 0);
 }
 
 void IAppletResource::GetSharedMemoryHandle(Kernel::HLERequestContext& ctx) {
@@ -108,7 +109,7 @@ void IAppletResource::GetSharedMemoryHandle(Kernel::HLERequestContext& ctx) {
 }
 
 void IAppletResource::UpdateControllers(u64 userdata, s64 cycles_late) {
-    auto& core_timing = Core::System::GetInstance().CoreTiming();
+    auto& core_timing = system.CoreTiming();
 
     const bool should_reload = Settings::values.is_device_reload_pending.exchange(false);
     for (const auto& controller : controllers) {
@@ -141,13 +142,13 @@ private:
 
 std::shared_ptr<IAppletResource> Hid::GetAppletResource() {
     if (applet_resource == nullptr) {
-        applet_resource = std::make_shared<IAppletResource>();
+        applet_resource = std::make_shared<IAppletResource>(system);
     }
 
     return applet_resource;
 }
 
-Hid::Hid() : ServiceFramework("hid") {
+Hid::Hid(Core::System& system) : ServiceFramework("hid"), system(system) {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &Hid::CreateAppletResource, "CreateAppletResource"},
@@ -286,7 +287,7 @@ void Hid::CreateAppletResource(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     if (applet_resource == nullptr) {
-        applet_resource = std::make_shared<IAppletResource>();
+        applet_resource = std::make_shared<IAppletResource>(system);
     }
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -1053,8 +1054,8 @@ void ReloadInputDevices() {
     Settings::values.is_device_reload_pending.store(true);
 }
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
-    std::make_shared<Hid>()->InstallAsService(service_manager);
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
+    std::make_shared<Hid>(system)->InstallAsService(service_manager);
     std::make_shared<HidBus>()->InstallAsService(service_manager);
     std::make_shared<HidDbg>()->InstallAsService(service_manager);
     std::make_shared<HidSys>()->InstallAsService(service_manager);

@@ -9,12 +9,12 @@ namespace Service::HID {
 ControllerBase::ControllerBase() = default;
 ControllerBase::~ControllerBase() = default;
 
-void ControllerBase::ActivateController() {
+void ControllerBase::ActivateController(Core::System& system) {
     if (is_activated) {
         OnRelease();
     }
     is_activated = true;
-    OnInit();
+    OnInit(system);
 }
 
 void ControllerBase::DeactivateController() {

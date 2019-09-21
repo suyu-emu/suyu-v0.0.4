@@ -17,7 +17,7 @@ enum class JoystickId : std::size_t { Joystick_Left, Joystick_Right };
 Controller_DebugPad::Controller_DebugPad() = default;
 Controller_DebugPad::~Controller_DebugPad() = default;
 
-void Controller_DebugPad::OnInit() {}
+void Controller_DebugPad::OnInit(Core::System& system) {}
 
 void Controller_DebugPad::OnRelease() {}
 

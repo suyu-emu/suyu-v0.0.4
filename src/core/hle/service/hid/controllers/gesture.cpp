@@ -13,7 +13,7 @@ constexpr std::size_t SHARED_MEMORY_OFFSET = 0x3BA00;
 Controller_Gesture::Controller_Gesture() = default;
 Controller_Gesture::~Controller_Gesture() = default;
 
-void Controller_Gesture::OnInit() {}
+void Controller_Gesture::OnInit(Core::System& system) {}
 
 void Controller_Gesture::OnRelease() {}
 

@@ -15,7 +15,7 @@ constexpr u8 KEYS_PER_BYTE = 8;
 Controller_Keyboard::Controller_Keyboard() = default;
 Controller_Keyboard::~Controller_Keyboard() = default;
 
-void Controller_Keyboard::OnInit() {}
+void Controller_Keyboard::OnInit(Core::System& system) {}
 
 void Controller_Keyboard::OnRelease() {}
 
