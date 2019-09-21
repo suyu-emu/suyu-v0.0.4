@@ -20,7 +20,7 @@ constexpr u32 NPAD_UNKNOWN = 16; // TODO(ogniK): What is this?
 
 class Controller_NPad final : public ControllerBase {
 public:
-    Controller_NPad(Core::System& system);
+    explicit Controller_NPad(Core::System& system);
     ~Controller_NPad() override;
 
     // Called when the controller is initialized

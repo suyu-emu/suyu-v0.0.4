@@ -14,7 +14,7 @@
 namespace Service::HID {
 class Controller_Touchscreen final : public ControllerBase {
 public:
-    Controller_Touchscreen(Core::System& system);
+    explicit Controller_Touchscreen(Core::System& system);
     ~Controller_Touchscreen() override;
 
     // Called when the controller is initialized

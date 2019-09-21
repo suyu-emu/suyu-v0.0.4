@@ -15,7 +15,7 @@
 namespace Service::HID {
 class Controller_Keyboard final : public ControllerBase {
 public:
-    Controller_Keyboard(Core::System& system);
+    explicit Controller_Keyboard(Core::System& system);
     ~Controller_Keyboard() override;
 
     // Called when the controller is initialized
