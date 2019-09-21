@@ -35,6 +35,7 @@ add_executable(yuzu
     configuration/configure_dialog.h
     configuration/configure_filesystem.cpp
     configuration/configure_filesystem.h
+    configuration/configure_filesystem.ui
     configuration/configure_gamelist.cpp
     configuration/configure_gamelist.h
     configuration/configure_gamelist.ui

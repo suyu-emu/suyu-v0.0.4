@@ -59,12 +59,12 @@ static std::string GetRelativePathFromNcaID(const std::array<u8, 16>& nca_id, bo
                                             bool within_two_digit, bool cnmt_suffix) {
     if (!within_two_digit)
         return fmt::format(cnmt_suffix ? "{}.cnmt.nca" : "/{}.nca",
-                           Common::HexArrayToString(nca_id, second_hex_upper));
+                           Common::HexToString(nca_id, second_hex_upper));
 
     Core::Crypto::SHA256Hash hash{};
     mbedtls_sha256(nca_id.data(), nca_id.size(), hash.data(), 0);
     return fmt::format(cnmt_suffix ? "/000000{:02X}/{}.cnmt.nca" : "/000000{:02X}/{}.nca", hash[0],
-                       Common::HexArrayToString(nca_id, second_hex_upper));
+                       Common::HexToString(nca_id, second_hex_upper));
 }
 
 static std::string GetCNMTName(TitleType type, u64 title_id) {
@@ -149,7 +149,7 @@ bool PlaceholderCache::Create(const NcaID& id, u64 size) const {
     if (dir2 == nullptr)
         return false;
 
-    const auto file = dir2->CreateFile(fmt::format("{}.nca", Common::HexArrayToString(id, false)));
+    const auto file = dir2->CreateFile(fmt::format("{}.nca", Common::HexToString(id, false)));
 
     if (file == nullptr)
         return false;
@@ -170,7 +170,7 @@ bool PlaceholderCache::Delete(const NcaID& id) const {
 
     const auto dir2 = GetOrCreateDirectoryRelative(dir, dirname);
 
-    const auto res = dir2->DeleteFile(fmt::format("{}.nca", Common::HexArrayToString(id, false)));
+    const auto res = dir2->DeleteFile(fmt::format("{}.nca", Common::HexToString(id, false)));
 
     return res;
 }

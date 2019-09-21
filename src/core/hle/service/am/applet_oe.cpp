@@ -95,7 +95,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IApplicationFunctions>(system.FileSystemController());
+        rb.PushIpcInterface<IApplicationFunctions>(system);
     }
 
     std::shared_ptr<NVFlinger::NVFlinger> nvflinger;

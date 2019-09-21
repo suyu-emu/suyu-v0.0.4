@@ -9,7 +9,7 @@
 #include "core/settings.h"
 #include "ui_configure_filesystem.h"
 #include "yuzu/configuration/configure_filesystem.h"
-#include "yuzu/ui_settings.h"
+#include "yuzu/uisettings.h"
 
 namespace {
 

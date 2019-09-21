@@ -650,7 +650,8 @@ private:
     u64 next_entry_index = 0;
 };
 
-FSP_SRV::FSP_SRV(FileSystemController& fsc) : ServiceFramework("fsp-srv"), fsc(fsc) {
+FSP_SRV::FSP_SRV(FileSystemController& fsc, const Core::Reporter& reporter)
+    : ServiceFramework("fsp-srv"), fsc(fsc), reporter(reporter) {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "OpenFileSystem"},

@@ -125,7 +125,7 @@ private:
     std::unique_ptr<FileSys::PlaceholderCache> gamecard_placeholder;
 };
 
-void InstallInterfaces(SM::ServiceManager& service_manager, FileSystemController& controller);
+void InstallInterfaces(Core::System& system);
 
 // A class that wraps a VfsDirectory with methods that return ResultVal and ResultCode instead of
 // pointers and booleans. This makes using a VfsDirectory with switch services much easier and
