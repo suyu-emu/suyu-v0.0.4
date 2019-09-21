@@ -516,7 +516,8 @@ std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
     std::sort(state.block_info.begin(), state.block_info.end(),
               [](const BlockInfo& a, const BlockInfo& b) -> bool { return a.start < b.start; });
     if (decompiled && settings.depth != CompileDepth::NoFlowStack) {
-        ASTManager manager{settings.depth != CompileDepth::DecompileBackwards};
+        ASTManager manager{settings.depth != CompileDepth::DecompileBackwards,
+                           settings.disable_else_derivation};
         state.manager = &manager;
         DecompileShader(state);
         decompiled = state.manager->IsFullyDecompiled();

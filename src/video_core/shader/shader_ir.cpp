@@ -25,7 +25,7 @@ using Tegra::Shader::Register;
 ShaderIR::ShaderIR(const ProgramCode& program_code, u32 main_offset, const std::size_t size,
                    CompilerSettings settings)
     : program_code{program_code}, main_offset{main_offset}, program_size{size}, basic_blocks{},
-      program_manager{true}, settings{settings} {
+      program_manager{true, true}, settings{settings} {
     Decode();
 }
 

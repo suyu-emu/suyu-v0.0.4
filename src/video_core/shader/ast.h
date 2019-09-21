@@ -298,7 +298,7 @@ private:
 
 class ASTManager final {
 public:
-    ASTManager(bool full_decompile);
+    ASTManager(bool full_decompile, bool disable_else_derivation);
     ~ASTManager();
 
     ASTManager(const ASTManager& o) = delete;
@@ -378,6 +378,7 @@ private:
     }
 
     bool full_decompile{};
+    bool disable_else_derivation{};
     std::unordered_map<u32, u32> labels_map{};
     u32 labels_count{};
     std::vector<ASTNode> labels{};

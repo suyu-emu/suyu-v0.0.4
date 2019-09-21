@@ -72,7 +72,7 @@ struct ShaderCharacteristics {
     std::set<u32> labels{};
     u32 start{};
     u32 end{};
-    ASTManager manager{true};
+    ASTManager manager{true, true};
     CompilerSettings settings{};
 };
 

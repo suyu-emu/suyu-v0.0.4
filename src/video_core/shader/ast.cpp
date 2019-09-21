@@ -363,7 +363,8 @@ std::string ASTManager::Print() {
     return printer.GetResult();
 }
 
-ASTManager::ASTManager(bool full_decompile) : full_decompile{full_decompile} {};
+ASTManager::ASTManager(bool full_decompile, bool disable_else_derivation)
+    : full_decompile{full_decompile}, disable_else_derivation{disable_else_derivation} {};
 
 ASTManager::~ASTManager() {
     Clear();
@@ -378,7 +379,8 @@ void ASTManager::Init() {
 ASTManager::ASTManager(ASTManager&& other)
     : labels_map(std::move(other.labels_map)), labels_count{other.labels_count},
       gotos(std::move(other.gotos)), labels(std::move(other.labels)), variables{other.variables},
-      program{other.program}, main_node{other.main_node}, false_condition{other.false_condition} {
+      program{other.program}, main_node{other.main_node}, false_condition{other.false_condition},
+      disable_else_derivation{other.disable_else_derivation} {
     other.main_node.reset();
 }
 
@@ -392,6 +394,7 @@ ASTManager& ASTManager::operator=(ASTManager&& other) {
     program = other.program;
     main_node = other.main_node;
     false_condition = other.false_condition;
+    disable_else_derivation = other.disable_else_derivation;
 
     other.main_node.reset();
     return *this;
@@ -641,7 +644,7 @@ void ASTManager::EncloseIfThen(ASTNode goto_node, ASTNode label) {
     ASTNode prev = goto_node->GetPrevious();
     Expr condition = goto_node->GetGotoCondition();
     bool do_else = false;
-    if (prev->IsIfThen()) {
+    if (!disable_else_derivation && prev->IsIfThen()) {
         Expr if_condition = prev->GetIfCondition();
         do_else = ExprAreEqual(if_condition, condition);
     }

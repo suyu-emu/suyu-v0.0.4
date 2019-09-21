@@ -19,7 +19,8 @@ enum class CompileDepth : u32 {
 std::string CompileDepthAsString(CompileDepth cd);
 
 struct CompilerSettings {
-    CompileDepth depth;
+    CompileDepth depth{CompileDepth::NoFlowStack};
+    bool disable_else_derivation{true};
 };
 
 } // namespace VideoCommon::Shader
