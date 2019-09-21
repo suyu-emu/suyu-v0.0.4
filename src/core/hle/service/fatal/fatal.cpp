@@ -20,8 +20,8 @@
 
 namespace Service::Fatal {
 
-Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
-    : ServiceFramework(name), module(std::move(module)) {}
+Module::Interface::Interface(std::shared_ptr<Module> module, Core::System& system, const char* name)
+    : ServiceFramework(name), module(std::move(module)), system(system) {}
 
 Module::Interface::~Interface() = default;
 
@@ -64,7 +64,8 @@ enum class FatalType : u32 {
     ErrorScreen = 2,
 };
 
-static void GenerateErrorReport(ResultCode error_code, const FatalInfo& info) {
+static void GenerateErrorReport(Core::System& system, ResultCode error_code,
+                                const FatalInfo& info) {
     const auto title_id = Core::CurrentProcess()->GetTitleID();
     std::string crash_report = fmt::format(
         "Yuzu {}-{} crash report\n"
@@ -101,18 +102,19 @@ static void GenerateErrorReport(ResultCode error_code, const FatalInfo& info) {
 
     LOG_ERROR(Service_Fatal, "{}", crash_report);
 
-    Core::System::GetInstance().GetReporter().SaveCrashReport(
+    system.GetReporter().SaveCrashReport(
         title_id, error_code, info.set_flags, info.program_entry_point, info.sp, info.pc,
         info.pstate, info.afsr0, info.afsr1, info.esr, info.far, info.registers, info.backtrace,
         info.backtrace_size, info.ArchAsString(), info.unk10);
 }
 
-static void ThrowFatalError(ResultCode error_code, FatalType fatal_type, const FatalInfo& info) {
+static void ThrowFatalError(Core::System& system, ResultCode error_code, FatalType fatal_type,
+                            const FatalInfo& info) {
     LOG_ERROR(Service_Fatal, "Threw fatal error type {} with error code 0x{:X}",
               static_cast<u32>(fatal_type), error_code.raw);
     switch (fatal_type) {
     case FatalType::ErrorReportAndScreen:
-        GenerateErrorReport(error_code, info);
+        GenerateErrorReport(system, error_code, info);
         [[fallthrough]];
     case FatalType::ErrorScreen:
         // Since we have no fatal:u error screen. We should just kill execution instead
@@ -120,7 +122,7 @@ static void ThrowFatalError(ResultCode error_code, FatalType fatal_type, const F
         break;
         // Should not throw a fatal screen but should generate an error report
     case FatalType::ErrorReport:
-        GenerateErrorReport(error_code, info);
+        GenerateErrorReport(system, error_code, info);
         break;
     }
 }
@@ -130,7 +132,7 @@ void Module::Interface::ThrowFatal(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto error_code = rp.Pop<ResultCode>();
 
-    ThrowFatalError(error_code, FatalType::ErrorScreen, {});
+    ThrowFatalError(system, error_code, FatalType::ErrorScreen, {});
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
@@ -141,7 +143,8 @@ void Module::Interface::ThrowFatalWithPolicy(Kernel::HLERequestContext& ctx) {
     const auto error_code = rp.Pop<ResultCode>();
     const auto fatal_type = rp.PopEnum<FatalType>();
 
-    ThrowFatalError(error_code, fatal_type, {}); // No info is passed with ThrowFatalWithPolicy
+    ThrowFatalError(system, error_code, fatal_type,
+                    {}); // No info is passed with ThrowFatalWithPolicy
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
@@ -157,15 +160,15 @@ void Module::Interface::ThrowFatalWithCpuContext(Kernel::HLERequestContext& ctx)
     ASSERT_MSG(fatal_info.size() == sizeof(FatalInfo), "Invalid fatal info buffer size!");
     std::memcpy(&info, fatal_info.data(), sizeof(FatalInfo));
 
-    ThrowFatalError(error_code, fatal_type, info);
+    ThrowFatalError(system, error_code, fatal_type, info);
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
     auto module = std::make_shared<Module>();
-    std::make_shared<Fatal_P>(module)->InstallAsService(service_manager);
-    std::make_shared<Fatal_U>(module)->InstallAsService(service_manager);
+    std::make_shared<Fatal_P>(module, system)->InstallAsService(service_manager);
+    std::make_shared<Fatal_U>(module, system)->InstallAsService(service_manager);
 }
 
 } // namespace Service::Fatal
