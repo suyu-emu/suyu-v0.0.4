@@ -409,6 +409,7 @@ struct Values {
     float volume;
 
     // Debugging
+    bool record_frame_times;
     bool use_gdbstub;
     u16 gdbstub_port;
     std::string program_args;
