@@ -1066,7 +1066,7 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
 
     RegisterHandlers(functions);
 
-    auto& kernel = Core::System::GetInstance().Kernel();
+    auto& kernel = system.Kernel();
     gpu_error_detected_event = Kernel::WritableEvent::CreateEventPair(
         kernel, Kernel::ResetType::Manual, "IApplicationFunctions:GpuErrorDetectedSystemEvent");
 }
