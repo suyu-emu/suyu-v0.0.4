@@ -102,7 +102,7 @@ std::vector<CheatEntry> TextCheatParser::Parse(const Core::System& system,
     std::optional<u64> current_entry = std::nullopt;
 
     for (std::size_t i = 0; i < data.size(); ++i) {
-        if (std::isspace(data[i])) {
+        if (::isspace(data[i])) {
             continue;
         }
 
@@ -143,7 +143,7 @@ std::vector<CheatEntry> TextCheatParser::Parse(const Core::System& system,
                 '\0';
 
             i += name.length() + 1;
-        } else if (std::isxdigit(data[i])) {
+        } else if (::isxdigit(data[i])) {
             if (!current_entry || out[*current_entry].definition.num_opcodes >=
                                       out[*current_entry].definition.opcodes.size()) {
                 return {};
@@ -188,7 +188,7 @@ CheatEngine::~CheatEngine() {
 
 void CheatEngine::Initialize() {
     event = core_timing.RegisterEvent(
-        "CheatEngine::FrameCallback::" + Common::HexArrayToString(metadata.main_nso_build_id),
+        "CheatEngine::FrameCallback::" + Common::HexToString(metadata.main_nso_build_id),
         [this](u64 userdata, s64 cycles_late) { FrameCallback(userdata, cycles_late); });
     core_timing.ScheduleEvent(CHEAT_ENGINE_TICKS, event);
 

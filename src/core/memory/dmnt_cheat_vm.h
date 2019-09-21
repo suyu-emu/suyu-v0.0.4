@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <variant>
 #include <vector>
 #include <fmt/printf.h>
 #include "common/common_types.h"
@@ -31,100 +32,100 @@
 
 namespace Memory {
 
-enum CheatVmOpcodeType : u32 {
-    CheatVmOpcodeType_StoreStatic = 0,
-    CheatVmOpcodeType_BeginConditionalBlock = 1,
-    CheatVmOpcodeType_EndConditionalBlock = 2,
-    CheatVmOpcodeType_ControlLoop = 3,
-    CheatVmOpcodeType_LoadRegisterStatic = 4,
-    CheatVmOpcodeType_LoadRegisterMemory = 5,
-    CheatVmOpcodeType_StoreStaticToAddress = 6,
-    CheatVmOpcodeType_PerformArithmeticStatic = 7,
-    CheatVmOpcodeType_BeginKeypressConditionalBlock = 8,
+enum class CheatVmOpcodeType : u32 {
+    StoreStatic = 0,
+    BeginConditionalBlock = 1,
+    EndConditionalBlock = 2,
+    ControlLoop = 3,
+    LoadRegisterStatic = 4,
+    LoadRegisterMemory = 5,
+    StoreStaticToAddress = 6,
+    PerformArithmeticStatic = 7,
+    BeginKeypressConditionalBlock = 8,
 
-    /* These are not implemented by Gateway's VM. */
-    CheatVmOpcodeType_PerformArithmeticRegister = 9,
-    CheatVmOpcodeType_StoreRegisterToAddress = 10,
-    CheatVmOpcodeType_Reserved11 = 11,
+    // These are not implemented by Gateway's VM.
+    PerformArithmeticRegister = 9,
+    StoreRegisterToAddress = 10,
+    Reserved11 = 11,
 
-    /* This is a meta entry, and not a real opcode. */
-    /* This is to facilitate multi-nybble instruction decoding. */
-    CheatVmOpcodeType_ExtendedWidth = 12,
+    // This is a meta entry, and not a real opcode.
+    // This is to facilitate multi-nybble instruction decoding.
+    ExtendedWidth = 12,
 
-    /* Extended width opcodes. */
-    CheatVmOpcodeType_BeginRegisterConditionalBlock = 0xC0,
-    CheatVmOpcodeType_SaveRestoreRegister = 0xC1,
-    CheatVmOpcodeType_SaveRestoreRegisterMask = 0xC2,
+    // Extended width opcodes.
+    BeginRegisterConditionalBlock = 0xC0,
+    SaveRestoreRegister = 0xC1,
+    SaveRestoreRegisterMask = 0xC2,
 
-    /* This is a meta entry, and not a real opcode. */
-    /* This is to facilitate multi-nybble instruction decoding. */
-    CheatVmOpcodeType_DoubleExtendedWidth = 0xF0,
+    // This is a meta entry, and not a real opcode.
+    // This is to facilitate multi-nybble instruction decoding.
+    DoubleExtendedWidth = 0xF0,
 
-    /* Double-extended width opcodes. */
-    CheatVmOpcodeType_DebugLog = 0xFFF,
+    // Double-extended width opcodes.
+    DebugLog = 0xFFF,
 };
 
-enum MemoryAccessType : u32 {
-    MemoryAccessType_MainNso = 0,
-    MemoryAccessType_Heap = 1,
+enum class MemoryAccessType : u32 {
+    MainNso = 0,
+    Heap = 1,
 };
 
-enum ConditionalComparisonType : u32 {
-    ConditionalComparisonType_GT = 1,
-    ConditionalComparisonType_GE = 2,
-    ConditionalComparisonType_LT = 3,
-    ConditionalComparisonType_LE = 4,
-    ConditionalComparisonType_EQ = 5,
-    ConditionalComparisonType_NE = 6,
+enum class ConditionalComparisonType : u32 {
+    GT = 1,
+    GE = 2,
+    LT = 3,
+    LE = 4,
+    EQ = 5,
+    NE = 6,
 };
 
-enum RegisterArithmeticType : u32 {
-    RegisterArithmeticType_Addition = 0,
-    RegisterArithmeticType_Subtraction = 1,
-    RegisterArithmeticType_Multiplication = 2,
-    RegisterArithmeticType_LeftShift = 3,
-    RegisterArithmeticType_RightShift = 4,
+enum class RegisterArithmeticType : u32 {
+    Addition = 0,
+    Subtraction = 1,
+    Multiplication = 2,
+    LeftShift = 3,
+    RightShift = 4,
 
-    /* These are not supported by Gateway's VM. */
-    RegisterArithmeticType_LogicalAnd = 5,
-    RegisterArithmeticType_LogicalOr = 6,
-    RegisterArithmeticType_LogicalNot = 7,
-    RegisterArithmeticType_LogicalXor = 8,
+    // These are not supported by Gateway's VM.
+    LogicalAnd = 5,
+    LogicalOr = 6,
+    LogicalNot = 7,
+    LogicalXor = 8,
 
-    RegisterArithmeticType_None = 9,
+    None = 9,
 };
 
-enum StoreRegisterOffsetType : u32 {
-    StoreRegisterOffsetType_None = 0,
-    StoreRegisterOffsetType_Reg = 1,
-    StoreRegisterOffsetType_Imm = 2,
-    StoreRegisterOffsetType_MemReg = 3,
-    StoreRegisterOffsetType_MemImm = 4,
-    StoreRegisterOffsetType_MemImmReg = 5,
+enum class StoreRegisterOffsetType : u32 {
+    None = 0,
+    Reg = 1,
+    Imm = 2,
+    MemReg = 3,
+    MemImm = 4,
+    MemImmReg = 5,
 };
 
-enum CompareRegisterValueType : u32 {
-    CompareRegisterValueType_MemoryRelAddr = 0,
-    CompareRegisterValueType_MemoryOfsReg = 1,
-    CompareRegisterValueType_RegisterRelAddr = 2,
-    CompareRegisterValueType_RegisterOfsReg = 3,
-    CompareRegisterValueType_StaticValue = 4,
-    CompareRegisterValueType_OtherRegister = 5,
+enum class CompareRegisterValueType : u32 {
+    MemoryRelAddr = 0,
+    MemoryOfsReg = 1,
+    RegisterRelAddr = 2,
+    RegisterOfsReg = 3,
+    StaticValue = 4,
+    OtherRegister = 5,
 };
 
-enum SaveRestoreRegisterOpType : u32 {
-    SaveRestoreRegisterOpType_Restore = 0,
-    SaveRestoreRegisterOpType_Save = 1,
-    SaveRestoreRegisterOpType_ClearSaved = 2,
-    SaveRestoreRegisterOpType_ClearRegs = 3,
+enum class SaveRestoreRegisterOpType : u32 {
+    Restore = 0,
+    Save = 1,
+    ClearSaved = 2,
+    ClearRegs = 3,
 };
 
-enum DebugLogValueType : u32 {
-    DebugLogValueType_MemoryRelAddr = 0,
-    DebugLogValueType_MemoryOfsReg = 1,
-    DebugLogValueType_RegisterRelAddr = 2,
-    DebugLogValueType_RegisterOfsReg = 3,
-    DebugLogValueType_RegisterValue = 4,
+enum class DebugLogValueType : u32 {
+    MemoryRelAddr = 0,
+    MemoryOfsReg = 1,
+    RegisterRelAddr = 2,
+    RegisterOfsReg = 3,
+    RegisterValue = 4,
 };
 
 union VmInt {
@@ -247,26 +248,19 @@ struct DebugLogOpcode {
     u64 rel_address;
 };
 
-struct CheatVmOpcode {
+struct UnrecognizedInstruction {
     CheatVmOpcodeType opcode;
+};
+
+struct CheatVmOpcode {
     bool begin_conditional_block;
-    union {
-        StoreStaticOpcode store_static;
-        BeginConditionalOpcode begin_cond;
-        EndConditionalOpcode end_cond;
-        ControlLoopOpcode ctrl_loop;
-        LoadRegisterStaticOpcode ldr_static;
-        LoadRegisterMemoryOpcode ldr_memory;
-        StoreStaticToAddressOpcode str_static;
-        PerformArithmeticStaticOpcode perform_math_static;
-        BeginKeypressConditionalOpcode begin_keypress_cond;
-        PerformArithmeticRegisterOpcode perform_math_reg;
-        StoreRegisterToAddressOpcode str_register;
-        BeginRegisterConditionalOpcode begin_reg_cond;
-        SaveRestoreRegisterOpcode save_restore_reg;
-        SaveRestoreRegisterMaskOpcode save_restore_regmask;
-        DebugLogOpcode debug_log;
-    };
+    std::variant<StoreStaticOpcode, BeginConditionalOpcode, EndConditionalOpcode, ControlLoopOpcode,
+                 LoadRegisterStaticOpcode, LoadRegisterMemoryOpcode, StoreStaticToAddressOpcode,
+                 PerformArithmeticStaticOpcode, BeginKeypressConditionalOpcode,
+                 PerformArithmeticRegisterOpcode, StoreRegisterToAddressOpcode,
+                 BeginRegisterConditionalOpcode, SaveRestoreRegisterOpcode,
+                 SaveRestoreRegisterMaskOpcode, DebugLogOpcode, UnrecognizedInstruction>
+        opcode;
 };
 
 class DmntCheatVm {
@@ -285,50 +279,43 @@ public:
         virtual void CommandLog(std::string_view data) = 0;
     };
 
-    constexpr static size_t MaximumProgramOpcodeCount = 0x400;
-    constexpr static size_t NumRegisters = 0x10;
+    static constexpr std::size_t MaximumProgramOpcodeCount = 0x400;
+    static constexpr std::size_t NumRegisters = 0x10;
+
+    explicit DmntCheatVm(std::unique_ptr<Callbacks> callbacks);
+    ~DmntCheatVm();
+
+    std::size_t GetProgramSize() const {
+        return this->num_opcodes;
+    }
+
+    bool LoadProgram(const std::vector<CheatEntry>& cheats);
+    void Execute(const CheatProcessMetadata& metadata);
 
 private:
     std::unique_ptr<Callbacks> callbacks;
 
-    size_t num_opcodes = 0;
-    size_t instruction_ptr = 0;
-    size_t condition_depth = 0;
+    std::size_t num_opcodes = 0;
+    std::size_t instruction_ptr = 0;
+    std::size_t condition_depth = 0;
     bool decode_success = false;
     std::array<u32, MaximumProgramOpcodeCount> program{};
     std::array<u64, NumRegisters> registers{};
     std::array<u64, NumRegisters> saved_values{};
-    std::array<size_t, NumRegisters> loop_tops{};
+    std::array<std::size_t, NumRegisters> loop_tops{};
 
-private:
     bool DecodeNextOpcode(CheatVmOpcode& out);
     void SkipConditionalBlock();
     void ResetState();
 
-    /* For implementing the DebugLog opcode. */
+    // For implementing the DebugLog opcode.
     void DebugLog(u32 log_id, u64 value);
-
-    /* For debugging. These will be IFDEF'd out normally. */
-    template <typename... Args>
-    void LogToDebugFile(const char* format, const Args&... args) {
-        callbacks->CommandLog(fmt::sprintf(format, args...));
-    }
 
     void LogOpcode(const CheatVmOpcode& opcode);
 
     static u64 GetVmInt(VmInt value, u32 bit_width);
     static u64 GetCheatProcessAddress(const CheatProcessMetadata& metadata,
                                       MemoryAccessType mem_type, u64 rel_address);
-
-public:
-    DmntCheatVm(std::unique_ptr<Callbacks> callbacks) : callbacks(std::move(callbacks)) {}
-
-    size_t GetProgramSize() {
-        return this->num_opcodes;
-    }
-
-    bool LoadProgram(const std::vector<CheatEntry>& cheats);
-    void Execute(const CheatProcessMetadata& metadata);
 };
 
 }; // namespace Memory
