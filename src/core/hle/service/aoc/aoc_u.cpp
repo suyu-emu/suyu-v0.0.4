@@ -29,9 +29,9 @@ static bool CheckAOCTitleIDMatchesBase(u64 title_id, u64 base) {
     return (title_id & DLC_BASE_TITLE_ID_MASK) == base;
 }
 
-static std::vector<u64> AccumulateAOCTitleIDs() {
+static std::vector<u64> AccumulateAOCTitleIDs(Core::System& system) {
     std::vector<u64> add_on_content;
-    const auto& rcu = Core::System::GetInstance().GetContentProvider();
+    const auto& rcu = system.GetContentProvider();
     const auto list =
         rcu.ListEntriesFilter(FileSys::TitleType::AOC, FileSys::ContentRecordType::Data);
     std::transform(list.begin(), list.end(), std::back_inserter(add_on_content),
@@ -47,7 +47,8 @@ static std::vector<u64> AccumulateAOCTitleIDs() {
     return add_on_content;
 }
 
-AOC_U::AOC_U() : ServiceFramework("aoc:u"), add_on_content(AccumulateAOCTitleIDs()) {
+AOC_U::AOC_U(Core::System& system)
+    : ServiceFramework("aoc:u"), add_on_content(AccumulateAOCTitleIDs(system)), system(system) {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "CountAddOnContentByApplicationId"},
@@ -65,7 +66,7 @@ AOC_U::AOC_U() : ServiceFramework("aoc:u"), add_on_content(AccumulateAOCTitleIDs
 
     RegisterHandlers(functions);
 
-    auto& kernel = Core::System::GetInstance().Kernel();
+    auto& kernel = system.Kernel();
     aoc_change_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Manual,
                                                               "GetAddOnContentListChanged:Event");
 }
@@ -86,7 +87,7 @@ void AOC_U::CountAddOnContent(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
 
-    const auto current = Core::System::GetInstance().CurrentProcess()->GetTitleID();
+    const auto current = system.CurrentProcess()->GetTitleID();
 
     const auto& disabled = Settings::values.disabled_addons[current];
     if (std::find(disabled.begin(), disabled.end(), "DLC") != disabled.end()) {
@@ -113,7 +114,7 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_AOC, "called with offset={}, count={}, process_id={}", offset, count,
               process_id);
 
-    const auto current = Core::System::GetInstance().CurrentProcess()->GetTitleID();
+    const auto current = system.CurrentProcess()->GetTitleID();
 
     std::vector<u32> out;
     const auto& disabled = Settings::values.disabled_addons[current];
@@ -159,7 +160,7 @@ void AOC_U::GetAddOnContentBaseId(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
 
-    const auto title_id = Core::System::GetInstance().CurrentProcess()->GetTitleID();
+    const auto title_id = system.CurrentProcess()->GetTitleID();
     FileSys::PatchManager pm{title_id};
 
     const auto res = pm.GetControlMetadata();
@@ -196,8 +197,8 @@ void AOC_U::GetAddOnContentListChangedEvent(Kernel::HLERequestContext& ctx) {
     rb.PushCopyObjects(aoc_change_event.readable);
 }
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
-    std::make_shared<AOC_U>()->InstallAsService(service_manager);
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
+    std::make_shared<AOC_U>(system)->InstallAsService(service_manager);
 }
 
 } // namespace Service::AOC
