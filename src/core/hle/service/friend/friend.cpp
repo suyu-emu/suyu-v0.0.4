@@ -149,7 +149,8 @@ private:
 
 class INotificationService final : public ServiceFramework<INotificationService> {
 public:
-    INotificationService(Common::UUID uuid) : ServiceFramework("INotificationService"), uuid(uuid) {
+    INotificationService(Common::UUID uuid, Core::System& system)
+        : ServiceFramework("INotificationService"), uuid(uuid) {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &INotificationService::GetEvent, "GetEvent"},
@@ -159,6 +160,9 @@ public:
         // clang-format on
 
         RegisterHandlers(functions);
+
+        notification_event = Kernel::WritableEvent::CreateEventPair(
+            system.Kernel(), Kernel::ResetType::Manual, "INotificationService:NotifyEvent");
     }
 
 private:
@@ -167,13 +171,6 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-
-        if (!is_event_created) {
-            auto& kernel = Core::System::GetInstance().Kernel();
-            notification_event = Kernel::WritableEvent::CreateEventPair(
-                kernel, Kernel::ResetType::Manual, "INotificationService:NotifyEvent");
-            is_event_created = true;
-        }
         rb.PushCopyObjects(notification_event.readable);
     }
 
@@ -261,21 +258,21 @@ void Module::Interface::CreateNotificationService(Kernel::HLERequestContext& ctx
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<INotificationService>(uuid);
+    rb.PushIpcInterface<INotificationService>(uuid, system);
 }
 
-Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
-    : ServiceFramework(name), module(std::move(module)) {}
+Module::Interface::Interface(std::shared_ptr<Module> module, Core::System& system, const char* name)
+    : ServiceFramework(name), module(std::move(module)), system(system) {}
 
 Module::Interface::~Interface() = default;
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
     auto module = std::make_shared<Module>();
-    std::make_shared<Friend>(module, "friend:a")->InstallAsService(service_manager);
-    std::make_shared<Friend>(module, "friend:m")->InstallAsService(service_manager);
-    std::make_shared<Friend>(module, "friend:s")->InstallAsService(service_manager);
-    std::make_shared<Friend>(module, "friend:u")->InstallAsService(service_manager);
-    std::make_shared<Friend>(module, "friend:v")->InstallAsService(service_manager);
+    std::make_shared<Friend>(module, system, "friend:a")->InstallAsService(service_manager);
+    std::make_shared<Friend>(module, system, "friend:m")->InstallAsService(service_manager);
+    std::make_shared<Friend>(module, system, "friend:s")->InstallAsService(service_manager);
+    std::make_shared<Friend>(module, system, "friend:u")->InstallAsService(service_manager);
+    std::make_shared<Friend>(module, system, "friend:v")->InstallAsService(service_manager);
 }
 
 } // namespace Service::Friend
