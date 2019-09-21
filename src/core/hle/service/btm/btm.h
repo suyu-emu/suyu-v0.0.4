@@ -8,8 +8,12 @@ namespace Service::SM {
 class ServiceManager;
 }
 
+namespace Core {
+class System;
+};
+
 namespace Service::BTM {
 
-void InstallInterfaces(SM::ServiceManager& sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system);
 
 } // namespace Service::BTM
