@@ -146,8 +146,8 @@ u32 nvhost_gpu::SubmitGPFIFO(const std::vector<u8>& input, std::vector<u8>& outp
     }
     IoctlSubmitGpfifo params{};
     std::memcpy(&params, input.data(), sizeof(IoctlSubmitGpfifo));
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called, gpfifo={:X}, num_entries={:X}, flags={:X}",
-                params.address, params.num_entries, params.flags.raw);
+    LOG_TRACE(Service_NVDRV, "called, gpfifo={:X}, num_entries={:X}, flags={:X}", params.address,
+              params.num_entries, params.flags.raw);
 
     ASSERT_MSG(input.size() == sizeof(IoctlSubmitGpfifo) +
                                    params.num_entries * sizeof(Tegra::CommandListHeader),
@@ -179,8 +179,8 @@ u32 nvhost_gpu::KickoffPB(const std::vector<u8>& input, std::vector<u8>& output)
     }
     IoctlSubmitGpfifo params{};
     std::memcpy(&params, input.data(), sizeof(IoctlSubmitGpfifo));
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called, gpfifo={:X}, num_entries={:X}, flags={:X}",
-                params.address, params.num_entries, params.flags.raw);
+    LOG_TRACE(Service_NVDRV, "called, gpfifo={:X}, num_entries={:X}, flags={:X}", params.address,
+              params.num_entries, params.flags.raw);
 
     Tegra::CommandList entries(params.num_entries);
     Memory::ReadBlock(params.address, entries.data(),
