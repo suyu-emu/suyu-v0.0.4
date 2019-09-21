@@ -976,7 +976,7 @@ void GMainWindow::BootGame(const QString& filename) {
         if (title_name.empty())
             title_name = FileUtil::GetFilename(filename.toStdString());
     }
-    LOG_INFO(Frontend, "Booting game: \"{}\" | {:016X}", title_name, title_id);
+    LOG_INFO(Frontend, "Booting game: {:016X} | {}", title_id, title_name);
     UpdateWindowTitle(QString::fromStdString(title_name));
 
     loading_screen->Prepare(Core::System::GetInstance().GetAppLoader());
