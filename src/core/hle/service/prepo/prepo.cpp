@@ -15,7 +15,8 @@ namespace Service::PlayReport {
 
 class PlayReport final : public ServiceFramework<PlayReport> {
 public:
-    explicit PlayReport(const char* name) : ServiceFramework{name} {
+    explicit PlayReport(Core::System& system, const char* name)
+        : ServiceFramework{name}, system(system) {
         // clang-format off
         static const FunctionInfo functions[] = {
             {10100, &PlayReport::SaveReport<Core::Reporter::PlayReportType::Old>, "SaveReportOld"},
@@ -55,8 +56,8 @@ private:
                   "called, type={:02X}, process_id={:016X}, data1_size={:016X}, data2_size={:016X}",
                   static_cast<u8>(Type), process_id, data1.size(), data2.size());
 
-        const auto& reporter{Core::System::GetInstance().GetReporter()};
-        reporter.SavePlayReport(Type, Core::CurrentProcess()->GetTitleID(), {data1, data2},
+        const auto& reporter{system.GetReporter()};
+        reporter.SavePlayReport(Type, system.CurrentProcess()->GetTitleID(), {data1, data2},
                                 process_id);
 
         IPC::ResponseBuilder rb{ctx, 2};
@@ -78,8 +79,8 @@ private:
             "data2_size={:016X}",
             static_cast<u8>(Type), user_id[1], user_id[0], process_id, data1.size(), data2.size());
 
-        const auto& reporter{Core::System::GetInstance().GetReporter()};
-        reporter.SavePlayReport(Type, Core::CurrentProcess()->GetTitleID(), {data1, data2},
+        const auto& reporter{system.GetReporter()};
+        reporter.SavePlayReport(Type, system.CurrentProcess()->GetTitleID(), {data1, data2},
                                 process_id, user_id);
 
         IPC::ResponseBuilder rb{ctx, 2};
@@ -96,7 +97,7 @@ private:
         LOG_DEBUG(Service_PREPO, "called, title_id={:016X}, data1_size={:016X}, data2_size={:016X}",
                   title_id, data1.size(), data2.size());
 
-        const auto& reporter{Core::System::GetInstance().GetReporter()};
+        const auto& reporter{system.GetReporter()};
         reporter.SavePlayReport(Core::Reporter::PlayReportType::System, title_id, {data1, data2});
 
         IPC::ResponseBuilder rb{ctx, 2};
@@ -116,21 +117,23 @@ private:
                   "data2_size={:016X}",
                   user_id[1], user_id[0], title_id, data1.size(), data2.size());
 
-        const auto& reporter{Core::System::GetInstance().GetReporter()};
+        const auto& reporter{system.GetReporter()};
         reporter.SavePlayReport(Core::Reporter::PlayReportType::System, title_id, {data1, data2},
                                 std::nullopt, user_id);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
+
+    Core::System& system;
 };
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
-    std::make_shared<PlayReport>("prepo:a")->InstallAsService(service_manager);
-    std::make_shared<PlayReport>("prepo:a2")->InstallAsService(service_manager);
-    std::make_shared<PlayReport>("prepo:m")->InstallAsService(service_manager);
-    std::make_shared<PlayReport>("prepo:s")->InstallAsService(service_manager);
-    std::make_shared<PlayReport>("prepo:u")->InstallAsService(service_manager);
+void InstallInterfaces(Core::System& system) {
+    std::make_shared<PlayReport>(system, "prepo:a")->InstallAsService(system.ServiceManager());
+    std::make_shared<PlayReport>(system, "prepo:a2")->InstallAsService(system.ServiceManager());
+    std::make_shared<PlayReport>(system, "prepo:m")->InstallAsService(system.ServiceManager());
+    std::make_shared<PlayReport>(system, "prepo:s")->InstallAsService(system.ServiceManager());
+    std::make_shared<PlayReport>(system, "prepo:u")->InstallAsService(system.ServiceManager());
 }
 
 } // namespace Service::PlayReport
