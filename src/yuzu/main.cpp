@@ -2195,7 +2195,7 @@ bool GMainWindow::ConfirmChangeGame() {
     if (emu_thread == nullptr)
         return true;
 
-    auto answer = QMessageBox::question(
+    const auto answer = QMessageBox::question(
         this, tr("yuzu"),
         tr("Are you sure you want to stop the emulation? Any unsaved progress will be lost."),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
@@ -2206,7 +2206,7 @@ bool GMainWindow::ConfirmForceLockedExit() {
     if (emu_thread == nullptr)
         return true;
 
-    auto answer =
+    const auto answer =
         QMessageBox::question(this, tr("yuzu"),
                               tr("The currently running application has requested yuzu to not "
                                  "exit.\n\nWould you like to bypass this and exit anyway?"),
