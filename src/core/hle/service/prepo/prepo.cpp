@@ -15,7 +15,7 @@ namespace Service::PlayReport {
 
 class PlayReport final : public ServiceFramework<PlayReport> {
 public:
-    explicit PlayReport(Core::System& system, const char* name)
+    explicit PlayReport(const char* name, Core::System& system)
         : ServiceFramework{name}, system(system) {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -128,12 +128,12 @@ private:
     Core::System& system;
 };
 
-void InstallInterfaces(Core::System& system) {
-    std::make_shared<PlayReport>(system, "prepo:a")->InstallAsService(system.ServiceManager());
-    std::make_shared<PlayReport>(system, "prepo:a2")->InstallAsService(system.ServiceManager());
-    std::make_shared<PlayReport>(system, "prepo:m")->InstallAsService(system.ServiceManager());
-    std::make_shared<PlayReport>(system, "prepo:s")->InstallAsService(system.ServiceManager());
-    std::make_shared<PlayReport>(system, "prepo:u")->InstallAsService(system.ServiceManager());
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
+    std::make_shared<PlayReport>("prepo:a", system)->InstallAsService(service_manager);
+    std::make_shared<PlayReport>("prepo:a2", system)->InstallAsService(service_manager);
+    std::make_shared<PlayReport>("prepo:m", system)->InstallAsService(service_manager);
+    std::make_shared<PlayReport>("prepo:s", system)->InstallAsService(service_manager);
+    std::make_shared<PlayReport>("prepo:u", system)->InstallAsService(service_manager);
 }
 
 } // namespace Service::PlayReport
