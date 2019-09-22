@@ -6,6 +6,7 @@
 
 #include "common/file_util.h"
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/romfs_factory.h"
 #include "core/hle/kernel/process.h"
@@ -57,7 +58,8 @@ AppLoader_NCA::LoadResult AppLoader_NCA::Load(Kernel::Process& process) {
     }
 
     if (nca->GetRomFS() != nullptr && nca->GetRomFS()->GetSize() > 0) {
-        Service::FileSystem::RegisterRomFS(std::make_unique<FileSys::RomFSFactory>(*this));
+        Core::System::GetInstance().GetFileSystemController().RegisterRomFS(
+            std::make_unique<FileSys::RomFSFactory>(*this));
     }
 
     is_loaded = true;

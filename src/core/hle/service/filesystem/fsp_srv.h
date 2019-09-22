@@ -32,7 +32,7 @@ enum class LogMode : u32 {
 
 class FSP_SRV final : public ServiceFramework<FSP_SRV> {
 public:
-    explicit FSP_SRV(const Core::Reporter& reporter);
+    explicit FSP_SRV(FileSystemController& fsc, const Core::Reporter& reporter);
     ~FSP_SRV() override;
 
 private:
@@ -50,6 +50,8 @@ private:
     void OpenPatchDataStorageByCurrentProcess(Kernel::HLERequestContext& ctx);
     void OutputAccessLogToSdCard(Kernel::HLERequestContext& ctx);
     void GetAccessLogVersionInfo(Kernel::HLERequestContext& ctx);
+
+    FileSystemController& fsc;
 
     FileSys::VirtualFile romfs;
     u64 current_process_id = 0;

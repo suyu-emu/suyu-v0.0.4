@@ -91,6 +91,8 @@ public:
     VirtualDir GetLogoPartition() const;
 
     u64 GetProgramTitleID() const;
+    u32 GetSystemUpdateVersion();
+    u64 GetSystemUpdateTitleID() const;
 
     bool HasProgramNCA() const;
     VirtualFile GetProgramNCAFile() const;
@@ -106,6 +108,11 @@ public:
 
     VirtualDir GetParentDirectory() const override;
 
+    // Creates a directory that contains all the NCAs in the gamecard
+    VirtualDir ConcatenatedPseudoDirectory();
+
+    std::array<u8, 0x200> GetCertificate() const;
+
 private:
     Loader::ResultStatus AddNCAFromPartition(XCIPartition part);
 
@@ -119,6 +126,8 @@ private:
     std::shared_ptr<NSP> secure_partition;
     std::shared_ptr<NCA> program;
     std::vector<std::shared_ptr<NCA>> ncas;
+
+    u64 update_normal_partition_end;
 
     Core::Crypto::KeyManager keys;
 };

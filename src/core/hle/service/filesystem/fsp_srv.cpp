@@ -19,6 +19,7 @@
 #include "core/file_sys/mode.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/patch_manager.h"
+#include "core/file_sys/romfs_factory.h"
 #include "core/file_sys/savedata_factory.h"
 #include "core/file_sys/system_archive/system_archive.h"
 #include "core/file_sys/vfs.h"
@@ -29,6 +30,18 @@
 #include "core/reporter.h"
 
 namespace Service::FileSystem {
+
+struct SizeGetter {
+    std::function<u64()> get_free_size;
+    std::function<u64()> get_total_size;
+
+    static SizeGetter FromStorageId(const FileSystemController& fsc, FileSys::StorageId id) {
+        return {
+            [&fsc, id] { return fsc.GetFreeSpaceSize(id); },
+            [&fsc, id] { return fsc.GetTotalSpaceSize(id); },
+        };
+    }
+};
 
 enum class FileSystemType : u8 {
     Invalid0 = 0,
@@ -289,8 +302,8 @@ private:
 
 class IFileSystem final : public ServiceFramework<IFileSystem> {
 public:
-    explicit IFileSystem(FileSys::VirtualDir backend)
-        : ServiceFramework("IFileSystem"), backend(std::move(backend)) {
+    explicit IFileSystem(FileSys::VirtualDir backend, SizeGetter size)
+        : ServiceFramework("IFileSystem"), backend(std::move(backend)), size(std::move(size)) {
         static const FunctionInfo functions[] = {
             {0, &IFileSystem::CreateFile, "CreateFile"},
             {1, &IFileSystem::DeleteFile, "DeleteFile"},
@@ -467,14 +480,31 @@ public:
         rb.Push(RESULT_SUCCESS);
     }
 
+    void GetFreeSpaceSize(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_FS, "called");
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(size.get_free_size());
+    }
+
+    void GetTotalSpaceSize(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_FS, "called");
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(size.get_total_size());
+    }
+
 private:
     VfsDirectoryServiceWrapper backend;
+    SizeGetter size;
 };
 
 class ISaveDataInfoReader final : public ServiceFramework<ISaveDataInfoReader> {
 public:
-    explicit ISaveDataInfoReader(FileSys::SaveDataSpaceId space)
-        : ServiceFramework("ISaveDataInfoReader") {
+    explicit ISaveDataInfoReader(FileSys::SaveDataSpaceId space, FileSystemController& fsc)
+        : ServiceFramework("ISaveDataInfoReader"), fsc(fsc) {
         static const FunctionInfo functions[] = {
             {0, &ISaveDataInfoReader::ReadSaveDataInfo, "ReadSaveDataInfo"},
         };
@@ -520,8 +550,13 @@ private:
     }
 
     void FindAllSaves(FileSys::SaveDataSpaceId space) {
-        const auto save_root = OpenSaveDataSpace(space);
-        ASSERT(save_root.Succeeded());
+        const auto save_root = fsc.OpenSaveDataSpace(space);
+
+        if (save_root.Failed() || *save_root == nullptr) {
+            LOG_ERROR(Service_FS, "The save root for the space_id={:02X} was invalid!",
+                      static_cast<u8>(space));
+            return;
+        }
 
         for (const auto& type : (*save_root)->GetSubdirectories()) {
             if (type->GetName() == "save") {
@@ -610,11 +645,13 @@ private:
     };
     static_assert(sizeof(SaveDataInfo) == 0x60, "SaveDataInfo has incorrect size.");
 
+    FileSystemController& fsc;
     std::vector<SaveDataInfo> info;
     u64 next_entry_index = 0;
 };
 
-FSP_SRV::FSP_SRV(const Core::Reporter& reporter) : ServiceFramework("fsp-srv"), reporter(reporter) {
+FSP_SRV::FSP_SRV(FileSystemController& fsc, const Core::Reporter& reporter)
+    : ServiceFramework("fsp-srv"), fsc(fsc), reporter(reporter) {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "OpenFileSystem"},
@@ -754,7 +791,8 @@ void FSP_SRV::OpenFileSystemWithPatch(Kernel::HLERequestContext& ctx) {
 void FSP_SRV::OpenSdCardFileSystem(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_FS, "called");
 
-    IFileSystem filesystem(OpenSDMC().Unwrap());
+    IFileSystem filesystem(fsc.OpenSDMC().Unwrap(),
+                           SizeGetter::FromStorageId(fsc, FileSys::StorageId::SdCard));
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
@@ -768,8 +806,10 @@ void FSP_SRV::CreateSaveDataFileSystem(Kernel::HLERequestContext& ctx) {
     auto save_create_struct = rp.PopRaw<std::array<u8, 0x40>>();
     u128 uid = rp.PopRaw<u128>();
 
-    LOG_WARNING(Service_FS, "(STUBBED) called save_struct = {}, uid = {:016X}{:016X}",
-                save_struct.DebugInfo(), uid[1], uid[0]);
+    LOG_DEBUG(Service_FS, "called save_struct = {}, uid = {:016X}{:016X}", save_struct.DebugInfo(),
+              uid[1], uid[0]);
+
+    fsc.CreateSaveData(FileSys::SaveDataSpaceId::NandUser, save_struct);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
@@ -786,14 +826,24 @@ void FSP_SRV::OpenSaveDataFileSystem(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto parameters = rp.PopRaw<Parameters>();
 
-    auto dir = OpenSaveData(parameters.save_data_space_id, parameters.descriptor);
+    auto dir = fsc.OpenSaveData(parameters.save_data_space_id, parameters.descriptor);
     if (dir.Failed()) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 0};
         rb.Push(FileSys::ERROR_ENTITY_NOT_FOUND);
         return;
     }
 
-    IFileSystem filesystem(std::move(dir.Unwrap()));
+    FileSys::StorageId id;
+    if (parameters.save_data_space_id == FileSys::SaveDataSpaceId::NandUser) {
+        id = FileSys::StorageId::NandUser;
+    } else if (parameters.save_data_space_id == FileSys::SaveDataSpaceId::SdCardSystem ||
+               parameters.save_data_space_id == FileSys::SaveDataSpaceId::SdCardUser) {
+        id = FileSys::StorageId::SdCard;
+    } else {
+        id = FileSys::StorageId::NandSystem;
+    }
+
+    IFileSystem filesystem(std::move(dir.Unwrap()), SizeGetter::FromStorageId(fsc, id));
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
@@ -812,7 +862,7 @@ void FSP_SRV::OpenSaveDataInfoReaderBySaveDataSpaceId(Kernel::HLERequestContext&
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<ISaveDataInfoReader>(std::make_shared<ISaveDataInfoReader>(space));
+    rb.PushIpcInterface<ISaveDataInfoReader>(std::make_shared<ISaveDataInfoReader>(space, fsc));
 }
 
 void FSP_SRV::SetGlobalAccessLogMode(Kernel::HLERequestContext& ctx) {
@@ -836,7 +886,7 @@ void FSP_SRV::GetGlobalAccessLogMode(Kernel::HLERequestContext& ctx) {
 void FSP_SRV::OpenDataStorageByCurrentProcess(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_FS, "called");
 
-    auto romfs = OpenRomFSCurrentProcess();
+    auto romfs = fsc.OpenRomFSCurrentProcess();
     if (romfs.Failed()) {
         // TODO (bunnei): Find the right error code to use here
         LOG_CRITICAL(Service_FS, "no file system interface available!");
@@ -861,7 +911,7 @@ void FSP_SRV::OpenDataStorageByDataId(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_FS, "called with storage_id={:02X}, unknown={:08X}, title_id={:016X}",
               static_cast<u8>(storage_id), unknown, title_id);
 
-    auto data = OpenRomFS(title_id, storage_id, FileSys::ContentRecordType::Data);
+    auto data = fsc.OpenRomFS(title_id, storage_id, FileSys::ContentRecordType::Data);
 
     if (data.Failed()) {
         const auto archive = FileSys::SystemArchive::SynthesizeSystemArchive(title_id);

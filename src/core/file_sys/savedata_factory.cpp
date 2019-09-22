@@ -15,22 +15,8 @@ namespace FileSys {
 
 constexpr char SAVE_DATA_SIZE_FILENAME[] = ".yuzu_save_size";
 
-std::string SaveDataDescriptor::DebugInfo() const {
-    return fmt::format("[type={:02X}, title_id={:016X}, user_id={:016X}{:016X}, save_id={:016X}, "
-                       "rank={}, index={}]",
-                       static_cast<u8>(type), title_id, user_id[1], user_id[0], save_id,
-                       static_cast<u8>(rank), index);
-}
-
-SaveDataFactory::SaveDataFactory(VirtualDir save_directory) : dir(std::move(save_directory)) {
-    // Delete all temporary storages
-    // On hardware, it is expected that temporary storage be empty at first use.
-    dir->DeleteSubdirectoryRecursive("temp");
-}
-
-SaveDataFactory::~SaveDataFactory() = default;
-
-ResultVal<VirtualDir> SaveDataFactory::Open(SaveDataSpaceId space, const SaveDataDescriptor& meta) {
+namespace {
+void PrintSaveDataDescriptorWarnings(SaveDataDescriptor meta) {
     if (meta.type == SaveDataType::SystemSaveData || meta.type == SaveDataType::SaveData) {
         if (meta.zero_1 != 0) {
             LOG_WARNING(Service_FS,
@@ -65,22 +51,50 @@ ResultVal<VirtualDir> SaveDataFactory::Open(SaveDataSpaceId space, const SaveDat
                     "non-zero ({:016X}{:016X})",
                     meta.user_id[1], meta.user_id[0]);
     }
+}
+} // Anonymous namespace
 
-    std::string save_directory =
+std::string SaveDataDescriptor::DebugInfo() const {
+    return fmt::format("[type={:02X}, title_id={:016X}, user_id={:016X}{:016X}, "
+                       "save_id={:016X}, "
+                       "rank={}, index={}]",
+                       static_cast<u8>(type), title_id, user_id[1], user_id[0], save_id,
+                       static_cast<u8>(rank), index);
+}
+
+SaveDataFactory::SaveDataFactory(VirtualDir save_directory) : dir(std::move(save_directory)) {
+    // Delete all temporary storages
+    // On hardware, it is expected that temporary storage be empty at first use.
+    dir->DeleteSubdirectoryRecursive("temp");
+}
+
+SaveDataFactory::~SaveDataFactory() = default;
+
+ResultVal<VirtualDir> SaveDataFactory::Create(SaveDataSpaceId space,
+                                              const SaveDataDescriptor& meta) const {
+    PrintSaveDataDescriptorWarnings(meta);
+
+    const auto save_directory =
         GetFullPath(space, meta.type, meta.title_id, meta.user_id, meta.save_id);
 
-    // TODO(DarkLordZach): Try to not create when opening, there are dedicated create save methods.
-    // But, user_ids don't match so this works for now.
+    auto out = dir->CreateDirectoryRelative(save_directory);
+
+    // Return an error if the save data doesn't actually exist.
+    if (out == nullptr) {
+        // TODO(DarkLordZach): Find out correct error code.
+        return ResultCode(-1);
+    }
+
+    return MakeResult<VirtualDir>(std::move(out));
+}
+
+ResultVal<VirtualDir> SaveDataFactory::Open(SaveDataSpaceId space,
+                                            const SaveDataDescriptor& meta) const {
+
+    const auto save_directory =
+        GetFullPath(space, meta.type, meta.title_id, meta.user_id, meta.save_id);
 
     auto out = dir->GetDirectoryRelative(save_directory);
-
-    if (out == nullptr) {
-        // TODO(bunnei): This is a work-around to always create a save data directory if it does not
-        // already exist. This is a hack, as we do not understand yet how this works on hardware.
-        // Without a save data directory, many games will assert on boot. This should not have any
-        // bad side-effects.
-        out = dir->CreateDirectoryRelative(save_directory);
-    }
 
     // Return an error if the save data doesn't actually exist.
     if (out == nullptr) {
@@ -152,7 +166,7 @@ SaveDataSize SaveDataFactory::ReadSaveDataSize(SaveDataType type, u64 title_id,
 }
 
 void SaveDataFactory::WriteSaveDataSize(SaveDataType type, u64 title_id, u128 user_id,
-                                        SaveDataSize new_value) {
+                                        SaveDataSize new_value) const {
     const auto path = GetFullPath(SaveDataSpaceId::NandUser, type, title_id, user_id, 0);
     const auto dir = GetOrCreateDirectoryRelative(this->dir, path);
 

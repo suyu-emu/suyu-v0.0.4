@@ -346,6 +346,31 @@ struct TouchscreenInput {
     u32 rotation_angle;
 };
 
+enum class NANDTotalSize : u64 {
+    S29_1GB = 0x747C00000ULL,
+};
+
+enum class NANDUserSize : u64 {
+    S26GB = 0x680000000ULL,
+};
+
+enum class NANDSystemSize : u64 {
+    S2_5GB = 0xA0000000,
+};
+
+enum class SDMCSize : u64 {
+    S1GB = 0x40000000,
+    S2GB = 0x80000000,
+    S4GB = 0x100000000ULL,
+    S8GB = 0x200000000ULL,
+    S16GB = 0x400000000ULL,
+    S32GB = 0x800000000ULL,
+    S64GB = 0x1000000000ULL,
+    S128GB = 0x2000000000ULL,
+    S256GB = 0x4000000000ULL,
+    S1TB = 0x10000000000ULL,
+};
+
 struct Values {
     // System
     bool use_docked_mode;
@@ -382,8 +407,13 @@ struct Values {
 
     // Data Storage
     bool use_virtual_sd;
-    std::string nand_dir;
-    std::string sdmc_dir;
+    bool gamecard_inserted;
+    bool gamecard_current_game;
+    std::string gamecard_path;
+    NANDTotalSize nand_total_size;
+    NANDSystemSize nand_system_size;
+    NANDUserSize nand_user_size;
+    SDMCSize sdmc_size;
 
     // Renderer
     float resolution_factor;

@@ -1143,13 +1143,21 @@ void IApplicationFunctions::CreateApplicationAndRequestToStartForQuest(
 
 void IApplicationFunctions::EnsureSaveData(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    u128 uid = rp.PopRaw<u128>(); // What does this do?
-    LOG_WARNING(Service, "(STUBBED) called uid = {:016X}{:016X}", uid[1], uid[0]);
+    u128 user_id = rp.PopRaw<u128>();
+
+    LOG_DEBUG(Service_AM, "called, uid={:016X}{:016X}", user_id[1], user_id[0]);
+
+    FileSys::SaveDataDescriptor descriptor{};
+    descriptor.title_id = Core::CurrentProcess()->GetTitleID();
+    descriptor.user_id = user_id;
+    descriptor.type = FileSys::SaveDataType::SaveData;
+    const auto res = system.GetFileSystemController().CreateSaveData(
+        FileSys::SaveDataSpaceId::NandUser, descriptor);
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(res.Code());
     rb.Push<u64>(0);
-} // namespace Service::AM
+}
 
 void IApplicationFunctions::SetTerminateResult(Kernel::HLERequestContext& ctx) {
     // Takes an input u32 Result, no output.
@@ -1261,8 +1269,8 @@ void IApplicationFunctions::ExtendSaveData(Kernel::HLERequestContext& ctx) {
               "new_journal={:016X}",
               static_cast<u8>(type), user_id[1], user_id[0], new_normal_size, new_journal_size);
 
-    const auto title_id = system.CurrentProcess()->GetTitleID();
-    FileSystem::WriteSaveDataSize(type, title_id, user_id, {new_normal_size, new_journal_size});
+    system.GetFileSystemController().WriteSaveDataSize(
+        type, system.CurrentProcess()->GetTitleID(), user_id, {new_normal_size, new_journal_size});
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
@@ -1281,8 +1289,8 @@ void IApplicationFunctions::GetSaveDataSize(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called with type={:02X}, user_id={:016X}{:016X}", static_cast<u8>(type),
               user_id[1], user_id[0]);
 
-    const auto title_id = system.CurrentProcess()->GetTitleID();
-    const auto size = FileSystem::ReadSaveDataSize(type, title_id, user_id);
+    const auto size = system.GetFileSystemController().ReadSaveDataSize(
+        type, system.CurrentProcess()->GetTitleID(), user_id);
 
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(RESULT_SUCCESS);

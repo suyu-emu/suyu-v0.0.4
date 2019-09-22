@@ -25,6 +25,8 @@ enum class NCAContentType : u8;
 enum class TitleType : u8;
 
 struct ContentRecord;
+struct MetaRecord;
+class RegisteredCache;
 
 using NcaID = std::array<u8, 0x10>;
 using ContentProviderParsingFunction = std::function<VirtualFile(const VirtualFile&, const NcaID&)>;
@@ -89,6 +91,27 @@ protected:
     Core::Crypto::KeyManager keys;
 };
 
+class PlaceholderCache {
+public:
+    explicit PlaceholderCache(VirtualDir dir);
+
+    bool Create(const NcaID& id, u64 size) const;
+    bool Delete(const NcaID& id) const;
+    bool Exists(const NcaID& id) const;
+    bool Write(const NcaID& id, u64 offset, const std::vector<u8>& data) const;
+    bool Register(RegisteredCache* cache, const NcaID& placeholder, const NcaID& install) const;
+    bool CleanAll() const;
+    std::optional<std::array<u8, 0x10>> GetRightsID(const NcaID& id) const;
+    u64 Size(const NcaID& id) const;
+    bool SetSize(const NcaID& id, u64 new_size) const;
+    std::vector<NcaID> List() const;
+
+    static NcaID Generate();
+
+private:
+    VirtualDir dir;
+};
+
 /*
  * A class that catalogues NCAs in the registered directory structure.
  * Nintendo's registered format follows this structure:
@@ -103,6 +126,8 @@ protected:
  * when 4GB splitting can be ignored.)
  */
 class RegisteredCache : public ContentProvider {
+    friend class PlaceholderCache;
+
 public:
     // Parsing function defines the conversion from raw file to NCA. If there are other steps
     // besides creating the NCA from the file (e.g. NAX0 on SD Card), that should go in a custom

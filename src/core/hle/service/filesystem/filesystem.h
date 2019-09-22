@@ -14,10 +14,13 @@ namespace FileSys {
 class BISFactory;
 class RegisteredCache;
 class RegisteredCacheUnion;
+class PlaceholderCache;
 class RomFSFactory;
 class SaveDataFactory;
 class SDMCFactory;
+class XCI;
 
+enum class BisPartitionId : u32;
 enum class ContentRecordType : u8;
 enum class Mode : u32;
 enum class SaveDataSpaceId : u8;
@@ -36,34 +39,91 @@ class ServiceManager;
 
 namespace FileSystem {
 
-ResultCode RegisterRomFS(std::unique_ptr<FileSys::RomFSFactory>&& factory);
-ResultCode RegisterSaveData(std::unique_ptr<FileSys::SaveDataFactory>&& factory);
-ResultCode RegisterSDMC(std::unique_ptr<FileSys::SDMCFactory>&& factory);
-ResultCode RegisterBIS(std::unique_ptr<FileSys::BISFactory>&& factory);
+enum class ContentStorageId : u32 {
+    System,
+    User,
+    SdCard,
+};
 
-void SetPackedUpdate(FileSys::VirtualFile update_raw);
-ResultVal<FileSys::VirtualFile> OpenRomFSCurrentProcess();
-ResultVal<FileSys::VirtualFile> OpenRomFS(u64 title_id, FileSys::StorageId storage_id,
-                                          FileSys::ContentRecordType type);
-ResultVal<FileSys::VirtualDir> OpenSaveData(FileSys::SaveDataSpaceId space,
-                                            const FileSys::SaveDataDescriptor& descriptor);
-ResultVal<FileSys::VirtualDir> OpenSaveDataSpace(FileSys::SaveDataSpaceId space);
-ResultVal<FileSys::VirtualDir> OpenSDMC();
+enum class ImageDirectoryId : u32 {
+    NAND,
+    SdCard,
+};
 
-FileSys::SaveDataSize ReadSaveDataSize(FileSys::SaveDataType type, u64 title_id, u128 user_id);
-void WriteSaveDataSize(FileSys::SaveDataType type, u64 title_id, u128 user_id,
-                       FileSys::SaveDataSize new_value);
+class FileSystemController {
+public:
+    FileSystemController();
+    ~FileSystemController();
 
-FileSys::RegisteredCache* GetSystemNANDContents();
-FileSys::RegisteredCache* GetUserNANDContents();
-FileSys::RegisteredCache* GetSDMCContents();
+    ResultCode RegisterRomFS(std::unique_ptr<FileSys::RomFSFactory>&& factory);
+    ResultCode RegisterSaveData(std::unique_ptr<FileSys::SaveDataFactory>&& factory);
+    ResultCode RegisterSDMC(std::unique_ptr<FileSys::SDMCFactory>&& factory);
+    ResultCode RegisterBIS(std::unique_ptr<FileSys::BISFactory>&& factory);
 
-FileSys::VirtualDir GetModificationLoadRoot(u64 title_id);
-FileSys::VirtualDir GetModificationDumpRoot(u64 title_id);
+    void SetPackedUpdate(FileSys::VirtualFile update_raw);
+    ResultVal<FileSys::VirtualFile> OpenRomFSCurrentProcess() const;
+    ResultVal<FileSys::VirtualFile> OpenRomFS(u64 title_id, FileSys::StorageId storage_id,
+                                              FileSys::ContentRecordType type) const;
+    ResultVal<FileSys::VirtualDir> CreateSaveData(
+        FileSys::SaveDataSpaceId space, const FileSys::SaveDataDescriptor& save_struct) const;
+    ResultVal<FileSys::VirtualDir> OpenSaveData(
+        FileSys::SaveDataSpaceId space, const FileSys::SaveDataDescriptor& save_struct) const;
+    ResultVal<FileSys::VirtualDir> OpenSaveDataSpace(FileSys::SaveDataSpaceId space) const;
+    ResultVal<FileSys::VirtualDir> OpenSDMC() const;
+    ResultVal<FileSys::VirtualDir> OpenBISPartition(FileSys::BisPartitionId id) const;
+    ResultVal<FileSys::VirtualFile> OpenBISPartitionStorage(FileSys::BisPartitionId id) const;
 
-// Creates the SaveData, SDMC, and BIS Factories. Should be called once and before any function
-// above is called.
-void CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite = true);
+    u64 GetFreeSpaceSize(FileSys::StorageId id) const;
+    u64 GetTotalSpaceSize(FileSys::StorageId id) const;
+
+    FileSys::SaveDataSize ReadSaveDataSize(FileSys::SaveDataType type, u64 title_id,
+                                           u128 user_id) const;
+    void WriteSaveDataSize(FileSys::SaveDataType type, u64 title_id, u128 user_id,
+                           FileSys::SaveDataSize new_value) const;
+
+    void SetGameCard(FileSys::VirtualFile file);
+    FileSys::XCI* GetGameCard() const;
+
+    FileSys::RegisteredCache* GetSystemNANDContents() const;
+    FileSys::RegisteredCache* GetUserNANDContents() const;
+    FileSys::RegisteredCache* GetSDMCContents() const;
+    FileSys::RegisteredCache* GetGameCardContents() const;
+
+    FileSys::PlaceholderCache* GetSystemNANDPlaceholder() const;
+    FileSys::PlaceholderCache* GetUserNANDPlaceholder() const;
+    FileSys::PlaceholderCache* GetSDMCPlaceholder() const;
+    FileSys::PlaceholderCache* GetGameCardPlaceholder() const;
+
+    FileSys::RegisteredCache* GetRegisteredCacheForStorage(FileSys::StorageId id) const;
+    FileSys::PlaceholderCache* GetPlaceholderCacheForStorage(FileSys::StorageId id) const;
+
+    FileSys::VirtualDir GetSystemNANDContentDirectory() const;
+    FileSys::VirtualDir GetUserNANDContentDirectory() const;
+    FileSys::VirtualDir GetSDMCContentDirectory() const;
+
+    FileSys::VirtualDir GetNANDImageDirectory() const;
+    FileSys::VirtualDir GetSDMCImageDirectory() const;
+
+    FileSys::VirtualDir GetContentDirectory(ContentStorageId id) const;
+    FileSys::VirtualDir GetImageDirectory(ImageDirectoryId id) const;
+
+    FileSys::VirtualDir GetModificationLoadRoot(u64 title_id) const;
+    FileSys::VirtualDir GetModificationDumpRoot(u64 title_id) const;
+
+    // Creates the SaveData, SDMC, and BIS Factories. Should be called once and before any function
+    // above is called.
+    void CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite = true);
+
+private:
+    std::unique_ptr<FileSys::RomFSFactory> romfs_factory;
+    std::unique_ptr<FileSys::SaveDataFactory> save_data_factory;
+    std::unique_ptr<FileSys::SDMCFactory> sdmc_factory;
+    std::unique_ptr<FileSys::BISFactory> bis_factory;
+
+    std::unique_ptr<FileSys::XCI> gamecard;
+    std::unique_ptr<FileSys::RegisteredCache> gamecard_registered;
+    std::unique_ptr<FileSys::PlaceholderCache> gamecard_placeholder;
+};
 
 void InstallInterfaces(Core::System& system);
 
@@ -158,12 +218,6 @@ public:
      * @return Opened directory, or error code
      */
     ResultVal<FileSys::VirtualDir> OpenDirectory(const std::string& path);
-
-    /**
-     * Get the free space
-     * @return The number of free bytes in the archive
-     */
-    u64 GetFreeSpaceSize() const;
 
     /**
      * Get the type of the specified path

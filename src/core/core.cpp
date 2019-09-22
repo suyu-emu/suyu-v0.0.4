@@ -14,8 +14,13 @@
 #include "core/core_cpu.h"
 #include "core/core_timing.h"
 #include "core/cpu_core_manager.h"
+#include "core/file_sys/bis_factory.h"
+#include "core/file_sys/card_image.h"
 #include "core/file_sys/mode.h"
 #include "core/file_sys/registered_cache.h"
+#include "core/file_sys/romfs_factory.h"
+#include "core/file_sys/savedata_factory.h"
+#include "core/file_sys/sdmc_factory.h"
 #include "core/file_sys/vfs_concat.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/gdbstub/gdbstub.h"
@@ -27,6 +32,7 @@
 #include "core/hle/kernel/thread.h"
 #include "core/hle/service/am/applets/applets.h"
 #include "core/hle/service/apm/controller.h"
+#include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/glue/manager.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
@@ -202,6 +208,15 @@ struct System::Impl {
         main_process->Run(load_parameters->main_thread_priority,
                           load_parameters->main_thread_stack_size);
 
+        if (Settings::values.gamecard_inserted) {
+            if (Settings::values.gamecard_current_game) {
+                fs_controller.SetGameCard(GetGameFileFromPath(virtual_filesystem, filepath));
+            } else if (!Settings::values.gamecard_path.empty()) {
+                fs_controller.SetGameCard(
+                    GetGameFileFromPath(virtual_filesystem, Settings::values.gamecard_path));
+            }
+        }
+
         u64 title_id{0};
         if (app_loader->ReadProgramId(title_id) != Loader::ResultStatus::Success) {
             LOG_ERROR(Core, "Failed to find title id for ROM (Error {})",
@@ -304,6 +319,7 @@ struct System::Impl {
     FileSys::VirtualFilesystem virtual_filesystem;
     /// ContentProviderUnion instance
     std::unique_ptr<FileSys::ContentProviderUnion> content_provider;
+    Service::FileSystem::FileSystemController fs_controller;
     /// AppLoader used to load the current executing application
     std::unique_ptr<Loader::AppLoader> app_loader;
     std::unique_ptr<VideoCore::RendererBase> renderer;
@@ -569,6 +585,14 @@ FileSys::ContentProvider& System::GetContentProvider() {
 
 const FileSys::ContentProvider& System::GetContentProvider() const {
     return *impl->content_provider;
+}
+
+Service::FileSystem::FileSystemController& System::GetFileSystemController() {
+    return impl->fs_controller;
+}
+
+const Service::FileSystem::FileSystemController& System::GetFileSystemController() const {
+    return impl->fs_controller;
 }
 
 void System::RegisterContentProvider(FileSys::ContentProviderUnionSlot slot,

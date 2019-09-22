@@ -6,6 +6,7 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/sdmc_factory.h"
 #include "core/file_sys/xts_archive.h"
+#include "core/settings.h"
 
 namespace FileSys {
 
@@ -14,16 +15,38 @@ SDMCFactory::SDMCFactory(VirtualDir dir_)
                                 GetOrCreateDirectoryRelative(dir, "/Nintendo/Contents/registered"),
                                 [](const VirtualFile& file, const NcaID& id) {
                                     return NAX{file, id}.GetDecrypted();
-                                })) {}
+                                })),
+      placeholder(std::make_unique<PlaceholderCache>(
+          GetOrCreateDirectoryRelative(dir, "/Nintendo/Contents/placehld"))) {}
 
 SDMCFactory::~SDMCFactory() = default;
 
-ResultVal<VirtualDir> SDMCFactory::Open() {
+ResultVal<VirtualDir> SDMCFactory::Open() const {
     return MakeResult<VirtualDir>(dir);
+}
+
+VirtualDir SDMCFactory::GetSDMCContentDirectory() const {
+    return GetOrCreateDirectoryRelative(dir, "/Nintendo/Contents");
 }
 
 RegisteredCache* SDMCFactory::GetSDMCContents() const {
     return contents.get();
+}
+
+PlaceholderCache* SDMCFactory::GetSDMCPlaceholder() const {
+    return placeholder.get();
+}
+
+VirtualDir SDMCFactory::GetImageDirectory() const {
+    return GetOrCreateDirectoryRelative(dir, "/Nintendo/Album");
+}
+
+u64 SDMCFactory::GetSDMCFreeSpace() const {
+    return GetSDMCTotalSpace() - dir->GetSize();
+}
+
+u64 SDMCFactory::GetSDMCTotalSpace() const {
+    return static_cast<u64>(Settings::values.sdmc_size);
 }
 
 } // namespace FileSys

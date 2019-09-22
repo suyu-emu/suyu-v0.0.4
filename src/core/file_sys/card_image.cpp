@@ -12,12 +12,16 @@
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/partition_filesystem.h"
+#include "core/file_sys/romfs.h"
 #include "core/file_sys/submission_package.h"
+#include "core/file_sys/vfs_concat.h"
 #include "core/file_sys/vfs_offset.h"
+#include "core/file_sys/vfs_vector.h"
 #include "core/loader/loader.h"
 
 namespace FileSys {
 
+constexpr u64 GAMECARD_CERTIFICATE_OFFSET = 0x7000;
 constexpr std::array partition_names{
     "update",
     "normal",
@@ -173,6 +177,26 @@ std::string XCI::GetName() const {
 
 VirtualDir XCI::GetParentDirectory() const {
     return file->GetContainingDirectory();
+}
+
+VirtualDir XCI::ConcatenatedPseudoDirectory() {
+    const auto out = std::make_shared<VectorVfsDirectory>();
+    for (const auto& part_id : {XCIPartition::Normal, XCIPartition::Logo, XCIPartition::Secure}) {
+        const auto& part = GetPartition(part_id);
+        if (part == nullptr)
+            continue;
+
+        for (const auto& file : part->GetFiles())
+            out->AddFile(file);
+    }
+
+    return out;
+}
+
+std::array<u8, 0x200> XCI::GetCertificate() const {
+    std::array<u8, 0x200> out;
+    file->Read(out.data(), out.size(), GAMECARD_CERTIFICATE_OFFSET);
+    return out;
 }
 
 Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {

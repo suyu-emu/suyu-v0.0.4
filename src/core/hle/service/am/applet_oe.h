@@ -9,6 +9,10 @@
 #include "core/hle/service/service.h"
 
 namespace Service {
+namespace FileSystem {
+class FileSystemController;
+}
+
 namespace NVFlinger {
 class NVFlinger;
 }

@@ -22,6 +22,7 @@
 #include "common/telemetry.h"
 #include "core/core.h"
 #include "core/crypto/key_manager.h"
+#include "core/file_sys/registered_cache.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
@@ -216,8 +217,9 @@ int main(int argc, char** argv) {
     };
 
     Core::System& system{Core::System::GetInstance()};
+    system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
     system.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
-    Service::FileSystem::CreateFactories(*system.GetFilesystem());
+    system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
 
     SCOPE_EXIT({ system.Shutdown(); });
 

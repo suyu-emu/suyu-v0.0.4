@@ -459,6 +459,49 @@ void Config::ReadDataStorageValues() {
                     QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir)))
             .toString()
             .toStdString());
+    FileUtil::GetUserPath(
+        FileUtil::UserPath::LoadDir,
+        qt_config
+            ->value(QStringLiteral("load_directory"),
+                    QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::LoadDir)))
+            .toString()
+            .toStdString());
+    FileUtil::GetUserPath(
+        FileUtil::UserPath::DumpDir,
+        qt_config
+            ->value(QStringLiteral("dump_directory"),
+                    QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::DumpDir)))
+            .toString()
+            .toStdString());
+    FileUtil::GetUserPath(
+        FileUtil::UserPath::CacheDir,
+        qt_config
+            ->value(QStringLiteral("cache_directory"),
+                    QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir)))
+            .toString()
+            .toStdString());
+    Settings::values.gamecard_inserted =
+        ReadSetting(QStringLiteral("gamecard_inserted"), false).toBool();
+    Settings::values.gamecard_current_game =
+        ReadSetting(QStringLiteral("gamecard_current_game"), false).toBool();
+    Settings::values.gamecard_path =
+        ReadSetting(QStringLiteral("gamecard_path"), QStringLiteral("")).toString().toStdString();
+    Settings::values.nand_total_size = static_cast<Settings::NANDTotalSize>(
+        ReadSetting(QStringLiteral("nand_total_size"),
+                    QVariant::fromValue<u64>(static_cast<u64>(Settings::NANDTotalSize::S29_1GB)))
+            .toULongLong());
+    Settings::values.nand_user_size = static_cast<Settings::NANDUserSize>(
+        ReadSetting(QStringLiteral("nand_user_size"),
+                    QVariant::fromValue<u64>(static_cast<u64>(Settings::NANDUserSize::S26GB)))
+            .toULongLong());
+    Settings::values.nand_system_size = static_cast<Settings::NANDSystemSize>(
+        ReadSetting(QStringLiteral("nand_system_size"),
+                    QVariant::fromValue<u64>(static_cast<u64>(Settings::NANDSystemSize::S2_5GB)))
+            .toULongLong());
+    Settings::values.sdmc_size = static_cast<Settings::SDMCSize>(
+        ReadSetting(QStringLiteral("sdmc_size"),
+                    QVariant::fromValue<u64>(static_cast<u64>(Settings::SDMCSize::S16GB)))
+            .toULongLong());
 
     qt_config->endGroup();
 }
@@ -875,7 +918,32 @@ void Config::SaveDataStorageValues() {
     WriteSetting(QStringLiteral("sdmc_directory"),
                  QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir)),
                  QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir)));
-
+    WriteSetting(QStringLiteral("load_directory"),
+                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::LoadDir)),
+                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::LoadDir)));
+    WriteSetting(QStringLiteral("dump_directory"),
+                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::DumpDir)),
+                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::DumpDir)));
+    WriteSetting(QStringLiteral("cache_directory"),
+                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir)),
+                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir)));
+    WriteSetting(QStringLiteral("gamecard_inserted"), Settings::values.gamecard_inserted, false);
+    WriteSetting(QStringLiteral("gamecard_current_game"), Settings::values.gamecard_current_game,
+                 false);
+    WriteSetting(QStringLiteral("gamecard_path"),
+                 QString::fromStdString(Settings::values.gamecard_path), QStringLiteral(""));
+    WriteSetting(QStringLiteral("nand_total_size"),
+                 QVariant::fromValue<u64>(static_cast<u64>(Settings::values.nand_total_size)),
+                 QVariant::fromValue<u64>(static_cast<u64>(Settings::NANDTotalSize::S29_1GB)));
+    WriteSetting(QStringLiteral("nand_user_size"),
+                 QVariant::fromValue<u64>(static_cast<u64>(Settings::values.nand_user_size)),
+                 QVariant::fromValue<u64>(static_cast<u64>(Settings::NANDUserSize::S26GB)));
+    WriteSetting(QStringLiteral("nand_system_size"),
+                 QVariant::fromValue<u64>(static_cast<u64>(Settings::values.nand_system_size)),
+                 QVariant::fromValue<u64>(static_cast<u64>(Settings::NANDSystemSize::S2_5GB)));
+    WriteSetting(QStringLiteral("sdmc_size"),
+                 QVariant::fromValue<u64>(static_cast<u64>(Settings::values.sdmc_size)),
+                 QVariant::fromValue<u64>(static_cast<u64>(Settings::SDMCSize::S16GB)));
     qt_config->endGroup();
 }
 

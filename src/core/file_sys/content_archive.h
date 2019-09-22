@@ -112,6 +112,8 @@ public:
 
     NCAContentType GetType() const;
     u64 GetTitleId() const;
+    std::array<u8, 0x10> GetRightsId() const;
+    u32 GetSDKVersion() const;
     bool IsUpdate() const;
 
     VirtualFile GetRomFS() const;

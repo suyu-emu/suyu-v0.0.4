@@ -528,6 +528,14 @@ u64 NCA::GetTitleId() const {
     return header.title_id;
 }
 
+std::array<u8, 16> NCA::GetRightsId() const {
+    return header.rights_id;
+}
+
+u32 NCA::GetSDKVersion() const {
+    return header.sdk_version;
+}
+
 bool NCA::IsUpdate() const {
     return is_update;
 }

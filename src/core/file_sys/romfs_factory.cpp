@@ -7,6 +7,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "core/file_sys/card_image.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/patch_manager.h"
@@ -34,7 +35,7 @@ void RomFSFactory::SetPackedUpdate(VirtualFile update_raw) {
     this->update_raw = std::move(update_raw);
 }
 
-ResultVal<VirtualFile> RomFSFactory::OpenCurrentProcess() {
+ResultVal<VirtualFile> RomFSFactory::OpenCurrentProcess() const {
     if (!updatable)
         return MakeResult<VirtualFile>(file);
 
@@ -43,7 +44,8 @@ ResultVal<VirtualFile> RomFSFactory::OpenCurrentProcess() {
         patch_manager.PatchRomFS(file, ivfc_offset, ContentRecordType::Program, update_raw));
 }
 
-ResultVal<VirtualFile> RomFSFactory::Open(u64 title_id, StorageId storage, ContentRecordType type) {
+ResultVal<VirtualFile> RomFSFactory::Open(u64 title_id, StorageId storage,
+                                          ContentRecordType type) const {
     std::shared_ptr<NCA> res;
 
     switch (storage) {
@@ -51,13 +53,17 @@ ResultVal<VirtualFile> RomFSFactory::Open(u64 title_id, StorageId storage, Conte
         res = Core::System::GetInstance().GetContentProvider().GetEntry(title_id, type);
         break;
     case StorageId::NandSystem:
-        res = Service::FileSystem::GetSystemNANDContents()->GetEntry(title_id, type);
+        res =
+            Core::System::GetInstance().GetFileSystemController().GetSystemNANDContents()->GetEntry(
+                title_id, type);
         break;
     case StorageId::NandUser:
-        res = Service::FileSystem::GetUserNANDContents()->GetEntry(title_id, type);
+        res = Core::System::GetInstance().GetFileSystemController().GetUserNANDContents()->GetEntry(
+            title_id, type);
         break;
     case StorageId::SdCard:
-        res = Service::FileSystem::GetSDMCContents()->GetEntry(title_id, type);
+        res = Core::System::GetInstance().GetFileSystemController().GetSDMCContents()->GetEntry(
+            title_id, type);
         break;
     default:
         UNIMPLEMENTED_MSG("Unimplemented storage_id={:02X}", static_cast<u8>(storage));

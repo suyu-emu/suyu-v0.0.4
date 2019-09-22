@@ -173,6 +173,20 @@ volume =
 # 1 (default): Yes, 0: No
 use_virtual_sd =
 
+# Whether or not to enable gamecard emulation
+# 1: Yes, 0 (default): No
+gamecard_inserted =
+
+# Whether or not the gamecard should be emulated as the current game
+# If 'gamecard_inserted' is 0 this setting is irrelevant
+# 1: Yes, 0 (default): No
+gamecard_current_game =
+
+# Path to an XCI file to use as the gamecard
+# If 'gamecard_inserted' is 0 this setting is irrelevant
+# If 'gamecard_current_game' is 1 this setting is irrelevant
+gamecard_path =
+
 [System]
 # Whether the system is docked
 # 1: Yes, 0 (default): No

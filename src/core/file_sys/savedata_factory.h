@@ -64,7 +64,8 @@ public:
     explicit SaveDataFactory(VirtualDir dir);
     ~SaveDataFactory();
 
-    ResultVal<VirtualDir> Open(SaveDataSpaceId space, const SaveDataDescriptor& meta);
+    ResultVal<VirtualDir> Create(SaveDataSpaceId space, const SaveDataDescriptor& meta) const;
+    ResultVal<VirtualDir> Open(SaveDataSpaceId space, const SaveDataDescriptor& meta) const;
 
     VirtualDir GetSaveDataSpaceDirectory(SaveDataSpaceId space) const;
 
@@ -73,7 +74,8 @@ public:
                                    u128 user_id, u64 save_id);
 
     SaveDataSize ReadSaveDataSize(SaveDataType type, u64 title_id, u128 user_id) const;
-    void WriteSaveDataSize(SaveDataType type, u64 title_id, u128 user_id, SaveDataSize new_value);
+    void WriteSaveDataSize(SaveDataType type, u64 title_id, u128 user_id,
+                           SaveDataSize new_value) const;
 
 private:
     VirtualDir dir;
