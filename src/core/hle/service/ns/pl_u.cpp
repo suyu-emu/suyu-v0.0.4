@@ -145,7 +145,7 @@ struct PL_U::Impl {
     std::vector<FontRegion> shared_font_regions;
 };
 
-PL_U::PL_U(Core::System& system, FileSystem::FileSystemController& fsc)
+PL_U::PL_U(Core::System& system)
     : ServiceFramework("pl:u"), impl{std::make_unique<Impl>()}, system(system) {
 
     static const FunctionInfo functions[] = {
@@ -157,6 +157,9 @@ PL_U::PL_U(Core::System& system, FileSystem::FileSystemController& fsc)
         {5, &PL_U::GetSharedFontInOrderOfPriority, "GetSharedFontInOrderOfPriority"},
     };
     RegisterHandlers(functions);
+
+    auto& fsc = system.GetFileSystemController();
+
     // Attempt to load shared font data from disk
     const auto* nand = fsc.GetSystemNANDContents();
     std::size_t offset = 0;
