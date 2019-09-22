@@ -172,6 +172,8 @@ private:
      */
     bool ConfirmClose();
     bool ConfirmChangeGame();
+    bool ConfirmForceLockedExit();
+    void RequestGameExit();
     void closeEvent(QCloseEvent* event) override;
 
 private slots:

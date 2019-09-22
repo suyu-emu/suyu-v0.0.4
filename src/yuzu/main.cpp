@@ -22,6 +22,8 @@
 #include "core/frontend/applets/general_frontend.h"
 #include "core/frontend/scope_acquire_window_context.h"
 #include "core/hle/service/acc/profile_manager.h"
+#include "core/hle/service/am/applet_ae.h"
+#include "core/hle/service/am/applet_oe.h"
 #include "core/hle/service/am/applets/applets.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/hid/hid.h"
@@ -83,6 +85,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "core/file_sys/submission_package.h"
 #include "core/frontend/applets/software_keyboard.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/service/am/am.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/nfp/nfp.h"
 #include "core/hle/service/sm/sm.h"
@@ -1674,6 +1677,11 @@ void GMainWindow::OnStartGame() {
 }
 
 void GMainWindow::OnPauseGame() {
+    Core::System& system{Core::System::GetInstance()};
+    if (system.GetExitLock() && !ConfirmForceLockedExit()) {
+        return;
+    }
+
     emu_thread->SetRunning(false);
 
     ui.action_Start->setEnabled(true);
@@ -1685,6 +1693,11 @@ void GMainWindow::OnPauseGame() {
 }
 
 void GMainWindow::OnStopGame() {
+    Core::System& system{Core::System::GetInstance()};
+    if (system.GetExitLock() && !ConfirmForceLockedExit()) {
+        return;
+    }
+
     ShutdownGame();
 }
 
@@ -2182,11 +2195,39 @@ bool GMainWindow::ConfirmChangeGame() {
     if (emu_thread == nullptr)
         return true;
 
-    auto answer = QMessageBox::question(
+    const auto answer = QMessageBox::question(
         this, tr("yuzu"),
         tr("Are you sure you want to stop the emulation? Any unsaved progress will be lost."),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
     return answer != QMessageBox::No;
+}
+
+bool GMainWindow::ConfirmForceLockedExit() {
+    if (emu_thread == nullptr)
+        return true;
+
+    const auto answer =
+        QMessageBox::question(this, tr("yuzu"),
+                              tr("The currently running application has requested yuzu to not "
+                                 "exit.\n\nWould you like to bypass this and exit anyway?"),
+                              QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    return answer != QMessageBox::No;
+}
+
+void GMainWindow::RequestGameExit() {
+    auto& sm{Core::System::GetInstance().ServiceManager()};
+    auto applet_oe = sm.GetService<Service::AM::AppletOE>("appletOE");
+    auto applet_ae = sm.GetService<Service::AM::AppletAE>("appletAE");
+    bool has_signalled = false;
+
+    if (applet_oe != nullptr) {
+        applet_oe->GetMessageQueue()->RequestExit();
+        has_signalled = true;
+    }
+
+    if (applet_ae != nullptr && !has_signalled) {
+        applet_ae->GetMessageQueue()->RequestExit();
+    }
 }
 
 void GMainWindow::filterBarSetChecked(bool state) {

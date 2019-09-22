@@ -45,6 +45,7 @@ class AppletMessageQueue {
 public:
     enum class AppletMessage : u32 {
         NoMessage = 0,
+        ExitRequested = 4,
         FocusStateChanged = 15,
         OperationModeChanged = 30,
         PerformanceModeChanged = 31,
@@ -59,6 +60,7 @@ public:
     AppletMessage PopMessage();
     std::size_t GetMessageCount() const;
     void OperationModeChanged();
+    void RequestExit();
 
 private:
     std::queue<AppletMessage> messages;
@@ -123,6 +125,7 @@ public:
     ~ISelfController() override;
 
 private:
+    void Exit(Kernel::HLERequestContext& ctx);
     void LockExit(Kernel::HLERequestContext& ctx);
     void UnlockExit(Kernel::HLERequestContext& ctx);
     void EnterFatalSection(Kernel::HLERequestContext& ctx);
@@ -151,6 +154,8 @@ private:
     u32 idle_time_detection_extension = 0;
     u64 num_fatal_sections_entered = 0;
     bool is_auto_sleep_disabled = false;
+
+    Core::System& system;
 };
 
 class ICommonStateGetter final : public ServiceFramework<ICommonStateGetter> {
