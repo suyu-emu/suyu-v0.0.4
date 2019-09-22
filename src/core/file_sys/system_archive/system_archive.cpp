@@ -6,6 +6,7 @@
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/system_archive/mii_model.h"
 #include "core/file_sys/system_archive/ng_word.h"
+#include "core/file_sys/system_archive/shared_font.h"
 #include "core/file_sys/system_archive/system_archive.h"
 #include "core/file_sys/system_archive/system_version.h"
 
@@ -39,11 +40,11 @@ constexpr std::array<SystemArchiveDescriptor, SYSTEM_ARCHIVE_COUNT> SYSTEM_ARCHI
     {0x010000000000080D, "UrlBlackList", nullptr},
     {0x010000000000080E, "TimeZoneBinary", nullptr},
     {0x010000000000080F, "CertStoreCruiser", nullptr},
-    {0x0100000000000810, "FontNintendoExtension", nullptr},
-    {0x0100000000000811, "FontStandard", nullptr},
-    {0x0100000000000812, "FontKorean", nullptr},
-    {0x0100000000000813, "FontChineseTraditional", nullptr},
-    {0x0100000000000814, "FontChineseSimple", nullptr},
+    {0x0100000000000810, "FontNintendoExtension", &FontNintendoExtension},
+    {0x0100000000000811, "FontStandard", &FontStandard},
+    {0x0100000000000812, "FontKorean", &FontKorean},
+    {0x0100000000000813, "FontChineseTraditional", &FontChineseTraditional},
+    {0x0100000000000814, "FontChineseSimple", &FontChineseSimple},
     {0x0100000000000815, "FontBfcpx", nullptr},
     {0x0100000000000816, "SystemUpdate", nullptr},
     {0x0100000000000817, "0100000000000817", nullptr},
