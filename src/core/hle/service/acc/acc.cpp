@@ -70,7 +70,7 @@ public:
 
 protected:
     void Get(Kernel::HLERequestContext& ctx) {
-        LOG_INFO(Service_ACC, "called user_id={}", user_id.Format());
+        LOG_DEBUG(Service_ACC, "called user_id={}", user_id.Format());
         ProfileBase profile_base{};
         ProfileData data{};
         if (profile_manager.GetProfileBaseAndData(user_id, profile_base, data)) {
@@ -89,7 +89,7 @@ protected:
     }
 
     void GetBase(Kernel::HLERequestContext& ctx) {
-        LOG_INFO(Service_ACC, "called user_id={}", user_id.Format());
+        LOG_DEBUG(Service_ACC, "called user_id={}", user_id.Format());
         ProfileBase profile_base{};
         if (profile_manager.GetProfileBase(user_id, profile_base)) {
             IPC::ResponseBuilder rb{ctx, 16};
@@ -263,7 +263,7 @@ private:
 };
 
 void Module::Interface::GetUserCount(Kernel::HLERequestContext& ctx) {
-    LOG_INFO(Service_ACC, "called");
+    LOG_DEBUG(Service_ACC, "called");
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.Push<u32>(static_cast<u32>(profile_manager->GetUserCount()));
@@ -272,7 +272,7 @@ void Module::Interface::GetUserCount(Kernel::HLERequestContext& ctx) {
 void Module::Interface::GetUserExistence(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     Common::UUID user_id = rp.PopRaw<Common::UUID>();
-    LOG_INFO(Service_ACC, "called user_id={}", user_id.Format());
+    LOG_DEBUG(Service_ACC, "called user_id={}", user_id.Format());
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
@@ -280,21 +280,21 @@ void Module::Interface::GetUserExistence(Kernel::HLERequestContext& ctx) {
 }
 
 void Module::Interface::ListAllUsers(Kernel::HLERequestContext& ctx) {
-    LOG_INFO(Service_ACC, "called");
+    LOG_DEBUG(Service_ACC, "called");
     ctx.WriteBuffer(profile_manager->GetAllUsers());
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
 
 void Module::Interface::ListOpenUsers(Kernel::HLERequestContext& ctx) {
-    LOG_INFO(Service_ACC, "called");
+    LOG_DEBUG(Service_ACC, "called");
     ctx.WriteBuffer(profile_manager->GetOpenUsers());
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
 
 void Module::Interface::GetLastOpenedUser(Kernel::HLERequestContext& ctx) {
-    LOG_INFO(Service_ACC, "called");
+    LOG_DEBUG(Service_ACC, "called");
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(RESULT_SUCCESS);
     rb.PushRaw<Common::UUID>(profile_manager->GetLastOpenedUser());
