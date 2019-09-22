@@ -136,131 +136,131 @@ union VmInt {
 };
 
 struct StoreStaticOpcode {
-    u32 bit_width;
-    MemoryAccessType mem_type;
-    u32 offset_register;
-    u64 rel_address;
-    VmInt value;
+    u32 bit_width{};
+    MemoryAccessType mem_type{};
+    u32 offset_register{};
+    u64 rel_address{};
+    VmInt value{};
 };
 
 struct BeginConditionalOpcode {
-    u32 bit_width;
-    MemoryAccessType mem_type;
-    ConditionalComparisonType cond_type;
-    u64 rel_address;
-    VmInt value;
+    u32 bit_width{};
+    MemoryAccessType mem_type{};
+    ConditionalComparisonType cond_type{};
+    u64 rel_address{};
+    VmInt value{};
 };
 
 struct EndConditionalOpcode {};
 
 struct ControlLoopOpcode {
-    bool start_loop;
-    u32 reg_index;
-    u32 num_iters;
+    bool start_loop{};
+    u32 reg_index{};
+    u32 num_iters{};
 };
 
 struct LoadRegisterStaticOpcode {
-    u32 reg_index;
-    u64 value;
+    u32 reg_index{};
+    u64 value{};
 };
 
 struct LoadRegisterMemoryOpcode {
-    u32 bit_width;
-    MemoryAccessType mem_type;
-    u32 reg_index;
-    bool load_from_reg;
-    u64 rel_address;
+    u32 bit_width{};
+    MemoryAccessType mem_type{};
+    u32 reg_index{};
+    bool load_from_reg{};
+    u64 rel_address{};
 };
 
 struct StoreStaticToAddressOpcode {
-    u32 bit_width;
-    u32 reg_index;
-    bool increment_reg;
-    bool add_offset_reg;
-    u32 offset_reg_index;
-    u64 value;
+    u32 bit_width{};
+    u32 reg_index{};
+    bool increment_reg{};
+    bool add_offset_reg{};
+    u32 offset_reg_index{};
+    u64 value{};
 };
 
 struct PerformArithmeticStaticOpcode {
-    u32 bit_width;
-    u32 reg_index;
-    RegisterArithmeticType math_type;
-    u32 value;
+    u32 bit_width{};
+    u32 reg_index{};
+    RegisterArithmeticType math_type{};
+    u32 value{};
 };
 
 struct BeginKeypressConditionalOpcode {
-    u32 key_mask;
+    u32 key_mask{};
 };
 
 struct PerformArithmeticRegisterOpcode {
-    u32 bit_width;
-    RegisterArithmeticType math_type;
-    u32 dst_reg_index;
-    u32 src_reg_1_index;
-    u32 src_reg_2_index;
-    bool has_immediate;
-    VmInt value;
+    u32 bit_width{};
+    RegisterArithmeticType math_type{};
+    u32 dst_reg_index{};
+    u32 src_reg_1_index{};
+    u32 src_reg_2_index{};
+    bool has_immediate{};
+    VmInt value{};
 };
 
 struct StoreRegisterToAddressOpcode {
-    u32 bit_width;
-    u32 str_reg_index;
-    u32 addr_reg_index;
-    bool increment_reg;
-    StoreRegisterOffsetType ofs_type;
-    MemoryAccessType mem_type;
-    u32 ofs_reg_index;
-    u64 rel_address;
+    u32 bit_width{};
+    u32 str_reg_index{};
+    u32 addr_reg_index{};
+    bool increment_reg{};
+    StoreRegisterOffsetType ofs_type{};
+    MemoryAccessType mem_type{};
+    u32 ofs_reg_index{};
+    u64 rel_address{};
 };
 
 struct BeginRegisterConditionalOpcode {
-    u32 bit_width;
-    ConditionalComparisonType cond_type;
-    u32 val_reg_index;
-    CompareRegisterValueType comp_type;
-    MemoryAccessType mem_type;
-    u32 addr_reg_index;
-    u32 other_reg_index;
-    u32 ofs_reg_index;
-    u64 rel_address;
-    VmInt value;
+    u32 bit_width{};
+    ConditionalComparisonType cond_type{};
+    u32 val_reg_index{};
+    CompareRegisterValueType comp_type{};
+    MemoryAccessType mem_type{};
+    u32 addr_reg_index{};
+    u32 other_reg_index{};
+    u32 ofs_reg_index{};
+    u64 rel_address{};
+    VmInt value{};
 };
 
 struct SaveRestoreRegisterOpcode {
-    u32 dst_index;
-    u32 src_index;
-    SaveRestoreRegisterOpType op_type;
+    u32 dst_index{};
+    u32 src_index{};
+    SaveRestoreRegisterOpType op_type{};
 };
 
 struct SaveRestoreRegisterMaskOpcode {
-    SaveRestoreRegisterOpType op_type;
-    std::array<bool, 0x10> should_operate;
+    SaveRestoreRegisterOpType op_type{};
+    std::array<bool, 0x10> should_operate{};
 };
 
 struct DebugLogOpcode {
-    u32 bit_width;
-    u32 log_id;
-    DebugLogValueType val_type;
-    MemoryAccessType mem_type;
-    u32 addr_reg_index;
-    u32 val_reg_index;
-    u32 ofs_reg_index;
-    u64 rel_address;
+    u32 bit_width{};
+    u32 log_id{};
+    DebugLogValueType val_type{};
+    MemoryAccessType mem_type{};
+    u32 addr_reg_index{};
+    u32 val_reg_index{};
+    u32 ofs_reg_index{};
+    u64 rel_address{};
 };
 
 struct UnrecognizedInstruction {
-    CheatVmOpcodeType opcode;
+    CheatVmOpcodeType opcode{};
 };
 
 struct CheatVmOpcode {
-    bool begin_conditional_block;
+    bool begin_conditional_block{};
     std::variant<StoreStaticOpcode, BeginConditionalOpcode, EndConditionalOpcode, ControlLoopOpcode,
                  LoadRegisterStaticOpcode, LoadRegisterMemoryOpcode, StoreStaticToAddressOpcode,
                  PerformArithmeticStaticOpcode, BeginKeypressConditionalOpcode,
                  PerformArithmeticRegisterOpcode, StoreRegisterToAddressOpcode,
                  BeginRegisterConditionalOpcode, SaveRestoreRegisterOpcode,
                  SaveRestoreRegisterMaskOpcode, DebugLogOpcode, UnrecognizedInstruction>
-        opcode;
+        opcode{};
 };
 
 class DmntCheatVm {

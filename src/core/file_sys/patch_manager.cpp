@@ -278,8 +278,7 @@ std::optional<std::vector<Memory::CheatEntry>> ReadCheatFileFromFolder(
 
 std::vector<Memory::CheatEntry> PatchManager::CreateCheatList(
     const Core::System& system, const std::array<u8, 32>& build_id_) const {
-    const auto load_dir =
-        Core::System::GetInstance().GetFileSystemController().GetModificationLoadRoot(title_id);
+    const auto load_dir = system.GetFileSystemController().GetModificationLoadRoot(title_id);
     if (load_dir == nullptr) {
         LOG_ERROR(Loader, "Cannot load mods for invalid title_id={:016X}", title_id);
         return {};
