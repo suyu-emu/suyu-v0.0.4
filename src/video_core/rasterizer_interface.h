@@ -31,7 +31,7 @@ public:
     /// Draw the current batch of vertex arrays
     virtual bool DrawBatch(bool is_indexed) = 0;
 
-    /// Draw the current batch of multiple instasnces of vertex arrays
+    /// Draw the current batch of multiple instances of vertex arrays
     virtual bool DrawMultiBatch(bool is_indexed) = 0;
 
     /// Clear the current framebuffer

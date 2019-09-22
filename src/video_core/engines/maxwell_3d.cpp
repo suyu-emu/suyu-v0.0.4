@@ -260,7 +260,7 @@ void Maxwell3D::CallMacroMethod(u32 method, std::size_t num_parameters, const u3
 
     // Execute the current macro.
     macro_interpreter.Execute(macro_positions[entry], num_parameters, parameters);
-    if (mme_draw.current_mode != MMMEDrawMode::Undefined) {
+    if (mme_draw.current_mode != MMEDrawMode::Undefined) {
         FlushMMEInlineDraw();
     }
 }
@@ -423,37 +423,40 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
     }
 }
 
+void Maxwell3D::StepInstance(const MMEDrawMode expected_mode, const u32 count) {
+    if (mme_draw.current_mode == MMEDrawMode::Undefined) {
+        if (mme_draw.gl_begin_consume) {
+            mme_draw.current_mode = expected_mode;
+            mme_draw.current_count = count;
+            mme_draw.instance_count = 1;
+            mme_draw.gl_begin_consume = false;
+            mme_draw.gl_end_count = 0;
+        }
+        return;
+    } else {
+        if (mme_draw.current_mode == expected_mode && count == mme_draw.current_count &&
+            mme_draw.instance_mode && mme_draw.gl_begin_consume) {
+            mme_draw.instance_count++;
+            mme_draw.gl_begin_consume = false;
+            return;
+        } else {
+            FlushMMEInlineDraw();
+        }
+    }
+    // Tail call in case it needs to retry.
+    StepInstance(expected_mode, count);
+}
+
 void Maxwell3D::CallMethodFromMME(const GPU::MethodCall& method_call) {
     const u32 method = method_call.method;
     if (mme_inline[method]) {
         regs.reg_array[method] = method_call.argument;
         if (method == MAXWELL3D_REG_INDEX(vertex_buffer.count) ||
             method == MAXWELL3D_REG_INDEX(index_array.count)) {
-            const MMMEDrawMode expected_mode = method == MAXWELL3D_REG_INDEX(vertex_buffer.count)
-                                                   ? MMMEDrawMode::Array
-                                                   : MMMEDrawMode::Indexed;
-            const u32 count = method_call.argument;
-            while (true) {
-                if (mme_draw.current_mode == MMMEDrawMode::Undefined) {
-                    if (mme_draw.gl_begin_consume) {
-                        mme_draw.current_mode = expected_mode;
-                        mme_draw.current_count = count;
-                        mme_draw.instance_count = 1;
-                        mme_draw.gl_begin_consume = false;
-                        mme_draw.gl_end_count = 0;
-                    }
-                    break;
-                } else {
-                    if (mme_draw.current_mode == expected_mode && count == mme_draw.current_count &&
-                        mme_draw.instance_mode && mme_draw.gl_begin_consume) {
-                        mme_draw.instance_count++;
-                        mme_draw.gl_begin_consume = false;
-                        break;
-                    } else {
-                        FlushMMEInlineDraw();
-                    }
-                }
-            }
+            const MMEDrawMode expected_mode = method == MAXWELL3D_REG_INDEX(vertex_buffer.count)
+                                                  ? MMEDrawMode::Array
+                                                  : MMEDrawMode::Indexed;
+            StepInstance(expected_mode, method_call.argument);
         } else if (method == MAXWELL3D_REG_INDEX(draw.vertex_begin_gl)) {
             mme_draw.instance_mode =
                 (regs.draw.instance_next != 0) || (regs.draw.instance_cont != 0);
@@ -462,7 +465,7 @@ void Maxwell3D::CallMethodFromMME(const GPU::MethodCall& method_call) {
             mme_draw.gl_end_count++;
         }
     } else {
-        if (mme_draw.current_mode != MMMEDrawMode::Undefined) {
+        if (mme_draw.current_mode != MMEDrawMode::Undefined) {
             FlushMMEInlineDraw();
         }
         CallMethod(method_call);
@@ -485,8 +488,10 @@ void Maxwell3D::FlushMMEInlineDraw() {
     ASSERT_MSG(!regs.draw.instance_next || !regs.draw.instance_cont,
                "Illegal combination of instancing parameters");
 
-    const bool is_indexed = mme_draw.current_mode == MMMEDrawMode::Indexed;
-    rasterizer.DrawMultiBatch(is_indexed);
+    const bool is_indexed = mme_draw.current_mode == MMEDrawMode::Indexed;
+    if (ShouldExecute()) {
+        rasterizer.DrawMultiBatch(is_indexed);
+    }
 
     if (debug_context) {
         debug_context->OnEvent(Tegra::DebugContext::Event::FinishedPrimitiveBatch, nullptr);
@@ -501,7 +506,7 @@ void Maxwell3D::FlushMMEInlineDraw() {
     } else {
         regs.vertex_buffer.count = 0;
     }
-    mme_draw.current_mode = MMMEDrawMode::Undefined;
+    mme_draw.current_mode = MMEDrawMode::Undefined;
     mme_draw.current_count = 0;
     mme_draw.instance_count = 0;
     mme_draw.instance_mode = false;
@@ -657,7 +662,9 @@ void Maxwell3D::DrawArrays() {
     }
 
     const bool is_indexed{regs.index_array.count && !regs.vertex_buffer.count};
-    rasterizer.DrawBatch(is_indexed);
+    if (ShouldExecute()) {
+        rasterizer.DrawBatch(is_indexed);
+    }
 
     if (debug_context) {
         debug_context->OnEvent(Tegra::DebugContext::Event::FinishedPrimitiveBatch, nullptr);

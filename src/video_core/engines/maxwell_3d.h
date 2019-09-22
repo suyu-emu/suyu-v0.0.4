@@ -1269,14 +1269,14 @@ public:
         return execute_on;
     }
 
-    enum class MMMEDrawMode : u32 {
+    enum class MMEDrawMode : u32 {
         Undefined,
         Array,
         Indexed,
     };
 
     struct MMEDrawState {
-        MMMEDrawMode current_mode{MMMEDrawMode::Undefined};
+        MMEDrawMode current_mode{MMEDrawMode::Undefined};
         u32 current_count{};
         u32 instance_count{};
         bool instance_mode{};
@@ -1369,6 +1369,9 @@ private:
 
     /// Handles a write to the VERTEX_END_GL register, triggering a draw.
     void DrawArrays();
+
+    // Handles a instance drawcall from MME
+    void StepInstance(MMEDrawMode expected_mode, u32 count);
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \
