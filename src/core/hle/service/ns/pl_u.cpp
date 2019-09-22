@@ -145,8 +145,9 @@ struct PL_U::Impl {
     std::vector<FontRegion> shared_font_regions;
 };
 
-PL_U::PL_U(FileSystem::FileSystemController& fsc)
-    : ServiceFramework("pl:u"), impl{std::make_unique<Impl>()} {
+PL_U::PL_U(Core::System& system, FileSystem::FileSystemController& fsc)
+    : ServiceFramework("pl:u"), impl{std::make_unique<Impl>()}, system(system) {
+
     static const FunctionInfo functions[] = {
         {0, &PL_U::RequestLoad, "RequestLoad"},
         {1, &PL_U::GetLoadState, "GetLoadState"},
@@ -255,7 +256,7 @@ void PL_U::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx) {
                                                        Kernel::MemoryState::Shared);
 
     // Create shared font memory object
-    auto& kernel = Core::System::GetInstance().Kernel();
+    auto& kernel = system.Kernel();
     impl->shared_font_mem = Kernel::SharedMemory::Create(
         kernel, Core::CurrentProcess(), SHARED_FONT_MEM_SIZE, Kernel::MemoryPermission::ReadWrite,
         Kernel::MemoryPermission::Read, SHARED_FONT_MEM_VADDR, Kernel::MemoryRegion::BASE,
