@@ -1,0 +1,11 @@
+steps:
+  - template: ./release-download.yml
+  - task: GitHubRelease@0
+    inputs:
+      action: 'create'
+      title: 'yuzu $(BuildName) #$(Build.BuildId)'
+      assets: '$(Build.ArtifactStagingDirectory)/*'
+      gitHubConnection: $(GitHubReleaseConnectionName)
+      repositoryName: '$(Build.Repository.Name)'
+      target: '$(Build.SourceVersion)'
+      tagSource: 'auto'

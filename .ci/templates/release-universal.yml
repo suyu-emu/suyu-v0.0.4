@@ -1,0 +1,10 @@
+steps:
+  - template: ./release-download.yml
+  - task: UniversalPackages@0
+    displayName: Publish Artifacts
+    inputs:
+      command: publish
+      publishDirectory: '$(Build.ArtifactStagingDirectory)'
+      vstsFeedPublish: 'yuzu-$(BuildName)'
+      vstsFeedPackagePublish: 'main'
+      packagePublishDescription: 'Yuzu Windows and Linux Executable Packages'
