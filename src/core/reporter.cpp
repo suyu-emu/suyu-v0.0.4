@@ -8,7 +8,6 @@
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include <fmt/time.h>
 #include <json.hpp>
 
 #include "common/file_util.h"
@@ -393,11 +392,11 @@ void Reporter::SaveLogReport(u32 destination, std::vector<Service::LM::LogMessag
                                           out["type"] = fmt::format("{}", kv.first);
                                           out["data"] =
                                               Service::LM::FormatField(kv.first, kv.second);
-                                          return std::move(out);
+                                          return out;
                                       });
 
                        out["fields"] = std::move(fields);
-                       return std::move(out);
+                       return out;
                    });
 
     out["log_messages"] = std::move(json_messages);

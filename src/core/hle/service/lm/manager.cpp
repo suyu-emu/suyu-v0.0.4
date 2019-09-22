@@ -13,7 +13,7 @@ namespace Service::LM {
 std::ostream& operator<<(std::ostream& os, DestinationFlag dest) {
     std::vector<std::string> array;
     const auto check_single_flag = [dest, &array](DestinationFlag check, std::string name) {
-        if ((static_cast<u32>(check) & static_cast<u32>(dest)) > 0) {
+        if ((static_cast<u32>(check) & static_cast<u32>(dest)) != 0) {
             array.emplace_back(std::move(name));
         }
     };
@@ -75,7 +75,7 @@ std::string FormatField(Field type, const std::vector<u8>& data) {
         if (data.size() >= sizeof(u32)) {
             u32 line;
             std::memcpy(&line, data.data(), sizeof(u32));
-            return fmt::format("{:08X}", line);
+            return fmt::format("{}", line);
         }
         return "[ERROR DECODING LINE NUMBER]";
     case Field::Message:
@@ -114,16 +114,20 @@ void Manager::Log(LogMessage message) {
     }
 }
 
+void Manager::Flush() {
+    FinalizeLog();
+}
+
 void Manager::InitializeLog() {
     current_log.clear();
 
-    LOG_INFO(Service_LM, "Initialized new log session!");
+    LOG_INFO(Service_LM, "Initialized new log session");
 }
 
 void Manager::FinalizeLog() {
     reporter.SaveLogReport(static_cast<u32>(destination), std::move(current_log));
 
-    LOG_INFO(Service_LM, "Finalized current log session!");
+    LOG_INFO(Service_LM, "Finalized current log session");
 }
 
 } // namespace Service::LM

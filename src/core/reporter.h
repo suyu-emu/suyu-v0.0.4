@@ -59,9 +59,6 @@ public:
         New,
         System,
     };
-    // Used by prepo services
-    void SavePlayReport(u64 title_id, u64 process_id, std::vector<std::vector<u8>> data,
-                        std::optional<u128> user_id = {}) const;
 
     void SavePlayReport(PlayReportType type, u64 title_id, std::vector<std::vector<u8>> data,
                         std::optional<u64> process_id = {}, std::optional<u128> user_id = {}) const;

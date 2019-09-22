@@ -81,13 +81,15 @@ std::string FormatField(Field type, const std::vector<u8>& data);
 
 class Manager {
 public:
-    Manager(Core::Reporter& reporter);
+    explicit Manager(Core::Reporter& reporter);
     ~Manager();
 
     void SetEnabled(bool enabled);
     void SetDestination(DestinationFlag destination);
 
     void Log(LogMessage message);
+
+    void Flush();
 
 private:
     void InitializeLog();

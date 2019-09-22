@@ -250,6 +250,8 @@ struct System::Impl {
         telemetry_session->AddField(Telemetry::FieldType::Performance, "Mean_Frametime_MS",
                                     perf_stats->GetMeanFrametime());
 
+        lm_manager.Flush();
+
         is_powered_on = false;
         exit_lock = false;
 
