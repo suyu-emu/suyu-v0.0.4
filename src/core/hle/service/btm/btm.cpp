@@ -17,7 +17,7 @@ namespace Service::BTM {
 
 class IBtmUserCore final : public ServiceFramework<IBtmUserCore> {
 public:
-    explicit IBtmUserCore() : ServiceFramework{"IBtmUserCore"} {
+    explicit IBtmUserCore(Core::System& system) : ServiceFramework{"IBtmUserCore"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IBtmUserCore::AcquireBleScanEvent, "AcquireBleScanEvent"},
@@ -56,7 +56,7 @@ public:
         // clang-format on
         RegisterHandlers(functions);
 
-        auto& kernel = Core::System::GetInstance().Kernel();
+        auto& kernel = system.Kernel();
         scan_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Automatic,
                                                             "IBtmUserCore:ScanEvent");
         connection_event = Kernel::WritableEvent::CreateEventPair(
@@ -108,7 +108,7 @@ private:
 
 class BTM_USR final : public ServiceFramework<BTM_USR> {
 public:
-    explicit BTM_USR() : ServiceFramework{"btm:u"} {
+    explicit BTM_USR(Core::System& system) : ServiceFramework{"btm:u"}, system(system) {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &BTM_USR::GetCore, "GetCore"},
@@ -123,8 +123,10 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IBtmUserCore>();
+        rb.PushIpcInterface<IBtmUserCore>(system);
     }
+
+    Core::System& system;
 };
 
 class BTM final : public ServiceFramework<BTM> {
@@ -268,11 +270,11 @@ private:
     }
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
     std::make_shared<BTM>()->InstallAsService(sm);
     std::make_shared<BTM_DBG>()->InstallAsService(sm);
     std::make_shared<BTM_SYS>()->InstallAsService(sm);
-    std::make_shared<BTM_USR>()->InstallAsService(sm);
+    std::make_shared<BTM_USR>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::BTM

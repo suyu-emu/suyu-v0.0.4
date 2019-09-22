@@ -17,7 +17,7 @@ namespace NS {
 
 class PL_U final : public ServiceFramework<PL_U> {
 public:
-    PL_U(FileSystem::FileSystemController& fsc);
+    explicit PL_U(Core::System& system);
     ~PL_U() override;
 
 private:
@@ -30,6 +30,7 @@ private:
 
     struct Impl;
     std::unique_ptr<Impl> impl;
+    Core::System& system;
 };
 
 } // namespace NS

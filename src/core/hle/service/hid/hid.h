@@ -42,7 +42,7 @@ enum class HidController : std::size_t {
 
 class IAppletResource final : public ServiceFramework<IAppletResource> {
 public:
-    IAppletResource();
+    explicit IAppletResource(Core::System& system);
     ~IAppletResource() override;
 
     void ActivateController(HidController controller);
@@ -61,7 +61,7 @@ public:
 private:
     template <typename T>
     void MakeController(HidController controller) {
-        controllers[static_cast<std::size_t>(controller)] = std::make_unique<T>();
+        controllers[static_cast<std::size_t>(controller)] = std::make_unique<T>(system);
     }
 
     void GetSharedMemoryHandle(Kernel::HLERequestContext& ctx);
@@ -70,6 +70,7 @@ private:
     Kernel::SharedPtr<Kernel::SharedMemory> shared_mem;
 
     Core::Timing::EventType* pad_update_event;
+    Core::System& system;
 
     std::array<std::unique_ptr<ControllerBase>, static_cast<size_t>(HidController::MaxControllers)>
         controllers{};
@@ -77,7 +78,7 @@ private:
 
 class Hid final : public ServiceFramework<Hid> {
 public:
-    Hid();
+    explicit Hid(Core::System& system);
     ~Hid() override;
 
     std::shared_ptr<IAppletResource> GetAppletResource();
@@ -126,12 +127,13 @@ private:
     void SwapNpadAssignment(Kernel::HLERequestContext& ctx);
 
     std::shared_ptr<IAppletResource> applet_resource;
+    Core::System& system;
 };
 
 /// Reload input devices. Used when input configuration changed
 void ReloadInputDevices();
 
 /// Registers all HID services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& service_manager);
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system);
 
 } // namespace Service::HID

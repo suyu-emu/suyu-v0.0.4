@@ -38,7 +38,7 @@ class BufferQueue;
 
 class NVFlinger final {
 public:
-    explicit NVFlinger(Core::Timing::CoreTiming& core_timing);
+    explicit NVFlinger(Core::System& system);
     ~NVFlinger();
 
     /// Sets the NVDrv module instance to use to send buffers to the GPU.
@@ -105,8 +105,7 @@ private:
     /// Event that handles screen composition.
     Core::Timing::EventType* composition_event;
 
-    /// Core timing instance for registering/unregistering the composition event.
-    Core::Timing::CoreTiming& core_timing;
+    Core::System& system;
 };
 
 } // namespace Service::NVFlinger

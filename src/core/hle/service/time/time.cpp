@@ -126,8 +126,8 @@ private:
 
 class ISteadyClock final : public ServiceFramework<ISteadyClock> {
 public:
-    ISteadyClock(std::shared_ptr<SharedMemory> shared_memory)
-        : ServiceFramework("ISteadyClock"), shared_memory(shared_memory) {
+    ISteadyClock(std::shared_ptr<SharedMemory> shared_memory, Core::System& system)
+        : ServiceFramework("ISteadyClock"), shared_memory(shared_memory), system(system) {
         static const FunctionInfo functions[] = {
             {0, &ISteadyClock::GetCurrentTimePoint, "GetCurrentTimePoint"},
         };
@@ -150,12 +150,13 @@ private:
     }
 
     SteadyClockTimePoint GetCurrentTimePoint() const {
-        const auto& core_timing = Core::System::GetInstance().CoreTiming();
+        const auto& core_timing = system.CoreTiming();
         const auto ms = Core::Timing::CyclesToMs(core_timing.GetTicks());
         return {static_cast<u64_le>(ms.count() / 1000), {}};
     }
 
     std::shared_ptr<SharedMemory> shared_memory;
+    Core::System& system;
 };
 
 class ITimeZoneService final : public ServiceFramework<ITimeZoneService> {
@@ -290,7 +291,7 @@ void Module::Interface::GetStandardSteadyClock(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<ISteadyClock>(shared_memory);
+    rb.PushIpcInterface<ISteadyClock>(shared_memory, system);
 }
 
 void Module::Interface::GetTimeZoneService(Kernel::HLERequestContext& ctx) {
@@ -325,7 +326,7 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
         return;
     }
 
-    const auto& core_timing = Core::System::GetInstance().CoreTiming();
+    const auto& core_timing = system.CoreTiming();
     const auto ms = Core::Timing::CyclesToMs(core_timing.GetTicks());
     const SteadyClockTimePoint steady_clock_time_point{static_cast<u64_le>(ms.count() / 1000), {}};
 
@@ -407,8 +408,10 @@ void Module::Interface::SetStandardUserSystemClockAutomaticCorrectionEnabled(
 }
 
 Module::Interface::Interface(std::shared_ptr<Module> time,
-                             std::shared_ptr<SharedMemory> shared_memory, const char* name)
-    : ServiceFramework(name), time(std::move(time)), shared_memory(std::move(shared_memory)) {}
+                             std::shared_ptr<SharedMemory> shared_memory, Core::System& system,
+                             const char* name)
+    : ServiceFramework(name), time(std::move(time)), shared_memory(std::move(shared_memory)),
+      system(system) {}
 
 Module::Interface::~Interface() = default;
 
@@ -416,9 +419,11 @@ void InstallInterfaces(Core::System& system) {
     auto time = std::make_shared<Module>();
     auto shared_mem = std::make_shared<SharedMemory>(system);
 
-    std::make_shared<Time>(time, shared_mem, "time:a")->InstallAsService(system.ServiceManager());
-    std::make_shared<Time>(time, shared_mem, "time:s")->InstallAsService(system.ServiceManager());
-    std::make_shared<Time>(std::move(time), shared_mem, "time:u")
+    std::make_shared<Time>(time, shared_mem, system, "time:a")
+        ->InstallAsService(system.ServiceManager());
+    std::make_shared<Time>(time, shared_mem, system, "time:s")
+        ->InstallAsService(system.ServiceManager());
+    std::make_shared<Time>(std::move(time), shared_mem, system, "time:u")
         ->InstallAsService(system.ServiceManager());
 }
 

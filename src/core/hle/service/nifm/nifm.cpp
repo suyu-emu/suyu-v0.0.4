@@ -31,7 +31,7 @@ public:
 
 class IRequest final : public ServiceFramework<IRequest> {
 public:
-    explicit IRequest() : ServiceFramework("IRequest") {
+    explicit IRequest(Core::System& system) : ServiceFramework("IRequest") {
         static const FunctionInfo functions[] = {
             {0, &IRequest::GetRequestState, "GetRequestState"},
             {1, &IRequest::GetResult, "GetResult"},
@@ -61,7 +61,7 @@ public:
         };
         RegisterHandlers(functions);
 
-        auto& kernel = Core::System::GetInstance().Kernel();
+        auto& kernel = system.Kernel();
         event1 = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Automatic,
                                                         "IRequest:Event1");
         event2 = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Automatic,
@@ -130,7 +130,7 @@ public:
 
 class IGeneralService final : public ServiceFramework<IGeneralService> {
 public:
-    IGeneralService();
+    IGeneralService(Core::System& system);
 
 private:
     void GetClientId(Kernel::HLERequestContext& ctx) {
@@ -155,7 +155,7 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IRequest>();
+        rb.PushIpcInterface<IRequest>(system);
     }
     void RemoveNetworkProfile(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
@@ -198,9 +198,11 @@ private:
         rb.Push(RESULT_SUCCESS);
         rb.Push<u8>(0);
     }
+    Core::System& system;
 };
 
-IGeneralService::IGeneralService() : ServiceFramework("IGeneralService") {
+IGeneralService::IGeneralService(Core::System& system)
+    : ServiceFramework("IGeneralService"), system(system) {
     static const FunctionInfo functions[] = {
         {1, &IGeneralService::GetClientId, "GetClientId"},
         {2, &IGeneralService::CreateScanRequest, "CreateScanRequest"},
@@ -245,7 +247,8 @@ IGeneralService::IGeneralService() : ServiceFramework("IGeneralService") {
 
 class NetworkInterface final : public ServiceFramework<NetworkInterface> {
 public:
-    explicit NetworkInterface(const char* name) : ServiceFramework{name} {
+    explicit NetworkInterface(const char* name, Core::System& system)
+        : ServiceFramework{name}, system(system) {
         static const FunctionInfo functions[] = {
             {4, &NetworkInterface::CreateGeneralServiceOld, "CreateGeneralServiceOld"},
             {5, &NetworkInterface::CreateGeneralService, "CreateGeneralService"},
@@ -258,7 +261,7 @@ public:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IGeneralService>();
+        rb.PushIpcInterface<IGeneralService>(system);
     }
 
     void CreateGeneralService(Kernel::HLERequestContext& ctx) {
@@ -266,14 +269,17 @@ public:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IGeneralService>();
+        rb.PushIpcInterface<IGeneralService>(system);
     }
+
+private:
+    Core::System& system;
 };
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
-    std::make_shared<NetworkInterface>("nifm:a")->InstallAsService(service_manager);
-    std::make_shared<NetworkInterface>("nifm:s")->InstallAsService(service_manager);
-    std::make_shared<NetworkInterface>("nifm:u")->InstallAsService(service_manager);
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
+    std::make_shared<NetworkInterface>("nifm:a", system)->InstallAsService(service_manager);
+    std::make_shared<NetworkInterface>("nifm:s", system)->InstallAsService(service_manager);
+    std::make_shared<NetworkInterface>("nifm:u", system)->InstallAsService(service_manager);
 }
 
 } // namespace Service::NIFM

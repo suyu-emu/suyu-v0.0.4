@@ -126,7 +126,7 @@ public:
 class IEnsureNetworkClockAvailabilityService final
     : public ServiceFramework<IEnsureNetworkClockAvailabilityService> {
 public:
-    IEnsureNetworkClockAvailabilityService()
+    explicit IEnsureNetworkClockAvailabilityService(Core::System& system)
         : ServiceFramework("IEnsureNetworkClockAvailabilityService") {
         static const FunctionInfo functions[] = {
             {0, &IEnsureNetworkClockAvailabilityService::StartTask, "StartTask"},
@@ -139,7 +139,7 @@ public:
         };
         RegisterHandlers(functions);
 
-        auto& kernel = Core::System::GetInstance().Kernel();
+        auto& kernel = system.Kernel();
         finished_event = Kernel::WritableEvent::CreateEventPair(
             kernel, Kernel::ResetType::Automatic,
             "IEnsureNetworkClockAvailabilityService:FinishEvent");
@@ -200,7 +200,7 @@ private:
 
 class NTC final : public ServiceFramework<NTC> {
 public:
-    explicit NTC() : ServiceFramework{"ntc"} {
+    explicit NTC(Core::System& system) : ServiceFramework{"ntc"}, system(system) {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &NTC::OpenEnsureNetworkClockAvailabilityService, "OpenEnsureNetworkClockAvailabilityService"},
@@ -218,7 +218,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IEnsureNetworkClockAvailabilityService>();
+        rb.PushIpcInterface<IEnsureNetworkClockAvailabilityService>(system);
     }
 
     // TODO(ogniK): Do we need these?
@@ -235,13 +235,14 @@ private:
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
+    Core::System& system;
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
     std::make_shared<NIM>()->InstallAsService(sm);
     std::make_shared<NIM_ECA>()->InstallAsService(sm);
     std::make_shared<NIM_SHP>()->InstallAsService(sm);
-    std::make_shared<NTC>()->InstallAsService(sm);
+    std::make_shared<NTC>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::NIM

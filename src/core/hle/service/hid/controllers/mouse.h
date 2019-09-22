@@ -14,7 +14,7 @@
 namespace Service::HID {
 class Controller_Mouse final : public ControllerBase {
 public:
-    Controller_Mouse();
+    explicit Controller_Mouse(Core::System& system);
     ~Controller_Mouse() override;
 
     // Called when the controller is initialized
@@ -53,5 +53,6 @@ private:
     std::unique_ptr<Input::MouseDevice> mouse_device;
     std::array<std::unique_ptr<Input::ButtonDevice>, Settings::NativeMouseButton::NumMouseButtons>
         mouse_button_devices;
+    Core::System& system;
 };
 } // namespace Service::HID

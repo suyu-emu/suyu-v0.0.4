@@ -11,10 +11,14 @@ namespace Core::Timing {
 class CoreTiming;
 }
 
+namespace Core {
+class System;
+}
+
 namespace Service::HID {
 class ControllerBase {
 public:
-    ControllerBase();
+    explicit ControllerBase(Core::System& system);
     virtual ~ControllerBase();
 
     // Called when the controller is initialized
@@ -46,5 +50,7 @@ protected:
         s64_le entry_count;
     };
     static_assert(sizeof(CommonHeader) == 0x20, "CommonHeader is an invalid size");
+
+    Core::System& system;
 };
 } // namespace Service::HID

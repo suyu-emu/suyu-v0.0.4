@@ -8,9 +8,13 @@ namespace Service::SM {
 class ServiceManager;
 }
 
+namespace Core {
+class System;
+}
+
 namespace Service::NIFM {
 
 /// Registers all NIFM services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& service_manager);
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system);
 
 } // namespace Service::NIFM

@@ -14,7 +14,7 @@ namespace Service::AOC {
 
 class AOC_U final : public ServiceFramework<AOC_U> {
 public:
-    AOC_U();
+    explicit AOC_U(Core::System& system);
     ~AOC_U() override;
 
 private:
@@ -26,9 +26,10 @@ private:
 
     std::vector<u64> add_on_content;
     Kernel::EventPair aoc_change_event;
+    Core::System& system;
 };
 
 /// Registers all AOC services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& service_manager);
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system);
 
 } // namespace Service::AOC

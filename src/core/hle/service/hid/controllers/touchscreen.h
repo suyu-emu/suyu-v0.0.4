@@ -14,7 +14,7 @@
 namespace Service::HID {
 class Controller_Touchscreen final : public ControllerBase {
 public:
-    Controller_Touchscreen();
+    explicit Controller_Touchscreen(Core::System& system);
     ~Controller_Touchscreen() override;
 
     // Called when the controller is initialized
@@ -69,5 +69,6 @@ private:
     TouchScreenSharedMemory shared_memory{};
     std::unique_ptr<Input::TouchDevice> touch_device;
     s64_le last_touch{};
+    Core::System& system;
 };
 } // namespace Service::HID

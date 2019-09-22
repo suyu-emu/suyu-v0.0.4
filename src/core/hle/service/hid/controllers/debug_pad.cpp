@@ -14,7 +14,8 @@ constexpr s32 HID_JOYSTICK_MAX = 0x7fff;
 constexpr s32 HID_JOYSTICK_MIN = -0x7fff;
 enum class JoystickId : std::size_t { Joystick_Left, Joystick_Right };
 
-Controller_DebugPad::Controller_DebugPad() = default;
+Controller_DebugPad::Controller_DebugPad(Core::System& system)
+    : ControllerBase(system), system(system) {}
 Controller_DebugPad::~Controller_DebugPad() = default;
 
 void Controller_DebugPad::OnInit() {}

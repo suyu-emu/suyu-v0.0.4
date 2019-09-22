@@ -198,50 +198,50 @@ ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::HLERequestContext& co
 void Init(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system) {
     // NVFlinger needs to be accessed by several services like Vi and AppletOE so we instantiate it
     // here and pass it into the respective InstallInterfaces functions.
-    auto nv_flinger = std::make_shared<NVFlinger::NVFlinger>(system.CoreTiming());
+    auto nv_flinger = std::make_shared<NVFlinger::NVFlinger>(system);
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem(), false);
 
     SM::ServiceManager::InstallInterfaces(sm);
 
     Account::InstallInterfaces(system);
     AM::InstallInterfaces(*sm, nv_flinger, system);
-    AOC::InstallInterfaces(*sm);
+    AOC::InstallInterfaces(*sm, system);
     APM::InstallInterfaces(system);
     Audio::InstallInterfaces(*sm, system);
     BCAT::InstallInterfaces(*sm);
     BPC::InstallInterfaces(*sm);
-    BtDrv::InstallInterfaces(*sm);
-    BTM::InstallInterfaces(*sm);
+    BtDrv::InstallInterfaces(*sm, system);
+    BTM::InstallInterfaces(*sm, system);
     Capture::InstallInterfaces(*sm);
     ERPT::InstallInterfaces(*sm);
     ES::InstallInterfaces(*sm);
     EUPLD::InstallInterfaces(*sm);
-    Fatal::InstallInterfaces(*sm);
+    Fatal::InstallInterfaces(*sm, system);
     FGM::InstallInterfaces(*sm);
     FileSystem::InstallInterfaces(system);
-    Friend::InstallInterfaces(*sm);
+    Friend::InstallInterfaces(*sm, system);
     Glue::InstallInterfaces(system);
     GRC::InstallInterfaces(*sm);
-    HID::InstallInterfaces(*sm);
+    HID::InstallInterfaces(*sm, system);
     LBL::InstallInterfaces(*sm);
     LDN::InstallInterfaces(*sm);
-    LDR::InstallInterfaces(*sm);
+    LDR::InstallInterfaces(*sm, system);
     LM::InstallInterfaces(*sm);
     Migration::InstallInterfaces(*sm);
     Mii::InstallInterfaces(*sm);
     MM::InstallInterfaces(*sm);
     NCM::InstallInterfaces(*sm);
     NFC::InstallInterfaces(*sm);
-    NFP::InstallInterfaces(*sm);
-    NIFM::InstallInterfaces(*sm);
-    NIM::InstallInterfaces(*sm);
+    NFP::InstallInterfaces(*sm, system);
+    NIFM::InstallInterfaces(*sm, system);
+    NIM::InstallInterfaces(*sm, system);
     NPNS::InstallInterfaces(*sm);
-    NS::InstallInterfaces(*sm, system.GetFileSystemController());
+    NS::InstallInterfaces(*sm, system);
     Nvidia::InstallInterfaces(*sm, *nv_flinger, system);
     PCIe::InstallInterfaces(*sm);
     PCTL::InstallInterfaces(*sm);
     PCV::InstallInterfaces(*sm);
-    PlayReport::InstallInterfaces(system);
+    PlayReport::InstallInterfaces(*sm, system);
     PM::InstallInterfaces(system);
     PSC::InstallInterfaces(*sm);
     PSM::InstallInterfaces(*sm);

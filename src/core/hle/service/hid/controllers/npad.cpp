@@ -93,7 +93,7 @@ u32 Controller_NPad::IndexToNPad(std::size_t index) {
     };
 }
 
-Controller_NPad::Controller_NPad() = default;
+Controller_NPad::Controller_NPad(Core::System& system) : ControllerBase(system), system(system) {}
 Controller_NPad::~Controller_NPad() = default;
 
 void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
@@ -168,7 +168,7 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
 }
 
 void Controller_NPad::OnInit() {
-    auto& kernel = Core::System::GetInstance().Kernel();
+    auto& kernel = system.Kernel();
     styleset_changed_event = Kernel::WritableEvent::CreateEventPair(
         kernel, Kernel::ResetType::Automatic, "npad:NpadStyleSetChanged");
 

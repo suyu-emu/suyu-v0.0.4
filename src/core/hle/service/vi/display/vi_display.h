@@ -26,7 +26,7 @@ public:
     /// @param id   The unique ID for this display.
     /// @param name The name for this display.
     ///
-    Display(u64 id, std::string name);
+    Display(u64 id, std::string name, Core::System& system);
     ~Display();
 
     Display(const Display&) = delete;

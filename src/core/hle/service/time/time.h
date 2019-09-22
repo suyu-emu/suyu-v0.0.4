@@ -80,7 +80,8 @@ public:
     class Interface : public ServiceFramework<Interface> {
     public:
         explicit Interface(std::shared_ptr<Module> time,
-                           std::shared_ptr<SharedMemory> shared_memory, const char* name);
+                           std::shared_ptr<SharedMemory> shared_memory, Core::System& system,
+                           const char* name);
         ~Interface() override;
 
         void GetStandardUserSystemClock(Kernel::HLERequestContext& ctx);
@@ -97,6 +98,7 @@ public:
     protected:
         std::shared_ptr<Module> time;
         std::shared_ptr<SharedMemory> shared_memory;
+        Core::System& system;
     };
 };
 

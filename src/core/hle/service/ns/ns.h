@@ -97,8 +97,7 @@ private:
 };
 
 /// Registers all NS services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& service_manager, FileSystem::FileSystemController& fsc);
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system);
 
 } // namespace NS
-
 } // namespace Service

@@ -12,7 +12,8 @@ namespace Service::HID {
 constexpr std::size_t SHARED_MEMORY_OFFSET = 0x3800;
 constexpr u8 KEYS_PER_BYTE = 8;
 
-Controller_Keyboard::Controller_Keyboard() = default;
+Controller_Keyboard::Controller_Keyboard(Core::System& system)
+    : ControllerBase(system), system(system) {}
 Controller_Keyboard::~Controller_Keyboard() = default;
 
 void Controller_Keyboard::OnInit() {}

@@ -20,7 +20,7 @@ constexpr u32 NPAD_UNKNOWN = 16; // TODO(ogniK): What is this?
 
 class Controller_NPad final : public ControllerBase {
 public:
-    Controller_NPad();
+    explicit Controller_NPad(Core::System& system);
     ~Controller_NPad() override;
 
     // Called when the controller is initialized
@@ -327,5 +327,6 @@ private:
     std::array<ControllerPad, 10> npad_pad_states{};
     bool IsControllerSupported(NPadControllerType controller);
     bool is_in_lr_assignment_mode{false};
+    Core::System& system;
 };
 } // namespace Service::HID

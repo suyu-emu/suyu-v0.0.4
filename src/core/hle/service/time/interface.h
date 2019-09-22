@@ -13,7 +13,7 @@ class SharedMemory;
 class Time final : public Module::Interface {
 public:
     explicit Time(std::shared_ptr<Module> time, std::shared_ptr<SharedMemory> shared_memory,
-                  const char* name);
+                  Core::System& system, const char* name);
     ~Time() override;
 };
 

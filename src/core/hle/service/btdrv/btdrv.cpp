@@ -16,7 +16,7 @@ namespace Service::BtDrv {
 
 class Bt final : public ServiceFramework<Bt> {
 public:
-    explicit Bt() : ServiceFramework{"bt"} {
+    explicit Bt(Core::System& system) : ServiceFramework{"bt"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "LeClientReadCharacteristic"},
@@ -33,7 +33,7 @@ public:
         // clang-format on
         RegisterHandlers(functions);
 
-        auto& kernel = Core::System::GetInstance().Kernel();
+        auto& kernel = system.Kernel();
         register_event = Kernel::WritableEvent::CreateEventPair(
             kernel, Kernel::ResetType::Automatic, "BT:RegisterEvent");
     }
@@ -163,9 +163,9 @@ public:
     }
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
     std::make_shared<BtDrv>()->InstallAsService(sm);
-    std::make_shared<Bt>()->InstallAsService(sm);
+    std::make_shared<Bt>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::BtDrv

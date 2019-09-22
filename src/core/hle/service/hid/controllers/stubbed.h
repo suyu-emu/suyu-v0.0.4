@@ -10,7 +10,7 @@
 namespace Service::HID {
 class Controller_Stubbed final : public ControllerBase {
 public:
-    Controller_Stubbed();
+    explicit Controller_Stubbed(Core::System& system);
     ~Controller_Stubbed() override;
 
     // Called when the controller is initialized
@@ -30,5 +30,6 @@ public:
 private:
     bool smart_update{};
     std::size_t common_offset{};
+    Core::System& system;
 };
 } // namespace Service::HID

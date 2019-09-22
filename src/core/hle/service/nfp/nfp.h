@@ -16,7 +16,7 @@ class Module final {
 public:
     class Interface : public ServiceFramework<Interface> {
     public:
-        explicit Interface(std::shared_ptr<Module> module, const char* name);
+        explicit Interface(std::shared_ptr<Module> module, Core::System& system, const char* name);
         ~Interface() override;
 
         struct ModelInfo {
@@ -43,9 +43,10 @@ public:
 
     protected:
         std::shared_ptr<Module> module;
+        Core::System& system;
     };
 };
 
-void InstallInterfaces(SM::ServiceManager& service_manager);
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system);
 
 } // namespace Service::NFP

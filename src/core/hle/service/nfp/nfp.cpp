@@ -23,9 +23,9 @@ constexpr ResultCode ERR_TAG_FAILED(ErrorModule::NFP,
 constexpr ResultCode ERR_NO_APPLICATION_AREA(ErrorModule::NFP, 152);
 } // namespace ErrCodes
 
-Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
-    : ServiceFramework(name), module(std::move(module)) {
-    auto& kernel = Core::System::GetInstance().Kernel();
+Module::Interface::Interface(std::shared_ptr<Module> module, Core::System& system, const char* name)
+    : ServiceFramework(name), module(std::move(module)), system(system) {
+    auto& kernel = system.Kernel();
     nfc_tag_load = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Automatic,
                                                           "IUser:NFCTagDetected");
 }
@@ -34,8 +34,8 @@ Module::Interface::~Interface() = default;
 
 class IUser final : public ServiceFramework<IUser> {
 public:
-    IUser(Module::Interface& nfp_interface)
-        : ServiceFramework("NFP::IUser"), nfp_interface(nfp_interface) {
+    IUser(Module::Interface& nfp_interface, Core::System& system)
+        : ServiceFramework("NFP::IUser"), nfp_interface(nfp_interface), system(system) {
         static const FunctionInfo functions[] = {
             {0, &IUser::Initialize, "Initialize"},
             {1, &IUser::Finalize, "Finalize"},
@@ -65,7 +65,7 @@ public:
         };
         RegisterHandlers(functions);
 
-        auto& kernel = Core::System::GetInstance().Kernel();
+        auto& kernel = system.Kernel();
         deactivate_event = Kernel::WritableEvent::CreateEventPair(
             kernel, Kernel::ResetType::Automatic, "IUser:DeactivateEvent");
         availability_change_event = Kernel::WritableEvent::CreateEventPair(
@@ -324,6 +324,7 @@ private:
     Kernel::EventPair deactivate_event;
     Kernel::EventPair availability_change_event;
     const Module::Interface& nfp_interface;
+    Core::System& system;
 };
 
 void Module::Interface::CreateUserInterface(Kernel::HLERequestContext& ctx) {
@@ -331,7 +332,7 @@ void Module::Interface::CreateUserInterface(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IUser>(*this);
+    rb.PushIpcInterface<IUser>(*this, system);
 }
 
 bool Module::Interface::LoadAmiibo(const std::vector<u8>& buffer) {
@@ -353,9 +354,9 @@ const Module::Interface::AmiiboFile& Module::Interface::GetAmiiboBuffer() const 
     return amiibo;
 }
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
     auto module = std::make_shared<Module>();
-    std::make_shared<NFP_User>(module)->InstallAsService(service_manager);
+    std::make_shared<NFP_User>(module, system)->InstallAsService(service_manager);
 }
 
 } // namespace Service::NFP
