@@ -95,7 +95,7 @@ static void DecryptSharedFont(const std::vector<u32>& input, Kernel::PhysicalMem
     offset += transformed_font.size() * sizeof(u32);
 }
 
-static void EncryptSharedFont(const std::vector<u8>& input, Kernel::PhysicalMemory& output) {
+void EncryptSharedFont(const std::vector<u8>& input, Kernel::PhysicalMemory& output) {
     ASSERT_MSG(input.size() * sizeof(u32) < SHARED_FONT_MEM_SIZE, "Shared fonts exceeds 17mb!");
 
     const auto key = Common::swap32(EXPECTED_RESULT ^ EXPECTED_MAGIC);
