@@ -282,7 +282,7 @@ ISelfController::ISelfController(Core::System& system,
 
     RegisterHandlers(functions);
 
-    auto& kernel = system_.Kernel();
+    auto& kernel = system.Kernel();
     launchable_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Manual,
                                                               "ISelfController:LaunchableEvent");
 
