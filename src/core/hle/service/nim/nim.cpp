@@ -126,7 +126,7 @@ public:
 class IEnsureNetworkClockAvailabilityService final
     : public ServiceFramework<IEnsureNetworkClockAvailabilityService> {
 public:
-    IEnsureNetworkClockAvailabilityService(Core::System& system)
+    explicit IEnsureNetworkClockAvailabilityService(Core::System& system)
         : ServiceFramework("IEnsureNetworkClockAvailabilityService") {
         static const FunctionInfo functions[] = {
             {0, &IEnsureNetworkClockAvailabilityService::StartTask, "StartTask"},

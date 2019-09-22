@@ -14,7 +14,7 @@ namespace Service::AOC {
 
 class AOC_U final : public ServiceFramework<AOC_U> {
 public:
-    AOC_U(Core::System& system);
+    explicit AOC_U(Core::System& system);
     ~AOC_U() override;
 
 private:

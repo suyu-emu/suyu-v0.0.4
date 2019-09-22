@@ -20,7 +20,7 @@ void EncryptSharedFont(const std::vector<u8>& input, Kernel::PhysicalMemory& out
 
 class PL_U final : public ServiceFramework<PL_U> {
 public:
-    PL_U(Core::System& system);
+    explicit PL_U(Core::System& system);
     ~PL_U() override;
 
 private:

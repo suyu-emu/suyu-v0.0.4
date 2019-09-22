@@ -29,8 +29,7 @@ namespace Service::NVFlinger {
 constexpr s64 frame_ticks = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 60);
 constexpr s64 frame_ticks_30fps = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 30);
 
-NVFlinger::NVFlinger(Core::Timing::CoreTiming& core_timing, Core::System& system)
-    : core_timing{core_timing}, system(system) {
+NVFlinger::NVFlinger(Core::System& system) : system(system) {
     displays.emplace_back(0, "Default", system);
     displays.emplace_back(1, "External", system);
     displays.emplace_back(2, "Edid", system);
@@ -38,18 +37,20 @@ NVFlinger::NVFlinger(Core::Timing::CoreTiming& core_timing, Core::System& system
     displays.emplace_back(4, "Null", system);
 
     // Schedule the screen composition events
-    composition_event = core_timing.RegisterEvent("ScreenComposition", [this](u64 userdata,
-                                                                              s64 cycles_late) {
-        Compose();
-        const auto ticks = Settings::values.force_30fps_mode ? frame_ticks_30fps : GetNextTicks();
-        this->core_timing.ScheduleEvent(std::max<s64>(0LL, ticks - cycles_late), composition_event);
-    });
+    composition_event = system.CoreTiming().RegisterEvent(
+        "ScreenComposition", [this](u64 userdata, s64 cycles_late) {
+            Compose();
+            const auto ticks =
+                Settings::values.force_30fps_mode ? frame_ticks_30fps : GetNextTicks();
+            this->system.CoreTiming().ScheduleEvent(std::max<s64>(0LL, ticks - cycles_late),
+                                                    composition_event);
+        });
 
-    core_timing.ScheduleEvent(frame_ticks, composition_event);
+    system.CoreTiming().ScheduleEvent(frame_ticks, composition_event);
 }
 
 NVFlinger::~NVFlinger() {
-    core_timing.UnscheduleEvent(composition_event, 0);
+    system.CoreTiming().UnscheduleEvent(composition_event, 0);
 }
 
 void NVFlinger::SetNVDrvInstance(std::shared_ptr<Nvidia::Module> instance) {

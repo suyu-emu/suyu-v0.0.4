@@ -13,10 +13,11 @@
 namespace Service::HID {
 constexpr std::size_t SHARED_MEMORY_OFFSET = 0x400;
 
-Controller_Touchscreen::Controller_Touchscreen() = default;
+Controller_Touchscreen::Controller_Touchscreen(Core::System& system)
+    : ControllerBase(system), system(system) {}
 Controller_Touchscreen::~Controller_Touchscreen() = default;
 
-void Controller_Touchscreen::OnInit(Core::System& system) {}
+void Controller_Touchscreen::OnInit() {}
 
 void Controller_Touchscreen::OnRelease() {}
 

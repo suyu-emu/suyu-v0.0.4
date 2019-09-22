@@ -42,7 +42,7 @@ enum class HidController : std::size_t {
 
 class IAppletResource final : public ServiceFramework<IAppletResource> {
 public:
-    IAppletResource(Core::System& system);
+    explicit IAppletResource(Core::System& system);
     ~IAppletResource() override;
 
     void ActivateController(HidController controller);
@@ -61,7 +61,7 @@ public:
 private:
     template <typename T>
     void MakeController(HidController controller) {
-        controllers[static_cast<std::size_t>(controller)] = std::make_unique<T>();
+        controllers[static_cast<std::size_t>(controller)] = std::make_unique<T>(system);
     }
 
     void GetSharedMemoryHandle(Kernel::HLERequestContext& ctx);
@@ -78,7 +78,7 @@ private:
 
 class Hid final : public ServiceFramework<Hid> {
 public:
-    Hid(Core::System& system);
+    explicit Hid(Core::System& system);
     ~Hid() override;
 
     std::shared_ptr<IAppletResource> GetAppletResource();

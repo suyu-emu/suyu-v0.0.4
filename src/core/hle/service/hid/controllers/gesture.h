@@ -12,11 +12,11 @@
 namespace Service::HID {
 class Controller_Gesture final : public ControllerBase {
 public:
-    Controller_Gesture();
+    Controller_Gesture(Core::System& system);
     ~Controller_Gesture() override;
 
     // Called when the controller is initialized
-    void OnInit(Core::System& system) override;
+    void OnInit() override;
 
     // When the controller is released
     void OnRelease() override;
@@ -59,5 +59,6 @@ private:
         std::array<GestureState, 17> gesture_states;
     };
     SharedMemory shared_memory{};
+    Core::System& system;
 };
 } // namespace Service::HID

@@ -67,8 +67,8 @@ IAppletResource::IAppletResource(Core::System& system)
     MakeController<Controller_Gesture>(HidController::Gesture);
 
     // Homebrew doesn't try to activate some controllers, so we activate them by default
-    GetController<Controller_NPad>(HidController::NPad).ActivateController(system);
-    GetController<Controller_Touchscreen>(HidController::Touchscreen).ActivateController(system);
+    GetController<Controller_NPad>(HidController::NPad).ActivateController();
+    GetController<Controller_Touchscreen>(HidController::Touchscreen).ActivateController();
 
     GetController<Controller_Stubbed>(HidController::Unknown1).SetCommonHeaderOffset(0x4c00);
     GetController<Controller_Stubbed>(HidController::Unknown2).SetCommonHeaderOffset(0x4e00);
@@ -89,7 +89,7 @@ IAppletResource::IAppletResource(Core::System& system)
 }
 
 void IAppletResource::ActivateController(HidController controller) {
-    controllers[static_cast<size_t>(controller)]->ActivateController(system);
+    controllers[static_cast<size_t>(controller)]->ActivateController();
 }
 
 void IAppletResource::DeactivateController(HidController controller) {

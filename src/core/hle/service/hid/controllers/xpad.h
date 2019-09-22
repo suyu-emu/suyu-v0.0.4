@@ -12,11 +12,11 @@
 namespace Service::HID {
 class Controller_XPad final : public ControllerBase {
 public:
-    Controller_XPad();
+    Controller_XPad(Core::System& system);
     ~Controller_XPad() override;
 
     // Called when the controller is initialized
-    void OnInit(Core::System& system) override;
+    void OnInit() override;
 
     // When the controller is released
     void OnRelease() override;
@@ -56,5 +56,6 @@ private:
     };
     static_assert(sizeof(SharedMemory) == 0x1000, "SharedMemory is an invalid size");
     SharedMemory shared_memory{};
+    Core::System& system;
 };
 } // namespace Service::HID

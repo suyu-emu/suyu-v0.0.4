@@ -18,11 +18,11 @@ class System;
 namespace Service::HID {
 class ControllerBase {
 public:
-    ControllerBase();
+    ControllerBase(Core::System& system);
     virtual ~ControllerBase();
 
     // Called when the controller is initialized
-    virtual void OnInit(Core::System& system) = 0;
+    virtual void OnInit() = 0;
 
     // When the controller is released
     virtual void OnRelease() = 0;
@@ -34,7 +34,7 @@ public:
     // Called when input devices should be loaded
     virtual void OnLoadInputDevices() = 0;
 
-    void ActivateController(Core::System& system);
+    void ActivateController();
 
     void DeactivateController();
 
@@ -50,5 +50,7 @@ protected:
         s64_le entry_count;
     };
     static_assert(sizeof(CommonHeader) == 0x20, "CommonHeader is an invalid size");
+
+    Core::System& system;
 };
 } // namespace Service::HID

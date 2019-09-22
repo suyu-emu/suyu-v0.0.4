@@ -16,11 +16,11 @@
 namespace Service::HID {
 class Controller_DebugPad final : public ControllerBase {
 public:
-    Controller_DebugPad();
+    explicit Controller_DebugPad(Core::System& system);
     ~Controller_DebugPad() override;
 
     // Called when the controller is initialized
-    void OnInit(Core::System& system) override;
+    void OnInit() override;
 
     // When the controller is released
     void OnRelease() override;
@@ -89,5 +89,6 @@ private:
         buttons;
     std::array<std::unique_ptr<Input::AnalogDevice>, Settings::NativeAnalog::NUM_STICKS_HID>
         analogs;
+    Core::System& system;
 };
 } // namespace Service::HID

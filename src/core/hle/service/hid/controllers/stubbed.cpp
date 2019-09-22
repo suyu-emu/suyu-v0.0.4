@@ -9,10 +9,11 @@
 
 namespace Service::HID {
 
-Controller_Stubbed::Controller_Stubbed() = default;
+Controller_Stubbed::Controller_Stubbed(Core::System& system)
+    : ControllerBase(system), system(system) {}
 Controller_Stubbed::~Controller_Stubbed() = default;
 
-void Controller_Stubbed::OnInit(Core::System& system) {}
+void Controller_Stubbed::OnInit() {}
 
 void Controller_Stubbed::OnRelease() {}
 
