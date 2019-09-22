@@ -5,7 +5,6 @@
 #pragma once
 
 #include <memory>
-#include "core/hle/kernel/physical_memory.h"
 #include "core/hle/service/service.h"
 
 namespace Service {
@@ -15,8 +14,6 @@ class FileSystemController;
 } // namespace FileSystem
 
 namespace NS {
-
-void EncryptSharedFont(const std::vector<u8>& input, Kernel::PhysicalMemory& output);
 
 class PL_U final : public ServiceFramework<PL_U> {
 public:
