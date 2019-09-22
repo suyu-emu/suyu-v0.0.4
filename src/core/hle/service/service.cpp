@@ -198,7 +198,7 @@ ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::HLERequestContext& co
 void Init(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system) {
     // NVFlinger needs to be accessed by several services like Vi and AppletOE so we instantiate it
     // here and pass it into the respective InstallInterfaces functions.
-    auto nv_flinger = std::make_shared<NVFlinger::NVFlinger>(system.CoreTiming(), system);
+    auto nv_flinger = std::make_shared<NVFlinger::NVFlinger>(system);
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem(), false);
 
     SM::ServiceManager::InstallInterfaces(sm);
