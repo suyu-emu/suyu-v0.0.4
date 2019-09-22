@@ -972,11 +972,11 @@ void GMainWindow::BootGame(const QString& filename) {
     }
     status_bar_update_timer.start(2000);
 
+    const u64 title_id = Core::System::GetInstance().CurrentProcess()->GetTitleID();
+
     std::string title_name;
     const auto res = Core::System::GetInstance().GetGameName(title_name);
     if (res != Loader::ResultStatus::Success) {
-        const u64 title_id = Core::System::GetInstance().CurrentProcess()->GetTitleID();
-
         const auto [nacp, icon_file] = FileSys::PatchManager(title_id).GetControlMetadata();
         if (nacp != nullptr)
             title_name = nacp->GetApplicationName();
@@ -984,7 +984,7 @@ void GMainWindow::BootGame(const QString& filename) {
         if (title_name.empty())
             title_name = FileUtil::GetFilename(filename.toStdString());
     }
-
+    LOG_INFO(Frontend, "Booting game: {:016X} | {}", title_id, title_name);
     UpdateWindowTitle(QString::fromStdString(title_name));
 
     loading_screen->Prepare(Core::System::GetInstance().GetAppLoader());
