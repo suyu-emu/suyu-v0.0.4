@@ -9,7 +9,7 @@
 
 namespace Service::NS {
 
-void EncryptSharedFont(const std::vector<u32>& input, std::vector<u8>& output, std::size_t& offset);
+void EncryptSharedFont(const std::vector<u8>& input, Kernel::PhysicalMemory& output);
 
 class PL_U final : public ServiceFramework<PL_U> {
 public:
