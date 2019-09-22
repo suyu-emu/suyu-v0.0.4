@@ -186,8 +186,6 @@ int main(int argc, char** argv) {
     system.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
 
-    SCOPE_EXIT({ system.Shutdown(); });
-
     const Core::System::ResultStatus load_result{system.Load(*emu_window, filepath)};
 
     switch (load_result) {
@@ -226,6 +224,8 @@ int main(int argc, char** argv) {
     while (emu_window->IsOpen()) {
         system.RunLoop();
     }
+
+    system.Shutdown();
 
     detached_tasks.WaitForAllTasks();
     return 0;
