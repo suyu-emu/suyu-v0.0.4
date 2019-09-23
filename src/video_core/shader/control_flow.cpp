@@ -57,8 +57,8 @@ struct BlockInfo {
 
 struct CFGRebuildState {
     explicit CFGRebuildState(const ProgramCode& program_code, const std::size_t program_size,
-                             const u32 start)
-        : start{start}, program_code{program_code}, program_size{program_size} {}
+                             const u32 start, ConstBufferLocker& locker)
+        : start{start}, program_code{program_code}, program_size{program_size}, locker{locker} {}
 
     u32 start{};
     std::vector<BlockInfo> block_info{};
@@ -72,6 +72,7 @@ struct CFGRebuildState {
     const ProgramCode& program_code;
     const std::size_t program_size;
     ASTManager* manager;
+    ConstBufferLocker& locker;
 };
 
 enum class BlockCollision : u32 { None, Found, Inside };
@@ -214,7 +215,7 @@ std::optional<BranchIndirectInfo> TrackBranchIndirectInfo(const CFGRebuildState&
         if (opcode->get().GetId() == OpCode::Id::IMNMX_IMM) {
             if (instr.gpr0.Value() == track_register) {
                 track_register = instr.gpr8.Value();
-                result.entries = instr.alu.GetSignedImm20_20();
+                result.entries = instr.alu.GetSignedImm20_20() + 1;
                 pos--;
                 found_track = true;
                 break;
@@ -406,8 +407,14 @@ std::pair<ParseResult, ParseInfo> ParseCode(CFGRebuildState& state, u32 address)
             auto tmp = TrackBranchIndirectInfo(state, address, offset);
             if (tmp) {
                 auto result = *tmp;
-                LOG_CRITICAL(HW_GPU, "Track Successful, BRX: buffer:{}, offset:{}, entries:{}",
-                             result.buffer, result.offset, result.entries);
+                std::string entries{};
+                for (u32 i = 0; i < result.entries; i++) {
+                    auto k = locker.ObtainKey(result.buffer, result.offset + i * 4);
+                    entries = entries + std::to_string(*k) + '\n';
+                }
+                LOG_CRITICAL(HW_GPU,
+                             "Track Successful, BRX: buffer:{}, offset:{}, entries:{}, inner:\n{}",
+                             result.buffer, result.offset, result.entries, entries);
             } else {
                 LOG_CRITICAL(HW_GPU, "Track Unsuccesful");
             }
@@ -588,14 +595,15 @@ void DecompileShader(CFGRebuildState& state) {
 
 std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
                                                 std::size_t program_size, u32 start_address,
-                                                const CompilerSettings& settings) {
+                                                const CompilerSettings& settings,
+                                                ConstBufferLocker& locker) {
     auto result_out = std::make_unique<ShaderCharacteristics>();
     if (settings.depth == CompileDepth::BruteForce) {
         result_out->settings.depth = CompileDepth::BruteForce;
         return result_out;
     }
 
-    CFGRebuildState state{program_code, program_size, start_address};
+    CFGRebuildState state{program_code, program_size, start_address, locker};
     // Inspect Code and generate blocks
     state.labels.clear();
     state.labels.emplace(start_address);

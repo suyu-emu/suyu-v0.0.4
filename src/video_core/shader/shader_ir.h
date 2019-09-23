@@ -68,7 +68,7 @@ struct GlobalMemoryUsage {
 class ShaderIR final {
 public:
     explicit ShaderIR(const ProgramCode& program_code, u32 main_offset, std::size_t size,
-                      CompilerSettings settings);
+                      CompilerSettings settings, ConstBufferLocker& locker);
     ~ShaderIR();
 
     const std::map<u32, NodeBlock>& GetBasicBlocks() const {
@@ -389,6 +389,7 @@ private:
     NodeBlock global_code;
     ASTManager program_manager;
     CompilerSettings settings{};
+    ConstBufferLocker& locker;
 
     std::set<u32> used_registers;
     std::set<Tegra::Shader::Pred> used_predicates;

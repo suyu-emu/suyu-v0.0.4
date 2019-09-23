@@ -10,6 +10,7 @@
 #include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
+#include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/memory_manager.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
@@ -173,8 +174,9 @@ u64 GetUniqueIdentifier(ProgramType program_type, const ProgramCode& code,
 }
 
 /// Creates an unspecialized program from code streams
-GLShader::ProgramResult CreateProgram(const Device& device, ProgramType program_type,
-                                      ProgramCode program_code, ProgramCode program_code_b) {
+GLShader::ProgramResult CreateProgram(Core::System& system, const Device& device,
+                                      ProgramType program_type, ProgramCode program_code,
+                                      ProgramCode program_code_b) {
     GLShader::ShaderSetup setup(program_code);
     setup.program.size_a = CalculateProgramSize(program_code);
     setup.program.size_b = 0;
@@ -190,14 +192,25 @@ GLShader::ProgramResult CreateProgram(const Device& device, ProgramType program_
 
     switch (program_type) {
     case ProgramType::VertexA:
-    case ProgramType::VertexB:
-        return GLShader::GenerateVertexShader(device, setup);
-    case ProgramType::Geometry:
-        return GLShader::GenerateGeometryShader(device, setup);
-    case ProgramType::Fragment:
-        return GLShader::GenerateFragmentShader(device, setup);
-    case ProgramType::Compute:
-        return GLShader::GenerateComputeShader(device, setup);
+    case ProgramType::VertexB: {
+        VideoCommon::Shader::ConstBufferLocker locker{Tegra::Engines::ShaderType::Vertex,
+                                                      &(system.GPU().Maxwell3D())};
+        return GLShader::GenerateVertexShader(locker, device, setup);
+    }
+    case ProgramType::Geometry: {
+        VideoCommon::Shader::ConstBufferLocker locker{Tegra::Engines::ShaderType::Geometry,
+                                                      &(system.GPU().Maxwell3D())};
+        return GLShader::GenerateGeometryShader(locker, device, setup);
+    }
+    case ProgramType::Fragment: {
+        VideoCommon::Shader::ConstBufferLocker locker{Tegra::Engines::ShaderType::Fragment,
+                                                      &(system.GPU().Maxwell3D())};
+        return GLShader::GenerateFragmentShader(locker, device, setup);
+    }
+    case ProgramType::Compute: {
+        VideoCommon::Shader::ConstBufferLocker locker{Tegra::Engines::ShaderType::Compute, &(system.GPU().KeplerCompute())};
+        return GLShader::GenerateComputeShader(locker, device, setup);
+    }
     default:
         UNIMPLEMENTED_MSG("Unimplemented program_type={}", static_cast<u32>(program_type));
         return {};
@@ -307,8 +320,8 @@ Shader CachedShader::CreateStageFromMemory(const ShaderParameters& params,
                                            ProgramCode&& program_code_b) {
     const auto code_size{CalculateProgramSize(program_code)};
     const auto code_size_b{CalculateProgramSize(program_code_b)};
-    auto result{
-        CreateProgram(params.device, GetProgramType(program_type), program_code, program_code_b)};
+    auto result{CreateProgram(params.system, params.device, GetProgramType(program_type),
+                              program_code, program_code_b)};
     if (result.first.empty()) {
         // TODO(Rodrigo): Unimplemented shader stages hit here, avoid using these for now
         return {};
@@ -331,7 +344,7 @@ Shader CachedShader::CreateStageFromCache(const ShaderParameters& params,
 }
 
 Shader CachedShader::CreateKernelFromMemory(const ShaderParameters& params, ProgramCode&& code) {
-    auto result{CreateProgram(params.device, ProgramType::Compute, code, {})};
+    auto result{CreateProgram(params.system, params.device, ProgramType::Compute, code, {})};
 
     const auto code_size{CalculateProgramSize(code)};
     params.disk_cache.SaveRaw(ShaderDiskCacheRaw(params.unique_identifier, ProgramType::Compute,
@@ -566,7 +579,7 @@ std::unordered_map<u64, UnspecializedShader> ShaderCacheOpenGL::GenerateUnspecia
             result = {stored_decompiled.code, stored_decompiled.entries};
         } else {
             // Otherwise decompile the shader at boot and save the result to the decompiled file
-            result = CreateProgram(device, raw.GetProgramType(), raw.GetProgramCode(),
+            result = CreateProgram(system, device, raw.GetProgramType(), raw.GetProgramCode(),
                                    raw.GetProgramCodeB());
             disk_cache.SaveDecompiled(unique_identifier, result.first, result.second);
         }
@@ -612,7 +625,7 @@ Shader ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
     const auto unique_identifier =
         GetUniqueIdentifier(GetProgramType(program), program_code, program_code_b);
     const auto cpu_addr{*memory_manager.GpuToCpuAddress(program_addr)};
-    const ShaderParameters params{disk_cache, precompiled_programs, device, cpu_addr,
+    const ShaderParameters params{disk_cache, precompiled_programs, system, device, cpu_addr,
                                   host_ptr,   unique_identifier};
 
     const auto found = precompiled_shaders.find(unique_identifier);
@@ -639,7 +652,7 @@ Shader ShaderCacheOpenGL::GetComputeKernel(GPUVAddr code_addr) {
     auto code{GetShaderCode(memory_manager, code_addr, host_ptr)};
     const auto unique_identifier{GetUniqueIdentifier(ProgramType::Compute, code, {})};
     const auto cpu_addr{*memory_manager.GpuToCpuAddress(code_addr)};
-    const ShaderParameters params{disk_cache, precompiled_programs, device, cpu_addr,
+    const ShaderParameters params{disk_cache, precompiled_programs, system, device, cpu_addr,
                                   host_ptr,   unique_identifier};
 
     const auto found = precompiled_shaders.find(unique_identifier);

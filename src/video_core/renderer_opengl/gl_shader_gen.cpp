@@ -21,7 +21,8 @@ static constexpr u32 COMPUTE_OFFSET = 0;
 
 static constexpr CompilerSettings settings{CompileDepth::NoFlowStack, true};
 
-ProgramResult GenerateVertexShader(const Device& device, const ShaderSetup& setup) {
+ProgramResult GenerateVertexShader(ConstBufferLocker& locker, const Device& device,
+                                   const ShaderSetup& setup) {
     const std::string id = fmt::format("{:016x}", setup.program.unique_identifier);
 
     std::string out = "// Shader Unique Id: VS" + id + "\n\n";
@@ -35,14 +36,15 @@ layout (std140, binding = EMULATION_UBO_BINDING) uniform vs_config {
 
 )";
 
-    const ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET, setup.program.size_a, settings);
+    const ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET, setup.program.size_a, settings,
+                              locker);
     const auto stage = setup.IsDualProgram() ? ProgramType::VertexA : ProgramType::VertexB;
     ProgramResult program = Decompile(device, program_ir, stage, "vertex");
     out += program.first;
 
     if (setup.IsDualProgram()) {
         const ShaderIR program_ir_b(setup.program.code_b, PROGRAM_OFFSET, setup.program.size_b,
-                                    settings);
+                                    settings, locker);
         ProgramResult program_b = Decompile(device, program_ir_b, ProgramType::VertexB, "vertex_b");
         out += program_b.first;
     }
@@ -71,7 +73,8 @@ void main() {
     return {std::move(out), std::move(program.second)};
 }
 
-ProgramResult GenerateGeometryShader(const Device& device, const ShaderSetup& setup) {
+ProgramResult GenerateGeometryShader(ConstBufferLocker& locker, const Device& device,
+                                     const ShaderSetup& setup) {
     const std::string id = fmt::format("{:016x}", setup.program.unique_identifier);
 
     std::string out = "// Shader Unique Id: GS" + id + "\n\n";
@@ -85,7 +88,8 @@ layout (std140, binding = EMULATION_UBO_BINDING) uniform gs_config {
 
 )";
 
-    const ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET, setup.program.size_a, settings);
+    const ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET, setup.program.size_a, settings,
+                              locker);
     ProgramResult program = Decompile(device, program_ir, ProgramType::Geometry, "geometry");
     out += program.first;
 
@@ -97,7 +101,8 @@ void main() {
     return {std::move(out), std::move(program.second)};
 }
 
-ProgramResult GenerateFragmentShader(const Device& device, const ShaderSetup& setup) {
+ProgramResult GenerateFragmentShader(ConstBufferLocker& locker, const Device& device,
+                                     const ShaderSetup& setup) {
     const std::string id = fmt::format("{:016x}", setup.program.unique_identifier);
 
     std::string out = "// Shader Unique Id: FS" + id + "\n\n";
@@ -120,7 +125,8 @@ layout (std140, binding = EMULATION_UBO_BINDING) uniform fs_config {
 
 )";
 
-    const ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET, setup.program.size_a, settings);
+    const ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET, setup.program.size_a, settings,
+                              locker);
     ProgramResult program = Decompile(device, program_ir, ProgramType::Fragment, "fragment");
     out += program.first;
 
@@ -133,13 +139,15 @@ void main() {
     return {std::move(out), std::move(program.second)};
 }
 
-ProgramResult GenerateComputeShader(const Device& device, const ShaderSetup& setup) {
+ProgramResult GenerateComputeShader(ConstBufferLocker& locker, const Device& device,
+                                    const ShaderSetup& setup) {
     const std::string id = fmt::format("{:016x}", setup.program.unique_identifier);
 
     std::string out = "// Shader Unique Id: CS" + id + "\n\n";
     out += GetCommonDeclarations();
 
-    const ShaderIR program_ir(setup.program.code, COMPUTE_OFFSET, setup.program.size_a, settings);
+    const ShaderIR program_ir(setup.program.code, COMPUTE_OFFSET, setup.program.size_a, settings,
+                              locker);
     ProgramResult program = Decompile(device, program_ir, ProgramType::Compute, "compute");
     out += program.first;
 

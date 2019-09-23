@@ -78,6 +78,7 @@ struct ShaderCharacteristics {
 
 std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
                                                 std::size_t program_size, u32 start_address,
-                                                const CompilerSettings& settings);
+                                                const CompilerSettings& settings,
+                                                ConstBufferLocker& locker);
 
 } // namespace VideoCommon::Shader

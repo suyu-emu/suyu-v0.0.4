@@ -45,6 +45,7 @@ using PrecompiledShaders = std::unordered_map<u64, GLShader::ProgramResult>;
 struct ShaderParameters {
     ShaderDiskCacheOpenGL& disk_cache;
     const PrecompiledPrograms& precompiled_programs;
+    Core::System& system;
     const Device& device;
     VAddr cpu_addr;
     u8* host_ptr;

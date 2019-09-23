@@ -102,7 +102,7 @@ void ShaderIR::Decode() {
     std::memcpy(&header, program_code.data(), sizeof(Tegra::Shader::Header));
 
     decompiled = false;
-    auto info = ScanFlow(program_code, program_size, main_offset, settings);
+    auto info = ScanFlow(program_code, program_size, main_offset, settings, locker);
     auto& shader_info = *info;
     coverage_begin = shader_info.start;
     coverage_end = shader_info.end;

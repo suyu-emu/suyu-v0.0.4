@@ -16,6 +16,7 @@ class Device;
 
 namespace OpenGL::GLShader {
 
+using VideoCommon::Shader::ConstBufferLocker;
 using VideoCommon::Shader::ProgramCode;
 
 struct ShaderSetup {
@@ -46,15 +47,19 @@ private:
 };
 
 /// Generates the GLSL vertex shader program source code for the given VS program
-ProgramResult GenerateVertexShader(const Device& device, const ShaderSetup& setup);
+ProgramResult GenerateVertexShader(ConstBufferLocker& locker, const Device& device,
+                                   const ShaderSetup& setup);
 
 /// Generates the GLSL geometry shader program source code for the given GS program
-ProgramResult GenerateGeometryShader(const Device& device, const ShaderSetup& setup);
+ProgramResult GenerateGeometryShader(ConstBufferLocker& locker, const Device& device,
+                                     const ShaderSetup& setup);
 
 /// Generates the GLSL fragment shader program source code for the given FS program
-ProgramResult GenerateFragmentShader(const Device& device, const ShaderSetup& setup);
+ProgramResult GenerateFragmentShader(ConstBufferLocker& locker, const Device& device,
+                                     const ShaderSetup& setup);
 
 /// Generates the GLSL compute shader program source code for the given CS program
-ProgramResult GenerateComputeShader(const Device& device, const ShaderSetup& setup);
+ProgramResult GenerateComputeShader(ConstBufferLocker& locker, const Device& device,
+                                    const ShaderSetup& setup);
 
 } // namespace OpenGL::GLShader
