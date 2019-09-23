@@ -685,34 +685,23 @@ void ASTManager::MoveOutward(ASTNode goto_node) {
         const ASTNode break_node = ASTBase::Make<ASTBreak>(parent, var_condition);
         zipper.InsertAfter(break_node, var_node);
     } else if (is_if || is_else) {
+        const u32 var_index = NewVariable();
+        const Expr var_condition = MakeExpr<ExprVar>(var_index);
+        const ASTNode var_node = ASTBase::Make<ASTVarSet>(parent, var_index, condition);
+        const ASTNode var_node_init = ASTBase::Make<ASTVarSet>(parent, var_index, false_condition);
+        if (is_if) {
+            zipper2.InsertBefore(var_node_init, parent);
+        } else {
+            zipper2.InsertBefore(var_node_init, parent->GetPrevious());
+        }
+        zipper.InsertAfter(var_node, prev);
+        goto_node->SetGotoCondition(var_condition);
         if (post) {
-            const u32 var_index = NewVariable();
-            const Expr var_condition = MakeExpr<ExprVar>(var_index);
-            const ASTNode var_node = ASTBase::Make<ASTVarSet>(parent, var_index, condition);
-            const ASTNode var_node_init =
-                ASTBase::Make<ASTVarSet>(parent, var_index, false_condition);
-            if (is_if) {
-                zipper2.InsertBefore(var_node_init, parent);
-            } else {
-                zipper2.InsertBefore(var_node_init, parent->GetPrevious());
-            }
-            zipper.InsertAfter(var_node, prev);
-            goto_node->SetGotoCondition(var_condition);
             zipper.DetachTail(post);
             const ASTNode if_node = ASTBase::Make<ASTIfThen>(parent, MakeExprNot(var_condition));
             ASTZipper* sub_zipper = if_node->GetSubNodes();
             sub_zipper->Init(post, if_node);
             zipper.InsertAfter(if_node, var_node);
-        } else {
-            Expr if_condition;
-            if (is_if) {
-                if_condition = parent->GetIfCondition();
-            } else {
-                ASTNode if_node = parent->GetPrevious();
-                if_condition = MakeExprNot(if_node->GetIfCondition());
-            }
-            Expr new_condition = MakeExprAnd(if_condition, condition);
-            goto_node->SetGotoCondition(new_condition);
         }
     } else {
         UNREACHABLE();
