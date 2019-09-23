@@ -646,7 +646,9 @@ private:
             Emit(OpBranchConditional(condition, true_label, skip_label));
             Emit(true_label);
 
+            ++conditional_nest_count;
             VisitBasicBlock(conditional->GetCode());
+            --conditional_nest_count;
 
             Emit(OpBranch(skip_label));
             Emit(skip_label);
@@ -1011,7 +1013,10 @@ private:
         UNIMPLEMENTED_IF(!target);
 
         Emit(OpStore(jmp_to, Constant(t_uint, target->GetValue())));
-        BranchingOp([&]() { Emit(OpBranch(continue_label)); });
+        Emit(OpBranch(continue_label));
+        if (conditional_nest_count == 0) {
+            Emit(OpLabel());
+        }
         return {};
     }
 
@@ -1019,7 +1024,10 @@ private:
         const Id op_a = VisitOperand<Type::Uint>(operation, 0);
 
         Emit(OpStore(jmp_to, op_a));
-        BranchingOp([&]() { Emit(OpBranch(continue_label)); });
+        Emit(OpBranch(continue_label));
+        if (conditional_nest_count == 0) {
+            Emit(OpLabel());
+        }
         return {};
     }
 
@@ -1046,7 +1054,10 @@ private:
 
         Emit(OpStore(flow_stack_top, previous));
         Emit(OpStore(jmp_to, target));
-        BranchingOp([&]() { Emit(OpBranch(continue_label)); });
+        Emit(OpBranch(continue_label));
+        if (conditional_nest_count == 0) {
+            Emit(OpLabel());
+        }
         return {};
     }
 
@@ -1103,12 +1114,28 @@ private:
 
     Id Exit(Operation operation) {
         PreExit();
-        BranchingOp([&]() { Emit(OpReturn()); });
+        if (conditional_nest_count > 0) {
+            Emit(OpReturn());
+        } else {
+            const Id dummy = OpLabel();
+            Emit(OpBranch(dummy));
+            Emit(dummy);
+            Emit(OpReturn());
+            Emit(OpLabel());
+        }
         return {};
     }
 
     Id Discard(Operation operation) {
-        BranchingOp([&]() { Emit(OpKill()); });
+        if (conditional_nest_count > 0) {
+            Emit(OpKill());
+        } else {
+            const Id dummy = OpLabel();
+            Emit(OpBranch(dummy));
+            Emit(dummy);
+            Emit(OpKill());
+            Emit(OpLabel());
+        }
         return {};
     }
 
@@ -1301,17 +1328,6 @@ private:
         }
         UNREACHABLE();
         return {};
-    }
-
-    void BranchingOp(std::function<void()> call) {
-        const Id true_label = OpLabel();
-        const Id skip_label = OpLabel();
-        Emit(OpSelectionMerge(skip_label, spv::SelectionControlMask::Flatten));
-        Emit(OpBranchConditional(v_true, true_label, skip_label, 1, 0));
-        Emit(true_label);
-        call();
-
-        Emit(skip_label);
     }
 
     std::tuple<Id, Id> CreateFlowStack() {
@@ -1519,6 +1535,7 @@ private:
     const ShaderIR& ir;
     const ShaderStage stage;
     const Tegra::Shader::Header header;
+    u64 conditional_nest_count{};
 
     const Id t_void = Name(TypeVoid(), "void");
 
