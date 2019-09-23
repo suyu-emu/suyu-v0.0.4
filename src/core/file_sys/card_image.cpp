@@ -31,7 +31,7 @@ constexpr std::array partition_names{
 
 XCI::XCI(VirtualFile file_)
     : file(std::move(file_)), program_nca_status{Loader::ResultStatus::ErrorXCIMissingProgramNCA},
-      partitions(partition_names.size()) {
+      partitions(partition_names.size()), partitions_raw(partition_names.size()) {
     if (file->ReadObject(&header) != sizeof(GamecardHeader)) {
         status = Loader::ResultStatus::ErrorBadXCIHeader;
         return;
@@ -42,8 +42,10 @@ XCI::XCI(VirtualFile file_)
         return;
     }
 
-    PartitionFilesystem main_hfs(
-        std::make_shared<OffsetVfsFile>(file, header.hfs_size, header.hfs_offset));
+    PartitionFilesystem main_hfs(std::make_shared<OffsetVfsFile>(
+        file, file->GetSize() - header.hfs_offset, header.hfs_offset));
+
+    update_normal_partition_end = main_hfs.GetFileOffsets()["secure"];
 
     if (main_hfs.GetStatus() != Loader::ResultStatus::Success) {
         status = main_hfs.GetStatus();
@@ -55,9 +57,7 @@ XCI::XCI(VirtualFile file_)
         const auto partition_idx = static_cast<std::size_t>(partition);
         auto raw = main_hfs.GetFile(partition_names[partition_idx]);
 
-        if (raw != nullptr) {
-            partitions[partition_idx] = std::make_shared<PartitionFilesystem>(std::move(raw));
-        }
+        partitions_raw[static_cast<std::size_t>(partition)] = raw;
     }
 
     secure_partition = std::make_shared<NSP>(
@@ -71,13 +71,7 @@ XCI::XCI(VirtualFile file_)
         program_nca_status = Loader::ResultStatus::ErrorXCIMissingProgramNCA;
     }
 
-    auto result = AddNCAFromPartition(XCIPartition::Update);
-    if (result != Loader::ResultStatus::Success) {
-        status = result;
-        return;
-    }
-
-    result = AddNCAFromPartition(XCIPartition::Normal);
+    auto result = AddNCAFromPartition(XCIPartition::Normal);
     if (result != Loader::ResultStatus::Success) {
         status = result;
         return;
@@ -104,27 +98,44 @@ Loader::ResultStatus XCI::GetProgramNCAStatus() const {
     return program_nca_status;
 }
 
-VirtualDir XCI::GetPartition(XCIPartition partition) const {
+VirtualDir XCI::GetPartition(XCIPartition partition) {
+    const auto id = static_cast<std::size_t>(partition);
+    if (partitions[id] == nullptr && partitions_raw[id] != nullptr) {
+        partitions[id] = std::make_shared<PartitionFilesystem>(partitions_raw[id]);
+    }
+
     return partitions[static_cast<std::size_t>(partition)];
+}
+
+std::vector<VirtualDir> XCI::GetPartitions() {
+    std::vector<VirtualDir> out;
+    for (const auto& id :
+         {XCIPartition::Update, XCIPartition::Normal, XCIPartition::Secure, XCIPartition::Logo}) {
+        const auto part = GetPartition(id);
+        if (part != nullptr) {
+            out.push_back(part);
+        }
+    }
+    return out;
 }
 
 std::shared_ptr<NSP> XCI::GetSecurePartitionNSP() const {
     return secure_partition;
 }
 
-VirtualDir XCI::GetSecurePartition() const {
+VirtualDir XCI::GetSecurePartition() {
     return GetPartition(XCIPartition::Secure);
 }
 
-VirtualDir XCI::GetNormalPartition() const {
+VirtualDir XCI::GetNormalPartition() {
     return GetPartition(XCIPartition::Normal);
 }
 
-VirtualDir XCI::GetUpdatePartition() const {
+VirtualDir XCI::GetUpdatePartition() {
     return GetPartition(XCIPartition::Update);
 }
 
-VirtualDir XCI::GetLogoPartition() const {
+VirtualDir XCI::GetLogoPartition() {
     return GetPartition(XCIPartition::Logo);
 }
 
@@ -201,7 +212,7 @@ std::array<u8, 0x200> XCI::GetCertificate() const {
 
 Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
     const auto partition_index = static_cast<std::size_t>(part);
-    const auto& partition = partitions[partition_index];
+    const auto partition = GetPartition(part);
 
     if (partition == nullptr) {
         return Loader::ResultStatus::ErrorXCIMissingPartition;
@@ -232,7 +243,7 @@ Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
     return Loader::ResultStatus::Success;
 }
 
-u8 XCI::GetFormatVersion() const {
+u8 XCI::GetFormatVersion() {
     return GetLogoPartition() == nullptr ? 0x1 : 0x2;
 }
 } // namespace FileSys

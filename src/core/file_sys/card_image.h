@@ -81,14 +81,17 @@ public:
     Loader::ResultStatus GetStatus() const;
     Loader::ResultStatus GetProgramNCAStatus() const;
 
-    u8 GetFormatVersion() const;
+    u8 GetFormatVersion();
 
-    VirtualDir GetPartition(XCIPartition partition) const;
+    VirtualDir GetPartition(XCIPartition partition);
+    std::vector<VirtualDir> GetPartitions();
+
     std::shared_ptr<NSP> GetSecurePartitionNSP() const;
-    VirtualDir GetSecurePartition() const;
-    VirtualDir GetNormalPartition() const;
-    VirtualDir GetUpdatePartition() const;
-    VirtualDir GetLogoPartition() const;
+    VirtualDir GetSecurePartition();
+    VirtualDir GetNormalPartition();
+    VirtualDir GetUpdatePartition();
+    VirtualDir GetLogoPartition();
+
 
     u64 GetProgramTitleID() const;
     u32 GetSystemUpdateVersion();
@@ -123,6 +126,7 @@ private:
     Loader::ResultStatus program_nca_status;
 
     std::vector<VirtualDir> partitions;
+    std::vector<VirtualFile> partitions_raw;
     std::shared_ptr<NSP> secure_partition;
     std::shared_ptr<NCA> program;
     std::vector<std::shared_ptr<NCA>> ncas;
