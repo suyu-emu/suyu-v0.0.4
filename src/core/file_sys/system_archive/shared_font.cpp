@@ -18,16 +18,14 @@ namespace {
 
 template <std::size_t Size>
 VirtualFile PackBFTTF(const std::array<u8, Size>& data, const std::string& name) {
-    std::vector<u8> vec(Size);
-    std::memcpy(vec.data(), data.data(), vec.size());
+    std::vector<u32> vec(Size / sizeof(u32));
+    std::memcpy(vec.data(), data.data(), vec.size() * sizeof(u32));
 
-    Kernel::PhysicalMemory bfttf(Size + sizeof(u64));
+    std::vector<u8> bfttf(Size + sizeof(u64));
 
-    Service::NS::EncryptSharedFont(vec, bfttf);
-
-    std::vector<u8> bfttf_vec(Size + sizeof(u64));
-    std::memcpy(bfttf_vec.data(), bfttf.data(), bfttf_vec.size());
-    return std::make_shared<VectorVfsFile>(std::move(bfttf_vec), name);
+    u64 offset = 0;
+    Service::NS::EncryptSharedFont(vec, bfttf, offset);
+    return std::make_shared<VectorVfsFile>(std::move(bfttf), name);
 }
 
 } // Anonymous namespace

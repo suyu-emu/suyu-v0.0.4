@@ -6,13 +6,6 @@
 #include <cstring>
 #include <vector>
 
-#include <FontChineseSimplified.h>
-#include <FontChineseTraditional.h>
-#include <FontExtendedChineseSimplified.h>
-#include <FontKorean.h>
-#include <FontNintendoExtended.h>
-#include <FontStandard.h>
-
 #include "common/assert.h"
 #include "common/common_paths.h"
 #include "common/common_types.h"
@@ -26,6 +19,7 @@
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/system_archive/system_archive.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/physical_memory.h"
 #include "core/hle/kernel/shared_memory.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/ns/pl_u.h"
@@ -95,8 +89,10 @@ static void DecryptSharedFont(const std::vector<u32>& input, Kernel::PhysicalMem
     offset += transformed_font.size() * sizeof(u32);
 }
 
-void EncryptSharedFont(const std::vector<u8>& input, Kernel::PhysicalMemory& output) {
-    ASSERT_MSG(input.size() * sizeof(u32) < SHARED_FONT_MEM_SIZE, "Shared fonts exceeds 17mb!");
+void EncryptSharedFont(const std::vector<u32>& input, std::vector<u8>& output,
+                       std::size_t& offset) {
+    ASSERT_MSG(offset + (input.size() * sizeof(u32)) < SHARED_FONT_MEM_SIZE,
+               "Shared fonts exceeds 17mb!");
 
     const auto key = Common::swap32(EXPECTED_RESULT ^ EXPECTED_MAGIC);
     std::vector<u32> transformed_font(input.size() + 2);
@@ -104,7 +100,9 @@ void EncryptSharedFont(const std::vector<u8>& input, Kernel::PhysicalMemory& out
     transformed_font[1] = Common::swap32(input.size() * sizeof(u32)) ^ key;
     std::transform(input.begin(), input.end(), transformed_font.begin() + 2,
                    [key](u32 in) { return in ^ key; });
-    std::memcpy(output.data(), transformed_font.data(), transformed_font.size() * sizeof(u32));
+    std::memcpy(output.data() + offset, transformed_font.data(),
+                transformed_font.size() * sizeof(u32));
+    offset += transformed_font.size() * sizeof(u32);
 }
 
 // Helper function to make BuildSharedFontsRawRegions a bit nicer
