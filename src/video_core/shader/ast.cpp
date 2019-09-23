@@ -432,6 +432,12 @@ void ASTManager::InsertReturn(Expr condition, bool kills) {
     program->nodes.PushBack(node);
 }
 
+// The decompile algorithm is based on
+// "Taming control flow: A structured approach to eliminating goto statements"
+// by AM Erosa, LJ Hendren 1994. In general, the idea is to get gotos to be
+// on the same structured level as the label which they jump to. This is done,
+// through outward/inward movements and lifting. Once they are at the same
+// level, you can enclose them in an "if" structure or a "do-while" structure.
 void ASTManager::Decompile() {
     auto it = gotos.begin();
     while (it != gotos.end()) {
@@ -656,11 +662,9 @@ void ASTManager::EncloseIfThen(ASTNode goto_node, ASTNode label) {
     sub_zipper->Init(goto_node, if_node);
     zipper.InsertAfter(if_node, prev);
     sub_zipper->Remove(goto_node);
-    // ShowCurrentState("After IfThen Enclose");
 }
 
 void ASTManager::MoveOutward(ASTNode goto_node) {
-    // ShowCurrentState("Before MoveOutward");
     ASTZipper& zipper = goto_node->GetManager();
     const ASTNode parent = goto_node->GetParent();
     ASTZipper& zipper2 = parent->GetManager();
