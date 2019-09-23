@@ -3,6 +3,8 @@ parameters:
   cache: 'false'
 
 steps:
+- script: export DATE=`date '+%Y.%m.%d'` && export CI=true && AZURE_REPO_NAME=yuzu-emu/yuzu-$(BuildName) && AZURE_REPO_TAG=$(BuildName)-$DATE
+  displayName: 'Determine Build Name'
 - task: DockerInstaller@0
   displayName: 'Prepare Environment'
   inputs:
