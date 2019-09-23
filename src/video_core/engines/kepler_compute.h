@@ -11,6 +11,7 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "video_core/engines/engine_upload.h"
+#include "video_core/engines/const_buffer_engine_interface.h"
 #include "video_core/gpu.h"
 #include "video_core/textures/texture.h"
 
@@ -37,7 +38,7 @@ namespace Tegra::Engines {
 #define KEPLER_COMPUTE_REG_INDEX(field_name)                                                       \
     (offsetof(Tegra::Engines::KeplerCompute::Regs, field_name) / sizeof(u32))
 
-class KeplerCompute final {
+class KeplerCompute final : public ConstBufferEngineInterface  {
 public:
     explicit KeplerCompute(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
                            MemoryManager& memory_manager);
@@ -201,7 +202,7 @@ public:
     Texture::FullTextureInfo GetTextureInfo(const Texture::TextureHandle tex_handle,
                                             std::size_t offset) const;
 
-    u32 AccessConstBuffer32(u64 const_buffer, u64 offset) const;
+    u32 AccessConstBuffer32(ShaderType stage, u64 const_buffer, u64 offset) const override;
 
 private:
     Core::System& system;

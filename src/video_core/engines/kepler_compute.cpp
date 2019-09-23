@@ -70,7 +70,8 @@ Texture::FullTextureInfo KeplerCompute::GetTextureInfo(const Texture::TextureHan
                                     GetTSCEntry(tex_handle.tsc_id)};
 }
 
-u32 KeplerCompute::AccessConstBuffer32(u64 const_buffer, u64 offset) const {
+u32 KeplerCompute::AccessConstBuffer32(ShaderType stage, u64 const_buffer, u64 offset) const {
+    ASSERT(stage == ShaderType::Compute);
     const auto& buffer = launch_description.const_buffer_config[const_buffer];
     u32 result;
     std::memcpy(&result, memory_manager.GetPointer(buffer.Address() + offset), sizeof(u32));

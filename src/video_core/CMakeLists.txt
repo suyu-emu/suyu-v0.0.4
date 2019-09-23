@@ -6,6 +6,7 @@ add_library(video_core STATIC
     dma_pusher.h
     debug_utils/debug_utils.cpp
     debug_utils/debug_utils.h
+    engines/const_buffer_engine_interface.h
     engines/const_buffer_info.h
     engines/engine_upload.cpp
     engines/engine_upload.h
@@ -107,10 +108,12 @@ add_library(video_core STATIC
     shader/decode/other.cpp
     shader/ast.cpp
     shader/ast.h
-    shader/control_flow.cpp
-    shader/control_flow.h
     shader/compiler_settings.cpp
     shader/compiler_settings.h
+    shader/const_buffer_locker.cpp
+    shader/const_buffer_locker.h
+    shader/control_flow.cpp
+    shader/control_flow.h
     shader/decode.cpp
     shader/expr.cpp
     shader/expr.h

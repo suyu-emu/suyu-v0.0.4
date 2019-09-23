@@ -17,6 +17,7 @@
 #include "video_core/engines/shader_header.h"
 #include "video_core/shader/ast.h"
 #include "video_core/shader/compiler_settings.h"
+#include "video_core/shader/const_buffer_locker.h"
 #include "video_core/shader/node.h"
 
 namespace VideoCommon::Shader {

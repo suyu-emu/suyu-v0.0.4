@@ -6,6 +6,8 @@
 
 #include <cstddef>
 #include <cstring>
+#include <utility>
+#include <boost/functional/hash.hpp>
 #include "common/cityhash.h"
 #include "common/common_types.h"
 
@@ -65,6 +67,15 @@ struct HashableStruct {
 
     std::size_t Hash() const {
         return Common::ComputeStructHash64(state);
+    }
+};
+
+struct PairHash {
+    template <class T1, class T2>
+    std::size_t operator()(const std::pair<T1, T2>& pair) const {
+        std::size_t seed = std::hash<T1>()(pair.first);
+        boost::hash_combine(seed, std::hash<T2>()(pair.second));
+        return seed;
     }
 };
 

@@ -847,7 +847,8 @@ void Maxwell3D::ProcessClearBuffers() {
     rasterizer.Clear();
 }
 
-u32 Maxwell3D::AccessConstBuffer32(Regs::ShaderStage stage, u64 const_buffer, u64 offset) const {
+u32 Maxwell3D::AccessConstBuffer32(ShaderType stage, u64 const_buffer, u64 offset) const {
+    ASSERT(stage != ShaderType::Compute);
     const auto& shader_stage = state.shader_stages[static_cast<std::size_t>(stage)];
     const auto& buffer = shader_stage.const_buffers[const_buffer];
     u32 result;
