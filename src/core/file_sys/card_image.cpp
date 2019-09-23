@@ -139,6 +139,35 @@ VirtualDir XCI::GetLogoPartition() {
     return GetPartition(XCIPartition::Logo);
 }
 
+VirtualFile XCI::GetPartitionRaw(XCIPartition partition) const {
+    return partitions_raw[static_cast<std::size_t>(partition)];
+}
+
+VirtualFile XCI::GetSecurePartitionRaw() const {
+    return GetPartitionRaw(XCIPartition::Secure);
+}
+
+VirtualFile XCI::GetStoragePartition0() const {
+    return std::make_shared<OffsetVfsFile>(file, update_normal_partition_end, 0, "partition0");
+}
+
+VirtualFile XCI::GetStoragePartition1() const {
+    return std::make_shared<OffsetVfsFile>(file, file->GetSize() - update_normal_partition_end,
+                                           update_normal_partition_end, "partition1");
+}
+
+VirtualFile XCI::GetNormalPartitionRaw() const {
+    return GetPartitionRaw(XCIPartition::Normal);
+}
+
+VirtualFile XCI::GetUpdatePartitionRaw() const {
+    return GetPartitionRaw(XCIPartition::Update);
+}
+
+VirtualFile XCI::GetLogoPartitionRaw() const {
+    return GetPartitionRaw(XCIPartition::Logo);
+}
+
 u64 XCI::GetProgramTitleID() const {
     return secure_partition->GetProgramTitleID();
 }

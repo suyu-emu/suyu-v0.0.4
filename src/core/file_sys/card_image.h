@@ -92,6 +92,13 @@ public:
     VirtualDir GetUpdatePartition();
     VirtualDir GetLogoPartition();
 
+    VirtualFile GetPartitionRaw(XCIPartition partition) const;
+    VirtualFile GetSecurePartitionRaw() const;
+    VirtualFile GetStoragePartition0() const;
+    VirtualFile GetStoragePartition1() const;
+    VirtualFile GetNormalPartitionRaw() const;
+    VirtualFile GetUpdatePartitionRaw() const;
+    VirtualFile GetLogoPartitionRaw() const;
 
     u64 GetProgramTitleID() const;
     u32 GetSystemUpdateVersion();
