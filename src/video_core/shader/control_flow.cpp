@@ -124,6 +124,111 @@ enum class ParseResult : u32 {
     AbnormalFlow,
 };
 
+struct BranchIndirectInfo {
+    u32 buffer{};
+    u32 offset{};
+    u32 entries{};
+    s32 relative_position{};
+};
+
+std::optional<BranchIndirectInfo> TrackBranchIndirectInfo(const CFGRebuildState& state,
+                                                          u32 start_address, u32 current_position) {
+    const u32 shader_start = state.start;
+    u32 pos = current_position;
+    BranchIndirectInfo result{};
+    u64 track_register = 0;
+
+    // Step 0 Get BRX Info
+    const Instruction instr = {state.program_code[pos]};
+    const auto opcode = OpCode::Decode(instr);
+    if (opcode->get().GetId() != OpCode::Id::BRX) {
+        return {};
+    }
+    if (instr.brx.constant_buffer != 0) {
+        return {};
+    }
+    track_register = instr.gpr8.Value();
+    result.relative_position = instr.brx.GetBranchExtend();
+    pos--;
+    bool found_track = false;
+
+    // Step 1 Track LDC
+    while (pos >= shader_start) {
+        if (IsSchedInstruction(pos, shader_start)) {
+            pos--;
+            continue;
+        }
+        const Instruction instr = {state.program_code[pos]};
+        const auto opcode = OpCode::Decode(instr);
+        if (opcode->get().GetId() == OpCode::Id::LD_C) {
+            if (instr.gpr0.Value() == track_register &&
+                instr.ld_c.type.Value() == Tegra::Shader::UniformType::Single) {
+                result.buffer = instr.cbuf36.index;
+                result.offset = instr.cbuf36.GetOffset();
+                track_register = instr.gpr8.Value();
+                pos--;
+                found_track = true;
+                break;
+            }
+        }
+        pos--;
+    }
+
+    if (!found_track) {
+        return {};
+    }
+    found_track = false;
+
+    // Step 2 Track SHL
+    while (pos >= shader_start) {
+        if (IsSchedInstruction(pos, shader_start)) {
+            pos--;
+            continue;
+        }
+        const Instruction instr = {state.program_code[pos]};
+        const auto opcode = OpCode::Decode(instr);
+        if (opcode->get().GetId() == OpCode::Id::SHL_IMM) {
+            if (instr.gpr0.Value() == track_register) {
+                track_register = instr.gpr8.Value();
+                pos--;
+                found_track = true;
+                break;
+            }
+        }
+        pos--;
+    }
+
+    if (!found_track) {
+        return {};
+    }
+    found_track = false;
+
+    // Step 3 Track IMNMX
+    while (pos >= shader_start) {
+        if (IsSchedInstruction(pos, shader_start)) {
+            pos--;
+            continue;
+        }
+        const Instruction instr = {state.program_code[pos]};
+        const auto opcode = OpCode::Decode(instr);
+        if (opcode->get().GetId() == OpCode::Id::IMNMX_IMM) {
+            if (instr.gpr0.Value() == track_register) {
+                track_register = instr.gpr8.Value();
+                result.entries = instr.alu.GetSignedImm20_20();
+                pos--;
+                found_track = true;
+                break;
+            }
+        }
+        pos--;
+    }
+
+    if (!found_track) {
+        return {};
+    }
+    return {result};
+}
+
 std::pair<ParseResult, ParseInfo> ParseCode(CFGRebuildState& state, u32 address) {
     u32 offset = static_cast<u32>(address);
     const u32 end_address = static_cast<u32>(state.program_size / sizeof(Instruction));
@@ -298,6 +403,14 @@ std::pair<ParseResult, ParseInfo> ParseCode(CFGRebuildState& state, u32 address)
             break;
         }
         case OpCode::Id::BRX: {
+            auto tmp = TrackBranchIndirectInfo(state, address, offset);
+            if (tmp) {
+                auto result = *tmp;
+                LOG_CRITICAL(HW_GPU, "Track Successful, BRX: buffer:{}, offset:{}, entries:{}",
+                             result.buffer, result.offset, result.entries);
+            } else {
+                LOG_CRITICAL(HW_GPU, "Track Unsuccesful");
+            }
             return {ParseResult::AbnormalFlow, parse_info};
         }
         default:
