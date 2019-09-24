@@ -2338,6 +2338,11 @@ public:
         inner += expr.value ? "true" : "false";
     }
 
+    void operator()(VideoCommon::Shader::ExprGprEqual& expr) {
+        inner +=
+            "( ftou(" + decomp.GetRegister(expr.gpr) + ") == " + std::to_string(expr.value) + ')';
+    }
+
     const std::string& GetResult() const {
         return inner;
     }

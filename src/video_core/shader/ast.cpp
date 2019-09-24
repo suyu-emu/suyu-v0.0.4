@@ -228,6 +228,10 @@ public:
         inner += expr.value ? "true" : "false";
     }
 
+    void operator()(ExprGprEqual const& expr) {
+        inner += "( gpr_" + std::to_string(expr.gpr) + " == " + std::to_string(expr.value) + ')';
+    }
+
     const std::string& GetResult() const {
         return inner;
     }

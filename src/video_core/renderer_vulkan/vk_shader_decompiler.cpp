@@ -1704,6 +1704,13 @@ public:
         return expr.value ? decomp.v_true : decomp.v_false;
     }
 
+    Id operator()(const ExprGprEqual& expr) {
+        const Id target = decomp.Constant(decomp.t_uint, expr.value);
+        const Id gpr = decomp.BitcastTo<Type::Uint>(
+            decomp.Emit(decomp.OpLoad(decomp.t_float, decomp.registers.at(expr.gpr))));
+        return decomp.Emit(decomp.OpLogicalEqual(decomp.t_uint, gpr, target));
+    }
+
     Id Visit(const Expr& node) {
         return std::visit(*this, *node);
     }

@@ -198,24 +198,38 @@ void ShaderIR::InsertControlFlow(NodeBlock& bb, const ShaderBlock& block) {
         }
         return result;
     };
-    if (block.branch.address < 0) {
-        if (block.branch.kills) {
-            Node n = Operation(OperationCode::Discard);
-            n = apply_conditions(block.branch.cond, n);
+    if (std::holds_alternative<SingleBranch>(*block.branch)) {
+        auto branch = std::get_if<SingleBranch>(block.branch.get());
+        if (branch->address < 0) {
+            if (branch->kill) {
+                Node n = Operation(OperationCode::Discard);
+                n = apply_conditions(branch->condition, n);
+                bb.push_back(n);
+                global_code.push_back(n);
+                return;
+            }
+            Node n = Operation(OperationCode::Exit);
+            n = apply_conditions(branch->condition, n);
             bb.push_back(n);
             global_code.push_back(n);
             return;
         }
-        Node n = Operation(OperationCode::Exit);
-        n = apply_conditions(block.branch.cond, n);
+        Node n = Operation(OperationCode::Branch, Immediate(branch->address));
+        n = apply_conditions(branch->condition, n);
         bb.push_back(n);
         global_code.push_back(n);
         return;
     }
-    Node n = Operation(OperationCode::Branch, Immediate(block.branch.address));
-    n = apply_conditions(block.branch.cond, n);
-    bb.push_back(n);
-    global_code.push_back(n);
+    auto multi_branch = std::get_if<MultiBranch>(block.branch.get());
+    Node op_a = GetRegister(multi_branch->gpr);
+    for (auto& branch_case : multi_branch->branches) {
+        Node n = Operation(OperationCode::Branch, Immediate(branch_case.address));
+        Node op_b = Immediate(branch_case.cmp_value);
+        Node condition = GetPredicateComparisonInteger(Tegra::Shader::PredCondition::Equal, false, op_a, op_b);
+        auto result = Conditional(condition, {n});
+        bb.push_back(result);
+        global_code.push_back(result);
+    }
 }
 
 u32 ShaderIR::DecodeInstr(NodeBlock& bb, u32 pc) {
