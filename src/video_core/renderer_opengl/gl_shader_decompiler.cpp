@@ -1491,6 +1491,8 @@ private:
         case Tegra::Shader::HalfType::H1_H1:
             return {fmt::format("vec2({}[1])", operand.AsHalfFloat()), Type::HalfFloat};
         }
+        UNREACHABLE();
+        return {"0", Type::Int};
     }
 
     Expression HMergeF32(Operation operation) {
