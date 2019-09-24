@@ -19,8 +19,8 @@
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
-#include "video_core/shader/node.h"
 #include "video_core/shader/ast.h"
+#include "video_core/shader/node.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace OpenGL::GLShader {

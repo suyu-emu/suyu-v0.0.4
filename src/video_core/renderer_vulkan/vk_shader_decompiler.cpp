@@ -1659,12 +1659,12 @@ public:
     }
 
     void operator()(VideoCommon::Shader::ExprPredicate& expr) {
-        auto pred = static_cast<Tegra::Shader::Pred>(expr.predicate);
+        const auto pred = static_cast<Tegra::Shader::Pred>(expr.predicate);
         current_id = decomp.Emit(decomp.OpLoad(decomp.t_bool, decomp.predicates.at(pred)));
     }
 
     void operator()(VideoCommon::Shader::ExprCondCode& expr) {
-        Node cc = decomp.ir.GetConditionCode(expr.cc);
+        const Node cc = decomp.ir.GetConditionCode(expr.cc);
         Id target;
 
         if (const auto pred = std::get_if<PredicateNode>(&*cc)) {
@@ -1785,8 +1785,7 @@ public:
     }
 
     void operator()(VideoCommon::Shader::ASTReturn& ast) {
-        bool is_true = VideoCommon::Shader::ExprIsTrue(ast.condition);
-        if (!is_true) {
+        if (!VideoCommon::Shader::ExprIsTrue(ast.condition)) {
             ExprDecompiler expr_parser{decomp};
             const Id condition = expr_parser.Visit(ast.condition);
             const Id then_label = decomp.OpLabel();
@@ -1816,8 +1815,7 @@ public:
     }
 
     void operator()(VideoCommon::Shader::ASTBreak& ast) {
-        bool is_true = VideoCommon::Shader::ExprIsTrue(ast.condition);
-        if (!is_true) {
+        if (!VideoCommon::Shader::ExprIsTrue(ast.condition)) {
             ExprDecompiler expr_parser{decomp};
             const Id condition = expr_parser.Visit(ast.condition);
             const Id then_label = decomp.OpLabel();
@@ -1846,7 +1844,7 @@ private:
 };
 
 void SPIRVDecompiler::DecompileAST() {
-    u32 num_flow_variables = ir.GetASTNumVariables();
+    const u32 num_flow_variables = ir.GetASTNumVariables();
     for (u32 i = 0; i < num_flow_variables; i++) {
         const Id id = OpVariable(t_prv_bool, spv::StorageClass::Private, v_false);
         Name(id, fmt::format("flow_var_{}", i));
