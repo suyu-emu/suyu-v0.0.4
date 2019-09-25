@@ -242,6 +242,26 @@ constexpr const char* GetTypeString(Type type) {
     }
 }
 
+constexpr const char* GetImageTypeDeclaration(Tegra::Shader::ImageType image_type) {
+    switch (image_type) {
+    case Tegra::Shader::ImageType::Texture1D:
+        return "1D";
+    case Tegra::Shader::ImageType::TextureBuffer:
+        return "Buffer";
+    case Tegra::Shader::ImageType::Texture1DArray:
+        return "1DArray";
+    case Tegra::Shader::ImageType::Texture2D:
+        return "2D";
+    case Tegra::Shader::ImageType::Texture2DArray:
+        return "2DArray";
+    case Tegra::Shader::ImageType::Texture3D:
+        return "3D";
+    default:
+        UNREACHABLE();
+        return "1D";
+    }
+}
+
 /// Generates code to use for a swizzle operation.
 constexpr const char* GetSwizzle(u32 element) {
     constexpr std::array swizzle = {".x", ".y", ".z", ".w"};
@@ -721,26 +741,6 @@ private:
     void DeclareImages() {
         const auto& images{ir.GetImages()};
         for (const auto& [offset, image] : images) {
-            const char* image_type = [&] {
-                switch (image.GetType()) {
-                case Tegra::Shader::ImageType::Texture1D:
-                    return "1D";
-                case Tegra::Shader::ImageType::TextureBuffer:
-                    return "Buffer";
-                case Tegra::Shader::ImageType::Texture1DArray:
-                    return "1DArray";
-                case Tegra::Shader::ImageType::Texture2D:
-                    return "2D";
-                case Tegra::Shader::ImageType::Texture2DArray:
-                    return "2DArray";
-                case Tegra::Shader::ImageType::Texture3D:
-                    return "3D";
-                default:
-                    UNREACHABLE();
-                    return "1D";
-                }
-            }();
-
             std::string qualifier = "coherent volatile";
             if (image.IsRead() && !image.IsWritten()) {
                 qualifier += " readonly";
@@ -748,13 +748,10 @@ private:
                 qualifier += " writeonly";
             }
 
-            std::string format;
-            if (image.IsAtomic()) {
-                format = "r32ui, ";
-            }
-
+            const char* format = image.IsAtomic() ? "r32ui, " : "";
+            const char* type_declaration = GetImageTypeDeclaration(image.GetType());
             code.AddLine("layout ({}binding = IMAGE_BINDING_{}) {} uniform uimage{} {};", format,
-                         image.GetIndex(), qualifier, image_type, GetImage(image));
+                         image.GetIndex(), qualifier, type_declaration, GetImage(image));
         }
         if (!images.empty()) {
             code.AddNewLine();
@@ -1494,6 +1491,8 @@ private:
         case Tegra::Shader::HalfType::H1_H1:
             return {fmt::format("vec2({}[1])", operand.AsHalfFloat()), Type::HalfFloat};
         }
+        UNREACHABLE();
+        return {"0", Type::Int};
     }
 
     Expression HMergeF32(Operation operation) {
