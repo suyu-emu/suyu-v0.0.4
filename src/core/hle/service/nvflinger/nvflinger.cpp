@@ -170,8 +170,13 @@ const VI::Layer* NVFlinger::FindLayer(u64 display_id, u64 layer_id) const {
 
 void NVFlinger::Compose() {
     for (auto& display : displays) {
+        bool trigger_event = false;
         // Trigger vsync for this display at the end of drawing
-        SCOPE_EXIT({ display.SignalVSyncEvent(); });
+        SCOPE_EXIT({
+            if (trigger_event) {
+                display.SignalVSyncEvent();
+            }
+        });
 
         // Don't do anything for displays without layers.
         if (!display.HasLayers())
@@ -194,6 +199,7 @@ void NVFlinger::Compose() {
         }
 
         const auto& igbp_buffer = buffer->get().igbp_buffer;
+        trigger_event = true;
 
         // Now send the buffer to the GPU for drawing.
         // TODO(Subv): Support more than just disp0. The display device selection is probably based
