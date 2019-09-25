@@ -123,8 +123,7 @@ namespace OpenGL {
 class ShaderDiskCacheRaw {
 public:
     explicit ShaderDiskCacheRaw(u64 unique_identifier, ProgramType program_type,
-                                u32 program_code_size, u32 program_code_size_b,
-                                ProgramCode program_code, ProgramCode program_code_b);
+                                ProgramCode program_code, ProgramCode program_code_b = {});
     ShaderDiskCacheRaw();
     ~ShaderDiskCacheRaw();
 
@@ -155,22 +154,14 @@ public:
 private:
     u64 unique_identifier{};
     ProgramType program_type{};
-    u32 program_code_size{};
-    u32 program_code_size_b{};
 
     ProgramCode program_code;
     ProgramCode program_code_b;
 };
 
-/// Contains decompiled data from a shader
-struct ShaderDiskCacheDecompiled {
-    std::string code;
-    GLShader::ShaderEntries entries;
-};
-
 /// Contains an OpenGL dumped binary program
 struct ShaderDiskCacheDump {
-    GLenum binary_format;
+    GLenum binary_format{};
     std::vector<u8> binary;
 };
 
@@ -184,9 +175,7 @@ public:
     LoadTransferable();
 
     /// Loads current game's precompiled cache. Invalidates on failure.
-    std::pair<std::unordered_map<u64, ShaderDiskCacheDecompiled>,
-              std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>
-    LoadPrecompiled();
+    std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump> LoadPrecompiled();
 
     /// Removes the transferable (and precompiled) cache file.
     void InvalidateTransferable();
@@ -200,10 +189,6 @@ public:
     /// Saves shader usage to the transferable file. Does not check for collisions.
     void SaveUsage(const ShaderDiskCacheUsage& usage);
 
-    /// Saves a decompiled entry to the precompiled file. Does not check for collisions.
-    void SaveDecompiled(u64 unique_identifier, const std::string& code,
-                        const GLShader::ShaderEntries& entries);
-
     /// Saves a dump entry to the precompiled file. Does not check for collisions.
     void SaveDump(const ShaderDiskCacheUsage& usage, GLuint program);
 
@@ -212,17 +197,8 @@ public:
 
 private:
     /// Loads the transferable cache. Returns empty on failure.
-    std::optional<std::pair<std::unordered_map<u64, ShaderDiskCacheDecompiled>,
-                            std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>>
+    std::optional<std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>
     LoadPrecompiledFile(FileUtil::IOFile& file);
-
-    /// Loads a decompiled cache entry from m_precompiled_cache_virtual_file. Returns empty on
-    /// failure.
-    std::optional<ShaderDiskCacheDecompiled> LoadDecompiledEntry();
-
-    /// Saves a decompiled entry to the passed file. Returns true on success.
-    bool SaveDecompiledFile(u64 unique_identifier, const std::string& code,
-                            const GLShader::ShaderEntries& entries);
 
     /// Opens current game's transferable file and write it's header if it doesn't exist
     FileUtil::IOFile AppendTransferableFile() const;

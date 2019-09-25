@@ -21,14 +21,14 @@ public:
     explicit ConstBufferLocker(Tegra::Engines::ShaderType shader_stage);
 
     explicit ConstBufferLocker(Tegra::Engines::ShaderType shader_stage,
-                               Tegra::Engines::ConstBufferEngineInterface* engine);
+                               Tegra::Engines::ConstBufferEngineInterface& engine);
 
     // Checks if an engine is setup, it may be possible that during disk shader
     // cache run, the engines have not been created yet.
     bool IsEngineSet() const;
 
     // Use this to set/change the engine used for this shader.
-    void SetEngine(Tegra::Engines::ConstBufferEngineInterface* engine);
+    void SetEngine(Tegra::Engines::ConstBufferEngineInterface& engine);
 
     // Retrieves a key from the locker, if it's registered, it will give the
     // registered value, if not it will obtain it from maxwell3d and register it.

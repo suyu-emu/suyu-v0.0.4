@@ -15,15 +15,15 @@ ConstBufferLocker::ConstBufferLocker(Tegra::Engines::ShaderType shader_stage)
     : engine{nullptr}, shader_stage{shader_stage} {}
 
 ConstBufferLocker::ConstBufferLocker(Tegra::Engines::ShaderType shader_stage,
-                                     Tegra::Engines::ConstBufferEngineInterface* engine)
-    : engine{engine}, shader_stage{shader_stage} {}
+                                     Tegra::Engines::ConstBufferEngineInterface& engine)
+    : engine{&engine}, shader_stage{shader_stage} {}
 
 bool ConstBufferLocker::IsEngineSet() const {
     return engine != nullptr;
 }
 
-void ConstBufferLocker::SetEngine(Tegra::Engines::ConstBufferEngineInterface* engine_) {
-    engine = engine_;
+void ConstBufferLocker::SetEngine(Tegra::Engines::ConstBufferEngineInterface& engine_) {
+    engine = &engine_;
 }
 
 std::optional<u32> ConstBufferLocker::ObtainKey(u32 buffer, u32 offset) {

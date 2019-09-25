@@ -66,10 +66,11 @@ struct BlockInfo {
 };
 
 struct CFGRebuildState {
-    explicit CFGRebuildState(const ProgramCode& program_code, const std::size_t program_size,
-                             const u32 start, ConstBufferLocker& locker)
-        : start{start}, program_code{program_code}, program_size{program_size}, locker{locker} {}
+    explicit CFGRebuildState(const ProgramCode& program_code, u32 start, ConstBufferLocker& locker)
+        : program_code{program_code}, start{start}, locker{locker} {}
 
+    const ProgramCode& program_code;
+    ConstBufferLocker& locker;
     u32 start{};
     std::vector<BlockInfo> block_info{};
     std::list<u32> inspect_queries{};
@@ -79,10 +80,7 @@ struct CFGRebuildState {
     std::map<u32, u32> ssy_labels{};
     std::map<u32, u32> pbk_labels{};
     std::unordered_map<u32, BlockStack> stacks{};
-    const ProgramCode& program_code;
-    const std::size_t program_size;
     ASTManager* manager;
-    ConstBufferLocker& locker;
 };
 
 enum class BlockCollision : u32 { None, Found, Inside };
@@ -242,7 +240,7 @@ std::optional<BranchIndirectInfo> TrackBranchIndirectInfo(const CFGRebuildState&
 
 std::pair<ParseResult, ParseInfo> ParseCode(CFGRebuildState& state, u32 address) {
     u32 offset = static_cast<u32>(address);
-    const u32 end_address = static_cast<u32>(state.program_size / sizeof(Instruction));
+    const u32 end_address = static_cast<u32>(state.program_code.size());
     ParseInfo parse_info{};
     SingleBranch single_branch{};
 
@@ -583,6 +581,7 @@ bool TryQuery(CFGRebuildState& state) {
     }
     return true;
 }
+
 } // Anonymous namespace
 
 void InsertBranch(ASTManager& mm, const BlockBranchInfo& branch_info) {
@@ -651,8 +650,7 @@ void DecompileShader(CFGRebuildState& state) {
     state.manager->Decompile();
 }
 
-std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
-                                                std::size_t program_size, u32 start_address,
+std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u32 start_address,
                                                 const CompilerSettings& settings,
                                                 ConstBufferLocker& locker) {
     auto result_out = std::make_unique<ShaderCharacteristics>();
@@ -661,7 +659,7 @@ std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
         return result_out;
     }
 
-    CFGRebuildState state{program_code, program_size, start_address, locker};
+    CFGRebuildState state{program_code, start_address, locker};
     // Inspect Code and generate blocks
     state.labels.clear();
     state.labels.emplace(start_address);

@@ -67,8 +67,8 @@ struct GlobalMemoryUsage {
 
 class ShaderIR final {
 public:
-    explicit ShaderIR(const ProgramCode& program_code, u32 main_offset, std::size_t size,
-                      CompilerSettings settings, ConstBufferLocker& locker);
+    explicit ShaderIR(const ProgramCode& program_code, u32 main_offset, CompilerSettings settings,
+                      ConstBufferLocker& locker);
     ~ShaderIR();
 
     const std::map<u32, NodeBlock>& GetBasicBlocks() const {
@@ -384,7 +384,9 @@ private:
 
     const ProgramCode& program_code;
     const u32 main_offset;
-    const std::size_t program_size;
+    const CompilerSettings settings;
+    ConstBufferLocker& locker;
+
     bool decompiled{};
     bool disable_flow_stack{};
 
@@ -393,9 +395,7 @@ private:
 
     std::map<u32, NodeBlock> basic_blocks;
     NodeBlock global_code;
-    ASTManager program_manager;
-    CompilerSettings settings{};
-    ConstBufferLocker& locker;
+    ASTManager program_manager{true, true};
 
     std::set<u32> used_registers;
     std::set<Tegra::Shader::Pred> used_predicates;
