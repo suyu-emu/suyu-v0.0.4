@@ -102,6 +102,8 @@ private:
 
     u32 swap_interval = 1;
 
+    bool first_buffer_enqueued{};
+
     /// Event that handles screen composition.
     Core::Timing::EventType* composition_event;
 

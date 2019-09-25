@@ -36,6 +36,10 @@ NVFlinger::NVFlinger(Core::System& system) : system(system) {
     displays.emplace_back(3, "Internal", system);
     displays.emplace_back(4, "Null", system);
 
+    for (auto& display : displays) {
+        display.SignalVSyncEvent();
+    }
+
     // Schedule the screen composition events
     composition_event = system.CoreTiming().RegisterEvent(
         "ScreenComposition", [this](u64 userdata, s64 cycles_late) {
@@ -173,7 +177,13 @@ void NVFlinger::Compose() {
         bool trigger_event = false;
         // Trigger vsync for this display at the end of drawing
         SCOPE_EXIT({
-            if (trigger_event) {
+            // TODO(Blinkhawk): Correctly send buffers through nvflinger while
+            // loading the game thorugh the OS.
+            // During loading, the OS takes care of sending buffers to vsync,
+            // thus it triggers, since this is not properly emulated due to
+            // HLE complications, we allow it to signal until the game enqueues
+            // it's first buffer.
+            if (trigger_event || !first_buffer_enqueued) {
                 display.SignalVSyncEvent();
             }
         });
@@ -193,13 +203,20 @@ void NVFlinger::Compose() {
 
         if (!buffer) {
             // There was no queued buffer to draw, render previous frame
-            system.GetPerfStats().EndGameFrame();
             system.GPU().SwapBuffers({});
             continue;
         }
 
         const auto& igbp_buffer = buffer->get().igbp_buffer;
         trigger_event = true;
+        first_buffer_enqueued = true;
+
+        const auto& gpu = system.GPU();
+        const auto& multi_fence = buffer->get().multi_fence;
+        for (u32 fence_id = 0; fence_id < multi_fence.num_fences; fence_id++) {
+            const auto& fence = multi_fence.fences[fence_id];
+            gpu.WaitFence(fence.id, fence.value);
+        }
 
         // Now send the buffer to the GPU for drawing.
         // TODO(Subv): Support more than just disp0. The display device selection is probably based
