@@ -173,6 +173,13 @@ public:
 
 private:
     friend class ASTDecoder;
+
+    struct SamplerInfo {
+        Tegra::Shader::TextureType type;
+        bool is_array;
+        bool is_shadow;
+    };
+
     void Decode();
 
     NodeBlock DecodeRange(u32 begin, u32 end);
@@ -297,12 +304,11 @@ private:
 
     /// Accesses a texture sampler
     const Sampler& GetSampler(const Tegra::Shader::Sampler& sampler,
-                              Tegra::Shader::TextureType type, bool is_array, bool is_shadow);
+                              std::optional<SamplerInfo> sampler_info);
 
     // Accesses a texture sampler for a bindless texture.
     const Sampler& GetBindlessSampler(const Tegra::Shader::Register& reg,
-                                      Tegra::Shader::TextureType type, bool is_array,
-                                      bool is_shadow);
+                                      std::optional<SamplerInfo> sampler_info);
 
     /// Accesses an image.
     Image& GetImage(Tegra::Shader::Image image, Tegra::Shader::ImageType type);

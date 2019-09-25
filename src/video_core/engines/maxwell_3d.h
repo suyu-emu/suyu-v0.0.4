@@ -15,8 +15,8 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/math_util.h"
-#include "video_core/engines/const_buffer_info.h"
 #include "video_core/engines/const_buffer_engine_interface.h"
+#include "video_core/engines/const_buffer_info.h"
 #include "video_core/engines/engine_upload.h"
 #include "video_core/gpu.h"
 #include "video_core/macro_interpreter.h"
@@ -1259,6 +1259,15 @@ public:
     Texture::FullTextureInfo GetStageTexture(Regs::ShaderStage stage, std::size_t offset) const;
 
     u32 AccessConstBuffer32(ShaderType stage, u64 const_buffer, u64 offset) const override;
+
+    SamplerDescriptor AccessBoundSampler(ShaderType stage, u64 offset) const override;
+
+    SamplerDescriptor AccessBindlessSampler(ShaderType stage, u64 const_buffer,
+                                            u64 offset) const override;
+
+    u32 GetBoundBuffer() const override {
+        return regs.tex_cb_index;
+    }
 
     /// Memory for macro code - it's undetermined how big this is, however 1MB is much larger than
     /// we've seen used.
