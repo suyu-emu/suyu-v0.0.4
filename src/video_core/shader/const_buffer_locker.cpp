@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <algorithm>
+#include <memory>
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -11,140 +13,92 @@
 
 namespace VideoCommon::Shader {
 
+using Tegra::Engines::SamplerDescriptor;
+
 ConstBufferLocker::ConstBufferLocker(Tegra::Engines::ShaderType shader_stage)
-    : engine{nullptr}, shader_stage{shader_stage} {}
+    : stage{shader_stage} {}
 
 ConstBufferLocker::ConstBufferLocker(Tegra::Engines::ShaderType shader_stage,
                                      Tegra::Engines::ConstBufferEngineInterface& engine)
-    : engine{&engine}, shader_stage{shader_stage} {}
-
-bool ConstBufferLocker::IsEngineSet() const {
-    return engine != nullptr;
-}
-
-void ConstBufferLocker::SetEngine(Tegra::Engines::ConstBufferEngineInterface& engine_) {
-    engine = &engine_;
-}
+    : stage{shader_stage}, engine{&engine} {}
 
 std::optional<u32> ConstBufferLocker::ObtainKey(u32 buffer, u32 offset) {
-    if (!keys) {
-        keys = std::make_shared<KeyMap>();
-    }
-    auto& key_map = *keys;
     const std::pair<u32, u32> key = {buffer, offset};
-    const auto iter = key_map.find(key);
-    if (iter != key_map.end()) {
-        return {iter->second};
+    const auto iter = keys.find(key);
+    if (iter != keys.end()) {
+        return iter->second;
     }
-    if (!IsEngineSet()) {
+    if (!engine) {
         return {};
     }
-    const u32 value = engine->AccessConstBuffer32(shader_stage, buffer, offset);
-    key_map.emplace(key, value);
-    return {value};
+    const u32 value = engine->AccessConstBuffer32(stage, buffer, offset);
+    keys.emplace(key, value);
+    return value;
 }
 
-std::optional<Tegra::Engines::SamplerDescriptor> ConstBufferLocker::ObtainBoundSampler(u32 offset) {
-    if (!bound_samplers) {
-        bound_samplers = std::make_shared<BoundSamplerMap>();
-    }
-    auto& key_map = *bound_samplers;
+std::optional<SamplerDescriptor> ConstBufferLocker::ObtainBoundSampler(u32 offset) {
     const u32 key = offset;
-    const auto iter = key_map.find(key);
-    if (iter != key_map.end()) {
-        return {iter->second};
+    const auto iter = bound_samplers.find(key);
+    if (iter != bound_samplers.end()) {
+        return iter->second;
     }
-    if (!IsEngineSet()) {
+    if (!engine) {
         return {};
     }
-    const Tegra::Engines::SamplerDescriptor value =
-        engine->AccessBoundSampler(shader_stage, offset);
-    key_map.emplace(key, value);
-    return {value};
+    const SamplerDescriptor value = engine->AccessBoundSampler(stage, offset);
+    bound_samplers.emplace(key, value);
+    return value;
 }
 
 std::optional<Tegra::Engines::SamplerDescriptor> ConstBufferLocker::ObtainBindlessSampler(
     u32 buffer, u32 offset) {
-    if (!bindless_samplers) {
-        bindless_samplers = std::make_shared<BindlessSamplerMap>();
+    const std::pair key = {buffer, offset};
+    const auto iter = bindless_samplers.find(key);
+    if (iter != bindless_samplers.end()) {
+        return iter->second;
     }
-    auto& key_map = *bindless_samplers;
-    const std::pair<u32, u32> key = {buffer, offset};
-    const auto iter = key_map.find(key);
-    if (iter != key_map.end()) {
-        return {iter->second};
-    }
-    if (!IsEngineSet()) {
+    if (!engine) {
         return {};
     }
-    const Tegra::Engines::SamplerDescriptor value =
-        engine->AccessBindlessSampler(shader_stage, buffer, offset);
-    key_map.emplace(key, value);
-    return {value};
+    const SamplerDescriptor value = engine->AccessBindlessSampler(stage, buffer, offset);
+    bindless_samplers.emplace(key, value);
+    return value;
 }
 
 void ConstBufferLocker::InsertKey(u32 buffer, u32 offset, u32 value) {
-    if (!keys) {
-        keys = std::make_shared<KeyMap>();
-    }
-    const std::pair<u32, u32> key = {buffer, offset};
-    (*keys)[key] = value;
+    keys.insert_or_assign({buffer, offset}, value);
 }
 
-void ConstBufferLocker::InsertBoundSampler(u32 offset, Tegra::Engines::SamplerDescriptor sampler) {
-    if (!bound_samplers) {
-        bound_samplers = std::make_shared<BoundSamplerMap>();
-    }
-    (*bound_samplers)[offset] = sampler;
+void ConstBufferLocker::InsertBoundSampler(u32 offset, SamplerDescriptor sampler) {
+    bound_samplers.insert_or_assign(offset, sampler);
 }
 
-void ConstBufferLocker::InsertBindlessSampler(u32 buffer, u32 offset,
-                                              Tegra::Engines::SamplerDescriptor sampler) {
-    if (!bindless_samplers) {
-        bindless_samplers = std::make_shared<BindlessSamplerMap>();
-    }
-    const std::pair<u32, u32> key = {buffer, offset};
-    (*bindless_samplers)[key] = sampler;
+void ConstBufferLocker::InsertBindlessSampler(u32 buffer, u32 offset, SamplerDescriptor sampler) {
+    bindless_samplers.insert_or_assign({buffer, offset}, sampler);
 }
 
 bool ConstBufferLocker::IsConsistent() const {
-    if (!IsEngineSet()) {
+    if (!engine) {
         return false;
     }
-    if (keys) {
-        for (const auto& key_val : *keys) {
-            const std::pair<u32, u32> key = key_val.first;
-            const u32 value = key_val.second;
-            const u32 other_value =
-                engine->AccessConstBuffer32(shader_stage, key.first, key.second);
-            if (other_value != value) {
-                return false;
-            }
-        }
-    }
-    if (bound_samplers) {
-        for (const auto& sampler_val : *bound_samplers) {
-            const u32 key = sampler_val.first;
-            const Tegra::Engines::SamplerDescriptor value = sampler_val.second;
-            const Tegra::Engines::SamplerDescriptor other_value =
-                engine->AccessBoundSampler(shader_stage, key);
-            if (other_value.raw != value.raw) {
-                return false;
-            }
-        }
-    }
-    if (bindless_samplers) {
-        for (const auto& sampler_val : *bindless_samplers) {
-            const std::pair<u32, u32> key = sampler_val.first;
-            const Tegra::Engines::SamplerDescriptor value = sampler_val.second;
-            const Tegra::Engines::SamplerDescriptor other_value =
-                engine->AccessBindlessSampler(shader_stage, key.first, key.second);
-            if (other_value.raw != value.raw) {
-                return false;
-            }
-        }
-    }
-    return true;
+    return std::all_of(keys.begin(), keys.end(),
+                       [](const auto& key) {
+                           const auto [value, other_value] = key.first;
+                           return value == other_value;
+                       }) &&
+           std::all_of(bound_samplers.begin(), bound_samplers.end(),
+                       [this](const auto& sampler) {
+                           const auto [key, value] = sampler;
+                           const auto other_value = engine->AccessBoundSampler(stage, key);
+                           return value.raw == other_value.raw;
+                       }) &&
+           std::all_of(
+               bindless_samplers.begin(), bindless_samplers.end(), [this](const auto& sampler) {
+                   const auto [cbuf, offset] = sampler.first;
+                   const auto value = sampler.second;
+                   const auto other_value = engine->AccessBindlessSampler(stage, cbuf, offset);
+                   return value.raw == other_value.raw;
+               });
 }
 
 } // namespace VideoCommon::Shader
