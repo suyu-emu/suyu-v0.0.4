@@ -87,7 +87,7 @@ public:
 
     // Checks keys & samplers against engine's current const buffers. Returns true if they
     // are the same value, false otherwise;
-    bool IsConsistant() const;
+    bool IsConsistent() const;
 
 private:
     Tegra::Engines::ConstBufferEngineInterface* engine;

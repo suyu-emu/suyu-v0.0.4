@@ -107,7 +107,7 @@ void ConstBufferLocker::InsertBindlessSampler(u32 buffer, u32 offset,
     (*bindless_samplers)[key] = sampler;
 }
 
-bool ConstBufferLocker::IsConsistant() const {
+bool ConstBufferLocker::IsConsistent() const {
     if (!IsEngineSet()) {
         return false;
     }
