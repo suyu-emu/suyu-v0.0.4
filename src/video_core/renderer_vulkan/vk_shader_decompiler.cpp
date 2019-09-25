@@ -650,7 +650,11 @@ private:
             VisitBasicBlock(conditional->GetCode());
             --conditional_nest_count;
 
-            Emit(OpBranch(skip_label));
+            if (inside_branch == 0) {
+                Emit(OpBranch(skip_label));
+            } else {
+                inside_branch--;
+            }
             Emit(skip_label);
             return {};
 
@@ -1014,6 +1018,7 @@ private:
 
         Emit(OpStore(jmp_to, Constant(t_uint, target->GetValue())));
         Emit(OpBranch(continue_label));
+        inside_branch = conditional_nest_count;
         if (conditional_nest_count == 0) {
             Emit(OpLabel());
         }
@@ -1025,6 +1030,7 @@ private:
 
         Emit(OpStore(jmp_to, op_a));
         Emit(OpBranch(continue_label));
+        inside_branch = conditional_nest_count;
         if (conditional_nest_count == 0) {
             Emit(OpLabel());
         }
@@ -1055,6 +1061,7 @@ private:
         Emit(OpStore(flow_stack_top, previous));
         Emit(OpStore(jmp_to, target));
         Emit(OpBranch(continue_label));
+        inside_branch = conditional_nest_count;
         if (conditional_nest_count == 0) {
             Emit(OpLabel());
         }
@@ -1114,6 +1121,7 @@ private:
 
     Id Exit(Operation operation) {
         PreExit();
+        inside_branch = conditional_nest_count;
         if (conditional_nest_count > 0) {
             Emit(OpReturn());
         } else {
@@ -1127,6 +1135,7 @@ private:
     }
 
     Id Discard(Operation operation) {
+        inside_branch = conditional_nest_count;
         if (conditional_nest_count > 0) {
             Emit(OpKill());
         } else {
@@ -1536,6 +1545,7 @@ private:
     const ShaderStage stage;
     const Tegra::Shader::Header header;
     u64 conditional_nest_count{};
+    u64 inside_branch{};
 
     const Id t_void = Name(TypeVoid(), "void");
 
