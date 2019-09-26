@@ -1,7 +1,9 @@
 # Download all pull requests as patches that match a specific label
 # Usage: python download-patches-by-label.py <Label to Match> <Root Path Folder to DL to>
 
-import requests, sys, json, urllib3.request, shutil, subprocess
+import requests, sys, json, urllib3.request, shutil, subprocess, os
+
+tagline = os.getenv("MergeTaglinePublic".upper(), "")
 
 http = urllib3.PoolManager()
 dl_list = {}
@@ -23,6 +25,6 @@ try:
                 print("Matched PR# %s" % pn)
                 print(subprocess.check_output(["git", "fetch", "https://github.com/yuzu-emu/yuzu.git", "pull/%s/head:pr-%s" % (pn, pn), "-f"]))
                 print(subprocess.check_output(["git", "merge", "--squash", "pr-%s" % pn]))
-                print(subprocess.check_output(["git", "commit", "-m\"Merge PR %s\"" % pn]))
+                print(subprocess.check_output(["git", "commit", "-m\"Merge %s PR %s\"" % (tagline, pn)]))
 except:
     sys.exit(-1)
