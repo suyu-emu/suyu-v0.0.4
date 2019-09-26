@@ -116,6 +116,9 @@ public:
     /// Notify rasterizer that any caches of the specified region should be flushed and invalidated
     void FlushAndInvalidateRegion(CacheAddr addr, u64 size);
 
+    // Wait until the gpu thread is idle.
+    void WaitIdle() const;
+
 private:
     /// Pushes a command to be executed by the GPU thread
     u64 PushCommand(CommandData&& command_data);

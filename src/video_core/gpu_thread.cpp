@@ -90,6 +90,11 @@ void ThreadManager::FlushAndInvalidateRegion(CacheAddr addr, u64 size) {
     InvalidateRegion(addr, size);
 }
 
+void ThreadManager::WaitIdle() const {
+    while (state.last_fence > state.signaled_fence.load()) {
+    }
+}
+
 u64 ThreadManager::PushCommand(CommandData&& command_data) {
     const u64 fence{++state.last_fence};
     state.queue.Push(CommandDataContainer(std::move(command_data), fence));
