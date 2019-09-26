@@ -1,0 +1,8 @@
+trigger:
+- master
+
+stages:
+- stage: merge
+  displayName: 'merge'
+  jobs:
+  - template: ./templates/merge-private.yml

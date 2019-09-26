@@ -1,0 +1,28 @@
+trigger:
+- master
+
+stages:
+- stage: format
+  displayName: 'format'
+  jobs:
+  - job: format
+    displayName: 'clang'
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - template: ./templates/format-check.yml
+- stage: build
+  dependsOn: format
+  displayName: 'build'
+  jobs:
+  - template: ./templates/build-standard.yml
+    parameters:
+      cache: 'true'
+- stage: release
+  displayName: 'release'
+  dependsOn: build
+  jobs:
+  - job: azure
+    displayName: 'azure'
+    steps:
+    - template: ./templates/release-universal.yml
