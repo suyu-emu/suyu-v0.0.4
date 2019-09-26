@@ -203,7 +203,9 @@ void NVFlinger::Compose() {
 
         if (!buffer) {
             // There was no queued buffer to draw, render previous frame
-            system.GPU().SwapBuffers({});
+            auto& gpu = system.GPU();
+            // Always trigger on sync GPU.
+            trigger_event = !gpu.IsAsync();
             continue;
         }
 
