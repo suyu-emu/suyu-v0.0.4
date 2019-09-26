@@ -174,19 +174,8 @@ const VI::Layer* NVFlinger::FindLayer(u64 display_id, u64 layer_id) const {
 
 void NVFlinger::Compose() {
     for (auto& display : displays) {
-        bool trigger_event = false;
         // Trigger vsync for this display at the end of drawing
-        SCOPE_EXIT({
-            // TODO(Blinkhawk): Correctly send buffers through nvflinger while
-            // loading the game thorugh the OS.
-            // During loading, the OS takes care of sending buffers to vsync,
-            // thus it triggers, since this is not properly emulated due to
-            // HLE complications, we allow it to signal until the game enqueues
-            // it's first buffer.
-            if (trigger_event || !first_buffer_enqueued) {
-                display.SignalVSyncEvent();
-            }
-        });
+        SCOPE_EXIT({ display.SignalVSyncEvent(); });
 
         // Don't do anything for displays without layers.
         if (!display.HasLayers())
@@ -202,16 +191,10 @@ void NVFlinger::Compose() {
         MicroProfileFlip();
 
         if (!buffer) {
-            // There was no queued buffer to draw, render previous frame
-            auto& gpu = system.GPU();
-            // Always trigger on sync GPU.
-            trigger_event = !gpu.IsAsync();
             continue;
         }
 
         const auto& igbp_buffer = buffer->get().igbp_buffer;
-        trigger_event = true;
-        first_buffer_enqueued = true;
 
         const auto& gpu = system.GPU();
         const auto& multi_fence = buffer->get().multi_fence;
