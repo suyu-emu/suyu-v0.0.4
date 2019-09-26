@@ -392,7 +392,7 @@ std::tuple<GLuint, BaseBindings> CachedShader::GetProgramHandle(const ProgramVar
         ConstBufferLocker locker(GetEnginesShaderType(program_type), *engine);
         program = BuildShader(device, unique_identifier, program_type, program_code, program_code_b,
                               variant, locker);
-        disk_cache.SaveUsage(GetUsage(variant));
+        disk_cache.SaveUsage(GetUsage(variant, locker));
 
         LabelGLObject(GL_PROGRAM, program->handle, cpu_addr);
     }
@@ -408,10 +408,14 @@ std::tuple<GLuint, BaseBindings> CachedShader::GetProgramHandle(const ProgramVar
     return {program->handle, base_bindings};
 }
 
-ShaderDiskCacheUsage CachedShader::GetUsage(const ProgramVariant& variant) const {
+ShaderDiskCacheUsage CachedShader::GetUsage(const ProgramVariant& variant,
+                                            const ConstBufferLocker& locker) const {
     ShaderDiskCacheUsage usage;
     usage.unique_identifier = unique_identifier;
     usage.variant = variant;
+    usage.keys = locker.GetKeys();
+    usage.bound_samplers = locker.GetBoundSamplers();
+    usage.bindless_samplers = locker.GetBindlessSamplers();
     return usage;
 }
 
@@ -472,6 +476,17 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
             }
             if (!shader) {
                 ConstBufferLocker locker(GetEnginesShaderType(unspecialized.program_type));
+                for (const auto& key : usage.keys) {
+                    const auto [buffer, offset] = key.first;
+                    locker.InsertKey(buffer, offset, key.second);
+                }
+                for (const auto& [offset, sampler] : usage.bound_samplers) {
+                    locker.InsertBoundSampler(offset, sampler);
+                }
+                for (const auto& [key, sampler] : usage.bindless_samplers) {
+                    const auto [buffer, offset] = key;
+                    locker.InsertBindlessSampler(buffer, offset, sampler);
+                }
                 shader = BuildShader(device, usage.unique_identifier, unspecialized.program_type,
                                      unspecialized.code, unspecialized.code_b, usage.variant,
                                      locker, true);

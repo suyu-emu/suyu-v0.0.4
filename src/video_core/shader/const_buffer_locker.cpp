@@ -90,14 +90,14 @@ bool ConstBufferLocker::IsConsistent() const {
                        [this](const auto& sampler) {
                            const auto [key, value] = sampler;
                            const auto other_value = engine->AccessBoundSampler(stage, key);
-                           return value.raw == other_value.raw;
+                           return value == other_value;
                        }) &&
            std::all_of(
                bindless_samplers.begin(), bindless_samplers.end(), [this](const auto& sampler) {
                    const auto [cbuf, offset] = sampler.first;
                    const auto value = sampler.second;
                    const auto other_value = engine->AccessBindlessSampler(stage, cbuf, offset);
-                   return value.raw == other_value.raw;
+                   return value == other_value;
                });
 }
 

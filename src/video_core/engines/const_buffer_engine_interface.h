@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <type_traits>
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "video_core/engines/shader_bytecode.h"
@@ -29,51 +30,49 @@ struct SamplerDescriptor {
         u32 raw{};
     };
 
+    bool operator==(const SamplerDescriptor& rhs) const noexcept {
+        return raw == rhs.raw;
+    }
+
     static SamplerDescriptor FromTicTexture(Tegra::Texture::TextureType tic_texture_type) {
-        SamplerDescriptor result{};
+        SamplerDescriptor result;
         switch (tic_texture_type) {
-        case Tegra::Texture::TextureType::Texture1D: {
+        case Tegra::Texture::TextureType::Texture1D:
             result.texture_type.Assign(Tegra::Shader::TextureType::Texture1D);
             result.is_array.Assign(0);
             result.is_buffer.Assign(0);
             result.is_shadow.Assign(0);
             return result;
-        }
-        case Tegra::Texture::TextureType::Texture2D: {
+        case Tegra::Texture::TextureType::Texture2D:
             result.texture_type.Assign(Tegra::Shader::TextureType::Texture2D);
             result.is_array.Assign(0);
             result.is_buffer.Assign(0);
             result.is_shadow.Assign(0);
             return result;
-        }
-        case Tegra::Texture::TextureType::Texture3D: {
+        case Tegra::Texture::TextureType::Texture3D:
             result.texture_type.Assign(Tegra::Shader::TextureType::Texture3D);
             result.is_array.Assign(0);
             result.is_buffer.Assign(0);
             result.is_shadow.Assign(0);
             return result;
-        }
-        case Tegra::Texture::TextureType::TextureCubemap: {
+        case Tegra::Texture::TextureType::TextureCubemap:
             result.texture_type.Assign(Tegra::Shader::TextureType::TextureCube);
             result.is_array.Assign(0);
             result.is_buffer.Assign(0);
             result.is_shadow.Assign(0);
             return result;
-        }
-        case Tegra::Texture::TextureType::Texture1DArray: {
+        case Tegra::Texture::TextureType::Texture1DArray:
             result.texture_type.Assign(Tegra::Shader::TextureType::Texture1D);
             result.is_array.Assign(1);
             result.is_buffer.Assign(0);
             result.is_shadow.Assign(0);
             return result;
-        }
-        case Tegra::Texture::TextureType::Texture2DArray: {
+        case Tegra::Texture::TextureType::Texture2DArray:
             result.texture_type.Assign(Tegra::Shader::TextureType::Texture2D);
             result.is_array.Assign(1);
             result.is_buffer.Assign(0);
             result.is_shadow.Assign(0);
             return result;
-        }
         case Tegra::Texture::TextureType::Texture1DBuffer: {
             result.texture_type.Assign(Tegra::Shader::TextureType::Texture1D);
             result.is_array.Assign(0);
@@ -81,30 +80,28 @@ struct SamplerDescriptor {
             result.is_shadow.Assign(0);
             return result;
         }
-        case Tegra::Texture::TextureType::Texture2DNoMipmap: {
+        case Tegra::Texture::TextureType::Texture2DNoMipmap:
             result.texture_type.Assign(Tegra::Shader::TextureType::Texture2D);
             result.is_array.Assign(0);
             result.is_buffer.Assign(0);
             result.is_shadow.Assign(0);
             return result;
-        }
-        case Tegra::Texture::TextureType::TextureCubeArray: {
+        case Tegra::Texture::TextureType::TextureCubeArray:
             result.texture_type.Assign(Tegra::Shader::TextureType::TextureCube);
             result.is_array.Assign(1);
             result.is_buffer.Assign(0);
             result.is_shadow.Assign(0);
             return result;
-        }
-        default: {
+        default:
             result.texture_type.Assign(Tegra::Shader::TextureType::Texture2D);
             result.is_array.Assign(0);
             result.is_buffer.Assign(0);
             result.is_shadow.Assign(0);
             return result;
         }
-        }
     }
 };
+static_assert(std::is_trivially_copyable_v<SamplerDescriptor>);
 
 class ConstBufferEngineInterface {
 public:

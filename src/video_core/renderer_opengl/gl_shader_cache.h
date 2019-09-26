@@ -31,6 +31,10 @@ namespace Core::Frontend {
 class EmuWindow;
 }
 
+namespace VideoCommon::Shader {
+class ConstBufferLocker;
+}
+
 namespace OpenGL {
 
 class CachedShader;
@@ -92,7 +96,8 @@ private:
                           GLShader::ShaderEntries entries, ProgramCode program_code,
                           ProgramCode program_code_b);
 
-    ShaderDiskCacheUsage GetUsage(const ProgramVariant& variant) const;
+    ShaderDiskCacheUsage GetUsage(const ProgramVariant& variant,
+                                  const VideoCommon::Shader::ConstBufferLocker& locker) const;
 
     Core::System& system;
     ShaderDiskCacheOpenGL& disk_cache;
