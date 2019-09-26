@@ -44,6 +44,9 @@ public:
     /// the same value, false otherwise;
     bool IsConsistent() const;
 
+    /// Returns true if the keys are equal to the other ones in the locker.
+    bool HasEqualKeys(const ConstBufferLocker& rhs) const;
+
     /// Gives an getter to the const buffer keys in the database.
     const KeyMap& GetKeys() const {
         return keys;

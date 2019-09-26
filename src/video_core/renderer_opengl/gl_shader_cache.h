@@ -21,6 +21,7 @@
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_disk_cache.h"
+#include "video_core/shader/const_buffer_locker.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace Core {
@@ -29,10 +30,6 @@ class System;
 
 namespace Core::Frontend {
 class EmuWindow;
-}
-
-namespace VideoCommon::Shader {
-class ConstBufferLocker;
 }
 
 namespace OpenGL {
@@ -92,9 +89,16 @@ public:
     std::tuple<GLuint, BaseBindings> GetProgramHandle(const ProgramVariant& variant);
 
 private:
+    struct LockerVariant {
+        std::unique_ptr<VideoCommon::Shader::ConstBufferLocker> locker;
+        std::unordered_map<ProgramVariant, CachedProgram> programs;
+    };
+
     explicit CachedShader(const ShaderParameters& params, ProgramType program_type,
                           GLShader::ShaderEntries entries, ProgramCode program_code,
                           ProgramCode program_code_b);
+
+    void UpdateVariant();
 
     ShaderDiskCacheUsage GetUsage(const ProgramVariant& variant,
                                   const VideoCommon::Shader::ConstBufferLocker& locker) const;
@@ -113,7 +117,8 @@ private:
     ProgramCode program_code;
     ProgramCode program_code_b;
 
-    std::unordered_map<ProgramVariant, CachedProgram> programs;
+    LockerVariant* curr_variant = nullptr;
+    std::vector<std::unique_ptr<LockerVariant>> locker_variants;
 };
 
 class ShaderCacheOpenGL final : public RasterizerCache<Shader> {

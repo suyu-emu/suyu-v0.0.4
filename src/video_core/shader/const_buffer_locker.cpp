@@ -82,23 +82,27 @@ bool ConstBufferLocker::IsConsistent() const {
         return false;
     }
     return std::all_of(keys.begin(), keys.end(),
-                       [](const auto& key) {
-                           const auto [value, other_value] = key.first;
-                           return value == other_value;
+                       [this](const auto& pair) {
+                           const auto [cbuf, offset] = pair.first;
+                           const auto value = pair.second;
+                           return value == engine->AccessConstBuffer32(stage, cbuf, offset);
                        }) &&
            std::all_of(bound_samplers.begin(), bound_samplers.end(),
                        [this](const auto& sampler) {
                            const auto [key, value] = sampler;
-                           const auto other_value = engine->AccessBoundSampler(stage, key);
-                           return value == other_value;
+                           return value == engine->AccessBoundSampler(stage, key);
                        }) &&
-           std::all_of(
-               bindless_samplers.begin(), bindless_samplers.end(), [this](const auto& sampler) {
-                   const auto [cbuf, offset] = sampler.first;
-                   const auto value = sampler.second;
-                   const auto other_value = engine->AccessBindlessSampler(stage, cbuf, offset);
-                   return value == other_value;
-               });
+           std::all_of(bindless_samplers.begin(), bindless_samplers.end(),
+                       [this](const auto& sampler) {
+                           const auto [cbuf, offset] = sampler.first;
+                           const auto value = sampler.second;
+                           return value == engine->AccessBindlessSampler(stage, cbuf, offset);
+                       });
+}
+
+bool ConstBufferLocker::HasEqualKeys(const ConstBufferLocker& rhs) const {
+    return keys == rhs.keys && bound_samplers == rhs.bound_samplers &&
+           bindless_samplers == rhs.bindless_samplers;
 }
 
 } // namespace VideoCommon::Shader

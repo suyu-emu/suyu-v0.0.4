@@ -225,6 +225,34 @@ std::string GetShaderId(u64 unique_identifier, ProgramType program_type) {
     return fmt::format("{}{:016X}", GetProgramTypeName(program_type), unique_identifier);
 }
 
+Tegra::Engines::ConstBufferEngineInterface& GetConstBufferEngineInterface(
+    Core::System& system, ProgramType program_type) {
+    if (program_type == ProgramType::Compute) {
+        return system.GPU().KeplerCompute();
+    } else {
+        return system.GPU().Maxwell3D();
+    }
+}
+
+std::unique_ptr<ConstBufferLocker> MakeLocker(Core::System& system, ProgramType program_type) {
+    return std::make_unique<ConstBufferLocker>(GetEnginesShaderType(program_type),
+                                               GetConstBufferEngineInterface(system, program_type));
+}
+
+void FillLocker(ConstBufferLocker& locker, const ShaderDiskCacheUsage& usage) {
+    for (const auto& key : usage.keys) {
+        const auto [buffer, offset] = key.first;
+        locker.InsertKey(buffer, offset, key.second);
+    }
+    for (const auto& [offset, sampler] : usage.bound_samplers) {
+        locker.InsertBoundSampler(offset, sampler);
+    }
+    for (const auto& [key, sampler] : usage.bindless_samplers) {
+        const auto [buffer, offset] = key;
+        locker.InsertBindlessSampler(buffer, offset, sampler);
+    }
+}
+
 CachedProgram BuildShader(const Device& device, u64 unique_identifier, ProgramType program_type,
                           const ProgramCode& program_code, const ProgramCode& program_code_b,
                           const ProgramVariant& variant, ConstBufferLocker& locker,
@@ -336,11 +364,27 @@ CachedShader::CachedShader(const ShaderParameters& params, ProgramType program_t
       disk_cache{params.disk_cache}, device{params.device}, cpu_addr{params.cpu_addr},
       unique_identifier{params.unique_identifier}, program_type{program_type}, entries{entries},
       program_code{std::move(program_code)}, program_code_b{std::move(program_code_b)} {
-    if (params.precompiled_variants) {
-        for (const auto& pair : *params.precompiled_variants) {
-            const auto& variant = pair->first.variant;
-            programs.emplace(variant, pair->second);
+    if (!params.precompiled_variants) {
+        return;
+    }
+    for (const auto& pair : *params.precompiled_variants) {
+        auto locker = MakeLocker(system, program_type);
+        const auto& usage = pair->first;
+        FillLocker(*locker, usage);
+
+        std::unique_ptr<LockerVariant>* locker_variant = nullptr;
+        const auto it =
+            std::find_if(locker_variants.begin(), locker_variants.end(), [&](const auto& variant) {
+                return variant->locker->HasEqualKeys(*locker);
+            });
+        if (it == locker_variants.end()) {
+            locker_variant = &locker_variants.emplace_back();
+            *locker_variant = std::make_unique<LockerVariant>();
+            locker_variant->get()->locker = std::move(locker);
+        } else {
+            locker_variant = &*it;
         }
+        locker_variant->get()->programs.emplace(usage.variant, pair->second);
     }
 }
 
@@ -380,19 +424,14 @@ Shader CachedShader::CreateFromCache(const ShaderParameters& params,
 }
 
 std::tuple<GLuint, BaseBindings> CachedShader::GetProgramHandle(const ProgramVariant& variant) {
-    const auto [entry, is_cache_miss] = programs.try_emplace(variant);
+    UpdateVariant();
+
+    const auto [entry, is_cache_miss] = curr_variant->programs.try_emplace(variant);
     auto& program = entry->second;
     if (is_cache_miss) {
-        Tegra::Engines::ConstBufferEngineInterface* engine = nullptr;
-        if (program_type == ProgramType::Compute) {
-            engine = &system.GPU().KeplerCompute();
-        } else {
-            engine = &system.GPU().Maxwell3D();
-        }
-        ConstBufferLocker locker(GetEnginesShaderType(program_type), *engine);
         program = BuildShader(device, unique_identifier, program_type, program_code, program_code_b,
-                              variant, locker);
-        disk_cache.SaveUsage(GetUsage(variant, locker));
+                              variant, *curr_variant->locker);
+        disk_cache.SaveUsage(GetUsage(variant, *curr_variant->locker));
 
         LabelGLObject(GL_PROGRAM, program->handle, cpu_addr);
     }
@@ -406,6 +445,25 @@ std::tuple<GLuint, BaseBindings> CachedShader::GetProgramHandle(const ProgramVar
     base_bindings.sampler += static_cast<u32>(entries.samplers.size());
 
     return {program->handle, base_bindings};
+}
+
+void CachedShader::UpdateVariant() {
+    if (curr_variant && !curr_variant->locker->IsConsistent()) {
+        curr_variant = nullptr;
+    }
+    if (!curr_variant) {
+        for (auto& variant : locker_variants) {
+            if (variant->locker->IsConsistent()) {
+                curr_variant = variant.get();
+            }
+        }
+    }
+    if (!curr_variant) {
+        auto& new_variant = locker_variants.emplace_back();
+        new_variant = std::make_unique<LockerVariant>();
+        new_variant->locker = MakeLocker(system, program_type);
+        curr_variant = new_variant.get();
+    }
 }
 
 ShaderDiskCacheUsage CachedShader::GetUsage(const ProgramVariant& variant,
@@ -475,21 +533,11 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
                 }
             }
             if (!shader) {
-                ConstBufferLocker locker(GetEnginesShaderType(unspecialized.program_type));
-                for (const auto& key : usage.keys) {
-                    const auto [buffer, offset] = key.first;
-                    locker.InsertKey(buffer, offset, key.second);
-                }
-                for (const auto& [offset, sampler] : usage.bound_samplers) {
-                    locker.InsertBoundSampler(offset, sampler);
-                }
-                for (const auto& [key, sampler] : usage.bindless_samplers) {
-                    const auto [buffer, offset] = key;
-                    locker.InsertBindlessSampler(buffer, offset, sampler);
-                }
+                auto locker{MakeLocker(system, unspecialized.program_type)};
+                FillLocker(*locker, usage);
                 shader = BuildShader(device, usage.unique_identifier, unspecialized.program_type,
                                      unspecialized.code, unspecialized.code_b, usage.variant,
-                                     locker, true);
+                                     *locker, true);
             }
 
             std::scoped_lock lock{mutex};
