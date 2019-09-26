@@ -119,6 +119,7 @@ public slots:
     void SoftwareKeyboardGetText(const Core::Frontend::SoftwareKeyboardParameters& parameters);
     void SoftwareKeyboardInvokeCheckDialog(std::u16string error_message);
     void WebBrowserOpenPage(std::string_view filename, std::string_view arguments);
+    void OnAppFocusStateChanged(Qt::ApplicationState state);
 
 private:
     void InitializeWidgets();
@@ -243,6 +244,8 @@ private:
     std::unique_ptr<EmuThread> emu_thread;
     // The path to the game currently running
     QString game_path;
+
+    bool auto_paused = false;
 
     // FS
     std::shared_ptr<FileSys::VfsFilesystem> vfs;
