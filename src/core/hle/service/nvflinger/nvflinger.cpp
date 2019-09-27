@@ -36,10 +36,6 @@ NVFlinger::NVFlinger(Core::System& system) : system(system) {
     displays.emplace_back(3, "Internal", system);
     displays.emplace_back(4, "Null", system);
 
-    for (auto& display : displays) {
-        display.SignalVSyncEvent();
-    }
-
     // Schedule the screen composition events
     composition_event = system.CoreTiming().RegisterEvent(
         "ScreenComposition", [this](u64 userdata, s64 cycles_late) {
