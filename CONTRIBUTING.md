@@ -1,1 +1,1 @@
-**The Contributor's Guide has moved to [the Citra wiki](https://github.com/citra-emu/citra/wiki/Contributing).**
+**The Contributor's Guide has moved to [the Yuzu wiki](https://github.com/yuzu-emu/yuzu/wiki/Contributing).**
