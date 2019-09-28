@@ -442,8 +442,11 @@ void ASTManager::Decompile() {
     auto it = gotos.begin();
     while (it != gotos.end()) {
         const ASTNode goto_node = *it;
-        const u32 label_index = goto_node->GetGotoLabel();
-        const ASTNode label = labels[label_index];
+        const auto label_index = goto_node->GetGotoLabel();
+        if (!label_index) {
+            return;
+        }
+        const ASTNode label = labels[*label_index];
         if (!full_decompile) {
             // We only decompile backward jumps
             if (!IsBackwardsJump(goto_node, label)) {
@@ -498,8 +501,11 @@ void ASTManager::Decompile() {
             bool can_remove = true;
             ASTNode label = *it;
             for (const ASTNode goto_node : gotos) {
-                const u32 label_index = goto_node->GetGotoLabel();
-                ASTNode glabel = labels[label_index];
+                const auto label_index = goto_node->GetGotoLabel();
+                if (!label_index) {
+                    return;
+                }
+                ASTNode glabel = labels[*label_index];
                 if (glabel == label) {
                     can_remove = false;
                     break;

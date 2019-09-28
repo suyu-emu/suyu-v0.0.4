@@ -44,7 +44,7 @@ enum class ASTZipperType : u32 {
 
 class ASTZipper final {
 public:
-    ASTZipper();
+    explicit ASTZipper();
 
     void Init(ASTNode first, ASTNode parent);
 
@@ -71,74 +71,74 @@ public:
 
 class ASTProgram {
 public:
-    ASTProgram() : nodes{} {};
-    ASTZipper nodes;
+    explicit ASTProgram() = default;
+    ASTZipper nodes{};
 };
 
 class ASTIfThen {
 public:
-    ASTIfThen(Expr condition) : condition(condition), nodes{} {}
+    explicit ASTIfThen(Expr condition) : condition(condition) {}
     Expr condition;
-    ASTZipper nodes;
+    ASTZipper nodes{};
 };
 
 class ASTIfElse {
 public:
-    ASTIfElse() : nodes{} {}
-    ASTZipper nodes;
+    explicit ASTIfElse() = default;
+    ASTZipper nodes{};
 };
 
 class ASTBlockEncoded {
 public:
-    ASTBlockEncoded(u32 start, u32 end) : start{start}, end{end} {}
+    explicit ASTBlockEncoded(u32 start, u32 end) : start{start}, end{end} {}
     u32 start;
     u32 end;
 };
 
 class ASTBlockDecoded {
 public:
-    ASTBlockDecoded(NodeBlock& new_nodes) : nodes(std::move(new_nodes)) {}
+    explicit ASTBlockDecoded(NodeBlock& new_nodes) : nodes(std::move(new_nodes)) {}
     NodeBlock nodes;
 };
 
 class ASTVarSet {
 public:
-    ASTVarSet(u32 index, Expr condition) : index{index}, condition{condition} {}
+    explicit ASTVarSet(u32 index, Expr condition) : index{index}, condition{condition} {}
     u32 index;
     Expr condition;
 };
 
 class ASTLabel {
 public:
-    ASTLabel(u32 index) : index{index} {}
+    explicit ASTLabel(u32 index) : index{index} {}
     u32 index;
     bool unused{};
 };
 
 class ASTGoto {
 public:
-    ASTGoto(Expr condition, u32 label) : condition{condition}, label{label} {}
+    explicit ASTGoto(Expr condition, u32 label) : condition{condition}, label{label} {}
     Expr condition;
     u32 label;
 };
 
 class ASTDoWhile {
 public:
-    ASTDoWhile(Expr condition) : condition(condition), nodes{} {}
+    explicit ASTDoWhile(Expr condition) : condition(condition) {}
     Expr condition;
-    ASTZipper nodes;
+    ASTZipper nodes{};
 };
 
 class ASTReturn {
 public:
-    ASTReturn(Expr condition, bool kills) : condition{condition}, kills{kills} {}
+    explicit ASTReturn(Expr condition, bool kills) : condition{condition}, kills{kills} {}
     Expr condition;
     bool kills;
 };
 
 class ASTBreak {
 public:
-    ASTBreak(Expr condition) : condition{condition} {}
+    explicit ASTBreak(Expr condition) : condition{condition} {}
     Expr condition;
 };
 
@@ -177,11 +177,11 @@ public:
         return &data;
     }
 
-    ASTNode GetNext() {
+    ASTNode GetNext() const {
         return next;
     }
 
-    ASTNode GetPrevious() {
+    ASTNode GetPrevious() const {
         return previous;
     }
 
@@ -189,12 +189,12 @@ public:
         return *manager;
     }
 
-    u32 GetGotoLabel() const {
+    std::optional<u32> GetGotoLabel() const {
         auto inner = std::get_if<ASTGoto>(&data);
         if (inner) {
-            return inner->label;
+            return {inner->label};
         }
-        return -1;
+        return {};
     }
 
     Expr GetGotoCondition() const {
@@ -220,12 +220,12 @@ public:
         return true;
     }
 
-    u32 GetLabelIndex() const {
+    std::optional<u32> GetLabelIndex() const {
         auto inner = std::get_if<ASTLabel>(&data);
         if (inner) {
-            return inner->index;
+            return {inner->index};
         }
-        return -1;
+        return {};
     }
 
     Expr GetIfCondition() const {
@@ -290,7 +290,7 @@ private:
     friend class ASTZipper;
 
     ASTData data;
-    ASTNode parent;
+    ASTNode parent{};
     ASTNode next{};
     ASTNode previous{};
     ASTZipper* manager{};
@@ -327,13 +327,18 @@ public:
 
     void SanityCheck();
 
+    void Clear();
+
     bool IsFullyDecompiled() const {
         if (full_decompile) {
             return gotos.size() == 0;
         } else {
             for (ASTNode goto_node : gotos) {
-                u32 label_index = goto_node->GetGotoLabel();
-                ASTNode glabel = labels[label_index];
+                auto label_index = goto_node->GetGotoLabel();
+                if (!label_index) {
+                    return false;
+                }
+                ASTNode glabel = labels[*label_index];
                 if (IsBackwardsJump(goto_node, glabel)) {
                     return false;
                 }
@@ -345,8 +350,6 @@ public:
     ASTNode GetProgram() const {
         return main_node;
     }
-
-    void Clear();
 
     u32 GetVariables() const {
         return variables;
@@ -372,9 +375,7 @@ private:
     void MoveOutward(ASTNode goto_node);
 
     u32 NewVariable() {
-        u32 new_var = variables;
-        variables++;
-        return new_var;
+        return variables++;
     }
 
     bool full_decompile{};

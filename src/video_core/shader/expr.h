@@ -28,7 +28,7 @@ using Expr = std::shared_ptr<ExprData>;
 
 class ExprAnd final {
 public:
-    ExprAnd(Expr a, Expr b) : operand1{a}, operand2{b} {}
+    explicit ExprAnd(Expr a, Expr b) : operand1{a}, operand2{b} {}
 
     bool operator==(const ExprAnd& b) const;
 
@@ -38,7 +38,7 @@ public:
 
 class ExprOr final {
 public:
-    ExprOr(Expr a, Expr b) : operand1{a}, operand2{b} {}
+    explicit ExprOr(Expr a, Expr b) : operand1{a}, operand2{b} {}
 
     bool operator==(const ExprOr& b) const;
 
@@ -48,7 +48,7 @@ public:
 
 class ExprNot final {
 public:
-    ExprNot(Expr a) : operand1{a} {}
+    explicit ExprNot(Expr a) : operand1{a} {}
 
     bool operator==(const ExprNot& b) const;
 
@@ -57,7 +57,7 @@ public:
 
 class ExprVar final {
 public:
-    ExprVar(u32 index) : var_index{index} {}
+    explicit ExprVar(u32 index) : var_index{index} {}
 
     bool operator==(const ExprVar& b) const {
         return var_index == b.var_index;
@@ -68,7 +68,7 @@ public:
 
 class ExprPredicate final {
 public:
-    ExprPredicate(u32 predicate) : predicate{predicate} {}
+    explicit ExprPredicate(u32 predicate) : predicate{predicate} {}
 
     bool operator==(const ExprPredicate& b) const {
         return predicate == b.predicate;
@@ -79,7 +79,7 @@ public:
 
 class ExprCondCode final {
 public:
-    ExprCondCode(ConditionCode cc) : cc{cc} {}
+    explicit ExprCondCode(ConditionCode cc) : cc{cc} {}
 
     bool operator==(const ExprCondCode& b) const {
         return cc == b.cc;
@@ -90,7 +90,7 @@ public:
 
 class ExprBoolean final {
 public:
-    ExprBoolean(bool val) : value{val} {}
+    explicit ExprBoolean(bool val) : value{val} {}
 
     bool operator==(const ExprBoolean& b) const {
         return value == b.value;
