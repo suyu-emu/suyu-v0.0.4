@@ -249,6 +249,11 @@ void Maxwell3D::InitDirtySettings() {
     dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_units)] = polygon_offset_dirty_reg;
     dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_factor)] = polygon_offset_dirty_reg;
     dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_clamp)] = polygon_offset_dirty_reg;
+
+    // Depth bounds
+    constexpr u32 depth_bounds_values_dirty_reg = DIRTY_REGS_POS(depth_bounds_values);
+    dirty_pointers[MAXWELL3D_REG_INDEX(depth_bounds[0])] = depth_bounds_values_dirty_reg;
+    dirty_pointers[MAXWELL3D_REG_INDEX(depth_bounds[1])] = depth_bounds_values_dirty_reg;
 }
 
 void Maxwell3D::CallMacroMethod(u32 method, std::size_t num_parameters, const u32* parameters) {
