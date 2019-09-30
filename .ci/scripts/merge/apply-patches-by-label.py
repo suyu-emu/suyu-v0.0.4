@@ -3,7 +3,7 @@
 
 import requests, sys, json, urllib3.request, shutil, subprocess, os
 
-tagline = os.getenv("MergeTaglinePublic".upper(), "")
+tagline = sys.argv[2]
 
 http = urllib3.PoolManager()
 dl_list = {}
