@@ -19,12 +19,12 @@ steps:
     inputs:
       scriptSource: 'filePath'
       scriptPath: '.ci/scripts/merge/apply-patches-by-label.py'
-      arguments: '${{ parameters.matchLabel }} $(MergeTaglinePrivate)\ Public patches-mixed-public'
+      arguments: '${{ parameters.matchLabel }} "$(MergeTaglinePrivate) Public" patches-mixed-public'
       workingDirectory: '$(System.DefaultWorkingDirectory)'
   - task: PythonScript@0
     displayName: 'Discover, Download, and Apply Patches (Patreon Private)'
     inputs:
       scriptSource: 'filePath'
       scriptPath: '.ci/scripts/merge/apply-patches-by-label-private.py'
-      arguments: '$(PrivateMergeUser) ${{ parameters.matchLabel }} $(MergeTaglinePrivate)\ Private patches-private'
+      arguments: '$(PrivateMergeUser) ${{ parameters.matchLabel }} "$(MergeTaglinePrivate) Private" patches-private'
       workingDirectory: '$(System.DefaultWorkingDirectory)'
