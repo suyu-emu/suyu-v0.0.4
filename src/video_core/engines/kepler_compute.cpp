@@ -86,8 +86,7 @@ SamplerDescriptor KeplerCompute::AccessBindlessSampler(ShaderType stage, u64 con
                                                        u64 offset) const {
     ASSERT(stage == ShaderType::Compute);
     const auto& tex_info_buffer = launch_description.const_buffer_config[const_buffer];
-    const GPUVAddr tex_info_address =
-        tex_info_buffer.Address() + offset;
+    const GPUVAddr tex_info_address = tex_info_buffer.Address() + offset;
 
     const Texture::TextureHandle tex_handle{memory_manager.Read<u32>(tex_info_address)};
     const Texture::FullTextureInfo tex_info = GetTextureInfo(tex_handle, offset);
