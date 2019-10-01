@@ -539,7 +539,7 @@ void Module::Interface::CreateDeliveryCacheStorageService(Kernel::HLERequestCont
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IDeliveryCacheStorageService>(
-        Service::FileSystem::GetBCATDirectory(Core::CurrentProcess()->GetTitleID()));
+        fsc.GetBCATDirectory(Core::CurrentProcess()->GetTitleID()));
 }
 
 void Module::Interface::CreateDeliveryCacheStorageServiceWithApplicationId(
@@ -551,8 +551,7 @@ void Module::Interface::CreateDeliveryCacheStorageServiceWithApplicationId(
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IDeliveryCacheStorageService>(
-        Service::FileSystem::GetBCATDirectory(title_id));
+    rb.PushIpcInterface<IDeliveryCacheStorageService>(fsc.GetBCATDirectory(title_id));
 }
 
 std::unique_ptr<Backend> CreateBackendFromSettings(DirectoryGetter getter) {
@@ -566,18 +565,23 @@ std::unique_ptr<Backend> CreateBackendFromSettings(DirectoryGetter getter) {
     return std::make_unique<NullBackend>(std::move(getter));
 }
 
-Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
-    : ServiceFramework(name), module(std::move(module)),
-      backend(CreateBackendFromSettings(&Service::FileSystem::GetBCATDirectory)) {}
+Module::Interface::Interface(std::shared_ptr<Module> module, FileSystem::FileSystemController& fsc,
+                             const char* name)
+    : ServiceFramework(name), module(std::move(module)), fsc(fsc),
+      backend(CreateBackendFromSettings([&fsc](u64 tid) { return fsc.GetBCATDirectory(tid); })) {}
 
 Module::Interface::~Interface() = default;
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
+void InstallInterfaces(Core::System& system) {
     auto module = std::make_shared<Module>();
-    std::make_shared<BCAT>(module, "bcat:a")->InstallAsService(service_manager);
-    std::make_shared<BCAT>(module, "bcat:m")->InstallAsService(service_manager);
-    std::make_shared<BCAT>(module, "bcat:u")->InstallAsService(service_manager);
-    std::make_shared<BCAT>(module, "bcat:s")->InstallAsService(service_manager);
+    std::make_shared<BCAT>(module, system.GetFileSystemController(), "bcat:a")
+        ->InstallAsService(system.ServiceManager());
+    std::make_shared<BCAT>(module, system.GetFileSystemController(), "bcat:m")
+        ->InstallAsService(system.ServiceManager());
+    std::make_shared<BCAT>(module, system.GetFileSystemController(), "bcat:u")
+        ->InstallAsService(system.ServiceManager());
+    std::make_shared<BCAT>(module, system.GetFileSystemController(), "bcat:s")
+        ->InstallAsService(system.ServiceManager());
 }
 
 } // namespace Service::BCAT

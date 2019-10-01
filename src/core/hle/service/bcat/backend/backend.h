@@ -57,11 +57,6 @@ static_assert(sizeof(DeliveryCacheProgressImpl) == 0x200,
 class ProgressServiceBackend {
     friend class IBcatService;
 
-    ProgressServiceBackend(std::string event_name);
-
-    Kernel::SharedPtr<Kernel::ReadableEvent> GetEvent();
-    DeliveryCacheProgressImpl& GetImpl();
-
 public:
     // Clients should call this with true if any of the functions are going to be called from a
     // non-HLE thread and this class need to lock the hle mutex. (default is false)
@@ -90,6 +85,11 @@ public:
     void FinishDownload(ResultCode result);
 
 private:
+    explicit ProgressServiceBackend(std::string event_name);
+
+    Kernel::SharedPtr<Kernel::ReadableEvent> GetEvent();
+    DeliveryCacheProgressImpl& GetImpl();
+
     void SignalUpdate() const;
 
     DeliveryCacheProgressImpl impl;

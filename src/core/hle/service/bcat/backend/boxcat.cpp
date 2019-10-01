@@ -364,17 +364,18 @@ void SynchronizeInternal(DirectoryGetter dir_getter, TitleIDVersion title,
 
 bool Boxcat::Synchronize(TitleIDVersion title, ProgressServiceBackend& progress) {
     is_syncing.exchange(true);
-    std::thread([this, title, &progress] { SynchronizeInternal(dir_getter, title, progress); })
-        .detach();
+    std::thread([this, title, &progress] {
+        SynchronizeInternal(dir_getter, title, progress);
+    }).detach();
     return true;
 }
 
 bool Boxcat::SynchronizeDirectory(TitleIDVersion title, std::string name,
                                   ProgressServiceBackend& progress) {
     is_syncing.exchange(true);
-    std::thread(
-        [this, title, name, &progress] { SynchronizeInternal(dir_getter, title, progress, name); })
-        .detach();
+    std::thread([this, title, name, &progress] {
+        SynchronizeInternal(dir_getter, title, progress, name);
+    }).detach();
     return true;
 }
 
