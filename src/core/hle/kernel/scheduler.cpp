@@ -281,7 +281,8 @@ void GlobalScheduler::PreemptThreads() {
                 UnloadThread(winner->GetProcessorID());
             }
             TransferToCore(winner->GetPriority(), core_id, winner);
-            current_thread = winner->GetPriority() <= current_thread->GetPriority() ? winner : current_thread;
+            current_thread =
+                winner->GetPriority() <= current_thread->GetPriority() ? winner : current_thread;
         }
 
         if (current_thread != nullptr && current_thread->GetPriority() > priority) {
