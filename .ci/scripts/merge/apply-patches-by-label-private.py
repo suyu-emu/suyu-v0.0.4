@@ -5,7 +5,7 @@ import requests, sys, json, urllib3.request, shutil, subprocess, os, traceback
 
 org = os.getenv("PrivateMergeOrg".upper(), "yuzu-emu")
 repo = os.getenv("PrivateMergeRepo".upper(), "yuzu-private")
-tagline = os.getenv("MergeTaglinePrivate".upper(), "")
+tagline = sys.argv[3]
 user = sys.argv[1]
 
 http = urllib3.PoolManager()
