@@ -39,10 +39,10 @@ constexpr ResultCode ERROR_GENERAL_BCAT_FAILURE{ErrorModule::BCAT, 1};
 constexpr char BOXCAT_HOSTNAME[] = "api.yuzu-emu.org";
 
 // Formatted using fmt with arg[0] = hex title id
-constexpr char BOXCAT_PATHNAME_DATA[] = "/boxcat/titles/{:016X}/data";
-constexpr char BOXCAT_PATHNAME_LAUNCHPARAM[] = "/boxcat/titles/{:016X}/launchparam";
+constexpr char BOXCAT_PATHNAME_DATA[] = "/game-assets/{:016X}/boxcat";
+constexpr char BOXCAT_PATHNAME_LAUNCHPARAM[] = "/game-assets/{:016X}/launchparam";
 
-constexpr char BOXCAT_PATHNAME_EVENTS[] = "/boxcat/events";
+constexpr char BOXCAT_PATHNAME_EVENTS[] = "/game-assets/boxcat/events";
 
 constexpr char BOXCAT_API_VERSION[] = "1";
 constexpr char BOXCAT_CLIENT_TYPE[] = "yuzu";
@@ -203,9 +203,9 @@ private:
         }
 
         httplib::Headers headers{
-            {std::string("Boxcat-Client-Version"), std::string(BOXCAT_API_VERSION)},
+            {std::string("Game-Assets-API-Version"), std::string(BOXCAT_API_VERSION)},
             {std::string("Boxcat-Client-Type"), std::string(BOXCAT_CLIENT_TYPE)},
-            {std::string("Boxcat-Build-Id"), fmt::format("{:016X}", build_id)},
+            {std::string("Game-Build-Id"), fmt::format("{:016X}", build_id)},
         };
 
         if (FileUtil::Exists(path)) {
@@ -444,7 +444,7 @@ Boxcat::StatusResult Boxcat::GetStatus(std::optional<std::string>& global,
                               static_cast<int>(TIMEOUT_SECONDS)};
 
     httplib::Headers headers{
-        {std::string("Boxcat-Client-Version"), std::string(BOXCAT_API_VERSION)},
+        {std::string("Game-Assets-API-Version"), std::string(BOXCAT_API_VERSION)},
         {std::string("Boxcat-Client-Type"), std::string(BOXCAT_CLIENT_TYPE)},
     };
 
