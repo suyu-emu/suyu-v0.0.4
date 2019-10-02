@@ -14,8 +14,8 @@ def check_individual(labels):
             return True
     return False
 
-try:
-    url = 'https://api.github.com/repos/yuzu-emu/yuzu/pulls'
+def do_page(page):
+    url = 'https://api.github.com/repos/yuzu-emu/yuzu/pulls?page=%s' % page
     response = requests.get(url)
     if (response.ok):
         j = json.loads(response.content)
@@ -26,5 +26,9 @@ try:
                 print(subprocess.check_output(["git", "fetch", "https://github.com/yuzu-emu/yuzu.git", "pull/%s/head:pr-%s" % (pn, pn), "-f"]))
                 print(subprocess.check_output(["git", "merge", "--squash", "pr-%s" % pn]))
                 print(subprocess.check_output(["git", "commit", "-m\"Merge %s PR %s\"" % (tagline, pn)]))
+
+try:
+    for i in range(1,4):
+        do_page(i)
 except:
     sys.exit(-1)
