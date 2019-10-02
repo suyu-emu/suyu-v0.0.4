@@ -19,6 +19,8 @@ def do_page(page):
     response = requests.get(url)
     if (response.ok):
         j = json.loads(response.content)
+        if j == []:
+            return
         for pr in j:
             if (check_individual(pr["labels"])):
                 pn = pr["number"]
@@ -28,7 +30,7 @@ def do_page(page):
                 print(subprocess.check_output(["git", "commit", "-m\"Merge %s PR %s\"" % (tagline, pn)]))
 
 try:
-    for i in range(1,4):
+    for i in range(1,30):
         do_page(i)
 except:
     sys.exit(-1)
