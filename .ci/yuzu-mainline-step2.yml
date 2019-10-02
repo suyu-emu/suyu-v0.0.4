@@ -15,9 +15,42 @@ stages:
   dependsOn: format
   displayName: 'build'
   jobs:
-  - template: ./templates/build-standard.yml
-    parameters:
-      cache: 'true'
+  - job: build
+    displayName: 'standard'
+    pool:
+      vmImage: ubuntu-latest
+    strategy:
+      maxParallel: 10
+      matrix:
+        linux:
+          BuildSuffix: 'linux'
+          ScriptFolder: 'linux'
+    steps:
+    - template: ./templates/sync-source.yml
+      parameters:
+        artifactSource: $(parameters.artifactSource)
+        needSubmodules: 'true'
+    - template: ./templates/build-single.yml
+      parameters:
+        artifactSource: 'false'
+        cache: 'true'
+- stage: build-win
+  dependsOn: format
+  displayName: 'build-windows'
+  jobs:
+  - job: build
+    displayName: 'msvc'
+    pool:
+      vmImage: vs2017-win2016
+    steps:
+    - template: ./templates/sync-source.yml
+      parameters:
+        artifactSource: $(parameters.artifactSource)
+        needSubmodules: 'true'
+    - template: ./templates/build-msvc.yml
+      parameters:
+        artifactSource: 'false'
+        cache: 'true'
 - stage: release
   displayName: 'Release'
   dependsOn: build
