@@ -11,5 +11,5 @@ steps:
     inputs:
       scriptSource: 'filePath'
       scriptPath: '.ci/scripts/merge/apply-patches-by-label.py'
-      arguments: '${{ parameters.matchLabel }} patches'
+      arguments: '${{ parameters.matchLabel }} Tagged patches'
       workingDirectory: '$(System.DefaultWorkingDirectory)'
