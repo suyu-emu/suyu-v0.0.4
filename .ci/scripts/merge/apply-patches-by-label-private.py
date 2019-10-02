@@ -1,41 +1,45 @@
 # Download all pull requests as patches that match a specific label
 # Usage: python download-patches-by-label.py <Label to Match> <Root Path Folder to DL to>
 
-import requests, sys, json, urllib3.request, shutil, subprocess, os, traceback
+import requests, sys, json, shutil, subprocess, os, traceback
 
-org = os.getenv("PrivateMergeOrg".upper(), "yuzu-emu")
-repo = os.getenv("PrivateMergeRepo".upper(), "yuzu-private")
+org = os.getenv("PRIVATEMERGEORG", "yuzu-emu")
+repo = os.getenv("PRIVATEMERGEREPO", "yuzu-private")
 tagline = sys.argv[3]
 user = sys.argv[1]
 
-http = urllib3.PoolManager()
 dl_list = {}
+
+TAG_NAME = sys.argv[2]
 
 def check_individual(repo_id, pr_id):
     url = 'https://%sdev.azure.com/%s/%s/_apis/git/repositories/%s/pullRequests/%s/labels?api-version=5.1-preview.1' % (user, org, repo, repo_id, pr_id)
     response = requests.get(url)
     if (response.ok):
-        j = json.loads(response.content)
-        for tg in j['value']:
-            if (tg['name'] == sys.argv[2]):
-                return True
+        try:
+            js = response.json()
+            return any(tag.get('name') == TAG_NAME for tag in js['value'])
+        except:
+            return False
     return False
 
-try:
+def merge_pr(pn, ref):
+    print("Matched PR# %s" % pn)
+    print(subprocess.check_output(["git", "fetch", "https://%sdev.azure.com/%s/_git/%s" % (user, org, repo), ref, "-f"]))
+    print(subprocess.check_output(["git", "merge", "--squash", 'origin/' + ref.replace('refs/heads/','')]))
+    print(subprocess.check_output(["git", "commit", "-m\"Merge %s PR %s\"" % (tagline, pn)]))
+
+def main():
     url = 'https://%sdev.azure.com/%s/%s/_apis/git/pullrequests?api-version=5.1' % (user, org, repo)
     response = requests.get(url)
     if (response.ok):
-        j = json.loads(response.content)
-        for pr in j["value"]:
-            repo_id = pr['repository']['id']
-            pr_id = pr['pullRequestId']
-            if (check_individual(repo_id, pr_id)):
-                pn = pr_id
-                ref  = pr['sourceRefName']
-                print("Matched PR# %s" % pn)
-                print(subprocess.check_output(["git", "fetch", "https://%sdev.azure.com/%s/_git/%s" % (user, org, repo), ref, "-f"]))
-                print(subprocess.check_output(["git", "merge", "--squash", 'origin/' + ref.replace('refs/heads/','')]))
-                print(subprocess.check_output(["git", "commit", "-m\"Merge %s PR %s\"" % (tagline, pn)]))
-except:
-    traceback.print_exc(file=sys.stdout)
-    sys.exit(-1)
+        js = response.json()
+        tagged_prs = filter(lambda pr: check_individual(pr['repository']['id'], pr['pullRequestId']), js['value'])
+        map(lambda pr: merge_pr(pr['pullRequestId'], pr['sourceRefName']), tagged_prs)
+
+if __name__ == '__main__':
+    try:
+        main()
+    except:
+        traceback.print_exc(file=sys.stdout)
+        sys.exit(-1)
