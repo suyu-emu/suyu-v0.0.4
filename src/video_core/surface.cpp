@@ -350,6 +350,16 @@ PixelFormat PixelFormatFromTextureFormat(Tegra::Texture::TextureFormat format,
         return is_srgb ? PixelFormat::ASTC_2D_8X5_SRGB : PixelFormat::ASTC_2D_8X5;
     case Tegra::Texture::TextureFormat::ASTC_2D_10X8:
         return is_srgb ? PixelFormat::ASTC_2D_10X8_SRGB : PixelFormat::ASTC_2D_10X8;
+    case Tegra::Texture::TextureFormat::ASTC_2D_6X6:
+        return is_srgb ? PixelFormat::ASTC_2D_6X6_SRGB : PixelFormat::ASTC_2D_6X6;
+    case Tegra::Texture::TextureFormat::ASTC_2D_10X10:
+        return is_srgb ? PixelFormat::ASTC_2D_10X10_SRGB : PixelFormat::ASTC_2D_10X10;
+    case Tegra::Texture::TextureFormat::ASTC_2D_12X12:
+        return is_srgb ? PixelFormat::ASTC_2D_12X12_SRGB : PixelFormat::ASTC_2D_12X12;
+    case Tegra::Texture::TextureFormat::ASTC_2D_8X6:
+        return is_srgb ? PixelFormat::ASTC_2D_8X6_SRGB : PixelFormat::ASTC_2D_8X6;
+    case Tegra::Texture::TextureFormat::ASTC_2D_6X5:
+        return is_srgb ? PixelFormat::ASTC_2D_6X5_SRGB : PixelFormat::ASTC_2D_6X5;
     case Tegra::Texture::TextureFormat::R16_G16:
         switch (component_type) {
         case Tegra::Texture::ComponentType::FLOAT:
@@ -510,6 +520,16 @@ bool IsPixelFormatASTC(PixelFormat format) {
     case PixelFormat::ASTC_2D_8X5_SRGB:
     case PixelFormat::ASTC_2D_10X8:
     case PixelFormat::ASTC_2D_10X8_SRGB:
+    case PixelFormat::ASTC_2D_6X6:
+    case PixelFormat::ASTC_2D_6X6_SRGB:
+    case PixelFormat::ASTC_2D_10X10:
+    case PixelFormat::ASTC_2D_10X10_SRGB:
+    case PixelFormat::ASTC_2D_12X12:
+    case PixelFormat::ASTC_2D_12X12_SRGB:
+    case PixelFormat::ASTC_2D_8X6:
+    case PixelFormat::ASTC_2D_8X6_SRGB:
+    case PixelFormat::ASTC_2D_6X5:
+    case PixelFormat::ASTC_2D_6X5_SRGB:
         return true;
     default:
         return false;
@@ -530,6 +550,11 @@ bool IsPixelFormatSRGB(PixelFormat format) {
     case PixelFormat::ASTC_2D_5X4_SRGB:
     case PixelFormat::ASTC_2D_5X5_SRGB:
     case PixelFormat::ASTC_2D_10X8_SRGB:
+    case PixelFormat::ASTC_2D_6X6_SRGB:
+    case PixelFormat::ASTC_2D_10X10_SRGB:
+    case PixelFormat::ASTC_2D_12X12_SRGB:
+    case PixelFormat::ASTC_2D_8X6_SRGB:
+    case PixelFormat::ASTC_2D_6X5_SRGB:
         return true;
     default:
         return false;
