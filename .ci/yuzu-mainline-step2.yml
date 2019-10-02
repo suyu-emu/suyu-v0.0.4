@@ -53,7 +53,9 @@ stages:
         cache: 'true'
 - stage: release
   displayName: 'Release'
-  dependsOn: build
+  dependsOn:
+  - build
+  - build_win
   jobs:
   - job: github
     displayName: 'GitHub Release'
