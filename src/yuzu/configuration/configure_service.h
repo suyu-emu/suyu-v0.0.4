@@ -30,5 +30,5 @@ private:
     void OnUpdateBCATEmptyLabel(std::pair<QString, QString> string);
 
     std::unique_ptr<Ui::ConfigureService> ui;
-    QFutureWatcher<std::pair<QString, QString>> watcher;
+    QFutureWatcher<std::pair<QString, QString>> watcher{this};
 };
