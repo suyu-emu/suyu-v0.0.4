@@ -15,14 +15,16 @@ stages:
   dependsOn: format
   displayName: 'build'
   jobs:
-  - template: ./templates/build-standard.yml
-    parameters:
-      cache: 'true'
-- stage: release
-  displayName: 'release'
-  dependsOn: build
-  jobs:
-  - job: azure
-    displayName: 'azure'
+  - job: build
+    displayName: 'windows-msvc'
+    pool:
+      vmImage: vs2017-win2016
     steps:
-    - template: ./templates/release-universal.yml
+    - template: ./templates/sync-source.yml
+      parameters:
+        artifactSource: $(parameters.artifactSource)
+        needSubmodules: 'true'
+    - template: ./templates/build-msvc.yml
+      parameters:
+        artifactSource: 'false'
+        cache: $(parameters.cache)

@@ -3,8 +3,6 @@ parameters:
   cache: 'false'
 
 steps:
-- script: export DATE=`date '+%Y.%m.%d'` && export CI=true && AZURE_REPO_NAME=yuzu-emu/yuzu-$(BuildName) && AZURE_REPO_TAG=$(BuildName)-$DATE
-  displayName: 'Determine Build Name'
 - task: DockerInstaller@0
   displayName: 'Prepare Environment'
   inputs:
@@ -15,7 +13,7 @@ steps:
     key: yuzu-v1-$(BuildName)-$(BuildSuffix)-$(CacheSuffix)
     path: $(System.DefaultWorkingDirectory)/ccache
     cacheHitVar: CACHE_RESTORED
-- script: chmod a+x ./.ci/scripts/$(ScriptFolder)/exec.sh && ./.ci/scripts/$(ScriptFolder)/exec.sh
+- script: export DATE=`date '+%Y.%m.%d'` && export CI=true && export AZURE_REPO_NAME=yuzu-emu/yuzu-$(BuildName) && export AZURE_REPO_TAG=$(BuildName)-$DATE && chmod a+x ./.ci/scripts/$(ScriptFolder)/exec.sh && ./.ci/scripts/$(ScriptFolder)/exec.sh
   displayName: 'Build'
 - script: chmod a+x ./.ci/scripts/$(ScriptFolder)/upload.sh && RELEASE_NAME=$(BuildName) ./.ci/scripts/$(ScriptFolder)/upload.sh
   displayName: 'Package Artifacts'
