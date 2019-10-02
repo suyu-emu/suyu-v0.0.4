@@ -34,7 +34,7 @@ stages:
       parameters:
         artifactSource: 'false'
         cache: 'true'
-- stage: build-win
+- stage: build_win
   dependsOn: format
   displayName: 'build-windows'
   jobs:
