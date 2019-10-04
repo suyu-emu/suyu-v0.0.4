@@ -20,7 +20,7 @@
 
 namespace Service::HID {
 constexpr s32 HID_JOYSTICK_MAX = 0x7fff;
-constexpr s32 HID_JOYSTICK_MIN = -0x7fff;
+[[maybe_unused]] constexpr s32 HID_JOYSTICK_MIN = -0x7fff;
 constexpr std::size_t NPAD_OFFSET = 0x9A00;
 constexpr u32 BATTERY_FULL = 2;
 constexpr u32 MAX_NPAD_ID = 7;
@@ -105,6 +105,8 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
     controller.joy_styles.raw = 0; // Zero out
     controller.device_type.raw = 0;
     switch (controller_type) {
+    case NPadControllerType::None:
+        UNREACHABLE();
     case NPadControllerType::Handheld:
         controller.joy_styles.handheld.Assign(1);
         controller.device_type.handheld.Assign(1);
@@ -239,7 +241,7 @@ void Controller_NPad::OnRelease() {}
 
 void Controller_NPad::RequestPadStateUpdate(u32 npad_id) {
     const auto controller_idx = NPadIdToIndex(npad_id);
-    const auto controller_type = connected_controllers[controller_idx].type;
+    [[maybe_unused]] const auto controller_type = connected_controllers[controller_idx].type;
     if (!connected_controllers[controller_idx].is_connected) {
         return;
     }
@@ -346,6 +348,8 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
         libnx_entry.connection_status.raw = 0;
 
         switch (controller_type) {
+        case NPadControllerType::None:
+            UNREACHABLE();
         case NPadControllerType::Handheld:
             handheld_entry.connection_status.raw = 0;
             handheld_entry.connection_status.IsWired.Assign(1);

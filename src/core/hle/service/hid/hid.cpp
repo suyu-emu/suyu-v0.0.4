@@ -38,8 +38,10 @@ namespace Service::HID {
 // Updating period for each HID device.
 // TODO(ogniK): Find actual polling rate of hid
 constexpr s64 pad_update_ticks = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 66);
-constexpr s64 accelerometer_update_ticks = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 100);
-constexpr s64 gyroscope_update_ticks = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 100);
+[[maybe_unused]] constexpr s64 accelerometer_update_ticks =
+    static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 100);
+[[maybe_unused]] constexpr s64 gyroscope_update_ticks =
+    static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 100);
 constexpr std::size_t SHARED_MEMORY_SIZE = 0x40000;
 
 IAppletResource::IAppletResource(Core::System& system)
