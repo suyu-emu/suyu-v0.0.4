@@ -40,9 +40,10 @@ u32 nvhost_ctrl_gpu::ioctl(Ioctl command, const std::vector<u8>& input,
         return FlushL2(input, output);
     case IoctlCommand::IocGetGpuTime:
         return GetGpuTime(input, output);
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented ioctl");
+        return 0;
     }
-    UNIMPLEMENTED_MSG("Unimplemented ioctl");
-    return 0;
 }
 
 u32 nvhost_ctrl_gpu::GetCharacteristics(const std::vector<u8>& input, std::vector<u8>& output,
