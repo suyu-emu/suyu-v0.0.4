@@ -77,11 +77,11 @@ if (ENABLE_VULKAN)
     add_subdirectory(sirit)
 endif()
 
+# zlib
+add_subdirectory(zlib EXCLUDE_FROM_ALL)
+
 # libzip
 add_subdirectory(libzip)
-
-# zlib
-add_subdirectory(zlib)
 
 if (ENABLE_WEB_SERVICE)
     # LibreSSL
