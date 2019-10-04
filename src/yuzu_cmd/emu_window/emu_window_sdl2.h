@@ -60,4 +60,7 @@ protected:
 
     /// Internal SDL2 render window
     SDL_Window* render_window;
+
+    /// Keeps track of how often to update the title bar during gameplay
+    u32 last_time = 0;
 };
