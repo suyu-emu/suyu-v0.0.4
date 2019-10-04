@@ -147,6 +147,7 @@ private:
     void GetAccumulatedSuspendedTickValue(Kernel::HLERequestContext& ctx);
     void GetAccumulatedSuspendedTickChangedEvent(Kernel::HLERequestContext& ctx);
 
+    Core::System& system;
     std::shared_ptr<NVFlinger::NVFlinger> nvflinger;
     Kernel::EventPair launchable_event;
     Kernel::EventPair accumulated_suspended_tick_changed_event;
@@ -154,8 +155,6 @@ private:
     u32 idle_time_detection_extension = 0;
     u64 num_fatal_sections_entered = 0;
     bool is_auto_sleep_disabled = false;
-
-    Core::System& system;
 };
 
 class ICommonStateGetter final : public ServiceFramework<ICommonStateGetter> {
