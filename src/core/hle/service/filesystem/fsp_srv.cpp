@@ -803,7 +803,7 @@ void FSP_SRV::CreateSaveDataFileSystem(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
     auto save_struct = rp.PopRaw<FileSys::SaveDataDescriptor>();
-    auto save_create_struct = rp.PopRaw<std::array<u8, 0x40>>();
+    [[maybe_unused]] auto save_create_struct = rp.PopRaw<std::array<u8, 0x40>>();
     u128 uid = rp.PopRaw<u128>();
 
     LOG_DEBUG(Service_FS, "called save_struct = {}, uid = {:016X}{:016X}", save_struct.DebugInfo(),
