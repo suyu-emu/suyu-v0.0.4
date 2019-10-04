@@ -567,7 +567,7 @@ std::unique_ptr<Backend> CreateBackendFromSettings(DirectoryGetter getter) {
 
 Module::Interface::Interface(std::shared_ptr<Module> module, FileSystem::FileSystemController& fsc,
                              const char* name)
-    : ServiceFramework(name), module(std::move(module)), fsc(fsc),
+    : ServiceFramework(name), fsc(fsc), module(std::move(module)),
       backend(CreateBackendFromSettings([&fsc](u64 tid) { return fsc.GetBCATDirectory(tid); })) {}
 
 Module::Interface::~Interface() = default;

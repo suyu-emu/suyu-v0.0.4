@@ -88,7 +88,7 @@ std::ostream& operator<<(std::ostream& os, DownloadResult result) {
 
 constexpr u32 PORT = 443;
 constexpr u32 TIMEOUT_SECONDS = 30;
-constexpr u64 VFS_COPY_BLOCK_SIZE = 1ull << 24; // 4MB
+[[maybe_unused]] constexpr u64 VFS_COPY_BLOCK_SIZE = 1ULL << 24; // 4MB
 
 namespace {
 
