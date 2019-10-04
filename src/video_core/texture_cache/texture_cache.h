@@ -785,14 +785,14 @@ private:
      **/
     void DeduceBestBlit(SurfaceParams& src_params, SurfaceParams& dst_params,
                         const GPUVAddr src_gpu_addr, const GPUVAddr dst_gpu_addr) {
-        auto deduc_src = DeduceSurface(src_gpu_addr, src_params);
-        auto deduc_dst = DeduceSurface(src_gpu_addr, src_params);
-        if (deduc_src.Failed() || deduc_dst.Failed()) {
+        auto deduced_src = DeduceSurface(src_gpu_addr, src_params);
+        auto deduced_dst = DeduceSurface(src_gpu_addr, src_params);
+        if (deduced_src.Failed() || deduced_dst.Failed()) {
             return;
         }
 
-        const bool incomplete_src = deduc_src.Incomplete();
-        const bool incomplete_dst = deduc_dst.Incomplete();
+        const bool incomplete_src = deduced_src.Incomplete();
+        const bool incomplete_dst = deduced_dst.Incomplete();
 
         if (incomplete_src && incomplete_dst) {
             return;
@@ -800,16 +800,18 @@ private:
 
         const bool any_incomplete = incomplete_src || incomplete_dst;
 
-        if (!any_incomplete && !(deduc_src.IsDepth() && deduc_dst.IsDepth())) {
-            return;
-        }
+        if (!any_incomplete) {
+            if (!(deduced_src.IsDepth() && deduced_dst.IsDepth())) {
+                return;
+            }
+        } else {
+            if (incomplete_src && !(deduced_dst.IsDepth())) {
+                return;
+            }
 
-        if (incomplete_src && !(deduc_dst.IsDepth())) {
-            return;
-        }
-
-        if (incomplete_dst && !(deduc_src.IsDepth())) {
-            return;
+            if (incomplete_dst && !(deduced_src.IsDepth())) {
+                return;
+            }
         }
 
         const auto inherit_format = ([](SurfaceParams& to, TSurface from) {
@@ -820,14 +822,14 @@ private:
         });
         // Now we got the cases where one or both is Depth and the other is not known
         if (!incomplete_src) {
-            inherit_format(src_params, deduc_src.surface);
+            inherit_format(src_params, deduced_src.surface);
         } else {
-            inherit_format(src_params, deduc_dst.surface);
+            inherit_format(src_params, deduced_dst.surface);
         }
         if (!incomplete_dst) {
-            inherit_format(dst_params, deduc_dst.surface);
+            inherit_format(dst_params, deduced_dst.surface);
         } else {
-            inherit_format(dst_params, deduc_src.surface);
+            inherit_format(dst_params, deduced_src.surface);
         }
     }
 
