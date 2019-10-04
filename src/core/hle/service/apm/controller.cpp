@@ -13,7 +13,7 @@ constexpr PerformanceConfiguration DEFAULT_PERFORMANCE_CONFIGURATION =
     PerformanceConfiguration::Config7;
 
 Controller::Controller(Core::Timing::CoreTiming& core_timing)
-    : core_timing(core_timing), configs{
+    : core_timing{core_timing}, configs{
                                     {PerformanceMode::Handheld, DEFAULT_PERFORMANCE_CONFIGURATION},
                                     {PerformanceMode::Docked, DEFAULT_PERFORMANCE_CONFIGURATION},
                                 } {}
@@ -63,6 +63,7 @@ PerformanceConfiguration Controller::GetCurrentPerformanceConfiguration(Performa
 void Controller::SetClockSpeed(u32 mhz) {
     LOG_INFO(Service_APM, "called, mhz={:08X}", mhz);
     // TODO(DarkLordZach): Actually signal core_timing to change clock speed.
+    // TODO(Rodrigo): Remove [[maybe_unused]] when core_timing is used.
 }
 
 } // namespace Service::APM
