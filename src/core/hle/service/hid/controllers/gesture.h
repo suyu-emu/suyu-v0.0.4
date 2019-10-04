@@ -59,6 +59,5 @@ private:
         std::array<GestureState, 17> gesture_states;
     };
     SharedMemory shared_memory{};
-    Core::System& system;
 };
 } // namespace Service::HID
