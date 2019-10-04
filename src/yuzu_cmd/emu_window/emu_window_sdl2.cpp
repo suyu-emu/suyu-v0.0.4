@@ -6,6 +6,7 @@
 #include "common/logging/log.h"
 #include "common/scm_rev.h"
 #include "core/core.h"
+#include "core/perf_stats.h"
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
 #include "input_common/motion_emu.h"
