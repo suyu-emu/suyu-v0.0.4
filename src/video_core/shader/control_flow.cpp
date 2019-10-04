@@ -58,7 +58,7 @@ struct BlockInfo {
 struct CFGRebuildState {
     explicit CFGRebuildState(const ProgramCode& program_code, const std::size_t program_size,
                              const u32 start)
-        : program_code{program_code}, program_size{program_size}, start{start} {}
+        : start{start}, program_code{program_code}, program_size{program_size} {}
 
     u32 start{};
     std::vector<BlockInfo> block_info{};

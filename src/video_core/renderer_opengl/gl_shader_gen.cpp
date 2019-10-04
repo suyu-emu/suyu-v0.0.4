@@ -19,6 +19,8 @@ using VideoCommon::Shader::ShaderIR;
 static constexpr u32 PROGRAM_OFFSET = 10;
 static constexpr u32 COMPUTE_OFFSET = 0;
 
+static constexpr CompilerSettings settings{CompileDepth::NoFlowStack, true};
+
 ProgramResult GenerateVertexShader(const Device& device, const ShaderSetup& setup) {
     const std::string id = fmt::format("{:016x}", setup.program.unique_identifier);
 
@@ -32,9 +34,6 @@ layout (std140, binding = EMULATION_UBO_BINDING) uniform vs_config {
 };
 
 )";
-
-    CompilerSettings settings;
-    settings.depth = CompileDepth::NoFlowStack;
 
     const ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET, setup.program.size_a, settings);
     const auto stage = setup.IsDualProgram() ? ProgramType::VertexA : ProgramType::VertexB;
@@ -86,9 +85,6 @@ layout (std140, binding = EMULATION_UBO_BINDING) uniform gs_config {
 
 )";
 
-    CompilerSettings settings;
-    settings.depth = CompileDepth::NoFlowStack;
-
     const ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET, setup.program.size_a, settings);
     ProgramResult program = Decompile(device, program_ir, ProgramType::Geometry, "geometry");
     out += program.first;
@@ -123,8 +119,6 @@ layout (std140, binding = EMULATION_UBO_BINDING) uniform fs_config {
 };
 
 )";
-    CompilerSettings settings;
-    settings.depth = CompileDepth::NoFlowStack;
 
     const ShaderIR program_ir(setup.program.code, PROGRAM_OFFSET, setup.program.size_a, settings);
     ProgramResult program = Decompile(device, program_ir, ProgramType::Fragment, "fragment");
@@ -144,9 +138,6 @@ ProgramResult GenerateComputeShader(const Device& device, const ShaderSetup& set
 
     std::string out = "// Shader Unique Id: CS" + id + "\n\n";
     out += GetCommonDeclarations();
-
-    CompilerSettings settings;
-    settings.depth = CompileDepth::NoFlowStack;
 
     const ShaderIR program_ir(setup.program.code, COMPUTE_OFFSET, setup.program.size_a, settings);
     ProgramResult program = Decompile(device, program_ir, ProgramType::Compute, "compute");

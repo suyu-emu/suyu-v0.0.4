@@ -90,7 +90,7 @@ public:
         if (node->IsBlockEncoded()) {
             auto block = std::get_if<ASTBlockEncoded>(node->GetInnerData());
             NodeBlock bb = ir.DecodeRange(block->start, block->end);
-            node->TransformBlockEncoded(bb);
+            node->TransformBlockEncoded(std::move(bb));
         }
     }
 

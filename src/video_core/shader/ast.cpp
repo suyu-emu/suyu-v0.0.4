@@ -376,7 +376,7 @@ void ASTManager::Init() {
     false_condition = MakeExpr<ExprBoolean>(false);
 }
 
-ASTManager::ASTManager(ASTManager&& other)
+ASTManager::ASTManager(ASTManager&& other) noexcept
     : labels_map(std::move(other.labels_map)), labels_count{other.labels_count},
       gotos(std::move(other.gotos)), labels(std::move(other.labels)), variables{other.variables},
       program{other.program}, main_node{other.main_node}, false_condition{other.false_condition},
@@ -384,7 +384,7 @@ ASTManager::ASTManager(ASTManager&& other)
     other.main_node.reset();
 }
 
-ASTManager& ASTManager::operator=(ASTManager&& other) {
+ASTManager& ASTManager::operator=(ASTManager&& other) noexcept {
     full_decompile = other.full_decompile;
     labels_map = std::move(other.labels_map);
     labels_count = other.labels_count;
@@ -490,7 +490,7 @@ void ASTManager::Decompile() {
         it++;
     }
     if (full_decompile) {
-        for (const ASTNode label : labels) {
+        for (const ASTNode& label : labels) {
             auto& manager = label->GetManager();
             manager.Remove(label);
         }
@@ -500,12 +500,12 @@ void ASTManager::Decompile() {
         while (it != labels.end()) {
             bool can_remove = true;
             ASTNode label = *it;
-            for (const ASTNode goto_node : gotos) {
+            for (const ASTNode& goto_node : gotos) {
                 const auto label_index = goto_node->GetGotoLabel();
                 if (!label_index) {
                     return;
                 }
-                ASTNode glabel = labels[*label_index];
+                ASTNode& glabel = labels[*label_index];
                 if (glabel == label) {
                     can_remove = false;
                     break;
@@ -543,40 +543,6 @@ bool ASTManager::IsBackwardsJump(ASTNode goto_node, ASTNode label_node) const {
     return false;
 }
 
-ASTNode CommonParent(ASTNode first, ASTNode second) {
-    if (first->GetParent() == second->GetParent()) {
-        return first->GetParent();
-    }
-    const u32 first_level = first->GetLevel();
-    const u32 second_level = second->GetLevel();
-    u32 min_level;
-    u32 max_level;
-    ASTNode max;
-    ASTNode min;
-    if (first_level > second_level) {
-        min_level = second_level;
-        min = second;
-        max_level = first_level;
-        max = first;
-    } else {
-        min_level = first_level;
-        min = first;
-        max_level = second_level;
-        max = second;
-    }
-
-    while (max_level > min_level) {
-        max_level--;
-        max = max->GetParent();
-    }
-
-    while (min->GetParent() != max->GetParent()) {
-        min = min->GetParent();
-        max = max->GetParent();
-    }
-    return min->GetParent();
-}
-
 bool ASTManager::IndirectlyRelated(ASTNode first, ASTNode second) {
     return !(first->GetParent() == second->GetParent() || DirectlyRelated(first, second));
 }
@@ -608,7 +574,7 @@ bool ASTManager::DirectlyRelated(ASTNode first, ASTNode second) {
         max = max->GetParent();
     }
 
-    return (min->GetParent() == max->GetParent());
+    return min->GetParent() == max->GetParent();
 }
 
 void ASTManager::ShowCurrentState(std::string state) {
@@ -617,7 +583,7 @@ void ASTManager::ShowCurrentState(std::string state) {
 }
 
 void ASTManager::SanityCheck() {
-    for (auto label : labels) {
+    for (auto& label : labels) {
         if (!label->GetParent()) {
             LOG_CRITICAL(HW_GPU, "Sanity Check Failed");
         }

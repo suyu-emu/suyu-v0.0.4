@@ -2271,7 +2271,11 @@ private:
     ShaderWriter code;
 };
 
-const std::string flow_var = "flow_var_";
+static constexpr std::string_view flow_var = "flow_var_";
+
+std::string GetFlowVariable(u32 i) {
+    return fmt::format("{}{}", flow_var, i);
+}
 
 class ExprDecompiler {
 public:
@@ -2326,7 +2330,7 @@ public:
     }
 
     void operator()(VideoCommon::Shader::ExprVar& expr) {
-        inner += flow_var + std::to_string(expr.var_index);
+        inner += GetFlowVariable(expr.var_index);
     }
 
     void operator()(VideoCommon::Shader::ExprBoolean& expr) {
@@ -2391,7 +2395,7 @@ public:
     void operator()(VideoCommon::Shader::ASTVarSet& ast) {
         ExprDecompiler expr_parser{decomp};
         std::visit(expr_parser, *ast.condition);
-        decomp.code.AddLine("{}{} = {};", flow_var, ast.index, expr_parser.GetResult());
+        decomp.code.AddLine("{} = {};", GetFlowVariable(ast.index), expr_parser.GetResult());
     }
 
     void operator()(VideoCommon::Shader::ASTLabel& ast) {
@@ -2462,7 +2466,7 @@ private:
 void GLSLDecompiler::DecompileAST() {
     const u32 num_flow_variables = ir.GetASTNumVariables();
     for (u32 i = 0; i < num_flow_variables; i++) {
-        code.AddLine("bool {}{} = false;", flow_var, i);
+        code.AddLine("bool {} = false;", GetFlowVariable(i));
     }
     ASTDecompiler decompiler{*this};
     VideoCommon::Shader::ASTNode program = ir.GetASTProgram();

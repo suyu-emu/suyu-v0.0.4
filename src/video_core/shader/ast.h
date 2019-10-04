@@ -97,7 +97,7 @@ public:
 
 class ASTBlockDecoded {
 public:
-    explicit ASTBlockDecoded(NodeBlock& new_nodes) : nodes(std::move(new_nodes)) {}
+    explicit ASTBlockDecoded(NodeBlock&& new_nodes) : nodes(std::move(new_nodes)) {}
     NodeBlock nodes;
 };
 
@@ -255,8 +255,8 @@ public:
         return std::holds_alternative<ASTBlockEncoded>(data);
     }
 
-    void TransformBlockEncoded(NodeBlock& nodes) {
-        data = ASTBlockDecoded(nodes);
+    void TransformBlockEncoded(NodeBlock&& nodes) {
+        data = ASTBlockDecoded(std::move(nodes));
     }
 
     bool IsLoop() const {
@@ -304,8 +304,8 @@ public:
     ASTManager(const ASTManager& o) = delete;
     ASTManager& operator=(const ASTManager& other) = delete;
 
-    ASTManager(ASTManager&& other);
-    ASTManager& operator=(ASTManager&& other);
+    ASTManager(ASTManager&& other) noexcept;
+    ASTManager& operator=(ASTManager&& other) noexcept;
 
     void Init();
 
@@ -361,8 +361,6 @@ public:
 
 private:
     bool IsBackwardsJump(ASTNode goto_node, ASTNode label_node) const;
-
-    ASTNode CommonParent(ASTNode first, ASTNode second);
 
     bool IndirectlyRelated(ASTNode first, ASTNode second);
 
