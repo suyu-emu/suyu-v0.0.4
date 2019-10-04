@@ -326,10 +326,10 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                 }
             } else {
                 std::vector<u8> icon;
-                const auto res1 = loader->ReadIcon(icon);
+                [[maybe_unused]] const auto res1 = loader->ReadIcon(icon);
 
                 std::string name = " ";
-                const auto res3 = loader->ReadTitle(name);
+                [[maybe_unused]] const auto res3 = loader->ReadTitle(name);
 
                 const FileSys::PatchManager patch{program_id};
 
@@ -354,20 +354,20 @@ void GameListWorker::run() {
     for (UISettings::GameDir& game_dir : game_dirs) {
         if (game_dir.path == QStringLiteral("SDMC")) {
             auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SdmcDir);
-            emit DirEntryReady({game_list_dir});
+            emit DirEntryReady(game_list_dir);
             AddTitlesToGameList(game_list_dir);
         } else if (game_dir.path == QStringLiteral("UserNAND")) {
             auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::UserNandDir);
-            emit DirEntryReady({game_list_dir});
+            emit DirEntryReady(game_list_dir);
             AddTitlesToGameList(game_list_dir);
         } else if (game_dir.path == QStringLiteral("SysNAND")) {
             auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SysNandDir);
-            emit DirEntryReady({game_list_dir});
+            emit DirEntryReady(game_list_dir);
             AddTitlesToGameList(game_list_dir);
         } else {
             watch_list.append(game_dir.path);
             auto* const game_list_dir = new GameListDir(game_dir);
-            emit DirEntryReady({game_list_dir});
+            emit DirEntryReady(game_list_dir);
             provider->ClearAllEntries();
             ScanFileSystem(ScanTarget::FillManualContentProvider, game_dir.path.toStdString(), 2,
                            game_list_dir);
