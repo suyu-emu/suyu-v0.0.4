@@ -81,7 +81,7 @@ endif()
 add_subdirectory(zlib EXCLUDE_FROM_ALL)
 
 # libzip
-add_subdirectory(libzip)
+add_subdirectory(libzip EXCLUDE_FROM_ALL)
 
 if (ENABLE_WEB_SERVICE)
     # LibreSSL
