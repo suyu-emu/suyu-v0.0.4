@@ -31,6 +31,7 @@ public:
     explicit ExprAnd(Expr a, Expr b) : operand1{std::move(a)}, operand2{std::move(b)} {}
 
     bool operator==(const ExprAnd& b) const;
+    bool operator!=(const ExprAnd& b) const;
 
     Expr operand1;
     Expr operand2;
@@ -41,6 +42,7 @@ public:
     explicit ExprOr(Expr a, Expr b) : operand1{std::move(a)}, operand2{std::move(b)} {}
 
     bool operator==(const ExprOr& b) const;
+    bool operator!=(const ExprOr& b) const;
 
     Expr operand1;
     Expr operand2;
@@ -51,6 +53,7 @@ public:
     explicit ExprNot(Expr a) : operand1{std::move(a)} {}
 
     bool operator==(const ExprNot& b) const;
+    bool operator!=(const ExprNot& b) const;
 
     Expr operand1;
 };
@@ -61,6 +64,10 @@ public:
 
     bool operator==(const ExprVar& b) const {
         return var_index == b.var_index;
+    }
+
+    bool operator!=(const ExprVar& b) const {
+        return !operator==(b);
     }
 
     u32 var_index;
@@ -74,6 +81,10 @@ public:
         return predicate == b.predicate;
     }
 
+    bool operator!=(const ExprPredicate& b) const {
+        return !operator==(b);
+    }
+
     u32 predicate;
 };
 
@@ -85,6 +96,10 @@ public:
         return cc == b.cc;
     }
 
+    bool operator!=(const ExprCondCode& b) const {
+        return !operator==(b);
+    }
+
     ConditionCode cc;
 };
 
@@ -94,6 +109,10 @@ public:
 
     bool operator==(const ExprBoolean& b) const {
         return value == b.value;
+    }
+
+    bool operator!=(const ExprBoolean& b) const {
+        return !operator==(b);
     }
 
     bool value;

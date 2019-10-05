@@ -22,12 +22,24 @@ bool ExprAnd::operator==(const ExprAnd& b) const {
     return (*operand1 == *b.operand1) && (*operand2 == *b.operand2);
 }
 
+bool ExprAnd::operator!=(const ExprAnd& b) const {
+    return !operator==(b);
+}
+
 bool ExprOr::operator==(const ExprOr& b) const {
     return (*operand1 == *b.operand1) && (*operand2 == *b.operand2);
 }
 
+bool ExprOr::operator!=(const ExprOr& b) const {
+    return !operator==(b);
+}
+
 bool ExprNot::operator==(const ExprNot& b) const {
-    return (*operand1 == *b.operand1);
+    return *operand1 == *b.operand1;
+}
+
+bool ExprNot::operator!=(const ExprNot& b) const {
+    return !operator==(b);
 }
 
 Expr MakeExprNot(Expr first) {
