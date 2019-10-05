@@ -340,20 +340,20 @@ public:
 
     bool IsFullyDecompiled() const {
         if (full_decompile) {
-            return gotos.size() == 0;
-        } else {
-            for (ASTNode goto_node : gotos) {
-                auto label_index = goto_node->GetGotoLabel();
-                if (!label_index) {
-                    return false;
-                }
-                ASTNode glabel = labels[*label_index];
-                if (IsBackwardsJump(goto_node, glabel)) {
-                    return false;
-                }
-            }
-            return true;
+            return gotos.empty();
         }
+
+        for (ASTNode goto_node : gotos) {
+            auto label_index = goto_node->GetGotoLabel();
+            if (!label_index) {
+                return false;
+            }
+            ASTNode glabel = labels[*label_index];
+            if (IsBackwardsJump(goto_node, glabel)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     ASTNode GetProgram() const {
