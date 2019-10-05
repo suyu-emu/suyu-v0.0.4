@@ -185,9 +185,7 @@ void ASTZipper::Remove(const ASTNode node) {
 
 class ExprPrinter final {
 public:
-    ExprPrinter() = default;
-
-    void operator()(ExprAnd const& expr) {
+    void operator()(const ExprAnd& expr) {
         inner += "( ";
         std::visit(*this, *expr.operand1);
         inner += " && ";
@@ -195,7 +193,7 @@ public:
         inner += ')';
     }
 
-    void operator()(ExprOr const& expr) {
+    void operator()(const ExprOr& expr) {
         inner += "( ";
         std::visit(*this, *expr.operand1);
         inner += " || ";
@@ -203,29 +201,29 @@ public:
         inner += ')';
     }
 
-    void operator()(ExprNot const& expr) {
+    void operator()(const ExprNot& expr) {
         inner += "!";
         std::visit(*this, *expr.operand1);
     }
 
-    void operator()(ExprPredicate const& expr) {
+    void operator()(const ExprPredicate& expr) {
         inner += "P" + std::to_string(expr.predicate);
     }
 
-    void operator()(ExprCondCode const& expr) {
+    void operator()(const ExprCondCode& expr) {
         u32 cc = static_cast<u32>(expr.cc);
         inner += "CC" + std::to_string(cc);
     }
 
-    void operator()(ExprVar const& expr) {
+    void operator()(const ExprVar& expr) {
         inner += "V" + std::to_string(expr.var_index);
     }
 
-    void operator()(ExprBoolean const& expr) {
+    void operator()(const ExprBoolean& expr) {
         inner += expr.value ? "true" : "false";
     }
 
-    std::string& GetResult() {
+    const std::string& GetResult() const {
         return inner;
     }
 
@@ -234,9 +232,7 @@ public:
 
 class ASTPrinter {
 public:
-    ASTPrinter() = default;
-
-    void operator()(ASTProgram& ast) {
+    void operator()(const ASTProgram& ast) {
         scope++;
         inner += "program {\n";
         ASTNode current = ast.nodes.GetFirst();
@@ -248,7 +244,7 @@ public:
         scope--;
     }
 
-    void operator()(ASTIfThen& ast) {
+    void operator()(const ASTIfThen& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
         inner += Ident() + "if (" + expr_parser.GetResult() + ") {\n";
@@ -262,7 +258,7 @@ public:
         inner += Ident() + "}\n";
     }
 
-    void operator()(ASTIfElse& ast) {
+    void operator()(const ASTIfElse& ast) {
         inner += Ident() + "else {\n";
         scope++;
         ASTNode current = ast.nodes.GetFirst();
@@ -274,34 +270,34 @@ public:
         inner += Ident() + "}\n";
     }
 
-    void operator()(ASTBlockEncoded& ast) {
+    void operator()(const ASTBlockEncoded& ast) {
         inner += Ident() + "Block(" + std::to_string(ast.start) + ", " + std::to_string(ast.end) +
                  ");\n";
     }
 
-    void operator()(ASTBlockDecoded& ast) {
+    void operator()(const ASTBlockDecoded& ast) {
         inner += Ident() + "Block;\n";
     }
 
-    void operator()(ASTVarSet& ast) {
+    void operator()(const ASTVarSet& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
         inner +=
             Ident() + "V" + std::to_string(ast.index) + " := " + expr_parser.GetResult() + ";\n";
     }
 
-    void operator()(ASTLabel& ast) {
+    void operator()(const ASTLabel& ast) {
         inner += "Label_" + std::to_string(ast.index) + ":\n";
     }
 
-    void operator()(ASTGoto& ast) {
+    void operator()(const ASTGoto& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
         inner += Ident() + "(" + expr_parser.GetResult() + ") -> goto Label_" +
                  std::to_string(ast.label) + ";\n";
     }
 
-    void operator()(ASTDoWhile& ast) {
+    void operator()(const ASTDoWhile& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
         inner += Ident() + "do {\n";
@@ -315,14 +311,14 @@ public:
         inner += Ident() + "} while (" + expr_parser.GetResult() + ");\n";
     }
 
-    void operator()(ASTReturn& ast) {
+    void operator()(const ASTReturn& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
         inner += Ident() + "(" + expr_parser.GetResult() + ") -> " +
                  (ast.kills ? "discard" : "exit") + ";\n";
     }
 
-    void operator()(ASTBreak& ast) {
+    void operator()(const ASTBreak& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
         inner += Ident() + "(" + expr_parser.GetResult() + ") -> break;\n";
@@ -341,7 +337,7 @@ public:
         std::visit(*this, *node->GetInnerData());
     }
 
-    std::string& GetResult() {
+    const std::string& GetResult() const {
         return inner;
     }
 
@@ -696,7 +692,7 @@ class ASTClearer {
 public:
     ASTClearer() = default;
 
-    void operator()(ASTProgram& ast) {
+    void operator()(const ASTProgram& ast) {
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
             Visit(current);
@@ -704,7 +700,7 @@ public:
         }
     }
 
-    void operator()(ASTIfThen& ast) {
+    void operator()(const ASTIfThen& ast) {
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
             Visit(current);
@@ -712,7 +708,7 @@ public:
         }
     }
 
-    void operator()(ASTIfElse& ast) {
+    void operator()(const ASTIfElse& ast) {
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
             Visit(current);
@@ -720,19 +716,19 @@ public:
         }
     }
 
-    void operator()(ASTBlockEncoded& ast) {}
+    void operator()([[maybe_unused]] const ASTBlockEncoded& ast) {}
 
     void operator()(ASTBlockDecoded& ast) {
         ast.nodes.clear();
     }
 
-    void operator()(ASTVarSet& ast) {}
+    void operator()([[maybe_unused]] const ASTVarSet& ast) {}
 
-    void operator()(ASTLabel& ast) {}
+    void operator()([[maybe_unused]] const ASTLabel& ast) {}
 
-    void operator()(ASTGoto& ast) {}
+    void operator()([[maybe_unused]] const ASTGoto& ast) {}
 
-    void operator()(ASTDoWhile& ast) {
+    void operator()(const ASTDoWhile& ast) {
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
             Visit(current);
@@ -740,11 +736,11 @@ public:
         }
     }
 
-    void operator()(ASTReturn& ast) {}
+    void operator()([[maybe_unused]] const ASTReturn& ast) {}
 
-    void operator()(ASTBreak& ast) {}
+    void operator()([[maybe_unused]] const ASTBreak& ast) {}
 
-    void Visit(ASTNode& node) {
+    void Visit(const ASTNode& node) {
         std::visit(*this, *node->GetInnerData());
         node->Clear();
     }

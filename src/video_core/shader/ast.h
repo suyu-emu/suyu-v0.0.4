@@ -48,11 +48,11 @@ public:
 
     void Init(ASTNode first, ASTNode parent);
 
-    ASTNode GetFirst() {
+    ASTNode GetFirst() const {
         return first;
     }
 
-    ASTNode GetLast() {
+    ASTNode GetLast() const {
         return last;
     }
 
@@ -177,6 +177,10 @@ public:
         return &data;
     }
 
+    const ASTData* GetInnerData() const {
+        return &data;
+    }
+
     ASTNode GetNext() const {
         return next;
     }
@@ -186,6 +190,10 @@ public:
     }
 
     ASTZipper& GetManager() {
+        return *manager;
+    }
+
+    const ASTZipper& GetManager() const {
         return *manager;
     }
 
