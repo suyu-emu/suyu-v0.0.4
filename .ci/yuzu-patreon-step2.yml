@@ -1,6 +1,9 @@
 trigger:
 - master
 
+variables:
+  DisplayVersion: $[counter(variables['DisplayPrefix'], 1)]
+
 stages:
 - stage: format
   displayName: 'format'
@@ -28,3 +31,4 @@ stages:
       parameters:
         artifactSource: 'false'
         cache: $(parameters.cache)
+        version: $(DisplayVersion)

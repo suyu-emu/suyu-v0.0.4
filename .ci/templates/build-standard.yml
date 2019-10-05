@@ -1,3 +1,6 @@
+parameters:
+  version: ''
+
 jobs:
 - job: build
   displayName: 'standard'
@@ -21,3 +24,4 @@ jobs:
     parameters:
       artifactSource: 'false'
       cache: $(parameters.cache)
+      version: $(parameters.version)
