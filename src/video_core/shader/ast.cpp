@@ -350,10 +350,8 @@ private:
     std::string tabs_memo{};
     u32 memo_scope{};
 
-    static std::string tabs;
+    static constexpr std::string_view tabs{"                                    "};
 };
-
-std::string ASTPrinter::tabs = "                                    ";
 
 std::string ASTManager::Print() {
     ASTPrinter printer{};
