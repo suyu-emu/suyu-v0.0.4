@@ -468,10 +468,10 @@ void ASTManager::Decompile() {
         }
         labels.clear();
     } else {
-        auto it = labels.begin();
-        while (it != labels.end()) {
+        auto label_it = labels.begin();
+        while (label_it != labels.end()) {
             bool can_remove = true;
-            ASTNode label = *it;
+            ASTNode label = *label_it;
             for (const ASTNode& goto_node : gotos) {
                 const auto label_index = goto_node->GetGotoLabel();
                 if (!label_index) {
