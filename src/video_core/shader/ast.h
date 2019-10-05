@@ -313,8 +313,8 @@ public:
     ASTManager(const ASTManager& o) = delete;
     ASTManager& operator=(const ASTManager& other) = delete;
 
-    ASTManager(ASTManager&& other) noexcept;
-    ASTManager& operator=(ASTManager&& other) noexcept;
+    ASTManager(ASTManager&& other) noexcept = default;
+    ASTManager& operator=(ASTManager&& other) noexcept = default;
 
     void Init();
 

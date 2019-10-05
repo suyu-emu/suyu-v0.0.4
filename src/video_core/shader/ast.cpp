@@ -374,30 +374,6 @@ void ASTManager::Init() {
     false_condition = MakeExpr<ExprBoolean>(false);
 }
 
-ASTManager::ASTManager(ASTManager&& other) noexcept
-    : labels_map(std::move(other.labels_map)), labels_count{other.labels_count},
-      gotos(std::move(other.gotos)), labels(std::move(other.labels)), variables{other.variables},
-      program{other.program}, main_node{other.main_node}, false_condition{other.false_condition},
-      disable_else_derivation{other.disable_else_derivation} {
-    other.main_node.reset();
-}
-
-ASTManager& ASTManager::operator=(ASTManager&& other) noexcept {
-    full_decompile = other.full_decompile;
-    labels_map = std::move(other.labels_map);
-    labels_count = other.labels_count;
-    gotos = std::move(other.gotos);
-    labels = std::move(other.labels);
-    variables = other.variables;
-    program = other.program;
-    main_node = other.main_node;
-    false_condition = other.false_condition;
-    disable_else_derivation = other.disable_else_derivation;
-
-    other.main_node.reset();
-    return *this;
-}
-
 void ASTManager::DeclareLabel(u32 address) {
     const auto pair = labels_map.emplace(address, labels_count);
     if (pair.second) {
