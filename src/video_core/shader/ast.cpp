@@ -17,6 +17,7 @@ void ASTZipper::Init(const ASTNode new_first, const ASTNode parent) {
     ASSERT(new_first->manager == nullptr);
     first = new_first;
     last = new_first;
+
     ASTNode current = first;
     while (current) {
         current->manager = this;
@@ -92,7 +93,7 @@ void ASTZipper::InsertBefore(const ASTNode new_node, const ASTNode at_node) {
     new_node->manager = this;
 }
 
-void ASTZipper::DetachTail(const ASTNode node) {
+void ASTZipper::DetachTail(ASTNode node) {
     ASSERT(node->manager == this);
     if (node == first) {
         first.reset();
@@ -103,7 +104,8 @@ void ASTZipper::DetachTail(const ASTNode node) {
     last = node->previous;
     last->next.reset();
     node->previous.reset();
-    ASTNode current = node;
+
+    ASTNode current = std::move(node);
     while (current) {
         current->manager = nullptr;
         current->parent.reset();
@@ -185,9 +187,7 @@ void ASTZipper::Remove(const ASTNode node) {
 
 class ExprPrinter final {
 public:
-    ExprPrinter() = default;
-
-    void operator()(ExprAnd const& expr) {
+    void operator()(const ExprAnd& expr) {
         inner += "( ";
         std::visit(*this, *expr.operand1);
         inner += " && ";
@@ -195,7 +195,7 @@ public:
         inner += ')';
     }
 
-    void operator()(ExprOr const& expr) {
+    void operator()(const ExprOr& expr) {
         inner += "( ";
         std::visit(*this, *expr.operand1);
         inner += " || ";
@@ -203,29 +203,29 @@ public:
         inner += ')';
     }
 
-    void operator()(ExprNot const& expr) {
+    void operator()(const ExprNot& expr) {
         inner += "!";
         std::visit(*this, *expr.operand1);
     }
 
-    void operator()(ExprPredicate const& expr) {
+    void operator()(const ExprPredicate& expr) {
         inner += "P" + std::to_string(expr.predicate);
     }
 
-    void operator()(ExprCondCode const& expr) {
+    void operator()(const ExprCondCode& expr) {
         u32 cc = static_cast<u32>(expr.cc);
         inner += "CC" + std::to_string(cc);
     }
 
-    void operator()(ExprVar const& expr) {
+    void operator()(const ExprVar& expr) {
         inner += "V" + std::to_string(expr.var_index);
     }
 
-    void operator()(ExprBoolean const& expr) {
+    void operator()(const ExprBoolean& expr) {
         inner += expr.value ? "true" : "false";
     }
 
-    std::string& GetResult() {
+    const std::string& GetResult() const {
         return inner;
     }
 
@@ -234,9 +234,7 @@ public:
 
 class ASTPrinter {
 public:
-    ASTPrinter() = default;
-
-    void operator()(ASTProgram& ast) {
+    void operator()(const ASTProgram& ast) {
         scope++;
         inner += "program {\n";
         ASTNode current = ast.nodes.GetFirst();
@@ -248,7 +246,7 @@ public:
         scope--;
     }
 
-    void operator()(ASTIfThen& ast) {
+    void operator()(const ASTIfThen& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
         inner += Ident() + "if (" + expr_parser.GetResult() + ") {\n";
@@ -262,7 +260,7 @@ public:
         inner += Ident() + "}\n";
     }
 
-    void operator()(ASTIfElse& ast) {
+    void operator()(const ASTIfElse& ast) {
         inner += Ident() + "else {\n";
         scope++;
         ASTNode current = ast.nodes.GetFirst();
@@ -274,34 +272,34 @@ public:
         inner += Ident() + "}\n";
     }
 
-    void operator()(ASTBlockEncoded& ast) {
+    void operator()(const ASTBlockEncoded& ast) {
         inner += Ident() + "Block(" + std::to_string(ast.start) + ", " + std::to_string(ast.end) +
                  ");\n";
     }
 
-    void operator()(ASTBlockDecoded& ast) {
+    void operator()(const ASTBlockDecoded& ast) {
         inner += Ident() + "Block;\n";
     }
 
-    void operator()(ASTVarSet& ast) {
+    void operator()(const ASTVarSet& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
         inner +=
             Ident() + "V" + std::to_string(ast.index) + " := " + expr_parser.GetResult() + ";\n";
     }
 
-    void operator()(ASTLabel& ast) {
+    void operator()(const ASTLabel& ast) {
         inner += "Label_" + std::to_string(ast.index) + ":\n";
     }
 
-    void operator()(ASTGoto& ast) {
+    void operator()(const ASTGoto& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
         inner += Ident() + "(" + expr_parser.GetResult() + ") -> goto Label_" +
                  std::to_string(ast.label) + ";\n";
     }
 
-    void operator()(ASTDoWhile& ast) {
+    void operator()(const ASTDoWhile& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
         inner += Ident() + "do {\n";
@@ -315,14 +313,14 @@ public:
         inner += Ident() + "} while (" + expr_parser.GetResult() + ");\n";
     }
 
-    void operator()(ASTReturn& ast) {
+    void operator()(const ASTReturn& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
         inner += Ident() + "(" + expr_parser.GetResult() + ") -> " +
                  (ast.kills ? "discard" : "exit") + ";\n";
     }
 
-    void operator()(ASTBreak& ast) {
+    void operator()(const ASTBreak& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
         inner += Ident() + "(" + expr_parser.GetResult() + ") -> break;\n";
@@ -341,7 +339,7 @@ public:
         std::visit(*this, *node->GetInnerData());
     }
 
-    std::string& GetResult() {
+    const std::string& GetResult() const {
         return inner;
     }
 
@@ -352,10 +350,8 @@ private:
     std::string tabs_memo{};
     u32 memo_scope{};
 
-    static std::string tabs;
+    static constexpr std::string_view tabs{"                                    "};
 };
-
-std::string ASTPrinter::tabs = "                                    ";
 
 std::string ASTManager::Print() {
     ASTPrinter printer{};
@@ -376,30 +372,6 @@ void ASTManager::Init() {
     false_condition = MakeExpr<ExprBoolean>(false);
 }
 
-ASTManager::ASTManager(ASTManager&& other) noexcept
-    : labels_map(std::move(other.labels_map)), labels_count{other.labels_count},
-      gotos(std::move(other.gotos)), labels(std::move(other.labels)), variables{other.variables},
-      program{other.program}, main_node{other.main_node}, false_condition{other.false_condition},
-      disable_else_derivation{other.disable_else_derivation} {
-    other.main_node.reset();
-}
-
-ASTManager& ASTManager::operator=(ASTManager&& other) noexcept {
-    full_decompile = other.full_decompile;
-    labels_map = std::move(other.labels_map);
-    labels_count = other.labels_count;
-    gotos = std::move(other.gotos);
-    labels = std::move(other.labels);
-    variables = other.variables;
-    program = other.program;
-    main_node = other.main_node;
-    false_condition = other.false_condition;
-    disable_else_derivation = other.disable_else_derivation;
-
-    other.main_node.reset();
-    return *this;
-}
-
 void ASTManager::DeclareLabel(u32 address) {
     const auto pair = labels_map.emplace(address, labels_count);
     if (pair.second) {
@@ -417,19 +389,19 @@ void ASTManager::InsertLabel(u32 address) {
 
 void ASTManager::InsertGoto(Expr condition, u32 address) {
     const u32 index = labels_map[address];
-    const ASTNode goto_node = ASTBase::Make<ASTGoto>(main_node, condition, index);
+    const ASTNode goto_node = ASTBase::Make<ASTGoto>(main_node, std::move(condition), index);
     gotos.push_back(goto_node);
     program->nodes.PushBack(goto_node);
 }
 
 void ASTManager::InsertBlock(u32 start_address, u32 end_address) {
-    const ASTNode block = ASTBase::Make<ASTBlockEncoded>(main_node, start_address, end_address);
-    program->nodes.PushBack(block);
+    ASTNode block = ASTBase::Make<ASTBlockEncoded>(main_node, start_address, end_address);
+    program->nodes.PushBack(std::move(block));
 }
 
 void ASTManager::InsertReturn(Expr condition, bool kills) {
-    const ASTNode node = ASTBase::Make<ASTReturn>(main_node, condition, kills);
-    program->nodes.PushBack(node);
+    ASTNode node = ASTBase::Make<ASTReturn>(main_node, std::move(condition), kills);
+    program->nodes.PushBack(std::move(node));
 }
 
 // The decompile algorithm is based on
@@ -496,10 +468,10 @@ void ASTManager::Decompile() {
         }
         labels.clear();
     } else {
-        auto it = labels.begin();
-        while (it != labels.end()) {
+        auto label_it = labels.begin();
+        while (label_it != labels.end()) {
             bool can_remove = true;
-            ASTNode label = *it;
+            ASTNode label = *label_it;
             for (const ASTNode& goto_node : gotos) {
                 const auto label_index = goto_node->GetGotoLabel();
                 if (!label_index) {
@@ -543,11 +515,11 @@ bool ASTManager::IsBackwardsJump(ASTNode goto_node, ASTNode label_node) const {
     return false;
 }
 
-bool ASTManager::IndirectlyRelated(ASTNode first, ASTNode second) {
+bool ASTManager::IndirectlyRelated(const ASTNode& first, const ASTNode& second) const {
     return !(first->GetParent() == second->GetParent() || DirectlyRelated(first, second));
 }
 
-bool ASTManager::DirectlyRelated(ASTNode first, ASTNode second) {
+bool ASTManager::DirectlyRelated(const ASTNode& first, const ASTNode& second) const {
     if (first->GetParent() == second->GetParent()) {
         return false;
     }
@@ -577,7 +549,7 @@ bool ASTManager::DirectlyRelated(ASTNode first, ASTNode second) {
     return min->GetParent() == max->GetParent();
 }
 
-void ASTManager::ShowCurrentState(std::string state) {
+void ASTManager::ShowCurrentState(std::string_view state) {
     LOG_CRITICAL(HW_GPU, "\nState {}:\n\n{}\n", state, Print());
     SanityCheck();
 }
@@ -696,7 +668,7 @@ class ASTClearer {
 public:
     ASTClearer() = default;
 
-    void operator()(ASTProgram& ast) {
+    void operator()(const ASTProgram& ast) {
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
             Visit(current);
@@ -704,7 +676,7 @@ public:
         }
     }
 
-    void operator()(ASTIfThen& ast) {
+    void operator()(const ASTIfThen& ast) {
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
             Visit(current);
@@ -712,7 +684,7 @@ public:
         }
     }
 
-    void operator()(ASTIfElse& ast) {
+    void operator()(const ASTIfElse& ast) {
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
             Visit(current);
@@ -720,19 +692,19 @@ public:
         }
     }
 
-    void operator()(ASTBlockEncoded& ast) {}
+    void operator()([[maybe_unused]] const ASTBlockEncoded& ast) {}
 
     void operator()(ASTBlockDecoded& ast) {
         ast.nodes.clear();
     }
 
-    void operator()(ASTVarSet& ast) {}
+    void operator()([[maybe_unused]] const ASTVarSet& ast) {}
 
-    void operator()(ASTLabel& ast) {}
+    void operator()([[maybe_unused]] const ASTLabel& ast) {}
 
-    void operator()(ASTGoto& ast) {}
+    void operator()([[maybe_unused]] const ASTGoto& ast) {}
 
-    void operator()(ASTDoWhile& ast) {
+    void operator()(const ASTDoWhile& ast) {
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
             Visit(current);
@@ -740,11 +712,11 @@ public:
         }
     }
 
-    void operator()(ASTReturn& ast) {}
+    void operator()([[maybe_unused]] const ASTReturn& ast) {}
 
-    void operator()(ASTBreak& ast) {}
+    void operator()([[maybe_unused]] const ASTBreak& ast) {}
 
-    void Visit(ASTNode& node) {
+    void Visit(const ASTNode& node) {
         std::visit(*this, *node->GetInnerData());
         node->Clear();
     }

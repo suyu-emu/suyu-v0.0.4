@@ -18,17 +18,17 @@
 namespace VideoCommon::Shader {
 
 class ASTBase;
-class ASTProgram;
-class ASTIfThen;
-class ASTIfElse;
-class ASTBlockEncoded;
 class ASTBlockDecoded;
-class ASTVarSet;
-class ASTGoto;
-class ASTLabel;
-class ASTDoWhile;
-class ASTReturn;
+class ASTBlockEncoded;
 class ASTBreak;
+class ASTDoWhile;
+class ASTGoto;
+class ASTIfElse;
+class ASTIfThen;
+class ASTLabel;
+class ASTProgram;
+class ASTReturn;
+class ASTVarSet;
 
 using ASTData = std::variant<ASTProgram, ASTIfThen, ASTIfElse, ASTBlockEncoded, ASTBlockDecoded,
                              ASTVarSet, ASTGoto, ASTLabel, ASTDoWhile, ASTReturn, ASTBreak>;
@@ -48,11 +48,11 @@ public:
 
     void Init(ASTNode first, ASTNode parent);
 
-    ASTNode GetFirst() {
+    ASTNode GetFirst() const {
         return first;
     }
 
-    ASTNode GetLast() {
+    ASTNode GetLast() const {
         return last;
     }
 
@@ -71,20 +71,18 @@ public:
 
 class ASTProgram {
 public:
-    explicit ASTProgram() = default;
     ASTZipper nodes{};
 };
 
 class ASTIfThen {
 public:
-    explicit ASTIfThen(Expr condition) : condition(condition) {}
+    explicit ASTIfThen(Expr condition) : condition{std::move(condition)} {}
     Expr condition;
     ASTZipper nodes{};
 };
 
 class ASTIfElse {
 public:
-    explicit ASTIfElse() = default;
     ASTZipper nodes{};
 };
 
@@ -103,7 +101,7 @@ public:
 
 class ASTVarSet {
 public:
-    explicit ASTVarSet(u32 index, Expr condition) : index{index}, condition{condition} {}
+    explicit ASTVarSet(u32 index, Expr condition) : index{index}, condition{std::move(condition)} {}
     u32 index;
     Expr condition;
 };
@@ -117,42 +115,45 @@ public:
 
 class ASTGoto {
 public:
-    explicit ASTGoto(Expr condition, u32 label) : condition{condition}, label{label} {}
+    explicit ASTGoto(Expr condition, u32 label) : condition{std::move(condition)}, label{label} {}
     Expr condition;
     u32 label;
 };
 
 class ASTDoWhile {
 public:
-    explicit ASTDoWhile(Expr condition) : condition(condition) {}
+    explicit ASTDoWhile(Expr condition) : condition{std::move(condition)} {}
     Expr condition;
     ASTZipper nodes{};
 };
 
 class ASTReturn {
 public:
-    explicit ASTReturn(Expr condition, bool kills) : condition{condition}, kills{kills} {}
+    explicit ASTReturn(Expr condition, bool kills)
+        : condition{std::move(condition)}, kills{kills} {}
     Expr condition;
     bool kills;
 };
 
 class ASTBreak {
 public:
-    explicit ASTBreak(Expr condition) : condition{condition} {}
+    explicit ASTBreak(Expr condition) : condition{std::move(condition)} {}
     Expr condition;
 };
 
 class ASTBase {
 public:
-    explicit ASTBase(ASTNode parent, ASTData data) : parent{parent}, data{data} {}
+    explicit ASTBase(ASTNode parent, ASTData data)
+        : data{std::move(data)}, parent{std::move(parent)} {}
 
     template <class U, class... Args>
     static ASTNode Make(ASTNode parent, Args&&... args) {
-        return std::make_shared<ASTBase>(parent, ASTData(U(std::forward<Args>(args)...)));
+        return std::make_shared<ASTBase>(std::move(parent),
+                                         ASTData(U(std::forward<Args>(args)...)));
     }
 
     void SetParent(ASTNode new_parent) {
-        parent = new_parent;
+        parent = std::move(new_parent);
     }
 
     ASTNode& GetParent() {
@@ -177,6 +178,10 @@ public:
         return &data;
     }
 
+    const ASTData* GetInnerData() const {
+        return &data;
+    }
+
     ASTNode GetNext() const {
         return next;
     }
@@ -186,6 +191,10 @@ public:
     }
 
     ASTZipper& GetManager() {
+        return *manager;
+    }
+
+    const ASTZipper& GetManager() const {
         return *manager;
     }
 
@@ -239,7 +248,7 @@ public:
     void SetGotoCondition(Expr new_condition) {
         auto inner = std::get_if<ASTGoto>(&data);
         if (inner) {
-            inner->condition = new_condition;
+            inner->condition = std::move(new_condition);
         }
     }
 
@@ -304,8 +313,8 @@ public:
     ASTManager(const ASTManager& o) = delete;
     ASTManager& operator=(const ASTManager& other) = delete;
 
-    ASTManager(ASTManager&& other) noexcept;
-    ASTManager& operator=(ASTManager&& other) noexcept;
+    ASTManager(ASTManager&& other) noexcept = default;
+    ASTManager& operator=(ASTManager&& other) noexcept = default;
 
     void Init();
 
@@ -323,7 +332,7 @@ public:
 
     void Decompile();
 
-    void ShowCurrentState(std::string state);
+    void ShowCurrentState(std::string_view state);
 
     void SanityCheck();
 
@@ -331,20 +340,20 @@ public:
 
     bool IsFullyDecompiled() const {
         if (full_decompile) {
-            return gotos.size() == 0;
-        } else {
-            for (ASTNode goto_node : gotos) {
-                auto label_index = goto_node->GetGotoLabel();
-                if (!label_index) {
-                    return false;
-                }
-                ASTNode glabel = labels[*label_index];
-                if (IsBackwardsJump(goto_node, glabel)) {
-                    return false;
-                }
-            }
-            return true;
+            return gotos.empty();
         }
+
+        for (ASTNode goto_node : gotos) {
+            auto label_index = goto_node->GetGotoLabel();
+            if (!label_index) {
+                return false;
+            }
+            ASTNode glabel = labels[*label_index];
+            if (IsBackwardsJump(goto_node, glabel)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     ASTNode GetProgram() const {
@@ -362,9 +371,9 @@ public:
 private:
     bool IsBackwardsJump(ASTNode goto_node, ASTNode label_node) const;
 
-    bool IndirectlyRelated(ASTNode first, ASTNode second);
+    bool IndirectlyRelated(const ASTNode& first, const ASTNode& second) const;
 
-    bool DirectlyRelated(ASTNode first, ASTNode second);
+    bool DirectlyRelated(const ASTNode& first, const ASTNode& second) const;
 
     void EncloseDoWhile(ASTNode goto_node, ASTNode label);
 

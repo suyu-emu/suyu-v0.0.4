@@ -15,12 +15,12 @@ using Tegra::Shader::ConditionCode;
 using Tegra::Shader::Pred;
 
 class ExprAnd;
-class ExprOr;
-class ExprNot;
-class ExprPredicate;
-class ExprCondCode;
-class ExprVar;
 class ExprBoolean;
+class ExprCondCode;
+class ExprNot;
+class ExprOr;
+class ExprPredicate;
+class ExprVar;
 
 using ExprData =
     std::variant<ExprVar, ExprCondCode, ExprPredicate, ExprNot, ExprOr, ExprAnd, ExprBoolean>;
@@ -28,9 +28,10 @@ using Expr = std::shared_ptr<ExprData>;
 
 class ExprAnd final {
 public:
-    explicit ExprAnd(Expr a, Expr b) : operand1{a}, operand2{b} {}
+    explicit ExprAnd(Expr a, Expr b) : operand1{std::move(a)}, operand2{std::move(b)} {}
 
     bool operator==(const ExprAnd& b) const;
+    bool operator!=(const ExprAnd& b) const;
 
     Expr operand1;
     Expr operand2;
@@ -38,9 +39,10 @@ public:
 
 class ExprOr final {
 public:
-    explicit ExprOr(Expr a, Expr b) : operand1{a}, operand2{b} {}
+    explicit ExprOr(Expr a, Expr b) : operand1{std::move(a)}, operand2{std::move(b)} {}
 
     bool operator==(const ExprOr& b) const;
+    bool operator!=(const ExprOr& b) const;
 
     Expr operand1;
     Expr operand2;
@@ -48,9 +50,10 @@ public:
 
 class ExprNot final {
 public:
-    explicit ExprNot(Expr a) : operand1{a} {}
+    explicit ExprNot(Expr a) : operand1{std::move(a)} {}
 
     bool operator==(const ExprNot& b) const;
+    bool operator!=(const ExprNot& b) const;
 
     Expr operand1;
 };
@@ -61,6 +64,10 @@ public:
 
     bool operator==(const ExprVar& b) const {
         return var_index == b.var_index;
+    }
+
+    bool operator!=(const ExprVar& b) const {
+        return !operator==(b);
     }
 
     u32 var_index;
@@ -74,6 +81,10 @@ public:
         return predicate == b.predicate;
     }
 
+    bool operator!=(const ExprPredicate& b) const {
+        return !operator==(b);
+    }
+
     u32 predicate;
 };
 
@@ -83,6 +94,10 @@ public:
 
     bool operator==(const ExprCondCode& b) const {
         return cc == b.cc;
+    }
+
+    bool operator!=(const ExprCondCode& b) const {
+        return !operator==(b);
     }
 
     ConditionCode cc;
@@ -96,6 +111,10 @@ public:
         return value == b.value;
     }
 
+    bool operator!=(const ExprBoolean& b) const {
+        return !operator==(b);
+    }
+
     bool value;
 };
 
@@ -105,9 +124,9 @@ Expr MakeExpr(Args&&... args) {
     return std::make_shared<ExprData>(T(std::forward<Args>(args)...));
 }
 
-bool ExprAreEqual(Expr first, Expr second);
+bool ExprAreEqual(const Expr& first, const Expr& second);
 
-bool ExprAreOpposite(Expr first, Expr second);
+bool ExprAreOpposite(const Expr& first, const Expr& second);
 
 Expr MakeExprNot(Expr first);
 
@@ -115,6 +134,6 @@ Expr MakeExprAnd(Expr first, Expr second);
 
 Expr MakeExprOr(Expr first, Expr second);
 
-bool ExprIsTrue(Expr first);
+bool ExprIsTrue(const Expr& first);
 
 } // namespace VideoCommon::Shader

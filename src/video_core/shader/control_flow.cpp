@@ -479,7 +479,7 @@ std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
     auto result_out = std::make_unique<ShaderCharacteristics>();
     if (settings.depth == CompileDepth::BruteForce) {
         result_out->settings.depth = CompileDepth::BruteForce;
-        return std::move(result_out);
+        return result_out;
     }
 
     CFGRebuildState state{program_code, program_size, start_address};
@@ -490,7 +490,7 @@ std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
     while (!state.inspect_queries.empty()) {
         if (!TryInspectAddress(state)) {
             result_out->settings.depth = CompileDepth::BruteForce;
-            return std::move(result_out);
+            return result_out;
         }
     }
 
@@ -530,14 +530,15 @@ std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
             state.manager->ShowCurrentState("Of Shader");
             state.manager->Clear();
         } else {
-            auto result_out = std::make_unique<ShaderCharacteristics>();
-            result_out->start = start_address;
-            result_out->settings.depth = settings.depth;
-            result_out->manager = std::move(manager);
-            result_out->end = state.block_info.back().end + 1;
-            return std::move(result_out);
+            auto characteristics = std::make_unique<ShaderCharacteristics>();
+            characteristics->start = start_address;
+            characteristics->settings.depth = settings.depth;
+            characteristics->manager = std::move(manager);
+            characteristics->end = state.block_info.back().end + 1;
+            return characteristics;
         }
     }
+
     result_out->start = start_address;
     result_out->settings.depth =
         use_flow_stack ? CompileDepth::FlowStack : CompileDepth::NoFlowStack;
@@ -557,8 +558,9 @@ std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
     }
     if (!use_flow_stack) {
         result_out->labels = std::move(state.labels);
-        return std::move(result_out);
+        return result_out;
     }
+
     auto back = result_out->blocks.begin();
     auto next = std::next(back);
     while (next != result_out->blocks.end()) {
@@ -570,6 +572,7 @@ std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
         back = next;
         ++next;
     }
-    return std::move(result_out);
+
+    return result_out;
 }
 } // namespace VideoCommon::Shader
