@@ -530,12 +530,12 @@ std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
             state.manager->ShowCurrentState("Of Shader");
             state.manager->Clear();
         } else {
-            auto result_out = std::make_unique<ShaderCharacteristics>();
-            result_out->start = start_address;
-            result_out->settings.depth = settings.depth;
-            result_out->manager = std::move(manager);
-            result_out->end = state.block_info.back().end + 1;
-            return result_out;
+            auto characteristics = std::make_unique<ShaderCharacteristics>();
+            characteristics->start = start_address;
+            characteristics->settings.depth = settings.depth;
+            characteristics->manager = std::move(manager);
+            characteristics->end = state.block_info.back().end + 1;
+            return characteristics;
         }
     }
 
