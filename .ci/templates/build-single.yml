@@ -1,6 +1,7 @@
 parameters:
   artifactSource: 'true'
   cache: 'false'
+  version: ''
 
 steps:
 - task: DockerInstaller@0
@@ -13,7 +14,7 @@ steps:
     key: yuzu-v1-$(BuildName)-$(BuildSuffix)-$(CacheSuffix)
     path: $(System.DefaultWorkingDirectory)/ccache
     cacheHitVar: CACHE_RESTORED
-- script: export DATE=`date '+%Y.%m.%d'` && export CI=true && export AZURE_REPO_NAME=yuzu-emu/yuzu-$(BuildName) && export AZURE_REPO_TAG=$(BuildName)-$DATE && chmod a+x ./.ci/scripts/$(ScriptFolder)/exec.sh && ./.ci/scripts/$(ScriptFolder)/exec.sh
+- script: chmod a+x ./.ci/scripts/$(ScriptFolder)/exec.sh && ./.ci/scripts/$(ScriptFolder)/exec.sh ${{ parameters['version'] }}
   displayName: 'Build'
 - script: chmod a+x ./.ci/scripts/$(ScriptFolder)/upload.sh && RELEASE_NAME=$(BuildName) ./.ci/scripts/$(ScriptFolder)/upload.sh
   displayName: 'Package Artifacts'

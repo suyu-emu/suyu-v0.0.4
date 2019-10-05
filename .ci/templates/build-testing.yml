@@ -1,3 +1,6 @@
+parameters:
+  version: ''
+
 jobs:
 - job: build_test
   displayName: 'testing'
@@ -31,3 +34,4 @@ jobs:
       parameters:
         artifactSource: 'false'
         cache: 'false'
+        version: $(parameters.version)

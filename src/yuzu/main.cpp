@@ -1889,15 +1889,24 @@ void GMainWindow::OnCaptureScreenshot() {
 }
 
 void GMainWindow::UpdateWindowTitle(const QString& title_name) {
-    const QString full_name = QString::fromUtf8(Common::g_build_fullname);
-    const QString branch_name = QString::fromUtf8(Common::g_scm_branch);
-    const QString description = QString::fromUtf8(Common::g_scm_desc);
+    const auto full_name = std::string(Common::g_build_fullname);
+    const auto branch_name = std::string(Common::g_scm_branch);
+    const auto description = std::string(Common::g_scm_desc);
+    const auto build_id = std::string(Common::g_build_id);
+
+    const auto date =
+        QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd")).toStdString();
 
     if (title_name.isEmpty()) {
-        setWindowTitle(QStringLiteral("yuzu %1| %2-%3").arg(full_name, branch_name, description));
+        const auto fmt = std::string(Common::g_title_bar_format_idle);
+        setWindowTitle(QString::fromStdString(fmt::format(fmt.empty() ? "yuzu {0}| {1}-{2}" : fmt,
+                                                          full_name, branch_name, description,
+                                                          std::string{}, date, build_id)));
     } else {
-        setWindowTitle(QStringLiteral("yuzu %1| %4 | %2-%3")
-                           .arg(full_name, branch_name, description, title_name));
+        const auto fmt = std::string(Common::g_title_bar_format_idle);
+        setWindowTitle(QString::fromStdString(
+            fmt::format(fmt.empty() ? "yuzu {0}| {3} | {1}-{2}" : fmt, full_name, branch_name,
+                        description, std::string{}, date, build_id)));
     }
 }
 

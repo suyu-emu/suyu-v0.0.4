@@ -1,6 +1,9 @@
 trigger:
 - master
 
+variables:
+  DisplayVersion: $[counter(variables['DisplayPrefix'], 1)]
+
 stages:
 - stage: format
   displayName: 'format'
@@ -34,6 +37,7 @@ stages:
       parameters:
         artifactSource: 'false'
         cache: 'true'
+        version: $(DisplayVersion)
 - stage: build_win
   dependsOn: format
   displayName: 'build-windows'
@@ -51,6 +55,7 @@ stages:
       parameters:
         artifactSource: 'false'
         cache: 'true'
+        version: $(DisplayVersion)
 - stage: release
   displayName: 'Release'
   dependsOn:
