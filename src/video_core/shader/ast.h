@@ -332,7 +332,7 @@ public:
 
     void Decompile();
 
-    void ShowCurrentState(std::string state);
+    void ShowCurrentState(std::string_view state);
 
     void SanityCheck();
 

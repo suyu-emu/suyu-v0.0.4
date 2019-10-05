@@ -549,7 +549,7 @@ bool ASTManager::DirectlyRelated(const ASTNode& first, const ASTNode& second) co
     return min->GetParent() == max->GetParent();
 }
 
-void ASTManager::ShowCurrentState(std::string state) {
+void ASTManager::ShowCurrentState(std::string_view state) {
     LOG_CRITICAL(HW_GPU, "\nState {}:\n\n{}\n", state, Print());
     SanityCheck();
 }
