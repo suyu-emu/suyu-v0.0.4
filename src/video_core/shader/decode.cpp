@@ -35,58 +35,138 @@ constexpr bool IsSchedInstruction(u32 offset, u32 main_offset) {
 
 } // namespace
 
+class ASTDecoder {
+public:
+    ASTDecoder(ShaderIR& ir) : ir(ir) {}
+
+    void operator()(ASTProgram& ast) {
+        ASTNode current = ast.nodes.GetFirst();
+        while (current) {
+            Visit(current);
+            current = current->GetNext();
+        }
+    }
+
+    void operator()(ASTIfThen& ast) {
+        ASTNode current = ast.nodes.GetFirst();
+        while (current) {
+            Visit(current);
+            current = current->GetNext();
+        }
+    }
+
+    void operator()(ASTIfElse& ast) {
+        ASTNode current = ast.nodes.GetFirst();
+        while (current) {
+            Visit(current);
+            current = current->GetNext();
+        }
+    }
+
+    void operator()(ASTBlockEncoded& ast) {}
+
+    void operator()(ASTBlockDecoded& ast) {}
+
+    void operator()(ASTVarSet& ast) {}
+
+    void operator()(ASTLabel& ast) {}
+
+    void operator()(ASTGoto& ast) {}
+
+    void operator()(ASTDoWhile& ast) {
+        ASTNode current = ast.nodes.GetFirst();
+        while (current) {
+            Visit(current);
+            current = current->GetNext();
+        }
+    }
+
+    void operator()(ASTReturn& ast) {}
+
+    void operator()(ASTBreak& ast) {}
+
+    void Visit(ASTNode& node) {
+        std::visit(*this, *node->GetInnerData());
+        if (node->IsBlockEncoded()) {
+            auto block = std::get_if<ASTBlockEncoded>(node->GetInnerData());
+            NodeBlock bb = ir.DecodeRange(block->start, block->end);
+            node->TransformBlockEncoded(std::move(bb));
+        }
+    }
+
+private:
+    ShaderIR& ir;
+};
+
 void ShaderIR::Decode() {
     std::memcpy(&header, program_code.data(), sizeof(Tegra::Shader::Header));
 
-    disable_flow_stack = false;
-    const auto info = ScanFlow(program_code, program_size, main_offset);
-    if (info) {
-        const auto& shader_info = *info;
-        coverage_begin = shader_info.start;
-        coverage_end = shader_info.end;
-        if (shader_info.decompilable) {
-            disable_flow_stack = true;
-            const auto insert_block = [this](NodeBlock& nodes, u32 label) {
-                if (label == static_cast<u32>(exit_branch)) {
-                    return;
-                }
-                basic_blocks.insert({label, nodes});
-            };
-            const auto& blocks = shader_info.blocks;
-            NodeBlock current_block;
-            u32 current_label = static_cast<u32>(exit_branch);
-            for (auto& block : blocks) {
-                if (shader_info.labels.count(block.start) != 0) {
-                    insert_block(current_block, current_label);
-                    current_block.clear();
-                    current_label = block.start;
-                }
-                if (!block.ignore_branch) {
-                    DecodeRangeInner(current_block, block.start, block.end);
-                    InsertControlFlow(current_block, block);
-                } else {
-                    DecodeRangeInner(current_block, block.start, block.end + 1);
-                }
-            }
-            insert_block(current_block, current_label);
-            return;
-        }
-        LOG_WARNING(HW_GPU, "Flow Stack Removing Failed! Falling back to old method");
-        // we can't decompile it, fallback to standard method
+    decompiled = false;
+    auto info = ScanFlow(program_code, program_size, main_offset, settings);
+    auto& shader_info = *info;
+    coverage_begin = shader_info.start;
+    coverage_end = shader_info.end;
+    switch (shader_info.settings.depth) {
+    case CompileDepth::FlowStack: {
         for (const auto& block : shader_info.blocks) {
             basic_blocks.insert({block.start, DecodeRange(block.start, block.end + 1)});
         }
-        return;
+        break;
     }
-    LOG_WARNING(HW_GPU, "Flow Analysis Failed! Falling back to brute force compiling");
-
-    // Now we need to deal with an undecompilable shader. We need to brute force
-    // a shader that captures every position.
-    coverage_begin = main_offset;
-    const u32 shader_end = static_cast<u32>(program_size / sizeof(u64));
-    coverage_end = shader_end;
-    for (u32 label = main_offset; label < shader_end; label++) {
-        basic_blocks.insert({label, DecodeRange(label, label + 1)});
+    case CompileDepth::NoFlowStack: {
+        disable_flow_stack = true;
+        const auto insert_block = [this](NodeBlock& nodes, u32 label) {
+            if (label == static_cast<u32>(exit_branch)) {
+                return;
+            }
+            basic_blocks.insert({label, nodes});
+        };
+        const auto& blocks = shader_info.blocks;
+        NodeBlock current_block;
+        u32 current_label = static_cast<u32>(exit_branch);
+        for (auto& block : blocks) {
+            if (shader_info.labels.count(block.start) != 0) {
+                insert_block(current_block, current_label);
+                current_block.clear();
+                current_label = block.start;
+            }
+            if (!block.ignore_branch) {
+                DecodeRangeInner(current_block, block.start, block.end);
+                InsertControlFlow(current_block, block);
+            } else {
+                DecodeRangeInner(current_block, block.start, block.end + 1);
+            }
+        }
+        insert_block(current_block, current_label);
+        break;
+    }
+    case CompileDepth::DecompileBackwards:
+    case CompileDepth::FullDecompile: {
+        program_manager = std::move(shader_info.manager);
+        disable_flow_stack = true;
+        decompiled = true;
+        ASTDecoder decoder{*this};
+        ASTNode program = GetASTProgram();
+        decoder.Visit(program);
+        break;
+    }
+    default:
+        LOG_CRITICAL(HW_GPU, "Unknown decompilation mode!");
+        [[fallthrough]];
+    case CompileDepth::BruteForce: {
+        coverage_begin = main_offset;
+        const u32 shader_end = static_cast<u32>(program_size / sizeof(u64));
+        coverage_end = shader_end;
+        for (u32 label = main_offset; label < shader_end; label++) {
+            basic_blocks.insert({label, DecodeRange(label, label + 1)});
+        }
+        break;
+    }
+    }
+    if (settings.depth != shader_info.settings.depth) {
+        LOG_WARNING(
+            HW_GPU, "Decompiling to this setting \"{}\" failed, downgrading to this setting \"{}\"",
+            CompileDepthAsString(settings.depth), CompileDepthAsString(shader_info.settings.depth));
     }
 }
 

@@ -105,9 +105,15 @@ add_library(video_core STATIC
     shader/decode/warp.cpp
     shader/decode/xmad.cpp
     shader/decode/other.cpp
+    shader/ast.cpp
+    shader/ast.h
     shader/control_flow.cpp
     shader/control_flow.h
+    shader/compiler_settings.cpp
+    shader/compiler_settings.h
     shader/decode.cpp
+    shader/expr.cpp
+    shader/expr.h
     shader/node_helper.cpp
     shader/node_helper.h
     shader/node.h

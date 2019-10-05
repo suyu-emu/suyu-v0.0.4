@@ -4,13 +4,14 @@
 
 #include <list>
 #include <map>
+#include <set>
 #include <stack>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "video_core/shader/ast.h"
 #include "video_core/shader/control_flow.h"
 #include "video_core/shader/shader_ir.h"
 
@@ -64,12 +65,13 @@ struct CFGRebuildState {
     std::list<u32> inspect_queries{};
     std::list<Query> queries{};
     std::unordered_map<u32, u32> registered{};
-    std::unordered_set<u32> labels{};
+    std::set<u32> labels{};
     std::map<u32, u32> ssy_labels{};
     std::map<u32, u32> pbk_labels{};
     std::unordered_map<u32, BlockStack> stacks{};
     const ProgramCode& program_code;
     const std::size_t program_size;
+    ASTManager* manager;
 };
 
 enum class BlockCollision : u32 { None, Found, Inside };
@@ -415,38 +417,132 @@ bool TryQuery(CFGRebuildState& state) {
 }
 } // Anonymous namespace
 
-std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
-                                              std::size_t program_size, u32 start_address) {
-    CFGRebuildState state{program_code, program_size, start_address};
+void InsertBranch(ASTManager& mm, const BlockBranchInfo& branch) {
+    const auto get_expr = ([&](const Condition& cond) -> Expr {
+        Expr result{};
+        if (cond.cc != ConditionCode::T) {
+            result = MakeExpr<ExprCondCode>(cond.cc);
+        }
+        if (cond.predicate != Pred::UnusedIndex) {
+            u32 pred = static_cast<u32>(cond.predicate);
+            bool negate = false;
+            if (pred > 7) {
+                negate = true;
+                pred -= 8;
+            }
+            Expr extra = MakeExpr<ExprPredicate>(pred);
+            if (negate) {
+                extra = MakeExpr<ExprNot>(extra);
+            }
+            if (result) {
+                return MakeExpr<ExprAnd>(extra, result);
+            }
+            return extra;
+        }
+        if (result) {
+            return result;
+        }
+        return MakeExpr<ExprBoolean>(true);
+    });
+    if (branch.address < 0) {
+        if (branch.kill) {
+            mm.InsertReturn(get_expr(branch.condition), true);
+            return;
+        }
+        mm.InsertReturn(get_expr(branch.condition), false);
+        return;
+    }
+    mm.InsertGoto(get_expr(branch.condition), branch.address);
+}
 
+void DecompileShader(CFGRebuildState& state) {
+    state.manager->Init();
+    for (auto label : state.labels) {
+        state.manager->DeclareLabel(label);
+    }
+    for (auto& block : state.block_info) {
+        if (state.labels.count(block.start) != 0) {
+            state.manager->InsertLabel(block.start);
+        }
+        u32 end = block.branch.ignore ? block.end + 1 : block.end;
+        state.manager->InsertBlock(block.start, end);
+        if (!block.branch.ignore) {
+            InsertBranch(*state.manager, block.branch);
+        }
+    }
+    state.manager->Decompile();
+}
+
+std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u32 program_size,
+                                                u32 start_address,
+                                                const CompilerSettings& settings) {
+    auto result_out = std::make_unique<ShaderCharacteristics>();
+    if (settings.depth == CompileDepth::BruteForce) {
+        result_out->settings.depth = CompileDepth::BruteForce;
+        return std::move(result_out);
+    }
+
+    CFGRebuildState state{program_code, program_size, start_address};
     // Inspect Code and generate blocks
     state.labels.clear();
     state.labels.emplace(start_address);
     state.inspect_queries.push_back(state.start);
     while (!state.inspect_queries.empty()) {
         if (!TryInspectAddress(state)) {
-            return {};
+            result_out->settings.depth = CompileDepth::BruteForce;
+            return std::move(result_out);
         }
     }
 
-    // Decompile Stacks
-    state.queries.push_back(Query{state.start, {}, {}});
-    bool decompiled = true;
-    while (!state.queries.empty()) {
-        if (!TryQuery(state)) {
-            decompiled = false;
-            break;
+    bool use_flow_stack = true;
+
+    bool decompiled = false;
+
+    if (settings.depth != CompileDepth::FlowStack) {
+        // Decompile Stacks
+        state.queries.push_back(Query{state.start, {}, {}});
+        decompiled = true;
+        while (!state.queries.empty()) {
+            if (!TryQuery(state)) {
+                decompiled = false;
+                break;
+            }
         }
     }
+
+    use_flow_stack = !decompiled;
 
     // Sort and organize results
     std::sort(state.block_info.begin(), state.block_info.end(),
-              [](const BlockInfo& a, const BlockInfo& b) { return a.start < b.start; });
-    ShaderCharacteristics result_out{};
-    result_out.decompilable = decompiled;
-    result_out.start = start_address;
-    result_out.end = start_address;
-    for (const auto& block : state.block_info) {
+              [](const BlockInfo& a, const BlockInfo& b) -> bool { return a.start < b.start; });
+    if (decompiled && settings.depth != CompileDepth::NoFlowStack) {
+        ASTManager manager{settings.depth != CompileDepth::DecompileBackwards,
+                           settings.disable_else_derivation};
+        state.manager = &manager;
+        DecompileShader(state);
+        decompiled = state.manager->IsFullyDecompiled();
+        if (!decompiled) {
+            if (settings.depth == CompileDepth::FullDecompile) {
+                LOG_CRITICAL(HW_GPU, "Failed to remove all the gotos!:");
+            } else {
+                LOG_CRITICAL(HW_GPU, "Failed to remove all backward gotos!:");
+            }
+            state.manager->ShowCurrentState("Of Shader");
+            state.manager->Clear();
+        } else {
+            auto result_out = std::make_unique<ShaderCharacteristics>();
+            result_out->start = start_address;
+            result_out->settings.depth = settings.depth;
+            result_out->manager = std::move(manager);
+            result_out->end = state.block_info.back().end + 1;
+            return std::move(result_out);
+        }
+    }
+    result_out->start = start_address;
+    result_out->settings.depth =
+        use_flow_stack ? CompileDepth::FlowStack : CompileDepth::NoFlowStack;
+    result_out->blocks.clear();
+    for (auto& block : state.block_info) {
         ShaderBlock new_block{};
         new_block.start = block.start;
         new_block.end = block.end;
@@ -456,26 +552,24 @@ std::optional<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
             new_block.branch.kills = block.branch.kill;
             new_block.branch.address = block.branch.address;
         }
-        result_out.end = std::max(result_out.end, block.end);
-        result_out.blocks.push_back(new_block);
+        result_out->end = std::max(result_out->end, block.end);
+        result_out->blocks.push_back(new_block);
     }
-    if (result_out.decompilable) {
-        result_out.labels = std::move(state.labels);
-        return {std::move(result_out)};
+    if (!use_flow_stack) {
+        result_out->labels = std::move(state.labels);
+        return std::move(result_out);
     }
-
-    // If it's not decompilable, merge the unlabelled blocks together
-    auto back = result_out.blocks.begin();
+    auto back = result_out->blocks.begin();
     auto next = std::next(back);
-    while (next != result_out.blocks.end()) {
+    while (next != result_out->blocks.end()) {
         if (state.labels.count(next->start) == 0 && next->start == back->end + 1) {
             back->end = next->end;
-            next = result_out.blocks.erase(next);
+            next = result_out->blocks.erase(next);
             continue;
         }
         back = next;
         ++next;
     }
-    return {std::move(result_out)};
+    return std::move(result_out);
 }
 } // namespace VideoCommon::Shader

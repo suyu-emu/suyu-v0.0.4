@@ -19,6 +19,7 @@
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
+#include "video_core/shader/ast.h"
 #include "video_core/shader/node.h"
 #include "video_core/shader/shader_ir.h"
 
@@ -334,39 +335,24 @@ constexpr bool IsVertexShader(ProgramType stage) {
     return stage == ProgramType::VertexA || stage == ProgramType::VertexB;
 }
 
+class ASTDecompiler;
+class ExprDecompiler;
+
 class GLSLDecompiler final {
 public:
     explicit GLSLDecompiler(const Device& device, const ShaderIR& ir, ProgramType stage,
                             std::string suffix)
         : device{device}, ir{ir}, stage{stage}, suffix{suffix}, header{ir.GetHeader()} {}
 
-    void Decompile() {
-        DeclareVertex();
-        DeclareGeometry();
-        DeclareRegisters();
-        DeclarePredicates();
-        DeclareLocalMemory();
-        DeclareSharedMemory();
-        DeclareInternalFlags();
-        DeclareInputAttributes();
-        DeclareOutputAttributes();
-        DeclareConstantBuffers();
-        DeclareGlobalMemory();
-        DeclareSamplers();
-        DeclarePhysicalAttributeReader();
-        DeclareImages();
-
-        code.AddLine("void execute_{}() {{", suffix);
-        ++code.scope;
-
+    void DecompileBranchMode() {
         // VM's program counter
         const auto first_address = ir.GetBasicBlocks().begin()->first;
         code.AddLine("uint jmp_to = {}U;", first_address);
 
         // TODO(Subv): Figure out the actual depth of the flow stack, for now it seems
         // unlikely that shaders will use 20 nested SSYs and PBKs.
+        constexpr u32 FLOW_STACK_SIZE = 20;
         if (!ir.IsFlowStackDisabled()) {
-            constexpr u32 FLOW_STACK_SIZE = 20;
             for (const auto stack : std::array{MetaStackClass::Ssy, MetaStackClass::Pbk}) {
                 code.AddLine("uint {}[{}];", FlowStackName(stack), FLOW_STACK_SIZE);
                 code.AddLine("uint {} = 0U;", FlowStackTopName(stack));
@@ -392,10 +378,37 @@ public:
         code.AddLine("default: return;");
         code.AddLine("}}");
 
-        for (std::size_t i = 0; i < 2; ++i) {
-            --code.scope;
-            code.AddLine("}}");
+        --code.scope;
+        code.AddLine("}}");
+    }
+
+    void DecompileAST();
+
+    void Decompile() {
+        DeclareVertex();
+        DeclareGeometry();
+        DeclareRegisters();
+        DeclarePredicates();
+        DeclareLocalMemory();
+        DeclareInternalFlags();
+        DeclareInputAttributes();
+        DeclareOutputAttributes();
+        DeclareConstantBuffers();
+        DeclareGlobalMemory();
+        DeclareSamplers();
+        DeclarePhysicalAttributeReader();
+
+        code.AddLine("void execute_{}() {{", suffix);
+        ++code.scope;
+
+        if (ir.IsDecompiled()) {
+            DecompileAST();
+        } else {
+            DecompileBranchMode();
         }
+
+        --code.scope;
+        code.AddLine("}}");
     }
 
     std::string GetResult() {
@@ -424,6 +437,9 @@ public:
     }
 
 private:
+    friend class ASTDecompiler;
+    friend class ExprDecompiler;
+
     void DeclareVertex() {
         if (!IsVertexShader(stage))
             return;
@@ -1821,10 +1837,9 @@ private:
         return {};
     }
 
-    Expression Exit(Operation operation) {
+    void PreExit() {
         if (stage != ProgramType::Fragment) {
-            code.AddLine("return;");
-            return {};
+            return;
         }
         const auto& used_registers = ir.GetRegisters();
         const auto SafeGetRegister = [&](u32 reg) -> Expression {
@@ -1856,7 +1871,10 @@ private:
             // already contains one past the last color register.
             code.AddLine("gl_FragDepth = {};", SafeGetRegister(current_reg + 1).AsFloat());
         }
+    }
 
+    Expression Exit(Operation operation) {
+        PreExit();
         code.AddLine("return;");
         return {};
     }
@@ -2252,6 +2270,208 @@ private:
 
     ShaderWriter code;
 };
+
+static constexpr std::string_view flow_var = "flow_var_";
+
+std::string GetFlowVariable(u32 i) {
+    return fmt::format("{}{}", flow_var, i);
+}
+
+class ExprDecompiler {
+public:
+    explicit ExprDecompiler(GLSLDecompiler& decomp) : decomp{decomp} {}
+
+    void operator()(VideoCommon::Shader::ExprAnd& expr) {
+        inner += "( ";
+        std::visit(*this, *expr.operand1);
+        inner += " && ";
+        std::visit(*this, *expr.operand2);
+        inner += ')';
+    }
+
+    void operator()(VideoCommon::Shader::ExprOr& expr) {
+        inner += "( ";
+        std::visit(*this, *expr.operand1);
+        inner += " || ";
+        std::visit(*this, *expr.operand2);
+        inner += ')';
+    }
+
+    void operator()(VideoCommon::Shader::ExprNot& expr) {
+        inner += '!';
+        std::visit(*this, *expr.operand1);
+    }
+
+    void operator()(VideoCommon::Shader::ExprPredicate& expr) {
+        const auto pred = static_cast<Tegra::Shader::Pred>(expr.predicate);
+        inner += decomp.GetPredicate(pred);
+    }
+
+    void operator()(VideoCommon::Shader::ExprCondCode& expr) {
+        const Node cc = decomp.ir.GetConditionCode(expr.cc);
+        std::string target;
+
+        if (const auto pred = std::get_if<PredicateNode>(&*cc)) {
+            const auto index = pred->GetIndex();
+            switch (index) {
+            case Tegra::Shader::Pred::NeverExecute:
+                target = "false";
+            case Tegra::Shader::Pred::UnusedIndex:
+                target = "true";
+            default:
+                target = decomp.GetPredicate(index);
+            }
+        } else if (const auto flag = std::get_if<InternalFlagNode>(&*cc)) {
+            target = decomp.GetInternalFlag(flag->GetFlag());
+        } else {
+            UNREACHABLE();
+        }
+        inner += target;
+    }
+
+    void operator()(VideoCommon::Shader::ExprVar& expr) {
+        inner += GetFlowVariable(expr.var_index);
+    }
+
+    void operator()(VideoCommon::Shader::ExprBoolean& expr) {
+        inner += expr.value ? "true" : "false";
+    }
+
+    std::string& GetResult() {
+        return inner;
+    }
+
+private:
+    std::string inner;
+    GLSLDecompiler& decomp;
+};
+
+class ASTDecompiler {
+public:
+    explicit ASTDecompiler(GLSLDecompiler& decomp) : decomp{decomp} {}
+
+    void operator()(VideoCommon::Shader::ASTProgram& ast) {
+        ASTNode current = ast.nodes.GetFirst();
+        while (current) {
+            Visit(current);
+            current = current->GetNext();
+        }
+    }
+
+    void operator()(VideoCommon::Shader::ASTIfThen& ast) {
+        ExprDecompiler expr_parser{decomp};
+        std::visit(expr_parser, *ast.condition);
+        decomp.code.AddLine("if ({}) {{", expr_parser.GetResult());
+        decomp.code.scope++;
+        ASTNode current = ast.nodes.GetFirst();
+        while (current) {
+            Visit(current);
+            current = current->GetNext();
+        }
+        decomp.code.scope--;
+        decomp.code.AddLine("}}");
+    }
+
+    void operator()(VideoCommon::Shader::ASTIfElse& ast) {
+        decomp.code.AddLine("else {{");
+        decomp.code.scope++;
+        ASTNode current = ast.nodes.GetFirst();
+        while (current) {
+            Visit(current);
+            current = current->GetNext();
+        }
+        decomp.code.scope--;
+        decomp.code.AddLine("}}");
+    }
+
+    void operator()(VideoCommon::Shader::ASTBlockEncoded& ast) {
+        UNREACHABLE();
+    }
+
+    void operator()(VideoCommon::Shader::ASTBlockDecoded& ast) {
+        decomp.VisitBlock(ast.nodes);
+    }
+
+    void operator()(VideoCommon::Shader::ASTVarSet& ast) {
+        ExprDecompiler expr_parser{decomp};
+        std::visit(expr_parser, *ast.condition);
+        decomp.code.AddLine("{} = {};", GetFlowVariable(ast.index), expr_parser.GetResult());
+    }
+
+    void operator()(VideoCommon::Shader::ASTLabel& ast) {
+        decomp.code.AddLine("// Label_{}:", ast.index);
+    }
+
+    void operator()(VideoCommon::Shader::ASTGoto& ast) {
+        UNREACHABLE();
+    }
+
+    void operator()(VideoCommon::Shader::ASTDoWhile& ast) {
+        ExprDecompiler expr_parser{decomp};
+        std::visit(expr_parser, *ast.condition);
+        decomp.code.AddLine("do {{");
+        decomp.code.scope++;
+        ASTNode current = ast.nodes.GetFirst();
+        while (current) {
+            Visit(current);
+            current = current->GetNext();
+        }
+        decomp.code.scope--;
+        decomp.code.AddLine("}} while({});", expr_parser.GetResult());
+    }
+
+    void operator()(VideoCommon::Shader::ASTReturn& ast) {
+        const bool is_true = VideoCommon::Shader::ExprIsTrue(ast.condition);
+        if (!is_true) {
+            ExprDecompiler expr_parser{decomp};
+            std::visit(expr_parser, *ast.condition);
+            decomp.code.AddLine("if ({}) {{", expr_parser.GetResult());
+            decomp.code.scope++;
+        }
+        if (ast.kills) {
+            decomp.code.AddLine("discard;");
+        } else {
+            decomp.PreExit();
+            decomp.code.AddLine("return;");
+        }
+        if (!is_true) {
+            decomp.code.scope--;
+            decomp.code.AddLine("}}");
+        }
+    }
+
+    void operator()(VideoCommon::Shader::ASTBreak& ast) {
+        const bool is_true = VideoCommon::Shader::ExprIsTrue(ast.condition);
+        if (!is_true) {
+            ExprDecompiler expr_parser{decomp};
+            std::visit(expr_parser, *ast.condition);
+            decomp.code.AddLine("if ({}) {{", expr_parser.GetResult());
+            decomp.code.scope++;
+        }
+        decomp.code.AddLine("break;");
+        if (!is_true) {
+            decomp.code.scope--;
+            decomp.code.AddLine("}}");
+        }
+    }
+
+    void Visit(VideoCommon::Shader::ASTNode& node) {
+        std::visit(*this, *node->GetInnerData());
+    }
+
+private:
+    GLSLDecompiler& decomp;
+};
+
+void GLSLDecompiler::DecompileAST() {
+    const u32 num_flow_variables = ir.GetASTNumVariables();
+    for (u32 i = 0; i < num_flow_variables; i++) {
+        code.AddLine("bool {} = false;", GetFlowVariable(i));
+    }
+    ASTDecompiler decompiler{*this};
+    VideoCommon::Shader::ASTNode program = ir.GetASTProgram();
+    decompiler.Visit(program);
+}
 
 } // Anonymous namespace
 
