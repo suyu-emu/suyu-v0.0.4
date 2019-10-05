@@ -15,12 +15,12 @@ using Tegra::Shader::ConditionCode;
 using Tegra::Shader::Pred;
 
 class ExprAnd;
-class ExprOr;
-class ExprNot;
-class ExprPredicate;
-class ExprCondCode;
-class ExprVar;
 class ExprBoolean;
+class ExprCondCode;
+class ExprNot;
+class ExprOr;
+class ExprPredicate;
+class ExprVar;
 
 using ExprData =
     std::variant<ExprVar, ExprCondCode, ExprPredicate, ExprNot, ExprOr, ExprAnd, ExprBoolean>;

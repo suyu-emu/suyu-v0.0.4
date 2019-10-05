@@ -18,17 +18,17 @@
 namespace VideoCommon::Shader {
 
 class ASTBase;
-class ASTProgram;
-class ASTIfThen;
-class ASTIfElse;
-class ASTBlockEncoded;
 class ASTBlockDecoded;
-class ASTVarSet;
-class ASTGoto;
-class ASTLabel;
-class ASTDoWhile;
-class ASTReturn;
+class ASTBlockEncoded;
 class ASTBreak;
+class ASTDoWhile;
+class ASTGoto;
+class ASTIfElse;
+class ASTIfThen;
+class ASTLabel;
+class ASTProgram;
+class ASTReturn;
+class ASTVarSet;
 
 using ASTData = std::variant<ASTProgram, ASTIfThen, ASTIfElse, ASTBlockEncoded, ASTBlockDecoded,
                              ASTVarSet, ASTGoto, ASTLabel, ASTDoWhile, ASTReturn, ASTBreak>;
