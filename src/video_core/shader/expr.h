@@ -28,7 +28,7 @@ using Expr = std::shared_ptr<ExprData>;
 
 class ExprAnd final {
 public:
-    explicit ExprAnd(Expr a, Expr b) : operand1{a}, operand2{b} {}
+    explicit ExprAnd(Expr a, Expr b) : operand1{std::move(a)}, operand2{std::move(b)} {}
 
     bool operator==(const ExprAnd& b) const;
 
@@ -38,7 +38,7 @@ public:
 
 class ExprOr final {
 public:
-    explicit ExprOr(Expr a, Expr b) : operand1{a}, operand2{b} {}
+    explicit ExprOr(Expr a, Expr b) : operand1{std::move(a)}, operand2{std::move(b)} {}
 
     bool operator==(const ExprOr& b) const;
 
@@ -48,7 +48,7 @@ public:
 
 class ExprNot final {
 public:
-    explicit ExprNot(Expr a) : operand1{a} {}
+    explicit ExprNot(Expr a) : operand1{std::move(a)} {}
 
     bool operator==(const ExprNot& b) const;
 
@@ -105,9 +105,9 @@ Expr MakeExpr(Args&&... args) {
     return std::make_shared<ExprData>(T(std::forward<Args>(args)...));
 }
 
-bool ExprAreEqual(Expr first, Expr second);
+bool ExprAreEqual(const Expr& first, const Expr& second);
 
-bool ExprAreOpposite(Expr first, Expr second);
+bool ExprAreOpposite(const Expr& first, const Expr& second);
 
 Expr MakeExprNot(Expr first);
 
@@ -115,6 +115,6 @@ Expr MakeExprAnd(Expr first, Expr second);
 
 Expr MakeExprOr(Expr first, Expr second);
 
-bool ExprIsTrue(Expr first);
+bool ExprIsTrue(const Expr& first);
 
 } // namespace VideoCommon::Shader

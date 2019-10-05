@@ -17,6 +17,7 @@ void ASTZipper::Init(const ASTNode new_first, const ASTNode parent) {
     ASSERT(new_first->manager == nullptr);
     first = new_first;
     last = new_first;
+
     ASTNode current = first;
     while (current) {
         current->manager = this;
@@ -92,7 +93,7 @@ void ASTZipper::InsertBefore(const ASTNode new_node, const ASTNode at_node) {
     new_node->manager = this;
 }
 
-void ASTZipper::DetachTail(const ASTNode node) {
+void ASTZipper::DetachTail(ASTNode node) {
     ASSERT(node->manager == this);
     if (node == first) {
         first.reset();
@@ -103,7 +104,8 @@ void ASTZipper::DetachTail(const ASTNode node) {
     last = node->previous;
     last->next.reset();
     node->previous.reset();
-    ASTNode current = node;
+
+    ASTNode current = std::move(node);
     while (current) {
         current->manager = nullptr;
         current->parent.reset();
@@ -413,19 +415,19 @@ void ASTManager::InsertLabel(u32 address) {
 
 void ASTManager::InsertGoto(Expr condition, u32 address) {
     const u32 index = labels_map[address];
-    const ASTNode goto_node = ASTBase::Make<ASTGoto>(main_node, condition, index);
+    const ASTNode goto_node = ASTBase::Make<ASTGoto>(main_node, std::move(condition), index);
     gotos.push_back(goto_node);
     program->nodes.PushBack(goto_node);
 }
 
 void ASTManager::InsertBlock(u32 start_address, u32 end_address) {
-    const ASTNode block = ASTBase::Make<ASTBlockEncoded>(main_node, start_address, end_address);
-    program->nodes.PushBack(block);
+    ASTNode block = ASTBase::Make<ASTBlockEncoded>(main_node, start_address, end_address);
+    program->nodes.PushBack(std::move(block));
 }
 
 void ASTManager::InsertReturn(Expr condition, bool kills) {
-    const ASTNode node = ASTBase::Make<ASTReturn>(main_node, condition, kills);
-    program->nodes.PushBack(node);
+    ASTNode node = ASTBase::Make<ASTReturn>(main_node, std::move(condition), kills);
+    program->nodes.PushBack(std::move(node));
 }
 
 // The decompile algorithm is based on
@@ -539,11 +541,11 @@ bool ASTManager::IsBackwardsJump(ASTNode goto_node, ASTNode label_node) const {
     return false;
 }
 
-bool ASTManager::IndirectlyRelated(ASTNode first, ASTNode second) {
+bool ASTManager::IndirectlyRelated(const ASTNode& first, const ASTNode& second) const {
     return !(first->GetParent() == second->GetParent() || DirectlyRelated(first, second));
 }
 
-bool ASTManager::DirectlyRelated(ASTNode first, ASTNode second) {
+bool ASTManager::DirectlyRelated(const ASTNode& first, const ASTNode& second) const {
     if (first->GetParent() == second->GetParent()) {
         return false;
     }

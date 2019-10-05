@@ -71,20 +71,18 @@ public:
 
 class ASTProgram {
 public:
-    explicit ASTProgram() = default;
     ASTZipper nodes{};
 };
 
 class ASTIfThen {
 public:
-    explicit ASTIfThen(Expr condition) : condition(condition) {}
+    explicit ASTIfThen(Expr condition) : condition{std::move(condition)} {}
     Expr condition;
     ASTZipper nodes{};
 };
 
 class ASTIfElse {
 public:
-    explicit ASTIfElse() = default;
     ASTZipper nodes{};
 };
 
@@ -103,7 +101,7 @@ public:
 
 class ASTVarSet {
 public:
-    explicit ASTVarSet(u32 index, Expr condition) : index{index}, condition{condition} {}
+    explicit ASTVarSet(u32 index, Expr condition) : index{index}, condition{std::move(condition)} {}
     u32 index;
     Expr condition;
 };
@@ -117,42 +115,45 @@ public:
 
 class ASTGoto {
 public:
-    explicit ASTGoto(Expr condition, u32 label) : condition{condition}, label{label} {}
+    explicit ASTGoto(Expr condition, u32 label) : condition{std::move(condition)}, label{label} {}
     Expr condition;
     u32 label;
 };
 
 class ASTDoWhile {
 public:
-    explicit ASTDoWhile(Expr condition) : condition(condition) {}
+    explicit ASTDoWhile(Expr condition) : condition{std::move(condition)} {}
     Expr condition;
     ASTZipper nodes{};
 };
 
 class ASTReturn {
 public:
-    explicit ASTReturn(Expr condition, bool kills) : condition{condition}, kills{kills} {}
+    explicit ASTReturn(Expr condition, bool kills)
+        : condition{std::move(condition)}, kills{kills} {}
     Expr condition;
     bool kills;
 };
 
 class ASTBreak {
 public:
-    explicit ASTBreak(Expr condition) : condition{condition} {}
+    explicit ASTBreak(Expr condition) : condition{std::move(condition)} {}
     Expr condition;
 };
 
 class ASTBase {
 public:
-    explicit ASTBase(ASTNode parent, ASTData data) : parent{parent}, data{data} {}
+    explicit ASTBase(ASTNode parent, ASTData data)
+        : data{std::move(data)}, parent{std::move(parent)} {}
 
     template <class U, class... Args>
     static ASTNode Make(ASTNode parent, Args&&... args) {
-        return std::make_shared<ASTBase>(parent, ASTData(U(std::forward<Args>(args)...)));
+        return std::make_shared<ASTBase>(std::move(parent),
+                                         ASTData(U(std::forward<Args>(args)...)));
     }
 
     void SetParent(ASTNode new_parent) {
-        parent = new_parent;
+        parent = std::move(new_parent);
     }
 
     ASTNode& GetParent() {
@@ -247,7 +248,7 @@ public:
     void SetGotoCondition(Expr new_condition) {
         auto inner = std::get_if<ASTGoto>(&data);
         if (inner) {
-            inner->condition = new_condition;
+            inner->condition = std::move(new_condition);
         }
     }
 
@@ -370,9 +371,9 @@ public:
 private:
     bool IsBackwardsJump(ASTNode goto_node, ASTNode label_node) const;
 
-    bool IndirectlyRelated(ASTNode first, ASTNode second);
+    bool IndirectlyRelated(const ASTNode& first, const ASTNode& second) const;
 
-    bool DirectlyRelated(ASTNode first, ASTNode second);
+    bool DirectlyRelated(const ASTNode& first, const ASTNode& second) const;
 
     void EncloseDoWhile(ASTNode goto_node, ASTNode label);
 
