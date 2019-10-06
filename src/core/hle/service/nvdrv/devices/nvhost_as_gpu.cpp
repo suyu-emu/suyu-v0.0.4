@@ -45,6 +45,8 @@ u32 nvhost_as_gpu::ioctl(Ioctl command, const std::vector<u8>& input, const std:
         return GetVARegions(input, output);
     case IoctlCommand::IocUnmapBufferCommand:
         return UnmapBuffer(input, output);
+    default:
+        break;
     }
 
     if (static_cast<IoctlCommand>(command.cmd.Value()) == IoctlCommand::IocRemapCommand)

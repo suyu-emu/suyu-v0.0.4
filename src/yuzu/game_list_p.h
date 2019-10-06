@@ -247,7 +247,7 @@ public:
                 Qt::DecorationRole);
             setData(QObject::tr("System Titles"), Qt::DisplayRole);
             break;
-        case GameListItemType::CustomDir:
+        case GameListItemType::CustomDir: {
             const QString icon_name = QFileInfo::exists(game_dir->path)
                                           ? QStringLiteral("folder")
                                           : QStringLiteral("bad_folder");
@@ -256,8 +256,11 @@ public:
                     Qt::DecorationRole);
             setData(game_dir->path, Qt::DisplayRole);
             break;
-        };
-    };
+        }
+        default:
+            break;
+        }
+    }
 
     int type() const override {
         return static_cast<int>(dir_type);

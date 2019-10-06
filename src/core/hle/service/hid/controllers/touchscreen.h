@@ -69,6 +69,5 @@ private:
     TouchScreenSharedMemory shared_memory{};
     std::unique_ptr<Input::TouchDevice> touch_device;
     s64_le last_touch{};
-    Core::System& system;
 };
 } // namespace Service::HID

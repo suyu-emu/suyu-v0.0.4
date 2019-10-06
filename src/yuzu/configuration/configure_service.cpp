@@ -73,6 +73,8 @@ std::pair<QString, QString> ConfigureService::BCATDownloadEvents() {
     const auto res = Service::BCAT::Boxcat::GetStatus(global, map);
 
     switch (res) {
+    case Service::BCAT::Boxcat::StatusResult::Success:
+        break;
     case Service::BCAT::Boxcat::StatusResult::Offline:
         return {QString{},
                 tr("The boxcat service is offline or you are not connected to the internet.")};

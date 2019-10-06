@@ -713,13 +713,14 @@ const std::string& GetUserPath(UserPath path, const std::string& new_path) {
         case UserPath::RootDir:
             user_path = paths[UserPath::RootDir] + DIR_SEP;
             break;
-
         case UserPath::UserDir:
             user_path = paths[UserPath::RootDir] + DIR_SEP;
             paths[UserPath::ConfigDir] = user_path + CONFIG_DIR DIR_SEP;
             paths[UserPath::CacheDir] = user_path + CACHE_DIR DIR_SEP;
             paths[UserPath::SDMCDir] = user_path + SDMC_DIR DIR_SEP;
             paths[UserPath::NANDDir] = user_path + NAND_DIR DIR_SEP;
+            break;
+        default:
             break;
         }
     }

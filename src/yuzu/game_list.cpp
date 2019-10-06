@@ -172,9 +172,7 @@ void GameList::onTextChanged(const QString& new_text) {
     const int folder_count = tree_view->model()->rowCount();
     QString edit_filter_text = new_text.toLower();
     QStandardItem* folder;
-    QStandardItem* child;
     int children_total = 0;
-    QModelIndex root_index = item_model->invisibleRootItem()->index();
 
     // If the searchfield is empty every item is visible
     // Otherwise the filter gets applied
@@ -271,6 +269,8 @@ void GameList::onUpdateThemedIcons() {
                     .pixmap(icon_size)
                     .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
                 Qt::DecorationRole);
+            break;
+        default:
             break;
         }
     }
@@ -392,6 +392,8 @@ void GameList::ValidateEntry(const QModelIndex& item) {
     case GameListItemType::AddDir:
         emit AddDirectory();
         break;
+    default:
+        break;
     }
 }
 
@@ -461,6 +463,8 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
     case GameListItemType::UserNandDir:
     case GameListItemType::SysNandDir:
         AddPermDirPopup(context_menu, selected);
+        break;
+    default:
         break;
     }
     context_menu.exec(tree_view->viewport()->mapToGlobal(menu_location));

@@ -237,7 +237,6 @@ private:
     };
 
     Common::UUID uuid;
-    bool is_event_created = false;
     Kernel::EventPair notification_event;
     std::queue<SizedNotificationInfo> notifications;
     States states{};

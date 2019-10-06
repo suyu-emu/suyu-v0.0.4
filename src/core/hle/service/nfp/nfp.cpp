@@ -18,8 +18,8 @@
 namespace Service::NFP {
 
 namespace ErrCodes {
-constexpr ResultCode ERR_TAG_FAILED(ErrorModule::NFP,
-                                    -1); // TODO(ogniK): Find the actual error code
+[[maybe_unused]] constexpr ResultCode ERR_TAG_FAILED(ErrorModule::NFP,
+                                                     -1); // TODO(ogniK): Find the actual error code
 constexpr ResultCode ERR_NO_APPLICATION_AREA(ErrorModule::NFP, 152);
 } // namespace ErrCodes
 
@@ -35,7 +35,7 @@ Module::Interface::~Interface() = default;
 class IUser final : public ServiceFramework<IUser> {
 public:
     IUser(Module::Interface& nfp_interface, Core::System& system)
-        : ServiceFramework("NFP::IUser"), nfp_interface(nfp_interface), system(system) {
+        : ServiceFramework("NFP::IUser"), nfp_interface(nfp_interface) {
         static const FunctionInfo functions[] = {
             {0, &IUser::Initialize, "Initialize"},
             {1, &IUser::Finalize, "Finalize"},
@@ -183,6 +183,8 @@ private:
         case DeviceState::TagRemoved:
             device_state = DeviceState::Initialized;
             break;
+        default:
+            break;
         }
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
@@ -324,7 +326,6 @@ private:
     Kernel::EventPair deactivate_event;
     Kernel::EventPair availability_change_event;
     const Module::Interface& nfp_interface;
-    Core::System& system;
 };
 
 void Module::Interface::CreateUserInterface(Kernel::HLERequestContext& ctx) {

@@ -53,6 +53,5 @@ private:
         keyboard_keys;
     std::array<std::unique_ptr<Input::ButtonDevice>, Settings::NativeKeyboard::NumKeyboardMods>
         keyboard_mods;
-    Core::System& system;
 };
 } // namespace Service::HID

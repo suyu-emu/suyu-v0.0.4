@@ -56,6 +56,5 @@ private:
     };
     static_assert(sizeof(SharedMemory) == 0x1000, "SharedMemory is an invalid size");
     SharedMemory shared_memory{};
-    Core::System& system;
 };
 } // namespace Service::HID

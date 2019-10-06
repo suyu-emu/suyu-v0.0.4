@@ -44,6 +44,8 @@ u32 nvhost_gpu::ioctl(Ioctl command, const std::vector<u8>& input, const std::ve
         return GetWaitbase(input, output);
     case IoctlCommand::IocChannelSetTimeoutCommand:
         return ChannelSetTimeout(input, output);
+    default:
+        break;
     }
 
     if (command.group == NVGPU_IOCTL_MAGIC) {
