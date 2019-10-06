@@ -8,7 +8,6 @@
 #include <memory>
 #include <string>
 
-#include <map>
 #include "common/common_types.h"
 #include "core/file_sys/vfs_types.h"
 #include "core/hle/kernel/object.h"
