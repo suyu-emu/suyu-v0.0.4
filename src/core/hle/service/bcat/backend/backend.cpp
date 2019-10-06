@@ -10,7 +10,7 @@
 
 namespace Service::BCAT {
 
-ProgressServiceBackend::ProgressServiceBackend(std::string_view event_name) : impl{} {
+ProgressServiceBackend::ProgressServiceBackend(std::string_view event_name) {
     auto& kernel{Core::System::GetInstance().Kernel()};
     event = Kernel::WritableEvent::CreateEventPair(
         kernel, Kernel::ResetType::Automatic,

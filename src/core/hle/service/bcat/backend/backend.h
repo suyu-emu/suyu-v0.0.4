@@ -95,7 +95,7 @@ private:
 
     void SignalUpdate() const;
 
-    DeliveryCacheProgressImpl impl;
+    DeliveryCacheProgressImpl impl{};
     Kernel::EventPair event;
     bool need_hle_lock = false;
 };
