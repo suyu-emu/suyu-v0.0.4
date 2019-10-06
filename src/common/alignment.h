@@ -57,6 +57,11 @@ public:
     using is_always_equal = std::true_type;
 
 public:
+    constexpr AlignmentAllocator() noexcept = default;
+
+    template <typename T2>
+    constexpr AlignmentAllocator(const AlignmentAllocator<T2, Align>&) noexcept {}
+
     pointer address(reference r) noexcept {
         return std::addressof(r);
     }
