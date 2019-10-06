@@ -112,14 +112,15 @@ std::optional<std::pair<std::vector<ShaderDiskCacheRaw>, std::vector<ShaderDiskC
 ShaderDiskCacheOpenGL::LoadTransferable() {
     // Skip games without title id
     const bool has_title_id = system.CurrentProcess()->GetTitleID() != 0;
-    if (!Settings::values.use_disk_shader_cache || !has_title_id)
+    if (!Settings::values.use_disk_shader_cache || !has_title_id) {
         return {};
-    tried_to_load = true;
+    }
 
     FileUtil::IOFile file(GetTransferablePath(), "rb");
     if (!file.IsOpen()) {
         LOG_INFO(Render_OpenGL, "No transferable shader cache found for game with title id={}",
                  GetTitleID());
+        is_usable = true;
         return {};
     }
 
@@ -135,6 +136,7 @@ ShaderDiskCacheOpenGL::LoadTransferable() {
         LOG_INFO(Render_OpenGL, "Transferable shader cache is old - removing");
         file.Close();
         InvalidateTransferable();
+        is_usable = true;
         return {};
     }
     if (version > NativeVersion) {
@@ -180,13 +182,15 @@ ShaderDiskCacheOpenGL::LoadTransferable() {
         }
     }
 
-    return {{raws, usages}};
+    is_usable = true;
+    return {{std::move(raws), std::move(usages)}};
 }
 
 std::pair<std::unordered_map<u64, ShaderDiskCacheDecompiled>, ShaderDumpsMap>
 ShaderDiskCacheOpenGL::LoadPrecompiled() {
-    if (!IsUsable())
+    if (!is_usable) {
         return {};
+    }
 
     FileUtil::IOFile file(GetPrecompiledPath(), "rb");
     if (!file.IsOpen()) {
@@ -479,8 +483,9 @@ void ShaderDiskCacheOpenGL::InvalidatePrecompiled() {
 }
 
 void ShaderDiskCacheOpenGL::SaveRaw(const ShaderDiskCacheRaw& entry) {
-    if (!IsUsable())
+    if (!is_usable) {
         return;
+    }
 
     const u64 id = entry.GetUniqueIdentifier();
     if (transferable.find(id) != transferable.end()) {
@@ -501,8 +506,9 @@ void ShaderDiskCacheOpenGL::SaveRaw(const ShaderDiskCacheRaw& entry) {
 }
 
 void ShaderDiskCacheOpenGL::SaveUsage(const ShaderDiskCacheUsage& usage) {
-    if (!IsUsable())
+    if (!is_usable) {
         return;
+    }
 
     const auto it = transferable.find(usage.unique_identifier);
     ASSERT_MSG(it != transferable.end(), "Saving shader usage without storing raw previously");
@@ -528,8 +534,9 @@ void ShaderDiskCacheOpenGL::SaveUsage(const ShaderDiskCacheUsage& usage) {
 
 void ShaderDiskCacheOpenGL::SaveDecompiled(u64 unique_identifier, const std::string& code,
                                            const GLShader::ShaderEntries& entries) {
-    if (!IsUsable())
+    if (!is_usable) {
         return;
+    }
 
     if (precompiled_cache_virtual_file.GetSize() == 0) {
         SavePrecompiledHeaderToVirtualPrecompiledCache();
@@ -543,8 +550,9 @@ void ShaderDiskCacheOpenGL::SaveDecompiled(u64 unique_identifier, const std::str
 }
 
 void ShaderDiskCacheOpenGL::SaveDump(const ShaderDiskCacheUsage& usage, GLuint program) {
-    if (!IsUsable())
+    if (!is_usable) {
         return;
+    }
 
     GLint binary_length{};
     glGetProgramiv(program, GL_PROGRAM_BINARY_LENGTH, &binary_length);
@@ -563,10 +571,6 @@ void ShaderDiskCacheOpenGL::SaveDump(const ShaderDiskCacheUsage& usage, GLuint p
         InvalidatePrecompiled();
         return;
     }
-}
-
-bool ShaderDiskCacheOpenGL::IsUsable() const {
-    return tried_to_load && Settings::values.use_disk_shader_cache;
 }
 
 FileUtil::IOFile ShaderDiskCacheOpenGL::AppendTransferableFile() const {
