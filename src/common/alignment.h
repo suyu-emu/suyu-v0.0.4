@@ -51,6 +51,11 @@ public:
     using reference = T&;
     using const_reference = const T&;
 
+    using propagate_on_container_copy_assignment = std::true_type;
+    using propagate_on_container_move_assignment = std::true_type;
+    using propagate_on_container_swap = std::true_type;
+    using is_always_equal = std::true_type;
+
 public:
     pointer address(reference r) noexcept {
         return std::addressof(r);
