@@ -241,7 +241,7 @@ ResultVal<FileSys::EntryType> VfsDirectoryServiceWrapper::GetEntryType(
     return FileSys::ERROR_PATH_NOT_FOUND;
 }
 
-FileSystemController::FileSystemController() = default;
+FileSystemController::FileSystemController(Core::System& system_) : system{system_} {}
 
 FileSystemController::~FileSystemController() = default;
 
@@ -290,7 +290,7 @@ ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFSCurrentProcess() 
         return ResultCode(-1);
     }
 
-    return romfs_factory->OpenCurrentProcess();
+    return romfs_factory->OpenCurrentProcess(system.CurrentProcess()->GetTitleID());
 }
 
 ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFS(
@@ -447,10 +447,10 @@ FileSys::SaveDataSize FileSystemController::ReadSaveDataSize(FileSys::SaveDataTy
         FileSys::SaveDataSize new_size{SUFFICIENT_SAVE_DATA_SIZE, SUFFICIENT_SAVE_DATA_SIZE};
 
         FileSys::NACP nacp;
-        const auto res = Core::System::GetInstance().GetAppLoader().ReadControlData(nacp);
+        const auto res = system.GetAppLoader().ReadControlData(nacp);
 
         if (res != Loader::ResultStatus::Success) {
-            FileSys::PatchManager pm{Core::CurrentProcess()->GetTitleID()};
+            FileSys::PatchManager pm{system.CurrentProcess()->GetTitleID()};
             auto [nacp_unique, discard] = pm.GetControlMetadata();
 
             if (nacp_unique != nullptr) {
@@ -702,10 +702,10 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
     if (bis_factory == nullptr) {
         bis_factory =
             std::make_unique<FileSys::BISFactory>(nand_directory, load_directory, dump_directory);
-        Core::System::GetInstance().RegisterContentProvider(
-            FileSys::ContentProviderUnionSlot::SysNAND, bis_factory->GetSystemNANDContents());
-        Core::System::GetInstance().RegisterContentProvider(
-            FileSys::ContentProviderUnionSlot::UserNAND, bis_factory->GetUserNANDContents());
+        system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::SysNAND,
+                                       bis_factory->GetSystemNANDContents());
+        system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::UserNAND,
+                                       bis_factory->GetUserNANDContents());
     }
 
     if (save_data_factory == nullptr) {
@@ -714,8 +714,8 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
 
     if (sdmc_factory == nullptr) {
         sdmc_factory = std::make_unique<FileSys::SDMCFactory>(std::move(sd_directory));
-        Core::System::GetInstance().RegisterContentProvider(FileSys::ContentProviderUnionSlot::SDMC,
-                                                            sdmc_factory->GetSDMCContents());
+        system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::SDMC,
+                                       sdmc_factory->GetSDMCContents());
     }
 }
 

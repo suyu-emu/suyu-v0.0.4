@@ -324,14 +324,14 @@ void PL_U::GetSharedMemoryAddressOffset(Kernel::HLERequestContext& ctx) {
 void PL_U::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx) {
     // Map backing memory for the font data
     LOG_DEBUG(Service_NS, "called");
-    Core::CurrentProcess()->VMManager().MapMemoryBlock(SHARED_FONT_MEM_VADDR, impl->shared_font, 0,
-                                                       SHARED_FONT_MEM_SIZE,
-                                                       Kernel::MemoryState::Shared);
+    system.CurrentProcess()->VMManager().MapMemoryBlock(SHARED_FONT_MEM_VADDR, impl->shared_font, 0,
+                                                        SHARED_FONT_MEM_SIZE,
+                                                        Kernel::MemoryState::Shared);
 
     // Create shared font memory object
     auto& kernel = system.Kernel();
     impl->shared_font_mem = Kernel::SharedMemory::Create(
-        kernel, Core::CurrentProcess(), SHARED_FONT_MEM_SIZE, Kernel::MemoryPermission::ReadWrite,
+        kernel, system.CurrentProcess(), SHARED_FONT_MEM_SIZE, Kernel::MemoryPermission::ReadWrite,
         Kernel::MemoryPermission::Read, SHARED_FONT_MEM_VADDR, Kernel::MemoryRegion::BASE,
         "PL_U:shared_font_mem");
 

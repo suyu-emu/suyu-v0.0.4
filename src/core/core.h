@@ -98,6 +98,8 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 
 class System {
 public:
+    using CurrentBuildProcessID = std::array<u8, 0x20>;
+
     System(const System&) = delete;
     System& operator=(const System&) = delete;
 
@@ -330,9 +332,9 @@ public:
 
     bool GetExitLock() const;
 
-    void SetCurrentProcessBuildID(std::array<u8, 0x20> id);
+    void SetCurrentProcessBuildID(const CurrentBuildProcessID& id);
 
-    const std::array<u8, 0x20>& GetCurrentProcessBuildID() const;
+    const CurrentBuildProcessID& GetCurrentProcessBuildID() const;
 
 private:
     System();
