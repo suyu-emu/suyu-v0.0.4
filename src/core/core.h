@@ -359,8 +359,4 @@ private:
     static System s_instance;
 };
 
-inline Kernel::Process* CurrentProcess() {
-    return System::GetInstance().CurrentProcess();
-}
-
 } // namespace Core

@@ -641,7 +641,8 @@ static void HandleQuery() {
                        strlen("Xfer:features:read:target.xml:")) == 0) {
         SendReply(target_xml);
     } else if (strncmp(query, "Offsets", strlen("Offsets")) == 0) {
-        const VAddr base_address = Core::CurrentProcess()->VMManager().GetCodeRegionBaseAddress();
+        const VAddr base_address =
+            Core::System::GetInstance().CurrentProcess()->VMManager().GetCodeRegionBaseAddress();
         std::string buffer = fmt::format("TextSeg={:0x}", base_address);
         SendReply(buffer.c_str());
     } else if (strncmp(query, "fThreadInfo", strlen("fThreadInfo")) == 0) {

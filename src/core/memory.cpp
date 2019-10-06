@@ -146,7 +146,7 @@ static u8* GetPointerFromVMA(const Kernel::Process& process, VAddr vaddr) {
  * using a VMA from the current process.
  */
 static u8* GetPointerFromVMA(VAddr vaddr) {
-    return GetPointerFromVMA(*Core::CurrentProcess(), vaddr);
+    return GetPointerFromVMA(*Core::System::GetInstance().CurrentProcess(), vaddr);
 }
 
 template <typename T>
@@ -226,7 +226,7 @@ bool IsValidVirtualAddress(const Kernel::Process& process, const VAddr vaddr) {
 }
 
 bool IsValidVirtualAddress(const VAddr vaddr) {
-    return IsValidVirtualAddress(*Core::CurrentProcess(), vaddr);
+    return IsValidVirtualAddress(*Core::System::GetInstance().CurrentProcess(), vaddr);
 }
 
 bool IsKernelVirtualAddress(const VAddr vaddr) {
@@ -387,7 +387,7 @@ void ReadBlock(const Kernel::Process& process, const VAddr src_addr, void* dest_
 }
 
 void ReadBlock(const VAddr src_addr, void* dest_buffer, const std::size_t size) {
-    ReadBlock(*Core::CurrentProcess(), src_addr, dest_buffer, size);
+    ReadBlock(*Core::System::GetInstance().CurrentProcess(), src_addr, dest_buffer, size);
 }
 
 void Write8(const VAddr addr, const u8 data) {
@@ -450,7 +450,7 @@ void WriteBlock(const Kernel::Process& process, const VAddr dest_addr, const voi
 }
 
 void WriteBlock(const VAddr dest_addr, const void* src_buffer, const std::size_t size) {
-    WriteBlock(*Core::CurrentProcess(), dest_addr, src_buffer, size);
+    WriteBlock(*Core::System::GetInstance().CurrentProcess(), dest_addr, src_buffer, size);
 }
 
 void ZeroBlock(const Kernel::Process& process, const VAddr dest_addr, const std::size_t size) {
@@ -539,7 +539,7 @@ void CopyBlock(const Kernel::Process& process, VAddr dest_addr, VAddr src_addr,
 }
 
 void CopyBlock(VAddr dest_addr, VAddr src_addr, std::size_t size) {
-    CopyBlock(*Core::CurrentProcess(), dest_addr, src_addr, size);
+    CopyBlock(*Core::System::GetInstance().CurrentProcess(), dest_addr, src_addr, size);
 }
 
 } // namespace Memory

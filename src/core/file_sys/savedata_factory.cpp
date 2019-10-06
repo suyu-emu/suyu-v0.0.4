@@ -127,8 +127,9 @@ std::string SaveDataFactory::GetFullPath(SaveDataSpaceId space, SaveDataType typ
                                          u128 user_id, u64 save_id) {
     // According to switchbrew, if a save is of type SaveData and the title id field is 0, it should
     // be interpreted as the title id of the current process.
-    if (type == SaveDataType::SaveData && title_id == 0)
-        title_id = Core::CurrentProcess()->GetTitleID();
+    if (type == SaveDataType::SaveData && title_id == 0) {
+        title_id = Core::System::GetInstance().CurrentProcess()->GetTitleID();
+    }
 
     std::string out = GetSaveDataSpaceIdPath(space);
 
