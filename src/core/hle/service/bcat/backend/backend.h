@@ -6,6 +6,9 @@
 
 #include <functional>
 #include <optional>
+#include <string>
+#include <string_view>
+
 #include "common/common_types.h"
 #include "core/file_sys/vfs_types.h"
 #include "core/hle/kernel/readable_event.h"
@@ -85,7 +88,7 @@ public:
     void FinishDownload(ResultCode result);
 
 private:
-    explicit ProgressServiceBackend(std::string event_name);
+    explicit ProgressServiceBackend(std::string_view event_name);
 
     Kernel::SharedPtr<Kernel::ReadableEvent> GetEvent() const;
     DeliveryCacheProgressImpl& GetImpl();
