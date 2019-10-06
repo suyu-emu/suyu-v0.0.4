@@ -495,7 +495,8 @@ Boxcat::StatusResult Boxcat::GetStatus(std::optional<std::string>& global,
         }
 
         return StatusResult::Success;
-    } catch (const nlohmann::json::parse_error& e) {
+    } catch (const nlohmann::json::parse_error& error) {
+        LOG_ERROR(Service_BCAT, "{}", error.what());
         return StatusResult::ParseError;
     }
 }
