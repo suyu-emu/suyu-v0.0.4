@@ -16,7 +16,7 @@ ProgressServiceBackend::ProgressServiceBackend(std::string event_name) : impl{} 
         kernel, Kernel::ResetType::Automatic, "ProgressServiceBackend:UpdateEvent:" + event_name);
 }
 
-Kernel::SharedPtr<Kernel::ReadableEvent> ProgressServiceBackend::GetEvent() {
+Kernel::SharedPtr<Kernel::ReadableEvent> ProgressServiceBackend::GetEvent() const {
     return event.readable;
 }
 

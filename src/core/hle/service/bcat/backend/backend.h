@@ -87,7 +87,7 @@ public:
 private:
     explicit ProgressServiceBackend(std::string event_name);
 
-    Kernel::SharedPtr<Kernel::ReadableEvent> GetEvent();
+    Kernel::SharedPtr<Kernel::ReadableEvent> GetEvent() const;
     DeliveryCacheProgressImpl& GetImpl();
 
     void SignalUpdate() const;
