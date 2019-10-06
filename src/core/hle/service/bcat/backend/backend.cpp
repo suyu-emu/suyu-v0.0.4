@@ -10,13 +10,14 @@
 
 namespace Service::BCAT {
 
-ProgressServiceBackend::ProgressServiceBackend(std::string event_name) : impl{} {
+ProgressServiceBackend::ProgressServiceBackend(std::string_view event_name) {
     auto& kernel{Core::System::GetInstance().Kernel()};
     event = Kernel::WritableEvent::CreateEventPair(
-        kernel, Kernel::ResetType::Automatic, "ProgressServiceBackend:UpdateEvent:" + event_name);
+        kernel, Kernel::ResetType::Automatic,
+        std::string("ProgressServiceBackend:UpdateEvent:").append(event_name));
 }
 
-Kernel::SharedPtr<Kernel::ReadableEvent> ProgressServiceBackend::GetEvent() {
+Kernel::SharedPtr<Kernel::ReadableEvent> ProgressServiceBackend::GetEvent() const {
     return event.readable;
 }
 
@@ -95,7 +96,7 @@ Backend::Backend(DirectoryGetter getter) : dir_getter(std::move(getter)) {}
 
 Backend::~Backend() = default;
 
-NullBackend::NullBackend(const DirectoryGetter& getter) : Backend(std::move(getter)) {}
+NullBackend::NullBackend(DirectoryGetter getter) : Backend(std::move(getter)) {}
 
 NullBackend::~NullBackend() = default;
 

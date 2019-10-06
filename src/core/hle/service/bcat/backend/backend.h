@@ -6,6 +6,9 @@
 
 #include <functional>
 #include <optional>
+#include <string>
+#include <string_view>
+
 #include "common/common_types.h"
 #include "core/file_sys/vfs_types.h"
 #include "core/hle/kernel/readable_event.h"
@@ -85,14 +88,14 @@ public:
     void FinishDownload(ResultCode result);
 
 private:
-    explicit ProgressServiceBackend(std::string event_name);
+    explicit ProgressServiceBackend(std::string_view event_name);
 
-    Kernel::SharedPtr<Kernel::ReadableEvent> GetEvent();
+    Kernel::SharedPtr<Kernel::ReadableEvent> GetEvent() const;
     DeliveryCacheProgressImpl& GetImpl();
 
     void SignalUpdate() const;
 
-    DeliveryCacheProgressImpl impl;
+    DeliveryCacheProgressImpl impl{};
     Kernel::EventPair event;
     bool need_hle_lock = false;
 };
@@ -128,7 +131,7 @@ protected:
 // A backend of BCAT that provides no operation.
 class NullBackend : public Backend {
 public:
-    explicit NullBackend(const DirectoryGetter& getter);
+    explicit NullBackend(DirectoryGetter getter);
     ~NullBackend() override;
 
     bool Synchronize(TitleIDVersion title, ProgressServiceBackend& progress) override;

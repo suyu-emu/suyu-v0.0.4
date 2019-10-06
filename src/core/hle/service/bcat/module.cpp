@@ -451,7 +451,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u32>(write_size * sizeof(DeliveryCacheDirectoryEntry));
+        rb.Push(static_cast<u32>(write_size * sizeof(DeliveryCacheDirectoryEntry)));
     }
 
     void GetCount(Kernel::HLERequestContext& ctx) {
@@ -468,7 +468,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u32>(files.size());
+        rb.Push(static_cast<u32>(files.size()));
     }
 
     FileSys::VirtualDir root;
@@ -525,7 +525,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u32>(size);
+        rb.Push(static_cast<u32>(size));
     }
 
     FileSys::VirtualDir root;
