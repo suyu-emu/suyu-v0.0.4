@@ -131,7 +131,7 @@ protected:
 // A backend of BCAT that provides no operation.
 class NullBackend : public Backend {
 public:
-    explicit NullBackend(const DirectoryGetter& getter);
+    explicit NullBackend(DirectoryGetter getter);
     ~NullBackend() override;
 
     bool Synchronize(TitleIDVersion title, ProgressServiceBackend& progress) override;

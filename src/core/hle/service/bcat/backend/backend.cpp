@@ -96,7 +96,7 @@ Backend::Backend(DirectoryGetter getter) : dir_getter(std::move(getter)) {}
 
 Backend::~Backend() = default;
 
-NullBackend::NullBackend(const DirectoryGetter& getter) : Backend(std::move(getter)) {}
+NullBackend::NullBackend(DirectoryGetter getter) : Backend(std::move(getter)) {}
 
 NullBackend::~NullBackend() = default;
 
