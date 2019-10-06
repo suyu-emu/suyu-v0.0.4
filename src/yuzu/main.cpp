@@ -1903,10 +1903,10 @@ void GMainWindow::UpdateWindowTitle(const QString& title_name) {
                                                           full_name, branch_name, description,
                                                           std::string{}, date, build_id)));
     } else {
-        const auto fmt = std::string(Common::g_title_bar_format_idle);
+        const auto fmt = std::string(Common::g_title_bar_format_running);
         setWindowTitle(QString::fromStdString(
             fmt::format(fmt.empty() ? "yuzu {0}| {3} | {1}-{2}" : fmt, full_name, branch_name,
-                        description, std::string{}, date, build_id)));
+                        description, title_name.toStdString(), date, build_id)));
     }
 }
 
