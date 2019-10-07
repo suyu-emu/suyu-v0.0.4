@@ -15,6 +15,7 @@
 #include "core/core_timing_util.h"
 #include "core/hle/kernel/address_arbiter.h"
 #include "core/hle/kernel/client_port.h"
+#include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
@@ -60,12 +61,8 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_
         if (thread->HasWakeupCallback()) {
             resume = thread->InvokeWakeupCallback(ThreadWakeupReason::Timeout, thread, nullptr, 0);
         }
-    }
-
-    if (thread->GetMutexWaitAddress() != 0 || thread->GetCondVarWaitAddress() != 0 ||
-        thread->GetWaitHandle() != 0) {
-        ASSERT(thread->GetStatus() == ThreadStatus::WaitMutex ||
-               thread->GetStatus() == ThreadStatus::WaitCondVar);
+    } else if (thread->GetStatus() == ThreadStatus::WaitMutex ||
+               thread->GetStatus() == ThreadStatus::WaitCondVar) {
         thread->SetMutexWaitAddress(0);
         thread->SetCondVarWaitAddress(0);
         thread->SetWaitHandle(0);
@@ -85,6 +82,10 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_
     }
 
     if (resume) {
+        if (thread->GetStatus() == ThreadStatus::WaitCondVar ||
+            thread->GetStatus() == ThreadStatus::WaitArb) {
+            thread->SetWaitSynchronizationResult(RESULT_TIMEOUT);
+        }
         thread->ResumeFromWait();
     }
 }
