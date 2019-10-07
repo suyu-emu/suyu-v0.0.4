@@ -33,6 +33,8 @@ u32 ShaderIR::DecodeHalfSetPredicate(NodeBlock& bb, u32 pc) {
         h_and = instr.hsetp2.cbuf_and_imm.h_and;
         op_b = GetOperandAbsNegHalf(GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset()),
                                     instr.hsetp2.cbuf.abs_b, instr.hsetp2.cbuf.negate_b);
+        // F32 is hardcoded in hardware
+        op_b = UnpackHalfFloat(std::move(op_b), Tegra::Shader::HalfType::F32);
         break;
     case OpCode::Id::HSETP2_IMM:
         cond = instr.hsetp2.cbuf_and_imm.cond;
