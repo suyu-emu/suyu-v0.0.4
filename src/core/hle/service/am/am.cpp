@@ -1142,12 +1142,12 @@ void IApplicationFunctions::PopLaunchParameter(Kernel::HLERequestContext& ctx) {
     if (kind == LaunchParameterKind::ApplicationSpecific && !launch_popped_application_specific) {
         const auto backend = BCAT::CreateBackendFromSettings(
             [this](u64 tid) { return system.GetFileSystemController().GetBCATDirectory(tid); });
-        const auto build_id_full = Core::System::GetInstance().GetCurrentProcessBuildID();
+        const auto build_id_full = system.GetCurrentProcessBuildID();
         u64 build_id{};
         std::memcpy(&build_id, build_id_full.data(), sizeof(u64));
 
         const auto data =
-            backend->GetLaunchParameter({Core::CurrentProcess()->GetTitleID(), build_id});
+            backend->GetLaunchParameter({system.CurrentProcess()->GetTitleID(), build_id});
 
         if (data.has_value()) {
             IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -1200,7 +1200,7 @@ void IApplicationFunctions::EnsureSaveData(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called, uid={:016X}{:016X}", user_id[1], user_id[0]);
 
     FileSys::SaveDataDescriptor descriptor{};
-    descriptor.title_id = Core::CurrentProcess()->GetTitleID();
+    descriptor.title_id = system.CurrentProcess()->GetTitleID();
     descriptor.user_id = user_id;
     descriptor.type = FileSys::SaveDataType::SaveData;
     const auto res = system.GetFileSystemController().CreateSaveData(

@@ -35,11 +35,11 @@ void RomFSFactory::SetPackedUpdate(VirtualFile update_raw) {
     this->update_raw = std::move(update_raw);
 }
 
-ResultVal<VirtualFile> RomFSFactory::OpenCurrentProcess() const {
+ResultVal<VirtualFile> RomFSFactory::OpenCurrentProcess(u64 current_process_title_id) const {
     if (!updatable)
         return MakeResult<VirtualFile>(file);
 
-    const PatchManager patch_manager(Core::CurrentProcess()->GetTitleID());
+    const PatchManager patch_manager(current_process_title_id);
     return MakeResult<VirtualFile>(
         patch_manager.PatchRomFS(file, ivfc_offset, ContentRecordType::Program, update_raw));
 }

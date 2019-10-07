@@ -103,7 +103,7 @@ SharedPtr<Object> HandleTable::GetGeneric(Handle handle) const {
     if (handle == CurrentThread) {
         return GetCurrentThread();
     } else if (handle == CurrentProcess) {
-        return Core::CurrentProcess();
+        return Core::System::GetInstance().CurrentProcess();
     }
 
     if (!IsValid(handle)) {

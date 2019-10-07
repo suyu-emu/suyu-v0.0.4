@@ -163,7 +163,7 @@ public:
             return;
         }
 
-        if (Core::CurrentProcess()->GetTitleID() != header.title_id) {
+        if (system.CurrentProcess()->GetTitleID() != header.title_id) {
             LOG_ERROR(Service_LDR,
                       "Attempting to load NRR with title ID other than current process. (actual "
                       "{:016X})!",
@@ -327,7 +327,7 @@ public:
         }
 
         // Load NRO as new executable module
-        auto* process = Core::CurrentProcess();
+        auto* process = system.CurrentProcess();
         auto& vm_manager = process->VMManager();
         auto map_address = vm_manager.FindFreeRegion(nro_size + bss_size);
 
@@ -411,7 +411,7 @@ public:
             return;
         }
 
-        auto& vm_manager = Core::CurrentProcess()->VMManager();
+        auto& vm_manager = system.CurrentProcess()->VMManager();
         const auto& nro_info = iter->second;
 
         // Unmap the mirrored memory

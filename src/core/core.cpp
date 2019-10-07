@@ -111,7 +111,8 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 }
 struct System::Impl {
     explicit Impl(System& system)
-        : kernel{system}, cpu_core_manager{system}, applet_manager{system}, reporter{system} {}
+        : kernel{system}, fs_controller{system}, cpu_core_manager{system},
+          applet_manager{system}, reporter{system} {}
 
     Cpu& CurrentCpuCore() {
         return cpu_core_manager.GetCurrentCore();
@@ -641,11 +642,11 @@ bool System::GetExitLock() const {
     return impl->exit_lock;
 }
 
-void System::SetCurrentProcessBuildID(std::array<u8, 32> id) {
+void System::SetCurrentProcessBuildID(const CurrentBuildProcessID& id) {
     impl->build_id = id;
 }
 
-const std::array<u8, 32>& System::GetCurrentProcessBuildID() const {
+const System::CurrentBuildProcessID& System::GetCurrentProcessBuildID() const {
     return impl->build_id;
 }
 

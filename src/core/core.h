@@ -8,7 +8,6 @@
 #include <memory>
 #include <string>
 
-#include <map>
 #include "common/common_types.h"
 #include "core/file_sys/vfs_types.h"
 #include "core/hle/kernel/object.h"
@@ -98,6 +97,8 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 
 class System {
 public:
+    using CurrentBuildProcessID = std::array<u8, 0x20>;
+
     System(const System&) = delete;
     System& operator=(const System&) = delete;
 
@@ -330,9 +331,9 @@ public:
 
     bool GetExitLock() const;
 
-    void SetCurrentProcessBuildID(std::array<u8, 0x20> id);
+    void SetCurrentProcessBuildID(const CurrentBuildProcessID& id);
 
-    const std::array<u8, 0x20>& GetCurrentProcessBuildID() const;
+    const CurrentBuildProcessID& GetCurrentProcessBuildID() const;
 
 private:
     System();
@@ -356,9 +357,5 @@ private:
 
     static System s_instance;
 };
-
-inline Kernel::Process* CurrentProcess() {
-    return System::GetInstance().CurrentProcess();
-}
 
 } // namespace Core
