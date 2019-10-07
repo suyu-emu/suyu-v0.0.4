@@ -91,12 +91,20 @@ ResultCode AddressArbiter::ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr a
 
     // Determine the modified value depending on the waiting count.
     s32 updated_value;
-    if (waiting_threads.empty()) {
-        updated_value = value + 1;
-    } else if (num_to_wake <= 0 || waiting_threads.size() <= static_cast<u32>(num_to_wake)) {
-        updated_value = value - 1;
+    if (num_to_wake <= 0) {
+        if (waiting_threads.empty()) {
+            updated_value = value + 1;
+        } else {
+            updated_value = value - 1;
+        }
     } else {
-        updated_value = value;
+        if (waiting_threads.empty()) {
+            updated_value = value + 1;
+        } else if (waiting_threads.size() <= static_cast<u32>(num_to_wake)) {
+            updated_value = value - 1;
+        } else {
+            updated_value = value;
+        }
     }
 
     if (static_cast<s32>(Memory::Read32(address)) != value) {
