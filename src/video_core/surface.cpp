@@ -212,6 +212,14 @@ PixelFormat PixelFormatFromTextureFormat(Tegra::Texture::TextureFormat format,
             break;
         }
         break;
+    case Tegra::Texture::TextureFormat::A4B4G4R4:
+        switch (component_type) {
+        case Tegra::Texture::ComponentType::UNORM:
+            return PixelFormat::R4G4B4A4U;
+        default:
+            break;
+        }
+        break;
     case Tegra::Texture::TextureFormat::R8:
         switch (component_type) {
         case Tegra::Texture::ComponentType::UNORM:
