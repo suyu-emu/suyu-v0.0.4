@@ -1577,10 +1577,12 @@ static void SleepThread(Core::System& system, s64 nanoseconds) {
     }
 
     if (redundant) {
-        system.CoreTiming().Idle();
-    } else {
-        system.PrepareReschedule(current_thread->GetProcessorID());
+        // If it's redundant, the core is pretty much idle. Some games keep idling
+        // a core while it's doing nothing, we advance timing to avoid costly continuos
+        // calls.
+        system.CoreTiming().AddTicks(2000);
     }
+    system.PrepareReschedule(current_thread->GetProcessorID());
 }
 
 /// Wait process wide key atomic
