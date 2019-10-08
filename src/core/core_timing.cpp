@@ -13,6 +13,8 @@
 #include "common/thread.h"
 #include "core/core_timing_util.h"
 
+#pragma optoimize("", off)
+
 namespace Core::Timing {
 
 constexpr int MAX_SLICE_LENGTH = 10000;
@@ -114,7 +116,7 @@ void CoreTiming::UnscheduleEvent(const EventType* event_type, u64 userdata) {
 u64 CoreTiming::GetTicks() const {
     u64 ticks = static_cast<u64>(global_timer);
     if (!is_global_timer_sane) {
-        ticks += time_slice[current_context] - downcounts[current_context];
+        ticks += accumulated_ticks;
     }
     return ticks;
 }
@@ -124,6 +126,7 @@ u64 CoreTiming::GetIdleTicks() const {
 }
 
 void CoreTiming::AddTicks(u64 ticks) {
+    accumulated_ticks += ticks;
     downcounts[current_context] -= static_cast<s64>(ticks);
 }
 
@@ -151,7 +154,6 @@ void CoreTiming::ForceExceptionCheck(s64 cycles) {
 
     // downcount is always (much) smaller than MAX_INT so we can safely cast cycles to an int
     // here. Account for cycles already executed by adjusting the g.slice_length
-    slice_length -= downcounts[current_context] - static_cast<int>(cycles);
     downcounts[current_context] = static_cast<int>(cycles);
 }
 
@@ -172,8 +174,8 @@ std::optional<u64> CoreTiming::NextAvailableCore(const s64 needed_ticks) const {
 void CoreTiming::Advance() {
     std::unique_lock<std::mutex> guard(inner_mutex);
 
-    const int cycles_executed = time_slice[current_context] - downcounts[current_context];
-    time_slice[current_context] = std::max<s64>(0, downcounts[current_context]);
+    const int cycles_executed = accumulated_ticks;
+    time_slice[current_context] = std::max<s64>(0, time_slice[current_context] - accumulated_ticks);
     global_timer += cycles_executed;
 
     is_global_timer_sane = true;
@@ -198,6 +200,8 @@ void CoreTiming::Advance() {
         }
     }
 
+    accumulated_ticks = 0;
+
     downcounts[current_context] = time_slice[current_context];
 }
 
@@ -212,6 +216,9 @@ void CoreTiming::ResetRun() {
         s64 needed_ticks = std::min<s64>(event_queue.front().time - global_timer, MAX_SLICE_LENGTH);
         downcounts[current_context] = needed_ticks;
     }
+
+    is_global_timer_sane = false;
+    accumulated_ticks = 0;
 }
 
 void CoreTiming::Idle() {

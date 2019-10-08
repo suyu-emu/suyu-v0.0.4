@@ -130,6 +130,7 @@ private:
     s64 global_timer = 0;
     s64 idled_cycles = 0;
     s64 slice_length = 0;
+    u64 accumulated_ticks = 0;
     std::array<s64, num_cpu_cores> downcounts{};
     // Slice of time assigned to each core per run.
     std::array<s64, num_cpu_cores> time_slice{};
