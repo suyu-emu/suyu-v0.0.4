@@ -32,3 +32,11 @@ stages:
         artifactSource: 'false'
         cache: $(parameters.cache)
         version: $(DisplayVersion)
+- stage: release
+  displayName: 'release'
+  dependsOn: build
+  jobs:
+    - job: release
+      displayName: 'source'
+      steps:
+        - template: ./templates/release-private-tag.yml

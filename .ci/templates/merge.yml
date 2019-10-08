@@ -30,17 +30,7 @@ jobs:
       needSubmodules: 'true'
   - script: chmod a+x $(System.DefaultWorkingDirectory)/.ci/scripts/merge/yuzubot-git-config.sh && $(System.DefaultWorkingDirectory)/.ci/scripts/merge/yuzubot-git-config.sh
     displayName: 'Apply Git Configuration'
-  - script: git tag -a $(BuildName)-$(Build.BuildId) -m "yuzu $(BuildName) $(Build.BuildNumber) $(Build.DefinitionName)"
-    displayName: 'Tag Source'
   - script: git remote add other $(GitRepoPushChangesURL)
     displayName: 'Register Repository'
-  - script: git push --follow-tags --force other HEAD:$(GitPushBranch)
+  - script: git push --force other HEAD:$(GitPushBranch)
     displayName: 'Update Code'
-  - script: git rev-list -n 1 $(BuildName)-$(Build.BuildId) > $(Build.ArtifactStagingDirectory)/tag-commit.sha
-    displayName: 'Calculate Release Point'
-  - task: PublishPipelineArtifact@1
-    displayName: 'Upload Release Point'
-    inputs:
-      targetPath: '$(Build.ArtifactStagingDirectory)/tag-commit.sha'
-      artifact: 'yuzu-$(BuildName)-release-point'
-      replaceExistingArchive: true
