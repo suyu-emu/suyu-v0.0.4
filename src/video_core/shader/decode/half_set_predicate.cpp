@@ -4,6 +4,7 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "common/logging/log.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/shader/node_helper.h"
 #include "video_core/shader/shader_ir.h"
@@ -18,7 +19,7 @@ u32 ShaderIR::DecodeHalfSetPredicate(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
-    DEBUG_ASSERT(instr.hsetp2.ftz == 0);
+    LOG_DEBUG(HW_GPU, "ftz={}", static_cast<u32>(instr.hsetp2.ftz));
 
     Node op_a = UnpackHalfFloat(GetRegister(instr.gpr8), instr.hsetp2.type_a);
     op_a = GetOperandAbsNegHalf(op_a, instr.hsetp2.abs_a, instr.hsetp2.negate_a);
@@ -32,6 +33,8 @@ u32 ShaderIR::DecodeHalfSetPredicate(NodeBlock& bb, u32 pc) {
         h_and = instr.hsetp2.cbuf_and_imm.h_and;
         op_b = GetOperandAbsNegHalf(GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset()),
                                     instr.hsetp2.cbuf.abs_b, instr.hsetp2.cbuf.negate_b);
+        // F32 is hardcoded in hardware
+        op_b = UnpackHalfFloat(std::move(op_b), Tegra::Shader::HalfType::F32);
         break;
     case OpCode::Id::HSETP2_IMM:
         cond = instr.hsetp2.cbuf_and_imm.cond;
