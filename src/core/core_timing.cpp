@@ -13,8 +13,6 @@
 #include "common/thread.h"
 #include "core/core_timing_util.h"
 
-#pragma optoimize("", off)
-
 namespace Core::Timing {
 
 constexpr int MAX_SLICE_LENGTH = 10000;
@@ -222,6 +220,7 @@ void CoreTiming::ResetRun() {
 }
 
 void CoreTiming::Idle() {
+    accumulated_ticks += downcounts[current_context];
     idled_cycles += downcounts[current_context];
     downcounts[current_context] = 0;
 }
