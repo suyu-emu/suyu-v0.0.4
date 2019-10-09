@@ -687,7 +687,9 @@ public:
 
                 u32 rt_separate_frag_data;
 
-                INSERT_PADDING_WORDS(0xC);
+                f32 depth_bounds[2];
+
+                INSERT_PADDING_WORDS(0xA);
 
                 struct {
                     u32 address_high;
@@ -1201,6 +1203,7 @@ public:
                 bool transform_feedback;
                 bool color_mask;
                 bool polygon_offset;
+                bool depth_bounds_values;
 
                 // Complementary
                 bool viewport_transform;
@@ -1400,6 +1403,7 @@ ASSERT_REG_POSITION(stencil_back_mask, 0x3D6);
 ASSERT_REG_POSITION(stencil_back_func_mask, 0x3D7);
 ASSERT_REG_POSITION(color_mask_common, 0x3E4);
 ASSERT_REG_POSITION(rt_separate_frag_data, 0x3EB);
+ASSERT_REG_POSITION(depth_bounds, 0x3EC);
 ASSERT_REG_POSITION(zeta, 0x3F8);
 ASSERT_REG_POSITION(clear_flags, 0x43E);
 ASSERT_REG_POSITION(vertex_attrib_format, 0x458);
