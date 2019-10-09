@@ -57,12 +57,12 @@ stages:
         cache: 'true'
         version: $(DisplayVersion)
 - stage: release
-  displayName: 'Release'
+  displayName: 'release'
   dependsOn:
   - build
   - build_win
   jobs:
   - job: github
-    displayName: 'GitHub Release'
+    displayName: 'github'
     steps:
     - template: ./templates/release-github.yml
