@@ -354,9 +354,7 @@ void Thread::SetActivity(ThreadActivity value) {
 
     if (value == ThreadActivity::Paused) {
         // Set status if not waiting
-        if (status == ThreadStatus::Ready) {
-            status = ThreadStatus::Paused;
-        } else if (status == ThreadStatus::Running) {
+        if (status == ThreadStatus::Ready || status == ThreadStatus::Running) {
             SetStatus(ThreadStatus::Paused);
             Core::System::GetInstance().CpuCore(processor_id).PrepareReschedule();
         }
