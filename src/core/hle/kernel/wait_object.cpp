@@ -85,9 +85,6 @@ void WaitObject::WakeupWaitingThread(SharedPtr<Thread> thread) {
 
     const std::size_t index = thread->GetWaitObjectIndex(this);
 
-    for (const auto& object : thread->GetWaitObjects()) {
-        object->RemoveWaitingThread(thread.get());
-    }
     thread->ClearWaitObjects();
 
     thread->CancelWakeupTimer();

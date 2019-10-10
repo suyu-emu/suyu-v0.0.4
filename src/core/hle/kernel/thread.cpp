@@ -133,6 +133,7 @@ void Thread::ResumeFromWait() {
 
 void Thread::CancelWait() {
     ASSERT(GetStatus() == ThreadStatus::WaitSynch);
+    ClearWaitObjects();
     SetWaitSynchronizationResult(ERR_SYNCHRONIZATION_CANCELED);
     ResumeFromWait();
 }

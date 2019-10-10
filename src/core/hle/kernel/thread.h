@@ -319,6 +319,9 @@ public:
     }
 
     void ClearWaitObjects() {
+        for (const auto& waiting_object : wait_objects) {
+            waiting_object->RemoveWaitingThread(this);
+        }
         wait_objects.clear();
     }
 
