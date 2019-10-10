@@ -716,6 +716,8 @@ void Config::ReadUIValues() {
     UISettings::values.callout_flags = ReadSetting(QStringLiteral("calloutFlags"), 0).toUInt();
     UISettings::values.show_console = ReadSetting(QStringLiteral("showConsole"), false).toBool();
     UISettings::values.profile_index = ReadSetting(QStringLiteral("profileIndex"), 0).toUInt();
+    UISettings::values.pause_when_in_background =
+        ReadSetting(QStringLiteral("pauseWhenInBackground"), false).toBool();
 
     ApplyDefaultProfileIfInputInvalid();
 
@@ -1124,6 +1126,8 @@ void Config::SaveUIValues() {
     WriteSetting(QStringLiteral("calloutFlags"), UISettings::values.callout_flags, 0);
     WriteSetting(QStringLiteral("showConsole"), UISettings::values.show_console, false);
     WriteSetting(QStringLiteral("profileIndex"), UISettings::values.profile_index, 0);
+    WriteSetting(QStringLiteral("pauseWhenInBackground"),
+                 UISettings::values.pause_when_in_background, false);
 
     qt_config->endGroup();
 }
