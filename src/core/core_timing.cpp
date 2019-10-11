@@ -38,10 +38,8 @@ CoreTiming::CoreTiming() = default;
 CoreTiming::~CoreTiming() = default;
 
 void CoreTiming::Initialize() {
-    for (std::size_t core = 0; core < num_cpu_cores; core++) {
-        downcounts[core] = MAX_SLICE_LENGTH;
-        time_slice[core] = MAX_SLICE_LENGTH;
-    }
+    downcounts.fill(MAX_SLICE_LENGTH);
+    time_slice.fill(MAX_SLICE_LENGTH);
     slice_length = MAX_SLICE_LENGTH;
     global_timer = 0;
     idled_cycles = 0;
@@ -162,17 +160,17 @@ std::optional<u64> CoreTiming::NextAvailableCore(const s64 needed_ticks) const {
         if (time_slice[next_context] >= needed_ticks) {
             return {next_context};
         } else if (time_slice[next_context] >= 0) {
-            return {};
+            return std::nullopt;
         }
         next_context = (next_context + 1) % num_cpu_cores;
     }
-    return {};
+    return std::nullopt;
 }
 
 void CoreTiming::Advance() {
     std::unique_lock<std::mutex> guard(inner_mutex);
 
-    const int cycles_executed = accumulated_ticks;
+    const u64 cycles_executed = accumulated_ticks;
     time_slice[current_context] = std::max<s64>(0, time_slice[current_context] - accumulated_ticks);
     global_timer += cycles_executed;
 
@@ -191,7 +189,8 @@ void CoreTiming::Advance() {
 
     // Still events left (scheduled in the future)
     if (!event_queue.empty()) {
-        s64 needed_ticks = std::min<s64>(event_queue.front().time - global_timer, MAX_SLICE_LENGTH);
+        const s64 needed_ticks =
+            std::min<s64>(event_queue.front().time - global_timer, MAX_SLICE_LENGTH);
         const auto next_core = NextAvailableCore(needed_ticks);
         if (next_core) {
             downcounts[*next_core] = needed_ticks;

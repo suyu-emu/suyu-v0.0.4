@@ -113,7 +113,7 @@ public:
         current_context = new_context;
     }
 
-    bool CurrentContextCanRun() const {
+    bool CanCurrentContextRun() const {
         return time_slice[current_context] > 0;
     }
 

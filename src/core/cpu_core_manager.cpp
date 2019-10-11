@@ -130,10 +130,10 @@ void CpuCoreManager::RunLoop(bool tight_loop) {
         keep_running = false;
         for (active_core = 0; active_core < NUM_CPU_CORES; ++active_core) {
             core_timing.SwitchContext(active_core);
-            if (core_timing.CurrentContextCanRun()) {
+            if (core_timing.CanCurrentContextRun()) {
                 cores[active_core]->RunLoop(tight_loop);
             }
-            keep_running |= core_timing.CurrentContextCanRun();
+            keep_running |= core_timing.CanCurrentContextRun();
         }
     } while (keep_running);
 
