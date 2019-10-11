@@ -91,7 +91,7 @@ void ThreadManager::FlushAndInvalidateRegion(CacheAddr addr, u64 size) {
 }
 
 void ThreadManager::WaitIdle() const {
-    while (state.last_fence > state.signaled_fence.load()) {
+    while (state.last_fence > state.signaled_fence.load(std::memory_order_relaxed)) {
     }
 }
 

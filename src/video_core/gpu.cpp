@@ -72,7 +72,7 @@ void GPU::WaitFence(u32 syncpoint_id, u32 value) const {
         return;
     }
     MICROPROFILE_SCOPE(GPU_wait);
-    while (syncpoints[syncpoint_id].load() < value) {
+    while (syncpoints[syncpoint_id].load(std::memory_order_relaxed) < value) {
     }
 }
 
