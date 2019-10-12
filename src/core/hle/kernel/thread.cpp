@@ -410,7 +410,7 @@ ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
     };
 
     const bool use_override = affinity_override_count != 0;
-    if (new_core == static_cast<s32>(CoreFlags::DontChangeIdealCore)) {
+    if (new_core == THREADDONTCHANGE_IDEAL) {
         new_core = use_override ? ideal_core_override : ideal_core;
         if ((new_affinity_mask & (1ULL << new_core)) == 0) {
             return ERR_INVALID_COMBINATION;
@@ -452,7 +452,7 @@ void Thread::AdjustSchedulingOnStatus(u32 old_flags) {
 
         for (s32 core = 0; core < GlobalScheduler::NUM_CPU_CORES; core++) {
             if (core != processor_id && ((affinity_mask >> core) & 1) != 0) {
-                scheduler.Unsuggest(current_priority, core, this);
+                scheduler.Unsuggest(current_priority, static_cast<u32>(core), this);
             }
         }
     } else if (GetSchedulingStatus() == ThreadSchedStatus::Runnable) {
@@ -463,7 +463,7 @@ void Thread::AdjustSchedulingOnStatus(u32 old_flags) {
 
         for (s32 core = 0; core < GlobalScheduler::NUM_CPU_CORES; core++) {
             if (core != processor_id && ((affinity_mask >> core) & 1) != 0) {
-                scheduler.Suggest(current_priority, core, this);
+                scheduler.Suggest(current_priority, static_cast<u32>(core), this);
             }
         }
     }

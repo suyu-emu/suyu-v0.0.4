@@ -35,6 +35,9 @@ enum ThreadProcessorId : s32 {
     /// Run thread on the ideal core specified by the process.
     THREADPROCESSORID_IDEAL = -2,
 
+    /// when setting Core and Affiny, keeps the ideal core intact
+    THREADDONTCHANGE_IDEAL = -3,
+
     /// Indicates that the preferred processor ID shouldn't be updated in
     /// a core mask setting operation.
     THREADPROCESSORID_DONT_UPDATE = -3,
@@ -93,12 +96,6 @@ enum class ThreadSchedMasks : u32 {
     LowMask = 0x000f,
     HighMask = 0xfff0,
     ForcePauseMask = 0x0070,
-};
-
-enum class CoreFlags : s32 {
-    IgnoreIdealCore = -1,
-    ProcessIdealCore = -2,
-    DontChangeIdealCore = -3,
 };
 
 class Thread final : public WaitObject {
