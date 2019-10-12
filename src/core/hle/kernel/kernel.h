@@ -82,12 +82,6 @@ public:
     /// Gets the sole instance of the global scheduler
     const Kernel::GlobalScheduler& GlobalScheduler() const;
 
-    /// Gets the sole instance of the system
-    Core::System& System();
-
-    /// Gets the sole instance of the system
-    const Core::System& System() const;
-
     /// Adds a port to the named port table
     void AddNamedPort(std::string name, SharedPtr<ClientPort> port);
 
