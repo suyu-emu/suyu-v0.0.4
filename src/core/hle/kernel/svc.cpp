@@ -1608,6 +1608,8 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr mutex_add
         return ERR_INVALID_ADDRESS;
     }
 
+    ASSERT(condition_variable_addr == Common::AlignDown(condition_variable_addr, 4));
+
     auto* const current_process = system.Kernel().CurrentProcess();
     const auto& handle_table = current_process->GetHandleTable();
     SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
@@ -1638,6 +1640,8 @@ static ResultCode SignalProcessWideKey(Core::System& system, VAddr condition_var
                                        s32 target) {
     LOG_TRACE(Kernel_SVC, "called, condition_variable_addr=0x{:X}, target=0x{:08X}",
               condition_variable_addr, target);
+
+    ASSERT(condition_variable_addr == Common::AlignDown(condition_variable_addr, 4));
 
     // Retrieve a list of all threads that are waiting for this condition variable.
     std::vector<SharedPtr<Thread>> waiting_threads;
