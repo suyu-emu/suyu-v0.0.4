@@ -125,7 +125,11 @@ private:
 class IBcatService final : public ServiceFramework<IBcatService> {
 public:
     explicit IBcatService(Core::System& system_, Backend& backend_)
-        : ServiceFramework("IBcatService"), system{system_}, backend{backend_} {
+        : ServiceFramework("IBcatService"), system{system_}, backend{backend_},
+          progress{{
+              ProgressServiceBackend{system_.Kernel(), "Normal"},
+              ProgressServiceBackend{system_.Kernel(), "Directory"},
+          }} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {10100, &IBcatService::RequestSyncDeliveryCache, "RequestSyncDeliveryCache"},
@@ -249,10 +253,7 @@ private:
     Core::System& system;
     Backend& backend;
 
-    std::array<ProgressServiceBackend, static_cast<std::size_t>(SyncType::Count)> progress{
-        ProgressServiceBackend{"Normal"},
-        ProgressServiceBackend{"Directory"},
-    };
+    std::array<ProgressServiceBackend, static_cast<std::size_t>(SyncType::Count)> progress;
 };
 
 void Module::Interface::CreateBcatService(Kernel::HLERequestContext& ctx) {
@@ -557,12 +558,12 @@ void Module::Interface::CreateDeliveryCacheStorageServiceWithApplicationId(
     rb.PushIpcInterface<IDeliveryCacheStorageService>(fsc.GetBCATDirectory(title_id));
 }
 
-std::unique_ptr<Backend> CreateBackendFromSettings(DirectoryGetter getter) {
-    const auto backend = Settings::values.bcat_backend;
-
+std::unique_ptr<Backend> CreateBackendFromSettings([[maybe_unused]] Core::System& system,
+                                                   DirectoryGetter getter) {
 #ifdef YUZU_ENABLE_BOXCAT
-    if (backend == "boxcat")
-        return std::make_unique<Boxcat>(std::move(getter));
+    if (Settings::values.bcat_backend == "boxcat") {
+        return std::make_unique<Boxcat>(system.GetAppletManager(), std::move(getter));
+    }
 #endif
 
     return std::make_unique<NullBackend>(std::move(getter));
@@ -571,7 +572,8 @@ std::unique_ptr<Backend> CreateBackendFromSettings(DirectoryGetter getter) {
 Module::Interface::Interface(Core::System& system_, std::shared_ptr<Module> module_,
                              FileSystem::FileSystemController& fsc_, const char* name)
     : ServiceFramework(name), fsc{fsc_}, module{std::move(module_)},
-      backend{CreateBackendFromSettings([&fsc_](u64 tid) { return fsc_.GetBCATDirectory(tid); })},
+      backend{CreateBackendFromSettings(system_,
+                                        [&fsc_](u64 tid) { return fsc_.GetBCATDirectory(tid); })},
       system{system_} {}
 
 Module::Interface::~Interface() = default;
