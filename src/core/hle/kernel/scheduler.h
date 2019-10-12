@@ -147,6 +147,8 @@ public:
         return reselection_pending.load();
     }
 
+    void Shutdown();
+
 private:
     bool AskForReselectionOrMarkRedundant(Thread* current_thread, Thread* winner);
 
@@ -187,6 +189,11 @@ public:
 
     bool ContextSwitchPending() const {
         return context_switch_pending;
+    }
+
+    void Shutdown() {
+        current_thread = nullptr;
+        selected_thread = nullptr;
     }
 
 private:

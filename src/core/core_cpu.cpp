@@ -117,4 +117,8 @@ void Cpu::Reschedule() {
     scheduler->TryDoContextSwitch();
 }
 
+void Cpu::Shutdown() {
+    scheduler->Shutdown();
+}
+
 } // namespace Core

@@ -342,6 +342,14 @@ bool GlobalScheduler::AskForReselectionOrMarkRedundant(Thread* current_thread, T
     }
 }
 
+void GlobalScheduler::Shutdown() {
+    for (std::size_t core = 0; core < NUM_CPU_CORES; core++) {
+        scheduled_queue[core].clear();
+        suggested_queue[core].clear();
+    }
+    thread_list.clear();
+}
+
 GlobalScheduler::~GlobalScheduler() = default;
 
 Scheduler::Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, u32 core_id)

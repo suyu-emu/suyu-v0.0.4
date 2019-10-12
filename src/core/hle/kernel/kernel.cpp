@@ -116,6 +116,8 @@ struct KernelCore::Impl {
         thread_wakeup_event_type = nullptr;
         preemption_event = nullptr;
 
+        global_scheduler.Shutdown();
+
         named_ports.clear();
     }
 

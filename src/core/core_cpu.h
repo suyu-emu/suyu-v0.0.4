@@ -84,6 +84,8 @@ public:
         return core_index;
     }
 
+    void Shutdown();
+
     static std::unique_ptr<ExclusiveMonitor> MakeExclusiveMonitor(std::size_t num_cores);
 
 private:
