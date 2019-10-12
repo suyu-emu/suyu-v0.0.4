@@ -21,11 +21,11 @@ namespace Kernel {
 
 class AddressArbiter;
 class ClientPort;
+class GlobalScheduler;
 class HandleTable;
 class Process;
 class ResourceLimit;
 class Thread;
-class GlobalScheduler;
 
 /// Represents a single instance of the kernel.
 class KernelCore {

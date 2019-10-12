@@ -23,7 +23,7 @@
 namespace Kernel {
 
 GlobalScheduler::GlobalScheduler(Core::System& system) : system{system} {
-    reselection_pending = false;
+    is_reselection_pending = false;
 }
 
 void GlobalScheduler::AddThread(SharedPtr<Thread> thread) {
@@ -61,7 +61,7 @@ void GlobalScheduler::SelectThread(u32 core) {
             }
             sched.selected_thread = thread;
         }
-        sched.context_switch_pending = sched.selected_thread != sched.current_thread;
+        sched.is_context_switch_pending = sched.selected_thread != sched.current_thread;
         std::atomic_thread_fence(std::memory_order_seq_cst);
     };
     Scheduler& sched = system.Scheduler(core);
@@ -318,8 +318,16 @@ void GlobalScheduler::PreemptThreads() {
             }
         }
 
-        reselection_pending.store(true, std::memory_order_release);
+        is_reselection_pending.store(true, std::memory_order_release);
     }
+}
+
+void GlobalScheduler::Suggest(u32 priority, u32 core, Thread* thread) {
+    suggested_queue[core].add(thread, priority);
+}
+
+void GlobalScheduler::Unsuggest(u32 priority, u32 core, Thread* thread) {
+    suggested_queue[core].remove(thread, priority);
 }
 
 void GlobalScheduler::Schedule(u32 priority, u32 core, Thread* thread) {
@@ -332,12 +340,40 @@ void GlobalScheduler::SchedulePrepend(u32 priority, u32 core, Thread* thread) {
     scheduled_queue[core].add(thread, priority, false);
 }
 
+void GlobalScheduler::Reschedule(u32 priority, u32 core, Thread* thread) {
+    scheduled_queue[core].remove(thread, priority);
+    scheduled_queue[core].add(thread, priority);
+}
+
+void GlobalScheduler::Unschedule(u32 priority, u32 core, Thread* thread) {
+    scheduled_queue[core].remove(thread, priority);
+}
+
+void GlobalScheduler::TransferToCore(u32 priority, s32 destination_core, Thread* thread) {
+    const bool schedulable = thread->GetPriority() < THREADPRIO_COUNT;
+    const s32 source_core = thread->GetProcessorID();
+    if (source_core == destination_core || !schedulable) {
+        return;
+    }
+    thread->SetProcessorID(destination_core);
+    if (source_core >= 0) {
+        Unschedule(priority, source_core, thread);
+    }
+    if (destination_core >= 0) {
+        Unsuggest(priority, destination_core, thread);
+        Schedule(priority, destination_core, thread);
+    }
+    if (source_core >= 0) {
+        Suggest(priority, source_core, thread);
+    }
+}
+
 bool GlobalScheduler::AskForReselectionOrMarkRedundant(Thread* current_thread, Thread* winner) {
     if (current_thread == winner) {
         current_thread->IncrementYieldCount();
         return true;
     } else {
-        reselection_pending.store(true, std::memory_order_release);
+        is_reselection_pending.store(true, std::memory_order_release);
         return false;
     }
 }
@@ -378,7 +414,7 @@ u64 Scheduler::GetLastContextSwitchTicks() const {
 }
 
 void Scheduler::TryDoContextSwitch() {
-    if (context_switch_pending) {
+    if (is_context_switch_pending ) {
         SwitchContext();
     }
 }
@@ -409,7 +445,7 @@ void Scheduler::SwitchContext() {
     Thread* const previous_thread = GetCurrentThread();
     Thread* const new_thread = GetSelectedThread();
 
-    context_switch_pending = false;
+    is_context_switch_pending = false;
     if (new_thread == previous_thread) {
         return;
     }
@@ -475,6 +511,11 @@ void Scheduler::UpdateLastContextSwitchTime(Thread* thread, Process* process) {
     }
 
     last_context_switch_time = most_recent_switch_ticks;
+}
+
+void Scheduler::Shutdown() {
+    current_thread = nullptr;
+    selected_thread = nullptr;
 }
 
 } // namespace Kernel

@@ -1556,18 +1556,18 @@ static void SleepThread(Core::System& system, s64 nanoseconds) {
 
     auto& scheduler = system.CurrentScheduler();
     auto* const current_thread = scheduler.GetCurrentThread();
-    bool redundant = false;
+    bool is_redundant = false;
 
     if (nanoseconds <= 0) {
         switch (static_cast<SleepType>(nanoseconds)) {
         case SleepType::YieldWithoutLoadBalancing:
-            redundant = current_thread->YieldSimple();
+            is_redundant = current_thread->YieldSimple();
             break;
         case SleepType::YieldWithLoadBalancing:
-            redundant = current_thread->YieldAndBalanceLoad();
+            is_redundant = current_thread->YieldAndBalanceLoad();
             break;
         case SleepType::YieldAndWaitForLoadBalancing:
-            redundant = current_thread->YieldAndWaitForLoadBalancing();
+            is_redundant = current_thread->YieldAndWaitForLoadBalancing();
             break;
         default:
             UNREACHABLE_MSG("Unimplemented sleep yield type '{:016X}'!", nanoseconds);
@@ -1576,9 +1576,9 @@ static void SleepThread(Core::System& system, s64 nanoseconds) {
         current_thread->Sleep(nanoseconds);
     }
 
-    if (redundant) {
+    if (is_redundant) {
         // If it's redundant, the core is pretty much idle. Some games keep idling
-        // a core while it's doing nothing, we advance timing to avoid costly continuos
+        // a core while it's doing nothing, we advance timing to avoid costly continuous
         // calls.
         system.CoreTiming().AddTicks(2000);
     }

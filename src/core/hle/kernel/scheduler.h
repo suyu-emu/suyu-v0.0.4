@@ -39,15 +39,11 @@ public:
 
     // Add a thread to the suggested queue of a cpu core. Suggested threads may be
     // picked if no thread is scheduled to run on the core.
-    void Suggest(u32 priority, u32 core, Thread* thread) {
-        suggested_queue[core].add(thread, priority);
-    }
+    void Suggest(u32 priority, u32 core, Thread* thread);
 
     // Remove a thread to the suggested queue of a cpu core. Suggested threads may be
     // picked if no thread is scheduled to run on the core.
-    void Unsuggest(u32 priority, u32 core, Thread* thread) {
-        suggested_queue[core].remove(thread, priority);
-    }
+    void Unsuggest(u32 priority, u32 core, Thread* thread);
 
     // Add a thread to the scheduling queue of a cpu core. The thread is added at the
     // back the queue in its priority level
@@ -58,37 +54,15 @@ public:
     void SchedulePrepend(u32 priority, u32 core, Thread* thread);
 
     // Reschedule an already scheduled thread based on a new priority
-    void Reschedule(u32 priority, u32 core, Thread* thread) {
-        scheduled_queue[core].remove(thread, priority);
-        scheduled_queue[core].add(thread, priority);
-    }
+    void Reschedule(u32 priority, u32 core, Thread* thread);
 
     // Unschedule a thread.
-    void Unschedule(u32 priority, u32 core, Thread* thread) {
-        scheduled_queue[core].remove(thread, priority);
-    }
+    void Unschedule(u32 priority, u32 core, Thread* thread);
 
     // Transfers a thread into an specific core. If the destination_core is -1
     // it will be unscheduled from its source code and added into its suggested
     // queue.
-    void TransferToCore(u32 priority, s32 destination_core, Thread* thread) {
-        const bool schedulable = thread->GetPriority() < THREADPRIO_COUNT;
-        const s32 source_core = thread->GetProcessorID();
-        if (source_core == destination_core || !schedulable) {
-            return;
-        }
-        thread->SetProcessorID(destination_core);
-        if (source_core >= 0) {
-            Unschedule(priority, source_core, thread);
-        }
-        if (destination_core >= 0) {
-            Unsuggest(priority, destination_core, thread);
-            Schedule(priority, destination_core, thread);
-        }
-        if (source_core >= 0) {
-            Suggest(priority, source_core, thread);
-        }
-    }
+    void TransferToCore(u32 priority, s32 destination_core, Thread* thread);
 
     /*
      * UnloadThread selects a core and forces it to unload its current thread's context
@@ -133,6 +107,12 @@ public:
      */
     bool YieldThreadAndWaitForLoadBalancing(Thread* thread);
 
+    /*
+     * PreemptThreads this operation rotates the scheduling queues of threads at
+     * a preemption priority and then does some core rebalancing. Preemption priorities
+     * can be found in the array 'preemption_priorities'. This operation happens
+     * every 10ms.
+     */
     void PreemptThreads();
 
     u32 CpuCoresCount() const {
@@ -140,11 +120,11 @@ public:
     }
 
     void SetReselectionPending() {
-        reselection_pending.store(true, std::memory_order_release);
+        is_reselection_pending.store(true, std::memory_order_release);
     }
 
     bool IsReselectionPending() const {
-        return reselection_pending.load();
+        return is_reselection_pending.load(std::memory_order_acquire);
     }
 
     void Shutdown();
@@ -155,8 +135,10 @@ private:
     static constexpr u32 min_regular_priority = 2;
     std::array<Common::MultiLevelQueue<Thread*, THREADPRIO_COUNT>, NUM_CPU_CORES> scheduled_queue;
     std::array<Common::MultiLevelQueue<Thread*, THREADPRIO_COUNT>, NUM_CPU_CORES> suggested_queue;
-    std::atomic<bool> reselection_pending;
+    std::atomic<bool> is_reselection_pending;
 
+    // `preemption_priorities` are the priority levels at which the global scheduler
+    // preempts threads every 10 ms. They are ordered from Core 0 to Core 3
     std::array<u32, NUM_CPU_CORES> preemption_priorities = {59, 59, 59, 62};
 
     /// Lists all thread ids that aren't deleted/etc.
@@ -166,7 +148,7 @@ private:
 
 class Scheduler final {
 public:
-    explicit Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, const u32 core_id);
+    explicit Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, u32 core_id);
     ~Scheduler();
 
     /// Returns whether there are any threads that are ready to run.
@@ -175,26 +157,27 @@ public:
     /// Reschedules to the next available thread (call after current thread is suspended)
     void TryDoContextSwitch();
 
+    /// Unloads currently running thread
     void UnloadThread();
 
+    /// Select the threads in top of the scheduling multilist.
     void SelectThreads();
 
     /// Gets the current running thread
     Thread* GetCurrentThread() const;
 
+    /// Gets the currently selected thread from the top of the multilevel queue
     Thread* GetSelectedThread() const;
 
     /// Gets the timestamp for the last context switch in ticks.
     u64 GetLastContextSwitchTicks() const;
 
     bool ContextSwitchPending() const {
-        return context_switch_pending;
+        return is_context_switch_pending;
     }
 
-    void Shutdown() {
-        current_thread = nullptr;
-        selected_thread = nullptr;
-    }
+    /// Shutdowns the scheduler.
+    void Shutdown();
 
 private:
     friend class GlobalScheduler;
@@ -226,7 +209,7 @@ private:
     u64 idle_selection_count = 0;
     const u32 core_id;
 
-    bool context_switch_pending = false;
+    bool is_context_switch_pending = false;
 };
 
 } // namespace Kernel
