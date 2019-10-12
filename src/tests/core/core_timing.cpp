@@ -116,11 +116,11 @@ TEST_CASE("CoreTiming[FairSharing]", "[core]") {
         keep_running = false;
         for (u32 active_core = 0; active_core < 4; ++active_core) {
             core_timing.SwitchContext(active_core);
-            if (core_timing.CurrentContextCanRun()) {
+            if (core_timing.CanCurrentContextRun()) {
                 core_timing.AddTicks(std::min<s64>(advances, core_timing.GetDowncount()));
                 core_timing.Advance();
             }
-            keep_running |= core_timing.CurrentContextCanRun();
+            keep_running |= core_timing.CanCurrentContextRun();
         }
     } while (keep_running);
     u64 current_time_2 = core_timing.GetTicks();
