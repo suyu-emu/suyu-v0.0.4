@@ -410,7 +410,7 @@ ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
     };
 
     const bool use_override = affinity_override_count != 0;
-    if (new_core == THREADDONTCHANGE_IDEAL) {
+    if (new_core == THREADPROCESSORID_DONT_UPDATE) {
         new_core = use_override ? ideal_core_override : ideal_core;
         if ((new_affinity_mask & (1ULL << new_core)) == 0) {
             return ERR_INVALID_COMBINATION;

@@ -35,9 +35,6 @@ enum ThreadProcessorId : s32 {
     /// Run thread on the ideal core specified by the process.
     THREADPROCESSORID_IDEAL = -2,
 
-    /// when setting Core and Affiny, keeps the ideal core intact
-    THREADDONTCHANGE_IDEAL = -3,
-
     /// Indicates that the preferred processor ID shouldn't be updated in
     /// a core mask setting operation.
     THREADPROCESSORID_DONT_UPDATE = -3,
