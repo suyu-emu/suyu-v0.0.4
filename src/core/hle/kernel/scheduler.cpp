@@ -414,7 +414,7 @@ u64 Scheduler::GetLastContextSwitchTicks() const {
 }
 
 void Scheduler::TryDoContextSwitch() {
-    if (is_context_switch_pending ) {
+    if (is_context_switch_pending) {
         SwitchContext();
     }
 }

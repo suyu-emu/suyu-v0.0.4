@@ -42,7 +42,7 @@ Thread::~Thread() = default;
 void Thread::Stop() {
     // Cancel any outstanding wakeup events for this thread
     Core::System::GetInstance().CoreTiming().UnscheduleEvent(kernel.ThreadWakeupCallbackEventType(),
-                                                 callback_handle);
+                                                             callback_handle);
     kernel.ThreadWakeupCallbackHandleTable().Close(callback_handle);
     callback_handle = 0;
     SetStatus(ThreadStatus::Dead);
@@ -68,13 +68,13 @@ void Thread::WakeAfterDelay(s64 nanoseconds) {
     // This function might be called from any thread so we have to be cautious and use the
     // thread-safe version of ScheduleEvent.
     const s64 cycles = Core::Timing::nsToCycles(std::chrono::nanoseconds{nanoseconds});
-    Core::System::GetInstance().CoreTiming().ScheduleEvent(cycles, kernel.ThreadWakeupCallbackEventType(),
-                                               callback_handle);
+    Core::System::GetInstance().CoreTiming().ScheduleEvent(
+        cycles, kernel.ThreadWakeupCallbackEventType(), callback_handle);
 }
 
 void Thread::CancelWakeupTimer() {
     Core::System::GetInstance().CoreTiming().UnscheduleEvent(kernel.ThreadWakeupCallbackEventType(),
-                                                 callback_handle);
+                                                             callback_handle);
 }
 
 static std::optional<s32> GetNextProcessorId(u64 mask) {
