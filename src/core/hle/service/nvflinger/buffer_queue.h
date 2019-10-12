@@ -15,6 +15,10 @@
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 
+namespace Kernel {
+class KernelCore;
+}
+
 namespace Service::NVFlinger {
 
 struct IGBPBuffer {
@@ -44,7 +48,7 @@ public:
         NativeWindowFormat = 2,
     };
 
-    BufferQueue(u32 id, u64 layer_id);
+    explicit BufferQueue(Kernel::KernelCore& kernel, u32 id, u64 layer_id);
     ~BufferQueue();
 
     enum class BufferTransformFlags : u32 {
