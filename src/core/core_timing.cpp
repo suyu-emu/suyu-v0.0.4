@@ -203,14 +203,13 @@ void CoreTiming::Advance() {
 }
 
 void CoreTiming::ResetRun() {
-    for (std::size_t core = 0; core < num_cpu_cores; core++) {
-        downcounts[core] = MAX_SLICE_LENGTH;
-        time_slice[core] = MAX_SLICE_LENGTH;
-    }
+    downcounts.fill(MAX_SLICE_LENGTH);
+    time_slice.fill(MAX_SLICE_LENGTH);
     current_context = 0;
     // Still events left (scheduled in the future)
     if (!event_queue.empty()) {
-        s64 needed_ticks = std::min<s64>(event_queue.front().time - global_timer, MAX_SLICE_LENGTH);
+        const s64 needed_ticks =
+            std::min<s64>(event_queue.front().time - global_timer, MAX_SLICE_LENGTH);
         downcounts[current_context] = needed_ticks;
     }
 
