@@ -65,8 +65,8 @@ PartitionFilesystem::PartitionFilesystem(std::shared_ptr<VfsFile> file) {
         std::string name(
             reinterpret_cast<const char*>(&file_data[strtab_offset + entry.strtab_offset]));
 
-        offsets[name] = content_offset + entry.offset;
-        sizes[name] = entry.size;
+        offsets.insert_or_assign(name, content_offset + entry.offset);
+        sizes.insert_or_assign(name, entry.size);
 
         pfs_files.emplace_back(std::make_shared<OffsetVfsFile>(
             file, entry.size, content_offset + entry.offset, std::move(name)));

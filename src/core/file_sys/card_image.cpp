@@ -57,7 +57,7 @@ XCI::XCI(VirtualFile file_)
         const auto partition_idx = static_cast<std::size_t>(partition);
         auto raw = main_hfs.GetFile(partition_names[partition_idx]);
 
-        partitions_raw[static_cast<std::size_t>(partition)] = raw;
+        partitions_raw[static_cast<std::size_t>(partition)] = std::move(raw);
     }
 
     secure_partition = std::make_shared<NSP>(
@@ -170,6 +170,40 @@ VirtualFile XCI::GetLogoPartitionRaw() const {
 
 u64 XCI::GetProgramTitleID() const {
     return secure_partition->GetProgramTitleID();
+}
+
+u32 XCI::GetSystemUpdateVersion() {
+    const auto update = GetPartition(XCIPartition::Update);
+    if (update == nullptr)
+        return 0;
+
+    for (const auto& file : update->GetFiles()) {
+        NCA nca{file, nullptr, 0, keys};
+
+        if (nca.GetStatus() != Loader::ResultStatus::Success)
+            continue;
+
+        if (nca.GetType() == NCAContentType::Meta && nca.GetTitleId() == 0x0100000000000816) {
+            const auto dir = nca.GetSubdirectories()[0];
+            const auto cnmt = dir->GetFile("SystemUpdate_0100000000000816.cnmt");
+            if (cnmt == nullptr)
+                continue;
+
+            CNMT cnmt_data{cnmt};
+
+            const auto metas = cnmt_data.GetMetaRecords();
+            if (metas.empty())
+                continue;
+
+            return metas[0].title_version;
+        }
+    }
+
+    return 0;
+}
+
+u64 XCI::GetSystemUpdateTitleID() const {
+    return 0x0100000000000816;
 }
 
 bool XCI::HasProgramNCA() const {
