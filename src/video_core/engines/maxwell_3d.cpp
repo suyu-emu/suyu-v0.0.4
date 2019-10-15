@@ -101,7 +101,8 @@ void Maxwell3D::InitializeRegisterDefaults() {
 #define DIRTY_REGS_POS(field_name) (offsetof(Maxwell3D::DirtyRegs, field_name))
 
 void Maxwell3D::InitDirtySettings() {
-    const auto set_block = [this](const u32 start, const u32 range, const u8 position) {
+    const auto set_block = [this](const std::size_t start, const std::size_t range,
+                                  const u8 position) {
         const auto start_itr = dirty_pointers.begin() + start;
         const auto end_itr = start_itr + range;
         std::fill(start_itr, end_itr, position);
