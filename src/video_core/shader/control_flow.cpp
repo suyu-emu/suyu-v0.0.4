@@ -473,8 +473,8 @@ void DecompileShader(CFGRebuildState& state) {
     state.manager->Decompile();
 }
 
-std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u32 program_size,
-                                                u32 start_address,
+std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
+                                                std::size_t program_size, u32 start_address,
                                                 const CompilerSettings& settings) {
     auto result_out = std::make_unique<ShaderCharacteristics>();
     if (settings.depth == CompileDepth::BruteForce) {
