@@ -1148,7 +1148,7 @@ private:
         for (const auto& variant : extras) {
             if (const auto argument = std::get_if<TextureArgument>(&variant)) {
                 expr += GenerateTextureArgument(*argument);
-            } else if (std::get_if<TextureAoffi>(&variant)) {
+            } else if (std::holds_alternative<TextureAoffi>(variant)) {
                 expr += GenerateTextureAoffi(meta->aoffi);
             } else {
                 UNREACHABLE();
