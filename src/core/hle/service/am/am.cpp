@@ -1140,8 +1140,9 @@ void IApplicationFunctions::PopLaunchParameter(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called, kind={:08X}", static_cast<u8>(kind));
 
     if (kind == LaunchParameterKind::ApplicationSpecific && !launch_popped_application_specific) {
-        const auto backend = BCAT::CreateBackendFromSettings(
-            [this](u64 tid) { return system.GetFileSystemController().GetBCATDirectory(tid); });
+        const auto backend = BCAT::CreateBackendFromSettings(system, [this](u64 tid) {
+            return system.GetFileSystemController().GetBCATDirectory(tid);
+        });
         const auto build_id_full = system.GetCurrentProcessBuildID();
         u64 build_id{};
         std::memcpy(&build_id, build_id_full.data(), sizeof(u64));

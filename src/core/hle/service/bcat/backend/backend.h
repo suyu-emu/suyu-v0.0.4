@@ -15,6 +15,14 @@
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/result.h"
 
+namespace Core {
+class System;
+}
+
+namespace Kernel {
+class KernelCore;
+}
+
 namespace Service::BCAT {
 
 struct DeliveryCacheProgressImpl;
@@ -88,7 +96,7 @@ public:
     void FinishDownload(ResultCode result);
 
 private:
-    explicit ProgressServiceBackend(std::string_view event_name);
+    explicit ProgressServiceBackend(Kernel::KernelCore& kernel, std::string_view event_name);
 
     Kernel::SharedPtr<Kernel::ReadableEvent> GetEvent() const;
     DeliveryCacheProgressImpl& GetImpl();
@@ -145,6 +153,6 @@ public:
     std::optional<std::vector<u8>> GetLaunchParameter(TitleIDVersion title) override;
 };
 
-std::unique_ptr<Backend> CreateBackendFromSettings(DirectoryGetter getter);
+std::unique_ptr<Backend> CreateBackendFromSettings(Core::System& system, DirectoryGetter getter);
 
 } // namespace Service::BCAT

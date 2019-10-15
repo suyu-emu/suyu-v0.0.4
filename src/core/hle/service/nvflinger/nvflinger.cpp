@@ -83,7 +83,7 @@ std::optional<u64> NVFlinger::CreateLayer(u64 display_id) {
 
     const u64 layer_id = next_layer_id++;
     const u32 buffer_queue_id = next_buffer_queue_id++;
-    buffer_queues.emplace_back(buffer_queue_id, layer_id);
+    buffer_queues.emplace_back(system.Kernel(), buffer_queue_id, layer_id);
     display->CreateLayer(layer_id, buffer_queues.back());
     return layer_id;
 }
