@@ -4,12 +4,11 @@
 
 #pragma once
 
-#include <algorithm>
+#include <optional>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
-#include "common/assert.h"
-#include "common/binary_find.h"
 #include "common/common_types.h"
 #include "video_core/gpu.h"
 #include "video_core/morton.h"

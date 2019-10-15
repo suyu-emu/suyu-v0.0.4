@@ -95,11 +95,11 @@ add_custom_command(OUTPUT scm_rev.cpp
 )
 
 add_library(common STATIC
+    algorithm.h
     alignment.h
     assert.h
     detached_tasks.cpp
     detached_tasks.h
-    binary_find.h
     bit_field.h
     bit_util.h
     cityhash.cpp
