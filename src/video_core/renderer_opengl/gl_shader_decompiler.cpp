@@ -2271,10 +2271,8 @@ private:
     ShaderWriter code;
 };
 
-static constexpr std::string_view flow_var = "flow_var_";
-
 std::string GetFlowVariable(u32 i) {
-    return fmt::format("{}{}", flow_var, i);
+    return fmt::format("flow_var_{}", i);
 }
 
 class ExprDecompiler {
