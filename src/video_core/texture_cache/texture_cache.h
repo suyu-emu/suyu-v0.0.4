@@ -62,10 +62,10 @@ public:
         }
     }
 
-    /***
-     * `Guard` guarantees that rendertargets don't unregister themselves if the
+    /**
+     * Guarantees that rendertargets don't unregister themselves if the
      * collide. Protection is currently only done on 3D slices.
-     ***/
+     */
     void GuardRenderTargets(bool new_guard) {
         guard_render_targets = new_guard;
     }
@@ -287,7 +287,7 @@ protected:
                            const Tegra::Engines::Fermi2D::Config& copy_config) = 0;
 
     // Depending on the backend, a buffer copy can be slow as it means deoptimizing the texture
-    // and reading it from a sepparate buffer.
+    // and reading it from a separate buffer.
     virtual void BufferCopy(TSurface& src_surface, TSurface& dst_surface) = 0;
 
     void ManageRenderTargetUnregister(TSurface& surface) {
@@ -386,12 +386,13 @@ private:
     };
 
     /**
-     * `PickStrategy` takes care of selecting a proper strategy to deal with a texture recycle.
-     * @param overlaps, the overlapping surfaces registered in the cache.
-     * @param params, the paremeters on the new surface.
-     * @param gpu_addr, the starting address of the new surface.
-     * @param untopological, tells the recycler that the texture has no way to match the overlaps
-     * due to topological reasons.
+     * Takes care of selecting a proper strategy to deal with a texture recycle.
+     *
+     * @param overlaps      The overlapping surfaces registered in the cache.
+     * @param params        The parameters on the new surface.
+     * @param gpu_addr      The starting address of the new surface.
+     * @param untopological Indicates to the recycler that the texture has no way
+     *                      to match the overlaps due to topological reasons.
      **/
     RecycleStrategy PickStrategy(std::vector<TSurface>& overlaps, const SurfaceParams& params,
                                  const GPUVAddr gpu_addr, const MatchTopologyResult untopological) {
@@ -419,16 +420,19 @@ private:
     }
 
     /**
-     *  `RecycleSurface` es a method we use to decide what to do with textures we can't resolve in
-     *the cache It has 2 implemented strategies: Ignore and Flush. Ignore just unregisters all the
-     *overlaps and loads the new texture. Flush, flushes all the overlaps into memory and loads the
-     *new surface from that data.
-     * @param overlaps, the overlapping surfaces registered in the cache.
-     * @param params, the paremeters on the new surface.
-     * @param gpu_addr, the starting address of the new surface.
-     * @param preserve_contents, tells if the new surface should be loaded from meory or left blank
-     * @param untopological, tells the recycler that the texture has no way to match the overlaps
-     * due to topological reasons.
+     * Used to decide what to do with textures we can't resolve in the cache It has 2 implemented
+     * strategies: Ignore and Flush.
+     *
+     * - Ignore: Just unregisters all the overlaps and loads the new texture.
+     * - Flush: Flushes all the overlaps into memory and loads the new surface from that data.
+     *
+     * @param overlaps          The overlapping surfaces registered in the cache.
+     * @param params            The parameters for the new surface.
+     * @param gpu_addr          The starting address of the new surface.
+     * @param preserve_contents Indicates that the new surface should be loaded from memory or left
+     *                          blank.
+     * @param untopological     Indicates to the recycler that the texture has no way to match the
+     *                          overlaps due to topological reasons.
      **/
     std::pair<TSurface, TView> RecycleSurface(std::vector<TSurface>& overlaps,
                                               const SurfaceParams& params, const GPUVAddr gpu_addr,
@@ -465,10 +469,12 @@ private:
     }
 
     /**
-     * `RebuildSurface` this method takes a single surface and recreates into another that
-     * may differ in format, target or width alingment.
-     * @param current_surface, the registered surface in the cache which we want to convert.
-     * @param params, the new surface params which we'll use to recreate the surface.
+     * Takes a single surface and recreates into another that may differ in
+     * format, target or width alignment.
+     *
+     * @param current_surface The registered surface in the cache which we want to convert.
+     * @param params          The new surface params which we'll use to recreate the surface.
+     * @param is_render       Whether or not the surface is a render target.
      **/
     std::pair<TSurface, TView> RebuildSurface(TSurface current_surface, const SurfaceParams& params,
                                               bool is_render) {
@@ -502,12 +508,14 @@ private:
     }
 
     /**
-     * `ManageStructuralMatch` this method takes a single surface and checks with the new surface's
-     * params if it's an exact match, we return the main view of the registered surface. If it's
-     * formats don't match, we rebuild the surface. We call this last method a `Mirage`. If formats
+     * Takes a single surface and checks with the new surface's params if it's an exact
+     * match, we return the main view of the registered surface. If its formats don't
+     * match, we rebuild the surface. We call this last method a `Mirage`. If formats
      * match but the targets don't, we create an overview View of the registered surface.
-     * @param current_surface, the registered surface in the cache which we want to convert.
-     * @param params, the new surface params which we want to check.
+     *
+     * @param current_surface The registered surface in the cache which we want to convert.
+     * @param params          The new surface params which we want to check.
+     * @param is_render       Whether or not the surface is a render target.
      **/
     std::pair<TSurface, TView> ManageStructuralMatch(TSurface current_surface,
                                                      const SurfaceParams& params, bool is_render) {
@@ -529,13 +537,14 @@ private:
     }
 
     /**
-     * `TryReconstructSurface` unlike `RebuildSurface` where we know the registered surface
-     * matches the candidate in some way, we got no guarantess here. We try to see if the overlaps
-     * are sublayers/mipmaps of the new surface, if they all match we end up recreating a surface
-     * for them, else we return nothing.
-     * @param overlaps, the overlapping surfaces registered in the cache.
-     * @param params, the paremeters on the new surface.
-     * @param gpu_addr, the starting address of the new surface.
+     * Unlike RebuildSurface where we know whether or not registered surfaces match the candidate
+     * in some way, we have no guarantees here. We try to see if the overlaps are sublayers/mipmaps
+     * of the new surface, if they all match we end up recreating a surface for them,
+     * else we return nothing.
+     *
+     * @param overlaps The overlapping surfaces registered in the cache.
+     * @param params   The parameters on the new surface.
+     * @param gpu_addr The starting address of the new surface.
      **/
     std::optional<std::pair<TSurface, TView>> TryReconstructSurface(std::vector<TSurface>& overlaps,
                                                                     const SurfaceParams& params,
@@ -584,19 +593,27 @@ private:
     }
 
     /**
-     * `GetSurface` gets the starting address and parameters of a candidate surface and tries
-     * to find a matching surface within the cache. This is done in 3 big steps. The first is to
-     * check the 1st Level Cache in order to find an exact match, if we fail, we move to step 2.
-     * Step 2 is checking if there are any overlaps at all, if none, we just load the texture from
-     * memory else we move to step 3. Step 3 consists on figuring the relationship between the
-     * candidate texture and the overlaps. We divide the scenarios depending if there's 1 or many
-     * overlaps. If there's many, we just try to reconstruct a new surface out of them based on the
-     * candidate's parameters, if we fail, we recycle. When there's only 1 overlap then we have to
-     * check if the candidate is a view (layer/mipmap) of the overlap or if the registered surface
-     * is a mipmap/layer of the candidate. In this last case we reconstruct a new surface.
-     * @param gpu_addr, the starting address of the candidate surface.
-     * @param params, the paremeters on the candidate surface.
-     * @param preserve_contents, tells if the new surface should be loaded from meory or left blank.
+     * Gets the starting address and parameters of a candidate surface and tries
+     * to find a matching surface within the cache. This is done in 3 big steps:
+     *
+     * 1. Check the 1st Level Cache in order to find an exact match, if we fail, we move to step 2.
+     *
+     * 2. Check if there are any overlaps at all, if there are none, we just load the texture from
+     *    memory else we move to step 3.
+     *
+     * 3. Consists of figuring out the relationship between the candidate texture and the
+     *    overlaps. We divide the scenarios depending if there's 1 or many overlaps. If
+     *    there's many, we just try to reconstruct a new surface out of them based on the
+     *    candidate's parameters, if we fail, we recycle. When there's only 1 overlap then we
+     *    have to check if the candidate is a view (layer/mipmap) of the overlap or if the
+     *    registered surface is a mipmap/layer of the candidate. In this last case we reconstruct
+     *    a new surface.
+     *
+     * @param gpu_addr          The starting address of the candidate surface.
+     * @param params            The parameters on the candidate surface.
+     * @param preserve_contents Indicates that the new surface should be loaded from memory or
+     *                          left blank.
+     * @param is_render         Whether or not the surface is a render target.
      **/
     std::pair<TSurface, TView> GetSurface(const GPUVAddr gpu_addr, const SurfaceParams& params,
                                           bool preserve_contents, bool is_render) {
@@ -651,7 +668,7 @@ private:
         // Step 3
         // Now we need to figure the relationship between the texture and its overlaps
         // we do a topological test to ensure we can find some relationship. If it fails
-        // inmediatly recycle the texture
+        // immediately recycle the texture
         for (const auto& surface : overlaps) {
             const auto topological_result = surface->MatchesTopology(params);
             if (topological_result != MatchTopologyResult::FullMatch) {
@@ -720,12 +737,13 @@ private:
     }
 
     /**
-     * `DeduceSurface` gets the starting address and parameters of a candidate surface and tries
-     * to find a matching surface within the cache that's similar to it. If there are many textures
+     * Gets the starting address and parameters of a candidate surface and tries to find a
+     * matching surface within the cache that's similar to it. If there are many textures
      * or the texture found if entirely incompatible, it will fail. If no texture is found, the
      * blit will be unsuccessful.
-     * @param gpu_addr, the starting address of the candidate surface.
-     * @param params, the paremeters on the candidate surface.
+     *
+     * @param gpu_addr The starting address of the candidate surface.
+     * @param params   The parameters on the candidate surface.
      **/
     Deduction DeduceSurface(const GPUVAddr gpu_addr, const SurfaceParams& params) {
         const auto host_ptr{system.GPU().MemoryManager().GetPointer(gpu_addr)};
@@ -777,11 +795,14 @@ private:
     }
 
     /**
-     * `DeduceBestBlit` gets the a source and destination starting address and parameters,
+     * Gets the a source and destination starting address and parameters,
      * and tries to deduce if they are supposed to be depth textures. If so, their
      * parameters are modified and fixed into so.
-     * @param gpu_addr, the starting address of the candidate surface.
-     * @param params, the parameters on the candidate surface.
+     *
+     * @param src_params   The parameters of the candidate surface.
+     * @param dst_params   The parameters of the destination surface.
+     * @param src_gpu_addr The starting address of the candidate surface.
+     * @param dst_gpu_addr The starting address of the destination surface.
      **/
     void DeduceBestBlit(SurfaceParams& src_params, SurfaceParams& dst_params,
                         const GPUVAddr src_gpu_addr, const GPUVAddr dst_gpu_addr) {
