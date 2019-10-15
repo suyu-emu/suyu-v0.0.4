@@ -2246,7 +2246,7 @@ private:
         code.AddLine("#ifdef SAMPLER_{}_IS_BUFFER", sampler.GetIndex());
     }
 
-    std::string GetDeclarationWithSuffix(u32 index, const std::string& name) const {
+    std::string GetDeclarationWithSuffix(u32 index, std::string_view name) const {
         return fmt::format("{}_{}_{}", name, index, suffix);
     }
 
