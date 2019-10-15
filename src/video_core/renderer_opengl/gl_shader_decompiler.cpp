@@ -1158,8 +1158,8 @@ private:
         return expr + ')';
     }
 
-    std::string GenerateTextureArgument(TextureArgument argument) {
-        const auto [type, operand] = argument;
+    std::string GenerateTextureArgument(const TextureArgument& argument) {
+        const auto& [type, operand] = argument;
         if (operand == nullptr) {
             return {};
         }
