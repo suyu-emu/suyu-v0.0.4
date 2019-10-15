@@ -2281,7 +2281,7 @@ class ExprDecompiler {
 public:
     explicit ExprDecompiler(GLSLDecompiler& decomp) : decomp{decomp} {}
 
-    void operator()(VideoCommon::Shader::ExprAnd& expr) {
+    void operator()(const ExprAnd& expr) {
         inner += "( ";
         std::visit(*this, *expr.operand1);
         inner += " && ";
@@ -2289,7 +2289,7 @@ public:
         inner += ')';
     }
 
-    void operator()(VideoCommon::Shader::ExprOr& expr) {
+    void operator()(const ExprOr& expr) {
         inner += "( ";
         std::visit(*this, *expr.operand1);
         inner += " || ";
@@ -2297,17 +2297,17 @@ public:
         inner += ')';
     }
 
-    void operator()(VideoCommon::Shader::ExprNot& expr) {
+    void operator()(const ExprNot& expr) {
         inner += '!';
         std::visit(*this, *expr.operand1);
     }
 
-    void operator()(VideoCommon::Shader::ExprPredicate& expr) {
+    void operator()(const ExprPredicate& expr) {
         const auto pred = static_cast<Tegra::Shader::Pred>(expr.predicate);
         inner += decomp.GetPredicate(pred);
     }
 
-    void operator()(VideoCommon::Shader::ExprCondCode& expr) {
+    void operator()(const ExprCondCode& expr) {
         const Node cc = decomp.ir.GetConditionCode(expr.cc);
         std::string target;
 
@@ -2329,11 +2329,11 @@ public:
         inner += target;
     }
 
-    void operator()(VideoCommon::Shader::ExprVar& expr) {
+    void operator()(const ExprVar& expr) {
         inner += GetFlowVariable(expr.var_index);
     }
 
-    void operator()(VideoCommon::Shader::ExprBoolean& expr) {
+    void operator()(const ExprBoolean& expr) {
         inner += expr.value ? "true" : "false";
     }
 
@@ -2350,7 +2350,7 @@ class ASTDecompiler {
 public:
     explicit ASTDecompiler(GLSLDecompiler& decomp) : decomp{decomp} {}
 
-    void operator()(VideoCommon::Shader::ASTProgram& ast) {
+    void operator()(const ASTProgram& ast) {
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
             Visit(current);
@@ -2358,7 +2358,7 @@ public:
         }
     }
 
-    void operator()(VideoCommon::Shader::ASTIfThen& ast) {
+    void operator()(const ASTIfThen& ast) {
         ExprDecompiler expr_parser{decomp};
         std::visit(expr_parser, *ast.condition);
         decomp.code.AddLine("if ({}) {{", expr_parser.GetResult());
@@ -2372,7 +2372,7 @@ public:
         decomp.code.AddLine("}}");
     }
 
-    void operator()(VideoCommon::Shader::ASTIfElse& ast) {
+    void operator()(const ASTIfElse& ast) {
         decomp.code.AddLine("else {{");
         decomp.code.scope++;
         ASTNode current = ast.nodes.GetFirst();
@@ -2384,29 +2384,29 @@ public:
         decomp.code.AddLine("}}");
     }
 
-    void operator()(VideoCommon::Shader::ASTBlockEncoded& ast) {
+    void operator()([[maybe_unused]] const ASTBlockEncoded& ast) {
         UNREACHABLE();
     }
 
-    void operator()(VideoCommon::Shader::ASTBlockDecoded& ast) {
+    void operator()(const ASTBlockDecoded& ast) {
         decomp.VisitBlock(ast.nodes);
     }
 
-    void operator()(VideoCommon::Shader::ASTVarSet& ast) {
+    void operator()(const ASTVarSet& ast) {
         ExprDecompiler expr_parser{decomp};
         std::visit(expr_parser, *ast.condition);
         decomp.code.AddLine("{} = {};", GetFlowVariable(ast.index), expr_parser.GetResult());
     }
 
-    void operator()(VideoCommon::Shader::ASTLabel& ast) {
+    void operator()(const ASTLabel& ast) {
         decomp.code.AddLine("// Label_{}:", ast.index);
     }
 
-    void operator()(VideoCommon::Shader::ASTGoto& ast) {
+    void operator()([[maybe_unused]] const ASTGoto& ast) {
         UNREACHABLE();
     }
 
-    void operator()(VideoCommon::Shader::ASTDoWhile& ast) {
+    void operator()(const ASTDoWhile& ast) {
         ExprDecompiler expr_parser{decomp};
         std::visit(expr_parser, *ast.condition);
         decomp.code.AddLine("do {{");
@@ -2420,7 +2420,7 @@ public:
         decomp.code.AddLine("}} while({});", expr_parser.GetResult());
     }
 
-    void operator()(VideoCommon::Shader::ASTReturn& ast) {
+    void operator()(const ASTReturn& ast) {
         const bool is_true = VideoCommon::Shader::ExprIsTrue(ast.condition);
         if (!is_true) {
             ExprDecompiler expr_parser{decomp};
@@ -2440,7 +2440,7 @@ public:
         }
     }
 
-    void operator()(VideoCommon::Shader::ASTBreak& ast) {
+    void operator()(const ASTBreak& ast) {
         const bool is_true = VideoCommon::Shader::ExprIsTrue(ast.condition);
         if (!is_true) {
             ExprDecompiler expr_parser{decomp};
@@ -2455,7 +2455,7 @@ public:
         }
     }
 
-    void Visit(VideoCommon::Shader::ASTNode& node) {
+    void Visit(const ASTNode& node) {
         std::visit(*this, *node->GetInnerData());
     }
 
@@ -2468,9 +2468,9 @@ void GLSLDecompiler::DecompileAST() {
     for (u32 i = 0; i < num_flow_variables; i++) {
         code.AddLine("bool {} = false;", GetFlowVariable(i));
     }
+
     ASTDecompiler decompiler{*this};
-    VideoCommon::Shader::ASTNode program = ir.GetASTProgram();
-    decompiler.Visit(program);
+    decompiler.Visit(ir.GetASTProgram());
 }
 
 } // Anonymous namespace
