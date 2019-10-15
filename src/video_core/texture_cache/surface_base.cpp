@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "common/algorithm.h"
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/microprofile.h"
