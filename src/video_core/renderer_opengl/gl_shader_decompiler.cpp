@@ -2335,7 +2335,7 @@ public:
         inner += expr.value ? "true" : "false";
     }
 
-    std::string& GetResult() {
+    const std::string& GetResult() const {
         return inner;
     }
 
