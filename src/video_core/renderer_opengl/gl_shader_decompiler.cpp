@@ -1235,7 +1235,7 @@ private:
 
     std::string BuildImageValues(Operation operation) {
         constexpr std::array constructors{"uint", "uvec2", "uvec3", "uvec4"};
-        const auto meta{std::get<MetaImage>(operation.GetMeta())};
+        const auto& meta{std::get<MetaImage>(operation.GetMeta())};
 
         const std::size_t values_count{meta.values.size()};
         std::string expr = fmt::format("{}(", constructors.at(values_count - 1));
@@ -1780,14 +1780,14 @@ private:
             return {"0", Type::Int};
         }
 
-        const auto meta{std::get<MetaImage>(operation.GetMeta())};
+        const auto& meta{std::get<MetaImage>(operation.GetMeta())};
         return {fmt::format("imageLoad({}, {}){}", GetImage(meta.image),
                             BuildIntegerCoordinates(operation), GetSwizzle(meta.element)),
                 Type::Uint};
     }
 
     Expression ImageStore(Operation operation) {
-        const auto meta{std::get<MetaImage>(operation.GetMeta())};
+        const auto& meta{std::get<MetaImage>(operation.GetMeta())};
         code.AddLine("imageStore({}, {}, {});", GetImage(meta.image),
                      BuildIntegerCoordinates(operation), BuildImageValues(operation));
         return {};
@@ -1795,7 +1795,7 @@ private:
 
     template <const std::string_view& opname>
     Expression AtomicImage(Operation operation) {
-        const auto meta{std::get<MetaImage>(operation.GetMeta())};
+        const auto& meta{std::get<MetaImage>(operation.GetMeta())};
         ASSERT(meta.values.size() == 1);
 
         return {fmt::format("imageAtomic{}({}, {}, {})", opname, GetImage(meta.image),
