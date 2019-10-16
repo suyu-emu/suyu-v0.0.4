@@ -246,6 +246,16 @@ SurfaceParams SurfaceParams::CreateForFermiCopySurface(
     return params;
 }
 
+VideoCore::Surface::SurfaceTarget SurfaceParams::ExpectedTarget(
+    const VideoCommon::Shader::Sampler& entry) {
+    return TextureTypeToSurfaceTarget(entry.GetType(), entry.IsArray());
+}
+
+VideoCore::Surface::SurfaceTarget SurfaceParams::ExpectedTarget(
+    const VideoCommon::Shader::Image& entry) {
+    return ImageTypeToSurfaceTarget(entry.GetType());
+}
+
 bool SurfaceParams::IsLayered() const {
     switch (target) {
     case SurfaceTarget::Texture1DArray:
