@@ -402,7 +402,7 @@ private:
         if (params.block_depth > 1 || params.target == SurfaceTarget::Texture3D) {
             return RecycleStrategy::Flush;
         }
-        for (auto s : overlaps) {
+        for (const auto& s : overlaps) {
             const auto& s_params = s->GetSurfaceParams();
             if (s_params.block_depth > 1 || s_params.target == SurfaceTarget::Texture3D) {
                 return RecycleStrategy::Flush;
@@ -575,7 +575,7 @@ private:
         } else if (Settings::values.use_accurate_gpu_emulation && passed_tests != overlaps.size()) {
             return {};
         }
-        for (auto surface : overlaps) {
+        for (const auto& surface : overlaps) {
             Unregister(surface);
         }
         new_surface->MarkAsModified(modified, Tick());
