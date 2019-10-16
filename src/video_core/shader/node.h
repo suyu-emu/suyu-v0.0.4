@@ -410,7 +410,7 @@ public:
     explicit OperationNode(OperationCode code) : OperationNode(code, Meta{}) {}
 
     explicit OperationNode(OperationCode code, Meta meta)
-        : OperationNode(code, meta, std::vector<Node>{}) {}
+        : OperationNode(code, std::move(meta), std::vector<Node>{}) {}
 
     explicit OperationNode(OperationCode code, std::vector<Node> operands)
         : OperationNode(code, Meta{}, std::move(operands)) {}
