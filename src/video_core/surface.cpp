@@ -252,6 +252,7 @@ PixelFormat PixelFormatFromTextureFormat(Tegra::Texture::TextureFormat format,
         default:
             break;
         }
+        break;
     case Tegra::Texture::TextureFormat::R32_G32_B32_A32:
         switch (component_type) {
         case Tegra::Texture::ComponentType::FLOAT:
