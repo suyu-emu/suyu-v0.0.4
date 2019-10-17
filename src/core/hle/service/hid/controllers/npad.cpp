@@ -629,25 +629,24 @@ void Controller_NPad::ClearAllConnectedControllers() {
 }
 
 void Controller_NPad::DisconnectAllConnectedControllers() {
-    std::for_each(connected_controllers.begin(), connected_controllers.end(),
-                  [](ControllerHolder& controller) { controller.is_connected = false; });
+    for (ControllerHolder& controller : connected_controllers) {
+        controller.is_connected = false;
+    }
 }
 
 void Controller_NPad::ConnectAllDisconnectedControllers() {
-    std::for_each(connected_controllers.begin(), connected_controllers.end(),
-                  [](ControllerHolder& controller) {
-                      if (controller.type != NPadControllerType::None && !controller.is_connected) {
-                          controller.is_connected = false;
-                      }
-                  });
+    for (ControllerHolder& controller : connected_controllers) {
+        if (controller.type != NPadControllerType::None && !controller.is_connected) {
+            controller.is_connected = false;
+        }
+    }
 }
 
 void Controller_NPad::ClearAllControllers() {
-    std::for_each(connected_controllers.begin(), connected_controllers.end(),
-                  [](ControllerHolder& controller) {
-                      controller.type = NPadControllerType::None;
-                      controller.is_connected = false;
-                  });
+    for (ControllerHolder& controller : connected_controllers) {
+        controller.type = NPadControllerType::None;
+        controller.is_connected = false;
+    }
 }
 
 u32 Controller_NPad::GetAndResetPressState() {
