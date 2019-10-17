@@ -1133,8 +1133,8 @@ void DmntCheatVm::Execute(const CheatProcessMetadata& metadata) {
             case SaveRestoreRegisterOpType::ClearRegs:
             case SaveRestoreRegisterOpType::Restore:
             default:
-                src = registers.data();
-                dst = saved_values.data();
+                src = saved_values.data();
+                dst = registers.data();
                 break;
             }
             for (std::size_t i = 0; i < NumRegisters; i++) {
