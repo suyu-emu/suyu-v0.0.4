@@ -11,6 +11,77 @@
 MICROPROFILE_DEFINE(MacroInterp, "GPU", "Execute macro interpreter", MP_RGB(128, 128, 192));
 
 namespace Tegra {
+namespace {
+enum class Operation : u32 {
+    ALU = 0,
+    AddImmediate = 1,
+    ExtractInsert = 2,
+    ExtractShiftLeftImmediate = 3,
+    ExtractShiftLeftRegister = 4,
+    Read = 5,
+    Unused = 6, // This operation doesn't seem to be a valid encoding.
+    Branch = 7,
+};
+} // Anonymous namespace
+
+enum class MacroInterpreter::ALUOperation : u32 {
+    Add = 0,
+    AddWithCarry = 1,
+    Subtract = 2,
+    SubtractWithBorrow = 3,
+    // Operations 4-7 don't seem to be valid encodings.
+    Xor = 8,
+    Or = 9,
+    And = 10,
+    AndNot = 11,
+    Nand = 12
+};
+
+enum class MacroInterpreter::ResultOperation : u32 {
+    IgnoreAndFetch = 0,
+    Move = 1,
+    MoveAndSetMethod = 2,
+    FetchAndSend = 3,
+    MoveAndSend = 4,
+    FetchAndSetMethod = 5,
+    MoveAndSetMethodFetchAndSend = 6,
+    MoveAndSetMethodSend = 7
+};
+
+enum class MacroInterpreter::BranchCondition : u32 {
+    Zero = 0,
+    NotZero = 1,
+};
+
+union MacroInterpreter::Opcode {
+    u32 raw;
+    BitField<0, 3, Operation> operation;
+    BitField<4, 3, ResultOperation> result_operation;
+    BitField<4, 1, BranchCondition> branch_condition;
+    // If set on a branch, then the branch doesn't have a delay slot.
+    BitField<5, 1, u32> branch_annul;
+    BitField<7, 1, u32> is_exit;
+    BitField<8, 3, u32> dst;
+    BitField<11, 3, u32> src_a;
+    BitField<14, 3, u32> src_b;
+    // The signed immediate overlaps the second source operand and the alu operation.
+    BitField<14, 18, s32> immediate;
+
+    BitField<17, 5, ALUOperation> alu_operation;
+
+    // Bitfield instructions data
+    BitField<17, 5, u32> bf_src_bit;
+    BitField<22, 5, u32> bf_size;
+    BitField<27, 5, u32> bf_dst_bit;
+
+    u32 GetBitfieldMask() const {
+        return (1 << bf_size) - 1;
+    }
+
+    s32 GetBranchTarget() const {
+        return static_cast<s32>(immediate * sizeof(u32));
+    }
+};
 
 MacroInterpreter::MacroInterpreter(Engines::Maxwell3D& maxwell3d) : maxwell3d(maxwell3d) {}
 
