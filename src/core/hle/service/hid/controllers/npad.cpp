@@ -637,7 +637,7 @@ void Controller_NPad::DisconnectAllConnectedControllers() {
 void Controller_NPad::ConnectAllDisconnectedControllers() {
     for (ControllerHolder& controller : connected_controllers) {
         if (controller.type != NPadControllerType::None && !controller.is_connected) {
-            controller.is_connected = false;
+            controller.is_connected = true;
         }
     }
 }
