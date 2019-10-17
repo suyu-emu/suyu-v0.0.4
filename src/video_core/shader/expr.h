@@ -127,6 +127,10 @@ public:
         return gpr == b.gpr && value == b.value;
     }
 
+    bool operator!=(const ExprGprEqual& b) const {
+        return !operator==(b);
+    }
+
     u32 gpr;
     u32 value;
 };

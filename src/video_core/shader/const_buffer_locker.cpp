@@ -22,6 +22,8 @@ ConstBufferLocker::ConstBufferLocker(Tegra::Engines::ShaderType shader_stage,
                                      Tegra::Engines::ConstBufferEngineInterface& engine)
     : stage{shader_stage}, engine{&engine} {}
 
+ConstBufferLocker::~ConstBufferLocker() = default;
+
 std::optional<u32> ConstBufferLocker::ObtainKey(u32 buffer, u32 offset) {
     const std::pair<u32, u32> key = {buffer, offset};
     const auto iter = keys.find(key);
@@ -29,7 +31,7 @@ std::optional<u32> ConstBufferLocker::ObtainKey(u32 buffer, u32 offset) {
         return iter->second;
     }
     if (!engine) {
-        return {};
+        return std::nullopt;
     }
     const u32 value = engine->AccessConstBuffer32(stage, buffer, offset);
     keys.emplace(key, value);
@@ -43,7 +45,7 @@ std::optional<SamplerDescriptor> ConstBufferLocker::ObtainBoundSampler(u32 offse
         return iter->second;
     }
     if (!engine) {
-        return {};
+        return std::nullopt;
     }
     const SamplerDescriptor value = engine->AccessBoundSampler(stage, offset);
     bound_samplers.emplace(key, value);
@@ -58,7 +60,7 @@ std::optional<Tegra::Engines::SamplerDescriptor> ConstBufferLocker::ObtainBindle
         return iter->second;
     }
     if (!engine) {
-        return {};
+        return std::nullopt;
     }
     const SamplerDescriptor value = engine->AccessBindlessSampler(stage, buffer, offset);
     bindless_samplers.emplace(key, value);

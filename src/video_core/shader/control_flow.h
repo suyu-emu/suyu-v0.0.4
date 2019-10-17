@@ -51,6 +51,10 @@ public:
                std::tie(b.condition, b.address, b.kill, b.is_sync, b.is_brk, b.ignore);
     }
 
+    bool operator!=(const SingleBranch& b) const {
+        return !operator==(b);
+    }
+
     Condition condition{};
     s32 address{exit_branch};
     bool kill{};
@@ -67,7 +71,7 @@ struct CaseBranch {
 
 class MultiBranch {
 public:
-    MultiBranch(u32 gpr, std::vector<CaseBranch>& branches)
+    MultiBranch(u32 gpr, std::vector<CaseBranch>&& branches)
         : gpr{gpr}, branches{std::move(branches)} {}
 
     u32 gpr{};

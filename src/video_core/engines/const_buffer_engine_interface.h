@@ -34,6 +34,10 @@ struct SamplerDescriptor {
         return raw == rhs.raw;
     }
 
+    bool operator!=(const SamplerDescriptor& rhs) const noexcept {
+        return !operator==(rhs);
+    }
+
     static SamplerDescriptor FromTicTexture(Tegra::Texture::TextureType tic_texture_type) {
         SamplerDescriptor result;
         switch (tic_texture_type) {
@@ -73,13 +77,12 @@ struct SamplerDescriptor {
             result.is_buffer.Assign(0);
             result.is_shadow.Assign(0);
             return result;
-        case Tegra::Texture::TextureType::Texture1DBuffer: {
+        case Tegra::Texture::TextureType::Texture1DBuffer:
             result.texture_type.Assign(Tegra::Shader::TextureType::Texture1D);
             result.is_array.Assign(0);
             result.is_buffer.Assign(1);
             result.is_shadow.Assign(0);
             return result;
-        }
         case Tegra::Texture::TextureType::Texture2DNoMipmap:
             result.texture_type.Assign(Tegra::Shader::TextureType::Texture2D);
             result.is_array.Assign(0);
@@ -105,7 +108,7 @@ static_assert(std::is_trivially_copyable_v<SamplerDescriptor>);
 
 class ConstBufferEngineInterface {
 public:
-    virtual ~ConstBufferEngineInterface() {}
+    virtual ~ConstBufferEngineInterface() = default;
     virtual u32 AccessConstBuffer32(ShaderType stage, u64 const_buffer, u64 offset) const = 0;
     virtual SamplerDescriptor AccessBoundSampler(ShaderType stage, u64 offset) const = 0;
     virtual SamplerDescriptor AccessBindlessSampler(ShaderType stage, u64 const_buffer,

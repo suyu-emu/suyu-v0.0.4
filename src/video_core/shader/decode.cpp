@@ -155,7 +155,7 @@ void ShaderIR::Decode() {
         [[fallthrough]];
     case CompileDepth::BruteForce: {
         coverage_begin = main_offset;
-        const u32 shader_end = program_code.size();
+        const std::size_t shader_end = program_code.size();
         coverage_end = shader_end;
         for (u32 label = main_offset; label < shader_end; label++) {
             basic_blocks.insert({label, DecodeRange(label, label + 1)});

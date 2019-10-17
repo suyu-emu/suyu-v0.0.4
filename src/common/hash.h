@@ -72,7 +72,7 @@ struct HashableStruct {
 
 struct PairHash {
     template <class T1, class T2>
-    std::size_t operator()(const std::pair<T1, T2>& pair) const {
+    std::size_t operator()(const std::pair<T1, T2>& pair) const noexcept {
         std::size_t seed = std::hash<T1>()(pair.first);
         boost::hash_combine(seed, std::hash<T2>()(pair.second));
         return seed;

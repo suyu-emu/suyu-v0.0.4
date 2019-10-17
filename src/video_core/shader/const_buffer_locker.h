@@ -16,12 +16,19 @@ using BoundSamplerMap = std::unordered_map<u32, Tegra::Engines::SamplerDescripto
 using BindlessSamplerMap =
     std::unordered_map<std::pair<u32, u32>, Tegra::Engines::SamplerDescriptor, Common::PairHash>;
 
+/**
+ * The ConstBufferLocker is a class use to interface the 3D and compute engines with the shader
+ * compiler. with it, the shader can obtain required data from GPU state and store it for disk
+ * shader compilation.
+ **/
 class ConstBufferLocker {
 public:
     explicit ConstBufferLocker(Tegra::Engines::ShaderType shader_stage);
 
     explicit ConstBufferLocker(Tegra::Engines::ShaderType shader_stage,
                                Tegra::Engines::ConstBufferEngineInterface& engine);
+
+    ~ConstBufferLocker();
 
     /// Retrieves a key from the locker, if it's registered, it will give the registered value, if
     /// not it will obtain it from maxwell3d and register it.

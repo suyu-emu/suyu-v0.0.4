@@ -284,7 +284,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
 
 const Sampler& ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler,
                                     std::optional<SamplerInfo> sampler_info) {
-    const auto offset = static_cast<std::size_t>(sampler.index.Value());
+    const auto offset = static_cast<u32>(sampler.index.Value());
 
     Tegra::Shader::TextureType type;
     bool is_array;
@@ -293,17 +293,14 @@ const Sampler& ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler,
         type = sampler_info->type;
         is_array = sampler_info->is_array;
         is_shadow = sampler_info->is_shadow;
+    } else if (auto sampler = locker.ObtainBoundSampler(offset); sampler) {
+        type = sampler->texture_type.Value();
+        is_array = sampler->is_array.Value() != 0;
+        is_shadow = sampler->is_shadow.Value() != 0;
     } else {
-        auto sampler = locker.ObtainBoundSampler(offset);
-        if (sampler) {
-            type = sampler->texture_type.Value();
-            is_array = sampler->is_array.Value() != 0;
-            is_shadow = sampler->is_shadow.Value() != 0;
-        } else {
-            type = Tegra::Shader::TextureType::Texture2D;
-            is_array = false;
-            is_shadow = false;
-        }
+        type = Tegra::Shader::TextureType::Texture2D;
+        is_array = false;
+        is_shadow = false;
     }
 
     // If this sampler has already been used, return the existing mapping.
@@ -320,7 +317,7 @@ const Sampler& ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler,
     const std::size_t next_index = used_samplers.size();
     const Sampler entry{offset, next_index, type, is_array, is_shadow};
     return *used_samplers.emplace(entry).first;
-}
+} // namespace VideoCommon::Shader
 
 const Sampler& ShaderIR::GetBindlessSampler(const Tegra::Shader::Register& reg,
                                             std::optional<SamplerInfo> sampler_info) {
@@ -336,17 +333,14 @@ const Sampler& ShaderIR::GetBindlessSampler(const Tegra::Shader::Register& reg,
         type = sampler_info->type;
         is_array = sampler_info->is_array;
         is_shadow = sampler_info->is_shadow;
+    } else if (auto sampler = locker.ObtainBindlessSampler(cbuf_index, cbuf_offset); sampler) {
+        type = sampler->texture_type.Value();
+        is_array = sampler->is_array.Value() != 0;
+        is_shadow = sampler->is_shadow.Value() != 0;
     } else {
-        auto sampler = locker.ObtainBindlessSampler(cbuf_index, cbuf_offset);
-        if (sampler) {
-            type = sampler->texture_type.Value();
-            is_array = sampler->is_array.Value() != 0;
-            is_shadow = sampler->is_shadow.Value() != 0;
-        } else {
-            type = Tegra::Shader::TextureType::Texture2D;
-            is_array = false;
-            is_shadow = false;
-        }
+        type = Tegra::Shader::TextureType::Texture2D;
+        is_array = false;
+        is_shadow = false;
     }
 
     // If this sampler has already been used, return the existing mapping.
