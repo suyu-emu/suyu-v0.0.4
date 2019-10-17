@@ -4,6 +4,8 @@
 
 #include <string>
 
+#include <fmt/format.h>
+
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/shader/ast.h"
@@ -249,7 +251,7 @@ public:
     void operator()(const ASTIfThen& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
-        inner += Ident() + "if (" + expr_parser.GetResult() + ") {\n";
+        inner += fmt::format("{}if ({}) {{\n", Ident(), expr_parser.GetResult());
         scope++;
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
@@ -257,7 +259,7 @@ public:
             current = current->GetNext();
         }
         scope--;
-        inner += Ident() + "}\n";
+        inner += fmt::format("{}}}\n", Ident());
     }
 
     void operator()(const ASTIfElse& ast) {
@@ -273,8 +275,7 @@ public:
     }
 
     void operator()(const ASTBlockEncoded& ast) {
-        inner += Ident() + "Block(" + std::to_string(ast.start) + ", " + std::to_string(ast.end) +
-                 ");\n";
+        inner += fmt::format("{}Block({}, {});\n", Ident(), ast.start, ast.end);
     }
 
     void operator()(const ASTBlockDecoded& ast) {
@@ -284,25 +285,24 @@ public:
     void operator()(const ASTVarSet& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
-        inner +=
-            Ident() + "V" + std::to_string(ast.index) + " := " + expr_parser.GetResult() + ";\n";
+        inner += fmt::format("{}V{} := {};\n", Ident(), ast.index, expr_parser.GetResult());
     }
 
     void operator()(const ASTLabel& ast) {
-        inner += "Label_" + std::to_string(ast.index) + ":\n";
+        inner += fmt::format("Label_{}:\n", ast.index);
     }
 
     void operator()(const ASTGoto& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
-        inner += Ident() + "(" + expr_parser.GetResult() + ") -> goto Label_" +
-                 std::to_string(ast.label) + ";\n";
+        inner +=
+            fmt::format("{}({}) -> goto Label_{};\n", Ident(), expr_parser.GetResult(), ast.label);
     }
 
     void operator()(const ASTDoWhile& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
-        inner += Ident() + "do {\n";
+        inner += fmt::format("{}do {{\n", Ident());
         scope++;
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
@@ -310,20 +310,20 @@ public:
             current = current->GetNext();
         }
         scope--;
-        inner += Ident() + "} while (" + expr_parser.GetResult() + ");\n";
+        inner += fmt::format("{}}} while ({});\n", Ident(), expr_parser.GetResult());
     }
 
     void operator()(const ASTReturn& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
-        inner += Ident() + "(" + expr_parser.GetResult() + ") -> " +
-                 (ast.kills ? "discard" : "exit") + ";\n";
+        inner += fmt::format("{}({}) -> {};\n", Ident(), expr_parser.GetResult(),
+                             ast.kills ? "discard" : "exit");
     }
 
     void operator()(const ASTBreak& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
-        inner += Ident() + "(" + expr_parser.GetResult() + ") -> break;\n";
+        inner += fmt::format("{}({}) -> break;\n", Ident(), expr_parser.GetResult());
     }
 
     std::string& Ident() {
