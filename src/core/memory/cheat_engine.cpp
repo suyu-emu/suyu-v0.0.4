@@ -22,7 +22,7 @@ constexpr u32 KEYPAD_BITMASK = 0x3FFFFFF;
 
 StandardVmCallbacks::StandardVmCallbacks(const Core::System& system,
                                          const CheatProcessMetadata& metadata)
-    : system(system), metadata(metadata) {}
+    : metadata(metadata), system(system) {}
 
 StandardVmCallbacks::~StandardVmCallbacks() = default;
 
@@ -176,9 +176,8 @@ std::vector<CheatEntry> TextCheatParser::Parse(const Core::System& system,
 
 CheatEngine::CheatEngine(Core::System& system, std::vector<CheatEntry> cheats,
                          const std::array<u8, 0x20>& build_id)
-    : system{system}, core_timing{system.CoreTiming()}, vm{std::make_unique<StandardVmCallbacks>(
-                                                            system, metadata)},
-      cheats(std::move(cheats)) {
+    : vm{std::make_unique<StandardVmCallbacks>(system, metadata)},
+      cheats(std::move(cheats)), core_timing{system.CoreTiming()}, system{system} {
     metadata.main_nso_build_id = build_id;
 }
 
