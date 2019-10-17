@@ -48,7 +48,7 @@ void Controller::SetFromCpuBoostMode(CpuBoostMode mode) {
                                 BOOST_MODE_TO_CONFIG_MAP.at(static_cast<u32>(mode)));
 }
 
-PerformanceMode Controller::GetCurrentPerformanceMode() {
+PerformanceMode Controller::GetCurrentPerformanceMode() const {
     return Settings::values.use_docked_mode ? PerformanceMode::Docked : PerformanceMode::Handheld;
 }
 
