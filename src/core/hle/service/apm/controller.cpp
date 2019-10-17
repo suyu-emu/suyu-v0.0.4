@@ -2,6 +2,10 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <array>
+#include <utility>
+
 #include "common/logging/log.h"
 #include "core/core_timing.h"
 #include "core/hle/service/apm/controller.h"
@@ -9,8 +13,7 @@
 
 namespace Service::APM {
 
-constexpr PerformanceConfiguration DEFAULT_PERFORMANCE_CONFIGURATION =
-    PerformanceConfiguration::Config7;
+constexpr auto DEFAULT_PERFORMANCE_CONFIGURATION = PerformanceConfiguration::Config7;
 
 Controller::Controller(Core::Timing::CoreTiming& core_timing)
     : core_timing{core_timing}, configs{
@@ -22,18 +25,35 @@ Controller::~Controller() = default;
 
 void Controller::SetPerformanceConfiguration(PerformanceMode mode,
                                              PerformanceConfiguration config) {
-    static const std::map<PerformanceConfiguration, u32> PCONFIG_TO_SPEED_MAP{
-        {PerformanceConfiguration::Config1, 1020},  {PerformanceConfiguration::Config2, 1020},
-        {PerformanceConfiguration::Config3, 1224},  {PerformanceConfiguration::Config4, 1020},
-        {PerformanceConfiguration::Config5, 1020},  {PerformanceConfiguration::Config6, 1224},
-        {PerformanceConfiguration::Config7, 1020},  {PerformanceConfiguration::Config8, 1020},
-        {PerformanceConfiguration::Config9, 1020},  {PerformanceConfiguration::Config10, 1020},
-        {PerformanceConfiguration::Config11, 1020}, {PerformanceConfiguration::Config12, 1020},
-        {PerformanceConfiguration::Config13, 1785}, {PerformanceConfiguration::Config14, 1785},
-        {PerformanceConfiguration::Config15, 1020}, {PerformanceConfiguration::Config16, 1020},
-    };
+    static constexpr std::array<std::pair<PerformanceConfiguration, u32>, 16> config_to_speed{{
+        {PerformanceConfiguration::Config1, 1020},
+        {PerformanceConfiguration::Config2, 1020},
+        {PerformanceConfiguration::Config3, 1224},
+        {PerformanceConfiguration::Config4, 1020},
+        {PerformanceConfiguration::Config5, 1020},
+        {PerformanceConfiguration::Config6, 1224},
+        {PerformanceConfiguration::Config7, 1020},
+        {PerformanceConfiguration::Config8, 1020},
+        {PerformanceConfiguration::Config9, 1020},
+        {PerformanceConfiguration::Config10, 1020},
+        {PerformanceConfiguration::Config11, 1020},
+        {PerformanceConfiguration::Config12, 1020},
+        {PerformanceConfiguration::Config13, 1785},
+        {PerformanceConfiguration::Config14, 1785},
+        {PerformanceConfiguration::Config15, 1020},
+        {PerformanceConfiguration::Config16, 1020},
+    }};
 
-    SetClockSpeed(PCONFIG_TO_SPEED_MAP.find(config)->second);
+    const auto iter = std::find_if(config_to_speed.cbegin(), config_to_speed.cend(),
+                                   [config](const auto& entry) { return entry.first == config; });
+
+    if (iter == config_to_speed.cend()) {
+        LOG_ERROR(Service_APM, "Invalid performance configuration value provided: {}",
+                  static_cast<u32>(config));
+        return;
+    }
+
+    SetClockSpeed(iter->second);
     configs.insert_or_assign(mode, config);
 }
 
@@ -48,7 +68,7 @@ void Controller::SetFromCpuBoostMode(CpuBoostMode mode) {
                                 BOOST_MODE_TO_CONFIG_MAP.at(static_cast<u32>(mode)));
 }
 
-PerformanceMode Controller::GetCurrentPerformanceMode() {
+PerformanceMode Controller::GetCurrentPerformanceMode() const {
     return Settings::values.use_docked_mode ? PerformanceMode::Docked : PerformanceMode::Handheld;
 }
 

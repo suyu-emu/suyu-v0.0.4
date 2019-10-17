@@ -56,7 +56,7 @@ public:
     void SetPerformanceConfiguration(PerformanceMode mode, PerformanceConfiguration config);
     void SetFromCpuBoostMode(CpuBoostMode mode);
 
-    PerformanceMode GetCurrentPerformanceMode();
+    PerformanceMode GetCurrentPerformanceMode() const;
     PerformanceConfiguration GetCurrentPerformanceConfiguration(PerformanceMode mode);
 
 private:
