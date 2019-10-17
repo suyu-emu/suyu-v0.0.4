@@ -766,6 +766,7 @@ Controller_NPad::NPadControllerType Controller_NPad::DecideBestController(
         priority_list.push_back(NPadControllerType::JoyLeft);
         priority_list.push_back(NPadControllerType::JoyRight);
         priority_list.push_back(NPadControllerType::JoyDual);
+        break;
     }
 
     const auto iter = std::find_if(priority_list.begin(), priority_list.end(),
