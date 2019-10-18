@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <string>
+#include <string_view>
 
 #include <fmt/format.h>
 
@@ -263,7 +264,9 @@ public:
     }
 
     void operator()(const ASTIfElse& ast) {
-        inner += Indent() + "else {\n";
+        inner += Indent();
+        inner += "else {\n";
+
         scope++;
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
@@ -271,15 +274,18 @@ public:
             current = current->GetNext();
         }
         scope--;
-        inner += Indent() + "}\n";
+
+        inner += Indent();
+        inner += "}\n";
     }
 
     void operator()(const ASTBlockEncoded& ast) {
         inner += fmt::format("{}Block({}, {});\n", Indent(), ast.start, ast.end);
     }
 
-    void operator()(const ASTBlockDecoded& ast) {
-        inner += Indent() + "Block;\n";
+    void operator()([[maybe_unused]] const ASTBlockDecoded& ast) {
+        inner += Indent();
+        inner += "Block;\n";
     }
 
     void operator()(const ASTVarSet& ast) {
@@ -335,22 +341,26 @@ public:
     }
 
 private:
-    std::string& Indent() {
-        if (memo_scope == scope) {
-            return tabs_memo;
+    std::string_view Indent() {
+        if (space_segment_scope == scope) {
+            return space_segment;
         }
-        tabs_memo = tabs.substr(0, scope * 2);
-        memo_scope = scope;
-        return tabs_memo;
+
+        // Ensure that we don't exceed our view.
+        ASSERT(scope * 2 < spaces.size());
+
+        space_segment = spaces.substr(0, scope * 2);
+        space_segment_scope = scope;
+        return space_segment;
     }
 
     std::string inner{};
+    std::string_view space_segment;
+
     u32 scope{};
+    u32 space_segment_scope{};
 
-    std::string tabs_memo{};
-    u32 memo_scope{};
-
-    static constexpr std::string_view tabs{"                                    "};
+    static constexpr std::string_view spaces{"                                    "};
 };
 
 std::string ASTManager::Print() {
