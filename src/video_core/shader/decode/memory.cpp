@@ -166,9 +166,17 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         }();
 
         const auto [real_address_base, base_address, descriptor] =
-            TrackAndGetGlobalMemory(bb, instr, false);
+            TrackGlobalMemory(bb, instr, false);
 
         const u32 count = GetUniformTypeElementsCount(type);
+        if (!real_address_base || !base_address) {
+            // Tracking failed, load zeroes.
+            for (u32 i = 0; i < count; ++i) {
+                SetRegister(bb, instr.gpr0.Value() + i, Immediate(0.0f));
+            }
+            break;
+        }
+
         for (u32 i = 0; i < count; ++i) {
             const Node it_offset = Immediate(i * 4);
             const Node real_address =
@@ -260,22 +268,19 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         }();
 
         const auto [real_address_base, base_address, descriptor] =
-            TrackAndGetGlobalMemory(bb, instr, true);
-
-        // Encode in temporary registers like this: real_base_address, {registers_to_be_written...}
-        SetTemporary(bb, 0, real_address_base);
+            TrackGlobalMemory(bb, instr, true);
+        if (!real_address_base || !base_address) {
+            // Tracking failed, skip the store.
+            break;
+        }
 
         const u32 count = GetUniformTypeElementsCount(type);
         for (u32 i = 0; i < count; ++i) {
-            SetTemporary(bb, i + 1, GetRegister(instr.gpr0.Value() + i));
-        }
-        for (u32 i = 0; i < count; ++i) {
             const Node it_offset = Immediate(i * 4);
-            const Node real_address =
-                Operation(OperationCode::UAdd, NO_PRECISE, real_address_base, it_offset);
+            const Node real_address = Operation(OperationCode::UAdd, real_address_base, it_offset);
             const Node gmem = MakeNode<GmemNode>(real_address, base_address, descriptor);
-
-            bb.push_back(Operation(OperationCode::Assign, gmem, GetTemporary(i + 1)));
+            const Node value = GetRegister(instr.gpr0.Value() + i);
+            bb.push_back(Operation(OperationCode::Assign, gmem, value));
         }
         break;
     }
@@ -301,15 +306,17 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
     return pc;
 }
 
-std::tuple<Node, Node, GlobalMemoryBase> ShaderIR::TrackAndGetGlobalMemory(NodeBlock& bb,
-                                                                           Instruction instr,
-                                                                           bool is_write) {
+std::tuple<Node, Node, GlobalMemoryBase> ShaderIR::TrackGlobalMemory(NodeBlock& bb,
+                                                                     Instruction instr,
+                                                                     bool is_write) {
     const auto addr_register{GetRegister(instr.gmem.gpr)};
     const auto immediate_offset{static_cast<u32>(instr.gmem.offset)};
 
     const auto [base_address, index, offset] =
         TrackCbuf(addr_register, global_code, static_cast<s64>(global_code.size()));
-    ASSERT(base_address != nullptr);
+    ASSERT_OR_EXECUTE_MSG(base_address != nullptr,
+                          { return std::make_tuple(nullptr, nullptr, GlobalMemoryBase{}); },
+                          "Global memory tracking failed");
 
     bb.push_back(Comment(fmt::format("Base address is c[0x{:x}][0x{:x}]", index, offset)));
 
