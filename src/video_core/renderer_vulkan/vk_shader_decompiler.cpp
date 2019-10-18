@@ -1648,32 +1648,32 @@ class ExprDecompiler {
 public:
     explicit ExprDecompiler(SPIRVDecompiler& decomp) : decomp{decomp} {}
 
-    Id operator()(VideoCommon::Shader::ExprAnd& expr) {
+    Id operator()(const ExprAnd& expr) {
         const Id type_def = decomp.GetTypeDefinition(Type::Bool);
         const Id op1 = Visit(expr.operand1);
         const Id op2 = Visit(expr.operand2);
         return decomp.Emit(decomp.OpLogicalAnd(type_def, op1, op2));
     }
 
-    Id operator()(VideoCommon::Shader::ExprOr& expr) {
+    Id operator()(const ExprOr& expr) {
         const Id type_def = decomp.GetTypeDefinition(Type::Bool);
         const Id op1 = Visit(expr.operand1);
         const Id op2 = Visit(expr.operand2);
         return decomp.Emit(decomp.OpLogicalOr(type_def, op1, op2));
     }
 
-    Id operator()(VideoCommon::Shader::ExprNot& expr) {
+    Id operator()(const ExprNot& expr) {
         const Id type_def = decomp.GetTypeDefinition(Type::Bool);
         const Id op1 = Visit(expr.operand1);
         return decomp.Emit(decomp.OpLogicalNot(type_def, op1));
     }
 
-    Id operator()(VideoCommon::Shader::ExprPredicate& expr) {
+    Id operator()(const ExprPredicate& expr) {
         const auto pred = static_cast<Tegra::Shader::Pred>(expr.predicate);
         return decomp.Emit(decomp.OpLoad(decomp.t_bool, decomp.predicates.at(pred)));
     }
 
-    Id operator()(VideoCommon::Shader::ExprCondCode& expr) {
+    Id operator()(const ExprCondCode& expr) {
         const Node cc = decomp.ir.GetConditionCode(expr.cc);
         Id target;
 
@@ -1693,15 +1693,15 @@ public:
         return decomp.Emit(decomp.OpLoad(decomp.t_bool, target));
     }
 
-    Id operator()(VideoCommon::Shader::ExprVar& expr) {
+    Id operator()(const ExprVar& expr) {
         return decomp.Emit(decomp.OpLoad(decomp.t_bool, decomp.flow_variables.at(expr.var_index)));
     }
 
-    Id operator()(VideoCommon::Shader::ExprBoolean& expr) {
+    Id operator()(const ExprBoolean& expr) {
         return expr.value ? decomp.v_true : decomp.v_false;
     }
 
-    Id Visit(VideoCommon::Shader::Expr& node) {
+    Id Visit(const Expr& node) {
         return std::visit(*this, *node);
     }
 
@@ -1713,7 +1713,7 @@ class ASTDecompiler {
 public:
     explicit ASTDecompiler(SPIRVDecompiler& decomp) : decomp{decomp} {}
 
-    void operator()(VideoCommon::Shader::ASTProgram& ast) {
+    void operator()(const ASTProgram& ast) {
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
             Visit(current);
@@ -1721,7 +1721,7 @@ public:
         }
     }
 
-    void operator()(VideoCommon::Shader::ASTIfThen& ast) {
+    void operator()(const ASTIfThen& ast) {
         ExprDecompiler expr_parser{decomp};
         const Id condition = expr_parser.Visit(ast.condition);
         const Id then_label = decomp.OpLabel();
@@ -1738,33 +1738,33 @@ public:
         decomp.Emit(endif_label);
     }
 
-    void operator()(VideoCommon::Shader::ASTIfElse& ast) {
+    void operator()([[maybe_unused]] const ASTIfElse& ast) {
         UNREACHABLE();
     }
 
-    void operator()(VideoCommon::Shader::ASTBlockEncoded& ast) {
+    void operator()([[maybe_unused]] const ASTBlockEncoded& ast) {
         UNREACHABLE();
     }
 
-    void operator()(VideoCommon::Shader::ASTBlockDecoded& ast) {
+    void operator()(const ASTBlockDecoded& ast) {
         decomp.VisitBasicBlock(ast.nodes);
     }
 
-    void operator()(VideoCommon::Shader::ASTVarSet& ast) {
+    void operator()(const ASTVarSet& ast) {
         ExprDecompiler expr_parser{decomp};
         const Id condition = expr_parser.Visit(ast.condition);
         decomp.Emit(decomp.OpStore(decomp.flow_variables.at(ast.index), condition));
     }
 
-    void operator()(VideoCommon::Shader::ASTLabel& ast) {
+    void operator()([[maybe_unused]] const ASTLabel& ast) {
         // Do nothing
     }
 
-    void operator()(VideoCommon::Shader::ASTGoto& ast) {
+    void operator()([[maybe_unused]] const ASTGoto& ast) {
         UNREACHABLE();
     }
 
-    void operator()(VideoCommon::Shader::ASTDoWhile& ast) {
+    void operator()(const ASTDoWhile& ast) {
         const Id loop_label = decomp.OpLabel();
         const Id endloop_label = decomp.OpLabel();
         const Id loop_start_block = decomp.OpLabel();
@@ -1787,7 +1787,7 @@ public:
         decomp.Emit(endloop_label);
     }
 
-    void operator()(VideoCommon::Shader::ASTReturn& ast) {
+    void operator()(const ASTReturn& ast) {
         if (!VideoCommon::Shader::ExprIsTrue(ast.condition)) {
             ExprDecompiler expr_parser{decomp};
             const Id condition = expr_parser.Visit(ast.condition);
@@ -1817,7 +1817,7 @@ public:
         }
     }
 
-    void operator()(VideoCommon::Shader::ASTBreak& ast) {
+    void operator()(const ASTBreak& ast) {
         if (!VideoCommon::Shader::ExprIsTrue(ast.condition)) {
             ExprDecompiler expr_parser{decomp};
             const Id condition = expr_parser.Visit(ast.condition);
@@ -1837,7 +1837,7 @@ public:
         }
     }
 
-    void Visit(VideoCommon::Shader::ASTNode& node) {
+    void Visit(const ASTNode& node) {
         std::visit(*this, *node->GetInnerData());
     }
 
@@ -1853,9 +1853,11 @@ void SPIRVDecompiler::DecompileAST() {
         Name(id, fmt::format("flow_var_{}", i));
         flow_variables.emplace(i, AddGlobalVariable(id));
     }
+
+    const ASTNode program = ir.GetASTProgram();
     ASTDecompiler decompiler{*this};
-    VideoCommon::Shader::ASTNode program = ir.GetASTProgram();
     decompiler.Visit(program);
+
     const Id next_block = OpLabel();
     Emit(OpBranch(next_block));
     Emit(next_block);
