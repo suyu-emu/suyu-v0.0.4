@@ -3,6 +3,9 @@
 // Refer to the license.txt file included.
 
 #include <string>
+#include <string_view>
+
+#include <fmt/format.h>
 
 #include "common/assert.h"
 #include "common/common_types.h"
@@ -229,7 +232,8 @@ public:
         return inner;
     }
 
-    std::string inner{};
+private:
+    std::string inner;
 };
 
 class ASTPrinter {
@@ -249,7 +253,7 @@ public:
     void operator()(const ASTIfThen& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
-        inner += Ident() + "if (" + expr_parser.GetResult() + ") {\n";
+        inner += fmt::format("{}if ({}) {{\n", Indent(), expr_parser.GetResult());
         scope++;
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
@@ -257,11 +261,13 @@ public:
             current = current->GetNext();
         }
         scope--;
-        inner += Ident() + "}\n";
+        inner += fmt::format("{}}}\n", Indent());
     }
 
     void operator()(const ASTIfElse& ast) {
-        inner += Ident() + "else {\n";
+        inner += Indent();
+        inner += "else {\n";
+
         scope++;
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
@@ -269,40 +275,41 @@ public:
             current = current->GetNext();
         }
         scope--;
-        inner += Ident() + "}\n";
+
+        inner += Indent();
+        inner += "}\n";
     }
 
     void operator()(const ASTBlockEncoded& ast) {
-        inner += Ident() + "Block(" + std::to_string(ast.start) + ", " + std::to_string(ast.end) +
-                 ");\n";
+        inner += fmt::format("{}Block({}, {});\n", Indent(), ast.start, ast.end);
     }
 
-    void operator()(const ASTBlockDecoded& ast) {
-        inner += Ident() + "Block;\n";
+    void operator()([[maybe_unused]] const ASTBlockDecoded& ast) {
+        inner += Indent();
+        inner += "Block;\n";
     }
 
     void operator()(const ASTVarSet& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
-        inner +=
-            Ident() + "V" + std::to_string(ast.index) + " := " + expr_parser.GetResult() + ";\n";
+        inner += fmt::format("{}V{} := {};\n", Indent(), ast.index, expr_parser.GetResult());
     }
 
     void operator()(const ASTLabel& ast) {
-        inner += "Label_" + std::to_string(ast.index) + ":\n";
+        inner += fmt::format("Label_{}:\n", ast.index);
     }
 
     void operator()(const ASTGoto& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
-        inner += Ident() + "(" + expr_parser.GetResult() + ") -> goto Label_" +
-                 std::to_string(ast.label) + ";\n";
+        inner +=
+            fmt::format("{}({}) -> goto Label_{};\n", Indent(), expr_parser.GetResult(), ast.label);
     }
 
     void operator()(const ASTDoWhile& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
-        inner += Ident() + "do {\n";
+        inner += fmt::format("{}do {{\n", Indent());
         scope++;
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
@@ -310,32 +317,23 @@ public:
             current = current->GetNext();
         }
         scope--;
-        inner += Ident() + "} while (" + expr_parser.GetResult() + ");\n";
+        inner += fmt::format("{}}} while ({});\n", Indent(), expr_parser.GetResult());
     }
 
     void operator()(const ASTReturn& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
-        inner += Ident() + "(" + expr_parser.GetResult() + ") -> " +
-                 (ast.kills ? "discard" : "exit") + ";\n";
+        inner += fmt::format("{}({}) -> {};\n", Indent(), expr_parser.GetResult(),
+                             ast.kills ? "discard" : "exit");
     }
 
     void operator()(const ASTBreak& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
-        inner += Ident() + "(" + expr_parser.GetResult() + ") -> break;\n";
+        inner += fmt::format("{}({}) -> break;\n", Indent(), expr_parser.GetResult());
     }
 
-    std::string& Ident() {
-        if (memo_scope == scope) {
-            return tabs_memo;
-        }
-        tabs_memo = tabs.substr(0, scope * 2);
-        memo_scope = scope;
-        return tabs_memo;
-    }
-
-    void Visit(ASTNode& node) {
+    void Visit(const ASTNode& node) {
         std::visit(*this, *node->GetInnerData());
     }
 
@@ -344,16 +342,29 @@ public:
     }
 
 private:
+    std::string_view Indent() {
+        if (space_segment_scope == scope) {
+            return space_segment;
+        }
+
+        // Ensure that we don't exceed our view.
+        ASSERT(scope * 2 < spaces.size());
+
+        space_segment = spaces.substr(0, scope * 2);
+        space_segment_scope = scope;
+        return space_segment;
+    }
+
     std::string inner{};
+    std::string_view space_segment;
+
     u32 scope{};
+    u32 space_segment_scope{};
 
-    std::string tabs_memo{};
-    u32 memo_scope{};
-
-    static constexpr std::string_view tabs{"                                    "};
+    static constexpr std::string_view spaces{"                                    "};
 };
 
-std::string ASTManager::Print() {
+std::string ASTManager::Print() const {
     ASTPrinter printer{};
     printer.Visit(main_node);
     return printer.GetResult();
@@ -549,13 +560,13 @@ bool ASTManager::DirectlyRelated(const ASTNode& first, const ASTNode& second) co
     return min->GetParent() == max->GetParent();
 }
 
-void ASTManager::ShowCurrentState(std::string_view state) {
+void ASTManager::ShowCurrentState(std::string_view state) const {
     LOG_CRITICAL(HW_GPU, "\nState {}:\n\n{}\n", state, Print());
     SanityCheck();
 }
 
-void ASTManager::SanityCheck() {
-    for (auto& label : labels) {
+void ASTManager::SanityCheck() const {
+    for (const auto& label : labels) {
         if (!label->GetParent()) {
             LOG_CRITICAL(HW_GPU, "Sanity Check Failed");
         }

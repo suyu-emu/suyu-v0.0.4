@@ -328,13 +328,13 @@ public:
 
     void InsertReturn(Expr condition, bool kills);
 
-    std::string Print();
+    std::string Print() const;
 
     void Decompile();
 
-    void ShowCurrentState(std::string_view state);
+    void ShowCurrentState(std::string_view state) const;
 
-    void SanityCheck();
+    void SanityCheck() const;
 
     void Clear();
 
