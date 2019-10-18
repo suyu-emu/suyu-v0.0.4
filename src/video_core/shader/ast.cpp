@@ -560,13 +560,13 @@ bool ASTManager::DirectlyRelated(const ASTNode& first, const ASTNode& second) co
     return min->GetParent() == max->GetParent();
 }
 
-void ASTManager::ShowCurrentState(std::string_view state) {
+void ASTManager::ShowCurrentState(std::string_view state) const {
     LOG_CRITICAL(HW_GPU, "\nState {}:\n\n{}\n", state, Print());
     SanityCheck();
 }
 
-void ASTManager::SanityCheck() {
-    for (auto& label : labels) {
+void ASTManager::SanityCheck() const {
+    for (const auto& label : labels) {
         if (!label->GetParent()) {
             LOG_CRITICAL(HW_GPU, "Sanity Check Failed");
         }
