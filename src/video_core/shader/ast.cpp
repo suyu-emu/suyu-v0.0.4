@@ -251,7 +251,7 @@ public:
     void operator()(const ASTIfThen& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
-        inner += fmt::format("{}if ({}) {{\n", Ident(), expr_parser.GetResult());
+        inner += fmt::format("{}if ({}) {{\n", Indent(), expr_parser.GetResult());
         scope++;
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
@@ -259,11 +259,11 @@ public:
             current = current->GetNext();
         }
         scope--;
-        inner += fmt::format("{}}}\n", Ident());
+        inner += fmt::format("{}}}\n", Indent());
     }
 
     void operator()(const ASTIfElse& ast) {
-        inner += Ident() + "else {\n";
+        inner += Indent() + "else {\n";
         scope++;
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
@@ -271,21 +271,21 @@ public:
             current = current->GetNext();
         }
         scope--;
-        inner += Ident() + "}\n";
+        inner += Indent() + "}\n";
     }
 
     void operator()(const ASTBlockEncoded& ast) {
-        inner += fmt::format("{}Block({}, {});\n", Ident(), ast.start, ast.end);
+        inner += fmt::format("{}Block({}, {});\n", Indent(), ast.start, ast.end);
     }
 
     void operator()(const ASTBlockDecoded& ast) {
-        inner += Ident() + "Block;\n";
+        inner += Indent() + "Block;\n";
     }
 
     void operator()(const ASTVarSet& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
-        inner += fmt::format("{}V{} := {};\n", Ident(), ast.index, expr_parser.GetResult());
+        inner += fmt::format("{}V{} := {};\n", Indent(), ast.index, expr_parser.GetResult());
     }
 
     void operator()(const ASTLabel& ast) {
@@ -296,13 +296,13 @@ public:
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
         inner +=
-            fmt::format("{}({}) -> goto Label_{};\n", Ident(), expr_parser.GetResult(), ast.label);
+            fmt::format("{}({}) -> goto Label_{};\n", Indent(), expr_parser.GetResult(), ast.label);
     }
 
     void operator()(const ASTDoWhile& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
-        inner += fmt::format("{}do {{\n", Ident());
+        inner += fmt::format("{}do {{\n", Indent());
         scope++;
         ASTNode current = ast.nodes.GetFirst();
         while (current) {
@@ -310,23 +310,23 @@ public:
             current = current->GetNext();
         }
         scope--;
-        inner += fmt::format("{}}} while ({});\n", Ident(), expr_parser.GetResult());
+        inner += fmt::format("{}}} while ({});\n", Indent(), expr_parser.GetResult());
     }
 
     void operator()(const ASTReturn& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
-        inner += fmt::format("{}({}) -> {};\n", Ident(), expr_parser.GetResult(),
+        inner += fmt::format("{}({}) -> {};\n", Indent(), expr_parser.GetResult(),
                              ast.kills ? "discard" : "exit");
     }
 
     void operator()(const ASTBreak& ast) {
         ExprPrinter expr_parser{};
         std::visit(expr_parser, *ast.condition);
-        inner += fmt::format("{}({}) -> break;\n", Ident(), expr_parser.GetResult());
+        inner += fmt::format("{}({}) -> break;\n", Indent(), expr_parser.GetResult());
     }
 
-    std::string& Ident() {
+    std::string& Indent() {
         if (memo_scope == scope) {
             return tabs_memo;
         }
