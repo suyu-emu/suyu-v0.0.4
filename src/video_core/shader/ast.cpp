@@ -232,7 +232,8 @@ public:
         return inner;
     }
 
-    std::string inner{};
+private:
+    std::string inner;
 };
 
 class ASTPrinter {
