@@ -326,15 +326,6 @@ public:
         inner += fmt::format("{}({}) -> break;\n", Indent(), expr_parser.GetResult());
     }
 
-    std::string& Indent() {
-        if (memo_scope == scope) {
-            return tabs_memo;
-        }
-        tabs_memo = tabs.substr(0, scope * 2);
-        memo_scope = scope;
-        return tabs_memo;
-    }
-
     void Visit(ASTNode& node) {
         std::visit(*this, *node->GetInnerData());
     }
@@ -344,6 +335,15 @@ public:
     }
 
 private:
+    std::string& Indent() {
+        if (memo_scope == scope) {
+            return tabs_memo;
+        }
+        tabs_memo = tabs.substr(0, scope * 2);
+        memo_scope = scope;
+        return tabs_memo;
+    }
+
     std::string inner{};
     u32 scope{};
 
