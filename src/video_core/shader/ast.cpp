@@ -333,7 +333,7 @@ public:
         inner += fmt::format("{}({}) -> break;\n", Indent(), expr_parser.GetResult());
     }
 
-    void Visit(ASTNode& node) {
+    void Visit(const ASTNode& node) {
         std::visit(*this, *node->GetInnerData());
     }
 
@@ -364,7 +364,7 @@ private:
     static constexpr std::string_view spaces{"                                    "};
 };
 
-std::string ASTManager::Print() {
+std::string ASTManager::Print() const {
     ASTPrinter printer{};
     printer.Visit(main_node);
     return printer.GetResult();

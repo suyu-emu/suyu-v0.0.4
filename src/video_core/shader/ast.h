@@ -328,7 +328,7 @@ public:
 
     void InsertReturn(Expr condition, bool kills);
 
-    std::string Print();
+    std::string Print() const;
 
     void Decompile();
 
