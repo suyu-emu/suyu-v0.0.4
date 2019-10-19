@@ -242,15 +242,16 @@ struct System::Impl {
     void Shutdown() {
         // Log last frame performance stats if game was loded
         if (perf_stats) {
-           const auto perf_results = GetAndResetPerfStats();
-           telemetry_session->AddField(Telemetry::FieldType::Performance, "Shutdown_EmulationSpeed",
-                                       perf_results.emulation_speed * 100.0);
-           telemetry_session->AddField(Telemetry::FieldType::Performance, "Shutdown_Framerate",
-                                       perf_results.game_fps);
-           telemetry_session->AddField(Telemetry::FieldType::Performance, "Shutdown_Frametime",
-                                       perf_results.frametime * 1000.0);
-           telemetry_session->AddField(Telemetry::FieldType::Performance, "Mean_Frametime_MS",
-                                       perf_stats->GetMeanFrametime());
+            const auto perf_results = GetAndResetPerfStats();
+            telemetry_session->AddField(Telemetry::FieldType::Performance,
+                                        "Shutdown_EmulationSpeed",
+                                        perf_results.emulation_speed * 100.0);
+            telemetry_session->AddField(Telemetry::FieldType::Performance, "Shutdown_Framerate",
+                                        perf_results.game_fps);
+            telemetry_session->AddField(Telemetry::FieldType::Performance, "Shutdown_Frametime",
+                                        perf_results.frametime * 1000.0);
+            telemetry_session->AddField(Telemetry::FieldType::Performance, "Mean_Frametime_MS",
+                                        perf_stats->GetMeanFrametime());
         }
 
         lm_manager.Flush();
