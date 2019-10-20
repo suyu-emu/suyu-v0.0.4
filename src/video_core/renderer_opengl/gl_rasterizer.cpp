@@ -969,7 +969,7 @@ TextureBufferUsage RasterizerOpenGL::SetupDrawTextures(Maxwell::ShaderStage stag
 
     for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
         const auto& entry = entries[bindpoint];
-        const auto texture = [&]() {
+        const auto texture = [&] {
             if (!entry.IsBindless()) {
                 return maxwell3d.GetStageTexture(stage, entry.GetOffset());
             }
@@ -977,7 +977,7 @@ TextureBufferUsage RasterizerOpenGL::SetupDrawTextures(Maxwell::ShaderStage stag
             Tegra::Texture::TextureHandle tex_handle;
             Tegra::Engines::ShaderType shader_type = static_cast<Tegra::Engines::ShaderType>(stage);
             tex_handle.raw = maxwell3d.AccessConstBuffer32(shader_type, cbuf.first, cbuf.second);
-            return maxwell3d.GetTextureInfo(tex_handle, entry.GetOffset());
+            return maxwell3d.GetTextureInfo(tex_handle);
         }();
 
         if (SetupTexture(base_bindings.sampler + bindpoint, texture, entry)) {
@@ -1000,7 +1000,7 @@ TextureBufferUsage RasterizerOpenGL::SetupComputeTextures(const Shader& kernel) 
 
     for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
         const auto& entry = entries[bindpoint];
-        const auto texture = [&]() {
+        const auto texture = [&] {
             if (!entry.IsBindless()) {
                 return compute.GetTexture(entry.GetOffset());
             }
@@ -1008,7 +1008,7 @@ TextureBufferUsage RasterizerOpenGL::SetupComputeTextures(const Shader& kernel) 
             Tegra::Texture::TextureHandle tex_handle;
             tex_handle.raw = compute.AccessConstBuffer32(Tegra::Engines::ShaderType::Compute,
                                                          cbuf.first, cbuf.second);
-            return compute.GetTextureInfo(tex_handle, entry.GetOffset());
+            return compute.GetTextureInfo(tex_handle);
         }();
 
         if (SetupTexture(bindpoint, texture, entry)) {
@@ -1046,7 +1046,7 @@ void RasterizerOpenGL::SetupComputeImages(const Shader& shader) {
     const auto& entries = shader->GetShaderEntries().images;
     for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
         const auto& entry = entries[bindpoint];
-        const auto tic = [&]() {
+        const auto tic = [&] {
             if (!entry.IsBindless()) {
                 return compute.GetTexture(entry.GetOffset()).tic;
             }
@@ -1054,7 +1054,7 @@ void RasterizerOpenGL::SetupComputeImages(const Shader& shader) {
             Tegra::Texture::TextureHandle tex_handle;
             tex_handle.raw = compute.AccessConstBuffer32(Tegra::Engines::ShaderType::Compute,
                                                          cbuf.first, cbuf.second);
-            return compute.GetTextureInfo(tex_handle, entry.GetOffset()).tic;
+            return compute.GetTextureInfo(tex_handle).tic;
         }();
         SetupImage(bindpoint, tic, entry);
     }

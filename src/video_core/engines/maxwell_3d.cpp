@@ -760,21 +760,8 @@ Texture::TSCEntry Maxwell3D::GetTSCEntry(u32 tsc_index) const {
     return tsc_entry;
 }
 
-Texture::FullTextureInfo Maxwell3D::GetTextureInfo(const Texture::TextureHandle tex_handle,
-                                                   std::size_t offset) const {
-    Texture::FullTextureInfo tex_info{};
-
-    // Load the TIC data.
-    auto tic_entry = GetTICEntry(tex_handle.tic_id);
-    // TODO(Subv): Workaround for BitField's move constructor being deleted.
-    std::memcpy(&tex_info.tic, &tic_entry, sizeof(tic_entry));
-
-    // Load the TSC data
-    auto tsc_entry = GetTSCEntry(tex_handle.tsc_id);
-    // TODO(Subv): Workaround for BitField's move constructor being deleted.
-    std::memcpy(&tex_info.tsc, &tsc_entry, sizeof(tsc_entry));
-
-    return tex_info;
+Texture::FullTextureInfo Maxwell3D::GetTextureInfo(Texture::TextureHandle tex_handle) const {
+    return Texture::FullTextureInfo{GetTICEntry(tex_handle.tic_id), GetTSCEntry(tex_handle.tsc_id)};
 }
 
 Texture::FullTextureInfo Maxwell3D::GetStageTexture(Regs::ShaderStage stage,
@@ -790,7 +777,7 @@ Texture::FullTextureInfo Maxwell3D::GetStageTexture(Regs::ShaderStage stage,
 
     const Texture::TextureHandle tex_handle{memory_manager.Read<u32>(tex_info_address)};
 
-    return GetTextureInfo(tex_handle, offset);
+    return GetTextureInfo(tex_handle);
 }
 
 u32 Maxwell3D::GetRegisterValue(u32 method) const {
@@ -827,7 +814,7 @@ SamplerDescriptor Maxwell3D::AccessBindlessSampler(ShaderType stage, u64 const_b
     const GPUVAddr tex_info_address = tex_info_buffer.address + offset;
 
     const Texture::TextureHandle tex_handle{memory_manager.Read<u32>(tex_info_address)};
-    const Texture::FullTextureInfo tex_info = GetTextureInfo(tex_handle, offset);
+    const Texture::FullTextureInfo tex_info = GetTextureInfo(tex_handle);
     SamplerDescriptor result = SamplerDescriptor::FromTicTexture(tex_info.tic.texture_type.Value());
     result.is_shadow.Assign(tex_info.tsc.depth_compare_enabled.Value());
     return result;

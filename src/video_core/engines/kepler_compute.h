@@ -196,11 +196,10 @@ public:
     /// Write the value to the register identified by method.
     void CallMethod(const GPU::MethodCall& method_call);
 
-    Tegra::Texture::FullTextureInfo GetTexture(std::size_t offset) const;
+    Texture::FullTextureInfo GetTexture(std::size_t offset) const;
 
-    /// Given a Texture Handle, returns the TSC and TIC entries.
-    Texture::FullTextureInfo GetTextureInfo(const Texture::TextureHandle tex_handle,
-                                            std::size_t offset) const;
+    /// Given a texture handle, returns the TSC and TIC entries.
+    Texture::FullTextureInfo GetTextureInfo(Texture::TextureHandle tex_handle) const;
 
     u32 AccessConstBuffer32(ShaderType stage, u64 const_buffer, u64 offset) const override;
 
