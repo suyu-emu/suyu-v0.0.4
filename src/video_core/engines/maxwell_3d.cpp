@@ -479,7 +479,7 @@ void Maxwell3D::CallMethodFromMME(const GPU::MethodCall& method_call) {
 }
 
 void Maxwell3D::FlushMMEInlineDraw() {
-    LOG_DEBUG(HW_GPU, "called, topology={}, count={}", static_cast<u32>(regs.draw.topology.Value()),
+    LOG_TRACE(HW_GPU, "called, topology={}, count={}", static_cast<u32>(regs.draw.topology.Value()),
               regs.vertex_buffer.count);
     ASSERT_MSG(!(regs.index_array.count && regs.vertex_buffer.count), "Both indexed and direct?");
     ASSERT(mme_draw.instance_count == mme_draw.gl_end_count);
