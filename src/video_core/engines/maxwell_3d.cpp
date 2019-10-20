@@ -763,7 +763,6 @@ Texture::TSCEntry Maxwell3D::GetTSCEntry(u32 tsc_index) const {
 Texture::FullTextureInfo Maxwell3D::GetTextureInfo(const Texture::TextureHandle tex_handle,
                                                    std::size_t offset) const {
     Texture::FullTextureInfo tex_info{};
-    tex_info.index = static_cast<u32>(offset);
 
     // Load the TIC data.
     auto tic_entry = GetTICEntry(tex_handle.tic_id);
