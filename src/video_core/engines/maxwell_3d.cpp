@@ -760,45 +760,6 @@ Texture::TSCEntry Maxwell3D::GetTSCEntry(u32 tsc_index) const {
     return tsc_entry;
 }
 
-std::vector<Texture::FullTextureInfo> Maxwell3D::GetStageTextures(Regs::ShaderStage stage) const {
-    std::vector<Texture::FullTextureInfo> textures;
-
-    auto& fragment_shader = state.shader_stages[static_cast<std::size_t>(stage)];
-    auto& tex_info_buffer = fragment_shader.const_buffers[regs.tex_cb_index];
-    ASSERT(tex_info_buffer.enabled && tex_info_buffer.address != 0);
-
-    GPUVAddr tex_info_buffer_end = tex_info_buffer.address + tex_info_buffer.size;
-
-    // Offset into the texture constbuffer where the texture info begins.
-    static constexpr std::size_t TextureInfoOffset = 0x20;
-
-    for (GPUVAddr current_texture = tex_info_buffer.address + TextureInfoOffset;
-         current_texture < tex_info_buffer_end; current_texture += sizeof(Texture::TextureHandle)) {
-
-        const Texture::TextureHandle tex_handle{memory_manager.Read<u32>(current_texture)};
-
-        Texture::FullTextureInfo tex_info{};
-        // TODO(Subv): Use the shader to determine which textures are actually accessed.
-        tex_info.index =
-            static_cast<u32>(current_texture - tex_info_buffer.address - TextureInfoOffset) /
-            sizeof(Texture::TextureHandle);
-
-        // Load the TIC data.
-        auto tic_entry = GetTICEntry(tex_handle.tic_id);
-        // TODO(Subv): Workaround for BitField's move constructor being deleted.
-        std::memcpy(&tex_info.tic, &tic_entry, sizeof(tic_entry));
-
-        // Load the TSC data
-        auto tsc_entry = GetTSCEntry(tex_handle.tsc_id);
-        // TODO(Subv): Workaround for BitField's move constructor being deleted.
-        std::memcpy(&tex_info.tsc, &tsc_entry, sizeof(tsc_entry));
-
-        textures.push_back(tex_info);
-    }
-
-    return textures;
-}
-
 Texture::FullTextureInfo Maxwell3D::GetTextureInfo(const Texture::TextureHandle tex_handle,
                                                    std::size_t offset) const {
     Texture::FullTextureInfo tex_info{};
