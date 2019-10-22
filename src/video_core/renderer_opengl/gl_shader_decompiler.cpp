@@ -2314,10 +2314,13 @@ public:
             switch (index) {
             case Tegra::Shader::Pred::NeverExecute:
                 target = "false";
+                break;
             case Tegra::Shader::Pred::UnusedIndex:
                 target = "true";
+                break;
             default:
                 target = decomp.GetPredicate(index);
+                break;
             }
         } else if (const auto flag = std::get_if<InternalFlagNode>(&*cc)) {
             target = decomp.GetInternalFlag(flag->GetFlag());
