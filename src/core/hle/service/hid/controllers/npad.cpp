@@ -583,36 +583,6 @@ bool Controller_NPad::SwapNpadAssignment(u32 npad_id_1, u32 npad_id_2) {
     return true;
 }
 
-bool Controller_NPad::IsControllerSupported(NPadControllerType controller) {
-    if (controller == NPadControllerType::Handheld) {
-        // Handheld is not even a supported type, lets stop here
-        if (std::find(supported_npad_id_types.begin(), supported_npad_id_types.end(),
-                      NPAD_HANDHELD) == supported_npad_id_types.end()) {
-            return false;
-        }
-        // Handheld should not be supported in docked mode
-        if (Settings::values.use_docked_mode) {
-            return false;
-        }
-    }
-    switch (controller) {
-    case NPadControllerType::ProController:
-        return style.pro_controller;
-    case NPadControllerType::Handheld:
-        return style.handheld;
-    case NPadControllerType::JoyDual:
-        return style.joycon_dual;
-    case NPadControllerType::JoyLeft:
-        return style.joycon_left;
-    case NPadControllerType::JoyRight:
-        return style.joycon_right;
-    case NPadControllerType::Pokeball:
-        return style.pokeball;
-    default:
-        return false;
-    }
-}
-
 Controller_NPad::LedPattern Controller_NPad::GetLedPattern(u32 npad_id) {
     if (npad_id == npad_id_list.back() || npad_id == npad_id_list[npad_id_list.size() - 2]) {
         // These are controllers without led patterns
@@ -659,25 +629,24 @@ void Controller_NPad::ClearAllConnectedControllers() {
 }
 
 void Controller_NPad::DisconnectAllConnectedControllers() {
-    std::for_each(connected_controllers.begin(), connected_controllers.end(),
-                  [](ControllerHolder& controller) { controller.is_connected = false; });
+    for (ControllerHolder& controller : connected_controllers) {
+        controller.is_connected = false;
+    }
 }
 
 void Controller_NPad::ConnectAllDisconnectedControllers() {
-    std::for_each(connected_controllers.begin(), connected_controllers.end(),
-                  [](ControllerHolder& controller) {
-                      if (controller.type != NPadControllerType::None && !controller.is_connected) {
-                          controller.is_connected = false;
-                      }
-                  });
+    for (ControllerHolder& controller : connected_controllers) {
+        if (controller.type != NPadControllerType::None && !controller.is_connected) {
+            controller.is_connected = true;
+        }
+    }
 }
 
 void Controller_NPad::ClearAllControllers() {
-    std::for_each(connected_controllers.begin(), connected_controllers.end(),
-                  [](ControllerHolder& controller) {
-                      controller.type = NPadControllerType::None;
-                      controller.is_connected = false;
-                  });
+    for (ControllerHolder& controller : connected_controllers) {
+        controller.type = NPadControllerType::None;
+        controller.is_connected = false;
+    }
 }
 
 u32 Controller_NPad::GetAndResetPressState() {
@@ -685,10 +654,10 @@ u32 Controller_NPad::GetAndResetPressState() {
 }
 
 bool Controller_NPad::IsControllerSupported(NPadControllerType controller) const {
-    const bool support_handheld =
-        std::find(supported_npad_id_types.begin(), supported_npad_id_types.end(), NPAD_HANDHELD) !=
-        supported_npad_id_types.end();
     if (controller == NPadControllerType::Handheld) {
+        const bool support_handheld =
+            std::find(supported_npad_id_types.begin(), supported_npad_id_types.end(),
+                      NPAD_HANDHELD) != supported_npad_id_types.end();
         // Handheld is not even a supported type, lets stop here
         if (!support_handheld) {
             return false;
@@ -700,6 +669,7 @@ bool Controller_NPad::IsControllerSupported(NPadControllerType controller) const
 
         return true;
     }
+
     if (std::any_of(supported_npad_id_types.begin(), supported_npad_id_types.end(),
                     [](u32 npad_id) { return npad_id <= MAX_NPAD_ID; })) {
         switch (controller) {
@@ -717,6 +687,7 @@ bool Controller_NPad::IsControllerSupported(NPadControllerType controller) const
             return false;
         }
     }
+
     return false;
 }
 
@@ -795,6 +766,7 @@ Controller_NPad::NPadControllerType Controller_NPad::DecideBestController(
         priority_list.push_back(NPadControllerType::JoyLeft);
         priority_list.push_back(NPadControllerType::JoyRight);
         priority_list.push_back(NPadControllerType::JoyDual);
+        break;
     }
 
     const auto iter = std::find_if(priority_list.begin(), priority_list.end(),

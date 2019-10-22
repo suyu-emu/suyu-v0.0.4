@@ -301,6 +301,11 @@ private:
         bool is_connected;
     };
 
+    void InitNewlyAddedControler(std::size_t controller_idx);
+    bool IsControllerSupported(NPadControllerType controller) const;
+    NPadControllerType DecideBestController(NPadControllerType priority) const;
+    void RequestPadStateUpdate(u32 npad_id);
+
     u32 press_state{};
 
     NPadType style{};
@@ -321,12 +326,7 @@ private:
     std::array<ControllerHolder, 10> connected_controllers{};
     bool can_controllers_vibrate{true};
 
-    void InitNewlyAddedControler(std::size_t controller_idx);
-    bool IsControllerSupported(NPadControllerType controller) const;
-    NPadControllerType DecideBestController(NPadControllerType priority) const;
-    void RequestPadStateUpdate(u32 npad_id);
     std::array<ControllerPad, 10> npad_pad_states{};
-    bool IsControllerSupported(NPadControllerType controller);
     bool is_in_lr_assignment_mode{false};
     Core::System& system;
 };
