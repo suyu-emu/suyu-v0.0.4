@@ -371,8 +371,9 @@ private:
     std::pair<Node, s64> TrackRegister(const GprNode* tracked, const NodeBlock& code,
                                        s64 cursor) const;
 
-    std::tuple<Node, Node, GlobalMemoryBase> TrackAndGetGlobalMemory(
-        NodeBlock& bb, Tegra::Shader::Instruction instr, bool is_write);
+    std::tuple<Node, Node, GlobalMemoryBase> TrackGlobalMemory(NodeBlock& bb,
+                                                               Tegra::Shader::Instruction instr,
+                                                               bool is_write);
 
     const ProgramCode& program_code;
     const u32 main_offset;
