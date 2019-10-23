@@ -17,6 +17,7 @@ steps:
   inputs:
     targetType: 'filePath'
     filePath: './.ci/scripts/windows/upload.ps1'
+    arguments: '$(BuildName)'
 - publish: artifacts
   artifact: 'yuzu-$(BuildName)-windows-msvc'
   displayName: 'Upload Artifacts'
