@@ -67,7 +67,7 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::MOV_SYS: {
-        const Node value = [&]() {
+        const Node value = [this, instr] {
             switch (instr.sys20) {
             case SystemVariable::Ydirection:
                 return Operation(OperationCode::YNegate);

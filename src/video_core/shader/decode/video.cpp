@@ -23,7 +23,7 @@ u32 ShaderIR::DecodeVideo(NodeBlock& bb, u32 pc) {
     const Node op_a =
         GetVideoOperand(GetRegister(instr.gpr8), instr.video.is_byte_chunk_a, instr.video.signed_a,
                         instr.video.type_a, instr.video.byte_height_a);
-    const Node op_b = [&]() {
+    const Node op_b = [this, instr] {
         if (instr.video.use_register_b) {
             return GetVideoOperand(GetRegister(instr.gpr20), instr.video.is_byte_chunk_b,
                                    instr.video.signed_b, instr.video.type_b,

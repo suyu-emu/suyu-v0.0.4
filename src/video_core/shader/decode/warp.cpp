@@ -46,9 +46,10 @@ u32 ShaderIR::DecodeWarp(NodeBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::SHFL: {
-        Node mask = instr.shfl.is_mask_imm ? Immediate(static_cast<u32>(instr.shfl.mask_imm))
-                                           : GetRegister(instr.gpr39);
-        Node width = [&] {
+        Node width = [this, instr] {
+            Node mask = instr.shfl.is_mask_imm ? Immediate(static_cast<u32>(instr.shfl.mask_imm))
+                                               : GetRegister(instr.gpr39);
+
             // Convert the obscure SHFL mask back into GL_NV_shader_thread_shuffle's width. This has
             // been done reversing Nvidia's math. It won't work on all cases due to SHFL having
             // different parameters that don't properly map to GLSL's interface, but it should work

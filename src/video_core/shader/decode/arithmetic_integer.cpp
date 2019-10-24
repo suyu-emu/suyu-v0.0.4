@@ -144,7 +144,7 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
     case OpCode::Id::ICMP_IMM: {
         const Node zero = Immediate(0);
 
-        const auto [op_b, test] = [&]() -> std::pair<Node, Node> {
+        const auto [op_rhs, test] = [&]() -> std::pair<Node, Node> {
             switch (opcode->get().GetId()) {
             case OpCode::Id::ICMP_CR:
                 return {GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset),
@@ -161,10 +161,10 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
                 return {zero, zero};
             }
         }();
-        const Node op_a = GetRegister(instr.gpr8);
+        const Node op_lhs = GetRegister(instr.gpr8);
         const Node comparison =
             GetPredicateComparisonInteger(instr.icmp.cond, instr.icmp.is_signed != 0, test, zero);
-        SetRegister(bb, instr.gpr0, Operation(OperationCode::Select, comparison, op_a, op_b));
+        SetRegister(bb, instr.gpr0, Operation(OperationCode::Select, comparison, op_lhs, op_rhs));
         break;
     }
     case OpCode::Id::LOP_C:
