@@ -2,8 +2,9 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <array>
 #include <cmath>
-#include <unordered_map>
 
 #include "common/assert.h"
 #include "common/common_types.h"
@@ -271,21 +272,24 @@ Node ShaderIR::GetSaturatedHalfFloat(Node value, bool saturate) {
 }
 
 Node ShaderIR::GetPredicateComparisonFloat(PredCondition condition, Node op_a, Node op_b) {
-    const std::unordered_map<PredCondition, OperationCode> PredicateComparisonTable = {
-        {PredCondition::LessThan, OperationCode::LogicalFLessThan},
-        {PredCondition::Equal, OperationCode::LogicalFEqual},
-        {PredCondition::LessEqual, OperationCode::LogicalFLessEqual},
-        {PredCondition::GreaterThan, OperationCode::LogicalFGreaterThan},
-        {PredCondition::NotEqual, OperationCode::LogicalFNotEqual},
-        {PredCondition::GreaterEqual, OperationCode::LogicalFGreaterEqual},
-        {PredCondition::LessThanWithNan, OperationCode::LogicalFLessThan},
-        {PredCondition::NotEqualWithNan, OperationCode::LogicalFNotEqual},
-        {PredCondition::LessEqualWithNan, OperationCode::LogicalFLessEqual},
-        {PredCondition::GreaterThanWithNan, OperationCode::LogicalFGreaterThan},
-        {PredCondition::GreaterEqualWithNan, OperationCode::LogicalFGreaterEqual}};
+    static constexpr std::array comparison_table{
+        std::pair{PredCondition::LessThan, OperationCode::LogicalFLessThan},
+        std::pair{PredCondition::Equal, OperationCode::LogicalFEqual},
+        std::pair{PredCondition::LessEqual, OperationCode::LogicalFLessEqual},
+        std::pair{PredCondition::GreaterThan, OperationCode::LogicalFGreaterThan},
+        std::pair{PredCondition::NotEqual, OperationCode::LogicalFNotEqual},
+        std::pair{PredCondition::GreaterEqual, OperationCode::LogicalFGreaterEqual},
+        std::pair{PredCondition::LessThanWithNan, OperationCode::LogicalFLessThan},
+        std::pair{PredCondition::NotEqualWithNan, OperationCode::LogicalFNotEqual},
+        std::pair{PredCondition::LessEqualWithNan, OperationCode::LogicalFLessEqual},
+        std::pair{PredCondition::GreaterThanWithNan, OperationCode::LogicalFGreaterThan},
+        std::pair{PredCondition::GreaterEqualWithNan, OperationCode::LogicalFGreaterEqual},
+    };
 
-    const auto comparison{PredicateComparisonTable.find(condition)};
-    UNIMPLEMENTED_IF_MSG(comparison == PredicateComparisonTable.end(),
+    const auto comparison =
+        std::find_if(comparison_table.cbegin(), comparison_table.cend(),
+                     [condition](const auto entry) { return condition == entry.first; });
+    UNIMPLEMENTED_IF_MSG(comparison == comparison_table.cend(),
                          "Unknown predicate comparison operation");
 
     Node predicate = Operation(comparison->second, NO_PRECISE, op_a, op_b);
@@ -306,21 +310,24 @@ Node ShaderIR::GetPredicateComparisonFloat(PredCondition condition, Node op_a, N
 
 Node ShaderIR::GetPredicateComparisonInteger(PredCondition condition, bool is_signed, Node op_a,
                                              Node op_b) {
-    const std::unordered_map<PredCondition, OperationCode> PredicateComparisonTable = {
-        {PredCondition::LessThan, OperationCode::LogicalILessThan},
-        {PredCondition::Equal, OperationCode::LogicalIEqual},
-        {PredCondition::LessEqual, OperationCode::LogicalILessEqual},
-        {PredCondition::GreaterThan, OperationCode::LogicalIGreaterThan},
-        {PredCondition::NotEqual, OperationCode::LogicalINotEqual},
-        {PredCondition::GreaterEqual, OperationCode::LogicalIGreaterEqual},
-        {PredCondition::LessThanWithNan, OperationCode::LogicalILessThan},
-        {PredCondition::NotEqualWithNan, OperationCode::LogicalINotEqual},
-        {PredCondition::LessEqualWithNan, OperationCode::LogicalILessEqual},
-        {PredCondition::GreaterThanWithNan, OperationCode::LogicalIGreaterThan},
-        {PredCondition::GreaterEqualWithNan, OperationCode::LogicalIGreaterEqual}};
+    static constexpr std::array comparison_table{
+        std::pair{PredCondition::LessThan, OperationCode::LogicalILessThan},
+        std::pair{PredCondition::Equal, OperationCode::LogicalIEqual},
+        std::pair{PredCondition::LessEqual, OperationCode::LogicalILessEqual},
+        std::pair{PredCondition::GreaterThan, OperationCode::LogicalIGreaterThan},
+        std::pair{PredCondition::NotEqual, OperationCode::LogicalINotEqual},
+        std::pair{PredCondition::GreaterEqual, OperationCode::LogicalIGreaterEqual},
+        std::pair{PredCondition::LessThanWithNan, OperationCode::LogicalILessThan},
+        std::pair{PredCondition::NotEqualWithNan, OperationCode::LogicalINotEqual},
+        std::pair{PredCondition::LessEqualWithNan, OperationCode::LogicalILessEqual},
+        std::pair{PredCondition::GreaterThanWithNan, OperationCode::LogicalIGreaterThan},
+        std::pair{PredCondition::GreaterEqualWithNan, OperationCode::LogicalIGreaterEqual},
+    };
 
-    const auto comparison{PredicateComparisonTable.find(condition)};
-    UNIMPLEMENTED_IF_MSG(comparison == PredicateComparisonTable.end(),
+    const auto comparison =
+        std::find_if(comparison_table.cbegin(), comparison_table.cend(),
+                     [condition](const auto entry) { return condition == entry.first; });
+    UNIMPLEMENTED_IF_MSG(comparison == comparison_table.cend(),
                          "Unknown predicate comparison operation");
 
     Node predicate = SignedOperation(comparison->second, is_signed, NO_PRECISE, std::move(op_a),
@@ -337,36 +344,43 @@ Node ShaderIR::GetPredicateComparisonInteger(PredCondition condition, bool is_si
 
 Node ShaderIR::GetPredicateComparisonHalf(Tegra::Shader::PredCondition condition, Node op_a,
                                           Node op_b) {
-    const std::unordered_map<PredCondition, OperationCode> PredicateComparisonTable = {
-        {PredCondition::LessThan, OperationCode::Logical2HLessThan},
-        {PredCondition::Equal, OperationCode::Logical2HEqual},
-        {PredCondition::LessEqual, OperationCode::Logical2HLessEqual},
-        {PredCondition::GreaterThan, OperationCode::Logical2HGreaterThan},
-        {PredCondition::NotEqual, OperationCode::Logical2HNotEqual},
-        {PredCondition::GreaterEqual, OperationCode::Logical2HGreaterEqual},
-        {PredCondition::LessThanWithNan, OperationCode::Logical2HLessThanWithNan},
-        {PredCondition::NotEqualWithNan, OperationCode::Logical2HNotEqualWithNan},
-        {PredCondition::LessEqualWithNan, OperationCode::Logical2HLessEqualWithNan},
-        {PredCondition::GreaterThanWithNan, OperationCode::Logical2HGreaterThanWithNan},
-        {PredCondition::GreaterEqualWithNan, OperationCode::Logical2HGreaterEqualWithNan}};
+    static constexpr std::array comparison_table{
+        std::pair{PredCondition::LessThan, OperationCode::Logical2HLessThan},
+        std::pair{PredCondition::Equal, OperationCode::Logical2HEqual},
+        std::pair{PredCondition::LessEqual, OperationCode::Logical2HLessEqual},
+        std::pair{PredCondition::GreaterThan, OperationCode::Logical2HGreaterThan},
+        std::pair{PredCondition::NotEqual, OperationCode::Logical2HNotEqual},
+        std::pair{PredCondition::GreaterEqual, OperationCode::Logical2HGreaterEqual},
+        std::pair{PredCondition::LessThanWithNan, OperationCode::Logical2HLessThanWithNan},
+        std::pair{PredCondition::NotEqualWithNan, OperationCode::Logical2HNotEqualWithNan},
+        std::pair{PredCondition::LessEqualWithNan, OperationCode::Logical2HLessEqualWithNan},
+        std::pair{PredCondition::GreaterThanWithNan, OperationCode::Logical2HGreaterThanWithNan},
+        std::pair{PredCondition::GreaterEqualWithNan, OperationCode::Logical2HGreaterEqualWithNan},
+    };
 
-    const auto comparison{PredicateComparisonTable.find(condition)};
-    UNIMPLEMENTED_IF_MSG(comparison == PredicateComparisonTable.end(),
+    const auto comparison =
+        std::find_if(comparison_table.cbegin(), comparison_table.cend(),
+                     [condition](const auto entry) { return condition == entry.first; });
+    UNIMPLEMENTED_IF_MSG(comparison == comparison_table.cend(),
                          "Unknown predicate comparison operation");
 
     return Operation(comparison->second, NO_PRECISE, std::move(op_a), std::move(op_b));
 }
 
 OperationCode ShaderIR::GetPredicateCombiner(PredOperation operation) {
-    const std::unordered_map<PredOperation, OperationCode> PredicateOperationTable = {
-        {PredOperation::And, OperationCode::LogicalAnd},
-        {PredOperation::Or, OperationCode::LogicalOr},
-        {PredOperation::Xor, OperationCode::LogicalXor},
+    static constexpr std::array operation_table{
+        OperationCode::LogicalAnd,
+        OperationCode::LogicalOr,
+        OperationCode::LogicalXor,
     };
 
-    const auto op = PredicateOperationTable.find(operation);
-    UNIMPLEMENTED_IF_MSG(op == PredicateOperationTable.end(), "Unknown predicate operation");
-    return op->second;
+    const auto index = static_cast<std::size_t>(operation);
+    if (index >= operation_table.size()) {
+        UNIMPLEMENTED_MSG("Unknown predicate operation.");
+        return {};
+    }
+
+    return operation_table[index];
 }
 
 Node ShaderIR::GetConditionCode(Tegra::Shader::ConditionCode cc) const {
