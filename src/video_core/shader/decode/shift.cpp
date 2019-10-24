@@ -18,7 +18,7 @@ u32 ShaderIR::DecodeShift(NodeBlock& bb, u32 pc) {
     const auto opcode = OpCode::Decode(instr);
 
     Node op_a = GetRegister(instr.gpr8);
-    Node op_b = [&]() {
+    Node op_b = [this, instr] {
         if (instr.is_b_imm) {
             return Immediate(instr.alu.GetSignedImm20_20());
         } else if (instr.is_b_gpr) {

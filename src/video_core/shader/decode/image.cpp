@@ -144,8 +144,8 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
 
 Image& ShaderIR::GetImage(Tegra::Shader::Image image, Tegra::Shader::ImageType type) {
     const auto offset{static_cast<std::size_t>(image.index.Value())};
-    if (const auto image = TryUseExistingImage(offset, type)) {
-        return *image;
+    if (const auto existing_image = TryUseExistingImage(offset, type)) {
+        return *existing_image;
     }
 
     const std::size_t next_index{used_images.size()};
