@@ -1,8 +1,6 @@
-param($BUILD_NAME)
-
 $GITDATE = $(git show -s --date=short --format='%ad') -replace "-",""
 $GITREV = $(git show -s --format='%h')
-$RELEASE_DIST = "yuzu-windows-msvc-$BUILD_NAME"
+$RELEASE_DIST = "yuzu-windows-msvc"
 
 $MSVC_BUILD_ZIP = "yuzu-windows-msvc-$GITDATE-$GITREV.zip" -replace " ", ""
 $MSVC_BUILD_PDB = "yuzu-windows-msvc-$GITDATE-$GITREV-debugsymbols.zip" -replace " ", ""
