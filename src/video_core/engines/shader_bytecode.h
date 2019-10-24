@@ -574,7 +574,7 @@ enum class ShuffleOperation : u64 {
 };
 
 union Instruction {
-    Instruction& operator=(const Instruction& instr) {
+    constexpr Instruction& operator=(const Instruction& instr) {
         value = instr.value;
         return *this;
     }
@@ -1760,22 +1760,22 @@ public:
 
     class Matcher {
     public:
-        Matcher(const char* const name, u16 mask, u16 expected, OpCode::Id id, OpCode::Type type)
+        constexpr Matcher(const char* const name, u16 mask, u16 expected, Id id, Type type)
             : name{name}, mask{mask}, expected{expected}, id{id}, type{type} {}
 
-        const char* GetName() const {
+        constexpr const char* GetName() const {
             return name;
         }
 
-        u16 GetMask() const {
+        constexpr u16 GetMask() const {
             return mask;
         }
 
-        Id GetId() const {
+        constexpr Id GetId() const {
             return id;
         }
 
-        Type GetType() const {
+        constexpr Type GetType() const {
             return type;
         }
 
@@ -1784,7 +1784,7 @@ public:
          * @param instruction The instruction to test
          * @returns true if the given instruction matches.
          */
-        bool Matches(u16 instruction) const {
+        constexpr bool Matches(u16 instruction) const {
             return (instruction & mask) == expected;
         }
 
@@ -1818,7 +1818,7 @@ private:
          * A '0' in a bitstring indicates that a zero must be present at that bit position.
          * A '1' in a bitstring indicates that a one must be present at that bit position.
          */
-        static auto GetMaskAndExpect(const char* const bitstring) {
+        static constexpr auto GetMaskAndExpect(const char* const bitstring) {
             u16 mask = 0, expect = 0;
             for (std::size_t i = 0; i < opcode_bitsize; i++) {
                 const std::size_t bit_position = opcode_bitsize - i - 1;
@@ -1835,15 +1835,15 @@ private:
                     break;
                 }
             }
-            return std::make_tuple(mask, expect);
+            return std::make_pair(mask, expect);
         }
 
     public:
         /// Creates a matcher that can match and parse instructions based on bitstring.
-        static auto GetMatcher(const char* const bitstring, OpCode::Id op, OpCode::Type type,
-                               const char* const name) {
-            const auto mask_expect = GetMaskAndExpect(bitstring);
-            return Matcher(name, std::get<0>(mask_expect), std::get<1>(mask_expect), op, type);
+        static constexpr auto GetMatcher(const char* const bitstring, Id op, Type type,
+                                         const char* const name) {
+            const auto [mask, expected] = GetMaskAndExpect(bitstring);
+            return Matcher(name, mask, expected, op, type);
         }
     };
 
