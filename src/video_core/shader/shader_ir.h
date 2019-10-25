@@ -322,7 +322,7 @@ private:
                                   const Node4& components);
 
     void WriteTexsInstructionFloat(NodeBlock& bb, Tegra::Shader::Instruction instr,
-                                   const Node4& components);
+                                   const Node4& components, bool ignore_mask = false);
     void WriteTexsInstructionHalfFloat(NodeBlock& bb, Tegra::Shader::Instruction instr,
                                        const Node4& components);
 

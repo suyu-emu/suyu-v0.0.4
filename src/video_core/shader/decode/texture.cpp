@@ -150,7 +150,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
             values[element] = Operation(OperationCode::TextureGather, meta, std::move(coords_copy));
         }
 
-        WriteTexsInstructionFloat(bb, instr, values);
+        WriteTexsInstructionFloat(bb, instr, values, true);
         break;
     }
     case OpCode::Id::TXQ_B:
@@ -344,14 +344,14 @@ void ShaderIR::WriteTexInstructionFloat(NodeBlock& bb, Instruction instr, const 
     }
 }
 
-void ShaderIR::WriteTexsInstructionFloat(NodeBlock& bb, Instruction instr,
-                                         const Node4& components) {
+void ShaderIR::WriteTexsInstructionFloat(NodeBlock& bb, Instruction instr, const Node4& components,
+                                         bool ignore_mask) {
     // TEXS has two destination registers and a swizzle. The first two elements in the swizzle
     // go into gpr0+0 and gpr0+1, and the rest goes into gpr28+0 and gpr28+1
 
     u32 dest_elem = 0;
     for (u32 component = 0; component < 4; ++component) {
-        if (!instr.texs.IsComponentEnabled(component))
+        if (!instr.texs.IsComponentEnabled(component) && !ignore_mask)
             continue;
         SetTemporary(bb, dest_elem++, components[component]);
     }
