@@ -8,6 +8,7 @@
 #include <optional>
 #include <string>
 #include <tuple>
+#include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -19,6 +20,7 @@
 #include "common/common_types.h"
 #include "core/file_sys/vfs_vector.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
+#include "video_core/shader/const_buffer_locker.h"
 
 namespace Core {
 class System;
@@ -53,6 +55,7 @@ struct BaseBindings {
         return !operator==(rhs);
     }
 };
+static_assert(std::is_trivially_copyable_v<BaseBindings>);
 
 /// Describes the different variants a single program can be compiled.
 struct ProgramVariant {
@@ -70,13 +73,20 @@ struct ProgramVariant {
     }
 };
 
+static_assert(std::is_trivially_copyable_v<ProgramVariant>);
+
 /// Describes how a shader is used.
 struct ShaderDiskCacheUsage {
     u64 unique_identifier{};
     ProgramVariant variant;
+    VideoCommon::Shader::KeyMap keys;
+    VideoCommon::Shader::BoundSamplerMap bound_samplers;
+    VideoCommon::Shader::BindlessSamplerMap bindless_samplers;
 
     bool operator==(const ShaderDiskCacheUsage& rhs) const {
-        return std::tie(unique_identifier, variant) == std::tie(rhs.unique_identifier, rhs.variant);
+        return std::tie(unique_identifier, variant, keys, bound_samplers, bindless_samplers) ==
+               std::tie(rhs.unique_identifier, rhs.variant, rhs.keys, rhs.bound_samplers,
+                        rhs.bindless_samplers);
     }
 
     bool operator!=(const ShaderDiskCacheUsage& rhs) const {
@@ -123,8 +133,7 @@ namespace OpenGL {
 class ShaderDiskCacheRaw {
 public:
     explicit ShaderDiskCacheRaw(u64 unique_identifier, ProgramType program_type,
-                                u32 program_code_size, u32 program_code_size_b,
-                                ProgramCode program_code, ProgramCode program_code_b);
+                                ProgramCode program_code, ProgramCode program_code_b = {});
     ShaderDiskCacheRaw();
     ~ShaderDiskCacheRaw();
 
@@ -155,22 +164,14 @@ public:
 private:
     u64 unique_identifier{};
     ProgramType program_type{};
-    u32 program_code_size{};
-    u32 program_code_size_b{};
 
     ProgramCode program_code;
     ProgramCode program_code_b;
 };
 
-/// Contains decompiled data from a shader
-struct ShaderDiskCacheDecompiled {
-    std::string code;
-    GLShader::ShaderEntries entries;
-};
-
 /// Contains an OpenGL dumped binary program
 struct ShaderDiskCacheDump {
-    GLenum binary_format;
+    GLenum binary_format{};
     std::vector<u8> binary;
 };
 
@@ -184,9 +185,7 @@ public:
     LoadTransferable();
 
     /// Loads current game's precompiled cache. Invalidates on failure.
-    std::pair<std::unordered_map<u64, ShaderDiskCacheDecompiled>,
-              std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>
-    LoadPrecompiled();
+    std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump> LoadPrecompiled();
 
     /// Removes the transferable (and precompiled) cache file.
     void InvalidateTransferable();
@@ -200,10 +199,6 @@ public:
     /// Saves shader usage to the transferable file. Does not check for collisions.
     void SaveUsage(const ShaderDiskCacheUsage& usage);
 
-    /// Saves a decompiled entry to the precompiled file. Does not check for collisions.
-    void SaveDecompiled(u64 unique_identifier, const std::string& code,
-                        const GLShader::ShaderEntries& entries);
-
     /// Saves a dump entry to the precompiled file. Does not check for collisions.
     void SaveDump(const ShaderDiskCacheUsage& usage, GLuint program);
 
@@ -212,17 +207,8 @@ public:
 
 private:
     /// Loads the transferable cache. Returns empty on failure.
-    std::optional<std::pair<std::unordered_map<u64, ShaderDiskCacheDecompiled>,
-                            std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>>
+    std::optional<std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump>>
     LoadPrecompiledFile(FileUtil::IOFile& file);
-
-    /// Loads a decompiled cache entry from m_precompiled_cache_virtual_file. Returns empty on
-    /// failure.
-    std::optional<ShaderDiskCacheDecompiled> LoadDecompiledEntry();
-
-    /// Saves a decompiled entry to the passed file. Returns true on success.
-    bool SaveDecompiledFile(u64 unique_identifier, const std::string& code,
-                            const GLShader::ShaderEntries& entries);
 
     /// Opens current game's transferable file and write it's header if it doesn't exist
     FileUtil::IOFile AppendTransferableFile() const;

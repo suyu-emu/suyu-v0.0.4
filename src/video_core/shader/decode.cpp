@@ -33,7 +33,7 @@ constexpr bool IsSchedInstruction(u32 offset, u32 main_offset) {
     return (absolute_offset % SchedPeriod) == 0;
 }
 
-} // namespace
+} // Anonymous namespace
 
 class ASTDecoder {
 public:
@@ -102,7 +102,7 @@ void ShaderIR::Decode() {
     std::memcpy(&header, program_code.data(), sizeof(Tegra::Shader::Header));
 
     decompiled = false;
-    auto info = ScanFlow(program_code, program_size, main_offset, settings);
+    auto info = ScanFlow(program_code, main_offset, settings, locker);
     auto& shader_info = *info;
     coverage_begin = shader_info.start;
     coverage_end = shader_info.end;
@@ -155,7 +155,7 @@ void ShaderIR::Decode() {
         [[fallthrough]];
     case CompileDepth::BruteForce: {
         coverage_begin = main_offset;
-        const u32 shader_end = static_cast<u32>(program_size / sizeof(u64));
+        const std::size_t shader_end = program_code.size();
         coverage_end = shader_end;
         for (u32 label = main_offset; label < shader_end; label++) {
             basic_blocks.insert({label, DecodeRange(label, label + 1)});
@@ -198,24 +198,39 @@ void ShaderIR::InsertControlFlow(NodeBlock& bb, const ShaderBlock& block) {
         }
         return result;
     };
-    if (block.branch.address < 0) {
-        if (block.branch.kills) {
-            Node n = Operation(OperationCode::Discard);
-            n = apply_conditions(block.branch.cond, n);
+    if (std::holds_alternative<SingleBranch>(*block.branch)) {
+        auto branch = std::get_if<SingleBranch>(block.branch.get());
+        if (branch->address < 0) {
+            if (branch->kill) {
+                Node n = Operation(OperationCode::Discard);
+                n = apply_conditions(branch->condition, n);
+                bb.push_back(n);
+                global_code.push_back(n);
+                return;
+            }
+            Node n = Operation(OperationCode::Exit);
+            n = apply_conditions(branch->condition, n);
             bb.push_back(n);
             global_code.push_back(n);
             return;
         }
-        Node n = Operation(OperationCode::Exit);
-        n = apply_conditions(block.branch.cond, n);
+        Node n = Operation(OperationCode::Branch, Immediate(branch->address));
+        n = apply_conditions(branch->condition, n);
         bb.push_back(n);
         global_code.push_back(n);
         return;
     }
-    Node n = Operation(OperationCode::Branch, Immediate(block.branch.address));
-    n = apply_conditions(block.branch.cond, n);
-    bb.push_back(n);
-    global_code.push_back(n);
+    auto multi_branch = std::get_if<MultiBranch>(block.branch.get());
+    Node op_a = GetRegister(multi_branch->gpr);
+    for (auto& branch_case : multi_branch->branches) {
+        Node n = Operation(OperationCode::Branch, Immediate(branch_case.address));
+        Node op_b = Immediate(branch_case.cmp_value);
+        Node condition =
+            GetPredicateComparisonInteger(Tegra::Shader::PredCondition::Equal, false, op_a, op_b);
+        auto result = Conditional(condition, {n});
+        bb.push_back(result);
+        global_code.push_back(result);
+    }
 }
 
 u32 ShaderIR::DecodeInstr(NodeBlock& bb, u32 pc) {

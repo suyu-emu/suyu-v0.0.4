@@ -7,6 +7,7 @@
 #include <list>
 #include <optional>
 #include <set>
+#include <variant>
 
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/shader/ast.h"
@@ -37,29 +38,61 @@ struct Condition {
     }
 };
 
+class SingleBranch {
+public:
+    SingleBranch() = default;
+    SingleBranch(Condition condition, s32 address, bool kill, bool is_sync, bool is_brk,
+                 bool ignore)
+        : condition{condition}, address{address}, kill{kill}, is_sync{is_sync}, is_brk{is_brk},
+          ignore{ignore} {}
+
+    bool operator==(const SingleBranch& b) const {
+        return std::tie(condition, address, kill, is_sync, is_brk, ignore) ==
+               std::tie(b.condition, b.address, b.kill, b.is_sync, b.is_brk, b.ignore);
+    }
+
+    bool operator!=(const SingleBranch& b) const {
+        return !operator==(b);
+    }
+
+    Condition condition{};
+    s32 address{exit_branch};
+    bool kill{};
+    bool is_sync{};
+    bool is_brk{};
+    bool ignore{};
+};
+
+struct CaseBranch {
+    CaseBranch(u32 cmp_value, u32 address) : cmp_value{cmp_value}, address{address} {}
+    u32 cmp_value;
+    u32 address;
+};
+
+class MultiBranch {
+public:
+    MultiBranch(u32 gpr, std::vector<CaseBranch>&& branches)
+        : gpr{gpr}, branches{std::move(branches)} {}
+
+    u32 gpr{};
+    std::vector<CaseBranch> branches{};
+};
+
+using BranchData = std::variant<SingleBranch, MultiBranch>;
+using BlockBranchInfo = std::shared_ptr<BranchData>;
+
+bool BlockBranchInfoAreEqual(BlockBranchInfo first, BlockBranchInfo second);
+
 struct ShaderBlock {
-    struct Branch {
-        Condition cond{};
-        bool kills{};
-        s32 address{};
-
-        bool operator==(const Branch& b) const {
-            return std::tie(cond, kills, address) == std::tie(b.cond, b.kills, b.address);
-        }
-
-        bool operator!=(const Branch& b) const {
-            return !operator==(b);
-        }
-    };
-
     u32 start{};
     u32 end{};
     bool ignore_branch{};
-    Branch branch{};
+    BlockBranchInfo branch{};
 
     bool operator==(const ShaderBlock& sb) const {
-        return std::tie(start, end, ignore_branch, branch) ==
-               std::tie(sb.start, sb.end, sb.ignore_branch, sb.branch);
+        return std::tie(start, end, ignore_branch) ==
+                   std::tie(sb.start, sb.end, sb.ignore_branch) &&
+               BlockBranchInfoAreEqual(branch, sb.branch);
     }
 
     bool operator!=(const ShaderBlock& sb) const {
@@ -76,8 +109,8 @@ struct ShaderCharacteristics {
     CompilerSettings settings{};
 };
 
-std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
-                                                std::size_t program_size, u32 start_address,
-                                                const CompilerSettings& settings);
+std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u32 start_address,
+                                                const CompilerSettings& settings,
+                                                ConstBufferLocker& locker);
 
 } // namespace VideoCommon::Shader

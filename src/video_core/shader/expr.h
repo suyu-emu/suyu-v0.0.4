@@ -17,13 +17,14 @@ using Tegra::Shader::Pred;
 class ExprAnd;
 class ExprBoolean;
 class ExprCondCode;
+class ExprGprEqual;
 class ExprNot;
 class ExprOr;
 class ExprPredicate;
 class ExprVar;
 
-using ExprData =
-    std::variant<ExprVar, ExprCondCode, ExprPredicate, ExprNot, ExprOr, ExprAnd, ExprBoolean>;
+using ExprData = std::variant<ExprVar, ExprCondCode, ExprPredicate, ExprNot, ExprOr, ExprAnd,
+                              ExprBoolean, ExprGprEqual>;
 using Expr = std::shared_ptr<ExprData>;
 
 class ExprAnd final {
@@ -116,6 +117,22 @@ public:
     }
 
     bool value;
+};
+
+class ExprGprEqual final {
+public:
+    ExprGprEqual(u32 gpr, u32 value) : gpr{gpr}, value{value} {}
+
+    bool operator==(const ExprGprEqual& b) const {
+        return gpr == b.gpr && value == b.value;
+    }
+
+    bool operator!=(const ExprGprEqual& b) const {
+        return !operator==(b);
+    }
+
+    u32 gpr;
+    u32 value;
 };
 
 template <typename T, typename... Args>

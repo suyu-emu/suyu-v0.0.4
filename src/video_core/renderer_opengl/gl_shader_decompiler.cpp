@@ -415,27 +415,6 @@ public:
         return code.GetResult();
     }
 
-    ShaderEntries GetShaderEntries() const {
-        ShaderEntries entries;
-        for (const auto& cbuf : ir.GetConstantBuffers()) {
-            entries.const_buffers.emplace_back(cbuf.second.GetMaxOffset(), cbuf.second.IsIndirect(),
-                                               cbuf.first);
-        }
-        for (const auto& sampler : ir.GetSamplers()) {
-            entries.samplers.emplace_back(sampler);
-        }
-        for (const auto& [offset, image] : ir.GetImages()) {
-            entries.images.emplace_back(image);
-        }
-        for (const auto& [base, usage] : ir.GetGlobalMemory()) {
-            entries.global_memory_entries.emplace_back(base.cbuf_index, base.cbuf_offset,
-                                                       usage.is_read, usage.is_written);
-        }
-        entries.clip_distances = ir.GetClipDistances();
-        entries.shader_length = ir.GetLength();
-        return entries;
-    }
-
 private:
     friend class ASTDecompiler;
     friend class ExprDecompiler;
@@ -2338,6 +2317,11 @@ public:
         inner += expr.value ? "true" : "false";
     }
 
+    void operator()(VideoCommon::Shader::ExprGprEqual& expr) {
+        inner +=
+            "( ftou(" + decomp.GetRegister(expr.gpr) + ") == " + std::to_string(expr.value) + ')';
+    }
+
     const std::string& GetResult() const {
         return inner;
     }
@@ -2476,25 +2460,46 @@ void GLSLDecompiler::DecompileAST() {
 
 } // Anonymous namespace
 
-std::string GetCommonDeclarations() {
-    return fmt::format(
-        "#define ftoi floatBitsToInt\n"
-        "#define ftou floatBitsToUint\n"
-        "#define itof intBitsToFloat\n"
-        "#define utof uintBitsToFloat\n\n"
-        "bvec2 HalfFloatNanComparison(bvec2 comparison, vec2 pair1, vec2 pair2) {{\n"
-        "    bvec2 is_nan1 = isnan(pair1);\n"
-        "    bvec2 is_nan2 = isnan(pair2);\n"
-        "    return bvec2(comparison.x || is_nan1.x || is_nan2.x, comparison.y || is_nan1.y || "
-        "is_nan2.y);\n"
-        "}}\n\n");
+ShaderEntries GetEntries(const VideoCommon::Shader::ShaderIR& ir) {
+    ShaderEntries entries;
+    for (const auto& cbuf : ir.GetConstantBuffers()) {
+        entries.const_buffers.emplace_back(cbuf.second.GetMaxOffset(), cbuf.second.IsIndirect(),
+                                           cbuf.first);
+    }
+    for (const auto& sampler : ir.GetSamplers()) {
+        entries.samplers.emplace_back(sampler);
+    }
+    for (const auto& [offset, image] : ir.GetImages()) {
+        entries.images.emplace_back(image);
+    }
+    for (const auto& [base, usage] : ir.GetGlobalMemory()) {
+        entries.global_memory_entries.emplace_back(base.cbuf_index, base.cbuf_offset, usage.is_read,
+                                                   usage.is_written);
+    }
+    entries.clip_distances = ir.GetClipDistances();
+    entries.shader_length = ir.GetLength();
+    return entries;
 }
 
-ProgramResult Decompile(const Device& device, const ShaderIR& ir, ProgramType stage,
-                        const std::string& suffix) {
+std::string GetCommonDeclarations() {
+    return R"(#define ftoi floatBitsToInt
+#define ftou floatBitsToUint
+#define itof intBitsToFloat
+#define utof uintBitsToFloat
+
+bvec2 HalfFloatNanComparison(bvec2 comparison, vec2 pair1, vec2 pair2) {
+    bvec2 is_nan1 = isnan(pair1);
+    bvec2 is_nan2 = isnan(pair2);
+    return bvec2(comparison.x || is_nan1.x || is_nan2.x, comparison.y || is_nan1.y || is_nan2.y);
+}
+)";
+}
+
+std::string Decompile(const Device& device, const ShaderIR& ir, ProgramType stage,
+                      const std::string& suffix) {
     GLSLDecompiler decompiler(device, ir, stage, suffix);
     decompiler.Decompile();
-    return {decompiler.GetResult(), decompiler.GetShaderEntries()};
+    return decompiler.GetResult();
 }
 
 } // namespace OpenGL::GLShader

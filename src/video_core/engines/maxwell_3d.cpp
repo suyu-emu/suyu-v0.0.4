@@ -847,11 +847,30 @@ void Maxwell3D::ProcessClearBuffers() {
     rasterizer.Clear();
 }
 
-u32 Maxwell3D::AccessConstBuffer32(Regs::ShaderStage stage, u64 const_buffer, u64 offset) const {
+u32 Maxwell3D::AccessConstBuffer32(ShaderType stage, u64 const_buffer, u64 offset) const {
+    ASSERT(stage != ShaderType::Compute);
     const auto& shader_stage = state.shader_stages[static_cast<std::size_t>(stage)];
     const auto& buffer = shader_stage.const_buffers[const_buffer];
     u32 result;
     std::memcpy(&result, memory_manager.GetPointer(buffer.address + offset), sizeof(u32));
+    return result;
+}
+
+SamplerDescriptor Maxwell3D::AccessBoundSampler(ShaderType stage, u64 offset) const {
+    return AccessBindlessSampler(stage, regs.tex_cb_index, offset * sizeof(Texture::TextureHandle));
+}
+
+SamplerDescriptor Maxwell3D::AccessBindlessSampler(ShaderType stage, u64 const_buffer,
+                                                   u64 offset) const {
+    ASSERT(stage != ShaderType::Compute);
+    const auto& shader = state.shader_stages[static_cast<std::size_t>(stage)];
+    const auto& tex_info_buffer = shader.const_buffers[const_buffer];
+    const GPUVAddr tex_info_address = tex_info_buffer.address + offset;
+
+    const Texture::TextureHandle tex_handle{memory_manager.Read<u32>(tex_info_address)};
+    const Texture::FullTextureInfo tex_info = GetTextureInfo(tex_handle, offset);
+    SamplerDescriptor result = SamplerDescriptor::FromTicTexture(tex_info.tic.texture_type.Value());
+    result.is_shadow.Assign(tex_info.tsc.depth_compare_enabled.Value());
     return result;
 }
 

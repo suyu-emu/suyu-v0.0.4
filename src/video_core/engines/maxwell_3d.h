@@ -15,6 +15,7 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/math_util.h"
+#include "video_core/engines/const_buffer_engine_interface.h"
 #include "video_core/engines/const_buffer_info.h"
 #include "video_core/engines/engine_upload.h"
 #include "video_core/gpu.h"
@@ -44,7 +45,7 @@ namespace Tegra::Engines {
 #define MAXWELL3D_REG_INDEX(field_name)                                                            \
     (offsetof(Tegra::Engines::Maxwell3D::Regs, field_name) / sizeof(u32))
 
-class Maxwell3D final {
+class Maxwell3D final : public ConstBufferEngineInterface {
 public:
     explicit Maxwell3D(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
                        MemoryManager& memory_manager);
@@ -1257,7 +1258,16 @@ public:
     /// Returns the texture information for a specific texture in a specific shader stage.
     Texture::FullTextureInfo GetStageTexture(Regs::ShaderStage stage, std::size_t offset) const;
 
-    u32 AccessConstBuffer32(Regs::ShaderStage stage, u64 const_buffer, u64 offset) const;
+    u32 AccessConstBuffer32(ShaderType stage, u64 const_buffer, u64 offset) const override;
+
+    SamplerDescriptor AccessBoundSampler(ShaderType stage, u64 offset) const override;
+
+    SamplerDescriptor AccessBindlessSampler(ShaderType stage, u64 const_buffer,
+                                            u64 offset) const override;
+
+    u32 GetBoundBuffer() const override {
+        return regs.tex_cb_index;
+    }
 
     /// Memory for macro code - it's undetermined how big this is, however 1MB is much larger than
     /// we've seen used.
