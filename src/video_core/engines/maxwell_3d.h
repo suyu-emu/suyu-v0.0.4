@@ -1166,6 +1166,8 @@ public:
 
     struct DirtyRegs {
         static constexpr std::size_t NUM_REGS = 256;
+        static_assert(NUM_REGS - 1 <= std::numeric_limits<u8>::max());
+
         union {
             struct {
                 bool null_dirty;

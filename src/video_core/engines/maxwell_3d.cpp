@@ -98,11 +98,10 @@ void Maxwell3D::InitializeRegisterDefaults() {
     mme_inline[MAXWELL3D_REG_INDEX(index_array.count)] = true;
 }
 
-#define DIRTY_REGS_POS(field_name) (offsetof(Maxwell3D::DirtyRegs, field_name))
+#define DIRTY_REGS_POS(field_name) static_cast<u8>(offsetof(Maxwell3D::DirtyRegs, field_name))
 
 void Maxwell3D::InitDirtySettings() {
-    const auto set_block = [this](const std::size_t start, const std::size_t range,
-                                  const u8 position) {
+    const auto set_block = [this](std::size_t start, std::size_t range, u8 position) {
         const auto start_itr = dirty_pointers.begin() + start;
         const auto end_itr = start_itr + range;
         std::fill(start_itr, end_itr, position);
@@ -113,10 +112,10 @@ void Maxwell3D::InitDirtySettings() {
     constexpr u32 registers_per_rt = sizeof(regs.rt[0]) / sizeof(u32);
     constexpr u32 rt_start_reg = MAXWELL3D_REG_INDEX(rt);
     constexpr u32 rt_end_reg = rt_start_reg + registers_per_rt * 8;
-    u32 rt_dirty_reg = DIRTY_REGS_POS(render_target);
+    u8 rt_dirty_reg = DIRTY_REGS_POS(render_target);
     for (u32 rt_reg = rt_start_reg; rt_reg < rt_end_reg; rt_reg += registers_per_rt) {
         set_block(rt_reg, registers_per_rt, rt_dirty_reg);
-        rt_dirty_reg++;
+        ++rt_dirty_reg;
     }
     constexpr u32 depth_buffer_flag = DIRTY_REGS_POS(depth_buffer);
     dirty_pointers[MAXWELL3D_REG_INDEX(zeta_enable)] = depth_buffer_flag;
@@ -130,35 +129,35 @@ void Maxwell3D::InitDirtySettings() {
     constexpr u32 vertex_array_start = MAXWELL3D_REG_INDEX(vertex_array);
     constexpr u32 vertex_array_size = sizeof(regs.vertex_array[0]) / sizeof(u32);
     constexpr u32 vertex_array_end = vertex_array_start + vertex_array_size * Regs::NumVertexArrays;
-    u32 va_reg = DIRTY_REGS_POS(vertex_array);
-    u32 vi_reg = DIRTY_REGS_POS(vertex_instance);
+    u8 va_dirty_reg = DIRTY_REGS_POS(vertex_array);
+    u8 vi_dirty_reg = DIRTY_REGS_POS(vertex_instance);
     for (u32 vertex_reg = vertex_array_start; vertex_reg < vertex_array_end;
          vertex_reg += vertex_array_size) {
-        set_block(vertex_reg, 3, va_reg);
+        set_block(vertex_reg, 3, va_dirty_reg);
         // The divisor concerns vertex array instances
-        dirty_pointers[vertex_reg + 3] = vi_reg;
-        va_reg++;
-        vi_reg++;
+        dirty_pointers[static_cast<std::size_t>(vertex_reg) + 3] = vi_dirty_reg;
+        ++va_dirty_reg;
+        ++vi_dirty_reg;
     }
     constexpr u32 vertex_limit_start = MAXWELL3D_REG_INDEX(vertex_array_limit);
     constexpr u32 vertex_limit_size = sizeof(regs.vertex_array_limit[0]) / sizeof(u32);
     constexpr u32 vertex_limit_end = vertex_limit_start + vertex_limit_size * Regs::NumVertexArrays;
-    va_reg = DIRTY_REGS_POS(vertex_array);
+    va_dirty_reg = DIRTY_REGS_POS(vertex_array);
     for (u32 vertex_reg = vertex_limit_start; vertex_reg < vertex_limit_end;
          vertex_reg += vertex_limit_size) {
-        set_block(vertex_reg, vertex_limit_size, va_reg);
-        va_reg++;
+        set_block(vertex_reg, vertex_limit_size, va_dirty_reg);
+        va_dirty_reg++;
     }
     constexpr u32 vertex_instance_start = MAXWELL3D_REG_INDEX(instanced_arrays);
     constexpr u32 vertex_instance_size =
         sizeof(regs.instanced_arrays.is_instanced[0]) / sizeof(u32);
     constexpr u32 vertex_instance_end =
         vertex_instance_start + vertex_instance_size * Regs::NumVertexArrays;
-    vi_reg = DIRTY_REGS_POS(vertex_instance);
+    vi_dirty_reg = DIRTY_REGS_POS(vertex_instance);
     for (u32 vertex_reg = vertex_instance_start; vertex_reg < vertex_instance_end;
          vertex_reg += vertex_instance_size) {
-        set_block(vertex_reg, vertex_instance_size, vi_reg);
-        vi_reg++;
+        set_block(vertex_reg, vertex_instance_size, vi_dirty_reg);
+        vi_dirty_reg++;
     }
     set_block(MAXWELL3D_REG_INDEX(vertex_attrib_format), regs.vertex_attrib_format.size(),
               DIRTY_REGS_POS(vertex_attrib_format));
@@ -172,7 +171,7 @@ void Maxwell3D::InitDirtySettings() {
     // State
 
     // Viewport
-    constexpr u32 viewport_dirty_reg = DIRTY_REGS_POS(viewport);
+    constexpr u8 viewport_dirty_reg = DIRTY_REGS_POS(viewport);
     constexpr u32 viewport_start = MAXWELL3D_REG_INDEX(viewports);
     constexpr u32 viewport_size = sizeof(regs.viewports) / sizeof(u32);
     set_block(viewport_start, viewport_size, viewport_dirty_reg);
@@ -199,7 +198,7 @@ void Maxwell3D::InitDirtySettings() {
     set_block(primitive_restart_start, primitive_restart_size, DIRTY_REGS_POS(primitive_restart));
 
     // Depth Test
-    constexpr u32 depth_test_dirty_reg = DIRTY_REGS_POS(depth_test);
+    constexpr u8 depth_test_dirty_reg = DIRTY_REGS_POS(depth_test);
     dirty_pointers[MAXWELL3D_REG_INDEX(depth_test_enable)] = depth_test_dirty_reg;
     dirty_pointers[MAXWELL3D_REG_INDEX(depth_write_enabled)] = depth_test_dirty_reg;
     dirty_pointers[MAXWELL3D_REG_INDEX(depth_test_func)] = depth_test_dirty_reg;
@@ -224,12 +223,12 @@ void Maxwell3D::InitDirtySettings() {
     dirty_pointers[MAXWELL3D_REG_INDEX(stencil_back_mask)] = stencil_test_dirty_reg;
 
     // Color Mask
-    constexpr u32 color_mask_dirty_reg = DIRTY_REGS_POS(color_mask);
+    constexpr u8 color_mask_dirty_reg = DIRTY_REGS_POS(color_mask);
     dirty_pointers[MAXWELL3D_REG_INDEX(color_mask_common)] = color_mask_dirty_reg;
     set_block(MAXWELL3D_REG_INDEX(color_mask), sizeof(regs.color_mask) / sizeof(u32),
               color_mask_dirty_reg);
     // Blend State
-    constexpr u32 blend_state_dirty_reg = DIRTY_REGS_POS(blend_state);
+    constexpr u8 blend_state_dirty_reg = DIRTY_REGS_POS(blend_state);
     set_block(MAXWELL3D_REG_INDEX(blend_color), sizeof(regs.blend_color) / sizeof(u32),
               blend_state_dirty_reg);
     dirty_pointers[MAXWELL3D_REG_INDEX(independent_blend_enable)] = blend_state_dirty_reg;
@@ -238,12 +237,12 @@ void Maxwell3D::InitDirtySettings() {
               blend_state_dirty_reg);
 
     // Scissor State
-    constexpr u32 scissor_test_dirty_reg = DIRTY_REGS_POS(scissor_test);
+    constexpr u8 scissor_test_dirty_reg = DIRTY_REGS_POS(scissor_test);
     set_block(MAXWELL3D_REG_INDEX(scissor_test), sizeof(regs.scissor_test) / sizeof(u32),
               scissor_test_dirty_reg);
 
     // Polygon Offset
-    constexpr u32 polygon_offset_dirty_reg = DIRTY_REGS_POS(polygon_offset);
+    constexpr u8 polygon_offset_dirty_reg = DIRTY_REGS_POS(polygon_offset);
     dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_fill_enable)] = polygon_offset_dirty_reg;
     dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_line_enable)] = polygon_offset_dirty_reg;
     dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_point_enable)] = polygon_offset_dirty_reg;
@@ -252,7 +251,7 @@ void Maxwell3D::InitDirtySettings() {
     dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_clamp)] = polygon_offset_dirty_reg;
 
     // Depth bounds
-    constexpr u32 depth_bounds_values_dirty_reg = DIRTY_REGS_POS(depth_bounds_values);
+    constexpr u8 depth_bounds_values_dirty_reg = DIRTY_REGS_POS(depth_bounds_values);
     dirty_pointers[MAXWELL3D_REG_INDEX(depth_bounds[0])] = depth_bounds_values_dirty_reg;
     dirty_pointers[MAXWELL3D_REG_INDEX(depth_bounds[1])] = depth_bounds_values_dirty_reg;
 }
