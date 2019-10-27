@@ -139,6 +139,9 @@ ResultCode Mutex::Release(VAddr address) {
     thread->SetCondVarWaitAddress(0);
     thread->SetMutexWaitAddress(0);
     thread->SetWaitHandle(0);
+    thread->SetWaitSynchronizationResult(RESULT_SUCCESS);
+
+    system.PrepareReschedule();
 
     return RESULT_SUCCESS;
 }
