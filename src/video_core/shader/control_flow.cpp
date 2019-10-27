@@ -68,15 +68,15 @@ struct CFGRebuildState {
     const ProgramCode& program_code;
     ConstBufferLocker& locker;
     u32 start{};
-    std::vector<BlockInfo> block_info{};
-    std::list<u32> inspect_queries{};
-    std::list<Query> queries{};
-    std::unordered_map<u32, u32> registered{};
-    std::set<u32> labels{};
-    std::map<u32, u32> ssy_labels{};
-    std::map<u32, u32> pbk_labels{};
-    std::unordered_map<u32, BlockStack> stacks{};
-    ASTManager* manager;
+    std::vector<BlockInfo> block_info;
+    std::list<u32> inspect_queries;
+    std::list<Query> queries;
+    std::unordered_map<u32, u32> registered;
+    std::set<u32> labels;
+    std::map<u32, u32> ssy_labels;
+    std::map<u32, u32> pbk_labels;
+    std::unordered_map<u32, BlockStack> stacks;
+    ASTManager* manager{};
 };
 
 enum class BlockCollision : u32 { None, Found, Inside };
