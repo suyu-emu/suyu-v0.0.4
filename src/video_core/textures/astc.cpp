@@ -422,7 +422,7 @@ static TexelWeightParams DecodeBlockInfo(InputBitStream& strm) {
     TexelWeightParams params;
 
     // Read the entire block mode all at once
-    uint16_t modeBits = strm.ReadBits(11);
+    uint16_t modeBits = static_cast<uint16_t>(strm.ReadBits(11));
 
     // Does this match the void extent block mode?
     if ((modeBits & 0x01FF) == 0x1FC) {
@@ -625,10 +625,10 @@ static void FillVoidExtentLDR(InputBitStream& strm, uint32_t* const outBuf, uint
     }
 
     // Decode the RGBA components and renormalize them to the range [0, 255]
-    uint16_t r = strm.ReadBits(16);
-    uint16_t g = strm.ReadBits(16);
-    uint16_t b = strm.ReadBits(16);
-    uint16_t a = strm.ReadBits(16);
+    uint16_t r = static_cast<uint16_t>(strm.ReadBits(16));
+    uint16_t g = static_cast<uint16_t>(strm.ReadBits(16));
+    uint16_t b = static_cast<uint16_t>(strm.ReadBits(16));
+    uint16_t a = static_cast<uint16_t>(strm.ReadBits(16));
 
     uint32_t rgba = (r >> 8) | (g & 0xFF00) | (static_cast<uint32_t>(b) & 0xFF00) << 8 |
                     (static_cast<uint32_t>(a) & 0xFF00) << 16;
@@ -681,9 +681,10 @@ protected:
 
 public:
     Pixel() = default;
-    Pixel(ChannelType a, ChannelType r, ChannelType g, ChannelType b, unsigned bitDepth = 8)
+    Pixel(uint32_t a, uint32_t r, uint32_t g, uint32_t b, unsigned bitDepth = 8)
         : m_BitDepth{uint8_t(bitDepth), uint8_t(bitDepth), uint8_t(bitDepth), uint8_t(bitDepth)},
-          color{a, r, g, b} {}
+          color{static_cast<ChannelType>(a), static_cast<ChannelType>(r),
+                static_cast<ChannelType>(g), static_cast<ChannelType>(b)} {}
 
     // Changes the depth of each pixel. This scales the values to
     // the appropriate bit depth by either truncating the least
