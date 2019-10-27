@@ -2,7 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <functional>
 #include <list>
 #include <map>
 #include <set>
@@ -157,11 +156,11 @@ std::optional<std::pair<s32, u64>> GetBRXInfo(const CFGRebuildState& state, u32&
     return std::make_pair(instr.brx.GetBranchExtend(), instr.gpr8.Value());
 }
 
-template <typename Result>
-std::optional<Result> TrackInstruction(
-    const CFGRebuildState& state, u32& pos,
-    std::function<bool(Instruction, const OpCode::Matcher&)>&& test,
-    std::function<Result(Instruction, const OpCode::Matcher&)>&& pack) {
+template <typename Result, typename TestCallable, typename PackCallable>
+// requires std::predicate<TestCallable, Instruction, const OpCode::Matcher&>
+// requires std::invocable<PackCallable, Instruction, const OpCode::Matcher&>
+std::optional<Result> TrackInstruction(const CFGRebuildState& state, u32& pos, TestCallable test,
+                                       PackCallable pack) {
     for (; pos >= state.start; --pos) {
         if (IsSchedInstruction(pos, state.start)) {
             continue;
