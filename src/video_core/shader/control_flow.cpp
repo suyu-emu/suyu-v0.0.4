@@ -109,7 +109,7 @@ BlockInfo& CreateBlockInfo(CFGRebuildState& state, u32 start, u32 end) {
 }
 
 Pred GetPredicate(u32 index, bool negated) {
-    return static_cast<Pred>(index + (negated ? 8 : 0));
+    return static_cast<Pred>(static_cast<u64>(index) + (negated ? 8ULL : 0ULL));
 }
 
 /**
