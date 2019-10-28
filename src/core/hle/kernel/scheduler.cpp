@@ -107,11 +107,10 @@ bool GlobalScheduler::YieldThread(Thread* yielding_thread) {
     const u32 priority = yielding_thread->GetPriority();
 
     // Yield the thread
-    ASSERT_MSG(yielding_thread == scheduled_queue[core_id].front(priority),
-               "Thread yielding without being in front");
+    const Thread* const winner = scheduled_queue[core_id].front(priority);
+    ASSERT_MSG(yielding_thread == winner, "Thread yielding without being in front");
     scheduled_queue[core_id].yield(priority);
 
-    Thread* winner = scheduled_queue[core_id].front(priority);
     return AskForReselectionOrMarkRedundant(yielding_thread, winner);
 }
 
@@ -339,7 +338,8 @@ void GlobalScheduler::TransferToCore(u32 priority, s32 destination_core, Thread*
     }
 }
 
-bool GlobalScheduler::AskForReselectionOrMarkRedundant(Thread* current_thread, Thread* winner) {
+bool GlobalScheduler::AskForReselectionOrMarkRedundant(Thread* current_thread,
+                                                       const Thread* winner) {
     if (current_thread == winner) {
         current_thread->IncrementYieldCount();
         return true;

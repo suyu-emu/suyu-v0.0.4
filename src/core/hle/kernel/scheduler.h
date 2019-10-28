@@ -145,7 +145,7 @@ public:
     void Shutdown();
 
 private:
-    bool AskForReselectionOrMarkRedundant(Thread* current_thread, Thread* winner);
+    bool AskForReselectionOrMarkRedundant(Thread* current_thread, const Thread* winner);
 
     static constexpr u32 min_regular_priority = 2;
     std::array<Common::MultiLevelQueue<Thread*, THREADPRIO_COUNT>, NUM_CPU_CORES> scheduled_queue;
