@@ -35,24 +35,11 @@ void GlobalScheduler::RemoveThread(const Thread* thread) {
                       thread_list.end());
 }
 
-/*
- * UnloadThread selects a core and forces it to unload its current thread's context
- */
 void GlobalScheduler::UnloadThread(s32 core) {
     Scheduler& sched = system.Scheduler(core);
     sched.UnloadThread();
 }
 
-/*
- * SelectThread takes care of selecting the new scheduled thread.
- * It does it in 3 steps:
- * - First a thread is selected from the top of the priority queue. If no thread
- * is obtained then we move to step two, else we are done.
- * - Second we try to get a suggested thread that's not assigned to any core or
- * that is not the top thread in that core.
- * - Third is no suggested thread is found, we do a second pass and pick a running
- * thread in another core and swap it with its current thread.
- */
 void GlobalScheduler::SelectThread(u32 core) {
     const auto update_thread = [](Thread* thread, Scheduler& sched) {
         if (thread != sched.selected_thread) {
@@ -114,10 +101,6 @@ void GlobalScheduler::SelectThread(u32 core) {
     update_thread(current_thread, sched);
 }
 
-/*
- * YieldThread takes a thread and moves it to the back of the it's priority list
- * This operation can be redundant and no scheduling is changed if marked as so.
- */
 bool GlobalScheduler::YieldThread(Thread* yielding_thread) {
     // Note: caller should use critical section, etc.
     const u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
@@ -132,12 +115,6 @@ bool GlobalScheduler::YieldThread(Thread* yielding_thread) {
     return AskForReselectionOrMarkRedundant(yielding_thread, winner);
 }
 
-/*
- * YieldThreadAndBalanceLoad takes a thread and moves it to the back of the it's priority list.
- * Afterwards, tries to pick a suggested thread from the suggested queue that has worse time or
- * a better priority than the next thread in the core.
- * This operation can be redundant and no scheduling is changed if marked as so.
- */
 bool GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
     // Note: caller should check if !thread.IsSchedulerOperationRedundant and use critical section,
     // etc.
@@ -189,12 +166,6 @@ bool GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
     return AskForReselectionOrMarkRedundant(yielding_thread, winner);
 }
 
-/*
- * YieldThreadAndWaitForLoadBalancing takes a thread and moves it out of the scheduling queue
- * and into the suggested queue. If no thread can be squeduled afterwards in that core,
- * a suggested thread is obtained instead.
- * This operation can be redundant and no scheduling is changed if marked as so.
- */
 bool GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread) {
     // Note: caller should check if !thread.IsSchedulerOperationRedundant and use critical section,
     // etc.
