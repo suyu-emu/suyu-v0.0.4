@@ -251,7 +251,7 @@ void GlobalScheduler::PreemptThreads() {
             if (winner->IsRunning()) {
                 UnloadThread(winner->GetProcessorID());
             }
-            TransferToCore(winner->GetPriority(), core_id, winner);
+            TransferToCore(winner->GetPriority(), s32(core_id), winner);
             current_thread =
                 winner->GetPriority() <= current_thread->GetPriority() ? winner : current_thread;
         }
@@ -284,7 +284,7 @@ void GlobalScheduler::PreemptThreads() {
                 if (winner->IsRunning()) {
                     UnloadThread(winner->GetProcessorID());
                 }
-                TransferToCore(winner->GetPriority(), core_id, winner);
+                TransferToCore(winner->GetPriority(), s32(core_id), winner);
                 current_thread = winner;
             }
         }
@@ -302,12 +302,12 @@ void GlobalScheduler::Unsuggest(u32 priority, u32 core, Thread* thread) {
 }
 
 void GlobalScheduler::Schedule(u32 priority, u32 core, Thread* thread) {
-    ASSERT_MSG(thread->GetProcessorID() == core, "Thread must be assigned to this core.");
+    ASSERT_MSG(thread->GetProcessorID() == s32(core), "Thread must be assigned to this core.");
     scheduled_queue[core].add(thread, priority);
 }
 
 void GlobalScheduler::SchedulePrepend(u32 priority, u32 core, Thread* thread) {
-    ASSERT_MSG(thread->GetProcessorID() == core, "Thread must be assigned to this core.");
+    ASSERT_MSG(thread->GetProcessorID() == s32(core), "Thread must be assigned to this core.");
     scheduled_queue[core].add(thread, priority, false);
 }
 
@@ -439,7 +439,7 @@ void Scheduler::SwitchContext() {
 
     // Load context of new thread
     if (new_thread) {
-        ASSERT_MSG(new_thread->GetProcessorID() == this->core_id,
+        ASSERT_MSG(new_thread->GetProcessorID() == s32(this->core_id),
                    "Thread must be assigned to this core.");
         ASSERT_MSG(new_thread->GetStatus() == ThreadStatus::Ready,
                    "Thread must be ready to become running.");
