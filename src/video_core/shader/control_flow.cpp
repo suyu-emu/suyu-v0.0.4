@@ -182,12 +182,12 @@ std::optional<std::pair<BufferInfo, u64>> TrackLDC(const CFGRebuildState& state,
                                                    u64 brx_tracked_register) {
     return TrackInstruction<std::pair<BufferInfo, u64>>(
         state, pos,
-        [brx_tracked_register](auto instr, auto& opcode) {
+        [brx_tracked_register](auto instr, const auto& opcode) {
             return opcode.GetId() == OpCode::Id::LD_C &&
                    instr.gpr0.Value() == brx_tracked_register &&
                    instr.ld_c.type.Value() == Tegra::Shader::UniformType::Single;
         },
-        [](auto instr, auto& opcode) {
+        [](auto instr, const auto& opcode) {
             const BufferInfo info = {static_cast<u32>(instr.cbuf36.index.Value()),
                                      static_cast<u32>(instr.cbuf36.GetOffset())};
             return std::make_pair(info, instr.gpr8.Value());
@@ -197,22 +197,23 @@ std::optional<std::pair<BufferInfo, u64>> TrackLDC(const CFGRebuildState& state,
 std::optional<u64> TrackSHLRegister(const CFGRebuildState& state, u32& pos,
                                     u64 ldc_tracked_register) {
     return TrackInstruction<u64>(state, pos,
-                                 [ldc_tracked_register](auto instr, auto& opcode) {
+                                 [ldc_tracked_register](auto instr, const auto& opcode) {
                                      return opcode.GetId() == OpCode::Id::SHL_IMM &&
                                             instr.gpr0.Value() == ldc_tracked_register;
                                  },
-                                 [](auto instr, auto&) { return instr.gpr8.Value(); });
+                                 [](auto instr, const auto&) { return instr.gpr8.Value(); });
 }
 
 std::optional<u32> TrackIMNMXValue(const CFGRebuildState& state, u32& pos,
                                    u64 shl_tracked_register) {
-    return TrackInstruction<u32>(
-        state, pos,
-        [shl_tracked_register](auto instr, auto& opcode) {
-            return opcode.GetId() == OpCode::Id::IMNMX_IMM &&
-                   instr.gpr0.Value() == shl_tracked_register;
-        },
-        [](auto instr, auto&) { return static_cast<u32>(instr.alu.GetSignedImm20_20() + 1); });
+    return TrackInstruction<u32>(state, pos,
+                                 [shl_tracked_register](auto instr, const auto& opcode) {
+                                     return opcode.GetId() == OpCode::Id::IMNMX_IMM &&
+                                            instr.gpr0.Value() == shl_tracked_register;
+                                 },
+                                 [](auto instr, const auto&) {
+                                     return static_cast<u32>(instr.alu.GetSignedImm20_20() + 1);
+                                 });
 }
 
 std::optional<BranchIndirectInfo> TrackBranchIndirectInfo(const CFGRebuildState& state, u32 pos) {
