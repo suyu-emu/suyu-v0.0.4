@@ -315,6 +315,14 @@ PixelFormat PixelFormatFromTextureFormat(Tegra::Texture::TextureFormat format,
             break;
         }
         break;
+    case Tegra::Texture::TextureFormat::E5B9G9R9_SHAREDEXP:
+        switch (component_type) {
+        case Tegra::Texture::ComponentType::FLOAT:
+            return PixelFormat::E5B9G9R9F;
+        default:
+            break;
+        }
+        break;
     case Tegra::Texture::TextureFormat::ZF32:
         return PixelFormat::Z32F;
     case Tegra::Texture::TextureFormat::Z16:

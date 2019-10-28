@@ -86,19 +86,20 @@ enum class PixelFormat {
     ASTC_2D_8X6_SRGB = 68,
     ASTC_2D_6X5 = 69,
     ASTC_2D_6X5_SRGB = 70,
+    E5B9G9R9F = 71,
 
     MaxColorFormat,
 
     // Depth formats
-    Z32F = 71,
-    Z16 = 72,
+    Z32F = 72,
+    Z16 = 73,
 
     MaxDepthFormat,
 
     // DepthStencil formats
-    Z24S8 = 73,
-    S8Z24 = 74,
-    Z32FS8 = 75,
+    Z24S8 = 74,
+    S8Z24 = 75,
+    Z32FS8 = 76,
 
     MaxDepthStencilFormat,
 
@@ -207,6 +208,7 @@ constexpr std::array<u32, MaxPixelFormat> compression_factor_shift_table = {{
     2, // ASTC_2D_8X6_SRGB
     2, // ASTC_2D_6X5
     2, // ASTC_2D_6X5_SRGB
+    0, // E5B9G9R9F
     0, // Z32F
     0, // Z16
     0, // Z24S8
@@ -302,6 +304,7 @@ constexpr std::array<u32, MaxPixelFormat> block_width_table = {{
     8,  // ASTC_2D_8X6_SRGB
     6,  // ASTC_2D_6X5
     6,  // ASTC_2D_6X5_SRGB
+    1,  // E5B9G9R9F
     1,  // Z32F
     1,  // Z16
     1,  // Z24S8
@@ -389,6 +392,7 @@ constexpr std::array<u32, MaxPixelFormat> block_height_table = {{
     6,  // ASTC_2D_8X6_SRGB
     5,  // ASTC_2D_6X5
     5,  // ASTC_2D_6X5_SRGB
+    1,  // E5B9G9R9F
     1,  // Z32F
     1,  // Z16
     1,  // Z24S8
@@ -476,6 +480,7 @@ constexpr std::array<u32, MaxPixelFormat> bpp_table = {{
     128, // ASTC_2D_8X6_SRGB
     128, // ASTC_2D_6X5
     128, // ASTC_2D_6X5_SRGB
+    32,  // E5B9G9R9F
     32,  // Z32F
     16,  // Z16
     32,  // Z24S8
@@ -578,6 +583,7 @@ constexpr std::array<SurfaceCompression, MaxPixelFormat> compression_type_table 
     SurfaceCompression::Converted,  // ASTC_2D_8X6_SRGB
     SurfaceCompression::Converted,  // ASTC_2D_6X5
     SurfaceCompression::Converted,  // ASTC_2D_6X5_SRGB
+    SurfaceCompression::None,       // E5B9G9R9F
     SurfaceCompression::None,       // Z32F
     SurfaceCompression::None,       // Z16
     SurfaceCompression::None,       // Z24S8
