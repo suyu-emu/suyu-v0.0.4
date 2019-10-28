@@ -22,9 +22,9 @@
 
 namespace Kernel {
 
-GlobalScheduler::GlobalScheduler(Core::System& system) : system{system} {
-    is_reselection_pending = false;
-}
+GlobalScheduler::GlobalScheduler(Core::System& system) : system{system} {}
+
+GlobalScheduler::~GlobalScheduler() = default;
 
 void GlobalScheduler::AddThread(SharedPtr<Thread> thread) {
     thread_list.push_back(std::move(thread));
@@ -356,8 +356,6 @@ void GlobalScheduler::Shutdown() {
     }
     thread_list.clear();
 }
-
-GlobalScheduler::~GlobalScheduler() = default;
 
 Scheduler::Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, u32 core_id)
     : system(system), cpu_core(cpu_core), core_id(core_id) {}

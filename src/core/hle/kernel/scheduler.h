@@ -150,7 +150,7 @@ private:
     static constexpr u32 min_regular_priority = 2;
     std::array<Common::MultiLevelQueue<Thread*, THREADPRIO_COUNT>, NUM_CPU_CORES> scheduled_queue;
     std::array<Common::MultiLevelQueue<Thread*, THREADPRIO_COUNT>, NUM_CPU_CORES> suggested_queue;
-    std::atomic<bool> is_reselection_pending;
+    std::atomic<bool> is_reselection_pending{false};
 
     // The priority levels at which the global scheduler preempts threads every 10 ms. They are
     // ordered from Core 0 to Core 3.
