@@ -735,7 +735,7 @@ private:
 
     void DeclareImages() {
         const auto& images{ir.GetImages()};
-        for (const auto& [offset, image] : images) {
+        for (const auto& image : images) {
             std::string qualifier = "coherent volatile";
             if (image.IsRead() && !image.IsWritten()) {
                 qualifier += " readonly";
@@ -2466,15 +2466,15 @@ ShaderEntries GetEntries(const VideoCommon::Shader::ShaderIR& ir) {
         entries.const_buffers.emplace_back(cbuf.second.GetMaxOffset(), cbuf.second.IsIndirect(),
                                            cbuf.first);
     }
-    for (const auto& sampler : ir.GetSamplers()) {
-        entries.samplers.emplace_back(sampler);
-    }
-    for (const auto& [offset, image] : ir.GetImages()) {
-        entries.images.emplace_back(image);
-    }
     for (const auto& [base, usage] : ir.GetGlobalMemory()) {
         entries.global_memory_entries.emplace_back(base.cbuf_index, base.cbuf_offset, usage.is_read,
                                                    usage.is_written);
+    }
+    for (const auto& sampler : ir.GetSamplers()) {
+        entries.samplers.emplace_back(sampler);
+    }
+    for (const auto& image : ir.GetImages()) {
+        entries.images.emplace_back(image);
     }
     entries.clip_distances = ir.GetClipDistances();
     entries.shader_length = ir.GetLength();

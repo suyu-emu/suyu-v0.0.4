@@ -132,6 +132,8 @@ enum class SwizzleSource : u32 {
 };
 
 union TextureHandle {
+    TextureHandle(u32 raw) : raw{raw} {}
+
     u32 raw;
     BitField<0, 20, u32> tic_id;
     BitField<20, 12, u32> tsc_id;
