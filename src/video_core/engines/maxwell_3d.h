@@ -1250,12 +1250,8 @@ public:
 
     void FlushMMEInlineDraw();
 
-    /// Given a Texture Handle, returns the TSC and TIC entries.
-    Texture::FullTextureInfo GetTextureInfo(const Texture::TextureHandle tex_handle,
-                                            std::size_t offset) const;
-
-    /// Returns a list of enabled textures for the specified shader stage.
-    std::vector<Texture::FullTextureInfo> GetStageTextures(Regs::ShaderStage stage) const;
+    /// Given a texture handle, returns the TSC and TIC entries.
+    Texture::FullTextureInfo GetTextureInfo(Texture::TextureHandle tex_handle) const;
 
     /// Returns the texture information for a specific texture in a specific shader stage.
     Texture::FullTextureInfo GetStageTexture(Regs::ShaderStage stage, std::size_t offset) const;

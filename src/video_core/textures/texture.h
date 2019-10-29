@@ -354,7 +354,6 @@ struct TSCEntry {
 static_assert(sizeof(TSCEntry) == 0x20, "TSCEntry has wrong size");
 
 struct FullTextureInfo {
-    u32 index;
     TICEntry tic;
     TSCEntry tsc;
 };

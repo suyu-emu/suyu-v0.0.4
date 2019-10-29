@@ -50,7 +50,7 @@ void KeplerCompute::CallMethod(const GPU::MethodCall& method_call) {
     }
 }
 
-Tegra::Texture::FullTextureInfo KeplerCompute::GetTexture(std::size_t offset) const {
+Texture::FullTextureInfo KeplerCompute::GetTexture(std::size_t offset) const {
     const std::bitset<8> cbuf_mask = launch_description.const_buffer_enable_mask.Value();
     ASSERT(cbuf_mask[regs.tex_cb_index]);
 
@@ -61,13 +61,11 @@ Tegra::Texture::FullTextureInfo KeplerCompute::GetTexture(std::size_t offset) co
     ASSERT(address < texinfo.Address() + texinfo.size);
 
     const Texture::TextureHandle tex_handle{memory_manager.Read<u32>(address)};
-    return GetTextureInfo(tex_handle, offset);
+    return GetTextureInfo(tex_handle);
 }
 
-Texture::FullTextureInfo KeplerCompute::GetTextureInfo(const Texture::TextureHandle tex_handle,
-                                                       std::size_t offset) const {
-    return Texture::FullTextureInfo{static_cast<u32>(offset), GetTICEntry(tex_handle.tic_id),
-                                    GetTSCEntry(tex_handle.tsc_id)};
+Texture::FullTextureInfo KeplerCompute::GetTextureInfo(Texture::TextureHandle tex_handle) const {
+    return Texture::FullTextureInfo{GetTICEntry(tex_handle.tic_id), GetTSCEntry(tex_handle.tsc_id)};
 }
 
 u32 KeplerCompute::AccessConstBuffer32(ShaderType stage, u64 const_buffer, u64 offset) const {
@@ -89,7 +87,7 @@ SamplerDescriptor KeplerCompute::AccessBindlessSampler(ShaderType stage, u64 con
     const GPUVAddr tex_info_address = tex_info_buffer.Address() + offset;
 
     const Texture::TextureHandle tex_handle{memory_manager.Read<u32>(tex_info_address)};
-    const Texture::FullTextureInfo tex_info = GetTextureInfo(tex_handle, offset);
+    const Texture::FullTextureInfo tex_info = GetTextureInfo(tex_handle);
     SamplerDescriptor result = SamplerDescriptor::FromTicTexture(tex_info.tic.texture_type.Value());
     result.is_shadow.Assign(tex_info.tsc.depth_compare_enabled.Value());
     return result;
