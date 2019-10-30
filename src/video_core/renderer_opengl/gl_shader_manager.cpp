@@ -42,7 +42,6 @@ void ProgramManager::UpdatePipeline() {
 
 void MaxwellUniformData::SetFromRegs(const Maxwell3D& maxwell) {
     const auto& regs = maxwell.regs;
-    const auto& state = maxwell.state;
 
     // Y_NEGATE controls what value S2R returns for the Y_DIRECTION system value.
     y_direction = regs.screen_y_control.y_negate == 0 ? 1.0f : -1.0f;
