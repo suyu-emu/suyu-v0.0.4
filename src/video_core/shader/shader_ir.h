@@ -326,7 +326,7 @@ private:
     Node BitfieldInsert(Node base, Node insert, u32 offset, u32 bits);
 
     void WriteTexInstructionFloat(NodeBlock& bb, Tegra::Shader::Instruction instr,
-                                  const Node4& components);
+                                  const Node4& components, bool is_tld4 = false);
 
     void WriteTexsInstructionFloat(NodeBlock& bb, Tegra::Shader::Instruction instr,
                                    const Node4& components, bool ignore_mask = false);
@@ -343,7 +343,7 @@ private:
                       bool is_array);
 
     Node4 GetTld4Code(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
-                      bool depth_compare, bool is_array, bool is_aoffi);
+                      bool depth_compare, bool is_array, bool is_aoffi, bool is_bindless);
 
     Node4 GetTldCode(Tegra::Shader::Instruction instr);
 
