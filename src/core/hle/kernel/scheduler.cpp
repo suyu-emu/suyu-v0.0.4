@@ -22,9 +22,9 @@
 
 namespace Kernel {
 
-GlobalScheduler::GlobalScheduler(Core::System& system) : system{system} {
-    is_reselection_pending = false;
-}
+GlobalScheduler::GlobalScheduler(Core::System& system) : system{system} {}
+
+GlobalScheduler::~GlobalScheduler() = default;
 
 void GlobalScheduler::AddThread(SharedPtr<Thread> thread) {
     thread_list.push_back(std::move(thread));
@@ -35,24 +35,11 @@ void GlobalScheduler::RemoveThread(const Thread* thread) {
                       thread_list.end());
 }
 
-/*
- * UnloadThread selects a core and forces it to unload its current thread's context
- */
 void GlobalScheduler::UnloadThread(s32 core) {
     Scheduler& sched = system.Scheduler(core);
     sched.UnloadThread();
 }
 
-/*
- * SelectThread takes care of selecting the new scheduled thread.
- * It does it in 3 steps:
- * - First a thread is selected from the top of the priority queue. If no thread
- * is obtained then we move to step two, else we are done.
- * - Second we try to get a suggested thread that's not assigned to any core or
- * that is not the top thread in that core.
- * - Third is no suggested thread is found, we do a second pass and pick a running
- * thread in another core and swap it with its current thread.
- */
 void GlobalScheduler::SelectThread(u32 core) {
     const auto update_thread = [](Thread* thread, Scheduler& sched) {
         if (thread != sched.selected_thread) {
@@ -114,30 +101,19 @@ void GlobalScheduler::SelectThread(u32 core) {
     update_thread(current_thread, sched);
 }
 
-/*
- * YieldThread takes a thread and moves it to the back of the it's priority list
- * This operation can be redundant and no scheduling is changed if marked as so.
- */
 bool GlobalScheduler::YieldThread(Thread* yielding_thread) {
     // Note: caller should use critical section, etc.
     const u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
     const u32 priority = yielding_thread->GetPriority();
 
     // Yield the thread
-    ASSERT_MSG(yielding_thread == scheduled_queue[core_id].front(priority),
-               "Thread yielding without being in front");
+    const Thread* const winner = scheduled_queue[core_id].front(priority);
+    ASSERT_MSG(yielding_thread == winner, "Thread yielding without being in front");
     scheduled_queue[core_id].yield(priority);
 
-    Thread* winner = scheduled_queue[core_id].front(priority);
     return AskForReselectionOrMarkRedundant(yielding_thread, winner);
 }
 
-/*
- * YieldThreadAndBalanceLoad takes a thread and moves it to the back of the it's priority list.
- * Afterwards, tries to pick a suggested thread from the suggested queue that has worse time or
- * a better priority than the next thread in the core.
- * This operation can be redundant and no scheduling is changed if marked as so.
- */
 bool GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
     // Note: caller should check if !thread.IsSchedulerOperationRedundant and use critical section,
     // etc.
@@ -189,12 +165,6 @@ bool GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
     return AskForReselectionOrMarkRedundant(yielding_thread, winner);
 }
 
-/*
- * YieldThreadAndWaitForLoadBalancing takes a thread and moves it out of the scheduling queue
- * and into the suggested queue. If no thread can be squeduled afterwards in that core,
- * a suggested thread is obtained instead.
- * This operation can be redundant and no scheduling is changed if marked as so.
- */
 bool GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread) {
     // Note: caller should check if !thread.IsSchedulerOperationRedundant and use critical section,
     // etc.
@@ -280,7 +250,7 @@ void GlobalScheduler::PreemptThreads() {
             if (winner->IsRunning()) {
                 UnloadThread(winner->GetProcessorID());
             }
-            TransferToCore(winner->GetPriority(), core_id, winner);
+            TransferToCore(winner->GetPriority(), s32(core_id), winner);
             current_thread =
                 winner->GetPriority() <= current_thread->GetPriority() ? winner : current_thread;
         }
@@ -313,7 +283,7 @@ void GlobalScheduler::PreemptThreads() {
                 if (winner->IsRunning()) {
                     UnloadThread(winner->GetProcessorID());
                 }
-                TransferToCore(winner->GetPriority(), core_id, winner);
+                TransferToCore(winner->GetPriority(), s32(core_id), winner);
                 current_thread = winner;
             }
         }
@@ -331,12 +301,12 @@ void GlobalScheduler::Unsuggest(u32 priority, u32 core, Thread* thread) {
 }
 
 void GlobalScheduler::Schedule(u32 priority, u32 core, Thread* thread) {
-    ASSERT_MSG(thread->GetProcessorID() == core, "Thread must be assigned to this core.");
+    ASSERT_MSG(thread->GetProcessorID() == s32(core), "Thread must be assigned to this core.");
     scheduled_queue[core].add(thread, priority);
 }
 
 void GlobalScheduler::SchedulePrepend(u32 priority, u32 core, Thread* thread) {
-    ASSERT_MSG(thread->GetProcessorID() == core, "Thread must be assigned to this core.");
+    ASSERT_MSG(thread->GetProcessorID() == s32(core), "Thread must be assigned to this core.");
     scheduled_queue[core].add(thread, priority, false);
 }
 
@@ -368,7 +338,8 @@ void GlobalScheduler::TransferToCore(u32 priority, s32 destination_core, Thread*
     }
 }
 
-bool GlobalScheduler::AskForReselectionOrMarkRedundant(Thread* current_thread, Thread* winner) {
+bool GlobalScheduler::AskForReselectionOrMarkRedundant(Thread* current_thread,
+                                                       const Thread* winner) {
     if (current_thread == winner) {
         current_thread->IncrementYieldCount();
         return true;
@@ -385,8 +356,6 @@ void GlobalScheduler::Shutdown() {
     }
     thread_list.clear();
 }
-
-GlobalScheduler::~GlobalScheduler() = default;
 
 Scheduler::Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, u32 core_id)
     : system(system), cpu_core(cpu_core), core_id(core_id) {}
@@ -470,7 +439,7 @@ void Scheduler::SwitchContext() {
 
     // Load context of new thread
     if (new_thread) {
-        ASSERT_MSG(new_thread->GetProcessorID() == this->core_id,
+        ASSERT_MSG(new_thread->GetProcessorID() == s32(this->core_id),
                    "Thread must be assigned to this core.");
         ASSERT_MSG(new_thread->GetStatus() == ThreadStatus::Ready,
                    "Thread must be ready to become running.");
