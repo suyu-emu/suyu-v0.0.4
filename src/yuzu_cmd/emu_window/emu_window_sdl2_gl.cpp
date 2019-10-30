@@ -50,7 +50,7 @@ private:
 };
 
 bool EmuWindow_SDL2_GL::SupportsRequiredGLExtensions() {
-    std::vector<std::string> unsupported_ext;
+    std::vector<std::string_view> unsupported_ext;
 
     if (!GLAD_GL_ARB_buffer_storage)
         unsupported_ext.push_back("ARB_buffer_storage");
@@ -73,8 +73,8 @@ bool EmuWindow_SDL2_GL::SupportsRequiredGLExtensions() {
     if (!GLAD_GL_ARB_depth_buffer_float)
         unsupported_ext.push_back("ARB_depth_buffer_float");
 
-    for (const std::string& ext : unsupported_ext)
-        LOG_CRITICAL(Frontend, "Unsupported GL extension: {}", ext);
+    for (const auto& extension : unsupported_ext)
+        LOG_CRITICAL(Frontend, "Unsupported GL extension: {}", extension);
 
     return unsupported_ext.empty();
 }
