@@ -817,6 +817,9 @@ QStringList GMainWindow::GetUnsupportedGLExtensions() {
     if (!GLAD_GL_ARB_multi_bind) {
         unsupported_ext.append(QStringLiteral("ARB_multi_bind"));
     }
+    if (!GLAD_GL_ARB_clip_control) {
+        unsupported_ext.append(QStringLiteral("ARB_clip_control"));
+    }
 
     // Extensions required to support some texture formats.
     if (!GLAD_GL_EXT_texture_compression_s3tc) {

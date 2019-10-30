@@ -18,17 +18,12 @@ namespace OpenGL::GLShader {
 /// @note Always keep a vec4 at the end. The GL spec is not clear whether the alignment at
 ///       the end of a uniform block is included in UNIFORM_BLOCK_DATA_SIZE or not.
 ///       Not following that rule will cause problems on some AMD drivers.
-struct MaxwellUniformData {
-    void SetFromRegs(const Tegra::Engines::Maxwell3D& maxwell, std::size_t shader_stage);
+struct alignas(16) MaxwellUniformData {
+    void SetFromRegs(const Tegra::Engines::Maxwell3D& maxwell);
 
-    alignas(16) GLvec4 viewport_flip;
-    struct alignas(16) {
-        GLuint instance_id;
-        GLuint flip_stage;
-        GLfloat y_direction;
-    };
+    GLfloat y_direction;
 };
-static_assert(sizeof(MaxwellUniformData) == 32, "MaxwellUniformData structure size is incorrect");
+static_assert(sizeof(MaxwellUniformData) == 16, "MaxwellUniformData structure size is incorrect");
 static_assert(sizeof(MaxwellUniformData) < 16384,
               "MaxwellUniformData structure must be less than 16kb as per the OpenGL spec");
 

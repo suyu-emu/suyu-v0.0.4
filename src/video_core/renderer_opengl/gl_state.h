@@ -146,6 +146,10 @@ public:
 
     std::array<bool, 8> clip_distance = {}; // GL_CLIP_DISTANCE
 
+    struct {
+        GLenum origin = GL_LOWER_LEFT;
+    } clip_control;
+
     OpenGLState();
 
     /// Get the currently active OpenGL state
@@ -182,6 +186,7 @@ public:
     void ApplyDepthClamp();
     void ApplyPolygonOffset();
     void ApplyAlphaTest();
+    void ApplyClipControl();
 
     /// Resets any references to the given resource
     OpenGLState& UnbindTexture(GLuint handle);
