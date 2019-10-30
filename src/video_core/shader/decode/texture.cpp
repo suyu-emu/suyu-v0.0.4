@@ -96,6 +96,10 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         }
         break;
     }
+    case OpCode::Id::TLD4_B: {
+        is_bindless = true;
+        [[fallthrough]];
+    }
     case OpCode::Id::TLD4: {
         ASSERT(instr.tld4.array == 0);
         UNIMPLEMENTED_IF_MSG(instr.tld4.UsesMiscMode(TextureMiscMode::NDV),
@@ -108,11 +112,14 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         }
 
         const auto texture_type = instr.tld4.texture_type.Value();
-        const bool depth_compare = instr.tld4.UsesMiscMode(TextureMiscMode::DC);
+        const bool depth_compare = is_bindless ? instr.tld4_b.UsesMiscMode(TextureMiscMode::DC)
+                                               : instr.tld4.UsesMiscMode(TextureMiscMode::DC);
         const bool is_array = instr.tld4.array != 0;
-        const bool is_aoffi = instr.tld4.UsesMiscMode(TextureMiscMode::AOFFI);
+        const bool is_aoffi = is_bindless ? instr.tld4_b.UsesMiscMode(TextureMiscMode::AOFFI)
+                                          : instr.tld4.UsesMiscMode(TextureMiscMode::AOFFI);
         WriteTexInstructionFloat(
-            bb, instr, GetTld4Code(instr, texture_type, depth_compare, is_array, is_aoffi));
+            bb, instr,
+            GetTld4Code(instr, texture_type, depth_compare, is_array, is_aoffi, is_bindless), true);
         break;
     }
     case OpCode::Id::TLD4S: {
@@ -359,10 +366,11 @@ const Sampler& ShaderIR::GetBindlessSampler(const Tegra::Shader::Register& reg,
     return *used_samplers.emplace(entry).first;
 }
 
-void ShaderIR::WriteTexInstructionFloat(NodeBlock& bb, Instruction instr, const Node4& components) {
+void ShaderIR::WriteTexInstructionFloat(NodeBlock& bb, Instruction instr, const Node4& components,
+                                        bool is_tld4) {
     u32 dest_elem = 0;
     for (u32 elem = 0; elem < 4; ++elem) {
-        if (!instr.tex.IsComponentEnabled(elem)) {
+        if (!is_tld4 && !instr.tex.IsComponentEnabled(elem)) {
             // Skip disabled components
             continue;
         }
@@ -583,7 +591,7 @@ Node4 ShaderIR::GetTexsCode(Instruction instr, TextureType texture_type,
 }
 
 Node4 ShaderIR::GetTld4Code(Instruction instr, TextureType texture_type, bool depth_compare,
-                            bool is_array, bool is_aoffi) {
+                            bool is_array, bool is_aoffi, bool is_bindless) {
     const std::size_t coord_count = GetCoordCount(texture_type);
 
     // If enabled arrays index is always stored in the gpr8 field
@@ -597,6 +605,12 @@ Node4 ShaderIR::GetTld4Code(Instruction instr, TextureType texture_type, bool de
     }
 
     u64 parameter_register = instr.gpr20.Value();
+
+    const auto& sampler =
+        is_bindless
+            ? GetBindlessSampler(parameter_register++, {{texture_type, is_array, depth_compare}})
+            : GetSampler(instr.sampler, {{texture_type, is_array, depth_compare}});
+
     std::vector<Node> aoffi;
     if (is_aoffi) {
         aoffi = GetAoffiCoordinates(GetRegister(parameter_register++), coord_count, true);
@@ -607,12 +621,14 @@ Node4 ShaderIR::GetTld4Code(Instruction instr, TextureType texture_type, bool de
         dc = GetRegister(parameter_register++);
     }
 
-    const auto& sampler = GetSampler(instr.sampler, {{texture_type, is_array, depth_compare}});
+    const Node component = is_bindless ? Immediate(static_cast<u32>(instr.tld4_b.component))
+                                       : Immediate(static_cast<u32>(instr.tld4.component));
 
     Node4 values;
     for (u32 element = 0; element < values.size(); ++element) {
         auto coords_copy = coords;
-        MetaTexture meta{sampler, GetRegister(array_register), dc, aoffi, {}, {}, {}, element};
+        MetaTexture meta{sampler, GetRegister(array_register), dc, aoffi, {}, {}, component,
+                         element};
         values[element] = Operation(OperationCode::TextureGather, meta, std::move(coords_copy));
     }
 

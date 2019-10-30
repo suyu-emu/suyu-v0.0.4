@@ -1238,6 +1238,32 @@ union Instruction {
     } tld4;
 
     union {
+        BitField<35, 1, u64> ndv_flag;
+        BitField<49, 1, u64> nodep_flag;
+        BitField<50, 1, u64> dc_flag;
+        BitField<33, 2, u64> info;
+        BitField<37, 2, u64> component;
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::NDV:
+                return ndv_flag != 0;
+            case TextureMiscMode::NODEP:
+                return nodep_flag != 0;
+            case TextureMiscMode::DC:
+                return dc_flag != 0;
+            case TextureMiscMode::AOFFI:
+                return info == 1;
+            case TextureMiscMode::PTP:
+                return info == 2;
+            default:
+                break;
+            }
+            return false;
+        }
+    } tld4_b;
+
+    union {
         BitField<49, 1, u64> nodep_flag;
         BitField<50, 1, u64> dc_flag;
         BitField<51, 1, u64> aoffi_flag;
@@ -1590,7 +1616,8 @@ public:
         TEXS,   // Texture Fetch with scalar/non-vec4 source/destinations
         TLD,    // Texture Load
         TLDS,   // Texture Load with scalar/non-vec4 source/destinations
-        TLD4,   // Texture Load 4
+        TLD4,   // Texture Gather 4
+        TLD4_B, // Texture Gather 4 Bindless
         TLD4S,  // Texture Load 4 with scalar / non - vec4 source / destinations
         TMML_B, // Texture Mip Map Level
         TMML,   // Texture Mip Map Level
@@ -1881,6 +1908,7 @@ private:
             INST("11011100--11----", Id::TLD, Type::Texture, "TLD"),
             INST("1101-01---------", Id::TLDS, Type::Texture, "TLDS"),
             INST("110010----111---", Id::TLD4, Type::Texture, "TLD4"),
+            INST("1101111011111---", Id::TLD4_B, Type::Texture, "TLD4_B"),
             INST("1101111100------", Id::TLD4S, Type::Texture, "TLD4S"),
             INST("110111110110----", Id::TMML_B, Type::Texture, "TMML_B"),
             INST("1101111101011---", Id::TMML, Type::Texture, "TMML"),
