@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <iterator>
 #include <glad/glad.h>
 #include "common/assert.h"
@@ -85,19 +86,7 @@ void Enable(GLenum cap, GLuint index, bool& current_value, bool new_value) {
 OpenGLState::OpenGLState() = default;
 
 void OpenGLState::SetDefaultViewports() {
-    for (auto& item : viewports) {
-        item.x = 0;
-        item.y = 0;
-        item.width = 0;
-        item.height = 0;
-        item.depth_range_near = 0.0f;
-        item.depth_range_far = 1.0f;
-        item.scissor.enabled = false;
-        item.scissor.x = 0;
-        item.scissor.y = 0;
-        item.scissor.width = 0;
-        item.scissor.height = 0;
-    }
+    std::fill(std::begin(viewports), std::end(viewports), Viewport{});
 
     depth_clamp.far_plane = false;
     depth_clamp.near_plane = false;
