@@ -69,16 +69,18 @@ void Enable(GLenum cap, GLuint index, bool enable) {
 }
 
 void Enable(GLenum cap, bool& current_value, bool new_value) {
-    if (UpdateValue(current_value, new_value))
+    if (UpdateValue(current_value, new_value)) {
         Enable(cap, new_value);
+    }
 }
 
 void Enable(GLenum cap, GLuint index, bool& current_value, bool new_value) {
-    if (UpdateValue(current_value, new_value))
+    if (UpdateValue(current_value, new_value)) {
         Enable(cap, index, new_value);
+    }
 }
 
-} // namespace
+} // Anonymous namespace
 
 OpenGLState::OpenGLState() = default;
 
