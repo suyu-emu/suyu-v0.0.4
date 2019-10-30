@@ -157,31 +157,31 @@ public:
     /// Apply this state as the current OpenGL state
     void Apply();
 
-    void ApplyFramebufferState() const;
-    void ApplyVertexArrayState() const;
-    void ApplyShaderProgram() const;
-    void ApplyProgramPipeline() const;
-    void ApplyClipDistances() const;
-    void ApplyPointSize() const;
-    void ApplyFragmentColorClamp() const;
-    void ApplyMultisample() const;
-    void ApplySRgb() const;
-    void ApplyCulling() const;
-    void ApplyColorMask() const;
-    void ApplyDepth() const;
-    void ApplyPrimitiveRestart() const;
-    void ApplyStencilTest() const;
-    void ApplyViewport() const;
-    void ApplyTargetBlending(std::size_t target, bool force) const;
-    void ApplyGlobalBlending() const;
-    void ApplyBlending() const;
-    void ApplyLogicOp() const;
-    void ApplyTextures() const;
-    void ApplySamplers() const;
-    void ApplyImages() const;
-    void ApplyDepthClamp() const;
-    void ApplyPolygonOffset() const;
-    void ApplyAlphaTest() const;
+    void ApplyFramebufferState();
+    void ApplyVertexArrayState();
+    void ApplyShaderProgram();
+    void ApplyProgramPipeline();
+    void ApplyClipDistances();
+    void ApplyPointSize();
+    void ApplyFragmentColorClamp();
+    void ApplyMultisample();
+    void ApplySRgb();
+    void ApplyCulling();
+    void ApplyColorMask();
+    void ApplyDepth();
+    void ApplyPrimitiveRestart();
+    void ApplyStencilTest();
+    void ApplyViewport();
+    void ApplyTargetBlending(std::size_t target, bool force);
+    void ApplyGlobalBlending();
+    void ApplyBlending();
+    void ApplyLogicOp();
+    void ApplyTextures();
+    void ApplySamplers();
+    void ApplyImages();
+    void ApplyDepthClamp();
+    void ApplyPolygonOffset();
+    void ApplyAlphaTest();
 
     /// Resets any references to the given resource
     OpenGLState& UnbindTexture(GLuint handle);

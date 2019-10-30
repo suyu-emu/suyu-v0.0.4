@@ -92,7 +92,7 @@ void OpenGLState::SetDefaultViewports() {
     depth_clamp.near_plane = false;
 }
 
-void OpenGLState::ApplyFramebufferState() const {
+void OpenGLState::ApplyFramebufferState() {
     if (UpdateValue(cur_state.draw.read_framebuffer, draw.read_framebuffer)) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, draw.read_framebuffer);
     }
@@ -101,52 +101,52 @@ void OpenGLState::ApplyFramebufferState() const {
     }
 }
 
-void OpenGLState::ApplyVertexArrayState() const {
+void OpenGLState::ApplyVertexArrayState() {
     if (UpdateValue(cur_state.draw.vertex_array, draw.vertex_array)) {
         glBindVertexArray(draw.vertex_array);
     }
 }
 
-void OpenGLState::ApplyShaderProgram() const {
+void OpenGLState::ApplyShaderProgram() {
     if (UpdateValue(cur_state.draw.shader_program, draw.shader_program)) {
         glUseProgram(draw.shader_program);
     }
 }
 
-void OpenGLState::ApplyProgramPipeline() const {
+void OpenGLState::ApplyProgramPipeline() {
     if (UpdateValue(cur_state.draw.program_pipeline, draw.program_pipeline)) {
         glBindProgramPipeline(draw.program_pipeline);
     }
 }
 
-void OpenGLState::ApplyClipDistances() const {
+void OpenGLState::ApplyClipDistances() {
     for (std::size_t i = 0; i < clip_distance.size(); ++i) {
         Enable(GL_CLIP_DISTANCE0 + static_cast<GLenum>(i), cur_state.clip_distance[i],
                clip_distance[i]);
     }
 }
 
-void OpenGLState::ApplyPointSize() const {
+void OpenGLState::ApplyPointSize() {
     if (UpdateValue(cur_state.point.size, point.size)) {
         glPointSize(point.size);
     }
 }
 
-void OpenGLState::ApplyFragmentColorClamp() const {
+void OpenGLState::ApplyFragmentColorClamp() {
     if (UpdateValue(cur_state.fragment_color_clamp.enabled, fragment_color_clamp.enabled)) {
         glClampColor(GL_CLAMP_FRAGMENT_COLOR_ARB,
                      fragment_color_clamp.enabled ? GL_TRUE : GL_FALSE);
     }
 }
 
-void OpenGLState::ApplyMultisample() const {
+void OpenGLState::ApplyMultisample() {
     Enable(GL_SAMPLE_ALPHA_TO_COVERAGE, cur_state.multisample_control.alpha_to_coverage,
            multisample_control.alpha_to_coverage);
     Enable(GL_SAMPLE_ALPHA_TO_ONE, cur_state.multisample_control.alpha_to_one,
            multisample_control.alpha_to_one);
 }
 
-void OpenGLState::ApplyDepthClamp() const {
+void OpenGLState::ApplyDepthClamp() {
     if (depth_clamp.far_plane == cur_state.depth_clamp.far_plane &&
         depth_clamp.near_plane == cur_state.depth_clamp.near_plane) {
         return;
@@ -159,7 +159,7 @@ void OpenGLState::ApplyDepthClamp() const {
     Enable(GL_DEPTH_CLAMP, depth_clamp.far_plane || depth_clamp.near_plane);
 }
 
-void OpenGLState::ApplySRgb() const {
+void OpenGLState::ApplySRgb() {
     if (cur_state.framebuffer_srgb.enabled == framebuffer_srgb.enabled)
         return;
     cur_state.framebuffer_srgb.enabled = framebuffer_srgb.enabled;
@@ -170,7 +170,7 @@ void OpenGLState::ApplySRgb() const {
     }
 }
 
-void OpenGLState::ApplyCulling() const {
+void OpenGLState::ApplyCulling() {
     Enable(GL_CULL_FACE, cur_state.cull.enabled, cull.enabled);
 
     if (UpdateValue(cur_state.cull.mode, cull.mode)) {
@@ -182,7 +182,12 @@ void OpenGLState::ApplyCulling() const {
     }
 }
 
-void OpenGLState::ApplyColorMask() const {
+void OpenGLState::ApplyColorMask() {
+    if (!dirty.color_mask) {
+        return;
+    }
+    dirty.color_mask = false;
+
     for (std::size_t i = 0; i < Maxwell::NumRenderTargets; ++i) {
         const auto& updated = color_mask[i];
         auto& current = cur_state.color_mask[i];
@@ -197,7 +202,7 @@ void OpenGLState::ApplyColorMask() const {
     }
 }
 
-void OpenGLState::ApplyDepth() const {
+void OpenGLState::ApplyDepth() {
     Enable(GL_DEPTH_TEST, cur_state.depth.test_enabled, depth.test_enabled);
 
     if (cur_state.depth.test_func != depth.test_func) {
@@ -211,7 +216,7 @@ void OpenGLState::ApplyDepth() const {
     }
 }
 
-void OpenGLState::ApplyPrimitiveRestart() const {
+void OpenGLState::ApplyPrimitiveRestart() {
     Enable(GL_PRIMITIVE_RESTART, cur_state.primitive_restart.enabled, primitive_restart.enabled);
 
     if (cur_state.primitive_restart.index != primitive_restart.index) {
@@ -220,7 +225,12 @@ void OpenGLState::ApplyPrimitiveRestart() const {
     }
 }
 
-void OpenGLState::ApplyStencilTest() const {
+void OpenGLState::ApplyStencilTest() {
+    if (!dirty.stencil_state) {
+        return;
+    }
+    dirty.stencil_state = false;
+
     Enable(GL_STENCIL_TEST, cur_state.stencil.test_enabled, stencil.test_enabled);
 
     const auto ConfigStencil = [](GLenum face, const auto& config, auto& current) {
@@ -249,7 +259,7 @@ void OpenGLState::ApplyStencilTest() const {
     ConfigStencil(GL_BACK, stencil.back, cur_state.stencil.back);
 }
 
-void OpenGLState::ApplyViewport() const {
+void OpenGLState::ApplyViewport() {
     for (GLuint i = 0; i < static_cast<GLuint>(Maxwell::NumViewports); ++i) {
         const auto& updated = viewports[i];
         auto& current = cur_state.viewports[i];
@@ -286,7 +296,7 @@ void OpenGLState::ApplyViewport() const {
     }
 }
 
-void OpenGLState::ApplyGlobalBlending() const {
+void OpenGLState::ApplyGlobalBlending() {
     const Blend& updated = blend[0];
     Blend& current = cur_state.blend[0];
 
@@ -310,7 +320,7 @@ void OpenGLState::ApplyGlobalBlending() const {
     }
 }
 
-void OpenGLState::ApplyTargetBlending(std::size_t target, bool force) const {
+void OpenGLState::ApplyTargetBlending(std::size_t target, bool force) {
     const Blend& updated = blend[target];
     Blend& current = cur_state.blend[target];
 
@@ -334,7 +344,12 @@ void OpenGLState::ApplyTargetBlending(std::size_t target, bool force) const {
     }
 }
 
-void OpenGLState::ApplyBlending() const {
+void OpenGLState::ApplyBlending() {
+    if (!dirty.blend_state) {
+        return;
+    }
+    dirty.blend_state = false;
+
     if (independant_blend.enabled) {
         const bool force = independant_blend.enabled != cur_state.independant_blend.enabled;
         for (std::size_t target = 0; target < Maxwell::NumRenderTargets; ++target) {
@@ -353,7 +368,7 @@ void OpenGLState::ApplyBlending() const {
     }
 }
 
-void OpenGLState::ApplyLogicOp() const {
+void OpenGLState::ApplyLogicOp() {
     Enable(GL_COLOR_LOGIC_OP, cur_state.logic_op.enabled, logic_op.enabled);
 
     if (UpdateValue(cur_state.logic_op.operation, logic_op.operation)) {
@@ -361,7 +376,12 @@ void OpenGLState::ApplyLogicOp() const {
     }
 }
 
-void OpenGLState::ApplyPolygonOffset() const {
+void OpenGLState::ApplyPolygonOffset() {
+    if (!dirty.polygon_offset) {
+        return;
+    }
+    dirty.polygon_offset = false;
+
     Enable(GL_POLYGON_OFFSET_FILL, cur_state.polygon_offset.fill_enable,
            polygon_offset.fill_enable);
     Enable(GL_POLYGON_OFFSET_LINE, cur_state.polygon_offset.line_enable,
@@ -382,7 +402,7 @@ void OpenGLState::ApplyPolygonOffset() const {
     }
 }
 
-void OpenGLState::ApplyAlphaTest() const {
+void OpenGLState::ApplyAlphaTest() {
     Enable(GL_ALPHA_TEST, cur_state.alpha_test.enabled, alpha_test.enabled);
     if (UpdateTie(std::tie(cur_state.alpha_test.func, cur_state.alpha_test.ref),
                   std::tie(alpha_test.func, alpha_test.ref))) {
@@ -390,19 +410,19 @@ void OpenGLState::ApplyAlphaTest() const {
     }
 }
 
-void OpenGLState::ApplyTextures() const {
+void OpenGLState::ApplyTextures() {
     if (const auto update = UpdateArray(cur_state.textures, textures)) {
         glBindTextures(update->first, update->second, textures.data() + update->first);
     }
 }
 
-void OpenGLState::ApplySamplers() const {
+void OpenGLState::ApplySamplers() {
     if (const auto update = UpdateArray(cur_state.samplers, samplers)) {
         glBindSamplers(update->first, update->second, samplers.data() + update->first);
     }
 }
 
-void OpenGLState::ApplyImages() const {
+void OpenGLState::ApplyImages() {
     if (const auto update = UpdateArray(cur_state.images, images)) {
         glBindImageTextures(update->first, update->second, images.data() + update->first);
     }
@@ -418,32 +438,20 @@ void OpenGLState::Apply() {
     ApplyPointSize();
     ApplyFragmentColorClamp();
     ApplyMultisample();
-    if (dirty.color_mask) {
-        ApplyColorMask();
-        dirty.color_mask = false;
-    }
+    ApplyColorMask();
     ApplyDepthClamp();
     ApplyViewport();
-    if (dirty.stencil_state) {
-        ApplyStencilTest();
-        dirty.stencil_state = false;
-    }
+    ApplyStencilTest();
     ApplySRgb();
     ApplyCulling();
     ApplyDepth();
     ApplyPrimitiveRestart();
-    if (dirty.blend_state) {
-        ApplyBlending();
-        dirty.blend_state = false;
-    }
+    ApplyBlending();
     ApplyLogicOp();
     ApplyTextures();
     ApplySamplers();
     ApplyImages();
-    if (dirty.polygon_offset) {
-        ApplyPolygonOffset();
-        dirty.polygon_offset = false;
-    }
+    ApplyPolygonOffset();
     ApplyAlphaTest();
 }
 
