@@ -9,17 +9,16 @@
 #include <cstddef>
 #include <map>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <tuple>
 #include <utility>
 
-#include <boost/icl/interval_map.hpp>
 #include <glad/glad.h>
 
 #include "common/common_types.h"
 #include "video_core/engines/const_buffer_info.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/rasterizer_accelerated.h"
 #include "video_core/rasterizer_cache.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
@@ -52,7 +51,7 @@ namespace OpenGL {
 struct ScreenInfo;
 struct DrawParameters;
 
-class RasterizerOpenGL : public VideoCore::RasterizerInterface {
+class RasterizerOpenGL : public VideoCore::RasterizerAccelerated {
 public:
     explicit RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
                               ScreenInfo& info);
@@ -73,7 +72,6 @@ public:
                                const Tegra::Engines::Fermi2D::Config& copy_config) override;
     bool AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr,
                            u32 pixel_stride) override;
-    void UpdatePagesCachedCount(VAddr addr, u64 size, int delta) override;
     void LoadDiskResources(const std::atomic_bool& stop_loading,
                            const VideoCore::DiskResourceLoadCallback& callback) override;
 
@@ -228,11 +226,6 @@ private:
     AccelDraw accelerate_draw = AccelDraw::Disabled;
 
     OGLFramebuffer clear_framebuffer;
-
-    using CachedPageMap = boost::icl::interval_map<u64, int>;
-    CachedPageMap cached_pages;
-
-    std::mutex pages_mutex;
 };
 
 } // namespace OpenGL
