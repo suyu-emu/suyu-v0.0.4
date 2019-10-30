@@ -86,7 +86,7 @@ void Enable(GLenum cap, GLuint index, bool& current_value, bool new_value) {
 OpenGLState::OpenGLState() = default;
 
 void OpenGLState::SetDefaultViewports() {
-    std::fill(std::begin(viewports), std::end(viewports), Viewport{});
+    viewports.fill(Viewport{});
 
     depth_clamp.far_plane = false;
     depth_clamp.near_plane = false;
