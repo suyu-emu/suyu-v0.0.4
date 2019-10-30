@@ -92,17 +92,6 @@ void OpenGLState::SetDefaultViewports() {
     depth_clamp.near_plane = false;
 }
 
-void OpenGLState::ApplyDefaultState() {
-    glEnable(GL_BLEND);
-    glDisable(GL_FRAMEBUFFER_SRGB);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_PRIMITIVE_RESTART);
-    glDisable(GL_STENCIL_TEST);
-    glDisable(GL_COLOR_LOGIC_OP);
-    glDisable(GL_SCISSOR_TEST);
-}
-
 void OpenGLState::ApplyFramebufferState() const {
     if (UpdateValue(cur_state.draw.read_framebuffer, draw.read_framebuffer)) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, draw.read_framebuffer);

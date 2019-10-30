@@ -70,7 +70,7 @@ public:
     } stencil;
 
     struct Blend {
-        bool enabled = true;               // GL_BLEND
+        bool enabled = false;              // GL_BLEND
         GLenum rgb_equation = GL_FUNC_ADD; // GL_BLEND_EQUATION_RGB
         GLenum a_equation = GL_FUNC_ADD;   // GL_BLEND_EQUATION_ALPHA
         GLenum src_rgb_func = GL_ONE;      // GL_BLEND_SRC_RGB
@@ -182,9 +182,6 @@ public:
     void ApplyDepthClamp() const;
     void ApplyPolygonOffset() const;
     void ApplyAlphaTest() const;
-
-    /// Set the initial OpenGL state
-    static void ApplyDefaultState();
 
     /// Resets any references to the given resource
     OpenGLState& UnbindTexture(GLuint handle);
