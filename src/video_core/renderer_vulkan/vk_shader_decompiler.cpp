@@ -2357,6 +2357,7 @@ private:
         &SPIRVDecompiler::EmitVertex,
         &SPIRVDecompiler::EndPrimitive,
 
+        &SPIRVDecompiler::InvocationId,
         &SPIRVDecompiler::YNegate,
         &SPIRVDecompiler::LocalInvocationId<0>,
         &SPIRVDecompiler::LocalInvocationId<1>,

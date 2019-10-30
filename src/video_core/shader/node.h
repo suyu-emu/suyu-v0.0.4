@@ -172,6 +172,7 @@ enum class OperationCode {
     EmitVertex,   /// () -> void
     EndPrimitive, /// () -> void
 
+    InvocationId,       /// () -> int
     YNegate,            /// () -> float
     LocalInvocationIdX, /// () -> uint
     LocalInvocationIdY, /// () -> uint
