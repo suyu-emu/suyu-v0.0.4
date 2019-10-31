@@ -326,7 +326,7 @@ private:
     Node BitfieldInsert(Node base, Node insert, u32 offset, u32 bits);
 
     void WriteTexInstructionFloat(NodeBlock& bb, Tegra::Shader::Instruction instr,
-                                  const Node4& components, bool is_tld4 = false);
+                                  const Node4& components);
 
     void WriteTexsInstructionFloat(NodeBlock& bb, Tegra::Shader::Instruction instr,
                                    const Node4& components, bool ignore_mask = false);

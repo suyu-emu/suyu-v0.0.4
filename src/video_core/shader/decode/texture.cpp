@@ -119,7 +119,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
                                           : instr.tld4.UsesMiscMode(TextureMiscMode::AOFFI);
         WriteTexInstructionFloat(
             bb, instr,
-            GetTld4Code(instr, texture_type, depth_compare, is_array, is_aoffi, is_bindless), true);
+            GetTld4Code(instr, texture_type, depth_compare, is_array, is_aoffi, is_bindless));
         break;
     }
     case OpCode::Id::TLD4S: {
@@ -366,11 +366,10 @@ const Sampler& ShaderIR::GetBindlessSampler(const Tegra::Shader::Register& reg,
     return *used_samplers.emplace(entry).first;
 }
 
-void ShaderIR::WriteTexInstructionFloat(NodeBlock& bb, Instruction instr, const Node4& components,
-                                        bool is_tld4) {
+void ShaderIR::WriteTexInstructionFloat(NodeBlock& bb, Instruction instr, const Node4& components) {
     u32 dest_elem = 0;
     for (u32 elem = 0; elem < 4; ++elem) {
-        if (!is_tld4 && !instr.tex.IsComponentEnabled(elem)) {
+        if (!instr.tex.IsComponentEnabled(elem)) {
             // Skip disabled components
             continue;
         }
