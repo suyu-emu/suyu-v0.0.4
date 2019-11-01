@@ -654,7 +654,10 @@ public:
                     BitField<9, 1, u32> connected;
                 } tess_mode;
 
-                INSERT_UNION_PADDING_WORDS(0x108);
+                std::array<f32, 4> tess_level_outer;
+                std::array<f32, 2> tess_level_inner;
+
+                INSERT_UNION_PADDING_WORDS(0x102);
 
                 u32 tfb_enabled;
 
@@ -1415,6 +1418,8 @@ ASSERT_REG_POSITION(exec_upload, 0x6C);
 ASSERT_REG_POSITION(data_upload, 0x6D);
 ASSERT_REG_POSITION(sync_info, 0xB2);
 ASSERT_REG_POSITION(tess_mode, 0xC8);
+ASSERT_REG_POSITION(tess_level_outer, 0xC9);
+ASSERT_REG_POSITION(tess_level_inner, 0xCD);
 ASSERT_REG_POSITION(tfb_enabled, 0x1D1);
 ASSERT_REG_POSITION(rt, 0x200);
 ASSERT_REG_POSITION(viewport_transform, 0x280);
