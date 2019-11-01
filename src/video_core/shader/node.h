@@ -213,13 +213,14 @@ class PredicateNode;
 class AbufNode;
 class CbufNode;
 class LmemNode;
+class PatchNode;
 class SmemNode;
 class GmemNode;
 class CommentNode;
 
-using NodeData =
-    std::variant<OperationNode, ConditionalNode, GprNode, ImmediateNode, InternalFlagNode,
-                 PredicateNode, AbufNode, CbufNode, LmemNode, SmemNode, GmemNode, CommentNode>;
+using NodeData = std::variant<OperationNode, ConditionalNode, GprNode, ImmediateNode,
+                              InternalFlagNode, PredicateNode, AbufNode, PatchNode, CbufNode,
+                              LmemNode, SmemNode, GmemNode, CommentNode>;
 using Node = std::shared_ptr<NodeData>;
 using Node4 = std::array<Node, 4>;
 using NodeBlock = std::vector<Node>;
@@ -540,6 +541,19 @@ private:
     Node buffer;
     Tegra::Shader::Attribute::Index index{};
     u32 element{};
+};
+
+/// Patch memory (used to communicate tessellation stages).
+class PatchNode final {
+public:
+    explicit PatchNode(u32 offset) : offset{offset} {}
+
+    u32 GetOffset() const {
+        return offset;
+    }
+
+private:
+    u32 offset{};
 };
 
 /// Constant buffer node, usually mapped to uniform buffers in GLSL

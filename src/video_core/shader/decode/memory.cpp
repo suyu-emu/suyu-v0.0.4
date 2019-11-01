@@ -21,6 +21,7 @@ using Tegra::Shader::OpCode;
 using Tegra::Shader::Register;
 
 namespace {
+
 u32 GetUniformTypeElementsCount(Tegra::Shader::UniformType uniform_type) {
     switch (uniform_type) {
     case Tegra::Shader::UniformType::Single:
@@ -35,6 +36,7 @@ u32 GetUniformTypeElementsCount(Tegra::Shader::UniformType uniform_type) {
         return 1;
     }
 }
+
 } // Anonymous namespace
 
 u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
@@ -196,28 +198,28 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         UNIMPLEMENTED_IF_MSG((instr.attribute.fmt20.immediate.Value() % sizeof(u32)) != 0,
                              "Unaligned attribute loads are not supported");
 
-        u64 next_element = instr.attribute.fmt20.element;
-        auto next_index = static_cast<u64>(instr.attribute.fmt20.index.Value());
+        u64 element = instr.attribute.fmt20.element;
+        auto index = static_cast<u64>(instr.attribute.fmt20.index.Value());
 
-        const auto StoreNextElement = [&](u32 reg_offset) {
-            const auto dest = GetOutputAttribute(static_cast<Attribute::Index>(next_index),
-                                                 next_element, GetRegister(instr.gpr39));
+        const u32 num_words = static_cast<u32>(instr.attribute.fmt20.size.Value()) + 1;
+        for (u32 reg_offset = 0; reg_offset < num_words; ++reg_offset) {
+            Node dest;
+            if (instr.attribute.fmt20.patch) {
+                const u32 offset = static_cast<u32>(index) * 4 + static_cast<u32>(element);
+                dest = MakeNode<PatchNode>(offset);
+            } else {
+                dest = GetOutputAttribute(static_cast<Attribute::Index>(index), element,
+                                          GetRegister(instr.gpr39));
+            }
             const auto src = GetRegister(instr.gpr0.Value() + reg_offset);
 
             bb.push_back(Operation(OperationCode::Assign, dest, src));
 
-            // Load the next attribute element into the following register. If the element
-            // to load goes beyond the vec4 size, load the first element of the next
-            // attribute.
-            next_element = (next_element + 1) % 4;
-            next_index = next_index + (next_element == 0 ? 1 : 0);
-        };
-
-        const u32 num_words = static_cast<u32>(instr.attribute.fmt20.size.Value()) + 1;
-        for (u32 reg_offset = 0; reg_offset < num_words; ++reg_offset) {
-            StoreNextElement(reg_offset);
+            // Load the next attribute element into the following register. If the element to load
+            // goes beyond the vec4 size, load the first element of the next attribute.
+            element = (element + 1) % 4;
+            index = index + (element == 0 ? 1 : 0);
         }
-
         break;
     }
     case OpCode::Id::ST_L:

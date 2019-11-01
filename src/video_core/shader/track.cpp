@@ -7,6 +7,7 @@
 #include <variant>
 
 #include "common/common_types.h"
+#include "video_core/shader/node.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace VideoCommon::Shader {
