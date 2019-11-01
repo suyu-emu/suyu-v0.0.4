@@ -662,7 +662,9 @@ public:
                 u32 polygon_offset_line_enable;
                 u32 polygon_offset_fill_enable;
 
-                INSERT_UNION_PADDING_WORDS(0xD);
+                u32 patch_vertices;
+
+                INSERT_UNION_PADDING_WORDS(0xC);
 
                 std::array<ScissorTest, NumViewports> scissor_test;
 
@@ -1397,6 +1399,7 @@ ASSERT_REG_POSITION(clear_stencil, 0x368);
 ASSERT_REG_POSITION(polygon_offset_point_enable, 0x370);
 ASSERT_REG_POSITION(polygon_offset_line_enable, 0x371);
 ASSERT_REG_POSITION(polygon_offset_fill_enable, 0x372);
+ASSERT_REG_POSITION(patch_vertices, 0x373);
 ASSERT_REG_POSITION(scissor_test, 0x380);
 ASSERT_REG_POSITION(stencil_back_func_ref, 0x3D5);
 ASSERT_REG_POSITION(stencil_back_func_mask, 0x3D6);
