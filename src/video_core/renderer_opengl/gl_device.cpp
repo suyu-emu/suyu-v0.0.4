@@ -51,7 +51,10 @@ bool HasExtension(const std::vector<std::string_view>& images, std::string_view 
 } // Anonymous namespace
 
 Device::Device() {
+    const std::string_view vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
     const std::vector extensions = GetExtensions();
+
+    const bool is_nvidia = vendor == "NVIDIA Corporation";
 
     uniform_buffer_alignment = GetInteger<std::size_t>(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT);
     shader_storage_alignment = GetInteger<std::size_t>(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT);
@@ -64,6 +67,7 @@ Device::Device() {
     has_variable_aoffi = TestVariableAoffi();
     has_component_indexing_bug = TestComponentIndexingBug();
     has_precise_bug = TestPreciseBug();
+    has_fast_buffer_sub_data = is_nvidia;
 
     LOG_INFO(Render_OpenGL, "Renderer_VariableAOFFI: {}", has_variable_aoffi);
     LOG_INFO(Render_OpenGL, "Renderer_ComponentIndexingBug: {}", has_component_indexing_bug);

@@ -67,7 +67,7 @@ static std::size_t GetConstBufferSize(const Tegra::Engines::ConstBufferInfo& buf
 RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
                                    ScreenInfo& info)
     : texture_cache{system, *this, device}, shader_cache{*this, system, emu_window, device},
-      system{system}, screen_info{info}, buffer_cache{*this, system, STREAM_BUFFER_SIZE} {
+      system{system}, screen_info{info}, buffer_cache{*this, system, device, STREAM_BUFFER_SIZE} {
     shader_program_manager = std::make_unique<GLShader::ProgramManager>();
     state.draw.shader_program = 0;
     state.Apply();
@@ -558,6 +558,8 @@ void RasterizerOpenGL::DrawPrelude() {
     SyncPolygonOffset();
     SyncAlphaTest();
 
+    buffer_cache.Acquire();
+
     // Draw the vertex batch
     const bool is_indexed = accelerate_draw == AccelDraw::Indexed;
 
@@ -573,9 +575,11 @@ void RasterizerOpenGL::DrawPrelude() {
                   (sizeof(GLShader::MaxwellUniformData) + device.GetUniformBufferAlignment()) *
                       Maxwell::MaxShaderStage;
 
-    // Add space for at least 18 constant buffers
-    buffer_size += Maxwell::MaxConstBuffers *
-                   (Maxwell::MaxConstBufferSize + device.GetUniformBufferAlignment());
+    if (!device.HasFastBufferSubData()) {
+        // Add space for at least 18 constant buffers
+        buffer_size += Maxwell::MaxConstBuffers *
+                       (Maxwell::MaxConstBufferSize + device.GetUniformBufferAlignment());
+    }
 
     // Prepare the vertex array.
     buffer_cache.Map(buffer_size);
@@ -739,10 +743,12 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     state.draw.shader_program = program;
     state.draw.program_pipeline = 0;
 
-    const std::size_t buffer_size =
-        Tegra::Engines::KeplerCompute::NumConstBuffers *
-        (Maxwell::MaxConstBufferSize + device.GetUniformBufferAlignment());
-    buffer_cache.Map(buffer_size);
+    if (!device.HasFastBufferSubData()) {
+        const std::size_t buffer_size =
+            Tegra::Engines::KeplerCompute::NumConstBuffers *
+            (Maxwell::MaxConstBufferSize + device.GetUniformBufferAlignment());
+        buffer_cache.Map(buffer_size);
+    }
 
     bind_ubo_pushbuffer.Setup(0);
     bind_ssbo_pushbuffer.Setup(0);
@@ -750,7 +756,9 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     SetupComputeConstBuffers(kernel);
     SetupComputeGlobalMemory(kernel);
 
-    buffer_cache.Unmap();
+    if (!device.HasFastBufferSubData()) {
+        buffer_cache.Unmap();
+    }
 
     bind_ubo_pushbuffer.Bind();
     bind_ssbo_pushbuffer.Bind();
@@ -879,7 +887,8 @@ void RasterizerOpenGL::SetupConstBuffer(const Tegra::Engines::ConstBufferInfo& b
     const std::size_t size = Common::AlignUp(GetConstBufferSize(buffer, entry), sizeof(GLvec4));
 
     const auto alignment = device.GetUniformBufferAlignment();
-    const auto [cbuf, offset] = buffer_cache.UploadMemory(buffer.address, size, alignment);
+    const auto [cbuf, offset] = buffer_cache.UploadMemory(buffer.address, size, alignment, false,
+                                                          device.HasFastBufferSubData());
     bind_ubo_pushbuffer.Push(cbuf, offset, size);
 }
 

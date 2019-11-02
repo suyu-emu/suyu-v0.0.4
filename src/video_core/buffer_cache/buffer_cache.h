@@ -30,7 +30,7 @@ public:
     using BufferInfo = std::pair<const TBufferType*, u64>;
 
     BufferInfo UploadMemory(GPUVAddr gpu_addr, std::size_t size, std::size_t alignment = 4,
-                            bool is_written = false) {
+                            bool is_written = false, bool use_fast_cbuf = false) {
         std::lock_guard lock{mutex};
 
         auto& memory_manager = system.GPU().MemoryManager();
@@ -43,9 +43,13 @@ public:
         // Cache management is a big overhead, so only cache entries with a given size.
         // TODO: Figure out which size is the best for given games.
         constexpr std::size_t max_stream_size = 0x800;
-        if (size < max_stream_size) {
+        if (use_fast_cbuf || size < max_stream_size) {
             if (!is_written && !IsRegionWritten(cache_addr, cache_addr + size - 1)) {
-                return StreamBufferUpload(host_ptr, size, alignment);
+                if (use_fast_cbuf) {
+                    return ConstBufferUpload(host_ptr, size);
+                } else {
+                    return StreamBufferUpload(host_ptr, size, alignment);
+                }
             }
         }
 
@@ -151,6 +155,10 @@ protected:
 
     virtual void CopyBlock(const TBuffer& src, const TBuffer& dst, std::size_t src_offset,
                            std::size_t dst_offset, std::size_t size) = 0;
+
+    virtual BufferInfo ConstBufferUpload(const void* raw_pointer, std::size_t size) {
+        return {};
+    }
 
     /// Register an object into the cache
     void Register(const MapInterval& new_map, bool inherit_written = false) {
