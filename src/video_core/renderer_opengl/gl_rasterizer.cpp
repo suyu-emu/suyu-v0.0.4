@@ -575,11 +575,9 @@ void RasterizerOpenGL::DrawPrelude() {
                   (sizeof(GLShader::MaxwellUniformData) + device.GetUniformBufferAlignment()) *
                       Maxwell::MaxShaderStage;
 
-    if (!device.HasFastBufferSubData()) {
-        // Add space for at least 18 constant buffers
-        buffer_size += Maxwell::MaxConstBuffers *
-                       (Maxwell::MaxConstBufferSize + device.GetUniformBufferAlignment());
-    }
+    // Add space for at least 18 constant buffers
+    buffer_size += Maxwell::MaxConstBuffers *
+                   (Maxwell::MaxConstBufferSize + device.GetUniformBufferAlignment());
 
     // Prepare the vertex array.
     buffer_cache.Map(buffer_size);
@@ -743,12 +741,10 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     state.draw.shader_program = program;
     state.draw.program_pipeline = 0;
 
-    if (!device.HasFastBufferSubData()) {
-        const std::size_t buffer_size =
-            Tegra::Engines::KeplerCompute::NumConstBuffers *
-            (Maxwell::MaxConstBufferSize + device.GetUniformBufferAlignment());
-        buffer_cache.Map(buffer_size);
-    }
+    const std::size_t buffer_size =
+        Tegra::Engines::KeplerCompute::NumConstBuffers *
+        (Maxwell::MaxConstBufferSize + device.GetUniformBufferAlignment());
+    buffer_cache.Map(buffer_size);
 
     bind_ubo_pushbuffer.Setup(0);
     bind_ssbo_pushbuffer.Setup(0);
@@ -756,9 +752,7 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     SetupComputeConstBuffers(kernel);
     SetupComputeGlobalMemory(kernel);
 
-    if (!device.HasFastBufferSubData()) {
-        buffer_cache.Unmap();
-    }
+    buffer_cache.Unmap();
 
     bind_ubo_pushbuffer.Bind();
     bind_ssbo_pushbuffer.Bind();
