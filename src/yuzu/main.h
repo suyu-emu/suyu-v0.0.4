@@ -142,6 +142,7 @@ private:
 
     void ShowTelemetryCallout();
     void SetDiscordEnabled(bool state);
+    void LoadAmiibo(const QString& filename);
 
     void SelectAndSetCurrentUser();
 

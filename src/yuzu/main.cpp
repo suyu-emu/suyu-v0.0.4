@@ -1839,6 +1839,10 @@ void GMainWindow::OnLoadAmiibo() {
         return;
     }
 
+    LoadAmiibo(filename);
+}
+
+void GMainWindow::LoadAmiibo(const QString& filename) {
     Core::System& system{Core::System::GetInstance()};
     Service::SM::ServiceManager& sm = system.ServiceManager();
     auto nfc = sm.GetService<Service::NFP::Module::Interface>("nfp:user");
@@ -2189,10 +2193,19 @@ static bool IsSingleFileDropEvent(QDropEvent* event) {
 }
 
 void GMainWindow::dropEvent(QDropEvent* event) {
-    if (IsSingleFileDropEvent(event) && ConfirmChangeGame()) {
-        const QMimeData* mimeData = event->mimeData();
-        QString filename = mimeData->urls().at(0).toLocalFile();
-        BootGame(filename);
+    if (!IsSingleFileDropEvent(event)) {
+        return;
+    }
+
+    const QMimeData* mime_data = event->mimeData();
+    const QString filename = mime_data->urls().at(0).toLocalFile();
+
+    if (emulation_running && QFileInfo(filename).suffix() == QStringLiteral("bin")) {
+        LoadAmiibo(filename);
+    } else {
+        if (ConfirmChangeGame()) {
+            BootGame(filename);
+        }
     }
 }
 
