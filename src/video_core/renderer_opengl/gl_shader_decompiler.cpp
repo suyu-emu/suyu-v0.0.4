@@ -1942,34 +1942,14 @@ private:
         return Vote(operation, "allThreadsEqualNV");
     }
 
-    template <const std::string_view& func>
-    Expression Shuffle(Operation operation) {
-        const std::string value = VisitOperand(operation, 0).AsFloat();
-        if (!device.HasWarpIntrinsics()) {
-            LOG_ERROR(Render_OpenGL, "Nvidia shuffle intrinsics are required by this shader");
-            // On a "single-thread" device we are either on the same thread or out of bounds. Both
-            // cases return the passed value.
-            return {value, Type::Float};
-        }
-
-        const std::string index = VisitOperand(operation, 1).AsUint();
-        const std::string width = VisitOperand(operation, 2).AsUint();
-        return {fmt::format("{}({}, {}, {})", func, value, index, width), Type::Float};
+    Expression ThreadId(Operation operation) {
+        return {"gl_SubGroupInvocationARB", Type::Uint};
     }
 
-    template <const std::string_view& func>
-    Expression InRangeShuffle(Operation operation) {
-        const std::string index = VisitOperand(operation, 0).AsUint();
-        const std::string width = VisitOperand(operation, 1).AsUint();
-        if (!device.HasWarpIntrinsics()) {
-            // On a "single-thread" device we are only in bounds when the requested index is 0.
-            return {fmt::format("({} == 0U)", index), Type::Bool};
-        }
-
-        const std::string in_range = code.GenerateTemporary();
-        code.AddLine("bool {};", in_range);
-        code.AddLine("{}(0U, {}, {}, {});", func, index, width, in_range);
-        return {in_range, Type::Bool};
+    Expression ShuffleIndexed(Operation operation) {
+        const std::string value = VisitOperand(operation, 0).AsFloat();
+        const std::string index = VisitOperand(operation, 1).AsUint();
+        return {fmt::format("readInvocationARB({}, {})", value, index), Type::Float};
     }
 
     struct Func final {
@@ -1981,11 +1961,6 @@ private:
         static constexpr std::string_view Or = "Or";
         static constexpr std::string_view Xor = "Xor";
         static constexpr std::string_view Exchange = "Exchange";
-
-        static constexpr std::string_view ShuffleIndexed = "shuffleNV";
-        static constexpr std::string_view ShuffleUp = "shuffleUpNV";
-        static constexpr std::string_view ShuffleDown = "shuffleDownNV";
-        static constexpr std::string_view ShuffleButterfly = "shuffleXorNV";
     };
 
     static constexpr std::array operation_decompilers = {
@@ -2151,15 +2126,8 @@ private:
         &GLSLDecompiler::VoteAny,
         &GLSLDecompiler::VoteEqual,
 
-        &GLSLDecompiler::Shuffle<Func::ShuffleIndexed>,
-        &GLSLDecompiler::Shuffle<Func::ShuffleUp>,
-        &GLSLDecompiler::Shuffle<Func::ShuffleDown>,
-        &GLSLDecompiler::Shuffle<Func::ShuffleButterfly>,
-
-        &GLSLDecompiler::InRangeShuffle<Func::ShuffleIndexed>,
-        &GLSLDecompiler::InRangeShuffle<Func::ShuffleUp>,
-        &GLSLDecompiler::InRangeShuffle<Func::ShuffleDown>,
-        &GLSLDecompiler::InRangeShuffle<Func::ShuffleButterfly>,
+        &GLSLDecompiler::ThreadId,
+        &GLSLDecompiler::ShuffleIndexed,
     };
     static_assert(operation_decompilers.size() == static_cast<std::size_t>(OperationCode::Amount));
 

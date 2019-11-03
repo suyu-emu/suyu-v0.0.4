@@ -275,6 +275,7 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ProgramTy
     std::string source = fmt::format(R"(// {}
 #version 430 core
 #extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shader_ballot : enable
 #extension GL_ARB_shader_viewport_layer_array : enable
 #extension GL_EXT_shader_image_load_formatted : enable
 #extension GL_NV_gpu_shader5 : enable
