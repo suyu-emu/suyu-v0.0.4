@@ -88,15 +88,15 @@ private:
     void HandleSend(const boost::system::error_code& error) {
         // Send a request for getting port info for the pad
         Request::PortInfo port_info{1, {pad_index, 0, 0, 0}};
-        auto port_message = Request::Create(port_info, client_id);
+        const auto port_message = Request::Create(port_info, client_id);
         std::memcpy(&send_buffer1, &port_message, PORT_INFO_SIZE);
-        std::size_t len = socket.send_to(boost::asio::buffer(send_buffer1), send_endpoint);
+        socket.send_to(boost::asio::buffer(send_buffer1), send_endpoint);
 
         // Send a request for getting pad data for the pad
         Request::PadData pad_data{Request::PadData::Flags::Id, pad_index, EMPTY_MAC_ADDRESS};
-        auto pad_message = Request::Create(pad_data, client_id);
+        const auto pad_message = Request::Create(pad_data, client_id);
         std::memcpy(send_buffer2.data(), &pad_message, PAD_DATA_SIZE);
-        std::size_t len2 = socket.send_to(boost::asio::buffer(send_buffer2), send_endpoint);
+        socket.send_to(boost::asio::buffer(send_buffer2), send_endpoint);
         StartSend(timer.expiry());
     }
 
@@ -105,8 +105,8 @@ private:
     boost::asio::basic_waitable_timer<clock> timer;
     udp::socket socket;
 
-    u32 client_id;
-    u8 pad_index;
+    u32 client_id{};
+    u8 pad_index{};
 
     static constexpr std::size_t PORT_INFO_SIZE = sizeof(Message<Request::PortInfo>);
     static constexpr std::size_t PAD_DATA_SIZE = sizeof(Message<Request::PadData>);
@@ -170,16 +170,16 @@ void Client::OnPadData(Response::PadData data) {
 
         // TODO: add a setting for "click" touch. Click touch refers to a device that differentiates
         // between a simple "tap" and a hard press that causes the touch screen to click.
-        bool is_active = data.touch_1.is_active != 0;
+        const bool is_active = data.touch_1.is_active != 0;
 
         float x = 0;
         float y = 0;
 
         if (is_active && status->touch_calibration) {
-            u16 min_x = status->touch_calibration->min_x;
-            u16 max_x = status->touch_calibration->max_x;
-            u16 min_y = status->touch_calibration->min_y;
-            u16 max_y = status->touch_calibration->max_y;
+            const u16 min_x = status->touch_calibration->min_x;
+            const u16 max_x = status->touch_calibration->max_x;
+            const u16 min_y = status->touch_calibration->min_y;
+            const u16 max_y = status->touch_calibration->max_y;
 
             x = (std::clamp(static_cast<u16>(data.touch_1.x), min_x, max_x) - min_x) /
                 static_cast<float>(max_x - min_x);
@@ -229,7 +229,7 @@ CalibrationConfigurationJob::CalibrationConfigurationJob(
         constexpr u16 CALIBRATION_THRESHOLD = 100;
 
         u16 min_x{UINT16_MAX}, min_y{UINT16_MAX};
-        u16 max_x, max_y;
+        u16 max_x{}, max_y{};
 
         Status current_status{Status::Initialized};
         SocketCallback callback{[](Response::Version version) {}, [](Response::PortInfo info) {},

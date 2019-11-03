@@ -9,7 +9,7 @@
 
 namespace InputCommon::CemuhookUDP {
 
-static const std::size_t GetSizeOfResponseType(Type t) {
+static constexpr std::size_t GetSizeOfResponseType(Type t) {
     switch (t) {
     case Type::Version:
         return sizeof(Response::Version);
@@ -34,7 +34,7 @@ std::optional<Type> Validate(u8* data, std::size_t size) {
         LOG_DEBUG(Input, "Invalid UDP packet received");
         return {};
     }
-    Header header;
+    Header header{};
     std::memcpy(&header, data, sizeof(Header));
     if (header.magic != SERVER_MAGIC) {
         LOG_ERROR(Input, "UDP Packet has an unexpected magic value");

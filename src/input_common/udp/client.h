@@ -36,10 +36,10 @@ struct DeviceStatus {
 
     // calibration data for scaling the device's touch area to 3ds
     struct CalibrationData {
-        u16 min_x;
-        u16 min_y;
-        u16 max_x;
-        u16 max_y;
+        u16 min_x{};
+        u16 min_y{};
+        u16 max_x{};
+        u16 max_y{};
     };
     std::optional<CalibrationData> touch_calibration;
 };
