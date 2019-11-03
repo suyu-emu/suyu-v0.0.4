@@ -252,6 +252,9 @@ private:
     void BeginBlockingHomeButton(Kernel::HLERequestContext& ctx);
     void EndBlockingHomeButton(Kernel::HLERequestContext& ctx);
     void EnableApplicationCrashReport(Kernel::HLERequestContext& ctx);
+    void InitializeApplicationCopyrightFrameBuffer(Kernel::HLERequestContext& ctx);
+    void SetApplicationCopyrightImage(Kernel::HLERequestContext& ctx);
+    void SetApplicationCopyrightVisibility(Kernel::HLERequestContext& ctx);
     void GetGpuErrorDetectedSystemEvent(Kernel::HLERequestContext& ctx);
 
     bool launch_popped_application_specific = false;
