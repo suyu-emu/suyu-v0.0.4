@@ -47,8 +47,8 @@ public:
         // clang-format on
         RegisterHandlers(functions);
 
-        system_event = Kernel::WritableEvent::CreateEventPair(
-            system.Kernel(), Kernel::ResetType::Manual, "IAudioRenderer:SystemEvent");
+        system_event =
+            Kernel::WritableEvent::CreateEventPair(system.Kernel(), "IAudioRenderer:SystemEvent");
         renderer = std::make_unique<AudioCore::AudioRenderer>(
             system.CoreTiming(), audren_params, system_event.writable, instance_number);
     }
@@ -180,17 +180,17 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = system.Kernel();
-        buffer_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Automatic,
-                                                              "IAudioOutBufferReleasedEvent");
+        buffer_event =
+            Kernel::WritableEvent::CreateEventPair(kernel, "IAudioOutBufferReleasedEvent");
 
         // Should be similar to audio_output_device_switch_event
         audio_input_device_switch_event = Kernel::WritableEvent::CreateEventPair(
-            kernel, Kernel::ResetType::Automatic, "IAudioDevice:AudioInputDeviceSwitchedEvent");
+            kernel, "IAudioDevice:AudioInputDeviceSwitchedEvent");
 
         // Should only be signalled when an audio output device has been changed, example: speaker
         // to headset
         audio_output_device_switch_event = Kernel::WritableEvent::CreateEventPair(
-            kernel, Kernel::ResetType::Automatic, "IAudioDevice:AudioOutputDeviceSwitchedEvent");
+            kernel, "IAudioDevice:AudioOutputDeviceSwitchedEvent");
     }
 
 private:

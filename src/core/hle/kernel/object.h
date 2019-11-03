@@ -32,11 +32,6 @@ enum class HandleType : u32 {
     ServerSession,
 };
 
-enum class ResetType {
-    Automatic, ///< Reset automatically on object acquisition
-    Manual,    ///< Never reset automatically
-};
-
 class Object : NonCopyable {
 public:
     explicit Object(KernelCore& kernel);

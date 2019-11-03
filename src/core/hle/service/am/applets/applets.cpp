@@ -24,12 +24,12 @@
 namespace Service::AM::Applets {
 
 AppletDataBroker::AppletDataBroker(Kernel::KernelCore& kernel) {
-    state_changed_event = Kernel::WritableEvent::CreateEventPair(
-        kernel, Kernel::ResetType::Manual, "ILibraryAppletAccessor:StateChangedEvent");
-    pop_out_data_event = Kernel::WritableEvent::CreateEventPair(
-        kernel, Kernel::ResetType::Manual, "ILibraryAppletAccessor:PopDataOutEvent");
+    state_changed_event =
+        Kernel::WritableEvent::CreateEventPair(kernel, "ILibraryAppletAccessor:StateChangedEvent");
+    pop_out_data_event =
+        Kernel::WritableEvent::CreateEventPair(kernel, "ILibraryAppletAccessor:PopDataOutEvent");
     pop_interactive_out_data_event = Kernel::WritableEvent::CreateEventPair(
-        kernel, Kernel::ResetType::Manual, "ILibraryAppletAccessor:PopInteractiveDataOutEvent");
+        kernel, "ILibraryAppletAccessor:PopInteractiveDataOutEvent");
 }
 
 AppletDataBroker::~AppletDataBroker() = default;

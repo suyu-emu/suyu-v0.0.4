@@ -15,8 +15,7 @@ namespace Kernel {
 WritableEvent::WritableEvent(KernelCore& kernel) : Object{kernel} {}
 WritableEvent::~WritableEvent() = default;
 
-EventPair WritableEvent::CreateEventPair(KernelCore& kernel, ResetType reset_type,
-                                         std::string name) {
+EventPair WritableEvent::CreateEventPair(KernelCore& kernel, std::string name) {
     SharedPtr<WritableEvent> writable_event(new WritableEvent(kernel));
     SharedPtr<ReadableEvent> readable_event(new ReadableEvent(kernel));
 
@@ -24,17 +23,12 @@ EventPair WritableEvent::CreateEventPair(KernelCore& kernel, ResetType reset_typ
     writable_event->readable = readable_event;
     readable_event->name = name + ":Readable";
     readable_event->signaled = false;
-    readable_event->reset_type = reset_type;
 
     return {std::move(readable_event), std::move(writable_event)};
 }
 
 SharedPtr<ReadableEvent> WritableEvent::GetReadableEvent() const {
     return readable;
-}
-
-ResetType WritableEvent::GetResetType() const {
-    return readable->reset_type;
 }
 
 void WritableEvent::Signal() {

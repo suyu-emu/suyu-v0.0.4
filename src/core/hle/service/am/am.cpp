@@ -289,8 +289,8 @@ ISelfController::ISelfController(Core::System& system,
     RegisterHandlers(functions);
 
     auto& kernel = system.Kernel();
-    launchable_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Manual,
-                                                              "ISelfController:LaunchableEvent");
+    launchable_event =
+        Kernel::WritableEvent::CreateEventPair(kernel, "ISelfController:LaunchableEvent");
 
     // This event is created by AM on the first time GetAccumulatedSuspendedTickChangedEvent() is
     // called. Yuzu can just create it unconditionally, since it doesn't need to support multiple
@@ -298,7 +298,7 @@ ISelfController::ISelfController(Core::System& system,
     // suspended if the event has previously been created by a call to
     // GetAccumulatedSuspendedTickChangedEvent.
     accumulated_suspended_tick_changed_event = Kernel::WritableEvent::CreateEventPair(
-        kernel, Kernel::ResetType::Manual, "ISelfController:AccumulatedSuspendedTickChangedEvent");
+        kernel, "ISelfController:AccumulatedSuspendedTickChangedEvent");
     accumulated_suspended_tick_changed_event.writable->Signal();
 }
 
@@ -523,10 +523,10 @@ void ISelfController::GetAccumulatedSuspendedTickChangedEvent(Kernel::HLERequest
 }
 
 AppletMessageQueue::AppletMessageQueue(Kernel::KernelCore& kernel) {
-    on_new_message = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Manual,
-                                                            "AMMessageQueue:OnMessageRecieved");
-    on_operation_mode_changed = Kernel::WritableEvent::CreateEventPair(
-        kernel, Kernel::ResetType::Automatic, "AMMessageQueue:OperationModeChanged");
+    on_new_message =
+        Kernel::WritableEvent::CreateEventPair(kernel, "AMMessageQueue:OnMessageRecieved");
+    on_operation_mode_changed =
+        Kernel::WritableEvent::CreateEventPair(kernel, "AMMessageQueue:OperationModeChanged");
 }
 
 AppletMessageQueue::~AppletMessageQueue() = default;
@@ -1091,7 +1091,7 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
 
     auto& kernel = system.Kernel();
     gpu_error_detected_event = Kernel::WritableEvent::CreateEventPair(
-        kernel, Kernel::ResetType::Manual, "IApplicationFunctions:GpuErrorDetectedSystemEvent");
+        kernel, "IApplicationFunctions:GpuErrorDetectedSystemEvent");
 }
 
 IApplicationFunctions::~IApplicationFunctions() = default;

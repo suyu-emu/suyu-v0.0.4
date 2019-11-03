@@ -57,14 +57,12 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = system.Kernel();
-        scan_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Automatic,
-                                                            "IBtmUserCore:ScanEvent");
-        connection_event = Kernel::WritableEvent::CreateEventPair(
-            kernel, Kernel::ResetType::Automatic, "IBtmUserCore:ConnectionEvent");
-        service_discovery = Kernel::WritableEvent::CreateEventPair(
-            kernel, Kernel::ResetType::Automatic, "IBtmUserCore:Discovery");
-        config_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Automatic,
-                                                              "IBtmUserCore:ConfigEvent");
+        scan_event = Kernel::WritableEvent::CreateEventPair(kernel, "IBtmUserCore:ScanEvent");
+        connection_event =
+            Kernel::WritableEvent::CreateEventPair(kernel, "IBtmUserCore:ConnectionEvent");
+        service_discovery =
+            Kernel::WritableEvent::CreateEventPair(kernel, "IBtmUserCore:Discovery");
+        config_event = Kernel::WritableEvent::CreateEventPair(kernel, "IBtmUserCore:ConfigEvent");
     }
 
 private:

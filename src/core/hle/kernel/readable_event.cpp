@@ -20,10 +20,6 @@ bool ReadableEvent::ShouldWait(const Thread* thread) const {
 
 void ReadableEvent::Acquire(Thread* thread) {
     ASSERT_MSG(!ShouldWait(thread), "object unavailable!");
-
-    if (reset_type == ResetType::Automatic) {
-        signaled = false;
-    }
 }
 
 void ReadableEvent::Signal() {

@@ -174,7 +174,7 @@ void Controller_NPad::OnInit() {
     auto& kernel = system.Kernel();
     for (std::size_t i = 0; i < styleset_changed_events.size(); i++) {
         styleset_changed_events[i] = Kernel::WritableEvent::CreateEventPair(
-            kernel, Kernel::ResetType::Manual, fmt::format("npad:NpadStyleSetChanged_{}", i));
+            kernel, fmt::format("npad:NpadStyleSetChanged_{}", i));
     }
 
     if (!IsControllerActivated()) {

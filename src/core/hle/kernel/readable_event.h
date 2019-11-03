@@ -27,10 +27,6 @@ public:
         return name;
     }
 
-    ResetType GetResetType() const {
-        return reset_type;
-    }
-
     static constexpr HandleType HANDLE_TYPE = HandleType::ReadableEvent;
     HandleType GetHandleType() const override {
         return HANDLE_TYPE;
@@ -55,7 +51,6 @@ private:
 
     void Signal();
 
-    ResetType reset_type;
     bool signaled{};
 
     std::string name; ///< Name of event (optional)
