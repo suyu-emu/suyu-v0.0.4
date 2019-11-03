@@ -36,6 +36,13 @@
 #include "common/common_funcs.h"
 #include "common/swap.h"
 
+// Inlining
+#ifdef _WIN32
+#define FORCE_INLINE __forceinline
+#else
+#define FORCE_INLINE inline __attribute__((always_inline))
+#endif
+
 /*
  * Abstract bitfield class
  *

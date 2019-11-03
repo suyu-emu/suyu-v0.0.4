@@ -160,7 +160,7 @@ struct DomainMessageHeader {
         // Used when responding to an IPC request, Server -> Client.
         struct {
             u32_le num_objects;
-            INSERT_PADDING_WORDS(3);
+            INSERT_UNION_PADDING_WORDS(3);
         };
 
         // Used when performing an IPC request, Client -> Server.
@@ -171,8 +171,10 @@ struct DomainMessageHeader {
                 BitField<16, 16, u32> size;
             };
             u32_le object_id;
-            INSERT_PADDING_WORDS(2);
+            INSERT_UNION_PADDING_WORDS(2);
         };
+
+        std::array<u32, 4> raw{};
     };
 };
 static_assert(sizeof(DomainMessageHeader) == 16, "DomainMessageHeader size is incorrect");

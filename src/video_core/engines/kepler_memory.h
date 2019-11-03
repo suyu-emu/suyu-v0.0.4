@@ -45,7 +45,7 @@ public:
 
         union {
             struct {
-                INSERT_PADDING_WORDS(0x60);
+                INSERT_UNION_PADDING_WORDS(0x60);
 
                 Upload::Registers upload;
 
@@ -57,7 +57,7 @@ public:
 
                 u32 data;
 
-                INSERT_PADDING_WORDS(0x11);
+                INSERT_UNION_PADDING_WORDS(0x11);
             };
             std::array<u32, NUM_REGS> reg_array;
         };

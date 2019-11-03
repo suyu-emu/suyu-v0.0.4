@@ -99,19 +99,19 @@ public:
 
         union {
             struct {
-                INSERT_PADDING_WORDS(0x80);
+                INSERT_UNION_PADDING_WORDS(0x80);
 
                 Surface dst;
 
-                INSERT_PADDING_WORDS(2);
+                INSERT_UNION_PADDING_WORDS(2);
 
                 Surface src;
 
-                INSERT_PADDING_WORDS(0x15);
+                INSERT_UNION_PADDING_WORDS(0x15);
 
                 Operation operation;
 
-                INSERT_PADDING_WORDS(0x177);
+                INSERT_UNION_PADDING_WORDS(0x177);
 
                 union {
                     u32 raw;
@@ -119,7 +119,7 @@ public:
                     BitField<4, 1, Filter> filter;
                 } blit_control;
 
-                INSERT_PADDING_WORDS(0x8);
+                INSERT_UNION_PADDING_WORDS(0x8);
 
                 u32 blit_dst_x;
                 u32 blit_dst_y;
@@ -130,7 +130,7 @@ public:
                 u64 blit_src_x;
                 u64 blit_src_y;
 
-                INSERT_PADDING_WORDS(0x21);
+                INSERT_UNION_PADDING_WORDS(0x21);
             };
             std::array<u32, NUM_REGS> reg_array;
         };
