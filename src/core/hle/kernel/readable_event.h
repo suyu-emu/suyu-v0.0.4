@@ -56,7 +56,7 @@ private:
     void Signal();
 
     ResetType reset_type;
-    bool signaled;
+    bool signaled{};
 
     std::string name; ///< Name of event (optional)
 };
