@@ -1073,9 +1073,9 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
         {71, nullptr, "RequestToReboot"},
         {80, nullptr, "ExitAndRequestToShowThanksMessage"},
         {90, &IApplicationFunctions::EnableApplicationCrashReport, "EnableApplicationCrashReport"},
-        {100, nullptr, "InitializeApplicationCopyrightFrameBuffer"},
-        {101, nullptr, "SetApplicationCopyrightImage"},
-        {102, nullptr, "SetApplicationCopyrightVisibility"},
+        {100, &IApplicationFunctions::InitializeApplicationCopyrightFrameBuffer, "InitializeApplicationCopyrightFrameBuffer"},
+        {101, &IApplicationFunctions::SetApplicationCopyrightImage, "SetApplicationCopyrightImage"},
+        {102, &IApplicationFunctions::SetApplicationCopyrightVisibility, "SetApplicationCopyrightVisibility"},
         {110, nullptr, "QueryApplicationPlayStatistics"},
         {120, nullptr, "ExecuteProgram"},
         {121, nullptr, "ClearUserChannel"},
@@ -1098,6 +1098,31 @@ IApplicationFunctions::~IApplicationFunctions() = default;
 
 void IApplicationFunctions::EnableApplicationCrashReport(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void IApplicationFunctions::InitializeApplicationCopyrightFrameBuffer(
+    Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void IApplicationFunctions::SetApplicationCopyrightImage(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void IApplicationFunctions::SetApplicationCopyrightVisibility(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto is_visible = rp.Pop<bool>();
+
+    LOG_WARNING(Service_AM, "(STUBBED) called, is_visible={}", is_visible);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
