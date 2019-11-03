@@ -18,8 +18,8 @@
 
 namespace InputCommon::CemuhookUDP {
 
-static constexpr u16 DEFAULT_PORT = 26760;
-static constexpr const char* DEFAULT_ADDR = "127.0.0.1";
+constexpr u16 DEFAULT_PORT = 26760;
+constexpr char DEFAULT_ADDR[] = "127.0.0.1";
 
 class Socket;
 

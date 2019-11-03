@@ -212,10 +212,11 @@ void TestCommunication(const std::string& host, u16 port, u8 pad_index, u32 clie
         bool result = success_event.WaitFor(std::chrono::seconds(8));
         socket.Stop();
         worker_thread.join();
-        if (result)
+        if (result) {
             success_callback();
-        else
+        } else {
             failure_callback();
+        }
     })
         .detach();
 }
@@ -228,8 +229,10 @@ CalibrationConfigurationJob::CalibrationConfigurationJob(
     std::thread([=] {
         constexpr u16 CALIBRATION_THRESHOLD = 100;
 
-        u16 min_x{UINT16_MAX}, min_y{UINT16_MAX};
-        u16 max_x{}, max_y{};
+        u16 min_x{UINT16_MAX};
+        u16 min_y{UINT16_MAX};
+        u16 max_x{};
+        u16 max_y{};
 
         Status current_status{Status::Initialized};
         SocketCallback callback{[](Response::Version version) {}, [](Response::PortInfo info) {},
@@ -239,8 +242,9 @@ CalibrationConfigurationJob::CalibrationConfigurationJob(
                                         current_status = Status::Ready;
                                         status_callback(current_status);
                                     }
-                                    if (!data.touch_1.is_active)
+                                    if (!data.touch_1.is_active) {
                                         return;
+                                    }
                                     LOG_DEBUG(Input, "Current touch: {} {}", data.touch_1.x,
                                               data.touch_1.y);
                                     min_x = std::min(min_x, static_cast<u16>(data.touch_1.x));
