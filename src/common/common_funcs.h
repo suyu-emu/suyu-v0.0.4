@@ -5,6 +5,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <string>
 
 #if !defined(ARCHITECTURE_x86_64)
@@ -19,8 +20,8 @@
 // helper macro to properly align structure members.
 // Calling INSERT_PADDING_BYTES will add a new member variable with a name like "pad121",
 // depending on the current source line to make sure variable names are unique.
-#define INSERT_PADDING_BYTES(num_bytes) u8 CONCAT2(pad, __LINE__)[(num_bytes)]
-#define INSERT_PADDING_WORDS(num_words) u32 CONCAT2(pad, __LINE__)[(num_words)]
+#define INSERT_PADDING_BYTES(num_bytes) std::array<u8, num_bytes> CONCAT2(pad, __LINE__)
+#define INSERT_PADDING_WORDS(num_words) std::array<u32, num_words> CONCAT2(pad, __LINE__)
 
 // Inlining
 #ifdef _WIN32
