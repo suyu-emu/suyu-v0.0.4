@@ -1884,7 +1884,7 @@ private:
     }
 
     Expression YNegate(Operation operation) {
-        return {"y_negate", Type::Float};
+        return {"y_direction", Type::Float};
     }
 
     template <u32 element>
