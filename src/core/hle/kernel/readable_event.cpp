@@ -23,8 +23,10 @@ void ReadableEvent::Acquire(Thread* thread) {
 }
 
 void ReadableEvent::Signal() {
-    signaled = true;
-    WakeupAllWaitingThreads();
+    if (!signaled) {
+        signaled = true;
+        WakeupAllWaitingThreads();
+    };
 }
 
 void ReadableEvent::Clear() {
