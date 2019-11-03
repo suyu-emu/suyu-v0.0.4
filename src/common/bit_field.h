@@ -168,11 +168,11 @@ public:
     constexpr BitField(BitField&&) noexcept = default;
     constexpr BitField& operator=(BitField&&) noexcept = default;
 
-    constexpr FORCE_INLINE operator T() const {
+    constexpr operator T() const {
         return Value();
     }
 
-    constexpr FORCE_INLINE void Assign(const T& value) {
+    constexpr void Assign(const T& value) {
         storage = (static_cast<StorageType>(storage) & ~mask) | FormatValue(value);
     }
 
