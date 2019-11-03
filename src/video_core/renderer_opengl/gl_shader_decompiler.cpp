@@ -1379,6 +1379,20 @@ private:
         return GenerateUnary(operation, "float", Type::Float, type);
     }
 
+    Expression FSwizzleAdd(Operation operation) {
+        const std::string op_a = VisitOperand(operation, 0).AsFloat();
+        const std::string op_b = VisitOperand(operation, 1).AsFloat();
+        const std::string instr_mask = VisitOperand(operation, 2).AsUint();
+
+        const std::string mask = code.GenerateTemporary();
+        code.AddLine("uint {} = {} >> ((gl_SubGroupInvocationARB & 3) << 1);", mask, instr_mask);
+
+        const std::string modifier_a = fmt::format("fswzadd_modifiers_a[{} & 3]", mask);
+        const std::string modifier_b = fmt::format("fswzadd_modifiers_b[{} & 3]", mask);
+        return {fmt::format("(({} * {}) + ({} * {}))", op_a, modifier_a, op_b, modifier_b),
+                Type::Float};
+    }
+
     Expression ICastFloat(Operation operation) {
         return GenerateUnary(operation, "int", Type::Int, Type::Float);
     }
@@ -1991,6 +2005,7 @@ private:
         &GLSLDecompiler::FTrunc,
         &GLSLDecompiler::FCastInteger<Type::Int>,
         &GLSLDecompiler::FCastInteger<Type::Uint>,
+        &GLSLDecompiler::FSwizzleAdd,
 
         &GLSLDecompiler::Add<Type::Int>,
         &GLSLDecompiler::Mul<Type::Int>,
@@ -2460,6 +2475,9 @@ bvec2 HalfFloatNanComparison(bvec2 comparison, vec2 pair1, vec2 pair2) {
     bvec2 is_nan2 = isnan(pair2);
     return bvec2(comparison.x || is_nan1.x || is_nan2.x, comparison.y || is_nan1.y || is_nan2.y);
 }
+
+const float fswzadd_modifiers_a[] = float[4](-1.0f,  1.0f, -1.0f,  0.0f );
+const float fswzadd_modifiers_b[] = float[4](-1.0f, -1.0f,  1.0f, -1.0f );
 )";
 }
 

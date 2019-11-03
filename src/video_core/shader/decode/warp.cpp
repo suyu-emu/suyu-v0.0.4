@@ -94,6 +94,15 @@ u32 ShaderIR::DecodeWarp(NodeBlock& bb, u32 pc) {
             Operation(OperationCode::ShuffleIndexed, GetRegister(instr.gpr8), src_thread_id));
         break;
     }
+    case OpCode::Id::FSWZADD: {
+        UNIMPLEMENTED_IF(instr.fswzadd.ndv);
+
+        Node op_a = GetRegister(instr.gpr8);
+        Node op_b = GetRegister(instr.gpr20);
+        Node mask = Immediate(static_cast<u32>(instr.fswzadd.swizzle));
+        SetRegister(bb, instr.gpr0, Operation(OperationCode::FSwizzleAdd, op_a, op_b, mask));
+        break;
+    }
     default:
         UNIMPLEMENTED_MSG("Unhandled warp instruction: {}", opcode->get().GetName());
         break;

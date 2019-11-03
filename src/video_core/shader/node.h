@@ -47,6 +47,7 @@ enum class OperationCode {
     FTrunc,        /// (MetaArithmetic, float a) -> float
     FCastInteger,  /// (MetaArithmetic, int a) -> float
     FCastUInteger, /// (MetaArithmetic, uint a) -> float
+    FSwizzleAdd,   /// (float a, float b, uint mask) -> float
 
     IAdd,                  /// (MetaArithmetic, int a, int b) -> int
     IMul,                  /// (MetaArithmetic, int a, int b) -> int

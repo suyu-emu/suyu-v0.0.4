@@ -783,6 +783,11 @@ private:
         return {};
     }
 
+    Id FSwizzleAdd(Operation operation) {
+        UNIMPLEMENTED();
+        return {};
+    }
+
     Id HNegate(Operation operation) {
         UNIMPLEMENTED();
         return {};
@@ -1363,6 +1368,7 @@ private:
         &SPIRVDecompiler::Unary<&Module::OpTrunc, Type::Float>,
         &SPIRVDecompiler::Unary<&Module::OpConvertSToF, Type::Float, Type::Int>,
         &SPIRVDecompiler::Unary<&Module::OpConvertUToF, Type::Float, Type::Uint>,
+        &SPIRVDecompiler::FSwizzleAdd,
 
         &SPIRVDecompiler::Binary<&Module::OpIAdd, Type::Int>,
         &SPIRVDecompiler::Binary<&Module::OpIMul, Type::Int>,
