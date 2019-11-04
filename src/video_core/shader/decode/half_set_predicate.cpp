@@ -19,7 +19,9 @@ u32 ShaderIR::DecodeHalfSetPredicate(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
-    LOG_DEBUG(HW_GPU, "ftz={}", static_cast<u32>(instr.hsetp2.ftz));
+    if (instr.hsetp2.ftz != 0) {
+        LOG_DEBUG(HW_GPU, "{} without FTZ is not implemented", opcode->get().GetName());
+    }
 
     Node op_a = UnpackHalfFloat(GetRegister(instr.gpr8), instr.hsetp2.type_a);
     op_a = GetOperandAbsNegHalf(op_a, instr.hsetp2.abs_a, instr.hsetp2.negate_a);
