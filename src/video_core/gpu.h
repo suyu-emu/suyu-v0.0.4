@@ -207,7 +207,7 @@ public:
 
         union {
             struct {
-                INSERT_PADDING_WORDS(0x4);
+                INSERT_UNION_PADDING_WORDS(0x4);
                 struct {
                     u32 address_high;
                     u32 address_low;
@@ -220,12 +220,12 @@ public:
 
                 u32 semaphore_sequence;
                 u32 semaphore_trigger;
-                INSERT_PADDING_WORDS(0xC);
+                INSERT_UNION_PADDING_WORDS(0xC);
 
                 // The puser and the puller share the reference counter, the pusher only has read
                 // access
                 u32 reference_count;
-                INSERT_PADDING_WORDS(0x5);
+                INSERT_UNION_PADDING_WORDS(0x5);
 
                 u32 semaphore_acquire;
                 u32 semaphore_release;
@@ -234,7 +234,7 @@ public:
                     BitField<4, 4, u32> operation;
                     BitField<8, 8, u32> id;
                 } fence_action;
-                INSERT_PADDING_WORDS(0xE2);
+                INSERT_UNION_PADDING_WORDS(0xE2);
 
                 // Puller state
                 u32 acquire_mode;

@@ -45,7 +45,7 @@ struct DisplayInfo {
 
     /// Whether or not the display has a limited number of layers.
     u8 has_limited_layers{1};
-    INSERT_PADDING_BYTES(7){};
+    INSERT_PADDING_BYTES(7);
 
     /// Indicates the total amount of layers supported by the display.
     /// @note This is only valid if has_limited_layers is set.

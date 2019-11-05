@@ -1,10 +1,11 @@
-// Copyright 2013 Dolphin Emulator Project / 2014 Citra Emulator Project
+// Copyright 2019 yuzu emulator team
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <string>
 
 #if !defined(ARCHITECTURE_x86_64)
@@ -16,18 +17,15 @@
 #define CONCAT2(x, y) DO_CONCAT2(x, y)
 #define DO_CONCAT2(x, y) x##y
 
-// helper macro to properly align structure members.
-// Calling INSERT_PADDING_BYTES will add a new member variable with a name like "pad121",
-// depending on the current source line to make sure variable names are unique.
-#define INSERT_PADDING_BYTES(num_bytes) u8 CONCAT2(pad, __LINE__)[(num_bytes)]
-#define INSERT_PADDING_WORDS(num_words) u32 CONCAT2(pad, __LINE__)[(num_words)]
+/// Helper macros to insert unused bytes or words to properly align structs. These values will be
+/// zero-initialized.
+#define INSERT_PADDING_BYTES(num_bytes) std::array<u8, num_bytes> CONCAT2(pad, __LINE__){};
+#define INSERT_PADDING_WORDS(num_words) std::array<u32, num_words> CONCAT2(pad, __LINE__){};
 
-// Inlining
-#ifdef _WIN32
-#define FORCE_INLINE __forceinline
-#else
-#define FORCE_INLINE inline __attribute__((always_inline))
-#endif
+/// These are similar to the INSERT_PADDING_* macros, but are needed for padding unions. This is
+/// because unions can only be initialized by one member.
+#define INSERT_UNION_PADDING_BYTES(num_bytes) std::array<u8, num_bytes> CONCAT2(pad, __LINE__);
+#define INSERT_UNION_PADDING_WORDS(num_words) std::array<u32, num_words> CONCAT2(pad, __LINE__);
 
 #ifndef _MSC_VER
 
