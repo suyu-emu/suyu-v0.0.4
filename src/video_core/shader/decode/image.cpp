@@ -143,39 +143,37 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
 }
 
 Image& ShaderIR::GetImage(Tegra::Shader::Image image, Tegra::Shader::ImageType type) {
-    const auto offset{static_cast<std::size_t>(image.index.Value())};
-    if (const auto existing_image = TryUseExistingImage(offset, type)) {
-        return *existing_image;
+    const auto offset = static_cast<u32>(image.index.Value());
+
+    const auto it =
+        std::find_if(std::begin(used_images), std::end(used_images),
+                     [offset](const Image& entry) { return entry.GetOffset() == offset; });
+    if (it != std::end(used_images)) {
+        ASSERT(!it->IsBindless() && it->GetType() == it->GetType());
+        return *it;
     }
 
-    const std::size_t next_index{used_images.size()};
-    return used_images.emplace(offset, Image{offset, next_index, type}).first->second;
+    const auto next_index = static_cast<u32>(used_images.size());
+    return used_images.emplace_back(next_index, offset, type);
 }
 
 Image& ShaderIR::GetBindlessImage(Tegra::Shader::Register reg, Tegra::Shader::ImageType type) {
-    const Node image_register{GetRegister(reg)};
-    const auto [base_image, cbuf_index, cbuf_offset]{
-        TrackCbuf(image_register, global_code, static_cast<s64>(global_code.size()))};
-    const auto cbuf_key{(static_cast<u64>(cbuf_index) << 32) | static_cast<u64>(cbuf_offset)};
+    const Node image_register = GetRegister(reg);
+    const auto [base_image, buffer, offset] =
+        TrackCbuf(image_register, global_code, static_cast<s64>(global_code.size()));
 
-    if (const auto image = TryUseExistingImage(cbuf_key, type)) {
-        return *image;
+    const auto it =
+        std::find_if(std::begin(used_images), std::end(used_images),
+                     [buffer = buffer, offset = offset](const Image& entry) {
+                         return entry.GetBuffer() == buffer && entry.GetOffset() == offset;
+                     });
+    if (it != std::end(used_images)) {
+        ASSERT(it->IsBindless() && it->GetType() == it->GetType());
+        return *it;
     }
 
-    const std::size_t next_index{used_images.size()};
-    return used_images.emplace(cbuf_key, Image{cbuf_index, cbuf_offset, next_index, type})
-        .first->second;
-}
-
-Image* ShaderIR::TryUseExistingImage(u64 offset, Tegra::Shader::ImageType type) {
-    auto it = used_images.find(offset);
-    if (it == used_images.end()) {
-        return nullptr;
-    }
-    auto& image = it->second;
-    ASSERT(image.GetType() == type);
-
-    return &image;
+    const auto next_index = static_cast<u32>(used_images.size());
+    return used_images.emplace_back(next_index, offset, buffer, type);
 }
 
 } // namespace VideoCommon::Shader

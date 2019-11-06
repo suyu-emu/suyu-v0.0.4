@@ -262,7 +262,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::TLDS: {
-        const Tegra::Shader::TextureType texture_type{instr.tlds.GetTextureType()};
+        const TextureType texture_type{instr.tlds.GetTextureType()};
         const bool is_array{instr.tlds.IsArrayTexture()};
 
         UNIMPLEMENTED_IF_MSG(instr.tlds.UsesMiscMode(TextureMiscMode::AOFFI),
@@ -293,77 +293,80 @@ const Sampler& ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler,
                                     std::optional<SamplerInfo> sampler_info) {
     const auto offset = static_cast<u32>(sampler.index.Value());
 
-    Tegra::Shader::TextureType type;
+    TextureType type;
     bool is_array;
     bool is_shadow;
     if (sampler_info) {
         type = sampler_info->type;
         is_array = sampler_info->is_array;
         is_shadow = sampler_info->is_shadow;
-    } else if (auto sampler = locker.ObtainBoundSampler(offset); sampler) {
+    } else if (const auto sampler = locker.ObtainBoundSampler(offset)) {
         type = sampler->texture_type.Value();
         is_array = sampler->is_array.Value() != 0;
         is_shadow = sampler->is_shadow.Value() != 0;
     } else {
-        type = Tegra::Shader::TextureType::Texture2D;
+        LOG_WARNING(HW_GPU, "Unknown sampler info");
+        type = TextureType::Texture2D;
         is_array = false;
         is_shadow = false;
     }
 
     // If this sampler has already been used, return the existing mapping.
-    const auto itr =
+    const auto it =
         std::find_if(used_samplers.begin(), used_samplers.end(),
-                     [&](const Sampler& entry) { return entry.GetOffset() == offset; });
-    if (itr != used_samplers.end()) {
-        ASSERT(itr->GetType() == type && itr->IsArray() == is_array &&
-               itr->IsShadow() == is_shadow);
-        return *itr;
+                     [offset](const Sampler& entry) { return entry.GetOffset() == offset; });
+    if (it != used_samplers.end()) {
+        ASSERT(!it->IsBindless() && it->GetType() == type && it->IsArray() == is_array &&
+               it->IsShadow() == is_shadow);
+        return *it;
     }
 
     // Otherwise create a new mapping for this sampler
-    const std::size_t next_index = used_samplers.size();
-    const Sampler entry{offset, next_index, type, is_array, is_shadow};
-    return *used_samplers.emplace(entry).first;
-} // namespace VideoCommon::Shader
+    const auto next_index = static_cast<u32>(used_samplers.size());
+    return used_samplers.emplace_back(Sampler(next_index, offset, type, is_array, is_shadow));
+}
 
 const Sampler& ShaderIR::GetBindlessSampler(const Tegra::Shader::Register& reg,
                                             std::optional<SamplerInfo> sampler_info) {
     const Node sampler_register = GetRegister(reg);
-    const auto [base_sampler, cbuf_index, cbuf_offset] =
+    const auto [base_sampler, buffer, offset] =
         TrackCbuf(sampler_register, global_code, static_cast<s64>(global_code.size()));
     ASSERT(base_sampler != nullptr);
-    const auto cbuf_key = (static_cast<u64>(cbuf_index) << 32) | static_cast<u64>(cbuf_offset);
-    Tegra::Shader::TextureType type;
+
+    TextureType type;
     bool is_array;
     bool is_shadow;
     if (sampler_info) {
         type = sampler_info->type;
         is_array = sampler_info->is_array;
         is_shadow = sampler_info->is_shadow;
-    } else if (auto sampler = locker.ObtainBindlessSampler(cbuf_index, cbuf_offset); sampler) {
+    } else if (const auto sampler = locker.ObtainBindlessSampler(buffer, offset)) {
         type = sampler->texture_type.Value();
         is_array = sampler->is_array.Value() != 0;
         is_shadow = sampler->is_shadow.Value() != 0;
     } else {
-        type = Tegra::Shader::TextureType::Texture2D;
+        LOG_WARNING(HW_GPU, "Unknown sampler info");
+        type = TextureType::Texture2D;
         is_array = false;
         is_shadow = false;
     }
 
     // If this sampler has already been used, return the existing mapping.
-    const auto itr =
+    const auto it =
         std::find_if(used_samplers.begin(), used_samplers.end(),
-                     [&](const Sampler& entry) { return entry.GetOffset() == cbuf_key; });
-    if (itr != used_samplers.end()) {
-        ASSERT(itr->GetType() == type && itr->IsArray() == is_array &&
-               itr->IsShadow() == is_shadow);
-        return *itr;
+                     [buffer = buffer, offset = offset](const Sampler& entry) {
+                         return entry.GetBuffer() == buffer && entry.GetOffset() == offset;
+                     });
+    if (it != used_samplers.end()) {
+        ASSERT(it->IsBindless() && it->GetType() == type && it->IsArray() == is_array &&
+               it->IsShadow() == is_shadow);
+        return *it;
     }
 
     // Otherwise create a new mapping for this sampler
-    const std::size_t next_index = used_samplers.size();
-    const Sampler entry{cbuf_index, cbuf_offset, next_index, type, is_array, is_shadow};
-    return *used_samplers.emplace(entry).first;
+    const auto next_index = static_cast<u32>(used_samplers.size());
+    return used_samplers.emplace_back(
+        Sampler(next_index, offset, buffer, type, is_array, is_shadow));
 }
 
 void ShaderIR::WriteTexInstructionFloat(NodeBlock& bb, Instruction instr, const Node4& components) {
