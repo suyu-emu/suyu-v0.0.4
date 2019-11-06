@@ -658,9 +658,11 @@ private:
             const std::string description{"layout (binding = SAMPLER_BINDING_" +
                                           std::to_string(sampler.GetIndex()) + ") uniform"};
             std::string sampler_type = [&]() {
+                if (sampler.IsBuffer()) {
+                    return "samplerBuffer";
+                }
                 switch (sampler.GetType()) {
                 case Tegra::Shader::TextureType::Texture1D:
-                    // Special cased, read below.
                     return "sampler1D";
                 case Tegra::Shader::TextureType::Texture2D:
                     return "sampler2D";
@@ -680,19 +682,7 @@ private:
                 sampler_type += "Shadow";
             }
 
-            if (sampler.GetType() == Tegra::Shader::TextureType::Texture1D) {
-                // 1D textures can be aliased to texture buffers, hide the declarations behind a
-                // preprocessor flag and use one or the other from the GPU state. This has to be
-                // done because shaders don't have enough information to determine the texture type.
-                EmitIfdefIsBuffer(sampler);
-                code.AddLine("{} samplerBuffer {};", description, name);
-                code.AddLine("#else");
-                code.AddLine("{} {} {};", description, sampler_type, name);
-                code.AddLine("#endif");
-            } else {
-                // The other texture types (2D, 3D and cubes) don't have this issue.
-                code.AddLine("{} {} {};", description, sampler_type, name);
-            }
+            code.AddLine("{} {} {};", description, sampler_type, name);
         }
         if (!samplers.empty()) {
             code.AddNewLine();
@@ -1749,27 +1739,14 @@ private:
                 expr += ", ";
         }
 
-        // Store a copy of the expression without the lod to be used with texture buffers
-        std::string expr_buffer = expr;
-
-        if (meta->lod) {
+        if (meta->lod && !meta->sampler.IsBuffer()) {
             expr += ", ";
             expr += Visit(meta->lod).AsInt();
         }
         expr += ')';
         expr += GetSwizzle(meta->element);
 
-        expr_buffer += ')';
-        expr_buffer += GetSwizzle(meta->element);
-
-        const std::string tmp{code.GenerateTemporary()};
-        EmitIfdefIsBuffer(meta->sampler);
-        code.AddLine("float {} = {};", tmp, expr_buffer);
-        code.AddLine("#else");
-        code.AddLine("float {} = {};", tmp, expr);
-        code.AddLine("#endif");
-
-        return {tmp, Type::Float};
+        return {std::move(expr), Type::Float};
     }
 
     Expression ImageLoad(Operation operation) {
@@ -2212,10 +2189,6 @@ private:
 
     std::string GetImage(const Image& image) const {
         return GetDeclarationWithSuffix(static_cast<u32>(image.GetIndex()), "image");
-    }
-
-    void EmitIfdefIsBuffer(const Sampler& sampler) {
-        code.AddLine("#ifdef SAMPLER_{}_IS_BUFFER", sampler.GetIndex());
     }
 
     std::string GetDeclarationWithSuffix(u32 index, std::string_view name) const {

@@ -270,7 +270,6 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ProgramTy
 
     auto base_bindings{variant.base_bindings};
     const auto primitive_mode{variant.primitive_mode};
-    const auto texture_buffer_usage{variant.texture_buffer_usage};
 
     std::string source = fmt::format(R"(// {}
 #version 430 core
@@ -315,17 +314,6 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ProgramTy
     for (const auto& image : entries.images) {
         source +=
             fmt::format("#define IMAGE_BINDING_{} {}\n", image.GetIndex(), base_bindings.image++);
-    }
-
-    // Transform 1D textures to texture samplers by declaring its preprocessor macros.
-    for (std::size_t i = 0; i < texture_buffer_usage.size(); ++i) {
-        if (!texture_buffer_usage.test(i)) {
-            continue;
-        }
-        source += fmt::format("#define SAMPLER_{}_IS_BUFFER\n", i);
-    }
-    if (texture_buffer_usage.any()) {
-        source += '\n';
     }
 
     if (program_type == ProgramType::Geometry) {

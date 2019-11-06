@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <bitset>
 #include <optional>
 #include <string>
 #include <tuple>
@@ -37,7 +36,6 @@ struct ShaderDiskCacheDump;
 
 using ProgramCode = std::vector<u64>;
 using ShaderDumpsMap = std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump>;
-using TextureBufferUsage = std::bitset<64>;
 
 /// Allocated bindings used by an OpenGL shader program
 struct BaseBindings {
@@ -61,11 +59,10 @@ static_assert(std::is_trivially_copyable_v<BaseBindings>);
 struct ProgramVariant {
     BaseBindings base_bindings;
     GLenum primitive_mode{};
-    TextureBufferUsage texture_buffer_usage{};
 
     bool operator==(const ProgramVariant& rhs) const {
-        return std::tie(base_bindings, primitive_mode, texture_buffer_usage) ==
-               std::tie(rhs.base_bindings, rhs.primitive_mode, rhs.texture_buffer_usage);
+        return std::tie(base_bindings, primitive_mode) ==
+               std::tie(rhs.base_bindings, rhs.primitive_mode);
     }
 
     bool operator!=(const ProgramVariant& rhs) const {
@@ -112,7 +109,6 @@ template <>
 struct hash<OpenGL::ProgramVariant> {
     std::size_t operator()(const OpenGL::ProgramVariant& variant) const noexcept {
         return std::hash<OpenGL::BaseBindings>()(variant.base_bindings) ^
-               std::hash<OpenGL::TextureBufferUsage>()(variant.texture_buffer_usage) ^
                (static_cast<std::size_t>(variant.primitive_mode) << 6);
     }
 };

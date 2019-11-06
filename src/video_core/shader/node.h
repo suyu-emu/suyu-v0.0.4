@@ -225,14 +225,15 @@ class Sampler {
 public:
     /// This constructor is for bound samplers
     constexpr explicit Sampler(u32 index, u32 offset, Tegra::Shader::TextureType type,
-                               bool is_array, bool is_shadow)
-        : index{index}, offset{offset}, type{type}, is_array{is_array}, is_shadow{is_shadow} {}
+                               bool is_array, bool is_shadow, bool is_buffer)
+        : index{index}, offset{offset}, type{type}, is_array{is_array}, is_shadow{is_shadow},
+          is_buffer{is_buffer} {}
 
     /// This constructor is for bindless samplers
     constexpr explicit Sampler(u32 index, u32 offset, u32 buffer, Tegra::Shader::TextureType type,
-                               bool is_array, bool is_shadow)
+                               bool is_array, bool is_shadow, bool is_buffer)
         : index{index}, offset{offset}, buffer{buffer}, type{type}, is_array{is_array},
-          is_shadow{is_shadow}, is_bindless{true} {}
+          is_shadow{is_shadow}, is_buffer{is_buffer}, is_bindless{true} {}
 
     constexpr u32 GetIndex() const {
         return index;
@@ -258,6 +259,10 @@ public:
         return is_shadow;
     }
 
+    constexpr bool IsBuffer() const {
+        return is_buffer;
+    }
+
     constexpr bool IsBindless() const {
         return is_bindless;
     }
@@ -270,6 +275,7 @@ private:
     Tegra::Shader::TextureType type{}; ///< The type used to sample this texture (Texture2D, etc)
     bool is_array{};    ///< Whether the texture is being sampled as an array texture or not.
     bool is_shadow{};   ///< Whether the texture is being sampled as a depth texture or not.
+    bool is_buffer{};   ///< Whether the texture is a texture buffer without sampler.
     bool is_bindless{}; ///< Whether this sampler belongs to a bindless texture or not.
 };
 

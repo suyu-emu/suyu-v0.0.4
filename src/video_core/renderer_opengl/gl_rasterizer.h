@@ -107,16 +107,15 @@ private:
     /// Syncs all the state, shaders, render targets and textures setting before a draw call.
     void DrawPrelude();
 
-    /// Configures the current textures to use for the draw command. Returns shaders texture buffer
-    /// usage.
-    TextureBufferUsage SetupDrawTextures(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
-                                         const Shader& shader, BaseBindings base_bindings);
+    /// Configures the current textures to use for the draw command.
+    void SetupDrawTextures(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage, const Shader& shader,
+                           BaseBindings base_bindings);
 
-    /// Configures the textures used in a compute shader. Returns texture buffer usage.
-    TextureBufferUsage SetupComputeTextures(const Shader& kernel);
+    /// Configures the textures used in a compute shader.
+    void SetupComputeTextures(const Shader& kernel);
 
-    /// Configures a texture. Returns true when the texture is a texture buffer.
-    bool SetupTexture(u32 binding, const Tegra::Texture::FullTextureInfo& texture,
+    /// Configures a texture.
+    void SetupTexture(u32 binding, const Tegra::Texture::FullTextureInfo& texture,
                       const GLShader::SamplerEntry& entry);
 
     /// Configures images in a compute shader.

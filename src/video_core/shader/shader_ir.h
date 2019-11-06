@@ -179,6 +179,7 @@ private:
         Tegra::Shader::TextureType type;
         bool is_array;
         bool is_shadow;
+        bool is_buffer;
     };
 
     void Decode();
@@ -303,13 +304,17 @@ private:
     /// Returns a predicate combiner operation
     OperationCode GetPredicateCombiner(Tegra::Shader::PredOperation operation);
 
+    /// Queries the missing sampler info from the execution context.
+    SamplerInfo GetSamplerInfo(std::optional<SamplerInfo> sampler_info, u32 offset,
+                               std::optional<u32> buffer = std::nullopt);
+
     /// Accesses a texture sampler
     const Sampler& GetSampler(const Tegra::Shader::Sampler& sampler,
-                              std::optional<SamplerInfo> sampler_info);
+                              std::optional<SamplerInfo> sampler_info = std::nullopt);
 
-    // Accesses a texture sampler for a bindless texture.
-    const Sampler& GetBindlessSampler(const Tegra::Shader::Register& reg,
-                                      std::optional<SamplerInfo> sampler_info);
+    /// Accesses a texture sampler for a bindless texture.
+    const Sampler& GetBindlessSampler(Tegra::Shader::Register reg,
+                                      std::optional<SamplerInfo> sampler_info = std::nullopt);
 
     /// Accesses an image.
     Image& GetImage(Tegra::Shader::Image image, Tegra::Shader::ImageType type);

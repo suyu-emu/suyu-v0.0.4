@@ -28,23 +28,6 @@ using VideoCommon::Shader::KeyMap;
 
 namespace {
 
-struct ConstBufferKey {
-    u32 cbuf;
-    u32 offset;
-    u32 value;
-};
-
-struct BoundSamplerKey {
-    u32 offset;
-    Tegra::Engines::SamplerDescriptor sampler;
-};
-
-struct BindlessSamplerKey {
-    u32 cbuf;
-    u32 offset;
-    Tegra::Engines::SamplerDescriptor sampler;
-};
-
 using ShaderCacheVersionHash = std::array<u8, 64>;
 
 enum class TransferableEntryKind : u32 {
@@ -52,10 +35,28 @@ enum class TransferableEntryKind : u32 {
     Usage,
 };
 
-constexpr u32 NativeVersion = 5;
+struct ConstBufferKey {
+    u32 cbuf{};
+    u32 offset{};
+    u32 value{};
+};
+
+struct BoundSamplerKey {
+    u32 offset{};
+    Tegra::Engines::SamplerDescriptor sampler{};
+};
+
+struct BindlessSamplerKey {
+    u32 cbuf{};
+    u32 offset{};
+    Tegra::Engines::SamplerDescriptor sampler{};
+};
+
+constexpr u32 NativeVersion = 6;
 
 // Making sure sizes doesn't change by accident
 static_assert(sizeof(BaseBindings) == 16);
+static_assert(sizeof(ProgramVariant) == 20);
 
 ShaderCacheVersionHash GetShaderCacheVersionHash() {
     ShaderCacheVersionHash hash{};
