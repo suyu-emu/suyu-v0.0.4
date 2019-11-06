@@ -11,5 +11,4 @@ ninja
 
 ccache -s
 
-# Ignore zlib's tests, since they aren't gated behind a CMake option.
-ctest -VV -E "(example|example64)" -C Release
+ctest -VV -C Release

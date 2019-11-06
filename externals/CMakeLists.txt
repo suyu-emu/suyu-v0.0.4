@@ -76,6 +76,7 @@ endif()
 
 # zlib
 add_subdirectory(zlib EXCLUDE_FROM_ALL)
+set(ZLIB_LIBRARIES z)
 
 # libzip
 add_subdirectory(libzip EXCLUDE_FROM_ALL)
