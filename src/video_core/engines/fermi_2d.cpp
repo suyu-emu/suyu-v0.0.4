@@ -28,6 +28,13 @@ void Fermi2D::CallMethod(const GPU::MethodCall& method_call) {
     }
 }
 
+std::pair<u32, u32> DelimitLine(u32 src_1, u32 src_2, u32 dst_1, u32 dst_2, u32 src_line) {
+    const u32 line_a = src_2 - src_1;
+    const u32 line_b = dst_2 - dst_1;
+    const u32 excess = std::max<s32>(0, line_a - src_line + src_1);
+    return {line_b - (excess * line_b) / line_a, excess};
+}
+
 void Fermi2D::HandleSurfaceCopy() {
     LOG_DEBUG(HW_GPU, "Requested a surface copy with operation {}",
               static_cast<u32>(regs.operation));
@@ -47,10 +54,27 @@ void Fermi2D::HandleSurfaceCopy() {
         src_blit_x2 = static_cast<u32>((regs.blit_src_x >> 32) + regs.blit_dst_width);
         src_blit_y2 = static_cast<u32>((regs.blit_src_y >> 32) + regs.blit_dst_height);
     }
+    u32 dst_blit_x2 = regs.blit_dst_x + regs.blit_dst_width;
+    u32 dst_blit_y2 = regs.blit_dst_y + regs.blit_dst_height;
+    const auto [new_dst_w, src_excess_x] =
+        DelimitLine(src_blit_x1, src_blit_x2, regs.blit_dst_x, dst_blit_x2, regs.src.width);
+    const auto [new_dst_h, src_excess_y] =
+        DelimitLine(src_blit_y1, src_blit_y2, regs.blit_dst_y, dst_blit_y2, regs.src.height);
+    dst_blit_x2 = new_dst_w + regs.blit_dst_x;
+    src_blit_x2 = src_blit_x2 - src_excess_x;
+    dst_blit_y2 = new_dst_h + regs.blit_dst_y;
+    src_blit_y2 = src_blit_y2 - src_excess_y;
+    const auto [new_src_w, dst_excess_x] =
+        DelimitLine(regs.blit_dst_x, dst_blit_x2, src_blit_x1, src_blit_x2, regs.dst.width);
+    const auto [new_src_h, dst_excess_y] =
+        DelimitLine(regs.blit_dst_y, dst_blit_y2, src_blit_y1, src_blit_y2, regs.dst.height);
+    src_blit_x2 = new_src_w + src_blit_x1;
+    dst_blit_x2 = dst_blit_x2 - dst_excess_x;
+    src_blit_y2 = new_src_h + src_blit_y1;
+    dst_blit_y2 = dst_blit_y2 - dst_excess_y;
     const Common::Rectangle<u32> src_rect{src_blit_x1, src_blit_y1, src_blit_x2, src_blit_y2};
-    const Common::Rectangle<u32> dst_rect{regs.blit_dst_x, regs.blit_dst_y,
-                                          regs.blit_dst_x + regs.blit_dst_width,
-                                          regs.blit_dst_y + regs.blit_dst_height};
+    const Common::Rectangle<u32> dst_rect{regs.blit_dst_x, regs.blit_dst_y, dst_blit_x2,
+                                          dst_blit_y2};
     Config copy_config;
     copy_config.operation = regs.operation;
     copy_config.filter = regs.blit_control.filter;
