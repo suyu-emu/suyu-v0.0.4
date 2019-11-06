@@ -2099,7 +2099,7 @@ static ResultCode CreateEvent(Core::System& system, Handle* write_handle, Handle
 
     auto& kernel = system.Kernel();
     const auto [readable_event, writable_event] =
-        WritableEvent::CreateEventPair(kernel, ResetType::Manual, "CreateEvent");
+        WritableEvent::CreateEventPair(kernel, "CreateEvent");
 
     HandleTable& handle_table = kernel.CurrentProcess()->GetHandleTable();
 

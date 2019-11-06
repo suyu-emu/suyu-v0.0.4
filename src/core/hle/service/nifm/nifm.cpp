@@ -69,10 +69,8 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = system.Kernel();
-        event1 = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Automatic,
-                                                        "IRequest:Event1");
-        event2 = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Automatic,
-                                                        "IRequest:Event2");
+        event1 = Kernel::WritableEvent::CreateEventPair(kernel, "IRequest:Event1");
+        event2 = Kernel::WritableEvent::CreateEventPair(kernel, "IRequest:Event2");
     }
 
 private:

@@ -67,8 +67,8 @@ AOC_U::AOC_U(Core::System& system)
     RegisterHandlers(functions);
 
     auto& kernel = system.Kernel();
-    aoc_change_event = Kernel::WritableEvent::CreateEventPair(kernel, Kernel::ResetType::Manual,
-                                                              "GetAddOnContentListChanged:Event");
+    aoc_change_event =
+        Kernel::WritableEvent::CreateEventPair(kernel, "GetAddOnContentListChanged:Event");
 }
 
 AOC_U::~AOC_U() = default;

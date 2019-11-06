@@ -141,8 +141,7 @@ public:
 
         auto& kernel = system.Kernel();
         finished_event = Kernel::WritableEvent::CreateEventPair(
-            kernel, Kernel::ResetType::Automatic,
-            "IEnsureNetworkClockAvailabilityService:FinishEvent");
+            kernel, "IEnsureNetworkClockAvailabilityService:FinishEvent");
     }
 
 private:

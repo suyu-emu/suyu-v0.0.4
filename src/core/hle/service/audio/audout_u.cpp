@@ -65,8 +65,8 @@ public:
         RegisterHandlers(functions);
 
         // This is the event handle used to check if the audio buffer was released
-        buffer_event = Kernel::WritableEvent::CreateEventPair(
-            system.Kernel(), Kernel::ResetType::Manual, "IAudioOutBufferReleased");
+        buffer_event =
+            Kernel::WritableEvent::CreateEventPair(system.Kernel(), "IAudioOutBufferReleased");
 
         stream = audio_core.OpenStream(system.CoreTiming(), audio_params.sample_rate,
                                        audio_params.channel_count, std::move(unique_name),

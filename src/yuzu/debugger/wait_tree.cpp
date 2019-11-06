@@ -172,17 +172,6 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeWaitObject::GetChildren() con
     return list;
 }
 
-QString WaitTreeWaitObject::GetResetTypeQString(Kernel::ResetType reset_type) {
-    switch (reset_type) {
-    case Kernel::ResetType::Automatic:
-        return tr("automatic reset");
-    case Kernel::ResetType::Manual:
-        return tr("manual reset");
-    }
-    UNREACHABLE();
-    return {};
-}
-
 WaitTreeObjectList::WaitTreeObjectList(
     const std::vector<Kernel::SharedPtr<Kernel::WaitObject>>& list, bool w_all)
     : object_list(list), wait_all(w_all) {}
@@ -335,16 +324,6 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
 
 WaitTreeEvent::WaitTreeEvent(const Kernel::ReadableEvent& object) : WaitTreeWaitObject(object) {}
 WaitTreeEvent::~WaitTreeEvent() = default;
-
-std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeEvent::GetChildren() const {
-    std::vector<std::unique_ptr<WaitTreeItem>> list(WaitTreeWaitObject::GetChildren());
-
-    list.push_back(std::make_unique<WaitTreeText>(
-        tr("reset type = %1")
-            .arg(GetResetTypeQString(
-                static_cast<const Kernel::ReadableEvent&>(object).GetResetType()))));
-    return list;
-}
 
 WaitTreeThreadList::WaitTreeThreadList(const std::vector<Kernel::SharedPtr<Kernel::Thread>>& list)
     : thread_list(list) {}

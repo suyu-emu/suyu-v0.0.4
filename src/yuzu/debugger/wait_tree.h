@@ -111,8 +111,6 @@ public:
 
 protected:
     const Kernel::WaitObject& object;
-
-    static QString GetResetTypeQString(Kernel::ResetType reset_type);
 };
 
 class WaitTreeObjectList : public WaitTreeExpandableItem {
@@ -146,8 +144,6 @@ class WaitTreeEvent : public WaitTreeWaitObject {
 public:
     explicit WaitTreeEvent(const Kernel::ReadableEvent& object);
     ~WaitTreeEvent() override;
-
-    std::vector<std::unique_ptr<WaitTreeItem>> GetChildren() const override;
 };
 
 class WaitTreeThreadList : public WaitTreeExpandableItem {

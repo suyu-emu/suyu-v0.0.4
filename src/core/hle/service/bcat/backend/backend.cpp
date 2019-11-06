@@ -13,8 +13,7 @@ namespace Service::BCAT {
 ProgressServiceBackend::ProgressServiceBackend(Kernel::KernelCore& kernel,
                                                std::string_view event_name) {
     event = Kernel::WritableEvent::CreateEventPair(
-        kernel, Kernel::ResetType::Automatic,
-        std::string("ProgressServiceBackend:UpdateEvent:").append(event_name));
+        kernel, std::string("ProgressServiceBackend:UpdateEvent:").append(event_name));
 }
 
 Kernel::SharedPtr<Kernel::ReadableEvent> ProgressServiceBackend::GetEvent() const {

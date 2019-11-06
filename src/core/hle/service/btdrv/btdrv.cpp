@@ -34,8 +34,7 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = system.Kernel();
-        register_event = Kernel::WritableEvent::CreateEventPair(
-            kernel, Kernel::ResetType::Automatic, "BT:RegisterEvent");
+        register_event = Kernel::WritableEvent::CreateEventPair(kernel, "BT:RegisterEvent");
     }
 
 private:

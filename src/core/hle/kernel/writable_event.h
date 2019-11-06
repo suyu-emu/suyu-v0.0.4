@@ -24,11 +24,9 @@ public:
     /**
      * Creates an event
      * @param kernel The kernel instance to create this event under.
-     * @param reset_type ResetType describing how to create event
      * @param name Optional name of event
      */
-    static EventPair CreateEventPair(KernelCore& kernel, ResetType reset_type,
-                                     std::string name = "Unknown");
+    static EventPair CreateEventPair(KernelCore& kernel, std::string name = "Unknown");
 
     std::string GetTypeName() const override {
         return "WritableEvent";
@@ -43,8 +41,6 @@ public:
     }
 
     SharedPtr<ReadableEvent> GetReadableEvent() const;
-
-    ResetType GetResetType() const;
 
     void Signal();
     void Clear();

@@ -162,7 +162,7 @@ public:
         RegisterHandlers(functions);
 
         notification_event = Kernel::WritableEvent::CreateEventPair(
-            system.Kernel(), Kernel::ResetType::Manual, "INotificationService:NotifyEvent");
+            system.Kernel(), "INotificationService:NotifyEvent");
     }
 
 private:
