@@ -54,6 +54,10 @@ public:
         return has_precise_bug;
     }
 
+    bool HasFastBufferSubData() const {
+        return has_fast_buffer_sub_data;
+    }
+
 private:
     static bool TestVariableAoffi();
     static bool TestComponentIndexingBug();
@@ -69,6 +73,7 @@ private:
     bool has_variable_aoffi{};
     bool has_component_indexing_bug{};
     bool has_precise_bug{};
+    bool has_fast_buffer_sub_data{};
 };
 
 } // namespace OpenGL

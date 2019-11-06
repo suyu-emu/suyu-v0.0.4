@@ -67,7 +67,7 @@ static std::size_t GetConstBufferSize(const Tegra::Engines::ConstBufferInfo& buf
 RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
                                    ScreenInfo& info)
     : texture_cache{system, *this, device}, shader_cache{*this, system, emu_window, device},
-      system{system}, screen_info{info}, buffer_cache{*this, system, STREAM_BUFFER_SIZE} {
+      system{system}, screen_info{info}, buffer_cache{*this, system, device, STREAM_BUFFER_SIZE} {
     shader_program_manager = std::make_unique<GLShader::ProgramManager>();
     state.draw.shader_program = 0;
     state.Apply();
@@ -558,6 +558,8 @@ void RasterizerOpenGL::DrawPrelude() {
     SyncPolygonOffset();
     SyncAlphaTest();
 
+    buffer_cache.Acquire();
+
     // Draw the vertex batch
     const bool is_indexed = accelerate_draw == AccelDraw::Indexed;
 
@@ -879,7 +881,8 @@ void RasterizerOpenGL::SetupConstBuffer(const Tegra::Engines::ConstBufferInfo& b
     const std::size_t size = Common::AlignUp(GetConstBufferSize(buffer, entry), sizeof(GLvec4));
 
     const auto alignment = device.GetUniformBufferAlignment();
-    const auto [cbuf, offset] = buffer_cache.UploadMemory(buffer.address, size, alignment);
+    const auto [cbuf, offset] = buffer_cache.UploadMemory(buffer.address, size, alignment, false,
+                                                          device.HasFastBufferSubData());
     bind_ubo_pushbuffer.Push(cbuf, offset, size);
 }
 
