@@ -21,8 +21,8 @@ u32 ShaderIR::DecodeArithmeticHalf(NodeBlock& bb, u32 pc) {
 
     if (opcode->get().GetId() == OpCode::Id::HADD2_C ||
         opcode->get().GetId() == OpCode::Id::HADD2_R) {
-        if (instr.alu_half.ftz != 0) {
-            LOG_WARNING(HW_GPU, "{} FTZ not implemented", opcode->get().GetName());
+        if (instr.alu_half.ftz == 0) {
+            LOG_DEBUG(HW_GPU, "{} without FTZ is not implemented", opcode->get().GetName());
         }
     }
 

@@ -44,10 +44,6 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
     bool is_bindless = false;
     switch (opcode->get().GetId()) {
     case OpCode::Id::TEX: {
-        if (instr.tex.UsesMiscMode(TextureMiscMode::NODEP)) {
-            LOG_WARNING(HW_GPU, "TEX.NODEP implementation is incomplete");
-        }
-
         const TextureType texture_type{instr.tex.texture_type};
         const bool is_array = instr.tex.array != 0;
         const bool is_aoffi = instr.tex.UsesMiscMode(TextureMiscMode::AOFFI);
@@ -61,10 +57,6 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
     case OpCode::Id::TEX_B: {
         UNIMPLEMENTED_IF_MSG(instr.tex.UsesMiscMode(TextureMiscMode::AOFFI),
                              "AOFFI is not implemented");
-
-        if (instr.tex.UsesMiscMode(TextureMiscMode::NODEP)) {
-            LOG_WARNING(HW_GPU, "TEX.NODEP implementation is incomplete");
-        }
 
         const TextureType texture_type{instr.tex_b.texture_type};
         const bool is_array = instr.tex_b.array != 0;
@@ -81,10 +73,6 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         const bool is_array{instr.texs.IsArrayTexture()};
         const bool depth_compare = instr.texs.UsesMiscMode(TextureMiscMode::DC);
         const auto process_mode = instr.texs.GetTextureProcessMode();
-
-        if (instr.texs.UsesMiscMode(TextureMiscMode::NODEP)) {
-            LOG_WARNING(HW_GPU, "TEXS.NODEP implementation is incomplete");
-        }
 
         const Node4 components =
             GetTexsCode(instr, texture_type, process_mode, depth_compare, is_array);
@@ -107,10 +95,6 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         UNIMPLEMENTED_IF_MSG(instr.tld4.UsesMiscMode(TextureMiscMode::PTP),
                              "PTP is not implemented");
 
-        if (instr.tld4.UsesMiscMode(TextureMiscMode::NODEP)) {
-            LOG_WARNING(HW_GPU, "TLD4.NODEP implementation is incomplete");
-        }
-
         const auto texture_type = instr.tld4.texture_type.Value();
         const bool depth_compare = is_bindless ? instr.tld4_b.UsesMiscMode(TextureMiscMode::DC)
                                                : instr.tld4.UsesMiscMode(TextureMiscMode::DC);
@@ -125,9 +109,6 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
     case OpCode::Id::TLD4S: {
         UNIMPLEMENTED_IF_MSG(instr.tld4s.UsesMiscMode(TextureMiscMode::AOFFI),
                              "AOFFI is not implemented");
-        if (instr.tld4s.UsesMiscMode(TextureMiscMode::NODEP)) {
-            LOG_WARNING(HW_GPU, "TLD4S.NODEP implementation is incomplete");
-        }
 
         const bool depth_compare = instr.tld4s.UsesMiscMode(TextureMiscMode::DC);
         const Node op_a = GetRegister(instr.gpr8);
@@ -164,10 +145,6 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         is_bindless = true;
         [[fallthrough]];
     case OpCode::Id::TXQ: {
-        if (instr.txq.UsesMiscMode(TextureMiscMode::NODEP)) {
-            LOG_WARNING(HW_GPU, "TXQ.NODEP implementation is incomplete");
-        }
-
         // TODO: The new commits on the texture refactor, change the way samplers work.
         // Sadly, not all texture instructions specify the type of texture their sampler
         // uses. This must be fixed at a later instance.
@@ -204,10 +181,6 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
     case OpCode::Id::TMML: {
         UNIMPLEMENTED_IF_MSG(instr.tmml.UsesMiscMode(Tegra::Shader::TextureMiscMode::NDV),
                              "NDV is not implemented");
-
-        if (instr.tmml.UsesMiscMode(TextureMiscMode::NODEP)) {
-            LOG_WARNING(HW_GPU, "TMML.NODEP implementation is incomplete");
-        }
 
         auto texture_type = instr.tmml.texture_type.Value();
         const bool is_array = instr.tmml.array != 0;
@@ -254,10 +227,6 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         UNIMPLEMENTED_IF_MSG(instr.tld.ms, "MS is not implemented");
         UNIMPLEMENTED_IF_MSG(instr.tld.cl, "CL is not implemented");
 
-        if (instr.tld.nodep_flag) {
-            LOG_WARNING(HW_GPU, "TLD.NODEP implementation is incomplete");
-        }
-
         WriteTexInstructionFloat(bb, instr, GetTldCode(instr));
         break;
     }
@@ -268,10 +237,6 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         UNIMPLEMENTED_IF_MSG(instr.tlds.UsesMiscMode(TextureMiscMode::AOFFI),
                              "AOFFI is not implemented");
         UNIMPLEMENTED_IF_MSG(instr.tlds.UsesMiscMode(TextureMiscMode::MZ), "MZ is not implemented");
-
-        if (instr.tlds.UsesMiscMode(TextureMiscMode::NODEP)) {
-            LOG_WARNING(HW_GPU, "TLDS.NODEP implementation is incomplete");
-        }
 
         const Node4 components = GetTldsCode(instr, texture_type, is_array);
 

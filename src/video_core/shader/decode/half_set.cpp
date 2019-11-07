@@ -20,8 +20,8 @@ u32 ShaderIR::DecodeHalfSet(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
-    if (instr.hset2.ftz != 0) {
-        LOG_WARNING(HW_GPU, "{} FTZ not implemented", opcode->get().GetName());
+    if (instr.hset2.ftz == 0) {
+        LOG_DEBUG(HW_GPU, "{} without FTZ is not implemented", opcode->get().GetName());
     }
 
     Node op_a = UnpackHalfFloat(GetRegister(instr.gpr8), instr.hset2.type_a);

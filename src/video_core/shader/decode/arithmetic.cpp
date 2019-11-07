@@ -43,12 +43,12 @@ u32 ShaderIR::DecodeArithmetic(NodeBlock& bb, u32 pc) {
     case OpCode::Id::FMUL_IMM: {
         // FMUL does not have 'abs' bits and only the second operand has a 'neg' bit.
         if (instr.fmul.tab5cb8_2 != 0) {
-            LOG_WARNING(HW_GPU, "FMUL tab5cb8_2({}) is not implemented",
-                        instr.fmul.tab5cb8_2.Value());
+            LOG_DEBUG(HW_GPU, "FMUL tab5cb8_2({}) is not implemented",
+                      instr.fmul.tab5cb8_2.Value());
         }
         if (instr.fmul.tab5c68_0 != 1) {
-            LOG_WARNING(HW_GPU, "FMUL tab5cb8_0({}) is not implemented",
-                        instr.fmul.tab5c68_0.Value());
+            LOG_DEBUG(HW_GPU, "FMUL tab5cb8_0({}) is not implemented",
+                      instr.fmul.tab5c68_0.Value());
         }
 
         op_b = GetOperandAbsNegFloat(op_b, false, instr.fmul.negate_b);
@@ -144,10 +144,11 @@ u32 ShaderIR::DecodeArithmetic(NodeBlock& bb, u32 pc) {
     case OpCode::Id::RRO_C:
     case OpCode::Id::RRO_R:
     case OpCode::Id::RRO_IMM: {
+        LOG_DEBUG(HW_GPU, "(STUBBED) RRO used");
+
         // Currently RRO is only implemented as a register move.
         op_b = GetOperandAbsNegFloat(op_b, instr.alu.abs_b, instr.alu.negate_b);
         SetRegister(bb, instr.gpr0, op_b);
-        LOG_WARNING(HW_GPU, "RRO instruction is incomplete");
         break;
     }
     default:
