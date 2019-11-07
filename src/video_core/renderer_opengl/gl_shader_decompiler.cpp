@@ -1382,13 +1382,19 @@ private:
     Expression FSwizzleAdd(Operation operation) {
         const std::string op_a = VisitOperand(operation, 0).AsFloat();
         const std::string op_b = VisitOperand(operation, 1).AsFloat();
+
+        if (!device.HasShaderBallot()) {
+            LOG_ERROR(Render_OpenGL, "Shader ballot is unavailable but required by the shader");
+            return {fmt::format("{} + {}", op_a, op_b), Type::Float};
+        }
+
         const std::string instr_mask = VisitOperand(operation, 2).AsUint();
-
         const std::string mask = code.GenerateTemporary();
-        code.AddLine("uint {} = {} >> ((gl_SubGroupInvocationARB & 3) << 1);", mask, instr_mask);
+        code.AddLine("uint {} = ({} >> ((gl_SubGroupInvocationARB & 3) << 1)) & 3;", mask,
+                     instr_mask);
 
-        const std::string modifier_a = fmt::format("fswzadd_modifiers_a[{} & 3]", mask);
-        const std::string modifier_b = fmt::format("fswzadd_modifiers_b[{} & 3]", mask);
+        const std::string modifier_a = fmt::format("fswzadd_modifiers_a[{}]", mask);
+        const std::string modifier_b = fmt::format("fswzadd_modifiers_b[{}]", mask);
         return {fmt::format("(({} * {}) + ({} * {}))", op_a, modifier_a, op_b, modifier_b),
                 Type::Float};
     }
@@ -1957,11 +1963,21 @@ private:
     }
 
     Expression ThreadId(Operation operation) {
+        if (!device.HasShaderBallot()) {
+            LOG_ERROR(Render_OpenGL, "Shader ballot is unavailable but required by the shader");
+            return {"0U", Type::Uint};
+        }
         return {"gl_SubGroupInvocationARB", Type::Uint};
     }
 
     Expression ShuffleIndexed(Operation operation) {
-        const std::string value = VisitOperand(operation, 0).AsFloat();
+        std::string value = VisitOperand(operation, 0).AsFloat();
+
+        if (!device.HasShaderBallot()) {
+            LOG_ERROR(Render_OpenGL, "Shader ballot is unavailable but required by the shader");
+            return {std::move(value), Type::Float};
+        }
+
         const std::string index = VisitOperand(operation, 1).AsUint();
         return {fmt::format("readInvocationARB({}, {})", value, index), Type::Float};
     }

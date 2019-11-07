@@ -34,6 +34,10 @@ public:
         return has_warp_intrinsics;
     }
 
+    bool HasShaderBallot() const {
+        return has_shader_ballot;
+    }
+
     bool HasVertexViewportLayer() const {
         return has_vertex_viewport_layer;
     }
@@ -68,6 +72,7 @@ private:
     u32 max_vertex_attributes{};
     u32 max_varyings{};
     bool has_warp_intrinsics{};
+    bool has_shader_ballot{};
     bool has_vertex_viewport_layer{};
     bool has_image_load_formatted{};
     bool has_variable_aoffi{};
