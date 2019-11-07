@@ -1,13 +1,6 @@
-param($BUILD_NAME)
-
 $GITDATE = $(git show -s --date=short --format='%ad') -replace "-",""
 $GITREV = $(git show -s --format='%h')
-
-if ("$BUILD_NAME" -eq "mainline") {
-    $RELEASE_DIST = "yuzu-windows-msvc-$BUILD_NAME"
-} else {
-    $RELEASE_DIST = "yuzu-windows-msvc"
-}
+$RELEASE_DIST = "yuzu-windows-msvc"
 
 $MSVC_BUILD_ZIP = "yuzu-windows-msvc-$GITDATE-$GITREV.zip" -replace " ", ""
 $MSVC_BUILD_PDB = "yuzu-windows-msvc-$GITDATE-$GITREV-debugsymbols.zip" -replace " ", ""
