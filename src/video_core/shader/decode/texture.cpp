@@ -616,6 +616,8 @@ Node4 ShaderIR::GetTldCode(Tegra::Shader::Instruction instr) {
 }
 
 Node4 ShaderIR::GetTldsCode(Instruction instr, TextureType texture_type, bool is_array) {
+    const auto& sampler = GetSampler(instr.sampler);
+
     const std::size_t type_coord_count = GetCoordCount(texture_type);
     const bool lod_enabled = instr.tlds.GetTextureProcessMode() == TextureProcessMode::LL;
 
@@ -639,7 +641,14 @@ Node4 ShaderIR::GetTldsCode(Instruction instr, TextureType texture_type, bool is
     // When lod is used always is in gpr20
     const Node lod = lod_enabled ? GetRegister(instr.gpr20) : Immediate(0);
 
-    const auto& sampler = GetSampler(instr.sampler);
+    // Fill empty entries from the guest sampler.
+    const std::size_t entry_coord_count = GetCoordCount(sampler.GetType());
+    if (type_coord_count != entry_coord_count) {
+        LOG_WARNING(HW_GPU, "Bound and built texture types mismatch");
+    }
+    for (std::size_t i = type_coord_count; i < entry_coord_count; ++i) {
+        coords.push_back(GetRegister(Register::ZeroIndex));
+    }
 
     Node4 values;
     for (u32 element = 0; element < values.size(); ++element) {
