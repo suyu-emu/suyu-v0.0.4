@@ -394,7 +394,8 @@ Shader CachedShader::CreateStageFromMemory(const ShaderParameters& params,
     params.disk_cache.SaveRaw(ShaderDiskCacheRaw(
         params.unique_identifier, GetProgramType(program_type), program_code, program_code_b));
 
-    ConstBufferLocker locker(GetEnginesShaderType(GetProgramType(program_type)));
+    ConstBufferLocker locker(GetEnginesShaderType(GetProgramType(program_type)),
+                             params.system.GPU().Maxwell3D());
     const ShaderIR ir(program_code, STAGE_MAIN_OFFSET, COMPILER_SETTINGS, locker);
     // TODO(Rodrigo): Handle VertexA shaders
     // std::optional<ShaderIR> ir_b;
@@ -410,7 +411,8 @@ Shader CachedShader::CreateKernelFromMemory(const ShaderParameters& params, Prog
     params.disk_cache.SaveRaw(
         ShaderDiskCacheRaw(params.unique_identifier, ProgramType::Compute, code));
 
-    ConstBufferLocker locker(Tegra::Engines::ShaderType::Compute);
+    ConstBufferLocker locker(Tegra::Engines::ShaderType::Compute,
+                             params.system.GPU().KeplerCompute());
     const ShaderIR ir(code, KERNEL_MAIN_OFFSET, COMPILER_SETTINGS, locker);
     return std::shared_ptr<CachedShader>(new CachedShader(
         params, ProgramType::Compute, GLShader::GetEntries(ir), std::move(code), {}));
