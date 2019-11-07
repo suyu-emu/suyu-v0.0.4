@@ -1,12 +1,12 @@
 #!/bin/bash -ex
 
 # Copy documentation
-cp license.txt "$DIR_NAME"
-cp README.md "$DIR_NAME"
+cp license.txt "$REV_NAME"
+cp README.md "$REV_NAME"
 
-tar $COMPRESSION_FLAGS "$ARCHIVE_NAME" "$DIR_NAME"
+tar $COMPRESSION_FLAGS "$ARCHIVE_NAME" "$REV_NAME"
 
-mv "$DIR_NAME" $RELEASE_NAME
+mv "$REV_NAME" $RELEASE_NAME
 
 7z a "$REV_NAME.7z" $RELEASE_NAME
 
