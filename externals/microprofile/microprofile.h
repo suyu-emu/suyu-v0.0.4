@@ -814,7 +814,7 @@ struct MicroProfile
 
 inline int MicroProfileLogType(MicroProfileLogEntry Index)
 {
-    return ((MP_LOG_BEGIN_MASK & Index)>>62) & 0x3;
+    return (int)(((MP_LOG_BEGIN_MASK & Index)>>62) & 0x3ULL);
 }
 
 inline uint64_t MicroProfileLogTimerIndex(MicroProfileLogEntry Index)
@@ -861,12 +861,12 @@ T MicroProfileMax(T a, T b)
 
 inline int64_t MicroProfileMsToTick(float fMs, int64_t nTicksPerSecond)
 {
-    return (int64_t)(fMs*0.001f*nTicksPerSecond);
+    return (int64_t)(fMs*0.001f*(float)nTicksPerSecond);
 }
 
 inline float MicroProfileTickToMsMultiplier(int64_t nTicksPerSecond)
 {
-    return 1000.f / nTicksPerSecond;
+    return 1000.f / (float)nTicksPerSecond;
 }
 
 inline uint16_t MicroProfileGetGroupIndex(MicroProfileToken t)
