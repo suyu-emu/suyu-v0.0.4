@@ -154,10 +154,10 @@ void ShaderIR::Decode() {
         LOG_CRITICAL(HW_GPU, "Unknown decompilation mode!");
         [[fallthrough]];
     case CompileDepth::BruteForce: {
+        const auto shader_end = static_cast<u32>(program_code.size());
         coverage_begin = main_offset;
-        const std::size_t shader_end = program_code.size();
         coverage_end = shader_end;
-        for (u32 label = main_offset; label < shader_end; label++) {
+        for (u32 label = main_offset; label < shader_end; ++label) {
             basic_blocks.insert({label, DecodeRange(label, label + 1)});
         }
         break;

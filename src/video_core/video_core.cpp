@@ -28,7 +28,7 @@ std::unique_ptr<Tegra::GPU> CreateGPU(Core::System& system) {
 
 u16 GetResolutionScaleFactor(const RendererBase& renderer) {
     return static_cast<u16>(
-        Settings::values.resolution_factor
+        Settings::values.resolution_factor != 0
             ? Settings::values.resolution_factor
             : renderer.GetRenderWindow().GetFramebufferLayout().GetScalingRatio());
 }

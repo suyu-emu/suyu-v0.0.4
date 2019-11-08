@@ -323,10 +323,12 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
     // (e.g. handheld mode) on a 1920x1080 framebuffer.
     f32 scale_u = 1.f, scale_v = 1.f;
     if (framebuffer_crop_rect.GetWidth() > 0) {
-        scale_u = static_cast<f32>(framebuffer_crop_rect.GetWidth()) / screen_info.texture.width;
+        scale_u = static_cast<f32>(framebuffer_crop_rect.GetWidth()) /
+                  static_cast<f32>(screen_info.texture.width);
     }
     if (framebuffer_crop_rect.GetHeight() > 0) {
-        scale_v = static_cast<f32>(framebuffer_crop_rect.GetHeight()) / screen_info.texture.height;
+        scale_v = static_cast<f32>(framebuffer_crop_rect.GetHeight()) /
+                  static_cast<f32>(screen_info.texture.height);
     }
 
     std::array<ScreenRectVertex, 4> vertices = {{

@@ -92,11 +92,11 @@ private:
         const unsigned int mask = 1 << m_NextBit++;
 
         // clear the bit
-        *m_CurByte &= ~mask;
+        *m_CurByte &= static_cast<unsigned char>(~mask);
 
         // Write the bit, if necessary
         if (b)
-            *m_CurByte |= mask;
+            *m_CurByte |= static_cast<unsigned char>(mask);
 
         // Next byte?
         if (m_NextBit >= 8) {
@@ -137,7 +137,7 @@ public:
         }
 
         uint64_t mask = (1 << (end - start + 1)) - 1;
-        return (m_Bits >> start) & mask;
+        return (m_Bits >> start) & static_cast<IntType>(mask);
     }
 
 private:
@@ -656,7 +656,7 @@ static IntType Replicate(const IntType& val, uint32_t numBits, uint32_t toBit) {
         return 0;
     if (toBit == 0)
         return 0;
-    IntType v = val & ((1 << numBits) - 1);
+    IntType v = val & static_cast<IntType>((1 << numBits) - 1);
     IntType res = v;
     uint32_t reslen = numBits;
     while (reslen < toBit) {
@@ -666,8 +666,8 @@ static IntType Replicate(const IntType& val, uint32_t numBits, uint32_t toBit) {
             comp = numBits - newshift;
             numBits = newshift;
         }
-        res <<= numBits;
-        res |= v >> comp;
+        res = static_cast<IntType>(res << numBits);
+        res = static_cast<IntType>(res | (v >> comp));
         reslen += numBits;
     }
     return res;
@@ -714,7 +714,7 @@ public:
             // Do nothing
             return val;
         } else if (oldDepth == 0 && newDepth != 0) {
-            return (1 << newDepth) - 1;
+            return static_cast<ChannelType>((1 << newDepth) - 1);
         } else if (newDepth > oldDepth) {
             return Replicate(val, oldDepth, newDepth);
         } else {
@@ -722,10 +722,11 @@ public:
             if (newDepth == 0) {
                 return 0xFF;
             } else {
-                uint8_t bitsWasted = oldDepth - newDepth;
+                uint8_t bitsWasted = static_cast<uint8_t>(oldDepth - newDepth);
                 uint16_t v = static_cast<uint16_t>(val);
-                v = (v + (1 << (bitsWasted - 1))) >> bitsWasted;
-                v = ::std::min<uint16_t>(::std::max<uint16_t>(0, v), (1 << newDepth) - 1);
+                v = static_cast<uint16_t>((v + (1 << (bitsWasted - 1))) >> bitsWasted);
+                v = ::std::min<uint16_t>(::std::max<uint16_t>(0, v),
+                                         static_cast<uint16_t>((1 << newDepth) - 1));
                 return static_cast<uint8_t>(v);
             }
         }
@@ -1191,18 +1192,18 @@ static uint32_t SelectPartition(int32_t seed, int32_t x, int32_t y, int32_t z,
     uint8_t seed11 = static_cast<uint8_t>((rnum >> 26) & 0xF);
     uint8_t seed12 = static_cast<uint8_t>(((rnum >> 30) | (rnum << 2)) & 0xF);
 
-    seed1 *= seed1;
-    seed2 *= seed2;
-    seed3 *= seed3;
-    seed4 *= seed4;
-    seed5 *= seed5;
-    seed6 *= seed6;
-    seed7 *= seed7;
-    seed8 *= seed8;
-    seed9 *= seed9;
-    seed10 *= seed10;
-    seed11 *= seed11;
-    seed12 *= seed12;
+    seed1 = static_cast<uint8_t>(seed1 * seed1);
+    seed2 = static_cast<uint8_t>(seed2 * seed2);
+    seed3 = static_cast<uint8_t>(seed3 * seed3);
+    seed4 = static_cast<uint8_t>(seed4 * seed4);
+    seed5 = static_cast<uint8_t>(seed5 * seed5);
+    seed6 = static_cast<uint8_t>(seed6 * seed6);
+    seed7 = static_cast<uint8_t>(seed7 * seed7);
+    seed8 = static_cast<uint8_t>(seed8 * seed8);
+    seed9 = static_cast<uint8_t>(seed9 * seed9);
+    seed10 = static_cast<uint8_t>(seed10 * seed10);
+    seed11 = static_cast<uint8_t>(seed11 * seed11);
+    seed12 = static_cast<uint8_t>(seed12 * seed12);
 
     int32_t sh1, sh2, sh3;
     if (seed & 1) {
@@ -1214,18 +1215,18 @@ static uint32_t SelectPartition(int32_t seed, int32_t x, int32_t y, int32_t z,
     }
     sh3 = (seed & 0x10) ? sh1 : sh2;
 
-    seed1 >>= sh1;
-    seed2 >>= sh2;
-    seed3 >>= sh1;
-    seed4 >>= sh2;
-    seed5 >>= sh1;
-    seed6 >>= sh2;
-    seed7 >>= sh1;
-    seed8 >>= sh2;
-    seed9 >>= sh3;
-    seed10 >>= sh3;
-    seed11 >>= sh3;
-    seed12 >>= sh3;
+    seed1 = static_cast<uint8_t>(seed1 >> sh1);
+    seed2 = static_cast<uint8_t>(seed2 >> sh2);
+    seed3 = static_cast<uint8_t>(seed3 >> sh1);
+    seed4 = static_cast<uint8_t>(seed4 >> sh2);
+    seed5 = static_cast<uint8_t>(seed5 >> sh1);
+    seed6 = static_cast<uint8_t>(seed6 >> sh2);
+    seed7 = static_cast<uint8_t>(seed7 >> sh1);
+    seed8 = static_cast<uint8_t>(seed8 >> sh2);
+    seed9 = static_cast<uint8_t>(seed9 >> sh3);
+    seed10 = static_cast<uint8_t>(seed10 >> sh3);
+    seed11 = static_cast<uint8_t>(seed11 >> sh3);
+    seed12 = static_cast<uint8_t>(seed12 >> sh3);
 
     int32_t a = seed1 * x + seed2 * y + seed11 * z + (rnum >> 14);
     int32_t b = seed3 * x + seed4 * y + seed12 * z + (rnum >> 10);
@@ -1558,7 +1559,9 @@ static void DecompressBlock(const uint8_t inBuf[16], const uint32_t blockWidth,
 
     // Make sure that higher non-texel bits are set to zero
     const uint32_t clearByteStart = (weightParams.GetPackedBitSize() >> 3) + 1;
-    texelWeightData[clearByteStart - 1] &= (1 << (weightParams.GetPackedBitSize() % 8)) - 1;
+    texelWeightData[clearByteStart - 1] =
+        texelWeightData[clearByteStart - 1] &
+        static_cast<uint8_t>((1 << (weightParams.GetPackedBitSize() % 8)) - 1);
     memset(texelWeightData + clearByteStart, 0, 16 - clearByteStart);
 
     std::vector<IntegerEncodedValue> texelWeightValues;
