@@ -1670,7 +1670,7 @@ private:
 
         const auto type = meta->sampler.IsShadow() ? Type::Float : Type::Int;
         return {GenerateTexture(operation, "Gather",
-                                {TextureArgument{type, meta->component}, TextureAoffi{}}) +
+                                {TextureAoffi{}, TextureArgument{type, meta->component}}) +
                     GetSwizzle(meta->element),
                 Type::Float};
     }
