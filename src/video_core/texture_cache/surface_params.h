@@ -248,7 +248,6 @@ public:
     u32 num_levels;
     u32 emulated_levels;
     VideoCore::Surface::PixelFormat pixel_format;
-    VideoCore::Surface::ComponentType component_type;
     VideoCore::Surface::SurfaceType type;
     VideoCore::Surface::SurfaceTarget target;
 

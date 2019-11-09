@@ -109,15 +109,6 @@ enum class PixelFormat {
 
 static constexpr std::size_t MaxPixelFormat = static_cast<std::size_t>(PixelFormat::Max);
 
-enum class ComponentType {
-    Invalid = 0,
-    SNorm = 1,
-    UNorm = 2,
-    SInt = 3,
-    UInt = 4,
-    Float = 5,
-};
-
 enum class SurfaceType {
     ColorTexture = 0,
     Depth = 1,
@@ -613,13 +604,7 @@ PixelFormat PixelFormatFromTextureFormat(Tegra::Texture::TextureFormat format,
                                          Tegra::Texture::ComponentType component_type,
                                          bool is_srgb);
 
-ComponentType ComponentTypeFromTexture(Tegra::Texture::ComponentType type);
-
-ComponentType ComponentTypeFromRenderTarget(Tegra::RenderTargetFormat format);
-
 PixelFormat PixelFormatFromGPUPixelFormat(Tegra::FramebufferConfig::PixelFormat format);
-
-ComponentType ComponentTypeFromDepthFormat(Tegra::DepthFormat format);
 
 SurfaceType GetFormatType(PixelFormat pixel_format);
 

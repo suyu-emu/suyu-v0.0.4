@@ -404,75 +404,6 @@ PixelFormat PixelFormatFromTextureFormat(Tegra::Texture::TextureFormat format,
     return PixelFormat::ABGR8U;
 }
 
-ComponentType ComponentTypeFromTexture(Tegra::Texture::ComponentType type) {
-    // TODO(Subv): Implement more component types
-    switch (type) {
-    case Tegra::Texture::ComponentType::UNORM:
-        return ComponentType::UNorm;
-    case Tegra::Texture::ComponentType::FLOAT:
-        return ComponentType::Float;
-    case Tegra::Texture::ComponentType::SNORM:
-        return ComponentType::SNorm;
-    case Tegra::Texture::ComponentType::UINT:
-        return ComponentType::UInt;
-    case Tegra::Texture::ComponentType::SINT:
-        return ComponentType::SInt;
-    default:
-        LOG_CRITICAL(HW_GPU, "Unimplemented component type={}", static_cast<u32>(type));
-        UNREACHABLE();
-        return ComponentType::UNorm;
-    }
-}
-
-ComponentType ComponentTypeFromRenderTarget(Tegra::RenderTargetFormat format) {
-    // TODO(Subv): Implement more render targets
-    switch (format) {
-    case Tegra::RenderTargetFormat::RGBA8_UNORM:
-    case Tegra::RenderTargetFormat::RGBA8_SRGB:
-    case Tegra::RenderTargetFormat::BGRA8_UNORM:
-    case Tegra::RenderTargetFormat::BGRA8_SRGB:
-    case Tegra::RenderTargetFormat::RGB10_A2_UNORM:
-    case Tegra::RenderTargetFormat::R8_UNORM:
-    case Tegra::RenderTargetFormat::RG16_UNORM:
-    case Tegra::RenderTargetFormat::R16_UNORM:
-    case Tegra::RenderTargetFormat::B5G6R5_UNORM:
-    case Tegra::RenderTargetFormat::BGR5A1_UNORM:
-    case Tegra::RenderTargetFormat::RG8_UNORM:
-    case Tegra::RenderTargetFormat::RGBA16_UNORM:
-        return ComponentType::UNorm;
-    case Tegra::RenderTargetFormat::RGBA8_SNORM:
-    case Tegra::RenderTargetFormat::RG16_SNORM:
-    case Tegra::RenderTargetFormat::R16_SNORM:
-    case Tegra::RenderTargetFormat::RG8_SNORM:
-        return ComponentType::SNorm;
-    case Tegra::RenderTargetFormat::RGBA16_FLOAT:
-    case Tegra::RenderTargetFormat::RGBX16_FLOAT:
-    case Tegra::RenderTargetFormat::R11G11B10_FLOAT:
-    case Tegra::RenderTargetFormat::RGBA32_FLOAT:
-    case Tegra::RenderTargetFormat::RG32_FLOAT:
-    case Tegra::RenderTargetFormat::RG16_FLOAT:
-    case Tegra::RenderTargetFormat::R16_FLOAT:
-    case Tegra::RenderTargetFormat::R32_FLOAT:
-        return ComponentType::Float;
-    case Tegra::RenderTargetFormat::RGBA32_UINT:
-    case Tegra::RenderTargetFormat::RGBA16_UINT:
-    case Tegra::RenderTargetFormat::RG16_UINT:
-    case Tegra::RenderTargetFormat::R8_UINT:
-    case Tegra::RenderTargetFormat::R16_UINT:
-    case Tegra::RenderTargetFormat::RG32_UINT:
-    case Tegra::RenderTargetFormat::R32_UINT:
-    case Tegra::RenderTargetFormat::RGBA8_UINT:
-        return ComponentType::UInt;
-    case Tegra::RenderTargetFormat::RG16_SINT:
-    case Tegra::RenderTargetFormat::R16_SINT:
-        return ComponentType::SInt;
-    default:
-        LOG_CRITICAL(HW_GPU, "Unimplemented format={}", static_cast<u32>(format));
-        UNREACHABLE();
-        return ComponentType::UNorm;
-    }
-}
-
 PixelFormat PixelFormatFromGPUPixelFormat(Tegra::FramebufferConfig::PixelFormat format) {
     switch (format) {
     case Tegra::FramebufferConfig::PixelFormat::ABGR8:
@@ -484,22 +415,6 @@ PixelFormat PixelFormatFromGPUPixelFormat(Tegra::FramebufferConfig::PixelFormat 
     default:
         UNIMPLEMENTED_MSG("Unimplemented format={}", static_cast<u32>(format));
         return PixelFormat::ABGR8U;
-    }
-}
-
-ComponentType ComponentTypeFromDepthFormat(Tegra::DepthFormat format) {
-    switch (format) {
-    case Tegra::DepthFormat::Z16_UNORM:
-    case Tegra::DepthFormat::S8_Z24_UNORM:
-    case Tegra::DepthFormat::Z24_S8_UNORM:
-        return ComponentType::UNorm;
-    case Tegra::DepthFormat::Z32_FLOAT:
-    case Tegra::DepthFormat::Z32_S8_X24_FLOAT:
-        return ComponentType::Float;
-    default:
-        LOG_CRITICAL(HW_GPU, "Unimplemented format={}", static_cast<u32>(format));
-        UNREACHABLE();
-        return ComponentType::UNorm;
     }
 }
 

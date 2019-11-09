@@ -95,83 +95,82 @@ vk::CompareOp DepthCompareFunction(Tegra::Texture::DepthCompareFunc depth_compar
 } // namespace Sampler
 
 struct FormatTuple {
-    vk::Format format;            ///< Vulkan format
-    ComponentType component_type; ///< Abstracted component type
-    bool attachable;              ///< True when this format can be used as an attachment
+    vk::Format format; ///< Vulkan format
+    bool attachable;   ///< True when this format can be used as an attachment
 };
 
 static constexpr std::array<FormatTuple, VideoCore::Surface::MaxPixelFormat> tex_format_tuples = {{
-    {vk::Format::eA8B8G8R8UnormPack32, ComponentType::UNorm, true},    // ABGR8U
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // ABGR8S
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // ABGR8UI
-    {vk::Format::eB5G6R5UnormPack16, ComponentType::UNorm, false},     // B5G6R5U
-    {vk::Format::eA2B10G10R10UnormPack32, ComponentType::UNorm, true}, // A2B10G10R10U
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // A1B5G5R5U
-    {vk::Format::eR8Unorm, ComponentType::UNorm, true},                // R8U
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // R8UI
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // RGBA16F
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // RGBA16U
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // RGBA16UI
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // R11FG11FB10F
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // RGBA32UI
-    {vk::Format::eBc1RgbaUnormBlock, ComponentType::UNorm, false},     // DXT1
-    {vk::Format::eBc2UnormBlock, ComponentType::UNorm, false},         // DXT23
-    {vk::Format::eBc3UnormBlock, ComponentType::UNorm, false},         // DXT45
-    {vk::Format::eBc4UnormBlock, ComponentType::UNorm, false},         // DXN1
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // DXN2UNORM
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // DXN2SNORM
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // BC7U
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // BC6H_UF16
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // BC6H_SF16
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // ASTC_2D_4X4
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // BGRA8
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // RGBA32F
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // RG32F
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // R32F
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // R16F
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // R16U
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // R16S
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // R16UI
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // R16I
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // RG16
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // RG16F
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // RG16UI
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // RG16I
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // RG16S
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // RGB32F
-    {vk::Format::eA8B8G8R8SrgbPack32, ComponentType::UNorm, true},     // RGBA8_SRGB
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // RG8U
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // RG8S
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // RG32UI
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // RGBX16F
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // R32UI
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // ASTC_2D_8X8
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // ASTC_2D_8X5
-    {vk::Format::eUndefined, ComponentType::Invalid, false},           // ASTC_2D_5X4
+    {vk::Format::eA8B8G8R8UnormPack32, true},    // ABGR8U
+    {vk::Format::eUndefined, false},             // ABGR8S
+    {vk::Format::eUndefined, false},             // ABGR8UI
+    {vk::Format::eB5G6R5UnormPack16, false},     // B5G6R5U
+    {vk::Format::eA2B10G10R10UnormPack32, true}, // A2B10G10R10U
+    {vk::Format::eUndefined, false},             // A1B5G5R5U
+    {vk::Format::eR8Unorm, true},                // R8U
+    {vk::Format::eUndefined, false},             // R8UI
+    {vk::Format::eUndefined, false},             // RGBA16F
+    {vk::Format::eUndefined, false},             // RGBA16U
+    {vk::Format::eUndefined, false},             // RGBA16UI
+    {vk::Format::eUndefined, false},             // R11FG11FB10F
+    {vk::Format::eUndefined, false},             // RGBA32UI
+    {vk::Format::eBc1RgbaUnormBlock, false},     // DXT1
+    {vk::Format::eBc2UnormBlock, false},         // DXT23
+    {vk::Format::eBc3UnormBlock, false},         // DXT45
+    {vk::Format::eBc4UnormBlock, false},         // DXN1
+    {vk::Format::eUndefined, false},             // DXN2UNORM
+    {vk::Format::eUndefined, false},             // DXN2SNORM
+    {vk::Format::eUndefined, false},             // BC7U
+    {vk::Format::eUndefined, false},             // BC6H_UF16
+    {vk::Format::eUndefined, false},             // BC6H_SF16
+    {vk::Format::eUndefined, false},             // ASTC_2D_4X4
+    {vk::Format::eUndefined, false},             // BGRA8
+    {vk::Format::eUndefined, false},             // RGBA32F
+    {vk::Format::eUndefined, false},             // RG32F
+    {vk::Format::eUndefined, false},             // R32F
+    {vk::Format::eUndefined, false},             // R16F
+    {vk::Format::eUndefined, false},             // R16U
+    {vk::Format::eUndefined, false},             // R16S
+    {vk::Format::eUndefined, false},             // R16UI
+    {vk::Format::eUndefined, false},             // R16I
+    {vk::Format::eUndefined, false},             // RG16
+    {vk::Format::eUndefined, false},             // RG16F
+    {vk::Format::eUndefined, false},             // RG16UI
+    {vk::Format::eUndefined, false},             // RG16I
+    {vk::Format::eUndefined, false},             // RG16S
+    {vk::Format::eUndefined, false},             // RGB32F
+    {vk::Format::eA8B8G8R8SrgbPack32, true},     // RGBA8_SRGB
+    {vk::Format::eUndefined, false},             // RG8U
+    {vk::Format::eUndefined, false},             // RG8S
+    {vk::Format::eUndefined, false},             // RG32UI
+    {vk::Format::eUndefined, false},             // RGBX16F
+    {vk::Format::eUndefined, false},             // R32UI
+    {vk::Format::eUndefined, false},             // ASTC_2D_8X8
+    {vk::Format::eUndefined, false},             // ASTC_2D_8X5
+    {vk::Format::eUndefined, false},             // ASTC_2D_5X4
 
     // Compressed sRGB formats
-    {vk::Format::eUndefined, ComponentType::Invalid, false}, // BGRA8_SRGB
-    {vk::Format::eUndefined, ComponentType::Invalid, false}, // DXT1_SRGB
-    {vk::Format::eUndefined, ComponentType::Invalid, false}, // DXT23_SRGB
-    {vk::Format::eUndefined, ComponentType::Invalid, false}, // DXT45_SRGB
-    {vk::Format::eUndefined, ComponentType::Invalid, false}, // BC7U_SRGB
-    {vk::Format::eUndefined, ComponentType::Invalid, false}, // ASTC_2D_4X4_SRGB
-    {vk::Format::eUndefined, ComponentType::Invalid, false}, // ASTC_2D_8X8_SRGB
-    {vk::Format::eUndefined, ComponentType::Invalid, false}, // ASTC_2D_8X5_SRGB
-    {vk::Format::eUndefined, ComponentType::Invalid, false}, // ASTC_2D_5X4_SRGB
-    {vk::Format::eUndefined, ComponentType::Invalid, false}, // ASTC_2D_5X5
-    {vk::Format::eUndefined, ComponentType::Invalid, false}, // ASTC_2D_5X5_SRGB
-    {vk::Format::eUndefined, ComponentType::Invalid, false}, // ASTC_2D_10X8
-    {vk::Format::eUndefined, ComponentType::Invalid, false}, // ASTC_2D_10X8_SRGB
+    {vk::Format::eUndefined, false}, // BGRA8_SRGB
+    {vk::Format::eUndefined, false}, // DXT1_SRGB
+    {vk::Format::eUndefined, false}, // DXT23_SRGB
+    {vk::Format::eUndefined, false}, // DXT45_SRGB
+    {vk::Format::eUndefined, false}, // BC7U_SRGB
+    {vk::Format::eUndefined, false}, // ASTC_2D_4X4_SRGB
+    {vk::Format::eUndefined, false}, // ASTC_2D_8X8_SRGB
+    {vk::Format::eUndefined, false}, // ASTC_2D_8X5_SRGB
+    {vk::Format::eUndefined, false}, // ASTC_2D_5X4_SRGB
+    {vk::Format::eUndefined, false}, // ASTC_2D_5X5
+    {vk::Format::eUndefined, false}, // ASTC_2D_5X5_SRGB
+    {vk::Format::eUndefined, false}, // ASTC_2D_10X8
+    {vk::Format::eUndefined, false}, // ASTC_2D_10X8_SRGB
 
     // Depth formats
-    {vk::Format::eD32Sfloat, ComponentType::Float, true}, // Z32F
-    {vk::Format::eD16Unorm, ComponentType::UNorm, true},  // Z16
+    {vk::Format::eD32Sfloat, true}, // Z32F
+    {vk::Format::eD16Unorm, true},  // Z16
 
     // DepthStencil formats
-    {vk::Format::eD24UnormS8Uint, ComponentType::UNorm, true}, // Z24S8
-    {vk::Format::eD24UnormS8Uint, ComponentType::UNorm, true}, // S8Z24 (emulated)
-    {vk::Format::eUndefined, ComponentType::Invalid, false},   // Z32FS8
+    {vk::Format::eD24UnormS8Uint, true}, // Z24S8
+    {vk::Format::eD24UnormS8Uint, true}, // S8Z24 (emulated)
+    {vk::Format::eUndefined, false},     // Z32FS8
 }};
 
 static constexpr bool IsZetaFormat(PixelFormat pixel_format) {
@@ -180,14 +179,13 @@ static constexpr bool IsZetaFormat(PixelFormat pixel_format) {
 }
 
 std::pair<vk::Format, bool> SurfaceFormat(const VKDevice& device, FormatType format_type,
-                                          PixelFormat pixel_format, ComponentType component_type) {
+                                          PixelFormat pixel_format) {
     ASSERT(static_cast<std::size_t>(pixel_format) < tex_format_tuples.size());
 
     const auto tuple = tex_format_tuples[static_cast<u32>(pixel_format)];
     UNIMPLEMENTED_IF_MSG(tuple.format == vk::Format::eUndefined,
-                         "Unimplemented texture format with pixel format={} and component type={}",
-                         static_cast<u32>(pixel_format), static_cast<u32>(component_type));
-    ASSERT_MSG(component_type == tuple.component_type, "Component type mismatch");
+                         "Unimplemented texture format with pixel format={}",
+                         static_cast<u32>(pixel_format));
 
     auto usage = vk::FormatFeatureFlagBits::eSampledImage |
                  vk::FormatFeatureFlagBits::eTransferDst | vk::FormatFeatureFlagBits::eTransferSrc;
