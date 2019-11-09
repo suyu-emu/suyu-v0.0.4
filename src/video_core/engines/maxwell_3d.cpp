@@ -742,14 +742,6 @@ Texture::TICEntry Maxwell3D::GetTICEntry(u32 tic_index) const {
     Texture::TICEntry tic_entry;
     memory_manager.ReadBlockUnsafe(tic_address_gpu, &tic_entry, sizeof(Texture::TICEntry));
 
-    [[maybe_unused]] const auto r_type{tic_entry.r_type.Value()};
-    [[maybe_unused]] const auto g_type{tic_entry.g_type.Value()};
-    [[maybe_unused]] const auto b_type{tic_entry.b_type.Value()};
-    [[maybe_unused]] const auto a_type{tic_entry.a_type.Value()};
-
-    // TODO(Subv): Different data types for separate components are not supported
-    DEBUG_ASSERT(r_type == g_type && r_type == b_type && r_type == a_type);
-
     return tic_entry;
 }
 

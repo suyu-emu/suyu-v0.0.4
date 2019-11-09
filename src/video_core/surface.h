@@ -106,7 +106,6 @@ enum class PixelFormat {
     Max = MaxDepthStencilFormat,
     Invalid = 255,
 };
-
 static constexpr std::size_t MaxPixelFormat = static_cast<std::size_t>(PixelFormat::Max);
 
 enum class SurfaceType {
@@ -599,10 +598,6 @@ bool SurfaceTargetIsArray(SurfaceTarget target);
 PixelFormat PixelFormatFromDepthFormat(Tegra::DepthFormat format);
 
 PixelFormat PixelFormatFromRenderTargetFormat(Tegra::RenderTargetFormat format);
-
-PixelFormat PixelFormatFromTextureFormat(Tegra::Texture::TextureFormat format,
-                                         Tegra::Texture::ComponentType component_type,
-                                         bool is_srgb);
 
 PixelFormat PixelFormatFromGPUPixelFormat(Tegra::FramebufferConfig::PixelFormat format);
 

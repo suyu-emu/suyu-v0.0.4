@@ -29,6 +29,7 @@
 #include "video_core/rasterizer_interface.h"
 #include "video_core/surface.h"
 #include "video_core/texture_cache/copy_params.h"
+#include "video_core/texture_cache/format_lookup_table.h"
 #include "video_core/texture_cache/surface_base.h"
 #include "video_core/texture_cache/surface_params.h"
 #include "video_core/texture_cache/surface_view.h"
@@ -96,7 +97,7 @@ public:
         if (!gpu_addr) {
             return {};
         }
-        const auto params{SurfaceParams::CreateForTexture(tic, entry)};
+        const auto params{SurfaceParams::CreateForTexture(format_lookup_table, tic, entry)};
         const auto [surface, view] = GetSurface(gpu_addr, params, true, false);
         if (guard_samplers) {
             sampled_textures.push_back(surface);
@@ -111,7 +112,7 @@ public:
         if (!gpu_addr) {
             return {};
         }
-        const auto params{SurfaceParams::CreateForImage(tic, entry)};
+        const auto params{SurfaceParams::CreateForImage(format_lookup_table, tic, entry)};
         const auto [surface, view] = GetSurface(gpu_addr, params, true, false);
         if (guard_samplers) {
             sampled_textures.push_back(surface);
@@ -952,6 +953,8 @@ private:
     };
 
     VideoCore::RasterizerInterface& rasterizer;
+
+    FormatLookupTable format_lookup_table;
 
     u64 ticks{};
 

@@ -16,16 +16,20 @@
 
 namespace VideoCommon {
 
+class FormatLookupTable;
+
 using VideoCore::Surface::SurfaceCompression;
 
 class SurfaceParams {
 public:
     /// Creates SurfaceCachedParams from a texture configuration.
-    static SurfaceParams CreateForTexture(const Tegra::Texture::TICEntry& tic,
+    static SurfaceParams CreateForTexture(const FormatLookupTable& lookup_table,
+                                          const Tegra::Texture::TICEntry& tic,
                                           const VideoCommon::Shader::Sampler& entry);
 
     /// Creates SurfaceCachedParams from an image configuration.
-    static SurfaceParams CreateForImage(const Tegra::Texture::TICEntry& tic,
+    static SurfaceParams CreateForImage(const FormatLookupTable& lookup_table,
+                                        const Tegra::Texture::TICEntry& tic,
                                         const VideoCommon::Shader::Image& entry);
 
     /// Creates SurfaceCachedParams for a depth buffer configuration.

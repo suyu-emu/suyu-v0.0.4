@@ -2,13 +2,16 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <map>
+#include <algorithm>
+#include <string>
+#include <tuple>
 
 #include "common/alignment.h"
 #include "common/bit_util.h"
 #include "core/core.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/surface.h"
+#include "video_core/texture_cache/format_lookup_table.h"
 #include "video_core/texture_cache/surface_params.h"
 
 namespace VideoCommon {
@@ -16,7 +19,6 @@ namespace VideoCommon {
 using VideoCore::Surface::PixelFormat;
 using VideoCore::Surface::PixelFormatFromDepthFormat;
 using VideoCore::Surface::PixelFormatFromRenderTargetFormat;
-using VideoCore::Surface::PixelFormatFromTextureFormat;
 using VideoCore::Surface::SurfaceTarget;
 using VideoCore::Surface::SurfaceTargetFromTextureType;
 using VideoCore::Surface::SurfaceType;
@@ -66,7 +68,8 @@ constexpr u32 GetMipmapSize(bool uncompressed, u32 mip_size, u32 tile) {
 
 } // Anonymous namespace
 
-SurfaceParams SurfaceParams::CreateForTexture(const Tegra::Texture::TICEntry& tic,
+SurfaceParams SurfaceParams::CreateForTexture(const FormatLookupTable& lookup_table,
+                                              const Tegra::Texture::TICEntry& tic,
                                               const VideoCommon::Shader::Sampler& entry) {
     SurfaceParams params;
     params.is_tiled = tic.IsTiled();
@@ -75,8 +78,8 @@ SurfaceParams SurfaceParams::CreateForTexture(const Tegra::Texture::TICEntry& ti
     params.block_height = params.is_tiled ? tic.BlockHeight() : 0,
     params.block_depth = params.is_tiled ? tic.BlockDepth() : 0,
     params.tile_width_spacing = params.is_tiled ? (1 << tic.tile_width_spacing.Value()) : 1;
-    params.pixel_format =
-        PixelFormatFromTextureFormat(tic.format, tic.r_type.Value(), params.srgb_conversion);
+    params.pixel_format = lookup_table.GetPixelFormat(
+        tic.format, params.srgb_conversion, tic.r_type, tic.g_type, tic.b_type, tic.a_type);
     params.type = GetFormatType(params.pixel_format);
     if (entry.IsShadow() && params.type == SurfaceType::ColorTexture) {
         switch (params.pixel_format) {
@@ -124,7 +127,8 @@ SurfaceParams SurfaceParams::CreateForTexture(const Tegra::Texture::TICEntry& ti
     return params;
 }
 
-SurfaceParams SurfaceParams::CreateForImage(const Tegra::Texture::TICEntry& tic,
+SurfaceParams SurfaceParams::CreateForImage(const FormatLookupTable& lookup_table,
+                                            const Tegra::Texture::TICEntry& tic,
                                             const VideoCommon::Shader::Image& entry) {
     SurfaceParams params;
     params.is_tiled = tic.IsTiled();
@@ -133,8 +137,8 @@ SurfaceParams SurfaceParams::CreateForImage(const Tegra::Texture::TICEntry& tic,
     params.block_height = params.is_tiled ? tic.BlockHeight() : 0,
     params.block_depth = params.is_tiled ? tic.BlockDepth() : 0,
     params.tile_width_spacing = params.is_tiled ? (1 << tic.tile_width_spacing.Value()) : 1;
-    params.pixel_format =
-        PixelFormatFromTextureFormat(tic.format, tic.r_type.Value(), params.srgb_conversion);
+    params.pixel_format = lookup_table.GetPixelFormat(
+        tic.format, params.srgb_conversion, tic.r_type, tic.g_type, tic.b_type, tic.a_type);
     params.type = GetFormatType(params.pixel_format);
     params.type = GetFormatType(params.pixel_format);
     params.target = ImageTypeToSurfaceTarget(entry.GetType());
