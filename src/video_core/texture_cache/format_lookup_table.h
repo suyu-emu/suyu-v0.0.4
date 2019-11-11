@@ -5,7 +5,7 @@
 #pragma once
 
 #include <array>
-#include <numeric>
+#include <limits>
 #include "video_core/surface.h"
 #include "video_core/textures/texture.h"
 

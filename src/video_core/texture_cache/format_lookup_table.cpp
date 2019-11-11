@@ -15,34 +15,31 @@ using VideoCore::Surface::PixelFormat;
 
 namespace {
 
-static constexpr auto SNORM = ComponentType::SNORM;
-static constexpr auto UNORM = ComponentType::UNORM;
-static constexpr auto SINT = ComponentType::SINT;
-static constexpr auto UINT = ComponentType::UINT;
-static constexpr auto SNORM_FORCE_FP16 = ComponentType::SNORM_FORCE_FP16;
-static constexpr auto UNORM_FORCE_FP16 = ComponentType::UNORM_FORCE_FP16;
-static constexpr auto FLOAT = ComponentType::FLOAT;
-static constexpr bool C = false; // Normal color
-static constexpr bool S = true;  // Srgb
+constexpr auto SNORM = ComponentType::SNORM;
+constexpr auto UNORM = ComponentType::UNORM;
+constexpr auto SINT = ComponentType::SINT;
+constexpr auto UINT = ComponentType::UINT;
+constexpr auto SNORM_FORCE_FP16 = ComponentType::SNORM_FORCE_FP16;
+constexpr auto UNORM_FORCE_FP16 = ComponentType::UNORM_FORCE_FP16;
+constexpr auto FLOAT = ComponentType::FLOAT;
+constexpr bool C = false; // Normal color
+constexpr bool S = true;  // Srgb
 
 struct Table {
     constexpr Table(TextureFormat texture_format, bool is_srgb, ComponentType red_component,
                     ComponentType green_component, ComponentType blue_component,
                     ComponentType alpha_component, PixelFormat pixel_format)
-        : texture_format{static_cast<u32>(texture_format)},
-          pixel_format{static_cast<u32>(pixel_format)}, red_component{static_cast<u32>(
-                                                            red_component)},
-          green_component{static_cast<u32>(green_component)}, blue_component{static_cast<u32>(
-                                                                  blue_component)},
-          alpha_component{static_cast<u32>(alpha_component)}, is_srgb{is_srgb ? 1U : 0U} {}
+        : texture_format{texture_format}, pixel_format{pixel_format}, red_component{red_component},
+          green_component{green_component}, blue_component{blue_component},
+          alpha_component{alpha_component}, is_srgb{is_srgb} {}
 
-    u32 texture_format : 8;
-    u32 pixel_format : 8;
-    u32 red_component : 3;
-    u32 green_component : 3;
-    u32 blue_component : 3;
-    u32 alpha_component : 3;
-    u32 is_srgb : 1;
+    TextureFormat texture_format;
+    PixelFormat pixel_format;
+    ComponentType red_component;
+    ComponentType green_component;
+    ComponentType blue_component;
+    ComponentType alpha_component;
+    bool is_srgb;
 };
 constexpr std::array<Table, 74> DefinitionTable = {{
     {TextureFormat::A8R8G8B8, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ABGR8U},
@@ -161,12 +158,9 @@ constexpr std::array<Table, 74> DefinitionTable = {{
 FormatLookupTable::FormatLookupTable() {
     table.fill(static_cast<u8>(PixelFormat::Invalid));
 
-    for (const auto entry : DefinitionTable) {
-        table[CalculateIndex(static_cast<TextureFormat>(entry.texture_format), entry.is_srgb != 0,
-                             static_cast<ComponentType>(entry.red_component),
-                             static_cast<ComponentType>(entry.green_component),
-                             static_cast<ComponentType>(entry.blue_component),
-                             static_cast<ComponentType>(entry.alpha_component))] =
+    for (const auto& entry : DefinitionTable) {
+        table[CalculateIndex(entry.texture_format, entry.is_srgb != 0, entry.red_component,
+                             entry.green_component, entry.blue_component, entry.alpha_component)] =
             static_cast<u8>(entry.pixel_format);
     }
 }
