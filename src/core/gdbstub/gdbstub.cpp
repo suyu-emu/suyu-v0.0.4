@@ -468,7 +468,8 @@ static u8 ReadByte() {
 
 /// Calculate the checksum of the current command buffer.
 static u8 CalculateChecksum(const u8* buffer, std::size_t length) {
-    return static_cast<u8>(std::accumulate(buffer, buffer + length, 0, std::plus<u8>()));
+    return static_cast<u8>(std::accumulate(buffer, buffer + length, u8{0},
+                                           [](u8 lhs, u8 rhs) { return u8(lhs + rhs); }));
 }
 
 /**
