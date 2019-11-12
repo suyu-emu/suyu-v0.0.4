@@ -67,10 +67,11 @@ ARM_Unicorn::ARM_Unicorn(System& system) : system{system} {
     CHECKED(uc_reg_write(uc, UC_ARM64_REG_CPACR_EL1, &fpv));
 
     uc_hook hook{};
-    CHECKED(uc_hook_add(uc, &hook, UC_HOOK_INTR, (void*)InterruptHook, this, 0, -1));
-    CHECKED(uc_hook_add(uc, &hook, UC_HOOK_MEM_INVALID, (void*)UnmappedMemoryHook, &system, 0, -1));
+    CHECKED(uc_hook_add(uc, &hook, UC_HOOK_INTR, (void*)InterruptHook, this, 0, UINT64_MAX));
+    CHECKED(uc_hook_add(uc, &hook, UC_HOOK_MEM_INVALID, (void*)UnmappedMemoryHook, &system, 0,
+                        UINT64_MAX));
     if (GDBStub::IsServerEnabled()) {
-        CHECKED(uc_hook_add(uc, &hook, UC_HOOK_CODE, (void*)CodeHook, this, 0, -1));
+        CHECKED(uc_hook_add(uc, &hook, UC_HOOK_CODE, (void*)CodeHook, this, 0, UINT64_MAX));
         last_bkpt_hit = false;
     }
 }
@@ -154,9 +155,10 @@ void ARM_Unicorn::SetTPIDR_EL0(u64 value) {
 
 void ARM_Unicorn::Run() {
     if (GDBStub::IsServerEnabled()) {
-        ExecuteInstructions(std::max(4000000, 0));
+        ExecuteInstructions(std::max(4000000U, 0U));
     } else {
-        ExecuteInstructions(std::max(system.CoreTiming().GetDowncount(), s64{0}));
+        ExecuteInstructions(
+            std::max(std::size_t(system.CoreTiming().GetDowncount()), std::size_t{0}));
     }
 }
 
@@ -166,7 +168,7 @@ void ARM_Unicorn::Step() {
 
 MICROPROFILE_DEFINE(ARM_Jit_Unicorn, "ARM JIT", "Unicorn", MP_RGB(255, 64, 64));
 
-void ARM_Unicorn::ExecuteInstructions(int num_instructions) {
+void ARM_Unicorn::ExecuteInstructions(std::size_t num_instructions) {
     MICROPROFILE_SCOPE(ARM_Jit_Unicorn);
     CHECKED(uc_emu_start(uc, GetPC(), 1ULL << 63, 0, num_instructions));
     system.CoreTiming().AddTicks(num_instructions);
