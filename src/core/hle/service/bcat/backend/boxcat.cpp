@@ -255,7 +255,7 @@ private:
     using Digest = std::array<u8, 0x20>;
     static Digest DigestFile(std::vector<u8> bytes) {
         Digest out{};
-        mbedtls_sha256(bytes.data(), bytes.size(), out.data(), 0);
+        mbedtls_sha256_ret(bytes.data(), bytes.size(), out.data(), 0);
         return out;
     }
 

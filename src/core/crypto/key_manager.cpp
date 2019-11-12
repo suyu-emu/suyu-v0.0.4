@@ -396,7 +396,7 @@ static std::array<u8, target_size> MGF1(const std::array<u8, in_size>& seed) {
     while (out.size() < target_size) {
         out.resize(out.size() + 0x20);
         seed_exp[in_size + 3] = static_cast<u8>(i);
-        mbedtls_sha256(seed_exp.data(), seed_exp.size(), out.data() + out.size() - 0x20, 0);
+        mbedtls_sha256_ret(seed_exp.data(), seed_exp.size(), out.data() + out.size() - 0x20, 0);
         ++i;
     }
 
