@@ -991,7 +991,7 @@ void ILibraryAppletCreator::CreateLibraryApplet(Kernel::HLERequestContext& ctx) 
         LOG_ERROR(Service_AM, "Applet doesn't exist! applet_id={}", static_cast<u32>(applet_id));
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultCode(-1));
+        rb.Push(RESULT_UNKNOWN);
         return;
     }
 
@@ -1027,7 +1027,7 @@ void ILibraryAppletCreator::CreateTransferMemoryStorage(Kernel::HLERequestContex
     if (transfer_mem == nullptr) {
         LOG_ERROR(Service_AM, "shared_mem is a nullpr for handle={:08X}", handle);
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultCode(-1));
+        rb.Push(RESULT_UNKNOWN);
         return;
     }
 

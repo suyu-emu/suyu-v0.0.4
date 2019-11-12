@@ -97,7 +97,7 @@ void EncryptSharedFont(const std::vector<u32>& input, std::vector<u8>& output,
     const auto key = Common::swap32(EXPECTED_RESULT ^ EXPECTED_MAGIC);
     std::vector<u32> transformed_font(input.size() + 2);
     transformed_font[0] = Common::swap32(EXPECTED_MAGIC);
-    transformed_font[1] = Common::swap32(input.size() * sizeof(u32)) ^ key;
+    transformed_font[1] = Common::swap32(static_cast<u32>(input.size() * sizeof(u32))) ^ key;
     std::transform(input.begin(), input.end(), transformed_font.begin() + 2,
                    [key](u32 in) { return in ^ key; });
     std::memcpy(output.data() + offset, transformed_font.data(),

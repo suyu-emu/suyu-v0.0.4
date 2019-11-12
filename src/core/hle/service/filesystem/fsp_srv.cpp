@@ -785,7 +785,7 @@ void FSP_SRV::OpenFileSystemWithPatch(Kernel::HLERequestContext& ctx) {
                 static_cast<u8>(type), title_id);
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 0};
-    rb.Push(ResultCode(-1));
+    rb.Push(RESULT_UNKNOWN);
 }
 
 void FSP_SRV::OpenSdCardFileSystem(Kernel::HLERequestContext& ctx) {
@@ -891,7 +891,7 @@ void FSP_SRV::OpenDataStorageByCurrentProcess(Kernel::HLERequestContext& ctx) {
         // TODO (bunnei): Find the right error code to use here
         LOG_CRITICAL(Service_FS, "no file system interface available!");
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultCode(-1));
+        rb.Push(RESULT_UNKNOWN);
         return;
     }
 
@@ -928,7 +928,7 @@ void FSP_SRV::OpenDataStorageByDataId(Kernel::HLERequestContext& ctx) {
                   "could not open data storage with title_id={:016X}, storage_id={:02X}", title_id,
                   static_cast<u8>(storage_id));
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultCode(-1));
+        rb.Push(RESULT_UNKNOWN);
         return;
     }
 

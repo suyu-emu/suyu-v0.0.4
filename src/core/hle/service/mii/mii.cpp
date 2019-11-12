@@ -242,7 +242,7 @@ private:
         const auto index = db.IndexOf(uuid);
         if (index > MAX_MIIS) {
             // TODO(DarkLordZach): Find a better error code
-            rb.Push(ResultCode(-1));
+            rb.Push(RESULT_UNKNOWN);
             rb.Push(index);
         } else {
             rb.Push(RESULT_SUCCESS);
@@ -268,7 +268,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
         // TODO(DarkLordZach): Find a better error code
-        rb.Push(success ? RESULT_SUCCESS : ResultCode(-1));
+        rb.Push(success ? RESULT_SUCCESS : RESULT_UNKNOWN);
     }
 
     void AddOrReplace(Kernel::HLERequestContext& ctx) {
@@ -282,7 +282,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
         // TODO(DarkLordZach): Find a better error code
-        rb.Push(success ? RESULT_SUCCESS : ResultCode(-1));
+        rb.Push(success ? RESULT_SUCCESS : RESULT_UNKNOWN);
     }
 
     void Delete(Kernel::HLERequestContext& ctx) {

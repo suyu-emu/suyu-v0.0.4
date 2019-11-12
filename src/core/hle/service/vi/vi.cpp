@@ -541,7 +541,7 @@ private:
             } else {
                 // Wait the current thread until a buffer becomes available
                 ctx.SleepClientThread(
-                    "IHOSBinderDriver::DequeueBuffer", -1,
+                    "IHOSBinderDriver::DequeueBuffer", UINT64_MAX,
                     [=](Kernel::SharedPtr<Kernel::Thread> thread, Kernel::HLERequestContext& ctx,
                         Kernel::ThreadWakeupReason reason) {
                         // Repeat TransactParcel DequeueBuffer when a buffer is available

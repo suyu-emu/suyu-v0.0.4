@@ -34,12 +34,12 @@ static void PosixToCalendar(u64 posix_time, CalendarTime& calendar_time,
         additional_info = {};
         return;
     }
-    calendar_time.year = tm->tm_year + 1900;
-    calendar_time.month = tm->tm_mon + 1;
-    calendar_time.day = tm->tm_mday;
-    calendar_time.hour = tm->tm_hour;
-    calendar_time.minute = tm->tm_min;
-    calendar_time.second = tm->tm_sec;
+    calendar_time.year = static_cast<u16_le>(tm->tm_year + 1900);
+    calendar_time.month = static_cast<u8>(tm->tm_mon + 1);
+    calendar_time.day = static_cast<u8>(tm->tm_mday);
+    calendar_time.hour = static_cast<u8>(tm->tm_hour);
+    calendar_time.minute = static_cast<u8>(tm->tm_min);
+    calendar_time.second = static_cast<u8>(tm->tm_sec);
 
     additional_info.day_of_week = tm->tm_wday;
     additional_info.day_of_year = tm->tm_yday;
@@ -322,7 +322,7 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
     if (tm == nullptr) {
         LOG_ERROR(Service_Time, "tm is a nullptr");
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultCode(-1)); // TODO(ogniK): Find appropriate error code
+        rb.Push(RESULT_UNKNOWN); // TODO(ogniK): Find appropriate error code
         return;
     }
 
@@ -331,12 +331,12 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
     const SteadyClockTimePoint steady_clock_time_point{static_cast<u64_le>(ms.count() / 1000), {}};
 
     CalendarTime calendar_time{};
-    calendar_time.year = tm->tm_year + 1900;
-    calendar_time.month = tm->tm_mon + 1;
-    calendar_time.day = tm->tm_mday;
-    calendar_time.hour = tm->tm_hour;
-    calendar_time.minute = tm->tm_min;
-    calendar_time.second = tm->tm_sec;
+    calendar_time.year = static_cast<u16_le>(tm->tm_year + 1900);
+    calendar_time.month = static_cast<u8>(tm->tm_mon + 1);
+    calendar_time.day = static_cast<u8>(tm->tm_mday);
+    calendar_time.hour = static_cast<u8>(tm->tm_hour);
+    calendar_time.minute = static_cast<u8>(tm->tm_min);
+    calendar_time.second = static_cast<u8>(tm->tm_sec);
 
     ClockSnapshot clock_snapshot{};
     clock_snapshot.system_posix_time = time_since_epoch;

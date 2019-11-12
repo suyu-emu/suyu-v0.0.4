@@ -16,10 +16,7 @@
 #include "core/hle/service/nfp/nfp_user.h"
 
 namespace Service::NFP {
-
 namespace ErrCodes {
-[[maybe_unused]] constexpr ResultCode ERR_TAG_FAILED(ErrorModule::NFP,
-                                                     -1); // TODO(ogniK): Find the actual error code
 constexpr ResultCode ERR_NO_APPLICATION_AREA(ErrorModule::NFP, 152);
 } // namespace ErrCodes
 
