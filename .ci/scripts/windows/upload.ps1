@@ -14,6 +14,7 @@ $MSVC_BUILD_PDB = "yuzu-windows-msvc-$GITDATE-$GITREV-debugsymbols.zip" -replace
 $MSVC_SEVENZIP = "yuzu-windows-msvc-$GITDATE-$GITREV.7z" -replace " ", ""
 $MSVC_TAR = "yuzu-windows-msvc-$GITDATE-$GITREV.tar" -replace " ", ""
 $MSVC_TARXZ = "yuzu-windows-msvc-$GITDATE-$GITREV.tar.xz" -replace " ", ""
+$MSVC_SOURCE = "yuzu-windows-msvc-source-$GITDATE-$GITREV.tar.xz" -replace " ", ""
 
 $env:BUILD_ZIP = $MSVC_BUILD_ZIP
 $env:BUILD_SYMBOLS = $MSVC_BUILD_PDB
@@ -34,6 +35,8 @@ Get-ChildItem "$BUILD_DIR" -Recurse -Filter "yuzu*.exe" | Copy-Item -destination
 Get-ChildItem "$BUILD_DIR" -Recurse -Filter "QtWebEngineProcess*.exe" | Copy-Item -destination $RELEASE_DIST
 Copy-Item .\license.txt -Destination $RELEASE_DIST
 Copy-Item .\README.md -Destination $RELEASE_DIST
+Copy-Item .\src -Recurse -Destination $RELEASE_DIST
+Copy-Item .\externals -Recurse -Destination $RELEASE_DIST
 7z a -tzip $MSVC_BUILD_ZIP $RELEASE_DIST\*
 7z a $MSVC_SEVENZIP $RELEASE_DIST
 
