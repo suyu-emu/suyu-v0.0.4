@@ -44,6 +44,10 @@ public:
             {113, nullptr, "DestroyJid"},
             {114, nullptr, "AttachJid"},
             {115, nullptr, "DetachJid"},
+            {120, nullptr, "CreateNotificationReceiver"},
+            {151, nullptr, "GetStateWithHandover"},
+            {152, nullptr, "GetStateChangeEventWithHandover"},
+            {153, nullptr, "GetDropEventWithHandover"},
             {201, nullptr, "RequestChangeStateForceTimed"},
             {202, nullptr, "RequestChangeStateForceAsync"},
         };
@@ -74,6 +78,9 @@ public:
             {104, nullptr, "GetStatistics"},
             {111, nullptr, "GetJid"},
             {120, nullptr, "CreateNotificationReceiver"},
+            {151, nullptr, "GetStateWithHandover"},
+            {152, nullptr, "GetStateChangeEventWithHandover"},
+            {153, nullptr, "GetDropEventWithHandover"},
         };
         // clang-format on
 

@@ -7,6 +7,7 @@
 namespace Service::Set {
 
 SET_FD::SET_FD() : ServiceFramework("set:fd") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {2, nullptr, "SetSettingsItemValue"},
         {3, nullptr, "ResetSettingsItemValue"},
@@ -16,7 +17,10 @@ SET_FD::SET_FD() : ServiceFramework("set:fd") {
         {20, nullptr, "SetWebInspectorFlag"},
         {21, nullptr, "SetAllowedSslHosts"},
         {22, nullptr, "SetHostFsMountPoint"},
+        {23, nullptr, "SetMemoryUsageRateFlag"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 

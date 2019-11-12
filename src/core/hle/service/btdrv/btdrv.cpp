@@ -155,6 +155,7 @@ public:
             {98, nullptr, "SetLeScanParameter"},
             {256, nullptr, "GetIsManufacturingMode"},
             {257, nullptr, "EmulateBluetoothCrash"},
+            {258, nullptr, "GetBleChannelMap"},
         };
         // clang-format on
 

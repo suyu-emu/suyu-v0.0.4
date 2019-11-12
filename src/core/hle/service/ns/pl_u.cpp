@@ -152,7 +152,7 @@ struct PL_U::Impl {
 
 PL_U::PL_U(Core::System& system)
     : ServiceFramework("pl:u"), impl{std::make_unique<Impl>()}, system(system) {
-
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, &PL_U::RequestLoad, "RequestLoad"},
         {1, &PL_U::GetLoadState, "GetLoadState"},
@@ -160,7 +160,13 @@ PL_U::PL_U(Core::System& system)
         {3, &PL_U::GetSharedMemoryAddressOffset, "GetSharedMemoryAddressOffset"},
         {4, &PL_U::GetSharedMemoryNativeHandle, "GetSharedMemoryNativeHandle"},
         {5, &PL_U::GetSharedFontInOrderOfPriority, "GetSharedFontInOrderOfPriority"},
+        {6, nullptr, "GetSharedFontInOrderOfPriorityForSystem"},
+        {100, nullptr, "RequestApplicationFunctionAuthorization"},
+        {101, nullptr, "RequestApplicationFunctionAuthorizationForSystem"},
+        {1000, nullptr, "LoadNgWordDataForPlatformRegionChina"},
+        {1001, nullptr, "GetNgWordDataSizeForPlatformRegionChina"},
     };
+    // clang-format on
     RegisterHandlers(functions);
 
     auto& fsc = system.GetFileSystemController();

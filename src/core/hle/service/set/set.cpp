@@ -124,6 +124,7 @@ SET::SET() : ServiceFramework("set") {
         {7, nullptr, "GetKeyCodeMap"},
         {8, &SET::GetQuestFlag, "GetQuestFlag"},
         {9, nullptr, "GetKeyCodeMap2"},
+        {10, nullptr, "GetFirmwareVersionForDebug"},
     };
     // clang-format on
 

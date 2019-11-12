@@ -208,6 +208,7 @@ private:
 
 IGeneralService::IGeneralService(Core::System& system)
     : ServiceFramework("IGeneralService"), system(system) {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {1, &IGeneralService::GetClientId, "GetClientId"},
         {2, &IGeneralService::CreateScanRequest, "CreateScanRequest"},
@@ -246,7 +247,14 @@ IGeneralService::IGeneralService(Core::System& system)
         {36, nullptr, "GetCurrentAccessPoint"},
         {37, nullptr, "Shutdown"},
         {38, nullptr, "GetAllowedChannels"},
+        {39, nullptr, "NotifyApplicationSuspended"},
+        {40, nullptr, "SetAcceptableNetworkTypeFlag"},
+        {41, nullptr, "GetAcceptableNetworkTypeFlag"},
+        {42, nullptr, "NotifyConnectionStateChanged"},
+        {43, nullptr, "SetWowlDelayedWakeTime"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 

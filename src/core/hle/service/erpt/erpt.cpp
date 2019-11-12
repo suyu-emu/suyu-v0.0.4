@@ -24,6 +24,8 @@ public:
             {6, nullptr, "SubmitMultipleCategoryContext"},
             {7, nullptr, "UpdateApplicationLaunchTime"},
             {8, nullptr, "ClearApplicationLaunchTime"},
+            {9, nullptr, "SubmitAttachment"},
+            {10, nullptr, "CreateReportWithAttachments"},
         };
         // clang-format on
 
@@ -38,6 +40,7 @@ public:
         static const FunctionInfo functions[] = {
             {0, nullptr, "OpenReport"},
             {1, nullptr, "OpenManager"},
+            {2, nullptr, "OpenAttachment"},
         };
         // clang-format on
 

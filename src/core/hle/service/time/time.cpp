@@ -74,15 +74,17 @@ public:
     ISystemClock(std::shared_ptr<Service::Time::SharedMemory> shared_memory,
                  ClockContextType clock_type)
         : ServiceFramework("ISystemClock"), shared_memory(shared_memory), clock_type(clock_type) {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, &ISystemClock::GetCurrentTime, "GetCurrentTime"},
             {1, nullptr, "SetCurrentTime"},
             {2, &ISystemClock::GetSystemClockContext, "GetSystemClockContext"},
             {3, nullptr, "SetSystemClockContext"},
-
+            {4, nullptr, "GetOperationEventReadableHandle"},
         };
-        RegisterHandlers(functions);
+        // clang-format on
 
+        RegisterHandlers(functions);
         UpdateSharedMemoryContext(system_clock_context);
     }
 
@@ -162,6 +164,7 @@ private:
 class ITimeZoneService final : public ServiceFramework<ITimeZoneService> {
 public:
     ITimeZoneService() : ServiceFramework("ITimeZoneService") {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, &ITimeZoneService::GetDeviceLocationName, "GetDeviceLocationName"},
             {1, nullptr, "SetDeviceLocationName"},
@@ -169,11 +172,17 @@ public:
             {3, nullptr, "LoadLocationNameList"},
             {4, &ITimeZoneService::LoadTimeZoneRule, "LoadTimeZoneRule"},
             {5, nullptr, "GetTimeZoneRuleVersion"},
+            {6, nullptr, "GetDeviceLocationNameAndUpdatedTime"},
+            {7, nullptr, "SetDeviceLocationNameWithTimeZoneRule"},
+            {8, nullptr, "ParseTimeZoneBinary"},
+            {20, nullptr, "GetDeviceLocationNameOperationEventReadableHandle"},
             {100, &ITimeZoneService::ToCalendarTime, "ToCalendarTime"},
             {101, &ITimeZoneService::ToCalendarTimeWithMyRule, "ToCalendarTimeWithMyRule"},
             {201, &ITimeZoneService::ToPosixTime, "ToPosixTime"},
             {202, &ITimeZoneService::ToPosixTimeWithMyRule, "ToPosixTimeWithMyRule"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
     }
 

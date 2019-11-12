@@ -35,6 +35,8 @@ OMM::OMM() : ServiceFramework{"omm"} {
         {23, nullptr, "GetHdcpState"},
         {24, nullptr, "ShowCardUpdateProcessing"},
         {25, nullptr, "SetApplicationCecSettingsAndNotifyChanged"},
+        {26, nullptr, "GetOperationModeSystemInfo"},
+        {27, nullptr, "GetAppletFullAwakingSystemEvent"},
     };
     // clang-format on
 

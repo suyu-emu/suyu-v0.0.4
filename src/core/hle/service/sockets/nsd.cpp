@@ -7,6 +7,7 @@
 namespace Service::Sockets {
 
 NSD::NSD(const char* name) : ServiceFramework(name) {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {10, nullptr, "GetSettingName"},
         {11, nullptr, "GetEnvironmentIdentifier"},
@@ -22,10 +23,14 @@ NSD::NSD(const char* name) : ServiceFramework(name) {
         {42, nullptr, "GetNasApiFqdn"},
         {43, nullptr, "GetNasApiFqdnEx"},
         {50, nullptr, "GetCurrentSetting"},
+        {51, nullptr, "WriteTestParameter"},
+        {52, nullptr, "ReadTestParameter"},
         {60, nullptr, "ReadSaveDataFromFsForTest"},
         {61, nullptr, "WriteSaveDataToFsForTest"},
         {62, nullptr, "DeleteSaveDataOfFsForTest"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 

@@ -229,7 +229,15 @@ IDebugFunctions::IDebugFunctions() : ServiceFramework{"IDebugFunctions"} {
         {20, nullptr, "InvalidateTransitionLayer"},
         {30, nullptr, "RequestLaunchApplicationWithUserAndArgumentForDebug"},
         {40, nullptr, "GetAppletResourceUsageInfo"},
-        {41, nullptr, "SetCpuBoostModeForApplet"},
+        {100, nullptr, "SetCpuBoostModeForApplet"},
+        {110, nullptr, "PushToAppletBoundChannelForDebug"},
+        {111, nullptr, "TryPopFromAppletBoundChannelForDebug"},
+        {120, nullptr, "AlarmSettingNotificationEnableAppEventReserve"},
+        {121, nullptr, "AlarmSettingNotificationDisableAppEventReserve"},
+        {122, nullptr, "AlarmSettingNotificationPushAppEventNotify"},
+        {130, nullptr, "FriendInvitationSetApplicationParameter"},
+        {131, nullptr, "FriendInvitationClearApplicationParameter"},
+        {132, nullptr, "FriendInvitationPushApplicationParameter"},
     };
     // clang-format on
 
@@ -278,10 +286,12 @@ ISelfController::ISelfController(Core::System& system,
         {69, &ISelfController::IsAutoSleepDisabled, "IsAutoSleepDisabled"},
         {70, nullptr, "ReportMultimediaError"},
         {71, nullptr, "GetCurrentIlluminanceEx"},
+        {72, nullptr, "SetInputDetectionPolicy"},
         {80, nullptr, "SetWirelessPriorityMode"},
         {90, &ISelfController::GetAccumulatedSuspendedTickValue, "GetAccumulatedSuspendedTickValue"},
         {91, &ISelfController::GetAccumulatedSuspendedTickChangedEvent, "GetAccumulatedSuspendedTickChangedEvent"},
         {100, nullptr, "SetAlbumImageTakenNotificationEnabled"},
+        {110, nullptr, "SetApplicationAlbumUserData"},
         {1000, nullptr, "GetDebugStorageChannel"},
     };
     // clang-format on
@@ -613,6 +623,7 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system,
         {90, nullptr, "SetPerformanceConfigurationChangedNotification"},
         {91, nullptr, "GetCurrentPerformanceConfiguration"},
         {200, nullptr, "GetOperationModeSystemInfo"},
+        {300, nullptr, "GetSettingsPlatformRegion"},
     };
     // clang-format on
 
@@ -1081,6 +1092,12 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
         {121, nullptr, "ClearUserChannel"},
         {122, nullptr, "UnpopToUserChannel"},
         {130, &IApplicationFunctions::GetGpuErrorDetectedSystemEvent, "GetGpuErrorDetectedSystemEvent"},
+        {140, nullptr, "GetFriendInvitationStorageChannelEvent"},
+        {141, nullptr, "TryPopFromFriendInvitationStorageChannel"},
+        {150, nullptr, "GetNotificationStorageChannelEvent"},
+        {151, nullptr, "TryPopFromNotificationStorageChannel"},
+        {160, nullptr, "GetHealthWarningDisappearedSystemEvent"},
+        {170, nullptr, "SetHdcpAuthenticationActivated"},
         {500, nullptr, "StartContinuousRecordingFlushForDebug"},
         {1000, nullptr, "CreateMovieMaker"},
         {1001, nullptr, "PrepareForJit"},
@@ -1409,6 +1426,8 @@ IHomeMenuFunctions::IHomeMenuFunctions() : ServiceFramework("IHomeMenuFunctions"
         {30, nullptr, "GetHomeButtonWriterLockAccessor"},
         {31, nullptr, "GetWriterLockAccessorEx"},
         {100, nullptr, "PopRequestLaunchApplicationForDebug"},
+        {110, nullptr, "IsForceTerminateApplicationDisabledForDebug"},
+        {200, nullptr, "LaunchDevMenu"},
     };
     // clang-format on
 

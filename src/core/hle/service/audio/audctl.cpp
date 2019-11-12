@@ -38,6 +38,7 @@ AudCtl::AudCtl() : ServiceFramework{"audctl"} {
         {24, nullptr, "GetSystemOutputMasterVolume"},
         {25, nullptr, "GetAudioVolumeDataForPlayReport"},
         {26, nullptr, "UpdateHeadphoneSettings"},
+        {27, nullptr, "SetVolumeMappingTableForDev"},
     };
     // clang-format on
 
