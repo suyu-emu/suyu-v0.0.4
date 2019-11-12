@@ -204,11 +204,12 @@ static std::array<Key128, 0x20> FindEncryptedMasterKeyFromHex(const std::vector<
 
 FileSys::VirtualFile FindFileInDirWithNames(const FileSys::VirtualDir& dir,
                                             const std::string& name) {
-    auto upper = name;
-    std::transform(upper.begin(), upper.end(), upper.begin(), [](u8 c) { return std::toupper(c); });
+    const auto upper = Common::ToUpper(name);
+
     for (const auto& fname : {name, name + ".bin", upper, upper + ".BIN"}) {
-        if (dir->GetFile(fname) != nullptr)
+        if (dir->GetFile(fname) != nullptr) {
             return dir->GetFile(fname);
+        }
     }
 
     return nullptr;
