@@ -44,8 +44,9 @@ using Operation = const OperationNode&;
 enum class Type { Void, Bool, Bool2, Float, Int, Uint, HalfFloat };
 
 struct TextureAoffi {};
+struct TextureDerivates {};
 using TextureArgument = std::pair<Type, Node>;
-using TextureIR = std::variant<TextureAoffi, TextureArgument>;
+using TextureIR = std::variant<TextureAoffi, TextureDerivates, TextureArgument>;
 
 constexpr u32 MAX_CONSTBUFFER_ELEMENTS =
     static_cast<u32>(Maxwell::MaxConstBufferSize) / (4 * sizeof(float));
@@ -1129,6 +1130,8 @@ private:
                 expr += GenerateTextureArgument(*argument);
             } else if (std::holds_alternative<TextureAoffi>(variant)) {
                 expr += GenerateTextureAoffi(meta->aoffi);
+            } else if (std::holds_alternative<TextureDerivates>(variant)) {
+                expr += GenerateTextureDerivates(meta->derivates);
             } else {
                 UNREACHABLE();
             }
@@ -1194,6 +1197,36 @@ private:
             }
         }
         expr += ')';
+
+        return expr;
+    }
+
+    std::string GenerateTextureDerivates(const std::vector<Node>& derivates) {
+        if (derivates.empty()) {
+            return {};
+        }
+        constexpr std::array coord_constructors = {"float", "vec2", "vec3"};
+        std::string expr = ", ";
+        const std::size_t components = derivates.size() / 2;
+        std::string dx = coord_constructors.at(components - 1);
+        std::string dy = coord_constructors.at(components - 1);
+        dx += '(';
+        dy += '(';
+
+        for (std::size_t index = 0; index < components; ++index) {
+            const auto operand_x{derivates.at(index * 2)};
+            const auto operand_y{derivates.at(index * 2 + 1)};
+            dx += Visit(operand_x).AsFloat();
+            dy += Visit(operand_y).AsFloat();
+
+            if (index + 1 < components) {
+                dx += ", ";
+                dy += ", ";
+            }
+        }
+        dx += ')';
+        dy += ')';
+        expr += dx + ", " + dy;
 
         return expr;
     }
@@ -1777,6 +1810,14 @@ private:
         return {tmp, Type::Float};
     }
 
+    Expression TextureGradient(Operation operation) {
+        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
+        ASSERT(meta);
+
+        std::string expr = GenerateTexture(operation, "Grad", {TextureDerivates{}, TextureAoffi{}});
+        return {expr + GetSwizzle(meta->element), Type::Float};
+    }
+
     Expression ImageLoad(Operation operation) {
         if (!device.HasImageLoadFormatted()) {
             LOG_ERROR(Render_OpenGL,
@@ -2131,6 +2172,7 @@ private:
         &GLSLDecompiler::TextureQueryDimensions,
         &GLSLDecompiler::TextureQueryLod,
         &GLSLDecompiler::TexelFetch,
+        &GLSLDecompiler::TextureGradient,
 
         &GLSLDecompiler::ImageLoad,
         &GLSLDecompiler::ImageStore,

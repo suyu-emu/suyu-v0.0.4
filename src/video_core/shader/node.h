@@ -151,6 +151,7 @@ enum class OperationCode {
     TextureQueryDimensions, /// (MetaTexture, float a) -> float4
     TextureQueryLod,        /// (MetaTexture, float[N] coords) -> float4
     TexelFetch,             /// (MetaTexture, int[N], int) -> float4
+    TextureGradient,        /// (MetaTexture, float[N] coords, float[N*2] derivates) -> float4
 
     ImageLoad,  /// (MetaImage, int[N] coords) -> void
     ImageStore, /// (MetaImage, int[N] coords) -> void
@@ -363,6 +364,7 @@ struct MetaTexture {
     Node array;
     Node depth_compare;
     std::vector<Node> aoffi;
+    std::vector<Node> derivates;
     Node bias;
     Node lod;
     Node component{};

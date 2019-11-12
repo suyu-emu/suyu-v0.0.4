@@ -982,6 +982,11 @@ private:
         return {};
     }
 
+    Id TextureGradient(Operation operation) {
+        UNIMPLEMENTED();
+        return {};
+    }
+
     Id ImageLoad(Operation operation) {
         UNIMPLEMENTED();
         return {};
@@ -1474,6 +1479,7 @@ private:
         &SPIRVDecompiler::TextureQueryDimensions,
         &SPIRVDecompiler::TextureQueryLod,
         &SPIRVDecompiler::TexelFetch,
+        &SPIRVDecompiler::TextureGradient,
 
         &SPIRVDecompiler::ImageLoad,
         &SPIRVDecompiler::ImageStore,

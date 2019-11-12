@@ -1446,6 +1446,26 @@ union Instruction {
     } tlds;
 
     union {
+        BitField<28, 1, u64> is_array;
+        BitField<29, 2, TextureType> texture_type;
+        BitField<35, 1, u64> aoffi_flag;
+        BitField<49, 1, u64> nodep_flag;
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::AOFFI:
+                return aoffi_flag != 0;
+            case TextureMiscMode::NODEP:
+                return nodep_flag != 0;
+            default:
+                break;
+            }
+            return false;
+        }
+
+    } txd;
+
+    union {
         BitField<24, 2, StoreCacheManagement> cache_management;
         BitField<33, 3, ImageType> image_type;
         BitField<49, 2, OutOfBoundsStore> out_of_bounds_store;
