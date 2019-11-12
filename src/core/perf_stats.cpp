@@ -81,7 +81,7 @@ double PerfStats::GetMeanFrametime() {
         return 0;
     }
     const double sum = std::accumulate(perf_history.begin() + IgnoreFrames,
-                                       perf_history.begin() + current_index, 0);
+                                       perf_history.begin() + current_index, 0.0);
     return sum / (current_index - IgnoreFrames);
 }
 
