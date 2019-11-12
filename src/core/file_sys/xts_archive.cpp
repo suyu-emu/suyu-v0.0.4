@@ -7,12 +7,13 @@
 #include <cstring>
 #include <regex>
 #include <string>
+
 #include <mbedtls/md.h>
 #include <mbedtls/sha256.h>
-#include "common/assert.h"
+
 #include "common/file_util.h"
 #include "common/hex_util.h"
-#include "common/logging/log.h"
+#include "common/string_util.h"
 #include "core/crypto/aes_util.h"
 #include "core/crypto/xts_encryption_layer.h"
 #include "core/file_sys/partition_filesystem.h"
@@ -53,11 +54,8 @@ NAX::NAX(VirtualFile file_) : header(std::make_unique<NAXHeader>()), file(std::m
         return;
     }
 
-    std::string two_dir = match[1];
-    std::string nca_id = match[2];
-    std::transform(two_dir.begin(), two_dir.end(), two_dir.begin(), ::toupper);
-    std::transform(nca_id.begin(), nca_id.end(), nca_id.begin(), ::tolower);
-
+    const std::string two_dir = Common::ToUpper(match[1]);
+    const std::string nca_id = Common::ToLower(match[2]);
     status = Parse(fmt::format("/registered/{}/{}.nca", two_dir, nca_id));
 }
 
