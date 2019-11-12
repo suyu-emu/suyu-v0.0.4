@@ -183,7 +183,7 @@ class ResultVal {
 public:
     /// Constructs an empty `ResultVal` with the given error code. The code must not be a success
     /// code.
-    ResultVal(ResultCode error_code = ResultCode(-1)) : result_code(error_code) {
+    ResultVal(ResultCode error_code = ResultCode(UINT32_MAX)) : result_code(error_code) {
         ASSERT(error_code.IsError());
     }
 
