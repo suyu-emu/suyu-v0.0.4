@@ -1472,6 +1472,11 @@ private:
         return GenerateUnary(operation, "bitCount", type, type);
     }
 
+    template <Type type>
+    Expression BitMSB(Operation operation) {
+        return GenerateUnary(operation, "findMSB", type, type);
+    }
+
     Expression HNegate(Operation operation) {
         const auto GetNegate = [&](std::size_t index) {
             return VisitOperand(operation, index).AsBool() + " ? -1 : 1";
@@ -2043,6 +2048,7 @@ private:
         &GLSLDecompiler::BitfieldInsert<Type::Int>,
         &GLSLDecompiler::BitfieldExtract<Type::Int>,
         &GLSLDecompiler::BitCount<Type::Int>,
+        &GLSLDecompiler::BitMSB<Type::Int>,
 
         &GLSLDecompiler::Add<Type::Uint>,
         &GLSLDecompiler::Mul<Type::Uint>,
@@ -2061,6 +2067,7 @@ private:
         &GLSLDecompiler::BitfieldInsert<Type::Uint>,
         &GLSLDecompiler::BitfieldExtract<Type::Uint>,
         &GLSLDecompiler::BitCount<Type::Uint>,
+        &GLSLDecompiler::BitMSB<Type::Uint>,
 
         &GLSLDecompiler::Add<Type::HalfFloat>,
         &GLSLDecompiler::Mul<Type::HalfFloat>,

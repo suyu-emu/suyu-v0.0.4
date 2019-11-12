@@ -130,6 +130,24 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, value);
         break;
     }
+    case OpCode::Id::FLO_R:
+    case OpCode::Id::FLO_C:
+    case OpCode::Id::FLO_IMM: {
+        Node value;
+        if (instr.flo.invert) {
+            op_b = Operation(OperationCode::IBitwiseNot, NO_PRECISE, op_b);
+        }
+        if (instr.flo.is_signed) {
+            value = Operation(OperationCode::IBitMSB, NO_PRECISE, op_b);
+        } else {
+            value = Operation(OperationCode::UBitMSB, NO_PRECISE, op_b);
+        }
+        if (instr.flo.sh) {
+            value = Operation(OperationCode::UBitwiseXor, NO_PRECISE, value, Immediate(31));
+        }
+        SetRegister(bb, instr.gpr0, value);
+        break;
+    }
     case OpCode::Id::SEL_C:
     case OpCode::Id::SEL_R:
     case OpCode::Id::SEL_IMM: {

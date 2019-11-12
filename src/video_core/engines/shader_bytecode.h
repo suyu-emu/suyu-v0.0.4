@@ -800,6 +800,12 @@ union Instruction {
     } popc;
 
     union {
+        BitField<41, 1, u64> sh;
+        BitField<40, 1, u64> invert;
+        BitField<48, 1, u64> is_signed;
+    } flo;
+
+    union {
         BitField<39, 3, u64> pred;
         BitField<42, 1, u64> neg_pred;
     } sel;
