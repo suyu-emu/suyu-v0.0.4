@@ -42,41 +42,34 @@ public:
      * Add a thread to the suggested queue of a cpu core. Suggested threads may be
      * picked if no thread is scheduled to run on the core.
      */
-    void Suggest(u32 priority, u32 core, Thread* thread);
+    void Suggest(u32 priority, std::size_t core, Thread* thread);
 
     /**
      * Remove a thread to the suggested queue of a cpu core. Suggested threads may be
      * picked if no thread is scheduled to run on the core.
      */
-    void Unsuggest(u32 priority, u32 core, Thread* thread);
+    void Unsuggest(u32 priority, std::size_t core, Thread* thread);
 
     /**
      * Add a thread to the scheduling queue of a cpu core. The thread is added at the
      * back the queue in its priority level.
      */
-    void Schedule(u32 priority, u32 core, Thread* thread);
+    void Schedule(u32 priority, std::size_t core, Thread* thread);
 
     /**
      * Add a thread to the scheduling queue of a cpu core. The thread is added at the
      * front the queue in its priority level.
      */
-    void SchedulePrepend(u32 priority, u32 core, Thread* thread);
+    void SchedulePrepend(u32 priority, std::size_t core, Thread* thread);
 
     /// Reschedule an already scheduled thread based on a new priority
-    void Reschedule(u32 priority, u32 core, Thread* thread);
+    void Reschedule(u32 priority, std::size_t core, Thread* thread);
 
     /// Unschedules a thread.
-    void Unschedule(u32 priority, u32 core, Thread* thread);
-
-    /**
-     * Transfers a thread into an specific core. If the destination_core is -1
-     * it will be unscheduled from its source code and added into its suggested
-     * queue.
-     */
-    void TransferToCore(u32 priority, s32 destination_core, Thread* thread);
+    void Unschedule(u32 priority, std::size_t core, Thread* thread);
 
     /// Selects a core and forces it to unload its current thread's context
-    void UnloadThread(s32 core);
+    void UnloadThread(std::size_t core);
 
     /**
      * Takes care of selecting the new scheduled thread in three steps:
@@ -90,9 +83,9 @@ public:
      * 3. Third is no suggested thread is found, we do a second pass and pick a running
      *    thread in another core and swap it with its current thread.
      */
-    void SelectThread(u32 core);
+    void SelectThread(std::size_t core);
 
-    bool HaveReadyThreads(u32 core_id) const {
+    bool HaveReadyThreads(std::size_t core_id) const {
         return !scheduled_queue[core_id].empty();
     }
 
@@ -145,6 +138,13 @@ public:
     void Shutdown();
 
 private:
+    /**
+     * Transfers a thread into an specific core. If the destination_core is -1
+     * it will be unscheduled from its source code and added into its suggested
+     * queue.
+     */
+    void TransferToCore(u32 priority, s32 destination_core, Thread* thread);
+
     bool AskForReselectionOrMarkRedundant(Thread* current_thread, const Thread* winner);
 
     static constexpr u32 min_regular_priority = 2;
@@ -163,7 +163,7 @@ private:
 
 class Scheduler final {
 public:
-    explicit Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, u32 core_id);
+    explicit Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, std::size_t core_id);
     ~Scheduler();
 
     /// Returns whether there are any threads that are ready to run.
@@ -220,7 +220,7 @@ private:
     Core::ARM_Interface& cpu_core;
     u64 last_context_switch_time = 0;
     u64 idle_selection_count = 0;
-    const u32 core_id;
+    const std::size_t core_id;
 
     bool is_context_switch_pending = false;
 };

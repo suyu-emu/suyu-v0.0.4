@@ -35,12 +35,12 @@ void GlobalScheduler::RemoveThread(const Thread* thread) {
                       thread_list.end());
 }
 
-void GlobalScheduler::UnloadThread(s32 core) {
+void GlobalScheduler::UnloadThread(std::size_t core) {
     Scheduler& sched = system.Scheduler(core);
     sched.UnloadThread();
 }
 
-void GlobalScheduler::SelectThread(u32 core) {
+void GlobalScheduler::SelectThread(std::size_t core) {
     const auto update_thread = [](Thread* thread, Scheduler& sched) {
         if (thread != sched.selected_thread) {
             if (thread == nullptr) {
@@ -77,9 +77,9 @@ void GlobalScheduler::SelectThread(u32 core) {
     // if we got a suggested thread, select it, else do a second pass.
     if (winner && winner->GetPriority() > 2) {
         if (winner->IsRunning()) {
-            UnloadThread(winner->GetProcessorID());
+            UnloadThread(static_cast<u32>(winner->GetProcessorID()));
         }
-        TransferToCore(winner->GetPriority(), core, winner);
+        TransferToCore(winner->GetPriority(), static_cast<s32>(core), winner);
         update_thread(winner, sched);
         return;
     }
@@ -91,9 +91,9 @@ void GlobalScheduler::SelectThread(u32 core) {
             Thread* thread_on_core = scheduled_queue[src_core].front();
             Thread* to_change = *it;
             if (thread_on_core->IsRunning() || to_change->IsRunning()) {
-                UnloadThread(src_core);
+                UnloadThread(static_cast<u32>(src_core));
             }
-            TransferToCore(thread_on_core->GetPriority(), core, thread_on_core);
+            TransferToCore(thread_on_core->GetPriority(), static_cast<s32>(core), thread_on_core);
             current_thread = thread_on_core;
             break;
         }
@@ -154,9 +154,9 @@ bool GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
     if (winner != nullptr) {
         if (winner != yielding_thread) {
             if (winner->IsRunning()) {
-                UnloadThread(winner->GetProcessorID());
+                UnloadThread(static_cast<u32>(winner->GetProcessorID()));
             }
-            TransferToCore(winner->GetPriority(), core_id, winner);
+            TransferToCore(winner->GetPriority(), s32(core_id), winner);
         }
     } else {
         winner = next_thread;
@@ -196,9 +196,9 @@ bool GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread
         if (winner != nullptr) {
             if (winner != yielding_thread) {
                 if (winner->IsRunning()) {
-                    UnloadThread(winner->GetProcessorID());
+                    UnloadThread(static_cast<u32>(winner->GetProcessorID()));
                 }
-                TransferToCore(winner->GetPriority(), core_id, winner);
+                TransferToCore(winner->GetPriority(), static_cast<s32>(core_id), winner);
             }
         } else {
             winner = yielding_thread;
@@ -248,7 +248,7 @@ void GlobalScheduler::PreemptThreads() {
 
         if (winner != nullptr) {
             if (winner->IsRunning()) {
-                UnloadThread(winner->GetProcessorID());
+                UnloadThread(static_cast<u32>(winner->GetProcessorID()));
             }
             TransferToCore(winner->GetPriority(), s32(core_id), winner);
             current_thread =
@@ -281,7 +281,7 @@ void GlobalScheduler::PreemptThreads() {
 
             if (winner != nullptr) {
                 if (winner->IsRunning()) {
-                    UnloadThread(winner->GetProcessorID());
+                    UnloadThread(static_cast<u32>(winner->GetProcessorID()));
                 }
                 TransferToCore(winner->GetPriority(), s32(core_id), winner);
                 current_thread = winner;
@@ -292,30 +292,30 @@ void GlobalScheduler::PreemptThreads() {
     }
 }
 
-void GlobalScheduler::Suggest(u32 priority, u32 core, Thread* thread) {
+void GlobalScheduler::Suggest(u32 priority, std::size_t core, Thread* thread) {
     suggested_queue[core].add(thread, priority);
 }
 
-void GlobalScheduler::Unsuggest(u32 priority, u32 core, Thread* thread) {
+void GlobalScheduler::Unsuggest(u32 priority, std::size_t core, Thread* thread) {
     suggested_queue[core].remove(thread, priority);
 }
 
-void GlobalScheduler::Schedule(u32 priority, u32 core, Thread* thread) {
+void GlobalScheduler::Schedule(u32 priority, std::size_t core, Thread* thread) {
     ASSERT_MSG(thread->GetProcessorID() == s32(core), "Thread must be assigned to this core.");
     scheduled_queue[core].add(thread, priority);
 }
 
-void GlobalScheduler::SchedulePrepend(u32 priority, u32 core, Thread* thread) {
+void GlobalScheduler::SchedulePrepend(u32 priority, std::size_t core, Thread* thread) {
     ASSERT_MSG(thread->GetProcessorID() == s32(core), "Thread must be assigned to this core.");
     scheduled_queue[core].add(thread, priority, false);
 }
 
-void GlobalScheduler::Reschedule(u32 priority, u32 core, Thread* thread) {
+void GlobalScheduler::Reschedule(u32 priority, std::size_t core, Thread* thread) {
     scheduled_queue[core].remove(thread, priority);
     scheduled_queue[core].add(thread, priority);
 }
 
-void GlobalScheduler::Unschedule(u32 priority, u32 core, Thread* thread) {
+void GlobalScheduler::Unschedule(u32 priority, std::size_t core, Thread* thread) {
     scheduled_queue[core].remove(thread, priority);
 }
 
@@ -327,14 +327,14 @@ void GlobalScheduler::TransferToCore(u32 priority, s32 destination_core, Thread*
     }
     thread->SetProcessorID(destination_core);
     if (source_core >= 0) {
-        Unschedule(priority, source_core, thread);
+        Unschedule(priority, static_cast<u32>(source_core), thread);
     }
     if (destination_core >= 0) {
-        Unsuggest(priority, destination_core, thread);
-        Schedule(priority, destination_core, thread);
+        Unsuggest(priority, static_cast<u32>(destination_core), thread);
+        Schedule(priority, static_cast<u32>(destination_core), thread);
     }
     if (source_core >= 0) {
-        Suggest(priority, source_core, thread);
+        Suggest(priority, static_cast<u32>(source_core), thread);
     }
 }
 
@@ -357,7 +357,7 @@ void GlobalScheduler::Shutdown() {
     thread_list.clear();
 }
 
-Scheduler::Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, u32 core_id)
+Scheduler::Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, std::size_t core_id)
     : system(system), cpu_core(cpu_core), core_id(core_id) {}
 
 Scheduler::~Scheduler() = default;

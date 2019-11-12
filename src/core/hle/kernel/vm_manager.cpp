@@ -167,7 +167,7 @@ ResultVal<VAddr> VMManager::FindFreeRegion(VAddr begin, VAddr end, u64 size) con
 
     if (vma_handle == vma_map.cend()) {
         // TODO(Subv): Find the correct error code here.
-        return ResultCode(-1);
+        return RESULT_UNKNOWN;
     }
 
     const VAddr target = std::max(begin, vma_handle->second.base);
