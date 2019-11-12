@@ -249,6 +249,8 @@ PixelFormat PixelFormatFromTextureFormat(Tegra::Texture::TextureFormat format,
             return PixelFormat::RGBA16U;
         case Tegra::Texture::ComponentType::FLOAT:
             return PixelFormat::RGBA16F;
+        case Tegra::Texture::ComponentType::UINT:
+            return PixelFormat::RGBA16UI;
         default:
             break;
         }
