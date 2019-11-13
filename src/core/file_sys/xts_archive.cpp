@@ -93,8 +93,7 @@ Loader::ResultStatus NAX::Parse(std::string_view path) {
     std::size_t i = 0;
     for (; i < sd_keys.size(); ++i) {
         std::array<Core::Crypto::Key128, 2> nax_keys{};
-        if (!CalculateHMAC256(nax_keys.data(), sd_keys[i].data(), 0x10, std::string(path).c_str(),
-                              path.size())) {
+        if (!CalculateHMAC256(nax_keys.data(), sd_keys[i].data(), 0x10, path.data(), path.size())) {
             return Loader::ResultStatus::ErrorNAXKeyHMACFailed;
         }
 
