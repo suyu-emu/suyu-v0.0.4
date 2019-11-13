@@ -449,6 +449,7 @@ std::tuple<GLuint, BaseBindings> CachedShader::GetHandle(const ProgramVariant& v
     base_bindings.cbuf += STAGE_RESERVED_UBOS;
     base_bindings.gmem += static_cast<u32>(entries.global_memory_entries.size());
     base_bindings.sampler += static_cast<u32>(entries.samplers.size());
+    base_bindings.image += static_cast<u32>(entries.images.size());
 
     return {program->handle, base_bindings};
 }

@@ -49,8 +49,26 @@ MICROPROFILE_DEFINE(OpenGL_Blits, "OpenGL", "Blits", MP_RGB(128, 128, 192));
 MICROPROFILE_DEFINE(OpenGL_CacheManagement, "OpenGL", "Cache Mgmt", MP_RGB(100, 255, 100));
 MICROPROFILE_DEFINE(OpenGL_PrimitiveAssembly, "OpenGL", "Prim Asmbl", MP_RGB(255, 100, 100));
 
-static std::size_t GetConstBufferSize(const Tegra::Engines::ConstBufferInfo& buffer,
-                                      const GLShader::ConstBufferEntry& entry) {
+namespace {
+
+template <typename Engine, typename Entry>
+Tegra::Texture::FullTextureInfo GetTextureInfo(const Engine& engine, const Entry& entry,
+                                               Tegra::Engines::ShaderType shader_type) {
+    if (entry.IsBindless()) {
+        const Tegra::Texture::TextureHandle tex_handle =
+            engine.AccessConstBuffer32(shader_type, entry.GetBuffer(), entry.GetOffset());
+        return engine.GetTextureInfo(tex_handle);
+    }
+    if constexpr (std::is_same_v<Engine, Tegra::Engines::Maxwell3D>) {
+        const auto stage = static_cast<Maxwell::ShaderStage>(shader_type);
+        return engine.GetStageTexture(stage, entry.GetOffset());
+    } else {
+        return engine.GetTexture(entry.GetOffset());
+    }
+}
+
+std::size_t GetConstBufferSize(const Tegra::Engines::ConstBufferInfo& buffer,
+                               const GLShader::ConstBufferEntry& entry) {
     if (!entry.IsIndirect()) {
         return entry.GetSize();
     }
@@ -63,6 +81,8 @@ static std::size_t GetConstBufferSize(const Tegra::Engines::ConstBufferInfo& buf
 
     return buffer.size;
 }
+
+} // Anonymous namespace
 
 RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
                                    ScreenInfo& info)
@@ -272,6 +292,7 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
         SetupDrawConstBuffers(stage, shader);
         SetupDrawGlobalMemory(stage, shader);
         SetupDrawTextures(stage, shader, base_bindings);
+        SetupDrawImages(stage, shader, base_bindings);
 
         const ProgramVariant variant(base_bindings, primitive_mode);
         const auto [program_handle, next_bindings] = shader->GetHandle(variant);
@@ -921,18 +942,11 @@ void RasterizerOpenGL::SetupDrawTextures(Maxwell::ShaderStage stage, const Shade
     ASSERT_MSG(base_bindings.sampler + entries.size() <= std::size(state.textures),
                "Exceeded the number of active textures.");
 
-    for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
+    const auto num_entries = static_cast<u32>(entries.size());
+    for (u32 bindpoint = 0; bindpoint < num_entries; ++bindpoint) {
         const auto& entry = entries[bindpoint];
-        const auto texture = [&] {
-            if (!entry.IsBindless()) {
-                return maxwell3d.GetStageTexture(stage, entry.GetOffset());
-            }
-            const auto shader_type = static_cast<Tegra::Engines::ShaderType>(stage);
-            const Tegra::Texture::TextureHandle tex_handle =
-                maxwell3d.AccessConstBuffer32(shader_type, entry.GetBuffer(), entry.GetOffset());
-            return maxwell3d.GetTextureInfo(tex_handle);
-        }();
-
+        const auto shader_type = static_cast<Tegra::Engines::ShaderType>(stage);
+        const auto texture = GetTextureInfo(maxwell3d, entry, shader_type);
         SetupTexture(base_bindings.sampler + bindpoint, texture, entry);
     }
 }
@@ -945,17 +959,10 @@ void RasterizerOpenGL::SetupComputeTextures(const Shader& kernel) {
     ASSERT_MSG(entries.size() <= std::size(state.textures),
                "Exceeded the number of active textures.");
 
-    for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
+    const auto num_entries = static_cast<u32>(entries.size());
+    for (u32 bindpoint = 0; bindpoint < num_entries; ++bindpoint) {
         const auto& entry = entries[bindpoint];
-        const auto texture = [&] {
-            if (!entry.IsBindless()) {
-                return compute.GetTexture(entry.GetOffset());
-            }
-            const Tegra::Texture::TextureHandle tex_handle = compute.AccessConstBuffer32(
-                Tegra::Engines::ShaderType::Compute, entry.GetBuffer(), entry.GetOffset());
-            return compute.GetTextureInfo(tex_handle);
-        }();
-
+        const auto texture = GetTextureInfo(compute, entry, Tegra::Engines::ShaderType::Compute);
         SetupTexture(bindpoint, texture, entry);
     }
 }
@@ -981,19 +988,28 @@ void RasterizerOpenGL::SetupTexture(u32 binding, const Tegra::Texture::FullTextu
                        texture.tic.w_source);
 }
 
+void RasterizerOpenGL::SetupDrawImages(Maxwell::ShaderStage stage, const Shader& shader,
+                                       BaseBindings base_bindings) {
+    const auto& maxwell3d = system.GPU().Maxwell3D();
+    const auto& entries = shader->GetShaderEntries().images;
+
+    const auto num_entries = static_cast<u32>(entries.size());
+    for (u32 bindpoint = 0; bindpoint < num_entries; ++bindpoint) {
+        const auto& entry = entries[bindpoint];
+        const auto shader_type = static_cast<Tegra::Engines::ShaderType>(stage);
+        const auto tic = GetTextureInfo(maxwell3d, entry, shader_type).tic;
+        SetupImage(base_bindings.image + bindpoint, tic, entry);
+    }
+}
+
 void RasterizerOpenGL::SetupComputeImages(const Shader& shader) {
     const auto& compute = system.GPU().KeplerCompute();
     const auto& entries = shader->GetShaderEntries().images;
-    for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
+
+    const auto num_entries = static_cast<u32>(entries.size());
+    for (u32 bindpoint = 0; bindpoint < num_entries; ++bindpoint) {
         const auto& entry = entries[bindpoint];
-        const auto tic = [&] {
-            if (!entry.IsBindless()) {
-                return compute.GetTexture(entry.GetOffset()).tic;
-            }
-            const Tegra::Texture::TextureHandle tex_handle = compute.AccessConstBuffer32(
-                Tegra::Engines::ShaderType::Compute, entry.GetBuffer(), entry.GetOffset());
-            return compute.GetTextureInfo(tex_handle).tic;
-        }();
+        const auto tic = GetTextureInfo(compute, entry, Tegra::Engines::ShaderType::Compute).tic;
         SetupImage(bindpoint, tic, entry);
     }
 }

@@ -118,6 +118,10 @@ private:
     void SetupTexture(u32 binding, const Tegra::Texture::FullTextureInfo& texture,
                       const GLShader::SamplerEntry& entry);
 
+    /// Configures images in a graphics shader.
+    void SetupDrawImages(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage, const Shader& shader,
+                         BaseBindings base_bindings);
+
     /// Configures images in a compute shader.
     void SetupComputeImages(const Shader& shader);
 
