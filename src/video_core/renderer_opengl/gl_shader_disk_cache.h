@@ -64,9 +64,10 @@ struct ProgramVariant final {
         : base_bindings{base_bindings}, primitive_mode{primitive_mode} {}
 
     /// Compute constructor.
-    explicit constexpr ProgramVariant(u32 block_x, u32 block_y, u32 block_z) noexcept
-        : block_x{block_x}, block_y{static_cast<u16>(block_y)}, block_z{static_cast<u16>(block_z)} {
-    }
+    explicit constexpr ProgramVariant(u32 block_x, u32 block_y, u32 block_z,
+                                      u32 shared_memory_size) noexcept
+        : block_x{block_x}, block_y{static_cast<u16>(block_y)}, block_z{static_cast<u16>(block_z)},
+          shared_memory_size{shared_memory_size} {}
 
     // Graphics specific parameters.
     BaseBindings base_bindings{};
@@ -76,11 +77,13 @@ struct ProgramVariant final {
     u32 block_x{};
     u16 block_y{};
     u16 block_z{};
+    u32 shared_memory_size{};
 
     bool operator==(const ProgramVariant& rhs) const noexcept {
-        return std::tie(base_bindings, primitive_mode, block_x, block_y, block_z) ==
-               std::tie(rhs.base_bindings, rhs.primitive_mode, rhs.block_x, rhs.block_y,
-                        rhs.block_z);
+        return std::tie(base_bindings, primitive_mode, block_x, block_y, block_z,
+                        shared_memory_size) == std::tie(rhs.base_bindings, rhs.primitive_mode,
+                                                        rhs.block_x, rhs.block_y, rhs.block_z,
+                                                        rhs.shared_memory_size);
     }
 
     bool operator!=(const ProgramVariant& rhs) const noexcept {
@@ -129,7 +132,8 @@ struct hash<OpenGL::ProgramVariant> {
                (static_cast<std::size_t>(variant.primitive_mode) << 6) ^
                static_cast<std::size_t>(variant.block_x) ^
                (static_cast<std::size_t>(variant.block_y) << 32) ^
-               (static_cast<std::size_t>(variant.block_z) << 48);
+               (static_cast<std::size_t>(variant.block_z) << 48) ^
+               (static_cast<std::size_t>(variant.shared_memory_size) << 16);
     }
 };
 

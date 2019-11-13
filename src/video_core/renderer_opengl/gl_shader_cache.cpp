@@ -8,7 +8,9 @@
 #include <thread>
 #include <unordered_set>
 #include <boost/functional/hash.hpp>
+#include "common/alignment.h"
 #include "common/assert.h"
+#include "common/logging/log.h"
 #include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
@@ -322,6 +324,11 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ProgramTy
         source +=
             fmt::format("layout (local_size_x = {}, local_size_y = {}, local_size_z = {}) in;\n",
                         variant.block_x, variant.block_y, variant.block_z);
+
+        if (variant.shared_memory_size > 0) {
+            source += fmt::format("shared uint smem[{}];",
+                                  Common::AlignUp(variant.shared_memory_size, 4) / 4);
+        }
     }
 
     source += '\n';
