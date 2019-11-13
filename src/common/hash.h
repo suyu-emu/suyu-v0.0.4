@@ -35,41 +35,6 @@ static inline u64 ComputeStructHash64(const T& data) {
     return ComputeHash64(&data, sizeof(data));
 }
 
-/// A helper template that ensures the padding in a struct is initialized by memsetting to 0.
-template <typename T>
-struct HashableStruct {
-    // In addition to being trivially copyable, T must also have a trivial default constructor,
-    // because any member initialization would be overridden by memset
-    static_assert(std::is_trivial_v<T>, "Type passed to HashableStruct must be trivial");
-    /*
-     * We use a union because "implicitly-defined copy/move constructor for a union X copies the
-     * object representation of X." and "implicitly-defined copy assignment operator for a union X
-     * copies the object representation (3.9) of X." = Bytewise copy instead of memberwise copy.
-     * This is important because the padding bytes are included in the hash and comparison between
-     * objects.
-     */
-    union {
-        T state;
-    };
-
-    HashableStruct() {
-        // Memset structure to zero padding bits, so that they will be deterministic when hashing
-        std::memset(&state, 0, sizeof(T));
-    }
-
-    bool operator==(const HashableStruct<T>& o) const {
-        return std::memcmp(&state, &o.state, sizeof(T)) == 0;
-    };
-
-    bool operator!=(const HashableStruct<T>& o) const {
-        return !(*this == o);
-    };
-
-    std::size_t Hash() const {
-        return Common::ComputeStructHash64(state);
-    }
-};
-
 struct PairHash {
     template <class T1, class T2>
     std::size_t operator()(const std::pair<T1, T2>& pair) const noexcept {
