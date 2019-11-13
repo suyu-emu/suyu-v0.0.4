@@ -44,32 +44,49 @@ struct BaseBindings {
     u32 sampler{};
     u32 image{};
 
-    bool operator==(const BaseBindings& rhs) const {
+    bool operator==(const BaseBindings& rhs) const noexcept {
         return std::tie(cbuf, gmem, sampler, image) ==
                std::tie(rhs.cbuf, rhs.gmem, rhs.sampler, rhs.image);
     }
 
-    bool operator!=(const BaseBindings& rhs) const {
+    bool operator!=(const BaseBindings& rhs) const noexcept {
         return !operator==(rhs);
     }
 };
 static_assert(std::is_trivially_copyable_v<BaseBindings>);
 
-/// Describes the different variants a single program can be compiled.
-struct ProgramVariant {
-    BaseBindings base_bindings;
-    GLenum primitive_mode{};
+/// Describes the different variants a program can be compiled with.
+struct ProgramVariant final {
+    ProgramVariant() = default;
 
-    bool operator==(const ProgramVariant& rhs) const {
-        return std::tie(base_bindings, primitive_mode) ==
-               std::tie(rhs.base_bindings, rhs.primitive_mode);
+    /// Graphics constructor.
+    explicit constexpr ProgramVariant(BaseBindings base_bindings, GLenum primitive_mode) noexcept
+        : base_bindings{base_bindings}, primitive_mode{primitive_mode} {}
+
+    /// Compute constructor.
+    explicit constexpr ProgramVariant(u32 block_x, u32 block_y, u32 block_z) noexcept
+        : block_x{block_x}, block_y{static_cast<u16>(block_y)}, block_z{static_cast<u16>(block_z)} {
     }
 
-    bool operator!=(const ProgramVariant& rhs) const {
+    // Graphics specific parameters.
+    BaseBindings base_bindings{};
+    GLenum primitive_mode{};
+
+    // Compute specific parameters.
+    u32 block_x{};
+    u16 block_y{};
+    u16 block_z{};
+
+    bool operator==(const ProgramVariant& rhs) const noexcept {
+        return std::tie(base_bindings, primitive_mode, block_x, block_y, block_z) ==
+               std::tie(rhs.base_bindings, rhs.primitive_mode, rhs.block_x, rhs.block_y,
+                        rhs.block_z);
+    }
+
+    bool operator!=(const ProgramVariant& rhs) const noexcept {
         return !operator==(rhs);
     }
 };
-
 static_assert(std::is_trivially_copyable_v<ProgramVariant>);
 
 /// Describes how a shader is used.
@@ -108,8 +125,11 @@ struct hash<OpenGL::BaseBindings> {
 template <>
 struct hash<OpenGL::ProgramVariant> {
     std::size_t operator()(const OpenGL::ProgramVariant& variant) const noexcept {
-        return std::hash<OpenGL::BaseBindings>()(variant.base_bindings) ^
-               (static_cast<std::size_t>(variant.primitive_mode) << 6);
+        return std::hash<OpenGL::BaseBindings>{}(variant.base_bindings) ^
+               (static_cast<std::size_t>(variant.primitive_mode) << 6) ^
+               static_cast<std::size_t>(variant.block_x) ^
+               (static_cast<std::size_t>(variant.block_y) << 32) ^
+               (static_cast<std::size_t>(variant.block_z) << 48);
     }
 };
 
@@ -117,7 +137,7 @@ template <>
 struct hash<OpenGL::ShaderDiskCacheUsage> {
     std::size_t operator()(const OpenGL::ShaderDiskCacheUsage& usage) const noexcept {
         return static_cast<std::size_t>(usage.unique_identifier) ^
-               std::hash<OpenGL::ProgramVariant>()(usage.variant);
+               std::hash<OpenGL::ProgramVariant>{}(usage.variant);
     }
 };
 

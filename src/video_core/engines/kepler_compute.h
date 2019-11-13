@@ -140,7 +140,7 @@ public:
 
         INSERT_PADDING_WORDS(0x3);
 
-        BitField<0, 16, u32> shared_alloc;
+        BitField<0, 18, u32> shared_alloc;
 
         BitField<16, 16, u32> block_dim_x;
         union {

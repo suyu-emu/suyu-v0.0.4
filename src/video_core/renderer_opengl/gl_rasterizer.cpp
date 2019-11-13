@@ -273,8 +273,8 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
         SetupDrawGlobalMemory(stage, shader);
         SetupDrawTextures(stage, shader, base_bindings);
 
-        const ProgramVariant variant{base_bindings, primitive_mode};
-        const auto [program_handle, next_bindings] = shader->GetProgramHandle(variant);
+        const ProgramVariant variant(base_bindings, primitive_mode);
+        const auto [program_handle, next_bindings] = shader->GetHandle(variant);
 
         switch (program) {
         case Maxwell::ShaderProgram::VertexA:
@@ -725,18 +725,14 @@ bool RasterizerOpenGL::DrawMultiBatch(bool is_indexed) {
 }
 
 void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
-    if (!GLAD_GL_ARB_compute_variable_group_size) {
-        LOG_ERROR(Render_OpenGL, "Compute is currently not supported on this device due to the "
-                                 "lack of GL_ARB_compute_variable_group_size");
-        return;
-    }
-
     auto kernel = shader_cache.GetComputeKernel(code_addr);
     SetupComputeTextures(kernel);
     SetupComputeImages(kernel);
 
-    const auto [program, next_bindings] = kernel->GetProgramHandle({});
-    state.draw.shader_program = program;
+    const auto& launch_desc = system.GPU().KeplerCompute().launch_description;
+    const ProgramVariant variant(launch_desc.block_dim_x, launch_desc.block_dim_y,
+                                 launch_desc.block_dim_z);
+    std::tie(state.draw.shader_program, std::ignore) = kernel->GetHandle(variant);
     state.draw.program_pipeline = 0;
 
     const std::size_t buffer_size =
@@ -760,10 +756,7 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     state.ApplyShaderProgram();
     state.ApplyProgramPipeline();
 
-    const auto& launch_desc = system.GPU().KeplerCompute().launch_description;
-    glDispatchComputeGroupSizeARB(launch_desc.grid_dim_x, launch_desc.grid_dim_y,
-                                  launch_desc.grid_dim_z, launch_desc.block_dim_x,
-                                  launch_desc.block_dim_y, launch_desc.block_dim_z);
+    glDispatchCompute(launch_desc.grid_dim_x, launch_desc.grid_dim_y, launch_desc.grid_dim_z);
 }
 
 void RasterizerOpenGL::FlushAll() {}

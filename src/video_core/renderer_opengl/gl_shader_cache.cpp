@@ -255,7 +255,7 @@ void FillLocker(ConstBufferLocker& locker, const ShaderDiskCacheUsage& usage) {
 
 CachedProgram BuildShader(const Device& device, u64 unique_identifier, ProgramType program_type,
                           const ProgramCode& program_code, const ProgramCode& program_code_b,
-                          const ProgramVariant& variant, ConstBufferLocker& locker,
+                          ConstBufferLocker& locker, const ProgramVariant& variant,
                           bool hint_retrievable = false) {
     LOG_INFO(Render_OpenGL, "called. {}", GetShaderId(unique_identifier, program_type));
 
@@ -268,17 +268,11 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ProgramTy
     }
     const auto entries = GLShader::GetEntries(ir);
 
-    auto base_bindings{variant.base_bindings};
-    const auto primitive_mode{variant.primitive_mode};
-
     std::string source = fmt::format(R"(// {}
 #version 430 core
 #extension GL_ARB_separate_shader_objects : enable
 )",
                                      GetShaderId(unique_identifier, program_type));
-    if (is_compute) {
-        source += "#extension GL_ARB_compute_variable_group_size : require\n";
-    }
     if (device.HasShaderBallot()) {
         source += "#extension GL_ARB_shader_ballot : require\n";
     }
@@ -295,6 +289,7 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ProgramTy
     }
     source += '\n';
 
+    auto base_bindings = variant.base_bindings;
     if (!is_compute) {
         source += fmt::format("#define EMULATION_UBO_BINDING {}\n", base_bindings.cbuf++);
     }
@@ -318,13 +313,15 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ProgramTy
 
     if (program_type == ProgramType::Geometry) {
         const auto [glsl_topology, debug_name, max_vertices] =
-            GetPrimitiveDescription(primitive_mode);
+            GetPrimitiveDescription(variant.primitive_mode);
 
-        source += "layout (" + std::string(glsl_topology) + ") in;\n\n";
-        source += "#define MAX_VERTEX_INPUT " + std::to_string(max_vertices) + '\n';
+        source += fmt::format("layout ({}) in;\n\n", glsl_topology);
+        source += fmt::format("#define MAX_VERTEX_INPUT {}\n", max_vertices);
     }
     if (program_type == ProgramType::Compute) {
-        source += "layout (local_size_variable) in;\n";
+        source +=
+            fmt::format("layout (local_size_x = {}, local_size_y = {}, local_size_z = {}) in;\n",
+                        variant.block_x, variant.block_y, variant.block_z);
     }
 
     source += '\n';
@@ -422,58 +419,53 @@ Shader CachedShader::CreateFromCache(const ShaderParameters& params,
                                                           unspecialized.code_b));
 }
 
-std::tuple<GLuint, BaseBindings> CachedShader::GetProgramHandle(const ProgramVariant& variant) {
-    UpdateVariant();
+std::tuple<GLuint, BaseBindings> CachedShader::GetHandle(const ProgramVariant& variant) {
+    EnsureValidLockerVariant();
 
-    const auto [entry, is_cache_miss] = curr_variant->programs.try_emplace(variant);
+    const auto [entry, is_cache_miss] = curr_locker_variant->programs.try_emplace(variant);
     auto& program = entry->second;
     if (is_cache_miss) {
         program = BuildShader(device, unique_identifier, program_type, program_code, program_code_b,
-                              variant, *curr_variant->locker);
-        disk_cache.SaveUsage(GetUsage(variant, *curr_variant->locker));
+                              *curr_locker_variant->locker, variant);
+        disk_cache.SaveUsage(GetUsage(variant, *curr_locker_variant->locker));
 
         LabelGLObject(GL_PROGRAM, program->handle, cpu_addr);
     }
 
     auto base_bindings = variant.base_bindings;
     base_bindings.cbuf += static_cast<u32>(entries.const_buffers.size());
-    if (program_type != ProgramType::Compute) {
-        base_bindings.cbuf += STAGE_RESERVED_UBOS;
-    }
+    base_bindings.cbuf += STAGE_RESERVED_UBOS;
     base_bindings.gmem += static_cast<u32>(entries.global_memory_entries.size());
     base_bindings.sampler += static_cast<u32>(entries.samplers.size());
 
     return {program->handle, base_bindings};
 }
 
-void CachedShader::UpdateVariant() {
-    if (curr_variant && !curr_variant->locker->IsConsistent()) {
-        curr_variant = nullptr;
+bool CachedShader::EnsureValidLockerVariant() {
+    const auto previous_variant = curr_locker_variant;
+    if (curr_locker_variant && !curr_locker_variant->locker->IsConsistent()) {
+        curr_locker_variant = nullptr;
     }
-    if (!curr_variant) {
+    if (!curr_locker_variant) {
         for (auto& variant : locker_variants) {
             if (variant->locker->IsConsistent()) {
-                curr_variant = variant.get();
+                curr_locker_variant = variant.get();
             }
         }
     }
-    if (!curr_variant) {
+    if (!curr_locker_variant) {
         auto& new_variant = locker_variants.emplace_back();
         new_variant = std::make_unique<LockerVariant>();
         new_variant->locker = MakeLocker(system, program_type);
-        curr_variant = new_variant.get();
+        curr_locker_variant = new_variant.get();
     }
+    return previous_variant == curr_locker_variant;
 }
 
 ShaderDiskCacheUsage CachedShader::GetUsage(const ProgramVariant& variant,
                                             const ConstBufferLocker& locker) const {
-    ShaderDiskCacheUsage usage;
-    usage.unique_identifier = unique_identifier;
-    usage.variant = variant;
-    usage.keys = locker.GetKeys();
-    usage.bound_samplers = locker.GetBoundSamplers();
-    usage.bindless_samplers = locker.GetBindlessSamplers();
-    return usage;
+    return ShaderDiskCacheUsage{unique_identifier, variant, locker.GetKeys(),
+                                locker.GetBoundSamplers(), locker.GetBindlessSamplers()};
 }
 
 ShaderCacheOpenGL::ShaderCacheOpenGL(RasterizerOpenGL& rasterizer, Core::System& system,
@@ -534,9 +526,10 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
             if (!shader) {
                 auto locker{MakeLocker(system, unspecialized.program_type)};
                 FillLocker(*locker, usage);
+
                 shader = BuildShader(device, usage.unique_identifier, unspecialized.program_type,
-                                     unspecialized.code, unspecialized.code_b, usage.variant,
-                                     *locker, true);
+                                     unspecialized.code, unspecialized.code_b, *locker,
+                                     usage.variant, true);
             }
 
             std::scoped_lock lock{mutex};

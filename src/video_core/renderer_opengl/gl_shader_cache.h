@@ -86,7 +86,7 @@ public:
     }
 
     /// Gets the GL program handle for the shader
-    std::tuple<GLuint, BaseBindings> GetProgramHandle(const ProgramVariant& variant);
+    std::tuple<GLuint, BaseBindings> GetHandle(const ProgramVariant& variant);
 
 private:
     struct LockerVariant {
@@ -98,7 +98,7 @@ private:
                           GLShader::ShaderEntries entries, ProgramCode program_code,
                           ProgramCode program_code_b);
 
-    void UpdateVariant();
+    bool EnsureValidLockerVariant();
 
     ShaderDiskCacheUsage GetUsage(const ProgramVariant& variant,
                                   const VideoCommon::Shader::ConstBufferLocker& locker) const;
@@ -117,7 +117,7 @@ private:
     ProgramCode program_code;
     ProgramCode program_code_b;
 
-    LockerVariant* curr_variant = nullptr;
+    LockerVariant* curr_locker_variant = nullptr;
     std::vector<std::unique_ptr<LockerVariant>> locker_variants;
 };
 
