@@ -510,10 +510,14 @@ private:
     }
 
     void DeclareLocalMemory() {
-        // TODO(Rodrigo): Unstub kernel local memory size and pass it from a register at
-        // specialization time.
-        const u64 local_memory_size =
-            stage == ProgramType::Compute ? 0x400 : header.GetLocalMemorySize();
+        if (stage == ProgramType::Compute) {
+            code.AddLine("#ifdef LOCAL_MEMORY_SIZE");
+            code.AddLine("uint {}[LOCAL_MEMORY_SIZE];", GetLocalMemory());
+            code.AddLine("#endif");
+            return;
+        }
+
+        const u64 local_memory_size = header.GetLocalMemorySize();
         if (local_memory_size == 0) {
             return;
         }
@@ -851,9 +855,6 @@ private:
         }
 
         if (const auto lmem = std::get_if<LmemNode>(&*node)) {
-            if (stage == ProgramType::Compute) {
-                LOG_WARNING(Render_OpenGL, "Local memory is stubbed on compute shaders");
-            }
             return {
                 fmt::format("{}[{} >> 2]", GetLocalMemory(), Visit(lmem->GetAddress()).AsUint()),
                 Type::Uint};
@@ -1228,9 +1229,6 @@ private:
             }
             target = std::move(*output);
         } else if (const auto lmem = std::get_if<LmemNode>(&*dest)) {
-            if (stage == ProgramType::Compute) {
-                LOG_WARNING(Render_OpenGL, "Local memory is stubbed on compute shaders");
-            }
             target = {
                 fmt::format("{}[{} >> 2]", GetLocalMemory(), Visit(lmem->GetAddress()).AsUint()),
                 Type::Uint};

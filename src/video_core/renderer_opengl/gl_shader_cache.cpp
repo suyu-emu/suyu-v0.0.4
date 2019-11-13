@@ -329,6 +329,11 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ProgramTy
             source += fmt::format("shared uint smem[{}];",
                                   Common::AlignUp(variant.shared_memory_size, 4) / 4);
         }
+
+        if (variant.local_memory_size > 0) {
+            source += fmt::format("#define LOCAL_MEMORY_SIZE {}",
+                                  Common::AlignUp(variant.local_memory_size, 4) / 4);
+        }
     }
 
     source += '\n';

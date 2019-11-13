@@ -731,7 +731,8 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
 
     const auto& launch_desc = system.GPU().KeplerCompute().launch_description;
     const ProgramVariant variant(launch_desc.block_dim_x, launch_desc.block_dim_y,
-                                 launch_desc.block_dim_z, launch_desc.shared_alloc);
+                                 launch_desc.block_dim_z, launch_desc.shared_alloc,
+                                 launch_desc.local_pos_alloc);
     std::tie(state.draw.shader_program, std::ignore) = kernel->GetHandle(variant);
     state.draw.program_pipeline = 0;
 

@@ -178,7 +178,12 @@ public:
             BitField<24, 5, u32> gpr_alloc;
         };
 
-        INSERT_PADDING_WORDS(0x11);
+        union {
+            BitField<0, 20, u32> local_crs_alloc;
+            BitField<24, 5, u32> sass_version;
+        };
+
+        INSERT_PADDING_WORDS(0x10);
     } launch_description{};
 
     struct {
