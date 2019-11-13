@@ -1478,7 +1478,8 @@ union Instruction {
             u32 value = static_cast<u32>(target);
             // The branch offset is relative to the next instruction and is stored in bytes, so
             // divide it by the size of an instruction and add 1 to it.
-            return static_cast<s32>((value ^ mask) - mask) / sizeof(Instruction) + 1;
+            return static_cast<s32>((value ^ mask) - mask) / static_cast<s32>(sizeof(Instruction)) +
+                   1;
         }
     } bra;
 
@@ -1492,7 +1493,8 @@ union Instruction {
             u32 value = static_cast<u32>(target);
             // The branch offset is relative to the next instruction and is stored in bytes, so
             // divide it by the size of an instruction and add 1 to it.
-            return static_cast<s32>((value ^ mask) - mask) / sizeof(Instruction) + 1;
+            return static_cast<s32>((value ^ mask) - mask) / static_cast<s32>(sizeof(Instruction)) +
+                   1;
         }
     } brx;
 
@@ -1851,11 +1853,11 @@ private:
                 const std::size_t bit_position = opcode_bitsize - i - 1;
                 switch (bitstring[i]) {
                 case '0':
-                    mask |= 1 << bit_position;
+                    mask |= static_cast<u16>(1U << bit_position);
                     break;
                 case '1':
-                    expect |= 1 << bit_position;
-                    mask |= 1 << bit_position;
+                    expect |= static_cast<u16>(1U << bit_position);
+                    mask |= static_cast<u16>(1U << bit_position);
                     break;
                 default:
                     // Ignore

@@ -261,7 +261,8 @@ void Maxwell3D::CallMacroMethod(u32 method, std::size_t num_parameters, const u3
     executing_macro = 0;
 
     // Lookup the macro offset
-    const u32 entry = ((method - MacroRegistersStart) >> 1) % macro_positions.size();
+    const u32 entry =
+        ((method - MacroRegistersStart) >> 1) % static_cast<u32>(macro_positions.size());
 
     // Execute the current macro.
     macro_interpreter.Execute(macro_positions[entry], num_parameters, parameters);

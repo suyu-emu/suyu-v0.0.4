@@ -375,7 +375,7 @@ void RasterizerOpenGL::ConfigureFramebuffers() {
         fbkey.color_attachments[index] = GL_COLOR_ATTACHMENT0 + regs.rt_control.GetMap(index);
         fbkey.colors[index] = std::move(color_surface);
     }
-    fbkey.colors_count = regs.rt_control.count;
+    fbkey.colors_count = static_cast<u16>(regs.rt_control.count);
 
     if (depth_surface) {
         // Assume that a surface will be written to if it is used as a framebuffer, even if

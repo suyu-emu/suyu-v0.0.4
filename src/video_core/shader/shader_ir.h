@@ -49,7 +49,7 @@ public:
     }
 
     u32 GetSize() const {
-        return max_offset + sizeof(float);
+        return max_offset + static_cast<u32>(sizeof(float));
     }
 
     u32 GetMaxOffset() const {
@@ -165,8 +165,8 @@ public:
         return program_manager.GetVariables();
     }
 
-    u32 ConvertAddressToNvidiaSpace(const u32 address) const {
-        return (address - main_offset) * sizeof(Tegra::Shader::Instruction);
+    u32 ConvertAddressToNvidiaSpace(u32 address) const {
+        return (address - main_offset) * static_cast<u32>(sizeof(Tegra::Shader::Instruction));
     }
 
     /// Returns a condition code evaluated from internal flags
