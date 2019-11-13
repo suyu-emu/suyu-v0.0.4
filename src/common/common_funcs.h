@@ -56,7 +56,7 @@ std::string GetLastErrorMsg();
 namespace Common {
 
 constexpr u32 MakeMagic(char a, char b, char c, char d) {
-    return a | b << 8 | c << 16 | d << 24;
+    return u32(a) | u32(b) << 8 | u32(c) << 16 | u32(d) << 24;
 }
 
 } // namespace Common
