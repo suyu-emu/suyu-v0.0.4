@@ -275,15 +275,24 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ProgramTy
     std::string source = fmt::format(R"(// {}
 #version 430 core
 #extension GL_ARB_separate_shader_objects : enable
-#extension GL_ARB_shader_viewport_layer_array : enable
-#extension GL_EXT_shader_image_load_formatted : enable
-#extension GL_NV_gpu_shader5 : enable
-#extension GL_NV_shader_thread_group : enable
-#extension GL_NV_shader_thread_shuffle : enable
 )",
                                      GetShaderId(unique_identifier, program_type));
     if (is_compute) {
         source += "#extension GL_ARB_compute_variable_group_size : require\n";
+    }
+    if (device.HasShaderBallot()) {
+        source += "#extension GL_ARB_shader_ballot : require\n";
+    }
+    if (device.HasVertexViewportLayer()) {
+        source += "#extension GL_ARB_shader_viewport_layer_array : require\n";
+    }
+    if (device.HasImageLoadFormatted()) {
+        source += "#extension GL_EXT_shader_image_load_formatted : require\n";
+    }
+    if (device.HasWarpIntrinsics()) {
+        source += "#extension GL_NV_gpu_shader5 : require\n"
+                  "#extension GL_NV_shader_thread_group : require\n"
+                  "#extension GL_NV_shader_thread_shuffle : require\n";
     }
     source += '\n';
 

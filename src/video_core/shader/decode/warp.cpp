@@ -17,6 +17,7 @@ using Tegra::Shader::ShuffleOperation;
 using Tegra::Shader::VoteOperation;
 
 namespace {
+
 OperationCode GetOperationCode(VoteOperation vote_op) {
     switch (vote_op) {
     case VoteOperation::All:
@@ -30,6 +31,7 @@ OperationCode GetOperationCode(VoteOperation vote_op) {
         return OperationCode::VoteAll;
     }
 }
+
 } // Anonymous namespace
 
 u32 ShaderIR::DecodeWarp(NodeBlock& bb, u32 pc) {
@@ -46,50 +48,59 @@ u32 ShaderIR::DecodeWarp(NodeBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::SHFL: {
-        Node width = [this, instr] {
-            Node mask = instr.shfl.is_mask_imm ? Immediate(static_cast<u32>(instr.shfl.mask_imm))
-                                               : GetRegister(instr.gpr39);
-
-            // Convert the obscure SHFL mask back into GL_NV_shader_thread_shuffle's width. This has
-            // been done reversing Nvidia's math. It won't work on all cases due to SHFL having
-            // different parameters that don't properly map to GLSL's interface, but it should work
-            // for cases emitted by Nvidia's compiler.
-            if (instr.shfl.operation == ShuffleOperation::Up) {
-                return Operation(
-                    OperationCode::ILogicalShiftRight,
-                    Operation(OperationCode::IAdd, std::move(mask), Immediate(-0x2000)),
-                    Immediate(8));
-            } else {
-                return Operation(OperationCode::ILogicalShiftRight,
-                                 Operation(OperationCode::IAdd, Immediate(0x201F),
-                                           Operation(OperationCode::INegate, std::move(mask))),
-                                 Immediate(8));
-            }
-        }();
-
-        const auto [operation, in_range] = [instr]() -> std::pair<OperationCode, OperationCode> {
-            switch (instr.shfl.operation) {
-            case ShuffleOperation::Idx:
-                return {OperationCode::ShuffleIndexed, OperationCode::InRangeShuffleIndexed};
-            case ShuffleOperation::Up:
-                return {OperationCode::ShuffleUp, OperationCode::InRangeShuffleUp};
-            case ShuffleOperation::Down:
-                return {OperationCode::ShuffleDown, OperationCode::InRangeShuffleDown};
-            case ShuffleOperation::Bfly:
-                return {OperationCode::ShuffleButterfly, OperationCode::InRangeShuffleButterfly};
-            }
-            UNREACHABLE_MSG("Invalid SHFL operation: {}",
-                            static_cast<u64>(instr.shfl.operation.Value()));
-            return {};
-        }();
-
-        // Setting the predicate before the register is intentional to avoid overwriting.
+        Node mask = instr.shfl.is_mask_imm ? Immediate(static_cast<u32>(instr.shfl.mask_imm))
+                                           : GetRegister(instr.gpr39);
         Node index = instr.shfl.is_index_imm ? Immediate(static_cast<u32>(instr.shfl.index_imm))
                                              : GetRegister(instr.gpr20);
-        SetPredicate(bb, instr.shfl.pred48, Operation(in_range, index, width));
+
+        Node thread_id = Operation(OperationCode::ThreadId);
+        Node clamp = Operation(OperationCode::IBitwiseAnd, mask, Immediate(0x1FU));
+        Node seg_mask = BitfieldExtract(mask, 8, 16);
+
+        Node neg_seg_mask = Operation(OperationCode::IBitwiseNot, seg_mask);
+        Node min_thread_id = Operation(OperationCode::IBitwiseAnd, thread_id, seg_mask);
+        Node max_thread_id = Operation(OperationCode::IBitwiseOr, min_thread_id,
+                                       Operation(OperationCode::IBitwiseAnd, clamp, neg_seg_mask));
+
+        Node src_thread_id = [instr, index, neg_seg_mask, min_thread_id, thread_id] {
+            switch (instr.shfl.operation) {
+            case ShuffleOperation::Idx:
+                return Operation(OperationCode::IBitwiseOr,
+                                 Operation(OperationCode::IBitwiseAnd, index, neg_seg_mask),
+                                 min_thread_id);
+            case ShuffleOperation::Down:
+                return Operation(OperationCode::IAdd, thread_id, index);
+            case ShuffleOperation::Up:
+                return Operation(OperationCode::IAdd, thread_id,
+                                 Operation(OperationCode::INegate, index));
+            case ShuffleOperation::Bfly:
+                return Operation(OperationCode::IBitwiseXor, thread_id, index);
+            }
+            UNREACHABLE();
+            return Immediate(0U);
+        }();
+
+        Node in_bounds = [instr, src_thread_id, min_thread_id, max_thread_id] {
+            if (instr.shfl.operation == ShuffleOperation::Up) {
+                return Operation(OperationCode::LogicalIGreaterEqual, src_thread_id, min_thread_id);
+            } else {
+                return Operation(OperationCode::LogicalILessEqual, src_thread_id, max_thread_id);
+            }
+        }();
+
+        SetPredicate(bb, instr.shfl.pred48, in_bounds);
         SetRegister(
             bb, instr.gpr0,
-            Operation(operation, GetRegister(instr.gpr8), std::move(index), std::move(width)));
+            Operation(OperationCode::ShuffleIndexed, GetRegister(instr.gpr8), src_thread_id));
+        break;
+    }
+    case OpCode::Id::FSWZADD: {
+        UNIMPLEMENTED_IF(instr.fswzadd.ndv);
+
+        Node op_a = GetRegister(instr.gpr8);
+        Node op_b = GetRegister(instr.gpr20);
+        Node mask = Immediate(static_cast<u32>(instr.fswzadd.swizzle));
+        SetRegister(bb, instr.gpr0, Operation(OperationCode::FSwizzleAdd, op_a, op_b, mask));
         break;
     }
     default:

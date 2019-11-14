@@ -783,6 +783,11 @@ private:
         return {};
     }
 
+    Id FSwizzleAdd(Operation operation) {
+        UNIMPLEMENTED();
+        return {};
+    }
+
     Id HNegate(Operation operation) {
         UNIMPLEMENTED();
         return {};
@@ -1195,42 +1200,12 @@ private:
         return {};
     }
 
+    Id ThreadId(Operation) {
+        UNIMPLEMENTED();
+        return {};
+    }
+
     Id ShuffleIndexed(Operation) {
-        UNIMPLEMENTED();
-        return {};
-    }
-
-    Id ShuffleUp(Operation) {
-        UNIMPLEMENTED();
-        return {};
-    }
-
-    Id ShuffleDown(Operation) {
-        UNIMPLEMENTED();
-        return {};
-    }
-
-    Id ShuffleButterfly(Operation) {
-        UNIMPLEMENTED();
-        return {};
-    }
-
-    Id InRangeShuffleIndexed(Operation) {
-        UNIMPLEMENTED();
-        return {};
-    }
-
-    Id InRangeShuffleUp(Operation) {
-        UNIMPLEMENTED();
-        return {};
-    }
-
-    Id InRangeShuffleDown(Operation) {
-        UNIMPLEMENTED();
-        return {};
-    }
-
-    Id InRangeShuffleButterfly(Operation) {
         UNIMPLEMENTED();
         return {};
     }
@@ -1393,6 +1368,7 @@ private:
         &SPIRVDecompiler::Unary<&Module::OpTrunc, Type::Float>,
         &SPIRVDecompiler::Unary<&Module::OpConvertSToF, Type::Float, Type::Int>,
         &SPIRVDecompiler::Unary<&Module::OpConvertUToF, Type::Float, Type::Uint>,
+        &SPIRVDecompiler::FSwizzleAdd,
 
         &SPIRVDecompiler::Binary<&Module::OpIAdd, Type::Int>,
         &SPIRVDecompiler::Binary<&Module::OpIMul, Type::Int>,
@@ -1528,15 +1504,8 @@ private:
         &SPIRVDecompiler::VoteAny,
         &SPIRVDecompiler::VoteEqual,
 
+        &SPIRVDecompiler::ThreadId,
         &SPIRVDecompiler::ShuffleIndexed,
-        &SPIRVDecompiler::ShuffleUp,
-        &SPIRVDecompiler::ShuffleDown,
-        &SPIRVDecompiler::ShuffleButterfly,
-
-        &SPIRVDecompiler::InRangeShuffleIndexed,
-        &SPIRVDecompiler::InRangeShuffleUp,
-        &SPIRVDecompiler::InRangeShuffleDown,
-        &SPIRVDecompiler::InRangeShuffleButterfly,
     };
     static_assert(operation_decompilers.size() == static_cast<std::size_t>(OperationCode::Amount));
 

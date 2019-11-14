@@ -1379,6 +1379,26 @@ private:
         return GenerateUnary(operation, "float", Type::Float, type);
     }
 
+    Expression FSwizzleAdd(Operation operation) {
+        const std::string op_a = VisitOperand(operation, 0).AsFloat();
+        const std::string op_b = VisitOperand(operation, 1).AsFloat();
+
+        if (!device.HasShaderBallot()) {
+            LOG_ERROR(Render_OpenGL, "Shader ballot is unavailable but required by the shader");
+            return {fmt::format("{} + {}", op_a, op_b), Type::Float};
+        }
+
+        const std::string instr_mask = VisitOperand(operation, 2).AsUint();
+        const std::string mask = code.GenerateTemporary();
+        code.AddLine("uint {} = ({} >> ((gl_SubGroupInvocationARB & 3) << 1)) & 3;", mask,
+                     instr_mask);
+
+        const std::string modifier_a = fmt::format("fswzadd_modifiers_a[{}]", mask);
+        const std::string modifier_b = fmt::format("fswzadd_modifiers_b[{}]", mask);
+        return {fmt::format("(({} * {}) + ({} * {}))", op_a, modifier_a, op_b, modifier_b),
+                Type::Float};
+    }
+
     Expression ICastFloat(Operation operation) {
         return GenerateUnary(operation, "int", Type::Int, Type::Float);
     }
@@ -1942,34 +1962,24 @@ private:
         return Vote(operation, "allThreadsEqualNV");
     }
 
-    template <const std::string_view& func>
-    Expression Shuffle(Operation operation) {
-        const std::string value = VisitOperand(operation, 0).AsFloat();
-        if (!device.HasWarpIntrinsics()) {
-            LOG_ERROR(Render_OpenGL, "Nvidia shuffle intrinsics are required by this shader");
-            // On a "single-thread" device we are either on the same thread or out of bounds. Both
-            // cases return the passed value.
-            return {value, Type::Float};
+    Expression ThreadId(Operation operation) {
+        if (!device.HasShaderBallot()) {
+            LOG_ERROR(Render_OpenGL, "Shader ballot is unavailable but required by the shader");
+            return {"0U", Type::Uint};
+        }
+        return {"gl_SubGroupInvocationARB", Type::Uint};
+    }
+
+    Expression ShuffleIndexed(Operation operation) {
+        std::string value = VisitOperand(operation, 0).AsFloat();
+
+        if (!device.HasShaderBallot()) {
+            LOG_ERROR(Render_OpenGL, "Shader ballot is unavailable but required by the shader");
+            return {std::move(value), Type::Float};
         }
 
         const std::string index = VisitOperand(operation, 1).AsUint();
-        const std::string width = VisitOperand(operation, 2).AsUint();
-        return {fmt::format("{}({}, {}, {})", func, value, index, width), Type::Float};
-    }
-
-    template <const std::string_view& func>
-    Expression InRangeShuffle(Operation operation) {
-        const std::string index = VisitOperand(operation, 0).AsUint();
-        const std::string width = VisitOperand(operation, 1).AsUint();
-        if (!device.HasWarpIntrinsics()) {
-            // On a "single-thread" device we are only in bounds when the requested index is 0.
-            return {fmt::format("({} == 0U)", index), Type::Bool};
-        }
-
-        const std::string in_range = code.GenerateTemporary();
-        code.AddLine("bool {};", in_range);
-        code.AddLine("{}(0U, {}, {}, {});", func, index, width, in_range);
-        return {in_range, Type::Bool};
+        return {fmt::format("readInvocationARB({}, {})", value, index), Type::Float};
     }
 
     struct Func final {
@@ -1981,11 +1991,6 @@ private:
         static constexpr std::string_view Or = "Or";
         static constexpr std::string_view Xor = "Xor";
         static constexpr std::string_view Exchange = "Exchange";
-
-        static constexpr std::string_view ShuffleIndexed = "shuffleNV";
-        static constexpr std::string_view ShuffleUp = "shuffleUpNV";
-        static constexpr std::string_view ShuffleDown = "shuffleDownNV";
-        static constexpr std::string_view ShuffleButterfly = "shuffleXorNV";
     };
 
     static constexpr std::array operation_decompilers = {
@@ -2016,6 +2021,7 @@ private:
         &GLSLDecompiler::FTrunc,
         &GLSLDecompiler::FCastInteger<Type::Int>,
         &GLSLDecompiler::FCastInteger<Type::Uint>,
+        &GLSLDecompiler::FSwizzleAdd,
 
         &GLSLDecompiler::Add<Type::Int>,
         &GLSLDecompiler::Mul<Type::Int>,
@@ -2151,15 +2157,8 @@ private:
         &GLSLDecompiler::VoteAny,
         &GLSLDecompiler::VoteEqual,
 
-        &GLSLDecompiler::Shuffle<Func::ShuffleIndexed>,
-        &GLSLDecompiler::Shuffle<Func::ShuffleUp>,
-        &GLSLDecompiler::Shuffle<Func::ShuffleDown>,
-        &GLSLDecompiler::Shuffle<Func::ShuffleButterfly>,
-
-        &GLSLDecompiler::InRangeShuffle<Func::ShuffleIndexed>,
-        &GLSLDecompiler::InRangeShuffle<Func::ShuffleUp>,
-        &GLSLDecompiler::InRangeShuffle<Func::ShuffleDown>,
-        &GLSLDecompiler::InRangeShuffle<Func::ShuffleButterfly>,
+        &GLSLDecompiler::ThreadId,
+        &GLSLDecompiler::ShuffleIndexed,
     };
     static_assert(operation_decompilers.size() == static_cast<std::size_t>(OperationCode::Amount));
 
@@ -2492,6 +2491,9 @@ bvec2 HalfFloatNanComparison(bvec2 comparison, vec2 pair1, vec2 pair2) {
     bvec2 is_nan2 = isnan(pair2);
     return bvec2(comparison.x || is_nan1.x || is_nan2.x, comparison.y || is_nan1.y || is_nan2.y);
 }
+
+const float fswzadd_modifiers_a[] = float[4](-1.0f,  1.0f, -1.0f,  0.0f );
+const float fswzadd_modifiers_b[] = float[4](-1.0f, -1.0f,  1.0f, -1.0f );
 )";
 }
 

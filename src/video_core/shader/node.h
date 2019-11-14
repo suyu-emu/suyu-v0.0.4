@@ -47,6 +47,7 @@ enum class OperationCode {
     FTrunc,        /// (MetaArithmetic, float a) -> float
     FCastInteger,  /// (MetaArithmetic, int a) -> float
     FCastUInteger, /// (MetaArithmetic, uint a) -> float
+    FSwizzleAdd,   /// (float a, float b, uint mask) -> float
 
     IAdd,                  /// (MetaArithmetic, int a, int b) -> int
     IMul,                  /// (MetaArithmetic, int a, int b) -> int
@@ -181,15 +182,8 @@ enum class OperationCode {
     VoteAny,      /// (bool) -> bool
     VoteEqual,    /// (bool) -> bool
 
-    ShuffleIndexed,   /// (uint value, uint index, uint width) -> uint
-    ShuffleUp,        /// (uint value, uint index, uint width) -> uint
-    ShuffleDown,      /// (uint value, uint index, uint width) -> uint
-    ShuffleButterfly, /// (uint value, uint index, uint width) -> uint
-
-    InRangeShuffleIndexed,   /// (uint index, uint width) -> bool
-    InRangeShuffleUp,        /// (uint index, uint width) -> bool
-    InRangeShuffleDown,      /// (uint index, uint width) -> bool
-    InRangeShuffleButterfly, /// (uint index, uint width) -> bool
+    ThreadId,       /// () -> uint
+    ShuffleIndexed, /// (uint value, uint index) -> uint
 
     Amount,
 };

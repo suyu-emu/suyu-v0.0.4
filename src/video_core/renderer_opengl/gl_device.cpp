@@ -62,6 +62,7 @@ Device::Device() {
     max_varyings = GetInteger<u32>(GL_MAX_VARYING_VECTORS);
     has_warp_intrinsics = GLAD_GL_NV_gpu_shader5 && GLAD_GL_NV_shader_thread_group &&
                           GLAD_GL_NV_shader_thread_shuffle;
+    has_shader_ballot = GLAD_GL_ARB_shader_ballot;
     has_vertex_viewport_layer = GLAD_GL_ARB_shader_viewport_layer_array;
     has_image_load_formatted = HasExtension(extensions, "GL_EXT_shader_image_load_formatted");
     has_variable_aoffi = TestVariableAoffi();
@@ -79,6 +80,7 @@ Device::Device(std::nullptr_t) {
     max_vertex_attributes = 16;
     max_varyings = 15;
     has_warp_intrinsics = true;
+    has_shader_ballot = true;
     has_vertex_viewport_layer = true;
     has_image_load_formatted = true;
     has_variable_aoffi = true;

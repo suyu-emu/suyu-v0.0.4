@@ -616,6 +616,14 @@ union Instruction {
     } shfl;
 
     union {
+        BitField<44, 1, u64> ftz;
+        BitField<39, 2, u64> tab5cb8_2;
+        BitField<38, 1, u64> ndv;
+        BitField<47, 1, u64> cc;
+        BitField<28, 8, u64> swizzle;
+    } fswzadd;
+
+    union {
         BitField<8, 8, Register> gpr;
         BitField<20, 24, s64> offset;
     } gmem;
@@ -1592,6 +1600,7 @@ public:
         DEPBAR,
         VOTE,
         SHFL,
+        FSWZADD,
         BFE_C,
         BFE_R,
         BFE_IMM,
@@ -1890,6 +1899,7 @@ private:
             INST("1111000011110---", Id::DEPBAR, Type::Synch, "DEPBAR"),
             INST("0101000011011---", Id::VOTE, Type::Warp, "VOTE"),
             INST("1110111100010---", Id::SHFL, Type::Warp, "SHFL"),
+            INST("0101000011111---", Id::FSWZADD, Type::Warp, "FSWZADD"),
             INST("1110111111011---", Id::LD_A, Type::Memory, "LD_A"),
             INST("1110111101001---", Id::LD_S, Type::Memory, "LD_S"),
             INST("1110111101000---", Id::LD_L, Type::Memory, "LD_L"),
