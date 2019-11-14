@@ -1077,6 +1077,7 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
         {101, &IApplicationFunctions::SetApplicationCopyrightImage, "SetApplicationCopyrightImage"},
         {102, &IApplicationFunctions::SetApplicationCopyrightVisibility, "SetApplicationCopyrightVisibility"},
         {110, nullptr, "QueryApplicationPlayStatistics"},
+        {111, &IApplicationFunctions::QueryApplicationPlayStatisticsByUid, "QueryApplicationPlayStatisticsByUid"},
         {120, nullptr, "ExecuteProgram"},
         {121, nullptr, "ClearUserChannel"},
         {122, nullptr, "UnpopToUserChannel"},
@@ -1382,6 +1383,14 @@ void IApplicationFunctions::GetGpuErrorDetectedSystemEvent(Kernel::HLERequestCon
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushCopyObjects(gpu_error_detected_event.readable);
+}
+
+void IApplicationFunctions::QueryApplicationPlayStatisticsByUid(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push<u32>(0);
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager,
