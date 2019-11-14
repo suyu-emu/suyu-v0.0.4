@@ -294,7 +294,7 @@ public:
         Memory::ReadBlock(nro_address, nro_data.data(), nro_size);
 
         SHA256Hash hash{};
-        mbedtls_sha256(nro_data.data(), nro_data.size(), hash.data(), 0);
+        mbedtls_sha256_ret(nro_data.data(), nro_data.size(), hash.data(), 0);
 
         // NRO Hash is already loaded
         if (std::any_of(nro.begin(), nro.end(), [&hash](const std::pair<VAddr, NROInfo>& info) {
