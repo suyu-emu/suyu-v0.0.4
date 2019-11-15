@@ -1892,10 +1892,6 @@ private:
     Expression EmitVertex(Operation operation) {
         ASSERT_MSG(stage == ProgramType::Geometry,
                    "EmitVertex is expected to be used in a geometry shader.");
-
-        // If a geometry shader is attached, it will always flip (it's the last stage before
-        // fragment). For more info about flipping, refer to gl_shader_gen.cpp.
-        code.AddLine("gl_Position.xy *= viewport_flip.xy;");
         code.AddLine("EmitVertex();");
         return {};
     }
@@ -1903,14 +1899,12 @@ private:
     Expression EndPrimitive(Operation operation) {
         ASSERT_MSG(stage == ProgramType::Geometry,
                    "EndPrimitive is expected to be used in a geometry shader.");
-
         code.AddLine("EndPrimitive();");
         return {};
     }
 
     Expression YNegate(Operation operation) {
-        // Config pack's third value is Y_NEGATE's state.
-        return {"config_pack[2]", Type::Uint};
+        return {"y_direction", Type::Float};
     }
 
     template <u32 element>

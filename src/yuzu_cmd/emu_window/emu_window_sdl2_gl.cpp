@@ -50,7 +50,7 @@ private:
 };
 
 bool EmuWindow_SDL2_GL::SupportsRequiredGLExtensions() {
-    std::vector<std::string> unsupported_ext;
+    std::vector<std::string_view> unsupported_ext;
 
     if (!GLAD_GL_ARB_buffer_storage)
         unsupported_ext.push_back("ARB_buffer_storage");
@@ -62,6 +62,8 @@ bool EmuWindow_SDL2_GL::SupportsRequiredGLExtensions() {
         unsupported_ext.push_back("ARB_texture_mirror_clamp_to_edge");
     if (!GLAD_GL_ARB_multi_bind)
         unsupported_ext.push_back("ARB_multi_bind");
+    if (!GLAD_GL_ARB_clip_control)
+        unsupported_ext.push_back("ARB_clip_control");
 
     // Extensions required to support some texture formats.
     if (!GLAD_GL_EXT_texture_compression_s3tc)
@@ -71,8 +73,8 @@ bool EmuWindow_SDL2_GL::SupportsRequiredGLExtensions() {
     if (!GLAD_GL_ARB_depth_buffer_float)
         unsupported_ext.push_back("ARB_depth_buffer_float");
 
-    for (const std::string& ext : unsupported_ext)
-        LOG_CRITICAL(Frontend, "Unsupported GL extension: {}", ext);
+    for (const auto& extension : unsupported_ext)
+        LOG_CRITICAL(Frontend, "Unsupported GL extension: {}", extension);
 
     return unsupported_ext.empty();
 }

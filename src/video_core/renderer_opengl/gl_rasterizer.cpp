@@ -257,10 +257,8 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
             continue;
         }
 
-        const std::size_t stage{index == 0 ? 0 : index - 1}; // Stage indices are 0 - 5
-
         GLShader::MaxwellUniformData ubo{};
-        ubo.SetFromRegs(gpu, stage);
+        ubo.SetFromRegs(gpu);
         const auto [buffer, offset] =
             buffer_cache.UploadHostMemory(&ubo, sizeof(ubo), device.GetUniformBufferAlignment());
 
@@ -269,10 +267,11 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
 
         Shader shader{shader_cache.GetStageProgram(program)};
 
-        const auto stage_enum = static_cast<Maxwell::ShaderStage>(stage);
-        SetupDrawConstBuffers(stage_enum, shader);
-        SetupDrawGlobalMemory(stage_enum, shader);
-        const auto texture_buffer_usage{SetupDrawTextures(stage_enum, shader, base_bindings)};
+        // Stage indices are 0 - 5
+        const auto stage = static_cast<Maxwell::ShaderStage>(index == 0 ? 0 : index - 1);
+        SetupDrawConstBuffers(stage, shader);
+        SetupDrawGlobalMemory(stage, shader);
+        const auto texture_buffer_usage{SetupDrawTextures(stage, shader, base_bindings)};
 
         const ProgramVariant variant{base_bindings, primitive_mode, texture_buffer_usage};
         const auto [program_handle, next_bindings] = shader->GetProgramHandle(variant);
@@ -1055,6 +1054,15 @@ void RasterizerOpenGL::SyncViewport(OpenGLState& current_state) {
     }
     state.depth_clamp.far_plane = regs.view_volume_clip_control.depth_clamp_far != 0;
     state.depth_clamp.near_plane = regs.view_volume_clip_control.depth_clamp_near != 0;
+
+    bool flip_y = false;
+    if (regs.viewport_transform[0].scale_y < 0.0) {
+        flip_y = !flip_y;
+    }
+    if (regs.screen_y_control.y_negate != 0) {
+        flip_y = !flip_y;
+    }
+    state.clip_control.origin = flip_y ? GL_UPPER_LEFT : GL_LOWER_LEFT;
 }
 
 void RasterizerOpenGL::SyncClipEnabled(
@@ -1077,28 +1085,14 @@ void RasterizerOpenGL::SyncClipCoef() {
 }
 
 void RasterizerOpenGL::SyncCullMode() {
-    auto& maxwell3d = system.GPU().Maxwell3D();
-
-    const auto& regs = maxwell3d.regs;
+    const auto& regs = system.GPU().Maxwell3D().regs;
 
     state.cull.enabled = regs.cull.enabled != 0;
     if (state.cull.enabled) {
-        state.cull.front_face = MaxwellToGL::FrontFace(regs.cull.front_face);
         state.cull.mode = MaxwellToGL::CullFace(regs.cull.cull_face);
-
-        const bool flip_triangles{regs.screen_y_control.triangle_rast_flip == 0 ||
-                                  regs.viewport_transform[0].scale_y < 0.0f};
-
-        // If the GPU is configured to flip the rasterized triangles, then we need to flip the
-        // notion of front and back. Note: We flip the triangles when the value of the register is 0
-        // because OpenGL already does it for us.
-        if (flip_triangles) {
-            if (state.cull.front_face == GL_CCW)
-                state.cull.front_face = GL_CW;
-            else if (state.cull.front_face == GL_CW)
-                state.cull.front_face = GL_CCW;
-        }
     }
+
+    state.cull.front_face = MaxwellToGL::FrontFace(regs.cull.front_face);
 }
 
 void RasterizerOpenGL::SyncPrimitiveRestart() {

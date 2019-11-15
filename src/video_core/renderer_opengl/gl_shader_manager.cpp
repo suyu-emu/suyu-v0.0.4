@@ -40,27 +40,11 @@ void ProgramManager::UpdatePipeline() {
     old_state = current_state;
 }
 
-void MaxwellUniformData::SetFromRegs(const Maxwell3D& maxwell, std::size_t shader_stage) {
+void MaxwellUniformData::SetFromRegs(const Maxwell3D& maxwell) {
     const auto& regs = maxwell.regs;
-    const auto& state = maxwell.state;
-
-    // TODO(bunnei): Support more than one viewport
-    viewport_flip[0] = regs.viewport_transform[0].scale_x < 0.0 ? -1.0f : 1.0f;
-    viewport_flip[1] = regs.viewport_transform[0].scale_y < 0.0 ? -1.0f : 1.0f;
-
-    instance_id = state.current_instance;
-
-    // Assign in which stage the position has to be flipped
-    // (the last stage before the fragment shader).
-    constexpr u32 geometry_index = static_cast<u32>(Maxwell3D::Regs::ShaderProgram::Geometry);
-    if (maxwell.regs.shader_config[geometry_index].enable) {
-        flip_stage = geometry_index;
-    } else {
-        flip_stage = static_cast<u32>(Maxwell3D::Regs::ShaderProgram::VertexB);
-    }
 
     // Y_NEGATE controls what value S2R returns for the Y_DIRECTION system value.
-    y_direction = regs.screen_y_control.y_negate == 0 ? 1.f : -1.f;
+    y_direction = regs.screen_y_control.y_negate == 0 ? 1.0f : -1.0f;
 }
 
 } // namespace OpenGL::GLShader
