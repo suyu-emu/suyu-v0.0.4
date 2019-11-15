@@ -131,7 +131,7 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
     if (out.size() < offset) {
         IPC::ResponseBuilder rb{ctx, 2};
         // TODO(DarkLordZach): Find the correct error code.
-        rb.Push(ResultCode(-1));
+        rb.Push(RESULT_UNKNOWN);
         return;
     }
 

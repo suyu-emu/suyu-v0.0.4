@@ -27,7 +27,7 @@ VirtualDir ExtractZIP(VirtualFile file) {
 
     std::shared_ptr<VectorVfsDirectory> out = std::make_shared<VectorVfsDirectory>();
 
-    const auto num_entries = zip_get_num_entries(zip.get(), 0);
+    const auto num_entries = static_cast<std::size_t>(zip_get_num_entries(zip.get(), 0));
 
     zip_stat_t stat{};
     zip_stat_init(&stat);

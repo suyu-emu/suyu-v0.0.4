@@ -71,12 +71,12 @@ ResultVal<VirtualFile> RomFSFactory::Open(u64 title_id, StorageId storage,
 
     if (res == nullptr) {
         // TODO(DarkLordZach): Find the right error code to use here
-        return ResultCode(-1);
+        return RESULT_UNKNOWN;
     }
     const auto romfs = res->GetRomFS();
     if (romfs == nullptr) {
         // TODO(DarkLordZach): Find the right error code to use here
-        return ResultCode(-1);
+        return RESULT_UNKNOWN;
     }
     return MakeResult<VirtualFile>(romfs);
 }

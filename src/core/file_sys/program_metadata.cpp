@@ -52,14 +52,14 @@ Loader::ResultStatus ProgramMetadata::Load(VirtualFile file) {
 }
 
 void ProgramMetadata::LoadManual(bool is_64_bit, ProgramAddressSpaceType address_space,
-                                 u8 main_thread_prio, u8 main_thread_core,
+                                 s32 main_thread_prio, u32 main_thread_core,
                                  u32 main_thread_stack_size, u64 title_id,
                                  u64 filesystem_permissions,
                                  KernelCapabilityDescriptors capabilities) {
     npdm_header.has_64_bit_instructions.Assign(is_64_bit);
     npdm_header.address_space_type.Assign(address_space);
-    npdm_header.main_thread_priority = main_thread_prio;
-    npdm_header.main_thread_cpu = main_thread_core;
+    npdm_header.main_thread_priority = static_cast<u8>(main_thread_prio);
+    npdm_header.main_thread_cpu = static_cast<u8>(main_thread_core);
     npdm_header.main_stack_size = main_thread_stack_size;
     aci_header.title_id = title_id;
     aci_file_access.permissions = filesystem_permissions;

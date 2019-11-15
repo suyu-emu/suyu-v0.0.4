@@ -22,6 +22,7 @@
 #include "common/file_util.h"
 #include "common/hex_util.h"
 #include "common/logging/log.h"
+#include "common/string_util.h"
 #include "core/core.h"
 #include "core/crypto/aes_util.h"
 #include "core/crypto/key_manager.h"
@@ -378,8 +379,9 @@ std::vector<Ticket> GetTicketblob(const FileUtil::IOFile& ticket_save) {
 template <size_t size>
 static std::array<u8, size> operator^(const std::array<u8, size>& lhs,
                                       const std::array<u8, size>& rhs) {
-    std::array<u8, size> out{};
-    std::transform(lhs.begin(), lhs.end(), rhs.begin(), out.begin(), std::bit_xor<>());
+    std::array<u8, size> out;
+    std::transform(lhs.begin(), lhs.end(), rhs.begin(), out.begin(),
+                   [](u8 lhs, u8 rhs) { return u8(lhs ^ rhs); });
     return out;
 }
 
@@ -538,7 +540,7 @@ void KeyManager::LoadFromFile(const std::string& filename, bool is_title_keys) {
             Key128 key = Common::HexStringToArray<16>(out[1]);
             s128_keys[{S128KeyType::Titlekey, rights_id[1], rights_id[0]}] = key;
         } else {
-            std::transform(out[0].begin(), out[0].end(), out[0].begin(), ::tolower);
+            out[0] = Common::ToLower(out[0]);
             if (s128_file_id.find(out[0]) != s128_file_id.end()) {
                 const auto index = s128_file_id.at(out[0]);
                 Key128 key = Common::HexStringToArray<16>(out[1]);
@@ -948,12 +950,10 @@ void KeyManager::DeriveETicket(PartitionDataManager& data) {
         return;
     }
 
-    Key128 rsa_oaep_kek{};
-    std::transform(seed3.begin(), seed3.end(), mask0.begin(), rsa_oaep_kek.begin(),
-                   std::bit_xor<>());
-
-    if (rsa_oaep_kek == Key128{})
+    const Key128 rsa_oaep_kek = seed3 ^ mask0;
+    if (rsa_oaep_kek == Key128{}) {
         return;
+    }
 
     SetKey(S128KeyType::Source, rsa_oaep_kek,
            static_cast<u64>(SourceKeyType::RSAOaepKekGeneration));

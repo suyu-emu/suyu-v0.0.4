@@ -31,8 +31,8 @@ struct ProfileDataRaw {
 static_assert(sizeof(ProfileDataRaw) == 0x650, "ProfileDataRaw has incorrect size.");
 
 // TODO(ogniK): Get actual error codes
-constexpr ResultCode ERROR_TOO_MANY_USERS(ErrorModule::Account, -1);
-constexpr ResultCode ERROR_USER_ALREADY_EXISTS(ErrorModule::Account, -2);
+constexpr ResultCode ERROR_TOO_MANY_USERS(ErrorModule::Account, u32(-1));
+constexpr ResultCode ERROR_USER_ALREADY_EXISTS(ErrorModule::Account, u32(-2));
 constexpr ResultCode ERROR_ARGUMENT_IS_NULL(ErrorModule::Account, 20);
 
 constexpr char ACC_SAVE_AVATORS_BASE_PATH[] = "/system/save/8000000000000010/su/avators/";

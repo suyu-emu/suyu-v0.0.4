@@ -34,7 +34,7 @@ public:
     void LoadContext(const ThreadContext& ctx) override;
     void PrepareReschedule() override;
     void ClearExclusiveState() override;
-    void ExecuteInstructions(int num_instructions);
+    void ExecuteInstructions(std::size_t num_instructions);
     void Run() override;
     void Step() override;
     void ClearInstructionCache() override;

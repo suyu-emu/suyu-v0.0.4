@@ -90,7 +90,7 @@ ResultVal<VirtualDir> SaveDataFactory::Create(SaveDataSpaceId space,
     // Return an error if the save data doesn't actually exist.
     if (out == nullptr) {
         // TODO(DarkLordZach): Find out correct error code.
-        return ResultCode(-1);
+        return RESULT_UNKNOWN;
     }
 
     return MakeResult<VirtualDir>(std::move(out));
@@ -111,7 +111,7 @@ ResultVal<VirtualDir> SaveDataFactory::Open(SaveDataSpaceId space,
     // Return an error if the save data doesn't actually exist.
     if (out == nullptr) {
         // TODO(Subv): Find out correct error code.
-        return ResultCode(-1);
+        return RESULT_UNKNOWN;
     }
 
     return MakeResult<VirtualDir>(std::move(out));

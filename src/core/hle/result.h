@@ -147,6 +147,14 @@ constexpr bool operator!=(const ResultCode& a, const ResultCode& b) {
 constexpr ResultCode RESULT_SUCCESS(0);
 
 /**
+ * Placeholder result code used for unknown error codes.
+ *
+ * @note This should only be used when a particular error code
+ *       is not known yet.
+ */
+constexpr ResultCode RESULT_UNKNOWN(UINT32_MAX);
+
+/**
  * This is an optional value type. It holds a `ResultCode` and, if that code is a success code,
  * also holds a result of type `T`. If the code is an error code then trying to access the inner
  * value fails, thus ensuring that the ResultCode of functions is always checked properly before
@@ -183,7 +191,7 @@ class ResultVal {
 public:
     /// Constructs an empty `ResultVal` with the given error code. The code must not be a success
     /// code.
-    ResultVal(ResultCode error_code = ResultCode(-1)) : result_code(error_code) {
+    ResultVal(ResultCode error_code = RESULT_UNKNOWN) : result_code(error_code) {
         ASSERT(error_code.IsError());
     }
 

@@ -337,7 +337,7 @@ void WebBrowser::ExecuteInternal() {
 void WebBrowser::InitializeShop() {
     if (frontend_e_commerce == nullptr) {
         LOG_ERROR(Service_AM, "Missing ECommerce Applet frontend!");
-        status = ResultCode(-1);
+        status = RESULT_UNKNOWN;
         return;
     }
 
@@ -353,7 +353,7 @@ void WebBrowser::InitializeShop() {
 
     if (url == args.end()) {
         LOG_ERROR(Service_AM, "Missing EShop Arguments URL for initialization!");
-        status = ResultCode(-1);
+        status = RESULT_UNKNOWN;
         return;
     }
 
@@ -366,7 +366,7 @@ void WebBrowser::InitializeShop() {
     // Less is missing info, More is malformed
     if (split_query.size() != 2) {
         LOG_ERROR(Service_AM, "EShop Arguments has more than one question mark, malformed");
-        status = ResultCode(-1);
+        status = RESULT_UNKNOWN;
         return;
     }
 
@@ -390,7 +390,7 @@ void WebBrowser::InitializeShop() {
 
     if (scene == shop_query.end()) {
         LOG_ERROR(Service_AM, "No scene parameter was passed via shop query!");
-        status = ResultCode(-1);
+        status = RESULT_UNKNOWN;
         return;
     }
 
@@ -406,7 +406,7 @@ void WebBrowser::InitializeShop() {
     const auto target = target_map.find(scene->second);
     if (target == target_map.end()) {
         LOG_ERROR(Service_AM, "Scene for shop query is invalid! (scene={})", scene->second);
-        status = ResultCode(-1);
+        status = RESULT_UNKNOWN;
         return;
     }
 
@@ -427,7 +427,7 @@ void WebBrowser::InitializeOffline() {
     if (args.find(WebArgTLVType::DocumentPath) == args.end() ||
         args.find(WebArgTLVType::DocumentKind) == args.end() ||
         args.find(WebArgTLVType::ApplicationID) == args.end()) {
-        status = ResultCode(-1);
+        status = RESULT_UNKNOWN;
         LOG_ERROR(Service_AM, "Missing necessary parameters for initialization!");
     }
 
@@ -476,7 +476,7 @@ void WebBrowser::InitializeOffline() {
 
     offline_romfs = GetApplicationRomFS(system, title_id, type);
     if (offline_romfs == nullptr) {
-        status = ResultCode(-1);
+        status = RESULT_UNKNOWN;
         LOG_ERROR(Service_AM, "Failed to find offline data for request!");
     }
 
@@ -496,7 +496,7 @@ void WebBrowser::ExecuteShop() {
     const auto check_optional_parameter = [this](const auto& p) {
         if (!p.has_value()) {
             LOG_ERROR(Service_AM, "Missing one or more necessary parameters for execution!");
-            status = ResultCode(-1);
+            status = RESULT_UNKNOWN;
             return false;
         }
 

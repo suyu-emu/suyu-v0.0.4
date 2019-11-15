@@ -67,7 +67,7 @@ public:
         ARM_Interface::ThreadContext ctx;
         parent.SaveContext(ctx);
         parent.inner_unicorn.LoadContext(ctx);
-        parent.inner_unicorn.ExecuteInstructions(static_cast<int>(num_instructions));
+        parent.inner_unicorn.ExecuteInstructions(num_instructions);
         parent.inner_unicorn.SaveContext(ctx);
         parent.LoadContext(ctx);
         num_interpreted_instructions += num_instructions;
