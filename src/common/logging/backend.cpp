@@ -272,8 +272,10 @@ const char* GetLogClassName(Class log_class) {
 #undef CLS
 #undef SUB
     case Class::Count:
-        UNREACHABLE();
+        break;
     }
+    UNREACHABLE();
+    return "Invalid";
 }
 
 const char* GetLevelName(Level log_level) {
@@ -288,9 +290,11 @@ const char* GetLevelName(Level log_level) {
         LVL(Error);
         LVL(Critical);
     case Level::Count:
-        UNREACHABLE();
+        break;
     }
 #undef LVL
+    UNREACHABLE();
+    return "Invalid";
 }
 
 void SetGlobalFilter(const Filter& filter) {
