@@ -142,6 +142,52 @@ u64 Process::GetTotalPhysicalMemoryUsedWithoutSystemResource() const {
     return GetTotalPhysicalMemoryUsed() - GetSystemResourceUsage();
 }
 
+void Process::InsertConditionVariableThread(SharedPtr<Thread> thread) {
+    auto it = cond_var_threads.begin();
+    while (it != cond_var_threads.end()) {
+        const SharedPtr<Thread> current_thread = *it;
+        if (current_thread->GetCondVarWaitAddress() < thread->GetCondVarWaitAddress()) {
+            if (current_thread->GetCondVarWaitAddress() == thread->GetCondVarWaitAddress()) {
+                if (current_thread->GetPriority() > thread->GetPriority()) {
+                    cond_var_threads.insert(it, thread);
+                    return;
+                }
+            } else {
+                cond_var_threads.insert(it, thread);
+                return;
+            }
+        }
+        ++it;
+    }
+    cond_var_threads.push_back(thread);
+}
+
+void Process::RemoveConditionVariableThread(SharedPtr<Thread> thread) {
+    auto it = cond_var_threads.begin();
+    while (it != cond_var_threads.end()) {
+        const SharedPtr<Thread> current_thread = *it;
+        if (current_thread.get() == thread.get()) {
+            cond_var_threads.erase(it);
+            return;
+        }
+        ++it;
+    }
+    UNREACHABLE();
+}
+
+std::vector<SharedPtr<Thread>> Process::GetConditionVariableThreads(const VAddr cond_var_addr) {
+    std::vector<SharedPtr<Thread>> result{};
+    auto it = cond_var_threads.begin();
+    while (it != cond_var_threads.end()) {
+        SharedPtr<Thread> current_thread = *it;
+        if (current_thread->GetCondVarWaitAddress() == cond_var_addr) {
+            result.push_back(current_thread);
+        }
+        ++it;
+    }
+    return result;
+}
+
 void Process::RegisterThread(const Thread* thread) {
     thread_list.push_back(thread);
 }

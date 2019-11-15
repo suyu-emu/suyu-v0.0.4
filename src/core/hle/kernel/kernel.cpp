@@ -66,6 +66,9 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_
         thread->SetMutexWaitAddress(0);
         thread->SetCondVarWaitAddress(0);
         thread->SetWaitHandle(0);
+        if (thread->GetStatus() == ThreadStatus::WaitCondVar) {
+            thread->GetOwnerProcess()->RemoveConditionVariableThread(thread);
+        }
 
         auto* const lock_owner = thread->GetLockOwner();
         // Threads waking up by timeout from WaitProcessWideKey do not perform priority inheritance

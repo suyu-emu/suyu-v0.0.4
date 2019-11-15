@@ -306,7 +306,15 @@ void Thread::UpdatePriority() {
         return;
     }
 
+    if (GetStatus() == ThreadStatus::WaitCondVar) {
+        owner_process->RemoveConditionVariableThread(this);
+    }
+
     SetCurrentPriority(new_priority);
+
+    if (GetStatus() == ThreadStatus::WaitCondVar) {
+        owner_process->InsertConditionVariableThread(this);
+    }
 
     if (!lock_owner) {
         return;

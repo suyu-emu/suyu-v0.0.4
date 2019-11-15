@@ -1626,6 +1626,7 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr mutex_add
     current_thread->SetWaitHandle(thread_handle);
     current_thread->SetStatus(ThreadStatus::WaitCondVar);
     current_thread->InvalidateWakeupCallback();
+    current_process->InsertConditionVariableThread(current_thread);
 
     current_thread->WakeAfterDelay(nano_seconds);
 
@@ -1644,21 +1645,9 @@ static ResultCode SignalProcessWideKey(Core::System& system, VAddr condition_var
     ASSERT(condition_variable_addr == Common::AlignDown(condition_variable_addr, 4));
 
     // Retrieve a list of all threads that are waiting for this condition variable.
-    std::vector<SharedPtr<Thread>> waiting_threads;
-    const auto& scheduler = system.GlobalScheduler();
-    const auto& thread_list = scheduler.GetThreadList();
-
-    for (const auto& thread : thread_list) {
-        if (thread->GetCondVarWaitAddress() == condition_variable_addr) {
-            waiting_threads.push_back(thread);
-        }
-    }
-
-    // Sort them by priority, such that the highest priority ones come first.
-    std::sort(waiting_threads.begin(), waiting_threads.end(),
-              [](const SharedPtr<Thread>& lhs, const SharedPtr<Thread>& rhs) {
-                  return lhs->GetPriority() < rhs->GetPriority();
-              });
+    auto* const current_process = system.Kernel().CurrentProcess();
+    std::vector<SharedPtr<Thread>> waiting_threads =
+        current_process->GetConditionVariableThreads(condition_variable_addr);
 
     // Only process up to 'target' threads, unless 'target' is -1, in which case process
     // them all.
@@ -1677,6 +1666,7 @@ static ResultCode SignalProcessWideKey(Core::System& system, VAddr condition_var
 
         // liberate Cond Var Thread.
         thread->SetCondVarWaitAddress(0);
+        current_process->RemoveConditionVariableThread(thread);
 
         const std::size_t current_core = system.CurrentCoreIndex();
         auto& monitor = system.Monitor();
