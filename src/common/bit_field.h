@@ -135,8 +135,7 @@ public:
     /// Constants to allow limited introspection of fields if needed
     static constexpr std::size_t position = Position;
     static constexpr std::size_t bits = Bits;
-    static constexpr StorageType mask = StorageType(
-        (std::numeric_limits<StorageType>::max() >> (8 * sizeof(T) - bits)) << position);
+    static constexpr StorageType mask = (((StorageType)~0) >> (8 * sizeof(T) - bits)) << position;
 
     /**
      * Formats a value by masking and shifting it according to the field parameters. A value
@@ -144,7 +143,7 @@ public:
      * the results together.
      */
     static constexpr FORCE_INLINE StorageType FormatValue(const T& value) {
-        return (static_cast<StorageType>(value) << position) & mask;
+        return ((StorageType)value << position) & mask;
     }
 
     /**
