@@ -1649,15 +1649,11 @@ static ResultCode SignalProcessWideKey(Core::System& system, VAddr condition_var
     std::vector<SharedPtr<Thread>> waiting_threads =
         current_process->GetConditionVariableThreads(condition_variable_addr);
 
-    // Only process up to 'target' threads, unless 'target' is -1, in which case process
+    // Only process up to 'target' threads, unless 'target' is less equal 0, in which case process
     // them all.
     std::size_t last = waiting_threads.size();
-    if (target != -1)
+    if (target > 0)
         last = std::min(waiting_threads.size(), static_cast<std::size_t>(target));
-
-    // If there are no threads waiting on this condition variable, just exit
-    if (last == 0)
-        return RESULT_SUCCESS;
 
     for (std::size_t index = 0; index < last; ++index) {
         auto& thread = waiting_threads[index];
