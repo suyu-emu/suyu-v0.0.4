@@ -12,6 +12,7 @@
 #include "common/common_types.h"
 #include "video_core/engines/const_buffer_engine_interface.h"
 #include "video_core/engines/engine_upload.h"
+#include "video_core/engines/shader_type.h"
 #include "video_core/gpu.h"
 #include "video_core/textures/texture.h"
 

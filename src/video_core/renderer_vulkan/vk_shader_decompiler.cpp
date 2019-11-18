@@ -17,6 +17,7 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/engines/shader_header.h"
+#include "video_core/engines/shader_type.h"
 #include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
 #include "video_core/shader/node.h"
@@ -25,13 +26,13 @@
 namespace Vulkan::VKShader {
 
 using Sirit::Id;
+using Tegra::Engines::ShaderType;
 using Tegra::Shader::Attribute;
 using Tegra::Shader::AttributeUse;
 using Tegra::Shader::Register;
 using namespace VideoCommon::Shader;
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
-using ShaderStage = Tegra::Engines::Maxwell3D::Regs::ShaderStage;
 using Operation = const OperationNode&;
 
 // TODO(Rodrigo): Use rasterizer's value
@@ -93,7 +94,7 @@ class ExprDecompiler;
 
 class SPIRVDecompiler : public Sirit::Module {
 public:
-    explicit SPIRVDecompiler(const VKDevice& device, const ShaderIR& ir, ShaderStage stage)
+    explicit SPIRVDecompiler(const VKDevice& device, const ShaderIR& ir, ShaderType stage)
         : Module(0x00010300), device{device}, ir{ir}, stage{stage}, header{ir.GetHeader()} {
         AddCapability(spv::Capability::Shader);
         AddExtension("SPV_KHR_storage_buffer_storage_class");
@@ -256,21 +257,21 @@ private:
     }
 
     void DeclareVertex() {
-        if (stage != ShaderStage::Vertex)
+        if (stage != ShaderType::Vertex)
             return;
 
         DeclareVertexRedeclarations();
     }
 
     void DeclareGeometry() {
-        if (stage != ShaderStage::Geometry)
+        if (stage != ShaderType::Geometry)
             return;
 
         UNIMPLEMENTED();
     }
 
     void DeclareFragment() {
-        if (stage != ShaderStage::Fragment)
+        if (stage != ShaderType::Fragment)
             return;
 
         for (u32 rt = 0; rt < static_cast<u32>(frag_colors.size()); ++rt) {
@@ -354,7 +355,7 @@ private:
                 continue;
             }
 
-            UNIMPLEMENTED_IF(stage == ShaderStage::Geometry);
+            UNIMPLEMENTED_IF(stage == ShaderType::Geometry);
 
             const u32 location = GetGenericAttributeLocation(index);
             const Id id = OpVariable(t_in_float4, spv::StorageClass::Input);
@@ -364,7 +365,7 @@ private:
 
             Decorate(id, spv::Decoration::Location, location);
 
-            if (stage != ShaderStage::Fragment) {
+            if (stage != ShaderType::Fragment) {
                 continue;
             }
             switch (header.ps.GetAttributeUse(location)) {
@@ -548,7 +549,7 @@ private:
 
             switch (attribute) {
             case Attribute::Index::Position:
-                if (stage != ShaderStage::Fragment) {
+                if (stage != ShaderType::Fragment) {
                     UNIMPLEMENTED();
                     break;
                 } else {
@@ -561,7 +562,7 @@ private:
                 // TODO(Subv): Find out what the values are for the first two elements when inside a
                 // vertex shader, and what's the value of the fourth element when inside a Tess Eval
                 // shader.
-                ASSERT(stage == ShaderStage::Vertex);
+                ASSERT(stage == ShaderType::Vertex);
                 switch (element) {
                 case 2:
                     return BitcastFrom<Type::Uint>(Emit(OpLoad(t_uint, instance_index)));
@@ -572,7 +573,7 @@ private:
                 return Constant(t_float, 0);
             case Attribute::Index::FrontFacing:
                 // TODO(Subv): Find out what the values are for the other elements.
-                ASSERT(stage == ShaderStage::Fragment);
+                ASSERT(stage == ShaderType::Fragment);
                 if (element == 3) {
                     const Id is_front_facing = Emit(OpLoad(t_bool, front_facing));
                     const Id true_value =
@@ -1075,7 +1076,7 @@ private:
 
     Id PreExit() {
         switch (stage) {
-        case ShaderStage::Vertex: {
+        case ShaderType::Vertex: {
             // TODO(Rodrigo): We should use VK_EXT_depth_range_unrestricted instead, but it doesn't
             // seem to be working on Nvidia's drivers and Intel (mesa and blob) doesn't support it.
             const Id z_pointer = AccessElement(t_out_float, per_vertex, position_index, 2u);
@@ -1085,7 +1086,7 @@ private:
             Emit(OpStore(z_pointer, depth));
             break;
         }
-        case ShaderStage::Fragment: {
+        case ShaderType::Fragment: {
             const auto SafeGetRegister = [&](u32 reg) {
                 // TODO(Rodrigo): Replace with contains once C++20 releases
                 if (const auto it = registers.find(reg); it != registers.end()) {
@@ -1511,7 +1512,7 @@ private:
 
     const VKDevice& device;
     const ShaderIR& ir;
-    const ShaderStage stage;
+    const ShaderType stage;
     const Tegra::Shader::Header header;
     u64 conditional_nest_count{};
     u64 inside_branch{};
@@ -1843,7 +1844,7 @@ void SPIRVDecompiler::DecompileAST() {
 }
 
 DecompilerResult Decompile(const VKDevice& device, const VideoCommon::Shader::ShaderIR& ir,
-                           Maxwell::ShaderStage stage) {
+                           ShaderType stage) {
     auto decompiler = std::make_unique<SPIRVDecompiler>(device, ir, stage);
     decompiler->Decompile();
     return {std::move(decompiler), decompiler->GetShaderEntries()};

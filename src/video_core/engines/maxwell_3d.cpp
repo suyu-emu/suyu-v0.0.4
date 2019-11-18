@@ -9,6 +9,7 @@
 #include "core/core_timing.h"
 #include "video_core/debug_utils/debug_utils.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/engines/shader_type.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/textures/texture.h"
@@ -368,24 +369,24 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
         StartCBData(method);
         break;
     }
-    case MAXWELL3D_REG_INDEX(cb_bind[0].raw_config): {
-        ProcessCBBind(Regs::ShaderStage::Vertex);
+    case MAXWELL3D_REG_INDEX(cb_bind[0]): {
+        ProcessCBBind(0);
         break;
     }
-    case MAXWELL3D_REG_INDEX(cb_bind[1].raw_config): {
-        ProcessCBBind(Regs::ShaderStage::TesselationControl);
+    case MAXWELL3D_REG_INDEX(cb_bind[1]): {
+        ProcessCBBind(1);
         break;
     }
-    case MAXWELL3D_REG_INDEX(cb_bind[2].raw_config): {
-        ProcessCBBind(Regs::ShaderStage::TesselationEval);
+    case MAXWELL3D_REG_INDEX(cb_bind[2]): {
+        ProcessCBBind(2);
         break;
     }
-    case MAXWELL3D_REG_INDEX(cb_bind[3].raw_config): {
-        ProcessCBBind(Regs::ShaderStage::Geometry);
+    case MAXWELL3D_REG_INDEX(cb_bind[3]): {
+        ProcessCBBind(3);
         break;
     }
-    case MAXWELL3D_REG_INDEX(cb_bind[4].raw_config): {
-        ProcessCBBind(Regs::ShaderStage::Fragment);
+    case MAXWELL3D_REG_INDEX(cb_bind[4]): {
+        ProcessCBBind(4);
         break;
     }
     case MAXWELL3D_REG_INDEX(draw.vertex_end_gl): {
@@ -687,10 +688,10 @@ void Maxwell3D::DrawArrays() {
     }
 }
 
-void Maxwell3D::ProcessCBBind(Regs::ShaderStage stage) {
+void Maxwell3D::ProcessCBBind(std::size_t stage_index) {
     // Bind the buffer currently in CB_ADDRESS to the specified index in the desired shader stage.
-    auto& shader = state.shader_stages[static_cast<std::size_t>(stage)];
-    auto& bind_data = regs.cb_bind[static_cast<std::size_t>(stage)];
+    auto& shader = state.shader_stages[stage_index];
+    auto& bind_data = regs.cb_bind[stage_index];
 
     ASSERT(bind_data.index < Regs::MaxConstBuffers);
     auto& buffer = shader.const_buffers[bind_data.index];
@@ -757,9 +758,9 @@ Texture::FullTextureInfo Maxwell3D::GetTextureInfo(Texture::TextureHandle tex_ha
     return Texture::FullTextureInfo{GetTICEntry(tex_handle.tic_id), GetTSCEntry(tex_handle.tsc_id)};
 }
 
-Texture::FullTextureInfo Maxwell3D::GetStageTexture(Regs::ShaderStage stage,
-                                                    std::size_t offset) const {
-    const auto& shader = state.shader_stages[static_cast<std::size_t>(stage)];
+Texture::FullTextureInfo Maxwell3D::GetStageTexture(ShaderType stage, std::size_t offset) const {
+    const auto stage_index = static_cast<std::size_t>(stage);
+    const auto& shader = state.shader_stages[stage_index];
     const auto& tex_info_buffer = shader.const_buffers[regs.tex_cb_index];
     ASSERT(tex_info_buffer.enabled && tex_info_buffer.address != 0);
 

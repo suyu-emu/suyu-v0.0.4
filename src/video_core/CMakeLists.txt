@@ -22,6 +22,7 @@ add_library(video_core STATIC
     engines/maxwell_dma.h
     engines/shader_bytecode.h
     engines/shader_header.h
+    engines/shader_type.h
     gpu.cpp
     gpu.h
     gpu_asynch.cpp

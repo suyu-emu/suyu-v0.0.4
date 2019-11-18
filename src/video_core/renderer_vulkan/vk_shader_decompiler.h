@@ -79,6 +79,6 @@ struct ShaderEntries {
 using DecompilerResult = std::pair<std::unique_ptr<Sirit::Module>, ShaderEntries>;
 
 DecompilerResult Decompile(const VKDevice& device, const VideoCommon::Shader::ShaderIR& ir,
-                           Maxwell::ShaderStage stage);
+                           Tegra::Engines::ShaderType stage);
 
 } // namespace Vulkan::VKShader

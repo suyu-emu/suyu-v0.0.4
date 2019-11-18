@@ -4,6 +4,7 @@
 
 #include <fmt/format.h>
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/engines/shader_type.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
 #include "video_core/shader/shader_ir.h"
@@ -11,6 +12,7 @@
 namespace OpenGL::GLShader {
 
 using Tegra::Engines::Maxwell3D;
+using Tegra::Engines::ShaderType;
 using VideoCommon::Shader::CompileDepth;
 using VideoCommon::Shader::CompilerSettings;
 using VideoCommon::Shader::ProgramCode;
@@ -24,10 +26,9 @@ layout (std140, binding = EMULATION_UBO_BINDING) uniform vs_config {
 };
 
 )";
-    const auto stage = ir_b ? ProgramType::VertexA : ProgramType::VertexB;
-    out += Decompile(device, ir, stage, "vertex");
+    out += Decompile(device, ir, ShaderType::Vertex, "vertex");
     if (ir_b) {
-        out += Decompile(device, *ir_b, ProgramType::VertexB, "vertex_b");
+        out += Decompile(device, *ir_b, ShaderType::Vertex, "vertex_b");
     }
 
     out += R"(
@@ -49,7 +50,7 @@ layout (std140, binding = EMULATION_UBO_BINDING) uniform gs_config {
 };
 
 )";
-    out += Decompile(device, ir, ProgramType::Geometry, "geometry");
+    out += Decompile(device, ir, ShaderType::Geometry, "geometry");
 
     out += R"(
 void main() {
@@ -76,7 +77,7 @@ layout (std140, binding = EMULATION_UBO_BINDING) uniform fs_config {
 };
 
 )";
-    out += Decompile(device, ir, ProgramType::Fragment, "fragment");
+    out += Decompile(device, ir, ShaderType::Fragment, "fragment");
 
     out += R"(
 void main() {
@@ -88,7 +89,7 @@ void main() {
 
 std::string GenerateComputeShader(const Device& device, const ShaderIR& ir) {
     std::string out = GetCommonDeclarations();
-    out += Decompile(device, ir, ProgramType::Compute, "compute");
+    out += Decompile(device, ir, ShaderType::Compute, "compute");
     out += R"(
 void main() {
     execute_compute();

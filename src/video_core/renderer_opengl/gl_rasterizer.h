@@ -83,8 +83,7 @@ private:
                                    bool using_depth_fb, bool using_stencil_fb);
 
     /// Configures the current constbuffers to use for the draw command.
-    void SetupDrawConstBuffers(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
-                               const Shader& shader);
+    void SetupDrawConstBuffers(std::size_t stage_index, const Shader& shader);
 
     /// Configures the current constbuffers to use for the kernel invocation.
     void SetupComputeConstBuffers(const Shader& kernel);
@@ -94,8 +93,7 @@ private:
                           const GLShader::ConstBufferEntry& entry);
 
     /// Configures the current global memory entries to use for the draw command.
-    void SetupDrawGlobalMemory(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
-                               const Shader& shader);
+    void SetupDrawGlobalMemory(std::size_t stage_index, const Shader& shader);
 
     /// Configures the current global memory entries to use for the kernel invocation.
     void SetupComputeGlobalMemory(const Shader& kernel);
@@ -108,7 +106,7 @@ private:
     void DrawPrelude();
 
     /// Configures the current textures to use for the draw command.
-    void SetupDrawTextures(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage, const Shader& shader,
+    void SetupDrawTextures(std::size_t stage_index, const Shader& shader,
                            BaseBindings base_bindings);
 
     /// Configures the textures used in a compute shader.
@@ -119,8 +117,7 @@ private:
                       const GLShader::SamplerEntry& entry);
 
     /// Configures images in a graphics shader.
-    void SetupDrawImages(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage, const Shader& shader,
-                         BaseBindings base_bindings);
+    void SetupDrawImages(std::size_t stage_index, const Shader& shader, BaseBindings base_bindings);
 
     /// Configures images in a compute shader.
     void SetupComputeImages(const Shader& shader);

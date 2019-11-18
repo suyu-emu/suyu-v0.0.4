@@ -18,6 +18,7 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "core/file_sys/vfs_vector.h"
+#include "video_core/engines/shader_type.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
 #include "video_core/shader/const_buffer_locker.h"
 
@@ -154,8 +155,8 @@ namespace OpenGL {
 /// Describes a shader how it's used by the guest GPU
 class ShaderDiskCacheRaw {
 public:
-    explicit ShaderDiskCacheRaw(u64 unique_identifier, ProgramType program_type,
-                                ProgramCode program_code, ProgramCode program_code_b = {});
+    explicit ShaderDiskCacheRaw(u64 unique_identifier, Tegra::Engines::ShaderType type,
+                                ProgramCode code, ProgramCode code_b = {});
     ShaderDiskCacheRaw();
     ~ShaderDiskCacheRaw();
 
@@ -168,27 +169,26 @@ public:
     }
 
     bool HasProgramA() const {
-        return program_type == ProgramType::VertexA;
+        return !code.empty() && !code_b.empty();
     }
 
-    ProgramType GetProgramType() const {
-        return program_type;
+    Tegra::Engines::ShaderType GetType() const {
+        return type;
     }
 
-    const ProgramCode& GetProgramCode() const {
-        return program_code;
+    const ProgramCode& GetCode() const {
+        return code;
     }
 
-    const ProgramCode& GetProgramCodeB() const {
-        return program_code_b;
+    const ProgramCode& GetCodeB() const {
+        return code_b;
     }
 
 private:
     u64 unique_identifier{};
-    ProgramType program_type{};
-
-    ProgramCode program_code;
-    ProgramCode program_code_b;
+    Tegra::Engines::ShaderType type{};
+    ProgramCode code;
+    ProgramCode code_b;
 };
 
 /// Contains an OpenGL dumped binary program

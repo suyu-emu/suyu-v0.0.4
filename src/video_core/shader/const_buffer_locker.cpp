@@ -9,6 +9,7 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/engines/shader_type.h"
 #include "video_core/shader/const_buffer_locker.h"
 
 namespace VideoCommon::Shader {

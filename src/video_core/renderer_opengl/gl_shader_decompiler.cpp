@@ -16,6 +16,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/engines/shader_type.h"
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
@@ -27,6 +28,7 @@ namespace OpenGL::GLShader {
 
 namespace {
 
+using Tegra::Engines::ShaderType;
 using Tegra::Shader::Attribute;
 using Tegra::Shader::AttributeUse;
 using Tegra::Shader::Header;
@@ -331,8 +333,8 @@ std::string FlowStackTopName(MetaStackClass stack) {
     return fmt::format("{}_flow_stack_top", GetFlowStackPrefix(stack));
 }
 
-constexpr bool IsVertexShader(ProgramType stage) {
-    return stage == ProgramType::VertexA || stage == ProgramType::VertexB;
+[[deprecated]] constexpr bool IsVertexShader(ShaderType stage) {
+    return stage == ShaderType::Vertex;
 }
 
 class ASTDecompiler;
@@ -340,7 +342,7 @@ class ExprDecompiler;
 
 class GLSLDecompiler final {
 public:
-    explicit GLSLDecompiler(const Device& device, const ShaderIR& ir, ProgramType stage,
+    explicit GLSLDecompiler(const Device& device, const ShaderIR& ir, ShaderType stage,
                             std::string suffix)
         : device{device}, ir{ir}, stage{stage}, suffix{suffix}, header{ir.GetHeader()} {}
 
@@ -427,7 +429,7 @@ private:
     }
 
     void DeclareGeometry() {
-        if (stage != ProgramType::Geometry) {
+        if (stage != ShaderType::Geometry) {
             return;
         }
 
@@ -510,7 +512,7 @@ private:
     }
 
     void DeclareLocalMemory() {
-        if (stage == ProgramType::Compute) {
+        if (stage == ShaderType::Compute) {
             code.AddLine("#ifdef LOCAL_MEMORY_SIZE");
             code.AddLine("uint {}[LOCAL_MEMORY_SIZE];", GetLocalMemory());
             code.AddLine("#endif");
@@ -575,12 +577,12 @@ private:
         const u32 location{GetGenericAttributeIndex(index)};
 
         std::string name{GetInputAttribute(index)};
-        if (stage == ProgramType::Geometry) {
+        if (stage == ShaderType::Geometry) {
             name = "gs_" + name + "[]";
         }
 
         std::string suffix;
-        if (stage == ProgramType::Fragment) {
+        if (stage == ShaderType::Fragment) {
             const auto input_mode{header.ps.GetAttributeUse(location)};
             if (skip_unused && input_mode == AttributeUse::Unused) {
                 return;
@@ -592,7 +594,7 @@ private:
     }
 
     void DeclareOutputAttributes() {
-        if (ir.HasPhysicalAttributes() && stage != ProgramType::Fragment) {
+        if (ir.HasPhysicalAttributes() && stage != ShaderType::Fragment) {
             for (u32 i = 0; i < GetNumPhysicalVaryings(); ++i) {
                 DeclareOutputAttribute(ToGenericAttribute(i));
             }
@@ -704,7 +706,7 @@ private:
                 constexpr u32 element_stride = 4;
                 const u32 address{generic_base + index * generic_stride + element * element_stride};
 
-                const bool declared = stage != ProgramType::Fragment ||
+                const bool declared = stage != ShaderType::Fragment ||
                                       header.ps.GetAttributeUse(index) != AttributeUse::Unused;
                 const std::string value =
                     declared ? ReadAttribute(attribute, element).AsFloat() : "0.0f";
@@ -796,7 +798,7 @@ private:
         }
 
         if (const auto abuf = std::get_if<AbufNode>(&*node)) {
-            UNIMPLEMENTED_IF_MSG(abuf->IsPhysicalBuffer() && stage == ProgramType::Geometry,
+            UNIMPLEMENTED_IF_MSG(abuf->IsPhysicalBuffer() && stage == ShaderType::Geometry,
                                  "Physical attributes in geometry shaders are not implemented");
             if (abuf->IsPhysicalBuffer()) {
                 return {fmt::format("ReadPhysicalAttribute({})",
@@ -891,7 +893,7 @@ private:
 
     Expression ReadAttribute(Attribute::Index attribute, u32 element, const Node& buffer = {}) {
         const auto GeometryPass = [&](std::string_view name) {
-            if (stage == ProgramType::Geometry && buffer) {
+            if (stage == ShaderType::Geometry && buffer) {
                 // TODO(Rodrigo): Guard geometry inputs against out of bound reads. Some games
                 // set an 0x80000000 index for those and the shader fails to build. Find out why
                 // this happens and what's its intent.
@@ -903,11 +905,11 @@ private:
         switch (attribute) {
         case Attribute::Index::Position:
             switch (stage) {
-            case ProgramType::Geometry:
+            case ShaderType::Geometry:
                 return {fmt::format("gl_in[{}].gl_Position{}", Visit(buffer).AsUint(),
                                     GetSwizzle(element)),
                         Type::Float};
-            case ProgramType::Fragment:
+            case ShaderType::Fragment:
                 return {element == 3 ? "1.0f" : ("gl_FragCoord"s + GetSwizzle(element)),
                         Type::Float};
             default:
@@ -941,7 +943,7 @@ private:
             return {"0", Type::Int};
         case Attribute::Index::FrontFacing:
             // TODO(Subv): Find out what the values are for the other elements.
-            ASSERT(stage == ProgramType::Fragment);
+            ASSERT(stage == ShaderType::Fragment);
             switch (element) {
             case 3:
                 return {"(gl_FrontFacing ? -1 : 0)", Type::Int};
@@ -967,7 +969,7 @@ private:
         // be found in fragment shaders, so we disable precise there. There are vertex shaders that
         // also fail to build but nobody seems to care about those.
         // Note: Only bugged drivers will skip precise.
-        const bool disable_precise = device.HasPreciseBug() && stage == ProgramType::Fragment;
+        const bool disable_precise = device.HasPreciseBug() && stage == ShaderType::Fragment;
 
         std::string temporary = code.GenerateTemporary();
         code.AddLine("{}{} {} = {};", disable_precise ? "" : "precise ", GetTypeString(type),
@@ -1233,7 +1235,7 @@ private:
                 fmt::format("{}[{} >> 2]", GetLocalMemory(), Visit(lmem->GetAddress()).AsUint()),
                 Type::Uint};
         } else if (const auto smem = std::get_if<SmemNode>(&*dest)) {
-            ASSERT(stage == ProgramType::Compute);
+            ASSERT(stage == ShaderType::Compute);
             target = {fmt::format("smem[{} >> 2]", Visit(smem->GetAddress()).AsUint()), Type::Uint};
         } else if (const auto gmem = std::get_if<GmemNode>(&*dest)) {
             const std::string real = Visit(gmem->GetRealAddress()).AsUint();
@@ -1801,7 +1803,7 @@ private:
     }
 
     void PreExit() {
-        if (stage != ProgramType::Fragment) {
+        if (stage != ShaderType::Fragment) {
             return;
         }
         const auto& used_registers = ir.GetRegisters();
@@ -1854,14 +1856,14 @@ private:
     }
 
     Expression EmitVertex(Operation operation) {
-        ASSERT_MSG(stage == ProgramType::Geometry,
+        ASSERT_MSG(stage == ShaderType::Geometry,
                    "EmitVertex is expected to be used in a geometry shader.");
         code.AddLine("EmitVertex();");
         return {};
     }
 
     Expression EndPrimitive(Operation operation) {
-        ASSERT_MSG(stage == ProgramType::Geometry,
+        ASSERT_MSG(stage == ShaderType::Geometry,
                    "EndPrimitive is expected to be used in a geometry shader.");
         code.AddLine("EndPrimitive();");
         return {};
@@ -2192,7 +2194,7 @@ private:
 
     const Device& device;
     const ShaderIR& ir;
-    const ProgramType stage;
+    const ShaderType stage;
     const std::string suffix;
     const Header header;
 
@@ -2447,7 +2449,7 @@ const float fswzadd_modifiers_b[] = float[4](-1.0f, -1.0f,  1.0f, -1.0f );
 )";
 }
 
-std::string Decompile(const Device& device, const ShaderIR& ir, ProgramType stage,
+std::string Decompile(const Device& device, const ShaderIR& ir, ShaderType stage,
                       const std::string& suffix) {
     GLSLDecompiler decompiler(device, ir, stage, suffix);
     decompiler.Decompile();

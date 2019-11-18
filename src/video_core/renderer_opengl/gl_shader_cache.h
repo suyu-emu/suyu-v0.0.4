@@ -17,6 +17,7 @@
 #include <glad/glad.h>
 
 #include "common/common_types.h"
+#include "video_core/engines/shader_type.h"
 #include "video_core/rasterizer_cache.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
@@ -47,7 +48,7 @@ using PrecompiledVariants = std::vector<PrecompiledPrograms::iterator>;
 
 struct UnspecializedShader {
     GLShader::ShaderEntries entries;
-    ProgramType program_type;
+    Tegra::Engines::ShaderType type;
     ProgramCode code;
     ProgramCode code_b;
 };
@@ -77,7 +78,7 @@ public:
     }
 
     std::size_t GetSizeInBytes() const override {
-        return program_code.size() * sizeof(u64);
+        return code.size() * sizeof(u64);
     }
 
     /// Gets the shader entries for the shader
@@ -94,7 +95,7 @@ private:
         std::unordered_map<ProgramVariant, CachedProgram> programs;
     };
 
-    explicit CachedShader(const ShaderParameters& params, ProgramType program_type,
+    explicit CachedShader(const ShaderParameters& params, Tegra::Engines::ShaderType shader_type,
                           GLShader::ShaderEntries entries, ProgramCode program_code,
                           ProgramCode program_code_b);
 
@@ -110,12 +111,12 @@ private:
     VAddr cpu_addr{};
 
     u64 unique_identifier{};
-    ProgramType program_type{};
+    Tegra::Engines::ShaderType shader_type{};
 
     GLShader::ShaderEntries entries;
 
-    ProgramCode program_code;
-    ProgramCode program_code_b;
+    ProgramCode code;
+    ProgramCode code_b;
 
     LockerVariant* curr_locker_variant = nullptr;
     std::vector<std::unique_ptr<LockerVariant>> locker_variants;

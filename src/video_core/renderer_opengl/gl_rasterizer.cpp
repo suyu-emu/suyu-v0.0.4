@@ -22,6 +22,7 @@
 #include "core/settings.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/engines/shader_type.h"
 #include "video_core/memory_manager.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
@@ -60,8 +61,7 @@ Tegra::Texture::FullTextureInfo GetTextureInfo(const Engine& engine, const Entry
         return engine.GetTextureInfo(tex_handle);
     }
     if constexpr (std::is_same_v<Engine, Tegra::Engines::Maxwell3D>) {
-        const auto stage = static_cast<Maxwell::ShaderStage>(shader_type);
-        return engine.GetStageTexture(stage, entry.GetOffset());
+        return engine.GetStageTexture(shader_type, entry.GetOffset());
     } else {
         return engine.GetTexture(entry.GetOffset());
     }
@@ -263,7 +263,7 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
 
     for (std::size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
         const auto& shader_config = gpu.regs.shader_config[index];
-        const Maxwell::ShaderProgram program{static_cast<Maxwell::ShaderProgram>(index)};
+        const auto program{static_cast<Maxwell::ShaderProgram>(index)};
 
         // Skip stages that are not enabled
         if (!gpu.regs.IsShaderConfigEnabled(index)) {
@@ -288,7 +288,7 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
         Shader shader{shader_cache.GetStageProgram(program)};
 
         // Stage indices are 0 - 5
-        const auto stage = static_cast<Maxwell::ShaderStage>(index == 0 ? 0 : index - 1);
+        const std::size_t stage = index == 0 ? 0 : index - 1;
         SetupDrawConstBuffers(stage, shader);
         SetupDrawGlobalMemory(stage, shader);
         SetupDrawTextures(stage, shader, base_bindings);
@@ -856,11 +856,10 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     return true;
 }
 
-void RasterizerOpenGL::SetupDrawConstBuffers(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
-                                             const Shader& shader) {
+void RasterizerOpenGL::SetupDrawConstBuffers(std::size_t stage_index, const Shader& shader) {
     MICROPROFILE_SCOPE(OpenGL_UBO);
     const auto& stages = system.GPU().Maxwell3D().state.shader_stages;
-    const auto& shader_stage = stages[static_cast<std::size_t>(stage)];
+    const auto& shader_stage = stages[stage_index];
     for (const auto& entry : shader->GetShaderEntries().const_buffers) {
         const auto& buffer = shader_stage.const_buffers[entry.GetIndex()];
         SetupConstBuffer(buffer, entry);
@@ -899,11 +898,10 @@ void RasterizerOpenGL::SetupConstBuffer(const Tegra::Engines::ConstBufferInfo& b
     bind_ubo_pushbuffer.Push(cbuf, offset, size);
 }
 
-void RasterizerOpenGL::SetupDrawGlobalMemory(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
-                                             const Shader& shader) {
+void RasterizerOpenGL::SetupDrawGlobalMemory(std::size_t stage_index, const Shader& shader) {
     auto& gpu{system.GPU()};
     auto& memory_manager{gpu.MemoryManager()};
-    const auto cbufs{gpu.Maxwell3D().state.shader_stages[static_cast<std::size_t>(stage)]};
+    const auto cbufs{gpu.Maxwell3D().state.shader_stages[stage_index]};
     for (const auto& entry : shader->GetShaderEntries().global_memory_entries) {
         const auto addr{cbufs.const_buffers[entry.GetCbufIndex()].address + entry.GetCbufOffset()};
         const auto gpu_addr{memory_manager.Read<u64>(addr)};
@@ -932,7 +930,7 @@ void RasterizerOpenGL::SetupGlobalMemory(const GLShader::GlobalMemoryEntry& entr
     bind_ssbo_pushbuffer.Push(ssbo, buffer_offset, static_cast<GLsizeiptr>(size));
 }
 
-void RasterizerOpenGL::SetupDrawTextures(Maxwell::ShaderStage stage, const Shader& shader,
+void RasterizerOpenGL::SetupDrawTextures(std::size_t stage_index, const Shader& shader,
                                          BaseBindings base_bindings) {
     MICROPROFILE_SCOPE(OpenGL_Texture);
     const auto& gpu = system.GPU();
@@ -945,7 +943,7 @@ void RasterizerOpenGL::SetupDrawTextures(Maxwell::ShaderStage stage, const Shade
     const auto num_entries = static_cast<u32>(entries.size());
     for (u32 bindpoint = 0; bindpoint < num_entries; ++bindpoint) {
         const auto& entry = entries[bindpoint];
-        const auto shader_type = static_cast<Tegra::Engines::ShaderType>(stage);
+        const auto shader_type = static_cast<Tegra::Engines::ShaderType>(stage_index);
         const auto texture = GetTextureInfo(maxwell3d, entry, shader_type);
         SetupTexture(base_bindings.sampler + bindpoint, texture, entry);
     }
@@ -988,7 +986,7 @@ void RasterizerOpenGL::SetupTexture(u32 binding, const Tegra::Texture::FullTextu
                        texture.tic.w_source);
 }
 
-void RasterizerOpenGL::SetupDrawImages(Maxwell::ShaderStage stage, const Shader& shader,
+void RasterizerOpenGL::SetupDrawImages(std::size_t stage_index, const Shader& shader,
                                        BaseBindings base_bindings) {
     const auto& maxwell3d = system.GPU().Maxwell3D();
     const auto& entries = shader->GetShaderEntries().images;
@@ -996,7 +994,7 @@ void RasterizerOpenGL::SetupDrawImages(Maxwell::ShaderStage stage, const Shader&
     const auto num_entries = static_cast<u32>(entries.size());
     for (u32 bindpoint = 0; bindpoint < num_entries; ++bindpoint) {
         const auto& entry = entries[bindpoint];
-        const auto shader_type = static_cast<Tegra::Engines::ShaderType>(stage);
+        const auto shader_type = static_cast<Tegra::Engines::ShaderType>(stage_index);
         const auto tic = GetTextureInfo(maxwell3d, entry, shader_type).tic;
         SetupImage(base_bindings.image + bindpoint, tic, entry);
     }
