@@ -135,17 +135,18 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
     case OpCode::Id::FLO_IMM: {
         Node value;
         if (instr.flo.invert) {
-            op_b = Operation(OperationCode::IBitwiseNot, NO_PRECISE, op_b);
+            op_b = Operation(OperationCode::IBitwiseNot, NO_PRECISE, std::move(op_b));
         }
         if (instr.flo.is_signed) {
-            value = Operation(OperationCode::IBitMSB, NO_PRECISE, op_b);
+            value = Operation(OperationCode::IBitMSB, NO_PRECISE, std::move(op_b));
         } else {
-            value = Operation(OperationCode::UBitMSB, NO_PRECISE, op_b);
+            value = Operation(OperationCode::UBitMSB, NO_PRECISE, std::move(op_b));
         }
         if (instr.flo.sh) {
-            value = Operation(OperationCode::UBitwiseXor, NO_PRECISE, value, Immediate(31));
+            value =
+                Operation(OperationCode::UBitwiseXor, NO_PRECISE, std::move(value), Immediate(31));
         }
-        SetRegister(bb, instr.gpr0, value);
+        SetRegister(bb, instr.gpr0, std::move(value));
         break;
     }
     case OpCode::Id::SEL_C:

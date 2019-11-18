@@ -1815,7 +1815,7 @@ private:
         ASSERT(meta);
 
         std::string expr = GenerateTexture(operation, "Grad", {TextureDerivates{}, TextureAoffi{}});
-        return {expr + GetSwizzle(meta->element), Type::Float};
+        return {std::move(expr) + GetSwizzle(meta->element), Type::Float};
     }
 
     Expression ImageLoad(Operation operation) {

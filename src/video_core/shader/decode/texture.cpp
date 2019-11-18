@@ -147,8 +147,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
     case OpCode::Id::TXD: {
         UNIMPLEMENTED_IF_MSG(instr.txd.UsesMiscMode(TextureMiscMode::AOFFI),
                              "AOFFI is not implemented");
-        const auto is_array = static_cast<bool>(instr.txd.is_array != 0);
-        UNIMPLEMENTED_IF_MSG(is_array, "TXD Array is not implemented");
+        UNIMPLEMENTED_IF_MSG(instr.txd.is_array != 0, "TXD Array is not implemented");
 
         u64 base_reg = instr.gpr8.Value();
         const auto derivate_reg = instr.gpr20.Value();
@@ -173,10 +172,8 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
 
         Node4 values;
         for (u32 element = 0; element < values.size(); ++element) {
-            auto coords_copy = coords;
             MetaTexture meta{sampler, {}, {}, {}, derivates, {}, {}, {}, element};
-            values[element] =
-                Operation(OperationCode::TextureGradient, meta, std::move(coords_copy));
+            values[element] = Operation(OperationCode::TextureGradient, std::move(meta), coords);
         }
 
         WriteTexInstructionFloat(bb, instr, values);
