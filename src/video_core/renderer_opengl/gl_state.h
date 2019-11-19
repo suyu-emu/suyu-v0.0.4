@@ -96,8 +96,9 @@ public:
         GLenum operation = GL_COPY;
     } logic_op;
 
-    std::array<GLuint, Tegra::Engines::Maxwell3D::Regs::NumTextureSamplers> textures = {};
-    std::array<GLuint, Tegra::Engines::Maxwell3D::Regs::NumTextureSamplers> samplers = {};
+    static constexpr std::size_t NumSamplers = 32 * 5;
+    std::array<GLuint, NumSamplers> textures = {};
+    std::array<GLuint, NumSamplers> samplers = {};
     std::array<GLuint, Tegra::Engines::Maxwell3D::Regs::NumImages> images = {};
 
     struct {

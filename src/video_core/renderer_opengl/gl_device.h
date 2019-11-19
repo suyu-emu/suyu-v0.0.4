@@ -6,13 +6,31 @@
 
 #include <cstddef>
 #include "common/common_types.h"
+#include "video_core/engines/shader_type.h"
 
 namespace OpenGL {
 
-class Device {
+static constexpr u32 EmulationUniformBlockBinding = 0;
+
+class Device final {
 public:
+    struct BaseBindings final {
+        u32 uniform_buffer{};
+        u32 shader_storage_buffer{};
+        u32 sampler{};
+        u32 image{};
+    };
+
     explicit Device();
     explicit Device(std::nullptr_t);
+
+    const BaseBindings& GetBaseBindings(std::size_t stage_index) const noexcept {
+        return base_bindings[stage_index];
+    }
+
+    const BaseBindings& GetBaseBindings(Tegra::Engines::ShaderType shader_type) const noexcept {
+        return GetBaseBindings(static_cast<std::size_t>(shader_type));
+    }
 
     std::size_t GetUniformBufferAlignment() const {
         return uniform_buffer_alignment;
@@ -67,6 +85,7 @@ private:
     static bool TestComponentIndexingBug();
     static bool TestPreciseBug();
 
+    std::array<BaseBindings, Tegra::Engines::MaxShaderTypes> base_bindings;
     std::size_t uniform_buffer_alignment{};
     std::size_t shader_storage_alignment{};
     u32 max_vertex_attributes{};

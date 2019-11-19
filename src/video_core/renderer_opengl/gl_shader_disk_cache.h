@@ -38,31 +38,13 @@ struct ShaderDiskCacheDump;
 using ProgramCode = std::vector<u64>;
 using ShaderDumpsMap = std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump>;
 
-/// Allocated bindings used by an OpenGL shader program
-struct BaseBindings {
-    u32 cbuf{};
-    u32 gmem{};
-    u32 sampler{};
-    u32 image{};
-
-    bool operator==(const BaseBindings& rhs) const noexcept {
-        return std::tie(cbuf, gmem, sampler, image) ==
-               std::tie(rhs.cbuf, rhs.gmem, rhs.sampler, rhs.image);
-    }
-
-    bool operator!=(const BaseBindings& rhs) const noexcept {
-        return !operator==(rhs);
-    }
-};
-static_assert(std::is_trivially_copyable_v<BaseBindings>);
-
 /// Describes the different variants a program can be compiled with.
 struct ProgramVariant final {
     ProgramVariant() = default;
 
     /// Graphics constructor.
-    explicit constexpr ProgramVariant(BaseBindings base_bindings, GLenum primitive_mode) noexcept
-        : base_bindings{base_bindings}, primitive_mode{primitive_mode} {}
+    explicit constexpr ProgramVariant(GLenum primitive_mode) noexcept
+        : primitive_mode{primitive_mode} {}
 
     /// Compute constructor.
     explicit constexpr ProgramVariant(u32 block_x, u32 block_y, u32 block_z, u32 shared_memory_size,
@@ -71,7 +53,6 @@ struct ProgramVariant final {
           shared_memory_size{shared_memory_size}, local_memory_size{local_memory_size} {}
 
     // Graphics specific parameters.
-    BaseBindings base_bindings{};
     GLenum primitive_mode{};
 
     // Compute specific parameters.
@@ -82,10 +63,10 @@ struct ProgramVariant final {
     u32 local_memory_size{};
 
     bool operator==(const ProgramVariant& rhs) const noexcept {
-        return std::tie(base_bindings, primitive_mode, block_x, block_y, block_z,
-                        shared_memory_size, local_memory_size) ==
-               std::tie(rhs.base_bindings, rhs.primitive_mode, rhs.block_x, rhs.block_y,
-                        rhs.block_z, rhs.shared_memory_size, rhs.local_memory_size);
+        return std::tie(primitive_mode, block_x, block_y, block_z, shared_memory_size,
+                        local_memory_size) == std::tie(rhs.primitive_mode, rhs.block_x, rhs.block_y,
+                                                       rhs.block_z, rhs.shared_memory_size,
+                                                       rhs.local_memory_size);
     }
 
     bool operator!=(const ProgramVariant& rhs) const noexcept {
@@ -118,20 +99,9 @@ struct ShaderDiskCacheUsage {
 namespace std {
 
 template <>
-struct hash<OpenGL::BaseBindings> {
-    std::size_t operator()(const OpenGL::BaseBindings& bindings) const noexcept {
-        return static_cast<std::size_t>(bindings.cbuf) ^
-               (static_cast<std::size_t>(bindings.gmem) << 8) ^
-               (static_cast<std::size_t>(bindings.sampler) << 16) ^
-               (static_cast<std::size_t>(bindings.image) << 24);
-    }
-};
-
-template <>
 struct hash<OpenGL::ProgramVariant> {
     std::size_t operator()(const OpenGL::ProgramVariant& variant) const noexcept {
-        return std::hash<OpenGL::BaseBindings>{}(variant.base_bindings) ^
-               (static_cast<std::size_t>(variant.primitive_mode) << 6) ^
+        return (static_cast<std::size_t>(variant.primitive_mode) << 6) ^
                static_cast<std::size_t>(variant.block_x) ^
                (static_cast<std::size_t>(variant.block_y) << 32) ^
                (static_cast<std::size_t>(variant.block_z) << 48) ^

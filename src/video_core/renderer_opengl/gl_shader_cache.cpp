@@ -266,28 +266,6 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ShaderTyp
     }
     source += '\n';
 
-    auto base_bindings = variant.base_bindings;
-    if (!is_compute) {
-        source += fmt::format("#define EMULATION_UBO_BINDING {}\n", base_bindings.cbuf++);
-    }
-
-    for (const auto& cbuf : entries.const_buffers) {
-        source +=
-            fmt::format("#define CBUF_BINDING_{} {}\n", cbuf.GetIndex(), base_bindings.cbuf++);
-    }
-    for (const auto& gmem : entries.global_memory_entries) {
-        source += fmt::format("#define GMEM_BINDING_{}_{} {}\n", gmem.GetCbufIndex(),
-                              gmem.GetCbufOffset(), base_bindings.gmem++);
-    }
-    for (const auto& sampler : entries.samplers) {
-        source += fmt::format("#define SAMPLER_BINDING_{} {}\n", sampler.GetIndex(),
-                              base_bindings.sampler++);
-    }
-    for (const auto& image : entries.images) {
-        source +=
-            fmt::format("#define IMAGE_BINDING_{} {}\n", image.GetIndex(), base_bindings.image++);
-    }
-
     if (shader_type == ShaderType::Geometry) {
         const auto [glsl_topology, debug_name, max_vertices] =
             GetPrimitiveDescription(variant.primitive_mode);
@@ -403,27 +381,21 @@ Shader CachedShader::CreateFromCache(const ShaderParameters& params,
                                                           unspecialized.code_b));
 }
 
-std::tuple<GLuint, BaseBindings> CachedShader::GetHandle(const ProgramVariant& variant) {
+GLuint CachedShader::GetHandle(const ProgramVariant& variant) {
     EnsureValidLockerVariant();
 
     const auto [entry, is_cache_miss] = curr_locker_variant->programs.try_emplace(variant);
     auto& program = entry->second;
-    if (is_cache_miss) {
-        program = BuildShader(device, unique_identifier, shader_type, code, code_b,
-                              *curr_locker_variant->locker, variant);
-        disk_cache.SaveUsage(GetUsage(variant, *curr_locker_variant->locker));
-
-        LabelGLObject(GL_PROGRAM, program->handle, cpu_addr);
+    if (!is_cache_miss) {
+        return program->handle;
     }
 
-    auto base_bindings = variant.base_bindings;
-    base_bindings.cbuf += static_cast<u32>(entries.const_buffers.size());
-    base_bindings.cbuf += STAGE_RESERVED_UBOS;
-    base_bindings.gmem += static_cast<u32>(entries.global_memory_entries.size());
-    base_bindings.sampler += static_cast<u32>(entries.samplers.size());
-    base_bindings.image += static_cast<u32>(entries.images.size());
+    program = BuildShader(device, unique_identifier, shader_type, code, code_b,
+                          *curr_locker_variant->locker, variant);
+    disk_cache.SaveUsage(GetUsage(variant, *curr_locker_variant->locker));
 
-    return {program->handle, base_bindings};
+    LabelGLObject(GL_PROGRAM, program->handle, cpu_addr);
+    return program->handle;
 }
 
 bool CachedShader::EnsureValidLockerVariant() {

@@ -417,14 +417,20 @@ void OpenGLState::ApplyClipControl() {
 }
 
 void OpenGLState::ApplyTextures() {
-    if (const auto update = UpdateArray(cur_state.textures, textures)) {
-        glBindTextures(update->first, update->second, textures.data() + update->first);
+    const std::size_t size = std::size(textures);
+    for (std::size_t i = 0; i < size; ++i) {
+        if (UpdateValue(cur_state.textures[i], textures[i])) {
+            glBindTextureUnit(static_cast<GLuint>(i), textures[i]);
+        }
     }
 }
 
 void OpenGLState::ApplySamplers() {
-    if (const auto update = UpdateArray(cur_state.samplers, samplers)) {
-        glBindSamplers(update->first, update->second, samplers.data() + update->first);
+    const std::size_t size = std::size(samplers);
+    for (std::size_t i = 0; i < size; ++i) {
+        if (UpdateValue(cur_state.samplers[i], samplers[i])) {
+            glBindSampler(static_cast<GLuint>(i), samplers[i]);
+        }
     }
 }
 

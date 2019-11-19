@@ -16,5 +16,6 @@ enum class ShaderType : u32 {
     Fragment = 4,
     Compute = 5,
 };
+static constexpr std::size_t MaxShaderTypes = 6;
 
 } // namespace Tegra::Engines

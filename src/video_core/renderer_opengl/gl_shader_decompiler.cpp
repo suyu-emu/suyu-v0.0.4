@@ -43,6 +43,9 @@ using namespace VideoCommon::Shader;
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 using Operation = const OperationNode&;
 
+class ASTDecompiler;
+class ExprDecompiler;
+
 enum class Type { Void, Bool, Bool2, Float, Int, Uint, HalfFloat };
 
 struct TextureAoffi {};
@@ -337,9 +340,6 @@ std::string FlowStackTopName(MetaStackClass stack) {
     return stage == ShaderType::Vertex;
 }
 
-class ASTDecompiler;
-class ExprDecompiler;
-
 class GLSLDecompiler final {
 public:
     explicit GLSLDecompiler(const Device& device, const ShaderIR& ir, ShaderType stage,
@@ -621,7 +621,8 @@ private:
     void DeclareConstantBuffers() {
         for (const auto& entry : ir.GetConstantBuffers()) {
             const auto [index, size] = entry;
-            code.AddLine("layout (std140, binding = CBUF_BINDING_{}) uniform {} {{", index,
+            const u32 binding = device.GetBaseBindings(stage).uniform_buffer + index;
+            code.AddLine("layout (std140, binding = {}) uniform {} {{", binding,
                          GetConstBufferBlock(index));
             code.AddLine("    uvec4 {}[{}];", GetConstBuffer(index), MAX_CONSTBUFFER_ELEMENTS);
             code.AddLine("}};");
@@ -630,6 +631,8 @@ private:
     }
 
     void DeclareGlobalMemory() {
+        u32 binding = device.GetBaseBindings(stage).shader_storage_buffer;
+
         for (const auto& gmem : ir.GetGlobalMemory()) {
             const auto& [base, usage] = gmem;
 
@@ -642,8 +645,8 @@ private:
                 qualifier += " writeonly";
             }
 
-            code.AddLine("layout (std430, binding = GMEM_BINDING_{}_{}) {} buffer {} {{",
-                         base.cbuf_index, base.cbuf_offset, qualifier, GetGlobalMemoryBlock(base));
+            code.AddLine("layout (std430, binding = {}) {} buffer {} {{", binding++, qualifier,
+                         GetGlobalMemoryBlock(base));
             code.AddLine("    uint {}[];", GetGlobalMemory(base));
             code.AddLine("}};");
             code.AddNewLine();
@@ -653,9 +656,11 @@ private:
     void DeclareSamplers() {
         const auto& samplers = ir.GetSamplers();
         for (const auto& sampler : samplers) {
-            const std::string name{GetSampler(sampler)};
-            const std::string description{"layout (binding = SAMPLER_BINDING_" +
-                                          std::to_string(sampler.GetIndex()) + ") uniform"};
+            const std::string name = GetSampler(sampler);
+
+            const u32 binding = device.GetBaseBindings(stage).sampler + sampler.GetIndex();
+            const std::string description = fmt::format("layout (binding = {}) uniform", binding);
+
             std::string sampler_type = [&]() {
                 if (sampler.IsBuffer()) {
                     return "samplerBuffer";
@@ -732,10 +737,12 @@ private:
                 qualifier += " writeonly";
             }
 
+            const u32 binding = device.GetBaseBindings(stage).image + image.GetIndex();
+
             const char* format = image.IsAtomic() ? "r32ui, " : "";
             const char* type_declaration = GetImageTypeDeclaration(image.GetType());
-            code.AddLine("layout ({}binding = IMAGE_BINDING_{}) {} uniform uimage{} {};", format,
-                         image.GetIndex(), qualifier, type_declaration, GetImage(image));
+            code.AddLine("layout ({}binding = {}) {} uniform uimage{} {};", format, binding,
+                         qualifier, type_declaration, GetImage(image));
         }
         if (!images.empty()) {
             code.AddNewLine();

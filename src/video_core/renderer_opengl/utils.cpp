@@ -3,7 +3,10 @@
 // Refer to the license.txt file included.
 
 #include <string>
+#include <vector>
+
 #include <fmt/format.h>
+
 #include <glad/glad.h>
 
 #include "common/assert.h"
@@ -48,34 +51,19 @@ BindBuffersRangePushBuffer::BindBuffersRangePushBuffer(GLenum target) : target{t
 
 BindBuffersRangePushBuffer::~BindBuffersRangePushBuffer() = default;
 
-void BindBuffersRangePushBuffer::Setup(GLuint first_) {
-    first = first_;
-    buffer_pointers.clear();
-    offsets.clear();
-    sizes.clear();
+void BindBuffersRangePushBuffer::Setup() {
+    entries.clear();
 }
 
-void BindBuffersRangePushBuffer::Push(const GLuint* buffer, GLintptr offset, GLsizeiptr size) {
-    buffer_pointers.push_back(buffer);
-    offsets.push_back(offset);
-    sizes.push_back(size);
+void BindBuffersRangePushBuffer::Push(GLuint binding, const GLuint* buffer, GLintptr offset,
+                                      GLsizeiptr size) {
+    entries.push_back(Entry{binding, buffer, offset, size});
 }
 
 void BindBuffersRangePushBuffer::Bind() {
-    // Ensure sizes are valid.
-    const std::size_t count{buffer_pointers.size()};
-    DEBUG_ASSERT(count == offsets.size() && count == sizes.size());
-    if (count == 0) {
-        return;
+    for (const Entry& entry : entries) {
+        glBindBufferRange(target, entry.binding, *entry.buffer, entry.offset, entry.size);
     }
-
-    // Dereference buffers.
-    buffers.resize(count);
-    std::transform(buffer_pointers.begin(), buffer_pointers.end(), buffers.begin(),
-                   [](const GLuint* pointer) { return *pointer; });
-
-    glBindBuffersRange(target, first, static_cast<GLsizei>(count), buffers.data(), offsets.data(),
-                       sizes.data());
 }
 
 void LabelGLObject(GLenum identifier, GLuint handle, VAddr addr, std::string_view extra_info) {

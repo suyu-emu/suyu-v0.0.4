@@ -17,6 +17,9 @@ namespace OpenGL {
 
 namespace {
 
+// One uniform block is reserved for emulation purposes
+constexpr u32 ReservedUniformBlocks = 1;
+
 template <typename T>
 T GetInteger(GLenum pname) {
     GLint temporary;
@@ -48,6 +51,22 @@ bool HasExtension(const std::vector<std::string_view>& images, std::string_view 
     return std::find(images.begin(), images.end(), extension) != images.end();
 }
 
+constexpr Device::BaseBindings operator+(Device::BaseBindings lhs, Device::BaseBindings rhs) {
+    return Device::BaseBindings{lhs.uniform_buffer + rhs.uniform_buffer,
+                                lhs.shader_storage_buffer + rhs.shader_storage_buffer,
+                                lhs.sampler + rhs.sampler, lhs.image + rhs.image};
+}
+
+Device::BaseBindings BuildBaseBindings(GLenum uniform_blocks, GLenum shader_storage_blocks,
+                                       GLenum texture_image_units, GLenum image_uniforms) noexcept {
+    return Device::BaseBindings{
+        GetInteger<u32>(uniform_blocks) - ReservedUniformBlocks,
+        GetInteger<u32>(shader_storage_blocks),
+        GetInteger<u32>(texture_image_units),
+        GetInteger<u32>(image_uniforms),
+    };
+}
+
 } // Anonymous namespace
 
 Device::Device() {
@@ -55,6 +74,29 @@ Device::Device() {
     const std::vector extensions = GetExtensions();
 
     const bool is_nvidia = vendor == "NVIDIA Corporation";
+
+    // Reserve the first UBO for emulation bindings
+    base_bindings[0] = BaseBindings{ReservedUniformBlocks, 0, 0, 0};
+    base_bindings[1] = base_bindings[0] + BuildBaseBindings(GL_MAX_VERTEX_UNIFORM_BLOCKS,
+                                                            GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS,
+                                                            GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS,
+                                                            GL_MAX_VERTEX_IMAGE_UNIFORMS);
+    base_bindings[2] =
+        base_bindings[1] + BuildBaseBindings(GL_MAX_TESS_CONTROL_UNIFORM_BLOCKS,
+                                             GL_MAX_TESS_CONTROL_SHADER_STORAGE_BLOCKS,
+                                             GL_MAX_TESS_CONTROL_TEXTURE_IMAGE_UNITS,
+                                             GL_MAX_TESS_CONTROL_IMAGE_UNIFORMS);
+    base_bindings[3] =
+        base_bindings[2] + BuildBaseBindings(GL_MAX_TESS_EVALUATION_UNIFORM_BLOCKS,
+                                             GL_MAX_TESS_EVALUATION_SHADER_STORAGE_BLOCKS,
+                                             GL_MAX_TESS_EVALUATION_TEXTURE_IMAGE_UNITS,
+                                             GL_MAX_TESS_EVALUATION_IMAGE_UNIFORMS);
+    base_bindings[4] = base_bindings[3] + BuildBaseBindings(GL_MAX_GEOMETRY_UNIFORM_BLOCKS,
+                                                            GL_MAX_GEOMETRY_SHADER_STORAGE_BLOCKS,
+                                                            GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS,
+                                                            GL_MAX_GEOMETRY_IMAGE_UNIFORMS);
+    // Compute doesn't need any of that
+    base_bindings[5] = BaseBindings{0, 0, 0, 0};
 
     uniform_buffer_alignment = GetInteger<std::size_t>(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT);
     shader_storage_alignment = GetInteger<std::size_t>(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT);

@@ -89,7 +89,7 @@ private:
     void SetupComputeConstBuffers(const Shader& kernel);
 
     /// Configures a constant buffer.
-    void SetupConstBuffer(const Tegra::Engines::ConstBufferInfo& buffer,
+    void SetupConstBuffer(u32 binding, const Tegra::Engines::ConstBufferInfo& buffer,
                           const GLShader::ConstBufferEntry& entry);
 
     /// Configures the current global memory entries to use for the draw command.
@@ -99,15 +99,14 @@ private:
     void SetupComputeGlobalMemory(const Shader& kernel);
 
     /// Configures a constant buffer.
-    void SetupGlobalMemory(const GLShader::GlobalMemoryEntry& entry, GPUVAddr gpu_addr,
+    void SetupGlobalMemory(u32 binding, const GLShader::GlobalMemoryEntry& entry, GPUVAddr gpu_addr,
                            std::size_t size);
 
     /// Syncs all the state, shaders, render targets and textures setting before a draw call.
     void DrawPrelude();
 
     /// Configures the current textures to use for the draw command.
-    void SetupDrawTextures(std::size_t stage_index, const Shader& shader,
-                           BaseBindings base_bindings);
+    void SetupDrawTextures(std::size_t stage_index, const Shader& shader);
 
     /// Configures the textures used in a compute shader.
     void SetupComputeTextures(const Shader& kernel);
@@ -117,7 +116,7 @@ private:
                       const GLShader::SamplerEntry& entry);
 
     /// Configures images in a graphics shader.
-    void SetupDrawImages(std::size_t stage_index, const Shader& shader, BaseBindings base_bindings);
+    void SetupDrawImages(std::size_t stage_index, const Shader& shader);
 
     /// Configures images in a compute shader.
     void SetupComputeImages(const Shader& shader);

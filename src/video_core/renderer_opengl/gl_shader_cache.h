@@ -87,7 +87,7 @@ public:
     }
 
     /// Gets the GL program handle for the shader
-    std::tuple<GLuint, BaseBindings> GetHandle(const ProgramVariant& variant);
+    GLuint GetHandle(const ProgramVariant& variant);
 
 private:
     struct LockerVariant {

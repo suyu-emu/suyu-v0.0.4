@@ -53,11 +53,10 @@ struct BindlessSamplerKey {
     Tegra::Engines::SamplerDescriptor sampler{};
 };
 
-constexpr u32 NativeVersion = 10;
+constexpr u32 NativeVersion = 11;
 
 // Making sure sizes doesn't change by accident
-static_assert(sizeof(BaseBindings) == 16);
-static_assert(sizeof(ProgramVariant) == 36);
+static_assert(sizeof(ProgramVariant) == 20);
 
 ShaderCacheVersionHash GetShaderCacheVersionHash() {
     ShaderCacheVersionHash hash{};

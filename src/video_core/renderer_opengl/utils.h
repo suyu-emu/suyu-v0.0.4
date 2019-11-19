@@ -43,20 +43,22 @@ public:
     explicit BindBuffersRangePushBuffer(GLenum target);
     ~BindBuffersRangePushBuffer();
 
-    void Setup(GLuint first_);
+    void Setup();
 
-    void Push(const GLuint* buffer, GLintptr offset, GLsizeiptr size);
+    void Push(GLuint binding, const GLuint* buffer, GLintptr offset, GLsizeiptr size);
 
     void Bind();
 
 private:
-    GLenum target{};
-    GLuint first{};
-    std::vector<const GLuint*> buffer_pointers;
+    struct Entry {
+        GLuint binding;
+        const GLuint* buffer;
+        GLintptr offset;
+        GLsizeiptr size;
+    };
 
-    std::vector<GLuint> buffers;
-    std::vector<GLintptr> offsets;
-    std::vector<GLsizeiptr> sizes;
+    GLenum target;
+    std::vector<Entry> entries;
 };
 
 void LabelGLObject(GLenum identifier, GLuint handle, VAddr addr, std::string_view extra_info = {});
