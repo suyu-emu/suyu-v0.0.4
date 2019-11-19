@@ -2,24 +2,23 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <map>
+#include <algorithm>
+#include <string>
+#include <tuple>
 
 #include "common/alignment.h"
 #include "common/bit_util.h"
 #include "core/core.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/surface.h"
+#include "video_core/texture_cache/format_lookup_table.h"
 #include "video_core/texture_cache/surface_params.h"
 
 namespace VideoCommon {
 
-using VideoCore::Surface::ComponentTypeFromDepthFormat;
-using VideoCore::Surface::ComponentTypeFromRenderTarget;
-using VideoCore::Surface::ComponentTypeFromTexture;
 using VideoCore::Surface::PixelFormat;
 using VideoCore::Surface::PixelFormatFromDepthFormat;
 using VideoCore::Surface::PixelFormatFromRenderTargetFormat;
-using VideoCore::Surface::PixelFormatFromTextureFormat;
 using VideoCore::Surface::SurfaceTarget;
 using VideoCore::Surface::SurfaceTargetFromTextureType;
 using VideoCore::Surface::SurfaceType;
@@ -69,7 +68,8 @@ constexpr u32 GetMipmapSize(bool uncompressed, u32 mip_size, u32 tile) {
 
 } // Anonymous namespace
 
-SurfaceParams SurfaceParams::CreateForTexture(const Tegra::Texture::TICEntry& tic,
+SurfaceParams SurfaceParams::CreateForTexture(const FormatLookupTable& lookup_table,
+                                              const Tegra::Texture::TICEntry& tic,
                                               const VideoCommon::Shader::Sampler& entry) {
     SurfaceParams params;
     params.is_tiled = tic.IsTiled();
@@ -78,8 +78,8 @@ SurfaceParams SurfaceParams::CreateForTexture(const Tegra::Texture::TICEntry& ti
     params.block_height = params.is_tiled ? tic.BlockHeight() : 0,
     params.block_depth = params.is_tiled ? tic.BlockDepth() : 0,
     params.tile_width_spacing = params.is_tiled ? (1 << tic.tile_width_spacing.Value()) : 1;
-    params.pixel_format =
-        PixelFormatFromTextureFormat(tic.format, tic.r_type.Value(), params.srgb_conversion);
+    params.pixel_format = lookup_table.GetPixelFormat(
+        tic.format, params.srgb_conversion, tic.r_type, tic.g_type, tic.b_type, tic.a_type);
     params.type = GetFormatType(params.pixel_format);
     if (entry.IsShadow() && params.type == SurfaceType::ColorTexture) {
         switch (params.pixel_format) {
@@ -99,7 +99,6 @@ SurfaceParams SurfaceParams::CreateForTexture(const Tegra::Texture::TICEntry& ti
         }
         params.type = GetFormatType(params.pixel_format);
     }
-    params.component_type = ComponentTypeFromTexture(tic.r_type.Value());
     params.type = GetFormatType(params.pixel_format);
     // TODO: on 1DBuffer we should use the tic info.
     if (tic.IsBuffer()) {
@@ -128,7 +127,8 @@ SurfaceParams SurfaceParams::CreateForTexture(const Tegra::Texture::TICEntry& ti
     return params;
 }
 
-SurfaceParams SurfaceParams::CreateForImage(const Tegra::Texture::TICEntry& tic,
+SurfaceParams SurfaceParams::CreateForImage(const FormatLookupTable& lookup_table,
+                                            const Tegra::Texture::TICEntry& tic,
                                             const VideoCommon::Shader::Image& entry) {
     SurfaceParams params;
     params.is_tiled = tic.IsTiled();
@@ -137,10 +137,9 @@ SurfaceParams SurfaceParams::CreateForImage(const Tegra::Texture::TICEntry& tic,
     params.block_height = params.is_tiled ? tic.BlockHeight() : 0,
     params.block_depth = params.is_tiled ? tic.BlockDepth() : 0,
     params.tile_width_spacing = params.is_tiled ? (1 << tic.tile_width_spacing.Value()) : 1;
-    params.pixel_format =
-        PixelFormatFromTextureFormat(tic.format, tic.r_type.Value(), params.srgb_conversion);
+    params.pixel_format = lookup_table.GetPixelFormat(
+        tic.format, params.srgb_conversion, tic.r_type, tic.g_type, tic.b_type, tic.a_type);
     params.type = GetFormatType(params.pixel_format);
-    params.component_type = ComponentTypeFromTexture(tic.r_type.Value());
     params.type = GetFormatType(params.pixel_format);
     params.target = ImageTypeToSurfaceTarget(entry.GetType());
     // TODO: on 1DBuffer we should use the tic info.
@@ -181,7 +180,6 @@ SurfaceParams SurfaceParams::CreateForDepthBuffer(
     params.block_depth = std::min(block_depth, 5U);
     params.tile_width_spacing = 1;
     params.pixel_format = PixelFormatFromDepthFormat(format);
-    params.component_type = ComponentTypeFromDepthFormat(format);
     params.type = GetFormatType(params.pixel_format);
     params.width = zeta_width;
     params.height = zeta_height;
@@ -206,7 +204,6 @@ SurfaceParams SurfaceParams::CreateForFramebuffer(Core::System& system, std::siz
     params.block_depth = config.memory_layout.block_depth;
     params.tile_width_spacing = 1;
     params.pixel_format = PixelFormatFromRenderTargetFormat(config.format);
-    params.component_type = ComponentTypeFromRenderTarget(config.format);
     params.type = GetFormatType(params.pixel_format);
     if (params.is_tiled) {
         params.pitch = 0;
@@ -236,7 +233,6 @@ SurfaceParams SurfaceParams::CreateForFermiCopySurface(
     params.block_depth = params.is_tiled ? std::min(config.BlockDepth(), 5U) : 0,
     params.tile_width_spacing = 1;
     params.pixel_format = PixelFormatFromRenderTargetFormat(config.format);
-    params.component_type = ComponentTypeFromRenderTarget(config.format);
     params.type = GetFormatType(params.pixel_format);
     params.width = config.width;
     params.height = config.height;
@@ -355,10 +351,10 @@ std::size_t SurfaceParams::GetInnerMipmapMemorySize(u32 level, bool as_host_size
 
 bool SurfaceParams::operator==(const SurfaceParams& rhs) const {
     return std::tie(is_tiled, block_width, block_height, block_depth, tile_width_spacing, width,
-                    height, depth, pitch, num_levels, pixel_format, component_type, type, target) ==
+                    height, depth, pitch, num_levels, pixel_format, type, target) ==
            std::tie(rhs.is_tiled, rhs.block_width, rhs.block_height, rhs.block_depth,
                     rhs.tile_width_spacing, rhs.width, rhs.height, rhs.depth, rhs.pitch,
-                    rhs.num_levels, rhs.pixel_format, rhs.component_type, rhs.type, rhs.target);
+                    rhs.num_levels, rhs.pixel_format, rhs.type, rhs.target);
 }
 
 std::string SurfaceParams::TargetName() const {

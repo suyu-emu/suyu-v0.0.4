@@ -29,6 +29,7 @@
 #include "video_core/rasterizer_interface.h"
 #include "video_core/surface.h"
 #include "video_core/texture_cache/copy_params.h"
+#include "video_core/texture_cache/format_lookup_table.h"
 #include "video_core/texture_cache/surface_base.h"
 #include "video_core/texture_cache/surface_params.h"
 #include "video_core/texture_cache/surface_view.h"
@@ -96,7 +97,7 @@ public:
         if (!gpu_addr) {
             return {};
         }
-        const auto params{SurfaceParams::CreateForTexture(tic, entry)};
+        const auto params{SurfaceParams::CreateForTexture(format_lookup_table, tic, entry)};
         const auto [surface, view] = GetSurface(gpu_addr, params, true, false);
         if (guard_samplers) {
             sampled_textures.push_back(surface);
@@ -111,7 +112,7 @@ public:
         if (!gpu_addr) {
             return {};
         }
-        const auto params{SurfaceParams::CreateForImage(tic, entry)};
+        const auto params{SurfaceParams::CreateForImage(format_lookup_table, tic, entry)};
         const auto [surface, view] = GetSurface(gpu_addr, params, true, false);
         if (guard_samplers) {
             sampled_textures.push_back(surface);
@@ -485,15 +486,13 @@ private:
             GetSiblingFormat(cr_params.pixel_format) == params.pixel_format) {
             SurfaceParams new_params = params;
             new_params.pixel_format = cr_params.pixel_format;
-            new_params.component_type = cr_params.component_type;
             new_params.type = cr_params.type;
             new_surface = GetUncachedSurface(gpu_addr, new_params);
         } else {
             new_surface = GetUncachedSurface(gpu_addr, params);
         }
         const auto& final_params = new_surface->GetSurfaceParams();
-        if (cr_params.type != final_params.type ||
-            (cr_params.component_type != final_params.component_type)) {
+        if (cr_params.type != final_params.type) {
             BufferCopy(current_surface, new_surface);
         } else {
             std::vector<CopyParams> bricks = current_surface->BreakDown(final_params);
@@ -835,12 +834,11 @@ private:
             }
         }
 
-        const auto inherit_format = ([](SurfaceParams& to, TSurface from) {
+        const auto inherit_format = [](SurfaceParams& to, TSurface from) {
             const SurfaceParams& params = from->GetSurfaceParams();
             to.pixel_format = params.pixel_format;
-            to.component_type = params.component_type;
             to.type = params.type;
-        });
+        };
         // Now we got the cases where one or both is Depth and the other is not known
         if (!incomplete_src) {
             inherit_format(src_params, deduced_src.surface);
@@ -955,6 +953,8 @@ private:
     };
 
     VideoCore::RasterizerInterface& rasterizer;
+
+    FormatLookupTable format_lookup_table;
 
     u64 ticks{};
 
