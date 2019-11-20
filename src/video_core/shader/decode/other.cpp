@@ -256,7 +256,7 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::DEPBAR: {
-        LOG_WARNING(HW_GPU, "DEPBAR instruction is stubbed");
+        LOG_DEBUG(HW_GPU, "DEPBAR instruction is stubbed");
         break;
     }
     default:
