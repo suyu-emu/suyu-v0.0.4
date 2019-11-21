@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <list>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "common/common_types.h"
 #include "core/hle/kernel/address_arbiter.h"
@@ -385,7 +386,7 @@ private:
     std::list<const Thread*> thread_list;
 
     /// List of threads waiting for a condition variable
-    std::list<SharedPtr<Thread>> cond_var_threads;
+    std::unordered_map<VAddr, std::list<SharedPtr<Thread>>> cond_var_threads;
 
     /// System context
     Core::System& system;

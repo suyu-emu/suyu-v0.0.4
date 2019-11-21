@@ -1661,8 +1661,8 @@ static ResultCode SignalProcessWideKey(Core::System& system, VAddr condition_var
         ASSERT(thread->GetCondVarWaitAddress() == condition_variable_addr);
 
         // liberate Cond Var Thread.
-        thread->SetCondVarWaitAddress(0);
         current_process->RemoveConditionVariableThread(thread);
+        thread->SetCondVarWaitAddress(0);
 
         const std::size_t current_core = system.CurrentCoreIndex();
         auto& monitor = system.Monitor();

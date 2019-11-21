@@ -143,31 +143,28 @@ u64 Process::GetTotalPhysicalMemoryUsedWithoutSystemResource() const {
 }
 
 void Process::InsertConditionVariableThread(SharedPtr<Thread> thread) {
-    auto it = cond_var_threads.begin();
-    while (it != cond_var_threads.end()) {
+    VAddr cond_var_addr = thread->GetCondVarWaitAddress();
+    std::list<SharedPtr<Thread>>& thread_list = cond_var_threads[cond_var_addr];
+    auto it = thread_list.begin();
+    while (it != thread_list.end()) {
         const SharedPtr<Thread> current_thread = *it;
-        if (current_thread->GetCondVarWaitAddress() < thread->GetCondVarWaitAddress()) {
-            if (current_thread->GetCondVarWaitAddress() == thread->GetCondVarWaitAddress()) {
-                if (current_thread->GetPriority() > thread->GetPriority()) {
-                    cond_var_threads.insert(it, thread);
-                    return;
-                }
-            } else {
-                cond_var_threads.insert(it, thread);
-                return;
-            }
+        if (current_thread->GetPriority() > thread->GetPriority()) {
+            thread_list.insert(it, thread);
+            return;
         }
         ++it;
     }
-    cond_var_threads.push_back(thread);
+    thread_list.push_back(thread);
 }
 
 void Process::RemoveConditionVariableThread(SharedPtr<Thread> thread) {
-    auto it = cond_var_threads.begin();
-    while (it != cond_var_threads.end()) {
+    VAddr cond_var_addr = thread->GetCondVarWaitAddress();
+    std::list<SharedPtr<Thread>>& thread_list = cond_var_threads[cond_var_addr];
+    auto it = thread_list.begin();
+    while (it != thread_list.end()) {
         const SharedPtr<Thread> current_thread = *it;
         if (current_thread.get() == thread.get()) {
-            cond_var_threads.erase(it);
+            thread_list.erase(it);
             return;
         }
         ++it;
@@ -177,12 +174,11 @@ void Process::RemoveConditionVariableThread(SharedPtr<Thread> thread) {
 
 std::vector<SharedPtr<Thread>> Process::GetConditionVariableThreads(const VAddr cond_var_addr) {
     std::vector<SharedPtr<Thread>> result{};
-    auto it = cond_var_threads.begin();
-    while (it != cond_var_threads.end()) {
+    std::list<SharedPtr<Thread>>& thread_list = cond_var_threads[cond_var_addr];
+    auto it = thread_list.begin();
+    while (it != thread_list.end()) {
         SharedPtr<Thread> current_thread = *it;
-        if (current_thread->GetCondVarWaitAddress() == cond_var_addr) {
-            result.push_back(current_thread);
-        }
+        result.push_back(current_thread);
         ++it;
     }
     return result;
