@@ -1336,12 +1336,16 @@ void IApplicationFunctions::GetPseudoDeviceId(Kernel::HLERequestContext& ctx) {
 }
 
 void IApplicationFunctions::ExtendSaveData(Kernel::HLERequestContext& ctx) {
+    struct Parameters {
+        FileSys::SaveDataType type;
+        u128 user_id;
+        u64 new_normal_size;
+        u64 new_journal_size;
+    };
+    static_assert(sizeof(Parameters) == 40);
+
     IPC::RequestParser rp{ctx};
-    const auto type{rp.PopRaw<FileSys::SaveDataType>()};
-    rp.Skip(1, false);
-    const auto user_id{rp.PopRaw<u128>()};
-    const auto new_normal_size{rp.PopRaw<u64>()};
-    const auto new_journal_size{rp.PopRaw<u64>()};
+    const auto [type, user_id, new_normal_size, new_journal_size] = rp.PopRaw<Parameters>();
 
     LOG_DEBUG(Service_AM,
               "called with type={:02X}, user_id={:016X}{:016X}, new_normal={:016X}, "
@@ -1360,10 +1364,14 @@ void IApplicationFunctions::ExtendSaveData(Kernel::HLERequestContext& ctx) {
 }
 
 void IApplicationFunctions::GetSaveDataSize(Kernel::HLERequestContext& ctx) {
+    struct Parameters {
+        FileSys::SaveDataType type;
+        u128 user_id;
+    };
+    static_assert(sizeof(Parameters) == 24);
+
     IPC::RequestParser rp{ctx};
-    const auto type{rp.PopRaw<FileSys::SaveDataType>()};
-    rp.Skip(1, false);
-    const auto user_id{rp.PopRaw<u128>()};
+    const auto [type, user_id] = rp.PopRaw<Parameters>();
 
     LOG_DEBUG(Service_AM, "called with type={:02X}, user_id={:016X}{:016X}", static_cast<u8>(type),
               user_id[1], user_id[0]);
