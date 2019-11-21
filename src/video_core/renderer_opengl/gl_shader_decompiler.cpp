@@ -619,10 +619,9 @@ private:
     }
 
     void DeclareConstantBuffers() {
-        for (const auto& entry : ir.GetConstantBuffers()) {
-            const auto [index, size] = entry;
-            const u32 binding = device.GetBaseBindings(stage).uniform_buffer + index;
-            code.AddLine("layout (std140, binding = {}) uniform {} {{", binding,
+        u32 binding = device.GetBaseBindings(stage).uniform_buffer;
+        for (const auto& [index, cbuf] : ir.GetConstantBuffers()) {
+            code.AddLine("layout (std140, binding = {}) uniform {} {{", binding++,
                          GetConstBufferBlock(index));
             code.AddLine("    uvec4 {}[{}];", GetConstBuffer(index), MAX_CONSTBUFFER_ELEMENTS);
             code.AddLine("}};");
@@ -632,10 +631,7 @@ private:
 
     void DeclareGlobalMemory() {
         u32 binding = device.GetBaseBindings(stage).shader_storage_buffer;
-
-        for (const auto& gmem : ir.GetGlobalMemory()) {
-            const auto& [base, usage] = gmem;
-
+        for (const auto& [base, usage] : ir.GetGlobalMemory()) {
             // Since we don't know how the shader will use the shader, hint the driver to disable as
             // much optimizations as possible
             std::string qualifier = "coherent volatile";

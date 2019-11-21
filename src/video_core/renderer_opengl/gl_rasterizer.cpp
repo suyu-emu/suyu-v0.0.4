@@ -857,13 +857,13 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
 
 void RasterizerOpenGL::SetupDrawConstBuffers(std::size_t stage_index, const Shader& shader) {
     MICROPROFILE_SCOPE(OpenGL_UBO);
-    const u32 base_binding = device.GetBaseBindings(stage_index).uniform_buffer;
     const auto& stages = system.GPU().Maxwell3D().state.shader_stages;
     const auto& shader_stage = stages[stage_index];
 
+    u32 binding = device.GetBaseBindings(stage_index).uniform_buffer;
     for (const auto& entry : shader->GetShaderEntries().const_buffers) {
         const auto& buffer = shader_stage.const_buffers[entry.GetIndex()];
-        SetupConstBuffer(base_binding + entry.GetIndex(), buffer, entry);
+        SetupConstBuffer(binding++, buffer, entry);
     }
 }
 
