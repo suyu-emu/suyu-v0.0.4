@@ -255,8 +255,9 @@ private:
     void InitializeApplicationCopyrightFrameBuffer(Kernel::HLERequestContext& ctx);
     void SetApplicationCopyrightImage(Kernel::HLERequestContext& ctx);
     void SetApplicationCopyrightVisibility(Kernel::HLERequestContext& ctx);
-    void GetGpuErrorDetectedSystemEvent(Kernel::HLERequestContext& ctx);
+    void QueryApplicationPlayStatistics(Kernel::HLERequestContext& ctx);
     void QueryApplicationPlayStatisticsByUid(Kernel::HLERequestContext& ctx);
+    void GetGpuErrorDetectedSystemEvent(Kernel::HLERequestContext& ctx);
 
     bool launch_popped_application_specific = false;
     bool launch_popped_account_preselect = false;
