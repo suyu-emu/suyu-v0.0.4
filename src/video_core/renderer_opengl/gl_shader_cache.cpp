@@ -279,8 +279,9 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ShaderTyp
                         variant.block_x, variant.block_y, variant.block_z);
 
         if (variant.shared_memory_size > 0) {
-            source += fmt::format("shared uint smem[{}];",
-                                  Common::AlignUp(variant.shared_memory_size, 4) / 4);
+            // TODO(Rodrigo): We should divide by four here, but having a larger shared memory pool
+            // avoids out of bound stores. Find out why shared memory size is being invalid.
+            source += fmt::format("shared uint smem[{}];", variant.shared_memory_size);
         }
 
         if (variant.local_memory_size > 0) {
