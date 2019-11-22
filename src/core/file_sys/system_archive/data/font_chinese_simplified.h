@@ -8,6 +8,6 @@
 
 namespace FileSys::SystemArchive::SharedFontData {
 
-extern const std::array<unsigned char, 217276> FONT_CHINESE_SIMPLIFIED;
+extern const std::array<unsigned char, 8334256> FONT_CHINESE_SIMPLIFIED;
 
 } // namespace FileSys::SystemArchive::SharedFontData
