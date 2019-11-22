@@ -97,9 +97,10 @@ public:
     } logic_op;
 
     static constexpr std::size_t NumSamplers = 32 * 5;
+    static constexpr std::size_t NumImages = 8 * 5;
     std::array<GLuint, NumSamplers> textures = {};
     std::array<GLuint, NumSamplers> samplers = {};
-    std::array<GLuint, Tegra::Engines::Maxwell3D::Regs::NumImages> images = {};
+    std::array<GLuint, NumImages> images = {};
 
     struct {
         GLuint read_framebuffer = 0; // GL_READ_FRAMEBUFFER_BINDING

@@ -940,12 +940,9 @@ void RasterizerOpenGL::SetupGlobalMemory(u32 binding, const GLShader::GlobalMemo
 
 void RasterizerOpenGL::SetupDrawTextures(std::size_t stage_index, const Shader& shader) {
     MICROPROFILE_SCOPE(OpenGL_Texture);
-    const auto& gpu = system.GPU();
-    const auto& maxwell3d = gpu.Maxwell3D();
-    const auto& entries = shader->GetShaderEntries().samplers;
-
+    const auto& maxwell3d = system.GPU().Maxwell3D();
     u32 binding = device.GetBaseBindings(stage_index).sampler;
-    for (const auto& entry : entries) {
+    for (const auto& entry : shader->GetShaderEntries().samplers) {
         const auto shader_type = static_cast<Tegra::Engines::ShaderType>(stage_index);
         const auto texture = GetTextureInfo(maxwell3d, entry, shader_type);
         SetupTexture(binding++, texture, entry);
@@ -955,10 +952,8 @@ void RasterizerOpenGL::SetupDrawTextures(std::size_t stage_index, const Shader& 
 void RasterizerOpenGL::SetupComputeTextures(const Shader& kernel) {
     MICROPROFILE_SCOPE(OpenGL_Texture);
     const auto& compute = system.GPU().KeplerCompute();
-    const auto& entries = kernel->GetShaderEntries().samplers;
-
     u32 binding = 0;
-    for (const auto& entry : entries) {
+    for (const auto& entry : kernel->GetShaderEntries().samplers) {
         const auto texture = GetTextureInfo(compute, entry, Tegra::Engines::ShaderType::Compute);
         SetupTexture(binding++, texture, entry);
     }
@@ -987,26 +982,20 @@ void RasterizerOpenGL::SetupTexture(u32 binding, const Tegra::Texture::FullTextu
 
 void RasterizerOpenGL::SetupDrawImages(std::size_t stage_index, const Shader& shader) {
     const auto& maxwell3d = system.GPU().Maxwell3D();
-    const auto& entries = shader->GetShaderEntries().images;
-
-    const auto num_entries = static_cast<u32>(entries.size());
-    for (u32 bindpoint = 0; bindpoint < num_entries; ++bindpoint) {
-        const auto& entry = entries[bindpoint];
+    u32 binding = device.GetBaseBindings(stage_index).image;
+    for (const auto& entry : shader->GetShaderEntries().images) {
         const auto shader_type = static_cast<Tegra::Engines::ShaderType>(stage_index);
         const auto tic = GetTextureInfo(maxwell3d, entry, shader_type).tic;
-        SetupImage(bindpoint, tic, entry);
+        SetupImage(binding++, tic, entry);
     }
 }
 
 void RasterizerOpenGL::SetupComputeImages(const Shader& shader) {
     const auto& compute = system.GPU().KeplerCompute();
-    const auto& entries = shader->GetShaderEntries().images;
-
-    const auto num_entries = static_cast<u32>(entries.size());
-    for (u32 bindpoint = 0; bindpoint < num_entries; ++bindpoint) {
-        const auto& entry = entries[bindpoint];
+    u32 binding = 0;
+    for (const auto& entry : shader->GetShaderEntries().images) {
         const auto tic = GetTextureInfo(compute, entry, Tegra::Engines::ShaderType::Compute).tic;
-        SetupImage(bindpoint, tic, entry);
+        SetupImage(binding++, tic, entry);
     }
 }
 

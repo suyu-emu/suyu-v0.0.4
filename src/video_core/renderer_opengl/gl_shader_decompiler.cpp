@@ -650,12 +650,10 @@ private:
     }
 
     void DeclareSamplers() {
-        const auto& samplers = ir.GetSamplers();
-        for (const auto& sampler : samplers) {
+        u32 binding = device.GetBaseBindings(stage).sampler;
+        for (const auto& sampler : ir.GetSamplers()) {
             const std::string name = GetSampler(sampler);
-
-            const u32 binding = device.GetBaseBindings(stage).sampler + sampler.GetIndex();
-            const std::string description = fmt::format("layout (binding = {}) uniform", binding);
+            const std::string description = fmt::format("layout (binding = {}) uniform", binding++);
 
             std::string sampler_type = [&]() {
                 if (sampler.IsBuffer()) {
@@ -684,7 +682,7 @@ private:
 
             code.AddLine("{} {} {};", description, sampler_type, name);
         }
-        if (!samplers.empty()) {
+        if (!ir.GetSamplers().empty()) {
             code.AddNewLine();
         }
     }
@@ -724,8 +722,8 @@ private:
     }
 
     void DeclareImages() {
-        const auto& images{ir.GetImages()};
-        for (const auto& image : images) {
+        u32 binding = device.GetBaseBindings(stage).image;
+        for (const auto& image : ir.GetImages()) {
             std::string qualifier = "coherent volatile";
             if (image.IsRead() && !image.IsWritten()) {
                 qualifier += " readonly";
@@ -733,14 +731,12 @@ private:
                 qualifier += " writeonly";
             }
 
-            const u32 binding = device.GetBaseBindings(stage).image + image.GetIndex();
-
             const char* format = image.IsAtomic() ? "r32ui, " : "";
             const char* type_declaration = GetImageTypeDeclaration(image.GetType());
-            code.AddLine("layout ({}binding = {}) {} uniform uimage{} {};", format, binding,
+            code.AddLine("layout ({}binding = {}) {} uniform uimage{} {};", format, binding++,
                          qualifier, type_declaration, GetImage(image));
         }
-        if (!images.empty()) {
+        if (!ir.GetImages().empty()) {
             code.AddNewLine();
         }
     }
