@@ -1777,7 +1777,9 @@ static u64 GetSystemTick(Core::System& system) {
     LOG_TRACE(Kernel_SVC, "called");
 
     auto& core_timing = system.CoreTiming();
-    const u64 result{core_timing.GetTicks()};
+
+    // Returns the value of cntpct_el0 (https://switchbrew.org/wiki/SVC#svcGetSystemTick)
+    const u64 result{Core::Timing::CpuCyclesToClockCycles(system.CoreTiming().GetTicks())};
 
     // Advance time to defeat dumb games that busy-wait for the frame to end.
     core_timing.AddTicks(400);
