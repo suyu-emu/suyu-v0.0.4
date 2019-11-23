@@ -420,7 +420,11 @@ void OpenGLState::ApplyTextures() {
     const std::size_t size = std::size(textures);
     for (std::size_t i = 0; i < size; ++i) {
         if (UpdateValue(cur_state.textures[i], textures[i])) {
-            glBindTextureUnit(static_cast<GLuint>(i), textures[i]);
+            // BindTextureUnit doesn't support binding null textures, skip those binds.
+            // TODO(Rodrigo): Stop using null textures
+            if (textures[i] != 0) {
+                glBindTextureUnit(static_cast<GLuint>(i), textures[i]);
+            }
         }
     }
 }
