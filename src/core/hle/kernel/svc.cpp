@@ -1631,6 +1631,7 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr mutex_add
     current_thread->SetWaitHandle(thread_handle);
     current_thread->SetStatus(ThreadStatus::WaitCondVar);
     current_thread->InvalidateWakeupCallback();
+    current_process->InsertConditionVariableThread(current_thread);
 
     current_thread->WakeAfterDelay(nano_seconds);
 
@@ -1649,31 +1650,15 @@ static ResultCode SignalProcessWideKey(Core::System& system, VAddr condition_var
     ASSERT(condition_variable_addr == Common::AlignDown(condition_variable_addr, 4));
 
     // Retrieve a list of all threads that are waiting for this condition variable.
-    std::vector<SharedPtr<Thread>> waiting_threads;
-    const auto& scheduler = system.GlobalScheduler();
-    const auto& thread_list = scheduler.GetThreadList();
+    auto* const current_process = system.Kernel().CurrentProcess();
+    std::vector<SharedPtr<Thread>> waiting_threads =
+        current_process->GetConditionVariableThreads(condition_variable_addr);
 
-    for (const auto& thread : thread_list) {
-        if (thread->GetCondVarWaitAddress() == condition_variable_addr) {
-            waiting_threads.push_back(thread);
-        }
-    }
-
-    // Sort them by priority, such that the highest priority ones come first.
-    std::sort(waiting_threads.begin(), waiting_threads.end(),
-              [](const SharedPtr<Thread>& lhs, const SharedPtr<Thread>& rhs) {
-                  return lhs->GetPriority() < rhs->GetPriority();
-              });
-
-    // Only process up to 'target' threads, unless 'target' is -1, in which case process
+    // Only process up to 'target' threads, unless 'target' is less equal 0, in which case process
     // them all.
     std::size_t last = waiting_threads.size();
-    if (target != -1)
+    if (target > 0)
         last = std::min(waiting_threads.size(), static_cast<std::size_t>(target));
-
-    // If there are no threads waiting on this condition variable, just exit
-    if (last == 0)
-        return RESULT_SUCCESS;
 
     for (std::size_t index = 0; index < last; ++index) {
         auto& thread = waiting_threads[index];
@@ -1681,6 +1666,7 @@ static ResultCode SignalProcessWideKey(Core::System& system, VAddr condition_var
         ASSERT(thread->GetCondVarWaitAddress() == condition_variable_addr);
 
         // liberate Cond Var Thread.
+        current_process->RemoveConditionVariableThread(thread);
         thread->SetCondVarWaitAddress(0);
 
         const std::size_t current_core = system.CurrentCoreIndex();

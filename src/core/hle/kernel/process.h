@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <list>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "common/common_types.h"
 #include "core/hle/kernel/address_arbiter.h"
@@ -232,6 +233,15 @@ public:
         return thread_list;
     }
 
+    /// Insert a thread into the condition variable wait container
+    void InsertConditionVariableThread(SharedPtr<Thread> thread);
+
+    /// Remove a thread from the condition variable wait container
+    void RemoveConditionVariableThread(SharedPtr<Thread> thread);
+
+    /// Obtain all condition variable threads waiting for some address
+    std::vector<SharedPtr<Thread>> GetConditionVariableThreads(VAddr cond_var_addr);
+
     /// Registers a thread as being created under this process,
     /// adding it to this process' thread list.
     void RegisterThread(const Thread* thread);
@@ -374,6 +384,9 @@ private:
 
     /// List of threads that are running with this process as their owner.
     std::list<const Thread*> thread_list;
+
+    /// List of threads waiting for a condition variable
+    std::unordered_map<VAddr, std::list<SharedPtr<Thread>>> cond_var_threads;
 
     /// System context
     Core::System& system;
