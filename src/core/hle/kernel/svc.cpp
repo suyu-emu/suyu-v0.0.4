@@ -505,6 +505,11 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
         return RESULT_TIMEOUT;
     }
 
+    if (thread->IsSyncCancelled()) {
+        thread->SetSyncCancelled(false);
+        return ERR_SYNCHRONIZATION_CANCELED;
+    }
+
     for (auto& object : objects) {
         object->AddWaitingThread(thread);
     }

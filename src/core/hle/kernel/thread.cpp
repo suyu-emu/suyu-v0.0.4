@@ -120,8 +120,11 @@ void Thread::ResumeFromWait() {
 }
 
 void Thread::CancelWait() {
-    ASSERT(GetStatus() == ThreadStatus::WaitSynch);
-    ClearWaitObjects();
+    if (GetSchedulingStatus() != ThreadSchedStatus::Paused) {
+        is_sync_cancelled = true;
+        return;
+    }
+    is_sync_cancelled = false;
     SetWaitSynchronizationResult(ERR_SYNCHRONIZATION_CANCELED);
     ResumeFromWait();
 }

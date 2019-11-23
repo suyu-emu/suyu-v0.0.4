@@ -440,6 +440,14 @@ public:
         is_running = value;
     }
 
+    bool IsSyncCancelled() const {
+        return is_sync_cancelled;
+    }
+
+    void SetSyncCancelled(bool value) {
+        is_sync_cancelled = value;
+    }
+
 private:
     explicit Thread(KernelCore& kernel);
     ~Thread() override;
@@ -524,6 +532,7 @@ private:
 
     u32 scheduling_state = 0;
     bool is_running = false;
+    bool is_sync_cancelled = false;
 
     std::string name;
 };
