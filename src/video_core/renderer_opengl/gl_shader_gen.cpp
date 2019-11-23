@@ -32,6 +32,7 @@ layout (std140, binding = EMULATION_UBO_BINDING) uniform vs_config {
 
     out += R"(
 void main() {
+    gl_Position = vec4(0.0f, 0.0f, 0.0f, 1.0f);
     execute_vertex();
 )";
     if (ir_b) {
