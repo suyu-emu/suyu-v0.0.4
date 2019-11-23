@@ -17,6 +17,7 @@
 #include "core/core.h"
 #include "core/core_cpu.h"
 #include "core/core_timing.h"
+#include "core/core_timing_util.h"
 #include "core/hle/kernel/address_arbiter.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/client_session.h"
