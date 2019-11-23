@@ -74,6 +74,7 @@ Device::Device() {
     const std::vector extensions = GetExtensions();
 
     const bool is_nvidia = vendor == "NVIDIA Corporation";
+    const bool is_intel = vendor == "Intel";
 
     // Reserve the first UBO for emulation bindings
     base_bindings[0] = BaseBindings{ReservedUniformBlocks, 0, 0, 0};
@@ -110,6 +111,7 @@ Device::Device() {
     has_variable_aoffi = TestVariableAoffi();
     has_component_indexing_bug = TestComponentIndexingBug();
     has_precise_bug = TestPreciseBug();
+    has_broken_compute = is_intel;
     has_fast_buffer_sub_data = is_nvidia;
 
     LOG_INFO(Render_OpenGL, "Renderer_VariableAOFFI: {}", has_variable_aoffi);
@@ -127,6 +129,7 @@ Device::Device(std::nullptr_t) {
     has_image_load_formatted = true;
     has_variable_aoffi = true;
     has_component_indexing_bug = false;
+    has_broken_compute = false;
     has_precise_bug = false;
 }
 

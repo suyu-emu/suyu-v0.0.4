@@ -743,6 +743,10 @@ bool RasterizerOpenGL::DrawMultiBatch(bool is_indexed) {
 }
 
 void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
+    if (device.HasBrokenCompute()) {
+        return;
+    }
+
     buffer_cache.Acquire();
 
     auto kernel = shader_cache.GetComputeKernel(code_addr);

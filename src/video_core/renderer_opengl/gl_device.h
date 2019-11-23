@@ -76,6 +76,10 @@ public:
         return has_precise_bug;
     }
 
+    bool HasBrokenCompute() const {
+        return has_broken_compute;
+    }
+
     bool HasFastBufferSubData() const {
         return has_fast_buffer_sub_data;
     }
@@ -97,6 +101,7 @@ private:
     bool has_variable_aoffi{};
     bool has_component_indexing_bug{};
     bool has_precise_bug{};
+    bool has_broken_compute{};
     bool has_fast_buffer_sub_data{};
 };
 
