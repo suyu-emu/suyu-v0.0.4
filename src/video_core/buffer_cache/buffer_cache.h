@@ -427,8 +427,8 @@ private:
 
     VideoCore::RasterizerInterface& rasterizer;
     Core::System& system;
-    std::unique_ptr<StreamBuffer> stream_buffer;
 
+    std::unique_ptr<StreamBuffer> stream_buffer;
     TBufferType stream_buffer_handle{};
 
     bool invalidated = false;
@@ -440,18 +440,18 @@ private:
     using IntervalSet = boost::icl::interval_set<CacheAddr>;
     using IntervalCache = boost::icl::interval_map<CacheAddr, MapInterval>;
     using IntervalType = typename IntervalCache::interval_type;
-    IntervalCache mapped_addresses{};
+    IntervalCache mapped_addresses;
 
-    static constexpr u64 write_page_bit{11};
-    std::unordered_map<u64, u32> written_pages{};
+    static constexpr u64 write_page_bit = 11;
+    std::unordered_map<u64, u32> written_pages;
 
-    static constexpr u64 block_page_bits{21};
-    static constexpr u64 block_page_size{1 << block_page_bits};
-    std::unordered_map<u64, TBuffer> blocks{};
+    static constexpr u64 block_page_bits = 21;
+    static constexpr u64 block_page_size = 1ULL << block_page_bits;
+    std::unordered_map<u64, TBuffer> blocks;
 
-    std::list<TBuffer> pending_destruction{};
-    u64 epoch{};
-    u64 modified_ticks{};
+    std::list<TBuffer> pending_destruction;
+    u64 epoch = 0;
+    u64 modified_ticks = 0;
 
     std::recursive_mutex mutex;
 };
