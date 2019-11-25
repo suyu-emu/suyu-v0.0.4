@@ -488,6 +488,7 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
     OpenGLState state;
     state.draw.read_framebuffer = src_framebuffer.handle;
     state.draw.draw_framebuffer = dst_framebuffer.handle;
+    state.framebuffer_srgb.enabled = dst_params.srgb_conversion;
     state.AllDirty();
     state.Apply();
 
