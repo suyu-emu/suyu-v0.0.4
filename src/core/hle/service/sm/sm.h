@@ -18,6 +18,7 @@
 namespace Kernel {
 class ClientPort;
 class ClientSession;
+class KernelCore;
 class ServerPort;
 class SessionRequestHandler;
 } // namespace Kernel
@@ -29,7 +30,7 @@ class Controller;
 /// Interface to "sm:" service
 class SM final : public ServiceFramework<SM> {
 public:
-    explicit SM(std::shared_ptr<ServiceManager> service_manager);
+    explicit SM(std::shared_ptr<ServiceManager> service_manager, Kernel::KernelCore& kernel);
     ~SM() override;
 
 private:
@@ -39,11 +40,12 @@ private:
     void UnregisterService(Kernel::HLERequestContext& ctx);
 
     std::shared_ptr<ServiceManager> service_manager;
+    Kernel::KernelCore& kernel;
 };
 
 class ServiceManager {
 public:
-    static void InstallInterfaces(std::shared_ptr<ServiceManager> self);
+    static void InstallInterfaces(std::shared_ptr<ServiceManager> self, Kernel::KernelCore& kernel);
 
     ServiceManager();
     ~ServiceManager();

@@ -189,7 +189,7 @@ private:
         LOG_DEBUG(Service_NFP, "called");
 
         auto nfc_event = nfp_interface.GetNFCEvent();
-        if (!nfc_event->ShouldWait(Kernel::GetCurrentThread()) && !has_attached_handle) {
+        if (!nfc_event->ShouldWait(&ctx.GetThread()) && !has_attached_handle) {
             device_state = DeviceState::TagFound;
             nfc_event->Clear();
         }

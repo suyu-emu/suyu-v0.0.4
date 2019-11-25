@@ -186,7 +186,7 @@ ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::HLERequestContext& co
         UNIMPLEMENTED_MSG("command_type={}", static_cast<int>(context.GetCommandType()));
     }
 
-    context.WriteToOutgoingCommandBuffer(*Kernel::GetCurrentThread());
+    context.WriteToOutgoingCommandBuffer(context.GetThread());
 
     return RESULT_SUCCESS;
 }
@@ -201,7 +201,7 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system) {
     auto nv_flinger = std::make_shared<NVFlinger::NVFlinger>(system);
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem(), false);
 
-    SM::ServiceManager::InstallInterfaces(sm);
+    SM::ServiceManager::InstallInterfaces(sm, system.Kernel());
 
     Account::InstallInterfaces(system);
     AM::InstallInterfaces(*sm, nv_flinger, system);

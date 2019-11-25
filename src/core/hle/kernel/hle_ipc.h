@@ -264,6 +264,18 @@ public:
 
     std::string Description() const;
 
+    Thread& GetThread() {
+        return *thread;
+    }
+
+    const Thread& GetThread() const {
+        return *thread;
+    }
+
+    bool IsThreadWaiting() const {
+        return is_thread_waiting;
+    }
+
 private:
     void ParseCommandBuffer(const HandleTable& handle_table, u32_le* src_cmdbuf, bool incoming);
 
@@ -290,6 +302,7 @@ private:
     u32_le command{};
 
     std::vector<std::shared_ptr<SessionRequestHandler>> domain_request_handlers;
+    bool is_thread_waiting{};
 };
 
 } // namespace Kernel

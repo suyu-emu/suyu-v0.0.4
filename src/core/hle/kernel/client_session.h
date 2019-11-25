@@ -1,4 +1,4 @@
-// Copyright 2016 Citra Emulator Project
+// Copyright 2019 yuzu emulator team
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -6,7 +6,9 @@
 
 #include <memory>
 #include <string>
-#include "core/hle/kernel/object.h"
+
+#include "core/hle/kernel/wait_object.h"
+#include "core/hle/result.h"
 
 union ResultCode;
 
@@ -18,15 +20,14 @@ namespace Kernel {
 
 class KernelCore;
 class Session;
-class ServerSession;
 class Thread;
 
-class ClientSession final : public Object {
+class ClientSession final : public WaitObject {
 public:
     explicit ClientSession(KernelCore& kernel);
     ~ClientSession() override;
 
-    friend class ServerSession;
+    friend class Session;
 
     std::string GetTypeName() const override {
         return "ClientSession";
@@ -41,9 +42,17 @@ public:
         return HANDLE_TYPE;
     }
 
-    ResultCode SendSyncRequest(Thread* thread, Memory::Memory& memory);
+    ResultCode SendSyncRequest(std::shared_ptr<Thread> thread, Memory::Memory& memory);
+
+    bool ShouldWait(const Thread* thread) const override;
+
+    void Acquire(Thread* thread) override;
 
 private:
+    static ResultVal<std::shared_ptr<ClientSession>> Create(KernelCore& kernel,
+                                                            std::shared_ptr<Session> parent,
+                                                            std::string name = "Unknown");
+
     /// The parent session, which links to the server endpoint.
     std::shared_ptr<Session> parent;
 

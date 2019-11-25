@@ -74,6 +74,8 @@ std::shared_ptr<WritableEvent> HLERequestContext::SleepClientThread(
         thread->WakeAfterDelay(timeout);
     }
 
+    is_thread_waiting = true;
+
     return writable_event;
 }
 
