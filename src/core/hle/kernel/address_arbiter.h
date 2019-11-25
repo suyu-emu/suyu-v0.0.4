@@ -72,7 +72,7 @@ private:
     ResultCode WaitForAddressImpl(VAddr address, s64 timeout);
 
     // Gets the threads waiting on an address.
-    std::vector<SharedPtr<Thread>> GetThreadsWaitingOnAddress(VAddr address) const;
+    std::vector<std::shared_ptr<Thread>> GetThreadsWaitingOnAddress(VAddr address) const;
 
     Core::System& system;
 };

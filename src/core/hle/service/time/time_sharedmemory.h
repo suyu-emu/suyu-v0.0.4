@@ -15,7 +15,7 @@ public:
     ~SharedMemory();
 
     // Return the shared memory handle
-    Kernel::SharedPtr<Kernel::SharedMemory> GetSharedMemoryHolder() const;
+    std::shared_ptr<Kernel::SharedMemory> GetSharedMemoryHolder() const;
 
     // Set memory barriers in shared memory and update them
     void SetStandardSteadyClockTimepoint(const SteadyClockTimePoint& timepoint);
@@ -66,7 +66,7 @@ public:
     static_assert(sizeof(Format) == 0xd8, "Format is an invalid size");
 
 private:
-    Kernel::SharedPtr<Kernel::SharedMemory> shared_memory_holder{};
+    std::shared_ptr<Kernel::SharedMemory> shared_memory_holder{};
     Core::System& system;
     Format shared_memory_format{};
 };

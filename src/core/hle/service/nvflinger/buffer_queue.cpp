@@ -117,11 +117,11 @@ u32 BufferQueue::Query(QueryType type) {
     return 0;
 }
 
-Kernel::SharedPtr<Kernel::WritableEvent> BufferQueue::GetWritableBufferWaitEvent() const {
+std::shared_ptr<Kernel::WritableEvent> BufferQueue::GetWritableBufferWaitEvent() const {
     return buffer_wait_event.writable;
 }
 
-Kernel::SharedPtr<Kernel::ReadableEvent> BufferQueue::GetBufferWaitEvent() const {
+std::shared_ptr<Kernel::ReadableEvent> BufferQueue::GetBufferWaitEvent() const {
     return buffer_wait_event.readable;
 }
 

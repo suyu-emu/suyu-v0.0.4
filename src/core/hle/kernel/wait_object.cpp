@@ -18,13 +18,13 @@ namespace Kernel {
 WaitObject::WaitObject(KernelCore& kernel) : Object{kernel} {}
 WaitObject::~WaitObject() = default;
 
-void WaitObject::AddWaitingThread(SharedPtr<Thread> thread) {
+void WaitObject::AddWaitingThread(std::shared_ptr<Thread> thread) {
     auto itr = std::find(waiting_threads.begin(), waiting_threads.end(), thread);
     if (itr == waiting_threads.end())
         waiting_threads.push_back(std::move(thread));
 }
 
-void WaitObject::RemoveWaitingThread(Thread* thread) {
+void WaitObject::RemoveWaitingThread(std::shared_ptr<Thread> thread) {
     auto itr = std::find(waiting_threads.begin(), waiting_threads.end(), thread);
     // If a thread passed multiple handles to the same object,
     // the kernel might attempt to remove the thread from the object's
@@ -33,7 +33,7 @@ void WaitObject::RemoveWaitingThread(Thread* thread) {
         waiting_threads.erase(itr);
 }
 
-SharedPtr<Thread> WaitObject::GetHighestPriorityReadyThread() const {
+std::shared_ptr<Thread> WaitObject::GetHighestPriorityReadyThread() const {
     Thread* candidate = nullptr;
     u32 candidate_priority = THREADPRIO_LOWEST + 1;
 
@@ -64,10 +64,10 @@ SharedPtr<Thread> WaitObject::GetHighestPriorityReadyThread() const {
         }
     }
 
-    return candidate;
+    return SharedFrom(candidate);
 }
 
-void WaitObject::WakeupWaitingThread(SharedPtr<Thread> thread) {
+void WaitObject::WakeupWaitingThread(std::shared_ptr<Thread> thread) {
     ASSERT(!ShouldWait(thread.get()));
 
     if (!thread) {
@@ -83,7 +83,7 @@ void WaitObject::WakeupWaitingThread(SharedPtr<Thread> thread) {
         Acquire(thread.get());
     }
 
-    const std::size_t index = thread->GetWaitObjectIndex(this);
+    const std::size_t index = thread->GetWaitObjectIndex(SharedFrom(this));
 
     thread->ClearWaitObjects();
 
@@ -91,7 +91,8 @@ void WaitObject::WakeupWaitingThread(SharedPtr<Thread> thread) {
 
     bool resume = true;
     if (thread->HasWakeupCallback()) {
-        resume = thread->InvokeWakeupCallback(ThreadWakeupReason::Signal, thread, this, index);
+        resume = thread->InvokeWakeupCallback(ThreadWakeupReason::Signal, thread, SharedFrom(this),
+                                              index);
     }
     if (resume) {
         thread->ResumeFromWait();
@@ -105,7 +106,7 @@ void WaitObject::WakeupAllWaitingThreads() {
     }
 }
 
-const std::vector<SharedPtr<Thread>>& WaitObject::GetWaitingThreads() const {
+const std::vector<std::shared_ptr<Thread>>& WaitObject::GetWaitingThreads() const {
     return waiting_threads;
 }
 

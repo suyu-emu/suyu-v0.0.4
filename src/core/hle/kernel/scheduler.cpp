@@ -26,11 +26,11 @@ GlobalScheduler::GlobalScheduler(Core::System& system) : system{system} {}
 
 GlobalScheduler::~GlobalScheduler() = default;
 
-void GlobalScheduler::AddThread(SharedPtr<Thread> thread) {
+void GlobalScheduler::AddThread(std::shared_ptr<Thread> thread) {
     thread_list.push_back(std::move(thread));
 }
 
-void GlobalScheduler::RemoveThread(const Thread* thread) {
+void GlobalScheduler::RemoveThread(std::shared_ptr<Thread> thread) {
     thread_list.erase(std::remove(thread_list.begin(), thread_list.end(), thread),
                       thread_list.end());
 }
@@ -42,11 +42,11 @@ void GlobalScheduler::UnloadThread(std::size_t core) {
 
 void GlobalScheduler::SelectThread(std::size_t core) {
     const auto update_thread = [](Thread* thread, Scheduler& sched) {
-        if (thread != sched.selected_thread) {
+        if (thread != sched.selected_thread.get()) {
             if (thread == nullptr) {
                 ++sched.idle_selection_count;
             }
-            sched.selected_thread = thread;
+            sched.selected_thread = SharedFrom(thread);
         }
         sched.is_context_switch_pending = sched.selected_thread != sched.current_thread;
         std::atomic_thread_fence(std::memory_order_seq_cst);
@@ -446,7 +446,7 @@ void Scheduler::SwitchContext() {
 
         // Cancel any outstanding wakeup events for this thread
         new_thread->CancelWakeupTimer();
-        current_thread = new_thread;
+        current_thread = SharedFrom(new_thread);
         new_thread->SetStatus(ThreadStatus::Running);
         new_thread->SetIsRunning(true);
 

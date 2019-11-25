@@ -109,7 +109,7 @@ public:
     void VibrateController(const std::vector<u32>& controller_ids,
                            const std::vector<Vibration>& vibrations);
 
-    Kernel::SharedPtr<Kernel::ReadableEvent> GetStyleSetChangedEvent(u32 npad_id) const;
+    std::shared_ptr<Kernel::ReadableEvent> GetStyleSetChangedEvent(u32 npad_id) const;
     Vibration GetLastVibration() const;
 
     void AddNewController(NPadControllerType controller);

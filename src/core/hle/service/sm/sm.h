@@ -48,11 +48,11 @@ public:
     ServiceManager();
     ~ServiceManager();
 
-    ResultVal<Kernel::SharedPtr<Kernel::ServerPort>> RegisterService(std::string name,
-                                                                     unsigned int max_sessions);
+    ResultVal<std::shared_ptr<Kernel::ServerPort>> RegisterService(std::string name,
+                                                                   unsigned int max_sessions);
     ResultCode UnregisterService(const std::string& name);
-    ResultVal<Kernel::SharedPtr<Kernel::ClientPort>> GetServicePort(const std::string& name);
-    ResultVal<Kernel::SharedPtr<Kernel::ClientSession>> ConnectToService(const std::string& name);
+    ResultVal<std::shared_ptr<Kernel::ClientPort>> GetServicePort(const std::string& name);
+    ResultVal<std::shared_ptr<Kernel::ClientSession>> ConnectToService(const std::string& name);
 
     template <typename T>
     std::shared_ptr<T> GetService(const std::string& service_name) const {
@@ -77,7 +77,7 @@ private:
     std::unique_ptr<Controller> controller_interface;
 
     /// Map of registered services, retrieved using GetServicePort or ConnectToService.
-    std::unordered_map<std::string, Kernel::SharedPtr<Kernel::ClientPort>> registered_services;
+    std::unordered_map<std::string, std::shared_ptr<Kernel::ClientPort>> registered_services;
 };
 
 } // namespace Service::SM

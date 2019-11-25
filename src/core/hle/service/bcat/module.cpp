@@ -87,7 +87,7 @@ struct DeliveryCacheDirectoryEntry {
 
 class IDeliveryCacheProgressService final : public ServiceFramework<IDeliveryCacheProgressService> {
 public:
-    IDeliveryCacheProgressService(Kernel::SharedPtr<Kernel::ReadableEvent> event,
+    IDeliveryCacheProgressService(std::shared_ptr<Kernel::ReadableEvent> event,
                                   const DeliveryCacheProgressImpl& impl)
         : ServiceFramework{"IDeliveryCacheProgressService"}, event(std::move(event)), impl(impl) {
         // clang-format off
@@ -118,7 +118,7 @@ private:
         rb.Push(RESULT_SUCCESS);
     }
 
-    Kernel::SharedPtr<Kernel::ReadableEvent> event;
+    std::shared_ptr<Kernel::ReadableEvent> event;
     const DeliveryCacheProgressImpl& impl;
 };
 

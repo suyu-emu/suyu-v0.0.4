@@ -97,14 +97,18 @@ enum class ThreadSchedMasks : u32 {
 
 class Thread final : public WaitObject {
 public:
-    using MutexWaitingThreads = std::vector<SharedPtr<Thread>>;
+    explicit Thread(KernelCore& kernel);
+    ~Thread() override;
+
+    using MutexWaitingThreads = std::vector<std::shared_ptr<Thread>>;
 
     using ThreadContext = Core::ARM_Interface::ThreadContext;
 
-    using ThreadWaitObjects = std::vector<SharedPtr<WaitObject>>;
+    using ThreadWaitObjects = std::vector<std::shared_ptr<WaitObject>>;
 
-    using WakeupCallback = std::function<bool(ThreadWakeupReason reason, SharedPtr<Thread> thread,
-                                              SharedPtr<WaitObject> object, std::size_t index)>;
+    using WakeupCallback =
+        std::function<bool(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
+                           std::shared_ptr<WaitObject> object, std::size_t index)>;
 
     /**
      * Creates and returns a new thread. The new thread is immediately scheduled
@@ -118,10 +122,10 @@ public:
      * @param owner_process The parent process for the thread
      * @return A shared pointer to the newly created thread
      */
-    static ResultVal<SharedPtr<Thread>> Create(KernelCore& kernel, std::string name,
-                                               VAddr entry_point, u32 priority, u64 arg,
-                                               s32 processor_id, VAddr stack_top,
-                                               Process& owner_process);
+    static ResultVal<std::shared_ptr<Thread>> Create(KernelCore& kernel, std::string name,
+                                                     VAddr entry_point, u32 priority, u64 arg,
+                                                     s32 processor_id, VAddr stack_top,
+                                                     Process& owner_process);
 
     std::string GetName() const override {
         return name;
@@ -166,10 +170,10 @@ public:
     void SetPriority(u32 priority);
 
     /// Adds a thread to the list of threads that are waiting for a lock held by this thread.
-    void AddMutexWaiter(SharedPtr<Thread> thread);
+    void AddMutexWaiter(std::shared_ptr<Thread> thread);
 
     /// Removes a thread from the list of threads that are waiting for a lock held by this thread.
-    void RemoveMutexWaiter(SharedPtr<Thread> thread);
+    void RemoveMutexWaiter(std::shared_ptr<Thread> thread);
 
     /// Recalculates the current priority taking into account priority inheritance.
     void UpdatePriority();
@@ -229,7 +233,7 @@ public:
      *
      * @param object Object to query the index of.
      */
-    s32 GetWaitObjectIndex(const WaitObject* object) const;
+    s32 GetWaitObjectIndex(std::shared_ptr<WaitObject> object) const;
 
     /**
      * Stops a thread, invalidating it from further use
@@ -320,7 +324,7 @@ public:
 
     void ClearWaitObjects() {
         for (const auto& waiting_object : wait_objects) {
-            waiting_object->RemoveWaitingThread(this);
+            waiting_object->RemoveWaitingThread(SharedFrom(this));
         }
         wait_objects.clear();
     }
@@ -336,7 +340,7 @@ public:
         return lock_owner.get();
     }
 
-    void SetLockOwner(SharedPtr<Thread> owner) {
+    void SetLockOwner(std::shared_ptr<Thread> owner) {
         lock_owner = std::move(owner);
     }
 
@@ -390,8 +394,8 @@ public:
      * @pre A valid wakeup callback has been set. Violating this precondition
      *      will cause an assertion to trigger.
      */
-    bool InvokeWakeupCallback(ThreadWakeupReason reason, SharedPtr<Thread> thread,
-                              SharedPtr<WaitObject> object, std::size_t index);
+    bool InvokeWakeupCallback(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
+                              std::shared_ptr<WaitObject> object, std::size_t index);
 
     u32 GetIdealCore() const {
         return ideal_core;
@@ -449,9 +453,6 @@ public:
     }
 
 private:
-    explicit Thread(KernelCore& kernel);
-    ~Thread() override;
-
     void SetSchedulingStatus(ThreadSchedStatus new_status);
     void SetCurrentPriority(u32 new_priority);
     ResultCode SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask);
@@ -499,7 +500,7 @@ private:
     MutexWaitingThreads wait_mutex_threads;
 
     /// Thread that owns the lock that this thread is waiting for.
-    SharedPtr<Thread> lock_owner;
+    std::shared_ptr<Thread> lock_owner;
 
     /// If waiting on a ConditionVariable, this is the ConditionVariable address
     VAddr condvar_wait_address = 0;

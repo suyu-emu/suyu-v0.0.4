@@ -32,23 +32,25 @@ SessionRequestHandler::SessionRequestHandler() = default;
 
 SessionRequestHandler::~SessionRequestHandler() = default;
 
-void SessionRequestHandler::ClientConnected(SharedPtr<ServerSession> server_session) {
+void SessionRequestHandler::ClientConnected(std::shared_ptr<ServerSession> server_session) {
     server_session->SetHleHandler(shared_from_this());
     connected_sessions.push_back(std::move(server_session));
 }
 
-void SessionRequestHandler::ClientDisconnected(const SharedPtr<ServerSession>& server_session) {
+void SessionRequestHandler::ClientDisconnected(
+    const std::shared_ptr<ServerSession>& server_session) {
     server_session->SetHleHandler(nullptr);
     boost::range::remove_erase(connected_sessions, server_session);
 }
 
-SharedPtr<WritableEvent> HLERequestContext::SleepClientThread(
+std::shared_ptr<WritableEvent> HLERequestContext::SleepClientThread(
     const std::string& reason, u64 timeout, WakeupCallback&& callback,
-    SharedPtr<WritableEvent> writable_event) {
+    std::shared_ptr<WritableEvent> writable_event) {
     // Put the client thread to sleep until the wait event is signaled or the timeout expires.
-    thread->SetWakeupCallback([context = *this, callback](
-                                  ThreadWakeupReason reason, SharedPtr<Thread> thread,
-                                  SharedPtr<WaitObject> object, std::size_t index) mutable -> bool {
+    thread->SetWakeupCallback([context = *this, callback](ThreadWakeupReason reason,
+                                                          std::shared_ptr<Thread> thread,
+                                                          std::shared_ptr<WaitObject> object,
+                                                          std::size_t index) mutable -> bool {
         ASSERT(thread->GetStatus() == ThreadStatus::WaitHLEEvent);
         callback(thread, context, reason);
         context.WriteToOutgoingCommandBuffer(*thread);
@@ -75,8 +77,8 @@ SharedPtr<WritableEvent> HLERequestContext::SleepClientThread(
     return writable_event;
 }
 
-HLERequestContext::HLERequestContext(SharedPtr<Kernel::ServerSession> server_session,
-                                     SharedPtr<Thread> thread)
+HLERequestContext::HLERequestContext(std::shared_ptr<Kernel::ServerSession> server_session,
+                                     std::shared_ptr<Thread> thread)
     : server_session(std::move(server_session)), thread(std::move(thread)) {
     cmd_buf[0] = 0;
 }

@@ -359,7 +359,7 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
 
     auto client_port = it->second;
 
-    SharedPtr<ClientSession> client_session;
+    std::shared_ptr<ClientSession> client_session;
     CASCADE_RESULT(client_session, client_port->Connect());
 
     // Return the client session
@@ -371,7 +371,7 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
 /// Makes a blocking IPC call to an OS service.
 static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    SharedPtr<ClientSession> session = handle_table.Get<ClientSession>(handle);
+    std::shared_ptr<ClientSession> session = handle_table.Get<ClientSession>(handle);
     if (!session) {
         LOG_ERROR(Kernel_SVC, "called with invalid handle=0x{:08X}", handle);
         return ERR_INVALID_HANDLE;
@@ -391,7 +391,7 @@ static ResultCode GetThreadId(Core::System& system, u64* thread_id, Handle threa
     LOG_TRACE(Kernel_SVC, "called thread=0x{:08X}", thread_handle);
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
+    const std::shared_ptr<Thread> thread = handle_table.Get<Thread>(thread_handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}", thread_handle);
         return ERR_INVALID_HANDLE;
@@ -406,13 +406,13 @@ static ResultCode GetProcessId(Core::System& system, u64* process_id, Handle han
     LOG_DEBUG(Kernel_SVC, "called handle=0x{:08X}", handle);
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const SharedPtr<Process> process = handle_table.Get<Process>(handle);
+    const std::shared_ptr<Process> process = handle_table.Get<Process>(handle);
     if (process) {
         *process_id = process->GetProcessID();
         return RESULT_SUCCESS;
     }
 
-    const SharedPtr<Thread> thread = handle_table.Get<Thread>(handle);
+    const std::shared_ptr<Thread> thread = handle_table.Get<Thread>(handle);
     if (thread) {
         const Process* const owner_process = thread->GetOwnerProcess();
         if (!owner_process) {
@@ -431,8 +431,8 @@ static ResultCode GetProcessId(Core::System& system, u64* process_id, Handle han
 }
 
 /// Default thread wakeup callback for WaitSynchronization
-static bool DefaultThreadWakeupCallback(ThreadWakeupReason reason, SharedPtr<Thread> thread,
-                                        SharedPtr<WaitObject> object, std::size_t index) {
+static bool DefaultThreadWakeupCallback(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
+                                        std::shared_ptr<WaitObject> object, std::size_t index) {
     ASSERT(thread->GetStatus() == ThreadStatus::WaitSynch);
 
     if (reason == ThreadWakeupReason::Timeout) {
@@ -512,7 +512,7 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
     }
 
     for (auto& object : objects) {
-        object->AddWaitingThread(thread);
+        object->AddWaitingThread(SharedFrom(thread));
     }
 
     thread->SetWaitObjects(std::move(objects));
@@ -532,7 +532,7 @@ static ResultCode CancelSynchronization(Core::System& system, Handle thread_hand
     LOG_TRACE(Kernel_SVC, "called thread=0x{:X}", thread_handle);
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
+    std::shared_ptr<Thread> thread = handle_table.Get<Thread>(thread_handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, thread_handle=0x{:08X}",
                   thread_handle);
@@ -941,7 +941,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         const auto& core_timing = system.CoreTiming();
         const auto& scheduler = system.CurrentScheduler();
         const auto* const current_thread = scheduler.GetCurrentThread();
-        const bool same_thread = current_thread == thread;
+        const bool same_thread = current_thread == thread.get();
 
         const u64 prev_ctx_ticks = scheduler.GetLastContextSwitchTicks();
         u64 out_ticks = 0;
@@ -1051,7 +1051,7 @@ static ResultCode SetThreadActivity(Core::System& system, Handle handle, u32 act
     }
 
     const auto* current_process = system.Kernel().CurrentProcess();
-    const SharedPtr<Thread> thread = current_process->GetHandleTable().Get<Thread>(handle);
+    const std::shared_ptr<Thread> thread = current_process->GetHandleTable().Get<Thread>(handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}", handle);
         return ERR_INVALID_HANDLE;
@@ -1067,7 +1067,7 @@ static ResultCode SetThreadActivity(Core::System& system, Handle handle, u32 act
         return ERR_INVALID_HANDLE;
     }
 
-    if (thread == system.CurrentScheduler().GetCurrentThread()) {
+    if (thread.get() == system.CurrentScheduler().GetCurrentThread()) {
         LOG_ERROR(Kernel_SVC, "The thread handle specified is the current running thread");
         return ERR_BUSY;
     }
@@ -1083,7 +1083,7 @@ static ResultCode GetThreadContext(Core::System& system, VAddr thread_context, H
     LOG_DEBUG(Kernel_SVC, "called, context=0x{:08X}, thread=0x{:X}", thread_context, handle);
 
     const auto* current_process = system.Kernel().CurrentProcess();
-    const SharedPtr<Thread> thread = current_process->GetHandleTable().Get<Thread>(handle);
+    const std::shared_ptr<Thread> thread = current_process->GetHandleTable().Get<Thread>(handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}", handle);
         return ERR_INVALID_HANDLE;
@@ -1099,7 +1099,7 @@ static ResultCode GetThreadContext(Core::System& system, VAddr thread_context, H
         return ERR_INVALID_HANDLE;
     }
 
-    if (thread == system.CurrentScheduler().GetCurrentThread()) {
+    if (thread.get() == system.CurrentScheduler().GetCurrentThread()) {
         LOG_ERROR(Kernel_SVC, "The thread handle specified is the current running thread");
         return ERR_BUSY;
     }
@@ -1124,7 +1124,7 @@ static ResultCode GetThreadPriority(Core::System& system, u32* priority, Handle 
     LOG_TRACE(Kernel_SVC, "called");
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const SharedPtr<Thread> thread = handle_table.Get<Thread>(handle);
+    const std::shared_ptr<Thread> thread = handle_table.Get<Thread>(handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}", handle);
         return ERR_INVALID_HANDLE;
@@ -1148,7 +1148,7 @@ static ResultCode SetThreadPriority(Core::System& system, Handle handle, u32 pri
 
     const auto* const current_process = system.Kernel().CurrentProcess();
 
-    SharedPtr<Thread> thread = current_process->GetHandleTable().Get<Thread>(handle);
+    std::shared_ptr<Thread> thread = current_process->GetHandleTable().Get<Thread>(handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}", handle);
         return ERR_INVALID_HANDLE;
@@ -1268,7 +1268,7 @@ static ResultCode QueryProcessMemory(Core::System& system, VAddr memory_info_add
                                      VAddr address) {
     LOG_TRACE(Kernel_SVC, "called process=0x{:08X} address={:X}", process_handle, address);
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    SharedPtr<Process> process = handle_table.Get<Process>(process_handle);
+    std::shared_ptr<Process> process = handle_table.Get<Process>(process_handle);
     if (!process) {
         LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
                   process_handle);
@@ -1496,7 +1496,7 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
     }
 
     auto& kernel = system.Kernel();
-    CASCADE_RESULT(SharedPtr<Thread> thread,
+    CASCADE_RESULT(std::shared_ptr<Thread> thread,
                    Thread::Create(kernel, "", entry_point, priority, arg, processor_id, stack_top,
                                   *current_process));
 
@@ -1522,7 +1522,7 @@ static ResultCode StartThread(Core::System& system, Handle thread_handle) {
     LOG_DEBUG(Kernel_SVC, "called thread=0x{:08X}", thread_handle);
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
+    const std::shared_ptr<Thread> thread = handle_table.Get<Thread>(thread_handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, thread_handle=0x{:08X}",
                   thread_handle);
@@ -1546,7 +1546,7 @@ static void ExitThread(Core::System& system) {
 
     auto* const current_thread = system.CurrentScheduler().GetCurrentThread();
     current_thread->Stop();
-    system.GlobalScheduler().RemoveThread(current_thread);
+    system.GlobalScheduler().RemoveThread(SharedFrom(current_thread));
     system.PrepareReschedule();
 }
 
@@ -1618,7 +1618,7 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr mutex_add
 
     auto* const current_process = system.Kernel().CurrentProcess();
     const auto& handle_table = current_process->GetHandleTable();
-    SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
+    std::shared_ptr<Thread> thread = handle_table.Get<Thread>(thread_handle);
     ASSERT(thread);
 
     const auto release_result = current_process->GetMutex().Release(mutex_addr);
@@ -1626,13 +1626,13 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr mutex_add
         return release_result;
     }
 
-    SharedPtr<Thread> current_thread = system.CurrentScheduler().GetCurrentThread();
+    Thread* current_thread = system.CurrentScheduler().GetCurrentThread();
     current_thread->SetCondVarWaitAddress(condition_variable_addr);
     current_thread->SetMutexWaitAddress(mutex_addr);
     current_thread->SetWaitHandle(thread_handle);
     current_thread->SetStatus(ThreadStatus::WaitCondVar);
     current_thread->InvalidateWakeupCallback();
-    current_process->InsertConditionVariableThread(current_thread);
+    current_process->InsertConditionVariableThread(SharedFrom(current_thread));
 
     current_thread->WakeAfterDelay(nano_seconds);
 
@@ -1652,7 +1652,7 @@ static ResultCode SignalProcessWideKey(Core::System& system, VAddr condition_var
 
     // Retrieve a list of all threads that are waiting for this condition variable.
     auto* const current_process = system.Kernel().CurrentProcess();
-    std::vector<SharedPtr<Thread>> waiting_threads =
+    std::vector<std::shared_ptr<Thread>> waiting_threads =
         current_process->GetConditionVariableThreads(condition_variable_addr);
 
     // Only process up to 'target' threads, unless 'target' is less equal 0, in which case process
@@ -1969,7 +1969,7 @@ static ResultCode GetThreadCoreMask(Core::System& system, Handle thread_handle, 
     LOG_TRACE(Kernel_SVC, "called, handle=0x{:08X}", thread_handle);
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
+    const std::shared_ptr<Thread> thread = handle_table.Get<Thread>(thread_handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, thread_handle=0x{:08X}",
                   thread_handle);
@@ -2028,7 +2028,7 @@ static ResultCode SetThreadCoreMask(Core::System& system, Handle thread_handle, 
     }
 
     const auto& handle_table = current_process->GetHandleTable();
-    const SharedPtr<Thread> thread = handle_table.Get<Thread>(thread_handle);
+    const std::shared_ptr<Thread> thread = handle_table.Get<Thread>(thread_handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, thread_handle=0x{:08X}",
                   thread_handle);

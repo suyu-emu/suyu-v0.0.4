@@ -33,6 +33,9 @@ enum class MemoryPermission : u32 {
 
 class SharedMemory final : public Object {
 public:
+    explicit SharedMemory(KernelCore& kernel);
+    ~SharedMemory() override;
+
     /**
      * Creates a shared memory object.
      * @param kernel The kernel instance to create a shared memory instance under.
@@ -46,11 +49,12 @@ public:
      * linear heap.
      * @param name Optional object name, used for debugging purposes.
      */
-    static SharedPtr<SharedMemory> Create(KernelCore& kernel, Process* owner_process, u64 size,
-                                          MemoryPermission permissions,
-                                          MemoryPermission other_permissions, VAddr address = 0,
-                                          MemoryRegion region = MemoryRegion::BASE,
-                                          std::string name = "Unknown");
+    static std::shared_ptr<SharedMemory> Create(KernelCore& kernel, Process* owner_process,
+                                                u64 size, MemoryPermission permissions,
+                                                MemoryPermission other_permissions,
+                                                VAddr address = 0,
+                                                MemoryRegion region = MemoryRegion::BASE,
+                                                std::string name = "Unknown");
 
     /**
      * Creates a shared memory object from a block of memory managed by an HLE applet.
@@ -63,7 +67,7 @@ public:
      * block.
      * @param name Optional object name, used for debugging purposes.
      */
-    static SharedPtr<SharedMemory> CreateForApplet(
+    static std::shared_ptr<SharedMemory> CreateForApplet(
         KernelCore& kernel, std::shared_ptr<Kernel::PhysicalMemory> heap_block, std::size_t offset,
         u64 size, MemoryPermission permissions, MemoryPermission other_permissions,
         std::string name = "Unknown Applet");
@@ -130,9 +134,6 @@ public:
     const u8* GetPointer(std::size_t offset = 0) const;
 
 private:
-    explicit SharedMemory(KernelCore& kernel);
-    ~SharedMemory() override;
-
     /// Backing memory for this shared memory block.
     std::shared_ptr<PhysicalMemory> backing_block;
     /// Offset into the backing block for this shared memory.

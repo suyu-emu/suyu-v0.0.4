@@ -21,7 +21,7 @@
 namespace Kernel {
 namespace {
 // Wake up num_to_wake (or all) threads in a vector.
-void WakeThreads(const std::vector<SharedPtr<Thread>>& waiting_threads, s32 num_to_wake) {
+void WakeThreads(const std::vector<std::shared_ptr<Thread>>& waiting_threads, s32 num_to_wake) {
     auto& system = Core::System::GetInstance();
     // Only process up to 'target' threads, unless 'target' is <= 0, in which case process
     // them all.
@@ -59,7 +59,8 @@ ResultCode AddressArbiter::SignalToAddress(VAddr address, SignalType type, s32 v
 }
 
 ResultCode AddressArbiter::SignalToAddressOnly(VAddr address, s32 num_to_wake) {
-    const std::vector<SharedPtr<Thread>> waiting_threads = GetThreadsWaitingOnAddress(address);
+    const std::vector<std::shared_ptr<Thread>> waiting_threads =
+        GetThreadsWaitingOnAddress(address);
     WakeThreads(waiting_threads, num_to_wake);
     return RESULT_SUCCESS;
 }
@@ -87,7 +88,8 @@ ResultCode AddressArbiter::ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr a
     }
 
     // Get threads waiting on the address.
-    const std::vector<SharedPtr<Thread>> waiting_threads = GetThreadsWaitingOnAddress(address);
+    const std::vector<std::shared_ptr<Thread>> waiting_threads =
+        GetThreadsWaitingOnAddress(address);
 
     // Determine the modified value depending on the waiting count.
     s32 updated_value;
@@ -172,21 +174,21 @@ ResultCode AddressArbiter::WaitForAddressIfEqual(VAddr address, s32 value, s64 t
 }
 
 ResultCode AddressArbiter::WaitForAddressImpl(VAddr address, s64 timeout) {
-    SharedPtr<Thread> current_thread = system.CurrentScheduler().GetCurrentThread();
+    Thread* current_thread = system.CurrentScheduler().GetCurrentThread();
     current_thread->SetArbiterWaitAddress(address);
     current_thread->SetStatus(ThreadStatus::WaitArb);
     current_thread->InvalidateWakeupCallback();
-
     current_thread->WakeAfterDelay(timeout);
 
     system.PrepareReschedule(current_thread->GetProcessorID());
     return RESULT_TIMEOUT;
 }
 
-std::vector<SharedPtr<Thread>> AddressArbiter::GetThreadsWaitingOnAddress(VAddr address) const {
+std::vector<std::shared_ptr<Thread>> AddressArbiter::GetThreadsWaitingOnAddress(
+    VAddr address) const {
 
     // Retrieve all threads that are waiting for this address.
-    std::vector<SharedPtr<Thread>> threads;
+    std::vector<std::shared_ptr<Thread>> threads;
     const auto& scheduler = system.GlobalScheduler();
     const auto& thread_list = scheduler.GetThreadList();
 
@@ -198,7 +200,7 @@ std::vector<SharedPtr<Thread>> AddressArbiter::GetThreadsWaitingOnAddress(VAddr 
 
     // Sort them by priority, such that the highest priority ones come first.
     std::sort(threads.begin(), threads.end(),
-              [](const SharedPtr<Thread>& lhs, const SharedPtr<Thread>& rhs) {
+              [](const std::shared_ptr<Thread>& lhs, const std::shared_ptr<Thread>& rhs) {
                   return lhs->GetPriority() < rhs->GetPriority();
               });
 

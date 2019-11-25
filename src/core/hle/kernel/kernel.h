@@ -6,6 +6,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 #include "core/hle/kernel/object.h"
 
 namespace Core {
@@ -30,7 +31,7 @@ class Thread;
 /// Represents a single instance of the kernel.
 class KernelCore {
 private:
-    using NamedPortTable = std::unordered_map<std::string, SharedPtr<ClientPort>>;
+    using NamedPortTable = std::unordered_map<std::string, std::shared_ptr<ClientPort>>;
 
 public:
     /// Constructs an instance of the kernel using the given System
@@ -56,13 +57,13 @@ public:
     void Shutdown();
 
     /// Retrieves a shared pointer to the system resource limit instance.
-    SharedPtr<ResourceLimit> GetSystemResourceLimit() const;
+    std::shared_ptr<ResourceLimit> GetSystemResourceLimit() const;
 
     /// Retrieves a shared pointer to a Thread instance within the thread wakeup handle table.
-    SharedPtr<Thread> RetrieveThreadFromWakeupCallbackHandleTable(Handle handle) const;
+    std::shared_ptr<Thread> RetrieveThreadFromWakeupCallbackHandleTable(Handle handle) const;
 
     /// Adds the given shared pointer to an internal list of active processes.
-    void AppendNewProcess(SharedPtr<Process> process);
+    void AppendNewProcess(std::shared_ptr<Process> process);
 
     /// Makes the given process the new current process.
     void MakeCurrentProcess(Process* process);
@@ -74,7 +75,7 @@ public:
     const Process* CurrentProcess() const;
 
     /// Retrieves the list of processes.
-    const std::vector<SharedPtr<Process>>& GetProcessList() const;
+    const std::vector<std::shared_ptr<Process>>& GetProcessList() const;
 
     /// Gets the sole instance of the global scheduler
     Kernel::GlobalScheduler& GlobalScheduler();
@@ -83,7 +84,7 @@ public:
     const Kernel::GlobalScheduler& GlobalScheduler() const;
 
     /// Adds a port to the named port table
-    void AddNamedPort(std::string name, SharedPtr<ClientPort> port);
+    void AddNamedPort(std::string name, std::shared_ptr<ClientPort> port);
 
     /// Finds a port within the named port table with the given name.
     NamedPortTable::iterator FindNamedPort(const std::string& name);

@@ -98,7 +98,7 @@ std::optional<u32> NVFlinger::FindBufferQueueId(u64 display_id, u64 layer_id) co
     return layer->GetBufferQueue().GetId();
 }
 
-Kernel::SharedPtr<Kernel::ReadableEvent> NVFlinger::FindVsyncEvent(u64 display_id) const {
+std::shared_ptr<Kernel::ReadableEvent> NVFlinger::FindVsyncEvent(u64 display_id) const {
     auto* const display = FindDisplay(display_id);
 
     if (display == nullptr) {

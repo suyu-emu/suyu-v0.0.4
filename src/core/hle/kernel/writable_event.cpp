@@ -16,8 +16,8 @@ WritableEvent::WritableEvent(KernelCore& kernel) : Object{kernel} {}
 WritableEvent::~WritableEvent() = default;
 
 EventPair WritableEvent::CreateEventPair(KernelCore& kernel, std::string name) {
-    SharedPtr<WritableEvent> writable_event(new WritableEvent(kernel));
-    SharedPtr<ReadableEvent> readable_event(new ReadableEvent(kernel));
+    std::shared_ptr<WritableEvent> writable_event(new WritableEvent(kernel));
+    std::shared_ptr<ReadableEvent> readable_event(new ReadableEvent(kernel));
 
     writable_event->name = name + ":Writable";
     writable_event->readable = readable_event;
@@ -27,7 +27,7 @@ EventPair WritableEvent::CreateEventPair(KernelCore& kernel, std::string name) {
     return {std::move(readable_event), std::move(writable_event)};
 }
 
-SharedPtr<ReadableEvent> WritableEvent::GetReadableEvent() const {
+std::shared_ptr<ReadableEvent> WritableEvent::GetReadableEvent() const {
     return readable;
 }
 

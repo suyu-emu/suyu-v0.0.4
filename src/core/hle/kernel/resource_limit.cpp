@@ -16,8 +16,8 @@ constexpr std::size_t ResourceTypeToIndex(ResourceType type) {
 ResourceLimit::ResourceLimit(KernelCore& kernel) : Object{kernel} {}
 ResourceLimit::~ResourceLimit() = default;
 
-SharedPtr<ResourceLimit> ResourceLimit::Create(KernelCore& kernel) {
-    return new ResourceLimit(kernel);
+std::shared_ptr<ResourceLimit> ResourceLimit::Create(KernelCore& kernel) {
+    return std::make_shared<ResourceLimit>(kernel);
 }
 
 s64 ResourceLimit::GetCurrentResourceValue(ResourceType resource) const {

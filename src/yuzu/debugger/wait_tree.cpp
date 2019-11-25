@@ -57,7 +57,7 @@ std::size_t WaitTreeItem::Row() const {
 std::vector<std::unique_ptr<WaitTreeThread>> WaitTreeItem::MakeThreadItemList() {
     std::vector<std::unique_ptr<WaitTreeThread>> item_list;
     std::size_t row = 0;
-    auto add_threads = [&](const std::vector<Kernel::SharedPtr<Kernel::Thread>>& threads) {
+    auto add_threads = [&](const std::vector<std::shared_ptr<Kernel::Thread>>& threads) {
         for (std::size_t i = 0; i < threads.size(); ++i) {
             item_list.push_back(std::make_unique<WaitTreeThread>(*threads[i]));
             item_list.back()->row = row;
@@ -172,8 +172,8 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeWaitObject::GetChildren() con
     return list;
 }
 
-WaitTreeObjectList::WaitTreeObjectList(
-    const std::vector<Kernel::SharedPtr<Kernel::WaitObject>>& list, bool w_all)
+WaitTreeObjectList::WaitTreeObjectList(const std::vector<std::shared_ptr<Kernel::WaitObject>>& list,
+                                       bool w_all)
     : object_list(list), wait_all(w_all) {}
 
 WaitTreeObjectList::~WaitTreeObjectList() = default;
@@ -325,7 +325,7 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
 WaitTreeEvent::WaitTreeEvent(const Kernel::ReadableEvent& object) : WaitTreeWaitObject(object) {}
 WaitTreeEvent::~WaitTreeEvent() = default;
 
-WaitTreeThreadList::WaitTreeThreadList(const std::vector<Kernel::SharedPtr<Kernel::Thread>>& list)
+WaitTreeThreadList::WaitTreeThreadList(const std::vector<std::shared_ptr<Kernel::Thread>>& list)
     : thread_list(list) {}
 WaitTreeThreadList::~WaitTreeThreadList() = default;
 

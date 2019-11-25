@@ -61,7 +61,7 @@ void NVDRV::IoctlBase(Kernel::HLERequestContext& ctx, IoctlVersion version) {
     if (ctrl.must_delay) {
         ctrl.fresh_call = false;
         ctx.SleepClientThread("NVServices::DelayedResponse", ctrl.timeout,
-                              [=](Kernel::SharedPtr<Kernel::Thread> thread,
+                              [=](std::shared_ptr<Kernel::Thread> thread,
                                   Kernel::HLERequestContext& ctx,
                                   Kernel::ThreadWakeupReason reason) {
                                   IoctlCtrl ctrl2{ctrl};

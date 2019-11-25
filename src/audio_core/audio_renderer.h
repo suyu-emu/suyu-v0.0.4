@@ -218,8 +218,7 @@ static_assert(sizeof(UpdateDataHeader) == 0x40, "UpdateDataHeader has wrong size
 class AudioRenderer {
 public:
     AudioRenderer(Core::Timing::CoreTiming& core_timing, AudioRendererParameter params,
-                  Kernel::SharedPtr<Kernel::WritableEvent> buffer_event,
-                  std::size_t instance_number);
+                  std::shared_ptr<Kernel::WritableEvent> buffer_event, std::size_t instance_number);
     ~AudioRenderer();
 
     std::vector<u8> UpdateAudioRenderer(const std::vector<u8>& input_params);
@@ -235,7 +234,7 @@ private:
     class VoiceState;
 
     AudioRendererParameter worker_params;
-    Kernel::SharedPtr<Kernel::WritableEvent> buffer_event;
+    std::shared_ptr<Kernel::WritableEvent> buffer_event;
     std::vector<VoiceState> voices;
     std::vector<EffectState> effects;
     std::unique_ptr<AudioOut> audio_out;

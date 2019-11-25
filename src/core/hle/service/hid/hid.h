@@ -67,7 +67,7 @@ private:
     void GetSharedMemoryHandle(Kernel::HLERequestContext& ctx);
     void UpdateControllers(u64 userdata, s64 cycles_late);
 
-    Kernel::SharedPtr<Kernel::SharedMemory> shared_mem;
+    std::shared_ptr<Kernel::SharedMemory> shared_mem;
 
     Core::Timing::EventType* pad_update_event;
     Core::System& system;

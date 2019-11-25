@@ -40,7 +40,7 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_
     // Lock the global kernel mutex when we enter the kernel HLE.
     std::lock_guard lock{HLE::g_hle_lock};
 
-    SharedPtr<Thread> thread =
+    std::shared_ptr<Thread> thread =
         system.Kernel().RetrieveThreadFromWakeupCallbackHandleTable(proper_handle);
     if (thread == nullptr) {
         LOG_CRITICAL(Kernel, "Callback fired for invalid thread {:08X}", proper_handle);
@@ -53,7 +53,7 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_
         thread->GetStatus() == ThreadStatus::WaitHLEEvent) {
         // Remove the thread from each of its waiting objects' waitlists
         for (const auto& object : thread->GetWaitObjects()) {
-            object->RemoveWaitingThread(thread.get());
+            object->RemoveWaitingThread(thread);
         }
         thread->ClearWaitObjects();
 
@@ -160,11 +160,11 @@ struct KernelCore::Impl {
     std::atomic<u64> next_thread_id{1};
 
     // Lists all processes that exist in the current session.
-    std::vector<SharedPtr<Process>> process_list;
+    std::vector<std::shared_ptr<Process>> process_list;
     Process* current_process = nullptr;
     Kernel::GlobalScheduler global_scheduler;
 
-    SharedPtr<ResourceLimit> system_resource_limit;
+    std::shared_ptr<ResourceLimit> system_resource_limit;
 
     Core::Timing::EventType* thread_wakeup_event_type = nullptr;
     Core::Timing::EventType* preemption_event = nullptr;
@@ -193,15 +193,16 @@ void KernelCore::Shutdown() {
     impl->Shutdown();
 }
 
-SharedPtr<ResourceLimit> KernelCore::GetSystemResourceLimit() const {
+std::shared_ptr<ResourceLimit> KernelCore::GetSystemResourceLimit() const {
     return impl->system_resource_limit;
 }
 
-SharedPtr<Thread> KernelCore::RetrieveThreadFromWakeupCallbackHandleTable(Handle handle) const {
+std::shared_ptr<Thread> KernelCore::RetrieveThreadFromWakeupCallbackHandleTable(
+    Handle handle) const {
     return impl->thread_wakeup_callback_handle_table.Get<Thread>(handle);
 }
 
-void KernelCore::AppendNewProcess(SharedPtr<Process> process) {
+void KernelCore::AppendNewProcess(std::shared_ptr<Process> process) {
     impl->process_list.push_back(std::move(process));
 }
 
@@ -223,7 +224,7 @@ const Process* KernelCore::CurrentProcess() const {
     return impl->current_process;
 }
 
-const std::vector<SharedPtr<Process>>& KernelCore::GetProcessList() const {
+const std::vector<std::shared_ptr<Process>>& KernelCore::GetProcessList() const {
     return impl->process_list;
 }
 
@@ -235,7 +236,7 @@ const Kernel::GlobalScheduler& KernelCore::GlobalScheduler() const {
     return impl->global_scheduler;
 }
 
-void KernelCore::AddNamedPort(std::string name, SharedPtr<ClientPort> port) {
+void KernelCore::AddNamedPort(std::string name, std::shared_ptr<ClientPort> port) {
     impl->named_ports.emplace(std::move(name), std::move(port));
 }
 

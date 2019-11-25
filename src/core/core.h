@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "common/common_types.h"
 #include "core/file_sys/vfs_types.h"

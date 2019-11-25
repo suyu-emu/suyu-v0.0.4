@@ -33,13 +33,13 @@ public:
      * Add a thread to wait on this object
      * @param thread Pointer to thread to add
      */
-    void AddWaitingThread(SharedPtr<Thread> thread);
+    void AddWaitingThread(std::shared_ptr<Thread> thread);
 
     /**
      * Removes a thread from waiting on this object (e.g. if it was resumed already)
      * @param thread Pointer to thread to remove
      */
-    void RemoveWaitingThread(Thread* thread);
+    void RemoveWaitingThread(std::shared_ptr<Thread> thread);
 
     /**
      * Wake up all threads waiting on this object that can be awoken, in priority order,
@@ -51,24 +51,24 @@ public:
      * Wakes up a single thread waiting on this object.
      * @param thread Thread that is waiting on this object to wakeup.
      */
-    void WakeupWaitingThread(SharedPtr<Thread> thread);
+    void WakeupWaitingThread(std::shared_ptr<Thread> thread);
 
     /// Obtains the highest priority thread that is ready to run from this object's waiting list.
-    SharedPtr<Thread> GetHighestPriorityReadyThread() const;
+    std::shared_ptr<Thread> GetHighestPriorityReadyThread() const;
 
     /// Get a const reference to the waiting threads list for debug use
-    const std::vector<SharedPtr<Thread>>& GetWaitingThreads() const;
+    const std::vector<std::shared_ptr<Thread>>& GetWaitingThreads() const;
 
 private:
     /// Threads waiting for this object to become available
-    std::vector<SharedPtr<Thread>> waiting_threads;
+    std::vector<std::shared_ptr<Thread>> waiting_threads;
 };
 
 // Specialization of DynamicObjectCast for WaitObjects
 template <>
-inline SharedPtr<WaitObject> DynamicObjectCast<WaitObject>(SharedPtr<Object> object) {
+inline std::shared_ptr<WaitObject> DynamicObjectCast<WaitObject>(std::shared_ptr<Object> object) {
     if (object != nullptr && object->IsWaitable()) {
-        return boost::static_pointer_cast<WaitObject>(object);
+        return std::static_pointer_cast<WaitObject>(object);
     }
     return nullptr;
 }

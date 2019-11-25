@@ -15,11 +15,11 @@ namespace Kernel {
 ClientPort::ClientPort(KernelCore& kernel) : Object{kernel} {}
 ClientPort::~ClientPort() = default;
 
-SharedPtr<ServerPort> ClientPort::GetServerPort() const {
+std::shared_ptr<ServerPort> ClientPort::GetServerPort() const {
     return server_port;
 }
 
-ResultVal<SharedPtr<ClientSession>> ClientPort::Connect() {
+ResultVal<std::shared_ptr<ClientSession>> ClientPort::Connect() {
     // Note: Threads do not wait for the server endpoint to call
     // AcceptSession before returning from this call.
 
@@ -29,7 +29,8 @@ ResultVal<SharedPtr<ClientSession>> ClientPort::Connect() {
     active_sessions++;
 
     // Create a new session pair, let the created sessions inherit the parent port's HLE handler.
-    auto [server, client] = ServerSession::CreateSessionPair(kernel, server_port->GetName(), this);
+    auto [server, client] =
+        ServerSession::CreateSessionPair(kernel, server_port->GetName(), SharedFrom(this));
 
     if (server_port->HasHLEHandler()) {
         server_port->GetHLEHandler()->ClientConnected(server);

@@ -27,10 +27,13 @@ enum class MemoryPermission : u32;
 ///
 class TransferMemory final : public Object {
 public:
+    explicit TransferMemory(KernelCore& kernel);
+    ~TransferMemory() override;
+
     static constexpr HandleType HANDLE_TYPE = HandleType::TransferMemory;
 
-    static SharedPtr<TransferMemory> Create(KernelCore& kernel, VAddr base_address, u64 size,
-                                            MemoryPermission permissions);
+    static std::shared_ptr<TransferMemory> Create(KernelCore& kernel, VAddr base_address, u64 size,
+                                                  MemoryPermission permissions);
 
     TransferMemory(const TransferMemory&) = delete;
     TransferMemory& operator=(const TransferMemory&) = delete;
@@ -79,9 +82,6 @@ public:
     ResultCode UnmapMemory(VAddr address, u64 size);
 
 private:
-    explicit TransferMemory(KernelCore& kernel);
-    ~TransferMemory() override;
-
     /// Memory block backing this instance.
     std::shared_ptr<PhysicalMemory> backing_block;
 

@@ -16,9 +16,9 @@ constexpr ResultCode ERROR_PROCESS_NOT_FOUND{ErrorModule::PM, 1};
 
 constexpr u64 NO_PROCESS_FOUND_PID{0};
 
-std::optional<Kernel::SharedPtr<Kernel::Process>> SearchProcessList(
-    const std::vector<Kernel::SharedPtr<Kernel::Process>>& process_list,
-    std::function<bool(const Kernel::SharedPtr<Kernel::Process>&)> predicate) {
+std::optional<std::shared_ptr<Kernel::Process>> SearchProcessList(
+    const std::vector<std::shared_ptr<Kernel::Process>>& process_list,
+    std::function<bool(const std::shared_ptr<Kernel::Process>&)> predicate) {
     const auto iter = std::find_if(process_list.begin(), process_list.end(), predicate);
 
     if (iter == process_list.end()) {
@@ -29,7 +29,7 @@ std::optional<Kernel::SharedPtr<Kernel::Process>> SearchProcessList(
 }
 
 void GetApplicationPidGeneric(Kernel::HLERequestContext& ctx,
-                              const std::vector<Kernel::SharedPtr<Kernel::Process>>& process_list) {
+                              const std::vector<std::shared_ptr<Kernel::Process>>& process_list) {
     const auto process = SearchProcessList(process_list, [](const auto& process) {
         return process->GetProcessID() == Kernel::Process::ProcessIDMin;
     });
@@ -124,7 +124,7 @@ private:
 
 class Info final : public ServiceFramework<Info> {
 public:
-    explicit Info(const std::vector<Kernel::SharedPtr<Kernel::Process>>& process_list)
+    explicit Info(const std::vector<std::shared_ptr<Kernel::Process>>& process_list)
         : ServiceFramework{"pm:info"}, process_list(process_list) {
         static const FunctionInfo functions[] = {
             {0, &Info::GetTitleId, "GetTitleId"},
@@ -154,7 +154,7 @@ private:
         rb.Push((*process)->GetTitleID());
     }
 
-    const std::vector<Kernel::SharedPtr<Kernel::Process>>& process_list;
+    const std::vector<std::shared_ptr<Kernel::Process>>& process_list;
 };
 
 class Shell final : public ServiceFramework<Shell> {

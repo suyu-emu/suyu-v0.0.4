@@ -50,7 +50,7 @@ void Thread::Stop() {
 
     // Clean up any dangling references in objects that this thread was waiting for
     for (auto& wait_object : wait_objects) {
-        wait_object->RemoveWaitingThread(this);
+        wait_object->RemoveWaitingThread(SharedFrom(this));
     }
     wait_objects.clear();
 
@@ -147,9 +147,10 @@ static void ResetThreadContext(Core::ARM_Interface::ThreadContext& context, VAdd
     context.fpcr = 0x03C00000;
 }
 
-ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name, VAddr entry_point,
-                                            u32 priority, u64 arg, s32 processor_id,
-                                            VAddr stack_top, Process& owner_process) {
+ResultVal<std::shared_ptr<Thread>> Thread::Create(KernelCore& kernel, std::string name,
+                                                  VAddr entry_point, u32 priority, u64 arg,
+                                                  s32 processor_id, VAddr stack_top,
+                                                  Process& owner_process) {
     // Check if priority is in ranged. Lowest priority -> highest priority id.
     if (priority > THREADPRIO_LOWEST) {
         LOG_ERROR(Kernel_SVC, "Invalid thread priority: {}", priority);
@@ -168,7 +169,7 @@ ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name
     }
 
     auto& system = Core::System::GetInstance();
-    SharedPtr<Thread> thread(new Thread(kernel));
+    std::shared_ptr<Thread> thread = std::make_shared<Thread>(kernel);
 
     thread->thread_id = kernel.CreateNewThreadID();
     thread->status = ThreadStatus::Dormant;
@@ -197,7 +198,7 @@ ResultVal<SharedPtr<Thread>> Thread::Create(KernelCore& kernel, std::string name
     // to initialize the context
     ResetThreadContext(thread->context, stack_top, entry_point, arg);
 
-    return MakeResult<SharedPtr<Thread>>(std::move(thread));
+    return MakeResult<std::shared_ptr<Thread>>(std::move(thread));
 }
 
 void Thread::SetPriority(u32 priority) {
@@ -215,7 +216,7 @@ void Thread::SetWaitSynchronizationOutput(s32 output) {
     context.cpu_registers[1] = output;
 }
 
-s32 Thread::GetWaitObjectIndex(const WaitObject* object) const {
+s32 Thread::GetWaitObjectIndex(std::shared_ptr<WaitObject> object) const {
     ASSERT_MSG(!wait_objects.empty(), "Thread is not waiting for anything");
     const auto match = std::find(wait_objects.rbegin(), wait_objects.rend(), object);
     return static_cast<s32>(std::distance(match, wait_objects.rend()) - 1);
@@ -255,8 +256,8 @@ void Thread::SetStatus(ThreadStatus new_status) {
     status = new_status;
 }
 
-void Thread::AddMutexWaiter(SharedPtr<Thread> thread) {
-    if (thread->lock_owner == this) {
+void Thread::AddMutexWaiter(std::shared_ptr<Thread> thread) {
+    if (thread->lock_owner.get() == this) {
         // If the thread is already waiting for this thread to release the mutex, ensure that the
         // waiters list is consistent and return without doing anything.
         const auto iter = std::find(wait_mutex_threads.begin(), wait_mutex_threads.end(), thread);
@@ -276,13 +277,13 @@ void Thread::AddMutexWaiter(SharedPtr<Thread> thread) {
         wait_mutex_threads.begin(), wait_mutex_threads.end(),
         [&thread](const auto& entry) { return entry->GetPriority() > thread->GetPriority(); });
     wait_mutex_threads.insert(insertion_point, thread);
-    thread->lock_owner = this;
+    thread->lock_owner = SharedFrom(this);
 
     UpdatePriority();
 }
 
-void Thread::RemoveMutexWaiter(SharedPtr<Thread> thread) {
-    ASSERT(thread->lock_owner == this);
+void Thread::RemoveMutexWaiter(std::shared_ptr<Thread> thread) {
+    ASSERT(thread->lock_owner.get() == this);
 
     // Ensure that the thread is in the list of mutex waiters
     const auto iter = std::find(wait_mutex_threads.begin(), wait_mutex_threads.end(), thread);
@@ -310,13 +311,13 @@ void Thread::UpdatePriority() {
     }
 
     if (GetStatus() == ThreadStatus::WaitCondVar) {
-        owner_process->RemoveConditionVariableThread(this);
+        owner_process->RemoveConditionVariableThread(SharedFrom(this));
     }
 
     SetCurrentPriority(new_priority);
 
     if (GetStatus() == ThreadStatus::WaitCondVar) {
-        owner_process->InsertConditionVariableThread(this);
+        owner_process->InsertConditionVariableThread(SharedFrom(this));
     }
 
     if (!lock_owner) {
@@ -325,8 +326,8 @@ void Thread::UpdatePriority() {
 
     // Ensure that the thread is within the correct location in the waiting list.
     auto old_owner = lock_owner;
-    lock_owner->RemoveMutexWaiter(this);
-    old_owner->AddMutexWaiter(this);
+    lock_owner->RemoveMutexWaiter(SharedFrom(this));
+    old_owner->AddMutexWaiter(SharedFrom(this));
 
     // Recursively update the priority of the thread that depends on the priority of this one.
     lock_owner->UpdatePriority();
@@ -339,11 +340,11 @@ void Thread::ChangeCore(u32 core, u64 mask) {
 bool Thread::AllWaitObjectsReady() const {
     return std::none_of(
         wait_objects.begin(), wait_objects.end(),
-        [this](const SharedPtr<WaitObject>& object) { return object->ShouldWait(this); });
+        [this](const std::shared_ptr<WaitObject>& object) { return object->ShouldWait(this); });
 }
 
-bool Thread::InvokeWakeupCallback(ThreadWakeupReason reason, SharedPtr<Thread> thread,
-                                  SharedPtr<WaitObject> object, std::size_t index) {
+bool Thread::InvokeWakeupCallback(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
+                                  std::shared_ptr<WaitObject> object, std::size_t index) {
     ASSERT(wakeup_callback);
     return wakeup_callback(reason, std::move(thread), std::move(object), index);
 }

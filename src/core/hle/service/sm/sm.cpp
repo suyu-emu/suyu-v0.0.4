@@ -45,7 +45,7 @@ void ServiceManager::InstallInterfaces(std::shared_ptr<ServiceManager> self) {
     self->controller_interface = std::make_unique<Controller>();
 }
 
-ResultVal<Kernel::SharedPtr<Kernel::ServerPort>> ServiceManager::RegisterService(
+ResultVal<std::shared_ptr<Kernel::ServerPort>> ServiceManager::RegisterService(
     std::string name, unsigned int max_sessions) {
 
     CASCADE_CODE(ValidateServiceName(name));
@@ -72,7 +72,7 @@ ResultCode ServiceManager::UnregisterService(const std::string& name) {
     return RESULT_SUCCESS;
 }
 
-ResultVal<Kernel::SharedPtr<Kernel::ClientPort>> ServiceManager::GetServicePort(
+ResultVal<std::shared_ptr<Kernel::ClientPort>> ServiceManager::GetServicePort(
     const std::string& name) {
 
     CASCADE_CODE(ValidateServiceName(name));
@@ -84,7 +84,7 @@ ResultVal<Kernel::SharedPtr<Kernel::ClientPort>> ServiceManager::GetServicePort(
     return MakeResult(it->second);
 }
 
-ResultVal<Kernel::SharedPtr<Kernel::ClientSession>> ServiceManager::ConnectToService(
+ResultVal<std::shared_ptr<Kernel::ClientSession>> ServiceManager::ConnectToService(
     const std::string& name) {
 
     CASCADE_RESULT(auto client_port, GetServicePort(name));

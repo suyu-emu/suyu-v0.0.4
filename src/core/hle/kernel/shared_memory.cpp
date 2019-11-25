@@ -15,11 +15,12 @@ namespace Kernel {
 SharedMemory::SharedMemory(KernelCore& kernel) : Object{kernel} {}
 SharedMemory::~SharedMemory() = default;
 
-SharedPtr<SharedMemory> SharedMemory::Create(KernelCore& kernel, Process* owner_process, u64 size,
-                                             MemoryPermission permissions,
-                                             MemoryPermission other_permissions, VAddr address,
-                                             MemoryRegion region, std::string name) {
-    SharedPtr<SharedMemory> shared_memory(new SharedMemory(kernel));
+std::shared_ptr<SharedMemory> SharedMemory::Create(KernelCore& kernel, Process* owner_process,
+                                                   u64 size, MemoryPermission permissions,
+                                                   MemoryPermission other_permissions,
+                                                   VAddr address, MemoryRegion region,
+                                                   std::string name) {
+    std::shared_ptr<SharedMemory> shared_memory = std::make_shared<SharedMemory>(kernel);
 
     shared_memory->owner_process = owner_process;
     shared_memory->name = std::move(name);
@@ -58,10 +59,10 @@ SharedPtr<SharedMemory> SharedMemory::Create(KernelCore& kernel, Process* owner_
     return shared_memory;
 }
 
-SharedPtr<SharedMemory> SharedMemory::CreateForApplet(
+std::shared_ptr<SharedMemory> SharedMemory::CreateForApplet(
     KernelCore& kernel, std::shared_ptr<Kernel::PhysicalMemory> heap_block, std::size_t offset,
     u64 size, MemoryPermission permissions, MemoryPermission other_permissions, std::string name) {
-    SharedPtr<SharedMemory> shared_memory(new SharedMemory(kernel));
+    std::shared_ptr<SharedMemory> shared_memory = std::make_shared<SharedMemory>(kernel);
 
     shared_memory->owner_process = nullptr;
     shared_memory->name = std::move(name);

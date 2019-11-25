@@ -31,7 +31,7 @@ const Layer& Display::GetLayer(std::size_t index) const {
     return layers.at(index);
 }
 
-Kernel::SharedPtr<Kernel::ReadableEvent> Display::GetVSyncEvent() const {
+std::shared_ptr<Kernel::ReadableEvent> Display::GetVSyncEvent() const {
     return vsync_event.readable;
 }
 

@@ -116,7 +116,7 @@ void ServiceFrameworkBase::InstallAsNamedPort() {
     port_installed = true;
 }
 
-Kernel::SharedPtr<Kernel::ClientPort> ServiceFrameworkBase::CreatePort() {
+std::shared_ptr<Kernel::ClientPort> ServiceFrameworkBase::CreatePort() {
     ASSERT(!port_installed);
 
     auto& kernel = Core::System::GetInstance().Kernel();

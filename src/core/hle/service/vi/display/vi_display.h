@@ -57,7 +57,7 @@ public:
     const Layer& GetLayer(std::size_t index) const;
 
     /// Gets the readable vsync event.
-    Kernel::SharedPtr<Kernel::ReadableEvent> GetVSyncEvent() const;
+    std::shared_ptr<Kernel::ReadableEvent> GetVSyncEvent() const;
 
     /// Signals the internal vsync event.
     void SignalVSyncEvent();

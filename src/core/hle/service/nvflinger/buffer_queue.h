@@ -93,9 +93,9 @@ public:
         return id;
     }
 
-    Kernel::SharedPtr<Kernel::WritableEvent> GetWritableBufferWaitEvent() const;
+    std::shared_ptr<Kernel::WritableEvent> GetWritableBufferWaitEvent() const;
 
-    Kernel::SharedPtr<Kernel::ReadableEvent> GetBufferWaitEvent() const;
+    std::shared_ptr<Kernel::ReadableEvent> GetBufferWaitEvent() const;
 
 private:
     u32 id;

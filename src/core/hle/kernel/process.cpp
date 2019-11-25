@@ -38,7 +38,7 @@ void SetupMainThread(Process& owner_process, KernelCore& kernel, u32 priority) {
     auto thread_res = Thread::Create(kernel, "main", entry_point, priority, 0,
                                      owner_process.GetIdealCore(), stack_top, owner_process);
 
-    SharedPtr<Thread> thread = std::move(thread_res).Unwrap();
+    std::shared_ptr<Thread> thread = std::move(thread_res).Unwrap();
 
     // Register 1 must be a handle to the main thread
     const Handle thread_handle = owner_process.GetHandleTable().Create(thread).Unwrap();
@@ -100,10 +100,10 @@ private:
     std::bitset<num_slot_entries> is_slot_used;
 };
 
-SharedPtr<Process> Process::Create(Core::System& system, std::string name, ProcessType type) {
+std::shared_ptr<Process> Process::Create(Core::System& system, std::string name, ProcessType type) {
     auto& kernel = system.Kernel();
 
-    SharedPtr<Process> process(new Process(system));
+    std::shared_ptr<Process> process = std::make_shared<Process>(system);
     process->name = std::move(name);
     process->resource_limit = kernel.GetSystemResourceLimit();
     process->status = ProcessStatus::Created;
@@ -121,7 +121,7 @@ SharedPtr<Process> Process::Create(Core::System& system, std::string name, Proce
     return process;
 }
 
-SharedPtr<ResourceLimit> Process::GetResourceLimit() const {
+std::shared_ptr<ResourceLimit> Process::GetResourceLimit() const {
     return resource_limit;
 }
 
@@ -142,12 +142,12 @@ u64 Process::GetTotalPhysicalMemoryUsedWithoutSystemResource() const {
     return GetTotalPhysicalMemoryUsed() - GetSystemResourceUsage();
 }
 
-void Process::InsertConditionVariableThread(SharedPtr<Thread> thread) {
+void Process::InsertConditionVariableThread(std::shared_ptr<Thread> thread) {
     VAddr cond_var_addr = thread->GetCondVarWaitAddress();
-    std::list<SharedPtr<Thread>>& thread_list = cond_var_threads[cond_var_addr];
+    std::list<std::shared_ptr<Thread>>& thread_list = cond_var_threads[cond_var_addr];
     auto it = thread_list.begin();
     while (it != thread_list.end()) {
-        const SharedPtr<Thread> current_thread = *it;
+        const std::shared_ptr<Thread> current_thread = *it;
         if (current_thread->GetPriority() > thread->GetPriority()) {
             thread_list.insert(it, thread);
             return;
@@ -157,12 +157,12 @@ void Process::InsertConditionVariableThread(SharedPtr<Thread> thread) {
     thread_list.push_back(thread);
 }
 
-void Process::RemoveConditionVariableThread(SharedPtr<Thread> thread) {
+void Process::RemoveConditionVariableThread(std::shared_ptr<Thread> thread) {
     VAddr cond_var_addr = thread->GetCondVarWaitAddress();
-    std::list<SharedPtr<Thread>>& thread_list = cond_var_threads[cond_var_addr];
+    std::list<std::shared_ptr<Thread>>& thread_list = cond_var_threads[cond_var_addr];
     auto it = thread_list.begin();
     while (it != thread_list.end()) {
-        const SharedPtr<Thread> current_thread = *it;
+        const std::shared_ptr<Thread> current_thread = *it;
         if (current_thread.get() == thread.get()) {
             thread_list.erase(it);
             return;
@@ -172,12 +172,13 @@ void Process::RemoveConditionVariableThread(SharedPtr<Thread> thread) {
     UNREACHABLE();
 }
 
-std::vector<SharedPtr<Thread>> Process::GetConditionVariableThreads(const VAddr cond_var_addr) {
-    std::vector<SharedPtr<Thread>> result{};
-    std::list<SharedPtr<Thread>>& thread_list = cond_var_threads[cond_var_addr];
+std::vector<std::shared_ptr<Thread>> Process::GetConditionVariableThreads(
+    const VAddr cond_var_addr) {
+    std::vector<std::shared_ptr<Thread>> result{};
+    std::list<std::shared_ptr<Thread>>& thread_list = cond_var_threads[cond_var_addr];
     auto it = thread_list.begin();
     while (it != thread_list.end()) {
-        SharedPtr<Thread> current_thread = *it;
+        std::shared_ptr<Thread> current_thread = *it;
         result.push_back(current_thread);
         ++it;
     }
@@ -239,12 +240,12 @@ void Process::Run(s32 main_thread_priority, u64 stack_size) {
 void Process::PrepareForTermination() {
     ChangeStatus(ProcessStatus::Exiting);
 
-    const auto stop_threads = [this](const std::vector<SharedPtr<Thread>>& thread_list) {
+    const auto stop_threads = [this](const std::vector<std::shared_ptr<Thread>>& thread_list) {
         for (auto& thread : thread_list) {
             if (thread->GetOwnerProcess() != this)
                 continue;
 
-            if (thread == system.CurrentScheduler().GetCurrentThread())
+            if (thread.get() == system.CurrentScheduler().GetCurrentThread())
                 continue;
 
             // TODO(Subv): When are the other running/ready threads terminated?

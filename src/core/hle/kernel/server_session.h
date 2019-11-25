@@ -38,6 +38,9 @@ class Thread;
  */
 class ServerSession final : public WaitObject {
 public:
+    explicit ServerSession(KernelCore& kernel);
+    ~ServerSession() override;
+
     std::string GetTypeName() const override {
         return "ServerSession";
     }
@@ -59,7 +62,7 @@ public:
         return parent.get();
     }
 
-    using SessionPair = std::pair<SharedPtr<ServerSession>, SharedPtr<ClientSession>>;
+    using SessionPair = std::pair<std::shared_ptr<ServerSession>, std::shared_ptr<ClientSession>>;
 
     /**
      * Creates a pair of ServerSession and an associated ClientSession.
@@ -69,7 +72,7 @@ public:
      * @return The created session tuple
      */
     static SessionPair CreateSessionPair(KernelCore& kernel, const std::string& name = "Unknown",
-                                         SharedPtr<ClientPort> client_port = nullptr);
+                                         std::shared_ptr<ClientPort> client_port = nullptr);
 
     /**
      * Sets the HLE handler for the session. This handler will be called to service IPC requests
@@ -85,7 +88,7 @@ public:
      * @param thread Thread that initiated the request.
      * @returns ResultCode from the operation.
      */
-    ResultCode HandleSyncRequest(SharedPtr<Thread> thread);
+    ResultCode HandleSyncRequest(std::shared_ptr<Thread> thread);
 
     bool ShouldWait(const Thread* thread) const override;
 
@@ -118,9 +121,6 @@ public:
     }
 
 private:
-    explicit ServerSession(KernelCore& kernel);
-    ~ServerSession() override;
-
     /**
      * Creates a server session. The server session can have an optional HLE handler,
      * which will be invoked to handle the IPC requests that this session receives.
@@ -128,8 +128,8 @@ private:
      * @param name Optional name of the server session.
      * @return The created server session
      */
-    static ResultVal<SharedPtr<ServerSession>> Create(KernelCore& kernel,
-                                                      std::string name = "Unknown");
+    static ResultVal<std::shared_ptr<ServerSession>> Create(KernelCore& kernel,
+                                                            std::string name = "Unknown");
 
     /// Handles a SyncRequest to a domain, forwarding the request to the proper object or closing an
     /// object handle.
@@ -147,12 +147,12 @@ private:
     /// List of threads that are pending a response after a sync request. This list is processed in
     /// a LIFO manner, thus, the last request will be dispatched first.
     /// TODO(Subv): Verify if this is indeed processed in LIFO using a hardware test.
-    std::vector<SharedPtr<Thread>> pending_requesting_threads;
+    std::vector<std::shared_ptr<Thread>> pending_requesting_threads;
 
     /// Thread whose request is currently being handled. A request is considered "handled" when a
     /// response is sent via svcReplyAndReceive.
     /// TODO(Subv): Find a better name for this.
-    SharedPtr<Thread> currently_handling;
+    std::shared_ptr<Thread> currently_handling;
 
     /// When set to True, converts the session to a domain at the end of the command
     bool convert_to_domain{};

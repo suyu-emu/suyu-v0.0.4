@@ -13,8 +13,8 @@ class ReadableEvent;
 class WritableEvent;
 
 struct EventPair {
-    SharedPtr<ReadableEvent> readable;
-    SharedPtr<WritableEvent> writable;
+    std::shared_ptr<ReadableEvent> readable;
+    std::shared_ptr<WritableEvent> writable;
 };
 
 class WritableEvent final : public Object {
@@ -40,7 +40,7 @@ public:
         return HANDLE_TYPE;
     }
 
-    SharedPtr<ReadableEvent> GetReadableEvent() const;
+    std::shared_ptr<ReadableEvent> GetReadableEvent() const;
 
     void Signal();
     void Clear();
@@ -49,7 +49,7 @@ public:
 private:
     explicit WritableEvent(KernelCore& kernel);
 
-    SharedPtr<ReadableEvent> readable;
+    std::shared_ptr<ReadableEvent> readable;
 
     std::string name; ///< Name of event (optional)
 };

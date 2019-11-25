@@ -31,8 +31,11 @@ constexpr bool IsValidResourceType(ResourceType type) {
 
 class ResourceLimit final : public Object {
 public:
+    explicit ResourceLimit(KernelCore& kernel);
+    ~ResourceLimit() override;
+
     /// Creates a resource limit object.
-    static SharedPtr<ResourceLimit> Create(KernelCore& kernel);
+    static std::shared_ptr<ResourceLimit> Create(KernelCore& kernel);
 
     std::string GetTypeName() const override {
         return "ResourceLimit";
@@ -76,9 +79,6 @@ public:
     ResultCode SetLimitValue(ResourceType resource, s64 value);
 
 private:
-    explicit ResourceLimit(KernelCore& kernel);
-    ~ResourceLimit() override;
-
     // TODO(Subv): Increment resource limit current values in their respective Kernel::T::Create
     // functions
     //

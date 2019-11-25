@@ -14,9 +14,9 @@ namespace Kernel {
 TransferMemory::TransferMemory(KernelCore& kernel) : Object{kernel} {}
 TransferMemory::~TransferMemory() = default;
 
-SharedPtr<TransferMemory> TransferMemory::Create(KernelCore& kernel, VAddr base_address, u64 size,
-                                                 MemoryPermission permissions) {
-    SharedPtr<TransferMemory> transfer_memory{new TransferMemory(kernel)};
+std::shared_ptr<TransferMemory> TransferMemory::Create(KernelCore& kernel, VAddr base_address,
+                                                       u64 size, MemoryPermission permissions) {
+    std::shared_ptr<TransferMemory> transfer_memory{std::make_shared<TransferMemory>(kernel)};
 
     transfer_memory->base_address = base_address;
     transfer_memory->memory_size = size;

@@ -28,13 +28,13 @@ public:
     ~GlobalScheduler();
 
     /// Adds a new thread to the scheduler
-    void AddThread(SharedPtr<Thread> thread);
+    void AddThread(std::shared_ptr<Thread> thread);
 
     /// Removes a thread from the scheduler
-    void RemoveThread(const Thread* thread);
+    void RemoveThread(std::shared_ptr<Thread> thread);
 
     /// Returns a list of all threads managed by the scheduler
-    const std::vector<SharedPtr<Thread>>& GetThreadList() const {
+    const std::vector<std::shared_ptr<Thread>>& GetThreadList() const {
         return thread_list;
     }
 
@@ -157,7 +157,7 @@ private:
     std::array<u32, NUM_CPU_CORES> preemption_priorities = {59, 59, 59, 62};
 
     /// Lists all thread ids that aren't deleted/etc.
-    std::vector<SharedPtr<Thread>> thread_list;
+    std::vector<std::shared_ptr<Thread>> thread_list;
     Core::System& system;
 };
 
@@ -213,8 +213,8 @@ private:
      */
     void UpdateLastContextSwitchTime(Thread* thread, Process* process);
 
-    SharedPtr<Thread> current_thread = nullptr;
-    SharedPtr<Thread> selected_thread = nullptr;
+    std::shared_ptr<Thread> current_thread = nullptr;
+    std::shared_ptr<Thread> selected_thread = nullptr;
 
     Core::System& system;
     Core::ARM_Interface& cpu_core;

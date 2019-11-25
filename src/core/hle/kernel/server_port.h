@@ -22,8 +22,11 @@ class SessionRequestHandler;
 
 class ServerPort final : public WaitObject {
 public:
+    explicit ServerPort(KernelCore& kernel);
+    ~ServerPort() override;
+
     using HLEHandler = std::shared_ptr<SessionRequestHandler>;
-    using PortPair = std::pair<SharedPtr<ServerPort>, SharedPtr<ClientPort>>;
+    using PortPair = std::pair<std::shared_ptr<ServerPort>, std::shared_ptr<ClientPort>>;
 
     /**
      * Creates a pair of ServerPort and an associated ClientPort.
@@ -52,7 +55,7 @@ public:
      * Accepts a pending incoming connection on this port. If there are no pending sessions, will
      * return ERR_NO_PENDING_SESSIONS.
      */
-    ResultVal<SharedPtr<ServerSession>> Accept();
+    ResultVal<std::shared_ptr<ServerSession>> Accept();
 
     /// Whether or not this server port has an HLE handler available.
     bool HasHLEHandler() const {
@@ -74,17 +77,14 @@ public:
 
     /// Appends a ServerSession to the collection of ServerSessions
     /// waiting to be accepted by this port.
-    void AppendPendingSession(SharedPtr<ServerSession> pending_session);
+    void AppendPendingSession(std::shared_ptr<ServerSession> pending_session);
 
     bool ShouldWait(const Thread* thread) const override;
     void Acquire(Thread* thread) override;
 
 private:
-    explicit ServerPort(KernelCore& kernel);
-    ~ServerPort() override;
-
     /// ServerSessions waiting to be accepted by the port
-    std::vector<SharedPtr<ServerSession>> pending_sessions;
+    std::vector<std::shared_ptr<ServerSession>> pending_sessions;
 
     /// This session's HLE request handler template (optional)
     /// ServerSessions created from this port inherit a reference to this handler.

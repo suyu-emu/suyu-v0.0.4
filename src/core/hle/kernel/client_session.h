@@ -19,6 +19,9 @@ class Thread;
 
 class ClientSession final : public Object {
 public:
+    explicit ClientSession(KernelCore& kernel);
+    ~ClientSession() override;
+
     friend class ServerSession;
 
     std::string GetTypeName() const override {
@@ -34,12 +37,9 @@ public:
         return HANDLE_TYPE;
     }
 
-    ResultCode SendSyncRequest(SharedPtr<Thread> thread);
+    ResultCode SendSyncRequest(Thread* thread);
 
 private:
-    explicit ClientSession(KernelCore& kernel);
-    ~ClientSession() override;
-
     /// The parent session, which links to the server endpoint.
     std::shared_ptr<Session> parent;
 

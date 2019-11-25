@@ -114,9 +114,9 @@ public:
 
     void SignalSyncpt(const u32 syncpoint_id, const u32 value);
 
-    Kernel::SharedPtr<Kernel::ReadableEvent> GetEvent(u32 event_id) const;
+    std::shared_ptr<Kernel::ReadableEvent> GetEvent(u32 event_id) const;
 
-    Kernel::SharedPtr<Kernel::WritableEvent> GetEventWriteable(u32 event_id) const;
+    std::shared_ptr<Kernel::WritableEvent> GetEventWriteable(u32 event_id) const;
 
 private:
     /// Id to use for the next open file descriptor.
