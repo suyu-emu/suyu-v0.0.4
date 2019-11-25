@@ -31,24 +31,22 @@ static void RunThread(VideoCore::RendererBase& renderer, Tegra::DmaPusher& dma_p
 
     CommandDataContainer next;
     while (state.is_running) {
-        while (!state.queue.Empty()) {
-            state.queue.Pop(next);
-            if (const auto submit_list = std::get_if<SubmitListCommand>(&next.data)) {
-                dma_pusher.Push(std::move(submit_list->entries));
-                dma_pusher.DispatchCalls();
-            } else if (const auto data = std::get_if<SwapBuffersCommand>(&next.data)) {
-                renderer.SwapBuffers(data->framebuffer ? &*data->framebuffer : nullptr);
-            } else if (const auto data = std::get_if<FlushRegionCommand>(&next.data)) {
-                renderer.Rasterizer().FlushRegion(data->addr, data->size);
-            } else if (const auto data = std::get_if<InvalidateRegionCommand>(&next.data)) {
-                renderer.Rasterizer().InvalidateRegion(data->addr, data->size);
-            } else if (std::holds_alternative<EndProcessingCommand>(next.data)) {
-                return;
-            } else {
-                UNREACHABLE();
-            }
-            state.signaled_fence.store(next.fence);
+        next = state.queue.PopWait();
+        if (const auto submit_list = std::get_if<SubmitListCommand>(&next.data)) {
+            dma_pusher.Push(std::move(submit_list->entries));
+            dma_pusher.DispatchCalls();
+        } else if (const auto data = std::get_if<SwapBuffersCommand>(&next.data)) {
+            renderer.SwapBuffers(data->framebuffer ? &*data->framebuffer : nullptr);
+        } else if (const auto data = std::get_if<FlushRegionCommand>(&next.data)) {
+            renderer.Rasterizer().FlushRegion(data->addr, data->size);
+        } else if (const auto data = std::get_if<InvalidateRegionCommand>(&next.data)) {
+            renderer.Rasterizer().InvalidateRegion(data->addr, data->size);
+        } else if (std::holds_alternative<EndProcessingCommand>(next.data)) {
+            return;
+        } else {
+            UNREACHABLE();
         }
+        state.signaled_fence.store(next.fence);
     }
 }
 
