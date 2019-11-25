@@ -8,12 +8,15 @@
 #include <thread>
 #include <unordered_set>
 #include <boost/functional/hash.hpp>
+#include "common/alignment.h"
 #include "common/assert.h"
+#include "common/logging/log.h"
 #include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/engines/shader_type.h"
 #include "video_core/memory_manager.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
@@ -82,28 +85,26 @@ std::size_t CalculateProgramSize(const GLShader::ProgramCode& program) {
 /// Gets the shader program code from memory for the specified address
 ProgramCode GetShaderCode(Tegra::MemoryManager& memory_manager, const GPUVAddr gpu_addr,
                           const u8* host_ptr) {
-    ProgramCode program_code(VideoCommon::Shader::MAX_PROGRAM_LENGTH);
+    ProgramCode code(VideoCommon::Shader::MAX_PROGRAM_LENGTH);
     ASSERT_OR_EXECUTE(host_ptr != nullptr, {
-        std::fill(program_code.begin(), program_code.end(), 0);
-        return program_code;
+        std::fill(code.begin(), code.end(), 0);
+        return code;
     });
-    memory_manager.ReadBlockUnsafe(gpu_addr, program_code.data(),
-                                   program_code.size() * sizeof(u64));
-    program_code.resize(CalculateProgramSize(program_code));
-    return program_code;
+    memory_manager.ReadBlockUnsafe(gpu_addr, code.data(), code.size() * sizeof(u64));
+    code.resize(CalculateProgramSize(code));
+    return code;
 }
 
 /// Gets the shader type from a Maxwell program type
-constexpr GLenum GetShaderType(ProgramType program_type) {
-    switch (program_type) {
-    case ProgramType::VertexA:
-    case ProgramType::VertexB:
+constexpr GLenum GetGLShaderType(ShaderType shader_type) {
+    switch (shader_type) {
+    case ShaderType::Vertex:
         return GL_VERTEX_SHADER;
-    case ProgramType::Geometry:
+    case ShaderType::Geometry:
         return GL_GEOMETRY_SHADER;
-    case ProgramType::Fragment:
+    case ShaderType::Fragment:
         return GL_FRAGMENT_SHADER;
-    case ProgramType::Compute:
+    case ShaderType::Compute:
         return GL_COMPUTE_SHADER;
     default:
         return GL_NONE;
@@ -133,30 +134,11 @@ constexpr std::tuple<const char*, const char*, u32> GetPrimitiveDescription(GLen
     }
 }
 
-ProgramType GetProgramType(Maxwell::ShaderProgram program) {
-    switch (program) {
-    case Maxwell::ShaderProgram::VertexA:
-        return ProgramType::VertexA;
-    case Maxwell::ShaderProgram::VertexB:
-        return ProgramType::VertexB;
-    case Maxwell::ShaderProgram::TesselationControl:
-        return ProgramType::TessellationControl;
-    case Maxwell::ShaderProgram::TesselationEval:
-        return ProgramType::TessellationEval;
-    case Maxwell::ShaderProgram::Geometry:
-        return ProgramType::Geometry;
-    case Maxwell::ShaderProgram::Fragment:
-        return ProgramType::Fragment;
-    }
-    UNREACHABLE();
-    return {};
-}
-
 /// Hashes one (or two) program streams
-u64 GetUniqueIdentifier(ProgramType program_type, const ProgramCode& code,
+u64 GetUniqueIdentifier(ShaderType shader_type, bool is_a, const ProgramCode& code,
                         const ProgramCode& code_b) {
     u64 unique_identifier = boost::hash_value(code);
-    if (program_type == ProgramType::VertexA) {
+    if (is_a) {
         // VertexA programs include two programs
         boost::hash_combine(unique_identifier, boost::hash_value(code_b));
     }
@@ -164,79 +146,74 @@ u64 GetUniqueIdentifier(ProgramType program_type, const ProgramCode& code,
 }
 
 /// Creates an unspecialized program from code streams
-std::string GenerateGLSL(const Device& device, ProgramType program_type, const ShaderIR& ir,
+std::string GenerateGLSL(const Device& device, ShaderType shader_type, const ShaderIR& ir,
                          const std::optional<ShaderIR>& ir_b) {
-    switch (program_type) {
-    case ProgramType::VertexA:
-    case ProgramType::VertexB:
+    switch (shader_type) {
+    case ShaderType::Vertex:
         return GLShader::GenerateVertexShader(device, ir, ir_b ? &*ir_b : nullptr);
-    case ProgramType::Geometry:
+    case ShaderType::Geometry:
         return GLShader::GenerateGeometryShader(device, ir);
-    case ProgramType::Fragment:
+    case ShaderType::Fragment:
         return GLShader::GenerateFragmentShader(device, ir);
-    case ProgramType::Compute:
+    case ShaderType::Compute:
         return GLShader::GenerateComputeShader(device, ir);
     default:
-        UNIMPLEMENTED_MSG("Unimplemented program_type={}", static_cast<u32>(program_type));
+        UNIMPLEMENTED_MSG("Unimplemented shader_type={}", static_cast<u32>(shader_type));
         return {};
     }
 }
 
-constexpr const char* GetProgramTypeName(ProgramType program_type) {
-    switch (program_type) {
-    case ProgramType::VertexA:
-    case ProgramType::VertexB:
+constexpr const char* GetShaderTypeName(ShaderType shader_type) {
+    switch (shader_type) {
+    case ShaderType::Vertex:
         return "VS";
-    case ProgramType::TessellationControl:
-        return "TCS";
-    case ProgramType::TessellationEval:
-        return "TES";
-    case ProgramType::Geometry:
+    case ShaderType::TesselationControl:
+        return "HS";
+    case ShaderType::TesselationEval:
+        return "DS";
+    case ShaderType::Geometry:
         return "GS";
-    case ProgramType::Fragment:
+    case ShaderType::Fragment:
         return "FS";
-    case ProgramType::Compute:
+    case ShaderType::Compute:
         return "CS";
     }
     return "UNK";
 }
 
-Tegra::Engines::ShaderType GetEnginesShaderType(ProgramType program_type) {
+constexpr ShaderType GetShaderType(Maxwell::ShaderProgram program_type) {
     switch (program_type) {
-    case ProgramType::VertexA:
-    case ProgramType::VertexB:
-        return Tegra::Engines::ShaderType::Vertex;
-    case ProgramType::TessellationControl:
-        return Tegra::Engines::ShaderType::TesselationControl;
-    case ProgramType::TessellationEval:
-        return Tegra::Engines::ShaderType::TesselationEval;
-    case ProgramType::Geometry:
-        return Tegra::Engines::ShaderType::Geometry;
-    case ProgramType::Fragment:
-        return Tegra::Engines::ShaderType::Fragment;
-    case ProgramType::Compute:
-        return Tegra::Engines::ShaderType::Compute;
+    case Maxwell::ShaderProgram::VertexA:
+    case Maxwell::ShaderProgram::VertexB:
+        return ShaderType::Vertex;
+    case Maxwell::ShaderProgram::TesselationControl:
+        return ShaderType::TesselationControl;
+    case Maxwell::ShaderProgram::TesselationEval:
+        return ShaderType::TesselationEval;
+    case Maxwell::ShaderProgram::Geometry:
+        return ShaderType::Geometry;
+    case Maxwell::ShaderProgram::Fragment:
+        return ShaderType::Fragment;
     }
-    UNREACHABLE();
     return {};
 }
 
-std::string GetShaderId(u64 unique_identifier, ProgramType program_type) {
-    return fmt::format("{}{:016X}", GetProgramTypeName(program_type), unique_identifier);
+std::string GetShaderId(u64 unique_identifier, ShaderType shader_type) {
+    return fmt::format("{}{:016X}", GetShaderTypeName(shader_type), unique_identifier);
 }
 
-Tegra::Engines::ConstBufferEngineInterface& GetConstBufferEngineInterface(
-    Core::System& system, ProgramType program_type) {
-    if (program_type == ProgramType::Compute) {
+Tegra::Engines::ConstBufferEngineInterface& GetConstBufferEngineInterface(Core::System& system,
+                                                                          ShaderType shader_type) {
+    if (shader_type == ShaderType::Compute) {
         return system.GPU().KeplerCompute();
     } else {
         return system.GPU().Maxwell3D();
     }
 }
 
-std::unique_ptr<ConstBufferLocker> MakeLocker(Core::System& system, ProgramType program_type) {
-    return std::make_unique<ConstBufferLocker>(GetEnginesShaderType(program_type),
-                                               GetConstBufferEngineInterface(system, program_type));
+std::unique_ptr<ConstBufferLocker> MakeLocker(Core::System& system, ShaderType shader_type) {
+    return std::make_unique<ConstBufferLocker>(shader_type,
+                                               GetConstBufferEngineInterface(system, shader_type));
 }
 
 void FillLocker(ConstBufferLocker& locker, const ShaderDiskCacheUsage& usage) {
@@ -253,33 +230,26 @@ void FillLocker(ConstBufferLocker& locker, const ShaderDiskCacheUsage& usage) {
     }
 }
 
-CachedProgram BuildShader(const Device& device, u64 unique_identifier, ProgramType program_type,
-                          const ProgramCode& program_code, const ProgramCode& program_code_b,
-                          const ProgramVariant& variant, ConstBufferLocker& locker,
+CachedProgram BuildShader(const Device& device, u64 unique_identifier, ShaderType shader_type,
+                          const ProgramCode& code, const ProgramCode& code_b,
+                          ConstBufferLocker& locker, const ProgramVariant& variant,
                           bool hint_retrievable = false) {
-    LOG_INFO(Render_OpenGL, "called. {}", GetShaderId(unique_identifier, program_type));
+    LOG_INFO(Render_OpenGL, "called. {}", GetShaderId(unique_identifier, shader_type));
 
-    const bool is_compute = program_type == ProgramType::Compute;
+    const bool is_compute = shader_type == ShaderType::Compute;
     const u32 main_offset = is_compute ? KERNEL_MAIN_OFFSET : STAGE_MAIN_OFFSET;
-    const ShaderIR ir(program_code, main_offset, COMPILER_SETTINGS, locker);
+    const ShaderIR ir(code, main_offset, COMPILER_SETTINGS, locker);
     std::optional<ShaderIR> ir_b;
-    if (!program_code_b.empty()) {
-        ir_b.emplace(program_code_b, main_offset, COMPILER_SETTINGS, locker);
+    if (!code_b.empty()) {
+        ir_b.emplace(code_b, main_offset, COMPILER_SETTINGS, locker);
     }
     const auto entries = GLShader::GetEntries(ir);
-
-    auto base_bindings{variant.base_bindings};
-    const auto primitive_mode{variant.primitive_mode};
-    const auto texture_buffer_usage{variant.texture_buffer_usage};
 
     std::string source = fmt::format(R"(// {}
 #version 430 core
 #extension GL_ARB_separate_shader_objects : enable
 )",
-                                     GetShaderId(unique_identifier, program_type));
-    if (is_compute) {
-        source += "#extension GL_ARB_compute_variable_group_size : require\n";
-    }
+                                     GetShaderId(unique_identifier, shader_type));
     if (device.HasShaderBallot()) {
         source += "#extension GL_ARB_shader_ballot : require\n";
     }
@@ -296,54 +266,35 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ProgramTy
     }
     source += '\n';
 
-    if (!is_compute) {
-        source += fmt::format("#define EMULATION_UBO_BINDING {}\n", base_bindings.cbuf++);
-    }
-
-    for (const auto& cbuf : entries.const_buffers) {
-        source +=
-            fmt::format("#define CBUF_BINDING_{} {}\n", cbuf.GetIndex(), base_bindings.cbuf++);
-    }
-    for (const auto& gmem : entries.global_memory_entries) {
-        source += fmt::format("#define GMEM_BINDING_{}_{} {}\n", gmem.GetCbufIndex(),
-                              gmem.GetCbufOffset(), base_bindings.gmem++);
-    }
-    for (const auto& sampler : entries.samplers) {
-        source += fmt::format("#define SAMPLER_BINDING_{} {}\n", sampler.GetIndex(),
-                              base_bindings.sampler++);
-    }
-    for (const auto& image : entries.images) {
-        source +=
-            fmt::format("#define IMAGE_BINDING_{} {}\n", image.GetIndex(), base_bindings.image++);
-    }
-
-    // Transform 1D textures to texture samplers by declaring its preprocessor macros.
-    for (std::size_t i = 0; i < texture_buffer_usage.size(); ++i) {
-        if (!texture_buffer_usage.test(i)) {
-            continue;
-        }
-        source += fmt::format("#define SAMPLER_{}_IS_BUFFER\n", i);
-    }
-    if (texture_buffer_usage.any()) {
-        source += '\n';
-    }
-
-    if (program_type == ProgramType::Geometry) {
+    if (shader_type == ShaderType::Geometry) {
         const auto [glsl_topology, debug_name, max_vertices] =
-            GetPrimitiveDescription(primitive_mode);
+            GetPrimitiveDescription(variant.primitive_mode);
 
-        source += "layout (" + std::string(glsl_topology) + ") in;\n\n";
-        source += "#define MAX_VERTEX_INPUT " + std::to_string(max_vertices) + '\n';
+        source += fmt::format("layout ({}) in;\n\n", glsl_topology);
+        source += fmt::format("#define MAX_VERTEX_INPUT {}\n", max_vertices);
     }
-    if (program_type == ProgramType::Compute) {
-        source += "layout (local_size_variable) in;\n";
+    if (shader_type == ShaderType::Compute) {
+        source +=
+            fmt::format("layout (local_size_x = {}, local_size_y = {}, local_size_z = {}) in;\n",
+                        variant.block_x, variant.block_y, variant.block_z);
+
+        if (variant.shared_memory_size > 0) {
+            // TODO(Rodrigo): We should divide by four here, but having a larger shared memory pool
+            // avoids out of bound stores. Find out why shared memory size is being invalid.
+            source += fmt::format("shared uint smem[{}];", variant.shared_memory_size);
+        }
+
+        if (variant.local_memory_size > 0) {
+            source += fmt::format("#define LOCAL_MEMORY_SIZE {}",
+                                  Common::AlignUp(variant.local_memory_size, 4) / 4);
+        }
     }
 
     source += '\n';
-    source += GenerateGLSL(device, program_type, ir, ir_b);
+    source += GenerateGLSL(device, shader_type, ir, ir_b);
 
     OGLShader shader;
-    shader.Create(source.c_str(), GetShaderType(program_type));
+    shader.Create(source.c_str(), GetGLShaderType(shader_type));
 
     auto program = std::make_shared<OGLProgram>();
     program->Create(true, hint_retrievable, shader.handle);
@@ -366,18 +317,16 @@ std::unordered_set<GLenum> GetSupportedFormats() {
 
 } // Anonymous namespace
 
-CachedShader::CachedShader(const ShaderParameters& params, ProgramType program_type,
-                           GLShader::ShaderEntries entries, ProgramCode program_code,
-                           ProgramCode program_code_b)
-    : RasterizerCacheObject{params.host_ptr}, system{params.system},
-      disk_cache{params.disk_cache}, device{params.device}, cpu_addr{params.cpu_addr},
-      unique_identifier{params.unique_identifier}, program_type{program_type}, entries{entries},
-      program_code{std::move(program_code)}, program_code_b{std::move(program_code_b)} {
+CachedShader::CachedShader(const ShaderParameters& params, ShaderType shader_type,
+                           GLShader::ShaderEntries entries, ProgramCode code, ProgramCode code_b)
+    : RasterizerCacheObject{params.host_ptr}, system{params.system}, disk_cache{params.disk_cache},
+      device{params.device}, cpu_addr{params.cpu_addr}, unique_identifier{params.unique_identifier},
+      shader_type{shader_type}, entries{entries}, code{std::move(code)}, code_b{std::move(code_b)} {
     if (!params.precompiled_variants) {
         return;
     }
     for (const auto& pair : *params.precompiled_variants) {
-        auto locker = MakeLocker(system, program_type);
+        auto locker = MakeLocker(system, shader_type);
         const auto& usage = pair->first;
         FillLocker(*locker, usage);
 
@@ -398,94 +347,83 @@ CachedShader::CachedShader(const ShaderParameters& params, ProgramType program_t
 }
 
 Shader CachedShader::CreateStageFromMemory(const ShaderParameters& params,
-                                           Maxwell::ShaderProgram program_type,
-                                           ProgramCode program_code, ProgramCode program_code_b) {
-    params.disk_cache.SaveRaw(ShaderDiskCacheRaw(
-        params.unique_identifier, GetProgramType(program_type), program_code, program_code_b));
+                                           Maxwell::ShaderProgram program_type, ProgramCode code,
+                                           ProgramCode code_b) {
+    const auto shader_type = GetShaderType(program_type);
+    params.disk_cache.SaveRaw(
+        ShaderDiskCacheRaw(params.unique_identifier, shader_type, code, code_b));
 
-    ConstBufferLocker locker(GetEnginesShaderType(GetProgramType(program_type)),
-                             params.system.GPU().Maxwell3D());
-    const ShaderIR ir(program_code, STAGE_MAIN_OFFSET, COMPILER_SETTINGS, locker);
+    ConstBufferLocker locker(shader_type, params.system.GPU().Maxwell3D());
+    const ShaderIR ir(code, STAGE_MAIN_OFFSET, COMPILER_SETTINGS, locker);
     // TODO(Rodrigo): Handle VertexA shaders
     // std::optional<ShaderIR> ir_b;
-    // if (!program_code_b.empty()) {
-    //     ir_b.emplace(program_code_b, STAGE_MAIN_OFFSET);
+    // if (!code_b.empty()) {
+    //     ir_b.emplace(code_b, STAGE_MAIN_OFFSET);
     // }
-    return std::shared_ptr<CachedShader>(
-        new CachedShader(params, GetProgramType(program_type), GLShader::GetEntries(ir),
-                         std::move(program_code), std::move(program_code_b)));
+    return std::shared_ptr<CachedShader>(new CachedShader(
+        params, shader_type, GLShader::GetEntries(ir), std::move(code), std::move(code_b)));
 }
 
 Shader CachedShader::CreateKernelFromMemory(const ShaderParameters& params, ProgramCode code) {
     params.disk_cache.SaveRaw(
-        ShaderDiskCacheRaw(params.unique_identifier, ProgramType::Compute, code));
+        ShaderDiskCacheRaw(params.unique_identifier, ShaderType::Compute, code));
 
     ConstBufferLocker locker(Tegra::Engines::ShaderType::Compute,
                              params.system.GPU().KeplerCompute());
     const ShaderIR ir(code, KERNEL_MAIN_OFFSET, COMPILER_SETTINGS, locker);
     return std::shared_ptr<CachedShader>(new CachedShader(
-        params, ProgramType::Compute, GLShader::GetEntries(ir), std::move(code), {}));
+        params, ShaderType::Compute, GLShader::GetEntries(ir), std::move(code), {}));
 }
 
 Shader CachedShader::CreateFromCache(const ShaderParameters& params,
                                      const UnspecializedShader& unspecialized) {
-    return std::shared_ptr<CachedShader>(new CachedShader(params, unspecialized.program_type,
+    return std::shared_ptr<CachedShader>(new CachedShader(params, unspecialized.type,
                                                           unspecialized.entries, unspecialized.code,
                                                           unspecialized.code_b));
 }
 
-std::tuple<GLuint, BaseBindings> CachedShader::GetProgramHandle(const ProgramVariant& variant) {
-    UpdateVariant();
+GLuint CachedShader::GetHandle(const ProgramVariant& variant) {
+    EnsureValidLockerVariant();
 
-    const auto [entry, is_cache_miss] = curr_variant->programs.try_emplace(variant);
+    const auto [entry, is_cache_miss] = curr_locker_variant->programs.try_emplace(variant);
     auto& program = entry->second;
-    if (is_cache_miss) {
-        program = BuildShader(device, unique_identifier, program_type, program_code, program_code_b,
-                              variant, *curr_variant->locker);
-        disk_cache.SaveUsage(GetUsage(variant, *curr_variant->locker));
-
-        LabelGLObject(GL_PROGRAM, program->handle, cpu_addr);
+    if (!is_cache_miss) {
+        return program->handle;
     }
 
-    auto base_bindings = variant.base_bindings;
-    base_bindings.cbuf += static_cast<u32>(entries.const_buffers.size());
-    if (program_type != ProgramType::Compute) {
-        base_bindings.cbuf += STAGE_RESERVED_UBOS;
-    }
-    base_bindings.gmem += static_cast<u32>(entries.global_memory_entries.size());
-    base_bindings.sampler += static_cast<u32>(entries.samplers.size());
+    program = BuildShader(device, unique_identifier, shader_type, code, code_b,
+                          *curr_locker_variant->locker, variant);
+    disk_cache.SaveUsage(GetUsage(variant, *curr_locker_variant->locker));
 
-    return {program->handle, base_bindings};
+    LabelGLObject(GL_PROGRAM, program->handle, cpu_addr);
+    return program->handle;
 }
 
-void CachedShader::UpdateVariant() {
-    if (curr_variant && !curr_variant->locker->IsConsistent()) {
-        curr_variant = nullptr;
+bool CachedShader::EnsureValidLockerVariant() {
+    const auto previous_variant = curr_locker_variant;
+    if (curr_locker_variant && !curr_locker_variant->locker->IsConsistent()) {
+        curr_locker_variant = nullptr;
     }
-    if (!curr_variant) {
+    if (!curr_locker_variant) {
         for (auto& variant : locker_variants) {
             if (variant->locker->IsConsistent()) {
-                curr_variant = variant.get();
+                curr_locker_variant = variant.get();
             }
         }
     }
-    if (!curr_variant) {
+    if (!curr_locker_variant) {
         auto& new_variant = locker_variants.emplace_back();
         new_variant = std::make_unique<LockerVariant>();
-        new_variant->locker = MakeLocker(system, program_type);
-        curr_variant = new_variant.get();
+        new_variant->locker = MakeLocker(system, shader_type);
+        curr_locker_variant = new_variant.get();
     }
+    return previous_variant == curr_locker_variant;
 }
 
 ShaderDiskCacheUsage CachedShader::GetUsage(const ProgramVariant& variant,
                                             const ConstBufferLocker& locker) const {
-    ShaderDiskCacheUsage usage;
-    usage.unique_identifier = unique_identifier;
-    usage.variant = variant;
-    usage.keys = locker.GetKeys();
-    usage.bound_samplers = locker.GetBoundSamplers();
-    usage.bindless_samplers = locker.GetBindlessSamplers();
-    return usage;
+    return ShaderDiskCacheUsage{unique_identifier, variant, locker.GetKeys(),
+                                locker.GetBoundSamplers(), locker.GetBindlessSamplers()};
 }
 
 ShaderCacheOpenGL::ShaderCacheOpenGL(RasterizerOpenGL& rasterizer, Core::System& system,
@@ -544,11 +482,12 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
                 }
             }
             if (!shader) {
-                auto locker{MakeLocker(system, unspecialized.program_type)};
+                auto locker{MakeLocker(system, unspecialized.type)};
                 FillLocker(*locker, usage);
-                shader = BuildShader(device, usage.unique_identifier, unspecialized.program_type,
-                                     unspecialized.code, unspecialized.code_b, usage.variant,
-                                     *locker, true);
+
+                shader = BuildShader(device, usage.unique_identifier, unspecialized.type,
+                                     unspecialized.code, unspecialized.code_b, *locker,
+                                     usage.variant, true);
             }
 
             std::scoped_lock lock{mutex};
@@ -651,7 +590,7 @@ bool ShaderCacheOpenGL::GenerateUnspecializedShaders(
         const auto& raw{raws[i]};
         const u64 unique_identifier{raw.GetUniqueIdentifier()};
         const u64 calculated_hash{
-            GetUniqueIdentifier(raw.GetProgramType(), raw.GetProgramCode(), raw.GetProgramCodeB())};
+            GetUniqueIdentifier(raw.GetType(), raw.HasProgramA(), raw.GetCode(), raw.GetCodeB())};
         if (unique_identifier != calculated_hash) {
             LOG_ERROR(Render_OpenGL,
                       "Invalid hash in entry={:016x} (obtained hash={:016x}) - "
@@ -662,9 +601,9 @@ bool ShaderCacheOpenGL::GenerateUnspecializedShaders(
         }
 
         const u32 main_offset =
-            raw.GetProgramType() == ProgramType::Compute ? KERNEL_MAIN_OFFSET : STAGE_MAIN_OFFSET;
-        ConstBufferLocker locker(GetEnginesShaderType(raw.GetProgramType()));
-        const ShaderIR ir(raw.GetProgramCode(), main_offset, COMPILER_SETTINGS, locker);
+            raw.GetType() == ShaderType::Compute ? KERNEL_MAIN_OFFSET : STAGE_MAIN_OFFSET;
+        ConstBufferLocker locker(raw.GetType());
+        const ShaderIR ir(raw.GetCode(), main_offset, COMPILER_SETTINGS, locker);
         // TODO(Rodrigo): Handle VertexA shaders
         // std::optional<ShaderIR> ir_b;
         // if (raw.HasProgramA()) {
@@ -673,9 +612,9 @@ bool ShaderCacheOpenGL::GenerateUnspecializedShaders(
 
         UnspecializedShader unspecialized;
         unspecialized.entries = GLShader::GetEntries(ir);
-        unspecialized.program_type = raw.GetProgramType();
-        unspecialized.code = raw.GetProgramCode();
-        unspecialized.code_b = raw.GetProgramCodeB();
+        unspecialized.type = raw.GetType();
+        unspecialized.code = raw.GetCode();
+        unspecialized.code_b = raw.GetCodeB();
         unspecialized_shaders.emplace(raw.GetUniqueIdentifier(), unspecialized);
 
         if (callback) {
@@ -708,7 +647,8 @@ Shader ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
         code_b = GetShaderCode(memory_manager, address_b, memory_manager.GetPointer(address_b));
     }
 
-    const auto unique_identifier = GetUniqueIdentifier(GetProgramType(program), code, code_b);
+    const auto unique_identifier = GetUniqueIdentifier(
+        GetShaderType(program), program == Maxwell::ShaderProgram::VertexA, code, code_b);
     const auto precompiled_variants = GetPrecompiledVariants(unique_identifier);
     const auto cpu_addr{*memory_manager.GpuToCpuAddress(address)};
     const ShaderParameters params{system,   disk_cache, precompiled_variants, device,
@@ -736,7 +676,7 @@ Shader ShaderCacheOpenGL::GetComputeKernel(GPUVAddr code_addr) {
 
     // No kernel found - create a new one
     auto code{GetShaderCode(memory_manager, code_addr, host_ptr)};
-    const auto unique_identifier{GetUniqueIdentifier(ProgramType::Compute, code, {})};
+    const auto unique_identifier{GetUniqueIdentifier(ShaderType::Compute, false, code, {})};
     const auto precompiled_variants = GetPrecompiledVariants(unique_identifier);
     const auto cpu_addr{*memory_manager.GpuToCpuAddress(code_addr)};
     const ShaderParameters params{system,   disk_cache, precompiled_variants, device,

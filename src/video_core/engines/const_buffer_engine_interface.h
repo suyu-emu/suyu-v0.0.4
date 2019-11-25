@@ -8,18 +8,10 @@
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "video_core/engines/shader_bytecode.h"
+#include "video_core/engines/shader_type.h"
 #include "video_core/textures/texture.h"
 
 namespace Tegra::Engines {
-
-enum class ShaderType : u32 {
-    Vertex = 0,
-    TesselationControl = 1,
-    TesselationEval = 2,
-    Geometry = 3,
-    Fragment = 4,
-    Compute = 5,
-};
 
 struct SamplerDescriptor {
     union {

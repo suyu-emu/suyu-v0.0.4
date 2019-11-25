@@ -8,6 +8,7 @@
 #include "common/common_types.h"
 #include "common/hash.h"
 #include "video_core/engines/const_buffer_engine_interface.h"
+#include "video_core/engines/shader_type.h"
 
 namespace VideoCommon::Shader {
 
@@ -20,7 +21,7 @@ using BindlessSamplerMap =
  * The ConstBufferLocker is a class use to interface the 3D and compute engines with the shader
  * compiler. with it, the shader can obtain required data from GPU state and store it for disk
  * shader compilation.
- **/
+ */
 class ConstBufferLocker {
 public:
     explicit ConstBufferLocker(Tegra::Engines::ShaderType shader_stage);

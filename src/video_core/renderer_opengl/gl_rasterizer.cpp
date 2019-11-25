@@ -22,6 +22,7 @@
 #include "core/settings.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/engines/shader_type.h"
 #include "video_core/memory_manager.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
@@ -49,8 +50,25 @@ MICROPROFILE_DEFINE(OpenGL_Blits, "OpenGL", "Blits", MP_RGB(128, 128, 192));
 MICROPROFILE_DEFINE(OpenGL_CacheManagement, "OpenGL", "Cache Mgmt", MP_RGB(100, 255, 100));
 MICROPROFILE_DEFINE(OpenGL_PrimitiveAssembly, "OpenGL", "Prim Asmbl", MP_RGB(255, 100, 100));
 
-static std::size_t GetConstBufferSize(const Tegra::Engines::ConstBufferInfo& buffer,
-                                      const GLShader::ConstBufferEntry& entry) {
+namespace {
+
+template <typename Engine, typename Entry>
+Tegra::Texture::FullTextureInfo GetTextureInfo(const Engine& engine, const Entry& entry,
+                                               Tegra::Engines::ShaderType shader_type) {
+    if (entry.IsBindless()) {
+        const Tegra::Texture::TextureHandle tex_handle =
+            engine.AccessConstBuffer32(shader_type, entry.GetBuffer(), entry.GetOffset());
+        return engine.GetTextureInfo(tex_handle);
+    }
+    if constexpr (std::is_same_v<Engine, Tegra::Engines::Maxwell3D>) {
+        return engine.GetStageTexture(shader_type, entry.GetOffset());
+    } else {
+        return engine.GetTexture(entry.GetOffset());
+    }
+}
+
+std::size_t GetConstBufferSize(const Tegra::Engines::ConstBufferInfo& buffer,
+                               const GLShader::ConstBufferEntry& entry) {
     if (!entry.IsIndirect()) {
         return entry.GetSize();
     }
@@ -63,6 +81,8 @@ static std::size_t GetConstBufferSize(const Tegra::Engines::ConstBufferInfo& buf
 
     return buffer.size;
 }
+
+} // Anonymous namespace
 
 RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
                                    ScreenInfo& info)
@@ -238,12 +258,11 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
     MICROPROFILE_SCOPE(OpenGL_Shader);
     auto& gpu = system.GPU().Maxwell3D();
 
-    BaseBindings base_bindings;
     std::array<bool, Maxwell::NumClipDistances> clip_distances{};
 
     for (std::size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
         const auto& shader_config = gpu.regs.shader_config[index];
-        const Maxwell::ShaderProgram program{static_cast<Maxwell::ShaderProgram>(index)};
+        const auto program{static_cast<Maxwell::ShaderProgram>(index)};
 
         // Skip stages that are not enabled
         if (!gpu.regs.IsShaderConfigEnabled(index)) {
@@ -257,24 +276,17 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
             continue;
         }
 
-        GLShader::MaxwellUniformData ubo{};
-        ubo.SetFromRegs(gpu);
-        const auto [buffer, offset] =
-            buffer_cache.UploadHostMemory(&ubo, sizeof(ubo), device.GetUniformBufferAlignment());
-
-        // Bind the emulation info buffer
-        bind_ubo_pushbuffer.Push(buffer, offset, static_cast<GLsizeiptr>(sizeof(ubo)));
-
         Shader shader{shader_cache.GetStageProgram(program)};
 
         // Stage indices are 0 - 5
-        const auto stage = static_cast<Maxwell::ShaderStage>(index == 0 ? 0 : index - 1);
+        const std::size_t stage = index == 0 ? 0 : index - 1;
         SetupDrawConstBuffers(stage, shader);
         SetupDrawGlobalMemory(stage, shader);
-        const auto texture_buffer_usage{SetupDrawTextures(stage, shader, base_bindings)};
+        SetupDrawTextures(stage, shader);
+        SetupDrawImages(stage, shader);
 
-        const ProgramVariant variant{base_bindings, primitive_mode, texture_buffer_usage};
-        const auto [program_handle, next_bindings] = shader->GetProgramHandle(variant);
+        const ProgramVariant variant(primitive_mode);
+        const auto program_handle = shader->GetHandle(variant);
 
         switch (program) {
         case Maxwell::ShaderProgram::VertexA:
@@ -303,10 +315,8 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
         // When VertexA is enabled, we have dual vertex shaders
         if (program == Maxwell::ShaderProgram::VertexA) {
             // VertexB was combined with VertexA, so we skip the VertexB iteration
-            index++;
+            ++index;
         }
-
-        base_bindings = next_bindings;
     }
 
     SyncClipEnabled(clip_distances);
@@ -591,8 +601,16 @@ void RasterizerOpenGL::DrawPrelude() {
     index_buffer_offset = SetupIndexBuffer();
 
     // Prepare packed bindings.
-    bind_ubo_pushbuffer.Setup(0);
-    bind_ssbo_pushbuffer.Setup(0);
+    bind_ubo_pushbuffer.Setup();
+    bind_ssbo_pushbuffer.Setup();
+
+    // Setup emulation uniform buffer.
+    GLShader::MaxwellUniformData ubo;
+    ubo.SetFromRegs(gpu);
+    const auto [buffer, offset] =
+        buffer_cache.UploadHostMemory(&ubo, sizeof(ubo), device.GetUniformBufferAlignment());
+    bind_ubo_pushbuffer.Push(EmulationUniformBlockBinding, buffer, offset,
+                             static_cast<GLsizeiptr>(sizeof(ubo)));
 
     // Setup shaders and their used resources.
     texture_cache.GuardSamplers(true);
@@ -725,19 +743,21 @@ bool RasterizerOpenGL::DrawMultiBatch(bool is_indexed) {
 }
 
 void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
-    if (!GLAD_GL_ARB_compute_variable_group_size) {
-        LOG_ERROR(Render_OpenGL, "Compute is currently not supported on this device due to the "
-                                 "lack of GL_ARB_compute_variable_group_size");
+    if (device.HasBrokenCompute()) {
         return;
     }
 
+    buffer_cache.Acquire();
+
     auto kernel = shader_cache.GetComputeKernel(code_addr);
-    ProgramVariant variant;
-    variant.texture_buffer_usage = SetupComputeTextures(kernel);
+    SetupComputeTextures(kernel);
     SetupComputeImages(kernel);
 
-    const auto [program, next_bindings] = kernel->GetProgramHandle(variant);
-    state.draw.shader_program = program;
+    const auto& launch_desc = system.GPU().KeplerCompute().launch_description;
+    const ProgramVariant variant(launch_desc.block_dim_x, launch_desc.block_dim_y,
+                                 launch_desc.block_dim_z, launch_desc.shared_alloc,
+                                 launch_desc.local_pos_alloc);
+    state.draw.shader_program = kernel->GetHandle(variant);
     state.draw.program_pipeline = 0;
 
     const std::size_t buffer_size =
@@ -745,8 +765,8 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
         (Maxwell::MaxConstBufferSize + device.GetUniformBufferAlignment());
     buffer_cache.Map(buffer_size);
 
-    bind_ubo_pushbuffer.Setup(0);
-    bind_ssbo_pushbuffer.Setup(0);
+    bind_ubo_pushbuffer.Setup();
+    bind_ssbo_pushbuffer.Setup();
 
     SetupComputeConstBuffers(kernel);
     SetupComputeGlobalMemory(kernel);
@@ -761,10 +781,7 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     state.ApplyShaderProgram();
     state.ApplyProgramPipeline();
 
-    const auto& launch_desc = system.GPU().KeplerCompute().launch_description;
-    glDispatchComputeGroupSizeARB(launch_desc.grid_dim_x, launch_desc.grid_dim_y,
-                                  launch_desc.grid_dim_z, launch_desc.block_dim_x,
-                                  launch_desc.block_dim_y, launch_desc.block_dim_z);
+    glDispatchCompute(launch_desc.grid_dim_x, launch_desc.grid_dim_y, launch_desc.grid_dim_z);
 }
 
 void RasterizerOpenGL::FlushAll() {}
@@ -833,7 +850,7 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     ASSERT_MSG(params.height == config.height, "Framebuffer height is different");
 
     if (params.pixel_format != pixel_format) {
-        LOG_WARNING(Render_OpenGL, "Framebuffer pixel_format is different");
+        LOG_DEBUG(Render_OpenGL, "Framebuffer pixel_format is different");
     }
 
     screen_info.display_texture = surface->GetTexture();
@@ -842,20 +859,23 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     return true;
 }
 
-void RasterizerOpenGL::SetupDrawConstBuffers(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
-                                             const Shader& shader) {
+void RasterizerOpenGL::SetupDrawConstBuffers(std::size_t stage_index, const Shader& shader) {
     MICROPROFILE_SCOPE(OpenGL_UBO);
     const auto& stages = system.GPU().Maxwell3D().state.shader_stages;
-    const auto& shader_stage = stages[static_cast<std::size_t>(stage)];
+    const auto& shader_stage = stages[stage_index];
+
+    u32 binding = device.GetBaseBindings(stage_index).uniform_buffer;
     for (const auto& entry : shader->GetShaderEntries().const_buffers) {
         const auto& buffer = shader_stage.const_buffers[entry.GetIndex()];
-        SetupConstBuffer(buffer, entry);
+        SetupConstBuffer(binding++, buffer, entry);
     }
 }
 
 void RasterizerOpenGL::SetupComputeConstBuffers(const Shader& kernel) {
     MICROPROFILE_SCOPE(OpenGL_UBO);
     const auto& launch_desc = system.GPU().KeplerCompute().launch_description;
+
+    u32 binding = 0;
     for (const auto& entry : kernel->GetShaderEntries().const_buffers) {
         const auto& config = launch_desc.const_buffer_config[entry.GetIndex()];
         const std::bitset<8> mask = launch_desc.const_buffer_enable_mask.Value();
@@ -863,15 +883,16 @@ void RasterizerOpenGL::SetupComputeConstBuffers(const Shader& kernel) {
         buffer.address = config.Address();
         buffer.size = config.size;
         buffer.enabled = mask[entry.GetIndex()];
-        SetupConstBuffer(buffer, entry);
+        SetupConstBuffer(binding++, buffer, entry);
     }
 }
 
-void RasterizerOpenGL::SetupConstBuffer(const Tegra::Engines::ConstBufferInfo& buffer,
+void RasterizerOpenGL::SetupConstBuffer(u32 binding, const Tegra::Engines::ConstBufferInfo& buffer,
                                         const GLShader::ConstBufferEntry& entry) {
     if (!buffer.enabled) {
         // Set values to zero to unbind buffers
-        bind_ubo_pushbuffer.Push(buffer_cache.GetEmptyBuffer(sizeof(float)), 0, sizeof(float));
+        bind_ubo_pushbuffer.Push(binding, buffer_cache.GetEmptyBuffer(sizeof(float)), 0,
+                                 sizeof(float));
         return;
     }
 
@@ -882,19 +903,20 @@ void RasterizerOpenGL::SetupConstBuffer(const Tegra::Engines::ConstBufferInfo& b
     const auto alignment = device.GetUniformBufferAlignment();
     const auto [cbuf, offset] = buffer_cache.UploadMemory(buffer.address, size, alignment, false,
                                                           device.HasFastBufferSubData());
-    bind_ubo_pushbuffer.Push(cbuf, offset, size);
+    bind_ubo_pushbuffer.Push(binding, cbuf, offset, size);
 }
 
-void RasterizerOpenGL::SetupDrawGlobalMemory(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
-                                             const Shader& shader) {
+void RasterizerOpenGL::SetupDrawGlobalMemory(std::size_t stage_index, const Shader& shader) {
     auto& gpu{system.GPU()};
     auto& memory_manager{gpu.MemoryManager()};
-    const auto cbufs{gpu.Maxwell3D().state.shader_stages[static_cast<std::size_t>(stage)]};
+    const auto cbufs{gpu.Maxwell3D().state.shader_stages[stage_index]};
+
+    u32 binding = device.GetBaseBindings(stage_index).shader_storage_buffer;
     for (const auto& entry : shader->GetShaderEntries().global_memory_entries) {
         const auto addr{cbufs.const_buffers[entry.GetCbufIndex()].address + entry.GetCbufOffset()};
         const auto gpu_addr{memory_manager.Read<u64>(addr)};
         const auto size{memory_manager.Read<u32>(addr + 8)};
-        SetupGlobalMemory(entry, gpu_addr, size);
+        SetupGlobalMemory(binding++, entry, gpu_addr, size);
     }
 }
 
@@ -902,120 +924,82 @@ void RasterizerOpenGL::SetupComputeGlobalMemory(const Shader& kernel) {
     auto& gpu{system.GPU()};
     auto& memory_manager{gpu.MemoryManager()};
     const auto cbufs{gpu.KeplerCompute().launch_description.const_buffer_config};
+
+    u32 binding = 0;
     for (const auto& entry : kernel->GetShaderEntries().global_memory_entries) {
         const auto addr{cbufs[entry.GetCbufIndex()].Address() + entry.GetCbufOffset()};
         const auto gpu_addr{memory_manager.Read<u64>(addr)};
         const auto size{memory_manager.Read<u32>(addr + 8)};
-        SetupGlobalMemory(entry, gpu_addr, size);
+        SetupGlobalMemory(binding++, entry, gpu_addr, size);
     }
 }
 
-void RasterizerOpenGL::SetupGlobalMemory(const GLShader::GlobalMemoryEntry& entry,
+void RasterizerOpenGL::SetupGlobalMemory(u32 binding, const GLShader::GlobalMemoryEntry& entry,
                                          GPUVAddr gpu_addr, std::size_t size) {
     const auto alignment{device.GetShaderStorageBufferAlignment()};
     const auto [ssbo, buffer_offset] =
         buffer_cache.UploadMemory(gpu_addr, size, alignment, entry.IsWritten());
-    bind_ssbo_pushbuffer.Push(ssbo, buffer_offset, static_cast<GLsizeiptr>(size));
+    bind_ssbo_pushbuffer.Push(binding, ssbo, buffer_offset, static_cast<GLsizeiptr>(size));
 }
 
-TextureBufferUsage RasterizerOpenGL::SetupDrawTextures(Maxwell::ShaderStage stage,
-                                                       const Shader& shader,
-                                                       BaseBindings base_bindings) {
+void RasterizerOpenGL::SetupDrawTextures(std::size_t stage_index, const Shader& shader) {
     MICROPROFILE_SCOPE(OpenGL_Texture);
-    const auto& gpu = system.GPU();
-    const auto& maxwell3d = gpu.Maxwell3D();
-    const auto& entries = shader->GetShaderEntries().samplers;
-
-    ASSERT_MSG(base_bindings.sampler + entries.size() <= std::size(state.textures),
-               "Exceeded the number of active textures.");
-
-    TextureBufferUsage texture_buffer_usage{0};
-
-    for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
-        const auto& entry = entries[bindpoint];
-        const auto texture = [&] {
-            if (!entry.IsBindless()) {
-                return maxwell3d.GetStageTexture(stage, entry.GetOffset());
-            }
-            const auto shader_type = static_cast<Tegra::Engines::ShaderType>(stage);
-            const Tegra::Texture::TextureHandle tex_handle =
-                maxwell3d.AccessConstBuffer32(shader_type, entry.GetBuffer(), entry.GetOffset());
-            return maxwell3d.GetTextureInfo(tex_handle);
-        }();
-
-        if (SetupTexture(base_bindings.sampler + bindpoint, texture, entry)) {
-            texture_buffer_usage.set(bindpoint);
-        }
+    const auto& maxwell3d = system.GPU().Maxwell3D();
+    u32 binding = device.GetBaseBindings(stage_index).sampler;
+    for (const auto& entry : shader->GetShaderEntries().samplers) {
+        const auto shader_type = static_cast<Tegra::Engines::ShaderType>(stage_index);
+        const auto texture = GetTextureInfo(maxwell3d, entry, shader_type);
+        SetupTexture(binding++, texture, entry);
     }
-
-    return texture_buffer_usage;
 }
 
-TextureBufferUsage RasterizerOpenGL::SetupComputeTextures(const Shader& kernel) {
+void RasterizerOpenGL::SetupComputeTextures(const Shader& kernel) {
     MICROPROFILE_SCOPE(OpenGL_Texture);
     const auto& compute = system.GPU().KeplerCompute();
-    const auto& entries = kernel->GetShaderEntries().samplers;
-
-    ASSERT_MSG(entries.size() <= std::size(state.textures),
-               "Exceeded the number of active textures.");
-
-    TextureBufferUsage texture_buffer_usage{0};
-
-    for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
-        const auto& entry = entries[bindpoint];
-        const auto texture = [&] {
-            if (!entry.IsBindless()) {
-                return compute.GetTexture(entry.GetOffset());
-            }
-            const Tegra::Texture::TextureHandle tex_handle = compute.AccessConstBuffer32(
-                Tegra::Engines::ShaderType::Compute, entry.GetBuffer(), entry.GetOffset());
-            return compute.GetTextureInfo(tex_handle);
-        }();
-
-        if (SetupTexture(bindpoint, texture, entry)) {
-            texture_buffer_usage.set(bindpoint);
-        }
+    u32 binding = 0;
+    for (const auto& entry : kernel->GetShaderEntries().samplers) {
+        const auto texture = GetTextureInfo(compute, entry, Tegra::Engines::ShaderType::Compute);
+        SetupTexture(binding++, texture, entry);
     }
-
-    return texture_buffer_usage;
 }
 
-bool RasterizerOpenGL::SetupTexture(u32 binding, const Tegra::Texture::FullTextureInfo& texture,
+void RasterizerOpenGL::SetupTexture(u32 binding, const Tegra::Texture::FullTextureInfo& texture,
                                     const GLShader::SamplerEntry& entry) {
-    state.samplers[binding] = sampler_cache.GetSampler(texture.tsc);
-
     const auto view = texture_cache.GetTextureSurface(texture.tic, entry);
     if (!view) {
         // Can occur when texture addr is null or its memory is unmapped/invalid
+        state.samplers[binding] = 0;
         state.textures[binding] = 0;
-        return false;
+        return;
     }
     state.textures[binding] = view->GetTexture();
 
     if (view->GetSurfaceParams().IsBuffer()) {
-        return true;
+        return;
     }
+    state.samplers[binding] = sampler_cache.GetSampler(texture.tsc);
 
     // Apply swizzle to textures that are not buffers.
     view->ApplySwizzle(texture.tic.x_source, texture.tic.y_source, texture.tic.z_source,
                        texture.tic.w_source);
-    return false;
+}
+
+void RasterizerOpenGL::SetupDrawImages(std::size_t stage_index, const Shader& shader) {
+    const auto& maxwell3d = system.GPU().Maxwell3D();
+    u32 binding = device.GetBaseBindings(stage_index).image;
+    for (const auto& entry : shader->GetShaderEntries().images) {
+        const auto shader_type = static_cast<Tegra::Engines::ShaderType>(stage_index);
+        const auto tic = GetTextureInfo(maxwell3d, entry, shader_type).tic;
+        SetupImage(binding++, tic, entry);
+    }
 }
 
 void RasterizerOpenGL::SetupComputeImages(const Shader& shader) {
     const auto& compute = system.GPU().KeplerCompute();
-    const auto& entries = shader->GetShaderEntries().images;
-    for (u32 bindpoint = 0; bindpoint < entries.size(); ++bindpoint) {
-        const auto& entry = entries[bindpoint];
-        const auto tic = [&] {
-            if (!entry.IsBindless()) {
-                return compute.GetTexture(entry.GetOffset()).tic;
-            }
-            const Tegra::Texture::TextureHandle tex_handle = compute.AccessConstBuffer32(
-                Tegra::Engines::ShaderType::Compute, entry.GetBuffer(), entry.GetOffset());
-            return compute.GetTextureInfo(tex_handle).tic;
-        }();
-        SetupImage(bindpoint, tic, entry);
+    u32 binding = 0;
+    for (const auto& entry : shader->GetShaderEntries().images) {
+        const auto tic = GetTextureInfo(compute, entry, Tegra::Engines::ShaderType::Compute).tic;
+        SetupImage(binding++, tic, entry);
     }
 }
 

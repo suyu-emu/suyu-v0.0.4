@@ -10,6 +10,7 @@
 #include <vector>
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/engines/shader_type.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace VideoCommon::Shader {
@@ -17,20 +18,8 @@ class ShaderIR;
 }
 
 namespace OpenGL {
-
 class Device;
-
-enum class ProgramType : u32 {
-    VertexA = 0,
-    VertexB = 1,
-    TessellationControl = 2,
-    TessellationEval = 3,
-    Geometry = 4,
-    Fragment = 5,
-    Compute = 6
-};
-
-} // namespace OpenGL
+}
 
 namespace OpenGL::GLShader {
 
@@ -94,6 +83,6 @@ ShaderEntries GetEntries(const VideoCommon::Shader::ShaderIR& ir);
 std::string GetCommonDeclarations();
 
 std::string Decompile(const Device& device, const VideoCommon::Shader::ShaderIR& ir,
-                      ProgramType stage, const std::string& suffix);
+                      Tegra::Engines::ShaderType stage, const std::string& suffix);
 
 } // namespace OpenGL::GLShader

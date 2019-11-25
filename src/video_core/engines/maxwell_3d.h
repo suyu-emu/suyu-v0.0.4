@@ -18,6 +18,7 @@
 #include "video_core/engines/const_buffer_engine_interface.h"
 #include "video_core/engines/const_buffer_info.h"
 #include "video_core/engines/engine_upload.h"
+#include "video_core/engines/shader_type.h"
 #include "video_core/gpu.h"
 #include "video_core/macro_interpreter.h"
 #include "video_core/textures/texture.h"
@@ -62,7 +63,6 @@ public:
         static constexpr std::size_t NumVertexArrays = 32;
         static constexpr std::size_t NumVertexAttributes = 32;
         static constexpr std::size_t NumVaryings = 31;
-        static constexpr std::size_t NumTextureSamplers = 32;
         static constexpr std::size_t NumImages = 8; // TODO(Rodrigo): Investigate this number
         static constexpr std::size_t NumClipDistances = 8;
         static constexpr std::size_t MaxShaderProgram = 6;
@@ -128,14 +128,6 @@ public:
             TesselationEval = 3,
             Geometry = 4,
             Fragment = 5,
-        };
-
-        enum class ShaderStage : u32 {
-            Vertex = 0,
-            TesselationControl = 1,
-            TesselationEval = 2,
-            Geometry = 3,
-            Fragment = 4,
         };
 
         struct VertexAttribute {
@@ -1254,7 +1246,7 @@ public:
     Texture::FullTextureInfo GetTextureInfo(Texture::TextureHandle tex_handle) const;
 
     /// Returns the texture information for a specific texture in a specific shader stage.
-    Texture::FullTextureInfo GetStageTexture(Regs::ShaderStage stage, std::size_t offset) const;
+    Texture::FullTextureInfo GetStageTexture(ShaderType stage, std::size_t offset) const;
 
     u32 AccessConstBuffer32(ShaderType stage, u64 const_buffer, u64 offset) const override;
 
@@ -1376,7 +1368,7 @@ private:
     void FinishCBData();
 
     /// Handles a write to the CB_BIND register.
-    void ProcessCBBind(Regs::ShaderStage stage);
+    void ProcessCBBind(std::size_t stage_index);
 
     /// Handles a write to the VERTEX_END_GL register, triggering a draw.
     void DrawArrays();

@@ -32,7 +32,7 @@ vk::CompareOp DepthCompareFunction(Tegra::Texture::DepthCompareFunc depth_compar
 std::pair<vk::Format, bool> SurfaceFormat(const VKDevice& device, FormatType format_type,
                                           PixelFormat pixel_format);
 
-vk::ShaderStageFlagBits ShaderStage(Maxwell::ShaderStage stage);
+vk::ShaderStageFlagBits ShaderStage(Tegra::Engines::ShaderType stage);
 
 vk::PrimitiveTopology PrimitiveTopology(Maxwell::PrimitiveTopology topology);
 

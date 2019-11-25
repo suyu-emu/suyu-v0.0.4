@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <bitset>
 #include <optional>
 #include <string>
 #include <tuple>
@@ -19,6 +18,7 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "core/file_sys/vfs_vector.h"
+#include "video_core/engines/shader_type.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
 #include "video_core/shader/const_buffer_locker.h"
 
@@ -37,42 +37,42 @@ struct ShaderDiskCacheDump;
 
 using ProgramCode = std::vector<u64>;
 using ShaderDumpsMap = std::unordered_map<ShaderDiskCacheUsage, ShaderDiskCacheDump>;
-using TextureBufferUsage = std::bitset<64>;
 
-/// Allocated bindings used by an OpenGL shader program
-struct BaseBindings {
-    u32 cbuf{};
-    u32 gmem{};
-    u32 sampler{};
-    u32 image{};
+/// Describes the different variants a program can be compiled with.
+struct ProgramVariant final {
+    ProgramVariant() = default;
 
-    bool operator==(const BaseBindings& rhs) const {
-        return std::tie(cbuf, gmem, sampler, image) ==
-               std::tie(rhs.cbuf, rhs.gmem, rhs.sampler, rhs.image);
-    }
+    /// Graphics constructor.
+    explicit constexpr ProgramVariant(GLenum primitive_mode) noexcept
+        : primitive_mode{primitive_mode} {}
 
-    bool operator!=(const BaseBindings& rhs) const {
-        return !operator==(rhs);
-    }
-};
-static_assert(std::is_trivially_copyable_v<BaseBindings>);
+    /// Compute constructor.
+    explicit constexpr ProgramVariant(u32 block_x, u32 block_y, u32 block_z, u32 shared_memory_size,
+                                      u32 local_memory_size) noexcept
+        : block_x{block_x}, block_y{static_cast<u16>(block_y)}, block_z{static_cast<u16>(block_z)},
+          shared_memory_size{shared_memory_size}, local_memory_size{local_memory_size} {}
 
-/// Describes the different variants a single program can be compiled.
-struct ProgramVariant {
-    BaseBindings base_bindings;
+    // Graphics specific parameters.
     GLenum primitive_mode{};
-    TextureBufferUsage texture_buffer_usage{};
 
-    bool operator==(const ProgramVariant& rhs) const {
-        return std::tie(base_bindings, primitive_mode, texture_buffer_usage) ==
-               std::tie(rhs.base_bindings, rhs.primitive_mode, rhs.texture_buffer_usage);
+    // Compute specific parameters.
+    u32 block_x{};
+    u16 block_y{};
+    u16 block_z{};
+    u32 shared_memory_size{};
+    u32 local_memory_size{};
+
+    bool operator==(const ProgramVariant& rhs) const noexcept {
+        return std::tie(primitive_mode, block_x, block_y, block_z, shared_memory_size,
+                        local_memory_size) == std::tie(rhs.primitive_mode, rhs.block_x, rhs.block_y,
+                                                       rhs.block_z, rhs.shared_memory_size,
+                                                       rhs.local_memory_size);
     }
 
-    bool operator!=(const ProgramVariant& rhs) const {
+    bool operator!=(const ProgramVariant& rhs) const noexcept {
         return !operator==(rhs);
     }
 };
-
 static_assert(std::is_trivially_copyable_v<ProgramVariant>);
 
 /// Describes how a shader is used.
@@ -99,21 +99,14 @@ struct ShaderDiskCacheUsage {
 namespace std {
 
 template <>
-struct hash<OpenGL::BaseBindings> {
-    std::size_t operator()(const OpenGL::BaseBindings& bindings) const noexcept {
-        return static_cast<std::size_t>(bindings.cbuf) ^
-               (static_cast<std::size_t>(bindings.gmem) << 8) ^
-               (static_cast<std::size_t>(bindings.sampler) << 16) ^
-               (static_cast<std::size_t>(bindings.image) << 24);
-    }
-};
-
-template <>
 struct hash<OpenGL::ProgramVariant> {
     std::size_t operator()(const OpenGL::ProgramVariant& variant) const noexcept {
-        return std::hash<OpenGL::BaseBindings>()(variant.base_bindings) ^
-               std::hash<OpenGL::TextureBufferUsage>()(variant.texture_buffer_usage) ^
-               (static_cast<std::size_t>(variant.primitive_mode) << 6);
+        return (static_cast<std::size_t>(variant.primitive_mode) << 6) ^
+               static_cast<std::size_t>(variant.block_x) ^
+               (static_cast<std::size_t>(variant.block_y) << 32) ^
+               (static_cast<std::size_t>(variant.block_z) << 48) ^
+               (static_cast<std::size_t>(variant.shared_memory_size) << 16) ^
+               (static_cast<std::size_t>(variant.local_memory_size) << 36);
     }
 };
 
@@ -121,7 +114,7 @@ template <>
 struct hash<OpenGL::ShaderDiskCacheUsage> {
     std::size_t operator()(const OpenGL::ShaderDiskCacheUsage& usage) const noexcept {
         return static_cast<std::size_t>(usage.unique_identifier) ^
-               std::hash<OpenGL::ProgramVariant>()(usage.variant);
+               std::hash<OpenGL::ProgramVariant>{}(usage.variant);
     }
 };
 
@@ -132,8 +125,8 @@ namespace OpenGL {
 /// Describes a shader how it's used by the guest GPU
 class ShaderDiskCacheRaw {
 public:
-    explicit ShaderDiskCacheRaw(u64 unique_identifier, ProgramType program_type,
-                                ProgramCode program_code, ProgramCode program_code_b = {});
+    explicit ShaderDiskCacheRaw(u64 unique_identifier, Tegra::Engines::ShaderType type,
+                                ProgramCode code, ProgramCode code_b = {});
     ShaderDiskCacheRaw();
     ~ShaderDiskCacheRaw();
 
@@ -146,27 +139,26 @@ public:
     }
 
     bool HasProgramA() const {
-        return program_type == ProgramType::VertexA;
+        return !code.empty() && !code_b.empty();
     }
 
-    ProgramType GetProgramType() const {
-        return program_type;
+    Tegra::Engines::ShaderType GetType() const {
+        return type;
     }
 
-    const ProgramCode& GetProgramCode() const {
-        return program_code;
+    const ProgramCode& GetCode() const {
+        return code;
     }
 
-    const ProgramCode& GetProgramCodeB() const {
-        return program_code_b;
+    const ProgramCode& GetCodeB() const {
+        return code_b;
     }
 
 private:
     u64 unique_identifier{};
-    ProgramType program_type{};
-
-    ProgramCode program_code;
-    ProgramCode program_code_b;
+    Tegra::Engines::ShaderType type{};
+    ProgramCode code;
+    ProgramCode code_b;
 };
 
 /// Contains an OpenGL dumped binary program

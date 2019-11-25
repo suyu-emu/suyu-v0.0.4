@@ -83,41 +83,40 @@ private:
                                    bool using_depth_fb, bool using_stencil_fb);
 
     /// Configures the current constbuffers to use for the draw command.
-    void SetupDrawConstBuffers(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
-                               const Shader& shader);
+    void SetupDrawConstBuffers(std::size_t stage_index, const Shader& shader);
 
     /// Configures the current constbuffers to use for the kernel invocation.
     void SetupComputeConstBuffers(const Shader& kernel);
 
     /// Configures a constant buffer.
-    void SetupConstBuffer(const Tegra::Engines::ConstBufferInfo& buffer,
+    void SetupConstBuffer(u32 binding, const Tegra::Engines::ConstBufferInfo& buffer,
                           const GLShader::ConstBufferEntry& entry);
 
     /// Configures the current global memory entries to use for the draw command.
-    void SetupDrawGlobalMemory(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
-                               const Shader& shader);
+    void SetupDrawGlobalMemory(std::size_t stage_index, const Shader& shader);
 
     /// Configures the current global memory entries to use for the kernel invocation.
     void SetupComputeGlobalMemory(const Shader& kernel);
 
     /// Configures a constant buffer.
-    void SetupGlobalMemory(const GLShader::GlobalMemoryEntry& entry, GPUVAddr gpu_addr,
+    void SetupGlobalMemory(u32 binding, const GLShader::GlobalMemoryEntry& entry, GPUVAddr gpu_addr,
                            std::size_t size);
 
     /// Syncs all the state, shaders, render targets and textures setting before a draw call.
     void DrawPrelude();
 
-    /// Configures the current textures to use for the draw command. Returns shaders texture buffer
-    /// usage.
-    TextureBufferUsage SetupDrawTextures(Tegra::Engines::Maxwell3D::Regs::ShaderStage stage,
-                                         const Shader& shader, BaseBindings base_bindings);
+    /// Configures the current textures to use for the draw command.
+    void SetupDrawTextures(std::size_t stage_index, const Shader& shader);
 
-    /// Configures the textures used in a compute shader. Returns texture buffer usage.
-    TextureBufferUsage SetupComputeTextures(const Shader& kernel);
+    /// Configures the textures used in a compute shader.
+    void SetupComputeTextures(const Shader& kernel);
 
-    /// Configures a texture. Returns true when the texture is a texture buffer.
-    bool SetupTexture(u32 binding, const Tegra::Texture::FullTextureInfo& texture,
+    /// Configures a texture.
+    void SetupTexture(u32 binding, const Tegra::Texture::FullTextureInfo& texture,
                       const GLShader::SamplerEntry& entry);
+
+    /// Configures images in a graphics shader.
+    void SetupDrawImages(std::size_t stage_index, const Shader& shader);
 
     /// Configures images in a compute shader.
     void SetupComputeImages(const Shader& shader);

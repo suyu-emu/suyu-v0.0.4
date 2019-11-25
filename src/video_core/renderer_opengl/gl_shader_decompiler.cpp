@@ -16,6 +16,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/engines/shader_type.h"
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
@@ -27,6 +28,7 @@ namespace OpenGL::GLShader {
 
 namespace {
 
+using Tegra::Engines::ShaderType;
 using Tegra::Shader::Attribute;
 using Tegra::Shader::AttributeUse;
 using Tegra::Shader::Header;
@@ -40,6 +42,9 @@ using namespace VideoCommon::Shader;
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 using Operation = const OperationNode&;
+
+class ASTDecompiler;
+class ExprDecompiler;
 
 enum class Type { Void, Bool, Bool2, Float, Int, Uint, HalfFloat };
 
@@ -223,7 +228,7 @@ private:
     Type type{};
 };
 
-constexpr const char* GetTypeString(Type type) {
+const char* GetTypeString(Type type) {
     switch (type) {
     case Type::Bool:
         return "bool";
@@ -243,7 +248,7 @@ constexpr const char* GetTypeString(Type type) {
     }
 }
 
-constexpr const char* GetImageTypeDeclaration(Tegra::Shader::ImageType image_type) {
+const char* GetImageTypeDeclaration(Tegra::Shader::ImageType image_type) {
     switch (image_type) {
     case Tegra::Shader::ImageType::Texture1D:
         return "1D";
@@ -331,16 +336,13 @@ std::string FlowStackTopName(MetaStackClass stack) {
     return fmt::format("{}_flow_stack_top", GetFlowStackPrefix(stack));
 }
 
-constexpr bool IsVertexShader(ProgramType stage) {
-    return stage == ProgramType::VertexA || stage == ProgramType::VertexB;
+[[deprecated]] constexpr bool IsVertexShader(ShaderType stage) {
+    return stage == ShaderType::Vertex;
 }
-
-class ASTDecompiler;
-class ExprDecompiler;
 
 class GLSLDecompiler final {
 public:
-    explicit GLSLDecompiler(const Device& device, const ShaderIR& ir, ProgramType stage,
+    explicit GLSLDecompiler(const Device& device, const ShaderIR& ir, ShaderType stage,
                             std::string suffix)
         : device{device}, ir{ir}, stage{stage}, suffix{suffix}, header{ir.GetHeader()} {}
 
@@ -427,7 +429,7 @@ private:
     }
 
     void DeclareGeometry() {
-        if (stage != ProgramType::Geometry) {
+        if (stage != ShaderType::Geometry) {
             return;
         }
 
@@ -510,23 +512,20 @@ private:
     }
 
     void DeclareLocalMemory() {
-        // TODO(Rodrigo): Unstub kernel local memory size and pass it from a register at
-        // specialization time.
-        const u64 local_memory_size =
-            stage == ProgramType::Compute ? 0x400 : header.GetLocalMemorySize();
+        if (stage == ShaderType::Compute) {
+            code.AddLine("#ifdef LOCAL_MEMORY_SIZE");
+            code.AddLine("uint {}[LOCAL_MEMORY_SIZE];", GetLocalMemory());
+            code.AddLine("#endif");
+            return;
+        }
+
+        const u64 local_memory_size = header.GetLocalMemorySize();
         if (local_memory_size == 0) {
             return;
         }
         const auto element_count = Common::AlignUp(local_memory_size, 4) / 4;
         code.AddLine("uint {}[{}];", GetLocalMemory(), element_count);
         code.AddNewLine();
-    }
-
-    void DeclareSharedMemory() {
-        if (stage != ProgramType::Compute) {
-            return;
-        }
-        code.AddLine("shared uint {}[];", GetSharedMemory());
     }
 
     void DeclareInternalFlags() {
@@ -578,12 +577,12 @@ private:
         const u32 location{GetGenericAttributeIndex(index)};
 
         std::string name{GetInputAttribute(index)};
-        if (stage == ProgramType::Geometry) {
+        if (stage == ShaderType::Geometry) {
             name = "gs_" + name + "[]";
         }
 
         std::string suffix;
-        if (stage == ProgramType::Fragment) {
+        if (stage == ShaderType::Fragment) {
             const auto input_mode{header.ps.GetAttributeUse(location)};
             if (skip_unused && input_mode == AttributeUse::Unused) {
                 return;
@@ -595,7 +594,7 @@ private:
     }
 
     void DeclareOutputAttributes() {
-        if (ir.HasPhysicalAttributes() && stage != ProgramType::Fragment) {
+        if (ir.HasPhysicalAttributes() && stage != ShaderType::Fragment) {
             for (u32 i = 0; i < GetNumPhysicalVaryings(); ++i) {
                 DeclareOutputAttribute(ToGenericAttribute(i));
             }
@@ -620,9 +619,9 @@ private:
     }
 
     void DeclareConstantBuffers() {
-        for (const auto& entry : ir.GetConstantBuffers()) {
-            const auto [index, size] = entry;
-            code.AddLine("layout (std140, binding = CBUF_BINDING_{}) uniform {} {{", index,
+        u32 binding = device.GetBaseBindings(stage).uniform_buffer;
+        for (const auto& [index, cbuf] : ir.GetConstantBuffers()) {
+            code.AddLine("layout (std140, binding = {}) uniform {} {{", binding++,
                          GetConstBufferBlock(index));
             code.AddLine("    uvec4 {}[{}];", GetConstBuffer(index), MAX_CONSTBUFFER_ELEMENTS);
             code.AddLine("}};");
@@ -631,9 +630,8 @@ private:
     }
 
     void DeclareGlobalMemory() {
-        for (const auto& gmem : ir.GetGlobalMemory()) {
-            const auto& [base, usage] = gmem;
-
+        u32 binding = device.GetBaseBindings(stage).shader_storage_buffer;
+        for (const auto& [base, usage] : ir.GetGlobalMemory()) {
             // Since we don't know how the shader will use the shader, hint the driver to disable as
             // much optimizations as possible
             std::string qualifier = "coherent volatile";
@@ -643,8 +641,8 @@ private:
                 qualifier += " writeonly";
             }
 
-            code.AddLine("layout (std430, binding = GMEM_BINDING_{}_{}) {} buffer {} {{",
-                         base.cbuf_index, base.cbuf_offset, qualifier, GetGlobalMemoryBlock(base));
+            code.AddLine("layout (std430, binding = {}) {} buffer {} {{", binding++, qualifier,
+                         GetGlobalMemoryBlock(base));
             code.AddLine("    uint {}[];", GetGlobalMemory(base));
             code.AddLine("}};");
             code.AddNewLine();
@@ -652,15 +650,17 @@ private:
     }
 
     void DeclareSamplers() {
-        const auto& samplers = ir.GetSamplers();
-        for (const auto& sampler : samplers) {
-            const std::string name{GetSampler(sampler)};
-            const std::string description{"layout (binding = SAMPLER_BINDING_" +
-                                          std::to_string(sampler.GetIndex()) + ") uniform"};
+        u32 binding = device.GetBaseBindings(stage).sampler;
+        for (const auto& sampler : ir.GetSamplers()) {
+            const std::string name = GetSampler(sampler);
+            const std::string description = fmt::format("layout (binding = {}) uniform", binding++);
+
             std::string sampler_type = [&]() {
+                if (sampler.IsBuffer()) {
+                    return "samplerBuffer";
+                }
                 switch (sampler.GetType()) {
                 case Tegra::Shader::TextureType::Texture1D:
-                    // Special cased, read below.
                     return "sampler1D";
                 case Tegra::Shader::TextureType::Texture2D:
                     return "sampler2D";
@@ -680,21 +680,9 @@ private:
                 sampler_type += "Shadow";
             }
 
-            if (sampler.GetType() == Tegra::Shader::TextureType::Texture1D) {
-                // 1D textures can be aliased to texture buffers, hide the declarations behind a
-                // preprocessor flag and use one or the other from the GPU state. This has to be
-                // done because shaders don't have enough information to determine the texture type.
-                EmitIfdefIsBuffer(sampler);
-                code.AddLine("{} samplerBuffer {};", description, name);
-                code.AddLine("#else");
-                code.AddLine("{} {} {};", description, sampler_type, name);
-                code.AddLine("#endif");
-            } else {
-                // The other texture types (2D, 3D and cubes) don't have this issue.
-                code.AddLine("{} {} {};", description, sampler_type, name);
-            }
+            code.AddLine("{} {} {};", description, sampler_type, name);
         }
-        if (!samplers.empty()) {
+        if (!ir.GetSamplers().empty()) {
             code.AddNewLine();
         }
     }
@@ -717,7 +705,7 @@ private:
                 constexpr u32 element_stride = 4;
                 const u32 address{generic_base + index * generic_stride + element * element_stride};
 
-                const bool declared = stage != ProgramType::Fragment ||
+                const bool declared = stage != ShaderType::Fragment ||
                                       header.ps.GetAttributeUse(index) != AttributeUse::Unused;
                 const std::string value =
                     declared ? ReadAttribute(attribute, element).AsFloat() : "0.0f";
@@ -734,8 +722,8 @@ private:
     }
 
     void DeclareImages() {
-        const auto& images{ir.GetImages()};
-        for (const auto& image : images) {
+        u32 binding = device.GetBaseBindings(stage).image;
+        for (const auto& image : ir.GetImages()) {
             std::string qualifier = "coherent volatile";
             if (image.IsRead() && !image.IsWritten()) {
                 qualifier += " readonly";
@@ -745,10 +733,10 @@ private:
 
             const char* format = image.IsAtomic() ? "r32ui, " : "";
             const char* type_declaration = GetImageTypeDeclaration(image.GetType());
-            code.AddLine("layout ({}binding = IMAGE_BINDING_{}) {} uniform uimage{} {};", format,
-                         image.GetIndex(), qualifier, type_declaration, GetImage(image));
+            code.AddLine("layout ({}binding = {}) {} uniform uimage{} {};", format, binding++,
+                         qualifier, type_declaration, GetImage(image));
         }
-        if (!images.empty()) {
+        if (!ir.GetImages().empty()) {
             code.AddNewLine();
         }
     }
@@ -809,7 +797,7 @@ private:
         }
 
         if (const auto abuf = std::get_if<AbufNode>(&*node)) {
-            UNIMPLEMENTED_IF_MSG(abuf->IsPhysicalBuffer() && stage == ProgramType::Geometry,
+            UNIMPLEMENTED_IF_MSG(abuf->IsPhysicalBuffer() && stage == ShaderType::Geometry,
                                  "Physical attributes in geometry shaders are not implemented");
             if (abuf->IsPhysicalBuffer()) {
                 return {fmt::format("ReadPhysicalAttribute({})",
@@ -868,18 +856,13 @@ private:
         }
 
         if (const auto lmem = std::get_if<LmemNode>(&*node)) {
-            if (stage == ProgramType::Compute) {
-                LOG_WARNING(Render_OpenGL, "Local memory is stubbed on compute shaders");
-            }
             return {
                 fmt::format("{}[{} >> 2]", GetLocalMemory(), Visit(lmem->GetAddress()).AsUint()),
                 Type::Uint};
         }
 
         if (const auto smem = std::get_if<SmemNode>(&*node)) {
-            return {
-                fmt::format("{}[{} >> 2]", GetSharedMemory(), Visit(smem->GetAddress()).AsUint()),
-                Type::Uint};
+            return {fmt::format("smem[{} >> 2]", Visit(smem->GetAddress()).AsUint()), Type::Uint};
         }
 
         if (const auto internal_flag = std::get_if<InternalFlagNode>(&*node)) {
@@ -909,7 +892,7 @@ private:
 
     Expression ReadAttribute(Attribute::Index attribute, u32 element, const Node& buffer = {}) {
         const auto GeometryPass = [&](std::string_view name) {
-            if (stage == ProgramType::Geometry && buffer) {
+            if (stage == ShaderType::Geometry && buffer) {
                 // TODO(Rodrigo): Guard geometry inputs against out of bound reads. Some games
                 // set an 0x80000000 index for those and the shader fails to build. Find out why
                 // this happens and what's its intent.
@@ -921,11 +904,11 @@ private:
         switch (attribute) {
         case Attribute::Index::Position:
             switch (stage) {
-            case ProgramType::Geometry:
+            case ShaderType::Geometry:
                 return {fmt::format("gl_in[{}].gl_Position{}", Visit(buffer).AsUint(),
                                     GetSwizzle(element)),
                         Type::Float};
-            case ProgramType::Fragment:
+            case ShaderType::Fragment:
                 return {element == 3 ? "1.0f" : ("gl_FragCoord"s + GetSwizzle(element)),
                         Type::Float};
             default:
@@ -959,7 +942,7 @@ private:
             return {"0", Type::Int};
         case Attribute::Index::FrontFacing:
             // TODO(Subv): Find out what the values are for the other elements.
-            ASSERT(stage == ProgramType::Fragment);
+            ASSERT(stage == ShaderType::Fragment);
             switch (element) {
             case 3:
                 return {"(gl_FrontFacing ? -1 : 0)", Type::Int};
@@ -985,7 +968,7 @@ private:
         // be found in fragment shaders, so we disable precise there. There are vertex shaders that
         // also fail to build but nobody seems to care about those.
         // Note: Only bugged drivers will skip precise.
-        const bool disable_precise = device.HasPreciseBug() && stage == ProgramType::Fragment;
+        const bool disable_precise = device.HasPreciseBug() && stage == ShaderType::Fragment;
 
         std::string temporary = code.GenerateTemporary();
         code.AddLine("{}{} {} = {};", disable_precise ? "" : "precise ", GetTypeString(type),
@@ -1247,17 +1230,12 @@ private:
             }
             target = std::move(*output);
         } else if (const auto lmem = std::get_if<LmemNode>(&*dest)) {
-            if (stage == ProgramType::Compute) {
-                LOG_WARNING(Render_OpenGL, "Local memory is stubbed on compute shaders");
-            }
             target = {
                 fmt::format("{}[{} >> 2]", GetLocalMemory(), Visit(lmem->GetAddress()).AsUint()),
                 Type::Uint};
         } else if (const auto smem = std::get_if<SmemNode>(&*dest)) {
-            ASSERT(stage == ProgramType::Compute);
-            target = {
-                fmt::format("{}[{} >> 2]", GetSharedMemory(), Visit(smem->GetAddress()).AsUint()),
-                Type::Uint};
+            ASSERT(stage == ShaderType::Compute);
+            target = {fmt::format("smem[{} >> 2]", Visit(smem->GetAddress()).AsUint()), Type::Uint};
         } else if (const auto gmem = std::get_if<GmemNode>(&*dest)) {
             const std::string real = Visit(gmem->GetRealAddress()).AsUint();
             const std::string base = Visit(gmem->GetBaseAddress()).AsUint();
@@ -1749,27 +1727,14 @@ private:
                 expr += ", ";
         }
 
-        // Store a copy of the expression without the lod to be used with texture buffers
-        std::string expr_buffer = expr;
-
-        if (meta->lod) {
+        if (meta->lod && !meta->sampler.IsBuffer()) {
             expr += ", ";
             expr += Visit(meta->lod).AsInt();
         }
         expr += ')';
         expr += GetSwizzle(meta->element);
 
-        expr_buffer += ')';
-        expr_buffer += GetSwizzle(meta->element);
-
-        const std::string tmp{code.GenerateTemporary()};
-        EmitIfdefIsBuffer(meta->sampler);
-        code.AddLine("float {} = {};", tmp, expr_buffer);
-        code.AddLine("#else");
-        code.AddLine("float {} = {};", tmp, expr);
-        code.AddLine("#endif");
-
-        return {tmp, Type::Float};
+        return {std::move(expr), Type::Float};
     }
 
     Expression ImageLoad(Operation operation) {
@@ -1837,7 +1802,7 @@ private:
     }
 
     void PreExit() {
-        if (stage != ProgramType::Fragment) {
+        if (stage != ShaderType::Fragment) {
             return;
         }
         const auto& used_registers = ir.GetRegisters();
@@ -1890,14 +1855,14 @@ private:
     }
 
     Expression EmitVertex(Operation operation) {
-        ASSERT_MSG(stage == ProgramType::Geometry,
+        ASSERT_MSG(stage == ShaderType::Geometry,
                    "EmitVertex is expected to be used in a geometry shader.");
         code.AddLine("EmitVertex();");
         return {};
     }
 
     Expression EndPrimitive(Operation operation) {
-        ASSERT_MSG(stage == ProgramType::Geometry,
+        ASSERT_MSG(stage == ShaderType::Geometry,
                    "EndPrimitive is expected to be used in a geometry shader.");
         code.AddLine("EndPrimitive();");
         return {};
@@ -2193,10 +2158,6 @@ private:
         return "lmem_" + suffix;
     }
 
-    std::string GetSharedMemory() const {
-        return fmt::format("smem_{}", suffix);
-    }
-
     std::string GetInternalFlag(InternalFlag flag) const {
         constexpr std::array InternalFlagNames = {"zero_flag", "sign_flag", "carry_flag",
                                                   "overflow_flag"};
@@ -2212,10 +2173,6 @@ private:
 
     std::string GetImage(const Image& image) const {
         return GetDeclarationWithSuffix(static_cast<u32>(image.GetIndex()), "image");
-    }
-
-    void EmitIfdefIsBuffer(const Sampler& sampler) {
-        code.AddLine("#ifdef SAMPLER_{}_IS_BUFFER", sampler.GetIndex());
     }
 
     std::string GetDeclarationWithSuffix(u32 index, std::string_view name) const {
@@ -2236,7 +2193,7 @@ private:
 
     const Device& device;
     const ShaderIR& ir;
-    const ProgramType stage;
+    const ShaderType stage;
     const std::string suffix;
     const Header header;
 
@@ -2491,7 +2448,7 @@ const float fswzadd_modifiers_b[] = float[4](-1.0f, -1.0f,  1.0f, -1.0f );
 )";
 }
 
-std::string Decompile(const Device& device, const ShaderIR& ir, ProgramType stage,
+std::string Decompile(const Device& device, const ShaderIR& ir, ShaderType stage,
                       const std::string& suffix) {
     GLSLDecompiler decompiler(device, ir, stage, suffix);
     decompiler.Decompile();

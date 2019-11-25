@@ -13,6 +13,8 @@
 
 namespace Vulkan::MaxwellToVK {
 
+using Maxwell = Tegra::Engines::Maxwell3D::Regs;
+
 namespace Sampler {
 
 vk::Filter Filter(Tegra::Texture::TextureFilter filter) {
@@ -196,17 +198,17 @@ std::pair<vk::Format, bool> SurfaceFormat(const VKDevice& device, FormatType for
     return {device.GetSupportedFormat(tuple.format, usage, format_type), tuple.attachable};
 }
 
-vk::ShaderStageFlagBits ShaderStage(Maxwell::ShaderStage stage) {
+vk::ShaderStageFlagBits ShaderStage(Tegra::Engines::ShaderType stage) {
     switch (stage) {
-    case Maxwell::ShaderStage::Vertex:
+    case Tegra::Engines::ShaderType::Vertex:
         return vk::ShaderStageFlagBits::eVertex;
-    case Maxwell::ShaderStage::TesselationControl:
+    case Tegra::Engines::ShaderType::TesselationControl:
         return vk::ShaderStageFlagBits::eTessellationControl;
-    case Maxwell::ShaderStage::TesselationEval:
+    case Tegra::Engines::ShaderType::TesselationEval:
         return vk::ShaderStageFlagBits::eTessellationEvaluation;
-    case Maxwell::ShaderStage::Geometry:
+    case Tegra::Engines::ShaderType::Geometry:
         return vk::ShaderStageFlagBits::eGeometry;
-    case Maxwell::ShaderStage::Fragment:
+    case Tegra::Engines::ShaderType::Fragment:
         return vk::ShaderStageFlagBits::eFragment;
     }
     UNIMPLEMENTED_MSG("Unimplemented shader stage={}", static_cast<u32>(stage));

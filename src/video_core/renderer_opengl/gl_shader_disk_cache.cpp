@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cstring>
+
 #include <fmt/format.h>
 
 #include "common/assert.h"
@@ -12,38 +13,21 @@
 #include "common/logging/log.h"
 #include "common/scm_rev.h"
 #include "common/zstd_compression.h"
-
 #include "core/core.h"
 #include "core/hle/kernel/process.h"
 #include "core/settings.h"
-
+#include "video_core/engines/shader_type.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_shader_disk_cache.h"
 
 namespace OpenGL {
 
+using Tegra::Engines::ShaderType;
 using VideoCommon::Shader::BindlessSamplerMap;
 using VideoCommon::Shader::BoundSamplerMap;
 using VideoCommon::Shader::KeyMap;
 
 namespace {
-
-struct ConstBufferKey {
-    u32 cbuf;
-    u32 offset;
-    u32 value;
-};
-
-struct BoundSamplerKey {
-    u32 offset;
-    Tegra::Engines::SamplerDescriptor sampler;
-};
-
-struct BindlessSamplerKey {
-    u32 cbuf;
-    u32 offset;
-    Tegra::Engines::SamplerDescriptor sampler;
-};
 
 using ShaderCacheVersionHash = std::array<u8, 64>;
 
@@ -52,10 +36,27 @@ enum class TransferableEntryKind : u32 {
     Usage,
 };
 
-constexpr u32 NativeVersion = 5;
+struct ConstBufferKey {
+    u32 cbuf{};
+    u32 offset{};
+    u32 value{};
+};
+
+struct BoundSamplerKey {
+    u32 offset{};
+    Tegra::Engines::SamplerDescriptor sampler{};
+};
+
+struct BindlessSamplerKey {
+    u32 cbuf{};
+    u32 offset{};
+    Tegra::Engines::SamplerDescriptor sampler{};
+};
+
+constexpr u32 NativeVersion = 11;
 
 // Making sure sizes doesn't change by accident
-static_assert(sizeof(BaseBindings) == 16);
+static_assert(sizeof(ProgramVariant) == 20);
 
 ShaderCacheVersionHash GetShaderCacheVersionHash() {
     ShaderCacheVersionHash hash{};
@@ -66,10 +67,10 @@ ShaderCacheVersionHash GetShaderCacheVersionHash() {
 
 } // Anonymous namespace
 
-ShaderDiskCacheRaw::ShaderDiskCacheRaw(u64 unique_identifier, ProgramType program_type,
-                                       ProgramCode program_code, ProgramCode program_code_b)
-    : unique_identifier{unique_identifier}, program_type{program_type},
-      program_code{std::move(program_code)}, program_code_b{std::move(program_code_b)} {}
+ShaderDiskCacheRaw::ShaderDiskCacheRaw(u64 unique_identifier, ShaderType type, ProgramCode code,
+                                       ProgramCode code_b)
+    : unique_identifier{unique_identifier}, type{type}, code{std::move(code)}, code_b{std::move(
+                                                                                   code_b)} {}
 
 ShaderDiskCacheRaw::ShaderDiskCacheRaw() = default;
 
@@ -77,42 +78,39 @@ ShaderDiskCacheRaw::~ShaderDiskCacheRaw() = default;
 
 bool ShaderDiskCacheRaw::Load(FileUtil::IOFile& file) {
     if (file.ReadBytes(&unique_identifier, sizeof(u64)) != sizeof(u64) ||
-        file.ReadBytes(&program_type, sizeof(u32)) != sizeof(u32)) {
+        file.ReadBytes(&type, sizeof(u32)) != sizeof(u32)) {
         return false;
     }
-    u32 program_code_size{};
-    u32 program_code_size_b{};
-    if (file.ReadBytes(&program_code_size, sizeof(u32)) != sizeof(u32) ||
-        file.ReadBytes(&program_code_size_b, sizeof(u32)) != sizeof(u32)) {
+    u32 code_size{};
+    u32 code_size_b{};
+    if (file.ReadBytes(&code_size, sizeof(u32)) != sizeof(u32) ||
+        file.ReadBytes(&code_size_b, sizeof(u32)) != sizeof(u32)) {
         return false;
     }
 
-    program_code.resize(program_code_size);
-    program_code_b.resize(program_code_size_b);
+    code.resize(code_size);
+    code_b.resize(code_size_b);
 
-    if (file.ReadArray(program_code.data(), program_code_size) != program_code_size)
+    if (file.ReadArray(code.data(), code_size) != code_size)
         return false;
 
-    if (HasProgramA() &&
-        file.ReadArray(program_code_b.data(), program_code_size_b) != program_code_size_b) {
+    if (HasProgramA() && file.ReadArray(code_b.data(), code_size_b) != code_size_b) {
         return false;
     }
     return true;
 }
 
 bool ShaderDiskCacheRaw::Save(FileUtil::IOFile& file) const {
-    if (file.WriteObject(unique_identifier) != 1 ||
-        file.WriteObject(static_cast<u32>(program_type)) != 1 ||
-        file.WriteObject(static_cast<u32>(program_code.size())) != 1 ||
-        file.WriteObject(static_cast<u32>(program_code_b.size())) != 1) {
+    if (file.WriteObject(unique_identifier) != 1 || file.WriteObject(static_cast<u32>(type)) != 1 ||
+        file.WriteObject(static_cast<u32>(code.size())) != 1 ||
+        file.WriteObject(static_cast<u32>(code_b.size())) != 1) {
         return false;
     }
 
-    if (file.WriteArray(program_code.data(), program_code.size()) != program_code.size())
+    if (file.WriteArray(code.data(), code.size()) != code.size())
         return false;
 
-    if (HasProgramA() &&
-        file.WriteArray(program_code_b.data(), program_code_b.size()) != program_code_b.size()) {
+    if (HasProgramA() && file.WriteArray(code_b.data(), code_b.size()) != code_b.size()) {
         return false;
     }
     return true;
