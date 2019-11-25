@@ -10,6 +10,7 @@ stages:
   jobs:
   - job: format
     displayName: 'clang'
+    continueOnError: true
     pool:
       vmImage: ubuntu-latest
     steps:
