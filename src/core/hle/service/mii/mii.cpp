@@ -50,6 +50,8 @@ public:
             {21, &IDatabaseService::GetIndex, "GetIndex"},
             {22, &IDatabaseService::SetInterfaceVersion, "SetInterfaceVersion"},
             {23, nullptr, "Convert"},
+            {24, nullptr, "ConvertCoreDataToCharInfo"},
+            {25, nullptr, "ConvertCharInfoToCoreData"},
         };
         // clang-format on
 

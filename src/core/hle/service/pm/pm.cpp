@@ -172,7 +172,7 @@ public:
             {6, &Shell::GetApplicationPid, "GetApplicationPid"},
             {7, nullptr, "BoostSystemMemoryResourceLimit"},
             {8, nullptr, "EnableAdditionalSystemThreads"},
-            {9, nullptr, "GetUnimplementedEventHandle"},
+            {9, nullptr, "GetBootFinishedEventHandle"},
         };
         // clang-format on
 

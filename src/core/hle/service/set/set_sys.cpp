@@ -273,10 +273,21 @@ SET_SYS::SET_SYS() : ServiceFramework("set:sys") {
         {171, nullptr, "SetChineseTraditionalInputMethod"},
         {172, nullptr, "GetPtmCycleCountReliability"},
         {173, nullptr, "SetPtmCycleCountReliability"},
+        {174, nullptr, "GetHomeMenuScheme"},
         {175, nullptr, "GetThemeSettings"},
         {176, nullptr, "SetThemeSettings"},
         {177, nullptr, "GetThemeKey"},
         {178, nullptr, "SetThemeKey"},
+        {179, nullptr, "GetZoomFlag"},
+        {180, nullptr, "SetZoomFlag"},
+        {181, nullptr, "GetT"},
+        {182, nullptr, "SetT"},
+        {183, nullptr, "GetPlatformRegion"},
+        {184, nullptr, "SetPlatformRegion"},
+        {185, nullptr, "GetHomeMenuSchemeModel"},
+        {186, nullptr, "GetMemoryUsageRateFlag"},
+        {187, nullptr, "GetTouchScreenMode"},
+        {188, nullptr, "SetTouchScreenMode"},
     };
     // clang-format on
 

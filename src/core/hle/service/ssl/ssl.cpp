@@ -13,6 +13,7 @@ namespace Service::SSL {
 class ISslConnection final : public ServiceFramework<ISslConnection> {
 public:
     ISslConnection() : ServiceFramework("ISslConnection") {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "SetSocketDescriptor"},
             {1, nullptr, "SetHostName"},
@@ -40,7 +41,11 @@ public:
             {23, nullptr, "GetOption"},
             {24, nullptr, "GetVerifyCertErrors"},
             {25, nullptr, "GetCipherInfo"},
+            {26, nullptr, "SetNextAlpnProto"},
+            {27, nullptr, "GetNextAlpnProto"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
     }
 };

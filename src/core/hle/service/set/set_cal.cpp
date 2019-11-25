@@ -7,6 +7,7 @@
 namespace Service::Set {
 
 SET_CAL::SET_CAL() : ServiceFramework("set:cal") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetBluetoothBdAddress"},
         {1, nullptr, "GetConfigurationId1"},
@@ -40,8 +41,18 @@ SET_CAL::SET_CAL() : ServiceFramework("set:cal") {
         {30, nullptr, "GetAmiiboEcqvBlsCertificate"},
         {31, nullptr, "GetAmiiboEcqvBlsRootCertificate"},
         {32, nullptr, "GetUsbTypeCPowerSourceCircuitVersion"},
+        {33, nullptr, "GetAnalogStickModuleTypeL"},
+        {34, nullptr, "GetAnalogStickModelParameterL"},
+        {35, nullptr, "GetAnalogStickFactoryCalibrationL"},
+        {36, nullptr, "GetAnalogStickModuleTypeR"},
+        {37, nullptr, "GetAnalogStickModelParameterR"},
+        {38, nullptr, "GetAnalogStickFactoryCalibrationR"},
+        {39, nullptr, "GetConsoleSixAxisSensorModuleType"},
+        {40, nullptr, "GetConsoleSixAxisSensorHorizontalOffset"},
         {41, nullptr, "GetBatteryVersion"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 

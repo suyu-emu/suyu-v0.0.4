@@ -28,6 +28,7 @@ ACC_U1::ACC_U1(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {103, nullptr, "GetProfileUpdateNotifier"},
         {104, nullptr, "CheckNetworkServiceAvailabilityAsync"},
         {105, nullptr, "GetBaasUserAvailabilityChangeNotifier"},
+        {106, nullptr, "GetProfileSyncNotifier"},
         {110, nullptr, "StoreSaveDataThumbnail"},
         {111, nullptr, "ClearSaveDataThumbnail"},
         {112, nullptr, "LoadSaveDataThumbnail"},

@@ -21,6 +21,7 @@ Time::Time(std::shared_ptr<Module> time, std::shared_ptr<SharedMemory> shared_me
         {30, nullptr, "GetStandardNetworkClockOperationEventReadableHandle"},
         {31, nullptr, "GetEphemeralNetworkClockOperationEventReadableHandle"},
         {50, nullptr, "SetStandardSteadyClockInternalOffset"},
+        {51, nullptr, "GetStandardSteadyClockRtcValue"},
         {100, &Time::IsStandardUserSystemClockAutomaticCorrectionEnabled, "IsStandardUserSystemClockAutomaticCorrectionEnabled"},
         {101, &Time::SetStandardUserSystemClockAutomaticCorrectionEnabled, "SetStandardUserSystemClockAutomaticCorrectionEnabled"},
         {102, nullptr, "GetStandardUserSystemClockInitialYear"},

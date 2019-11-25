@@ -25,6 +25,7 @@ public:
             {10103, &PlayReport::SaveReportWithUser<Core::Reporter::PlayReportType::New>, "SaveReportWithUser"},
             {10200, nullptr, "RequestImmediateTransmission"},
             {10300, nullptr, "GetTransmissionStatus"},
+            {10400, nullptr, "GetSystemSessionId"},
             {20100, &PlayReport::SaveSystemReport, "SaveSystemReport"},
             {20101, &PlayReport::SaveSystemReportWithUser, "SaveSystemReportWithUser"},
             {20200, nullptr, "SetOperationMode"},

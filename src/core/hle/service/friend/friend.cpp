@@ -60,6 +60,9 @@ public:
             {20801, nullptr, "SyncUserSetting"},
             {20900, nullptr, "RequestListSummaryOverlayNotification"},
             {21000, nullptr, "GetExternalApplicationCatalog"},
+            {22000, nullptr, "GetReceivedFriendInvitationList"},
+            {22001, nullptr, "GetReceivedFriendInvitationDetailedInfo"},
+            {22010, nullptr, "GetReceivedFriendInvitationCountCache"},
             {30100, nullptr, "DropFriendNewlyFlags"},
             {30101, nullptr, "DeleteFriend"},
             {30110, nullptr, "DropFriendNewlyFlag"},
@@ -91,6 +94,8 @@ public:
             {30812, nullptr, "ChangePlayLogPermission"},
             {30820, nullptr, "IssueFriendCode"},
             {30830, nullptr, "ClearPlayLog"},
+            {30900, nullptr, "SendFriendInvitation"},
+            {30910, nullptr, "ReadFriendInvitation"},
             {49900, nullptr, "DeleteNetworkServiceAccountCache"},
         };
         // clang-format on

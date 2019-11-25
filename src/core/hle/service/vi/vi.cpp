@@ -731,6 +731,7 @@ class IManagerDisplayService final : public ServiceFramework<IManagerDisplayServ
 public:
     explicit IManagerDisplayService(std::shared_ptr<NVFlinger::NVFlinger> nv_flinger)
         : ServiceFramework("IManagerDisplayService"), nv_flinger(std::move(nv_flinger)) {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {200, nullptr, "AllocateProcessHeapBlock"},
             {201, nullptr, "FreeProcessHeapBlock"},
@@ -766,8 +767,11 @@ public:
             {6008, nullptr, "StartLayerPresentationFenceWait"},
             {6009, nullptr, "StopLayerPresentationFenceWait"},
             {6010, nullptr, "GetLayerPresentationAllFencesExpiredEvent"},
+            {6011, nullptr, "EnableLayerAutoClearTransitionBuffer"},
+            {6012, nullptr, "DisableLayerAutoClearTransitionBuffer"},
             {7000, nullptr, "SetContentVisibility"},
             {8000, nullptr, "SetConductorLayer"},
+            {8001, nullptr, "SetTimestampTracking"},
             {8100, nullptr, "SetIndirectProducerFlipOffset"},
             {8200, nullptr, "CreateSharedBufferStaticStorage"},
             {8201, nullptr, "CreateSharedBufferTransferMemory"},
@@ -800,6 +804,8 @@ public:
             {8297, nullptr, "GetSharedFrameBufferContentParameter"},
             {8298, nullptr, "ExpandStartupLogoOnSharedFrameBuffer"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
     }
 

@@ -116,6 +116,8 @@ public:
             {500, nullptr, "RequestSyncTicket"},
             {501, nullptr, "RequestDownloadTicket"},
             {502, nullptr, "RequestDownloadTicketForPrepurchasedContents"},
+            {503, nullptr, "RequestSyncTicket"},
+            {504, nullptr, "RequestDownloadTicketForPrepurchasedContents2"},
         };
         // clang-format on
 
