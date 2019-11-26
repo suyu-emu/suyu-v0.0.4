@@ -158,7 +158,7 @@ void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuf
         VideoCore::Surface::PixelFormatFromGPUPixelFormat(framebuffer.pixel_format)};
     const u32 bytes_per_pixel{VideoCore::Surface::GetBytesPerPixel(pixel_format)};
     const u64 size_in_bytes{framebuffer.stride * framebuffer.height * bytes_per_pixel};
-    const auto host_ptr{Memory::GetPointer(framebuffer_addr)};
+    u8* const host_ptr{system.Memory().GetPointer(framebuffer_addr)};
     rasterizer->FlushRegion(ToCacheAddr(host_ptr), size_in_bytes);
 
     // TODO(Rodrigo): Read this from HLE

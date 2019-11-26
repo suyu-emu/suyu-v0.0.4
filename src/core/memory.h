@@ -132,6 +132,26 @@ public:
      */
     bool IsValidVirtualAddress(VAddr vaddr) const;
 
+    /**
+     * Gets a pointer to the given address.
+     *
+     * @param vaddr Virtual address to retrieve a pointer to.
+     *
+     * @returns The pointer to the given address, if the address is valid.
+     *          If the address is not valid, nullptr will be returned.
+     */
+    u8* GetPointer(VAddr vaddr);
+
+    /**
+     * Gets a pointer to the given address.
+     *
+     * @param vaddr Virtual address to retrieve a pointer to.
+     *
+     * @returns The pointer to the given address, if the address is valid.
+     *          If the address is not valid, nullptr will be returned.
+     */
+    const u8* GetPointer(VAddr vaddr) const;
+
 private:
     struct Impl;
     std::unique_ptr<Impl> impl;
@@ -161,8 +181,6 @@ void WriteBlock(const Kernel::Process& process, VAddr dest_addr, const void* src
 void WriteBlock(VAddr dest_addr, const void* src_buffer, std::size_t size);
 void ZeroBlock(const Kernel::Process& process, VAddr dest_addr, std::size_t size);
 void CopyBlock(VAddr dest_addr, VAddr src_addr, std::size_t size);
-
-u8* GetPointer(VAddr vaddr);
 
 std::string ReadCString(VAddr vaddr, std::size_t max_length);
 

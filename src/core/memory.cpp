@@ -195,6 +195,21 @@ struct Memory::Impl {
         return IsValidVirtualAddress(*system.CurrentProcess(), vaddr);
     }
 
+    u8* GetPointer(const VAddr vaddr) {
+        u8* const page_pointer = current_page_table->pointers[vaddr >> PAGE_BITS];
+        if (page_pointer != nullptr) {
+            return page_pointer + (vaddr & PAGE_MASK);
+        }
+
+        if (current_page_table->attributes[vaddr >> PAGE_BITS] ==
+            Common::PageType::RasterizerCachedMemory) {
+            return GetPointerFromVMA(vaddr);
+        }
+
+        LOG_ERROR(HW_Memory, "Unknown GetPointer @ 0x{:016X}", vaddr);
+        return nullptr;
+    }
+
     /**
      * Maps a region of pages as a specific type.
      *
@@ -276,6 +291,14 @@ bool Memory::IsValidVirtualAddress(const VAddr vaddr) const {
     return impl->IsValidVirtualAddress(vaddr);
 }
 
+u8* Memory::GetPointer(VAddr vaddr) {
+    return impl->GetPointer(vaddr);
+}
+
+const u8* Memory::GetPointer(VAddr vaddr) const {
+    return impl->GetPointer(vaddr);
+}
+
 void SetCurrentPageTable(Kernel::Process& process) {
     current_page_table = &process.VMManager().page_table;
 
@@ -290,21 +313,6 @@ void SetCurrentPageTable(Kernel::Process& process) {
 
 bool IsKernelVirtualAddress(const VAddr vaddr) {
     return KERNEL_REGION_VADDR <= vaddr && vaddr < KERNEL_REGION_END;
-}
-
-u8* GetPointer(const VAddr vaddr) {
-    u8* page_pointer = current_page_table->pointers[vaddr >> PAGE_BITS];
-    if (page_pointer) {
-        return page_pointer + (vaddr & PAGE_MASK);
-    }
-
-    if (current_page_table->attributes[vaddr >> PAGE_BITS] ==
-        Common::PageType::RasterizerCachedMemory) {
-        return GetPointerFromVMA(vaddr);
-    }
-
-    LOG_ERROR(HW_Memory, "Unknown GetPointer @ 0x{:016X}", vaddr);
-    return nullptr;
 }
 
 std::string ReadCString(VAddr vaddr, std::size_t max_length) {

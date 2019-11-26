@@ -19,6 +19,7 @@
 #include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/hle/kernel/process.h"
+#include "core/memory.h"
 #include "core/settings.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -838,7 +839,7 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
 
     const auto surface{
-        texture_cache.TryFindFramebufferSurface(Memory::GetPointer(framebuffer_addr))};
+        texture_cache.TryFindFramebufferSurface(system.Memory().GetPointer(framebuffer_addr))};
     if (!surface) {
         return {};
     }

@@ -52,7 +52,7 @@ GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, u64 size) {
     const u64 aligned_size{Common::AlignUp(size, page_size)};
     const GPUVAddr gpu_addr{FindFreeRegion(address_space_base, aligned_size)};
 
-    MapBackingMemory(gpu_addr, Memory::GetPointer(cpu_addr), aligned_size, cpu_addr);
+    MapBackingMemory(gpu_addr, system.Memory().GetPointer(cpu_addr), aligned_size, cpu_addr);
     ASSERT(system.CurrentProcess()
                ->VMManager()
                .SetMemoryAttribute(cpu_addr, size, Kernel::MemoryAttribute::DeviceMapped,
@@ -67,7 +67,7 @@ GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, GPUVAddr gpu_addr, u64 size)
 
     const u64 aligned_size{Common::AlignUp(size, page_size)};
 
-    MapBackingMemory(gpu_addr, Memory::GetPointer(cpu_addr), aligned_size, cpu_addr);
+    MapBackingMemory(gpu_addr, system.Memory().GetPointer(cpu_addr), aligned_size, cpu_addr);
     ASSERT(system.CurrentProcess()
                ->VMManager()
                .SetMemoryAttribute(cpu_addr, size, Kernel::MemoryAttribute::DeviceMapped,
