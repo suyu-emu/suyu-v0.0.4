@@ -183,9 +183,22 @@ private:
     /// Syncs the alpha test state to match the guest state
     void SyncAlphaTest();
 
-    /// Check for extension that are not strictly required
-    /// but are needed for correct emulation
+    /// Check for extension that are not strictly required but are needed for correct emulation
     void CheckExtensions();
+
+    std::size_t CalculateVertexArraysSize() const;
+
+    std::size_t CalculateIndexBufferSize() const;
+
+    /// Updates and returns a vertex array object representing current vertex format
+    GLuint SetupVertexFormat();
+
+    void SetupVertexBuffer(GLuint vao);
+    void SetupVertexInstances(GLuint vao);
+
+    GLintptr SetupIndexBuffer();
+
+    void SetupShaders(GLenum primitive_mode);
 
     const Device device;
     OpenGLState state;
@@ -210,20 +223,6 @@ private:
     VertexArrayPushBuffer vertex_array_pushbuffer;
     BindBuffersRangePushBuffer bind_ubo_pushbuffer{GL_UNIFORM_BUFFER};
     BindBuffersRangePushBuffer bind_ssbo_pushbuffer{GL_SHADER_STORAGE_BUFFER};
-
-    std::size_t CalculateVertexArraysSize() const;
-
-    std::size_t CalculateIndexBufferSize() const;
-
-    /// Updates and returns a vertex array object representing current vertex format
-    GLuint SetupVertexFormat();
-
-    void SetupVertexBuffer(GLuint vao);
-    void SetupVertexInstances(GLuint vao);
-
-    GLintptr SetupIndexBuffer();
-
-    void SetupShaders(GLenum primitive_mode);
 
     HostCounter samples_passed{GL_SAMPLES_PASSED};
 
