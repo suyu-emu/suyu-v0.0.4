@@ -152,6 +152,23 @@ public:
      */
     const u8* GetPointer(VAddr vaddr) const;
 
+    /**
+     * Reads a null-terminated string from the given virtual address.
+     * This function will continually read characters until either:
+     *
+     * - A null character ('\0') is reached.
+     * - max_length characters have been read.
+     *
+     * @note The final null-terminating character (if found) is not included
+     *       in the returned string.
+     *
+     * @param vaddr      The address to begin reading the string from.
+     * @param max_length The maximum length of the string to read in characters.
+     *
+     * @returns The read string.
+     */
+    std::string ReadCString(VAddr vaddr, std::size_t max_length);
+
 private:
     struct Impl;
     std::unique_ptr<Impl> impl;
@@ -181,8 +198,6 @@ void WriteBlock(const Kernel::Process& process, VAddr dest_addr, const void* src
 void WriteBlock(VAddr dest_addr, const void* src_buffer, std::size_t size);
 void ZeroBlock(const Kernel::Process& process, VAddr dest_addr, std::size_t size);
 void CopyBlock(VAddr dest_addr, VAddr src_addr, std::size_t size);
-
-std::string ReadCString(VAddr vaddr, std::size_t max_length);
 
 /**
  * Mark each page touching the region as cached.

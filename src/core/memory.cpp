@@ -210,6 +210,21 @@ struct Memory::Impl {
         return nullptr;
     }
 
+    std::string ReadCString(VAddr vaddr, std::size_t max_length) {
+        std::string string;
+        string.reserve(max_length);
+        for (std::size_t i = 0; i < max_length; ++i) {
+            const char c = Read8(vaddr);
+            if (c == '\0') {
+                break;
+            }
+            string.push_back(c);
+            ++vaddr;
+        }
+        string.shrink_to_fit();
+        return string;
+    }
+
     /**
      * Maps a region of pages as a specific type.
      *
@@ -299,6 +314,10 @@ const u8* Memory::GetPointer(VAddr vaddr) const {
     return impl->GetPointer(vaddr);
 }
 
+std::string Memory::ReadCString(VAddr vaddr, std::size_t max_length) {
+    return impl->ReadCString(vaddr, max_length);
+}
+
 void SetCurrentPageTable(Kernel::Process& process) {
     current_page_table = &process.VMManager().page_table;
 
@@ -313,20 +332,6 @@ void SetCurrentPageTable(Kernel::Process& process) {
 
 bool IsKernelVirtualAddress(const VAddr vaddr) {
     return KERNEL_REGION_VADDR <= vaddr && vaddr < KERNEL_REGION_END;
-}
-
-std::string ReadCString(VAddr vaddr, std::size_t max_length) {
-    std::string string;
-    string.reserve(max_length);
-    for (std::size_t i = 0; i < max_length; ++i) {
-        char c = Read8(vaddr);
-        if (c == '\0')
-            break;
-        string.push_back(c);
-        ++vaddr;
-    }
-    string.shrink_to_fit();
-    return string;
 }
 
 void RasterizerMarkRegionCached(VAddr vaddr, u64 size, bool cached) {

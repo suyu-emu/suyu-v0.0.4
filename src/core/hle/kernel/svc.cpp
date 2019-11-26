@@ -332,7 +332,9 @@ static ResultCode UnmapMemory(Core::System& system, VAddr dst_addr, VAddr src_ad
 /// Connect to an OS service given the port name, returns the handle to the port to out
 static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
                                      VAddr port_name_address) {
-    if (!system.Memory().IsValidVirtualAddress(port_name_address)) {
+    auto& memory = system.Memory();
+
+    if (!memory.IsValidVirtualAddress(port_name_address)) {
         LOG_ERROR(Kernel_SVC,
                   "Port Name Address is not a valid virtual address, port_name_address=0x{:016X}",
                   port_name_address);
@@ -341,7 +343,7 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
 
     static constexpr std::size_t PortNameMaxLength = 11;
     // Read 1 char beyond the max allowed port name to detect names that are too long.
-    std::string port_name = Memory::ReadCString(port_name_address, PortNameMaxLength + 1);
+    const std::string port_name = memory.ReadCString(port_name_address, PortNameMaxLength + 1);
     if (port_name.size() > PortNameMaxLength) {
         LOG_ERROR(Kernel_SVC, "Port name is too long, expected {} but got {}", PortNameMaxLength,
                   port_name.size());
