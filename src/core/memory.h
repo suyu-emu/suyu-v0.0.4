@@ -59,6 +59,13 @@ public:
     Memory& operator=(Memory&&) = default;
 
     /**
+     * Changes the currently active page table to that of the given process instance.
+     *
+     * @param process The process to use the page table of.
+     */
+    void SetCurrentPageTable(Kernel::Process& process);
+
+    /**
      * Maps an allocated buffer onto a region of the emulated process address space.
      *
      * @param page_table The page table of the emulated process.
@@ -400,10 +407,6 @@ private:
     struct Impl;
     std::unique_ptr<Impl> impl;
 };
-
-/// Changes the currently active page table to that of
-/// the given process instance.
-void SetCurrentPageTable(Kernel::Process& process);
 
 /// Determines if the given VAddr is a kernel address
 bool IsKernelVirtualAddress(VAddr vaddr);

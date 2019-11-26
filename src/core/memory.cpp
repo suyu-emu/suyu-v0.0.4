@@ -20,15 +20,23 @@
 #include "video_core/gpu.h"
 
 namespace Memory {
-namespace {
-Common::PageTable* current_page_table = nullptr;
-} // Anonymous namespace
 
 // Implementation class used to keep the specifics of the memory subsystem hidden
 // from outside classes. This also allows modification to the internals of the memory
 // subsystem without needing to rebuild all files that make use of the memory interface.
 struct Memory::Impl {
     explicit Impl(Core::System& system_) : system{system_} {}
+
+    void SetCurrentPageTable(Kernel::Process& process) {
+        current_page_table = &process.VMManager().page_table;
+
+        const std::size_t address_space_width = process.VMManager().GetAddressSpaceWidth();
+
+        system.ArmInterface(0).PageTableChanged(*current_page_table, address_space_width);
+        system.ArmInterface(1).PageTableChanged(*current_page_table, address_space_width);
+        system.ArmInterface(2).PageTableChanged(*current_page_table, address_space_width);
+        system.ArmInterface(3).PageTableChanged(*current_page_table, address_space_width);
+    }
 
     void MapMemoryRegion(Common::PageTable& page_table, VAddr base, u64 size, u8* target) {
         ASSERT_MSG((size & PAGE_MASK) == 0, "non-page aligned size: {:016X}", size);
@@ -575,11 +583,16 @@ struct Memory::Impl {
         }
     }
 
+    Common::PageTable* current_page_table = nullptr;
     Core::System& system;
 };
 
 Memory::Memory(Core::System& system) : impl{std::make_unique<Impl>(system)} {}
 Memory::~Memory() = default;
+
+void Memory::SetCurrentPageTable(Kernel::Process& process) {
+    impl->SetCurrentPageTable(process);
+}
 
 void Memory::MapMemoryRegion(Common::PageTable& page_table, VAddr base, u64 size, u8* target) {
     impl->MapMemoryRegion(page_table, base, size, target);
@@ -693,18 +706,6 @@ void Memory::CopyBlock(VAddr dest_addr, VAddr src_addr, std::size_t size) {
 
 void Memory::RasterizerMarkRegionCached(VAddr vaddr, u64 size, bool cached) {
     impl->RasterizerMarkRegionCached(vaddr, size, cached);
-}
-
-void SetCurrentPageTable(Kernel::Process& process) {
-    current_page_table = &process.VMManager().page_table;
-
-    const std::size_t address_space_width = process.VMManager().GetAddressSpaceWidth();
-
-    auto& system = Core::System::GetInstance();
-    system.ArmInterface(0).PageTableChanged(*current_page_table, address_space_width);
-    system.ArmInterface(1).PageTableChanged(*current_page_table, address_space_width);
-    system.ArmInterface(2).PageTableChanged(*current_page_table, address_space_width);
-    system.ArmInterface(3).PageTableChanged(*current_page_table, address_space_width);
 }
 
 bool IsKernelVirtualAddress(const VAddr vaddr) {
