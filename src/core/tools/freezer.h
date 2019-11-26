@@ -16,6 +16,10 @@ class CoreTiming;
 struct EventType;
 } // namespace Core::Timing
 
+namespace Memory {
+class Memory;
+}
+
 namespace Tools {
 
 /**
@@ -34,7 +38,7 @@ public:
         u64 value;
     };
 
-    explicit Freezer(Core::Timing::CoreTiming& core_timing);
+    explicit Freezer(Core::Timing::CoreTiming& core_timing_, Memory::Memory& memory_);
     ~Freezer();
 
     // Enables or disables the entire memory freezer.
@@ -78,6 +82,7 @@ private:
 
     std::shared_ptr<Core::Timing::EventType> event;
     Core::Timing::CoreTiming& core_timing;
+    Memory::Memory& memory;
 };
 
 } // namespace Tools

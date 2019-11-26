@@ -383,7 +383,7 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
 
     // TODO(Subv): svcSendSyncRequest should put the caller thread to sleep while the server
     // responds and cause a reschedule.
-    return session->SendSyncRequest(system.CurrentScheduler().GetCurrentThread());
+    return session->SendSyncRequest(system.CurrentScheduler().GetCurrentThread(), system.Memory());
 }
 
 /// Get the ID for the specified thread.

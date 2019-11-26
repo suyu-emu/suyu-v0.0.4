@@ -22,7 +22,8 @@ constexpr auto RangeFromInterval(Map& map, const Interval& interval) {
 
 } // Anonymous namespace
 
-RasterizerAccelerated::RasterizerAccelerated() = default;
+RasterizerAccelerated::RasterizerAccelerated(Memory::Memory& cpu_memory_)
+    : cpu_memory{cpu_memory_} {}
 
 RasterizerAccelerated::~RasterizerAccelerated() = default;
 

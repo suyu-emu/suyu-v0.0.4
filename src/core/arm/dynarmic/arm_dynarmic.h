@@ -58,7 +58,6 @@ private:
     ARM_Unicorn inner_unicorn;
 
     std::size_t core_index;
-    System& system;
     DynarmicExclusiveMonitor& exclusive_monitor;
 };
 

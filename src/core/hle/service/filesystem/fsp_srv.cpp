@@ -391,13 +391,10 @@ public:
     }
 
     void RenameFile(Kernel::HLERequestContext& ctx) {
-        std::vector<u8> buffer;
-        buffer.resize(ctx.BufferDescriptorX()[0].Size());
-        Memory::ReadBlock(ctx.BufferDescriptorX()[0].Address(), buffer.data(), buffer.size());
+        std::vector<u8> buffer = ctx.ReadBuffer(0);
         const std::string src_name = Common::StringFromBuffer(buffer);
 
-        buffer.resize(ctx.BufferDescriptorX()[1].Size());
-        Memory::ReadBlock(ctx.BufferDescriptorX()[1].Address(), buffer.data(), buffer.size());
+        buffer = ctx.ReadBuffer(1);
         const std::string dst_name = Common::StringFromBuffer(buffer);
 
         LOG_DEBUG(Service_FS, "called. file '{}' to file '{}'", src_name, dst_name);

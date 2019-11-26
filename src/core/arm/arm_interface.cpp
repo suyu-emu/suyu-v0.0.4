@@ -13,7 +13,6 @@
 #include "core/memory.h"
 
 namespace Core {
-
 namespace {
 
 constexpr u64 ELF_DYNAMIC_TAG_NULL = 0;
@@ -156,7 +155,7 @@ std::vector<ARM_Interface::BacktraceEntry> ARM_Interface::GetBacktrace() const {
     }
 
     std::map<VAddr, std::string> modules;
-    auto& loader{System::GetInstance().GetAppLoader()};
+    auto& loader{system.GetAppLoader()};
     if (loader.ReadNSOModules(modules) != Loader::ResultStatus::Success) {
         return {};
     }

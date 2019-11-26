@@ -127,7 +127,8 @@ ResultCode ServerSession::HandleDomainSyncRequest(Kernel::HLERequestContext& con
     return RESULT_SUCCESS;
 }
 
-ResultCode ServerSession::HandleSyncRequest(std::shared_ptr<Thread> thread) {
+ResultCode ServerSession::HandleSyncRequest(std::shared_ptr<Thread> thread,
+                                            Memory::Memory& memory) {
     // The ServerSession received a sync request, this means that there's new data available
     // from its ClientSession, so wake up any threads that may be waiting on a svcReplyAndReceive or
     // similar.

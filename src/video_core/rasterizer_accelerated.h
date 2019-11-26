@@ -11,12 +11,16 @@
 #include "common/common_types.h"
 #include "video_core/rasterizer_interface.h"
 
+namespace Memory {
+class Memory;
+}
+
 namespace VideoCore {
 
 /// Implements the shared part in GPU accelerated rasterizers in RasterizerInterface.
 class RasterizerAccelerated : public RasterizerInterface {
 public:
-    explicit RasterizerAccelerated();
+    explicit RasterizerAccelerated(Memory::Memory& cpu_memory_);
     ~RasterizerAccelerated() override;
 
     void UpdatePagesCachedCount(VAddr addr, u64 size, int delta) override;
@@ -24,8 +28,9 @@ public:
 private:
     using CachedPageMap = boost::icl::interval_map<u64, int>;
     CachedPageMap cached_pages;
-
     std::mutex pages_mutex;
+
+    Memory::Memory& cpu_memory;
 };
 
 } // namespace VideoCore

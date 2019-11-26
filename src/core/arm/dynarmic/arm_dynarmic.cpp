@@ -28,6 +28,7 @@ public:
     explicit ARM_Dynarmic_Callbacks(ARM_Dynarmic& parent) : parent(parent) {}
 
     u8 MemoryRead8(u64 vaddr) override {
+        auto& s = parent.system;
         return Memory::Read8(vaddr);
     }
     u16 MemoryRead16(u64 vaddr) override {
@@ -171,9 +172,10 @@ void ARM_Dynarmic::Step() {
 
 ARM_Dynarmic::ARM_Dynarmic(System& system, ExclusiveMonitor& exclusive_monitor,
                            std::size_t core_index)
-    : cb(std::make_unique<ARM_Dynarmic_Callbacks>(*this)), inner_unicorn{system},
-      core_index{core_index}, system{system},
-      exclusive_monitor{dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor)} {}
+    : ARM_Interface{system},
+      cb(std::make_unique<ARM_Dynarmic_Callbacks>(*this)), inner_unicorn{system},
+      core_index{core_index}, exclusive_monitor{
+                                  dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor)} {}
 
 ARM_Dynarmic::~ARM_Dynarmic() = default;
 

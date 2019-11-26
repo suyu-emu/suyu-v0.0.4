@@ -11,12 +11,11 @@
 #include "core/tools/freezer.h"
 
 namespace Tools {
-
 namespace {
 
 constexpr s64 MEMORY_FREEZER_TICKS = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 60);
 
-u64 MemoryReadWidth(u32 width, VAddr addr) {
+u64 MemoryReadWidth(Memory::Memory& memory, u32 width, VAddr addr) {
     switch (width) {
     case 1:
         return Memory::Read8(addr);
@@ -32,7 +31,7 @@ u64 MemoryReadWidth(u32 width, VAddr addr) {
     }
 }
 
-void MemoryWriteWidth(u32 width, VAddr addr, u64 value) {
+void MemoryWriteWidth(Memory::Memory& memory, u32 width, VAddr addr, u64 value) {
     switch (width) {
     case 1:
         Memory::Write8(addr, static_cast<u8>(value));
@@ -53,7 +52,8 @@ void MemoryWriteWidth(u32 width, VAddr addr, u64 value) {
 
 } // Anonymous namespace
 
-Freezer::Freezer(Core::Timing::CoreTiming& core_timing) : core_timing(core_timing) {
+Freezer::Freezer(Core::Timing::CoreTiming& core_timing_, Memory::Memory& memory_)
+    : core_timing{core_timing_}, memory{memory_} {
     event = Core::Timing::CreateEvent(
         "MemoryFreezer::FrameCallback",
         [this](u64 userdata, s64 cycles_late) { FrameCallback(userdata, cycles_late); });
@@ -89,7 +89,7 @@ void Freezer::Clear() {
 u64 Freezer::Freeze(VAddr address, u32 width) {
     std::lock_guard lock{entries_mutex};
 
-    const auto current_value = MemoryReadWidth(width, address);
+    const auto current_value = MemoryReadWidth(memory, width, address);
     entries.push_back({address, width, current_value});
 
     LOG_DEBUG(Common_Memory,
@@ -169,7 +169,7 @@ void Freezer::FrameCallback(u64 userdata, s64 cycles_late) {
         LOG_DEBUG(Common_Memory,
                   "Enforcing memory freeze at address={:016X}, value={:016X}, width={:02X}",
                   entry.address, entry.value, entry.width);
-        MemoryWriteWidth(entry.width, entry.address, entry.value);
+        MemoryWriteWidth(memory, entry.width, entry.address, entry.value);
     }
 
     core_timing.ScheduleEvent(MEMORY_FREEZER_TICKS - cycles_late, event);
@@ -181,7 +181,7 @@ void Freezer::FillEntryReads() {
     LOG_DEBUG(Common_Memory, "Updating memory freeze entries to current values.");
 
     for (auto& entry : entries) {
-        entry.value = MemoryReadWidth(entry.width, entry.address);
+        entry.value = MemoryReadWidth(memory, entry.width, entry.address);
     }
 }
 

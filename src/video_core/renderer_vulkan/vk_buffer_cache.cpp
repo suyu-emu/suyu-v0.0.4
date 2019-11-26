@@ -24,9 +24,11 @@ CachedBufferEntry::CachedBufferEntry(VAddr cpu_addr, std::size_t size, u64 offse
       alignment{alignment} {}
 
 VKBufferCache::VKBufferCache(Tegra::MemoryManager& tegra_memory_manager,
+                             Memory::Memory& cpu_memory_,
                              VideoCore::RasterizerInterface& rasterizer, const VKDevice& device,
                              VKMemoryManager& memory_manager, VKScheduler& scheduler, u64 size)
-    : RasterizerCache{rasterizer}, tegra_memory_manager{tegra_memory_manager} {
+    : RasterizerCache{rasterizer}, tegra_memory_manager{tegra_memory_manager}, cpu_memory{
+                                                                                   cpu_memory_} {
     const auto usage = vk::BufferUsageFlagBits::eVertexBuffer |
                        vk::BufferUsageFlagBits::eIndexBuffer |
                        vk::BufferUsageFlagBits::eUniformBuffer;

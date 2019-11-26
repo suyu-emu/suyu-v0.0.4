@@ -10,6 +10,10 @@
 
 union ResultCode;
 
+namespace Memory {
+class Memory;
+}
+
 namespace Kernel {
 
 class KernelCore;
@@ -37,7 +41,7 @@ public:
         return HANDLE_TYPE;
     }
 
-    ResultCode SendSyncRequest(Thread* thread);
+    ResultCode SendSyncRequest(Thread* thread, Memory::Memory& memory);
 
 private:
     /// The parent session, which links to the server endpoint.

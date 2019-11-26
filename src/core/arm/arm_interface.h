@@ -17,11 +17,13 @@ enum class VMAPermission : u8;
 }
 
 namespace Core {
+class System;
 
 /// Generic ARMv8 CPU interface
 class ARM_Interface : NonCopyable {
 public:
-    virtual ~ARM_Interface() {}
+    explicit ARM_Interface(System& system_) : system{system_} {}
+    virtual ~ARM_Interface() = default;
 
     struct ThreadContext {
         std::array<u64, 31> cpu_registers;
@@ -163,6 +165,10 @@ public:
     /// fp+0 : pointer to previous frame record
     /// fp+8 : value of lr for frame
     void LogBacktrace() const;
+
+protected:
+    /// System context that this ARM interface is running under.
+    System& system;
 };
 
 } // namespace Core
