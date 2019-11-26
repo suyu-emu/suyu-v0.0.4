@@ -36,15 +36,15 @@ private:
         MessageHeader header{};
         VAddr addr{ctx.BufferDescriptorX()[0].Address()};
         const VAddr end_addr{addr + ctx.BufferDescriptorX()[0].size};
-        Memory::ReadBlock(addr, &header, sizeof(MessageHeader));
+        memory.ReadBlock(addr, &header, sizeof(MessageHeader));
         addr += sizeof(MessageHeader);
 
         FieldMap fields;
         while (addr < end_addr) {
-            const auto field = static_cast<Field>(Memory::Read8(addr++));
-            const auto length = Memory::Read8(addr++);
+            const auto field = static_cast<Field>(memory.Read8(addr++));
+            const auto length = memory.Read8(addr++);
 
-            if (static_cast<Field>(Memory::Read8(addr)) == Field::Skip) {
+            if (static_cast<Field>(memory.Read8(addr)) == Field::Skip) {
                 ++addr;
             }
 
@@ -55,7 +55,7 @@ private:
             }
 
             std::vector<u8> data(length);
-            Memory::ReadBlock(addr, data.data(), length);
+            memory.ReadBlock(addr, data.data(), length);
             fields.emplace(field, std::move(data));
         }
 

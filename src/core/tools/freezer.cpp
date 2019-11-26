@@ -18,13 +18,13 @@ constexpr s64 MEMORY_FREEZER_TICKS = static_cast<s64>(Core::Timing::BASE_CLOCK_R
 u64 MemoryReadWidth(Memory::Memory& memory, u32 width, VAddr addr) {
     switch (width) {
     case 1:
-        return Memory::Read8(addr);
+        return memory.Read8(addr);
     case 2:
-        return Memory::Read16(addr);
+        return memory.Read16(addr);
     case 4:
-        return Memory::Read32(addr);
+        return memory.Read32(addr);
     case 8:
-        return Memory::Read64(addr);
+        return memory.Read64(addr);
     default:
         UNREACHABLE();
         return 0;

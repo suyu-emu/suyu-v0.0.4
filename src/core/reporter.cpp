@@ -157,7 +157,7 @@ json GetHLEBufferDescriptorData(const std::vector<DescriptorType>& buffer, Memor
 
         if constexpr (read_value) {
             std::vector<u8> data(desc.Size());
-            Memory::ReadBlock(desc.Address(), data.data(), desc.Size());
+            memory.ReadBlock(desc.Address(), data.data(), desc.Size());
             entry["data"] = Common::HexToString(data);
         }
 

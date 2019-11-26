@@ -969,13 +969,13 @@ static void ReadMemory() {
         SendReply("E01");
     }
 
-    const auto& memory = Core::System::GetInstance().Memory();
+    auto& memory = Core::System::GetInstance().Memory();
     if (!memory.IsValidVirtualAddress(addr)) {
         return SendReply("E00");
     }
 
     std::vector<u8> data(len);
-    Memory::ReadBlock(addr, data.data(), len);
+    memory.ReadBlock(addr, data.data(), len);
 
     MemToGdbHex(reply, data.data(), len);
     reply[len * 2] = '\0';
@@ -1057,7 +1057,9 @@ static bool CommitBreakpoint(BreakpointType type, VAddr addr, u64 len) {
     breakpoint.active = true;
     breakpoint.addr = addr;
     breakpoint.len = len;
-    Memory::ReadBlock(addr, breakpoint.inst.data(), breakpoint.inst.size());
+
+    auto& memory = Core::System::GetInstance().Memory();
+    memory.ReadBlock(addr, breakpoint.inst.data(), breakpoint.inst.size());
 
     static constexpr std::array<u8, 4> btrap{0x00, 0x7d, 0x20, 0xd4};
     if (type == BreakpointType::Execute) {

@@ -153,6 +153,46 @@ public:
     const u8* GetPointer(VAddr vaddr) const;
 
     /**
+     * Reads an 8-bit unsigned value from the current process' address space
+     * at the given virtual address.
+     *
+     * @param addr The virtual address to read the 8-bit value from.
+     *
+     * @returns the read 8-bit unsigned value.
+     */
+    u8 Read8(VAddr addr);
+
+    /**
+     * Reads a 16-bit unsigned value from the current process' address space
+     * at the given virtual address.
+     *
+     * @param addr The virtual address to read the 16-bit value from.
+     *
+     * @returns the read 16-bit unsigned value.
+     */
+    u16 Read16(VAddr addr);
+
+    /**
+     * Reads a 32-bit unsigned value from the current process' address space
+     * at the given virtual address.
+     *
+     * @param addr The virtual address to read the 32-bit value from.
+     *
+     * @returns the read 32-bit unsigned value.
+     */
+    u32 Read32(VAddr addr);
+
+    /**
+     * Reads a 64-bit unsigned value from the current process' address space
+     * at the given virtual address.
+     *
+     * @param addr The virtual address to read the 64-bit value from.
+     *
+     * @returns the read 64-bit value.
+     */
+    u64 Read64(VAddr addr);
+
+    /**
      * Reads a null-terminated string from the given virtual address.
      * This function will continually read characters until either:
      *
@@ -168,6 +208,44 @@ public:
      * @returns The read string.
      */
     std::string ReadCString(VAddr vaddr, std::size_t max_length);
+
+    /**
+     * Reads a contiguous block of bytes from a specified process' address space.
+     *
+     * @param process     The process to read the data from.
+     * @param src_addr    The virtual address to begin reading from.
+     * @param dest_buffer The buffer to place the read bytes into.
+     * @param size        The amount of data to read, in bytes.
+     *
+     * @note If a size of 0 is specified, then this function reads nothing and
+     *       no attempts to access memory are made at all.
+     *
+     * @pre dest_buffer must be at least size bytes in length, otherwise a
+     *      buffer overrun will occur.
+     *
+     * @post The range [dest_buffer, size) contains the read bytes from the
+     *       process' address space.
+     */
+    void ReadBlock(const Kernel::Process& process, VAddr src_addr, void* dest_buffer,
+                   std::size_t size);
+
+    /**
+     * Reads a contiguous block of bytes from the current process' address space.
+     *
+     * @param src_addr    The virtual address to begin reading from.
+     * @param dest_buffer The buffer to place the read bytes into.
+     * @param size        The amount of data to read, in bytes.
+     *
+     * @note If a size of 0 is specified, then this function reads nothing and
+     *       no attempts to access memory are made at all.
+     *
+     * @pre dest_buffer must be at least size bytes in length, otherwise a
+     *      buffer overrun will occur.
+     *
+     * @post The range [dest_buffer, size) contains the read bytes from the
+     *       current process' address space.
+     */
+    void ReadBlock(VAddr src_addr, void* dest_buffer, std::size_t size);
 
     /**
      * Fills the specified address range within a process' address space with zeroes.
@@ -242,18 +320,11 @@ void SetCurrentPageTable(Kernel::Process& process);
 /// Determines if the given VAddr is a kernel address
 bool IsKernelVirtualAddress(VAddr vaddr);
 
-u8 Read8(VAddr addr);
-u16 Read16(VAddr addr);
-u32 Read32(VAddr addr);
-u64 Read64(VAddr addr);
-
 void Write8(VAddr addr, u8 data);
 void Write16(VAddr addr, u16 data);
 void Write32(VAddr addr, u32 data);
 void Write64(VAddr addr, u64 data);
 
-void ReadBlock(const Kernel::Process& process, VAddr src_addr, void* dest_buffer, std::size_t size);
-void ReadBlock(VAddr src_addr, void* dest_buffer, std::size_t size);
 void WriteBlock(const Kernel::Process& process, VAddr dest_addr, const void* src_buffer,
                 std::size_t size);
 void WriteBlock(VAddr dest_addr, const void* src_buffer, std::size_t size);

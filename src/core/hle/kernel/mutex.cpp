@@ -79,7 +79,7 @@ ResultCode Mutex::TryAcquire(VAddr address, Handle holding_thread_handle,
     // thread.
     ASSERT(requesting_thread == current_thread);
 
-    const u32 addr_value = Memory::Read32(address);
+    const u32 addr_value = system.Memory().Read32(address);
 
     // If the mutex isn't being held, just return success.
     if (addr_value != (holding_thread_handle | Mutex::MutexHasWaitersFlag)) {

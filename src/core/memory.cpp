@@ -60,37 +60,6 @@ u8* GetPointerFromVMA(VAddr vaddr) {
 }
 
 template <typename T>
-T Read(const VAddr vaddr) {
-    const u8* const page_pointer = current_page_table->pointers[vaddr >> PAGE_BITS];
-    if (page_pointer != nullptr) {
-        // NOTE: Avoid adding any extra logic to this fast-path block
-        T value;
-        std::memcpy(&value, &page_pointer[vaddr & PAGE_MASK], sizeof(T));
-        return value;
-    }
-
-    const Common::PageType type = current_page_table->attributes[vaddr >> PAGE_BITS];
-    switch (type) {
-    case Common::PageType::Unmapped:
-        LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:08X}", sizeof(T) * 8, vaddr);
-        return 0;
-    case Common::PageType::Memory:
-        ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
-        break;
-    case Common::PageType::RasterizerCachedMemory: {
-        const u8* const host_ptr{GetPointerFromVMA(vaddr)};
-        Core::System::GetInstance().GPU().FlushRegion(ToCacheAddr(host_ptr), sizeof(T));
-        T value;
-        std::memcpy(&value, host_ptr, sizeof(T));
-        return value;
-    }
-    default:
-        UNREACHABLE();
-    }
-    return {};
-}
-
-template <typename T>
 void Write(const VAddr vaddr, const T data) {
     u8* const page_pointer = current_page_table->pointers[vaddr >> PAGE_BITS];
     if (page_pointer != nullptr) {
@@ -210,6 +179,22 @@ struct Memory::Impl {
         return nullptr;
     }
 
+    u8 Read8(const VAddr addr) {
+        return Read<u8>(addr);
+    }
+
+    u16 Read16(const VAddr addr) {
+        return Read<u16_le>(addr);
+    }
+
+    u32 Read32(const VAddr addr) {
+        return Read<u32_le>(addr);
+    }
+
+    u64 Read64(const VAddr addr) {
+        return Read<u64_le>(addr);
+    }
+
     std::string ReadCString(VAddr vaddr, std::size_t max_length) {
         std::string string;
         string.reserve(max_length);
@@ -223,6 +208,55 @@ struct Memory::Impl {
         }
         string.shrink_to_fit();
         return string;
+    }
+
+    void ReadBlock(const Kernel::Process& process, const VAddr src_addr, void* dest_buffer,
+                   const std::size_t size) {
+        const auto& page_table = process.VMManager().page_table;
+
+        std::size_t remaining_size = size;
+        std::size_t page_index = src_addr >> PAGE_BITS;
+        std::size_t page_offset = src_addr & PAGE_MASK;
+
+        while (remaining_size > 0) {
+            const std::size_t copy_amount =
+                std::min(static_cast<std::size_t>(PAGE_SIZE) - page_offset, remaining_size);
+            const auto current_vaddr = static_cast<VAddr>((page_index << PAGE_BITS) + page_offset);
+
+            switch (page_table.attributes[page_index]) {
+            case Common::PageType::Unmapped: {
+                LOG_ERROR(HW_Memory,
+                          "Unmapped ReadBlock @ 0x{:016X} (start address = 0x{:016X}, size = {})",
+                          current_vaddr, src_addr, size);
+                std::memset(dest_buffer, 0, copy_amount);
+                break;
+            }
+            case Common::PageType::Memory: {
+                DEBUG_ASSERT(page_table.pointers[page_index]);
+
+                const u8* const src_ptr = page_table.pointers[page_index] + page_offset;
+                std::memcpy(dest_buffer, src_ptr, copy_amount);
+                break;
+            }
+            case Common::PageType::RasterizerCachedMemory: {
+                const u8* const host_ptr = GetPointerFromVMA(process, current_vaddr);
+                system.GPU().FlushRegion(ToCacheAddr(host_ptr), copy_amount);
+                std::memcpy(dest_buffer, host_ptr, copy_amount);
+                break;
+            }
+            default:
+                UNREACHABLE();
+            }
+
+            page_index++;
+            page_offset = 0;
+            dest_buffer = static_cast<u8*>(dest_buffer) + copy_amount;
+            remaining_size -= copy_amount;
+        }
+    }
+
+    void ReadBlock(const VAddr src_addr, void* dest_buffer, const std::size_t size) {
+        ReadBlock(*system.CurrentProcess(), src_addr, dest_buffer, size);
     }
 
     void ZeroBlock(const Kernel::Process& process, const VAddr dest_addr, const std::size_t size) {
@@ -425,6 +459,48 @@ struct Memory::Impl {
         }
     }
 
+    /**
+     * Reads a particular data type out of memory at the given virtual address.
+     *
+     * @param vaddr The virtual address to read the data type from.
+     *
+     * @tparam T The data type to read out of memory. This type *must* be
+     *           trivially copyable, otherwise the behavior of this function
+     *           is undefined.
+     *
+     * @returns The instance of T read from the specified virtual address.
+     */
+    template <typename T>
+    T Read(const VAddr vaddr) {
+        const u8* const page_pointer = current_page_table->pointers[vaddr >> PAGE_BITS];
+        if (page_pointer != nullptr) {
+            // NOTE: Avoid adding any extra logic to this fast-path block
+            T value;
+            std::memcpy(&value, &page_pointer[vaddr & PAGE_MASK], sizeof(T));
+            return value;
+        }
+
+        const Common::PageType type = current_page_table->attributes[vaddr >> PAGE_BITS];
+        switch (type) {
+        case Common::PageType::Unmapped:
+            LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:08X}", sizeof(T) * 8, vaddr);
+            return 0;
+        case Common::PageType::Memory:
+            ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
+            break;
+        case Common::PageType::RasterizerCachedMemory: {
+            const u8* const host_ptr = GetPointerFromVMA(vaddr);
+            system.GPU().FlushRegion(ToCacheAddr(host_ptr), sizeof(T));
+            T value;
+            std::memcpy(&value, host_ptr, sizeof(T));
+            return value;
+        }
+        default:
+            UNREACHABLE();
+        }
+        return {};
+    }
+
     Core::System& system;
 };
 
@@ -470,8 +546,33 @@ const u8* Memory::GetPointer(VAddr vaddr) const {
     return impl->GetPointer(vaddr);
 }
 
+u8 Memory::Read8(const VAddr addr) {
+    return impl->Read8(addr);
+}
+
+u16 Memory::Read16(const VAddr addr) {
+    return impl->Read16(addr);
+}
+
+u32 Memory::Read32(const VAddr addr) {
+    return impl->Read32(addr);
+}
+
+u64 Memory::Read64(const VAddr addr) {
+    return impl->Read64(addr);
+}
+
 std::string Memory::ReadCString(VAddr vaddr, std::size_t max_length) {
     return impl->ReadCString(vaddr, max_length);
+}
+
+void Memory::ReadBlock(const Kernel::Process& process, const VAddr src_addr, void* dest_buffer,
+                       const std::size_t size) {
+    impl->ReadBlock(process, src_addr, dest_buffer, size);
+}
+
+void Memory::ReadBlock(const VAddr src_addr, void* dest_buffer, const std::size_t size) {
+    impl->ReadBlock(src_addr, dest_buffer, size);
 }
 
 void Memory::ZeroBlock(const Kernel::Process& process, VAddr dest_addr, std::size_t size) {
@@ -509,71 +610,6 @@ void SetCurrentPageTable(Kernel::Process& process) {
 
 bool IsKernelVirtualAddress(const VAddr vaddr) {
     return KERNEL_REGION_VADDR <= vaddr && vaddr < KERNEL_REGION_END;
-}
-
-u8 Read8(const VAddr addr) {
-    return Read<u8>(addr);
-}
-
-u16 Read16(const VAddr addr) {
-    return Read<u16_le>(addr);
-}
-
-u32 Read32(const VAddr addr) {
-    return Read<u32_le>(addr);
-}
-
-u64 Read64(const VAddr addr) {
-    return Read<u64_le>(addr);
-}
-
-void ReadBlock(const Kernel::Process& process, const VAddr src_addr, void* dest_buffer,
-               const std::size_t size) {
-    const auto& page_table = process.VMManager().page_table;
-
-    std::size_t remaining_size = size;
-    std::size_t page_index = src_addr >> PAGE_BITS;
-    std::size_t page_offset = src_addr & PAGE_MASK;
-
-    while (remaining_size > 0) {
-        const std::size_t copy_amount =
-            std::min(static_cast<std::size_t>(PAGE_SIZE) - page_offset, remaining_size);
-        const VAddr current_vaddr = static_cast<VAddr>((page_index << PAGE_BITS) + page_offset);
-
-        switch (page_table.attributes[page_index]) {
-        case Common::PageType::Unmapped: {
-            LOG_ERROR(HW_Memory,
-                      "Unmapped ReadBlock @ 0x{:016X} (start address = 0x{:016X}, size = {})",
-                      current_vaddr, src_addr, size);
-            std::memset(dest_buffer, 0, copy_amount);
-            break;
-        }
-        case Common::PageType::Memory: {
-            DEBUG_ASSERT(page_table.pointers[page_index]);
-
-            const u8* src_ptr = page_table.pointers[page_index] + page_offset;
-            std::memcpy(dest_buffer, src_ptr, copy_amount);
-            break;
-        }
-        case Common::PageType::RasterizerCachedMemory: {
-            const auto& host_ptr{GetPointerFromVMA(process, current_vaddr)};
-            Core::System::GetInstance().GPU().FlushRegion(ToCacheAddr(host_ptr), copy_amount);
-            std::memcpy(dest_buffer, host_ptr, copy_amount);
-            break;
-        }
-        default:
-            UNREACHABLE();
-        }
-
-        page_index++;
-        page_offset = 0;
-        dest_buffer = static_cast<u8*>(dest_buffer) + copy_amount;
-        remaining_size -= copy_amount;
-    }
-}
-
-void ReadBlock(const VAddr src_addr, void* dest_buffer, const std::size_t size) {
-    ReadBlock(*Core::System::GetInstance().CurrentProcess(), src_addr, dest_buffer, size);
 }
 
 void Write8(const VAddr addr, const u8 data) {

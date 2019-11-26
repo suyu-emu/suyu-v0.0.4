@@ -259,9 +259,10 @@ void AudioRenderer::VoiceState::UpdateState() {
 }
 
 void AudioRenderer::VoiceState::RefreshBuffer(Memory::Memory& memory) {
-    std::vector<s16> new_samples(info.wave_buffer[wave_index].buffer_sz / sizeof(s16));
-    Memory::ReadBlock(info.wave_buffer[wave_index].buffer_addr, new_samples.data(),
-                      info.wave_buffer[wave_index].buffer_sz);
+    const auto wave_buffer_address = info.wave_buffer[wave_index].buffer_addr;
+    const auto wave_buffer_size = info.wave_buffer[wave_index].buffer_sz;
+    std::vector<s16> new_samples(wave_buffer_size / sizeof(s16));
+    memory.ReadBlock(wave_buffer_address, new_samples.data(), wave_buffer_size);
 
     switch (static_cast<Codec::PcmFormat>(info.sample_format)) {
     case Codec::PcmFormat::Int16: {
@@ -271,7 +272,7 @@ void AudioRenderer::VoiceState::RefreshBuffer(Memory::Memory& memory) {
     case Codec::PcmFormat::Adpcm: {
         // Decode ADPCM to PCM16
         Codec::ADPCM_Coeff coeffs;
-        Memory::ReadBlock(info.additional_params_addr, coeffs.data(), sizeof(Codec::ADPCM_Coeff));
+        memory.ReadBlock(info.additional_params_addr, coeffs.data(), sizeof(Codec::ADPCM_Coeff));
         new_samples = Codec::DecodeADPCM(reinterpret_cast<u8*>(new_samples.data()),
                                          new_samples.size() * sizeof(s16), coeffs, adpcm_state);
         break;
@@ -314,13 +315,13 @@ void AudioRenderer::EffectState::UpdateState(Memory::Memory& memory) {
         out_status.state = EffectStatus::New;
     } else {
         if (info.type == Effect::Aux) {
-            ASSERT_MSG(Memory::Read32(info.aux_info.return_buffer_info) == 0,
+            ASSERT_MSG(memory.Read32(info.aux_info.return_buffer_info) == 0,
                        "Aux buffers tried to update");
-            ASSERT_MSG(Memory::Read32(info.aux_info.send_buffer_info) == 0,
+            ASSERT_MSG(memory.Read32(info.aux_info.send_buffer_info) == 0,
                        "Aux buffers tried to update");
-            ASSERT_MSG(Memory::Read32(info.aux_info.return_buffer_base) == 0,
+            ASSERT_MSG(memory.Read32(info.aux_info.return_buffer_base) == 0,
                        "Aux buffers tried to update");
-            ASSERT_MSG(Memory::Read32(info.aux_info.send_buffer_base) == 0,
+            ASSERT_MSG(memory.Read32(info.aux_info.send_buffer_base) == 0,
                        "Aux buffers tried to update");
         }
     }

@@ -28,20 +28,20 @@ public:
     explicit ARM_Dynarmic_Callbacks(ARM_Dynarmic& parent) : parent(parent) {}
 
     u8 MemoryRead8(u64 vaddr) override {
-        auto& s = parent.system;
-        return Memory::Read8(vaddr);
+        return parent.system.Memory().Read8(vaddr);
     }
     u16 MemoryRead16(u64 vaddr) override {
-        return Memory::Read16(vaddr);
+        return parent.system.Memory().Read16(vaddr);
     }
     u32 MemoryRead32(u64 vaddr) override {
-        return Memory::Read32(vaddr);
+        return parent.system.Memory().Read32(vaddr);
     }
     u64 MemoryRead64(u64 vaddr) override {
-        return Memory::Read64(vaddr);
+        return parent.system.Memory().Read64(vaddr);
     }
     Vector MemoryRead128(u64 vaddr) override {
-        return {Memory::Read64(vaddr), Memory::Read64(vaddr + 8)};
+        auto& memory = parent.system.Memory();
+        return {memory.Read64(vaddr), memory.Read64(vaddr + 8)};
     }
 
     void MemoryWrite8(u64 vaddr, u8 value) override {

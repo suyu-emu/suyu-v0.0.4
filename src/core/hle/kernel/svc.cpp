@@ -454,7 +454,8 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
     LOG_TRACE(Kernel_SVC, "called handles_address=0x{:X}, handle_count={}, nano_seconds={}",
               handles_address, handle_count, nano_seconds);
 
-    if (!system.Memory().IsValidVirtualAddress(handles_address)) {
+    auto& memory = system.Memory();
+    if (!memory.IsValidVirtualAddress(handles_address)) {
         LOG_ERROR(Kernel_SVC,
                   "Handle address is not a valid virtual address, handle_address=0x{:016X}",
                   handles_address);
@@ -476,7 +477,7 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
 
     for (u64 i = 0; i < handle_count; ++i) {
-        const Handle handle = Memory::Read32(handles_address + i * sizeof(Handle));
+        const Handle handle = memory.Read32(handles_address + i * sizeof(Handle));
         const auto object = handle_table.Get<WaitObject>(handle);
 
         if (object == nullptr) {
@@ -618,13 +619,15 @@ static void Break(Core::System& system, u32 reason, u64 info1, u64 info2) {
             return;
         }
 
+        auto& memory = system.Memory();
+
         // This typically is an error code so we're going to assume this is the case
         if (sz == sizeof(u32)) {
-            LOG_CRITICAL(Debug_Emulated, "debug_buffer_err_code={:X}", Memory::Read32(addr));
+            LOG_CRITICAL(Debug_Emulated, "debug_buffer_err_code={:X}", memory.Read32(addr));
         } else {
             // We don't know what's in here so we'll hexdump it
             debug_buffer.resize(sz);
-            Memory::ReadBlock(addr, debug_buffer.data(), sz);
+            memory.ReadBlock(addr, debug_buffer.data(), sz);
             std::string hexdump;
             for (std::size_t i = 0; i < debug_buffer.size(); i++) {
                 hexdump += fmt::format("{:02X} ", debug_buffer[i]);
@@ -714,7 +717,7 @@ static void OutputDebugString([[maybe_unused]] Core::System& system, VAddr addre
     }
 
     std::string str(len, '\0');
-    Memory::ReadBlock(address, str.data(), str.size());
+    system.Memory().ReadBlock(address, str.data(), str.size());
     LOG_DEBUG(Debug_Emulated, "{}", str);
 }
 
@@ -1674,6 +1677,7 @@ static ResultCode SignalProcessWideKey(Core::System& system, VAddr condition_var
 
         const std::size_t current_core = system.CurrentCoreIndex();
         auto& monitor = system.Monitor();
+        auto& memory = system.Memory();
 
         // Atomically read the value of the mutex.
         u32 mutex_val = 0;
@@ -1683,7 +1687,7 @@ static ResultCode SignalProcessWideKey(Core::System& system, VAddr condition_var
             monitor.SetExclusive(current_core, mutex_address);
 
             // If the mutex is not yet acquired, acquire it.
-            mutex_val = Memory::Read32(mutex_address);
+            mutex_val = memory.Read32(mutex_address);
 
             if (mutex_val != 0) {
                 update_val = mutex_val | Mutex::MutexHasWaitersFlag;

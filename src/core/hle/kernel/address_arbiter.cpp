@@ -67,12 +67,14 @@ ResultCode AddressArbiter::SignalToAddressOnly(VAddr address, s32 num_to_wake) {
 
 ResultCode AddressArbiter::IncrementAndSignalToAddressIfEqual(VAddr address, s32 value,
                                                               s32 num_to_wake) {
+    auto& memory = system.Memory();
+
     // Ensure that we can write to the address.
-    if (!system.Memory().IsValidVirtualAddress(address)) {
+    if (!memory.IsValidVirtualAddress(address)) {
         return ERR_INVALID_ADDRESS_STATE;
     }
 
-    if (static_cast<s32>(Memory::Read32(address)) != value) {
+    if (static_cast<s32>(memory.Read32(address)) != value) {
         return ERR_INVALID_STATE;
     }
 
@@ -82,8 +84,10 @@ ResultCode AddressArbiter::IncrementAndSignalToAddressIfEqual(VAddr address, s32
 
 ResultCode AddressArbiter::ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr address, s32 value,
                                                                          s32 num_to_wake) {
+    auto& memory = system.Memory();
+
     // Ensure that we can write to the address.
-    if (!system.Memory().IsValidVirtualAddress(address)) {
+    if (!memory.IsValidVirtualAddress(address)) {
         return ERR_INVALID_ADDRESS_STATE;
     }
 
@@ -109,7 +113,7 @@ ResultCode AddressArbiter::ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr a
         }
     }
 
-    if (static_cast<s32>(Memory::Read32(address)) != value) {
+    if (static_cast<s32>(memory.Read32(address)) != value) {
         return ERR_INVALID_STATE;
     }
 
@@ -134,12 +138,14 @@ ResultCode AddressArbiter::WaitForAddress(VAddr address, ArbitrationType type, s
 
 ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s64 timeout,
                                                     bool should_decrement) {
+    auto& memory = system.Memory();
+
     // Ensure that we can read the address.
-    if (!system.Memory().IsValidVirtualAddress(address)) {
+    if (!memory.IsValidVirtualAddress(address)) {
         return ERR_INVALID_ADDRESS_STATE;
     }
 
-    const s32 cur_value = static_cast<s32>(Memory::Read32(address));
+    const s32 cur_value = static_cast<s32>(memory.Read32(address));
     if (cur_value >= value) {
         return ERR_INVALID_STATE;
     }
@@ -157,15 +163,19 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
 }
 
 ResultCode AddressArbiter::WaitForAddressIfEqual(VAddr address, s32 value, s64 timeout) {
+    auto& memory = system.Memory();
+
     // Ensure that we can read the address.
-    if (!system.Memory().IsValidVirtualAddress(address)) {
+    if (!memory.IsValidVirtualAddress(address)) {
         return ERR_INVALID_ADDRESS_STATE;
     }
+
     // Only wait for the address if equal.
-    if (static_cast<s32>(Memory::Read32(address)) != value) {
+    if (static_cast<s32>(memory.Read32(address)) != value) {
         return ERR_INVALID_STATE;
     }
-    // Short-circuit without rescheduling, if timeout is zero.
+
+    // Short-circuit without rescheduling if timeout is zero.
     if (timeout == 0) {
         return RESULT_TIMEOUT;
     }

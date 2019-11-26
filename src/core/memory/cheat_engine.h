@@ -24,7 +24,7 @@ namespace Memory {
 
 class StandardVmCallbacks : public DmntCheatVm::Callbacks {
 public:
-    StandardVmCallbacks(const Core::System& system, const CheatProcessMetadata& metadata);
+    StandardVmCallbacks(Core::System& system, const CheatProcessMetadata& metadata);
     ~StandardVmCallbacks() override;
 
     void MemoryRead(VAddr address, void* data, u64 size) override;
@@ -37,7 +37,7 @@ private:
     VAddr SanitizeAddress(VAddr address) const;
 
     const CheatProcessMetadata& metadata;
-    const Core::System& system;
+    Core::System& system;
 };
 
 // Intermediary class that parses a text file or other disk format for storing cheats into a

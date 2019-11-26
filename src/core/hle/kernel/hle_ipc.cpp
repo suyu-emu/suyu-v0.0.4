@@ -214,10 +214,11 @@ ResultCode HLERequestContext::PopulateFromIncomingCommandBuffer(const HandleTabl
 ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(Thread& thread) {
     auto& owner_process = *thread.GetOwnerProcess();
     auto& handle_table = owner_process.GetHandleTable();
+    auto& memory = Core::System::GetInstance().Memory();
 
     std::array<u32, IPC::COMMAND_BUFFER_LENGTH> dst_cmdbuf;
-    Memory::ReadBlock(owner_process, thread.GetTLSAddress(), dst_cmdbuf.data(),
-                      dst_cmdbuf.size() * sizeof(u32));
+    memory.ReadBlock(owner_process, thread.GetTLSAddress(), dst_cmdbuf.data(),
+                     dst_cmdbuf.size() * sizeof(u32));
 
     // The header was already built in the internal command buffer. Attempt to parse it to verify
     // the integrity and then copy it over to the target command buffer.
@@ -282,15 +283,14 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(Thread& thread) {
 std::vector<u8> HLERequestContext::ReadBuffer(int buffer_index) const {
     std::vector<u8> buffer;
     const bool is_buffer_a{BufferDescriptorA().size() && BufferDescriptorA()[buffer_index].Size()};
+    auto& memory = Core::System::GetInstance().Memory();
 
     if (is_buffer_a) {
         buffer.resize(BufferDescriptorA()[buffer_index].Size());
-        Memory::ReadBlock(BufferDescriptorA()[buffer_index].Address(), buffer.data(),
-                          buffer.size());
+        memory.ReadBlock(BufferDescriptorA()[buffer_index].Address(), buffer.data(), buffer.size());
     } else {
         buffer.resize(BufferDescriptorX()[buffer_index].Size());
-        Memory::ReadBlock(BufferDescriptorX()[buffer_index].Address(), buffer.data(),
-                          buffer.size());
+        memory.ReadBlock(BufferDescriptorX()[buffer_index].Address(), buffer.data(), buffer.size());
     }
 
     return buffer;
