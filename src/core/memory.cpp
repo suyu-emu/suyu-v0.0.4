@@ -22,42 +22,6 @@
 namespace Memory {
 namespace {
 Common::PageTable* current_page_table = nullptr;
-
-/**
- * Gets a pointer to the exact memory at the virtual address (i.e. not page aligned)
- * using a VMA from the current process
- */
-u8* GetPointerFromVMA(const Kernel::Process& process, VAddr vaddr) {
-    const auto& vm_manager = process.VMManager();
-
-    const auto it = vm_manager.FindVMA(vaddr);
-    DEBUG_ASSERT(vm_manager.IsValidHandle(it));
-
-    u8* direct_pointer = nullptr;
-    const auto& vma = it->second;
-    switch (vma.type) {
-    case Kernel::VMAType::AllocatedMemoryBlock:
-        direct_pointer = vma.backing_block->data() + vma.offset;
-        break;
-    case Kernel::VMAType::BackingMemory:
-        direct_pointer = vma.backing_memory;
-        break;
-    case Kernel::VMAType::Free:
-        return nullptr;
-    default:
-        UNREACHABLE();
-    }
-
-    return direct_pointer + (vaddr - vma.base);
-}
-
-/**
- * Gets a pointer to the exact memory at the virtual address (i.e. not page aligned)
- * using a VMA from the current process.
- */
-u8* GetPointerFromVMA(VAddr vaddr) {
-    return ::Memory::GetPointerFromVMA(*Core::System::GetInstance().CurrentProcess(), vaddr);
-}
 } // Anonymous namespace
 
 // Implementation class used to keep the specifics of the memory subsystem hidden
@@ -133,6 +97,42 @@ struct Memory::Impl {
 
     bool IsValidVirtualAddress(VAddr vaddr) const {
         return IsValidVirtualAddress(*system.CurrentProcess(), vaddr);
+    }
+
+    /**
+     * Gets a pointer to the exact memory at the virtual address (i.e. not page aligned)
+     * using a VMA from the current process
+     */
+    u8* GetPointerFromVMA(const Kernel::Process& process, VAddr vaddr) {
+        const auto& vm_manager = process.VMManager();
+
+        const auto it = vm_manager.FindVMA(vaddr);
+        DEBUG_ASSERT(vm_manager.IsValidHandle(it));
+
+        u8* direct_pointer = nullptr;
+        const auto& vma = it->second;
+        switch (vma.type) {
+        case Kernel::VMAType::AllocatedMemoryBlock:
+            direct_pointer = vma.backing_block->data() + vma.offset;
+            break;
+        case Kernel::VMAType::BackingMemory:
+            direct_pointer = vma.backing_memory;
+            break;
+        case Kernel::VMAType::Free:
+            return nullptr;
+        default:
+            UNREACHABLE();
+        }
+
+        return direct_pointer + (vaddr - vma.base);
+    }
+
+    /**
+     * Gets a pointer to the exact memory at the virtual address (i.e. not page aligned)
+     * using a VMA from the current process.
+     */
+    u8* GetPointerFromVMA(VAddr vaddr) {
+        return GetPointerFromVMA(*system.CurrentProcess(), vaddr);
     }
 
     u8* GetPointer(const VAddr vaddr) {
