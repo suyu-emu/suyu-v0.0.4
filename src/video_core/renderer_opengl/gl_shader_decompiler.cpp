@@ -1469,7 +1469,8 @@ private:
     }
 
     Expression HCastFloat(Operation operation) {
-        return {fmt::format("vec2({})", VisitOperand(operation, 0).AsFloat()), Type::HalfFloat};
+        return {fmt::format("vec2({}, 0.0f)", VisitOperand(operation, 0).AsFloat()),
+                Type::HalfFloat};
     }
 
     Expression HUnpack(Operation operation) {
