@@ -20,8 +20,8 @@ class ServerSession;
  */
 class Session final {
 public:
-    ClientSession* client = nullptr;  ///< The client endpoint of the session.
-    ServerSession* server = nullptr;  ///< The server endpoint of the session.
+    std::weak_ptr<ClientSession> client; ///< The client endpoint of the session.
+    std::weak_ptr<ServerSession> server; ///< The server endpoint of the session.
     std::shared_ptr<ClientPort> port; ///< The port that this session is associated with (optional).
 };
 } // namespace Kernel

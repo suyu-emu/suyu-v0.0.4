@@ -16,20 +16,18 @@ ClientSession::ClientSession(KernelCore& kernel) : Object{kernel} {}
 ClientSession::~ClientSession() {
     // This destructor will be called automatically when the last ClientSession handle is closed by
     // the emulated application.
-    if (parent->server) {
-        parent->server->ClientDisconnected();
+    if (auto server = parent->server.lock()) {
+        server->ClientDisconnected();
     }
-
-    parent->client = nullptr;
 }
 
 ResultCode ClientSession::SendSyncRequest(Thread* thread) {
-    // Keep ServerSession alive until we're done working with it.
-    if (parent->server == nullptr)
-        return ERR_SESSION_CLOSED_BY_REMOTE;
-
     // Signal the server session that new data is available
-    return parent->server->HandleSyncRequest(SharedFrom(thread));
+    if (auto server = parent->server.lock()) {
+        return server->HandleSyncRequest(SharedFrom(thread));
+    }
+
+    return ERR_SESSION_CLOSED_BY_REMOTE;
 }
 
 } // namespace Kernel

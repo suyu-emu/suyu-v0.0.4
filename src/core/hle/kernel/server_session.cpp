@@ -31,8 +31,6 @@ ServerSession::~ServerSession() {
     if (parent->port) {
         parent->port->ConnectionClosed();
     }
-
-    parent->server = nullptr;
 }
 
 ResultVal<std::shared_ptr<ServerSession>> ServerSession::Create(KernelCore& kernel,
@@ -46,11 +44,13 @@ ResultVal<std::shared_ptr<ServerSession>> ServerSession::Create(KernelCore& kern
 }
 
 bool ServerSession::ShouldWait(const Thread* thread) const {
-    // Closed sessions should never wait, an error will be returned from svcReplyAndReceive.
-    if (parent->client == nullptr)
-        return false;
     // Wait if we have no pending requests, or if we're currently handling a request.
-    return pending_requesting_threads.empty() || currently_handling != nullptr;
+    if (auto client = parent->client.lock()) {
+        return pending_requesting_threads.empty() || currently_handling != nullptr;
+    }
+
+    // Closed sessions should never wait, an error will be returned from svcReplyAndReceive.
+    return {};
 }
 
 void ServerSession::Acquire(Thread* thread) {
@@ -192,9 +192,9 @@ ServerSession::SessionPair ServerSession::CreateSessionPair(KernelCore& kernel,
     std::shared_ptr<ClientSession> client_session = std::make_shared<ClientSession>(kernel);
     client_session->name = name + "_Client";
 
-    std::shared_ptr<Session> parent(new Session);
-    parent->client = client_session.get();
-    parent->server = server_session.get();
+    std::shared_ptr<Session> parent = std::make_shared<Session>();
+    parent->client = client_session;
+    parent->server = server_session;
     parent->port = std::move(port);
 
     client_session->parent = parent;
