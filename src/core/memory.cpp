@@ -24,6 +24,18 @@ namespace Memory {
 
 static Common::PageTable* current_page_table = nullptr;
 
+// Implementation class used to keep the specifics of the memory subsystem hidden
+// from outside classes. This also allows modification to the internals of the memory
+// subsystem without needing to rebuild all files that make use of the memory interface.
+struct Memory::Impl {
+    explicit Impl(Core::System& system_) : system{system_} {}
+
+    Core::System& system;
+};
+
+Memory::Memory(Core::System& system) : impl{std::make_unique<Impl>(system)} {}
+Memory::~Memory() = default;
+
 void SetCurrentPageTable(Kernel::Process& process) {
     current_page_table = &process.VMManager().page_table;
 

@@ -8,6 +8,10 @@
 #include <string>
 #include "common/common_types.h"
 
+namespace Core {
+class System;
+}
+
 namespace Kernel {
 class Process;
 }
@@ -34,6 +38,23 @@ enum : VAddr {
     KERNEL_REGION_VADDR = 0xFFFFFF8000000000,
     KERNEL_REGION_SIZE = 0x7FFFE00000,
     KERNEL_REGION_END = KERNEL_REGION_VADDR + KERNEL_REGION_SIZE,
+};
+
+/// Central class that handles all memory operations and state.
+class Memory {
+public:
+    explicit Memory(Core::System& system);
+    ~Memory();
+
+    Memory(const Memory&) = delete;
+    Memory& operator=(const Memory&) = delete;
+
+    Memory(Memory&&) = default;
+    Memory& operator=(Memory&&) = default;
+
+private:
+    struct Impl;
+    std::unique_ptr<Impl> impl;
 };
 
 /// Changes the currently active page table to that of

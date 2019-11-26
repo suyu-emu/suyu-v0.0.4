@@ -86,6 +86,10 @@ namespace Core::Hardware {
 class InterruptManager;
 }
 
+namespace Memory {
+class Memory;
+}
+
 namespace Core {
 
 class ARM_Interface;
@@ -224,6 +228,12 @@ public:
 
     /// Gets a constant reference to the exclusive monitor
     const ExclusiveMonitor& Monitor() const;
+
+    /// Gets a mutable reference to the system memory instance.
+    Memory::Memory& Memory();
+
+    /// Gets a constant reference to the system memory instance.
+    const Memory::Memory& Memory() const;
 
     /// Gets a mutable reference to the GPU interface
     Tegra::GPU& GPU();
