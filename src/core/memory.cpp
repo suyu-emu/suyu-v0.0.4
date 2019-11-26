@@ -225,6 +225,69 @@ struct Memory::Impl {
         return string;
     }
 
+    void RasterizerMarkRegionCached(VAddr vaddr, u64 size, bool cached) {
+        if (vaddr == 0) {
+            return;
+        }
+
+        // Iterate over a contiguous CPU address space, which corresponds to the specified GPU
+        // address space, marking the region as un/cached. The region is marked un/cached at a
+        // granularity of CPU pages, hence why we iterate on a CPU page basis (note: GPU page size
+        // is different). This assumes the specified GPU address region is contiguous as well.
+
+        u64 num_pages = ((vaddr + size - 1) >> PAGE_BITS) - (vaddr >> PAGE_BITS) + 1;
+        for (unsigned i = 0; i < num_pages; ++i, vaddr += PAGE_SIZE) {
+            Common::PageType& page_type = current_page_table->attributes[vaddr >> PAGE_BITS];
+
+            if (cached) {
+                // Switch page type to cached if now cached
+                switch (page_type) {
+                case Common::PageType::Unmapped:
+                    // It is not necessary for a process to have this region mapped into its address
+                    // space, for example, a system module need not have a VRAM mapping.
+                    break;
+                case Common::PageType::Memory:
+                    page_type = Common::PageType::RasterizerCachedMemory;
+                    current_page_table->pointers[vaddr >> PAGE_BITS] = nullptr;
+                    break;
+                case Common::PageType::RasterizerCachedMemory:
+                    // There can be more than one GPU region mapped per CPU region, so it's common
+                    // that this area is already marked as cached.
+                    break;
+                default:
+                    UNREACHABLE();
+                }
+            } else {
+                // Switch page type to uncached if now uncached
+                switch (page_type) {
+                case Common::PageType::Unmapped:
+                    // It is not necessary for a process to have this region mapped into its address
+                    // space, for example, a system module need not have a VRAM mapping.
+                    break;
+                case Common::PageType::Memory:
+                    // There can be more than one GPU region mapped per CPU region, so it's common
+                    // that this area is already unmarked as cached.
+                    break;
+                case Common::PageType::RasterizerCachedMemory: {
+                    u8* pointer = GetPointerFromVMA(vaddr & ~PAGE_MASK);
+                    if (pointer == nullptr) {
+                        // It's possible that this function has been called while updating the
+                        // pagetable after unmapping a VMA. In that case the underlying VMA will no
+                        // longer exist, and we should just leave the pagetable entry blank.
+                        page_type = Common::PageType::Unmapped;
+                    } else {
+                        page_type = Common::PageType::Memory;
+                        current_page_table->pointers[vaddr >> PAGE_BITS] = pointer;
+                    }
+                    break;
+                }
+                default:
+                    UNREACHABLE();
+                }
+            }
+        }
+    }
+
     /**
      * Maps a region of pages as a specific type.
      *
@@ -318,6 +381,10 @@ std::string Memory::ReadCString(VAddr vaddr, std::size_t max_length) {
     return impl->ReadCString(vaddr, max_length);
 }
 
+void Memory::RasterizerMarkRegionCached(VAddr vaddr, u64 size, bool cached) {
+    impl->RasterizerMarkRegionCached(vaddr, size, cached);
+}
+
 void SetCurrentPageTable(Kernel::Process& process) {
     current_page_table = &process.VMManager().page_table;
 
@@ -332,69 +399,6 @@ void SetCurrentPageTable(Kernel::Process& process) {
 
 bool IsKernelVirtualAddress(const VAddr vaddr) {
     return KERNEL_REGION_VADDR <= vaddr && vaddr < KERNEL_REGION_END;
-}
-
-void RasterizerMarkRegionCached(VAddr vaddr, u64 size, bool cached) {
-    if (vaddr == 0) {
-        return;
-    }
-
-    // Iterate over a contiguous CPU address space, which corresponds to the specified GPU address
-    // space, marking the region as un/cached. The region is marked un/cached at a granularity of
-    // CPU pages, hence why we iterate on a CPU page basis (note: GPU page size is different). This
-    // assumes the specified GPU address region is contiguous as well.
-
-    u64 num_pages = ((vaddr + size - 1) >> PAGE_BITS) - (vaddr >> PAGE_BITS) + 1;
-    for (unsigned i = 0; i < num_pages; ++i, vaddr += PAGE_SIZE) {
-        Common::PageType& page_type = current_page_table->attributes[vaddr >> PAGE_BITS];
-
-        if (cached) {
-            // Switch page type to cached if now cached
-            switch (page_type) {
-            case Common::PageType::Unmapped:
-                // It is not necessary for a process to have this region mapped into its address
-                // space, for example, a system module need not have a VRAM mapping.
-                break;
-            case Common::PageType::Memory:
-                page_type = Common::PageType::RasterizerCachedMemory;
-                current_page_table->pointers[vaddr >> PAGE_BITS] = nullptr;
-                break;
-            case Common::PageType::RasterizerCachedMemory:
-                // There can be more than one GPU region mapped per CPU region, so it's common that
-                // this area is already marked as cached.
-                break;
-            default:
-                UNREACHABLE();
-            }
-        } else {
-            // Switch page type to uncached if now uncached
-            switch (page_type) {
-            case Common::PageType::Unmapped:
-                // It is not necessary for a process to have this region mapped into its address
-                // space, for example, a system module need not have a VRAM mapping.
-                break;
-            case Common::PageType::Memory:
-                // There can be more than one GPU region mapped per CPU region, so it's common that
-                // this area is already unmarked as cached.
-                break;
-            case Common::PageType::RasterizerCachedMemory: {
-                u8* pointer = GetPointerFromVMA(vaddr & ~PAGE_MASK);
-                if (pointer == nullptr) {
-                    // It's possible that this function has been called while updating the pagetable
-                    // after unmapping a VMA. In that case the underlying VMA will no longer exist,
-                    // and we should just leave the pagetable entry blank.
-                    page_type = Common::PageType::Unmapped;
-                } else {
-                    page_type = Common::PageType::Memory;
-                    current_page_table->pointers[vaddr >> PAGE_BITS] = pointer;
-                }
-                break;
-            }
-            default:
-                UNREACHABLE();
-            }
-        }
-    }
 }
 
 u8 Read8(const VAddr addr) {

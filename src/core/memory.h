@@ -169,6 +169,16 @@ public:
      */
     std::string ReadCString(VAddr vaddr, std::size_t max_length);
 
+    /**
+     * Marks each page within the specified address range as cached or uncached.
+     *
+     * @param vaddr  The virtual address indicating the start of the address range.
+     * @param size   The size of the address range in bytes.
+     * @param cached Whether or not any pages within the address range should be
+     *               marked as cached or uncached.
+     */
+    void RasterizerMarkRegionCached(VAddr vaddr, u64 size, bool cached);
+
 private:
     struct Impl;
     std::unique_ptr<Impl> impl;
@@ -198,10 +208,5 @@ void WriteBlock(const Kernel::Process& process, VAddr dest_addr, const void* src
 void WriteBlock(VAddr dest_addr, const void* src_buffer, std::size_t size);
 void ZeroBlock(const Kernel::Process& process, VAddr dest_addr, std::size_t size);
 void CopyBlock(VAddr dest_addr, VAddr src_addr, std::size_t size);
-
-/**
- * Mark each page touching the region as cached.
- */
-void RasterizerMarkRegionCached(VAddr vaddr, u64 size, bool cached);
 
 } // namespace Memory
