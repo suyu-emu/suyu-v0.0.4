@@ -20,8 +20,105 @@
 #include "video_core/gpu.h"
 
 namespace Memory {
+namespace {
+Common::PageTable* current_page_table = nullptr;
 
-static Common::PageTable* current_page_table = nullptr;
+/**
+ * Gets a pointer to the exact memory at the virtual address (i.e. not page aligned)
+ * using a VMA from the current process
+ */
+u8* GetPointerFromVMA(const Kernel::Process& process, VAddr vaddr) {
+    const auto& vm_manager = process.VMManager();
+
+    const auto it = vm_manager.FindVMA(vaddr);
+    DEBUG_ASSERT(vm_manager.IsValidHandle(it));
+
+    u8* direct_pointer = nullptr;
+    const auto& vma = it->second;
+    switch (vma.type) {
+    case Kernel::VMAType::AllocatedMemoryBlock:
+        direct_pointer = vma.backing_block->data() + vma.offset;
+        break;
+    case Kernel::VMAType::BackingMemory:
+        direct_pointer = vma.backing_memory;
+        break;
+    case Kernel::VMAType::Free:
+        return nullptr;
+    default:
+        UNREACHABLE();
+    }
+
+    return direct_pointer + (vaddr - vma.base);
+}
+
+/**
+ * Gets a pointer to the exact memory at the virtual address (i.e. not page aligned)
+ * using a VMA from the current process.
+ */
+u8* GetPointerFromVMA(VAddr vaddr) {
+    return ::Memory::GetPointerFromVMA(*Core::System::GetInstance().CurrentProcess(), vaddr);
+}
+
+template <typename T>
+T Read(const VAddr vaddr) {
+    const u8* const page_pointer = current_page_table->pointers[vaddr >> PAGE_BITS];
+    if (page_pointer != nullptr) {
+        // NOTE: Avoid adding any extra logic to this fast-path block
+        T value;
+        std::memcpy(&value, &page_pointer[vaddr & PAGE_MASK], sizeof(T));
+        return value;
+    }
+
+    const Common::PageType type = current_page_table->attributes[vaddr >> PAGE_BITS];
+    switch (type) {
+    case Common::PageType::Unmapped:
+        LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:08X}", sizeof(T) * 8, vaddr);
+        return 0;
+    case Common::PageType::Memory:
+        ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
+        break;
+    case Common::PageType::RasterizerCachedMemory: {
+        const u8* const host_ptr{GetPointerFromVMA(vaddr)};
+        Core::System::GetInstance().GPU().FlushRegion(ToCacheAddr(host_ptr), sizeof(T));
+        T value;
+        std::memcpy(&value, host_ptr, sizeof(T));
+        return value;
+    }
+    default:
+        UNREACHABLE();
+    }
+    return {};
+}
+
+template <typename T>
+void Write(const VAddr vaddr, const T data) {
+    u8* const page_pointer = current_page_table->pointers[vaddr >> PAGE_BITS];
+    if (page_pointer != nullptr) {
+        // NOTE: Avoid adding any extra logic to this fast-path block
+        std::memcpy(&page_pointer[vaddr & PAGE_MASK], &data, sizeof(T));
+        return;
+    }
+
+    Common::PageType type = current_page_table->attributes[vaddr >> PAGE_BITS];
+    switch (type) {
+    case Common::PageType::Unmapped:
+        LOG_ERROR(HW_Memory, "Unmapped Write{} 0x{:08X} @ 0x{:016X}", sizeof(data) * 8,
+                  static_cast<u32>(data), vaddr);
+        return;
+    case Common::PageType::Memory:
+        ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
+        break;
+    case Common::PageType::RasterizerCachedMemory: {
+        u8* const host_ptr{GetPointerFromVMA(vaddr)};
+        Core::System::GetInstance().GPU().InvalidateRegion(ToCacheAddr(host_ptr), sizeof(T));
+        std::memcpy(host_ptr, &data, sizeof(T));
+        break;
+    }
+    default:
+        UNREACHABLE();
+    }
+}
+} // Anonymous namespace
 
 // Implementation class used to keep the specifics of the memory subsystem hidden
 // from outside classes. This also allows modification to the internals of the memory
@@ -189,102 +286,6 @@ void SetCurrentPageTable(Kernel::Process& process) {
     system.ArmInterface(1).PageTableChanged(*current_page_table, address_space_width);
     system.ArmInterface(2).PageTableChanged(*current_page_table, address_space_width);
     system.ArmInterface(3).PageTableChanged(*current_page_table, address_space_width);
-}
-
-/**
- * Gets a pointer to the exact memory at the virtual address (i.e. not page aligned)
- * using a VMA from the current process
- */
-static u8* GetPointerFromVMA(const Kernel::Process& process, VAddr vaddr) {
-    const auto& vm_manager = process.VMManager();
-
-    const auto it = vm_manager.FindVMA(vaddr);
-    DEBUG_ASSERT(vm_manager.IsValidHandle(it));
-
-    u8* direct_pointer = nullptr;
-    const auto& vma = it->second;
-    switch (vma.type) {
-    case Kernel::VMAType::AllocatedMemoryBlock:
-        direct_pointer = vma.backing_block->data() + vma.offset;
-        break;
-    case Kernel::VMAType::BackingMemory:
-        direct_pointer = vma.backing_memory;
-        break;
-    case Kernel::VMAType::Free:
-        return nullptr;
-    default:
-        UNREACHABLE();
-    }
-
-    return direct_pointer + (vaddr - vma.base);
-}
-
-/**
- * Gets a pointer to the exact memory at the virtual address (i.e. not page aligned)
- * using a VMA from the current process.
- */
-static u8* GetPointerFromVMA(VAddr vaddr) {
-    return GetPointerFromVMA(*Core::System::GetInstance().CurrentProcess(), vaddr);
-}
-
-template <typename T>
-T Read(const VAddr vaddr) {
-    const u8* page_pointer = current_page_table->pointers[vaddr >> PAGE_BITS];
-    if (page_pointer) {
-        // NOTE: Avoid adding any extra logic to this fast-path block
-        T value;
-        std::memcpy(&value, &page_pointer[vaddr & PAGE_MASK], sizeof(T));
-        return value;
-    }
-
-    Common::PageType type = current_page_table->attributes[vaddr >> PAGE_BITS];
-    switch (type) {
-    case Common::PageType::Unmapped:
-        LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:08X}", sizeof(T) * 8, vaddr);
-        return 0;
-    case Common::PageType::Memory:
-        ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
-        break;
-    case Common::PageType::RasterizerCachedMemory: {
-        auto host_ptr{GetPointerFromVMA(vaddr)};
-        Core::System::GetInstance().GPU().FlushRegion(ToCacheAddr(host_ptr), sizeof(T));
-        T value;
-        std::memcpy(&value, host_ptr, sizeof(T));
-        return value;
-    }
-    default:
-        UNREACHABLE();
-    }
-    return {};
-}
-
-template <typename T>
-void Write(const VAddr vaddr, const T data) {
-    u8* page_pointer = current_page_table->pointers[vaddr >> PAGE_BITS];
-    if (page_pointer) {
-        // NOTE: Avoid adding any extra logic to this fast-path block
-        std::memcpy(&page_pointer[vaddr & PAGE_MASK], &data, sizeof(T));
-        return;
-    }
-
-    Common::PageType type = current_page_table->attributes[vaddr >> PAGE_BITS];
-    switch (type) {
-    case Common::PageType::Unmapped:
-        LOG_ERROR(HW_Memory, "Unmapped Write{} 0x{:08X} @ 0x{:016X}", sizeof(data) * 8,
-                  static_cast<u32>(data), vaddr);
-        return;
-    case Common::PageType::Memory:
-        ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
-        break;
-    case Common::PageType::RasterizerCachedMemory: {
-        auto host_ptr{GetPointerFromVMA(vaddr)};
-        Core::System::GetInstance().GPU().InvalidateRegion(ToCacheAddr(host_ptr), sizeof(T));
-        std::memcpy(host_ptr, &data, sizeof(T));
-        break;
-    }
-    default:
-        UNREACHABLE();
-    }
 }
 
 bool IsKernelVirtualAddress(const VAddr vaddr) {
