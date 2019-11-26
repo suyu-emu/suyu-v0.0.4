@@ -20,6 +20,7 @@ namespace VideoCore {
 enum class QueryType {
     SamplesPassed,
 };
+constexpr std::size_t NumQueryTypes = 1;
 
 enum class LoadCallbackStage {
     Prepare,
@@ -48,8 +49,8 @@ public:
     /// Resets the counter of a query
     virtual void ResetCounter(QueryType type) = 0;
 
-    /// Returns the value of a GPU query
-    virtual u64 Query(QueryType type) = 0;
+    /// Records a GPU query and caches it
+    virtual void Query(GPUVAddr gpu_addr, QueryType type) = 0;
 
     /// Notify rasterizer that all caches should be flushed to Switch memory
     virtual void FlushAll() = 0;

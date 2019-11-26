@@ -63,7 +63,7 @@ public:
     void Clear() override;
     void DispatchCompute(GPUVAddr code_addr) override;
     void ResetCounter(VideoCore::QueryType type) override;
-    u64 Query(VideoCore::QueryType type) override;
+    void Query(GPUVAddr gpu_addr, VideoCore::QueryType type) override;
     void FlushAll() override;
     void FlushRegion(CacheAddr addr, u64 size) override;
     void InvalidateRegion(CacheAddr addr, u64 size) override;
@@ -77,6 +77,11 @@ public:
                            u32 pixel_stride) override;
     void LoadDiskResources(const std::atomic_bool& stop_loading,
                            const VideoCore::DiskResourceLoadCallback& callback) override;
+
+    /// Returns true when there are commands queued to the OpenGL server.
+    bool AnyCommandQueued() const {
+        return num_queued_commands > 0;
+    }
 
 private:
     /// Configures the color and depth framebuffer states.
@@ -207,6 +212,7 @@ private:
     ShaderCacheOpenGL shader_cache;
     SamplerCacheOpenGL sampler_cache;
     FramebufferCacheOpenGL framebuffer_cache;
+    QueryCache query_cache;
 
     Core::System& system;
     ScreenInfo& screen_info;
@@ -223,8 +229,6 @@ private:
     VertexArrayPushBuffer vertex_array_pushbuffer;
     BindBuffersRangePushBuffer bind_ubo_pushbuffer{GL_UNIFORM_BUFFER};
     BindBuffersRangePushBuffer bind_ssbo_pushbuffer{GL_SHADER_STORAGE_BUFFER};
-
-    HostCounter samples_passed{GL_SAMPLES_PASSED};
 
     /// Number of commands queued to the OpenGL driver. Reseted on flush.
     std::size_t num_queued_commands = 0;

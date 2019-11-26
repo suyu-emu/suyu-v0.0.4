@@ -25,6 +25,7 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_type.h"
 #include "video_core/memory_manager.h"
+#include "video_core/renderer_opengl/gl_query_cache.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
@@ -92,8 +93,8 @@ std::size_t GetConstBufferSize(const Tegra::Engines::ConstBufferInfo& buffer,
 RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
                                    ScreenInfo& info)
     : RasterizerAccelerated{system.Memory()}, texture_cache{system, *this, device},
-      shader_cache{*this, system, emu_window, device}, system{system}, screen_info{info},
-      buffer_cache{*this, system, device, STREAM_BUFFER_SIZE} {
+      shader_cache{*this, system, emu_window, device}, query_cache{system, *this}, system{system},
+      screen_info{info}, buffer_cache{*this, system, device, STREAM_BUFFER_SIZE} {
     shader_program_manager = std::make_unique<GLShader::ProgramManager>();
     state.draw.shader_program = 0;
     state.Apply();
@@ -548,9 +549,9 @@ void RasterizerOpenGL::Clear() {
 void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     MICROPROFILE_SCOPE(OpenGL_Drawing);
     auto& gpu = system.GPU().Maxwell3D();
-
     const auto& regs = gpu.regs;
-    samples_passed.UpdateState(regs.samplecnt_enable);
+
+    query_cache.UpdateCounters();
 
     SyncRasterizeEnable(state);
     SyncColorMask();
@@ -718,24 +719,11 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
 }
 
 void RasterizerOpenGL::ResetCounter(VideoCore::QueryType type) {
-    switch (type) {
-    case VideoCore::QueryType::SamplesPassed:
-        samples_passed.Reset();
-        break;
-    default:
-        UNIMPLEMENTED_MSG("type={}", static_cast<u32>(type));
-        break;
-    }
+    query_cache.ResetCounter(type);
 }
 
-u64 RasterizerOpenGL::Query(VideoCore::QueryType type) {
-    switch (type) {
-    case VideoCore::QueryType::SamplesPassed:
-        return samples_passed.Query();
-    default:
-        UNIMPLEMENTED_MSG("type={}", static_cast<u32>(type));
-        return 1;
-    }
+void RasterizerOpenGL::Query(GPUVAddr gpu_addr, VideoCore::QueryType type) {
+    query_cache.Query(gpu_addr, type);
 }
 
 void RasterizerOpenGL::FlushAll() {}
@@ -747,6 +735,7 @@ void RasterizerOpenGL::FlushRegion(CacheAddr addr, u64 size) {
     }
     texture_cache.FlushRegion(addr, size);
     buffer_cache.FlushRegion(addr, size);
+    query_cache.FlushRegion(addr, size);
 }
 
 void RasterizerOpenGL::InvalidateRegion(CacheAddr addr, u64 size) {
@@ -757,6 +746,7 @@ void RasterizerOpenGL::InvalidateRegion(CacheAddr addr, u64 size) {
     texture_cache.InvalidateRegion(addr, size);
     shader_cache.InvalidateRegion(addr, size);
     buffer_cache.InvalidateRegion(addr, size);
+    query_cache.InvalidateRegion(addr, size);
 }
 
 void RasterizerOpenGL::FlushAndInvalidateRegion(CacheAddr addr, u64 size) {

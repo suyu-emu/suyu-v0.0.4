@@ -6,6 +6,7 @@
 
 #include <array>
 #include <bitset>
+#include <optional>
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
@@ -1462,6 +1463,9 @@ private:
 
     // Handles a instance drawcall from MME
     void StepInstance(MMEDrawMode expected_mode, u32 count);
+
+    /// Returns a query's value or an empty object if the value will be deferred through a cache.
+    std::optional<u64> GetQueryResult();
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \
