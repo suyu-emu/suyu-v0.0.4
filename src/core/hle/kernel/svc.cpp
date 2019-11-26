@@ -332,7 +332,7 @@ static ResultCode UnmapMemory(Core::System& system, VAddr dst_addr, VAddr src_ad
 /// Connect to an OS service given the port name, returns the handle to the port to out
 static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
                                      VAddr port_name_address) {
-    if (!Memory::IsValidVirtualAddress(port_name_address)) {
+    if (!system.Memory().IsValidVirtualAddress(port_name_address)) {
         LOG_ERROR(Kernel_SVC,
                   "Port Name Address is not a valid virtual address, port_name_address=0x{:016X}",
                   port_name_address);
@@ -452,7 +452,7 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
     LOG_TRACE(Kernel_SVC, "called handles_address=0x{:X}, handle_count={}, nano_seconds={}",
               handles_address, handle_count, nano_seconds);
 
-    if (!Memory::IsValidVirtualAddress(handles_address)) {
+    if (!system.Memory().IsValidVirtualAddress(handles_address)) {
         LOG_ERROR(Kernel_SVC,
                   "Handle address is not a valid virtual address, handle_address=0x{:016X}",
                   handles_address);

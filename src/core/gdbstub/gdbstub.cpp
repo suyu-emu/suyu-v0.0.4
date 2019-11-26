@@ -969,7 +969,8 @@ static void ReadMemory() {
         SendReply("E01");
     }
 
-    if (!Memory::IsValidVirtualAddress(addr)) {
+    const auto& memory = Core::System::GetInstance().Memory();
+    if (!memory.IsValidVirtualAddress(addr)) {
         return SendReply("E00");
     }
 
@@ -984,22 +985,23 @@ static void ReadMemory() {
 /// Modify location in memory with data received from the gdb client.
 static void WriteMemory() {
     auto start_offset = command_buffer + 1;
-    auto addr_pos = std::find(start_offset, command_buffer + command_length, ',');
-    VAddr addr = HexToLong(start_offset, static_cast<u64>(addr_pos - start_offset));
+    const auto addr_pos = std::find(start_offset, command_buffer + command_length, ',');
+    const VAddr addr = HexToLong(start_offset, static_cast<u64>(addr_pos - start_offset));
 
     start_offset = addr_pos + 1;
-    auto len_pos = std::find(start_offset, command_buffer + command_length, ':');
-    u64 len = HexToLong(start_offset, static_cast<u64>(len_pos - start_offset));
+    const auto len_pos = std::find(start_offset, command_buffer + command_length, ':');
+    const u64 len = HexToLong(start_offset, static_cast<u64>(len_pos - start_offset));
 
-    if (!Memory::IsValidVirtualAddress(addr)) {
+    auto& system = Core::System::GetInstance();
+    const auto& memory = system.Memory();
+    if (!memory.IsValidVirtualAddress(addr)) {
         return SendReply("E00");
     }
 
     std::vector<u8> data(len);
-
     GdbHexToMem(data.data(), len_pos + 1, len);
     Memory::WriteBlock(addr, data.data(), len);
-    Core::System::GetInstance().InvalidateCpuInstructionCaches();
+    system.InvalidateCpuInstructionCaches();
     SendReply("OK");
 }
 

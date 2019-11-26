@@ -111,6 +111,27 @@ public:
     void RemoveDebugHook(Common::PageTable& page_table, VAddr base, u64 size,
                          Common::MemoryHookPointer hook);
 
+    /**
+     * Checks whether or not the supplied address is a valid virtual
+     * address for the given process.
+     *
+     * @param process The emulated process to check the address against.
+     * @param vaddr   The virtual address to check the validity of.
+     *
+     * @returns True if the given virtual address is valid, false otherwise.
+     */
+    bool IsValidVirtualAddress(const Kernel::Process& process, VAddr vaddr) const;
+
+    /**
+     * Checks whether or not the supplied address is a valid virtual
+     * address for the current process.
+     *
+     * @param vaddr The virtual address to check the validity of.
+     *
+     * @returns True if the given virtual address is valid, false otherwise.
+     */
+    bool IsValidVirtualAddress(VAddr vaddr) const;
+
 private:
     struct Impl;
     std::unique_ptr<Impl> impl;
@@ -120,9 +141,6 @@ private:
 /// the given process instance.
 void SetCurrentPageTable(Kernel::Process& process);
 
-/// Determines if the given VAddr is valid for the specified process.
-bool IsValidVirtualAddress(const Kernel::Process& process, VAddr vaddr);
-bool IsValidVirtualAddress(VAddr vaddr);
 /// Determines if the given VAddr is a kernel address
 bool IsKernelVirtualAddress(VAddr vaddr);
 

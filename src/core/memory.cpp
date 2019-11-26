@@ -75,6 +75,29 @@ struct Memory::Impl {
             std::make_pair(interval, std::set<Common::SpecialRegion>{region}));
     }
 
+    bool IsValidVirtualAddress(const Kernel::Process& process, const VAddr vaddr) const {
+        const auto& page_table = process.VMManager().page_table;
+
+        const u8* const page_pointer = page_table.pointers[vaddr >> PAGE_BITS];
+        if (page_pointer != nullptr) {
+            return true;
+        }
+
+        if (page_table.attributes[vaddr >> PAGE_BITS] == Common::PageType::RasterizerCachedMemory) {
+            return true;
+        }
+
+        if (page_table.attributes[vaddr >> PAGE_BITS] != Common::PageType::Special) {
+            return false;
+        }
+
+        return false;
+    }
+
+    bool IsValidVirtualAddress(VAddr vaddr) const {
+        return IsValidVirtualAddress(*system.CurrentProcess(), vaddr);
+    }
+
     /**
      * Maps a region of pages as a specific type.
      *
@@ -146,6 +169,14 @@ void Memory::AddDebugHook(Common::PageTable& page_table, VAddr base, u64 size,
 void Memory::RemoveDebugHook(Common::PageTable& page_table, VAddr base, u64 size,
                              Common::MemoryHookPointer hook) {
     impl->RemoveDebugHook(page_table, base, size, std::move(hook));
+}
+
+bool Memory::IsValidVirtualAddress(const Kernel::Process& process, const VAddr vaddr) const {
+    return impl->IsValidVirtualAddress(process, vaddr);
+}
+
+bool Memory::IsValidVirtualAddress(const VAddr vaddr) const {
+    return impl->IsValidVirtualAddress(vaddr);
 }
 
 void SetCurrentPageTable(Kernel::Process& process) {
@@ -254,26 +285,6 @@ void Write(const VAddr vaddr, const T data) {
     default:
         UNREACHABLE();
     }
-}
-
-bool IsValidVirtualAddress(const Kernel::Process& process, const VAddr vaddr) {
-    const auto& page_table = process.VMManager().page_table;
-
-    const u8* page_pointer = page_table.pointers[vaddr >> PAGE_BITS];
-    if (page_pointer)
-        return true;
-
-    if (page_table.attributes[vaddr >> PAGE_BITS] == Common::PageType::RasterizerCachedMemory)
-        return true;
-
-    if (page_table.attributes[vaddr >> PAGE_BITS] != Common::PageType::Special)
-        return false;
-
-    return false;
-}
-
-bool IsValidVirtualAddress(const VAddr vaddr) {
-    return IsValidVirtualAddress(*Core::System::GetInstance().CurrentProcess(), vaddr);
 }
 
 bool IsKernelVirtualAddress(const VAddr vaddr) {

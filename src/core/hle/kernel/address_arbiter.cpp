@@ -68,7 +68,7 @@ ResultCode AddressArbiter::SignalToAddressOnly(VAddr address, s32 num_to_wake) {
 ResultCode AddressArbiter::IncrementAndSignalToAddressIfEqual(VAddr address, s32 value,
                                                               s32 num_to_wake) {
     // Ensure that we can write to the address.
-    if (!Memory::IsValidVirtualAddress(address)) {
+    if (!system.Memory().IsValidVirtualAddress(address)) {
         return ERR_INVALID_ADDRESS_STATE;
     }
 
@@ -83,7 +83,7 @@ ResultCode AddressArbiter::IncrementAndSignalToAddressIfEqual(VAddr address, s32
 ResultCode AddressArbiter::ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr address, s32 value,
                                                                          s32 num_to_wake) {
     // Ensure that we can write to the address.
-    if (!Memory::IsValidVirtualAddress(address)) {
+    if (!system.Memory().IsValidVirtualAddress(address)) {
         return ERR_INVALID_ADDRESS_STATE;
     }
 
@@ -135,7 +135,7 @@ ResultCode AddressArbiter::WaitForAddress(VAddr address, ArbitrationType type, s
 ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s64 timeout,
                                                     bool should_decrement) {
     // Ensure that we can read the address.
-    if (!Memory::IsValidVirtualAddress(address)) {
+    if (!system.Memory().IsValidVirtualAddress(address)) {
         return ERR_INVALID_ADDRESS_STATE;
     }
 
@@ -158,7 +158,7 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
 
 ResultCode AddressArbiter::WaitForAddressIfEqual(VAddr address, s32 value, s64 timeout) {
     // Ensure that we can read the address.
-    if (!Memory::IsValidVirtualAddress(address)) {
+    if (!system.Memory().IsValidVirtualAddress(address)) {
         return ERR_INVALID_ADDRESS_STATE;
     }
     // Only wait for the address if equal.
