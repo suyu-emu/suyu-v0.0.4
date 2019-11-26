@@ -17,7 +17,6 @@
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/memory.h"
-#include "core/memory_setup.h"
 #include "video_core/gpu.h"
 
 namespace Memory {
@@ -30,11 +29,124 @@ static Common::PageTable* current_page_table = nullptr;
 struct Memory::Impl {
     explicit Impl(Core::System& system_) : system{system_} {}
 
+    void MapMemoryRegion(Common::PageTable& page_table, VAddr base, u64 size, u8* target) {
+        ASSERT_MSG((size & PAGE_MASK) == 0, "non-page aligned size: {:016X}", size);
+        ASSERT_MSG((base & PAGE_MASK) == 0, "non-page aligned base: {:016X}", base);
+        MapPages(page_table, base / PAGE_SIZE, size / PAGE_SIZE, target, Common::PageType::Memory);
+    }
+
+    void MapIoRegion(Common::PageTable& page_table, VAddr base, u64 size,
+                     Common::MemoryHookPointer mmio_handler) {
+        ASSERT_MSG((size & PAGE_MASK) == 0, "non-page aligned size: {:016X}", size);
+        ASSERT_MSG((base & PAGE_MASK) == 0, "non-page aligned base: {:016X}", base);
+        MapPages(page_table, base / PAGE_SIZE, size / PAGE_SIZE, nullptr,
+                 Common::PageType::Special);
+
+        const auto interval = boost::icl::discrete_interval<VAddr>::closed(base, base + size - 1);
+        const Common::SpecialRegion region{Common::SpecialRegion::Type::IODevice,
+                                           std::move(mmio_handler)};
+        page_table.special_regions.add(
+            std::make_pair(interval, std::set<Common::SpecialRegion>{region}));
+    }
+
+    void UnmapRegion(Common::PageTable& page_table, VAddr base, u64 size) {
+        ASSERT_MSG((size & PAGE_MASK) == 0, "non-page aligned size: {:016X}", size);
+        ASSERT_MSG((base & PAGE_MASK) == 0, "non-page aligned base: {:016X}", base);
+        MapPages(page_table, base / PAGE_SIZE, size / PAGE_SIZE, nullptr,
+                 Common::PageType::Unmapped);
+
+        const auto interval = boost::icl::discrete_interval<VAddr>::closed(base, base + size - 1);
+        page_table.special_regions.erase(interval);
+    }
+
+    void AddDebugHook(Common::PageTable& page_table, VAddr base, u64 size,
+                      Common::MemoryHookPointer hook) {
+        const auto interval = boost::icl::discrete_interval<VAddr>::closed(base, base + size - 1);
+        const Common::SpecialRegion region{Common::SpecialRegion::Type::DebugHook, std::move(hook)};
+        page_table.special_regions.add(
+            std::make_pair(interval, std::set<Common::SpecialRegion>{region}));
+    }
+
+    void RemoveDebugHook(Common::PageTable& page_table, VAddr base, u64 size,
+                         Common::MemoryHookPointer hook) {
+        const auto interval = boost::icl::discrete_interval<VAddr>::closed(base, base + size - 1);
+        const Common::SpecialRegion region{Common::SpecialRegion::Type::DebugHook, std::move(hook)};
+        page_table.special_regions.subtract(
+            std::make_pair(interval, std::set<Common::SpecialRegion>{region}));
+    }
+
+    /**
+     * Maps a region of pages as a specific type.
+     *
+     * @param page_table The page table to use to perform the mapping.
+     * @param base       The base address to begin mapping at.
+     * @param size       The total size of the range in bytes.
+     * @param memory     The memory to map.
+     * @param type       The page type to map the memory as.
+     */
+    void MapPages(Common::PageTable& page_table, VAddr base, u64 size, u8* memory,
+                  Common::PageType type) {
+        LOG_DEBUG(HW_Memory, "Mapping {} onto {:016X}-{:016X}", fmt::ptr(memory), base * PAGE_SIZE,
+                  (base + size) * PAGE_SIZE);
+
+        // During boot, current_page_table might not be set yet, in which case we need not flush
+        if (system.IsPoweredOn()) {
+            auto& gpu = system.GPU();
+            for (u64 i = 0; i < size; i++) {
+                const auto page = base + i;
+                if (page_table.attributes[page] == Common::PageType::RasterizerCachedMemory) {
+                    gpu.FlushAndInvalidateRegion(page << PAGE_BITS, PAGE_SIZE);
+                }
+            }
+        }
+
+        const VAddr end = base + size;
+        ASSERT_MSG(end <= page_table.pointers.size(), "out of range mapping at {:016X}",
+                   base + page_table.pointers.size());
+
+        std::fill(page_table.attributes.begin() + base, page_table.attributes.begin() + end, type);
+
+        if (memory == nullptr) {
+            std::fill(page_table.pointers.begin() + base, page_table.pointers.begin() + end,
+                      memory);
+        } else {
+            while (base != end) {
+                page_table.pointers[base] = memory;
+
+                base += 1;
+                memory += PAGE_SIZE;
+            }
+        }
+    }
+
     Core::System& system;
 };
 
 Memory::Memory(Core::System& system) : impl{std::make_unique<Impl>(system)} {}
 Memory::~Memory() = default;
+
+void Memory::MapMemoryRegion(Common::PageTable& page_table, VAddr base, u64 size, u8* target) {
+    impl->MapMemoryRegion(page_table, base, size, target);
+}
+
+void Memory::MapIoRegion(Common::PageTable& page_table, VAddr base, u64 size,
+                         Common::MemoryHookPointer mmio_handler) {
+    impl->MapIoRegion(page_table, base, size, std::move(mmio_handler));
+}
+
+void Memory::UnmapRegion(Common::PageTable& page_table, VAddr base, u64 size) {
+    impl->UnmapRegion(page_table, base, size);
+}
+
+void Memory::AddDebugHook(Common::PageTable& page_table, VAddr base, u64 size,
+                          Common::MemoryHookPointer hook) {
+    impl->AddDebugHook(page_table, base, size, std::move(hook));
+}
+
+void Memory::RemoveDebugHook(Common::PageTable& page_table, VAddr base, u64 size,
+                             Common::MemoryHookPointer hook) {
+    impl->RemoveDebugHook(page_table, base, size, std::move(hook));
+}
 
 void SetCurrentPageTable(Kernel::Process& process) {
     current_page_table = &process.VMManager().page_table;
@@ -46,83 +158,6 @@ void SetCurrentPageTable(Kernel::Process& process) {
     system.ArmInterface(1).PageTableChanged(*current_page_table, address_space_width);
     system.ArmInterface(2).PageTableChanged(*current_page_table, address_space_width);
     system.ArmInterface(3).PageTableChanged(*current_page_table, address_space_width);
-}
-
-static void MapPages(Common::PageTable& page_table, VAddr base, u64 size, u8* memory,
-                     Common::PageType type) {
-    LOG_DEBUG(HW_Memory, "Mapping {} onto {:016X}-{:016X}", fmt::ptr(memory), base * PAGE_SIZE,
-              (base + size) * PAGE_SIZE);
-
-    // During boot, current_page_table might not be set yet, in which case we need not flush
-    if (Core::System::GetInstance().IsPoweredOn()) {
-        auto& gpu = Core::System::GetInstance().GPU();
-        for (u64 i = 0; i < size; i++) {
-            const auto page = base + i;
-            if (page_table.attributes[page] == Common::PageType::RasterizerCachedMemory) {
-                gpu.FlushAndInvalidateRegion(page << PAGE_BITS, PAGE_SIZE);
-            }
-        }
-    }
-
-    VAddr end = base + size;
-    ASSERT_MSG(end <= page_table.pointers.size(), "out of range mapping at {:016X}",
-               base + page_table.pointers.size());
-
-    std::fill(page_table.attributes.begin() + base, page_table.attributes.begin() + end, type);
-
-    if (memory == nullptr) {
-        std::fill(page_table.pointers.begin() + base, page_table.pointers.begin() + end, memory);
-    } else {
-        while (base != end) {
-            page_table.pointers[base] = memory;
-
-            base += 1;
-            memory += PAGE_SIZE;
-        }
-    }
-}
-
-void MapMemoryRegion(Common::PageTable& page_table, VAddr base, u64 size, u8* target) {
-    ASSERT_MSG((size & PAGE_MASK) == 0, "non-page aligned size: {:016X}", size);
-    ASSERT_MSG((base & PAGE_MASK) == 0, "non-page aligned base: {:016X}", base);
-    MapPages(page_table, base / PAGE_SIZE, size / PAGE_SIZE, target, Common::PageType::Memory);
-}
-
-void MapIoRegion(Common::PageTable& page_table, VAddr base, u64 size,
-                 Common::MemoryHookPointer mmio_handler) {
-    ASSERT_MSG((size & PAGE_MASK) == 0, "non-page aligned size: {:016X}", size);
-    ASSERT_MSG((base & PAGE_MASK) == 0, "non-page aligned base: {:016X}", base);
-    MapPages(page_table, base / PAGE_SIZE, size / PAGE_SIZE, nullptr, Common::PageType::Special);
-
-    auto interval = boost::icl::discrete_interval<VAddr>::closed(base, base + size - 1);
-    Common::SpecialRegion region{Common::SpecialRegion::Type::IODevice, std::move(mmio_handler)};
-    page_table.special_regions.add(
-        std::make_pair(interval, std::set<Common::SpecialRegion>{region}));
-}
-
-void UnmapRegion(Common::PageTable& page_table, VAddr base, u64 size) {
-    ASSERT_MSG((size & PAGE_MASK) == 0, "non-page aligned size: {:016X}", size);
-    ASSERT_MSG((base & PAGE_MASK) == 0, "non-page aligned base: {:016X}", base);
-    MapPages(page_table, base / PAGE_SIZE, size / PAGE_SIZE, nullptr, Common::PageType::Unmapped);
-
-    auto interval = boost::icl::discrete_interval<VAddr>::closed(base, base + size - 1);
-    page_table.special_regions.erase(interval);
-}
-
-void AddDebugHook(Common::PageTable& page_table, VAddr base, u64 size,
-                  Common::MemoryHookPointer hook) {
-    auto interval = boost::icl::discrete_interval<VAddr>::closed(base, base + size - 1);
-    Common::SpecialRegion region{Common::SpecialRegion::Type::DebugHook, std::move(hook)};
-    page_table.special_regions.add(
-        std::make_pair(interval, std::set<Common::SpecialRegion>{region}));
-}
-
-void RemoveDebugHook(Common::PageTable& page_table, VAddr base, u64 size,
-                     Common::MemoryHookPointer hook) {
-    auto interval = boost::icl::discrete_interval<VAddr>::closed(base, base + size - 1);
-    Common::SpecialRegion region{Common::SpecialRegion::Type::DebugHook, std::move(hook)};
-    page_table.special_regions.subtract(
-        std::make_pair(interval, std::set<Common::SpecialRegion>{region}));
 }
 
 /**

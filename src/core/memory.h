@@ -5,8 +5,14 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
 #include <string>
 #include "common/common_types.h"
+#include "common/memory_hook.h"
+
+namespace Common {
+struct PageTable;
+}
 
 namespace Core {
 class System;
@@ -51,6 +57,59 @@ public:
 
     Memory(Memory&&) = default;
     Memory& operator=(Memory&&) = default;
+
+    /**
+     * Maps an allocated buffer onto a region of the emulated process address space.
+     *
+     * @param page_table The page table of the emulated process.
+     * @param base       The address to start mapping at. Must be page-aligned.
+     * @param size       The amount of bytes to map. Must be page-aligned.
+     * @param target     Buffer with the memory backing the mapping. Must be of length at least
+     *                   `size`.
+     */
+    void MapMemoryRegion(Common::PageTable& page_table, VAddr base, u64 size, u8* target);
+
+    /**
+     * Maps a region of the emulated process address space as a IO region.
+     *
+     * @param page_table   The page table of the emulated process.
+     * @param base         The address to start mapping at. Must be page-aligned.
+     * @param size         The amount of bytes to map. Must be page-aligned.
+     * @param mmio_handler The handler that backs the mapping.
+     */
+    void MapIoRegion(Common::PageTable& page_table, VAddr base, u64 size,
+                     Common::MemoryHookPointer mmio_handler);
+
+    /**
+     * Unmaps a region of the emulated process address space.
+     *
+     * @param page_table The page table of the emulated process.
+     * @param base       The address to begin unmapping at.
+     * @param size       The amount of bytes to unmap.
+     */
+    void UnmapRegion(Common::PageTable& page_table, VAddr base, u64 size);
+
+    /**
+     * Adds a memory hook to intercept reads and writes to given region of memory.
+     *
+     * @param page_table The page table of the emulated process
+     * @param base       The starting address to apply the hook to.
+     * @param size       The size of the memory region to apply the hook to, in bytes.
+     * @param hook       The hook to apply to the region of memory.
+     */
+    void AddDebugHook(Common::PageTable& page_table, VAddr base, u64 size,
+                      Common::MemoryHookPointer hook);
+
+    /**
+     * Removes a memory hook from a given range of memory.
+     *
+     * @param page_table The page table of the emulated process.
+     * @param base       The starting address to remove the hook from.
+     * @param size       The size of the memory region to remove the hook from, in bytes.
+     * @param hook       The hook to remove from the specified region of memory.
+     */
+    void RemoveDebugHook(Common::PageTable& page_table, VAddr base, u64 size,
+                         Common::MemoryHookPointer hook);
 
 private:
     struct Impl;

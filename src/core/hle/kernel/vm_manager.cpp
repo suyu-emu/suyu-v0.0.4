@@ -16,7 +16,6 @@
 #include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/memory.h"
-#include "core/memory_setup.h"
 
 namespace Kernel {
 namespace {
@@ -786,19 +785,21 @@ void VMManager::MergeAdjacentVMA(VirtualMemoryArea& left, const VirtualMemoryAre
 }
 
 void VMManager::UpdatePageTableForVMA(const VirtualMemoryArea& vma) {
+    auto& memory = system.Memory();
+
     switch (vma.type) {
     case VMAType::Free:
-        Memory::UnmapRegion(page_table, vma.base, vma.size);
+        memory.UnmapRegion(page_table, vma.base, vma.size);
         break;
     case VMAType::AllocatedMemoryBlock:
-        Memory::MapMemoryRegion(page_table, vma.base, vma.size,
-                                vma.backing_block->data() + vma.offset);
+        memory.MapMemoryRegion(page_table, vma.base, vma.size,
+                               vma.backing_block->data() + vma.offset);
         break;
     case VMAType::BackingMemory:
-        Memory::MapMemoryRegion(page_table, vma.base, vma.size, vma.backing_memory);
+        memory.MapMemoryRegion(page_table, vma.base, vma.size, vma.backing_memory);
         break;
     case VMAType::MMIO:
-        Memory::MapIoRegion(page_table, vma.base, vma.size, vma.mmio_handler);
+        memory.MapIoRegion(page_table, vma.base, vma.size, vma.mmio_handler);
         break;
     }
 }
