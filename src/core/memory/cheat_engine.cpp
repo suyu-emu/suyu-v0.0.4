@@ -30,7 +30,7 @@ void StandardVmCallbacks::MemoryRead(VAddr address, void* data, u64 size) {
 }
 
 void StandardVmCallbacks::MemoryWrite(VAddr address, const void* data, u64 size) {
-    WriteBlock(SanitizeAddress(address), data, size);
+    system.Memory().WriteBlock(SanitizeAddress(address), data, size);
 }
 
 u64 StandardVmCallbacks::HidKeysDown() {

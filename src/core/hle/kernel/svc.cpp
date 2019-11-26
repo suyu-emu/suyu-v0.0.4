@@ -1120,7 +1120,7 @@ static ResultCode GetThreadContext(Core::System& system, VAddr thread_context, H
         std::fill(ctx.vector_registers.begin() + 16, ctx.vector_registers.end(), u128{});
     }
 
-    Memory::WriteBlock(thread_context, &ctx, sizeof(ctx));
+    system.Memory().WriteBlock(thread_context, &ctx, sizeof(ctx));
     return RESULT_SUCCESS;
 }
 
@@ -1280,20 +1280,21 @@ static ResultCode QueryProcessMemory(Core::System& system, VAddr memory_info_add
         return ERR_INVALID_HANDLE;
     }
 
+    auto& memory = system.Memory();
     const auto& vm_manager = process->VMManager();
     const MemoryInfo memory_info = vm_manager.QueryMemory(address);
 
-    Memory::Write64(memory_info_address, memory_info.base_address);
-    Memory::Write64(memory_info_address + 8, memory_info.size);
-    Memory::Write32(memory_info_address + 16, memory_info.state);
-    Memory::Write32(memory_info_address + 20, memory_info.attributes);
-    Memory::Write32(memory_info_address + 24, memory_info.permission);
-    Memory::Write32(memory_info_address + 32, memory_info.ipc_ref_count);
-    Memory::Write32(memory_info_address + 28, memory_info.device_ref_count);
-    Memory::Write32(memory_info_address + 36, 0);
+    memory.Write64(memory_info_address, memory_info.base_address);
+    memory.Write64(memory_info_address + 8, memory_info.size);
+    memory.Write32(memory_info_address + 16, memory_info.state);
+    memory.Write32(memory_info_address + 20, memory_info.attributes);
+    memory.Write32(memory_info_address + 24, memory_info.permission);
+    memory.Write32(memory_info_address + 32, memory_info.ipc_ref_count);
+    memory.Write32(memory_info_address + 28, memory_info.device_ref_count);
+    memory.Write32(memory_info_address + 36, 0);
 
     // Page info appears to be currently unused by the kernel and is always set to zero.
-    Memory::Write32(page_info_address, 0);
+    memory.Write32(page_info_address, 0);
 
     return RESULT_SUCCESS;
 }
@@ -2290,12 +2291,13 @@ static ResultCode GetProcessList(Core::System& system, u32* out_num_processes,
         return ERR_INVALID_ADDRESS_STATE;
     }
 
+    auto& memory = system.Memory();
     const auto& process_list = kernel.GetProcessList();
     const auto num_processes = process_list.size();
     const auto copy_amount = std::min(std::size_t{out_process_ids_size}, num_processes);
 
     for (std::size_t i = 0; i < copy_amount; ++i) {
-        Memory::Write64(out_process_ids, process_list[i]->GetProcessID());
+        memory.Write64(out_process_ids, process_list[i]->GetProcessID());
         out_process_ids += sizeof(u64);
     }
 
@@ -2329,13 +2331,14 @@ static ResultCode GetThreadList(Core::System& system, u32* out_num_threads, VAdd
         return ERR_INVALID_ADDRESS_STATE;
     }
 
+    auto& memory = system.Memory();
     const auto& thread_list = current_process->GetThreadList();
     const auto num_threads = thread_list.size();
     const auto copy_amount = std::min(std::size_t{out_thread_ids_size}, num_threads);
 
     auto list_iter = thread_list.cbegin();
     for (std::size_t i = 0; i < copy_amount; ++i, ++list_iter) {
-        Memory::Write64(out_thread_ids, (*list_iter)->GetThreadID());
+        memory.Write64(out_thread_ids, (*list_iter)->GetThreadID());
         out_thread_ids += sizeof(u64);
     }
 

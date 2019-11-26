@@ -58,35 +58,6 @@ u8* GetPointerFromVMA(const Kernel::Process& process, VAddr vaddr) {
 u8* GetPointerFromVMA(VAddr vaddr) {
     return ::Memory::GetPointerFromVMA(*Core::System::GetInstance().CurrentProcess(), vaddr);
 }
-
-template <typename T>
-void Write(const VAddr vaddr, const T data) {
-    u8* const page_pointer = current_page_table->pointers[vaddr >> PAGE_BITS];
-    if (page_pointer != nullptr) {
-        // NOTE: Avoid adding any extra logic to this fast-path block
-        std::memcpy(&page_pointer[vaddr & PAGE_MASK], &data, sizeof(T));
-        return;
-    }
-
-    Common::PageType type = current_page_table->attributes[vaddr >> PAGE_BITS];
-    switch (type) {
-    case Common::PageType::Unmapped:
-        LOG_ERROR(HW_Memory, "Unmapped Write{} 0x{:08X} @ 0x{:016X}", sizeof(data) * 8,
-                  static_cast<u32>(data), vaddr);
-        return;
-    case Common::PageType::Memory:
-        ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
-        break;
-    case Common::PageType::RasterizerCachedMemory: {
-        u8* const host_ptr{GetPointerFromVMA(vaddr)};
-        Core::System::GetInstance().GPU().InvalidateRegion(ToCacheAddr(host_ptr), sizeof(T));
-        std::memcpy(host_ptr, &data, sizeof(T));
-        break;
-    }
-    default:
-        UNREACHABLE();
-    }
-}
 } // Anonymous namespace
 
 // Implementation class used to keep the specifics of the memory subsystem hidden
@@ -195,6 +166,22 @@ struct Memory::Impl {
         return Read<u64_le>(addr);
     }
 
+    void Write8(const VAddr addr, const u8 data) {
+        Write<u8>(addr, data);
+    }
+
+    void Write16(const VAddr addr, const u16 data) {
+        Write<u16_le>(addr, data);
+    }
+
+    void Write32(const VAddr addr, const u32 data) {
+        Write<u32_le>(addr, data);
+    }
+
+    void Write64(const VAddr addr, const u64 data) {
+        Write<u64_le>(addr, data);
+    }
+
     std::string ReadCString(VAddr vaddr, std::size_t max_length) {
         std::string string;
         string.reserve(max_length);
@@ -257,6 +244,53 @@ struct Memory::Impl {
 
     void ReadBlock(const VAddr src_addr, void* dest_buffer, const std::size_t size) {
         ReadBlock(*system.CurrentProcess(), src_addr, dest_buffer, size);
+    }
+
+    void WriteBlock(const Kernel::Process& process, const VAddr dest_addr, const void* src_buffer,
+                    const std::size_t size) {
+        const auto& page_table = process.VMManager().page_table;
+        std::size_t remaining_size = size;
+        std::size_t page_index = dest_addr >> PAGE_BITS;
+        std::size_t page_offset = dest_addr & PAGE_MASK;
+
+        while (remaining_size > 0) {
+            const std::size_t copy_amount =
+                std::min(static_cast<std::size_t>(PAGE_SIZE) - page_offset, remaining_size);
+            const auto current_vaddr = static_cast<VAddr>((page_index << PAGE_BITS) + page_offset);
+
+            switch (page_table.attributes[page_index]) {
+            case Common::PageType::Unmapped: {
+                LOG_ERROR(HW_Memory,
+                          "Unmapped WriteBlock @ 0x{:016X} (start address = 0x{:016X}, size = {})",
+                          current_vaddr, dest_addr, size);
+                break;
+            }
+            case Common::PageType::Memory: {
+                DEBUG_ASSERT(page_table.pointers[page_index]);
+
+                u8* const dest_ptr = page_table.pointers[page_index] + page_offset;
+                std::memcpy(dest_ptr, src_buffer, copy_amount);
+                break;
+            }
+            case Common::PageType::RasterizerCachedMemory: {
+                u8* const host_ptr = GetPointerFromVMA(process, current_vaddr);
+                system.GPU().InvalidateRegion(ToCacheAddr(host_ptr), copy_amount);
+                std::memcpy(host_ptr, src_buffer, copy_amount);
+                break;
+            }
+            default:
+                UNREACHABLE();
+            }
+
+            page_index++;
+            page_offset = 0;
+            src_buffer = static_cast<const u8*>(src_buffer) + copy_amount;
+            remaining_size -= copy_amount;
+        }
+    }
+
+    void WriteBlock(const VAddr dest_addr, const void* src_buffer, const std::size_t size) {
+        WriteBlock(*system.CurrentProcess(), dest_addr, src_buffer, size);
     }
 
     void ZeroBlock(const Kernel::Process& process, const VAddr dest_addr, const std::size_t size) {
@@ -501,6 +535,46 @@ struct Memory::Impl {
         return {};
     }
 
+    /**
+     * Writes a particular data type to memory at the given virtual address.
+     *
+     * @param vaddr The virtual address to write the data type to.
+     *
+     * @tparam T The data type to write to memory. This type *must* be
+     *           trivially copyable, otherwise the behavior of this function
+     *           is undefined.
+     *
+     * @returns The instance of T write to the specified virtual address.
+     */
+    template <typename T>
+    void Write(const VAddr vaddr, const T data) {
+        u8* const page_pointer = current_page_table->pointers[vaddr >> PAGE_BITS];
+        if (page_pointer != nullptr) {
+            // NOTE: Avoid adding any extra logic to this fast-path block
+            std::memcpy(&page_pointer[vaddr & PAGE_MASK], &data, sizeof(T));
+            return;
+        }
+
+        const Common::PageType type = current_page_table->attributes[vaddr >> PAGE_BITS];
+        switch (type) {
+        case Common::PageType::Unmapped:
+            LOG_ERROR(HW_Memory, "Unmapped Write{} 0x{:08X} @ 0x{:016X}", sizeof(data) * 8,
+                      static_cast<u32>(data), vaddr);
+            return;
+        case Common::PageType::Memory:
+            ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
+            break;
+        case Common::PageType::RasterizerCachedMemory: {
+            u8* const host_ptr{GetPointerFromVMA(vaddr)};
+            system.GPU().InvalidateRegion(ToCacheAddr(host_ptr), sizeof(T));
+            std::memcpy(host_ptr, &data, sizeof(T));
+            break;
+        }
+        default:
+            UNREACHABLE();
+        }
+    }
+
     Core::System& system;
 };
 
@@ -562,6 +636,22 @@ u64 Memory::Read64(const VAddr addr) {
     return impl->Read64(addr);
 }
 
+void Memory::Write8(VAddr addr, u8 data) {
+    impl->Write8(addr, data);
+}
+
+void Memory::Write16(VAddr addr, u16 data) {
+    impl->Write16(addr, data);
+}
+
+void Memory::Write32(VAddr addr, u32 data) {
+    impl->Write32(addr, data);
+}
+
+void Memory::Write64(VAddr addr, u64 data) {
+    impl->Write64(addr, data);
+}
+
 std::string Memory::ReadCString(VAddr vaddr, std::size_t max_length) {
     return impl->ReadCString(vaddr, max_length);
 }
@@ -573,6 +663,15 @@ void Memory::ReadBlock(const Kernel::Process& process, const VAddr src_addr, voi
 
 void Memory::ReadBlock(const VAddr src_addr, void* dest_buffer, const std::size_t size) {
     impl->ReadBlock(src_addr, dest_buffer, size);
+}
+
+void Memory::WriteBlock(const Kernel::Process& process, VAddr dest_addr, const void* src_buffer,
+                        std::size_t size) {
+    impl->WriteBlock(process, dest_addr, src_buffer, size);
+}
+
+void Memory::WriteBlock(const VAddr dest_addr, const void* src_buffer, const std::size_t size) {
+    impl->WriteBlock(dest_addr, src_buffer, size);
 }
 
 void Memory::ZeroBlock(const Kernel::Process& process, VAddr dest_addr, std::size_t size) {
@@ -610,69 +709,6 @@ void SetCurrentPageTable(Kernel::Process& process) {
 
 bool IsKernelVirtualAddress(const VAddr vaddr) {
     return KERNEL_REGION_VADDR <= vaddr && vaddr < KERNEL_REGION_END;
-}
-
-void Write8(const VAddr addr, const u8 data) {
-    Write<u8>(addr, data);
-}
-
-void Write16(const VAddr addr, const u16 data) {
-    Write<u16_le>(addr, data);
-}
-
-void Write32(const VAddr addr, const u32 data) {
-    Write<u32_le>(addr, data);
-}
-
-void Write64(const VAddr addr, const u64 data) {
-    Write<u64_le>(addr, data);
-}
-
-void WriteBlock(const Kernel::Process& process, const VAddr dest_addr, const void* src_buffer,
-                const std::size_t size) {
-    const auto& page_table = process.VMManager().page_table;
-    std::size_t remaining_size = size;
-    std::size_t page_index = dest_addr >> PAGE_BITS;
-    std::size_t page_offset = dest_addr & PAGE_MASK;
-
-    while (remaining_size > 0) {
-        const std::size_t copy_amount =
-            std::min(static_cast<std::size_t>(PAGE_SIZE) - page_offset, remaining_size);
-        const VAddr current_vaddr = static_cast<VAddr>((page_index << PAGE_BITS) + page_offset);
-
-        switch (page_table.attributes[page_index]) {
-        case Common::PageType::Unmapped: {
-            LOG_ERROR(HW_Memory,
-                      "Unmapped WriteBlock @ 0x{:016X} (start address = 0x{:016X}, size = {})",
-                      current_vaddr, dest_addr, size);
-            break;
-        }
-        case Common::PageType::Memory: {
-            DEBUG_ASSERT(page_table.pointers[page_index]);
-
-            u8* dest_ptr = page_table.pointers[page_index] + page_offset;
-            std::memcpy(dest_ptr, src_buffer, copy_amount);
-            break;
-        }
-        case Common::PageType::RasterizerCachedMemory: {
-            const auto& host_ptr{GetPointerFromVMA(process, current_vaddr)};
-            Core::System::GetInstance().GPU().InvalidateRegion(ToCacheAddr(host_ptr), copy_amount);
-            std::memcpy(host_ptr, src_buffer, copy_amount);
-            break;
-        }
-        default:
-            UNREACHABLE();
-        }
-
-        page_index++;
-        page_offset = 0;
-        src_buffer = static_cast<const u8*>(src_buffer) + copy_amount;
-        remaining_size -= copy_amount;
-    }
-}
-
-void WriteBlock(const VAddr dest_addr, const void* src_buffer, const std::size_t size) {
-    WriteBlock(*Core::System::GetInstance().CurrentProcess(), dest_addr, src_buffer, size);
 }
 
 } // namespace Memory

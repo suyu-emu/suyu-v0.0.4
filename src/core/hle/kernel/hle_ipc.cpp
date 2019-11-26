@@ -274,8 +274,8 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(Thread& thread) {
     }
 
     // Copy the translated command buffer back into the thread's command buffer area.
-    Memory::WriteBlock(owner_process, thread.GetTLSAddress(), dst_cmdbuf.data(),
-                       dst_cmdbuf.size() * sizeof(u32));
+    memory.WriteBlock(owner_process, thread.GetTLSAddress(), dst_cmdbuf.data(),
+                      dst_cmdbuf.size() * sizeof(u32));
 
     return RESULT_SUCCESS;
 }
@@ -311,10 +311,11 @@ std::size_t HLERequestContext::WriteBuffer(const void* buffer, std::size_t size,
         size = buffer_size; // TODO(bunnei): This needs to be HW tested
     }
 
+    auto& memory = Core::System::GetInstance().Memory();
     if (is_buffer_b) {
-        Memory::WriteBlock(BufferDescriptorB()[buffer_index].Address(), buffer, size);
+        memory.WriteBlock(BufferDescriptorB()[buffer_index].Address(), buffer, size);
     } else {
-        Memory::WriteBlock(BufferDescriptorC()[buffer_index].Address(), buffer, size);
+        memory.WriteBlock(BufferDescriptorC()[buffer_index].Address(), buffer, size);
     }
 
     return size;

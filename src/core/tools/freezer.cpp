@@ -34,16 +34,16 @@ u64 MemoryReadWidth(Memory::Memory& memory, u32 width, VAddr addr) {
 void MemoryWriteWidth(Memory::Memory& memory, u32 width, VAddr addr, u64 value) {
     switch (width) {
     case 1:
-        Memory::Write8(addr, static_cast<u8>(value));
+        memory.Write8(addr, static_cast<u8>(value));
         break;
     case 2:
-        Memory::Write16(addr, static_cast<u16>(value));
+        memory.Write16(addr, static_cast<u16>(value));
         break;
     case 4:
-        Memory::Write32(addr, static_cast<u32>(value));
+        memory.Write32(addr, static_cast<u32>(value));
         break;
     case 8:
-        Memory::Write64(addr, value);
+        memory.Write64(addr, value);
         break;
     default:
         UNREACHABLE();

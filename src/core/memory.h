@@ -193,6 +193,50 @@ public:
     u64 Read64(VAddr addr);
 
     /**
+     * Writes an 8-bit unsigned integer to the given virtual address in
+     * the current process' address space.
+     *
+     * @param addr The virtual address to write the 8-bit unsigned integer to.
+     * @param data The 8-bit unsigned integer to write to the given virtual address.
+     *
+     * @post The memory at the given virtual address contains the specified data value.
+     */
+    void Write8(VAddr addr, u8 data);
+
+    /**
+     * Writes a 16-bit unsigned integer to the given virtual address in
+     * the current process' address space.
+     *
+     * @param addr The virtual address to write the 16-bit unsigned integer to.
+     * @param data The 16-bit unsigned integer to write to the given virtual address.
+     *
+     * @post The memory range [addr, sizeof(data)) contains the given data value.
+     */
+    void Write16(VAddr addr, u16 data);
+
+    /**
+     * Writes a 32-bit unsigned integer to the given virtual address in
+     * the current process' address space.
+     *
+     * @param addr The virtual address to write the 32-bit unsigned integer to.
+     * @param data The 32-bit unsigned integer to write to the given virtual address.
+     *
+     * @post The memory range [addr, sizeof(data)) contains the given data value.
+     */
+    void Write32(VAddr addr, u32 data);
+
+    /**
+     * Writes a 64-bit unsigned integer to the given virtual address in
+     * the current process' address space.
+     *
+     * @param addr The virtual address to write the 64-bit unsigned integer to.
+     * @param data The 64-bit unsigned integer to write to the given virtual address.
+     *
+     * @post The memory range [addr, sizeof(data)) contains the given data value.
+     */
+    void Write64(VAddr addr, u64 data);
+
+    /**
      * Reads a null-terminated string from the given virtual address.
      * This function will continually read characters until either:
      *
@@ -246,6 +290,50 @@ public:
      *       current process' address space.
      */
     void ReadBlock(VAddr src_addr, void* dest_buffer, std::size_t size);
+
+    /**
+     * Writes a range of bytes into a given process' address space at the specified
+     * virtual address.
+     *
+     * @param process    The process to write data into the address space of.
+     * @param dest_addr  The destination virtual address to begin writing the data at.
+     * @param src_buffer The data to write into the process' address space.
+     * @param size       The size of the data to write, in bytes.
+     *
+     * @post The address range [dest_addr, size) in the process' address space
+     *       contains the data that was within src_buffer.
+     *
+     * @post If an attempt is made to write into an unmapped region of memory, the writes
+     *       will be ignored and an error will be logged.
+     *
+     * @post If a write is performed into a region of memory that is considered cached
+     *       rasterizer memory, will cause the currently active rasterizer to be notified
+     *       and will mark that region as invalidated to caches that the active
+     *       graphics backend may be maintaining over the course of execution.
+     */
+    void WriteBlock(const Kernel::Process& process, VAddr dest_addr, const void* src_buffer,
+                    std::size_t size);
+
+    /**
+     * Writes a range of bytes into the current process' address space at the specified
+     * virtual address.
+     *
+     * @param dest_addr  The destination virtual address to begin writing the data at.
+     * @param src_buffer The data to write into the current process' address space.
+     * @param size       The size of the data to write, in bytes.
+     *
+     * @post The address range [dest_addr, size) in the current process' address space
+     *       contains the data that was within src_buffer.
+     *
+     * @post If an attempt is made to write into an unmapped region of memory, the writes
+     *       will be ignored and an error will be logged.
+     *
+     * @post If a write is performed into a region of memory that is considered cached
+     *       rasterizer memory, will cause the currently active rasterizer to be notified
+     *       and will mark that region as invalidated to caches that the active
+     *       graphics backend may be maintaining over the course of execution.
+     */
+    void WriteBlock(VAddr dest_addr, const void* src_buffer, std::size_t size);
 
     /**
      * Fills the specified address range within a process' address space with zeroes.
@@ -319,14 +407,5 @@ void SetCurrentPageTable(Kernel::Process& process);
 
 /// Determines if the given VAddr is a kernel address
 bool IsKernelVirtualAddress(VAddr vaddr);
-
-void Write8(VAddr addr, u8 data);
-void Write16(VAddr addr, u16 data);
-void Write32(VAddr addr, u32 data);
-void Write64(VAddr addr, u64 data);
-
-void WriteBlock(const Kernel::Process& process, VAddr dest_addr, const void* src_buffer,
-                std::size_t size);
-void WriteBlock(VAddr dest_addr, const void* src_buffer, std::size_t size);
 
 } // namespace Memory

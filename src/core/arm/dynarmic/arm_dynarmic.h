@@ -12,6 +12,10 @@
 #include "core/arm/exclusive_monitor.h"
 #include "core/arm/unicorn/arm_unicorn.h"
 
+namespace Memory {
+class Memory;
+}
+
 namespace Core {
 
 class ARM_Dynarmic_Callbacks;
@@ -63,7 +67,7 @@ private:
 
 class DynarmicExclusiveMonitor final : public ExclusiveMonitor {
 public:
-    explicit DynarmicExclusiveMonitor(std::size_t core_count);
+    explicit DynarmicExclusiveMonitor(Memory::Memory& memory_, std::size_t core_count);
     ~DynarmicExclusiveMonitor() override;
 
     void SetExclusive(std::size_t core_index, VAddr addr) override;
@@ -78,6 +82,7 @@ public:
 private:
     friend class ARM_Dynarmic;
     Dynarmic::A64::ExclusiveMonitor monitor;
+    Memory::Memory& memory;
 };
 
 } // namespace Core

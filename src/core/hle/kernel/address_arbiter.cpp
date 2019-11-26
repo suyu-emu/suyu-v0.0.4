@@ -78,7 +78,7 @@ ResultCode AddressArbiter::IncrementAndSignalToAddressIfEqual(VAddr address, s32
         return ERR_INVALID_STATE;
     }
 
-    Memory::Write32(address, static_cast<u32>(value + 1));
+    memory.Write32(address, static_cast<u32>(value + 1));
     return SignalToAddressOnly(address, num_to_wake);
 }
 
@@ -117,7 +117,7 @@ ResultCode AddressArbiter::ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr a
         return ERR_INVALID_STATE;
     }
 
-    Memory::Write32(address, static_cast<u32>(updated_value));
+    memory.Write32(address, static_cast<u32>(updated_value));
     WakeThreads(waiting_threads, num_to_wake);
     return RESULT_SUCCESS;
 }
@@ -151,7 +151,7 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
     }
 
     if (should_decrement) {
-        Memory::Write32(address, static_cast<u32>(cur_value - 1));
+        memory.Write32(address, static_cast<u32>(cur_value - 1));
     }
 
     // Short-circuit without rescheduling, if timeout is zero.

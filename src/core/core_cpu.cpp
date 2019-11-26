@@ -66,9 +66,10 @@ Cpu::Cpu(System& system, ExclusiveMonitor& exclusive_monitor, CpuBarrier& cpu_ba
 
 Cpu::~Cpu() = default;
 
-std::unique_ptr<ExclusiveMonitor> Cpu::MakeExclusiveMonitor(std::size_t num_cores) {
+std::unique_ptr<ExclusiveMonitor> Cpu::MakeExclusiveMonitor(
+    [[maybe_unused]] Memory::Memory& memory, [[maybe_unused]] std::size_t num_cores) {
 #ifdef ARCHITECTURE_x86_64
-    return std::make_unique<DynarmicExclusiveMonitor>(num_cores);
+    return std::make_unique<DynarmicExclusiveMonitor>(memory, num_cores);
 #else
     // TODO(merry): Passthrough exclusive monitor
     return nullptr;

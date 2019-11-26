@@ -508,8 +508,9 @@ static void RemoveBreakpoint(BreakpointType type, VAddr addr) {
               bp->second.len, bp->second.addr, static_cast<int>(type));
 
     if (type == BreakpointType::Execute) {
-        Memory::WriteBlock(bp->second.addr, bp->second.inst.data(), bp->second.inst.size());
-        Core::System::GetInstance().InvalidateCpuInstructionCaches();
+        auto& system = Core::System::GetInstance();
+        system.Memory().WriteBlock(bp->second.addr, bp->second.inst.data(), bp->second.inst.size());
+        system.InvalidateCpuInstructionCaches();
     }
     p.erase(addr);
 }
@@ -993,14 +994,14 @@ static void WriteMemory() {
     const u64 len = HexToLong(start_offset, static_cast<u64>(len_pos - start_offset));
 
     auto& system = Core::System::GetInstance();
-    const auto& memory = system.Memory();
+    auto& memory = system.Memory();
     if (!memory.IsValidVirtualAddress(addr)) {
         return SendReply("E00");
     }
 
     std::vector<u8> data(len);
     GdbHexToMem(data.data(), len_pos + 1, len);
-    Memory::WriteBlock(addr, data.data(), len);
+    memory.WriteBlock(addr, data.data(), len);
     system.InvalidateCpuInstructionCaches();
     SendReply("OK");
 }
@@ -1058,13 +1059,14 @@ static bool CommitBreakpoint(BreakpointType type, VAddr addr, u64 len) {
     breakpoint.addr = addr;
     breakpoint.len = len;
 
-    auto& memory = Core::System::GetInstance().Memory();
+    auto& system = Core::System::GetInstance();
+    auto& memory = system.Memory();
     memory.ReadBlock(addr, breakpoint.inst.data(), breakpoint.inst.size());
 
     static constexpr std::array<u8, 4> btrap{0x00, 0x7d, 0x20, 0xd4};
     if (type == BreakpointType::Execute) {
-        Memory::WriteBlock(addr, btrap.data(), btrap.size());
-        Core::System::GetInstance().InvalidateCpuInstructionCaches();
+        memory.WriteBlock(addr, btrap.data(), btrap.size());
+        system.InvalidateCpuInstructionCaches();
     }
     p.insert({addr, breakpoint});
 

@@ -117,7 +117,7 @@ ResultCode Mutex::Release(VAddr address) {
 
     // There are no more threads waiting for the mutex, release it completely.
     if (thread == nullptr) {
-        Memory::Write32(address, 0);
+        system.Memory().Write32(address, 0);
         return RESULT_SUCCESS;
     }
 
@@ -132,7 +132,7 @@ ResultCode Mutex::Release(VAddr address) {
     }
 
     // Grant the mutex to the next waiting thread and resume it.
-    Memory::Write32(address, mutex_value);
+    system.Memory().Write32(address, mutex_value);
 
     ASSERT(thread->GetStatus() == ThreadStatus::WaitMutex);
     thread->ResumeFromWait();
