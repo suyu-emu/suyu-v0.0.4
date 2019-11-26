@@ -170,6 +170,57 @@ public:
     std::string ReadCString(VAddr vaddr, std::size_t max_length);
 
     /**
+     * Fills the specified address range within a process' address space with zeroes.
+     *
+     * @param process   The process that will have a portion of its memory zeroed out.
+     * @param dest_addr The starting virtual address of the range to zero out.
+     * @param size      The size of the address range to zero out, in bytes.
+     *
+     * @post The range [dest_addr, size) within the process' address space is
+     *       filled with zeroes.
+     */
+    void ZeroBlock(const Kernel::Process& process, VAddr dest_addr, std::size_t size);
+
+    /**
+     * Fills the specified address range within the current process' address space with zeroes.
+     *
+     * @param dest_addr The starting virtual address of the range to zero out.
+     * @param size      The size of the address range to zero out, in bytes.
+     *
+     * @post The range [dest_addr, size) within the current process' address space is
+     *       filled with zeroes.
+     */
+    void ZeroBlock(VAddr dest_addr, std::size_t size);
+
+    /**
+     * Copies data within a process' address space to another location within the
+     * same address space.
+     *
+     * @param process   The process that will have data copied within its address space.
+     * @param dest_addr The destination virtual address to begin copying the data into.
+     * @param src_addr  The source virtual address to begin copying the data from.
+     * @param size      The size of the data to copy, in bytes.
+     *
+     * @post The range [dest_addr, size) within the process' address space contains the
+     *       same data within the range [src_addr, size).
+     */
+    void CopyBlock(const Kernel::Process& process, VAddr dest_addr, VAddr src_addr,
+                   std::size_t size);
+
+    /**
+     * Copies data within the current process' address space to another location within the
+     * same address space.
+     *
+     * @param dest_addr The destination virtual address to begin copying the data into.
+     * @param src_addr  The source virtual address to begin copying the data from.
+     * @param size      The size of the data to copy, in bytes.
+     *
+     * @post The range [dest_addr, size) within the current process' address space
+     *       contains the same data within the range [src_addr, size).
+     */
+    void CopyBlock(VAddr dest_addr, VAddr src_addr, std::size_t size);
+
+    /**
      * Marks each page within the specified address range as cached or uncached.
      *
      * @param vaddr  The virtual address indicating the start of the address range.
@@ -206,7 +257,5 @@ void ReadBlock(VAddr src_addr, void* dest_buffer, std::size_t size);
 void WriteBlock(const Kernel::Process& process, VAddr dest_addr, const void* src_buffer,
                 std::size_t size);
 void WriteBlock(VAddr dest_addr, const void* src_buffer, std::size_t size);
-void ZeroBlock(const Kernel::Process& process, VAddr dest_addr, std::size_t size);
-void CopyBlock(VAddr dest_addr, VAddr src_addr, std::size_t size);
 
 } // namespace Memory
