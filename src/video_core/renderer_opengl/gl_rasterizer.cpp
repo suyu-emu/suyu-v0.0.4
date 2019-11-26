@@ -541,6 +541,8 @@ void RasterizerOpenGL::Clear() {
     } else if (use_stencil) {
         glClearBufferiv(GL_STENCIL, 0, &regs.clear_stencil);
     }
+
+    ++num_queued_commands;
 }
 
 void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
@@ -641,6 +643,8 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
         glTextureBarrier();
     }
 
+    ++num_queued_commands;
+
     const GLuint base_instance = static_cast<GLuint>(gpu.regs.vb_base_instance);
     const GLsizei num_instances =
         static_cast<GLsizei>(is_instanced ? gpu.mme_draw.instance_count : 1);
@@ -710,6 +714,7 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     state.ApplyProgramPipeline();
 
     glDispatchCompute(launch_desc.grid_dim_x, launch_desc.grid_dim_y, launch_desc.grid_dim_z);
+    ++num_queued_commands;
 }
 
 void RasterizerOpenGL::ResetCounter(VideoCore::QueryType type) {
@@ -762,10 +767,18 @@ void RasterizerOpenGL::FlushAndInvalidateRegion(CacheAddr addr, u64 size) {
 }
 
 void RasterizerOpenGL::FlushCommands() {
+    // Only flush when we have commands queued to OpenGL.
+    if (num_queued_commands == 0) {
+        return;
+    }
+    num_queued_commands = 0;
     glFlush();
 }
 
 void RasterizerOpenGL::TickFrame() {
+    // Ticking a frame means that buffers will be swapped, calling glFlush implicitly.
+    num_queued_commands = 0;
+
     buffer_cache.TickFrame();
 }
 

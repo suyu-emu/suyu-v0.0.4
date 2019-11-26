@@ -226,6 +226,9 @@ private:
     void SetupShaders(GLenum primitive_mode);
 
     HostCounter samples_passed{GL_SAMPLES_PASSED};
+
+    /// Number of commands queued to the OpenGL driver. Reseted on flush.
+    std::size_t num_queued_commands = 0;
 };
 
 } // namespace OpenGL
