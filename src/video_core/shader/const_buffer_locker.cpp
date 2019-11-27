@@ -3,8 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <memory>
-#include "common/assert.h"
+
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_type.h"
