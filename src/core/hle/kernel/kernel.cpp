@@ -139,12 +139,12 @@ struct KernelCore::Impl {
 
     void InitializeThreads() {
         thread_wakeup_event_type =
-            system.CoreTiming().RegisterEvent("ThreadWakeupCallback", ThreadWakeupCallback);
+            Core::Timing::CreateEvent("ThreadWakeupCallback", ThreadWakeupCallback);
     }
 
     void InitializePreemption() {
-        preemption_event = system.CoreTiming().RegisterEvent(
-            "PreemptionCallback", [this](u64 userdata, s64 cycles_late) {
+        preemption_event =
+            Core::Timing::CreateEvent("PreemptionCallback", [this](u64 userdata, s64 cycles_late) {
                 global_scheduler.PreemptThreads();
                 s64 time_interval = Core::Timing::msToCycles(std::chrono::milliseconds(10));
                 system.CoreTiming().ScheduleEvent(time_interval, preemption_event);
@@ -166,8 +166,9 @@ struct KernelCore::Impl {
 
     std::shared_ptr<ResourceLimit> system_resource_limit;
 
-    Core::Timing::EventType* thread_wakeup_event_type = nullptr;
-    Core::Timing::EventType* preemption_event = nullptr;
+    std::shared_ptr<Core::Timing::EventType> thread_wakeup_event_type;
+    std::shared_ptr<Core::Timing::EventType> preemption_event;
+
     // TODO(yuriks): This can be removed if Thread objects are explicitly pooled in the future,
     // allowing us to simply use a pool index or similar.
     Kernel::HandleTable thread_wakeup_callback_handle_table;
@@ -269,7 +270,7 @@ u64 KernelCore::CreateNewUserProcessID() {
     return impl->next_user_process_id++;
 }
 
-Core::Timing::EventType* KernelCore::ThreadWakeupCallbackEventType() const {
+const std::shared_ptr<Core::Timing::EventType>& KernelCore::ThreadWakeupCallbackEventType() const {
     return impl->thread_wakeup_event_type;
 }
 

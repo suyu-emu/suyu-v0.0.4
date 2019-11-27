@@ -54,7 +54,7 @@ void MemoryWriteWidth(u32 width, VAddr addr, u64 value) {
 } // Anonymous namespace
 
 Freezer::Freezer(Core::Timing::CoreTiming& core_timing) : core_timing(core_timing) {
-    event = core_timing.RegisterEvent(
+    event = Core::Timing::CreateEvent(
         "MemoryFreezer::FrameCallback",
         [this](u64 userdata, s64 cycles_late) { FrameCallback(userdata, cycles_late); });
     core_timing.ScheduleEvent(MEMORY_FREEZER_TICKS, event);

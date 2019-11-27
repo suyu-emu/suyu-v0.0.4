@@ -186,7 +186,7 @@ CheatEngine::~CheatEngine() {
 }
 
 void CheatEngine::Initialize() {
-    event = core_timing.RegisterEvent(
+    event = Core::Timing::CreateEvent(
         "CheatEngine::FrameCallback::" + Common::HexToString(metadata.main_nso_build_id),
         [this](u64 userdata, s64 cycles_late) { FrameCallback(userdata, cycles_late); });
     core_timing.ScheduleEvent(CHEAT_ENGINE_TICKS, event);

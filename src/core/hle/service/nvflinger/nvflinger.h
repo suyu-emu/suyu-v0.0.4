@@ -103,7 +103,7 @@ private:
     u32 swap_interval = 1;
 
     /// Event that handles screen composition.
-    Core::Timing::EventType* composition_event;
+    std::shared_ptr<Core::Timing::EventType> composition_event;
 
     Core::System& system;
 };

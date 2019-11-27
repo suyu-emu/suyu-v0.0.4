@@ -113,7 +113,7 @@ private:
     u64 CreateNewThreadID();
 
     /// Retrieves the event type used for thread wakeup callbacks.
-    Core::Timing::EventType* ThreadWakeupCallbackEventType() const;
+    const std::shared_ptr<Core::Timing::EventType>& ThreadWakeupCallbackEventType() const;
 
     /// Provides a reference to the thread wakeup callback handle table.
     Kernel::HandleTable& ThreadWakeupCallbackHandleTable();

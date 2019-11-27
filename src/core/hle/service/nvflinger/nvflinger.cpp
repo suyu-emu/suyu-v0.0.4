@@ -37,8 +37,8 @@ NVFlinger::NVFlinger(Core::System& system) : system(system) {
     displays.emplace_back(4, "Null", system);
 
     // Schedule the screen composition events
-    composition_event = system.CoreTiming().RegisterEvent(
-        "ScreenComposition", [this](u64 userdata, s64 cycles_late) {
+    composition_event =
+        Core::Timing::CreateEvent("ScreenComposition", [this](u64 userdata, s64 cycles_late) {
             Compose();
             const auto ticks =
                 Settings::values.force_30fps_mode ? frame_ticks_30fps : GetNextTicks();

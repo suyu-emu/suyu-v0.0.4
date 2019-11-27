@@ -5,6 +5,7 @@
 #pragma once
 
 #include <atomic>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <vector>
@@ -75,7 +76,7 @@ private:
     mutable std::mutex entries_mutex;
     std::vector<Entry> entries;
 
-    Core::Timing::EventType* event;
+    std::shared_ptr<Core::Timing::EventType> event;
     Core::Timing::CoreTiming& core_timing;
 };
 

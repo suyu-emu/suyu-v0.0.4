@@ -77,15 +77,14 @@ IAppletResource::IAppletResource(Core::System& system)
     GetController<Controller_Stubbed>(HidController::Unknown3).SetCommonHeaderOffset(0x5000);
 
     // Register update callbacks
-    auto& core_timing = system.CoreTiming();
     pad_update_event =
-        core_timing.RegisterEvent("HID::UpdatePadCallback", [this](u64 userdata, s64 cycles_late) {
+        Core::Timing::CreateEvent("HID::UpdatePadCallback", [this](u64 userdata, s64 cycles_late) {
             UpdateControllers(userdata, cycles_late);
         });
 
     // TODO(shinyquagsire23): Other update callbacks? (accel, gyro?)
 
-    core_timing.ScheduleEvent(pad_update_ticks, pad_update_event);
+    system.CoreTiming().ScheduleEvent(pad_update_ticks, pad_update_event);
 
     ReloadInputDevices();
 }

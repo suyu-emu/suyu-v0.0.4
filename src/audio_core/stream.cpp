@@ -37,7 +37,7 @@ Stream::Stream(Core::Timing::CoreTiming& core_timing, u32 sample_rate, Format fo
     : sample_rate{sample_rate}, format{format}, release_callback{std::move(release_callback)},
       sink_stream{sink_stream}, core_timing{core_timing}, name{std::move(name_)} {
 
-    release_event = core_timing.RegisterEvent(
+    release_event = Core::Timing::CreateEvent(
         name, [this](u64 userdata, s64 cycles_late) { ReleaseActiveBuffer(); });
 }
 

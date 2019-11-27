@@ -17,11 +17,15 @@ namespace Core::Timing {
 
 constexpr int MAX_SLICE_LENGTH = 10000;
 
+std::shared_ptr<EventType> CreateEvent(std::string name, TimedCallback&& callback) {
+    return std::make_shared<EventType>(std::move(callback), std::move(name));
+}
+
 struct CoreTiming::Event {
     s64 time;
     u64 fifo_order;
     u64 userdata;
-    const EventType* type;
+    std::weak_ptr<EventType> type;
 
     // Sort by time, unless the times are the same, in which case sort by
     // the order added to the queue
@@ -54,36 +58,15 @@ void CoreTiming::Initialize() {
     event_fifo_id = 0;
 
     const auto empty_timed_callback = [](u64, s64) {};
-    ev_lost = RegisterEvent("_lost_event", empty_timed_callback);
+    ev_lost = CreateEvent("_lost_event", empty_timed_callback);
 }
 
 void CoreTiming::Shutdown() {
     ClearPendingEvents();
-    UnregisterAllEvents();
 }
 
-EventType* CoreTiming::RegisterEvent(const std::string& name, TimedCallback callback) {
-    std::lock_guard guard{inner_mutex};
-    // check for existing type with same name.
-    // we want event type names to remain unique so that we can use them for serialization.
-    ASSERT_MSG(event_types.find(name) == event_types.end(),
-               "CoreTiming Event \"{}\" is already registered. Events should only be registered "
-               "during Init to avoid breaking save states.",
-               name.c_str());
-
-    auto info = event_types.emplace(name, EventType{callback, nullptr});
-    EventType* event_type = &info.first->second;
-    event_type->name = &info.first->first;
-    return event_type;
-}
-
-void CoreTiming::UnregisterAllEvents() {
-    ASSERT_MSG(event_queue.empty(), "Cannot unregister events with events pending");
-    event_types.clear();
-}
-
-void CoreTiming::ScheduleEvent(s64 cycles_into_future, const EventType* event_type, u64 userdata) {
-    ASSERT(event_type != nullptr);
+void CoreTiming::ScheduleEvent(s64 cycles_into_future, const std::shared_ptr<EventType>& event_type,
+                               u64 userdata) {
     std::lock_guard guard{inner_mutex};
     const s64 timeout = GetTicks() + cycles_into_future;
 
@@ -93,13 +76,15 @@ void CoreTiming::ScheduleEvent(s64 cycles_into_future, const EventType* event_ty
     }
 
     event_queue.emplace_back(Event{timeout, event_fifo_id++, userdata, event_type});
+
     std::push_heap(event_queue.begin(), event_queue.end(), std::greater<>());
 }
 
-void CoreTiming::UnscheduleEvent(const EventType* event_type, u64 userdata) {
+void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type, u64 userdata) {
     std::lock_guard guard{inner_mutex};
+
     const auto itr = std::remove_if(event_queue.begin(), event_queue.end(), [&](const Event& e) {
-        return e.type == event_type && e.userdata == userdata;
+        return e.type.lock().get() == event_type.get() && e.userdata == userdata;
     });
 
     // Removing random items breaks the invariant so we have to re-establish it.
@@ -130,10 +115,12 @@ void CoreTiming::ClearPendingEvents() {
     event_queue.clear();
 }
 
-void CoreTiming::RemoveEvent(const EventType* event_type) {
+void CoreTiming::RemoveEvent(const std::shared_ptr<EventType>& event_type) {
     std::lock_guard guard{inner_mutex};
-    const auto itr = std::remove_if(event_queue.begin(), event_queue.end(),
-                                    [&](const Event& e) { return e.type == event_type; });
+
+    const auto itr = std::remove_if(event_queue.begin(), event_queue.end(), [&](const Event& e) {
+        return e.type.lock().get() == event_type.get();
+    });
 
     // Removing random items breaks the invariant so we have to re-establish it.
     if (itr != event_queue.end()) {
@@ -181,7 +168,11 @@ void CoreTiming::Advance() {
         std::pop_heap(event_queue.begin(), event_queue.end(), std::greater<>());
         event_queue.pop_back();
         inner_mutex.unlock();
-        evt.type->callback(evt.userdata, global_timer - evt.time);
+
+        if (auto event_type{evt.type.lock()}) {
+            event_type->callback(evt.userdata, global_timer - evt.time);
+        }
+
         inner_mutex.lock();
     }
 

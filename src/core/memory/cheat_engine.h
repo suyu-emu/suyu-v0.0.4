@@ -5,6 +5,7 @@
 #pragma once
 
 #include <atomic>
+#include <memory>
 #include <vector>
 #include "common/common_types.h"
 #include "core/memory/dmnt_cheat_types.h"
@@ -78,7 +79,7 @@ private:
     std::vector<CheatEntry> cheats;
     std::atomic_bool is_pending_reload{false};
 
-    Core::Timing::EventType* event{};
+    std::shared_ptr<Core::Timing::EventType> event;
     Core::Timing::CoreTiming& core_timing;
     Core::System& system;
 };
