@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "core/file_sys/fsmitm_romfsbuild.h"
