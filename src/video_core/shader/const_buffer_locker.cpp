@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <tuple>
 
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -101,8 +102,8 @@ bool ConstBufferLocker::IsConsistent() const {
 }
 
 bool ConstBufferLocker::HasEqualKeys(const ConstBufferLocker& rhs) const {
-    return keys == rhs.keys && bound_samplers == rhs.bound_samplers &&
-           bindless_samplers == rhs.bindless_samplers;
+    return std::tie(keys, bound_samplers, bindless_samplers) ==
+           std::tie(rhs.keys, rhs.bound_samplers, rhs.bindless_samplers);
 }
 
 } // namespace VideoCommon::Shader
