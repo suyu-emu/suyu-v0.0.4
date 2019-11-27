@@ -86,7 +86,6 @@ public:
 
 private:
     static bool TestVariableAoffi();
-    static bool TestComponentIndexingBug();
     static bool TestPreciseBug();
 
     std::array<BaseBindings, Tegra::Engines::MaxShaderTypes> base_bindings;

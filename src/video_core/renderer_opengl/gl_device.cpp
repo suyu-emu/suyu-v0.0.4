@@ -137,6 +137,7 @@ Device::Device() : base_bindings{BuildBaseBindings()} {
     const std::vector extensions = GetExtensions();
 
     const bool is_nvidia = vendor == "NVIDIA Corporation";
+    const bool is_amd = vendor == "ATI Technologies Inc.";
     const bool is_intel = vendor == "Intel";
 
     uniform_buffer_alignment = GetInteger<std::size_t>(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT);
@@ -149,7 +150,7 @@ Device::Device() : base_bindings{BuildBaseBindings()} {
     has_vertex_viewport_layer = GLAD_GL_ARB_shader_viewport_layer_array;
     has_image_load_formatted = HasExtension(extensions, "GL_EXT_shader_image_load_formatted");
     has_variable_aoffi = TestVariableAoffi();
-    has_component_indexing_bug = TestComponentIndexingBug();
+    has_component_indexing_bug = is_amd;
     has_precise_bug = TestPreciseBug();
     has_broken_compute = is_intel;
     has_fast_buffer_sub_data = is_nvidia;
@@ -182,52 +183,6 @@ out vec4 output_attribute;
 void main() {
     output_attribute = textureOffset(tex, vec2(0), variable_offset);
 })");
-}
-
-bool Device::TestComponentIndexingBug() {
-    const GLchar* COMPONENT_TEST = R"(#version 430 core
-layout (std430, binding = 0) buffer OutputBuffer {
-    uint output_value;
-};
-layout (std140, binding = 0) uniform InputBuffer {
-    uvec4 input_value[4096];
-};
-layout (location = 0) uniform uint idx;
-void main() {
-    output_value = input_value[idx >> 2][idx & 3];
-})";
-    const GLuint shader{glCreateShaderProgramv(GL_VERTEX_SHADER, 1, &COMPONENT_TEST)};
-    SCOPE_EXIT({ glDeleteProgram(shader); });
-    glUseProgram(shader);
-
-    OGLVertexArray vao;
-    vao.Create();
-    glBindVertexArray(vao.handle);
-
-    constexpr std::array<GLuint, 8> values{0, 0, 0, 0, 0x1236327, 0x985482, 0x872753, 0x2378432};
-    OGLBuffer ubo;
-    ubo.Create();
-    glNamedBufferData(ubo.handle, sizeof(values), values.data(), GL_STATIC_DRAW);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubo.handle);
-
-    OGLBuffer ssbo;
-    ssbo.Create();
-    glNamedBufferStorage(ssbo.handle, sizeof(GLuint), nullptr, GL_CLIENT_STORAGE_BIT);
-
-    for (GLuint index = 4; index < 8; ++index) {
-        glInvalidateBufferData(ssbo.handle);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo.handle);
-
-        glProgramUniform1ui(shader, 0, index);
-        glDrawArrays(GL_POINTS, 0, 1);
-
-        GLuint result;
-        glGetNamedBufferSubData(ssbo.handle, 0, sizeof(result), &result);
-        if (result != values.at(index)) {
-            return true;
-        }
-    }
-    return false;
 }
 
 bool Device::TestPreciseBug() {
