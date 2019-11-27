@@ -15,7 +15,7 @@
 
 namespace FileSys {
 
-enum EntryType : u8 {
+enum class EntryType : u8 {
     Directory = 0,
     File = 1,
 };
