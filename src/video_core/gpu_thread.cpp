@@ -71,8 +71,7 @@ void ThreadManager::SubmitList(Tegra::CommandList&& entries) {
 }
 
 void ThreadManager::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
-    PushCommand(SwapBuffersCommand(framebuffer ? *framebuffer
-                                               : std::optional<const Tegra::FramebufferConfig>{}));
+    PushCommand(SwapBuffersCommand(framebuffer ? std::make_optional(*framebuffer) : std::nullopt));
 }
 
 void ThreadManager::FlushRegion(CacheAddr addr, u64 size) {
