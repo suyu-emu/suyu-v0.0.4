@@ -416,12 +416,13 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     // Set projection matrix
-    std::array<GLfloat, 3 * 2> ortho_matrix =
-        MakeOrthographicMatrix((float)layout.width, (float)layout.height);
+    const std::array ortho_matrix =
+        MakeOrthographicMatrix(static_cast<float>(layout.width), static_cast<float>(layout.height));
     glUniformMatrix3x2fv(ModelViewMatrixLocation, 1, GL_FALSE, ortho_matrix.data());
 
-    DrawScreenTriangles(screen_info, (float)screen.left, (float)screen.top,
-                        (float)screen.GetWidth(), (float)screen.GetHeight());
+    DrawScreenTriangles(screen_info, static_cast<float>(screen.left),
+                        static_cast<float>(screen.top), static_cast<float>(screen.GetWidth()),
+                        static_cast<float>(screen.GetHeight()));
 
     m_current_frame++;
 }
