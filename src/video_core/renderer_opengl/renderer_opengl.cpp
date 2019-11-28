@@ -27,18 +27,18 @@ namespace OpenGL {
 namespace {
 
 constexpr char vertex_shader[] = R"(
-#version 150 core
+#version 430 core
 
-in vec2 vert_position;
-in vec2 vert_tex_coord;
-out vec2 frag_tex_coord;
+layout (location = 0) in vec2 vert_position;
+layout (location = 1) in vec2 vert_tex_coord;
+layout (location = 0) out vec2 frag_tex_coord;
 
 // This is a truncated 3x3 matrix for 2D transformations:
 // The upper-left 2x2 submatrix performs scaling/rotation/mirroring.
 // The third column performs translation.
 // The third row could be used for projection, which we don't need in 2D. It hence is assumed to
 // implicitly be [0, 0, 1]
-uniform mat3x2 modelview_matrix;
+layout (location = 0) uniform mat3x2 modelview_matrix;
 
 void main() {
     // Multiply input position by the rotscale part of the matrix and then manually translate by
@@ -50,19 +50,21 @@ void main() {
 )";
 
 constexpr char fragment_shader[] = R"(
-#version 150 core
+#version 430 core
 
-in vec2 frag_tex_coord;
-out vec4 color;
+layout (location = 0) in vec2 frag_tex_coord;
+layout (location = 0) out vec4 color;
 
-uniform sampler2D color_texture;
+layout (binding = 0) uniform sampler2D color_texture;
 
 void main() {
-    // Swap RGBA -> ABGR so we don't have to do this on the CPU. This needs to change if we have to
-    // support more framebuffer pixel formats.
     color = texture(color_texture, frag_tex_coord);
 }
 )";
+
+constexpr GLint PositionLocation = 0;
+constexpr GLint TexCoordLocation = 1;
+constexpr GLint ModelViewMatrixLocation = 0;
 
 /// Vertex structure that the drawn screen rectangles are composed of.
 struct ScreenRectVertex {
@@ -257,10 +259,6 @@ void RendererOpenGL::InitOpenGLObjects() {
     state.draw.shader_program = shader.handle;
     state.AllDirty();
     state.Apply();
-    uniform_modelview_matrix = glGetUniformLocation(shader.handle, "modelview_matrix");
-    uniform_color_texture = glGetUniformLocation(shader.handle, "color_texture");
-    attrib_position = glGetAttribLocation(shader.handle, "vert_position");
-    attrib_tex_coord = glGetAttribLocation(shader.handle, "vert_tex_coord");
 
     // Generate VBO handle for drawing
     vertex_buffer.Create();
@@ -271,14 +269,14 @@ void RendererOpenGL::InitOpenGLObjects() {
 
     // Attach vertex data to VAO
     glNamedBufferData(vertex_buffer.handle, sizeof(ScreenRectVertex) * 4, nullptr, GL_STREAM_DRAW);
-    glVertexArrayAttribFormat(vertex_array.handle, attrib_position, 2, GL_FLOAT, GL_FALSE,
+    glVertexArrayAttribFormat(vertex_array.handle, PositionLocation, 2, GL_FLOAT, GL_FALSE,
                               offsetof(ScreenRectVertex, position));
-    glVertexArrayAttribFormat(vertex_array.handle, attrib_tex_coord, 2, GL_FLOAT, GL_FALSE,
+    glVertexArrayAttribFormat(vertex_array.handle, TexCoordLocation, 2, GL_FLOAT, GL_FALSE,
                               offsetof(ScreenRectVertex, tex_coord));
-    glVertexArrayAttribBinding(vertex_array.handle, attrib_position, 0);
-    glVertexArrayAttribBinding(vertex_array.handle, attrib_tex_coord, 0);
-    glEnableVertexArrayAttrib(vertex_array.handle, attrib_position);
-    glEnableVertexArrayAttrib(vertex_array.handle, attrib_tex_coord);
+    glVertexArrayAttribBinding(vertex_array.handle, PositionLocation, 0);
+    glVertexArrayAttribBinding(vertex_array.handle, TexCoordLocation, 0);
+    glEnableVertexArrayAttrib(vertex_array.handle, PositionLocation);
+    glEnableVertexArrayAttrib(vertex_array.handle, TexCoordLocation);
     glVertexArrayVertexBuffer(vertex_array.handle, 0, vertex_buffer.handle, 0,
                               sizeof(ScreenRectVertex));
 
@@ -420,11 +418,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     // Set projection matrix
     std::array<GLfloat, 3 * 2> ortho_matrix =
         MakeOrthographicMatrix((float)layout.width, (float)layout.height);
-    glUniformMatrix3x2fv(uniform_modelview_matrix, 1, GL_FALSE, ortho_matrix.data());
-
-    // Bind texture in Texture Unit 0
-    glActiveTexture(GL_TEXTURE0);
-    glUniform1i(uniform_color_texture, 0);
+    glUniformMatrix3x2fv(ModelViewMatrixLocation, 1, GL_FALSE, ortho_matrix.data());
 
     DrawScreenTriangles(screen_info, (float)screen.left, (float)screen.top,
                         (float)screen.GetWidth(), (float)screen.GetHeight());

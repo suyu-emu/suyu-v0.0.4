@@ -104,14 +104,6 @@ private:
     /// OpenGL framebuffer data
     std::vector<u8> gl_framebuffer_data;
 
-    // Shader uniform location indices
-    GLuint uniform_modelview_matrix;
-    GLuint uniform_color_texture;
-
-    // Shader attribute input indices
-    GLuint attrib_position;
-    GLuint attrib_tex_coord;
-
     /// Used for transforming the framebuffer orientation
     Tegra::FramebufferConfig::TransformFlags framebuffer_transform_flags;
     Common::Rectangle<int> framebuffer_crop_rect;
