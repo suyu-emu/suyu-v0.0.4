@@ -722,8 +722,9 @@ void RasterizerOpenGL::ResetCounter(VideoCore::QueryType type) {
     query_cache.ResetCounter(type);
 }
 
-void RasterizerOpenGL::Query(GPUVAddr gpu_addr, VideoCore::QueryType type) {
-    query_cache.Query(gpu_addr, type);
+void RasterizerOpenGL::Query(GPUVAddr gpu_addr, VideoCore::QueryType type,
+                             std::optional<u64> timestamp) {
+    query_cache.Query(gpu_addr, type, timestamp);
 }
 
 void RasterizerOpenGL::FlushAll() {}

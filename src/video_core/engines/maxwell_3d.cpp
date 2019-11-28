@@ -4,6 +4,7 @@
 
 #include <cinttypes>
 #include <cstring>
+#include <optional>
 #include "common/assert.h"
 #include "core/core.h"
 #include "core/core_timing.h"
@@ -15,6 +16,8 @@
 #include "video_core/textures/texture.h"
 
 namespace Tegra::Engines {
+
+using VideoCore::QueryType;
 
 /// First register id that is actually a Macro call.
 constexpr u32 MacroRegistersStart = 0xE00;
@@ -614,10 +617,11 @@ void Maxwell3D::ProcessQueryCondition() {
 void Maxwell3D::ProcessCounterReset() {
     switch (regs.counter_reset) {
     case Regs::CounterReset::SampleCnt:
-        rasterizer.ResetCounter(VideoCore::QueryType::SamplesPassed);
+        rasterizer.ResetCounter(QueryType::SamplesPassed);
         break;
     default:
-        UNIMPLEMENTED_MSG("counter_reset={}", static_cast<u32>(regs.counter_reset));
+        LOG_WARNING(Render_OpenGL, "Unimplemented counter reset={}",
+                    static_cast<int>(regs.counter_reset));
         break;
     }
 }
@@ -670,7 +674,8 @@ std::optional<u64> Maxwell3D::GetQueryResult() {
         return 0;
     case Regs::QuerySelect::SamplesPassed:
         // Deferred.
-        rasterizer.Query(regs.query.QueryAddress(), VideoCore::QueryType::SamplesPassed);
+        rasterizer.Query(regs.query.QueryAddress(), VideoCore::QueryType::SamplesPassed,
+                         system.GPU().GetTicks());
         return {};
     default:
         UNIMPLEMENTED_MSG("Unimplemented query select type {}",

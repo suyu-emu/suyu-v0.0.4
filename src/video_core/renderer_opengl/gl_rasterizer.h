@@ -63,7 +63,7 @@ public:
     void Clear() override;
     void DispatchCompute(GPUVAddr code_addr) override;
     void ResetCounter(VideoCore::QueryType type) override;
-    void Query(GPUVAddr gpu_addr, VideoCore::QueryType type) override;
+    void Query(GPUVAddr gpu_addr, VideoCore::QueryType type, std::optional<u64> timestamp) override;
     void FlushAll() override;
     void FlushRegion(CacheAddr addr, u64 size) override;
     void InvalidateRegion(CacheAddr addr, u64 size) override;
