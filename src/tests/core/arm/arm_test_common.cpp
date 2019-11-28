@@ -8,7 +8,6 @@
 #include "core/core.h"
 #include "core/hle/kernel/process.h"
 #include "core/memory.h"
-#include "core/memory_setup.h"
 #include "tests/core/arm/arm_test_common.h"
 
 namespace ArmTests {
@@ -16,8 +15,9 @@ namespace ArmTests {
 TestEnvironment::TestEnvironment(bool mutable_memory_)
     : mutable_memory(mutable_memory_),
       test_memory(std::make_shared<TestMemory>(this)), kernel{Core::System::GetInstance()} {
-    auto process = Kernel::Process::Create(Core::System::GetInstance(), "",
-                                           Kernel::Process::ProcessType::Userland);
+    auto& system = Core::System::GetInstance();
+
+    auto process = Kernel::Process::Create(system, "", Kernel::Process::ProcessType::Userland);
     page_table = &process->VMManager().page_table;
 
     std::fill(page_table->pointers.begin(), page_table->pointers.end(), nullptr);
@@ -25,15 +25,16 @@ TestEnvironment::TestEnvironment(bool mutable_memory_)
     std::fill(page_table->attributes.begin(), page_table->attributes.end(),
               Common::PageType::Unmapped);
 
-    Memory::MapIoRegion(*page_table, 0x00000000, 0x80000000, test_memory);
-    Memory::MapIoRegion(*page_table, 0x80000000, 0x80000000, test_memory);
+    system.Memory().MapIoRegion(*page_table, 0x00000000, 0x80000000, test_memory);
+    system.Memory().MapIoRegion(*page_table, 0x80000000, 0x80000000, test_memory);
 
     kernel.MakeCurrentProcess(process.get());
 }
 
 TestEnvironment::~TestEnvironment() {
-    Memory::UnmapRegion(*page_table, 0x80000000, 0x80000000);
-    Memory::UnmapRegion(*page_table, 0x00000000, 0x80000000);
+    auto& system = Core::System::GetInstance();
+    system.Memory().UnmapRegion(*page_table, 0x80000000, 0x80000000);
+    system.Memory().UnmapRegion(*page_table, 0x00000000, 0x80000000);
 }
 
 void TestEnvironment::SetMemory64(VAddr vaddr, u64 value) {

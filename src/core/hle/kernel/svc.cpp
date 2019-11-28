@@ -332,7 +332,9 @@ static ResultCode UnmapMemory(Core::System& system, VAddr dst_addr, VAddr src_ad
 /// Connect to an OS service given the port name, returns the handle to the port to out
 static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
                                      VAddr port_name_address) {
-    if (!Memory::IsValidVirtualAddress(port_name_address)) {
+    auto& memory = system.Memory();
+
+    if (!memory.IsValidVirtualAddress(port_name_address)) {
         LOG_ERROR(Kernel_SVC,
                   "Port Name Address is not a valid virtual address, port_name_address=0x{:016X}",
                   port_name_address);
@@ -341,7 +343,7 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
 
     static constexpr std::size_t PortNameMaxLength = 11;
     // Read 1 char beyond the max allowed port name to detect names that are too long.
-    std::string port_name = Memory::ReadCString(port_name_address, PortNameMaxLength + 1);
+    const std::string port_name = memory.ReadCString(port_name_address, PortNameMaxLength + 1);
     if (port_name.size() > PortNameMaxLength) {
         LOG_ERROR(Kernel_SVC, "Port name is too long, expected {} but got {}", PortNameMaxLength,
                   port_name.size());
@@ -383,7 +385,7 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
 
     // TODO(Subv): svcSendSyncRequest should put the caller thread to sleep while the server
     // responds and cause a reschedule.
-    return session->SendSyncRequest(system.CurrentScheduler().GetCurrentThread());
+    return session->SendSyncRequest(system.CurrentScheduler().GetCurrentThread(), system.Memory());
 }
 
 /// Get the ID for the specified thread.
@@ -452,7 +454,8 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
     LOG_TRACE(Kernel_SVC, "called handles_address=0x{:X}, handle_count={}, nano_seconds={}",
               handles_address, handle_count, nano_seconds);
 
-    if (!Memory::IsValidVirtualAddress(handles_address)) {
+    auto& memory = system.Memory();
+    if (!memory.IsValidVirtualAddress(handles_address)) {
         LOG_ERROR(Kernel_SVC,
                   "Handle address is not a valid virtual address, handle_address=0x{:016X}",
                   handles_address);
@@ -474,7 +477,7 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
 
     for (u64 i = 0; i < handle_count; ++i) {
-        const Handle handle = Memory::Read32(handles_address + i * sizeof(Handle));
+        const Handle handle = memory.Read32(handles_address + i * sizeof(Handle));
         const auto object = handle_table.Get<WaitObject>(handle);
 
         if (object == nullptr) {
@@ -616,13 +619,15 @@ static void Break(Core::System& system, u32 reason, u64 info1, u64 info2) {
             return;
         }
 
+        auto& memory = system.Memory();
+
         // This typically is an error code so we're going to assume this is the case
         if (sz == sizeof(u32)) {
-            LOG_CRITICAL(Debug_Emulated, "debug_buffer_err_code={:X}", Memory::Read32(addr));
+            LOG_CRITICAL(Debug_Emulated, "debug_buffer_err_code={:X}", memory.Read32(addr));
         } else {
             // We don't know what's in here so we'll hexdump it
             debug_buffer.resize(sz);
-            Memory::ReadBlock(addr, debug_buffer.data(), sz);
+            memory.ReadBlock(addr, debug_buffer.data(), sz);
             std::string hexdump;
             for (std::size_t i = 0; i < debug_buffer.size(); i++) {
                 hexdump += fmt::format("{:02X} ", debug_buffer[i]);
@@ -712,7 +717,7 @@ static void OutputDebugString([[maybe_unused]] Core::System& system, VAddr addre
     }
 
     std::string str(len, '\0');
-    Memory::ReadBlock(address, str.data(), str.size());
+    system.Memory().ReadBlock(address, str.data(), str.size());
     LOG_DEBUG(Debug_Emulated, "{}", str);
 }
 
@@ -1115,7 +1120,7 @@ static ResultCode GetThreadContext(Core::System& system, VAddr thread_context, H
         std::fill(ctx.vector_registers.begin() + 16, ctx.vector_registers.end(), u128{});
     }
 
-    Memory::WriteBlock(thread_context, &ctx, sizeof(ctx));
+    system.Memory().WriteBlock(thread_context, &ctx, sizeof(ctx));
     return RESULT_SUCCESS;
 }
 
@@ -1275,20 +1280,21 @@ static ResultCode QueryProcessMemory(Core::System& system, VAddr memory_info_add
         return ERR_INVALID_HANDLE;
     }
 
+    auto& memory = system.Memory();
     const auto& vm_manager = process->VMManager();
     const MemoryInfo memory_info = vm_manager.QueryMemory(address);
 
-    Memory::Write64(memory_info_address, memory_info.base_address);
-    Memory::Write64(memory_info_address + 8, memory_info.size);
-    Memory::Write32(memory_info_address + 16, memory_info.state);
-    Memory::Write32(memory_info_address + 20, memory_info.attributes);
-    Memory::Write32(memory_info_address + 24, memory_info.permission);
-    Memory::Write32(memory_info_address + 32, memory_info.ipc_ref_count);
-    Memory::Write32(memory_info_address + 28, memory_info.device_ref_count);
-    Memory::Write32(memory_info_address + 36, 0);
+    memory.Write64(memory_info_address, memory_info.base_address);
+    memory.Write64(memory_info_address + 8, memory_info.size);
+    memory.Write32(memory_info_address + 16, memory_info.state);
+    memory.Write32(memory_info_address + 20, memory_info.attributes);
+    memory.Write32(memory_info_address + 24, memory_info.permission);
+    memory.Write32(memory_info_address + 32, memory_info.ipc_ref_count);
+    memory.Write32(memory_info_address + 28, memory_info.device_ref_count);
+    memory.Write32(memory_info_address + 36, 0);
 
     // Page info appears to be currently unused by the kernel and is always set to zero.
-    Memory::Write32(page_info_address, 0);
+    memory.Write32(page_info_address, 0);
 
     return RESULT_SUCCESS;
 }
@@ -1672,6 +1678,7 @@ static ResultCode SignalProcessWideKey(Core::System& system, VAddr condition_var
 
         const std::size_t current_core = system.CurrentCoreIndex();
         auto& monitor = system.Monitor();
+        auto& memory = system.Memory();
 
         // Atomically read the value of the mutex.
         u32 mutex_val = 0;
@@ -1681,7 +1688,7 @@ static ResultCode SignalProcessWideKey(Core::System& system, VAddr condition_var
             monitor.SetExclusive(current_core, mutex_address);
 
             // If the mutex is not yet acquired, acquire it.
-            mutex_val = Memory::Read32(mutex_address);
+            mutex_val = memory.Read32(mutex_address);
 
             if (mutex_val != 0) {
                 update_val = mutex_val | Mutex::MutexHasWaitersFlag;
@@ -2284,12 +2291,13 @@ static ResultCode GetProcessList(Core::System& system, u32* out_num_processes,
         return ERR_INVALID_ADDRESS_STATE;
     }
 
+    auto& memory = system.Memory();
     const auto& process_list = kernel.GetProcessList();
     const auto num_processes = process_list.size();
     const auto copy_amount = std::min(std::size_t{out_process_ids_size}, num_processes);
 
     for (std::size_t i = 0; i < copy_amount; ++i) {
-        Memory::Write64(out_process_ids, process_list[i]->GetProcessID());
+        memory.Write64(out_process_ids, process_list[i]->GetProcessID());
         out_process_ids += sizeof(u64);
     }
 
@@ -2323,13 +2331,14 @@ static ResultCode GetThreadList(Core::System& system, u32* out_num_threads, VAdd
         return ERR_INVALID_ADDRESS_STATE;
     }
 
+    auto& memory = system.Memory();
     const auto& thread_list = current_process->GetThreadList();
     const auto num_threads = thread_list.size();
     const auto copy_amount = std::min(std::size_t{out_thread_ids_size}, num_threads);
 
     auto list_iter = thread_list.cbegin();
     for (std::size_t i = 0; i < copy_amount; ++i, ++list_iter) {
-        Memory::Write64(out_thread_ids, (*list_iter)->GetThreadID());
+        memory.Write64(out_thread_ids, (*list_iter)->GetThreadID());
         out_thread_ids += sizeof(u64);
     }
 

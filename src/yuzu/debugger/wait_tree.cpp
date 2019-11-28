@@ -80,7 +80,7 @@ QString WaitTreeText::GetText() const {
 
 WaitTreeMutexInfo::WaitTreeMutexInfo(VAddr mutex_address, const Kernel::HandleTable& handle_table)
     : mutex_address(mutex_address) {
-    mutex_value = Memory::Read32(mutex_address);
+    mutex_value = Core::System::GetInstance().Memory().Read32(mutex_address);
     owner_handle = static_cast<Kernel::Handle>(mutex_value & Kernel::Mutex::MutexOwnerMask);
     owner = handle_table.Get<Kernel::Thread>(owner_handle);
 }
@@ -115,10 +115,11 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeCallstack::GetChildren() cons
     std::vector<std::unique_ptr<WaitTreeItem>> list;
 
     constexpr std::size_t BaseRegister = 29;
+    auto& memory = Core::System::GetInstance().Memory();
     u64 base_pointer = thread.GetContext().cpu_registers[BaseRegister];
 
     while (base_pointer != 0) {
-        const u64 lr = Memory::Read64(base_pointer + sizeof(u64));
+        const u64 lr = memory.Read64(base_pointer + sizeof(u64));
         if (lr == 0) {
             break;
         }
@@ -126,7 +127,7 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeCallstack::GetChildren() cons
         list.push_back(std::make_unique<WaitTreeText>(
             tr("0x%1").arg(lr - sizeof(u32), 16, 16, QLatin1Char{'0'})));
 
-        base_pointer = Memory::Read64(base_pointer);
+        base_pointer = memory.Read64(base_pointer);
     }
 
     return list;

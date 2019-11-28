@@ -13,6 +13,10 @@
 #include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 
+namespace Memory {
+class Memory;
+}
+
 namespace Tegra {
 class MemoryManager;
 }
@@ -58,7 +62,7 @@ private:
 
 class VKBufferCache final : public RasterizerCache<std::shared_ptr<CachedBufferEntry>> {
 public:
-    explicit VKBufferCache(Tegra::MemoryManager& tegra_memory_manager,
+    explicit VKBufferCache(Tegra::MemoryManager& tegra_memory_manager, Memory::Memory& cpu_memory_,
                            VideoCore::RasterizerInterface& rasterizer, const VKDevice& device,
                            VKMemoryManager& memory_manager, VKScheduler& scheduler, u64 size);
     ~VKBufferCache();
@@ -92,6 +96,7 @@ private:
     void AlignBuffer(std::size_t alignment);
 
     Tegra::MemoryManager& tegra_memory_manager;
+    Memory::Memory& cpu_memory;
 
     std::unique_ptr<VKStreamBuffer> stream_buffer;
     vk::Buffer buffer_handle;

@@ -191,8 +191,8 @@ u32 nvhost_gpu::KickoffPB(const std::vector<u8>& input, std::vector<u8>& output,
         std::memcpy(entries.data(), input2.data(),
                     params.num_entries * sizeof(Tegra::CommandListHeader));
     } else {
-        Memory::ReadBlock(params.address, entries.data(),
-                          params.num_entries * sizeof(Tegra::CommandListHeader));
+        system.Memory().ReadBlock(params.address, entries.data(),
+                                  params.num_entries * sizeof(Tegra::CommandListHeader));
     }
     UNIMPLEMENTED_IF(params.flags.add_wait.Value() != 0);
     UNIMPLEMENTED_IF(params.flags.add_increment.Value() != 0);

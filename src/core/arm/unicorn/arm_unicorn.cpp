@@ -60,7 +60,7 @@ static bool UnmappedMemoryHook(uc_engine* uc, uc_mem_type type, u64 addr, int si
     return false;
 }
 
-ARM_Unicorn::ARM_Unicorn(System& system) : system{system} {
+ARM_Unicorn::ARM_Unicorn(System& system) : ARM_Interface{system} {
     CHECKED(uc_open(UC_ARCH_ARM64, UC_MODE_ARM, &uc));
 
     auto fpv = 3 << 20;

@@ -22,7 +22,8 @@ constexpr auto RangeFromInterval(Map& map, const Interval& interval) {
 
 } // Anonymous namespace
 
-RasterizerAccelerated::RasterizerAccelerated() = default;
+RasterizerAccelerated::RasterizerAccelerated(Memory::Memory& cpu_memory_)
+    : cpu_memory{cpu_memory_} {}
 
 RasterizerAccelerated::~RasterizerAccelerated() = default;
 
@@ -47,9 +48,9 @@ void RasterizerAccelerated::UpdatePagesCachedCount(VAddr addr, u64 size, int del
         const u64 interval_size = interval_end_addr - interval_start_addr;
 
         if (delta > 0 && count == delta) {
-            Memory::RasterizerMarkRegionCached(interval_start_addr, interval_size, true);
+            cpu_memory.RasterizerMarkRegionCached(interval_start_addr, interval_size, true);
         } else if (delta < 0 && count == -delta) {
-            Memory::RasterizerMarkRegionCached(interval_start_addr, interval_size, false);
+            cpu_memory.RasterizerMarkRegionCached(interval_start_addr, interval_size, false);
         } else {
             ASSERT(count >= 0);
         }

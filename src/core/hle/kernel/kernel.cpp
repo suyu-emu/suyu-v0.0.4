@@ -154,6 +154,16 @@ struct KernelCore::Impl {
         system.CoreTiming().ScheduleEvent(time_interval, preemption_event);
     }
 
+    void MakeCurrentProcess(Process* process) {
+        current_process = process;
+
+        if (process == nullptr) {
+            return;
+        }
+
+        system.Memory().SetCurrentPageTable(*process);
+    }
+
     std::atomic<u32> next_object_id{0};
     std::atomic<u64> next_kernel_process_id{Process::InitialKIPIDMin};
     std::atomic<u64> next_user_process_id{Process::ProcessIDMin};
@@ -208,13 +218,7 @@ void KernelCore::AppendNewProcess(std::shared_ptr<Process> process) {
 }
 
 void KernelCore::MakeCurrentProcess(Process* process) {
-    impl->current_process = process;
-
-    if (process == nullptr) {
-        return;
-    }
-
-    Memory::SetCurrentPageTable(*process);
+    impl->MakeCurrentProcess(process);
 }
 
 Process* KernelCore::CurrentProcess() {

@@ -25,7 +25,7 @@ CpuCoreManager::~CpuCoreManager() = default;
 
 void CpuCoreManager::Initialize() {
     barrier = std::make_unique<CpuBarrier>();
-    exclusive_monitor = Cpu::MakeExclusiveMonitor(cores.size());
+    exclusive_monitor = Cpu::MakeExclusiveMonitor(system.Memory(), cores.size());
 
     for (std::size_t index = 0; index < cores.size(); ++index) {
         cores[index] = std::make_unique<Cpu>(system, *exclusive_monitor, *barrier, index);

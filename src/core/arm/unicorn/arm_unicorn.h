@@ -45,7 +45,6 @@ private:
     static void InterruptHook(uc_engine* uc, u32 int_no, void* user_data);
 
     uc_engine* uc{};
-    System& system;
     GDBStub::BreakpointAddress last_bkpt{};
     bool last_bkpt_hit = false;
 };

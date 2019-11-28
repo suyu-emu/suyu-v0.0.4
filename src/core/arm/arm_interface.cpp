@@ -13,7 +13,6 @@
 #include "core/memory.h"
 
 namespace Core {
-
 namespace {
 
 constexpr u64 ELF_DYNAMIC_TAG_NULL = 0;
@@ -61,15 +60,15 @@ static_assert(sizeof(ELFSymbol) == 0x18, "ELFSymbol has incorrect size.");
 
 using Symbols = std::vector<std::pair<ELFSymbol, std::string>>;
 
-Symbols GetSymbols(VAddr text_offset) {
-    const auto mod_offset = text_offset + Memory::Read32(text_offset + 4);
+Symbols GetSymbols(VAddr text_offset, Memory::Memory& memory) {
+    const auto mod_offset = text_offset + memory.Read32(text_offset + 4);
 
     if (mod_offset < text_offset || (mod_offset & 0b11) != 0 ||
-        Memory::Read32(mod_offset) != Common::MakeMagic('M', 'O', 'D', '0')) {
+        memory.Read32(mod_offset) != Common::MakeMagic('M', 'O', 'D', '0')) {
         return {};
     }
 
-    const auto dynamic_offset = Memory::Read32(mod_offset + 0x4) + mod_offset;
+    const auto dynamic_offset = memory.Read32(mod_offset + 0x4) + mod_offset;
 
     VAddr string_table_offset{};
     VAddr symbol_table_offset{};
@@ -77,8 +76,8 @@ Symbols GetSymbols(VAddr text_offset) {
 
     VAddr dynamic_index = dynamic_offset;
     while (true) {
-        const auto tag = Memory::Read64(dynamic_index);
-        const auto value = Memory::Read64(dynamic_index + 0x8);
+        const u64 tag = memory.Read64(dynamic_index);
+        const u64 value = memory.Read64(dynamic_index + 0x8);
         dynamic_index += 0x10;
 
         if (tag == ELF_DYNAMIC_TAG_NULL) {
@@ -106,11 +105,11 @@ Symbols GetSymbols(VAddr text_offset) {
     VAddr symbol_index = symbol_table_address;
     while (symbol_index < string_table_address) {
         ELFSymbol symbol{};
-        Memory::ReadBlock(symbol_index, &symbol, sizeof(ELFSymbol));
+        memory.ReadBlock(symbol_index, &symbol, sizeof(ELFSymbol));
 
         VAddr string_offset = string_table_address + symbol.name_index;
         std::string name;
-        for (u8 c = Memory::Read8(string_offset); c != 0; c = Memory::Read8(++string_offset)) {
+        for (u8 c = memory.Read8(string_offset); c != 0; c = memory.Read8(++string_offset)) {
             name += static_cast<char>(c);
         }
 
@@ -142,28 +141,28 @@ constexpr u64 SEGMENT_BASE = 0x7100000000ull;
 
 std::vector<ARM_Interface::BacktraceEntry> ARM_Interface::GetBacktrace() const {
     std::vector<BacktraceEntry> out;
+    auto& memory = system.Memory();
 
     auto fp = GetReg(29);
     auto lr = GetReg(30);
-
     while (true) {
         out.push_back({"", 0, lr, 0});
         if (!fp) {
             break;
         }
-        lr = Memory::Read64(fp + 8) - 4;
-        fp = Memory::Read64(fp);
+        lr = memory.Read64(fp + 8) - 4;
+        fp = memory.Read64(fp);
     }
 
     std::map<VAddr, std::string> modules;
-    auto& loader{System::GetInstance().GetAppLoader()};
+    auto& loader{system.GetAppLoader()};
     if (loader.ReadNSOModules(modules) != Loader::ResultStatus::Success) {
         return {};
     }
 
     std::map<std::string, Symbols> symbols;
     for (const auto& module : modules) {
-        symbols.insert_or_assign(module.second, GetSymbols(module.first));
+        symbols.insert_or_assign(module.second, GetSymbols(module.first, memory));
     }
 
     for (auto& entry : out) {

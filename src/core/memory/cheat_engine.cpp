@@ -20,18 +20,17 @@ namespace Memory {
 constexpr s64 CHEAT_ENGINE_TICKS = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 12);
 constexpr u32 KEYPAD_BITMASK = 0x3FFFFFF;
 
-StandardVmCallbacks::StandardVmCallbacks(const Core::System& system,
-                                         const CheatProcessMetadata& metadata)
+StandardVmCallbacks::StandardVmCallbacks(Core::System& system, const CheatProcessMetadata& metadata)
     : metadata(metadata), system(system) {}
 
 StandardVmCallbacks::~StandardVmCallbacks() = default;
 
 void StandardVmCallbacks::MemoryRead(VAddr address, void* data, u64 size) {
-    ReadBlock(SanitizeAddress(address), data, size);
+    system.Memory().ReadBlock(SanitizeAddress(address), data, size);
 }
 
 void StandardVmCallbacks::MemoryWrite(VAddr address, const void* data, u64 size) {
-    WriteBlock(SanitizeAddress(address), data, size);
+    system.Memory().WriteBlock(SanitizeAddress(address), data, size);
 }
 
 u64 StandardVmCallbacks::HidKeysDown() {

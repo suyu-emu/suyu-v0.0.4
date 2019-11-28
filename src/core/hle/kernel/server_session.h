@@ -13,6 +13,10 @@
 #include "core/hle/kernel/wait_object.h"
 #include "core/hle/result.h"
 
+namespace Memory {
+class Memory;
+}
+
 namespace Kernel {
 
 class ClientPort;
@@ -85,10 +89,13 @@ public:
 
     /**
      * Handle a sync request from the emulated application.
+     *
      * @param thread Thread that initiated the request.
+     * @param memory Memory context to handle the sync request under.
+     *
      * @returns ResultCode from the operation.
      */
-    ResultCode HandleSyncRequest(std::shared_ptr<Thread> thread);
+    ResultCode HandleSyncRequest(std::shared_ptr<Thread> thread, Memory::Memory& memory);
 
     bool ShouldWait(const Thread* thread) const override;
 

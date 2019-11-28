@@ -24,6 +24,10 @@ namespace Core::Timing {
 class CoreTiming;
 }
 
+namespace Memory {
+class Memory;
+}
+
 namespace Core {
 
 class ARM_Interface;
@@ -86,7 +90,19 @@ public:
 
     void Shutdown();
 
-    static std::unique_ptr<ExclusiveMonitor> MakeExclusiveMonitor(std::size_t num_cores);
+    /**
+     * Creates an exclusive monitor to handle exclusive reads/writes.
+     *
+     * @param memory The current memory subsystem that the monitor may wish
+     *               to keep track of.
+     *
+     * @param num_cores The number of cores to assume about the CPU.
+     *
+     * @returns The constructed exclusive monitor instance, or nullptr if the current
+     *          CPU backend is unable to use an exclusive monitor.
+     */
+    static std::unique_ptr<ExclusiveMonitor> MakeExclusiveMonitor(Memory::Memory& memory,
+                                                                  std::size_t num_cores);
 
 private:
     void Reschedule();

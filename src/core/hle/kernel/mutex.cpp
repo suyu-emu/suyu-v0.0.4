@@ -79,7 +79,7 @@ ResultCode Mutex::TryAcquire(VAddr address, Handle holding_thread_handle,
     // thread.
     ASSERT(requesting_thread == current_thread);
 
-    const u32 addr_value = Memory::Read32(address);
+    const u32 addr_value = system.Memory().Read32(address);
 
     // If the mutex isn't being held, just return success.
     if (addr_value != (holding_thread_handle | Mutex::MutexHasWaitersFlag)) {
@@ -117,7 +117,7 @@ ResultCode Mutex::Release(VAddr address) {
 
     // There are no more threads waiting for the mutex, release it completely.
     if (thread == nullptr) {
-        Memory::Write32(address, 0);
+        system.Memory().Write32(address, 0);
         return RESULT_SUCCESS;
     }
 
@@ -132,7 +132,7 @@ ResultCode Mutex::Release(VAddr address) {
     }
 
     // Grant the mutex to the next waiting thread and resume it.
-    Memory::Write32(address, mutex_value);
+    system.Memory().Write32(address, mutex_value);
 
     ASSERT(thread->GetStatus() == ThreadStatus::WaitMutex);
     thread->ResumeFromWait();

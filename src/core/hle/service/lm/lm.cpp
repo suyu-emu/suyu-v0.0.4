@@ -17,7 +17,8 @@ namespace Service::LM {
 
 class ILogger final : public ServiceFramework<ILogger> {
 public:
-    ILogger(Manager& manager) : ServiceFramework("ILogger"), manager(manager) {
+    explicit ILogger(Manager& manager_, Memory::Memory& memory_)
+        : ServiceFramework("ILogger"), manager{manager_}, memory{memory_} {
         static const FunctionInfo functions[] = {
             {0, &ILogger::Log, "Log"},
             {1, &ILogger::SetDestination, "SetDestination"},
@@ -35,15 +36,15 @@ private:
         MessageHeader header{};
         VAddr addr{ctx.BufferDescriptorX()[0].Address()};
         const VAddr end_addr{addr + ctx.BufferDescriptorX()[0].size};
-        Memory::ReadBlock(addr, &header, sizeof(MessageHeader));
+        memory.ReadBlock(addr, &header, sizeof(MessageHeader));
         addr += sizeof(MessageHeader);
 
         FieldMap fields;
         while (addr < end_addr) {
-            const auto field = static_cast<Field>(Memory::Read8(addr++));
-            const auto length = Memory::Read8(addr++);
+            const auto field = static_cast<Field>(memory.Read8(addr++));
+            const auto length = memory.Read8(addr++);
 
-            if (static_cast<Field>(Memory::Read8(addr)) == Field::Skip) {
+            if (static_cast<Field>(memory.Read8(addr)) == Field::Skip) {
                 ++addr;
             }
 
@@ -54,7 +55,7 @@ private:
             }
 
             std::vector<u8> data(length);
-            Memory::ReadBlock(addr, data.data(), length);
+            memory.ReadBlock(addr, data.data(), length);
             fields.emplace(field, std::move(data));
         }
 
@@ -74,11 +75,13 @@ private:
     }
 
     Manager& manager;
+    Memory::Memory& memory;
 };
 
 class LM final : public ServiceFramework<LM> {
 public:
-    explicit LM(Manager& manager) : ServiceFramework{"lm"}, manager(manager) {
+    explicit LM(Manager& manager_, Memory::Memory& memory_)
+        : ServiceFramework{"lm"}, manager{manager_}, memory{memory_} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &LM::OpenLogger, "OpenLogger"},
@@ -94,14 +97,16 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<ILogger>(manager);
+        rb.PushIpcInterface<ILogger>(manager, memory);
     }
 
     Manager& manager;
+    Memory::Memory& memory;
 };
 
 void InstallInterfaces(Core::System& system) {
-    std::make_shared<LM>(system.GetLogManager())->InstallAsService(system.ServiceManager());
+    std::make_shared<LM>(system.GetLogManager(), system.Memory())
+        ->InstallAsService(system.ServiceManager());
 }
 
 } // namespace Service::LM

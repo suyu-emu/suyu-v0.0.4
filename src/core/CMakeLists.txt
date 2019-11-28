@@ -509,7 +509,6 @@ add_library(core STATIC
     memory/dmnt_cheat_vm.h
     memory.cpp
     memory.h
-    memory_setup.h
     perf_stats.cpp
     perf_stats.h
     reporter.cpp

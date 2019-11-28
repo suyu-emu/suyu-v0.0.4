@@ -28,36 +28,38 @@ public:
     explicit ARM_Dynarmic_Callbacks(ARM_Dynarmic& parent) : parent(parent) {}
 
     u8 MemoryRead8(u64 vaddr) override {
-        return Memory::Read8(vaddr);
+        return parent.system.Memory().Read8(vaddr);
     }
     u16 MemoryRead16(u64 vaddr) override {
-        return Memory::Read16(vaddr);
+        return parent.system.Memory().Read16(vaddr);
     }
     u32 MemoryRead32(u64 vaddr) override {
-        return Memory::Read32(vaddr);
+        return parent.system.Memory().Read32(vaddr);
     }
     u64 MemoryRead64(u64 vaddr) override {
-        return Memory::Read64(vaddr);
+        return parent.system.Memory().Read64(vaddr);
     }
     Vector MemoryRead128(u64 vaddr) override {
-        return {Memory::Read64(vaddr), Memory::Read64(vaddr + 8)};
+        auto& memory = parent.system.Memory();
+        return {memory.Read64(vaddr), memory.Read64(vaddr + 8)};
     }
 
     void MemoryWrite8(u64 vaddr, u8 value) override {
-        Memory::Write8(vaddr, value);
+        parent.system.Memory().Write8(vaddr, value);
     }
     void MemoryWrite16(u64 vaddr, u16 value) override {
-        Memory::Write16(vaddr, value);
+        parent.system.Memory().Write16(vaddr, value);
     }
     void MemoryWrite32(u64 vaddr, u32 value) override {
-        Memory::Write32(vaddr, value);
+        parent.system.Memory().Write32(vaddr, value);
     }
     void MemoryWrite64(u64 vaddr, u64 value) override {
-        Memory::Write64(vaddr, value);
+        parent.system.Memory().Write64(vaddr, value);
     }
     void MemoryWrite128(u64 vaddr, Vector value) override {
-        Memory::Write64(vaddr, value[0]);
-        Memory::Write64(vaddr + 8, value[1]);
+        auto& memory = parent.system.Memory();
+        memory.Write64(vaddr, value[0]);
+        memory.Write64(vaddr + 8, value[1]);
     }
 
     void InterpreterFallback(u64 pc, std::size_t num_instructions) override {
@@ -171,9 +173,10 @@ void ARM_Dynarmic::Step() {
 
 ARM_Dynarmic::ARM_Dynarmic(System& system, ExclusiveMonitor& exclusive_monitor,
                            std::size_t core_index)
-    : cb(std::make_unique<ARM_Dynarmic_Callbacks>(*this)), inner_unicorn{system},
-      core_index{core_index}, system{system},
-      exclusive_monitor{dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor)} {}
+    : ARM_Interface{system},
+      cb(std::make_unique<ARM_Dynarmic_Callbacks>(*this)), inner_unicorn{system},
+      core_index{core_index}, exclusive_monitor{
+                                  dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor)} {}
 
 ARM_Dynarmic::~ARM_Dynarmic() = default;
 
@@ -264,7 +267,9 @@ void ARM_Dynarmic::PageTableChanged(Common::PageTable& page_table,
     jit = MakeJit(page_table, new_address_space_size_in_bits);
 }
 
-DynarmicExclusiveMonitor::DynarmicExclusiveMonitor(std::size_t core_count) : monitor(core_count) {}
+DynarmicExclusiveMonitor::DynarmicExclusiveMonitor(Memory::Memory& memory_, std::size_t core_count)
+    : monitor(core_count), memory{memory_} {}
+
 DynarmicExclusiveMonitor::~DynarmicExclusiveMonitor() = default;
 
 void DynarmicExclusiveMonitor::SetExclusive(std::size_t core_index, VAddr addr) {
@@ -277,29 +282,28 @@ void DynarmicExclusiveMonitor::ClearExclusive() {
 }
 
 bool DynarmicExclusiveMonitor::ExclusiveWrite8(std::size_t core_index, VAddr vaddr, u8 value) {
-    return monitor.DoExclusiveOperation(core_index, vaddr, 1,
-                                        [&] { Memory::Write8(vaddr, value); });
+    return monitor.DoExclusiveOperation(core_index, vaddr, 1, [&] { memory.Write8(vaddr, value); });
 }
 
 bool DynarmicExclusiveMonitor::ExclusiveWrite16(std::size_t core_index, VAddr vaddr, u16 value) {
     return monitor.DoExclusiveOperation(core_index, vaddr, 2,
-                                        [&] { Memory::Write16(vaddr, value); });
+                                        [&] { memory.Write16(vaddr, value); });
 }
 
 bool DynarmicExclusiveMonitor::ExclusiveWrite32(std::size_t core_index, VAddr vaddr, u32 value) {
     return monitor.DoExclusiveOperation(core_index, vaddr, 4,
-                                        [&] { Memory::Write32(vaddr, value); });
+                                        [&] { memory.Write32(vaddr, value); });
 }
 
 bool DynarmicExclusiveMonitor::ExclusiveWrite64(std::size_t core_index, VAddr vaddr, u64 value) {
     return monitor.DoExclusiveOperation(core_index, vaddr, 8,
-                                        [&] { Memory::Write64(vaddr, value); });
+                                        [&] { memory.Write64(vaddr, value); });
 }
 
 bool DynarmicExclusiveMonitor::ExclusiveWrite128(std::size_t core_index, VAddr vaddr, u128 value) {
     return monitor.DoExclusiveOperation(core_index, vaddr, 16, [&] {
-        Memory::Write64(vaddr + 0, value[0]);
-        Memory::Write64(vaddr + 8, value[1]);
+        memory.Write64(vaddr + 0, value[0]);
+        memory.Write64(vaddr + 8, value[1]);
     });
 }
 

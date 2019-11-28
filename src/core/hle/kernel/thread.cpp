@@ -162,13 +162,13 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(KernelCore& kernel, std::strin
         return ERR_INVALID_PROCESSOR_ID;
     }
 
-    if (!Memory::IsValidVirtualAddress(owner_process, entry_point)) {
+    auto& system = Core::System::GetInstance();
+    if (!system.Memory().IsValidVirtualAddress(owner_process, entry_point)) {
         LOG_ERROR(Kernel_SVC, "(name={}): invalid entry {:016X}", name, entry_point);
         // TODO (bunnei): Find the correct error code to use here
         return RESULT_UNKNOWN;
     }
 
-    auto& system = Core::System::GetInstance();
     std::shared_ptr<Thread> thread = std::make_shared<Thread>(kernel);
 
     thread->thread_id = kernel.CreateNewThreadID();

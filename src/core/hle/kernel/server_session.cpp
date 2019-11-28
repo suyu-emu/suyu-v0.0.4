@@ -19,6 +19,7 @@
 #include "core/hle/kernel/server_session.h"
 #include "core/hle/kernel/session.h"
 #include "core/hle/kernel/thread.h"
+#include "core/memory.h"
 
 namespace Kernel {
 
@@ -127,12 +128,13 @@ ResultCode ServerSession::HandleDomainSyncRequest(Kernel::HLERequestContext& con
     return RESULT_SUCCESS;
 }
 
-ResultCode ServerSession::HandleSyncRequest(std::shared_ptr<Thread> thread) {
+ResultCode ServerSession::HandleSyncRequest(std::shared_ptr<Thread> thread,
+                                            Memory::Memory& memory) {
     // The ServerSession received a sync request, this means that there's new data available
     // from its ClientSession, so wake up any threads that may be waiting on a svcReplyAndReceive or
     // similar.
     Kernel::HLERequestContext context(SharedFrom(this), thread);
-    u32* cmd_buf = (u32*)Memory::GetPointer(thread->GetTLSAddress());
+    u32* cmd_buf = (u32*)memory.GetPointer(thread->GetTLSAddress());
     context.PopulateFromIncomingCommandBuffer(kernel.CurrentProcess()->GetHandleTable(), cmd_buf);
 
     ResultCode result = RESULT_SUCCESS;

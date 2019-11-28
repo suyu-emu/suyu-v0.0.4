@@ -39,6 +39,7 @@
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/loader/loader.h"
+#include "core/memory.h"
 #include "core/memory/cheat_engine.h"
 #include "core/perf_stats.h"
 #include "core/reporter.h"
@@ -112,8 +113,8 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 }
 struct System::Impl {
     explicit Impl(System& system)
-        : kernel{system}, fs_controller{system}, cpu_core_manager{system}, reporter{system},
-          applet_manager{system} {}
+        : kernel{system}, fs_controller{system}, memory{system},
+          cpu_core_manager{system}, reporter{system}, applet_manager{system} {}
 
     Cpu& CurrentCpuCore() {
         return cpu_core_manager.GetCurrentCore();
@@ -341,7 +342,8 @@ struct System::Impl {
     std::unique_ptr<VideoCore::RendererBase> renderer;
     std::unique_ptr<Tegra::GPU> gpu_core;
     std::shared_ptr<Tegra::DebugContext> debug_context;
-    std::unique_ptr<Core::Hardware::InterruptManager> interrupt_manager;
+    std::unique_ptr<Hardware::InterruptManager> interrupt_manager;
+    Memory::Memory memory;
     CpuCoreManager cpu_core_manager;
     bool is_powered_on = false;
     bool exit_lock = false;
@@ -496,6 +498,14 @@ ExclusiveMonitor& System::Monitor() {
 
 const ExclusiveMonitor& System::Monitor() const {
     return impl->cpu_core_manager.GetExclusiveMonitor();
+}
+
+Memory::Memory& System::Memory() {
+    return impl->memory;
+}
+
+const Memory::Memory& System::Memory() const {
+    return impl->memory;
 }
 
 Tegra::GPU& System::GPU() {

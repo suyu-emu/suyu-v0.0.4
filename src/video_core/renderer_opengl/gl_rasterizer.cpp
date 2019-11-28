@@ -19,6 +19,7 @@
 #include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/hle/kernel/process.h"
+#include "core/memory.h"
 #include "core/settings.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -86,8 +87,9 @@ std::size_t GetConstBufferSize(const Tegra::Engines::ConstBufferInfo& buffer,
 
 RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
                                    ScreenInfo& info)
-    : texture_cache{system, *this, device}, shader_cache{*this, system, emu_window, device},
-      system{system}, screen_info{info}, buffer_cache{*this, system, device, STREAM_BUFFER_SIZE} {
+    : RasterizerAccelerated{system.Memory()}, texture_cache{system, *this, device},
+      shader_cache{*this, system, emu_window, device}, system{system}, screen_info{info},
+      buffer_cache{*this, system, device, STREAM_BUFFER_SIZE} {
     shader_program_manager = std::make_unique<GLShader::ProgramManager>();
     state.draw.shader_program = 0;
     state.Apply();
@@ -837,7 +839,7 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
 
     const auto surface{
-        texture_cache.TryFindFramebufferSurface(Memory::GetPointer(framebuffer_addr))};
+        texture_cache.TryFindFramebufferSurface(system.Memory().GetPointer(framebuffer_addr))};
     if (!surface) {
         return {};
     }

@@ -140,9 +140,10 @@ public:
             rb.Push(ERROR_INVALID_SIZE);
             return;
         }
+
         // Read NRR data from memory
         std::vector<u8> nrr_data(nrr_size);
-        Memory::ReadBlock(nrr_address, nrr_data.data(), nrr_size);
+        system.Memory().ReadBlock(nrr_address, nrr_data.data(), nrr_size);
         NRRHeader header;
         std::memcpy(&header, nrr_data.data(), sizeof(NRRHeader));
 
@@ -291,7 +292,7 @@ public:
 
         // Read NRO data from memory
         std::vector<u8> nro_data(nro_size);
-        Memory::ReadBlock(nro_address, nro_data.data(), nro_size);
+        system.Memory().ReadBlock(nro_address, nro_data.data(), nro_size);
 
         SHA256Hash hash{};
         mbedtls_sha256_ret(nro_data.data(), nro_data.size(), hash.data(), 0);

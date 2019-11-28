@@ -21,10 +21,10 @@ ClientSession::~ClientSession() {
     }
 }
 
-ResultCode ClientSession::SendSyncRequest(Thread* thread) {
+ResultCode ClientSession::SendSyncRequest(Thread* thread, Memory::Memory& memory) {
     // Signal the server session that new data is available
     if (auto server = parent->server.lock()) {
-        return server->HandleSyncRequest(SharedFrom(thread));
+        return server->HandleSyncRequest(SharedFrom(thread), memory);
     }
 
     return ERR_SESSION_CLOSED_BY_REMOTE;

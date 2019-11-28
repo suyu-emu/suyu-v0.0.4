@@ -36,9 +36,9 @@ public:
     }
 
     void SetWaveIndex(std::size_t index);
-    std::vector<s16> DequeueSamples(std::size_t sample_count);
+    std::vector<s16> DequeueSamples(std::size_t sample_count, Memory::Memory& memory);
     void UpdateState();
-    void RefreshBuffer();
+    void RefreshBuffer(Memory::Memory& memory);
 
 private:
     bool is_in_use{};
@@ -66,17 +66,18 @@ public:
         return info;
     }
 
-    void UpdateState();
+    void UpdateState(Memory::Memory& memory);
 
 private:
     EffectOutStatus out_status{};
     EffectInStatus info{};
 };
-AudioRenderer::AudioRenderer(Core::Timing::CoreTiming& core_timing, AudioRendererParameter params,
+AudioRenderer::AudioRenderer(Core::Timing::CoreTiming& core_timing, Memory::Memory& memory_,
+                             AudioRendererParameter params,
                              std::shared_ptr<Kernel::WritableEvent> buffer_event,
                              std::size_t instance_number)
     : worker_params{params}, buffer_event{buffer_event}, voices(params.voice_count),
-      effects(params.effect_count) {
+      effects(params.effect_count), memory{memory_} {
 
     audio_out = std::make_unique<AudioCore::AudioOut>();
     stream = audio_out->OpenStream(core_timing, STREAM_SAMPLE_RATE, STREAM_NUM_CHANNELS,
@@ -162,7 +163,7 @@ std::vector<u8> AudioRenderer::UpdateAudioRenderer(const std::vector<u8>& input_
     }
 
     for (auto& effect : effects) {
-        effect.UpdateState();
+        effect.UpdateState(memory);
     }
 
     // Release previous buffers and queue next ones for playback
@@ -206,13 +207,14 @@ void AudioRenderer::VoiceState::SetWaveIndex(std::size_t index) {
     is_refresh_pending = true;
 }
 
-std::vector<s16> AudioRenderer::VoiceState::DequeueSamples(std::size_t sample_count) {
+std::vector<s16> AudioRenderer::VoiceState::DequeueSamples(std::size_t sample_count,
+                                                           Memory::Memory& memory) {
     if (!IsPlaying()) {
         return {};
     }
 
     if (is_refresh_pending) {
-        RefreshBuffer();
+        RefreshBuffer(memory);
     }
 
     const std::size_t max_size{samples.size() - offset};
@@ -256,10 +258,11 @@ void AudioRenderer::VoiceState::UpdateState() {
     is_in_use = info.is_in_use;
 }
 
-void AudioRenderer::VoiceState::RefreshBuffer() {
-    std::vector<s16> new_samples(info.wave_buffer[wave_index].buffer_sz / sizeof(s16));
-    Memory::ReadBlock(info.wave_buffer[wave_index].buffer_addr, new_samples.data(),
-                      info.wave_buffer[wave_index].buffer_sz);
+void AudioRenderer::VoiceState::RefreshBuffer(Memory::Memory& memory) {
+    const auto wave_buffer_address = info.wave_buffer[wave_index].buffer_addr;
+    const auto wave_buffer_size = info.wave_buffer[wave_index].buffer_sz;
+    std::vector<s16> new_samples(wave_buffer_size / sizeof(s16));
+    memory.ReadBlock(wave_buffer_address, new_samples.data(), wave_buffer_size);
 
     switch (static_cast<Codec::PcmFormat>(info.sample_format)) {
     case Codec::PcmFormat::Int16: {
@@ -269,7 +272,7 @@ void AudioRenderer::VoiceState::RefreshBuffer() {
     case Codec::PcmFormat::Adpcm: {
         // Decode ADPCM to PCM16
         Codec::ADPCM_Coeff coeffs;
-        Memory::ReadBlock(info.additional_params_addr, coeffs.data(), sizeof(Codec::ADPCM_Coeff));
+        memory.ReadBlock(info.additional_params_addr, coeffs.data(), sizeof(Codec::ADPCM_Coeff));
         new_samples = Codec::DecodeADPCM(reinterpret_cast<u8*>(new_samples.data()),
                                          new_samples.size() * sizeof(s16), coeffs, adpcm_state);
         break;
@@ -307,18 +310,18 @@ void AudioRenderer::VoiceState::RefreshBuffer() {
     is_refresh_pending = false;
 }
 
-void AudioRenderer::EffectState::UpdateState() {
+void AudioRenderer::EffectState::UpdateState(Memory::Memory& memory) {
     if (info.is_new) {
         out_status.state = EffectStatus::New;
     } else {
         if (info.type == Effect::Aux) {
-            ASSERT_MSG(Memory::Read32(info.aux_info.return_buffer_info) == 0,
+            ASSERT_MSG(memory.Read32(info.aux_info.return_buffer_info) == 0,
                        "Aux buffers tried to update");
-            ASSERT_MSG(Memory::Read32(info.aux_info.send_buffer_info) == 0,
+            ASSERT_MSG(memory.Read32(info.aux_info.send_buffer_info) == 0,
                        "Aux buffers tried to update");
-            ASSERT_MSG(Memory::Read32(info.aux_info.return_buffer_base) == 0,
+            ASSERT_MSG(memory.Read32(info.aux_info.return_buffer_base) == 0,
                        "Aux buffers tried to update");
-            ASSERT_MSG(Memory::Read32(info.aux_info.send_buffer_base) == 0,
+            ASSERT_MSG(memory.Read32(info.aux_info.send_buffer_base) == 0,
                        "Aux buffers tried to update");
         }
     }
@@ -340,7 +343,7 @@ void AudioRenderer::QueueMixedBuffer(Buffer::Tag tag) {
         std::size_t offset{};
         s64 samples_remaining{BUFFER_SIZE};
         while (samples_remaining > 0) {
-            const std::vector<s16> samples{voice.DequeueSamples(samples_remaining)};
+            const std::vector<s16> samples{voice.DequeueSamples(samples_remaining, memory)};
 
             if (samples.empty()) {
                 break;
