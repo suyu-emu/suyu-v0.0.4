@@ -76,7 +76,7 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
 
     const auto& disabled = Settings::values.disabled_addons[title_id];
     const auto update_disabled =
-        std::find(disabled.begin(), disabled.end(), "Update") != disabled.end();
+        std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();
 
     // Game Updates
     const auto update_tid = GetUpdateTitleID(title_id);
@@ -127,7 +127,7 @@ std::vector<VirtualFile> PatchManager::CollectPatches(const std::vector<VirtualD
     std::vector<VirtualFile> out;
     out.reserve(patch_dirs.size());
     for (const auto& subdir : patch_dirs) {
-        if (std::find(disabled.begin(), disabled.end(), subdir->GetName()) != disabled.end())
+        if (std::find(disabled.cbegin(), disabled.cend(), subdir->GetName()) != disabled.cend())
             continue;
 
         auto exefs_dir = subdir->GetSubdirectory("exefs");
@@ -284,12 +284,17 @@ std::vector<Memory::CheatEntry> PatchManager::CreateCheatList(
         return {};
     }
 
+    const auto& disabled = Settings::values.disabled_addons[title_id];
     auto patch_dirs = load_dir->GetSubdirectories();
     std::sort(patch_dirs.begin(), patch_dirs.end(),
               [](const VirtualDir& l, const VirtualDir& r) { return l->GetName() < r->GetName(); });
 
     std::vector<Memory::CheatEntry> out;
     for (const auto& subdir : patch_dirs) {
+        if (std::find(disabled.cbegin(), disabled.cend(), subdir->GetName()) != disabled.cend()) {
+            continue;
+        }
+
         auto cheats_dir = subdir->GetSubdirectory("cheats");
         if (cheats_dir != nullptr) {
             auto res = ReadCheatFileFromFolder(system, title_id, build_id_, cheats_dir, true);
@@ -331,8 +336,9 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
     layers.reserve(patch_dirs.size() + 1);
     layers_ext.reserve(patch_dirs.size() + 1);
     for (const auto& subdir : patch_dirs) {
-        if (std::find(disabled.begin(), disabled.end(), subdir->GetName()) != disabled.end())
+        if (std::find(disabled.cbegin(), disabled.cend(), subdir->GetName()) != disabled.cend()) {
             continue;
+        }
 
         auto romfs_dir = subdir->GetSubdirectory("romfs");
         if (romfs_dir != nullptr)
@@ -381,7 +387,7 @@ VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset, Content
 
     const auto& disabled = Settings::values.disabled_addons[title_id];
     const auto update_disabled =
-        std::find(disabled.begin(), disabled.end(), "Update") != disabled.end();
+        std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();
 
     if (!update_disabled && update != nullptr) {
         const auto new_nca = std::make_shared<NCA>(update, romfs, ivfc_offset);
@@ -431,7 +437,7 @@ std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNam
     auto [nacp, discard_icon_file] = update.GetControlMetadata();
 
     const auto update_disabled =
-        std::find(disabled.begin(), disabled.end(), "Update") != disabled.end();
+        std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();
     const auto update_label = update_disabled ? "[D] Update" : "Update";
 
     if (nacp != nullptr) {
