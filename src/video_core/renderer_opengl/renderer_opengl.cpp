@@ -62,9 +62,7 @@ void main() {
 }
 )";
 
-/**
- * Vertex structure that the drawn screen rectangles are composed of.
- */
+/// Vertex structure that the drawn screen rectangles are composed of.
 struct ScreenRectVertex {
     ScreenRectVertex(GLfloat x, GLfloat y, GLfloat u, GLfloat v) {
         position[0] = x;
@@ -138,9 +136,6 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     prev_state.Apply();
 }
 
-/**
- * Loads framebuffer from emulated memory into the active OpenGL texture.
- */
 void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuffer) {
     // Framebuffer orientation handling
     framebuffer_transform_flags = framebuffer.transform_flags;
@@ -181,19 +176,12 @@ void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuf
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 }
 
-/**
- * Fills active OpenGL texture with the given RGB color. Since the color is solid, the texture can
- * be 1x1 but will stretch across whatever it's rendered on.
- */
 void RendererOpenGL::LoadColorToActiveGLTexture(u8 color_r, u8 color_g, u8 color_b, u8 color_a,
                                                 const TextureInfo& texture) {
     const u8 framebuffer_data[4] = {color_a, color_b, color_g, color_r};
     glClearTexImage(texture.resource.handle, 0, GL_RGBA, GL_UNSIGNED_BYTE, framebuffer_data);
 }
 
-/**
- * Initializes the OpenGL state and creates persistent objects.
- */
 void RendererOpenGL::InitOpenGLObjects() {
     glClearColor(Settings::values.bg_red, Settings::values.bg_green, Settings::values.bg_blue,
                  0.0f);
@@ -351,9 +339,6 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
     state.Apply();
 }
 
-/**
- * Draws the emulated screens to the emulator window.
- */
 void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     if (renderer_settings.set_background_color) {
         // Update background color before drawing
@@ -381,7 +366,6 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     m_current_frame++;
 }
 
-/// Updates the framerate
 void RendererOpenGL::UpdateFramerate() {}
 
 void RendererOpenGL::CaptureScreenshot() {
@@ -495,7 +479,6 @@ bool RendererOpenGL::Init() {
     return true;
 }
 
-/// Shutdown the renderer
 void RendererOpenGL::ShutDown() {}
 
 } // namespace OpenGL
