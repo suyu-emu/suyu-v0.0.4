@@ -256,8 +256,8 @@ public:
 
         // TODO(DarkLordZach): Verify that this is the correct behavior.
         // Build entry index now to save time later.
-        BuildEntryIndex(entries, backend->GetFiles(), FileSys::File);
-        BuildEntryIndex(entries, backend->GetSubdirectories(), FileSys::Directory);
+        BuildEntryIndex(entries, backend->GetFiles(), FileSys::EntryType::File);
+        BuildEntryIndex(entries, backend->GetSubdirectories(), FileSys::EntryType::Directory);
     }
 
 private:
