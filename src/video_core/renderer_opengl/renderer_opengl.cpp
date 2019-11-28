@@ -24,7 +24,9 @@
 
 namespace OpenGL {
 
-static const char vertex_shader[] = R"(
+namespace {
+
+constexpr char vertex_shader[] = R"(
 #version 150 core
 
 in vec2 vert_position;
@@ -47,7 +49,7 @@ void main() {
 }
 )";
 
-static const char fragment_shader[] = R"(
+constexpr char fragment_shader[] = R"(
 #version 150 core
 
 in vec2 frag_tex_coord;
@@ -82,17 +84,76 @@ struct ScreenRectVertex {
  * The projection part of the matrix is trivial, hence these operations are represented
  * by a 3x2 matrix.
  */
-static std::array<GLfloat, 3 * 2> MakeOrthographicMatrix(const float width, const float height) {
+std::array<GLfloat, 3 * 2> MakeOrthographicMatrix(float width, float height) {
     std::array<GLfloat, 3 * 2> matrix; // Laid out in column-major order
 
     // clang-format off
-    matrix[0] = 2.f / width; matrix[2] = 0.f;           matrix[4] = -1.f;
-    matrix[1] = 0.f;         matrix[3] = -2.f / height; matrix[5] = 1.f;
+    matrix[0] = 2.f / width; matrix[2] =  0.f;          matrix[4] = -1.f;
+    matrix[1] = 0.f;         matrix[3] = -2.f / height; matrix[5] =  1.f;
     // Last matrix row is implicitly assumed to be [0, 0, 1].
     // clang-format on
 
     return matrix;
 }
+
+const char* GetSource(GLenum source) {
+#define RET(s)                                                                                     \
+    case GL_DEBUG_SOURCE_##s:                                                                      \
+        return #s
+    switch (source) {
+        RET(API);
+        RET(WINDOW_SYSTEM);
+        RET(SHADER_COMPILER);
+        RET(THIRD_PARTY);
+        RET(APPLICATION);
+        RET(OTHER);
+    default:
+        UNREACHABLE();
+        return "Unknown source";
+    }
+#undef RET
+}
+
+const char* GetType(GLenum type) {
+#define RET(t)                                                                                     \
+    case GL_DEBUG_TYPE_##t:                                                                        \
+        return #t
+    switch (type) {
+        RET(ERROR);
+        RET(DEPRECATED_BEHAVIOR);
+        RET(UNDEFINED_BEHAVIOR);
+        RET(PORTABILITY);
+        RET(PERFORMANCE);
+        RET(OTHER);
+        RET(MARKER);
+    default:
+        UNREACHABLE();
+        return "Unknown type";
+    }
+#undef RET
+}
+
+void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                           const GLchar* message, const void* user_param) {
+    const char format[] = "{} {} {}: {}";
+    const char* const str_source = GetSource(source);
+    const char* const str_type = GetType(type);
+
+    switch (severity) {
+    case GL_DEBUG_SEVERITY_HIGH:
+        LOG_CRITICAL(Render_OpenGL, format, str_source, str_type, id, message);
+        break;
+    case GL_DEBUG_SEVERITY_MEDIUM:
+        LOG_WARNING(Render_OpenGL, format, str_source, str_type, id, message);
+        break;
+    case GL_DEBUG_SEVERITY_NOTIFICATION:
+    case GL_DEBUG_SEVERITY_LOW:
+        LOG_DEBUG(Render_OpenGL, format, str_source, str_type, id, message);
+        break;
+    }
+}
+
+} // Anonymous namespace
 
 RendererOpenGL::RendererOpenGL(Core::Frontend::EmuWindow& emu_window, Core::System& system)
     : VideoCore::RendererBase{emu_window}, emu_window{emu_window}, system{system} {}
@@ -400,63 +461,6 @@ void RendererOpenGL::CaptureScreenshot() {
 
     renderer_settings.screenshot_complete_callback();
     renderer_settings.screenshot_requested = false;
-}
-
-static const char* GetSource(GLenum source) {
-#define RET(s)                                                                                     \
-    case GL_DEBUG_SOURCE_##s:                                                                      \
-        return #s
-    switch (source) {
-        RET(API);
-        RET(WINDOW_SYSTEM);
-        RET(SHADER_COMPILER);
-        RET(THIRD_PARTY);
-        RET(APPLICATION);
-        RET(OTHER);
-    default:
-        UNREACHABLE();
-        return "Unknown source";
-    }
-#undef RET
-}
-
-static const char* GetType(GLenum type) {
-#define RET(t)                                                                                     \
-    case GL_DEBUG_TYPE_##t:                                                                        \
-        return #t
-    switch (type) {
-        RET(ERROR);
-        RET(DEPRECATED_BEHAVIOR);
-        RET(UNDEFINED_BEHAVIOR);
-        RET(PORTABILITY);
-        RET(PERFORMANCE);
-        RET(OTHER);
-        RET(MARKER);
-    default:
-        UNREACHABLE();
-        return "Unknown type";
-    }
-#undef RET
-}
-
-static void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum severity,
-                                  GLsizei length, const GLchar* message, const void* user_param) {
-    const char format[] = "{} {} {}: {}";
-    const char* const str_source = GetSource(source);
-    const char* const str_type = GetType(type);
-
-    switch (severity) {
-    case GL_DEBUG_SEVERITY_HIGH:
-        LOG_CRITICAL(Render_OpenGL, format, str_source, str_type, id, message);
-        break;
-    case GL_DEBUG_SEVERITY_MEDIUM:
-        LOG_WARNING(Render_OpenGL, format, str_source, str_type, id, message);
-        break;
-    case GL_DEBUG_SEVERITY_NOTIFICATION:
-    case GL_DEBUG_SEVERITY_LOW:
-        LOG_DEBUG(Render_OpenGL, format, str_source, str_type, id, message);
-        break;
-    }
 }
 
 bool RendererOpenGL::Init() {
