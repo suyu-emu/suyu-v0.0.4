@@ -66,17 +66,12 @@ constexpr GLint PositionLocation = 0;
 constexpr GLint TexCoordLocation = 1;
 constexpr GLint ModelViewMatrixLocation = 0;
 
-/// Vertex structure that the drawn screen rectangles are composed of.
 struct ScreenRectVertex {
-    ScreenRectVertex(GLfloat x, GLfloat y, GLfloat u, GLfloat v) {
-        position[0] = x;
-        position[1] = y;
-        tex_coord[0] = u;
-        tex_coord[1] = v;
-    }
+    constexpr ScreenRectVertex(GLfloat x, GLfloat y, GLfloat u, GLfloat v)
+        : position{{x, y}}, tex_coord{{u, v}} {}
 
-    GLfloat position[2];
-    GLfloat tex_coord[2];
+    std::array<GLfloat, 2> position;
+    std::array<GLfloat, 2> tex_coord;
 };
 
 /**
@@ -383,18 +378,18 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
                   static_cast<f32>(screen_info.texture.height);
     }
 
-    std::array<ScreenRectVertex, 4> vertices = {{
+    const std::array vertices = {
         ScreenRectVertex(x, y, texcoords.top * scale_u, left * scale_v),
         ScreenRectVertex(x + w, y, texcoords.bottom * scale_u, left * scale_v),
         ScreenRectVertex(x, y + h, texcoords.top * scale_u, right * scale_v),
         ScreenRectVertex(x + w, y + h, texcoords.bottom * scale_u, right * scale_v),
-    }};
+    };
 
     state.textures[0] = screen_info.display_texture;
     state.framebuffer_srgb.enabled = screen_info.display_srgb;
     state.AllDirty();
     state.Apply();
-    glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), vertices.data());
+    glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     // Restore default state
     state.framebuffer_srgb.enabled = false;
