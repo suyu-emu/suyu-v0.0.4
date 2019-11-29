@@ -19,8 +19,8 @@
 namespace OpenGL {
 
 struct alignas(sizeof(u64)) FramebufferCacheKey {
-    bool stencil_enable = false;
-    u16 colors_count = 0;
+    bool stencil_enable;
+    u16 colors_count;
 
     std::array<GLenum, Tegra::Engines::Maxwell3D::Regs::NumRenderTargets> color_attachments{};
     std::array<View, Tegra::Engines::Maxwell3D::Regs::NumRenderTargets> colors;
