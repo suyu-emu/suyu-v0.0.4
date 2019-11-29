@@ -372,33 +372,31 @@ void RasterizerOpenGL::ConfigureFramebuffers() {
     UNIMPLEMENTED_IF(regs.rt_separate_frag_data == 0);
 
     // Bind the framebuffer surfaces
-    FramebufferCacheKey fbkey;
-    for (std::size_t index = 0; index < Maxwell::NumRenderTargets; ++index) {
+    FramebufferCacheKey key;
+    const auto colors_count = static_cast<std::size_t>(regs.rt_control.count);
+    for (std::size_t index = 0; index < colors_count; ++index) {
         View color_surface{texture_cache.GetColorBufferSurface(index, true)};
-
-        if (color_surface) {
-            // Assume that a surface will be written to if it is used as a framebuffer, even
-            // if the shader doesn't actually write to it.
-            texture_cache.MarkColorBufferInUse(index);
+        if (!color_surface) {
+            continue;
         }
+        // Assume that a surface will be written to if it is used as a framebuffer, even
+        // if the shader doesn't actually write to it.
+        texture_cache.MarkColorBufferInUse(index);
 
-        fbkey.color_attachments[index] = GL_COLOR_ATTACHMENT0 + regs.rt_control.GetMap(index);
-        fbkey.colors[index] = std::move(color_surface);
+        key.SetAttachment(index, regs.rt_control.GetMap(index));
+        key.colors[index] = std::move(color_surface);
     }
-    fbkey.colors_count = static_cast<u16>(regs.rt_control.count);
 
     if (depth_surface) {
         // Assume that a surface will be written to if it is used as a framebuffer, even if
         // the shader doesn't actually write to it.
         texture_cache.MarkDepthBufferInUse();
-
-        fbkey.stencil_enable = depth_surface->GetSurfaceParams().type == SurfaceType::DepthStencil;
-        fbkey.zeta = std::move(depth_surface);
+        key.zeta = std::move(depth_surface);
     }
 
     texture_cache.GuardRenderTargets(false);
 
-    state.draw.draw_framebuffer = framebuffer_cache.GetFramebuffer(fbkey);
+    state.draw.draw_framebuffer = framebuffer_cache.GetFramebuffer(key);
     SyncViewport(state);
 }
 
@@ -421,12 +419,8 @@ void RasterizerOpenGL::ConfigureClearFramebuffer(OpenGLState& current_state, boo
     texture_cache.GuardRenderTargets(false);
 
     FramebufferCacheKey key;
-    key.colors_count = color_surface ? 1 : 0;
     key.colors[0] = color_surface;
-    key.color_attachments[0] = GL_COLOR_ATTACHMENT0;
     key.zeta = depth_surface;
-    key.stencil_enable = depth_surface && depth_surface->GetSurfaceParams().type ==
-                                              VideoCore::Surface::SurfaceType::DepthStencil;
 
     current_state.draw.draw_framebuffer = framebuffer_cache.GetFramebuffer(key);
     current_state.ApplyFramebufferState();

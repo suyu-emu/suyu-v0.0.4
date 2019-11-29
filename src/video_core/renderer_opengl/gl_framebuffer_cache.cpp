@@ -3,9 +3,12 @@
 // Refer to the license.txt file included.
 
 #include <tuple>
+#include <unordered_map>
+#include <utility>
 
-#include "common/cityhash.h"
-#include "common/scope_exit.h"
+#include <glad/glad.h>
+
+#include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_opengl/gl_framebuffer_cache.h"
 #include "video_core/renderer_opengl/gl_state.h"
@@ -13,6 +16,7 @@
 namespace OpenGL {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
+using VideoCore::Surface::SurfaceType;
 
 FramebufferCacheOpenGL::FramebufferCacheOpenGL() = default;
 
@@ -35,36 +39,49 @@ OGLFramebuffer FramebufferCacheOpenGL::CreateFramebuffer(const FramebufferCacheK
     local_state.draw.draw_framebuffer = framebuffer.handle;
     local_state.ApplyFramebufferState();
 
-    for (std::size_t index = 0; index < Maxwell::NumRenderTargets; ++index) {
-        if (key.colors[index]) {
-            key.colors[index]->Attach(GL_COLOR_ATTACHMENT0 + static_cast<GLenum>(index),
-                                      GL_DRAW_FRAMEBUFFER);
-        }
-    }
-    if (key.colors_count) {
-        glDrawBuffers(key.colors_count, key.color_attachments.data());
-    } else {
-        glDrawBuffer(GL_NONE);
+    if (key.zeta) {
+        const bool stencil = key.zeta->GetSurfaceParams().type == SurfaceType::DepthStencil;
+        const GLenum attach_target = stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
+        key.zeta->Attach(attach_target, GL_DRAW_FRAMEBUFFER);
     }
 
-    if (key.zeta) {
-        key.zeta->Attach(key.stencil_enable ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT,
-                         GL_DRAW_FRAMEBUFFER);
+    std::size_t num_buffers = 0;
+    std::array<GLenum, Maxwell::NumRenderTargets> targets;
+
+    for (std::size_t index = 0; index < Maxwell::NumRenderTargets; ++index) {
+        if (!key.colors[index]) {
+            targets[index] = GL_NONE;
+            continue;
+        }
+        const GLenum attach_target = GL_COLOR_ATTACHMENT0 + static_cast<GLenum>(index);
+        key.colors[index]->Attach(attach_target, GL_DRAW_FRAMEBUFFER);
+
+        const u32 attachment = (key.color_attachments >> (BitsPerAttachment * index)) & 0b1111;
+        targets[index] = GL_COLOR_ATTACHMENT0 + attachment;
+        num_buffers = index + 1;
+    }
+
+    if (num_buffers > 0) {
+        glDrawBuffers(static_cast<GLsizei>(num_buffers), std::data(targets));
+    } else {
+        glDrawBuffer(GL_NONE);
     }
 
     return framebuffer;
 }
 
-std::size_t FramebufferCacheKey::Hash() const {
-    static_assert(sizeof(*this) % sizeof(u64) == 0, "Unaligned struct");
-    return static_cast<std::size_t>(
-        Common::CityHash64(reinterpret_cast<const char*>(this), sizeof(*this)));
+std::size_t FramebufferCacheKey::Hash() const noexcept {
+    std::size_t hash = std::hash<View>{}(zeta);
+    for (const auto& color : colors) {
+        hash ^= std::hash<View>{}(color);
+    }
+    hash ^= static_cast<std::size_t>(color_attachments) << 16;
+    return hash;
 }
 
-bool FramebufferCacheKey::operator==(const FramebufferCacheKey& rhs) const {
-    return std::tie(stencil_enable, colors_count, color_attachments, colors, zeta) ==
-           std::tie(rhs.stencil_enable, rhs.colors_count, rhs.color_attachments, rhs.colors,
-                    rhs.zeta);
+bool FramebufferCacheKey::operator==(const FramebufferCacheKey& rhs) const noexcept {
+    return std::tie(colors, zeta, color_attachments) ==
+           std::tie(rhs.colors, rhs.zeta, rhs.color_attachments);
 }
 
 } // namespace OpenGL
