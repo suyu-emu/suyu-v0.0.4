@@ -1,27 +1,64 @@
-// Copyright 2018 yuzu emulator team
+// Copyright 2019 yuzu emulator team
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
 #pragma once
 
-#include "core/hle/kernel/object.h"
+#include <memory>
+#include <string>
+
+#include "core/hle/kernel/wait_object.h"
+#include "core/hle/result.h"
 
 namespace Kernel {
 
 class ClientSession;
-class ClientPort;
 class ServerSession;
 
 /**
  * Parent structure to link the client and server endpoints of a session with their associated
- * client port. The client port need not exist, as is the case for portless sessions like the
- * FS File and Directory sessions. When one of the endpoints of a session is destroyed, its
- * corresponding field in this structure will be set to nullptr.
+ * client port.
  */
-class Session final {
+class Session final : public WaitObject {
 public:
-    std::weak_ptr<ClientSession> client; ///< The client endpoint of the session.
-    std::weak_ptr<ServerSession> server; ///< The server endpoint of the session.
-    std::shared_ptr<ClientPort> port; ///< The port that this session is associated with (optional).
+    explicit Session(KernelCore& kernel);
+    ~Session() override;
+
+    using SessionPair = std::pair<std::shared_ptr<ClientSession>, std::shared_ptr<ServerSession>>;
+
+    static SessionPair Create(KernelCore& kernel, std::string name = "Unknown");
+
+    std::string GetName() const override {
+        return name;
+    }
+
+    static constexpr HandleType HANDLE_TYPE = HandleType::Session;
+    HandleType GetHandleType() const override {
+        return HANDLE_TYPE;
+    }
+
+    bool ShouldWait(const Thread* thread) const override;
+
+    void Acquire(Thread* thread) override;
+
+    std::shared_ptr<ClientSession> Client() {
+        if (auto result{client.lock()}) {
+            return result;
+        }
+        return {};
+    }
+
+    std::shared_ptr<ServerSession> Server() {
+        if (auto result{server.lock()}) {
+            return result;
+        }
+        return {};
+    }
+
+private:
+    std::string name;
+    std::weak_ptr<ClientSession> client;
+    std::weak_ptr<ServerSession> server;
 };
+
 } // namespace Kernel

@@ -170,6 +170,7 @@ add_library(core STATIC
     hle/kernel/server_port.h
     hle/kernel/server_session.cpp
     hle/kernel/server_session.h
+    hle/kernel/session.cpp
     hle/kernel/session.h
     hle/kernel/shared_memory.cpp
     hle/kernel/shared_memory.h

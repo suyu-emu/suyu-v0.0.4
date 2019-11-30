@@ -29,6 +29,7 @@ enum class HandleType : u32 {
     ServerPort,
     ClientSession,
     ServerSession,
+    Session,
 };
 
 class Object : NonCopyable, public std::enable_shared_from_this<Object> {

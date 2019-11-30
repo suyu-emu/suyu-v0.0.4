@@ -381,11 +381,12 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
 
     LOG_TRACE(Kernel_SVC, "called handle=0x{:08X}({})", handle, session->GetName());
 
-    system.PrepareReschedule();
+    auto thread = system.CurrentScheduler().GetCurrentThread();
+    thread->InvalidateWakeupCallback();
+    thread->SetStatus(ThreadStatus::WaitIPC);
+    system.PrepareReschedule(thread->GetProcessorID());
 
-    // TODO(Subv): svcSendSyncRequest should put the caller thread to sleep while the server
-    // responds and cause a reschedule.
-    return session->SendSyncRequest(system.CurrentScheduler().GetCurrentThread(), system.Memory());
+    return session->SendSyncRequest(SharedFrom(thread), system.Memory());
 }
 
 /// Get the ID for the specified thread.

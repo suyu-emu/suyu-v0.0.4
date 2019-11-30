@@ -19,6 +19,7 @@
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/server_session.h"
+#include "core/hle/kernel/session.h"
 #include "core/hle/result.h"
 
 namespace IPC {
@@ -139,10 +140,9 @@ public:
             context->AddDomainObject(std::move(iface));
         } else {
             auto& kernel = Core::System::GetInstance().Kernel();
-            auto [server, client] =
-                Kernel::ServerSession::CreateSessionPair(kernel, iface->GetServiceName());
-            iface->ClientConnected(server);
+            auto [client, server] = Kernel::Session::Create(kernel, iface->GetServiceName());
             context->AddMoveObject(std::move(client));
+            iface->ClientConnected(std::move(server));
         }
     }
 
