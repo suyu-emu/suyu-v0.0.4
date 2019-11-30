@@ -254,16 +254,14 @@ public:
         if (!layer_mipmap) {
             return {};
         }
-        const u32 end_layer{layer_mipmap->first};
-        const u32 end_mipmap{layer_mipmap->second};
+        const auto [end_layer, end_mipmap] = *layer_mipmap;
         if (layer != end_layer) {
             if (mipmap == 0 && end_mipmap == 0) {
-                return GetView(ViewParams(view_params.target, layer, end_layer - layer + 1, 0, 1));
+                return GetView(ViewParams(view_params.target, layer, end_layer - layer, 0, 1));
             }
             return {};
         } else {
-            return GetView(
-                ViewParams(view_params.target, layer, 1, mipmap, end_mipmap - mipmap + 1));
+            return GetView(ViewParams(view_params.target, layer, 1, mipmap, end_mipmap - mipmap));
         }
     }
 
@@ -278,8 +276,7 @@ public:
         if (!layer_mipmap) {
             return {};
         }
-        const u32 layer{layer_mipmap->first};
-        const u32 mipmap{layer_mipmap->second};
+        const auto [layer, mipmap] = *layer_mipmap;
         if (GetMipmapSize(mipmap) != candidate_size) {
             return EmplaceIrregularView(view_params, view_addr, candidate_size, mipmap, layer);
         }
