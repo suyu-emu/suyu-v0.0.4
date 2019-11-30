@@ -93,7 +93,6 @@ RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWind
     shader_program_manager = std::make_unique<GLShader::ProgramManager>();
     state.draw.shader_program = 0;
     state.Apply();
-    clear_framebuffer.Create();
 
     LOG_DEBUG(Render_OpenGL, "Sync fixed function OpenGL state here");
     CheckExtensions();
@@ -373,78 +372,58 @@ void RasterizerOpenGL::ConfigureFramebuffers() {
     UNIMPLEMENTED_IF(regs.rt_separate_frag_data == 0);
 
     // Bind the framebuffer surfaces
-    FramebufferCacheKey fbkey;
-    for (std::size_t index = 0; index < Maxwell::NumRenderTargets; ++index) {
+    FramebufferCacheKey key;
+    const auto colors_count = static_cast<std::size_t>(regs.rt_control.count);
+    for (std::size_t index = 0; index < colors_count; ++index) {
         View color_surface{texture_cache.GetColorBufferSurface(index, true)};
-
-        if (color_surface) {
-            // Assume that a surface will be written to if it is used as a framebuffer, even
-            // if the shader doesn't actually write to it.
-            texture_cache.MarkColorBufferInUse(index);
+        if (!color_surface) {
+            continue;
         }
+        // Assume that a surface will be written to if it is used as a framebuffer, even
+        // if the shader doesn't actually write to it.
+        texture_cache.MarkColorBufferInUse(index);
 
-        fbkey.color_attachments[index] = GL_COLOR_ATTACHMENT0 + regs.rt_control.GetMap(index);
-        fbkey.colors[index] = std::move(color_surface);
+        key.SetAttachment(index, regs.rt_control.GetMap(index));
+        key.colors[index] = std::move(color_surface);
     }
-    fbkey.colors_count = static_cast<u16>(regs.rt_control.count);
 
     if (depth_surface) {
         // Assume that a surface will be written to if it is used as a framebuffer, even if
         // the shader doesn't actually write to it.
         texture_cache.MarkDepthBufferInUse();
-
-        fbkey.stencil_enable = depth_surface->GetSurfaceParams().type == SurfaceType::DepthStencil;
-        fbkey.zeta = std::move(depth_surface);
+        key.zeta = std::move(depth_surface);
     }
 
     texture_cache.GuardRenderTargets(false);
 
-    state.draw.draw_framebuffer = framebuffer_cache.GetFramebuffer(fbkey);
+    state.draw.draw_framebuffer = framebuffer_cache.GetFramebuffer(key);
     SyncViewport(state);
 }
 
 void RasterizerOpenGL::ConfigureClearFramebuffer(OpenGLState& current_state, bool using_color_fb,
                                                  bool using_depth_fb, bool using_stencil_fb) {
+    using VideoCore::Surface::SurfaceType;
+
     auto& gpu = system.GPU().Maxwell3D();
     const auto& regs = gpu.regs;
 
     texture_cache.GuardRenderTargets(true);
-    View color_surface{};
+    View color_surface;
     if (using_color_fb) {
         color_surface = texture_cache.GetColorBufferSurface(regs.clear_buffers.RT, false);
     }
-    View depth_surface{};
+    View depth_surface;
     if (using_depth_fb || using_stencil_fb) {
         depth_surface = texture_cache.GetDepthBufferSurface(false);
     }
     texture_cache.GuardRenderTargets(false);
 
-    current_state.draw.draw_framebuffer = clear_framebuffer.handle;
+    FramebufferCacheKey key;
+    key.colors[0] = color_surface;
+    key.zeta = depth_surface;
+
+    current_state.draw.draw_framebuffer = framebuffer_cache.GetFramebuffer(key);
     current_state.ApplyFramebufferState();
-
-    if (color_surface) {
-        color_surface->Attach(GL_COLOR_ATTACHMENT0, GL_DRAW_FRAMEBUFFER);
-    } else {
-        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
-    }
-
-    if (depth_surface) {
-        const auto& params = depth_surface->GetSurfaceParams();
-        switch (params.type) {
-        case VideoCore::Surface::SurfaceType::Depth:
-            depth_surface->Attach(GL_DEPTH_ATTACHMENT, GL_DRAW_FRAMEBUFFER);
-            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
-            break;
-        case VideoCore::Surface::SurfaceType::DepthStencil:
-            depth_surface->Attach(GL_DEPTH_STENCIL_ATTACHMENT, GL_DRAW_FRAMEBUFFER);
-            break;
-        default:
-            UNIMPLEMENTED();
-        }
-    } else {
-        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0,
-                               0);
-    }
 }
 
 void RasterizerOpenGL::Clear() {

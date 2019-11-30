@@ -223,8 +223,6 @@ private:
 
     enum class AccelDraw { Disabled, Arrays, Indexed };
     AccelDraw accelerate_draw = AccelDraw::Disabled;
-
-    OGLFramebuffer clear_framebuffer;
 };
 
 } // namespace OpenGL
