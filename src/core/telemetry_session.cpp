@@ -169,6 +169,7 @@ void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader) {
     AddField(field_type, "Audio_SinkId", Settings::values.sink_id);
     AddField(field_type, "Audio_EnableAudioStretching", Settings::values.enable_audio_stretching);
     AddField(field_type, "Core_UseMultiCore", Settings::values.use_multi_core);
+    AddField(field_type, "Renderer_Backend", "OpenGL");
     AddField(field_type, "Renderer_ResolutionFactor", Settings::values.resolution_factor);
     AddField(field_type, "Renderer_UseFrameLimit", Settings::values.use_frame_limit);
     AddField(field_type, "Renderer_FrameLimit", Settings::values.frame_limit);
