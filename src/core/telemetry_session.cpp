@@ -165,24 +165,20 @@ void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader) {
     Telemetry::AppendOSInfo(field_collection);
 
     // Log user configuration information
-    AddField(Telemetry::FieldType::UserConfig, "Audio_SinkId", Settings::values.sink_id);
-    AddField(Telemetry::FieldType::UserConfig, "Audio_EnableAudioStretching",
-             Settings::values.enable_audio_stretching);
-    AddField(Telemetry::FieldType::UserConfig, "Core_UseMultiCore",
-             Settings::values.use_multi_core);
-    AddField(Telemetry::FieldType::UserConfig, "Renderer_ResolutionFactor",
-             Settings::values.resolution_factor);
-    AddField(Telemetry::FieldType::UserConfig, "Renderer_UseFrameLimit",
-             Settings::values.use_frame_limit);
-    AddField(Telemetry::FieldType::UserConfig, "Renderer_FrameLimit", Settings::values.frame_limit);
-    AddField(Telemetry::FieldType::UserConfig, "Renderer_UseDiskShaderCache",
-             Settings::values.use_disk_shader_cache);
-    AddField(Telemetry::FieldType::UserConfig, "Renderer_UseAccurateGpuEmulation",
+    constexpr auto field_type = Telemetry::FieldType::UserConfig;
+    AddField(field_type, "Audio_SinkId", Settings::values.sink_id);
+    AddField(field_type, "Audio_EnableAudioStretching", Settings::values.enable_audio_stretching);
+    AddField(field_type, "Core_UseMultiCore", Settings::values.use_multi_core);
+    AddField(field_type, "Renderer_Backend", "OpenGL");
+    AddField(field_type, "Renderer_ResolutionFactor", Settings::values.resolution_factor);
+    AddField(field_type, "Renderer_UseFrameLimit", Settings::values.use_frame_limit);
+    AddField(field_type, "Renderer_FrameLimit", Settings::values.frame_limit);
+    AddField(field_type, "Renderer_UseDiskShaderCache", Settings::values.use_disk_shader_cache);
+    AddField(field_type, "Renderer_UseAccurateGpuEmulation",
              Settings::values.use_accurate_gpu_emulation);
-    AddField(Telemetry::FieldType::UserConfig, "Renderer_UseAsynchronousGpuEmulation",
+    AddField(field_type, "Renderer_UseAsynchronousGpuEmulation",
              Settings::values.use_asynchronous_gpu_emulation);
-    AddField(Telemetry::FieldType::UserConfig, "System_UseDockedMode",
-             Settings::values.use_docked_mode);
+    AddField(field_type, "System_UseDockedMode", Settings::values.use_docked_mode);
 }
 
 bool TelemetrySession::SubmitTestcase() {
