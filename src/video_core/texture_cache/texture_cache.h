@@ -95,10 +95,16 @@ public:
         std::lock_guard lock{mutex};
         const auto gpu_addr{tic.Address()};
         if (!gpu_addr) {
-            return {};
+            return GetNullSurface(SurfaceParams::ExpectedTarget(entry));
+        }
+
+        const auto host_ptr{system.GPU().MemoryManager().GetPointer(gpu_addr)};
+        const auto cache_addr{ToCacheAddr(host_ptr)};
+        if (!cache_addr) {
+            return GetNullSurface(SurfaceParams::ExpectedTarget(entry));
         }
         const auto params{SurfaceParams::CreateForTexture(format_lookup_table, tic, entry)};
-        const auto [surface, view] = GetSurface(gpu_addr, params, true, false);
+        const auto [surface, view] = GetSurface(gpu_addr, cache_addr, params, true, false);
         if (guard_samplers) {
             sampled_textures.push_back(surface);
         }
@@ -110,10 +116,15 @@ public:
         std::lock_guard lock{mutex};
         const auto gpu_addr{tic.Address()};
         if (!gpu_addr) {
-            return {};
+            return GetNullSurface(SurfaceParams::ExpectedTarget(entry));
+        }
+        const auto host_ptr{system.GPU().MemoryManager().GetPointer(gpu_addr)};
+        const auto cache_addr{ToCacheAddr(host_ptr)};
+        if (!cache_addr) {
+            return GetNullSurface(SurfaceParams::ExpectedTarget(entry));
         }
         const auto params{SurfaceParams::CreateForImage(format_lookup_table, tic, entry)};
-        const auto [surface, view] = GetSurface(gpu_addr, params, true, false);
+        const auto [surface, view] = GetSurface(gpu_addr, cache_addr, params, true, false);
         if (guard_samplers) {
             sampled_textures.push_back(surface);
         }
@@ -143,11 +154,17 @@ public:
             SetEmptyDepthBuffer();
             return {};
         }
+        const auto host_ptr{system.GPU().MemoryManager().GetPointer(gpu_addr)};
+        const auto cache_addr{ToCacheAddr(host_ptr)};
+        if (!cache_addr) {
+            SetEmptyDepthBuffer();
+            return {};
+        }
         const auto depth_params{SurfaceParams::CreateForDepthBuffer(
             system, regs.zeta_width, regs.zeta_height, regs.zeta.format,
             regs.zeta.memory_layout.block_width, regs.zeta.memory_layout.block_height,
             regs.zeta.memory_layout.block_depth, regs.zeta.memory_layout.type)};
-        auto surface_view = GetSurface(gpu_addr, depth_params, preserve_contents, true);
+        auto surface_view = GetSurface(gpu_addr, cache_addr, depth_params, preserve_contents, true);
         if (depth_buffer.target)
             depth_buffer.target->MarkAsRenderTarget(false, NO_RT);
         depth_buffer.target = surface_view.first;
@@ -180,8 +197,16 @@ public:
             return {};
         }
 
-        auto surface_view = GetSurface(gpu_addr, SurfaceParams::CreateForFramebuffer(system, index),
-                                       preserve_contents, true);
+        const auto host_ptr{system.GPU().MemoryManager().GetPointer(gpu_addr)};
+        const auto cache_addr{ToCacheAddr(host_ptr)};
+        if (!cache_addr) {
+            SetEmptyColorBuffer(index);
+            return {};
+        }
+
+        auto surface_view =
+            GetSurface(gpu_addr, cache_addr, SurfaceParams::CreateForFramebuffer(system, index),
+                       preserve_contents, true);
         if (render_targets[index].target)
             render_targets[index].target->MarkAsRenderTarget(false, NO_RT);
         render_targets[index].target = surface_view.first;
@@ -230,8 +255,14 @@ public:
         const GPUVAddr src_gpu_addr = src_config.Address();
         const GPUVAddr dst_gpu_addr = dst_config.Address();
         DeduceBestBlit(src_params, dst_params, src_gpu_addr, dst_gpu_addr);
-        std::pair<TSurface, TView> dst_surface = GetSurface(dst_gpu_addr, dst_params, true, false);
-        std::pair<TSurface, TView> src_surface = GetSurface(src_gpu_addr, src_params, true, false);
+        const auto dst_host_ptr{system.GPU().MemoryManager().GetPointer(dst_gpu_addr)};
+        const auto dst_cache_addr{ToCacheAddr(dst_host_ptr)};
+        const auto src_host_ptr{system.GPU().MemoryManager().GetPointer(src_gpu_addr)};
+        const auto src_cache_addr{ToCacheAddr(src_host_ptr)};
+        std::pair<TSurface, TView> dst_surface =
+            GetSurface(dst_gpu_addr, dst_cache_addr, dst_params, true, false);
+        std::pair<TSurface, TView> src_surface =
+            GetSurface(src_gpu_addr, src_cache_addr, src_params, true, false);
         ImageBlit(src_surface.second, dst_surface.second, copy_config);
         dst_surface.first->MarkAsModified(true, Tick());
     }
@@ -345,13 +376,6 @@ protected:
         // No reserved surface available, create a new one and reserve it
         auto new_surface{CreateSurface(gpu_addr, params)};
         return new_surface;
-    }
-
-    std::pair<TSurface, TView> GetFermiSurface(
-        const Tegra::Engines::Fermi2D::Regs::Surface& config) {
-        SurfaceParams params = SurfaceParams::CreateForFermiCopySurface(config);
-        const GPUVAddr gpu_addr = config.Address();
-        return GetSurface(gpu_addr, params, true, false);
     }
 
     Core::System& system;
@@ -614,22 +638,9 @@ private:
      *                          left blank.
      * @param is_render         Whether or not the surface is a render target.
      **/
-    std::pair<TSurface, TView> GetSurface(const GPUVAddr gpu_addr, const SurfaceParams& params,
-                                          bool preserve_contents, bool is_render) {
-        const auto host_ptr{system.GPU().MemoryManager().GetPointer(gpu_addr)};
-        const auto cache_addr{ToCacheAddr(host_ptr)};
-
-        // Step 0: guarantee a valid surface
-        if (!cache_addr) {
-            // Return a null surface if it's invalid
-            SurfaceParams new_params = params;
-            new_params.width = 1;
-            new_params.height = 1;
-            new_params.depth = 1;
-            new_params.block_height = 0;
-            new_params.block_depth = 0;
-            return InitializeSurface(gpu_addr, new_params, false);
-        }
+    std::pair<TSurface, TView> GetSurface(const GPUVAddr gpu_addr, const CacheAddr cache_addr,
+                                          const SurfaceParams& params, bool preserve_contents,
+                                          bool is_render) {
 
         // Step 1
         // Check Level 1 Cache for a fast structural match. If candidate surface
@@ -791,6 +802,41 @@ private:
             result.surface = overlaps[0];
             return result;
         }
+    }
+
+    /**
+     * Gets a null surface based on a target texture.
+     * @param target The target of the null surface.
+     */
+    TView GetNullSurface(SurfaceTarget target) {
+        const u32 i_target = static_cast<u32>(target);
+        if (const auto it = invalid_cache.find(i_target); it != invalid_cache.end()) {
+            return it->second->GetMainView();
+        }
+        SurfaceParams params{};
+        params.target = target;
+        params.is_tiled = false;
+        params.srgb_conversion = false;
+        params.is_layered = false;
+        params.block_width = 0;
+        params.block_height = 0;
+        params.block_depth = 0;
+        params.tile_width_spacing = 1;
+        params.width = 1;
+        params.height = 1;
+        params.depth = 1;
+        params.pitch = 4;
+        params.num_levels = 1;
+        params.emulated_levels = 1;
+        params.pixel_format = VideoCore::Surface::PixelFormat::RGBA16F;
+        params.type = VideoCore::Surface::SurfaceType::ColorTexture;
+        auto surface = CreateSurface(0ULL, params);
+        invalid_memory.clear();
+        invalid_memory.resize(surface->GetHostSizeInBytes(), 0U);
+        surface->UploadTexture(invalid_memory);
+        surface->MarkAsModified(false, Tick());
+        invalid_cache.emplace(i_target, surface);
+        return surface->GetMainView();
     }
 
     /**
@@ -990,6 +1036,11 @@ private:
     FramebufferTargetInfo depth_buffer;
 
     std::vector<TSurface> sampled_textures;
+
+    /// This cache stores null surfaces in order to be used as a placeholder
+    /// for invalid texture calls.
+    std::unordered_map<u32, TSurface> invalid_cache;
+    std::vector<u8> invalid_memory;
 
     StagingCache staging_cache;
     std::recursive_mutex mutex;

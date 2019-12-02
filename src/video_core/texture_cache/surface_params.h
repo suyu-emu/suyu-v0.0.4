@@ -45,6 +45,14 @@ public:
     static SurfaceParams CreateForFermiCopySurface(
         const Tegra::Engines::Fermi2D::Regs::Surface& config);
 
+    /// Obtains the texture target from a shader's sampler entry.
+    static VideoCore::Surface::SurfaceTarget ExpectedTarget(
+        const VideoCommon::Shader::Sampler& entry);
+
+    /// Obtains the texture target from a shader's sampler entry.
+    static VideoCore::Surface::SurfaceTarget ExpectedTarget(
+        const VideoCommon::Shader::Image& entry);
+
     std::size_t Hash() const {
         return static_cast<std::size_t>(
             Common::CityHash64(reinterpret_cast<const char*>(this), sizeof(*this)));
