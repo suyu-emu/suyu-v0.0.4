@@ -39,6 +39,7 @@ mkdir "artifacts"
 # Build a tar.xz for the source of the release
 Copy-Item .\license.txt -Destination $MSVC_SOURCE
 Copy-Item .\README.md -Destination $MSVC_SOURCE
+Copy-Item .\CMakeLists.txt -Destination $MSVC_SOURCE
 Copy-Item .\src -Recurse -Destination $MSVC_SOURCE
 Copy-Item .\externals -Recurse -Destination $MSVC_SOURCE
 Copy-Item .\dist -Recurse -Destination $MSVC_SOURCE
