@@ -68,6 +68,7 @@ enum class OperationCode {
     IBitfieldInsert,       /// (MetaArithmetic, int base, int insert, int offset, int bits) -> int
     IBitfieldExtract,      /// (MetaArithmetic, int value, int offset, int offset) -> int
     IBitCount,             /// (MetaArithmetic, int) -> int
+    IBitMSB,               /// (MetaArithmetic, int) -> int
 
     UAdd,                  /// (MetaArithmetic, uint a, uint b) -> uint
     UMul,                  /// (MetaArithmetic, uint a, uint b) -> uint
@@ -86,6 +87,7 @@ enum class OperationCode {
     UBitfieldInsert,  /// (MetaArithmetic, uint base, uint insert, int offset, int bits) -> uint
     UBitfieldExtract, /// (MetaArithmetic, uint value, int offset, int offset) -> uint
     UBitCount,        /// (MetaArithmetic, uint) -> uint
+    UBitMSB,          /// (MetaArithmetic, uint) -> uint
 
     HAdd,       /// (MetaArithmetic, f16vec2 a, f16vec2 b) -> f16vec2
     HMul,       /// (MetaArithmetic, f16vec2 a, f16vec2 b) -> f16vec2
@@ -149,6 +151,7 @@ enum class OperationCode {
     TextureQueryDimensions, /// (MetaTexture, float a) -> float4
     TextureQueryLod,        /// (MetaTexture, float[N] coords) -> float4
     TexelFetch,             /// (MetaTexture, int[N], int) -> float4
+    TextureGradient,        /// (MetaTexture, float[N] coords, float[N*2] derivates) -> float4
 
     ImageLoad,  /// (MetaImage, int[N] coords) -> void
     ImageStore, /// (MetaImage, int[N] coords) -> void
@@ -367,6 +370,7 @@ struct MetaTexture {
     Node array;
     Node depth_compare;
     std::vector<Node> aoffi;
+    std::vector<Node> derivates;
     Node bias;
     Node lod;
     Node component{};

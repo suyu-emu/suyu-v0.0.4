@@ -983,6 +983,11 @@ private:
         return {};
     }
 
+    Id TextureGradient(Operation operation) {
+        UNIMPLEMENTED();
+        return {};
+    }
+
     Id ImageLoad(Operation operation) {
         UNIMPLEMENTED();
         return {};
@@ -1391,6 +1396,7 @@ private:
         &SPIRVDecompiler::Quaternary<&Module::OpBitFieldInsert, Type::Int>,
         &SPIRVDecompiler::Ternary<&Module::OpBitFieldSExtract, Type::Int>,
         &SPIRVDecompiler::Unary<&Module::OpBitCount, Type::Int>,
+        &SPIRVDecompiler::Unary<&Module::OpFindSMsb, Type::Int>,
 
         &SPIRVDecompiler::Binary<&Module::OpIAdd, Type::Uint>,
         &SPIRVDecompiler::Binary<&Module::OpIMul, Type::Uint>,
@@ -1409,6 +1415,7 @@ private:
         &SPIRVDecompiler::Quaternary<&Module::OpBitFieldInsert, Type::Uint>,
         &SPIRVDecompiler::Ternary<&Module::OpBitFieldUExtract, Type::Uint>,
         &SPIRVDecompiler::Unary<&Module::OpBitCount, Type::Uint>,
+        &SPIRVDecompiler::Unary<&Module::OpFindUMsb, Type::Uint>,
 
         &SPIRVDecompiler::Binary<&Module::OpFAdd, Type::HalfFloat>,
         &SPIRVDecompiler::Binary<&Module::OpFMul, Type::HalfFloat>,
@@ -1473,6 +1480,7 @@ private:
         &SPIRVDecompiler::TextureQueryDimensions,
         &SPIRVDecompiler::TextureQueryLod,
         &SPIRVDecompiler::TexelFetch,
+        &SPIRVDecompiler::TextureGradient,
 
         &SPIRVDecompiler::ImageLoad,
         &SPIRVDecompiler::ImageStore,

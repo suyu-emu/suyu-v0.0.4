@@ -800,6 +800,12 @@ union Instruction {
     } popc;
 
     union {
+        BitField<41, 1, u64> sh;
+        BitField<40, 1, u64> invert;
+        BitField<48, 1, u64> is_signed;
+    } flo;
+
+    union {
         BitField<39, 3, u64> pred;
         BitField<42, 1, u64> neg_pred;
     } sel;
@@ -1440,6 +1446,26 @@ union Instruction {
     } tlds;
 
     union {
+        BitField<28, 1, u64> is_array;
+        BitField<29, 2, TextureType> texture_type;
+        BitField<35, 1, u64> aoffi_flag;
+        BitField<49, 1, u64> nodep_flag;
+
+        bool UsesMiscMode(TextureMiscMode mode) const {
+            switch (mode) {
+            case TextureMiscMode::AOFFI:
+                return aoffi_flag != 0;
+            case TextureMiscMode::NODEP:
+                return nodep_flag != 0;
+            default:
+                break;
+            }
+            return false;
+        }
+
+    } txd;
+
+    union {
         BitField<24, 2, StoreCacheManagement> cache_management;
         BitField<33, 3, ImageType> image_type;
         BitField<49, 2, OutOfBoundsStore> out_of_bounds_store;
@@ -1632,6 +1658,8 @@ public:
         TLD4S,  // Texture Load 4 with scalar / non - vec4 source / destinations
         TMML_B, // Texture Mip Map Level
         TMML,   // Texture Mip Map Level
+        TXD,    // Texture Gradient/Load with Derivates
+        TXD_B,  // Texture Gradient/Load with Derivates Bindless
         SUST,   // Surface Store
         SULD,   // Surface Load
         SUATOM, // Surface Atomic Operation
@@ -1664,6 +1692,9 @@ public:
         ISCADD_C, // Scale and Add
         ISCADD_R,
         ISCADD_IMM,
+        FLO_R,
+        FLO_C,
+        FLO_IMM,
         LEA_R1,
         LEA_R2,
         LEA_RZ,
@@ -1727,6 +1758,10 @@ public:
         SHR_C,
         SHR_R,
         SHR_IMM,
+        SHF_RIGHT_R,
+        SHF_RIGHT_IMM,
+        SHF_LEFT_R,
+        SHF_LEFT_IMM,
         FMNMX_C,
         FMNMX_R,
         FMNMX_IMM,
@@ -1924,6 +1959,8 @@ private:
             INST("1101111100------", Id::TLD4S, Type::Texture, "TLD4S"),
             INST("110111110110----", Id::TMML_B, Type::Texture, "TMML_B"),
             INST("1101111101011---", Id::TMML, Type::Texture, "TMML"),
+            INST("11011110011110--", Id::TXD_B, Type::Texture, "TXD_B"),
+            INST("11011110001110--", Id::TXD, Type::Texture, "TXD"),
             INST("11101011001-----", Id::SUST, Type::Image, "SUST"),
             INST("11101011000-----", Id::SULD, Type::Image, "SULD"),
             INST("1110101000------", Id::SUATOM, Type::Image, "SUATOM_D"),
@@ -1965,6 +2002,9 @@ private:
             INST("010110110100----", Id::ICMP_R, Type::ArithmeticInteger, "ICMP_R"),
             INST("010010110100----", Id::ICMP_CR, Type::ArithmeticInteger, "ICMP_CR"),
             INST("0011011-0100----", Id::ICMP_IMM, Type::ArithmeticInteger, "ICMP_IMM"),
+            INST("010111000011‬0---", Id::FLO_R, Type::ArithmeticInteger, "FLO_R"),
+            INST("0100110000110---", Id::FLO_C, Type::ArithmeticInteger, "FLO_C"),
+            INST("0011100-00110---", Id::FLO_IMM, Type::ArithmeticInteger, "FLO_IMM"),
             INST("0101101111011---", Id::LEA_R2, Type::ArithmeticInteger, "LEA_R2"),
             INST("0101101111010---", Id::LEA_R1, Type::ArithmeticInteger, "LEA_R1"),
             INST("001101101101----", Id::LEA_IMM, Type::ArithmeticInteger, "LEA_IMM"),
@@ -2022,6 +2062,10 @@ private:
             INST("0100110000101---", Id::SHR_C, Type::Shift, "SHR_C"),
             INST("0101110000101---", Id::SHR_R, Type::Shift, "SHR_R"),
             INST("0011100-00101---", Id::SHR_IMM, Type::Shift, "SHR_IMM"),
+            INST("0101110011111---", Id::SHF_RIGHT_R, Type::Shift, "SHF_RIGHT_R"),
+            INST("0011100-11111---", Id::SHF_RIGHT_IMM, Type::Shift, "SHF_RIGHT_IMM"),
+            INST("0101101111111---", Id::SHF_LEFT_R, Type::Shift, "SHF_LEFT_R"),
+            INST("0011011-11111---", Id::SHF_LEFT_IMM, Type::Shift, "SHF_LEFT_IMM"),
             INST("0100110011100---", Id::I2I_C, Type::Conversion, "I2I_C"),
             INST("0101110011100---", Id::I2I_R, Type::Conversion, "I2I_R"),
             INST("0011101-11100---", Id::I2I_IMM, Type::Conversion, "I2I_IMM"),

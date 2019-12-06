@@ -134,11 +134,50 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         Node4 values;
         for (u32 element = 0; element < values.size(); ++element) {
             auto coords_copy = coords;
-            MetaTexture meta{sampler, {}, {}, {}, {}, {}, component, element};
+            MetaTexture meta{sampler, {}, {}, {}, {}, {}, {}, component, element};
             values[element] = Operation(OperationCode::TextureGather, meta, std::move(coords_copy));
         }
 
         WriteTexsInstructionFloat(bb, instr, values, true);
+        break;
+    }
+    case OpCode::Id::TXD_B:
+        is_bindless = true;
+        [[fallthrough]];
+    case OpCode::Id::TXD: {
+        UNIMPLEMENTED_IF_MSG(instr.txd.UsesMiscMode(TextureMiscMode::AOFFI),
+                             "AOFFI is not implemented");
+        UNIMPLEMENTED_IF_MSG(instr.txd.is_array != 0, "TXD Array is not implemented");
+
+        u64 base_reg = instr.gpr8.Value();
+        const auto derivate_reg = instr.gpr20.Value();
+        const auto texture_type = instr.txd.texture_type.Value();
+        const auto coord_count = GetCoordCount(texture_type);
+
+        const auto& sampler = is_bindless
+                                  ? GetBindlessSampler(base_reg, {{texture_type, false, false}})
+                                  : GetSampler(instr.sampler, {{texture_type, false, false}});
+        if (is_bindless) {
+            base_reg++;
+        }
+
+        std::vector<Node> coords;
+        std::vector<Node> derivates;
+        for (std::size_t i = 0; i < coord_count; ++i) {
+            coords.push_back(GetRegister(base_reg + i));
+            const std::size_t derivate = i * 2;
+            derivates.push_back(GetRegister(derivate_reg + derivate));
+            derivates.push_back(GetRegister(derivate_reg + derivate + 1));
+        }
+
+        Node4 values;
+        for (u32 element = 0; element < values.size(); ++element) {
+            MetaTexture meta{sampler, {}, {}, {}, derivates, {}, {}, {}, element};
+            values[element] = Operation(OperationCode::TextureGradient, std::move(meta), coords);
+        }
+
+        WriteTexInstructionFloat(bb, instr, values);
+
         break;
     }
     case OpCode::Id::TXQ_B:
@@ -158,7 +197,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
                 if (!instr.txq.IsComponentEnabled(element)) {
                     continue;
                 }
-                MetaTexture meta{sampler, {}, {}, {}, {}, {}, {}, element};
+                MetaTexture meta{sampler, {}, {}, {}, {}, {}, {}, {}, element};
                 const Node value =
                     Operation(OperationCode::TextureQueryDimensions, meta,
                               GetRegister(instr.gpr8.Value() + (is_bindless ? 1 : 0)));
@@ -212,7 +251,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
                 continue;
             }
             auto params = coords;
-            MetaTexture meta{sampler, {}, {}, {}, {}, {}, {}, element};
+            MetaTexture meta{sampler, {}, {}, {}, {}, {}, {}, {}, element};
             const Node value = Operation(OperationCode::TextureQueryLod, meta, std::move(params));
             SetTemporary(bb, indexer++, value);
         }
@@ -442,7 +481,7 @@ Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
     Node4 values;
     for (u32 element = 0; element < values.size(); ++element) {
         auto copy_coords = coords;
-        MetaTexture meta{sampler, array, depth_compare, aoffi, bias, lod, {}, element};
+        MetaTexture meta{sampler, array, depth_compare, aoffi, {}, bias, lod, {}, element};
         values[element] = Operation(read_method, meta, std::move(copy_coords));
     }
 
@@ -574,7 +613,7 @@ Node4 ShaderIR::GetTld4Code(Instruction instr, TextureType texture_type, bool de
     Node4 values;
     for (u32 element = 0; element < values.size(); ++element) {
         auto coords_copy = coords;
-        MetaTexture meta{sampler, GetRegister(array_register), dc, aoffi, {}, {}, component,
+        MetaTexture meta{sampler, GetRegister(array_register), dc, aoffi, {}, {}, {}, component,
                          element};
         values[element] = Operation(OperationCode::TextureGather, meta, std::move(coords_copy));
     }
@@ -608,7 +647,7 @@ Node4 ShaderIR::GetTldCode(Tegra::Shader::Instruction instr) {
     Node4 values;
     for (u32 element = 0; element < values.size(); ++element) {
         auto coords_copy = coords;
-        MetaTexture meta{sampler, array_register, {}, {}, {}, lod, {}, element};
+        MetaTexture meta{sampler, array_register, {}, {}, {}, {}, lod, {}, element};
         values[element] = Operation(OperationCode::TexelFetch, meta, std::move(coords_copy));
     }
 
@@ -653,7 +692,7 @@ Node4 ShaderIR::GetTldsCode(Instruction instr, TextureType texture_type, bool is
     Node4 values;
     for (u32 element = 0; element < values.size(); ++element) {
         auto coords_copy = coords;
-        MetaTexture meta{sampler, array, {}, {}, {}, lod, {}, element};
+        MetaTexture meta{sampler, array, {}, {}, {}, {}, lod, {}, element};
         values[element] = Operation(OperationCode::TexelFetch, meta, std::move(coords_copy));
     }
     return values;
