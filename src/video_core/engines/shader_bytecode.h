@@ -2002,7 +2002,7 @@ private:
             INST("010110110100----", Id::ICMP_R, Type::ArithmeticInteger, "ICMP_R"),
             INST("010010110100----", Id::ICMP_CR, Type::ArithmeticInteger, "ICMP_CR"),
             INST("0011011-0100----", Id::ICMP_IMM, Type::ArithmeticInteger, "ICMP_IMM"),
-            INST("010111000011‬0---", Id::FLO_R, Type::ArithmeticInteger, "FLO_R"),
+            INST("0101110000110---", Id::FLO_R, Type::ArithmeticInteger, "FLO_R"),
             INST("0100110000110---", Id::FLO_C, Type::ArithmeticInteger, "FLO_C"),
             INST("0011100-00110---", Id::FLO_IMM, Type::ArithmeticInteger, "FLO_IMM"),
             INST("0101101111011---", Id::LEA_R2, Type::ArithmeticInteger, "LEA_R2"),
