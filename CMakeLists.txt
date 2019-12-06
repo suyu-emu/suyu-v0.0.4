@@ -29,7 +29,7 @@ option(ENABLE_VULKAN "Enables Vulkan backend" ON)
 
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF)
 
-if(NOT EXISTS ${PROJECT_SOURCE_DIR}/.git/hooks/pre-commit)
+if(EXISTS ${PROJECT_SOURCE_DIR}/hooks/pre-commit AND NOT EXISTS ${PROJECT_SOURCE_DIR}/.git/hooks/pre-commit)
     message(STATUS "Copying pre-commit hook")
     file(COPY hooks/pre-commit
         DESTINATION ${PROJECT_SOURCE_DIR}/.git/hooks)
@@ -49,7 +49,10 @@ function(check_submodules_present)
         endif()
     endforeach()
 endfunction()
-check_submodules_present()
+
+if(EXISTS ${PROJECT_SOURCE_DIR}/.gitmodules)
+    check_submodules_present()
+endif()
 
 configure_file(${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.qrc
                ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
