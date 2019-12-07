@@ -96,6 +96,8 @@ void Cpu::RunLoop(bool tight_loop) {
         } else {
             arm_interface->Step();
         }
+        // We are stopping a run, exclusive state must be cleared
+        arm_interface->ClearExclusiveState();
     }
     core_timing.Advance();
 
