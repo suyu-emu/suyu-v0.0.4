@@ -24,7 +24,7 @@ public:
     ~VKSwapchain();
 
     /// Creates (or recreates) the swapchain with a given size.
-    void Create(u32 width, u32 height);
+    void Create(u32 width, u32 height, bool srgb);
 
     /// Acquires the next image in the swapchain, waits as needed.
     void AcquireNextImage();
@@ -60,8 +60,13 @@ public:
         return image_format;
     }
 
+    bool GetSrgbState() const {
+        return current_srgb;
+    }
+
 private:
-    void CreateSwapchain(const vk::SurfaceCapabilitiesKHR& capabilities, u32 width, u32 height);
+    void CreateSwapchain(const vk::SurfaceCapabilitiesKHR& capabilities, u32 width, u32 height,
+                         bool srgb);
     void CreateSemaphores();
     void CreateImageViews();
 
@@ -87,6 +92,7 @@ private:
 
     u32 current_width{};
     u32 current_height{};
+    bool current_srgb{};
 };
 
 } // namespace Vulkan
