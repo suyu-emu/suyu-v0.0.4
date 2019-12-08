@@ -4,11 +4,12 @@
 
 #pragma once
 
-#include <mutex>
+#include <atomic>
+#include <memory>
 #include <vector>
+
 #include "common/common_types.h"
 #include "common/multi_level_queue.h"
-#include "core/hle/kernel/object.h"
 #include "core/hle/kernel/thread.h"
 
 namespace Core {

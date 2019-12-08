@@ -4,10 +4,10 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "common/common_types.h"
-#include "core/hle/kernel/object.h"
 
 union ResultCode;
 

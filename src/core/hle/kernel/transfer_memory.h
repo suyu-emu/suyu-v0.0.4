@@ -5,7 +5,6 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/physical_memory.h"

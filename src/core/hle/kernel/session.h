@@ -6,9 +6,9 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "core/hle/kernel/wait_object.h"
-#include "core/hle/result.h"
 
 namespace Kernel {
 
