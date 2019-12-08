@@ -1781,6 +1781,17 @@ static ResultCode SignalToAddress(Core::System& system, VAddr address, u32 type,
     return address_arbiter.SignalToAddress(address, signal_type, value, num_to_wake);
 }
 
+static void KernelDebug([[maybe_unused]] Core::System& system,
+                        [[maybe_unused]] u32 kernel_debug_type, [[maybe_unused]] u64 param1,
+                        [[maybe_unused]] u64 param2, [[maybe_unused]] u64 param3) {
+    // Intentionally do nothing, as this does nothing in released kernel binaries.
+}
+
+static void ChangeKernelTraceState([[maybe_unused]] Core::System& system,
+                                   [[maybe_unused]] u32 trace_state) {
+    // Intentionally do nothing, as this does nothing in released kernel binaries.
+}
+
 /// This returns the total CPU ticks elapsed since the CPU was powered-on
 static u64 GetSystemTick(Core::System& system) {
     LOG_TRACE(Kernel_SVC, "called");
@@ -2418,8 +2429,8 @@ static const FunctionDef SVC_Table[] = {
     {0x39, nullptr, "Unknown"},
     {0x3A, nullptr, "Unknown"},
     {0x3B, nullptr, "Unknown"},
-    {0x3C, nullptr, "DumpInfo"},
-    {0x3D, nullptr, "DumpInfoNew"},
+    {0x3C, SvcWrap<KernelDebug>, "KernelDebug"},
+    {0x3D, SvcWrap<ChangeKernelTraceState>, "ChangeKernelTraceState"},
     {0x3E, nullptr, "Unknown"},
     {0x3F, nullptr, "Unknown"},
     {0x40, nullptr, "CreateSession"},

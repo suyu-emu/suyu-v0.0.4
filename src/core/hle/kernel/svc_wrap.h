@@ -311,6 +311,17 @@ void SvcWrap(Core::System& system) {
     func(system);
 }
 
+template <void func(Core::System&, u32)>
+void SvcWrap(Core::System& system) {
+    func(system, static_cast<u32>(Param(system, 0)));
+}
+
+template <void func(Core::System&, u32, u64, u64, u64)>
+void SvcWrap(Core::System& system) {
+    func(system, static_cast<u32>(Param(system, 0)), Param(system, 1), Param(system, 2),
+         Param(system, 3));
+}
+
 template <void func(Core::System&, s64)>
 void SvcWrap(Core::System& system) {
     func(system, static_cast<s64>(Param(system, 0)));
