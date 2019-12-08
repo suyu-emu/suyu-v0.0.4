@@ -392,4 +392,42 @@ std::string SurfaceParams::TargetName() const {
     }
 }
 
+u32 SurfaceParams::GetBlockSize() const {
+    const u32 x = 64U << block_width;
+    const u32 y = 8U << block_height;
+    const u32 z = 1U << block_depth;
+    return x * y * z;
+}
+
+std::pair<u32, u32> SurfaceParams::GetBlockXY() const {
+    const u32 x_pixels = 64U / GetBytesPerPixel();
+    const u32 x = x_pixels << block_width;
+    const u32 y = 8U << block_height;
+    return {x, y};
+}
+
+std::tuple<u32, u32, u32> SurfaceParams::GetBlockOffsetXYZ(u32 offset) const {
+    const auto div_ceil = [](const u32 x, const u32 y) { return ((x + y - 1) / y); };
+    const u32 block_size = GetBlockSize();
+    const u32 block_index = offset / block_size;
+    const u32 gob_offset = offset % block_size;
+    const u32 gob_index = gob_offset / static_cast<u32>(Tegra::Texture::GetGOBSize());
+    const u32 x_gob_pixels = 64U / GetBytesPerPixel();
+    const u32 x_block_pixels = x_gob_pixels << block_width;
+    const u32 y_block_pixels = 8U << block_height;
+    const u32 z_block_pixels = 1U << block_depth;
+    const u32 x_blocks = div_ceil(width, x_block_pixels);
+    const u32 y_blocks = div_ceil(height, y_block_pixels);
+    const u32 z_blocks = div_ceil(depth, z_block_pixels);
+    const u32 base_x = block_index % x_blocks;
+    const u32 base_y = (block_index / x_blocks) % y_blocks;
+    const u32 base_z = (block_index / (x_blocks * y_blocks)) % z_blocks;
+    u32 x = base_x * x_block_pixels;
+    u32 y = base_y * y_block_pixels;
+    u32 z = base_z * z_block_pixels;
+    z += gob_index >> block_height;
+    y += (gob_index * 8U) % y_block_pixels;
+    return {x, y, z};
+}
+
 } // namespace VideoCommon
