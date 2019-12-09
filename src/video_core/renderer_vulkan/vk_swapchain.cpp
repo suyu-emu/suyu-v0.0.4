@@ -19,12 +19,18 @@
 namespace Vulkan {
 
 namespace {
-vk::SurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& formats) {
+
+vk::SurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& formats,
+                                             bool srgb) {
     if (formats.size() == 1 && formats[0].format == vk::Format::eUndefined) {
-        return {vk::Format::eB8G8R8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear};
+        vk::SurfaceFormatKHR format;
+        format.format = vk::Format::eB8G8R8A8Unorm;
+        format.colorSpace = vk::ColorSpaceKHR::eSrgbNonlinear;
+        return format;
     }
-    const auto& found = std::find_if(formats.begin(), formats.end(), [](const auto& format) {
-        return format.format == vk::Format::eB8G8R8A8Unorm &&
+    const auto& found = std::find_if(formats.begin(), formats.end(), [srgb](const auto& format) {
+        const auto request_format = srgb ? vk::Format::eB8G8R8A8Srgb : vk::Format::eB8G8R8A8Unorm;
+        return format.format == request_format &&
                format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear;
     });
     return found != formats.end() ? *found : formats[0];
@@ -51,28 +57,26 @@ vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities, u3
                              std::min(capabilities.maxImageExtent.height, extent.height));
     return extent;
 }
-} // namespace
+
+} // Anonymous namespace
 
 VKSwapchain::VKSwapchain(vk::SurfaceKHR surface, const VKDevice& device)
     : surface{surface}, device{device} {}
 
 VKSwapchain::~VKSwapchain() = default;
 
-void VKSwapchain::Create(u32 width, u32 height) {
-    const auto dev = device.GetLogical();
+void VKSwapchain::Create(u32 width, u32 height, bool srgb) {
     const auto& dld = device.GetDispatchLoader();
     const auto physical_device = device.GetPhysical();
-
-    const vk::SurfaceCapabilitiesKHR capabilities{
-        physical_device.getSurfaceCapabilitiesKHR(surface, dld)};
+    const auto capabilities{physical_device.getSurfaceCapabilitiesKHR(surface, dld)};
     if (capabilities.maxImageExtent.width == 0 || capabilities.maxImageExtent.height == 0) {
         return;
     }
 
-    dev.waitIdle(dld);
+    device.GetLogical().waitIdle(dld);
     Destroy();
 
-    CreateSwapchain(capabilities, width, height);
+    CreateSwapchain(capabilities, width, height, srgb);
     CreateSemaphores();
     CreateImageViews();
 
@@ -107,7 +111,7 @@ bool VKSwapchain::Present(vk::Semaphore render_semaphore, VKFence& fence) {
         break;
     case vk::Result::eErrorOutOfDateKHR:
         if (current_width > 0 && current_height > 0) {
-            Create(current_width, current_height);
+            Create(current_width, current_height, current_srgb);
             recreated = true;
         }
         break;
@@ -129,23 +133,19 @@ bool VKSwapchain::HasFramebufferChanged(const Layout::FramebufferLayout& framebu
 }
 
 void VKSwapchain::CreateSwapchain(const vk::SurfaceCapabilitiesKHR& capabilities, u32 width,
-                                  u32 height) {
-    const auto dev{device.GetLogical()};
+                                  u32 height, bool srgb) {
     const auto& dld{device.GetDispatchLoader()};
     const auto physical_device{device.GetPhysical()};
+    const auto formats{physical_device.getSurfaceFormatsKHR(surface, dld)};
+    const auto present_modes{physical_device.getSurfacePresentModesKHR(surface, dld)};
 
-    const std::vector<vk::SurfaceFormatKHR> formats{
-        physical_device.getSurfaceFormatsKHR(surface, dld)};
-
-    const std::vector<vk::PresentModeKHR> present_modes{
-        physical_device.getSurfacePresentModesKHR(surface, dld)};
-
-    const vk::SurfaceFormatKHR surface_format{ChooseSwapSurfaceFormat(formats)};
+    const vk::SurfaceFormatKHR surface_format{ChooseSwapSurfaceFormat(formats, srgb)};
     const vk::PresentModeKHR present_mode{ChooseSwapPresentMode(present_modes)};
     extent = ChooseSwapExtent(capabilities, width, height);
 
     current_width = extent.width;
     current_height = extent.height;
+    current_srgb = srgb;
 
     u32 requested_image_count{capabilities.minImageCount + 1};
     if (capabilities.maxImageCount > 0 && requested_image_count > capabilities.maxImageCount) {
@@ -169,6 +169,7 @@ void VKSwapchain::CreateSwapchain(const vk::SurfaceCapabilitiesKHR& capabilities
         swapchain_ci.imageSharingMode = vk::SharingMode::eExclusive;
     }
 
+    const auto dev{device.GetLogical()};
     swapchain = dev.createSwapchainKHRUnique(swapchain_ci, nullptr, dld);
 
     images = dev.getSwapchainImagesKHR(*swapchain, dld);
