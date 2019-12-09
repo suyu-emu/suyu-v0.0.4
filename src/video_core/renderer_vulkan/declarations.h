@@ -4,6 +4,17 @@
 
 #pragma once
 
+namespace vk {
+class DispatchLoaderDynamic;
+}
+
+namespace Vulkan {
+constexpr vk::DispatchLoaderDynamic* dont_use_me_dld = nullptr;
+}
+
+#define VULKAN_HPP_DEFAULT_DISPATCHER (*::Vulkan::dont_use_me_dld)
+#define VULKAN_HPP_ENABLE_DYNAMIC_LOADER_TOOL 0
+#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
 
 namespace Vulkan {
@@ -41,5 +52,7 @@ using UniqueSemaphore = UniqueHandle<vk::Semaphore>;
 using UniqueShaderModule = UniqueHandle<vk::ShaderModule>;
 using UniqueSwapchainKHR = UniqueHandle<vk::SwapchainKHR>;
 using UniqueValidationCacheEXT = UniqueHandle<vk::ValidationCacheEXT>;
+using UniqueDebugReportCallbackEXT = UniqueHandle<vk::DebugReportCallbackEXT>;
+using UniqueDebugUtilsMessengerEXT = UniqueHandle<vk::DebugUtilsMessengerEXT>;
 
 } // namespace Vulkan

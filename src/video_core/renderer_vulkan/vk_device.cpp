@@ -53,8 +53,7 @@ constexpr const vk::Format* GetFormatAlternatives(vk::Format format) {
     }
 }
 
-constexpr vk::FormatFeatureFlags GetFormatFeatures(vk::FormatProperties properties,
-                                                   FormatType format_type) {
+vk::FormatFeatureFlags GetFormatFeatures(vk::FormatProperties properties, FormatType format_type) {
     switch (format_type) {
     case FormatType::Linear:
         return properties.linearTilingFeatures;
