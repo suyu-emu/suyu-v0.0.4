@@ -491,6 +491,23 @@ public:
             INSERT_UNION_PADDING_WORDS(1);
         };
 
+        enum class DepthMode : u32 {
+            MinusOneToOne = 0,
+            ZeroToOne = 1,
+        };
+
+        enum class TessellationPrimitive : u32 {
+            Isolines = 0,
+            Triangles = 1,
+            Quads = 2,
+        };
+
+        enum class TessellationSpacing : u32 {
+            Equal = 0,
+            FractionalOdd = 1,
+            FractionalEven = 2,
+        };
+
         struct RenderTargetConfig {
             u32 address_high;
             u32 address_low;
@@ -628,7 +645,19 @@ public:
                     };
                 } sync_info;
 
-                INSERT_UNION_PADDING_WORDS(0x11E);
+                INSERT_UNION_PADDING_WORDS(0x15);
+
+                union {
+                    BitField<0, 2, TessellationPrimitive> prim;
+                    BitField<4, 2, TessellationSpacing> spacing;
+                    BitField<8, 1, u32> cw;
+                    BitField<9, 1, u32> connected;
+                } tess_mode;
+
+                std::array<f32, 4> tess_level_outer;
+                std::array<f32, 2> tess_level_inner;
+
+                INSERT_UNION_PADDING_WORDS(0x102);
 
                 u32 tfb_enabled;
 
@@ -662,7 +691,9 @@ public:
                 u32 polygon_offset_line_enable;
                 u32 polygon_offset_fill_enable;
 
-                INSERT_UNION_PADDING_WORDS(0xD);
+                u32 patch_vertices;
+
+                INSERT_UNION_PADDING_WORDS(0xC);
 
                 std::array<ScissorTest, NumViewports> scissor_test;
 
@@ -1386,6 +1417,9 @@ ASSERT_REG_POSITION(upload, 0x60);
 ASSERT_REG_POSITION(exec_upload, 0x6C);
 ASSERT_REG_POSITION(data_upload, 0x6D);
 ASSERT_REG_POSITION(sync_info, 0xB2);
+ASSERT_REG_POSITION(tess_mode, 0xC8);
+ASSERT_REG_POSITION(tess_level_outer, 0xC9);
+ASSERT_REG_POSITION(tess_level_inner, 0xCD);
 ASSERT_REG_POSITION(tfb_enabled, 0x1D1);
 ASSERT_REG_POSITION(rt, 0x200);
 ASSERT_REG_POSITION(viewport_transform, 0x280);
@@ -1397,6 +1431,7 @@ ASSERT_REG_POSITION(clear_stencil, 0x368);
 ASSERT_REG_POSITION(polygon_offset_point_enable, 0x370);
 ASSERT_REG_POSITION(polygon_offset_line_enable, 0x371);
 ASSERT_REG_POSITION(polygon_offset_fill_enable, 0x372);
+ASSERT_REG_POSITION(patch_vertices, 0x373);
 ASSERT_REG_POSITION(scissor_test, 0x380);
 ASSERT_REG_POSITION(stencil_back_func_ref, 0x3D5);
 ASSERT_REG_POSITION(stencil_back_func_mask, 0x3D6);
