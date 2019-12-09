@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 #include "common/common_types.h"
@@ -13,6 +15,9 @@ namespace Vulkan {
 
 /// Format usage descriptor.
 enum class FormatType { Linear, Optimal, Buffer };
+
+/// Subgroup size of the guest emulated hardware (Nvidia has 32 threads per subgroup).
+const u32 GuestWarpSize = 32;
 
 /// Handles data specific to a physical device.
 class VKDevice final {
@@ -71,7 +76,22 @@ public:
 
     /// Returns true if the device is integrated with the host CPU.
     bool IsIntegrated() const {
-        return device_type == vk::PhysicalDeviceType::eIntegratedGpu;
+        return properties.deviceType == vk::PhysicalDeviceType::eIntegratedGpu;
+    }
+
+    /// Returns the current Vulkan API version provided in Vulkan-formatted version numbers.
+    u32 GetApiVersion() const {
+        return properties.apiVersion;
+    }
+
+    /// Returns the current driver version provided in Vulkan-formatted version numbers.
+    u32 GetDriverVersion() const {
+        return properties.driverVersion;
+    }
+
+    /// Returns the device name.
+    std::string_view GetModelName() const {
+        return properties.deviceName;
     }
 
     /// Returns the driver ID.
@@ -80,18 +100,23 @@ public:
     }
 
     /// Returns uniform buffer alignment requeriment.
-    u64 GetUniformBufferAlignment() const {
-        return uniform_buffer_alignment;
+    vk::DeviceSize GetUniformBufferAlignment() const {
+        return properties.limits.minUniformBufferOffsetAlignment;
     }
 
     /// Returns storage alignment requeriment.
-    u64 GetStorageBufferAlignment() const {
-        return storage_buffer_alignment;
+    vk::DeviceSize GetStorageBufferAlignment() const {
+        return properties.limits.minStorageBufferOffsetAlignment;
     }
 
     /// Returns the maximum range for storage buffers.
-    u64 GetMaxStorageBufferRange() const {
-        return max_storage_buffer_range;
+    vk::DeviceSize GetMaxStorageBufferRange() const {
+        return properties.limits.maxStorageBufferRange;
+    }
+
+    /// Returns the maximum size for push constants.
+    vk::DeviceSize GetMaxPushConstantsSize() const {
+        return properties.limits.maxPushConstantsSize;
     }
 
     /// Returns true if ASTC is natively supported.
@@ -104,6 +129,16 @@ public:
         return is_float16_supported;
     }
 
+    /// Returns true if the device warp size can potentially be bigger than guest's warp size.
+    bool IsWarpSizePotentiallyBiggerThanGuest() const {
+        return is_warp_potentially_bigger;
+    }
+
+    /// Returns true if the device can be forced to use the guest warp size.
+    bool IsGuestWarpSizeSupported(vk::ShaderStageFlagBits stage) const {
+        return (guest_warp_stages & stage) != vk::ShaderStageFlags{};
+    }
+
     /// Returns true if the device supports VK_EXT_scalar_block_layout.
     bool IsKhrUniformBufferStandardLayoutSupported() const {
         return khr_uniform_buffer_standard_layout;
@@ -112,6 +147,26 @@ public:
     /// Returns true if the device supports VK_EXT_index_type_uint8.
     bool IsExtIndexTypeUint8Supported() const {
         return ext_index_type_uint8;
+    }
+
+    /// Returns true if the device supports VK_EXT_depth_range_unrestricted.
+    bool IsExtDepthRangeUnrestrictedSupported() const {
+        return ext_depth_range_unrestricted;
+    }
+
+    /// Returns true if the device supports VK_EXT_shader_viewport_index_layer.
+    bool IsExtShaderViewportIndexLayerSupported() const {
+        return ext_shader_viewport_index_layer;
+    }
+
+    /// Returns the vendor name reported from Vulkan.
+    std::string_view GetVendorName() const {
+        return vendor_name;
+    }
+
+    /// Returns the list of available extensions.
+    const std::vector<std::string>& GetAvailableExtensions() const {
+        return reported_extensions;
     }
 
     /// Checks if the physical device is suitable.
@@ -125,11 +180,11 @@ private:
     /// Sets up queue families.
     void SetupFamilies(const vk::DispatchLoaderDynamic& dldi, vk::SurfaceKHR surface);
 
-    /// Sets up device properties.
-    void SetupProperties(const vk::DispatchLoaderDynamic& dldi);
-
     /// Sets up device features.
     void SetupFeatures(const vk::DispatchLoaderDynamic& dldi);
+
+    /// Collects telemetry information from the device.
+    void CollectTelemetryParameters();
 
     /// Returns a list of queue initialization descriptors.
     std::vector<vk::DeviceQueueCreateInfo> GetDeviceQueueCreateInfos() const;
@@ -148,23 +203,28 @@ private:
 
     const vk::PhysicalDevice physical;         ///< Physical device.
     vk::DispatchLoaderDynamic dld;             ///< Device function pointers.
+    vk::PhysicalDeviceProperties properties;   ///< Device properties.
     UniqueDevice logical;                      ///< Logical device.
     vk::Queue graphics_queue;                  ///< Main graphics queue.
     vk::Queue present_queue;                   ///< Main present queue.
     u32 graphics_family{};                     ///< Main graphics queue family index.
     u32 present_family{};                      ///< Main present queue family index.
-    vk::PhysicalDeviceType device_type;        ///< Physical device type.
     vk::DriverIdKHR driver_id{};               ///< Driver ID.
-    u64 uniform_buffer_alignment{};            ///< Uniform buffer alignment requeriment.
-    u64 storage_buffer_alignment{};            ///< Storage buffer alignment requeriment.
-    u64 max_storage_buffer_range{};            ///< Max storage buffer size.
+    vk::ShaderStageFlags guest_warp_stages{};  ///< Stages where the guest warp size can be forced.
     bool is_optimal_astc_supported{};          ///< Support for native ASTC.
     bool is_float16_supported{};               ///< Support for float16 arithmetics.
+    bool is_warp_potentially_bigger{};         ///< Host warp size can be bigger than guest.
     bool khr_uniform_buffer_standard_layout{}; ///< Support for std430 on UBOs.
     bool ext_index_type_uint8{};               ///< Support for VK_EXT_index_type_uint8.
-    bool khr_driver_properties{};              ///< Support for VK_KHR_driver_properties.
-    std::unordered_map<vk::Format, vk::FormatProperties>
-        format_properties; ///< Format properties dictionary.
+    bool ext_depth_range_unrestricted{};       ///< Support for VK_EXT_depth_range_unrestricted.
+    bool ext_shader_viewport_index_layer{};    ///< Support for VK_EXT_shader_viewport_index_layer.
+
+    // Telemetry parameters
+    std::string vendor_name;                      ///< Device's driver name.
+    std::vector<std::string> reported_extensions; ///< Reported Vulkan extensions.
+
+    /// Format properties dictionary.
+    std::unordered_map<vk::Format, vk::FormatProperties> format_properties;
 };
 
 } // namespace Vulkan
