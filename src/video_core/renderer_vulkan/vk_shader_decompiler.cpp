@@ -1920,7 +1920,7 @@ private:
     }
 
     Expression YNegate(Operation) {
-        UNIMPLEMENTED();
+        LOG_WARNING(Render_Vulkan, "(STUBBED)");
         return {Constant(t_float, 1.0f), Type::Float};
     }
 
