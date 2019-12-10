@@ -1028,6 +1028,10 @@ void RasterizerOpenGL::SyncViewport(OpenGLState& current_state) {
         flip_y = !flip_y;
     }
     state.clip_control.origin = flip_y ? GL_UPPER_LEFT : GL_LOWER_LEFT;
+    state.clip_control.depth_mode =
+        regs.depth_mode == Tegra::Engines::Maxwell3D::Regs::DepthMode::ZeroToOne
+            ? GL_ZERO_TO_ONE
+            : GL_NEGATIVE_ONE_TO_ONE;
 }
 
 void RasterizerOpenGL::SyncClipEnabled(

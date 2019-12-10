@@ -411,8 +411,9 @@ void OpenGLState::ApplyAlphaTest() {
 }
 
 void OpenGLState::ApplyClipControl() {
-    if (UpdateValue(cur_state.clip_control.origin, clip_control.origin)) {
-        glClipControl(clip_control.origin, GL_NEGATIVE_ONE_TO_ONE);
+    if (UpdateTie(std::tie(cur_state.clip_control.origin, cur_state.clip_control.depth_mode),
+                  std::tie(clip_control.origin, clip_control.depth_mode))) {
+        glClipControl(clip_control.origin, clip_control.depth_mode);
     }
 }
 

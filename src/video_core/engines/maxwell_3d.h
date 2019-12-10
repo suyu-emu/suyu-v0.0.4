@@ -310,6 +310,11 @@ public:
             }
         };
 
+        enum class DepthMode : u32 {
+            MinusOneToOne = 0,
+            ZeroToOne = 1,
+        };
+
         enum class PrimitiveTopology : u32 {
             Points = 0x0,
             Lines = 0x1,
@@ -489,11 +494,6 @@ public:
             Factor factor_source_a;
             Factor factor_dest_a;
             INSERT_UNION_PADDING_WORDS(1);
-        };
-
-        enum class DepthMode : u32 {
-            MinusOneToOne = 0,
-            ZeroToOne = 1,
         };
 
         enum class TessellationPrimitive : u32 {
@@ -676,7 +676,7 @@ public:
                     u32 count;
                 } vertex_buffer;
 
-                INSERT_UNION_PADDING_WORDS(1);
+                DepthMode depth_mode;
 
                 float clear_color[4];
                 float clear_depth;
@@ -1425,6 +1425,7 @@ ASSERT_REG_POSITION(rt, 0x200);
 ASSERT_REG_POSITION(viewport_transform, 0x280);
 ASSERT_REG_POSITION(viewports, 0x300);
 ASSERT_REG_POSITION(vertex_buffer, 0x35D);
+ASSERT_REG_POSITION(depth_mode, 0x35F);
 ASSERT_REG_POSITION(clear_color[0], 0x360);
 ASSERT_REG_POSITION(clear_depth, 0x364);
 ASSERT_REG_POSITION(clear_stencil, 0x368);
