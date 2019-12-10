@@ -5,29 +5,28 @@
 #pragma once
 
 #include <array>
+#include <bitset>
 #include <memory>
 #include <set>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
-#include <sirit/sirit.h>
-
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/engines/shader_type.h"
 #include "video_core/shader/shader_ir.h"
-
-namespace VideoCommon::Shader {
-class ShaderIR;
-}
 
 namespace Vulkan {
 class VKDevice;
 }
 
-namespace Vulkan::VKShader {
+namespace Vulkan {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
+using TexelBufferEntry = VideoCommon::Shader::Sampler;
 using SamplerEntry = VideoCommon::Shader::Sampler;
+using ImageEntry = VideoCommon::Shader::Image;
 
 constexpr u32 DESCRIPTOR_SET = 0;
 
@@ -46,39 +45,74 @@ private:
 
 class GlobalBufferEntry {
 public:
-    explicit GlobalBufferEntry(u32 cbuf_index, u32 cbuf_offset)
-        : cbuf_index{cbuf_index}, cbuf_offset{cbuf_offset} {}
+    constexpr explicit GlobalBufferEntry(u32 cbuf_index, u32 cbuf_offset, bool is_written)
+        : cbuf_index{cbuf_index}, cbuf_offset{cbuf_offset}, is_written{is_written} {}
 
-    u32 GetCbufIndex() const {
+    constexpr u32 GetCbufIndex() const {
         return cbuf_index;
     }
 
-    u32 GetCbufOffset() const {
+    constexpr u32 GetCbufOffset() const {
         return cbuf_offset;
+    }
+
+    constexpr bool IsWritten() const {
+        return is_written;
     }
 
 private:
     u32 cbuf_index{};
     u32 cbuf_offset{};
+    bool is_written{};
 };
 
 struct ShaderEntries {
-    u32 const_buffers_base_binding{};
-    u32 global_buffers_base_binding{};
-    u32 samplers_base_binding{};
+    u32 NumBindings() const {
+        return static_cast<u32>(const_buffers.size() + global_buffers.size() +
+                                texel_buffers.size() + samplers.size() + images.size());
+    }
+
     std::vector<ConstBufferEntry> const_buffers;
     std::vector<GlobalBufferEntry> global_buffers;
+    std::vector<TexelBufferEntry> texel_buffers;
     std::vector<SamplerEntry> samplers;
+    std::vector<ImageEntry> images;
     std::set<u32> attributes;
     std::array<bool, Maxwell::NumClipDistances> clip_distances{};
     std::size_t shader_length{};
-    Sirit::Id entry_function{};
-    std::vector<Sirit::Id> interfaces;
+    bool uses_warps{};
 };
 
-using DecompilerResult = std::pair<std::unique_ptr<Sirit::Module>, ShaderEntries>;
+struct Specialization final {
+    u32 base_binding{};
 
-DecompilerResult Decompile(const VKDevice& device, const VideoCommon::Shader::ShaderIR& ir,
-                           Tegra::Engines::ShaderType stage);
+    // Compute specific
+    std::array<u32, 3> workgroup_size{};
+    u32 shared_memory_size{};
 
-} // namespace Vulkan::VKShader
+    // Graphics specific
+    Maxwell::PrimitiveTopology primitive_topology{};
+    std::optional<float> point_size{};
+    std::array<Maxwell::VertexAttribute::Type, Maxwell::NumVertexAttributes> attribute_types{};
+
+    // Tessellation specific
+    struct {
+        Maxwell::TessellationPrimitive primitive{};
+        Maxwell::TessellationSpacing spacing{};
+        bool clockwise{};
+    } tessellation;
+};
+// Old gcc versions don't consider this trivially copyable.
+// static_assert(std::is_trivially_copyable_v<Specialization>);
+
+struct SPIRVShader {
+    std::vector<u32> code;
+    ShaderEntries entries;
+};
+
+ShaderEntries GenerateShaderEntries(const VideoCommon::Shader::ShaderIR& ir);
+
+std::vector<u32> Decompile(const VKDevice& device, const VideoCommon::Shader::ShaderIR& ir,
+                           Tegra::Engines::ShaderType stage, const Specialization& specialization);
+
+} // namespace Vulkan
