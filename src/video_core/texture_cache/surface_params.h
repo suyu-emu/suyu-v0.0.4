@@ -138,13 +138,13 @@ public:
 
     std::size_t GetConvertedMipmapSize(u32 level) const;
 
-    // Get this texture Tegra Block size in guest memory layout
+    /// Get this texture Tegra Block size in guest memory layout
     u32 GetBlockSize() const;
 
-    // Get X, Y sizes of a block
+    /// Get X, Y sizes of a block
     std::pair<u32, u32> GetBlockXY() const;
 
-    // Get the offset in x, y, z coordinates from a memory offset
+    /// Get the offset in x, y, z coordinates from a memory offset
     std::tuple<u32, u32, u32> GetBlockOffsetXYZ(u32 offset) const;
 
     /// Returns the size of a layer in bytes in guest memory.

@@ -619,10 +619,10 @@ private:
      * Takes care of managing 3D textures and its slices. Does some HLE methods when possible.
      * Fallsback to LLE when it isn't possible.
      *
-     * @param overlaps The overlapping surfaces registered in the cache.
-     * @param params   The parameters on the new surface.
-     * @param gpu_addr The starting address of the new surface.
-     * @param cache_addr The starting address of the new surface on physical memory.
+     * @param overlaps          The overlapping surfaces registered in the cache.
+     * @param params            The parameters on the new surface.
+     * @param gpu_addr          The starting address of the new surface.
+     * @param cache_addr        The starting address of the new surface on physical memory.
      * @param preserve_contents Indicates that the new surface should be loaded from memory or
      *                          left blank.
      */
@@ -669,7 +669,8 @@ private:
             }
             new_surface->MarkAsModified(modified, Tick());
             Register(new_surface);
-            return {{new_surface, new_surface->GetMainView()}};
+            auto view = new_surface->GetMainView();
+            return {{std::move(new_surface), view}};
         } else {
             for (const auto& surface : overlaps) {
                 if (!surface->MatchTarget(params.target)) {
@@ -685,8 +686,7 @@ private:
                 if (surface->GetCacheAddr() != cache_addr) {
                     continue;
                 }
-                const auto struct_result = surface->MatchesStructure(params);
-                if (struct_result == MatchStructureResult::FullMatch) {
+                if (surface->MatchesStructure(params) == MatchStructureResult::FullMatch) {
                     return {{surface, surface->GetMainView()}};
                 }
             }
@@ -768,7 +768,7 @@ private:
 
         // Look if it's a 3D texture
         if (params.block_depth > 0) {
-            std::optional<std::pair<TSurface, TView>> surface =
+            auto surface =
                 Manage3DSurfaces(overlaps, params, gpu_addr, cache_addr, preserve_contents);
             if (surface) {
                 return *surface;
