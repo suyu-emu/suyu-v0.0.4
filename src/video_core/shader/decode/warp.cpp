@@ -38,6 +38,9 @@ u32 ShaderIR::DecodeWarp(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
+    // Signal the backend that this shader uses warp instructions.
+    uses_warps = true;
+
     switch (opcode->get().GetId()) {
     case OpCode::Id::VOTE: {
         const Node value = GetPredicate(instr.vote.value, instr.vote.negate_value != 0);

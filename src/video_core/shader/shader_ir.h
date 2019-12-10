@@ -137,6 +137,10 @@ public:
         return uses_vertex_id;
     }
 
+    bool UsesWarps() const {
+        return uses_warps;
+    }
+
     bool HasPhysicalAttributes() const {
         return uses_physical_attributes;
     }
@@ -415,6 +419,7 @@ private:
     bool uses_physical_attributes{}; // Shader uses AL2P or physical attribute read/writes
     bool uses_instance_id{};
     bool uses_vertex_id{};
+    bool uses_warps{};
 
     Tegra::Shader::Header header;
 };
