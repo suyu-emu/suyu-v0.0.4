@@ -1018,7 +1018,7 @@ private:
                     return {OpLoad(t_float, AccessElement(t_in_float, frag_coord, element)),
                             Type::Float};
                 }
-                const auto elements = {in_indices.position.value(), element};
+                const std::vector elements = {in_indices.position.value(), element};
                 return {OpLoad(t_float, ArrayPass(t_in_float, in_vertex, elements)), Type::Float};
             }
             case Attribute::Index::PointCoord: {
@@ -1064,7 +1064,8 @@ private:
                     const auto type_descriptor = GetAttributeType(location);
                     const Type type = type_descriptor.type;
                     const Id attribute_id = input_attributes.at(attribute);
-                    const Id pointer = ArrayPass(type_descriptor.scalar, attribute_id, {element});
+                    const std::vector elements = {element};
+                    const Id pointer = ArrayPass(type_descriptor.scalar, attribute_id, elements);
                     return {OpLoad(GetTypeDefinition(type), pointer), type};
                 }
                 break;
