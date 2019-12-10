@@ -1992,6 +1992,11 @@ private:
         return {fmt::format("readInvocationARB({}, {})", value, index), Type::Float};
     }
 
+    Expression MemoryBarrierGL(Operation) {
+        code.AddLine("memoryBarrier();");
+        return {};
+    }
+
     struct Func final {
         Func() = delete;
         ~Func() = delete;
@@ -2173,6 +2178,8 @@ private:
 
         &GLSLDecompiler::ThreadId,
         &GLSLDecompiler::ShuffleIndexed,
+
+        &GLSLDecompiler::MemoryBarrierGL,
     };
     static_assert(operation_decompilers.size() == static_cast<std::size_t>(OperationCode::Amount));
 
