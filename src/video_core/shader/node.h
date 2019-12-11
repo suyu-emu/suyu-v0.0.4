@@ -189,6 +189,8 @@ enum class OperationCode {
     ThreadId,       /// () -> uint
     ShuffleIndexed, /// (uint value, uint index) -> uint
 
+    MemoryBarrierGL, /// () -> void
+
     Amount,
 };
 

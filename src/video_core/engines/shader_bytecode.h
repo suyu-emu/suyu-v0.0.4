@@ -384,6 +384,15 @@ enum class IsberdMode : u64 {
 
 enum class IsberdShift : u64 { None = 0, U16 = 1, B32 = 2 };
 
+enum class MembarType : u64 {
+    CTA = 0,
+    GL = 1,
+    SYS = 2,
+    VC = 3,
+};
+
+enum class MembarUnknown : u64 { Default = 0, IVALLD = 1, IVALLT = 2, IVALLTD = 3 };
+
 enum class HalfType : u64 {
     H0_H1 = 0,
     F32 = 1,
@@ -1546,6 +1555,11 @@ union Instruction {
     } isberd;
 
     union {
+        BitField<8, 2, MembarType> type;
+        BitField<0, 2, MembarUnknown> unknown;
+    } membar;
+
+    union {
         BitField<48, 1, u64> signed_a;
         BitField<38, 1, u64> is_byte_chunk_a;
         BitField<36, 2, VideoType> type_a;
@@ -1669,6 +1683,7 @@ public:
         IPA,
         OUT_R, // Emit vertex/primitive
         ISBERD,
+        MEMBAR,
         VMAD,
         VSETP,
         FFMA_IMM, // Fused Multiply and Add
@@ -1930,7 +1945,7 @@ private:
             INST("111000100100----", Id::BRA, Type::Flow, "BRA"),
             INST("111000100101----", Id::BRX, Type::Flow, "BRX"),
             INST("1111000011111---", Id::SYNC, Type::Flow, "SYNC"),
-            INST("111000110100---", Id::BRK, Type::Flow, "BRK"),
+            INST("111000110100----", Id::BRK, Type::Flow, "BRK"),
             INST("111000110000----", Id::EXIT, Type::Flow, "EXIT"),
             INST("1111000011110---", Id::DEPBAR, Type::Synch, "DEPBAR"),
             INST("0101000011011---", Id::VOTE, Type::Warp, "VOTE"),
@@ -1969,6 +1984,7 @@ private:
             INST("11100000--------", Id::IPA, Type::Trivial, "IPA"),
             INST("1111101111100---", Id::OUT_R, Type::Trivial, "OUT_R"),
             INST("1110111111010---", Id::ISBERD, Type::Trivial, "ISBERD"),
+            INST("1110111110011---", Id::MEMBAR, Type::Trivial, "MEMBAR"),
             INST("01011111--------", Id::VMAD, Type::Video, "VMAD"),
             INST("0101000011110---", Id::VSETP, Type::Video, "VSETP"),
             INST("0011001-1-------", Id::FFMA_IMM, Type::Ffma, "FFMA_IMM"),

@@ -1971,6 +1971,18 @@ private:
         return {OpSubgroupReadInvocationKHR(t_float, value, index), Type::Float};
     }
 
+    Expression MemoryBarrierGL(Operation) {
+        const auto scope = spv::Scope::Device;
+        const auto semantics =
+            spv::MemorySemanticsMask::AcquireRelease | spv::MemorySemanticsMask::UniformMemory |
+            spv::MemorySemanticsMask::WorkgroupMemory |
+            spv::MemorySemanticsMask::AtomicCounterMemory | spv::MemorySemanticsMask::ImageMemory;
+
+        OpMemoryBarrier(Constant(t_uint, static_cast<u32>(scope)),
+                        Constant(t_uint, static_cast<u32>(semantics)));
+        return {};
+    }
+
     Id DeclareBuiltIn(spv::BuiltIn builtin, spv::StorageClass storage, Id type, std::string name) {
         const Id id = OpVariable(type, storage);
         Decorate(id, spv::Decoration::BuiltIn, static_cast<u32>(builtin));
@@ -2374,6 +2386,8 @@ private:
 
         &SPIRVDecompiler::ThreadId,
         &SPIRVDecompiler::ShuffleIndexed,
+
+        &SPIRVDecompiler::MemoryBarrierGL,
     };
     static_assert(operation_decompilers.size() == static_cast<std::size_t>(OperationCode::Amount));
 

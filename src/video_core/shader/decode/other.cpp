@@ -257,6 +257,12 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, GetRegister(instr.gpr8));
         break;
     }
+    case OpCode::Id::MEMBAR: {
+        UNIMPLEMENTED_IF(instr.membar.type != Tegra::Shader::MembarType::GL);
+        UNIMPLEMENTED_IF(instr.membar.unknown != Tegra::Shader::MembarUnknown::Default);
+        bb.push_back(Operation(OperationCode::MemoryBarrierGL));
+        break;
+    }
     case OpCode::Id::DEPBAR: {
         LOG_DEBUG(HW_GPU, "DEPBAR instruction is stubbed");
         break;
