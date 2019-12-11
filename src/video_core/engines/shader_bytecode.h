@@ -1292,6 +1292,7 @@ union Instruction {
         BitField<50, 1, u64> dc_flag;
         BitField<51, 1, u64> aoffi_flag;
         BitField<52, 2, u64> component;
+        BitField<55, 1, u64> fp16_flag;
 
         bool UsesMiscMode(TextureMiscMode mode) const {
             switch (mode) {
@@ -1972,7 +1973,7 @@ private:
             INST("1101-01---------", Id::TLDS, Type::Texture, "TLDS"),
             INST("110010----111---", Id::TLD4, Type::Texture, "TLD4"),
             INST("1101111011111---", Id::TLD4_B, Type::Texture, "TLD4_B"),
-            INST("1101111100------", Id::TLD4S, Type::Texture, "TLD4S"),
+            INST("11011111--00----", Id::TLD4S, Type::Texture, "TLD4S"),
             INST("110111110110----", Id::TMML_B, Type::Texture, "TMML_B"),
             INST("1101111101011---", Id::TMML, Type::Texture, "TMML"),
             INST("11011110011110--", Id::TXD_B, Type::Texture, "TXD_B"),

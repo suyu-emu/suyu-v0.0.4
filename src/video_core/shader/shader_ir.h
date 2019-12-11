@@ -338,7 +338,7 @@ private:
     void WriteTexsInstructionFloat(NodeBlock& bb, Tegra::Shader::Instruction instr,
                                    const Node4& components, bool ignore_mask = false);
     void WriteTexsInstructionHalfFloat(NodeBlock& bb, Tegra::Shader::Instruction instr,
-                                       const Node4& components);
+                                       const Node4& components, bool ignore_mask = false);
 
     Node4 GetTexCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
                      Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,

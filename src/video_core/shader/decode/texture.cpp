@@ -138,7 +138,11 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
             values[element] = Operation(OperationCode::TextureGather, meta, std::move(coords_copy));
         }
 
-        WriteTexsInstructionFloat(bb, instr, values, true);
+        if (instr.tld4s.fp16_flag) {
+            WriteTexsInstructionHalfFloat(bb, instr, values, true);
+        } else {
+            WriteTexsInstructionFloat(bb, instr, values, true);
+        }
         break;
     }
     case OpCode::Id::TXD_B:
@@ -155,8 +159,8 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         const auto coord_count = GetCoordCount(texture_type);
 
         const Sampler* sampler = is_bindless
-                                  ? GetBindlessSampler(base_reg, {{texture_type, false, false}})
-                                  : GetSampler(instr.sampler, {{texture_type, false, false}});
+                                     ? GetBindlessSampler(base_reg, {{texture_type, false, false}})
+                                     : GetSampler(instr.sampler, {{texture_type, false, false}});
         Node4 values;
         if (sampler == nullptr) {
             for (u32 element = 0; element < values.size(); ++element) {
@@ -362,7 +366,7 @@ const Sampler* ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler,
     // Otherwise create a new mapping for this sampler
     const auto next_index = static_cast<u32>(used_samplers.size());
     return &used_samplers.emplace_back(next_index, offset, info.type, info.is_array, info.is_shadow,
-                                      info.is_buffer);
+                                       info.is_buffer);
 }
 
 const Sampler* ShaderIR::GetBindlessSampler(Tegra::Shader::Register reg,
@@ -392,7 +396,7 @@ const Sampler* ShaderIR::GetBindlessSampler(Tegra::Shader::Register reg,
     // Otherwise create a new mapping for this sampler
     const auto next_index = static_cast<u32>(used_samplers.size());
     return &used_samplers.emplace_back(next_index, offset, buffer, info.type, info.is_array,
-                                      info.is_shadow, info.is_buffer);
+                                       info.is_shadow, info.is_buffer);
 }
 
 void ShaderIR::WriteTexInstructionFloat(NodeBlock& bb, Instruction instr, const Node4& components) {
@@ -435,14 +439,14 @@ void ShaderIR::WriteTexsInstructionFloat(NodeBlock& bb, Instruction instr, const
 }
 
 void ShaderIR::WriteTexsInstructionHalfFloat(NodeBlock& bb, Instruction instr,
-                                             const Node4& components) {
+                                             const Node4& components, bool ignore_mask) {
     // TEXS.F16 destionation registers are packed in two registers in pairs (just like any half
     // float instruction).
 
     Node4 values;
     u32 dest_elem = 0;
     for (u32 component = 0; component < 4; ++component) {
-        if (!instr.texs.IsComponentEnabled(component))
+        if (!instr.texs.IsComponentEnabled(component) && !ignore_mask)
             continue;
         values[dest_elem++] = components[component];
     }
@@ -524,7 +528,6 @@ Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
             break;
         }
     }
-
 
     for (u32 element = 0; element < values.size(); ++element) {
         auto copy_coords = coords;
@@ -642,7 +645,7 @@ Node4 ShaderIR::GetTld4Code(Instruction instr, TextureType texture_type, bool de
 
     const SamplerInfo info{texture_type, is_array, depth_compare, false};
     const Sampler* sampler = is_bindless ? GetBindlessSampler(parameter_register++, info)
-                                      : GetSampler(instr.sampler, info);
+                                         : GetSampler(instr.sampler, info);
     Node4 values;
     if (sampler == nullptr) {
         for (u32 element = 0; element < values.size(); ++element) {
