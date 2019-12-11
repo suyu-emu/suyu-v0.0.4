@@ -277,6 +277,14 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
             continue;
         }
 
+        // Currently this stages are not supported in the OpenGL backend.
+        // Todo(Blinkhawk): Port tesselation shaders from Vulkan to OpenGL
+        if (program == Maxwell::ShaderProgram::TesselationControl) {
+            continue;
+        } else if (program == Maxwell::ShaderProgram::TesselationEval) {
+            continue;
+        }
+
         Shader shader{shader_cache.GetStageProgram(program)};
 
         // Stage indices are 0 - 5
