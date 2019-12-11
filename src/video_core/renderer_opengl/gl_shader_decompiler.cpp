@@ -1091,7 +1091,8 @@ private:
             expr += "Offset";
         }
         expr += '(' + GetSampler(meta->sampler) + ", ";
-        expr += coord_constructors.at(count + (has_array ? 1 : 0) + (has_shadow && !sepparate_dc ? 1 : 0) - 1);
+        expr += coord_constructors.at(count + (has_array ? 1 : 0) +
+                                      (has_shadow && !sepparate_dc ? 1 : 0) - 1);
         expr += '(';
         for (std::size_t i = 0; i < count; ++i) {
             expr += Visit(operation[i]).AsFloat();
@@ -1712,14 +1713,13 @@ private:
 
         const auto type = meta->sampler.IsShadow() ? Type::Float : Type::Int;
         if (meta->sampler.IsShadow()) {
-            return {GenerateTexture(operation, "Gather",
-                                    {TextureAoffi{}}, true) +
+            return {GenerateTexture(operation, "Gather", {TextureAoffi{}}, true) +
                         GetSwizzle(meta->element),
                     Type::Float};
         } else {
             return {GenerateTexture(operation, "Gather",
                                     {TextureAoffi{}, TextureArgument{type, meta->component}},
-                                    true) +
+                                    false) +
                         GetSwizzle(meta->element),
                     Type::Float};
         }
