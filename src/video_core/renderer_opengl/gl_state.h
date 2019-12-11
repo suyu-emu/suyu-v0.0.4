@@ -150,6 +150,7 @@ public:
 
     struct {
         GLenum origin = GL_LOWER_LEFT;
+        GLenum depth_mode = GL_NEGATIVE_ONE_TO_ONE;
     } clip_control;
 
     OpenGLState();
