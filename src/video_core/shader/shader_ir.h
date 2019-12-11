@@ -313,11 +313,11 @@ private:
                                std::optional<u32> buffer = std::nullopt);
 
     /// Accesses a texture sampler
-    const Sampler& GetSampler(const Tegra::Shader::Sampler& sampler,
+    const Sampler* GetSampler(const Tegra::Shader::Sampler& sampler,
                               std::optional<SamplerInfo> sampler_info = std::nullopt);
 
     /// Accesses a texture sampler for a bindless texture.
-    const Sampler& GetBindlessSampler(Tegra::Shader::Register reg,
+    const Sampler* GetBindlessSampler(Tegra::Shader::Register reg,
                                       std::optional<SamplerInfo> sampler_info = std::nullopt);
 
     /// Accesses an image.
