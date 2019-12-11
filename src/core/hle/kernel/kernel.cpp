@@ -78,9 +78,9 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_
         }
     }
 
-    if (thread->GetArbiterWaitAddress() != 0) {
-        ASSERT(thread->GetStatus() == ThreadStatus::WaitArb);
-        thread->SetArbiterWaitAddress(0);
+    if (thread->GetStatus() == ThreadStatus::WaitArb) {
+        auto& address_arbiter = thread->GetOwnerProcess()->GetAddressArbiter();
+        address_arbiter.HandleWakeupThread(thread);
     }
 
     if (resume) {
