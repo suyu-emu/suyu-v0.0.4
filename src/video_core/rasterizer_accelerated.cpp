@@ -5,6 +5,7 @@
 #include <mutex>
 
 #include <boost/icl/interval_map.hpp>
+#include <boost/range/iterator_range.hpp>
 
 #include "common/assert.h"
 #include "common/common_types.h"
