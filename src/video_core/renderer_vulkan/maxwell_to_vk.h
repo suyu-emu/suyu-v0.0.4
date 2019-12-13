@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <utility>
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_vulkan/declarations.h"
@@ -30,8 +29,13 @@ vk::CompareOp DepthCompareFunction(Tegra::Texture::DepthCompareFunc depth_compar
 
 } // namespace Sampler
 
-std::pair<vk::Format, bool> SurfaceFormat(const VKDevice& device, FormatType format_type,
-                                          PixelFormat pixel_format);
+struct FormatInfo {
+    vk::Format format;
+    bool attachable;
+    bool storage;
+};
+
+FormatInfo SurfaceFormat(const VKDevice& device, FormatType format_type, PixelFormat pixel_format);
 
 vk::ShaderStageFlagBits ShaderStage(Tegra::Engines::ShaderType stage);
 
