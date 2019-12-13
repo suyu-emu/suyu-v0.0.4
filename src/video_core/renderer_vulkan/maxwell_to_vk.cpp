@@ -44,7 +44,8 @@ vk::SamplerMipmapMode MipmapMode(Tegra::Texture::TextureMipmapFilter mipmap_filt
     return {};
 }
 
-vk::SamplerAddressMode WrapMode(Tegra::Texture::WrapMode wrap_mode) {
+vk::SamplerAddressMode WrapMode(Tegra::Texture::WrapMode wrap_mode,
+                                Tegra::Texture::TextureFilter filter) {
     switch (wrap_mode) {
     case Tegra::Texture::WrapMode::Wrap:
         return vk::SamplerAddressMode::eRepeat;
@@ -55,10 +56,15 @@ vk::SamplerAddressMode WrapMode(Tegra::Texture::WrapMode wrap_mode) {
     case Tegra::Texture::WrapMode::Border:
         return vk::SamplerAddressMode::eClampToBorder;
     case Tegra::Texture::WrapMode::Clamp:
-        // TODO(Rodrigo): GL_CLAMP was removed as of OpenGL 3.1, to implement GL_CLAMP, we can use
-        // eClampToBorder to get the border color of the texture, and then sample the edge to
-        // manually mix them. However the shader part of this is not yet implemented.
-        return vk::SamplerAddressMode::eClampToBorder;
+        // TODO(Rodrigo): Emulate GL_CLAMP properly
+        switch (filter) {
+        case Tegra::Texture::TextureFilter::Nearest:
+            return vk::SamplerAddressMode::eClampToEdge;
+        case Tegra::Texture::TextureFilter::Linear:
+            return vk::SamplerAddressMode::eClampToBorder;
+        }
+        UNREACHABLE();
+        return vk::SamplerAddressMode::eClampToEdge;
     case Tegra::Texture::WrapMode::MirrorOnceClampToEdge:
         return vk::SamplerAddressMode::eMirrorClampToEdge;
     case Tegra::Texture::WrapMode::MirrorOnceBorder:

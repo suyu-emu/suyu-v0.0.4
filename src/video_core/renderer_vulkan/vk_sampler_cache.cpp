@@ -46,9 +46,10 @@ UniqueSampler VKSamplerCache::CreateSampler(const Tegra::Texture::TSCEntry& tsc)
         {}, MaxwellToVK::Sampler::Filter(tsc.mag_filter),
         MaxwellToVK::Sampler::Filter(tsc.min_filter),
         MaxwellToVK::Sampler::MipmapMode(tsc.mipmap_filter),
-        MaxwellToVK::Sampler::WrapMode(tsc.wrap_u), MaxwellToVK::Sampler::WrapMode(tsc.wrap_v),
-        MaxwellToVK::Sampler::WrapMode(tsc.wrap_p), tsc.GetLodBias(), has_anisotropy,
-        max_anisotropy, tsc.depth_compare_enabled,
+        MaxwellToVK::Sampler::WrapMode(tsc.wrap_u, tsc.mag_filter),
+        MaxwellToVK::Sampler::WrapMode(tsc.wrap_v, tsc.mag_filter),
+        MaxwellToVK::Sampler::WrapMode(tsc.wrap_p, tsc.mag_filter), tsc.GetLodBias(),
+        has_anisotropy, max_anisotropy, tsc.depth_compare_enabled,
         MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func), tsc.GetMinLod(),
         tsc.GetMaxLod(), vk_border_color.value_or(vk::BorderColor::eFloatTransparentBlack),
         unnormalized_coords);
