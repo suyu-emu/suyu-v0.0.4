@@ -308,11 +308,14 @@ vk::CompareOp ComparisonOp(Maxwell::ComparisonOp comparison) {
     return {};
 }
 
-vk::IndexType IndexFormat(Maxwell::IndexFormat index_format) {
+vk::IndexType IndexFormat(const VKDevice& device, Maxwell::IndexFormat index_format) {
     switch (index_format) {
     case Maxwell::IndexFormat::UnsignedByte:
-        UNIMPLEMENTED_MSG("Vulkan does not support native u8 index format");
-        return vk::IndexType::eUint16;
+        if (!device.IsExtIndexTypeUint8Supported()) {
+            UNIMPLEMENTED_MSG("Native uint8 indices are not supported on this device");
+            return vk::IndexType::eUint16;
+        }
+        return vk::IndexType::eUint8EXT;
     case Maxwell::IndexFormat::UnsignedShort:
         return vk::IndexType::eUint16;
     case Maxwell::IndexFormat::UnsignedInt:
