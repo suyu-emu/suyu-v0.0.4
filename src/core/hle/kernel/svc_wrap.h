@@ -112,11 +112,6 @@ void SvcWrap(Core::System& system) {
     FuncReturn(system, retval);
 }
 
-template <ResultCode func(Core::System&, u64, s32)>
-void SvcWrap(Core::System& system) {
-    FuncReturn(system, func(system, Param(system, 0), static_cast<s32>(Param(system, 1))).raw);
-}
-
 template <ResultCode func(Core::System&, u64, u32)>
 void SvcWrap(Core::System& system) {
     FuncReturn(system, func(system, Param(system, 0), static_cast<u32>(Param(system, 1))).raw);
@@ -325,6 +320,11 @@ void SvcWrap(Core::System& system) {
 template <void func(Core::System&, s64)>
 void SvcWrap(Core::System& system) {
     func(system, static_cast<s64>(Param(system, 0)));
+}
+
+template <void func(Core::System&, u64, s32)>
+void SvcWrap(Core::System& system) {
+    func(system, Param(system, 0), static_cast<s32>(Param(system, 1)));
 }
 
 template <void func(Core::System&, u64, u64)>
