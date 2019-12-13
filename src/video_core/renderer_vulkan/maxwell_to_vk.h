@@ -35,7 +35,8 @@ std::pair<vk::Format, bool> SurfaceFormat(const VKDevice& device, FormatType for
 
 vk::ShaderStageFlagBits ShaderStage(Tegra::Engines::ShaderType stage);
 
-vk::PrimitiveTopology PrimitiveTopology(Maxwell::PrimitiveTopology topology);
+vk::PrimitiveTopology PrimitiveTopology(const VKDevice& device,
+                                        Maxwell::PrimitiveTopology topology);
 
 vk::Format VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttribute::Size size);
 

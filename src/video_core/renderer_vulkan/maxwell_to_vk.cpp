@@ -221,7 +221,8 @@ vk::ShaderStageFlagBits ShaderStage(Tegra::Engines::ShaderType stage) {
     return {};
 }
 
-vk::PrimitiveTopology PrimitiveTopology(Maxwell::PrimitiveTopology topology) {
+vk::PrimitiveTopology PrimitiveTopology([[maybe_unused]] const VKDevice& device,
+                                        Maxwell::PrimitiveTopology topology) {
     switch (topology) {
     case Maxwell::PrimitiveTopology::Points:
         return vk::PrimitiveTopology::ePointList;
@@ -233,6 +234,13 @@ vk::PrimitiveTopology PrimitiveTopology(Maxwell::PrimitiveTopology topology) {
         return vk::PrimitiveTopology::eTriangleList;
     case Maxwell::PrimitiveTopology::TriangleStrip:
         return vk::PrimitiveTopology::eTriangleStrip;
+    case Maxwell::PrimitiveTopology::TriangleFan:
+        return vk::PrimitiveTopology::eTriangleFan;
+    case Maxwell::PrimitiveTopology::Quads:
+        // TODO(Rodrigo): Use VK_PRIMITIVE_TOPOLOGY_QUAD_LIST_EXT whenever it releases
+        return vk::PrimitiveTopology::eTriangleList;
+    case Maxwell::PrimitiveTopology::Patches:
+        return vk::PrimitiveTopology::ePatchList;
     default:
         UNIMPLEMENTED_MSG("Unimplemented topology={}", static_cast<u32>(topology));
         return {};
