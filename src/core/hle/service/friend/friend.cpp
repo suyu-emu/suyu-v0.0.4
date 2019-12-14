@@ -241,7 +241,7 @@ private:
         bool has_received_friend_request;
     };
 
-    Common::UUID uuid;
+    Common::UUID uuid{Common::INVALID_UUID};
     Kernel::EventPair notification_event;
     std::queue<SizedNotificationInfo> notifications;
     States states{};
