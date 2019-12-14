@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <cstring>
 #include <optional>
 #include <vector>
 
@@ -134,11 +135,13 @@ std::array<Device::BaseBindings, Tegra::Engines::MaxShaderTypes> BuildBaseBindin
 
 Device::Device() : base_bindings{BuildBaseBindings()} {
     const std::string_view vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+    const auto renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
     const std::vector extensions = GetExtensions();
 
     const bool is_nvidia = vendor == "NVIDIA Corporation";
     const bool is_amd = vendor == "ATI Technologies Inc.";
     const bool is_intel = vendor == "Intel";
+    const bool is_intel_proprietary = is_intel && std::strstr(renderer, "Mesa") == nullptr;
 
     uniform_buffer_alignment = GetInteger<std::size_t>(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT);
     shader_storage_alignment = GetInteger<std::size_t>(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT);
@@ -152,7 +155,7 @@ Device::Device() : base_bindings{BuildBaseBindings()} {
     has_variable_aoffi = TestVariableAoffi();
     has_component_indexing_bug = is_amd;
     has_precise_bug = TestPreciseBug();
-    has_broken_compute = is_intel;
+    has_broken_compute = is_intel_proprietary;
     has_fast_buffer_sub_data = is_nvidia;
 
     LOG_INFO(Render_OpenGL, "Renderer_VariableAOFFI: {}", has_variable_aoffi);
