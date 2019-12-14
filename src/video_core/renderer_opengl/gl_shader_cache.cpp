@@ -281,11 +281,11 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ShaderTyp
         if (variant.shared_memory_size > 0) {
             // TODO(Rodrigo): We should divide by four here, but having a larger shared memory pool
             // avoids out of bound stores. Find out why shared memory size is being invalid.
-            source += fmt::format("shared uint smem[{}];", variant.shared_memory_size);
+            source += fmt::format("shared uint smem[{}];\n", variant.shared_memory_size);
         }
 
         if (variant.local_memory_size > 0) {
-            source += fmt::format("#define LOCAL_MEMORY_SIZE {}",
+            source += fmt::format("#define LOCAL_MEMORY_SIZE {}\n",
                                   Common::AlignUp(variant.local_memory_size, 4) / 4);
         }
     }
