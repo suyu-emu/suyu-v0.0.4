@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <utility>
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_vulkan/declarations.h"
@@ -23,24 +22,31 @@ vk::Filter Filter(Tegra::Texture::TextureFilter filter);
 
 vk::SamplerMipmapMode MipmapMode(Tegra::Texture::TextureMipmapFilter mipmap_filter);
 
-vk::SamplerAddressMode WrapMode(Tegra::Texture::WrapMode wrap_mode);
+vk::SamplerAddressMode WrapMode(Tegra::Texture::WrapMode wrap_mode,
+                                Tegra::Texture::TextureFilter filter);
 
 vk::CompareOp DepthCompareFunction(Tegra::Texture::DepthCompareFunc depth_compare_func);
 
 } // namespace Sampler
 
-std::pair<vk::Format, bool> SurfaceFormat(const VKDevice& device, FormatType format_type,
-                                          PixelFormat pixel_format);
+struct FormatInfo {
+    vk::Format format;
+    bool attachable;
+    bool storage;
+};
+
+FormatInfo SurfaceFormat(const VKDevice& device, FormatType format_type, PixelFormat pixel_format);
 
 vk::ShaderStageFlagBits ShaderStage(Tegra::Engines::ShaderType stage);
 
-vk::PrimitiveTopology PrimitiveTopology(Maxwell::PrimitiveTopology topology);
+vk::PrimitiveTopology PrimitiveTopology(const VKDevice& device,
+                                        Maxwell::PrimitiveTopology topology);
 
 vk::Format VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttribute::Size size);
 
 vk::CompareOp ComparisonOp(Maxwell::ComparisonOp comparison);
 
-vk::IndexType IndexFormat(Maxwell::IndexFormat index_format);
+vk::IndexType IndexFormat(const VKDevice& device, Maxwell::IndexFormat index_format);
 
 vk::StencilOp StencilOp(Maxwell::StencilOp stencil_op);
 

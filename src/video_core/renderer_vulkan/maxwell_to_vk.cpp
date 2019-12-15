@@ -44,7 +44,8 @@ vk::SamplerMipmapMode MipmapMode(Tegra::Texture::TextureMipmapFilter mipmap_filt
     return {};
 }
 
-vk::SamplerAddressMode WrapMode(Tegra::Texture::WrapMode wrap_mode) {
+vk::SamplerAddressMode WrapMode(Tegra::Texture::WrapMode wrap_mode,
+                                Tegra::Texture::TextureFilter filter) {
     switch (wrap_mode) {
     case Tegra::Texture::WrapMode::Wrap:
         return vk::SamplerAddressMode::eRepeat;
@@ -55,10 +56,15 @@ vk::SamplerAddressMode WrapMode(Tegra::Texture::WrapMode wrap_mode) {
     case Tegra::Texture::WrapMode::Border:
         return vk::SamplerAddressMode::eClampToBorder;
     case Tegra::Texture::WrapMode::Clamp:
-        // TODO(Rodrigo): GL_CLAMP was removed as of OpenGL 3.1, to implement GL_CLAMP, we can use
-        // eClampToBorder to get the border color of the texture, and then sample the edge to
-        // manually mix them. However the shader part of this is not yet implemented.
-        return vk::SamplerAddressMode::eClampToBorder;
+        // TODO(Rodrigo): Emulate GL_CLAMP properly
+        switch (filter) {
+        case Tegra::Texture::TextureFilter::Nearest:
+            return vk::SamplerAddressMode::eClampToEdge;
+        case Tegra::Texture::TextureFilter::Linear:
+            return vk::SamplerAddressMode::eClampToBorder;
+        }
+        UNREACHABLE();
+        return vk::SamplerAddressMode::eClampToEdge;
     case Tegra::Texture::WrapMode::MirrorOnceClampToEdge:
         return vk::SamplerAddressMode::eMirrorClampToEdge;
     case Tegra::Texture::WrapMode::MirrorOnceBorder:
@@ -96,106 +102,140 @@ vk::CompareOp DepthCompareFunction(Tegra::Texture::DepthCompareFunc depth_compar
 
 } // namespace Sampler
 
+namespace {
+
+enum : u32 { Attachable = 1, Storage = 2 };
+
 struct FormatTuple {
     vk::Format format; ///< Vulkan format
-    bool attachable;   ///< True when this format can be used as an attachment
-};
-
-static constexpr std::array<FormatTuple, VideoCore::Surface::MaxPixelFormat> tex_format_tuples = {{
-    {vk::Format::eA8B8G8R8UnormPack32, true},    // ABGR8U
-    {vk::Format::eUndefined, false},             // ABGR8S
-    {vk::Format::eUndefined, false},             // ABGR8UI
-    {vk::Format::eB5G6R5UnormPack16, false},     // B5G6R5U
-    {vk::Format::eA2B10G10R10UnormPack32, true}, // A2B10G10R10U
-    {vk::Format::eUndefined, false},             // A1B5G5R5U
-    {vk::Format::eR8Unorm, true},                // R8U
-    {vk::Format::eUndefined, false},             // R8UI
-    {vk::Format::eUndefined, false},             // RGBA16F
-    {vk::Format::eUndefined, false},             // RGBA16U
-    {vk::Format::eUndefined, false},             // RGBA16UI
-    {vk::Format::eUndefined, false},             // R11FG11FB10F
-    {vk::Format::eUndefined, false},             // RGBA32UI
-    {vk::Format::eBc1RgbaUnormBlock, false},     // DXT1
-    {vk::Format::eBc2UnormBlock, false},         // DXT23
-    {vk::Format::eBc3UnormBlock, false},         // DXT45
-    {vk::Format::eBc4UnormBlock, false},         // DXN1
-    {vk::Format::eUndefined, false},             // DXN2UNORM
-    {vk::Format::eUndefined, false},             // DXN2SNORM
-    {vk::Format::eUndefined, false},             // BC7U
-    {vk::Format::eUndefined, false},             // BC6H_UF16
-    {vk::Format::eUndefined, false},             // BC6H_SF16
-    {vk::Format::eUndefined, false},             // ASTC_2D_4X4
-    {vk::Format::eUndefined, false},             // BGRA8
-    {vk::Format::eUndefined, false},             // RGBA32F
-    {vk::Format::eUndefined, false},             // RG32F
-    {vk::Format::eUndefined, false},             // R32F
-    {vk::Format::eUndefined, false},             // R16F
-    {vk::Format::eUndefined, false},             // R16U
-    {vk::Format::eUndefined, false},             // R16S
-    {vk::Format::eUndefined, false},             // R16UI
-    {vk::Format::eUndefined, false},             // R16I
-    {vk::Format::eUndefined, false},             // RG16
-    {vk::Format::eUndefined, false},             // RG16F
-    {vk::Format::eUndefined, false},             // RG16UI
-    {vk::Format::eUndefined, false},             // RG16I
-    {vk::Format::eUndefined, false},             // RG16S
-    {vk::Format::eUndefined, false},             // RGB32F
-    {vk::Format::eA8B8G8R8SrgbPack32, true},     // RGBA8_SRGB
-    {vk::Format::eUndefined, false},             // RG8U
-    {vk::Format::eUndefined, false},             // RG8S
-    {vk::Format::eUndefined, false},             // RG32UI
-    {vk::Format::eUndefined, false},             // RGBX16F
-    {vk::Format::eUndefined, false},             // R32UI
-    {vk::Format::eUndefined, false},             // ASTC_2D_8X8
-    {vk::Format::eUndefined, false},             // ASTC_2D_8X5
-    {vk::Format::eUndefined, false},             // ASTC_2D_5X4
-
-    // Compressed sRGB formats
-    {vk::Format::eUndefined, false}, // BGRA8_SRGB
-    {vk::Format::eUndefined, false}, // DXT1_SRGB
-    {vk::Format::eUndefined, false}, // DXT23_SRGB
-    {vk::Format::eUndefined, false}, // DXT45_SRGB
-    {vk::Format::eUndefined, false}, // BC7U_SRGB
-    {vk::Format::eUndefined, false}, // ASTC_2D_4X4_SRGB
-    {vk::Format::eUndefined, false}, // ASTC_2D_8X8_SRGB
-    {vk::Format::eUndefined, false}, // ASTC_2D_8X5_SRGB
-    {vk::Format::eUndefined, false}, // ASTC_2D_5X4_SRGB
-    {vk::Format::eUndefined, false}, // ASTC_2D_5X5
-    {vk::Format::eUndefined, false}, // ASTC_2D_5X5_SRGB
-    {vk::Format::eUndefined, false}, // ASTC_2D_10X8
-    {vk::Format::eUndefined, false}, // ASTC_2D_10X8_SRGB
+    int usage;         ///< Describes image format usage
+} constexpr tex_format_tuples[] = {
+    {vk::Format::eA8B8G8R8UnormPack32, Attachable | Storage},    // ABGR8U
+    {vk::Format::eA8B8G8R8SnormPack32, Attachable | Storage},    // ABGR8S
+    {vk::Format::eA8B8G8R8UintPack32, Attachable | Storage},     // ABGR8UI
+    {vk::Format::eB5G6R5UnormPack16, {}},                        // B5G6R5U
+    {vk::Format::eA2B10G10R10UnormPack32, Attachable | Storage}, // A2B10G10R10U
+    {vk::Format::eA1R5G5B5UnormPack16, Attachable | Storage},    // A1B5G5R5U (flipped with swizzle)
+    {vk::Format::eR8Unorm, Attachable | Storage},                // R8U
+    {vk::Format::eR8Uint, Attachable | Storage},                 // R8UI
+    {vk::Format::eR16G16B16A16Sfloat, Attachable | Storage},     // RGBA16F
+    {vk::Format::eR16G16B16A16Unorm, Attachable | Storage},      // RGBA16U
+    {vk::Format::eR16G16B16A16Uint, Attachable | Storage},       // RGBA16UI
+    {vk::Format::eB10G11R11UfloatPack32, Attachable | Storage},  // R11FG11FB10F
+    {vk::Format::eR32G32B32A32Uint, Attachable | Storage},       // RGBA32UI
+    {vk::Format::eBc1RgbaUnormBlock, {}},                        // DXT1
+    {vk::Format::eBc2UnormBlock, {}},                            // DXT23
+    {vk::Format::eBc3UnormBlock, {}},                            // DXT45
+    {vk::Format::eBc4UnormBlock, {}},                            // DXN1
+    {vk::Format::eBc5UnormBlock, {}},                            // DXN2UNORM
+    {vk::Format::eBc5SnormBlock, {}},                            // DXN2SNORM
+    {vk::Format::eBc7UnormBlock, {}},                            // BC7U
+    {vk::Format::eBc6HUfloatBlock, {}},                          // BC6H_UF16
+    {vk::Format::eBc6HSfloatBlock, {}},                          // BC6H_SF16
+    {vk::Format::eAstc4x4UnormBlock, {}},                        // ASTC_2D_4X4
+    {vk::Format::eB8G8R8A8Unorm, {}},                            // BGRA8
+    {vk::Format::eR32G32B32A32Sfloat, Attachable | Storage},     // RGBA32F
+    {vk::Format::eR32G32Sfloat, Attachable | Storage},           // RG32F
+    {vk::Format::eR32Sfloat, Attachable | Storage},              // R32F
+    {vk::Format::eR16Sfloat, Attachable | Storage},              // R16F
+    {vk::Format::eR16Unorm, Attachable | Storage},               // R16U
+    {vk::Format::eUndefined, {}},                                // R16S
+    {vk::Format::eUndefined, {}},                                // R16UI
+    {vk::Format::eUndefined, {}},                                // R16I
+    {vk::Format::eR16G16Unorm, Attachable | Storage},            // RG16
+    {vk::Format::eR16G16Sfloat, Attachable | Storage},           // RG16F
+    {vk::Format::eUndefined, {}},                                // RG16UI
+    {vk::Format::eUndefined, {}},                                // RG16I
+    {vk::Format::eR16G16Snorm, Attachable | Storage},            // RG16S
+    {vk::Format::eUndefined, {}},                                // RGB32F
+    {vk::Format::eR8G8B8A8Srgb, Attachable},                     // RGBA8_SRGB
+    {vk::Format::eR8G8Unorm, Attachable | Storage},              // RG8U
+    {vk::Format::eR8G8Snorm, Attachable | Storage},              // RG8S
+    {vk::Format::eR32G32Uint, Attachable | Storage},             // RG32UI
+    {vk::Format::eUndefined, {}},                                // RGBX16F
+    {vk::Format::eR32Uint, Attachable | Storage},                // R32UI
+    {vk::Format::eAstc8x8UnormBlock, {}},                        // ASTC_2D_8X8
+    {vk::Format::eUndefined, {}},                                // ASTC_2D_8X5
+    {vk::Format::eUndefined, {}},                                // ASTC_2D_5X4
+    {vk::Format::eUndefined, {}},                                // BGRA8_SRGB
+    {vk::Format::eBc1RgbaSrgbBlock, {}},                         // DXT1_SRGB
+    {vk::Format::eUndefined, {}},                                // DXT23_SRGB
+    {vk::Format::eBc3SrgbBlock, {}},                             // DXT45_SRGB
+    {vk::Format::eBc7SrgbBlock, {}},                             // BC7U_SRGB
+    {vk::Format::eR4G4B4A4UnormPack16, Attachable},              // R4G4B4A4U
+    {vk::Format::eAstc4x4SrgbBlock, {}},                         // ASTC_2D_4X4_SRGB
+    {vk::Format::eAstc8x8SrgbBlock, {}},                         // ASTC_2D_8X8_SRGB
+    {vk::Format::eAstc8x5SrgbBlock, {}},                         // ASTC_2D_8X5_SRGB
+    {vk::Format::eAstc5x4SrgbBlock, {}},                         // ASTC_2D_5X4_SRGB
+    {vk::Format::eAstc5x5UnormBlock, {}},                        // ASTC_2D_5X5
+    {vk::Format::eAstc5x5SrgbBlock, {}},                         // ASTC_2D_5X5_SRGB
+    {vk::Format::eAstc10x8UnormBlock, {}},                       // ASTC_2D_10X8
+    {vk::Format::eAstc10x8SrgbBlock, {}},                        // ASTC_2D_10X8_SRGB
+    {vk::Format::eAstc6x6UnormBlock, {}},                        // ASTC_2D_6X6
+    {vk::Format::eAstc6x6SrgbBlock, {}},                         // ASTC_2D_6X6_SRGB
+    {vk::Format::eAstc10x10UnormBlock, {}},                      // ASTC_2D_10X10
+    {vk::Format::eAstc10x10SrgbBlock, {}},                       // ASTC_2D_10X10_SRGB
+    {vk::Format::eAstc12x12UnormBlock, {}},                      // ASTC_2D_12X12
+    {vk::Format::eAstc12x12SrgbBlock, {}},                       // ASTC_2D_12X12_SRGB
+    {vk::Format::eAstc8x6UnormBlock, {}},                        // ASTC_2D_8X6
+    {vk::Format::eAstc8x6SrgbBlock, {}},                         // ASTC_2D_8X6_SRGB
+    {vk::Format::eAstc6x5UnormBlock, {}},                        // ASTC_2D_6X5
+    {vk::Format::eAstc6x5SrgbBlock, {}},                         // ASTC_2D_6X5_SRGB
+    {vk::Format::eE5B9G9R9UfloatPack32, {}},                     // E5B9G9R9F
 
     // Depth formats
-    {vk::Format::eD32Sfloat, true}, // Z32F
-    {vk::Format::eD16Unorm, true},  // Z16
+    {vk::Format::eD32Sfloat, Attachable}, // Z32F
+    {vk::Format::eD16Unorm, Attachable},  // Z16
 
     // DepthStencil formats
-    {vk::Format::eD24UnormS8Uint, true}, // Z24S8
-    {vk::Format::eD24UnormS8Uint, true}, // S8Z24 (emulated)
-    {vk::Format::eUndefined, false},     // Z32FS8
-}};
+    {vk::Format::eD24UnormS8Uint, Attachable},  // Z24S8
+    {vk::Format::eD24UnormS8Uint, Attachable},  // S8Z24 (emulated)
+    {vk::Format::eD32SfloatS8Uint, Attachable}, // Z32FS8
+};
+static_assert(std::size(tex_format_tuples) == VideoCore::Surface::MaxPixelFormat);
 
-static constexpr bool IsZetaFormat(PixelFormat pixel_format) {
+constexpr bool IsZetaFormat(PixelFormat pixel_format) {
     return pixel_format >= PixelFormat::MaxColorFormat &&
            pixel_format < PixelFormat::MaxDepthStencilFormat;
 }
 
-std::pair<vk::Format, bool> SurfaceFormat(const VKDevice& device, FormatType format_type,
-                                          PixelFormat pixel_format) {
-    ASSERT(static_cast<std::size_t>(pixel_format) < tex_format_tuples.size());
+} // Anonymous namespace
 
-    const auto tuple = tex_format_tuples[static_cast<u32>(pixel_format)];
-    UNIMPLEMENTED_IF_MSG(tuple.format == vk::Format::eUndefined,
-                         "Unimplemented texture format with pixel format={}",
-                         static_cast<u32>(pixel_format));
+FormatInfo SurfaceFormat(const VKDevice& device, FormatType format_type, PixelFormat pixel_format) {
+    ASSERT(static_cast<std::size_t>(pixel_format) < std::size(tex_format_tuples));
 
-    auto usage = vk::FormatFeatureFlagBits::eSampledImage |
-                 vk::FormatFeatureFlagBits::eTransferDst | vk::FormatFeatureFlagBits::eTransferSrc;
-    if (tuple.attachable) {
-        usage |= IsZetaFormat(pixel_format) ? vk::FormatFeatureFlagBits::eDepthStencilAttachment
-                                            : vk::FormatFeatureFlagBits::eColorAttachment;
+    auto tuple = tex_format_tuples[static_cast<std::size_t>(pixel_format)];
+    if (tuple.format == vk::Format::eUndefined) {
+        UNIMPLEMENTED_MSG("Unimplemented texture format with pixel format={}",
+                          static_cast<u32>(pixel_format));
+        return {vk::Format::eA8B8G8R8UnormPack32, true, true};
     }
-    return {device.GetSupportedFormat(tuple.format, usage, format_type), tuple.attachable};
+
+    // Use ABGR8 on hardware that doesn't support ASTC natively
+    if (!device.IsOptimalAstcSupported() && VideoCore::Surface::IsPixelFormatASTC(pixel_format)) {
+        tuple.format = VideoCore::Surface::IsPixelFormatSRGB(pixel_format)
+                           ? vk::Format::eA8B8G8R8SrgbPack32
+                           : vk::Format::eA8B8G8R8UnormPack32;
+    }
+    const bool attachable = tuple.usage & Attachable;
+    const bool storage = tuple.usage & Storage;
+
+    vk::FormatFeatureFlags usage;
+    if (format_type == FormatType::Buffer) {
+        usage = vk::FormatFeatureFlagBits::eStorageTexelBuffer |
+                vk::FormatFeatureFlagBits::eUniformTexelBuffer;
+    } else {
+        usage = vk::FormatFeatureFlagBits::eSampledImage | vk::FormatFeatureFlagBits::eTransferDst |
+                vk::FormatFeatureFlagBits::eTransferSrc;
+        if (attachable) {
+            usage |= IsZetaFormat(pixel_format) ? vk::FormatFeatureFlagBits::eDepthStencilAttachment
+                                                : vk::FormatFeatureFlagBits::eColorAttachment;
+        }
+        if (storage) {
+            usage |= vk::FormatFeatureFlagBits::eStorageImage;
+        }
+    }
+    return {device.GetSupportedFormat(tuple.format, usage, format_type), attachable, storage};
 }
 
 vk::ShaderStageFlagBits ShaderStage(Tegra::Engines::ShaderType stage) {
@@ -215,7 +255,8 @@ vk::ShaderStageFlagBits ShaderStage(Tegra::Engines::ShaderType stage) {
     return {};
 }
 
-vk::PrimitiveTopology PrimitiveTopology(Maxwell::PrimitiveTopology topology) {
+vk::PrimitiveTopology PrimitiveTopology([[maybe_unused]] const VKDevice& device,
+                                        Maxwell::PrimitiveTopology topology) {
     switch (topology) {
     case Maxwell::PrimitiveTopology::Points:
         return vk::PrimitiveTopology::ePointList;
@@ -227,6 +268,13 @@ vk::PrimitiveTopology PrimitiveTopology(Maxwell::PrimitiveTopology topology) {
         return vk::PrimitiveTopology::eTriangleList;
     case Maxwell::PrimitiveTopology::TriangleStrip:
         return vk::PrimitiveTopology::eTriangleStrip;
+    case Maxwell::PrimitiveTopology::TriangleFan:
+        return vk::PrimitiveTopology::eTriangleFan;
+    case Maxwell::PrimitiveTopology::Quads:
+        // TODO(Rodrigo): Use VK_PRIMITIVE_TOPOLOGY_QUAD_LIST_EXT whenever it releases
+        return vk::PrimitiveTopology::eTriangleList;
+    case Maxwell::PrimitiveTopology::Patches:
+        return vk::PrimitiveTopology::ePatchList;
     default:
         UNIMPLEMENTED_MSG("Unimplemented topology={}", static_cast<u32>(topology));
         return {};
@@ -236,37 +284,111 @@ vk::PrimitiveTopology PrimitiveTopology(Maxwell::PrimitiveTopology topology) {
 vk::Format VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttribute::Size size) {
     switch (type) {
     case Maxwell::VertexAttribute::Type::SignedNorm:
+        switch (size) {
+        case Maxwell::VertexAttribute::Size::Size_8:
+            return vk::Format::eR8Snorm;
+        case Maxwell::VertexAttribute::Size::Size_8_8:
+            return vk::Format::eR8G8Snorm;
+        case Maxwell::VertexAttribute::Size::Size_8_8_8:
+            return vk::Format::eR8G8B8Snorm;
+        case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
+            return vk::Format::eR8G8B8A8Snorm;
+        case Maxwell::VertexAttribute::Size::Size_16:
+            return vk::Format::eR16Snorm;
+        case Maxwell::VertexAttribute::Size::Size_16_16:
+            return vk::Format::eR16G16Snorm;
+        case Maxwell::VertexAttribute::Size::Size_16_16_16:
+            return vk::Format::eR16G16B16Snorm;
+        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
+            return vk::Format::eR16G16B16A16Snorm;
+        case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
+            return vk::Format::eA2B10G10R10SnormPack32;
+        default:
+            break;
+        }
         break;
     case Maxwell::VertexAttribute::Type::UnsignedNorm:
         switch (size) {
+        case Maxwell::VertexAttribute::Size::Size_8:
+            return vk::Format::eR8Unorm;
+        case Maxwell::VertexAttribute::Size::Size_8_8:
+            return vk::Format::eR8G8Unorm;
+        case Maxwell::VertexAttribute::Size::Size_8_8_8:
+            return vk::Format::eR8G8B8Unorm;
         case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
             return vk::Format::eR8G8B8A8Unorm;
+        case Maxwell::VertexAttribute::Size::Size_16:
+            return vk::Format::eR16Unorm;
+        case Maxwell::VertexAttribute::Size::Size_16_16:
+            return vk::Format::eR16G16Unorm;
+        case Maxwell::VertexAttribute::Size::Size_16_16_16:
+            return vk::Format::eR16G16B16Unorm;
+        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
+            return vk::Format::eR16G16B16A16Unorm;
         default:
             break;
         }
         break;
     case Maxwell::VertexAttribute::Type::SignedInt:
-        break;
+        switch (size) {
+        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
+            return vk::Format::eR16G16B16A16Sint;
+        case Maxwell::VertexAttribute::Size::Size_8:
+            return vk::Format::eR8Sint;
+        case Maxwell::VertexAttribute::Size::Size_8_8:
+            return vk::Format::eR8G8Sint;
+        case Maxwell::VertexAttribute::Size::Size_8_8_8:
+            return vk::Format::eR8G8B8Sint;
+        case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
+            return vk::Format::eR8G8B8A8Sint;
+        case Maxwell::VertexAttribute::Size::Size_32:
+            return vk::Format::eR32Sint;
+        default:
+            break;
+        }
     case Maxwell::VertexAttribute::Type::UnsignedInt:
         switch (size) {
+        case Maxwell::VertexAttribute::Size::Size_8:
+            return vk::Format::eR8Uint;
+        case Maxwell::VertexAttribute::Size::Size_8_8:
+            return vk::Format::eR8G8Uint;
+        case Maxwell::VertexAttribute::Size::Size_8_8_8:
+            return vk::Format::eR8G8B8Uint;
+        case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
+            return vk::Format::eR8G8B8A8Uint;
         case Maxwell::VertexAttribute::Size::Size_32:
             return vk::Format::eR32Uint;
         default:
             break;
         }
     case Maxwell::VertexAttribute::Type::UnsignedScaled:
+        switch (size) {
+        case Maxwell::VertexAttribute::Size::Size_8_8:
+            return vk::Format::eR8G8Uscaled;
+        default:
+            break;
+        }
+        break;
     case Maxwell::VertexAttribute::Type::SignedScaled:
         break;
     case Maxwell::VertexAttribute::Type::Float:
         switch (size) {
-        case Maxwell::VertexAttribute::Size::Size_32_32_32_32:
-            return vk::Format::eR32G32B32A32Sfloat;
-        case Maxwell::VertexAttribute::Size::Size_32_32_32:
-            return vk::Format::eR32G32B32Sfloat;
-        case Maxwell::VertexAttribute::Size::Size_32_32:
-            return vk::Format::eR32G32Sfloat;
         case Maxwell::VertexAttribute::Size::Size_32:
             return vk::Format::eR32Sfloat;
+        case Maxwell::VertexAttribute::Size::Size_32_32:
+            return vk::Format::eR32G32Sfloat;
+        case Maxwell::VertexAttribute::Size::Size_32_32_32:
+            return vk::Format::eR32G32B32Sfloat;
+        case Maxwell::VertexAttribute::Size::Size_32_32_32_32:
+            return vk::Format::eR32G32B32A32Sfloat;
+        case Maxwell::VertexAttribute::Size::Size_16:
+            return vk::Format::eR16Sfloat;
+        case Maxwell::VertexAttribute::Size::Size_16_16:
+            return vk::Format::eR16G16Sfloat;
+        case Maxwell::VertexAttribute::Size::Size_16_16_16:
+            return vk::Format::eR16G16B16Sfloat;
+        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
+            return vk::Format::eR16G16B16A16Sfloat;
         default:
             break;
         }
@@ -308,11 +430,14 @@ vk::CompareOp ComparisonOp(Maxwell::ComparisonOp comparison) {
     return {};
 }
 
-vk::IndexType IndexFormat(Maxwell::IndexFormat index_format) {
+vk::IndexType IndexFormat(const VKDevice& device, Maxwell::IndexFormat index_format) {
     switch (index_format) {
     case Maxwell::IndexFormat::UnsignedByte:
-        UNIMPLEMENTED_MSG("Vulkan does not support native u8 index format");
-        return vk::IndexType::eUint16;
+        if (!device.IsExtIndexTypeUint8Supported()) {
+            UNIMPLEMENTED_MSG("Native uint8 indices are not supported on this device");
+            return vk::IndexType::eUint16;
+        }
+        return vk::IndexType::eUint8EXT;
     case Maxwell::IndexFormat::UnsignedShort:
         return vk::IndexType::eUint16;
     case Maxwell::IndexFormat::UnsignedInt:
