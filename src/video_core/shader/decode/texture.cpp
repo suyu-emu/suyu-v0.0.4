@@ -107,41 +107,46 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::TLD4S: {
-        const bool uses_aoffi = instr.tld4s.UsesMiscMode(TextureMiscMode::AOFFI);
-        UNIMPLEMENTED_IF_MSG(uses_aoffi, "AOFFI is not implemented");
-
-        const bool depth_compare = instr.tld4s.UsesMiscMode(TextureMiscMode::DC);
+        constexpr std::size_t num_coords = 2;
+        const bool is_aoffi = instr.tld4s.UsesMiscMode(TextureMiscMode::AOFFI);
+        const bool is_depth_compare = instr.tld4s.UsesMiscMode(TextureMiscMode::DC);
         const Node op_a = GetRegister(instr.gpr8);
         const Node op_b = GetRegister(instr.gpr20);
 
         // TODO(Subv): Figure out how the sampler type is encoded in the TLD4S instruction.
         std::vector<Node> coords;
-        Node dc_reg;
-        if (depth_compare) {
+        std::vector<Node> aoffi;
+        Node depth_compare;
+        if (is_depth_compare) {
             // Note: TLD4S coordinate encoding works just like TEXS's
             const Node op_y = GetRegister(instr.gpr8.Value() + 1);
             coords.push_back(op_a);
             coords.push_back(op_y);
-            dc_reg = uses_aoffi ? GetRegister(instr.gpr20.Value() + 1) : op_b;
+            if (is_aoffi) {
+                aoffi = GetAoffiCoordinates(op_b, num_coords, true);
+                depth_compare = GetRegister(instr.gpr20.Value() + 1);
+            } else {
+                depth_compare = op_b;
+            }
         } else {
+            // There's no depth compare
             coords.push_back(op_a);
-            if (uses_aoffi) {
-                const Node op_y = GetRegister(instr.gpr8.Value() + 1);
-                coords.push_back(op_y);
+            if (is_aoffi) {
+                coords.push_back(GetRegister(instr.gpr8.Value() + 1));
+                aoffi = GetAoffiCoordinates(op_b, num_coords, true);
             } else {
                 coords.push_back(op_b);
             }
-            dc_reg = {};
         }
         const Node component = Immediate(static_cast<u32>(instr.tld4s.component));
 
-        const SamplerInfo info{TextureType::Texture2D, false, depth_compare};
+        const SamplerInfo info{TextureType::Texture2D, false, is_depth_compare};
         const Sampler& sampler = *GetSampler(instr.sampler, info);
 
         Node4 values;
         for (u32 element = 0; element < values.size(); ++element) {
             auto coords_copy = coords;
-            MetaTexture meta{sampler, {}, dc_reg, {}, {}, {}, {}, component, element};
+            MetaTexture meta{sampler, {}, depth_compare, aoffi, {}, {}, {}, component, element};
             values[element] = Operation(OperationCode::TextureGather, meta, std::move(coords_copy));
         }
 
