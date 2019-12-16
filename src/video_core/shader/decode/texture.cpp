@@ -367,7 +367,7 @@ const Sampler* ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler,
     if (it != used_samplers.end()) {
         ASSERT(!it->IsBindless() && it->GetType() == info.type && it->IsArray() == info.is_array &&
                it->IsShadow() == info.is_shadow && it->IsBuffer() == info.is_buffer);
-        return &(*it);
+        return &*it;
     }
 
     // Otherwise create a new mapping for this sampler
@@ -397,7 +397,7 @@ const Sampler* ShaderIR::GetBindlessSampler(Tegra::Shader::Register reg,
     if (it != used_samplers.end()) {
         ASSERT(it->IsBindless() && it->GetType() == info.type && it->IsArray() == info.is_array &&
                it->IsShadow() == info.is_shadow);
-        return &(*it);
+        return &*it;
     }
 
     // Otherwise create a new mapping for this sampler
