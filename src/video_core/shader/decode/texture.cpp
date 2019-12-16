@@ -89,7 +89,6 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         [[fallthrough]];
     }
     case OpCode::Id::TLD4: {
-        ASSERT(instr.tld4.array == 0);
         UNIMPLEMENTED_IF_MSG(instr.tld4.UsesMiscMode(TextureMiscMode::NDV),
                              "NDV is not implemented");
         UNIMPLEMENTED_IF_MSG(instr.tld4.UsesMiscMode(TextureMiscMode::PTP),
