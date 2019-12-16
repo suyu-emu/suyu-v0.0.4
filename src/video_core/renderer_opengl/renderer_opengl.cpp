@@ -24,19 +24,21 @@
 
 namespace OpenGL {
 
-static const char vertex_shader[] = R"(
-#version 150 core
+namespace {
 
-in vec2 vert_position;
-in vec2 vert_tex_coord;
-out vec2 frag_tex_coord;
+constexpr char vertex_shader[] = R"(
+#version 430 core
+
+layout (location = 0) in vec2 vert_position;
+layout (location = 1) in vec2 vert_tex_coord;
+layout (location = 0) out vec2 frag_tex_coord;
 
 // This is a truncated 3x3 matrix for 2D transformations:
 // The upper-left 2x2 submatrix performs scaling/rotation/mirroring.
 // The third column performs translation.
 // The third row could be used for projection, which we don't need in 2D. It hence is assumed to
 // implicitly be [0, 0, 1]
-uniform mat3x2 modelview_matrix;
+layout (location = 0) uniform mat3x2 modelview_matrix;
 
 void main() {
     // Multiply input position by the rotscale part of the matrix and then manually translate by
@@ -47,34 +49,29 @@ void main() {
 }
 )";
 
-static const char fragment_shader[] = R"(
-#version 150 core
+constexpr char fragment_shader[] = R"(
+#version 430 core
 
-in vec2 frag_tex_coord;
-out vec4 color;
+layout (location = 0) in vec2 frag_tex_coord;
+layout (location = 0) out vec4 color;
 
-uniform sampler2D color_texture;
+layout (binding = 0) uniform sampler2D color_texture;
 
 void main() {
-    // Swap RGBA -> ABGR so we don't have to do this on the CPU. This needs to change if we have to
-    // support more framebuffer pixel formats.
     color = texture(color_texture, frag_tex_coord);
 }
 )";
 
-/**
- * Vertex structure that the drawn screen rectangles are composed of.
- */
-struct ScreenRectVertex {
-    ScreenRectVertex(GLfloat x, GLfloat y, GLfloat u, GLfloat v) {
-        position[0] = x;
-        position[1] = y;
-        tex_coord[0] = u;
-        tex_coord[1] = v;
-    }
+constexpr GLint PositionLocation = 0;
+constexpr GLint TexCoordLocation = 1;
+constexpr GLint ModelViewMatrixLocation = 0;
 
-    GLfloat position[2];
-    GLfloat tex_coord[2];
+struct ScreenRectVertex {
+    constexpr ScreenRectVertex(GLfloat x, GLfloat y, GLfloat u, GLfloat v)
+        : position{{x, y}}, tex_coord{{u, v}} {}
+
+    std::array<GLfloat, 2> position;
+    std::array<GLfloat, 2> tex_coord;
 };
 
 /**
@@ -84,17 +81,81 @@ struct ScreenRectVertex {
  * The projection part of the matrix is trivial, hence these operations are represented
  * by a 3x2 matrix.
  */
-static std::array<GLfloat, 3 * 2> MakeOrthographicMatrix(const float width, const float height) {
+std::array<GLfloat, 3 * 2> MakeOrthographicMatrix(float width, float height) {
     std::array<GLfloat, 3 * 2> matrix; // Laid out in column-major order
 
     // clang-format off
-    matrix[0] = 2.f / width; matrix[2] = 0.f;           matrix[4] = -1.f;
-    matrix[1] = 0.f;         matrix[3] = -2.f / height; matrix[5] = 1.f;
+    matrix[0] = 2.f / width; matrix[2] =  0.f;          matrix[4] = -1.f;
+    matrix[1] = 0.f;         matrix[3] = -2.f / height; matrix[5] =  1.f;
     // Last matrix row is implicitly assumed to be [0, 0, 1].
     // clang-format on
 
     return matrix;
 }
+
+const char* GetSource(GLenum source) {
+    switch (source) {
+    case GL_DEBUG_SOURCE_API:
+        return "API";
+    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+        return "WINDOW_SYSTEM";
+    case GL_DEBUG_SOURCE_SHADER_COMPILER:
+        return "SHADER_COMPILER";
+    case GL_DEBUG_SOURCE_THIRD_PARTY:
+        return "THIRD_PARTY";
+    case GL_DEBUG_SOURCE_APPLICATION:
+        return "APPLICATION";
+    case GL_DEBUG_SOURCE_OTHER:
+        return "OTHER";
+    default:
+        UNREACHABLE();
+        return "Unknown source";
+    }
+}
+
+const char* GetType(GLenum type) {
+    switch (type) {
+    case GL_DEBUG_TYPE_ERROR:
+        return "ERROR";
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+        return "DEPRECATED_BEHAVIOR";
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+        return "UNDEFINED_BEHAVIOR";
+    case GL_DEBUG_TYPE_PORTABILITY:
+        return "PORTABILITY";
+    case GL_DEBUG_TYPE_PERFORMANCE:
+        return "PERFORMANCE";
+    case GL_DEBUG_TYPE_OTHER:
+        return "OTHER";
+    case GL_DEBUG_TYPE_MARKER:
+        return "MARKER";
+    default:
+        UNREACHABLE();
+        return "Unknown type";
+    }
+}
+
+void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                           const GLchar* message, const void* user_param) {
+    const char format[] = "{} {} {}: {}";
+    const char* const str_source = GetSource(source);
+    const char* const str_type = GetType(type);
+
+    switch (severity) {
+    case GL_DEBUG_SEVERITY_HIGH:
+        LOG_CRITICAL(Render_OpenGL, format, str_source, str_type, id, message);
+        break;
+    case GL_DEBUG_SEVERITY_MEDIUM:
+        LOG_WARNING(Render_OpenGL, format, str_source, str_type, id, message);
+        break;
+    case GL_DEBUG_SEVERITY_NOTIFICATION:
+    case GL_DEBUG_SEVERITY_LOW:
+        LOG_DEBUG(Render_OpenGL, format, str_source, str_type, id, message);
+        break;
+    }
+}
+
+} // Anonymous namespace
 
 RendererOpenGL::RendererOpenGL(Core::Frontend::EmuWindow& emu_window, Core::System& system)
     : VideoCore::RendererBase{emu_window}, emu_window{emu_window}, system{system} {}
@@ -138,9 +199,6 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     prev_state.Apply();
 }
 
-/**
- * Loads framebuffer from emulated memory into the active OpenGL texture.
- */
 void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuffer) {
     // Framebuffer orientation handling
     framebuffer_transform_flags = framebuffer.transform_flags;
@@ -181,19 +239,12 @@ void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuf
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 }
 
-/**
- * Fills active OpenGL texture with the given RGB color. Since the color is solid, the texture can
- * be 1x1 but will stretch across whatever it's rendered on.
- */
 void RendererOpenGL::LoadColorToActiveGLTexture(u8 color_r, u8 color_g, u8 color_b, u8 color_a,
                                                 const TextureInfo& texture) {
     const u8 framebuffer_data[4] = {color_a, color_b, color_g, color_r};
     glClearTexImage(texture.resource.handle, 0, GL_RGBA, GL_UNSIGNED_BYTE, framebuffer_data);
 }
 
-/**
- * Initializes the OpenGL state and creates persistent objects.
- */
 void RendererOpenGL::InitOpenGLObjects() {
     glClearColor(Settings::values.bg_red, Settings::values.bg_green, Settings::values.bg_blue,
                  0.0f);
@@ -203,10 +254,6 @@ void RendererOpenGL::InitOpenGLObjects() {
     state.draw.shader_program = shader.handle;
     state.AllDirty();
     state.Apply();
-    uniform_modelview_matrix = glGetUniformLocation(shader.handle, "modelview_matrix");
-    uniform_color_texture = glGetUniformLocation(shader.handle, "color_texture");
-    attrib_position = glGetAttribLocation(shader.handle, "vert_position");
-    attrib_tex_coord = glGetAttribLocation(shader.handle, "vert_tex_coord");
 
     // Generate VBO handle for drawing
     vertex_buffer.Create();
@@ -217,14 +264,14 @@ void RendererOpenGL::InitOpenGLObjects() {
 
     // Attach vertex data to VAO
     glNamedBufferData(vertex_buffer.handle, sizeof(ScreenRectVertex) * 4, nullptr, GL_STREAM_DRAW);
-    glVertexArrayAttribFormat(vertex_array.handle, attrib_position, 2, GL_FLOAT, GL_FALSE,
+    glVertexArrayAttribFormat(vertex_array.handle, PositionLocation, 2, GL_FLOAT, GL_FALSE,
                               offsetof(ScreenRectVertex, position));
-    glVertexArrayAttribFormat(vertex_array.handle, attrib_tex_coord, 2, GL_FLOAT, GL_FALSE,
+    glVertexArrayAttribFormat(vertex_array.handle, TexCoordLocation, 2, GL_FLOAT, GL_FALSE,
                               offsetof(ScreenRectVertex, tex_coord));
-    glVertexArrayAttribBinding(vertex_array.handle, attrib_position, 0);
-    glVertexArrayAttribBinding(vertex_array.handle, attrib_tex_coord, 0);
-    glEnableVertexArrayAttrib(vertex_array.handle, attrib_position);
-    glEnableVertexArrayAttrib(vertex_array.handle, attrib_tex_coord);
+    glVertexArrayAttribBinding(vertex_array.handle, PositionLocation, 0);
+    glVertexArrayAttribBinding(vertex_array.handle, TexCoordLocation, 0);
+    glEnableVertexArrayAttrib(vertex_array.handle, PositionLocation);
+    glEnableVertexArrayAttrib(vertex_array.handle, TexCoordLocation);
     glVertexArrayVertexBuffer(vertex_array.handle, 0, vertex_buffer.handle, 0,
                               sizeof(ScreenRectVertex));
 
@@ -331,18 +378,18 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
                   static_cast<f32>(screen_info.texture.height);
     }
 
-    std::array<ScreenRectVertex, 4> vertices = {{
+    const std::array vertices = {
         ScreenRectVertex(x, y, texcoords.top * scale_u, left * scale_v),
         ScreenRectVertex(x + w, y, texcoords.bottom * scale_u, left * scale_v),
         ScreenRectVertex(x, y + h, texcoords.top * scale_u, right * scale_v),
         ScreenRectVertex(x + w, y + h, texcoords.bottom * scale_u, right * scale_v),
-    }};
+    };
 
     state.textures[0] = screen_info.display_texture;
     state.framebuffer_srgb.enabled = screen_info.display_srgb;
     state.AllDirty();
     state.Apply();
-    glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), vertices.data());
+    glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     // Restore default state
     state.framebuffer_srgb.enabled = false;
@@ -351,9 +398,6 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
     state.Apply();
 }
 
-/**
- * Draws the emulated screens to the emulator window.
- */
 void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     if (renderer_settings.set_background_color) {
         // Update background color before drawing
@@ -367,21 +411,17 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     // Set projection matrix
-    std::array<GLfloat, 3 * 2> ortho_matrix =
-        MakeOrthographicMatrix((float)layout.width, (float)layout.height);
-    glUniformMatrix3x2fv(uniform_modelview_matrix, 1, GL_FALSE, ortho_matrix.data());
+    const std::array ortho_matrix =
+        MakeOrthographicMatrix(static_cast<float>(layout.width), static_cast<float>(layout.height));
+    glUniformMatrix3x2fv(ModelViewMatrixLocation, 1, GL_FALSE, ortho_matrix.data());
 
-    // Bind texture in Texture Unit 0
-    glActiveTexture(GL_TEXTURE0);
-    glUniform1i(uniform_color_texture, 0);
-
-    DrawScreenTriangles(screen_info, (float)screen.left, (float)screen.top,
-                        (float)screen.GetWidth(), (float)screen.GetHeight());
+    DrawScreenTriangles(screen_info, static_cast<float>(screen.left),
+                        static_cast<float>(screen.top), static_cast<float>(screen.GetWidth()),
+                        static_cast<float>(screen.GetHeight()));
 
     m_current_frame++;
 }
 
-/// Updates the framerate
 void RendererOpenGL::UpdateFramerate() {}
 
 void RendererOpenGL::CaptureScreenshot() {
@@ -418,63 +458,6 @@ void RendererOpenGL::CaptureScreenshot() {
     renderer_settings.screenshot_requested = false;
 }
 
-static const char* GetSource(GLenum source) {
-#define RET(s)                                                                                     \
-    case GL_DEBUG_SOURCE_##s:                                                                      \
-        return #s
-    switch (source) {
-        RET(API);
-        RET(WINDOW_SYSTEM);
-        RET(SHADER_COMPILER);
-        RET(THIRD_PARTY);
-        RET(APPLICATION);
-        RET(OTHER);
-    default:
-        UNREACHABLE();
-        return "Unknown source";
-    }
-#undef RET
-}
-
-static const char* GetType(GLenum type) {
-#define RET(t)                                                                                     \
-    case GL_DEBUG_TYPE_##t:                                                                        \
-        return #t
-    switch (type) {
-        RET(ERROR);
-        RET(DEPRECATED_BEHAVIOR);
-        RET(UNDEFINED_BEHAVIOR);
-        RET(PORTABILITY);
-        RET(PERFORMANCE);
-        RET(OTHER);
-        RET(MARKER);
-    default:
-        UNREACHABLE();
-        return "Unknown type";
-    }
-#undef RET
-}
-
-static void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum severity,
-                                  GLsizei length, const GLchar* message, const void* user_param) {
-    const char format[] = "{} {} {}: {}";
-    const char* const str_source = GetSource(source);
-    const char* const str_type = GetType(type);
-
-    switch (severity) {
-    case GL_DEBUG_SEVERITY_HIGH:
-        LOG_CRITICAL(Render_OpenGL, format, str_source, str_type, id, message);
-        break;
-    case GL_DEBUG_SEVERITY_MEDIUM:
-        LOG_WARNING(Render_OpenGL, format, str_source, str_type, id, message);
-        break;
-    case GL_DEBUG_SEVERITY_NOTIFICATION:
-    case GL_DEBUG_SEVERITY_LOW:
-        LOG_DEBUG(Render_OpenGL, format, str_source, str_type, id, message);
-        break;
-    }
-}
-
 bool RendererOpenGL::Init() {
     Core::Frontend::ScopeAcquireWindowContext acquire_context{render_window};
 
@@ -495,7 +478,6 @@ bool RendererOpenGL::Init() {
     return true;
 }
 
-/// Shutdown the renderer
 void RendererOpenGL::ShutDown() {}
 
 } // namespace OpenGL

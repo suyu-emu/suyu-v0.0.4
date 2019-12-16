@@ -59,21 +59,31 @@ public:
     void ShutDown() override;
 
 private:
+    /// Initializes the OpenGL state and creates persistent objects.
     void InitOpenGLObjects();
+
     void AddTelemetryFields();
+
     void CreateRasterizer();
 
     void ConfigureFramebufferTexture(TextureInfo& texture,
                                      const Tegra::FramebufferConfig& framebuffer);
+
+    /// Draws the emulated screens to the emulator window.
     void DrawScreen(const Layout::FramebufferLayout& layout);
+
     void DrawScreenTriangles(const ScreenInfo& screen_info, float x, float y, float w, float h);
+
+    /// Updates the framerate.
     void UpdateFramerate();
 
     void CaptureScreenshot();
 
-    // Loads framebuffer from emulated memory into the display information structure
+    /// Loads framebuffer from emulated memory into the active OpenGL texture.
     void LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuffer);
-    // Fills active OpenGL texture with the given RGBA color.
+
+    /// Fills active OpenGL texture with the given RGB color.Since the color is solid, the texture
+    /// can be 1x1 but will stretch across whatever it's rendered on.
     void LoadColorToActiveGLTexture(u8 color_r, u8 color_g, u8 color_b, u8 color_a,
                                     const TextureInfo& texture);
 
@@ -93,14 +103,6 @@ private:
 
     /// OpenGL framebuffer data
     std::vector<u8> gl_framebuffer_data;
-
-    // Shader uniform location indices
-    GLuint uniform_modelview_matrix;
-    GLuint uniform_color_texture;
-
-    // Shader attribute input indices
-    GLuint attrib_position;
-    GLuint attrib_tex_coord;
 
     /// Used for transforming the framebuffer orientation
     Tegra::FramebufferConfig::TransformFlags framebuffer_transform_flags;
