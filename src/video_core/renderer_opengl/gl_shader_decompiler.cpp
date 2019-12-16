@@ -1076,7 +1076,7 @@ private:
     }
 
     std::string GenerateTexture(Operation operation, const std::string& function_suffix,
-                                const std::vector<TextureIR>& extras, bool sepparate_dc = false) {
+                                const std::vector<TextureIR>& extras, bool separate_dc = false) {
         constexpr std::array coord_constructors = {"float", "vec2", "vec3", "vec4"};
 
         const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
@@ -1092,7 +1092,7 @@ private:
         }
         expr += '(' + GetSampler(meta->sampler) + ", ";
         expr += coord_constructors.at(count + (has_array ? 1 : 0) +
-                                      (has_shadow && !sepparate_dc ? 1 : 0) - 1);
+                                      (has_shadow && !separate_dc ? 1 : 0) - 1);
         expr += '(';
         for (std::size_t i = 0; i < count; ++i) {
             expr += Visit(operation[i]).AsFloat();
@@ -1105,7 +1105,7 @@ private:
             expr += ", float(" + Visit(meta->array).AsInt() + ')';
         }
         if (has_shadow) {
-            if (sepparate_dc) {
+            if (separate_dc) {
                 expr += "), " + Visit(meta->depth_compare).AsFloat();
             } else {
                 expr += ", " + Visit(meta->depth_compare).AsFloat() + ')';
