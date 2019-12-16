@@ -374,6 +374,7 @@ struct MetaTexture {
     Node array;
     Node depth_compare;
     std::vector<Node> aoffi;
+    std::vector<Node> ptp;
     std::vector<Node> derivates;
     Node bias;
     Node lod;

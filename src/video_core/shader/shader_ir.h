@@ -350,7 +350,8 @@ private:
                       bool is_array);
 
     Node4 GetTld4Code(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
-                      bool depth_compare, bool is_array, bool is_aoffi, bool is_bindless);
+                      bool depth_compare, bool is_array, bool is_aoffi, bool is_ptp,
+                      bool is_bindless);
 
     Node4 GetTldCode(Tegra::Shader::Instruction instr);
 
@@ -362,6 +363,8 @@ private:
         bool lod_bias_enabled, std::size_t max_coords, std::size_t max_inputs);
 
     std::vector<Node> GetAoffiCoordinates(Node aoffi_reg, std::size_t coord_count, bool is_tld4);
+
+    std::vector<Node> GetPtpCoordinates(std::array<Node, 2> ptp_regs);
 
     Node4 GetTextureCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
                          Tegra::Shader::TextureProcessMode process_mode, std::vector<Node> coords,
