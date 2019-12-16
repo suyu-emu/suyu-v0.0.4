@@ -1076,7 +1076,7 @@ private:
     }
 
     std::string GenerateTexture(Operation operation, const std::string& function_suffix,
-                                const std::vector<TextureIR>& extras) {
+                                const std::vector<TextureIR>& extras, bool sepparate_dc = false) {
         constexpr std::array coord_constructors = {"float", "vec2", "vec3", "vec4"};
 
         const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
@@ -1091,7 +1091,8 @@ private:
             expr += "Offset";
         }
         expr += '(' + GetSampler(meta->sampler) + ", ";
-        expr += coord_constructors.at(count + (has_array ? 1 : 0) + (has_shadow ? 1 : 0) - 1);
+        expr += coord_constructors.at(count + (has_array ? 1 : 0) +
+                                      (has_shadow && !sepparate_dc ? 1 : 0) - 1);
         expr += '(';
         for (std::size_t i = 0; i < count; ++i) {
             expr += Visit(operation[i]).AsFloat();
@@ -1104,9 +1105,14 @@ private:
             expr += ", float(" + Visit(meta->array).AsInt() + ')';
         }
         if (has_shadow) {
-            expr += ", " + Visit(meta->depth_compare).AsFloat();
+            if (sepparate_dc) {
+                expr += "), " + Visit(meta->depth_compare).AsFloat();
+            } else {
+                expr += ", " + Visit(meta->depth_compare).AsFloat() + ')';
+            }
+        } else {
+            expr += ')';
         }
-        expr += ')';
 
         for (const auto& variant : extras) {
             if (const auto argument = std::get_if<TextureArgument>(&variant)) {
@@ -1706,10 +1712,17 @@ private:
         ASSERT(meta);
 
         const auto type = meta->sampler.IsShadow() ? Type::Float : Type::Int;
-        return {GenerateTexture(operation, "Gather",
-                                {TextureAoffi{}, TextureArgument{type, meta->component}}) +
-                    GetSwizzle(meta->element),
-                Type::Float};
+        if (meta->sampler.IsShadow()) {
+            return {GenerateTexture(operation, "Gather", {TextureAoffi{}}, true) +
+                        GetSwizzle(meta->element),
+                    Type::Float};
+        } else {
+            return {GenerateTexture(operation, "Gather",
+                                    {TextureAoffi{}, TextureArgument{type, meta->component}},
+                                    false) +
+                        GetSwizzle(meta->element),
+                    Type::Float};
+        }
     }
 
     Expression TextureQueryDimensions(Operation operation) {

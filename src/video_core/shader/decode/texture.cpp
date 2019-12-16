@@ -107,8 +107,8 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::TLD4S: {
-        UNIMPLEMENTED_IF_MSG(instr.tld4s.UsesMiscMode(TextureMiscMode::AOFFI),
-                             "AOFFI is not implemented");
+        const bool uses_aoffi = instr.tld4s.UsesMiscMode(TextureMiscMode::AOFFI);
+        UNIMPLEMENTED_IF_MSG(uses_aoffi, "AOFFI is not implemented");
 
         const bool depth_compare = instr.tld4s.UsesMiscMode(TextureMiscMode::DC);
         const Node op_a = GetRegister(instr.gpr8);
@@ -116,29 +116,40 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
 
         // TODO(Subv): Figure out how the sampler type is encoded in the TLD4S instruction.
         std::vector<Node> coords;
+        Node dc_reg;
         if (depth_compare) {
             // Note: TLD4S coordinate encoding works just like TEXS's
             const Node op_y = GetRegister(instr.gpr8.Value() + 1);
             coords.push_back(op_a);
             coords.push_back(op_y);
-            coords.push_back(op_b);
+            dc_reg = uses_aoffi ? GetRegister(instr.gpr20.Value() + 1) : op_b;
         } else {
             coords.push_back(op_a);
-            coords.push_back(op_b);
+            if (uses_aoffi) {
+                const Node op_y = GetRegister(instr.gpr8.Value() + 1);
+                coords.push_back(op_y);
+            } else {
+                coords.push_back(op_b);
+            }
+            dc_reg = {};
         }
         const Node component = Immediate(static_cast<u32>(instr.tld4s.component));
 
         const SamplerInfo info{TextureType::Texture2D, false, depth_compare};
-        const auto& sampler = GetSampler(instr.sampler, info);
+        const Sampler& sampler = *GetSampler(instr.sampler, info);
 
         Node4 values;
         for (u32 element = 0; element < values.size(); ++element) {
             auto coords_copy = coords;
-            MetaTexture meta{sampler, {}, {}, {}, {}, {}, {}, component, element};
+            MetaTexture meta{sampler, {}, dc_reg, {}, {}, {}, {}, component, element};
             values[element] = Operation(OperationCode::TextureGather, meta, std::move(coords_copy));
         }
 
-        WriteTexsInstructionFloat(bb, instr, values, true);
+        if (instr.tld4s.fp16_flag) {
+            WriteTexsInstructionHalfFloat(bb, instr, values, true);
+        } else {
+            WriteTexsInstructionFloat(bb, instr, values, true);
+        }
         break;
     }
     case OpCode::Id::TXD_B:
@@ -154,9 +165,17 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         const auto texture_type = instr.txd.texture_type.Value();
         const auto coord_count = GetCoordCount(texture_type);
 
-        const auto& sampler = is_bindless
-                                  ? GetBindlessSampler(base_reg, {{texture_type, false, false}})
-                                  : GetSampler(instr.sampler, {{texture_type, false, false}});
+        const Sampler* sampler = is_bindless
+                                     ? GetBindlessSampler(base_reg, {{texture_type, false, false}})
+                                     : GetSampler(instr.sampler, {{texture_type, false, false}});
+        Node4 values;
+        if (sampler == nullptr) {
+            for (u32 element = 0; element < values.size(); ++element) {
+                values[element] = Immediate(0);
+            }
+            WriteTexInstructionFloat(bb, instr, values);
+            break;
+        }
         if (is_bindless) {
             base_reg++;
         }
@@ -170,9 +189,8 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
             derivates.push_back(GetRegister(derivate_reg + derivate + 1));
         }
 
-        Node4 values;
         for (u32 element = 0; element < values.size(); ++element) {
-            MetaTexture meta{sampler, {}, {}, {}, derivates, {}, {}, {}, element};
+            MetaTexture meta{*sampler, {}, {}, {}, derivates, {}, {}, {}, element};
             values[element] = Operation(OperationCode::TextureGradient, std::move(meta), coords);
         }
 
@@ -187,8 +205,23 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         // TODO: The new commits on the texture refactor, change the way samplers work.
         // Sadly, not all texture instructions specify the type of texture their sampler
         // uses. This must be fixed at a later instance.
-        const auto& sampler =
+        const Sampler* sampler =
             is_bindless ? GetBindlessSampler(instr.gpr8) : GetSampler(instr.sampler);
+
+        if (sampler == nullptr) {
+            u32 indexer = 0;
+            for (u32 element = 0; element < 4; ++element) {
+                if (!instr.txq.IsComponentEnabled(element)) {
+                    continue;
+                }
+                const Node value = Immediate(0);
+                SetTemporary(bb, indexer++, value);
+            }
+            for (u32 i = 0; i < indexer; ++i) {
+                SetRegister(bb, instr.gpr0.Value() + i, GetTemporary(i));
+            }
+            break;
+        }
 
         u32 indexer = 0;
         switch (instr.txq.query_type) {
@@ -197,7 +230,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
                 if (!instr.txq.IsComponentEnabled(element)) {
                     continue;
                 }
-                MetaTexture meta{sampler, {}, {}, {}, {}, {}, {}, {}, element};
+                MetaTexture meta{*sampler, {}, {}, {}, {}, {}, {}, {}, element};
                 const Node value =
                     Operation(OperationCode::TextureQueryDimensions, meta,
                               GetRegister(instr.gpr8.Value() + (is_bindless ? 1 : 0)));
@@ -223,8 +256,23 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
 
         auto texture_type = instr.tmml.texture_type.Value();
         const bool is_array = instr.tmml.array != 0;
-        const auto& sampler =
+        const Sampler* sampler =
             is_bindless ? GetBindlessSampler(instr.gpr20) : GetSampler(instr.sampler);
+
+        if (sampler == nullptr) {
+            u32 indexer = 0;
+            for (u32 element = 0; element < 2; ++element) {
+                if (!instr.tmml.IsComponentEnabled(element)) {
+                    continue;
+                }
+                const Node value = Immediate(0);
+                SetTemporary(bb, indexer++, value);
+            }
+            for (u32 i = 0; i < indexer; ++i) {
+                SetRegister(bb, instr.gpr0.Value() + i, GetTemporary(i));
+            }
+            break;
+        }
 
         std::vector<Node> coords;
 
@@ -251,7 +299,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
                 continue;
             }
             auto params = coords;
-            MetaTexture meta{sampler, {}, {}, {}, {}, {}, {}, {}, element};
+            MetaTexture meta{*sampler, {}, {}, {}, {}, {}, {}, {}, element};
             const Node value = Operation(OperationCode::TextureQueryLod, meta, std::move(params));
             SetTemporary(bb, indexer++, value);
         }
@@ -307,7 +355,7 @@ ShaderIR::SamplerInfo ShaderIR::GetSamplerInfo(std::optional<SamplerInfo> sample
                        sampler->is_buffer != 0};
 }
 
-const Sampler& ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler,
+const Sampler* ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler,
                                     std::optional<SamplerInfo> sampler_info) {
     const auto offset = static_cast<u32>(sampler.index.Value());
     const auto info = GetSamplerInfo(sampler_info, offset);
@@ -319,21 +367,24 @@ const Sampler& ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler,
     if (it != used_samplers.end()) {
         ASSERT(!it->IsBindless() && it->GetType() == info.type && it->IsArray() == info.is_array &&
                it->IsShadow() == info.is_shadow && it->IsBuffer() == info.is_buffer);
-        return *it;
+        return &(*it);
     }
 
     // Otherwise create a new mapping for this sampler
     const auto next_index = static_cast<u32>(used_samplers.size());
-    return used_samplers.emplace_back(next_index, offset, info.type, info.is_array, info.is_shadow,
-                                      info.is_buffer);
+    return &used_samplers.emplace_back(next_index, offset, info.type, info.is_array, info.is_shadow,
+                                       info.is_buffer);
 }
 
-const Sampler& ShaderIR::GetBindlessSampler(Tegra::Shader::Register reg,
+const Sampler* ShaderIR::GetBindlessSampler(Tegra::Shader::Register reg,
                                             std::optional<SamplerInfo> sampler_info) {
     const Node sampler_register = GetRegister(reg);
     const auto [base_sampler, buffer, offset] =
         TrackCbuf(sampler_register, global_code, static_cast<s64>(global_code.size()));
     ASSERT(base_sampler != nullptr);
+    if (base_sampler == nullptr) {
+        return nullptr;
+    }
 
     const auto info = GetSamplerInfo(sampler_info, offset, buffer);
 
@@ -346,13 +397,13 @@ const Sampler& ShaderIR::GetBindlessSampler(Tegra::Shader::Register reg,
     if (it != used_samplers.end()) {
         ASSERT(it->IsBindless() && it->GetType() == info.type && it->IsArray() == info.is_array &&
                it->IsShadow() == info.is_shadow);
-        return *it;
+        return &(*it);
     }
 
     // Otherwise create a new mapping for this sampler
     const auto next_index = static_cast<u32>(used_samplers.size());
-    return used_samplers.emplace_back(next_index, offset, buffer, info.type, info.is_array,
-                                      info.is_shadow, info.is_buffer);
+    return &used_samplers.emplace_back(next_index, offset, buffer, info.type, info.is_array,
+                                       info.is_shadow, info.is_buffer);
 }
 
 void ShaderIR::WriteTexInstructionFloat(NodeBlock& bb, Instruction instr, const Node4& components) {
@@ -395,14 +446,14 @@ void ShaderIR::WriteTexsInstructionFloat(NodeBlock& bb, Instruction instr, const
 }
 
 void ShaderIR::WriteTexsInstructionHalfFloat(NodeBlock& bb, Instruction instr,
-                                             const Node4& components) {
+                                             const Node4& components, bool ignore_mask) {
     // TEXS.F16 destionation registers are packed in two registers in pairs (just like any half
     // float instruction).
 
     Node4 values;
     u32 dest_elem = 0;
     for (u32 component = 0; component < 4; ++component) {
-        if (!instr.texs.IsComponentEnabled(component))
+        if (!instr.texs.IsComponentEnabled(component) && !ignore_mask)
             continue;
         values[dest_elem++] = components[component];
     }
@@ -438,8 +489,15 @@ Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
                          "This method is not supported.");
 
     const SamplerInfo info{texture_type, is_array, is_shadow, false};
-    const auto& sampler =
+    const Sampler* sampler =
         is_bindless ? GetBindlessSampler(*bindless_reg, info) : GetSampler(instr.sampler, info);
+    Node4 values;
+    if (sampler == nullptr) {
+        for (u32 element = 0; element < values.size(); ++element) {
+            values[element] = Immediate(0);
+        }
+        return values;
+    }
 
     const bool lod_needed = process_mode == TextureProcessMode::LZ ||
                             process_mode == TextureProcessMode::LL ||
@@ -478,10 +536,9 @@ Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
         }
     }
 
-    Node4 values;
     for (u32 element = 0; element < values.size(); ++element) {
         auto copy_coords = coords;
-        MetaTexture meta{sampler, array, depth_compare, aoffi, {}, bias, lod, {}, element};
+        MetaTexture meta{*sampler, array, depth_compare, aoffi, {}, bias, lod, {}, element};
         values[element] = Operation(read_method, meta, std::move(copy_coords));
     }
 
@@ -594,8 +651,15 @@ Node4 ShaderIR::GetTld4Code(Instruction instr, TextureType texture_type, bool de
     u64 parameter_register = instr.gpr20.Value();
 
     const SamplerInfo info{texture_type, is_array, depth_compare, false};
-    const auto& sampler = is_bindless ? GetBindlessSampler(parameter_register++, info)
-                                      : GetSampler(instr.sampler, info);
+    const Sampler* sampler = is_bindless ? GetBindlessSampler(parameter_register++, info)
+                                         : GetSampler(instr.sampler, info);
+    Node4 values;
+    if (sampler == nullptr) {
+        for (u32 element = 0; element < values.size(); ++element) {
+            values[element] = Immediate(0);
+        }
+        return values;
+    }
 
     std::vector<Node> aoffi;
     if (is_aoffi) {
@@ -610,10 +674,9 @@ Node4 ShaderIR::GetTld4Code(Instruction instr, TextureType texture_type, bool de
     const Node component = is_bindless ? Immediate(static_cast<u32>(instr.tld4_b.component))
                                        : Immediate(static_cast<u32>(instr.tld4.component));
 
-    Node4 values;
     for (u32 element = 0; element < values.size(); ++element) {
         auto coords_copy = coords;
-        MetaTexture meta{sampler, GetRegister(array_register), dc, aoffi, {}, {}, {}, component,
+        MetaTexture meta{*sampler, GetRegister(array_register), dc, aoffi, {}, {}, {}, component,
                          element};
         values[element] = Operation(OperationCode::TextureGather, meta, std::move(coords_copy));
     }
@@ -642,7 +705,7 @@ Node4 ShaderIR::GetTldCode(Tegra::Shader::Instruction instr) {
     // const Node aoffi_register{is_aoffi ? GetRegister(gpr20_cursor++) : nullptr};
     // const Node multisample{is_multisample ? GetRegister(gpr20_cursor++) : nullptr};
 
-    const auto& sampler = GetSampler(instr.sampler);
+    const auto& sampler = *GetSampler(instr.sampler);
 
     Node4 values;
     for (u32 element = 0; element < values.size(); ++element) {
@@ -655,7 +718,7 @@ Node4 ShaderIR::GetTldCode(Tegra::Shader::Instruction instr) {
 }
 
 Node4 ShaderIR::GetTldsCode(Instruction instr, TextureType texture_type, bool is_array) {
-    const auto& sampler = GetSampler(instr.sampler);
+    const Sampler& sampler = *GetSampler(instr.sampler);
 
     const std::size_t type_coord_count = GetCoordCount(texture_type);
     const bool lod_enabled = instr.tlds.GetTextureProcessMode() == TextureProcessMode::LL;

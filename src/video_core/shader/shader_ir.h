@@ -313,11 +313,11 @@ private:
                                std::optional<u32> buffer = std::nullopt);
 
     /// Accesses a texture sampler
-    const Sampler& GetSampler(const Tegra::Shader::Sampler& sampler,
+    const Sampler* GetSampler(const Tegra::Shader::Sampler& sampler,
                               std::optional<SamplerInfo> sampler_info = std::nullopt);
 
     /// Accesses a texture sampler for a bindless texture.
-    const Sampler& GetBindlessSampler(Tegra::Shader::Register reg,
+    const Sampler* GetBindlessSampler(Tegra::Shader::Register reg,
                                       std::optional<SamplerInfo> sampler_info = std::nullopt);
 
     /// Accesses an image.
@@ -338,7 +338,7 @@ private:
     void WriteTexsInstructionFloat(NodeBlock& bb, Tegra::Shader::Instruction instr,
                                    const Node4& components, bool ignore_mask = false);
     void WriteTexsInstructionHalfFloat(NodeBlock& bb, Tegra::Shader::Instruction instr,
-                                       const Node4& components);
+                                       const Node4& components, bool ignore_mask = false);
 
     Node4 GetTexCode(Tegra::Shader::Instruction instr, Tegra::Shader::TextureType texture_type,
                      Tegra::Shader::TextureProcessMode process_mode, bool depth_compare,
