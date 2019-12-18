@@ -399,6 +399,7 @@ public:
         DeclareConstantBuffers();
         DeclareGlobalMemory();
         DeclareSamplers();
+        DeclareImages();
         DeclarePhysicalAttributeReader();
 
         code.AddLine("void execute_{}() {{", suffix);
