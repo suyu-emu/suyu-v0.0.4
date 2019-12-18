@@ -182,6 +182,10 @@ void OpenGLState::ApplyCulling() {
     }
 }
 
+void OpenGLState::ApplyRasterizerDiscard() {
+    Enable(GL_RASTERIZER_DISCARD, cur_state.rasterizer_discard, rasterizer_discard);
+}
+
 void OpenGLState::ApplyColorMask() {
     if (!dirty.color_mask) {
         return;
@@ -455,6 +459,7 @@ void OpenGLState::Apply() {
     ApplyPointSize();
     ApplyFragmentColorClamp();
     ApplyMultisample();
+    ApplyRasterizerDiscard();
     ApplyColorMask();
     ApplyDepthClamp();
     ApplyViewport();

@@ -168,6 +168,9 @@ private:
     /// Syncs the point state to match the guest state
     void SyncPointState();
 
+    /// Syncs the rasterizer enable state to match the guest state
+    void SyncRasterizeEnable(OpenGLState& current_state);
+
     /// Syncs Color Mask
     void SyncColorMask();
 
