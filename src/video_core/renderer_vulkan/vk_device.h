@@ -39,6 +39,9 @@ public:
     vk::Format GetSupportedFormat(vk::Format wanted_format, vk::FormatFeatureFlags wanted_usage,
                                   FormatType format_type) const;
 
+    /// Reports a device loss.
+    void ReportLoss() const;
+
     /// Returns the dispatch loader with direct function pointers of the device.
     const vk::DispatchLoaderDynamic& GetDispatchLoader() const {
         return dld;
@@ -159,6 +162,11 @@ public:
         return ext_shader_viewport_index_layer;
     }
 
+    /// Returns true if the device supports VK_NV_device_diagnostic_checkpoints.
+    bool IsNvDeviceDiagnosticCheckpoints() const {
+        return nv_device_diagnostic_checkpoints;
+    }
+
     /// Returns the vendor name reported from Vulkan.
     std::string_view GetVendorName() const {
         return vendor_name;
@@ -218,6 +226,7 @@ private:
     bool ext_index_type_uint8{};               ///< Support for VK_EXT_index_type_uint8.
     bool ext_depth_range_unrestricted{};       ///< Support for VK_EXT_depth_range_unrestricted.
     bool ext_shader_viewport_index_layer{};    ///< Support for VK_EXT_shader_viewport_index_layer.
+    bool nv_device_diagnostic_checkpoints{};   ///< Support for VK_NV_device_diagnostic_checkpoints.
 
     // Telemetry parameters
     std::string vendor_name;                      ///< Device's driver name.

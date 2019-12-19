@@ -72,9 +72,18 @@ VKFence::VKFence(const VKDevice& device, UniqueFence handle)
 VKFence::~VKFence() = default;
 
 void VKFence::Wait() {
+    static constexpr u64 timeout = std::numeric_limits<u64>::max();
     const auto dev = device.GetLogical();
     const auto& dld = device.GetDispatchLoader();
-    dev.waitForFences({*handle}, true, std::numeric_limits<u64>::max(), dld);
+    switch (const auto result = dev.waitForFences(1, &*handle, true, timeout, dld)) {
+    case vk::Result::eSuccess:
+        return;
+    case vk::Result::eErrorDeviceLost:
+        device.ReportLoss();
+        [[fallthrough]];
+    default:
+        vk::throwResultException(result, "vk::waitForFences");
+    }
 }
 
 void VKFence::Release() {
