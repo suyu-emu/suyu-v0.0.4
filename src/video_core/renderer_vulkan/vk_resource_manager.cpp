@@ -87,6 +87,7 @@ void VKFence::Wait() {
 }
 
 void VKFence::Release() {
+    ASSERT(is_owned);
     is_owned = false;
 }
 
