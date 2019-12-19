@@ -101,6 +101,9 @@ struct Specialization final {
         Maxwell::TessellationSpacing spacing{};
         bool clockwise{};
     } tessellation;
+
+    // Fragment specific
+    std::bitset<8> enabled_rendertargets;
 };
 // Old gcc versions don't consider this trivially copyable.
 // static_assert(std::is_trivially_copyable_v<Specialization>);
