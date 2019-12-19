@@ -124,6 +124,14 @@ public:
 
     void OnFenceRemoval(VKFence* signaling_fence) override;
 
+    /**
+     * Do not use it paired with Watch. Use TryWatch instead.
+     * Returns true when the watch is free.
+     */
+    bool IsUsed() const {
+        return fence != nullptr;
+    }
+
 private:
     VKFence* fence{}; ///< Fence watching this resource. nullptr when the watch is free.
 };
