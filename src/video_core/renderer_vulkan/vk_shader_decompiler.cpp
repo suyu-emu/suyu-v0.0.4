@@ -1841,7 +1841,7 @@ private:
     }
 
     void PreExit() {
-        if (stage == ShaderType::Vertex) {
+        if (stage == ShaderType::Vertex && specialization.ndc_minus_one_to_one) {
             const u32 position_index = out_indices.position.value();
             const Id z_pointer = AccessElement(t_out_float, out_vertex, position_index, 2U);
             const Id w_pointer = AccessElement(t_out_float, out_vertex, position_index, 3U);

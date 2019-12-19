@@ -94,6 +94,7 @@ struct Specialization final {
     Maxwell::PrimitiveTopology primitive_topology{};
     std::optional<float> point_size{};
     std::array<Maxwell::VertexAttribute::Type, Maxwell::NumVertexAttributes> attribute_types{};
+    bool ndc_minus_one_to_one{};
 
     // Tessellation specific
     struct {
