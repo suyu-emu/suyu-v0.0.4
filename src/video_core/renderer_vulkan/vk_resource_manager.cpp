@@ -142,7 +142,31 @@ void VKFence::Unprotect(VKResource* resource) {
     protected_resources.erase(it);
 }
 
+void VKFence::RedirectProtection(VKResource* old_resource, VKResource* new_resource) noexcept {
+    std::replace(std::begin(protected_resources), std::end(protected_resources), old_resource,
+                 new_resource);
+}
+
 VKFenceWatch::VKFenceWatch() = default;
+
+VKFenceWatch::VKFenceWatch(VKFence& initial_fence) {
+    Watch(initial_fence);
+}
+
+VKFenceWatch::VKFenceWatch(VKFenceWatch&& rhs) noexcept {
+    fence = std::exchange(rhs.fence, nullptr);
+    if (fence) {
+        fence->RedirectProtection(&rhs, this);
+    }
+}
+
+VKFenceWatch& VKFenceWatch::operator=(VKFenceWatch&& rhs) noexcept {
+    fence = std::exchange(rhs.fence, nullptr);
+    if (fence) {
+        fence->RedirectProtection(&rhs, this);
+    }
+    return *this;
+}
 
 VKFenceWatch::~VKFenceWatch() {
     if (fence) {

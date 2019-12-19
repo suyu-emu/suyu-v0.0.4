@@ -65,6 +65,9 @@ public:
     /// Removes protection for a resource.
     void Unprotect(VKResource* resource);
 
+    /// Redirects one protected resource to a new address.
+    void RedirectProtection(VKResource* old_resource, VKResource* new_resource) noexcept;
+
     /// Retreives the fence.
     operator vk::Fence() const {
         return *handle;
@@ -97,7 +100,12 @@ private:
 class VKFenceWatch final : public VKResource {
 public:
     explicit VKFenceWatch();
+    VKFenceWatch(VKFence& initial_fence);
+    VKFenceWatch(VKFenceWatch&&) noexcept;
+    VKFenceWatch(const VKFenceWatch&) = delete;
     ~VKFenceWatch() override;
+
+    VKFenceWatch& operator=(VKFenceWatch&&) noexcept;
 
     /// Waits for the fence to be released.
     void Wait();
