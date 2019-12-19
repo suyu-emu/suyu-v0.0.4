@@ -2594,7 +2594,7 @@ public:
         const Id target = decomp.Constant(decomp.t_uint, expr.value);
         Id gpr = decomp.OpLoad(decomp.t_float, decomp.registers.at(expr.gpr));
         gpr = decomp.OpBitcast(decomp.t_uint, gpr);
-        return decomp.OpLogicalEqual(decomp.t_uint, gpr, target);
+        return decomp.OpIEqual(decomp.t_bool, gpr, target);
     }
 
     Id Visit(const Expr& node) {
@@ -2664,11 +2664,11 @@ public:
         const Id loop_label = decomp.OpLabel();
         const Id endloop_label = decomp.OpLabel();
         const Id loop_start_block = decomp.OpLabel();
-        const Id loop_end_block = decomp.OpLabel();
+        const Id loop_continue_block = decomp.OpLabel();
         current_loop_exit = endloop_label;
         decomp.OpBranch(loop_label);
         decomp.AddLabel(loop_label);
-        decomp.OpLoopMerge(endloop_label, loop_end_block, spv::LoopControlMask::MaskNone);
+        decomp.OpLoopMerge(endloop_label, loop_continue_block, spv::LoopControlMask::MaskNone);
         decomp.OpBranch(loop_start_block);
         decomp.AddLabel(loop_start_block);
         ASTNode current = ast.nodes.GetFirst();
@@ -2676,6 +2676,8 @@ public:
             Visit(current);
             current = current->GetNext();
         }
+        decomp.OpBranch(loop_continue_block);
+        decomp.AddLabel(loop_continue_block);
         ExprDecompiler expr_parser{decomp};
         const Id condition = expr_parser.Visit(ast.condition);
         decomp.OpBranchConditional(condition, loop_label, endloop_label);
