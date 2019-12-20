@@ -63,12 +63,11 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
     case OpCode::Id::I2F_R:
     case OpCode::Id::I2F_C:
     case OpCode::Id::I2F_IMM: {
-        UNIMPLEMENTED_IF(instr.conversion.int_src.selector != 0);
         UNIMPLEMENTED_IF(instr.conversion.dst_size == Register::Size::Long);
         UNIMPLEMENTED_IF_MSG(instr.generates_cc,
                              "Condition codes generation in I2F is not implemented");
 
-        Node value = [&]() {
+        Node value = [&] {
             switch (opcode->get().GetId()) {
             case OpCode::Id::I2F_R:
                 return GetRegister(instr.gpr20);
@@ -81,7 +80,19 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
                 return Immediate(0);
             }
         }();
+
         const bool input_signed = instr.conversion.is_input_signed;
+
+        if (instr.conversion.src_size == Register::Size::Byte) {
+            const u32 offset = static_cast<u32>(instr.conversion.int_src.selector) * 8;
+            if (offset > 0) {
+                value = SignedOperation(OperationCode::ILogicalShiftRight, input_signed,
+                                        std::move(value), Immediate(offset));
+            }
+        } else {
+            UNIMPLEMENTED_IF(instr.conversion.int_src.selector != 0);
+        }
+
         value = ConvertIntegerSize(value, instr.conversion.src_size, input_signed);
         value = GetOperandAbsNegInteger(value, instr.conversion.abs_a, false, input_signed);
         value = SignedOperation(OperationCode::FCastInteger, input_signed, PRECISE, value);
