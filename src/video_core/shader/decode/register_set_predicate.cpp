@@ -34,10 +34,11 @@ u32 ShaderIR::DecodeRegisterSetPredicate(NodeBlock& bb, u32 pc) {
         }
     }();
 
+    const auto offset = static_cast<u32>(instr.p2r_r2p.byte) * 8;
+
     switch (opcode->get().GetId()) {
     case OpCode::Id::R2P_IMM: {
         const Node mask = GetRegister(instr.gpr8);
-        const auto offset = static_cast<u32>(instr.p2r_r2p.byte) * 8;
 
         for (u64 pred = 0; pred < NUM_PROGRAMMABLE_PREDICATES; ++pred) {
             const auto shift = static_cast<u32>(pred);
@@ -53,6 +54,19 @@ u32 ShaderIR::DecodeRegisterSetPredicate(NodeBlock& bb, u32 pc) {
             const Node code = Operation(OperationCode::LogicalAssign, GetPredicate(pred), value);
             bb.push_back(Conditional(condition, {code}));
         }
+        break;
+    }
+    case OpCode::Id::P2R_IMM: {
+        Node value = Immediate(0);
+        for (u64 pred = 0; pred < NUM_PROGRAMMABLE_PREDICATES; ++pred) {
+            Node bit = Operation(OperationCode::Select, GetPredicate(pred), Immediate(1U << pred),
+                                 Immediate(0));
+            value = Operation(OperationCode::UBitwiseOr, std::move(value), std::move(bit));
+        }
+        value = Operation(OperationCode::UBitwiseAnd, std::move(value), apply_mask);
+        value = BitfieldInsert(GetRegister(instr.gpr8), std::move(value), offset, 8);
+
+        SetRegister(bb, instr.gpr0, std::move(value));
         break;
     }
     default:
